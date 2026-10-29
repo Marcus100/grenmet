@@ -50,10 +50,6 @@ export default async function GuidePage({ params }: Props) {
       <Section id="worked-example" title={guide.example.title}>
         <div className="max-w-prose bg-el-paper-2 p-6 leading-relaxed">
           <p>{guide.example.text}</p>
-          <p className="mt-3 text-el-muted text-lg leading-relaxed">
-            Illustrative arithmetic and reasoning, not an observed election
-            result.
-          </p>
         </div>
       </Section>
       {guide.slug === "counting-and-results" && (
@@ -88,12 +84,6 @@ export default async function GuidePage({ params }: Props) {
             </li>
           ))}
         </ul>
-        <Link
-          className="mt-6 inline-block text-lg underline underline-offset-4"
-          href="/sources"
-        >
-          Evidence, methods and unresolved gaps
-        </Link>
       </Section>
     </>
   );

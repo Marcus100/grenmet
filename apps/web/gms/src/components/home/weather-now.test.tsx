@@ -177,3 +177,103 @@ it("keeps quick updates under the note and plays video in the panel on request",
   );
   expect(container.querySelector("iframe")).toBeNull();
 });
+
+it("shows a forecaster's note under the imagery tab it belongs to, not beside the note", async () => {
+  vi.mocked(fetchHomeContent).mockResolvedValue(
+    home({
+      livePosts: {
+        status: "ok",
+        posts: [
+          {
+            id: "1",
+            kind: "satellite",
+            title: "Cloud band moving in",
+            text: "A band of cloud reaches Grenada this evening.",
+            mediaUrl: null,
+            publishedAt: "2026-10-28T18:30:00Z",
+            expiresAt: null,
+          },
+          {
+            id: "2",
+            kind: "wind",
+            title: "Gusty at the airport",
+            text: "Gusts to 25 mph.",
+            mediaUrl: null,
+            publishedAt: "2026-10-28T18:40:00Z",
+            expiresAt: null,
+          },
+        ],
+      },
+    })
+  );
+  render(await WeatherNow());
+  // Satellite is the open tab, so its note shows and the wind note does not.
+  expect(screen.getByText("Cloud band moving in")).toBeInTheDocument();
+  expect(screen.queryByText("Gusty at the airport")).not.toBeInTheDocument();
+  expect(screen.queryByText("Live from GMS")).not.toBeInTheDocument();
+  fireEvent.click(screen.getByRole("tab", { name: "Wind" }));
+  expect(screen.getByText("Gusty at the airport")).toBeInTheDocument();
+  expect(screen.queryByText("Cloud band moving in")).not.toBeInTheDocument();
+});
+
+it("shows a live post's link, building a GMS address from its id", async () => {
+  vi.mocked(fetchHomeContent).mockResolvedValue(
+    home({
+      livePosts: {
+        status: "ok",
+        posts: [
+          {
+            id: "1",
+            kind: "update",
+            title: "Evening forecast is out",
+            text: "Showers late tonight.",
+            mediaUrl: null,
+            publishedAt: "2026-10-28T18:30:00Z",
+            expiresAt: null,
+            relatedLinks: [
+              {
+                title: "Read the forecast",
+                category: "forecast",
+                url: "http://localhost:3003/weather/issued/0b3c6f1e-1111-4a2b-9c3d-222233334444",
+                type: "product",
+                ref: "0b3c6f1e-1111-4a2b-9c3d-222233334444",
+                isMain: false,
+              },
+            ],
+          },
+          {
+            id: "2",
+            kind: "satellite",
+            title: "Cloud band moving in",
+            text: "Reaches Grenada this evening.",
+            mediaUrl: null,
+            publishedAt: "2026-10-28T18:35:00Z",
+            expiresAt: null,
+            relatedLinks: [
+              {
+                title: "Satellite page",
+                category: "article",
+                url: "/weather/satellite",
+                type: "page",
+                ref: "/weather/satellite",
+                isMain: true,
+              },
+            ],
+          },
+        ],
+      },
+    })
+  );
+  render(await WeatherNow());
+  expect(
+    screen.getByRole("link", { name: "Read the forecast" })
+  ).toHaveAttribute(
+    "href",
+    "/weather/issued/0b3c6f1e-1111-4a2b-9c3d-222233334444"
+  );
+  // The satellite note is under the open Satellite tab, with its own link.
+  expect(screen.getByRole("link", { name: "Satellite page" })).toHaveAttribute(
+    "href",
+    "/weather/satellite"
+  );
+});

@@ -213,10 +213,10 @@ def validate(R, REF, REG, GEO, candidates, contests, references):
         }
         check(
             "Voter register",
-            f"{s['date']}: sex recorded for every elector",
+            f"{s['date']}: every elector has source sex code F or M",
             not blank,
             "; ".join(
-                f"{d}: {n} elector(s) with sex blank or unreadable in the published list"
+                f"{d}: {n} elector(s) not coded F/M; retain other, unspecified or unreadable source values"
                 for d, n in blank.items()
             ),
             known=bool(blank),

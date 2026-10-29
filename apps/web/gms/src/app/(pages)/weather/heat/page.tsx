@@ -1,3 +1,4 @@
+import { Measure } from "@/components/measure";
 import { PageHeader } from "@/components/page-header";
 import { InfoTable } from "@/components/pages/info-table";
 import { LinkList } from "@/components/pages/link-list";
@@ -11,6 +12,21 @@ export const metadata = {
     "How hot it feels in Grenada, and when heat becomes a health risk.",
 };
 
+/** A band of feels-like temperatures in °C, shown in the visitor's unit system. */
+function band(low: number, high?: number, prefix?: string) {
+  return (
+    <Measure
+      measure={{
+        high: high ?? null,
+        low,
+        places: 0,
+        prefix,
+        quantity: "temperature",
+      }}
+    />
+  );
+}
+
 export default function HeatIndexPage() {
   return (
     <>
@@ -23,7 +39,22 @@ export default function HeatIndexPage() {
         <Prose
           paragraphs={[
             "The heat index combines air temperature and humidity into a single “feels like” temperature. Your body cools by sweating; in humid air, sweat evaporates slowly, so you feel hotter than the thermometer reads.",
-            "In Grenada's humid climate, a 31°C afternoon can feel like the high 30s. Direct sunshine can add several degrees more.",
+            <>
+              In Grenada&apos;s humid climate, a{" "}
+              <Measure
+                measure={{ low: 31, places: 0, quantity: "temperature" }}
+              />{" "}
+              afternoon can feel like{" "}
+              <Measure
+                measure={{
+                  high: 39,
+                  low: 37,
+                  places: 0,
+                  quantity: "temperature",
+                }}
+              />
+              . Direct sunshine can add several degrees more.
+            </>,
           ]}
         />
       </PageSection>
@@ -35,18 +66,22 @@ export default function HeatIndexPage() {
             "Risk with long exposure or activity",
           ]}
           rows={[
-            ["27–32°C", "Caution", "Fatigue is possible"],
+            [band(27, 32), "Caution", "Fatigue is possible"],
             [
-              "32–41°C",
+              band(32, 41),
               "Extreme caution",
               "Heat cramps and heat exhaustion possible",
             ],
             [
-              "41–54°C",
+              band(41, 54),
               "Danger",
               "Heat cramps and exhaustion likely; heat stroke possible",
             ],
-            ["Above 54°C", "Extreme danger", "Heat stroke highly likely"],
+            [
+              band(54, undefined, "Above "),
+              "Extreme danger",
+              "Heat stroke highly likely",
+            ],
           ]}
         />
       </PageSection>

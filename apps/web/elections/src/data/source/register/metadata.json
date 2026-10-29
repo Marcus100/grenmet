@@ -31,5 +31,6 @@
     ["SHOP KEEPER", 689],
     ["ACCOUNTANT", 686]
   ],
-  "note": "Counted from the PEO consolidated lists (non-police pages) and quarterly constituency addenda (new registrations). Occupations are grouped counts of the listed job titles; top 60 titles per constituency only."
+  "note": "Register snapshots and addenda are dated non-police administrative lists. Addendum entries may overlap or reflect corrections; they are not established net additions. Occupation counts retained from the June 2026 extraction are historical registration labels, not current employment statistics.",
+  "occupationDate": "2026-06-30"
 }

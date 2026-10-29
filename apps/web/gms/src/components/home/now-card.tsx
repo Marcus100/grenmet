@@ -1,7 +1,8 @@
 import { MapPinIcon } from "lucide-react";
 import { ReadingGrid } from "@/components/home/reading-grid";
 import { SkyScene } from "@/components/home/sky-scene";
-import { Provenance } from "@/components/pages/provenance";
+import { SummaryCard } from "@/components/home/summary-card";
+import { Temperature } from "@/components/measure";
 import {
   isOtherGrenadaDay,
   isStale,
@@ -27,17 +28,17 @@ function Numeral({
           —<span className="sr-only">No current temperature</span>
         </>
       ) : (
-        <>
-          {Math.round(value)}°<span className="sr-only">C</span>
-        </>
+        <Temperature value={value} />
       )}
     </p>
   );
 }
 
 /**
- * When and where the reading was taken; an old reading says "Last observed".
- * A reading from another day carries its date here, on the top line.
+ * When and where the reading was taken; an old reading says "Last observed"
+ * and an unchecked one "provisional". A reading from another day carries its
+ * date here. This one line is the hero's whole provenance; the full source
+ * block lives on the observations page.
  */
 function sourceLine(
   weather: WeatherSnapshot,
@@ -49,9 +50,10 @@ function sourceLine(
     const time = isOtherGrenadaDay(current.observedAt, now)
       ? `${localDay(current.observedAt)}, ${localTime(current.observedAt)}`
       : localTime(current.observedAt);
-    return isStale(current.observedAt, now)
+    const line = isStale(current.observedAt, now)
       ? `Last observed ${time} · ${station}`
       : `Observed ${time} · ${station}`;
+    return current.provisional ? `${line} · provisional` : line;
   }
   return weather.observation
     ? `Midday reading · ${station}`
@@ -80,58 +82,39 @@ export function NowSummary({
   const temperature =
     current?.temperature ?? weather.observation?.temperature ?? null;
   const feels =
-    current?.temperature == null
-      ? null
-      : `Feels like ${Math.round(feelsLike(current.temperature, current.humidity))}°`;
+    current?.temperature == null ? null : (
+      <>
+        Feels like{" "}
+        <Temperature value={feelsLike(current.temperature, current.humidity)} />
+      </>
+    );
   return (
-    <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3">
-      <div className="grid min-w-0 content-start gap-0.5">
-        {compact && (
-          <span className="font-bold text-body-base leading-body-base lg:text-heading-sm lg:leading-heading-sm">
-            Now
-          </span>
-        )}
-        <span className="flex min-w-0 items-start gap-1 text-body-sm text-gm-text-inverse/85 leading-body-sm">
+    <SummaryCard
+      condition={current?.weather ?? null}
+      conditionPlaceholder="Sky not reported"
+      label={
+        <>
           <MapPinIcon aria-hidden="true" className="mt-0.5 size-3.5 shrink-0" />
-          <span className="min-w-0">{sourceLine(weather, station, now)}</span>
-        </span>
+          <span className="line-clamp-2 min-w-0">
+            {sourceLine(weather, station, now)}
+          </span>
+        </>
+      }
+      numeral={
         <Numeral
-          className={cn(
-            "mt-1",
-            compact ? "text-gm-numeral" : "text-gm-numeral-hero"
-          )}
+          className={compact ? "text-gm-numeral" : "text-gm-numeral-hero"}
           value={temperature}
         />
-        {current?.weather && (
-          <span className="truncate font-bold text-body-base leading-body-base lg:text-heading-sm lg:leading-heading-sm">
-            {current.weather}
-          </span>
-        )}
-        {feels && (
-          <span className="text-body-sm text-gm-text-inverse/85 leading-body-sm">
-            {feels}
-          </span>
-        )}
-      </div>
-      <SkyScene
-        className={compact ? "w-16 lg:w-24" : "w-28"}
-        sky={skyFromWords(current?.weather ?? null)}
-      />
-      {current && (isStale(current.observedAt, now) || current.provisional) && (
-        <div className="col-span-2">
-          {/* The top line already says when and "Last observed"; not twice. */}
-          <Provenance
-            kind="observation"
-            now={now}
-            showTime={false}
-            source={`GMS observation register, ${station}`}
-            status={current.provisional ? "provisional" : "verified"}
-            time={current.observedAt}
-            tone="inverse"
-          />
-        </div>
-      )}
-    </div>
+      }
+      scene={
+        <SkyScene
+          className={compact ? "w-16 lg:w-24" : "w-28"}
+          sky={skyFromWords(current?.weather ?? null)}
+        />
+      }
+      secondary={feels}
+      title={compact ? "Now" : undefined}
+    />
   );
 }
 
@@ -141,7 +124,7 @@ export function NowPanel({ weather }: { weather: WeatherSnapshot }) {
   return (
     <section
       aria-label="Current conditions"
-      className="grid content-start gap-3 rounded-gm-card bg-gm-scrim p-4 lg:p-5"
+      className="grid h-full content-start gap-3 rounded-gm-card bg-gm-scrim px-4 py-3 lg:px-5"
     >
       {current ? (
         <ReadingGrid

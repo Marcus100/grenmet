@@ -134,7 +134,11 @@ def _missing_response_models(application: FastAPI) -> list[str]:
         "public_file",
         # Subscription links redirect to the list's site with a result.
         "confirm_subscription",
+        # Unsubscribe: the emailed link redirects to the HTML confirmation page; the
+        # POST answers with a small HTML result page (mail clients need no body).
         "unsubscribe",
+        "unsubscribe_confirm_page",
+        "stop_subscription",
         "get_scalar_docs",
         "read_rss",
         "read_cap_xml",

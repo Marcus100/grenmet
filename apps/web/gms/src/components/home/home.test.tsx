@@ -10,7 +10,10 @@ import { unavailableWeather } from "@/lib/forecast-selection";
 
 vi.mock("next/navigation", () => ({ usePathname: () => "/" }));
 vi.mock("@/lib/env", () => ({ env: { CMS_API_URL: "" } }));
-vi.mock("@/lib/products", () => ({ fetchMonthSummary: async () => null }));
+vi.mock("@/lib/products", () => ({
+  fetchMonthSummary: async () => null,
+  fetchSectorOutlook: async () => null,
+}));
 
 const HERO_NAME = /^Grenada weather/;
 const STATION_NAME = /Maurice Bishop International \(MBIA\)/;
@@ -33,6 +36,8 @@ const result = (alerts: PublicAlert[]): AlertsResult => ({
   groups: [{ alerts, name: "Tropical Cyclone" }],
   status: "ok",
 });
+
+const NO_OBSERVATION_LABEL = /^No current observation · /;
 
 describe("WarningTakeover", () => {
   it("renders the live take-action alert and links to it", () => {
@@ -80,16 +85,21 @@ describe("SkyHero", () => {
   });
 
   it("says so when there is no observation or forecast", () => {
+    const visible = (elements: HTMLElement[]) =>
+      elements.filter((element) => !element.closest('[aria-hidden="true"]'));
     render(<SkyHero weather={unavailableWeather()} />);
+    expect(visible(screen.getAllByText(NO_OBSERVATION_LABEL))).toHaveLength(1);
     expect(
       screen.getAllByText("No current observation").length
     ).toBeGreaterThan(0);
-    expect(
-      screen.getAllByText("No current temperature").length
-    ).toBeGreaterThan(0);
     cleanup();
     render(<SkyHero selected="today" weather={unavailableWeather()} />);
-    expect(screen.getByText("Forecast unavailable")).toBeInTheDocument();
+    // Every tab's card is on the page, stacked; only the selected one is shown.
+    expect(
+      within(screen.getByRole("region", { name: "Weather summary" })).getByText(
+        "No forecast yet"
+      )
+    ).toBeInTheDocument();
   });
 });
 

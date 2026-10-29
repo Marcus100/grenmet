@@ -11,7 +11,7 @@ from shapely.geometry import shape
 from shapely.validation import explain_validity
 
 from src.cap.exceptions import CapImportError
-from src.cap.levels import validate_level
+from src.cap.levels import validate_level, validate_sectors
 from src.cap.models import CapMessageType, CapScope
 from src.cap.schemas import CapAlertPublic, CapNameValue, CapValidationResult
 from src.utils.datetime import utc_now
@@ -111,6 +111,7 @@ def validate_cap_alert(alert: CapAlertPublic) -> CapValidationResult:
         )
         errors.extend(level_errors)
         warnings.extend(level_warnings)
+        errors.extend(validate_sectors(info.parameters, prefix))
         errors.extend(_validate_source_bulletin_link(info.parameters, prefix))
         for area_index, area in enumerate(info.areas, start=1):
             area_prefix = f"{prefix}.area[{area_index}]"

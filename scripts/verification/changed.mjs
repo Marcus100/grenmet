@@ -125,28 +125,28 @@ const API_DEPENDENCIES = new Set([
   `${API}pyproject.toml`,
   `${API}uv.lock`,
 ]);
-// main.py wires every router, middleware and handler. A change there is checked
-// by a core subset (startup, OpenAPI, settings, release contract) plus the
-// domains it touches, not the whole suite. CI still runs everything.
+// Domains that every other domain imports (permissions and sessions run on every
+// request). A change there can break any test, so it runs the whole suite.
+// src/main.py wires every router and middleware, so it is shared too. Top-level
+// src/*.py modules (models, config, dependencies, ...) are shared by the rule below.
+const SHARED_DOMAINS = new Set(["auth"]);
 const API_ENTRYPOINT = "src/main.py";
-const API_CORE_TESTS = [
-  "tests/test_startup_imports.py",
-  "tests/test_openapi_contract.py",
-  "tests/test_release_contract_inputs.py",
-  "tests/test_settings.py",
-  "tests/test_schema_datetime_guard.py",
-  "tests/utils",
-];
 // tests/<dir>/... runs that directory; tests/test_x.py runs itself.
 const API_TEST_DIR = /^tests\/([^/]+)\/.+$/;
 
 // Pytest targets for one changed API file: "full" for the whole suite, else a list.
+// A domain with no test folder or flat test file of its own also runs the whole
+// suite: an empty target list would silently run nothing.
 function apiFileTargets(file, testFiles) {
   if (API_DEPENDENCIES.has(file)) return "full";
   const rest = file.slice(API.length);
   const domain = API_DOMAIN.exec(rest)?.[1];
-  if (domain) return apiTestTargets(domain, testFiles);
-  if (rest === API_ENTRYPOINT) return API_CORE_TESTS;
+  if (domain) {
+    if (SHARED_DOMAINS.has(domain)) return "full";
+    const targets = apiTestTargets(domain, testFiles);
+    return targets.length > 0 ? targets : "full";
+  }
+  if (rest === API_ENTRYPOINT) return "full";
   if (API_SHARED.test(rest) || API_TEST_INFRA.test(rest)) return "full";
   const testDir = API_TEST_DIR.exec(rest)?.[1];
   if (testDir) return [`tests/${testDir}`];

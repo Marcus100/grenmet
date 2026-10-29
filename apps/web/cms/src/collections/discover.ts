@@ -211,12 +211,12 @@ const base = editorialCollection({
   dated: false,
   withLinks: false,
   publishKey: PUBLISH_KEYS.discover,
-  labels: { singular: "Discover entry", plural: "Sky, history and fun" },
+  labels: { singular: "Discover entry", plural: "Discover" },
   admin: {
-    group: "Homepage sections",
+    group: "GMS Content",
     defaultColumns: ["title", "type", "status", "updatedAt"],
     description:
-      "Sky, history and a little fun: On this day, quizzes, Did you know facts and sky notes. Tonight's sun and moon times are calculated automatically.",
+      "Discover: On this day, quizzes, Did you know facts and sky notes. Tonight's sun and moon times are calculated automatically.",
   },
   fields: [
     {

@@ -37,7 +37,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const name = results.cons[code][0];
   return {
     title: name,
-    description: `${name}: who held the seat at dissolution, who is standing in 2026, and every result since 1972 down to the polling division.`,
+    description: `${name}: who held the seat at dissolution, reported 2026 selections, and every result since 1972 down to the polling division.`,
     alternates: { canonical: constituencyHref(results, code) },
   };
 }
@@ -78,7 +78,7 @@ export default async function ConstituencyPage({ params }: Props) {
         </p>
       </PageHead>
 
-      <Section id="standing" title="Standing in 2026">
+      <Section id="standing" title="Reported 2026 selections">
         <ul className="grid gap-px border border-el-rule bg-el-rule sm:grid-cols-3">
           {(["NDC", "NNP", "DPM"] as const).map((party) => {
             const named = seat.candidates.find((c) => c.party === party);
@@ -106,7 +106,13 @@ export default async function ConstituencyPage({ params }: Props) {
           })}
         </ul>
         <p className="mt-2 text-base text-el-muted leading-relaxed">
-          Updated {formatIsoDate(campaign.updated)}.
+          Earlier selections recorded through{" "}
+          {formatIsoDate(campaign.candidate_names_as_of ?? campaign.updated)}.
+          This is an incomplete announcement directory. See{" "}
+          <Link className="underline underline-offset-4" href="/candidates">
+            nomination coverage
+          </Link>
+          .
           {(["NDC", "NNP", "DPM"] as const).map((party) => {
             const id = seat.candidates.some((c) => c.party === party)
               ? candidateSource(campaign, party, code)
@@ -291,7 +297,8 @@ export default async function ConstituencyPage({ params }: Props) {
             {fmt(firstRoll.electors)} on {formatIsoDate(firstRoll.date)} (
             {pct((lastRoll.electors - firstRoll.electors) / firstRoll.electors)}
             ). Counted from the Parliamentary Elections Office consolidated
-            lists; police voters are not included.
+            lists labelled NON-POLICE. Their relationship to the final election
+            roll requires PEO confirmation.
           </p>
         </Section>
       )}

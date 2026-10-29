@@ -1,4 +1,5 @@
 import type { CurrentConditions } from "@/lib/current-conditions";
+import type { Measure } from "@/lib/units";
 import type { WeatherCondition } from "@/lib/weather-icons";
 export interface Condition {
   /** Secondary line under the value, e.g. knots under mph. */
@@ -6,6 +7,11 @@ export interface Condition {
   /** Lucide icon name from the forecast feed; older data falls back to the label. */
   icon?: string;
   label: string;
+  /**
+   * The numbers behind `value` (WMO units) for a measurement, so a pass can show
+   * them in the visitor's unit system. `value` is the same text in the default units.
+   */
+  measure?: Measure;
   value: string;
 }
 export interface DayForecast {

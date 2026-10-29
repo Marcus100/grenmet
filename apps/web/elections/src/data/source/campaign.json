@@ -1,5 +1,5 @@
 {
-  "updated": "2026-10-04",
+  "updated": "2026-10-28",
   "sources": {
     "conch": [
       "NOW Grenada, 26 Sep 2026",
@@ -129,6 +129,18 @@
     "rgpf1oct": [
       "NOW Grenada, 1 Oct 2026: “Traffic arrangements: National Democratic Congress (NDC) Rally” (Royal Grenada Police Force notice)",
       "https://nowgrenada.com/2026/10/traffic-arrangements-national-democratic-congress-ndc-rally"
+    ],
+    "cmc26oct": [
+      "CMC, published by NOW Grenada, 26 October 2026",
+      "https://nowgrenada.com/2026/10/oas-to-monitor-general-elections-in-grenada/"
+    ],
+    "debate26oct": [
+      "Roxanne Thompson, NOW Grenada, 26 October 2026",
+      "https://nowgrenada.com/2026/10/three-party-leaders-confirm-participation-in-grenada-election-debate/"
+    ],
+    "labour20oct": [
+      "Division of Labour advisory, published by NOW Grenada, 20 October 2026",
+      "https://nowgrenada.com/2026/10/division-of-labour-election-day-advisory-2026/"
     ]
   },
   "events": [
@@ -254,6 +266,18 @@
       "src": "gazette47",
       "flag": null,
       "future": true
+    },
+    {
+      "date": "2026-10-26",
+      "text": "CMC reports 46 nominated candidates: NDC 15, NNP 15 and DPM 9; the complete named ballot is not yet verified in this directory.",
+      "src": "cmc26oct",
+      "flag": null
+    },
+    {
+      "date": "2026-10-26",
+      "text": "Mitchell, Pierre and David are reported as confirmed participants in the 28 October leaders’ debate at the Grenada Trade Centre, scheduled for 7 pm.",
+      "src": "debate26oct",
+      "flag": null
     }
   ],
   "candidates": {
@@ -480,5 +504,17 @@
   "writs": "2026-10-02",
   "nomination_day": "2026-10-15",
   "polling_day": "2026-11-05",
-  "police_polling_day": "2026-11-02"
+  "police_polling_day": "2026-11-02",
+  "candidate_names_as_of": "2026-10-04",
+  "nomination_summary": {
+    "date": "2026-10-26",
+    "total": 46,
+    "party_counts": {
+      "NDC": 15,
+      "NNP": 15,
+      "DPM": 9
+    },
+    "src": "cmc26oct",
+    "note": "CMC reports PEO nomination totals. Our named directory retains earlier announcements and supplied confirmations; it is not a complete certified list. The three party counts cover 39 of the reported 46 nominees."
+  }
 }

@@ -1,10 +1,12 @@
 import { cleanup, render, screen } from "@testing-library/react";
 import { afterEach, expect, it, vi } from "vitest";
 import {
+  avatarInitials,
   Explained,
   ForecastDesk,
   GetAlertsStrip,
   LatestReports,
+  postedLabel,
   Stories,
 } from "@/components/home/live-sections";
 import {
@@ -55,6 +57,21 @@ const hidden = (sections: string[]): HomeContent => ({
   },
 });
 
+const READ_ARTICLE = /^Read the article: /;
+
+it("labels a post Today, Yesterday or by date, in Grenada time", () => {
+  const post = "2026-10-28T02:00:00Z"; // 27 Oct, 22:00 in Grenada
+  expect(postedLabel(post, new Date("2026-10-28T03:30:00Z"))).toBe(
+    "Today at 22:00"
+  );
+  expect(postedLabel(post, new Date("2026-10-28T05:00:00Z"))).toBe(
+    "Yesterday at 22:00"
+  );
+  expect(postedLabel(post, new Date("2026-10-29T13:00:00Z"))).toBe(
+    "27 Oct at 22:00"
+  );
+});
+
 it("drops sections editors hide", async () => {
   vi.mocked(fetchHomeContent).mockResolvedValue(
     hidden(["stories", "questions"])
@@ -102,7 +119,7 @@ const post = (overrides: Partial<PublishedContent>): PublishedContent => ({
 });
 const PRODUCT_ID = "0b3c6f1e-1111-4a2b-9c3d-222233334444";
 
-it("is a blog: desk posts with their live product, never the forecast itself", async () => {
+it("is a blog: desk post cards that link to their articles, never the forecast itself", async () => {
   vi.mocked(fetchHomeContent).mockResolvedValue({
     ...hidden([]),
     deskUpdates: {
@@ -118,8 +135,13 @@ it("is a blog: desk posts with their live product, never the forecast itself", a
   expect(
     screen.getByRole("link", { name: "Why the morning forecast changed" })
   ).toHaveAttribute("href", "/explore/updates/2026/09/why");
-  expect(screen.getByText(`Linked product ${PRODUCT_ID}`)).toBeInTheDocument();
+  // The article carries the linked product; the card only links to it.
+  expect(
+    screen.queryByText(`Linked product ${PRODUCT_ID}`)
+  ).not.toBeInTheDocument();
+  expect(screen.getAllByRole("link", { name: READ_ARTICLE })).toHaveLength(2);
   expect(screen.getByText("New marine page")).toBeInTheDocument();
+  expect(screen.getAllByText("The forecasters")).toHaveLength(2);
 });
 
 it("shows only report write-ups, with an honest empty state", async () => {
@@ -162,4 +184,33 @@ it("leads report write-ups with their live product and links each write-up", asy
     "href",
     "/explore/reports/2026/09/outlook"
   );
+});
+
+it("signs a desk card with the author's name and initials, with their picture", async () => {
+  vi.mocked(fetchHomeContent).mockResolvedValue({
+    ...hidden([]),
+    deskUpdates: {
+      status: "ok",
+      articles: [
+        post({
+          authorName: "Eugine Whint",
+          imageUrl: "https://weather.barrels.gd/media/rain-map.png",
+          imageAlt: "Rain map for tonight",
+        }),
+      ],
+    },
+  });
+  render(await ForecastDesk());
+  expect(screen.getByText("Eugine Whint")).toBeInTheDocument();
+  expect(screen.getByText("EW")).toBeInTheDocument();
+  expect(screen.queryByText("The forecasters")).not.toBeInTheDocument();
+  expect(screen.getByAltText("Rain map for tonight")).toBeInTheDocument();
+});
+
+it("makes avatar initials from a name, and falls back to GMS", () => {
+  expect(avatarInitials("Eugine Whint")).toBe("EW");
+  expect(avatarInitials("eugine.whint")).toBe("EW");
+  expect(avatarInitials("forecaster")).toBe("FO");
+  expect(avatarInitials(null)).toBe("GMS");
+  expect(avatarInitials("  ")).toBe("GMS");
 });

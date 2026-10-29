@@ -329,7 +329,7 @@ counts only, never addresses or message text.
 | Data | Rule |
 | --- | --- |
 | `contact_message`, `contact_data_request` | Deleted 24 calendar months after closing. These tables have no status, so a request counts as closed when received and the clock is `created_at`. |
-| `list_subscription` still `pending` | Deleted 30 days after `requested_at` (never confirmed). |
+| `list_subscription` still `pending` | Deleted when its newest confirmation link has lapsed: 7 days after the link was sent (`SUBSCRIPTIONS_CONFIRM_TTL_DAYS`). Never confirmed, so no consent to keep. |
 | `list_subscription` unsubscribed | Plaintext address nulled at unsubscribe; the row keeps `email_hash` as consent proof. Not purged. |
 | `email_suppression` | Stores only `email_hash`; kept so a bounced or complaining address is never mailed again. |
 | `org.contact` | Plaintext address, name and phone kept while the organisation serves the person. Erasure (`contacts` service, organisation admin) blanks them, revokes consent and keeps `email_hash` plus `erased_at` as a tombstone. No automatic purge yet; the organisation decides. |

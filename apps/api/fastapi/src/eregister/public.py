@@ -32,6 +32,19 @@ RAIN_PERIOD_HOURS = {
     "8": 9,
     "9": 15,
 }
+# WMO code table 1600 (h): lowest cloud base band in metres; None is open-ended.
+CLOUD_BASE_M: dict[int, tuple[int, int | None]] = {
+    0: (0, 50),
+    1: (50, 100),
+    2: (100, 200),
+    3: (200, 300),
+    4: (300, 600),
+    5: (600, 1000),
+    6: (1000, 1500),
+    7: (1500, 2000),
+    8: (2000, 2500),
+    9: (2500, None),
+}
 CLOUD_WORDS = {
     0: "Clear",
     1: "Mostly clear",
@@ -155,6 +168,36 @@ def wind(workbook: dict[str, Any]) -> tuple[bool, int | None, int | None]:
     return False, direction, speed
 
 
+def _knots(raw: str, wind_indicator: str) -> int | None:
+    """A wind group value in knots; the register keys it in m/s or knots (iw)."""
+    value = _code(raw)
+    if value is None:
+        return None
+    return round(value * 1.943844) if wind_indicator in {"0", "1"} else value
+
+
+def gust(workbook: dict[str, Any]) -> tuple[int | None, int | None]:
+    """(knots, mph) for the gust cell; none when it is empty or not a number."""
+    kt = _knots(_value(workbook, "wind_gust"), _value(workbook, "wind_indicator"))
+    return kt, None if kt is None else round(kt * 1.150779)
+
+
+def visibility(workbook: dict[str, Any]) -> float | None:
+    """Kilometres: the typed value (item 8), else the coded VV read back."""
+    km = derive.parse_visibility_km(_value(workbook, "visibility_km"))
+    if km is None:
+        km = derive.visibility_km_from_code(_value(workbook, "visibility"))
+    return None if km is None else float(km)
+
+
+def cloud_base(code: str, oktas: int | None) -> tuple[int | None, int | None]:
+    """The (lower, upper) metres of the lowest cloud base band; none for a clear sky."""
+    value = _code(code)
+    if value is None or oktas == 0 or value not in CLOUD_BASE_M:
+        return None, None
+    return CLOUD_BASE_M[value]
+
+
 def compass(degrees: int | None) -> str | None:
     return None if degrees is None else COMPASS[round(degrees / 22.5) % 16]
 
@@ -216,6 +259,8 @@ def decode(row: dict[str, Any]) -> PublicObservation:
     amount, trace = rain(_value(workbook, "precip_amount"))
     rain_24h = rain_24h_mm(_value(workbook, "s3_rainfall_24h"))
     oktas = _code(_value(workbook, "total_cloud"))
+    gust_kt, gust_mph = gust(workbook)
+    base_min, base_max = cloud_base(_value(workbook, "cloud_base"), oktas)
     return PublicObservation(
         station_id=row["station_id"],
         station_name=row["station_name"],
@@ -239,6 +284,13 @@ def decode(row: dict[str, Any]) -> PublicObservation:
         weather=weather(_value(workbook, "present_wx")),
         cloud_oktas=oktas if oktas is not None and oktas <= 9 else None,
         cloud=CLOUD_WORDS.get(oktas) if oktas is not None else None,
+        visibility_km=visibility(workbook),
+        wind_gust_kt=gust_kt,
+        wind_gust_mph=gust_mph,
+        max_temperature_c=temperature(_value(workbook, "s3_max_temp")),
+        min_temperature_c=temperature(_value(workbook, "s3_min_temp")),
+        cloud_base_min_m=base_min,
+        cloud_base_max_m=base_max,
     )
 
 

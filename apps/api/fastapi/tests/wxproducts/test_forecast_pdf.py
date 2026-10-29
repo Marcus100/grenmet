@@ -2,6 +2,7 @@ import json
 import re
 from pathlib import Path
 from types import SimpleNamespace
+from uuid import uuid4
 
 import pytest
 
@@ -178,6 +179,7 @@ async def test_snapshot_maps_cap_and_bulletins(monkeypatch):
     async def published(*_):
         return [
             SimpleNamespace(
+                id=uuid4(),
                 kind="marine",
                 revision=2,
                 values={

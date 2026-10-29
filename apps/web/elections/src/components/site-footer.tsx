@@ -16,9 +16,6 @@ export function SiteFooter() {
     <footer className="mt-16">
       <FlagStripe />
       <div className="mx-auto max-w-[1240px] space-y-4 px-4 py-8 text-base text-el-muted leading-relaxed sm:px-6">
-        <p className="font-semibold text-el-ink leading-relaxed">
-          Understand the system. Explore the evidence. Explain it for yourself.
-        </p>
         <nav
           aria-label="Learning and evidence"
           className="flex flex-wrap gap-4"
@@ -34,25 +31,21 @@ export function SiteFooter() {
           </Link>
         </nav>
         <p>
-          Elections Grenada is an independent Barrels Grenada project, built
-          from public records: Parliamentary Elections Office reports,
-          referendum certificates and voter lists (counts only), the Government
-          Gazette, ElectionPassport (1951–2008, secondary) and census
-          enumeration districts for the map. Boundaries are illustrative.
+          Elections Grenada is an independent Barrels Grenada project. It is not
+          the Parliamentary Elections Office. Use PEO guidance to confirm your
+          registration and polling station.
         </p>
-        <dl className="space-y-1">
-          {MARKS.map(([mark, meaning]) => (
-            <div className="flex gap-3" key={mark}>
-              <dt className="w-6 shrink-0 font-bold text-el-ink">{mark}</dt>
-              <dd>{meaning}</dd>
-            </div>
-          ))}
-        </dl>
-        <p>
-          <Link className="underline underline-offset-2" href="/sources">
-            Sources and discrepancy register
-          </Link>
-        </p>
+        <details>
+          <summary className="cursor-pointer">Evidence marks</summary>
+          <dl className="mt-2 space-y-1">
+            {MARKS.map(([mark, meaning]) => (
+              <div className="flex gap-3" key={mark}>
+                <dt className="w-6 shrink-0 font-bold text-el-ink">{mark}</dt>
+                <dd>{meaning}</dd>
+              </div>
+            ))}
+          </dl>
+        </details>
       </div>
     </footer>
   );

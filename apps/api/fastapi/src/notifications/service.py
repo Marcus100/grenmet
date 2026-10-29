@@ -2,7 +2,7 @@ import logging
 import uuid
 from collections.abc import Collection, Iterable
 from dataclasses import dataclass
-from datetime import timedelta
+from datetime import datetime, timedelta
 from typing import Any
 
 from sqlalchemy import func, or_, select, update
@@ -853,8 +853,12 @@ async def is_suppressed(*, session: AsyncSession, email: str) -> bool:
     return found is not None
 
 
-def _queue_delivery(session: AsyncSession, email_id: uuid.UUID) -> None:
-    """Add the outbox row that sends ``email_id``; the payload holds no personal data."""
+def _queue_delivery(
+    session: AsyncSession, email_id: uuid.UUID, *, run_at: datetime | None = None
+) -> None:
+    """Add the outbox row that sends ``email_id``; the payload holds no personal data.
+
+    ``run_at`` paces a batch: the row is not due before that time."""
     now = utc_now()
     session.add(
         outbox.Outbox(
@@ -863,7 +867,7 @@ def _queue_delivery(session: AsyncSession, email_id: uuid.UUID) -> None:
             payload={"outbound_email_id": str(email_id)},
             dedupe_key=str(email_id),
             attempts=0,
-            next_attempt_at=now,
+            next_attempt_at=run_at or now,
             status=outbox.OutboxStatus.PENDING.value,
             created_at=now,
             updated_at=now,
@@ -910,13 +914,15 @@ async def enqueue_email_once(
     dedupe_key: str,
     template: str,
     props: dict[str, Any],
+    run_at: datetime | None = None,
 ) -> bool:
     """Queue a non-transactional email unless ``dedupe_key`` was already queued.
 
     Returns True when a new row was written. Suppressed addresses are skipped
-    here and again at send time. The caller commits. The unique
-    ``outbound_email.dedupe_key`` index decides, so rows queued before the outbox
-    move (still draining through ``dispatch.process_outbound_emails``) count too.
+    here and again at send time. ``run_at`` delays the send (batch pacing). The
+    caller commits. The unique ``outbound_email.dedupe_key`` index decides, so rows
+    queued before the outbox move (still draining through
+    ``dispatch.process_outbound_emails``) count too.
     """
     email = normalise_email(to_email)
     if await is_suppressed(session=session, email=email):
@@ -943,5 +949,5 @@ async def enqueue_email_once(
     )
     if not getattr(result, "rowcount", 0):
         return False
-    _queue_delivery(session, email_id)
+    _queue_delivery(session, email_id, run_at=run_at)
     return True

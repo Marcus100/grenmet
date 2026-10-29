@@ -14,6 +14,9 @@ const LINT_TESTS =
   /ruff check src scripts tests .*ruff format src scripts tests --check/;
 const TEST_FILES = ["cap/", "hr/", "conftest.py", "test_eregister_public.py"];
 const PARALLEL_HR = /pytest -q -n 6 --dist load tests\/hr$/;
+const EREGISTER_TESTS =
+  /pytest -q tests\/eregister tests\/test_eregister_public\.py$/;
+const CAP_AND_HR_TESTS = /pytest -q tests\/cap tests\/hr$/;
 const PARALLEL_FLAG = / -n /;
 const FULL_PARALLEL_FUZZ = /pytest -q -n 4 --dist load -m 'fuzz or not fuzz'$/;
 const FUZZ_FILE = /-m 'fuzz or not fuzz' tests\/test_api_fuzz\.py$/;
@@ -83,19 +86,44 @@ test("shared API module or test infrastructure change runs the full API suite", 
   }
 });
 
-test("main.py change runs the core subset, not the full suite", () => {
+test("main.py change runs the full API suite (it wires every domain)", () => {
   const checks = planChecks(["apps/api/fastapi/src/main.py"], {
     testFiles: TEST_FILES,
   });
-  const command = find(checks, "api tests").args.at(-1);
-  assert.doesNotMatch(command, FULL_SUITE);
-  for (const target of [
-    "tests/test_startup_imports.py",
-    "tests/test_openapi_contract.py",
-    "tests/test_settings.py",
-  ])
-    assert.ok(command.includes(target), target);
+  assert.match(find(checks, "api tests").args.at(-1), FULL_SUITE);
   assert.ok(names(checks).includes("api client drift"));
+});
+
+test("auth is a shared domain: its change runs the full API suite", () => {
+  const checks = planChecks(["apps/api/fastapi/src/auth/policy.py"], {
+    testFiles: [...TEST_FILES, "auth/"],
+  });
+  assert.match(find(checks, "api tests").args.at(-1), FULL_SUITE);
+});
+
+test("a domain with no test folder falls back to the full suite, never to nothing", () => {
+  const checks = planChecks(["apps/api/fastapi/src/nodomaintests/service.py"], {
+    testFiles: TEST_FILES,
+  });
+  assert.match(find(checks, "api tests").args.at(-1), FULL_SUITE);
+});
+
+test("a domain with a flat test file and a folder runs both", () => {
+  const checks = planChecks(["apps/api/fastapi/src/eregister/service.py"], {
+    testFiles: ["eregister/", "test_eregister_public.py"],
+  });
+  assert.match(find(checks, "api tests").args.at(-1), EREGISTER_TESTS);
+});
+
+test("several changed domains run only their own folders, sorted", () => {
+  const checks = planChecks(
+    [
+      "apps/api/fastapi/src/hr/service.py",
+      "apps/api/fastapi/src/cap/router.py",
+    ],
+    { testFiles: TEST_FILES }
+  );
+  assert.match(find(checks, "api tests").args.at(-1), CAP_AND_HR_TESTS);
 });
 
 test("dependency changes run API lint and the full suite", () => {
