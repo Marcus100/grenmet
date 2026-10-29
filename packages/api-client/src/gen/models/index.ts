@@ -2083,6 +2083,7 @@ export type {
   CapSuggestIbfStatus403,
   CapSuggestIbfStatus422,
 } from "./CapSuggestIbf.js";
+export type { Captions } from "./Captions.js";
 export type {
   CapUpdateAlertBody,
   CapUpdateAlertOptions,
@@ -2330,6 +2331,27 @@ export type {
   ContactsUpsertOrgContactStatus422,
 } from "./ContactsUpsertOrgContact.js";
 export type { ContactUpdate } from "./ContactUpdate.js";
+export type {
+  ContentListPostsOptions,
+  ContentListPostsQuery,
+  ContentListPostsResponse,
+  ContentListPostsResponses,
+  ContentListPostsStatus200,
+  ContentListPostsStatus401,
+  ContentListPostsStatus403,
+  ContentListPostsStatus422,
+} from "./ContentListPosts.js";
+export type {
+  ContentSavePostBody,
+  ContentSavePostHeaders,
+  ContentSavePostOptions,
+  ContentSavePostResponse,
+  ContentSavePostResponses,
+  ContentSavePostStatus202,
+  ContentSavePostStatus401,
+  ContentSavePostStatus422,
+  ContentSavePostStatus503,
+} from "./ContentSavePost.js";
 export type { ContractorCreate } from "./ContractorCreate.js";
 export type { ContractorUpdate } from "./ContractorUpdate.js";
 export type { CurrentOrganisationPublic } from "./CurrentOrganisationPublic.js";
@@ -2345,7 +2367,16 @@ export { dataFormat } from "./DataFormat.js";
 export type { DataParameter } from "./DataParameter.js";
 export { dataParameter } from "./DataParameter.js";
 export type { DataRequestCreate } from "./DataRequestCreate.js";
+export type { DeliveryAdmin } from "./DeliveryAdmin.js";
+export type { DeliveryAdminList } from "./DeliveryAdminList.js";
+export type { DeliveryAdminPropertiesStatusEnum } from "./DeliveryAdminPropertiesStatusEnum.js";
+export { deliveryAdminPropertiesStatusEnum } from "./DeliveryAdminPropertiesStatusEnum.js";
 export type { DeliveryLine } from "./DeliveryLine.js";
+export type { DeliveryOutcome } from "./DeliveryOutcome.js";
+export type { DeliveryOutcomePropertiesOutcomeEnum } from "./DeliveryOutcomePropertiesOutcomeEnum.js";
+export { deliveryOutcomePropertiesOutcomeEnum } from "./DeliveryOutcomePropertiesOutcomeEnum.js";
+export type { DeliveryOutcomePropertiesPlatformEnum } from "./DeliveryOutcomePropertiesPlatformEnum.js";
+export { deliveryOutcomePropertiesPlatformEnum } from "./DeliveryOutcomePropertiesPlatformEnum.js";
 export type { DeliveryStatus } from "./DeliveryStatus.js";
 export { deliveryStatus } from "./DeliveryStatus.js";
 export type { DepartmentCreate } from "./DepartmentCreate.js";
@@ -6654,6 +6685,8 @@ export type { PlatformOrganisationUpdate } from "./PlatformOrganisationUpdate.js
 export type { PolicyInput } from "./PolicyInput.js";
 export type { PolicyPublic } from "./PolicyPublic.js";
 export type { PositionSpec } from "./PositionSpec.js";
+export type { PostAccepted } from "./PostAccepted.js";
+export type { PostIn } from "./PostIn.js";
 export type { PostponeEvent } from "./PostponeEvent.js";
 export type { PostponeResult } from "./PostponeResult.js";
 export type { PreferencesUnsubscribeRequest } from "./PreferencesUnsubscribeRequest.js";

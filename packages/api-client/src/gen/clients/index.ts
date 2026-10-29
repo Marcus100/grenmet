@@ -181,6 +181,8 @@ export { contactsMergeOrgContact } from "./contactsMergeOrgContact.js";
 export { contactsSetOrgContactConsent } from "./contactsSetOrgContactConsent.js";
 export { contactsUpdateOrgContact } from "./contactsUpdateOrgContact.js";
 export { contactsUpsertOrgContact } from "./contactsUpsertOrgContact.js";
+export { contentListPosts } from "./contentListPosts.js";
+export { contentSavePost } from "./contentSavePost.js";
 export { environmentGetAir } from "./environmentGetAir.js";
 export { environmentGetMarine } from "./environmentGetMarine.js";
 export { eregisterAcceptRegisterObservation } from "./eregisterAcceptRegisterObservation.js";

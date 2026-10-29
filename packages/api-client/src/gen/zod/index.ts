@@ -2038,6 +2038,7 @@ export {
   capSuggestIbfStatus403Schema,
   capSuggestIbfStatus422Schema,
 } from "./capSuggestIbfSchema.js";
+export { captionsSchema } from "./captionsSchema.js";
 export {
   capUpdateAlertBodySchema,
   capUpdateAlertErrorSchema,
@@ -2287,6 +2288,30 @@ export {
   contactsUpsertOrgContactStatus422Schema,
 } from "./contactsUpsertOrgContactSchema.js";
 export { contactUpdateSchema } from "./contactUpdateSchema.js";
+export {
+  contentListPostsErrorSchema,
+  contentListPostsQueryCollectionSchema,
+  contentListPostsQueryPageSchema,
+  contentListPostsQuerySchema,
+  contentListPostsQuerySizeSchema,
+  contentListPostsQuerySlugSchema,
+  contentListPostsResponseSchema,
+  contentListPostsStatus200Schema,
+  contentListPostsStatus401Schema,
+  contentListPostsStatus403Schema,
+  contentListPostsStatus422Schema,
+} from "./contentListPostsSchema.js";
+export {
+  contentSavePostBodySchema,
+  contentSavePostErrorSchema,
+  contentSavePostHeadersSchema,
+  contentSavePostHeaderXCmsSecretSchema,
+  contentSavePostResponseSchema,
+  contentSavePostStatus202Schema,
+  contentSavePostStatus401Schema,
+  contentSavePostStatus422Schema,
+  contentSavePostStatus503Schema,
+} from "./contentSavePostSchema.js";
 export { contractorCreateSchema } from "./contractorCreateSchema.js";
 export { contractorUpdateSchema } from "./contractorUpdateSchema.js";
 export { currentOrganisationPublicSchema } from "./currentOrganisationPublicSchema.js";
@@ -2300,7 +2325,13 @@ export { dashboardRequestSchema } from "./dashboardRequestSchema.js";
 export { dataFormatSchema } from "./dataFormatSchema.js";
 export { dataParameterSchema } from "./dataParameterSchema.js";
 export { dataRequestCreateSchema } from "./dataRequestCreateSchema.js";
+export { deliveryAdminListSchema } from "./deliveryAdminListSchema.js";
+export { deliveryAdminPropertiesStatusEnumSchema } from "./deliveryAdminPropertiesStatusEnumSchema.js";
+export { deliveryAdminSchema } from "./deliveryAdminSchema.js";
 export { deliveryLineSchema } from "./deliveryLineSchema.js";
+export { deliveryOutcomePropertiesOutcomeEnumSchema } from "./deliveryOutcomePropertiesOutcomeEnumSchema.js";
+export { deliveryOutcomePropertiesPlatformEnumSchema } from "./deliveryOutcomePropertiesPlatformEnumSchema.js";
+export { deliveryOutcomeSchema } from "./deliveryOutcomeSchema.js";
 export { deliveryStatusSchema } from "./deliveryStatusSchema.js";
 export { departmentCreateSchema } from "./departmentCreateSchema.js";
 export { departmentMemberPublicSchema } from "./departmentMemberPublicSchema.js";
@@ -6603,6 +6634,8 @@ export { platformOrganisationUpdateSchema } from "./platformOrganisationUpdateSc
 export { policyInputSchema } from "./policyInputSchema.js";
 export { policyPublicSchema } from "./policyPublicSchema.js";
 export { positionSpecSchema } from "./positionSpecSchema.js";
+export { postAcceptedSchema } from "./postAcceptedSchema.js";
+export { postInSchema } from "./postInSchema.js";
 export { postponeEventSchema } from "./postponeEventSchema.js";
 export { postponeResultSchema } from "./postponeResultSchema.js";
 export { preferencesUnsubscribeRequestSchema } from "./preferencesUnsubscribeRequestSchema.js";
