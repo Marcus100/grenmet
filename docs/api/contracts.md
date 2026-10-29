@@ -81,9 +81,18 @@ site key), never a secret. Superusers manage sites through
   unknown site, a suspended owner, or a form the site does not accept.
 
 - `POST /api/v1/subscriptions` (`subscriptionsSubscribe`, **deprecated**; use the site route): double opt-in sign-up
-  for a list key (`signal`, `barrels`, `gms-alerts`); the reply is identical for every address state.
-  `GET /subscriptions/confirm` and `/subscriptions/unsubscribe` take a signed
-  `token` and 303-redirect to the list's site.
+  for a list key (`signal`, `barrels`, `gms-alerts`, `gms-newsletter`); the reply is identical for every address state.
+  `GET /subscriptions/confirm` takes a signed `token` and 303-redirects to the list's site.
+- Unsubscribe (additive, ADR-0052): `GET /subscriptions/unsubscribe?token=` (`subscriptionsUnsubscribe`)
+  **no longer changes anything**; it 303-redirects to `GET /subscriptions/unsubscribe/confirm?token=`
+  (`subscriptionsUnsubscribeConfirmPage`, HTML naming the list and a button). The button, and the
+  one-click `List-Unsubscribe-Post` target, is `POST /subscriptions/unsubscribe?token=`
+  (`subscriptionsStopSubscription`, HTML result, 400 for an invalid token). Mail scanners that open
+  links therefore cannot unsubscribe anyone.
+- Climate newsletter staff test (additive, ADR-0052): `POST /api/v1/subscriptions/admin/newsletter/test`
+  (`subscriptionsSendNewsletterTest`, body `{email}`, 202, needs `newsletter.send_test`). Queues one
+  test copy to an address that has confirmed `gms-newsletter`; 409 otherwise. Nothing goes to other
+  subscribers.
 - `GET /api/v1/push/vapid-public-key` (`pushVapidPublicKey`), `POST` and
   `DELETE /api/v1/push/subscriptions` (`pushSubscribe`, `pushUnsubscribe`):
   browser Web Push for the `gms-alerts` list. Endpoints must belong to a known

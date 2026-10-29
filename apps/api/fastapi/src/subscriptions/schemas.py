@@ -24,3 +24,14 @@ class SiteSubscribeRequest(BaseModel):
 
 class SubscribeAccepted(BaseModel):
     message: str
+
+
+class NewsletterTestRequest(BaseModel):
+    """Staff test send: one address that has confirmed the newsletter."""
+
+    email: EmailStr = Field(max_length=254)
+
+
+class NewsletterTestAccepted(BaseModel):
+    message: str
+    queued: bool

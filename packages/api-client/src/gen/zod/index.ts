@@ -5683,6 +5683,8 @@ export { myProfilePropertiesVisibilityEnumSchema } from "./myProfilePropertiesVi
 export { myProfileSchema } from "./myProfileSchema.js";
 export { networkPublicSchema } from "./networkPublicSchema.js";
 export { newPasswordSchema } from "./newPasswordSchema.js";
+export { newsletterTestAcceptedSchema } from "./newsletterTestAcceptedSchema.js";
+export { newsletterTestRequestSchema } from "./newsletterTestRequestSchema.js";
 export { nhcAssetSchema } from "./nhcAssetSchema.js";
 export { nhcContentSchema } from "./nhcContentSchema.js";
 export { nhcEditionPropertiesFamilyEnumSchema } from "./nhcEditionPropertiesFamilyEnumSchema.js";
@@ -7738,6 +7740,25 @@ export {
   subscriptionsConfirmSubscriptionStatus422Schema,
 } from "./subscriptionsConfirmSubscriptionSchema.js";
 export {
+  subscriptionsSendNewsletterTestBodySchema,
+  subscriptionsSendNewsletterTestErrorSchema,
+  subscriptionsSendNewsletterTestResponseSchema,
+  subscriptionsSendNewsletterTestStatus202Schema,
+  subscriptionsSendNewsletterTestStatus401Schema,
+  subscriptionsSendNewsletterTestStatus403Schema,
+  subscriptionsSendNewsletterTestStatus409Schema,
+  subscriptionsSendNewsletterTestStatus422Schema,
+} from "./subscriptionsSendNewsletterTestSchema.js";
+export {
+  subscriptionsStopSubscriptionErrorSchema,
+  subscriptionsStopSubscriptionQuerySchema,
+  subscriptionsStopSubscriptionQueryTokenSchema,
+  subscriptionsStopSubscriptionResponseSchema,
+  subscriptionsStopSubscriptionStatus200Schema,
+  subscriptionsStopSubscriptionStatus400Schema,
+  subscriptionsStopSubscriptionStatus422Schema,
+} from "./subscriptionsStopSubscriptionSchema.js";
+export {
   subscriptionsSubscribeBodySchema,
   subscriptionsSubscribeErrorSchema,
   subscriptionsSubscribeResponseSchema,
@@ -7757,11 +7778,21 @@ export {
   subscriptionsSubscribeToSiteStatus422Schema,
 } from "./subscriptionsSubscribeToSiteSchema.js";
 export {
+  subscriptionsUnsubscribeConfirmPageErrorSchema,
+  subscriptionsUnsubscribeConfirmPageQuerySchema,
+  subscriptionsUnsubscribeConfirmPageQueryTokenSchema,
+  subscriptionsUnsubscribeConfirmPageResponseSchema,
+  subscriptionsUnsubscribeConfirmPageStatus200Schema,
+  subscriptionsUnsubscribeConfirmPageStatus400Schema,
+  subscriptionsUnsubscribeConfirmPageStatus422Schema,
+} from "./subscriptionsUnsubscribeConfirmPageSchema.js";
+export {
   subscriptionsUnsubscribeErrorSchema,
   subscriptionsUnsubscribeQuerySchema,
   subscriptionsUnsubscribeQueryTokenSchema,
   subscriptionsUnsubscribeResponseSchema,
   subscriptionsUnsubscribeStatus303Schema,
+  subscriptionsUnsubscribeStatus400Schema,
   subscriptionsUnsubscribeStatus422Schema,
 } from "./subscriptionsUnsubscribeSchema.js";
 export { suggestionCreateSchema } from "./suggestionCreateSchema.js";

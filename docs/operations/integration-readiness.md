@@ -106,10 +106,22 @@ endpoint's signing secret as `RESEND_WEBHOOK_SECRET` in its matching GitHub
 environment. Deploy before testing delivery. No signing secret should be invented
 locally: it must match the provider endpoint.
 
-The receiver verifies signatures and logs delivery events. Automatic suppression
-and complaint-driven unsubscribe actions are not implemented; receipt of a webhook
-does not prove those business workflows exist. Open/click tracking is unnecessary
-for this delivery-reliability setup.
+The receiver verifies signatures (`src/webhooks/router.py`). It suppresses hard bounces
+and complaints (no further non-transactional mail to that address) and unsubscribes
+complainants from every mailing list. Outside local development, an unset
+`RESEND_WEBHOOK_SECRET` makes the endpoint answer 401 to every call, so suppression
+does not run; set the secret before the daily newsletter (ADR-0052) is switched on.
+
+To check after setting the secret: send a test from the Resend dashboard to the
+endpoint and confirm a 2xx answer; then, on staging only, send a staff test copy of
+the newsletter (`POST /api/v1/subscriptions/admin/newsletter/test`) to a confirmed
+test address and confirm it arrives with a working unsubscribe link and the
+`List-Unsubscribe` headers.
+
+Open and click tracking must stay off for the sending domain in the Resend dashboard
+(ADR-0052, ADR-0045). The privacy page says the newsletter is not tracked, and the
+code never adds tracking; only the provider setting can add it. Owner check: confirm
+the setting is off before the first live send.
 
 `EMAIL_RENDER_SECRET` has already been generated independently for both
 environments without exposing its value. Deployment passes each matching secret

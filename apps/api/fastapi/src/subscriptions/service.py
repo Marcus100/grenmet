@@ -258,21 +258,56 @@ def _mark_unsubscribed(row: ListSubscription, now: datetime) -> None:
     row.email = None
 
 
-async def unsubscribe(*, session: AsyncSession, token: str) -> str:
-    """Unsubscribe the address named by the token. Returns the redirect URL."""
+async def _unsubscribe_row(
+    session: AsyncSession, token: str
+) -> ListSubscription | None:
     subscription_id = _read_token(token, purpose=UNSUBSCRIBE_PURPOSE)
-    row = (
-        await session.get(ListSubscription, subscription_id)
-        if subscription_id
-        else None
+    if subscription_id is None:
+        return None
+    return await session.get(ListSubscription, subscription_id)
+
+
+async def _list_name(session: AsyncSession, list_key: str) -> str:
+    mailing_list = MAILING_LISTS.get(list_key)
+    if mailing_list is not None:
+        return mailing_list.name
+    site = await sites.resolve_public_site(session, list_key)
+    return site.name if site is not None else list_key
+
+
+def unsubscribe_confirm_url(token: str) -> str:
+    """Confirmation page for an unsubscribe token. Opening it changes nothing."""
+    return (
+        f"{_api_base()}/subscriptions/unsubscribe/confirm?{urlencode({'token': token})}"
     )
+
+
+def unsubscribe_action_url(token: str) -> str:
+    """Where the confirmation page posts, and the one-click target in mail headers."""
+    return _action_link("unsubscribe", token)
+
+
+async def unsubscribe_context(*, session: AsyncSession, token: str) -> str | None:
+    """Name of the list an unsubscribe token belongs to; changes nothing.
+
+    None for a token that is missing, forged, expired or of another purpose."""
+    row = await _unsubscribe_row(session, token)
     if row is None:
-        return await _status_url(session, None, "invalid")
+        return None
+    return await _list_name(session, row.list_key)
+
+
+async def unsubscribe(*, session: AsyncSession, token: str) -> str | None:
+    """Unsubscribe the address named by the token (POST only).
+
+    Returns the list name, or None for an invalid token. Repeating it is harmless."""
+    row = await _unsubscribe_row(session, token)
+    if row is None:
+        return None
     if row.status != SubscriptionStatus.UNSUBSCRIBED.value:
-        now = utc_now()
-        _mark_unsubscribed(row, now)
+        _mark_unsubscribed(row, utc_now())
         await session.commit()
-    return await _status_url(session, row.list_key, "unsubscribed")
+    return await _list_name(session, row.list_key)
 
 
 async def unsubscribe_address(*, session: AsyncSession, email: str) -> int:
