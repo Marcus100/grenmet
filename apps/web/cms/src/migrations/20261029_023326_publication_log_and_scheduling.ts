@@ -65,8 +65,13 @@ export async function down({ db }: MigrateDownArgs): Promise<void> {
   await db.execute(sql`
    ALTER TABLE "publication_log" DISABLE ROW LEVEL SECURITY;
   DROP TABLE "publication_log" CASCADE;
-  ALTER TABLE "payload_locked_documents_rels" DROP CONSTRAINT "payload_locked_documents_rels_publication_log_fk";
-  
+  -- DROP TABLE ... CASCADE above already removes this foreign key; IF EXISTS keeps the rollback running.
+  ALTER TABLE "payload_locked_documents_rels" DROP CONSTRAINT IF EXISTS "payload_locked_documents_rels_publication_log_fk";
+
+  -- The enum below is rebuilt without 'note', so rows of kind 'note' (live and
+  -- version) become 'update' first; otherwise the cast back to the enum fails.
+  UPDATE "live_posts" SET "kind" = 'update' WHERE "kind" = 'note';
+  UPDATE "_live_posts_v" SET "version_kind" = 'update' WHERE "version_kind" = 'note';
   ALTER TABLE "live_posts" ALTER COLUMN "kind" SET DATA TYPE text;
   ALTER TABLE "live_posts" ALTER COLUMN "kind" SET DEFAULT 'update'::text;
   DROP TYPE "public"."enum_live_posts_kind";
