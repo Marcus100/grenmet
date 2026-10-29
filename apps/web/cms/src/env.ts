@@ -21,6 +21,8 @@ export function getEnv() {
       CMS_SESSION_COOKIE_NAME: z.string().default("cms_session"),
       // Redeems single sign-on codes from auth.barrels.gd.
       CMS_SSO_CLIENT_SECRET: z.string().min(32).optional(),
+      // Where the weather site renders a preview (`?token=`). Unset: no button.
+      GMS_PREVIEW_URL: z.url().optional(),
     },
     runtimeEnv: {
       PAYLOAD_SECRET: process.env.PAYLOAD_SECRET,
@@ -34,6 +36,7 @@ export function getEnv() {
       CMS_DEPARTMENT_ID: process.env.CMS_DEPARTMENT_ID,
       CMS_SESSION_COOKIE_NAME: process.env.CMS_SESSION_COOKIE_NAME,
       CMS_SSO_CLIENT_SECRET: process.env.CMS_SSO_CLIENT_SECRET,
+      GMS_PREVIEW_URL: process.env.GMS_PREVIEW_URL,
     },
     emptyStringAsUndefined: true,
   });

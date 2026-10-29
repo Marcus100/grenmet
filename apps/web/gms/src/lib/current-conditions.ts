@@ -20,6 +20,12 @@ export interface CurrentConditions {
   /** Relative humidity, %; feeds the feels-like figure. */
   humidity: number | null;
   observedAt: string;
+  /**
+   * Size of the pressure change over three hours, hPa, when the observer
+   * recorded a trend other than steady. A number, so each page can show it in
+   * the visitor's unit system.
+   */
+  pressureChangeHpa: number | null;
   /** Pressure tendency over three hours, when the observer recorded one. */
   pressureTrend: "falling" | "rising" | "steady" | null;
   /** Four headline readings: wind, pressure, rain, humidity. */
@@ -47,8 +53,9 @@ function measured(
 function wind(o: PublicObservation): Condition | null {
   if (o.wind_calm) return { icon: "wind", label: "Wind", value: "Calm" };
   if (o.wind_speed_kt == null) return null;
+  // The speed is shown once, in the visitor's unit system; no knots repeat.
   return measured(
-    { icon: "wind", label: "Wind", detail: `${o.wind_speed_kt} kt` },
+    { icon: "wind", label: "Wind" },
     {
       quantity: "speed",
       low: o.wind_speed_kt,
@@ -57,18 +64,22 @@ function wind(o: PublicObservation): Condition | null {
   );
 }
 
+/** The three-hour change in hPa; the trend word carries its direction. */
+function pressureChange(o: PublicObservation): number | null {
+  if (o.pressure_change_hpa == null || o.pressure_trend === "steady") {
+    return null;
+  }
+  return Math.abs(o.pressure_change_hpa);
+}
+
 function pressure(o: PublicObservation): Condition | null {
   if (o.msl_pressure_hpa == null) return null;
   const trend = o.pressure_trend ? TREND[o.pressure_trend] : null;
-  const change =
-    o.pressure_change_hpa != null && o.pressure_trend !== "steady"
-      ? ` ${o.pressure_change_hpa} in 3 h`
-      : "";
   return measured(
     {
       icon: "gauge",
       label: "Pressure",
-      detail: trend ? `${trend}${change}` : undefined,
+      detail: trend ?? undefined,
     },
     { quantity: "pressure", low: o.msl_pressure_hpa }
   );
@@ -159,6 +170,7 @@ export function currentConditions(o: PublicObservation): CurrentConditions {
     extra,
     humidity: o.relative_humidity ?? null,
     observedAt: o.observed_at,
+    pressureChangeHpa: pressureChange(o),
     pressureTrend: o.pressure_trend ?? null,
     primary,
     provisional: o.status !== "accepted",

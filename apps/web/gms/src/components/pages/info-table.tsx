@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import { cn } from "@/lib/utils";
 
 export interface InfoTableProps {
@@ -6,7 +7,8 @@ export interface InfoTableProps {
   /** Column indices to render in the monospace data role, e.g. raw METAR/TAF/SYNOP
    *  strings or other fixed-width codes. */
   monoColumns?: readonly number[];
-  rows: readonly (readonly string[])[];
+  /** Cells are text or, for a figure, a `Measure` that follows the unit switch. */
+  rows: readonly (readonly ReactNode[])[];
 }
 
 /** Bordered data table. Scrolls on its own so narrow screens never pan. */
@@ -38,8 +40,10 @@ export function InfoTable({
           </tr>
         </thead>
         <tbody>
-          {rows.map((row) => (
-            <tr className="border-gm-border border-t" key={row.join("|")}>
+          {rows.map((row, rowIndex) => (
+            // Rows are a fixed list rendered once, so position is a stable key.
+            // biome-ignore lint/suspicious/noArrayIndexKey: static table rows
+            <tr className="border-gm-border border-t" key={rowIndex}>
               {row.map((cell, columnIndex) => (
                 <td
                   className={cn(
@@ -47,7 +51,8 @@ export function InfoTable({
                     monoColumns?.includes(columnIndex) &&
                       "font-mono tabular-nums"
                   )}
-                  key={headers[columnIndex] ?? cell}
+                  // biome-ignore lint/suspicious/noArrayIndexKey: static table cells
+                  key={columnIndex}
                 >
                   {cell}
                 </td>

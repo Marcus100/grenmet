@@ -1,6 +1,9 @@
 from datetime import UTC, datetime, timedelta
 from types import SimpleNamespace
+from typing import cast
 from uuid import uuid4
+
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.wxproducts import advisories
 
@@ -67,10 +70,11 @@ def _sources(monkeypatch, alerts, bulletins):
 
 
 SESSION = SimpleNamespace(in_transaction=lambda: False)
+SESSION_DB = cast("AsyncSession", SESSION)
 
 
 async def _outlook(days=7):
-    return await advisories.sector_outlook(SESSION, SESSION, now=NOW, days=days)  # type: ignore[arg-type]
+    return await advisories.sector_outlook(SESSION_DB, SESSION_DB, now=NOW, days=days)
 
 
 async def test_tags_and_untagged_items(monkeypatch):
@@ -127,7 +131,7 @@ async def test_window_covers_today_through_the_requested_days(monkeypatch):
 
 async def test_a_source_that_cannot_be_read_marks_the_result_incomplete(monkeypatch):
     _sources(monkeypatch, [_alert("GMS-1")], [])
-    partial = await advisories.sector_outlook(SESSION, None, now=NOW, days=7)  # type: ignore[arg-type]
+    partial = await advisories.sector_outlook(SESSION_DB, None, now=NOW, days=7)
     assert partial.complete is False
     assert [item.identifier for item in partial.items] == ["GMS-1"]
     nothing = await advisories.sector_outlook(None, None, now=NOW, days=7)

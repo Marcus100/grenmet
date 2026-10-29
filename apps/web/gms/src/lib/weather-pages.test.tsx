@@ -3,17 +3,37 @@ import type {
   PublicObservation,
   PublicPublishedProduct,
 } from "@barrelsgd/api-client";
+import { render } from "@testing-library/react";
+import type { ReactNode } from "react";
 import { describe, expect, it } from "vitest";
 import {
   unavailableWeather,
   weatherFromForecast,
 } from "@/lib/forecast-selection";
+import type { UnitSystem } from "@/lib/units";
 import {
   hasIssuedForecast,
   latestSynopsis,
   stationReading,
   threeDayRows,
 } from "@/lib/weather-pages";
+
+/**
+ * The text a table cell or tile shows in one unit system. Each figure renders
+ * both systems with `data-units-only` (CSS picks one); this drops the other.
+ */
+function shownIn(node: ReactNode, system: UnitSystem): string {
+  const other = system === "metric" ? "imperial" : "metric";
+  const { container, unmount } = render(<span>{node}</span>);
+  for (const element of container.querySelectorAll(
+    `[data-units-only="${other}"]`
+  )) {
+    element.remove();
+  }
+  const text = container.textContent ?? "";
+  unmount();
+  return text;
+}
 
 function forecast(issuedDays: number): PublicForecast {
   return {
@@ -30,7 +50,14 @@ function forecast(issuedDays: number): PublicForecast {
       low: 25,
       details: { summary: `Showers day ${index}` },
       conditions: [
-        { icon: "wind", value: "16 mph", label: "Wind speed (14 kt)" },
+        {
+          icon: "wind",
+          value: "16 mph",
+          label: "Wind speed (14 kt)",
+          quantity: "speed",
+          low: 14,
+          high: null,
+        },
         { icon: "compass", value: "ENE", label: "Wind direction" },
         { icon: "umbrella", value: "40%", label: "Chance of rain" },
       ],
@@ -49,19 +76,37 @@ function forecast(issuedDays: number): PublicForecast {
 }
 
 describe("3-day rows", () => {
-  it("maps API periods to table rows", () => {
+  it("maps API periods to table rows in the visitor's units", () => {
     const rows = threeDayRows(weatherFromForecast(forecast(5)).days);
     expect(rows).toHaveLength(3);
-    expect(rows[0]).toEqual([
-      "Today",
-      "Showers day 0",
-      "31 °C",
-      "25 °C",
-      "16 mph ENE",
-      "40%",
-    ]);
+    const first = rows[0] ?? [];
+    expect(first[0]).toBe("Today");
+    expect(first[1]).toBe("Showers day 0");
+    expect(first[5]).toBe("40%");
+    expect(shownIn(first[2], "metric")).toBe("31°C");
+    expect(shownIn(first[3], "metric")).toBe("25°C");
+    expect(shownIn(first[2], "imperial")).toBe("88°F");
+    expect(shownIn(first[3], "imperial")).toBe("77°F");
+    // 14 knots is 26 km/h or 16 mph; the direction stays in front.
+    expect(shownIn(first[4], "metric")).toBe("ENE 26 km/h");
+    expect(shownIn(first[4], "imperial")).toBe("ENE 16 mph");
     expect(rows[1]?.[0]).toBe("Tomorrow");
-    expect(rows[2]?.[0]).toContain("16");
+    expect(shownIn(rows[2]?.[0], "metric")).toContain("16");
+  });
+
+  it("falls back to the feed's text for a wind tile with no numbers", () => {
+    const days = weatherFromForecast(forecast(1)).days;
+    const [day] = days;
+    if (!day) throw new Error("expected a day");
+    const plain = {
+      ...day,
+      conditions: [
+        { label: "Wind speed (14 kt)", value: "16 mph" },
+        { label: "Wind direction", value: "ENE" },
+      ],
+    };
+    const [row] = threeDayRows([plain]);
+    expect(shownIn(row?.[4], "metric")).toBe("ENE 16 mph");
   });
 
   it("says so when a day has no published forecast", () => {
@@ -119,8 +164,34 @@ describe("station reading", () => {
       "Pressure",
       "Rain, 24 h",
     ]);
-    expect(reading?.tiles[0]?.value).toBe("28.4 °C");
-    expect(reading?.rows[0]).toContain("1013.2 hPa");
+    const [temperature, wind, , pressure, rain] = reading?.tiles ?? [];
+    expect(shownIn(temperature?.value, "metric")).toBe("28.4°C");
+    expect(shownIn(temperature?.value, "imperial")).toBe("83°F");
+    expect(shownIn(temperature?.detail, "metric")).toBe("Dew point 24°C");
+    expect(shownIn(wind?.value, "metric")).toBe("ENE 22 km/h");
+    expect(shownIn(wind?.value, "imperial")).toBe("ENE 14 mph");
+    expect(shownIn(pressure?.value, "metric")).toBe("1013.2 hPa");
+    expect(shownIn(pressure?.value, "imperial")).toBe("29.92 inHg");
+    expect(shownIn(rain?.value, "metric")).toBe("6 mm");
+    expect(shownIn(rain?.value, "imperial")).toBe("0.24 in");
+    expect(shownIn(reading?.rows[0]?.[5], "metric")).toBe("1013.2 hPa");
+    expect(shownIn(reading?.rows[0]?.[4], "imperial")).toBe("ENE 14 mph");
+  });
+
+  it("shows the pressure change in the visitor's units", () => {
+    const reading = stationReading(
+      {
+        ...observation,
+        pressure_trend: "rising",
+        pressure_change_hpa: 0.8,
+      } as PublicObservation,
+      new Date("2026-09-14T20:30:00Z")
+    );
+    const pressure = reading?.tiles.find((t) => t.label === "Pressure");
+    expect(shownIn(pressure?.detail, "metric")).toBe("Rising 0.8 hPa in 3 h");
+    expect(shownIn(pressure?.detail, "imperial")).toBe(
+      "Rising 0.02 inHg in 3 h"
+    );
   });
 
   it("marks a stale or provisional reading", () => {

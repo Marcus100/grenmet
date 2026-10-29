@@ -89,7 +89,7 @@ export function DayPanel({
     return (
       <section
         aria-label="Forecast details"
-        className="grid content-start gap-4 rounded-gm-card bg-gm-scrim p-4 lg:p-5"
+        className="grid h-full content-start gap-4 rounded-gm-card bg-gm-scrim p-4 lg:p-5"
       >
         <div className="grid min-w-0 gap-1.5">
           {chip}
@@ -112,7 +112,7 @@ export function DayPanel({
   return (
     <section
       aria-label="Forecast details"
-      className="grid content-start gap-4 rounded-gm-card bg-gm-scrim p-4 lg:p-5"
+      className="grid h-full content-start gap-4 rounded-gm-card bg-gm-scrim p-4 lg:p-5"
     >
       <div className="grid items-end gap-x-6 gap-y-2 sm:grid-cols-[auto_minmax(0,1fr)]">
         <div className="hidden sm:block">

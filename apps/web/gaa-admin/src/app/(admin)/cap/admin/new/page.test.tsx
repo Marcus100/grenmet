@@ -304,7 +304,10 @@ describe("NewAlertPage", () => {
       "Authorized originating agency"
     );
     fireEvent.click(screen.getByRole("checkbox", { name: CBRNE_CATEGORY }));
-    fireEvent.click(screen.getByRole("checkbox", { name: "Health" }));
+    // "Health" is both a CAP category and an affected sector; take the category.
+    fireEvent.click(
+      screen.getAllByRole("checkbox", { name: "Health" })[0] as HTMLElement
+    );
     clickSaveDraft();
     expect(await waitForSubmission(() => capturedBody)).toMatchObject({
       info: [

@@ -1,9 +1,11 @@
-import type { CollectionConfig, Field, Payload } from "payload";
+import type { CollectionConfig, Field, Payload, Where } from "payload";
 import { DeskUpdates } from "../collections/desk-updates";
 import { ReportNotes } from "../collections/report-notes";
 import { Stories } from "../collections/stories";
+import { NOTE_KIND } from "./duty-note";
 import { type EditorialLink, editorialLinksSchema } from "./editorial-links";
 import { bodyToText } from "./lexical";
+import { isOnSite, liveWhere } from "./publication-window";
 
 export const ARTICLE_COLLECTIONS = {
   "desk-updates": DeskUpdates,
@@ -97,7 +99,11 @@ export type PublicArticle = ReturnType<typeof toArticle>;
 export async function findArticles(
   payload: Payload,
   collection: ArticleCollection,
-  { limit = 20, slug }: { limit?: number; slug?: string } = {}
+  {
+    limit = 20,
+    now = new Date(),
+    slug,
+  }: { limit?: number; now?: Date; slug?: string } = {}
 ): Promise<PublicArticle[]> {
   const result = await payload.find({
     collection,
@@ -105,10 +111,7 @@ export async function findArticles(
     depth: 1,
     limit: slug ? 1 : limit,
     sort: "-publishedAt",
-    where: {
-      status: { equals: "published" },
-      ...(slug ? { slug: { equals: slug } } : {}),
-    },
+    where: liveWhere(now, ...(slug ? [{ slug: { equals: slug } }] : [])),
   });
   return result.docs.map((doc) => toArticle(collection, doc as unknown as Doc));
 }
@@ -158,14 +161,7 @@ export async function findLivePosts(
     depth: 0,
     limit,
     sort: "-publishedAt",
-    where: {
-      status: { equals: "published" },
-      kind: { equals: kind },
-      or: [
-        { expiresAt: { exists: false } },
-        { expiresAt: { greater_than: now.toISOString() } },
-      ],
-    },
+    where: liveWhere(now, { kind: { equals: kind } }, unexpired(now)),
   });
   return result.docs.map((doc) => toLivePost(doc as unknown as Doc));
 }
@@ -205,8 +201,11 @@ export function toRelated(item: unknown) {
   const value = upload((item as Doc).value);
   const collection = String((item as Doc).relationTo);
   if (
-    !(value && LINKED_HREF_COLLECTIONS.has(collection)) ||
-    value.status !== "published"
+    !(
+      value &&
+      LINKED_HREF_COLLECTIONS.has(collection) &&
+      isOnSite(value as Parameters<typeof isOnSite>[0])
+    )
   )
     return null;
   return {
@@ -221,9 +220,10 @@ export async function findQuestions(
   payload: Payload,
   {
     limit = 50,
+    now = new Date(),
     slug,
     topic,
-  }: { limit?: number; slug?: string; topic?: string } = {}
+  }: { limit?: number; now?: Date; slug?: string; topic?: string } = {}
 ): Promise<PublicQuestion[]> {
   const result = await payload.find({
     collection: "questions",
@@ -231,43 +231,60 @@ export async function findQuestions(
     depth: 1,
     limit: slug ? 1 : limit,
     sort: "-publishedAt",
-    where: {
-      status: { equals: "published" },
-      ...(slug ? { slug: { equals: slug } } : {}),
-      ...(topic ? { topics: { contains: topic } } : {}),
-    },
+    where: liveWhere(
+      now,
+      ...(slug ? [{ slug: { equals: slug } }] : []),
+      ...(topic ? [{ topics: { contains: topic } }] : [])
+    ),
   });
   return result.docs.map((doc) => toQuestion(doc as unknown as Doc));
 }
 
-/** The Weather now note, only while unexpired. Imagery is FastAPI's. */
+/** Expiry rule shared by notes and live posts: none set, or one still ahead. */
+const unexpired = (now: Date): Where => ({
+  or: [
+    { expiresAt: { exists: false } },
+    { expiresAt: { greater_than: now.toISOString() } },
+  ],
+});
+
+/**
+ * The duty forecaster's note: the newest published live post of kind note
+ * that is on the site and unexpired. Its CAP alert link comes with it as
+ * `alertUrl` (for site builds that predate related links) and as
+ * `relatedLinks`. Imagery is FastAPI's.
+ */
 export async function findWeatherNow(payload: Payload, now: Date = new Date()) {
-  const global = (await payload.findGlobal({
-    slug: "weather-now",
-    depth: 1,
+  const result = await payload.find({
+    collection: "live-posts",
     overrideAccess: false,
-  })) as unknown as Doc;
-  const note = (global.note ?? {}) as Doc;
-  const live =
-    typeof note.text === "string" &&
-    note.text.trim() !== "" &&
-    typeof note.expiresAt === "string" &&
-    new Date(note.expiresAt) > now;
+    depth: 0,
+    limit: 1,
+    sort: "-publishedAt",
+    // A note without an expiry never shows, as before; it always has one when posted.
+    where: liveWhere(now, {
+      kind: { equals: NOTE_KIND },
+      expiresAt: { greater_than: now.toISOString() },
+    }),
+  });
+  const doc = result.docs[0] as unknown as Doc | undefined;
+  if (!(doc && typeof doc.text === "string" && doc.text.trim() !== ""))
+    return { note: null };
+  const relatedLinks = editorialLinksSchema.parse(doc.relatedLinks ?? []);
   return {
-    note: live
-      ? {
-          text: String(note.text),
-          postedAt: (note.postedAt as string | undefined) ?? null,
-          expiresAt: String(note.expiresAt),
-          alertUrl: (note.alertUrl as string | undefined) || null,
-        }
-      : null,
+    note: {
+      text: doc.text,
+      postedAt: (doc.publishedAt as string | undefined) ?? null,
+      expiresAt: String(doc.expiresAt),
+      alertUrl: relatedLinks.find((link) => link.type === "cap")?.url ?? null,
+      relatedLinks,
+    },
   };
 }
 export type PublicWeatherNow = Awaited<ReturnType<typeof findWeatherNow>>;
 
 /** Homepage settings: which sections are hidden, plus the posts marked to lead. */
-export async function findHomepage(payload: Payload) {
+export async function findHomepage(payload: Payload, now: Date = new Date()) {
   const global = (await payload.findGlobal({
     slug: "homepage",
     depth: 0,
@@ -280,12 +297,7 @@ export async function findHomepage(payload: Payload) {
       limit: 1,
       overrideAccess: false,
       sort: "-publishedAt",
-      where: {
-        and: [
-          { leadOnHomepage: { equals: true } },
-          { status: { equals: "published" } },
-        ],
-      },
+      where: liveWhere(now, { leadOnHomepage: { equals: true } }),
     }),
     // Numbered questions first (1 = first), then the rest of the flagged ones.
     payload.find({
@@ -294,12 +306,7 @@ export async function findHomepage(payload: Payload) {
       limit: 5,
       overrideAccess: false,
       sort: ["featuredOrder", "-publishedAt"],
-      where: {
-        and: [
-          { featured: { equals: true } },
-          { status: { equals: "published" } },
-        ],
-      },
+      where: liveWhere(now, { featured: { equals: true } }),
     }),
   ]);
   return {
@@ -390,22 +397,14 @@ export function pickDaily<T>(
   return items[days % items.length] ?? null;
 }
 
-async function publishedDiscover(
-  payload: Payload,
-  type: string,
-  extra: object = {}
-) {
+async function publishedDiscover(payload: Payload, type: string, now: Date) {
   const result = await payload.find({
     collection: "discover",
     overrideAccess: false,
     depth: 1,
     limit: 400,
     sort: "createdAt",
-    where: {
-      status: { equals: "published" },
-      type: { equals: type },
-      ...extra,
-    },
+    where: liveWhere(now, { type: { equals: type } }),
   });
   return result.docs as unknown as Doc[];
 }
@@ -434,17 +433,17 @@ export type PublicQuiz = ReturnType<typeof toQuiz>;
 export async function findDiscover(payload: Payload, now: Date = new Date()) {
   const today = grenadaToday(now);
   const [history, quizzes, facts, notes] = await Promise.all([
-    publishedDiscover(payload, "on-this-day"),
+    publishedDiscover(payload, "on-this-day", now),
     payload.find({
       collection: "discover",
       overrideAccess: false,
       depth: 0,
       limit: 1,
       sort: "-publishedAt",
-      where: { status: { equals: "published" }, type: { equals: "quiz" } },
+      where: liveWhere(now, { type: { equals: "quiz" } }),
     }),
-    publishedDiscover(payload, "fact"),
-    publishedDiscover(payload, "sky-note"),
+    publishedDiscover(payload, "fact", now),
+    publishedDiscover(payload, "sky-note", now),
   ]);
   const entry = pickOnThisDay(
     history.map((doc) => ({
@@ -504,18 +503,22 @@ export async function findDiscover(payload: Payload, now: Date = new Date()) {
 export type PublicDiscover = Awaited<ReturnType<typeof findDiscover>>;
 
 /** Published quizzes, newest first, or one by slug with its questions. */
-export async function findQuizzes(payload: Payload, slug?: string) {
+export async function findQuizzes(
+  payload: Payload,
+  slug?: string,
+  now: Date = new Date()
+) {
   const result = await payload.find({
     collection: "discover",
     overrideAccess: false,
     depth: 0,
     limit: slug ? 1 : 50,
     sort: "-publishedAt",
-    where: {
-      status: { equals: "published" },
-      type: { equals: "quiz" },
-      ...(slug ? { slug: { equals: slug } } : {}),
-    },
+    where: liveWhere(
+      now,
+      { type: { equals: "quiz" } },
+      ...(slug ? [{ slug: { equals: slug } }] : [])
+    ),
   });
   return result.docs.map((doc) => toQuiz(doc as unknown as Doc));
 }

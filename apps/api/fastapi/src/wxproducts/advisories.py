@@ -265,7 +265,7 @@ def _outlook_item(item: dict[str, str]) -> SectorOutlookItem:
         valid_to=_moment(item["validTo"]),
         reference=item["reference"],
         identifier=item.get("identifier") or None,
-        product_id=UUID(item["productId"]) if item.get("productId") else None,
+        product_id=UUID(product_id) if (product_id := item.get("productId")) else None,
         sectors=sectors,
         affects_everyone=not sectors,
     )

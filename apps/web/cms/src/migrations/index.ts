@@ -78,6 +78,14 @@ import {
   down as down_20261028_223907_social_image,
   up as up_20261028_223907_social_image,
 } from "./20261028_223907_social_image";
+import {
+  down as down_20261029_023326_publication_log_and_scheduling,
+  up as up_20261029_023326_publication_log_and_scheduling,
+} from "./20261029_023326_publication_log_and_scheduling";
+import {
+  down as down_20261029_030000_duty_note_to_live_posts,
+  up as up_20261029_030000_duty_note_to_live_posts,
+} from "./20261029_030000_duty_note_to_live_posts";
 
 export const migrations = [
   {
@@ -179,5 +187,15 @@ export const migrations = [
     up: up_20261028_223907_social_image,
     down: down_20261028_223907_social_image,
     name: "20261028_223907_social_image",
+  },
+  {
+    up: up_20261029_023326_publication_log_and_scheduling,
+    down: down_20261029_023326_publication_log_and_scheduling,
+    name: "20261029_023326_publication_log_and_scheduling",
+  },
+  {
+    up: up_20261029_030000_duty_note_to_live_posts,
+    down: down_20261029_030000_duty_note_to_live_posts,
+    name: "20261029_030000_duty_note_to_live_posts",
   },
 ];
