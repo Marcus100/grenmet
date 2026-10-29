@@ -20,3 +20,19 @@ it("shows the heat index bands in degrees Celsius and Fahrenheit", () => {
   expect(cellIn(3, 0, "imperial")).toBe("106–129°F");
   expect(cellIn(4, 0, "imperial")).toBe("Above 129°F");
 });
+
+it("shows the 31°C example and the high-30s range as measurements in both units", () => {
+  const { container } = render(<HeatIndexPage />);
+  const metric = Array.from(
+    container.querySelectorAll('[data-units-only="metric"]'),
+    (node) => node.textContent
+  );
+  const imperial = Array.from(
+    container.querySelectorAll('[data-units-only="imperial"]'),
+    (node) => node.textContent
+  );
+  expect(metric).toContain("31°C");
+  expect(imperial).toContain("88°F");
+  expect(metric).toContain("37–39°C");
+  expect(imperial).toContain("99–102°F");
+});

@@ -39,7 +39,22 @@ export default function HeatIndexPage() {
         <Prose
           paragraphs={[
             "The heat index combines air temperature and humidity into a single “feels like” temperature. Your body cools by sweating; in humid air, sweat evaporates slowly, so you feel hotter than the thermometer reads.",
-            "In Grenada's humid climate, a 31°C afternoon can feel like the high 30s. Direct sunshine can add several degrees more.",
+            <>
+              In Grenada&apos;s humid climate, a{" "}
+              <Measure
+                measure={{ low: 31, places: 0, quantity: "temperature" }}
+              />{" "}
+              afternoon can feel like{" "}
+              <Measure
+                measure={{
+                  high: 39,
+                  low: 37,
+                  places: 0,
+                  quantity: "temperature",
+                }}
+              />
+              . Direct sunshine can add several degrees more.
+            </>,
           ]}
         />
       </PageSection>
