@@ -55,6 +55,7 @@ ENV NEXT_TELEMETRY_DISABLED=1
 COPY packages/api-client/ packages/api-client/
 COPY packages/auth/ packages/auth/
 COPY packages/cms-migrations/ packages/cms-migrations/
+COPY packages/gms/ packages/gms/
 COPY packages/tsconfig/ packages/tsconfig/
 COPY packages/ui/ packages/ui/
 COPY apps/web/cms/ apps/web/cms/

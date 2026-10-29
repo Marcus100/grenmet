@@ -18,6 +18,7 @@ const ignoredDirectories = new Set([
   "dist",
   "node_modules",
   "surface",
+  ".venv",
 ]);
 // Downloaded upstream snapshots are git-ignored and contain their own site links.
 const ignoredPaths = new Set(["notebooks/metpy/sources"]);

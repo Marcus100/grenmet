@@ -10,7 +10,8 @@ applied at the time, without a live join. The snapshot is JSON in the
 import json
 import logging
 from datetime import UTC, datetime, timedelta
-from typing import Any
+from typing import Any, Literal, cast
+from uuid import UUID
 
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -252,7 +253,10 @@ def _outlook_item(item: dict[str, str]) -> SectorOutlookItem:
         source="CAP" if item["source"] == "CAP" else "Bulletin",
         title=item["title"],
         product=item["product"],
-        colour=item["colour"] or None,  # ty: ignore[invalid-argument-type]
+        colour=cast(
+            "Literal['green', 'yellow', 'orange', 'red'] | None",
+            item["colour"] or None,
+        ),
         likelihood=item["likelihood"] or None,
         impact=item["impact"] or None,
         impacts=item["impacts"],
@@ -261,7 +265,7 @@ def _outlook_item(item: dict[str, str]) -> SectorOutlookItem:
         valid_to=_moment(item["validTo"]),
         reference=item["reference"],
         identifier=item.get("identifier") or None,
-        product_id=item.get("productId") or None,  # ty: ignore[invalid-argument-type]
+        product_id=UUID(product_id) if (product_id := item.get("productId")) else None,
         sectors=sectors,
         affects_everyone=not sectors,
     )
