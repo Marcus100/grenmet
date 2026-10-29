@@ -5,6 +5,7 @@ from datetime import UTC, datetime, timedelta
 from types import SimpleNamespace
 from urllib.parse import quote
 
+import httpx
 import jwt
 import pytest
 from sqlalchemy import delete, select
@@ -58,7 +59,7 @@ async def _no_alerts(*_args: object) -> list[newsletter.DigestAlert]:
     return []
 
 
-async def _no_posts(_day: object) -> list[newsletter.DigestPost]:
+async def _no_posts(*_args: object) -> list[newsletter.DigestPost]:
     return []
 
 
@@ -241,3 +242,72 @@ async def test_a_real_published_alert_feeds_the_digest(
     encoded = quote(identifier, safe="")
     links = [a["link"] for a in mails[0].props["alerts"]]
     assert any(link.endswith(f"/alerts/{encoded}") for link in links)
+
+
+def _feed_posts(items: list[dict[str, object]]) -> newsletter.PostsLoader:
+    """The real feed reader, fed by a canned response (no network)."""
+    transport = httpx.MockTransport(
+        lambda _request: httpx.Response(200, json={"items": items})
+    )
+
+    async def loader(since: datetime, until: datetime) -> list[newsletter.DigestPost]:
+        return await newsletter.fetch_flagged_posts(since, until, transport=transport)
+
+    return loader
+
+
+def _story(title: str, published_at: str) -> dict[str, object]:
+    return {
+        "title": title,
+        "url": f"https://weather.example.test/stories/{title.lower().replace(' ', '-')}",
+        "summary": "A short summary.",
+        "includeInNewsletter": True,
+        "publishedAt": published_at,
+    }
+
+
+async def test_a_post_ticked_after_the_morning_send_goes_out_the_next_morning(
+    db_async: AsyncSession, digest_on: None, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Posts are mailed once each: the 15:00 post on 27 Oct waits for the 28 Oct
+    07:30 mail, and no later run repeats it."""
+    _ = digest_on
+    monkeypatch.setattr(
+        subscriptions_settings,
+        "NEWSLETTER_POSTS_FEED_URL",
+        "https://feed.example.test/newsletter-posts.json",
+    )
+    await _subscriber(db_async)
+    feed = _feed_posts(
+        [
+            _story("Afternoon story", "2026-10-27T15:00:00-04:00"),
+            _story("Early story", "2026-10-28T06:00:00-04:00"),
+            _story("Late story", "2026-10-28T15:00:00-04:00"),
+        ]
+    )
+
+    async def run(day: int, hour: int) -> int:
+        return await newsletter_digest.run_daily(
+            db_async,
+            now=datetime(2026, 10, day, hour, 30, tzinfo=UTC),
+            alerts_loader=_no_alerts,
+            forecast_loader=_no_forecast,
+            posts_loader=feed,
+        )
+
+    # 27 Oct 07:30: the 15:00 post is after the window, so there is nothing to say.
+    assert await run(27, 11) == 0
+    # 28 Oct 07:30: both the 15:00 post of 27 Oct and the 06:00 post of 28 Oct.
+    assert await run(28, 11) == 1
+    [mail] = await _mails(db_async)
+    assert [p["title"] for p in mail.props["posts"]] == [
+        "Afternoon story",
+        "Early story",
+    ]
+    # A second run that morning, and the next morning, do not repeat them.
+    assert await run(28, 11) == 0
+    assert await run(29, 11) == 1
+    later = await _mails(db_async)
+    assert len(later) == 2
+    titles = sorted(p["title"] for m in later for p in m.props["posts"])
+    assert titles == ["Afternoon story", "Early story", "Late story"]

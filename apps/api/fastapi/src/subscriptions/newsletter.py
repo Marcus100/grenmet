@@ -13,7 +13,7 @@ and ``queue_test`` queues one staff copy through the notifications outbox.
 import logging
 from collections.abc import Awaitable, Callable
 from dataclasses import dataclass
-from datetime import UTC, date, datetime
+from datetime import UTC, date, datetime, time, timedelta
 from typing import Any
 from urllib.parse import quote
 
@@ -44,6 +44,7 @@ from .models import ListSubscription, SubscriptionStatus
 
 logger = logging.getLogger(__name__)
 
+SEND_TIME = time(7, 30)  # Grenada; the worker cron runs at 11:30 UTC to match
 FORECAST_DAYS = 2
 HURRICANE_FORECAST_LINES = 1
 HURRICANE_POST_LIMIT = 2
@@ -90,7 +91,7 @@ class Digest:
 
 AlertsLoader = Callable[[AsyncSession], Awaitable[list[DigestAlert]]]
 ForecastLoader = Callable[[datetime], Awaitable[list[str]]]
-PostsLoader = Callable[[date], Awaitable[list[DigestPost]]]
+PostsLoader = Callable[[datetime, datetime], Awaitable[list[DigestPost]]]
 
 
 # ── Sources ──────────────────────────────────────────────────────────────────
@@ -180,10 +181,29 @@ class _FeedPost(BaseModel):
         return value
 
 
+def send_window(now: datetime) -> tuple[datetime, datetime]:
+    """The span of posts one morning's mail covers, as aware UTC.
+
+    It runs from the previous 07:30 Grenada to the 07:30 of ``now``'s Grenada
+    date. The end is the send time, not the moment the job runs, so a late run
+    never overlaps the next window. The start is included and the end excluded,
+    so a post exactly at 07:30 waits for the next mail. Grenada keeps no daylight
+    saving, so consecutive windows are exactly 24 hours apart."""
+    if now.tzinfo is None:
+        now = now.replace(tzinfo=UTC)
+    until = datetime.combine(
+        now.astimezone(GRENADA).date(), SEND_TIME, tzinfo=GRENADA
+    ).astimezone(UTC)
+    return until - timedelta(days=1), until
+
+
 async def fetch_flagged_posts(
-    day: date, *, transport: httpx.AsyncBaseTransport | None = None
+    since: datetime,
+    until: datetime,
+    *,
+    transport: httpx.AsyncBaseTransport | None = None,
 ) -> list[DigestPost]:
-    """Posts flagged for the newsletter and published on ``day`` (Grenada time).
+    """Flagged posts published in ``[since, until)`` (see ``send_window``).
 
     Feed contract (CMS side, not built yet): ``{"items": [{"title", "url",
     "summary", "includeInNewsletter", "publishedAt"}]}``. An unreachable feed or
@@ -210,7 +230,7 @@ async def fetch_flagged_posts(
             continue
         if not item.include:
             continue
-        if item.published_at.astimezone(GRENADA).date() != day:
+        if not since <= item.published_at.astimezone(UTC) < until:
             continue
         posts.append(DigestPost(title=item.title, url=item.url, summary=item.summary))
     return posts[:POST_LIMIT]
@@ -249,7 +269,8 @@ async def build(
         hurricane_mode = await flag_service.is_enabled(session, HURRICANE_MODE_FLAG)
     alerts = await (alerts_loader or public_alerts)(session)
     forecast = await (forecast_loader or load_forecast_lines)(now)
-    posts = await (posts_loader or fetch_flagged_posts)(day)
+    since, until = send_window(now)
+    posts = await (posts_loader or fetch_flagged_posts)(since, until)
     if hurricane_mode:
         forecast = forecast[:HURRICANE_FORECAST_LINES]
         posts = posts[:HURRICANE_POST_LIMIT]
