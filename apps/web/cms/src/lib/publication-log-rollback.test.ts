@@ -1,7 +1,7 @@
 import { createRequire } from "node:module";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { testDatabaseUrl } from "../env";
-import { migrations } from "./index";
+import { migrations } from "../migrations/index";
 
 /** The part of `pg` this test uses; the workspace has no `@types/pg` installed. */
 interface ScratchClient {
