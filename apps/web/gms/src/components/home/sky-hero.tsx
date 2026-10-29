@@ -1,15 +1,12 @@
-import { DayPanel, DaySummary } from "@/components/home/day-panel";
-import {
-  ByTab,
-  HeroSelectionProvider,
-  TabLink,
-} from "@/components/home/hero-selection";
-import { NowPanel, NowSummary } from "@/components/home/now-card";
+import { DayPanel } from "@/components/home/day-panel";
+import { DayCard, NowCard } from "@/components/home/hero-card";
+import { ByTab, HeroSelectionProvider } from "@/components/home/hero-selection";
+import { NowPanel } from "@/components/home/now-card";
 import { SkyDayStrip, type StripDay } from "@/components/home/sky-day-strip";
 import { localTime } from "@/lib/current-conditions";
 import type { WeatherSnapshot } from "@/lib/forecast-data";
 import { getForecastDays } from "@/lib/forecast-days";
-import { skyFromWords } from "@/lib/hero-readings";
+import { rainChance, skyFromWords } from "@/lib/hero-readings";
 import {
   defaultLocation,
   locationHref,
@@ -20,13 +17,14 @@ import {
 const STATION_CODE = /^.*\((.+)\)$/;
 
 /**
- * Bold sky hero, the same table layout at every width: a Now tab for the
- * latest reading, then a tab per forecast day, and the selected tab's panel
- * under them. Phones lead with a picture card for the selected tab and show
- * Now as the first column of the strip; wider screens put the Now card beside
- * the day tabs. Now is selected unless a day is. The gradient is the only one
- * on the site; small text always sits on `bg-gm-scrim` (the gradient's light
- * stop is under AA for small type).
+ * Bold sky hero. One card on top for the selected tab (Now: what is measured
+ * at the station; a day: its forecast), the tabs (Now, then each forecast
+ * day), and the selected tab's details. Phones stack them; wider screens put
+ * the card on the left and the tabs over the details on the right. Phones keep
+ * one height on every tab so switching never jumps; wider screens are as short
+ * as the selected tab's content. The gradient is the only one on the site;
+ * small text always sits on `bg-gm-scrim` (the gradient's light stop is under
+ * AA for small type).
  */
 export function SkyHero({
   children,
@@ -48,34 +46,57 @@ export function SkyHero({
   weather: WeatherSnapshot;
 }) {
   const days: StripDay[] = getForecastDays(weather.baseDate, weather.days).map(
-    (day) => ({ ...day, href: day.path })
+    (day, index) => {
+      const issued = weather.days[index];
+      return {
+        ...day,
+        href: day.path,
+        rainWord: issued ? rainChance(issued) : null,
+      };
+    }
   );
   const wanted = selected === "today" ? days[0]?.slug : selected;
   const index = days.findIndex((day) => day.slug === wanted);
-  const selectedDay = days[index];
-  const tab = selectedDay?.slug ?? "now";
+  const tab = days[index]?.slug ?? "now";
   const station = location.station.replace(STATION_CODE, "$1");
   const nowHref = locationHref(location, "/");
   const current = weather.current;
+  const today = days[0];
 
   // Every tab's content is rendered up front so switching tabs needs no server trip.
-  const summaries: Record<string, React.ReactNode> = {
-    now: <NowSummary now={now} station={station} weather={weather} />,
+  const cards: Record<string, React.ReactNode> = {
+    now: (
+      <NowCard
+        current={current}
+        fallbackTemperature={weather.observation?.temperature ?? null}
+        now={now}
+        station={station}
+        today={
+          today && weather.days[0] && today.high !== null
+            ? {
+                high: today.high,
+                href: today.href,
+                sky: today.condition,
+                slug: today.slug,
+              }
+            : undefined
+        }
+      />
+    ),
   };
   const panels: Record<string, React.ReactNode> = {
     now: <NowPanel weather={weather} />,
   };
   days.forEach((day, dayIndex) => {
     const issued = weather.days[dayIndex];
-    summaries[day.slug] = <DaySummary day={day} />;
-    if (issued) {
-      panels[day.slug] = (
-        <DayPanel
-          day={issued}
-          note={location.isDefault ? undefined : weather.label}
-        />
-      );
-    }
+    if (!issued) return;
+    cards[day.slug] = <DayCard condition={day.condition} day={issued} />;
+    panels[day.slug] = (
+      <DayPanel
+        day={issued}
+        note={location.isDefault ? undefined : weather.label}
+      />
+    );
   });
 
   return (
@@ -85,7 +106,7 @@ export function SkyHero({
         className="bg-gm-gradient-sky text-gm-text-inverse"
       >
         <div className="mx-auto grid max-w-6xl grid-cols-1 gap-2 px-4 pt-2 pb-4 sm:px-6 lg:gap-2.5 lg:pt-3 lg:pb-6 xl:px-8">
-          {/* The place is shown in the first card; the heading is for screen readers. */}
+          {/* The place is shown in the card; the heading is for screen readers. */}
           <h1 className="sr-only" id="sky-hero-title">
             {location.name} weather, {station}
           </h1>
@@ -97,42 +118,30 @@ export function SkyHero({
             {switcher}
           </div>
 
-          <div className="rounded-gm-card bg-gm-scrim p-4 sm:hidden">
-            <ByTab panels={summaries} />
-          </div>
-
-          <div className="grid grid-cols-1 gap-2 sm:grid-cols-[minmax(0,2fr)_minmax(0,5fr)] lg:gap-2.5">
-            <TabLink
-              className="hidden rounded-gm-card bg-gm-scrim p-3 outline-none hover:bg-gm-text-inverse/10 focus-visible:ring-2 focus-visible:ring-gm-lime sm:block lg:p-4"
-              currentClassName="bg-gm-text-inverse/20"
-              data-analytics-day="now"
-              data-analytics-event="forecast_tab_selected"
-              href={nowHref}
-              idleClassName=""
-              slug="now"
-            >
-              <NowSummary
-                compact
-                now={now}
-                station={station}
-                weather={weather}
+          <div className="grid grid-cols-1 gap-2 sm:grid-cols-[minmax(0,2fr)_minmax(0,3fr)] lg:grid-cols-[25rem_minmax(0,1fr)] lg:gap-2.5">
+            <div className="rounded-gm-card bg-gm-scrim px-4 py-3">
+              <ByTab fit panels={cards} />
+            </div>
+            <div className="grid min-w-0 content-start gap-2 lg:gap-2.5">
+              <SkyDayStrip
+                days={days}
+                now={{
+                  href: nowHref,
+                  sky: skyFromWords(
+                    current?.weather ??
+                      current?.extra.find((t) => t.label === "Cloud")?.value ??
+                      null
+                  ),
+                  temperature:
+                    current?.temperature ??
+                    weather.observation?.temperature ??
+                    null,
+                  time: current ? localTime(current.observedAt) : null,
+                }}
               />
-            </TabLink>
-            <SkyDayStrip
-              days={days}
-              now={{
-                href: nowHref,
-                sky: skyFromWords(current?.weather ?? null),
-                temperature:
-                  current?.temperature ??
-                  weather.observation?.temperature ??
-                  null,
-                time: current ? localTime(current.observedAt) : null,
-              }}
-            />
+              <ByTab fit panels={panels} />
+            </div>
           </div>
-
-          <ByTab panels={panels} />
 
           {children}
         </div>

@@ -124,7 +124,7 @@ export function NowPanel({ weather }: { weather: WeatherSnapshot }) {
   return (
     <section
       aria-label="Current conditions"
-      className="grid h-full content-start gap-3 rounded-gm-card bg-gm-scrim p-4 lg:p-5"
+      className="grid h-full content-start gap-3 rounded-gm-card bg-gm-scrim px-4 py-3 lg:px-5"
     >
       {current ? (
         <ReadingGrid

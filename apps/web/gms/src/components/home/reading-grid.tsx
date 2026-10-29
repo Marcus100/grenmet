@@ -93,6 +93,23 @@ function Trend({ trend }: { trend: PressureTrend }) {
  */
 function valueText(reading: Reading): ReactNode {
   if (!reading.unavailable) {
+    if (reading.rows) {
+      // Several items (each tide): side by side, each its time over its height.
+      return (
+        <span className="flex flex-wrap gap-x-4 gap-y-1">
+          {reading.rows.map((row) => (
+            <span className="flex flex-col" key={row.time}>
+              <span>{row.time}</span>
+              {row.measure && (
+                <span className="font-normal text-body-sm text-gm-text-inverse/80 leading-body-sm">
+                  <Measure measure={row.measure} />
+                </span>
+              )}
+            </span>
+          ))}
+        </span>
+      );
+    }
     if (!reading.measures) return reading.value;
     return reading.measures.map((measure, index) => (
       <span key={`${measure.quantity}-${measure.low}`}>
@@ -126,7 +143,7 @@ export function ReadingGrid({
   return (
     <dl
       className={cn(
-        "grid grid-cols-2 gap-x-3 gap-y-4 border-gm-text-inverse/15 border-t pt-4 sm:grid-cols-4 lg:grid-cols-[repeat(auto-fill,minmax(10.5rem,1fr))] lg:gap-y-5",
+        "grid grid-cols-2 gap-x-3 gap-y-3 border-gm-text-inverse/15 border-t pt-4 lg:grid-cols-4",
         className
       )}
     >

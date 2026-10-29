@@ -120,9 +120,17 @@ export function TabLink({
  * panel is visible: the others keep their space with `visibility: hidden`,
  * which also takes them out of the tab order and the accessibility tree
  * (`aria-hidden` says so for assistive tech that reads the DOM directly).
- * The selected panel falls back to Now.
+ * The selected panel falls back to Now. With `fit`, wider screens show only
+ * the selected panel, so the area is as short as its content (owner, 29 Oct
+ * 2026: phones stay steady, tablets and desktops stay short).
  */
-export function ByTab({ panels }: { panels: Record<string, ReactNode> }) {
+export function ByTab({
+  fit = false,
+  panels,
+}: {
+  fit?: boolean;
+  panels: Record<string, ReactNode>;
+}) {
   const { selected } = useHeroSelection();
   const shown = panels[selected] === undefined ? "now" : selected;
   return (
@@ -134,7 +142,7 @@ export function ByTab({ panels }: { panels: Record<string, ReactNode> }) {
             aria-hidden={current ? undefined : true}
             className={cn(
               "col-start-1 row-start-1 min-w-0",
-              current ? "visible" : "invisible"
+              current ? "visible" : cn("invisible", fit && "sm:hidden")
             )}
             key={slug}
           >
