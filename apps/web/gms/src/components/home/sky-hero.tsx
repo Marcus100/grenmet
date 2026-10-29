@@ -3,7 +3,12 @@ import { DayCard, NowCard } from "@/components/home/hero-card";
 import { ByTab, HeroSelectionProvider } from "@/components/home/hero-selection";
 import { NowPanel } from "@/components/home/now-card";
 import { SkyDayStrip, type StripDay } from "@/components/home/sky-day-strip";
-import { localTime } from "@/lib/current-conditions";
+import {
+  isOtherGrenadaDay,
+  isStale,
+  localTime,
+  localWeekday,
+} from "@/lib/current-conditions";
 import type { WeatherSnapshot } from "@/lib/forecast-data";
 import { getForecastDays } from "@/lib/forecast-days";
 import { rainChance, skyFromWords } from "@/lib/hero-readings";
@@ -26,6 +31,27 @@ const STATION_CODE = /^.*\((.+)\)$/;
  * small text always sits on `bg-gm-scrim` (the gradient's light stop is under
  * AA for small type).
  */
+/**
+ * The first tab's label and time. A reading older than 90 minutes says
+ * "Last" over its time (or its weekday from an earlier day), never "Now"
+ * (owner, 29 Oct 2026).
+ */
+function stripTime(
+  observedAt: string | null,
+  now?: Date
+): { label: "Now" | "Last"; time: string | null } {
+  if (!observedAt) return { label: "Now", time: null };
+  if (!isStale(observedAt, now)) {
+    return { label: "Now", time: localTime(observedAt) };
+  }
+  return {
+    label: "Last",
+    time: isOtherGrenadaDay(observedAt, now)
+      ? localWeekday(observedAt)
+      : localTime(observedAt),
+  };
+}
+
 export function SkyHero({
   children,
   location = defaultLocation(),
@@ -136,7 +162,7 @@ export function SkyHero({
                     current?.temperature ??
                     weather.observation?.temperature ??
                     null,
-                  time: current ? localTime(current.observedAt) : null,
+                  ...stripTime(current?.observedAt ?? null, now),
                 }}
               />
               <ByTab fit panels={panels} />

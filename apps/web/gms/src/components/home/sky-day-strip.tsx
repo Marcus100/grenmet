@@ -17,6 +17,8 @@ export interface StripDay extends ForecastDay {
 /** The Now column, the first tab at every width. */
 export interface StripNow {
   href: string;
+  /** "Last" when the reading is older than 90 minutes; defaults to "Now". */
+  label?: "Now" | "Last";
   sky: WeatherCondition;
   temperature: number | null;
   time: string | null;
@@ -168,7 +170,10 @@ export function SkyDayStrip({
               {"\u00a0"}
             </span>
             <span className="mt-1 font-bold text-body-base leading-body-base">
-              Now
+              {now.label ?? "Now"}
+              {now.label === "Last" && (
+                <span className="sr-only"> reading</span>
+              )}
             </span>
             <span className={cn(small, "text-gm-text-inverse/85")}>
               {now.time ?? "\u00a0"}

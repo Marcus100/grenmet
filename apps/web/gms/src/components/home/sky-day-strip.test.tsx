@@ -10,6 +10,7 @@ import {
 
 const FRIDAY = /Fri/;
 const NOW_TAB = /Now/;
+const LAST_TAB = /Last reading/;
 const RAIN_CHANCE = /Medium chance of rain/;
 
 const day = (overrides: Partial<StripDay>): StripDay => ({
@@ -53,6 +54,27 @@ describe("SkyDayStrip", () => {
     expect(within(tab).getByText("No forecast yet")).toHaveClass("sr-only");
     // The maximum slot holds a single dash; the minimum slot is blank.
     expect(within(tab).getAllByText("—")).toHaveLength(1);
+  });
+
+  it("labels an old reading Last, never Now", () => {
+    render(
+      <HeroSelectionProvider initial="now">
+        <SkyDayStrip
+          days={[day({})]}
+          now={{
+            href: "/",
+            label: "Last",
+            sky: "cloudy",
+            temperature: 26,
+            time: "Wed",
+          }}
+        />
+      </HeroSelectionProvider>
+    );
+    const [tab] = screen.getAllByRole("link");
+    expect(tab).toHaveTextContent(LAST_TAB);
+    expect(tab).toHaveTextContent("Wed");
+    expect(tab).not.toHaveTextContent(NOW_TAB);
   });
 
   it("leaves out the rain row when no day gives a chance of rain", () => {
