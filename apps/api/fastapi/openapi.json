@@ -28779,7 +28779,7 @@
                 {
                   "type": "string",
                   "maxLength": 200,
-                  "pattern": "^[a-z0-9][a-z0-9-]{0,199}$"
+                  "pattern": "^[a-z0-9][a-z0-9-]*(?:/[a-z0-9][a-z0-9-]*)*$"
                 },
                 {
                   "type": "null"
@@ -72423,7 +72423,8 @@
           },
           "slug": {
             "type": "string",
-            "pattern": "^[a-z0-9][a-z0-9-]{0,199}$",
+            "maxLength": 200,
+            "pattern": "^[a-z0-9][a-z0-9-]*(?:/[a-z0-9][a-z0-9-]*)*$",
             "title": "Slug"
           },
           "url": {
@@ -72457,8 +72458,15 @@
             "title": "Platforms"
           },
           "publishAt": {
-            "type": "string",
-            "format": "date-time",
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
             "title": "Publishat"
           },
           "imageUrl": {
@@ -72482,8 +72490,7 @@
           "url",
           "title",
           "captions",
-          "platforms",
-          "publishAt"
+          "platforms"
         ],
         "title": "PostIn",
         "description": "What the CMS sends when an editor approves a post for social."

@@ -64,7 +64,7 @@ def check_post_rules(body: PostIn) -> None:
             raise SocialCaptionMissing(platform)
 
 
-def _content(body: PostIn, platform: str) -> dict[str, Any]:
+def _content(body: PostIn, platform: str, now: datetime) -> dict[str, Any]:
     caption = body.captions.for_platform(platform) or ""
     return {
         "url": body.url,
@@ -76,7 +76,8 @@ def _content(body: PostIn, platform: str) -> dict[str, Any]:
             "url": body.url,
             "imageUrl": body.image_url,
         },
-        "publish_at": body.publish_at,
+        # No publish time means "manual or immediate": due at the moment it arrived.
+        "publish_at": body.publish_at if body.publish_at is not None else now,
     }
 
 
@@ -91,7 +92,7 @@ async def upsert_post(session: AsyncSession, body: PostIn) -> list[DeliveryOutco
     outcomes: list[DeliveryOutcome] = []
     for platform in body.platforms:
         key = dedupe_key(body.collection, body.slug, platform)
-        content = _content(body, platform)
+        content = _content(body, platform, now)
         inserted = await session.execute(
             pg_insert(ContentDelivery)
             .values(

@@ -9,7 +9,13 @@ from src.pagination import PaginationDep
 
 from . import service
 from .dependencies import authenticate_cms
-from .schemas import DeliveryAdminList, PostAccepted, PostIn
+from .schemas import (
+    SLUG_MAX_LENGTH,
+    SLUG_PATTERN,
+    DeliveryAdminList,
+    PostAccepted,
+    PostIn,
+)
 
 router = APIRouter(prefix="/content-distribution", tags=["content-distribution"])
 
@@ -61,7 +67,7 @@ async def list_posts(
     pagination: PaginationDep,
     slug: Annotated[
         str | None,
-        Query(pattern=r"^[a-z0-9][a-z0-9-]{0,199}$", max_length=200),
+        Query(pattern=SLUG_PATTERN, max_length=SLUG_MAX_LENGTH),
     ] = None,
     collection: Annotated[
         str | None,

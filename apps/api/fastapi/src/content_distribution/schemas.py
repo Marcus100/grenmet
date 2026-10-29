@@ -12,6 +12,12 @@ from src.models import BaseModel, UtcDateTime
 Platform = Literal["facebook", "instagram", "whatsapp"]
 DisplayStatus = Literal["pending", "scheduled", "dry_run_sent", "failed", "dead"]
 URL_PATTERN = r"^https://[^\s]{4,1990}$"
+# A post slug is `/`-separated segments such as `stories/2026/10/title`. Each
+# segment is lowercase letters, digits and hyphens, starting with a letter or
+# digit, so there are no empty segments, no leading or trailing slash and no
+# dots. Length is capped separately (max_length=200) so the dedupe key fits.
+SLUG_PATTERN = r"^[a-z0-9][a-z0-9-]*(?:/[a-z0-9][a-z0-9-]*)*$"
+SLUG_MAX_LENGTH = 200
 
 
 class Captions(BaseModel):
@@ -32,13 +38,15 @@ class PostIn(BaseModel):
     """What the CMS sends when an editor approves a post for social."""
 
     collection: str = Field(pattern=r"^[a-z][a-z0-9-]{1,59}$")
-    slug: str = Field(pattern=r"^[a-z0-9][a-z0-9-]{0,199}$")
+    slug: str = Field(pattern=SLUG_PATTERN, max_length=SLUG_MAX_LENGTH)
     url: str = Field(pattern=URL_PATTERN, max_length=2000)
     title: str = Field(min_length=1, max_length=300)
     summary: str = Field(default="", max_length=1000)
     captions: Captions
     platforms: list[Platform] = Field(min_length=1, max_length=3)
-    publish_at: UtcDateTime = Field(alias="publishAt")
+    # Null or missing means "as soon as possible": the service stores the time the
+    # post arrived, so the next release queues it (see service.upsert_post).
+    publish_at: UtcDateTime | None = Field(default=None, alias="publishAt")
     image_url: str | None = Field(
         default=None, alias="imageUrl", pattern=URL_PATTERN, max_length=2000
     )
@@ -52,9 +60,11 @@ class PostIn(BaseModel):
 
     @field_validator("publish_at")
     @classmethod
-    def _to_naive_utc(cls, moment: datetime) -> datetime:
+    def _to_naive_utc(cls, moment: datetime | None) -> datetime | None:
         # Stored as naive UTC, like every other timestamp in the API. A value
         # without a zone is taken as UTC.
+        if moment is None:
+            return None
         if moment.tzinfo is not None:
             moment = moment.astimezone(UTC)
         return moment.replace(tzinfo=None)

@@ -10,7 +10,10 @@ import { deliveryOutcomePropertiesPlatformEnumSchema } from "./deliveryOutcomePr
 export const postInSchema = z
   .object({
     collection: z.string().regex(/^[a-z][a-z0-9-]{1,59}$/),
-    slug: z.string().regex(/^[a-z0-9][a-z0-9-]{0,199}$/),
+    slug: z
+      .string()
+      .max(200)
+      .regex(/^[a-z0-9][a-z0-9-]*(?:\/[a-z0-9][a-z0-9-]*)*$/),
     url: z
       .string()
       .max(2000)
@@ -22,7 +25,7 @@ export const postInSchema = z
       .array(deliveryOutcomePropertiesPlatformEnumSchema)
       .min(1)
       .max(3),
-    publishAt: z.iso.datetime(),
+    publishAt: z.union([z.iso.datetime(), z.null()]).optional(),
     imageUrl: z
       .union([
         z

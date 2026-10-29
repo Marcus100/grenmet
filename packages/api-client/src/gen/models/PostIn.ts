@@ -17,7 +17,8 @@ export type PostIn = {
    */
   collection: string;
   /**
-   * @pattern ^[a-z0-9][a-z0-9-]{0,199}$
+   * @maxLength 200
+   * @pattern ^[a-z0-9][a-z0-9-]*(?:/[a-z0-9][a-z0-9-]*)*$
    * @type string
    */
   slug: string;
@@ -41,11 +42,6 @@ export type PostIn = {
   summary?: string;
   captions: Captions;
   platforms: DeliveryOutcomePropertiesPlatformEnum[];
-  /**
-   * @description
-   * Format: `date-time`
-   * @type string
-   */
-  publishAt: string;
+  publishAt?: string | null;
   imageUrl?: string | null;
 };

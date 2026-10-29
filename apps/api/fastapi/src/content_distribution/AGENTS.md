@@ -31,6 +31,11 @@ holds the copy and link that were (or would be) posted. It is public content.
   `/cap` is refused. CAP, the site and approved channels stay primary.
 - Instagram needs `imageUrl`. Every requested platform needs its own caption.
 - Duplicate platforms and non-HTTPS links are refused by the schema.
+- A slug is `/`-separated segments (`stories/2026/10/title`), each lowercase
+  letters, digits and hyphens. No empty segment, no leading or trailing slash, max
+  200 characters. The longest dedupe key (`cms:` + 60-character collection + slug
+  + `:whatsapp`) fits the 300-character column; a test pins this.
+- `publishAt` null or missing means now (UTC): the row is due at the next release.
 - No hazard-word filter: the owner removed it. Do not re-add one here.
 - WhatsApp rows are stored and never released. Editors copy the caption by hand
   (`automated: false` in the staff list).

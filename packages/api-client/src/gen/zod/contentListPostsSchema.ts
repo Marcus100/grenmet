@@ -12,7 +12,7 @@ export const contentListPostsQuerySlugSchema = z
     z
       .string()
       .max(200)
-      .regex(/^[a-z0-9][a-z0-9-]{0,199}$/),
+      .regex(/^[a-z0-9][a-z0-9-]*(?:\/[a-z0-9][a-z0-9-]*)*$/),
     z.null(),
   ])
   .optional();
@@ -68,7 +68,7 @@ export const contentListPostsQuerySchema = z.object({
       z
         .string()
         .max(200)
-        .regex(/^[a-z0-9][a-z0-9-]{0,199}$/),
+        .regex(/^[a-z0-9][a-z0-9-]*(?:\/[a-z0-9][a-z0-9-]*)*$/),
       z.null(),
     ])
     .optional(),
