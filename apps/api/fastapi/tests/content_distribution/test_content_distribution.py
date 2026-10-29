@@ -25,6 +25,7 @@ from src.content_distribution.config import (
 )
 from src.content_distribution.models import ContentDelivery
 from src.outbox import Outbox, OutboxStatus
+from src.utils.datetime import utc_now
 
 _URL = "/api/v1/content-distribution/internal/posts"
 _STAFF_URL = "/api/v1/content-distribution/admin/posts"
@@ -422,3 +423,140 @@ async def test_publish_at_is_stored_as_naive_utc(
     [row] = await _rows(db_async, "utc-time")
     assert row.publish_at == datetime(2026, 10, 30, 11, 30)
     assert row.publish_at.tzinfo is None
+
+
+# --- What the CMS really sends ---------------------------------------------------
+
+
+def _cms_body(**overrides: object) -> dict[str, object]:
+    """Mirrors distributionBody() in apps/web/cms/src/lib/social-distribution.ts for
+    a dated story: the slug keeps its slashes, publishAt is null when the editor
+    leaves "publish at" empty, captions for unchosen platforms are null, and the
+    image is null when there is none."""
+    body: dict[str, object] = {
+        "collection": "stories",
+        "slug": "stories/2026/10/dry-rain-this-week",
+        "url": "https://gms.example.test/explore/news/2026/10/dry-rain-this-week",
+        "title": "Dry rain this week",
+        "summary": "",
+        "captions": {
+            "facebook": "Facebook copy",
+            "instagram": None,
+            "whatsapp": "WhatsApp copy",
+        },
+        "platforms": ["facebook", "whatsapp"],
+        "publishAt": None,
+        "imageUrl": None,
+    }
+    body.update(overrides)
+    return body
+
+
+async def test_cms_body_with_a_dated_slug_and_no_publish_time_is_accepted(
+    async_client: httpx.AsyncClient,
+    db_async: AsyncSession,
+    cms_secret: dict[str, str],
+) -> None:
+    slug = "stories/2026/10/dry-rain-this-week"
+    resp = await async_client.post(_URL, json=_cms_body(), headers=cms_secret)
+    assert resp.status_code == 202, resp.text
+    assert [d["outcome"] for d in resp.json()["deliveries"]] == ["created", "created"]
+    rows = await _rows(db_async, slug)
+    assert [r.dedupe_key for r in rows] == [
+        f"cms:stories:{slug}:facebook",
+        f"cms:stories:{slug}:whatsapp",
+    ]
+
+    # Re-saving the same post updates it; it never duplicates.
+    again = await async_client.post(_URL, json=_cms_body(), headers=cms_secret)
+    assert [d["outcome"] for d in again.json()["deliveries"]] == ["updated"] * 2
+    assert len(await _rows(db_async, slug)) == 2
+
+
+@pytest.mark.parametrize(
+    "slug",
+    [
+        "stories//double-slash",
+        "/stories/leading-slash",
+        "stories/trailing-slash/",
+        "stories/../escape",
+        "stories/-leading-hyphen",
+        "stories/Upper/case",
+        "stories/with space",
+    ],
+)
+async def test_slugs_with_empty_dotted_or_odd_segments_are_refused(
+    async_client: httpx.AsyncClient,
+    cms_secret: dict[str, str],
+    slug: str,
+) -> None:
+    resp = await async_client.post(_URL, json=_cms_body(slug=slug), headers=cms_secret)
+    assert resp.status_code == 422
+
+
+async def test_the_longest_legal_post_fits_the_dedupe_column(
+    async_client: httpx.AsyncClient,
+    db_async: AsyncSession,
+    cms_secret: dict[str, str],
+) -> None:
+    collection = "c" + "x" * 59  # the 60-character limit
+    slug = "stories/" + "a" * 192  # the 200-character limit
+    column_length = ContentDelivery.__table__.c.dedupe_key.type.length
+    longest_key = service.dedupe_key(collection, slug, "whatsapp")
+    assert len(longest_key) <= column_length
+
+    body = _cms_body(
+        collection=collection,
+        slug=slug,
+        url=f"https://gms.example.test/explore/news/{'a' * 192}",
+        platforms=["whatsapp"],
+    )
+    resp = await async_client.post(_URL, json=body, headers=cms_secret)
+    assert resp.status_code == 202, resp.text
+    [row] = await _rows(db_async, slug)
+    assert row.dedupe_key == longest_key
+
+
+async def test_staff_list_filters_by_a_dated_slug(
+    async_client: httpx.AsyncClient,
+    cms_secret: dict[str, str],
+    superuser_token_headers_async: dict[str, str],
+) -> None:
+    slug = "stories/2026/10/staff-filter"
+    await async_client.post(_URL, json=_cms_body(slug=slug), headers=cms_secret)
+    resp = await async_client.get(
+        _STAFF_URL, params={"slug": slug}, headers=superuser_token_headers_async
+    )
+    assert resp.status_code == 200, resp.text
+    assert resp.json()["count"] == 2
+    assert {row["slug"] for row in resp.json()["data"]} == {slug}
+
+
+@pytest.mark.parametrize("omit_key", [False, True], ids=["null", "missing"])
+async def test_no_publish_time_means_now_so_the_post_is_due_at_once(
+    async_client: httpx.AsyncClient,
+    db_async: AsyncSession,
+    cms_secret: dict[str, str],
+    omit_key: bool,
+) -> None:
+    slug = f"manual-now-{'missing' if omit_key else 'null'}"
+    body = _body(slug, platforms=["facebook"], publishAt=None)
+    if omit_key:
+        del body["publishAt"]
+    before = utc_now()
+    resp = await async_client.post(_URL, json=body, headers=cms_secret)
+    after = utc_now()
+    assert resp.status_code == 202, resp.text
+
+    [row] = await _rows(db_async, slug)
+    assert before <= row.publish_at <= after
+    assert row.publish_at.tzinfo is None
+
+    # Due as soon as the next release runs: the post reaches the outbox and then
+    # the dry-run handler, with no wait for a publish time.
+    later = after + timedelta(seconds=1)
+    assert await service.release_due(db_async, now=later) == 1
+    await db_async.commit()
+    await outbox.drain(db_async, only_topics=["social.post.facebook"], now=later)
+    [row] = await _rows(db_async, slug)
+    assert row.status == "dry_run_sent"

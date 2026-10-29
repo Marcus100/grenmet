@@ -1,6 +1,6 @@
 """What one day's climate newsletter contains. Sources are injected; nothing is sent."""
 
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 from types import SimpleNamespace
 from urllib.parse import quote
 
@@ -15,6 +15,8 @@ from src.subscriptions.constants import HURRICANE_MODE_FLAG
 
 _NOW = datetime(2026, 10, 28, 15, 0, tzinfo=UTC)  # 11:00 in Grenada
 _DAY = _NOW.astimezone(newsletter.GRENADA).date()
+_UNTIL = datetime(2026, 10, 28, 11, 30, tzinfo=UTC)  # 07:30 Grenada, 28 Oct
+_SINCE = _UNTIL - timedelta(days=1)
 
 
 def _alert(headline: str = "Yellow heavy rain warning") -> newsletter.DigestAlert:
@@ -39,7 +41,7 @@ async def _none_alerts(*_args: object) -> list[newsletter.DigestAlert]:
     return []
 
 
-async def _none_posts(_day: object) -> list[newsletter.DigestPost]:
+async def _none_posts(*_args: object) -> list[newsletter.DigestPost]:
     return []
 
 
@@ -82,7 +84,7 @@ async def test_alerts_come_first_then_forecast_then_posts(
     async def alerts(*_args: object) -> list[newsletter.DigestAlert]:
         return [_alert()]
 
-    async def posts(_day: object) -> list[newsletter.DigestPost]:
+    async def posts(*_args: object) -> list[newsletter.DigestPost]:
         return [_post(1)]
 
     digest = await newsletter.compose(
@@ -124,7 +126,7 @@ async def test_hurricane_mode_is_shorter_and_leads_with_alerts(
     async def alerts(*_args: object) -> list[newsletter.DigestAlert]:
         return [_alert()]
 
-    async def posts(_day: object) -> list[newsletter.DigestPost]:
+    async def posts(*_args: object) -> list[newsletter.DigestPost]:
         return [_post(index) for index in range(5)]
 
     digest = await newsletter.compose(
@@ -232,7 +234,7 @@ def _item(**overrides: object) -> dict[str, object]:
         "url": "https://weather.example.test/stories/rain",
         "summary": "Rain was above normal.",
         "includeInNewsletter": True,
-        "publishedAt": "2026-10-28T09:00:00-04:00",
+        "publishedAt": "2026-10-28T06:00:00-04:00",  # inside the 28 Oct window
     }
     item.update(overrides)
     return item
@@ -247,19 +249,90 @@ def feed_url(monkeypatch: pytest.MonkeyPatch) -> None:
     )
 
 
-async def test_feed_keeps_only_flagged_posts_published_today(feed_url: None) -> None:
+async def test_feed_keeps_flagged_posts_since_the_previous_send(feed_url: None) -> None:
     _ = feed_url
     payload = {
         "items": [
-            _item(),
-            _item(title="Not flagged", includeInNewsletter=False),
-            _item(title="Yesterday", publishedAt="2026-10-27T09:00:00-04:00"),
+            _item(title="Yesterday 15:00", publishedAt="2026-10-27T15:00:00-04:00"),
+            _item(title="Today 06:00", publishedAt="2026-10-28T06:00:00-04:00"),
+            _item(title="Before last send", publishedAt="2026-10-27T06:00:00-04:00"),
+            _item(title="After this send", publishedAt="2026-10-28T15:00:00-04:00"),
+            _item(
+                title="Not flagged",
+                includeInNewsletter=False,
+                publishedAt="2026-10-27T15:00:00-04:00",
+            ),
         ]
     }
     posts = await newsletter.fetch_flagged_posts(
-        _DAY, transport=_feed_transport(payload)
+        _SINCE, _UNTIL, transport=_feed_transport(payload)
     )
+    assert [p.title for p in posts] == ["Yesterday 15:00", "Today 06:00"]
+
+
+async def test_feed_window_start_is_in_and_window_end_is_out(feed_url: None) -> None:
+    _ = feed_url
+    payload = {
+        "items": [
+            _item(title="At start", publishedAt="2026-10-27T07:30:00-04:00"),
+            _item(title="Just before start", publishedAt="2026-10-27T07:29:59-04:00"),
+            _item(title="At end", publishedAt="2026-10-28T07:30:00-04:00"),
+            _item(title="Just before end", publishedAt="2026-10-28T07:29:59-04:00"),
+        ]
+    }
+    posts = await newsletter.fetch_flagged_posts(
+        _SINCE, _UNTIL, transport=_feed_transport(payload)
+    )
+    assert [p.title for p in posts] == ["At start", "Just before end"]
+
+
+@pytest.mark.parametrize(
+    "stamp",
+    [
+        "2026-10-27T23:59:59-04:00",  # late on the day, so the next morning's mail
+        "2026-10-28T00:00:00-04:00",  # midnight rolls over, still before 07:30
+        "2026-10-28T11:29:59+00:00",  # 07:29:59 Grenada, written in UTC
+    ],
+)
+async def test_day_boundaries_follow_grenada_time(feed_url: None, stamp: str) -> None:
+    _ = feed_url
+    transport = _feed_transport({"items": [_item(publishedAt=stamp)]})
+    posts = await newsletter.fetch_flagged_posts(_SINCE, _UNTIL, transport=transport)
     assert [p.title for p in posts] == ["Rainfall report"]
+
+
+def test_send_window_is_the_previous_0730_to_this_0730_grenada() -> None:
+    since, until = newsletter.send_window(_UNTIL)
+    assert until == _UNTIL
+    assert since == _SINCE
+    # A run a few seconds late, or early, keeps the same window (no overlap).
+    assert newsletter.send_window(_UNTIL + timedelta(seconds=40)) == (_SINCE, _UNTIL)
+    assert newsletter.send_window(_UNTIL - timedelta(seconds=1)) == (_SINCE, _UNTIL)
+
+
+@pytest.mark.parametrize(
+    "run_day",
+    [
+        datetime(2026, 3, 8, 11, 30, tzinfo=UTC),  # US clocks change; Grenada does not
+        datetime(2026, 11, 1, 11, 30, tzinfo=UTC),
+    ],
+)
+def test_send_windows_are_exactly_24_hours_apart(run_day: datetime) -> None:
+    since, until = newsletter.send_window(run_day)
+    assert until - since == timedelta(days=1)
+    assert until.astimezone(newsletter.GRENADA).hour == 7
+    assert until.astimezone(newsletter.GRENADA).minute == 30
+
+
+def test_every_post_time_is_in_exactly_one_daily_window() -> None:
+    """Posts are never mailed twice and never skipped across consecutive runs."""
+    runs = [_UNTIL + timedelta(days=offset) for offset in range(-2, 3)]
+    windows = [newsletter.send_window(run) for run in runs]
+    moment = _UNTIL - timedelta(days=2)
+    while moment < _UNTIL + timedelta(days=2):
+        hits = [since <= moment < until for since, until in windows]
+        assert hits.count(True) == 1, moment
+        moment += timedelta(minutes=17, seconds=13)
 
 
 async def test_feed_ignores_items_with_unsafe_or_malformed_fields(
@@ -275,21 +348,21 @@ async def test_feed_ignores_items_with_unsafe_or_malformed_fields(
         ]
     }
     posts = await newsletter.fetch_flagged_posts(
-        _DAY, transport=_feed_transport(payload)
+        _SINCE, _UNTIL, transport=_feed_transport(payload)
     )
     assert [p.title for p in posts] == ["Good one"]
 
 
 async def test_unavailable_feed_means_no_posts_not_a_failed_digest() -> None:
     posts = await newsletter.fetch_flagged_posts(
-        _DAY, transport=_feed_transport({}, status=503)
+        _SINCE, _UNTIL, transport=_feed_transport({}, status=503)
     )
     assert posts == []
 
 
 async def test_no_feed_url_means_no_posts(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr(subscriptions_settings, "NEWSLETTER_POSTS_FEED_URL", None)
-    assert await newsletter.fetch_flagged_posts(_DAY) == []
+    assert await newsletter.fetch_flagged_posts(_SINCE, _UNTIL) == []
 
 
 async def test_public_alerts_link_to_the_alert_page_in_grenada_time(

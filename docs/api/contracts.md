@@ -119,7 +119,9 @@ site key), never a secret. Superusers manage sites through
 
 - `POST /api/v1/content-distribution/internal/posts` (CMS hook, additive): body
   is camelCase (`collection`, `slug`, `url`, `title`, `summary`, `captions`,
-  `platforms`, `publishAt`, `imageUrl`). Authenticated by the `X-CMS-Secret` header
+  `platforms`, `publishAt`, `imageUrl`). `slug` may have `/` segments (for example
+  `stories/2026/10/title`); `publishAt` may be null or missing, which means now.
+  Authenticated by the `X-CMS-Secret` header
   against `CMS_DISTRIBUTION_SECRET` (503 unset, 401 wrong). 202 with one outcome per
   platform. Idempotent per collection, slug and platform; refuses official warnings
   and posts missing an image (Instagram) or caption with 422. Machine-authenticated,
