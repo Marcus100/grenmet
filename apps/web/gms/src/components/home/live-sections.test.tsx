@@ -140,6 +140,11 @@ it("is a blog: desk post cards that link to their articles, never the forecast i
     screen.queryByText(`Linked product ${PRODUCT_ID}`)
   ).not.toBeInTheDocument();
   expect(screen.getAllByRole("link", { name: READ_ARTICLE })).toHaveLength(2);
+  // Each card is positioned so the link's screen-reader text stays inside the
+  // scrolling row instead of widening the page on phones.
+  for (const link of screen.getAllByRole("link", { name: READ_ARTICLE })) {
+    expect(link.closest("li")).toHaveClass("relative");
+  }
   expect(screen.getByText("New marine page")).toBeInTheDocument();
   expect(screen.getAllByText("The forecasters")).toHaveLength(2);
 });

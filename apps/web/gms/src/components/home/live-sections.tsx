@@ -96,8 +96,10 @@ export function avatarInitials(name: string | null | undefined): string {
  */
 function DeskPostCard({ item }: { item: PublishedContent }) {
   const posted = item.publishedAt ?? item.updatedAt;
+  // `relative` keeps the link's screen-reader text inside the scrolling row;
+  // without it that hidden text widens the whole page on phones.
   return (
-    <li className="w-[85%] shrink-0 snap-start sm:w-[22rem] lg:w-[24rem]">
+    <li className="relative w-[85%] shrink-0 snap-start sm:w-[22rem] lg:w-[24rem]">
       <article className={cn(HOME_CARD, "flex h-full flex-col gap-3")}>
         <header className="flex items-center gap-3">
           <span
