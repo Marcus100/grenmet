@@ -4,6 +4,7 @@ import {
   convertFigure,
   formatMeasure,
   isUnitSystem,
+  knotsFromKmh,
   unitSuffix,
 } from "@/lib/units";
 
@@ -76,5 +77,15 @@ describe("units", () => {
   it("recognises a unit system", () => {
     expect(isUnitSystem("metric")).toBe(true);
     expect(isUnitSystem("furlongs")).toBe(false);
+  });
+
+  it("takes a km/h speed through knots and back to the same km/h", () => {
+    const measure = {
+      quantity: "speed" as const,
+      low: knotsFromKmh(63),
+      high: knotsFromKmh(118),
+    };
+    expect(formatMeasure(measure, "metric")).toBe("63–118 km/h");
+    expect(formatMeasure(measure, "imperial")).toBe("39–73 mph");
   });
 });

@@ -153,3 +153,12 @@ export function bothUnits(measure: Measure): Record<UnitSystem, string> | null {
 
 export const isUnitSystem = (value: unknown): value is UnitSystem =>
   value === "imperial" || value === "metric";
+
+/**
+ * A speed published in km/h (the hurricane scale) as the knots the API stores,
+ * so a `Measure` can show it in either system. Exact: km/h back out is the
+ * same figure.
+ */
+export function knotsFromKmh(kmh: number): number {
+  return kmh / KNOTS_TO_KMH;
+}
