@@ -222,8 +222,9 @@ function tides(conditions: Condition[], pattern: RegExp) {
 /**
  * A forecast day's panel: the marine and sky details the card above does not
  * show (it carries the high and low, sky, chance of rain, wind and gusts). In
- * pairs for two columns: seas and swell, sunrise and sunset, high and low
- * tides. Sun times are computed from the date when not issued; anything else
+ * pairs for two columns, the always-present pair first so a missing item
+ * never splits the others: sunrise and sunset, high and low tides, then seas
+ * and swell. Sun times are computed from the date when not issued; anything else
  * missing is left out (owner, 29 Oct 2026). Times read a.m./p.m.
  */
 export function dayReadings(day: ForecastDayData): Reading[] {
@@ -231,25 +232,6 @@ export function dayReadings(day: ForecastDayData): Reading[] {
   const c = day.conditions;
   const sun = computedSun(day.date);
   const rows: Reading[] = [];
-  const waves = find(c, WAVE_HEIGHT);
-  const sea = find(c, SEA_STATE);
-  const lead = waves ?? sea;
-  if (lead)
-    rows.push(
-      fromTile("seas", "Seas", lead, {
-        detail: waves && sea ? sea.value : undefined,
-      })
-    );
-  // FastAPI: value "1.4 m", label "Swell · NE every 9 s"; or the text alone.
-  const swell = find(c, SWELL);
-  if (swell)
-    rows.push(
-      fromTile("swell", "Swell", swell, {
-        detail: SWELL_DETAIL.test(swell.label)
-          ? swell.label.replace(SWELL_DETAIL, "")
-          : undefined,
-      })
-    );
   const sunrise = find(c, SUNRISE)?.value ?? sun?.sunrise;
   const sunset = find(c, SUNSET)?.value ?? sun?.sunset;
   if (sunrise)
@@ -276,6 +258,25 @@ export function dayReadings(day: ForecastDayData): Reading[] {
       rows: low,
       value: low.map((t) => t.time).join(" · "),
     });
+  const waves = find(c, WAVE_HEIGHT);
+  const sea = find(c, SEA_STATE);
+  const lead = waves ?? sea;
+  if (lead)
+    rows.push(
+      fromTile("seas", "Seas", lead, {
+        detail: waves && sea ? sea.value : undefined,
+      })
+    );
+  // FastAPI: value "1.4 m", label "Swell · NE every 9 s"; or the text alone.
+  const swell = find(c, SWELL);
+  if (swell)
+    rows.push(
+      fromTile("swell", "Swell", swell, {
+        detail: SWELL_DETAIL.test(swell.label)
+          ? swell.label.replace(SWELL_DETAIL, "")
+          : undefined,
+      })
+    );
   return rows;
 }
 
