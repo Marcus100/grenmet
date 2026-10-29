@@ -9,7 +9,6 @@ import type { Route } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { HOME_CARD, HomeSection } from "@/components/home/home-section";
-import { LinkedProduct } from "@/components/linked-product";
 import {
   contentHref,
   fetchHomeContent,
@@ -390,9 +389,6 @@ export async function LatestReports() {
                 <p className="max-w-prose text-body-base leading-body-base">
                   {lead.summary}
                 </p>
-              )}
-              {lead.linkedProduct && (
-                <LinkedProduct productId={lead.linkedProduct.productId} />
               )}
             </article>
             {rest.length > 0 && (

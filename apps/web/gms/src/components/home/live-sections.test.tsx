@@ -17,12 +17,6 @@ import {
 import { fetchPublishedProduct } from "@/lib/products";
 
 vi.mock("@/lib/products", () => ({ fetchPublishedProduct: vi.fn() }));
-// The card is an async server component; it has its own tests.
-vi.mock("@/components/linked-product", () => ({
-  LinkedProduct: ({ productId }: { productId: string }) => (
-    <p>Linked product {productId}</p>
-  ),
-}));
 
 vi.mock("@/lib/cms", async (importOriginal) => {
   const actual = await importOriginal<typeof import("@/lib/cms")>();
@@ -135,10 +129,7 @@ it("is a blog: desk post cards that link to their articles, never the forecast i
   expect(
     screen.getByRole("link", { name: "Why the morning forecast changed" })
   ).toHaveAttribute("href", "/explore/updates/2026/09/why");
-  // The article carries the linked product; the card only links to it.
-  expect(
-    screen.queryByText(`Linked product ${PRODUCT_ID}`)
-  ).not.toBeInTheDocument();
+  expect(screen.queryByText("Official product")).not.toBeInTheDocument();
   expect(screen.getAllByRole("link", { name: READ_ARTICLE })).toHaveLength(2);
   // Each card is positioned so the link's screen-reader text stays inside the
   // scrolling row instead of widening the page on phones.
@@ -158,7 +149,7 @@ it("shows only report write-ups, with an honest empty state", async () => {
   expect(fetchPublishedProduct).not.toHaveBeenCalled();
 });
 
-it("leads report write-ups with their live product and links each write-up", async () => {
+it("leads report write-ups without a product card and links each write-up", async () => {
   vi.mocked(fetchHomeContent).mockResolvedValue({
     ...hidden([]),
     reportNotes: {
@@ -184,7 +175,7 @@ it("leads report write-ups with their live product and links each write-up", asy
   expect(
     screen.getByRole("link", { name: "Understanding the flood bulletin" })
   ).toHaveAttribute("href", "/explore/reports/2026/09/flood");
-  expect(screen.getByText(`Linked product ${PRODUCT_ID}`)).toBeInTheDocument();
+  expect(screen.queryByText("Official product")).not.toBeInTheDocument();
   expect(screen.getByRole("link", { name: TWO_WAVES })).toHaveAttribute(
     "href",
     "/explore/reports/2026/09/outlook"
