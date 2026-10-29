@@ -114,8 +114,34 @@ export function TabLink({
   );
 }
 
-/** Shows the panel for the selected tab, falling back to Now. */
+/**
+ * Every tab's panel, stacked in one grid cell so the cell is as tall as the
+ * tallest panel and the page never jumps when a tab changes. Only the selected
+ * panel is visible: the others keep their space with `visibility: hidden`,
+ * which also takes them out of the tab order and the accessibility tree
+ * (`aria-hidden` says so for assistive tech that reads the DOM directly).
+ * The selected panel falls back to Now.
+ */
 export function ByTab({ panels }: { panels: Record<string, ReactNode> }) {
   const { selected } = useHeroSelection();
-  return <>{panels[selected] ?? panels.now}</>;
+  const shown = panels[selected] === undefined ? "now" : selected;
+  return (
+    <div className="grid min-w-0">
+      {Object.entries(panels).map(([slug, panel]) => {
+        const current = slug === shown;
+        return (
+          <div
+            aria-hidden={current ? undefined : true}
+            className={cn(
+              "col-start-1 row-start-1 min-w-0",
+              current ? "visible" : "invisible"
+            )}
+            key={slug}
+          >
+            {panel}
+          </div>
+        );
+      })}
+    </div>
+  );
 }

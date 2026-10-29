@@ -92,7 +92,11 @@ describe("SkyHero", () => {
     ).toBeGreaterThan(0);
     cleanup();
     render(<SkyHero selected="today" weather={unavailableWeather()} />);
-    expect(screen.getByText("Forecast unavailable")).toBeInTheDocument();
+    // Every tab's panel is on the page, stacked; only the selected one is shown.
+    const shown = screen
+      .getAllByText("Forecast unavailable")
+      .filter((element) => !element.closest('[aria-hidden="true"]'));
+    expect(shown).toHaveLength(1);
   });
 });
 
