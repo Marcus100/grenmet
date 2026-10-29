@@ -76,6 +76,7 @@ export interface Config {
     discover: Discover;
     media: Media;
     users: User;
+    'publication-log': PublicationLog;
     'payload-kv': PayloadKv;
     'payload-locked-documents': PayloadLockedDocument;
     'payload-preferences': PayloadPreference;
@@ -91,6 +92,7 @@ export interface Config {
     discover: DiscoverSelect<false> | DiscoverSelect<true>;
     media: MediaSelect<false> | MediaSelect<true>;
     users: UsersSelect<false> | UsersSelect<true>;
+    'publication-log': PublicationLogSelect<false> | PublicationLogSelect<true>;
     'payload-kv': PayloadKvSelect<false> | PayloadKvSelect<true>;
     'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
     'payload-preferences': PayloadPreferencesSelect<false> | PayloadPreferencesSelect<true>;
@@ -137,25 +139,31 @@ export interface UserAuthOperations {
   };
 }
 /**
- * Weather now: videos and audio play under the Video and Audio tabs beside Satellite, Radar and Rainfall; quick updates appear under the duty forecaster's note (which stays on the Weather now page).
+ * Weather now: the duty forecaster's note (signed, and expiring at the next forecast issue), quick updates under it, and videos and audio that play under the Video and Audio tabs.
  *
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "live-posts".
  */
 export interface LivePost {
   id: number;
+  /**
+   * For the duty forecaster's note this can stay as the default.
+   */
   title: string;
   /**
-   * Where the post shows in Weather now: beside the forecaster's note, under the Satellite, Radar, Wind or Seas tab, or as a video or audio to play.
+   * Where the post shows in Weather now: the duty forecaster's note, beside it as a general update, under the Satellite, Radar, Wind or Seas tab, or as a video or audio to play.
    */
-  kind: 'update' | 'satellite' | 'radar' | 'wind' | 'seas' | 'video' | 'audio';
+  kind: 'note' | 'update' | 'satellite' | 'radar' | 'wind' | 'seas' | 'video' | 'audio';
+  /**
+   * For the note: two or three plain sentences. A warning, watch or advisory needs its CAP alert link under Related links.
+   */
   text?: string | null;
   /**
    * Paste the share link. The site shows it only when a reader presses play.
    */
   mediaUrl?: string | null;
   /**
-   * Optional. The post leaves the homepage at this time.
+   * Optional. The post leaves the homepage at this time. A note defaults to the next forecast issue (07:00, 12:00 or 18:00).
    */
   expiresAt?: string | null;
   /**
@@ -194,6 +202,14 @@ export interface LivePost {
    * Set when first published; used for ordering and the URL.
    */
   publishedAt?: string | null;
+  /**
+   * Optional. Published items show from this time. Leave empty to show as soon as it is published.
+   */
+  publishAt?: string | null;
+  /**
+   * Optional. The item leaves the site at this time and stays in the CMS.
+   */
+  unpublishAt?: string | null;
   author: number | User;
   updatedAt: string;
   createdAt: string;
@@ -322,6 +338,14 @@ export interface DeskUpdate {
    * Set when first published; used for ordering and the URL.
    */
   publishedAt?: string | null;
+  /**
+   * Optional. Published items show from this time. Leave empty to show as soon as it is published.
+   */
+  publishAt?: string | null;
+  /**
+   * Optional. The item leaves the site at this time and stays in the CMS.
+   */
+  unpublishAt?: string | null;
   author: number | User;
   updatedAt: string;
   createdAt: string;
@@ -457,6 +481,14 @@ export interface ReportNote {
    * Set when first published; used for ordering and the URL.
    */
   publishedAt?: string | null;
+  /**
+   * Optional. Published items show from this time. Leave empty to show as soon as it is published.
+   */
+  publishAt?: string | null;
+  /**
+   * Optional. The item leaves the site at this time and stays in the CMS.
+   */
+  unpublishAt?: string | null;
   author: number | User;
   updatedAt: string;
   createdAt: string;
@@ -576,6 +608,14 @@ export interface Story {
    * Set when first published; used for ordering and the URL.
    */
   publishedAt?: string | null;
+  /**
+   * Optional. Published items show from this time. Leave empty to show as soon as it is published.
+   */
+  publishAt?: string | null;
+  /**
+   * Optional. The item leaves the site at this time and stays in the CMS.
+   */
+  unpublishAt?: string | null;
   author: number | User;
   updatedAt: string;
   createdAt: string;
@@ -692,12 +732,20 @@ export interface Question {
    * Set when first published; used for ordering and the URL.
    */
   publishedAt?: string | null;
+  /**
+   * Optional. Published items show from this time. Leave empty to show as soon as it is published.
+   */
+  publishAt?: string | null;
+  /**
+   * Optional. The item leaves the site at this time and stays in the CMS.
+   */
+  unpublishAt?: string | null;
   author: number | User;
   updatedAt: string;
   createdAt: string;
 }
 /**
- * News: On this day, quizzes, Did you know facts and sky notes. Tonight's sun and moon times are calculated automatically.
+ * Discover: On this day, quizzes, Did you know facts and sky notes. Tonight's sun and moon times are calculated automatically.
  *
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "discover".
@@ -767,7 +815,32 @@ export interface Discover {
    * Set when first published; used for ordering and the URL.
    */
   publishedAt?: string | null;
+  /**
+   * Optional. Published items show from this time. Leave empty to show as soon as it is published.
+   */
+  publishAt?: string | null;
+  /**
+   * Optional. The item leaves the site at this time and stays in the CMS.
+   */
+  unpublishAt?: string | null;
   author: number | User;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * Written automatically each time an item is published, taken down or scheduled. Editors can read it; nobody can change it.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "publication-log".
+ */
+export interface PublicationLog {
+  id: number;
+  action: 'published' | 'unpublished' | 'scheduled-publish' | 'scheduled-unpublish';
+  collection: string;
+  documentId: string;
+  title: string;
+  scheduledFor?: string | null;
+  actor?: (number | null) | User;
   updatedAt: string;
   createdAt: string;
 }
@@ -826,6 +899,10 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'users';
         value: number | User;
+      } | null)
+    | ({
+        relationTo: 'publication-log';
+        value: number | PublicationLog;
       } | null);
   globalSlug?: string | null;
   user: {
@@ -891,6 +968,8 @@ export interface LivePostsSelect<T extends boolean = true> {
   slug?: T;
   status?: T;
   publishedAt?: T;
+  publishAt?: T;
+  unpublishAt?: T;
   author?: T;
   updatedAt?: T;
   createdAt?: T;
@@ -929,6 +1008,8 @@ export interface DeskUpdatesSelect<T extends boolean = true> {
   slug?: T;
   status?: T;
   publishedAt?: T;
+  publishAt?: T;
+  unpublishAt?: T;
   author?: T;
   updatedAt?: T;
   createdAt?: T;
@@ -976,6 +1057,8 @@ export interface ReportNotesSelect<T extends boolean = true> {
   slug?: T;
   status?: T;
   publishedAt?: T;
+  publishAt?: T;
+  unpublishAt?: T;
   author?: T;
   updatedAt?: T;
   createdAt?: T;
@@ -1026,6 +1109,8 @@ export interface StoriesSelect<T extends boolean = true> {
   slug?: T;
   status?: T;
   publishedAt?: T;
+  publishAt?: T;
+  unpublishAt?: T;
   author?: T;
   updatedAt?: T;
   createdAt?: T;
@@ -1068,6 +1153,8 @@ export interface QuestionsSelect<T extends boolean = true> {
   slug?: T;
   status?: T;
   publishedAt?: T;
+  publishAt?: T;
+  unpublishAt?: T;
   author?: T;
   updatedAt?: T;
   createdAt?: T;
@@ -1111,6 +1198,8 @@ export interface DiscoverSelect<T extends boolean = true> {
   slug?: T;
   status?: T;
   publishedAt?: T;
+  publishAt?: T;
+  unpublishAt?: T;
   author?: T;
   updatedAt?: T;
   createdAt?: T;
@@ -1145,6 +1234,20 @@ export interface UsersSelect<T extends boolean = true> {
   permissionKeys?: T;
   isSuperuser?: T;
   role?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "publication-log_select".
+ */
+export interface PublicationLogSelect<T extends boolean = true> {
+  action?: T;
+  collection?: T;
+  documentId?: T;
+  title?: T;
+  scheduledFor?: T;
+  actor?: T;
   updatedAt?: T;
   createdAt?: T;
 }
@@ -1189,25 +1292,14 @@ export interface PayloadMigrationsSelect<T extends boolean = true> {
   createdAt?: T;
 }
 /**
- * The duty forecaster's short note on the homepage. The note is a plain-words aside, never a forecast or a warning.
- *
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "weather-now".
  */
 export interface WeatherNow {
   id: number;
   note?: {
-    /**
-     * Two or three plain sentences, e.g. what to expect this afternoon. Published as soon as you save. Clear it to remove the note.
-     */
     text?: string | null;
-    /**
-     * Required only if the note mentions a warning, watch or advisory.
-     */
     alertUrl?: string | null;
-    /**
-     * Defaults to the next forecast issue (07:00, 12:00 or 18:00).
-     */
     expiresAt?: string | null;
     postedAt?: string | null;
     postedBy?: (number | null) | User;

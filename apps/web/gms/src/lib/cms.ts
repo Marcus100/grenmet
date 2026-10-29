@@ -209,6 +209,11 @@ const questionsPartSchema = z.discriminatedUnion("status", [
   z.object({ status: z.literal("ok"), items: z.array(questionSchema) }),
   z.object({ status: z.literal("unavailable") }),
 ]);
+/**
+ * The duty forecaster's note, a live post of kind note in the CMS. `alertUrl`
+ * is its CAP alert address for older CMS builds; newer ones also send the
+ * note's related links, which the site shows as a card.
+ */
 const weatherNowSchema = z.object({
   note: z
     .object({
@@ -216,6 +221,7 @@ const weatherNowSchema = z.object({
       postedAt: z.string().nullable(),
       expiresAt: z.string(),
       alertUrl: z.string().nullable(),
+      relatedLinks: z.array(relatedLinkSchema).max(20).optional(),
     })
     .nullable(),
 });

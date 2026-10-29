@@ -22,7 +22,8 @@ No DB access. Two backends, never gaa-admin (it only authors into FastAPI):
   Types/validators come from `@barrelsgd/api-client`; new data = new FastAPI
   public endpoint.
 - **Payload CMS = the words around it** (`CMS_API_URL`, `src/lib/cms.ts`):
-  desk updates, stories, questions, quizzes, Discover, weather-now note, home
+  desk updates, stories, questions, quizzes, Discover, the duty forecaster's note
+  (a live post of kind `note`, read from `weatherNow`, with its related links), home
   settings, report write-ups, Weather now live posts. The homepage reads CMS
   content in one call (`fetchHomeContent`). The CMS holds no figures: a post's
   a post's main related link (`isMain`) is a card: `components/featured-link.tsx` shows an issued product (`linked-product.tsx`, live via
