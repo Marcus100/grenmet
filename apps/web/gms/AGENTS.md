@@ -100,9 +100,10 @@ src/app/
   what the card does not: Now = humidity, dew point, pressure with its trend,
   visibility (with haze or dust words), cloud base, rain over the register's
   period; a day = sunrise, sunset, high and low tides (each time over its
-  height), seas, swell. A missing item is left out, never a dash. Hero times
-  read a.m./p.m. (`lib/clock.ts`); the Now tab and the rest of the site keep
-  the 24-hour clock. No UV, air quality or warnings here (warnings have their
+  height), seas, swell. A missing item is left out, never a dash. Homepage times
+  read a.m./p.m. (`lib/clock.ts`): hero card, moon card, live posts, desk
+  cards; the day tabs and the rest of the site keep the 24-hour clock. Times
+  use the body font, never the monospace one. No UV, air quality or warnings here (warnings have their
   own section above). A Moon tile waits for the planned almanac data. No other
   hero tabs (marine lives at `/marine`). The website has no bottom tab bar;
   `MobileTabBar` is kept for the app.

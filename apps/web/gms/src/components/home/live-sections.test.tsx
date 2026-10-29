@@ -56,13 +56,13 @@ const READ_ARTICLE = /^Read the article: /;
 it("labels a post Today, Yesterday or by date, in Grenada time", () => {
   const post = "2026-10-28T02:00:00Z"; // 27 Oct, 22:00 in Grenada
   expect(postedLabel(post, new Date("2026-10-28T03:30:00Z"))).toBe(
-    "Today at 22:00"
+    "Today at 10:00 p.m."
   );
   expect(postedLabel(post, new Date("2026-10-28T05:00:00Z"))).toBe(
-    "Yesterday at 22:00"
+    "Yesterday at 10:00 p.m."
   );
   expect(postedLabel(post, new Date("2026-10-29T13:00:00Z"))).toBe(
-    "27 Oct at 22:00"
+    "27 Oct at 10:00 p.m."
   );
 });
 

@@ -9,6 +9,7 @@ import type { Route } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { HOME_CARD, HomeSection } from "@/components/home/home-section";
+import { clock12 } from "@/lib/clock";
 import {
   contentHref,
   fetchHomeContent,
@@ -65,7 +66,7 @@ const GRENADA_DAY = new Intl.DateTimeFormat("en-CA", {
   timeZone: "America/Grenada",
 });
 
-/** "Today at 08:36", "Yesterday at 19:00" or "27 Oct at 19:00", Grenada time. */
+/** "Today at 8:36 a.m.", "Yesterday at 7:00 p.m." or "27 Oct at 7:00 p.m.", Grenada time. */
 export function postedLabel(iso: string, now = new Date()): string {
   const when = new Date(iso);
   const day = GRENADA_DAY.format(when);
@@ -73,7 +74,7 @@ export function postedLabel(iso: string, now = new Date()): string {
   let prefix = SHORT_DATE.format(when);
   if (day === GRENADA_DAY.format(now)) prefix = "Today";
   else if (day === GRENADA_DAY.format(yesterday)) prefix = "Yesterday";
-  return `${prefix} at ${CLOCK.format(when)}`;
+  return `${prefix} at ${clock12(CLOCK.format(when))}`;
 }
 
 const NAME_SEPARATORS = /[\s._-]+/;
