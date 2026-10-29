@@ -69,6 +69,52 @@ describe("buildSectorTiles", () => {
     items,
   });
 
+  it("marks each sector's highest level for the impact bar, even past the shown items", () => {
+    const tiles = buildSectorTiles(
+      outlook([
+        item({
+          title: "a",
+          colour: "yellow",
+          sectors: ["marine"],
+          affects_everyone: false,
+          identifier: "A",
+        }),
+        item({
+          title: "b",
+          colour: "red",
+          sectors: ["marine"],
+          affects_everyone: false,
+          identifier: "B",
+        }),
+        item({
+          title: "c",
+          colour: "green",
+          sectors: ["marine"],
+          affects_everyone: false,
+          identifier: "C",
+        }),
+        item({
+          title: "d",
+          colour: "orange",
+          sectors: ["marine"],
+          affects_everyone: false,
+          identifier: "D",
+        }),
+        item({
+          title: "o",
+          colour: null,
+          sectors: ["health"],
+          affects_everyone: false,
+          identifier: "O",
+        }),
+      ]),
+      NOW
+    );
+    expect(tiles.find((tile) => tile.sector === "marine")?.peak).toBe("red");
+    // An outlook without a level has no marker; a sector with nothing has none either.
+    expect(tiles.find((tile) => tile.sector === "health")?.peak).toBeNull();
+    expect(tiles.find((tile) => tile.sector === "aviation")?.peak).toBeNull();
+  });
   it("makes one tile per sector, in menu order", () => {
     expect(
       buildSectorTiles(outlook([]), NOW).map((tile) => tile.sector)

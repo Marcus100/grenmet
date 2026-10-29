@@ -14,7 +14,12 @@ import { StatFigure } from "@/components/home/stat-figure";
 import { fetchHomeContent, isSectionHidden, sectionWords } from "@/lib/cms";
 import { monthStats } from "@/lib/month-summary";
 import { fetchMonthSummary, fetchSectorOutlook } from "@/lib/products";
-import { buildSectorTiles, type SectorTile } from "@/lib/sector-outlook";
+import {
+  buildSectorTiles,
+  LEVELS,
+  type Level,
+  type SectorTile,
+} from "@/lib/sector-outlook";
 import { cn } from "@/lib/utils";
 
 /*
@@ -70,7 +75,7 @@ export async function ExploreToday() {
           .
         </p>
       )}
-      <ul className="grid grid-cols-1 gap-2 sm:grid-cols-2 sm:gap-3 lg:grid-cols-3">
+      <ul className="grid grid-cols-2 gap-2 sm:gap-3">
         {SECTORS.map(({ value, label }) => {
           const { Icon, href } = SECTOR_TILES[value];
           const tile = tiles?.find((item) => item.sector === value);
@@ -90,10 +95,11 @@ export async function ExploreToday() {
                   <span className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-gm-navy text-gm-lime sm:size-10">
                     <Icon aria-hidden="true" className="size-4 sm:size-5" />
                   </span>
-                  <span className="truncate font-semibold text-gm-sky-ink text-label uppercase leading-label tracking-wider">
+                  <span className="line-clamp-2 font-semibold text-gm-sky-ink text-label uppercase leading-label tracking-wider">
                     {label}
                   </span>
                 </Link>
+                {tile ? <ImpactBar peak={tile.peak} /> : null}
                 {tile ? <SectorItems tile={tile} /> : null}
               </section>
             </li>
@@ -116,6 +122,47 @@ export async function ExploreToday() {
         </p>
       )}
     </HomeSection>
+  );
+}
+
+const LEVEL_WORD: Record<Level, string> = {
+  green: "Green",
+  yellow: "Yellow",
+  orange: "Orange",
+  red: "Red",
+};
+
+/**
+ * A horizontal bar from green to red with a marker at the highest impact level
+ * published for the sector this week. With nothing published the bar is dimmed
+ * and carries no marker: nothing is invented. The level is also written out,
+ * never colour alone.
+ */
+function ImpactBar({ peak }: { peak: Level | null }) {
+  const at = peak ? (LEVELS.indexOf(peak) + 0.5) * 25 : null;
+  return (
+    <div className="flex flex-col gap-1">
+      <div className="relative h-2.5 rounded-full">
+        <div
+          aria-hidden="true"
+          className={cn("absolute inset-0 rounded-full", !peak && "opacity-30")}
+          style={{
+            background:
+              "linear-gradient(to right, var(--gm-risk-green), var(--gm-risk-yellow), var(--gm-risk-amber), var(--gm-risk-red))",
+          }}
+        />
+        {at !== null && (
+          <span
+            aria-hidden="true"
+            className="absolute top-1/2 size-4 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-white bg-gm-navy shadow"
+            style={{ left: `${at}%` }}
+          />
+        )}
+      </div>
+      <p className="text-caption text-gm-text-secondary leading-caption">
+        {peak ? `Highest this week: ${LEVEL_WORD[peak]}` : "Nothing published"}
+      </p>
+    </div>
   );
 }
 

@@ -2,8 +2,17 @@ import type { SectorOutlook } from "@barrelsgd/api-client";
 import { SECTORS, type SectorKey } from "@barrelsgd/gms/sectors";
 import { warningHref } from "@/lib/warning-detail";
 
+/** Impact levels, mildest first; the bar on a tile runs from green to red. */
+export const LEVELS = ["green", "yellow", "orange", "red"] as const;
+export type Level = (typeof LEVELS)[number];
+
+const asLevel = (colour: string | null | undefined): Level | null =>
+  LEVELS.find((level) => level === colour) ?? null;
+
 /** One alert or warning as a sector tile shows it. */
 export interface SectorItem {
+  /** Its impact level, or null for an outlook with none. */
+  colour: Level | null;
   /** Applies to every sector because nobody tagged it. */
   everyone: boolean;
   href: string | null;
@@ -20,6 +29,8 @@ export interface SectorTile {
   items: SectorItem[];
   /** Items beyond the ones shown; the tile links to all alerts for them. */
   more: number;
+  /** The highest level among every item for this sector (shown or not); null when none has a level. */
+  peak: Level | null;
   sector: SectorKey;
 }
 
@@ -95,9 +106,15 @@ export function buildSectorTiles(
         summary: firstSentence(item.impacts),
         href: hrefFor(item),
         everyone: item.affects_everyone,
+        colour: asLevel(item.colour),
       }));
+    const peakIndex = Math.max(
+      -1,
+      ...all.map((item) => (item.colour ? LEVELS.indexOf(item.colour) : -1))
+    );
     return {
       sector,
+      peak: peakIndex >= 0 ? (LEVELS[peakIndex] ?? null) : null,
       items: all.slice(0, perTile),
       more: Math.max(0, all.length - perTile),
     };
