@@ -1,3 +1,4 @@
+import { CookieSettingsButton } from "@barrelsgd/ui/components/posthog-provider";
 import Link from "next/link";
 import { NAV_LINKS } from "@/lib/nav";
 export function SiteFooter() {
@@ -33,6 +34,7 @@ export function SiteFooter() {
               {link.label}
             </Link>
           ))}
+          <CookieSettingsButton className="inline-flex min-h-11 cursor-pointer items-center text-left text-base hover:underline" />
         </nav>
         <p className="text-sm">© {new Date().getFullYear()} Grenada Signal</p>
         <p className="text-sm">Free to read. No account needed.</p>

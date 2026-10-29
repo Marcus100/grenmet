@@ -1,5 +1,8 @@
 // @vitest-environment jsdom
-import { PostHogProvider } from "@barrelsgd/ui/components/posthog-provider";
+import {
+  CookieSettingsButton,
+  PostHogProvider,
+} from "@barrelsgd/ui/components/posthog-provider";
 import {
   analyticsAllowedOnPath,
   CONSENT_KEY,
@@ -69,6 +72,7 @@ function show() {
     <StrictMode>
       <PostHogProvider app="elections">
         <p>Content</p>
+        <CookieSettingsButton />
       </PostHogProvider>
     </StrictMode>
   );
@@ -198,13 +202,14 @@ it("accepts once, deduplicates strict effects, and stops capture on withdrawal",
   view.rerender(
     <PostHogProvider app="elections">
       <p>Content</p>
+      <CookieSettingsButton />
     </PostHogProvider>
   );
   await waitFor(() => expect(posthog.capture).toHaveBeenCalledTimes(2));
   localStorage.setItem("ph_test", "identifier");
   // biome-ignore lint/suspicious/noDocumentCookie: test browser cookie cleanup.
   document.cookie = "_ga=identifier";
-  fireEvent.click(screen.getByRole("button", { name: "Privacy settings" }));
+  fireEvent.click(screen.getByRole("button", { name: "Cookie settings" }));
   // Reopening shows the settings with analytics ticked; untick and confirm.
   const analytics = screen.getByRole("checkbox", { name: ANALYTICS_BOX });
   expect(analytics).toBeChecked();
@@ -280,7 +285,7 @@ it("rejects unknown events and sensitive properties and scrubs provider-added fi
     filterAnalyticsEvent({ uuid: "x", event: "$autocapture", properties: {} })
   ).toBeNull();
 });
-it("asks once in a popup, then leaves a small button to change the choice", async () => {
+it("asks once in a popup, then reopens from the footer's cookie settings button", async () => {
   show();
   const dialog = await screen.findByRole("dialog", {
     name: "Cookie preferences",
@@ -290,7 +295,9 @@ it("asks once in a popup, then leaves a small button to change the choice", asyn
     screen.getByRole("button", { name: "Essential cookies only" })
   );
   expect(screen.queryByRole("dialog")).toBeNull();
-  fireEvent.click(screen.getByRole("button", { name: "Privacy settings" }));
+  // No floating button: it covered content on phones.
+  expect(screen.queryByRole("button", { name: "Privacy settings" })).toBeNull();
+  fireEvent.click(screen.getByRole("button", { name: "Cookie settings" }));
   expect(
     screen.getByRole("dialog", { name: "Cookie preferences" })
   ).toBeTruthy();
@@ -298,13 +305,16 @@ it("asks once in a popup, then leaves a small button to change the choice", asyn
   expect(screen.queryByRole("dialog")).toBeNull();
   cleanup();
 
-  // A returning visitor with a saved choice sees only the button.
+  // A returning visitor with a saved choice sees no popup; the footer button
+  // opens straight on the settings.
   accept();
   show();
-  expect(
-    await screen.findByRole("button", { name: "Privacy settings" })
-  ).toBeTruthy();
+  await waitFor(() => expect(screen.getByText("Content")).toBeTruthy());
   expect(screen.queryByRole("dialog")).toBeNull();
+  fireEvent.click(screen.getByRole("button", { name: "Cookie settings" }));
+  expect(
+    await screen.findByText("Customise your cookie settings")
+  ).toBeTruthy();
   cleanup();
 
   // No optional analytics on this site: nothing to ask, nothing shown.
@@ -313,7 +323,8 @@ it("asks once in a popup, then leaves a small button to change the choice", asyn
   show();
   await waitFor(() => expect(screen.getByText("Content")).toBeTruthy());
   expect(screen.queryByRole("dialog")).toBeNull();
-  expect(screen.queryByRole("button", { name: "Privacy settings" })).toBeNull();
+  fireEvent.click(screen.getByRole("button", { name: "Cookie settings" }));
+  expect(screen.queryByRole("dialog")).toBeNull();
 });
 
 it("opens on a first visit with browser opt-out while keeping analytics disabled", async () => {
