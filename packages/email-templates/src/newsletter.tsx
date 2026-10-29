@@ -38,6 +38,7 @@ export interface NewsletterEmailProps {
   hurricaneMode: boolean;
   listName: string;
   posts: NewsletterPost[];
+  preferencesLink?: string | null;
   projectName: string;
   subject?: string;
   testNotice?: string | null;
@@ -52,6 +53,7 @@ export function NewsletterEmail({
   hurricaneMode,
   listName,
   posts,
+  preferencesLink,
   projectName,
   testNotice,
   unsubscribeLink,
@@ -129,6 +131,13 @@ export function NewsletterEmail({
               {listName}. Do not rely on email alone in an emergency. Stop
               receiving it at any time:{" "}
               <Link href={unsubscribeLink}>unsubscribe</Link>.
+              {preferencesLink ? (
+                <>
+                  {" "}
+                  To see every list you receive and stop any one of them,{" "}
+                  <Link href={preferencesLink}>manage your subscriptions</Link>.
+                </>
+              ) : null}
             </Text>
           </Section>
         </Container>
@@ -152,6 +161,7 @@ NewsletterEmail.PreviewProps = {
     },
   ],
   projectName: "Barrels Grenada",
+  preferencesLink: null,
   testNotice: null,
   unsubscribeLink:
     "https://api.example.test/api/v1/subscriptions/unsubscribe?token=x",

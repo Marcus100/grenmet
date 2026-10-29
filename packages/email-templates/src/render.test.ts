@@ -24,6 +24,22 @@ describe("newsletter template", () => {
     expect(subject).toBe("GMS climate newsletter: Today's update");
   });
 
+  it("links to the preferences page when one is given", async () => {
+    const link =
+      "https://gms.example.test/climate/newsletter/preferences?token=t";
+    const { html } = await renderTemplate("newsletter", {
+      ...base,
+      preferencesLink: link,
+    });
+    expect(html).toContain("manage your subscriptions");
+    expect(html).toContain(link.replace(/&/g, "&amp;"));
+  });
+
+  it("omits the preferences sentence for mail that has no link", async () => {
+    const { html } = await renderTemplate("newsletter", base);
+    expect(html).not.toContain("manage your subscriptions");
+  });
+
   it("puts the alerts block before the forecast when there are alerts", async () => {
     const { html } = await renderTemplate("newsletter", {
       ...base,
