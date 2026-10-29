@@ -2,7 +2,13 @@ import { existsSync, readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import type { PublicObservation } from "@barrelsgd/api-client";
-import { fireEvent, render, screen, within } from "@testing-library/react";
+import {
+  cleanup,
+  fireEvent,
+  render,
+  screen,
+  within,
+} from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { SkyHero } from "@/components/home/sky-hero";
 import { currentConditions } from "@/lib/current-conditions";
@@ -197,7 +203,8 @@ describe("Day tabs", () => {
     expect(links[0]).toHaveTextContent("Now");
     expect(links[1]).toHaveAttribute("href", "/weather/2026/09/08");
     expect(links[1]).toHaveTextContent("Tue");
-    expect(links[1]).toHaveTextContent("20% chance of rain");
+    // The tabs show the maximum and minimum, not the chance of rain.
+    expect(links[1]).not.toHaveTextContent("chance of rain");
     expect(links[2]).toHaveAttribute("href", "/weather/2026/09/09");
   });
 
@@ -443,5 +450,33 @@ describe("currentConditions", () => {
     });
     expect(result.primary).toEqual([]);
     expect(result.extra).toEqual([]);
+  });
+});
+
+describe("summary cards", () => {
+  /** The rows of the picture card above the tabs (the first summary on the page). */
+  const rowsOf = (container: HTMLElement) =>
+    Array.from(
+      container.querySelector(".min-w-0.content-start")?.children ?? []
+    );
+
+  it("give Now and a forecast day the same four rows, so the card keeps its height", () => {
+    const now = render(<SkyHero weather={weather()} />);
+    const nowRows = rowsOf(now.container);
+    cleanup();
+    const day = render(<SkyHero selected="2026-09-09" weather={weather()} />);
+    const dayRows = rowsOf(day.container);
+    expect(nowRows).toHaveLength(4);
+    expect(dayRows).toHaveLength(4);
+    expect(nowRows.map((row) => row.tagName)).toEqual(
+      dayRows.map((row) => row.tagName)
+    );
+  });
+
+  it("says when the sky is not reported instead of leaving a gap", () => {
+    const { container } = render(
+      <SkyHero weather={weather({ current: null })} />
+    );
+    expect(container.textContent).toContain("Sky not reported");
   });
 });

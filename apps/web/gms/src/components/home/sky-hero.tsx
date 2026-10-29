@@ -9,7 +9,7 @@ import { SkyDayStrip, type StripDay } from "@/components/home/sky-day-strip";
 import { localTime } from "@/lib/current-conditions";
 import type { WeatherSnapshot } from "@/lib/forecast-data";
 import { getForecastDays } from "@/lib/forecast-days";
-import { rainChance, skyFromWords } from "@/lib/hero-readings";
+import { skyFromWords } from "@/lib/hero-readings";
 import {
   defaultLocation,
   locationHref,
@@ -48,14 +48,7 @@ export function SkyHero({
   weather: WeatherSnapshot;
 }) {
   const days: StripDay[] = getForecastDays(weather.baseDate, weather.days).map(
-    (day, index) => {
-      const issued = weather.days[index];
-      return {
-        ...day,
-        href: day.path,
-        rain: issued ? rainChance(issued) : null,
-      };
-    }
+    (day) => ({ ...day, href: day.path })
   );
   const wanted = selected === "today" ? days[0]?.slug : selected;
   const index = days.findIndex((day) => day.slug === wanted);
@@ -110,12 +103,12 @@ export function SkyHero({
 
           <div className="grid grid-cols-1 gap-2 sm:grid-cols-[minmax(0,2fr)_minmax(0,5fr)] lg:gap-2.5">
             <TabLink
-              className="hidden rounded-gm-card border-b-4 bg-gm-scrim p-3 outline-none hover:bg-gm-text-inverse/10 focus-visible:ring-2 focus-visible:ring-gm-lime sm:block lg:p-4"
-              currentClassName="border-gm-lime bg-gm-text-inverse/20"
+              className="hidden rounded-gm-card bg-gm-scrim p-3 outline-none hover:bg-gm-text-inverse/10 focus-visible:ring-2 focus-visible:ring-gm-lime sm:block lg:p-4"
+              currentClassName="bg-gm-text-inverse/20"
               data-analytics-day="now"
               data-analytics-event="forecast_tab_selected"
               href={nowHref}
-              idleClassName="border-transparent"
+              idleClassName=""
               slug="now"
             >
               <NowSummary

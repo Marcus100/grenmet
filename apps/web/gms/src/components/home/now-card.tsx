@@ -1,6 +1,7 @@
 import { MapPinIcon } from "lucide-react";
 import { ReadingGrid } from "@/components/home/reading-grid";
 import { SkyScene } from "@/components/home/sky-scene";
+import { SummaryCard } from "@/components/home/summary-card";
 import {
   isOtherGrenadaDay,
   isStale,
@@ -86,40 +87,32 @@ export function NowSummary({
       ? null
       : `Feels like ${Math.round(feelsLike(current.temperature, current.humidity))}°`;
   return (
-    <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3">
-      <div className="grid min-w-0 content-start gap-0.5">
-        {compact && (
-          <span className="font-bold text-body-base leading-body-base lg:text-heading-sm lg:leading-heading-sm">
-            Now
-          </span>
-        )}
-        <span className="flex min-w-0 items-start gap-1 text-body-sm text-gm-text-inverse/85 leading-body-sm">
+    <SummaryCard
+      condition={current?.weather ?? null}
+      conditionPlaceholder="Sky not reported"
+      label={
+        <>
           <MapPinIcon aria-hidden="true" className="mt-0.5 size-3.5 shrink-0" />
-          <span className="min-w-0">{sourceLine(weather, station, now)}</span>
-        </span>
+          <span className="line-clamp-2 min-w-0">
+            {sourceLine(weather, station, now)}
+          </span>
+        </>
+      }
+      numeral={
         <Numeral
-          className={cn(
-            "mt-1",
-            compact ? "text-gm-numeral" : "text-gm-numeral-hero"
-          )}
+          className={compact ? "text-gm-numeral" : "text-gm-numeral-hero"}
           value={temperature}
         />
-        {current?.weather && (
-          <span className="truncate font-bold text-body-base leading-body-base lg:text-heading-sm lg:leading-heading-sm">
-            {current.weather}
-          </span>
-        )}
-        {feels && (
-          <span className="text-body-sm text-gm-text-inverse/85 leading-body-sm">
-            {feels}
-          </span>
-        )}
-      </div>
-      <SkyScene
-        className={compact ? "w-16 lg:w-24" : "w-28"}
-        sky={skyFromWords(current?.weather ?? null)}
-      />
-    </div>
+      }
+      scene={
+        <SkyScene
+          className={compact ? "w-16 lg:w-24" : "w-28"}
+          sky={skyFromWords(current?.weather ?? null)}
+        />
+      }
+      secondary={feels}
+      title={compact ? "Now" : undefined}
+    />
   );
 }
 

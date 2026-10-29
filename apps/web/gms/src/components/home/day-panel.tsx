@@ -1,6 +1,8 @@
+import { CalendarDaysIcon } from "lucide-react";
 import { ReadingGrid } from "@/components/home/reading-grid";
 import type { StripDay } from "@/components/home/sky-day-strip";
 import { SkyScene } from "@/components/home/sky-scene";
+import { SummaryCard } from "@/components/home/summary-card";
 import type { ForecastDayData } from "@/lib/forecast-data";
 import { dayReadings, isIssued } from "@/lib/hero-readings";
 import { WEATHER_CONDITION_LABEL } from "@/lib/weather-icons";
@@ -20,28 +22,36 @@ function longDate(slug: string): string {
 /**
  * The selected day as a picture summary, for the card above the tabs on
  * phones: the date, the maximum, the sky in words, the minimum, beside a sky
- * scene. It matches the Now summary's shape so the card keeps its height.
+ * scene. It shares `SummaryCard` with the Now summary, so the card keeps its
+ * height from tab to tab.
  */
 export function DaySummary({ day }: { day: StripDay }) {
+  const missing = day.high === null && day.low === null;
   return (
-    <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3">
-      <div className="grid min-w-0 content-start gap-0.5">
-        <span className="truncate text-body-sm text-gm-text-inverse/85 leading-body-sm">
-          {day.dayName} {day.date} {day.month} · Forecast
-        </span>
-        <p className="mt-1 font-gm-display font-semibold text-gm-numeral-hero tabular-nums">
+    <SummaryCard
+      // A day with nothing issued gets no invented sky word.
+      condition={missing ? null : WEATHER_CONDITION_LABEL[day.condition]}
+      conditionPlaceholder="No forecast yet"
+      label={
+        <>
+          <CalendarDaysIcon
+            aria-hidden="true"
+            className="mt-0.5 size-3.5 shrink-0"
+          />
+          <span className="line-clamp-2 min-w-0">
+            {day.dayName} {day.date} {day.month} · Forecast
+          </span>
+        </>
+      }
+      numeral={
+        <p className="font-gm-display font-semibold text-gm-numeral-hero tabular-nums">
           {degrees(day.high)}
           <span className="sr-only"> maximum</span>
         </p>
-        <span className="truncate font-bold text-body-base leading-body-base">
-          {WEATHER_CONDITION_LABEL[day.condition]}
-        </span>
-        <span className="text-body-sm text-gm-text-inverse/85 leading-body-sm">
-          Min {degrees(day.low)}
-        </span>
-      </div>
-      <SkyScene className="w-28" sky={day.condition} />
-    </div>
+      }
+      scene={<SkyScene className="w-28" sky={day.condition} />}
+      secondary={missing ? null : `Min ${degrees(day.low)}`}
+    />
   );
 }
 
