@@ -259,6 +259,28 @@ async def expire_unpaid_event_orders(ctx: dict[str, Any]) -> int:
     return result
 
 
+async def send_daily_newsletter(ctx: dict[str, Any]) -> int:
+    """Daily climate newsletter at 07:30 Grenada time; queues nothing until switched on."""
+    from src.database import async_session_factory
+    from src.worker import newsletter_digest
+
+    async with async_session_factory() as session:
+        try:
+            result = await newsletter_digest.run_daily(session)
+        except Exception:
+            await operational_metrics.record_job(
+                ctx.get("redis"),
+                "send_daily_newsletter",
+                str(ctx.get("job_id", "")),
+                False,
+            )
+            raise
+    await operational_metrics.record_job(
+        ctx.get("redis"), "send_daily_newsletter", str(ctx.get("job_id", "")), True
+    )
+    return result
+
+
 async def send_wis2_publications(ctx: dict[str, Any]) -> int:
     """Move queued eRegister CSV files to wis2box; no-op unless configured."""
     from src.database import async_session_factory
@@ -566,6 +588,7 @@ class WorkerSettings:
         run_notification_sweeps,
         run_gms_notification_sweeps,
         send_invoice_reminders,
+        send_daily_newsletter,
         purge_expired_data,
         check_nhc_failures,
         check_alert_outbox,
@@ -631,6 +654,9 @@ class WorkerSettings:
         ),
         # Invoice payment reminders at 07:00 Grenada (UTC-4); idempotent per stage.
         cron(send_invoice_reminders, hour=11, minute=0, run_at_startup=False),
+        # Daily climate newsletter at 07:30 Grenada (UTC-4, no daylight saving);
+        # no-op until NEWSLETTER_DIGEST_ENABLED is set. Idempotent per day.
+        cron(send_daily_newsletter, hour=11, minute=30, run_at_startup=False),
         # Retention purge, 03:30 UTC (23:30 Grenada); idempotent and batched.
         cron(purge_expired_data, hour=3, minute=30, run_at_startup=False),
         # NHC job failures every 5 minutes; the 1-hour window stops repeat messages.

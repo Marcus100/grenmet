@@ -5755,6 +5755,8 @@ export type { MyProfilePropertiesVisibilityEnum } from "./MyProfilePropertiesVis
 export { myProfilePropertiesVisibilityEnum } from "./MyProfilePropertiesVisibilityEnum.js";
 export type { NetworkPublic } from "./NetworkPublic.js";
 export type { NewPassword } from "./NewPassword.js";
+export type { NewsletterTestAccepted } from "./NewsletterTestAccepted.js";
+export type { NewsletterTestRequest } from "./NewsletterTestRequest.js";
 export type { NhcAsset } from "./NhcAsset.js";
 export type { NhcContent } from "./NhcContent.js";
 export type { NhcEdition } from "./NhcEdition.js";
@@ -7807,6 +7809,26 @@ export type {
   SubscriptionsConfirmSubscriptionStatus422,
 } from "./SubscriptionsConfirmSubscription.js";
 export type {
+  SubscriptionsSendNewsletterTestBody,
+  SubscriptionsSendNewsletterTestOptions,
+  SubscriptionsSendNewsletterTestResponse,
+  SubscriptionsSendNewsletterTestResponses,
+  SubscriptionsSendNewsletterTestStatus202,
+  SubscriptionsSendNewsletterTestStatus401,
+  SubscriptionsSendNewsletterTestStatus403,
+  SubscriptionsSendNewsletterTestStatus409,
+  SubscriptionsSendNewsletterTestStatus422,
+} from "./SubscriptionsSendNewsletterTest.js";
+export type {
+  SubscriptionsStopSubscriptionOptions,
+  SubscriptionsStopSubscriptionQuery,
+  SubscriptionsStopSubscriptionResponse,
+  SubscriptionsStopSubscriptionResponses,
+  SubscriptionsStopSubscriptionStatus200,
+  SubscriptionsStopSubscriptionStatus400,
+  SubscriptionsStopSubscriptionStatus422,
+} from "./SubscriptionsStopSubscription.js";
+export type {
   SubscriptionsSubscribeBody,
   SubscriptionsSubscribeOptions,
   SubscriptionsSubscribeResponse,
@@ -7832,8 +7854,18 @@ export type {
   SubscriptionsUnsubscribeResponse,
   SubscriptionsUnsubscribeResponses,
   SubscriptionsUnsubscribeStatus303,
+  SubscriptionsUnsubscribeStatus400,
   SubscriptionsUnsubscribeStatus422,
 } from "./SubscriptionsUnsubscribe.js";
+export type {
+  SubscriptionsUnsubscribeConfirmPageOptions,
+  SubscriptionsUnsubscribeConfirmPageQuery,
+  SubscriptionsUnsubscribeConfirmPageResponse,
+  SubscriptionsUnsubscribeConfirmPageResponses,
+  SubscriptionsUnsubscribeConfirmPageStatus200,
+  SubscriptionsUnsubscribeConfirmPageStatus400,
+  SubscriptionsUnsubscribeConfirmPageStatus422,
+} from "./SubscriptionsUnsubscribeConfirmPage.js";
 export type { SuggestionCreate } from "./SuggestionCreate.js";
 export type { SuggestionPublic } from "./SuggestionPublic.js";
 export type { SuggestionPublicPropertiesStatusEnum } from "./SuggestionPublicPropertiesStatusEnum.js";

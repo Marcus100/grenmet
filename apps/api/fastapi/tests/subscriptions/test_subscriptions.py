@@ -200,11 +200,8 @@ async def test_invalid_tokens_redirect_without_changing_anything(
         f"{_URL}/confirm", params={"token": unsubscribe_token}, follow_redirects=False
     )
     assert resp.headers["location"].endswith("result=invalid")
-    resp = await async_client.get(
-        f"{_URL}/unsubscribe", params={"token": "garbage"}, follow_redirects=False
-    )
-    assert resp.status_code == 303
-    assert resp.headers["location"].endswith("result=invalid")
+    resp = await async_client.post(f"{_URL}/unsubscribe", params={"token": "garbage"})
+    assert resp.status_code == 400
 
     row = await _row(db_async, address)
     assert row is not None
@@ -241,12 +238,12 @@ async def test_unsubscribe_then_resubscribe_restarts_double_opt_in(
         params={"token": _token(mail.props["confirmLink"])},
         follow_redirects=False,
     )
-    resp = await async_client.get(
+    # Opening the link only shows the confirmation page; the POST unsubscribes.
+    resp = await async_client.post(
         f"{_URL}/unsubscribe",
         params={"token": _token(mail.props["unsubscribeLink"])},
-        follow_redirects=False,
     )
-    assert resp.headers["location"].endswith("result=unsubscribed")
+    assert resp.status_code == 200
     row = await _row(db_async, address)
     assert row is not None
     assert row.status == SubscriptionStatus.UNSUBSCRIBED.value

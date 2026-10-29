@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{ subject }}</title>
+</head>
+<body style="margin:0;padding:0;background-color:#f3f8fc;font-family:Arial,Helvetica,sans-serif;">
+  <div style="display:none;font-size:1px;line-height:1px;max-height:0;max-width:0;opacity:0;overflow:hidden;">{{ headline }} - {{ dateLabel }}</div>
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#f3f8fc;">
+    <tr>
+      <td align="center" style="padding:40px 16px;">
+        <table role="presentation" width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;background-color:#ffffff;border-radius:8px;">
+          <tr>
+            <td style="padding:32px 40px 0 40px;">
+              <p style="color:#6b7280;font-size:13px;letter-spacing:0.04em;margin:0 0 8px 0;text-transform:uppercase;">{{ projectName }} &middot; {{ listName }}</p>
+              <h1 style="color:#0b132b;font-size:20px;font-weight:600;line-height:1.4;margin:0;">{{ headline }}</h1>
+              <p style="color:#6b7280;font-size:14px;margin:4px 0 0 0;">{{ dateLabel }}</p>
+              {% if testNotice %}
+              <p style="background-color:#fff7ed;border-left:4px solid #f59e0b;color:#7c2d12;font-size:14px;padding:10px 14px;margin:16px 0 0 0;">{{ testNotice }}</p>
+              {% endif %}
+            </td>
+          </tr>
+
+          {% if alerts %}
+          <tr>
+            <td style="padding:20px 40px 0 40px;">
+              <h2 style="color:#0b132b;font-size:17px;margin:0 0 8px 0;">Weather alerts in effect</h2>
+              {% for alert in alerts %}
+              <div style="border-left:4px solid #b91c1c;padding:8px 14px;margin:0 0 12px 0;">
+                <p style="color:#0b132b;font-size:16px;font-weight:600;margin:0;">{{ alert.headline }}</p>
+                <p style="color:#4b5563;font-size:14px;line-height:1.5;margin:4px 0 0 0;">{{ alert.event }}{% if alert.areas %} for {{ alert.areas }}{% endif %}{% if alert.expires %}. Expires {{ alert.expires }}{% endif %}.</p>
+                <p style="margin:6px 0 0 0;"><a href="{{ alert.link }}" style="color:#0b63ee;">Read the full alert</a></p>
+              </div>
+              {% endfor %}
+              <p style="color:#4b5563;font-size:13px;margin:0;">Do not rely on email alone in an emergency.</p>
+            </td>
+          </tr>
+          {% endif %}
+
+          {% if forecastLines %}
+          <tr>
+            <td style="padding:20px 40px 0 40px;">
+              <h2 style="color:#0b132b;font-size:17px;margin:0 0 8px 0;">{% if hurricaneMode %}Outlook{% else %}Forecast{% endif %}</h2>
+              {% for line in forecastLines %}
+              <p style="color:#4b5563;font-size:15px;line-height:1.6;margin:0;">{{ line }}</p>
+              {% endfor %}
+            </td>
+          </tr>
+          {% endif %}
+
+          {% if posts %}
+          <tr>
+            <td style="padding:20px 40px 0 40px;">
+              <h2 style="color:#0b132b;font-size:17px;margin:0 0 8px 0;">From the desk</h2>
+              {% for post in posts %}
+              <p style="margin:0 0 12px 0;">
+                <a href="{{ post.url }}" style="color:#0b63ee;font-size:16px;font-weight:600;">{{ post.title }}</a>
+                {% if post.summary %}<br><span style="color:#4b5563;font-size:14px;line-height:1.5;">{{ post.summary }}</span>{% endif %}
+              </p>
+              {% endfor %}
+            </td>
+          </tr>
+          {% endif %}
+
+          <tr>
+            <td style="padding:24px 40px 32px 40px;">
+              <hr style="border:0;border-top:1px solid #d0d5dd;margin:0 0 20px 0;">
+              <p style="color:#6b7280;font-size:13px;line-height:1.5;margin:0;">You receive this because you confirmed a subscription to {{ listName }}. Do not rely on email alone in an emergency. Stop receiving it at any time: <a href="{{ unsubscribeLink }}" style="color:#0b63ee;">unsubscribe</a>.</p>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>

@@ -21,6 +21,7 @@ from src import email as email_module
 from src.auth.models import User
 from src.email_config import email_settings
 from src.outbox import Outbox
+from src.subscriptions.constants import NEWSLETTER_TEMPLATE
 from src.utils.datetime import utc_now
 
 from . import service
@@ -183,7 +184,24 @@ _OUTBOUND_JINJA = {
     "subscription-confirm": "subscription_confirm.html",
     "organisation-invitation": "organisation_invitation.html",
     "cap-alert": "cap_alert.html",
+    "newsletter": "newsletter.html",
 }
+
+
+def _list_headers(row: OutboundEmail) -> dict[str, str] | None:
+    """One-click unsubscribe headers for the newsletter (RFC 2369, RFC 8058).
+
+    Mail clients show their own unsubscribe button from these, so readers do not
+    need to find the footer link. Only the newsletter sends them for now."""
+    if row.transactional or row.template != NEWSLETTER_TEMPLATE:
+        return None
+    link = (row.props or {}).get("unsubscribeLink")
+    if not isinstance(link, str) or not link:
+        return None
+    return {
+        "List-Unsubscribe": f"<{link}>",
+        "List-Unsubscribe-Post": "List-Unsubscribe=One-Click",
+    }
 
 
 async def _render_content(
@@ -236,9 +254,19 @@ async def send_outbound_row(
         row.last_error = skip_reason
     else:
         subject, html = await _render_outbound(row)
-        await asyncio.to_thread(
-            send, email_to=row.to_email, subject=subject, html_content=html
-        )
+        headers = _list_headers(row)
+        if headers:
+            await asyncio.to_thread(
+                send,
+                email_to=row.to_email,
+                subject=subject,
+                html_content=html,
+                headers=headers,
+            )
+        else:
+            await asyncio.to_thread(
+                send, email_to=row.to_email, subject=subject, html_content=html
+            )
         row.status = OutboundEmailStatus.SENT.value
         row.sent_at = utc_now()
         row.last_error = None

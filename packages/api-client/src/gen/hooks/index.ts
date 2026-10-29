@@ -2999,6 +2999,16 @@ export {
   useSubscriptionsConfirmSubscription,
 } from "./useSubscriptionsConfirmSubscription.js";
 export {
+  subscriptionsSendNewsletterTestMutationKey,
+  subscriptionsSendNewsletterTestMutationOptions,
+  useSubscriptionsSendNewsletterTest,
+} from "./useSubscriptionsSendNewsletterTest.js";
+export {
+  subscriptionsStopSubscriptionMutationKey,
+  subscriptionsStopSubscriptionMutationOptions,
+  useSubscriptionsStopSubscription,
+} from "./useSubscriptionsStopSubscription.js";
+export {
   subscriptionsSubscribeMutationKey,
   subscriptionsSubscribeMutationOptions,
   useSubscriptionsSubscribe,
@@ -3013,6 +3023,11 @@ export {
   subscriptionsUnsubscribeQueryOptions,
   useSubscriptionsUnsubscribe,
 } from "./useSubscriptionsUnsubscribe.js";
+export {
+  subscriptionsUnsubscribeConfirmPageQueryKey,
+  subscriptionsUnsubscribeConfirmPageQueryOptions,
+  useSubscriptionsUnsubscribeConfirmPage,
+} from "./useSubscriptionsUnsubscribeConfirmPage.js";
 export {
   transportAddTimetableTripMutationKey,
   transportAddTimetableTripMutationOptions,
