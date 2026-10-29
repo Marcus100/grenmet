@@ -214,6 +214,10 @@ export interface LivePost {
    * Optional. The item leaves the site at this time and stays in the CMS.
    */
   unpublishAt?: string | null;
+  /**
+   * The name of whoever created the post, shown on the site.
+   */
+  authorName?: string | null;
   author: number | User;
   updatedAt: string;
   createdAt: string;
@@ -271,6 +275,11 @@ export interface DeskUpdate {
    * Shown on cards and in search. 200 characters at most.
    */
   summary: string;
+  /**
+   * Shown on cards and at the top of the page.
+   */
+  image?: (number | null) | Media;
+  imageCaption?: string | null;
   body?: {
     root: {
       type: string;
@@ -358,6 +367,10 @@ export interface DeskUpdate {
    * Optional. The item leaves the site at this time and stays in the CMS.
    */
   unpublishAt?: string | null;
+  /**
+   * The name of whoever created the post, shown on the site.
+   */
+  authorName?: string | null;
   author: number | User;
   updatedAt: string;
   createdAt: string;
@@ -509,6 +522,10 @@ export interface ReportNote {
    * Optional. The item leaves the site at this time and stays in the CMS.
    */
   unpublishAt?: string | null;
+  /**
+   * The name of whoever created the post, shown on the site.
+   */
+  authorName?: string | null;
   author: number | User;
   updatedAt: string;
   createdAt: string;
@@ -644,6 +661,10 @@ export interface Story {
    * Optional. The item leaves the site at this time and stays in the CMS.
    */
   unpublishAt?: string | null;
+  /**
+   * The name of whoever created the post, shown on the site.
+   */
+  authorName?: string | null;
   author: number | User;
   updatedAt: string;
   createdAt: string;
@@ -768,6 +789,10 @@ export interface Question {
    * Optional. The item leaves the site at this time and stays in the CMS.
    */
   unpublishAt?: string | null;
+  /**
+   * The name of whoever created the post, shown on the site.
+   */
+  authorName?: string | null;
   author: number | User;
   updatedAt: string;
   createdAt: string;
@@ -851,6 +876,10 @@ export interface Discover {
    * Optional. The item leaves the site at this time and stays in the CMS.
    */
   unpublishAt?: string | null;
+  /**
+   * The name of whoever created the post, shown on the site.
+   */
+  authorName?: string | null;
   author: number | User;
   updatedAt: string;
   createdAt: string;
@@ -999,6 +1028,7 @@ export interface LivePostsSelect<T extends boolean = true> {
   publishedAt?: T;
   publishAt?: T;
   unpublishAt?: T;
+  authorName?: T;
   author?: T;
   updatedAt?: T;
   createdAt?: T;
@@ -1011,6 +1041,8 @@ export interface DeskUpdatesSelect<T extends boolean = true> {
   title?: T;
   kind?: T;
   summary?: T;
+  image?: T;
+  imageCaption?: T;
   body?: T;
   includeInNewsletter?: T;
   relatedLinks?:
@@ -1041,6 +1073,7 @@ export interface DeskUpdatesSelect<T extends boolean = true> {
   publishedAt?: T;
   publishAt?: T;
   unpublishAt?: T;
+  authorName?: T;
   author?: T;
   updatedAt?: T;
   createdAt?: T;
@@ -1092,6 +1125,7 @@ export interface ReportNotesSelect<T extends boolean = true> {
   publishedAt?: T;
   publishAt?: T;
   unpublishAt?: T;
+  authorName?: T;
   author?: T;
   updatedAt?: T;
   createdAt?: T;
@@ -1146,6 +1180,7 @@ export interface StoriesSelect<T extends boolean = true> {
   publishedAt?: T;
   publishAt?: T;
   unpublishAt?: T;
+  authorName?: T;
   author?: T;
   updatedAt?: T;
   createdAt?: T;
@@ -1190,6 +1225,7 @@ export interface QuestionsSelect<T extends boolean = true> {
   publishedAt?: T;
   publishAt?: T;
   unpublishAt?: T;
+  authorName?: T;
   author?: T;
   updatedAt?: T;
   createdAt?: T;
@@ -1235,6 +1271,7 @@ export interface DiscoverSelect<T extends boolean = true> {
   publishedAt?: T;
   publishAt?: T;
   unpublishAt?: T;
+  authorName?: T;
   author?: T;
   updatedAt?: T;
   createdAt?: T;

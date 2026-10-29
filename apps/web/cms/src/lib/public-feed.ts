@@ -81,6 +81,7 @@ export function toArticle(collection: ArticleCollection, doc: Doc) {
       doc[CATEGORY_FIELD[collection]]
     ),
     summary: (doc.summary as string | undefined) ?? null,
+    authorName: (doc.authorName as string | undefined) ?? null,
     body: bodyToText(doc.body),
     imageUrl: (image?.url as string | undefined) ?? null,
     imageAlt: (image?.alt as string | undefined) ?? null,

@@ -1,6 +1,7 @@
 import { PUBLISH_KEYS } from "../access";
 import {
   bodyField,
+  coverFields,
   includeInNewsletterField,
   socialField,
   summaryField,
@@ -44,6 +45,8 @@ const base = editorialCollection({
       ],
     },
     summaryField(200),
+    // A chart or map shown on the card on the homepage and at the top of the article.
+    ...coverFields(),
     bodyField(false),
     includeInNewsletterField(PUBLISH_KEYS["desk-updates"]),
     socialField(PUBLISH_KEYS["desk-updates"]),

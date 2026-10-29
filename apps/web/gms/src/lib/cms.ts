@@ -53,6 +53,8 @@ export const contentSchema = z.object({
   slug: z.string(),
   kicker: z.string().nullable().optional(),
   summary: z.string().nullable(),
+  /** Who created the post (their sign-in name); older feeds and posts have none. */
+  authorName: z.string().nullable().optional(),
   category: z.string().nullable().optional(),
   body: z.string(),
   imageUrl: z.string().nullable(),

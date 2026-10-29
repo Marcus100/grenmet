@@ -77,6 +77,19 @@ export function postedLabel(iso: string, now = new Date()): string {
   return `${prefix} at ${CLOCK.format(when)}`;
 }
 
+const NAME_SEPARATORS = /[\s._-]+/;
+
+/** "Eugine Whint" gives "EW"; one word gives its first two letters; no name gives "GMS". */
+export function avatarInitials(name: string | null | undefined): string {
+  const words = (name ?? "").split(NAME_SEPARATORS).filter(Boolean);
+  if (words.length === 0) return "GMS";
+  const letters =
+    words.length > 1
+      ? `${words[0]?.[0] ?? ""}${words.at(-1)?.[0] ?? ""}`
+      : (words[0] ?? "").slice(0, 2);
+  return letters.toUpperCase();
+}
+
 /**
  * One desk post as a card: who posted it and when, the words, its picture (a
  * chart or map) and a link to the article, which carries any linked product.
@@ -91,11 +104,11 @@ function DeskPostCard({ item }: { item: PublishedContent }) {
             aria-hidden="true"
             className="flex size-10 shrink-0 items-center justify-center rounded-full bg-gm-sky-ink font-bold text-body-sm text-gm-text-inverse leading-body-sm"
           >
-            GMS
+            {avatarInitials(item.authorName)}
           </span>
           <span className="flex min-w-0 flex-col">
             <span className="font-bold text-body text-gm-heading leading-body">
-              The forecasters
+              {item.authorName ?? "The forecasters"}
             </span>
             <time
               className="text-body-sm text-gm-text-secondary leading-body-sm"

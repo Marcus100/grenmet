@@ -1,6 +1,7 @@
 import { cleanup, render, screen } from "@testing-library/react";
 import { afterEach, expect, it, vi } from "vitest";
 import {
+  avatarInitials,
   Explained,
   ForecastDesk,
   GetAlertsStrip,
@@ -183,4 +184,33 @@ it("leads report write-ups with their live product and links each write-up", asy
     "href",
     "/explore/reports/2026/09/outlook"
   );
+});
+
+it("signs a desk card with the author's name and initials, with their picture", async () => {
+  vi.mocked(fetchHomeContent).mockResolvedValue({
+    ...hidden([]),
+    deskUpdates: {
+      status: "ok",
+      articles: [
+        post({
+          authorName: "Eugine Whint",
+          imageUrl: "https://weather.barrels.gd/media/rain-map.png",
+          imageAlt: "Rain map for tonight",
+        }),
+      ],
+    },
+  });
+  render(await ForecastDesk());
+  expect(screen.getByText("Eugine Whint")).toBeInTheDocument();
+  expect(screen.getByText("EW")).toBeInTheDocument();
+  expect(screen.queryByText("The forecasters")).not.toBeInTheDocument();
+  expect(screen.getByAltText("Rain map for tonight")).toBeInTheDocument();
+});
+
+it("makes avatar initials from a name, and falls back to GMS", () => {
+  expect(avatarInitials("Eugine Whint")).toBe("EW");
+  expect(avatarInitials("eugine.whint")).toBe("EW");
+  expect(avatarInitials("forecaster")).toBe("FO");
+  expect(avatarInitials(null)).toBe("GMS");
+  expect(avatarInitials("  ")).toBe("GMS");
 });
