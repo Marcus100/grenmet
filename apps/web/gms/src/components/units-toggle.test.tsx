@@ -1,11 +1,15 @@
 import { fireEvent, render, screen } from "@testing-library/react";
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { Measure, Temperature } from "@/components/measure";
 import { UnitsToggle } from "@/components/units-toggle";
+
+const captureEvent = vi.hoisted(() => vi.fn());
+vi.mock("@barrelsgd/ui/lib/analytics-runtime", () => ({ captureEvent }));
 
 afterEach(() => {
   document.documentElement.removeAttribute("data-units");
   window.localStorage.clear();
+  captureEvent.mockClear();
 });
 
 describe("UnitsToggle", () => {
@@ -18,6 +22,19 @@ describe("UnitsToggle", () => {
     expect(window.localStorage.getItem("gm-units")).toBe("imperial");
     fireEvent.click(screen.getByRole("button"));
     expect(document.documentElement.getAttribute("data-units")).toBe("metric");
+  });
+
+  it("reports each switch as a counts-only units_switched event", () => {
+    render(<UnitsToggle />);
+    fireEvent.click(screen.getByRole("button"));
+    expect(captureEvent).toHaveBeenLastCalledWith("units_switched", {
+      to: "imperial",
+    });
+    fireEvent.click(screen.getByRole("button"));
+    expect(captureEvent).toHaveBeenLastCalledWith("units_switched", {
+      to: "metric",
+    });
+    expect(captureEvent).toHaveBeenCalledTimes(2);
   });
 });
 
