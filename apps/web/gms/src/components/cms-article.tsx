@@ -6,7 +6,7 @@ import ReactMarkdown from "react-markdown";
 import { FeaturedLink } from "@/components/featured-link";
 import { LinkedProduct } from "@/components/linked-product";
 import { RelatedLinkAnchor } from "@/components/related-link-anchor";
-import { fetchContentBySlug } from "@/lib/cms";
+import { fetchContentBySlug, type PublishedContent } from "@/lib/cms";
 import { contentToArticle } from "@/lib/editorial";
 
 const SECTIONS = {
@@ -44,6 +44,14 @@ export async function CmsArticle({ slug }: { slug: string }) {
   }
   const content = result.articles[0];
   if (!content) notFound();
+  return <CmsArticleBody content={content} />;
+}
+
+/**
+ * The article as it reads on the site. A draft preview renders through this
+ * too, so the preview cannot differ from the published page.
+ */
+export function CmsArticleBody({ content }: { content: PublishedContent }) {
   const article = contentToArticle(content);
   const section = SECTIONS[content.collection];
   // The main link is a card; the others are plain links beneath it.
