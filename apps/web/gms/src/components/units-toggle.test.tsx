@@ -9,15 +9,15 @@ afterEach(() => {
 });
 
 describe("UnitsToggle", () => {
-  it("starts imperial, switches the page to metric and remembers it", () => {
+  it("starts metric, switches the page to imperial and remembers it", () => {
     render(<UnitsToggle />);
-    fireEvent.click(screen.getByRole("button"));
-    expect(document.documentElement.getAttribute("data-units")).toBe("metric");
-    expect(window.localStorage.getItem("gm-units")).toBe("metric");
     fireEvent.click(screen.getByRole("button"));
     expect(document.documentElement.getAttribute("data-units")).toBe(
       "imperial"
     );
+    expect(window.localStorage.getItem("gm-units")).toBe("imperial");
+    fireEvent.click(screen.getByRole("button"));
+    expect(document.documentElement.getAttribute("data-units")).toBe("metric");
   });
 });
 

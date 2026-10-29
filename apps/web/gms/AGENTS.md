@@ -97,7 +97,7 @@ src/app/
   `/marine`). The website has no bottom tab bar; `MobileTabBar` is kept for
   the app.
 - **Units (28 Oct 2026):** every hero measurement is metric or imperial,
-  imperial until a visitor chooses (header button, saved in `localStorage`
+  metric until a visitor chooses (owner first chose imperial, then metric) (header button, saved in `localStorage`
   `gm-units`). The API sends WMO units (°C, knots, metres, km, hPa, mm). A figure
   is a `Measure` (`lib/units.ts`) rendered by `components/measure.tsx` in both
   systems; `globals.css` shows one by `<html data-units>`, so static pages never

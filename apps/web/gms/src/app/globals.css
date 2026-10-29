@@ -416,10 +416,10 @@ body {
 
 /*
  * Metric and imperial: every measurement is on the page in both systems and
- * <html data-units> picks the one shown (imperial when unset). See
+ * <html data-units> picks the one shown (metric when unset). See
  * components/measure.tsx and components/units-toggle.tsx.
  */
-html:not([data-units="metric"]) [data-units-only="metric"],
-html[data-units="metric"] [data-units-only="imperial"] {
+html:not([data-units="imperial"]) [data-units-only="imperial"],
+html[data-units="imperial"] [data-units-only="metric"] {
   display: none;
 }

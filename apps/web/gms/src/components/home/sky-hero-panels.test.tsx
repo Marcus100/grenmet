@@ -393,15 +393,15 @@ describe("hero readings", () => {
   it("shows register values and says not available for unrecorded fields", () => {
     const rows = nowReadings(currentConditions(reading));
     const byLabel = Object.fromEntries(rows.map((row) => [row.label, row]));
-    // Default units are imperial; the numbers behind them follow the switch.
+    // Default units are metric; the numbers behind them follow the switch.
     expect(byLabel.Pressure).toMatchObject({
       measures: [{ low: 1014.2, quantity: "pressure" }],
       trend: "rising",
-      value: "29.95 inHg",
+      value: "1014.2 hPa",
     });
     expect(byLabel.Rain).toMatchObject({
       measures: [{ low: 0.4, quantity: "rain" }],
-      value: "0.02 in",
+      value: "0.4 mm",
     });
     for (const label of ["UV index", "Air quality", "Visibility", "Gusts"]) {
       expect(byLabel[label]).toMatchObject({
@@ -507,12 +507,12 @@ describe("Now readings from the register", () => {
       })
     );
     const byLabel = Object.fromEntries(rows.map((row) => [row.label, row]));
-    expect(byLabel.Visibility).toMatchObject({ value: "6.2 mi" });
-    expect(byLabel.Gusts).toMatchObject({ value: "25 mph" });
-    expect(byLabel["Cloud base"]).toMatchObject({ value: "1969–3281 ft" });
-    expect(byLabel["Rain, last 24 hours"]).toMatchObject({ value: "0.5 in" });
+    expect(byLabel.Visibility).toMatchObject({ value: "10 km" });
+    expect(byLabel.Gusts).toMatchObject({ value: "41 km/h" });
+    expect(byLabel["Cloud base"]).toMatchObject({ value: "600–1000 m" });
+    expect(byLabel["Rain, last 24 hours"]).toMatchObject({ value: "12.7 mm" });
     expect(byLabel["Highest · lowest today"]).toMatchObject({
-      value: "90° · 75°",
+      value: "32° · 24°",
     });
     expect(byLabel.Visibility?.unavailable).toBeUndefined();
   });

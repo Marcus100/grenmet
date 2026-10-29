@@ -2,7 +2,7 @@ import { bothUnits, type Measure as MeasureValue } from "@/lib/units";
 
 /**
  * A measurement in both unit systems. The page carries both; `globals.css`
- * shows the one the visitor chose (imperial until they pick), so there is no
+ * shows the one the visitor chose (metric until they pick), so there is no
  * wrong-units flash and the page stays static. The hidden one is not read out
  * or copied. A measure with no figure renders nothing; callers show a dash.
  */

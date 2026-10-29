@@ -1,7 +1,7 @@
 /**
  * Metric and imperial units for every measurement on the site (owner, 28 Oct
  * 2026). The API stores and sends WMO units (degC, knots, metres, km, hPa, mm);
- * a visitor sees them in whichever system they chose, imperial until they do.
+ * a visitor sees them in whichever system they chose, metric until they do.
  * Both renderings are on the page and CSS shows one, so a static page never
  * flashes the wrong units (`components/measure.tsx`, `globals.css`).
  */
@@ -9,8 +9,8 @@
 export type UnitSystem = "imperial" | "metric";
 export const UNIT_SYSTEMS: readonly UnitSystem[] = ["imperial", "metric"];
 
-/** Until a visitor chooses: imperial (owner, 28 Oct 2026). */
-export const DEFAULT_UNITS: UnitSystem = "imperial";
+/** Until a visitor chooses: metric (owner, 28 Oct 2026, after first choosing imperial). */
+export const DEFAULT_UNITS: UnitSystem = "metric";
 export const UNITS_STORAGE_KEY = "gm-units";
 
 /** What a number measures, in the unit the API sends it in. */

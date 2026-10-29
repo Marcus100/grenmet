@@ -28,7 +28,7 @@ export function UnitsToggle({
   tone?: "masthead" | "drawer";
 }) {
   function toggle() {
-    const next: UnitSystem = current() === "imperial" ? "metric" : "imperial";
+    const next: UnitSystem = current() === "metric" ? "imperial" : "metric";
     document.documentElement.setAttribute("data-units", next);
     try {
       window.localStorage.setItem(UNITS_STORAGE_KEY, next);
