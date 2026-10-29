@@ -26,11 +26,13 @@ const SKY_TINT: Record<WeatherCondition, string> = {
 
 /** Height of the icon row, the same in every column so the line can join them. */
 const ICON_ROW = 64;
+/** The icon row is shorter on phones; positions are in ICON_ROW units and scale with it. */
+const ICON_ROW_CLASS = "h-10 sm:h-16";
 /** How far an icon rises or sinks, in px, between the coolest and warmest tab. */
 const LIFT = 9;
 
 const TAB =
-  "flex h-full flex-col items-center px-1 pt-3 pb-3 text-center outline-none hover:bg-gm-text-inverse/10 focus-visible:ring-2 focus-visible:ring-gm-lime focus-visible:ring-inset";
+  "flex h-full flex-col items-center px-1 pt-2 pb-2 text-center sm:pt-3 sm:pb-3 outline-none hover:bg-gm-text-inverse/10 focus-visible:ring-2 focus-visible:ring-gm-lime focus-visible:ring-inset";
 
 /** The selected tab is a lighter column; there is no other marker. */
 const CURRENT = "bg-gm-text-inverse/20";
@@ -109,8 +111,7 @@ function IconRow({
   return (
     <span
       aria-hidden="true"
-      className="relative my-1 block w-full"
-      style={{ height: ICON_ROW }}
+      className={cn("relative my-0.5 block w-full sm:my-1", ICON_ROW_CLASS)}
     >
       <svg
         className="absolute inset-0 size-full overflow-visible"
@@ -128,7 +129,7 @@ function IconRow({
       </svg>
       <span
         className="absolute left-1/2 -translate-x-1/2 -translate-y-1/2"
-        style={{ top: y ?? ICON_ROW / 2 }}
+        style={{ top: `${((y ?? ICON_ROW / 2) / ICON_ROW) * 100}%` }}
       >
         <SkyIcon hidden={hidden} sky={sky} />
       </span>
@@ -178,7 +179,7 @@ export function SkyDayStrip({
             <span className="text-caption text-gm-text-inverse/85 tabular-nums leading-caption">
               {now.time ?? " "}
             </span>
-            <span className="mt-2 font-bold text-body-base tabular-nums leading-body-base">
+            <span className="mt-1 font-bold text-body-base tabular-nums leading-body-base sm:mt-2">
               <Temperature value={now.temperature} />
             </span>
             <IconRow
@@ -217,7 +218,7 @@ export function SkyDayStrip({
                   {day.date}
                   <span className="sr-only"> {day.month}</span>
                 </span>
-                <span className="mt-2 font-bold text-body-base tabular-nums leading-body-base sm:text-heading-sm sm:leading-heading-sm">
+                <span className="mt-1 font-bold text-body-base tabular-nums leading-body-base sm:mt-2 sm:text-heading-sm sm:leading-heading-sm">
                   <Temperature value={day.high} />
                   {day.high !== null && (
                     <span className="sr-only"> maximum</span>
