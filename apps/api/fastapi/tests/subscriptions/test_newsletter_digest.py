@@ -164,9 +164,7 @@ async def test_hurricane_mode_follows_its_feature_flag(
     assert digest.hurricane_mode is True
 
 
-def test_props_carry_the_unsubscribe_link_and_only_test_sends_show_a_notice(
-    db_async: AsyncSession,  # noqa: ARG001 - pure function; fixture keeps DB settings
-) -> None:
+def test_props_carry_the_unsubscribe_link_and_only_test_sends_show_a_notice() -> None:
     digest = newsletter.Digest(
         day=_DAY,
         subject="s",

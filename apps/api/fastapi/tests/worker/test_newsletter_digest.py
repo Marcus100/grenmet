@@ -5,14 +5,16 @@ from datetime import UTC, datetime, timedelta
 from types import SimpleNamespace
 from urllib.parse import quote
 
+import jwt
 import pytest
 from sqlalchemy import delete, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from src.auth.config import auth_settings
 from src.notifications import service as notification_service
 from src.notifications.models import OutboundEmail, SuppressionReason
 from src.outbox import Outbox
-from src.subscriptions import newsletter, service
+from src.subscriptions import newsletter
 from src.subscriptions.config import subscriptions_settings
 from src.subscriptions.constants import NEWSLETTER_LIST_KEY, NEWSLETTER_TEMPLATE
 from src.subscriptions.models import ListSubscription, SubscriptionStatus
@@ -174,10 +176,9 @@ async def test_each_mail_carries_its_own_unsubscribe_link(
     for row in (first, second):
         mail = by_address[row.email or ""]
         token = mail.props["unsubscribeLink"].split("token=")[1]
-        claims_id = service._read_token(  # noqa: SLF001 - the signed subject
-            token, purpose="subscription-unsubscribe"
-        )
-        assert claims_id == row.id
+        claims = jwt.decode(token, auth_settings.SECRET_KEY, algorithms=["HS256"])
+        assert claims["purpose"] == "subscription-unsubscribe"
+        assert claims["sub"] == str(row.id)
 
 
 async def test_sends_are_paced_in_batches(

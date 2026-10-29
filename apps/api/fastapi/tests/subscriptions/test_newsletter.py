@@ -4,11 +4,13 @@ import uuid
 from urllib.parse import parse_qs, urlparse
 
 import httpx
+import jwt
 import pytest
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src import outbox
+from src.auth.config import auth_settings
 from src.email_config import email_settings
 from src.notifications import service as notification_service
 from src.notifications.models import OutboundEmail
@@ -163,10 +165,10 @@ async def test_bad_tokens_get_a_plain_refusal_and_change_nothing(
     assert post.status_code == 400
 
     # A confirmation token cannot unsubscribe.
-    confirm_token = service._make_token(  # noqa: SLF001 - the purpose check under test
-        subscription_id=reader.id,
-        purpose="subscription-confirm",
-        ttl=None,
+    confirm_token = jwt.encode(
+        {"sub": str(reader.id), "purpose": "subscription-confirm"},
+        auth_settings.SECRET_KEY,
+        algorithm="HS256",
     )
     post = await async_client.post(
         f"{_URL}/unsubscribe", params={"token": confirm_token}
