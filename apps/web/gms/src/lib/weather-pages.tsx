@@ -2,6 +2,8 @@ import type {
   PublicObservation,
   PublicPublishedProduct,
 } from "@barrelsgd/api-client";
+import type { ReactNode } from "react";
+import { Measure } from "@/components/measure";
 import {
   currentConditions,
   isStale,
@@ -10,22 +12,52 @@ import {
 import type { Condition, ForecastDayData } from "@/lib/forecast-data";
 import { UNAVAILABLE_SOURCE } from "@/lib/forecast-selection";
 import { reportError } from "@/lib/report-error";
-import { formatMeasure } from "@/lib/units";
+import { bothUnits } from "@/lib/units";
 
 /** Placeholder for a value the source did not supply. */
 export const NOT_SUPPLIED = "Not supplied";
 
 const DAY_NAMES = ["Today", "Tomorrow"];
 
-function degrees(value: number | null) {
-  return value == null ? NOT_SUPPLIED : `${value} °C`;
+const WIND_SPEED_TILE = /^wind speed|^wind$/i;
+const WIND_DIRECTION_TILE = /^wind direction/i;
+const CHANCE_OF_RAIN_TILE = /^chance of rain/i;
+
+/** A whole-degree forecast temperature in the visitor's unit system. */
+function degrees(value: number | null): ReactNode {
+  if (value == null) return NOT_SUPPLIED;
+  return (
+    <Measure measure={{ low: value, places: 0, quantity: "temperature" }} />
+  );
 }
 
-function tileValue(day: ForecastDayData, ...labels: string[]) {
-  const tile = day.conditions.find((item) =>
-    labels.some((label) => item.label.startsWith(label))
-  );
-  return tile?.value;
+/** A figure in the visitor's unit system when it has numbers; otherwise its text. */
+function figureOf(tile: Condition): ReactNode {
+  if (tile.measure && bothUnits(tile.measure)) {
+    return <Measure measure={tile.measure} />;
+  }
+  return tile.value;
+}
+
+function tileOf(day: ForecastDayData, pattern: RegExp) {
+  return day.conditions.find((item) => pattern.test(item.label));
+}
+
+/** Direction and speed as one wind figure, e.g. "ENE 16 mph" in imperial. */
+function windOf(day: ForecastDayData): ReactNode {
+  const speed = tileOf(day, WIND_SPEED_TILE);
+  const direction = tileOf(day, WIND_DIRECTION_TILE)?.value;
+  if (speed?.measure && bothUnits(speed.measure)) {
+    return (
+      <Measure
+        measure={{
+          ...speed.measure,
+          prefix: direction ? `${direction} ` : undefined,
+        }}
+      />
+    );
+  }
+  return [direction, speed?.value].filter(Boolean).join(" ") || NOT_SUPPLIED;
 }
 
 function dayLabel(date: string, index: number) {
@@ -51,24 +83,18 @@ function isIssued(day: ForecastDayData) {
  * Rows for the 3-day table from the first three backend-selected periods.
  * Days with no published forecast say so rather than showing blanks.
  */
-export function threeDayRows(days: readonly ForecastDayData[]): string[][] {
+export function threeDayRows(days: readonly ForecastDayData[]): ReactNode[][] {
   return days.slice(0, 3).map((day, index) => {
     const label = dayLabel(day.date, index);
     if (!isIssued(day))
       return [label, "No published forecast yet", "—", "—", "—", "—"];
-    const wind = [
-      tileValue(day, "Wind speed", "Wind"),
-      tileValue(day, "Wind direction"),
-    ]
-      .filter(Boolean)
-      .join(" ");
     return [
       label,
       day.summary,
       degrees(day.high),
       degrees(day.low),
-      wind || NOT_SUPPLIED,
-      tileValue(day, "Chance of rain") ?? NOT_SUPPLIED,
+      windOf(day),
+      tileOf(day, CHANCE_OF_RAIN_TILE)?.value ?? NOT_SUPPLIED,
     ];
   });
 }
@@ -79,9 +105,10 @@ export function hasIssuedForecast(days: readonly ForecastDayData[]) {
 }
 
 export interface StationTile {
-  detail?: string;
+  detail?: ReactNode;
   label: string;
-  value: string;
+  /** Text, or a `Measure` that follows the unit switch. */
+  value: ReactNode;
 }
 
 export interface StationReading {
@@ -90,9 +117,35 @@ export interface StationReading {
   /** The reading's own time (ISO), for the provenance line. */
   observedAtIso: string;
   provisional: boolean;
-  rows: string[][];
+  rows: ReactNode[][];
   stationName: string;
   tiles: StationTile[];
+}
+
+/** Rain in the table: its amount, then the period in brackets when given. */
+function rainCell(tile: Condition | undefined): ReactNode {
+  if (!tile) return "—";
+  if (!tile.detail) return figureOf(tile);
+  return (
+    <>
+      {figureOf(tile)} ({tile.detail})
+    </>
+  );
+}
+
+/** "Rising 0.8 hPa in 3 h": the trend word and the size of its change. */
+function pressureNote(
+  trend: string | undefined,
+  changeHpa: number | null
+): ReactNode {
+  if (!trend) return undefined;
+  if (changeHpa === null) return trend;
+  return (
+    <>
+      {trend} <Measure measure={{ low: changeHpa, quantity: "pressure" }} /> in
+      3 h
+    </>
+  );
 }
 
 export const MBIA_NAME = "Maurice Bishop International Airport (MBIA)";
@@ -104,39 +157,41 @@ export function stationReading(
 ): StationReading | null {
   if (!observation) return null;
   const c = currentConditions(observation);
-  // These pages are plain text tables, not yet on the unit switch: pressure
-  // and rain stay in hPa and mm (wind already read mph with knots beside it).
-  const metric = (tile: Condition | undefined) =>
-    tile?.measure && tile.measure.quantity !== "speed"
-      ? { ...tile, value: formatMeasure(tile.measure, "metric") ?? tile.value }
-      : tile;
-  const find = (label: string) =>
-    metric(c.primary.find((t) => t.label === label));
+  const find = (label: string) => c.primary.find((t) => t.label === label);
   const wind = find("Wind");
   const pressure = find("Pressure");
-  const rain =
-    metric(c.extra.find((t) => t.label === "Rain, 24 h")) ?? find("Rain");
+  const rain = c.extra.find((t) => t.label === "Rain, 24 h") ?? find("Rain");
   const humidity = c.humidity == null ? null : `${c.humidity}%`;
-  const temperature = c.temperature == null ? null : `${c.temperature} °C`;
+  const temperature =
+    c.temperature == null ? null : (
+      <Measure measure={{ low: c.temperature, quantity: "temperature" }} />
+    );
+  const dewPoint =
+    c.dewPoint == null ? undefined : (
+      <>
+        Dew point{" "}
+        <Measure measure={{ low: c.dewPoint, quantity: "temperature" }} />
+      </>
+    );
+  const pressureDetail = pressureNote(pressure?.detail, c.pressureChangeHpa);
   const stationName = observation.station_name || MBIA_NAME;
   const tiles: StationTile[] = [];
   if (temperature)
-    tiles.push({
-      label: "Temperature",
-      value: temperature,
-      detail: c.dewPoint == null ? undefined : `Dew point ${c.dewPoint} °C`,
-    });
-  if (wind)
-    tiles.push({ label: "Wind", value: wind.value, detail: wind.detail });
+    tiles.push({ label: "Temperature", value: temperature, detail: dewPoint });
+  if (wind) tiles.push({ label: "Wind", value: figureOf(wind) });
   if (humidity) tiles.push({ label: "Humidity", value: humidity });
   if (pressure)
     tiles.push({
       label: "Pressure",
-      value: pressure.value,
-      detail: pressure.detail,
+      value: figureOf(pressure),
+      detail: pressureDetail,
     });
   if (rain)
-    tiles.push({ label: rain.label, value: rain.value, detail: rain.detail });
+    tiles.push({
+      label: rain.label,
+      value: figureOf(rain),
+      detail: rain.detail,
+    });
   return {
     observedAtIso: c.observedAt,
     observedAt: `${isStale(c.observedAt, now) ? "Last observed" : "Reported"} ${localTime(c.observedAt)} AST`,
@@ -149,9 +204,9 @@ export function stationReading(
         `${localTime(c.observedAt)} AST`,
         temperature ?? "—",
         humidity ?? "—",
-        wind ? [wind.value, wind.detail].filter(Boolean).join(" · ") : "—",
-        pressure?.value ?? "—",
-        rain ? `${rain.value}${rain.detail ? ` (${rain.detail})` : ""}` : "—",
+        wind ? figureOf(wind) : "—",
+        pressure ? figureOf(pressure) : "—",
+        rainCell(rain),
       ],
     ],
   };

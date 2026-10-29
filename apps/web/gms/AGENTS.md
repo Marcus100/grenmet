@@ -102,9 +102,14 @@ src/app/
   is a `Measure` (`lib/units.ts`) rendered by `components/measure.tsx` in both
   systems; `globals.css` shows one by `<html data-units>`, so static pages never
   flash. Forecast panels show only what a forecast issues (wind, gusts, chance of
-  rain, seas, swell, sun, tides). Not yet converted: the 3-day/7-day,
-  conditions, observations and marine text tables (`lib/weather-pages.ts`, still
-  metric text). New numbers go through `Measure`, never a hand-built string.
+  rain, seas, swell, sun, tides). The 3-day forecast, current conditions,
+  observations and sea-state tables are on the switch too (`lib/weather-pages.tsx`
+  builds their cells as `Measure`; `InfoTable` and `StatTiles` take nodes).
+  Still hand-typed metric text: the heat and tropics-season tables. New numbers
+  go through `Measure`, never a hand-built string.
+  The panels under the hero tabs are all rendered, stacked in one grid cell
+  (`ByTab`, `hero-selection.tsx`), so the hero keeps the tallest panel's height
+  and a tab change never moves the page. Only the selected panel is visible.
 - **Bold sky:** the sky gradient and `bg-gm-scrim` are for the home hero only;
   see `docs/design/gms.md`.
 - **Locations:** places live in `src/lib/locations.ts`, keyed internally by airport
