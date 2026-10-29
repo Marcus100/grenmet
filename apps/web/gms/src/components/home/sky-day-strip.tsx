@@ -157,16 +157,16 @@ export function SkyDayStrip({
             />
             {/* No rain chance or low for a reading: keep the rows so tabs line up. */}
             <span aria-hidden="true" className={small}>
-              {" "}
+              {"\u00a0"}
             </span>
             <span aria-hidden="true" className={small}>
-              {" "}
+              {"\u00a0"}
             </span>
             <span className="mt-1 font-bold text-body-base leading-body-base">
               Now
             </span>
             <span className={cn(small, "text-gm-text-inverse/85")}>
-              {now.time ?? " "}
+              {now.time ?? "\u00a0"}
             </span>
           </TabLink>
         </li>
@@ -200,15 +200,18 @@ export function SkyDayStrip({
                   sky={day.condition}
                   y={ys[column] ?? null}
                 />
-                <span className={cn(small, "text-gm-sky")}>
-                  {day.rainWord ?? " "}
+                <span className={cn(small, "max-w-full truncate text-gm-sky")}>
+                  {day.rainWord ?? "\u00a0"}
                   {day.rainWord && (
                     <span className="sr-only"> chance of rain</span>
                   )}
                 </span>
                 <span className={cn(small, "text-gm-text-inverse/85")}>
                   {missing ? (
-                    <span className="sr-only">No forecast yet</span>
+                    <>
+                      <span aria-hidden="true">{"\u00a0"}</span>
+                      <span className="sr-only">No forecast yet</span>
+                    </>
                   ) : (
                     <>
                       <Temperature value={day.low} />
