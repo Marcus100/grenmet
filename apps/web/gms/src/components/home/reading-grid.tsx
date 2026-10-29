@@ -15,6 +15,8 @@ import {
   SunMediumIcon,
   SunriseIcon,
   SunsetIcon,
+  ThermometerSnowflakeIcon,
+  ThermometerSunIcon,
   UmbrellaIcon,
   WavesHorizontalIcon,
   WavesIcon,
@@ -22,6 +24,7 @@ import {
   WindIcon,
 } from "lucide-react";
 import type { ReactNode } from "react";
+import { Measure } from "@/components/measure";
 import type { PressureTrend, Reading, ReadingIcon } from "@/lib/hero-readings";
 import { cn } from "@/lib/utils";
 
@@ -38,6 +41,8 @@ const ICONS: Record<ReadingIcon, LucideIcon> = {
   sunrise: SunriseIcon,
   sunset: SunsetIcon,
   swell: WavesHorizontalIcon,
+  "temp-high": ThermometerSunIcon,
+  "temp-low": ThermometerSnowflakeIcon,
   "tide-high": ArrowUpToLineIcon,
   "tide-low": ArrowDownToLineIcon,
   uv: SunMediumIcon,
@@ -53,6 +58,8 @@ const TINT: Partial<Record<ReadingIcon, string>> = {
   rainfall: "text-gm-sky",
   seas: "text-gm-sky",
   swell: "text-gm-sky",
+  "temp-high": "text-gm-lime",
+  "temp-low": "text-gm-sky",
   "tide-high": "text-gm-sky",
   "tide-low": "text-gm-sky",
   sunrise: "text-gm-lime",
@@ -86,7 +93,13 @@ function Trend({ trend }: { trend: PressureTrend }) {
  */
 function valueText(reading: Reading): ReactNode {
   if (!reading.unavailable) {
-    return reading.value;
+    if (!reading.measures) return reading.value;
+    return reading.measures.map((measure, index) => (
+      <span key={`${measure.quantity}-${measure.low}`}>
+        {index > 0 && " · "}
+        <Measure measure={measure} />
+      </span>
+    ));
   }
   return (
     <>

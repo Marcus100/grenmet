@@ -3636,6 +3636,7 @@ export {
   flightsGetFlightBoardStatus200Schema,
   flightsGetFlightBoardStatus422Schema,
 } from "./flightsGetFlightBoardSchema.js";
+export { forecastConditionPropertiesQuantityAnyOfEnumSchema } from "./forecastConditionPropertiesQuantityAnyOfEnumSchema.js";
 export { forecastConditionSchema } from "./forecastConditionSchema.js";
 export { forecastObservationSchema } from "./forecastObservationSchema.js";
 export { forecastPeriodSchema } from "./forecastPeriodSchema.js";

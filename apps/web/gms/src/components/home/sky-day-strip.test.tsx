@@ -65,8 +65,12 @@ describe("SkyDayStrip", () => {
     expect(within(tab).queryByText(RAIN_CHANCE)).not.toBeInTheDocument();
     // The maximum sits above the icon row and the minimum below it.
     const children = Array.from(tab.children).map((node) => node.textContent);
-    expect(children.indexOf("31° maximum")).toBeLessThan(children.indexOf(""));
-    expect(children.indexOf("")).toBeLessThan(children.indexOf("25° minimum"));
+    const maximum = children.findIndex((text) => text?.includes("maximum"));
+    const icon = children.indexOf("");
+    const minimum = children.findIndex((text) => text?.includes("minimum"));
+    expect(maximum).toBeGreaterThanOrEqual(0);
+    expect(maximum).toBeLessThan(icon);
+    expect(icon).toBeLessThan(minimum);
   });
 
   it("marks the selected tab with a lighter column, not an underline", () => {

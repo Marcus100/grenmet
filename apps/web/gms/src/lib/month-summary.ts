@@ -1,8 +1,11 @@
 import type { PublicMonthSummary } from "@barrelsgd/api-client";
+import type { Quantity } from "@/lib/units";
 
 export interface MonthStat {
   detail: string;
   label: string;
+  /** The number behind `value` (WMO unit), so the card follows the unit switch. */
+  measure?: { quantity: Quantity; value: number | null };
   unit: string;
   /** null when the register has not reported it; shown as a dash, never 0. */
   value: string | null;
@@ -42,18 +45,27 @@ export function monthStats(summary: PublicMonthSummary): MonthStats {
     stats: [
       {
         label: `Rainfall this month · ${station}`,
+        measure: { quantity: "rain", value: summary.rainfall_mm ?? null },
         value: summary.rainfall_mm == null ? null : String(summary.rainfall_mm),
         unit: "mm",
         detail: `${summary.rain_report_days} of ${summary.days_elapsed} days reported`,
       },
       {
         label: `Highest temperature · ${station}`,
+        measure: {
+          quantity: "temperature",
+          value: summary.max_temperature_c ?? null,
+        },
         value: text(summary.max_temperature_c, 1),
         unit: "°C",
         detail: on(summary.max_temperature_at),
       },
       {
         label: `Lowest temperature · ${station}`,
+        measure: {
+          quantity: "temperature",
+          value: summary.min_temperature_c ?? null,
+        },
         value: text(summary.min_temperature_c, 1),
         unit: "°C",
         detail: on(summary.min_temperature_at),

@@ -10,6 +10,7 @@ import {
 import type { Route } from "next";
 import Link from "next/link";
 import { HOME_CARD, HomeSection } from "@/components/home/home-section";
+import { StatFigure } from "@/components/home/stat-figure";
 import { fetchHomeContent, isSectionHidden, sectionWords } from "@/lib/cms";
 import { monthStats } from "@/lib/month-summary";
 import { fetchMonthSummary, fetchSectorOutlook } from "@/lib/products";
@@ -190,12 +191,7 @@ export async function GrenadaInData() {
                 {stat.label}
               </span>
               <span className="font-bold font-gm-display text-gm-heading text-heading-md tabular-nums leading-heading-md lg:text-gm-numeral">
-                {stat.value ?? "—"}
-                {stat.value !== null && (
-                  <span className="ml-1 font-sans font-semibold text-body-sm text-gm-text-secondary leading-body-sm lg:text-body-base lg:leading-body-base">
-                    {stat.unit}
-                  </span>
-                )}
+                <StatFigure stat={stat} />
               </span>
               <span className="text-caption text-gm-text-secondary leading-caption lg:text-body-sm lg:leading-body-sm">
                 {stat.value === null ? "Not reported yet" : stat.detail}

@@ -1,4 +1,5 @@
 import { TabLink } from "@/components/home/hero-selection";
+import { Temperature } from "@/components/measure";
 import type { ForecastDay } from "@/lib/forecast-days";
 import { cn } from "@/lib/utils";
 import { type WeatherCondition, weatherIcon } from "@/lib/weather-icons";
@@ -178,9 +179,7 @@ export function SkyDayStrip({
               {now.time ?? " "}
             </span>
             <span className="mt-2 font-bold text-body-base tabular-nums leading-body-base">
-              {now.temperature === null
-                ? "—"
-                : `${Math.round(now.temperature)}°`}
+              <Temperature value={now.temperature} />
             </span>
             <IconRow
               after={ys[1] ?? null}
@@ -219,7 +218,7 @@ export function SkyDayStrip({
                   <span className="sr-only"> {day.month}</span>
                 </span>
                 <span className="mt-2 font-bold text-body-base tabular-nums leading-body-base sm:text-heading-sm sm:leading-heading-sm">
-                  {day.high === null ? "—" : `${day.high}°`}
+                  <Temperature value={day.high} />
                   {day.high !== null && (
                     <span className="sr-only"> maximum</span>
                   )}
@@ -238,7 +237,7 @@ export function SkyDayStrip({
                   </span>
                 ) : (
                   <span className="text-caption text-gm-text-inverse/85 tabular-nums leading-caption sm:text-body-sm sm:leading-body-sm">
-                    {day.low === null ? "—" : `${day.low}°`}
+                    <Temperature value={day.low} />
                     {day.low !== null && (
                       <span className="sr-only"> minimum</span>
                     )}

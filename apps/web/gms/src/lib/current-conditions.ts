@@ -1,5 +1,6 @@
 import type { PublicObservation } from "@barrelsgd/api-client";
 import type { Condition } from "@/lib/forecast-data";
+import { DEFAULT_UNITS, formatMeasure, type Measure } from "@/lib/units";
 
 /**
  * Freshness limits from the Barrels foundations plan (NFRs). A product older
@@ -34,17 +35,26 @@ const TREND: Record<string, string> = {
   falling: "Falling",
 };
 
+/** A condition whose text is the default-unit rendering of its measure. */
+function measured(
+  tile: Omit<Condition, "measure" | "value">,
+  measure: Measure
+): Condition | null {
+  const value = formatMeasure(measure, DEFAULT_UNITS);
+  return value === null ? null : { ...tile, measure, value };
+}
+
 function wind(o: PublicObservation): Condition | null {
   if (o.wind_calm) return { icon: "wind", label: "Wind", value: "Calm" };
-  if (o.wind_speed_mph == null) return null;
-  return {
-    icon: "wind",
-    label: "Wind",
-    value: [o.wind_direction, `${o.wind_speed_mph} mph`]
-      .filter(Boolean)
-      .join(" "),
-    detail: `${o.wind_speed_kt} kt`,
-  };
+  if (o.wind_speed_kt == null) return null;
+  return measured(
+    { icon: "wind", label: "Wind", detail: `${o.wind_speed_kt} kt` },
+    {
+      quantity: "speed",
+      low: o.wind_speed_kt,
+      prefix: o.wind_direction ? `${o.wind_direction} ` : undefined,
+    }
+  );
 }
 
 function pressure(o: PublicObservation): Condition | null {
@@ -54,22 +64,44 @@ function pressure(o: PublicObservation): Condition | null {
     o.pressure_change_hpa != null && o.pressure_trend !== "steady"
       ? ` ${o.pressure_change_hpa} in 3 h`
       : "";
-  return {
-    icon: "gauge",
-    label: "Pressure",
-    value: `${o.msl_pressure_hpa.toFixed(1)} hPa`,
-    detail: trend ? `${trend}${change}` : undefined,
-  };
+  return measured(
+    {
+      icon: "gauge",
+      label: "Pressure",
+      detail: trend ? `${trend}${change}` : undefined,
+    },
+    { quantity: "pressure", low: o.msl_pressure_hpa }
+  );
 }
 
 function rain(o: PublicObservation): Condition | null {
   if (o.rain_mm == null) return null;
-  return {
+  const tile = {
     icon: "umbrella",
     label: "Rain",
-    value: o.rain_trace ? "Trace" : `${o.rain_mm} mm`,
     detail: o.rain_period_hours ? `last ${o.rain_period_hours} h` : undefined,
   };
+  return o.rain_trace
+    ? { ...tile, value: "Trace" }
+    : measured(tile, { quantity: "rain", low: o.rain_mm });
+}
+
+/** Whole metres for a cloud base band: "600–1000 m up", or "2500 m or higher". */
+function cloudBase(o: PublicObservation): Condition | null {
+  if (o.cloud_base_min_m == null) return null;
+  const tile = { icon: "cloud", label: "Cloud base" };
+  if (o.cloud_base_max_m == null) {
+    return measured(
+      { ...tile, detail: "or higher" },
+      { quantity: "height", low: o.cloud_base_min_m, places: 0 }
+    );
+  }
+  return measured(tile, {
+    quantity: "height",
+    low: o.cloud_base_min_m,
+    high: o.cloud_base_max_m,
+    places: 0,
+  });
 }
 
 /** Public tiles for the latest register reading; missing values drop out. */
@@ -88,12 +120,40 @@ export function currentConditions(o: PublicObservation): CurrentConditions {
   ].filter((tile): tile is Condition => tile !== null);
   const extra: Condition[] = [];
   if (o.cloud) extra.push({ icon: "cloud", label: "Cloud", value: o.cloud });
-  if (o.rain_24h_mm != null)
-    extra.push({
-      icon: "umbrella",
-      label: "Rain, 24 h",
-      value: `${o.rain_24h_mm} mm`,
-    });
+  for (const tile of [
+    o.rain_24h_mm == null
+      ? null
+      : measured(
+          { icon: "umbrella", label: "Rain, 24 h" },
+          { quantity: "rain", low: o.rain_24h_mm }
+        ),
+    o.wind_gust_kt == null
+      ? null
+      : measured(
+          { icon: "wind", label: "Gusts" },
+          { quantity: "speed", low: o.wind_gust_kt }
+        ),
+    o.visibility_km == null
+      ? null
+      : measured(
+          { icon: "eye", label: "Visibility" },
+          { quantity: "distance", low: o.visibility_km }
+        ),
+    cloudBase(o),
+    o.max_temperature_c == null
+      ? null
+      : measured(
+          { icon: "thermometer-sun", label: "Highest today" },
+          { quantity: "temperature", low: o.max_temperature_c, places: 0 }
+        ),
+    o.min_temperature_c == null
+      ? null
+      : measured(
+          { icon: "thermometer-snowflake", label: "Lowest today" },
+          { quantity: "temperature", low: o.min_temperature_c, places: 0 }
+        ),
+  ])
+    if (tile) extra.push(tile);
   return {
     dewPoint: o.dew_point_c ?? null,
     extra,

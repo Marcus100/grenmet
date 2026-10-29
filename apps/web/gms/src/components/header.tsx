@@ -9,6 +9,7 @@ import { DesktopNav } from "@/components/desktop-nav";
 import { NavDrawer } from "@/components/nav-drawer";
 import { SiteSearch } from "@/components/site-search";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { UnitsToggle } from "@/components/units-toggle";
 import { WarningRibbon } from "@/components/warning-ribbon";
 import {
   CheckingStatusPill,
@@ -106,6 +107,7 @@ export function Header({ alerts, accountLabel }: HeaderProps) {
           <div className="flex shrink-0 items-center gap-1">
             <SiteSearch />
             <ThemeToggle />
+            <UnitsToggle />
             {accountLabel ? (
               // The `dark` scope gives the outline button navy-safe tokens.
               // Phones and tablets sign in from the drawer instead.

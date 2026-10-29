@@ -2,6 +2,7 @@ import { MapPinIcon } from "lucide-react";
 import { ReadingGrid } from "@/components/home/reading-grid";
 import { SkyScene } from "@/components/home/sky-scene";
 import { SummaryCard } from "@/components/home/summary-card";
+import { Temperature } from "@/components/measure";
 import {
   isOtherGrenadaDay,
   isStale,
@@ -27,9 +28,7 @@ function Numeral({
           —<span className="sr-only">No current temperature</span>
         </>
       ) : (
-        <>
-          {Math.round(value)}°<span className="sr-only">C</span>
-        </>
+        <Temperature value={value} />
       )}
     </p>
   );
@@ -83,9 +82,12 @@ export function NowSummary({
   const temperature =
     current?.temperature ?? weather.observation?.temperature ?? null;
   const feels =
-    current?.temperature == null
-      ? null
-      : `Feels like ${Math.round(feelsLike(current.temperature, current.humidity))}°`;
+    current?.temperature == null ? null : (
+      <>
+        Feels like{" "}
+        <Temperature value={feelsLike(current.temperature, current.humidity)} />
+      </>
+    );
   return (
     <SummaryCard
       condition={current?.weather ?? null}

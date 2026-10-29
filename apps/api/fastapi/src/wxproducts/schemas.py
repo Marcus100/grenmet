@@ -347,11 +347,19 @@ class ForecastSource(BaseModel):
 
 
 class ForecastCondition(BaseModel):
-    """One display tile: a lucide icon name, a formatted value and its label."""
+    """One display tile: a lucide icon name, a formatted value and its label.
+
+    `value` is the text in GMS's default units. When the tile is a measurement,
+    `quantity`, `low` and `high` carry the numbers in WMO storage units (degC,
+    knots, metres) so the site can show them in the visitor's unit system.
+    """
 
     icon: str
     value: str
     label: str
+    quantity: Literal["temperature", "speed", "height"] | None = None
+    low: float | None = None
+    high: float | None = None
 
 
 class ForecastPeriod(BaseModel):

@@ -96,6 +96,15 @@ src/app/
   3 h old still says "Last observed". No other hero tabs (marine lives at
   `/marine`). The website has no bottom tab bar; `MobileTabBar` is kept for
   the app.
+- **Units (28 Oct 2026):** every hero measurement is metric or imperial,
+  imperial until a visitor chooses (header button, saved in `localStorage`
+  `gm-units`). The API sends WMO units (°C, knots, metres, km, hPa, mm). A figure
+  is a `Measure` (`lib/units.ts`) rendered by `components/measure.tsx` in both
+  systems; `globals.css` shows one by `<html data-units>`, so static pages never
+  flash. Forecast panels show only what a forecast issues (wind, gusts, chance of
+  rain, seas, swell, sun, tides). Not yet converted: the 3-day/7-day,
+  conditions, observations and marine text tables (`lib/weather-pages.ts`, still
+  metric text). New numbers go through `Measure`, never a hand-built string.
 - **Bold sky:** the sky gradient and `bg-gm-scrim` are for the home hero only;
   see `docs/design/gms.md`.
 - **Locations:** places live in `src/lib/locations.ts`, keyed internally by airport

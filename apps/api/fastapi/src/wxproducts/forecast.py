@@ -64,8 +64,15 @@ def period(product: PublishedProduct, day: datetime, prefix: str) -> ForecastPer
         low=temperature(values.get(prefix + "Min" if prefix else "minTemperature", "")),
         details=details,
         conditions=[
-            ForecastCondition(icon=icon, value=text, label=label)
-            for icon, text, label in presentation.conditions(values, prefix)
+            ForecastCondition(
+                icon=tile.icon,
+                value=tile.value,
+                label=tile.public_label or tile.label,
+                quantity=tile.quantity,
+                low=tile.low,
+                high=tile.high,
+            )
+            for tile in presentation.build_tiles(values, prefix)
         ],
     )
 

@@ -1729,6 +1729,16 @@ periods with null sources and no invented forecast values. Each period also carr
 `src/wxproducts/presentation.py`, the same text the PDF sheet prints (public units
 first, WMO units in brackets). weather.gd renders them; older products fall back
 to `details`.
+Since 28 Oct 2026 a tile that measures something also carries `quantity`
+(`temperature`, `speed` or `height`) with `low` and optional `high` in WMO units
+(°C, knots, metres), and its `label` has no unit text, so the site can show the
+visitor's metric or imperial choice; `value` stays the text in public units for
+the PDF and older clients.
+
+`GET /api/v1/eregister/public/observation` adds `visibility_km`, `wind_gust_kt`,
+`wind_gust_mph`, `max_temperature_c`, `min_temperature_c` and `cloud_base_min_m` /
+`cloud_base_max_m` (the cloud-base band from the register's height code), all
+null when the register did not record them.
 
 The forecast-day boundary is 07:00 America/Grenada. Morning, midday and evening
 issues become eligible at 07:00, 12:00 and 18:00 respectively, subject to their

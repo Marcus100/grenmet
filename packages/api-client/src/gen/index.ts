@@ -7708,6 +7708,8 @@ export type {
   FlightsGetFlightBoardStatus422,
 } from "./models/FlightsGetFlightBoard.js";
 export type { ForecastCondition } from "./models/ForecastCondition.js";
+export type { ForecastConditionPropertiesQuantityAnyOfEnum } from "./models/ForecastConditionPropertiesQuantityAnyOfEnum.js";
+export { forecastConditionPropertiesQuantityAnyOfEnum } from "./models/ForecastConditionPropertiesQuantityAnyOfEnum.js";
 export type { ForecastObservation } from "./models/ForecastObservation.js";
 export type { ForecastPeriod } from "./models/ForecastPeriod.js";
 export type { ForecastSource } from "./models/ForecastSource.js";
@@ -16518,6 +16520,7 @@ export {
   flightsGetFlightBoardStatus200Schema,
   flightsGetFlightBoardStatus422Schema,
 } from "./zod/flightsGetFlightBoardSchema.js";
+export { forecastConditionPropertiesQuantityAnyOfEnumSchema } from "./zod/forecastConditionPropertiesQuantityAnyOfEnumSchema.js";
 export { forecastConditionSchema } from "./zod/forecastConditionSchema.js";
 export { forecastObservationSchema } from "./zod/forecastObservationSchema.js";
 export { forecastPeriodSchema } from "./zod/forecastPeriodSchema.js";

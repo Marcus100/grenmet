@@ -7,9 +7,10 @@ import {
   isStale,
   localTime,
 } from "@/lib/current-conditions";
-import type { ForecastDayData } from "@/lib/forecast-data";
+import type { Condition, ForecastDayData } from "@/lib/forecast-data";
 import { UNAVAILABLE_SOURCE } from "@/lib/forecast-selection";
 import { reportError } from "@/lib/report-error";
+import { formatMeasure } from "@/lib/units";
 
 /** Placeholder for a value the source did not supply. */
 export const NOT_SUPPLIED = "Not supplied";
@@ -103,10 +104,18 @@ export function stationReading(
 ): StationReading | null {
   if (!observation) return null;
   const c = currentConditions(observation);
-  const find = (label: string) => c.primary.find((t) => t.label === label);
+  // These pages are plain text tables, not yet on the unit switch: pressure
+  // and rain stay in hPa and mm (wind already read mph with knots beside it).
+  const metric = (tile: Condition | undefined) =>
+    tile?.measure && tile.measure.quantity !== "speed"
+      ? { ...tile, value: formatMeasure(tile.measure, "metric") ?? tile.value }
+      : tile;
+  const find = (label: string) =>
+    metric(c.primary.find((t) => t.label === label));
   const wind = find("Wind");
   const pressure = find("Pressure");
-  const rain = c.extra.find((t) => t.label === "Rain, 24 h") ?? find("Rain");
+  const rain =
+    metric(c.extra.find((t) => t.label === "Rain, 24 h")) ?? find("Rain");
   const humidity = c.humidity == null ? null : `${c.humidity}%`;
   const temperature = c.temperature == null ? null : `${c.temperature} °C`;
   const stationName = observation.station_name || MBIA_NAME;

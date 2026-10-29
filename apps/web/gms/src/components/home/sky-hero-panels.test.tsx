@@ -30,7 +30,7 @@ const LAST_OBSERVED_OTHER_DAY =
 const LAST_OBSERVED_LABEL = /Last observed:/;
 const STALE_LINE = /This reading is more than 90 minutes old/;
 const SAMPLE_REFERENCE = /hero-samples|SAMPLE_/;
-const FEELS_LIKE = /^Feels like \d+°$/;
+const FEELS_LIKE = /^Feels like/;
 const CHANCE_OF_RAIN = /chance of rain/;
 const OBSERVED_AT = "2026-09-29T17:00:00Z"; // 13:00 AST
 const reading: PublicObservation = {
@@ -102,9 +102,15 @@ function weather(overrides: Partial<WeatherSnapshot> = {}): WeatherSnapshot {
 }
 
 const at = (iso: string) => new Date(iso);
-/** The big numeral reads "31°C" to screen readers. */
-const numeral = (text: string) => (_: string, element: Element | null) =>
-  element?.tagName === "P" && element.textContent === text;
+/**
+ * The big numeral holds both unit renderings (CSS shows one) and names each
+ * unit for screen readers: 31 °C is "88°31° Fahrenheit Celsius".
+ */
+const numeral =
+  (fahrenheit: number, celsius: number) =>
+  (_: string, element: Element | null) =>
+    element?.tagName === "P" &&
+    element.textContent === `${fahrenheit}°${celsius}° Fahrenheit Celsius`;
 const tabs = () =>
   within(
     screen.getByRole("navigation", { name: "Forecast days" })
@@ -120,7 +126,7 @@ const terms = (region: HTMLElement) =>
 describe("Now", () => {
   it("is selected by default and shows the register reading", () => {
     render(<SkyHero now={at("2026-09-29T17:12:00Z")} weather={weather()} />);
-    expect(screen.getAllByText(numeral("31°C")).length).toBeGreaterThan(0);
+    expect(screen.getAllByText(numeral(88, 31)).length).toBeGreaterThan(0);
     expect(screen.getAllByText("Light shower").length).toBeGreaterThan(0);
     expect(screen.getAllByText(FEELS_LIKE).length).toBeGreaterThan(0);
     expect(
@@ -148,6 +154,7 @@ describe("Now", () => {
       "Pressure",
       "Visibility",
       "Cloud cover",
+      "Cloud base",
       "UV index",
       "Rain",
       "Air quality",
@@ -190,7 +197,7 @@ describe("Now", () => {
     expect(screen.getAllByText("Midday reading · MBIA").length).toBeGreaterThan(
       0
     );
-    expect(screen.getAllByText(numeral("32°C")).length).toBeGreaterThan(0);
+    expect(screen.getAllByText(numeral(89, 32)).length).toBeGreaterThan(0);
     expect(within(nowPanel()).queryByRole("term")).not.toBeInTheDocument();
   });
 });
@@ -294,18 +301,23 @@ describe("Day panel", () => {
       "Wind",
       "Gusts",
       "Chance of rain",
-      "Rainfall",
-      "Humidity",
-      "Cloud cover",
       "Seas",
       "Swell",
       "Sunrise",
       "Sunset",
       "High tides",
       "Low tides",
+    ]);
+    // Forecasts never issue these, so the panel does not list them.
+    for (const absent of [
+      "Rainfall",
+      "Humidity",
+      "Cloud cover",
       "Visibility",
       "Air quality",
-    ]);
+    ]) {
+      expect(within(panel()).queryByText(absent)).not.toBeInTheDocument();
+    }
     expect(within(panel()).queryByText("Feels like")).not.toBeInTheDocument();
     expect(within(panel()).queryByText("UV index")).not.toBeInTheDocument();
   });
@@ -344,13 +356,7 @@ describe("hero readings", () => {
     const day = issued({ conditions: [{ label: "Wind", value: "E 10 mph" }] });
     const rows = dayReadings(day);
     const byLabel = Object.fromEntries(rows.map((row) => [row.label, row]));
-    for (const label of [
-      "Chance of rain",
-      "Gusts",
-      "High tides",
-      "Rainfall",
-      "Air quality",
-    ]) {
+    for (const label of ["Chance of rain", "Gusts", "High tides", "Swell"]) {
       expect(byLabel[label]).toMatchObject({
         unavailable: true,
         value: NOT_AVAILABLE,
@@ -387,11 +393,16 @@ describe("hero readings", () => {
   it("shows register values and says not available for unrecorded fields", () => {
     const rows = nowReadings(currentConditions(reading));
     const byLabel = Object.fromEntries(rows.map((row) => [row.label, row]));
+    // Default units are imperial; the numbers behind them follow the switch.
     expect(byLabel.Pressure).toMatchObject({
+      measures: [{ low: 1014.2, quantity: "pressure" }],
       trend: "rising",
-      value: "1014.2 hPa",
+      value: "29.95 inHg",
     });
-    expect(byLabel.Rain?.value).toBe("0.4 mm");
+    expect(byLabel.Rain).toMatchObject({
+      measures: [{ low: 0.4, quantity: "rain" }],
+      value: "0.02 in",
+    });
     for (const label of ["UV index", "Air quality", "Visibility", "Gusts"]) {
       expect(byLabel[label]).toMatchObject({
         unavailable: true,
@@ -478,5 +489,31 @@ describe("summary cards", () => {
       <SkyHero weather={weather({ current: null })} />
     );
     expect(container.textContent).toContain("Sky not reported");
+  });
+});
+
+describe("Now readings from the register", () => {
+  it("adds visibility, gusts, cloud base, rain in 24 hours and today's extremes", () => {
+    const rows = nowReadings(
+      currentConditions({
+        ...reading,
+        cloud_base_max_m: 1000,
+        cloud_base_min_m: 600,
+        max_temperature_c: 32.4,
+        min_temperature_c: 24.1,
+        rain_24h_mm: 12.7,
+        visibility_km: 10,
+        wind_gust_kt: 22,
+      })
+    );
+    const byLabel = Object.fromEntries(rows.map((row) => [row.label, row]));
+    expect(byLabel.Visibility).toMatchObject({ value: "6.2 mi" });
+    expect(byLabel.Gusts).toMatchObject({ value: "25 mph" });
+    expect(byLabel["Cloud base"]).toMatchObject({ value: "1969–3281 ft" });
+    expect(byLabel["Rain, last 24 hours"]).toMatchObject({ value: "0.5 in" });
+    expect(byLabel["Highest · lowest today"]).toMatchObject({
+      value: "90° · 75°",
+    });
+    expect(byLabel.Visibility?.unavailable).toBeUndefined();
   });
 });

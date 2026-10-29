@@ -3655,6 +3655,8 @@ export type {
   FlightsGetFlightBoardStatus422,
 } from "./FlightsGetFlightBoard.js";
 export type { ForecastCondition } from "./ForecastCondition.js";
+export type { ForecastConditionPropertiesQuantityAnyOfEnum } from "./ForecastConditionPropertiesQuantityAnyOfEnum.js";
+export { forecastConditionPropertiesQuantityAnyOfEnum } from "./ForecastConditionPropertiesQuantityAnyOfEnum.js";
 export type { ForecastObservation } from "./ForecastObservation.js";
 export type { ForecastPeriod } from "./ForecastPeriod.js";
 export type { ForecastSource } from "./ForecastSource.js";

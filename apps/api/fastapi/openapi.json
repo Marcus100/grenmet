@@ -60078,6 +60078,39 @@
           "label": {
             "type": "string",
             "title": "Label"
+          },
+          "quantity": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ForecastConditionPropertiesQuantityAnyOfEnum"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Quantity"
+          },
+          "low": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Low"
+          },
+          "high": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "High"
           }
         },
         "type": "object",
@@ -60087,7 +60120,7 @@
           "label"
         ],
         "title": "ForecastCondition",
-        "description": "One display tile: a lucide icon name, a formatted value and its label."
+        "description": "One display tile: a lucide icon name, a formatted value and its label.\n\n`value` is the text in GMS's default units. When the tile is a measurement,\n`quantity`, `low` and `high` carry the numbers in WMO storage units (degC,\nknots, metres) so the site can show them in the visitor's unit system."
       },
       "ForecastObservation": {
         "properties": {
@@ -73383,6 +73416,83 @@
               }
             ],
             "title": "Cloud"
+          },
+          "visibility_km": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Visibility Km"
+          },
+          "wind_gust_kt": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Wind Gust Kt"
+          },
+          "wind_gust_mph": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Wind Gust Mph"
+          },
+          "max_temperature_c": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Max Temperature C"
+          },
+          "min_temperature_c": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Min Temperature C"
+          },
+          "cloud_base_min_m": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cloud Base Min M"
+          },
+          "cloud_base_max_m": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cloud Base Max M"
           }
         },
         "type": "object",
@@ -90935,6 +91045,14 @@
         "enum": [
           "arrivals",
           "departures"
+        ]
+      },
+      "ForecastConditionPropertiesQuantityAnyOfEnum": {
+        "type": "string",
+        "enum": [
+          "temperature",
+          "speed",
+          "height"
         ]
       },
       "ForecastSourcePropertiesKindEnum": {

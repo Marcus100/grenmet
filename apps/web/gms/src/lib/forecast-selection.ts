@@ -30,7 +30,14 @@ function conditions(period: ForecastPeriod): Condition[] {
   // when present so the site matches the issued PDF.
   if (period.conditions?.length) {
     const tiles: Condition[] = period.conditions.map(
-      ({ icon, value, label }) => ({ icon, value, label })
+      ({ icon, value, label, quantity, low, high }) => ({
+        icon,
+        value,
+        label,
+        ...(quantity && low !== null && low !== undefined
+          ? { measure: { quantity, low, high: high ?? null } }
+          : {}),
+      })
     );
     if (!period.period_key && v.observedTemperature)
       tiles.push({

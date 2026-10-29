@@ -3,11 +3,10 @@ import { ReadingGrid } from "@/components/home/reading-grid";
 import type { StripDay } from "@/components/home/sky-day-strip";
 import { SkyScene } from "@/components/home/sky-scene";
 import { SummaryCard } from "@/components/home/summary-card";
+import { Temperature } from "@/components/measure";
 import type { ForecastDayData } from "@/lib/forecast-data";
 import { dayReadings, isIssued } from "@/lib/hero-readings";
 import { WEATHER_CONDITION_LABEL } from "@/lib/weather-icons";
-
-const degrees = (value: number | null) => (value === null ? "—" : `${value}°`);
 
 /** "Sunday 11 October" for the panel's date line. */
 function longDate(slug: string): string {
@@ -45,12 +44,18 @@ export function DaySummary({ day }: { day: StripDay }) {
       }
       numeral={
         <p className="font-gm-display font-semibold text-gm-numeral-hero tabular-nums">
-          {degrees(day.high)}
+          <Temperature value={day.high} />
           <span className="sr-only"> maximum</span>
         </p>
       }
       scene={<SkyScene className="w-28" sky={day.condition} />}
-      secondary={missing ? null : `Min ${degrees(day.low)}`}
+      secondary={
+        missing ? null : (
+          <>
+            Min <Temperature value={day.low} />
+          </>
+        )
+      }
     />
   );
 }
@@ -113,11 +118,11 @@ export function DayPanel({
         <div className="hidden sm:block">
           <p className="flex items-baseline gap-3 font-gm-display font-semibold tabular-nums">
             <span className="text-gm-numeral-hero">
-              {degrees(day.high)}
+              <Temperature value={day.high} />
               <span className="sr-only"> maximum,</span>
             </span>
             <span className="text-gm-numeral text-gm-text-inverse/85">
-              {degrees(day.low)}
+              <Temperature value={day.low} />
               <span className="sr-only"> minimum</span>
             </span>
           </p>

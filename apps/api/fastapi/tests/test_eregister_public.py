@@ -85,6 +85,29 @@ def test_decode_workbook_into_public_units():
         ({"precip_amount": "993"}, "rain_mm", 0.3),
         ({"present_wx": "95"}, "weather", "Thunderstorm"),
         ({"pressure_tendency": "7"}, "pressure_trend", "falling"),
+        # Item 8, typed in kilometres; the coded VV is read back only when absent.
+        ({"visibility_km": "12.5"}, "visibility_km", 12.5),
+        ({"visibility_km": "", "visibility": "62"}, "visibility_km", 12.0),
+        ({"visibility_km": "", "visibility": "08"}, "visibility_km", 0.8),
+        ({"visibility_km": "", "visibility": "83"}, "visibility_km", 45.0),
+        ({"visibility_km": "", "visibility": "96"}, "visibility_km", None),
+        ({"visibility_km": "abc"}, "visibility_km", None),
+        # Item 11, the gust cell, in the register's wind unit (knots here).
+        ({"wind_gust": "25"}, "wind_gust_kt", 25),
+        ({"wind_gust": "25"}, "wind_gust_mph", 29),
+        ({"wind_indicator": "1", "wind_gust": "10"}, "wind_gust_kt", 19),
+        ({"wind_gust": ""}, "wind_gust_kt", None),
+        # Section 3 extremes, coded like the air temperature.
+        ({"s3_max_temp": "318"}, "max_temperature_c", 31.8),
+        ({"s3_min_temp": "1022"}, "min_temperature_c", -2.2),
+        ({"s3_max_temp": ""}, "max_temperature_c", None),
+        # Item 7, the lowest cloud base band (Code table 1600).
+        ({"cloud_base": "5"}, "cloud_base_min_m", 600),
+        ({"cloud_base": "5"}, "cloud_base_max_m", 1000),
+        ({"cloud_base": "9"}, "cloud_base_min_m", 2500),
+        ({"cloud_base": "9"}, "cloud_base_max_m", None),
+        ({"cloud_base": "5", "total_cloud": "0"}, "cloud_base_min_m", None),
+        ({"cloud_base": "/"}, "cloud_base_min_m", None),
     ],
 )
 def test_decode_edge_codes(body, field, expected):

@@ -189,3 +189,57 @@ def test_today_issues_keep_earlier_issues_beside_the_newest():
     assert result.today_issues[0].details["summary"] == "Morning update"
     assert result.today_issues[-1].source == result.periods[0].source
     assert at("2026-09-15T07:00", products).today_issues == []
+
+
+def test_conditions_carry_the_numbers_for_a_unit_switch():
+    values = {
+        "issuedAt": "2026-09-14T07:00",
+        "maxTemperature": "31.5",
+        "minTemperature": "25",
+        "windSpeedMin": "7",
+        "windSpeedMax": "11",
+        "windGust": "28",
+        "waveHeightMin": "1.2",
+        "waveHeightMax": "1.8",
+        "swellHeight": "1.5",
+        "swellDir": "NE",
+        "tide1Time": "09:15",
+        "tide1Type": "High",
+        "tide1Height": "0.5",
+        "tide2Time": "15:40",
+        "tide2Type": "Low",
+        "sunrise": "5:59",
+    }
+    from src.wxproducts import presentation
+
+    tiles = {t.public_label or t.label: t for t in presentation.build_tiles(values)}
+    assert (tiles["Max temp"].quantity, tiles["Max temp"].low) == ("temperature", 31.5)
+    assert (tiles["Min temp"].high, tiles["Min temp"].quantity) == (25.0, "temperature")
+    wind = tiles["Wind speed"]
+    assert (wind.quantity, wind.low, wind.high) == ("speed", 7.0, 11.0)
+    assert wind.value == "8–13 mph"  # the text stays in GMS's default units
+    assert (tiles["Gusts"].quantity, tiles["Gusts"].low) == ("speed", 28.0)
+    waves = tiles["Wave height"]
+    assert (waves.quantity, waves.low, waves.high) == ("height", 1.2, 1.8)
+    assert tiles["Swell · NE"].quantity == "height" and tiles["Swell · NE"].low == 1.5
+    high_tide = tiles["High tide"]
+    assert (high_tide.quantity, high_tide.low) == ("height", 0.5)
+    # The unit-free label is for the public feed; the PDF label keeps its feet.
+    assert high_tide.label == "High tide (1.6 ft)"
+    assert tiles["Low tide"].quantity is None
+    assert tiles["Sunrise"].quantity is None
+    # The PDF still gets plain (icon, value, label) tuples, unchanged.
+    assert (
+        "arrow-up-to-line",
+        "09:15",
+        "High tide (1.6 ft)",
+    ) in presentation.conditions(values)
+
+
+def test_public_feed_sends_unit_free_labels_and_numbers():
+    morning = publication()
+    morning.values.update(windSpeedMin="7", windSpeedMax="11")
+    period = at("2026-09-14T08:00", [morning]).periods[0]
+    wind = next(c for c in period.conditions if c.label == "Wind speed")
+    assert (wind.quantity, wind.low, wind.high) == ("speed", 7.0, 11.0)
+    assert all("ft)" not in c.label for c in period.conditions)

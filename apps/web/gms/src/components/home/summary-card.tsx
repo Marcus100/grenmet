@@ -27,7 +27,7 @@ export function SummaryCard({
   /** The sky scene on the right. */
   scene: ReactNode;
   /** Last row, such as "Feels like 26°" or "Min 25.5°"; null keeps the space. */
-  secondary: string | null;
+  secondary: ReactNode;
   /** A heading above the label, used only by the compact card. */
   title?: string;
 }) {
