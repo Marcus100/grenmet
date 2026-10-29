@@ -9,8 +9,8 @@ import {
 } from "@/components/home/sky-day-strip";
 
 const FRIDAY = /Fri/;
-const NOW_TAB = /^Now/;
-const RAIN_CHANCE = /chance of rain|Low|High/;
+const NOW_TAB = /Now/;
+const RAIN_CHANCE = /Medium chance of rain/;
 
 const day = (overrides: Partial<StripDay>): StripDay => ({
   condition: "sunny",
@@ -22,6 +22,7 @@ const day = (overrides: Partial<StripDay>): StripDay => ({
   low: 25,
   month: "Oct",
   path: "/weather/2026/10/23",
+  rainWord: null,
   slug: "2026-10-23",
   ...overrides,
 });
@@ -54,23 +55,28 @@ describe("SkyDayStrip", () => {
     expect(within(tab).getAllByText("—")).toHaveLength(1);
   });
 
-  it("stacks day, date, maximum, sky, then minimum, with no rain chance", () => {
-    renderStrip([day({})]);
+  it("reads top to bottom: maximum, sky, rain chance, minimum, then day and date", () => {
+    renderStrip([day({ rainWord: "Medium" })]);
     const tab = screen.getByRole("link", { name: FRIDAY });
-    const order = ["Fri", "31°", "25°"].map((text) =>
-      (tab.textContent ?? "").indexOf(text)
+    expect(tab).toHaveTextContent(RAIN_CHANCE);
+    const children = Array.from(tab.children).map(
+      (node) => node.textContent ?? ""
     );
-    expect(order).toEqual([...order].sort((a, b) => a - b));
-    expect(order.every((position) => position >= 0)).toBe(true);
-    expect(within(tab).queryByText(RAIN_CHANCE)).not.toBeInTheDocument();
-    // The maximum sits above the icon row and the minimum below it.
-    const children = Array.from(tab.children).map((node) => node.textContent);
-    const maximum = children.findIndex((text) => text?.includes("maximum"));
+    const maximum = children.findIndex((text) => text.includes("maximum"));
     const icon = children.indexOf("");
-    const minimum = children.findIndex((text) => text?.includes("minimum"));
+    const rain = children.findIndex((text) => text.includes("chance of rain"));
+    const minimum = children.findIndex((text) => text.includes("minimum"));
+    const name = children.indexOf("Fri");
     expect(maximum).toBeGreaterThanOrEqual(0);
-    expect(maximum).toBeLessThan(icon);
-    expect(icon).toBeLessThan(minimum);
+    expect([maximum, icon, rain, minimum, name]).toEqual(
+      [maximum, icon, rain, minimum, name].toSorted((x, y) => x - y)
+    );
+  });
+
+  it("leads with a Now tab at every width", () => {
+    renderStrip([day({})]);
+    const now = screen.getByRole("link", { name: NOW_TAB });
+    expect(now.closest("li")?.className ?? "").not.toContain("sm:hidden");
   });
 
   it("marks the selected tab with a lighter column, not an underline", () => {

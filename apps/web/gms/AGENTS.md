@@ -86,17 +86,27 @@ src/app/
   published for this sector", never "minimal". Nothing is typed in the CMS.
   Tests: `placeholder-notice.test.tsx`, the "hero readings" block in
   `sky-hero-panels.test.tsx` and `data-sections.test.tsx` guard this.
-- **Home hero:** table layout at every width (9 Oct 2026): a Now tab, then five
-  day tabs, then the selected tab's panel inside the hero (`SkyHero selected=`).
-  Now is selected on `/`; dated routes select their day, `/weather` selects
-  today. Phones show a picture card for the selected tab above a strip whose
-  first column is Now; wider screens put the Now card beside the day tabs.
-  Panels share `ReadingGrid` (`components/home/reading-grid.tsx`, items from
-  `lib/hero-readings.ts`). Forecast panels carry max/min only, no feels like
-  or UV. No provenance chips or issue tabs (owner, 30 Sep 2026); a reading over
-  3 h old still says "Last observed". No other hero tabs (marine lives at
-  `/marine`). The website has no bottom tab bar; `MobileTabBar` is kept for
-  the app.
+- **Home hero (owner design, 29 Oct 2026):** a card for the selected tab
+  (`components/home/hero-card.tsx`), the tabs (Now, then five days, at every
+  width) and the selected tab's details panel (`SkyHero selected=`). Phones
+  stack card, tabs, panel and keep one height on every tab (`ByTab` stacks the
+  panels); wider screens put the card on the left and the tabs over the panel
+  on the right, as short as the selected tab (`ByTab fit`). Now card: "Now ·
+  station" (or "Last observed …" past 90 minutes), temperature with today's
+  lowest and highest so far either side, sky (observer's words, else cloud),
+  feels like and wind with gusts, and a link to today's forecast. Day card:
+  date, low, high, chance of rain, sky, wind with gusts, the forecaster's
+  sentence. Tabs: high, a filled sky icon (`sky-glyph.tsx`) on the line, rain
+  chance, low, then day and date. Panels (`lib/hero-readings.ts`) hold only
+  what the card does not: Now = humidity, dew point, pressure with its trend,
+  visibility (with haze or dust words), cloud base, rain over the register's
+  period; a day = sunrise, sunset, high and low tides (each time over its
+  height), seas, swell. A missing item is left out, never a dash. Hero times
+  read a.m./p.m. (`lib/clock.ts`); the Now tab and the rest of the site keep
+  the 24-hour clock. No UV, air quality or warnings here (warnings have their
+  own section above). A Moon tile waits for the planned almanac data. No other
+  hero tabs (marine lives at `/marine`). The website has no bottom tab bar;
+  `MobileTabBar` is kept for the app.
 - **Units (28 Oct 2026):** every hero measurement is metric or imperial,
   metric until a visitor chooses (owner first chose imperial, then metric) (header button, saved in `localStorage`
   `gm-units`). The API sends WMO units (°C, knots, metres, km, hPa, mm). A figure

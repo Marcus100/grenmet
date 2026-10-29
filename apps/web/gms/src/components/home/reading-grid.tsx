@@ -169,7 +169,7 @@ export function ReadingGrid({
             />
             <dd
               className={cn(
-                "col-start-2 row-start-1 font-bold text-body-base tabular-nums leading-body-base lg:text-heading-sm lg:leading-heading-sm",
+                "col-start-2 row-start-1 font-bold text-body-base tabular-nums leading-body-base",
                 reading.unavailable &&
                   "font-normal text-body-sm text-gm-text-inverse/85 leading-body-sm lg:text-body-base lg:leading-body-base"
               )}

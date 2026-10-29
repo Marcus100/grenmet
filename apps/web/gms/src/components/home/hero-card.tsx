@@ -48,7 +48,7 @@ function WindLine({
   if (!wind) return null;
   const measure: MeasureValue | undefined = wind.measure && {
     ...wind.measure,
-    prefix,
+    prefix: prefix ?? wind.measure.prefix,
   };
   return (
     <>
@@ -92,7 +92,10 @@ function HeroCard({
   temperature: ReactNode;
 }) {
   return (
-    <div className="flex h-full flex-col items-center justify-center gap-0.5 text-center">
+    <section
+      aria-label="Weather summary"
+      className="flex h-full flex-col items-center justify-center gap-0.5 text-center"
+    >
       <p className="font-bold text-body-sm text-gm-text-inverse/80 leading-body-sm">
         {label}
       </p>
@@ -114,7 +117,7 @@ function HeroCard({
         </p>
       )}
       {footer}
-    </div>
+    </section>
   );
 }
 

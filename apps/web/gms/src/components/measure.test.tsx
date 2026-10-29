@@ -35,16 +35,13 @@ describe("a measure's text with the metric default", () => {
   });
 
   it("is the same text the reading carries for plain-text consumers", () => {
-    const [wind] = nowReadings(currentConditions(observation)).filter(
-      (reading) => reading.measures?.[0]?.quantity === "speed"
+    const [pressure] = nowReadings(currentConditions(observation)).filter(
+      (reading) => reading.measures?.[0]?.quantity === "pressure"
     );
-    expect(wind?.value).toBe(
-      formatMeasure(
-        { quantity: "speed", low: 12, prefix: "ESE " },
-        DEFAULT_UNITS
-      )
+    expect(pressure?.value).toBe(
+      formatMeasure({ quantity: "pressure", low: 1012.5 }, DEFAULT_UNITS)
     );
-    expect(wind?.value).toBe("ESE 22 km/h");
+    expect(pressure?.value).toBe("1012.5 hPa");
   });
 
   it("puts both renderings in the page text of a reading grid", () => {
@@ -55,9 +52,9 @@ describe("a measure's text with the metric default", () => {
         container.querySelectorAll(`[data-units-only="${system}"]`),
         (node) => node.textContent
       ).join(" | ");
-    expect(textOf("metric")).toContain("ESE 22 km/h");
-    expect(textOf("imperial")).toContain("ESE 14 mph");
-    expect(container.textContent).toContain("ESE 22 km/h");
-    expect(container.textContent).toContain("ESE 14 mph");
+    expect(textOf("metric")).toContain("1012.5 hPa");
+    expect(textOf("imperial")).toContain("inHg");
+    expect(container.textContent).toContain("1012.5 hPa");
+    expect(container.textContent).toContain("inHg");
   });
 });

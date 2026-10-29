@@ -37,6 +37,8 @@ const result = (alerts: PublicAlert[]): AlertsResult => ({
   status: "ok",
 });
 
+const NO_OBSERVATION_LABEL = /^No current observation · /;
+
 describe("WarningTakeover", () => {
   it("renders the live take-action alert and links to it", () => {
     render(<WarningTakeover alerts={result([alert({})])} />);
@@ -83,20 +85,21 @@ describe("SkyHero", () => {
   });
 
   it("says so when there is no observation or forecast", () => {
+    const visible = (elements: HTMLElement[]) =>
+      elements.filter((element) => !element.closest('[aria-hidden="true"]'));
     render(<SkyHero weather={unavailableWeather()} />);
+    expect(visible(screen.getAllByText(NO_OBSERVATION_LABEL))).toHaveLength(1);
     expect(
       screen.getAllByText("No current observation").length
     ).toBeGreaterThan(0);
-    expect(
-      screen.getAllByText("No current temperature").length
-    ).toBeGreaterThan(0);
     cleanup();
     render(<SkyHero selected="today" weather={unavailableWeather()} />);
-    // Every tab's panel is on the page, stacked; only the selected one is shown.
-    const shown = screen
-      .getAllByText("Forecast unavailable")
-      .filter((element) => !element.closest('[aria-hidden="true"]'));
-    expect(shown).toHaveLength(1);
+    // Every tab's card is on the page, stacked; only the selected one is shown.
+    expect(
+      within(screen.getByRole("region", { name: "Weather summary" })).getByText(
+        "No forecast yet"
+      )
+    ).toBeInTheDocument();
   });
 });
 
