@@ -132,6 +132,9 @@ export function SkyDayStrip({
   const warmest = known.length ? Math.max(...known) : 0;
   const ys = temperatures.map((value) => iconY(value, coolest, warmest));
   const small = "text-caption tabular-nums leading-caption";
+  // The rain row only shows when a forecast gives a chance of rain; an empty
+  // row left a gap between the icons and the lows.
+  const anyRain = days.some((day) => day.rainWord);
 
   return (
     <nav aria-label="Forecast days">
@@ -156,9 +159,11 @@ export function SkyDayStrip({
               y={ys[0] ?? null}
             />
             {/* No rain chance or low for a reading: keep the rows so tabs line up. */}
-            <span aria-hidden="true" className={small}>
-              {"\u00a0"}
-            </span>
+            {anyRain && (
+              <span aria-hidden="true" className={small}>
+                {"\u00a0"}
+              </span>
+            )}
             <span aria-hidden="true" className={small}>
               {"\u00a0"}
             </span>
@@ -200,17 +205,19 @@ export function SkyDayStrip({
                   sky={day.condition}
                   y={ys[column] ?? null}
                 />
-                <span
-                  className={cn(
-                    small,
-                    "max-w-full overflow-hidden text-clip whitespace-nowrap text-gm-sky tracking-tight"
-                  )}
-                >
-                  {day.rainWord ?? "\u00a0"}
-                  {day.rainWord && (
-                    <span className="sr-only"> chance of rain</span>
-                  )}
-                </span>
+                {anyRain && (
+                  <span
+                    className={cn(
+                      small,
+                      "max-w-full overflow-hidden text-clip whitespace-nowrap text-gm-sky tracking-tight"
+                    )}
+                  >
+                    {day.rainWord ?? "\u00a0"}
+                    {day.rainWord && (
+                      <span className="sr-only"> chance of rain</span>
+                    )}
+                  </span>
+                )}
                 <span className={cn(small, "text-gm-text-inverse/85")}>
                   {missing ? (
                     <>

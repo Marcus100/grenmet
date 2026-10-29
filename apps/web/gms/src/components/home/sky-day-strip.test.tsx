@@ -55,6 +55,16 @@ describe("SkyDayStrip", () => {
     expect(within(tab).getAllByText("—")).toHaveLength(1);
   });
 
+  it("leaves out the rain row when no day gives a chance of rain", () => {
+    renderStrip([day({}), day({ slug: "2026-10-24", dayName: "Sat" })]);
+    const tab = screen.getByRole("link", { name: FRIDAY });
+    // Maximum, icon, minimum, day and date: no blank row between.
+    expect(tab.children).toHaveLength(5);
+    expect(screen.getByRole("link", { name: NOW_TAB }).children).toHaveLength(
+      5
+    );
+  });
+
   it("reads top to bottom: maximum, sky, rain chance, minimum, then day and date", () => {
     renderStrip([day({ rainWord: "Medium" })]);
     const tab = screen.getByRole("link", { name: FRIDAY });
