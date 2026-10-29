@@ -183,6 +183,8 @@ const EVENTS = {
   external_destination_clicked: {
     destination: ["personal", "official", "other"],
   },
+  units_switched: { to: ["metric", "imperial"] },
+  newsletter_signup_submitted: {},
 } as const;
 export type AnalyticsEvent = keyof typeof EVENTS;
 export type EventProperties<E extends AnalyticsEvent> = {
@@ -208,6 +210,8 @@ const APP_EVENTS: Record<PublicApp, readonly AnalyticsEvent[]> = {
     "forecast_tab_selected",
     "public_warning_opened",
     "published_download_clicked",
+    "units_switched",
+    "newsletter_signup_submitted",
   ],
   docs: [
     "page_viewed",

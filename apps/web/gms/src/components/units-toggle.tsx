@@ -1,6 +1,11 @@
 "use client";
 
 import { Button } from "@barrelsgd/ui/components/ui/button";
+import { captureEvent } from "@barrelsgd/ui/lib/analytics-runtime";
+import {
+  UNITS_SWITCHED_EVENT,
+  unitsSwitchedProperties,
+} from "@/lib/analytics-events";
 import {
   DEFAULT_UNITS,
   isUnitSystem,
@@ -35,6 +40,8 @@ export function UnitsToggle({
     } catch {
       // The choice still applies to this visit if storage is blocked.
     }
+    // Counts only: which system was chosen. Sent only with analytics consent.
+    captureEvent(UNITS_SWITCHED_EVENT, unitsSwitchedProperties(next));
   }
 
   return (
