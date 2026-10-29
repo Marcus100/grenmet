@@ -38,3 +38,7 @@ export const organisationsVerifyOneErrorSchema = z.union([
 ]);
 
 export const organisationsVerifyOneBodySchema = verificationDecisionSchema;
+
+export const organisationsVerifyOnePathSchema = z.object({
+  organisation_id: z.string(),
+});

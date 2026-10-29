@@ -1,5 +1,6 @@
 import { findPerson, personHref } from "@/data/candidates";
 import { COVERAGE } from "@/data/coverage";
+import { candidateNote } from "@/data/election-2026";
 import { eventSlug } from "@/data/events";
 import { GUIDES } from "@/data/learning";
 import { campaign, data, people, results } from "@/data/load";
@@ -45,7 +46,7 @@ export function GET() {
             href: constituencyHref(results, code as ConstituencyCode),
             title: name,
             kind: "Person" as const,
-            summary: `Announced for ${party} in ${constituencyName(results, code as ConstituencyCode)}; inspect the source on the constituency page`,
+            summary: `Reported selection for ${party} in ${constituencyName(results, code as ConstituencyCode)}${candidateNote(campaign, party, code as ConstituencyCode) ? "; verification needed" : ""}; see the dated source on the constituency page`,
             keywords: [party, "2026"],
           },
         ];
@@ -56,7 +57,7 @@ export function GET() {
       title: "Democratic People’s Movement",
       kind: "Party",
       summary:
-        "Announced 2026 candidates; no past general-election record in this archive",
+        "2026 reported selections and nomination coverage; no past general-election record in this archive",
       keywords: ["DPM"],
     },
     ...partyRecords(data).map((party) => ({

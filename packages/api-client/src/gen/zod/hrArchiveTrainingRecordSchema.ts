@@ -32,3 +32,7 @@ export const hrArchiveTrainingRecordErrorSchema = z.union([
 ]);
 
 export const hrArchiveTrainingRecordBodySchema = trainingArchiveInputSchema;
+
+export const hrArchiveTrainingRecordPathSchema = z.object({
+  record_id: z.uuid(),
+});

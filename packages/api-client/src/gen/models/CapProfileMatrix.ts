@@ -6,7 +6,7 @@
 import type { GmsColour } from "./GmsColour.js";
 
 /**
- * @description A hazard\'s own likelihood-by-impact grid; absent means the WMO grid.
+ * @description A hazard's own likelihood-by-impact grid; absent means the WMO grid.
  * @type object
  */
 export type CapProfileMatrix = {

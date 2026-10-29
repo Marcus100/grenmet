@@ -12,7 +12,11 @@
       "import": "./src/components/*.tsx"
     },
     "./styles/*": "./src/styles/*.css",
-    "./products": "./src/products.ts"
+    "./products": "./src/products.ts",
+    "./nav-sections": "./src/nav-sections.ts",
+    "./linkable-pages": "./src/linkable-pages.ts",
+    "./link-recognition": "./src/link-recognition.ts",
+    "./sectors": "./src/sectors.ts"
   },
   "scripts": {
     "type-check": "tsc --noEmit",

@@ -33,3 +33,7 @@ export const capSaveHazardProfileErrorSchema = z.union([
 ]);
 
 export const capSaveHazardProfileBodySchema = capProfileSaveSchema;
+
+export const capSaveHazardProfilePathSchema = z.object({
+  key: z.string().regex(/^[a-z][a-z0-9-]{0,99}$/),
+});

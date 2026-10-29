@@ -99,3 +99,19 @@ def test_severity_must_agree_with_the_colour() -> None:
 def test_unknown_product_is_an_error() -> None:
     errors, _ = _check("Bulletin", None, CapSeverity.MINOR)
     assert errors == ["info[1].GMS:product 'Bulletin' is not a product"]
+
+
+def test_sectors_tag_is_optional_known_and_set_once() -> None:
+    from src.cap.levels import SECTORS_PARAMETER, validate_sectors
+
+    def tag(value: str) -> CapNameValue:
+        return CapNameValue(value_name=SECTORS_PARAMETER, value=value)
+
+    assert validate_sectors([], "info[1]") == []
+    assert validate_sectors([tag("marine,health")], "info[1]") == []
+    assert validate_sectors([tag("marine,boats")], "info[1]") == [
+        "info[1].GMS:sectors has unknown sectors: boats"
+    ]
+    assert validate_sectors([tag("marine"), tag("health")], "info[1]") == [
+        "info[1].GMS:sectors may be set only once"
+    ]

@@ -37,3 +37,11 @@ export const bookingsReschedulePublicBookingErrorSchema = z.union([
 
 export const bookingsReschedulePublicBookingBodySchema =
   bookingPublicRescheduleSchema;
+
+export const bookingsReschedulePublicBookingPathSchema = z.object({
+  token: z
+    .string()
+    .min(16)
+    .max(100)
+    .describe("The manage token returned when the booking was made."),
+});

@@ -36,3 +36,7 @@ export const rewardsReverseGiftErrorSchema = z.union([
   rewardsReverseGiftStatus409Schema,
   rewardsReverseGiftStatus422Schema,
 ]);
+
+export const rewardsReverseGiftPathSchema = z.object({
+  gift_id: z.uuid(),
+});

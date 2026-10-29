@@ -47,3 +47,16 @@ export const eventsOrgCancelOrderErrorSchema = z.union([
 ]);
 
 export const eventsOrgCancelOrderBodySchema = orgOrderCancelSchema;
+
+export const eventsOrgCancelOrderPathSchema = z.object({
+  order_id: z.uuid(),
+});
+
+export const eventsOrgCancelOrderHeadersSchema = z.object({
+  "X-Barrels-Organisation": z
+    .union([z.string(), z.null()])
+    .optional()
+    .describe(
+      "Id of the organisation the request acts for. The caller must be an active member holding the organisation key, or Barrels staff holding the staff key."
+    ),
+});

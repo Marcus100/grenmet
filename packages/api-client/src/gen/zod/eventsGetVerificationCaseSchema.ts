@@ -34,3 +34,7 @@ export const eventsGetVerificationCaseErrorSchema = z.union([
   eventsGetVerificationCaseStatus404Schema,
   eventsGetVerificationCaseStatus422Schema,
 ]);
+
+export const eventsGetVerificationCasePathSchema = z.object({
+  organisation_id: z.string().max(100),
+});

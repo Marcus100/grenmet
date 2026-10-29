@@ -55,7 +55,7 @@ export default function RootLayout({
       style={{ colorScheme: "light" }}
     >
       <body className="min-h-screen bg-background font-sans text-foreground antialiased">
-        <PostHogProvider app="signal">
+        <PostHogProvider app="signal" privacyHref="/privacy">
           <SkipLink />
           <SiteHeader accountLabel={signInEnabled() ? APP_LABEL : undefined} />
           <main className="outline-none" id={MAIN_CONTENT_ID} tabIndex={-1}>

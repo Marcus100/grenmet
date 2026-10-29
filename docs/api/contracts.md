@@ -81,9 +81,26 @@ site key), never a secret. Superusers manage sites through
   unknown site, a suspended owner, or a form the site does not accept.
 
 - `POST /api/v1/subscriptions` (`subscriptionsSubscribe`, **deprecated**; use the site route): double opt-in sign-up
-  for a list key (`signal`, `barrels`, `gms-alerts`); the reply is identical for every address state.
-  `GET /subscriptions/confirm` and `/subscriptions/unsubscribe` take a signed
-  `token` and 303-redirect to the list's site.
+  for a list key (`signal`, `barrels`, `gms-alerts`, `gms-newsletter`); the reply is identical for every address state.
+  `GET /subscriptions/confirm` takes a signed `token` and 303-redirects to the list's site.
+- Unsubscribe (additive, ADR-0052): `GET /subscriptions/unsubscribe?token=` (`subscriptionsUnsubscribe`)
+  **no longer changes anything**; it 303-redirects to `GET /subscriptions/unsubscribe/confirm?token=`
+  (`subscriptionsUnsubscribeConfirmPage`, HTML naming the list and a button). The button, and the
+  one-click `List-Unsubscribe-Post` target, is `POST /subscriptions/unsubscribe?token=`
+  (`subscriptionsStopSubscription`, HTML result, 400 for an invalid token). Mail scanners that open
+  links therefore cannot unsubscribe anyone. The POST stops **only the list named in that mail**.
+- Subscriber preferences (additive, ADR-0052): `GET /subscriptions/preferences?token=`
+  (`subscriptionsGetPreferences`) returns `{lists: [{list_key, list_name}]}`, the lists the address
+  behind the signed mail token is confirmed on. `POST /subscriptions/preferences/unsubscribe`
+  (`subscriptionsUnsubscribeOneList`, body `{token, list_key}`) stops one of them and returns what is
+  left. An invalid, expired or unknown token gets the same 400. Never changes another address.
+- Confirmation expiry (additive, ADR-0052): an expired confirm link redirects with `result=expired`
+  (the site says to sign up again). Unconfirmed rows are purged once their link has lapsed
+  (`SUBSCRIPTIONS_CONFIRM_TTL_DAYS`, default 7).
+- Climate newsletter staff test (additive, ADR-0052): `POST /api/v1/subscriptions/admin/newsletter/test`
+  (`subscriptionsSendNewsletterTest`, body `{email}`, 202, needs `newsletter.send_test`). Queues one
+  test copy to an address that has confirmed `gms-newsletter`; 409 otherwise. Nothing goes to other
+  subscribers.
 - `GET /api/v1/push/vapid-public-key` (`pushVapidPublicKey`), `POST` and
   `DELETE /api/v1/push/subscriptions` (`pushSubscribe`, `pushUnsubscribe`):
   browser Web Push for the `gms-alerts` list. Endpoints must belong to a known
@@ -97,6 +114,23 @@ site key), never a secret. Superusers manage sites through
 - `POST /api/v1/feedback` (`feedbackSendPageFeedback`): anonymous "Was this page
   helpful?" answer (`site`, `page_path`, `helpful`, optional `comment` up to
   1000 characters); 10/min per IP; stores no personal data.
+
+## Content distribution (social posting, dry run)
+
+- `POST /api/v1/content-distribution/internal/posts` (CMS hook, additive): body
+  is camelCase (`collection`, `slug`, `url`, `title`, `summary`, `captions`,
+  `platforms`, `publishAt`, `imageUrl`). `slug` may have `/` segments (for example
+  `stories/2026/10/title`); `publishAt` may be null or missing, which means now.
+  Authenticated by the `X-CMS-Secret` header
+  against `CMS_DISTRIBUTION_SECRET` (503 unset, 401 wrong). 202 with one outcome per
+  platform. Idempotent per collection, slug and platform; refuses official warnings
+  and posts missing an image (Instagram) or caption with 422. Machine-authenticated,
+  so no `require_permission`.
+- `GET /api/v1/content-distribution/admin/posts` (staff, `cms.article.social.manage`):
+  one row per post and platform with `status`, `error`, `attempts` and `automated`,
+  filterable by `slug` and `collection`.
+- Nothing is sent to a real social network: `SOCIAL_POSTING_LIVE` is false, and the
+  worker records dry runs. Domain notes: `apps/api/fastapi/src/content_distribution/AGENTS.md`.
 
 See [integration readiness](../operations/integration-readiness.md) for matching
 environment endpoints and provider setup. Changes to this hidden callback's
@@ -547,6 +581,26 @@ The legacy `PATCH /events/moderation/organisers/{id}` and `POST /organisations/{
 (`ActivityEntry`: action, actor id and current display name, changed-field summary),
 newest first, for its organiser only.
 
+### Events catalogue taxonomy (ADR-0046, L3)
+
+`GET /events/public/categories` returns the active two-level category tree
+(`slug`, `name`, `applies_to`, `children`) with `listing_count` of upcoming
+published, public-visibility, public-access listings. `GET /events/listings`
+gains `type`, `category_slug`, `subcategory_slug`, `pricing`
+(`free|paid|donation`), `access` (`public` only: private listings are never
+listed) and `booking_mode`; the legacy `category` (ten frozen values), `price`
+and `admission` are unchanged. Listing responses add `listing_type`,
+`access_type`, `pricing_type`, `booking_mode`, `category_slug`,
+`subcategory_slug` and `external_ticket_url` (defaults keep old clients valid).
+`POST/PUT /events/manage/listings` accept the same fields, all optional, with
+409 rules: the category must apply to the `listing_type`, the subcategory must
+belong to the category, priced tiers need `pricing_type=paid`, `service` is
+refused, and `access_type=private` forces `visibility=unlisted`.
+`booking_mode=slots` (reserved for the Bookings bridge) and `booking_mode=external`
+or `external_ticket_url` (set by Barrels staff through the later curation routes,
+ADR-0048) answer 422 on the organiser routes. External links are https only,
+normalised, and refuse userinfo, control or bidi characters and non-ASCII hosts.
+
 ### Events tickets (E1)
 
 `POST /events/listings/{slug}/orders` (Events member, 20/minute) claims free or
@@ -716,6 +770,8 @@ Shared APIs for every Barrels app. Zones follow ADR-0025.
   name, org role and live grants limited to the products the caller manages, no
   emails. `GET /team/me` (any member) returns the caller's org role, the products
   whose `team.manage` they hold and `is_admin_or_owner`.
+  These team routes, and member removal (`DELETE /{organisation_id}/members/{id}`), also
+  accept an Events app token (`EventsOrg*` dependencies); any other app's token is 401.
 - **Feature flags** (PF7, ADR-0020): superuser `/feature-flags/admin` (CRUD,
   `/admin/stale`) and `GET /feature-flags/org/evaluate` and `/feature-flags/me/evaluate`,
   which return only flags marked exposed. `GET /feature-flags/public/evaluate?keys=a,b`
@@ -1678,6 +1734,24 @@ docker compose -p grenmet-api --env-file .env.local exec api \
 Repeat that import command with `--apply` to register the eligible records.
 No additional Alembic migration beyond `wxwatch_0006` is required for this slice.
 
+### Public sector outlook
+
+`GET /api/v1/wxproducts/public/sector-outlook?days=7` (1 to 14) is an anonymous,
+`no-store` endpoint for the weather site's Plan your week. It returns the GMS
+alerts (hazard bulletins, always green) and CAP warnings in force from the start
+of today (Grenada) for `days` days: `{as_of, window_start, window_end, complete,
+items[]}`. Each item has `source` (`CAP` or `Bulletin`), `title`, `product`,
+`colour`, `likelihood`, `impact`, `impacts`, `response`, `valid_from`, `valid_to`,
+`reference`, `identifier` (a warning's CAP identifier) or `product_id` (a
+bulletin), `sectors` and `affects_everyone`. Sectors are the keys in
+`src/sectors.py` (tourism, marine, aviation, agriculture, health,
+roads-transport), set on a CAP warning in its `GMS:sectors` info parameter and on
+a bulletin in its `sectors` value (comma-separated; unknown names are rejected).
+An item with no sectors has `affects_everyone: true`. `complete` is false when
+CAP or the bulletin store could not be read; callers must not show an all-clear
+then. Bulletins appear only while published and in force, so a bulletin with a
+future start is not listed.
+
 ### Public forecast selection
 
 `GET /api/v1/wxproducts/public/forecast` is an anonymous, `no-store` endpoint.
@@ -1689,6 +1763,16 @@ periods with null sources and no invented forecast values. Each period also carr
 `src/wxproducts/presentation.py`, the same text the PDF sheet prints (public units
 first, WMO units in brackets). weather.gd renders them; older products fall back
 to `details`.
+Since 28 Oct 2026 a tile that measures something also carries `quantity`
+(`temperature`, `speed` or `height`) with `low` and optional `high` in WMO units
+(°C, knots, metres), and its `label` has no unit text, so the site can show the
+visitor's metric or imperial choice; `value` stays the text in public units for
+the PDF and older clients.
+
+`GET /api/v1/eregister/public/current` observation adds `visibility_km`, `wind_gust_kt`,
+`wind_gust_mph`, `max_temperature_c`, `min_temperature_c` and `cloud_base_min_m` /
+`cloud_base_max_m` (the cloud-base band from the register's height code), all
+null when the register did not record them.
 
 The forecast-day boundary is 07:00 America/Grenada. Morning, midday and evening
 issues become eligible at 07:00, 12:00 and 18:00 respectively, subject to their
@@ -2188,11 +2272,14 @@ Editorial content lives in bounded collections (`desk-updates`, `stories`,
 `questions`, `discover`) plus `weather-now` and `homepage` globals. Anonymous,
 published-only feeds: `GET /api/public/home` (every homepage part, each
 `{status: "ok", items}` or `{status: "unavailable"}`; `settings` also carries
-`sectionCopy` — editor kicker/title/intro by section key, blanks omitted — and
-`exploreReading` — published read-more links by Explore today activity;
+`sectionCopy` and `exploreReading`, both now always empty (wording and
+Plan your week links are no longer edited in the CMS);
 `reportNotes` and `livePosts` parts added 30 Sep 2026; articles carry
-`linkedProduct: {productId, kind} | null`, resolved by GMS through
-`/wxproducts/public/products/{id}`),
+`relatedLinks` rows `{title, category, url, type, ref, isMain}` (`type` is
+`product`, `cap`, `page` or `link`, worked out from the pasted address; GMS builds
+its own addresses from `ref`) and a derived
+`linkedProduct: {productId, kind, title} | null` from the main product link,
+resolved by GMS through `/wxproducts/public/products/{id}`),
 `/api/public/articles`,
 `/api/public/questions` and `/api/public/quizzes`. Reports and imagery are
 FastAPI data; the homepage reads reports from `/wxproducts/public/products`.

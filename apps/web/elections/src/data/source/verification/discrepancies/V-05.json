@@ -1,0 +1,13 @@
+{
+  "id": "V-05",
+  "area": "Voter register",
+  "status": "open",
+  "impact": "data",
+  "what": "Of 1,026 unique registration numbers in the 16 October addendum, 1,025 occur in the consolidated PDF dated 16 October. One does not. Four IDs occur in both September and October addenda. This is an ID-set exception, not proof of deletion or disenfranchisement.",
+  "action": "Seek PEO clarification. Do not add the addendum total to the consolidated count.",
+  "sources": [
+    "PEO consolidated list reference date 16 October 2026",
+    "PEO September and October 2026 addenda",
+    "https://peogrenada.org/constituency-summary/"
+  ]
+}

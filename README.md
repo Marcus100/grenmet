@@ -49,7 +49,8 @@ barrelsgd/
 │   └── docker/                 # Shared infrastructure (Postgres, Adminer, Mailcatcher)
 ├── scripts/
 │   ├── scrapy-wxwatch/         # Weather images downloader (Scrapy, Python/uv)
-│   └── sutron-collector/       # Sutron weather-station edge collector
+│   ├── sutron-collector/       # Sutron weather-station edge collector
+│   └── gnc-collector/          # GeoNetCast receiver → WxWatch satellite images
 ├── geonetcast/                 # GNC-A satellite and NWP training resources
 ├── notebooks/                  # Data / exploration
 ├── surface/                    # Independent GMS CDMS stack (vendored)
@@ -147,6 +148,8 @@ uv run --frozen --package wxwatch python scripts/scrapy-wxwatch/run_crawlers.py 
 uv sync --frozen --package sutron-collector
 uv run --frozen --package sutron-collector pytest scripts/sutron-collector/tests
 
+uv run --isolated --frozen --package gnc-collector python -m pytest scripts/gnc-collector/tests
+
 uv sync --frozen --package notebooks
 uv run --frozen --package notebooks jupyter lab
 ```
@@ -208,6 +211,7 @@ Tests: run per app (API: see [docs/api/testing.md](docs/api/testing.md); web: se
 
 - **scrapy-wxwatch** – [scripts/scrapy-wxwatch](scripts/scrapy-wxwatch): Weather images downloader (Scrapy). From repo root: `uv sync --frozen --package wxwatch && uv run --frozen --package wxwatch python scripts/scrapy-wxwatch/run_crawlers.py goes19`. Replace `goes19` with another source, or pass `all` explicitly for a manual full run. Requires Python 3.14+; see [scripts/scrapy-wxwatch/pyproject.toml](scripts/scrapy-wxwatch/pyproject.toml). Optional: [scripts/scrapy-wxwatch/README.md](scripts/scrapy-wxwatch/README.md).
 - **sutron-collector** – [scripts/sutron-collector](scripts/sutron-collector): Edge collector for the Sutron automatic weather station at Maurice Bishop International Airport. Exercise fixture mode before connecting to station hardware; see [scripts/sutron-collector/README.md](scripts/sutron-collector/README.md).
+- **gnc-collector** – [scripts/gnc-collector](scripts/gnc-collector): Turns GOES-19 files from the Met office's GeoNetCast Americas receiver into Eastern Caribbean infrared and water-vapour images in the WxWatch archive. Try `--dry-run` with a public NOAA file first; see [scripts/gnc-collector/README.md](scripts/gnc-collector/README.md) and the [receiver runbook](docs/operations/geonetcast-receiver.md).
 
 ## Documentation
 

@@ -55,3 +55,22 @@ export const eventsOrgRecordManualPaymentErrorSchema = z.union([
 
 export const eventsOrgRecordManualPaymentBodySchema =
   orgManualPaymentCreateSchema;
+
+export const eventsOrgRecordManualPaymentPathSchema = z.object({
+  order_id: z.uuid(),
+});
+
+export const eventsOrgRecordManualPaymentHeadersSchema = z.object({
+  "X-Barrels-Organisation": z
+    .union([z.string(), z.null()])
+    .optional()
+    .describe(
+      "Id of the organisation the request acts for. The caller must be an active member holding the organisation key, or Barrels staff holding the staff key."
+    ),
+  "Idempotency-Key": z
+    .union([z.string().max(255), z.null()])
+    .optional()
+    .describe(
+      "Required. Client-chosen key (for example a UUID) that makes a retried request safe."
+    ),
+});

@@ -40,3 +40,7 @@ export const storesUpdateLocationErrorSchema = z.union([
 ]);
 
 export const storesUpdateLocationBodySchema = locationUpdateSchema;
+
+export const storesUpdateLocationPathSchema = z.object({
+  location_id: z.uuid(),
+});

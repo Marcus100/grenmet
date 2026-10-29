@@ -1,15 +1,35 @@
+import { Measure } from "@/components/measure";
 import { PageHeader } from "@/components/page-header";
 import { InfoTable } from "@/components/pages/info-table";
 import { LinkList } from "@/components/pages/link-list";
 import { PageSection } from "@/components/pages/page-section";
 import { PlaceholderNotice } from "@/components/pages/placeholder-notice";
 import { Prose } from "@/components/pages/prose";
+import { knotsFromKmh } from "@/lib/units";
 
 export const metadata = {
   title: "Hurricane season",
   description:
     "The Atlantic hurricane season: when it runs, when it peaks, and this season so far.",
 };
+
+/** Wind speeds published in km/h, shown in the visitor's unit system. */
+function winds(low: number, high?: number) {
+  return (
+    <Measure
+      measure={{
+        high: high === undefined ? null : knotsFromKmh(high),
+        low: knotsFromKmh(low),
+        quantity: "speed",
+      }}
+    />
+  );
+}
+
+/** "252 km/h or more", in the visitor's unit system. */
+function windsOrMore(low: number) {
+  return <>{winds(low)} or more</>;
+}
 
 export default function HurricaneSeasonPage() {
   return (
@@ -36,22 +56,22 @@ export default function HurricaneSeasonPage() {
           rows={[
             [
               "Tropical storm",
-              "63–118 km/h",
+              winds(63, 118),
               "Fallen branches, flooding from rain",
             ],
-            ["1", "119–153 km/h", "Some roof and tree damage; power cuts"],
-            ["2", "154–177 km/h", "Major roof damage; many trees down"],
+            ["1", winds(119, 153), "Some roof and tree damage; power cuts"],
+            ["2", winds(154, 177), "Major roof damage; many trees down"],
             [
               "3",
-              "178–208 km/h",
+              winds(178, 208),
               "Devastating: homes damaged, power out for days to weeks",
             ],
             [
               "4",
-              "209–251 km/h",
+              winds(209, 251),
               "Catastrophic: severe damage to well-built homes",
             ],
-            ["5", "252 km/h or more", "Catastrophic: many homes destroyed"],
+            ["5", windsOrMore(252), "Catastrophic: many homes destroyed"],
           ]}
         />
       </PageSection>

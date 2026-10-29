@@ -29,3 +29,7 @@ export const featureDeleteFlagErrorSchema = z.union([
   featureDeleteFlagStatus404Schema,
   featureDeleteFlagStatus422Schema,
 ]);
+
+export const featureDeleteFlagPathSchema = z.object({
+  flag_id: z.string().min(1).max(100),
+});

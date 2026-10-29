@@ -27,6 +27,8 @@ export const pushUnsubscribeSchema = z.object({
 export const SIGNUP_RESULTS = {
   confirmed: "You are subscribed to GMS weather alert emails.",
   unsubscribed: "You are unsubscribed from GMS weather alert emails.",
+  expired:
+    "That confirmation link has expired, so nothing was subscribed. Please sign up again below.",
   invalid:
     "That link is not valid. It may have expired or already been used. You can sign up again below.",
 } as const;

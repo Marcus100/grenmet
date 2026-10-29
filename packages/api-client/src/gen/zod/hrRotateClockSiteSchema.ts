@@ -29,3 +29,7 @@ export const hrRotateClockSiteErrorSchema = z.union([
   hrRotateClockSiteStatus404Schema,
   hrRotateClockSiteStatus422Schema,
 ]);
+
+export const hrRotateClockSitePathSchema = z.object({
+  site_id: z.uuid(),
+});

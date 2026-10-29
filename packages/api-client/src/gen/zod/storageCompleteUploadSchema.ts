@@ -38,3 +38,14 @@ export const storageCompleteUploadErrorSchema = z.union([
   storageCompleteUploadStatus422Schema,
   storageCompleteUploadStatus503Schema,
 ]);
+
+export const storageCompleteUploadPathSchema = z.object({
+  upload_id: z.uuid(),
+});
+
+export const storageCompleteUploadHeadersSchema = z.object({
+  "X-Barrels-Organisation": z
+    .union([z.string(), z.null()])
+    .optional()
+    .describe("Id of the organisation the upload belongs to (active member)."),
+});

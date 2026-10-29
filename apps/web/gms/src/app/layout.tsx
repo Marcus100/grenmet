@@ -7,6 +7,7 @@ import { Barlow_Condensed, Noto_Sans } from "next/font/google";
 import { Footer } from "@/components/footer";
 import { Header } from "@/components/header";
 import { MotionProvider } from "@/components/motion-provider";
+import { UnitsBootScript } from "@/components/units-boot-script";
 import { APP_LABEL, signInEnabled } from "@/lib/auth-config";
 import { fetchActiveAlerts } from "@/lib/cap";
 import "./globals.css";
@@ -72,10 +73,11 @@ export default function RootLayout({
     >
       <head>
         <ThemeBootScript defaults={THEME_DEFAULTS} />
+        <UnitsBootScript />
       </head>
       <body className="flex min-h-screen flex-col bg-background font-sans text-foreground">
         <SkipLink />
-        <PostHogProvider app="gms">
+        <PostHogProvider app="gms" privacyHref="/privacy">
           <PreferencesStoreProvider
             contentLayout={PREFERENCE_DEFAULTS.content_layout}
             font={PREFERENCE_DEFAULTS.font}

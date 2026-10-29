@@ -33,3 +33,7 @@ export const capCancelAlertErrorSchema = z.union([
 ]);
 
 export const capCancelAlertBodySchema = capAlertActionSchema;
+
+export const capCancelAlertPathSchema = z.object({
+  alert_id: z.uuid(),
+});

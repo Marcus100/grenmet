@@ -3,8 +3,10 @@ import { ArrowRightIcon } from "lucide-react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import ReactMarkdown from "react-markdown";
+import { FeaturedLink } from "@/components/featured-link";
 import { LinkedProduct } from "@/components/linked-product";
-import { fetchContentBySlug } from "@/lib/cms";
+import { RelatedLinkAnchor } from "@/components/related-link-anchor";
+import { fetchContentBySlug, type PublishedContent } from "@/lib/cms";
 import { contentToArticle } from "@/lib/editorial";
 
 const SECTIONS = {
@@ -42,8 +44,20 @@ export async function CmsArticle({ slug }: { slug: string }) {
   }
   const content = result.articles[0];
   if (!content) notFound();
+  return <CmsArticleBody content={content} />;
+}
+
+/**
+ * The article as it reads on the site. A draft preview renders through this
+ * too, so the preview cannot differ from the published page.
+ */
+export function CmsArticleBody({ content }: { content: PublishedContent }) {
   const article = contentToArticle(content);
   const section = SECTIONS[content.collection];
+  // The main link is a card; the others are plain links beneath it.
+  const links = content.relatedLinks ?? [];
+  const main = links.find((link) => link.isMain && link.type !== "link");
+  const others = links.filter((link) => link !== main);
 
   return (
     <>
@@ -124,8 +138,12 @@ export async function CmsArticle({ slug }: { slug: string }) {
         </article>
 
         <aside className="flex flex-col gap-4 self-start lg:sticky lg:top-28">
-          {content.linkedProduct && (
-            <LinkedProduct productId={content.linkedProduct.productId} />
+          {main ? (
+            <FeaturedLink link={main} />
+          ) : (
+            content.linkedProduct && (
+              <LinkedProduct productId={content.linkedProduct.productId} />
+            )
           )}
           <div
             className={`${ASIDE_BOX} border-transparent bg-gm-surface-panel`}
@@ -149,7 +167,7 @@ export async function CmsArticle({ slug }: { slug: string }) {
             </Link>
           </div>
 
-          {Boolean(content.relatedLinks?.length) && (
+          {others.length > 0 && (
             <section aria-labelledby="related-links" className={ASIDE_BOX}>
               <h2
                 className="font-bold text-gm-text-secondary text-label uppercase leading-label tracking-wider"
@@ -158,14 +176,9 @@ export async function CmsArticle({ slug }: { slug: string }) {
                 Related products and reading
               </h2>
               <ul className="flex flex-col gap-1.5">
-                {content.relatedLinks?.map((link) => (
+                {others.map((link) => (
                   <li key={link.url}>
-                    <a
-                      className="font-semibold text-gm-blue-ink hover:underline"
-                      href={link.url}
-                    >
-                      {link.title}
-                    </a>
+                    <RelatedLinkAnchor link={link} />
                   </li>
                 ))}
               </ul>

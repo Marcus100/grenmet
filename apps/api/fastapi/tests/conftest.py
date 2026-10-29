@@ -1,12 +1,13 @@
 # Imports below the DB-isolation bootstrap are intentionally not at the top of
 # the file (env must be set before any `src` import), so E402 is disabled here.
 # ruff: noqa: E402
+import functools
 import os
 import smtplib
 import sys
 from collections.abc import AsyncGenerator, Awaitable, Callable, Generator
 from datetime import timedelta
-from typing import TYPE_CHECKING, Protocol, TypedDict
+from typing import TYPE_CHECKING, NotRequired, Protocol, TypedDict
 from uuid import uuid4
 
 if TYPE_CHECKING:
@@ -247,6 +248,9 @@ def weather_engine(request: pytest.FixtureRequest) -> Generator[Engine]:
             )
 
 
+#: Migration-seeded reference data that cleanup must keep (tests never edit it).
+REFERENCE_TABLES = {"events.categories"}
+
 # Ledgers that refuse DELETE by a row trigger; cleanup lifts it inside the same
 # transaction (DDL is transactional) and restores it before commit.
 _APPEND_ONLY = (
@@ -273,6 +277,7 @@ def _clear_statement() -> str:
         deletes = [
             f"{table.delete().compile(dialect=dialect)};"
             for table in reversed(Base.metadata.sorted_tables)
+            if table.fullname not in REFERENCE_TABLES
         ]
         _clear_sql = "DO $$ BEGIN\n" + "\n".join([*off, *deletes, *on]) + "\nEND $$;"
     return _clear_sql
@@ -282,7 +287,63 @@ async def _clear_database_async(session: AsyncSession) -> None:
     """Clear app tables in dependency order so FK constraints are respected."""
     await session.rollback()
     await session.execute(text(_clear_statement()))
+    await _assert_categories_are_the_seed(session)
     await session.commit()
+
+
+@functools.cache
+def _expected_category_rows() -> set[tuple[object, ...]]:
+    """The migration's seed, as (slug, parent slug, name, applies_to, sort, active, legacy)."""
+    import importlib.util
+    from pathlib import Path
+
+    path = (
+        Path(__file__).resolve().parents[1]
+        / "alembic"
+        / "versions"
+        / "2026-10-22_events_taxonomy.py"
+    )
+    spec = importlib.util.spec_from_file_location("events_taxonomy_seed", path)
+    assert spec is not None and spec.loader is not None
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    rows: set[tuple[object, ...]] = set()
+    for order, (slug, name, applies, legacy, active, subs) in enumerate(
+        module.TAXONOMY, start=1
+    ):
+        rows.add((slug, None, name, tuple(applies), order * 10, active, legacy))
+        for sub_order, (sub_slug, sub_name) in enumerate(subs, start=1):
+            rows.add(
+                (
+                    sub_slug,
+                    slug,
+                    sub_name,
+                    tuple(applies),
+                    sub_order * 10,
+                    active,
+                    legacy,
+                )
+            )
+    return rows
+
+
+async def _assert_categories_are_the_seed(session: AsyncSession) -> None:
+    """Cleanup keeps ``events.categories``; fail closed if a test changed it."""
+    found = {
+        (r[0], r[1], r[2], tuple(r[3]), r[4], r[5], r[6])
+        for r in (
+            await session.execute(
+                text(
+                    "SELECT c.slug, p.slug, c.name, c.applies_to, c.sort_order,"
+                    " c.active, c.legacy_category FROM events.categories c"
+                    " LEFT JOIN events.categories p ON p.id = c.parent_id"
+                )
+            )
+        ).all()
+    }
+    assert found == _expected_category_rows(), (
+        "events.categories no longer equals the migration seed; tests must not edit it"
+    )
 
 
 def _cleanup_test_database() -> None:
@@ -479,11 +540,18 @@ class EmailSendCall(TypedDict):
     email_to: str
     subject: str
     html_content: str
+    # Present only for mail that carries extra headers (List-Unsubscribe).
+    headers: NotRequired[dict[str, str]]
 
 
 class EmailSender(Protocol):
     def __call__(
-        self, *, email_to: str, subject: str = "", html_content: str = ""
+        self,
+        *,
+        email_to: str,
+        subject: str = "",
+        html_content: str = "",
+        headers: dict[str, str] | None = None,
     ) -> None: ...
 
 
@@ -501,11 +569,20 @@ def stub_email_sender(
     original_sender = email_module.send_email
 
     def record_send(
-        *, email_to: str, subject: str = "", html_content: str = ""
+        *,
+        email_to: str,
+        subject: str = "",
+        html_content: str = "",
+        headers: dict[str, str] | None = None,
     ) -> None:
-        outbound_email_calls.append(
-            {"email_to": email_to, "subject": subject, "html_content": html_content}
-        )
+        call: EmailSendCall = {
+            "email_to": email_to,
+            "subject": subject,
+            "html_content": html_content,
+        }
+        if headers:
+            call["headers"] = headers
+        outbound_email_calls.append(call)
 
     def block_provider(*_args: object, **_kwargs: object) -> None:
         raise AssertionError(

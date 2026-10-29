@@ -1,4 +1,5 @@
 import type { ProductField, ProductKind } from "@barrelsgd/gms/products";
+import { formatSectors, parseSectors } from "@barrelsgd/gms/sectors";
 import { Field, FieldLabel } from "@barrelsgd/ui/components/ui/field";
 import {
   InputGroup,
@@ -15,6 +16,7 @@ import {
 } from "@barrelsgd/ui/components/ui/select";
 import { cn } from "@barrelsgd/ui/lib/utils";
 import type { ReactNode } from "react";
+import { SectorCheckboxes } from "@/components/sectors/sector-checkboxes";
 import { ProductNumberInput } from "@/components/wxproducts/product-number-input";
 import {
   productFieldCaption,
@@ -101,6 +103,14 @@ export function ProductFieldControl({
   onChange: (value: string) => void;
   value: string;
 }) {
+  if (f.type === "sectors")
+    return (
+      <SectorCheckboxes
+        className="col-span-full basis-full"
+        onChange={(next) => onChange(formatSectors(next))}
+        value={parseSectors(value)}
+      />
+    );
   const inputId = `${kind}-${f.key}`;
   const accessibleLabel = `${productFieldLabel(f)}${f.required ? " *" : ""}`;
   const showCaption =

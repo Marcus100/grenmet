@@ -115,16 +115,16 @@ const CHECKS_RUN = [
     "Readable stations balance. 5 constituencies are unreadable in the damaged Gazette PDF (R-04)",
   ],
   [
-    "Voter register: list-to-list change vs addenda registrations",
-    "Implied removals each period listed in V-01; removals aren’t published",
+    "Voter register: list-to-list change vs addendum entries",
+    "Residual arithmetic is listed in V-01; overlapping entries do not establish removal or transfer counts",
   ],
 ] as const;
 
 /** A detail line: text as is; a roll-reconciliation row as a sentence. */
 function detailText(line: string | Record<string, string | number>): string {
   if (typeof line === "string") return line;
-  if ("impliedRemovals" in line)
-    return `${line.from} → ${line.to}: ${fmt(Number(line.before))} + ${fmt(Number(line.added))} added − ${fmt(Number(line.after))} = ${fmt(Number(line.impliedRemovals))} implied removals`;
+  if ("arithmeticResidual" in line)
+    return `${line.from} → ${line.to}: ${fmt(Number(line.before))} + ${fmt(Number(line.added))} addendum entries − ${fmt(Number(line.after))} = ${fmt(Number(line.arithmeticResidual))} unexplained arithmetic residual`;
   return Object.entries(line)
     .map(([k, v]) => `${k}: ${v}`)
     .join(", ");
@@ -447,11 +447,12 @@ export default function SourcesPage() {
           <div>
             <dt className="font-semibold">Map boundaries</dt>
             <dd className="text-el-ink-2">
-              No official boundary map is published. Shapes are 2011-era census
-              enumeration districts (public ArcGIS layer, publisher to be
-              confirmed), grouped into polling divisions using the PEO’s table
-              of villages and polling divisions and OpenStreetMap place names.
-              They are illustrative, not official. See G-01 and G-02.
+              No official boundary map is held in this archive. Shapes are
+              2011-era census enumeration districts (public ArcGIS layer,
+              publisher to be confirmed), grouped into polling divisions using
+              the PEO’s table of villages and polling divisions and
+              OpenStreetMap place names. They are illustrative, not official.
+              See G-01 and G-02.
             </dd>
           </div>
           <div>
@@ -459,7 +460,7 @@ export default function SourcesPage() {
             <dd className="text-el-ink-2">
               Counts from the PEO consolidated lists of electors,{" "}
               {formatIsoDate(lists[0]?.date ?? "")} to{" "}
-              {formatIsoDate(lists.at(-1)?.date ?? "")}, and the quarterly
+              {formatIsoDate(lists.at(-1)?.date ?? "")}, and the dated
               constituency addenda. Only totals are published here.
             </dd>
           </div>

@@ -3,12 +3,21 @@
  * Do not edit manually.
  */
 
+import type { ForecastConditionPropertiesQuantityAnyOfEnum } from "./ForecastConditionPropertiesQuantityAnyOfEnum.js";
+
 /**
  * @description One display tile: a lucide icon name, a formatted value and its label.
+ *
+ * `value` is the text in GMS's default units. When the tile is a measurement,
+ * `quantity`, `low` and `high` carry the numbers in WMO storage units (degC,
+ * knots, metres) so the site can show them in the visitor's unit system.
  * @type object
  */
 export type ForecastCondition = {
   icon: string;
   value: string;
   label: string;
+  quantity?: ForecastConditionPropertiesQuantityAnyOfEnum | null;
+  low?: number | null;
+  high?: number | null;
 };

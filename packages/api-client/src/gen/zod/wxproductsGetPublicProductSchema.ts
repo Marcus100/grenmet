@@ -32,3 +32,7 @@ export const wxproductsGetPublicProductErrorSchema = z.union([
   wxproductsGetPublicProductStatus422Schema,
   wxproductsGetPublicProductStatus503Schema,
 ]);
+
+export const wxproductsGetPublicProductPathSchema = z.object({
+  product_id: z.uuid(),
+});

@@ -60,3 +60,30 @@ export const rewardsOrgListRedemptionsErrorSchema = z.union([
   rewardsOrgListRedemptionsStatus404Schema,
   rewardsOrgListRedemptionsStatus422Schema,
 ]);
+
+export const rewardsOrgListRedemptionsQuerySchema = z.object({
+  program_id: z.union([z.uuid(), z.null()]).optional(),
+  page: z
+    .int()
+    .min(1)
+    .max(1000000)
+    .optional()
+    .default(1)
+    .describe("Page number (1-indexed)"),
+  size: z
+    .int()
+    .min(1)
+    .max(1000)
+    .optional()
+    .default(100)
+    .describe("Items per page"),
+});
+
+export const rewardsOrgListRedemptionsHeadersSchema = z.object({
+  "X-Barrels-Organisation": z
+    .union([z.string(), z.null()])
+    .optional()
+    .describe(
+      "Id of the organisation the request acts for. The caller must be an active member."
+    ),
+});

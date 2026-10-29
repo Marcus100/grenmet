@@ -27,3 +27,7 @@ export const notificationsMarkNotificationReadErrorSchema = z.union([
   notificationsMarkNotificationReadStatus404Schema,
   notificationsMarkNotificationReadStatus422Schema,
 ]);
+
+export const notificationsMarkNotificationReadPathSchema = z.object({
+  notification_id: z.uuid(),
+});

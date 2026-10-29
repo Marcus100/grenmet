@@ -47,3 +47,7 @@ export const wxproductsUpdateTropicalSystemBodySchema =
   tropicalSystemUpdateSchema.describe(
     "Rename, link NHC identifiers, close or merge. Omitted fields stay unchanged."
   );
+
+export const wxproductsUpdateTropicalSystemPathSchema = z.object({
+  system_id: z.uuid(),
+});

@@ -3,11 +3,14 @@
  * Do not edit manually.
  */
 
+import type { EventCategoryNodePropertiesAppliesToItemsEnum } from "./EventCategoryNodePropertiesAppliesToItemsEnum.js";
 import type { EventsListListingsParametersSchemaAnyOfEnum } from "./EventsListListingsParametersSchemaAnyOfEnum.js";
 import type { EventsListListingsParametersSchemaAnyOfEnum2 } from "./EventsListListingsParametersSchemaAnyOfEnum2.js";
 import type { GroupDetailPropertiesCategoryEnum } from "./GroupDetailPropertiesCategoryEnum.js";
 import type { GroupDetailPropertiesParishEnum } from "./GroupDetailPropertiesParishEnum.js";
 import type { ListingCardList } from "./ListingCardList.js";
+import type { ListingCardPropertiesBookingModeEnum } from "./ListingCardPropertiesBookingModeEnum.js";
+import type { ListingCardPropertiesPricingTypeEnum } from "./ListingCardPropertiesPricingTypeEnum.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 
 export type EventsListListingsQuery = {
@@ -15,6 +18,12 @@ export type EventsListListingsQuery = {
   category?: GroupDetailPropertiesCategoryEnum | null;
   parish?: GroupDetailPropertiesParishEnum | null;
   price?: EventsListListingsParametersSchemaAnyOfEnum2 | null;
+  type?: EventCategoryNodePropertiesAppliesToItemsEnum | null;
+  category_slug?: string | null;
+  subcategory_slug?: string | null;
+  pricing?: ListingCardPropertiesPricingTypeEnum | null;
+  access?: "public" | null;
+  booking_mode?: ListingCardPropertiesBookingModeEnum | null;
   tag?: string | null;
   q?: string | null;
   organiser?: string | null;

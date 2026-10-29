@@ -5,6 +5,22 @@ import TrendsPage from "@/app/trends/page";
 vi.mock("server-only", () => ({}));
 
 describe("Election explainer", () => {
+  it("assesses the evidence for votes, turnout and winners separately", () => {
+    const { container } = render(<TrendsPage />);
+    const voteChart = screen.getByRole("img", {
+      name: "Share of the popular vote by party, 1951 to 2022",
+    });
+    const votePoint = [...voteChart.querySelectorAll("circle")].find((point) =>
+      point.querySelector("title")?.textContent?.startsWith("1990, NDC:")
+    );
+    expect(votePoint).toHaveAttribute("fill", "var(--el-paper)");
+    expect(votePoint?.textContent).toContain("mixed / secondary records");
+    const winnerLink = screen.getByRole("link", { name: "Election 1990" });
+    expect(winnerLink.querySelector("sup")).toBeNull();
+    expect(
+      container.querySelector("#records-title")?.parentElement?.textContent
+    ).toContain("including 1990");
+  });
   it("renders every chart with reading guidance and source caveats", () => {
     const { container } = render(<TrendsPage />);
     expect(

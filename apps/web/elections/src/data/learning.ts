@@ -92,7 +92,7 @@ export const GUIDES: LearningGuide[] = [
       {
         title: "Check the record, not an assumption",
         paragraphs: [
-          "The PEO provides voter-status information. Confirm your entry and the constituency and polling location that apply to you. Finding a nearby village on our illustrative map does not establish where you are entitled to vote.",
+          "Use the voter-list search linked by the PEO to check your entry. Confirm your constituency and assigned polling station with the PEO before voting. Finding a nearby village on our illustrative map does not establish where you are entitled to vote.",
           "Being old enough, having a document and being on the register are distinct questions. Consult the PEO for the eligibility rules and documents that apply to your circumstances.",
         ],
         sources: ["peo", "registration"],
@@ -101,7 +101,7 @@ export const GUIDES: LearningGuide[] = [
         title: "Prepare three questions for the PEO",
         paragraphs: [
           "Am I on the relevant list with the correct details? Where and when should I vote? What identification or other documents must I bring? Check current notices before travelling.",
-          "We could not re-fetch the live registration guidance during this review. Current document requirements, fees, cut-off dates and special arrangements should therefore be confirmed directly, rather than inferred from the 2022 report.",
+          "The PEO’s registration guidance describes an in-person visit to a constituency office. Searching the list does not register you or update your details. Read that guidance and current notices for the documents and arrangements that apply to you; the 2022 election report is a historical record.",
         ],
         sources: ["registration", "peo"],
       },
@@ -127,7 +127,14 @@ export const GUIDES: LearningGuide[] = [
         "No. Our maps explain recorded geography. Confirm your assigned polling arrangements with the PEO.",
     },
     next: [
-      { href: "https://www.peogrenada.org/", label: "Check with the PEO" },
+      {
+        href: "https://search.peogrenada.org/",
+        label: "Search the official voter list",
+      },
+      {
+        href: "https://peogrenada.org/registration-procedure/",
+        label: "Read PEO registration guidance",
+      },
       { href: "/register", label: "Understand the voter register" },
       { href: "/constituencies", label: "Explore constituencies" },
     ],

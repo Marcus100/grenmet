@@ -258,14 +258,14 @@ For staging/production, replace with the actual subdomain hosts (no port needed)
 **Production** (exact hosts; list every app that sends users back to auth):
 
 ```text
-AUTH_ALLOWED_RETURN_HOSTS=auth.barrels.gd,admin.barrels.gd,gms.barrels.gd,bookings.barrels.gd,cms.barrels.gd,events.barrels.gd,docs.barrels.gd,weather.barrels.gd,signal.barrels.gd,mbia.barrels.gd,elections.barrels.gd,gmsdash.barrels.gd,babydoll.barrels.gd
+AUTH_ALLOWED_RETURN_HOSTS=auth.barrels.gd,admin.barrels.gd,gms.barrels.gd,bookings.barrels.gd,cms.barrels.gd,events.barrels.gd,docs.barrels.gd,weather.barrels.gd,signal.barrels.gd,mbia.barrels.gd,gmsdash.barrels.gd,babydoll.barrels.gd
 ```
 
 Staging uses the same labels under `staging.barrels.gd`. The shared Compose file
 gives the `web-auth` service the app-URL variables the code honours as they are
 (auth, gms, docs, weather, signal, mbia, events) and one exact `https://` entry in
 `AUTH_ALLOWED_RETURN_HOSTS` for each other app that signs in through it (admin,
-bookings, cms, elections, gmsdash), all built from `${BASE_DOMAIN}`. A leading-dot
+bookings, cms, gmsdash), all built from `${BASE_DOMAIN}`. A leading-dot
 entry such as `.${BASE_DOMAIN}` is ignored by the code and reaches no app.
 `EXTRA_RETURN_HOSTS`, if set, is appended as it is and must start with a comma.
 `scripts/production/auth-return-origins.test.mjs` fails when an app in the API
@@ -276,11 +276,12 @@ listed in `infra/docker/production.env`; staging uses their staging equivalents.
 The superseded
 weather.gd go-live plan is historical context, not an active allowlist recipe.
 
-### Public sites with "Sign in" (gms, docs, signal, mbia, elections)
+### Public sites with "Sign in" (gms, docs, signal, mbia)
 
 Each site signs in with the Barrels account through auth.barrels.gd (ADR-0017)
 and keeps its own host-only session cookie. "Sign in" appears only when the
-site's secret is set; the same value must be set for the API.
+site's secret is set; the same value must be set for the API. Elections
+(Vercel) has no sign-in and is not listed here.
 
 | Site | Registry key | Secret | Cookie (default) |
 |---|---|---|---|
@@ -288,7 +289,6 @@ site's secret is set; the same value must be set for the API.
 | docs | `docs` | `DOCS_SSO_CLIENT_SECRET` | `docs_session` |
 | signal | `signal` | `SIGNAL_SSO_CLIENT_SECRET` | `signal_session` |
 | mbia | `mbia` | `MBIA_SSO_CLIENT_SECRET` | `mbia_session` |
-| elections (Vercel) | `elections` | `ELECTIONS_SSO_CLIENT_SECRET` | `elections_session` |
 | gmsdash | `gmsdash` | `GMSDASH_SSO_CLIENT_SECRET` | `gmsdash_session` |
 | bookings | `bookings` | `BOOKINGS_SSO_CLIENT_SECRET` | `bookings_session` |
 
@@ -301,8 +301,7 @@ audit logs would key every user on one address.
 
 Each also needs `AUTH_API_URL`, `AUTH_API_V1_STR` and `AUTH_APP_URL`. The API
 needs `<SITE>_APP_URL` (defaults to the local port) and the matching secret.
-Secrets are optional GitHub environment secrets (32+ characters); Elections'
-are set in Vercel and in GitHub (for the API).
+Secrets are optional GitHub environment secrets (32+ characters).
 
 | Variable | Purpose |
 |---|---|
@@ -405,6 +404,14 @@ Its typed defaults allow it to run without an env file.
 | `NEXT_PUBLIC_SENTRY_ENVIRONMENT` | Sentry environment label (default: `development`) |
 | `NEXT_PUBLIC_TURNSTILE_SITE_KEY` | Optional public Turnstile site key for the contact form. Unset: no widget and no token (fine while FastAPI has `TURNSTILE_ENABLED` off) |
 
+### Commit web (`apps/web/commit`, Cloudflare Pages)
+
+Read through `src/env.ts` (hand-written, no schema library). The site is static and needs no variables in production.
+
+| Variable | Purpose |
+|---|---|
+| `COMMIT_SITE_URL` | Public origin for metadata, the sitemap and RSS links (default `https://commit.barrels.gd`; only the origin of the value is kept) |
+
 ### Babydoll web (`apps/web/babydoll`, Vercel)
 
 Read through `src/env.ts` (hand-written, no schema library). Every value has a default; the site is fully static until the switch is on.
@@ -454,7 +461,7 @@ The active deployment uses three layers:
 |---|---|
 | Committed non-secret configuration | `ENVIRONMENT`, `BASE_DOMAIN`, `DOMAIN`, `ROUTER_SUFFIX`, `EXTRA_RETURN_HOSTS`, database names/users, `REGISTRY`, `IMAGE_NAME`, `GHCR_OWNER`, `PROJECT_NAME`, CORS origins, volume names |
 | Required runtime inputs from GitHub environments | `SECRET_KEY`, Postgres and module database passwords, `FIRST_SUPERUSER`, `FIRST_SUPERUSER_PASSWORD`, `RESEND_API_KEY`, `GAA_ADMIN_SSO_CLIENT_SECRET`, `CMS_SSO_CLIENT_SECRET` |
-| Proxy and TLS inputs | `EMAIL`, `USERNAME`, `HASHED_PASSWORD` |
+| Proxy and TLS inputs | `EMAIL`, `USERNAME`, `HASHED_PASSWORD` (Traefik dashboard, SSH tunnel only); staging only: `STAGING_BASIC_AUTH_USERS`, `ADMINER_BASIC_AUTH_USERS` (htpasswd bcrypt lines, validated by `render-env.py`), `STAGING_PROBE_CREDENTIALS` (`user:password` for the deploy smoke and probe) |
 | Optional deployment integrations | `SENTRY_DSN` and `STORAGE_*` |
 | Derived at deployment time | `TAG`, `WEB_TAG`, `WXWATCH_DB_URL`, `WXPRODUCTS_DB_URL`, `JANITORIAL_DB_URL`, `TRANSPORT_DB_URL` |
 
@@ -507,7 +514,7 @@ secrets, not in either file.
 
 Local migration commands explicitly load `.env.local` and use the same migration runners as deployment. Generic `DB_URL` fallbacks are unsupported. `python3 scripts/production/check-local-env.py` reports missing variable names and ignore coverage without displaying values.
 
-CMS needs `DATABASE_URL` pointing only to its dedicated database and a stable `PAYLOAD_SECRET` of at least 32 characters in `apps/web/cms/.env.local`. `CMS_DB_NAME` defaults to `gms_cms`; deployment passes the environment-specific name. Optional shared-auth settings are `AUTH_API_URL`, `AUTH_APP_URL`, `CMS_URL`, `CMS_DEPARTMENT_ID`, `CMS_SESSION_COOKIE_NAME` (default `cms_session`) and `CMS_SSO_CLIENT_SECRET` (same value as the API's; required to sign in). `CMS_BASELINE_REFERENCE_URL` is only for explicit adoption of a matching existing schema, never routine startup.
+CMS needs `DATABASE_URL` pointing only to its dedicated database and a stable `PAYLOAD_SECRET` of at least 32 characters in `apps/web/cms/.env.local`. `CMS_DB_NAME` defaults to `gms_cms`; deployment passes the environment-specific name. Optional shared-auth settings are `AUTH_API_URL`, `AUTH_APP_URL`, `CMS_URL`, `CMS_DEPARTMENT_ID`, `CMS_SESSION_COOKIE_NAME` (default `cms_session`) and `CMS_SSO_CLIENT_SECRET` (same value as the API's; required to sign in). `CMS_BASELINE_REFERENCE_URL` is only for explicit adoption of a matching existing schema, never routine startup. `GMS_PREVIEW_URL` (optional) is the weather site's preview page (`<weather site>/preview`); setting it turns on the Preview button for drafts. `GMS_SITE_URL` (optional) is the weather site's public origin, used for post addresses in the newsletter feed and social posts; without it the newsletter feed carries no posts. `CMS_DISTRIBUTION_SECRET` (optional, at least 32 characters) is shared with FastAPI's content-distribution endpoint as `X-CMS-Secret`; without it nothing is sent to social platforms.
 
 The online environment additionally supplies `CMS_DB_PASSWORD`, `PAYLOAD_SECRET` and environment-scoped `DO_SPACES_*` backup secrets. Its temporary runtime `.env.local` is owner-readable and excluded from both Git and image build contexts. See [storage and delivery acceptance](operations/storage-delivery.md) for inventory, initialization, Traefik routing and restore requirements.
 
@@ -593,8 +600,8 @@ credentials into staging.
 - Google: `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`.
 - Single sign-on (ADR-0017): `GAA_ADMIN_SSO_CLIENT_SECRET`, `CMS_SSO_CLIENT_SECRET`
   (required); `EVENTS_SSO_CLIENT_SECRET`, `WEATHER_SSO_CLIENT_SECRET`,
-  `DOCS_SSO_CLIENT_SECRET`, `SIGNAL_SSO_CLIENT_SECRET`, `MBIA_SSO_CLIENT_SECRET`,
-  `ELECTIONS_SSO_CLIENT_SECRET` (optional; each switches on "Sign in" there).
+  `DOCS_SSO_CLIENT_SECRET`, `SIGNAL_SSO_CLIENT_SECRET`, `MBIA_SSO_CLIENT_SECRET`
+  (optional; each switches on "Sign in" there). Elections has no sign-in.
 - CAP signing: `CAP_SIGNING_CERT`, `CAP_SIGNING_KEY` (PEM contents).
 - Email: `RESEND_API_KEY`, `RESEND_WEBHOOK_SECRET`, `EMAIL_RENDER_SECRET`.
 - Sentry: `SENTRY_DSN_STAGING` in staging, `SENTRY_DSN_PRODUCTION` in production,

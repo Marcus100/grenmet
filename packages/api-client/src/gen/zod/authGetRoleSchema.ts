@@ -24,3 +24,7 @@ export const authGetRoleErrorSchema = z.union([
   authGetRoleStatus404Schema,
   authGetRoleStatus422Schema,
 ]);
+
+export const authGetRolePathSchema = z.object({
+  role_id: z.uuid(),
+});

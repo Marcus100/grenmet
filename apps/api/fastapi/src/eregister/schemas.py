@@ -386,6 +386,19 @@ class PublicObservation(BaseModel):
     weather: str | None = None
     cloud_oktas: int | None = None
     cloud: str | None = None
+    # Register item 8 (visibility), typed in kilometres.
+    visibility_km: float | None = None
+    # Register item 11, the gust cell, converted like the wind speed.
+    wind_gust_kt: int | None = None
+    wind_gust_mph: int | None = None
+    # Section 3 maximum and minimum temperature (items 39-42): the observing
+    # day's extremes as the observer entered them.
+    max_temperature_c: float | None = None
+    min_temperature_c: float | None = None
+    # Register item 7 (h): the band the lowest cloud base is in. The upper
+    # bound is null for "2500 m or more"; both are null when the sky is clear.
+    cloud_base_min_m: int | None = None
+    cloud_base_max_m: int | None = None
 
 
 class PublicCurrentConditions(BaseModel):

@@ -43,3 +43,10 @@ export const capSuggestIbfErrorSchema = z.union([
   capSuggestIbfStatus403Schema,
   capSuggestIbfStatus422Schema,
 ]);
+
+export const capSuggestIbfQuerySchema = z.object({
+  kind: z.string().regex(/^[a-z][a-z0-9-]{1,39}$/),
+  likelihood: capProfileCellTextPropertiesLikelihoodEnumSchema,
+  impact: capProfileCellTextPropertiesImpactEnumSchema,
+  subtype: z.union([z.string().max(200), z.null()]).optional(),
+});

@@ -46,3 +46,7 @@ export const transportUpdateRouteEntryErrorSchema = z.union([
 ]);
 
 export const transportUpdateRouteEntryBodySchema = transportRouteInputSchema;
+
+export const transportUpdateRouteEntryPathSchema = z.object({
+  route_id: z.int(),
+});

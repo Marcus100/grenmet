@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import registerJson from "@/data/derived/register";
 import {
+  addendumTotals,
   divisionGrowth,
   type RegisterFile,
   rollChecks,
@@ -10,17 +11,45 @@ import {
 const register = registerJson as unknown as RegisterFile;
 
 describe("voter register", () => {
-  it("counts every list, oldest first, with male + female = electors", () => {
+  it("counts every dated list without discarding other source sex codes", () => {
     const lists = snapshotTotals(register);
-    expect(lists).toHaveLength(15);
+    expect(lists).toHaveLength(16);
     expect(lists[0]?.date).toBe("2019-12-31");
     for (const l of lists)
       expect(l.male + l.female).toBeLessThanOrEqual(l.electors);
   });
 
-  it("implies removals as previous + added − next", () => {
+  it("computes an arithmetic residual without establishing removals", () => {
     for (const c of rollChecks(register))
       expect(c.implied).toBe(c.previous + c.added - c.next);
+  });
+
+  it("retains the October non-police snapshot and its one U record", () => {
+    expect(snapshotTotals(register).at(-1)).toMatchObject({
+      date: "2026-10-16",
+      electors: 95_908,
+      female: 49_497,
+      male: 46_410,
+    });
+    expect(divisionGrowth(register)).toHaveLength(134);
+    expect(registerJson.snapshots.at(-1)).toMatchObject({
+      scope: "NON-POLICE",
+      audit: {
+        records: 95_908,
+        pages: 2640,
+        sexCodes: { F: 49_497, M: 46_410, U: 1 },
+      },
+    });
+  });
+
+  it("keeps overlapping addenda as dated entries rather than net growth", () => {
+    expect(addendumTotals(register).slice(-2)).toMatchObject([
+      { date: "2026-09-30", added: 3477 },
+      { date: "2026-10-16", added: 1026 },
+    ]);
+    expect(registerJson.addenda.at(-1)).toMatchObject({
+      referenceDate: "2026-10-01",
+    });
   });
 
   it("tracks every division on the latest list", () => {

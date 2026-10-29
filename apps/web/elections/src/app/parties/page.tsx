@@ -28,7 +28,7 @@ export default function PartiesPage() {
   return (
     <>
       <PageHead
-        deck="Every party that has stood at a general election since 1951, with the seats it won and its share of the vote. Independents are counted with their constituencies, not here. The Democratic People’s Movement, founded in 2025, has not yet contested an election."
+        deck="The historical record from 1951 to 2022: elections contested, seats won and recorded vote share. Current campaign coverage is on the 2026 candidate pages."
         eyebrow="Parties · 1951 to 2022"
         learning="parties"
         title="Grenada’s political parties"
@@ -86,8 +86,8 @@ export default function PartiesPage() {
           </table>
         </div>
         <p className="mt-3 text-base text-el-muted leading-relaxed">
-          Votes before 1984 are partly from secondary sources; see each
-          election’s page for its source.
+          Some historical vote totals use secondary sources, including 1990; see
+          each election’s page for its source.
         </p>
       </Section>
     </>

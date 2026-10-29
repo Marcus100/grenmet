@@ -35,3 +35,7 @@ export const eregisterReviewRegisterObservationErrorSchema = z.union([
 ]);
 
 export const eregisterReviewRegisterObservationBodySchema = reviewRequestSchema;
+
+export const eregisterReviewRegisterObservationPathSchema = z.object({
+  observation_id: z.uuid(),
+});

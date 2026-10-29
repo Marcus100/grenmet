@@ -60,3 +60,13 @@ export const wxwatchArchiveErrorSchema = z.union([
   wxwatchArchiveStatus403Schema,
   wxwatchArchiveStatus422Schema,
 ]);
+
+export const wxwatchArchiveQuerySchema = z.object({
+  source: z.union([z.string().max(100), z.null()]).optional(),
+  product: z.union([z.string().max(300), z.null()]).optional(),
+  start: z.union([z.iso.date(), z.null()]).optional(),
+  end: z.union([z.iso.date(), z.null()]).optional(),
+  unknown_time: z.boolean().optional().default(false),
+  offset: z.int().min(0).max(100000).optional().default(0),
+  limit: z.int().min(1).max(100).optional().default(30),
+});

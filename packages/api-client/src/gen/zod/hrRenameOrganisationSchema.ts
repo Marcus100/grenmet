@@ -31,3 +31,7 @@ export const hrRenameOrganisationErrorSchema = z.union([
 ]);
 
 export const hrRenameOrganisationBodySchema = organisationUpdateSchema;
+
+export const hrRenameOrganisationPathSchema = z.object({
+  organisation_id: z.string(),
+});

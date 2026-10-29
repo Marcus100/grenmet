@@ -2083,6 +2083,7 @@ export type {
   CapSuggestIbfStatus403,
   CapSuggestIbfStatus422,
 } from "./CapSuggestIbf.js";
+export type { Captions } from "./Captions.js";
 export type {
   CapUpdateAlertBody,
   CapUpdateAlertOptions,
@@ -2330,6 +2331,27 @@ export type {
   ContactsUpsertOrgContactStatus422,
 } from "./ContactsUpsertOrgContact.js";
 export type { ContactUpdate } from "./ContactUpdate.js";
+export type {
+  ContentListPostsOptions,
+  ContentListPostsQuery,
+  ContentListPostsResponse,
+  ContentListPostsResponses,
+  ContentListPostsStatus200,
+  ContentListPostsStatus401,
+  ContentListPostsStatus403,
+  ContentListPostsStatus422,
+} from "./ContentListPosts.js";
+export type {
+  ContentSavePostBody,
+  ContentSavePostHeaders,
+  ContentSavePostOptions,
+  ContentSavePostResponse,
+  ContentSavePostResponses,
+  ContentSavePostStatus202,
+  ContentSavePostStatus401,
+  ContentSavePostStatus422,
+  ContentSavePostStatus503,
+} from "./ContentSavePost.js";
 export type { ContractorCreate } from "./ContractorCreate.js";
 export type { ContractorUpdate } from "./ContractorUpdate.js";
 export type { CurrentOrganisationPublic } from "./CurrentOrganisationPublic.js";
@@ -2345,7 +2367,16 @@ export { dataFormat } from "./DataFormat.js";
 export type { DataParameter } from "./DataParameter.js";
 export { dataParameter } from "./DataParameter.js";
 export type { DataRequestCreate } from "./DataRequestCreate.js";
+export type { DeliveryAdmin } from "./DeliveryAdmin.js";
+export type { DeliveryAdminList } from "./DeliveryAdminList.js";
+export type { DeliveryAdminPropertiesStatusEnum } from "./DeliveryAdminPropertiesStatusEnum.js";
+export { deliveryAdminPropertiesStatusEnum } from "./DeliveryAdminPropertiesStatusEnum.js";
 export type { DeliveryLine } from "./DeliveryLine.js";
+export type { DeliveryOutcome } from "./DeliveryOutcome.js";
+export type { DeliveryOutcomePropertiesOutcomeEnum } from "./DeliveryOutcomePropertiesOutcomeEnum.js";
+export { deliveryOutcomePropertiesOutcomeEnum } from "./DeliveryOutcomePropertiesOutcomeEnum.js";
+export type { DeliveryOutcomePropertiesPlatformEnum } from "./DeliveryOutcomePropertiesPlatformEnum.js";
+export { deliveryOutcomePropertiesPlatformEnum } from "./DeliveryOutcomePropertiesPlatformEnum.js";
 export type { DeliveryStatus } from "./DeliveryStatus.js";
 export { deliveryStatus } from "./DeliveryStatus.js";
 export type { DepartmentCreate } from "./DepartmentCreate.js";
@@ -2626,6 +2657,11 @@ export type {
   EregisterValidateSynopObservationStatus403,
   EregisterValidateSynopObservationStatus422,
 } from "./EregisterValidateSynopObservation.js";
+export type { EventCategoryNode } from "./EventCategoryNode.js";
+export type { EventCategoryNodePropertiesAppliesToItemsEnum } from "./EventCategoryNodePropertiesAppliesToItemsEnum.js";
+export { eventCategoryNodePropertiesAppliesToItemsEnum } from "./EventCategoryNodePropertiesAppliesToItemsEnum.js";
+export type { EventCategorySub } from "./EventCategorySub.js";
+export type { EventCategoryTree } from "./EventCategoryTree.js";
 export type {
   EventsAcceptConnectionOptions,
   EventsAcceptConnectionPath,
@@ -3051,6 +3087,13 @@ export type {
   EventsLeaveGroupStatus422,
   EventsLeaveGroupStatus429,
 } from "./EventsLeaveGroup.js";
+export type {
+  EventsListCategoriesOptions,
+  EventsListCategoriesResponse,
+  EventsListCategoriesResponses,
+  EventsListCategoriesStatus200,
+  EventsListCategoriesStatus422,
+} from "./EventsListCategories.js";
 export type {
   EventsListGroupsOptions,
   EventsListGroupsResponse,
@@ -3643,6 +3686,8 @@ export type {
   FlightsGetFlightBoardStatus422,
 } from "./FlightsGetFlightBoard.js";
 export type { ForecastCondition } from "./ForecastCondition.js";
+export type { ForecastConditionPropertiesQuantityAnyOfEnum } from "./ForecastConditionPropertiesQuantityAnyOfEnum.js";
+export { forecastConditionPropertiesQuantityAnyOfEnum } from "./ForecastConditionPropertiesQuantityAnyOfEnum.js";
 export type { ForecastObservation } from "./ForecastObservation.js";
 export type { ForecastPeriod } from "./ForecastPeriod.js";
 export type { ForecastSource } from "./ForecastSource.js";
@@ -5607,10 +5652,16 @@ export { legacyProductWritePropertiesActionEnum } from "./LegacyProductWriteProp
 export type { LegacyStoredProduct } from "./LegacyStoredProduct.js";
 export type { ListingCard } from "./ListingCard.js";
 export type { ListingCardList } from "./ListingCardList.js";
+export type { ListingCardPropertiesAccessTypeEnum } from "./ListingCardPropertiesAccessTypeEnum.js";
+export { listingCardPropertiesAccessTypeEnum } from "./ListingCardPropertiesAccessTypeEnum.js";
 export type { ListingCardPropertiesAdmissionEnum } from "./ListingCardPropertiesAdmissionEnum.js";
 export { listingCardPropertiesAdmissionEnum } from "./ListingCardPropertiesAdmissionEnum.js";
+export type { ListingCardPropertiesBookingModeEnum } from "./ListingCardPropertiesBookingModeEnum.js";
+export { listingCardPropertiesBookingModeEnum } from "./ListingCardPropertiesBookingModeEnum.js";
 export type { ListingCardPropertiesCurrencyEnum } from "./ListingCardPropertiesCurrencyEnum.js";
 export { listingCardPropertiesCurrencyEnum } from "./ListingCardPropertiesCurrencyEnum.js";
+export type { ListingCardPropertiesPricingTypeEnum } from "./ListingCardPropertiesPricingTypeEnum.js";
+export { listingCardPropertiesPricingTypeEnum } from "./ListingCardPropertiesPricingTypeEnum.js";
 export type { ListingDetail } from "./ListingDetail.js";
 export type { ListingUpsert } from "./ListingUpsert.js";
 export type { ListingUpsertPropertiesStatusEnum } from "./ListingUpsertPropertiesStatusEnum.js";
@@ -5735,6 +5786,8 @@ export type { MyProfilePropertiesVisibilityEnum } from "./MyProfilePropertiesVis
 export { myProfilePropertiesVisibilityEnum } from "./MyProfilePropertiesVisibilityEnum.js";
 export type { NetworkPublic } from "./NetworkPublic.js";
 export type { NewPassword } from "./NewPassword.js";
+export type { NewsletterTestAccepted } from "./NewsletterTestAccepted.js";
+export type { NewsletterTestRequest } from "./NewsletterTestRequest.js";
 export type { NhcAsset } from "./NhcAsset.js";
 export type { NhcContent } from "./NhcContent.js";
 export type { NhcEdition } from "./NhcEdition.js";
@@ -6632,8 +6685,11 @@ export type { PlatformOrganisationUpdate } from "./PlatformOrganisationUpdate.js
 export type { PolicyInput } from "./PolicyInput.js";
 export type { PolicyPublic } from "./PolicyPublic.js";
 export type { PositionSpec } from "./PositionSpec.js";
+export type { PostAccepted } from "./PostAccepted.js";
+export type { PostIn } from "./PostIn.js";
 export type { PostponeEvent } from "./PostponeEvent.js";
 export type { PostponeResult } from "./PostponeResult.js";
+export type { PreferencesUnsubscribeRequest } from "./PreferencesUnsubscribeRequest.js";
 export type { ProductAccessCurrent } from "./ProductAccessCurrent.js";
 export type { ProductAccessInput } from "./ProductAccessInput.js";
 export type { ProductAccessPublic } from "./ProductAccessPublic.js";
@@ -7400,6 +7456,10 @@ export { scopeKind } from "./ScopeKind.js";
 export type { SectionCreate } from "./SectionCreate.js";
 export type { SectionUpdate } from "./SectionUpdate.js";
 export type { SectionView } from "./SectionView.js";
+export type { SectorOutlook } from "./SectorOutlook.js";
+export type { SectorOutlookItem } from "./SectorOutlookItem.js";
+export type { SectorOutlookItemPropertiesSourceEnum } from "./SectorOutlookItemPropertiesSourceEnum.js";
+export { sectorOutlookItemPropertiesSourceEnum } from "./SectorOutlookItemPropertiesSourceEnum.js";
 export type { SecurityProof } from "./SecurityProof.js";
 export type { SecuritySessionPublic } from "./SecuritySessionPublic.js";
 export type { SendObservationRequest } from "./SendObservationRequest.js";
@@ -7773,7 +7833,9 @@ export type { StreakPublic } from "./StreakPublic.js";
 export type { SubmissionMode } from "./SubmissionMode.js";
 export { submissionMode } from "./SubmissionMode.js";
 export type { SubscribeAccepted } from "./SubscribeAccepted.js";
+export type { SubscribedList } from "./SubscribedList.js";
 export type { SubscribeRequest } from "./SubscribeRequest.js";
+export type { SubscriptionPreferences } from "./SubscriptionPreferences.js";
 export type {
   SubscriptionsConfirmSubscriptionOptions,
   SubscriptionsConfirmSubscriptionQuery,
@@ -7782,6 +7844,35 @@ export type {
   SubscriptionsConfirmSubscriptionStatus303,
   SubscriptionsConfirmSubscriptionStatus422,
 } from "./SubscriptionsConfirmSubscription.js";
+export type {
+  SubscriptionsGetPreferencesOptions,
+  SubscriptionsGetPreferencesQuery,
+  SubscriptionsGetPreferencesResponse,
+  SubscriptionsGetPreferencesResponses,
+  SubscriptionsGetPreferencesStatus200,
+  SubscriptionsGetPreferencesStatus400,
+  SubscriptionsGetPreferencesStatus422,
+} from "./SubscriptionsGetPreferences.js";
+export type {
+  SubscriptionsSendNewsletterTestBody,
+  SubscriptionsSendNewsletterTestOptions,
+  SubscriptionsSendNewsletterTestResponse,
+  SubscriptionsSendNewsletterTestResponses,
+  SubscriptionsSendNewsletterTestStatus202,
+  SubscriptionsSendNewsletterTestStatus401,
+  SubscriptionsSendNewsletterTestStatus403,
+  SubscriptionsSendNewsletterTestStatus409,
+  SubscriptionsSendNewsletterTestStatus422,
+} from "./SubscriptionsSendNewsletterTest.js";
+export type {
+  SubscriptionsStopSubscriptionOptions,
+  SubscriptionsStopSubscriptionQuery,
+  SubscriptionsStopSubscriptionResponse,
+  SubscriptionsStopSubscriptionResponses,
+  SubscriptionsStopSubscriptionStatus200,
+  SubscriptionsStopSubscriptionStatus400,
+  SubscriptionsStopSubscriptionStatus422,
+} from "./SubscriptionsStopSubscription.js";
 export type {
   SubscriptionsSubscribeBody,
   SubscriptionsSubscribeOptions,
@@ -7808,8 +7899,27 @@ export type {
   SubscriptionsUnsubscribeResponse,
   SubscriptionsUnsubscribeResponses,
   SubscriptionsUnsubscribeStatus303,
+  SubscriptionsUnsubscribeStatus400,
   SubscriptionsUnsubscribeStatus422,
 } from "./SubscriptionsUnsubscribe.js";
+export type {
+  SubscriptionsUnsubscribeConfirmPageOptions,
+  SubscriptionsUnsubscribeConfirmPageQuery,
+  SubscriptionsUnsubscribeConfirmPageResponse,
+  SubscriptionsUnsubscribeConfirmPageResponses,
+  SubscriptionsUnsubscribeConfirmPageStatus200,
+  SubscriptionsUnsubscribeConfirmPageStatus400,
+  SubscriptionsUnsubscribeConfirmPageStatus422,
+} from "./SubscriptionsUnsubscribeConfirmPage.js";
+export type {
+  SubscriptionsUnsubscribeOneListBody,
+  SubscriptionsUnsubscribeOneListOptions,
+  SubscriptionsUnsubscribeOneListResponse,
+  SubscriptionsUnsubscribeOneListResponses,
+  SubscriptionsUnsubscribeOneListStatus200,
+  SubscriptionsUnsubscribeOneListStatus400,
+  SubscriptionsUnsubscribeOneListStatus422,
+} from "./SubscriptionsUnsubscribeOneList.js";
 export type { SuggestionCreate } from "./SuggestionCreate.js";
 export type { SuggestionPublic } from "./SuggestionPublic.js";
 export type { SuggestionPublicPropertiesStatusEnum } from "./SuggestionPublicPropertiesStatusEnum.js";
@@ -8520,6 +8630,14 @@ export type {
   WxproductsPublicForecastStatus422,
   WxproductsPublicForecastStatus503,
 } from "./WxproductsPublicForecast.js";
+export type {
+  WxproductsPublicSectorOutlookOptions,
+  WxproductsPublicSectorOutlookQuery,
+  WxproductsPublicSectorOutlookResponse,
+  WxproductsPublicSectorOutlookResponses,
+  WxproductsPublicSectorOutlookStatus200,
+  WxproductsPublicSectorOutlookStatus422,
+} from "./WxproductsPublicSectorOutlook.js";
 export type {
   WxproductsSaveAviationDraftBody,
   WxproductsSaveAviationDraftOptions,

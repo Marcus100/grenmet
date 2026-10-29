@@ -34,3 +34,7 @@ export const billingUpdateCustomerErrorSchema = z.union([
 ]);
 
 export const billingUpdateCustomerBodySchema = customerUpdateSchema;
+
+export const billingUpdateCustomerPathSchema = z.object({
+  customer_id: z.uuid(),
+});

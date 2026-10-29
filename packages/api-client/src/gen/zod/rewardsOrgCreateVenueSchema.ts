@@ -51,3 +51,12 @@ export const rewardsOrgCreateVenueErrorSchema = z.union([
 ]);
 
 export const rewardsOrgCreateVenueBodySchema = rewardsVenueCreateSchema;
+
+export const rewardsOrgCreateVenueHeadersSchema = z.object({
+  "X-Barrels-Organisation": z
+    .union([z.string(), z.null()])
+    .optional()
+    .describe(
+      "Id of the organisation the request acts for. The caller must be an active member."
+    ),
+});

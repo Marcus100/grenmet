@@ -10,6 +10,8 @@ export const subscriptionsUnsubscribeQueryTokenSchema = z.string();
 
 export const subscriptionsUnsubscribeStatus303Schema = z.unknown();
 
+export const subscriptionsUnsubscribeStatus400Schema = z.unknown();
+
 export const subscriptionsUnsubscribeStatus422Schema =
   validationErrorResponseSchema.describe(
     "Validation error envelope returned for malformed requests."
@@ -19,5 +21,10 @@ export const subscriptionsUnsubscribeResponseSchema = z.unknown();
 
 export const subscriptionsUnsubscribeErrorSchema = z.union([
   subscriptionsUnsubscribeStatus303Schema,
+  subscriptionsUnsubscribeStatus400Schema,
   subscriptionsUnsubscribeStatus422Schema,
 ]);
+
+export const subscriptionsUnsubscribeQuerySchema = z.object({
+  token: z.string(),
+});

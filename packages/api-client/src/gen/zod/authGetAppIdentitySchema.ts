@@ -27,3 +27,7 @@ export const authGetAppIdentityErrorSchema = z.union([
   authGetAppIdentityStatus401Schema,
   authGetAppIdentityStatus422Schema,
 ]);
+
+export const authGetAppIdentityPathSchema = z.object({
+  app: z.string().regex(/^[a-z][a-z0-9-]{1,30}$/),
+});

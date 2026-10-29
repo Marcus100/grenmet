@@ -40,3 +40,7 @@ export const janitorialUpdateContractorErrorSchema = z.union([
 ]);
 
 export const janitorialUpdateContractorBodySchema = contractorUpdateSchema;
+
+export const janitorialUpdateContractorPathSchema = z.object({
+  contractor_id: z.uuid(),
+});

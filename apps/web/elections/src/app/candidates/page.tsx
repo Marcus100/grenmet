@@ -56,7 +56,7 @@ export default function CandidatesPage() {
   return (
     <>
       <PageHead
-        deck={`${fmt(races)} candidacies at 17 general elections, by about ${fmt(everyone.length)} people, and the candidates named so far for 2026.`}
+        deck={`${fmt(races)} candidacies at 17 general elections, by about ${fmt(everyone.length)} people, plus a separately labelled 2026 announcement directory.`}
         eyebrow="Candidates · 1951 to 2026"
         learning="people"
         title="Everyone who has stood for the House"
@@ -66,9 +66,11 @@ export default function CandidatesPage() {
         id="2026"
         intro={
           <>
-            Names reported so far, with sources and uncertainty notes; updated{" "}
-            {formatIsoDate(campaign.updated)}. A link to a past record means a
-            name match with someone who stood since 2008
+            Earlier reported selections, with source notes. Named records
+            reviewed through{" "}
+            {formatIsoDate(campaign.candidate_names_as_of ?? campaign.updated)}.
+            This is not the complete certified ballot. A link to a past record
+            means a name match with someone who stood since 2008
             <Flag
               note="Matched by surname and first initial, not by an official identifier."
               status="unverified"
@@ -76,8 +78,23 @@ export default function CandidatesPage() {
             .
           </>
         }
-        title="Standing in 2026"
+        title="2026 nomination coverage"
       >
+        {campaign.nomination_summary && (
+          <p className="mb-4 max-w-prose text-base leading-relaxed">
+            CMC reported <b>{campaign.nomination_summary.total} nominees</b> on
+            26 October: NDC 15, NNP 15 and DPM 9. Seven other nominees are not
+            identified in that breakdown. The names below are an earlier,
+            incomplete directory, not a certified ballot.{" "}
+            <a
+              className="underline"
+              href={campaign.sources[campaign.nomination_summary.src]?.[1]}
+            >
+              Read the report
+            </a>
+            .
+          </p>
+        )}
         <div className="grid gap-px border border-el-rule bg-el-rule md:grid-cols-3">
           {SLATES.map((party) => {
             const slate = Object.entries(campaign.candidates[party] ?? {}) as [

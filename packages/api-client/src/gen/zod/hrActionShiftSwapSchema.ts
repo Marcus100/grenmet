@@ -33,3 +33,7 @@ export const hrActionShiftSwapErrorSchema = z.union([
 ]);
 
 export const hrActionShiftSwapBodySchema = shiftSwapActionSchema;
+
+export const hrActionShiftSwapPathSchema = z.object({
+  shift_swap_id: z.uuid(),
+});

@@ -7,6 +7,7 @@ COPY apps/api/fastapi/pyproject.toml apps/api/fastapi/pyproject.toml
 COPY scripts/scrapy-wxwatch/pyproject.toml scripts/scrapy-wxwatch/pyproject.toml
 COPY scripts/gms-ingest/pyproject.toml scripts/gms-ingest/pyproject.toml
 COPY scripts/sutron-collector/pyproject.toml scripts/sutron-collector/pyproject.toml
+COPY scripts/gnc-collector/pyproject.toml scripts/gnc-collector/pyproject.toml
 COPY notebooks/pyproject.toml notebooks/pyproject.toml
 COPY geonetcast/pyproject.toml geonetcast/pyproject.toml
 RUN useradd --create-home --uid 10001 collector
@@ -29,7 +30,7 @@ CMD ["collect", "--output-dir", "/data/nhc"]
 FROM base AS geonetcast
 RUN apt-get update && apt-get install -y --no-install-recommends g++ libgdal-dev gdal-bin libhdf4-alt-dev && rm -rf /var/lib/apt/lists/*
 COPY geonetcast geonetcast
-RUN uv sync --frozen --no-dev --package geonetcast && python -c "from osgeo import gdal; assert gdal.VersionInfo().startswith('306')"
+RUN uv sync --frozen --no-dev --package geonetcast && python -c "from osgeo import gdal, gdal_array; assert gdal.VersionInfo().startswith('306')"
 USER collector
 WORKDIR /data/output
 ENTRYPOINT ["python"]

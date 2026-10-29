@@ -8,6 +8,7 @@ import { DeskUpdates } from "./collections/desk-updates";
 import { Discover } from "./collections/discover";
 import { LivePosts } from "./collections/live-posts";
 import { Media } from "./collections/media";
+import { PublicationLog } from "./collections/publication-log";
 import { Questions } from "./collections/questions";
 import { ReportNotes } from "./collections/report-notes";
 import { Stories } from "./collections/stories";
@@ -15,8 +16,9 @@ import { Users } from "./collections/users";
 import { getEnv } from "./env";
 import { Homepage } from "./globals/homepage";
 import { WeatherNow } from "./globals/weather-now";
-import { linkedProductsEndpoint } from "./lib/linked-products";
+import { brokenLinksEndpoint } from "./lib/broken-links";
 import { reportPayloadError } from "./lib/report-payload-error";
+import { socialAttachmentEndpoint } from "./lib/social-attachments";
 
 const env = getEnv();
 const baseDir = path.dirname(fileURLToPath(import.meta.url));
@@ -46,22 +48,30 @@ export default buildConfig({
     importMap: { baseDir },
     meta: { titleSuffix: " | GMS Content" },
   },
+  // Sidebar order mirrors the weather site's homepage, top to bottom.
   collections: [
+    LivePosts,
     DeskUpdates,
+    ReportNotes,
     Stories,
     Questions,
     Discover,
-    ReportNotes,
-    LivePosts,
     Media,
     Users,
+    PublicationLog,
   ],
+  // WeatherNow is legacy: hidden, locked, and kept so the schema matches the database.
   globals: [WeatherNow, Homepage],
   endpoints: [
     {
-      path: "/linked-products",
+      path: "/social-attachment",
       method: "get",
-      handler: linkedProductsEndpoint,
+      handler: socialAttachmentEndpoint,
+    },
+    {
+      path: "/broken-links",
+      method: "get",
+      handler: brokenLinksEndpoint,
     },
   ],
   hooks: { afterError: [reportPayloadError] },

@@ -22,7 +22,7 @@ import Link from "next/link";
 import type { OrganiserOption } from "@/domain/types";
 import { OrganiserSwitcher } from "./organiser-switcher";
 
-export type DashSection = "overview" | "events" | "build";
+export type DashSection = "overview" | "events" | "build" | "team";
 
 interface NavigationItem {
   badge?: string;
@@ -58,7 +58,12 @@ const navigation: NavigationItem[] = [
     badge: "2",
   },
   { key: "finance", label: "Finance", icon: Landmark, href: null },
-  { key: "team", label: "Team", icon: ShieldCheck, href: null },
+  {
+    key: "team",
+    label: "Team and roles",
+    icon: ShieldCheck,
+    href: "/dash/team",
+  },
   { key: "settings", label: "Settings", icon: Settings2, href: null },
 ];
 

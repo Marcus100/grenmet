@@ -44,3 +44,7 @@ export const transportUpdateTimetableDraftErrorSchema = z.union([
 
 export const transportUpdateTimetableDraftBodySchema =
   timetableVersionUpdateSchema;
+
+export const transportUpdateTimetableDraftPathSchema = z.object({
+  version_id: z.int(),
+});

@@ -70,6 +70,11 @@ export function FlatMap({
       <path d={ringPath(geo.land)} fill="var(--el-land)" />
       {regions.map((region) => {
         const shape = shapes[region.code];
+        if (level === "div") {
+          const division = geo.divisions[region.code];
+          if (!(division?.located && division.cons === region.code.charAt(0)))
+            return null;
+        }
         return shape ? (
           <Region key={region.code} region={region} rings={shape.rings} />
         ) : null;

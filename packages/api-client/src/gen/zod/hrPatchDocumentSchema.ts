@@ -35,3 +35,7 @@ export const hrPatchDocumentErrorSchema = z.union([
 export const hrPatchDocumentBodySchema = employeeDocumentUpdateSchema.describe(
   "Correctable metadata only.\n\nCategory is not updatable: moving a MEDICAL document to OTHER would widen who\ncan read it after the fact. Re-file it instead, so the audit trail shows two\nrows rather than one silently reclassified one."
 );
+
+export const hrPatchDocumentPathSchema = z.object({
+  document_id: z.uuid(),
+});

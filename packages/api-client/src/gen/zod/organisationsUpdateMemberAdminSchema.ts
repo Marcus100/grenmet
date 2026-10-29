@@ -41,3 +41,8 @@ export const organisationsUpdateMemberAdminErrorSchema = z.union([
 
 export const organisationsUpdateMemberAdminBodySchema =
   platformMemberRoleUpdateSchema;
+
+export const organisationsUpdateMemberAdminPathSchema = z.object({
+  organisation_id: z.string(),
+  membership_id: z.string(),
+});

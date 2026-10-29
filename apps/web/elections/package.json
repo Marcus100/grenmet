@@ -14,13 +14,12 @@
     "check:fix": "biome check --write .",
     "check:ci": "biome ci .",
     "type-check": "rm -f next-env.d.ts && rm -rf .next/dev/types && next typegen && tsc --noEmit",
-    "test": "node --test scripts/history/check.test.mjs && vitest run",
+    "test": "python3 -m unittest discover -s scripts/history -p 'test_*.py' && node --test scripts/history/check.test.mjs && vitest run",
     "test:watch": "vitest",
     "data:build": "python3 scripts/history/build.py",
     "data:check": "node scripts/history/check.mjs"
   },
   "dependencies": {
-    "@barrelsgd/auth": "workspace:*",
     "@barrelsgd/ui": "workspace:*",
     "@base-ui/react": "catalog:",
     "@sentry/nextjs": "catalog:",

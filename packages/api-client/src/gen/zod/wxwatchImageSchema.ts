@@ -27,3 +27,7 @@ export const wxwatchImageErrorSchema = z.union([
   wxwatchImageStatus404Schema,
   wxwatchImageStatus422Schema,
 ]);
+
+export const wxwatchImagePathSchema = z.object({
+  image_id: z.int(),
+});

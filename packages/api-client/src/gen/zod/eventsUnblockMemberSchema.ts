@@ -32,3 +32,7 @@ export const eventsUnblockMemberErrorSchema = z.union([
   eventsUnblockMemberStatus422Schema,
   eventsUnblockMemberStatus429Schema,
 ]);
+
+export const eventsUnblockMemberPathSchema = z.object({
+  handle: z.string().regex(/^[a-z0-9][a-z0-9-]{1,29}$/),
+});

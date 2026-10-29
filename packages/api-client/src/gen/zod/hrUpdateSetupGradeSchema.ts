@@ -34,3 +34,7 @@ export const hrUpdateSetupGradeErrorSchema = z.union([
 ]);
 
 export const hrUpdateSetupGradeBodySchema = gradeInputSchema;
+
+export const hrUpdateSetupGradePathSchema = z.object({
+  grade_id: z.string(),
+});

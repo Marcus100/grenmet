@@ -29,3 +29,7 @@ export const hrGetTimesheetSummaryErrorSchema = z.union([
   hrGetTimesheetSummaryStatus404Schema,
   hrGetTimesheetSummaryStatus422Schema,
 ]);
+
+export const hrGetTimesheetSummaryPathSchema = z.object({
+  timesheet_id: z.uuid(),
+});

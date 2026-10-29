@@ -37,3 +37,7 @@ export const billingUpdateInvoiceErrorSchema = z.union([
 ]);
 
 export const billingUpdateInvoiceBodySchema = invoiceDraftWriteSchema;
+
+export const billingUpdateInvoicePathSchema = z.object({
+  invoice_id: z.uuid(),
+});

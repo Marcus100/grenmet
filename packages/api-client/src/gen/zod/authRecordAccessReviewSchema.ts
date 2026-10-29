@@ -34,3 +34,7 @@ export const authRecordAccessReviewErrorSchema = z.union([
 ]);
 
 export const authRecordAccessReviewBodySchema = reviewInputSchema;
+
+export const authRecordAccessReviewPathSchema = z.object({
+  assignment_id: z.uuid(),
+});

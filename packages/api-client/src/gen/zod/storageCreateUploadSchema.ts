@@ -38,3 +38,10 @@ export const storageCreateUploadErrorSchema = z.union([
 ]);
 
 export const storageCreateUploadBodySchema = uploadRequestSchema;
+
+export const storageCreateUploadHeadersSchema = z.object({
+  "X-Barrels-Organisation": z
+    .union([z.string(), z.null()])
+    .optional()
+    .describe("Id of the organisation the upload belongs to (active member)."),
+});

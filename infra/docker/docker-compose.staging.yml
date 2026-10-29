@@ -318,7 +318,7 @@ services:
 
   # ── Database UI ──────────────────────────────────────────────────────────────
   adminer:
-    image: adminer:6.1.1@sha256:74f29c416e148b98305e84446a18db7cd2c1038264dec464359d36774ef080ce
+    image: adminer:6.1.2@sha256:251295c1cd51d3889f1c42ffa4864b24eeab51f0caf395cfe5bf4726c5ec9a2a
     restart: always
     environment:
       ADMINER_DESIGN: pepa-linha-dark

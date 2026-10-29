@@ -34,3 +34,7 @@ export const hrUpdateStaffBalanceErrorSchema = z.union([
 ]);
 
 export const hrUpdateStaffBalanceBodySchema = balanceInputSchema;
+
+export const hrUpdateStaffBalancePathSchema = z.object({
+  user_id: z.uuid(),
+});

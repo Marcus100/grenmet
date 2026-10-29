@@ -19,7 +19,7 @@ export type BookingsCreateStudioBookingHeaders = {
 };
 
 /**
- * @description A booking as the business sees it, with the customer\'s contact details.
+ * @description A booking as the business sees it, with the customer's contact details.
  * @type object
  */
 export type BookingsCreateStudioBookingStatus201 = BookingStudioDetail;
@@ -41,7 +41,8 @@ export type BookingsCreateStudioBookingStatus409 = unknown;
 export type BookingsCreateStudioBookingStatus422 = ValidationErrorResponse;
 
 /**
- * @description A booking the business enters itself: phone, walk-in or a re-entered\nappointment. Sent with an `Idempotency-Key` header.
+ * @description A booking the business enters itself: phone, walk-in or a re-entered
+ * appointment. Sent with an `Idempotency-Key` header.
  * @type object
  */
 export type BookingsCreateStudioBookingBody = BookingStudioCreate;

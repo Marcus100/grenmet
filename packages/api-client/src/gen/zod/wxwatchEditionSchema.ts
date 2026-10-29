@@ -33,3 +33,7 @@ export const wxwatchEditionErrorSchema = z.union([
   wxwatchEditionStatus422Schema,
   wxwatchEditionStatus503Schema,
 ]);
+
+export const wxwatchEditionPathSchema = z.object({
+  edition_id: z.uuid(),
+});

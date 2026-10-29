@@ -23,3 +23,7 @@ export const capGetCapXmlErrorSchema = z.union([
   capGetCapXmlStatus404Schema,
   capGetCapXmlStatus422Schema,
 ]);
+
+export const capGetCapXmlPathSchema = z.object({
+  identifier: z.string(),
+});

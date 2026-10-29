@@ -96,11 +96,13 @@ async def test_transient_bounce_does_not_suppress(
     assert await _count(db_async, address) == 0
 
 
-async def test_complaint_suppresses_and_unsubscribes_from_lists(
+async def test_complaint_suppresses_the_address_but_changes_no_list_row(
     async_client: httpx.AsyncClient,
     db_async: AsyncSession,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
+    # A complaint blocks all non-transactional mail to the address (suppression).
+    # It is not an unsubscribe, so it must not stop any mailing list by itself.
     address = _address()
     db_async.add(
         ListSubscription(
@@ -123,11 +125,9 @@ async def test_complaint_suppresses_and_unsubscribes_from_lists(
     db_async.expire_all()
     assert await _count(db_async, address) == 1
     sub = await db_async.scalar(
-        select(ListSubscription).where(
-            ListSubscription.email_hash == hash_email(address)
-        )
+        select(ListSubscription).where(ListSubscription.email == address)
     )
     assert sub is not None
-    assert sub.status == SubscriptionStatus.UNSUBSCRIBED.value
-    assert sub.unsubscribed_at is not None
-    assert sub.email is None  # plaintext dropped, hash kept as proof
+    assert sub.status == SubscriptionStatus.CONFIRMED.value
+    assert sub.unsubscribed_at is None
+    assert sub.email == address
