@@ -12,6 +12,7 @@ import {
   PUBLISH_KEYS,
   WEATHER_NOW_NOTE_KEY,
 } from "../access";
+import { includeInNewsletterField } from "../fields/common";
 import { enforceReview } from "../fields/workflow";
 import { isNoteScope, NOTE_KIND, stampDutyNote } from "../lib/duty-note";
 import { checkMediaLink, type MediaKind } from "../lib/media-links";
@@ -179,5 +180,11 @@ export const LivePosts = editorialCollection({
           "Optional. The post leaves the homepage at this time. A note defaults to the next forecast issue (07:00, 12:00 or 18:00).",
       },
     },
+    // Only a general update has a page of its own to link to; videos, audio and
+    // the imagery tabs do not go in the digest.
+    includeInNewsletterField(
+      PUBLISH_KEYS["live-posts"],
+      (_data, sibling) => sibling?.kind === "update"
+    ),
   ],
 });

@@ -15,6 +15,7 @@ import {
 } from "../fields/workflow";
 import { isPreviewCollection, previewHref } from "../lib/preview-link";
 import { recordPublication } from "../lib/publication-log";
+import { distributeForSocial } from "../lib/social-distribution";
 
 /** Fields that stay last: search and social sharing settings. */
 const AFTER_LINKS = new Set(["seo", "social"]);
@@ -105,7 +106,10 @@ export function editorialCollection({
         ...(withLinks ? [validateRelatedLinks({ requireMainProduct })] : []),
         ...beforeChange,
       ],
-      afterChange: [recordPublication(slug, titleField)],
+      afterChange: [
+        recordPublication(slug, titleField),
+        distributeForSocial(slug),
+      ],
     },
     // Links belong with the content, before the sharing and search settings.
     fields: [
