@@ -30,7 +30,7 @@ const ICON_ROW_CLASS = "h-10";
 const LIFT = 7;
 
 const TAB =
-  "flex h-full flex-col items-center px-1 pt-2 pb-2 text-center outline-none hover:bg-gm-text-inverse/10 focus-visible:ring-2 focus-visible:ring-gm-lime focus-visible:ring-inset";
+  "flex h-full flex-col items-center px-0 pt-2 pb-2 text-center outline-none hover:bg-gm-text-inverse/10 focus-visible:ring-2 focus-visible:ring-gm-lime focus-visible:ring-inset";
 
 /** The selected tab is a lighter column; there is no other marker. */
 const CURRENT = "bg-gm-text-inverse/20";
@@ -200,7 +200,12 @@ export function SkyDayStrip({
                   sky={day.condition}
                   y={ys[column] ?? null}
                 />
-                <span className={cn(small, "max-w-full truncate text-gm-sky")}>
+                <span
+                  className={cn(
+                    small,
+                    "max-w-full overflow-hidden text-clip whitespace-nowrap text-gm-sky tracking-tight"
+                  )}
+                >
                   {day.rainWord ?? "\u00a0"}
                   {day.rainWord && (
                     <span className="sr-only"> chance of rain</span>
