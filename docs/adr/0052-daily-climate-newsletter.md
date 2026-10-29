@@ -30,7 +30,9 @@ Nothing in that machinery is tracking. The newsletter must not add open or click
 1. **A new mailing list** `gms-newsletter` ("GMS climate newsletter") in
    `src/subscriptions/constants.py`, with its own sign-up and consent wording on
    `/climate/newsletter`. Double opt-in applies. The confirmation link expires after
-   `SUBSCRIPTIONS_CONFIRM_TTL_DAYS` (7 days); an unconfirmed address is purged after 30 days.
+   `SUBSCRIPTIONS_CONFIRM_TTL_DAYS` (7 days from when the link was sent). An unconfirmed sign-up
+   expires with its link: the link then answers "expired, sign up again", and the daily purge
+   deletes the unconfirmed row once that link has lapsed. A fresh sign-up is always allowed.
 2. **One daily digest at 07:30 Grenada time** (11:30 UTC; Grenada does not observe daylight
    saving), an ARQ cron job `send_daily_newsletter` (`src/worker/newsletter_digest.py`). ARQ is
    the only scheduler, so no new scheduler ADR is needed (ADR-0038).
@@ -47,10 +49,20 @@ Nothing in that machinery is tracking. The newsletter must not add open or click
    (`NEWSLETTER_BATCH_SIZE`, default 50 per `NEWSLETTER_BATCH_INTERVAL_SECONDS`, default 60).
 6. **Every mail carries one-click unsubscribe headers** (`List-Unsubscribe` and
    `List-Unsubscribe-Post`, RFC 2369 and RFC 8058). The footer link opens a confirmation page.
-7. **Unsubscribing is never a GET.** A mail scanner that opens the emailed link cannot unsubscribe
-   anyone. The link redirects (303) to a confirmation page on the API, which names the list and
-   posts the change. This applies to every mailing list, not only the newsletter, because the
-   old GET-only action was the reason.
+7. **Unsubscribing is never a GET, and it stops one list only.** A mail scanner that opens the
+   emailed link cannot unsubscribe anyone. The link redirects (303) to a confirmation page on the
+   API, which names the list and posts the change. The POST stops **only the list named in that
+   mail** (its own row). The same address on other lists keeps receiving them. This applies to
+   every mailing list. An unsubscribe never reaches "all lists".
+   A spam complaint is different: it suppresses the address, which blocks all non-transactional mail
+   to it (existing sender protection). It does not change any list row, because the complaint
+   does not say which list it came from.
+11. **Preferences page (2026-10-29).** Each digest links to `/climate/newsletter/preferences` on
+    the newsletter's site, with the signed unsubscribe token from that mail. The page lists the
+    lists the address is confirmed on (`GET /subscriptions/preferences`) and stops one at a time
+    (`POST /subscriptions/preferences/unsubscribe`). The token names one row; its address hash finds
+    the address's other rows. Invalid, forged, expired and unknown tokens get the same 400. Nothing
+    reveals whether another address exists.
 8. **Staff test send:** `POST /api/v1/subscriptions/admin/newsletter/test` with the permission
    `newsletter.send_test` (no role grants it by default; superusers pass). It mails one address
    that has confirmed the newsletter, with a notice that it is a test. Any other address gets a

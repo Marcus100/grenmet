@@ -6656,6 +6656,7 @@ export type { PolicyPublic } from "./PolicyPublic.js";
 export type { PositionSpec } from "./PositionSpec.js";
 export type { PostponeEvent } from "./PostponeEvent.js";
 export type { PostponeResult } from "./PostponeResult.js";
+export type { PreferencesUnsubscribeRequest } from "./PreferencesUnsubscribeRequest.js";
 export type { ProductAccessCurrent } from "./ProductAccessCurrent.js";
 export type { ProductAccessInput } from "./ProductAccessInput.js";
 export type { ProductAccessPublic } from "./ProductAccessPublic.js";
@@ -7799,7 +7800,9 @@ export type { StreakPublic } from "./StreakPublic.js";
 export type { SubmissionMode } from "./SubmissionMode.js";
 export { submissionMode } from "./SubmissionMode.js";
 export type { SubscribeAccepted } from "./SubscribeAccepted.js";
+export type { SubscribedList } from "./SubscribedList.js";
 export type { SubscribeRequest } from "./SubscribeRequest.js";
+export type { SubscriptionPreferences } from "./SubscriptionPreferences.js";
 export type {
   SubscriptionsConfirmSubscriptionOptions,
   SubscriptionsConfirmSubscriptionQuery,
@@ -7808,6 +7811,15 @@ export type {
   SubscriptionsConfirmSubscriptionStatus303,
   SubscriptionsConfirmSubscriptionStatus422,
 } from "./SubscriptionsConfirmSubscription.js";
+export type {
+  SubscriptionsGetPreferencesOptions,
+  SubscriptionsGetPreferencesQuery,
+  SubscriptionsGetPreferencesResponse,
+  SubscriptionsGetPreferencesResponses,
+  SubscriptionsGetPreferencesStatus200,
+  SubscriptionsGetPreferencesStatus400,
+  SubscriptionsGetPreferencesStatus422,
+} from "./SubscriptionsGetPreferences.js";
 export type {
   SubscriptionsSendNewsletterTestBody,
   SubscriptionsSendNewsletterTestOptions,
@@ -7866,6 +7878,15 @@ export type {
   SubscriptionsUnsubscribeConfirmPageStatus400,
   SubscriptionsUnsubscribeConfirmPageStatus422,
 } from "./SubscriptionsUnsubscribeConfirmPage.js";
+export type {
+  SubscriptionsUnsubscribeOneListBody,
+  SubscriptionsUnsubscribeOneListOptions,
+  SubscriptionsUnsubscribeOneListResponse,
+  SubscriptionsUnsubscribeOneListResponses,
+  SubscriptionsUnsubscribeOneListStatus200,
+  SubscriptionsUnsubscribeOneListStatus400,
+  SubscriptionsUnsubscribeOneListStatus422,
+} from "./SubscriptionsUnsubscribeOneList.js";
 export type { SuggestionCreate } from "./SuggestionCreate.js";
 export type { SuggestionPublic } from "./SuggestionPublic.js";
 export type { SuggestionPublicPropertiesStatusEnum } from "./SuggestionPublicPropertiesStatusEnum.js";

@@ -175,8 +175,15 @@ def test_props_carry_the_unsubscribe_link_and_only_test_sends_show_a_notice() ->
         hurricane_mode=False,
         test=False,
     )
-    props = newsletter.props(digest, unsubscribe_link="https://api/unsub?token=t")
+    props = newsletter.props(
+        digest,
+        unsubscribe_link="https://api/unsub?token=t",
+        preferences_link="https://gms/climate/newsletter/preferences?token=t",
+    )
     assert props["unsubscribeLink"] == "https://api/unsub?token=t"
+    assert props["preferencesLink"] == (
+        "https://gms/climate/newsletter/preferences?token=t"
+    )
     assert props["listName"] == "GMS climate newsletter"
     assert props["testNotice"] is None
     assert props["alerts"][0]["headline"] == "Yellow heavy rain warning"

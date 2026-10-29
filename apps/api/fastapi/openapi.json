@@ -28230,6 +28230,97 @@
         }
       }
     },
+    "/api/v1/subscriptions/preferences": {
+      "get": {
+        "tags": [
+          "subscriptions"
+        ],
+        "summary": "List the mailing lists behind an emailed link",
+        "description": "For the signed token from a list email. Returns the lists the address is confirmed on, so the reader can stop each one. Read only. Any token that is missing, forged, expired or unknown gets the same 400.",
+        "operationId": "subscriptionsGetPreferences",
+        "parameters": [
+          {
+            "name": "token",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Token"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SubscriptionPreferences"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "400": {
+            "description": "Malformed request"
+          }
+        }
+      }
+    },
+    "/api/v1/subscriptions/preferences/unsubscribe": {
+      "post": {
+        "tags": [
+          "subscriptions"
+        ],
+        "summary": "Stop one mailing list from an emailed link",
+        "description": "Stops `list_key` for the address behind `token` and returns the lists it is still confirmed on. Other lists and other addresses are never changed. A list the address is not on changes nothing. An invalid token gets the same 400 as `GET /subscriptions/preferences`.",
+        "operationId": "subscriptionsUnsubscribeOneList",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PreferencesUnsubscribeRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SubscriptionPreferences"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Content",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Malformed request"
+          }
+        }
+      }
+    },
     "/api/v1/subscriptions/admin/newsletter/test": {
       "post": {
         "tags": [
@@ -71994,6 +72085,29 @@
         ],
         "title": "PostponeResult"
       },
+      "PreferencesUnsubscribeRequest": {
+        "properties": {
+          "token": {
+            "type": "string",
+            "maxLength": 2048,
+            "title": "Token"
+          },
+          "list_key": {
+            "type": "string",
+            "maxLength": 40,
+            "minLength": 1,
+            "pattern": "^[a-z0-9-]+$",
+            "title": "List Key"
+          }
+        },
+        "type": "object",
+        "required": [
+          "token",
+          "list_key"
+        ],
+        "title": "PreferencesUnsubscribeRequest",
+        "description": "The signed token from a mail, and the one list to stop."
+      },
       "ProductAccessCurrent": {
         "properties": {
           "allowed_kinds": {
@@ -83042,6 +83156,41 @@
           "email"
         ],
         "title": "SubscribeRequest"
+      },
+      "SubscribedList": {
+        "properties": {
+          "list_key": {
+            "type": "string",
+            "title": "List Key"
+          },
+          "list_name": {
+            "type": "string",
+            "title": "List Name"
+          }
+        },
+        "type": "object",
+        "required": [
+          "list_key",
+          "list_name"
+        ],
+        "title": "SubscribedList",
+        "description": "A mailing list the address behind the link is confirmed on."
+      },
+      "SubscriptionPreferences": {
+        "properties": {
+          "lists": {
+            "items": {
+              "$ref": "#/components/schemas/SubscribedList"
+            },
+            "type": "array",
+            "title": "Lists"
+          }
+        },
+        "type": "object",
+        "required": [
+          "lists"
+        ],
+        "title": "SubscriptionPreferences"
       },
       "SuggestionCreate": {
         "properties": {

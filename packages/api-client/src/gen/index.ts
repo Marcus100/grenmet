@@ -601,12 +601,14 @@ export { storesUpdateItem } from "./clients/storesUpdateItem.js";
 export { storesUpdateLocation } from "./clients/storesUpdateLocation.js";
 export { storesUpdateRequisition } from "./clients/storesUpdateRequisition.js";
 export { subscriptionsConfirmSubscription } from "./clients/subscriptionsConfirmSubscription.js";
+export { subscriptionsGetPreferences } from "./clients/subscriptionsGetPreferences.js";
 export { subscriptionsSendNewsletterTest } from "./clients/subscriptionsSendNewsletterTest.js";
 export { subscriptionsStopSubscription } from "./clients/subscriptionsStopSubscription.js";
 export { subscriptionsSubscribe } from "./clients/subscriptionsSubscribe.js";
 export { subscriptionsSubscribeToSite } from "./clients/subscriptionsSubscribeToSite.js";
 export { subscriptionsUnsubscribe } from "./clients/subscriptionsUnsubscribe.js";
 export { subscriptionsUnsubscribeConfirmPage } from "./clients/subscriptionsUnsubscribeConfirmPage.js";
+export { subscriptionsUnsubscribeOneList } from "./clients/subscriptionsUnsubscribeOneList.js";
 export { transportAddTimetableTrip } from "./clients/transportAddTimetableTrip.js";
 export { transportCreateRouteEntry } from "./clients/transportCreateRouteEntry.js";
 export { transportCreateStop } from "./clients/transportCreateStop.js";
@@ -3680,6 +3682,11 @@ export {
   useSubscriptionsConfirmSubscription,
 } from "./hooks/useSubscriptionsConfirmSubscription.js";
 export {
+  subscriptionsGetPreferencesQueryKey,
+  subscriptionsGetPreferencesQueryOptions,
+  useSubscriptionsGetPreferences,
+} from "./hooks/useSubscriptionsGetPreferences.js";
+export {
   subscriptionsSendNewsletterTestMutationKey,
   subscriptionsSendNewsletterTestMutationOptions,
   useSubscriptionsSendNewsletterTest,
@@ -3709,6 +3716,11 @@ export {
   subscriptionsUnsubscribeConfirmPageQueryOptions,
   useSubscriptionsUnsubscribeConfirmPage,
 } from "./hooks/useSubscriptionsUnsubscribeConfirmPage.js";
+export {
+  subscriptionsUnsubscribeOneListMutationKey,
+  subscriptionsUnsubscribeOneListMutationOptions,
+  useSubscriptionsUnsubscribeOneList,
+} from "./hooks/useSubscriptionsUnsubscribeOneList.js";
 export {
   transportAddTimetableTripMutationKey,
   transportAddTimetableTripMutationOptions,
@@ -10727,6 +10739,7 @@ export type { PolicyPublic } from "./models/PolicyPublic.js";
 export type { PositionSpec } from "./models/PositionSpec.js";
 export type { PostponeEvent } from "./models/PostponeEvent.js";
 export type { PostponeResult } from "./models/PostponeResult.js";
+export type { PreferencesUnsubscribeRequest } from "./models/PreferencesUnsubscribeRequest.js";
 export type { ProductAccessCurrent } from "./models/ProductAccessCurrent.js";
 export type { ProductAccessInput } from "./models/ProductAccessInput.js";
 export type { ProductAccessPublic } from "./models/ProductAccessPublic.js";
@@ -11870,7 +11883,9 @@ export type { StreakPublic } from "./models/StreakPublic.js";
 export type { SubmissionMode } from "./models/SubmissionMode.js";
 export { submissionMode } from "./models/SubmissionMode.js";
 export type { SubscribeAccepted } from "./models/SubscribeAccepted.js";
+export type { SubscribedList } from "./models/SubscribedList.js";
 export type { SubscribeRequest } from "./models/SubscribeRequest.js";
+export type { SubscriptionPreferences } from "./models/SubscriptionPreferences.js";
 export type {
   SubscriptionsConfirmSubscriptionOptions,
   SubscriptionsConfirmSubscriptionQuery,
@@ -11879,6 +11894,15 @@ export type {
   SubscriptionsConfirmSubscriptionStatus303,
   SubscriptionsConfirmSubscriptionStatus422,
 } from "./models/SubscriptionsConfirmSubscription.js";
+export type {
+  SubscriptionsGetPreferencesOptions,
+  SubscriptionsGetPreferencesQuery,
+  SubscriptionsGetPreferencesResponse,
+  SubscriptionsGetPreferencesResponses,
+  SubscriptionsGetPreferencesStatus200,
+  SubscriptionsGetPreferencesStatus400,
+  SubscriptionsGetPreferencesStatus422,
+} from "./models/SubscriptionsGetPreferences.js";
 export type {
   SubscriptionsSendNewsletterTestBody,
   SubscriptionsSendNewsletterTestOptions,
@@ -11937,6 +11961,15 @@ export type {
   SubscriptionsUnsubscribeConfirmPageStatus400,
   SubscriptionsUnsubscribeConfirmPageStatus422,
 } from "./models/SubscriptionsUnsubscribeConfirmPage.js";
+export type {
+  SubscriptionsUnsubscribeOneListBody,
+  SubscriptionsUnsubscribeOneListOptions,
+  SubscriptionsUnsubscribeOneListResponse,
+  SubscriptionsUnsubscribeOneListResponses,
+  SubscriptionsUnsubscribeOneListStatus200,
+  SubscriptionsUnsubscribeOneListStatus400,
+  SubscriptionsUnsubscribeOneListStatus422,
+} from "./models/SubscriptionsUnsubscribeOneList.js";
 export type { SuggestionCreate } from "./models/SuggestionCreate.js";
 export type { SuggestionPublic } from "./models/SuggestionPublic.js";
 export type { SuggestionPublicPropertiesStatusEnum } from "./models/SuggestionPublicPropertiesStatusEnum.js";
@@ -19539,6 +19572,7 @@ export { policyPublicSchema } from "./zod/policyPublicSchema.js";
 export { positionSpecSchema } from "./zod/positionSpecSchema.js";
 export { postponeEventSchema } from "./zod/postponeEventSchema.js";
 export { postponeResultSchema } from "./zod/postponeResultSchema.js";
+export { preferencesUnsubscribeRequestSchema } from "./zod/preferencesUnsubscribeRequestSchema.js";
 export { productAccessCurrentSchema } from "./zod/productAccessCurrentSchema.js";
 export { productAccessInputSchema } from "./zod/productAccessInputSchema.js";
 export { productAccessPublicSchema } from "./zod/productAccessPublicSchema.js";
@@ -20664,7 +20698,9 @@ export {
 export { streakPublicSchema } from "./zod/streakPublicSchema.js";
 export { submissionModeSchema } from "./zod/submissionModeSchema.js";
 export { subscribeAcceptedSchema } from "./zod/subscribeAcceptedSchema.js";
+export { subscribedListSchema } from "./zod/subscribedListSchema.js";
 export { subscribeRequestSchema } from "./zod/subscribeRequestSchema.js";
+export { subscriptionPreferencesSchema } from "./zod/subscriptionPreferencesSchema.js";
 export {
   subscriptionsConfirmSubscriptionErrorSchema,
   subscriptionsConfirmSubscriptionQuerySchema,
@@ -20673,6 +20709,15 @@ export {
   subscriptionsConfirmSubscriptionStatus303Schema,
   subscriptionsConfirmSubscriptionStatus422Schema,
 } from "./zod/subscriptionsConfirmSubscriptionSchema.js";
+export {
+  subscriptionsGetPreferencesErrorSchema,
+  subscriptionsGetPreferencesQuerySchema,
+  subscriptionsGetPreferencesQueryTokenSchema,
+  subscriptionsGetPreferencesResponseSchema,
+  subscriptionsGetPreferencesStatus200Schema,
+  subscriptionsGetPreferencesStatus400Schema,
+  subscriptionsGetPreferencesStatus422Schema,
+} from "./zod/subscriptionsGetPreferencesSchema.js";
 export {
   subscriptionsSendNewsletterTestBodySchema,
   subscriptionsSendNewsletterTestErrorSchema,
@@ -20720,6 +20765,14 @@ export {
   subscriptionsUnsubscribeConfirmPageStatus400Schema,
   subscriptionsUnsubscribeConfirmPageStatus422Schema,
 } from "./zod/subscriptionsUnsubscribeConfirmPageSchema.js";
+export {
+  subscriptionsUnsubscribeOneListBodySchema,
+  subscriptionsUnsubscribeOneListErrorSchema,
+  subscriptionsUnsubscribeOneListResponseSchema,
+  subscriptionsUnsubscribeOneListStatus200Schema,
+  subscriptionsUnsubscribeOneListStatus400Schema,
+  subscriptionsUnsubscribeOneListStatus422Schema,
+} from "./zod/subscriptionsUnsubscribeOneListSchema.js";
 export {
   subscriptionsUnsubscribeErrorSchema,
   subscriptionsUnsubscribeQuerySchema,

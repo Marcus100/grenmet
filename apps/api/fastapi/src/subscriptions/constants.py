@@ -30,5 +30,7 @@ NEWSLETTER_LIST_KEY = "gms-newsletter"
 NEWSLETTER_TEMPLATE = "newsletter"
 # Feature flag (src/feature_flags): alert-first, shorter digests during hurricane season.
 HURRICANE_MODE_FLAG = "newsletter-hurricane-mode"
+# Preferences page of the newsletter's site, linked from every digest (ADR-0052).
+NEWSLETTER_PREFERENCES_PATH = "/climate/newsletter/preferences"
 # Staff permission for the test send (src/auth/permissions.py).
 NEWSLETTER_TEST_PERMISSION = "newsletter.send_test"

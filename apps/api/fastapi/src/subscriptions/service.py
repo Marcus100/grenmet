@@ -12,7 +12,7 @@ from urllib.parse import urlencode
 
 import jwt
 from jwt.exceptions import InvalidTokenError
-from sqlalchemy import or_, select, update
+from sqlalchemy import or_, select
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -30,9 +30,11 @@ from .constants import (
     CONFIRM_PURPOSE,
     CONFIRMATION_TEMPLATE,
     MAILING_LISTS,
+    NEWSLETTER_PREFERENCES_PATH,
     UNSUBSCRIBE_PURPOSE,
     MailingList,
 )
+from .exceptions import SubscriptionLinkInvalidError
 from .models import ListSubscription, SubscriptionStatus
 
 logger = logging.getLogger(__name__)
@@ -58,8 +60,30 @@ def _make_token(
 
 
 def _read_token(token: str, *, purpose: str) -> uuid.UUID | None:
+    """Subscription id named by a valid token of this purpose, else None.
+
+    An expired token raises ``jwt.ExpiredSignatureError`` so the caller can say
+    "expired" instead of "invalid"."""
     try:
         claims = jwt.decode(token, auth_settings.SECRET_KEY, algorithms=[_ALGORITHM])
+        if claims.get("purpose") != purpose:
+            return None
+        return uuid.UUID(str(claims["sub"]))
+    except jwt.ExpiredSignatureError:
+        raise
+    except InvalidTokenError, KeyError, ValueError:
+        return None
+
+
+def _unverified_subscription_id(token: str, *, purpose: str) -> uuid.UUID | None:
+    """Subscription id of an expired token of this purpose, to find its list only."""
+    try:
+        claims = jwt.decode(
+            token,
+            auth_settings.SECRET_KEY,
+            algorithms=[_ALGORITHM],
+            options={"verify_exp": False},
+        )
         if claims.get("purpose") != purpose:
             return None
         return uuid.UUID(str(claims["sub"]))
@@ -230,8 +254,20 @@ async def subscribe(
 
 
 async def confirm(*, session: AsyncSession, token: str) -> str:
-    """Confirm the subscription named by the token. Returns the redirect URL."""
-    subscription_id = _read_token(token, purpose=CONFIRM_PURPOSE)
+    """Confirm the subscription named by the token. Returns the redirect URL.
+
+    An expired link answers ``result=expired`` (the page says to sign up again)
+    and confirms nothing."""
+    try:
+        subscription_id = _read_token(token, purpose=CONFIRM_PURPOSE)
+    except jwt.ExpiredSignatureError:
+        expired_id = _unverified_subscription_id(token, purpose=CONFIRM_PURPOSE)
+        expired_row = (
+            await session.get(ListSubscription, expired_id) if expired_id else None
+        )
+        return await _status_url(
+            session, expired_row.list_key if expired_row else None, "expired"
+        )
     row = (
         await session.get(ListSubscription, subscription_id)
         if subscription_id
@@ -310,26 +346,98 @@ async def unsubscribe(*, session: AsyncSession, token: str) -> str | None:
     return await _list_name(session, row.list_key)
 
 
-async def unsubscribe_address(*, session: AsyncSession, email: str) -> int:
-    """Unsubscribe an address from every list (spam complaint). Caller commits."""
-    now = utc_now()
-    clean = notification_service.normalise_email(email)
-    address_hash = hash_email(clean)
-    result = await session.execute(
-        update(ListSubscription)
-        .where(
-            or_(
-                ListSubscription.email_hash == address_hash,
-                ListSubscription.email == clean,
-            ),
-            ListSubscription.status != SubscriptionStatus.UNSUBSCRIBED.value,
-        )
-        .values(
-            status=SubscriptionStatus.UNSUBSCRIBED.value,
-            unsubscribed_at=now,
-            updated_at=now,
-            email=None,
-            email_hash=address_hash,
-        )
+def pending_expiry_cutoff(now: datetime) -> datetime:
+    """Unconfirmed rows whose newest confirmation link lapsed before this are expired.
+
+    The retention purge deletes them. A link lives ``SUBSCRIPTIONS_CONFIRM_TTL_DAYS``
+    from the time it was sent."""
+    return now - timedelta(days=subscriptions_settings.SUBSCRIPTIONS_CONFIRM_TTL_DAYS)
+
+
+# ── Preferences (ADR-0052): the lists behind one emailed link ───────────────
+
+
+async def _address_rows(
+    session: AsyncSession,
+    *,
+    email_hash: str | None,
+    email: str | None,
+    confirmed_only: bool,
+) -> list[ListSubscription]:
+    """Rows of one address on any list. Matches the keyed hash or legacy plaintext.
+
+    Takes the two address fields by value: callers commit in between, and an
+    expired ORM row cannot be read again inside the async session."""
+    matches = []
+    if email_hash:
+        matches.append(ListSubscription.email_hash == email_hash)
+    if email:
+        matches.append(ListSubscription.email == email)
+    if not matches:
+        return []
+    conditions = [or_(*matches)]
+    if confirmed_only:
+        conditions.append(ListSubscription.status == SubscriptionStatus.CONFIRMED.value)
+    rows = await session.scalars(select(ListSubscription).where(*conditions))
+    return list(rows.all())
+
+
+async def _preference_lists(
+    session: AsyncSession, *, email_hash: str | None, email: str | None
+) -> list[dict[str, str]]:
+    rows = await _address_rows(
+        session, email_hash=email_hash, email=email, confirmed_only=True
     )
-    return int(getattr(result, "rowcount", 0) or 0)
+    lists = [
+        {"list_key": row.list_key, "list_name": await _list_name(session, row.list_key)}
+        for row in rows
+    ]
+    return sorted(lists, key=lambda item: item["list_name"])
+
+
+async def _token_row(session: AsyncSession, token: str) -> ListSubscription:
+    """The row an unsubscribe-purpose token names; raises when it names none."""
+    row = await _unsubscribe_row(session, token)
+    if row is None:
+        raise SubscriptionLinkInvalidError()
+    return row
+
+
+async def preferences(*, session: AsyncSession, token: str) -> list[dict[str, str]]:
+    """Confirmed lists of the address named by the token (read only)."""
+    row = await _token_row(session, token)
+    return await _preference_lists(session, email_hash=row.email_hash, email=row.email)
+
+
+async def unsubscribe_one_list(
+    *, session: AsyncSession, token: str, list_key: str
+) -> list[dict[str, str]]:
+    """Stop one list of the token's address. Other lists and addresses are untouched.
+
+    An address that is not on ``list_key`` changes nothing, so the reply does not
+    reveal anything about other lists. Returns the lists still confirmed."""
+    token_row = await _token_row(session, token)
+    email_hash, email = token_row.email_hash, token_row.email
+    now = utc_now()
+    for row in await _address_rows(
+        session, email_hash=email_hash, email=email, confirmed_only=True
+    ):
+        if row.list_key == list_key:
+            _mark_unsubscribed(row, now)
+    await session.commit()
+    return await _preference_lists(session, email_hash=email_hash, email=email)
+
+
+def preferences_link(base: str, subscription_id: uuid.UUID) -> str:
+    """Preferences page under a list's site origin, with that row's signed token."""
+    token = _make_token(
+        subscription_id=subscription_id, purpose=UNSUBSCRIBE_PURPOSE, ttl=None
+    )
+    return f"{base}{NEWSLETTER_PREFERENCES_PATH}?{urlencode({'token': token})}"
+
+
+async def preferences_url(
+    session: AsyncSession, list_key: str, subscription_id: uuid.UUID
+) -> str:
+    """Preferences link for one row (one database lookup for the origin)."""
+    return preferences_link(await site_url_for(session, list_key), subscription_id)

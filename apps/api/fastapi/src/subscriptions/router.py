@@ -16,9 +16,12 @@ from .constants import NEWSLETTER_TEST_PERMISSION
 from .schemas import (
     NewsletterTestAccepted,
     NewsletterTestRequest,
+    PreferencesUnsubscribeRequest,
     SiteSubscribeRequest,
     SubscribeAccepted,
+    SubscribedList,
     SubscribeRequest,
+    SubscriptionPreferences,
 )
 
 router = APIRouter(prefix="/subscriptions", tags=["subscriptions"])
@@ -168,6 +171,49 @@ async def stop_subscription(
     if list_name is None:
         return HTMLResponse(pages.invalid(), status_code=status.HTTP_400_BAD_REQUEST)
     return HTMLResponse(pages.unsubscribed(list_name=list_name))
+
+
+@router.get(
+    "/preferences",
+    response_model=SubscriptionPreferences,
+    summary="List the mailing lists behind an emailed link",
+    description=(
+        "For the signed token from a list email. Returns the lists the address is "
+        "confirmed on, so the reader can stop each one. Read only. Any token that is "
+        "missing, forged, expired or unknown gets the same 400."
+    ),
+    responses={**BAD_REQUEST},
+)
+@limiter.limit("30/minute")
+async def get_preferences(
+    *, request: Request, session: SessionDep, token: str
+) -> SubscriptionPreferences:
+    _ = request
+    lists = await service.preferences(session=session, token=token)
+    return SubscriptionPreferences(lists=[SubscribedList(**item) for item in lists])
+
+
+@router.post(
+    "/preferences/unsubscribe",
+    response_model=SubscriptionPreferences,
+    summary="Stop one mailing list from an emailed link",
+    description=(
+        "Stops `list_key` for the address behind `token` and returns the lists it is "
+        "still confirmed on. Other lists and other addresses are never changed. A list "
+        "the address is not on changes nothing. An invalid token gets the same 400 as "
+        "`GET /subscriptions/preferences`."
+    ),
+    responses={**BAD_REQUEST},
+)
+@limiter.limit("30/minute")
+async def unsubscribe_one_list(
+    *, request: Request, session: SessionDep, body: PreferencesUnsubscribeRequest
+) -> SubscriptionPreferences:
+    _ = request
+    lists = await service.unsubscribe_one_list(
+        session=session, token=body.token, list_key=body.list_key
+    )
+    return SubscriptionPreferences(lists=[SubscribedList(**item) for item in lists])
 
 
 @router.post(

@@ -6605,6 +6605,7 @@ export { policyPublicSchema } from "./policyPublicSchema.js";
 export { positionSpecSchema } from "./positionSpecSchema.js";
 export { postponeEventSchema } from "./postponeEventSchema.js";
 export { postponeResultSchema } from "./postponeResultSchema.js";
+export { preferencesUnsubscribeRequestSchema } from "./preferencesUnsubscribeRequestSchema.js";
 export { productAccessCurrentSchema } from "./productAccessCurrentSchema.js";
 export { productAccessInputSchema } from "./productAccessInputSchema.js";
 export { productAccessPublicSchema } from "./productAccessPublicSchema.js";
@@ -7730,7 +7731,9 @@ export {
 export { streakPublicSchema } from "./streakPublicSchema.js";
 export { submissionModeSchema } from "./submissionModeSchema.js";
 export { subscribeAcceptedSchema } from "./subscribeAcceptedSchema.js";
+export { subscribedListSchema } from "./subscribedListSchema.js";
 export { subscribeRequestSchema } from "./subscribeRequestSchema.js";
+export { subscriptionPreferencesSchema } from "./subscriptionPreferencesSchema.js";
 export {
   subscriptionsConfirmSubscriptionErrorSchema,
   subscriptionsConfirmSubscriptionQuerySchema,
@@ -7739,6 +7742,15 @@ export {
   subscriptionsConfirmSubscriptionStatus303Schema,
   subscriptionsConfirmSubscriptionStatus422Schema,
 } from "./subscriptionsConfirmSubscriptionSchema.js";
+export {
+  subscriptionsGetPreferencesErrorSchema,
+  subscriptionsGetPreferencesQuerySchema,
+  subscriptionsGetPreferencesQueryTokenSchema,
+  subscriptionsGetPreferencesResponseSchema,
+  subscriptionsGetPreferencesStatus200Schema,
+  subscriptionsGetPreferencesStatus400Schema,
+  subscriptionsGetPreferencesStatus422Schema,
+} from "./subscriptionsGetPreferencesSchema.js";
 export {
   subscriptionsSendNewsletterTestBodySchema,
   subscriptionsSendNewsletterTestErrorSchema,
@@ -7786,6 +7798,14 @@ export {
   subscriptionsUnsubscribeConfirmPageStatus400Schema,
   subscriptionsUnsubscribeConfirmPageStatus422Schema,
 } from "./subscriptionsUnsubscribeConfirmPageSchema.js";
+export {
+  subscriptionsUnsubscribeOneListBodySchema,
+  subscriptionsUnsubscribeOneListErrorSchema,
+  subscriptionsUnsubscribeOneListResponseSchema,
+  subscriptionsUnsubscribeOneListStatus200Schema,
+  subscriptionsUnsubscribeOneListStatus400Schema,
+  subscriptionsUnsubscribeOneListStatus422Schema,
+} from "./subscriptionsUnsubscribeOneListSchema.js";
 export {
   subscriptionsUnsubscribeErrorSchema,
   subscriptionsUnsubscribeQuerySchema,

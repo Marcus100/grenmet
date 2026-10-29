@@ -208,7 +208,7 @@ async def test_invalid_tokens_redirect_without_changing_anything(
     assert row.status == SubscriptionStatus.PENDING.value
 
 
-async def test_expired_confirm_token_is_rejected(
+async def test_expired_confirm_token_says_expired_and_confirms_nothing(
     async_client: httpx.AsyncClient, db_async: AsyncSession
 ) -> None:
     address = _address()
@@ -221,10 +221,36 @@ async def test_expired_confirm_token_is_rejected(
     resp = await async_client.get(
         f"{_URL}/confirm", params={"token": expired}, follow_redirects=False
     )
-    assert resp.headers["location"].endswith("result=invalid")
+    assert resp.status_code == 303
+    assert resp.headers["location"].endswith("result=expired")
     row = await _row(db_async, address)
     assert row is not None
     assert row.status == SubscriptionStatus.PENDING.value
+
+
+async def test_forged_confirm_token_still_says_invalid(
+    async_client: httpx.AsyncClient,
+) -> None:
+    resp = await async_client.get(
+        f"{_URL}/confirm", params={"token": "garbage"}, follow_redirects=False
+    )
+    assert resp.headers["location"].endswith("result=invalid")
+
+
+async def test_lapsed_pending_address_can_sign_up_again(
+    async_client: httpx.AsyncClient, db_async: AsyncSession
+) -> None:
+    address = _address()
+    await _subscribe(async_client, address)
+    row = await _row(db_async, address)
+    assert row is not None
+    row.requested_at = utc_now() - timedelta(days=8)
+    row.last_confirmation_sent_at = utc_now() - timedelta(days=8)
+    await db_async.commit()
+
+    await _subscribe(async_client, address)
+
+    assert len(await _outbox(db_async, address)) == 2
 
 
 async def test_unsubscribe_then_resubscribe_restarts_double_opt_in(

@@ -88,7 +88,15 @@ site key), never a secret. Superusers manage sites through
   (`subscriptionsUnsubscribeConfirmPage`, HTML naming the list and a button). The button, and the
   one-click `List-Unsubscribe-Post` target, is `POST /subscriptions/unsubscribe?token=`
   (`subscriptionsStopSubscription`, HTML result, 400 for an invalid token). Mail scanners that open
-  links therefore cannot unsubscribe anyone.
+  links therefore cannot unsubscribe anyone. The POST stops **only the list named in that mail**.
+- Subscriber preferences (additive, ADR-0052): `GET /subscriptions/preferences?token=`
+  (`subscriptionsGetPreferences`) returns `{lists: [{list_key, list_name}]}`, the lists the address
+  behind the signed mail token is confirmed on. `POST /subscriptions/preferences/unsubscribe`
+  (`subscriptionsUnsubscribeOneList`, body `{token, list_key}`) stops one of them and returns what is
+  left. An invalid, expired or unknown token gets the same 400. Never changes another address.
+- Confirmation expiry (additive, ADR-0052): an expired confirm link redirects with `result=expired`
+  (the site says to sign up again). Unconfirmed rows are purged once their link has lapsed
+  (`SUBSCRIPTIONS_CONFIRM_TTL_DAYS`, default 7).
 - Climate newsletter staff test (additive, ADR-0052): `POST /api/v1/subscriptions/admin/newsletter/test`
   (`subscriptionsSendNewsletterTest`, body `{email}`, 202, needs `newsletter.send_test`). Queues one
   test copy to an address that has confirmed `gms-newsletter`; 409 otherwise. Nothing goes to other

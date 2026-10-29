@@ -55,6 +55,10 @@ async def queue_daily(
     # Outbox timestamps are naive UTC (src.utils.datetime.utc_now).
     base = now.astimezone(UTC).replace(tzinfo=None) if now.tzinfo else now
     queued = 0
+    # One origin lookup for the whole run; each reader's link differs only by token.
+    preferences_base = await subscription_service.site_url_for(
+        session, NEWSLETTER_LIST_KEY
+    )
     for index, subscription in enumerate(subscribers):
         if subscription.email is None:  # unreachable after the filter; narrows the type
             continue
@@ -67,6 +71,9 @@ async def queue_daily(
             props=newsletter.props(
                 digest,
                 unsubscribe_link=subscription_service.unsubscribe_link(subscription.id),
+                preferences_link=subscription_service.preferences_link(
+                    preferences_base, subscription.id
+                ),
             ),
             run_at=base + timedelta(seconds=(index // batch) * interval),
         )

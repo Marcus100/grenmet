@@ -142,6 +142,10 @@ async def test_fan_out_reaches_confirmed_unsuppressed_subscribers_only(
     assert mail.subject == "Weather alert: Yellow heavy rain warning - 28 Oct 2026"
     assert mail.props["alerts"][0]["headline"] == "Yellow heavy rain warning"
     assert mail.props["listName"] == "GMS climate newsletter"
+    # The footer links to the preferences page, with this reader's own token.
+    preferences = mail.props["preferencesLink"]
+    assert preferences.startswith("http")
+    assert "/climate/newsletter/preferences?token=" in preferences
 
 
 async def test_a_second_run_the_same_day_queues_nothing(

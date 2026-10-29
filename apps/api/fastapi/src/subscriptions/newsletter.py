@@ -286,7 +286,9 @@ async def compose(
     return None if digest.empty else digest
 
 
-def props(digest: Digest, *, unsubscribe_link: str) -> dict[str, Any]:
+def props(
+    digest: Digest, *, unsubscribe_link: str, preferences_link: str | None = None
+) -> dict[str, Any]:
     """Template props shared by the React Email and Jinja renderers."""
     return {
         "projectName": email_settings.PROJECT_NAME,
@@ -312,6 +314,7 @@ def props(digest: Digest, *, unsubscribe_link: str) -> dict[str, Any]:
         ],
         "testNotice": TEST_NOTICE if digest.test else None,
         "unsubscribeLink": unsubscribe_link,
+        "preferencesLink": preferences_link,
     }
 
 
@@ -343,7 +346,13 @@ async def queue_test(
         subject=digest.subject,
         transactional=False,
         template=NEWSLETTER_TEMPLATE,
-        props=props(digest, unsubscribe_link=service.unsubscribe_link(row.id)),
+        props=props(
+            digest,
+            unsubscribe_link=service.unsubscribe_link(row.id),
+            preferences_link=await service.preferences_url(
+                session, NEWSLETTER_LIST_KEY, row.id
+            ),
+        ),
     )
     await session.commit()
     logger.info("Newsletter test copy queued")
