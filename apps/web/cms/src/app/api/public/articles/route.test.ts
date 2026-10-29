@@ -51,7 +51,9 @@ describe("public articles feed", () => {
       expect.objectContaining({
         collection: "stories",
         overrideAccess: false,
-        where: { status: { equals: "published" } },
+        where: expect.objectContaining({
+          and: expect.arrayContaining([{ status: { equals: "published" } }]),
+        }),
       })
     );
   });

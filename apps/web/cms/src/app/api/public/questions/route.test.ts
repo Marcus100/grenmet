@@ -22,10 +22,12 @@ describe("public questions feed", () => {
       expect.objectContaining({
         collection: "questions",
         overrideAccess: false,
-        where: {
-          status: { equals: "published" },
-          topics: { contains: "tropical" },
-        },
+        where: expect.objectContaining({
+          and: expect.arrayContaining([
+            { status: { equals: "published" } },
+            { topics: { contains: "tropical" } },
+          ]),
+        }),
       })
     );
   });

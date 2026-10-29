@@ -8,6 +8,7 @@ import { DeskUpdates } from "./collections/desk-updates";
 import { Discover } from "./collections/discover";
 import { LivePosts } from "./collections/live-posts";
 import { Media } from "./collections/media";
+import { PublicationLog } from "./collections/publication-log";
 import { Questions } from "./collections/questions";
 import { ReportNotes } from "./collections/report-notes";
 import { Stories } from "./collections/stories";
@@ -15,6 +16,7 @@ import { Users } from "./collections/users";
 import { getEnv } from "./env";
 import { Homepage } from "./globals/homepage";
 import { WeatherNow } from "./globals/weather-now";
+import { brokenLinksEndpoint } from "./lib/broken-links";
 import { reportPayloadError } from "./lib/report-payload-error";
 import { socialAttachmentEndpoint } from "./lib/social-attachments";
 
@@ -56,13 +58,20 @@ export default buildConfig({
     Discover,
     Media,
     Users,
+    PublicationLog,
   ],
+  // WeatherNow is legacy: hidden, locked, and kept so the schema matches the database.
   globals: [WeatherNow, Homepage],
   endpoints: [
     {
       path: "/social-attachment",
       method: "get",
       handler: socialAttachmentEndpoint,
+    },
+    {
+      path: "/broken-links",
+      method: "get",
+      handler: brokenLinksEndpoint,
     },
   ],
   hooks: { afterError: [reportPayloadError] },

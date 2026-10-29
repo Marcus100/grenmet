@@ -98,6 +98,11 @@ export async function WeatherNow() {
       };
   }
   const note = weatherNow?.note;
+  // The note's main related link (its CAP alert, when it has one), else the first.
+  const noteLink =
+    note?.relatedLinks?.find((link) => link.isMain) ??
+    note?.relatedLinks?.[0] ??
+    null;
   const words = sectionWords(settings, "weather-now", {
     kicker: "Live",
     title: "Weather now",
@@ -128,14 +133,20 @@ export async function WeatherNow() {
           <p className="text-body-base leading-body-base">
             {note?.text ?? "No note from the duty forecaster right now."}
           </p>
-          {note?.alertUrl && (
-            <a
-              className="flex items-center gap-1 font-semibold text-body text-gm-blue-ink leading-body hover:underline"
-              href={note.alertUrl}
-            >
-              Read the alert
-              <ArrowRightIcon aria-hidden="true" className="size-4" />
-            </a>
+          {noteLink ? (
+            <p className="text-body leading-body">
+              <RelatedLinkAnchor link={noteLink} />
+            </p>
+          ) : (
+            note?.alertUrl && (
+              <a
+                className="flex items-center gap-1 font-semibold text-body text-gm-blue-ink leading-body hover:underline"
+                href={note.alertUrl}
+              >
+                Read the alert
+                <ArrowRightIcon aria-hidden="true" className="size-4" />
+              </a>
+            )
           )}
           {updates.length > 0 && (
             <section aria-label="Live from GMS" className="mt-2">

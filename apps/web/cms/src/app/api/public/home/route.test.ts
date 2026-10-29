@@ -10,6 +10,15 @@ vi.mock("../../../../lib/report-error", () => ({ reportError: vi.fn() }));
 import { getPayload } from "payload";
 import { GET } from "./route";
 
+/** The kind a live-post query asks for, read from inside its window clause. */
+function kindOf(where: unknown): string {
+  const clauses = (where as { and: Record<string, unknown>[] }).and;
+  const clause = clauses.find((item) => "kind" in item) as
+    | { kind: { equals: string } }
+    | undefined;
+  return clause?.kind.equals ?? "";
+}
+
 describe("public home feed", () => {
   it("keeps working sections when one part fails", async () => {
     const find = vi.fn(({ collection }: { collection: string }) =>
@@ -59,6 +68,13 @@ describe("homepage leads and Weather now", () => {
       ({ collection, where }: { collection: string; where: unknown }) => {
         const flagged = JSON.stringify(where).includes("leadOnHomepage");
         const featured = JSON.stringify(where).includes('"featured"');
+        if (collection === "live-posts") {
+          // The note query asks only for notes that are unexpired; an expired
+          // note is filtered out by the database, so none comes back here.
+          expect(kindOf(where)).toBe("note");
+          expect(JSON.stringify(where)).toContain("expiresAt");
+          return Promise.resolve({ docs: [] });
+        }
         if (collection === "stories")
           return Promise.resolve({
             docs: flagged ? [story(2)] : [story(1), story(2)],
@@ -68,14 +84,7 @@ describe("homepage leads and Weather now", () => {
     );
     const findGlobal = vi.fn(({ slug }: { slug: string }) =>
       Promise.resolve(
-        slug === "homepage"
-          ? { hiddenSections: ["discover"] }
-          : {
-              note: {
-                text: "Old note",
-                expiresAt: "2020-01-01T00:00:00.000Z",
-              },
-            }
+        slug === "homepage" ? { hiddenSections: ["discover"] } : {}
       )
     );
     vi.mocked(getPayload).mockResolvedValue({ find, findGlobal } as never);
@@ -128,7 +137,7 @@ describe("report write-ups and Weather now live posts", () => {
       ({ collection, where }: { collection: string; where: unknown }) => {
         if (collection === "live-posts") {
           expect(JSON.stringify(where)).toContain("expiresAt");
-          const kind = (where as { kind: { equals: string } }).kind.equals;
+          const kind = kindOf(where);
           return Promise.resolve({
             docs: [
               {

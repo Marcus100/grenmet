@@ -6,10 +6,12 @@ import { buildConfig, getPayload, type Payload } from "payload";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import { DeskUpdates } from "./collections/desk-updates";
 import { Media } from "./collections/media";
+import { PublicationLog } from "./collections/publication-log";
 import { Stories } from "./collections/stories";
 import { Users } from "./collections/users";
 import { testDatabaseUrl } from "./env";
 import { readFastApiIdentity } from "./lib/fastapi-identity";
+import { liveWhere } from "./lib/publication-window";
 import type { DeskUpdate, User } from "./payload-types";
 
 vi.mock("./lib/fastapi-identity", () => ({ readFastApiIdentity: vi.fn() }));
@@ -70,7 +72,7 @@ describe.skipIf(!testDatabaseUrl)("CMS editorial workflow in Postgres", () => {
           schemaName: schema,
           push: true,
         }),
-        collections: [DeskUpdates, Stories, Media, Users],
+        collections: [DeskUpdates, Stories, Media, Users, PublicationLog],
         admin: { user: "users", importMap: { autoGenerate: false } },
         graphQL: { disable: true },
         typescript: { autoGenerate: false },
@@ -389,5 +391,102 @@ describe.skipIf(!testDatabaseUrl)("CMS editorial workflow in Postgres", () => {
         data: { status: "published" },
       })
     ).rejects.toThrow("permission");
+  });
+  it("holds a scheduled item back, takes an item off once its time passes, and records each change with its editor", async () => {
+    const tomorrow = new Date(Date.now() + 86_400_000).toISOString();
+    const yesterday = new Date(Date.now() - 86_400_000).toISOString();
+    const notice = (title: string) => ({
+      title,
+      summary: "Scheduled for the test.",
+      kind: "service-notice" as const,
+      body: body(title),
+      author: author.id,
+      relatedLinks: [
+        {
+          title: "Forecasts",
+          category: "forecast" as const,
+          url: "https://weather.gd/forecasts",
+        },
+      ],
+    });
+    const later = await payload.create({
+      draft: true,
+      collection: "desk-updates",
+      overrideAccess: false,
+      user: author,
+      data: { ...notice("Shows tomorrow"), status: "review" },
+    });
+    const ended = await payload.create({
+      draft: true,
+      collection: "desk-updates",
+      overrideAccess: false,
+      user: author,
+      data: { ...notice("Taken off yesterday"), status: "review" },
+    });
+    const shown = await payload.create({
+      draft: true,
+      collection: "desk-updates",
+      overrideAccess: false,
+      user: author,
+      data: { ...notice("Shows now"), status: "review" },
+    });
+    await payload.update({
+      collection: "desk-updates",
+      id: later.id,
+      overrideAccess: false,
+      user: editor,
+      data: { status: "published", publishAt: tomorrow },
+    });
+    await payload.update({
+      collection: "desk-updates",
+      id: ended.id,
+      overrideAccess: false,
+      user: editor,
+      data: { status: "published", unpublishAt: yesterday },
+    });
+    await payload.update({
+      collection: "desk-updates",
+      id: shown.id,
+      overrideAccess: false,
+      user: editor,
+      data: { status: "published" },
+    });
+    // What the public feed reads: only the item that is on the site now.
+    const onSite = await payload.find({
+      collection: "desk-updates",
+      overrideAccess: false,
+      where: liveWhere(new Date(), {
+        title: { in: ["Shows tomorrow", "Taken off yesterday", "Shows now"] },
+      }),
+    });
+    expect(onSite.docs.map((doc) => doc.title)).toEqual(["Shows now"]);
+    // Taking the scheduled item down is a change in its own right.
+    await payload.update({
+      collection: "desk-updates",
+      id: later.id,
+      overrideAccess: false,
+      user: editor,
+      data: { status: "draft" },
+    });
+    const log = await payload.find({
+      collection: "publication-log",
+      overrideAccess: false,
+      user: editor,
+      depth: 0,
+      sort: "createdAt",
+      limit: 50,
+      where: {
+        documentId: {
+          in: [later.id, ended.id, shown.id].map((id) => String(id)),
+        },
+      },
+    });
+    const rows = log.docs.map((row) => [row.title, row.action, row.actor]);
+    expect(rows).toEqual([
+      ["Shows tomorrow", "scheduled-publish", editor.id],
+      ["Taken off yesterday", "published", editor.id],
+      ["Shows now", "published", editor.id],
+      ["Shows tomorrow", "unpublished", editor.id],
+    ]);
   });
 });
