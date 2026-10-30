@@ -1,4 +1,5 @@
 import importlib
+import time
 from django.apps import apps
 from django.conf import settings
 from django.db import models
@@ -60,15 +61,37 @@ class StripHtmlTests(SimpleTestCase):
             "Rain gauge & mast\n\nCleaned it\nDone",
         )
 
-    def test_lists_and_scripts(self):
+    def test_lists_and_closed_scripts(self):
         self.assertEqual(
             strip_migration.html_to_plain_text("<ul><li>one</li><li>two</li></ul><script>alert(1)</script>ok"),
             "- one\n- two\n\nok",
         )
 
-    def test_plain_text_is_unchanged(self):
-        self.assertEqual(strip_migration.html_to_plain_text("Temp < 5 and rain > 2"), "Temp < 5 and rain > 2")
+    def test_attributes_are_dropped_on_recognised_tags(self):
+        self.assertEqual(
+            strip_migration.html_to_plain_text('<p style="color:red">hi <a href="http://x">link</a></p>'),
+            "hi link",
+        )
+
+    def test_plain_text_with_angle_brackets_is_unchanged(self):
+        for text in (
+            "if x<y and y>z",
+            "a <b and c> d",
+            "Temp < 5 and rain > 2",
+            "text <div",
+            "<script>alert(1) is never closed, keep all of this",
+        ):
+            self.assertEqual(strip_migration.html_to_plain_text(text), text)
+
+    def test_none_and_empty(self):
         self.assertIsNone(strip_migration.html_to_plain_text(None))
+        self.assertEqual(strip_migration.html_to_plain_text(""), "")
+
+    def test_long_runs_of_spaces_are_fast(self):
+        start = time.monotonic()
+        result = strip_migration.html_to_plain_text("a" + " " * 200000 + "\nb <script>" * 5000)
+        self.assertLess(time.monotonic() - start, 1.0)
+        self.assertTrue(result.startswith("a\nb"))
 
 
 class StripHtmlDataMigrationTests(TestCase):
@@ -79,3 +102,30 @@ class StripHtmlDataMigrationTests(TestCase):
         strip_migration.strip_html(apps, None)
         equipment_type.refresh_from_db()
         self.assertEqual(equipment_type.report_template, "Check probe\n\nLog it")
+
+
+class StoredTextIsInertTests(SimpleTestCase):
+    def test_template_syntax_in_stored_text_is_literal_and_inert(self):
+        html = render_to_string(
+            "wx/maintenance_reports/view_report.html",
+            {
+                "visit_summary_information": {
+                    "station_on_arrival_conditions": "[[ 1+1 ]] {{ 1+1 }}",
+                    "current_visit_summary": "[[ _openBlock.constructor('x')() ]]",
+                    "next_visit_summary": "n",
+                    "responsible_technician": "[[ 2+2 ]]",
+                },
+                "contact_information": "[[ 3+3 ]] {{ 3+3 }}",
+                "station_information": {"station_name": "[[ 4+4 ]]"},
+                "equipment_records": [{"condition": "[[ 5+5 ]]", "name": "n"}],
+            },
+        )
+        # Django does not evaluate {{ }} in data, and Vue is told not to compile it.
+        self.assertIn('<span v-pre>[[ 1+1 ]] {{ 1+1 }}</span>', html)
+        self.assertIn("<span v-pre>[[ _openBlock.constructor(&#x27;x&#x27;)() ]]</span>", html)
+        self.assertIn('<span v-pre>[[ 2+2 ]]</span>', html)
+        self.assertIn('class="contact-box" v-pre>[[ 3+3 ]] {{ 3+3 }}</div>', html)
+        self.assertIn('v-pre>[[ 4+4 ]]</div>', html)
+        # Equipment records travel as JSON data, not as a Vue expression.
+        self.assertIn('<script id="equipment-records-data" type="application/json">', html)
+        self.assertIn('v-for="equipment_record in equipment_records"', html)

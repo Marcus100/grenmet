@@ -57,7 +57,7 @@ the database to PostgreSQL 17, because Django 5.2 needs PostgreSQL 14 or newer.
 | `django-colorfield` | 0.4.5 | 0.14.x | `ColorField` max_length 18 to 25; migration `wx/0078` widens the two columns |
 | `django-material` | 1.10.0 | 1.12.0 | Unmaintained (merged into django-viewflow); works on 5.2 in the smoke run below, replace when SURFACE's UI is reworked |
 | `django-timescaledb` | 0.2.12 | 0.2.13 | Last release 2023; works on 5.2 and TimescaleDB 2.31 in the smoke run below |
-| `django-ckeditor` | 6.7.1 | removed | Bundled CKEditor 4 was end of life (#803). The six rich-text fields are plain `TextField`s with plain text boxes; migration `wx/0079` converts stored HTML to plain text once (not reversible), and old migrations reference `models.TextField` |
+| `django-ckeditor` | 6.7.1 | removed | Bundled CKEditor 4 was end of life (#803). The six rich-text fields are plain `TextField`s with plain text boxes; migration `wx/0079` converts stored HTML to plain text once. It is not reversible: take a database dump (`pg_dump`, or a copy of the `data/postgresql` volume) before running `migrate`, and old migrations reference `models.TextField` |
 
 Django 5 code changes: sign-out in `templates/base.html` is a POST form
 (`LogoutView` no longer accepts GET), and the unused `USE_L10N` setting is gone.
@@ -84,7 +84,7 @@ CKEditor removal (#803) verification (host, Docker): built `Dockerfile.deploy`
 (which now also uninstalls `django-ckeditor` and `django-js-asset`, because the
 upstream base image still ships them); `manage.py check` has no warnings and
 `makemigrations --check` finds no changes; `migrate` applied `wx/0079` on a
-PostgreSQL 17 database; the six columns are still `text`; `wx.tests` pass (14);
+PostgreSQL 17 database; the six columns are still `text`; `wx.tests` pass (18);
 a CSRF-enforced client signed in and loaded the station map, admin, the
 maintenance report list, the new-report form and a report whose text fields held
 `<script>` and `<img onerror>` strings, which rendered escaped.

@@ -1,10 +1,17 @@
+"""Convert the HTML that CKEditor 4 stored (issue #803) into plain text, once.
+
+THIS DATA MIGRATION CANNOT BE UNDONE: the reverse is a no-op and the original
+HTML is not recoverable. Take a database dump (`pg_dump`, or a copy of the
+data/postgresql volume) BEFORE running `migrate`.
+
+Only the tags CKEditor 4 emits are removed; any other text, including `<` and
+`>` characters in plain text, is left alone.
+"""
+import html
 import re
-from html.parser import HTMLParser
 
 from django.db import migrations
 
-# The rich-text editor (CKEditor 4, issue #803) was replaced by plain text
-# boxes, so the HTML it stored is converted to plain text once, here.
 # (model, field) pairs that held editor HTML:
 RICH_TEXT_FIELDS = (
     ("EquipmentType", "report_template"),
@@ -14,68 +21,80 @@ RICH_TEXT_FIELDS = (
     ("MaintenanceReport", "next_visit_summary"),
     ("MaintenanceReportEquipment", "condition"),
 )
+CHUNK_SIZE = 500
 
+_TAG_NAMES = (
+    "p|br|div|span|strong|b|em|i|u|s|strike|sub|sup|ul|ol|li|a|h[1-6]|"
+    "blockquote|pre|code|table|thead|tbody|tr|td|th|hr|img|font"
+)
+# A recognised tag is well formed: quoted attributes only, no `<` or `>` inside,
+# so an unclosed or odd-looking "<..." in plain text never matches.
+_TAG_RE = re.compile(
+    r"<(/?)(" + _TAG_NAMES + r")"
+    r"((?:\s+[a-zA-Z_:][-\w:.]*\s*=\s*(?:\"[^\"<>]*\"|'[^'<>]*'))*)"
+    r"\s*/?>",
+    re.IGNORECASE,
+)
+_SCRIPT_START_RE = re.compile(r"<(script|style)\b[^<>]*>", re.IGNORECASE)
 _PARAGRAPH_TAGS = {"p", "ul", "ol", "table", "blockquote", "pre", "h1", "h2", "h3", "h4", "h5", "h6"}
-_LINE_TAGS = {"div", "li", "tr", "hr"}
-_SKIPPED_TAGS = {"script", "style"}
+_LINE_TAGS = {"div", "tr", "hr"}
 
 
-class _TextExtractor(HTMLParser):
-    def __init__(self):
-        super().__init__(convert_charrefs=True)
-        self.parts = []
-        self._skip_depth = 0
+def _drop_script_and_style(text):
+    """Remove properly closed <script>/<style> blocks; leave unclosed ones."""
+    out = []
+    pos = 0
+    while True:
+        start = _SCRIPT_START_RE.search(text, pos)
+        if not start:
+            break
+        close = re.compile(r"</" + start.group(1) + r"\s*>", re.IGNORECASE).search(text, start.end())
+        if not close:
+            break  # unclosed: nothing later can close either; keep the rest
+        out.append(text[pos:start.start()])
+        pos = close.end()
+    out.append(text[pos:])
+    return "".join(out)
 
-    def _ensure_newline(self):
-        if self.parts and not self.parts[-1].endswith("\n"):
-            self.parts.append("\n")
 
-    def handle_starttag(self, tag, attrs):
-        if tag in _SKIPPED_TAGS:
-            self._skip_depth += 1
-        elif tag == "br":
-            self.parts.append("\n")
-        elif tag == "li":
-            self._ensure_newline()
-            self.parts.append("- ")
-        elif tag in _PARAGRAPH_TAGS or tag in _LINE_TAGS:
-            self._ensure_newline()
-
-    def handle_startendtag(self, tag, attrs):
-        if tag in ("br", "hr"):
-            self.parts.append("\n")
-
-    def handle_endtag(self, tag):
-        if tag in _SKIPPED_TAGS:
-            self._skip_depth = max(0, self._skip_depth - 1)
-        elif tag in _PARAGRAPH_TAGS:
-            self.parts.append("\n\n")
-        elif tag in _LINE_TAGS:
-            self.parts.append("\n")
-
-    def handle_data(self, data):
-        if not self._skip_depth:
-            self.parts.append(data)
+def _replace_tag(match):
+    closing, name = match.group(1), match.group(2).lower()
+    if name == "br":
+        return "\n"
+    if name == "li":
+        return "\n" if closing else "\n- "
+    if name in _PARAGRAPH_TAGS:
+        return "\n\n" if closing else "\n"
+    if name in _LINE_TAGS:
+        return "\n"
+    return ""
 
 
 def html_to_plain_text(value):
-    """Turn editor HTML into plain text, keeping line breaks and the text."""
+    """Turn editor HTML into plain text, keeping line breaks and all text."""
     if not value:
         return value
-    extractor = _TextExtractor()
-    extractor.feed(value)
-    extractor.close()
-    text = "".join(extractor.parts).replace("\xa0", " ").replace("\r\n", "\n")
-    text = re.sub(r"[ \t]+\n", "\n", text)
-    text = re.sub(r"\n{3,}", "\n\n", text)
-    return text.strip()
+    text = _drop_script_and_style(value)
+    text = _TAG_RE.sub(_replace_tag, text)
+    text = html.unescape(text).replace("\xa0", " ").replace("\r\n", "\n")
+    lines = [line.rstrip() for line in text.split("\n")]  # linear, unlike a regex
+    cleaned = []
+    for index, line in enumerate(lines):
+        if not line and cleaned and cleaned[-1].startswith("- "):
+            following = next((x for x in lines[index + 1:] if x), "")
+            if following.startswith("- "):
+                continue  # no blank line between list items
+        if not line and cleaned and not cleaned[-1]:
+            continue  # at most one blank line in a row
+        cleaned.append(line)
+    return "\n".join(cleaned).strip()
 
 
 def strip_html(apps, schema_editor):
     for model_name, field_name in RICH_TEXT_FIELDS:
         model = apps.get_model("wx", model_name)
-        rows = model.objects.exclude(**{field_name: None}).exclude(**{field_name: ""})
-        for obj in rows.iterator():
+        rows = model.objects.exclude(**{field_name: None}).exclude(**{field_name: ""}).only("pk", field_name)
+        for obj in rows.iterator(chunk_size=CHUNK_SIZE):
             old = getattr(obj, field_name)
             new = html_to_plain_text(old)
             if new != old:
