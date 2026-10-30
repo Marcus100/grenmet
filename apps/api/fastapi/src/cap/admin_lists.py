@@ -34,6 +34,7 @@ from src.cap.schemas import (
     CapSettingsPublic,
     CapSettingsUpdate,
 )
+from src.cap.tasks import NOT_CONFIGURED_CHANNELS
 from src.utils.datetime import utc_now
 
 
@@ -186,9 +187,12 @@ async def list_integrations(
                 "port": item.port,
                 "topic": item.topic,
                 "status": item.status.value,
+                # No MQTT publisher exists yet, so no broker delivers anything.
+                "delivery": "not_configured",
             }
             for item in mqtt_brokers
         ],
+        "publish_channels": [dict(channel) for channel in NOT_CONFIGURED_CHANNELS],
         "job_events": [
             {
                 "id": str(item.id),

@@ -6,6 +6,7 @@ import pytest
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.baseline.models import ApprovalPolicy
+from src.cap.models import CapIntegrationStatus, CapMqttBroker
 
 pytestmark = pytest.mark.asyncio
 
@@ -158,3 +159,34 @@ def _alert_payload() -> dict[str, Any]:
             }
         ],
     }
+
+
+async def test_integrations_report_mqtt_and_wis2_as_not_configured(
+    async_client: httpx.AsyncClient,
+    superuser_token_headers_async: dict[str, str],
+    db_async: AsyncSession,
+) -> None:
+    db_async.add(
+        CapMqttBroker(
+            name="Test broker",
+            host="broker.example.test",
+            port=1883,
+            topic="cap/test",
+            status=CapIntegrationStatus.ACTIVE,
+        )
+    )
+    await db_async.commit()
+
+    resp = await async_client.get(
+        "/api/v1/cap/integrations", headers=superuser_token_headers_async
+    )
+
+    assert resp.status_code == 200, resp.text
+    body = resp.json()
+    channels = {item["kind"]: item["status"] for item in body["publish_channels"]}
+    assert channels == {
+        "publish.wis2box": "not_configured",
+        "publish.mqtt": "not_configured",
+    }
+    assert body["mqtt_brokers"]
+    assert all(item["delivery"] == "not_configured" for item in body["mqtt_brokers"])

@@ -43,8 +43,6 @@ def _keep_delivered(previous: object) -> dict[str, Any]:
 
 KIND_HANDLERS: dict[str, Handler] = {
     "publish.webhooks": publishers.publish_webhooks,
-    "publish.mqtt": publishers.publish_mqtt,
-    "publish.wis2box": publishers.publish_wis2box,
     "publish.pdf": publishers.publish_pdf,
     "publish.static_map": publishers.publish_static_map,
     "publish.social_image": publishers.publish_social_image,

@@ -109,7 +109,11 @@ async def test_unknown_kind_fails(db_async: AsyncSession) -> None:
     assert job.status == CapJobStatus.FAILED
 
 
-async def test_stub_kind_marked_skipped(db_async: AsyncSession) -> None:
+async def test_retired_channel_job_fails_instead_of_skipping(
+    db_async: AsyncSession,
+) -> None:
+    """A job for a channel with no publisher (MQTT) is a failure, never a silent
+    skip that finishes like a success."""
     job = await _add_job(db_async, "publish.mqtt")
 
     def handler(_request: httpx.Request) -> httpx.Response:  # pragma: no cover
@@ -119,8 +123,9 @@ async def test_stub_kind_marked_skipped(db_async: AsyncSession) -> None:
         await process_due_jobs(session=db_async, http_client=client)
 
     await db_async.refresh(job)
-    assert job.status == CapJobStatus.SKIPPED
-    assert job.result is not None and job.result.get("skipped") is True
+    assert job.status == CapJobStatus.FAILED
+    assert job.result is not None
+    assert "no handler" in str(job.result.get("error"))
 
 
 async def _clear_backoff(session: AsyncSession, job: CapJobEvent) -> None:
