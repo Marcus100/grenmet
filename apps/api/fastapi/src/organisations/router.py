@@ -1023,11 +1023,11 @@ async def update_member(
     summary="Remove a member, or end their Events access",
     description=(
         "An account session ends the person's membership in the whole organisation "
-        "(204). An Events app session ends only their Events access: live events-* "
-        "roles, grants they issued for Events and their Events app opt-in. The "
-        "membership and other products stay, and the answer is 200 with `scope` "
-        "`events`. Only owners remove owners; 409 when it would leave the "
-        "organisation without an owner."
+        "(204). An Events app session ends only their Events access in this "
+        "organisation: live events-* roles here and grants they issued for Events "
+        "here. The membership, other products, other organisations and their Events "
+        "sign-in stay, and the answer is 200 with `scope` `events`. Only owners "
+        "remove owners; 409 when it would leave the organisation without an owner."
     ),
     responses={
         **MANAGE_ERRORS,
@@ -1054,7 +1054,6 @@ async def delete_member(
         membership_id=revoked.membership_id,
         grants_revoked=revoked.grants_revoked,
         issued_grants_revoked=revoked.issued_grants_revoked,
-        app_access_ended=revoked.app_access_ended,
     )
     return JSONResponse(
         status_code=http_status.HTTP_200_OK, content=body.model_dump(mode="json")

@@ -11,7 +11,6 @@ export const memberEventsAccessRevokedPublicSchema = z
     scope: z.enum(["events"]).optional().default("events"),
     grants_revoked: z.int(),
     issued_grants_revoked: z.int(),
-    app_access_ended: z.boolean(),
   })
   .describe(
     "Answer to an Events app session's removal: only Events access ended.\n\nThe membership stays (``DELETE .../members/{membership_id}`` answers 204 for an\naccount session, which removes it from the whole organisation)."

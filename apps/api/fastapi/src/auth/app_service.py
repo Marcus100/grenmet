@@ -902,33 +902,6 @@ async def join_account_app(
     return AppJoinResult(joined=True)
 
 
-async def withdraw_app_opt_in(
-    *, session: AsyncSession, user: User, app: AppDefinition
-) -> bool:
-    """Withdraw a person's self-service opt-in to ``app`` on someone else's behalf.
-
-    Removes the app's default role (what Join grants) and ends the account's sessions
-    in that app. Unlike ``leave_account_app`` this flushes and never commits: the
-    caller owns the transaction (an organisation's Events team removal, ADR-0044).
-    Returns True when the account had the app and no longer has it. It can still have
-    it through another role, which this does not touch.
-    """
-    had = await service.is_eligible_for_app(session=session, user=user, app_key=app.key)
-    role_id = await session.scalar(select(Role.id).where(Role.name == app.default_role))
-    if role_id is not None:
-        link = await session.get(UserRoleLink, (user.id, role_id))
-        if link is not None:
-            await session.delete(link)
-            await session.flush()
-    await revoke_user_app_sessions(
-        session=session, user_id=user.id, app_key=app.key, commit=False
-    )
-    still = await service.is_eligible_for_app(
-        session=session, user=user, app_key=app.key
-    )
-    return had and not still
-
-
 async def leave_account_app(
     *, session: AsyncSession, app: AppDefinition, session_token: str
 ) -> AppLeaveResult:

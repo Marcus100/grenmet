@@ -21,8 +21,6 @@ from sqlalchemy import ColumnElement, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.audit import service as audit_service
-from src.auth import app_service
-from src.auth import apps as auth_apps
 from src.auth.email_verification import require_verified_or_admin_activated
 from src.auth.models import User
 from src.config import settings
@@ -245,18 +243,18 @@ class EventsAccessRevocation:
     membership_id: str
     grants_revoked: int
     issued_grants_revoked: int
-    app_access_ended: bool
 
 
 async def revoke_events_access(
     session: AsyncSession, context: OrgContext, membership_id: str
 ) -> EventsAccessRevocation:
-    """An Events app session's removal: end the person's Events access only.
+    """An Events app session's removal: end the person's Events access in this
+    organisation only.
 
-    Ends their live ``events-*`` grants and the grants they issued for Events, and
-    withdraws their Events app opt-in (``app_service.withdraw_app_opt_in``). The
-    membership, and every other product's grants, stay. The owner, lock and
-    last-owner rules are the same as for a full removal."""
+    Ends their live ``events-*`` grants here and the Events grants they issued here.
+    The membership, other products, other organisations and the account-level Events
+    opt-in (the Join role link) stay. The owner, lock and last-owner rules are the
+    same as for a full removal."""
     organisation_id = context.organisation_id
     audit_service.set_actor(session, context.user.id)
     membership = await _get_membership(session, organisation_id, membership_id)
@@ -278,11 +276,6 @@ async def revoke_events_access(
         actor_id=context.user.id,
         products=products,
     )
-    user = await session.get(User, membership.user_id)
-    assert user is not None
-    app_ended = await app_service.withdraw_app_opt_in(
-        session=session, user=user, app=auth_apps.get_app(TEAM_SESSION_APP)
-    )
     await audit_service.record_change(
         session,
         entity_type="platform_organisation",
@@ -293,7 +286,6 @@ async def revoke_events_access(
         changes={
             "grants_revoked": (None, grants_revoked),
             "issued_grants_revoked": (None, issued),
-            "app_access_ended": (None, app_ended),
         },
         organisation_id=organisation_id,
     )
@@ -309,7 +301,6 @@ async def revoke_events_access(
         membership_id=membership.id,
         grants_revoked=grants_revoked,
         issued_grants_revoked=issued,
-        app_access_ended=app_ended,
     )
 
 

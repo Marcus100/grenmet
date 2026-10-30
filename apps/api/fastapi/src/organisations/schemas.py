@@ -73,8 +73,6 @@ class MemberEventsAccessRevokedPublic(BaseModel):
     grants_revoked: int
     # Events grants the person had issued to others, now ended.
     issued_grants_revoked: int
-    # Whether the Events app opt-in (its self-service role) was taken away.
-    app_access_ended: bool
 
 
 class MemberRoleUpdate(BaseModel):

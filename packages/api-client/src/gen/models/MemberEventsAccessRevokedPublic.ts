@@ -19,5 +19,4 @@ export type MemberEventsAccessRevokedPublic = {
   scope?: "events";
   grants_revoked: number;
   issued_grants_revoked: number;
-  app_access_ended: boolean;
 };
