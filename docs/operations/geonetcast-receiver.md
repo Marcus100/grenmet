@@ -42,7 +42,7 @@ authority.
 Copy [`survey-receiver.sh`](../../scripts/gnc-collector/deploy/survey-receiver.sh)
 to the receiver PC and run it. It is read-only: it reads no file contents and
 prints no environment variables, configuration or credentials, but it does print
-the hostname and IP addresses, so keep the output out of this repository.
+network addresses, mount points and file names, so keep the output out of this repository.
 
 ```bash
 bash survey-receiver.sh > survey-$(date +%F).txt 2>&1

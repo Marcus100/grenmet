@@ -2,7 +2,7 @@
 # Read-only survey of a GeoNetCast Americas receiver PC.
 #
 # Run it on the receiver and keep the output for the owner. It changes nothing:
-# no files are written, and it reads no file contents, no configuration, no
+# no files are written, and it reads no file contents (apart from the PRETTY_NAME line of /etc/os-release), no configuration, no
 # environment variables and no process arguments. It prints process names, but
 # never their arguments, so a password on a command line cannot leak.
 #

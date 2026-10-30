@@ -114,3 +114,26 @@ def test_check_fails_on_a_file_dated_in_the_future(
         os.utime(scan, (future, future))
     assert main(["check", "--input-dir", str(receiver), "--bands", "13"]) == 1
     assert "band 13: CLOCK" in capsys.readouterr().out
+
+
+@pytest.mark.parametrize("value", ["nan", "inf", "-inf", "0", "-5", "soon"])
+def test_check_rejects_a_max_age_that_would_never_fail(
+    receiver: Path, value: str, capsys: pytest.CaptureFixture[str]
+) -> None:
+    """NaN compares false with everything, so it would pass a dead receiver forever."""
+    with pytest.raises(SystemExit) as raised:
+        main(["check", "--input-dir", str(receiver), "--max-age-minutes", value])
+    assert raised.value.code == 2
+    assert "max-age-minutes" in capsys.readouterr().err
+
+
+def test_check_never_prints_a_negative_age_for_slightly_future_files(
+    receiver: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    soon = time.time() + 2 * 60  # inside the allowed clock skew
+    for scan in receiver.glob("*C13*"):
+        os.utime(scan, (soon, soon))
+    assert main(["check", "--input-dir", str(receiver), "--bands", "13"]) == 0
+    out = capsys.readouterr().out
+    assert "arrived 0 min ago" in out
+    assert "arrived -" not in out

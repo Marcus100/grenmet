@@ -1,6 +1,7 @@
 """Command line: `render` one file offline, or `collect` one bounded pass."""
 
 import argparse
+import math
 import os
 import sys
 from pathlib import Path
@@ -29,6 +30,17 @@ def parse_bands(value: str) -> list[int]:
     return bands
 
 
+def positive_minutes(value: str) -> float:
+    """A positive, finite number: NaN or zero would make the stall check meaningless."""
+    try:
+        minutes = float(value)
+    except ValueError:
+        raise argparse.ArgumentTypeError(f"not a number: {value!r}") from None
+    if not math.isfinite(minutes) or minutes <= 0:
+        raise argparse.ArgumentTypeError("must be a positive, finite number of minutes")
+    return minutes
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog="gnc-collector", description=__doc__)
     commands = parser.add_subparsers(dest="command", required=True)
@@ -45,7 +57,7 @@ def build_parser() -> argparse.ArgumentParser:
     check.add_argument("--bands", type=parse_bands, default=[13, 8])
     check.add_argument(
         "--max-age-minutes",
-        type=float,
+        type=positive_minutes,
         default=45.0,
         help="newest file per band must have arrived within this many minutes",
     )
@@ -113,9 +125,10 @@ def main(argv: list[str] | None = None) -> int:
                 continue
             late = band.received_minutes_ago > args.max_age_minutes
             stale = stale or late
+            arrived = max(band.received_minutes_ago, 0.0)
             print(
                 f"band {band.band}: {'STALE' if late else 'ok'} - newest "
-                f"{band.newest} arrived {band.received_minutes_ago:.0f} min ago "
+                f"{band.newest} arrived {arrived:.0f} min ago "
                 f"(scan {band.scan_minutes_ago:.0f} min ago)"
             )
         return 1 if stale else 0
