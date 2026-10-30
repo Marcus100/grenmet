@@ -16,7 +16,7 @@ and flags it for the owner and a lawyer.
 | --- | --- | --- | --- |
 | Privacy notice | Owner, with a lawyer; client sponsor for GAA and GMS sites | Partial: 4 of the public sites have a page; 3 are marked in code as drafts awaiting owner review and the gms page carries no marker | Review of all four pages (gms has never been marked for review); pages for the public apps without one (below) |
 | Terms of service | Owner, with a lawyer | Missing for the platform; one informal "terms of use" section on the CAP hub | Decision on which apps need terms; a lawyer-reviewed text |
-| Support route | Owner | Partial: some apps have a contact page or address, several have none | A single agreed support address or form per public app |
+| Support route | Owner | Address chosen: `support@barrels.gd`, linked from auth, bookings, babydoll (Barrels credit only), cap, elections and docs (2026-10-30). gms and mbia are left to the clients | Mailbox live: `support@barrels.gd` forwards through Cloudflare Email Routing (owner set up and tested end to end, 2026-10-30). Still open: a named person or role behind it and a response target |
 | Restore drill | Engineering, owner approves the run | Built, never run against real backups | First human-timed run and its recorded result |
 | Authenticator enforcement | Owner | Code ready; not enforced in any environment | Key, variable, enrolment and staging acceptance |
 
@@ -89,15 +89,20 @@ Needs, for the owner and a lawyer to decide and write:
 | mbia | Contact page and a client address, plus a contact form API | Client to confirm the address is monitored |
 | signal | Refers visitors to the Barrels contact page | Depends on the Barrels contact route being staffed |
 | events | Refers visitors to the Barrels contact page | Same |
-| babydoll | Contact page with studio address and hours; no email or form | Add a direct contact method agreed with the client |
-| bookings | Tells users to contact "the business directly" or Barrels | No Barrels address or form named for platform faults |
-| auth | None found | Sign-in and account problems have no stated route |
-| cap | None found | Add a route for corrections and feedback |
-| elections | None found | Add a route for corrections and feedback |
-| docs | Feedback route and a help link | Confirm where feedback goes and who reads it |
+| babydoll | Contact page with studio address and hours; footer credit "Website support: support@barrels.gd" (Barrels-run website only; the salon's own contact is unchanged) | Salon email or form for appointments is the client's choice |
+| bookings | Business contact text on the not-found and error pages; `support@barrels.gd` linked from the layout footer, the error page and the home page for platform faults | Mailbox live (Cloudflare Email Routing) |
+| auth | Account help line under every sign-in and account page, linking `support@barrels.gd` | Mailbox live (Cloudflare Email Routing) |
+| cap | Footer line linking `support@barrels.gd` for support, corrections and feedback | Mailbox live (Cloudflare Email Routing) |
+| elections | Footer line linking `support@barrels.gd` (independence line kept) | Mailbox live (Cloudflare Email Routing) |
+| docs | Feedback route and a help link; footer "Contact support" links `support@barrels.gd` | Confirm where feedback goes and who reads it |
 
-The owner must choose one monitored support address or form, a response target,
-and a person or role behind it. List it in the incident runbook's contact sheet.
+Decided 2026-10-30: `support@barrels.gd` is the one monitored address for the
+public Barrels apps. It is defined once in `packages/ui/src/lib/support.ts`.
+The mailbox is live: the owner set up Cloudflare Email Routing forwarding and
+tested it end to end (2026-10-30). Still open for the owner: the person or role
+behind it and a response target. List them in the
+incident runbook's contact sheet. gms and mbia support routes are the clients'
+decision and are not covered by this address.
 
 ## Restore drill
 
