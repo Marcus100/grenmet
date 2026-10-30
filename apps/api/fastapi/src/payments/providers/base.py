@@ -31,6 +31,18 @@ class PaymentStart:
 
 
 @dataclass(frozen=True)
+class ProviderRefund:
+    """One refund listed on the provider's charge, in the core's vocabulary."""
+
+    provider_ref: str | None
+    amount_minor: int
+    #: The provider's status: ``succeeded``, ``pending``, ``failed`` or ``canceled``.
+    status: str
+    #: Our refund id, echoed back in the provider's metadata when we made the refund.
+    refund_id: uuid.UUID | None = None
+
+
+@dataclass(frozen=True)
 class ProviderEvent:
     """A verified provider callback in the core's vocabulary."""
 
@@ -47,6 +59,10 @@ class ProviderEvent:
     currency: str | None = None
     #: For ``REFUNDED``: the provider's running total refunded on the payment.
     refunded_total_minor: int | None = None
+    #: For ``REFUNDED``: the refunds the provider listed on the payment.
+    refunds: tuple[ProviderRefund, ...] = ()
+    #: False when the provider listed only some of the refunds (more exist).
+    refunds_complete: bool = True
     failure_code: str | None = None
 
 

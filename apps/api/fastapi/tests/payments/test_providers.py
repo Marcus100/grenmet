@@ -256,6 +256,23 @@ async def test_an_unsafe_registered_address_is_not_used(
     assert stripe_env.form()["success_url"] == "https://example.test/paid"
 
 
+@pytest.mark.parametrize(
+    "host", ["[::1]", "0.0.0.0", "localhost.", "LOCALHOST.", "127.0.0.1"]
+)
+async def test_a_loopback_registered_address_is_refused_outside_local(
+    stripe_env: StripeStub, monkeypatch: pytest.MonkeyPatch, host: str
+) -> None:
+    """#547: every loopback spelling is refused outside the local environment."""
+    from src.config import settings
+
+    monkeypatch.setattr(settings, "ENVIRONMENT", "staging")
+    monkeypatch.setattr(return_urls, "_builders", {})
+    url = f"https://{host}/orders/o-1"
+    return_urls.register("shop.order", lambda _id: return_urls.ReturnAddress(url, url))
+    await StripeProvider().create_payment(_intent(source_type="shop.order"))
+    assert stripe_env.form()["success_url"] == "https://example.test/paid"
+
+
 def test_return_addresses_never_come_from_the_request() -> None:
     # The resolver takes only the intent's own source type and id plus settings;
     # nothing request-shaped can reach it, and PaymentIntentCreate has no URL field.

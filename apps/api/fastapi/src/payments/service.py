@@ -44,7 +44,7 @@ from .models import (
     RefundStatus,
 )
 from .providers import registry
-from .providers.base import EventKind, ProviderEvent
+from .providers.base import EventKind, ProviderEvent, ProviderRefund
 
 logger = logging.getLogger(__name__)
 
@@ -844,18 +844,114 @@ async def _apply_failure(
 async def _apply_refunded(
     session: AsyncSession, intent: Intent, event: ProviderEvent
 ) -> str:
-    """Record money refunded at the provider that the app did not already record
-    (for example from the provider's dashboard)."""
-    total = event.refunded_total_minor or 0
-    captured, recorded = await _totals(session, intent.id)
-    missing = min(total, captured) - recorded
-    if missing <= 0:
-        return "duplicate"
+    """Record money the provider refunded that the ledger does not hold yet.
+
+    Each refund the provider lists is matched to our rows first by our refund id
+    (echoed in its metadata) and then by the provider's refund id. A refund we made
+    is therefore never recorded twice: if our own transaction was lost after the
+    provider refunded, the row is created under the id the outbox retry asks for, so
+    the retry finds it. A refund made in the provider's dashboard has no id of ours
+    and is recorded once, under a new id.
+
+    Money the list does not explain is taken from the running total, but only when
+    the list is complete: on a truncated list a refund of ours may simply be missing
+    from it, and a guess would count it twice. The listed refunds and the total are
+    both read from the event, so a replay changes nothing."""
+    changed = False
+    for refund in event.refunds:
+        if refund.status != "succeeded" or refund.amount_minor <= 0:
+            continue
+        if await _reconcile_listed_refund(session, intent, event, refund):
+            changed = True
+    if not event.refunds_complete:
+        logger.error(
+            "provider refund list is truncated; not reconciled from the total",
+            extra={"intent_id": str(intent.id), "event_id": event.event_id},
+        )
+    else:
+        total = event.refunded_total_minor or 0
+        captured, recorded = await _totals(session, intent.id)
+        missing = min(total, captured) - recorded
+        if missing > 0:
+            await _record_provider_refund(
+                session,
+                intent,
+                provider=event.provider,
+                amount_minor=missing,
+                refund_id=uuid.uuid4(),
+                provider_ref=None,
+                event_id=event.event_id,
+            )
+            changed = True
+    return "processed" if changed else "duplicate"
+
+
+async def _reconcile_listed_refund(
+    session: AsyncSession, intent: Intent, event: ProviderEvent, refund: ProviderRefund
+) -> bool:
+    """One refund the provider lists as succeeded. Returns True when it changed
+    anything (a new row, or a row the provider now confirms as succeeded)."""
+    existing: Refund | None = None
+    if refund.refund_id is not None:
+        existing = await session.get(Refund, refund.refund_id)
+        if existing is not None and existing.intent_id != intent.id:
+            logger.error(
+                "provider refund names a refund of another payment; not recorded",
+                extra={"intent_id": str(intent.id), "event_id": event.event_id},
+            )
+            return False
+    if existing is None and refund.provider_ref:
+        existing = await session.scalar(
+            select(Refund)
+            .where(
+                Refund.intent_id == intent.id,
+                Refund.provider_ref == refund.provider_ref,
+            )
+            .limit(1)
+        )
+    if existing is not None:
+        changed = False
+        if existing.status != RefundStatus.SUCCEEDED.value:
+            # The provider has settled a refund we recorded as pending or failed.
+            existing.status = RefundStatus.SUCCEEDED.value
+            changed = True
+        if refund.provider_ref and existing.provider_ref is None:
+            existing.provider_ref = refund.provider_ref
+            changed = True
+        return changed
+    await _record_provider_refund(
+        session,
+        intent,
+        provider=event.provider,
+        amount_minor=refund.amount_minor,
+        refund_id=refund.refund_id or uuid.uuid4(),
+        provider_ref=refund.provider_ref,
+        event_id=None,
+    )
+    return True
+
+
+async def _record_provider_refund(
+    session: AsyncSession,
+    intent: Intent,
+    *,
+    provider: str,
+    amount_minor: int,
+    refund_id: uuid.UUID,
+    provider_ref: str | None,
+    event_id: str | None,
+) -> None:
+    """Write a refund the provider made (not our call): its row, its ledger entry
+    and the consumer notifications, as a refund made through ``refund_intent`` would.
+    ``event_id`` is the ledger key for a total-based record; by default the ledger
+    key is the refund id, as ``refund_intent`` uses."""
     refund = Refund(
+        id=refund_id,
         intent_id=intent.id,
-        amount_minor=missing,
+        amount_minor=amount_minor,
         reason="Refunded at the payment provider",
         status=RefundStatus.SUCCEEDED.value,
+        provider_ref=provider_ref,
     )
     session.add(refund)
     await session.flush()
@@ -863,9 +959,9 @@ async def _apply_refunded(
         _entry(
             intent,
             kind=LedgerKind.REFUND,
-            amount_minor=-missing,
-            provider=event.provider,
-            event_id=event.event_id,
+            amount_minor=-amount_minor,
+            provider=provider,
+            event_id=event_id or f"refund:{refund.id}",
             refund_id=refund.id,
         )
     )
@@ -875,10 +971,9 @@ async def _apply_refunded(
         intent,
         "payment.refunded",
         refund_id=refund.id,
-        refunded_minor=missing,
+        refunded_minor=amount_minor,
     )
     await _enqueue_refund_topic(session, intent, refund.id)
-    return "processed"
 
 
 # --- balances, payouts, ledger --------------------------------------------------------

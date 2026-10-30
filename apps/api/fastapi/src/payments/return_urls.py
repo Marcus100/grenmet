@@ -28,7 +28,9 @@ Builder = Callable[[str | None], ReturnAddress | None]
 
 _builders: dict[str, Builder] = {}
 
-_LOCAL_HOSTS = frozenset({"localhost", "127.0.0.1"})
+#: Every spelling of a loopback host ``urlsplit(...).hostname`` can yield (lower-case,
+#: IPv6 without brackets, a trailing dot on the name). Also the unspecified address.
+_LOCAL_HOSTS = frozenset({"localhost", "localhost.", "127.0.0.1", "0.0.0.0", "::1"})
 
 
 def register(source_type: str, builder: Builder) -> None:

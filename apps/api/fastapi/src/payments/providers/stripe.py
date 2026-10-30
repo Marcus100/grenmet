@@ -37,6 +37,7 @@ from .base import (
     EventKind,
     PaymentStart,
     ProviderEvent,
+    ProviderRefund,
     ProviderStatus,
     RefundResult,
 )
@@ -129,6 +130,33 @@ def _currency(value: object) -> str | None:
     return value.upper() if isinstance(value, str) and len(value) == 3 else None
 
 
+def _listed_refunds(listing: object) -> tuple[tuple[ProviderRefund, ...], bool]:
+    """The refunds on a charge, and whether the list is complete (Stripe sets
+    ``has_more`` when the event carries only some of them)."""
+    if not isinstance(listing, dict):
+        return (), True
+    items = listing.get("data")
+    refunds: list[ProviderRefund] = []
+    for item in items if isinstance(items, list) else []:
+        if not isinstance(item, dict):
+            continue
+        amount = _int(item.get("amount"))
+        status = _str(item.get("status"))
+        if amount is None or status is None:
+            continue
+        metadata = item.get("metadata")
+        metadata = metadata if isinstance(metadata, dict) else {}
+        refunds.append(
+            ProviderRefund(
+                provider_ref=_str(item.get("id")),
+                amount_minor=amount,
+                status=status,
+                refund_id=_intent_uuid(metadata.get("refund_id")),
+            )
+        )
+    return tuple(refunds), listing.get("has_more") is not True
+
+
 def normalise_event(event: dict[str, Any]) -> ProviderEvent:
     """Map a verified Stripe event to the core's vocabulary."""
     event_id = _str(event.get("id"))
@@ -170,6 +198,7 @@ def normalise_event(event: dict[str, Any]) -> ProviderEvent:
             failure_code=code,
         )
     if event_type == "charge.refunded":
+        refunds, complete = _listed_refunds(obj.get("refunds"))
         return ProviderEvent(
             provider=key,
             event_id=event_id,
@@ -179,6 +208,8 @@ def normalise_event(event: dict[str, Any]) -> ProviderEvent:
             amount_minor=_int(obj.get("amount")),
             currency=_currency(obj.get("currency")),
             refunded_total_minor=_int(obj.get("amount_refunded")),
+            refunds=refunds,
+            refunds_complete=complete,
         )
     return ProviderEvent(provider=key, event_id=event_id, kind=EventKind.IGNORED)
 
