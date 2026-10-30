@@ -155,7 +155,9 @@ export function alertsDisplayLevel(
   if (green.status === "unavailable") {
     return "unknown";
   }
-  if (green.other > 0 || (!green.complete && green.count === 0)) {
+  // An incomplete read is grey even when Green items are listed: the calm
+  // colour is only for a read that is complete and empty of other items.
+  if (green.other > 0 || !green.complete) {
     return "unknown";
   }
   return "none";

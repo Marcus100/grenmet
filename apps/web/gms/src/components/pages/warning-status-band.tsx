@@ -101,7 +101,8 @@ function bandCopy(alerts: AlertsResult, green?: GreenStatus): BandCopy {
       guidance: green.complete
         ? "Green is the lowest level. The Green alerts below are listed for awareness."
         : "Green is the lowest level. Some alerts could not be read, so this list may be incomplete.",
-      level: "none",
+      // An incomplete read is grey, never the calm colour (the label stays).
+      level: green.complete ? "none" : "unknown",
       allClear: false,
       unavailable: false,
     };
@@ -113,6 +114,26 @@ function bandCopy(alerts: AlertsResult, green?: GreenStatus): BandCopy {
     allClear: true,
     unavailable: false,
   };
+}
+
+/**
+ * The note on the band's status line about the GMS outlook read: incomplete,
+ * other GMS alerts in effect, or OK. Empty when the band has no outlook answer.
+ */
+function greenNoteFor(green: GreenStatus | undefined): string {
+  if (green === undefined) {
+    return "";
+  }
+  if (green.status === "unavailable") {
+    return " · Green alerts not responding";
+  }
+  if (!green.complete) {
+    return " · Green alerts incomplete";
+  }
+  if (green.other > 0) {
+    return " · other GMS alerts in effect";
+  }
+  return " · Green alerts OK";
 }
 
 /**
@@ -132,10 +153,7 @@ export function WarningStatusBand({
 }) {
   const copy = bandCopy(alerts, green);
   const StatusIcon = copy.allClear ? ShieldCheckIcon : TriangleAlertIcon;
-  const greenNote =
-    green === undefined
-      ? ""
-      : ` · Green alerts ${green.status === "unavailable" ? "not responding" : "OK"}`;
+  const greenNote = greenNoteFor(green);
   return (
     <div
       className={cn(

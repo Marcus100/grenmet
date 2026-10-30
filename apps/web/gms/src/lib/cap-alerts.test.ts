@@ -98,4 +98,13 @@ describe("alertsDisplayLevel", () => {
     );
     expect(alertsDisplayLevel(NONE, green(0, { other: 1 }))).toBe("unknown");
   });
+
+  it("is grey for an incomplete read even when Green items are listed", () => {
+    expect(alertsDisplayLevel(NONE, green(1, { complete: false }))).toBe(
+      "unknown"
+    );
+    expect(alertsDisplayLevel(NONE, green(3, { complete: false }))).toBe(
+      "unknown"
+    );
+  });
 });
