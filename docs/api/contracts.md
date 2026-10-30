@@ -115,7 +115,7 @@ site key), never a secret. Superusers manage sites through
   helpful?" answer (`site`, `page_path`, `helpful`, optional `comment` up to
   1000 characters); 10/min per IP; stores no personal data.
 
-## Content distribution (social posting, dry run)
+## Content distribution (social posting)
 
 - `POST /api/v1/content-distribution/internal/posts` (CMS hook, additive): body
   is camelCase (`collection`, `slug`, `url`, `title`, `summary`, `captions`,
@@ -127,10 +127,15 @@ site key), never a secret. Superusers manage sites through
   and posts missing an image (Instagram) or caption with 422. Machine-authenticated,
   so no `require_permission`.
 - `GET /api/v1/content-distribution/admin/posts` (staff, `cms.article.social.manage`):
-  one row per post and platform with `status`, `error`, `attempts` and `automated`,
-  filterable by `slug` and `collection`.
-- Nothing is sent to a real social network: `SOCIAL_POSTING_LIVE` is false, and the
-  worker records dry runs. Domain notes: `apps/api/fastapi/src/content_distribution/AGENTS.md`.
+  one row per post and platform with `status` (`pending`, `scheduled`, `posted`,
+  `dry_run_sent`, `skipped`, `failed`, `dead`), `external_id`, `reason` (why a dry run
+  or skip), `error` (why it failed), `attempts` and `automated`, filterable by `slug`
+  and `collection`. Adding `posted` and `skipped` to `status` was flagged as a warning
+  by the breaking-change check (not a break): clients that switch on `status` need them.
+- Live posting to Facebook and Instagram runs only when the feature flag
+  `social-live-posting` is on and the Meta settings are present; otherwise the worker
+  records a dry run. Owner checklist: `docs/operations/social-live-posting.md`.
+  Domain notes: `apps/api/fastapi/src/content_distribution/AGENTS.md`.
 
 See [integration readiness](../operations/integration-readiness.md) for matching
 environment endpoints and provider setup. Changes to this hidden callback's

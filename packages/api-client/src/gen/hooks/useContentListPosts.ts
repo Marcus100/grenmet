@@ -60,7 +60,7 @@ export function contentListPostsQueryOptions(
 }
 
 /**
- * @description One row per post and platform, newest first. status is pending, scheduled, dry_run_sent, failed (the outbox is retrying) or dead. Needs the social publishing permission.
+ * @description One row per post and platform, newest first. status is pending, scheduled, posted (live on the platform; external_id is its id), dry_run_sent (not sent live; reason says why), skipped (not sent; reason says why), failed (the outbox is retrying; error says why) or dead (given up; error says why). Needs the social publishing permission.
  * @summary List social posts and their per-platform status
  * {@link /api/v1/content-distribution/admin/posts}
  */

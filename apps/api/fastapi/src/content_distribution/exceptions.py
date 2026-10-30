@@ -40,13 +40,3 @@ class SocialCaptionMissing(AppException):
             f"Add a caption for {platform}",
             status.HTTP_422_UNPROCESSABLE_ENTITY,
         )
-
-
-class SocialPostingNotConfigured(AppException):
-    """Raised by a handler in live mode, which is not built yet. Retried, then dead."""
-
-    def __init__(self) -> None:
-        super().__init__(
-            "Live social posting is not configured yet; the post stays a dry run",
-            status.HTTP_503_SERVICE_UNAVAILABLE,
-        )

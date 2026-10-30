@@ -1,7 +1,7 @@
-"""Social posting, dry run only: intake from the CMS, release, handlers and staff view.
+"""Social posting: intake from the CMS, release, the dry-run handler and the staff view.
 
-No test reaches a real social network: SOCIAL_POSTING_LIVE stays false, and the
-live-mode test only checks the refusal and the retry path.
+No test here reaches a real social network: the live feature flag is off, and the
+live path is covered in test_live_posting.py with Meta mocked at the HTTP layer.
 """
 
 import uuid
@@ -24,7 +24,7 @@ from src.content_distribution.config import (
     content_distribution_settings as settings,
 )
 from src.content_distribution.models import ContentDelivery
-from src.outbox import Outbox, OutboxStatus
+from src.outbox import Outbox
 from src.utils.datetime import utc_now
 
 _URL = "/api/v1/content-distribution/internal/posts"
@@ -328,38 +328,6 @@ async def test_drain_twice_never_posts_twice(
     assert row.status == "dry_run_sent"
 
 
-async def test_live_mode_refuses_then_dies_and_records_the_error(
-    async_client: httpx.AsyncClient,
-    db_async: AsyncSession,
-    cms_secret: dict[str, str],
-    monkeypatch: pytest.MonkeyPatch,
-) -> None:
-    monkeypatch.setattr(settings, "SOCIAL_POSTING_LIVE", True)
-    await async_client.post(
-        _URL, json=_body("live-refused", platforms=["facebook"]), headers=cms_secret
-    )
-    await _set_publish_at(db_async, "live-refused", _PAST)
-    await service.release_due(db_async, now=datetime(2026, 10, 2))
-    await db_async.commit()
-
-    now = datetime(2026, 10, 2)
-    for attempt in range(outbox.MAX_ATTEMPTS):
-        await outbox.drain(
-            db_async,
-            only_topics=["social.post.facebook"],
-            now=now + timedelta(days=attempt),
-        )
-    [row] = await _rows(db_async, "live-refused")
-    assert row.status == "dead"
-    assert row.error is not None
-    assert "not configured" in row.error.lower()
-    outbox_row = await db_async.scalar(
-        select(Outbox).where(Outbox.dedupe_key == row.dedupe_key)
-    )
-    assert outbox_row is not None
-    assert outbox_row.status == OutboxStatus.DEAD.value
-
-
 # --- Staff view ----------------------------------------------------------------
 
 
@@ -370,27 +338,18 @@ async def test_staff_list_needs_the_social_permission(
     assert resp.status_code == 403
 
 
-async def test_staff_list_shows_status_and_retrying_as_failed(
+async def test_staff_list_keeps_the_automated_flag_and_url(
     async_client: httpx.AsyncClient,
-    db_async: AsyncSession,
     cms_secret: dict[str, str],
     superuser_token_headers_async: dict[str, str],
-    monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    monkeypatch.setattr(settings, "SOCIAL_POSTING_LIVE", True)
+    # Live posting, the failed-while-retrying view and the reasons are covered in
+    # test_live_posting.py. This pins the fields that stay as they were.
     await async_client.post(
         _URL,
         json=_body("staff-view", platforms=["facebook", "whatsapp"]),
         headers=cms_secret,
     )
-    await _set_publish_at(db_async, "staff-view", _PAST)
-    await service.release_due(db_async, now=datetime(2026, 10, 2))
-    await db_async.commit()
-    # One failed attempt: the outbox keeps the row for a retry.
-    await outbox.drain(
-        db_async, only_topics=["social.post.facebook"], now=datetime(2026, 10, 2)
-    )
-
     resp = await async_client.get(
         _STAFF_URL, params={"slug": "staff-view"}, headers=superuser_token_headers_async
     )
@@ -398,8 +357,6 @@ async def test_staff_list_shows_status_and_retrying_as_failed(
     body = resp.json()
     assert body["count"] == 2
     by_platform = {item["platform"]: item for item in body["data"]}
-    assert by_platform["facebook"]["status"] == "failed"
-    assert "SocialPostingNotConfigured" in (by_platform["facebook"]["error"] or "")
     assert by_platform["whatsapp"]["status"] == "pending"
     assert by_platform["whatsapp"]["automated"] is False
     assert by_platform["facebook"]["automated"] is True

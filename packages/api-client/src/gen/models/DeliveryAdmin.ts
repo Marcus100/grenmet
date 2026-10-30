@@ -21,6 +21,7 @@ export type DeliveryAdmin = {
   automated: boolean;
   attempts: number;
   external_id: string | null;
+  reason: string | null;
   error: string | null;
   /**
    * @description

@@ -9,6 +9,8 @@ export const deliveryAdminPropertiesStatusEnumSchema = z.enum([
   "pending",
   "scheduled",
   "dry_run_sent",
+  "posted",
+  "skipped",
   "failed",
   "dead",
 ]);

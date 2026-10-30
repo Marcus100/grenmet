@@ -1,29 +1,39 @@
-"""Social posting logic: intake from the CMS, release to the outbox, dry-run handlers
-and the staff view. Routers only call this module."""
+"""Social posting logic: intake from the CMS, release to the outbox, the post handlers
+(live or dry run, decided per post) and the staff view. Routers only call this module."""
 
 import logging
 import uuid
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import Any, Literal, cast
 from urllib.parse import urlsplit
 
-from sqlalchemy import and_, func, select
+from sqlalchemy import and_, func, select, update
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src import outbox
+from src.feature_flags import service as flag_service
 from src.outbox import Outbox, OutboxMessage, OutboxStatus
 from src.utils.datetime import utc_now
 
-from .config import content_distribution_settings
+from . import meta_graph
+from .config import PlatformCredentials, content_distribution_settings
 from .constants import (
     AUTOMATED_PLATFORMS,
+    ERROR_OUTCOME_UNKNOWN,
     IMAGE_REQUIRED_PLATFORMS,
+    PLATFORM_FACEBOOK,
+    REASON_FLAG_OFF,
+    REASON_NO_IMAGE,
+    REASON_NOT_CONFIGURED,
+    SOCIAL_LIVE_FLAG,
     STATUS_DEAD,
     STATUS_DRY_RUN_SENT,
     STATUS_FAILED,
     STATUS_PENDING,
+    STATUS_POSTED,
     STATUS_SCHEDULED,
+    STATUS_SKIPPED,
     TOPIC_PREFIX,
     WARNING_COLLECTIONS,
     WARNING_PATH_PREFIXES,
@@ -31,11 +41,14 @@ from .constants import (
 from .exceptions import (
     SocialCaptionMissing,
     SocialImageRequired,
-    SocialPostingNotConfigured,
     SocialWarningNotAllowed,
 )
 from .models import ContentDelivery
 from .schemas import DeliveryAdmin, DeliveryOutcome, DisplayStatus, PostIn
+
+# A live publish holds its outbox row this long, so a second worker cannot pick the
+# row up while the first is still waiting on Meta (the first commits mid-handler).
+IN_FLIGHT_LEASE = timedelta(minutes=10)
 
 logger = logging.getLogger(__name__)
 
@@ -180,17 +193,109 @@ async def release_due(
     return len(rows)
 
 
-async def publish(delivery: ContentDelivery) -> str:
-    """Post one row to its platform. Dry run: record it and return a dry-run id.
+def _text(value: object) -> str | None:
+    return value if isinstance(value, str) and value else None
 
-    Live posting is refused until it is built, so the flag alone cannot send."""
-    if content_distribution_settings.SOCIAL_POSTING_LIVE:
-        raise SocialPostingNotConfigured()
-    logger.info(
-        "Dry-run social post recorded",
-        extra={"platform": delivery.platform, "delivery_id": str(delivery.id)},
+
+def _error_text(error: Exception) -> str:
+    """What staff see for a give-up: the safe Meta message, else the exception type."""
+    if isinstance(error, meta_graph.GraphError):
+        return error.message[:300]
+    return type(error).__name__
+
+
+def _settle(
+    row: ContentDelivery,
+    message: OutboxMessage,
+    *,
+    status: str,
+    external_id: str | None = None,
+    reason: str | None = None,
+    error: str | None = None,
+) -> None:
+    """Record the final outcome of one attempt. The caller commits (or the outbox does)."""
+    now = utc_now()
+    row.status = status
+    row.attempts = message.attempts + 1
+    row.external_id = external_id
+    row.reason = reason
+    row.error = error
+    row.processed_at = now
+    row.updated_at = now
+
+
+async def _call_meta(
+    client: meta_graph.GraphClient,
+    row: ContentDelivery,
+    account_id: str,
+    image_url: str | None,
+) -> str:
+    caption = _text(row.payload.get("caption")) or ""
+    if row.platform == PLATFORM_FACEBOOK:
+        return await meta_graph.publish_facebook(
+            client,
+            page_id=account_id,
+            message=caption,
+            link=_text(row.payload.get("url")) or "",
+            image_url=image_url,
+        )
+    if image_url is None:
+        # post_delivery skips Instagram rows without an image before this point.
+        raise meta_graph.GraphRejected("Instagram posts need an image")
+    return await meta_graph.publish_instagram(
+        client, account_id=account_id, caption=caption, image_url=image_url
     )
-    return f"dry-run:{delivery.id}"
+
+
+async def _publish_live(
+    session: AsyncSession,
+    row: ContentDelivery,
+    message: OutboxMessage,
+    credentials: PlatformCredentials,
+    image_url: str | None,
+) -> None:
+    """Send one post to Meta and record the answer.
+
+    The attempt is committed before the request. If the process dies, or Meta's
+    answer is lost, the next attempt sees the marker and gives the row up instead of
+    sending it again. A row is only sent again after Meta has answered without
+    publishing (retryable), and that answer clears the marker first."""
+    now = utc_now()
+    row.publish_started_at = now
+    row.updated_at = now
+    # The handler commits mid-way, which releases the outbox row lock. Hold the row
+    # for the lease so a second worker cannot pick it up while Meta is being called.
+    await session.execute(
+        update(Outbox)
+        .where(Outbox.id == message.id)
+        .values(next_attempt_at=now + IN_FLIGHT_LEASE)
+    )
+    await session.commit()
+
+    client = meta_graph.GraphClient(
+        access_token=credentials.access_token,
+        api_version=content_distribution_settings.META_GRAPH_API_VERSION,
+    )
+    context = {"platform": row.platform, "delivery_id": str(row.id)}
+    try:
+        external_id = await _call_meta(client, row, credentials.account_id, image_url)
+    except meta_graph.GraphOutcomeUnknown:
+        logger.error("Social post outcome unknown; not sent again", extra=context)
+        _settle(row, message, status=STATUS_DEAD, error=ERROR_OUTCOME_UNKNOWN)
+        return
+    except meta_graph.GraphRejected as exc:
+        logger.warning("Meta rejected a social post", extra=context)
+        _settle(row, message, status=STATUS_DEAD, error=exc.message)
+        return
+    except meta_graph.GraphRetryable as exc:
+        logger.warning("Social post not sent; the outbox will retry", extra=context)
+        row.publish_started_at = None
+        row.error = exc.message
+        row.updated_at = utc_now()
+        await session.commit()
+        raise
+    logger.info("Social post published", extra=context)
+    _settle(row, message, status=STATUS_POSTED, external_id=external_id)
 
 
 async def _locked(
@@ -205,19 +310,45 @@ async def _locked(
 
 
 async def post_delivery(session: AsyncSession, message: OutboxMessage) -> None:
-    """Outbox handler body for social.post.<platform>. Idempotent: a row that is
-    no longer scheduled is left alone, so a retry never reposts."""
+    """Outbox handler body for social.post.<platform>.
+
+    Idempotent: a row that is no longer scheduled is left alone, so a retry never
+    reposts. Live posting needs both the feature flag ``social-live-posting`` and the
+    Meta settings. Without either, the row is a dry run that says why. An Instagram
+    row without an image is skipped, with the reason."""
     row = await _locked(session, message)
     if row is None or row.status != STATUS_SCHEDULED:
         return
-    external_id = await publish(row)
-    now = utc_now()
-    row.status = STATUS_DRY_RUN_SENT
-    row.attempts = message.attempts + 1
-    row.external_id = external_id
-    row.error = None
-    row.processed_at = now
-    row.updated_at = now
+    if row.publish_started_at is not None:
+        # An earlier attempt sent the publish request and never recorded an answer.
+        # Sending it again could post twice, so the row is given up for a person to check.
+        logger.error(
+            "Social post left in flight by an earlier attempt; not sent again",
+            extra={"platform": row.platform, "delivery_id": str(row.id)},
+        )
+        _settle(row, message, status=STATUS_DEAD, error=ERROR_OUTCOME_UNKNOWN)
+        return
+    image_url = _text(row.payload.get("imageUrl"))
+    if row.platform in IMAGE_REQUIRED_PLATFORMS and image_url is None:
+        _settle(row, message, status=STATUS_SKIPPED, reason=REASON_NO_IMAGE)
+        return
+    credentials = content_distribution_settings.platform_credentials(row.platform)
+    live_on = await flag_service.is_enabled(session, SOCIAL_LIVE_FLAG)
+    if not live_on or credentials is None:
+        reason = REASON_NOT_CONFIGURED if live_on else REASON_FLAG_OFF
+        logger.info(
+            "Dry-run social post recorded",
+            extra={"platform": row.platform, "delivery_id": str(row.id)},
+        )
+        _settle(
+            row,
+            message,
+            status=STATUS_DRY_RUN_SENT,
+            external_id=f"dry-run:{row.id}",
+            reason=reason,
+        )
+        return
+    await _publish_live(session, row, message, credentials, image_url)
 
 
 async def dead_letter(
@@ -227,14 +358,7 @@ async def dead_letter(
     row = await _locked(session, message)
     if row is None or row.status != STATUS_SCHEDULED:
         return
-    row.status = STATUS_DEAD
-    row.attempts = message.attempts + 1
-    row.error = (
-        error.message[:300]
-        if isinstance(error, SocialPostingNotConfigured)
-        else type(error).__name__
-    )
-    row.updated_at = utc_now()
+    _settle(row, message, status=STATUS_DEAD, error=_error_text(error))
 
 
 def display_status(
@@ -293,7 +417,7 @@ async def list_deliveries(
         status = display_status(delivery.status, outbox_status, outbox_attempts)
         error = delivery.error
         if status == STATUS_FAILED:
-            error = last_error
+            error = delivery.error or last_error
         items.append(
             DeliveryAdmin(
                 id=delivery.id,
@@ -306,6 +430,7 @@ async def list_deliveries(
                 automated=delivery.platform in AUTOMATED_PLATFORMS,
                 attempts=delivery.attempts,
                 external_id=delivery.external_id,
+                reason=delivery.reason,
                 error=error,
                 publish_at=delivery.publish_at,
                 processed_at=delivery.processed_at,
