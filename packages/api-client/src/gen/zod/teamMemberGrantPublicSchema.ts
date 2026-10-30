@@ -9,6 +9,7 @@ export const teamMemberGrantPublicSchema = z
   .object({
     id: z.string(),
     role_key: z.string(),
+    granted_by_name: z.union([z.string(), z.null()]).optional(),
     granted_at: z.iso.datetime(),
     expires_at: z.union([z.iso.datetime(), z.null()]).optional(),
   })

@@ -12,6 +12,7 @@ export const teamMemberPublicSchema = z
     membership_id: z.string(),
     name: z.string(),
     role: membershipRoleSchema,
+    is_self: z.boolean(),
     grants: z.array(teamMemberGrantPublicSchema),
   })
   .describe(
