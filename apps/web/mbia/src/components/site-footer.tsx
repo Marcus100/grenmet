@@ -1,3 +1,4 @@
+import { CookieSettingsButton } from "@barrelsgd/ui/components/posthog-provider";
 import { Mail, MapPin, Phone } from "lucide-react";
 import type { Route } from "next";
 import Image from "next/image";
@@ -98,6 +99,7 @@ export function SiteFooter() {
             >
               Privacy
             </Link>
+            <CookieSettingsButton className="cursor-pointer text-left transition-colors hover:text-white" />
             <Link
               className="transition-colors hover:text-white"
               href="/contact"

@@ -100,6 +100,7 @@ const panel = () => screen.getByRole("region", { name: "Forecast details" });
 /** The visible summary card above the tabs. */
 const card = () => screen.getByRole("region", { name: "Weather summary" });
 const LAST_OBSERVED = /^Last observed 1:00 p\.m\. · MBIA$/;
+const LAST_TAB = /Last reading/;
 const LAST_OBSERVED_OTHER_DAY = /^Last observed 29 Sept?, 1:00 p\.m\. · MBIA$/;
 const TODAY_LINK = /^Today's forecast/;
 const terms = (region: HTMLElement) =>
@@ -171,6 +172,10 @@ describe("Now", () => {
   it("says when an old reading was taken", () => {
     render(<SkyHero now={at("2026-09-29T21:00:00Z")} weather={weather()} />);
     expect(within(card()).getByText(LAST_OBSERVED)).toBeInTheDocument();
+    // The first tab says Last over the reading time, never Now.
+    const [tab] = tabs();
+    expect(tab).toHaveTextContent(LAST_TAB);
+    expect(tab).toHaveTextContent("13:00");
   });
 
   it("puts the date on the label when the reading is from another day", () => {
@@ -178,6 +183,8 @@ describe("Now", () => {
     expect(
       within(card()).getByText(LAST_OBSERVED_OTHER_DAY)
     ).toBeInTheDocument();
+    expect(tabs()[0]).toHaveTextContent(LAST_TAB);
+    expect(tabs()[0]).toHaveTextContent("Tue");
   });
 
   it("falls back to the midday product temperature, labelled as such", () => {
@@ -191,7 +198,7 @@ describe("Now", () => {
 
 describe("Day tabs", () => {
   it("leads with Now, then links each day to its dated route", () => {
-    render(<SkyHero weather={weather()} />);
+    render(<SkyHero now={at("2026-09-29T17:12:00Z")} weather={weather()} />);
     const links = tabs();
     expect(links).toHaveLength(6);
     expect(links[0]).toHaveTextContent("Now");

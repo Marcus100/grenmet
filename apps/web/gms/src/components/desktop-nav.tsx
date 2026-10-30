@@ -2,7 +2,7 @@
 
 import { NavigationMenuItem } from "@barrelsgd/ui/components/ui/navigation-menu";
 import { NavigationMenu as NavigationMenuPrimitive } from "@base-ui/react/navigation-menu";
-import { ArrowRightIcon, ChevronDownIcon } from "lucide-react";
+import { ArrowRightIcon } from "lucide-react";
 import type { Route } from "next";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -196,17 +196,11 @@ export function DesktopNav({ alerts, anchor }: DesktopNavProps) {
             <NavigationMenuItem key={section.label}>
               <NavigationMenuPrimitive.Trigger
                 aria-current={current ? "page" : undefined}
-                className={cn(
-                  "group/trigger",
-                  TRIGGER,
-                  current && "border-b-gm-text-inverse"
-                )}
+                className={cn(TRIGGER, current && "border-b-gm-text-inverse")}
               >
+                {/* No chevrons: with them the seven sections overran the header
+                    column and slid under the logo (29 Oct 2026). */}
                 {section.label}
-                <ChevronDownIcon
-                  aria-hidden="true"
-                  className="hidden size-4 transition-transform duration-200 group-data-popup-open/trigger:rotate-180 xl:block"
-                />
               </NavigationMenuPrimitive.Trigger>
               <NavigationMenuPrimitive.Content className="w-full">
                 <Panel alerts={alerts} section={section} />
