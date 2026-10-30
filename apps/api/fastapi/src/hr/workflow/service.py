@@ -374,13 +374,16 @@ async def _named_actor_in_organisation(
     *,
     allow_superuser: bool = True,
 ) -> bool:
-    from src.hr.models import EmploymentRecord, EmploymentStatus
+    from src.hr.models import EmploymentRecord, live_employment_clause
+    from src.utils.timezones import local_today
 
+    # Live means ACTIVE and not past its end date (#797): a named approver whose
+    # last day has passed cannot act before the daily job has ended the record.
     placement = exists(
         select(EmploymentRecord.id).where(
             EmploymentRecord.user_id == User.id,
             EmploymentRecord.organisation_id == organisation_id,
-            EmploymentRecord.status == EmploymentStatus.ACTIVE,
+            live_employment_clause(local_today()),
         )
     )
     allowed = User.is_superuser.is_(True) | placement if allow_superuser else placement
