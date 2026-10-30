@@ -490,8 +490,9 @@ function WithdrawSection({
         <AlertDialogContent>
           <AlertDialogTitle>Mark this CAP alert expired?</AlertDialogTitle>
           <AlertDialogDescription>
-            The alert lapses without a new public CAP message. Nothing is sent
-            to the public when you confirm.
+            The alert leaves the public active feed at once. It lapses without a
+            new public CAP message, so nothing is sent to the public when you
+            confirm.
           </AlertDialogDescription>
           <AlertDialogFooter>
             <AlertDialogCancel>Keep it published</AlertDialogCancel>
