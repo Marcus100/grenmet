@@ -2,9 +2,9 @@
 
 ``DELETE /organisations/{id}/members/{membership_id}``: an account session removes the
 person from the whole organisation (204). An Events app session only ends that
-person's Events access (200, ``scope: events``): their live ``events-*`` grants, the
-grants they issued for Events and their Events app opt-in. The membership and the
-other products stay. Last-owner and owner-touch rules hold on both paths, and the
+person's Events access in that organisation (200, ``scope: events``): their live
+``events-*`` grants there and the grants they issued for Events there. The membership,
+other products, other organisations and the account-level Events opt-in stay. Last-owner and owner-touch rules hold on both paths, and the
 audit entries say which sign-in made the change.
 """
 
@@ -143,42 +143,71 @@ async def test_events_session_removal_only_ends_events_access(
     )
 
     assert response.status_code == 200, response.text
-    body = response.json()
-    assert body == {
+    assert response.json() == {
         "membership_id": row.id,
         "scope": "events",
         "grants_revoked": 1,
         "issued_grants_revoked": 0,
-        "app_access_ended": True,
     }
     kept = await _membership(db_async, org.id, target.id)
     assert kept.status == MembershipStatus.ACTIVE.value
     assert (await _grant_row(db_async, events_grant)).revoked_at is not None
     assert (await _grant_row(db_async, bookings_grant)).revoked_at is None
-    assert await _has_events_opt_in(db_async, target.id) is False
 
 
-async def test_events_removal_ends_the_persons_events_sign_in(
+async def test_events_removal_keeps_the_account_opt_in_and_other_organisations(
     async_client: httpx.AsyncClient, db_async: AsyncSession
 ):
+    """Removal from one organisation's Events team must not lock the person out
+    of Events elsewhere: the account-level Join link and the second organisation
+    stay as they were."""
     owner, target, org, row, _, _ = await _world(db_async)
-    target_headers = _app_headers(target, org.id, "events")
-    before = await async_client.get(f"{API}/org/team/me", headers=target_headers)
+    second = await make_org(
+        db_async,
+        "Second venue",
+        members=((owner, MembershipRole.OWNER), (target, MembershipRole.MEMBER)),
+        apps=("events",),
+    )
+    second_row = await _membership(db_async, second.id, target.id)
+    second_grant = await _grant(
+        db_async,
+        membership=second_row,
+        role_key="events-till",
+        granted_by=owner.id,
+    )
+
+    before = await async_client.get(
+        f"{API}/org/team/me", headers=_app_headers(target, org.id, "events")
+    )
     assert before.status_code == 200, before.text
 
-    await async_client.delete(
+    response = await async_client.delete(
         f"{API}/{org.id}/members/{row.id}",
         headers=_app_headers(owner, org.id, "events"),
     )
+    assert response.status_code == 200, response.text
 
-    after = await async_client.get(f"{API}/org/team/me", headers=target_headers)
-    assert after.status_code == 401, after.text
+    assert await _has_events_opt_in(db_async, target.id) is True
+    # Still signs in to Events, and still a member of the second organisation.
+    elsewhere = await async_client.get(
+        f"{API}/org/team/me", headers=_app_headers(target, second.id, "events")
+    )
+    assert elsewhere.status_code == 200, elsewhere.text
+    assert (await _grant_row(db_async, second_grant)).revoked_at is None
+    # The first organisation's membership stays too: only its Events access ended.
+    here = await async_client.get(
+        f"{API}/org/team/me", headers=_app_headers(target, org.id, "events")
+    )
+    assert here.status_code == 200, here.text
+    assert (await _membership(db_async, org.id, target.id)).status == (
+        MembershipStatus.ACTIVE.value
+    )
 
 
-async def test_events_removal_reports_no_ending_without_an_opt_in(
+async def test_events_removal_without_an_opt_in_still_ends_the_org_grants(
     async_client: httpx.AsyncClient, db_async: AsyncSession
 ):
-    owner, _, org, row, _, bookings_grant = await _world(
+    owner, _, org, row, events_grant, bookings_grant = await _world(
         db_async, target_events_role=False
     )
 
@@ -188,7 +217,8 @@ async def test_events_removal_reports_no_ending_without_an_opt_in(
     )
 
     assert response.status_code == 200, response.text
-    assert response.json()["app_access_ended"] is False
+    assert response.json()["grants_revoked"] == 1
+    assert (await _grant_row(db_async, events_grant)).revoked_at is not None
     assert (await _grant_row(db_async, bookings_grant)).revoked_at is None
 
 

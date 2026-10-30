@@ -792,7 +792,8 @@ Shared APIs for every Barrels app. Zones follow ADR-0025.
   accept an Events app token (`EventsOrg*` dependencies); any other app's token is 401.
   Removal depends on the sign-in (issue #815): an account session removes the membership
   from the organisation (204); an Events app session ends only that person's Events access
-  and answers 200 with `scope: "events"` and the counts (the membership stays).
+  in that organisation and answers 200 with `scope: "events"` and the counts. The
+  membership, other organisations and the account-level Events sign-in stay.
 - **Feature flags** (PF7, ADR-0020): superuser `/feature-flags/admin` (CRUD,
   `/admin/stale`) and `GET /feature-flags/org/evaluate` and `/feature-flags/me/evaluate`,
   which return only flags marked exposed. `GET /feature-flags/public/evaluate?keys=a,b`
