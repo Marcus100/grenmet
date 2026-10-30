@@ -45,6 +45,7 @@ from src.cap.models import (
 )
 from src.config import settings
 from src.contact.models import ContactDataRequest, ContactMessage
+from src.content_distribution.models import ContentDelivery  # noqa: F401
 from src.eregister.models import ERegisterSend  # noqa: F401
 from src.feedback.models import PageFeedback
 from src.hr.absentee.models import AbsenteeReport

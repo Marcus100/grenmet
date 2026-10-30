@@ -10,7 +10,7 @@ The pnpm/Turborepo/Next.js workspace was already current (pnpm 12 catalogs, Type
 
 ## Decision
 
-- **CI cache.** The shared `setup-node` action restores and saves `.turbo/cache`, keyed per job. `type-check` and `tests` run `turbo --affected` on pull requests into `dev`; promotion PRs and pushes run everything. A GitHub Actions cache is enough: no remote-cache service, secrets or vendor. (Amended by ADR-0052: a shared, signed remote cache is now used alongside it.)
+- **CI cache.** The shared `setup-node` action restores and saves `.turbo/cache`, keyed per job. `type-check` and `tests` run `turbo --affected` on pull requests into `dev`; promotion PRs and pushes run everything. A GitHub Actions cache is enough: no remote-cache service, secrets or vendor. (Amended by ADR-0053: a shared, signed remote cache is now used alongside it.)
 - **Catalog.** `@biomejs/biome`, `turbo`, `ultracite` and `knip` live in the pnpm catalog and `catalogMode: strict` rejects hardcoded versions for catalogued packages.
 - **TypeScript.** The base config enables `erasableSyntaxOnly` (no enums, namespaces or parameter properties) and `noUncheckedIndexedAccess` for every app and package. Narrow `array[i]` and `record[key]` reads with a guard or a fallback; do not use `!`. Tests that need the first element of a list use `nth()` from `apps/web/gaa-admin/src/test/nth.ts` or an explicit `if (!x) throw`.
 - **React Compiler** is enabled in every web app that has a `next.config.ts`.

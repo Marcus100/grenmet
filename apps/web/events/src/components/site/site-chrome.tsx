@@ -1,3 +1,4 @@
+import { CookieSettingsButton } from "@barrelsgd/ui/components/posthog-provider";
 import { buttonVariants } from "@barrelsgd/ui/components/ui/button";
 import { cn } from "@barrelsgd/ui/lib/utils";
 import { LayoutDashboard, Ticket } from "lucide-react";
@@ -85,6 +86,7 @@ export function SiteFooter() {
           <Link className="hover:text-white" href="/privacy">
             Privacy
           </Link>
+          <CookieSettingsButton className="cursor-pointer text-left hover:text-white" />
         </nav>
         <p className="text-caption text-white/60">A Barrels Grenada product.</p>
       </div>

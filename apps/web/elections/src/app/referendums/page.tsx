@@ -1,7 +1,7 @@
 import type { Metadata, Route } from "next";
 import Link from "next/link";
 import { Flag } from "@/components/flag";
-import { FlatMap } from "@/components/map/flat-map";
+import { LevelMap } from "@/components/map/level-map";
 import { Provenance } from "@/components/results/provenance";
 import { PageHead, Section } from "@/components/section";
 import {
@@ -21,7 +21,7 @@ import { fmt, pct } from "@/lib/format";
 export const metadata: Metadata = {
   title: "Referendums",
   description:
-    "Grenada’s 2016 referendum on seven constitutional bills and the 2018 referendum on the Caribbean Court of Justice, down to the polling division.",
+    "Grenada’s 2016 and 2018 constitutional referendums: approval rules, results, readable local returns and gaps in the archived records.",
 };
 
 function yesShare(rows: CandidateRow[]): number {
@@ -44,11 +44,20 @@ function ReferendumMap({
   );
   return (
     <figure>
-      <FlatMap
-        geo={geo}
-        label={label}
-        level="div"
-        regions={Object.keys(geo.divisions).map((code) => {
+      <LevelMap
+        constituencyRegions={CODES.map((code) => {
+          const rows = eventResult(data, id, code)?.c ?? [];
+          const share = rows.some((row) => row[2] > 0) ? yesShare(rows) : null;
+          return {
+            code,
+            fill: share == null ? "var(--el-paper-2)" : yesFill(share),
+            title:
+              share == null
+                ? `${constituencyName(results, code)}: no readable result`
+                : `${constituencyName(results, code)}: Yes ${pct(share)}`,
+          };
+        })}
+        divisionRegions={Object.keys(geo.divisions).map((code) => {
           const d = divisions[code];
           return {
             code,
@@ -58,6 +67,8 @@ function ReferendumMap({
               : `${code}: no readable result`,
           };
         })}
+        geo={geo}
+        label={label.replace(" by polling division", "")}
       />
       <figcaption className="mt-2 text-base">
         <span className="flex items-center gap-2">
@@ -71,7 +82,7 @@ function ReferendumMap({
           <span>Yes +40</span>
         </span>
         <span className="mt-1 block text-el-muted">
-          Yes as a share of Yes and No votes, by polling division. Grey: no
+          Yes as a share of Yes and No votes at the selected map level. Grey: no
           readable result. Boundaries are illustrative.
         </span>
       </figcaption>
@@ -158,21 +169,33 @@ export default function ReferendumsPage() {
   return (
     <>
       <PageHead
-        deck="Some parts of Grenada’s Constitution can only be changed by a two-thirds majority at a referendum. In 2016 voters were asked about seven bills at once, and in 2018 about the Caribbean Court of Justice. Every bill was rejected."
+        deck="In 2016 voters considered seven constitutional bills; in 2018 they considered a proposal concerning the Caribbean Court of Justice. None was approved. For changes covered by section 39(5) of the Constitution, at least two-thirds of valid referendum votes must approve, alongside the other constitutional steps."
         eyebrow="Referendums · 2016 and 2018"
         learning="referendum"
-        title="Two votes to change the Constitution, two clear Nos"
+        title="What Grenada’s referendum results show"
       />
 
       <Section
         id="2016"
-        intro={`Turnout was ${pct(r16.turnout)}: ${fmt(r16.voted)} of ${fmt(r16.registered)} registered voters (PEO certificate). No bill came close to the two-thirds it needed.`}
+        intro={`Turnout was ${pct(r16.turnout)}: ${fmt(r16.voted)} of ${fmt(r16.registered)} registered voters (PEO certificate). Each bill needed at least two-thirds of its valid Yes and No responses; no bill reached that threshold.`}
         more={{
           href: `/elections/${eventSlug("2016r")}`,
-          label: "Every station",
+          label: "Read the archived returns",
         }}
         title="24 November 2016 · seven bills"
       >
+        <p className="mb-4 max-w-prose text-base text-el-ink-2 leading-relaxed">
+          Each person could vote on seven separate questions. The combined Yes
+          and No totals count responses across bills, not distinct people.
+          Turnout counts people who voted. Read the{" "}
+          <Link
+            className="underline underline-offset-4"
+            href="/learn/referendums"
+          >
+            referendum guide
+          </Link>{" "}
+          for a worked example and the constitutional source.
+        </p>
         <ul className="space-y-3">
           {r16.bills.map(([title, yes, no, invalid]) => {
             const s = yes / (yes + no);
@@ -300,7 +323,7 @@ export default function ReferendumsPage() {
       <Section
         id="turnout"
         intro="Turnout at the national votes from 2013 to 2022."
-        title="Referendums draw far fewer voters than elections"
+        title="These referendums had lower turnout than nearby elections"
       >
         <ul className="max-w-2xl space-y-2">
           {turnout.map((t) => (

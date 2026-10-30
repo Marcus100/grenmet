@@ -44,7 +44,7 @@ jobs:
     permissions:
       packages: read
       contents: read
-      id-token: write # lets ci-web request the short-lived cache token (ADR-0052)
+      id-token: write # lets ci-web request the short-lived cache token (ADR-0053)
 
   api-client:
     name: API client drift

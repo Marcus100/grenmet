@@ -1,8 +1,8 @@
 {
   "summary": {
-    "pass": 89,
+    "pass": 90,
     "fail": 0,
-    "known": 5,
+    "known": 6,
     "candidateVerification": {
       "unverified": 109,
       "check": 5,
@@ -385,7 +385,7 @@
     },
     {
       "area": "Voter register",
-      "check": "2019-12-31: sex recorded for every elector",
+      "check": "2019-12-31: every elector has source sex code F or M",
       "status": "pass",
       "detail": ""
     },
@@ -397,7 +397,7 @@
     },
     {
       "area": "Voter register",
-      "check": "2020-06-30: sex recorded for every elector",
+      "check": "2020-06-30: every elector has source sex code F or M",
       "status": "pass",
       "detail": ""
     },
@@ -409,7 +409,7 @@
     },
     {
       "area": "Voter register",
-      "check": "2020-12-31: sex recorded for every elector",
+      "check": "2020-12-31: every elector has source sex code F or M",
       "status": "pass",
       "detail": ""
     },
@@ -421,9 +421,9 @@
     },
     {
       "area": "Voter register",
-      "check": "2021-06-30: sex recorded for every elector",
+      "check": "2021-06-30: every elector has source sex code F or M",
       "status": "known",
-      "detail": "H07: 1 elector(s) with sex blank or unreadable in the published list"
+      "detail": "H07: 1 elector(s) not coded F/M; retain other, unspecified or unreadable source values"
     },
     {
       "area": "Voter register",
@@ -433,7 +433,7 @@
     },
     {
       "area": "Voter register",
-      "check": "2021-12-31: sex recorded for every elector",
+      "check": "2021-12-31: every elector has source sex code F or M",
       "status": "pass",
       "detail": ""
     },
@@ -445,7 +445,7 @@
     },
     {
       "area": "Voter register",
-      "check": "2022-05-27: sex recorded for every elector",
+      "check": "2022-05-27: every elector has source sex code F or M",
       "status": "pass",
       "detail": ""
     },
@@ -457,7 +457,7 @@
     },
     {
       "area": "Voter register",
-      "check": "2022-06-10: sex recorded for every elector",
+      "check": "2022-06-10: every elector has source sex code F or M",
       "status": "pass",
       "detail": ""
     },
@@ -469,7 +469,7 @@
     },
     {
       "area": "Voter register",
-      "check": "2022-12-31: sex recorded for every elector",
+      "check": "2022-12-31: every elector has source sex code F or M",
       "status": "pass",
       "detail": ""
     },
@@ -481,7 +481,7 @@
     },
     {
       "area": "Voter register",
-      "check": "2023-06-30: sex recorded for every elector",
+      "check": "2023-06-30: every elector has source sex code F or M",
       "status": "pass",
       "detail": ""
     },
@@ -493,7 +493,7 @@
     },
     {
       "area": "Voter register",
-      "check": "2023-12-31: sex recorded for every elector",
+      "check": "2023-12-31: every elector has source sex code F or M",
       "status": "pass",
       "detail": ""
     },
@@ -505,7 +505,7 @@
     },
     {
       "area": "Voter register",
-      "check": "2024-06-30: sex recorded for every elector",
+      "check": "2024-06-30: every elector has source sex code F or M",
       "status": "pass",
       "detail": ""
     },
@@ -517,7 +517,7 @@
     },
     {
       "area": "Voter register",
-      "check": "2024-12-31: sex recorded for every elector",
+      "check": "2024-12-31: every elector has source sex code F or M",
       "status": "pass",
       "detail": ""
     },
@@ -529,7 +529,7 @@
     },
     {
       "area": "Voter register",
-      "check": "2025-06-30: sex recorded for every elector",
+      "check": "2025-06-30: every elector has source sex code F or M",
       "status": "pass",
       "detail": ""
     },
@@ -541,7 +541,7 @@
     },
     {
       "area": "Voter register",
-      "check": "2025-12-31: sex recorded for every elector",
+      "check": "2025-12-31: every elector has source sex code F or M",
       "status": "pass",
       "detail": ""
     },
@@ -553,9 +553,21 @@
     },
     {
       "area": "Voter register",
-      "check": "2026-06-30: sex recorded for every elector",
+      "check": "2026-06-30: every elector has source sex code F or M",
       "status": "pass",
       "detail": ""
+    },
+    {
+      "area": "Voter register",
+      "check": "2026-10-16: every polling division has electors",
+      "status": "pass",
+      "detail": ""
+    },
+    {
+      "area": "Voter register",
+      "check": "2026-10-16: every elector has source sex code F or M",
+      "status": "known",
+      "detail": "M04: 1 elector(s) not coded F/M; retain other, unspecified or unreadable source values"
     },
     {
       "area": "Map",

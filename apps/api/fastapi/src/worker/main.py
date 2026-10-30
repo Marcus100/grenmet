@@ -50,6 +50,7 @@ async def startup(ctx: dict[str, Any]) -> None:  # noqa: ARG001 - arq passes ctx
         "src.events.payment_handlers",
         "src.rewards.outbox_handlers",
         "src.webhooks_out.delivery",
+        "src.content_distribution.outbox_handlers",
     ):
         import_module(module)
     from src.config import settings
@@ -166,7 +167,8 @@ async def drain_outbox(ctx: dict[str, Any]) -> int:
 
     # Importing these modules registers their outbox handlers (email.send,
     # rewards.qualifying_action, bookings.deposit_paid, events.notify,
-    # events.order_paid, events.order_refunded, webhook.deliver).
+    # events.order_paid, events.order_refunded, webhook.deliver,
+    # social.post.<platform>).
     for module in (
         "src.notifications.outbox_handlers",
         "src.bookings.outbox_handlers",
@@ -174,6 +176,7 @@ async def drain_outbox(ctx: dict[str, Any]) -> int:
         "src.events.payment_handlers",
         "src.rewards.outbox_handlers",
         "src.webhooks_out.delivery",
+        "src.content_distribution.outbox_handlers",
     ):
         import_module(module)
 
@@ -255,6 +258,51 @@ async def expire_unpaid_event_orders(ctx: dict[str, Any]) -> int:
             raise
     await operational_metrics.record_job(
         ctx.get("redis"), "expire_unpaid_event_orders", str(ctx.get("job_id", "")), True
+    )
+    return result
+
+
+async def send_daily_newsletter(ctx: dict[str, Any]) -> int:
+    """Daily climate newsletter at 07:30 Grenada time; queues nothing until switched on."""
+    from src.database import async_session_factory
+    from src.worker import newsletter_digest
+
+    async with async_session_factory() as session:
+        try:
+            result = await newsletter_digest.run_daily(session)
+        except Exception:
+            await operational_metrics.record_job(
+                ctx.get("redis"),
+                "send_daily_newsletter",
+                str(ctx.get("job_id", "")),
+                False,
+            )
+            raise
+    await operational_metrics.record_job(
+        ctx.get("redis"), "send_daily_newsletter", str(ctx.get("job_id", "")), True
+    )
+    return result
+
+
+async def release_social_posts(ctx: dict[str, Any]) -> int:
+    """Queue social posts whose publish time has passed (ADR-0026 outbox; dry run)."""
+    from src.content_distribution import service as content_service
+    from src.database import async_session_factory
+
+    async with async_session_factory() as session:
+        try:
+            result = await content_service.release_due(session)
+            await session.commit()
+        except Exception:
+            await operational_metrics.record_job(
+                ctx.get("redis"),
+                "release_social_posts",
+                str(ctx.get("job_id", "")),
+                False,
+            )
+            raise
+    await operational_metrics.record_job(
+        ctx.get("redis"), "release_social_posts", str(ctx.get("job_id", "")), True
     )
     return result
 
@@ -566,6 +614,8 @@ class WorkerSettings:
         run_notification_sweeps,
         run_gms_notification_sweeps,
         send_invoice_reminders,
+        send_daily_newsletter,
+        release_social_posts,
         purge_expired_data,
         check_nhc_failures,
         check_alert_outbox,
@@ -631,6 +681,12 @@ class WorkerSettings:
         ),
         # Invoice payment reminders at 07:00 Grenada (UTC-4); idempotent per stage.
         cron(send_invoice_reminders, hour=11, minute=0, run_at_startup=False),
+        # Daily climate newsletter at 07:30 Grenada (UTC-4, no daylight saving);
+        # no-op until NEWSLETTER_DIGEST_ENABLED is set. Idempotent per day.
+        cron(send_daily_newsletter, hour=11, minute=30, run_at_startup=False),
+        # Social posts due now go to the platform outbox every minute (second 0), so
+        # drain_outbox (seconds 10 and 40) sends them. Dry run until live posting exists.
+        cron(release_social_posts, run_at_startup=False),
         # Retention purge, 03:30 UTC (23:30 Grenada); idempotent and batched.
         cron(purge_expired_data, hour=3, minute=30, run_at_startup=False),
         # NHC job failures every 5 minutes; the 1-hour window stops repeat messages.

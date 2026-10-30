@@ -1,21 +1,19 @@
+import { clock12 } from "@/lib/clock";
 import { type CurrentConditions, localTime } from "@/lib/current-conditions";
 import type { Condition, ForecastDayData } from "@/lib/forecast-data";
 import { UNAVAILABLE_SOURCE } from "@/lib/forecast-selection";
 import { sunTimes } from "@/lib/sky";
+import { DEFAULT_UNITS, formatMeasure, type Measure } from "@/lib/units";
 import type { WeatherCondition } from "@/lib/weather-icons";
 
 /* Condition labels, from FastAPI `presentation.conditions` and older issues. */
-const WIND_TILE = /^wind/i;
 const HUMIDITY = /^humidity/i;
 const RAIN_TILE = /^rain$/i;
 const PRESSURE = /^pressure/i;
-const CLOUD = /^cloud/i;
+const CLOUD_BASE = /^cloud base/i;
 const TIME_SEPARATOR = /,|;| and /;
 const DIGITS = /\d+/;
 const RAIN_CHANCE = /^(chance of rain|rain chance)/i;
-const WIND_SPEED = /^wind speed|^wind$/i;
-const WIND_DIRECTION = /^wind direction/i;
-const GUSTS = /^gusts/i;
 const WAVE_HEIGHT = /^wave height/i;
 const SEA_STATE = /^sea state/i;
 const SWELL = /^swell/i;
@@ -24,8 +22,9 @@ const HIGH_TIDE = /^high tide/i;
 const LOW_TIDE = /^low tide/i;
 const SUNRISE = /^sunrise/i;
 const SUNSET = /^sunset/i;
-const RAINFALL = /^(rainfall|rain amount)/i;
 const VISIBILITY = /^visibility/i;
+/** Observer weather words that explain poor visibility (Saharan dust shows as haze). */
+const OBSCURED = /haze|dust|sand|smoke|mist|fog/i;
 const PARTLY = /partly|intervals|mostly sunny/i;
 const SHOWERY = /shower|rain|drizzle|thunder|storm/i;
 const SUNNY = /sun|clear|fair|fine/i;
@@ -44,6 +43,8 @@ export type ReadingIcon =
   | "sunrise"
   | "sunset"
   | "swell"
+  | "temp-high"
+  | "temp-low"
   | "tide-high"
   | "tide-low"
   | "uv"
@@ -64,6 +65,14 @@ export interface Reading {
   detail?: string;
   icon: ReadingIcon;
   label: string;
+  /** The numbers behind `value` (WMO units), so the grid can follow the unit switch. */
+  measures?: Measure[];
+  /**
+   * One line per item, for a reading that lists several (each tide): a time
+   * on top with its height underneath. When present the grid draws these
+   * instead of `value`.
+   */
+  rows?: { measure?: Measure; time: string }[];
   /** Neutral level word, e.g. "Good"; never a hazard colour. */
   tag?: string;
   /** Pressure tendency, drawn as an arrow beside the value. */
@@ -73,12 +82,36 @@ export interface Reading {
   value: string;
 }
 
-const missing = (icon: ReadingIcon, label: string): Reading => ({
-  icon,
-  label,
-  unavailable: true,
-  value: NOT_AVAILABLE,
-});
+/** A reading from measures; `value` is the same text in the default units. */
+function measured(
+  icon: ReadingIcon,
+  label: string,
+  measures: Measure[],
+  extra: Partial<Reading> = {}
+): Reading | null {
+  const texts = measures.map((measure) =>
+    formatMeasure(measure, DEFAULT_UNITS)
+  );
+  if (texts.some((text) => text === null)) return null;
+  return { ...extra, icon, label, measures, value: texts.join(" · ") };
+}
+
+/** A tile's reading: its numbers when it has them, otherwise its text. */
+function fromTile(
+  icon: ReadingIcon,
+  label: string,
+  tile: Condition,
+  extra: Partial<Reading> = {}
+): Reading {
+  return (
+    (tile.measure && measured(icon, label, [tile.measure], extra)) || {
+      ...extra,
+      icon,
+      label,
+      value: tile.value,
+    }
+  );
+}
 
 /** Sunrise and sunset computed for a calendar day, as Grenada clock times. */
 function computedSun(
@@ -93,53 +126,55 @@ function computedSun(
 }
 
 /**
- * The Now tab's readings, in reading order: wind and gusts, humidity and dew
- * point, pressure and visibility, cloud and UV, rain, then air quality.
- * Only real register values appear; a field the register does not record
- * says NOT_AVAILABLE and never carries a stand-in figure.
+ * The Now tab's panel: the measured readings the card above does not show
+ * (it carries the temperature, sky, feels like, wind and gusts, and today's
+ * highest and lowest). In reading order: humidity and dew point, pressure and
+ * visibility, cloud base and rain. Only what the register recorded appears;
+ * a missing reading is left out, never shown as a dash (owner, 29 Oct 2026).
  */
 export function nowReadings(current: CurrentConditions): Reading[] {
   const tile = (pattern: RegExp) =>
     [...current.primary, ...current.extra].find((item) =>
       pattern.test(item.label)
     );
-  const wind = tile(WIND_TILE);
   const humidity = tile(HUMIDITY);
-  const rain = tile(RAIN_TILE);
   const pressure = tile(PRESSURE);
-  const cloud = tile(CLOUD);
+  const visibility = tile(VISIBILITY);
+  const cloudBase = tile(CLOUD_BASE);
+  const rain = tile(RAIN_TILE);
   const rows: Reading[] = [];
-  if (wind) rows.push({ icon: "wind", label: "Wind", value: wind.value });
-  const gusts = tile(GUSTS);
-  rows.push(
-    gusts
-      ? { icon: "gusts", label: "Gusts", value: gusts.value }
-      : missing("gusts", "Gusts")
-  );
   if (humidity)
     rows.push({ icon: "humidity", label: "Humidity", value: humidity.value });
-  if (current.dewPoint !== null)
-    rows.push({
-      icon: "dew",
-      label: "Dew point",
-      value: `${Math.round(current.dewPoint)}°`,
-    });
+  if (current.dewPoint !== null) {
+    const dew = measured("dew", "Dew point", [
+      { bare: true, low: current.dewPoint, places: 0, quantity: "temperature" },
+    ]);
+    if (dew) rows.push(dew);
+  }
   if (pressure)
-    rows.push({
-      icon: "pressure",
-      label: "Pressure",
-      trend: current.pressureTrend ?? undefined,
-      value: pressure.value,
-    });
-  rows.push(
-    missing("visibility", "Visibility"),
-    cloud
-      ? { icon: "cloud", label: "Cloud cover", value: cloud.value }
-      : missing("cloud", "Cloud cover"),
-    missing("uv", "UV index")
-  );
-  if (rain) rows.push({ icon: "rain", label: "Rain", value: rain.value });
-  rows.push(missing("air", "Air quality"));
+    rows.push(
+      fromTile("pressure", "Pressure", pressure, {
+        trend: current.pressureTrend ?? undefined,
+      })
+    );
+  if (visibility) {
+    // Dust and haze show in the observer's weather words, not as a number.
+    const why = current.weather && OBSCURED.test(current.weather);
+    rows.push(
+      fromTile("visibility", "Visibility", visibility, {
+        detail: why ? (current.weather ?? undefined) : undefined,
+      })
+    );
+  }
+  if (cloudBase)
+    rows.push(
+      fromTile("cloud", "Cloud base", cloudBase, { detail: cloudBase.detail })
+    );
+  if (rain)
+    // The register records rain every 6 hours; say over how long.
+    rows.push(
+      fromTile("rain", rain.detail ? `Rain, ${rain.detail}` : "Rain", rain)
+    );
   return rows;
 }
 
@@ -151,16 +186,6 @@ export function isIssued(day: ForecastDayData): boolean {
 
 const find = (conditions: Condition[], pattern: RegExp) =>
   conditions.find((item) => pattern.test(item.label));
-
-/** Every issued time for a tide kind, "04:12 · 16:30"; null when none. */
-function tideTimes(conditions: Condition[], pattern: RegExp): string | null {
-  const times = conditions
-    .filter((item) => pattern.test(item.label))
-    .flatMap((item) => item.value.split(TIME_SEPARATOR))
-    .map((time) => time.trim())
-    .filter(Boolean);
-  return times.length > 0 ? times.join(" · ") : null;
-}
 
 function percent(value: string | undefined): number | null {
   const match = value?.match(DIGITS);
@@ -180,85 +205,78 @@ export function rainChance(day: ForecastDayData): string | null {
   return share === null ? value : `${share}%`;
 }
 
+/** Every tide of one kind, each its time (a.m./p.m.) with its height when issued. */
+function tides(conditions: Condition[], pattern: RegExp) {
+  const rows = conditions
+    .filter((item) => pattern.test(item.label))
+    .flatMap((item) =>
+      item.value
+        .split(TIME_SEPARATOR)
+        .map((time) => time.trim())
+        .filter(Boolean)
+        .map((time) => ({ measure: item.measure, time: clock12(time) }))
+    );
+  return rows.length > 0 ? rows : null;
+}
+
 /**
- * A day's forecast items in reading order, paired for two columns: wind and
- * gusts, rain chance and amount, humidity and cloud, seas and swell, sunrise
- * and sunset, high and low tides, then visibility and air quality. Forecasts
- * carry no feels-like or UV. Only issued values appear (sun times are
- * computed from the date); a gap says NOT_AVAILABLE.
+ * A forecast day's panel: the marine and sky details the card above does not
+ * show (it carries the high and low, sky, chance of rain, wind and gusts). In
+ * pairs for two columns, the always-present pair first so a missing item
+ * never splits the others: sunrise and sunset, high and low tides, then seas
+ * and swell. Sun times are computed from the date when not issued; anything else
+ * missing is left out (owner, 29 Oct 2026). Times read a.m./p.m.
  */
 export function dayReadings(day: ForecastDayData): Reading[] {
   if (!isIssued(day)) return [];
   const c = day.conditions;
   const sun = computedSun(day.date);
-  const issuedOrMissing = (
-    icon: ReadingIcon,
-    label: string,
-    value: string | undefined
-  ): Reading => (value ? { icon, label, value } : missing(icon, label));
   const rows: Reading[] = [];
-
-  const speed = find(c, WIND_SPEED);
-  const direction = find(c, WIND_DIRECTION);
-  if (speed)
+  const sunrise = find(c, SUNRISE)?.value ?? sun?.sunrise;
+  const sunset = find(c, SUNSET)?.value ?? sun?.sunset;
+  if (sunrise)
+    rows.push({ icon: "sunrise", label: "Sunrise", value: clock12(sunrise) });
+  if (sunset)
     rows.push({
-      icon: "wind",
-      label: "Wind",
-      value: [direction?.value, speed.value].filter(Boolean).join(" "),
+      icon: "sunset",
+      label: "Sunset",
+      value: clock12(sunset, { afternoon: true }),
     });
-  rows.push(issuedOrMissing("gusts", "Gusts", find(c, GUSTS)?.value));
-
-  const rain = rainChance(day);
-  rows.push(
-    rain === null
-      ? missing("rain", "Chance of rain")
-      : { icon: "rain", label: "Chance of rain", value: rain },
-    issuedOrMissing("rainfall", "Rainfall", find(c, RAINFALL)?.value),
-    issuedOrMissing("humidity", "Humidity", find(c, HUMIDITY)?.value),
-    issuedOrMissing("cloud", "Cloud cover", find(c, CLOUD)?.value)
-  );
-
+  const high = tides(c, HIGH_TIDE);
+  const low = tides(c, LOW_TIDE);
+  if (high)
+    rows.push({
+      icon: "tide-high",
+      label: "High tides",
+      rows: high,
+      value: high.map((t) => t.time).join(" · "),
+    });
+  if (low)
+    rows.push({
+      icon: "tide-low",
+      label: "Low tides",
+      rows: low,
+      value: low.map((t) => t.time).join(" · "),
+    });
   const waves = find(c, WAVE_HEIGHT);
   const sea = find(c, SEA_STATE);
-  if (waves || sea)
-    rows.push({
-      detail: waves && sea ? sea.value : undefined,
-      icon: "seas",
-      label: "Seas",
-      value: (waves ?? sea)?.value ?? "",
-    });
+  const lead = waves ?? sea;
+  if (lead)
+    rows.push(
+      fromTile("seas", "Seas", lead, {
+        detail: waves && sea ? sea.value : undefined,
+      })
+    );
   // FastAPI: value "1.4 m", label "Swell · NE every 9 s"; or the text alone.
   const swell = find(c, SWELL);
-  rows.push(
-    swell
-      ? {
-          detail: SWELL_DETAIL.test(swell.label)
-            ? swell.label.replace(SWELL_DETAIL, "")
-            : undefined,
-          icon: "swell",
-          label: "Swell",
-          value: swell.value,
-        }
-      : missing("swell", "Swell"),
-    issuedOrMissing(
-      "sunrise",
-      "Sunrise",
-      find(c, SUNRISE)?.value ?? sun?.sunrise
-    ),
-    issuedOrMissing("sunset", "Sunset", find(c, SUNSET)?.value ?? sun?.sunset),
-    issuedOrMissing(
-      "tide-high",
-      "High tides",
-      tideTimes(c, HIGH_TIDE) ?? undefined
-    ),
-    issuedOrMissing(
-      "tide-low",
-      "Low tides",
-      tideTimes(c, LOW_TIDE) ?? undefined
-    ),
-    issuedOrMissing("visibility", "Visibility", find(c, VISIBILITY)?.value),
-    missing("air", "Air quality")
-  );
+  if (swell)
+    rows.push(
+      fromTile("swell", "Swell", swell, {
+        detail: SWELL_DETAIL.test(swell.label)
+          ? swell.label.replace(SWELL_DETAIL, "")
+          : undefined,
+      })
+    );
   return rows;
 }
 

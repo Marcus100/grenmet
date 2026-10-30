@@ -6,7 +6,6 @@ import { ElectionTimeline } from "@/components/election/election-timeline";
 import { KeyDates } from "@/components/election/key-dates";
 import { Flag } from "@/components/flag";
 import { ElectionUpdates } from "@/components/home/election-updates";
-import { HouseStrip } from "@/components/home/house-strip";
 import { PageHead, Section } from "@/components/section";
 import { SourceLink } from "@/components/source-link";
 import { COVERAGE } from "@/data/coverage";
@@ -54,7 +53,7 @@ export default function Election2026Page() {
     <>
       <div className="mx-auto grid max-w-[1240px] items-end gap-x-14 gap-y-6 lg:grid-cols-[minmax(0,1.25fr)_minmax(0,1fr)]">
         <PageHead
-          deck="Parliament was dissolved on 2 October. Writs issued the same day set nomination day for 15 October and polling day for 5 November; the Prime Minister confirmed the date in an address on 4 October. The NDC won 9 of 15 seats in 2022; since then Delma Thomas has crossed from the NNP to the government, and Peter David, also elected for the NNP, now leads a new party, the DPM."
+          deck="Key dates, voter information and campaign coverage for the 5 November general election."
           eyebrow={`General election 2026 · ${electionStatus(calendar, now)}`}
           learning="election"
           title={leadTitle(
@@ -64,11 +63,18 @@ export default function Election2026Page() {
           )}
         />
         <div className="flex flex-col gap-5 px-4 sm:px-6">
-          <HouseStrip seats={seats} />
+          <p className="text-base text-el-muted">
+            Register snapshot: {formatIsoDate(roll.date)}. These extracted
+            records are not a verified final election-day denominator;{" "}
+            <Link className="underline" href="/register">
+              see the register comparison
+            </Link>
+            .
+          </p>
           <dl className="grid grid-cols-2 gap-3 border-el-rule border-t pt-3 sm:grid-cols-4">
             {[
               {
-                label: "On the roll",
+                label: "Non-police snapshot",
                 value: fmt(roll.electors),
                 note: `Consolidated list, ${formatIsoDate(roll.date)}`,
               },
@@ -106,7 +112,8 @@ export default function Election2026Page() {
       >
         {COVERAGE.length === 0 ? (
           <p className="border-el-rule border-y py-6 text-el-ink-2 leading-relaxed">
-            Live coverage starts when polling day is announced.
+            Election-night results will be added only when verified returns are
+            available.
           </p>
         ) : (
           <ElectionUpdates

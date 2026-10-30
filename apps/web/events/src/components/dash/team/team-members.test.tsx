@@ -121,7 +121,9 @@ describe("TeamMembers", () => {
 
   it("offers no Give role on owner and admin rows", () => {
     show([makeTeamMember({ role: "admin" })]);
-    expect(screen.queryByRole("button", { name: "Give role" })).toBeNull();
+    expect(
+      screen.queryByRole("button", { name: "Give a role to Ana Door" })
+    ).toBeNull();
   });
 });
 

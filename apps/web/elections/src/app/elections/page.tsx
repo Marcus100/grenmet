@@ -16,7 +16,7 @@ import { pct } from "@/lib/format";
 export const metadata: Metadata = {
   title: "Every election",
   description:
-    "All 17 Grenada general elections since 1951 and both constitutional referendums, with every candidate’s votes and the source for each figure.",
+    "Grenada’s recorded general elections from 1951 to 2022 and the 2016 and 2018 referendums, with constituency results, sources and archival gaps.",
 };
 
 export default function ElectionsPage() {
@@ -24,11 +24,18 @@ export default function ElectionsPage() {
   return (
     <>
       <PageHead
-        deck="Seventeen general elections and two referendums. From 1951 to 2008 the record goes down to each constituency’s candidates; from 2013, and for both referendums, to every polling division and station."
+        deck="Seventeen general elections from 1951 to 2022 and two referendums. Explore constituency results, with polling-division and station records from 2013 and for the referendums where readable. Missing pages and mixed sources are marked alongside the figures."
         eyebrow="Archive · 1951 to 2022"
         learning="results"
         title="Every general election and referendum"
-      />
+      >
+        <Link
+          className="mt-4 inline-block underline underline-offset-4"
+          href="/2026"
+        >
+          Follow the 2026 election →
+        </Link>
+      </PageHead>
       <Section id="list" title="All votes, newest first">
         <ol className="divide-y divide-el-rule border-el-rule border-y">
           {events.map((e) => {

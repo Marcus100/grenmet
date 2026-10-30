@@ -23,9 +23,8 @@ const summary: PublicMonthSummary = {
 };
 
 describe("monthStats", () => {
-  it("maps the summary to four cards and labels the period", () => {
-    const { caption, stats } = monthStats(summary);
-    expect(caption).toBe("Month to date · MBIA · to 30 September");
+  it("maps the summary to four cards", () => {
+    const { stats } = monthStats(summary);
     expect(stats.map((s) => [s.value, s.unit, s.detail])).toEqual([
       ["140.5", "mm", "28 of 30 days reported"],
       ["32.0", "°C", "on 3 September"],
@@ -34,10 +33,11 @@ describe("monthStats", () => {
     ]);
   });
 
-  it("labels provisional figures", () => {
-    expect(monthStats({ ...summary, provisional: true }).caption).toContain(
-      "provisional"
+  it("still reports whether the figures are provisional", () => {
+    expect(monthStats({ ...summary, provisional: true }).provisional).toBe(
+      true
     );
+    expect(monthStats(summary).provisional).toBe(false);
   });
 
   it("keeps unreported figures null instead of zero", () => {

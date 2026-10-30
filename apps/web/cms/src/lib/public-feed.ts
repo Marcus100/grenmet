@@ -1,14 +1,11 @@
-import type { CollectionConfig, Field, Payload } from "payload";
+import type { CollectionConfig, Field, Payload, Where } from "payload";
 import { DeskUpdates } from "../collections/desk-updates";
 import { ReportNotes } from "../collections/report-notes";
 import { Stories } from "../collections/stories";
-import {
-  copyFieldName,
-  EXPLORE_ACTIVITIES,
-  HOMEPAGE_SECTIONS,
-} from "../globals/homepage";
-import { editorialLinksSchema } from "./editorial-links";
+import { NOTE_KIND } from "./duty-note";
+import { type EditorialLink, editorialLinksSchema } from "./editorial-links";
 import { bodyToText } from "./lexical";
+import { isOnSite, liveWhere } from "./publication-window";
 
 export const ARTICLE_COLLECTIONS = {
   "desk-updates": DeskUpdates,
@@ -55,15 +52,15 @@ type Doc = Record<string, unknown>;
 const upload = (value: unknown) =>
   value && typeof value === "object" ? (value as Doc) : null;
 
-/** The FastAPI product a post points at; its figures are never stored here. */
-export function toLinkedProduct(value: unknown) {
-  const group = upload(value);
-  const productId = group?.productId;
-  return typeof productId === "string" && productId
-    ? {
-        productId,
-        kind: typeof group?.kind === "string" && group.kind ? group.kind : null,
-      }
+/**
+ * The issued product a post features, from its main related link. Kept for
+ * older site builds that read one product per post; the figures are never
+ * stored here.
+ */
+export function toLinkedProduct(links: EditorialLink[]) {
+  const main = links.find((link) => link.type === "product" && link.isMain);
+  return main?.ref
+    ? { productId: main.ref, kind: null, title: main.title }
     : null;
 }
 
@@ -71,6 +68,7 @@ export function toLinkedProduct(value: unknown) {
 export function toArticle(collection: ArticleCollection, doc: Doc) {
   const config = ARTICLE_COLLECTIONS[collection];
   const image = upload(doc.image);
+  const relatedLinks = editorialLinksSchema.parse(doc.relatedLinks ?? []);
   return {
     id: String(doc.id),
     collection,
@@ -83,6 +81,7 @@ export function toArticle(collection: ArticleCollection, doc: Doc) {
       doc[CATEGORY_FIELD[collection]]
     ),
     summary: (doc.summary as string | undefined) ?? null,
+    authorName: (doc.authorName as string | undefined) ?? null,
     body: bodyToText(doc.body),
     imageUrl: (image?.url as string | undefined) ?? null,
     imageAlt: (image?.alt as string | undefined) ?? null,
@@ -91,8 +90,8 @@ export function toArticle(collection: ArticleCollection, doc: Doc) {
     topics: Array.isArray(doc.topics) ? (doc.topics as string[]) : [],
     publishedAt: (doc.publishedAt as string | undefined) ?? null,
     updatedAt: String(doc.updatedAt),
-    relatedLinks: editorialLinksSchema.parse(doc.relatedLinks ?? []),
-    linkedProduct: toLinkedProduct(doc.linkedProduct),
+    relatedLinks,
+    linkedProduct: toLinkedProduct(relatedLinks),
   };
 }
 export type PublicArticle = ReturnType<typeof toArticle>;
@@ -101,7 +100,11 @@ export type PublicArticle = ReturnType<typeof toArticle>;
 export async function findArticles(
   payload: Payload,
   collection: ArticleCollection,
-  { limit = 20, slug }: { limit?: number; slug?: string } = {}
+  {
+    limit = 20,
+    now = new Date(),
+    slug,
+  }: { limit?: number; now?: Date; slug?: string } = {}
 ): Promise<PublicArticle[]> {
   const result = await payload.find({
     collection,
@@ -109,10 +112,7 @@ export async function findArticles(
     depth: 1,
     limit: slug ? 1 : limit,
     sort: "-publishedAt",
-    where: {
-      status: { equals: "published" },
-      ...(slug ? { slug: { equals: slug } } : {}),
-    },
+    where: liveWhere(now, ...(slug ? [{ slug: { equals: slug } }] : [])),
   });
   return result.docs.map((doc) => toArticle(collection, doc as unknown as Doc));
 }
@@ -126,7 +126,9 @@ export function toLivePost(doc: Doc) {
     title: String(doc.title),
     text: (doc.text as string | undefined) || null,
     mediaUrl:
-      kind === "update" ? null : (doc.mediaUrl as string | undefined) || null,
+      kind === "video" || kind === "audio"
+        ? (doc.mediaUrl as string | undefined) || null
+        : null,
     publishedAt: (doc.publishedAt as string | undefined) ?? null,
     expiresAt: (doc.expiresAt as string | undefined) ?? null,
     relatedLinks: editorialLinksSchema.parse(doc.relatedLinks ?? []),
@@ -134,7 +136,16 @@ export function toLivePost(doc: Doc) {
 }
 export type PublicLivePost = ReturnType<typeof toLivePost>;
 
-export const LIVE_POST_KINDS = ["update", "video", "audio"] as const;
+/** Weather now: the general update, one per imagery tab, then video and audio. */
+export const LIVE_POST_KINDS = [
+  "update",
+  "satellite",
+  "radar",
+  "wind",
+  "seas",
+  "video",
+  "audio",
+] as const;
 
 /** Newest published live posts of one kind that have not expired. */
 export async function findLivePosts(
@@ -151,14 +162,7 @@ export async function findLivePosts(
     depth: 0,
     limit,
     sort: "-publishedAt",
-    where: {
-      status: { equals: "published" },
-      kind: { equals: kind },
-      or: [
-        { expiresAt: { exists: false } },
-        { expiresAt: { greater_than: now.toISOString() } },
-      ],
-    },
+    where: liveWhere(now, { kind: { equals: kind } }, unexpired(now)),
   });
   return result.docs.map((doc) => toLivePost(doc as unknown as Doc));
 }
@@ -198,8 +202,11 @@ export function toRelated(item: unknown) {
   const value = upload((item as Doc).value);
   const collection = String((item as Doc).relationTo);
   if (
-    !(value && LINKED_HREF_COLLECTIONS.has(collection)) ||
-    value.status !== "published"
+    !(
+      value &&
+      LINKED_HREF_COLLECTIONS.has(collection) &&
+      isOnSite(value as Parameters<typeof isOnSite>[0])
+    )
   )
     return null;
   return {
@@ -214,9 +221,10 @@ export async function findQuestions(
   payload: Payload,
   {
     limit = 50,
+    now = new Date(),
     slug,
     topic,
-  }: { limit?: number; slug?: string; topic?: string } = {}
+  }: { limit?: number; now?: Date; slug?: string; topic?: string } = {}
 ): Promise<PublicQuestion[]> {
   const result = await payload.find({
     collection: "questions",
@@ -224,104 +232,93 @@ export async function findQuestions(
     depth: 1,
     limit: slug ? 1 : limit,
     sort: "-publishedAt",
-    where: {
-      status: { equals: "published" },
-      ...(slug ? { slug: { equals: slug } } : {}),
-      ...(topic ? { topics: { contains: topic } } : {}),
-    },
+    where: liveWhere(
+      now,
+      ...(slug ? [{ slug: { equals: slug } }] : []),
+      ...(topic ? [{ topics: { contains: topic } }] : [])
+    ),
   });
   return result.docs.map((doc) => toQuestion(doc as unknown as Doc));
 }
 
-/** The Weather now note, only while unexpired. Imagery is FastAPI's. */
+/** Expiry rule shared by notes and live posts: none set, or one still ahead. */
+const unexpired = (now: Date): Where => ({
+  or: [
+    { expiresAt: { exists: false } },
+    { expiresAt: { greater_than: now.toISOString() } },
+  ],
+});
+
+/**
+ * The duty forecaster's note: the newest published live post of kind note
+ * that is on the site and unexpired. Its CAP alert link comes with it as
+ * `alertUrl` (for site builds that predate related links) and as
+ * `relatedLinks`. Imagery is FastAPI's.
+ */
 export async function findWeatherNow(payload: Payload, now: Date = new Date()) {
-  const global = (await payload.findGlobal({
-    slug: "weather-now",
-    depth: 1,
+  const result = await payload.find({
+    collection: "live-posts",
     overrideAccess: false,
-  })) as unknown as Doc;
-  const note = (global.note ?? {}) as Doc;
-  const live =
-    typeof note.text === "string" &&
-    note.text.trim() !== "" &&
-    typeof note.expiresAt === "string" &&
-    new Date(note.expiresAt) > now;
+    depth: 0,
+    limit: 1,
+    sort: "-publishedAt",
+    // A note without an expiry never shows, as before; it always has one when posted.
+    where: liveWhere(now, {
+      kind: { equals: NOTE_KIND },
+      expiresAt: { greater_than: now.toISOString() },
+    }),
+  });
+  const doc = result.docs[0] as unknown as Doc | undefined;
+  if (!(doc && typeof doc.text === "string" && doc.text.trim() !== ""))
+    return { note: null };
+  const relatedLinks = editorialLinksSchema.parse(doc.relatedLinks ?? []);
   return {
-    note: live
-      ? {
-          text: String(note.text),
-          postedAt: (note.postedAt as string | undefined) ?? null,
-          expiresAt: String(note.expiresAt),
-          alertUrl: (note.alertUrl as string | undefined) || null,
-        }
-      : null,
+    note: {
+      text: doc.text,
+      postedAt: (doc.publishedAt as string | undefined) ?? null,
+      expiresAt: String(doc.expiresAt),
+      alertUrl: relatedLinks.find((link) => link.type === "cap")?.url ?? null,
+      relatedLinks,
+    },
   };
 }
 export type PublicWeatherNow = Awaited<ReturnType<typeof findWeatherNow>>;
 
-export interface SectionCopy {
-  intro?: string;
-  kicker?: string;
-  title?: string;
-}
-
-/** Editor wording keyed by section; blank fields are dropped so GMS keeps its own. */
-export function toSectionCopy(value: unknown): Record<string, SectionCopy> {
-  const groups = value && typeof value === "object" ? (value as Doc) : {};
-  const copy: Record<string, SectionCopy> = {};
-  for (const { value: key } of HOMEPAGE_SECTIONS) {
-    const group = groups[copyFieldName(key)];
-    if (!group || typeof group !== "object") continue;
-    const words: SectionCopy = {};
-    for (const field of ["kicker", "title", "intro"] as const) {
-      const text = (group as Doc)[field];
-      if (typeof text === "string" && text.trim()) words[field] = text.trim();
-    }
-    if (Object.keys(words).length > 0) copy[key] = words;
-  }
-  return copy;
-}
-
-/** Published "read more" links keyed by Explore today activity. */
-export function toExploreReading(
-  value: unknown
-): Record<string, NonNullable<ReturnType<typeof toRelated>>> {
-  const groups = value && typeof value === "object" ? (value as Doc) : {};
-  const links: Record<string, NonNullable<ReturnType<typeof toRelated>>> = {};
-  for (const { value: key } of EXPLORE_ACTIVITIES) {
-    const link = toRelated(groups[copyFieldName(key)]);
-    if (link) links[key] = link;
-  }
-  return links;
-}
-
-/** Homepage settings; pins arrive populated only when published. */
-export async function findHomepage(payload: Payload) {
+/** Homepage settings: which sections are hidden, plus the posts marked to lead. */
+export async function findHomepage(payload: Payload, now: Date = new Date()) {
   const global = (await payload.findGlobal({
     slug: "homepage",
-    depth: 1,
+    depth: 0,
     overrideAccess: false,
   })) as unknown as Doc;
-  const published = (value: unknown) => {
-    const doc = upload(value);
-    return doc && doc.status === "published" ? doc : null;
-  };
+  const [lead, featured] = await Promise.all([
+    payload.find({
+      collection: "stories",
+      depth: 1,
+      limit: 1,
+      overrideAccess: false,
+      sort: "-publishedAt",
+      where: liveWhere(now, { leadOnHomepage: { equals: true } }),
+    }),
+    // Numbered questions first (1 = first), then the rest of the flagged ones.
+    payload.find({
+      collection: "questions",
+      depth: 1,
+      limit: 5,
+      overrideAccess: false,
+      sort: ["featuredOrder", "-publishedAt"],
+      where: liveWhere(now, { featured: { equals: true } }),
+    }),
+  ]);
   return {
-    leadStory: published(global.leadStory),
-    featuredQuestions: (Array.isArray(global.featuredQuestions)
-      ? global.featuredQuestions
-      : []
-    )
-      .map(published)
-      .filter((doc): doc is Doc => doc !== null),
-    discoverCards: Array.isArray(global.discoverCards)
-      ? (global.discoverCards as string[])
-      : ["sky", "on-this-day", "quiz", "fact"],
+    leadStory: (lead.docs[0] as unknown as Doc | undefined) ?? null,
+    featuredQuestions: featured.docs as unknown as Doc[],
+    discoverCards: ["sky", "on-this-day", "quiz", "fact"],
     hiddenSections: Array.isArray(global.hiddenSections)
       ? (global.hiddenSections as string[])
       : [],
-    exploreReading: toExploreReading(global.exploreReading),
-    sectionCopy: toSectionCopy(global.sectionCopy),
+    exploreReading: {},
+    sectionCopy: {},
   };
 }
 
@@ -401,22 +398,14 @@ export function pickDaily<T>(
   return items[days % items.length] ?? null;
 }
 
-async function publishedDiscover(
-  payload: Payload,
-  type: string,
-  extra: object = {}
-) {
+async function publishedDiscover(payload: Payload, type: string, now: Date) {
   const result = await payload.find({
     collection: "discover",
     overrideAccess: false,
     depth: 1,
     limit: 400,
     sort: "createdAt",
-    where: {
-      status: { equals: "published" },
-      type: { equals: type },
-      ...extra,
-    },
+    where: liveWhere(now, { type: { equals: type } }),
   });
   return result.docs as unknown as Doc[];
 }
@@ -441,21 +430,21 @@ export function toQuiz(doc: Doc) {
 }
 export type PublicQuiz = ReturnType<typeof toQuiz>;
 
-/** What the homepage's Sky, history and a little fun section shows today. */
+/** What the homepage's Discover section shows today. */
 export async function findDiscover(payload: Payload, now: Date = new Date()) {
   const today = grenadaToday(now);
   const [history, quizzes, facts, notes] = await Promise.all([
-    publishedDiscover(payload, "on-this-day"),
+    publishedDiscover(payload, "on-this-day", now),
     payload.find({
       collection: "discover",
       overrideAccess: false,
       depth: 0,
       limit: 1,
       sort: "-publishedAt",
-      where: { status: { equals: "published" }, type: { equals: "quiz" } },
+      where: liveWhere(now, { type: { equals: "quiz" } }),
     }),
-    publishedDiscover(payload, "fact"),
-    publishedDiscover(payload, "sky-note"),
+    publishedDiscover(payload, "fact", now),
+    publishedDiscover(payload, "sky-note", now),
   ]);
   const entry = pickOnThisDay(
     history.map((doc) => ({
@@ -515,18 +504,22 @@ export async function findDiscover(payload: Payload, now: Date = new Date()) {
 export type PublicDiscover = Awaited<ReturnType<typeof findDiscover>>;
 
 /** Published quizzes, newest first, or one by slug with its questions. */
-export async function findQuizzes(payload: Payload, slug?: string) {
+export async function findQuizzes(
+  payload: Payload,
+  slug?: string,
+  now: Date = new Date()
+) {
   const result = await payload.find({
     collection: "discover",
     overrideAccess: false,
     depth: 0,
     limit: slug ? 1 : 50,
     sort: "-publishedAt",
-    where: {
-      status: { equals: "published" },
-      type: { equals: "quiz" },
-      ...(slug ? { slug: { equals: slug } } : {}),
-    },
+    where: liveWhere(
+      now,
+      { type: { equals: "quiz" } },
+      ...(slug ? [{ slug: { equals: slug } }] : [])
+    ),
   });
   return result.docs.map((doc) => toQuiz(doc as unknown as Doc));
 }

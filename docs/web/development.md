@@ -19,7 +19,7 @@ Run `pnpm start` and `pnpm dev:web:*` on the host, not in the devcontainer.
 ## Shared task cache
 
 Turborepo results (type-check, lint, tests, builds) are shared between CI and local
-runs through a signed remote cache (ADR-0052; CI uses short-lived tokens on trusted
+runs through a signed remote cache (ADR-0053; CI uses short-lived tokens on trusted
 branches, never on pull requests), so a check that already passed on `dev` is
 replayed locally instead of rerun. To use it on a machine, once:
 

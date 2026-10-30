@@ -10,6 +10,8 @@ import {
   publicMonthSummaryResponseSchema,
   publicProductDetailSchema,
   publishedProductsSchema,
+  type SectorOutlook,
+  sectorOutlookSchema,
 } from "@barrelsgd/api-client";
 import type { ProductKind } from "@barrelsgd/gms/products";
 import { cache } from "react";
@@ -102,6 +104,33 @@ export const fetchPublicForecast = cache(
       return parsed.data;
     } catch (error) {
       reportError(error, "gms-forecast");
+      return null;
+    }
+  }
+);
+
+/** How many days ahead Plan your week looks. */
+export const SECTOR_OUTLOOK_DAYS = 7;
+
+/**
+ * Alerts and warnings for the coming week, tagged by sector. Null on any
+ * failure: callers must say the outlook is unavailable, never show an all-clear.
+ */
+export const fetchSectorOutlook = cache(
+  async function fetchSectorOutlook(): Promise<SectorOutlook | null> {
+    try {
+      const url = endpoint("sector-outlook");
+      url.searchParams.set("days", String(SECTOR_OUTLOOK_DAYS));
+      const response = await fetch(url, requestOptions());
+      if (!response.ok) return null;
+      const parsed = sectorOutlookSchema.safeParse(await response.json());
+      if (!parsed.success) {
+        reportError(parsed.error, "gms-sector-outlook-contract");
+        return null;
+      }
+      return parsed.data;
+    } catch (error) {
+      reportError(error, "gms-sector-outlook");
       return null;
     }
   }

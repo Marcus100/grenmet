@@ -1,3 +1,5 @@
+import { CODES } from "@/data/model";
+
 /**
  * Totals counted from the PEO's consolidated voter lists and quarterly
  * addenda. Counts only: no individual's details are kept or shown.
@@ -12,7 +14,7 @@ export interface RegisterSnapshot {
 
 export interface RegisterAddendum {
   date: string;
-  /** division → new registrations */
+  /** division → entries in this dated addendum; may overlap other lists. */
   div: Record<string, number>;
   file: string;
 }
@@ -52,14 +54,14 @@ export function addendumTotals(file: RegisterFile) {
 export interface RollCheck {
   added: number;
   from: string;
-  /** Previous list + additions − next list: removed or transferred, implied. */
+  /** Arithmetic residual only; overlapping addenda cannot establish removals. */
   implied: number;
   next: number;
   previous: number;
   to: string;
 }
 
-/** Previous list + new registrations − next list, for each pair of lists. */
+/** Previous snapshot + dated addendum entries − next snapshot, without causal inference. */
 export function rollChecks(file: RegisterFile): RollCheck[] {
   const lists = snapshotTotals(file);
   const adds = addendumTotals(file);
@@ -98,4 +100,29 @@ export function divisionGrowth(
       first: first.div[division]?.[0] ?? 0,
       last: last.div[division]?.[0] ?? 0,
     }));
+}
+
+/** Aggregate each snapshot independently, including divisions later removed. */
+export function constituencyGrowth(file: RegisterFile) {
+  const lists = byDate(file.snapshots);
+  const first = lists[0];
+  const last = lists.at(-1);
+  if (!(first && last)) return [];
+  return CODES.map((code) => {
+    const before = Object.entries(first.div).filter(([id]) =>
+      id.startsWith(code)
+    );
+    const after = Object.entries(last.div).filter(([id]) =>
+      id.startsWith(code)
+    );
+    const a = before.reduce((sum, [, row]) => sum + row[0], 0);
+    const b = after.reduce((sum, [, row]) => sum + row[0], 0);
+    return {
+      code,
+      divisions: after.length,
+      first: a,
+      last: b,
+      change: a ? (b - a) / a : 0,
+    };
+  });
 }

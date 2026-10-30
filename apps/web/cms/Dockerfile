@@ -55,6 +55,7 @@ ENV NEXT_TELEMETRY_DISABLED=1
 COPY packages/api-client/ packages/api-client/
 COPY packages/auth/ packages/auth/
 COPY packages/cms-migrations/ packages/cms-migrations/
+COPY packages/gms/ packages/gms/
 COPY packages/tsconfig/ packages/tsconfig/
 COPY packages/ui/ packages/ui/
 COPY apps/web/cms/ apps/web/cms/
@@ -75,6 +76,9 @@ ENV NODE_ENV=production
 COPY --from=migration-package /migration-runtime/node_modules ./node_modules
 # Payload loads the shared TypeScript configuration at migration time.
 COPY --from=source /app/packages/tsconfig ./node_modules/@barrelsgd/tsconfig
+# The editorial link helpers import the shared GMS catalogue (plain TypeScript).
+COPY --from=source /app/packages/gms/package.json ./node_modules/@barrelsgd/gms/package.json
+COPY --from=source /app/packages/gms/src ./node_modules/@barrelsgd/gms/src
 COPY --from=source /app/apps/web/cms/package.json /app/apps/web/cms/tsconfig.json ./
 COPY --from=source /app/apps/web/cms/src ./src
 COPY --from=source /app/apps/web/cms/scripts ./scripts

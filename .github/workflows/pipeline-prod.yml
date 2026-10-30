@@ -49,7 +49,7 @@ jobs:
     permissions:
       contents: read
       packages: read
-      id-token: write # lets ci-web request the short-lived cache token (ADR-0052)
+      id-token: write # lets ci-web request the short-lived cache token (ADR-0053)
 
   api-client:
     uses: ./.github/workflows/ci-api-client.yml

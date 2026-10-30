@@ -18,7 +18,7 @@ inputs:
     default: "true"
   turbo-remote-cache:
     description: >-
-      Log in to Vercel Remote Cache with a short-lived OIDC token (ADR-0052).
+      Log in to Vercel Remote Cache with a short-lived OIDC token (ADR-0053).
       Only on trusted events (never pull_request); the calling job must grant
       id-token: write. Never fails the job: without a token Turborepo uses the
       local cache.

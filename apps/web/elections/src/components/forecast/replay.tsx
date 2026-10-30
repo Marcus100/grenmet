@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { ChartViewport } from "@/components/chart-viewport";
 import { Flag } from "@/components/flag";
+import { MapLevelView } from "@/components/map/map-level-view";
 import {
   countingOrder,
   type ReplayInputs,
@@ -12,6 +13,7 @@ import { partyColor, partyFillIsDark } from "@/data/parties";
 import { fmt, pct } from "@/lib/format";
 
 interface Props {
+  constituencyPaths: Record<string, string>;
   /** Division id → SVG path, for the map. */
   divisionPaths: Record<string, string>;
   inputs: ReplayInputs;
@@ -47,12 +49,111 @@ function liveText(done: boolean, p: number): string {
   return p > 0.5 ? "NDC majority" : "NNP majority";
 }
 
+interface CountRegion {
+  id: string;
+  ndc: number;
+  nnp: number;
+  path: string;
+  reported: number;
+  title: string;
+  total: number;
+}
+
+function countFill(region: CountRegion) {
+  if (!region.reported || region.ndc === region.nnp) return "var(--el-land)";
+  return partyColor(region.ndc > region.nnp ? "NDC" : "NNP");
+}
+
+function CountMap({
+  regions,
+  land,
+  inset,
+  title,
+}: {
+  regions: CountRegion[];
+  land: string;
+  inset: Props["inset"];
+  title: string;
+}) {
+  return (
+    <svg
+      aria-label={title}
+      className="h-auto w-full"
+      role="img"
+      viewBox="-15.5 -25.5 43 41.5"
+    >
+      <title>{title}</title>
+      <path d={land} fill="var(--el-land)" />
+      {regions.map((region) => (
+        <path
+          aria-label={region.title}
+          className="stroke-(--el-paper) [stroke-width:0.05]"
+          d={region.path}
+          fill={countFill(region)}
+          key={region.id}
+        >
+          <title>{region.title}</title>
+        </path>
+      ))}
+      <rect
+        fill="none"
+        height={inset.y1 - inset.y0}
+        stroke="var(--el-rule-2)"
+        strokeDasharray=".5 .35"
+        strokeWidth={0.08}
+        width={inset.x1 - inset.x0}
+        x={inset.x0}
+        y={-inset.y1}
+      />
+    </svg>
+  );
+}
+
+function replayRegions(
+  inputs: ReplayInputs,
+  reported: ReadonlySet<string>,
+  paths: Record<string, string>,
+  names: Props["names"],
+  constituency: boolean
+): CountRegion[] {
+  return Object.entries(paths).flatMap(([id, path]) => {
+    const divisions = inputs.divisions.filter((d) =>
+      constituency ? d.code === id : d.division === id
+    );
+    if (!divisions.length) return [];
+    const counted = divisions.filter((d) => reported.has(d.division));
+    const ndc = counted.reduce((sum, d) => sum + d.ndc, 0);
+    const nnp = counted.reduce((sum, d) => sum + d.nnp, 0);
+    const place = constituency
+      ? (names[id] ?? id)
+      : `${id} · ${divisions[0]?.place ?? ""}`;
+    return [
+      {
+        id,
+        path,
+        ndc,
+        nnp,
+        reported: counted.length,
+        total: divisions.length,
+        title: `${place}: partial count · ${counted.length} of ${divisions.length} divisions reported · NDC ${fmt(ndc)}, NNP ${fmt(nnp)}`,
+      },
+    ];
+  });
+}
+
 /**
  * Replay the 2022 count one polling division at a time. After each, the
  * estimate compares it with how the division voted in 2018, works out the
  * swing, projects the divisions still to come and simulates the result.
  */
-export function Replay({ inputs, divisionPaths, land, inset, names }: Props) {
+export function Replay({
+  inputs,
+  constituencyPaths,
+  divisionPaths,
+  land,
+  inset,
+  names,
+}: Props) {
   const [seed, setSeed] = useState(2022);
   const [counted, setCounted] = useState(0);
   const [playing, setPlaying] = useState(false);
@@ -100,6 +201,23 @@ export function Replay({ inputs, divisionPaths, land, inset, names }: Props) {
   const allVotes = inputs.divisions.reduce((a, d) => a + d.ndc + d.nnp, 0);
   const swing = estimate.swing * 100;
   const latest = counted ? byId[order[counted - 1] ?? ""] : undefined;
+  const constituencyRegions = replayRegions(
+    inputs,
+    reported,
+    constituencyPaths,
+    names,
+    true
+  );
+  const divisionRegions = replayRegions(
+    inputs,
+    reported,
+    divisionPaths,
+    names,
+    false
+  );
+  const omitted = inputs.divisions
+    .filter((d) => !divisionPaths[d.division])
+    .map((d) => d.division);
 
   return (
     <div className="space-y-5">
@@ -281,42 +399,49 @@ export function Replay({ inputs, divisionPaths, land, inset, names }: Props) {
           </p>
         </div>
         <figure>
-          <svg className="h-auto w-full" viewBox="-15.5 -25.5 43 41.5">
-            <title>Polling divisions counted so far, coloured by who led</title>
-            <path d={land} fill="var(--el-land)" />
-            {Object.entries(divisionPaths).map(([id, d]) => {
-              const div = byId[id];
-              const done = div && reported.has(id);
-              return (
-                <path
-                  className="stroke-(--el-paper) [stroke-width:0.05]"
-                  d={d}
-                  fill={
-                    done
-                      ? partyColor(div.ndc >= div.nnp ? "NDC" : "NNP")
-                      : "var(--el-land)"
-                  }
-                  key={id}
-                >
-                  <title>
-                    {div
-                      ? `${id} · ${div.place}: ${done ? `NDC ${fmt(div.ndc)}, NNP ${fmt(div.nnp)}` : "not yet reported"}`
-                      : id}
-                  </title>
-                </path>
-              );
-            })}
-            <rect
-              fill="none"
-              height={inset.y1 - inset.y0}
-              stroke="var(--el-rule-2)"
-              strokeDasharray=".5 .35"
-              strokeWidth={0.08}
-              width={inset.x1 - inset.x0}
-              x={inset.x0}
-              y={-inset.y1}
-            />
-          </svg>
+          <MapLevelView
+            constituencyMap={
+              <CountMap
+                inset={inset}
+                land={land}
+                regions={constituencyRegions}
+                title="Partial count by constituency"
+              />
+            }
+            divisionMap={
+              divisionRegions.length > 0 ? (
+                <CountMap
+                  inset={inset}
+                  land={land}
+                  regions={divisionRegions}
+                  title="Partial count by polling division"
+                />
+              ) : undefined
+            }
+            omitted={omitted}
+            unavailableReason="Located polling-division geometry is unavailable for this count."
+          />
+          <p className="mt-2 text-base text-el-ink-2">
+            Partial count: {counted} of {total} divisions reported. Colours show
+            the lead in reported NDC–NNP votes, with ties and no reported votes
+            neutral. Constituency totals sum only reported divisions; they do
+            not project unreported votes.
+          </p>
+          <details className="mt-3 text-base">
+            <summary className="cursor-pointer">
+              Reported division vote totals
+            </summary>
+            <ul className="mt-2 space-y-1">
+              {inputs.divisions.map((d) => (
+                <li key={d.division}>
+                  {d.division} · {d.place} ({names[d.code]}):{" "}
+                  {reported.has(d.division)
+                    ? `NDC ${fmt(d.ndc)}, NNP ${fmt(d.nnp)}`
+                    : "not yet reported"}
+                </li>
+              ))}
+            </ul>
+          </details>
           <figcaption
             aria-live="polite"
             className="mt-2 text-base text-el-ink-2"

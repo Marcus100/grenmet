@@ -31,7 +31,6 @@ from src.dependencies import SessionDep
 from src.email_config import email_settings
 from src.notifications import service as notification_service
 from src.notifications.models import SuppressionReason
-from src.subscriptions import service as subscription_service
 
 logger = logging.getLogger(__name__)
 
@@ -101,10 +100,11 @@ async def _suppress(
     recipients: list[str],
     reason: SuppressionReason,
     source_event_id: str | None,
-    *,
-    unsubscribe: bool = False,
 ) -> None:
-    """Suppress non-transactional email to each recipient; safe to replay."""
+    """Suppress non-transactional email to each recipient; safe to replay.
+
+    Suppression blocks every list for that address. It does not change any list's
+    subscription row: only the reader's own unsubscribe stops a list (ADR-0052)."""
     for address in recipients:
         # Resend may send "Name <user@host>"; keep just the address.
         _, parsed = parseaddr(address)
@@ -115,8 +115,6 @@ async def _suppress(
             reason=reason,
             source_event_id=source_event_id,
         )
-        if unsubscribe:
-            await subscription_service.unsubscribe_address(session=session, email=email)
         logger.info(
             "Email suppression recorded",
             extra={"reason": reason.value, "newly_added": added},
@@ -237,7 +235,6 @@ async def resend_webhook(request: Request, session: SessionDep) -> JSONResponse:
                 recipients,
                 SuppressionReason.COMPLAINT,
                 source_event_id,
-                unsubscribe=True,
             )
 
         case "email.delivery_delayed":

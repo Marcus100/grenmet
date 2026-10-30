@@ -109,6 +109,11 @@ PERMISSIONS: tuple[PermissionDef, ...] = (
     PermissionDef("workflow.template.view", "View workflow templates"),
     PermissionDef("workflow.instance.action", "Act on workflow instances"),
     PermissionDef("workflow.instance.view", "View workflow instances"),
+    # Platform — mailing lists
+    PermissionDef(
+        "newsletter.send_test",
+        "Send a test copy of the GMS climate newsletter to one confirmed address",
+    ),
     # Platform — change history and notifications
     PermissionDef(
         "audit.view_sensitive",
