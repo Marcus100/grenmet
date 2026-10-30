@@ -5,6 +5,7 @@ role ending and its audit entries are identical whichever path ends a record.
 """
 
 from datetime import date, datetime
+from typing import Any
 
 import pytest
 from sqlalchemy import select
@@ -210,7 +211,7 @@ async def test_one_failing_record_does_not_roll_back_the_others(
     _, healthy, _ = await _ended_candidate(db_async, department.id, ENDED_ON)
     real = employment_status.end_assignments_for_employment
 
-    async def fail_for_one_user(**kwargs):  # type: ignore[no-untyped-def]
+    async def fail_for_one_user(**kwargs: Any) -> int:
         if kwargs["user_id"] == failing_user.id:
             raise RuntimeError("simulated failure for one record")
         return await real(**kwargs)
