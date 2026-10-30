@@ -30,6 +30,7 @@ from src.organisations import grants
 from src.organisations.dependencies import TEAM_SESSION_APP, OrgContext
 from src.organisations.exceptions import (
     AlreadyMemberError,
+    EventsAccessFromRoleError,
     InvitationAcceptedError,
     InvitationEmailMismatchError,
     InvitationInvalidError,
@@ -261,6 +262,10 @@ async def revoke_events_access(
     if context.role != MembershipRole.OWNER and _is_owner(membership.role):
         raise OrganisationRoleError()
     await _ensure_not_last_owner(session, organisation_id, membership)
+    if membership.role in (MembershipRole.ADMIN.value, MembershipRole.OWNER.value):
+        # Admins and owners hold every Events key through their role, so there is no
+        # grant to end here. Refuse instead of reporting a removal that changed nothing.
+        raise EventsAccessFromRoleError()
     products = (TEAM_SESSION_APP,)
     grants_revoked = await grants.revoke_product_grants(
         session,

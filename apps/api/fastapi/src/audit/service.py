@@ -30,9 +30,19 @@ def set_actor(session: AsyncSession, actor_id: uuid.UUID | None) -> None:
 
 def set_actor_session(session: AsyncSession, *, app: str | None) -> None:
     """Record how the actor signed in: an app session (``app`` = its key) or, when
-    ``app`` is None, an account session. Called by the sign-in dependency, next to
-    ``set_actor``, once per request."""
-    session.info[ACTOR_SESSION_KEY] = ("app", app) if app else ("account", None)
+    ``app`` is None, an account session.
+
+    Once per request, first writer wins: a later dependency in the same request
+    cannot change the value, so the stamp always matches the token the request
+    presented. ``clear_actor_session`` undoes it for a request that ends up a guest."""
+    session.info.setdefault(
+        ACTOR_SESSION_KEY, ("app", app) if app else ("account", None)
+    )
+
+
+def clear_actor_session(session: AsyncSession) -> None:
+    """Forget the sign-in kind (the request turned out to have no signed-in actor)."""
+    session.info.pop(ACTOR_SESSION_KEY, None)
 
 
 async def record_change(

@@ -6,7 +6,7 @@ rows written by an organisation request say ``account`` or ``app`` (ADR-0016), a
 ``app`` rows also name the app. The downgrade drops the two columns and their data.
 
 Revision ID: auditactorsession20261030
-Revises: contentdist20261029
+Revises: employmentend20261030
 """
 
 import sqlalchemy as sa
@@ -14,7 +14,7 @@ import sqlalchemy as sa
 from alembic import op
 
 revision = "auditactorsession20261030"
-down_revision = "contentdist20261029"
+down_revision = "employmentend20261030"
 branch_labels = None
 depends_on = None
 

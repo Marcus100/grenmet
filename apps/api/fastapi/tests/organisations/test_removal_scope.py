@@ -479,3 +479,39 @@ async def test_remove_member_answers_for_a_missing_membership(
         headers=_app_headers(owner, org.id, "events"),
     )
     assert response.status_code == 404, response.text
+
+
+async def test_events_session_cannot_remove_an_admin_and_changes_nothing(
+    async_client: httpx.AsyncClient, db_async: AsyncSession
+):
+    """An admin's Events access is their organisation role, so an Events-only removal
+    is refused with a clear message and nothing is revoked (security review, #865)."""
+    owner = await user_with_role(db_async, "events-member")
+    admin = await user_with_role(db_async, None)
+    await _join_events(db_async, admin)
+    org = await make_org(
+        db_async,
+        "Admin venue",
+        members=((owner, MembershipRole.OWNER), (admin, MembershipRole.ADMIN)),
+        apps=("events", "bookings"),
+    )
+    admin_row = await _membership(db_async, org.id, admin.id)
+    events_grant = await _grant(
+        db_async,
+        membership=admin_row,
+        role_key="events-door",
+        granted_by=owner.id,
+    )
+
+    response = await async_client.delete(
+        f"{API}/{org.id}/members/{admin_row.id}",
+        headers=_app_headers(owner, org.id, "events"),
+    )
+
+    assert response.status_code == 403, response.text
+    assert "Change their role in organisation settings" in response.json()["detail"]
+    assert (await _membership(db_async, org.id, admin.id)).status == (
+        MembershipStatus.ACTIVE.value
+    )
+    assert (await _grant_row(db_async, events_grant)).revoked_at is None
+    assert await _has_events_opt_in(db_async, admin.id) is True
