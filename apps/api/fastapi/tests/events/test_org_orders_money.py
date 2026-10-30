@@ -968,7 +968,9 @@ async def _ledger_refunds(db: AsyncSession, order_id: str) -> list[int]:
 
 
 @pytest.mark.asyncio
+@pytest.mark.parametrize("report", ["charge_list", "refund_created"])
 async def test_a_card_refund_lost_before_commit_is_counted_once_through_the_outbox(
+    report: str,
     db_async: AsyncSession,
     async_client: httpx.AsyncClient,
     events_db: SessionFactory,
@@ -1008,8 +1010,9 @@ async def test_a_card_refund_lost_before_commit_is_counted_once_through_the_outb
     # Stripe reports it.
     intent = await _intent(db_async, order_id)
     assert intent is not None
-    body, headers = payments_conftest.signed(
-        payments_conftest.charge_refunded(
+    if report == "charge_list":
+        # The charge.refunded shape with the refund listed on the charge.
+        event = payments_conftest.charge_refunded(
             "evt_refund_lost",
             amount_refunded=2000,
             refunds=[
@@ -1018,7 +1021,16 @@ async def test_a_card_refund_lost_before_commit_is_counted_once_through_the_outb
                 )
             ],
         )
-    )
+    else:
+        # The refund.created shape: the refund object, with our metadata.
+        event = payments_conftest.refund_event(
+            "evt_refund_lost",
+            "refund.created",
+            payments_conftest.refund_object(
+                "re_test_1", 2000, refund_id=refund_id, intent_id=intent.id
+            ),
+        )
+    body, headers = payments_conftest.signed(event)
     assert (
         await async_client.post(WEBHOOK, content=body, headers=headers)
     ).status_code == 200
@@ -1290,3 +1302,76 @@ async def test_an_event_cancel_counts_an_order_with_a_refund_already_pending_apa
     )
     await db_async.commit()
     assert (settled.queued, settled.pending, settled.failed) == (0, 1, 0)
+
+
+@pytest.mark.asyncio
+async def test_a_card_refund_that_fails_at_the_provider_after_pending_is_reversed(
+    db_async: AsyncSession,
+    async_client: httpx.AsyncClient,
+    events_db: SessionFactory,
+    stripe_env: payments_conftest.StripeStub,
+) -> None:
+    """A refund the provider first reports pending, then failed: the order mirror and
+    the ledger totals that settlement compares both drop back to nothing refunded."""
+    shop = await _shop_with_events(db_async, events_db)
+    order_id, _ = await _pending(db_async, shop)
+    await _pay_stripe(db_async, async_client, order_id)
+    order = await db_async.get(Order, uuid.UUID(order_id))
+    actor = await db_async.get(User, shop.owner.id)
+    assert order is not None and actor is not None
+    stripe_env.refund_status = "pending"
+    queued, _ = await order_refunds.request_refund(
+        db_async,
+        organisation_id=shop.organisation_id,
+        order=order,
+        actor=actor,
+        reason="Partial refund",
+        reason_code="organiser_refund",
+        key="partial-1",
+        amount_minor=2000,
+    )
+    await db_async.commit()
+    assert queued == "queued"
+    db_async.expire_all()
+    await outbox.drain(
+        db_async, only_topics={REQUEST_TOPIC, order_payments.REFUNDED_TOPIC}
+    )
+    assert (await _row(events_db, order_id)).refunded_minor == 2000
+
+    refund_id = order_refunds.refund_id_for(uuid.UUID(order_id), "partial-1")
+    intent = await _intent(db_async, order_id)
+    assert intent is not None
+    body, headers = payments_conftest.signed(
+        payments_conftest.refund_event(
+            "evt_refund_failed",
+            "refund.failed",
+            payments_conftest.refund_object(
+                "re_test_1",
+                2000,
+                status="failed",
+                refund_id=refund_id,
+                intent_id=intent.id,
+            ),
+        )
+    )
+    assert (
+        await async_client.post(WEBHOOK, content=body, headers=headers)
+    ).status_code == 200
+    db_async.expire_all()
+    await outbox.drain(
+        db_async, only_topics={REQUEST_TOPIC, order_payments.REFUNDED_TOPIC}
+    )
+
+    row = await _row(events_db, order_id)
+    assert (row.collected_minor, row.refunded_minor, row.status) == (
+        PRICE,
+        0,
+        "confirmed",
+    )
+    async with events_db() as events:
+        totals = await order_payments.ledger_totals(
+            events,
+            organisation_id=shop.organisation_id,
+            listing_id=shop.listing_id,
+        )
+    assert totals == (PRICE, 0)
