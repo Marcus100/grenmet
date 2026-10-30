@@ -56,21 +56,21 @@ export default function WeatherProductsPage() {
         </ul>
       </nav>
       <section
-        aria-labelledby="hourly-prototype"
-        className="space-y-3 rounded-lg border border-dashed p-6"
+        aria-labelledby="hourly-register"
+        className="space-y-3 rounded-lg border p-6"
       >
-        <h2 className="font-semibold text-heading-sm" id="hourly-prototype">
-          Hourly register — prototype
+        <h2 className="font-semibold text-heading-sm" id="hourly-register">
+          Hourly register (wxRegister)
         </h2>
         <p className="text-body text-muted-foreground">
-          Development example with sample observations. It is not a live
-          observation register.
+          The live hourly observation register for station 78958, Maurice Bishop
+          International Airport.
         </p>
         <Link
           className="inline-block rounded-sm text-body underline underline-offset-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           href="/wxproducts/hourly"
         >
-          View hourly register prototype
+          Open the hourly register
         </Link>
       </section>
     </div>

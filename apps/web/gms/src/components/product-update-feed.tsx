@@ -26,7 +26,7 @@ export function ProductUpdateFeed({
   const [status, setStatus] = useState("");
   async function share(post: ProductPost) {
     const url = new URL(post.href, window.location.origin).toString();
-    const text = `${post.title}\nGMS · ${post.issuedAt.replace("T", " ")} AST\n${post.paragraphs.join("\n\n")}${post.reference ? "\nBased on the supplied September 8, 2026 report; check GMS for current information." : ""}`;
+    const text = `${post.title}\nGMS · ${post.issuedAt.replace("T", " ")} AST\n${post.paragraphs.join("\n\n")}`;
     try {
       if (navigator.share)
         await navigator.share({ title: post.title, text, url });
@@ -113,7 +113,6 @@ export function ProductUpdateFeed({
             </Link>
             <p className="text-caption text-gm-text-muted leading-caption">
               {post.source}
-              {post.reference ? " · Supplied report, 8 September 2026" : ""}
             </p>
             <div className="flex items-center justify-between gap-3">
               <Link

@@ -1,15 +1,10 @@
 import { isProductKind, productTitle } from "@barrelsgd/gms/products";
-import {
-  ArrowRightIcon,
-  BellIcon,
-  ChevronRightIcon,
-  SmartphoneIcon,
-} from "lucide-react";
+import { ArrowRightIcon, BellIcon, ChevronRightIcon } from "lucide-react";
 import type { Route } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { HOME_CARD, HomeSection } from "@/components/home/home-section";
-import { clock12 } from "@/lib/clock";
+import { postedLabel } from "@/lib/clock";
 import {
   contentHref,
   fetchHomeContent,
@@ -21,12 +16,6 @@ import {
 } from "@/lib/cms";
 import { contentToArticle } from "@/lib/editorial";
 import { cn } from "@/lib/utils";
-
-const SHORT_DATE = new Intl.DateTimeFormat("en-GB", {
-  timeZone: "America/Grenada",
-  day: "numeric",
-  month: "short",
-});
 
 /** The same bordered notice as "Grenada in data": one line, aligned to the heading. */
 const NOTICE = cn(HOME_CARD, "p-4 text-body-sm text-gm-text-secondary");
@@ -55,26 +44,6 @@ function FeedState({
     return <p className={NOTICE}>{empty}</p>;
   }
   return children;
-}
-
-const CLOCK = new Intl.DateTimeFormat("en-GB", {
-  timeZone: "America/Grenada",
-  hour: "2-digit",
-  minute: "2-digit",
-});
-const GRENADA_DAY = new Intl.DateTimeFormat("en-CA", {
-  timeZone: "America/Grenada",
-});
-
-/** "Today at 8:36 a.m.", "Yesterday at 7:00 p.m." or "27 Oct at 7:00 p.m.", Grenada time. */
-export function postedLabel(iso: string, now = new Date()): string {
-  const when = new Date(iso);
-  const day = GRENADA_DAY.format(when);
-  const yesterday = new Date(now.getTime() - 86_400_000);
-  let prefix = SHORT_DATE.format(when);
-  if (day === GRENADA_DAY.format(now)) prefix = "Today";
-  else if (day === GRENADA_DAY.format(yesterday)) prefix = "Yesterday";
-  return `${prefix} at ${clock12(CLOCK.format(when))}`;
 }
 
 const NAME_SEPARATORS = /[\s._-]+/;
@@ -448,24 +417,17 @@ export function GetAlertsStrip() {
                 Get official alerts first
               </h2>
               <p className="hidden text-body-sm text-gm-text-inverse/85 leading-body-sm sm:block">
-                The GMS app sends alerts the moment we issue them, or choose
-                WhatsApp, email or a feed.
+                We send alerts the moment we issue them, by email or browser
+                notifications.
               </p>
             </div>
           </div>
           <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center">
             <Link
               className="flex h-11 items-center justify-center gap-2 rounded-md bg-gm-lime px-4 font-bold text-body text-gm-navy leading-body"
-              href="/app-guide"
-            >
-              <SmartphoneIcon aria-hidden="true" className="size-4" />
-              Get the app
-            </Link>
-            <Link
-              className="flex h-11 items-center justify-center rounded-md border border-gm-text-inverse/30 px-3 font-semibold text-body-sm leading-body-sm hover:bg-gm-text-inverse/10"
               href="/alerts/get-alerts"
             >
-              Other channels
+              Get alerts
             </Link>
           </div>
         </div>

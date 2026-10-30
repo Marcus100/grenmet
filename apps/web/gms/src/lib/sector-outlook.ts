@@ -76,7 +76,7 @@ const levelLabel = (colour: string | null | undefined) =>
   colour ? `${colour[0]?.toUpperCase()}${colour.slice(1)} level` : "Outlook";
 
 /** The detail page of an item: a warning's page or the issued bulletin. */
-function hrefFor(item: SectorOutlook["items"][number]): string | null {
+export function hrefFor(item: SectorOutlook["items"][number]): string | null {
   if (item.identifier) return warningHref(item.identifier);
   if (item.product_id) return `/weather/issued/${item.product_id}`;
   return null;

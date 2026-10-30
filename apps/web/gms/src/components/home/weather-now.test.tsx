@@ -21,6 +21,7 @@ afterEach(() => {
 });
 
 const MORNING = /Morning briefing/;
+const POSTED_AT_1005 = /at 10:05 a\.m\./;
 const SYNOPSIS = /synopsis/i;
 
 function home(overrides: Partial<HomeContent> = {}): HomeContent {
@@ -60,7 +61,8 @@ it("uses the forecaster's current note and its alert link", async () => {
   expect(
     screen.getByText("A flood watch is in effect for the north.")
   ).toBeInTheDocument();
-  expect(screen.getByText("· 10:05", { exact: false })).toBeInTheDocument();
+  // Dated, in Grenada time (14:05 UTC is 10:05 a.m. AST), never a bare clock time.
+  expect(screen.getByText(POSTED_AT_1005)).toBeInTheDocument();
   expect(screen.getByRole("link", { name: "Read the alert" })).toHaveAttribute(
     "href",
     "https://weather.gd/alerts/1"
@@ -210,7 +212,10 @@ it("shows a forecaster's note under the imagery tab it belongs to, not beside th
   // Satellite is the open tab, so its note shows and the wind note does not.
   expect(screen.getByText("Cloud band moving in")).toBeInTheDocument();
   expect(screen.queryByText("Gusty at the airport")).not.toBeInTheDocument();
-  expect(screen.queryByText("Live from GMS")).not.toBeInTheDocument();
+  // No update post: the section still shows, with its empty state.
+  expect(
+    screen.getByRole("region", { name: "Live from GMS" })
+  ).toHaveTextContent("No live updates from GMS right now.");
   fireEvent.click(screen.getByRole("tab", { name: "Wind" }));
   expect(screen.getByText("Gusty at the airport")).toBeInTheDocument();
   expect(screen.queryByText("Cloud band moving in")).not.toBeInTheDocument();
@@ -276,4 +281,14 @@ it("shows a live post's link, building a GMS address from its id", async () => {
     "href",
     "/weather/satellite"
   );
+});
+
+it("says when the live feed cannot be read, and keeps the section", async () => {
+  vi.mocked(fetchHomeContent).mockResolvedValue(
+    home({ livePosts: { status: "unavailable", posts: [] } })
+  );
+  render(await WeatherNow());
+  expect(
+    screen.getByRole("region", { name: "Live from GMS" })
+  ).toHaveTextContent("Live updates cannot be retrieved right now.");
 });

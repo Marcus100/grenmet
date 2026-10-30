@@ -6,9 +6,9 @@ import {
   ForecastDesk,
   GetAlertsStrip,
   LatestReports,
-  postedLabel,
   Stories,
 } from "@/components/home/live-sections";
+import { postedLabel } from "@/lib/clock";
 import {
   fetchHomeContent,
   type HomeContent,
@@ -52,6 +52,8 @@ const hidden = (sections: string[]): HomeContent => ({
 });
 
 const READ_ARTICLE = /^Read the article: /;
+const EMAIL_OR_BROWSER = /email or browser notifications/;
+const NO_APP_OR_WHATSAPP = /WhatsApp|the app/;
 
 it("labels a post Today, Yesterday or by date, in Grenada time", () => {
   const post = "2026-10-28T02:00:00Z"; // 27 Oct, 22:00 in Grenada
@@ -84,10 +86,11 @@ it("offers the alerts sign-up as its own strip", () => {
   expect(
     screen.getByRole("heading", { name: "Get official alerts first" })
   ).toBeInTheDocument();
-  expect(screen.getByRole("link", { name: "Get the app" })).toHaveAttribute(
-    "href",
-    "/app-guide"
-  );
+  const link = screen.getByRole("link", { name: "Get alerts" });
+  expect(link).toHaveAttribute("href", "/alerts/get-alerts");
+  // Email and browser notifications are the channels offered; no app, no WhatsApp.
+  expect(screen.getByText(EMAIL_OR_BROWSER)).toBeVisible();
+  expect(screen.queryByText(NO_APP_OR_WHATSAPP)).not.toBeInTheDocument();
 });
 
 it("shows an empty state, not a stale list, when no questions are published", async () => {

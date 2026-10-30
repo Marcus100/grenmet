@@ -4,7 +4,7 @@ import { cache } from "react";
 import { loadDashboard } from "@/components/hr/dashboard/load-dashboard";
 import { listPublishedProducts } from "@/db/wxproducts/authored-queries";
 import { getImagesByDateAndSynoptic } from "@/db/wxwatch/queries";
-import { getLatestActiveAlerts } from "@/lib/cap-api";
+import { type CapAlertList, getLatestActiveAlerts } from "@/lib/cap-api";
 import { reportError } from "@/lib/report-error";
 import { getTodayUTC } from "@/lib/wxwatch/utils";
 
@@ -25,10 +25,13 @@ async function attempt<T>(
 }
 
 // `cache` dedupes per request, so the status strip and the panel below it share
-// a single round trip to each source.
-export const loadAlerts = cache(() =>
-  attempt(() => getLatestActiveAlerts(), "CAP feed unavailable")
-);
+// a single round trip to each source. The CAP feed reports its own failure.
+export const loadAlerts = cache(async (): Promise<Loaded<CapAlertList>> => {
+  const feed = await getLatestActiveAlerts();
+  return feed.status === "ok"
+    ? { data: feed.value, ok: true }
+    : { message: "CAP feed unavailable", ok: false };
+});
 
 export const loadProducts = cache(() =>
   attempt(() => listPublishedProducts(), "wxproducts database unavailable")
