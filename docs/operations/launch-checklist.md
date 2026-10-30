@@ -14,7 +14,7 @@ and flags it for the owner and a lawyer.
 
 | Item | Owner | State | What is missing |
 | --- | --- | --- | --- |
-| Privacy notice | Owner, with a lawyer; client sponsor for GAA and GMS sites | Partial: 4 of the public sites have a page, all marked as drafts awaiting owner review | Review of the four drafts; pages for the public apps without one (below) |
+| Privacy notice | Owner, with a lawyer; client sponsor for GAA and GMS sites | Partial: 4 of the public sites have a page; 3 are marked in code as drafts awaiting owner review and the gms page carries no marker | Review of all four pages (gms has never been marked for review); pages for the public apps without one (below) |
 | Terms of service | Owner, with a lawyer | Missing for the platform; one informal "terms of use" section on the CAP hub | Decision on which apps need terms; a lawyer-reviewed text |
 | Support route | Owner | Partial: some apps have a contact page or address, several have none | A single agreed support address or form per public app |
 | Restore drill | Engineering, owner approves the run | Built, never run against real backups | First human-timed run and its recorded result |
@@ -22,8 +22,9 @@ and flags it for the owner and a lawyer.
 
 ## Privacy notice
 
-Pages that exist (all carry a code comment saying the wording, contact route and
-retention periods need owner review):
+Pages that exist (mbia, signal and events carry a code comment saying the wording,
+contact route and retention periods need owner review; the gms page has no such
+marker, so treat it as unreviewed too):
 
 | App | Page | Notes |
 | --- | --- | --- |

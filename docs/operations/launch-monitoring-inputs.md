@@ -17,6 +17,8 @@ This page holds names and procedures only. Never put a value, token, URL with a
 key, database address, email address or screenshot of a secret in this
 repository, an issue or a pull request.
 
+> Statuses of GitHub secrets and variables in this page were read on 2026-10-30. They go stale quickly: the owner re-checks them (`gh secret list`, `gh variable list` per environment) before launch.
+
 ## How these issues are produced (read this first)
 
 The issues are not opened by a GitHub Actions workflow. They come from the local

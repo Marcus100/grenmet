@@ -39,7 +39,7 @@ When unsure, pick the higher level and downgrade later.
 | Minute | Action |
 | --- | --- |
 | 0 to 2 | Note the time (UTC) and open a private incident record. Say what is observed, not what is guessed. Pick a severity. |
-| 2 to 5 | Contain. If wrong data is being published, take the product down or withdraw it rather than leave it up (for CAP alerts use the cancel flow). If a credential may be exposed, treat it as burned: rotate it in the provider first, then in the GitHub environment secret, then redeploy. |
+| 2 to 5 | Contain. If wrong data is being published, take the product down or withdraw it rather than leave it up (for CAP alerts use the cancel flow described in the [CAP domain notes](../../apps/api/fastapi/src/cap/AGENTS.md)). If a credential may be exposed, treat it as burned: rotate it in the provider first, then in the GitHub environment secret, then redeploy. |
 | 5 to 10 | Find the smallest failing boundary with [infrastructure, incident triage](../infrastructure.md#incident-triage): DNS and TLS, container health, API liveness and readiness, logs, database, last deploy. Check Sentry and the Better Stack incident list. |
 | 10 to 15 | Decide: roll back, fix forward or wait. If the last deploy is the likely cause, roll back (below). Tell the people in [Communication](#communication). |
 
@@ -55,6 +55,10 @@ change included an irreversible migration, go to the backup gate in the
 [release runbook](release-runbook.md#irreversible-data-migrations-need-a-verified-backup-first)
 and the [restore drill](restore-drill.md) rather than guessing. Never push `dev`
 directly or deploy to production without the owner (see `AGENTS.md`).
+
+After authenticator enforcement is on, do not roll back to an image from before
+encrypted TOTP support: it cannot read the encrypted secrets and would lock
+privileged users out even with enforcement off. See [privileged MFA, recovery](privileged-mfa.md#recovery-acceptance-and-break-glass-procedure).
 
 An emergency sign-in lockout caused by authenticator enforcement follows the
 break-glass steps in [privileged MFA](privileged-mfa.md#recovery-acceptance-and-break-glass-procedure);
