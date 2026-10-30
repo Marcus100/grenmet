@@ -11,6 +11,7 @@ import type { GreenAlerts } from "@/lib/green-alerts";
 
 /** An outlook that never answers: the warnings must still show. */
 const OTHER_TWO = /2 other GMS alerts are in effect/;
+const GREEN_LEVEL = /Green level/;
 const CANNOT_RETRIEVE = /Green alerts cannot be retrieved right now/;
 const NEVER = new Promise<GreenAlerts>(() => undefined);
 const CHECKED = new Date("2026-10-30T14:00:00Z");
@@ -44,8 +45,16 @@ const outlookOf = (
     complete: true,
     items: [],
     other: 0,
+    information: [],
     ...overrides,
   } as GreenAlerts);
+
+const ALL_CLEAR = {
+  id: "all-clear",
+  title: "Calm seas",
+  when: "In effect until Mon 2 Nov",
+  href: null,
+};
 
 describe("a warning does not wait for the GMS outlook", () => {
   it("shows the warning band at once, while the outlook is still being read", async () => {
@@ -141,6 +150,65 @@ describe("with no warning in effect, the outlook decides the wording", () => {
       })
     );
     expect(screen.getByText(CANNOT_RETRIEVE)).toBeInTheDocument();
+  });
+});
+
+describe("an All clear is information, not an alert in effect", () => {
+  it("says No active alerts and lists the All clear as information", async () => {
+    const green = outlookOf({ information: [ALL_CLEAR] });
+    render(
+      <>
+        {
+          await WarningsBand({
+            alerts: NO_WARNINGS,
+            checkedAt: CHECKED,
+            green,
+          })
+        }
+        {await GreenSection({ green })}
+      </>
+    );
+    expect(screen.getByRole("status")).toHaveTextContent("No active alerts");
+    expect(screen.getByText("All clear: Calm seas")).toBeInTheDocument();
+    expect(screen.queryByText(GREEN_LEVEL)).toBeNull();
+    expect(
+      screen.getByText("No Green alerts are in effect.")
+    ).toBeInTheDocument();
+  });
+
+  it("is grey, never an all-clear, for an incomplete read with an All clear", async () => {
+    const { container } = render(
+      await WarningsBand({
+        alerts: NO_WARNINGS,
+        checkedAt: CHECKED,
+        green: outlookOf({ complete: false, information: [ALL_CLEAR] }),
+      })
+    );
+    expect(
+      screen.getByText("Alert information may be incomplete")
+    ).toBeInTheDocument();
+    expect(container.querySelector(".lucide-shield-check")).toBeNull();
+  });
+
+  it("lists the All clear beside Green alerts when both are in effect", async () => {
+    render(
+      await GreenSection({
+        green: outlookOf({
+          information: [ALL_CLEAR],
+          items: [
+            {
+              id: "g",
+              title: "Calm seas green",
+              summary: "",
+              when: "In effect",
+              href: null,
+            },
+          ],
+        }),
+      })
+    );
+    expect(screen.getByText("Calm seas green")).toBeInTheDocument();
+    expect(screen.getByText("All clear: Calm seas")).toBeInTheDocument();
   });
 });
 
