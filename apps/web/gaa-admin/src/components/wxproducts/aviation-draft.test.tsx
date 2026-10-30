@@ -134,6 +134,13 @@ it("keeps seconds when loading an existing draft and prompts before replacing ed
     "Unsaved"
   );
   fireEvent.click(screen.getByText("Discard unsaved changes"));
+  // Asked first: the edit stays until the discard is confirmed.
+  fireEvent.click(await screen.findByText("Keep editing"));
+  expect(screen.getByLabelText("Coded message (UTC time groups)")).toHaveValue(
+    "Unsaved"
+  );
+  fireEvent.click(screen.getByText("Discard unsaved changes"));
+  fireEvent.click(await screen.findByText("Discard changes"));
   expect(screen.getByLabelText("Coded message (UTC time groups)")).toHaveValue(
     saved.message
   );
