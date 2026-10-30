@@ -321,6 +321,22 @@ Rules:
 
 CI also regenerates the client and fails if `packages/api-client/src/gen` differs from the committed output.
 
+### oasdiff breaking-change check
+
+The same `api-breaking-changes` job then runs [oasdiff](https://github.com/oasdiff/oasdiff)'s full breaking-change rule set (`oasdiff/oasdiff-action/breaking`, pinned by SHA) on the PR's `openapi.json` against the base branch, and fails on any error-level change. It covers more than the hand-written check, for example:
+
+- enum changes beyond a plain list diff: a request field, parameter or header newly restricted to an enum, and enums reached through `x-extensible-enum`;
+- required/optional flips in responses: a response property that was always present becoming optional;
+- security: an endpoint's security requirement removed (for example `HTTPBearer` dropped from a route);
+- new bounds: `maxLength`, `maximum`, `minItems` and similar limits set or tightened on request input;
+- a removed response media type or success status code.
+
+Settings live in `scripts/api/oasdiff.yaml`. It lowers one rule to a warning: a new enum value in a response (`response-property-enum-value-added`), because adding a status is how the API grows and the generated client ships in the same PR, which matches `check-api-breaking.mjs`. Explain any new override in that file.
+
+Run it locally with `pnpm check:api-breaking:oasdiff` (or `scripts/api/check-api-breaking-oasdiff.sh <base-ref>`). It needs the `oasdiff` binary from its [releases](https://github.com/oasdiff/oasdiff/releases) on `PATH` or in `OASDIFF`; it is not installed by `pnpm install`.
+
+**Override:** the `breaking-change` label covers both checks. With the label, the oasdiff step still runs and prints its findings but cannot fail the job. Only add the label when the break is intended and every consumer is updated in the same PR.
+
 ## Authentication
 
 The API supports two auth paths:
