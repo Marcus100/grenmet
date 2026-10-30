@@ -3,9 +3,13 @@ WORKDIR /surface
 # The base image ships Debian's PostgreSQL 15 client; the backup_postgres task
 # runs pg_basebackup against the PostgreSQL 17 database, which needs a 17
 # client. Debian's pg_wrapper then resolves /usr/bin/pg_basebackup to 17.
+# The suite must match the base image's Debian release (bookworm); change both
+# together. The signing key is checked against PGDG's published fingerprint.
 USER root
 RUN install -d /usr/share/postgresql-common/pgdg \
     && curl -fsSL -o /usr/share/postgresql-common/pgdg/apt.postgresql.org.asc https://www.postgresql.org/media/keys/ACCC4CF8.asc \
+    && gpg --show-keys --with-colons /usr/share/postgresql-common/pgdg/apt.postgresql.org.asc \
+       | grep -qx 'fpr:::::::::B97B0AFCAA1A47F044F244A07FCC7D46ACCC4CF8:' \
     && echo "deb [signed-by=/usr/share/postgresql-common/pgdg/apt.postgresql.org.asc] https://apt.postgresql.org/pub/repos/apt bookworm-pgdg main" > /etc/apt/sources.list.d/pgdg.list \
     && apt-get update \
     && apt-get install -y --no-install-recommends postgresql-client-17 \
