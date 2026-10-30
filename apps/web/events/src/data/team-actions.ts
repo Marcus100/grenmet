@@ -172,19 +172,36 @@ export async function loadIssuedGrants(
   }
 }
 
-/** Ends a membership (owners and admins). The API revokes roles they issued. */
+/**
+ * What a removal ended. From this Events app it is always "events": only the
+ * person's Events access in this organisation (the API answers 200 with
+ * `scope: "events"`). "organisation" is a 204, a full removal.
+ */
+export type MemberRemovalScope = "events" | "organisation";
+
+function removalScope(body: unknown): MemberRemovalScope {
+  return typeof body === "object" &&
+    body !== null &&
+    "scope" in body &&
+    body.scope === "events"
+    ? "events"
+    : "organisation";
+}
+
+/** Ends a person's access (owners and admins). The API revokes roles they issued. */
 export async function removeMember(
   input: z.input<typeof memberInput>
-): Promise<ActionResult<void>> {
+): Promise<ActionResult<MemberRemovalScope>> {
   const parsed = memberInput.safeParse(input);
   if (!parsed.success) {
     return refuse(CHECK_FORM);
   }
   const { membershipId } = parsed.data;
   return await run(async (options, organisationId) => {
-    await organisationsDeleteMember({
+    const body: unknown = await organisationsDeleteMember({
       ...options,
       path: { organisation_id: organisationId, membership_id: membershipId },
     }).unwrap();
+    return removalScope(body);
   });
 }
