@@ -149,6 +149,7 @@ export { capGetCapXml } from "./capGetCapXml.js";
 export { capGetCatalogs } from "./capGetCatalogs.js";
 export { capGetEscalation } from "./capGetEscalation.js";
 export { capGetFeeds } from "./capGetFeeds.js";
+export { capGetGmsCatalogue } from "./capGetGmsCatalogue.js";
 export { capGetHazardProfiles } from "./capGetHazardProfiles.js";
 export { capGetIbfMatrix } from "./capGetIbfMatrix.js";
 export { capGetIntegrations } from "./capGetIntegrations.js";

@@ -754,6 +754,11 @@ export {
   useCapGetFeeds,
 } from "./useCapGetFeeds.js";
 export {
+  capGetGmsCatalogueQueryKey,
+  capGetGmsCatalogueQueryOptions,
+  useCapGetGmsCatalogue,
+} from "./useCapGetGmsCatalogue.js";
+export {
   capGetHazardProfilesQueryKey,
   capGetHazardProfilesQueryOptions,
   useCapGetHazardProfiles,

@@ -8,6 +8,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.auth.models import User
 from src.auth.policy import require_permission
+from src.cap import catalogue
 from src.cap.common import _record_audit
 from src.cap.mapping import _predefined_area_to_public
 from src.cap.models import (
@@ -29,10 +30,15 @@ from src.cap.models import (
 from src.cap.schemas import (
     CapAuditEventPublic,
     CapCatalogsPublic,
+    CapColourRulePublic,
+    CapHazardGroupPublic,
+    CapParishPublic,
     CapPredefinedAreaCreate,
     CapPredefinedAreaPublic,
+    CapProductRulePublic,
     CapSettingsPublic,
     CapSettingsUpdate,
+    GmsCataloguePublic,
 )
 from src.cap.tasks import NOT_CONFIGURED_CHANNELS
 from src.utils.datetime import utc_now
@@ -93,6 +99,44 @@ def get_catalogs(*, current_user: User) -> CapCatalogsPublic:
         message_types=[item.value for item in CapMessageType],
         scopes=[item.value for item in CapScope],
         languages=["en"],
+    )
+
+
+def get_gms_catalogue(*, current_user: User) -> GmsCataloguePublic:
+    require_permission(current_user=current_user, permission_key="cap.alert.read")
+    return GmsCataloguePublic(
+        hazard_groups=[
+            CapHazardGroupPublic(
+                label=group.label,
+                categories=list(group.categories),
+                events=list(group.events),
+            )
+            for group in catalogue.HAZARD_GROUPS
+        ],
+        category_labels={
+            category.value: label
+            for category, label in catalogue.CATEGORY_LABELS.items()
+        },
+        parishes=[
+            CapParishPublic(
+                id=parish.id,
+                iso_code=parish.iso_code,
+                name=parish.name,
+                short_name=parish.short_name,
+            )
+            for parish in catalogue.PARISHES
+        ],
+        products=[
+            CapProductRulePublic(key=product.value, label=label, needs_colour=needs)
+            for product, label, needs in catalogue.product_rules()
+        ],
+        colours=[
+            CapColourRulePublic(
+                key=colour.value, label=label, awareness_code=code, severity=severity
+            )
+            for colour, label, code, severity in catalogue.colour_rules()
+        ],
+        geocode_name=catalogue.GEOCODE_NAME,
     )
 
 

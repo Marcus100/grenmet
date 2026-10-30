@@ -1671,6 +1671,7 @@ export type { CapCategory } from "./CapCategory.js";
 export { capCategory } from "./CapCategory.js";
 export type { CapCertainty } from "./CapCertainty.js";
 export { capCertainty } from "./CapCertainty.js";
+export type { CapColourRulePublic } from "./CapColourRulePublic.js";
 export type {
   CapCreateAlertBody,
   CapCreateAlertOptions,
@@ -1883,6 +1884,15 @@ export type {
   CapGetFeedsStatus422,
 } from "./CapGetFeeds.js";
 export type {
+  CapGetGmsCatalogueOptions,
+  CapGetGmsCatalogueResponse,
+  CapGetGmsCatalogueResponses,
+  CapGetGmsCatalogueStatus200,
+  CapGetGmsCatalogueStatus401,
+  CapGetGmsCatalogueStatus403,
+  CapGetGmsCatalogueStatus422,
+} from "./CapGetGmsCatalogue.js";
+export type {
   CapGetHazardProfilesOptions,
   CapGetHazardProfilesResponse,
   CapGetHazardProfilesResponses,
@@ -1964,6 +1974,7 @@ export type {
   CapGetRssStatus200,
   CapGetRssStatus422,
 } from "./CapGetRss.js";
+export type { CapHazardGroupPublic } from "./CapHazardGroupPublic.js";
 export type {
   CapImportAlertBody,
   CapImportAlertOptions,
@@ -1983,8 +1994,10 @@ export { capLifecycleState } from "./CapLifecycleState.js";
 export type { CapMessageType } from "./CapMessageType.js";
 export { capMessageType } from "./CapMessageType.js";
 export type { CapNameValue } from "./CapNameValue.js";
+export type { CapParishPublic } from "./CapParishPublic.js";
 export type { CapPredefinedAreaCreate } from "./CapPredefinedAreaCreate.js";
 export type { CapPredefinedAreaPublic } from "./CapPredefinedAreaPublic.js";
+export type { CapProductRulePublic } from "./CapProductRulePublic.js";
 export type { CapProfileCellText } from "./CapProfileCellText.js";
 export type { CapProfileCellTextPropertiesImpactEnum } from "./CapProfileCellTextPropertiesImpactEnum.js";
 export { capProfileCellTextPropertiesImpactEnum } from "./CapProfileCellTextPropertiesImpactEnum.js";
@@ -3696,6 +3709,7 @@ export { forecastSourcePropertiesKindEnum } from "./ForecastSourcePropertiesKind
 export type { Frequency } from "./Frequency.js";
 export type { Gender } from "./Gender.js";
 export { gender } from "./Gender.js";
+export type { GmsCataloguePublic } from "./GmsCataloguePublic.js";
 export type { GmsColour } from "./GmsColour.js";
 export { gmsColour } from "./GmsColour.js";
 export type { GoogleChallengePublic } from "./GoogleChallengePublic.js";

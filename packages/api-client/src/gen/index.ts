@@ -152,6 +152,7 @@ export { capGetCapXml } from "./clients/capGetCapXml.js";
 export { capGetCatalogs } from "./clients/capGetCatalogs.js";
 export { capGetEscalation } from "./clients/capGetEscalation.js";
 export { capGetFeeds } from "./clients/capGetFeeds.js";
+export { capGetGmsCatalogue } from "./clients/capGetGmsCatalogue.js";
 export { capGetHazardProfiles } from "./clients/capGetHazardProfiles.js";
 export { capGetIbfMatrix } from "./clients/capGetIbfMatrix.js";
 export { capGetIntegrations } from "./clients/capGetIntegrations.js";
@@ -1438,6 +1439,11 @@ export {
   capGetFeedsQueryOptions,
   useCapGetFeeds,
 } from "./hooks/useCapGetFeeds.js";
+export {
+  capGetGmsCatalogueQueryKey,
+  capGetGmsCatalogueQueryOptions,
+  useCapGetGmsCatalogue,
+} from "./hooks/useCapGetGmsCatalogue.js";
 export {
   capGetHazardProfilesQueryKey,
   capGetHazardProfilesQueryOptions,
@@ -5766,6 +5772,7 @@ export type { CapCategory } from "./models/CapCategory.js";
 export { capCategory } from "./models/CapCategory.js";
 export type { CapCertainty } from "./models/CapCertainty.js";
 export { capCertainty } from "./models/CapCertainty.js";
+export type { CapColourRulePublic } from "./models/CapColourRulePublic.js";
 export type {
   CapCreateAlertBody,
   CapCreateAlertOptions,
@@ -5978,6 +5985,15 @@ export type {
   CapGetFeedsStatus422,
 } from "./models/CapGetFeeds.js";
 export type {
+  CapGetGmsCatalogueOptions,
+  CapGetGmsCatalogueResponse,
+  CapGetGmsCatalogueResponses,
+  CapGetGmsCatalogueStatus200,
+  CapGetGmsCatalogueStatus401,
+  CapGetGmsCatalogueStatus403,
+  CapGetGmsCatalogueStatus422,
+} from "./models/CapGetGmsCatalogue.js";
+export type {
   CapGetHazardProfilesOptions,
   CapGetHazardProfilesResponse,
   CapGetHazardProfilesResponses,
@@ -6059,6 +6075,7 @@ export type {
   CapGetRssStatus200,
   CapGetRssStatus422,
 } from "./models/CapGetRss.js";
+export type { CapHazardGroupPublic } from "./models/CapHazardGroupPublic.js";
 export type {
   CapImportAlertBody,
   CapImportAlertOptions,
@@ -6078,8 +6095,10 @@ export { capLifecycleState } from "./models/CapLifecycleState.js";
 export type { CapMessageType } from "./models/CapMessageType.js";
 export { capMessageType } from "./models/CapMessageType.js";
 export type { CapNameValue } from "./models/CapNameValue.js";
+export type { CapParishPublic } from "./models/CapParishPublic.js";
 export type { CapPredefinedAreaCreate } from "./models/CapPredefinedAreaCreate.js";
 export type { CapPredefinedAreaPublic } from "./models/CapPredefinedAreaPublic.js";
+export type { CapProductRulePublic } from "./models/CapProductRulePublic.js";
 export type { CapProfileCellText } from "./models/CapProfileCellText.js";
 export type { CapProfileCellTextPropertiesImpactEnum } from "./models/CapProfileCellTextPropertiesImpactEnum.js";
 export { capProfileCellTextPropertiesImpactEnum } from "./models/CapProfileCellTextPropertiesImpactEnum.js";
@@ -7791,6 +7810,7 @@ export { forecastSourcePropertiesKindEnum } from "./models/ForecastSourcePropert
 export type { Frequency } from "./models/Frequency.js";
 export type { Gender } from "./models/Gender.js";
 export { gender } from "./models/Gender.js";
+export type { GmsCataloguePublic } from "./models/GmsCataloguePublic.js";
 export type { GmsColour } from "./models/GmsColour.js";
 export { gmsColour } from "./models/GmsColour.js";
 export type { GoogleChallengePublic } from "./models/GoogleChallengePublic.js";
@@ -14665,6 +14685,7 @@ export {
 export { capCatalogsPublicSchema } from "./zod/capCatalogsPublicSchema.js";
 export { capCategorySchema } from "./zod/capCategorySchema.js";
 export { capCertaintySchema } from "./zod/capCertaintySchema.js";
+export { capColourRulePublicSchema } from "./zod/capColourRulePublicSchema.js";
 export {
   capCreateAlertBodySchema,
   capCreateAlertErrorSchema,
@@ -14871,6 +14892,14 @@ export {
   capGetFeedsStatus422Schema,
 } from "./zod/capGetFeedsSchema.js";
 export {
+  capGetGmsCatalogueErrorSchema,
+  capGetGmsCatalogueResponseSchema,
+  capGetGmsCatalogueStatus200Schema,
+  capGetGmsCatalogueStatus401Schema,
+  capGetGmsCatalogueStatus403Schema,
+  capGetGmsCatalogueStatus422Schema,
+} from "./zod/capGetGmsCatalogueSchema.js";
+export {
   capGetHazardProfilesErrorSchema,
   capGetHazardProfilesResponseSchema,
   capGetHazardProfilesStatus200Schema,
@@ -14944,6 +14973,7 @@ export {
   capGetRssStatus200Schema,
   capGetRssStatus422Schema,
 } from "./zod/capGetRssSchema.js";
+export { capHazardGroupPublicSchema } from "./zod/capHazardGroupPublicSchema.js";
 export {
   capImportAlertBodySchema,
   capImportAlertErrorSchema,
@@ -14959,8 +14989,10 @@ export { capIntegrationStatusSchema } from "./zod/capIntegrationStatusSchema.js"
 export { capLifecycleStateSchema } from "./zod/capLifecycleStateSchema.js";
 export { capMessageTypeSchema } from "./zod/capMessageTypeSchema.js";
 export { capNameValueSchema } from "./zod/capNameValueSchema.js";
+export { capParishPublicSchema } from "./zod/capParishPublicSchema.js";
 export { capPredefinedAreaCreateSchema } from "./zod/capPredefinedAreaCreateSchema.js";
 export { capPredefinedAreaPublicSchema } from "./zod/capPredefinedAreaPublicSchema.js";
+export { capProductRulePublicSchema } from "./zod/capProductRulePublicSchema.js";
 export { capProfileCellTextPropertiesImpactEnumSchema } from "./zod/capProfileCellTextPropertiesImpactEnumSchema.js";
 export { capProfileCellTextPropertiesLikelihoodEnumSchema } from "./zod/capProfileCellTextPropertiesLikelihoodEnumSchema.js";
 export { capProfileCellTextSchema } from "./zod/capProfileCellTextSchema.js";
@@ -16689,6 +16721,7 @@ export { forecastSourcePropertiesKindEnumSchema } from "./zod/forecastSourceProp
 export { forecastSourceSchema } from "./zod/forecastSourceSchema.js";
 export { frequencySchema } from "./zod/frequencySchema.js";
 export { genderSchema } from "./zod/genderSchema.js";
+export { gmsCataloguePublicSchema } from "./zod/gmsCataloguePublicSchema.js";
 export { gmsColourSchema } from "./zod/gmsColourSchema.js";
 export { googleChallengePublicSchema } from "./zod/googleChallengePublicSchema.js";
 export { googleCompleteSchema } from "./zod/googleCompleteSchema.js";

@@ -25830,6 +25830,49 @@
         ]
       }
     },
+    "/api/v1/cap/gms-catalogue": {
+      "get": {
+        "tags": [
+          "cap"
+        ],
+        "summary": "Read the GMS warning catalogue",
+        "description": "Returns the hazard list, parish geocodes, and the product and colour rules the warning desk uses. The rules are owned by GMS and change only through a reviewed code change.",
+        "operationId": "capGetGmsCatalogue",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GmsCataloguePublic"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Content",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials"
+          },
+          "403": {
+            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission"
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ]
+      }
+    },
     "/api/v1/cap/areas/predefined": {
       "get": {
         "tags": [
@@ -54717,6 +54760,33 @@
         ],
         "title": "CapCertainty"
       },
+      "CapColourRulePublic": {
+        "properties": {
+          "key": {
+            "type": "string",
+            "title": "Key"
+          },
+          "label": {
+            "type": "string",
+            "title": "Label"
+          },
+          "awareness_code": {
+            "type": "integer",
+            "title": "Awareness Code"
+          },
+          "severity": {
+            "$ref": "#/components/schemas/CapSeverity"
+          }
+        },
+        "type": "object",
+        "required": [
+          "key",
+          "label",
+          "awareness_code",
+          "severity"
+        ],
+        "title": "CapColourRulePublic"
+      },
       "CapEmergencyPublish": {
         "properties": {
           "reason": {
@@ -54972,6 +55042,35 @@
         },
         "type": "object",
         "title": "CapFeedImportUpdate"
+      },
+      "CapHazardGroupPublic": {
+        "properties": {
+          "label": {
+            "type": "string",
+            "title": "Label"
+          },
+          "categories": {
+            "items": {
+              "$ref": "#/components/schemas/CapCategory"
+            },
+            "type": "array",
+            "title": "Categories"
+          },
+          "events": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Events"
+          }
+        },
+        "type": "object",
+        "required": [
+          "label",
+          "categories",
+          "events"
+        ],
+        "title": "CapHazardGroupPublic"
       },
       "CapInfoCreate": {
         "properties": {
@@ -55410,6 +55509,34 @@
         ],
         "title": "CapNameValue"
       },
+      "CapParishPublic": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "iso_code": {
+            "type": "string",
+            "title": "Iso Code"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "short_name": {
+            "type": "string",
+            "title": "Short Name"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "iso_code",
+          "name",
+          "short_name"
+        ],
+        "title": "CapParishPublic"
+      },
       "CapPredefinedAreaCreate": {
         "properties": {
           "name": {
@@ -55597,6 +55724,29 @@
           "updated_at"
         ],
         "title": "CapPredefinedAreaPublic"
+      },
+      "CapProductRulePublic": {
+        "properties": {
+          "key": {
+            "type": "string",
+            "title": "Key"
+          },
+          "label": {
+            "type": "string",
+            "title": "Label"
+          },
+          "needs_colour": {
+            "type": "boolean",
+            "title": "Needs Colour"
+          }
+        },
+        "type": "object",
+        "required": [
+          "key",
+          "label",
+          "needs_colour"
+        ],
+        "title": "CapProductRulePublic"
       },
       "CapProfileCellText": {
         "properties": {
@@ -60953,6 +61103,60 @@
           "UNSPECIFIED"
         ],
         "title": "Gender"
+      },
+      "GmsCataloguePublic": {
+        "properties": {
+          "hazard_groups": {
+            "items": {
+              "$ref": "#/components/schemas/CapHazardGroupPublic"
+            },
+            "type": "array",
+            "title": "Hazard Groups"
+          },
+          "category_labels": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "type": "object",
+            "title": "Category Labels"
+          },
+          "parishes": {
+            "items": {
+              "$ref": "#/components/schemas/CapParishPublic"
+            },
+            "type": "array",
+            "title": "Parishes"
+          },
+          "products": {
+            "items": {
+              "$ref": "#/components/schemas/CapProductRulePublic"
+            },
+            "type": "array",
+            "title": "Products"
+          },
+          "colours": {
+            "items": {
+              "$ref": "#/components/schemas/CapColourRulePublic"
+            },
+            "type": "array",
+            "title": "Colours"
+          },
+          "geocode_name": {
+            "type": "string",
+            "title": "Geocode Name"
+          }
+        },
+        "type": "object",
+        "required": [
+          "hazard_groups",
+          "category_labels",
+          "parishes",
+          "products",
+          "colours",
+          "geocode_name"
+        ],
+        "title": "GmsCataloguePublic",
+        "description": "GMS warning catalogue: hazard list, parish geocodes, product and colour rules."
       },
       "GmsColour": {
         "type": "string",

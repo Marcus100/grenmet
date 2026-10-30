@@ -1322,6 +1322,12 @@ these anonymous endpoints:
 CAP management routes are under `/api/v1/cap` and require authenticated users plus permission checks.
 `POST /alerts/{id}/publish` accepts only an `APPROVED` alert with a recorded approval, which the author may give (409 otherwise; owner decision 2026-10-23, ADR-0023 amendment). `POST /alerts/{id}/reviews` (`{"outcome": "reviewed" | "changes_requested", "note": "..."}`, permission `cap.alert.approve`) records an optional colleague review by someone other than the author (403 for the author, 409 unless the alert is Submitted or Approved); it never changes the alert's state. Asking for a review is the submit step; `POST /alerts/{id}/emergency-publish` (`{"reason": "..."}`, permission `cap.alert.publish_emergency`) publishes a Draft, Submitted or Approved alert without approval and records an `emergency_publish` audit event (ADR-0023). Editing a Submitted or Approved alert returns it to `DRAFT`.
 
+`GET /api/v1/cap/gms-catalogue` (permission `cap.alert.read`) returns the GMS warning catalogue: the hazard groups and event names, the parish geocodes (`ISO3166-2:GD`), and the product and colour rules (MeteoAlarm awareness code and CAP severity per colour). It is read-only; the desk reads it instead of keeping its own copy. The rules change only through a reviewed code change.
+
+Every published or imported CAP document is checked against the official OASIS CAP 1.2 schema (`src/cap/standards`). A document that does not conform is refused with 422 (`Validation failed` is the 422 for rule errors; the schema message begins `CAP XML does not conform`). A feed entry that does not conform is skipped.
+
+The integrations response (`GET /api/v1/cap/integrations`) lists `publish_channels`: MQTT and WIS2 report `not_configured`, and no job is queued for them. Each MQTT broker row carries `delivery: not_configured`.
+
 Only Public alerts with `status=Actual` create CAP publish side-effect jobs. The
 worker also skips previously queued jobs for any other status or scope, so an
 Exercise/Test/System or Restricted/Private message cannot reach webhook or other

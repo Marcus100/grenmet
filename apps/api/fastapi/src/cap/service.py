@@ -16,6 +16,7 @@ from src.auth.policy import require_permission
 from src.cap.admin_lists import (
     create_predefined_area,
     get_catalogs,
+    get_gms_catalogue,
     get_or_create_settings,
     list_audit_events,
     list_integrations,
@@ -127,6 +128,7 @@ __all__ = [
     "_to_public_from_loaded",
     "create_predefined_area",
     "get_catalogs",
+    "get_gms_catalogue",
     "get_or_create_settings",
     "latest_snapshot_for_identifier",
     "list_audit_events",

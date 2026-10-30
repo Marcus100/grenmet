@@ -33,6 +33,7 @@ from src.cap.schemas import (
     CapSettingsPublic,
     CapSettingsUpdate,
     CapValidationResult,
+    GmsCataloguePublic,
     PublicWarnings,
 )
 from src.dependencies import CurrentUser, SessionDep
@@ -440,6 +441,17 @@ async def update_cap_settings(
 )
 async def read_catalogs(*, current_user: CurrentUser) -> CapCatalogsPublic:
     return service.get_catalogs(current_user=current_user)
+
+
+@router.get(
+    "/gms-catalogue",
+    response_model=GmsCataloguePublic,
+    summary="Read the GMS warning catalogue",
+    description="Returns the hazard list, parish geocodes, and the product and colour rules the warning desk uses. The rules are owned by GMS and change only through a reviewed code change.",
+    responses={**AUTHENTICATED},
+)
+async def read_gms_catalogue(*, current_user: CurrentUser) -> GmsCataloguePublic:
+    return service.get_gms_catalogue(current_user=current_user)
 
 
 @router.get(

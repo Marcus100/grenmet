@@ -318,6 +318,43 @@ class CapCatalogsPublic(BaseModel):
     languages: list[str]
 
 
+class CapHazardGroupPublic(BaseModel):
+    label: str
+    categories: list[CapCategory]
+    events: list[str]
+
+
+class CapParishPublic(BaseModel):
+    id: str
+    iso_code: str
+    name: str
+    short_name: str
+
+
+class CapProductRulePublic(BaseModel):
+    key: str
+    label: str
+    needs_colour: bool
+
+
+class CapColourRulePublic(BaseModel):
+    key: str
+    label: str
+    awareness_code: int
+    severity: CapSeverity
+
+
+class GmsCataloguePublic(BaseModel):
+    """GMS warning catalogue: hazard list, parish geocodes, product and colour rules."""
+
+    hazard_groups: list[CapHazardGroupPublic]
+    category_labels: dict[str, str]
+    parishes: list[CapParishPublic]
+    products: list[CapProductRulePublic]
+    colours: list[CapColourRulePublic]
+    geocode_name: str
+
+
 class CapPredefinedAreaCreate(BaseModel):
     name: str = Field(min_length=1, max_length=255)
     area_desc: str = Field(min_length=1, max_length=1000)

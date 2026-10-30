@@ -1651,6 +1651,7 @@ export {
 export { capCatalogsPublicSchema } from "./capCatalogsPublicSchema.js";
 export { capCategorySchema } from "./capCategorySchema.js";
 export { capCertaintySchema } from "./capCertaintySchema.js";
+export { capColourRulePublicSchema } from "./capColourRulePublicSchema.js";
 export {
   capCreateAlertBodySchema,
   capCreateAlertErrorSchema,
@@ -1857,6 +1858,14 @@ export {
   capGetFeedsStatus422Schema,
 } from "./capGetFeedsSchema.js";
 export {
+  capGetGmsCatalogueErrorSchema,
+  capGetGmsCatalogueResponseSchema,
+  capGetGmsCatalogueStatus200Schema,
+  capGetGmsCatalogueStatus401Schema,
+  capGetGmsCatalogueStatus403Schema,
+  capGetGmsCatalogueStatus422Schema,
+} from "./capGetGmsCatalogueSchema.js";
+export {
   capGetHazardProfilesErrorSchema,
   capGetHazardProfilesResponseSchema,
   capGetHazardProfilesStatus200Schema,
@@ -1930,6 +1939,7 @@ export {
   capGetRssStatus200Schema,
   capGetRssStatus422Schema,
 } from "./capGetRssSchema.js";
+export { capHazardGroupPublicSchema } from "./capHazardGroupPublicSchema.js";
 export {
   capImportAlertBodySchema,
   capImportAlertErrorSchema,
@@ -1945,8 +1955,10 @@ export { capIntegrationStatusSchema } from "./capIntegrationStatusSchema.js";
 export { capLifecycleStateSchema } from "./capLifecycleStateSchema.js";
 export { capMessageTypeSchema } from "./capMessageTypeSchema.js";
 export { capNameValueSchema } from "./capNameValueSchema.js";
+export { capParishPublicSchema } from "./capParishPublicSchema.js";
 export { capPredefinedAreaCreateSchema } from "./capPredefinedAreaCreateSchema.js";
 export { capPredefinedAreaPublicSchema } from "./capPredefinedAreaPublicSchema.js";
+export { capProductRulePublicSchema } from "./capProductRulePublicSchema.js";
 export { capProfileCellTextPropertiesImpactEnumSchema } from "./capProfileCellTextPropertiesImpactEnumSchema.js";
 export { capProfileCellTextPropertiesLikelihoodEnumSchema } from "./capProfileCellTextPropertiesLikelihoodEnumSchema.js";
 export { capProfileCellTextSchema } from "./capProfileCellTextSchema.js";
@@ -3675,6 +3687,7 @@ export { forecastSourcePropertiesKindEnumSchema } from "./forecastSourceProperti
 export { forecastSourceSchema } from "./forecastSourceSchema.js";
 export { frequencySchema } from "./frequencySchema.js";
 export { genderSchema } from "./genderSchema.js";
+export { gmsCataloguePublicSchema } from "./gmsCataloguePublicSchema.js";
 export { gmsColourSchema } from "./gmsColourSchema.js";
 export { googleChallengePublicSchema } from "./googleChallengePublicSchema.js";
 export { googleCompleteSchema } from "./googleCompleteSchema.js";
