@@ -17,6 +17,10 @@ ERROR_SUPERVISOR_CAN_ONLY_MANAGE_DEPARTMENT = (
 ERROR_DEPARTMENT_NOT_FOUND = "Department not found"
 ERROR_DEPARTMENT_ALREADY_EXISTS = "A department with this id or name already exists"
 ERROR_EMPLOYMENT_ALREADY_EXISTS = "An employment record already exists for this user"
+ERROR_TRANSFER_NEEDS_ORGANISATION_AUTHORITY = (
+    "Transferring someone who holds organisation-wide roles needs "
+    "organisation-wide HR employment authority"
+)
 ERROR_REINSTATE_PAST_END_DATE = (
     "Clear or move the end date before reinstating employment"
 )

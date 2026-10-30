@@ -351,6 +351,37 @@ async def send_invoice_reminders(ctx: dict[str, Any]) -> int:
         return result
 
 
+async def end_due_employment_records(ctx: dict[str, Any]) -> int:
+    """End employment whose last day has passed; its roles end with it (#797).
+
+    Uses the Grenada calendar date. Idempotent: only ACTIVE records are ended.
+    """
+    from src.database import async_session_factory
+    from src.hr import employment_status
+    from src.utils.timezones import local_today
+
+    async with async_session_factory() as session:
+        try:
+            result = await employment_status.end_due_employments(
+                session, today=local_today()
+            )
+        except Exception:
+            await operational_metrics.record_job(
+                ctx.get("redis"),
+                "end_due_employment_records",
+                str(ctx.get("job_id", "")),
+                False,
+            )
+            raise
+        await operational_metrics.record_job(
+            ctx.get("redis"),
+            "end_due_employment_records",
+            str(ctx.get("job_id", "")),
+            True,
+        )
+        return result
+
+
 async def run_notification_sweeps(ctx: dict[str, Any]) -> int:
     from src.database import async_session_factory
     from src.notifications import scheduler
@@ -614,6 +645,7 @@ class WorkerSettings:
         run_notification_sweeps,
         run_gms_notification_sweeps,
         send_invoice_reminders,
+        end_due_employment_records,
         send_daily_newsletter,
         release_social_posts,
         purge_expired_data,
@@ -681,6 +713,9 @@ class WorkerSettings:
         ),
         # Invoice payment reminders at 07:00 Grenada (UTC-4); idempotent per stage.
         cron(send_invoice_reminders, hour=11, minute=0, run_at_startup=False),
+        # Employment past its last day ends (roles with it), 00:10 Grenada (UTC-4);
+        # idempotent. Access already stops on the date through the read-time gate.
+        cron(end_due_employment_records, hour=4, minute=10, run_at_startup=False),
         # Daily climate newsletter at 07:30 Grenada (UTC-4, no daylight saving);
         # no-op until NEWSLETTER_DIGEST_ENABLED is set. Idempotent per day.
         cron(send_daily_newsletter, hour=11, minute=30, run_at_startup=False),

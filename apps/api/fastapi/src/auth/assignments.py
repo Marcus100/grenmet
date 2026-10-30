@@ -420,6 +420,29 @@ async def end_assignments_for_employment(
     return len(rows)
 
 
+async def holds_live_organisation_wide_assignment(
+    session: AsyncSession, *, user_id: uuid.UUID, organisation_id: str
+) -> bool:
+    """True when the user holds an ALL-scope assignment in the organisation that has not ended (#794).
+
+    An assignment with a future start still counts: refusing a transfer is the
+    safe side of that doubt.
+    """
+    now = utc_now()
+    found = await session.scalar(
+        select(UserRoleAssignment.id)
+        .where(
+            UserRoleAssignment.user_id == user_id,
+            UserRoleAssignment.organisation_id == organisation_id,
+            UserRoleAssignment.scope == RoleAssignmentScope.ALL,
+            UserRoleAssignment.effective_to.is_(None)
+            | (UserRoleAssignment.effective_to > now),
+        )
+        .limit(1)
+    )
+    return found is not None
+
+
 async def audit_assignment(
     session: AsyncSession, assignment: UserRoleAssignment, action: str
 ) -> None:

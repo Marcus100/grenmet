@@ -12,6 +12,7 @@ from src.auth import policy as auth_policy
 from src.auth.assignments import (
     end_assignments_for_employment,
     has_organisation_wide_hr_authority,
+    holds_live_organisation_wide_assignment,
 )
 from src.auth.models import (
     Role,
@@ -20,6 +21,7 @@ from src.auth.models import (
     UserImage,
 )
 from src.auth.policy import can_act_on_user, require_permission
+from src.hr.employment_status import set_employment_status
 from src.hr.leave import ledger
 from src.hr.organisations import (
     department_for,
@@ -806,7 +808,6 @@ async def update_employment_for_user(
     if not employment:
         raise EmploymentNotFoundError()
 
-    ended_employment = False
     if employment_update:
         if (
             "status" in employment_update.model_fields_set
@@ -819,12 +820,11 @@ async def update_employment_for_user(
             and employment_update.status != employment.status
         ):
             raise HRValidationError("You cannot change your own employment status")
-        # Any move into a non-ACTIVE status ends roles, INACTIVE to TERMINATED
-        # included, so roles granted while inactive do not survive it (#796).
-        ended_employment = employment_update.status not in (
-            None,
-            EmploymentStatus.ACTIVE,
-            employment.status,
+        # Any change of status ends the person's roles there, INACTIVE to
+        # TERMINATED included (#796), via set_employment_status below.
+        status_changed = (
+            employment_update.status is not None
+            and employment_update.status != employment.status
         )
         # Reinstating must not revive anything left paused (organisation-wide
         # roles a department admin could not end), so those end now: ended
@@ -857,6 +857,12 @@ async def update_employment_for_user(
             employment.organisation_id,
             target_user_id,
         )
+        # A transfer re-assigns everything: the person's live roles in this
+        # organisation end and an administrator re-grants at the destination (#797).
+        transfer = (
+            employment_update.department_id is not None
+            and employment_update.department_id != employment.department_id
+        )
         if employment_update.department_id:
             destination = await department_for(session, employment_update.department_id)
             if destination.organisation_id != employment.organisation_id:
@@ -870,18 +876,41 @@ async def update_employment_for_user(
                 "hr.employment.manage",
                 destination.id,
             )
+        # Ending organisation-wide (ALL-scope) roles needs organisation-wide HR
+        # authority (#794). Decided before anything changes, so a refusal leaves
+        # the record and its roles exactly as they were.
+        organisation_wide = current_user.is_superuser or (
+            await has_organisation_wide_hr_authority(
+                session, current_user, employment.organisation_id
+            )
+        )
+        if (
+            transfer
+            and not organisation_wide
+            and await holds_live_organisation_wide_assignment(
+                session,
+                user_id=target_user_id,
+                organisation_id=employment.organisation_id,
+            )
+        ):
+            raise HRPermissionDeniedError(
+                hr_constants.ERROR_TRANSFER_NEEDS_ORGANISATION_AUTHORITY
+            )
+        if status_changed and employment_update.status is not None:
+            await set_employment_status(
+                session=session,
+                employment=employment,
+                status=employment_update.status,
+                organisation_wide=reinstated_employment or organisation_wide,
+            )
         _apply_employment_update(employment, employment_update)
         session.add(employment)
-        if ended_employment or reinstated_employment:
+        if transfer:
             await end_assignments_for_employment(
                 session=session,
                 user_id=target_user_id,
                 organisation_id=employment.organisation_id,
-                organisation_wide=reinstated_employment
-                or current_user.is_superuser
-                or await has_organisation_wide_hr_authority(
-                    session, current_user, employment.organisation_id
-                ),
+                organisation_wide=organisation_wide,
             )
 
     if approval_update:
