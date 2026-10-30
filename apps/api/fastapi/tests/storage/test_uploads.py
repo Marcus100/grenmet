@@ -376,9 +376,7 @@ async def test_events_token_caller_is_the_audit_actor(db_async: AsyncSession):
     token = create_access_token(user.id, timedelta(minutes=5), app="events")
     credentials = HTTPAuthorizationCredentials(scheme="Bearer", credentials=token)
 
-    caller = storage_deps.get_upload_context(
-        db_async, credentials, organisation=org.id
-    )
+    caller = storage_deps.get_upload_context(db_async, credentials, organisation=org.id)
     context = await anext(caller)
     assert context.user.id == user.id
     assert context.token_app == "events"
