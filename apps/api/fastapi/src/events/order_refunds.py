@@ -34,6 +34,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from src import outbox
 from src.auth.models import User
+from src.payments import exceptions as payments_exceptions
 from src.payments import schemas as payment_schemas
 from src.payments import service as payments_service
 from src.payments.models import ProviderKey
@@ -251,14 +252,21 @@ async def perform_requested(
         # provider idempotency key is unsafe: fail so the outbox dead-letters it.
         raise EventsConflict("The refundable amount changed; refund again by hand")
     actor = await db.get(User, actor_id) if actor_id else None
-    await _refund_now(
-        db,
-        organisation_id=organisation_id,
-        order=order,
-        intent_id=intent.id,
-        actor=actor,
-        reason=_REASONS.get(reason_code, _REASONS["organiser_refund"]),
-        amount_minor=amount_minor,
-        refund_id=refund_id,
-    )
+    try:
+        await _refund_now(
+            db,
+            organisation_id=organisation_id,
+            order=order,
+            intent_id=intent.id,
+            actor=actor,
+            reason=_REASONS.get(reason_code, _REASONS["organiser_refund"]),
+            amount_minor=amount_minor,
+            refund_id=refund_id,
+        )
+    except payments_exceptions.RefundFailedAtProvider as error:
+        # Terminal: the provider's refund under this id failed and Stripe replays
+        # that answer. Dead-letter now; the organiser refunds again with a new key.
+        raise outbox.TerminalFailure(
+            "the provider refund under this id failed; refund again"
+        ) from error
     return "refunded"

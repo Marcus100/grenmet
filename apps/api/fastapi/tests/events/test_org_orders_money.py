@@ -1375,3 +1375,112 @@ async def test_a_card_refund_that_fails_at_the_provider_after_pending_is_reverse
             listing_id=shop.listing_id,
         )
     assert totals == (PRICE, 0)
+
+
+@pytest.mark.asyncio
+async def test_a_refund_the_provider_failed_is_terminal_and_the_operator_refunds_again(
+    db_async: AsyncSession,
+    async_client: httpx.AsyncClient,
+    events_db: SessionFactory,
+    stripe_env: payments_conftest.StripeStub,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """A queued refund whose provider refund already failed can never succeed under
+    its id (Stripe replays the failure). The outbox row dead-letters at once, with
+    the dead-letter signal, and the operator's own new refund goes through."""
+    from src import operational_metrics
+
+    dead: list[object] = []
+
+    async def record_dead(*args: Any, **_kwargs: Any) -> None:
+        dead.append(args)
+
+    monkeypatch.setattr(operational_metrics, "outbox_dead_lettered", record_dead)
+    shop = await _shop_with_events(db_async, events_db)
+    order_id, _ = await _pending(db_async, shop)
+    await _pay_stripe(db_async, async_client, order_id)
+    intent = await _intent(db_async, order_id)
+    assert intent is not None
+    intent_id = intent.id
+    refund_id = order_refunds.refund_id_for(uuid.UUID(order_id), "partial-1")
+    stripe_env.refund_status = "pending"
+    await payments_service.refund_intent(
+        db_async,
+        organisation_id=shop.organisation_id,
+        intent_id=intent_id,
+        actor=None,
+        payload=payment_schemas.PaymentRefundCreate(
+            amount_minor=2000, reason="Partial"
+        ),
+        refund_id=refund_id,
+    )
+    await db_async.commit()
+    body, headers = payments_conftest.signed(
+        payments_conftest.refund_event(
+            "evt_refund_failed_terminal",
+            "refund.failed",
+            payments_conftest.refund_object(
+                "re_test_1",
+                2000,
+                status="failed",
+                refund_id=refund_id,
+                intent_id=intent_id,
+            ),
+        )
+    )
+    assert (
+        await async_client.post(WEBHOOK, content=body, headers=headers)
+    ).status_code == 200
+
+    # The request for the same refund is still on the outbox (say, a lost response).
+    order = await db_async.get(Order, uuid.UUID(order_id))
+    actor = await db_async.get(User, shop.owner.id)
+    assert order is not None and actor is not None
+    queued, _ = await order_refunds.request_refund(
+        db_async,
+        organisation_id=shop.organisation_id,
+        order=order,
+        actor=actor,
+        reason="Partial refund",
+        reason_code="organiser_refund",
+        key="partial-1",
+        amount_minor=2000,
+    )
+    await db_async.commit()
+    assert queued == "queued"
+    db_async.expire_all()
+    assert await outbox.drain(db_async, only_topics={REQUEST_TOPIC}) == 0
+    row = await db_async.scalar(
+        select(outbox.Outbox)
+        .where(
+            outbox.Outbox.topic == REQUEST_TOPIC,
+            outbox.Outbox.dedupe_key == str(refund_id),
+        )
+        .execution_options(populate_existing=True)
+    )
+    assert row is not None
+    assert (row.status, row.attempts) == ("dead", 1)
+    assert len(dead) == 1
+
+    # The operator recovers with a new refund (a new key, so a new refund id).
+    stripe_env.refund_status = "succeeded"
+    order = await db_async.get(Order, uuid.UUID(order_id))
+    actor = await db_async.get(User, shop.owner.id)
+    assert order is not None and actor is not None
+    again, _ = await order_refunds.request_refund(
+        db_async,
+        organisation_id=shop.organisation_id,
+        order=order,
+        actor=actor,
+        reason="Partial refund, again",
+        reason_code="organiser_refund",
+        key="partial-2",
+        amount_minor=2000,
+    )
+    await db_async.commit()
+    assert again == "queued"
+    await outbox.drain(
+        db_async, only_topics={REQUEST_TOPIC, order_payments.REFUNDED_TOPIC}
+    )
+    assert (await _row(events_db, order_id)).refunded_minor == 2000
+    assert await _ledger_refunds(db_async, order_id) == [-2000, -2000]
