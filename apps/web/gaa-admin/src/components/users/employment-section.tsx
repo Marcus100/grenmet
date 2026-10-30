@@ -5,6 +5,7 @@ import {
   type DepartmentPublic,
   type EmploymentRecordPublic,
   type EmploymentStatus,
+  type EmploymentUpdate,
   type UserPublic,
   useHrCreateHrEmployment,
   useHrUpdateHrEmployment,
@@ -63,8 +64,15 @@ interface EmploymentDraft {
  */
 interface SavedEmployment {
   departmentId: string;
+  employeeNumber: string | null;
   endDate: string | null;
+  position: string | null;
   status: EmploymentStatus;
+}
+
+/** A text field as it is stored: trimmed, and null when blank. */
+function orNull(value: string | null | undefined): string | null {
+  return value?.trim() || null;
 }
 
 /**
@@ -102,6 +110,8 @@ export function EmploymentSection({
     useState<EmploymentChangeReview | null>(null);
   // Plain-words reason the API refused the last save. Shown on the form.
   const [saveError, setSaveError] = useState<string | null>(null);
+  // Plain status message, such as "No changes to save". Not an error.
+  const [notice, setNotice] = useState<string | null>(null);
 
   const today = grenadaToday();
   const draftEndDate = emp.end_date || null;
@@ -141,7 +151,9 @@ export function EmploymentSection({
       currentEmployment
         ? {
             departmentId: currentEmployment.department_id,
+            employeeNumber: orNull(currentEmployment.employee_number),
             endDate: currentEmployment.end_date ?? null,
+            position: orNull(currentEmployment.position),
             status: currentEmployment.status,
           }
         : null
@@ -153,75 +165,117 @@ export function EmploymentSection({
     setEmp((s) => ({ ...s, ...patch }));
     setPendingReview(null);
     setSaveError(null);
+    setNotice(null);
   }
 
   /**
-   * Sends only what the admin changed against the snapshot, so a stale form cannot
-   * move, deactivate or clear anything someone else changed after it loaded.
+   * Compares the draft with the snapshot field by field. Only fields that differ are
+   * sent, so a stale form cannot move, deactivate, clear or overwrite anything another
+   * admin changed after this form loaded. Returns the snapshot as it will stand once
+   * the fields are saved.
    */
-  async function sendChanges(base: SavedEmployment) {
-    const sendDepartment = emp.department_id !== base.departmentId;
-    const sendStatus = emp.status !== base.status;
-    const sendEndDate = draftEndDate !== base.endDate;
-    await updateEmploymentMutation.mutateAsync({
-      path: { user_id: user.id },
-      body: {
-        employment: {
-          employee_number: emp.employee_number.trim() || null,
-          position: emp.position.trim() || null,
-          ...(sendDepartment ? { department_id: emp.department_id } : {}),
-          ...(sendStatus ? { status: emp.status } : {}),
-          ...(sendEndDate ? { end_date: draftEndDate } : {}),
-        },
-      },
-    });
-    setSaved({
-      departmentId: sendDepartment ? emp.department_id : base.departmentId,
-      endDate: sendEndDate ? draftEndDate : base.endDate,
-      status: sendStatus ? emp.status : base.status,
-    });
+  function changesAgainst(base: SavedEmployment) {
+    const employeeNumber = orNull(emp.employee_number);
+    const position = orNull(emp.position);
+    const changed = {
+      department: emp.department_id !== base.departmentId,
+      employeeNumber: employeeNumber !== base.employeeNumber,
+      endDate: draftEndDate !== base.endDate,
+      position: position !== base.position,
+      status: emp.status !== base.status,
+    };
+    const fields: EmploymentUpdate = {
+      ...(changed.employeeNumber ? { employee_number: employeeNumber } : {}),
+      ...(changed.position ? { position } : {}),
+      ...(changed.department ? { department_id: emp.department_id } : {}),
+      ...(changed.status ? { status: emp.status } : {}),
+      ...(changed.endDate ? { end_date: draftEndDate } : {}),
+    };
+    const next: SavedEmployment = {
+      departmentId: changed.department ? emp.department_id : base.departmentId,
+      employeeNumber: changed.employeeNumber
+        ? employeeNumber
+        : base.employeeNumber,
+      endDate: changed.endDate ? draftEndDate : base.endDate,
+      position: changed.position ? position : base.position,
+      status: changed.status ? emp.status : base.status,
+    };
+    const hasChanges = Object.values(changed).some(Boolean);
+    return { fields, hasChanges, next };
   }
 
-  async function sendCreate() {
-    await createEmploymentMutation.mutateAsync({
-      path: { user_id: user.id },
-      body: {
-        employee_number: emp.employee_number.trim(),
-        department_id: emp.department_id,
-        position: emp.position.trim() || null,
-      },
-    });
+  /** Runs one save request. On failure the plain reason goes on the form and this returns false. */
+  async function attempt(request: () => Promise<unknown>): Promise<boolean> {
+    try {
+      await request();
+      return true;
+    } catch (error) {
+      const failure = employmentSaveFailure(error);
+      if (failure.unexpected) reportError(error, "hr-employment");
+      setSaveError(failure.message);
+      return false;
+    }
+  }
+
+  /** Sends the fields that changed. Nothing is sent when nothing changed. */
+  async function saveChanges(base: SavedEmployment) {
+    const changes = changesAgainst(base);
+    if (!changes.hasChanges) {
+      setNotice("No changes to save");
+      return;
+    }
+    const ok = await attempt(() =>
+      updateEmploymentMutation.mutateAsync({
+        path: { user_id: user.id },
+        body: { employment: changes.fields },
+      })
+    );
+    if (!ok) return;
+    setSaved(changes.next);
+    await refreshAfterSave(base.departmentId, changes.next.departmentId);
+  }
+
+  async function createRecord() {
+    const ok = await attempt(() =>
+      createEmploymentMutation.mutateAsync({
+        path: { user_id: user.id },
+        body: {
+          employee_number: emp.employee_number.trim(),
+          department_id: emp.department_id,
+          position: emp.position.trim() || null,
+        },
+      })
+    );
+    if (!ok) return;
     // The create request sends no status or last day, so the record starts Active with no last day.
     setSaved({
       departmentId: emp.department_id,
+      employeeNumber: orNull(emp.employee_number),
       endDate: null,
+      position: orNull(emp.position),
       status: "ACTIVE",
     });
+    await refreshAfterSave(emp.department_id, emp.department_id);
   }
 
   /** Saves the form. Call only after any confirmation has been given. */
   async function saveEmployment() {
     setPendingReview(null);
     setSaveError(null);
+    setNotice(null);
     if (!emp.department_id) {
       toast.error("Select a department first");
       return;
     }
-    if (!(saved || emp.employee_number.trim())) {
+    if (saved) {
+      await saveChanges(saved);
+      return;
+    }
+    if (!emp.employee_number.trim()) {
       toast.error("Employee number is required to assign a department");
       return;
     }
-    const previousDepartmentId = saved?.departmentId ?? emp.department_id;
-    try {
-      if (saved) await sendChanges(saved);
-      else await sendCreate();
-    } catch (error) {
-      const failure = employmentSaveFailure(error);
-      if (failure.unexpected) reportError(error, "hr-employment");
-      setSaveError(failure.message);
-      return;
-    }
-    await refreshAfterSave(previousDepartmentId, emp.department_id);
+    await createRecord();
   }
 
   async function refreshAfterSave(
@@ -365,6 +419,11 @@ export function EmploymentSection({
         <Alert role="alert" variant="destructive">
           <AlertDescription>{saveError}</AlertDescription>
         </Alert>
+      ) : null}
+      {notice ? (
+        <p className="text-muted-foreground text-sm" role="status">
+          {notice}
+        </p>
       ) : null}
       <Button
         disabled={employmentBusy || !emp.department_id || !!endDateProblem}

@@ -203,14 +203,8 @@ describe("ManageUserDialog — department & employment", () => {
     fireEvent.click(screen.getByRole("button", { name: "Confirm and save" }));
 
     await waitFor(() => expect(patched).toHaveLength(1));
-    // Only the changed status is sent; the unchanged department is not.
-    expect(patched[0]).toEqual({
-      employment: {
-        employee_number: "MET-1",
-        position: "Observer",
-        status: "INACTIVE",
-      },
-    });
+    // Only the changed status is sent; unchanged fields are not.
+    expect(patched[0]).toEqual({ employment: { status: "INACTIVE" } });
   });
 
   it("confirms a status change to Inactive or Terminated before saving, naming the roles consequence", async () => {
@@ -236,13 +230,7 @@ describe("ManageUserDialog — department & employment", () => {
     fireEvent.click(screen.getByRole("button", { name: "Save employment" }));
     fireEvent.click(screen.getByRole("button", { name: "Confirm and save" }));
     await waitFor(() => expect(bodies).toHaveLength(1));
-    expect(bodies[0]).toEqual({
-      employment: {
-        employee_number: "MET-1",
-        position: "Observer",
-        status: "TERMINATED",
-      },
-    });
+    expect(bodies[0]).toEqual({ employment: { status: "TERMINATED" } });
   });
 
   it("does not stop a reinstatement to Active for confirmation", async () => {
@@ -257,40 +245,57 @@ describe("ManageUserDialog — department & employment", () => {
     expect(screen.queryByText(CONFIRM_TITLE)).not.toBeInTheDocument();
   });
 
-  it("does not send a stale department or status after someone else changed the record", async () => {
+  it("does not overwrite another admin's changes to fields this admin did not edit", async () => {
     const bodies: unknown[] = [];
     let getCount = 0;
     server.use(
       http.get(`${BASE}/api/v1/hr/employment/u-1`, () => {
         getCount += 1;
-        // The first read is the form's load; later reads show another admin's edit.
+        // The first read is this form's load. Later reads show another admin's edits:
+        // a new position, and a moved department and status.
         return HttpResponse.json(
           getCount === 1
             ? RECORD
-            : { ...RECORD, department_id: "dept_admin", status: "INACTIVE" }
+            : {
+                ...RECORD,
+                department_id: "dept_admin",
+                position: "Senior Observer",
+                status: "INACTIVE",
+              }
         );
       }),
       patchRecord(bodies)
     );
     renderDialog();
-    fireEvent.change(await screen.findByLabelText("Position"), {
-      target: { value: "Forecaster" },
+    fireEvent.change(await screen.findByLabelText("Employee #"), {
+      target: { value: "MET-2" },
     });
     fireEvent.click(screen.getByRole("button", { name: "Save employment" }));
     await waitFor(() => expect(bodies).toHaveLength(1));
-    // The save after the refetch changes nothing about department or status.
-    fireEvent.change(screen.getByLabelText("Position"), {
-      target: { value: "Senior Forecaster" },
+    expect(bodies[0]).toEqual({ employment: { employee_number: "MET-2" } });
+
+    // Wait for the refetch that carries the other admin's position change.
+    await waitFor(() => expect(getCount).toBeGreaterThanOrEqual(2));
+    fireEvent.change(screen.getByLabelText("Employee #"), {
+      target: { value: "MET-3" },
     });
     fireEvent.click(screen.getByRole("button", { name: "Save employment" }));
     await waitFor(() => expect(bodies).toHaveLength(2));
-    expect(bodies[1]).toEqual({
-      employment: {
-        employee_number: "MET-1",
-        position: "Senior Forecaster",
-      },
-    });
+    // Only the field this admin edited is sent. The position, department and status
+    // another admin set are left alone.
+    expect(bodies[1]).toEqual({ employment: { employee_number: "MET-3" } });
     expect(screen.queryByText(CONFIRM_TITLE)).not.toBeInTheDocument();
+  });
+
+  it("says there is nothing to save and sends nothing when no field changed", async () => {
+    const bodies: unknown[] = [];
+    server.use(recordWith({}), patchRecord(bodies));
+    renderDialog();
+    fireEvent.click(
+      await screen.findByRole("button", { name: "Save employment" })
+    );
+    expect(screen.getByRole("status")).toHaveTextContent("No changes to save");
+    expect(bodies).toHaveLength(0);
   });
 });
 
@@ -413,13 +418,7 @@ describe("ManageUserDialog — last day of employment", () => {
     fireEvent.click(screen.getByRole("button", { name: "Save employment" }));
     fireEvent.click(screen.getByRole("button", { name: "Confirm and save" }));
     await waitFor(() => expect(bodies).toHaveLength(1));
-    expect(bodies[0]).toEqual({
-      employment: {
-        employee_number: "MET-1",
-        position: "Observer",
-        end_date: today,
-      },
-    });
+    expect(bodies[0]).toEqual({ employment: { end_date: today } });
   });
 
   it("does not ask for confirmation for a future last day", async () => {
