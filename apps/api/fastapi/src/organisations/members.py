@@ -13,6 +13,7 @@ import hashlib
 import logging
 import secrets
 import uuid
+from dataclasses import dataclass
 from datetime import timedelta
 from urllib.parse import urlencode
 
@@ -20,13 +21,15 @@ from sqlalchemy import ColumnElement, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.audit import service as audit_service
+from src.auth import app_service
+from src.auth import apps as auth_apps
 from src.auth.email_verification import require_verified_or_admin_activated
 from src.auth.models import User
 from src.config import settings
 from src.email_config import email_settings
 from src.notifications import service as notification_service
 from src.organisations import grants
-from src.organisations.dependencies import OrgContext
+from src.organisations.dependencies import TEAM_SESSION_APP, OrgContext
 from src.organisations.exceptions import (
     AlreadyMemberError,
     InvitationAcceptedError,
@@ -235,9 +238,91 @@ async def apply_removal(
     return membership
 
 
+@dataclass(frozen=True)
+class EventsAccessRevocation:
+    """What an Events-session removal ended. The membership and other products stay."""
+
+    membership_id: str
+    grants_revoked: int
+    issued_grants_revoked: int
+    app_access_ended: bool
+
+
+async def revoke_events_access(
+    session: AsyncSession, context: OrgContext, membership_id: str
+) -> EventsAccessRevocation:
+    """An Events app session's removal: end the person's Events access only.
+
+    Ends their live ``events-*`` grants and the grants they issued for Events, and
+    withdraws their Events app opt-in (``app_service.withdraw_app_opt_in``). The
+    membership, and every other product's grants, stay. The owner, lock and
+    last-owner rules are the same as for a full removal."""
+    organisation_id = context.organisation_id
+    audit_service.set_actor(session, context.user.id)
+    membership = await _get_membership(session, organisation_id, membership_id)
+    if context.role != MembershipRole.OWNER and _is_owner(membership.role):
+        raise OrganisationRoleError()
+    await _ensure_not_last_owner(session, organisation_id, membership)
+    products = (TEAM_SESSION_APP,)
+    grants_revoked = await grants.revoke_product_grants(
+        session,
+        organisation_id=organisation_id,
+        membership_id=membership.id,
+        products=products,
+        actor_id=context.user.id,
+    )
+    issued = await grants.revoke_issued_by(
+        session,
+        organisation_id=organisation_id,
+        user_id=membership.user_id,
+        actor_id=context.user.id,
+        products=products,
+    )
+    user = await session.get(User, membership.user_id)
+    assert user is not None
+    app_ended = await app_service.withdraw_app_opt_in(
+        session=session, user=user, app=auth_apps.get_app(TEAM_SESSION_APP)
+    )
+    await audit_service.record_change(
+        session,
+        entity_type="platform_organisation",
+        entity_id=organisation_id,
+        record_type="organisation_membership",
+        record_id=membership.id,
+        action="revoke_events_access",
+        changes={
+            "grants_revoked": (None, grants_revoked),
+            "issued_grants_revoked": (None, issued),
+            "app_access_ended": (None, app_ended),
+        },
+        organisation_id=organisation_id,
+    )
+    logger.info(
+        "organisation events access revoked",
+        extra={
+            "organisation_id": organisation_id,
+            "membership_id": membership.id,
+            "grants_revoked": grants_revoked,
+        },
+    )
+    return EventsAccessRevocation(
+        membership_id=membership.id,
+        grants_revoked=grants_revoked,
+        issued_grants_revoked=issued,
+        app_access_ended=app_ended,
+    )
+
+
 async def remove_member(
     session: AsyncSession, context: OrgContext, membership_id: str
-) -> None:
+) -> EventsAccessRevocation | None:
+    """Ends a membership, or for an Events app session only the Events access.
+
+    Returns ``None`` when the membership was removed from the whole organisation (an
+    account session), otherwise what the Events-only revocation ended (owner decision,
+    2026-10-30)."""
+    if context.session_app == TEAM_SESSION_APP:
+        return await revoke_events_access(session, context, membership_id)
     await apply_removal(
         session,
         context.organisation_id,
@@ -245,6 +330,7 @@ async def remove_member(
         actor_id=context.user.id,
         actor_may_grant_owner=context.role == MembershipRole.OWNER,
     )
+    return None
 
 
 # ── Invitations ──────────────────────────────────────────────────────────────

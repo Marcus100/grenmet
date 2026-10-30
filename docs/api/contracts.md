@@ -790,6 +790,9 @@ Shared APIs for every Barrels app. Zones follow ADR-0025.
   whose `team.manage` they hold and `is_admin_or_owner`.
   These team routes, and member removal (`DELETE /{organisation_id}/members/{id}`), also
   accept an Events app token (`EventsOrg*` dependencies); any other app's token is 401.
+  Removal depends on the sign-in (issue #815): an account session removes the membership
+  from the organisation (204); an Events app session ends only that person's Events access
+  and answers 200 with `scope: "events"` and the counts (the membership stays).
 - **Feature flags** (PF7, ADR-0020): superuser `/feature-flags/admin` (CRUD,
   `/admin/stale`) and `GET /feature-flags/org/evaluate` and `/feature-flags/me/evaluate`,
   which return only flags marked exposed. `GET /feature-flags/public/evaluate?keys=a,b`
@@ -988,7 +991,8 @@ authenticated session.
 
 **Change history.** Registered models (`src/hr/audit.py`) are captured field by field on
 every flush into `public.audit_entry`, attributed to the signed-in user (or "System" for
-worker jobs). Bulk `update()`/`delete()` statements are not captured; call
+worker jobs) and to how they signed in: `actor_session` (`account` or `app`) and `actor_app`
+(for an app session, the app key; NULL when not recorded). Bulk `update()`/`delete()` statements are not captured; call
 `src.audit.service.record_change` for those.
 
 | Endpoint | Access and purpose |

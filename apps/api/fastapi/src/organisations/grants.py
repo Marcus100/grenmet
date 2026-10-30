@@ -330,12 +330,14 @@ async def revoke_issued_by(
     organisation_id: str,
     user_id: uuid.UUID,
     actor_id: uuid.UUID,
+    products: Collection[str] | None = None,
 ) -> int:
     """End every unrevoked grant ``user_id`` issued in the organisation (used when
     the issuer is removed, so access they handed out does not outlive their own).
     A lapsed grant is closed at its real end, a live one now. Returns the number of
-    live grants ended. Direct grants only: grants issued by the people whose roles
-    this ends are not followed (revocation is not transitive)."""
+    live grants ended. ``products`` limits it to those products' roles. Direct
+    grants only: grants issued by the people whose roles this ends are not followed
+    (revocation is not transitive)."""
     audit_service.set_actor(session, actor_id)
     rows = await session.scalars(
         select(MembershipGrant)
@@ -343,17 +345,52 @@ async def revoke_issued_by(
             MembershipGrant.organisation_id == organisation_id,
             MembershipGrant.granted_by == user_id,
             MembershipGrant.revoked_at.is_(None),
+            *_product_filter(products),
         )
         .with_for_update()
     )
+    ended = _end_grants(rows.all())
+    await session.flush()
+    return ended
+
+
+def _end_grants(grant_rows: Collection[MembershipGrant]) -> int:
+    """Revoke grants (the caller flushes): lapsed ones at their real end, live ones
+    now. Returns the number of live grants ended."""
     now = utc_now()
     ended = 0
-    for grant in rows.all():
+    for grant in grant_rows:
         if grant.expires_at is not None and grant.expires_at <= now:
             grant.revoked_at = grant.expires_at
             continue
         grant.revoked_at = now
         ended += 1
+    return ended
+
+
+async def revoke_product_grants(
+    session: AsyncSession,
+    *,
+    organisation_id: str,
+    membership_id: str,
+    products: Collection[str],
+    actor_id: uuid.UUID,
+) -> int:
+    """End a member's live grants for ``products`` (their roles only; the membership
+    and other products stay). Returns the number of live grants ended (ADR-0016
+    amendment: an Events session removal ends the person's Events roles only)."""
+    audit_service.set_actor(session, actor_id)
+    rows = await session.scalars(
+        select(MembershipGrant)
+        .where(
+            MembershipGrant.organisation_id == organisation_id,
+            MembershipGrant.membership_id == membership_id,
+            MembershipGrant.revoked_at.is_(None),
+            *_product_filter(products),
+        )
+        .with_for_update()
+    )
+    ended = _end_grants(rows.all())
     await session.flush()
     return ended
 

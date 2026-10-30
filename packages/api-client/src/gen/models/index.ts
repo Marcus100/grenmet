@@ -5683,6 +5683,7 @@ export { manualMethod } from "./ManualMethod.js";
 export type { ManualPaymentCreate } from "./ManualPaymentCreate.js";
 export type { MarineResponse } from "./MarineResponse.js";
 export type { MarineRow } from "./MarineRow.js";
+export type { MemberEventsAccessRevokedPublic } from "./MemberEventsAccessRevokedPublic.js";
 export type { MemberListPublic } from "./MemberListPublic.js";
 export type { MemberPublic } from "./MemberPublic.js";
 export type { MemberRoleUpdate } from "./MemberRoleUpdate.js";
@@ -6040,6 +6041,7 @@ export type {
   OrganisationsDeleteMemberPath,
   OrganisationsDeleteMemberResponse,
   OrganisationsDeleteMemberResponses,
+  OrganisationsDeleteMemberStatus200,
   OrganisationsDeleteMemberStatus204,
   OrganisationsDeleteMemberStatus400,
   OrganisationsDeleteMemberStatus401,
