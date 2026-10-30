@@ -9,7 +9,7 @@ import type { Route } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { HOME_CARD, HomeSection } from "@/components/home/home-section";
-import { LinkedProduct } from "@/components/linked-product";
+import { clock12 } from "@/lib/clock";
 import {
   contentHref,
   fetchHomeContent,
@@ -66,7 +66,7 @@ const GRENADA_DAY = new Intl.DateTimeFormat("en-CA", {
   timeZone: "America/Grenada",
 });
 
-/** "Today at 08:36", "Yesterday at 19:00" or "27 Oct at 19:00", Grenada time. */
+/** "Today at 8:36 a.m.", "Yesterday at 7:00 p.m." or "27 Oct at 7:00 p.m.", Grenada time. */
 export function postedLabel(iso: string, now = new Date()): string {
   const when = new Date(iso);
   const day = GRENADA_DAY.format(when);
@@ -74,7 +74,7 @@ export function postedLabel(iso: string, now = new Date()): string {
   let prefix = SHORT_DATE.format(when);
   if (day === GRENADA_DAY.format(now)) prefix = "Today";
   else if (day === GRENADA_DAY.format(yesterday)) prefix = "Yesterday";
-  return `${prefix} at ${CLOCK.format(when)}`;
+  return `${prefix} at ${clock12(CLOCK.format(when))}`;
 }
 
 const NAME_SEPARATORS = /[\s._-]+/;
@@ -96,8 +96,10 @@ export function avatarInitials(name: string | null | undefined): string {
  */
 function DeskPostCard({ item }: { item: PublishedContent }) {
   const posted = item.publishedAt ?? item.updatedAt;
+  // `relative` keeps the link's screen-reader text inside the scrolling row;
+  // without it that hidden text widens the whole page on phones.
   return (
-    <li className="w-[85%] shrink-0 snap-start sm:w-[22rem] lg:w-[24rem]">
+    <li className="relative w-[85%] shrink-0 snap-start sm:w-[22rem] lg:w-[24rem]">
       <article className={cn(HOME_CARD, "flex h-full flex-col gap-3")}>
         <header className="flex items-center gap-3">
           <span
@@ -179,7 +181,7 @@ export async function ForecastDesk() {
       >
         <ul
           aria-label="Latest desk posts"
-          className="-mx-4 flex snap-x snap-mandatory scroll-px-4 gap-4 overflow-x-auto px-4 pb-2 sm:-mx-6 sm:scroll-px-6 sm:px-6 xl:-mx-8 xl:scroll-px-8 xl:px-8"
+          className="-mx-4 flex snap-x snap-mandatory scroll-px-4 gap-4 overflow-x-auto px-4 pb-2 sm:-mx-6 sm:scroll-px-6 sm:px-6 xl:-mx-8 xl:scroll-px-8 xl:px-8 max-lg:[scrollbar-width:none] max-lg:[&::-webkit-scrollbar]:hidden"
         >
           {updates.articles.slice(0, 8).map((item) => (
             <DeskPostCard item={item} key={item.id} />
@@ -388,9 +390,6 @@ export async function LatestReports() {
                 <p className="max-w-prose text-body-base leading-body-base">
                   {lead.summary}
                 </p>
-              )}
-              {lead.linkedProduct && (
-                <LinkedProduct productId={lead.linkedProduct.productId} />
               )}
             </article>
             {rest.length > 0 && (

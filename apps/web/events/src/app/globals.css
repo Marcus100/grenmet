@@ -97,15 +97,3 @@ body {
 a {
   text-decoration: none;
 }
-
-/* Lift the shared privacy popup above the installed app's tab bar. */
-@media (width < 48rem) and (display-mode: standalone) {
-  :root {
-    --privacy-bottom-offset: calc(
-      var(--spacing) *
-      14 +
-      1px +
-      env(safe-area-inset-bottom)
-    );
-  }
-}

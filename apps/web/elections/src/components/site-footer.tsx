@@ -1,3 +1,4 @@
+import { CookieSettingsButton } from "@barrelsgd/ui/components/posthog-provider";
 import Link from "next/link";
 import { FlagStripe } from "@/components/flag-stripe";
 
@@ -29,6 +30,7 @@ export function SiteFooter() {
           <Link className="underline" href="/sources">
             Sources and methods
           </Link>
+          <CookieSettingsButton className="cursor-pointer underline" />
         </nav>
         <p>
           Elections Grenada is an independent Barrels Grenada project. It is not

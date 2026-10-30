@@ -25,6 +25,32 @@ import { Button } from "./ui/button";
 
 export { filterAnalyticsEvent } from "../lib/analytics-runtime";
 
+/** Fired by `CookieSettingsButton`; the provider opens its settings on it. */
+const OPEN_SETTINGS_EVENT = "barrels:cookie-settings";
+
+/**
+ * A link-style button that reopens the cookie settings. Every public app puts
+ * it in its footer; there is no floating button, which covered content on
+ * phones (owner, 29 Oct 2026).
+ */
+export function CookieSettingsButton({
+  children = "Cookie settings",
+  className,
+}: {
+  children?: React.ReactNode;
+  className?: string;
+}) {
+  return (
+    <button
+      className={className}
+      onClick={() => window.dispatchEvent(new Event(OPEN_SETTINGS_EVENT))}
+      type="button"
+    >
+      {children}
+    </button>
+  );
+}
+
 function PublicAnalytics({
   app,
   privacyHref,
@@ -86,6 +112,16 @@ function PublicAnalytics({
     document.addEventListener("click", onClick);
     return () => document.removeEventListener("click", onClick);
   }, []);
+  useEffect(() => {
+    // Coming back to change a choice goes straight to the settings.
+    const reopen = () => {
+      setAnalytics(preference === "accepted");
+      setView("customise");
+      setOpen(true);
+    };
+    window.addEventListener(OPEN_SETTINGS_EVENT, reopen);
+    return () => window.removeEventListener(OPEN_SETTINGS_EVENT, reopen);
+  }, [preference]);
   function choose(value: "accepted" | "declined") {
     const choice = browserOptOut() ? "declined" : value;
     try {
@@ -101,28 +137,11 @@ function PublicAnalytics({
     setOpen(false);
   }
   const config = ready ? configForOrigin(app, location.origin) : null;
-  // Apps with a fixed mobile tab bar set --privacy-bottom-offset to sit above it.
   // Nothing optional can run here, so there is nothing to ask about.
   if (!config) return null;
   const optedOut = browserOptOut();
-  if (!open) {
-    return createPortal(
-      <button
-        aria-label="Privacy settings"
-        className="fixed bottom-[calc(var(--privacy-bottom-offset,0px)_+_var(--spacing)_*_4)] left-4 z-50 rounded-full border border-border bg-background px-3 py-1.5 font-medium text-foreground text-xs shadow-card hover:bg-muted focus-visible:outline-2 focus-visible:outline-ring"
-        onClick={() => {
-          // Coming back to change a choice goes straight to the settings.
-          setAnalytics(preference === "accepted");
-          setView("customise");
-          setOpen(true);
-        }}
-        type="button"
-      >
-        Privacy
-      </button>,
-      document.body
-    );
-  }
+  // Closed: the footer's CookieSettingsButton reopens the settings.
+  if (!open) return null;
   return createPortal(
     <>
       <div aria-hidden="true" className="fixed inset-0 z-50 bg-foreground/40" />

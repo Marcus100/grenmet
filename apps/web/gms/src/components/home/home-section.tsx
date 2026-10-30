@@ -37,7 +37,9 @@ export function HomeSection({
             {kicker}
           </p>
           {/* The onward link sits on the title's line, even on phones. */}
-          <div className="flex items-end justify-between gap-3">
+          {/* Phones stack the link under the heading so the heading gets the full
+              width ("Questions about the weather" took three lines beside it). */}
+          <div className="flex flex-col items-start gap-1 sm:flex-row sm:items-end sm:justify-between sm:gap-3">
             <h2 className="min-w-0 text-balance font-bold font-gm-display text-gm-display text-gm-heading uppercase tracking-wide">
               {title}
             </h2>
