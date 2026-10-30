@@ -57,13 +57,13 @@ the database to PostgreSQL 17, because Django 5.2 needs PostgreSQL 14 or newer.
 | `django-colorfield` | 0.4.5 | 0.14.x | `ColorField` max_length 18 to 25; migration `wx/0078` widens the two columns |
 | `django-material` | 1.10.0 | 1.12.0 | Unmaintained (merged into django-viewflow); works on 5.2 in the smoke run below, replace when SURFACE's UI is reworked |
 | `django-timescaledb` | 0.2.12 | 0.2.13 | Last release 2023; works on 5.2 and TimescaleDB 2.31 in the smoke run below |
-| `django-ckeditor` | 6.7.1 | 6.7.4 | Bundled CKEditor 4 is end of life (#803) |
+| `django-ckeditor` | 6.7.1 | removed | Bundled CKEditor 4 was end of life (#803). The six rich-text fields are plain `TextField`s with plain text boxes; migration `wx/0079` converts stored HTML to plain text once (not reversible), and old migrations reference `models.TextField` |
 
 Django 5 code changes: sign-out in `templates/base.html` is a POST form
 (`LogoutView` no longer accepts GET), and the unused `USE_L10N` setting is gone.
 
 Step 2 verification (host, Docker): built `Dockerfile.deploy`; `manage.py check`
-clean apart from the CKEditor warning; `makemigrations --check` clean; all `wx`
+clean (the CKEditor warning was removed with the editor in #803); `makemigrations --check` clean; all `wx`
 migrations applied to an empty PostgreSQL 17 database and the `raw_data`
 hypertable was created; `wx.tests` pass (7); a CSRF-enforced client signed in,
 loaded the station map, admin, station admin, variable export and API root, got
@@ -79,6 +79,15 @@ existed when this changed).
 
 `Dockerfile.deploy` now installs `api/requirements.txt` on top of the upstream
 `surface-base` image; before that the pins never reached a running container.
+
+CKEditor removal (#803) verification (host, Docker): built `Dockerfile.deploy`
+(which now also uninstalls `django-ckeditor` and `django-js-asset`, because the
+upstream base image still ships them); `manage.py check` has no warnings and
+`makemigrations --check` finds no changes; `migrate` applied `wx/0079` on a
+PostgreSQL 17 database; the six columns are still `text`; `wx.tests` pass (14);
+a CSRF-enforced client signed in and loaded the station map, admin, the
+maintenance report list, the new-report form and a report whose text fields held
+`<script>` and `<img onerror>` strings, which rendered escaped.
 
 **No CI gate covers SURFACE.** `scripts/ci/select-images.mjs` treats `surface/`
 as deferred and no workflow runs its tests, so verification on the host stack

@@ -140,6 +140,12 @@
       overflow-wrap: break-word;
     }
 
+    .plain-text-note,
+    .contact-box,
+    .full-width-note {
+      white-space: pre-wrap;
+    }
+
     .full-width-note {
       line-height: 1.6;
     }
@@ -320,17 +326,17 @@
 
             <v-row class="info-row">
               <v-col cols="3" class="label-col">Description of Station Upon Arrival</v-col>
-              <v-col cols="9" class="value-col full-width-note">{{ visit_summary_information.station_on_arrival_conditions | safe }}</v-col>
+              <v-col cols="9" class="value-col full-width-note">{{ visit_summary_information.station_on_arrival_conditions }}</v-col>
             </v-row>
 
             <v-row class="info-row">
               <v-col cols="3" class="label-col">Summary of Work Done at Station</v-col>
-              <v-col cols="9" class="value-col full-width-note">{{ visit_summary_information.current_visit_summary | safe }}</v-col>
+              <v-col cols="9" class="value-col full-width-note">{{ visit_summary_information.current_visit_summary }}</v-col>
             </v-row>
 
             <v-row class="info-row">
               <v-col cols="3" class="label-col">Work To Be Done On Next Visit</v-col>
-              <v-col cols="9" class="value-col full-width-note">{{ visit_summary_information.next_visit_summary | safe }}</v-col>
+              <v-col cols="9" class="value-col full-width-note">{{ visit_summary_information.next_visit_summary }}</v-col>
             </v-row>
           </div>
 
@@ -398,7 +404,7 @@
           <!-- Contact Information -->
           <div class="section-block">
             <div class="section-title">Contact Information</div>
-            <div class="contact-box">{{ contact_information | safe }}</div>
+            <div class="contact-box">{{ contact_information }}</div>
           </div>
 
           <!-- Equipment Record -->
@@ -453,7 +459,7 @@
               <!-- Component Condition -->
               <div class="equipment-subtitle">Component Condition</div>
               <div class="equipment-content">
-                <div v-html="equipment_record.condition"></div>
+                <div class="plain-text-note">[[ equipment_record.condition ]]</div>
               </div>
 
             </div>
