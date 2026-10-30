@@ -50,12 +50,24 @@ src/app/
     weather/[year]/[month]/[day] ← a dated forecast day
   (pages)/                       ← standing pages, breadcrumbs + max-w-6xl
     alerts/ weather/ marine/ climate/ services/ explore/ about/
-    [...planned]/                ← placeholders for nav links marked `planned`
     help/ app-guide/ sitemap/ privacy/ accessibility/ disclaimer/
+  (planned)/[...planned]/        ← placeholders for nav links marked `planned`
+                                   (outside (pages) on purpose: see 404s below)
   layout.tsx                     ← root layout: masthead, footer, tab bar
+  robots.ts, sitemap.ts          ← crawlers: all pages allowed; sitemap from lib/sitemap-paths.ts
   api/health/route.ts
 ```
 
+- **404s and streaming (30 Oct 2026):** a `loading.tsx` streams its response
+  before a page's `notFound()` runs, so that status is 200 (Next docs,
+  "Status codes"). `(pages)/loading.tsx` covers the standing pages, so keep
+  planned placeholders in `(planned)/` and never add a loading file above a
+  route that must 404 for an unknown URL. Known gap: a CMS article that does not
+  exist on a live CMS still answers 200 with the not-found text (see
+  `cms-article.tsx`).
+- **Canonical and Open Graph:** root metadata (`lib/site-metadata.ts`) sets
+  `alternates.canonical: "./"`, which Next resolves against each page's own
+  path. Share titles for pages without their own `openGraph` use the site name.
 - **Moving a route:** add the old prefix → new home to `ROUTE_MOVES` in
   `src/lib/route-moves.ts` (it feeds `next.config.ts` redirects); never delete
   a public URL without one. `route-moves.test.ts` fails if an old route is still

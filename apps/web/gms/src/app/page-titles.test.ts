@@ -89,7 +89,7 @@ describe("page titles", () => {
   it("gives planned placeholder pages their link name as the title", () => {
     expect(plannedPaths().length).toBeGreaterThan(0);
     const planned = readFileSync(
-      path.join(APP_DIR, "(pages)", "[...planned]", "page.tsx"),
+      path.join(APP_DIR, "(planned)", "[...planned]", "page.tsx"),
       "utf8"
     );
     expect(planned).toContain("title: page.link.name");
