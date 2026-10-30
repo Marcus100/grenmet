@@ -54,9 +54,7 @@ export function SiteFooter() {
           </span>
           <span>
             Website support:{" "}
-            <a className="underline" href={BARRELS_SUPPORT_HREF}>
-              {BARRELS_SUPPORT_EMAIL}
-            </a>
+            <a href={BARRELS_SUPPORT_HREF}>{BARRELS_SUPPORT_EMAIL}</a>
           </span>
         </div>
       </div>

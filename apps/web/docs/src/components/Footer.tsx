@@ -87,7 +87,7 @@ function SmallPrint() {
       <p className="text-xs text-zinc-600 dark:text-zinc-400">
         &copy; Copyright {new Date().getFullYear()}. All rights reserved.
       </p>
-      <div className="flex gap-4">
+      <div className="flex flex-wrap gap-4">
         <Link className="text-sm underline" href="/errors">
           Help
         </Link>

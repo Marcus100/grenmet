@@ -19,7 +19,7 @@ vi.mock("next/link", () => ({
 }));
 
 describe("cap SiteFooter", () => {
-  it("links the Barrels support address for corrections and feedback", () => {
+  it("links the Barrels support address for website problems", () => {
     render(<SiteFooter />);
     expect(
       screen.getByRole("link", { name: "support@barrels.gd" })

@@ -30,7 +30,7 @@ export function SiteFooter() {
           </Link>
         </p>
         <p className="print:hidden">
-          Support, corrections and feedback on this service: Barrels Grenada at{" "}
+          Problems with this website: Barrels Grenada at{" "}
           <a
             className="font-medium text-gm-blue-ink underline"
             href={BARRELS_SUPPORT_HREF}
