@@ -42,20 +42,33 @@ above). If you re-run `pip-compile`, keep these versions as lower bounds.
 
 ### Upgrade pins (#722)
 
-Step 1 moved SURFACE from Django 3.2.13 to Django 4.2 (`>=4.2,<4.3`, resolved
-4.2.30). Django 4.2 support ended in April 2026 and 4.2.30 is the final
-release, so this step is intermediate: step 2 (Django 5.2) is still required.
-Django 5.2 needs PostgreSQL 14 or newer, and both compose files pin
-`timescale/timescaledb-postgis:2.3.0-pg13`, so a database upgrade is a
-prerequisite for step 2.
+Step 1 moved SURFACE from Django 3.2.13 to Django 4.2. Step 2 moved it to
+Django 5.2 LTS (`>=5.2.8,<5.3`, resolved 5.2.18; supported to April 2028) and
+the database to PostgreSQL 17, because Django 5.2 needs PostgreSQL 14 or newer.
 
 | Package | Upstream | Ours | Note |
 | --- | --- | --- | --- |
-| `Django` | 3.2.13 | 4.2.30 | Final 4.2 release |
-| `djangorestframework`, `djangorestframework-simplejwt`, `django-celery-beat`, `django-cors-headers`, `django-import-export`, `django-material`, `django-simple-history`, `celery`, `kombu`, `amqp`, `redis` | older | see `requirements.in` | Raised to versions that support Django 4.2 |
-| `tablib` | 3.9.0 | 3.5.0 | Downgrade forced by `django-import-export` 3.3.9 |
+| `Django` | 3.2.13 | 5.2.18 | LTS |
+| Database image | `timescaledb-postgis:2.3.0-pg13` | `timescaledb-ha:pg17.11-ts2.31.0` (digest-pinned) | PostgreSQL 17.11, TimescaleDB 2.31.0, PostGIS 3.6.4. The old image line stopped at pg13. Runs as uid 1000 with data under `/home/postgres/pgdata/data`; `PGDATA` in the SURFACE env file must sit inside that mount |
+| `djangorestframework`, `djangorestframework-simplejwt`, `django-celery-beat`, `django-cors-headers`, `django-import-export` (4.x), `django-simple-history`, `celery`, `kombu`, `amqp`, `redis`, `requests`, `gunicorn`, `psycopg2-binary` | older | see `requirements.in` | Raised to versions that support Django 5.2 or carry security fixes |
+| `Pillow`, `anyio`, `lxml`, `soupsieve`, `sqlparse`, `urllib3`, `cryptography`, `geopandas` | older | see `requirements.in` | Security floors from Dependabot advisories |
 | `pymemcache` | `python-memcached` | 4.0.0 | Replaces `python-memcached`; Django 4.1 removed `MemcachedCache` (settings use `PyMemcacheCache`) |
-| `django-colorfield` | 0.4.5 | 0.4.5 (kept) | Newer versions change `ColorField` max_length 18 to 25 and need a migration; revisit in step 2 |
+| `django-colorfield` | 0.4.5 | 0.14.x | `ColorField` max_length 18 to 25; migration `wx/0078` widens the two columns |
+| `django-material` | 1.10.0 | 1.12.0 | Unmaintained (merged into django-viewflow); works on 5.2 in the smoke run below, replace when SURFACE's UI is reworked |
+| `django-timescaledb` | 0.2.12 | 0.2.13 | Last release 2023; works on 5.2 and TimescaleDB 2.31 in the smoke run below |
+| `django-ckeditor` | 6.7.1 | 6.7.4 | Bundled CKEditor 4 is end of life (#803) |
+
+Django 5 code changes: sign-out in `templates/base.html` is a POST form
+(`LogoutView` no longer accepts GET), and the unused `USE_L10N` setting is gone.
+
+Step 2 verification (host, Docker): built `Dockerfile.deploy`; `manage.py check`
+clean apart from the CKEditor warning; `makemigrations --check` clean; all `wx`
+migrations applied to an empty PostgreSQL 17 database and the `raw_data`
+hypertable was created; `wx.tests` pass (7); a CSRF-enforced client signed in,
+loaded the station map, admin, station admin, variable export and API root, got
+405 from GET logout and signed out with POST. An existing pg13 data directory
+does not start on the new image: dump and restore it (no live SURFACE host
+existed when this changed).
 
 `Dockerfile.deploy` now installs `api/requirements.txt` on top of the upstream
 `surface-base` image; before that the pins never reached a running container.
