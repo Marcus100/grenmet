@@ -152,6 +152,16 @@ async def test_a_timeout_after_a_publish_request_is_unknown_and_never_retried(
     assert len(replies.requests) == 1
 
 
+async def test_a_broken_answer_body_after_a_publish_request_is_unknown(
+    wire: Callable[..., Replies],
+) -> None:
+    # The request went out and the answer could not be decoded: the post may be live.
+    replies = wire(httpx.DecodingError("cannot decode the body"))
+    with pytest.raises(GraphOutcomeUnknown):
+        await _client().post(f"{PAGE}/feed", data={}, publishing=True)
+    assert len(replies.requests) == 1
+
+
 async def test_an_unreadable_success_is_unknown_for_a_publish(
     wire: Callable[..., Replies],
 ) -> None:

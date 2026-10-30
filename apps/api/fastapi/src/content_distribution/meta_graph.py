@@ -66,7 +66,7 @@ class GraphOutcomeUnknown(GraphError):
     """A publish request went out and no usable answer came back."""
 
 
-def _never_sent(exc: httpx.TransportError) -> bool:
+def _never_sent(exc: httpx.HTTPError) -> bool:
     return isinstance(
         exc, (httpx.ConnectError, httpx.ConnectTimeout, httpx.PoolTimeout)
     )
@@ -172,7 +172,7 @@ class GraphClient:
                     response = await client.request(
                         method, url, params=params, data=data, headers=headers
                     )
-            except httpx.TransportError as exc:
+            except httpx.HTTPError as exc:
                 if publishing and not _never_sent(exc):
                     raise GraphOutcomeUnknown(
                         "No answer from Meta after the publish request"
