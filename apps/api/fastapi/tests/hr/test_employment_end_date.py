@@ -195,3 +195,21 @@ async def test_reinstating_with_a_future_end_date_is_allowed(
     await db_async.refresh(record)
     assert record.status == EmploymentStatus.ACTIVE
     assert record.end_date == FUTURE
+
+
+async def test_admin_employment_read_carries_the_end_date(
+    db_async: AsyncSession,
+) -> None:
+    """GET /hr/employment/{user_id} (the admin editor's read) exposes end_date."""
+    from src.hr.schemas import EmploymentRecordPublic
+
+    department = await make_department(db_async, "end_date_read1")
+    user = await make_user(db_async)
+    record = await make_employee(db_async, user=user, department_id=department.id)
+    record.end_date = date(2027, 3, 1)
+    await db_async.commit()
+    await db_async.refresh(record)
+
+    read = EmploymentRecordPublic.model_validate(record, from_attributes=True)
+
+    assert read.end_date == date(2027, 3, 1)

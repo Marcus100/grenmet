@@ -113,6 +113,7 @@ class EmploymentRecordPublic(BaseModel):
     position: str | None = None
     employment_type: EmploymentType | None = None
     start_date: date | None = None
+    end_date: date | None = None
     continuous_service_date: date | None = None
     probation_end_date: date | None = None
     probation_completed_date: date | None = None
