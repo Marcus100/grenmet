@@ -21,21 +21,19 @@ const SEVERITY_ORDER: Record<CapSeverity, number> = {
 };
 
 /**
- * Green alerts in effect, as the masthead needs them: how many, or that they
- * could not be read. Green is not a CAP warning, so it never changes the level.
+ * What the GMS outlook says is in effect beyond the CAP warnings, as the
+ * masthead and /alerts need it. It never changes the CAP level.
+ * - `count`: Green alerts in effect.
+ * - `other`: non-Green GMS items in effect with no CAP warning yet.
+ * - `complete`: false when a source could not be read, so the list may be short.
+ * `unavailable`: the outlook did not load at all.
  */
 export type GreenStatus =
-  | { status: "ok"; count: number }
+  | { status: "ok"; count: number; other: number; complete: boolean }
   | { status: "unavailable" };
 
 export type AlertsResult =
-  | {
-      status: "ok";
-      groups: HazardGroup[];
-      activeCount: number;
-      /** Set by the masthead feed; absent where only CAP warnings are read. */
-      green?: GreenStatus;
-    }
+  | { status: "ok"; groups: HazardGroup[]; activeCount: number }
   | { status: "unavailable" };
 
 /**
@@ -60,19 +58,32 @@ export function exerciseStatuses(result: AlertsResult): CapStatus[] {
 
 /**
  * What to say when no CAP warning is in effect. "No active alerts" is said
- * only when Green alerts are known to be none too; Green alerts in effect are
- * named, and unreadable Green alerts are never an all-clear.
+ * only when the GMS outlook is read in full and nothing is in effect. Anything
+ * else in effect is named; an unreadable or incomplete read is never an
+ * all-clear.
  */
 function noWarningsSummary(green: GreenStatus | undefined): string {
-  if (green?.status === "unavailable") {
+  if (!green) {
+    return "No active alerts";
+  }
+  if (green.status === "unavailable") {
     return "Green alerts unavailable";
   }
-  if (green && green.count > 0) {
-    return green.count === 1
-      ? "Green alert in effect"
-      : `${green.count} Green alerts in effect`;
+  if (green.other > 0) {
+    return green.other === 1
+      ? "GMS alert in effect"
+      : `${green.other} GMS alerts in effect`;
   }
-  return "No active alerts";
+  if (green.count > 0) {
+    const words =
+      green.count === 1
+        ? "Green alert in effect"
+        : `${green.count} Green alerts in effect`;
+    return green.complete ? words : `${words} · may be incomplete`;
+  }
+  return green.complete
+    ? "No active alerts"
+    : "Alert information may be incomplete";
 }
 
 /**
@@ -82,12 +93,15 @@ function noWarningsSummary(green: GreenStatus | undefined): string {
  * e.g. "Be prepared · 2 active". Naming the level keeps colour from being the
  * only signal (Warning Pattern Checklist, docs/design-system.md).
  */
-export function alertsSummary(result: AlertsResult): string {
+export function alertsSummary(
+  result: AlertsResult,
+  green?: GreenStatus
+): string {
   if (result.status === "unavailable") {
     return "Alerts unavailable";
   }
   if (result.activeCount === 0) {
-    return noWarningsSummary(result.green);
+    return noWarningsSummary(green);
   }
   const level = alertsLevel(result);
   const count = `${result.activeCount} active`;
@@ -124,19 +138,27 @@ export function alertsLevel(result: AlertsResult): WarningLevel {
 
 /**
  * The level a surface should colour by. The CAP level, except that with no
- * warning in effect and Green alerts unreadable it is `unknown` (grey), so an
- * unreadable feed never looks like the calm all-clear colour.
+ * warning in effect, a GMS item in effect or an unread outlook is `unknown`
+ * (grey): only a fully read, empty outlook gets the calm colour.
  */
-export function alertsDisplayLevel(result: AlertsResult): WarningLevel {
+export function alertsDisplayLevel(
+  result: AlertsResult,
+  green?: GreenStatus
+): WarningLevel {
   const level = alertsLevel(result);
-  if (
-    level === "none" &&
-    result.status === "ok" &&
-    result.green?.status === "unavailable"
-  ) {
+  if (level !== "none" || result.status !== "ok" || result.activeCount > 0) {
+    return level;
+  }
+  if (!green) {
+    return level;
+  }
+  if (green.status === "unavailable") {
     return "unknown";
   }
-  return level;
+  if (green.other > 0 || (!green.complete && green.count === 0)) {
+    return "unknown";
+  }
+  return "none";
 }
 
 /** The impact-based level one CAP severity maps to. */

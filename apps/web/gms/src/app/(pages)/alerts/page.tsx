@@ -1,17 +1,19 @@
 import { ArrowRightIcon } from "lucide-react";
 import Link from "next/link";
+import { Suspense } from "react";
 import { PageHeader } from "@/components/page-header";
-import { AlertGroups } from "@/components/pages/alert-groups";
 import { EndedWarnings } from "@/components/pages/ended-warnings";
 import { ExerciseBanner } from "@/components/pages/exercise-banner";
-import { GreenAlertList } from "@/components/pages/green-alerts";
 import { PageSection } from "@/components/pages/page-section";
 import { Prose } from "@/components/pages/prose";
 import { WarningLegend } from "@/components/pages/warning-legend";
-import { WarningStatusBand } from "@/components/pages/warning-status-band";
+import {
+  CapGroups,
+  GreenSection,
+  WarningsBand,
+} from "@/components/pages/warnings-status";
 import { alertsLevel, fetchActiveAlerts, fetchPastAlerts } from "@/lib/cap";
-import { type GreenAlerts, greenAlerts } from "@/lib/green-alerts";
-import { fetchSectorOutlook } from "@/lib/products";
+import { fetchGreenAlerts } from "@/lib/green-status";
 import { recentlyEnded } from "@/lib/warning-detail";
 
 export const metadata = {
@@ -20,31 +22,20 @@ export const metadata = {
     "Every weather alert in effect for Grenada, Carriacou and Petite Martinique: warnings, watches, advisories and Green alerts.",
 };
 
-/**
- * The warnings list's empty line. "No alerts in effect" is said only when
- * nothing at all is in effect, so it is never used while Green alerts are
- * listed or cannot be checked. `undefined` keeps the default wording.
- */
-function noWarningsLabel(green: GreenAlerts): string | undefined {
-  if (green.status === "unavailable") {
-    return "No warnings or watches are in effect. Green alerts could not be checked right now.";
-  }
-  if (green.items.length > 0) {
-    return "No warnings or watches are in effect. Green alerts are listed below.";
-  }
-  return undefined;
-}
+/** Placeholders keep the layout still while a part waits on the GMS outlook. */
+const CHECKING = "Checking the GMS alerts…";
 
 export default async function WarningsPage() {
-  const [alerts, past, outlook] = await Promise.all([
+  // Only the CAP warnings and the archive are awaited. The outlook is read
+  // in parts behind their own boundaries, so a slow outlook cannot hold back
+  // a warning.
+  const [alerts, past] = await Promise.all([
     fetchActiveAlerts(),
     fetchPastAlerts(),
-    fetchSectorOutlook(),
   ]);
   const now = new Date();
   const ended = recentlyEnded(past, now);
-  const green = greenAlerts(outlook, alerts, now);
-  const noWarnings = noWarningsLabel(green);
+  const green = fetchGreenAlerts();
 
   return (
     <>
@@ -53,10 +44,23 @@ export default async function WarningsPage() {
         title="Alerts in effect"
       />
       <ExerciseBanner result={alerts} />
-      <WarningStatusBand alerts={alerts} checkedAt={now} green={green} />
+      <Suspense
+        fallback={
+          <p
+            className="mb-6 rounded-gm-card border border-gm-border p-5"
+            role="status"
+          >
+            {CHECKING}
+          </p>
+        }
+      >
+        <WarningsBand alerts={alerts} checkedAt={now} green={green} />
+      </Suspense>
       <div className="mb-8 grid gap-5 lg:mb-12 lg:grid-cols-[minmax(0,1fr)_20rem]">
         <div className="flex flex-col gap-4">
-          <AlertGroups emptyLabel={noWarnings} result={alerts} />
+          <Suspense fallback={<p role="status">{CHECKING}</p>}>
+            <CapGroups alerts={alerts} green={green} />
+          </Suspense>
           <section
             aria-labelledby="green-alerts-heading"
             className="flex flex-col gap-3"
@@ -67,7 +71,9 @@ export default async function WarningsPage() {
             >
               Green alerts
             </h2>
-            <GreenAlertList green={green} />
+            <Suspense fallback={<p role="status">{CHECKING}</p>}>
+              <GreenSection green={green} />
+            </Suspense>
           </section>
           {alertsLevel(alerts) === "none" && (
             <div className="flex flex-col gap-1 rounded-gm-card border border-gm-border border-dashed p-4 text-body leading-body">

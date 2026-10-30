@@ -24,6 +24,15 @@ export function GreenAlertList({ green }: { green: GreenAlerts }) {
       </div>
     );
   }
+  const other =
+    green.other > 0 ? (
+      <p className="text-body-sm text-gm-text-secondary leading-body-sm">
+        {green.other === 1
+          ? "One other GMS alert is in effect and is not listed here yet."
+          : `${green.other} other GMS alerts are in effect and are not listed here yet.`}{" "}
+        Check the Grenada Meteorological Service directly.
+      </p>
+    ) : null;
   const incomplete = green.complete ? null : (
     <p
       className="text-body-sm text-gm-text-secondary leading-body-sm"
@@ -38,6 +47,7 @@ export function GreenAlertList({ green }: { green: GreenAlerts }) {
         <p className="text-body text-gm-text-secondary leading-body">
           No Green alerts are in effect.
         </p>
+        {other}
         {incomplete}
       </div>
     );
@@ -76,6 +86,7 @@ export function GreenAlertList({ green }: { green: GreenAlerts }) {
           </li>
         ))}
       </ul>
+      {other}
       {incomplete}
     </div>
   );

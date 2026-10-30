@@ -1,5 +1,5 @@
 import type { SectorOutlook, SectorOutlookItem } from "@barrelsgd/api-client";
-import type { AlertsResult } from "@/lib/cap-alerts";
+import type { AlertsResult, GreenStatus } from "@/lib/cap-alerts";
 import { firstSentence, hrefFor, whenLabel } from "@/lib/sector-outlook";
 
 /** A Green (calm) GMS alert in effect, as the alerts page lists it. */
@@ -14,7 +14,17 @@ export interface GreenAlert {
 
 export type GreenAlerts =
   | { status: "unavailable" }
-  | { status: "ok"; complete: boolean; items: GreenAlert[] };
+  | {
+      status: "ok";
+      /** False when a source could not be read, so the lists may be short. */
+      complete: boolean;
+      items: GreenAlert[];
+      /**
+       * Non-Green GMS items in effect with no CAP warning yet (Yellow or above
+       * not yet published as CAP). Never listed as Green, never ignored.
+       */
+      other: number;
+    };
 
 /** In effect at `now`: started (or no start) and not yet ended (or no end). */
 function inEffect(item: SectorOutlookItem, now: Date): boolean {
@@ -24,11 +34,11 @@ function inEffect(item: SectorOutlookItem, now: Date): boolean {
 }
 
 /**
- * The Green alerts in effect now, from the same sector outlook that feeds
- * "Plan your week" on the home page. Yellow and above are CAP warnings and
- * are listed by the warnings feed, so they are not repeated here. A Green
- * item that is also a CAP warning shown above is dropped. `null` outlook
- * (the feed did not answer) is `unavailable`, never an empty list.
+ * The GMS items in effect now, from the same sector outlook that feeds "Plan
+ * your week" on the home page. Green items are listed. Yellow and above that
+ * are CAP warnings are listed by the warnings feed, so they are not repeated;
+ * any other item in effect with no CAP warning is counted as `other`. A
+ * `null` outlook (the feed did not answer) is `unavailable`, never an empty list.
  */
 export function greenAlerts(
   outlook: SectorOutlook | null,
@@ -43,13 +53,13 @@ export function greenAlerts(
       ? cap.groups.flatMap((group) => group.alerts.map((a) => a.identifier))
       : []
   );
-  const items = outlook.items
-    .filter(
-      (item) =>
-        item.colour === "green" &&
-        inEffect(item, now) &&
-        !(item.identifier && warningIds.has(item.identifier))
-    )
+  const inForce = outlook.items.filter(
+    (item) =>
+      inEffect(item, now) &&
+      !(item.identifier && warningIds.has(item.identifier))
+  );
+  const items = inForce
+    .filter((item) => item.colour === "green")
     .map((item) => ({
       id: item.identifier ?? item.product_id ?? item.reference,
       title: item.title,
@@ -61,5 +71,19 @@ export function greenAlerts(
       ),
       href: hrefFor(item),
     }));
-  return { status: "ok", complete: outlook.complete, items };
+  const other = inForce.filter((item) => item.colour !== "green").length;
+  return { status: "ok", complete: outlook.complete, items, other };
+}
+
+/** The masthead's view of the same read: counts only, or unavailable. */
+export function greenStatus(green: GreenAlerts): GreenStatus {
+  if (green.status === "unavailable") {
+    return { status: "unavailable" };
+  }
+  return {
+    status: "ok",
+    count: green.items.length,
+    other: green.other,
+    complete: green.complete,
+  };
 }

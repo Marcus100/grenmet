@@ -8,7 +8,8 @@ import { Header } from "@/components/header";
 import { MotionProvider } from "@/components/motion-provider";
 import { UnitsBootScript } from "@/components/units-boot-script";
 import { APP_LABEL, signInEnabled } from "@/lib/auth-config";
-import { fetchMastheadAlerts } from "@/lib/masthead-alerts";
+import { fetchActiveAlerts } from "@/lib/cap";
+import { fetchGreenStatus } from "@/lib/green-status";
 import "./globals.css";
 import {
   MAIN_CONTENT_ID,
@@ -41,7 +42,10 @@ export default function RootLayout({
   // Not awaited: the page renders at once and the masthead's warning status
   // streams in when the feed answers. React cache in lib/cap shares this
   // request with the weather surface.
-  const alerts = fetchMastheadAlerts();
+  // Warnings and the outlook's Green counts are separate promises: a slow
+  // outlook never holds back the warnings, which show as soon as they arrive.
+  const alerts = fetchActiveAlerts();
+  const green = fetchGreenStatus();
 
   return (
     // gm-site scopes the GMS dark palette (packages/gms foundation) to this
@@ -70,6 +74,7 @@ export default function RootLayout({
               <Header
                 accountLabel={signInEnabled() ? APP_LABEL : undefined}
                 alerts={alerts}
+                green={green}
               />
               <main
                 className="flex-1 outline-none"

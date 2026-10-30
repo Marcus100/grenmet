@@ -1,7 +1,7 @@
 "use client";
 
 import { type ReactNode, Suspense, use } from "react";
-import type { AlertsResult } from "@/lib/cap-alerts";
+import type { AlertsResult, GreenStatus } from "@/lib/cap-alerts";
 
 /**
  * The warning feed as the root layout hands it over: a promise the page does
@@ -9,21 +9,24 @@ import type { AlertsResult } from "@/lib/cap-alerts";
  */
 export type AlertsSource = AlertsResult | Promise<AlertsResult>;
 
+/** The GMS outlook's Green/other counts, the same way: a promise or the answer. */
+export type GreenSource = GreenStatus | Promise<GreenStatus>;
+
 /** Shown while the feed has not answered. Never an all-clear. */
 export const CHECKING_ALERTS = "Checking warnings…";
 
-function isPending(alerts: AlertsSource): alerts is Promise<AlertsResult> {
-  return "then" in alerts;
+function isPending<T>(value: T | Promise<T>): value is Promise<T> {
+  return typeof value === "object" && value !== null && "then" in value;
 }
 
-function Resolved({
-  alerts,
+function Resolved<T>({
+  source,
   children,
 }: {
-  alerts: Promise<AlertsResult>;
-  children: (alerts: AlertsResult) => ReactNode;
+  source: Promise<T>;
+  children: (value: T) => ReactNode;
 }) {
-  return children(use(alerts));
+  return children(use(source));
 }
 
 /**
@@ -45,7 +48,45 @@ export function WithAlerts({
   }
   return (
     <Suspense fallback={fallback}>
-      <Resolved alerts={alerts}>{children}</Resolved>
+      <Resolved source={alerts}>{children}</Resolved>
     </Suspense>
+  );
+}
+
+/**
+ * The masthead's status: the CAP warnings with the GMS outlook's Green counts.
+ * A warning shows at once: its wording never needs the outlook, so the outlook
+ * is awaited only when no warning is in effect (the one case where "No active
+ * alerts" or "Green alert in effect" must be said).
+ */
+export function WithStatus({
+  alerts,
+  green,
+  children,
+  fallback,
+}: {
+  alerts: AlertsSource;
+  green: GreenSource;
+  children: (alerts: AlertsResult, green: GreenStatus | undefined) => ReactNode;
+  fallback: ReactNode;
+}) {
+  return (
+    <WithAlerts alerts={alerts} fallback={fallback}>
+      {(cap) => {
+        if (cap.status !== "ok" || cap.activeCount > 0) {
+          return children(cap, undefined);
+        }
+        if (!isPending(green)) {
+          return children(cap, green);
+        }
+        return (
+          <Suspense fallback={fallback}>
+            <Resolved source={green}>
+              {(value) => children(cap, value)}
+            </Resolved>
+          </Suspense>
+        );
+      }}
+    </WithAlerts>
   );
 }

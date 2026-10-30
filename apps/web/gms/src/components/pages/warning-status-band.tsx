@@ -3,8 +3,8 @@ import {
   type AlertsResult,
   alertsLevel,
   alertsSummary,
+  type GreenStatus,
 } from "@/lib/cap-alerts";
-import type { GreenAlerts } from "@/lib/green-alerts";
 import { cn } from "@/lib/utils";
 import {
   WARNING_LEVEL_GUIDANCE,
@@ -27,11 +27,11 @@ interface BandCopy {
 }
 
 /**
- * What the band says. "No active alerts" is only said when no warning is in
- * effect AND the Green alerts are known to be none. Green alerts in effect are
- * named as Green level; an unreadable Green feed is never an all-clear.
+ * What the band says. "No active alerts" is said only when no warning is in
+ * effect and the GMS outlook is read in full with nothing in effect. Anything
+ * in effect is named, and an unread or incomplete outlook is never an all-clear.
  */
-function bandCopy(alerts: AlertsResult, green?: GreenAlerts): BandCopy {
+function bandCopy(alerts: AlertsResult, green?: GreenStatus): BandCopy {
   const level = alertsLevel(alerts);
   const warningsUnavailable = alerts.status === "unavailable";
   if (level !== "none" || warningsUnavailable) {
@@ -45,7 +45,27 @@ function bandCopy(alerts: AlertsResult, green?: GreenAlerts): BandCopy {
       unavailable: warningsUnavailable,
     };
   }
-  if (green?.status === "unavailable") {
+  if (alerts.status === "ok" && alerts.activeCount > 0) {
+    // Warnings listed, none at the CAP levels (for example an exercise).
+    return {
+      headline: alertsSummary(alerts),
+      guidance: WARNING_LEVEL_GUIDANCE["be-aware"],
+      level: "be-aware",
+      allClear: false,
+      unavailable: false,
+    };
+  }
+  if (!green) {
+    return {
+      headline: "No warnings or watches",
+      guidance:
+        "This is not an all-clear. The GMS alerts could not be checked right now.",
+      level: "unknown",
+      allClear: false,
+      unavailable: true,
+    };
+  }
+  if (green.status === "unavailable") {
     return {
       headline: "No warnings or watches",
       guidance:
@@ -55,12 +75,32 @@ function bandCopy(alerts: AlertsResult, green?: GreenAlerts): BandCopy {
       unavailable: true,
     };
   }
-  if (green?.status === "ok" && green.items.length > 0) {
-    const count = green.items.length;
+  if (green.other > 0) {
     return {
-      headline: `Green level · ${count} active`,
+      headline: alertsSummary(alerts, green),
       guidance:
-        "Green is the lowest level. The Green alerts below are listed for awareness.",
+        "GMS alerts are in effect that are not yet listed as warnings. Check the Grenada Meteorological Service directly.",
+      level: "unknown",
+      allClear: false,
+      unavailable: false,
+    };
+  }
+  if (!green.complete && green.count === 0) {
+    return {
+      headline: alertsSummary(alerts, green),
+      guidance:
+        "This is not an all-clear. Some alerts could not be read. Check the Grenada Meteorological Service directly.",
+      level: "unknown",
+      allClear: false,
+      unavailable: false,
+    };
+  }
+  if (green.count > 0) {
+    return {
+      headline: `Green level · ${green.count} active`,
+      guidance: green.complete
+        ? "Green is the lowest level. The Green alerts below are listed for awareness."
+        : "Green is the lowest level. Some alerts could not be read, so this list may be incomplete.",
       level: "none",
       allClear: false,
       unavailable: false,
@@ -88,7 +128,7 @@ export function WarningStatusBand({
 }: {
   alerts: AlertsResult;
   checkedAt: Date;
-  green?: GreenAlerts;
+  green?: GreenStatus;
 }) {
   const copy = bandCopy(alerts, green);
   const StatusIcon = copy.allClear ? ShieldCheckIcon : TriangleAlertIcon;

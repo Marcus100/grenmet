@@ -16,7 +16,8 @@ import { useEffect } from "react";
 import {
   type AlertsSource,
   CHECKING_ALERTS,
-  WithAlerts,
+  type GreenSource,
+  WithStatus,
 } from "@/components/with-alerts";
 import { alertsDisplayLevel, alertsSummary } from "@/lib/cap-alerts";
 import { menuSheet } from "@/lib/motion";
@@ -36,6 +37,8 @@ interface NavDrawerProps {
   accountLabel?: string;
   /** Live warning status, shown as a tag on the Alerts section. */
   alerts?: AlertsSource;
+  /** The GMS outlook's Green counts for that tag, read separately. */
+  green?: GreenSource;
   onClose: () => void;
   open: boolean;
   /** Viewport y of the header's bottom edge; the menu opens beneath it. */
@@ -64,6 +67,7 @@ function AlertsTag({
 export function NavDrawer({
   accountLabel,
   alerts,
+  green,
   open,
   onClose,
   top = 0,
@@ -139,27 +143,28 @@ export function NavDrawer({
                             </span>
                             {/* The live warning status rides on the Alerts
                                 section instead of a row of its own. */}
-                            {section.href === "/alerts" && alerts && (
-                              <WithAlerts
+                            {section.href === "/alerts" && alerts && green && (
+                              <WithStatus
                                 alerts={alerts}
                                 fallback={
                                   <AlertsTag className="bg-gm-surface-muted text-gm-text-secondary">
                                     {CHECKING_ALERTS}
                                   </AlertsTag>
                                 }
+                                green={green}
                               >
-                                {(result) => (
+                                {(result, outlook) => (
                                   <AlertsTag
                                     className={
                                       WARNING_LEVEL_SURFACE[
-                                        alertsDisplayLevel(result)
+                                        alertsDisplayLevel(result, outlook)
                                       ]
                                     }
                                   >
-                                    {alertsSummary(result)}
+                                    {alertsSummary(result, outlook)}
                                   </AlertsTag>
                                 )}
-                              </WithAlerts>
+                              </WithStatus>
                             )}
                           </span>
                           <div className="flex size-11 items-center justify-center">

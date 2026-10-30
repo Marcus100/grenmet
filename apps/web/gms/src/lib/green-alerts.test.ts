@@ -5,7 +5,7 @@ import type {
 } from "@barrelsgd/api-client";
 import { describe, expect, it } from "vitest";
 import type { AlertsResult } from "@/lib/cap-alerts";
-import { greenAlerts } from "@/lib/green-alerts";
+import { greenAlerts, greenStatus } from "@/lib/green-alerts";
 
 const NOW = new Date("2026-10-30T14:00:00Z");
 const NO_WARNINGS: AlertsResult = { status: "ok", activeCount: 0, groups: [] };
@@ -60,6 +60,7 @@ describe("greenAlerts", () => {
     expect(result).toEqual({
       status: "ok",
       complete: true,
+      other: 0,
       items: [
         {
           id: "0b3c6f1e-1111-4a2b-9c3d-222233334444",
@@ -115,5 +116,69 @@ describe("greenAlerts", () => {
   it("carries the outlook's incomplete flag so the page can say so", () => {
     const result = greenAlerts(outlook([], false), NO_WARNINGS, NOW);
     expect(result).toMatchObject({ status: "ok", complete: false, items: [] });
+  });
+
+  it("counts a non-Green GMS item in effect with no CAP warning, never ignoring it", () => {
+    const result = greenAlerts(
+      outlook([item({ colour: "yellow", identifier: null, title: "Gale" })]),
+      NO_WARNINGS,
+      NOW
+    );
+    expect(result).toMatchObject({ status: "ok", items: [], other: 1 });
+  });
+
+  it("counts a non-Green item with no colour too, and not one a CAP warning already lists", () => {
+    const warnings: AlertsResult = {
+      status: "ok",
+      activeCount: 1,
+      groups: [
+        {
+          name: "Marine",
+          alerts: [{ ...CAP_WARNING, identifier: "GD-2" }],
+        },
+      ],
+    };
+    const result = greenAlerts(
+      outlook([
+        item({ colour: null, identifier: null, reference: "outlook" }),
+        item({ colour: "orange", identifier: "GD-2", reference: "listed" }),
+      ]),
+      warnings,
+      NOW
+    );
+    expect(result).toMatchObject({ status: "ok", other: 1 });
+  });
+
+  it("does not count Green items as other", () => {
+    const result = greenAlerts(outlook([item({})]), NO_WARNINGS, NOW);
+    expect(result).toMatchObject({
+      items: [{ title: "Green item" }],
+      other: 0,
+    });
+  });
+});
+
+describe("greenStatus", () => {
+  it("maps the list to the masthead's counts", () => {
+    const result = greenAlerts(
+      outlook(
+        [item({}), item({ colour: "red", identifier: null, reference: "r" })],
+        false
+      ),
+      NO_WARNINGS,
+      NOW
+    );
+    expect(greenStatus(result)).toEqual({
+      status: "ok",
+      count: 1,
+      other: 1,
+      complete: false,
+    });
+  });
+
+  it("keeps an unreadable outlook unreadable", () => {
+    expect(greenStatus({ status: "unavailable" })).toEqual({
+      status: "unavailable",
+    });
   });
 });
