@@ -140,6 +140,12 @@
       overflow-wrap: break-word;
     }
 
+    .plain-text-note,
+    .contact-box,
+    .full-width-note {
+      white-space: pre-wrap;
+    }
+
     .full-width-note {
       line-height: 1.6;
     }
@@ -283,7 +289,7 @@
           <div class="report-header text-center">
             <img class="report-logo" src="{% static 'images/org_logo.png' %}?v={{ org_logo_mtime|default:'1' }}" alt="Logo">
             <div class="report-title text-uppercase">Manual Weather Station Maintenance Report</div>
-            <div class="report-subtitle text-uppercase">{{ station_information.station_name }}</div>
+            <div class="report-subtitle text-uppercase" v-pre>{{ station_information.station_name }}</div>
           </div>
 
           <!-- Visit summary information -->
@@ -292,45 +298,45 @@
 
             <v-row class="info-row">
               <v-col cols="3" class="label-col">Report #</v-col>
-              <v-col cols="3" class="value-col">{{ visit_summary_information.report_number }}</v-col>
+              <v-col cols="3" class="value-col"><span v-pre>{{ visit_summary_information.report_number }}</span></v-col>
               <v-col cols="3" class="label-col">Responsible Technicians</v-col>
-              <v-col cols="3" class="value-col">{{ visit_summary_information.responsible_technician }}</v-col>
+              <v-col cols="3" class="value-col"><span v-pre>{{ visit_summary_information.responsible_technician }}</span></v-col>
             </v-row>
 
             <v-row class="info-row">
               <v-col cols="3" class="label-col">Date of Visit</v-col>
-              <v-col cols="3" class="value-col">{{ visit_summary_information.date_of_visit }}</v-col>
+              <v-col cols="3" class="value-col"><span v-pre>{{ visit_summary_information.date_of_visit }}</span></v-col>
               <v-col cols="3" class="label-col">Date of Next Visit</v-col>
-              <v-col cols="3" class="value-col">{{ visit_summary_information.date_of_next_visit }}</v-col>
+              <v-col cols="3" class="value-col"><span v-pre>{{ visit_summary_information.date_of_next_visit }}</span></v-col>
             </v-row>
 
             <v-row class="info-row">
               <v-col cols="3" class="label-col">Start Time</v-col>
-              <v-col cols="3" class="value-col">{{ visit_summary_information.start_time }}</v-col>
+              <v-col cols="3" class="value-col"><span v-pre>{{ visit_summary_information.start_time }}</span></v-col>
               <v-col cols="3" class="label-col">Other Technicians</v-col>
-              <v-col cols="3" class="value-col">{{ visit_summary_information.other_technicians }}</v-col>
+              <v-col cols="3" class="value-col"><span v-pre>{{ visit_summary_information.other_technicians }}</span></v-col>
             </v-row>
 
             <v-row class="info-row">
               <v-col cols="3" class="label-col">End Time</v-col>
-              <v-col cols="3" class="value-col">{{ visit_summary_information.end_time }}</v-col>
+              <v-col cols="3" class="value-col"><span v-pre>{{ visit_summary_information.end_time }}</span></v-col>
               <v-col cols="3" class="label-col">Type of Visit</v-col>
-              <v-col cols="3" class="value-col">{{ visit_summary_information.type_of_visit }}</v-col>
+              <v-col cols="3" class="value-col"><span v-pre>{{ visit_summary_information.type_of_visit }}</span></v-col>
             </v-row>
 
             <v-row class="info-row">
               <v-col cols="3" class="label-col">Description of Station Upon Arrival</v-col>
-              <v-col cols="9" class="value-col full-width-note">{{ visit_summary_information.station_on_arrival_conditions | safe }}</v-col>
+              <v-col cols="9" class="value-col full-width-note"><span v-pre>{{ visit_summary_information.station_on_arrival_conditions }}</span></v-col>
             </v-row>
 
             <v-row class="info-row">
               <v-col cols="3" class="label-col">Summary of Work Done at Station</v-col>
-              <v-col cols="9" class="value-col full-width-note">{{ visit_summary_information.current_visit_summary | safe }}</v-col>
+              <v-col cols="9" class="value-col full-width-note"><span v-pre>{{ visit_summary_information.current_visit_summary }}</span></v-col>
             </v-row>
 
             <v-row class="info-row">
               <v-col cols="3" class="label-col">Work To Be Done On Next Visit</v-col>
-              <v-col cols="9" class="value-col full-width-note">{{ visit_summary_information.next_visit_summary | safe }}</v-col>
+              <v-col cols="9" class="value-col full-width-note"><span v-pre>{{ visit_summary_information.next_visit_summary }}</span></v-col>
             </v-row>
           </div>
 
@@ -340,72 +346,72 @@
 
             <v-row class="info-row">
               <v-col cols="3" class="label-col">Station Name</v-col>
-              <v-col cols="3" class="value-col">{{ station_information.station_name }}</v-col>
+              <v-col cols="3" class="value-col"><span v-pre>{{ station_information.station_name }}</span></v-col>
               <v-col cols="3" class="label-col">Station Host Name</v-col>
-              <v-col cols="3" class="value-col">{{ station_information.station_host_name }}</v-col>
+              <v-col cols="3" class="value-col"><span v-pre>{{ station_information.station_host_name }}</span></v-col>
             </v-row>
 
             <v-row class="info-row">
               <v-col cols="3" class="label-col">Station ID</v-col>
-              <v-col cols="3" class="value-col">{{ station_information.station_ID }}</v-col>
+              <v-col cols="3" class="value-col"><span v-pre>{{ station_information.station_ID }}</span></v-col>
               <v-col cols="3" class="label-col">WIGOS ID</v-col>
-              <v-col cols="3" class="value-col">{{ station_information.wigos_ID }}</v-col>
+              <v-col cols="3" class="value-col"><span v-pre>{{ station_information.wigos_ID }}</span></v-col>
             </v-row>
 
             <v-row class="info-row">
               <v-col cols="3" class="label-col">Station Type</v-col>
-              <v-col cols="3" class="value-col">{{ station_information.station_type }}</v-col>
+              <v-col cols="3" class="value-col"><span v-pre>{{ station_information.station_type }}</span></v-col>
               <v-col cols="3" class="label-col">Station Profile</v-col>
-              <v-col cols="3" class="value-col">{{ station_information.station_profile }}</v-col>
+              <v-col cols="3" class="value-col"><span v-pre>{{ station_information.station_profile }}</span></v-col>
             </v-row>
 
             <v-row class="info-row">
               <v-col cols="3" class="label-col">Latitude</v-col>
-              <v-col cols="3" class="value-col">{{ station_information.latitude }}</v-col>
+              <v-col cols="3" class="value-col"><span v-pre>{{ station_information.latitude }}</span></v-col>
               <v-col cols="3" class="label-col">Elevation (m)</v-col>
-              <v-col cols="3" class="value-col">{{ station_information.elevation }}</v-col>
+              <v-col cols="3" class="value-col"><span v-pre>{{ station_information.elevation }}</span></v-col>
             </v-row>
 
             <v-row class="info-row">
               <v-col cols="3" class="label-col">Longitude</v-col>
-              <v-col cols="3" class="value-col">{{ station_information.longitude }}</v-col>
+              <v-col cols="3" class="value-col"><span v-pre>{{ station_information.longitude }}</span></v-col>
               <v-col cols="3" class="label-col">District</v-col>
-              <v-col cols="3" class="value-col">{{ station_information.district }}</v-col>
+              <v-col cols="3" class="value-col"><span v-pre>{{ station_information.district }}</span></v-col>
             </v-row>
 
             <v-row class="info-row">
               <v-col cols="3" class="label-col">Transmission Type</v-col>
-              <v-col cols="3" class="value-col">{{ station_information.transmission_type }}</v-col>
+              <v-col cols="3" class="value-col"><span v-pre>{{ station_information.transmission_type }}</span></v-col>
               <v-col cols="3" class="label-col">Transmission ID</v-col>
-              <v-col cols="3" class="value-col">{{ station_information.transmission_ID }}</v-col>
+              <v-col cols="3" class="value-col"><span v-pre>{{ station_information.transmission_ID }}</span></v-col>
             </v-row>
 
             <v-row class="info-row">
               <v-col cols="3" class="label-col">Transmission Interval</v-col>
-              <v-col cols="3" class="value-col">{{ station_information.transmission_interval }}</v-col>
+              <v-col cols="3" class="value-col"><span v-pre>{{ station_information.transmission_interval }}</span></v-col>
               <v-col cols="3" class="label-col">Measurement Interval</v-col>
-              <v-col cols="3" class="value-col">{{ station_information.measurement_interval }}</v-col>
+              <v-col cols="3" class="value-col"><span v-pre>{{ station_information.measurement_interval }}</span></v-col>
             </v-row>
 
             <v-row class="info-row">
               <v-col cols="3" class="label-col">Date of First Operation</v-col>
-              <v-col cols="3" class="value-col">{{ station_information.data_of_first_operation }}</v-col>
+              <v-col cols="3" class="value-col"><span v-pre>{{ station_information.data_of_first_operation }}</span></v-col>
               <v-col cols="3" class="label-col">Date(s) of Relocation</v-col>
-              <v-col cols="3" class="value-col">{{ station_information.data_of_relocation }}</v-col>
+              <v-col cols="3" class="value-col"><span v-pre>{{ station_information.data_of_relocation }}</span></v-col>
             </v-row>
           </div>
 
           <!-- Contact Information -->
           <div class="section-block">
             <div class="section-title">Contact Information</div>
-            <div class="contact-box">{{ contact_information | safe }}</div>
+            <div class="contact-box" v-pre>{{ contact_information }}</div>
           </div>
 
           <!-- Equipment Record -->
           <div class="section-block">
             <div class="section-title">Equipment Record</div>
 
-            <div v-for="equipment_record in {{ equipment_records }}" class="equipment-card">
+            <div v-for="equipment_record in equipment_records" class="equipment-card">
               <!-- <div class="equipment-card-title text-center">[[ equipment_record.name ]]</div> -->
               <div class="equipment-card-title text-center">[[ equipment_record.type ]] - [[ equipment_record.manufacturer ]]</div>
 
@@ -453,7 +459,7 @@
               <!-- Component Condition -->
               <div class="equipment-subtitle">Component Condition</div>
               <div class="equipment-content">
-                <div v-html="equipment_record.condition"></div>
+                <div class="plain-text-note">[[ equipment_record.condition ]]</div>
               </div>
 
             </div>
@@ -479,6 +485,7 @@
     </div>
   </main>
 
+  {{ equipment_records|json_script:"equipment-records-data" }}
   <script>
     const { createApp } = Vue;
     const { createVuetify } = Vuetify;
@@ -489,6 +496,7 @@
     const app = createApp({
       data() {
         return {
+          equipment_records: JSON.parse(document.getElementById("equipment-records-data").textContent),
           maintenance_report_id: "{{ visit_summary_information.report_number }}",
           maintenance_report_status: "{{ visit_summary_information.maintenance_report_status }}",
           source: "{{ source }}",

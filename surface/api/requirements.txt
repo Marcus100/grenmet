@@ -112,17 +112,13 @@ django==5.2.18
     # via
     #   -r requirements.in
     #   django-celery-beat
-    #   django-ckeditor
     #   django-cors-headers
     #   django-import-export
-    #   django-js-asset
     #   django-simple-history
     #   django-timezone-field
     #   djangorestframework
     #   djangorestframework-simplejwt
 django-celery-beat==2.8.1
-    # via -r requirements.in
-django-ckeditor==6.7.4
     # via -r requirements.in
 django-colorfield==0.14.0
     # via -r requirements.in
@@ -130,8 +126,6 @@ django-cors-headers==4.9.0
     # via -r requirements.in
 django-import-export==4.4.4
     # via -r requirements.in
-django-js-asset==2.2.0
-    # via django-ckeditor
 django-material==1.12.0
     # via -r requirements.in
 django-simple-history==3.13.0

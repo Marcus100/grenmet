@@ -73,7 +73,6 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'django.contrib.gis',
     'django_celery_beat',
-    'ckeditor',
     'wx',
     'rest_framework',
     'corsheaders',
@@ -82,21 +81,6 @@ INSTALLED_APPS = [
     'import_export',
     'simple_history',
 ]
-
-CKEDITOR_CONFIGS = {
-   'default': {
-       'toolbar_Full': [
-            ['Bold', 'Italic', 'Font'],
-            ['Format', 'Styles', 'TextColor', 'BGColor', 'RemoveFormat'],
-            ['JustifyLeft','JustifyCenter','JustifyRight','JustifyBlock', 'Indent', 'Outdent'],
-            ['HorizontalRule', 'BulletedList', '-'],
-            ['Blockquote', 'Source', 'Link', 'Unlink', 'Table', '-', 'Print']
-        ],
-        'removeButtons': 'Image',
-        'extraAllowedContent' : 'img(*){*}[*]', 
-        'extraPlugins': 'justify,liststyle,indent',
-   },
-}
 
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',

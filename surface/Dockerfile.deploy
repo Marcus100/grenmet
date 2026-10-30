@@ -22,6 +22,10 @@ USER surface
 COPY --chown=surface:surface surface/api/requirements.txt /tmp/requirements.txt
 RUN pip install --user --no-cache-dir --no-warn-script-location -r /tmp/requirements.txt \
     && rm /tmp/requirements.txt
+# The upstream base image still carries django-ckeditor (end of life, #803) and
+# its helper django-js-asset; pip does not remove packages that left the lock
+# file, so remove them explicitly.
+RUN pip uninstall -y django-ckeditor django-js-asset
 COPY --chown=surface:surface surface/api/ /surface/
 ENV DJANGO_SETTINGS_MODULE=tempestas_api.settings
 CMD ["sh", "startup.sh"]
