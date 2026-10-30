@@ -12,6 +12,12 @@ import { APP_DIR } from "@/test/routes";
 
 /** The home page takes the root default title, the site name alone. */
 const HOME_FILE = path.join(APP_DIR, "(weather)", "page.tsx");
+const SITE_METADATA_FILE = path.resolve(
+  APP_DIR,
+  "..",
+  "lib",
+  "site-metadata.ts"
+);
 
 function pageFiles(dir: string): string[] {
   return readdirSync(dir, { withFileTypes: true }).flatMap((entry) => {
@@ -31,9 +37,12 @@ const TITLE_VALUE = /title:\s*"([^"]*)"/g;
 
 describe("page titles", () => {
   it("has a root title template ending in the site name", () => {
+    // The root layout exports SITE_METADATA, whose title template lives in lib.
     const layout = readFileSync(path.join(APP_DIR, "layout.tsx"), "utf8");
-    expect(layout).toMatch(TEMPLATE);
-    expect(layout).toMatch(DEFAULT_TITLE);
+    const siteMetadata = readFileSync(SITE_METADATA_FILE, "utf8");
+    expect(layout).toContain("SITE_METADATA");
+    expect(siteMetadata).toMatch(TEMPLATE);
+    expect(siteMetadata).toMatch(DEFAULT_TITLE);
     expect(SITE_NAME).toBe("Grenada Meteorological Service");
   });
 
