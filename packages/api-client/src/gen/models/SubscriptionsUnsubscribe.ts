@@ -11,6 +11,8 @@ export type SubscriptionsUnsubscribeQuery = {
 
 export type SubscriptionsUnsubscribeStatus303 = unknown;
 
+export type SubscriptionsUnsubscribeStatus400 = unknown;
+
 /**
  * @description Validation error envelope returned for malformed requests.
  * @type object
@@ -26,6 +28,7 @@ export type SubscriptionsUnsubscribeOptions = {
 
 export type SubscriptionsUnsubscribeResponses = {
   "303": SubscriptionsUnsubscribeStatus303;
+  "400": SubscriptionsUnsubscribeStatus400;
   "422": SubscriptionsUnsubscribeStatus422;
 };
 
@@ -34,4 +37,5 @@ export type SubscriptionsUnsubscribeResponses = {
  */
 export type SubscriptionsUnsubscribeResponse =
   | SubscriptionsUnsubscribeStatus303
+  | SubscriptionsUnsubscribeStatus400
   | SubscriptionsUnsubscribeStatus422;

@@ -62,6 +62,38 @@ import {
   down as down_20260930_214145_editorial_reports_and_live,
   up as up_20260930_214145_editorial_reports_and_live,
 } from "./20260930_214145_editorial_reports_and_live";
+import {
+  down as down_20261028_214119_gms_content_schema,
+  up as up_20261028_214119_gms_content_schema,
+} from "./20261028_214119_gms_content_schema";
+import {
+  down as down_20261028_214120_gms_content_data,
+  up as up_20261028_214120_gms_content_data,
+} from "./20261028_214120_gms_content_data";
+import {
+  down as down_20261028_220706_related_links_paste,
+  up as up_20261028_220706_related_links_paste,
+} from "./20261028_220706_related_links_paste";
+import {
+  down as down_20261028_223907_social_image,
+  up as up_20261028_223907_social_image,
+} from "./20261028_223907_social_image";
+import {
+  down as down_20261029_023326_publication_log_and_scheduling,
+  up as up_20261029_023326_publication_log_and_scheduling,
+} from "./20261029_023326_publication_log_and_scheduling";
+import {
+  down as down_20261029_030000_duty_note_to_live_posts,
+  up as up_20261029_030000_duty_note_to_live_posts,
+} from "./20261029_030000_duty_note_to_live_posts";
+import {
+  down as down_20261029_095750_newsletter_and_social_ticks,
+  up as up_20261029_095750_newsletter_and_social_ticks,
+} from "./20261029_095750_newsletter_and_social_ticks";
+import {
+  down as down_20261029_150427_author_name_and_desk_cover,
+  up as up_20261029_150427_author_name_and_desk_cover,
+} from "./20261029_150427_author_name_and_desk_cover";
 
 export const migrations = [
   {
@@ -143,5 +175,45 @@ export const migrations = [
     up: up_20260930_214145_editorial_reports_and_live,
     down: down_20260930_214145_editorial_reports_and_live,
     name: "20260930_214145_editorial_reports_and_live",
+  },
+  {
+    up: up_20261028_214119_gms_content_schema,
+    down: down_20261028_214119_gms_content_schema,
+    name: "20261028_214119_gms_content_schema",
+  },
+  {
+    up: up_20261028_214120_gms_content_data,
+    down: down_20261028_214120_gms_content_data,
+    name: "20261028_214120_gms_content_data",
+  },
+  {
+    up: up_20261028_220706_related_links_paste,
+    down: down_20261028_220706_related_links_paste,
+    name: "20261028_220706_related_links_paste",
+  },
+  {
+    up: up_20261028_223907_social_image,
+    down: down_20261028_223907_social_image,
+    name: "20261028_223907_social_image",
+  },
+  {
+    up: up_20261029_023326_publication_log_and_scheduling,
+    down: down_20261029_023326_publication_log_and_scheduling,
+    name: "20261029_023326_publication_log_and_scheduling",
+  },
+  {
+    up: up_20261029_030000_duty_note_to_live_posts,
+    down: down_20261029_030000_duty_note_to_live_posts,
+    name: "20261029_030000_duty_note_to_live_posts",
+  },
+  {
+    up: up_20261029_095750_newsletter_and_social_ticks,
+    down: down_20261029_095750_newsletter_and_social_ticks,
+    name: "20261029_095750_newsletter_and_social_ticks",
+  },
+  {
+    up: up_20261029_150427_author_name_and_desk_cover,
+    down: down_20261029_150427_author_name_and_desk_cover,
+    name: "20261029_150427_author_name_and_desk_cover",
   },
 ];

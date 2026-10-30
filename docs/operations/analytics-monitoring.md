@@ -90,7 +90,7 @@ and free quota can be verified; replay/profiling/log ingestion remain disabled.
 
 The shared provider serves Elections, GMS, Docs, Signal, MBIA and public Events discovery. It imports the
 existing PostHog SDK only after consent, and loads GA4 only after consent. Acceptance
-and decline have equal button treatment; Privacy settings remains available.
+and decline have equal button treatment; a "Cookie settings" link in every app footer reopens the choice (no floating button).
 Consent is site-local for 183 days, with browser DNT/GPC taking precedence.
 Withdrawal stops adapters and removes managed/legacy analytics identifiers.
 No fallback IDs, user identity, arbitrary paths, queries, fragments, search text,

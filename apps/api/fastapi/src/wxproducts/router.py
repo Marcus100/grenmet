@@ -56,6 +56,7 @@ from .schemas import (
     PublicProductDetail,
     PublicPublishedProduct,
     PublishedProducts,
+    SectorOutlook,
     StoredProduct,
     StoredProductAdapter,
     TropicalSystemCreate,
@@ -293,6 +294,31 @@ async def load_history(
         )
     except SQLAlchemyError, OSError, TimeoutError:
         raise WeatherUnavailable()
+
+
+@router.get(
+    "/wxproducts/public/sector-outlook",
+    response_model=SectorOutlook,
+    status_code=200,
+    summary="Alerts and warnings for the coming days, by sector",
+    description=(
+        "GMS alerts and CAP warnings in force from today for the requested number of "
+        "days, each with the sectors it affects. An item with no sectors affects "
+        "everyone. `complete` is false when a source could not be read."
+    ),
+    tags=["wxproducts"],
+)
+async def public_sector_outlook(
+    *,
+    cap_session: AdvisorySessionDep,
+    weather_session: WxProductsSessionDep,
+    response: Response,
+    days: Annotated[int, Query(ge=1, le=14)] = 7,
+) -> SectorOutlook:
+    response.headers.update(NO_STORE)
+    return await advisories.sector_outlook(
+        cap_session, weather_session, now=datetime.now(UTC), days=days
+    )
 
 
 @router.get(

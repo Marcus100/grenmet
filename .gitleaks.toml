@@ -22,6 +22,10 @@ regexes = [
   '''^YOUR_TOKEN$''',
   '''^CAP_SIGNING_KEY_REF=cap-signing-key$''',
   '''^SQLAlchemy/Alembic$''',
+  '''^eyJzZWNyZXQtdG9rZW4tZm9yLXByZXZpZXc$''',
+  '''^eyJzZWNyZXQtdG9rZW4tZm9yLXByZWZzLTE$''',
+  '''^eyJjIjoic3RvcmllcyIsImkiOiI0MiJ9\.c2lnbmF0dXJl$''',
+  '''^distribution-test-secret-at-least-32-chars$''',
 ]
 
 [[allowlists]]

@@ -19,6 +19,13 @@ export default function PrivacyPage() {
           ]}
         />
       </PageSection>
+      <PageSection heading="Climate newsletter by email">
+        <Prose
+          paragraphs={[
+            "If you sign up for the daily climate newsletter, we keep your email address and the time you confirmed it, so we can prove you agreed. We send it only to confirmed addresses, once a day and only on days with news. Each email has a link that stops that list at once. Unsubscribing removes your address; we keep only a keyed fingerprint of it as proof of consent. We do not track whether you open or click the newsletter.",
+          ]}
+        />
+      </PageSection>
       <PageSection heading="External websites">
         <Prose
           paragraphs={[

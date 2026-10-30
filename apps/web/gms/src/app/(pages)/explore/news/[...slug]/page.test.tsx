@@ -8,6 +8,11 @@ vi.mock("@/lib/cms", async (importOriginal) => ({
   ...(await importOriginal<typeof import("@/lib/cms")>()),
   fetchContentBySlug: vi.fn(),
 }));
+vi.mock("@/components/featured-link", () => ({
+  FeaturedLink: ({ link }: { link: { type: string; ref: string } }) => (
+    <p>{`Featured ${link.type}: ${link.ref}`}</p>
+  ),
+}));
 vi.mock("next/navigation", () => ({
   notFound: vi.fn(() => {
     throw new Error("not-found");
@@ -18,6 +23,8 @@ afterEach(() => {
   vi.clearAllMocks();
 });
 const params = Promise.resolve({ slug: ["reading-sea-state"] });
+
+const FEATURED_PRODUCT = /^Featured product/;
 
 it("does not substitute a sample article when CMS is unavailable", async () => {
   vi.mocked(fetchContentBySlug).mockResolvedValue({
@@ -53,6 +60,9 @@ it("renders only the fetched published article", async () => {
             title: "Read the outlook",
             category: "forecast",
             url: "https://weather.gd/forecasts",
+            type: "link",
+            ref: null,
+            isMain: false,
           },
         ],
         slug: "reading-sea-state",
@@ -76,4 +86,79 @@ it("renders only the fetched published article", async () => {
   expect(
     screen.getByRole("link", { name: "More from From the Desk" })
   ).toHaveAttribute("href", "/explore/updates");
+});
+
+it("keeps an issued product as a plain link and builds site addresses from the id", async () => {
+  vi.mocked(fetchContentBySlug).mockResolvedValue({
+    status: "ok",
+    articles: [
+      {
+        id: "1",
+        collection: "desk-updates",
+        category: "Forecasts",
+        relatedLinks: [
+          {
+            title: "Evening Forecast",
+            category: "forecast",
+            // Pasted while testing locally: the host must not matter.
+            url: "http://localhost:3003/weather/issued/0b3c6f1e-1111-4a2b-9c3d-222233334444",
+            type: "product",
+            ref: "0b3c6f1e-1111-4a2b-9c3d-222233334444",
+            isMain: true,
+          },
+          {
+            title: "Radar",
+            category: "article",
+            url: "/weather/radar",
+            type: "page",
+            ref: "/weather/radar",
+            isMain: false,
+          },
+          {
+            title: "Heavy rain for St. George",
+            category: "cap",
+            url: "/alerts/GMS-1",
+            type: "cap",
+            ref: "GMS-1",
+            isMain: false,
+          },
+          {
+            title: "Met Office",
+            category: "source",
+            url: "https://www.metoffice.gov.uk/",
+            type: "link",
+            ref: null,
+            isMain: false,
+          },
+        ],
+        slug: "evening-forecast",
+        title: "Tonight's forecast",
+        summary: "Summary",
+        body: "Text",
+        imageUrl: null,
+        updatedAt: "2026-10-28T12:00:00Z",
+      },
+    ],
+  });
+  render(await ArticlePage({ params }));
+  // An issued product is never a card (owner, 29 Oct 2026), even as the main
+  // link: it stays a plain link built from its id.
+  expect(screen.queryByText(FEATURED_PRODUCT)).not.toBeInTheDocument();
+  expect(
+    screen.getByRole("link", { name: "Evening Forecast" })
+  ).toHaveAttribute(
+    "href",
+    "/weather/issued/0b3c6f1e-1111-4a2b-9c3d-222233334444"
+  );
+  expect(screen.getByRole("link", { name: "Radar" })).toHaveAttribute(
+    "href",
+    "/weather/radar"
+  );
+  expect(
+    screen.getByRole("link", { name: "Heavy rain for St. George" })
+  ).toHaveAttribute("href", "/alerts/GMS-1");
+  expect(screen.getByRole("link", { name: "Met Office" })).toHaveAttribute(
+    "href",
+    "https://www.metoffice.gov.uk/"
+  );
 });

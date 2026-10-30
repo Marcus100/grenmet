@@ -345,3 +345,22 @@ def apply_to_body(
     if isinstance(nested, dict):
         return {**body, "workbook": {**nested, **updates}}
     return {**body, **updates}
+
+
+def visibility_km_from_code(code: str) -> Decimal | None:
+    """Kilometres for a Code table 4377 VV the register derived or an older entry kept.
+
+    Only the exact steps are read back: 01-50 are tenths of a kilometre, 56-80 are
+    6 to 30 km, 81-88 are 35 to 70 km in fives. 00 is under 0.1 km and 89 is over
+    70 km, so both are given as their limit. The coarse 90-99 bands are not read.
+    """
+    if not (code.isdigit() and len(code) == 2):
+        return None
+    vv = int(code)
+    if vv <= 50:
+        return Decimal(vv) / 10
+    if 56 <= vv <= 80:
+        return Decimal(vv - 50)
+    if 81 <= vv <= 88:
+        return Decimal(30 + (vv - 80) * 5)
+    return Decimal(70) if vv == 89 else None

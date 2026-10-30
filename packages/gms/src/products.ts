@@ -30,7 +30,15 @@ export interface ProductField {
   options?: readonly string[];
   required?: boolean;
   section: string;
-  type?: "text" | "textarea" | "date" | "datetime-local" | "number" | "time";
+  type?:
+    | "text"
+    | "textarea"
+    | "date"
+    | "datetime-local"
+    | "number"
+    | "time"
+    /** Several sectors from `SECTORS`, stored comma-separated. */
+    | "sectors";
 }
 export interface ProductContent {
   guidance?: ProductGuidance | null;
@@ -637,6 +645,10 @@ export function productFields(kind: ProductKind): ProductField[] {
     field("Impact and response", "response", "Recommended response", {
       type: "textarea",
       required: true,
+    }),
+    // Optional. Untagged means it affects everyone (Plan your week).
+    field("Impact and response", "sectors", "Sectors affected", {
+      type: "sectors",
     }),
     field("Impact and response", "nextUpdate", "Next update (Grenada)", {
       type: "datetime-local",

@@ -10,6 +10,15 @@ vi.mock("../../../../lib/report-error", () => ({ reportError: vi.fn() }));
 import { getPayload } from "payload";
 import { GET } from "./route";
 
+/** The kind a live-post query asks for, read from inside its window clause. */
+function kindOf(where: unknown): string {
+  const clauses = (where as { and: Record<string, unknown>[] }).and;
+  const clause = clauses.find((item) => "kind" in item) as
+    | { kind: { equals: string } }
+    | undefined;
+  return clause?.kind.equals ?? "";
+}
+
 describe("public home feed", () => {
   it("keeps working sections when one part fails", async () => {
     const find = vi.fn(({ collection }: { collection: string }) =>
@@ -37,8 +46,8 @@ describe("public home feed", () => {
   });
 });
 
-describe("homepage pins and Weather now", () => {
-  it("leads with published pins, drops unpublished ones, hides expired notes", async () => {
+describe("homepage leads and Weather now", () => {
+  it("leads with the flagged story and question, then the newest; hides expired notes", async () => {
     const story = (id: number, status = "published") => ({
       id,
       title: `Story ${id}`,
@@ -47,25 +56,35 @@ describe("homepage pins and Weather now", () => {
       status,
       updatedAt: "2026-09-01T00:00:00.000Z",
     });
-    const find = vi.fn(({ collection }: { collection: string }) =>
-      Promise.resolve({
-        docs: collection === "stories" ? [story(1), story(2)] : [],
-      })
+    const question = {
+      id: 7,
+      question: "Why is it humid?",
+      slug: "questions/why-humid",
+      shortAnswer: "Warm sea air holds water.",
+      status: "published",
+      updatedAt: "2026-09-01T00:00:00.000Z",
+    };
+    const find = vi.fn(
+      ({ collection, where }: { collection: string; where: unknown }) => {
+        const flagged = JSON.stringify(where).includes("leadOnHomepage");
+        const featured = JSON.stringify(where).includes('"featured"');
+        if (collection === "live-posts") {
+          // The note query asks only for notes that are unexpired; an expired
+          // note is filtered out by the database, so none comes back here.
+          expect(kindOf(where)).toBe("note");
+          expect(JSON.stringify(where)).toContain("expiresAt");
+          return Promise.resolve({ docs: [] });
+        }
+        if (collection === "stories")
+          return Promise.resolve({
+            docs: flagged ? [story(2)] : [story(1), story(2)],
+          });
+        return Promise.resolve({ docs: featured ? [question] : [] });
+      }
     );
     const findGlobal = vi.fn(({ slug }: { slug: string }) =>
       Promise.resolve(
-        slug === "homepage"
-          ? {
-              leadStory: story(2),
-              featuredQuestions: [7],
-              hiddenSections: ["discover"],
-            }
-          : {
-              note: {
-                text: "Old note",
-                expiresAt: "2020-01-01T00:00:00.000Z",
-              },
-            }
+        slug === "homepage" ? { hiddenSections: ["discover"] } : {}
       )
     );
     vi.mocked(getPayload).mockResolvedValue({ find, findGlobal } as never);
@@ -74,14 +93,16 @@ describe("homepage pins and Weather now", () => {
       "2",
       "1",
     ]);
-    expect(body.questions).toEqual({ status: "ok", items: [] });
+    expect(body.questions.items.map((item: { id: string }) => item.id)).toEqual(
+      ["7"]
+    );
     expect(body.settings.hiddenSections).toEqual(["discover"]);
     expect(body.weatherNow.items.note).toBeNull();
     expect(body.weatherNow.items).not.toHaveProperty("imagery");
   });
 });
 
-describe("homepage section wording and Explore today", () => {
+describe("homepage hidden sections", () => {
   const withHomepage = (homepage: Record<string, unknown>) => {
     const find = vi.fn().mockResolvedValue({ docs: [] });
     const findGlobal = vi.fn(({ slug }: { slug: string }) =>
@@ -90,46 +111,19 @@ describe("homepage section wording and Explore today", () => {
     vi.mocked(getPayload).mockResolvedValue({ find, findGlobal } as never);
   };
 
-  it("passes wording and published links through; drops blanks, drafts and unpopulated links", async () => {
+  it("passes the hidden sections through; wording and links are no longer editable", async () => {
     withHomepage({
-      sectionCopy: {
-        stories: { kicker: "  ", title: " Island stories ", intro: null },
-        explore_today: { intro: "Plan around the weather." },
-        desk: { kicker: "", title: "", intro: "" },
-      },
-      exploreReading: {
-        beach: {
-          relationTo: "questions",
-          value: {
-            status: "published",
-            question: "What is a rip current?",
-            slug: "questions/what-is-a-rip-current",
-          },
-        },
-        night_sky: {
-          relationTo: "stories",
-          value: { status: "draft", title: "Draft", slug: "stories/x" },
-        },
-        fishing: { relationTo: "stories", value: 12 },
-      },
       hiddenSections: ["grenada-in-data"],
+      // Old data the CMS no longer reads.
+      sectionCopy: { stories: { title: "Island stories" } },
     });
     const { settings } = await (await GET()).json();
-    expect(settings.sectionCopy).toEqual({
-      stories: { title: "Island stories" },
-      "explore-today": { intro: "Plan around the weather." },
-    });
-    expect(settings.exploreReading).toEqual({
-      beach: {
-        collection: "questions",
-        title: "What is a rip current?",
-        slug: "questions/what-is-a-rip-current",
-      },
-    });
     expect(settings.hiddenSections).toEqual(["grenada-in-data"]);
+    expect(settings.sectionCopy).toEqual({});
+    expect(settings.exploreReading).toEqual({});
   });
 
-  it("sends no wording or links when unset", async () => {
+  it("sends no wording or hidden sections when unset", async () => {
     withHomepage({});
     const { settings } = await (await GET()).json();
     expect(settings.sectionCopy).toEqual({});
@@ -143,7 +137,7 @@ describe("report write-ups and Weather now live posts", () => {
       ({ collection, where }: { collection: string; where: unknown }) => {
         if (collection === "live-posts") {
           expect(JSON.stringify(where)).toContain("expiresAt");
-          const kind = (where as { kind: { equals: string } }).kind.equals;
+          const kind = kindOf(where);
           return Promise.resolve({
             docs: [
               {
@@ -170,10 +164,13 @@ describe("report write-ups and Weather now live posts", () => {
                 id: 9,
                 title: "What the marine bulletin means",
                 slug: "reports/2026/09/marine",
-                linkedProduct: {
-                  productId: "0b3c6f1e-1111-4a2b-9c3d-222233334444",
-                  kind: "marine",
-                },
+                relatedLinks: [
+                  {
+                    url: "/weather/issued/0b3c6f1e-1111-4a2b-9c3d-222233334444",
+                    title: "Marine Bulletin",
+                    isMain: true,
+                  },
+                ],
                 updatedAt: "2026-09-30T00:00:00.000Z",
               },
             ],
@@ -189,7 +186,8 @@ describe("report write-ups and Weather now live posts", () => {
     expect(body.stories).toEqual({ status: "unavailable" });
     expect(body.reportNotes.items[0].linkedProduct).toEqual({
       productId: "0b3c6f1e-1111-4a2b-9c3d-222233334444",
-      kind: "marine",
+      kind: null,
+      title: "Marine Bulletin",
     });
     expect(
       // One query per kind, grouped: updates, then videos, then audio.

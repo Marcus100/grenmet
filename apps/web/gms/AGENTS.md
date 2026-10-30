@@ -22,11 +22,11 @@ No DB access. Two backends, never gaa-admin (it only authors into FastAPI):
   Types/validators come from `@barrelsgd/api-client`; new data = new FastAPI
   public endpoint.
 - **Payload CMS = the words around it** (`CMS_API_URL`, `src/lib/cms.ts`):
-  desk updates, stories, questions, quizzes, Discover, weather-now note, home
+  desk updates, stories, questions, quizzes, Discover, the duty forecaster's note
+  (a live post of kind `note`, read from `weatherNow`, with its related links), home
   settings, report write-ups, Weather now live posts. The homepage reads CMS
   content in one call (`fetchHomeContent`). The CMS holds no figures: a post's
-  `linkedProduct` is an id that `components/linked-product.tsx` resolves live via
-  `fetchPublishedProduct`. Live media are click-to-load (`media-player.tsx`,
+  a post's main related link (`isMain`) is a card only for a warning or a GMS page: `components/featured-link.tsx` shows a warning (`linked-alert.tsx`, live via `fetchPublicAlert`) or a GMS page (`linked-page.tsx`, from `NAV_SECTIONS`); site addresses are built from the stored id/identifier/path (`lib/related-link-href.ts`), never the pasted host. An issued product is never a card (owner, 29 Oct 2026); it stays a plain related link, and the older `linkedProduct` field is ignored. Live media are click-to-load (`media-player.tsx`,
   allowlist in `lib/media-embed.ts`).
 - Each home section fetches copy and data separately; either may be unavailable
   without hiding the other. An unavailable feed says so. It never falls back to
@@ -75,20 +75,64 @@ src/app/
   numbers, tables or stat tiles beside it. The sky hero shows real register
   and issued-forecast values only, sun times computed by `src/lib/sky.ts`, and
   "Not available yet" for fields no feed carries (UV, AQI, tides, swell, rain
-  chance, gusts, rainfall). Explore today says "Impact outlook not yet
-  published" per sector. Tests: `placeholder-notice.test.tsx` and the "hero
-  readings" block in `sky-hero-panels.test.tsx` guard this.
-- **Home hero:** table layout at every width (9 Oct 2026): a Now tab, then five
-  day tabs, then the selected tab's panel inside the hero (`SkyHero selected=`).
-  Now is selected on `/`; dated routes select their day, `/weather` selects
-  today. Phones show a picture card for the selected tab above a strip whose
-  first column is Now; wider screens put the Now card beside the day tabs.
-  Panels share `ReadingGrid` (`components/home/reading-grid.tsx`, items from
-  `lib/hero-readings.ts`). Forecast panels carry max/min only, no feels like
-  or UV. No provenance chips or issue tabs (owner, 30 Sep 2026); a reading over
-  3 h old still says "Last observed". No other hero tabs (marine lives at
-  `/marine`). The website has no bottom tab bar; `MobileTabBar` is kept for
-  the app.
+  chance, gusts, rainfall). Plan your week (Explore today) shows,
+  per sector, the GMS alerts and CAP warnings that apply over the next seven
+  days from FastAPI `GET /wxproducts/public/sector-outlook` (`fetchSectorOutlook`,
+  tiles built by `lib/sector-outlook.ts`; the six sectors are `SECTORS` in
+  `@barrelsgd/gms/sectors`). An untagged item shows under every sector as
+  "Affects everyone"; an unreachable feed says so and a partial one says the
+  lists may be incomplete; an empty sector says "No alert or warning impacts
+  published for this sector", never "minimal". Nothing is typed in the CMS.
+  Tests: `placeholder-notice.test.tsx`, the "hero readings" block in
+  `sky-hero-panels.test.tsx` and `data-sections.test.tsx` guard this.
+- **Home hero (owner design, 29 Oct 2026):** a card for the selected tab
+  (`components/home/hero-card.tsx`), the tabs (Now, then five days, at every
+  width) and the selected tab's details panel (`SkyHero selected=`). Phones
+  stack card, tabs, panel and keep one height on every tab (`ByTab` stacks the
+  panels); wider screens put the card on the left and the tabs over the panel
+  on the right, as short as the selected tab (`ByTab fit`). Now card: "Now ·
+  station" (or "Last observed …" past 90 minutes), temperature with today's
+  lowest and highest so far either side, sky (observer's words, else cloud),
+  feels like and wind with gusts, and a link to today's forecast. Day card:
+  date, low, high, chance of rain, sky, wind with gusts, the forecaster's
+  sentence. Tabs: high, a filled sky icon (`sky-glyph.tsx`) on the line, rain
+  chance, low, then day and date. Panels (`lib/hero-readings.ts`) hold only
+  what the card does not: Now = humidity, dew point, pressure with its trend,
+  visibility (with haze or dust words), cloud base, rain over the register's
+  period; a day = sunrise, sunset, high and low tides (each time over its
+  height), seas, swell. A missing item is left out, never a dash. Homepage times
+  read a.m./p.m. (`lib/clock.ts`): hero card, moon card, live posts, desk
+  cards; the day tabs and the rest of the site keep the 24-hour clock. Times
+  use the body font, never the monospace one. No UV, air quality or warnings here (warnings have their
+  own section above). A Moon tile waits for the planned almanac data. No other
+  hero tabs (marine lives at `/marine`). The website has no bottom tab bar;
+  `MobileTabBar` is kept for the app.
+- **Units (28 Oct 2026):** every hero measurement is metric or imperial,
+  metric until a visitor chooses (owner first chose imperial, then metric) (header button, saved in `localStorage`
+  `gm-units`). The API sends WMO units (°C, knots, metres, km, hPa, mm). A figure
+  is a `Measure` (`lib/units.ts`) rendered by `components/measure.tsx` in both
+  systems; `globals.css` shows one by `<html data-units>`, so static pages never
+  flash. Forecast panels show only what a forecast issues (wind, gusts, chance of
+  rain, seas, swell, sun, tides). The 3-day forecast, current conditions,
+  observations and sea-state tables are on the switch too (`lib/weather-pages.tsx`
+  builds their cells as `Measure`; `InfoTable` and `StatTiles` take nodes).
+  The heat page's sentence about 31°C is a `Measure` too (`Prose` takes nodes
+  as well as text, for this). Still hand-typed metric text: the tropics-season
+  table. New numbers go through `Measure`, never a hand-built string.
+  Plain-text consumers see both renderings: search snippets, link previews,
+  copied text and `textContent` read the metric and the imperial figure side by
+  side, because CSS hides one, not the markup (`components/measure.test.tsx`
+  pins this). So nothing built for metadata, JSON-LD, `alt`, `title` or
+  `aria-label` may come from `Measure` or `bothUnits`. When such a string needs
+  a number, use `formatMeasure(measure, DEFAULT_UNITS)` (metric) explicitly.
+  `Reading.value` and `Condition.value` are that metric text. The forecast
+  fallback's Max/Min Temp and the MBIA midday observation carry a `measure`
+  (`lib/forecast-selection.ts`); its wind and sea-state text stays as the
+  forecaster typed it, since the feed sends no numbers for it (an API change
+  would be needed).
+  The panels under the hero tabs are all rendered, stacked in one grid cell
+  (`ByTab`, `hero-selection.tsx`), so the hero keeps the tallest panel's height
+  and a tab change never moves the page. Only the selected panel is visible.
 - **Bold sky:** the sky gradient and `bg-gm-scrim` are for the home hero only;
   see `docs/design/gms.md`.
 - **Locations:** places live in `src/lib/locations.ts`, keyed internally by airport
@@ -112,8 +156,21 @@ src/app/
   external sources such as NOAA GOES, "Not a GMS product". Limits live in
   `lib/current-conditions.ts`: observations 90 min (`STALE_AFTER_MS`), forecasts
   12 h since issue, satellite 30 min. A stale product says so in words ("Last
-  observed", warning line), never only by colour. GMS forms store offset-less
+  observed", warning line), never only by colour. Home page exception (owner,
+  28 Oct 2026): the hero Now card carries only its top line ("Last observed …
+  · provisional") and Grenada in data only its caption; detail pages keep the
+  full block. GMS forms store offset-less
   Grenada times; read them with `parseGrenadaTime`, never `new Date()`.
+- **Draft preview:** `/preview?token=` (`app/(pages)/preview`) shows one unpublished
+  post as it will read. The CMS signs the link (two hours, the CMS's own secret)
+  and checks it; this app holds no secret. `lib/cms-preview.ts` sends the token to
+  the CMS's `GET /api/public/preview`, refuses a malformed token without asking,
+  and reads the CMS's 404 as invalid (forged, expired or deleted). The page renders
+  through `CmsArticleBody`, the same body as the published article, with a banner
+  saying it is a draft. It is `noindex`, `no-store` (page metadata and the
+  `next.config.ts` header), never in the sitemap or nav. Set the CMS's
+  `GMS_PREVIEW_URL` to this page's address. Tests: `lib/cms-preview.test.ts`
+  (expired, forged, malformed, outage), `app/(pages)/preview/page.test.tsx`.
 - **Satellite:** `/weather/satellite` reads FastAPI `wxwatch/public/latest`
   (`lib/satellite.ts`) and shows images through `app/api/satellite/[id]` (a proxy;
   the API host and bucket are never exposed). No image is the "Not yet available"
@@ -127,7 +184,7 @@ src/app/
 
 `/climate/data-request` renders `DataRequestForm` (`components/pages/data-request-form.tsx`), which posts to `src/app/api/data-request/route.ts`, a validate-and-proxy handler for FastAPI `POST /api/v1/contact/data-requests` (stored, emailed to `GMS_DATA_REQUEST_RECIPIENT`, confirmation to the requester). Schema in `src/lib/data-request.ts`; hidden honeypot field `website`; consent is required.
 
-`/alerts/get-alerts` has email sign-up (`AlertEmailSignup` -> `src/app/api/alerts/subscribe/route.ts` -> FastAPI list `gms-alerts`, double opt-in) and a "Get browser notifications" button (`BrowserNotifications` -> `src/app/api/alerts/push/route.ts`, service worker `public/sw.js`). The service worker is registered and permission asked only on the button click. The confirm and unsubscribe links redirect to `/subscribe/status?result=`, which `ROUTE_MOVES` sends to `/alerts/get-alerts` (query kept) where `AlertSignupResult` shows the outcome. CAP stays the source; WhatsApp and SMS are not offered.
+`/climate/newsletter` has the daily climate newsletter sign-up (`NewsletterSignup` -> `src/app/api/newsletter/subscribe/route.ts` -> FastAPI list `gms-newsletter`, double opt-in, Turnstile when enabled; the consent wording is `NEWSLETTER_CONSENT` in `src/lib/newsletter-signup.ts`; accepted sign-ups count as `newsletter_signup_submitted`). `/alerts/get-alerts` has email sign-up (`AlertEmailSignup` -> `src/app/api/alerts/subscribe/route.ts` -> FastAPI list `gms-alerts`, double opt-in) and a "Get browser notifications" button (`BrowserNotifications` -> `src/app/api/alerts/push/route.ts`, service worker `public/sw.js`). The service worker is registered and permission asked only on the button click. The confirm and unsubscribe links redirect to `/subscribe/status?result=`, which `ROUTE_MOVES` sends to `/alerts/get-alerts` (query kept) where `AlertSignupResult` shows the outcome. CAP stays the source; WhatsApp and SMS are not offered.
 
 ## Key dependencies (unique to this app)
 

@@ -15,6 +15,7 @@ import { subscriptionsUnsubscribe } from "../clients/subscriptionsUnsubscribe.js
 import type {
   SubscriptionsUnsubscribeOptions,
   SubscriptionsUnsubscribeResponse,
+  SubscriptionsUnsubscribeStatus400,
   SubscriptionsUnsubscribeStatus422,
 } from "../models/SubscriptionsUnsubscribe.js";
 
@@ -39,7 +40,9 @@ export function subscriptionsUnsubscribeQueryOptions(
   const queryKey = subscriptionsUnsubscribeQueryKey({ query });
   return queryOptions<
     SubscriptionsUnsubscribeResponse,
-    ResponseErrorConfig<SubscriptionsUnsubscribeStatus422>,
+    ResponseErrorConfig<
+      SubscriptionsUnsubscribeStatus400 | SubscriptionsUnsubscribeStatus422
+    >,
     SubscriptionsUnsubscribeResponse,
     typeof queryKey
   >({
@@ -56,8 +59,8 @@ export function subscriptionsUnsubscribeQueryOptions(
 }
 
 /**
- * @description Follows the emailed unsubscribe link, then redirects to the list's site with a result in the query string.
- * @summary Unsubscribe from a mailing list
+ * @description Follows an emailed unsubscribe link to the confirmation page at `/subscriptions/unsubscribe/confirm`. Changes nothing, so mail scanners that open links cannot unsubscribe anyone. The unsubscribe itself is `POST`.
+ * @summary Open the unsubscribe page
  * {@link /api/v1/subscriptions/unsubscribe}
  */
 export function useSubscriptionsUnsubscribe<
@@ -76,7 +79,9 @@ export function useSubscriptionsUnsubscribe<
     query?: Partial<
       QueryObserverOptions<
         SubscriptionsUnsubscribeResponse,
-        ResponseErrorConfig<SubscriptionsUnsubscribeStatus422>,
+        ResponseErrorConfig<
+          SubscriptionsUnsubscribeStatus400 | SubscriptionsUnsubscribeStatus422
+        >,
         TData,
         TQueryData,
         TQueryKey
@@ -105,7 +110,9 @@ export function useSubscriptionsUnsubscribe<
     queryClient
   ) as UseQueryResult<
     TData,
-    ResponseErrorConfig<SubscriptionsUnsubscribeStatus422>
+    ResponseErrorConfig<
+      SubscriptionsUnsubscribeStatus400 | SubscriptionsUnsubscribeStatus422
+    >
   > & { queryKey: TQueryKey };
 
   queryResult.queryKey = queryKey as TQueryKey;

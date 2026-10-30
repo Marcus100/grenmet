@@ -41,7 +41,7 @@ export function HomeSections() {
       <Suspense fallback={<Loading title="Latest reports" />}>
         <LatestReports />
       </Suspense>
-      <Suspense fallback={<Loading title="Stories" />}>
+      <Suspense fallback={<Loading title="Weather news" />}>
         <Stories />
       </Suspense>
       <Explained />

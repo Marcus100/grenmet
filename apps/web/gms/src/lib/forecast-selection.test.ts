@@ -2,6 +2,9 @@ import type { PublicForecast } from "@barrelsgd/api-client";
 import { describe, expect, it } from "vitest";
 import { unavailableWeather, weatherFromForecast } from "./forecast-selection";
 
+// en-GB abbreviates September as "Sept" on current ICU; match either.
+const EVENING_TITLE = /^From the 13 Sept? evening forecast$/;
+
 function selection(): PublicForecast {
   return {
     as_of: "2026-09-14T22:00:00Z",
@@ -90,6 +93,25 @@ describe("forecast presentation", () => {
       outage.days.every((day) => day.high === null && day.low === null)
     ).toBe(true);
     expect(outage.label).toContain("cannot be retrieved");
+  });
+  it("names the evening forecast when today comes from its outlook", () => {
+    const data = selection();
+    const [today] = data.periods;
+    if (!today) {
+      throw new Error("expected a forecast period");
+    }
+    // No issue yet today: the API sends the 13th's evening outlook, day 1.
+    today.period_key = "day1";
+    today.high = 31;
+    if (!today.source) {
+      throw new Error("expected a forecast source");
+    }
+    today.source.kind = "evening";
+    today.source.issued_at = "2026-09-13T22:00:00Z";
+    const result = weatherFromForecast(data);
+    expect(result.days[0]?.title).toMatch(EVENING_TITLE);
+    expect(result.days[0]?.high).toBe(31);
+    expect(result.days[1]?.title).toBe("Forecast for 2026-09-15");
   });
   it("formats the report time without labelling it a measured observation time", () => {
     const data = selection();

@@ -34,11 +34,13 @@ def send_email(
     email_to: str,
     subject: str = "",
     html_content: str = "",
+    headers: dict[str, str] | None = None,
 ) -> None:
     """Send an email via Resend (primary) or SMTP fallback (local dev / Mailpit).
 
     Resend is used when ``RESEND_API_KEY`` is configured.
     SMTP is the fallback for local development with Mailpit.
+    ``headers`` adds extra message headers (list mail: ``List-Unsubscribe``).
     """
     if not email_settings.emails_enabled:
         raise RuntimeError(
@@ -58,6 +60,8 @@ def send_email(
             "subject": subject,
             "html": html_content,
         }
+        if headers:
+            params["headers"] = dict(headers)
         result = resend.Emails.send(params)
         logger.info("Email sent via Resend to %s (id=%s)", email_to, result.get("id"))
         return
@@ -72,6 +76,8 @@ def send_email(
     msg["Subject"] = subject
     msg["From"] = from_address
     msg["To"] = email_to
+    for name, value in (headers or {}).items():
+        msg[name] = value
     msg.attach(MIMEText(html_content, "html"))
 
     if email_settings.SMTP_SSL:

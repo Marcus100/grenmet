@@ -36,5 +36,12 @@ export const publicObservationSchema = z
     weather: z.union([z.string(), z.null()]).optional(),
     cloud_oktas: z.union([z.int(), z.null()]).optional(),
     cloud: z.union([z.string(), z.null()]).optional(),
+    visibility_km: z.union([z.number(), z.null()]).optional(),
+    wind_gust_kt: z.union([z.int(), z.null()]).optional(),
+    wind_gust_mph: z.union([z.int(), z.null()]).optional(),
+    max_temperature_c: z.union([z.number(), z.null()]).optional(),
+    min_temperature_c: z.union([z.number(), z.null()]).optional(),
+    cloud_base_min_m: z.union([z.int(), z.null()]).optional(),
+    cloud_base_max_m: z.union([z.int(), z.null()]).optional(),
   })
   .describe("Decoded, public subset of one MBIA SYNOP; no staff or QC fields.");
