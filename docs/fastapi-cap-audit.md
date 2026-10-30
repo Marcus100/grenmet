@@ -1,8 +1,13 @@
 # FastAPI App Audit — health, best practices, and CAP migration
 
-**Status:** Historical record  
+**Status:** Superseded (2026-10-30). Historical record only.  
 **Owner:** Barrels Grenada engineering  
 **Last updated:** 2026-07-25
+
+> **Superseded.** The capcomposer server is retired (owner decision, 2026-10-30).
+> Its port to `src/cap` is tracked in [internal/warning-operations.md](internal/warning-operations.md)
+> and `apps/api/fastapi/src/cap/AGENTS.md`. The priorities below predate that work;
+> re-check the code before acting on any of them.
 
 Read-only audit of `apps/api/fastapi`, focused on (1) overall up-to-date / best-practice
 health and (2) the Django **capcomposer → FastAPI `src/cap`** migration. No code was

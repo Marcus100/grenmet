@@ -25,8 +25,8 @@ async def enqueue_publish_side_effects(
 ) -> list[CapJobEvent]:
     """Record publish side effects for a worker to process.
 
-    The first CAP slice keeps task creation durable in Postgres. A Celery worker can
-    consume these rows once Redis/Celery dependencies are enabled for deployment.
+    The rows are durable in Postgres. The ARQ worker (``process_cap_jobs`` in
+    ``src/worker/main.py``) consumes them, with retries and backoff.
     """
     if status != CapStatus.ACTUAL or scope != CapScope.PUBLIC:
         return []

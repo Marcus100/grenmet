@@ -2,7 +2,7 @@
 
 **Status:** Active reference  
 **Owner:** GMS (operational content); maintained by Barrels Grenada  
-**Last updated:** 2026-09-18
+**Last updated:** 2026-10-30
 
 This document maps the GMS warning workflow to the current codebase. The strategic warning framework — lifecycle, severity levels, IBF matrix, and content contract — lives in [../operations/warning-ibf-framework.md](../operations/warning-ibf-framework.md). This file is the engineering contract for what is implemented now.
 
@@ -20,17 +20,19 @@ The domain stores:
 - Resources, references, and incidents.
 - XML snapshots.
 - CAP settings and predefined areas.
-- Webhook, MQTT, feed-import, and job-event records.
+- Webhook, MQTT broker (kept, not yet delivering), feed-import, and job-event records.
 - Audit events.
 
 ## Lifecycle
 
 Per [ADR-0023](../adr/0023-cap-approval-before-publish.md) (supersedes
 [ADR-0013](../adr/0013-cap-alert-self-publish-and-bulletin-linkage.md)'s
-self-publish), a CAP Alert must be approved by a different person before it can
-be published. Only the duty supervisor may emergency-publish without approval,
-with a mandatory reason, always audited. The diagram shows the states; normal
-publish is only from APPROVED:
+self-publish, amended 2026-10-23 and 2026-10-25), a CAP Alert must have an
+approval on record before it can be published. The author may approve their own
+alert; a colleague's review is optional and is recorded in the audit trail. Only
+the duty supervisor may emergency-publish without approval, with a mandatory
+reason, always audited. The diagram shows the states; normal publish is only
+from APPROVED:
 
 ```text
 DRAFT ---------------------------------> PUBLISHED -> EXPIRED
@@ -54,8 +56,8 @@ Supported actions:
 | Duplicate | `POST /api/v1/cap/alerts/{alert_id}/duplicate` | any readable alert | `DRAFT` copy | `cap.alert.create` |
 | Validate | `POST /api/v1/cap/alerts/{alert_id}/validate` | any readable alert | unchanged | `cap.alert.read` |
 | Submit for approval | `POST /api/v1/cap/alerts/{alert_id}/submit` | `DRAFT` | `SUBMITTED` | `cap.alert.submit` |
-| Approve (not the author) | `POST /api/v1/cap/alerts/{alert_id}/approve` | `SUBMITTED` | `APPROVED` | `cap.alert.approve` |
-| Publish | `POST /api/v1/cap/alerts/{alert_id}/publish` | `APPROVED` by someone other than the author | `PUBLISHED` or `CANCELLED` for cancel messages | `cap.alert.publish` |
+| Approve | `POST /api/v1/cap/alerts/{alert_id}/approve` | `SUBMITTED` | `APPROVED` (the author may approve their own alert) | `cap.alert.approve` |
+| Publish | `POST /api/v1/cap/alerts/{alert_id}/publish` | `APPROVED` with an approval on record | `PUBLISHED` or `CANCELLED` for cancel messages | `cap.alert.publish` |
 | Emergency publish | `POST /api/v1/cap/alerts/{alert_id}/emergency-publish` (body `reason`, required) | `DRAFT`, `SUBMITTED`, or `APPROVED` | `PUBLISHED`; audited as `emergency_publish` | `cap.alert.publish_emergency` (duty supervisor) |
 | Cancel | `POST /api/v1/cap/alerts/{alert_id}/cancel` | `PUBLISHED` | `CANCELLED` | `cap.alert.publish` |
 | Expire | `POST /api/v1/cap/alerts/{alert_id}/expire` | `PUBLISHED` | `EXPIRED` | `cap.alert.publish` |
@@ -112,20 +114,21 @@ An alert is active when it is `PUBLISHED` and has no expired info block, or at l
 
 ## Publish Side Effects
 
-Publishing currently creates durable `CapJobEvent` rows for:
+Publishing creates durable `CapJobEvent` rows, and the ARQ worker (`process_cap_jobs`, `src/worker/main.py`) processes them with retries and backoff. The rows cover:
 
 - `publish.webhooks`
-- `publish.mqtt`
-- `publish.wis2box`
 - `publish.static_map`
 - `publish.pdf`
 - `publish.social_image`
+- `publish.last_known_good`
+- `publish.email`
+- `publish.push`
 
-The current code records these jobs in Postgres. A worker is not enabled in the deployed compose stack yet, so do not document webhook, MQTT, WIS2Box, PDF, static-map, or social-image delivery as complete until a worker processes these rows.
+MQTT and WIS2 are not queued. Owner decision (2026-10-30): MQTT is not planned, and WIS2 publishing starts once the local wis2box is live. Until then the integrations view reports both as `not_configured`. A job row never says "skipped" for a channel that is not configured.
 
 ## Operational Rules
 
-- A forecaster may publish directly from draft. Submit and approve are available as an optional, non-blocking review step, not a requirement.
+- Publishing needs an approval on record. The author may approve their own alert. A colleague's review is optional and recorded, never a gate. Emergency publish (duty supervisor, reason required) is the only route without approval.
 - Every official published alert must have a validation result with no errors.
 - Use cancel for active published alerts that need cancellation. Use expire when the valid period has ended.
 - Do not delete official warning records as a normal workflow. Archive through state and snapshot history.
@@ -134,8 +137,7 @@ The current code records these jobs in Postgres. A worker is not enabled in the 
 
 ## Current Gaps
 
-- No deployed worker processes CAP job events.
-- No multi-channel dissemination execution beyond public feed/XML snapshot generation.
+- MQTT is not planned. WIS2 publishing waits for the local wis2box (see Publish Side Effects).
 - No automated stale-alert expiry job.
 - No alert consistency check across website, XML, RSS, and future channels.
 - Individual SOPs pending formal approval — index and status at [docs/operations/sop-index.md](../operations/sop-index.md).
