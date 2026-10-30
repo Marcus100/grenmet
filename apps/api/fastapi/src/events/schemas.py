@@ -4,9 +4,8 @@ import uuid
 from datetime import date
 from typing import Annotated, Literal
 
-from pydantic import Field, StringConstraints, field_validator
+from pydantic import Field, StringConstraints, field_validator, model_validator
 
-from src.events.urls import normalise_https_url
 from src.models import BaseModel, UtcDateTime
 from src.payments.models import IntentStatus, ProviderKey
 
@@ -336,17 +335,17 @@ class ListingUpsert(BaseModel):
     #: Top-level category slug; `subcategory_slug` must belong to it.
     category_slug: str | None = Field(default=None, pattern=SLUG_PATTERN)
     subcategory_slug: str | None = Field(default=None, pattern=SLUG_PATTERN)
-    #: Reserved for staff curation (ADR-0048): organisers cannot set it, and
-    #: booking mode `external` with it. Kept for the curation routes.
-    external_ticket_url: str | None = Field(default=None, max_length=500)
 
-    @field_validator("external_ticket_url")
+    @model_validator(mode="before")
     @classmethod
-    def _external_link(cls, value: str | None) -> str | None:
-        if value is None:
-            return None
-        normalise_https_url(value)  # a bad link is a format error first
-        raise ValueError("external_ticket_url is set by Barrels staff, not organisers")
+    def _no_staff_ticket_link(cls, data: object) -> object:
+        # The external ticket link is set by Barrels staff (ADR-0048); there is no
+        # curation route yet, so it is refused here rather than declared.
+        if isinstance(data, dict) and "external_ticket_url" in data:
+            raise ValueError(
+                "external_ticket_url is set by Barrels staff, not organisers"
+            )
+        return data
 
     @field_validator("booking_mode")
     @classmethod

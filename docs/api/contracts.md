@@ -598,7 +598,8 @@ belong to the category, priced tiers need `pricing_type=paid`, `service` is
 refused, and `access_type=private` forces `visibility=unlisted`.
 `booking_mode=slots` (reserved for the Bookings bridge) and `booking_mode=external`
 or `external_ticket_url` (set by Barrels staff through the later curation routes,
-ADR-0048) answer 422 on the organiser routes. External links are https only,
+ADR-0048) answer 422 on the organiser routes. The organiser upsert schema does not
+declare `external_ticket_url`; sending it still answers 422. External links are https only,
 normalised, and refuse userinfo, control or bidi characters and non-ASCII hosts.
 
 ### Events tickets (E1)
@@ -767,8 +768,9 @@ Shared APIs for every Barrels app. Zones follow ADR-0025.
   lists show only products whose `team.manage` the caller holds. Each bundle carries a
   human `label` and `description` (`role_bundles.BUNDLE_COPY`). `GET /team/members`
   (team managers) is the paginated roster of active members: membership id, display
-  name, org role and live grants limited to the products the caller manages, no
-  emails. `GET /team/me` (any member) returns the caller's org role, the products
+  name, org role, `is_self` (the row is the caller's own) and live grants limited to
+  the products the caller manages, each with `granted_by_name` (the giver's display
+  name), no emails. `GET /team/me` (any member) returns the caller's org role, the products
   whose `team.manage` they hold and `is_admin_or_owner`.
   These team routes, and member removal (`DELETE /{organisation_id}/members/{id}`), also
   accept an Events app token (`EventsOrg*` dependencies); any other app's token is 401.
