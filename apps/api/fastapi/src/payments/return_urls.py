@@ -9,6 +9,9 @@ returns nothing usable, falls back to the global ``PAYMENTS_STRIPE_SUCCESS_URL``
 and ``PAYMENTS_STRIPE_CANCEL_URL``; both are held to the same acceptability check.
 """
 
+import ipaddress
+import re
+import socket
 from collections.abc import Callable
 from dataclasses import dataclass
 from urllib.parse import urlsplit
@@ -28,9 +31,41 @@ Builder = Callable[[str | None], ReturnAddress | None]
 
 _builders: dict[str, Builder] = {}
 
-#: Every spelling of a loopback host ``urlsplit(...).hostname`` can yield (lower-case,
-#: IPv6 without brackets, a trailing dot on the name). Also the unspecified address.
-_LOCAL_HOSTS = frozenset({"localhost", "localhost.", "127.0.0.1", "0.0.0.0", "::1"})
+#: Numeric host spellings ``inet_aton`` reads (``2130706433``, ``127.1``, ``0x7f.1``).
+_LEGACY_IPV4 = re.compile(r"[0-9a-fA-FxX.]+")
+
+
+def _as_ip(name: str) -> ipaddress.IPv4Address | ipaddress.IPv6Address | None:
+    """The address a host names, or None when it is a name. Legacy IPv4 forms are
+    read the way the resolver reads them; this never resolves a name over the network."""
+    try:
+        return ipaddress.ip_address(name)
+    except ValueError:
+        pass
+    if _LEGACY_IPV4.fullmatch(name) is None:
+        return None
+    try:
+        return ipaddress.IPv4Address(socket.inet_aton(name))
+    except OSError, ValueError:
+        return None
+
+
+def _is_local_host(hostname: str | None) -> bool:
+    """True when the host is, or may resolve to, this machine or a private network:
+    localhost names, loopback, unspecified, private and link-local addresses (an
+    IPv4-mapped IPv6 address is judged by its IPv4 address). A missing host is not
+    acceptable either."""
+    if not hostname:
+        return True
+    name = hostname.rstrip(".").lower()
+    if not name or name == "localhost" or name.endswith(".localhost"):
+        return True
+    ip = _as_ip(name)
+    if ip is None:
+        return False
+    if isinstance(ip, ipaddress.IPv6Address) and ip.ipv4_mapped is not None:
+        ip = ip.ipv4_mapped
+    return ip.is_loopback or ip.is_unspecified or ip.is_private or ip.is_link_local
 
 
 def register(source_type: str, builder: Builder) -> None:
@@ -45,11 +80,10 @@ def _acceptable(url: str) -> bool:
     parts = urlsplit(url)
     if not parts.netloc:
         return False
+    local = _is_local_host(parts.hostname)
     if settings.ENVIRONMENT != "local":
-        return parts.scheme == "https" and parts.hostname not in _LOCAL_HOSTS
-    return parts.scheme == "https" or (
-        parts.scheme == "http" and parts.hostname in _LOCAL_HOSTS
-    )
+        return parts.scheme == "https" and not local
+    return parts.scheme == "https" or (parts.scheme == "http" and local)
 
 
 def resolve(
