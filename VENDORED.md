@@ -66,7 +66,13 @@ clean apart from the CKEditor warning; `makemigrations --check` clean; all `wx`
 migrations applied to an empty PostgreSQL 17 database and the `raw_data`
 hypertable was created; `wx.tests` pass (7); a CSRF-enforced client signed in,
 loaded the station map, admin, station admin, variable export and API root, got
-405 from GET logout and signed out with POST. An existing pg13 data directory
+405 from GET logout and signed out with POST. The `backup_postgres` task's
+`pg_basebackup` call (same arguments, as `dba` on the `172.25.0.0/16` network
+that `pg_hba.custom.conf` allows) produced a PostgreSQL 17 base backup;
+`Dockerfile.deploy` installs the PostgreSQL 17 client for this because the base
+image's Debian client is 15. `surface/docker-compose.yml` now builds its app
+services from `Dockerfile.deploy` too, so the dev stack runs the locked pins
+instead of the old base image. An existing pg13 data directory
 does not start on the new image: dump and restore it (no live SURFACE host
 existed when this changed).
 

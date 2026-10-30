@@ -43,7 +43,8 @@ services:
     container_name: surface-database
     # PostgreSQL 17 + TimescaleDB + PostGIS (Django 5.2 needs PostgreSQL 14+).
     # A ./data/postgresql made by the old pg13 image will not start: dump and
-    # restore it, or remove it if it holds nothing worth keeping.
+    # restore it, or remove it if it holds nothing worth keeping. The image runs
+    # as uid 1000: `sudo chown -R 1000:1000 data/postgresql` before first start.
     image: timescale/timescaledb-ha:pg17.11-ts2.31.0@sha256:3f0b3f6bdf4912878444a36e6113a18346309583c4d1a61d81a0c511342a1afd
     shm_size: 4g
     restart: unless-stopped
@@ -74,7 +75,10 @@ services:
       - surface-net
 
   api:
-    image: nmsbdocker/surface-base:v1.0.0
+    # Same image as the weather deployment: surface-base plus the locked
+    # requirements (Django 5.2) and the PostgreSQL 17 client.
+    build: {context: .., dockerfile: surface/Dockerfile.deploy}
+    image: surface-deploy:local
     container_name: surface-api
     command: ./startup.sh
     env_file:
@@ -100,7 +104,10 @@ services:
       - surface-net
 
   celery_beat:
-    image: nmsbdocker/surface-base:v1.0.0
+    # Same image as the weather deployment: surface-base plus the locked
+    # requirements (Django 5.2) and the PostgreSQL 17 client.
+    build: {context: .., dockerfile: surface/Dockerfile.deploy}
+    image: surface-deploy:local
     container_name: surface-celery-beat
     restart: unless-stopped
     command: /home/surface/.local/bin/celery -A tempestas_api beat -l info --scheduler django_celery_beat.schedulers:DatabaseScheduler
@@ -149,7 +156,10 @@ services:
   #   queues are busy.
   # ---------------------------------------------------------------------------
   celery_worker_default:
-    image: nmsbdocker/surface-base:v1.0.0
+    # Same image as the weather deployment: surface-base plus the locked
+    # requirements (Django 5.2) and the PostgreSQL 17 client.
+    build: {context: .., dockerfile: surface/Dockerfile.deploy}
+    image: surface-deploy:local
     container_name: surface-celery-worker-default
     command: /home/surface/.local/bin/celery -A tempestas_api worker -l info -Q celery --concurrency=5 --prefetch-multiplier=1
     env_file:
@@ -196,7 +206,10 @@ services:
   #     - calculate_last24h_summary
   # ---------------------------------------------------------------------------
   celery_worker_summary:
-    image: nmsbdocker/surface-base:v1.0.0
+    # Same image as the weather deployment: surface-base plus the locked
+    # requirements (Django 5.2) and the PostgreSQL 17 client.
+    build: {context: .., dockerfile: surface/Dockerfile.deploy}
+    image: surface-deploy:local
     container_name: surface-celery-worker-summary
     command: /home/surface/.local/bin/celery -A tempestas_api worker -l info -Q summary --concurrency=6 --prefetch-multiplier=1
     env_file:
@@ -243,7 +256,10 @@ services:
   #     - ftp_ingest_staged_station_files
   # ---------------------------------------------------------------------------
   celery_worker_ingest:
-    image: nmsbdocker/surface-base:v1.0.0
+    # Same image as the weather deployment: surface-base plus the locked
+    # requirements (Django 5.2) and the PostgreSQL 17 client.
+    build: {context: .., dockerfile: surface/Dockerfile.deploy}
+    image: surface-deploy:local
     container_name: surface-celery-worker-ingest
     command: /home/surface/.local/bin/celery -A tempestas_api worker -l info -Q ingest --concurrency=4 --prefetch-multiplier=1
     env_file:
@@ -292,7 +308,10 @@ services:
   #     - mark_stuck_station_data_files_as_error
   # ---------------------------------------------------------------------------
   celery_worker_maintenance:
-    image: nmsbdocker/surface-base:v1.0.0
+    # Same image as the weather deployment: surface-base plus the locked
+    # requirements (Django 5.2) and the PostgreSQL 17 client.
+    build: {context: .., dockerfile: surface/Dockerfile.deploy}
+    image: surface-deploy:local
     container_name: surface-celery-worker-maintenance
     command: /home/surface/.local/bin/celery -A tempestas_api worker -l info -Q maintenance --concurrency=3 --prefetch-multiplier=1
     env_file:
@@ -337,7 +356,10 @@ services:
   #     - combine_xlsx_files
   # ---------------------------------------------------------------------------
   celery_worker_export:
-    image: nmsbdocker/surface-base:v1.0.0
+    # Same image as the weather deployment: surface-base plus the locked
+    # requirements (Django 5.2) and the PostgreSQL 17 client.
+    build: {context: .., dockerfile: surface/Dockerfile.deploy}
+    image: surface-deploy:local
     container_name: surface-celery-worker-export
     command: /home/surface/.local/bin/celery -A tempestas_api worker -l info -Q export --concurrency=2 --prefetch-multiplier=1
     env_file:
