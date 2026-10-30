@@ -25,6 +25,7 @@ Rules:
 import logging
 import uuid
 
+import sqlalchemy as sa
 from sqlalchemy import case, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -176,6 +177,7 @@ async def ensure_intent(
                 Intent.organisation_id == organisation_id,
                 Intent.source_type == SOURCE_TYPE,
                 Intent.source_id == str(order.id),
+                Intent.idempotency_key == intent_key(order.id),
             )
             .order_by(Intent.created_at.desc(), Intent.id)
             .limit(1)
@@ -201,6 +203,7 @@ async def intent_for(
         organisation_id=organisation_id,
         source_type=SOURCE_TYPE,
         source_id=str(order_id),
+        idempotency_key=intent_key(order_id),
     )
 
 
@@ -213,6 +216,7 @@ async def stop_collecting(
         organisation_id=organisation_id,
         source_type=SOURCE_TYPE,
         source_id=str(order_id),
+        idempotency_key=intent_key(order_id),
     )
 
 
@@ -252,7 +256,8 @@ async def ledger_totals(
 ) -> tuple[int, int]:
     """What the payments ledger holds for one event's orders: ``(collected,
     refunded)`` in minor units, summed in SQL over the intents tagged with the
-    listing id (``metadata.listing_id``)."""
+    listing id (``metadata.listing_id``). A refund the provider failed after it was
+    recorded is reversed by an adjustment that names the refund; it counts here too."""
     row = (
         await session.execute(
             select(
@@ -273,6 +278,13 @@ async def ledger_totals(
                         case(
                             (
                                 LedgerEntry.kind == LedgerKind.REFUND.value,
+                                -LedgerEntry.amount_minor,
+                            ),
+                            (
+                                sa.and_(
+                                    LedgerEntry.kind == LedgerKind.ADJUSTMENT.value,
+                                    LedgerEntry.refund_id.is_not(None),
+                                ),
                                 -LedgerEntry.amount_minor,
                             ),
                             else_=0,

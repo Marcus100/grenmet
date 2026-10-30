@@ -37,6 +37,7 @@ from .base import (
     EventKind,
     PaymentStart,
     ProviderEvent,
+    ProviderRefund,
     ProviderStatus,
     RefundResult,
 )
@@ -129,6 +130,43 @@ def _currency(value: object) -> str | None:
     return value.upper() if isinstance(value, str) and len(value) == 3 else None
 
 
+def _refund_object(item: object) -> ProviderRefund | None:
+    """One Stripe Refund object in the core's vocabulary, or None if unusable."""
+    if not isinstance(item, dict):
+        return None
+    amount = _int(item.get("amount"))
+    status = _str(item.get("status"))
+    if amount is None or status is None:
+        return None
+    metadata = item.get("metadata")
+    metadata = metadata if isinstance(metadata, dict) else {}
+    return ProviderRefund(
+        provider_ref=_str(item.get("id")),
+        amount_minor=amount,
+        status=status,
+        refund_id=_intent_uuid(metadata.get("refund_id")),
+    )
+
+
+#: The refund events a webhook endpoint must subscribe to (with ``charge.refunded``).
+REFUND_EVENT_TYPES = frozenset({"refund.created", "refund.updated", "refund.failed"})
+
+
+def _listed_refunds(listing: object) -> tuple[tuple[ProviderRefund, ...], bool]:
+    """The refunds a ``charge.refunded`` event lists, and whether that list is
+    complete. Stripe lists refunds on a charge only when they are expanded, and
+    webhook payloads are not expanded, so a missing list is incomplete: the core
+    must not infer the refunds from the total. ``has_more`` marks a partial list."""
+    if not isinstance(listing, dict) or not isinstance(listing.get("data"), list):
+        return (), False
+    refunds = tuple(
+        refund
+        for refund in (_refund_object(item) for item in listing["data"])
+        if refund is not None
+    )
+    return refunds, listing.get("has_more") is not True
+
+
 def normalise_event(event: dict[str, Any]) -> ProviderEvent:
     """Map a verified Stripe event to the core's vocabulary."""
     event_id = _str(event.get("id"))
@@ -169,7 +207,19 @@ def normalise_event(event: dict[str, Any]) -> ProviderEvent:
             payment_ref=_str(obj.get("id")),
             failure_code=code,
         )
+    if event_type in REFUND_EVENT_TYPES:
+        # The event's object is the refund itself, with our refund id in metadata.
+        listed = _refund_object(obj)
+        return ProviderEvent(
+            provider=key,
+            event_id=event_id,
+            kind=EventKind.REFUND_REPORTED,
+            intent_id=_intent_uuid(metadata.get("intent_id")),
+            payment_ref=_str(obj.get("payment_intent")),
+            refunds=(listed,) if listed is not None else (),
+        )
     if event_type == "charge.refunded":
+        refunds, complete = _listed_refunds(obj.get("refunds"))
         return ProviderEvent(
             provider=key,
             event_id=event_id,
@@ -179,6 +229,10 @@ def normalise_event(event: dict[str, Any]) -> ProviderEvent:
             amount_minor=_int(obj.get("amount")),
             currency=_currency(obj.get("currency")),
             refunded_total_minor=_int(obj.get("amount_refunded")),
+            refunds=refunds,
+            refunds_complete=complete,
+            refunds_listed=isinstance(obj.get("refunds"), dict)
+            and isinstance(obj["refunds"].get("data"), list),
         )
     return ProviderEvent(provider=key, event_id=event_id, kind=EventKind.IGNORED)
 
