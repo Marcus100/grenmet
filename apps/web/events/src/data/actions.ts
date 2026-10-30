@@ -54,6 +54,7 @@ import {
   toRefund,
   toTill,
 } from "./api-mappers";
+import { getManagedAccess } from "./events-api";
 import { friendlyConflict } from "./order-errors";
 import { chosenOrganiser, rememberOrganiser } from "./organiser-choice";
 
@@ -347,20 +348,23 @@ const NOT_REJECTED_PREFIX = "Only a rejected request can be resubmitted";
 
 /**
  * Puts a rejected organiser back in the moderation queue. The organiser is
- * resolved here from the member's cookie (never sent by the browser) and the
- * API checks they own or administer it. A 409 means it is no longer rejected
- * (a double click, or a moderator already decided): the outcome is
- * "unchanged", not an error, so a repeat converges.
+ * resolved here the way the /dash page resolves it (`getManagedAccess`: the
+ * cookie, or the default organiser when it is absent or stale), never sent by
+ * the browser, and the API checks they own or administer it. A 409 means it is
+ * no longer rejected (a double click, or a moderator already decided): the
+ * outcome is "unchanged", not an error, so a repeat converges.
  */
 export async function resubmitOrganiser(): Promise<
   ActionResult<"resubmitted" | "unchanged">
 > {
-  const organiser = await chosenOrganiser();
   const session = await getSession();
   if (!session) {
     return { ok: false, error: SIGN_IN_REQUIRED };
   }
   try {
+    const access = await getManagedAccess();
+    const organiser =
+      access.kind === "ok" ? access.workspace.organiser.slug : undefined;
     await eventsResubmitOrganiser({
       ...apiOptions(session.accessToken),
       ...(organiser ? { query: { organiser } } : {}),
