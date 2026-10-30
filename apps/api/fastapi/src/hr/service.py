@@ -492,6 +492,7 @@ async def _build_profile_response(
             employment_record.employment_type if employment_record else None
         ),
         start_date=employment_record.start_date if employment_record else None,
+        end_date=employment_record.end_date if employment_record else None,
         continuous_service_date=employment_record.continuous_service_date
         if employment_record
         else None,

@@ -196,6 +196,10 @@ class EmploymentRecord(Base):
         sa.Index("ix_hr_employment_record_supervisor_id", "supervisor_id"),
         sa.Index("ix_hr_employment_record_status", "status"),
         sa.Index("ix_hr_employment_record_grade_id", "grade_id"),
+        sa.CheckConstraint(
+            "end_date IS NULL OR start_date IS NULL OR end_date >= start_date",
+            name="ck_hr_employment_end_not_before_start",
+        ),
         {"schema": "hr"},
     )
 
@@ -219,6 +223,9 @@ class EmploymentRecord(Base):
     position: Mapped[str | None] = mapped_column(String(150), nullable=True)
     employment_type: Mapped[EmploymentType | None]
     start_date: Mapped[date | None]
+    # Last day of employment (#797). Once this date is today or earlier (Grenada
+    # time) the record counts as ended for access, and the daily job ends it.
+    end_date: Mapped[date | None] = mapped_column(nullable=True)
     continuous_service_date: Mapped[date | None]
     probation_end_date: Mapped[date | None]
     probation_completed_date: Mapped[date | None]

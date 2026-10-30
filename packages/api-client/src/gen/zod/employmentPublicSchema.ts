@@ -19,6 +19,10 @@ export const employmentPublicSchema = z.object({
   position: z.union([z.string(), z.null()]).optional(),
   employment_type: z.union([employmentTypeSchema, z.null()]).optional(),
   start_date: z.union([z.iso.date(), z.null()]).optional(),
+  end_date: z
+    .union([z.iso.date(), z.null()])
+    .optional()
+    .describe("Last day of employment. Roles end on this date (Grenada time)."),
   continuous_service_date: z.union([z.iso.date(), z.null()]).optional(),
   probation_end_date: z.union([z.iso.date(), z.null()]).optional(),
   probation_completed_date: z.union([z.iso.date(), z.null()]).optional(),

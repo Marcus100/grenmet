@@ -160,6 +160,10 @@ class EmploymentPublic(BaseModel):
     position: str | None = None
     employment_type: EmploymentType | None = None
     start_date: date | None = None
+    end_date: date | None = Field(
+        default=None,
+        description="Last day of employment. Roles end on this date (Grenada time).",
+    )
     continuous_service_date: date | None = None
     probation_end_date: date | None = None
     probation_completed_date: date | None = None
@@ -270,6 +274,10 @@ class EmploymentUpdate(BaseModel):
     position: str | None = Field(default=None, max_length=150)
     employment_type: EmploymentType | None = None
     start_date: date | None = None
+    end_date: date | None = Field(
+        default=None,
+        description="Last day of employment. Send null to clear it.",
+    )
     continuous_service_date: date | None = None
     probation_end_date: date | None = None
     probation_completed_date: date | None = None
