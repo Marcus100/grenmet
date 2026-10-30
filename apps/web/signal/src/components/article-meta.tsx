@@ -12,7 +12,7 @@ export function ArticleMeta({
 }) {
   return (
     <p className={cn("text-signal-muted text-sm leading-relaxed", className)}>
-      <span className="font-medium text-foreground">{author}</span>
+      <span className="text-foreground font-medium">{author}</span>
       {" · "}
       <time dateTime={publishedAt}>{formatLongDate(publishedAt)}</time>
     </p>

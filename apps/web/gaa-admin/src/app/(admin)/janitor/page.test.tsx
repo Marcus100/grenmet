@@ -20,8 +20,8 @@ import {
 } from "@/lib/janitorial/test-fixtures";
 import JanitorPage from "./page";
 
-const RESTROOMS = /Restrooms/;
-const LAURISTON = /Lauriston/;
+const RESTROOMS = /Restrooms/u;
+const LAURISTON = /Lauriston/u;
 
 async function renderPage(
   params: Record<string, string> = {},

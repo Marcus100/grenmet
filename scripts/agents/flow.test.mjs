@@ -9,9 +9,10 @@ import {
 } from "./flow.mjs";
 
 const CHANGES_MERGED_VIA_RE =
-  /2 changes merged \(1 via PR\), 1 reverts \(50\.0%\)/;
-const PER_MERGED_CHANGE_RE = /Per merged change: 1k tokens, 3\.0 human prompts/;
-const CHANGES_MERGED_RE = /0 changes merged/;
+  /2 changes merged \(1 via PR\), 1 reverts \(50\.0%\)/u;
+const PER_MERGED_CHANGE_RE =
+  /Per merged change: 1k tokens, 3\.0 human prompts/u;
+const CHANGES_MERGED_RE = /0 changes merged/u;
 
 const SEP = "\u001f";
 const row = (sha, date, parents, subject) =>

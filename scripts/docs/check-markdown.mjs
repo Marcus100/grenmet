@@ -14,28 +14,28 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const root = join(dirname(fileURLToPath(import.meta.url)), "..", "..");
-const VENDORED = /^(?:surface|wis2box)\//;
-const GENERATED = /\/gen\//;
-const FENCE = /^\s{0,3}(`{3,}|~{3,})(.*)$/;
-const HEADING = /^(#{1,6})\s+\S/;
-const NEXT_BLOCK_START = /^<!--\s*BEGIN:nextjs-agent-rules\s*-->/;
-const NEXT_BLOCK_END = /^<!--\s*END:nextjs-agent-rules\s*-->/;
-const FRONTMATTER = /^---\n([\s\S]*?)\n---/;
-const SKILL_PATH = /^\.claude\/skills\/([^/]+)\/SKILL\.md$/;
-const LOCKED_SKILL_PATH = /^\.claude\/skills\/([^/]+)\//;
+const VENDORED = /^(?:surface|wis2box)\//u;
+const GENERATED = /\/gen\//u;
+const FENCE = /^\s{0,3}(`{3,}|~{3,})(.*)$/u;
+const HEADING = /^(#{1,6})\s+\S/u;
+const NEXT_BLOCK_START = /^<!--\s*BEGIN:nextjs-agent-rules\s*-->/u;
+const NEXT_BLOCK_END = /^<!--\s*END:nextjs-agent-rules\s*-->/u;
+const FRONTMATTER = /^---\n([\s\S]*?)\n---/u;
+const SKILL_PATH = /^\.claude\/skills\/([^/]+)\/SKILL\.md$/u;
+const LOCKED_SKILL_PATH = /^\.claude\/skills\/([^/]+)\//u;
 
-const DOC_PATH = /^docs\//;
+const DOC_PATH = /^docs\//u;
 // ADRs have their own template, READMEs are indexes, and the design specs keep
 // their metadata in YAML frontmatter checked by their own test.
-const DOC_EXEMPT = /^docs\/adr\/|(?:^|\/)README\.md$/;
+const DOC_EXEMPT = /^docs\/adr\/|(?:^|\/)README\.md$/u;
 const HEADER_LINES = 30;
 const DOC_METADATA = [
-  ["Status", /^(?:\*\*)?Status:/m],
-  ["Owner", /^(?:\*\*)?Owner:/m],
-  ["Last updated", /^(?:\*\*)?Last updated:/m],
+  ["Status", /^(?:\*\*)?Status:/mu],
+  ["Owner", /^(?:\*\*)?Owner:/mu],
+  ["Last updated", /^(?:\*\*)?Last updated:/mu],
 ];
-const NAME_FIELD = /^name:\s*(.+)$/m;
-const DESCRIPTION_FIELD = /^description:\s*\S/m;
+const NAME_FIELD = /^name:\s*(.+)$/mu;
+const DESCRIPTION_FIELD = /^description:\s*\S/mu;
 
 const violation = (line, rule, message) => ({ line, message, rule });
 

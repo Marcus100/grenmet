@@ -19,7 +19,7 @@ const root = fileURLToPath(new URL("../../", import.meta.url));
 const dockerDir = join(root, "infra/docker");
 const renderScript = join(root, "scripts/production/render-env.py");
 const PLACEHOLDER = "ci-placeholder-";
-const IMAGE_TAG = /:(staging|production)-sha-[0-9a-f]{40}$/;
+const IMAGE_TAG = /:(staging|production)-sha-[0-9a-f]{40}$/u;
 const SHARED_API_SERVICES = ["api", "worker", "nhc-worker", "prestart"];
 
 // Keys whose format render-env.py validates need a well-formed synthetic value.
@@ -196,7 +196,10 @@ test("every required secret is passed to the delivery step", () => {
     "utf8"
   );
   for (const name of secretNames) {
-    const passed = new RegExp(`^\\s+${name}: \\$\\{\\{ (secrets|vars)\\.`, "m");
+    const passed = new RegExp(
+      `^\\s+${name}: \\$\\{\\{ (secrets|vars)\\.`,
+      "mu"
+    );
     assert.match(workflow, passed, `${name} is not passed in deploy.yml`);
   }
 });

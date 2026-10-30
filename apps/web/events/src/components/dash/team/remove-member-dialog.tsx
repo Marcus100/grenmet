@@ -127,7 +127,7 @@ export function RemoveMemberDialog({
         </AlertDialogHeader>
 
         <section aria-labelledby={issuedTitleId} className="space-y-2">
-          <h3 className="font-medium text-body" id={issuedTitleId}>
+          <h3 className="text-body font-medium" id={issuedTitleId}>
             Roles {memberName} gave to others
           </h3>
           {issued.kind === "loading" ? (
@@ -157,7 +157,7 @@ export function RemoveMemberDialog({
             </p>
           ) : null}
           {issued.kind === "ok" && issued.grants.length > 0 ? (
-            <ul className="space-y-1 text-body">
+            <ul className="text-body space-y-1">
               {issued.grants.map((grant) => (
                 <li key={grant.id}>
                   {bundleCopy(grant.role_key).title} for {grant.member_name}
@@ -171,7 +171,7 @@ export function RemoveMemberDialog({
         </section>
 
         <p
-          className="font-medium text-body text-destructive empty:hidden"
+          className="text-body text-destructive font-medium empty:hidden"
           role="alert"
         >
           {error}

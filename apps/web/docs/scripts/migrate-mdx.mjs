@@ -16,13 +16,13 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 const appDir = join(__dirname, "../src/app");
 const contentDir = join(__dirname, "../src/content");
 
-const PAGE_MDX_RE = /(^|\/)page\.mdx$/;
-const METADATA_BLOCK_RE = /export const metadata = \{[\s\S]*?\n\}\n*/g;
-const SECTIONS_BLOCK_RE = /export const sections = \[[\s\S]*?\]\n*/g;
-const METADATA_INNER_RE = /export const metadata = \{([\s\S]*?)\n\}/;
-const TITLE_RE = /title:\s*['"](.+?)['"]/s;
-const DESC_RE = /description:\s*\n?\s*['"](.+?)['"]/s;
-const LEADING_SLASH_RE = /^\//;
+const PAGE_MDX_RE = /(^|\/)page\.mdx$/u;
+const METADATA_BLOCK_RE = /export const metadata = \{[\s\S]*?\n\}\n*/gu;
+const SECTIONS_BLOCK_RE = /export const sections = \[[\s\S]*?\]\n*/gu;
+const METADATA_INNER_RE = /export const metadata = \{([\s\S]*?)\n\}/u;
+const TITLE_RE = /title:\s*['"](.+?)['"]/su;
+const DESC_RE = /description:\s*\n?\s*['"](.+?)['"]/su;
+const LEADING_SLASH_RE = /^\//u;
 
 // Imports that should be removed (components are now passed via MdxContent)
 const IMPORTS_TO_STRIP = [
@@ -55,8 +55,8 @@ function transformContent(raw) {
 
   content = content.trimStart();
 
-  const safeTitle = title.replace(/'/g, "''");
-  const safeDesc = description.replace(/'/g, "''");
+  const safeTitle = title.replace(/'/gu, "''");
+  const safeDesc = description.replace(/'/gu, "''");
 
   const frontmatter = description
     ? `---\ntitle: '${safeTitle}'\ndescription: '${safeDesc}'\n---\n\n`

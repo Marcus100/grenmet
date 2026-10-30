@@ -197,7 +197,7 @@ export function NhcContentView({
         </div>
       )}
       {content.text && (
-        <pre className="whitespace-pre-wrap break-words rounded-lg border p-3 text-sm">
+        <pre className="rounded-lg border p-3 text-sm break-words whitespace-pre-wrap">
           {content.text}
         </pre>
       )}

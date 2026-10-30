@@ -68,7 +68,7 @@ function toEntry(row: TimesheetRow): TimesheetEntryInput {
   };
 }
 
-const MONTH_PATTERN = /^\d{4}-\d{2}$/;
+const MONTH_PATTERN = /^\d{4}-\d{2}$/u;
 
 const REMARK_BY_AVAILABILITY: Record<string, string> = {
   ABSENT: "Approved absence",
@@ -248,9 +248,9 @@ export function TimesheetEditor() {
       {(values) => (
         <HrFormDesk
           editor={
-            <div className="flex flex-col gap-4 rounded-xl border bg-card p-4">
+            <div className="bg-card flex flex-col gap-4 rounded-xl border p-4">
               <div className="flex items-center justify-between">
-                <h2 className="font-medium text-lg">Official Time Sheet</h2>
+                <h2 className="text-lg font-medium">Official Time Sheet</h2>
                 <div className="flex gap-2">
                   <Button
                     disabled={
@@ -385,7 +385,7 @@ export function TimesheetEditor() {
                             key={row.id}
                           >
                             <div className="flex items-center justify-between">
-                              <span className="font-medium text-sm">
+                              <span className="text-sm font-medium">
                                 Entry {i + 1}
                               </span>
                               <Button

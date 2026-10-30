@@ -24,7 +24,7 @@ export default async function HomePage() {
 
   return (
     <div className="space-y-6">
-      <h1 className="font-semibold text-gm-heading text-heading-lg">
+      <h1 className="text-gm-heading text-heading-lg font-semibold">
         Active weather alerts
       </h1>
 
@@ -36,14 +36,14 @@ export default async function HomePage() {
             Current status
           </h2>
           <p
-            className={`rounded-gm-card p-4 font-bold text-heading-sm ${WARNING_LEVEL_SURFACE[overallLevel(actual)]}`}
+            className={`rounded-gm-card text-heading-sm p-4 font-bold ${WARNING_LEVEL_SURFACE[overallLevel(actual)]}`}
           >
             {statusLine(actual)}
           </p>
 
           {exercise.length > 0 ? (
             <div
-              className="rounded-gm-card border border-gm-border bg-gm-surface p-3 text-body-sm"
+              className="rounded-gm-card border-gm-border bg-gm-surface text-body-sm border p-3"
               role="status"
             >
               <strong>Exercise or test in progress.</strong> The{" "}

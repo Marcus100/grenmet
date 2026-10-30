@@ -24,7 +24,7 @@ export function ReadingNote({
   terms: Term[];
 }) {
   return (
-    <div className="mt-6 grid gap-x-10 gap-y-6 border-el-rule border-t pt-5 text-lg lg:grid-cols-2">
+    <div className="border-el-rule mt-6 grid gap-x-10 gap-y-6 border-t pt-5 text-lg lg:grid-cols-2">
       <div className="space-y-6">
         <div className="bg-el-paper-2 p-5">
           <h3 className={LABEL}>A worked example</h3>
@@ -32,12 +32,12 @@ export function ReadingNote({
         </div>
         <div>
           <h3 className={LABEL}>How to read it</h3>
-          <p className="mt-2 text-el-ink-2 leading-relaxed">{read}</p>
+          <p className="text-el-ink-2 mt-2 leading-relaxed">{read}</p>
         </div>
         {caveats.length > 0 && (
           <div>
             <h3 className={LABEL}>Keep in mind</h3>
-            <ul className="mt-2 list-disc space-y-1.5 pl-5 text-el-ink-2">
+            <ul className="text-el-ink-2 mt-2 list-disc space-y-1.5 pl-5">
               {caveats.map((caveat, i) => (
                 // biome-ignore lint/suspicious/noArrayIndexKey: static list
                 <li key={i}>{caveat}</li>
@@ -59,10 +59,10 @@ export function ReadingNote({
           </div>
         )}
         <details className="group">
-          <summary className="cursor-pointer font-semibold underline decoration-el-rule-2 underline-offset-4">
+          <summary className="decoration-el-rule-2 cursor-pointer font-semibold underline underline-offset-4">
             What the terms mean
           </summary>
-          <dl className="mt-2 divide-y divide-el-rule border-el-rule border-y">
+          <dl className="divide-el-rule border-el-rule mt-2 divide-y border-y">
             {terms.map((t) => (
               <div
                 className="grid gap-x-4 gap-y-0.5 py-2 sm:grid-cols-[10rem_minmax(0,1fr)]"
@@ -86,13 +86,13 @@ export function KeyFacts({
   facts: { figure: string; text: React.ReactNode }[];
 }) {
   return (
-    <ul className="grid gap-px border border-el-rule bg-el-rule sm:grid-cols-2 lg:grid-cols-3">
+    <ul className="border-el-rule bg-el-rule grid gap-px border sm:grid-cols-2 lg:grid-cols-3">
       {facts.map((f) => (
         <li className="bg-background p-4" key={f.figure}>
-          <p className="font-bold font-serif text-[1.75rem] tabular-nums leading-none">
+          <p className="font-serif text-[1.75rem] leading-none font-bold tabular-nums">
             {f.figure}
           </p>
-          <p className="mt-2 text-el-ink-2 text-lg leading-relaxed">{f.text}</p>
+          <p className="text-el-ink-2 mt-2 text-lg leading-relaxed">{f.text}</p>
         </li>
       ))}
     </ul>

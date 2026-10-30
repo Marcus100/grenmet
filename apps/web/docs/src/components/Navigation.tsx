@@ -149,7 +149,7 @@ function ActivePageMarker({
   return (
     <motion.div
       animate={{ opacity: 1, transition: { delay: 0.2 } }}
-      className="absolute left-2 h-6 w-px bg-gm-blue"
+      className="bg-gm-blue absolute left-2 h-6 w-px"
       exit={{ opacity: 0 }}
       initial={{ opacity: 0 }}
       layout
@@ -174,13 +174,12 @@ function NavigationGroup({
     isInsideMobileNavigation
   );
 
-  const isActiveGroup =
-    group.links.findIndex((link) => link.href === pathname) !== -1;
+  const isActiveGroup = group.links.some((link) => link.href === pathname);
 
   return (
     <li className={cn("relative mt-6", className)}>
       <motion.h2
-        className="font-semibold text-xs text-zinc-900 dark:text-white"
+        className="text-xs font-semibold text-zinc-900 dark:text-white"
         layout="position"
       >
         {group.title}
@@ -200,7 +199,7 @@ function NavigationGroup({
             <ActivePageMarker group={group} pathname={pathname} />
           )}
         </AnimatePresence>
-        <ul className="border-transparent border-l">
+        <ul className="border-l border-transparent">
           {group.links.map((link) => (
             <motion.li className="relative" key={link.href} layout="position">
               <NavLink active={link.href === pathname} href={link.href}>

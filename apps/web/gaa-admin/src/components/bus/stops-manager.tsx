@@ -115,7 +115,7 @@ export function StopsManager({
                   </Badge>
                 )}
               </TableCell>
-              <TableCell className="hidden text-muted-foreground lg:table-cell">
+              <TableCell className="text-muted-foreground hidden lg:table-cell">
                 {stop.landmark}
               </TableCell>
               <TableCell className="tabular-nums">
@@ -123,7 +123,7 @@ export function StopsManager({
               </TableCell>
               <TableCell>
                 {stop.latitude == null ? (
-                  <span className="inline-flex items-center gap-1 text-muted-foreground text-xs">
+                  <span className="text-muted-foreground inline-flex items-center gap-1 text-xs">
                     <MapPinOff aria-hidden="true" className="size-3.5" /> Not
                     set
                   </span>

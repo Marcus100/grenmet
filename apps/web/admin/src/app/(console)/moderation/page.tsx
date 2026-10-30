@@ -49,7 +49,7 @@ export default async function ModerationPage({
   return (
     <>
       <div className="space-y-1">
-        <h1 className="font-semibold text-2xl">Organiser moderation</h1>
+        <h1 className="text-2xl font-semibold">Organiser moderation</h1>
         <p className="text-muted-foreground">
           Organisers asking to be verified for Barrels Events, oldest request
           first. Approval lets an organiser publish; rejection emails the

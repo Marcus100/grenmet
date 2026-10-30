@@ -48,11 +48,11 @@ export default function ContactPage() {
         <div className="space-y-6">
           {CONTACT_ITEMS.map((item) => (
             <div className="flex gap-4" key={item.label}>
-              <span className="h-fit rounded-xl bg-gaa-mist p-3 text-gaa-navy">
+              <span className="bg-gaa-mist text-gaa-navy h-fit rounded-xl p-3">
                 <item.icon aria-hidden="true" className="size-5" />
               </span>
               <div>
-                <p className="font-display font-semibold text-gaa-navy">
+                <p className="font-display text-gaa-navy font-semibold">
                   {item.label}
                 </p>
                 {item.lines.map((line) => (
@@ -67,11 +67,11 @@ export default function ContactPage() {
             </div>
           ))}
         </div>
-        <div className="rounded-3xl border border-gaa-rule bg-white p-6 sm:p-10">
-          <h2 className="font-bold font-display text-2xl text-gaa-navy">
+        <div className="border-gaa-rule rounded-3xl border bg-white p-6 sm:p-10">
+          <h2 className="font-display text-gaa-navy text-2xl font-bold">
             Send us a message
           </h2>
-          <p className="mt-2 mb-8 text-gaa-muted text-sm">
+          <p className="text-gaa-muted mt-2 mb-8 text-sm">
             We aim to respond within two working days.
           </p>
           <ContactForm />

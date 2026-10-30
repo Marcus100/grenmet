@@ -19,7 +19,7 @@ function firstValue(value: string | string[] | undefined): string | null {
 //      "localhost:3015"); a bare host means https, except localhost outside
 //      production, which also allows http;
 //   3. in development only, the local ports in docs/ports.md.
-const BARE_HOST = /^[a-z0-9.-]+(?::\d{1,5})?$/;
+const BARE_HOST = /^[a-z0-9.-]+(?::\d{1,5})?$/u;
 const DEV_PORTS = Array.from({ length: 17 }, (_, index) => 3000 + index);
 
 function isLocalHost(hostname: string): boolean {

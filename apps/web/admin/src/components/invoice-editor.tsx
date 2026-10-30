@@ -69,7 +69,7 @@ export function InvoiceEditor({
         </select>
       </label>
       <fieldset className="grid gap-2">
-        <legend className="mb-1 font-medium text-sm">Lines</legend>
+        <legend className="mb-1 text-sm font-medium">Lines</legend>
         <p className="text-muted-foreground text-xs">
           Leave unused rows empty. A blank VAT rate uses the default configured
           on the server (provisional).
@@ -133,7 +133,7 @@ export function InvoiceEditor({
       </label>
       <div>
         <button
-          className="rounded-md border px-3 py-1.5 text-sm hover:bg-muted"
+          className="hover:bg-muted rounded-md border px-3 py-1.5 text-sm"
           type="submit"
         >
           {submitLabel}

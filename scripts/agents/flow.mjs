@@ -17,13 +17,13 @@ import { spawnSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 import { findSessions } from "./sessions.mjs";
 
-const MERGE_PULL_REQUEST_RE = /^Merge pull request #\d+ from [^/\s]+\/(\S+)/;
+const MERGE_PULL_REQUEST_RE = /^Merge pull request #\d+ from [^/\s]+\/(\S+)/u;
 const MERGE_REMOTE_TRACKING_RE =
-  /^Merge remote-tracking branch '(?:[^/']+\/)?([^']+)'/;
-const MERGE_BRANCH_RE = /^Merge branch '([^']+)'/;
-const MERGE_SHORT_RE = /^Merge ([\w./-]+?)(?::|\s+into\s|$)/;
-const PR_NUMBER_RE = /^Merge pull request #(\d+)/;
-const REVERT_RE = /^Revert\b/;
+  /^Merge remote-tracking branch '(?:[^/']+\/)?([^']+)'/u;
+const MERGE_BRANCH_RE = /^Merge branch '([^']+)'/u;
+const MERGE_SHORT_RE = /^Merge ([\w./-]+?)(?::|\s+into\s|$)/u;
+const PR_NUMBER_RE = /^Merge pull request #(\d+)/u;
+const REVERT_RE = /^Revert\b/u;
 
 const DAY_MS = 86_400_000;
 const HOUR_MS = 3_600_000;

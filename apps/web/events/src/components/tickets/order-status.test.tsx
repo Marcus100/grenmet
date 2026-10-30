@@ -10,10 +10,10 @@ vi.mock("next/navigation", () => ({
 }));
 
 const NOW = new Date("2030-01-01T18:00:00Z");
-const PAY_ORGANISER = /Pay the organiser/;
-const CHECKING = /Checking for your payment/;
-const TWO_CONFIRMED = /2 tickets confirmed/;
-const REFUNDED_AMOUNT = /EC\$100\.00 was refunded/;
+const PAY_ORGANISER = /Pay the organiser/u;
+const CHECKING = /Checking for your payment/u;
+const TWO_CONFIRMED = /2 tickets confirmed/u;
+const REFUNDED_AMOUNT = /EC\$100\.00 was refunded/u;
 
 function order(overrides: Partial<MyOrder> = {}): MyOrder {
   return {

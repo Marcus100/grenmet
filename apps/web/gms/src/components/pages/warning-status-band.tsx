@@ -34,21 +34,21 @@ export function WarningStatusBand({
   return (
     <div
       className={cn(
-        "mb-6 flex flex-col gap-2 rounded-gm-card p-5",
+        "rounded-gm-card mb-6 flex flex-col gap-2 p-5",
         WARNING_LEVEL_SURFACE[level]
       )}
       role="status"
     >
-      <p className="flex items-center gap-2 font-bold font-gm-display text-gm-display uppercase tracking-wide">
+      <p className="font-gm-display text-gm-display flex items-center gap-2 font-bold tracking-wide uppercase">
         <StatusIcon aria-hidden="true" className="size-8 shrink-0" />
         {alertsSummary(alerts)}
       </p>
-      <p className="max-w-prose text-body-base leading-body-base">
+      <p className="text-body-base leading-body-base max-w-prose">
         {unavailable
           ? "This is not an all-clear. Our warning feed did not respond. Listen to local radio, call the forecast office or check NaDMA."
           : WARNING_LEVEL_GUIDANCE[level]}
       </p>
-      <p className="font-mono text-body-sm leading-body-sm">
+      <p className="text-body-sm leading-body-sm font-mono">
         Last checked {CHECKED.format(checkedAt)} AST · CAP feed{" "}
         {unavailable ? "not responding" : "OK"}
       </p>

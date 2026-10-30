@@ -39,7 +39,7 @@ export function getForecastDays(
       isToday: i === 0,
       low: forecast.low,
       month: d.toLocaleString("en-US", { month: "short" }),
-      path: `/weather/${slug.replace(/-/g, "/")}`,
+      path: `/weather/${slug.replace(/-/gu, "/")}`,
       slug,
     };
   });

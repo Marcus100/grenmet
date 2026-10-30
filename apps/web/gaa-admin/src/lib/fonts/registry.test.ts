@@ -15,9 +15,9 @@ import { describe, expect, it } from "vitest";
 const appRoot = path.resolve(import.meta.dirname, "../..");
 
 const REGISTRY_BLOCK_REGEX =
-  /export const fontRegistry = \{([\s\S]*?)\} as const/;
-const REGISTRY_KEY_REGEX = /^\s*(\w+): \{ label:/gm;
-const DATA_FONT_RULE_REGEX = /html\[data-font="(\w+)"\]/g;
+  /export const fontRegistry = \{([\s\S]*?)\} as const/u;
+const REGISTRY_KEY_REGEX = /^\s*(\w+): \{ label:/gmu;
+const DATA_FONT_RULE_REGEX = /html\[data-font="(\w+)"\]/gu;
 
 function registryKeys(): string[] {
   const source = readFileSync(

@@ -66,11 +66,11 @@ const SECTIONS = {
   "Should trigger": "trigger",
   "Should not trigger": "no-trigger",
 };
-const HEADING = /^##\s+(.*?)\s*$/;
-const TOP_HEADING = /^#\s/;
-const BULLET = /^\s*- (.+?)\s*$/;
+const HEADING = /^##\s+(.*?)\s*$/u;
+const TOP_HEADING = /^#\s/u;
+const BULLET = /^\s*- (.+?)\s*$/u;
 // Paths that show an agent read a skill's instructions, e.g. through `cat`.
-const SKILL_READ = /\.(?:agents|claude)\/skills\/([\w-]+)\/SKILL\.md/g;
+const SKILL_READ = /\.(?:agents|claude)\/skills\/([\w-]+)\/SKILL\.md/gu;
 const CODEX_TEXT_KEYS = new Set(["command", "cmd", "input", "arguments"]);
 
 // Bullets under the two trigger sections become cases for `skillName`.

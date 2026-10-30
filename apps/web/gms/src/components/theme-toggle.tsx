@@ -37,7 +37,7 @@ export function ThemeToggle({
       // A plain icon like Search beside it: no filled chip, a faint hover.
       className={cn(
         tone === "masthead"
-          ? "size-11 text-gm-text-inverse hover:bg-gm-text-inverse/10 hover:text-gm-text-inverse focus-visible:ring-gm-lime [&_svg]:size-5"
+          ? "text-gm-text-inverse hover:bg-gm-text-inverse/10 hover:text-gm-text-inverse focus-visible:ring-gm-lime size-11 [&_svg]:size-5"
           : "focus-visible:ring-gm-blue"
       )}
       onClick={cycleTheme}

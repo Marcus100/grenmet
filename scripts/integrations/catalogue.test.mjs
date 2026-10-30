@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-const INVALID_SHARED_ROUTING = /Invalid shared Sentry routing/;
+const INVALID_SHARED_ROUTING = /Invalid shared Sentry routing/u;
 
 test("staging stays disabled even when provider settings were previously verified", () => {
   const data = readCatalogue();

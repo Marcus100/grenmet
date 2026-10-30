@@ -56,8 +56,8 @@ vi.mock("react-map-gl/maplibre", () => ({
 
 const BASE = "http://localhost";
 const CREATE_URL = `${BASE}/api/v1/cap/alerts`;
-const SAVE_DRAFT = /save draft/i;
-const CBRNE_CATEGORY = /chemical, biological/i;
+const SAVE_DRAFT = /save draft/iu;
+const CBRNE_CATEGORY = /chemical, biological/iu;
 
 let capturedBody: unknown = null;
 

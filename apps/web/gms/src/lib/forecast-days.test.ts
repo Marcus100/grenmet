@@ -23,8 +23,8 @@ describe("forecastDayTitle", () => {
 });
 
 /** Hoisted: a regex literal rebuilt on every call is a needless allocation. */
-const DATED_PATH = /^\/weather\/\d{4}\/\d{2}\/\d{2}$/;
-const SLUG_SEPARATOR = /-/g;
+const DATED_PATH = /^\/weather\/\d{4}\/\d{2}\/\d{2}$/u;
+const SLUG_SEPARATOR = /-/gu;
 
 describe("getForecastDays", () => {
   it("returns five days, today first", () => {

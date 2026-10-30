@@ -40,7 +40,7 @@ export default function RootLayout({
       className={`${notoSans.variable} ${inter.variable} ${bricolage.variable}`}
       lang="en"
     >
-      <body className="min-h-screen bg-background font-sans text-foreground antialiased">
+      <body className="bg-background text-foreground min-h-screen font-sans antialiased">
         {children}
       </body>
     </html>

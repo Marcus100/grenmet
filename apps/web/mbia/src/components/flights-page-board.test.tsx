@@ -2,8 +2,8 @@ import { render, screen } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { FlightsPageBoard } from "@/components/flights-page-board";
 
-const LAURISTON_DEPARTURES_RE = /lauriston airport.*departures/i;
-const GND_ARRIVALS_RE = /maurice bishop.*arrivals/i;
+const LAURISTON_DEPARTURES_RE = /lauriston airport.*departures/iu;
+const GND_ARRIVALS_RE = /maurice bishop.*arrivals/iu;
 
 let search = "";
 vi.mock("next/navigation", () => ({

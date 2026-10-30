@@ -20,10 +20,10 @@ export default async function NetworkPage() {
   return (
     <div className="mx-auto max-w-3xl space-y-10">
       <div>
-        <h1 className="font-bold font-display text-heading-base tracking-tight sm:text-heading-md">
+        <h1 className="font-display text-heading-base sm:text-heading-md font-bold tracking-tight">
           Your network
         </h1>
-        <p className="mt-2 text-body-base text-muted-foreground">
+        <p className="text-body-base text-muted-foreground mt-2">
           People you've met at events and in groups. Only connections and fellow
           group members can message you.
         </p>
@@ -94,7 +94,7 @@ export default async function NetworkPage() {
 
 function Empty() {
   return (
-    <li className="p-3 text-body text-muted-foreground">
+    <li className="text-body text-muted-foreground p-3">
       No one here yet. Go to an event and say hello.
     </li>
   );
@@ -109,8 +109,8 @@ function Section({
 }) {
   return (
     <section className="space-y-3">
-      <h2 className="font-display font-semibold text-heading-sm">{title}</h2>
-      <ul className="divide-y divide-border rounded-2xl border border-border bg-card">
+      <h2 className="font-display text-heading-sm font-semibold">{title}</h2>
+      <ul className="divide-border border-border bg-card divide-y rounded-2xl border">
         {children}
       </ul>
     </section>
@@ -132,8 +132,8 @@ function Row({
     <li className="flex items-center gap-3 p-3">
       <PersonAvatar name={name} size="lg" />
       <Link className="min-w-0 flex-1" href={`/people/${handle}`}>
-        <p className="truncate font-medium text-body hover:underline">{name}</p>
-        <p className="truncate text-caption text-muted-foreground">
+        <p className="text-body truncate font-medium hover:underline">{name}</p>
+        <p className="text-caption text-muted-foreground truncate">
           {headline}
         </p>
       </Link>

@@ -21,19 +21,19 @@ export default async function SpicemasPage() {
 
   return (
     <div className="space-y-10">
-      <header className="relative isolate overflow-hidden rounded-3xl bg-events-hibiscus p-6 text-white sm:p-12">
+      <header className="bg-events-hibiscus relative isolate overflow-hidden rounded-3xl p-6 text-white sm:p-12">
         <PartyPopper
           aria-hidden="true"
           className="absolute -right-10 -bottom-10 -z-10 size-64 opacity-15"
           strokeWidth={1.5}
         />
-        <p className="font-semibold text-caption text-white/80 uppercase tracking-wide">
+        <p className="text-caption font-semibold tracking-wide text-white/80 uppercase">
           Season hub
         </p>
-        <h1 className="mt-2 font-bold font-display text-display tracking-tight">
+        <h1 className="font-display text-display mt-2 font-bold tracking-tight">
           Spicemas season
         </h1>
-        <p className="mt-3 max-w-xl text-body-base text-white/90">
+        <p className="text-body-base mt-3 max-w-xl text-white/90">
           Band launches, fetes and the build-up to carnival — every season event
           listed on Barrels Events, in one place.
         </p>
@@ -41,7 +41,7 @@ export default async function SpicemasPage() {
           <Link
             className={cn(
               buttonVariants({ size: "lg" }),
-              "bg-white text-events-ink hover:bg-white/90"
+              "text-events-ink bg-white hover:bg-white/90"
             )}
             href="/events?category=fete"
           >
@@ -60,7 +60,7 @@ export default async function SpicemasPage() {
       </header>
 
       <section className="space-y-5">
-        <h2 className="font-bold font-display text-heading-sm">Coming up</h2>
+        <h2 className="font-display text-heading-sm font-bold">Coming up</h2>
         {events.length > 0 ? (
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {events.map((event) => (

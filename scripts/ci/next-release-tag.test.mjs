@@ -11,7 +11,7 @@ import {
 const script = fileURLToPath(
   new URL("./next-release-tag.mjs", import.meta.url)
 );
-const NO_TAG_ERROR = /No existing/;
+const NO_TAG_ERROR = /No existing/u;
 const run = (input, ...args) =>
   spawnSync("node", [script, ...args], { encoding: "utf8", input });
 

@@ -91,7 +91,7 @@ export default async function RewardsPage({ searchParams }: PageProps) {
       <AchievementsSection achievements={achievements} />
       <SettingsSection title="Your cards">
         {cards.length === 0 ? (
-          <p className="py-5 text-muted-foreground text-sm">
+          <p className="text-muted-foreground py-5 text-sm">
             No stamps yet. Cards fill when you are admitted at an event run by a
             business that offers rewards.
           </p>

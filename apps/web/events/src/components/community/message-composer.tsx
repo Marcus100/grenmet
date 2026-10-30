@@ -32,12 +32,12 @@ export function MessageComposer({
   return (
     <>
       {error ? (
-        <p className="mt-3 text-caption text-destructive" role="alert">
+        <p className="text-caption text-destructive mt-3" role="alert">
           {error}
         </p>
       ) : null}
       <form
-        className="sticky bottom-20 mt-4 flex items-end gap-2 rounded-2xl border border-border bg-card p-2 lg:bottom-4"
+        className="border-border bg-card sticky bottom-20 mt-4 flex items-end gap-2 rounded-2xl border p-2 lg:bottom-4"
         onSubmit={(event) => {
           event.preventDefault();
           send();

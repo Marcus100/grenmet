@@ -76,19 +76,19 @@ export default async function NewBookingPage({ params }: NewBookingPageProps) {
     <div className="space-y-6">
       <header className="space-y-1">
         <Link
-          className="inline-flex min-h-11 items-center font-medium text-primary underline underline-offset-4"
+          className="text-primary inline-flex min-h-11 items-center font-medium underline underline-offset-4"
           href={{ pathname: agendaHref }}
         >
           Back to the agenda
         </Link>
         <p className="text-muted-foreground text-sm">{org.value.name}</p>
-        <h1 className="font-semibold text-2xl">New booking</h1>
+        <h1 className="text-2xl font-semibold">New booking</h1>
         <p className="text-muted-foreground">
           For a phone call or a walk-in. The booking is confirmed straight away.
         </p>
       </header>
       {bookable.length === 0 ? (
-        <Empty className="border border-border">
+        <Empty className="border-border border">
           <EmptyHeader>
             <EmptyTitle>Nothing to book yet</EmptyTitle>
             <EmptyDescription>

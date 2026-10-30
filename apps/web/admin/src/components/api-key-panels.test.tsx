@@ -13,9 +13,9 @@ vi.mock("@/app/(console)/organisations/api-key-actions", () => ({
 }));
 
 const NOW = new Date("2026-10-20T00:00:00Z");
-const ROTATE = /rotate/i;
-const CREATE = /create/i;
-const NO_KEYS = /no API keys/;
+const ROTATE = /rotate/iu;
+const CREATE = /create/iu;
+const NO_KEYS = /no API keys/u;
 const SECRET = "bk_abcd1234_supersecret";
 
 const active: ApiKeyPublic = {

@@ -9,8 +9,8 @@ import {
 
 afterEach(cleanup);
 
-const SAMPLE_WORD = /sample/i;
-const ILLUSTRATIVE = /illustrative/i;
+const SAMPLE_WORD = /sample/iu;
+const ILLUSTRATIVE = /illustrative/iu;
 const PAGES_DIR = join(import.meta.dirname, "../../app/(pages)");
 
 function pageFiles(dir: string): string[] {

@@ -101,13 +101,13 @@ export function AlertBoard({ alerts }: { alerts: CapAlertList }) {
           const Icon = STAT_ICON[state];
           return (
             <button
-              className="border border-gm-border bg-card p-4 text-left shadow-card"
+              className="border-gm-border bg-card shadow-card border p-4 text-left"
               key={state}
               onClick={() => setFilter(filter === state ? "ALL" : state)}
               type="button"
             >
               <div className="flex items-center justify-between gap-3">
-                <span className="text-gm-text-muted text-label uppercase leading-label">
+                <span className="text-gm-text-muted text-label leading-label uppercase">
                   {state}
                 </span>
                 <span
@@ -120,7 +120,7 @@ export function AlertBoard({ alerts }: { alerts: CapAlertList }) {
                   <Icon className="size-3.5" />
                 </span>
               </div>
-              <div className="mt-2 text-gm-text-primary text-heading-md leading-heading-md">
+              <div className="text-gm-text-primary text-heading-md leading-heading-md mt-2">
                 {counts[state]}
               </div>
             </button>
@@ -129,17 +129,17 @@ export function AlertBoard({ alerts }: { alerts: CapAlertList }) {
       </div>
 
       <div className="flex flex-wrap items-center gap-2">
-        <div className="flex min-w-56 items-center gap-2 border border-gm-border bg-card px-3 py-1.5">
-          <Search aria-hidden="true" className="size-3.5 text-gm-text-muted" />
+        <div className="border-gm-border bg-card flex min-w-56 items-center gap-2 border px-3 py-1.5">
+          <Search aria-hidden="true" className="text-gm-text-muted size-3.5" />
           <input
-            className="w-full bg-transparent text-body-sm outline-none placeholder:text-gm-text-muted"
+            className="text-body-sm placeholder:text-gm-text-muted w-full bg-transparent outline-none"
             onChange={(event) => setQuery(event.target.value)}
             placeholder="Search headline or identifier…"
             value={query}
           />
         </div>
         <button
-          className="border px-3 py-1.5 font-semibold text-body-sm leading-body-sm"
+          className="text-body-sm leading-body-sm border px-3 py-1.5 font-semibold"
           onClick={() => setFilter("ALL")}
           style={{
             borderColor:
@@ -157,14 +157,14 @@ export function AlertBoard({ alerts }: { alerts: CapAlertList }) {
         </button>
       </div>
 
-      <div className="overflow-hidden border border-gm-border bg-card shadow-card">
-        <div className="grid grid-cols-[1fr_120px_120px] gap-3 border-gm-border border-b bg-gm-surface px-4 py-3 text-gm-text-muted text-label uppercase leading-label">
+      <div className="border-gm-border bg-card shadow-card overflow-hidden border">
+        <div className="border-gm-border bg-gm-surface text-gm-text-muted text-label leading-label grid grid-cols-[1fr_120px_120px] gap-3 border-b px-4 py-3 uppercase">
           <span>Alert</span>
           <span>State</span>
           <span>Sent</span>
         </div>
         {visible.length === 0 ? (
-          <div className="px-4 py-8 text-center text-body text-gm-text-muted leading-body">
+          <div className="text-body text-gm-text-muted leading-body px-4 py-8 text-center">
             No CAP alerts match this view.
           </div>
         ) : (
@@ -173,7 +173,7 @@ export function AlertBoard({ alerts }: { alerts: CapAlertList }) {
             return (
               <motion.div
                 animate={{ opacity: 1, x: 0 }}
-                className="flex border-gm-border border-b last:border-b-0"
+                className="border-gm-border flex border-b last:border-b-0"
                 initial={{ opacity: 0, x: -6 }}
                 key={alert.id}
                 transition={{
@@ -187,18 +187,18 @@ export function AlertBoard({ alerts }: { alerts: CapAlertList }) {
                     background: SEVERITY_RISK_VAR[info?.severity ?? "Unknown"],
                   }}
                 />
-                <div className="grid flex-1 grid-cols-[1fr_120px_120px] items-center gap-3 px-4 py-3 text-body leading-body">
+                <div className="text-body leading-body grid flex-1 grid-cols-[1fr_120px_120px] items-center gap-3 px-4 py-3">
                   <div className="flex min-w-0 flex-col gap-1">
                     <div className="flex items-center gap-2">
                       <SeverityBadge severity={info?.severity} />
                       <Link
-                        className="min-w-0 truncate text-gm-text-primary underline"
+                        className="text-gm-text-primary min-w-0 truncate underline"
                         href={`/cap/admin/${alert.id}`}
                       >
                         {info?.headline ?? alert.identifier}
                       </Link>
                     </div>
-                    <span className="font-mono text-gm-text-muted text-micro leading-micro">
+                    <span className="text-gm-text-muted text-micro leading-micro font-mono">
                       {alert.identifier}
                     </span>
                   </div>

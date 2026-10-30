@@ -46,9 +46,9 @@ export function NotificationPreferences() {
     );
   }
   return (
-    <div className="flex flex-col gap-4 rounded-xl border border-border p-6">
+    <div className="border-border flex flex-col gap-4 rounded-xl border p-6">
       <div className="flex flex-col gap-1">
-        <h2 className="font-medium text-lg">Notifications</h2>
+        <h2 className="text-lg font-medium">Notifications</h2>
         <p className="text-muted-foreground text-sm">
           Choose, for each notification, whether it appears under the bell, in
           your email, or both. Urgent notifications always appear under the
@@ -56,17 +56,17 @@ export function NotificationPreferences() {
           unseen. Repeats of the same notification are grouped into one.
         </p>
       </div>
-      <ul className="flex flex-col divide-y divide-border">
+      <ul className="divide-border flex flex-col divide-y">
         {query.data.map((preference) => (
           <li
             className="flex items-center justify-between gap-4 py-3"
             key={preference.event_key}
           >
             <div className="flex flex-col gap-0.5">
-              <span className="font-medium text-sm">
+              <span className="text-sm font-medium">
                 {preference.label}
                 {preference.urgent ? (
-                  <span className="ml-2 rounded bg-destructive/10 px-1.5 py-0.5 font-normal text-destructive text-xs">
+                  <span className="bg-destructive/10 text-destructive ml-2 rounded px-1.5 py-0.5 text-xs font-normal">
                     Urgent
                   </span>
                 ) : null}

@@ -106,7 +106,7 @@ function AccountProfile({
   const editLink =
     adminHref && isStaff ? (
       <a
-        className="rounded-lg border border-border px-3 py-1.5 font-medium text-foreground text-sm transition hover:bg-muted"
+        className="border-border text-foreground hover:bg-muted rounded-lg border px-3 py-1.5 text-sm font-medium transition"
         href={`${adminHref}/profile`}
       >
         Edit in GAA Admin
@@ -116,11 +116,11 @@ function AccountProfile({
   return (
     <div className="space-y-8">
       <div className="flex items-center gap-4">
-        <div className="flex size-16 shrink-0 items-center justify-center rounded-full bg-(--auth-accent) font-semibold text-white text-xl">
+        <div className="flex size-16 shrink-0 items-center justify-center rounded-full bg-(--auth-accent) text-xl font-semibold text-white">
           {getInitials(displayName, user.email)}
         </div>
         <div className="min-w-0 space-y-1.5">
-          <p className="truncate font-semibold text-foreground text-xl">
+          <p className="text-foreground truncate text-xl font-semibold">
             {displayName}
           </p>
           <div className="flex flex-wrap gap-2">
@@ -226,7 +226,7 @@ export default async function Home({ searchParams }: PageProps) {
 
       {notice ? (
         <div
-          className="rounded-lg border border-border bg-muted px-4 py-3 text-foreground text-sm"
+          className="border-border bg-muted text-foreground rounded-lg border px-4 py-3 text-sm"
           role="status"
         >
           {notice}

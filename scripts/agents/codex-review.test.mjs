@@ -58,16 +58,16 @@ const FINE_GRAINED_PAT = [
   "11ABCDEFG0abcdefghijklmnopqrstuvwxyz",
 ].join("_");
 const PEM_HEADER = ["-----BEGIN RSA", "PRIVATE KEY-----"].join(" ");
-const NOT_POSTED = /Not posted to PR/;
-const NO_FINDINGS = /wrote no findings/;
-const BLEW_UP = /systemd-run blew up/;
-const COULD_NOT_RUN = /could not run codex/;
-const PIN_DIR = /codex-pin-/;
-const NEEDS_VALUE = /needs a value/;
-const PUSH_ORDER = /Push the branch first/;
-const PUSHED_LOCAL = /Pushed: not required/;
-const TREE_PINNED = /Working tree: detached checkout of the head SHA/;
-const HOST_COLLECTED_DIFF = /HOST-COLLECTED DIFF/;
+const NOT_POSTED = /Not posted to PR/u;
+const NO_FINDINGS = /wrote no findings/u;
+const BLEW_UP = /systemd-run blew up/u;
+const COULD_NOT_RUN = /could not run codex/u;
+const PIN_DIR = /codex-pin-/u;
+const NEEDS_VALUE = /needs a value/u;
+const PUSH_ORDER = /Push the branch first/u;
+const PUSHED_LOCAL = /Pushed: not required/u;
+const TREE_PINNED = /Working tree: detached checkout of the head SHA/u;
+const HOST_COLLECTED_DIFF = /HOST-COLLECTED DIFF/u;
 const SYSTEMD_RUN = "/usr/bin/systemd-run";
 
 function git(cwd, ...args) {
@@ -76,9 +76,9 @@ function git(cwd, ...args) {
   return run.stdout.trim();
 }
 
-const HEADER = /^Read-only review\. Write nothing/;
-const TASK_LINE = /Task: Add the thing/;
-const CRITERIA_LINE = /Acceptance criteria: It does the thing/;
+const HEADER = /^Read-only review\. Write nothing/u;
+const TASK_LINE = /Task: Add the thing/u;
+const CRITERIA_LINE = /Acceptance criteria: It does the thing/u;
 const HEAD = "a".repeat(40);
 const BASE = "b".repeat(40);
 const INFO = {
@@ -253,7 +253,7 @@ test("the prompt names the exact head and base and the author's fields", () => {
   assert.match(prompt, HEADER);
   assert.match(prompt, TASK_LINE);
   assert.match(prompt, CRITERIA_LINE);
-  assert.match(prompt, new RegExp(`${BASE}\\.\\.${HEAD}`));
+  assert.match(prompt, new RegExp(`${BASE}\\.\\.${HEAD}`, "u"));
   assert.ok(prompt.includes("do not run git commands"));
   assert.ok(prompt.includes("untrusted PR content"));
   assert.ok(
@@ -577,7 +577,7 @@ const named = (calls, cmd) =>
   );
 const removed = (calls) =>
   calls.filter((c) => c.cmd === "git" && c.args[1] === "remove");
-const REVIEW_TMP = /^codex-review-(?!test-)/;
+const REVIEW_TMP = /^codex-review-(?!test-)/u;
 const reviewTempDirs = () =>
   readdirSync(tmpdir()).filter((name) => REVIEW_TMP.test(name));
 
@@ -645,7 +645,7 @@ test("codex runs in a neutral directory with pinned source, and nothing is poste
   assert.ok(!codex.args.some((arg) => arg.includes("GITHUB_TOKEN")));
   assert.match(
     codex.options.input,
-    new RegExp(state.pinDir.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"))
+    new RegExp(state.pinDir.replace(/[.*+?^${}()|[\]\\]/gu, "\\$&"), "u")
   );
   assert.notEqual(codex.options.cwd, process.cwd());
   assert.equal(named(calls, "gh").length, 0);

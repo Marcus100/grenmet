@@ -24,7 +24,7 @@ import {
 import { weekDays } from "@/lib/janitorial/week";
 import { cellAssignments, ShiftBoard } from "./shift-board";
 
-const ASSIGN = /^Assign to/;
+const ASSIGN = /^Assign to/u;
 
 const BASE = "http://localhost";
 let received: unknown;

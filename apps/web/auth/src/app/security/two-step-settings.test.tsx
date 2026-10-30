@@ -20,8 +20,8 @@ vi.mock("./qr-code", () => ({
   QrCode: ({ value }: { value: string }) => <p>QR for {value}</p>,
 }));
 
-const EIGHT_LEFT = /8 unused codes left/;
-const PRIVILEGED_DISABLE_WARNING = /Turning this off blocks those tools/;
+const EIGHT_LEFT = /8 unused codes left/u;
+const PRIVILEGED_DISABLE_WARNING = /Turning this off blocks those tools/u;
 
 function typeInto(label: string, value: string) {
   fireEvent.change(screen.getByLabelText(label), { target: { value } });

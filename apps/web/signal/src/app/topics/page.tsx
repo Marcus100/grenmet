@@ -26,7 +26,7 @@ export default function TopicsPage() {
               className="border-signal-rule border-t py-8"
               key={section.slug}
             >
-              <h2 className="font-semibold font-serif text-2xl">
+              <h2 className="font-serif text-2xl font-semibold">
                 <Link
                   className="hover:text-signal-green hover:underline"
                   href={`/${section.slug}`}
@@ -37,21 +37,21 @@ export default function TopicsPage() {
               <p className="mt-3 text-lg leading-relaxed">
                 {section.description}
               </p>
-              <p className="mt-4 text-signal-muted text-sm">
+              <p className="text-signal-muted mt-4 text-sm">
                 {count ? `${count} sample stories` : "No stories yet"}
               </p>
             </section>
           );
         })}
       </div>
-      <section className="mt-8 border-signal-ink border-t-2 pt-6">
+      <section className="border-signal-ink mt-8 border-t-2 pt-6">
         <h2 className="font-serif text-3xl">
           Familiar voices. Different perspectives.
         </h2>
         <div className="mt-6 grid gap-8 md:grid-cols-3">
           {SERIES.map((series) => (
             <div key={series.label}>
-              <h3 className="font-semibold font-serif text-2xl">
+              <h3 className="font-serif text-2xl font-semibold">
                 <Link
                   className="text-signal-green hover:underline"
                   href={series.href}

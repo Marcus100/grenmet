@@ -11,8 +11,8 @@ import {
 } from "./check-coverage.mjs";
 
 const root = join(dirname(fileURLToPath(import.meta.url)), "..", "..");
-const NO_TOTAL = /no total/;
-const NO_RATES = /no line-rate/;
+const NO_TOTAL = /no total/u;
+const NO_RATES = /no line-rate/u;
 const FLOORS = {
   api: { branches: 60, lines: 80 },
   "web/gms": { branches: 50, lines: 70 },

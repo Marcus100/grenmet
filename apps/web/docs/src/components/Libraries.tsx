@@ -41,10 +41,10 @@ export function Libraries() {
       <div className="not-prose mt-4 grid grid-cols-1 gap-6 border-t pt-10 sm:grid-cols-2 xl:grid-cols-3">
         {libraries.map((library) => (
           <div key={library.name}>
-            <h3 className="font-semibold text-foreground text-sm">
+            <h3 className="text-foreground text-sm font-semibold">
               {library.name}
             </h3>
-            <p className="mt-1 text-muted-foreground text-sm">
+            <p className="text-muted-foreground mt-1 text-sm">
               {library.description}
             </p>
             <p className="mt-4">

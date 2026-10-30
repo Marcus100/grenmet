@@ -57,7 +57,7 @@ export function NewsletterPreferences({ initialLists, token }: Props) {
 
   return (
     <div className="space-y-4">
-      <ul className="divide-y divide-gm-border">
+      <ul className="divide-gm-border divide-y">
         {lists.map((list) => (
           <li
             className="flex flex-wrap items-center justify-between gap-3 py-3"

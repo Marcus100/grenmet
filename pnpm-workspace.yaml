@@ -126,10 +126,21 @@ catalog:
   pg: "^8.23.1"
   "@types/pg": "^8.23.1"
 
+  # API client generator (packages/api-client). Exact pins so `kubb generate`
+  # output only changes when these are bumped on purpose. The @kubb plugins
+  # version independently of the kubb core, so each keeps its own version.
+  kubb: 5.14.3
+  "@kubb/adapter-oas": 5.14.3
+  "@kubb/parser-ts": 5.14.3
+  "@kubb/plugin-fetch": 5.9.2
+  "@kubb/plugin-react-query": 5.6.2
+  "@kubb/plugin-ts": 5.2.0
+  "@kubb/plugin-zod": 5.7.2
+
   # Repository tooling
-  "@biomejs/biome": "~2.5.15"
+  "@biomejs/biome": "~2.6.4"
   turbo: "^2.11.10"
-  ultracite: "8.0.1"
+  ultracite: "8.1.0"
   husky: "^9.1.7"
   knip: "^6.43.0"
   lint-staged: ^17.6.0

@@ -15,8 +15,8 @@ vi.mock("@/lib/products", () => ({
   fetchSectorOutlook: async () => null,
 }));
 
-const HERO_NAME = /^Grenada weather/;
-const STATION_NAME = /Maurice Bishop International \(MBIA\)/;
+const HERO_NAME = /^Grenada weather/u;
+const STATION_NAME = /Maurice Bishop International \(MBIA\)/u;
 
 function alert(overrides: Partial<PublicAlert>): PublicAlert {
   return {
@@ -37,7 +37,7 @@ const result = (alerts: PublicAlert[]): AlertsResult => ({
   status: "ok",
 });
 
-const NO_OBSERVATION_LABEL = /^No current observation · /;
+const NO_OBSERVATION_LABEL = /^No current observation · /u;
 
 describe("WarningTakeover", () => {
   it("renders the live take-action alert and links to it", () => {

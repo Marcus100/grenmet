@@ -49,7 +49,7 @@ const webApps = [
 ];
 
 const generatedBlockPattern =
-  /\/\* BEGIN BARRELS DESIGN SYSTEM V1 \*\/[\s\S]*?\/\* END BARRELS DESIGN SYSTEM V1 \*\//g;
+  /\/\* BEGIN BARRELS DESIGN SYSTEM V1 \*\/[\s\S]*?\/\* END BARRELS DESIGN SYSTEM V1 \*\//gu;
 
 const sourceExtensions = new Set([
   ".css",
@@ -84,50 +84,50 @@ const categoryLabels = {
 };
 
 const semanticTokenPattern =
-  /var\(--(?:background|foreground|card|card-foreground|popover|popover-foreground|primary|primary-foreground|secondary|secondary-foreground|muted|muted-foreground|accent|accent-foreground|destructive|destructive-foreground|border|input|ring|sidebar|sidebar-[a-z-]+|radius)\)/;
+  /var\(--(?:background|foreground|card|card-foreground|popover|popover-foreground|primary|primary-foreground|secondary|secondary-foreground|muted|muted-foreground|accent|accent-foreground|destructive|destructive-foreground|border|input|ring|sidebar|sidebar-[a-z-]+|radius)\)/u;
 
 const colorValuePattern =
-  /#(?:[0-9a-fA-F]{3,4}|[0-9a-fA-F]{6}|[0-9a-fA-F]{8})\b|\b(?:rgba?|hsla?|oklch|oklab|lab|lch)\([^)]*\)|\bcolor-mix\([^)]*\)/g;
+  /#(?:[0-9a-fA-F]{3,4}|[0-9a-fA-F]{6}|[0-9a-fA-F]{8})\b|\b(?:rgba?|hsla?|oklch|oklab|lab|lch)\([^)]*\)|\bcolor-mix\([^)]*\)/gu;
 const arbitraryColorPattern =
-  /\b(?:bg|text|border|from|via|to|fill|stroke|ring|outline|decoration|accent|caret)-\[[^\]\n]+\]/g;
+  /\b(?:bg|text|border|from|via|to|fill|stroke|ring|outline|decoration|accent|caret)-\[[^\]\n]+\]/gu;
 const nextFontImportPattern =
-  /import\s*\{\s*([^}]+)\s*\}\s*from\s*["']next\/font\/google["']/g;
-const fontFamilyPattern = /\bfont-family\s*:\s*([^;]+);/gi;
-const fontTokenPattern = /--font-[a-z0-9-]+\s*:\s*([^;]+);/gi;
+  /import\s*\{\s*([^}]+)\s*\}\s*from\s*["']next\/font\/google["']/gu;
+const fontFamilyPattern = /\bfont-family\s*:\s*([^;]+);/giu;
+const fontTokenPattern = /--font-[a-z0-9-]+\s*:\s*([^;]+);/giu;
 const typographyDeclarationPattern =
-  /\b(?:font-size|line-height|letter-spacing)\s*:\s*([^;]+);/gi;
-const arbitraryTypographyPattern = /\b(?:text|leading|tracking)-\[[^\]\n]+\]/g;
+  /\b(?:font-size|line-height|letter-spacing)\s*:\s*([^;]+);/giu;
+const arbitraryTypographyPattern = /\b(?:text|leading|tracking)-\[[^\]\n]+\]/gu;
 const arbitrarySpacingPattern =
-  /\b-?(?:m[trblxy]?|p[trblxy]?|gap(?:-[xy])?|space-[xy]|inset(?:-[xy])?|top|right|bottom|left|w|h|min-w|max-w|min-h|max-h|size|basis|translate-[xy]|scroll-m[trblxy]?|scroll-p[trblxy]?|border|outline-offset)-\[[^\]\n]+\]/g;
+  /\b-?(?:m[trblxy]?|p[trblxy]?|gap(?:-[xy])?|space-[xy]|inset(?:-[xy])?|top|right|bottom|left|w|h|min-w|max-w|min-h|max-h|size|basis|translate-[xy]|scroll-m[trblxy]?|scroll-p[trblxy]?|border|outline-offset)-\[[^\]\n]+\]/gu;
 const cssSpacingDeclarationPattern =
-  /\b(?:margin|margin-inline|margin-block|margin-top|margin-right|margin-bottom|margin-left|padding|padding-inline|padding-block|padding-top|padding-right|padding-bottom|padding-left|gap|row-gap|column-gap)\s*:\s*([^;]+);/gi;
-const arbitraryRadiusPattern = /\brounded(?:-[a-z0-9]+)?-\[[^\]\n]+\]/g;
-const cssRadiusDeclarationPattern = /\bborder-radius\s*:\s*([^;]+);/gi;
+  /\b(?:margin|margin-inline|margin-block|margin-top|margin-right|margin-bottom|margin-left|padding|padding-inline|padding-block|padding-top|padding-right|padding-bottom|padding-left|gap|row-gap|column-gap)\s*:\s*([^;]+);/giu;
+const arbitraryRadiusPattern = /\brounded(?:-[a-z0-9]+)?-\[[^\]\n]+\]/gu;
+const cssRadiusDeclarationPattern = /\bborder-radius\s*:\s*([^;]+);/giu;
 const shadowPattern =
-  /\bshadow-\[[^\]\n]+\]|\bbox-shadow\s*:\s*[^;]+;|--(?:shadow|shadow-theme)-[a-z0-9-]+\s*:\s*[^;]+;/gi;
+  /\bshadow-\[[^\]\n]+\]|\bbox-shadow\s*:\s*[^;]+;|--(?:shadow|shadow-theme)-[a-z0-9-]+\s*:\s*[^;]+;/giu;
 // `dark:` utility classes and `.dark {}` rule blocks are the sanctioned dark-mode
 // mechanism (see docs/design-system.md#dark-mode) and are no longer flagged. This
 // pattern instead catches system-preference auto-detection, which bypasses the
 // @barrelsgd/theme preferences store (the cookie-persisted theme_mode + ThemeBootScript
 // path) that V1 dark mode is supposed to go through.
 const darkModePattern =
-  /\bprefers-color-scheme\b|\benableSystem\b|\bdefaultTheme\s*=\s*["']system["']|\bresolvedTheme\b|\bsetTheme\(\s*["']dark["']\s*\)/g;
+  /\bprefers-color-scheme\b|\benableSystem\b|\bdefaultTheme\s*=\s*["']system["']|\bresolvedTheme\b|\bsetTheme\(\s*["']dark["']\s*\)/gu;
 const themeFontOverridePattern =
-  /--font-sans\s*:\s*(?!var\(--brand-font-sans)[^;]+;/g;
+  /--font-sans\s*:\s*(?!var\(--brand-font-sans)[^;]+;/gu;
 const localTokenPattern =
-  /^\s*(--(?:color|brand|surface|text|border|ring|font|radius|shadow|shadow-theme|gray|blue-light|success|error|warning|orange)[a-z0-9-]*)\s*:\s*([^;]+);/i;
+  /^\s*(--(?:color|brand|surface|text|border|ring|font|radius|shadow|shadow-theme|gray|blue-light|success|error|warning|orange)[a-z0-9-]*)\s*:\s*([^;]+);/iu;
 
 // Hoisted regex literals (useTopLevelRegex):
 const lengthValuePattern =
-  /(?:\d|px|rem|em|ch|vh|vw|vmin|vmax|%|mm|cm|in|pt|pc|calc\(|clamp\(|min\(|max\()/;
-const trailingSemicolonPattern = /;$/;
+  /(?:\d|px|rem|em|ch|vh|vw|vmin|vmax|%|mm|cm|in|pt|pc|calc\(|clamp\(|min\(|max\()/u;
+const trailingSemicolonPattern = /;$/u;
 const allowedRawSpacingPattern =
-  /^(?:0|auto|0 auto|auto 0|inherit|initial|unset)$/;
+  /^(?:0|auto|0 auto|auto 0|inherit|initial|unset)$/u;
 const arbitraryColorTestPattern =
-  /#|rgb|hsl|oklch|oklab|lab|lch|color-mix|var\(--color-|var\(--brand-|var\(--success|var\(--error|var\(--warning/;
-const fontImportAliasPattern = /\s+as\s+/i;
-const typographyInheritPattern = /inherit|normal|1\b/;
-const lineSplitPattern = /\r?\n/;
+  /#|rgb|hsl|oklch|oklab|lab|lch|color-mix|var\(--color-|var\(--brand-|var\(--success|var\(--error|var\(--warning/u;
+const fontImportAliasPattern = /\s+as\s+/iu;
+const typographyInheritPattern = /inherit|normal|1\b/u;
+const lineSplitPattern = /\r?\n/u;
 
 const showAll = process.argv.includes("--all");
 const limitArg = process.argv.find((arg) => arg.startsWith("--limit="));
@@ -147,12 +147,12 @@ function toDisplayPath(path) {
 
 function maskGeneratedBlocks(source) {
   return source.replace(generatedBlockPattern, (match) =>
-    match.replace(/[^\r\n]/g, " ")
+    match.replace(/[^\r\n]/gu, " ")
   );
 }
 
 function compact(value) {
-  const normalized = value.replace(/\s+/g, " ").trim();
+  const normalized = value.replace(/\s+/gu, " ").trim();
   return normalized.length > 140
     ? `${normalized.slice(0, 137).trimEnd()}...`
     : normalized;

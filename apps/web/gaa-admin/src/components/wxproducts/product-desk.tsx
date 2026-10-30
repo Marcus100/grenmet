@@ -78,7 +78,7 @@ import {
 import { SectionHints } from "./section-hints";
 import { WarningRaisedNote } from "./warning-raised-note";
 
-const DAY_KEY_PREFIX = /^(day[1-4])/;
+const DAY_KEY_PREFIX = /^(day[1-4])/u;
 
 function productTabLabel(kind: ProductKind) {
   if (isForecastKind(kind)) return kind.charAt(0).toUpperCase() + kind.slice(1);
@@ -86,7 +86,7 @@ function productTabLabel(kind: ProductKind) {
   return PRODUCT_KINDS[kind];
 }
 
-const EVENING_DAY_DATE = /^day[1-4]Date$/;
+const EVENING_DAY_DATE = /^day[1-4]Date$/u;
 const COMPUTED_FORECAST_FIELDS = [
   "issuedAt",
   "validFrom",
@@ -106,7 +106,7 @@ function withIssuer(
   if (!isForecastKind(kind)) return { ...values, forecaster };
   return { ...values, area: FORECAST_AREA, forecaster };
 }
-const DAY_SECTION = /^Day (\d)$/;
+const DAY_SECTION = /^Day (\d)$/u;
 const LEGACY_BY_GROUP: Record<string, string[]> = {
   Wind: ["wind"],
   Marine: ["seaState"],
@@ -608,7 +608,7 @@ function ProductEditor({
                   ) : null}
                   {isAboveGreen(kind, values.level) ? (
                     <p
-                      className="rounded-lg border border-destructive p-3 text-sm"
+                      className="border-destructive rounded-lg border p-3 text-sm"
                       role="alert"
                     >
                       {ABOVE_GREEN_MESSAGE}
@@ -676,17 +676,17 @@ function ProductEditor({
                                 className="@container space-y-3 border-t pt-4 first:border-t-0 first:pt-0"
                                 key={section}
                               >
-                                <h2 className="font-semibold text-sm leading-5">
+                                <h2 className="text-sm leading-5 font-semibold">
                                   {heading}
                                   {group === "Wind" ? (
-                                    <span className="font-normal text-muted-foreground text-xs">
+                                    <span className="text-muted-foreground text-xs font-normal">
                                       {" "}
                                       · mph
                                     </span>
                                   ) : null}
                                   {DAY_SECTION.test(section) &&
                                   values[`day${section.slice(4)}Date`] ? (
-                                    <span className="font-normal text-muted-foreground">
+                                    <span className="text-muted-foreground font-normal">
                                       {" · "}
                                       {formatComputedValue(
                                         values[`day${section.slice(4)}Date`] ??
@@ -772,7 +772,7 @@ function ProductEditor({
                             );
                           })}
                       </ForecastPeriodFields>
-                      <div className="space-y-2 text-muted-foreground text-xs">
+                      <div className="text-muted-foreground space-y-2 text-xs">
                         <p>
                           * Required to publish. Times: Grenada (UTC−04:00).
                         </p>
@@ -807,7 +807,7 @@ function ProductEditor({
                               <InputGroupAddon
                                 align="inline-start"
                                 aria-hidden="true"
-                                className="pointer-events-none self-start text-destructive text-xs"
+                                className="text-destructive pointer-events-none self-start text-xs"
                               >
                                 *
                               </InputGroupAddon>
@@ -844,7 +844,7 @@ function ProductEditor({
                       ) : null}
                       {message ? (
                         <p
-                          className="whitespace-pre-wrap rounded-lg border p-3 text-sm"
+                          className="rounded-lg border p-3 text-sm whitespace-pre-wrap"
                           role="status"
                         >
                           {message}
@@ -907,7 +907,7 @@ function ProductEditor({
                       aria-label="Publication preview"
                       className="space-y-4 rounded-lg border p-4"
                     >
-                      <p className="font-semibold text-sm">
+                      <p className="text-sm font-semibold">
                         Review before publication
                       </p>
                       <ProductContentView content={{ kind, values: preview }} />
@@ -1109,16 +1109,16 @@ export function ProductDesk({
               <TabsList
                 aria-label="Product type"
                 className={cn(
-                  "h-8 w-full justify-start overflow-x-auto rounded-lg bg-muted p-1 sm:justify-center",
+                  "bg-muted h-8 w-full justify-start overflow-x-auto rounded-lg p-1 sm:justify-center",
                   hasAlertTabs &&
-                    "grid h-auto @2xl:grid-cols-5 @sm:grid-cols-3 grid-cols-2 gap-1 overflow-visible group-data-[orientation=horizontal]/tabs:h-auto"
+                    "grid h-auto grid-cols-2 gap-1 overflow-visible group-data-[orientation=horizontal]/tabs:h-auto @sm:grid-cols-3 @2xl:grid-cols-5"
                 )}
               >
                 {deskKinds.map((value) => (
                   <TabsTrigger
                     className={cn(
                       hasAlertTabs &&
-                        "h-auto min-h-10 whitespace-normal text-balance px-2 py-1 text-center leading-4"
+                        "h-auto min-h-10 px-2 py-1 text-center leading-4 text-balance whitespace-normal"
                     )}
                     key={value}
                     value={value}

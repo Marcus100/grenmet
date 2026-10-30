@@ -79,7 +79,7 @@ function Trend({ trend }: { trend: PressureTrend }) {
     <>
       <Arrow
         aria-hidden="true"
-        className="ml-1 inline size-4 align-[-0.125em] text-gm-lime"
+        className="text-gm-lime ml-1 inline size-4 align-[-0.125em]"
         strokeWidth={2.6}
       />
       <span className="sr-only">, {trend}</span>
@@ -101,7 +101,7 @@ function valueText(reading: Reading): ReactNode {
             <span className="flex flex-col" key={row.time}>
               <span>{row.time}</span>
               {row.measure && (
-                <span className="font-normal text-body-sm text-gm-text-inverse/80 leading-body-sm">
+                <span className="text-body-sm text-gm-text-inverse/80 leading-body-sm font-normal">
                   <Measure measure={row.measure} />
                 </span>
               )}
@@ -143,7 +143,7 @@ export function ReadingGrid({
   return (
     <dl
       className={cn(
-        "grid grid-cols-2 gap-x-3 gap-y-3 border-gm-text-inverse/15 border-t pt-4 lg:grid-cols-4",
+        "border-gm-text-inverse/15 grid grid-cols-2 gap-x-3 gap-y-3 border-t pt-4 lg:grid-cols-4",
         className
       )}
     >
@@ -155,7 +155,7 @@ export function ReadingGrid({
             className={cn(
               "grid min-w-0 grid-cols-[1.75rem_minmax(0,1fr)_auto] content-start items-start gap-x-2.5 lg:grid-cols-[2rem_minmax(0,1fr)_auto]",
               quality &&
-                "col-span-2 items-center rounded-lg bg-gm-scrim px-3 py-2.5 sm:col-span-1 sm:bg-transparent sm:p-0"
+                "bg-gm-scrim col-span-2 items-center rounded-lg px-3 py-2.5 sm:col-span-1 sm:bg-transparent sm:p-0"
             )}
             key={reading.label}
           >
@@ -169,26 +169,26 @@ export function ReadingGrid({
             />
             <dd
               className={cn(
-                "col-start-2 row-start-1 font-bold text-body-base tabular-nums leading-body-base",
+                "text-body-base leading-body-base col-start-2 row-start-1 font-bold tabular-nums",
                 reading.unavailable &&
-                  "font-normal text-body-sm text-gm-text-inverse/85 leading-body-sm lg:text-body-base lg:leading-body-base"
+                  "text-body-sm text-gm-text-inverse/85 leading-body-sm lg:text-body-base lg:leading-body-base font-normal"
               )}
             >
               {quality ? reading.tag : valueText(reading)}
               {reading.trend && <Trend trend={reading.trend} />}
             </dd>
             {reading.detail && (
-              <dd className="col-start-2 row-start-2 font-semibold text-caption leading-caption">
+              <dd className="text-caption leading-caption col-start-2 row-start-2 font-semibold">
                 {reading.detail}
               </dd>
             )}
-            <dt className="col-start-2 row-start-3 text-body-sm text-gm-text-inverse/85 leading-body-sm">
+            <dt className="text-body-sm text-gm-text-inverse/85 leading-body-sm col-start-2 row-start-3">
               {reading.label}
             </dt>
             {quality && (
-              <dd className="col-start-3 row-span-3 row-start-1 grid justify-items-end font-bold text-heading-sm tabular-nums leading-heading-sm">
+              <dd className="text-heading-sm leading-heading-sm col-start-3 row-span-3 row-start-1 grid justify-items-end font-bold tabular-nums">
                 {reading.value.replace(" AQI", "")}
-                <span className="font-normal text-caption leading-caption">
+                <span className="text-caption leading-caption font-normal">
                   AQI
                 </span>
               </dd>

@@ -42,7 +42,7 @@ const detail = {
   history: [],
 };
 
-const RE_0 = /Approving overrides that rejection/;
+const RE_0 = /Approving overrides that rejection/u;
 
 describe("moderation pages", () => {
   beforeEach(() => {

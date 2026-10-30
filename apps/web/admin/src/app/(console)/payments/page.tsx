@@ -62,7 +62,7 @@ export default async function PaymentsPage({
   return (
     <>
       <div className="space-y-1">
-        <h1 className="font-semibold text-2xl">Payments</h1>
+        <h1 className="text-2xl font-semibold">Payments</h1>
         <p className="text-muted-foreground">
           What each organisation is owed, the append-only ledger, period
           reconciliation and payouts.

@@ -3,7 +3,7 @@ import userEvent from "@testing-library/user-event";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { DataRequestForm } from "@/components/pages/data-request-form";
 
-const CONSENT_LABEL = /I agree to the conditions/;
+const CONSENT_LABEL = /I agree to the conditions/u;
 
 async function fillValidForm(user: ReturnType<typeof userEvent.setup>) {
   await user.type(screen.getByLabelText("Name"), "Ada Researcher");

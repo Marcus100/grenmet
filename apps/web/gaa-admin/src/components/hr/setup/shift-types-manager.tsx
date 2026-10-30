@@ -415,7 +415,7 @@ export function ShiftTypesManager({
           {shifts.length === 0 ? (
             <TableRow>
               <TableCell
-                className="text-center text-muted-foreground text-sm"
+                className="text-muted-foreground text-center text-sm"
                 colSpan={6}
               >
                 {shiftsQuery.isLoading

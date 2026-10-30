@@ -76,12 +76,12 @@ function NavigationLink({
 }) {
   const Icon = item.icon;
   const className = cn(
-    "flex min-h-11 items-center gap-3 rounded-lg px-3 text-body transition-colors",
+    "text-body flex min-h-11 items-center gap-3 rounded-lg px-3 transition-colors",
     active && "bg-sidebar-primary text-sidebar-primary-foreground",
     !active &&
       item.href &&
       "text-sidebar-foreground/80 hover:bg-sidebar-accent",
-    !item.href && "pointer-events-none text-sidebar-foreground/45"
+    !item.href && "text-sidebar-foreground/45 pointer-events-none"
   );
   const content = (
     <>
@@ -90,7 +90,7 @@ function NavigationLink({
       {item.badge ? (
         <span
           aria-hidden="true"
-          className="flex size-5 items-center justify-center rounded-full bg-warning text-caption text-warning-foreground"
+          className="bg-warning text-caption text-warning-foreground flex size-5 items-center justify-center rounded-full"
         >
           {item.badge}
         </span>
@@ -146,14 +146,14 @@ export function DashShell({
       <OrganiserSwitcher current={currentOrganiser} organisers={organisers} />
     ) : null;
   return (
-    <div className="min-h-screen bg-muted/40">
-      <aside className="fixed inset-y-0 left-0 hidden w-64 flex-col bg-sidebar text-sidebar-foreground lg:flex">
+    <div className="bg-muted/40 min-h-screen">
+      <aside className="bg-sidebar text-sidebar-foreground fixed inset-y-0 left-0 hidden w-64 flex-col lg:flex">
         <div className="flex h-20 items-center gap-3 px-5">
-          <div className="flex size-10 items-center justify-center rounded-xl bg-sidebar-primary text-sidebar-primary-foreground">
+          <div className="bg-sidebar-primary text-sidebar-primary-foreground flex size-10 items-center justify-center rounded-xl">
             <Ticket className="size-5" />
           </div>
           <div>
-            <p className="font-display font-semibold text-body-base">
+            <p className="font-display text-body-base font-semibold">
               Barrels Events
             </p>
             <p className="text-caption text-sidebar-foreground/70">Organiser</p>
@@ -161,27 +161,27 @@ export function DashShell({
         </div>
 
         {switcher ? (
-          <div className="px-3 pb-3 text-sidebar-foreground">{switcher}</div>
+          <div className="text-sidebar-foreground px-3 pb-3">{switcher}</div>
         ) : null}
 
         <div className="px-3">
           <Button
             aria-label="Select event"
-            className="h-auto w-full justify-start border-sidebar-border bg-sidebar-accent px-3 py-3 text-left text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-foreground"
+            className="border-sidebar-border bg-sidebar-accent text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-foreground h-auto w-full justify-start px-3 py-3 text-left"
             disabled
             size="lg"
             title="Available in a later step"
             type="button"
             variant="outline"
           >
-            <span className="flex size-9 items-center justify-center rounded-lg bg-sidebar">
+            <span className="bg-sidebar flex size-9 items-center justify-center rounded-lg">
               <CalendarDays className="size-4" />
             </span>
             <span className="min-w-0 flex-1">
-              <span className="block truncate text-caption text-sidebar-foreground/65">
+              <span className="text-caption text-sidebar-foreground/65 block truncate">
                 {isDemo ? "Demo event" : "Selected event"}
               </span>
-              <span className="block truncate text-body">{eventName}</span>
+              <span className="text-body block truncate">{eventName}</span>
             </span>
           </Button>
         </div>
@@ -199,9 +199,9 @@ export function DashShell({
           ))}
         </nav>
 
-        <div className="space-y-1 border-sidebar-border border-t p-3">
+        <div className="border-sidebar-border space-y-1 border-t p-3">
           <Link
-            className="flex min-h-11 items-center gap-3 rounded-lg px-3 text-body text-sidebar-foreground/80 hover:bg-sidebar-accent"
+            className="text-body text-sidebar-foreground/80 hover:bg-sidebar-accent flex min-h-11 items-center gap-3 rounded-lg px-3"
             href="/"
           >
             <Compass className="size-4" />
@@ -209,35 +209,35 @@ export function DashShell({
           </Link>
           <span
             aria-disabled="true"
-            className="pointer-events-none flex min-h-11 items-center gap-3 rounded-lg px-3 text-body text-sidebar-foreground/45"
+            className="text-body text-sidebar-foreground/45 pointer-events-none flex min-h-11 items-center gap-3 rounded-lg px-3"
           >
             <LifeBuoy className="size-4" />
             Support
           </span>
           <div className="flex items-center gap-3 px-3 py-3">
-            <div className="flex size-9 items-center justify-center rounded-full bg-sidebar-accent font-semibold text-caption">
+            <div className="bg-sidebar-accent text-caption flex size-9 items-center justify-center rounded-full font-semibold">
               EG
             </div>
             <div className="min-w-0 flex-1">
-              <p className="truncate text-body">Eugine G.</p>
-              <p className="truncate text-caption text-sidebar-foreground/60">
+              <p className="text-body truncate">Eugine G.</p>
+              <p className="text-caption text-sidebar-foreground/60 truncate">
                 Owner
               </p>
             </div>
-            <MoreHorizontal className="size-4 text-sidebar-foreground/60" />
+            <MoreHorizontal className="text-sidebar-foreground/60 size-4" />
           </div>
         </div>
       </aside>
 
       <div className="lg:pl-64">
-        <header className="border-border border-b bg-card px-4 py-3 lg:hidden">
+        <header className="border-border bg-card border-b px-4 py-3 lg:hidden">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="flex size-9 items-center justify-center rounded-lg bg-events-ink text-events-lime">
+              <div className="bg-events-ink text-events-lime flex size-9 items-center justify-center rounded-lg">
                 <Ticket className="size-4" />
               </div>
               <div>
-                <p className="font-display font-semibold text-body-base">
+                <p className="font-display text-body-base font-semibold">
                   Barrels Events
                 </p>
                 <p className="text-caption text-muted-foreground">
@@ -258,14 +258,14 @@ export function DashShell({
           {switcher ? <div className="mt-3">{switcher}</div> : null}
           <nav
             aria-label="Mobile event workspace"
-            className="-mx-4 mt-3 flex gap-2 overflow-x-auto border-border border-t px-4 pt-3"
+            className="border-border -mx-4 mt-3 flex gap-2 overflow-x-auto border-t px-4 pt-3"
           >
             {navigation.map((item) =>
               item.href ? (
                 <Link
                   aria-current={item.key === active ? "page" : undefined}
                   className={cn(
-                    "flex min-h-11 shrink-0 items-center gap-2 rounded-full px-3 text-caption",
+                    "text-caption flex min-h-11 shrink-0 items-center gap-2 rounded-full px-3",
                     item.key === active
                       ? "bg-events-ink text-white"
                       : "bg-muted text-foreground"
@@ -278,7 +278,7 @@ export function DashShell({
               ) : (
                 <span
                   aria-disabled="true"
-                  className="flex min-h-11 shrink-0 items-center gap-2 rounded-full bg-muted px-3 text-caption text-muted-foreground opacity-60"
+                  className="bg-muted text-caption text-muted-foreground flex min-h-11 shrink-0 items-center gap-2 rounded-full px-3 opacity-60"
                   key={item.key}
                 >
                   {item.label}

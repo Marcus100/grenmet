@@ -20,19 +20,19 @@ import { ServiceForm } from "./service-form";
 
 const S1 = "44444444-4444-4444-8444-444444444444";
 const P1 = "33333333-3333-4333-8333-333333333333";
-const NAME = /Business name/;
-const ADDRESS = /Booking address/;
-const CUTOFF = /Cancellation cutoff/;
-const OPEN = /Online booking is open/;
-const DEPOSIT_LABEL = /Deposit \(XCD\)/;
-const NO_PAYMENTS = /does not have online payments/;
-const MONDAY_OPENS = /Monday opens, period 1/;
-const MONDAY_ROW3 = /Monday opens, period 3/;
-const TUESDAY_ROW3 = /Tuesday opens, period 3/;
-const TUESDAY_ROW2 = /Tuesday opens, period 2/;
-const CLOCK = /America\/Grenada/;
-const MASSAGE = /Massage/;
-const ADD_FIRST = /Add a service first/;
+const NAME = /Business name/u;
+const ADDRESS = /Booking address/u;
+const CUTOFF = /Cancellation cutoff/u;
+const OPEN = /Online booking is open/u;
+const DEPOSIT_LABEL = /Deposit \(XCD\)/u;
+const NO_PAYMENTS = /does not have online payments/u;
+const MONDAY_OPENS = /Monday opens, period 1/u;
+const MONDAY_ROW3 = /Monday opens, period 3/u;
+const TUESDAY_ROW3 = /Tuesday opens, period 3/u;
+const TUESDAY_ROW2 = /Tuesday opens, period 2/u;
+const CLOCK = /America\/Grenada/u;
+const MASSAGE = /Massage/u;
+const ADD_FIRST = /Add a service first/u;
 
 const service: BookingServicePublic = {
   id: S1,

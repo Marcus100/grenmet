@@ -48,7 +48,7 @@ function body(text: string): NonNullable<DeskUpdate["body"]> {
   };
 }
 
-const DESK_SLUG = /^updates\/\d{4}\/\d{2}\/preparing-for-the-season$/;
+const DESK_SLUG = /^updates\/\d{4}\/\d{2}\/preparing-for-the-season$/u;
 
 // An isolated schema keeps trial content and all other databases untouched.
 describe.skipIf(!testDatabaseUrl)("CMS editorial workflow in Postgres", () => {

@@ -4,8 +4,8 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { BrowserNotifications } from "@/components/pages/browser-notifications";
 import { urlBase64ToUint8Array } from "@/lib/push";
 
-const UNSUPPORTED = /cannot show alert notifications/;
-const NOT_ON = /not switched on/;
+const UNSUPPORTED = /cannot show alert notifications/u;
+const NOT_ON = /not switched on/u;
 const subscribe = vi.fn();
 const requestPermission = vi.fn();
 const register = vi.fn();

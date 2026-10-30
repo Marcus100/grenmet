@@ -6,8 +6,8 @@ import { setupServer } from "msw/node";
 import { afterAll, afterEach, beforeAll, expect, it, vi } from "vitest";
 import { LeaveSubmissions } from "./leave-submissions";
 
-const EDIT_LINK = /Edit/;
-const DELETE_BUTTON = /Delete/;
+const EDIT_LINK = /Edit/u;
+const DELETE_BUTTON = /Delete/u;
 
 vi.mock("sonner", () => ({ toast: { success: vi.fn(), error: vi.fn() } }));
 vi.mock("@/components/audit/record-history", () => ({

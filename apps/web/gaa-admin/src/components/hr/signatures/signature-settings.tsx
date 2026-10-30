@@ -88,8 +88,8 @@ export function SignatureSettings() {
 
   return (
     <div className="flex flex-col gap-6">
-      <section className="flex flex-col gap-4 rounded-xl border bg-card p-6">
-        <h2 className="font-semibold text-lg">My signature</h2>
+      <section className="bg-card flex flex-col gap-4 rounded-xl border p-6">
+        <h2 className="text-lg font-semibold">My signature</h2>
         <p className="text-muted-foreground text-sm">
           Draw or upload your signature. It is applied only when you choose Sign
           &amp; submit. Replacing or deleting it keeps previously signed
@@ -194,8 +194,8 @@ export function SignatureSettings() {
           )}
         </div>
       </section>
-      <section className="flex flex-col gap-3 rounded-xl border bg-card p-6">
-        <h2 className="font-semibold text-lg">Signed documents</h2>
+      <section className="bg-card flex flex-col gap-3 rounded-xl border p-6">
+        <h2 className="text-lg font-semibold">Signed documents</h2>
         {documents.isPending && <p role="status">Loading signed documents…</p>}
         {documents.isError && (
           <p role="alert">Unable to load signed documents.</p>

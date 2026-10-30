@@ -2,8 +2,8 @@ import { render, screen, within } from "@testing-library/react";
 import { expect, it } from "vitest";
 import Page from "./page";
 
-const SAMPLE_REGISTER = /not a live observation register/;
-const DRAFT_ONLY = /Operational transmission is not available/;
+const SAMPLE_REGISTER = /not a live observation register/u;
+const DRAFT_ONLY = /Operational transmission is not available/u;
 
 it("links to the four product desks and distinguishes the sample register", () => {
   render(<Page />);
@@ -17,7 +17,7 @@ it("links to the four product desks and distinguishes the sample register", () =
     ["Aviation", "/wxproducts/aviation"],
   ]) {
     expect(
-      desks.getByRole("link", { name: new RegExp(`^${name}`) })
+      desks.getByRole("link", { name: new RegExp(`^${name}`, "u") })
     ).toHaveAttribute("href", href);
   }
   expect(desks.getAllByRole("link")).toHaveLength(4);

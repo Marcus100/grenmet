@@ -113,7 +113,7 @@ export function RolesManager() {
         </PageTabsList>
 
         <TabsContent value="roles">
-          <div className="overflow-hidden rounded-xl border bg-card">
+          <div className="bg-card overflow-hidden rounded-xl border">
             <div className="flex flex-col items-stretch gap-4 px-4 py-4 sm:flex-row sm:items-center sm:justify-between">
               <InputGroup className="h-7 w-full sm:w-80">
                 <InputGroupAddon align="inline-start">

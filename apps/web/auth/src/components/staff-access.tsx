@@ -19,7 +19,7 @@ export function StaffAccess({ requestedAt }: { requestedAt: string | null }) {
           action={
             <form action={requestStaffAccessAction}>
               <button
-                className="rounded-lg border border-border px-3 py-1.5 font-medium text-foreground text-sm transition hover:bg-muted"
+                className="border-border text-foreground hover:bg-muted rounded-lg border px-3 py-1.5 text-sm font-medium transition"
                 type="submit"
               >
                 Request staff access

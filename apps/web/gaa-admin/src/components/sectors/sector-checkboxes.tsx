@@ -28,7 +28,7 @@ export function SectorCheckboxes({
     );
   return (
     <fieldset className={cn("grid gap-2", className)}>
-      <legend className="font-semibold text-sm">Sectors affected</legend>
+      <legend className="text-sm font-semibold">Sectors affected</legend>
       <div className="flex flex-wrap gap-x-5 gap-y-2">
         {SECTORS.map(({ value: key, label }) => {
           const boxId = `${id}-${key}`;

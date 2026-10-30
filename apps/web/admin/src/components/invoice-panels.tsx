@@ -58,7 +58,7 @@ export function LinesPanel({ invoice }: { invoice: InvoiceDetailPublic }) {
   const total = (minor: number) => money(invoice, minor);
   return (
     <section className="space-y-2">
-      <h2 className="font-semibold text-lg">
+      <h2 className="text-lg font-semibold">
         {invoice.status === "draft" ? "Calculated by the server" : "Lines"}
       </h2>
       <Table>
@@ -110,7 +110,7 @@ export function LinesPanel({ invoice }: { invoice: InvoiceDetailPublic }) {
         </dd>
       </dl>
       {invoice.notes ? (
-        <p className="whitespace-pre-line text-muted-foreground text-sm">
+        <p className="text-muted-foreground text-sm whitespace-pre-line">
           {invoice.notes}
         </p>
       ) : null}
@@ -122,7 +122,7 @@ export function PaymentsList({ invoice }: { invoice: InvoiceDetailPublic }) {
   if (invoice.payments.length === 0) return null;
   return (
     <section className="space-y-2">
-      <h2 className="font-semibold text-lg">Payments</h2>
+      <h2 className="text-lg font-semibold">Payments</h2>
       <ul className="space-y-1 text-sm">
         {invoice.payments.map((payment) => (
           <li key={payment.id}>
@@ -140,7 +140,7 @@ export function PaymentsList({ invoice }: { invoice: InvoiceDetailPublic }) {
 export function IssuePanel({ invoice }: { invoice: InvoiceDetailPublic }) {
   return (
     <section className="space-y-3">
-      <h2 className="font-semibold text-lg">Issue</h2>
+      <h2 className="text-lg font-semibold">Issue</h2>
       <p className="text-muted-foreground text-sm">
         Issuing assigns the next invoice number, sets the due date (net 30),
         stores the PDF and emails {invoice.billing_email}. It cannot be undone;
@@ -175,7 +175,7 @@ export function PaymentPanel({
 }) {
   return (
     <section className="space-y-3">
-      <h2 className="font-semibold text-lg">Record a payment</h2>
+      <h2 className="text-lg font-semibold">Record a payment</h2>
       <p className="text-muted-foreground text-sm">
         Manual payments only: bank transfer, cash or cheque. A payment above the
         outstanding balance is refused.

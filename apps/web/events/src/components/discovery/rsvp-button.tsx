@@ -37,7 +37,7 @@ export function RsvpButton({
     <div className="space-y-1">
       <Button
         aria-pressed={going}
-        className="h-11 w-full text-body-base"
+        className="text-body-base h-11 w-full"
         disabled={pending}
         onClick={toggle}
         size="lg"

@@ -11,7 +11,7 @@ import { Gallery } from "./gallery";
 
 afterEach(cleanup);
 
-const FRAME_BUTTON = /GOES19 IR/;
+const FRAME_BUTTON = /GOES19 IR/u;
 
 const EMPTY_SLOTS = {
   "00": null,

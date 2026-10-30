@@ -6,7 +6,7 @@ vi.mock("@sentry/nextjs", () => ({ captureException }));
 
 import AdminError from "./error";
 
-const REFERENCE = /Reference:/;
+const REFERENCE = /Reference:/u;
 
 describe("AdminError", () => {
   it("reports the error with its digest and lets the user retry", () => {

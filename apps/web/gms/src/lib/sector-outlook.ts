@@ -43,14 +43,14 @@ const DAY = new Intl.DateTimeFormat("en-GB", {
 const DAY_KEY = new Intl.DateTimeFormat("en-CA", {
   timeZone: "America/Grenada",
 });
-const SENTENCE_END = /^(.+?[.!?])(\s|$)/;
+const SENTENCE_END = /^(.+?[.!?])(\s|$)/u;
 const SUMMARY_LIMIT = 140;
 
 const dayKey = (date: Date) => DAY_KEY.format(date);
 
 /** The first sentence, clipped, so a tile stays short. */
 export function firstSentence(text: string): string {
-  const clean = text.replace(/\s+/g, " ").trim();
+  const clean = text.replace(/\s+/gu, " ").trim();
   const sentence = SENTENCE_END.exec(clean)?.[1] ?? clean;
   return sentence.length <= SUMMARY_LIMIT
     ? sentence

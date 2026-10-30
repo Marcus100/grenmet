@@ -174,7 +174,7 @@ export default async function JanitorPage({
               No areas are serviced hourly or more.
             </p>
           ) : (
-            <ul className="divide-y divide-border">
+            <ul className="divide-border divide-y">
               {watchList.map((row) => (
                 <li
                   className="flex items-center justify-between gap-3 py-2 text-sm"
@@ -187,12 +187,12 @@ export default async function JanitorPage({
                     <span className="block truncate font-medium">
                       {row.name}
                     </span>
-                    <span className="block truncate text-muted-foreground text-xs">
+                    <span className="text-muted-foreground block truncate text-xs">
                       {row.buildingName}
                     </span>
                   </Link>
                   {row.fastest ? (
-                    <span className="shrink-0 font-mono text-muted-foreground text-xs">
+                    <span className="text-muted-foreground shrink-0 font-mono text-xs">
                       {formatFrequency(row.fastest)}
                     </span>
                   ) : null}

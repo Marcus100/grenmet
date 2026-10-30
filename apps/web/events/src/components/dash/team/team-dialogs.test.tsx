@@ -6,14 +6,14 @@ import { RemoveMemberDialog } from "./remove-member-dialog";
 import { RevokeGrantDialog } from "./revoke-grant-dialog";
 import { TeamFeedbackProvider } from "./team-feedback";
 
-const RE_T1 = /Door staff/;
-const RE_T2 = /Refunds/;
-const RE_T3 = /23:59 UTC/;
-const RE_T4 = /no roles to give yet/;
-const RE_T5 = /Roles they gave to other people stay/;
-const RE_T6 = /Box office for Bo Till/;
-const RE_T7 = /takes away nothing else/;
-const RE_OWNER_ONLY = /Only an owner can remove an owner/;
+const RE_T1 = /Door staff/u;
+const RE_T2 = /Refunds/u;
+const RE_T3 = /23:59 UTC/u;
+const RE_T4 = /no roles to give yet/u;
+const RE_T5 = /Roles they gave to other people stay/u;
+const RE_T6 = /Box office for Bo Till/u;
+const RE_T7 = /takes away nothing else/u;
+const RE_OWNER_ONLY = /Only an owner can remove an owner/u;
 
 const refresh = vi.fn();
 const grantRole = vi.fn();
@@ -33,11 +33,11 @@ vi.mock("next/navigation", () => ({
   useRouter: () => ({ push: vi.fn(), refresh }),
 }));
 
-const RE_REVIEW = /Review/;
-const RE_NOT_HELD = /you don't hold it yourself/;
-const RE_ALREADY = /already have this role/;
-const RE_ENDS = /23:59 UTC on 2999-01-01/;
-const RE_SCAN = /Scan and admit tickets at the door/;
+const RE_REVIEW = /Review/u;
+const RE_NOT_HELD = /you don't hold it yourself/u;
+const RE_ALREADY = /already have this role/u;
+const RE_ENDS = /23:59 UTC on 2999-01-01/u;
+const RE_SCAN = /Scan and admit tickets at the door/u;
 
 const bundles = [
   makeBundle(),

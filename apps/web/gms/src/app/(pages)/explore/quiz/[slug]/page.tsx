@@ -19,7 +19,7 @@ export default async function CmsQuizPage({ params }: { params: Params }) {
   const result = await fetchQuizzes(`discover/${slug}`);
   if (result.status === "unavailable")
     return (
-      <p className="py-6 text-body-base leading-body-base" role="status">
+      <p className="text-body-base leading-body-base py-6" role="status">
         This quiz cannot be retrieved right now. Please try again later.
       </p>
     );

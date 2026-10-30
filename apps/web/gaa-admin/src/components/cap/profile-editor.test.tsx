@@ -20,7 +20,7 @@ import { wmoStarterMatrix } from "@/lib/ibf-matrix";
 import { nth } from "@/test/nth";
 import { ProfileEditor } from "./profile-editor";
 
-const RE_RED_RESPONSE = /^Red response/;
+const RE_RED_RESPONSE = /^Red response/u;
 
 vi.mock("next/navigation", () => ({
   useRouter: () => ({ push: vi.fn(), refresh: vi.fn() }),

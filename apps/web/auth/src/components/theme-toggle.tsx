@@ -18,7 +18,7 @@ export function ThemeToggle() {
   useEffect(() => setMounted(true), []);
 
   return (
-    <fieldset className="inline-flex rounded-lg border border-border p-0.5">
+    <fieldset className="border-border inline-flex rounded-lg border p-0.5">
       <legend className="sr-only">Theme</legend>
       {OPTIONS.map(({ value, label, Icon }) => {
         const active = mounted && theme === value;
@@ -27,7 +27,7 @@ export function ThemeToggle() {
             aria-label={label}
             aria-pressed={active}
             className={cn(
-              "flex size-7 items-center justify-center rounded-md text-muted-foreground transition hover:text-foreground",
+              "text-muted-foreground hover:text-foreground flex size-7 items-center justify-center rounded-md transition",
               active && "bg-muted text-foreground"
             )}
             key={value}

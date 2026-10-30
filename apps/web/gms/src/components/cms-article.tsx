@@ -36,7 +36,7 @@ export async function CmsArticle({ slug }: { slug: string }) {
   const result = await fetchContentBySlug(slug);
   if (result.status === "unavailable") {
     return (
-      <p className="py-6 text-body-base leading-body-base" role="status">
+      <p className="text-body-base leading-body-base py-6" role="status">
         This article cannot be retrieved right now. Please try again later.
       </p>
     );
@@ -64,8 +64,8 @@ export function CmsArticleBody({ content }: { content: PublishedContent }) {
 
   return (
     <>
-      <p className="mt-3 flex flex-wrap items-center gap-2 border-gm-border border-b pb-3 text-body-sm text-gm-text-secondary leading-body-sm">
-        <span className="rounded bg-gm-lime px-2 py-0.5 font-bold text-gm-navy text-label uppercase leading-label tracking-wider">
+      <p className="border-gm-border text-body-sm text-gm-text-secondary leading-body-sm mt-3 flex flex-wrap items-center gap-2 border-b pb-3">
+        <span className="bg-gm-lime text-gm-navy text-label leading-label rounded px-2 py-0.5 font-bold tracking-wider uppercase">
           Earth &amp; Weather
         </span>
         Editorial content. For official forecasts and warnings, see{" "}
@@ -78,22 +78,22 @@ export function CmsArticleBody({ content }: { content: PublishedContent }) {
       <div className="grid gap-8 pt-6 lg:grid-cols-[minmax(0,1fr)_17.5rem]">
         <article className="min-w-0">
           <header className="flex flex-col gap-3">
-            <p className="font-bold text-gm-sky-ink text-label uppercase leading-label tracking-widest">
+            <p className="text-gm-sky-ink text-label leading-label font-bold tracking-widest uppercase">
               {section.title}
             </p>
-            <h1 className="max-w-[24ch] text-balance font-bold font-gm-display text-gm-display text-gm-heading uppercase tracking-wide">
+            <h1 className="font-gm-display text-gm-display text-gm-heading max-w-[24ch] font-bold tracking-wide text-balance uppercase">
               {article.title}
             </h1>
             {content.category && (
-              <p className="font-semibold text-body text-gm-text-secondary leading-body">
+              <p className="text-body text-gm-text-secondary leading-body font-semibold">
                 {content.category}
               </p>
             )}
-            <p className="max-w-prose text-body-base text-gm-text-secondary leading-body-base">
+            <p className="text-body-base text-gm-text-secondary leading-body-base max-w-prose">
               {article.summary}
             </p>
-            <div className="flex items-center gap-3 border-gm-border border-y py-3 text-body-sm leading-body-sm">
-              <span className="dark flex size-10 items-center justify-center rounded-full bg-gm-navy">
+            <div className="border-gm-border text-body-sm leading-body-sm flex items-center gap-3 border-y py-3">
+              <span className="dark bg-gm-navy flex size-10 items-center justify-center rounded-full">
                 <Logo className="size-6" variant="icon" />
               </span>
               <span>
@@ -126,7 +126,7 @@ export function CmsArticleBody({ content }: { content: PublishedContent }) {
           </div>
 
           {Boolean(article.sources?.length) && (
-            <p className="mt-8 max-w-prose border-gm-border border-t pt-3 text-body-sm text-gm-text-secondary leading-body-sm">
+            <p className="border-gm-border text-body-sm text-gm-text-secondary leading-body-sm mt-8 max-w-prose border-t pt-3">
               Further reading:{" "}
               {article.sources?.map((source, i) => (
                 <span key={source.url}>
@@ -143,20 +143,20 @@ export function CmsArticleBody({ content }: { content: PublishedContent }) {
         <aside className="flex flex-col gap-4 self-start lg:sticky lg:top-28">
           {main && <FeaturedLink link={main} />}
           <div
-            className={`${ASIDE_BOX} border-transparent bg-gm-surface-panel`}
+            className={`${ASIDE_BOX} bg-gm-surface-panel border-transparent`}
           >
-            <h2 className="font-bold text-gm-text-secondary text-label uppercase leading-label tracking-wider">
+            <h2 className="text-gm-text-secondary text-label leading-label font-bold tracking-wider uppercase">
               Official forecast
             </h2>
             <Link
-              className="flex items-center gap-1 font-semibold text-gm-blue-ink hover:underline"
+              className="text-gm-blue-ink flex items-center gap-1 font-semibold hover:underline"
               href="/weather"
             >
               Today&apos;s forecast
               <ArrowRightIcon aria-hidden="true" className="size-4" />
             </Link>
             <Link
-              className="flex items-center gap-1 font-semibold text-gm-blue-ink hover:underline"
+              className="text-gm-blue-ink flex items-center gap-1 font-semibold hover:underline"
               href="/alerts"
             >
               Warnings in effect
@@ -167,7 +167,7 @@ export function CmsArticleBody({ content }: { content: PublishedContent }) {
           {others.length > 0 && (
             <section aria-labelledby="related-links" className={ASIDE_BOX}>
               <h2
-                className="font-bold text-gm-text-secondary text-label uppercase leading-label tracking-wider"
+                className="text-gm-text-secondary text-label leading-label font-bold tracking-wider uppercase"
                 id="related-links"
               >
                 Related products and reading
@@ -183,7 +183,7 @@ export function CmsArticleBody({ content }: { content: PublishedContent }) {
           )}
 
           <Link
-            className="flex items-center gap-1 font-semibold text-body text-gm-blue-ink leading-body hover:underline"
+            className="text-body text-gm-blue-ink leading-body flex items-center gap-1 font-semibold hover:underline"
             href={section.href}
           >
             More from {section.title}

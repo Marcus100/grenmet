@@ -235,7 +235,7 @@ export function CapForecastPicker({
                 {noun}
               </label>
               <select
-                className="w-full rounded-md border bg-background p-2"
+                className="bg-background w-full rounded-md border p-2"
                 disabled={busy}
                 id={`${id}-source`}
                 onChange={(event) => {
@@ -281,7 +281,7 @@ export function CapForecastPicker({
                     Add to
                   </label>
                   <select
-                    className="w-full rounded-md border bg-background p-2"
+                    className="bg-background w-full rounded-md border p-2"
                     disabled={busy}
                     id={`${id}-target`}
                     onChange={(event) => setTarget(event.target.value)}

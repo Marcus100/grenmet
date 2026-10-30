@@ -4,7 +4,7 @@ import { SiteSearch } from "@/components/learn/site-search";
 
 vi.mock("@/lib/report-error", () => ({ reportError: vi.fn() }));
 afterEach(() => vi.unstubAllGlobals());
-const SEARCH_LABEL = /Search questions/;
+const SEARCH_LABEL = /Search questions/u;
 describe("site search interaction", () => {
   it("loads once and offers real links and an empty state without sending queries", async () => {
     const fetcher = vi.fn().mockResolvedValue({

@@ -133,7 +133,7 @@ const paymentInput = z.object({
 /** Display only: the ISO code used to word an amount in an error message. */
 const currencyCode = z
   .string()
-  .regex(/^[A-Z]{3}$/)
+  .regex(/^[A-Z]{3}$/u)
   .optional();
 
 /** Staff received cash or a bank transfer for a waiting order; tickets issue now. */

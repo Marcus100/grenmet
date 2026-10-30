@@ -7,9 +7,9 @@ import { afterAll, afterEach, beforeAll, describe, expect, it } from "vitest";
 import { ShiftTypesManager } from "./shift-types-manager";
 
 const BASE = "http://localhost";
-const NEW_SHIFT_LABEL = /New shift type/;
-const CREATE_LABEL = /^Create$/;
-const SHARED_READ_ONLY_LABEL = /Shared shift definitions are read only/;
+const NEW_SHIFT_LABEL = /New shift type/u;
+const CREATE_LABEL = /^Create$/u;
+const SHARED_READ_ONLY_LABEL = /Shared shift definitions are read only/u;
 
 const SHIFTS = {
   data: [

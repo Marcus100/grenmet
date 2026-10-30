@@ -7,19 +7,19 @@ import {
   planChecks,
 } from "./changed.mjs";
 
-const HR_TESTS = /pytest -q tests\/hr$/;
-const FULL_SUITE = /pytest -q$/;
-const SETTINGS_FILE = /pytest -q tests\/test_settings\.py$/;
+const HR_TESTS = /pytest -q tests\/hr$/u;
+const FULL_SUITE = /pytest -q$/u;
+const SETTINGS_FILE = /pytest -q tests\/test_settings\.py$/u;
 const LINT_TESTS =
-  /ruff check src scripts tests .*ruff format src scripts tests --check/;
+  /ruff check src scripts tests .*ruff format src scripts tests --check/u;
 const TEST_FILES = ["cap/", "hr/", "conftest.py", "test_eregister_public.py"];
-const PARALLEL_HR = /pytest -q -n 6 --dist load tests\/hr$/;
+const PARALLEL_HR = /pytest -q -n 6 --dist load tests\/hr$/u;
 const EREGISTER_TESTS =
-  /pytest -q tests\/eregister tests\/test_eregister_public\.py$/;
-const CAP_AND_HR_TESTS = /pytest -q tests\/cap tests\/hr$/;
-const PARALLEL_FLAG = / -n /;
-const FULL_PARALLEL_FUZZ = /pytest -q -n 4 --dist load -m 'fuzz or not fuzz'$/;
-const FUZZ_FILE = /-m 'fuzz or not fuzz' tests\/test_api_fuzz\.py$/;
+  /pytest -q tests\/eregister tests\/test_eregister_public\.py$/u;
+const CAP_AND_HR_TESTS = /pytest -q tests\/cap tests\/hr$/u;
+const PARALLEL_FLAG = / -n /u;
+const FULL_PARALLEL_FUZZ = /pytest -q -n 4 --dist load -m 'fuzz or not fuzz'$/u;
+const FUZZ_FILE = /-m 'fuzz or not fuzz' tests\/test_api_fuzz\.py$/u;
 const names = (checks) => checks.map((check) => check.name);
 const find = (checks, name) => checks.find((check) => check.name === name);
 

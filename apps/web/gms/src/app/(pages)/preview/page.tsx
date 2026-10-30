@@ -27,7 +27,7 @@ export default async function PreviewPage({
   if (result.status === "invalid")
     return (
       <section aria-labelledby="preview-heading" className={NOTICE}>
-        <h1 className="font-bold text-heading-sm" id="preview-heading">
+        <h1 className="text-heading-sm font-bold" id="preview-heading">
           This preview link is not valid
         </h1>
         <p>

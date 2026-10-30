@@ -21,9 +21,9 @@ import {
   parseCodex,
 } from "./sessions.mjs";
 
-const FIX_THE_ROSTER_RE = /Fix the roster export/;
-const PNPM_TEST_RE = /pnpm test/;
-const DONE_EXPORT_FIXED_RE = /Done: export fixed\./;
+const FIX_THE_ROSTER_RE = /Fix the roster export/u;
+const PNPM_TEST_RE = /pnpm test/u;
+const DONE_EXPORT_FIXED_RE = /Done: export fixed\./u;
 
 const lines = (...events) => events.map((e) => JSON.stringify(e)).join("\n");
 const usage = {

@@ -1,11 +1,11 @@
 import type { PublicEvent } from "@/domain/types";
 
-const SEPARATORS = /[-:]/g;
-const MILLISECONDS = /\.\d{3}/;
-const BACKSLASH = /\\/g;
-const NEWLINE = /\n/g;
-const COMMA = /,/g;
-const SEMICOLON = /;/g;
+const SEPARATORS = /[-:]/gu;
+const MILLISECONDS = /\.\d{3}/u;
+const BACKSLASH = /\\/gu;
+const NEWLINE = /\n/gu;
+const COMMA = /,/gu;
+const SEMICOLON = /;/gu;
 
 /** "20261003T200000Z" — iCalendar UTC form. */
 function toIcsUtc(instant: string): string {

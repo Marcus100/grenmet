@@ -30,7 +30,7 @@ import { scrubbedEnv } from "./benchmark.mjs";
 import { isoWeek } from "./flow.mjs";
 import { claudeBinary, digest, findSessions } from "./sessions.mjs";
 
-const FRONTMATTER_PAIR_RE = /^(\w+):\s*(.*)$/;
+const FRONTMATTER_PAIR_RE = /^(\w+):\s*(.*)$/u;
 
 const here = dirname(fileURLToPath(import.meta.url));
 export const SCORERS_DIR = join(here, "scorers");
@@ -48,7 +48,7 @@ const VERDICTS = ["pass", "fail", "n/a"];
 const HASH_SPACE = 0x1_00_00_00_00;
 const EVIDENCE_CHARS = 500;
 
-const FRONTMATTER = /^---\n([\s\S]*?)\n---\n?([\s\S]*)$/;
+const FRONTMATTER = /^---\n([\s\S]*?)\n---\n?([\s\S]*)$/u;
 
 export function parseScorer(text, file = "scorer") {
   const match = FRONTMATTER.exec(text);
@@ -139,7 +139,7 @@ export function buildJudgePrompt(scorer, sessionText) {
 // Pulls the verdict JSON out of a model reply (it may wrap it in prose or a
 // code fence). Throws when there is no valid verdict.
 export function parseVerdict(text) {
-  const candidates = String(text).match(/\{[^{}]*"verdict"[^{}]*\}/g) ?? [];
+  const candidates = String(text).match(/\{[^{}]*"verdict"[^{}]*\}/gu) ?? [];
   for (const candidate of candidates) {
     try {
       const value = JSON.parse(candidate);

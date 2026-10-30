@@ -50,22 +50,22 @@ export function ProductUpdateFeed({
       <div
         className={
           mobileCarousel
-            ? "grid gap-4 max-lg:flex max-lg:snap-x max-lg:snap-mandatory max-lg:items-start max-lg:gap-4 max-lg:overflow-x-auto max-lg:pb-3 md:grid-cols-2 lg:hidden max-lg:[scrollbar-width:none]"
+            ? "grid gap-4 max-lg:flex max-lg:snap-x max-lg:snap-mandatory max-lg:[scrollbar-width:none] max-lg:items-start max-lg:gap-4 max-lg:overflow-x-auto max-lg:pb-3 md:grid-cols-2 lg:hidden"
             : "grid gap-4 md:grid-cols-2"
         }
       >
         {posts.map((post, index) => (
           <article
             className={cn(
-              "space-y-4 rounded-lg border border-gm-border bg-background p-5",
+              "border-gm-border bg-background space-y-4 rounded-lg border p-5",
               mobileCarousel &&
-                "max-lg:w-[84%] max-lg:shrink-0 max-lg:snap-start max-lg:space-y-5 max-lg:rounded-2xl max-lg:border-0 max-lg:p-5 max-lg:shadow-card md:max-lg:w-[45%]",
+                "max-lg:shadow-card max-lg:w-[84%] max-lg:shrink-0 max-lg:snap-start max-lg:space-y-5 max-lg:rounded-2xl max-lg:border-0 max-lg:p-5 md:max-lg:w-[45%]",
               index === 0 && "md:col-span-2"
             )}
             key={post.id}
           >
             <header className="flex items-center gap-3">
-              <span className="grid size-10 place-items-center rounded-full bg-gm-blue-ink font-bold text-gm-text-inverse dark:text-gm-navy">
+              <span className="bg-gm-blue-ink text-gm-text-inverse dark:text-gm-navy grid size-10 place-items-center rounded-full font-bold">
                 G
               </span>
               <div>
@@ -79,15 +79,15 @@ export function ProductUpdateFeed({
                 </p>
               </div>
             </header>
-            <h3 className="font-bold text-gm-heading text-nav leading-nav">
+            <h3 className="text-gm-heading text-nav leading-nav font-bold">
               <Link href={post.href as Route}>{post.title}</Link>
             </h3>
             {mobileCarousel ? (
-              <p className="line-clamp-4 text-gm-text-secondary">
+              <p className="text-gm-text-secondary line-clamp-4">
                 {post.summary}
               </p>
             ) : (
-              <div className="space-y-4 text-gm-text-secondary">
+              <div className="text-gm-text-secondary space-y-4">
                 {post.paragraphs.map((paragraph) => (
                   <p key={paragraph}>{paragraph}</p>
                 ))}
@@ -117,7 +117,7 @@ export function ProductUpdateFeed({
             </p>
             <div className="flex items-center justify-between gap-3">
               <Link
-                className="font-semibold text-gm-blue-ink underline"
+                className="text-gm-blue-ink font-semibold underline"
                 href={post.href as Route}
               >
                 Open update
@@ -154,14 +154,14 @@ function DesktopFeed({
     <div className="hidden lg:grid lg:grid-cols-4 lg:gap-6">
       {posts.slice(0, 4).map((post) => (
         <article
-          className="flex flex-col gap-3 rounded-xl border border-gm-border bg-background p-4"
+          className="border-gm-border bg-background flex flex-col gap-3 rounded-xl border p-4"
           key={post.id}
         >
           <div className="flex items-start justify-between gap-2">
             <div className="flex min-w-0 items-center gap-2.5">
               <Logo className="size-10 shrink-0" variant="submark" />
               <div className="min-w-0">
-                <p className="truncate font-semibold text-body-base text-gm-text-primary leading-body-base">
+                <p className="text-body-base text-gm-text-primary leading-body-base truncate font-semibold">
                   GMS · From the forecast desk
                 </p>
                 <p className="text-body-sm text-gm-text-muted leading-body-sm">
@@ -193,7 +193,7 @@ function DesktopFeed({
           </div>
           <div className="flex flex-col gap-1">
             <Link
-              className="font-bold text-body-base text-gm-text-primary leading-body-base"
+              className="text-body-base text-gm-text-primary leading-body-base font-bold"
               href={post.href as Route}
             >
               {post.title}

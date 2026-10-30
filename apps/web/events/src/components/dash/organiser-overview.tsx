@@ -56,9 +56,9 @@ const STATUS_BADGE: Record<
 
 function CountTile({ label, value }: { label: string; value: number }) {
   return (
-    <div className="rounded-2xl border border-border bg-card p-4">
+    <div className="border-border bg-card rounded-2xl border p-4">
       <p className="text-caption text-muted-foreground">{label}</p>
-      <p className="mt-1 font-semibold text-heading-base tabular-nums">
+      <p className="text-heading-base mt-1 font-semibold tabular-nums">
         {value}
       </p>
     </div>
@@ -67,14 +67,14 @@ function CountTile({ label, value }: { label: string; value: number }) {
 
 function SettlementPanel({ rows }: { rows: readonly SettlementSummary[] }) {
   return (
-    <section className="rounded-2xl border border-border bg-card p-4">
-      <h2 className="font-semibold text-body-base">Settlement</h2>
+    <section className="border-border bg-card rounded-2xl border p-4">
+      <h2 className="text-body-base font-semibold">Settlement</h2>
       {rows.length === 0 ? (
-        <p className="mt-1 text-body text-muted-foreground">
+        <p className="text-body text-muted-foreground mt-1">
           No ticketed events to settle yet.
         </p>
       ) : (
-        <table className="mt-2 w-full text-left text-caption">
+        <table className="text-caption mt-2 w-full text-left">
           <thead className="text-muted-foreground">
             <tr>
               <th className="py-1 font-medium">Event</th>
@@ -118,9 +118,9 @@ function SettlementPanel({ rows }: { rows: readonly SettlementSummary[] }) {
 
 function UnavailablePanel({ title }: { title: string }) {
   return (
-    <section className="rounded-2xl border border-border border-dashed bg-card p-4">
-      <h2 className="font-semibold text-body-base">{title}</h2>
-      <p className="mt-1 text-body text-muted-foreground">
+    <section className="border-border bg-card rounded-2xl border border-dashed p-4">
+      <h2 className="text-body-base font-semibold">{title}</h2>
+      <p className="text-body text-muted-foreground mt-1">
         Available when ticketing launches. No figures are shown until then.
       </p>
     </section>
@@ -160,7 +160,7 @@ export function OrganiserOverview({
       <main className="mx-auto max-w-6xl space-y-6 px-4 py-6 sm:px-6 lg:px-8">
         <div className="flex flex-wrap items-end justify-between gap-4">
           <div>
-            <h1 className="font-display font-semibold text-heading-base">
+            <h1 className="font-display text-heading-base font-semibold">
               Overview
             </h1>
             <p className="text-body text-muted-foreground">
@@ -182,7 +182,7 @@ export function OrganiserOverview({
         />
 
         <section aria-labelledby="listings-heading" className="space-y-3">
-          <h2 className="font-semibold text-body-base" id="listings-heading">
+          <h2 className="text-body-base font-semibold" id="listings-heading">
             Listings
           </h2>
           <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
@@ -193,18 +193,18 @@ export function OrganiserOverview({
           </div>
 
           {recent.length === 0 ? (
-            <p className="rounded-2xl border border-border border-dashed p-6 text-center text-body text-muted-foreground">
+            <p className="border-border text-body text-muted-foreground rounded-2xl border border-dashed p-6 text-center">
               No events yet. Create your first one.
             </p>
           ) : (
             <ul className="grid gap-2">
               {recent.map((event) => (
                 <li
-                  className="flex flex-wrap items-center gap-3 rounded-xl border border-border bg-card p-3"
+                  className="border-border bg-card flex flex-wrap items-center gap-3 rounded-xl border p-3"
                   key={event.id}
                 >
                   <div className="min-w-0 flex-1">
-                    <p className="truncate font-semibold text-body">
+                    <p className="text-body truncate font-semibold">
                       {event.title}
                     </p>
                     <p className="text-caption text-muted-foreground">

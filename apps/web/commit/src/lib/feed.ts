@@ -9,7 +9,7 @@ const XML_ESCAPES: Record<string, string> = {
 };
 
 export function escapeXml(value: string): string {
-  return value.replace(/[&<>"']/g, (char) => XML_ESCAPES[char] ?? char);
+  return value.replace(/[&<>"']/gu, (char) => XML_ESCAPES[char] ?? char);
 }
 
 /** RSS 2.0 document for the posts, which must already be published and sorted. */

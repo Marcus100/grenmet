@@ -100,7 +100,7 @@ export function ContactForm() {
         siteKey={env.NEXT_PUBLIC_TURNSTILE_SITE_KEY}
       />
       <Button
-        className="bg-gaa-navy text-white hover:bg-gaa-navy-deep"
+        className="bg-gaa-navy hover:bg-gaa-navy-deep text-white"
         disabled={state.status === "submitting"}
         type="submit"
       >

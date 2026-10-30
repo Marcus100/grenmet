@@ -5,10 +5,10 @@ import { setupServer } from "msw/node";
 import { afterAll, afterEach, beforeAll, expect, it, vi } from "vitest";
 import { RaiseToWarningDialog } from "./raise-to-warning-dialog";
 
-const RE_REASON_FOR_CHOOSING = /Reason for choosing/;
-const RE_REASON = /Reason for choosing a different colour/;
-const RE_INTERNAL_ONLY = /Internal only/;
-const RE_OPTIONAL_REASON = /Reason for choosing this colour \(optional\)/;
+const RE_REASON_FOR_CHOOSING = /Reason for choosing/u;
+const RE_REASON = /Reason for choosing a different colour/u;
+const RE_INTERNAL_ONLY = /Internal only/u;
+const RE_OPTIONAL_REASON = /Reason for choosing this colour \(optional\)/u;
 
 const server = setupServer(
   http.get("http://localhost/api/v1/cap/ibf/suggest", () =>

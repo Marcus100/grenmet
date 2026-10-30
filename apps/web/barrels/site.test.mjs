@@ -4,22 +4,22 @@ import { existsSync, readFileSync } from "node:fs";
 import test from "node:test";
 import "./build.mjs";
 
-const HIDDEN_PRIVACY_CARD = /<section[^>]*hidden[^>]*id="analytics-settings"/s;
-const PRIVACY_DIALOG = /<section[^>]*role="dialog"/s;
-const OVERCLAIM = /certified|ISO\s?\d|Microsoft Partner|Google Partner/i;
-const ELEMENT_ID = /\sid="([\w-]+)"/g;
-const WHITESPACE = /\s+/;
-const LOCAL_SRC = /src="\/[^"]+"/;
-const DESCRIBED_BY = /aria-describedby="([^"]+)"/g;
-const SCRIPT_OPEN = /<script\b([^>]*)>/g;
-const SCRIPT_SRC = /<script[^>]*src="([^"]+)"/g;
-const STYLE_BLOCK = /<style\b/;
-const STYLE_ATTRIBUTE = /\sstyle="/;
-const EVENT_ATTRIBUTE = /\son[a-z]+="/i;
-const PACKAGE_HEADING = /<h2 id="package-[\w-]+">([^<]+)<\/h2>/g;
-const H1_TAG = /<h1>/g;
-const CSS_VARIABLE = /var\((--[\w-]+)\)/g;
-const NEWSLETTER_LABEL = /<label for="newsletter-email">/;
+const HIDDEN_PRIVACY_CARD = /<section[^>]*hidden[^>]*id="analytics-settings"/su;
+const PRIVACY_DIALOG = /<section[^>]*role="dialog"/su;
+const OVERCLAIM = /certified|ISO\s?\d|Microsoft Partner|Google Partner/iu;
+const ELEMENT_ID = /\sid="([\w-]+)"/gu;
+const WHITESPACE = /\s+/u;
+const LOCAL_SRC = /src="\/[^"]+"/u;
+const DESCRIBED_BY = /aria-describedby="([^"]+)"/gu;
+const SCRIPT_OPEN = /<script\b([^>]*)>/gu;
+const SCRIPT_SRC = /<script[^>]*src="([^"]+)"/gu;
+const STYLE_BLOCK = /<style\b/u;
+const STYLE_ATTRIBUTE = /\sstyle="/u;
+const EVENT_ATTRIBUTE = /\son[a-z]+="/iu;
+const PACKAGE_HEADING = /<h2 id="package-[\w-]+">([^<]+)<\/h2>/gu;
+const H1_TAG = /<h1>/gu;
+const CSS_VARIABLE = /var\((--[\w-]+)\)/gu;
+const NEWSLETTER_LABEL = /<label for="newsletter-email">/u;
 const PAGES = [
   "index.html",
   "services/index.html",

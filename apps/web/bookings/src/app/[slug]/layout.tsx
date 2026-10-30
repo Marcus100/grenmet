@@ -6,7 +6,7 @@ export default function BusinessLayout({
       <main className="flex-1 py-10" id="main-content">
         {children}
       </main>
-      <footer className="border-border border-t py-6 text-muted-foreground text-sm">
+      <footer className="border-border text-muted-foreground border-t py-6 text-sm">
         Booking by Barrels
       </footer>
     </div>

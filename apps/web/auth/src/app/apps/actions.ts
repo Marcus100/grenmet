@@ -5,7 +5,7 @@ import { redirect } from "next/navigation";
 import { joinAccountApp, leaveAccountApp } from "@/lib/account-apps";
 import { isAuthApiError, readSessionCookie } from "@/lib/session";
 
-const APP_KEY = /^[a-z][a-z0-9-]{1,30}$/;
+const APP_KEY = /^[a-z][a-z0-9-]{1,30}$/u;
 
 /** Fixed codes the page maps to text, so no message is reflected from a URL. */
 type Notice = "joined" | "requested" | "left" | "left-still" | "failed";

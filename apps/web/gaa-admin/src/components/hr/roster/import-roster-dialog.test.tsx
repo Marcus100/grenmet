@@ -7,10 +7,10 @@ import { afterAll, afterEach, beforeAll, describe, expect, it } from "vitest";
 import { ImportRosterDialog } from "./import-roster-dialog";
 
 const BASE = "http://localhost";
-const OPEN_LABEL = /Import CSV/;
-const CHECK_LABEL = /^Check$/;
-const IMPORT_LABEL = /^Import$/;
-const MATCHED_TEXT = /1\/1 people matched/;
+const OPEN_LABEL = /Import CSV/u;
+const CHECK_LABEL = /^Check$/u;
+const IMPORT_LABEL = /^Import$/u;
+const MATCHED_TEXT = /1\/1 people matched/u;
 
 const DEPARTMENTS = {
   data: [{ id: "dept_met", name: "Meteorological Department" }],

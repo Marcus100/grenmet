@@ -9,16 +9,16 @@ import test from "node:test";
 import { fileURLToPath } from "node:url";
 
 const root = join(dirname(fileURLToPath(import.meta.url)), "..", "..");
-const SOURCE = /\.(?:py|[cm]?[jt]sx?)$/;
+const SOURCE = /\.(?:py|[cm]?[jt]sx?)$/u;
 const EXCLUDED =
-  /^(?:surface|wis2box)\/|\/gen\/|^scripts\/guardrails\/suppression-ratchet\.test\.mjs$/;
+  /^(?:surface|wis2box)\/|\/gen\/|^scripts\/guardrails\/suppression-ratchet\.test\.mjs$/u;
 const KINDS = {
-  "biome-ignore": /biome-ignore(?!-all)\b/,
-  "biome-ignore-all": /biome-ignore-all\b/,
-  noqa: /#\s*noqa\b/,
-  "ts-expect-error": /@ts-expect-error\b/,
-  "ts-ignore": /@ts-ignore\b/,
-  "type-ignore": /#\s*type:\s*ignore\b/,
+  "biome-ignore": /biome-ignore(?!-all)\b/u,
+  "biome-ignore-all": /biome-ignore-all\b/u,
+  noqa: /#\s*noqa\b/u,
+  "ts-expect-error": /@ts-expect-error\b/u,
+  "ts-ignore": /@ts-ignore\b/u,
+  "type-ignore": /#\s*type:\s*ignore\b/u,
 };
 
 export function countSuppressions() {

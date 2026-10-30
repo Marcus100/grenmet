@@ -1,6 +1,6 @@
-const functionalFailure = /Functional smoke failed/;
-const cmsFailure = /CMS sign-in destination failed/;
-const authFailure = /auth.staging.example.test/;
+const functionalFailure = /Functional smoke failed/u;
+const cmsFailure = /CMS sign-in destination failed/u;
+const authFailure = /auth.staging.example.test/u;
 
 import assert from "node:assert/strict";
 import test from "node:test";

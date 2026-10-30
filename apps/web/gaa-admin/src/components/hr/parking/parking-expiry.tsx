@@ -51,7 +51,7 @@ export function ParkingExpiry() {
           <ul className="space-y-3">
             {rows.map((permit) => (
               <li
-                className="space-y-2 rounded-lg border border-border p-4"
+                className="border-border space-y-2 rounded-lg border p-4"
                 key={permit.id}
               >
                 <h2 className="font-medium">

@@ -237,13 +237,13 @@ export function ParkingApplication() {
           editor={
             <form
               aria-label="Parking access application"
-              className="space-y-4 rounded-xl border bg-card p-4"
+              className="bg-card space-y-4 rounded-xl border p-4"
               onSubmit={async (event) => {
                 event.preventDefault();
                 await save(true);
               }}
             >
-              <h2 className="font-medium text-xl">
+              <h2 className="text-xl font-medium">
                 Airport security parking access application
               </h2>
               <p className="text-sm">
@@ -340,7 +340,7 @@ export function ParkingApplication() {
                 <label htmlFor={`${id}-action`}>
                   Action requested
                   <select
-                    className="block w-full rounded-md border border-input bg-background p-2"
+                    className="border-input bg-background block w-full rounded-md border p-2"
                     id={`${id}-action`}
                     onChange={(e) => {
                       const action = actions.find(
@@ -479,7 +479,7 @@ export function ParkingApplication() {
       {error && <p role="alert">{error}</p>}
       {notice && <p role="status">{notice}</p>}
       <div className="flex flex-wrap gap-3">
-        <h2 className="font-medium text-xl">Applications</h2>
+        <h2 className="text-xl font-medium">Applications</h2>
         {permissions.includes("parking.permit.read.department") && (
           <label htmlFor={`${id}-department-view`}>
             <input
@@ -509,7 +509,7 @@ export function ParkingApplication() {
           <ul className="space-y-3">
             {query.data.data.map((permit) => (
               <li
-                className="space-y-3 rounded-lg border border-border p-4"
+                className="border-border space-y-3 rounded-lg border p-4"
                 key={permit.id}
               >
                 <h3 className="font-medium">

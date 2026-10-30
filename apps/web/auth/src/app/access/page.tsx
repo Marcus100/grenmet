@@ -44,13 +44,13 @@ export default async function AccessPage() {
 
           <SettingsSection title="Permissions">
             {access.is_superuser ? (
-              <p className="py-5 text-muted-foreground text-sm">
+              <p className="text-muted-foreground py-5 text-sm">
                 Administrators have every permission.
               </p>
             ) : null}
             {groupPermissions(access.permission_keys).map(([area, keys]) => (
               <details className="group py-4" key={area}>
-                <summary className="flex cursor-pointer list-none items-center justify-between font-medium text-foreground text-sm">
+                <summary className="text-foreground flex cursor-pointer list-none items-center justify-between text-sm font-medium">
                   <span className="capitalize">
                     {area.replaceAll("_", " ")}
                   </span>
@@ -59,7 +59,7 @@ export default async function AccessPage() {
                     {keys.length === 1 ? "permission" : "permissions"}
                   </span>
                 </summary>
-                <ul className="mt-3 space-y-1 font-mono text-body-sm text-muted-foreground">
+                <ul className="text-body-sm text-muted-foreground mt-3 space-y-1 font-mono">
                   {keys.map((key) => (
                     <li key={key}>{key}</li>
                   ))}

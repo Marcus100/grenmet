@@ -15,28 +15,28 @@ import type { ReactElement } from "react";
 import { beforeEach, expect, it, vi } from "vitest";
 import { ProductDesk } from "./product-desk";
 
-const PUBLICATION_CONFIRMATION = /checked the content/;
+const PUBLICATION_CONFIRMATION = /checked the content/u;
 
-const OPEN_MARINE = /^Open Marine/;
-const ISSUE_DATE_LABEL = /Issue date and time/;
-const FORECASTER_LABEL = /Forecaster on duty/;
-const AREA_LABEL = /Area covered/;
-const SPEED_FROM_LABEL = /Speed from \(mph\)/;
-const WEATHER_SUMMARY_LABEL = /^Weather forecast \*$/;
-const SPEED_TO_LABEL = /Speed to \(mph\)/;
-const WAVES_FROM_LABEL = /Waves from \(ft\)/;
-const WAVES_METRES_HINT = /Waves ≈ 0.55 m/;
-const HIGH_TIDES_LABEL = /High tides \(times\)/;
-const TIDE_TIME_LABEL = /^Tide \d time$/;
-const WIND_SUMMARY_LABEL = /^Wind summary/;
-const MAX_WINDS_LABEL = /Maximum winds and gusts/;
-const DAY_ONE_HEADING = /^Day 1/;
-const EVENT_TIME_LABEL = /Event date and time/;
-const FIELD_LIMIT_ERROR = /forecast field limit/;
+const OPEN_MARINE = /^Open Marine/u;
+const ISSUE_DATE_LABEL = /Issue date and time/u;
+const FORECASTER_LABEL = /Forecaster on duty/u;
+const AREA_LABEL = /Area covered/u;
+const SPEED_FROM_LABEL = /Speed from \(mph\)/u;
+const WEATHER_SUMMARY_LABEL = /^Weather forecast \*$/u;
+const SPEED_TO_LABEL = /Speed to \(mph\)/u;
+const WAVES_FROM_LABEL = /Waves from \(ft\)/u;
+const WAVES_METRES_HINT = /Waves ≈ 0.55 m/u;
+const HIGH_TIDES_LABEL = /High tides \(times\)/u;
+const TIDE_TIME_LABEL = /^Tide \d time$/u;
+const WIND_SUMMARY_LABEL = /^Wind summary/u;
+const MAX_WINDS_LABEL = /Maximum winds and gusts/u;
+const DAY_ONE_HEADING = /^Day 1/u;
+const EVENT_TIME_LABEL = /Event date and time/u;
+const FIELD_LIMIT_ERROR = /forecast field limit/u;
 const REVISION_TWO_LINE =
-  /Revision 2 · publish · Ann Forecaster · 2026-10-07T12:00:00Z/;
+  /Revision 2 · publish · Ann Forecaster · 2026-10-07T12:00:00Z/u;
 const REVISION_ONE_LINE =
-  /Revision 1 · save · Ann Forecaster · 2026-10-07T11:00:00Z/;
+  /Revision 1 · save · Ann Forecaster · 2026-10-07T11:00:00Z/u;
 
 const actions = vi.hoisted(() => ({
   loadProductsAction: vi.fn(),

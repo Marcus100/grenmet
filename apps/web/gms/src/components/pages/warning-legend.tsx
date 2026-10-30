@@ -20,10 +20,10 @@ export function WarningLegend() {
   return (
     <aside
       aria-labelledby="warning-legend-title"
-      className="flex flex-col gap-3 self-start rounded-gm-card border border-gm-border bg-background p-4 lg:p-5"
+      className="rounded-gm-card border-gm-border bg-background flex flex-col gap-3 self-start border p-4 lg:p-5"
     >
       <h2
-        className="font-bold text-body-base text-gm-heading leading-body-base"
+        className="text-body-base text-gm-heading leading-body-base font-bold"
         id="warning-legend-title"
       >
         Alert levels
@@ -36,7 +36,7 @@ export function WarningLegend() {
               className={`h-5 rounded ${WARNING_LEVEL_SWATCH[level]}`}
             />
             <span className="text-body-sm leading-body-sm">
-              <b className="block text-gm-heading">
+              <b className="text-gm-heading block">
                 {WARNING_LEVEL_LABEL[level]}
               </b>
               {WARNING_LEVEL_GUIDANCE[level]}
@@ -45,14 +45,14 @@ export function WarningLegend() {
         ))}
       </ul>
       <Link
-        className="flex items-center gap-1 font-semibold text-body text-gm-blue-ink leading-body hover:underline"
+        className="text-body text-gm-blue-ink leading-body flex items-center gap-1 font-semibold hover:underline"
         href="/alerts/levels"
       >
         How alerts work
         <ArrowRightIcon aria-hidden="true" className="size-4" />
       </Link>
       <Link
-        className="flex h-11 items-center justify-center gap-2 rounded-md bg-gm-blue-ink font-bold text-body text-gm-text-inverse leading-body dark:text-gm-navy"
+        className="bg-gm-blue-ink text-body text-gm-text-inverse leading-body dark:text-gm-navy flex h-11 items-center justify-center gap-2 rounded-md font-bold"
         href="/alerts/get-alerts"
       >
         <BellIcon aria-hidden="true" className="size-4" />

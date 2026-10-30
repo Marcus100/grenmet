@@ -24,7 +24,8 @@ vi.mock("@barrelsgd/auth", () => ({ useSessionUser: () => actor }));
 vi.mock("./account-activation", () => ({ AccountActivation: () => null }));
 
 const BASE = "http://localhost";
-const DELEGATION_EXPLANATION = /Delegated access ends when your authority ends/;
+const DELEGATION_EXPLANATION =
+  /Delegated access ends when your authority ends/u;
 
 const ROLES: RolePublic[] = [
   {

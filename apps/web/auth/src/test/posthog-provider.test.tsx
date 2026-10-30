@@ -51,8 +51,8 @@ vi.mock("@barrelsgd/ui/lib/analytics-policy", async (importOriginal) => ({
   >()),
   configForOrigin: () => (state.configured ? config : null),
 }));
-const ANALYTICS_BOX = /Analytics cookies/;
-const ESSENTIAL_BOX = /Essential cookies/;
+const ANALYTICS_BOX = /Analytics cookies/u;
+const ESSENTIAL_BOX = /Essential cookies/u;
 const config = {
   app: "elections",
   environment: "development",

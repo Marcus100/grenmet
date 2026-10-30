@@ -30,17 +30,17 @@ import { findOrganisation, getSettings } from "@/lib/studio-api";
 import SettingsPage from "./page";
 
 const params = Promise.resolve({ orgSlug: "sea-salt" });
-const NO_SERVICES = /No services yet/;
-const NO_PROVIDERS = /No providers yet/;
-const NOT_YET = /Time off, extra hours and menu order/;
+const NO_SERVICES = /No services yet/u;
+const NO_PROVIDERS = /No providers yet/u;
+const NOT_YET = /Time off, extra hours and menu order/u;
 const SAVE_PROFILE = "Save profile";
-const READ_ONLY = /Ask an owner or admin to change them/;
-const NO_PROFILE = /No booking profile yet/;
+const READ_ONLY = /Ask an owner or admin to change them/u;
+const NO_PROFILE = /No booking profile yet/u;
 const ADD_SERVICE = "Add service";
-const HOURS = /09:00 to 17:00/;
-const SALT_ZONE = /Timezone: America\/Barbados/;
+const HOURS = /09:00 to 17:00/u;
+const SALT_ZONE = /Timezone: America\/Barbados/u;
 
-const TTD_LINE = /150 TTD, 25 TTD deposit/;
+const TTD_LINE = /150 TTD, 25 TTD deposit/u;
 
 const EMPTY: BookingSettings = {
   profile: null,

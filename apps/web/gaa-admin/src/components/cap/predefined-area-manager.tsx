@@ -84,7 +84,7 @@ export function PredefinedAreaManager({
         </fieldset>
         {message ? <p role="status">{message}</p> : null}
       </form>
-      <h2 className="font-semibold text-lg">Saved areas</h2>
+      <h2 className="text-lg font-semibold">Saved areas</h2>
       {areas.length === 0 ? <p>No predefined areas available.</p> : null}
       {areas.map((area) => (
         <article className="space-y-2 rounded-lg border p-4" key={area.id}>
@@ -93,7 +93,7 @@ export function PredefinedAreaManager({
           <p>{area.is_active ? "Active" : "Inactive"}</p>
           <details>
             <summary>Geographic definition</summary>
-            <pre className="overflow-auto whitespace-pre-wrap text-xs">
+            <pre className="overflow-auto text-xs whitespace-pre-wrap">
               {JSON.stringify(
                 {
                   polygons: area.polygons,

@@ -58,20 +58,20 @@ export default async function InvoicesPage({
     <>
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div className="space-y-1">
-          <h1 className="font-semibold text-2xl">Invoices</h1>
+          <h1 className="text-2xl font-semibold">Invoices</h1>
           <p className="text-muted-foreground">
             Barrels invoices to its service-line clients, in XCD.
           </p>
         </div>
         <div className="flex gap-2">
           <Link
-            className="rounded-md border px-3 py-1.5 text-sm hover:bg-muted"
+            className="hover:bg-muted rounded-md border px-3 py-1.5 text-sm"
             href="/customers"
           >
             Customers
           </Link>
           <Link
-            className="rounded-md border px-3 py-1.5 text-sm hover:bg-muted"
+            className="hover:bg-muted rounded-md border px-3 py-1.5 text-sm"
             href="/invoices/new"
           >
             New invoice
@@ -83,7 +83,7 @@ export default async function InvoicesPage({
         <label className="grid gap-1 text-sm">
           Search
           <input
-            className="rounded-md border bg-background px-2.5 py-1.5"
+            className="bg-background rounded-md border px-2.5 py-1.5"
             defaultValue={q}
             maxLength={100}
             name="q"
@@ -94,7 +94,7 @@ export default async function InvoicesPage({
         <label className="grid gap-1 text-sm">
           Status
           <select
-            className="rounded-md border bg-background px-2.5 py-1.5"
+            className="bg-background rounded-md border px-2.5 py-1.5"
             defaultValue={status ?? ""}
             name="status"
           >
@@ -116,7 +116,7 @@ export default async function InvoicesPage({
           Overdue only
         </label>
         <button
-          className="rounded-md border px-3 py-1.5 text-sm hover:bg-muted"
+          className="hover:bg-muted rounded-md border px-3 py-1.5 text-sm"
           type="submit"
         >
           Filter

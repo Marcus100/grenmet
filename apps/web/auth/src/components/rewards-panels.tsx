@@ -86,7 +86,7 @@ function TrailRow({ trail }: { readonly trail: PassportTrailPublic }) {
           aria-valuemax={trail.required}
           aria-valuemin={0}
           aria-valuenow={Math.min(trail.stamped, trail.required)}
-          className="h-2 overflow-hidden rounded-full bg-muted"
+          className="bg-muted h-2 overflow-hidden rounded-full"
           role="progressbar"
         >
           <div
@@ -104,7 +104,7 @@ function TrailRow({ trail }: { readonly trail: PassportTrailPublic }) {
             className="flex items-center justify-between gap-2 text-sm"
             key={stop.id}
           >
-            <span className="min-w-0 text-foreground">{stop.label}</span>
+            <span className="text-foreground min-w-0">{stop.label}</span>
             <StatusBadge tone={stop.stamped_at ? "on" : "off"}>
               {stop.stamped_at ? "Stamped" : "Not yet"}
             </StatusBadge>
@@ -123,7 +123,7 @@ export function PassportSection({
   return (
     <SettingsSection title="Passport">
       {trails.ok && trails.data.length === 0 ? (
-        <p className="py-5 text-muted-foreground text-sm">
+        <p className="text-muted-foreground py-5 text-sm">
           No trails yet. Visit a participating place and check in to collect
           your first stamp.
         </p>
@@ -145,7 +145,7 @@ export function AchievementsSection({
   return (
     <SettingsSection title="Achievements">
       {achievements.ok && achievements.data.length === 0 ? (
-        <p className="py-5 text-muted-foreground text-sm">
+        <p className="text-muted-foreground py-5 text-sm">
           No achievements to show yet.
         </p>
       ) : null}
@@ -211,7 +211,7 @@ export function CheckInSection({
       id="check-in"
     >
       <h2
-        className="font-mono text-label text-muted-foreground uppercase tracking-widest"
+        className="text-label text-muted-foreground font-mono tracking-widest uppercase"
         id="check-in-title"
       >
         Check in at a venue

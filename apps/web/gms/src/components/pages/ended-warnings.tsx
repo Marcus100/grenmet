@@ -16,14 +16,14 @@ export function EndedWarnings({ ended }: { ended: EndedWarning[] }) {
       {ended.map((warning) => (
         <li key={warning.identifier}>
           <Link
-            className="flex flex-col gap-1 rounded-gm-card border border-gm-border bg-gm-surface p-4 hover:bg-gm-surface-muted lg:p-5"
+            className="rounded-gm-card border-gm-border bg-gm-surface hover:bg-gm-surface-muted flex flex-col gap-1 border p-4 lg:p-5"
             href={warningHref(warning.identifier) as Route}
           >
             <span className="flex flex-wrap items-center gap-2">
-              <span className="rounded-full bg-gm-warning-grey-bg px-2.5 py-0.5 font-bold text-gm-warning-grey-fg text-label uppercase leading-label tracking-wide">
+              <span className="bg-gm-warning-grey-bg text-gm-warning-grey-fg text-label leading-label rounded-full px-2.5 py-0.5 font-bold tracking-wide uppercase">
                 {warning.how === "cancelled" ? "Cancelled" : "Ended"}
               </span>
-              <span className="font-bold text-body-base text-gm-heading leading-body-base">
+              <span className="text-body-base text-gm-heading leading-body-base font-bold">
                 {warning.event}
               </span>
             </span>

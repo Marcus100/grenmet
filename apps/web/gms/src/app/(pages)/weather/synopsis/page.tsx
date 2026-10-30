@@ -29,7 +29,7 @@ export default async function SynopsisPage() {
       )}
       {result.status === "ok" && !synopsis && (
         <p
-          className="rounded-gm-card border border-gm-border p-4 text-body-base leading-body-base"
+          className="rounded-gm-card border-gm-border text-body-base leading-body-base border p-4"
           role="status"
         >
           No forecast narrative is currently published. Check back after the
@@ -46,10 +46,10 @@ export default async function SynopsisPage() {
               time={synopsis.issuedAt}
             />
             <Prose paragraphs={synopsis.paragraphs} />
-            <p className="mt-4 font-mono text-body-sm text-gm-text-secondary leading-body-sm">
+            <p className="text-body-sm text-gm-text-secondary leading-body-sm mt-4 font-mono">
               From the{" "}
               <Link
-                className="underline underline-offset-4 hover:text-gm-blue-ink"
+                className="hover:text-gm-blue-ink underline underline-offset-4"
                 href={`/weather/issued/${synopsis.id}`}
               >
                 {synopsis.kindLabel}

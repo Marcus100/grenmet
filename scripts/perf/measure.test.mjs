@@ -9,7 +9,7 @@ import { promisify } from "node:util";
 import { request, summarize, table } from "./measure.mjs";
 
 const run = promisify(execFile);
-const SETTINGS_DIFFER = /Baseline settings differ/;
+const SETTINGS_DIFFER = /Baseline settings differ/u;
 const script = new URL("./measure.mjs", import.meta.url).pathname;
 
 async function fixture(t, handler) {

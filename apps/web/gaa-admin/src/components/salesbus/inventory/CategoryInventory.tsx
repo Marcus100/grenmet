@@ -45,7 +45,7 @@ export function CategoryInventory({
         />
         {canManage ? (
           <Button
-            className="flex items-center gap-2 whitespace-nowrap bg-gm-blue-ink hover:bg-gm-navy"
+            className="bg-gm-blue-ink hover:bg-gm-navy flex items-center gap-2 whitespace-nowrap"
             onClick={() => setAdding(true)}
           >
             <Plus className="h-5 w-5" />
@@ -60,7 +60,7 @@ export function CategoryInventory({
           <span className="text-muted-foreground text-sm lowercase sm:text-base">
             {category}
           </span>
-          <div className="h-px flex-1 bg-border" />
+          <div className="bg-border h-px flex-1" />
         </div>
 
         <div className="grid grid-cols-3 gap-3 sm:grid-cols-4 sm:gap-4 lg:grid-cols-6 landscape:grid-cols-5">
@@ -75,7 +75,7 @@ export function CategoryInventory({
       </div>
 
       {filtered.length === 0 && (
-        <div className="py-12 text-center text-muted-foreground">
+        <div className="text-muted-foreground py-12 text-center">
           <p className="text-base sm:text-lg">No items found</p>
         </div>
       )}

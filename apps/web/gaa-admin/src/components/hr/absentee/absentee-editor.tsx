@@ -351,7 +351,7 @@ export function AbsenteeEditor() {
       {(values) => (
         <HrFormDesk
           editor={
-            <div className="flex flex-col gap-4 rounded-xl border bg-card p-4">
+            <div className="bg-card flex flex-col gap-4 rounded-xl border p-4">
               <div className="flex flex-col gap-3">
                 <SigningPanel submission={submission} />
                 <SubmissionDate submission={submission} />

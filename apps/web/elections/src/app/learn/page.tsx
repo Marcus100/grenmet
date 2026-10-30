@@ -35,12 +35,12 @@ export default function LearnPage() {
               <p className="text-el-muted text-lg leading-relaxed">
                 Guide {i + 1}
               </p>
-              <h3 className="mt-1 font-bold font-serif text-xl">
+              <h3 className="mt-1 font-serif text-xl font-bold">
                 <Link className="hover:underline" href={`/learn/${guide.slug}`}>
                   {guide.question}
                 </Link>
               </h3>
-              <p className="mt-2 text-el-ink-2 text-lg leading-relaxed">
+              <p className="text-el-ink-2 mt-2 text-lg leading-relaxed">
                 {guide.answer}
               </p>
               <Link

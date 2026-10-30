@@ -2,7 +2,7 @@ import { render, screen, within } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import { Footer } from "@/components/footer";
 
-const PATH_START = /^M/;
+const PATH_START = /^M/u;
 
 describe("Footer", () => {
   it("names each social network, with an icon or its name", () => {

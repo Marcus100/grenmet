@@ -29,7 +29,7 @@ export const TIMEZONE_SUGGESTIONS = [
   "Europe/London",
 ] as const;
 
-const MONEY = /^\d{1,7}(?:\.\d{1,2})?$/;
+const MONEY = /^\d{1,7}(?:\.\d{1,2})?$/u;
 
 /**
  * "25" or "25.50" to minor units (2500, 2550). Null when the text is not a
@@ -59,7 +59,7 @@ export function hhmm(value: string): string {
   return value.slice(0, 5);
 }
 
-const TIME = /^([01]\d|2[0-3]):[0-5]\d$/;
+const TIME = /^([01]\d|2[0-3]):[0-5]\d$/u;
 
 /** How many rows a day shows: its periods plus one blank, never fewer than two. */
 export function rowsForDay(periods: number): number {
@@ -79,7 +79,7 @@ export function periodsByDay(
   return days;
 }
 
-const HOURS_KEY = /^hours-([0-6])-(\d+)-(start|end)$/;
+const HOURS_KEY = /^hours-([0-6])-(\d+)-(start|end)$/u;
 
 export type HoursParse =
   | { ok: true; periods: BookingWorkingPeriodIn[] }

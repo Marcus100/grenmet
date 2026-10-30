@@ -10,7 +10,7 @@ export function StaffOnly({ email }: { email?: string }) {
       className="mx-auto flex min-h-screen max-w-xl flex-col justify-center gap-4 p-6"
       id="main-content"
     >
-      <h1 className="font-semibold text-2xl">Barrels staff only</h1>
+      <h1 className="text-2xl font-semibold">Barrels staff only</h1>
       <p className="text-muted-foreground">
         This console is for Barrels Grenada staff. Your account
         {email ? ` (${email})` : ""} does not have access.
@@ -25,7 +25,7 @@ export function StaffOnly({ email }: { email?: string }) {
       </p>
       <form action="/auth/logout" method="post">
         <button
-          className="rounded-md border px-3 py-1.5 text-sm hover:bg-muted"
+          className="hover:bg-muted rounded-md border px-3 py-1.5 text-sm"
           type="submit"
         >
           Sign out of this console

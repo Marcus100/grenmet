@@ -8,14 +8,14 @@ export function RecoveryCodes({ codes }: { codes: readonly string[] }) {
 
   return (
     <div className="space-y-3">
-      <ul className="grid grid-cols-2 gap-2 rounded-lg border border-border bg-muted p-4 font-mono text-sm">
+      <ul className="border-border bg-muted grid grid-cols-2 gap-2 rounded-lg border p-4 font-mono text-sm">
         {codes.map((code) => (
           <li key={code}>{code}</li>
         ))}
       </ul>
       <div className="flex gap-2">
         <button
-          className="inline-flex items-center gap-1.5 rounded-lg border border-border px-3 py-1.5 font-medium text-foreground text-sm transition hover:bg-muted"
+          className="border-border text-foreground hover:bg-muted inline-flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-sm font-medium transition"
           onClick={async () => {
             await navigator.clipboard.writeText(text);
             setCopied(true);
@@ -30,7 +30,7 @@ export function RecoveryCodes({ codes }: { codes: readonly string[] }) {
           {copied ? "Copied" : "Copy"}
         </button>
         <a
-          className="inline-flex items-center gap-1.5 rounded-lg border border-border px-3 py-1.5 font-medium text-foreground text-sm transition hover:bg-muted"
+          className="border-border text-foreground hover:bg-muted inline-flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-sm font-medium transition"
           download="grenmet-recovery-codes.txt"
           href={`data:text/plain;charset=utf-8,${encodeURIComponent(text)}`}
         >

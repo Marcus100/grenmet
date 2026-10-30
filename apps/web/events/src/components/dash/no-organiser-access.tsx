@@ -20,7 +20,7 @@ export async function NoOrganiserAccess() {
           <EventsSwitchedOff />
         ) : (
           <>
-            <h1 className="font-display font-semibold text-heading-base">
+            <h1 className="font-display text-heading-base font-semibold">
               Become an organiser
             </h1>
             <p className="text-body-base text-muted-foreground">
@@ -43,13 +43,13 @@ function EventsSwitchedOff() {
   return (
     <section aria-labelledby="events-off-title" className="space-y-4">
       <h1
-        className="font-display font-semibold text-heading-base"
+        className="font-display text-heading-base font-semibold"
         id="events-off-title"
       >
         Events is switched off for this organisation
       </h1>
       <p
-        className="rounded-2xl border border-border border-dashed bg-card px-4 py-6 text-body-base text-muted-foreground"
+        className="border-border bg-card text-body-base text-muted-foreground rounded-2xl border border-dashed px-4 py-6"
         role="status"
       >
         Your organiser exists, but Barrels Events isn't enabled for its

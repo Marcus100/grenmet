@@ -23,9 +23,9 @@ const AGENTS = ["claude", "codex"];
 const OUTCOMES = ["success", "flawed", "blocked", "manual"];
 const VERIFY = ["pass", "fail", "skipped"];
 const TIERS = ["low", "standard", "high"];
-const WEEK = /^\d{4}-W\d{2}$/;
+const WEEK = /^\d{4}-W\d{2}$/u;
 const MAX_PERCENT = 100;
-const RECORD_BLOCK = /```json\n([\s\S]*?)\n```/;
+const RECORD_BLOCK = /```json\n([\s\S]*?)\n```/u;
 
 const isNonNegative = (value) => Number.isFinite(value) && value >= 0;
 const isCount = (value) => Number.isInteger(value) && value >= 0;

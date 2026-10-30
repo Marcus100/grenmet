@@ -28,15 +28,15 @@ export function WarningTakeover({ alerts }: { alerts: AlertsResult }) {
   return (
     <section
       aria-labelledby="takeover-title"
-      className="border-gm-risk-red border-b-6 bg-background"
+      className="border-gm-risk-red bg-background border-b-6"
     >
       <div className="mx-auto grid max-w-6xl gap-4 px-4 py-6 sm:px-6 xl:px-8">
-        <p className="flex w-fit items-center gap-2 rounded bg-gm-warning-red-bg px-2.5 py-1 font-bold text-gm-warning-red-fg text-label uppercase leading-label tracking-wider">
+        <p className="bg-gm-warning-red-bg text-gm-warning-red-fg text-label leading-label flex w-fit items-center gap-2 rounded px-2.5 py-1 font-bold tracking-wider uppercase">
           <TriangleAlertIcon aria-hidden="true" className="size-4" />
           Take action now
         </p>
         <h2
-          className="text-balance font-bold font-gm-display text-gm-display text-gm-heading uppercase tracking-wide"
+          className="font-gm-display text-gm-display text-gm-heading font-bold tracking-wide text-balance uppercase"
           id="takeover-title"
         >
           {urgent.length === 1
@@ -46,26 +46,26 @@ export function WarningTakeover({ alerts }: { alerts: AlertsResult }) {
         <ul className="grid gap-3 md:grid-cols-2">
           {urgent.map((alert) => (
             <li
-              className="rounded-gm-card border border-gm-border border-l-6 border-l-gm-risk-red p-4"
+              className="rounded-gm-card border-gm-border border-l-gm-risk-red border border-l-6 p-4"
               key={alert.identifier}
             >
-              <p className="font-bold text-body-base text-gm-heading leading-body-base">
+              <p className="text-body-base text-gm-heading leading-body-base font-bold">
                 {alert.headline}
               </p>
-              <dl className="mt-2 grid grid-cols-[auto_1fr] gap-x-3 gap-y-1 text-body leading-body">
-                <dt className="font-semibold text-gm-text-secondary">Where</dt>
+              <dl className="text-body leading-body mt-2 grid grid-cols-[auto_1fr] gap-x-3 gap-y-1">
+                <dt className="text-gm-text-secondary font-semibold">Where</dt>
                 <dd>
                   {alert.areas.length > 0
                     ? alert.areas.join(", ")
                     : "Grenada, Carriacou and Petite Martinique"}
                 </dd>
-                <dt className="font-semibold text-gm-text-secondary">Until</dt>
+                <dt className="text-gm-text-secondary font-semibold">Until</dt>
                 <dd>
                   {formatWarningTime(alert.expires) ?? "Until further notice"}
                 </dd>
               </dl>
               <Link
-                className="mt-3 inline-flex h-11 items-center rounded-md bg-gm-warning-red-bg px-4 font-bold text-body text-gm-warning-red-fg leading-body"
+                className="bg-gm-warning-red-bg text-body text-gm-warning-red-fg leading-body mt-3 inline-flex h-11 items-center rounded-md px-4 font-bold"
                 href={warningHref(alert.identifier) as Route}
               >
                 Read the warning

@@ -15,9 +15,9 @@ export function WeatherReference() {
   return (
     <section
       aria-labelledby="weather-reference-title"
-      className="space-y-4 rounded-lg border bg-card p-5 print:hidden"
+      className="bg-card space-y-4 rounded-lg border p-5 print:hidden"
     >
-      <h2 className="font-semibold text-xl" id="weather-reference-title">
+      <h2 className="text-xl font-semibold" id="weather-reference-title">
         WMO weather reference
       </h2>
       <p className="text-muted-foreground text-sm">
@@ -53,7 +53,7 @@ export function WeatherReference() {
           <details className="rounded-md border p-3" key={field.id}>
             <summary className="cursor-pointer font-medium">
               {field.name}{" "}
-              <span className="font-mono text-muted-foreground text-sm">
+              <span className="text-muted-foreground font-mono text-sm">
                 {displayDescriptor(field.id)}
               </span>
             </summary>
@@ -112,7 +112,7 @@ export function WeatherReference() {
         <summary className="cursor-pointer font-medium">
           BUFR report sequences
         </summary>
-        <p className="my-3 text-muted-foreground text-sm">
+        <p className="text-muted-foreground my-3 text-sm">
           Top-level members only; nested sequences and replication require a
           BUFR decoder. This reference is not an encoder.
         </p>
@@ -189,7 +189,7 @@ export function WeatherReference() {
           {Object.entries(wmoReference.licenses).map(([name, license]) => (
             <div key={name}>
               <h3 className="font-medium">{name}</h3>
-              <pre className="whitespace-pre-wrap font-sans text-xs">
+              <pre className="font-sans text-xs whitespace-pre-wrap">
                 {license}
               </pre>
             </div>

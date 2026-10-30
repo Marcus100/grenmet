@@ -18,7 +18,7 @@ export type PreviewResult =
 
 const PREVIEW_TIMEOUT_MS = 5000;
 /** Two base64url parts joined by a dot, as the CMS signs them. Anything else is refused. */
-const TOKEN_SHAPE = /^[A-Za-z0-9_-]{1,2000}\.[A-Za-z0-9_-]{1,200}$/;
+const TOKEN_SHAPE = /^[A-Za-z0-9_-]{1,2000}\.[A-Za-z0-9_-]{1,200}$/u;
 
 /** The article types the weather site renders as a page. */
 const ARTICLE_COLLECTIONS = new Set([

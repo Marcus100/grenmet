@@ -12,7 +12,7 @@ import { fileURLToPath } from "node:url";
 const root = join(dirname(fileURLToPath(import.meta.url)), "..", "..");
 const WEB = join(root, "apps", "web");
 const FILE = join("src", "lib", "report-error.ts");
-const COMMENT_LINE = /^\s*(?:\/?\*|\/\*\*)/;
+const COMMENT_LINE = /^\s*(?:\/?\*|\/\*\*)/u;
 const WIRING =
   "export const reportError = createReportError(captureException);";
 const IMPORTS = [

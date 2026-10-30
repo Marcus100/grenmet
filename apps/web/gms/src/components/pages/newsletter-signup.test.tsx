@@ -4,8 +4,8 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { NewsletterSignup } from "@/components/pages/newsletter-signup";
 
 const captureEvent = vi.hoisted(() => vi.fn());
-const ONCE_A_DAY_COPY = /once a day when it has news/i;
-const STOP_ANYTIME_COPY = /unsubscribe at any time/i;
+const ONCE_A_DAY_COPY = /once a day when it has news/iu;
+const STOP_ANYTIME_COPY = /unsubscribe at any time/iu;
 
 vi.mock("@barrelsgd/ui/lib/analytics-runtime", () => ({ captureEvent }));
 vi.mock("@/lib/report-error", () => ({ reportError: vi.fn() }));

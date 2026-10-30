@@ -68,7 +68,7 @@ export default async function MeteogramPage({ searchParams }: PageProps) {
     <form className="flex flex-wrap items-end gap-3" method="get">
       {organisations.length > 1 ? (
         <label className="space-y-1 text-sm">
-          <span className="block text-muted-foreground">Organisation</span>
+          <span className="text-muted-foreground block">Organisation</span>
           <select
             className={selectClass}
             defaultValue={organisation.id}
@@ -87,7 +87,7 @@ export default async function MeteogramPage({ searchParams }: PageProps) {
         <input name="org" type="hidden" value={organisation.id} />
       )}
       <label className="space-y-1 text-sm">
-        <span className="block text-muted-foreground">Point</span>
+        <span className="text-muted-foreground block">Point</span>
         <select className={selectClass} defaultValue={point?.key} name="point">
           {catalogue.points.map((p) => (
             <option key={p.key} value={p.key}>
@@ -97,7 +97,7 @@ export default async function MeteogramPage({ searchParams }: PageProps) {
         </select>
       </label>
       <label className="space-y-1 text-sm">
-        <span className="block text-muted-foreground">Model</span>
+        <span className="text-muted-foreground block">Model</span>
         <select className={selectClass} defaultValue={model?.key} name="model">
           {catalogue.models.map((m) => (
             <option key={m.key} value={m.key}>
@@ -107,7 +107,7 @@ export default async function MeteogramPage({ searchParams }: PageProps) {
         </select>
       </label>
       <button
-        className="rounded-md bg-primary px-3 py-1.5 text-primary-foreground text-sm"
+        className="bg-primary text-primary-foreground rounded-md px-3 py-1.5 text-sm"
         type="submit"
       >
         Show
@@ -117,8 +117,8 @@ export default async function MeteogramPage({ searchParams }: PageProps) {
 
   const heading = (
     <div className="space-y-2">
-      <h1 className="font-semibold text-2xl">Meteogram</h1>
-      <p className="rounded-md border bg-muted px-3 py-2 text-sm" role="note">
+      <h1 className="text-2xl font-semibold">Meteogram</h1>
+      <p className="bg-muted rounded-md border px-3 py-2 text-sm" role="note">
         {catalogue.disclaimer}
       </p>
       {picker}
@@ -296,8 +296,8 @@ function Message({
 }: Readonly<{ children: React.ReactNode; title: string }>) {
   return (
     <section className="space-y-2">
-      <h1 className="font-semibold text-2xl">{title}</h1>
-      <p className="max-w-2xl text-muted-foreground">{children}</p>
+      <h1 className="text-2xl font-semibold">{title}</h1>
+      <p className="text-muted-foreground max-w-2xl">{children}</p>
     </section>
   );
 }

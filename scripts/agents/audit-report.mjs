@@ -13,27 +13,27 @@ import {
 const EXPECTED_REPO = "Marcus100/grenmet";
 const LABEL = "codex-audit";
 const GENERATED_HEADER = "## Advisory audit observation";
-const LOGIN_PATTERN = /^[a-zA-Z0-9-]{1,39}$/;
-const OBSERVED_AT_LINE_PATTERN = /^- Observed: `([^`]+)`$/m;
+const LOGIN_PATTERN = /^[a-zA-Z0-9-]{1,39}$/u;
+const OBSERVED_AT_LINE_PATTERN = /^- Observed: `([^`]+)`$/mu;
 const STATUSES = new Set(["pass", "fail", "unknown"]);
 const SEVERITIES = new Set(["blocker", "high", "normal", "low"]);
 const OWNERS = new Set(["Claude", "owner"]);
-const KEY_PATTERN = /^[a-zA-Z0-9._:-]{1,120}$/;
-const SHA_PATTERN = /^(?:[a-f0-9]{40}|[a-f0-9]{64})$/i;
-const BEARER_PATTERN = /\bBearer\s+\S+/gi;
+const KEY_PATTERN = /^[a-zA-Z0-9._:-]{1,120}$/u;
+const SHA_PATTERN = /^(?:[a-f0-9]{40}|[a-f0-9]{64})$/iu;
+const BEARER_PATTERN = /\bBearer\s+\S+/giu;
 const TOKEN_PATTERN =
-  /\b(?:gh[pousr]_[A-Za-z0-9_]{20,}|github_pat_[A-Za-z0-9_]{20,})\b/g;
+  /\b(?:gh[pousr]_[A-Za-z0-9_]{20,}|github_pat_[A-Za-z0-9_]{20,})\b/gu;
 const SECRET_ASSIGNMENT_PATTERN =
-  /\b([A-Za-z0-9_-]*(?:api[_-]?key|access[_-]?token|auth[_-]?token|password|passwd|secret(?:[_-]?key)?|token))=([^\s&]+)/gi;
-const EMAIL_PATTERN = /[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/gi;
-const URL_PATTERN = /https?:\/\/[^\s)<>]+/gi;
-const URL_TRAILING_PUNCTUATION_PATTERN = /[.,;:!?]+$/;
+  /\b([A-Za-z0-9_-]*(?:api[_-]?key|access[_-]?token|auth[_-]?token|password|passwd|secret(?:[_-]?key)?|token))=([^\s&]+)/giu;
+const EMAIL_PATTERN = /[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/giu;
+const URL_PATTERN = /https?:\/\/[^\s)<>]+/giu;
+const URL_TRAILING_PUNCTUATION_PATTERN = /[.,;:!?]+$/u;
 const SAFE_GITHUB_PATH_PATTERN =
-  /^\/(?:Marcus100\/grenmet\/actions\/runs\/\d+(?:\/job\/\d+)?|Marcus100\/grenmet\/issues\/\d+)$/;
+  /^\/(?:Marcus100\/grenmet\/actions\/runs\/\d+(?:\/job\/\d+)?|Marcus100\/grenmet\/issues\/\d+)$/u;
 const ABSOLUTE_PATH_PATTERN =
-  /(?:[A-Za-z]:\\|\\\\|\/(?:home|Users|private|tmp|var|etc|mnt|workspace|root)\/)[^\s`<>]*/g;
-const WHITESPACE_PATTERN = /[\r\n\t]+/g;
-const REPEATED_SPACE_PATTERN = /\s{2,}/g;
+  /(?:[A-Za-z]:\\|\\\\|\/(?:home|Users|private|tmp|var|etc|mnt|workspace|root)\/)[^\s`<>]*/gu;
+const WHITESPACE_PATTERN = /[\r\n\t]+/gu;
+const REPEATED_SPACE_PATTERN = /\s{2,}/gu;
 
 const markerFor = (key) =>
   `<!-- codex-audit:${createHash("sha256").update(key).digest("hex").slice(0, 16)} -->`;
@@ -101,7 +101,7 @@ function issueBody(observation, commit, observedAt) {
     `- Owner: **${observation.owner}**`,
     `- Commit: \`${commit}\``,
     `- Observed: \`${observedAt}\``,
-    `- Evidence command: \`${safeText(observation.command).replace(/`/g, "'")}\``,
+    `- Evidence command: \`${safeText(observation.command).replace(/`/gu, "'")}\``,
     "",
     `Summary: ${safeText(observation.summary)}`,
     ...(observation.details ?? []).map((line) => `- ${safeText(line)}`),

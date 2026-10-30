@@ -13,7 +13,7 @@ export function CampaignTimeline({
   sources: Record<string, SourceRef>;
 }) {
   return (
-    <ol className="relative border-el-rule border-l pl-5">
+    <ol className="border-el-rule relative border-l pl-5">
       {events.map((event) => (
         <li className="pb-5 last:pb-0" key={`${event.date}${event.text}`}>
           <span
@@ -25,7 +25,7 @@ export function CampaignTimeline({
                 : "border-background bg-el-ink"
             )}
           />
-          <p className="font-semibold text-base text-el-muted tabular-nums leading-relaxed">
+          <p className="text-el-muted text-base leading-relaxed font-semibold tabular-nums">
             <time dateTime={event.date}>{formatIsoDate(event.date)}</time>
             {event.future && " · to come"}
           </p>
@@ -33,7 +33,7 @@ export function CampaignTimeline({
             {event.text}
             <Flag note={event.note} status={event.flag} />
           </p>
-          <p className="mt-0.5 text-base text-el-muted leading-relaxed">
+          <p className="text-el-muted mt-0.5 text-base leading-relaxed">
             <SourceLink id={event.src} sources={sources} />
             {event.note && ` · ${event.note}`}
           </p>

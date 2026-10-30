@@ -26,36 +26,36 @@ function AlertCard({ alert }: { alert: PublicAlert }) {
   return (
     <li>
       <Link
-        className="group grid grid-cols-[6px_minmax(0,1fr)] overflow-hidden rounded-gm-card border border-gm-border bg-background hover:border-gm-blue-ink focus-visible:border-gm-blue-ink"
+        className="group rounded-gm-card border-gm-border bg-background hover:border-gm-blue-ink focus-visible:border-gm-blue-ink grid grid-cols-[6px_minmax(0,1fr)] overflow-hidden border"
         href={warningHref(alert.identifier) as Route}
       >
         <span aria-hidden="true" className={WARNING_LEVEL_SWATCH[level]} />
         <span className="flex min-w-0 flex-col gap-2 p-4 lg:p-5">
           <span
             className={cn(
-              "w-fit rounded px-2 py-0.5 font-bold text-label uppercase leading-label tracking-wider",
+              "text-label leading-label w-fit rounded px-2 py-0.5 font-bold tracking-wider uppercase",
               WARNING_LEVEL_SURFACE[level]
             )}
           >
             {WARNING_LEVEL_LABEL[level]}
           </span>
-          <span className="font-bold text-gm-heading text-heading-sm leading-heading-sm group-hover:underline">
+          <span className="text-gm-heading text-heading-sm leading-heading-sm font-bold group-hover:underline">
             {alert.event}
           </span>
           <span className="text-body-base leading-body-base">
             {alert.headline}
           </span>
-          <span className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-1 text-body leading-body">
-            <span className="font-semibold text-gm-text-secondary">Where</span>
+          <span className="text-body leading-body grid grid-cols-[auto_1fr] gap-x-3 gap-y-1">
+            <span className="text-gm-text-secondary font-semibold">Where</span>
             <span>
               {alert.areas.length > 0
                 ? alert.areas.join(", ")
                 : "Grenada, Carriacou and Petite Martinique"}
             </span>
-            <span className="font-semibold text-gm-text-secondary">Until</span>
+            <span className="text-gm-text-secondary font-semibold">Until</span>
             <span>{until ?? "Until further notice"}</span>
           </span>
-          <span className="flex items-center gap-1 font-semibold text-body text-gm-blue-ink leading-body">
+          <span className="text-body text-gm-blue-ink leading-body flex items-center gap-1 font-semibold">
             Full warning
             <ArrowRightIcon aria-hidden="true" className="size-4" />
           </span>
@@ -68,7 +68,7 @@ function AlertCard({ alert }: { alert: PublicAlert }) {
 function GroupCard({ group }: { group: HazardGroup }) {
   return (
     <section aria-label={group.name}>
-      <h3 className="mb-2 font-bold text-gm-text-secondary text-label uppercase leading-label tracking-wider">
+      <h3 className="text-gm-text-secondary text-label leading-label mb-2 font-bold tracking-wider uppercase">
         {group.name}
       </h3>
       <ul className="flex flex-col gap-3">
@@ -96,7 +96,7 @@ export function AlertGroups({
 }) {
   if (result.status === "unavailable") {
     return (
-      <div className="rounded-gm-card border border-gm-risk-amber bg-gm-surface p-4 lg:p-5">
+      <div className="rounded-gm-card border-gm-risk-amber bg-gm-surface border p-4 lg:p-5">
         <p className="text-body text-gm-text-secondary leading-body">
           Warning information cannot be retrieved right now. This does not mean
           there are no warnings in effect — check the Grenada Meteorological
@@ -113,7 +113,7 @@ export function AlertGroups({
 
   if (total === 0) {
     return (
-      <div className="rounded-gm-card border border-gm-border bg-background p-4 lg:p-5">
+      <div className="rounded-gm-card border-gm-border bg-background border p-4 lg:p-5">
         <p className="text-body text-gm-text-secondary leading-body">
           {emptyLabel}
         </p>

@@ -8,11 +8,11 @@ const compose = readFileSync(
 );
 
 const INTERNAL_API_URL = "http://api:8000";
-const TOP_LEVEL_KEY = /^\S/;
-const SERVICE_HEADER = /^ {2}([a-z0-9-]+):\s*$/;
-const ENVIRONMENT_ALIAS = /^ {4}environment: \*([\w-]+)\s*$/m;
-const API_URL_SETTING = /^ {6}([A-Z0-9_]*API_URL): (.+)$/gm;
-const PUBLIC_API_HOST = /https:\/\/api\./;
+const TOP_LEVEL_KEY = /^\S/u;
+const SERVICE_HEADER = /^ {2}([a-z0-9-]+):\s*$/u;
+const ENVIRONMENT_ALIAS = /^ {4}environment: \*([\w-]+)\s*$/mu;
+const API_URL_SETTING = /^ {6}([A-Z0-9_]*API_URL): (.+)$/gmu;
+const PUBLIC_API_HOST = /https:\/\/api\./u;
 
 function serviceBlocks(text) {
   const lines = text.split("\n");
@@ -35,14 +35,14 @@ function serviceBlocks(text) {
 function environmentOf(block, blocks) {
   const alias = block.match(ENVIRONMENT_ALIAS);
   if (!alias) return block;
-  const anchor = new RegExp(`^ {4}environment: &${alias[1]}\\s*$`, "m");
+  const anchor = new RegExp(`^ {4}environment: &${alias[1]}\\s*$`, "mu");
   const owner = [...blocks.values()].find((body) => anchor.test(body));
   assert.ok(owner, `environment anchor &${alias[1]} not found`);
   return owner;
 }
 
 function setting(environment, key) {
-  const match = environment.match(new RegExp(`^ {6}${key}: (.+)$`, "m"));
+  const match = environment.match(new RegExp(`^ {6}${key}: (.+)$`, "mu"));
   return match ? match[1].trim() : undefined;
 }
 

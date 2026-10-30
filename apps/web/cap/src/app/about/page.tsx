@@ -6,13 +6,13 @@ export const metadata: Metadata = { title: "About and terms" };
 export default function AboutPage() {
   return (
     <div className="space-y-6">
-      <h1 className="font-semibold text-gm-heading text-heading-lg">
+      <h1 className="text-gm-heading text-heading-lg font-semibold">
         About these alerts
       </h1>
 
       <section aria-labelledby="source" className="space-y-2">
         <h2
-          className="font-semibold text-gm-heading text-heading-sm"
+          className="text-gm-heading text-heading-sm font-semibold"
           id="source"
         >
           Official source
@@ -28,7 +28,7 @@ export default function AboutPage() {
 
       <section aria-labelledby="subscribe" className="space-y-2">
         <h2
-          className="font-semibold text-gm-heading text-heading-sm"
+          className="text-gm-heading text-heading-sm font-semibold"
           id="subscribe"
         >
           How to get alerts
@@ -48,12 +48,12 @@ export default function AboutPage() {
 
       <section aria-labelledby="terms" className="space-y-2">
         <h2
-          className="font-semibold text-gm-heading text-heading-sm"
+          className="text-gm-heading text-heading-sm font-semibold"
           id="terms"
         >
           Terms of use
         </h2>
-        <ul className="list-disc space-y-1 pl-5 text-body">
+        <ul className="text-body list-disc space-y-1 pl-5">
           <li>
             Alerts are shown as issued. In an emergency, follow instructions
             from local authorities first.

@@ -2,7 +2,7 @@ import { env } from "@/env";
 import { reportError } from "@/lib/report-error";
 
 const FILE_ID =
-  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/iu;
 
 /**
  * Public organiser logos and listing images. Proxies the API's cached redirect

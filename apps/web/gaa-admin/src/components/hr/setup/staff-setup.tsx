@@ -50,13 +50,13 @@ function StaffEditor({
   );
   return (
     <details
-      className="rounded-lg border border-border p-4"
+      className="border-border rounded-lg border p-4"
       onToggle={(event) => setExpanded(event.currentTarget.open)}
     >
       <summary className="cursor-pointer font-medium">
         {staff.name} · {staff.status}
       </summary>
-      <p className="my-3 text-muted-foreground text-sm">
+      <p className="text-muted-foreground my-3 text-sm">
         {staff.email} ·{" "}
         {staff.email_verified ? "Email verified" : "Email verification pending"}
       </p>
@@ -73,7 +73,7 @@ function StaffEditor({
         Refresh onboarding status
       </Button>
       {staff.registration_pending && (
-        <div className="my-4 space-y-3 rounded-lg border border-border bg-muted p-4">
+        <div className="border-border bg-muted my-4 space-y-3 rounded-lg border p-4">
           <p className="font-medium">Registration awaiting approval</p>
           <p className="text-sm">
             Verify the employee’s identity, save their department and grade,
@@ -158,7 +158,7 @@ function StaffEditor({
         <label htmlFor={`${fieldId}-grade_id`}>
           Grade
           <select
-            className="block w-full rounded border border-border bg-background p-2"
+            className="border-border bg-background block w-full rounded border p-2"
             defaultValue={staff.grade_id}
             id={`${fieldId}-grade_id`}
             name="grade_id"
@@ -190,7 +190,7 @@ function StaffEditor({
         <label htmlFor={`${fieldId}-employment_type`}>
           Employment type
           <select
-            className="block w-full rounded border border-border bg-background p-2"
+            className="border-border bg-background block w-full rounded border p-2"
             defaultValue={staff.employment_type ?? ""}
             id={`${fieldId}-employment_type`}
             name="employment_type"
@@ -204,7 +204,7 @@ function StaffEditor({
         <label htmlFor={`${fieldId}-supervisor_id`}>
           Supervisor
           <select
-            className="block w-full rounded border border-border bg-background p-2"
+            className="border-border bg-background block w-full rounded border p-2"
             defaultValue={staff.supervisor_id ?? ""}
             id={`${fieldId}-supervisor_id`}
             name="supervisor_id"
@@ -352,7 +352,7 @@ function BalanceEditor({ userId }: { userId: string }) {
   const [busy, setBusy] = useState(false);
   return (
     <form
-      className="mt-4 grid gap-3 border-border border-t pt-4 md:grid-cols-4"
+      className="border-border mt-4 grid gap-3 border-t pt-4 md:grid-cols-4"
       onSubmit={async (event) => {
         event.preventDefault();
         setBusy(true);
@@ -374,7 +374,7 @@ function BalanceEditor({ userId }: { userId: string }) {
       <label htmlFor={`${fieldId}-leave_type`}>
         Leave type
         <select
-          className="block w-full rounded border border-border bg-background p-2"
+          className="border-border bg-background block w-full rounded border p-2"
           id={`${fieldId}-leave_type`}
           name="leave_type"
         >
@@ -441,7 +441,7 @@ function GradeEditor({
   const [message, setMessage] = useState("");
   return (
     <form
-      className="grid gap-3 rounded border border-border p-4 md:grid-cols-3"
+      className="border-border grid gap-3 rounded border p-4 md:grid-cols-3"
       onSubmit={async (event) => {
         event.preventDefault();
         const data = new FormData(event.currentTarget);
@@ -497,7 +497,7 @@ function PolicyEditor({
   const [message, setMessage] = useState("");
   return (
     <form
-      className="space-y-3 rounded border border-border p-4"
+      className="border-border space-y-3 rounded border p-4"
       onSubmit={async (event) => {
         event.preventDefault();
         const data = new FormData(event.currentTarget);
@@ -662,12 +662,12 @@ export function StaffSetupManager({
           <p>No staff credentials have been issued yet.</p>
         )}
       </div>
-      <h2 className="font-semibold text-xl">Grades</h2>
+      <h2 className="text-xl font-semibold">Grades</h2>
       <CreateGrade onSaved={load} organisationId={organisationId} />
       {grades.map((grade) => (
         <GradeEditor grade={grade} key={grade.id} onSaved={load} />
       ))}
-      <h2 className="font-semibold text-xl">Approval policies</h2>
+      <h2 className="text-xl font-semibold">Approval policies</h2>
       <p className="text-muted-foreground">
         Changes apply to new submissions. Requests already in progress keep
         their original policy.

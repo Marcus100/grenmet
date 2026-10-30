@@ -56,7 +56,7 @@ export function UserRowActions({
           render={
             <Button
               aria-label={`Open actions for ${name}`}
-              className="size-8 rounded-md text-muted-foreground hover:bg-muted/50"
+              className="text-muted-foreground hover:bg-muted/50 size-8 rounded-md"
               size="icon-sm"
               variant="ghost"
             />

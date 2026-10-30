@@ -9,7 +9,7 @@ import {
 /** Severity, urgency and certainty as words: colour is never the only signal. */
 export function AlertFacts({ view }: { view: AlertView }) {
   return (
-    <dl className="grid grid-cols-3 gap-2 text-body-sm">
+    <dl className="text-body-sm grid grid-cols-3 gap-2">
       <Fact label="Severity" value={view.severity} />
       <Fact label="Urgency" value={view.urgency} />
       <Fact label="Certainty" value={view.certainty} />
@@ -20,25 +20,25 @@ export function AlertFacts({ view }: { view: AlertView }) {
 function Fact({ label, value }: { label: string; value: string }) {
   return (
     <div>
-      <dt className="text-gm-text-muted text-label uppercase tracking-wide">
+      <dt className="text-gm-text-muted text-label tracking-wide uppercase">
         {label}
       </dt>
-      <dd className="font-semibold text-gm-text-primary">{value}</dd>
+      <dd className="text-gm-text-primary font-semibold">{value}</dd>
     </div>
   );
 }
 
 export function AlertTimes({ view }: { view: AlertView }) {
   return (
-    <dl className="grid grid-cols-2 gap-2 text-body-sm">
+    <dl className="text-body-sm grid grid-cols-2 gap-2">
       <div>
-        <dt className="text-gm-text-muted text-label uppercase tracking-wide">
+        <dt className="text-gm-text-muted text-label tracking-wide uppercase">
           Effective
         </dt>
         <dd className="text-gm-text-primary">{formatWhen(view.effective)}</dd>
       </div>
       <div>
-        <dt className="text-gm-text-muted text-label uppercase tracking-wide">
+        <dt className="text-gm-text-muted text-label tracking-wide uppercase">
           Expires
         </dt>
         <dd className="text-gm-text-primary">{formatWhen(view.expires)}</dd>
@@ -51,7 +51,7 @@ export function AlertTimes({ view }: { view: AlertView }) {
 export function LevelStrip({ view }: { view: AlertView }) {
   return (
     <p
-      className={`px-4 py-2 font-bold text-body uppercase tracking-wide ${WARNING_LEVEL_SURFACE[view.level]}`}
+      className={`text-body px-4 py-2 font-bold tracking-wide uppercase ${WARNING_LEVEL_SURFACE[view.level]}`}
     >
       <span aria-hidden="true">! </span>
       {WARNING_LEVEL_LABEL[view.level]} · {view.event}
@@ -67,10 +67,10 @@ export function AlertCard({
   heading?: "h2" | "h3";
 }) {
   return (
-    <article className="overflow-hidden rounded-gm-card border border-gm-border bg-gm-surface-page">
+    <article className="rounded-gm-card border-gm-border bg-gm-surface-page overflow-hidden border">
       <LevelStrip view={view} />
       <div className="space-y-3 p-4">
-        <Heading className="font-semibold text-gm-heading text-heading-sm">
+        <Heading className="text-gm-heading text-heading-sm font-semibold">
           <Link
             className="underline-offset-4 hover:underline"
             href={`/alerts/${encodeURIComponent(view.identifier)}`}
@@ -80,7 +80,7 @@ export function AlertCard({
           </Link>
         </Heading>
         {view.status === "Actual" ? null : (
-          <p className="font-semibold text-body-sm uppercase tracking-wide">
+          <p className="text-body-sm font-semibold tracking-wide uppercase">
             {view.status} message, not a live warning
           </p>
         )}
@@ -90,11 +90,11 @@ export function AlertCard({
           {view.areas.length > 0 ? view.areas.join("; ") : "Not specified"}
         </p>
         <AlertTimes view={view} />
-        <p className="line-clamp-3 text-body text-gm-text-secondary">
+        <p className="text-body text-gm-text-secondary line-clamp-3">
           {view.description}
         </p>
         <Link
-          className="inline-block font-medium text-body-sm text-gm-blue-ink underline"
+          className="text-body-sm text-gm-blue-ink inline-block font-medium underline"
           href={`/alerts/${encodeURIComponent(view.identifier)}`}
           prefetch={false}
         >

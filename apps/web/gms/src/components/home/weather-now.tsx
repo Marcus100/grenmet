@@ -32,12 +32,12 @@ function leadLink(post: LivePost): RelatedLink | null {
 function UpdateItem({ post }: { post: LivePost }) {
   const link = leadLink(post);
   return (
-    <li className="flex flex-col gap-1 border-gm-border border-t pt-3">
-      <p className="flex flex-wrap items-baseline gap-x-2 font-bold text-body text-gm-heading leading-body">
+    <li className="border-gm-border flex flex-col gap-1 border-t pt-3">
+      <p className="text-body text-gm-heading leading-body flex flex-wrap items-baseline gap-x-2 font-bold">
         {post.title}
         {post.publishedAt && (
           <time
-            className="font-normal text-body-sm text-gm-text-secondary leading-body-sm"
+            className="text-body-sm text-gm-text-secondary leading-body-sm font-normal"
             dateTime={post.publishedAt}
           >
             {clock12(TIME.format(new Date(post.publishedAt)))}
@@ -121,11 +121,11 @@ export async function WeatherNow() {
           notes={notes}
           video={mediaItems(livePosts.posts, "video")}
         />
-        <div className="flex flex-col gap-3 border-gm-sky border-l-3 pl-4">
-          <p className="font-bold text-gm-text-muted text-label uppercase leading-label tracking-wider">
+        <div className="border-gm-sky flex flex-col gap-3 border-l-3 pl-4">
+          <p className="text-gm-text-muted text-label leading-label font-bold tracking-wider uppercase">
             From the duty forecaster
             {note?.postedAt && (
-              <span className="font-normal normal-case tracking-normal">
+              <span className="font-normal tracking-normal normal-case">
                 {" "}
                 · {clock12(TIME.format(new Date(note.postedAt)))}
               </span>
@@ -141,7 +141,7 @@ export async function WeatherNow() {
           ) : (
             note?.alertUrl && (
               <a
-                className="flex items-center gap-1 font-semibold text-body text-gm-blue-ink leading-body hover:underline"
+                className="text-body text-gm-blue-ink leading-body flex items-center gap-1 font-semibold hover:underline"
                 href={note.alertUrl}
               >
                 Read the alert
@@ -151,7 +151,7 @@ export async function WeatherNow() {
           )}
           {updates.length > 0 && (
             <section aria-label="Live from GMS" className="mt-2">
-              <h3 className="mb-1 font-bold text-gm-text-muted text-label uppercase leading-label tracking-wider">
+              <h3 className="text-gm-text-muted text-label leading-label mb-1 font-bold tracking-wider uppercase">
                 Live from GMS
               </h3>
               <ul className="flex flex-col gap-3">

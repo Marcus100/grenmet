@@ -20,11 +20,11 @@ vi.mock("@/app/(console)/payments/actions", () => ({
   recordPayoutAction: () => Promise.resolve(undefined as never),
 }));
 
-const TEST_MODE = /test mode only and no live card rail is enabled/;
-const NO_BALANCES = /No organisation has a ledger balance/;
-const NO_LEDGER = /No ledger entries match/;
-const TOO_MUCH = /more than the balance owed/;
-const PERMANENT = /permanent/;
+const TEST_MODE = /test mode only and no live card rail is enabled/u;
+const NO_BALANCES = /No organisation has a ledger balance/u;
+const NO_LEDGER = /No ledger entries match/u;
+const TOO_MUCH = /more than the balance owed/u;
+const PERMANENT = /permanent/u;
 
 const balance: PaymentBalancePublic = {
   organisation_id: "org_1",

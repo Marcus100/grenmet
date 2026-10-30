@@ -42,7 +42,7 @@ export default async function FlightsPage() {
         >
           {HELP_LINKS.map((link) => (
             <Link
-              className="rounded-xl border border-gaa-rule px-4 py-3 text-center font-medium text-gaa-navy text-sm transition-colors hover:border-gaa-sea/40 hover:bg-gaa-mist"
+              className="border-gaa-rule text-gaa-navy hover:border-gaa-sea/40 hover:bg-gaa-mist rounded-xl border px-4 py-3 text-center text-sm font-medium transition-colors"
               href={link.href as Route}
               key={link.href}
             >

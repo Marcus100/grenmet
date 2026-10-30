@@ -105,7 +105,7 @@ export function ImageUpload({
       {value ? (
         <Image
           alt={label}
-          className="h-32 w-full max-w-xs rounded-xl border border-border object-cover"
+          className="border-border h-32 w-full max-w-xs rounded-xl border object-cover"
           height={128}
           src={storedImageUrl(value)}
           unoptimized

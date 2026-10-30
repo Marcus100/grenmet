@@ -26,10 +26,10 @@ vi.mock("@barrelsgd/api-client", async (importOriginal) => ({
   hrUploadDocument: uploadDocument,
 }));
 
-const DOWNLOAD = /Download Observer/;
-const EDIT = /Edit/;
-const ARCHIVE = /Archive/;
-const ARCHIVED = /Archived/;
+const DOWNLOAD = /Download Observer/u;
+const EDIT = /Edit/u;
+const ARCHIVE = /Archive/u;
+const ARCHIVED = /Archived/u;
 
 const BASE = "http://localhost";
 const USER = "00000000-0000-0000-0000-000000000001";

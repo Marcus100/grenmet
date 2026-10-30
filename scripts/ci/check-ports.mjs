@@ -10,13 +10,13 @@ import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 
-const SECTION_END = /\n#{2,3} /;
-const SERVICE_START = /^ {2}\S/;
-const PORT_FLAG = /--port (\d+)/;
-const EXPOSE_LINE = /^EXPOSE (\d+)/m;
-const ENV_PORT_LINE = /^ENV PORT=(\d+)/m;
-const AGENTS_PORT_HEADER = /^Port \*\*(\d+)\*\*/m;
-const HEALTHCHECK_PORT = /127\.0\.0\.1:(\d+)/;
+const SECTION_END = /\n#{2,3} /u;
+const SERVICE_START = /^ {2}\S/u;
+const PORT_FLAG = /--port (\d+)/u;
+const EXPOSE_LINE = /^EXPOSE (\d+)/mu;
+const ENV_PORT_LINE = /^ENV PORT=(\d+)/mu;
+const AGENTS_PORT_HEADER = /^Port \*\*(\d+)\*\*/mu;
+const HEALTHCHECK_PORT = /127\.0\.0\.1:(\d+)/u;
 const defaultRoot = fileURLToPath(new URL("../..", import.meta.url));
 const PORT_PATTERN = "(\\d{4,5})";
 
@@ -37,7 +37,7 @@ export function parseWebApps(markdown) {
   const rows = section(markdown, "## Web apps");
   const apps = new Map();
   for (const match of rows.matchAll(
-    /^\|\s*([a-z0-9-]+)\s*\|\s*`([^`]+)`\s*\|\s*(\d{4,5})\s*\|/gm
+    /^\|\s*([a-z0-9-]+)\s*\|\s*`([^`]+)`\s*\|\s*(\d{4,5})\s*\|/gmu
   )) {
     apps.set(match[1], { pkg: match[2], port: Number(match[3]) });
   }
@@ -47,7 +47,7 @@ export function parseWebApps(markdown) {
 /** Every `| 3008 | `@barrelsgd/web-shop` (...) | Reserved |` row, in order. */
 export function parseReservedRows(markdown) {
   const rows = section(markdown, "### Reserved and planned");
-  return [...rows.matchAll(/^\|\s*(\d{4,5})\s*\|\s*`([^`]+)`/gm)].map(
+  return [...rows.matchAll(/^\|\s*(\d{4,5})\s*\|\s*`([^`]+)`/gmu)].map(
     (match) => ({ port: Number(match[1]), pkg: match[2] })
   );
 }
@@ -75,18 +75,18 @@ function tableRows(markdown, heading) {
     .filter((cells) => !cells.every((cell) => TABLE_RULE.test(cell)));
 }
 
-const TABLE_EDGE_LEFT = /^\|/;
-const TABLE_EDGE_RIGHT = /\|$/;
-const TABLE_RULE = /^:?-+:?$/;
-const BULLET_NAMES = /^- \*\*[^*]+:\*\*\s*(.+)$/;
-const TRAILING_DOT = /\.$/;
-const RANGE_CELL = /^`(\d{4,5})[–-](\d{4,5})`$/;
-const SINGLE_CELL = /^`?(\d{4,5})`?$/;
-const PORT_NUMBER = /\b(\d{2,5})\b/g;
-const STAGING_HOST = /^([a-z0-9-]+)\.staging\.barrels\.gd$/;
-const BARRELS_HOST = /`([a-z0-9-]+)(?:\.staging)?\.barrels\.gd`/g;
-const COMPOSE_HOST = /Host\(`([^`$]+)\.\$\{BASE_DOMAIN\}`\)/g;
-const COMMENT_LINE = /^\s*#.*$/gm;
+const TABLE_EDGE_LEFT = /^\|/u;
+const TABLE_EDGE_RIGHT = /\|$/u;
+const TABLE_RULE = /^:?-+:?$/u;
+const BULLET_NAMES = /^- \*\*[^*]+:\*\*\s*(.+)$/u;
+const TRAILING_DOT = /\.$/u;
+const RANGE_CELL = /^`(\d{4,5})[–-](\d{4,5})`$/u;
+const SINGLE_CELL = /^`?(\d{4,5})`?$/u;
+const PORT_NUMBER = /\b(\d{2,5})\b/gu;
+const STAGING_HOST = /^([a-z0-9-]+)\.staging\.barrels\.gd$/u;
+const BARRELS_HOST = /`([a-z0-9-]+)(?:\.staging)?\.barrels\.gd`/gu;
+const COMPOSE_HOST = /Host\(`([^`$]+)\.\$\{BASE_DOMAIN\}`\)/gu;
+const COMMENT_LINE = /^\s*#.*$/gmu;
 
 /** `| `3000–3019` | Legacy, frozen | ... |` rows of "## Port ranges". */
 export function parseRanges(markdown) {
@@ -160,7 +160,7 @@ export function parseServedHosts(markdown) {
     for (const match of (cells[productionAt] ?? "").matchAll(BARRELS_HOST)) {
       hosts.production.push(match[1]);
     }
-    for (const match of (cells[stagingAt] ?? "").matchAll(/`([^`]+)`/g)) {
+    for (const match of (cells[stagingAt] ?? "").matchAll(/`([^`]+)`/gu)) {
       const staging = match[1].match(STAGING_HOST);
       if (staging) {
         hosts.staging.push(staging[1]);
@@ -176,7 +176,7 @@ export function parseServedHosts(markdown) {
 export function parseRetiredHosts(markdown) {
   const hosts = [];
   for (const cells of tableRows(markdown, "### Retired hostnames")) {
-    for (const match of (cells[0] ?? "").matchAll(/`([a-z0-9-]+)\.\*`/g)) {
+    for (const match of (cells[0] ?? "").matchAll(/`([a-z0-9-]+)\.\*`/gu)) {
       hosts.push({ label: match[1], status: cells[2] ?? "" });
     }
   }
@@ -495,7 +495,8 @@ async function checkDeployed(root, errors, apps) {
     const label = `docker-compose.deploy.yml web-${image.app}`;
     const traefik = compose.match(
       new RegExp(
-        `traefik\\.http\\.services\\.web-${image.router ?? image.app}\\$\\{ROUTER_SUFFIX\\}\\.loadbalancer\\.server\\.port=${PORT_PATTERN}`
+        `traefik\\.http\\.services\\.web-${image.router ?? image.app}\\$\\{ROUTER_SUFFIX\\}\\.loadbalancer\\.server\\.port=${PORT_PATTERN}`,
+        "u"
       )
     )?.[1];
     expectPort(errors, `${label} Traefik port`, traefik, documented.port);

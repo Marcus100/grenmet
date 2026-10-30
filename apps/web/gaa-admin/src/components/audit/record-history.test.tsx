@@ -6,9 +6,9 @@ import { setupServer } from "msw/node";
 import { afterAll, afterEach, beforeAll, describe, expect, it } from "vitest";
 import { fieldLabel, RecordHistory } from "./record-history";
 
-const NEW_VALUE = /British/;
-const EMPTY_HISTORY = /No changes recorded yet/;
-const BY_ACTOR = /by Hana Ross/;
+const NEW_VALUE = /British/u;
+const EMPTY_HISTORY = /No changes recorded yet/u;
+const BY_ACTOR = /by Hana Ross/u;
 
 const BASE = "http://localhost";
 

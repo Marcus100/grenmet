@@ -26,7 +26,7 @@ import {
 import { pruneEvidence } from "./audit-retention.mjs";
 import { buildAuditSandboxArgs } from "./audit-sandbox.mjs";
 
-const COMMIT = /^[0-9a-f]{40}$/;
+const COMMIT = /^[0-9a-f]{40}$/u;
 const ROOT = resolve(import.meta.dirname, "../..");
 const DEFAULT_ENDPOINTS = {
   staging: [

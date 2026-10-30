@@ -17,8 +17,8 @@ import { NotificationSettings } from "./notification-settings";
 
 vi.mock("sonner", () => ({ toast: { error: vi.fn(), success: vi.fn() } }));
 
-const EDIT_REMINDER = /Edit Approval reminder/;
-const DOMAIN_LIMIT = /limited to barrels.gd/;
+const EDIT_REMINDER = /Edit Approval reminder/u;
+const DOMAIN_LIMIT = /limited to barrels.gd/u;
 const EMAIL_SWITCH = "Approval reminder by email";
 
 const BASE = "http://localhost";

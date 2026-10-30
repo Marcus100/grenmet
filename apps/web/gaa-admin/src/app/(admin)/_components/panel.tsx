@@ -23,16 +23,16 @@ export function Panel({
     <Card className={cn("gap-0 py-4", className)}>
       <div className="flex items-start justify-between gap-3 px-4 pb-3">
         <div className="min-w-0">
-          <h2 className="font-medium text-sm">{title}</h2>
+          <h2 className="text-sm font-medium">{title}</h2>
           {description ? (
-            <p className="mt-0.5 text-muted-foreground text-xs">
+            <p className="text-muted-foreground mt-0.5 text-xs">
               {description}
             </p>
           ) : null}
         </div>
         {action ? (
           <Link
-            className="flex shrink-0 items-center gap-1 rounded-md text-primary text-xs outline-none hover:underline focus-visible:ring-2 focus-visible:ring-ring"
+            className="text-primary focus-visible:ring-ring flex shrink-0 items-center gap-1 rounded-md text-xs outline-none hover:underline focus-visible:ring-2"
             href={action.href as Route}
           >
             {action.label}
@@ -48,7 +48,7 @@ export function Panel({
 /** Shown in place of a panel body when its source could not be reached. */
 export function PanelUnavailable({ message }: { message: string }) {
   return (
-    <div className="flex items-center gap-2 rounded-lg border border-dashed px-3 py-6 text-muted-foreground text-xs">
+    <div className="text-muted-foreground flex items-center gap-2 rounded-lg border border-dashed px-3 py-6 text-xs">
       <TriangleAlert className="size-4 shrink-0" />
       {message}
     </div>
@@ -57,7 +57,7 @@ export function PanelUnavailable({ message }: { message: string }) {
 
 export function PanelEmpty({ children }: { children: ReactNode }) {
   return (
-    <div className="rounded-lg border border-dashed px-3 py-6 text-center text-muted-foreground text-xs">
+    <div className="text-muted-foreground rounded-lg border border-dashed px-3 py-6 text-center text-xs">
       {children}
     </div>
   );

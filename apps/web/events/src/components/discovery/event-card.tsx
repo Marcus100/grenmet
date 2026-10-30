@@ -68,28 +68,28 @@ export function EventCard({
               {highlight}
             </Badge>
           ) : null}
-          <span className="font-medium text-caption text-events-hibiscus-deep">
+          <span className="text-caption text-events-hibiscus-deep font-medium">
             {formatEventDate(event.startsAt)}
           </span>
         </div>
-        <h3 className="font-display font-semibold text-body-base leading-snug group-hover:underline">
+        <h3 className="font-display text-body-base leading-snug font-semibold group-hover:underline">
           {event.title}
         </h3>
-        <p className="flex items-center gap-1 text-caption text-muted-foreground">
+        <p className="text-caption text-muted-foreground flex items-center gap-1">
           <MapPin className="size-3.5 shrink-0" />
           <span className="truncate">
             {event.venue} · {PARISH_LABELS[event.parish]}
           </span>
         </p>
         {event.recurrence ? (
-          <p className="flex items-center gap-1 text-caption text-muted-foreground">
+          <p className="text-caption text-muted-foreground flex items-center gap-1">
             <Repeat className="size-3.5 shrink-0" />
             {event.recurrence}
           </p>
         ) : null}
         <div className="mt-auto flex items-center justify-between gap-2 pt-2">
           <GoingAvatars names={event.goingNames} total={event.goingCount} />
-          <span className="shrink-0 font-semibold text-caption">
+          <span className="text-caption shrink-0 font-semibold">
             {priceLabel(event)}
           </span>
         </div>
@@ -106,7 +106,7 @@ export function EventCard({
   return (
     <div className="relative h-full">
       <Link
-        className="block h-full rounded-2xl focus-visible:outline-2 focus-visible:outline-ring focus-visible:outline-offset-4"
+        className="focus-visible:outline-ring block h-full rounded-2xl focus-visible:outline-2 focus-visible:outline-offset-4"
         href={href ?? `/events/${event.slug}`}
       >
         {body}

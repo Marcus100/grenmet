@@ -2,8 +2,8 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 
-const utcTimestamp = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$/;
-const wildcard = /[?*]/;
+const utcTimestamp = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$/u;
+const wildcard = /[?*]/u;
 const severities = new Set(["UNKNOWN", "LOW", "MEDIUM", "HIGH", "CRITICAL"]);
 const text = (value) => typeof value === "string" && value.trim().length > 0;
 const key = (item) =>

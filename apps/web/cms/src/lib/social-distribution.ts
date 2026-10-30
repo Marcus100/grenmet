@@ -17,7 +17,7 @@ import {
  */
 export const DISTRIBUTION_PATH = "/api/v1/content-distribution/internal/posts";
 export const DISTRIBUTION_TIMEOUT_MS = 5000;
-const TRAILING_SLASHES = /\/+$/;
+const TRAILING_SLASHES = /\/+$/u;
 
 const PLATFORM_KEYS = {
   Facebook: "facebook",

@@ -40,7 +40,7 @@ export default async function CustomersPage({
       <Link className="text-sm underline" href="/invoices">
         All invoices
       </Link>
-      <h1 className="font-semibold text-2xl">Billing customers</h1>
+      <h1 className="text-2xl font-semibold">Billing customers</h1>
       <p className="text-muted-foreground">
         A customer is a platform organisation that Barrels invoices.
       </p>
@@ -82,7 +82,7 @@ export default async function CustomersPage({
       )}
 
       <section className="space-y-3">
-        <h2 className="font-semibold text-lg">Add a customer</h2>
+        <h2 className="text-lg font-semibold">Add a customer</h2>
         {available.length === 0 ? (
           <p className="text-muted-foreground text-sm">
             Every active organisation is already a customer.
@@ -128,7 +128,7 @@ export default async function CustomersPage({
             </label>
             <div>
               <button
-                className="rounded-md border px-3 py-1.5 text-sm hover:bg-muted"
+                className="hover:bg-muted rounded-md border px-3 py-1.5 text-sm"
                 type="submit"
               >
                 Add customer

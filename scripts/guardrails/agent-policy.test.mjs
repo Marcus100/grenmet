@@ -45,46 +45,46 @@ const FULL_POLICY_FILES = POLICY_FILES.filter(
 // every affirmative form; a negated form ("never push dev") states the policy.
 const RETIRED = [
   [
-    /push `dev` directly/,
+    /push `dev` directly/u,
     "agents open a PR into `dev` and merge it once CI is green and the review is clean",
   ],
   [
-    /(?<!never |not )push(?:es|ing)? (?:`dev`|dev)\b/i,
+    /(?<!never |not )push(?:es|ing)? (?:`dev`|dev)\b/iu,
     "agents open a PR into `dev` and merge it once CI is green and the review is clean",
   ],
   [
-    /direct (?:`dev`|dev) push/i,
+    /direct (?:`dev`|dev) push/iu,
     "agents open a PR into `dev` and merge it once CI is green and the review is clean",
   ],
   [
-    /merges? (?:(?:the |all |any )?(?:completed |finished |task )*branch(?:es)? )?into (?:a |the )?local `?dev`?/i,
+    /merges? (?:(?:the |all |any )?(?:completed |finished |task )*branch(?:es)? )?into (?:a |the )?local `?dev`?/iu,
     "the task branch is pushed and lands by PR into `dev`",
   ],
   [
-    /Do not push feature branches/,
+    /Do not push feature branches/u,
     "pushing the task branch is the normal path",
   ],
-  [/feature-to-dev PRs? unless/, "a PR into `dev` is the normal path"],
+  [/feature-to-dev PRs? unless/u, "a PR into `dev` is the normal path"],
   [
-    /overrides the attended-session standing authorization/,
+    /overrides the attended-session standing authorization/u,
     "dev → staging promotion keeps its standing authorization",
   ],
 ];
-const LANDS_BY_PR = /(?:PR|pull request)s? (?:in)?to `dev`/;
-const AGENTS_MERGE_WHEN_GREEN = /CI\s+is\s+green[^.]*review/i;
-const STANDING_AUTHORIZATION = /standing (?:user )?authori[sz]ation/i;
-const PROMOTES_BY_AUTO_MERGE = /auto-merge/;
-const LIMITS_PRODUCTION = /(?:explicit|separate)[^.]*authori[sz]ation/i;
+const LANDS_BY_PR = /(?:PR|pull request)s? (?:in)?to `dev`/u;
+const AGENTS_MERGE_WHEN_GREEN = /CI\s+is\s+green[^.]*review/iu;
+const STANDING_AUTHORIZATION = /standing (?:user )?authori[sz]ation/iu;
+const PROMOTES_BY_AUTO_MERGE = /auto-merge/u;
+const LIMITS_PRODUCTION = /(?:explicit|separate)[^.]*authori[sz]ation/iu;
 const DRIFT_WORKFLOW_RUNS_CHECK =
-  /scripts\/guardrails\/github-rulesets\.mjs --check/;
-const DRIFT_WORKFLOW_BRANCHES = /branches: \[main, staging, dev\]/;
-const SNAPSHOT_MENTION = /infra\/github\/rulesets\.json/;
-const INDEPENDENT_FACTORY_REVIEW = /independent code and security review/;
-const OWNER_ONLY_PATH_POLICY = /owner-only (?:files|paths)/i;
-const OWNER_MERGES_OWNER_ONLY = /the owner merges those/i;
-const HIGH_RISK_SECURITY_REVIEW = /risk:high[^.]*security-reviewer/i;
-const NEVER_MERGE_ANYTHING = /or merge anything/;
-const NO_EXTRA_SPENDING = /\$0 extra spending/;
+  /scripts\/guardrails\/github-rulesets\.mjs --check/u;
+const DRIFT_WORKFLOW_BRANCHES = /branches: \[main, staging, dev\]/u;
+const SNAPSHOT_MENTION = /infra\/github\/rulesets\.json/u;
+const INDEPENDENT_FACTORY_REVIEW = /independent code and security review/u;
+const OWNER_ONLY_PATH_POLICY = /owner-only (?:files|paths)/iu;
+const OWNER_MERGES_OWNER_ONLY = /the owner merges those/iu;
+const HIGH_RISK_SECURITY_REVIEW = /risk:high[^.]*security-reviewer/iu;
+const NEVER_MERGE_ANYTHING = /or merge anything/u;
+const NO_EXTRA_SPENDING = /\$0 extra spending/u;
 
 test("factory-control dev merges preserve the owner-only path exception", () => {
   const reviewPolicyFiles = [

@@ -42,7 +42,7 @@ export default function HrFormsPage() {
       {SECTIONS.map((section) => (
         <section className="space-y-3" key={section.group}>
           <div>
-            <h2 className="font-medium text-base">{section.title}</h2>
+            <h2 className="text-base font-medium">{section.title}</h2>
             <p className="text-muted-foreground text-sm">
               {section.description}
             </p>
@@ -65,21 +65,21 @@ function FormCard({ item }: { item: NewRequestItem }) {
 
   return (
     <Link
-      className="group rounded-xl outline-none focus-visible:ring-2 focus-visible:ring-ring"
+      className="group focus-visible:ring-ring rounded-xl outline-none focus-visible:ring-2"
       href={item.href as Route}
     >
-      <Card className="h-full gap-0 py-4 transition-colors group-hover:border-primary/40">
+      <Card className="group-hover:border-primary/40 h-full gap-0 py-4 transition-colors">
         <CardContent className="px-4">
           <div className="flex items-start justify-between gap-2">
-            <div className="flex size-9 items-center justify-center rounded-lg bg-primary/10 text-primary">
+            <div className="bg-primary/10 text-primary flex size-9 items-center justify-center rounded-lg">
               <Icon className="size-5" />
             </div>
             <Badge variant="secondary">
               {item.group === "request" ? "Approval" : "Record"}
             </Badge>
           </div>
-          <div className="mt-2.5 font-medium text-sm">{item.title}</div>
-          <p className="mt-0.5 text-muted-foreground text-xs">
+          <div className="mt-2.5 text-sm font-medium">{item.title}</div>
+          <p className="text-muted-foreground mt-0.5 text-xs">
             {item.description}
           </p>
         </CardContent>

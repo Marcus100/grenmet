@@ -6,7 +6,7 @@ import {
   type ReportRow,
 } from "./eregister-reports";
 
-const SAMPLE_BADGE = /Sample data/;
+const SAMPLE_BADGE = /Sample data/u;
 
 const synop: ReportRow[] = [
   { id: "a", observed: "2026-07-07 23:00", message: "AAXX latest" },

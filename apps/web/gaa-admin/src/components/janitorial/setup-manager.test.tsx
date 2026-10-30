@@ -18,7 +18,7 @@ vi.mock("next/navigation", () => ({ useRouter: () => router }));
 
 import { SetupManager, toAreaCreate } from "./setup-manager";
 
-const FIRST_BUILDING = /Add the first building/;
+const FIRST_BUILDING = /Add the first building/u;
 
 const BASE = "http://localhost";
 let received: unknown;

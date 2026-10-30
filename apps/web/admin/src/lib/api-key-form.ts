@@ -4,7 +4,7 @@
  * only list and revoke, so there is no secret to handle here.
  */
 
-const KEY_ID = /^[A-Za-z0-9_-]{1,100}$/;
+const KEY_ID = /^[A-Za-z0-9_-]{1,100}$/u;
 
 export function parseApiKeyId(value: string): string | undefined {
   return KEY_ID.test(value) ? value : undefined;

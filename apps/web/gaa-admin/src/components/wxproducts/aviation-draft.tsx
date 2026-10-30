@@ -69,8 +69,8 @@ function CodingFindings({ issues }: { issues: AviationIssue[] | null }) {
         <li
           className={
             issue.severity === "error"
-              ? "rounded-md border border-destructive/30 border-l-4 border-l-destructive bg-destructive/5 px-3 py-2"
-              : "rounded-md border border-border border-l-4 border-l-warning bg-card px-3 py-2"
+              ? "border-destructive/30 border-l-destructive bg-destructive/5 rounded-md border border-l-4 px-3 py-2"
+              : "border-border border-l-warning bg-card rounded-md border border-l-4 px-3 py-2"
           }
           key={`${issue.code}-${issue.group ?? ""}-${issue.message}`}
         >
@@ -265,10 +265,10 @@ export function AviationDraft() {
     <div className="@container space-y-6">
       <header className="flex flex-wrap items-end justify-between gap-4">
         <div>
-          <p className="font-semibold text-muted-foreground text-xs uppercase tracking-wider">
+          <p className="text-muted-foreground text-xs font-semibold tracking-wider uppercase">
             Aviation weather
           </p>
-          <h1 className="mt-1 font-semibold text-2xl tracking-tight">
+          <h1 className="mt-1 text-2xl font-semibold tracking-tight">
             TAF / METAR Composer
           </h1>
           <p className="text-muted-foreground text-sm">
@@ -277,7 +277,7 @@ export function AviationDraft() {
         </div>
         <Badge variant="secondary">{draftState}</Badge>
       </header>
-      <div className="grid @4xl:grid-cols-[minmax(0,3fr)_minmax(18rem,2fr)] items-start gap-6">
+      <div className="grid items-start gap-6 @4xl:grid-cols-[minmax(0,3fr)_minmax(18rem,2fr)]">
         <SectionCard
           action={<Badge variant="secondary">Draft · not transmitted</Badge>}
           title="Aviation message workbook"
@@ -479,7 +479,7 @@ export function AviationDraft() {
                   Revision {item.revision} · {item.actor_name} ·{" "}
                   {item.recorded_at}
                 </summary>
-                <pre className="whitespace-pre-wrap break-words text-xs">
+                <pre className="text-xs break-words whitespace-pre-wrap">
                   {JSON.stringify(item, null, 2)}
                 </pre>
               </details>
@@ -497,11 +497,11 @@ export function AviationDraft() {
               the WMO/ICAO rules. Findings advise; they never block saving, and
               nothing is transmitted.
             </p>
-            <div className="rounded-lg bg-muted p-3">
-              <p className="mb-2 font-medium text-xs">
+            <div className="bg-muted rounded-lg p-3">
+              <p className="mb-2 text-xs font-medium">
                 {kind} · {station}
               </p>
-              <code className="block whitespace-pre-wrap break-words font-mono text-sm">
+              <code className="block font-mono text-sm break-words whitespace-pre-wrap">
                 {form.message || "Enter a message to review it here."}
               </code>
             </div>

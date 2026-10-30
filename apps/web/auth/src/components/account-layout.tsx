@@ -29,7 +29,7 @@ export function AccountLayout({
           <AuthHeading title={title}>{description}</AuthHeading>
           <form action={signOutAction}>
             <button
-              className="shrink-0 rounded-lg border border-border px-3 py-1.5 font-medium text-foreground text-sm transition hover:bg-muted"
+              className="border-border text-foreground hover:bg-muted shrink-0 rounded-lg border px-3 py-1.5 text-sm font-medium transition"
               type="submit"
             >
               Sign out of all apps
@@ -61,7 +61,7 @@ export function SettingsRow({
     <div className="space-y-3 py-5">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="min-w-0 space-y-1">
-          <h3 className="font-medium text-foreground text-sm">{title}</h3>
+          <h3 className="text-foreground text-sm font-medium">{title}</h3>
           {description ? (
             <div className="text-muted-foreground text-sm">{description}</div>
           ) : null}
@@ -82,10 +82,10 @@ export function SettingsSection({
 }) {
   return (
     <section aria-label={title} className="space-y-1">
-      <h2 className="font-mono text-label text-muted-foreground uppercase tracking-widest">
+      <h2 className="text-label text-muted-foreground font-mono tracking-widest uppercase">
         {title}
       </h2>
-      <div className="divide-y divide-border border-border border-b">
+      <div className="divide-border border-border divide-y border-b">
         {children}
       </div>
     </section>
@@ -108,7 +108,7 @@ export function StatusBadge({
   } as const;
   return (
     <span
-      className={`inline-flex items-center rounded-full border px-2.5 py-0.5 font-medium text-body-sm ${tones[tone]}`}
+      className={`text-body-sm inline-flex items-center rounded-full border px-2.5 py-0.5 font-medium ${tones[tone]}`}
     >
       {children}
     </span>

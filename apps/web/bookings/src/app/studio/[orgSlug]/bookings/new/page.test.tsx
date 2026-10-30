@@ -39,10 +39,10 @@ import NewBookingPage from "./page";
 const params = Promise.resolve({ orgSlug: "sea-salt" });
 const S1 = "44444444-4444-4444-8444-444444444444";
 const S2 = "44444444-4444-4444-8444-444444444445";
-const NEED_ADMIN = /You need admin access/;
-const MASSAGE = /Massage/;
-const FACIAL = /Facial/;
-const NOTHING = /Nothing to book yet/;
+const NEED_ADMIN = /You need admin access/u;
+const MASSAGE = /Massage/u;
+const FACIAL = /Facial/u;
+const NOTHING = /Nothing to book yet/u;
 
 function service(
   id: string,

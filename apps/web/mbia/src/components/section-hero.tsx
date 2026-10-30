@@ -21,25 +21,25 @@ export function SectionHero({
       <div className="mx-auto max-w-7xl px-4 py-14 lg:px-8 lg:py-20">
         {eyebrowHref ? (
           <Link
-            className="font-semibold text-gaa-gold text-xs uppercase tracking-[0.2em] hover:text-white"
+            className="text-gaa-gold text-xs font-semibold tracking-[0.2em] uppercase hover:text-white"
             href={eyebrowHref as Route}
           >
             {eyebrow}
           </Link>
         ) : (
-          <p className="font-semibold text-gaa-gold text-xs uppercase tracking-[0.2em]">
+          <p className="text-gaa-gold text-xs font-semibold tracking-[0.2em] uppercase">
             {eyebrow}
           </p>
         )}
-        <h1 className="mt-3 max-w-3xl font-bold font-display text-3xl leading-tight sm:text-4xl lg:text-5xl">
+        <h1 className="font-display mt-3 max-w-3xl text-3xl leading-tight font-bold sm:text-4xl lg:text-5xl">
           {title}
         </h1>
         {dek ? (
-          <p className="mt-4 max-w-2xl text-base text-white/75 leading-relaxed sm:text-lg">
+          <p className="mt-4 max-w-2xl text-base leading-relaxed text-white/75 sm:text-lg">
             {dek}
           </p>
         ) : null}
-        <div className="mt-8 h-1 w-24 rounded-full bg-gaa-gold" />
+        <div className="bg-gaa-gold mt-8 h-1 w-24 rounded-full" />
       </div>
     </div>
   );

@@ -13,7 +13,7 @@ export function attachmentHref(
   return `/api/social-attachment?${query.toString()}`;
 }
 
-const ROW_URL = /^relatedLinks\.(\d+)\.url$/;
+const ROW_URL = /^relatedLinks\.(\d+)\.url$/u;
 
 export type Fields = Record<string, { value?: unknown } | undefined>;
 

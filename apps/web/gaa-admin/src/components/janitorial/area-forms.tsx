@@ -292,7 +292,7 @@ function TaskDialog({
         />
       </Field>
       <fieldset className="space-y-2">
-        <legend className="font-medium text-sm">Frequency</legend>
+        <legend className="text-sm font-medium">Frequency</legend>
         <div className="flex flex-wrap items-center gap-2 text-sm">
           <Input
             aria-label="Times"

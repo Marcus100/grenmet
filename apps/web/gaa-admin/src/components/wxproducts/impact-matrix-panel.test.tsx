@@ -6,10 +6,10 @@ import { afterAll, afterEach, beforeAll, expect, it } from "vitest";
 import { ImpactMatrixPanel } from "./impact-matrix-panel";
 
 const RE_BE_AWARE_LOW_LIKELIHOOD_MINOR_ =
-  /Be aware: Low likelihood, Minor impact/;
+  /Be aware: Low likelihood, Minor impact/u;
 const RE_NO_APPROVED_HAZARD_LIBRARY_ENT =
-  /No approved hazard library entry yet/;
-const RE_COULD_NOT_BE_READ = /could not be read/;
+  /No approved hazard library entry yet/u;
+const RE_COULD_NOT_BE_READ = /could not be read/u;
 
 const server = setupServer(
   http.get("http://localhost/api/v1/cap/ibf/suggest", ({ request }) => {

@@ -35,7 +35,7 @@ export default async function ManageBookingPage({
   return (
     <div className="booking space-y-6">
       <header className="space-y-2">
-        <h1 className="font-bold text-2xl">Your booking</h1>
+        <h1 className="text-2xl font-bold">Your booking</h1>
         <p className="text-muted-foreground">
           See your appointment, add it to your calendar, change the time or
           cancel.

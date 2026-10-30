@@ -16,14 +16,14 @@ vi.mock("server-only", () => ({}));
 const atlas = buildAtlas(data, geo, results);
 const PREVIOUS = "Previous election or referendum";
 const NEXT = "Next election or referendum";
-const N01 = /N01/;
-const DIVISION_N01 = /Polling division N01/;
+const N01 = /N01/u;
+const DIVISION_N01 = /Polling division N01/u;
 const UNSUPPORTED_YEAR =
-  /Showing constituencies: polling-division results are unavailable for 2008/;
+  /Showing constituencies: polling-division results are unavailable for 2008/u;
 const OMITTED_GEOMETRY =
-  /Divisions without a matching measure or located geometry are omitted/;
+  /Divisions without a matching measure or located geometry are omitted/u;
 const UNAVAILABLE_MEASURES =
-  /matching polling-division measures are unavailable/;
+  /matching polling-division measures are unavailable/u;
 
 afterEach(() => {
   vi.unstubAllGlobals();
@@ -185,7 +185,7 @@ it("omits unlocated, missing and mismatched division geometry while retaining re
     expect(
       within(screen.getByRole("complementary", { name: "Results" })).getByRole(
         "button",
-        { name: new RegExp(code) }
+        { name: new RegExp(code, "u") }
       )
     ).toBeInTheDocument();
   }

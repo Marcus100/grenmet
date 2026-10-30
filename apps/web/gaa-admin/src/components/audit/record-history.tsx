@@ -25,7 +25,7 @@ const ACTION_LABEL: Record<string, string> = {
 };
 
 // Columns that only link rows together; they mean nothing to a reader.
-const ID_SUFFIX = /_id$/;
+const ID_SUFFIX = /_id$/u;
 const HIDDEN_FIELDS = new Set(["id", "workflow_instance_id", "object_key"]);
 
 export function fieldLabel(field: string): string {
@@ -46,7 +46,7 @@ function display(value: AuditEntryPublic["changes"][number]["new"]): string {
 function Entry({ entry }: { readonly entry: AuditEntryPublic }) {
   const changes = entry.changes.filter((c) => !HIDDEN_FIELDS.has(c.field));
   return (
-    <li className="flex flex-col gap-2 border-border border-l-2 pl-4">
+    <li className="border-border flex flex-col gap-2 border-l-2 pl-4">
       <div className="flex flex-wrap items-baseline gap-x-2 text-sm">
         <span className="font-medium">
           {ACTION_LABEL[entry.action] ?? entry.action} {entry.record_label}

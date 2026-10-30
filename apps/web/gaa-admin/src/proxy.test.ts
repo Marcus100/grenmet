@@ -17,7 +17,7 @@ import { config, proxy } from "./proxy";
  */
 function runsProxyOn(pathname: string): boolean {
   return config.matcher.some((pattern) =>
-    new RegExp(`^${pattern}$`).test(pathname)
+    new RegExp(`^${pattern}$`, "u").test(pathname)
   );
 }
 

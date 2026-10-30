@@ -247,7 +247,7 @@ it("uses backend groups without classifying the event again", async () => {
   }
 });
 
-const ENCODED_ALERT_URL = /\/api\/cap\/alerts\/urn%3Aoid%3A1\.2$/;
+const ENCODED_ALERT_URL = /\/api\/cap\/alerts\/urn%3Aoid%3A1\.2$/u;
 
 describe("fetchPublicAlert", () => {
   const originalFetch = globalThis.fetch;

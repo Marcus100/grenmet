@@ -487,7 +487,7 @@ export function ERegister() {
       <div className="flex flex-wrap items-start gap-6">
         <SectionCard className="w-fit max-w-full" title="Daily Summaries">
           <p
-            className="max-w-xs px-4 py-3 text-muted-foreground text-sm"
+            className="text-muted-foreground max-w-xs px-4 py-3 text-sm"
             role="status"
           >
             Daily summaries are not connected to the register yet. No figures

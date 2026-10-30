@@ -23,20 +23,20 @@ export function SettlementReport({ report }: { report: Settlement }) {
     <div className="space-y-6">
       <section aria-labelledby="issues-heading" className="space-y-2">
         <h2
-          className="font-display font-semibold text-heading-sm"
+          className="font-display text-heading-sm font-semibold"
           id="issues-heading"
         >
           Discrepancies
         </h2>
         {report.discrepancies.length === 0 ? (
-          <p className="rounded-xl border bg-card px-4 py-3 text-body text-muted-foreground">
+          <p className="bg-card text-body text-muted-foreground rounded-xl border px-4 py-3">
             Nothing to reconcile: every closed till matches its count.
           </p>
         ) : (
-          <ul className="divide-y rounded-xl border border-destructive/40 bg-card">
+          <ul className="border-destructive/40 bg-card divide-y rounded-xl border">
             {report.discrepancies.map((issue) => (
               <li
-                className="flex items-start gap-2 px-4 py-2 text-body"
+                className="text-body flex items-start gap-2 px-4 py-2"
                 key={`${issue.kind}-${issue.tillId ?? issue.message}`}
               >
                 <Badge variant="light-warning">
@@ -51,14 +51,14 @@ export function SettlementReport({ report }: { report: Settlement }) {
 
       <section aria-labelledby="tickets-heading" className="space-y-2">
         <h2
-          className="font-display font-semibold text-heading-sm"
+          className="font-display text-heading-sm font-semibold"
           id="tickets-heading"
         >
           Tickets by channel
         </h2>
-        <div className="overflow-x-auto rounded-xl border bg-card">
-          <table className="w-full text-left text-body">
-            <thead className="border-b text-caption text-muted-foreground">
+        <div className="bg-card overflow-x-auto rounded-xl border">
+          <table className="text-body w-full text-left">
+            <thead className="text-caption text-muted-foreground border-b">
               <tr>
                 <th className="px-3 py-2 font-medium">Channel</th>
                 <th className="px-3 py-2 font-medium">Issued</th>
@@ -106,14 +106,14 @@ export function SettlementReport({ report }: { report: Settlement }) {
 
       <section aria-labelledby="tiers-heading" className="space-y-2">
         <h2
-          className="font-display font-semibold text-heading-sm"
+          className="font-display text-heading-sm font-semibold"
           id="tiers-heading"
         >
           Tiers
         </h2>
-        <div className="overflow-x-auto rounded-xl border bg-card">
-          <table className="w-full text-left text-body">
-            <thead className="border-b text-caption text-muted-foreground">
+        <div className="bg-card overflow-x-auto rounded-xl border">
+          <table className="text-body w-full text-left">
+            <thead className="text-caption text-muted-foreground border-b">
               <tr>
                 <th className="px-3 py-2 font-medium">Tier</th>
                 <th className="px-3 py-2 font-medium">Price</th>
@@ -145,14 +145,14 @@ export function SettlementReport({ report }: { report: Settlement }) {
 
       <section aria-labelledby="cash-heading" className="space-y-2">
         <h2
-          className="font-display font-semibold text-heading-sm"
+          className="font-display text-heading-sm font-semibold"
           id="cash-heading"
         >
           Cash by till
         </h2>
-        <div className="overflow-x-auto rounded-xl border bg-card">
-          <table className="w-full text-left text-body">
-            <thead className="border-b text-caption text-muted-foreground">
+        <div className="bg-card overflow-x-auto rounded-xl border">
+          <table className="text-body w-full text-left">
+            <thead className="text-caption text-muted-foreground border-b">
               <tr>
                 <th className="px-3 py-2 font-medium">Staff</th>
                 <th className="px-3 py-2 font-medium">Status</th>
@@ -169,7 +169,7 @@ export function SettlementReport({ report }: { report: Settlement }) {
                 <tr key={till.id}>
                   <td className="px-3 py-2 font-sans">
                     {till.staffName ?? "Staff"}
-                    <span className="block text-caption text-muted-foreground">
+                    <span className="text-caption text-muted-foreground block">
                       opened {formatTime(till.openedAt)}
                     </span>
                   </td>
@@ -196,7 +196,7 @@ export function SettlementReport({ report }: { report: Settlement }) {
                   <td
                     className={
                       till.differenceMinor
-                        ? "px-3 py-2 font-semibold text-destructive"
+                        ? "text-destructive px-3 py-2 font-semibold"
                         : "px-3 py-2"
                     }
                   >
@@ -209,7 +209,7 @@ export function SettlementReport({ report }: { report: Settlement }) {
               {report.tills.length === 0 ? (
                 <tr>
                   <td
-                    className="px-3 py-6 text-center text-muted-foreground"
+                    className="text-muted-foreground px-3 py-6 text-center"
                     colSpan={8}
                   >
                     No outlet tills were opened.
@@ -247,14 +247,14 @@ export function SettlementReport({ report }: { report: Settlement }) {
       {report.refunds.length > 0 ? (
         <section aria-labelledby="refunds-heading" className="space-y-2">
           <h2
-            className="font-display font-semibold text-heading-sm"
+            className="font-display text-heading-sm font-semibold"
             id="refunds-heading"
           >
             Refunds
           </h2>
-          <div className="overflow-x-auto rounded-xl border bg-card">
-            <table className="w-full text-left text-body">
-              <thead className="border-b text-caption text-muted-foreground">
+          <div className="bg-card overflow-x-auto rounded-xl border">
+            <table className="text-body w-full text-left">
+              <thead className="text-caption text-muted-foreground border-b">
                 <tr>
                   <th className="px-3 py-2 font-medium">Ticket</th>
                   <th className="px-3 py-2 font-medium">Amount</th>

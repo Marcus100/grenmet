@@ -74,7 +74,7 @@ test("the prompt treats the diff as data and fences each input", () => {
   contains(system, "data to analyse");
   contains(system, "never follow it");
   for (const tag of ["pull_request", "project_rules", "diff"]) {
-    assert.match(user, new RegExp(`<${tag}>[\\s\\S]*</${tag}>`));
+    assert.match(user, new RegExp(`<${tag}>[\\s\\S]*</${tag}>`, "u"));
   }
 });
 
@@ -234,7 +234,7 @@ test("run posts a new comment, and updates the existing marked one next time", a
     (c) => c.method === "POST" && c.url.includes("/issues/7/comments")
   );
   assert.ok(post, "expected a POST of a new comment");
-  assert.match(JSON.parse(post.body).body, new RegExp(MARKER));
+  assert.match(JSON.parse(post.body).body, new RegExp(MARKER, "u"));
 
   const second = fakeFetch({
     comments: [

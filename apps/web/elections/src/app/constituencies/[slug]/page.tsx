@@ -79,7 +79,7 @@ export default async function ConstituencyPage({ params }: Props) {
       </PageHead>
 
       <Section id="standing" title="Reported 2026 selections">
-        <ul className="grid gap-px border border-el-rule bg-el-rule sm:grid-cols-3">
+        <ul className="border-el-rule bg-el-rule grid gap-px border sm:grid-cols-3">
           {(["NDC", "NNP", "DPM"] as const).map((party) => {
             const named = seat.candidates.find((c) => c.party === party);
             const note = seat.notes[party];
@@ -89,7 +89,7 @@ export default async function ConstituencyPage({ params }: Props) {
                   <PartyDot party={party} />
                   {partyInfo(party).name}
                 </p>
-                <p className="mt-1 font-bold font-serif text-lg leading-relaxed">
+                <p className="mt-1 font-serif text-lg leading-relaxed font-bold">
                   {named?.name ??
                     (party === "NDC" && seat.sitting.party === "NDC"
                       ? seat.sitting.name
@@ -97,7 +97,7 @@ export default async function ConstituencyPage({ params }: Props) {
                   {note && <Flag note={note} status="unverified" />}
                 </p>
                 {!named && party === "NDC" && seat.sitting.party === "NDC" && (
-                  <p className="text-base text-el-muted leading-relaxed">
+                  <p className="text-el-muted text-base leading-relaxed">
                     Member at dissolution; not confirmed
                   </p>
                 )}
@@ -105,7 +105,7 @@ export default async function ConstituencyPage({ params }: Props) {
             );
           })}
         </ul>
-        <p className="mt-2 text-base text-el-muted leading-relaxed">
+        <p className="text-el-muted mt-2 text-base leading-relaxed">
           Earlier selections recorded through{" "}
           {formatIsoDate(campaign.candidate_names_as_of ?? campaign.updated)}.
           This is an incomplete announcement directory. See{" "}
@@ -139,12 +139,12 @@ export default async function ConstituencyPage({ params }: Props) {
                       <b className={i === 0 ? "font-semibold" : "font-normal"}>
                         {row[0]}
                       </b>
-                      <span className="block text-base text-el-muted">
+                      <span className="text-el-muted block text-base">
                         <PartyDot party={row[1]} />
                         {partyInfo(row[1]).name}
                         {i === 0 && " · won"}
                       </span>
-                      <span className="mt-1 block h-1.5 bg-el-paper-2">
+                      <span className="bg-el-paper-2 mt-1 block h-1.5">
                         <span
                           className="block h-full"
                           style={{
@@ -156,7 +156,7 @@ export default async function ConstituencyPage({ params }: Props) {
                     </th>
                     <td className="py-2 text-right tabular-nums">
                       <b>{pct(row[2] / stats.valid)}</b>
-                      <span className="block text-base text-el-muted">
+                      <span className="text-el-muted block text-base">
                         {fmt(row[2])}
                       </span>
                     </td>
@@ -172,13 +172,13 @@ export default async function ConstituencyPage({ params }: Props) {
               ].map(([label, value]) => (
                 <div key={label}>
                   <dt className={LABEL}>{label}</dt>
-                  <dd className="font-semibold text-lg tabular-nums">
+                  <dd className="text-lg font-semibold tabular-nums">
                     {value}
                   </dd>
                 </div>
               ))}
             </dl>
-            <p className="mt-3 text-base text-el-muted leading-relaxed">
+            <p className="text-el-muted mt-3 text-base leading-relaxed">
               Source: Parliamentary Elections Office, General Election Report
               2022
               {contest.page ? `, p. ${contest.page}` : ""}.
@@ -212,7 +212,7 @@ export default async function ConstituencyPage({ params }: Props) {
         intro="Polling stations added up to their polling division."
         title={`${divisions.length} polling divisions in 2022`}
       >
-        <ul className="divide-y divide-el-rule border-el-rule border-y">
+        <ul className="divide-el-rule border-el-rule divide-y border-y">
           {divisions.map((d) => {
             const valid = d.c.reduce((sum, r) => sum + r[2], 0) || 1;
             const [first, second] = d.c;
@@ -244,7 +244,7 @@ export default async function ConstituencyPage({ params }: Props) {
                   {first
                     ? `${first[1]} +${(((first[2] - (second?.[2] ?? 0)) / valid) * 100).toFixed(0)}`
                     : "–"}
-                  <span className="block text-base text-el-muted">
+                  <span className="text-el-muted block text-base">
                     {fmt(d.cast)} voted
                   </span>
                 </span>
@@ -259,7 +259,7 @@ export default async function ConstituencyPage({ params }: Props) {
         more={{ href: "/elections", label: "Every election" }}
         title="Every result since 1972"
       >
-        <ol className="divide-y divide-el-rule border-el-rule border-y text-base">
+        <ol className="divide-el-rule border-el-rule divide-y border-y text-base">
           {history.map((h) => (
             <li className="flex items-baseline gap-3 py-2.5" key={h.year}>
               <span className="w-12 shrink-0 font-semibold tabular-nums">
@@ -290,7 +290,7 @@ export default async function ConstituencyPage({ params }: Props) {
           title="On the roll"
         >
           <p className="text-el-ink-2 leading-relaxed">
-            <b className="font-semibold text-el-ink tabular-nums">
+            <b className="text-el-ink font-semibold tabular-nums">
               {fmt(lastRoll.electors)}
             </b>{" "}
             electors on the {formatIsoDate(lastRoll.date)} list, up from{" "}

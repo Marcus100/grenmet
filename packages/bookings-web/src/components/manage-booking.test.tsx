@@ -10,10 +10,10 @@ const loadSlots = vi.fn<ManageBookingActions["loadSlots"]>();
 const reschedule = vi.fn<ManageBookingActions["reschedule"]>();
 const actions: ManageBookingActions = { cancel, loadSlots, reschedule };
 
-const ORIGINAL_TIME = /5 January 2027, 9:30 am/;
-const CHANGES_CLOSE = /Changes close 24 hours before/;
-const MOVED_TIME = /6 January 2027, 9:30 am/;
-const HYBRID = /Hybrid/;
+const ORIGINAL_TIME = /5 January 2027, 9:30 am/u;
+const CHANGES_CLOSE = /Changes close 24 hours before/u;
+const MOVED_TIME = /6 January 2027, 9:30 am/u;
+const HYBRID = /Hybrid/u;
 const TOKEN = "secret-token-value-123";
 const CALENDAR_HREF = `/booking/${TOKEN}/ics`;
 const CONTACT = { href: "https://instagram.test/dm", label: "Instagram" };

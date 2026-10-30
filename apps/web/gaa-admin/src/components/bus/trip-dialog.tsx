@@ -270,14 +270,14 @@ export function TripDialog({
           </Field>
 
           <fieldset className="space-y-2">
-            <legend className="font-medium text-sm">Stops in order</legend>
+            <legend className="text-sm font-medium">Stops in order</legend>
             {form.stops.length === 0 ? (
               <p className="text-muted-foreground text-sm">No stops yet.</p>
             ) : null}
             <ol className="space-y-2">
               {form.stops.map((row, index) => (
                 <li className="flex flex-wrap items-center gap-2" key={row.key}>
-                  <span className="w-6 text-right text-muted-foreground text-xs tabular-nums">
+                  <span className="text-muted-foreground w-6 text-right text-xs tabular-nums">
                     {index + 1}
                   </span>
                   <NativeSelect

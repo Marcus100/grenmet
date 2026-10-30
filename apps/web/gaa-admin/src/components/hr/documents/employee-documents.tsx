@@ -100,7 +100,7 @@ export function EmployeeDocuments({
     <section aria-label="Employee documents" className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h2 className="font-medium text-xl">Documents</h2>
+          <h2 className="text-xl font-medium">Documents</h2>
           <p className="text-muted-foreground text-sm">
             Personal records and credentials. Uploading does not verify a
             credential.
@@ -116,7 +116,7 @@ export function EmployeeDocuments({
         <div className="space-y-2">
           <Label htmlFor={`${id}-filter`}>Category filter</Label>
           <select
-            className="rounded-md border border-input bg-background p-2 text-sm"
+            className="border-input bg-background rounded-md border p-2 text-sm"
             id={`${id}-filter`}
             onChange={(event) => {
               setCategory(event.target.value);
@@ -165,7 +165,7 @@ export function EmployeeDocuments({
         </div>
       )}
       {query.isSuccess && !visibleDocuments.length && (
-        <p className="rounded-lg border border-border border-dashed p-6 text-muted-foreground">
+        <p className="border-border text-muted-foreground rounded-lg border border-dashed p-6">
           No documents match these filters.
         </p>
       )}
@@ -173,7 +173,7 @@ export function EmployeeDocuments({
         <ul className="space-y-3">
           {visibleDocuments.map((document) => (
             <li
-              className="rounded-lg border border-border p-4"
+              className="border-border rounded-lg border p-4"
               key={document.id}
             >
               <div className="flex flex-wrap justify-between gap-4">
@@ -252,7 +252,7 @@ export function EmployeeDocuments({
       {archive && (
         <fieldset
           aria-label="Confirm archive"
-          className="space-y-3 rounded-lg border border-border p-4"
+          className="border-border space-y-3 rounded-lg border p-4"
         >
           <p>
             Archive “{archive.title}”? The file will be retained and hidden from

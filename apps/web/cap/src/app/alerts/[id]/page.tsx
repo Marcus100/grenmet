@@ -44,15 +44,15 @@ export default async function AlertPage({
   return (
     <article className="space-y-5">
       <FeedStatus now={now} result={result} />
-      <div className="overflow-hidden rounded-gm-card border border-gm-border">
+      <div className="rounded-gm-card border-gm-border overflow-hidden border">
         <LevelStrip view={view} />
         <div className="space-y-4 p-4">
-          <h1 className="font-semibold text-gm-heading text-heading-lg">
+          <h1 className="text-gm-heading text-heading-lg font-semibold">
             {view.headline}
           </h1>
           {ended ? (
             <p
-              className="rounded-gm-card border border-gm-border bg-gm-surface p-3 font-semibold text-body-sm"
+              className="rounded-gm-card border-gm-border bg-gm-surface text-body-sm border p-3 font-semibold"
               role="status"
             >
               This alert is no longer in force.
@@ -75,7 +75,7 @@ export default async function AlertPage({
             </p>
           ) : null}
           {view.status === "Actual" ? null : (
-            <p className="font-semibold text-body-sm uppercase tracking-wide">
+            <p className="text-body-sm font-semibold tracking-wide uppercase">
               {view.status} message, not a live warning
             </p>
           )}
@@ -87,24 +87,24 @@ export default async function AlertPage({
           </p>
           <section aria-labelledby="what">
             <h2
-              className="font-semibold text-gm-heading text-heading-sm"
+              className="text-gm-heading text-heading-sm font-semibold"
               id="what"
             >
               What is happening
             </h2>
-            <p className="mt-1 whitespace-pre-line text-body">
+            <p className="text-body mt-1 whitespace-pre-line">
               {view.description}
             </p>
           </section>
           {view.instruction ? (
             <section aria-labelledby="do">
               <h2
-                className="font-semibold text-gm-heading text-heading-sm"
+                className="text-gm-heading text-heading-sm font-semibold"
                 id="do"
               >
                 What to do
               </h2>
-              <p className="mt-1 whitespace-pre-line text-body">
+              <p className="text-body mt-1 whitespace-pre-line">
                 {view.instruction}
               </p>
             </section>
@@ -117,7 +117,7 @@ export default async function AlertPage({
       </div>
       <div className="flex flex-wrap items-center gap-4 print:hidden">
         <a
-          className="font-medium text-body-sm text-gm-blue-ink underline"
+          className="text-body-sm text-gm-blue-ink font-medium underline"
           href={xmlHref}
         >
           CAP XML for this alert

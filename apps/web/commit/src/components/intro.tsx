@@ -37,11 +37,11 @@ export function Intro() {
           <Logo className="inline-block h-8 w-auto" />
         </Link>
       </div>
-      <h1 className="mt-14 font-display font-light text-4xl/tight text-white">
+      <h1 className="font-display mt-14 text-4xl/tight font-light text-white">
         How Barrels Grenada builds{" "}
         <span className="text-sky-300">its platform</span>
       </h1>
-      <p className="mt-4 text-gray-300 text-sm/6">
+      <p className="mt-4 text-sm/6 text-gray-300">
         Commit is the engineering notebook of Barrels Grenada. Each post walks
         through a release: what changed, why, and how it was built, from the
         weather service to accounts, HR and the platform underneath.

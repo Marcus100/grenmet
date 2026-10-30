@@ -136,7 +136,7 @@ export function ApprovalsInbox() {
 
   if (inboxQuery.isLoading) {
     return (
-      <div className="flex items-center gap-2 rounded-xl border bg-card p-6 text-muted-foreground text-sm">
+      <div className="bg-card text-muted-foreground flex items-center gap-2 rounded-xl border p-6 text-sm">
         <Spinner className="size-4" /> Loading your approvals…
       </div>
     );
@@ -149,7 +149,7 @@ export function ApprovalsInbox() {
 
   if (items.length === 0) {
     return (
-      <div className="rounded-xl border bg-card p-6 text-center text-muted-foreground text-sm">
+      <div className="bg-card text-muted-foreground rounded-xl border p-6 text-center text-sm">
         Nothing awaits your approval right now.
       </div>
     );
@@ -157,7 +157,7 @@ export function ApprovalsInbox() {
 
   return (
     <div
-      className="overflow-x-auto rounded-xl border bg-card"
+      className="bg-card overflow-x-auto rounded-xl border"
       data-content-width="wide"
     >
       <Table>

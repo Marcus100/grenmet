@@ -196,7 +196,7 @@ export const RAIN_CHANCE_BANDS: Record<
 const WEATHER_TYPE_LABELS = WEATHER_TYPES.map((t) => t.label);
 export const TIDE_SLOTS = [1, 2, 3, 4] as const;
 const likelihoods = ["Very low", "Low", "Medium", "High"];
-const DAY_ALERT_FIELD = /^day[1-4](Alerts|Impact|Response)$/;
+const DAY_ALERT_FIELD = /^day[1-4](Alerts|Impact|Response)$/u;
 function field(
   section: string,
   key: string,
@@ -309,7 +309,7 @@ function tideFields(section: string, prefix: string): ProductField[] {
   ];
 }
 const COMPOSED_KEY =
-  /^(wind|seaState|swell|visibility|highTides|lowTides|day[1-4](Wind|SeaState|HighTides|LowTides))$/;
+  /^(wind|seaState|swell|visibility|highTides|lowTides|day[1-4](Wind|SeaState|HighTides|LowTides))$/u;
 /** Legacy free-text keys FastAPI composes from structured values (forecasts, evening days, marine/wind/coastal bulletins). */
 export function isComposedForecastField(key: string) {
   return COMPOSED_KEY.test(key);
@@ -759,7 +759,7 @@ export function displayProductFields(kind: ProductKind) {
   return productFields(kind).filter((f) => !isHiddenForecastField(kind, f));
 }
 const STRUCTURED_SOURCE_KEY =
-  /^(day[1-4])?([Vv]isibility(Min|Max)|[Ww]indDir(From|To)|[Ww]indSpeed(Min|Max)|[Ww]indGust|[Ss]eaState(From|To)|[Ww]aveHeight(Min|Max)|[Ss]well(Dir|Period|Height)|[Tt]ide[1-4](Type|Time|Height))$/;
+  /^(day[1-4])?([Vv]isibility(Min|Max)|[Ww]indDir(From|To)|[Ww]indSpeed(Min|Max)|[Ww]indGust|[Ss]eaState(From|To)|[Ww]aveHeight(Min|Max)|[Ss]well(Dir|Period|Height)|[Tt]ide[1-4](Type|Time|Height))$/u;
 /**
  * Fields for reading an issued product (public site, review step): structured
  * wind/sea/tide inputs are shown through the text FastAPI composes from them,
@@ -804,7 +804,7 @@ export function emptyProduct(
   }
   return withForecastSchedule(kind, values);
 }
-const LOCAL_DATE_TIME = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/;
+const LOCAL_DATE_TIME = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/u;
 /** Grenada uses UTC−04:00 year round. Reject malformed calendar values. */
 export function localDateTime(value: string): number {
   if (!LOCAL_DATE_TIME.test(value)) return Number.NaN;

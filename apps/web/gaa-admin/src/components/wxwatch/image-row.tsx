@@ -29,9 +29,9 @@ export function ImageRow({
   onImageClick,
 }: ImageRowProps) {
   return (
-    <section className="rounded-xl border bg-card p-4">
+    <section className="bg-card rounded-xl border p-4">
       <div className="mb-3 flex items-center justify-between gap-4">
-        <h2 className="truncate font-semibold text-foreground text-sm">
+        <h2 className="text-foreground truncate text-sm font-semibold">
           {title}
         </h2>
       </div>
@@ -64,8 +64,8 @@ function SynopticImageSlot({
 }: SynopticImageSlotProps) {
   if (!image) {
     return (
-      <div className="flex aspect-4/3 flex-col items-center justify-center rounded-lg border border-border border-dashed bg-muted/40 text-center">
-        <p className="font-medium text-muted-foreground text-xs">{hour}z</p>
+      <div className="border-border bg-muted/40 flex aspect-4/3 flex-col items-center justify-center rounded-lg border border-dashed text-center">
+        <p className="text-muted-foreground text-xs font-medium">{hour}z</p>
         <p className="text-muted-foreground text-xs">No image</p>
       </div>
     );
@@ -86,7 +86,7 @@ function SynopticImageSlot({
 
   return (
     <button
-      className="group relative aspect-4/3 overflow-hidden rounded-lg border bg-muted outline-none transition-all duration-200 hover:ring-2 hover:ring-ring focus-visible:ring-3 focus-visible:ring-ring/50"
+      className="group bg-muted hover:ring-ring focus-visible:ring-ring/50 relative aspect-4/3 overflow-hidden rounded-lg border transition-all duration-200 outline-none hover:ring-2 focus-visible:ring-3"
       onClick={() => onImageClick(image)}
       type="button"
     >
@@ -102,8 +102,8 @@ function SynopticImageSlot({
       />
       {/* Time label overlay */}
       <div className="absolute inset-x-0 bottom-0 bg-linear-to-t from-black/70 to-transparent p-2 text-left">
-        <p className="font-medium text-white text-xs">{hour}z</p>
-        <p className="text-micro text-white leading-micro opacity-90">
+        <p className="text-xs font-medium text-white">{hour}z</p>
+        <p className="text-micro leading-micro text-white opacity-90">
           {observationTime}
         </p>
       </div>

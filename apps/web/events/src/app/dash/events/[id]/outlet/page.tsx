@@ -45,7 +45,7 @@ export default async function OutletPage({
           >
             ← {outlet.title}
           </Link>
-          <h1 className="mt-1 font-display font-semibold text-heading-base">
+          <h1 className="font-display text-heading-base mt-1 font-semibold">
             Outlet sales
           </h1>
           <p className="text-body text-muted-foreground">

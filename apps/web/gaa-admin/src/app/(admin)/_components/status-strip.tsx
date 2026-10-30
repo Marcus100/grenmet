@@ -122,7 +122,7 @@ export async function StatusStrip() {
   ];
 
   return (
-    <div className="grid grid-cols-1 gap-4 *:data-[slot=card]:bg-linear-to-t *:data-[slot=card]:from-primary/5 *:data-[slot=card]:to-card *:data-[slot=card]:shadow-xs sm:grid-cols-2 xl:grid-cols-4 dark:*:data-[slot=card]:bg-card">
+    <div className="*:data-[slot=card]:from-primary/5 *:data-[slot=card]:to-card dark:*:data-[slot=card]:bg-card grid grid-cols-1 gap-4 *:data-[slot=card]:bg-linear-to-t *:data-[slot=card]:shadow-xs sm:grid-cols-2 xl:grid-cols-4">
       {tiles.map((tile) => (
         <StatusTile key={tile.id} tile={tile} />
       ))}
@@ -135,13 +135,13 @@ function StatusTile({ tile }: { tile: Tile }) {
 
   return (
     <Link
-      className="rounded-xl outline-none focus-visible:ring-2 focus-visible:ring-ring"
+      className="focus-visible:ring-ring rounded-xl outline-none focus-visible:ring-2"
       href={tile.href as Route}
     >
-      <Card className="h-full transition-colors hover:border-primary/40">
+      <Card className="hover:border-primary/40 h-full transition-colors">
         <CardHeader>
           <CardTitle>
-            <div className="flex size-7 items-center justify-center rounded-lg border bg-muted text-muted-foreground">
+            <div className="bg-muted text-muted-foreground flex size-7 items-center justify-center rounded-lg border">
               <Icon className="size-4" />
             </div>
           </CardTitle>
@@ -149,7 +149,7 @@ function StatusTile({ tile }: { tile: Tile }) {
         </CardHeader>
         <CardContent className="flex flex-col gap-1">
           <div className="flex flex-wrap items-center gap-2">
-            <div className="font-medium text-3xl tabular-nums leading-none tracking-tight">
+            <div className="text-3xl leading-none font-medium tracking-tight tabular-nums">
               {tile.value}
             </div>
             {tile.status ? (

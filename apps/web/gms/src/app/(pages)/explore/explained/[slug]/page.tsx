@@ -9,7 +9,7 @@ import { fetchQuestions, relatedHref } from "@/lib/cms";
 
 type Params = Promise<{ slug: string }>;
 
-const PARAGRAPH_BREAK = /\n{2,}/;
+const PARAGRAPH_BREAK = /\n{2,}/u;
 
 const DAY = new Intl.DateTimeFormat("en-GB", {
   timeZone: "America/Grenada",
@@ -34,7 +34,7 @@ export default async function QuestionPage({ params }: { params: Params }) {
   const result = await fetchQuestions({ slug: `questions/${slug}` });
   if (result.status === "unavailable")
     return (
-      <p className="py-6 text-body-base leading-body-base" role="status">
+      <p className="text-body-base leading-body-base py-6" role="status">
         This answer cannot be retrieved right now. Please try again later.
       </p>
     );
@@ -49,10 +49,10 @@ export default async function QuestionPage({ params }: { params: Params }) {
         title={question.question}
       />
       {question.checkedAt && (
-        <p className="flex items-center gap-2 text-body-sm text-gm-text-secondary leading-body-sm">
+        <p className="text-body-sm text-gm-text-secondary leading-body-sm flex items-center gap-2">
           <BadgeCheckIcon
             aria-hidden="true"
-            className="size-4 text-gm-blue-ink"
+            className="text-gm-blue-ink size-4"
           />
           Checked by a GMS meteorologist on{" "}
           {DAY.format(new Date(question.checkedAt))}
@@ -63,7 +63,7 @@ export default async function QuestionPage({ params }: { params: Params }) {
         Boolean(question.relatedLinks?.length)) && (
         <section aria-labelledby="read-next" className="grid gap-2">
           <h2
-            className="font-bold text-gm-heading text-heading-sm leading-heading-sm"
+            className="text-gm-heading text-heading-sm leading-heading-sm font-bold"
             id="read-next"
           >
             Read next
@@ -72,7 +72,7 @@ export default async function QuestionPage({ params }: { params: Params }) {
             {question.related.map((item) => (
               <li key={`${item.collection}-${item.slug}`}>
                 <Link
-                  className="inline-flex items-center gap-1 font-semibold text-gm-blue-ink hover:underline"
+                  className="text-gm-blue-ink inline-flex items-center gap-1 font-semibold hover:underline"
                   href={relatedHref(item) as Route}
                 >
                   {item.title}

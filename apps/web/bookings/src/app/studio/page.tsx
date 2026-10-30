@@ -56,7 +56,7 @@ export default async function StudioPage() {
         </EmptyHeader>
         <EmptyContent>
           <Link
-            className="inline-flex min-h-11 items-center font-medium text-primary underline underline-offset-4"
+            className="text-primary inline-flex min-h-11 items-center font-medium underline underline-offset-4"
             href="/"
           >
             See how Barrels Bookings works
@@ -68,12 +68,12 @@ export default async function StudioPage() {
 
   return (
     <section className="space-y-4">
-      <h1 className="font-semibold text-2xl">Choose a business</h1>
+      <h1 className="text-2xl font-semibold">Choose a business</h1>
       <ul className="grid gap-3 sm:grid-cols-2">
         {organisations.map((organisation) => (
           <li key={organisation.id}>
             <Link
-              className="flex min-h-11 flex-col gap-1 rounded-lg border border-border p-4 hover:bg-muted"
+              className="border-border hover:bg-muted flex min-h-11 flex-col gap-1 rounded-lg border p-4"
               href={{ pathname: `/studio/${organisation.slug}/agenda` }}
             >
               <span className="font-semibold">{organisation.name}</span>

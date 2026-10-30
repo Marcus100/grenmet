@@ -22,11 +22,11 @@ export function ForgotPasswordForm() {
     return (
       <div className="space-y-5">
         <div
-          className="rounded-lg border border-border bg-muted px-5 py-4 text-sm leading-6"
+          className="border-border bg-muted rounded-lg border px-5 py-4 text-sm leading-6"
           role="status"
         >
-          <p className="font-medium text-foreground">Check your inbox</p>
-          <p className="mt-1 text-muted-foreground">
+          <p className="text-foreground font-medium">Check your inbox</p>
+          <p className="text-muted-foreground mt-1">
             If <strong>{state.email}</strong> is registered, a password-reset
             link has been sent. It may take a minute to arrive.
           </p>
@@ -42,7 +42,7 @@ export function ForgotPasswordForm() {
     <form action={formAction} className="space-y-5">
       <div className="space-y-2">
         <label
-          className="block font-medium text-body-sm text-foreground"
+          className="text-body-sm text-foreground block font-medium"
           htmlFor="email"
         >
           Email address
@@ -69,7 +69,7 @@ export function ForgotPasswordForm() {
         {pending ? "Sending…" : "Send reset link"}
       </button>
 
-      <p className="text-center text-body-sm text-muted-foreground">
+      <p className="text-body-sm text-muted-foreground text-center">
         Remembered it?{" "}
         <Link className={textLinkClass} href="/">
           Sign in

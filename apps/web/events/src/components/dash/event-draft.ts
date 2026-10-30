@@ -45,7 +45,7 @@ export interface EventDraft {
 const GRENADA_OFFSET = "-04:00";
 
 /** Saved tiers keep their API id so editing never drops issued tickets. */
-const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/iu;
 
 function timeOf(instant: string): string {
   return new Intl.DateTimeFormat("en-GB", {

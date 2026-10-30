@@ -11,7 +11,7 @@ vi.mock("@barrelsgd/auth", () => ({
 }));
 
 const BASE = "http://localhost";
-const MISSING_GRADES = /No grades are configured/;
+const MISSING_GRADES = /No grades are configured/u;
 const user = {
   user_id: "00000000-0000-4000-8000-000000000001",
   name: "Test Staff",

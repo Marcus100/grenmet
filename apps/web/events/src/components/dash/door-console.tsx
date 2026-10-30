@@ -104,14 +104,14 @@ export function DoorConsole({
           admit(code);
         }}
       >
-        <label className="font-medium text-body" htmlFor="door-code">
+        <label className="text-body font-medium" htmlFor="door-code">
           Scan or enter a ticket code
         </label>
         <div className="flex gap-2">
           <Input
             autoCapitalize="characters"
             autoComplete="off"
-            className="font-mono text-body-base uppercase tracking-widest"
+            className="text-body-base font-mono tracking-widest uppercase"
             id="door-code"
             onChange={(event) => setCode(event.target.value)}
             ref={input}
@@ -131,8 +131,8 @@ export function DoorConsole({
           <p
             className={
               outcome.kind === "ok"
-                ? "flex min-h-11 items-center gap-2 rounded-xl border border-primary px-3 py-2 font-medium text-body-base text-primary"
-                : "flex min-h-11 items-center rounded-xl border border-destructive px-3 py-2 font-medium text-body-base text-destructive"
+                ? "border-primary text-body-base text-primary flex min-h-11 items-center gap-2 rounded-xl border px-3 py-2 font-medium"
+                : "border-destructive text-body-base text-destructive flex min-h-11 items-center rounded-xl border px-3 py-2 font-medium"
             }
             role={outcome.kind === "ok" ? "status" : "alert"}
           >
@@ -147,7 +147,7 @@ export function DoorConsole({
       <section aria-labelledby="door-list" className="space-y-3">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <h2
-            className="font-display font-semibold text-heading-sm"
+            className="font-display text-heading-sm font-semibold"
             id="door-list"
           >
             Door list
@@ -168,9 +168,9 @@ export function DoorConsole({
         <p className="hidden print:block">
           {manifest.title} · {manifest.admitted} of {manifest.issued} admitted
         </p>
-        <div className="overflow-x-auto rounded-xl border bg-card">
-          <table className="w-full text-left text-body">
-            <thead className="border-b text-caption text-muted-foreground">
+        <div className="bg-card overflow-x-auto rounded-xl border">
+          <table className="text-body w-full text-left">
+            <thead className="text-caption text-muted-foreground border-b">
               <tr>
                 <th className="px-3 py-2 font-medium">Name</th>
                 <th className="px-3 py-2 font-medium">Ticket</th>
@@ -208,7 +208,7 @@ export function DoorConsole({
               {rows.length === 0 ? (
                 <tr>
                   <td
-                    className="px-3 py-6 text-center text-muted-foreground"
+                    className="text-muted-foreground px-3 py-6 text-center"
                     colSpan={4}
                   >
                     No tickets match.
@@ -225,8 +225,8 @@ export function DoorConsole({
 
 function Count({ label, value }: { label: string; value: number }) {
   return (
-    <div className="rounded-xl border bg-card px-3 py-4">
-      <p className="font-bold font-display text-heading-base tabular-nums">
+    <div className="bg-card rounded-xl border px-3 py-4">
+      <p className="font-display text-heading-base font-bold tabular-nums">
         {value}
       </p>
       <p className="text-caption text-muted-foreground">{label}</p>

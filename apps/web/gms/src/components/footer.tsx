@@ -112,7 +112,7 @@ export function Footer() {
           >
             <Logo className="h-10 w-auto" variant="primary" />
           </Link>
-          <p className="max-w-sm text-body-sm leading-body-sm lg:text-body lg:leading-body">
+          <p className="text-body-sm leading-body-sm lg:text-body lg:leading-body max-w-sm">
             <b className="text-gm-text-inverse">
               Grenada Meteorological Service
             </b>
@@ -124,7 +124,7 @@ export function Footer() {
               <li key={s.label}>
                 <a
                   aria-label={`GMS on ${s.label}`}
-                  className="flex h-9 min-w-9 items-center justify-center gap-2 rounded-full border border-gm-border px-2.5 font-semibold text-caption leading-caption hover:bg-gm-text-inverse/10"
+                  className="border-gm-border text-caption leading-caption hover:bg-gm-text-inverse/10 flex h-9 min-w-9 items-center justify-center gap-2 rounded-full border px-2.5 font-semibold"
                   href={s.href}
                   rel="noopener noreferrer"
                   target="_blank"
@@ -138,7 +138,7 @@ export function Footer() {
 
         {COLUMNS.map((column) => (
           <nav aria-label={column.heading} key={column.heading}>
-            <h2 className="mb-3 font-bold text-gm-text-inverse text-label uppercase leading-label tracking-wider lg:text-caption lg:leading-caption">
+            <h2 className="text-gm-text-inverse text-label leading-label lg:text-caption lg:leading-caption mb-3 font-bold tracking-wider uppercase">
               {column.heading}
             </h2>
             <ul className="flex flex-col gap-2">
@@ -155,7 +155,7 @@ export function Footer() {
       </div>
 
       <div className="border-gm-text-inverse/15 border-t">
-        <div className="mx-auto flex max-w-6xl flex-wrap items-center gap-x-5 gap-y-2 px-4 py-4 text-body-sm leading-body-sm sm:px-6 lg:text-body lg:leading-body xl:px-8">
+        <div className="text-body-sm leading-body-sm lg:text-body lg:leading-body mx-auto flex max-w-6xl flex-wrap items-center gap-x-5 gap-y-2 px-4 py-4 sm:px-6 xl:px-8">
           <p className="text-body-sm leading-body-sm lg:text-body lg:leading-body">
             {copyright}
           </p>

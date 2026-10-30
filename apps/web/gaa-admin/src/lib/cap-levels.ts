@@ -103,7 +103,7 @@ export function levelParameters(
   return parameters;
 }
 
-const TRAILING_PRODUCT = /\s+(outlook|watch|warning|advisory)$/i;
+const TRAILING_PRODUCT = /\s+(outlook|watch|warning|advisory)$/iu;
 
 /** The hazard without a trailing product word: "Heavy Rainfall Watch" → "Heavy Rainfall". */
 export function hazardName(event: string): string {

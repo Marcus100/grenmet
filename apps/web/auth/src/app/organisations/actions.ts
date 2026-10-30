@@ -12,7 +12,7 @@ import {
 } from "@/lib/session";
 
 /** An emailed token is URL-safe base64: keep anything else out of the request. */
-const TOKEN = /^[A-Za-z0-9_-]{10,200}$/;
+const TOKEN = /^[A-Za-z0-9_-]{10,200}$/u;
 
 /**
  * Accept an invitation. The token arrives from the hidden form field and is

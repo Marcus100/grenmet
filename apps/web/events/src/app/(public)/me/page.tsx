@@ -31,7 +31,7 @@ export default async function MyPlansPage() {
         <div className="flex items-center gap-4">
           <PersonAvatar className="size-14" name={viewer.name} />
           <div>
-            <h1 className="font-bold font-display text-heading-base tracking-tight">
+            <h1 className="font-display text-heading-base font-bold tracking-tight">
               My plans
             </h1>
             <p className="text-body text-muted-foreground">
@@ -89,7 +89,7 @@ export default async function MyPlansPage() {
               ))}
             </div>
           ) : (
-            <p className="rounded-2xl border border-border border-dashed p-6 text-center text-body text-muted-foreground">
+            <p className="border-border text-body text-muted-foreground rounded-2xl border border-dashed p-6 text-center">
               Nothing saved yet. Tap the bookmark on any event —{" "}
               <Link className="underline" href="/events">
                 browse the calendar
@@ -129,11 +129,11 @@ export default async function MyPlansPage() {
               {plans.following.map((organiser) => (
                 <li key={organiser.id}>
                   <Link
-                    className="flex items-center gap-3 rounded-2xl border border-border bg-card p-3 hover:border-foreground"
+                    className="border-border bg-card hover:border-foreground flex items-center gap-3 rounded-2xl border p-3"
                     href={`/o/${organiser.slug}`}
                   >
                     <PersonAvatar name={organiser.name} />
-                    <span className="truncate font-medium text-body">
+                    <span className="text-body truncate font-medium">
                       {organiser.name}
                     </span>
                   </Link>
@@ -147,11 +147,11 @@ export default async function MyPlansPage() {
           )}
         </TabsContent>
         <TabsContent className="pt-4" value="hosting">
-          <div className="rounded-2xl border border-border border-dashed p-6 text-center">
-            <p className="font-display font-semibold text-body-base">
+          <div className="border-border rounded-2xl border border-dashed p-6 text-center">
+            <p className="font-display text-body-base font-semibold">
               Running something?
             </p>
-            <p className="mt-1 text-body text-muted-foreground">
+            <p className="text-body text-muted-foreground mt-1">
               List a fete, a meetup or a class and manage RSVPs and tickets from
               the organiser dashboard.
             </p>

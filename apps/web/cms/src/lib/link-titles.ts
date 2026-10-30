@@ -8,14 +8,14 @@ const TIMEOUT_MS = 3000;
 const FORECAST_KINDS = new Set(["morning", "midday", "evening", "outlook"]);
 /** An issued product's id: a UUID, the only form the product feed uses. */
 const PRODUCT_ID =
-  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/iu;
 /**
  * A CAP identifier: `urn:grenmet:cap:<uuid>`, `urn:oid:<oid>:<uuid>` or a
  * plain token such as `GMS-1`. It starts with a letter or digit and has no
  * slash, percent sign, query, hash or dot segment, so it cannot change the
  * path it is placed in.
  */
-const CAP_IDENTIFIER = /^[A-Za-z0-9][A-Za-z0-9:._-]{0,254}$/;
+const CAP_IDENTIFIER = /^[A-Za-z0-9][A-Za-z0-9:._-]{0,254}$/u;
 
 export interface LinkLabel {
   category: LinkCategory;

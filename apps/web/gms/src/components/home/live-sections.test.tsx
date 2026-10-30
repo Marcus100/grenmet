@@ -51,7 +51,7 @@ const hidden = (sections: string[]): HomeContent => ({
   },
 });
 
-const READ_ARTICLE = /^Read the article: /;
+const READ_ARTICLE = /^Read the article: /u;
 
 it("labels a post Today, Yesterday or by date, in Grenada time", () => {
   const post = "2026-10-28T02:00:00Z"; // 27 Oct, 22:00 in Grenada
@@ -98,7 +98,7 @@ it("shows an empty state, not a stale list, when no questions are published", as
   ).toBeInTheDocument();
 });
 
-const TWO_WAVES = /Two waves to watch/;
+const TWO_WAVES = /Two waves to watch/u;
 
 const post = (overrides: Partial<PublishedContent>): PublishedContent => ({
   id: "1",

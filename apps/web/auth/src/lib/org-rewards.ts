@@ -39,7 +39,7 @@ import { reportError } from "./report-error";
  * `rewards` entitlement. Responses carry no account identities.
  */
 
-const API_PREFIX = /\/api\/v1(?=\/|$)/;
+const API_PREFIX = /\/api\/v1(?=\/|$)/u;
 const RECENT = 25;
 
 function orgClient(accessToken: string, organisationId: string) {

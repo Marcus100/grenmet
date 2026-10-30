@@ -13,9 +13,9 @@ const CURRENCY_SYMBOL: Record<CurrencyCode, string> = {
 };
 
 const MINOR_UNITS_PER_MAJOR = 100;
-const DOLLARS = /^\d+(\.\d{1,2})?$/;
+const DOLLARS = /^\d+(\.\d{1,2})?$/u;
 /** Thousands separators must group exactly three digits ("1,250.00", never "10,50"). */
-const GROUPED_DOLLARS = /^\d{1,3}(,\d{3})+(\.\d{1,2})?$/;
+const GROUPED_DOLLARS = /^\d{1,3}(,\d{3})+(\.\d{1,2})?$/u;
 const MAX_WHOLE_DIGITS = 12;
 
 const groupingFormat = new Intl.NumberFormat("en-US", {

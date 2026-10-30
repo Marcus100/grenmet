@@ -47,7 +47,7 @@ vi.mock("@/components/studio/record-deposit", () => ({
 import { findOrganisation, getBooking } from "@/lib/studio-api";
 import StudioBookingPage from "./page";
 
-const RECORD = /Record deposit/;
+const RECORD = /Record deposit/u;
 
 const props = (id = BOOKING_ID) => ({
   params: Promise.resolve({ id, orgSlug: "sea-salt" }),

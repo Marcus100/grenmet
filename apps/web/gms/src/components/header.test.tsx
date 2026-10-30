@@ -11,10 +11,10 @@ vi.mock("@/components/desktop-nav", () => ({ DesktopNav: () => null }));
 vi.mock("@/components/site-search", () => ({ SiteSearch: () => null }));
 vi.mock("@/components/theme-toggle", () => ({ ThemeToggle: () => null }));
 
-const FLEX_CLASS = /(^|\s)flex(\s|$)/;
-const HIDDEN_CLASS = /(^|\s)hidden(\s|$)/;
-const ONE_ACTIVE = /Take action now · 1 active/;
-const OUTAGE = /We cannot load alerts right now/;
+const FLEX_CLASS = /(^|\s)flex(\s|$)/u;
+const HIDDEN_CLASS = /(^|\s)hidden(\s|$)/u;
+const ONE_ACTIVE = /Take action now · 1 active/u;
+const OUTAGE = /We cannot load alerts right now/u;
 
 const ACTIVE: AlertsResult = {
   activeCount: 1,

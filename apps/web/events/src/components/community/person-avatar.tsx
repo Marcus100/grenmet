@@ -31,7 +31,7 @@ export function PersonAvatar({
         />
       ) : null}
       <AvatarFallback
-        className={cn("bg-events-ink font-semibold text-events-lime")}
+        className={cn("bg-events-ink text-events-lime font-semibold")}
       >
         {initials(name)}
       </AvatarFallback>
@@ -57,7 +57,7 @@ export function GoingAvatars({
       <div className="flex -space-x-2">
         {names.slice(0, 4).map((name) => (
           <PersonAvatar
-            className="ring-2 ring-card"
+            className="ring-card ring-2"
             key={name}
             name={name}
             size="sm"

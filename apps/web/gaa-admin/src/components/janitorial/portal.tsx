@@ -88,7 +88,7 @@ export function SiteSwitcher({
         label: (
           <>
             {SITE_NAMES[code]}
-            <span className="ml-1 font-mono text-muted-foreground text-xs">
+            <span className="text-muted-foreground ml-1 font-mono text-xs">
               {code}
             </span>
           </>
@@ -113,11 +113,11 @@ export function Kpi({
 }) {
   return (
     <Card className="gap-1 px-4 py-4">
-      <div className="flex items-center justify-between gap-2 text-muted-foreground text-xs">
+      <div className="text-muted-foreground flex items-center justify-between gap-2 text-xs">
         <span className="font-medium">{label}</span>
         <Icon aria-hidden="true" className="size-4" />
       </div>
-      <p className="font-semibold text-2xl tabular-nums">{value}</p>
+      <p className="text-2xl font-semibold tabular-nums">{value}</p>
       {hint ? <p className="text-muted-foreground text-xs">{hint}</p> : null}
     </Card>
   );

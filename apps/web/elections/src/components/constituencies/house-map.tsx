@@ -37,7 +37,7 @@ export function HouseMap({
             </span>
           ))}
         </span>
-        <span className="mt-1 block text-base text-el-muted">
+        <span className="text-el-muted mt-1 block text-base">
           Boundaries are illustrative. Carriacou and Petite Martinique are drawn
           closer than they are.
         </span>

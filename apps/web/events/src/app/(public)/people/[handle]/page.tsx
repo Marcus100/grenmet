@@ -29,20 +29,20 @@ export default async function ProfilePage({ params }: { params: Params }) {
 
   return (
     <div className="mx-auto max-w-3xl space-y-6">
-      <section className="rounded-3xl border border-border bg-card p-6 sm:p-8">
+      <section className="border-border bg-card rounded-3xl border p-6 sm:p-8">
         <div className="flex flex-col gap-5 sm:flex-row sm:items-start">
           <PersonAvatar
-            className="size-20 text-heading-sm"
+            className="text-heading-sm size-20"
             name={profile.name}
           />
           <div className="min-w-0 flex-1 space-y-2">
-            <h1 className="font-bold font-display text-heading-base tracking-tight">
+            <h1 className="font-display text-heading-base font-bold tracking-tight">
               {profile.name}
             </h1>
             <p className="text-body-base text-muted-foreground">
               {profile.headline}
             </p>
-            <p className="flex items-center gap-1 text-caption text-muted-foreground">
+            <p className="text-caption text-muted-foreground flex items-center gap-1">
               <MapPin className="size-3.5" />
               {PARISH_LABELS[profile.parish]}
             </p>
@@ -67,7 +67,7 @@ export default async function ProfilePage({ params }: { params: Params }) {
       </section>
 
       {restricted ? (
-        <p className="flex items-center gap-2 rounded-2xl bg-muted p-4 text-body">
+        <p className="bg-muted text-body flex items-center gap-2 rounded-2xl p-4">
           <EyeOff className="size-5 shrink-0" />
           {profile.name.split(" ")[0]} shares their details with connections
           only.
@@ -76,7 +76,7 @@ export default async function ProfilePage({ params }: { params: Params }) {
         <>
           {profile.intents.length > 0 ? (
             <section className="space-y-3">
-              <h2 className="font-display font-semibold text-body-base">
+              <h2 className="font-display text-body-base font-semibold">
                 Open to
               </h2>
               <div className="flex flex-wrap gap-2">
@@ -93,15 +93,15 @@ export default async function ProfilePage({ params }: { params: Params }) {
             </section>
           ) : null}
           <section className="space-y-2">
-            <h2 className="font-display font-semibold text-body-base">About</h2>
+            <h2 className="font-display text-body-base font-semibold">About</h2>
             <p className="text-body-base">{profile.bio ?? ""}</p>
           </section>
           <section className="space-y-3">
-            <h2 className="font-display font-semibold text-body-base">Into</h2>
+            <h2 className="font-display text-body-base font-semibold">Into</h2>
             <div className="flex flex-wrap gap-2">
               {profile.interests.map((interest) => (
                 <Link
-                  className="rounded-full border border-border px-3 py-1 text-caption hover:border-foreground"
+                  className="border-border text-caption hover:border-foreground rounded-full border px-3 py-1"
                   href={`/events?category=${interest}`}
                   key={interest}
                 >
@@ -112,18 +112,18 @@ export default async function ProfilePage({ params }: { params: Params }) {
           </section>
           {profile.groups.length > 0 ? (
             <section className="space-y-3">
-              <h2 className="font-display font-semibold text-body-base">
+              <h2 className="font-display text-body-base font-semibold">
                 Groups
               </h2>
               <ul className="grid gap-2 sm:grid-cols-2">
                 {profile.groups.map((group) => (
                   <li key={group.id}>
                     <Link
-                      className="block rounded-2xl border border-border bg-card p-3 hover:border-foreground"
+                      className="border-border bg-card hover:border-foreground block rounded-2xl border p-3"
                       href={`/groups/${group.slug}`}
                     >
-                      <p className="font-medium text-body">{group.name}</p>
-                      <p className="truncate text-caption text-muted-foreground">
+                      <p className="text-body font-medium">{group.name}</p>
+                      <p className="text-caption text-muted-foreground truncate">
                         {group.tagline}
                       </p>
                     </Link>

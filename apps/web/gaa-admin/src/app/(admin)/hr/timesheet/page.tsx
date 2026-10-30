@@ -18,7 +18,7 @@ export default function TimesheetPage() {
       />
       <AttendanceTimesheet />
       <details className="rounded-lg border p-4">
-        <summary className="cursor-pointer font-medium text-sm">
+        <summary className="cursor-pointer text-sm font-medium">
           Manual timesheet form
         </summary>
         <TimesheetEditor />

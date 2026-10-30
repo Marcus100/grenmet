@@ -44,7 +44,7 @@ export default function EnsoPage() {
             ["Neutral", "Other factors dominate", "Other factors dominate"],
           ]}
         />
-        <p className="mt-3 max-w-prose text-body text-gm-text-secondary leading-body">
+        <p className="text-body text-gm-text-secondary leading-body mt-3 max-w-prose">
           These are tendencies, not rules: a quiet El Niño year can still bring
           a damaging storm.
         </p>

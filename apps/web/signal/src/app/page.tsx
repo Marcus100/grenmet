@@ -25,14 +25,14 @@ export default function HomePage() {
         {brief ? (
           <section
             aria-labelledby="briefing-title"
-            className="my-8 grid gap-6 border-signal-gold border-t-4 bg-signal-green p-6 text-primary-foreground sm:p-8 lg:grid-cols-3"
+            className="border-signal-gold bg-signal-green text-primary-foreground my-8 grid gap-6 border-t-4 p-6 sm:p-8 lg:grid-cols-3"
           >
             <div>
-              <p className="font-semibold text-sm uppercase tracking-wider">
+              <p className="text-sm font-semibold tracking-wider uppercase">
                 Your daily briefing
               </p>
               <h1
-                className="mt-3 font-semibold font-serif text-4xl leading-tight"
+                className="mt-3 font-serif text-4xl leading-tight font-semibold"
                 id="briefing-title"
               >
                 Daily Signal
@@ -42,7 +42,7 @@ export default function HomePage() {
               </p>
             </div>
             <div className="lg:col-span-2">
-              <h2 className="font-semibold font-serif text-2xl leading-snug sm:text-3xl">
+              <h2 className="font-serif text-2xl leading-snug font-semibold sm:text-3xl">
                 <Link className="hover:underline" href={`/today/${brief.date}`}>
                   {brief.title}
                 </Link>
@@ -51,7 +51,7 @@ export default function HomePage() {
                 {brief.dek}
               </p>
               <Link
-                className="mt-5 inline-flex min-h-11 items-center border-signal-gold border-b-2 font-semibold"
+                className="border-signal-gold mt-5 inline-flex min-h-11 items-center border-b-2 font-semibold"
                 href={`/today/${brief.date}`}
               >
                 Read the briefing →
@@ -80,7 +80,7 @@ export default function HomePage() {
                 </p>
               </div>
               <Link
-                className="inline-flex min-h-11 items-center text-signal-green underline underline-offset-4"
+                className="text-signal-green inline-flex min-h-11 items-center underline underline-offset-4"
                 href={`/collections/${collection.slug}`}
               >
                 Explore the collection →
@@ -109,7 +109,7 @@ export default function HomePage() {
                 )}
                 key={section.slug}
               >
-                <h2 className="border-signal-ink border-t-2 pt-4 font-semibold font-serif text-2xl">
+                <h2 className="border-signal-ink border-t-2 pt-4 font-serif text-2xl font-semibold">
                   <Link
                     className="hover:text-signal-green"
                     href={`/${section.slug}`}
@@ -135,7 +135,7 @@ export default function HomePage() {
                       />
                     ) : (
                       <h3
-                        className="border-signal-rule border-t pt-5 font-semibold font-serif text-xl leading-snug"
+                        className="border-signal-rule border-t pt-5 font-serif text-xl leading-snug font-semibold"
                         key={article.slug}
                       >
                         <Link

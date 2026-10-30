@@ -16,8 +16,8 @@ vi.mock("next/navigation", () => ({
 
 import { ImageUpload, imageProblem } from "./image-upload";
 
-const LARGER_LABEL = /larger than 2 MB/;
-const LINKED_LABEL = /linked to an organisation/;
+const LARGER_LABEL = /larger than 2 MB/u;
+const LINKED_LABEL = /linked to an organisation/u;
 const FILE_ID = "6f1d2c3e-0000-4000-8000-000000000001";
 
 function pick(file: File) {

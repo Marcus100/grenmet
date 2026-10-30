@@ -187,7 +187,7 @@ function ShareChart() {
               ))}
               {last && ["NDC", "NNP", "GULP"].includes(s.key) && (
                 <text
-                  className="fill-(--el-ink) font-semibold text-[14px] max-sm:hidden"
+                  className="fill-(--el-ink) text-[14px] font-semibold max-sm:hidden"
                   x={x(last.e.year) + 8}
                   y={yv(last.v) + 4}
                 >
@@ -432,12 +432,12 @@ export default function TrendsPage() {
         >
           {a.e.year} {constituencyName(results, a.code)}
         </Link>
-        <span className="block text-base text-el-muted">
+        <span className="text-el-muted block text-base">
           {a.s.winner[0]}, {a.s.winner[1]}
           {a.s.runnerUp &&
             ` over ${a.s.runnerUp[0]}, ${a.s.runnerUp[1]} (${fmt(a.s.winner[2])} to ${fmt(a.s.runnerUp[2])})`}
         </span>
-        <span className="block text-el-muted text-sm">
+        <span className="text-el-muted block text-sm">
           {eventSource(data, a.e.id, a.code).text}
           {a.r.note && " · PEO discrepancy noted"}
           {a.r.derived && " · derived total"}
@@ -457,7 +457,7 @@ export default function TrendsPage() {
       >
         <nav
           aria-label="Explore the election explainer"
-          className="mt-6 border-el-rule border-y py-4"
+          className="border-el-rule mt-6 border-y py-4"
         >
           <p className={LABEL}>Start with a question</p>
           <ol className="mt-3 grid list-inside list-decimal gap-3 text-base sm:grid-cols-2">
@@ -472,7 +472,7 @@ export default function TrendsPage() {
             ].map(([id, question]) => (
               <li key={id}>
                 <a
-                  className="underline decoration-el-rule-2 underline-offset-4"
+                  className="decoration-el-rule-2 underline underline-offset-4"
                   href={`#${id}-title`}
                 >
                   {question}
@@ -481,7 +481,7 @@ export default function TrendsPage() {
             ))}
           </ol>
         </nav>
-        <p className="mt-4 max-w-prose text-base text-el-muted leading-relaxed">
+        <p className="text-el-muted mt-4 max-w-prose text-base leading-relaxed">
           The charts describe recorded results through 2022, not a forecast for
           2026. Figures come from our{" "}
           <Link className="underline underline-offset-4" href="/sources">
@@ -561,7 +561,7 @@ export default function TrendsPage() {
               <SeatBar seats={eventNational(data, e.id).seats} vertical />
               <Link
                 aria-label={`Election ${e.year}`}
-                className="font-semibold text-sm tabular-nums hover:underline sm:text-base"
+                className="text-sm font-semibold tabular-nums hover:underline sm:text-base"
                 href={`/elections/${eventSlug(e.id)}`}
               >
                 <span className="sm:hidden">’{String(e.year).slice(2)}</span>
@@ -575,7 +575,7 @@ export default function TrendsPage() {
             </li>
           ))}
         </ol>
-        <p className="mt-2 text-base text-el-muted leading-relaxed">
+        <p className="text-el-muted mt-2 text-base leading-relaxed">
           ✱ Seat count depends on mixed or secondary records. Winner evidence
           and vote-total evidence are assessed separately: 1990 winners are
           official even though some vote inputs are secondary.
@@ -678,7 +678,7 @@ export default function TrendsPage() {
         <div className="grid gap-8 lg:grid-cols-3">
           <div>
             <h3 className={LABEL}>Marginal, competitive and safe seats</h3>
-            <p className="text-base text-el-muted leading-relaxed">
+            <p className="text-el-muted text-base leading-relaxed">
               Winning margin under 5 points, 5–under 15, or 15 and above
             </p>
             <ul className="mt-2 space-y-1 text-base">
@@ -711,7 +711,7 @@ export default function TrendsPage() {
                         title={`Safe ${f.safe}`}
                       />
                     </span>
-                    <span className="w-16 text-right text-base text-el-muted tabular-nums">
+                    <span className="text-el-muted w-16 text-right text-base tabular-nums">
                       {f.marginal}·{f.competitive}·{f.safe}
                     </span>
                   </li>
@@ -750,9 +750,9 @@ export default function TrendsPage() {
                 .map((y) => (
                   <li className="flex items-center gap-2" key={y}>
                     <span className="w-10 tabular-nums">{y}</span>
-                    <span className="h-3 flex-1 bg-el-paper-2">
+                    <span className="bg-el-paper-2 h-3 flex-1">
                       <span
-                        className="block h-full bg-el-ink-2"
+                        className="bg-el-ink-2 block h-full"
                         style={{
                           width: `${((features[y]?.flips ?? 0) / 15) * 100}%`,
                         }}
@@ -767,16 +767,16 @@ export default function TrendsPage() {
           </div>
           <div>
             <h3 className={LABEL}>Typical winning margin</h3>
-            <p className="text-base text-el-muted leading-relaxed">
+            <p className="text-el-muted text-base leading-relaxed">
               Median margin between the top two, in points
             </p>
             <ul className="mt-2 space-y-1 text-base">
               {featureYears.map((y) => (
                 <li className="flex items-center gap-2" key={y}>
                   <span className="w-10 tabular-nums">{y}</span>
-                  <span className="h-3 flex-1 bg-el-paper-2">
+                  <span className="bg-el-paper-2 h-3 flex-1">
                     <span
-                      className="block h-full bg-el-seq-1"
+                      className="bg-el-seq-1 block h-full"
                       style={{
                         width: `${((features[y]?.medianMargin ?? 0) / marginScale) * 100}%`,
                       }}
@@ -908,7 +908,7 @@ export default function TrendsPage() {
             </tbody>
           </table>
         </div>
-        <p className="mt-2 text-base text-el-muted leading-relaxed">
+        <p className="text-el-muted mt-2 text-base leading-relaxed">
           ✱ The 1976 winner record relies on The Grenada Newsletter’s report of
           the Supervisor of Elections’ figures. The 1990 winner record is
           official; its mixed vote inputs do not change the winner labels.
@@ -976,7 +976,7 @@ export default function TrendsPage() {
             return (
               <li key={code}>
                 <Link
-                  className="font-semibold text-base hover:underline"
+                  className="text-base font-semibold hover:underline"
                   href={constituencyHref(results, code) as Route}
                 >
                   {constituencyName(results, code)}
@@ -1058,23 +1058,23 @@ export default function TrendsPage() {
         <div className="grid gap-8 lg:grid-cols-3">
           <div>
             <h3 className={LABEL}>Closest results</h3>
-            <ol className="divide-y divide-el-rule">
+            <ol className="divide-el-rule divide-y">
               {closest.map((a) => recordRow(a, `${fmt(a.s.majority)} votes`))}
             </ol>
           </div>
           <div>
             <h3 className={LABEL}>Biggest wins</h3>
-            <ol className="divide-y divide-el-rule">
+            <ol className="divide-el-rule divide-y">
               {biggest.map((a) => recordRow(a, pct(a.s.winner[2] / a.s.valid)))}
             </ol>
           </div>
           <div>
             <h3 className={LABEL}>Bellwethers</h3>
-            <p className="text-base text-el-muted leading-relaxed">
+            <p className="text-el-muted text-base leading-relaxed">
               How often each constituency backed the party that won most seats,
               1984–2022 ({bellYears.length} elections)
             </p>
-            <ol className="mt-1 divide-y divide-el-rule text-base">
+            <ol className="divide-el-rule mt-1 divide-y text-base">
               {bellwethers.map((b) => (
                 <li className="flex justify-between gap-3 py-1.5" key={b.code}>
                   <Link
@@ -1133,7 +1133,7 @@ export default function TrendsPage() {
         intro="Before opening each answer, work through the claim. These are illustrative scenarios, not Grenada election results."
         title="Try explaining it yourself"
       >
-        <div className="divide-y divide-el-rule border-el-rule border-y">
+        <div className="divide-el-rule border-el-rule divide-y border-y">
           {[
             {
               question:
@@ -1161,7 +1161,7 @@ export default function TrendsPage() {
               <summary className="cursor-pointer font-semibold">
                 {question}
               </summary>
-              <p className="mt-3 max-w-prose text-el-ink-2 leading-relaxed">
+              <p className="text-el-ink-2 mt-3 max-w-prose leading-relaxed">
                 {answer}
               </p>
               <a
@@ -1173,7 +1173,7 @@ export default function TrendsPage() {
             </details>
           ))}
         </div>
-        <p className="mt-6 max-w-prose text-el-ink-2 leading-relaxed">
+        <p className="text-el-ink-2 mt-6 max-w-prose leading-relaxed">
           When you encounter an election claim, ask: what is being counted, what
           is it being divided by, which year and constituency does it cover, and
           where is the source? Those four questions help you judge the claim for

@@ -42,14 +42,14 @@ export function OutletConsole({ outlet }: { outlet: Outlet }) {
         className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3"
       >
         {outlet.tiers.map((tier) => (
-          <div className="rounded-xl border bg-card px-4 py-3" key={tier.id}>
-            <p className="font-medium text-body">{tier.name}</p>
+          <div className="bg-card rounded-xl border px-4 py-3" key={tier.id}>
+            <p className="text-body font-medium">{tier.name}</p>
             <p className="text-caption text-muted-foreground">
               {amount(tier.priceMinor, tier.currency)}
             </p>
-            <p className="mt-1 font-bold font-display text-heading-sm tabular-nums">
+            <p className="font-display text-heading-sm mt-1 font-bold tabular-nums">
               {tier.remaining}
-              <span className="font-normal text-caption text-muted-foreground">
+              <span className="text-caption text-muted-foreground font-normal">
                 {" "}
                 left of {tier.allocation}
               </span>
@@ -91,10 +91,10 @@ function TillPanel({
     return (
       <section
         aria-labelledby="till-heading"
-        className="space-y-3 rounded-xl border bg-card p-4"
+        className="bg-card space-y-3 rounded-xl border p-4"
       >
         <h2
-          className="font-display font-semibold text-heading-sm"
+          className="font-display text-heading-sm font-semibold"
           id="till-heading"
         >
           Open your till
@@ -142,11 +142,11 @@ function TillPanel({
   return (
     <section
       aria-labelledby="till-heading"
-      className="space-y-3 rounded-xl border bg-card p-4"
+      className="bg-card space-y-3 rounded-xl border p-4"
     >
       <div className="flex flex-wrap items-center justify-between gap-2">
         <h2
-          className="font-display font-semibold text-heading-sm"
+          className="font-display text-heading-sm font-semibold"
           id="till-heading"
         >
           Your till
@@ -155,7 +155,7 @@ function TillPanel({
           {till.status === "open" ? "Open" : "Closed"}
         </Badge>
       </div>
-      <dl className="grid grid-cols-2 gap-3 text-body sm:grid-cols-4">
+      <dl className="text-body grid grid-cols-2 gap-3 sm:grid-cols-4">
         <Figure
           label="Opening float"
           value={amount(till.openingFloatMinor, currency)}
@@ -176,8 +176,8 @@ function TillPanel({
         <p
           className={
             till.differenceMinor === 0
-              ? "font-medium text-body text-primary"
-              : "font-medium text-body text-destructive"
+              ? "text-body text-primary font-medium"
+              : "text-body text-destructive font-medium"
           }
           role="status"
         >
@@ -261,10 +261,10 @@ function SaleForm({
   return (
     <section
       aria-labelledby="sale-heading"
-      className="space-y-4 rounded-xl border bg-card p-4"
+      className="bg-card space-y-4 rounded-xl border p-4"
     >
       <h2
-        className="font-display font-semibold text-heading-sm"
+        className="font-display text-heading-sm font-semibold"
         id="sale-heading"
       >
         Sell tickets
@@ -381,14 +381,14 @@ function SalesList({
   return (
     <section aria-labelledby="sales-heading" className="space-y-3">
       <h2
-        className="font-display font-semibold text-heading-sm"
+        className="font-display text-heading-sm font-semibold"
         id="sales-heading"
       >
         Recent outlet sales
       </h2>
-      <div className="overflow-x-auto rounded-xl border bg-card">
-        <table className="w-full text-left text-body">
-          <thead className="border-b text-caption text-muted-foreground">
+      <div className="bg-card overflow-x-auto rounded-xl border">
+        <table className="text-body w-full text-left">
+          <thead className="text-caption text-muted-foreground border-b">
             <tr>
               <th className="px-3 py-2 font-medium">Time</th>
               <th className="px-3 py-2 font-medium">Buyer</th>
@@ -414,7 +414,7 @@ function SalesList({
                 <td className="px-3 py-2">{sale.soldByName ?? "Staff"}</td>
                 <td className="px-3 py-2">
                   <Link
-                    className="inline-flex items-center gap-1 text-primary hover:underline"
+                    className="text-primary inline-flex items-center gap-1 hover:underline"
                     href={`/dash/events/${outlet.listingId}/outlet/${sale.orderId}`}
                   >
                     <Printer className="size-4" />
@@ -426,7 +426,7 @@ function SalesList({
             {outlet.sales.length === 0 ? (
               <tr>
                 <td
-                  className="px-3 py-6 text-center text-muted-foreground"
+                  className="text-muted-foreground px-3 py-6 text-center"
                   colSpan={6}
                 >
                   No outlet sales yet.
@@ -480,12 +480,12 @@ function RefundPanel({
   return (
     <section aria-labelledby="refund-heading" className="space-y-3">
       <h2
-        className="font-display font-semibold text-heading-sm"
+        className="font-display text-heading-sm font-semibold"
         id="refund-heading"
       >
         Refunds
       </h2>
-      <ul className="divide-y rounded-xl border bg-card">
+      <ul className="bg-card divide-y rounded-xl border">
         {refundable.map(({ sale, ticket }) => (
           <RefundRow
             buyer={sale.buyerName}
@@ -498,7 +498,7 @@ function RefundPanel({
         {refunded.map(({ ticket }) =>
           ticket.refund ? (
             <li
-              className="flex flex-wrap items-center gap-2 px-4 py-2 text-body"
+              className="text-body flex flex-wrap items-center gap-2 px-4 py-2"
               key={ticket.id}
             >
               <Badge variant="outline">Refunded</Badge>
@@ -540,7 +540,7 @@ function RefundRow({
 
   return (
     <li className="space-y-2 px-4 py-3">
-      <div className="flex flex-wrap items-center gap-2 text-body">
+      <div className="text-body flex flex-wrap items-center gap-2">
         <span className="font-mono tracking-wider">{ticket.code}</span>
         <span>
           {ticket.tierName} · {amount(ticket.priceMinor, currency)}

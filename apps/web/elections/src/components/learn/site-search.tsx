@@ -42,14 +42,14 @@ export function SiteSearch() {
         Search questions, people, parties and elections
       </label>
       <input
-        className="mt-3 h-12 w-full rounded-md border border-el-rule-2 bg-background px-4 text-base"
+        className="border-el-rule-2 bg-background mt-3 h-12 w-full rounded-md border px-4 text-base"
         id="site-query"
         onChange={(event) => setQuery(event.target.value)}
         placeholder="Try turnout, 2022, or a candidate’s name"
         type="search"
         value={query}
       />
-      <p className="mt-2 text-base text-el-muted leading-relaxed">
+      <p className="text-el-muted mt-2 text-base leading-relaxed">
         Search is performed on this device. Queries are not sent to a search
         service.
       </p>
@@ -74,22 +74,22 @@ export function SiteSearch() {
           status
         )}
       </div>
-      <ul className="mt-4 divide-y divide-el-rule">
+      <ul className="divide-el-rule mt-4 divide-y">
         {matches.map((entry) => (
           <li
             className="py-4"
             key={`${entry.kind}:${entry.title}:${entry.href}`}
           >
-            <p className="text-base text-el-muted leading-relaxed">
+            <p className="text-el-muted text-base leading-relaxed">
               {entry.kind}
             </p>
             <Link
-              className="font-semibold font-serif text-xl underline-offset-4 hover:underline"
+              className="font-serif text-xl font-semibold underline-offset-4 hover:underline"
               href={entry.href as Route}
             >
               {entry.title}
             </Link>
-            <p className="mt-1 text-base text-el-ink-2 leading-relaxed">
+            <p className="text-el-ink-2 mt-1 text-base leading-relaxed">
               {entry.summary}
             </p>
           </li>

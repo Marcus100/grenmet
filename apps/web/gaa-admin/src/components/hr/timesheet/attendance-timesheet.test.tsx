@@ -18,14 +18,15 @@ import { AttendanceTimesheet, localDateTime } from "./attendance-timesheet";
 
 vi.mock("@/lib/report-error", () => ({ reportError: vi.fn() }));
 const BASE = "http://localhost";
-const EMPLOYEE_SHIFT = /2026-09-26 · N · Test Employee/;
-const WEEK_LABEL = /Sunday 2026-09-20 to Saturday 2026-09-26/;
-const SCHEDULE_LABEL = /Scheduled 2026-09-26 22:00 to 2026-09-27 06:00/;
-const PDF_LABEL = /weekly Python PDF/i;
-const GRENADA_OFFSET = /-04:00$/;
-const SHIFT_LABEL = /2026-09-26 · N/;
-const ACTUAL_HOURS_LABEL = /Elapsed 8.00 h; break 30 min; recorded work 7.50 h/;
-const APPROVED_ABSENCE_LABEL = /absent · approved schedule exception/;
+const EMPLOYEE_SHIFT = /2026-09-26 · N · Test Employee/u;
+const WEEK_LABEL = /Sunday 2026-09-20 to Saturday 2026-09-26/u;
+const SCHEDULE_LABEL = /Scheduled 2026-09-26 22:00 to 2026-09-27 06:00/u;
+const PDF_LABEL = /weekly Python PDF/iu;
+const GRENADA_OFFSET = /-04:00$/u;
+const SHIFT_LABEL = /2026-09-26 · N/u;
+const ACTUAL_HOURS_LABEL =
+  /Elapsed 8.00 h; break 30 min; recorded work 7.50 h/u;
+const APPROVED_ABSENCE_LABEL = /absent · approved schedule exception/u;
 const SHIFT = {
   roster_assignment_id: "assignment-1",
   user_id: "employee-1",

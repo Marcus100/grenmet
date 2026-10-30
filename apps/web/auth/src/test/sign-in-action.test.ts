@@ -1,9 +1,9 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-const RE_UNABLE_TO_REACH = /unable to reach/i;
-const RE_REQUIRED = /required/i;
-const RE_DO_NOT_MATCH = /do not match/i;
-const RE_NOT_ACCEPTED = /not accepted/i;
+const RE_UNABLE_TO_REACH = /unable to reach/iu;
+const RE_REQUIRED = /required/iu;
+const RE_DO_NOT_MATCH = /do not match/iu;
+const RE_NOT_ACCEPTED = /not accepted/iu;
 
 // vi.hoisted ensures these are available when vi.mock factories are hoisted.
 const { mockRedirect, mockCookiesSet, mockCookiesGet } = vi.hoisted(() => ({

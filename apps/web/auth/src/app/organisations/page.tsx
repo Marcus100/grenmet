@@ -66,7 +66,7 @@ export default async function OrganisationsPage({ searchParams }: PageProps) {
       ) : null}
       <SettingsSection title="Your organisations">
         {memberships.length === 0 ? (
-          <p className="py-5 text-muted-foreground text-sm">
+          <p className="text-muted-foreground py-5 text-sm">
             You are not part of an organisation yet. Ask an owner or admin to
             invite you, then open the link in your email.
           </p>

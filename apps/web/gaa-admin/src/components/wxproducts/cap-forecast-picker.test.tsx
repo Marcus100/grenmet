@@ -3,14 +3,14 @@ import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, expect, it, vi } from "vitest";
 import { CapForecastPicker } from "./cap-forecast-picker";
 
-const RESPONSE_LABEL = /Response:/;
+const RESPONSE_LABEL = /Response:/u;
 
 const EVENING_TARGETS = capInsertTargets("evening");
 const MORNING_TARGETS = capInsertTargets("morning");
 
-const INSTRUCTION = /instruction:/i;
-const HEADLINE = /headline:/i;
-const INACTIVE = /no longer active/;
+const INSTRUCTION = /instruction:/iu;
+const HEADLINE = /headline:/iu;
+const INACTIVE = /no longer active/u;
 const uuid = "11111111-1111-4111-8111-111111111111";
 const bulletin = {
   id: uuid,

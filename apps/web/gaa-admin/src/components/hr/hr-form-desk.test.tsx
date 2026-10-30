@@ -2,7 +2,7 @@ import { render, screen } from "@testing-library/react";
 import { expect, it, vi } from "vitest";
 import { SignedCopies } from "./hr-form-desk";
 
-const NO_COPIES = /No signed copies yet/;
+const NO_COPIES = /No signed copies yet/u;
 
 const documents = vi.hoisted(() => ({
   value: {

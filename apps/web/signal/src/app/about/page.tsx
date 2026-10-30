@@ -21,7 +21,7 @@ export default function AboutPage() {
           our coverage, alongside Caribbean and international stories worth your
           attention.
         </p>
-        <h2 className="font-semibold font-serif text-3xl" id="editorial">
+        <h2 className="font-serif text-3xl font-semibold" id="editorial">
           Our editorial approach
         </h2>
         <p>
@@ -30,7 +30,7 @@ export default function AboutPage() {
           coverage should credit and link to its original sources. Public
           bylines should make authorship clear.
         </p>
-        <h2 className="font-semibold font-serif text-3xl">
+        <h2 className="font-serif text-3xl font-semibold">
           About this preview
         </h2>
         <p>
@@ -41,7 +41,7 @@ export default function AboutPage() {
           of these summaries.
         </p>
         <p>Reading is free and requires no account.</p>
-        <h2 className="font-semibold font-serif text-3xl" id="newsletter">
+        <h2 className="font-serif text-3xl font-semibold" id="newsletter">
           Get the newsletter
         </h2>
         <p>

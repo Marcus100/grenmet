@@ -1,6 +1,6 @@
 import { UNITS_STORAGE_KEY } from "@/lib/units";
 
-const LESS_THAN = /</g;
+const LESS_THAN = /</gu;
 
 /**
  * Applies the visitor's saved unit system to <html data-units> before paint,

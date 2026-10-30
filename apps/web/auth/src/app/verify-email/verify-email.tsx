@@ -67,7 +67,7 @@ export function VerifyEmail({ token }: { token: string }) {
         {!(pending || token) && "Send verification link"}
       </button>
       <Link
-        className={`${textLinkClass} block text-center text-body-sm`}
+        className={`${textLinkClass} text-body-sm block text-center`}
         href="/"
       >
         Back to sign in

@@ -2,11 +2,11 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { developmentOrigin, parseArgs, planShots } from "./ui-screenshots.mjs";
 
-const NEEDS_TARGET = /--app <id> or --url <origin>/;
-const BAD_WIDTH = /pixel widths/;
-const BAD_THEME = /light and\/or dark/;
-const UNKNOWN_FLAG = /Unknown argument/;
-const KNOWN_APPS = /Known apps: gms/;
+const NEEDS_TARGET = /--app <id> or --url <origin>/u;
+const BAD_WIDTH = /pixel widths/u;
+const BAD_THEME = /light and\/or dark/u;
+const UNKNOWN_FLAG = /Unknown argument/u;
+const KNOWN_APPS = /Known apps: gms/u;
 
 const catalogue = {
   services: [

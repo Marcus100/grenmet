@@ -18,7 +18,7 @@ export function ImageryStrip({ images }: { images: WeatherImage[] }) {
           const url = getImageUrl(image.storagePath);
           return (
             <button
-              className="group relative aspect-4/3 w-40 shrink-0 overflow-hidden rounded-lg border bg-muted outline-none transition-all hover:ring-2 hover:ring-ring focus-visible:ring-3 focus-visible:ring-ring/50"
+              className="group bg-muted hover:ring-ring focus-visible:ring-ring/50 relative aspect-4/3 w-40 shrink-0 overflow-hidden rounded-lg border transition-all outline-none hover:ring-2 focus-visible:ring-3"
               key={image.id}
               onClick={() => setSelected(image)}
               type="button"
@@ -33,8 +33,8 @@ export function ImageryStrip({ images }: { images: WeatherImage[] }) {
                   image.fileFormat === "gif" || url.startsWith("/_backend/")
                 }
               />
-              <span className="absolute inset-x-0 bottom-0 truncate bg-linear-to-t from-black/70 to-transparent p-1.5 text-left text-white text-xs">
-                {image.spiderName?.replace(/_/g, " ") ?? "Source"}
+              <span className="absolute inset-x-0 bottom-0 truncate bg-linear-to-t from-black/70 to-transparent p-1.5 text-left text-xs text-white">
+                {image.spiderName?.replace(/_/gu, " ") ?? "Source"}
               </span>
             </button>
           );

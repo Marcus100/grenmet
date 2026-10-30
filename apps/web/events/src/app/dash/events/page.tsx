@@ -50,7 +50,7 @@ export default async function DashEventsPage() {
       <main className="mx-auto max-w-6xl space-y-6 px-4 py-6 sm:px-6 lg:px-8">
         <div className="flex flex-wrap items-end justify-between gap-4">
           <div>
-            <h1 className="font-display font-semibold text-heading-base">
+            <h1 className="font-display text-heading-base font-semibold">
               My events
             </h1>
             <p className="text-body text-muted-foreground">
@@ -67,7 +67,7 @@ export default async function DashEventsPage() {
           </Link>
         </div>
         {listings.length === 0 ? (
-          <p className="rounded-2xl border border-border border-dashed p-6 text-center text-body text-muted-foreground">
+          <p className="border-border text-body text-muted-foreground rounded-2xl border border-dashed p-6 text-center">
             No events yet. Create your first one.
           </p>
         ) : (
@@ -76,7 +76,7 @@ export default async function DashEventsPage() {
               const badge = statusBadge(event, now);
               return (
                 <li
-                  className="flex flex-col gap-4 rounded-2xl border border-border bg-card p-4 sm:flex-row sm:items-center"
+                  className="border-border bg-card flex flex-col gap-4 rounded-2xl border p-4 sm:flex-row sm:items-center"
                   key={event.id}
                 >
                   <EventFlyer
@@ -88,7 +88,7 @@ export default async function DashEventsPage() {
                   />
                   <div className="min-w-0 flex-1 space-y-1">
                     <div className="flex flex-wrap items-center gap-2">
-                      <h2 className="font-display font-semibold text-body-base">
+                      <h2 className="font-display text-body-base font-semibold">
                         {event.title}
                       </h2>
                       <Badge variant={badge.variant}>{badge.label}</Badge>

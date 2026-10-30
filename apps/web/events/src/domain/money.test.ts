@@ -8,7 +8,7 @@ import {
   sumMoney,
 } from "./money";
 
-const MIXED_CURRENCY_MESSAGE = /Cannot combine XCD with USD/;
+const MIXED_CURRENCY_MESSAGE = /Cannot combine XCD with USD/u;
 
 describe("formatMoney", () => {
   it("groups thousands and keeps two decimals by default", () => {

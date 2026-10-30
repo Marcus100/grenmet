@@ -8,9 +8,9 @@ import { RosterRulesManager } from "./roster-rules-manager";
 
 const BASE = "http://localhost";
 const RULES_URL = `${BASE}/api/v1/hr/rosters/departments/dept_met/rules`;
-const SAVE_LABEL = /Save rules/;
-const REST_LABEL = /Minimum rest/;
-const CONSECUTIVE_LABEL = /Maximum consecutive/;
+const SAVE_LABEL = /Save rules/u;
+const REST_LABEL = /Minimum rest/u;
+const CONSECUTIVE_LABEL = /Maximum consecutive/u;
 
 let saved: unknown;
 const server = setupServer(
