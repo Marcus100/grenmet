@@ -22,7 +22,7 @@ ERROR_TRANSFER_NEEDS_ORGANISATION_AUTHORITY = (
     "organisation-wide HR employment authority"
 )
 ERROR_END_DATE_NEEDS_ORGANISATION_AUTHORITY = (
-    "Setting an end date on someone who holds organisation-wide roles needs "
+    "Changing an end date on someone who holds organisation-wide roles needs "
     "organisation-wide HR employment authority"
 )
 ERROR_REINSTATE_PAST_END_DATE = (

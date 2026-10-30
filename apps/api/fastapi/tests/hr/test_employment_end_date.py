@@ -317,13 +317,33 @@ async def test_department_admin_may_set_end_date_on_someone_without_wide_roles(
     assert record.end_date == FUTURE
 
 
-async def test_department_admin_may_clear_an_end_date_even_with_wide_roles(
+async def test_department_admin_cannot_clear_an_end_date_on_someone_with_wide_roles(
     db_async: AsyncSession,
 ) -> None:
-    """Clearing an end date is not a new ending, so it needs no organisation-wide authority."""
+    """Clearing an end date brings the ending back, so it needs organisation-wide authority."""
     department = await make_department(db_async, "end_date_wide4")
     admin = await _department_hr_admin(db_async, department.id)
-    user, record, _ = await _person_with_wide_role(db_async, department.id)
+    user, record, grant = await _person_with_wide_role(db_async, department.id)
+    record.end_date = FUTURE
+    await db_async.commit()
+
+    with pytest.raises(AuthorizationError) as raised:
+        await _set_end(db_async, admin, user, None)
+
+    assert raised.value.status_code == 403
+    await db_async.refresh(record)
+    await db_async.refresh(grant)
+    assert record.end_date == FUTURE
+    assert grant.effective_to is None
+
+
+async def test_department_admin_may_clear_an_end_date_without_wide_roles(
+    db_async: AsyncSession,
+) -> None:
+    department = await make_department(db_async, "end_date_wide5")
+    admin = await _department_hr_admin(db_async, department.id)
+    user = await make_user(db_async)
+    record = await make_employee(db_async, user=user, department_id=department.id)
     record.end_date = FUTURE
     await db_async.commit()
 

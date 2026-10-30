@@ -896,16 +896,15 @@ async def update_employment_for_user(
             raise HRPermissionDeniedError(
                 hr_constants.ERROR_TRANSFER_NEEDS_ORGANISATION_AUTHORITY
             )
-        # Setting an end date ends the person's roles when the job runs, the same
-        # as a transfer, so it needs the same authority (#794, #797). Clearing it
-        # (null) needs none beyond editing the record.
-        end_date_set = (
+        # Setting, moving or clearing an end date changes when the person's roles
+        # end, so it needs the same authority as a transfer when they hold
+        # organisation-wide roles (#794, #797). Clearing one is covered too.
+        end_date_changed = (
             "end_date" in employment_update.model_fields_set
-            and employment_update.end_date is not None
             and employment_update.end_date != employment.end_date
         )
         if (
-            end_date_set
+            end_date_changed
             and not organisation_wide
             and await holds_live_organisation_wide_assignment(
                 session,
