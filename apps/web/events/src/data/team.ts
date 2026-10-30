@@ -43,9 +43,9 @@ export type TeamRead =
       readonly viewer: TeamViewer;
     };
 
-function request(context: Ready) {
+async function request(context: Ready) {
   return {
-    ...apiOptions(context.accessToken),
+    ...(await apiOptions(context.accessToken)),
     headers: { "X-Barrels-Organisation": context.organisationId },
   };
 }
@@ -65,7 +65,7 @@ export async function getTeam(
   viewer: { page: number }
 ): Promise<TeamRead> {
   try {
-    const options = request(context);
+    const options = await request(context);
     const [allBundles, capabilities, roster] = await Promise.all([
       organisationsListRoleBundles(options).unwrap(),
       organisationsMyTeamCapabilities(options).unwrap(),

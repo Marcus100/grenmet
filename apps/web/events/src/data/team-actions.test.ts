@@ -19,7 +19,10 @@ vi.mock("./org-context", () => ({
 vi.mock("@/lib/report-error", () => ({
   reportError: (...args: unknown[]) => reportError(...args),
 }));
-vi.mock("@/lib/api", () => ({ apiOptions: () => ({}) }));
+// apiOptions is async and carries the client: a missing `await` before a spread drops it silently.
+vi.mock("@/lib/api", () => ({
+  apiOptions: async () => ({ client: "test-client" }),
+}));
 vi.mock("@barrelsgd/api-client", async (importOriginal) => ({
   ...(await importOriginal<typeof import("@barrelsgd/api-client")>()),
   organisationsGrantMemberRole: (...a: unknown[]) => grantCall(...a),
@@ -76,6 +79,7 @@ describe("grantRole", () => {
     expect(result).toEqual({ ok: true, data: { id: "g1" } });
     expect(grantCall).toHaveBeenCalledWith(
       expect.objectContaining({
+        client: "test-client",
         headers: { "X-Barrels-Organisation": "org_1" },
         path: { membership_id: "mem_1" },
         body: {
@@ -224,7 +228,10 @@ describe("loadIssuedGrants and removeMember", () => {
       data: [{ id: "g9" }],
     });
     expect(issuedCall).toHaveBeenCalledWith(
-      expect.objectContaining({ path: { membership_id: "mem_2" } })
+      expect.objectContaining({
+        client: "test-client",
+        path: { membership_id: "mem_2" },
+      })
     );
   });
 

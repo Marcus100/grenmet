@@ -6,7 +6,10 @@ const capabilitiesCall = vi.fn();
 const rosterCall = vi.fn();
 
 vi.mock("server-only", () => ({}));
-vi.mock("@/lib/api", () => ({ apiOptions: () => ({}) }));
+// apiOptions is async and carries the client: a missing `await` before a spread drops it silently.
+vi.mock("@/lib/api", () => ({
+  apiOptions: async () => ({ client: "test-client" }),
+}));
 vi.mock("@barrelsgd/api-client", async (importOriginal) => ({
   ...(await importOriginal<typeof import("@barrelsgd/api-client")>()),
   organisationsListRoleBundles: (...a: unknown[]) => bundlesCall(...a),
@@ -75,6 +78,7 @@ describe("getTeam", () => {
     expect(rosterCall).toHaveBeenCalledTimes(1);
     expect(rosterCall).toHaveBeenCalledWith(
       expect.objectContaining({
+        client: "test-client",
         headers: { "X-Barrels-Organisation": "org_1" },
         query: { page: 1, size: 25 },
       })
