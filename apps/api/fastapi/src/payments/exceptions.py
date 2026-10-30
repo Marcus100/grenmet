@@ -13,6 +13,11 @@ class PaymentsConflictError(AppException):
         super().__init__(message, status.HTTP_409_CONFLICT)
 
 
+class RefundFailedAtProvider(PaymentsConflictError):
+    """The refund under this id failed at the provider. A retry under the same id
+    cannot succeed: the provider replays its answer for the idempotency key."""
+
+
 class PaymentsValidationError(AppException):
     def __init__(self, message: str) -> None:
         super().__init__(message, status.HTTP_422_UNPROCESSABLE_ENTITY)

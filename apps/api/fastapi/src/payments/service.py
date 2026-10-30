@@ -31,6 +31,7 @@ from .exceptions import (
     IntentNotFoundError,
     PaymentsConflictError,
     PaymentsValidationError,
+    RefundFailedAtProvider,
 )
 from .models import (
     Attempt,
@@ -676,7 +677,7 @@ async def refund_intent(
             if existing.status == RefundStatus.FAILED.value:
                 # Stripe replays the stored answer for this key, so a retry cannot
                 # succeed: say so instead of reporting a refund that did not happen.
-                raise PaymentsConflictError(
+                raise RefundFailedAtProvider(
                     "That refund failed at the provider; refund again"
                 )
             return _refund_public(existing)
@@ -793,7 +794,12 @@ async def process_callback(
     return await _apply_refunded(session, intent, event)
 
 
+_REFUND_KINDS = frozenset({EventKind.REFUNDED, EventKind.REFUND_REPORTED})
+
+
 async def _locate(session: AsyncSession, event: ProviderEvent) -> Intent | None:
+    if event.kind in _REFUND_KINDS:
+        return await _locate_refunded_payment(session, event)
     conditions = []
     if event.intent_id is not None:
         conditions.append(Intent.id == event.intent_id)
@@ -810,6 +816,46 @@ async def _locate(session: AsyncSession, event: ProviderEvent) -> Intent | None:
             .limit(1)
         )
     ).scalar_one_or_none()
+
+
+async def _locate_refunded_payment(
+    session: AsyncSession, event: ProviderEvent
+) -> Intent | None:
+    """A refund event names its payment by the provider's payment intent; our
+    metadata intent id is only a fallback. When both name a payment and they differ
+    (or the metadata payment has a different provider payment), nothing is applied."""
+    by_payment: Intent | None = None
+    if event.payment_ref:
+        by_payment = await session.scalar(
+            select(Intent)
+            .where(
+                Intent.provider == event.provider,
+                Intent.provider_payment_ref == event.payment_ref,
+            )
+            .limit(1)
+        )
+    by_metadata: Intent | None = None
+    if event.intent_id is not None:
+        by_metadata = await session.scalar(
+            select(Intent).where(
+                Intent.provider == event.provider, Intent.id == event.intent_id
+            )
+        )
+    conflict = (
+        by_payment is not None
+        and by_metadata is not None
+        and (by_payment.id != by_metadata.id)
+    )
+    if by_metadata is not None and event.payment_ref:
+        recorded = by_metadata.provider_payment_ref
+        conflict = conflict or (recorded is not None and recorded != event.payment_ref)
+    if conflict:
+        logger.error(
+            "refund event names two payments; not applied",
+            extra={"event_id": event.event_id},
+        )
+        return None
+    return by_payment or by_metadata
 
 
 async def _apply_success(
@@ -877,10 +923,20 @@ async def _apply_refunded(
         if await _reconcile_listed_refund(session, intent, event, refund):
             changed = True
     if not event.refunds_complete:
-        logger.error(
-            "charge refund list is missing or truncated; not reconciled from the total",
-            extra={"intent_id": str(intent.id), "event_id": event.event_id},
-        )
+        if not event.refunds_listed:
+            # Greppable: this is the symptom of a webhook endpoint that does not
+            # subscribe to the refund.* events.
+            logger.error(
+                "charge.refunded without a refund list: the refund.created, "
+                "refund.updated and refund.failed webhook subscription may be missing; "
+                "not reconciled from the total",
+                extra={"intent_id": str(intent.id), "event_id": event.event_id},
+            )
+        else:
+            logger.error(
+                "charge refund list is truncated; not reconciled from the total",
+                extra={"intent_id": str(intent.id), "event_id": event.event_id},
+            )
     else:
         total = event.refunded_total_minor or 0
         captured, recorded = await _totals(session, intent.id)
@@ -1027,6 +1083,13 @@ async def _advance_refund(
         await session.flush()
         await _enqueue_refund_topic(session, intent, row.id, suffix=":failed")
         return True
+    if current is RefundStatus.FAILED and target is RefundStatus.PENDING:
+        # A pending report that arrives after the failure (out of order) is stale.
+        logger.info(
+            "stale pending report for a failed refund; not changed",
+            extra={"refund_id": str(row.id)},
+        )
+        return changed
     if current is RefundStatus.FAILED and target is RefundStatus.SUCCEEDED:
         # The provider now says the money went back: take it off the balance again.
         row.status = RefundStatus.SUCCEEDED.value

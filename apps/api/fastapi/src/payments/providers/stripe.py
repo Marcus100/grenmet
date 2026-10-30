@@ -231,6 +231,8 @@ def normalise_event(event: dict[str, Any]) -> ProviderEvent:
             refunded_total_minor=_int(obj.get("amount_refunded")),
             refunds=refunds,
             refunds_complete=complete,
+            refunds_listed=isinstance(obj.get("refunds"), dict)
+            and isinstance(obj["refunds"].get("data"), list),
         )
     return ProviderEvent(provider=key, event_id=event_id, kind=EventKind.IGNORED)
 

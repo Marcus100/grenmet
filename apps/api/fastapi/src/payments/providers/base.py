@@ -63,8 +63,12 @@ class ProviderEvent:
     refunded_total_minor: int | None = None
     #: For ``REFUNDED``: the refunds the provider listed on the payment.
     refunds: tuple[ProviderRefund, ...] = ()
-    #: False when the provider listed only some of the refunds (more exist).
+    #: False when the provider listed only some of the refunds (more exist), or
+    #: sent no list at all.
     refunds_complete: bool = True
+    #: False when a ``charge.refunded`` carried no refund list (Stripe lists refunds
+    #: only when expanded, and webhooks are not expanded).
+    refunds_listed: bool = True
     failure_code: str | None = None
 
 

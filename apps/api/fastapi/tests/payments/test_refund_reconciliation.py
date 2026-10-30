@@ -8,6 +8,7 @@ must still be recorded once.
 """
 
 import uuid
+from unittest.mock import MagicMock
 
 import httpx
 import pytest
@@ -17,6 +18,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from src.auth.models import User
 from src.organisations.models import PlatformOrganisation
 from src.payments import schemas, service
+from src.payments import service as service_module
 from src.payments.exceptions import PaymentsConflictError
 from src.payments.models import LedgerEntry, LedgerKind, Refund, RefundStatus
 from tests.organisations.support import headers_for
@@ -69,10 +71,15 @@ async def _refunded_minor(
 
 
 async def _paid_card_intent(
-    client: httpx.AsyncClient, org: PlatformOrganisation, admin: User
+    client: httpx.AsyncClient,
+    org: PlatformOrganisation,
+    admin: User,
+    payment_intent: str = "pi_test_1",
 ) -> str:
     intent_id = await _stripe_intent(client, org, admin)
-    body, headers = signed(checkout_completed(intent_id, amount=PAID))
+    body, headers = signed(
+        checkout_completed(intent_id, amount=PAID, payment_intent=payment_intent)
+    )
     assert (
         await client.post(WEBHOOK, content=body, headers=headers)
     ).status_code == 200
@@ -635,3 +642,148 @@ async def test_listed_refunds_are_capped_at_what_was_captured(
     (row,) = await _refund_rows(db_async, intent_id)
     assert row.amount_minor == PAID
     assert await _refunded_minor(async_client, org_headers, intent_id) == PAID
+
+
+@pytest.mark.usefixtures("stripe_env")
+async def test_a_charge_refunded_without_a_list_says_the_refund_subscription_may_be_missing(
+    async_client: httpx.AsyncClient,
+    db_async: AsyncSession,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    org, admin = await _org(db_async)
+    await _paid_card_intent(async_client, org, admin)
+    log = MagicMock()
+    monkeypatch.setattr(service_module, "logger", log)
+    body, headers = signed(charge_refunded("evt_no_list_log", amount_refunded=2000))
+    await _post(async_client, body, headers)
+    (message,) = [call.args[0] for call in log.error.call_args_list]
+    assert "refund.created" in message and "subscription may be missing" in message
+
+
+@pytest.mark.usefixtures("stripe_env")
+async def test_refund_events_name_the_payment_by_its_payment_intent_and_refuse_a_conflict(
+    async_client: httpx.AsyncClient,
+    db_async: AsyncSession,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """The provider's payment_intent decides which payment a refund event is about.
+    Our metadata is only a fallback. When both name different payments, nothing is
+    recorded on either."""
+    org, admin = await _org(db_async)
+    org_headers = headers_for(admin, org.id)
+    intent_a = await _paid_card_intent(async_client, org, admin, "pi_a")
+    intent_b = await _paid_card_intent(async_client, org, admin, "pi_b")
+    log = MagicMock()
+    monkeypatch.setattr(service_module, "logger", log)
+
+    conflict, conflict_headers = signed(
+        refund_event(
+            "evt_conflict",
+            "refund.created",
+            refund_object(
+                "re_conflict", 1000, payment_intent="pi_a", intent_id=intent_b
+            ),
+        )
+    )
+    await _post(async_client, conflict, conflict_headers)
+    assert await _refund_rows(db_async, intent_a) == []
+    assert await _refund_rows(db_async, intent_b) == []
+    assert any("two payments" in call.args[0] for call in log.error.call_args_list)
+
+    by_payment, by_payment_headers = signed(
+        refund_event(
+            "evt_by_payment",
+            "refund.created",
+            refund_object("re_by_payment", 1000, payment_intent="pi_a"),
+        )
+    )
+    await _post(async_client, by_payment, by_payment_headers)
+    (row,) = await _refund_rows(db_async, intent_a)
+    assert row.provider_ref == "re_by_payment"
+    assert await _refund_rows(db_async, intent_b) == []
+    assert await _refunded_minor(async_client, org_headers, intent_a) == 1000
+
+
+@pytest.mark.usefixtures("stripe_env")
+async def test_a_refund_reported_before_its_pending_report_is_settled_once(
+    async_client: httpx.AsyncClient,
+    db_async: AsyncSession,
+) -> None:
+    """Out of order: refund.updated (succeeded) arrives before refund.created (pending).
+    The late pending report must not move a settled refund back."""
+    org, admin = await _org(db_async)
+    org_headers = headers_for(admin, org.id)
+    intent_id = await _paid_card_intent(async_client, org, admin)
+    refund_id = uuid.uuid4()
+    succeeded, succeeded_headers = signed(
+        refund_event(
+            "evt_first_succeeded",
+            "refund.updated",
+            refund_object("re_ooo", 2000, refund_id=refund_id, intent_id=intent_id),
+        )
+    )
+    await _post(async_client, succeeded, succeeded_headers)
+    late, late_headers = signed(
+        refund_event(
+            "evt_late_pending",
+            "refund.created",
+            refund_object(
+                "re_ooo",
+                2000,
+                status="pending",
+                refund_id=refund_id,
+                intent_id=intent_id,
+            ),
+        )
+    )
+    await _post(async_client, late, late_headers)
+    await _post(async_client, succeeded, succeeded_headers)
+
+    (row,) = await _refund_rows(db_async, intent_id)
+    assert (row.id, row.status) == (refund_id, RefundStatus.SUCCEEDED.value)
+    assert await _refund_entries(db_async, intent_id, "refund") == [-2000]
+    assert await _refunded_minor(async_client, org_headers, intent_id) == 2000
+
+
+@pytest.mark.usefixtures("stripe_env")
+async def test_a_refund_that_failed_then_succeeded_is_counted_once_and_a_stale_pending_is_ignored(
+    async_client: httpx.AsyncClient,
+    db_async: AsyncSession,
+) -> None:
+    org, admin = await _org(db_async)
+    org_headers = headers_for(admin, org.id)
+    intent_id = await _paid_card_intent(async_client, org, admin)
+    refund_id = uuid.uuid4()
+
+    def report(
+        event_id: str, event_type: str, status: str
+    ) -> tuple[bytes, dict[str, str]]:
+        return signed(
+            refund_event(
+                event_id,
+                event_type,
+                refund_object(
+                    "re_flip",
+                    2000,
+                    status=status,
+                    refund_id=refund_id,
+                    intent_id=intent_id,
+                ),
+            )
+        )
+
+    await _post(async_client, *report("evt_flip_created", "refund.created", "pending"))
+    await _post(async_client, *report("evt_flip_failed", "refund.failed", "failed"))
+    assert await _refunded_minor(async_client, org_headers, intent_id) == 0
+    # A pending report that arrives after the failure is stale: nothing moves.
+    await _post(async_client, *report("evt_flip_stale", "refund.created", "pending"))
+    assert await _refunded_minor(async_client, org_headers, intent_id) == 0
+    # The provider then reports success: the money is taken off the balance again.
+    await _post(async_client, *report("evt_flip_ok", "refund.updated", "succeeded"))
+    await _post(async_client, *report("evt_flip_ok", "refund.updated", "succeeded"))
+
+    (row,) = await _refund_rows(db_async, intent_id)
+    assert (row.id, row.status) == (refund_id, RefundStatus.SUCCEEDED.value)
+    assert await _refund_entries(db_async, intent_id, "refund") == [-2000, -2000]
+    assert await _refund_entries(db_async, intent_id, "adjustment") == [2000]
+    assert await _refunded_minor(async_client, org_headers, intent_id) == 2000
