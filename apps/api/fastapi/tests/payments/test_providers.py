@@ -279,6 +279,9 @@ async def test_an_unsafe_registered_address_is_not_used(
         "2130706433",
         "127.1",
         "0x7f.0.0.1",
+        "%6Cocalhost",
+        "localhost\uff0e",
+        "127.0.0.1%2e",
     ],
 )
 async def test_a_local_or_private_registered_address_is_refused_outside_local(

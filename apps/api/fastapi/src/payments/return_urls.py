@@ -55,7 +55,9 @@ def _is_local_host(hostname: str | None) -> bool:
     localhost names, loopback, unspecified, private and link-local addresses (an
     IPv4-mapped IPv6 address is judged by its IPv4 address). A missing host is not
     acceptable either."""
-    if not hostname:
+    if not hostname or "%" in hostname or not hostname.isascii():
+        # Percent-escapes and non-ASCII characters (fullwidth dots, look-alike
+        # letters) can name localhost to a browser; they are refused outright.
         return True
     name = hostname.rstrip(".").lower()
     if not name or name == "localhost" or name.endswith(".localhost"):
