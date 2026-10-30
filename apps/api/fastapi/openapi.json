@@ -22546,8 +22546,8 @@
         "tags": [
           "organisations"
         ],
-        "summary": "Remove a member",
-        "description": "Ends the person's membership. Only owners remove owners; 409 when it would leave the organisation without an owner.",
+        "summary": "Remove a member, or end their Events access",
+        "description": "An account session ends the person's membership in the whole organisation (204). An Events app session ends only their Events access in this organisation: live events-* roles here and grants they issued for Events here. The membership, other products, other organisations and their Events sign-in stay, and the answer is 200 with `scope` `events`. Only owners remove owners; 409 when it would leave the organisation without an owner.",
         "operationId": "organisationsDeleteMember",
         "security": [
           {
@@ -22620,6 +22620,16 @@
           },
           "409": {
             "description": "Request conflicts with current state"
+          },
+          "200": {
+            "description": "Events access ended from an Events app session.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MemberEventsAccessRevokedPublic"
+                }
+              }
+            }
           }
         }
       }
@@ -50004,6 +50014,28 @@
             "type": "string",
             "title": "Actor Name"
           },
+          "actor_session": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Actor Session"
+          },
+          "actor_app": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Actor App"
+          },
           "changes": {
             "items": {
               "$ref": "#/components/schemas/AuditChangePublic"
@@ -66202,6 +66234,36 @@
           "time"
         ],
         "title": "MarineRow"
+      },
+      "MemberEventsAccessRevokedPublic": {
+        "properties": {
+          "membership_id": {
+            "type": "string",
+            "title": "Membership Id"
+          },
+          "scope": {
+            "type": "string",
+            "const": "events",
+            "title": "Scope",
+            "default": "events"
+          },
+          "grants_revoked": {
+            "type": "integer",
+            "title": "Grants Revoked"
+          },
+          "issued_grants_revoked": {
+            "type": "integer",
+            "title": "Issued Grants Revoked"
+          }
+        },
+        "type": "object",
+        "required": [
+          "membership_id",
+          "grants_revoked",
+          "issued_grants_revoked"
+        ],
+        "title": "MemberEventsAccessRevokedPublic",
+        "description": "Answer to an Events app session's removal: only Events access ended.\n\nThe membership stays (``DELETE .../members/{membership_id}`` answers 204 for an\naccount session, which removes it from the whole organisation)."
       },
       "MemberListPublic": {
         "properties": {

@@ -75,7 +75,7 @@ describe("TeamMembers", () => {
     ).toBeInTheDocument();
     expect(
       within(row).getByRole("button", {
-        name: "Remove Ana Door from the organisation",
+        name: "Remove Ana Door from Events in this organisation",
       })
     ).toBeInTheDocument();
   });

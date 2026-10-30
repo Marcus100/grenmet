@@ -34,5 +34,10 @@ class AuditEntry(Base):
     actor_user_id: Mapped[uuid.UUID | None] = mapped_column(
         ForeignKey("user.id", ondelete="SET NULL"), nullable=True, index=True
     )
+    # How the actor signed in: "account" or "app" (ADR-0016). NULL on rows written
+    # before this column existed, by system jobs, or outside an organisation request.
+    actor_session: Mapped[str | None] = mapped_column(String(10), nullable=True)
+    # The app whose session made the change; set only when ``actor_session`` is "app".
+    actor_app: Mapped[str | None] = mapped_column(String(40), nullable=True)
     changes: Mapped[list[dict[str, Any]]] = mapped_column(JSON, default=list)
     created_at: Mapped[datetime] = mapped_column(default=utc_now)

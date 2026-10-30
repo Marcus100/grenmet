@@ -30,6 +30,17 @@ class OrganisationSuspendedError(AppException):
         super().__init__("This organisation is suspended", status.HTTP_403_FORBIDDEN)
 
 
+class EventsAccessFromRoleError(AppException):
+    """An Events-only removal cannot end access that comes from an organisation role."""
+
+    def __init__(self) -> None:
+        super().__init__(
+            "This person's Events access comes from their organisation role "
+            "(admin/owner). Change their role in organisation settings to remove it.",
+            status.HTTP_403_FORBIDDEN,
+        )
+
+
 class MembershipNotFoundError(AppException):
     def __init__(self) -> None:
         super().__init__("Member not found", status.HTTP_404_NOT_FOUND)

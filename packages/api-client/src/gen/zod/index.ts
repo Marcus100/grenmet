@@ -5615,6 +5615,7 @@ export { manualMethodSchema } from "./manualMethodSchema.js";
 export { manualPaymentCreateSchema } from "./manualPaymentCreateSchema.js";
 export { marineResponseSchema } from "./marineResponseSchema.js";
 export { marineRowSchema } from "./marineRowSchema.js";
+export { memberEventsAccessRevokedPublicSchema } from "./memberEventsAccessRevokedPublicSchema.js";
 export { memberListPublicSchema } from "./memberListPublicSchema.js";
 export { memberPublicSchema } from "./memberPublicSchema.js";
 export { memberRoleUpdateSchema } from "./memberRoleUpdateSchema.js";
@@ -5968,6 +5969,7 @@ export {
   organisationsDeleteMemberPathOrganisationIdSchema,
   organisationsDeleteMemberPathSchema,
   organisationsDeleteMemberResponseSchema,
+  organisationsDeleteMemberStatus200Schema,
   organisationsDeleteMemberStatus204Schema,
   organisationsDeleteMemberStatus400Schema,
   organisationsDeleteMemberStatus401Schema,

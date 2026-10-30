@@ -1,5 +1,5 @@
 import uuid
-from typing import Annotated, Self
+from typing import Annotated, Literal, Self
 
 from pydantic import (
     EmailStr,
@@ -59,6 +59,20 @@ class MemberListPublic(BaseModel):
     count: int
     page: int
     size: int
+
+
+class MemberEventsAccessRevokedPublic(BaseModel):
+    """Answer to an Events app session's removal: only Events access ended.
+
+    The membership stays (``DELETE .../members/{membership_id}`` answers 204 for an
+    account session, which removes it from the whole organisation)."""
+
+    membership_id: str
+    scope: Literal["events"] = "events"
+    # Live events-* role grants the person held, now ended.
+    grants_revoked: int
+    # Events grants the person had issued to others, now ended.
+    issued_grants_revoked: int
 
 
 class MemberRoleUpdate(BaseModel):

@@ -9778,6 +9778,7 @@ export { manualMethod } from "./models/ManualMethod.js";
 export type { ManualPaymentCreate } from "./models/ManualPaymentCreate.js";
 export type { MarineResponse } from "./models/MarineResponse.js";
 export type { MarineRow } from "./models/MarineRow.js";
+export type { MemberEventsAccessRevokedPublic } from "./models/MemberEventsAccessRevokedPublic.js";
 export type { MemberListPublic } from "./models/MemberListPublic.js";
 export type { MemberPublic } from "./models/MemberPublic.js";
 export type { MemberRoleUpdate } from "./models/MemberRoleUpdate.js";
@@ -10135,6 +10136,7 @@ export type {
   OrganisationsDeleteMemberPath,
   OrganisationsDeleteMemberResponse,
   OrganisationsDeleteMemberResponses,
+  OrganisationsDeleteMemberStatus200,
   OrganisationsDeleteMemberStatus204,
   OrganisationsDeleteMemberStatus400,
   OrganisationsDeleteMemberStatus401,
@@ -18627,6 +18629,7 @@ export { manualMethodSchema } from "./zod/manualMethodSchema.js";
 export { manualPaymentCreateSchema } from "./zod/manualPaymentCreateSchema.js";
 export { marineResponseSchema } from "./zod/marineResponseSchema.js";
 export { marineRowSchema } from "./zod/marineRowSchema.js";
+export { memberEventsAccessRevokedPublicSchema } from "./zod/memberEventsAccessRevokedPublicSchema.js";
 export { memberListPublicSchema } from "./zod/memberListPublicSchema.js";
 export { memberPublicSchema } from "./zod/memberPublicSchema.js";
 export { memberRoleUpdateSchema } from "./zod/memberRoleUpdateSchema.js";
@@ -18980,6 +18983,7 @@ export {
   organisationsDeleteMemberPathOrganisationIdSchema,
   organisationsDeleteMemberPathSchema,
   organisationsDeleteMemberResponseSchema,
+  organisationsDeleteMemberStatus200Schema,
   organisationsDeleteMemberStatus204Schema,
   organisationsDeleteMemberStatus400Schema,
   organisationsDeleteMemberStatus401Schema,
