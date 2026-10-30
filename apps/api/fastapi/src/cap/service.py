@@ -34,6 +34,7 @@ from src.cap.exceptions import (
     CapAlertNotFoundError,
     CapFeedNotFoundError,
     CapImportError,
+    CapSchemaValidationError,
     CapStateError,
     CapValidationFailedError,
 )
@@ -101,7 +102,8 @@ from src.cap.validation import (
     validate_cap_alert,
     validate_import_url,
 )
-from src.cap.xml import alert_to_cap_xml, xml_to_alert_data
+from src.cap.xml import alert_to_cap_xml, ensure_well_formed, xml_to_alert_data
+from src.cap.xsd import ensure_cap_schema
 from src.config import settings as app_config
 from src.utils.datetime import utc_now
 
@@ -225,7 +227,11 @@ async def import_alert(
     else:
         raw_xml = value
 
-    payload = xml_to_alert_data(raw_xml)  # raises CapImportError on bad XML
+    # Order: well-formed and DTD-free (400), then the official schema (422), then
+    # the field-level parse (400). A bad enumeration is a schema refusal, not a 400.
+    ensure_well_formed(raw_xml)
+    ensure_cap_schema(raw_xml, action="import")
+    payload = xml_to_alert_data(raw_xml)
     if payload.identifier:
         existing = await session.execute(
             select(CapAlert).where(CapAlert.identifier == payload.identifier)
@@ -634,6 +640,9 @@ async def _publish(
         session=session, alert=alert, public=public
     )
     xml = alert_to_cap_xml(public)
+    ensure_cap_schema(
+        xml, action="publish", identifier=alert.identifier, alert_id=alert.id
+    )
     snapshot = _snapshot_from_xml(alert=alert, xml=xml)
     session.add(snapshot)
     previous_state = alert.lifecycle_state.value
@@ -770,9 +779,14 @@ async def cancel_alert(
     validation = validate_cap_alert(public_cancel)
     if not validation.is_valid:
         raise CapValidationFailedError(validation.errors)
-    snapshot = _snapshot_from_xml(
-        alert=cancellation, xml=alert_to_cap_xml(public_cancel)
+    cancel_xml = alert_to_cap_xml(public_cancel)
+    ensure_cap_schema(
+        cancel_xml,
+        action="cancel",
+        identifier=cancellation.identifier,
+        alert_id=cancellation.id,
     )
+    snapshot = _snapshot_from_xml(alert=cancellation, xml=cancel_xml)
     session.add(snapshot)
     previous_state = alert.lifecycle_state.value
     alert.lifecycle_state = CapLifecycleState.CANCELLED
@@ -1217,7 +1231,8 @@ async def ingest_feed(
                 http_client=http_client,
             )
             created += 1
-        except CapImportError:  # malformed or duplicate — skip, keep going
+        except CapImportError, CapSchemaValidationError:
+            # Malformed, non-conforming or duplicate: skip it and keep going.
             skipped += 1
 
     feed.last_checked_at = utc_now()

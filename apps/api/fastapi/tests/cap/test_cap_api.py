@@ -117,7 +117,10 @@ async def test_cap_workflow_publish_public_outputs_and_jobs(
         headers=superuser_token_headers_async,
     )
     assert integrations_response.status_code == 200
-    assert len(integrations_response.json()["job_events"]) == 9
+    # Seven queued channels; MQTT and WIS2 are not queued (not configured).
+    kinds = {item["kind"] for item in integrations_response.json()["job_events"]}
+    assert len(kinds) == 7
+    assert not kinds & {"publish.mqtt", "publish.wis2box"}
 
 
 def _alert_payload() -> dict[str, Any]:
