@@ -12,7 +12,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.exceptions import AppException
 from src.hr import service
-from src.hr.models import EmploymentRecord
+from src.hr.models import EmploymentRecord, EmploymentStatus
 from src.hr.schemas import EmploymentUpdate
 from tests.factories import make_department, make_employee, make_user
 
@@ -118,3 +118,80 @@ async def test_database_refuses_end_date_before_start_date(
     persisted = await db_async.get(EmploymentRecord, record_id)
     assert persisted is not None
     assert persisted.end_date is None
+
+
+PAST = date(2000, 1, 1)
+FUTURE = date(2999, 1, 1)
+
+
+async def _terminated_with_end_date(db: AsyncSession, dept_id: str, end: date):
+    user = await make_user(db)
+    record = await make_employee(db, user=user, department_id=dept_id)
+    record.status = EmploymentStatus.TERMINATED
+    record.end_date = end
+    await db.commit()
+    return user, record
+
+
+async def test_reinstating_with_a_passed_end_date_is_refused(
+    db_async: AsyncSession,
+) -> None:
+    """Reinstating must not leave a record that the next day's job ends again."""
+    department = await make_department(db_async, "end_date_reinstate1")
+    superuser = await make_user(db_async, superuser=True)
+    user, record = await _terminated_with_end_date(db_async, department.id, PAST)
+
+    with pytest.raises(AppException) as raised:
+        await service.update_employment_for_user(
+            session=db_async,
+            current_user=superuser,
+            target_user_id=user.id,
+            employment_update=EmploymentUpdate(status=EmploymentStatus.ACTIVE),
+            approval_update=None,
+        )
+
+    assert raised.value.status_code == 400
+    await db_async.refresh(record)
+    assert record.status == EmploymentStatus.TERMINATED
+
+
+async def test_reinstating_with_the_end_date_cleared_in_the_same_edit(
+    db_async: AsyncSession,
+) -> None:
+    department = await make_department(db_async, "end_date_reinstate2")
+    superuser = await make_user(db_async, superuser=True)
+    user, record = await _terminated_with_end_date(db_async, department.id, PAST)
+
+    await service.update_employment_for_user(
+        session=db_async,
+        current_user=superuser,
+        target_user_id=user.id,
+        employment_update=EmploymentUpdate(
+            status=EmploymentStatus.ACTIVE, end_date=None
+        ),
+        approval_update=None,
+    )
+
+    await db_async.refresh(record)
+    assert record.status == EmploymentStatus.ACTIVE
+    assert record.end_date is None
+
+
+async def test_reinstating_with_a_future_end_date_is_allowed(
+    db_async: AsyncSession,
+) -> None:
+    department = await make_department(db_async, "end_date_reinstate3")
+    superuser = await make_user(db_async, superuser=True)
+    user, record = await _terminated_with_end_date(db_async, department.id, FUTURE)
+
+    await service.update_employment_for_user(
+        session=db_async,
+        current_user=superuser,
+        target_user_id=user.id,
+        employment_update=EmploymentUpdate(status=EmploymentStatus.ACTIVE),
+        approval_update=None,
+    )
+
+    await db_async.refresh(record)
+    assert record.status == EmploymentStatus.ACTIVE
+    assert record.end_date == FUTURE

@@ -240,6 +240,20 @@ class EmploymentRecord(Base):
     created_at: Mapped[datetime] = mapped_column(default=utc_now)
     updated_at: Mapped[datetime] = mapped_column(default=utc_now)
 
+    def is_live(self, today: date) -> bool:
+        """Employed for access purposes: ACTIVE and not past its last day (#797)."""
+        return self.status == EmploymentStatus.ACTIVE and (
+            self.end_date is None or self.end_date > today
+        )
+
+
+def live_employment_clause(today: date) -> sa.ColumnElement[bool]:
+    """SQL form of ``EmploymentRecord.is_live``: ACTIVE with no passed end date."""
+    return sa.and_(
+        EmploymentRecord.status == EmploymentStatus.ACTIVE,
+        sa.or_(EmploymentRecord.end_date.is_(None), EmploymentRecord.end_date > today),
+    )
+
 
 class RosterPreference(Base):
     __tablename__ = "roster_preference"

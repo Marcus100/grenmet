@@ -295,7 +295,8 @@ async def delegation_authority(
 
     from src.auth.delegation import ordinary_role, permission_keys
     from src.auth.policy import _active_assignments
-    from src.hr.models import EmploymentRecord, EmploymentStatus
+    from src.hr.models import EmploymentRecord, live_employment_clause
+    from src.utils.timezones import local_today
 
     if actor.id == assignment.user_id:
         raise AppException("Another administrator must manage your access", 403)
@@ -325,13 +326,14 @@ async def delegation_authority(
     )
     if employment is None:
         raise AppException("Target must belong to the same employer", 403)
-    if require_active_target and employment.status != EmploymentStatus.ACTIVE:
+    today = local_today()
+    if require_active_target and not employment.is_live(today):
         raise AppException("Delegation requires active recipient employment", 403)
     roles = {r.id: r for r in actor.roles}
     issuer = await session.scalar(
         select(EmploymentRecord).where(
             EmploymentRecord.user_id == actor.id,
-            EmploymentRecord.status == EmploymentStatus.ACTIVE,
+            live_employment_clause(today),
         )
     )
     if issuer is None:

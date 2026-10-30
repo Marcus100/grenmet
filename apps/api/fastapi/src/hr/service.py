@@ -30,6 +30,7 @@ from src.hr.organisations import (
     validate_supervisor,
 )
 from src.utils.datetime import utc_now
+from src.utils.timezones import local_today
 
 from . import constants as hr_constants
 from .exceptions import (
@@ -832,6 +833,19 @@ async def update_employment_for_user(
             employment.status != EmploymentStatus.ACTIVE
             and employment_update.status == EmploymentStatus.ACTIVE
         )
+        # A reinstated record whose last day has passed would be ended again by
+        # the next daily run, so the end date must be cleared or moved first (#797).
+        resulting_end_date = (
+            employment_update.end_date
+            if "end_date" in employment_update.model_fields_set
+            else employment.end_date
+        )
+        if (
+            reinstated_employment
+            and resulting_end_date is not None
+            and resulting_end_date <= local_today()
+        ):
+            raise HRValidationError(hr_constants.ERROR_REINSTATE_PAST_END_DATE)
         await validate_service_facts(
             employment_update.model_dump(exclude_unset=True), employment
         )
