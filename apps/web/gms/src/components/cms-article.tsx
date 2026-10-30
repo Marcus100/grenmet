@@ -8,7 +8,7 @@ import { FeaturedLink } from "@/components/featured-link";
 import { RelatedLinkAnchor } from "@/components/related-link-anchor";
 import { fetchContentBySlug, type PublishedContent } from "@/lib/cms";
 import { contentToArticle } from "@/lib/editorial";
-import { SITE_DESCRIPTION } from "@/lib/site-metadata";
+import { SITE_DESCRIPTION, SITE_LOCALE } from "@/lib/site-metadata";
 import { SITE_NAME } from "@/lib/site-name";
 
 const SECTIONS = {
@@ -30,9 +30,14 @@ const ASIDE_BOX =
  */
 export async function cmsArticleMetadata(slug: string): Promise<Metadata> {
   const result = await fetchContentBySlug(slug);
+  // The page says the article cannot be retrieved right now: that answer is
+  // not for search engines to index.
+  if (result.status === "unavailable") {
+    return { title: "GMS article", robots: { index: false, follow: false } };
+  }
   const article = result.articles[0];
   if (!article) return { title: "GMS article" };
-  const description = article.summary ?? SITE_DESCRIPTION;
+  const description = article.summary || SITE_DESCRIPTION;
   return {
     title: article.title,
     description,
@@ -41,6 +46,7 @@ export async function cmsArticleMetadata(slug: string): Promise<Metadata> {
       title: article.title,
       description,
       siteName: SITE_NAME,
+      locale: SITE_LOCALE,
       publishedTime: article.publishedAt ?? undefined,
       modifiedTime: article.updatedAt,
     },

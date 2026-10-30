@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import { cmsArticleMetadata } from "@/components/cms-article";
 import { fetchContentBySlug, type PublishedContent } from "@/lib/cms";
-import { SITE_DESCRIPTION } from "@/lib/site-metadata";
+import { SITE_DESCRIPTION, SITE_LOCALE } from "@/lib/site-metadata";
 import { SITE_NAME } from "@/lib/site-name";
 
 vi.mock("@/lib/cms", async (importOriginal) => {
@@ -60,5 +60,41 @@ describe("cmsArticleMetadata", () => {
     expect(await cmsArticleMetadata("stories/gone")).toEqual({
       title: "GMS article",
     });
+  });
+
+  it("falls back to the site description when the summary is empty", async () => {
+    vi.mocked(fetchContentBySlug).mockResolvedValue({
+      status: "ok",
+      articles: [article({ summary: "" })],
+    });
+    const metadata = await cmsArticleMetadata("stories/why");
+    expect(metadata.description).toBe(SITE_DESCRIPTION);
+    expect(metadata.openGraph).toMatchObject({ description: SITE_DESCRIPTION });
+  });
+
+  it("keeps the site locale on article Open Graph, which overrides the root's", async () => {
+    vi.mocked(fetchContentBySlug).mockResolvedValue({
+      status: "ok",
+      articles: [article()],
+    });
+    const metadata = await cmsArticleMetadata("stories/why");
+    expect(metadata.openGraph).toMatchObject({ locale: SITE_LOCALE });
+  });
+
+  it("asks search engines not to index a page that says the article cannot be retrieved", async () => {
+    vi.mocked(fetchContentBySlug).mockResolvedValue({
+      status: "unavailable",
+      articles: [],
+    });
+    const metadata = await cmsArticleMetadata("stories/why");
+    expect(metadata.robots).toEqual({ index: false, follow: false });
+  });
+
+  it("does not add that instruction when the article is found", async () => {
+    vi.mocked(fetchContentBySlug).mockResolvedValue({
+      status: "ok",
+      articles: [article()],
+    });
+    expect((await cmsArticleMetadata("stories/why")).robots).toBeUndefined();
   });
 });

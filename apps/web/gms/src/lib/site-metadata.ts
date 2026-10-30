@@ -2,6 +2,9 @@ import type { Metadata } from "next";
 import { env } from "@/lib/env";
 import { SITE_NAME } from "@/lib/site-name";
 
+/** Open Graph locale for every page, including article pages that set their own. */
+export const SITE_LOCALE = "en_GB";
+
 export const SITE_DESCRIPTION =
   "Official weather forecasts, alerts, and bulletins for Grenada, Carriacou & Petite Martinique.";
 
@@ -23,7 +26,7 @@ export const SITE_METADATA: Metadata = {
   alternates: { canonical: "./" },
   openGraph: {
     type: "website",
-    locale: "en_GB",
+    locale: SITE_LOCALE,
     siteName: SITE_NAME,
     title: SITE_NAME,
     description: SITE_DESCRIPTION,
