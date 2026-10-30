@@ -25,7 +25,6 @@ from timescale.db.models.managers import TimescaleManager
 from simple_history.models import HistoricalRecords
 from django.utils.translation import gettext_lazy # Enumaretor
 from datetime import date
-from ckeditor.fields import RichTextField
 
 class BaseModel(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
@@ -1622,7 +1621,7 @@ class FundingSource(BaseModel):
 class EquipmentType(BaseModel):
     name = models.CharField(unique=True, max_length=64)
     description = models.CharField(max_length=256)
-    report_template = RichTextField(blank=True, null=True)
+    report_template = models.TextField(blank=True, null=True)
 
     class Meta:
         verbose_name = "equipment type"
@@ -1715,10 +1714,10 @@ class MaintenanceReport(BaseModel):
     status = models.CharField(max_length=1, choices=Status.choices, default=Status.DRAFT)
     
     # First Snippet
-    station_on_arrival_conditions = RichTextField(blank=True, null=True)
+    station_on_arrival_conditions = models.TextField(blank=True, null=True)
 
     # Penultimate Snippet
-    contacts = RichTextField(blank=True, null=True)
+    contacts = models.TextField(blank=True, null=True)
 
     # Last Snippet
     other_technician_1 = models.ForeignKey(Technician, related_name='other_technician_1', on_delete=models.DO_NOTHING, blank=True, null=True)
@@ -1728,8 +1727,8 @@ class MaintenanceReport(BaseModel):
     next_visit_date = models.DateField(blank=True, null=True)
     end_time = models.TimeField(blank=True, null=True) # Sem timezone
 
-    current_visit_summary = RichTextField(blank=True, null=True)
-    next_visit_summary = RichTextField(blank=True, null=True)
+    current_visit_summary = models.TextField(blank=True, null=True)
+    next_visit_summary = models.TextField(blank=True, null=True)
 
     data_logger_file = models.TextField(blank=True, null=True)
     data_logger_file_name = models.TextField(blank=True, null=True)
@@ -1762,7 +1761,7 @@ class MaintenanceReportEquipment(BaseModel):
     equipment_order = models.CharField(max_length=1, choices=EquipmentOrder.choices, default=EquipmentOrder.PRIMARY_EQUIPMENT)
     old_equipment = models.ForeignKey(Equipment, on_delete=models.PROTECT, related_name='old_equipment', null=True)
     new_equipment = models.ForeignKey(Equipment, on_delete=models.PROTECT, related_name='new_equipment', null=True)
-    condition = RichTextField()
+    condition = models.TextField()
     classification = models.CharField(max_length=1, choices=EquipmentClassification.choices, default=EquipmentClassification.FULLY_FUNCTIONAL, null=True)
 
     class Meta:

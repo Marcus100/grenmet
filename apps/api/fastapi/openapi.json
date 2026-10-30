@@ -65431,18 +65431,6 @@
               }
             ],
             "title": "Subcategory Slug"
-          },
-          "external_ticket_url": {
-            "anyOf": [
-              {
-                "type": "string",
-                "maxLength": 500
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "External Ticket Url"
           }
         },
         "type": "object",
@@ -85235,6 +85223,17 @@
             "type": "string",
             "title": "Role Key"
           },
+          "granted_by_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Granted By Name"
+          },
           "granted_at": {
             "type": "string",
             "format": "date-time",
@@ -85306,6 +85305,10 @@
           "role": {
             "$ref": "#/components/schemas/MembershipRole"
           },
+          "is_self": {
+            "type": "boolean",
+            "title": "Is Self"
+          },
           "grants": {
             "items": {
               "$ref": "#/components/schemas/TeamMemberGrantPublic"
@@ -85319,6 +85322,7 @@
           "membership_id",
           "name",
           "role",
+          "is_self",
           "grants"
         ],
         "title": "TeamMemberPublic",

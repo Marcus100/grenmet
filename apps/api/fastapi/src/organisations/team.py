@@ -165,6 +165,23 @@ async def my_capabilities(
     )
 
 
+async def _giver_names(
+    session: AsyncSession, grant_ids: list[str]
+) -> dict[str, str | None]:
+    """Display name of who gave each grant, in one query. A giver who no longer
+    exists yields None; a removed member still resolves through their account."""
+    if not grant_ids:
+        return {}
+    giver = aliased(User)
+    rows = await session.execute(
+        select(MembershipGrant.id, giver)
+        .select_from(MembershipGrant)
+        .outerjoin(giver, giver.id == MembershipGrant.granted_by)
+        .where(MembershipGrant.id.in_(grant_ids))
+    )
+    return {gid: _name(by) for gid, by in rows.all()}
+
+
 async def list_roster(
     session: AsyncSession, context: OrgContext, page: PaginationParams
 ) -> TeamMemberListPublic:
@@ -200,16 +217,21 @@ async def list_roster(
         membership_ids=[m.id for m, _ in rows],
         products=products,
     )
+    giver_names = await _giver_names(
+        session, [g.id for page_grants in live.values() for g in page_grants]
+    )
     return TeamMemberListPublic(
         data=[
             TeamMemberPublic(
                 membership_id=m.id,
                 name=_name(u) or "Member",
                 role=MembershipRole(m.role),
+                is_self=u.id == context.user.id,
                 grants=[
                     TeamMemberGrantPublic(
                         id=g.id,
                         role_key=g.role_key,
+                        granted_by_name=giver_names.get(g.id),
                         granted_at=g.granted_at,
                         expires_at=g.expires_at,
                     )

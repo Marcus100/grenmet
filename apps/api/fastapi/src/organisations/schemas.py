@@ -370,6 +370,7 @@ class TeamMemberGrantPublic(BaseModel):
 
     id: str
     role_key: str
+    granted_by_name: str | None = None  # display name; None if the giver is gone
     granted_at: UtcDateTime
     expires_at: UtcDateTime | None = None
 
@@ -380,6 +381,7 @@ class TeamMemberPublic(BaseModel):
     membership_id: str
     name: str
     role: MembershipRole
+    is_self: bool  # the row belongs to the caller
     grants: list[TeamMemberGrantPublic]
 
 

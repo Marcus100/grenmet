@@ -1,0 +1,13 @@
+# oasdiff settings for the API breaking-change gate: the CI step in
+# .github/workflows/api-breaking-changes.yml and scripts/api/check-api-breaking-oasdiff.sh.
+# Loaded through OASDIFF_CONFIG; paths below are relative to this file.
+#
+# oasdiff-severity-levels.txt cannot hold comments, so each override is
+# explained here. Keep the list short; see docs/api/contracts.md.
+#
+# - response-property-enum-value-added: warn (oasdiff default: error).
+#   A new enum value in a response (for example a RETURNED status) is how this
+#   API grows its workflows. The generated client and every web consumer ship
+#   in the same PR, so it is a warning, matching check-api-breaking.mjs.
+#   Removing or narrowing enum values in requests stays an error.
+severity-levels: oasdiff-severity-levels.txt

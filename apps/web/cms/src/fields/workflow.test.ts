@@ -28,15 +28,15 @@ describe("scheduled show and take-off times", () => {
     expect(checkTakeOff("2026-10-30T00:00:00.000Z", null)).toBe(true);
   });
   it("stamps a new publication with its scheduled start", () => {
+    // Always in the future: a fixed date stops being a scheduled start once
+    // the clock passes it, and the hook then stamps "now" instead.
+    const publishAt = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
     const data = stampPublication({
-      data: { status: "published", publishAt: "2026-10-30T07:00:00.000Z" },
+      data: { status: "published", publishAt },
       operation: "create",
       req: { user: { id: 3 } },
     } as never);
-    expect(data).toMatchObject({
-      publishedAt: "2026-10-30T07:00:00.000Z",
-      author: 3,
-    });
+    expect(data).toMatchObject({ publishedAt: publishAt, author: 3 });
   });
 });
 
