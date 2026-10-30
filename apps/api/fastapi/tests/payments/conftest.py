@@ -163,3 +163,41 @@ def charge_refunded(
     if refunds is not None:
         charge["refunds"] = {"object": "list", "has_more": has_more, "data": refunds}
     return {"id": event_id, "type": "charge.refunded", "data": {"object": charge}}
+
+
+def refund_object(
+    provider_ref: str,
+    amount: int,
+    *,
+    status: str = "succeeded",
+    refund_id: object | None = None,
+    intent_id: object | None = None,
+    payment_intent: str = "pi_test_1",
+) -> dict[str, Any]:
+    """A Stripe Refund object as ``refund.created|updated|failed`` carries it."""
+    metadata: dict[str, str] = {}
+    if refund_id is not None:
+        metadata["refund_id"] = str(refund_id)
+    if intent_id is not None:
+        metadata["intent_id"] = str(intent_id)
+    return {
+        "id": provider_ref,
+        "object": "refund",
+        "amount": amount,
+        "currency": "xcd",
+        "charge": "ch_test_1",
+        "payment_intent": payment_intent,
+        "status": status,
+        "metadata": metadata,
+    }
+
+
+def refund_event(
+    event_id: str, event_type: str, refund: dict[str, Any]
+) -> dict[str, Any]:
+    return {
+        "id": event_id,
+        "object": "event",
+        "type": event_type,
+        "data": {"object": refund},
+    }

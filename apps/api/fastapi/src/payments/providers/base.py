@@ -17,6 +17,8 @@ class EventKind(str, Enum):
     PAYMENT_SUCCEEDED = "payment_succeeded"
     PAYMENT_FAILED = "payment_failed"
     REFUNDED = "refunded"
+    #: A provider refund report (``refund.created|updated|failed``): one refund.
+    REFUND_REPORTED = "refund_reported"
     #: A verified event the core has no use for; answered 2xx and dropped.
     IGNORED = "ignored"
 

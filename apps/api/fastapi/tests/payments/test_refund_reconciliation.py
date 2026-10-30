@@ -17,6 +17,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from src.auth.models import User
 from src.organisations.models import PlatformOrganisation
 from src.payments import schemas, service
+from src.payments.exceptions import PaymentsConflictError
 from src.payments.models import LedgerEntry, LedgerKind, Refund, RefundStatus
 from tests.organisations.support import headers_for
 from tests.payments.conftest import (
@@ -24,6 +25,8 @@ from tests.payments.conftest import (
     charge_refunded,
     checkout_completed,
     provider_refund,
+    refund_event,
+    refund_object,
     signed,
 )
 from tests.payments.test_payments import API, _org, _stripe_intent
@@ -317,3 +320,318 @@ async def test_a_truncated_refund_list_is_not_guessed_from_the_total(
     assert [
         entry.amount_minor for entry in await _refund_ledger(db_async, intent_id)
     ] == [-1000]
+
+
+async def _refund_entries(db: AsyncSession, intent_id: str, kind: str) -> list[int]:
+    rows = await db.scalars(
+        select(LedgerEntry)
+        .where(LedgerEntry.intent_id == uuid.UUID(intent_id), LedgerEntry.kind == kind)
+        .execution_options(populate_existing=True)
+    )
+    return [entry.amount_minor for entry in rows]
+
+
+async def _post(
+    client: httpx.AsyncClient, body: bytes, headers: dict[str, str]
+) -> None:
+    assert (
+        await client.post(WEBHOOK, content=body, headers=headers)
+    ).status_code == 200
+
+
+async def test_a_charge_refunded_without_a_refund_list_records_nothing_then_the_retry_counts_once(
+    async_client: httpx.AsyncClient,
+    db_async: AsyncSession,
+    stripe_env: StripeStub,
+) -> None:
+    """Current Stripe API versions do not list refunds on a charge unless expanded,
+    and webhooks are never expanded. Without the list nothing is guessed from the
+    total, so the lost refund is not written under a random id; the outbox retry
+    writes it under our id, once."""
+    org, admin = await _org(db_async)
+    org_id = org.id
+    org_headers = headers_for(admin, org_id)
+    intent_id = await _paid_card_intent(async_client, org, admin)
+    refund_id = uuid.uuid4()
+    await service.refund_intent(
+        db_async,
+        organisation_id=org_id,
+        intent_id=uuid.UUID(intent_id),
+        actor=None,
+        payload=schemas.PaymentRefundCreate(amount_minor=2000, reason="Partial"),
+        refund_id=refund_id,
+    )
+    await db_async.rollback()
+
+    body, headers = signed(charge_refunded("evt_no_list", amount_refunded=2000))
+    await _post(async_client, body, headers)
+    assert await _refund_rows(db_async, intent_id) == []
+
+    await service.refund_intent(
+        db_async,
+        organisation_id=org_id,
+        intent_id=uuid.UUID(intent_id),
+        actor=None,
+        payload=schemas.PaymentRefundCreate(amount_minor=2000, reason="Partial"),
+        refund_id=refund_id,
+    )
+    await db_async.commit()
+    assert [row.id for row in await _refund_rows(db_async, intent_id)] == [refund_id]
+    assert await _refund_entries(db_async, intent_id, "refund") == [-2000]
+    # Nothing was recorded, so the retry sends again, under the same idempotency key:
+    # Stripe answers with the refund it already made, and moves no more money.
+    sent = [r for r in stripe_env.requests if r.url.path == "/v1/refunds"]
+    assert len(sent) == 2
+    assert {r.headers["idempotency-key"] for r in sent} == {f"refund-{refund_id}"}
+    assert await _refunded_minor(async_client, org_headers, intent_id) == 2000
+
+
+async def test_a_refund_created_after_a_lost_commit_is_counted_once_through_the_retry(
+    async_client: httpx.AsyncClient,
+    db_async: AsyncSession,
+    stripe_env: StripeStub,
+) -> None:
+    org, admin = await _org(db_async)
+    org_id = org.id
+    org_headers = headers_for(admin, org_id)
+    intent_id = await _paid_card_intent(async_client, org, admin)
+    refund_id = uuid.uuid4()
+    await service.refund_intent(
+        db_async,
+        organisation_id=org_id,
+        intent_id=uuid.UUID(intent_id),
+        actor=None,
+        payload=schemas.PaymentRefundCreate(amount_minor=2000, reason="Partial"),
+        refund_id=refund_id,
+    )
+    await db_async.rollback()
+
+    created = refund_event(
+        "evt_refund_created",
+        "refund.created",
+        refund_object("re_test_1", 2000, refund_id=refund_id, intent_id=intent_id),
+    )
+    body, headers = signed(created)
+    await _post(async_client, body, headers)
+    # The provider's report is recorded under our id, so the retry has a row to find.
+    assert [row.id for row in await _refund_rows(db_async, intent_id)] == [refund_id]
+    await _post(async_client, body, headers)  # a replay
+    updated, updated_headers = signed(
+        refund_event(
+            "evt_refund_updated",
+            "refund.updated",
+            refund_object("re_test_1", 2000, refund_id=refund_id, intent_id=intent_id),
+        )
+    )
+    await _post(async_client, updated, updated_headers)
+
+    await service.refund_intent(
+        db_async,
+        organisation_id=org_id,
+        intent_id=uuid.UUID(intent_id),
+        actor=None,
+        payload=schemas.PaymentRefundCreate(amount_minor=2000, reason="Partial"),
+        refund_id=refund_id,
+    )
+    await db_async.commit()
+    assert [row.id for row in await _refund_rows(db_async, intent_id)] == [refund_id]
+    assert await _refund_entries(db_async, intent_id, "refund") == [-2000]
+    assert [r.url.path for r in stripe_env.requests].count("/v1/refunds") == 1
+    assert await _refunded_minor(async_client, org_headers, intent_id) == 2000
+
+
+async def test_a_pending_refund_settles_once_when_the_provider_reports_it_succeeded(
+    async_client: httpx.AsyncClient,
+    db_async: AsyncSession,
+    stripe_env: StripeStub,
+) -> None:
+    org, admin = await _org(db_async)
+    org_id = org.id
+    org_headers = headers_for(admin, org_id)
+    intent_id = await _paid_card_intent(async_client, org, admin)
+    refund_id = uuid.uuid4()
+    stripe_env.refund_status = "pending"
+    await service.refund_intent(
+        db_async,
+        organisation_id=org_id,
+        intent_id=uuid.UUID(intent_id),
+        actor=None,
+        payload=schemas.PaymentRefundCreate(amount_minor=2000, reason="Partial"),
+        refund_id=refund_id,
+    )
+    await db_async.commit()
+
+    pending, pending_headers = signed(
+        refund_event(
+            "evt_refund_pending",
+            "refund.created",
+            refund_object(
+                "re_test_1",
+                2000,
+                status="pending",
+                refund_id=refund_id,
+                intent_id=intent_id,
+            ),
+        )
+    )
+    await _post(async_client, pending, pending_headers)
+    succeeded, succeeded_headers = signed(
+        refund_event(
+            "evt_refund_settled",
+            "refund.updated",
+            refund_object("re_test_1", 2000, refund_id=refund_id, intent_id=intent_id),
+        )
+    )
+    await _post(async_client, succeeded, succeeded_headers)
+    # The charge report (with the list) and a replay of the settled event add nothing.
+    listed, listed_headers = signed(
+        charge_refunded(
+            "evt_charge_settled",
+            amount_refunded=2000,
+            refunds=[
+                provider_refund(
+                    "re_test_1", 2000, refund_id=refund_id, intent_id=intent_id
+                )
+            ],
+        )
+    )
+    await _post(async_client, listed, listed_headers)
+    await _post(async_client, succeeded, succeeded_headers)
+
+    (row,) = await _refund_rows(db_async, intent_id)
+    assert (row.id, row.status) == (refund_id, RefundStatus.SUCCEEDED.value)
+    assert await _refund_entries(db_async, intent_id, "refund") == [-2000]
+    assert await _refunded_minor(async_client, org_headers, intent_id) == 2000
+
+
+async def test_a_refund_the_provider_reports_failed_is_recorded_failed_and_reversed(
+    async_client: httpx.AsyncClient,
+    db_async: AsyncSession,
+    stripe_env: StripeStub,
+) -> None:
+    org, admin = await _org(db_async)
+    org_id = org.id
+    org_headers = headers_for(admin, org_id)
+    intent_id = await _paid_card_intent(async_client, org, admin)
+    refund_id = uuid.uuid4()
+    stripe_env.refund_status = "pending"
+    await service.refund_intent(
+        db_async,
+        organisation_id=org_id,
+        intent_id=uuid.UUID(intent_id),
+        actor=None,
+        payload=schemas.PaymentRefundCreate(amount_minor=2000, reason="Partial"),
+        refund_id=refund_id,
+    )
+    await db_async.commit()
+    assert await _refunded_minor(async_client, org_headers, intent_id) == 2000
+
+    failed, failed_headers = signed(
+        refund_event(
+            "evt_refund_failed",
+            "refund.failed",
+            refund_object(
+                "re_test_1",
+                2000,
+                status="failed",
+                refund_id=refund_id,
+                intent_id=intent_id,
+            ),
+        )
+    )
+    await _post(async_client, failed, failed_headers)
+    await _post(async_client, failed, failed_headers)  # a replay
+
+    (row,) = await _refund_rows(db_async, intent_id)
+    assert row.status == RefundStatus.FAILED.value
+    assert await _refunded_minor(async_client, org_headers, intent_id) == 0
+    assert await _refund_entries(db_async, intent_id, "refund") == [-2000]
+    assert await _refund_entries(db_async, intent_id, "adjustment") == [2000]
+    # A failed refund is not replayed as if it had worked.
+    with pytest.raises(PaymentsConflictError):
+        await service.refund_intent(
+            db_async,
+            organisation_id=org_id,
+            intent_id=uuid.UUID(intent_id),
+            actor=None,
+            payload=schemas.PaymentRefundCreate(amount_minor=2000, reason="Partial"),
+            refund_id=refund_id,
+        )
+
+
+@pytest.mark.usefixtures("stripe_env")
+async def test_a_dashboard_refund_reported_by_refund_created_is_recorded_once(
+    async_client: httpx.AsyncClient,
+    db_async: AsyncSession,
+) -> None:
+    org, admin = await _org(db_async)
+    org_headers = headers_for(admin, org.id)
+    intent_id = await _paid_card_intent(async_client, org, admin)
+    body, headers = signed(
+        refund_event(
+            "evt_dash_created",
+            "refund.created",
+            refund_object("re_dashboard_9", 1500),
+        )
+    )
+    await _post(async_client, body, headers)
+    await _post(async_client, body, headers)
+    (row,) = await _refund_rows(db_async, intent_id)
+    assert (row.amount_minor, row.provider_ref) == (1500, "re_dashboard_9")
+    assert await _refund_entries(db_async, intent_id, "refund") == [-1500]
+    assert await _refunded_minor(async_client, org_headers, intent_id) == 1500
+
+
+@pytest.mark.usefixtures("stripe_env")
+async def test_a_listed_pending_refund_is_recorded_as_pending_once(
+    async_client: httpx.AsyncClient,
+    db_async: AsyncSession,
+) -> None:
+    org, admin = await _org(db_async)
+    org_headers = headers_for(admin, org.id)
+    intent_id = await _paid_card_intent(async_client, org, admin)
+    pending, pending_headers = signed(
+        charge_refunded(
+            "evt_list_pending",
+            amount_refunded=0,
+            refunds=[provider_refund("re_pend_1", 1500, status="pending")],
+        )
+    )
+    await _post(async_client, pending, pending_headers)
+    (row,) = await _refund_rows(db_async, intent_id)
+    assert (row.status, row.provider_ref) == (RefundStatus.PENDING.value, "re_pend_1")
+    # Pending refunds are live: they count against what can still be refunded.
+    assert await _refunded_minor(async_client, org_headers, intent_id) == 1500
+
+    settled, settled_headers = signed(
+        charge_refunded(
+            "evt_list_settled",
+            amount_refunded=1500,
+            refunds=[provider_refund("re_pend_1", 1500)],
+        )
+    )
+    await _post(async_client, settled, settled_headers)
+    (row,) = await _refund_rows(db_async, intent_id)
+    assert row.status == RefundStatus.SUCCEEDED.value
+    assert await _refund_entries(db_async, intent_id, "refund") == [-1500]
+
+
+@pytest.mark.usefixtures("stripe_env")
+async def test_listed_refunds_are_capped_at_what_was_captured(
+    async_client: httpx.AsyncClient,
+    db_async: AsyncSession,
+) -> None:
+    org, admin = await _org(db_async)
+    org_headers = headers_for(admin, org.id)
+    intent_id = await _paid_card_intent(async_client, org, admin)
+    body, headers = signed(
+        charge_refunded(
+            "evt_too_big",
+            amount_refunded=9000,
+            refunds=[provider_refund("re_big", 9000)],
+        )
+    )
+    await _post(async_client, body, headers)
+    (row,) = await _refund_rows(db_async, intent_id)
+    assert row.amount_minor == PAID
+    assert await _refunded_minor(async_client, org_headers, intent_id) == PAID

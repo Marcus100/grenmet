@@ -563,9 +563,10 @@ async def _capture(
 
 
 async def _enqueue_refund_topic(
-    session: AsyncSession, intent: Intent, refund_id: uuid.UUID
+    session: AsyncSession, intent: Intent, refund_id: uuid.UUID, *, suffix: str = ""
 ) -> None:
-    """Tell the owning domain about a refund, in the transaction that records it."""
+    """Tell the owning domain about a refund (or a change to it), in the transaction
+    that records it. ``suffix`` keys a later transition of the same refund apart."""
     topic = REFUND_TOPICS.get(intent.source_type)
     if topic is None or not intent.source_id:
         return
@@ -577,7 +578,7 @@ async def _enqueue_refund_topic(
             "source_id": intent.source_id,
             "refund_id": str(refund_id),
         },
-        dedupe_key=str(refund_id),
+        dedupe_key=f"{refund_id}{suffix}",
         organisation_id=intent.organisation_id,
     )
 
@@ -672,6 +673,12 @@ async def refund_intent(
         if existing is not None:
             if existing.intent_id != intent.id:
                 raise PaymentsConflictError("That refund belongs to another payment")
+            if existing.status == RefundStatus.FAILED.value:
+                # Stripe replays the stored answer for this key, so a retry cannot
+                # succeed: say so instead of reporting a refund that did not happen.
+                raise PaymentsConflictError(
+                    "That refund failed at the provider; refund again"
+                )
             return _refund_public(existing)
     captured, refunded = await _totals(session, intent.id)
     if captured <= 0:
@@ -781,6 +788,8 @@ async def process_callback(
         return await _apply_success(session, intent, event)
     if event.kind is EventKind.PAYMENT_FAILED:
         return await _apply_failure(session, intent, event)
+    if event.kind is EventKind.REFUND_REPORTED:
+        return await _apply_refund_reported(session, intent, event)
     return await _apply_refunded(session, intent, event)
 
 
@@ -841,31 +850,35 @@ async def _apply_failure(
     return "processed"
 
 
+#: What a provider refund status means for our refund row. Other statuses are ignored.
+_PROVIDER_REFUND_STATUS: dict[str, RefundStatus] = {
+    "succeeded": RefundStatus.SUCCEEDED,
+    "pending": RefundStatus.PENDING,
+    "requires_action": RefundStatus.PENDING,
+    "failed": RefundStatus.FAILED,
+    "canceled": RefundStatus.FAILED,
+}
+_PROVIDER_REFUND_REASON = "Refunded at the payment provider"
+
+
 async def _apply_refunded(
     session: AsyncSession, intent: Intent, event: ProviderEvent
 ) -> str:
-    """Record money the provider refunded that the ledger does not hold yet.
+    """Reconcile a ``charge.refunded`` event: the refunds it lists, then, only when
+    the list is complete, the money the total says is missing.
 
-    Each refund the provider lists is matched to our rows first by our refund id
-    (echoed in its metadata) and then by the provider's refund id. A refund we made
-    is therefore never recorded twice: if our own transaction was lost after the
-    provider refunded, the row is created under the id the outbox retry asks for, so
-    the retry finds it. A refund made in the provider's dashboard has no id of ours
-    and is recorded once, under a new id.
-
-    Money the list does not explain is taken from the running total, but only when
-    the list is complete: on a truncated list a refund of ours may simply be missing
-    from it, and a guess would count it twice. The listed refunds and the total are
-    both read from the event, so a replay changes nothing."""
+    A charge's refunds are listed only when Stripe expands them, and webhook payloads
+    are not expanded, so an event without a complete list is not reconciled from the
+    total: a refund of ours could be the missing money, and a guess would write it
+    under a random id and count it twice when our retry arrives. The retry writes it
+    under our id instead."""
     changed = False
     for refund in event.refunds:
-        if refund.status != "succeeded" or refund.amount_minor <= 0:
-            continue
         if await _reconcile_listed_refund(session, intent, event, refund):
             changed = True
     if not event.refunds_complete:
         logger.error(
-            "provider refund list is truncated; not reconciled from the total",
+            "charge refund list is missing or truncated; not reconciled from the total",
             extra={"intent_id": str(intent.id), "event_id": event.event_id},
         )
     else:
@@ -886,20 +899,30 @@ async def _apply_refunded(
     return "processed" if changed else "duplicate"
 
 
+async def _apply_refund_reported(
+    session: AsyncSession, intent: Intent, event: ProviderEvent
+) -> str:
+    """Reconcile a ``refund.created|updated|failed`` event: one refund, with our
+    refund id in its metadata when we made it."""
+    changed = False
+    for refund in event.refunds:
+        if await _reconcile_listed_refund(session, intent, event, refund):
+            changed = True
+    return "processed" if changed else "duplicate"
+
+
 async def _reconcile_listed_refund(
     session: AsyncSession, intent: Intent, event: ProviderEvent, refund: ProviderRefund
 ) -> bool:
-    """One refund the provider lists as succeeded. Returns True when it changed
-    anything (a new row, or a row the provider now confirms as succeeded)."""
+    """One refund the provider reports. It is matched to our row by our refund id,
+    then by the provider's refund id, and written once if we have none. Returns True
+    when it changed anything."""
+    target = _PROVIDER_REFUND_STATUS.get(refund.status)
+    if target is None or refund.amount_minor <= 0:
+        return False
     existing: Refund | None = None
     if refund.refund_id is not None:
         existing = await session.get(Refund, refund.refund_id)
-        if existing is not None and existing.intent_id != intent.id:
-            logger.error(
-                "provider refund names a refund of another payment; not recorded",
-                extra={"intent_id": str(intent.id), "event_id": event.event_id},
-            )
-            return False
     if existing is None and refund.provider_ref:
         existing = await session.scalar(
             select(Refund)
@@ -910,25 +933,129 @@ async def _reconcile_listed_refund(
             .limit(1)
         )
     if existing is not None:
-        changed = False
-        if existing.status != RefundStatus.SUCCEEDED.value:
-            # The provider has settled a refund we recorded as pending or failed.
-            existing.status = RefundStatus.SUCCEEDED.value
-            changed = True
-        if refund.provider_ref and existing.provider_ref is None:
-            existing.provider_ref = refund.provider_ref
-            changed = True
-        return changed
+        if existing.intent_id != intent.id:
+            logger.error(
+                "provider refund names a refund of another payment; not recorded",
+                extra={"intent_id": str(intent.id), "event_id": event.event_id},
+            )
+            return False
+        return await _advance_refund(
+            session,
+            intent,
+            existing,
+            target,
+            provider=event.provider,
+            provider_ref=refund.provider_ref,
+        )
+    refund_id = refund.refund_id or uuid.uuid4()
+    if target is RefundStatus.FAILED:
+        # Nothing of ours to reverse: record that the provider's refund did not happen.
+        await _record_provider_refund(
+            session,
+            intent,
+            provider=event.provider,
+            amount_minor=refund.amount_minor,
+            refund_id=refund_id,
+            provider_ref=refund.provider_ref,
+            event_id=None,
+            status=RefundStatus.FAILED,
+        )
+        return True
+    # A refund is never recorded beyond what was captured (the total path caps the same way).
+    captured, recorded = await _totals(session, intent.id)
+    amount = min(refund.amount_minor, captured - recorded)
+    if amount <= 0:
+        logger.error(
+            "provider refund exceeds what was captured; not recorded",
+            extra={"intent_id": str(intent.id), "event_id": event.event_id},
+        )
+        return False
+    if amount < refund.amount_minor:
+        logger.error(
+            "provider refund capped at what was captured",
+            extra={"intent_id": str(intent.id), "event_id": event.event_id},
+        )
     await _record_provider_refund(
         session,
         intent,
         provider=event.provider,
-        amount_minor=refund.amount_minor,
-        refund_id=refund.refund_id or uuid.uuid4(),
+        amount_minor=amount,
+        refund_id=refund_id,
         provider_ref=refund.provider_ref,
         event_id=None,
+        status=target,
     )
     return True
+
+
+async def _advance_refund(
+    session: AsyncSession,
+    intent: Intent,
+    row: Refund,
+    target: RefundStatus,
+    *,
+    provider: str,
+    provider_ref: str | None,
+) -> bool:
+    """Move our refund row to the provider's status. A row that is pending or
+    succeeded is live and carries its ledger entry; a failed row carries none (its
+    entry was reversed). Settled money is never moved back by a later report."""
+    changed = False
+    if provider_ref and row.provider_ref is None:
+        row.provider_ref = provider_ref
+        changed = True
+    current = RefundStatus(row.status)
+    if current is target or current is RefundStatus.SUCCEEDED:
+        return changed
+    if current is RefundStatus.PENDING and target is RefundStatus.SUCCEEDED:
+        row.status = RefundStatus.SUCCEEDED.value
+        return True
+    if current is RefundStatus.PENDING and target is RefundStatus.FAILED:
+        # Reverse the money the pending refund had taken off the balance.
+        row.status = RefundStatus.FAILED.value
+        session.add(
+            _entry(
+                intent,
+                kind=LedgerKind.ADJUSTMENT,
+                amount_minor=row.amount_minor,
+                provider=provider,
+                event_id=f"refund-failed:{row.id}",
+                refund_id=row.id,
+                note="Refund failed at the provider",
+            )
+        )
+        await session.flush()
+        await _enqueue_refund_topic(session, intent, row.id, suffix=":failed")
+        return True
+    if current is RefundStatus.FAILED and target is RefundStatus.SUCCEEDED:
+        # The provider now says the money went back: take it off the balance again.
+        row.status = RefundStatus.SUCCEEDED.value
+        session.add(
+            _entry(
+                intent,
+                kind=LedgerKind.REFUND,
+                amount_minor=-row.amount_minor,
+                provider=provider,
+                event_id=f"refund-succeeded:{row.id}",
+                refund_id=row.id,
+                note="Refund succeeded at the provider after it was marked failed",
+            )
+        )
+        await session.flush()
+        await _emit_payment_event(
+            session,
+            intent,
+            "payment.refunded",
+            refund_id=row.id,
+            refunded_minor=row.amount_minor,
+        )
+        await _enqueue_refund_topic(session, intent, row.id, suffix=":succeeded")
+        return True
+    logger.error(
+        "provider refund status went back; not changed",
+        extra={"refund_id": str(row.id), "from": row.status, "to": target.value},
+    )
+    return changed
 
 
 async def _record_provider_refund(
@@ -940,21 +1067,25 @@ async def _record_provider_refund(
     refund_id: uuid.UUID,
     provider_ref: str | None,
     event_id: str | None,
+    status: RefundStatus = RefundStatus.SUCCEEDED,
 ) -> None:
-    """Write a refund the provider made (not our call): its row, its ledger entry
-    and the consumer notifications, as a refund made through ``refund_intent`` would.
-    ``event_id`` is the ledger key for a total-based record; by default the ledger
-    key is the refund id, as ``refund_intent`` uses."""
+    """Write a refund the provider made (not our call). A pending or succeeded one
+    carries its ledger entry and the consumer notifications, as ``refund_intent``
+    writes them; a failed one is only recorded. ``event_id`` is the ledger key for a
+    total-based record; by default the key is the refund id, as ``refund_intent``
+    uses."""
     refund = Refund(
         id=refund_id,
         intent_id=intent.id,
         amount_minor=amount_minor,
-        reason="Refunded at the payment provider",
-        status=RefundStatus.SUCCEEDED.value,
+        reason=_PROVIDER_REFUND_REASON,
+        status=status.value,
         provider_ref=provider_ref,
     )
     session.add(refund)
     await session.flush()
+    if status is RefundStatus.FAILED:
+        return
     session.add(
         _entry(
             intent,
