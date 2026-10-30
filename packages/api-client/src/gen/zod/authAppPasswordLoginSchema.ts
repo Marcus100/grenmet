@@ -42,3 +42,7 @@ export const authAppPasswordLoginErrorSchema = z.union([
 ]);
 
 export const authAppPasswordLoginBodySchema = appPasswordLoginSchema;
+
+export const authAppPasswordLoginPathSchema = z.object({
+  app: z.string().regex(/^[a-z][a-z0-9-]{1,30}$/),
+});

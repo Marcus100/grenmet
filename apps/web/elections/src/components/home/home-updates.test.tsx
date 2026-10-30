@@ -198,6 +198,13 @@ describe("homepage updates", () => {
     expect(ndc).not.toBeNull();
     if (!ndc) return;
     expect(within(ndc).getByText("15")).toBeInTheDocument();
+    expect(within(ndc).getByText("Earlier names")).toBeInTheDocument();
+    expect(
+      within(ndc).getByText("in our incomplete directory")
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("link", { name: "latest nomination coverage" })
+    ).toHaveAttribute("href", "/candidates");
     expect(within(ndc).getByText(UNCERTAIN_COUNT)).toBeInTheDocument();
     expect(
       screen.queryByText("Seats now: 2022 results", { exact: false })

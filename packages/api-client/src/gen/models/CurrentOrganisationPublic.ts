@@ -7,7 +7,7 @@ import type { MembershipRole } from "./MembershipRole.js";
 import type { OrganisationSummary } from "./OrganisationSummary.js";
 
 /**
- * @description The organisation resolved from ``X-Barrels-Organisation`` and the caller\'s role.
+ * @description The organisation resolved from ``X-Barrels-Organisation`` and the caller's role.
  * @type object
  */
 export type CurrentOrganisationPublic = {

@@ -7,7 +7,7 @@ import type { PushKeys } from "./PushKeys.js";
 
 export type PushSubscribeRequest = {
   /**
-   * @description Push list key, e.g. \'gms-alerts\'.
+   * @description Push list key, e.g. 'gms-alerts'.
    * @default 'gms-alerts'
    * @type string | undefined
    */

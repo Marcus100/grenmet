@@ -3,11 +3,15 @@
  * Do not edit manually.
  */
 
+import type { EventCategoryNodePropertiesAppliesToItemsEnum } from "./EventCategoryNodePropertiesAppliesToItemsEnum.js";
 import type { GroupDetailPropertiesCategoryEnum } from "./GroupDetailPropertiesCategoryEnum.js";
 import type { GroupDetailPropertiesParishEnum } from "./GroupDetailPropertiesParishEnum.js";
 import type { GroupSummary } from "./GroupSummary.js";
+import type { ListingCardPropertiesAccessTypeEnum } from "./ListingCardPropertiesAccessTypeEnum.js";
 import type { ListingCardPropertiesAdmissionEnum } from "./ListingCardPropertiesAdmissionEnum.js";
+import type { ListingCardPropertiesBookingModeEnum } from "./ListingCardPropertiesBookingModeEnum.js";
 import type { ListingCardPropertiesCurrencyEnum } from "./ListingCardPropertiesCurrencyEnum.js";
+import type { ListingCardPropertiesPricingTypeEnum } from "./ListingCardPropertiesPricingTypeEnum.js";
 import type { ListingUpsertPropertiesStatusEnum } from "./ListingUpsertPropertiesStatusEnum.js";
 import type { ListingUpsertPropertiesVisibilityEnum } from "./ListingUpsertPropertiesVisibilityEnum.js";
 import type { OrganiserPublic } from "./OrganiserPublic.js";
@@ -51,6 +55,25 @@ export type ManagedListing = {
   going_preview: PersonChip[];
   viewer_going?: boolean | null;
   viewer_saved?: boolean | null;
+  listing_type?: EventCategoryNodePropertiesAppliesToItemsEnum;
+  /**
+   * @default 'public'
+   * @type string | undefined
+   */
+  access_type?: ListingCardPropertiesAccessTypeEnum;
+  /**
+   * @default 'free'
+   * @type string | undefined
+   */
+  pricing_type?: ListingCardPropertiesPricingTypeEnum;
+  /**
+   * @default 'none'
+   * @type string | undefined
+   */
+  booking_mode?: ListingCardPropertiesBookingModeEnum;
+  category_slug?: string | null;
+  subcategory_slug?: string | null;
+  external_ticket_url?: string | null;
   description: string;
   capacity: number;
   organiser: OrganiserPublic;

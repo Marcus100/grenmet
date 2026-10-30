@@ -20,7 +20,7 @@ afterEach(() => {
   vi.clearAllMocks();
 });
 
-const SUN_TIMES = /Sunrise 0\d:\d\d · sunset 1\d:\d\d/;
+const SUN_TIMES = /Sunrise \d:\d\d a\.m\. · sunset \d:\d\d p\.m\./;
 const CLOUD_QUIZ = /Can you name these five clouds/;
 const RAINBOWS = /Where rainbows are/;
 const NOW = new Date("2026-09-29T15:00:00Z");

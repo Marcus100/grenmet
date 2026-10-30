@@ -17,18 +17,21 @@ Lint+types (`ruff check`/`ruff format --check` over `src scripts tests`, then
 
 | Changed path (under `apps/api/fastapi/`) | Pytest targets |
 | --- | --- |
-| `src/<domain>/...` | `tests/<domain>/` and `tests/test_<domain>_*.py` |
-| `src/main.py` | Core subset: `test_startup_imports.py`, `test_openapi_contract.py`, `test_release_contract_inputs.py`, `test_settings.py`, `test_schema_datetime_guard.py`, `tests/utils/` |
+| `src/<domain>/...` | `tests/<domain>/` and `tests/test_<domain>_*.py`; a domain with neither still runs the full suite |
+| `src/auth/...` (shared by every request) | Full suite |
+| `src/main.py` (wires every domain) | Full suite |
 | other `src/*.py` (shared modules) | Full suite |
 | `tests/<dir>/...` | `tests/<dir>/` |
 | `tests/test_*.py` | That file |
 | `tests/conftest.py`, `factories.py`, `database_target.py` | Full suite |
 | `pyproject.toml`, `uv.lock` (repo root or API) | Full suite |
 
-`main.py` is also a contract file, so API-client drift runs. The subset is a
-local fast path: CI (`ci-api.yml`) still runs the full suite on every push, and
-the schemathesis fuzz test (`test_api_fuzz.py`) runs there in its own job. Run
-`pnpm verify:changed --dry-run` to see the exact plan.
+`main.py` is also a contract file, so API-client drift runs. The domain selection
+is a local fast path: CI (`ci-api.yml`) still runs the full suite on every push,
+and the schemathesis fuzz test (`test_api_fuzz.py`) runs there in its own job.
+Run `pnpm verify:changed --dry-run` to see the exact plan, and `--full` to run
+everything locally before a risky merge. Unit tests for this selection are in
+`changed.test.mjs`.
 
 API pytest runs in parallel. Workers default to CPUs minus two (minimum 1) and
 drop to two when the 1-minute load average exceeds the CPU count; set
@@ -83,7 +86,7 @@ When intentionally using a dedicated test service from the devcontainer, these
 scripts can connect to the host-published port. Never supply application-service
 credentials. Backend database creation/teardown requires an administrative role
 on the disposable instance; ordinary application roles should remain restricted.
-Backend uses two workers by default; set `TEST_WORKERS` to measured capacity.
+Backend uses one worker per CPU in CI (4 on GitHub's standard runners) and two fewer than the CPUs elsewhere (at least one); set `TEST_WORKERS` to override.
 CI passes `-m 'not fuzz' --shard i/3` (three jobs) or `-m fuzz` (one job) after the
 script name and sets `COVERAGE_DATA_ONLY=1` so each job writes only a coverage data
 file for the combining job to merge (see `docs/testing.md`, CI test sharding).

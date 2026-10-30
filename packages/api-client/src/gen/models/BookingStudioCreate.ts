@@ -4,7 +4,8 @@
  */
 
 /**
- * @description A booking the business enters itself: phone, walk-in or a re-entered\nappointment. Sent with an `Idempotency-Key` header.
+ * @description A booking the business enters itself: phone, walk-in or a re-entered
+ * appointment. Sent with an `Idempotency-Key` header.
  * @type object
  */
 export type BookingStudioCreate = {

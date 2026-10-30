@@ -13,7 +13,7 @@ export const organisationsListMemberGrantsHeaderXBarrelsOrganisationSchema = z
   .union([z.string(), z.null()])
   .optional()
   .describe(
-    "Id of the organisation the request acts for. The caller must be an active member."
+    "Id of the organisation the request acts for. The caller must be an active member, signed in with an account or the Events app."
   );
 
 export const organisationsListMemberGrantsStatus200Schema = z.array(
@@ -40,3 +40,16 @@ export const organisationsListMemberGrantsErrorSchema = z.union([
   organisationsListMemberGrantsStatus404Schema,
   organisationsListMemberGrantsStatus422Schema,
 ]);
+
+export const organisationsListMemberGrantsPathSchema = z.object({
+  membership_id: z.string(),
+});
+
+export const organisationsListMemberGrantsHeadersSchema = z.object({
+  "X-Barrels-Organisation": z
+    .union([z.string(), z.null()])
+    .optional()
+    .describe(
+      "Id of the organisation the request acts for. The caller must be an active member, signed in with an account or the Events app."
+    ),
+});

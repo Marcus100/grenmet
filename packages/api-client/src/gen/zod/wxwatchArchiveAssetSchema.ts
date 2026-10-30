@@ -43,3 +43,7 @@ export const wxwatchArchiveAssetErrorSchema = z.union([
   wxwatchArchiveAssetStatus422Schema,
   wxwatchArchiveAssetStatus503Schema,
 ]);
+
+export const wxwatchArchiveAssetPathSchema = z.object({
+  asset_id: z.uuid(),
+});

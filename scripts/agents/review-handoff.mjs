@@ -92,6 +92,9 @@ export function collect(root, base = DEFAULT_BASE, remote = lsRemote) {
 }
 
 function baseLineFor(info) {
+  if (info.reviewBase) {
+    return `Review base SHA: ${info.reviewBase} (current on the remote; receipt scope uses merge-base ${info.mergeBase})`;
+  }
   if (info.mergeBase === null) {
     return `Base: ${info.base} is not available locally; fetch it first.`;
   }

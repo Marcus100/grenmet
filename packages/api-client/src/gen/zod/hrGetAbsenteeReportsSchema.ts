@@ -44,3 +44,21 @@ export const hrGetAbsenteeReportsErrorSchema = z.union([
   hrGetAbsenteeReportsStatus403Schema,
   hrGetAbsenteeReportsStatus422Schema,
 ]);
+
+export const hrGetAbsenteeReportsQuerySchema = z.object({
+  department_id: z.union([z.string(), z.null()]).optional(),
+  page: z
+    .int()
+    .min(1)
+    .max(1000000)
+    .optional()
+    .default(1)
+    .describe("Page number (1-indexed)"),
+  size: z
+    .int()
+    .min(1)
+    .max(1000)
+    .optional()
+    .default(100)
+    .describe("Items per page"),
+});

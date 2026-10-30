@@ -29,6 +29,8 @@ import type { ConstituencyCode, Ring, Verification } from "@/data/types";
 import { fmt, pct } from "@/lib/format";
 
 type View = "flat" | "tiles";
+type MapLevel = "cons" | "div";
+const LEVEL_LABELS = { cons: "constituencies", div: "polling divisions" };
 interface MapRegion {
   height: number;
   key: string;
@@ -115,6 +117,7 @@ function activate(run: () => void) {
 interface UrlState {
   division: string | null;
   eventId: string;
+  level: MapLevel;
   mode: MapMode;
   seat: ConstituencyCode | null;
   view: View;
@@ -123,11 +126,14 @@ interface UrlState {
 function readUrl(): Partial<UrlState> {
   const q = new URLSearchParams(window.location.search);
   const out: Partial<UrlState> = {};
+  if (q.get("level") === "div") out.level = "div";
   const e = q.get("e");
   if (e) out.eventId = e;
   const c = q.get("c")?.toUpperCase();
   if (c && (CODES as readonly string[]).includes(c))
     out.seat = c as ConstituencyCode;
+  if (out.seat && !q.has("level")) out.level = "div";
+  if (q.get("level") === "cons") out.level = "cons";
   const d = q.get("d");
   if (d) out.division = d.toUpperCase();
   const m = q.get("mode");
@@ -144,6 +150,8 @@ function writeUrl(s: UrlState) {
   if (s.division) q.set("d", s.division.toLowerCase());
   if (s.mode !== "winner") q.set("mode", s.mode);
   if (s.view !== "flat") q.set("view", s.view);
+  if (s.level === "div") q.set("level", s.level);
+  else if (s.seat) q.set("level", "cons");
   try {
     history.replaceState(null, "", `?${q.toString()}`);
   } catch {
@@ -810,14 +818,90 @@ function Timeline({
   );
 }
 
-/** Regions to draw: constituencies, or the selected one's polling divisions, dimming the rest. */
+/** Division measures must come from the selected event and matching division. */
+function divisionMeasureAvailable(
+  d: AtlasDivision,
+  previous: AtlasEvent | null,
+  mode: MapMode
+) {
+  if (!d.c[0]) return false;
+  if (mode === "turnout") return d.reg > 0;
+  if (mode === "share" || mode === "swing") {
+    const stats = contestStats(d);
+    if (stats.twoParty == null) return false;
+    if (mode === "swing") {
+      const before = previous?.divisions.find(
+        (item) => item.division === d.division && item.code === d.code
+      );
+      return Boolean(before && contestStats(before).twoParty != null);
+    }
+  }
+  return true;
+}
+
+function locatedShape(data: AtlasData, d: AtlasDivision) {
+  const shape = data.geo.divisions[d.division];
+  if (!(shape?.located && shape.rings.length && shape.cons === d.code))
+    return null;
+  return shape;
+}
+
+function divisionFallback(event: AtlasEvent, count: number) {
+  if (!event.divisions.length)
+    return `polling-division results are unavailable for ${event.label}.`;
+  if (!count)
+    return "matching polling-division measures are unavailable for this metric and selection.";
+  return "matching polling-division geometry is unavailable for this selection.";
+}
+
+function selectionPatch(
+  event: AtlasEvent,
+  key: string | null,
+  division: string | null
+): Partial<UrlState> {
+  if (!key) return division ? { division: null } : { seat: null };
+  if ((CODES as readonly string[]).includes(key))
+    return { seat: key as ConstituencyCode, division: null, level: "div" };
+  const selected = event.divisions.find((d) => d.division === key);
+  return selected ? { seat: selected.code, division: key, level: "div" } : {};
+}
+
+function divisionView(
+  data: AtlasData,
+  event: AtlasEvent,
+  previous: AtlasEvent | null,
+  mode: MapMode,
+  state: UrlState
+) {
+  const divisions = event.divisions.filter((d) =>
+    divisionMeasureAvailable(d, previous, mode)
+  );
+  const scopeDivisions = divisions.filter(
+    (d) => !state.seat || d.code === state.seat
+  );
+  const divisionAvailable = scopeDivisions.some((d) => locatedShape(data, d));
+  const level: MapLevel =
+    state.view === "flat" && state.level === "div" && divisionAvailable
+      ? "div"
+      : "cons";
+  return {
+    divisions,
+    count: scopeDivisions.length,
+    divisionAvailable,
+    level,
+    showDivisions: level === "div",
+  };
+}
+
+/** National divisions or a constituency drill-down; never reuse constituency totals. */
 function mapRegions(
   data: AtlasData,
   encoded: Record<string, Encoded>,
   land: Rgb,
   seat: ConstituencyCode | null,
   division: string | null,
-  showDivisions: boolean
+  showDivisions: boolean,
+  divisions: AtlasDivision[]
 ): MapRegion[] {
   const dim = (e: Encoded): Encoded => ({
     rgb: [
@@ -829,7 +913,7 @@ function mapRegions(
   });
   const out: MapRegion[] = [];
   for (const code of CODES) {
-    if (showDivisions && code === seat) continue;
+    if (showDivisions && (!seat || code === seat)) continue;
     let e = encoded[code] ?? { rgb: land, height: 0.08 };
     if (seat && code !== seat) e = dim(e);
     out.push({
@@ -841,8 +925,11 @@ function mapRegions(
     });
   }
   if (showDivisions)
-    for (const [key, shape] of Object.entries(data.geo.divisions)) {
-      if (shape.cons !== seat) continue;
+    for (const d of divisions) {
+      const key = d.division;
+      const shape = locatedShape(data, d);
+      if (!shape) continue;
+      if (seat && shape.cons !== seat) continue;
       const e = encoded[key] ?? { rgb: land, height: 0.06 };
       out.push({
         key,
@@ -878,7 +965,8 @@ function useEncoded(
       (previous?.divisions ?? []).map((d) => [d.division, d])
     );
     for (const d of event.divisions) {
-      const before = prevDivs[d.division];
+      const candidate = prevDivs[d.division];
+      const before = candidate?.code === d.code ? candidate : null;
       out[d.division] = encode(
         palette,
         { c: d.c, cast: d.cast, reg: d.reg },
@@ -899,6 +987,7 @@ export function Atlas() {
   const [palette, setPalette] = useState<Palette | null>(null);
   const [state, setState] = useState<UrlState>({
     eventId: "2022",
+    level: "cons",
     mode: "winner",
     view: "flat",
     seat: null,
@@ -966,23 +1055,19 @@ export function Atlas() {
     );
   }
   const land = palette.land ?? [0.8, 0.8, 0.8];
-  const showDivisions = Boolean(
-    view !== "tiles" && seat && event.divisions.length > 0
-  );
+  const { divisions, count, divisionAvailable, level, showDivisions } =
+    divisionView(data, event, previous, mode, state);
   const regions = mapRegions(
     data,
     encoded,
     land,
     seat,
     division,
-    showDivisions
+    showDivisions,
+    divisions
   );
-  const pick = (key: string | null) => {
-    if (!key) set(division ? { division: null } : { seat: null });
-    else if ((CODES as readonly string[]).includes(key))
-      set({ seat: key as ConstituencyCode, division: null });
-    else set({ division: key });
-  };
+  const pick = (key: string | null) =>
+    set(selectionPatch(event, key, division));
 
   return (
     <div>
@@ -1006,6 +1091,18 @@ export function Atlas() {
               value={mode}
             />
           </div>
+          <Segmented
+            disabled={(value) => value === "div" && !divisionAvailable}
+            label="Map level"
+            onChange={(value: MapLevel) =>
+              set({ level: value, view: "flat", division: null })
+            }
+            options={[
+              ["cons", "Constituencies"],
+              ["div", "Polling divisions"],
+            ]}
+            value={level}
+          />
           <Segmented
             label="View"
             onChange={(v: View) =>
@@ -1031,6 +1128,18 @@ export function Atlas() {
             </button>
           )}
         </div>
+        {!divisionAvailable && (
+          <p className="border-el-rule border-b py-3 text-base text-el-muted leading-relaxed">
+            Showing constituencies: {divisionFallback(event, count)}
+          </p>
+        )}
+        {showDivisions && (
+          <p className="border-el-rule border-b py-3 text-base text-el-muted leading-relaxed">
+            Polling divisions use their own results. Divisions without a
+            matching measure or located geometry are omitted from the map; all
+            recorded divisions remain in the results list.
+          </p>
+        )}
         <div className="grid grid-cols-[minmax(0,1fr)] lg:grid-cols-[minmax(0,1fr)_380px]">
           <div className="relative h-112 overflow-hidden bg-el-sea sm:h-144 lg:h-176">
             {view === "flat" && (
@@ -1038,7 +1147,7 @@ export function Atlas() {
                 bounds={
                   seat ? bboxOf(data.geo.constituencies[seat].rings) : ALL
                 }
-                label={`${event.label} map`}
+                label={`${event.label} ${LEVEL_LABELS[level]} map`}
                 land={land}
                 landRings={data.geo.land}
                 names={data.names}
@@ -1053,7 +1162,9 @@ export function Atlas() {
                 land={land}
                 mode={mode}
                 names={data.names}
-                onPick={(c) => set({ view: "flat", seat: c, division: null })}
+                onPick={(c) =>
+                  set({ view: "flat", seat: c, division: null, level: "div" })
+                }
               />
             )}
             <Legend event={event} mode={mode} />
@@ -1067,7 +1178,7 @@ export function Atlas() {
             aria-live="polite"
             className="border-el-rule px-0 py-4 lg:max-h-176 lg:overflow-auto lg:border-l lg:px-4"
           >
-            {seat ? (
+            {seat && (
               <ConstituencyPanel
                 division={division}
                 event={event}
@@ -1076,11 +1187,34 @@ export function Atlas() {
                 onDivision={(d) => set({ division: d })}
                 seat={seat}
               />
-            ) : (
+            )}
+            {!seat && showDivisions && (
+              <div>
+                <p className={LABEL}>{event.label} · All of Grenada</p>
+                <h3 className="font-bold text-xl">
+                  Results by polling division
+                </h3>
+                <p className="mt-1 text-base text-el-ink-2 leading-relaxed">
+                  Select a polling division to explore its constituency.
+                </p>
+                <DivisionList
+                  divisions={event.divisions}
+                  onSelect={(d) => pick(d)}
+                  referendum={event.kind === "ref"}
+                  selected={division}
+                />
+                <NationalPanel
+                  event={event}
+                  names={data.names}
+                  onSelect={(c) => pick(c)}
+                />
+              </div>
+            )}
+            {!(seat || showDivisions) && (
               <NationalPanel
                 event={event}
                 names={data.names}
-                onSelect={(c) => set({ seat: c, division: null })}
+                onSelect={(c) => pick(c)}
               />
             )}
           </aside>

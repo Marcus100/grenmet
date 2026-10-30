@@ -47,3 +47,8 @@ export const rewardsOptInToLeaderboardBodySchema =
   rewardsLeaderboardOptInCreateSchema.describe(
     "Consent to appear on one board. Names stay hidden unless ``show_name``."
   );
+
+export const rewardsOptInToLeaderboardPathSchema = z.object({
+  scope_kind: scopeKindSchema,
+  scope_id: z.string(),
+});

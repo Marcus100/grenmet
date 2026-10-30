@@ -34,3 +34,7 @@ export const hrUpdateRoleConfigurationErrorSchema = z.union([
 ]);
 
 export const hrUpdateRoleConfigurationBodySchema = rolePermissionsInputSchema;
+
+export const hrUpdateRoleConfigurationPathSchema = z.object({
+  role_id: z.uuid(),
+});

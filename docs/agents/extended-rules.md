@@ -10,12 +10,17 @@ design tokens, branding, telemetry, monitoring or CI workflows.
 
 ## Design details
 
-- Loop: `docs/design-workflow.md`. Token contract: `docs/design-system.md`. Before building UI, read the lane spec `docs/design/<gms|gaa-admin|mbia|signal|elections|events>.md` (DESIGN.md format; drift-tested by `pnpm test:docs`).
+- Loop: `docs/design-workflow.md`. Token contract: `docs/design-system.md`. Before building UI, read the lane spec `docs/design/<gms|gaa-admin|mbia|signal|elections|events|commit>.md` (DESIGN.md format; drift-tested by `pnpm test:docs`).
 - **Figma is not linked to this repo.** Ignore Figma tools and node URLs; design intent arrives via Claude Design or a supplied screenshot. Never ask for a Figma frame URL.
 - Style only with `--gm-*` tokens / Tailwind aliases / shadcn semantics — never hardcode color/spacing/radius or add design values to Tailwind config. New or changed `--gm-*` tokens need approval and land in `packages/gms/src/styles/foundation.css`, **not** `packages/ui`. Run `pnpm design-system:sync` after editing the canonical block in `packages/ui/src/styles/globals.css`.
 - Brand: navy `#0b132b`, blue `#2878f5`, sky `#37a3ef`, lime `#b9ee63`. Kit hues fail AA as small text — use `--gm-*-ink` for text under 24px regular / 18.66px bold, icons under ~24px, and fills behind small white text.
 - Logo: `@barrelsgd/gms/components/logo`; never hardcode a path or set `width`/`height` (use `className`). Retired: `--gm-sun`, the orange wordmark.
 - Token commands: `pnpm design-system:check` (gate), `:audit` / `:audit:full`, `:contrast`, `:sync`. Dark mode is class-based; prefer semantic tokens over `dark:*` in shared primitives; printable "papers" stay light.
+
+## Form patterns (React 19)
+
+- An uncontrolled `<form action={fn}>` is reset by React 19 after the action settles, even on a refusal, which wipes what the user typed. For `useActionState` forms whose success redirects or unmounts, submit through `onSubmit` + `startTransition` (`keepValuesOnSubmit`, `apps/web/bookings/src/lib/keep-values.ts`); otherwise return the submitted values from the action and use them as `defaultValue` (the studio Settings forms use `keepTyped`, `settings-ui.tsx`).
+- A page-level form that only has `onSubmit` falls back to a native GET before hydration, which puts passwords and personal data in the URL. Disable its submit until hydrated (`useHydrated()`, `use-hydrated.ts` in the auth and bookings apps). Never rely on a handler that has not attached yet. Known gap: the bookings studio Settings forms do not wait for `useHydrated()` yet.
 
 ## Telemetry, Sentry and monitoring
 

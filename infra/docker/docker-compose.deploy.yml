@@ -115,8 +115,9 @@ services:
       test: ["CMD", "curl", "--fail", "--silent", "--show-error", "http://127.0.0.1:8000/api/v1/utils/ready/"]
       interval: 30s
       timeout: 10s
-      # Cold starts under ddtrace on the shared droplet take about 3 minutes
-      # (staging, 16 October 2026); core.sh waits up to 300s for healthy.
+      # Sized when cold starts ran under ddtrace (about 3 minutes on staging,
+      # 16 October 2026). ddtrace is gone; the margin stays until cold starts
+      # are re-measured. core.sh waits up to 300s for healthy.
       start_period: 180s
       retries: 5
     depends_on:
@@ -249,6 +250,7 @@ services:
       # `|| Host(...)` aliases. Staging never sets them. See docs/weather-gd-golive.md.
       - "traefik.http.routers.grenmet-api${ROUTER_SUFFIX}.rule=Host(`api.${BASE_DOMAIN}`)${API_EXTRA_HOSTS_RULE:-}"
       - "traefik.http.routers.grenmet-api${ROUTER_SUFFIX}.entrypoints=websecure"
+      - "traefik.http.routers.grenmet-api${ROUTER_SUFFIX}.middlewares=edge-api${ROUTER_SUFFIX}"
       - "traefik.http.routers.grenmet-api${ROUTER_SUFFIX}.tls.certresolver=letsencrypt"
       - "traefik.http.services.grenmet-api${ROUTER_SUFFIX}.loadbalancer.server.port=8000"
       - "traefik.http.services.grenmet-api${ROUTER_SUFFIX}.loadbalancer.healthcheck.path=/api/v1/utils/ready/"
@@ -454,6 +456,7 @@ services:
       - "traefik.enable=true"
       - "traefik.http.routers.web-cms${ROUTER_SUFFIX}.rule=Host(`cms.${BASE_DOMAIN}`)"
       - "traefik.http.routers.web-cms${ROUTER_SUFFIX}.entrypoints=websecure"
+      - "traefik.http.routers.web-cms${ROUTER_SUFFIX}.middlewares=edge-cms${ROUTER_SUFFIX}"
       - "traefik.http.routers.web-cms${ROUTER_SUFFIX}.tls.certresolver=letsencrypt"
       - "traefik.http.services.web-cms${ROUTER_SUFFIX}.loadbalancer.server.port=3006"
       - "traefik.http.services.web-cms${ROUTER_SUFFIX}.loadbalancer.healthcheck.path=/api/ready"
@@ -485,11 +488,18 @@ services:
       MBIA_APP_URL: https://mbia.${BASE_DOMAIN}
       EVENTS_APP_URL: https://events.${BASE_DOMAIN}
       AUTH_API_V1_STR: /api/v1
-      AUTH_ALLOWED_RETURN_HOSTS: .${BASE_DOMAIN}${EXTRA_RETURN_HOSTS:-}
+      # Sign-in returns only to exact origins (ADR-0043 decision 5); a leading-dot
+      # entry such as ".${BASE_DOMAIN}" is ignored. The *_APP_URL values above are
+      # honoured as they are; every other app that signs in here is named, so a user
+      # lands back in it instead of on this app's home page. Each one must match its
+      # entry in the api service. scripts/production/auth-return-origins.test.mjs
+      # checks the two lists agree. EXTRA_RETURN_HOSTS, if set, must start with a comma.
+      AUTH_ALLOWED_RETURN_HOSTS: https://admin.${BASE_DOMAIN},https://bookings.${BASE_DOMAIN},https://cms.${BASE_DOMAIN},https://elections.${BASE_DOMAIN},https://gmsdash.${BASE_DOMAIN}${EXTRA_RETURN_HOSTS:-}
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.web-auth${ROUTER_SUFFIX}.rule=Host(`auth.${BASE_DOMAIN}`)"
       - "traefik.http.routers.web-auth${ROUTER_SUFFIX}.entrypoints=websecure"
+      - "${STAGING_WEB_MIDDLEWARES:+traefik.http.routers.web-auth${ROUTER_SUFFIX}.middlewares=}${STAGING_WEB_MIDDLEWARES:-gd.barrels.staging-gate=off}"
       - "traefik.http.routers.web-auth${ROUTER_SUFFIX}.tls.certresolver=letsencrypt"
       - "traefik.http.services.web-auth${ROUTER_SUFFIX}.loadbalancer.server.port=3000"
     networks:
@@ -520,6 +530,7 @@ services:
       - "traefik.enable=true"
       - "traefik.http.routers.web-barrels-admin${ROUTER_SUFFIX}.rule=Host(`admin.${BASE_DOMAIN}`)"
       - "traefik.http.routers.web-barrels-admin${ROUTER_SUFFIX}.entrypoints=websecure"
+      - "${STAGING_WEB_MIDDLEWARES:+traefik.http.routers.web-barrels-admin${ROUTER_SUFFIX}.middlewares=}${STAGING_WEB_MIDDLEWARES:-gd.barrels.staging-gate=off}"
       - "traefik.http.routers.web-barrels-admin${ROUTER_SUFFIX}.tls.certresolver=letsencrypt"
       - "traefik.http.services.web-barrels-admin${ROUTER_SUFFIX}.loadbalancer.server.port=3012"
       - "traefik.http.services.web-barrels-admin${ROUTER_SUFFIX}.loadbalancer.healthcheck.path=/api/health"
@@ -561,6 +572,7 @@ services:
       # separate web-gms service at weather.*.
       - "traefik.http.routers.web-gms-portal${ROUTER_SUFFIX}.rule=Host(`gms.${BASE_DOMAIN}`)"
       - "traefik.http.routers.web-gms-portal${ROUTER_SUFFIX}.entrypoints=websecure"
+      - "${STAGING_WEB_MIDDLEWARES:+traefik.http.routers.web-gms-portal${ROUTER_SUFFIX}.middlewares=}${STAGING_WEB_MIDDLEWARES:-gd.barrels.staging-gate=off}"
       - "traefik.http.routers.web-gms-portal${ROUTER_SUFFIX}.tls.certresolver=letsencrypt"
       - "traefik.http.routers.web-gms-portal${ROUTER_SUFFIX}.service=web-gms-portal${ROUTER_SUFFIX}"
       - "traefik.http.services.web-gms-portal${ROUTER_SUFFIX}.loadbalancer.server.port=3001"
@@ -590,6 +602,7 @@ services:
       - "traefik.enable=true"
       - "traefik.http.routers.web-docs${ROUTER_SUFFIX}.rule=Host(`docs.${BASE_DOMAIN}`)"
       - "traefik.http.routers.web-docs${ROUTER_SUFFIX}.entrypoints=websecure"
+      - "${STAGING_WEB_MIDDLEWARES:+traefik.http.routers.web-docs${ROUTER_SUFFIX}.middlewares=}${STAGING_WEB_MIDDLEWARES:-gd.barrels.staging-gate=off}"
       - "traefik.http.routers.web-docs${ROUTER_SUFFIX}.tls.certresolver=letsencrypt"
       - "traefik.http.services.web-docs${ROUTER_SUFFIX}.loadbalancer.server.port=3002"
     networks:
@@ -619,6 +632,7 @@ services:
       - "traefik.enable=true"
       - "traefik.http.routers.web-gms${ROUTER_SUFFIX}.rule=Host(`weather.${BASE_DOMAIN}`)"
       - "traefik.http.routers.web-gms${ROUTER_SUFFIX}.entrypoints=websecure"
+      - "${STAGING_WEB_MIDDLEWARES:+traefik.http.routers.web-gms${ROUTER_SUFFIX}.middlewares=}${STAGING_WEB_MIDDLEWARES:-gd.barrels.staging-gate=off}"
       - "traefik.http.routers.web-gms${ROUTER_SUFFIX}.tls.certresolver=letsencrypt"
       - "traefik.http.services.web-gms${ROUTER_SUFFIX}.loadbalancer.server.port=3003"
     networks:
@@ -645,6 +659,7 @@ services:
       - "traefik.enable=true"
       - "traefik.http.routers.web-signal${ROUTER_SUFFIX}.rule=Host(`signal.${BASE_DOMAIN}`)"
       - "traefik.http.routers.web-signal${ROUTER_SUFFIX}.entrypoints=websecure"
+      - "${STAGING_WEB_MIDDLEWARES:+traefik.http.routers.web-signal${ROUTER_SUFFIX}.middlewares=}${STAGING_WEB_MIDDLEWARES:-gd.barrels.staging-gate=off}"
       - "traefik.http.routers.web-signal${ROUTER_SUFFIX}.tls.certresolver=letsencrypt"
       - "traefik.http.services.web-signal${ROUTER_SUFFIX}.loadbalancer.server.port=3004"
     networks:
@@ -671,6 +686,7 @@ services:
       - "traefik.enable=true"
       - "traefik.http.routers.web-mbia${ROUTER_SUFFIX}.rule=Host(`mbia.${BASE_DOMAIN}`)"
       - "traefik.http.routers.web-mbia${ROUTER_SUFFIX}.entrypoints=websecure"
+      - "${STAGING_WEB_MIDDLEWARES:+traefik.http.routers.web-mbia${ROUTER_SUFFIX}.middlewares=}${STAGING_WEB_MIDDLEWARES:-gd.barrels.staging-gate=off}"
       - "traefik.http.routers.web-mbia${ROUTER_SUFFIX}.tls.certresolver=letsencrypt"
       - "traefik.http.services.web-mbia${ROUTER_SUFFIX}.loadbalancer.server.port=3005"
     networks:
@@ -702,6 +718,7 @@ services:
       - "traefik.enable=true"
       - "traefik.http.routers.web-events${ROUTER_SUFFIX}.rule=Host(`events.${BASE_DOMAIN}`)"
       - "traefik.http.routers.web-events${ROUTER_SUFFIX}.entrypoints=websecure"
+      - "${STAGING_WEB_MIDDLEWARES:+traefik.http.routers.web-events${ROUTER_SUFFIX}.middlewares=}${STAGING_WEB_MIDDLEWARES:-gd.barrels.staging-gate=off}"
       - "traefik.http.routers.web-events${ROUTER_SUFFIX}.tls.certresolver=letsencrypt"
       - "traefik.http.services.web-events${ROUTER_SUFFIX}.loadbalancer.server.port=3009"
     networks:
@@ -730,6 +747,7 @@ services:
       # cannot affect any other host.
       - "traefik.http.routers.web-cap${ROUTER_SUFFIX}.rule=Host(`cap.${BASE_DOMAIN}`)"
       - "traefik.http.routers.web-cap${ROUTER_SUFFIX}.entrypoints=websecure"
+      - "${STAGING_WEB_MIDDLEWARES:+traefik.http.routers.web-cap${ROUTER_SUFFIX}.middlewares=}${STAGING_WEB_MIDDLEWARES:-gd.barrels.staging-gate=off}"
       - "traefik.http.routers.web-cap${ROUTER_SUFFIX}.tls.certresolver=letsencrypt"
       - "traefik.http.services.web-cap${ROUTER_SUFFIX}.loadbalancer.server.port=3010"
     networks:
@@ -759,6 +777,7 @@ services:
       # record cannot affect any other host.
       - "traefik.http.routers.web-gmsdash${ROUTER_SUFFIX}.rule=Host(`gmsdash.${BASE_DOMAIN}`)"
       - "traefik.http.routers.web-gmsdash${ROUTER_SUFFIX}.entrypoints=websecure"
+      - "${STAGING_WEB_MIDDLEWARES:+traefik.http.routers.web-gmsdash${ROUTER_SUFFIX}.middlewares=}${STAGING_WEB_MIDDLEWARES:-gd.barrels.staging-gate=off}"
       - "traefik.http.routers.web-gmsdash${ROUTER_SUFFIX}.tls.certresolver=letsencrypt"
       - "traefik.http.services.web-gmsdash${ROUTER_SUFFIX}.loadbalancer.server.port=3013"
     networks:
@@ -788,6 +807,7 @@ services:
       # record cannot affect any other host.
       - "traefik.http.routers.web-bookings${ROUTER_SUFFIX}.rule=Host(`bookings.${BASE_DOMAIN}`)"
       - "traefik.http.routers.web-bookings${ROUTER_SUFFIX}.entrypoints=websecure"
+      - "${STAGING_WEB_MIDDLEWARES:+traefik.http.routers.web-bookings${ROUTER_SUFFIX}.middlewares=}${STAGING_WEB_MIDDLEWARES:-gd.barrels.staging-gate=off}"
       - "traefik.http.routers.web-bookings${ROUTER_SUFFIX}.tls.certresolver=letsencrypt"
       - "traefik.http.services.web-bookings${ROUTER_SUFFIX}.loadbalancer.server.port=3015"
     networks:
@@ -797,7 +817,7 @@ services:
   # ── Database UI (staging only, via COMPOSE_PROFILES=staging) ─────────────────
   adminer:
     logging: *bounded-logging
-    image: adminer:6.1.1@sha256:74f29c416e148b98305e84446a18db7cd2c1038264dec464359d36774ef080ce
+    image: adminer:6.1.2@sha256:251295c1cd51d3889f1c42ffa4864b24eeab51f0caf395cfe5bf4726c5ec9a2a
     restart: always
     profiles: ["staging"]
     environment:
@@ -808,27 +828,76 @@ services:
       - "traefik.http.routers.adminer${ROUTER_SUFFIX}.entrypoints=websecure"
       - "traefik.http.routers.adminer${ROUTER_SUFFIX}.tls.certresolver=letsencrypt"
       - "traefik.http.services.adminer${ROUTER_SUFFIX}.loadbalancer.server.port=8080"
-      - "traefik.http.routers.adminer${ROUTER_SUFFIX}.middlewares=adminer-auth${ROUTER_SUFFIX}"
-      - "traefik.http.middlewares.adminer-auth${ROUTER_SUFFIX}.basicauth.users=${USERNAME}:${HASHED_PASSWORD}"
+      # Own credentials (not the dashboard's); render-env.py requires them on staging.
+      # Upload-class body limit so SQL imports still fit; noindex like all staging.
+      - "traefik.http.routers.adminer${ROUTER_SUFFIX}.middlewares=adminer-auth${ROUTER_SUFFIX},body-upload${ROUTER_SUFFIX},staging-noindex${ROUTER_SUFFIX}"
+      - "traefik.http.middlewares.adminer-auth${ROUTER_SUFFIX}.basicauth.users=${ADMINER_BASIC_AUTH_USERS:-}"
+      - "traefik.http.middlewares.adminer-auth${ROUTER_SUFFIX}.basicauth.removeheader=true"
     depends_on:
       - db
     networks:
       - grenmet
+
+  # ── Docker API for Traefik (read-only, allow-listed) ─────────────────────────
+  # The only service that mounts the Docker socket. HAProxy allows GET on the
+  # container, event, version and ping endpoints; every other endpoint and every
+  # POST/PUT/DELETE is denied (image defaults are deny, set explicitly here).
+  traefik-socket-proxy:
+    logging: *bounded-logging
+    image: tecnativa/docker-socket-proxy:v0.5.0@sha256:1f5038b54f06c3e18422902cf00ba21803d1c97805aae032e5e6673d532d3459
+    restart: always
+    environment:
+      CONTAINERS: 1
+      EVENTS: 1
+      PING: 1
+      VERSION: 1
+      POST: 0
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    security_opt:
+      - no-new-privileges:true
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q -O /dev/null http://127.0.0.1:2375/_ping || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    networks:
+      - docker-api
 
   # ── Reverse proxy ────────────────────────────────────────────────────────────
   proxy:
     logging: *bounded-logging
     image: traefik:v3.7@sha256:9c3b91d5fb7770853ca5c1124a23c34bf2d9b47ffaebeab2614cbaf410dcb2ac
     restart: always
+    depends_on:
+      - traefik-socket-proxy
     ports:
       - "80:80"
       - "443:443"
+      # Dashboard + ping, host loopback only. Reach it over SSH:
+      #   ssh -L 8080:127.0.0.1:8080 <host>  →  http://localhost:8080/dashboard/
+      - "127.0.0.1:8080:8080"
     volumes:
-      - /var/run/docker.sock:/var/run/docker.sock:ro
       - traefik-certificates:/certificates
+    # Least privilege: only binding :80/:443 needs a capability. acme.json stays
+    # writable on its volume; /tmp holds buffered request/response bodies.
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    cap_add:
+      - NET_BIND_SERVICE
+    read_only: true
+    tmpfs:
+      - /tmp:size=256m,mode=1777
     command:
       - --providers.docker
+      - --providers.docker.endpoint=tcp://traefik-socket-proxy:2375
       - --providers.docker.exposedbydefault=false
+      # Internal entrypoint for the dashboard and ping (published on 127.0.0.1
+      # only). Stays on :8080 so `traefik healthcheck --ping` keeps working.
+      - --entrypoints.traefik.address=:8080
       - --entrypoints.web.address=:80
       # Entrypoint-level HTTP→HTTPS redirect (idiomatic Traefik v3; replaces the
       # old http-catchall router labels).
@@ -836,15 +905,28 @@ services:
       - --entrypoints.web.http.redirections.entrypoint.scheme=https
       - --entrypoints.web.http.redirections.entrypoint.permanent=true
       - --entrypoints.websecure.address=:443
-      # Security headers applied to every HTTPS response (middleware defined in
-      # labels below).
-      - --entrypoints.websecure.http.middlewares=secure-headers${ROUTER_SUFFIX}@docker
+      # Read 60s = Traefik's default (a 25 MiB HR upload at ~3.5 Mbit/s); write
+      # 120s covers upload + synchronous PDF rendering + buffered response; idle
+      # 180s = Traefik's default keep-alive.
+      - --entrypoints.websecure.transport.respondingtimeouts.readtimeout=60s
+      - --entrypoints.websecure.transport.respondingtimeouts.writetimeout=120s
+      - --entrypoints.websecure.transport.respondingtimeouts.idletimeout=180s
+      # Security headers and the per-client concurrency cap on every HTTPS
+      # request (middlewares defined in labels below).
+      - --entrypoints.websecure.http.middlewares=secure-headers${ROUTER_SUFFIX}@docker,inflight-per-ip${ROUTER_SUFFIX}@docker
       - --certificatesresolvers.letsencrypt.acme.email=${EMAIL}
       - --certificatesresolvers.letsencrypt.acme.storage=/certificates/acme.json
       - --certificatesresolvers.letsencrypt.acme.tlschallenge=true
+      # JSON to stdout; request headers and query strings (tokens, emails) dropped.
       - --accesslog
+      - --accesslog.format=json
+      - --accesslog.fields.headers.defaultmode=drop
+      - --accesslog.fields.queryparameters.defaultmode=drop
       - --log
       - --api
+      # Dashboard only through the router on the internal entrypoint below; never
+      # --api.insecure.
+      - --api.dashboard=true
       - --ping
     healthcheck:
       test: ["CMD", "traefik", "healthcheck", "--ping"]
@@ -854,21 +936,55 @@ services:
       start_period: 10s
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.traefik-dashboard${ROUTER_SUFFIX}.rule=Host(`traefik.${BASE_DOMAIN}`)"
-      - "traefik.http.routers.traefik-dashboard${ROUTER_SUFFIX}.entrypoints=websecure"
-      - "traefik.http.routers.traefik-dashboard${ROUTER_SUFFIX}.tls.certresolver=letsencrypt"
+      # Dashboard: internal entrypoint only (no public host, no certificate). Basic
+      # auth stays as a second factor behind the SSH tunnel.
+      - "traefik.http.routers.traefik-dashboard${ROUTER_SUFFIX}.rule=PathPrefix(`/api`) || PathPrefix(`/dashboard`)"
+      - "traefik.http.routers.traefik-dashboard${ROUTER_SUFFIX}.entrypoints=traefik"
       - "traefik.http.routers.traefik-dashboard${ROUTER_SUFFIX}.service=api@internal"
       - "traefik.http.routers.traefik-dashboard${ROUTER_SUFFIX}.middlewares=dashboard-auth${ROUTER_SUFFIX}"
       - "traefik.http.middlewares.dashboard-auth${ROUTER_SUFFIX}.basicauth.users=${USERNAME}:${HASHED_PASSWORD}"
       # Global security headers. HSTS starts at 30 days (raise once proven);
       # SAMEORIGIN (not DENY) so apps can iframe their own pages (print previews).
+      # No app uses camera, microphone, geolocation, Payment Request or WebUSB.
+      # COOP keeps OAuth/print popups working while isolating the opener.
       - "traefik.http.middlewares.secure-headers${ROUTER_SUFFIX}.headers.stsSeconds=2592000"
       - "traefik.http.middlewares.secure-headers${ROUTER_SUFFIX}.headers.stsIncludeSubdomains=true"
       - "traefik.http.middlewares.secure-headers${ROUTER_SUFFIX}.headers.contentTypeNosniff=true"
       - "traefik.http.middlewares.secure-headers${ROUTER_SUFFIX}.headers.customFrameOptionsValue=SAMEORIGIN"
       - "traefik.http.middlewares.secure-headers${ROUTER_SUFFIX}.headers.referrerPolicy=strict-origin-when-cross-origin"
+      - "traefik.http.middlewares.secure-headers${ROUTER_SUFFIX}.headers.permissionsPolicy=camera=(), microphone=(), geolocation=(), payment=(), usb=()"
+      - "traefik.http.middlewares.secure-headers${ROUTER_SUFFIX}.headers.customResponseHeaders.Cross-Origin-Opener-Policy=same-origin-allow-popups"
+      # At most 100 concurrent requests per client IP (DNS-only Cloudflare, so
+      # the remote address is the client). Without ipStrategy Traefik would group
+      # by Host header instead.
+      - "traefik.http.middlewares.inflight-per-ip${ROUTER_SUFFIX}.inflightreq.amount=100"
+      - "traefik.http.middlewares.inflight-per-ip${ROUTER_SUFFIX}.inflightreq.sourceCriterion.ipStrategy.depth=0"
+      # Request body limit for the routers that accept uploads (API, CMS, Adminer;
+      # 413 above it). Largest API upload: an HR document (25 MiB,
+      # src/hr/documents/service.py); event images go straight to object storage
+      # via presigned PUT; CMS = Payload media.
+      # Traefik's buffering middleware also buffers responses (in memory up to
+      # 1 MiB, then /tmp) and that cannot be disabled from labels, so the Next.js
+      # web routers deliberately have NO buffering: it would kill streaming and
+      # loading states. Next 16 already caps server-action bodies at 1 MB and no
+      # web route accepts files.
+      - "traefik.http.middlewares.body-upload${ROUTER_SUFFIX}.buffering.maxRequestBodyBytes=31457280"
+      # Upload-class chains. STAGING_*_MIDDLEWARES are set in staging.env only, so
+      # production chains hold just the body limit. Web routers reference
+      # STAGING_WEB_MIDDLEWARES directly; in production that label is replaced by
+      # the inert `gd.barrels.staging-gate=off`, so they carry no middlewares.
+      - "traefik.http.middlewares.edge-api${ROUTER_SUFFIX}.chain.middlewares=body-upload${ROUTER_SUFFIX}${STAGING_API_MIDDLEWARES:+,}${STAGING_API_MIDDLEWARES:-}"
+      - "traefik.http.middlewares.edge-cms${ROUTER_SUFFIX}.chain.middlewares=body-upload${ROUTER_SUFFIX}${STAGING_WEB_MIDDLEWARES:+,}${STAGING_WEB_MIDDLEWARES:-}"
+      # Staging protection (referenced only through STAGING_*_MIDDLEWARES; unused
+      # and unbuilt in production). Web hosts: basic auth + noindex. The API gets
+      # noindex only: browser apps call it cross-origin.
+      - "traefik.http.middlewares.staging-auth${ROUTER_SUFFIX}.basicauth.users=${STAGING_BASIC_AUTH_USERS:-}"
+      - "traefik.http.middlewares.staging-auth${ROUTER_SUFFIX}.basicauth.realm=GrenMet staging"
+      - "traefik.http.middlewares.staging-auth${ROUTER_SUFFIX}.basicauth.removeheader=true"
+      - "traefik.http.middlewares.staging-noindex${ROUTER_SUFFIX}.headers.customResponseHeaders.X-Robots-Tag=noindex, nofollow"
     networks:
       - grenmet
+      - docker-api
 
 networks:
   # Not name-pinned: compose validates the com.docker.compose.network label, so
@@ -886,6 +1002,10 @@ networks:
     ipam:
       config:
         - subnet: 172.31.250.0/24
+  # Docker API only: traefik-socket-proxy and proxy. No routing, no egress.
+  docker-api:
+    driver: bridge
+    internal: true
 
 volumes:
   nhc-archive:

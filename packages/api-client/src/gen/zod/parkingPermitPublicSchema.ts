@@ -12,6 +12,7 @@ export const parkingPermitPublicSchema = z.object({
   signed_document_id: z.union([z.uuid(), z.null()]).optional(),
   submitted_at: z.union([z.iso.datetime(), z.null()]).optional(),
   workflow_status: z.union([workflowStatusSchema, z.null()]).optional(),
+  returned_reason: z.union([z.string(), z.null()]).optional(),
   id: z.uuid(),
   user_id: z.uuid(),
   department_id: z.string(),

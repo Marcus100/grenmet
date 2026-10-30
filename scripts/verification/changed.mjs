@@ -68,8 +68,17 @@ const pnpm = (name, ...args) => check(name, "pnpm", args);
 const RULES = [
   [
     (f) => WEB.test(f) || f === "pnpm-lock.yaml",
+    // Two test tasks at once, as in CI and `pnpm test`: each Vitest config
+    // takes half the cores, so a third concurrent task would oversubscribe.
     ["type-check", "test"].map((task) =>
-      pnpm(task, "turbo", "run", task, "--affected")
+      pnpm(
+        task,
+        "turbo",
+        "run",
+        task,
+        "--affected",
+        ...(task === "test" ? ["--concurrency=2"] : [])
+      )
     ),
   ],
   [
@@ -116,28 +125,28 @@ const API_DEPENDENCIES = new Set([
   `${API}pyproject.toml`,
   `${API}uv.lock`,
 ]);
-// main.py wires every router, middleware and handler. A change there is checked
-// by a core subset (startup, OpenAPI, settings, release contract) plus the
-// domains it touches, not the whole suite. CI still runs everything.
+// Domains that every other domain imports (permissions and sessions run on every
+// request). A change there can break any test, so it runs the whole suite.
+// src/main.py wires every router and middleware, so it is shared too. Top-level
+// src/*.py modules (models, config, dependencies, ...) are shared by the rule below.
+const SHARED_DOMAINS = new Set(["auth"]);
 const API_ENTRYPOINT = "src/main.py";
-const API_CORE_TESTS = [
-  "tests/test_startup_imports.py",
-  "tests/test_openapi_contract.py",
-  "tests/test_release_contract_inputs.py",
-  "tests/test_settings.py",
-  "tests/test_schema_datetime_guard.py",
-  "tests/utils",
-];
 // tests/<dir>/... runs that directory; tests/test_x.py runs itself.
 const API_TEST_DIR = /^tests\/([^/]+)\/.+$/;
 
 // Pytest targets for one changed API file: "full" for the whole suite, else a list.
+// A domain with no test folder or flat test file of its own also runs the whole
+// suite: an empty target list would silently run nothing.
 function apiFileTargets(file, testFiles) {
   if (API_DEPENDENCIES.has(file)) return "full";
   const rest = file.slice(API.length);
   const domain = API_DOMAIN.exec(rest)?.[1];
-  if (domain) return apiTestTargets(domain, testFiles);
-  if (rest === API_ENTRYPOINT) return API_CORE_TESTS;
+  if (domain) {
+    if (SHARED_DOMAINS.has(domain)) return "full";
+    const targets = apiTestTargets(domain, testFiles);
+    return targets.length > 0 ? targets : "full";
+  }
+  if (rest === API_ENTRYPOINT) return "full";
   if (API_SHARED.test(rest) || API_TEST_INFRA.test(rest)) return "full";
   const testDir = API_TEST_DIR.exec(rest)?.[1];
   if (testDir) return [`tests/${testDir}`];
@@ -265,6 +274,15 @@ function parseArgs(argv) {
   return options;
 }
 
+/** "1m 05s" or "42s": how long one check took, printed in the summary. */
+export function formatSeconds(seconds) {
+  const minutes = Math.floor(seconds / 60);
+  const rest = seconds % 60;
+  return minutes > 0
+    ? `${minutes}m ${String(rest).padStart(2, "0")}s`
+    : `${rest}s`;
+}
+
 function main() {
   const options = parseArgs(process.argv.slice(2));
   const mergeBase = git(["merge-base", options.base, "HEAD"]);
@@ -307,17 +325,22 @@ function main() {
       `\n▶ ${check.name}: ${check.cwd ? `(${check.cwd}) ` : ""}${line}`
     );
     if (options.dryRun) continue;
+    const started = Date.now();
     const result = spawnSync(check.command, check.args, {
       cwd: join(root, check.cwd ?? ""),
       stdio: "inherit",
       env: { ...process.env, TURBO_SCM_BASE: options.base },
     });
-    results.push({ name: check.name, ok: result.status === 0 });
+    results.push({
+      name: check.name,
+      ok: result.status === 0,
+      seconds: Math.round((Date.now() - started) / 1000),
+    });
   }
   if (options.dryRun) return;
   console.log("\nverify:changed summary");
-  for (const { name, ok } of results)
-    console.log(`${ok ? "PASS" : "FAIL"} ${name}`);
+  for (const { name, ok, seconds } of results)
+    console.log(`${ok ? "PASS" : "FAIL"} ${name} (${formatSeconds(seconds)})`);
   if (results.some((r) => !r.ok)) {
     process.exitCode = 1;
     return;

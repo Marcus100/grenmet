@@ -43,3 +43,16 @@ export const webhooksOutRotateSecretErrorSchema = z.union([
   webhooksOutRotateSecretStatus409Schema,
   webhooksOutRotateSecretStatus422Schema,
 ]);
+
+export const webhooksOutRotateSecretPathSchema = z.object({
+  endpoint_id: z.string(),
+});
+
+export const webhooksOutRotateSecretHeadersSchema = z.object({
+  "X-Barrels-Organisation": z
+    .union([z.string(), z.null()])
+    .optional()
+    .describe(
+      "Id of the organisation the request acts for. The caller must be an active member."
+    ),
+});

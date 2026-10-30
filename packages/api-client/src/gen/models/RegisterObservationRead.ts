@@ -4,7 +4,9 @@
  */
 
 import type { ObservationRecordPropertiesKindEnum } from "./ObservationRecordPropertiesKindEnum.js";
+import type { RegisterObservationReadPropertiesReviewOutcomeAnyOfEnum } from "./RegisterObservationReadPropertiesReviewOutcomeAnyOfEnum.js";
 import type { RegisterObservationReadPropertiesStateEnum } from "./RegisterObservationReadPropertiesStateEnum.js";
+import type { SynopValidationIssue } from "./SynopValidationIssue.js";
 
 export type RegisterObservationRead = {
   /**
@@ -43,11 +45,28 @@ export type RegisterObservationRead = {
   qc_notes?: string | null;
   qc_by?: string | null;
   qc_at?: string | null;
+  review_outcome?: RegisterObservationReadPropertiesReviewOutcomeAnyOfEnum | null;
+  review_note?: string | null;
+  reviewed_by?: string | null;
+  reviewed_at?: string | null;
   wis2_topic?: string | null;
   wis2_message_id?: string | null;
   wis2_published_at?: string | null;
   supersedes_id?: string | null;
   actor_id: string;
+  /**
+   * @description Who recorded it (listing only).
+   */
+  actor_name?: string | null;
+  /**
+   * @description The coded FM 12 row (SYNOP, listing only).
+   */
+  coded?: string | null;
+  /**
+   * @description Validation findings, warnings included (SYNOP, listing only).
+   * @type array | undefined
+   */
+  issues?: SynopValidationIssue[];
   /**
    * @description
    * Format: `date-time`

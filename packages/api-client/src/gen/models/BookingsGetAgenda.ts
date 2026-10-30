@@ -46,7 +46,9 @@ export type BookingsGetAgendaHeaders = {
 };
 
 /**
- * @description Bookings grouped by local day. `total` counts every match so a client\ncan page with `limit` and `offset`; days arrive in order and only days with\nbookings are listed.
+ * @description Bookings grouped by local day. `total` counts every match so a client
+ * can page with `limit` and `offset`; days arrive in order and only days with
+ * bookings are listed.
  * @type object
  */
 export type BookingsGetAgendaStatus200 = BookingAgenda;

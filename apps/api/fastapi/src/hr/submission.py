@@ -8,7 +8,12 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.hr.signatures.models import SignedDocument
-from src.hr.workflow.models import WorkflowInstance, WorkflowStatus
+from src.hr.workflow.models import (
+    ApprovalActionLog,
+    WorkflowAction,
+    WorkflowInstance,
+    WorkflowStatus,
+)
 from src.models import BaseModel, UtcDateTime
 
 
@@ -16,6 +21,8 @@ class SubmittedFormPublic(BaseModel):
     signed_document_id: UUID | None = None
     submitted_at: UtcDateTime | None = None
     workflow_status: WorkflowStatus | None = None
+    # The approver's reason, shown to the author while the form is returned.
+    returned_reason: str | None = None
 
 
 class WorkflowForm(Protocol):
@@ -34,6 +41,10 @@ async def submission_list[T: SubmittedFormPublic](
         )
         workflows = {item.id: item for item in result.scalars()}
     signed = await signed_document_ids(session, [row.id for row in rows])
+    returned = [
+        item.id for item in workflows.values() if item.status == WorkflowStatus.RETURNED
+    ]
+    reasons = await returned_reasons(session, returned)
     output = []
     for row in rows:
         item = schema.model_validate(row, from_attributes=True)
@@ -46,6 +57,7 @@ async def submission_list[T: SubmittedFormPublic](
         if workflow is not None and workflow.entity_id == row.id:
             item.submitted_at = workflow.submitted_at
             item.workflow_status = workflow.status
+            item.returned_reason = reasons.get(workflow.id)
         output.append(item)
     return output
 
@@ -70,3 +82,24 @@ async def signed_document_ids(
     for entity_id, document_id in result.all():
         signed[entity_id] = document_id
     return signed
+
+
+async def returned_reasons(
+    session: AsyncSession, workflow_ids: Sequence[UUID]
+) -> dict[UUID, str]:
+    """The latest return reason of each returned workflow instance."""
+    if not workflow_ids:
+        return {}
+    result = await session.execute(
+        select(ApprovalActionLog.workflow_instance_id, ApprovalActionLog.comments)
+        .where(
+            ApprovalActionLog.workflow_instance_id.in_(workflow_ids),
+            ApprovalActionLog.action == WorkflowAction.RETURN,
+        )
+        .order_by(ApprovalActionLog.created_at, ApprovalActionLog.id)
+    )
+    reasons: dict[UUID, str] = {}
+    for instance_id, comments in result.all():
+        if comments:
+            reasons[instance_id] = comments
+    return reasons

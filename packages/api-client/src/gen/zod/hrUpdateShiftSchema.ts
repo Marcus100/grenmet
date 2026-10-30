@@ -30,3 +30,7 @@ export const hrUpdateShiftErrorSchema = z.union([
 ]);
 
 export const hrUpdateShiftBodySchema = shiftCatalogUpdateSchema;
+
+export const hrUpdateShiftPathSchema = z.object({
+  code: z.string(),
+});

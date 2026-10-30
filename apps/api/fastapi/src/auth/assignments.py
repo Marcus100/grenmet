@@ -12,6 +12,7 @@ from src.auth.models import (
     User,
     UserRoleAssignment,
 )
+from src.auth.policy import STAFF_ROLE
 from src.auth.roles import get_role
 from src.auth.schemas import (
     UserRoleAssignmentCreate,
@@ -357,6 +358,64 @@ async def delegation_authority(
         ):
             return source
     raise AppException("No active authority permits this delegated grant", 403)
+
+
+async def has_organisation_wide_hr_authority(
+    session: AsyncSession, actor: User, organisation_id: str
+) -> bool:
+    """True when the actor's `hr.employment.manage` covers the whole organisation."""
+    from src.hr.organisations import require_organisation_permission
+
+    try:
+        await require_organisation_permission(
+            session, actor, organisation_id, "hr.employment.manage"
+        )
+    except AppException:
+        return False
+    return True
+
+
+async def end_assignments_for_employment(
+    *,
+    session: AsyncSession,
+    user_id: uuid.UUID,
+    organisation_id: str,
+    organisation_wide: bool,
+) -> int:
+    """Expire the user's live assignments of every scope (except the SELF-scope baseline staff role) in one organisation (#789).
+
+    Called when employment there ends, and again on reinstatement so nothing
+    left paused revives. Does not commit; each ended assignment gets an audit
+    entry. Reinstating employment does not bring them back.
+
+    With `organisation_wide=False` (an actor whose `hr.employment.manage`
+    covers only a department) organisation-wide (ALL) assignments are left
+    alone for someone with organisation-wide authority to end (#794); the
+    read-time gate in `src.auth.policy` still suspends them while employment
+    is ended. Callers state this explicitly: there is no default.
+    """
+    now = utc_now()
+    conditions = [
+        UserRoleAssignment.user_id == user_id,
+        UserRoleAssignment.organisation_id == organisation_id,
+        ~(
+            UserRoleAssignment.role_id.in_(
+                select(Role.id).where(Role.name == STAFF_ROLE)
+            )
+            & (UserRoleAssignment.scope == RoleAssignmentScope.SELF)
+        ),
+        UserRoleAssignment.effective_to.is_(None)
+        | (UserRoleAssignment.effective_to > now),
+    ]
+    if not organisation_wide:
+        conditions.append(UserRoleAssignment.scope != RoleAssignmentScope.ALL)
+    rows = (await session.scalars(select(UserRoleAssignment).where(*conditions))).all()
+    for row in rows:
+        row.effective_to = max(now, row.effective_from)
+        row.updated_at = now
+        session.add(row)
+        await audit_assignment(session, row, "UPDATE")
+    return len(rows)
 
 
 async def audit_assignment(

@@ -47,3 +47,21 @@ export const organisationsListAdminApiKeysErrorSchema = z.union([
   organisationsListAdminApiKeysStatus403Schema,
   organisationsListAdminApiKeysStatus422Schema,
 ]);
+
+export const organisationsListAdminApiKeysQuerySchema = z.object({
+  organisation_id: z.union([z.string().max(100), z.null()]).optional(),
+  page: z
+    .int()
+    .min(1)
+    .max(1000000)
+    .optional()
+    .default(1)
+    .describe("Page number (1-indexed)"),
+  size: z
+    .int()
+    .min(1)
+    .max(1000)
+    .optional()
+    .default(100)
+    .describe("Items per page"),
+});

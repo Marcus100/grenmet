@@ -9,8 +9,8 @@ import {
   eventResult,
   eventSlug,
   eventSource,
-  isOfficial,
 } from "@/data/events";
+import { metricEvidence } from "@/data/evidence";
 import { data, features, results } from "@/data/load";
 import {
   CODES,
@@ -168,13 +168,21 @@ function ShareChart() {
                 <circle
                   cx={x(p.e.year)}
                   cy={yv(p.v)}
-                  fill={isOfficial(p.e.id) ? s.colour : "var(--el-paper)"}
+                  fill={
+                    metricEvidence(data, p.e.id, "votes").official
+                      ? s.colour
+                      : "var(--el-paper)"
+                  }
                   key={p.e.id}
                   r={3.6}
-                  stroke={isOfficial(p.e.id) ? "var(--el-paper)" : s.colour}
+                  stroke={
+                    metricEvidence(data, p.e.id, "votes").official
+                      ? "var(--el-paper)"
+                      : s.colour
+                  }
                   strokeWidth={1.8}
                 >
-                  <title>{`${p.e.year}, ${s.label}: ${pct(p.v)}${isOfficial(p.e.id) ? "" : " (secondary source)"}`}</title>
+                  <title>{`${p.e.year}, ${s.label}: ${pct(p.v)} · ${metricEvidence(data, p.e.id, "votes").label}`}</title>
                 </circle>
               ))}
               {last && ["NDC", "NNP", "GULP"].includes(s.key) && (
@@ -248,13 +256,17 @@ function TurnoutChart() {
           <circle
             cx={x(p.e.year)}
             cy={yv(p.t)}
-            fill={isOfficial(p.e.id) ? "var(--el-seq-1)" : "var(--el-paper)"}
+            fill={
+              metricEvidence(data, p.e.id, "turnout").official
+                ? "var(--el-seq-1)"
+                : "var(--el-paper)"
+            }
             key={p.e.id}
             r={3.8}
             stroke="var(--el-seq-1)"
             strokeWidth={1.8}
           >
-            <title>{`${p.e.year}: ${pct(p.t)}`}</title>
+            <title>{`${p.e.year}: ${pct(p.t)} · ${metricEvidence(data, p.e.id, "turnout").label}`}</title>
           </circle>
         ))}
         {refs.map((p) => (
@@ -288,7 +300,9 @@ function TurnoutChart() {
 
 export default function TrendsPage() {
   const featureYears = Object.keys(features).sort();
-  const official = GENERAL.filter((e) => isOfficial(e.id) && e.map);
+  const official = GENERAL.filter(
+    (e) => metricEvidence(data, e.id, "votes").official && e.map
+  );
   const contests = official.flatMap((e) =>
     CODES.flatMap((code) => {
       const r = eventResult(data, e.id, code);
@@ -510,7 +524,7 @@ export default function TrendsPage() {
           findings={[
             `In 2022 the NDC led the NNP by ${points(share22("NDC") - share22("NNP"))} percentage points nationally. That tells us about votes; the next chart explains seats.`,
           ]}
-          read="Each line follows one party from one election to the next. The higher the line, the more of the vote that party won. Where two lines cross, the lead changed hands. The hatched band is 1979–83, when there were no elections. Solid dots come from official records; hollow dots (1951–1967 and 1976) come from secondary sources and are less certain."
+          read="Each line joins recorded party vote shares, not measurements between elections. The hatched band marks the 1979–83 interruption in elections. Solid dots use officially supported vote inputs; hollow dots use mixed or secondary inputs, including 1990. A source label describes the inputs, not a guarantee that a record has no discrepancy."
           terms={[
             {
               term: "Share of the vote",
@@ -552,15 +566,19 @@ export default function TrendsPage() {
               >
                 <span className="sm:hidden">’{String(e.year).slice(2)}</span>
                 <span className="hidden sm:inline">{e.year}</span>
-                {!isOfficial(e.id) && (
-                  <sup title="Seats from a secondary source">†</sup>
+                {!metricEvidence(data, e.id, "seats").official && (
+                  <sup title="Seat count depends on mixed or secondary records">
+                    ✱
+                  </sup>
                 )}
               </Link>
             </li>
           ))}
         </ol>
         <p className="mt-2 text-base text-el-muted leading-relaxed">
-          † From a secondary source, not the official record.
+          ✱ Seat count depends on mixed or secondary records. Winner evidence
+          and vote-total evidence are assessed separately: 1990 winners are
+          official even though some vote inputs are secondary.
         </p>
         <ReadingNote
           caveats={[
@@ -631,7 +649,7 @@ export default function TrendsPage() {
           findings={[
             `The highest recorded turnout was ${pct(turnout.high.turnout)} in ${turnout.high.year}. The lowest in an official record was ${pct(lowOfficial.turnout)} in ${lowOfficial.year}.`,
           ]}
-          read="The line shows each general election; the two diamonds are the 2016 and 2018 referendums. Higher means a bigger share of registered voters turned out. Hollow dots (1951–1967 and 1976) come from secondary sources."
+          read="The line shows general elections; diamonds show the 2016 and 2018 referendums. Higher means a larger recorded participation ratio. Solid dots use officially supported turnout inputs; hollow dots use mixed or secondary inputs, including 1990. Some older ratios count valid votes only, so consult the method before comparing."
           terms={[
             {
               term: "Turnout",
@@ -843,8 +861,10 @@ export default function TrendsPage() {
                     <Link className="hover:underline" href={`/elections/${y}`}>
                       {y}
                     </Link>
-                    {!isOfficial(String(y)) && (
-                      <sup title="Votes from a secondary source">†</sup>
+                    {!metricEvidence(data, String(y), "seats").official && (
+                      <sup title="Winner evidence depends on mixed or secondary records">
+                        ✱
+                      </sup>
                     )}
                   </th>
                 ))}
@@ -889,8 +909,9 @@ export default function TrendsPage() {
           </table>
         </div>
         <p className="mt-2 text-base text-el-muted leading-relaxed">
-          † 1976 votes are from The Grenada Newsletter’s report of the
-          Supervisor of Elections’ figures, not the official record.
+          ✱ The 1976 winner record relies on The Grenada Newsletter’s report of
+          the Supervisor of Elections’ figures. The 1990 winner record is
+          official; its mixed vote inputs do not change the winner labels.
         </p>
         <ReadingNote
           caveats={[
@@ -1031,7 +1052,7 @@ export default function TrendsPage() {
 
       <Section
         id="records"
-        intro="History shows what happened, not what must happen next. These records identify the closest contests, biggest winning shares and constituencies that often backed the national winner. The result rankings use official records only (1972 and 1984–2022)."
+        intro="History shows what happened, not what must happen next. The closest-contest and biggest-win rankings use elections with officially supported vote inputs throughout. Mixed-source elections, including 1990, remain in the wider history but are excluded from these two rankings. The separate bellwether list describes recorded constituency winners."
         title="7. Can past results predict the next winner?"
       >
         <div className="grid gap-8 lg:grid-cols-3">

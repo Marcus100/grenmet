@@ -9,6 +9,7 @@ recorded upstream release.
 | ---------- | ------------------------------------------- | ------- | ---------- |
 | `surface/` | SURFACE CDMS (installed via `surface-cdms`) | 1.0.0   | 2026-07-08 |
 | `wis2box/` | WMO wis2box setup bundle                    | 1.3     | 2026-07-08 |
+| `geonetcast/` | GNC-A Python training scripts (INPE/NOAA GNC-A courses) | May 2023 course | 2026-07-08 |
 
 ## surface/
 
@@ -35,8 +36,54 @@ reconciling an upstream release.
 | `fsspec` | 2025.12.0 | 2026.6.0 | Dependabot #391 | Transitive via `pyiceberg` |
 | `multidict` | 6.7.0 | 6.9.1 | Dependabot #393 | Transitive via `yarl` |
 
-The transitive pins are edited in place in the pip-compiled `requirements.txt`.
-If you re-run `pip-compile`, keep these versions as lower bounds.
+The transitive pins were first edited in place in the pip-compiled
+`requirements.txt`. The lock was then re-resolved with `pip-compile` for #722
+step 1, and those versions held (they are all still at or above the values
+above). If you re-run `pip-compile`, keep these versions as lower bounds.
+
+### Upgrade pins (#722)
+
+Step 1 moved SURFACE from Django 3.2.13 to Django 4.2. Step 2 moved it to
+Django 5.2 LTS (`>=5.2.8,<5.3`, resolved 5.2.18; supported to April 2028) and
+the database to PostgreSQL 17, because Django 5.2 needs PostgreSQL 14 or newer.
+
+| Package | Upstream | Ours | Note |
+| --- | --- | --- | --- |
+| `Django` | 3.2.13 | 5.2.18 | LTS |
+| Database image | `timescaledb-postgis:2.3.0-pg13` | `timescaledb-ha:pg17.11-ts2.31.0` (digest-pinned) | PostgreSQL 17.11, TimescaleDB 2.31.0, PostGIS 3.6.4. The old image line stopped at pg13. Runs as uid 1000 with data under `/home/postgres/pgdata/data`; `PGDATA` in the SURFACE env file must sit inside that mount |
+| `djangorestframework`, `djangorestframework-simplejwt`, `django-celery-beat`, `django-cors-headers`, `django-import-export` (4.x), `django-simple-history`, `celery`, `kombu`, `amqp`, `redis`, `requests`, `gunicorn`, `psycopg2-binary` | older | see `requirements.in` | Raised to versions that support Django 5.2 or carry security fixes |
+| `Pillow`, `anyio`, `lxml`, `soupsieve`, `sqlparse`, `urllib3`, `cryptography`, `geopandas` | older | see `requirements.in` | Security floors from Dependabot advisories |
+| `pymemcache` | `python-memcached` | 4.0.0 | Replaces `python-memcached`; Django 4.1 removed `MemcachedCache` (settings use `PyMemcacheCache`) |
+| `django-colorfield` | 0.4.5 | 0.14.x | `ColorField` max_length 18 to 25; migration `wx/0078` widens the two columns |
+| `django-material` | 1.10.0 | 1.12.0 | Unmaintained (merged into django-viewflow); works on 5.2 in the smoke run below, replace when SURFACE's UI is reworked |
+| `django-timescaledb` | 0.2.12 | 0.2.13 | Last release 2023; works on 5.2 and TimescaleDB 2.31 in the smoke run below |
+| `django-ckeditor` | 6.7.1 | 6.7.4 | Bundled CKEditor 4 is end of life (#803) |
+
+Django 5 code changes: sign-out in `templates/base.html` is a POST form
+(`LogoutView` no longer accepts GET), and the unused `USE_L10N` setting is gone.
+
+Step 2 verification (host, Docker): built `Dockerfile.deploy`; `manage.py check`
+clean apart from the CKEditor warning; `makemigrations --check` clean; all `wx`
+migrations applied to an empty PostgreSQL 17 database and the `raw_data`
+hypertable was created; `wx.tests` pass (7); a CSRF-enforced client signed in,
+loaded the station map, admin, station admin, variable export and API root, got
+405 from GET logout and signed out with POST. The `backup_postgres` task's
+`pg_basebackup` call (same arguments, as `dba` on the `172.25.0.0/16` network
+that `pg_hba.custom.conf` allows) produced a PostgreSQL 17 base backup;
+`Dockerfile.deploy` installs the PostgreSQL 17 client for this because the base
+image's Debian client is 15. `surface/docker-compose.yml` now builds its app
+services from `Dockerfile.deploy` too, so the dev stack runs the locked pins
+instead of the old base image. An existing pg13 data directory
+does not start on the new image: dump and restore it (no live SURFACE host
+existed when this changed).
+
+`Dockerfile.deploy` now installs `api/requirements.txt` on top of the upstream
+`surface-base` image; before that the pins never reached a running container.
+
+**No CI gate covers SURFACE.** `scripts/ci/select-images.mjs` treats `surface/`
+as deferred and no workflow runs its tests, so verification on the host stack
+(`surface/docker-compose.yml` or the weather compose) is the only gate. Run
+`wx/tests` with the `manage.py test` command inside the built image too.
 
 ## wis2box/
 
@@ -51,6 +98,23 @@ at them.
   (`WIS2BOX_HOST_DATADIR` in `wis2box.env`).
 - Gitignored: `wis2box.env` (broker/storage/webapp passwords). Committed
   template: `wis2box.env.example`.
+
+## geonetcast/
+
+Training material from the GeoNetCast Americas (GNC-A) courses: GOES, NWP and
+animation example scripts, Google Colab notebooks (outputs stripped; originals
+in git history at `4c93c9d`), colour tables and FAZZT/NOVRA receiver notes.
+It is licensed under the GNU GPL v3 (`geonetcast/LICENSE`).
+
+- Reference only: nothing in the API or web apps imports it. Operational
+  satellite processing lives in `scripts/gnc-collector`, which is written
+  independently from NOAA's published GOES-R formulas and does not copy or
+  import these GPL scripts. Keep it that way unless the owner accepts GPL
+  terms for that package.
+- Runs locally or in the devcontainer only; the weather image's `geonetcast`
+  target is not published (see `infra/weather/README.md`).
+- Gitignored: Natural Earth admin-1 shapefiles in `shared/` and the data and
+  images the scripts download or render (see `geonetcast/README.md`).
 
 ## Upgrading a vendored app
 

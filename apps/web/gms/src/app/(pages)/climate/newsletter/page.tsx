@@ -1,5 +1,6 @@
 import { PageHeader } from "@/components/page-header";
 import { LinkList } from "@/components/pages/link-list";
+import { NewsletterSignup } from "@/components/pages/newsletter-signup";
 import { PageSection } from "@/components/pages/page-section";
 import { PlaceholderNotice } from "@/components/pages/placeholder-notice";
 import { Prose } from "@/components/pages/prose";
@@ -50,12 +51,13 @@ export default function NewsletterPage() {
           ]}
         />
       </PageSection>
-      <PageSection heading="Subscribing">
+      <PageSection heading="Get it by email">
         <Prose
           paragraphs={[
-            "An email subscription is being set up. Until then, each issue is published on this site and announced through the service's social channels.",
+            "A daily email, sent at 07:30 Grenada time on days with news: weather alerts in effect, a short forecast and posts from the desk. Nothing is sent until you confirm your address through the link we email you. You can stop at any time from any email.",
           ]}
         />
+        <NewsletterSignup />
       </PageSection>
     </>
   );

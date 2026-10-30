@@ -6,7 +6,8 @@
 import type { TurnstileMode } from "./TurnstileMode.js";
 
 /**
- * @description Only the fields sent change. Send ``null`` to clear a nullable setting,\nincluding ``turnstile_secret``. The key and owner never change.
+ * @description Only the fields sent change. Send ``null`` to clear a nullable setting,
+ * including ``turnstile_secret``. The key and owner never change.
  * @type object
  */
 export type PublicSiteUpdate = {

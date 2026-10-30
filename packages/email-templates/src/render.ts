@@ -1,5 +1,6 @@
 import { render } from "react-email";
 import { CapAlertEmail, type CapAlertEmailProps } from "./cap-alert";
+import { NewsletterEmail, type NewsletterEmailProps } from "./newsletter";
 import { NotificationEmail, type NotificationEmailProps } from "./notification";
 import {
   OrganisationInvitationEmail,
@@ -17,6 +18,7 @@ import { WelcomeEmail, type WelcomeEmailProps } from "./welcome";
 
 export type TemplateName =
   | "cap-alert"
+  | "newsletter"
   | "notification"
   | "organisation-invitation"
   | "reset-password"
@@ -43,6 +45,18 @@ export async function renderTemplate(
       return {
         html: await render(CapAlertEmail(p)),
         subject: `${p.label}: ${p.headline}`,
+      };
+    }
+    case "newsletter": {
+      const p = props as unknown as NewsletterEmailProps;
+      if (!(p.headline && p.listName && p.unsubscribeLink)) {
+        throw new Error(
+          "newsletter requires headline, listName and unsubscribeLink"
+        );
+      }
+      return {
+        html: await render(NewsletterEmail(p)),
+        subject: p.subject || `${p.listName}: ${p.headline}`,
       };
     }
     case "notification": {

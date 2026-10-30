@@ -41,3 +41,7 @@ export const janitorialUpdateShiftAssignmentErrorSchema = z.union([
 
 export const janitorialUpdateShiftAssignmentBodySchema =
   shiftAssignmentUpdateSchema;
+
+export const janitorialUpdateShiftAssignmentPathSchema = z.object({
+  assignment_id: z.uuid(),
+});

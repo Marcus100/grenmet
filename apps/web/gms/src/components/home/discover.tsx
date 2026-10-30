@@ -8,6 +8,7 @@ import {
 import type { Route } from "next";
 import Link from "next/link";
 import { HomeSection } from "@/components/home/home-section";
+import { clock12 } from "@/lib/clock";
 import {
   contentHref,
   type DiscoverContent,
@@ -67,7 +68,7 @@ export function skyCard(now: Date, note: DiscoverContent["skyNote"]): Card {
     title: note?.title ?? `${moon.name}, ${lit}`,
     detail:
       note?.note ??
-      `Sunrise ${TIME.format(sunrise)} · sunset ${TIME.format(sunset)}`,
+      `Sunrise ${clock12(TIME.format(sunrise))} · sunset ${clock12(TIME.format(sunset))}`,
     href: "/weather/sun-and-sky",
     Icon: MoonIcon,
     tone: "bg-gm-navy text-gm-lime",
@@ -171,7 +172,7 @@ function CardLink({ card }: { card: Card }) {
 }
 
 /**
- * Sky, history and a little fun: at most four cards, in the order editors
+ * Discover (fun, facts and history): at most four cards, in the order editors
  * choose. Tonight's sky is calculated; the rest appear only when published.
  */
 export async function Discover({ now = new Date() }: { now?: Date } = {}) {
@@ -186,8 +187,8 @@ export async function Discover({ now = new Date() }: { now?: Date } = {}) {
     .slice(0, 4);
   if (cards.length === 0) return null;
   const words = sectionWords(settings, "discover", {
-    kicker: "Discover",
-    title: "Sky, history and a little fun",
+    kicker: "Fun, facts and history",
+    title: "Discover",
   });
   return (
     <HomeSection tone="surface" {...words}>

@@ -19,6 +19,14 @@ const nextConfig: NextConfig = {
       source: "/alerts/:path*",
       headers: [{ key: "Cache-Control", value: STORM_CACHE_CONTROL }],
     },
+    // Draft previews (signed CMS links) are never cached or indexed.
+    {
+      source: "/preview",
+      headers: [
+        { key: "Cache-Control", value: "no-store" },
+        { key: "X-Robots-Tag", value: "noindex, nofollow" },
+      ],
+    },
   ],
   images: {
     remotePatterns: [{ hostname: "images.unsplash.com" }],

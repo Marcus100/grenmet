@@ -19,6 +19,7 @@ from .. import schemas
 from ..exceptions import EventsNotFound
 from ..models import (
     Announcement,
+    Category,
     Follow,
     Group,
     GroupMember,
@@ -32,13 +33,17 @@ from ..models import (
     Ticket,
     TicketTier,
 )
-from . import holds
+from . import holds, taxonomy
 from .common import GOING_PREVIEW, _pairs, when_window
 from .people import _chips, blocked_ids, get_or_create_profile
 
 _CATEGORY = TypeAdapter(schemas.Category)
 _PARISH = TypeAdapter(schemas.Parish)
 _ADMISSION = TypeAdapter(schemas.Admission)
+_LISTING_TYPE = TypeAdapter(schemas.ListingType)
+_ACCESS_TYPE = TypeAdapter(schemas.AccessType)
+_PRICING_TYPE = TypeAdapter(schemas.PricingType)
+_BOOKING_MODE = TypeAdapter(schemas.BookingMode)
 _JOIN_POLICY = TypeAdapter(Literal["open", "approval"])
 _VIEWER_STATUS = TypeAdapter(Literal["host", "member", "pending"])
 
@@ -127,6 +132,16 @@ async def _cards(
             ).all()
         )
 
+    category_slugs = await taxonomy.slugs_by_id(
+        db,
+        {
+            value
+            for listing, _ in rows
+            for value in (listing.category_id, listing.subcategory_id)
+            if value is not None
+        },
+    )
+
     cards = []
     for listing, organiser_slug in rows:
         price = prices.get(listing.id) if listing.admission == "ticketed" else None
@@ -154,6 +169,17 @@ async def _cards(
                 going_preview=previews.get(listing.id, []),
                 viewer_going=(listing.id in going) if viewer_id else None,
                 viewer_saved=(listing.id in saved) if viewer_id else None,
+                listing_type=_LISTING_TYPE.validate_python(listing.listing_type),
+                access_type=_ACCESS_TYPE.validate_python(listing.access_type),
+                pricing_type=_PRICING_TYPE.validate_python(listing.pricing_type),
+                booking_mode=_BOOKING_MODE.validate_python(listing.booking_mode),
+                category_slug=category_slugs.get(listing.category_id)
+                if listing.category_id
+                else None,
+                subcategory_slug=category_slugs.get(listing.subcategory_id)
+                if listing.subcategory_id
+                else None,
+                external_ticket_url=listing.external_ticket_url,
             )
         )
     return cards
@@ -171,13 +197,42 @@ async def list_listings(
     query: str | None = None,
     organiser_slug: str | None = None,
     group_id: uuid.UUID | None = None,
+    listing_type: schemas.ListingType | None = None,
+    category_slug: str | None = None,
+    subcategory_slug: str | None = None,
+    pricing: schemas.PricingType | None = None,
+    access: schemas.AccessType | None = None,
+    booking_mode: schemas.BookingMode | None = None,
     include_past: bool = False,
     limit: int = 100,
     offset: int = 0,
     now: datetime | None = None,
 ) -> tuple[list[schemas.ListingCard], int]:
     current = now or utc_now()
-    stmt = _public_listings().where(Listing.visibility == "public")
+    # Discovery shows public-access, public-visibility listings only.
+    stmt = _public_listings().where(
+        Listing.visibility == "public", Listing.access_type == "public"
+    )
+    if listing_type:
+        stmt = stmt.where(Listing.listing_type == listing_type)
+    if category_slug:
+        stmt = stmt.where(
+            Listing.category_id.in_(
+                select(Category.id).where(Category.slug == category_slug)
+            )
+        )
+    if subcategory_slug:
+        stmt = stmt.where(
+            Listing.subcategory_id.in_(
+                select(Category.id).where(Category.slug == subcategory_slug)
+            )
+        )
+    if access:
+        stmt = stmt.where(Listing.access_type == access)
+    if pricing:
+        stmt = stmt.where(Listing.pricing_type == pricing)
+    if booking_mode:
+        stmt = stmt.where(Listing.booking_mode == booking_mode)
     if not include_past:
         stmt = stmt.where(Listing.ends_at > current)
     if when is not None:
@@ -194,12 +249,12 @@ async def list_listings(
     if tag:
         stmt = stmt.where(Listing.tags.contains([tag]))
     if query:
-        like = f"%{query.strip()[:100]}%"
+        term = query.strip()[:100]
         stmt = stmt.where(
             or_(
-                Listing.title.ilike(like),
-                Listing.summary.ilike(like),
-                Listing.venue.ilike(like),
+                Listing.title.icontains(term, autoescape=True),
+                Listing.summary.icontains(term, autoescape=True),
+                Listing.venue.icontains(term, autoescape=True),
             )
         )
     if organiser_slug:
@@ -393,6 +448,8 @@ async def _group_summaries(
                 .where(
                     Listing.group_id.in_(ids),
                     Listing.status == "published",
+                    Listing.visibility == "public",
+                    Listing.access_type == "public",
                     Listing.ends_at > utc_now(),
                 )
                 .group_by(Listing.group_id)

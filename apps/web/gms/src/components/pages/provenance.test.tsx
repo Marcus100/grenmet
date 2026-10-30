@@ -10,6 +10,9 @@ import {
 } from "@/lib/current-conditions";
 
 const NOW = new Date("2026-10-18T16:00:00Z");
+const OBSERVED_LABEL = /Last observed:/;
+const STATUS_LABEL = /Status:/;
+const OLD_READING = /more than 90 minutes old/;
 const minutesAgo = (m: number) =>
   new Date(NOW.getTime() - m * 60_000).toISOString();
 
@@ -114,5 +117,23 @@ describe("<Provenance>", () => {
     expect(
       screen.getByText((content) => content.includes("Not a GMS product"))
     ).toBeTruthy();
+  });
+});
+
+describe("Provenance time", () => {
+  it("omits the time when the block above already states it", () => {
+    render(
+      <Provenance
+        kind="observation"
+        now={NOW}
+        showTime={false}
+        source="GMS observation register, MBIA"
+        status="verified"
+        time={minutesAgo(180)}
+      />
+    );
+    expect(screen.queryByText(OBSERVED_LABEL)).not.toBeInTheDocument();
+    expect(screen.getByText(STATUS_LABEL)).toBeInTheDocument();
+    expect(screen.getByText(OLD_READING)).toBeInTheDocument();
   });
 });

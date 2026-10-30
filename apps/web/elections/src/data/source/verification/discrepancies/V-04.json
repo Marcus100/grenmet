@@ -1,0 +1,13 @@
+{
+  "id": "V-04",
+  "area": "Voter register",
+  "status": "open",
+  "impact": "data",
+  "what": "The consolidated PDF reference-dated 16 October 2026 contains 95,908 unique non-police records across 134 divisions. The separate PEO constituency-summary webpage is labelled 2 October and reports 97,020 persons / 132 divisions, a difference of 1,112 persons and different geographic coverage. No reconciliation is established.",
+  "action": "Keep both dated figures visible; ask PEO to reconcile scope, date and division definitions.",
+  "sources": [
+    "PEO consolidated list reference date 16 October 2026",
+    "PEO September and October 2026 addenda",
+    "https://peogrenada.org/constituency-summary/"
+  ]
+}

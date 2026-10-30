@@ -15,13 +15,13 @@ import {
   it,
   vi,
 } from "vitest";
-import { EMPTY_DAILY_STATUS } from "./daily-status-document";
 import {
   buildStatusReportPayload,
   DailyStatusEditor,
   staffingEntry,
   validateStatusValues,
 } from "./daily-status-editor";
+import { EMPTY_DAILY_STATUS } from "./daily-status-values";
 import { StatusSubmissions } from "./status-submissions";
 
 const nav = vi.hoisted(() => ({ search: "" }));
@@ -292,7 +292,7 @@ describe("StatusSubmissions", () => {
     wrap(<StatusSubmissions />);
     expect(await screen.findByText("2026-07-15")).toBeInTheDocument();
     expect(screen.getByText("AM")).toBeInTheDocument();
-    expect(screen.getByText("SUBMITTED")).toBeInTheDocument();
+    expect(screen.getByText("Submitted")).toBeInTheDocument();
   });
 
   it("renders nothing when the list endpoint returns 403", async () => {

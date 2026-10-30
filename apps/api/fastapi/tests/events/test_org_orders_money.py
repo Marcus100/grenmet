@@ -13,7 +13,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from src import outbox
 from src.events import dependencies as deps
-from src.events import order_refunds, tickets
+from src.events import order_payments, order_refunds, tickets
 from src.events.models import Admission, Listing, Order, OrderItem, Ticket
 from src.main import app
 from src.payments import schemas as payment_schemas
@@ -885,3 +885,47 @@ async def test_a_deadlock_becomes_a_409_and_rolls_back() -> None:
         async with org_orders.conflict_on_deadlock(cast(AsyncSession, other)):
             raise DBAPIError("UPDATE", {}, Exception("something else"))
     assert not other.rolled_back
+
+
+@pytest.mark.asyncio
+async def test_a_retried_refund_in_full_reuses_the_refund_id(
+    db_async: AsyncSession,
+    async_client: httpx.AsyncClient,
+    events_db: SessionFactory,
+    stripe_env: payments_conftest.StripeStub,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """#513: the outbox retries ``refund_in_full`` after a lost response. Both
+    attempts must carry the same refund id, so Stripe's ``refund-<id>`` idempotency
+    key matches and the provider refunds once."""
+    shop = await _shop_with_events(db_async, events_db)
+    order_id, _ = await _pending(db_async, shop)
+    await _pay_stripe(db_async, async_client, order_id)
+    sent: list[object] = []
+    real_refund_intent = payments_service.refund_intent
+
+    async def lost_then_retried(*args: Any, **kwargs: Any) -> Any:
+        sent.append(kwargs.get("refund_id"))
+        if len(sent) == 1:
+            raise RuntimeError("the provider response was lost")
+        return await real_refund_intent(*args, **kwargs)
+
+    monkeypatch.setattr(payments_service, "refund_intent", lost_then_retried)
+    for _ in range(2):
+        try:
+            await order_payments.refund_in_full(
+                db_async,
+                organisation_id=shop.organisation_id,
+                order_id=uuid.UUID(order_id),
+                reason="Event cancelled",
+            )
+        except RuntimeError:
+            await db_async.rollback()
+    await db_async.commit()
+
+    expected = order_refunds.refund_id_for(
+        uuid.UUID(order_id), order_payments.FULL_REFUND_KEY
+    )
+    assert sent == [expected, expected]
+    assert sum(r.url.path == "/v1/refunds" for r in stripe_env.requests) == 1
+    assert await _refund_rows(db_async, order_id) == 1

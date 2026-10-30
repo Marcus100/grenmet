@@ -139,6 +139,26 @@ it("keeps seconds when loading an existing draft and prompts before replacing ed
   );
 });
 
+it("reselecting the current report type starts a fresh draft", async () => {
+  vi.stubGlobal(
+    "fetch",
+    vi.fn(async () => json({ drafts: [saved] }))
+  );
+  render(<AviationDraft />);
+  fireEvent.click(screen.getByText("Load saved drafts"));
+  fireEvent.click(
+    await screen.findByText(`Revision 1 · ${saved.updated_at} · Forecaster`)
+  );
+  expect(screen.getByLabelText("Coded message (UTC time groups)")).toHaveValue(
+    saved.message
+  );
+  // The saved draft is a METAR; clicking METAR again clears it for a new one.
+  fireEvent.click(screen.getByText("METAR"));
+  expect(screen.getByLabelText("Coded message (UTC time groups)")).toHaveValue(
+    ""
+  );
+});
+
 it("shows which group and rule failed, and clears findings when the text changes", async () => {
   let posted: Record<string, unknown> = {};
   vi.stubGlobal(

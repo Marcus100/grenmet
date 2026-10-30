@@ -26,3 +26,7 @@ export const wxwatchRegisterDerivationErrorSchema =
   wxwatchRegisterDerivationStatus422Schema;
 
 export const wxwatchRegisterDerivationBodySchema = derivationInputSchema;
+
+export const wxwatchRegisterDerivationHeadersSchema = z.object({
+  authorization: z.union([z.string(), z.null()]).optional(),
+});

@@ -30,3 +30,7 @@ export const hrDeleteStatusReportErrorSchema = z.union([
   hrDeleteStatusReportStatus404Schema,
   hrDeleteStatusReportStatus422Schema,
 ]);
+
+export const hrDeleteStatusReportPathSchema = z.object({
+  report_id: z.uuid(),
+});

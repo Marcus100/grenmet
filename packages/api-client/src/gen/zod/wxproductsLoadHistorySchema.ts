@@ -32,3 +32,7 @@ export const wxproductsLoadHistoryErrorSchema = z.union([
   wxproductsLoadHistoryStatus422Schema,
   wxproductsLoadHistoryStatus503Schema,
 ]);
+
+export const wxproductsLoadHistoryPathSchema = z.object({
+  product_id: z.uuid(),
+});

@@ -18,8 +18,8 @@ export function bulletinExample(kind: ProductKind, date: string) {
   }
   values.forecaster = "EXAMPLE — not issued";
   values.validTo = `${date}T22:00`;
-  values.level = kind === "heat" ? "Yellow" : "Yellow";
-  values.notice = kind === "heat" ? "Watch" : "Advisory";
+  values.level = "Green";
+  values.notice = "Advisory";
   values.likelihood = "Medium";
   values.impact = "Minor";
   values.synopsis =

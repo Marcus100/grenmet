@@ -1,0 +1,47 @@
+---
+title: The GMS/GAA portal, the eRegister and safer sign-in
+summary: Version 1.0.0 is the first tagged release since v0.31. It brings green-only GMS alerts with a raise-to-warning flow, the hourly eRegister, HR clock-in approval, stricter sign-in and a WMO impact matrix for alerts.
+date: 2026-10-27
+release: 1.0.0
+---
+
+Version 1.0.0 is the first tagged release since v0.31. Everything in it ran on
+staging before it reached production.
+
+### Weather service
+
+- **Alerts:** GMS alerts are now green only. Yellow, orange and red are CAP
+  warnings, started from a **Raise to warning** button that opens a pre-filled
+  CAP draft. Raising again opens the existing warning instead of a second one.
+- **Impact matrix:** alerts use the WMO 4×4 likelihood-by-impact grid with a
+  suggested colour. A forecaster can override it with a reason, which stays
+  internal and never appears in published XML, JSON or feeds.
+- **Forecasts:** the tropical outlook moved under Forecasts, with each storm
+  tracked as its own system.
+- **Notifications:** each person chooses the bell and the email for every event;
+  urgent events always reach the bell.
+
+### eRegister
+
+- An observation store and a publish gate, so each station-hour is published by
+  exactly one source.
+- Optional review, corrections, verification rules, hour-to-hour warnings and a
+  METAR cross-check. Pressures and humidity are calculated.
+
+### HR
+
+- Phone clock-in punches wait for a supervisor's approval, and one rule decides
+  who may review them.
+
+### Accounts and security
+
+- Organisation-bound permissions, membership grants and team management.
+- Exact sign-in return addresses, and authenticator support for superusers.
+
+### Platform
+
+- A pre-migration backup gate, and web apps call the API on the internal network.
+- Every server-made PDF sends the same safe headers and file names.
+
+The full list is in the
+[v1.0.0 release notes](https://github.com/Marcus100/grenmet/releases/tag/v1.0.0).

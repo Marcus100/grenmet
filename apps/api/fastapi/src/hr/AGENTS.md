@@ -23,3 +23,6 @@ For cross-form attendance, roster and PDF alignment, follow `docs/hr/end-to-end-
 
 ## Related
 ADR-0008, ADR-0009, `apps/web/gaa-admin/AGENTS.md` (`/hr` routes), `docs/hr/`.
+
+## Ending employment (#789)
+Setting status to TERMINATED or INACTIVE through `update_employment_for_user` expires the user's role assignments of every scope (except the SELF-scope `staff` role) in that organisation, with audit entries; reinstating does not restore them. INACTIVE is therefore permanent for roles: do not use it for temporary leave or suspension. A user cannot change their own employment status.

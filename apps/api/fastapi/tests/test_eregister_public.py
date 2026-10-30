@@ -15,8 +15,9 @@ from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.pool import NullPool
 
 from alembic import command
-from src.eregister import public
+from src.eregister import public, rules
 from src.eregister.dependencies import get_public_session
+from src.eregister.schemas import SynopWorkbook
 from src.main import app
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -84,10 +85,49 @@ def test_decode_workbook_into_public_units():
         ({"precip_amount": "993"}, "rain_mm", 0.3),
         ({"present_wx": "95"}, "weather", "Thunderstorm"),
         ({"pressure_tendency": "7"}, "pressure_trend", "falling"),
+        # Item 8, typed in kilometres; the coded VV is read back only when absent.
+        ({"visibility_km": "12.5"}, "visibility_km", 12.5),
+        ({"visibility_km": "", "visibility": "62"}, "visibility_km", 12.0),
+        ({"visibility_km": "", "visibility": "08"}, "visibility_km", 0.8),
+        ({"visibility_km": "", "visibility": "83"}, "visibility_km", 45.0),
+        ({"visibility_km": "", "visibility": "96"}, "visibility_km", None),
+        ({"visibility_km": "abc"}, "visibility_km", None),
+        # Item 11, the gust cell, in the register's wind unit (knots here).
+        ({"wind_gust": "25"}, "wind_gust_kt", 25),
+        ({"wind_gust": "25"}, "wind_gust_mph", 29),
+        ({"wind_indicator": "1", "wind_gust": "10"}, "wind_gust_kt", 19),
+        ({"wind_gust": ""}, "wind_gust_kt", None),
+        # Section 3 extremes, coded like the air temperature.
+        ({"s3_max_temp": "318"}, "max_temperature_c", 31.8),
+        ({"s3_min_temp": "1022"}, "min_temperature_c", -2.2),
+        ({"s3_max_temp": ""}, "max_temperature_c", None),
+        # Item 7, the lowest cloud base band (Code table 1600).
+        ({"cloud_base": "5"}, "cloud_base_min_m", 600),
+        ({"cloud_base": "5"}, "cloud_base_max_m", 1000),
+        ({"cloud_base": "9"}, "cloud_base_min_m", 2500),
+        ({"cloud_base": "9"}, "cloud_base_max_m", None),
+        ({"cloud_base": "5", "total_cloud": "0"}, "cloud_base_min_m", None),
+        ({"cloud_base": "/"}, "cloud_base_min_m", None),
     ],
 )
 def test_decode_edge_codes(body, field, expected):
     assert getattr(public.decode(row(**body)), field) == expected
+
+
+def test_decode_relative_humidity_in_group_2_gives_dew_point_and_humidity():
+    # 2 9UUU: sign 9 means the group carries relative humidity, as in rules.py.
+    result = public.decode(row(air_temp="0280", dew_point="9080"))
+    assert result.relative_humidity == 80
+    decoded = rules.validate_synop(
+        SynopWorkbook.model_validate({"air_temp": "0280", "dew_point": "9080"})
+    )[1]
+    assert decoded.dew_point_k is not None
+    assert result.dew_point_c == round(decoded.dew_point_k - 273.15, 1)
+    assert 24.0 <= result.dew_point_c <= 25.0
+    # Out of range humidity and a missing air temperature leave the dew point out.
+    assert public.decode(row(air_temp="0280", dew_point="9101")).dew_point_c is None
+    assert public.decode(row(air_temp="", dew_point="9080")).dew_point_c is None
+    assert public.decode(row(air_temp="", dew_point="9080")).relative_humidity == 80
 
 
 def test_decode_nested_workbook_and_accepted_state():

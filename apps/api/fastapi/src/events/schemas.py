@@ -4,8 +4,9 @@ import uuid
 from datetime import date
 from typing import Annotated, Literal
 
-from pydantic import Field, StringConstraints
+from pydantic import Field, StringConstraints, field_validator
 
+from src.events.urls import normalise_https_url
 from src.models import BaseModel, UtcDateTime
 from src.payments.models import IntentStatus, ProviderKey
 
@@ -31,6 +32,10 @@ Parish = Literal[
     "carriacou",
 ]
 Admission = Literal["free", "rsvp", "ticketed"]
+ListingType = Literal["event", "experience", "class", "attraction", "service"]
+AccessType = Literal["public", "private"]
+PricingType = Literal["free", "paid", "donation"]
+BookingMode = Literal["rsvp", "tickets", "slots", "enquiry", "none", "external"]
 Intent = Literal[
     "making-friends", "hiring", "looking-for-work", "collaborating", "mentoring"
 ]
@@ -84,6 +89,15 @@ class ListingCard(BaseModel):
     #: Null for anonymous visitors.
     viewer_going: bool | None = None
     viewer_saved: bool | None = None
+    # Catalogue classification (ADR-0046); additive, with defaults.
+    listing_type: ListingType = "event"
+    access_type: AccessType = "public"
+    pricing_type: PricingType = "free"
+    booking_mode: BookingMode = "none"
+    category_slug: str | None = None
+    subcategory_slug: str | None = None
+    #: Where to buy tickets when `booking_mode` is `external` (https only).
+    external_ticket_url: str | None = None
 
 
 class ListingCardList(BaseModel):
@@ -313,6 +327,37 @@ class ListingUpsert(BaseModel):
     tiers: list[TierInput] = Field(default_factory=list, max_length=20)
     #: A completed `listing-image` upload of this organiser; null clears it.
     image_file_id: uuid.UUID | None = None
+    # Catalogue classification (ADR-0046). Omitted fields keep the listing's
+    # current value (new listings: event / public / derived from `admission`).
+    listing_type: ListingType | None = None
+    access_type: AccessType | None = None
+    pricing_type: PricingType | None = None
+    booking_mode: BookingMode | None = None
+    #: Top-level category slug; `subcategory_slug` must belong to it.
+    category_slug: str | None = Field(default=None, pattern=SLUG_PATTERN)
+    subcategory_slug: str | None = Field(default=None, pattern=SLUG_PATTERN)
+    #: Reserved for staff curation (ADR-0048): organisers cannot set it, and
+    #: booking mode `external` with it. Kept for the curation routes.
+    external_ticket_url: str | None = Field(default=None, max_length=500)
+
+    @field_validator("external_ticket_url")
+    @classmethod
+    def _external_link(cls, value: str | None) -> str | None:
+        if value is None:
+            return None
+        normalise_https_url(value)  # a bad link is a format error first
+        raise ValueError("external_ticket_url is set by Barrels staff, not organisers")
+
+    @field_validator("booking_mode")
+    @classmethod
+    def _reserved_modes(cls, value: BookingMode | None) -> BookingMode | None:
+        if value == "slots":
+            raise ValueError("booking_mode 'slots' is reserved")
+        if value == "external":
+            raise ValueError(
+                "booking_mode 'external' is set by Barrels staff, not organisers"
+            )
+        return value
 
 
 class ManagedListing(ListingDetail):
@@ -356,6 +401,8 @@ class ActivityEntry(BaseModel):
     actor_id: uuid.UUID
     #: Display name from the actor's current profile; null once they have none.
     actor_name: str | None = None
+    #: `staff` when Barrels staff acted for the organiser, else `member`.
+    actor_capacity: Literal["member", "staff"] = "member"
     summary: dict[str, object]
     created_at: UtcDateTime
 
@@ -934,3 +981,41 @@ class OrgOrderCancelResult(BaseModel):
     #: ``refunded`` money went back, ``queued`` the provider refund was handed to
     #: the outbox, ``kept`` it was not refunded, ``not_due`` nothing was paid.
     refund_outcome: Literal["refunded", "queued", "kept", "not_due"]
+
+
+class EventCategorySub(BaseModel):
+    slug: str
+    name: str
+    applies_to: list[ListingType]
+    sort_order: int
+    #: Upcoming published public listings in this subcategory.
+    listing_count: int
+
+
+class EventCategoryNode(EventCategorySub):
+    children: list[EventCategorySub]
+
+
+class EventCategoryTree(BaseModel):
+    data: list[EventCategoryNode]
+
+
+class StaffEventRow(BaseModel):
+    """One event in the Barrels staff picker. No personal data."""
+
+    listing_id: uuid.UUID
+    title: str
+    status: str
+    starts_at: UtcDateTime
+    organiser_id: uuid.UUID
+    organiser_name: str
+    #: Send as `X-Barrels-Organisation` on the org-zone routes to act for it.
+    organisation_id: str
+
+
+class StaffOrganiserRow(BaseModel):
+    """One organiser that staff can act for. No personal data."""
+
+    organiser_id: uuid.UUID
+    name: str
+    organisation_id: str

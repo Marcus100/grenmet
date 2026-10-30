@@ -2,14 +2,14 @@ import type { Metadata, Route } from "next";
 import Link from "next/link";
 import { ChartViewport } from "@/components/chart-viewport";
 import { CalculationNote, EvidenceCitation } from "@/components/learn/evidence";
-import { FlatMap } from "@/components/map/flat-map";
+import { LevelMap } from "@/components/map/level-map";
 import { PageHead, Section } from "@/components/section";
 import { geo, register, results } from "@/data/load";
-import { CODES, constituencyHref, constituencyName } from "@/data/model";
+import { constituencyHref, constituencyName } from "@/data/model";
 import {
   addendumTotals,
+  constituencyGrowth,
   divisionGrowth,
-  rollChecks,
   snapshotTotals,
 } from "@/data/register";
 import { fmt, formatIsoDate, pct } from "@/lib/format";
@@ -31,7 +31,6 @@ function growthFill(change: number): string {
 export default function RegisterPage() {
   const lists = snapshotTotals(register);
   const adds = addendumTotals(register);
-  const checks = rollChecks(register);
   const growth = divisionGrowth(register);
   const first = lists[0];
   const last = lists.at(-1);
@@ -47,23 +46,14 @@ export default function RegisterPage() {
   const y = (v: number) => H - 26 - ((v - minE) / (maxE - minE)) * (H - 44);
   const maxAdd = Math.max(...adds.map((a) => a.added));
 
-  const byCode = CODES.map((code) => {
-    const rows = growth.filter((g) => g.division.startsWith(code));
-    const a = rows.reduce((s, r) => s + r.first, 0);
-    const b = rows.reduce((s, r) => s + r.last, 0);
-    return {
-      code,
-      divisions: rows.length,
-      first: a,
-      last: b,
-      change: a ? (b - a) / a : 0,
-    };
-  }).sort((p, q) => q.change - p.change);
+  const byCode = constituencyGrowth(register).sort(
+    (p, q) => q.change - p.change
+  );
 
   return (
     <>
       <PageHead
-        deck="The Parliamentary Elections Office publishes the full list of electors, with names and addresses, every six months. This page uses only totals counted from those lists and shows no individual’s details."
+        deck="Dated aggregate counts from PEO non-police lists. These snapshots are not a voter-status lookup or a count of people who will vote."
         eyebrow={`Voter register · ${first.date.slice(0, 4)} to ${last.date.slice(0, 4)}`}
         learning="register"
         title="Who is on Grenada’s electoral roll"
@@ -71,7 +61,7 @@ export default function RegisterPage() {
         <dl className="mt-6 grid grid-cols-2 gap-4 border-el-rule border-t pt-4 lg:grid-cols-4">
           {[
             [
-              "Electors now",
+              "Latest snapshot",
               fmt(last.electors),
               `Consolidated list, ${formatIsoDate(last.date)}`,
             ],
@@ -81,14 +71,14 @@ export default function RegisterPage() {
               `from ${fmt(first.electors)}`,
             ],
             [
-              "Women",
+              "Recorded female",
               pct(last.female / (last.male + last.female)),
               "of electors with sex recorded",
             ],
             [
-              "New registrations",
+              "Addendum entries",
               fmt(adds.reduce((a, b) => a + b.added, 0)),
-              `in ${adds.length} quarterly addenda`,
+              `in ${adds.length} dated addenda`,
             ],
           ].map(([label, value, note]) => (
             <div key={label}>
@@ -101,6 +91,19 @@ export default function RegisterPage() {
           ))}
         </dl>
       </PageHead>
+
+      <div className="mx-auto mt-5 max-w-[1240px] space-y-2 px-4 text-base sm:px-6">
+        <p>
+          The 16 October PDF contains <b>95,908</b> records, including one
+          source sex code U. The PEO summary table dated 2 October reports{" "}
+          <b>97,020</b>; these remain separate, unresolved sources. Addenda
+          overlap the consolidated list and must not be added to its total.
+        </p>
+        <EvidenceCitation id="registerOctober" />
+        <Link className="inline-block underline" href="/sources#V-04">
+          Register discrepancies and source comparison →
+        </Link>
+      </div>
 
       <Section
         id="size"
@@ -187,7 +190,7 @@ export default function RegisterPage() {
       <Section
         id="new"
         intro="Electors listed in each PEO constituency addendum."
-        title="New registrations each quarter"
+        title="Entries in each addendum"
       >
         <ul className="max-w-3xl space-y-1.5 text-base">
           {adds.map((a) => (
@@ -211,88 +214,27 @@ export default function RegisterPage() {
       </Section>
 
       <Section
-        id="adds-up"
-        intro={
-          <>
-            Previous list + new registrations − next list = people removed or
-            transferred. The PEO doesn’t publish removals, so these are implied;
-            see{" "}
-            <Link className="underline underline-offset-2" href="/sources#V-01">
-              V-01
-            </Link>
-            .
-          </>
-        }
-        title="Does the roll add up?"
-      >
-        <div className="overflow-x-auto">
-          <table className="w-full min-w-[560px] text-base">
-            <thead>
-              <tr className="border-el-ink border-b text-left">
-                {[
-                  "From",
-                  "To",
-                  "Previous list",
-                  "Added",
-                  "Next list",
-                  "Implied removals",
-                ].map((h, i) => (
-                  <th
-                    className={`py-2 pr-3 font-semibold ${i > 1 ? "text-right" : ""}`}
-                    key={h}
-                    scope="col"
-                  >
-                    {h}
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {checks.map((c) => (
-                <tr className="border-el-rule border-b" key={c.from}>
-                  <td className="py-1.5 pr-3 tabular-nums">
-                    {formatIsoDate(c.from)}
-                  </td>
-                  <td className="py-1.5 pr-3 tabular-nums">
-                    {formatIsoDate(c.to)}
-                  </td>
-                  <td className="py-1.5 pr-3 text-right tabular-nums">
-                    {fmt(c.previous)}
-                  </td>
-                  <td className="py-1.5 pr-3 text-right tabular-nums">
-                    {fmt(c.added)}
-                  </td>
-                  <td className="py-1.5 pr-3 text-right tabular-nums">
-                    {fmt(c.next)}
-                  </td>
-                  <td className="py-1.5 pr-3 text-right font-semibold tabular-nums">
-                    {fmt(c.implied)}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </Section>
-
-      <Section
         id="where"
         intro={`Change in electors by polling division, ${formatIsoDate(first.date)} to ${formatIsoDate(last.date)}.`}
         title="Where the roll grew"
       >
         <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
           <figure>
-            <FlatMap
-              geo={geo}
-              label="Change in electors by polling division"
-              level="div"
-              regions={growth.map((g) => ({
+            <LevelMap
+              constituencyRegions={byCode.map((g) => ({
+                code: g.code,
+                fill: g.first ? growthFill(g.change) : "var(--el-paper-2)",
+                title: `${constituencyName(results, g.code)}: ${fmt(g.first)} → ${fmt(g.last)}${g.first ? ` (${pct(g.change)})` : ""}`,
+              }))}
+              divisionRegions={growth.map((g) => ({
                 code: g.division,
                 fill: g.first
                   ? growthFill((g.last - g.first) / g.first)
                   : "var(--el-paper-2)",
                 title: `${g.division}: ${fmt(g.first)} → ${fmt(g.last)}${g.first ? ` (${pct((g.last - g.first) / g.first)})` : ""}`,
               }))}
+              geo={geo}
+              label="Change in electors"
             />
             <figcaption className="mt-2 text-base">
               <span className="flex items-center gap-2">
@@ -361,8 +303,8 @@ export default function RegisterPage() {
 
       <Section
         id="jobs"
-        intro="The most common job titles as written on the lists. Titles are free text, so similar jobs are spelled different ways; treat these as rough."
-        title="Most common job titles"
+        intro="Historical registration labels retained from June 2026, not a current employment survey."
+        title="Occupation labels — June 2026"
       >
         <ol className="grid max-w-4xl gap-x-8 gap-y-1 text-base sm:grid-cols-2 lg:grid-cols-3">
           {register.topOccupations.slice(0, 24).map(([title, n], i) => (

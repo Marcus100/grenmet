@@ -156,7 +156,7 @@ export default function UserInfoCard({
   const fullName = `${profile.profile.first_name} ${profile.profile.last_name}`;
 
   return (
-    <div className="rounded-2xl border border-border p-5 lg:p-6">
+    <div className="rounded-xl border border-border p-5 lg:p-6">
       {isOpen ? (
         <div className="w-full">
           <div className="px-2 pr-14">

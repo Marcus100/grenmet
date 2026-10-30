@@ -250,13 +250,15 @@ async def create_intent(
     organisation_id: str,
     actor: User | None,
     payload: schemas.PaymentIntentCreate,
+    checkout_title: str | None = None,
 ) -> schemas.PaymentCheckoutPublic:
     """Create an intent (idempotent per organisation and ``idempotency_key``).
 
     A repeat with the same key and the same request returns the first intent; the
     same key with a different request is a 409. ``actor`` is the signed-in member,
     or ``None`` when the system acts for an anonymous customer (a public booking
-    deposit): ``created_by_user_id`` is then NULL.
+    deposit): ``created_by_user_id`` is then NULL. ``checkout_title`` is the human
+    name the buyer sees on the hosted checkout (not stored; no personal data).
     """
     # Resolve the provider first so an unavailable rail fails before any row exists.
     provider = registry.get_provider(payload.provider.value)
@@ -294,7 +296,7 @@ async def create_intent(
             raise
         return await _replay(session, existing, payload)
 
-    start = await provider.create_payment(intent)
+    start = await provider.create_payment(intent, title=checkout_title)
     intent.provider_ref = start.provider_ref
     intent.checkout_url = start.checkout_url
     if start.checkout_url is not None:

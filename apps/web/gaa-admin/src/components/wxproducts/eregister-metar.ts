@@ -2,7 +2,8 @@ import { tenthsToCelsius } from "./eregister-readings";
 
 // Illustrative METAR built from the coded SYNOP workbook so the observer can
 // compare the two. It is a preview, not a transmitted message: QNH is taken
-// from the MSL pressure group, and missing elements use the automatic-station
+// from the MSL pressure group, rounded down; once checked, the server's
+// expected METAR (which applies the station's QNH offset) replaces it, and missing elements use the automatic-station
 // placeholders (/////KT, ////, //////). The API validates; this only renders.
 
 type Values = Record<string, string>;
@@ -137,7 +138,7 @@ export function pressureGroup(group: string | undefined): string {
   const value = digits(group, 4);
   if (value === null) return "Q////";
   const hpa = value / 10 + (value >= PRESSURE_THOUSANDS_BOUNDARY ? 0 : 1000);
-  return `Q${String(Math.round(hpa)).padStart(4, "0")}`;
+  return `Q${String(Math.floor(hpa)).padStart(4, "0")}`;
 }
 
 /** `iso` is an ISO-8601 UTC time, e.g. 2026-09-29T12:00:00.000Z. */

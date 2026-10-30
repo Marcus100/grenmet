@@ -11,8 +11,8 @@ import type {
 } from "../models/SubscriptionsUnsubscribe.js";
 
 /**
- * @description Follows the emailed unsubscribe link, then redirects to the list's site with a result in the query string.
- * @summary Unsubscribe from a mailing list
+ * @description Follows an emailed unsubscribe link to the confirmation page at `/subscriptions/unsubscribe/confirm`. Changes nothing, so mail scanners that open links cannot unsubscribe anyone. The unsubscribe itself is `POST`.
+ * @summary Open the unsubscribe page
  * {@link /api/v1/subscriptions/unsubscribe}
  */
 export function subscriptionsUnsubscribe<ThrowOnError extends boolean = true>(

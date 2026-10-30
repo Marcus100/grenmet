@@ -58,3 +58,18 @@ export const bookingsCreateStudioBookingBodySchema =
   bookingStudioCreateSchema.describe(
     "A booking the business enters itself: phone, walk-in or a re-entered\nappointment. Sent with an `Idempotency-Key` header."
   );
+
+export const bookingsCreateStudioBookingHeadersSchema = z.object({
+  "X-Barrels-Organisation": z
+    .union([z.string(), z.null()])
+    .optional()
+    .describe(
+      "Id of the organisation the request acts for. Required for a signed-in member (account or bookings app session); ignored with an organisation API key."
+    ),
+  "Idempotency-Key": z
+    .union([z.string().max(255), z.null()])
+    .optional()
+    .describe(
+      "Required. Client-chosen key (for example a UUID) that makes a retried request safe."
+    ),
+});

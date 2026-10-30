@@ -77,6 +77,7 @@ def build():
                 "electors": v[0],
                 "female": v[1],
                 "male": v[2],
+                "other_or_unspecified": v[0] - v[1] - v[2],
             }
             for s in register["snapshots"]
             for d, v in sorted(s["div"].items())

@@ -1,0 +1,3 @@
+# Shared ignores are inherited from the repository .gitignore.
+/next-env.d.ts
+/.content-collections

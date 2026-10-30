@@ -1,19 +1,35 @@
-import { Avatar, AvatarFallback } from "@barrelsgd/ui/components/ui/avatar";
+import {
+  Avatar,
+  AvatarFallback,
+  AvatarImage,
+} from "@barrelsgd/ui/components/ui/avatar";
 import { cn } from "@barrelsgd/ui/lib/utils";
 import { initials } from "@/domain/labels";
+import { storedImageUrl } from "@/lib/stored-image";
 
 /** Initials avatar; profile photos arrive with uploads. */
 export function PersonAvatar({
   className,
+  imageFileId,
   name,
   size = "default",
 }: {
   className?: string;
+  /** A stored public image (an organiser logo); initials show until it loads or if it fails. */
+  imageFileId?: string | null;
   name: string;
   size?: "default" | "sm" | "lg";
 }) {
   return (
     <Avatar className={className} size={size}>
+      {imageFileId ? (
+        <AvatarImage
+          alt={`${name} logo`}
+          className="object-cover"
+          loading="lazy"
+          src={storedImageUrl(imageFileId)}
+        />
+      ) : null}
       <AvatarFallback
         className={cn("bg-events-ink font-semibold text-events-lime")}
       >

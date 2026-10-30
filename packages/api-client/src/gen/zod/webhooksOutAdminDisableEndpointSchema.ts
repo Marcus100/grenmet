@@ -38,3 +38,7 @@ export const webhooksOutAdminDisableEndpointErrorSchema = z.union([
 
 export const webhooksOutAdminDisableEndpointBodySchema =
   webhookAdminDisableSchema;
+
+export const webhooksOutAdminDisableEndpointPathSchema = z.object({
+  endpoint_id: z.string(),
+});

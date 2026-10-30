@@ -3,6 +3,7 @@
 import { cn } from "@barrelsgd/ui/lib/utils";
 import { useEffect, useId, useMemo, useState } from "react";
 import { Flag } from "@/components/flag";
+import { MapLevelView } from "@/components/map/map-level-view";
 import { partyColor, partyFillIsDark } from "@/data/parties";
 import {
   decodeMap,
@@ -268,46 +269,51 @@ export function PredictionTool({ seats, land, inset }: Props) {
 
       <div className="grid gap-6 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)]">
         <figure>
-          <svg className="h-auto w-full" viewBox="-15.5 -25.5 43 41.5">
-            <title>Your map. Select a constituency to rate it.</title>
-            <path d={land} fill="var(--el-land)" />
-            {seats.map((s) => (
-              // An SVG link is the focusable, semantic control inside a map;
-              // it jumps to the rating picker as well as selecting the seat.
-              <a
-                aria-label={`${s.name}: ${map[s.code]}. Select to rate.`}
-                className="cursor-pointer outline-none hover:opacity-85 focus-visible:opacity-85"
-                href={`#${pickerId}`}
-                key={s.code}
-                onClick={(e) => {
-                  e.preventDefault();
-                  select(s.code);
-                }}
-              >
-                <path
-                  className={
-                    selected === s.code
-                      ? "stroke-(--el-ink) [stroke-width:0.25]"
-                      : "stroke-(--el-paper) [stroke-width:0.06]"
-                  }
-                  d={s.d}
-                  fill={ratingFill(map[s.code])}
-                >
-                  <title>{`${s.name}: ${map[s.code]}`}</title>
-                </path>
-              </a>
-            ))}
-            <rect
-              fill="none"
-              height={inset.y1 - inset.y0}
-              stroke="var(--el-rule-2)"
-              strokeDasharray=".5 .35"
-              strokeWidth={0.08}
-              width={inset.x1 - inset.x0}
-              x={inset.x0}
-              y={-inset.y1}
-            />
-          </svg>
+          <MapLevelView
+            constituencyMap={
+              <svg className="h-auto w-full" viewBox="-15.5 -25.5 43 41.5">
+                <title>Your map. Select a constituency to rate it.</title>
+                <path d={land} fill="var(--el-land)" />
+                {seats.map((s) => (
+                  // An SVG link is the focusable, semantic control inside a map;
+                  // it jumps to the rating picker as well as selecting the seat.
+                  <a
+                    aria-label={`${s.name}: ${map[s.code]}. Select to rate.`}
+                    className="cursor-pointer outline-none hover:opacity-85 focus-visible:opacity-85"
+                    href={`#${pickerId}`}
+                    key={s.code}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      select(s.code);
+                    }}
+                  >
+                    <path
+                      className={
+                        selected === s.code
+                          ? "stroke-(--el-ink) [stroke-width:0.25]"
+                          : "stroke-(--el-paper) [stroke-width:0.06]"
+                      }
+                      d={s.d}
+                      fill={ratingFill(map[s.code])}
+                    >
+                      <title>{`${s.name}: ${map[s.code]}`}</title>
+                    </path>
+                  </a>
+                ))}
+                <rect
+                  fill="none"
+                  height={inset.y1 - inset.y0}
+                  stroke="var(--el-rule-2)"
+                  strokeDasharray=".5 .35"
+                  strokeWidth={0.08}
+                  width={inset.x1 - inset.x0}
+                  x={inset.x0}
+                  y={-inset.y1}
+                />
+              </svg>
+            }
+            unavailableReason="Your ratings apply to whole constituencies; polling-division ratings are unavailable."
+          />
           <figcaption className="text-base text-el-muted">
             Select a constituency on the map, the bar or the list to rate it.
             Boundaries are illustrative.

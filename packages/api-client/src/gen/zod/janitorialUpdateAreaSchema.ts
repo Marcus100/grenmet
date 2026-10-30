@@ -44,3 +44,7 @@ export const janitorialUpdateAreaErrorSchema = z.union([
 ]);
 
 export const janitorialUpdateAreaBodySchema = areaUpdateSchema;
+
+export const janitorialUpdateAreaPathSchema = z.object({
+  area_id: z.int(),
+});

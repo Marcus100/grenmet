@@ -16,6 +16,7 @@ import { AlertTriangle, CircleX } from "lucide-react";
 import type { Route } from "next";
 import Link from "next/link";
 import type { ReactNode } from "react";
+import { PageHeader } from "@/components/layout/page-header";
 import { VERSION_STATE_LABELS } from "@/lib/transport/timetable";
 
 export function BusHeader({
@@ -30,7 +31,7 @@ export function BusHeader({
   title: string;
 }) {
   return (
-    <header className="space-y-2">
+    <div className="space-y-2">
       {crumbs.length > 0 ? (
         <Breadcrumb>
           <BreadcrumbList>
@@ -48,16 +49,8 @@ export function BusHeader({
           </BreadcrumbList>
         </Breadcrumb>
       ) : null}
-      <div className="flex flex-wrap items-end justify-between gap-3">
-        <div className="min-w-0 space-y-1">
-          <h1 className="font-semibold text-2xl tracking-tight">{title}</h1>
-          {children ? (
-            <p className="text-muted-foreground text-sm">{children}</p>
-          ) : null}
-        </div>
-        {actions ? <div className="flex flex-wrap gap-2">{actions}</div> : null}
-      </div>
-    </header>
+      <PageHeader actions={actions} description={children} title={title} />
+    </div>
   );
 }
 

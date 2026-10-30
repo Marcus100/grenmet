@@ -5,12 +5,15 @@ Periods (docs/security.md, Data retention):
 * ``contact_message`` and ``contact_data_request``: deleted 24 months after
   closing. Neither table has a status, so a request counts as closed when it is
   created and the clock is ``created_at`` + 24 calendar months.
-* ``list_subscription`` rows still ``pending`` 30 days after ``requested_at``
-  (never confirmed): deleted.
+* ``list_subscription`` rows still ``pending`` after their newest confirmation
+  link lapsed (``SUBSCRIPTIONS_CONFIRM_TTL_DAYS``, default 7 days): deleted. The
+  reader's confirm link then says it has expired and offers a fresh sign-up.
 * ``page_feedback`` comments older than 24 months: the free text is nulled. The
   row stays so helpful / not helpful counts per page do not change.
 * ``platform.idempotency_key`` rows past ``expires_at`` (24 hours): deleted.
 * ``platform.outbox`` rows ``done`` or ``dead`` for 30 days: deleted.
+* ``notification_occurrence`` rows older than 30 days: the grouped-notification
+  lookback is 24 to 48 hours, so older rows can never suppress anything.
 * ``bookings.booking.manage_token_hash`` for bookings that ended over 90 days
   ago: cleared, so the old manage link stops working.
 
@@ -22,15 +25,17 @@ import logging
 from dataclasses import dataclass
 from datetime import datetime, timedelta
 
-from sqlalchemy import ColumnElement, delete, inspect, select, update
+from sqlalchemy import ColumnElement, delete, func, inspect, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.bookings.models import Booking
 from src.contact.models import ContactDataRequest, ContactMessage
 from src.feedback.models import PageFeedback
 from src.idempotency import IdempotencyKey
+from src.notifications.models import NotificationOccurrence
 from src.orm import Base
 from src.outbox import Outbox, OutboxStatus
+from src.subscriptions import service as subscription_service
 from src.subscriptions.models import ListSubscription, SubscriptionStatus
 from src.utils.datetime import utc_now
 
@@ -38,9 +43,9 @@ logger = logging.getLogger(__name__)
 
 CONTACT_RETENTION_MONTHS = 24
 FEEDBACK_COMMENT_RETENTION_MONTHS = 24
-PENDING_SUBSCRIPTION_DAYS = 30
 OUTBOX_RETENTION_DAYS = 30
 BOOKING_TOKEN_RETENTION_DAYS = 90
+NOTIFICATION_OCCURRENCE_RETENTION_DAYS = 30
 BATCH_SIZE = 500
 
 
@@ -53,6 +58,7 @@ class PurgeResult:
     idempotency_keys: int = 0
     outbox_rows: int = 0
     booking_tokens: int = 0
+    notification_occurrences: int = 0
 
     @property
     def total(self) -> int:
@@ -64,6 +70,7 @@ class PurgeResult:
             + self.idempotency_keys
             + self.outbox_rows
             + self.booking_tokens
+            + self.notification_occurrences
         )
 
 
@@ -82,7 +89,7 @@ def months_before(moment: datetime, months: int) -> datetime:
 async def _delete_batched(
     session: AsyncSession, model: type[Base], *conditions: ColumnElement[bool]
 ) -> int:
-    # Every retained model has a single-column primary key ("id").
+    # Every retained model has a single-column primary key.
     primary_key = inspect(model).primary_key[0]
     total = 0
     while True:
@@ -138,9 +145,10 @@ async def purge_expired(
     now = now or utc_now()
     contact_cutoff = months_before(now, CONTACT_RETENTION_MONTHS)
     feedback_cutoff = months_before(now, FEEDBACK_COMMENT_RETENTION_MONTHS)
-    pending_cutoff = now - timedelta(days=PENDING_SUBSCRIPTION_DAYS)
+    pending_cutoff = subscription_service.pending_expiry_cutoff(now)
     outbox_cutoff = now - timedelta(days=OUTBOX_RETENTION_DAYS)
     token_cutoff = now - timedelta(days=BOOKING_TOKEN_RETENTION_DAYS)
+    occurrence_cutoff = now - timedelta(days=NOTIFICATION_OCCURRENCE_RETENTION_DAYS)
 
     result = PurgeResult(
         contact_messages=await _delete_batched(
@@ -153,7 +161,12 @@ async def purge_expired(
             session,
             ListSubscription,
             ListSubscription.status == SubscriptionStatus.PENDING.value,
-            ListSubscription.requested_at < pending_cutoff,
+            # The newest link's lifetime runs from when it was sent.
+            func.coalesce(
+                ListSubscription.last_confirmation_sent_at,
+                ListSubscription.requested_at,
+            )
+            < pending_cutoff,
         ),
         feedback_comments=await _null_comments_batched(session, feedback_cutoff),
         idempotency_keys=await _delete_batched(
@@ -166,6 +179,11 @@ async def purge_expired(
             Outbox.updated_at < outbox_cutoff,
         ),
         booking_tokens=await _clear_booking_tokens_batched(session, token_cutoff),
+        notification_occurrences=await _delete_batched(
+            session,
+            NotificationOccurrence,
+            NotificationOccurrence.created_at < occurrence_cutoff,
+        ),
     )
     logger.info(
         "Retention purge finished",
@@ -177,6 +195,7 @@ async def purge_expired(
             "idempotency_keys": result.idempotency_keys,
             "outbox_rows": result.outbox_rows,
             "booking_tokens": result.booking_tokens,
+            "notification_occurrences": result.notification_occurrences,
         },
     )
     return result

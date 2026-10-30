@@ -13,7 +13,7 @@ from collections.abc import AsyncIterator, Awaitable
 from contextlib import asynccontextmanager
 from datetime import datetime
 
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.exc import DBAPIError
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import aliased
@@ -26,8 +26,21 @@ from src.organisations.exceptions import (
     GrantConflictError,
     MembershipNotFoundError,
 )
-from src.organisations.models import Membership, MembershipGrant, MembershipStatus
-from src.organisations.schemas import MembershipGrantPublic, RoleBundlePublic
+from src.organisations.models import (
+    Membership,
+    MembershipGrant,
+    MembershipRole,
+    MembershipStatus,
+)
+from src.organisations.schemas import (
+    MembershipGrantPublic,
+    RoleBundlePublic,
+    TeamCapabilitiesPublic,
+    TeamMemberGrantPublic,
+    TeamMemberListPublic,
+    TeamMemberPublic,
+)
+from src.pagination import PaginationParams
 
 logger = logging.getLogger(__name__)
 
@@ -120,9 +133,12 @@ async def list_bundles(
         if not products <= entitled:
             continue
         required = grants.required_keys(keys)
+        label, description = role_bundles.bundle_copy(role_key)
         result.append(
             RoleBundlePublic(
                 role_key=role_key,
+                label=label,
+                description=description,
                 product=sorted(products)[0],
                 permissions=sorted(keys),
                 grantable=required <= held,
@@ -131,16 +147,88 @@ async def list_bundles(
     return result
 
 
+async def managed_products(session: AsyncSession, context: OrgContext) -> set[str]:
+    """Products whose team-manage key the caller holds (owner and admin: every
+    entitled product); a lead never reads another product's roles."""
+    held = await grants.effective_keys(session, membership=context.membership)
+    return {role_bundles.product_of_key(k) for k in held if k.endswith(".team.manage")}
+
+
+async def my_capabilities(
+    session: AsyncSession, context: OrgContext
+) -> TeamCapabilitiesPublic:
+    role = MembershipRole(context.membership.role)
+    return TeamCapabilitiesPublic(
+        role=role,
+        managed_products=sorted(await managed_products(session, context)),
+        is_admin_or_owner=role in (MembershipRole.OWNER, MembershipRole.ADMIN),
+    )
+
+
+async def list_roster(
+    session: AsyncSession, context: OrgContext, page: PaginationParams
+) -> TeamMemberListPublic:
+    """Active members with their live grants for the caller's managed products.
+
+    Paginated in SQL; grants for the page come from one query. Display names
+    only: no emails or other personal data."""
+    products = await managed_products(session, context)
+    where = (
+        Membership.organisation_id == context.organisation_id,
+        Membership.status == MembershipStatus.ACTIVE.value,
+        User.is_active.is_(True),
+    )
+    total = await session.scalar(
+        select(func.count())
+        .select_from(Membership)
+        .join(User, User.id == Membership.user_id)
+        .where(*where)
+    )
+    rows = (
+        await session.execute(
+            select(Membership, User)
+            .join(User, User.id == Membership.user_id)
+            .where(*where)
+            .order_by(User.first_name, User.last_name, Membership.id)
+            .offset(page.skip)
+            .limit(page.limit)
+        )
+    ).all()
+    live = await grants.list_grants_for_memberships(
+        session,
+        organisation_id=context.organisation_id,
+        membership_ids=[m.id for m, _ in rows],
+        products=products,
+    )
+    return TeamMemberListPublic(
+        data=[
+            TeamMemberPublic(
+                membership_id=m.id,
+                name=_name(u) or "Member",
+                role=MembershipRole(m.role),
+                grants=[
+                    TeamMemberGrantPublic(
+                        id=g.id,
+                        role_key=g.role_key,
+                        granted_at=g.granted_at,
+                        expires_at=g.expires_at,
+                    )
+                    for g in live[m.id]
+                ],
+            )
+            for m, u in rows
+        ],
+        count=total or 0,
+        page=page.page,
+        size=page.size,
+    )
+
+
 async def list_member_grants(
     session: AsyncSession, context: OrgContext, *, membership_id: str
 ) -> list[MembershipGrantPublic]:
     await _active_membership(session, context.organisation_id, membership_id)
-    held = await grants.effective_keys(session, membership=context.membership)
-    # Only products whose team-manage key the caller holds (owner and admin: every
-    # entitled product); a lead never reads another product's roles.
-    products = {
-        role_bundles.product_of_key(k) for k in held if k.endswith(".team.manage")
-    }
+    products = await managed_products(session, context)
     live = await grants.list_grants(
         session,
         organisation_id=context.organisation_id,

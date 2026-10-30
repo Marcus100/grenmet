@@ -9,6 +9,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.contact.models import ContactDataRequest, ContactMessage
 from src.feedback.models import PageFeedback
+from src.subscriptions.config import subscriptions_settings
 from src.subscriptions.models import ListSubscription, SubscriptionStatus
 from src.worker import main, retention
 
@@ -129,22 +130,39 @@ async def test_only_stale_pending_subscriptions_are_deleted(
     db_async: AsyncSession,
 ) -> None:
     tag = _tag()
+    lapsed = NOW - timedelta(
+        days=subscriptions_settings.SUBSCRIPTIONS_CONFIRM_TTL_DAYS + 1
+    )
     stale = NOW - timedelta(days=30, seconds=1)
-    boundary = NOW - timedelta(days=30)
 
-    def sub(name: str, status: str, requested: datetime) -> ListSubscription:
+    def sub(
+        name: str,
+        status: str,
+        requested: datetime,
+        last_sent: datetime | None = None,
+    ) -> ListSubscription:
         return ListSubscription(
             list_key="signal",
             email=f"{name}{tag}@example.com",
             email_hash=f"hash-{name}{tag}",
             status=status,
             requested_at=requested,
+            last_confirmation_sent_at=last_sent,
         )
 
     db_async.add_all(
         [
-            sub("stalepending", SubscriptionStatus.PENDING.value, stale),
-            sub("boundary", SubscriptionStatus.PENDING.value, boundary),
+            # Its newest confirmation link lapsed a day ago: purged.
+            sub("lapsedpending", SubscriptionStatus.PENDING.value, stale, lapsed),
+            # Never sent a link and older than the link lifetime: purged.
+            sub("neversent", SubscriptionStatus.PENDING.value, lapsed, None),
+            # Signed up long ago, but a link went out yesterday and is still live.
+            sub(
+                "livelink",
+                SubscriptionStatus.PENDING.value,
+                stale,
+                NOW - timedelta(days=1),
+            ),
             sub("staleconfirmed", SubscriptionStatus.CONFIRMED.value, stale),
             sub("staleunsub", SubscriptionStatus.UNSUBSCRIBED.value, stale),
         ]
@@ -161,8 +179,9 @@ async def test_only_stale_pending_subscriptions_are_deleted(
         )
         return bool(count)
 
-    assert not await remains("stalepending")
-    assert await remains("boundary")
+    assert not await remains("lapsedpending")
+    assert not await remains("neversent")
+    assert await remains("livelink")
     assert await remains("staleconfirmed")
     assert await remains("staleunsub")  # consent proof is kept
 
@@ -223,3 +242,37 @@ async def test_purge_runs_in_batches(
         .where(ContactMessage.subject.like(f"b%{tag}"))
     )
     assert left == 0
+
+
+async def test_old_notification_occurrences_are_purged_including_orphans(
+    db_async: AsyncSession,
+) -> None:
+    from src.notifications.models import NotificationOccurrence
+
+    tag = _tag()
+    old = NOW - timedelta(days=retention.NOTIFICATION_OCCURRENCE_RETENTION_DAYS + 1)
+    db_async.add_all(
+        [
+            NotificationOccurrence(
+                dedupe_key=f"old-{tag}", notification_id=None, created_at=old
+            ),
+            NotificationOccurrence(
+                dedupe_key=f"new-{tag}",
+                notification_id=None,
+                created_at=NOW - timedelta(days=1),
+            ),
+        ]
+    )
+    await db_async.commit()
+
+    result = await retention.purge_expired(session=db_async, now=NOW)
+
+    assert result.notification_occurrences >= 1
+    kept = (
+        await db_async.scalars(
+            select(NotificationOccurrence.dedupe_key).where(
+                NotificationOccurrence.dedupe_key.like(f"%-{tag}")
+            )
+        )
+    ).all()
+    assert list(kept) == [f"new-{tag}"]

@@ -16,10 +16,16 @@ regexes = [
   '''^abc_DEF-123456(7890)?$''',
   '''^v1\.venue\.123\.abcdef0123456789$''',
   '''^BT1\.7K3M9Q2XVD\.AbCdEfGhIjKlMnOp$''',
+  '''^BT1\.CCCCCDDDDD\.abcdEFGH12345678$''',
+  '''^BT1\.ABCDEFGHJK\.abcdEFGH12345678$''',
   '''^abcdefghijklmnop1234$''',
   '''^YOUR_TOKEN$''',
   '''^CAP_SIGNING_KEY_REF=cap-signing-key$''',
   '''^SQLAlchemy/Alembic$''',
+  '''^eyJzZWNyZXQtdG9rZW4tZm9yLXByZXZpZXc$''',
+  '''^eyJzZWNyZXQtdG9rZW4tZm9yLXByZWZzLTE$''',
+  '''^eyJjIjoic3RvcmllcyIsImkiOiI0MiJ9\.c2lnbmF0dXJl$''',
+  '''^distribution-test-secret-at-least-32-chars$''',
 ]
 
 [[allowlists]]

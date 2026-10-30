@@ -133,7 +133,7 @@ the API image and the local source mount contain the same migration assets.
 | `WXPRODUCTS_DATABASE_URL` | PostgreSQL URL for the separate existing weather-products database; required to serve the public product feed. Use a hostname reachable from FastAPI (`grenmet-postgres` in local Compose, `host.docker.internal` from the devcontainer). The API role needs read/write access to authored products, revisions and their identity sequence; the migration runner needs schema ownership. Weather migrations are owned by FastAPI. Missing configuration returns 503, not an empty feed. |
 | `EVENTS_ORDER_HOLD_MINUTES` | How long an unpaid paid-tier order holds its tickets before the `expire_unpaid_event_orders` job cancels it and releases the stock (default `30`). The Stripe rail is test mode only (`PAYMENTS_STRIPE_*`). |
 | `EVENTS_REFUND_CUTOFF_HOURS` | Refund policy for an organiser cancelling one paid order with `refund: follow_policy`: refunded when the event starts at least this many hours away, kept inside the window (default `48`). An event the organiser cancels is refunded in full. |
-| `EVENTS_APP_URL` | Public URL of the Barrels Events web app (app-scoped sign-in, ADR-0016). Default `http://localhost:3009`. |
+| `EVENTS_APP_URL` | Public URL of the Barrels Events web app (app-scoped sign-in, ADR-0016; also where Stripe Checkout returns an Events buyer, `/me/orders/<order id>`). Default `http://localhost:3009`. |
 | `EVENTS_SSO_CLIENT_SECRET` | Secret the Events web server presents to redeem single sign-on codes (ADR-0017); at least 32 characters (`openssl rand -base64 32`). Set the same value for the API and the Events web app (which also needs `AUTH_APP_URL`); deployment reads the GitHub environment secret of this name. Empty disables single sign-on into Events and hides "Continue with your Barrels account". |
 | `GMSDASH_APP_URL` | Public URL of the GMS Dashboard web app (app-scoped sign-in). Default `http://localhost:3013`. |
 | `GMSDASH_SSO_CLIENT_SECRET` | Secret the GMS Dashboard web server presents to redeem single sign-on codes (ADR-0017); at least 32 characters. Set the same value for the API and `apps/web/gmsdash`. |
@@ -161,8 +161,9 @@ the API image and the local source mount contain the same migration assets.
 | `TURNSTILE_ENABLED` | Default `false`. When `true`, contact messages, data requests, subscribe and page feedback require a valid Cloudflare Turnstile token (`turnstile_token`), verified server-side by `src/turnstile.py`: a missing or rejected token is 400 "Verification failed". A Cloudflare outage or timeout (5 s) also fails closed with 400, because every protected form sends email or stores visitor data. Enabled without `TURNSTILE_SECRET_KEY` is 503 and an error log |
 | `TURNSTILE_SECRET_KEY` | Turnstile widget secret (free Cloudflare account). Secret: environment secret store only, never a committed file |
 | `EMAIL_HASH_PEPPER` | Secret key for the HMAC-SHA256 hash of suppressed and unsubscribed email addresses (`src/utils/email_hash.py`). Generate with `openssl rand -base64 32 | tr -d '\n'` and store it without a trailing newline (`gh secret set EMAIL_HASH_PEPPER --env <env> < pepper-file`); the deploy's render-config step rejects a multi-line value. Never reuse `SECRET_KEY`. Unset is allowed only when `ENVIRONMENT=local` (a fixed dev key is used); elsewhere hashing raises `EmailHashPepperMissingError` and the subscribe, suppression and email-dispatch paths fail, so set it in staging and production before this release. Rotating or losing it makes every stored hash unmatchable, so keep a copy with the other backed-up secrets. |
-| `TRUSTED_WEB_SECRET` | Shared secret (at least 32 characters, `openssl rand -base64 32`) that Next.js web hosts send with `X-Visitor-IP` and `X-Visitor-Secret` so rate limits (`src/rate_limit.py`) key on the real visitor, not the web server. Empty or shorter than 32 characters (a startup warning is logged, never the value) ignores both headers and keys on the connecting address, as does a wrong or missing secret, a non-ASCII value, and every `/auth` route, so a spoofed header changes nothing. IPv6 visitors key on their /64; IPv4-mapped IPv6 maps to IPv4. Set the same value for the API, `apps/web/bookings`, `apps/web/babydoll` and `apps/web/events`; a web-side value under 32 characters fails the bookings, Babydoll and Events env validation. Deploys (`render-env.py`, `deploy.yml`, `docker-compose.deploy.yml`) require it for staging and production, at least 32 characters, different from `SECRET_KEY` and every `*_SSO_CLIENT_SECRET`, and pass it to `api` and `web-events` only (bookings is not wired there yet). Events forwards the pair on its server-side API calls (`apps/web/events/src/lib/api.ts`) but never on `/auth/email-code/*`, which the API ignores it on anyway. |
-| `VISITOR_IP_PROXY_HOPS` | `apps/web/bookings`, `apps/web/babydoll` and `apps/web/events` (compose default 1; whole number 1 to 5, anything else fails startup). Number of reverse proxies in front of the web server that append to `x-forwarded-for` (default 1: the right-most entry, as written by a Traefik that does not trust its peer). Behind Cloudflare and a Traefik that trusts it (`trustedIPs`), set 2. The visitor is counted from the right; leading entries are visitor-controlled and ignored, and `x-real-ip` is not used. |
+| `CAP_DELIVERY_FAILURE_RECIPIENTS` | Worker. Comma-separated GMS addresses emailed (through the notifications outbox) when a warning delivery job (email, push, webhooks, PDF and so on) has failed on every attempt. One email per failed job and address, deduplicated by job id; it names the warning headline, channel, attempts and error class only. Empty (default): no email; the worker still logs an error that Sentry captures. |
+| `TRUSTED_WEB_SECRET` | Shared secret (at least 32 characters, `openssl rand -base64 32`) that Next.js web hosts send with `X-Visitor-IP` and `X-Visitor-Secret` so rate limits (`src/rate_limit.py`) key on the real visitor, not the web server. Empty or shorter than 32 characters (a startup warning is logged, never the value) ignores both headers and keys on the connecting address, as does a wrong or missing secret, a non-ASCII value, and every `/auth` route, so a spoofed header changes nothing. IPv6 visitors key on their /64; IPv4-mapped IPv6 maps to IPv4. Set the same value for the API, `apps/web/bookings`, `apps/web/babydoll`, `apps/web/events` and `apps/web/gms` (gms: the weather site's email and browser alert sign-ups; without it every visitor shares one bucket of 5 email and 10 push sign-ups a minute); a web-side value under 32 characters fails the bookings, Babydoll, Events and gms env validation. The owner sets it on web-gms. Deploys (`render-env.py`, `deploy.yml`, `docker-compose.deploy.yml`) require it for staging and production, at least 32 characters, different from `SECRET_KEY` and every `*_SSO_CLIENT_SECRET`, and pass it to `api` and `web-events` only (bookings and gms are not wired there yet). Events forwards the pair on its server-side API calls (`apps/web/events/src/lib/api.ts`) but never on `/auth/email-code/*`, which the API ignores it on anyway. |
+| `VISITOR_IP_PROXY_HOPS` | `apps/web/bookings`, `apps/web/babydoll`, `apps/web/events` and `apps/web/gms` (events compose default 1; whole number 1 to 5, anything else fails startup). Number of reverse proxies in front of the web server that append to `x-forwarded-for` (default 1: the right-most entry, as written by a Traefik that does not trust its peer). Behind Cloudflare and a Traefik that trusts it (`trustedIPs`), set 2. The visitor is counted from the right; leading entries are visitor-controlled and ignored, and `x-real-ip` is not used. |
 | `FLIGHTS_OPENSKY_ENABLED` | Feature flag, default `false`. When `true` the worker polls OpenSky every 30 minutes and `GET /api/v1/flights/board` serves the Redis-cached rows. Research use only: commercial use needs a written OpenSky licence (owner decision pending). Needs `REDIS_URL` |
 | `OPENSKY_CLIENT_ID`, `OPENSKY_CLIENT_SECRET` | Optional OpenSky OAuth2 client credentials (free account). Unset: anonymous access with a very small daily quota. Set in the environment secret store, never in a committed file |
 | `COPERNICUSMARINE_SERVICE_USERNAME`, `COPERNICUSMARINE_SERVICE_PASSWORD` | Copernicus Marine free account (secrets). Both set enables the worker fetch (every 6 h) and `GET /api/v1/environment/marine`; unset: `available: false`, never sample data |
@@ -257,23 +258,30 @@ For staging/production, replace with the actual subdomain hosts (no port needed)
 **Production** (exact hosts; list every app that sends users back to auth):
 
 ```text
-AUTH_ALLOWED_RETURN_HOSTS=auth.barrels.gd,admin.barrels.gd,gms.barrels.gd,bookings.barrels.gd,cms.barrels.gd,events.barrels.gd,docs.barrels.gd,weather.barrels.gd,signal.barrels.gd,mbia.barrels.gd,elections.barrels.gd,gmsdash.barrels.gd,babydoll.barrels.gd
+AUTH_ALLOWED_RETURN_HOSTS=auth.barrels.gd,admin.barrels.gd,gms.barrels.gd,bookings.barrels.gd,cms.barrels.gd,events.barrels.gd,docs.barrels.gd,weather.barrels.gd,signal.barrels.gd,mbia.barrels.gd,gmsdash.barrels.gd,babydoll.barrels.gd
 ```
 
 Staging uses the same labels under `staging.barrels.gd`. The shared Compose file
-still assembles `.${BASE_DOMAIN}${EXTRA_RETURN_HOSTS:-}`; the code ignores the
-leading-dot entry, so replace it with the exact list above (owner change).
-Current production configuration does not add `.weather.gd`. Production CORS origins are the seven frontend hosts
+gives the `web-auth` service the app-URL variables the code honours as they are
+(auth, gms, docs, weather, signal, mbia, events) and one exact `https://` entry in
+`AUTH_ALLOWED_RETURN_HOSTS` for each other app that signs in through it (admin,
+bookings, cms, gmsdash), all built from `${BASE_DOMAIN}`. A leading-dot
+entry such as `.${BASE_DOMAIN}` is ignored by the code and reaches no app.
+`EXTRA_RETURN_HOSTS`, if set, is appended as it is and must start with a comma.
+`scripts/production/auth-return-origins.test.mjs` fails when an app in the API
+registry is neither honoured nor named. Babydoll does not sign in through the auth
+app, so it is not listed. Current production configuration does not add `.weather.gd`. Production CORS origins are the seven frontend hosts
 listed in `infra/docker/production.env`; staging uses their staging equivalents.
 
 The superseded
 weather.gd go-live plan is historical context, not an active allowlist recipe.
 
-### Public sites with "Sign in" (gms, docs, signal, mbia, elections)
+### Public sites with "Sign in" (gms, docs, signal, mbia)
 
 Each site signs in with the Barrels account through auth.barrels.gd (ADR-0017)
 and keeps its own host-only session cookie. "Sign in" appears only when the
-site's secret is set; the same value must be set for the API.
+site's secret is set; the same value must be set for the API. Elections
+(Vercel) has no sign-in and is not listed here.
 
 | Site | Registry key | Secret | Cookie (default) |
 |---|---|---|---|
@@ -281,7 +289,6 @@ site's secret is set; the same value must be set for the API.
 | docs | `docs` | `DOCS_SSO_CLIENT_SECRET` | `docs_session` |
 | signal | `signal` | `SIGNAL_SSO_CLIENT_SECRET` | `signal_session` |
 | mbia | `mbia` | `MBIA_SSO_CLIENT_SECRET` | `mbia_session` |
-| elections (Vercel) | `elections` | `ELECTIONS_SSO_CLIENT_SECRET` | `elections_session` |
 | gmsdash | `gmsdash` | `GMSDASH_SSO_CLIENT_SECRET` | `gmsdash_session` |
 | bookings | `bookings` | `BOOKINGS_SSO_CLIENT_SECRET` | `bookings_session` |
 
@@ -294,8 +301,7 @@ audit logs would key every user on one address.
 
 Each also needs `AUTH_API_URL`, `AUTH_API_V1_STR` and `AUTH_APP_URL`. The API
 needs `<SITE>_APP_URL` (defaults to the local port) and the matching secret.
-Secrets are optional GitHub environment secrets (32+ characters); Elections'
-are set in Vercel and in GitHub (for the API).
+Secrets are optional GitHub environment secrets (32+ characters).
 
 | Variable | Purpose |
 |---|---|
@@ -324,6 +330,8 @@ gaa-admin hosts the consolidated CAP/HR/wxwatch/wxproducts/eRegister/janitorial/
 | `JANITOR_APP_URL` | Optional janitor PWA origin. Area QR labels encode `<origin>/a/<area code>`; unset, they encode the bare code |
 | `NEXT_PUBLIC_SENTRY_DSN` / `NEXT_PUBLIC_SENTRY_ENVIRONMENT` | Optional browser error reporting |
 | `NEXT_PUBLIC_POSTHOG_KEY` / `NEXT_PUBLIC_POSTHOG_HOST` | Optional browser analytics |
+
+**Local production builds.** `next build` validates this env schema, so without `RESEND_API_KEY` a local `turbo run build --filter=@barrelsgd/web-gaa-admin` fails with `Invalid environment variables`. Export a placeholder in the shell for that one build (for example `RESEND_API_KEY=re_placeholder pnpm turbo run build --filter=@barrelsgd/web-gaa-admin`). Do not write it to any `.env*` file.
 
 ### admin (`apps/web/admin/.env.local`)
 
@@ -396,6 +404,14 @@ Its typed defaults allow it to run without an env file.
 | `NEXT_PUBLIC_SENTRY_ENVIRONMENT` | Sentry environment label (default: `development`) |
 | `NEXT_PUBLIC_TURNSTILE_SITE_KEY` | Optional public Turnstile site key for the contact form. Unset: no widget and no token (fine while FastAPI has `TURNSTILE_ENABLED` off) |
 
+### Commit web (`apps/web/commit`, Cloudflare Pages)
+
+Read through `src/env.ts` (hand-written, no schema library). The site is static and needs no variables in production.
+
+| Variable | Purpose |
+|---|---|
+| `COMMIT_SITE_URL` | Public origin for metadata, the sitemap and RSS links (default `https://commit.barrels.gd`; only the origin of the value is kept) |
+
 ### Babydoll web (`apps/web/babydoll`, Vercel)
 
 Read through `src/env.ts` (hand-written, no schema library). Every value has a default; the site is fully static until the switch is on.
@@ -445,7 +461,7 @@ The active deployment uses three layers:
 |---|---|
 | Committed non-secret configuration | `ENVIRONMENT`, `BASE_DOMAIN`, `DOMAIN`, `ROUTER_SUFFIX`, `EXTRA_RETURN_HOSTS`, database names/users, `REGISTRY`, `IMAGE_NAME`, `GHCR_OWNER`, `PROJECT_NAME`, CORS origins, volume names |
 | Required runtime inputs from GitHub environments | `SECRET_KEY`, Postgres and module database passwords, `FIRST_SUPERUSER`, `FIRST_SUPERUSER_PASSWORD`, `RESEND_API_KEY`, `GAA_ADMIN_SSO_CLIENT_SECRET`, `CMS_SSO_CLIENT_SECRET` |
-| Proxy and TLS inputs | `EMAIL`, `USERNAME`, `HASHED_PASSWORD` |
+| Proxy and TLS inputs | `EMAIL`, `USERNAME`, `HASHED_PASSWORD` (Traefik dashboard, SSH tunnel only); staging only: `STAGING_BASIC_AUTH_USERS`, `ADMINER_BASIC_AUTH_USERS` (htpasswd bcrypt lines, validated by `render-env.py`), `STAGING_PROBE_CREDENTIALS` (`user:password` for the deploy smoke and probe) |
 | Optional deployment integrations | `SENTRY_DSN` and `STORAGE_*` |
 | Derived at deployment time | `TAG`, `WEB_TAG`, `WXWATCH_DB_URL`, `WXPRODUCTS_DB_URL`, `JANITORIAL_DB_URL`, `TRANSPORT_DB_URL` |
 
@@ -498,7 +514,7 @@ secrets, not in either file.
 
 Local migration commands explicitly load `.env.local` and use the same migration runners as deployment. Generic `DB_URL` fallbacks are unsupported. `python3 scripts/production/check-local-env.py` reports missing variable names and ignore coverage without displaying values.
 
-CMS needs `DATABASE_URL` pointing only to its dedicated database and a stable `PAYLOAD_SECRET` of at least 32 characters in `apps/web/cms/.env.local`. `CMS_DB_NAME` defaults to `gms_cms`; deployment passes the environment-specific name. Optional shared-auth settings are `AUTH_API_URL`, `AUTH_APP_URL`, `CMS_URL`, `CMS_DEPARTMENT_ID`, `CMS_SESSION_COOKIE_NAME` (default `cms_session`) and `CMS_SSO_CLIENT_SECRET` (same value as the API's; required to sign in). `CMS_BASELINE_REFERENCE_URL` is only for explicit adoption of a matching existing schema, never routine startup.
+CMS needs `DATABASE_URL` pointing only to its dedicated database and a stable `PAYLOAD_SECRET` of at least 32 characters in `apps/web/cms/.env.local`. `CMS_DB_NAME` defaults to `gms_cms`; deployment passes the environment-specific name. Optional shared-auth settings are `AUTH_API_URL`, `AUTH_APP_URL`, `CMS_URL`, `CMS_DEPARTMENT_ID`, `CMS_SESSION_COOKIE_NAME` (default `cms_session`) and `CMS_SSO_CLIENT_SECRET` (same value as the API's; required to sign in). `CMS_BASELINE_REFERENCE_URL` is only for explicit adoption of a matching existing schema, never routine startup. `GMS_PREVIEW_URL` (optional) is the weather site's preview page (`<weather site>/preview`); setting it turns on the Preview button for drafts. `GMS_SITE_URL` (optional) is the weather site's public origin, used for post addresses in the newsletter feed and social posts; without it the newsletter feed carries no posts. `CMS_DISTRIBUTION_SECRET` (optional, at least 32 characters) is shared with FastAPI's content-distribution endpoint as `X-CMS-Secret`; without it nothing is sent to social platforms.
 
 The online environment additionally supplies `CMS_DB_PASSWORD`, `PAYLOAD_SECRET` and environment-scoped `DO_SPACES_*` backup secrets. Its temporary runtime `.env.local` is owner-readable and excluded from both Git and image build contexts. See [storage and delivery acceptance](operations/storage-delivery.md) for inventory, initialization, Traefik routing and restore requirements.
 
@@ -584,8 +600,8 @@ credentials into staging.
 - Google: `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`.
 - Single sign-on (ADR-0017): `GAA_ADMIN_SSO_CLIENT_SECRET`, `CMS_SSO_CLIENT_SECRET`
   (required); `EVENTS_SSO_CLIENT_SECRET`, `WEATHER_SSO_CLIENT_SECRET`,
-  `DOCS_SSO_CLIENT_SECRET`, `SIGNAL_SSO_CLIENT_SECRET`, `MBIA_SSO_CLIENT_SECRET`,
-  `ELECTIONS_SSO_CLIENT_SECRET` (optional; each switches on "Sign in" there).
+  `DOCS_SSO_CLIENT_SECRET`, `SIGNAL_SSO_CLIENT_SECRET`, `MBIA_SSO_CLIENT_SECRET`
+  (optional; each switches on "Sign in" there). Elections has no sign-in.
 - CAP signing: `CAP_SIGNING_CERT`, `CAP_SIGNING_KEY` (PEM contents).
 - Email: `RESEND_API_KEY`, `RESEND_WEBHOOK_SECRET`, `EMAIL_RENDER_SECRET`.
 - Sentry: `SENTRY_DSN_STAGING` in staging, `SENTRY_DSN_PRODUCTION` in production,
@@ -751,11 +767,21 @@ With none of the drop variables set, publish answers 409 "WIS2 publication is no
 
 ### Privileged MFA rollout
 
-FastAPI auth settings default to disabled enforcement; enable it only after the
-[readiness and recovery gates](operations/privileged-mfa.md).
+`AUTH_PRIVILEGED_MFA_MODE` (`disabled` or `enforce`) is unset by default, which
+means `enforce` in `staging` and `production` and `disabled` when
+`ENVIRONMENT=local` (issue #501, owner decision 2026-10-25). Under `enforce` a
+superuser, or holder of a privileged permission, who has not enrolled an
+authenticator gets 403 with `Set up two-step verification ... (mfa_enrolment_required)`
+on every privileged route; account security and sign-in stay reachable so they can
+enrol. Set `disabled` explicitly to opt out (local development, tests, or an
+approved emergency rollback). Enforce refuses to start without
+`AUTH_TOTP_ENCRYPTION_KEYS`. Complete the
+[readiness and recovery gates](operations/privileged-mfa.md) before deploying.
 
 The deployment renderer accepts `AUTH_PRIVILEGED_MFA_MODE` from the selected
-GitHub environment's variable (`disabled` by default, or `enforce`) and
+GitHub environment's variable (the renderer still writes `disabled` when it is
+unset, so set it to `enforce` to switch a deployment on; the API's own default
+applies only when the variable is not passed at all) and
 `AUTH_TOTP_ENCRYPTION_KEYS` from its secret. Keys are a JSON array of dedicated
 Fernet keys, current encryption key first and retained decryption keys after it.
 Do not reuse `SECRET_KEY` or share keys across environments. These values reach
@@ -779,13 +805,13 @@ change does not provision secrets or enable enforcement in production.
 
 ### Payments (PF4, test mode only)
 
-The payments core (`src/payments`, ADR-0027) is built, and its Stripe adapter runs in **test mode only**. They are wired into the deployment (`deploy.yml` → `render-env.py` → the API and worker in `docker-compose.deploy.yml`), but leave them **unset** in staging and production until the owner approves a payment rail. `render-env.py` refuses a `PAYMENTS_STRIPE_SECRET_KEY` that does not start with `sk_test_`, so a live key cannot be deployed by accident.
+The payments core (`src/payments`, ADR-0027) is built, and its Stripe adapter runs in **test mode only**. They are wired into the deployment (`deploy.yml` → `render-env.py` → the API and worker in `docker-compose.deploy.yml`), but leave them **unset** in staging and production until the owner approves a payment rail. `render-env.py` refuses a `PAYMENTS_STRIPE_SECRET_KEY` that does not start with `sk_test_`, so a live key cannot be deployed by accident. It also refuses a half-set Stripe configuration: `PAYMENTS_STRIPE_SECRET_KEY`, `_WEBHOOK_SECRET`, `_SUCCESS_URL` and `_CANCEL_URL` are set together or not at all, and both URLs must be `https://`.
 
 | Variable | Purpose |
 | --- | --- |
 | `PAYMENTS_STRIPE_SECRET_KEY` | Stripe test secret. A key that does not start with `sk_test_` is refused at use, so a live key cannot enable a live rail. Unset: the Stripe adapter is disabled (the `manual` provider still works). |
 | `PAYMENTS_STRIPE_WEBHOOK_SECRET` | Signing secret for `POST /api/v1/payments/public/webhooks/stripe` (503 when unset). |
-| `PAYMENTS_STRIPE_SUCCESS_URL`, `PAYMENTS_STRIPE_CANCEL_URL` | Where Stripe Checkout returns the customer (our HTTPS pages). Checkout answers 503 until both are set. |
+| `PAYMENTS_STRIPE_SUCCESS_URL`, `PAYMENTS_STRIPE_CANCEL_URL` | Fallback return pages (HTTPS) for a purchase type with no registered address; Checkout answers 503 until both are set. A purchase type can register its own address (`src/payments/return_urls.py`): Events returns the buyer to `{EVENTS_APP_URL}/me/orders/<order id>?payment=success\|cancelled`. Return addresses come from settings, never from a request. Outside `ENVIRONMENT=local`, an `http` or localhost address (registered or global) is refused. |
 | `PAYMENTS_STRIPE_API_BASE` | Defaults to `https://api.stripe.com`; override only in tests. |
 | `PAYMENTS_WEBHOOK_TOLERANCE_SECONDS` | How old a signed webhook may be (default 300). |
 | `PAYMENTS_REQUEST_TIMEOUT_SECONDS` | Provider request timeout (default 10). |

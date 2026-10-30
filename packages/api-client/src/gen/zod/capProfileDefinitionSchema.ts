@@ -5,6 +5,7 @@
 
 import * as z from "zod";
 import { capProfileDefinitionPropertiesChannelsItemsEnumSchema } from "./capProfileDefinitionPropertiesChannelsItemsEnumSchema.js";
+import { capProfileMatrixSchema } from "./capProfileMatrixSchema.js";
 import { capProfileSubtypeSchema } from "./capProfileSubtypeSchema.js";
 import { capProfileTemplateSchema } from "./capProfileTemplateSchema.js";
 
@@ -24,4 +25,5 @@ export const capProfileDefinitionSchema = z.object({
     .array(capProfileDefinitionPropertiesChannelsItemsEnumSchema)
     .optional(),
   notes: z.string().max(5000).optional().default(""),
+  matrix: z.union([capProfileMatrixSchema, z.null()]).optional(),
 });

@@ -1,10 +1,12 @@
 import { cleanup, render, screen } from "@testing-library/react";
 import { afterEach, expect, it, vi } from "vitest";
 import {
+  avatarInitials,
   Explained,
   ForecastDesk,
   GetAlertsStrip,
   LatestReports,
+  postedLabel,
   Stories,
 } from "@/components/home/live-sections";
 import {
@@ -15,12 +17,6 @@ import {
 import { fetchPublishedProduct } from "@/lib/products";
 
 vi.mock("@/lib/products", () => ({ fetchPublishedProduct: vi.fn() }));
-// The card is an async server component; it has its own tests.
-vi.mock("@/components/linked-product", () => ({
-  LinkedProduct: ({ productId }: { productId: string }) => (
-    <p>Linked product {productId}</p>
-  ),
-}));
 
 vi.mock("@/lib/cms", async (importOriginal) => {
   const actual = await importOriginal<typeof import("@/lib/cms")>();
@@ -53,6 +49,21 @@ const hidden = (sections: string[]): HomeContent => ({
     sectionCopy: {},
     exploreReading: {},
   },
+});
+
+const READ_ARTICLE = /^Read the article: /;
+
+it("labels a post Today, Yesterday or by date, in Grenada time", () => {
+  const post = "2026-10-28T02:00:00Z"; // 27 Oct, 22:00 in Grenada
+  expect(postedLabel(post, new Date("2026-10-28T03:30:00Z"))).toBe(
+    "Today at 10:00 p.m."
+  );
+  expect(postedLabel(post, new Date("2026-10-28T05:00:00Z"))).toBe(
+    "Yesterday at 10:00 p.m."
+  );
+  expect(postedLabel(post, new Date("2026-10-29T13:00:00Z"))).toBe(
+    "27 Oct at 10:00 p.m."
+  );
 });
 
 it("drops sections editors hide", async () => {
@@ -102,7 +113,7 @@ const post = (overrides: Partial<PublishedContent>): PublishedContent => ({
 });
 const PRODUCT_ID = "0b3c6f1e-1111-4a2b-9c3d-222233334444";
 
-it("is a blog: desk posts with their live product, never the forecast itself", async () => {
+it("is a blog: desk post cards that link to their articles, never the forecast itself", async () => {
   vi.mocked(fetchHomeContent).mockResolvedValue({
     ...hidden([]),
     deskUpdates: {
@@ -118,8 +129,15 @@ it("is a blog: desk posts with their live product, never the forecast itself", a
   expect(
     screen.getByRole("link", { name: "Why the morning forecast changed" })
   ).toHaveAttribute("href", "/explore/updates/2026/09/why");
-  expect(screen.getByText(`Linked product ${PRODUCT_ID}`)).toBeInTheDocument();
+  expect(screen.queryByText("Official product")).not.toBeInTheDocument();
+  expect(screen.getAllByRole("link", { name: READ_ARTICLE })).toHaveLength(2);
+  // Each card is positioned so the link's screen-reader text stays inside the
+  // scrolling row instead of widening the page on phones.
+  for (const link of screen.getAllByRole("link", { name: READ_ARTICLE })) {
+    expect(link.closest("li")).toHaveClass("relative");
+  }
   expect(screen.getByText("New marine page")).toBeInTheDocument();
+  expect(screen.getAllByText("The forecasters")).toHaveLength(2);
 });
 
 it("shows only report write-ups, with an honest empty state", async () => {
@@ -131,7 +149,7 @@ it("shows only report write-ups, with an honest empty state", async () => {
   expect(fetchPublishedProduct).not.toHaveBeenCalled();
 });
 
-it("leads report write-ups with their live product and links each write-up", async () => {
+it("leads report write-ups without a product card and links each write-up", async () => {
   vi.mocked(fetchHomeContent).mockResolvedValue({
     ...hidden([]),
     reportNotes: {
@@ -157,9 +175,38 @@ it("leads report write-ups with their live product and links each write-up", asy
   expect(
     screen.getByRole("link", { name: "Understanding the flood bulletin" })
   ).toHaveAttribute("href", "/explore/reports/2026/09/flood");
-  expect(screen.getByText(`Linked product ${PRODUCT_ID}`)).toBeInTheDocument();
+  expect(screen.queryByText("Official product")).not.toBeInTheDocument();
   expect(screen.getByRole("link", { name: TWO_WAVES })).toHaveAttribute(
     "href",
     "/explore/reports/2026/09/outlook"
   );
+});
+
+it("signs a desk card with the author's name and initials, with their picture", async () => {
+  vi.mocked(fetchHomeContent).mockResolvedValue({
+    ...hidden([]),
+    deskUpdates: {
+      status: "ok",
+      articles: [
+        post({
+          authorName: "Eugine Whint",
+          imageUrl: "https://weather.barrels.gd/media/rain-map.png",
+          imageAlt: "Rain map for tonight",
+        }),
+      ],
+    },
+  });
+  render(await ForecastDesk());
+  expect(screen.getByText("Eugine Whint")).toBeInTheDocument();
+  expect(screen.getByText("EW")).toBeInTheDocument();
+  expect(screen.queryByText("The forecasters")).not.toBeInTheDocument();
+  expect(screen.getByAltText("Rain map for tonight")).toBeInTheDocument();
+});
+
+it("makes avatar initials from a name, and falls back to GMS", () => {
+  expect(avatarInitials("Eugine Whint")).toBe("EW");
+  expect(avatarInitials("eugine.whint")).toBe("EW");
+  expect(avatarInitials("forecaster")).toBe("FO");
+  expect(avatarInitials(null)).toBe("GMS");
+  expect(avatarInitials("  ")).toBe("GMS");
 });

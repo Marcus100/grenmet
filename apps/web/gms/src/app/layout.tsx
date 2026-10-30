@@ -7,6 +7,7 @@ import { Barlow_Condensed, Noto_Sans } from "next/font/google";
 import { Footer } from "@/components/footer";
 import { Header } from "@/components/header";
 import { MotionProvider } from "@/components/motion-provider";
+import { UnitsBootScript } from "@/components/units-boot-script";
 import { APP_LABEL, signInEnabled } from "@/lib/auth-config";
 import { fetchActiveAlerts } from "@/lib/cap";
 import "./globals.css";
@@ -15,6 +16,7 @@ import {
   SkipLink,
 } from "@barrelsgd/ui/components/ui/skip-link";
 import { env } from "@/lib/env";
+import { SITE_NAME } from "@/lib/site-name";
 
 const notoSans = Noto_Sans({
   subsets: ["latin"],
@@ -36,7 +38,11 @@ const THEME_DEFAULTS = { theme_mode: "system" } as const;
 export const metadata: Metadata = {
   // Absolute base for share-preview links; set per environment at build time.
   metadataBase: new URL(env.NEXT_PUBLIC_SITE_URL),
-  title: "Grenada Meteorological Service",
+  // Every route's own `title` fills the template: "<Page> | Grenada Meteorological Service".
+  title: {
+    default: SITE_NAME,
+    template: `%s | ${SITE_NAME}`,
+  },
   description:
     "Official weather forecasts, alerts, and bulletins for Grenada, Carriacou & Petite Martinique.",
   icons: {
@@ -67,10 +73,11 @@ export default function RootLayout({
     >
       <head>
         <ThemeBootScript defaults={THEME_DEFAULTS} />
+        <UnitsBootScript />
       </head>
       <body className="flex min-h-screen flex-col bg-background font-sans text-foreground">
         <SkipLink />
-        <PostHogProvider app="gms">
+        <PostHogProvider app="gms" privacyHref="/privacy">
           <PreferencesStoreProvider
             contentLayout={PREFERENCE_DEFAULTS.content_layout}
             font={PREFERENCE_DEFAULTS.font}

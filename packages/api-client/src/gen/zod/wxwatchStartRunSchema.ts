@@ -24,3 +24,7 @@ export const wxwatchStartRunResponseSchema = wxwatchStartRunStatus200Schema;
 export const wxwatchStartRunErrorSchema = wxwatchStartRunStatus422Schema;
 
 export const wxwatchStartRunBodySchema = runInputSchema;
+
+export const wxwatchStartRunHeadersSchema = z.object({
+  authorization: z.union([z.string(), z.null()]).optional(),
+});

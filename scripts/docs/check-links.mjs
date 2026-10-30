@@ -18,6 +18,7 @@ const ignoredDirectories = new Set([
   "dist",
   "node_modules",
   "surface",
+  ".venv",
 ]);
 // Downloaded upstream snapshots are git-ignored and contain their own site links.
 const ignoredPaths = new Set(["notebooks/metpy/sources"]);
@@ -88,11 +89,22 @@ const withoutFencedCode = (source) => {
     .join("\n");
 };
 
+const stripTags = (text) => {
+  let previous;
+  let current = text;
+  do {
+    previous = current;
+    current = current.replace(/<[^>]*>/g, "");
+  } while (current !== previous);
+  return current;
+};
+
 const renderedHeading = (heading) =>
-  heading
-    .replace(/!?\[([^\]]+)\]\([^)]*\)/g, "$1")
-    .replace(/!?\[([^\]]+)\]\[[^\]]*\]/g, "$1")
-    .replace(/<[^>]+>/g, "");
+  stripTags(
+    heading
+      .replace(/!?\[([^\]]+)\]\([^)]*\)/g, "$1")
+      .replace(/!?\[([^\]]+)\]\[[^\]]*\]/g, "$1")
+  );
 
 const slugHeading = (heading) =>
   renderedHeading(heading)

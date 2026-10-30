@@ -186,3 +186,58 @@ def _alert_payload(
             }
         ],
     }
+
+
+async def test_override_reason_stays_internal(
+    async_client: httpx.AsyncClient,
+    db_async: AsyncSession,
+    superuser_token_headers_async: dict[str, str],
+) -> None:
+    """The escalation override reason is for staff and audit only (owner decision)."""
+    db_async.add(ApprovalPolicy(key="cap", allow_self_approval=True))
+    await db_async.commit()
+    secret = "Forecaster judgement: radar trend outranks the matrix"
+    payload = _alert_payload(scope="Public")
+    payload["info"][0]["parameters"] = [
+        {"value_name": "GMS:override-reason", "value": secret},
+        {"value_name": "awareness_level", "value": "3; orange; Severe"},
+    ]
+    created = await async_client.post(
+        "/api/v1/cap/alerts", headers=superuser_token_headers_async, json=payload
+    )
+    assert created.status_code == 201, created.text
+    alert_id, identifier = created.json()["id"], created.json()["identifier"]
+    for action in ("submit", "approve", "publish"):
+        response = await async_client.post(
+            f"/api/v1/cap/alerts/{alert_id}/{action}",
+            headers=superuser_token_headers_async,
+            json={"note": "go"},
+        )
+        assert response.status_code == 200, response.text
+
+    for url in (
+        "/api/cap/latest-active",
+        "/api/cap/alerts",
+        "/api/cap/past",
+        f"/api/cap/alerts/{identifier}",
+        f"/api/cap/{identifier}.xml",
+    ):
+        response = await async_client.get(url)
+        assert response.status_code == 200, url
+        assert identifier in response.text or url.endswith("past"), url
+        assert secret not in response.text, url
+        assert "override-reason" not in response.text, url
+
+    admin = await async_client.get(
+        f"/api/v1/cap/alerts/{alert_id}", headers=superuser_token_headers_async
+    )
+    assert secret in admin.text
+
+    copy = await async_client.post(
+        f"/api/v1/cap/alerts/{alert_id}/duplicate",
+        headers=superuser_token_headers_async,
+    )
+    assert copy.status_code in (200, 201), copy.text
+    names = [p["value_name"] for p in copy.json()["info"][0]["parameters"]]
+    assert "GMS:override-reason" not in names
+    assert "awareness_level" in names

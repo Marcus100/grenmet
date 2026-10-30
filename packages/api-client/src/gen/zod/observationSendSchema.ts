@@ -18,5 +18,6 @@ export const observationSendSchema = z
     last_error: z.union([z.string(), z.null()]).optional(),
     queued_at: z.iso.datetime(),
     sent_at: z.union([z.iso.datetime(), z.null()]).optional(),
+    is_correction: z.boolean().optional().default(false),
   })
   .describe("One email or WIS2 hand-off of a register observation.");

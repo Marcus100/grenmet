@@ -4,6 +4,7 @@ import {
   levelHeading,
   levelParameters,
   productTitle,
+  sectorParameters,
   severityForColour,
 } from "./cap-levels";
 
@@ -62,5 +63,14 @@ describe("levelHeading", () => {
     expect(levelHeading("Heat", "Outlook", null)).toBe(
       "Outlook · Heat Outlook"
     );
+  });
+});
+
+describe("sectorParameters", () => {
+  it("writes the tag in menu order, and writes nothing when no sector is chosen", () => {
+    expect(sectorParameters(["health", "tourism"])).toEqual([
+      { value_name: "GMS:sectors", value: "tourism,health" },
+    ]);
+    expect(sectorParameters([])).toEqual([]);
   });
 });

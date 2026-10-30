@@ -28,3 +28,7 @@ export const authGetOnboardingStatusErrorSchema = z.union([
   authGetOnboardingStatusStatus404Schema,
   authGetOnboardingStatusStatus422Schema,
 ]);
+
+export const authGetOnboardingStatusPathSchema = z.object({
+  user_id: z.uuid(),
+});

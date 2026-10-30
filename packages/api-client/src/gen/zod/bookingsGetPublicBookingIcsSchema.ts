@@ -28,3 +28,11 @@ export const bookingsGetPublicBookingIcsErrorSchema = z.union([
   bookingsGetPublicBookingIcsStatus404Schema,
   bookingsGetPublicBookingIcsStatus422Schema,
 ]);
+
+export const bookingsGetPublicBookingIcsPathSchema = z.object({
+  token: z
+    .string()
+    .min(16)
+    .max(100)
+    .describe("The manage token returned when the booking was made."),
+});

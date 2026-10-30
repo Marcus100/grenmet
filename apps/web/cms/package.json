@@ -24,6 +24,7 @@
   "dependencies": {
     "@barrelsgd/api-client": "workspace:*",
     "@barrelsgd/auth": "workspace:*",
+    "@barrelsgd/gms": "workspace:*",
     "@barrelsgd/ui": "workspace:*",
     "@payloadcms/db-postgres": "catalog:",
     "@payloadcms/email-resend": "catalog:",

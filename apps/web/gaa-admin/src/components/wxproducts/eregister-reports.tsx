@@ -33,7 +33,7 @@ export type ReportKind = "SYNOP" | "METAR" | "SPECI";
 const KINDS: readonly ReportKind[] = ["SYNOP", "METAR", "SPECI"];
 
 /** Only "ready" rows are real records; every other state shows a status line. */
-export type LiveState = "loading" | "ready" | "unavailable";
+export type LiveState = "loading" | "ready" | "unavailable" | "forbidden";
 
 function ReportPanel({
   kind,
@@ -63,6 +63,14 @@ function ReportPanel({
     );
   }
 
+  if (state === "forbidden") {
+    return (
+      <p className="px-4 py-3 text-muted-foreground text-sm" role="status">
+        {kind} reports are shown to register staff only.
+      </p>
+    );
+  }
+
   if (!latest) {
     return (
       <p className="px-4 py-3 text-muted-foreground text-sm" role="status">
@@ -81,7 +89,12 @@ function ReportPanel({
           <Badge variant="secondary">Recorded</Badge>
         )}
       </div>
-      <code className="block overflow-x-auto whitespace-nowrap rounded-lg bg-muted px-3 py-2.5 font-mono text-sm tabular-nums">
+      <code
+        className={cn(
+          "block overflow-x-auto whitespace-nowrap rounded-lg bg-muted px-3 py-2.5 font-mono text-sm tabular-nums",
+          latest.state === "superseded" && "text-muted-foreground line-through"
+        )}
+      >
         {latest.message}
       </code>
       {rows.length > 1 && (
@@ -114,7 +127,12 @@ function ReportPanel({
                     {row.observed}{" "}
                     {row.state ? <QcBadge state={row.state} /> : null}
                   </TableCell>
-                  <TableCell className="px-3.5 font-mono text-muted-foreground text-xs tabular-nums">
+                  <TableCell
+                    className={cn(
+                      "px-3.5 font-mono text-muted-foreground text-xs tabular-nums",
+                      row.state === "superseded" && "line-through"
+                    )}
+                  >
                     {row.message}
                   </TableCell>
                 </TableRow>

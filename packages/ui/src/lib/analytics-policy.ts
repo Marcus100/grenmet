@@ -178,11 +178,14 @@ const EVENTS = {
   forecast_tab_selected: { day: ["now", "today", "next"] },
   public_warning_opened: {},
   published_download_clicked: {},
+  // Counts only: a sign-up was accepted. No address or consent detail is sent.
+  newsletter_signup_submitted: {},
   content_opened: { section: SECTIONS },
   navigation_category_selected: { section: SECTIONS },
   external_destination_clicked: {
     destination: ["personal", "official", "other"],
   },
+  units_switched: { to: ["metric", "imperial"] },
 } as const;
 export type AnalyticsEvent = keyof typeof EVENTS;
 export type EventProperties<E extends AnalyticsEvent> = {
@@ -208,6 +211,8 @@ const APP_EVENTS: Record<PublicApp, readonly AnalyticsEvent[]> = {
     "forecast_tab_selected",
     "public_warning_opened",
     "published_download_clicked",
+    "units_switched",
+    "newsletter_signup_submitted",
   ],
   docs: [
     "page_viewed",

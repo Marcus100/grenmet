@@ -45,3 +45,14 @@ export const eventsPostponeEventErrorSchema = z.union([
 ]);
 
 export const eventsPostponeEventBodySchema = postponeEventSchema;
+
+export const eventsPostponeEventPathSchema = z.object({
+  listing_id: z.uuid(),
+});
+
+export const eventsPostponeEventQuerySchema = z.object({
+  organiser: z
+    .union([z.string().regex(/^[a-z0-9][a-z0-9-]{1,79}$/), z.null()])
+    .optional()
+    .describe("Organiser to act for when the member manages several."),
+});

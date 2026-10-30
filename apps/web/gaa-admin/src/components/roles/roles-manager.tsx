@@ -21,7 +21,6 @@ import {
 import {
   Tabs,
   TabsContent,
-  TabsList,
   TabsTrigger,
 } from "@barrelsgd/ui/components/ui/tabs";
 import type {
@@ -39,6 +38,8 @@ import {
 } from "@tanstack/react-table/legacy";
 import { Search } from "lucide-react";
 import { useMemo, useState } from "react";
+import { PageHeader } from "@/components/layout/page-header";
+import { PageTabsList } from "@/components/layout/page-tabs";
 import { AccessReviewsPanel } from "./access-reviews-panel";
 import { OrganisationPanel } from "./organisation-panel";
 import { PermissionSetsPanel } from "./permission-sets-panel";
@@ -97,25 +98,19 @@ export function RolesManager() {
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="flex flex-col items-start gap-4 sm:flex-row sm:justify-between">
-        <div className="flex flex-col gap-1">
-          <h1 className="font-medium text-3xl leading-none tracking-tight">
-            Roles &amp; Permissions
-          </h1>
-          <p className="text-muted-foreground text-sm">
-            Manage access roles and the staff assigned to them.
-          </p>
-        </div>
-      </div>
+      <PageHeader
+        description="Manage access roles and the staff assigned to them."
+        title="Roles & Permissions"
+      />
 
       <Tabs className="gap-4" defaultValue="roles">
-        <TabsList className="w-full justify-start gap-2 border-b ps-0">
+        <PageTabsList>
           <TabsTrigger value="roles">Roles</TabsTrigger>
           <TabsTrigger value="organisation">Organisation</TabsTrigger>
           <TabsTrigger value="workflows">Workflows</TabsTrigger>
           <TabsTrigger value="permission-sets">Permission sets</TabsTrigger>
           <TabsTrigger value="access-reviews">Access reviews</TabsTrigger>
-        </TabsList>
+        </PageTabsList>
 
         <TabsContent value="roles">
           <div className="overflow-hidden rounded-xl border bg-card">

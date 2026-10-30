@@ -6,6 +6,9 @@ import { Input } from "@barrelsgd/ui/components/ui/input";
 import { cn } from "@barrelsgd/ui/lib/utils";
 import { CircleAlert, Mail, Save, Send, TriangleAlert } from "lucide-react";
 import { type FormEvent, useState } from "react";
+import { PageHeader } from "@/components/layout/page-header";
+
+const COPY_FEEDBACK_MS = 2000;
 
 interface Station {
   icao: string;
@@ -23,6 +26,7 @@ interface ValidationIssue {
 type Status = "idle" | "checking" | "valid" | "invalid" | "error";
 type SaveStatus = "idle" | "saving" | "saved" | "error";
 
+import { type StationSettings, withDerived } from "./eregister-derived";
 import {
   cellUpdates,
   cellValue,
@@ -36,13 +40,26 @@ import {
   type SendController,
   type SendTarget,
 } from "./eregister-send";
-import { RegisterTable, SectionCard } from "./eregister-ui";
+import {
+  type SettingsSaveResult,
+  StationSettingsCard,
+} from "./eregister-station-settings";
+import {
+  PendingSettingsNote,
+  RegisterTable,
+  SectionCard,
+  TimeMarks,
+} from "./eregister-ui";
 
 interface Props {
+  expectedMetar?: string | null;
   issues: ValidationIssue[];
   metarPreview: string;
   observedAt: string;
   onBack: () => void;
+  onSaveStationSettings?: (
+    settings: StationSettings
+  ) => Promise<SettingsSaveResult>;
   onSubmit: (event: FormEvent<HTMLFormElement>) => void;
   onValidate: () => void;
   onValidationIssuesChange: (
@@ -53,8 +70,25 @@ interface Props {
   saveStatus: SaveStatus;
   send: SendController;
   station: Station;
+  stationSettings?: StationSettings | null;
   validationStatus: Status;
   values: Record<string, string>;
+}
+
+// Groups 3 and 4 follow from the barometer as read; while the observer has not
+// keyed them the worked-out group shows greyed in the cell (keying overrides).
+const RULE_FILLED = new Set(["station_pressure", "msl_pressure"]);
+
+function placeholderFor(
+  column: FieldColumn,
+  isUpper: boolean,
+  shown: Record<string, string>
+): string | undefined {
+  if (isUpper) return;
+  if (column.signed?.role === "sign") {
+    return `${column.signed.prefix}${column.signed.example ?? "0"}`;
+  }
+  if (RULE_FILLED.has(column.key)) return shown[column.key] || undefined;
 }
 
 function describedBy(severity: "error" | "warning" | undefined) {
@@ -136,12 +170,15 @@ export function ERegisterWorkbook({
   saveStatus,
   send,
   metarPreview,
+  expectedMetar,
   onBack,
   onValueChange,
   onValidationIssuesChange,
   onValidationStateChange,
   onValidate,
   onSubmit,
+  onSaveStationSettings,
+  stationSettings = null,
 }: Props) {
   const errors = issues.filter(
     (issue) => (issue.severity ?? "error") === "error"
@@ -150,8 +187,40 @@ export function ERegisterWorkbook({
   // The sign digit of a signed value ("0254" = sign 0, 280 tenths) is remembered
   // while the digits beside it are still being keyed.
   const [leads, setLeads] = useState<Record<string, string>>({});
+  const [copyState, setCopyState] = useState<"idle" | "copied" | "failed">(
+    "idle"
+  );
+  // The grey cells show what the register calculates from the entries.
+  const shown = withDerived(values, stationSettings);
+  // Stable keys: the message plus how many identical messages come before it.
+  const metarIssues = issues
+    .filter((issue) => issue.field === "metar_text")
+    .map((issue, position, all) => ({
+      key: `${issue.message}-${all.slice(0, position).filter((earlier) => earlier.message === issue.message).length}`,
+      message: issue.message,
+    }));
+  const copyLabel = { idle: "Copy", copied: "Copied", failed: "Copy failed" }[
+    copyState
+  ];
+  const copyStatus = copyState === "idle" ? "" : copyLabel;
+  async function copyMetar() {
+    try {
+      await navigator.clipboard.writeText(expectedMetar ?? metarPreview);
+      setCopyState("copied");
+    } catch {
+      setCopyState("failed");
+    }
+    setTimeout(() => setCopyState("idle"), COPY_FEEDBACK_MS);
+  }
+  const changed = (keys: readonly string[]) => {
+    onValidationIssuesChange((current) =>
+      current.filter((issue) => !keys.includes(issue.field))
+    );
+    onValidationStateChange("idle");
+  };
   const renderTable = (section: (typeof REGISTER_SECTIONS)[number]) => (
     <RegisterTable
+      context={{ station: stationSettings }}
       key={section.title}
       leads={leads}
       renderValue={(column: FieldColumn, layer) => {
@@ -164,14 +233,30 @@ export function ERegisterWorkbook({
               worst === "error" || next === "error" ? "error" : (worst ?? next),
             undefined as "error" | "warning" | undefined
           );
+        if (column.computed && layer === "lower") {
+          // Calculated from other entries (visibility code, dew point, humidity).
+          return (
+            <Input
+              aria-label={`${column.label} (${column.code}), calculated`}
+              className={cn(
+                "h-9 cursor-default rounded-none border-0 bg-muted px-0.5 text-center font-mono text-body-sm text-muted-foreground shadow-none",
+                column.signed?.role === "sign" ? "w-10" : "w-12"
+              )}
+              readOnly
+              tabIndex={-1}
+              value={cellValue(column, shown, leads)}
+            />
+          );
+        }
         let maxLength: number | undefined;
-        if (upper) maxLength = 4;
+        if (upper) maxLength = upper.maxLength ?? 4;
         else if (column.parts) maxLength = column.parts.length;
         else if (column.signed) {
           maxLength = column.signed.role === "sign" ? 2 : 3;
         }
         let width = "w-12";
         if (column.wide) width = "w-56 text-left";
+        else if (column.size === "md") width = "w-16";
         else if (!upper && column.signed?.role === "sign") width = "w-10";
         return (
           <Input
@@ -209,11 +294,7 @@ export function ERegisterWorkbook({
               );
               onValidationStateChange("idle");
             }}
-            placeholder={
-              !upper && column.signed?.role === "sign"
-                ? `${column.signed.prefix}${column.signed.example ?? "0"}`
-                : undefined
-            }
+            placeholder={placeholderFor(column, upper !== undefined, shown)}
             value={
               upper
                 ? (values[upper.key] ?? "")
@@ -223,24 +304,18 @@ export function ERegisterWorkbook({
         );
       }}
       section={section}
-      values={values}
+      values={shown}
     />
   );
   return (
     <div className="flex flex-col gap-6">
-      <div className="flex flex-wrap items-end justify-between gap-4">
-        <div>
-          <h1 className="font-semibold text-2xl tracking-tight">
-            Weather Electronic Register
-          </h1>
-        </div>
+      <div className="flex flex-col items-start gap-3">
+        <PageHeader title="Weather Electronic Register" />
         <div className="flex flex-wrap items-center gap-2">
-          <Button onClick={() => onBack()} size="lg" variant="outline">
+          <Button onClick={() => onBack()} variant="outline">
             Observation archive
           </Button>
-          <Button aria-current="page" size="lg">
-            New observation
-          </Button>
+          <Button aria-current="page">New observation</Button>
         </div>
       </div>
 
@@ -271,6 +346,32 @@ export function ERegisterWorkbook({
             </SectionCard>
           </div>
           {REGISTER_SECTIONS.slice(1).map(renderTable)}
+          <div className="flex flex-wrap items-start gap-4">
+            <TimeMarks
+              renderInput={(key, label) => (
+                <Input
+                  aria-label={`Time mark: ${label}`}
+                  className="h-9 w-28 text-center font-mono"
+                  maxLength={16}
+                  onChange={(event) => {
+                    onValueChange(key, event.target.value);
+                    changed([key]);
+                  }}
+                  value={values[key] ?? ""}
+                />
+              )}
+              values={values}
+            />
+            {onSaveStationSettings ? (
+              <StationSettingsCard
+                key={JSON.stringify(stationSettings)}
+                onSave={onSaveStationSettings}
+                settings={stationSettings}
+              />
+            ) : (
+              <PendingSettingsNote settings={stationSettings} />
+            )}
+          </div>
         </div>
         {errors.length > 0 && (
           <div
@@ -378,17 +479,52 @@ export function ERegisterWorkbook({
           </div>
         </SectionCard>
         <SectionCard
-          action={<Badge variant="secondary">Preview</Badge>}
+          action={
+            <Badge variant="secondary">
+              {expectedMetar ? "Checked" : "Preview"}
+            </Badge>
+          }
           title="METAR / SPECI"
         >
           <div className="space-y-3 p-4">
             <p className="text-muted-foreground text-xs">
-              SPECI appears only when a configured special-report trigger
-              applies.
+              Built from the observation (SPECI is a special report: the same
+              elements are checked). Copy it, or type the report you send; each
+              element that differs from the observation is flagged.
             </p>
             <code className="block overflow-x-auto whitespace-nowrap rounded-lg bg-muted px-3 py-3 font-mono text-xs">
-              {metarPreview}
+              {expectedMetar ?? metarPreview}
             </code>
+            <div className="flex gap-2">
+              <Input
+                aria-label="METAR or SPECI as sent"
+                className="font-mono text-xs"
+                maxLength={400}
+                onChange={(event) =>
+                  onValueChange("metar_text", event.target.value)
+                }
+                placeholder="METAR TGPY 071200Z 07015KT 9999 FEW018 28/21 Q1016="
+                value={values.metar_text ?? ""}
+              />
+              <Button onClick={copyMetar} type="button" variant="outline">
+                {copyLabel}
+              </Button>
+              <span
+                aria-live="polite"
+                className="sr-only"
+                data-testid="copy-status"
+              >
+                {copyStatus}
+              </span>
+            </div>
+            {metarIssues.map(({ key, message }) => (
+              <p
+                className="text-amber-700 text-xs dark:text-amber-400"
+                key={key}
+              >
+                {message}
+              </p>
+            ))}
           </div>
         </SectionCard>
       </div>

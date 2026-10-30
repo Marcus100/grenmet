@@ -11,6 +11,7 @@ export type ShiftSwapRequestPublic = {
   signed_document_id?: string | null;
   submitted_at?: string | null;
   workflow_status?: WorkflowStatus | null;
+  returned_reason?: string | null;
   /**
    * @description
    * Format: `uuid`

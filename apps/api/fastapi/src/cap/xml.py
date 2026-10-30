@@ -7,6 +7,7 @@ from defusedxml.common import DefusedXmlException
 from pydantic import ValidationError
 
 from src.cap.exceptions import CapImportError
+from src.cap.levels import INTERNAL_PARAMETERS
 from src.cap.models import (
     CapCertainty,
     CapMessageType,
@@ -83,6 +84,8 @@ def _info_element(info: CapInfoPublic) -> ET.Element:
     _append(element, "web", info.web)
     _append(element, "contact", info.contact)
     for parameter in info.parameters:
+        if parameter.value_name in INTERNAL_PARAMETERS:
+            continue
         element.append(_name_value_element("parameter", parameter))
     for resource in sorted(info.resources, key=lambda item: item.sequence):
         element.append(_resource_element(resource))
@@ -145,9 +148,15 @@ def _format_optional_datetime(value: datetime | None) -> str | None:
 
 
 def _format_cap_datetime(value: datetime) -> str:
+    """CAP 1.2 dateTime: whole seconds and a numeric offset.
+
+    The standard's pattern forbids the alphabetic ``Z`` designator and fractions
+    of a second; UTC is written ``-00:00``. Strict consumers (the WMO alert hub,
+    Google Public Alerts) reject anything else.
+    """
     if value.tzinfo is None:
         value = value.replace(tzinfo=UTC)
-    return value.astimezone(UTC).isoformat().replace("+00:00", "Z")
+    return value.astimezone(UTC).strftime("%Y-%m-%dT%H:%M:%S-00:00")
 
 
 def _format_references(references: list[CapReferencePublic]) -> str:

@@ -1,7 +1,7 @@
 import type { Metadata, Route } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { FlatMap } from "@/components/map/flat-map";
+import { LevelMap } from "@/components/map/level-map";
 import { SeatSquare } from "@/components/party-chip";
 import { CandidateTable } from "@/components/results/candidate-table";
 import { Provenance } from "@/components/results/provenance";
@@ -242,11 +242,9 @@ export default async function EventPage({ params }: Props) {
               : "Winner in each constituency"
           }
         >
-          <FlatMap
+          <LevelMap
             className="max-w-xl"
-            geo={geo}
-            label={`${e.label} result by constituency`}
-            regions={CODES.map((code) => {
+            constituencyRegions={CODES.map((code) => {
               const r = eventResult(data, e.id, code);
               const w = r?.c[0];
               return {
@@ -256,7 +254,20 @@ export default async function EventPage({ params }: Props) {
                 title: `${constituencyName(results, code)}: ${winnerText(e.kind, w)}`,
               };
             })}
+            divisionRegions={eventDivisions(data, e.id).map((d) => ({
+              code: d.division,
+              fill: d.c[0] ? partyColor(d.c[0][1]) : "var(--el-paper-2)",
+              title: `${d.division}: ${winnerText(e.kind, d.c[0])}`,
+            }))}
+            geo={geo}
+            label={`${e.label} result`}
+            unavailableReason="A complete set of mapped polling-division results is unavailable for this event. See the recorded returns below."
           />
+          <p className="mt-3 max-w-prose text-base text-el-muted leading-relaxed">
+            This map shows the selected historical event. Boundaries are
+            illustrative; they do not confirm current voting arrangements or
+            which party a representative belongs to today.
+          </p>
         </Section>
       )}
 

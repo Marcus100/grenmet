@@ -5,6 +5,7 @@ import { useMutation } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
+import { PageHeader } from "@/components/layout/page-header";
 import {
   cancelRequisition,
   errorMessage,
@@ -94,9 +95,7 @@ export function DraftEditor({
 
   return (
     <div className="mx-auto flex w-full max-w-3xl flex-col gap-4 p-4 sm:gap-5 sm:p-5">
-      <h1 className="font-semibold text-foreground text-xl">
-        Edit draft {requisition.reference}
-      </h1>
+      <PageHeader title={`Edit draft ${requisition.reference}`} />
 
       <div className="flex flex-col gap-3 rounded-xl bg-card p-4 sm:p-5">
         <p className="text-sm" data-testid="requisition-department">

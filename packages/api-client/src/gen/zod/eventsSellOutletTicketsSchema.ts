@@ -45,3 +45,14 @@ export const eventsSellOutletTicketsErrorSchema = z.union([
 ]);
 
 export const eventsSellOutletTicketsBodySchema = outletSaleCreateSchema;
+
+export const eventsSellOutletTicketsPathSchema = z.object({
+  listing_id: z.uuid(),
+});
+
+export const eventsSellOutletTicketsQuerySchema = z.object({
+  organiser: z
+    .union([z.string().regex(/^[a-z0-9][a-z0-9-]{1,79}$/), z.null()])
+    .optional()
+    .describe("Organiser to act for when the member manages several."),
+});

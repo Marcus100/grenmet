@@ -5,7 +5,7 @@ export default defineConfig({
   test: {
     globals: true,
     // Share one worker limit across both projects alongside the other Turbo task.
-    maxWorkers: 2,
+    maxWorkers: "50%",
     projects: [
       {
         test: {

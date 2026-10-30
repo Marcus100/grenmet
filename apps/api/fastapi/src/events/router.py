@@ -68,7 +68,7 @@ def _viewer_id(viewer: Any) -> uuid.UUID | None:
     response_model=schemas.ListingCardList,
     status_code=status.HTTP_200_OK,
     summary="List upcoming events",
-    description="Published public events, soonest first, filtered by Grenada-calendar window, category, parish, price, tag or text.",
+    description="Published public events, soonest first, filtered by Grenada-calendar window, category, parish, price, tag or text; and by catalogue type, category and subcategory slug, pricing type, access (public only: private listings are never listed) and booking mode.",
     responses={
         **UNAUTHENTICATED,
     },
@@ -81,6 +81,12 @@ async def list_listings(
     category: schemas.Category | None = None,
     parish: schemas.Parish | None = None,
     price: Literal["free", "paid"] | None = None,
+    type: schemas.ListingType | None = None,
+    category_slug: Annotated[str | None, Query(pattern=schemas.SLUG_PATTERN)] = None,
+    subcategory_slug: Annotated[str | None, Query(pattern=schemas.SLUG_PATTERN)] = None,
+    pricing: schemas.PricingType | None = None,
+    access: Literal["public"] | None = None,
+    booking_mode: schemas.BookingMode | None = None,
     tag: Annotated[str | None, Query(max_length=30)] = None,
     q: Annotated[str | None, Query(max_length=100)] = None,
     organiser: Annotated[str | None, Query(pattern=schemas.SLUG_PATTERN)] = None,
@@ -95,6 +101,12 @@ async def list_listings(
         category=category,
         parish=parish,
         price=price,
+        listing_type=type,
+        category_slug=category_slug,
+        subcategory_slug=subcategory_slug,
+        pricing=pricing,
+        access=access,
+        booking_mode=booking_mode,
         tag=tag,
         query=q,
         organiser_slug=organiser,
@@ -103,6 +115,17 @@ async def list_listings(
         offset=offset,
     )
     return schemas.ListingCardList(data=data, count=count)
+
+
+@router.get(
+    "/public/categories",
+    response_model=schemas.EventCategoryTree,
+    status_code=status.HTTP_200_OK,
+    summary="List event categories",
+    description="Active categories with their subcategories and the number of upcoming published public listings in each (ADR-0046).",
+)
+async def list_categories(*, session: EventsSession) -> schemas.EventCategoryTree:
+    return schemas.EventCategoryTree(data=await service.category_tree(session))
 
 
 @router.get(

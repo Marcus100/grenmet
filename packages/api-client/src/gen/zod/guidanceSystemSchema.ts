@@ -12,6 +12,7 @@ export const guidanceSystemSchema = z.strictObject({
   source_feature_key: z.union([z.string(), z.null()]).optional(),
   name: z.string().max(300),
   feature_type: guidanceSystemPropertiesFeatureTypeEnumSchema,
+  tracked_system_id: z.union([z.uuid(), z.null()]).optional(),
   parent_system_id: z.union([z.uuid(), z.null()]).optional(),
   suggested_parent_system_id: z.union([z.uuid(), z.null()]).optional(),
   relationship_confirmed: z.boolean().optional().default(false),

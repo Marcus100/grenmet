@@ -14,3 +14,8 @@ class ProductValidationError(AppException):
 class WeatherUnavailable(AppException):
     def __init__(self) -> None:
         super().__init__("Weather products are unavailable. Try again.", 503)
+
+
+class TropicalSystemConflict(AppException):
+    def __init__(self, message: str) -> None:
+        super().__init__(message, 409)

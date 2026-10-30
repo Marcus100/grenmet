@@ -37,3 +37,7 @@ export const bookingsConfirmEmailCodeErrorSchema = z.union([
 ]);
 
 export const bookingsConfirmEmailCodeBodySchema = bookingEmailCodeConfirmSchema;
+
+export const bookingsConfirmEmailCodePathSchema = z.object({
+  slug: z.string().max(60),
+});

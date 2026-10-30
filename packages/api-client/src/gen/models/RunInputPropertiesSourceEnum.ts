@@ -9,6 +9,7 @@ export const runInputPropertiesSourceEnum = {
   cimss: "cimss",
   trackthetropics: "trackthetropics",
   uwyo: "uwyo",
+  gnca: "gnca",
 } as const;
 
 export type RunInputPropertiesSourceEnum =

@@ -20,6 +20,17 @@ export const env = createEnv({
       z.string().min(32).optional()
     ),
     AUTH_ALLOWED_RETURN_HOSTS: z.string().optional().default(""),
+    // Shared with the API's TRUSTED_WEB_SECRET so sign-up rate limits key on the
+    // visitor's own address. Unset or "": every visitor shares this server's bucket.
+    TRUSTED_WEB_SECRET: z.preprocess(
+      (value) => value || undefined,
+      z.string().min(32).optional()
+    ),
+    // Reverse proxies in front of this server that append to x-forwarded-for.
+    VISITOR_IP_PROXY_HOPS: z.preprocess(
+      (value) => value || undefined,
+      z.coerce.number().int().min(1).max(5).default(1)
+    ),
     // Base URL for the public CAP warning endpoints (/api/cap/*). These are
     // unauthenticated, so this is independent of the auth delegation above.
     CAP_API_URL: z.string().url().optional().default("http://localhost:8000"),
@@ -59,6 +70,8 @@ export const env = createEnv({
     WEATHER_SESSION_COOKIE_NAME: process.env.WEATHER_SESSION_COOKIE_NAME,
     WEATHER_SSO_CLIENT_SECRET: process.env.WEATHER_SSO_CLIENT_SECRET,
     AUTH_ALLOWED_RETURN_HOSTS: process.env.AUTH_ALLOWED_RETURN_HOSTS,
+    TRUSTED_WEB_SECRET: process.env.TRUSTED_WEB_SECRET,
+    VISITOR_IP_PROXY_HOPS: process.env.VISITOR_IP_PROXY_HOPS,
     CAP_API_URL: process.env.CAP_API_URL,
     NEXT_PUBLIC_TURNSTILE_SITE_KEY: process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY,
     NEXT_PUBLIC_SENTRY_DSN: process.env.NEXT_PUBLIC_SENTRY_DSN,

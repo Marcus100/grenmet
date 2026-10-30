@@ -13,3 +13,7 @@ export function getNews() {
 export function getPage(section: Section, slug: string) {
   return findPage(allPages, section, slug);
 }
+
+export function getAllPages() {
+  return allPages;
+}

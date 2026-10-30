@@ -16,10 +16,11 @@ tooling. Start with `docs/technical-overview.md`.
 | Path | Covers |
 | --- | --- |
 | `apps/api/fastapi/AGENTS.md` | FastAPI conventions, testing, OpenAPI contract |
-| `apps/api/fastapi/src/<domain>/AGENTS.md` | Per-domain ownership, invariants, tests (auth, hr, cap, wxproducts, wxwatch, audit, notifications, subscriptions, contact, feedback, organisations, flights, models_guidance, storage, billing, worker, eregister, janitorial, transport, events, stores, baseline, environmental, push, rewards, bookings, webhooks_out, contacts, payments, feature_flags) |
+| `apps/api/fastapi/src/<domain>/AGENTS.md` | Per-domain ownership, invariants, tests (auth, hr, cap, wxproducts, wxwatch, audit, notifications, subscriptions, contact, feedback, organisations, flights, models_guidance, storage, billing, worker, eregister, janitorial, transport, events, stores, baseline, environmental, push, rewards, bookings, webhooks_out, contacts, payments, feature_flags, content_distribution) |
 | `apps/web/<app>/AGENTS.md` | admin, auth, bookings, cap, cms, docs, elections, events, gaa-admin, gms, gmsdash, mbia, signal |
 | `apps/web/barrels/AGENTS.md` | Static Barrels Grenada company homepage |
 | `apps/web/babydoll/AGENTS.md` | Babydoll Beauty Bar client website (Next.js, Vercel) |
+| `apps/web/commit/AGENTS.md` | Commit, the Barrels engineering blog (one post per release; static Next.js on Cloudflare Pages) |
 | `packages/bookings-web/AGENTS.md` | Public booking flow (slot picker, booking form, manage-booking, Turnstile) shared by babydoll and a future bookings app; host owns server calls |
 | `packages/<pkg>/AGENTS.md` | api-client, auth, bookings-web, email-templates, gms, theme, ui |
 | `docs/playbooks/full-stack-feature.md` | End-to-end: model → migration → route → OpenAPI → client → UI → tests |
@@ -29,7 +30,7 @@ tooling. Start with `docs/technical-overview.md`.
 ```bash
 pnpm install  # dependencies
 pnpm start  # Docker services (Postgres, Redis, FastAPI, worker) — HOST ONLY
-pnpm dev:web:<app>  # auth:3000 gaa-admin:3001 docs:3002 gms:3003 signal:3004 mbia:3005 cms:3006 elections:3007 events:3009 cap:3010 admin:3012 gmsdash:3013 babydoll:3014 bookings:3015 — HOST ONLY
+pnpm dev:web:<app>  # auth:3000 gaa-admin:3001 docs:3002 gms:3003 signal:3004 mbia:3005 cms:3006 elections:3007 events:3009 cap:3010 admin:3012 gmsdash:3013 babydoll:3014 bookings:3015 commit:3019 — HOST ONLY
 pnpm verify:changed  # only the gates this diff needs (--dry-run to list; --full adds fuzz; PYTEST_WORKERS=n)
 pnpm fix:changed  # formats dirty files; in shared checkouts use `pnpm exec ultracite fix <owned-files>`
 pnpm type-check  # TypeScript across all packages
@@ -84,7 +85,7 @@ REDIS_URL=redis://host.docker.internal:6379/0` (full list in
 
 ## Git, parallel agents and handoff
 
-- **Attended sessions:** work in a worktree per task, validate, push the task branch and open a PR into `dev`. Agents merge their own PR into `dev` once CI is green on its head and a fresh-context review has no open blocking finding (`gh pr merge <num> --merge --match-head-commit <sha>`), so `origin/dev` always carries the latest. Never push `dev`. A `risk:high` PR also gets a `security-reviewer` pass with no open finding first, named in its body. The hook enforces the rest: `gh pr merge` works only into `dev`, only in this repository, and never for a PR that changes hooks, settings, `.codex`, `.agents`, skills, any `AGENTS.md`, guardrail scripts, workflows or rulesets (the owner merges those). Standing authorization covers creating the `dev → staging` PR with a recap; the owner reviews and merges into `staging` and does the same for `main` (agents do not arm auto-merge). **Unattended routines** do the same from their own `agent/<n>-<slug>` branch (`docs/agents/routines.md`). Cross-tool review handoffs (`pnpm agents:handoff`) and Codex's role: `docs/agents/roles.md`. Rulesets snapshot and drift check: `pnpm guardrails:rulesets`. Full rules: `docs/agents/workflow.md`.
+- **Attended sessions:** work in a worktree per task, validate, push the task branch and open a PR into `dev`. Agents merge their own PR into `dev` once CI is green on its head and a fresh-context review has no open blocking finding (`gh pr merge <num> --merge --match-head-commit <sha>`), so `origin/dev` always carries the latest. Never push `dev`. A `risk:high` PR also gets a `security-reviewer` pass with no open finding first, named in its body. The hook enforces the rest: `gh pr merge` works only into `dev`, only in this repository, and never for a PR that changes hooks, settings, `.codex`, `.agents`, skills, the root `AGENTS.md`, guardrail scripts, workflows or rulesets (the owner merges those). Standing authorization covers creating the `dev → staging` PR with a recap; the owner reviews and merges into `staging` and does the same for `main` (agents do not arm auto-merge). **Unattended routines** do the same from their own `agent/<n>-<slug>` branch (`docs/agents/routines.md`). Cross-tool review handoffs (`pnpm agents:handoff`) and Codex's role: `docs/agents/roles.md`. Rulesets snapshot and drift check: `pnpm guardrails:rulesets`. Full rules: `docs/agents/workflow.md`.
 - Never hand-merge `openapi.json` or `packages/api-client/src/gen/`; regenerate both.
 - Read `SESSION_LOG.md` (main checkout root) before assuming a task is untouched; append one entry after meaningful work. Read-only reviewers write nothing, including session logs; this exception overrides the logging requirement here and in `docs/agents/workflow.md`. The author records the review outcome. Run the `file-friction` skill if you worked around anything. Tool switches, browsers, MCP servers and plugins: `docs/agents/tool-usage.md`.
 - Use the `api-change` skill for FastAPI contract changes and `gaa-admin-change` before touching `apps/web/gaa-admin`. Check `.claude/skills/` (also `.agents/skills`) before improvising CI triage, pre-merge, release or diagnosis. Write and change skills to `docs/agents/skill-standard.md`; `pnpm test:guardrails` lints them.

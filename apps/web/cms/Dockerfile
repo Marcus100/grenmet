@@ -22,6 +22,7 @@ COPY apps/web/babydoll/package.json apps/web/babydoll/
 COPY apps/web/bookings/package.json apps/web/bookings/
 COPY apps/web/cap/package.json apps/web/cap/
 COPY apps/web/cms/package.json apps/web/cms/
+COPY apps/web/commit/package.json apps/web/commit/
 COPY apps/web/docs/package.json apps/web/docs/
 COPY apps/web/elections/package.json apps/web/elections/
 COPY apps/web/events/package.json apps/web/events/
@@ -54,6 +55,7 @@ ENV NEXT_TELEMETRY_DISABLED=1
 COPY packages/api-client/ packages/api-client/
 COPY packages/auth/ packages/auth/
 COPY packages/cms-migrations/ packages/cms-migrations/
+COPY packages/gms/ packages/gms/
 COPY packages/tsconfig/ packages/tsconfig/
 COPY packages/ui/ packages/ui/
 COPY apps/web/cms/ apps/web/cms/
@@ -74,6 +76,9 @@ ENV NODE_ENV=production
 COPY --from=migration-package /migration-runtime/node_modules ./node_modules
 # Payload loads the shared TypeScript configuration at migration time.
 COPY --from=source /app/packages/tsconfig ./node_modules/@barrelsgd/tsconfig
+# The editorial link helpers import the shared GMS catalogue (plain TypeScript).
+COPY --from=source /app/packages/gms/package.json ./node_modules/@barrelsgd/gms/package.json
+COPY --from=source /app/packages/gms/src ./node_modules/@barrelsgd/gms/src
 COPY --from=source /app/apps/web/cms/package.json /app/apps/web/cms/tsconfig.json ./
 COPY --from=source /app/apps/web/cms/src ./src
 COPY --from=source /app/apps/web/cms/scripts ./scripts

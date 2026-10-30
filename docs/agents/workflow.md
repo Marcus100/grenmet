@@ -21,12 +21,20 @@ agent instructions. Nothing here relaxes a root rule.
   `scripts/agents/api-env.sh` (local-development placeholders; values already in
   your environment win; it never writes an env file), for example
   `scripts/agents/api-env.sh uv run --frozen --package fast-back pytest tests/hr -q`.
+- **Local API test selection:** `pnpm verify:changed` runs only the pytest folders
+  of the API domains the diff touches (`src/<domain>` maps to `tests/<domain>`).
+  `src/auth` and `src/main.py` (shared by every request) run the full suite, and a
+  domain with no tests of its own does too. CI runs the full suite on every push.
+  Use `pnpm verify:changed --full` before a risky merge. The rules are in
+  `scripts/verification/README.md`.
 - If a worktree shows ` T .agents/skills`, that worktree was created by a tool that
   cannot make symlinks (`git worktree add` run inside WSL makes it correctly).
   Run `git restore .agents/skills` there instead of staging or committing the
   typechange; `git rebase` refuses to start while it is dirty.
-- Commit in the worktree, then merge completed branches into local `dev` in a
-  clean integration checkout. Dev servers stay on the host in the main checkout.
+- Commit in the worktree, validate, push the task branch and open a PR into
+  `dev`; the agent merges it once CI is green on its head and a fresh-context
+  review has no open blocking finding (`AGENTS.md` → Git, parallel agents and
+  handoff). Never push `dev`. Dev servers stay on the host in the main checkout.
 - Never hand-merge `openapi.json` or `packages/api-client/src/gen/`: take either
   side and regenerate (openapi command in `AGENTS.md` → `pnpm generate:api-client`
   → `pnpm check:drift`).
@@ -51,10 +59,10 @@ agent instructions. Nothing here relaxes a root rule.
   exits 0 on that head, and leave the fresh-context review as a PR comment that
   names the reviewer. A `risk:high` PR also gets a `security-reviewer` pass with
   no open finding first. Unattended routines do the same from their own branch.
-  A PR that changes hooks, settings, `.codex`, `.agents`, skills, any
-  `AGENTS.md`, guardrail scripts, workflows or rulesets is merged by the owner:
-  the hook refuses the agent's merge. If `origin/dev` advances, integrate it and
-  revalidate.
+  A PR that changes owner-only files listed in `AGENTS.md` is merged by the
+  owner; the hook refuses an agent merge. Other factory-control changes require
+  independent code and security review with no open blocking finding before an
+  agent merges into dev. If `origin/dev` advances, integrate it and revalidate.
 - Standing authorization: once PRs are merged into `dev`,
   create or update the `dev → staging` PR with a recap, review the promotion diff
   and verify `dev` has not advanced. The owner reviews and merges into `staging`;
@@ -68,16 +76,25 @@ agent instructions. Nothing here relaxes a root rule.
 
 **Unattended routines** follow [routines.md](routines.md): they push only
 their own `agent/<n>-<slug>` branch, open a PR to `dev`, and never push `dev`,
-`staging` or `main` or merge anything.
+`staging` or `main`. They merge reviewed PRs into dev under the same checks as
+attended sessions, except the owner merges PRs that touch owner-only files.
 
 **Rulesets.** `infra/github/rulesets.json` is the committed copy of the branch
 rulesets, which are what make "PR required" and "required checks" true.
 `pnpm guardrails:rulesets` compares it with GitHub, and
 `.github/workflows/rulesets-drift.yml` does the same on every PR into a
 long-lived branch and weekly. Today `main` and `staging` each require a PR and
-six checks with no bypass actors; `dev` has no ruleset, so the PR-into-`dev`
-rule above is enforced only by these documents until the owner adds one
-(suggested: the same `pull_request`, `non_fast_forward` and `deletion` rules).
+six checks with no bypass actors. `Protect dev` adds the factory code/security
+review contexts and requires branches to be current with `dev` before merge.
+This protects the worker's merge-base and changed-file overlap check from `dev`
+advancing between check and merge. A `dev` merge makes other PR branches stale;
+the worker syncs only the next eligible PR and waits for fresh CI and review. This
+is slower than loose checks, but this personal-account repo has no GitHub merge
+queue to provide the equivalent server-side guarantee. No bypass actors are
+configured. The review contexts must be pinned to the dedicated status App's
+integration ID in both GitHub and the snapshot. The worker refuses to publish
+review statuses unless its App ID matches that pin; until this setup is
+complete, do not treat user-created review statuses as trusted.
 After changing a ruleset, run `node scripts/guardrails/github-rulesets.mjs
 --snapshot` and commit the result.
 
@@ -113,6 +130,24 @@ reviewer appends nothing; the author records the review outcome (`AGENTS.md`).
 If you worked around anything, run the `file-friction` skill. For tool switches,
 follow [tool-usage.md](tool-usage.md).
 
+### Context reset
+
+Long sessions get slower, dearer and forgetful: auto-compaction is lossy, and
+practitioner guides put the quality drop-off well before the window fills (about
+60%; a heuristic, not a measured limit). So:
+
+- **One session, one task.** Start a fresh session after each merged PR and
+  whenever the work changes area. Do not carry a finished task into the next one.
+- **Reset at about 60% context**, or when you notice the signs: forgetting a
+  decision made earlier, contradicting yourself, or rewriting code already
+  validated. Do not start a multi-file change in a session that is already long.
+- **Before resetting, write the handoff** to `SESSION_LOG.md`: at most 10 lines
+  covering state (branch, head SHA, PR), what is done, what is next, and open
+  decisions. Put detail in the PR body or an issue, not the log. The next session
+  reads the tail of the log and the PR, not the old transcript.
+- Anything that must survive every reset goes in `AGENTS.md`, a hook or a test,
+  not in the conversation.
+
 ## Editing agent instructions
 
 - Keep the root `AGENTS.md` a short map (about 10 KB): commands, hard rules,
@@ -144,9 +179,9 @@ looked through): `gh pr merge <number|url> [--repo Marcus100/grenmet] [--merge]
 [--delete-branch] --match-head-commit <sha>`. Anything else blocks: `--admin`,
 `--auto`, `--squash`, `--body`, another repository (`-R`, `--repo`, a PR URL,
 `GH_REPO`), a chained `gh pr edit --base`, a `cd`, a PR not named in the
-command, or no pinned head. The PR's base must be `dev`, and it must change none
-of the owner-only paths (`OWNER_ONLY_PATHS` in the hook); an unknown base or
-file list blocks, and `staging` and `main` always block. `gh alias`, GraphQL
+command, or no pinned head. The PR's base must be `dev`; a PR that changes
+owner-only paths listed in `AGENTS.md`, an unknown base or file list blocks,
+and `staging` and `main` always block. `gh alias`, GraphQL
 merge mutations, `gh api …/merges` and the REST merge endpoint block too. This
 is a best-effort filter, not a sandbox: the real controls are the rulesets, the
 owner's merge into `staging`, and the permission rule in the user's settings.

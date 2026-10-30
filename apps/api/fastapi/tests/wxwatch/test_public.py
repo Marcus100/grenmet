@@ -15,6 +15,7 @@ ROWS = [
     ("new.png", "2026-09-17T06:10:00Z", "101_cloud.png", "goes19", "goes19:cloud.png"),
     ("ir.png", "2026-09-17T06:05:00Z", "102_ir.png", "goes19", "goes19:ir.png"),
     ("other.png", "2026-09-17T07:00:00Z", "x.png", "cimss", "cimss:x"),
+    ("gnca/rx.png", "2026-09-17T07:30:00Z", "rx.png", "gnca", "gnca:rx"),
     ("none.png", None, "103_none.png", "goes19", "goes19:none.png"),
     (
         "bad name!.png",
@@ -70,6 +71,8 @@ async def test_latest_is_anonymous_goes_only_newest_per_product(
     assert "NOAA" in cloud["attribution"]
     assert "storage_path" not in cloud
     assert "new.png" not in response.text
+    assert "gnca" not in response.text
+    assert "rx.png" not in response.text
 
 
 async def test_latest_filters_by_product_and_returns_empty_honestly(

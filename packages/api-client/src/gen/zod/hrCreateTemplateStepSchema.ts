@@ -36,3 +36,7 @@ export const hrCreateTemplateStepErrorSchema = z.union([
 ]);
 
 export const hrCreateTemplateStepBodySchema = workflowStepTemplateCreateSchema;
+
+export const hrCreateTemplateStepPathSchema = z.object({
+  template_id: z.uuid(),
+});

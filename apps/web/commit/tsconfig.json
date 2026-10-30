@@ -1,0 +1,18 @@
+{
+  "extends": "@barrelsgd/tsconfig/tsconfig.nextjs.json",
+  "compilerOptions": {
+    "paths": {
+      "@/*": ["./src/*"]
+    }
+  },
+  "include": [
+    "next-env.d.ts",
+    "**/*.ts",
+    "**/*.tsx",
+    ".next/types/**/*.ts",
+    ".next/dev/types/**/*.ts",
+    ".content-collections/**/*.ts",
+    "**/*.mts"
+  ],
+  "exclude": ["node_modules"]
+}

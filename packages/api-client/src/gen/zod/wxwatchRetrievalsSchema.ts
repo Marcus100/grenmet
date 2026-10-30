@@ -44,3 +44,12 @@ export const wxwatchRetrievalsErrorSchema = z.union([
   wxwatchRetrievalsStatus404Schema,
   wxwatchRetrievalsStatus422Schema,
 ]);
+
+export const wxwatchRetrievalsPathSchema = z.object({
+  edition_id: z.uuid(),
+});
+
+export const wxwatchRetrievalsQuerySchema = z.object({
+  offset: z.int().min(0).max(100000).optional().default(0),
+  limit: z.int().min(1).max(100).optional().default(30),
+});

@@ -37,3 +37,7 @@ export const storesCancelRequisitionErrorSchema = z.union([
   storesCancelRequisitionStatus409Schema,
   storesCancelRequisitionStatus422Schema,
 ]);
+
+export const storesCancelRequisitionPathSchema = z.object({
+  requisition_id: z.uuid(),
+});

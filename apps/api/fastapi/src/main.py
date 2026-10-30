@@ -44,12 +44,14 @@ from src.cap.router import router as cap_router
 from src.config import settings
 from src.contact.router import router as contact_router
 from src.contacts.router import router as contacts_router
+from src.content_distribution.router import router as content_distribution_router
 from src.environmental.router import router as environmental_router
 from src.eregister import database as eregister_database
 from src.eregister.router import router as eregister_router
 from src.events.moderation_router import router as events_moderation_router
 from src.events.org_router import router as events_org_router
 from src.events.router import router as events_router
+from src.events.staff_router import router as events_staff_router
 from src.exceptions import (
     AppException,
     app_exception_handler,
@@ -225,6 +227,10 @@ OPENAPI_TAGS = [
     {
         "name": "subscriptions",
         "description": "Public mailing-list sign-up with double opt-in (no sign-in).",
+    },
+    {
+        "name": "content-distribution",
+        "description": "Social posts saved by the CMS (shared-secret hook) and their per-platform status for staff. Dry run only.",
     },
     {
         "name": "push",
@@ -489,6 +495,7 @@ app.include_router(subscriptions_router, prefix=settings.API_V1_STR)
 app.include_router(push_router, prefix=settings.API_V1_STR)
 app.include_router(contact_router, prefix=settings.API_V1_STR)
 app.include_router(feedback_router, prefix=settings.API_V1_STR)
+app.include_router(content_distribution_router, prefix=settings.API_V1_STR)
 app.include_router(flights_router, prefix=settings.API_V1_STR)
 app.include_router(environmental_router, prefix=settings.API_V1_STR)
 app.include_router(models_guidance_router, prefix=settings.API_V1_STR)
@@ -504,6 +511,7 @@ app.include_router(transport_router, prefix=settings.API_V1_STR)
 app.include_router(events_router, prefix=settings.API_V1_STR)
 app.include_router(events_moderation_router, prefix=settings.API_V1_STR)
 app.include_router(events_org_router, prefix=settings.API_V1_STR)
+app.include_router(events_staff_router, prefix=settings.API_V1_STR)
 
 # Register exception handlers
 app.add_exception_handler(AppException, app_exception_handler)  # type: ignore[arg-type]

@@ -8,7 +8,7 @@ import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 
 export type BookingsConfirmStudioBookingPath = {
   /**
-   * @description The booking\'s id.
+   * @description The booking's id.
    *
    * Format: `uuid`
    * @type string
@@ -24,7 +24,7 @@ export type BookingsConfirmStudioBookingHeaders = {
 };
 
 /**
- * @description A booking as the business sees it, with the customer\'s contact details.
+ * @description A booking as the business sees it, with the customer's contact details.
  * @type object
  */
 export type BookingsConfirmStudioBookingStatus200 = BookingStudioDetail;

@@ -22,6 +22,7 @@ import {
   eventsRemoveConnection,
   eventsRequestConnection,
   eventsRequestOrganiser,
+  eventsResubmitOrganiser,
   eventsRsvpListing,
   eventsSaveListing,
   eventsSellOutletTickets,
@@ -53,6 +54,7 @@ import {
   toRefund,
   toTill,
 } from "./api-mappers";
+import { getManagedAccess } from "./events-api";
 import { friendlyConflict } from "./order-errors";
 import { chosenOrganiser, rememberOrganiser } from "./organiser-choice";
 
@@ -67,6 +69,15 @@ type Options = Awaited<ReturnType<typeof apiOptions>>;
 
 /** The API's message when object storage is not set up; shown as is. */
 const UPLOADS_UNAVAILABLE = "Uploads are not configured";
+
+/** What the API answers (503) when card checkout is configured but cannot start. */
+const CARD_UNAVAILABLE_PREFIX = "Online payment is temporarily unavailable";
+const CARD_UNAVAILABLE =
+  "Card payments are temporarily unavailable. Try again in a moment.";
+/** A replay found an order that already expired (409); start over with a new key. */
+const ATTEMPT_EXPIRED_PREFIX = "That attempt expired";
+const ATTEMPT_EXPIRED = "That attempt expired. Start a new one.";
+const GENERIC_FAILURE = "Something went wrong. Try again shortly.";
 
 function detailOf(error: ResponseError): string | null {
   const data: unknown = error.data;
@@ -94,27 +105,49 @@ async function run<T>(
     revalidatePath("/", "layout");
     return { ok: true, data };
   } catch (error) {
-    if (error instanceof ResponseError && error.status === 401) {
-      return { ok: false, error: SIGN_IN_REQUIRED };
-    }
-    if (
-      error instanceof ResponseError &&
-      ((error.status >= 400 && error.status < 500) ||
-        (error.status === 503 && detailOf(error) === UPLOADS_UNAVAILABLE))
-    ) {
-      const detail = detailOf(error);
-      const message =
-        explainConflict && error.status === 409
-          ? friendlyConflict(detail)
-          : detail;
-      return {
-        ok: false,
-        error: message ?? "That didn't work. Check it and try again.",
-      };
-    }
-    reportError(error, area);
-    return { ok: false, error: "Something went wrong. Try again shortly." };
+    return failureOf(error, area, explainConflict);
   }
+}
+
+/** Maps a thrown API error to the failure the UI shows (reports unexpected ones). */
+function failureOf(
+  error: unknown,
+  area: string,
+  explainConflict: boolean
+): ActionResult<never> {
+  if (!(error instanceof ResponseError)) {
+    reportError(error, area);
+    return { ok: false, error: GENERIC_FAILURE };
+  }
+  const detail = detailOf(error);
+  if (error.status === 401) {
+    return { ok: false, error: SIGN_IN_REQUIRED };
+  }
+  if (error.status === 503 && detail?.startsWith(CARD_UNAVAILABLE_PREFIX)) {
+    return { ok: false, error: CARD_UNAVAILABLE, freshKey: true };
+  }
+  if (error.status === 409 && detail?.startsWith(ATTEMPT_EXPIRED_PREFIX)) {
+    return { ok: false, error: ATTEMPT_EXPIRED, freshKey: true };
+  }
+  if (
+    (error.status >= 400 && error.status < 500) ||
+    (error.status === 503 && detail === UPLOADS_UNAVAILABLE)
+  ) {
+    const message =
+      explainConflict && error.status === 409
+        ? friendlyConflict(detail)
+        : detail;
+    return {
+      ok: false,
+      error: message ?? "That didn't work. Check it and try again.",
+    };
+  }
+  reportError(error, area);
+  return {
+    ok: false,
+    error: GENERIC_FAILURE,
+    ...(error.status >= 500 ? { freshKey: true as const } : {}),
+  };
 }
 
 export async function setGoing(slug: string, going: boolean) {
@@ -308,6 +341,47 @@ export async function requestOrganiser(organiser: OrganiserCreate) {
     await rememberOrganiser(created.slug);
     return created.slug;
   });
+}
+
+/** The API's 409 when the organiser is not in the rejected state. */
+const NOT_REJECTED_PREFIX = "Only a rejected request can be resubmitted";
+
+/**
+ * Puts a rejected organiser back in the moderation queue. The organiser is
+ * resolved here the way the /dash page resolves it (`getManagedAccess`: the
+ * cookie, or the default organiser when it is absent or stale), never sent by
+ * the browser, and the API checks they own or administer it. A 409 means it is
+ * no longer rejected (a double click, or a moderator already decided): the
+ * outcome is "unchanged", not an error, so a repeat converges.
+ */
+export async function resubmitOrganiser(): Promise<
+  ActionResult<"resubmitted" | "unchanged">
+> {
+  const session = await getSession();
+  if (!session) {
+    return { ok: false, error: SIGN_IN_REQUIRED };
+  }
+  try {
+    const access = await getManagedAccess();
+    const organiser =
+      access.kind === "ok" ? access.workspace.organiser.slug : undefined;
+    await eventsResubmitOrganiser({
+      ...(await apiOptions(session.accessToken)),
+      ...(organiser ? { query: { organiser } } : {}),
+    }).unwrap();
+    revalidatePath("/", "layout");
+    return { ok: true, data: "resubmitted" };
+  } catch (error) {
+    if (
+      error instanceof ResponseError &&
+      error.status === 409 &&
+      detailOf(error)?.startsWith(NOT_REJECTED_PREFIX)
+    ) {
+      revalidatePath("/", "layout");
+      return { ok: true, data: "unchanged" };
+    }
+    return failureOf(error, "events-organiser", false);
+  }
 }
 
 /**

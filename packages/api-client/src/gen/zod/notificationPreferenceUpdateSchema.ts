@@ -5,7 +5,10 @@
 
 import * as z from "zod";
 
-export const notificationPreferenceUpdateSchema = z.object({
-  event_key: z.string(),
-  email_enabled: z.boolean(),
-});
+export const notificationPreferenceUpdateSchema = z
+  .object({
+    event_key: z.string(),
+    email_enabled: z.union([z.boolean(), z.null()]).optional(),
+    bell_enabled: z.union([z.boolean(), z.null()]).optional(),
+  })
+  .describe("Leave a channel out (null) to keep the person's current choice.");

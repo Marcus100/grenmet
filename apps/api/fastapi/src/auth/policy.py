@@ -4,12 +4,20 @@ import uuid
 from sqlalchemy import exists, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.auth.models import Role, RoleAssignmentScope, User, UserRoleAssignment
+from src.auth.models import (
+    Role,
+    RoleAssignmentScope,
+    User,
+    UserRoleAssignment,
+)
 from src.auth.permissions import ORGANISATION_BOUND_KEYS
 from src.exceptions import AuthorizationError
 from src.utils.datetime import utc_now
 
 logger = logging.getLogger(__name__)
+
+# Baseline self-service role (leave, timesheets, own records); survives ended employment.
+STAFF_ROLE = "staff"
 
 ERROR_PERMISSION_DENIED = "Insufficient permission for this operation"
 
@@ -33,9 +41,36 @@ async def _active_assignments(
             ),
         )
     )
+    # Ending employment ends every role scoped to that organisation (owner
+    # decision 2026-10-28, #789). No employment record at all (organisation
+    # administrators, platform staff) keeps the assignment; an ended record, or a
+    # deactivated account, drops it. Every scope is gated, SELF included (SELF
+    # approver roles are common); only the SELF-scope baseline staff role stays.
+    live_holder = (
+        ~exists(
+            select(EmploymentRecord.id).where(
+                EmploymentRecord.user_id == UserRoleAssignment.user_id,
+                EmploymentRecord.organisation_id == UserRoleAssignment.organisation_id,
+            )
+        )
+        | exists(
+            select(EmploymentRecord.id).where(
+                EmploymentRecord.user_id == UserRoleAssignment.user_id,
+                EmploymentRecord.organisation_id == UserRoleAssignment.organisation_id,
+                EmploymentRecord.status == EmploymentStatus.ACTIVE,
+            )
+        )
+    ) & UserRoleAssignment.user_id.in_(select(User.id).where(User.is_active.is_(True)))
     result = await session.execute(
         select(UserRoleAssignment).where(
             UserRoleAssignment.user_id == user_id,
+            (
+                UserRoleAssignment.role_id.in_(
+                    select(Role.id).where(Role.name == STAFF_ROLE)
+                )
+                & (UserRoleAssignment.scope == RoleAssignmentScope.SELF)
+            )
+            | live_holder,
             UserRoleAssignment.effective_from <= now,
             UserRoleAssignment.effective_to.is_(None)
             | (UserRoleAssignment.effective_to > now),
@@ -48,6 +83,30 @@ async def _active_assignments(
     from src.auth.delegation import valid_delegated_assignments
 
     return await valid_delegated_assignments(session, list(result.scalars().all()))
+
+
+async def has_role_permission(
+    *, session: AsyncSession, user: User, permission_key: str
+) -> bool:
+    """True when a role the user holds right now carries ``permission_key`` (ADR-0050).
+
+    Resolved through ``access.all_scope_permission_keys``, never through
+    ``user.roles`` or ``has_permission``: only live ALL-scope assignments count
+    (``effective_from`` <= now < ``effective_to``, open-ended when null; an expired
+    or not-yet-started one gives nothing), plus plain role links for roles the user
+    never had an assignment for (a plain link cannot expire). SELF- and
+    DEPARTMENT-scoped assignments give no staff key. A superuser has no implicit
+    key: staff keys must be granted through a role. Organisation-bound keys are
+    always False.
+    """
+    wanted = permission_key.strip().lower()
+    if not user.is_active or wanted in ORGANISATION_BOUND_KEYS:
+        return False
+    from src.auth.access import all_scope_permission_keys
+
+    return wanted in {
+        key.lower() for key in await all_scope_permission_keys(session, user)
+    }
 
 
 def is_organisation_bound(*, user: User, permission_key: str) -> bool:

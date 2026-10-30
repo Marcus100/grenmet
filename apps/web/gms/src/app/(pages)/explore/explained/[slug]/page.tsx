@@ -4,6 +4,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { PageHeader } from "@/components/page-header";
 import { Prose } from "@/components/pages/prose";
+import { RelatedLinkAnchor } from "@/components/related-link-anchor";
 import { fetchQuestions, relatedHref } from "@/lib/cms";
 
 type Params = Promise<{ slug: string }>;
@@ -81,12 +82,7 @@ export default async function QuestionPage({ params }: { params: Params }) {
             ))}
             {question.relatedLinks?.map((link) => (
               <li key={link.url}>
-                <a
-                  className="font-semibold text-gm-blue-ink hover:underline"
-                  href={link.url}
-                >
-                  {link.title}
-                </a>
+                <RelatedLinkAnchor link={link} />
               </li>
             ))}
           </ul>

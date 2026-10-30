@@ -22,9 +22,16 @@ from enum import Enum
 
 from src.cap.models import CapCertainty, CapSeverity, CapUrgency
 from src.cap.schemas import CapNameValue
+from src.sectors import unknown_sectors
 
 AWARENESS_PARAMETER = "awareness_level"
 PRODUCT_PARAMETER = "GMS:product"
+SECTORS_PARAMETER = "GMS:sectors"
+OVERRIDE_REASON = "GMS:override-reason"
+
+# Kept on the alert for staff and audit; never written into the published XML,
+# the public JSON feeds or a duplicated alert.
+INTERNAL_PARAMETERS = frozenset({OVERRIDE_REASON})
 
 
 class GmsProduct(str, Enum):
@@ -167,3 +174,21 @@ def validate_level(
             f"{expected.value}, not {severity.value}"
         )
     return errors, warnings
+
+
+def validate_sectors(parameters: Sequence[CapNameValue], prefix: str) -> list[str]:
+    """Errors for the optional `GMS:sectors` tag: only known sectors, set once.
+
+    A missing tag is fine; it means the warning affects everyone.
+    """
+    tags = [p for p in parameters if p.value_name == SECTORS_PARAMETER]
+    if len(tags) > 1:
+        return [f"{prefix}.{SECTORS_PARAMETER} may be set only once"]
+    if not tags:
+        return []
+    unknown = unknown_sectors(tags[0].value)
+    return (
+        [f"{prefix}.{SECTORS_PARAMETER} has unknown sectors: {', '.join(unknown)}"]
+        if unknown
+        else []
+    )

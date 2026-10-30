@@ -11,4 +11,7 @@ export const notificationPreferencePublicSchema = z.object({
   description: z.string(),
   email_mutable: z.boolean(),
   email_enabled: z.boolean(),
+  bell_mutable: z.boolean().optional().default(true),
+  bell_enabled: z.boolean().optional().default(true),
+  urgent: z.boolean().optional().default(false),
 });

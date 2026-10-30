@@ -1,9 +1,13 @@
 import { ArrowRightIcon } from "lucide-react";
 import { HomeSection } from "@/components/home/home-section";
+import { NOTE_KINDS, type TabNotes } from "@/components/home/tab-notes";
 import {
   type MediaItem,
   WeatherNowPanel,
 } from "@/components/home/weather-now-panel";
+import { RelatedLinkAnchor } from "@/components/related-link-anchor";
+import { clock12 } from "@/lib/clock";
+import type { RelatedLink } from "@/lib/cms";
 import {
   fetchHomeContent,
   isSectionHidden,
@@ -19,21 +23,33 @@ const TIME = new Intl.DateTimeFormat("en-GB", {
 });
 
 /** A quick text update under the duty forecaster's note. */
+/** The link to show under a live post: its main link, else the first. */
+function leadLink(post: LivePost): RelatedLink | null {
+  const links = post.relatedLinks ?? [];
+  return links.find((link) => link.isMain) ?? links[0] ?? null;
+}
+
 function UpdateItem({ post }: { post: LivePost }) {
+  const link = leadLink(post);
   return (
     <li className="flex flex-col gap-1 border-gm-border border-t pt-3">
       <p className="flex flex-wrap items-baseline gap-x-2 font-bold text-body text-gm-heading leading-body">
         {post.title}
         {post.publishedAt && (
           <time
-            className="font-mono font-normal text-body-sm text-gm-text-secondary leading-body-sm"
+            className="font-normal text-body-sm text-gm-text-secondary leading-body-sm"
             dateTime={post.publishedAt}
           >
-            {TIME.format(new Date(post.publishedAt))}
+            {clock12(TIME.format(new Date(post.publishedAt)))}
           </time>
         )}
       </p>
       {post.text && <p className="text-body leading-body">{post.text}</p>}
+      {link && (
+        <p className="text-body leading-body">
+          <RelatedLinkAnchor link={link} />
+        </p>
+      )}
     </li>
   );
 }
@@ -49,7 +65,7 @@ function mediaItems(posts: LivePost[], kind: "video" | "audio"): MediaItem[] {
             title: post.title,
             text: post.text,
             posted: post.publishedAt
-              ? TIME.format(new Date(post.publishedAt))
+              ? clock12(TIME.format(new Date(post.publishedAt)))
               : null,
             embed,
           },
@@ -68,7 +84,26 @@ export async function WeatherNow() {
   if (await isSectionHidden("weather-now")) return null;
   const { weatherNow, livePosts, settings } = await fetchHomeContent();
   const updates = livePosts.posts.filter((post) => post.kind === "update");
+  // The newest post for each imagery tab shows as a note under that tab.
+  const notes: TabNotes = {};
+  for (const kind of NOTE_KINDS) {
+    const post = livePosts.posts.find((item) => item.kind === kind);
+    if (post?.text)
+      notes[kind] = {
+        link: leadLink(post),
+        title: post.title,
+        text: post.text,
+        posted: post.publishedAt
+          ? clock12(TIME.format(new Date(post.publishedAt)))
+          : null,
+      };
+  }
   const note = weatherNow?.note;
+  // The note's main related link (its CAP alert, when it has one), else the first.
+  const noteLink =
+    note?.relatedLinks?.find((link) => link.isMain) ??
+    note?.relatedLinks?.[0] ??
+    null;
   const words = sectionWords(settings, "weather-now", {
     kicker: "Live",
     title: "Weather now",
@@ -83,6 +118,7 @@ export async function WeatherNow() {
       <div className="grid gap-4 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
         <WeatherNowPanel
           audio={mediaItems(livePosts.posts, "audio")}
+          notes={notes}
           video={mediaItems(livePosts.posts, "video")}
         />
         <div className="flex flex-col gap-3 border-gm-sky border-l-3 pl-4">
@@ -91,21 +127,27 @@ export async function WeatherNow() {
             {note?.postedAt && (
               <span className="font-normal normal-case tracking-normal">
                 {" "}
-                · {TIME.format(new Date(note.postedAt))}
+                · {clock12(TIME.format(new Date(note.postedAt)))}
               </span>
             )}
           </p>
           <p className="text-body-base leading-body-base">
             {note?.text ?? "No note from the duty forecaster right now."}
           </p>
-          {note?.alertUrl && (
-            <a
-              className="flex items-center gap-1 font-semibold text-body text-gm-blue-ink leading-body hover:underline"
-              href={note.alertUrl}
-            >
-              Read the alert
-              <ArrowRightIcon aria-hidden="true" className="size-4" />
-            </a>
+          {noteLink ? (
+            <p className="text-body leading-body">
+              <RelatedLinkAnchor link={noteLink} />
+            </p>
+          ) : (
+            note?.alertUrl && (
+              <a
+                className="flex items-center gap-1 font-semibold text-body text-gm-blue-ink leading-body hover:underline"
+                href={note.alertUrl}
+              >
+                Read the alert
+                <ArrowRightIcon aria-hidden="true" className="size-4" />
+              </a>
+            )
           )}
           {updates.length > 0 && (
             <section aria-label="Live from GMS" className="mt-2">

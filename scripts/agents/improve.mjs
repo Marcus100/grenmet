@@ -43,6 +43,77 @@ function readJsonl(file) {
     });
 }
 
+// Only the latest result of each eval case counts. Every run appends to the
+// results file, so without this a fixed miss, or a run where the harness
+// detected nothing at all, keeps inflating the count for the whole window.
+export function latestEvals(rows) {
+  const latest = new Map();
+  for (const r of rows) {
+    const id = [r.agent, r.model, r.skill, r.prompt].join("\u0000");
+    const seen = latest.get(id);
+    if (!seen || (r.date ?? "") >= (seen.date ?? "")) latest.set(id, r);
+  }
+  return [...latest.values()];
+}
+
+// One outcome per skill an eval result checks. A "json" case lists skills
+// that should and should not fire, so each of them is checked, and fails, on
+// its own instead of the whole case landing in one "(json cases)" bucket.
+export function evalOutcomes(r) {
+  const miss = `did not trigger on: ${r.prompt}`;
+  const wrong = `triggered wrongly on: ${r.prompt}`;
+  if (r.expect === "trigger")
+    return [{ evidence: miss, failed: r.passed === false, key: r.skill }];
+  if (r.expect !== "json")
+    return [{ evidence: wrong, failed: r.passed === false, key: r.skill }];
+  const fired = r.fired ?? [];
+  const outcomes = [
+    ...(r.should_use ?? []).map((key) => ({
+      evidence: miss,
+      failed: !fired.includes(key),
+      key,
+    })),
+    ...(r.should_not_use ?? []).map((key) => ({
+      evidence: wrong,
+      failed: fired.includes(key),
+      key,
+    })),
+  ];
+  return outcomes.length > 0
+    ? outcomes
+    : [
+        {
+          evidence: `failed on: ${r.prompt}`,
+          failed: r.passed === false,
+          key: r.skill,
+        },
+      ];
+}
+
+// Skill-trigger problems, one per skill with at least one current failure.
+function skillTriggerProblems(skillEvals) {
+  const bySkill = new Map();
+  for (const r of latestEvals(skillEvals))
+    for (const { evidence, failed, key } of evalOutcomes(r)) {
+      const entry = bySkill.get(key) ?? { checked: 0, fails: [] };
+      entry.checked += 1;
+      if (failed) entry.fails.push(evidence);
+      bySkill.set(key, entry);
+    }
+  return [...bySkill]
+    .filter(([, { fails }]) => fails.length > 0)
+    .map(([skill, { checked, fails }]) => ({
+      checked,
+      count: fails.length,
+      examples: fails.slice(-EXAMPLES).map((evidence) => ({
+        evidence,
+        suggestion: "tighten the skill description's trigger phrases",
+      })),
+      key: skill,
+      source: "skill-trigger",
+    }));
+}
+
 // Each problem: a source, a key, how often it happened, how often it was
 // checked, and up to EXAMPLES pieces of evidence with suggested fixes.
 export function collectProblems({
@@ -71,25 +142,7 @@ export function collectProblems({
         key: scorer,
         source: "scorer",
       });
-  const bySkill = new Map();
-  for (const r of skillEvals) {
-    const entry = bySkill.get(r.skill) ?? { checked: 0, fails: [] };
-    entry.checked += 1;
-    if (r.passed === false) entry.fails.push(r);
-    bySkill.set(r.skill, entry);
-  }
-  for (const [skill, { checked, fails }] of bySkill)
-    if (fails.length > 0)
-      problems.push({
-        checked,
-        count: fails.length,
-        examples: fails.slice(-EXAMPLES).map((f) => ({
-          evidence: `${f.expect === "trigger" ? "did not trigger" : "triggered wrongly"} on: ${f.prompt}`,
-          suggestion: "tighten the skill description's trigger phrases",
-        })),
-        key: skill,
-        source: "skill-trigger",
-      });
+  problems.push(...skillTriggerProblems(skillEvals));
   const byArea = new Map();
   for (const issue of friction) {
     const area =

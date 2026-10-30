@@ -31,3 +31,7 @@ export const hrPreviewCatalogueErrorSchema = z.union([
   hrPreviewCatalogueStatus409Schema,
   hrPreviewCatalogueStatus422Schema,
 ]);
+
+export const hrPreviewCatalogueQuerySchema = z.object({
+  department_id: z.string(),
+});

@@ -49,3 +49,12 @@ export const bookingsReorderProvidersErrorSchema = z.union([
 export const bookingsReorderProvidersBodySchema = bookingOrderSchema.describe(
   "Ids of one kind in the order the business wants them listed."
 );
+
+export const bookingsReorderProvidersHeadersSchema = z.object({
+  "X-Barrels-Organisation": z
+    .union([z.string(), z.null()])
+    .optional()
+    .describe(
+      "Id of the organisation the request acts for. Required for a signed-in member (account or bookings app session); ignored with an organisation API key."
+    ),
+});

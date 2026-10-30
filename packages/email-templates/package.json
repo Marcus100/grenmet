@@ -8,7 +8,8 @@
     "lint": "biome lint .",
     "check": "biome check .",
     "check:fix": "biome check --write .",
-    "check:ci": "biome ci ."
+    "check:ci": "biome ci .",
+    "test": "vitest run"
   },
   "exports": {
     ".": {
@@ -20,12 +21,13 @@
     "react": "*"
   },
   "dependencies": {
-    "react-email": "^6.11.1"
+    "react-email": "^6.11.3"
   },
   "devDependencies": {
     "@barrelsgd/tsconfig": "workspace:*",
     "@types/react": "catalog:",
     "react": "catalog:",
-    "typescript": "catalog:"
+    "typescript": "catalog:",
+    "vitest": "catalog:"
   }
 }

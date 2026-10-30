@@ -4,11 +4,14 @@
  */
 
 import * as z from "zod";
+import { eventCategoryNodePropertiesAppliesToItemsEnumSchema } from "./eventCategoryNodePropertiesAppliesToItemsEnumSchema.js";
 import { eventsListListingsParametersSchemaAnyOfEnum2Schema } from "./eventsListListingsParametersSchemaAnyOfEnum2Schema.js";
 import { eventsListListingsParametersSchemaAnyOfEnumSchema } from "./eventsListListingsParametersSchemaAnyOfEnumSchema.js";
 import { groupDetailPropertiesCategoryEnumSchema } from "./groupDetailPropertiesCategoryEnumSchema.js";
 import { groupDetailPropertiesParishEnumSchema } from "./groupDetailPropertiesParishEnumSchema.js";
 import { listingCardListSchema } from "./listingCardListSchema.js";
+import { listingCardPropertiesBookingModeEnumSchema } from "./listingCardPropertiesBookingModeEnumSchema.js";
+import { listingCardPropertiesPricingTypeEnumSchema } from "./listingCardPropertiesPricingTypeEnumSchema.js";
 import { validationErrorResponseSchema } from "./validationErrorResponseSchema.js";
 
 export const eventsListListingsQueryWhenSchema = z
@@ -25,6 +28,30 @@ export const eventsListListingsQueryParishSchema = z
 
 export const eventsListListingsQueryPriceSchema = z
   .union([eventsListListingsParametersSchemaAnyOfEnum2Schema, z.null()])
+  .optional();
+
+export const eventsListListingsQueryTypeSchema = z
+  .union([eventCategoryNodePropertiesAppliesToItemsEnumSchema, z.null()])
+  .optional();
+
+export const eventsListListingsQueryCategorySlugSchema = z
+  .union([z.string().regex(/^[a-z0-9][a-z0-9-]{1,79}$/), z.null()])
+  .optional();
+
+export const eventsListListingsQuerySubcategorySlugSchema = z
+  .union([z.string().regex(/^[a-z0-9][a-z0-9-]{1,79}$/), z.null()])
+  .optional();
+
+export const eventsListListingsQueryPricingSchema = z
+  .union([listingCardPropertiesPricingTypeEnumSchema, z.null()])
+  .optional();
+
+export const eventsListListingsQueryAccessSchema = z
+  .union([z.enum(["public"]), z.null()])
+  .optional();
+
+export const eventsListListingsQueryBookingModeSchema = z
+  .union([listingCardPropertiesBookingModeEnumSchema, z.null()])
   .optional();
 
 export const eventsListListingsQueryTagSchema = z
@@ -74,3 +101,40 @@ export const eventsListListingsErrorSchema = z.union([
   eventsListListingsStatus401Schema,
   eventsListListingsStatus422Schema,
 ]);
+
+export const eventsListListingsQuerySchema = z.object({
+  when: z
+    .union([eventsListListingsParametersSchemaAnyOfEnumSchema, z.null()])
+    .optional(),
+  category: z
+    .union([groupDetailPropertiesCategoryEnumSchema, z.null()])
+    .optional(),
+  parish: z.union([groupDetailPropertiesParishEnumSchema, z.null()]).optional(),
+  price: z
+    .union([eventsListListingsParametersSchemaAnyOfEnum2Schema, z.null()])
+    .optional(),
+  type: z
+    .union([eventCategoryNodePropertiesAppliesToItemsEnumSchema, z.null()])
+    .optional(),
+  category_slug: z
+    .union([z.string().regex(/^[a-z0-9][a-z0-9-]{1,79}$/), z.null()])
+    .optional(),
+  subcategory_slug: z
+    .union([z.string().regex(/^[a-z0-9][a-z0-9-]{1,79}$/), z.null()])
+    .optional(),
+  pricing: z
+    .union([listingCardPropertiesPricingTypeEnumSchema, z.null()])
+    .optional(),
+  access: z.union([z.enum(["public"]), z.null()]).optional(),
+  booking_mode: z
+    .union([listingCardPropertiesBookingModeEnumSchema, z.null()])
+    .optional(),
+  tag: z.union([z.string().max(30), z.null()]).optional(),
+  q: z.union([z.string().max(100), z.null()]).optional(),
+  organiser: z
+    .union([z.string().regex(/^[a-z0-9][a-z0-9-]{1,79}$/), z.null()])
+    .optional(),
+  include_past: z.boolean().optional().default(false),
+  limit: z.int().min(1).max(200).optional().default(100),
+  offset: z.int().min(0).max(100000).optional().default(0),
+});

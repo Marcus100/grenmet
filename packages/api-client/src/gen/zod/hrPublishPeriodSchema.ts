@@ -30,3 +30,7 @@ export const hrPublishPeriodErrorSchema = z.union([
   hrPublishPeriodStatus404Schema,
   hrPublishPeriodStatus422Schema,
 ]);
+
+export const hrPublishPeriodPathSchema = z.object({
+  period_id: z.uuid(),
+});

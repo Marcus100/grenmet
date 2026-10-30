@@ -7,10 +7,13 @@ module's tables (ADR-0003).
 """
 
 import uuid
+from collections.abc import Mapping
 from datetime import date, datetime
+from typing import Any, cast
 
 from sqlalchemy import Date, DateTime, ForeignKey, Integer, Text
 from sqlalchemy.dialects.postgresql import ARRAY, JSONB
+from sqlalchemy.engine.default import DefaultExecutionContext
 from sqlalchemy.orm import Mapped, mapped_column
 
 from src.orm import Base
@@ -94,6 +97,31 @@ class Announcement(EventsModel):
     posted_at: Mapped[datetime] = mapped_column(DateTime, default=utc_now)
 
 
+def _default_booking_mode(context: DefaultExecutionContext) -> str:
+    """Legacy ``admission`` -> ``booking_mode`` for rows built without one."""
+    params: Mapping[str, object] = cast("Any", context).get_current_parameters()
+    admission = params.get("admission")
+    return {"rsvp": "rsvp", "ticketed": "tickets"}.get(str(admission), "none")
+
+
+class Category(EventsModel):
+    """Taxonomy reference data: top-level categories and their subcategories."""
+
+    __tablename__ = "categories"
+    id: Mapped[uuid.UUID] = mapped_column(primary_key=True, default=uuid.uuid4)
+    slug: Mapped[str] = mapped_column(Text, unique=True)
+    name: Mapped[str] = mapped_column(Text)
+    parent_id: Mapped[uuid.UUID | None] = mapped_column(
+        ForeignKey("events.categories.id"), default=None
+    )
+    #: Listing types this category may be used with.
+    applies_to: Mapped[list[str]] = mapped_column(ARRAY(Text), default=list)
+    sort_order: Mapped[int] = mapped_column(Integer, default=0)
+    active: Mapped[bool] = mapped_column(default=True)
+    #: Frozen ten-value ``listings.category`` this maps to (lossy, ADR-0046).
+    legacy_category: Mapped[str | None] = mapped_column(Text, default=None)
+
+
 class Listing(EventsModel):
     """A public event listing (named to avoid clashing with Python/HTTP "event")."""
 
@@ -121,6 +149,19 @@ class Listing(EventsModel):
     visibility: Mapped[str] = mapped_column(Text, default="public")
     created_at: Mapped[datetime] = mapped_column(DateTime, default=utc_now)
     updated_at: Mapped[datetime] = mapped_column(DateTime, default=utc_now)
+    # Catalogue classification (ADR-0046, migration eventstaxonomy20261022).
+    listing_type: Mapped[str] = mapped_column(Text, default="event")
+    access_type: Mapped[str] = mapped_column(Text, default="public")
+    pricing_type: Mapped[str] = mapped_column(Text, default="free")
+    booking_mode: Mapped[str] = mapped_column(Text, default=_default_booking_mode)
+    category_id: Mapped[uuid.UUID | None] = mapped_column(
+        ForeignKey("events.categories.id"), default=None
+    )
+    subcategory_id: Mapped[uuid.UUID | None] = mapped_column(
+        ForeignKey("events.categories.id"), default=None
+    )
+    external_ticket_url: Mapped[str | None] = mapped_column(Text, default=None)
+    curated: Mapped[bool] = mapped_column(default=False)
 
 
 class TicketTier(EventsModel):
@@ -241,6 +282,10 @@ class Activity(EventsModel):
     entity_id: Mapped[str] = mapped_column(Text)
     action: Mapped[str] = mapped_column(Text)
     actor_id: Mapped[uuid.UUID]
+    # 'member' or 'staff' (Barrels staff acting on an organiser's event, ADR-0050).
+    actor_capacity: Mapped[str] = mapped_column(
+        Text, default="member", server_default="member"
+    )
     summary: Mapped[dict[str, object]] = mapped_column(JSONB, default=dict)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=utc_now)
 

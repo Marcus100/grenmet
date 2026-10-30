@@ -13,7 +13,7 @@ export type OrganisationsGrantMemberRolePath = {
 
 export type OrganisationsGrantMemberRoleHeaders = {
   /**
-   * @description Id of the organisation the request acts for. The caller must be an active member.
+   * @description Id of the organisation the request acts for. The caller must be an active member, signed in with an account or the Events app.
    */
   "X-Barrels-Organisation"?: string | null;
 };

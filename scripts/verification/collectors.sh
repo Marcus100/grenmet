@@ -13,6 +13,10 @@ cd "$(dirname "$0")/../.."
   uv run --isolated --frozen --package sutron-collector python -m pytest tests
 )
 (
+  cd scripts/gnc-collector
+  uv run --isolated --frozen --package gnc-collector python -m pytest tests
+)
+(
   cd scripts/gms-ingest
   uv run --isolated --frozen --package gms-ingest python -m unittest discover -s tests -v
 )

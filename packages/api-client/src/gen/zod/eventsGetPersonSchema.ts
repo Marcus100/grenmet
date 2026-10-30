@@ -26,3 +26,7 @@ export const eventsGetPersonErrorSchema = z.union([
   eventsGetPersonStatus404Schema,
   eventsGetPersonStatus422Schema,
 ]);
+
+export const eventsGetPersonPathSchema = z.object({
+  handle: z.string().regex(/^[a-z0-9][a-z0-9-]{1,29}$/),
+});

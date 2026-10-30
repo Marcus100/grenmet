@@ -38,7 +38,7 @@ export const eventsOrgListAttendeesHeaderXBarrelsOrganisationSchema = z
   .union([z.string(), z.null()])
   .optional()
   .describe(
-    "Id of the organisation the request acts for. The caller must be an active member, signed in with an account or the events app."
+    "Id of the organisation the request acts for. The caller must be an active member holding the organisation key, or Barrels staff holding the staff key."
   );
 
 export const eventsOrgListAttendeesStatus200Schema =
@@ -64,3 +64,35 @@ export const eventsOrgListAttendeesErrorSchema = z.union([
   eventsOrgListAttendeesStatus404Schema,
   eventsOrgListAttendeesStatus422Schema,
 ]);
+
+export const eventsOrgListAttendeesPathSchema = z.object({
+  listing_id: z.uuid(),
+});
+
+export const eventsOrgListAttendeesQuerySchema = z.object({
+  status: z.union([orgAttendeePropertiesStatusEnumSchema, z.null()]).optional(),
+  tier_id: z.union([z.uuid(), z.null()]).optional(),
+  page: z
+    .int()
+    .min(1)
+    .max(1000000)
+    .optional()
+    .default(1)
+    .describe("Page number (1-indexed)"),
+  size: z
+    .int()
+    .min(1)
+    .max(1000)
+    .optional()
+    .default(100)
+    .describe("Items per page"),
+});
+
+export const eventsOrgListAttendeesHeadersSchema = z.object({
+  "X-Barrels-Organisation": z
+    .union([z.string(), z.null()])
+    .optional()
+    .describe(
+      "Id of the organisation the request acts for. The caller must be an active member holding the organisation key, or Barrels staff holding the staff key."
+    ),
+});

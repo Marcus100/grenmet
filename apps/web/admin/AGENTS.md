@@ -17,6 +17,21 @@ console. Lane spec: `docs/design/admin.md`. Plan: slice C1/C2 in
   validate with `src/lib/organisation-form.ts`, proxy to FastAPI and redirect with
   a fixed `?notice=` code. Disclosures are native `<details>`; no client state.
   Never fake data.
+- **Moderation (organiser verification).** `/moderation` (queue with
+  Pending/Approved/Rejected tabs, paginated) and `/moderation/[id]` (case,
+  owners, history), linked from the console nav. Reads and decisions proxy
+  `/admin/moderation/organisers*` (`src/lib/moderation-api.ts`); Approve and
+  Reject are server actions in `moderation/actions.ts` that re-check the staff
+  gate, validate with `src/lib/moderation-form.ts` (reject needs a 3-500
+  character reason) and redirect with a fixed `?notice=` code (`approved`,
+  `rejected`, `already-decided`) or return a code (`invalid`, `mfa`,
+  `not-allowed`, `suspended`, `missing`, `throttled`, `failed`) plus the typed
+  reason. API 409 maps to `suspended` when the detail says so, else
+  `already-decided` (decisions are transitions, never retried). Decisions need
+  an MFA superuser: a superuser without MFA can read and gets the `mfa` guidance
+  on a decision. A moderator who is not a superuser never reaches these pages
+  (the staff gate is superuser-only, ADR-0039); FastAPI re-checks every call.
+  Unexpected failures call `reportError(error, "admin-moderation")`.
 - **Sites (C3).** The organisation detail page has a "Sites" section (streamed
   behind `Suspense`, with loading, empty and error states) for the organisation's
   public sites (`org.public_site`): list, create and edit via

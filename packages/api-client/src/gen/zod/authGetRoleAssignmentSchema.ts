@@ -26,3 +26,7 @@ export const authGetRoleAssignmentErrorSchema = z.union([
   authGetRoleAssignmentStatus404Schema,
   authGetRoleAssignmentStatus422Schema,
 ]);
+
+export const authGetRoleAssignmentPathSchema = z.object({
+  assignment_id: z.uuid(),
+});

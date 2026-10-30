@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { HrSetupTabs } from "@/components/hr/setup/hr-setup-tabs";
+import { PageHeader } from "@/components/layout/page-header";
 
 export const metadata: Metadata = {
   title: "HR Setup",
@@ -10,13 +11,10 @@ export const metadata: Metadata = {
 export default function HrSetupPage() {
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="font-semibold text-2xl tracking-tight">HR Setup</h1>
-        <p className="text-muted-foreground text-sm">
-          Choose an organisation to manage its departments, grades and staff
-          onboarding.
-        </p>
-      </div>
+      <PageHeader
+        description="Choose an organisation to manage its departments, grades and staff onboarding."
+        title="HR Setup"
+      />
       <HrSetupTabs />
     </div>
   );

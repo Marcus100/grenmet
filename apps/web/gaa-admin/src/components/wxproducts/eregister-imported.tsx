@@ -1,3 +1,4 @@
+import { PageHeader } from "@/components/layout/page-header";
 import "server-only";
 
 import { observationListSchema } from "@barrelsgd/api-client";
@@ -166,11 +167,10 @@ export async function ImportedObservations({ filters }: { filters: Filters }) {
   }
   return (
     <section className="space-y-4">
-      <h1 className="font-semibold text-2xl">Imported observations</h1>
-      <p>
-        Read-only source records, separate from staff-entered eRegister drafts.
-        Publication status is shown only as reported by the source.
-      </p>
+      <PageHeader
+        description="Read-only source records, separate from staff-entered eRegister drafts. Publication status is shown only as reported by the source."
+        title="Imported observations"
+      />
       <FilterForm filters={filters} />
       {error ? <p role="alert">{error}</p> : null}
       {result?.observations.length === 0 ? (

@@ -26,3 +26,7 @@ export const authDeleteRoleErrorSchema = z.union([
   authDeleteRoleStatus404Schema,
   authDeleteRoleStatus422Schema,
 ]);
+
+export const authDeleteRolePathSchema = z.object({
+  role_id: z.uuid(),
+});

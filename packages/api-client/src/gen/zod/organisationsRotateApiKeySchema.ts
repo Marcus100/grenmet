@@ -47,3 +47,16 @@ export const organisationsRotateApiKeyErrorSchema = z.union([
 ]);
 
 export const organisationsRotateApiKeyBodySchema = apiKeyRotateSchema;
+
+export const organisationsRotateApiKeyPathSchema = z.object({
+  key_id: z.string().max(100),
+});
+
+export const organisationsRotateApiKeyHeadersSchema = z.object({
+  "X-Barrels-Organisation": z
+    .union([z.string(), z.null()])
+    .optional()
+    .describe(
+      "Id of the organisation the request acts for. The caller must be an active member."
+    ),
+});

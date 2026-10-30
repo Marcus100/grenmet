@@ -40,3 +40,7 @@ export const transportPublishTimetableDraftErrorSchema = z.union([
 ]);
 
 export const transportPublishTimetableDraftBodySchema = timetablePublishSchema;
+
+export const transportPublishTimetableDraftPathSchema = z.object({
+  version_id: z.int(),
+});

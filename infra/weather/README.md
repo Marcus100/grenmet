@@ -10,7 +10,7 @@ Register a deployment runner with labels `self-hosted`, `staging` or `production
 
 Create DNS for SURFACE, wis2box and monitoring on the weather IP. Allow public 80/443 to Traefik and restrict SSH to operator addresses. Do not publish PostgreSQL, Elasticsearch, MinIO, Redis or Memcached. Allow weather-to-core 5432 only over the VPC, from the weather host, with corresponding PostgreSQL access rules. Inventory any MQTT/FTP publishing requirements before opening additional source-restricted ports; no public publishing-port change is automatic.
 
-Provision each reviewed external volume/network and existing bind directory explicitly. Preserve the actual SURFACE PostgreSQL path, including an existing `pgdata` nesting if present. A missing directory fails deployment rather than silently creating a new database. Provision the PostgreSQL/MinIO/Elasticsearch services and initial empty state on a brand-new host before its first mandatory backup; record that the host is new. Existing hosts require inventory and a backup of their existing state before adoption.
+Provision each reviewed external volume/network and existing bind directory explicitly. Preserve the actual SURFACE PostgreSQL path, including an existing `pgdata` nesting if present. The SURFACE database image (`timescaledb-ha`, PostgreSQL 17) runs as uid 1000: create `${SURFACE_DATA_ROOT}/postgresql` owned by `1000:1000` before first start, and keep `PGDATA` in the SURFACE env file inside `/home/postgres/pgdata/data`. A missing directory fails deployment rather than silently creating a new database. Provision the PostgreSQL/MinIO/Elasticsearch services and initial empty state on a brand-new host before its first mandatory backup; record that the host is new. Existing hosts require inventory and a backup of their existing state before adoption.
 
 ## Operator configuration
 
@@ -82,7 +82,7 @@ Install and enable the appropriate daily timer templates only after a successful
 
 - wxwatch: one job per source (`goes19`, `sfcana`, `cimss`, `trackthetropics`, `uwyo`), with `kind: "wxwatch"`, `args: ["<source>"]`, and a mode-600 `.env.local`. Explicitly configure the matching core database and Spaces bucket; `DB_HOST` must be the core VPC address. The crawler owns its existing freshness and timeout contracts.
 - GMS ingestion: `kind: "gms-ingest"`, `args: ["collect", "--output-dir", "/data/nhc"]`; mount an existing output directory there with `readonly: false`. Verify the existing web/file publishing handoff separately.
-- GEONETCast runs locally only. Its Docker target remains available for local work, but CI does not publish it and the online deployment and collector launcher reject it. The missing GDAL NumPy extension remains a local follow-up.
+- GEONETCast runs locally only. Its Docker target remains available for local work, but CI does not publish it and the online deployment and collector launcher reject it.
 
 Mount entries use `source` (absolute existing host directory), `target` (under `/data`), and `readonly` (defaults true). Writable directories must allow collector UID 10001. Each enabled source is bounded to three attempts, with source-level overlap protection and a shared weather maintenance lock. The timer template runs every 15 minutes with no concurrent invocation of the same unit. Source-specific calendar overrides may reduce frequency after observing publication schedules; never change freshness contracts to hide stale data.
 

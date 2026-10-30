@@ -1,6 +1,6 @@
 import logging
 from datetime import UTC, date, datetime
-from typing import Annotated, get_args
+from typing import Annotated, Any, get_args
 from uuid import UUID
 
 from fastapi import APIRouter, Query, Response, status
@@ -8,6 +8,9 @@ from fastapi.responses import JSONResponse
 from pydantic import TypeAdapter, ValidationError
 from sqlalchemy.exc import SQLAlchemyError
 from starlette.concurrency import run_in_threadpool
+
+from src.exceptions import NotFoundError
+from src.utils.pdf_response import pdf_response
 
 from . import (
     advisories,
@@ -17,6 +20,7 @@ from . import (
     guidance,
     pdf,
     service,
+    tropical_systems,
     validation,
 )
 from .dependencies import (
@@ -26,7 +30,8 @@ from .dependencies import (
     WxProductsSessionDep,
 )
 from .exceptions import ProductValidationError, WeatherUnavailable
-from .models import AviationDraft
+from .filenames import product_pdf_filename
+from .models import AviationDraft, TropicalSystem, TropicalSystemEntry
 from .observation_service import list_observations
 from .observations import ObservationKind, ObservationList
 from .schemas import (
@@ -51,8 +56,20 @@ from .schemas import (
     PublicProductDetail,
     PublicPublishedProduct,
     PublishedProducts,
+    SectorOutlook,
     StoredProduct,
     StoredProductAdapter,
+    TropicalSystemCreate,
+    TropicalSystemEntryRead,
+    TropicalSystemHistory,
+    TropicalSystemList,
+    TropicalSystemPublic,
+    TropicalSystemPublicEntry,
+    TropicalSystemPublicHistory,
+    TropicalSystemPublicList,
+    TropicalSystemRead,
+    TropicalSystemStatus,
+    TropicalSystemUpdate,
     values_as_dict,
 )
 
@@ -277,6 +294,31 @@ async def load_history(
         )
     except SQLAlchemyError, OSError, TimeoutError:
         raise WeatherUnavailable()
+
+
+@router.get(
+    "/wxproducts/public/sector-outlook",
+    response_model=SectorOutlook,
+    status_code=200,
+    summary="Alerts and warnings for the coming days, by sector",
+    description=(
+        "GMS alerts and CAP warnings in force from today for the requested number of "
+        "days, each with the sectors it affects. An item with no sectors affects "
+        "everyone. `complete` is false when a source could not be read."
+    ),
+    tags=["wxproducts"],
+)
+async def public_sector_outlook(
+    *,
+    cap_session: AdvisorySessionDep,
+    weather_session: WxProductsSessionDep,
+    response: Response,
+    days: Annotated[int, Query(ge=1, le=14)] = 7,
+) -> SectorOutlook:
+    response.headers.update(NO_STORE)
+    return await advisories.sector_outlook(
+        cap_session, weather_session, now=datetime.now(UTC), days=days
+    )
 
 
 @router.get(
@@ -524,14 +566,8 @@ async def preview_product_pdf(
         guidance=body.guidance,
         graphic_images=await guidance.images(body.guidance),
     )
-    return Response(
-        content,
-        media_type="application/pdf",
-        headers={
-            **NO_STORE,
-            "Content-Disposition": 'inline; filename="gms-product-preview.pdf"',
-            "X-Content-Type-Options": "nosniff",
-        },
+    return pdf_response(
+        content, product_pdf_filename(body.kind, values, recorded_at=None)
     )
 
 
@@ -540,13 +576,19 @@ async def preview_product_pdf(
     response_class=Response,
     status_code=200,
     summary="Download a saved weather revision PDF",
-    description="Staff-only saved revision export; drafts and historical publications are explicitly labelled. Does not publish or change records.",
+    description="Staff-only saved revision export; drafts and historical publications are explicitly labelled. Does not publish or change records. The download file name is human and dated, for example 'GMS Morning Forecast 2026-10-23 0700 (rev 3).pdf'.",
     tags=["wxproducts"],
     responses={
         200: {
+            "headers": {
+                "Content-Disposition": {
+                    "description": "Attachment with a human, dated file name (ASCII filename plus RFC 6266 filename*).",
+                    "schema": {"type": "string"},
+                }
+            },
             "content": {
                 "application/pdf": {"schema": {"type": "string", "format": "binary"}}
-            }
+            },
         },
         401: {"model": AuthoringError},
         403: {"model": AuthoringError},
@@ -568,12 +610,235 @@ async def product_revision_pdf(
         )
     except SQLAlchemyError, OSError, TimeoutError:
         raise WeatherUnavailable()
-    return Response(
+    return pdf_response(
         content,
-        media_type="application/pdf",
-        headers={
-            **NO_STORE,
-            "Content-Disposition": f'attachment; filename="gms-{source.kind}-{product_id}-r{revision}.pdf"',
-            "X-Content-Type-Options": "nosniff",
-        },
+        product_pdf_filename(
+            source.kind,
+            values_as_dict(source.values),
+            recorded_at=source.recorded_at,
+            revision=revision,
+        ),
+        "attachment",
+    )
+
+
+STAFF_ERRORS: dict[int | str, dict[str, Any]] = {
+    401: {"model": AuthoringError, "description": "Sign-in required"},
+    403: {"model": AuthoringError, "description": "Outlook product access denied"},
+    503: {"model": AuthoringError, "description": "Weather database unavailable"},
+}
+
+
+def system_view(system: TropicalSystem) -> TropicalSystemRead:
+    return TropicalSystemRead.model_validate(system)
+
+
+def public_identity(
+    system: TropicalSystem, entry: TropicalSystemEntry
+) -> dict[str, object]:
+    """Public identity comes from the published issue, not the live row.
+
+    Name, type and NHC storm id are as saved with that issue; only the status is
+    live (a closed system stays listed until the outlook stops listing it).
+    """
+    return {
+        **system_view(system).model_dump(),
+        "name": entry.name,
+        "feature_type": entry.feature_type,
+        "nhc_storm_id": entry.nhc_storm_id,
+    }
+
+
+@router.get(
+    "/wxproducts/tropical-systems",
+    response_model=TropicalSystemList,
+    status_code=200,
+    summary="List tracked tropical systems",
+    description="Tracked systems newest first, optionally filtered by status and season. Needs product access to the outlook.",
+    tags=["wxproducts"],
+    responses=STAFF_ERRORS,
+)
+async def list_tropical_systems(
+    *,
+    author: AuthorDep,
+    session: AuthoringSessionDep,
+    response: Response,
+    status_filter: Annotated[TropicalSystemStatus | None, Query(alias="status")] = None,
+    season: Annotated[int | None, Query(ge=2000, le=2100)] = None,
+    limit: Annotated[int, Query(ge=1, le=200)] = 100,
+    offset: Annotated[int, Query(ge=0, le=10000)] = 0,
+) -> TropicalSystemList:
+    response.headers.update(NO_STORE)
+    author.require_kind(tropical_systems.TRACKED_KIND)
+    try:
+        rows = await tropical_systems.list_systems(
+            session, status=status_filter, season=season, limit=limit, offset=offset
+        )
+    except SQLAlchemyError, OSError, TimeoutError:
+        raise WeatherUnavailable()
+    return TropicalSystemList(systems=[system_view(row) for row in rows])
+
+
+@router.post(
+    "/wxproducts/tropical-systems",
+    response_model=TropicalSystemRead,
+    status_code=status.HTTP_201_CREATED,
+    summary="Start tracking a tropical system",
+    description="Creates a tracked system by hand and assigns its season label, for example 'GMS 2026-07'.",
+    tags=["wxproducts"],
+    responses={
+        **STAFF_ERRORS,
+        409: {"model": AuthoringError, "description": "NHC storm identifier in use"},
+        422: {"model": AuthoringError, "description": "Invalid system"},
+    },
+)
+async def create_tropical_system(
+    *,
+    author: AuthorDep,
+    session: AuthoringSessionDep,
+    response: Response,
+    body: TropicalSystemCreate,
+) -> TropicalSystemRead:
+    response.headers.update(NO_STORE)
+    author.require_kind(tropical_systems.TRACKED_KIND)
+    try:
+        system = await tropical_systems.create_system(session, body, author.user)
+    except SQLAlchemyError, OSError, TimeoutError:
+        raise WeatherUnavailable()
+    return system_view(system)
+
+
+@router.patch(
+    "/wxproducts/tropical-systems/{system_id}",
+    response_model=TropicalSystemRead,
+    status_code=200,
+    summary="Update a tracked tropical system",
+    description="Rename it, link NHC identifiers, close it (dissipated, merged, out of area or duplicate) or reopen it. A merged system names the system it continues as.",
+    tags=["wxproducts"],
+    responses={
+        **STAFF_ERRORS,
+        404: {"model": AuthoringError, "description": "Tracked system not found"},
+        409: {"model": AuthoringError, "description": "NHC storm identifier in use"},
+        422: {"model": AuthoringError, "description": "Invalid change"},
+    },
+)
+async def update_tropical_system(
+    *,
+    author: AuthorDep,
+    session: AuthoringSessionDep,
+    response: Response,
+    system_id: UUID,
+    body: TropicalSystemUpdate,
+) -> TropicalSystemRead:
+    response.headers.update(NO_STORE)
+    author.require_kind(tropical_systems.TRACKED_KIND)
+    try:
+        system = await tropical_systems.update_system(
+            session, system_id, body, author.user
+        )
+    except SQLAlchemyError, OSError, TimeoutError:
+        raise WeatherUnavailable()
+    return system_view(system)
+
+
+@router.get(
+    "/wxproducts/tropical-systems/{system_id}/history",
+    response_model=TropicalSystemHistory,
+    status_code=200,
+    summary="Load a tracked system's history",
+    description="Every outlook entry for the system, oldest first, drafts included.",
+    tags=["wxproducts"],
+    responses={
+        **STAFF_ERRORS,
+        404: {"model": AuthoringError, "description": "Tracked system not found"},
+    },
+)
+async def load_tropical_system_history(
+    *,
+    author: AuthorDep,
+    session: AuthoringSessionDep,
+    response: Response,
+    system_id: UUID,
+) -> TropicalSystemHistory:
+    response.headers.update(NO_STORE)
+    author.require_kind(tropical_systems.TRACKED_KIND)
+    try:
+        system = await tropical_systems.get_system(session, system_id)
+        entries = await tropical_systems.history(
+            session, system_id, published_only=False
+        )
+    except SQLAlchemyError, OSError, TimeoutError:
+        raise WeatherUnavailable()
+    return TropicalSystemHistory(
+        system=system_view(system),
+        entries=[TropicalSystemEntryRead.model_validate(entry) for entry in entries],
+    )
+
+
+@router.get(
+    "/wxproducts/public/tropical-systems",
+    response_model=TropicalSystemPublicList,
+    status_code=200,
+    summary="List active tropical systems",
+    description="Anonymous list of active tracked systems that appear in a published outlook, each with its latest published entry. Drafts are never shown.",
+    tags=["wxproducts"],
+    responses={503: {"model": AuthoringError}},
+)
+async def list_public_tropical_systems(
+    *, session: AuthoringSessionDep, response: Response
+) -> TropicalSystemPublicList:
+    response.headers.update(NO_STORE)
+    try:
+        # The public tracker agrees with the published product: it lists the
+        # systems in the most recent current outlook and nothing else.
+        current = await service.latest_current_outlook(session)
+        rows = (
+            await tropical_systems.public_active(session, current.id, current.revision)
+            if current
+            else []
+        )
+    except SQLAlchemyError, OSError, TimeoutError:
+        raise WeatherUnavailable()
+    return TropicalSystemPublicList(
+        systems=[
+            TropicalSystemPublic.model_validate(
+                {
+                    **public_identity(system, entry),
+                    "latest": TropicalSystemPublicEntry.model_validate(entry),
+                }
+            )
+            for system, entry in rows
+        ]
+    )
+
+
+@router.get(
+    "/wxproducts/public/tropical-systems/{system_id}",
+    response_model=TropicalSystemPublicHistory,
+    status_code=200,
+    summary="Get one tropical system's published history",
+    description="Anonymous history of positions and formation chances from published outlooks only, oldest first. A system that was never published is 404.",
+    tags=["wxproducts"],
+    responses={404: {"model": AuthoringError}, 503: {"model": AuthoringError}},
+)
+async def get_public_tropical_system(
+    *, session: AuthoringSessionDep, response: Response, system_id: UUID
+) -> TropicalSystemPublicHistory:
+    response.headers.update(NO_STORE)
+    try:
+        system = await tropical_systems.get_system(session, system_id)
+        entries = await tropical_systems.history(
+            session, system_id, published_only=True
+        )
+    except SQLAlchemyError, OSError, TimeoutError:
+        raise WeatherUnavailable()
+    if not entries:
+        raise NotFoundError("Tracked system not found")
+    return TropicalSystemPublicHistory.model_validate(
+        {
+            **public_identity(system, entries[-1]),
+            "entries": [
+                TropicalSystemPublicEntry.model_validate(entry) for entry in entries
+            ],
+        }
     )

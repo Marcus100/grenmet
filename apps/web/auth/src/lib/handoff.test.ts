@@ -84,6 +84,10 @@ describe("startHandoff", () => {
 
 it.each([
   [
+    "Set up two-step verification and save recovery codes in account security before using privileged staff tools (mfa_enrolment_required)",
+    "mfa-enrol",
+  ],
+  [
     "Set up two-step verification and save recovery codes in account security before using privileged staff tools",
     "mfa-enrol",
   ],

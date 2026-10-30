@@ -15,7 +15,7 @@ test("accounts for every public Next.js reader and keeps operational consoles ex
       ),
       "utf8"
     );
-    assert.ok(layout.includes(`<PostHogProvider app="${app}">`));
+    assert.ok(layout.includes(`<PostHogProvider app="${app}"`));
     assert.equal(rows.filter((row) => row.app === app).length, 2);
   }
   for (const app of ["auth", "gaa-admin", "cms"]) {
