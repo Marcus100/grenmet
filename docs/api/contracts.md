@@ -598,7 +598,8 @@ belong to the category, priced tiers need `pricing_type=paid`, `service` is
 refused, and `access_type=private` forces `visibility=unlisted`.
 `booking_mode=slots` (reserved for the Bookings bridge) and `booking_mode=external`
 or `external_ticket_url` (set by Barrels staff through the later curation routes,
-ADR-0048) answer 422 on the organiser routes. External links are https only,
+ADR-0048) answer 422 on the organiser routes. The organiser upsert schema does not
+declare `external_ticket_url`; sending it still answers 422. External links are https only,
 normalised, and refuse userinfo, control or bidi characters and non-ASCII hosts.
 
 ### Events tickets (E1)

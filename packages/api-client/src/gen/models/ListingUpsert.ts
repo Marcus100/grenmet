@@ -81,5 +81,4 @@ export type ListingUpsert = {
   booking_mode?: ListingCardPropertiesBookingModeEnum | null;
   category_slug?: string | null;
   subcategory_slug?: string | null;
-  external_ticket_url?: string | null;
 };

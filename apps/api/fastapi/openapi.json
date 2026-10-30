@@ -65431,18 +65431,6 @@
               }
             ],
             "title": "Subcategory Slug"
-          },
-          "external_ticket_url": {
-            "anyOf": [
-              {
-                "type": "string",
-                "maxLength": 500
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "External Ticket Url"
           }
         },
         "type": "object",
