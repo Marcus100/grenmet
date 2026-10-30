@@ -55,7 +55,7 @@
     "@playwright/test": "catalog:",
     "@svgr/webpack": "^8.1.0",
     "@tailwindcss/postcss": "catalog:",
-    "@tanstack/react-query-devtools": "^5.104.5",
+    "@tanstack/react-query-devtools": "^5.105.0",
     "@testing-library/dom": "catalog:",
     "@testing-library/jest-dom": "catalog:",
     "@testing-library/react": "catalog:",
