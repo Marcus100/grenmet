@@ -37,6 +37,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 import { AreaPicker } from "@/components/cap/area-picker";
+import { useGmsCatalogue } from "@/components/cap/gms-catalogue";
 import { HazardClassification } from "@/components/cap/hazard-classification";
 import { LivePreview, ReadinessChecklist } from "@/components/cap/live-preview";
 import { RiskLadder } from "@/components/cap/risk-ladder";
@@ -162,6 +163,7 @@ export function NewAlertEditor({
   catalogs: CapCatalogsPublic;
   settings?: CapSettingsPublic | null;
 }) {
+  const catalogue = useGmsCatalogue();
   const router = useRouter();
   const [form, setForm] = useState<FormState>(() => initialForm(settings));
   const [categories, setCategories] = useState<CapCategory[]>([]);
@@ -178,7 +180,7 @@ export function NewAlertEditor({
     (item) => item.id === sourceBulletinId
   );
   const hasLevel =
-    product !== null && (!needsColour(product) || colour !== null);
+    product !== null && (!needsColour(catalogue, product) || colour !== null);
 
   /**
    * Product and colour are the GMS decisions; the colour sets CAP severity so
@@ -190,7 +192,7 @@ export function NewAlertEditor({
     setColour(nextColour);
     setForm((prev) => {
       if (nextColour) {
-        return { ...prev, severity: severityForColour(nextColour) };
+        return { ...prev, severity: severityForColour(catalogue, nextColour) };
       }
       if (nextProduct === "Outlook") {
         return {
@@ -288,7 +290,7 @@ export function NewAlertEditor({
           contact: form.contact.trim() || null,
           web: form.web.trim() || null,
           parameters: [
-            ...levelParameters(product, colour),
+            ...levelParameters(catalogue, product, colour),
             ...sectorParameters(sectors),
             ...(sourceBulletin ? sourceBulletinParameters(sourceBulletin) : []),
           ],
@@ -679,7 +681,9 @@ export function NewAlertEditor({
             headline={form.headline}
             instruction={form.instruction}
             levelHeading={
-              product ? levelHeading(form.event, product, colour) : undefined
+              product
+                ? levelHeading(catalogue, form.event, product, colour)
+                : undefined
             }
             outlook={product === "Outlook"}
             senderName={form.senderName}

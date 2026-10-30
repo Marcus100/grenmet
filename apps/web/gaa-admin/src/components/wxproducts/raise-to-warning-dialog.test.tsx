@@ -1,8 +1,9 @@
 import { configureApiClient } from "@barrelsgd/api-client";
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { fireEvent, screen, waitFor } from "@testing-library/react";
 import { HttpResponse, http } from "msw";
 import { setupServer } from "msw/node";
 import { afterAll, afterEach, beforeAll, expect, it, vi } from "vitest";
+import { renderWithGmsCatalogue as render } from "@/test/with-gms-catalogue";
 import { RaiseToWarningDialog } from "./raise-to-warning-dialog";
 
 const RE_REASON_FOR_CHOOSING = /Reason for choosing/;

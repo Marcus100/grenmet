@@ -1,5 +1,6 @@
 "use client";
-import { COLOUR_LABEL, COLOUR_SURFACE } from "@/lib/cap-levels";
+import { useGmsCatalogue } from "@/components/cap/gms-catalogue";
+import { COLOUR_SURFACE, colourLabel } from "@/lib/cap-levels";
 import { useIbfSuggestion } from "./use-ibf-suggestion";
 
 /**
@@ -16,6 +17,7 @@ export function ImpactMatrixPanel({
   likelihood?: string;
   impact?: string;
 }) {
+  const catalogue = useGmsCatalogue();
   const state = useIbfSuggestion(kind, likelihood, impact);
   return (
     <section
@@ -31,7 +33,7 @@ export function ImpactMatrixPanel({
               data-testid="suggested-colour"
               style={COLOUR_SURFACE[state.suggestion.colour]}
             >
-              {COLOUR_LABEL[state.suggestion.colour]}
+              {colourLabel(catalogue, state.suggestion.colour)}
             </span>
             <span>
               {state.suggestion.meaning}: {state.suggestion.likelihood}{" "}

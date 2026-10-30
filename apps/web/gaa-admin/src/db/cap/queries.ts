@@ -6,6 +6,7 @@ import {
   capGetIntegrationsResponseSchema,
   capGetPredefinedAreasResponseSchema,
   capSettingsPublicSchema,
+  gmsCataloguePublicSchema,
 } from "@barrelsgd/api-client";
 import {
   authApiFetch,
@@ -21,6 +22,14 @@ async function accessToken() {
 
 export async function loadCapCatalogs() {
   return authApiFetch("/cap/catalogs", capCatalogsPublicSchema, {
+    accessToken: await accessToken(),
+    cache: "no-store",
+  });
+}
+
+/** The GMS hazard list, parish geocodes and product and colour rules (cap.alert.read). */
+export async function loadGmsCatalogue() {
+  return authApiFetch("/cap/gms-catalogue", gmsCataloguePublicSchema, {
     accessToken: await accessToken(),
     cache: "no-store",
   });

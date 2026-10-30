@@ -1,8 +1,14 @@
 "use client";
 
-import type { CapSeverity, CapUrgency, GmsColour } from "@barrelsgd/api-client";
+import type {
+  CapSeverity,
+  CapUrgency,
+  GmsCataloguePublic,
+  GmsColour,
+} from "@barrelsgd/api-client";
 import { cn } from "@barrelsgd/ui/lib/utils";
 import { motion } from "motion/react";
+import { useGmsCatalogue } from "@/components/cap/gms-catalogue";
 import { severityForColour } from "@/lib/cap-levels";
 import { SEVERITY_HEX } from "@/lib/cap-severity";
 
@@ -36,6 +42,7 @@ const DARK_TEXT_SEVERITIES = new Set<CapSeverity>([
 ]);
 
 function bandStyle(
+  catalogue: GmsCataloguePublic,
   severity: CapSeverity,
   colour: GmsColour | null | undefined,
   outlook: boolean | undefined
@@ -45,7 +52,7 @@ function bandStyle(
   if (outlook) {
     return { background: OUTLOOK_HEX, color: "var(--gm-text-inverse)" };
   }
-  const shown = colour ? severityForColour(colour) : severity;
+  const shown = colour ? severityForColour(catalogue, colour) : severity;
   return {
     background: SEVERITY_HEX[shown],
     color: DARK_TEXT_SEVERITIES.has(shown)
@@ -75,7 +82,8 @@ export function LivePreview({
   levelHeading,
   outlook,
 }: LivePreviewProps) {
-  const band = bandStyle(severity, colour, outlook);
+  const catalogue = useGmsCatalogue();
+  const band = bandStyle(catalogue, severity, colour, outlook);
 
   return (
     <div className="overflow-hidden rounded-xl border border-gm-border bg-card shadow-card">

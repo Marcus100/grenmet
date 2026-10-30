@@ -1,5 +1,5 @@
 import { configureApiClient } from "@barrelsgd/api-client";
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { fireEvent, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { HttpResponse, http } from "msw";
 import { setupServer } from "msw/node";
@@ -15,6 +15,7 @@ import {
 import { NewAlertEditor } from "@/components/cap/alert-editor";
 import { nth } from "@/test/nth";
 import { waitForSubmission } from "@/test/wait-for-submission";
+import { renderWithGmsCatalogue as render } from "@/test/with-gms-catalogue";
 
 const catalogs = {
   categories: [],

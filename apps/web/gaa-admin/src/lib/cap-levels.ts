@@ -1,6 +1,7 @@
 import type {
   CapNameValue,
   CapSeverity,
+  GmsCataloguePublic,
   GmsColour,
 } from "@barrelsgd/api-client";
 import { formatSectors, type SectorKey } from "@barrelsgd/gms/sectors";
@@ -8,46 +9,13 @@ import { formatSectors, type SectorKey } from "@barrelsgd/gms/sectors";
 /**
  * GMS product and impact colour, per the impact-based forecasting guidelines
  * (September 2026): hazard, product and colour are separate decisions. They
- * travel as CAP parameters; the rules live in
- * apps/api/fastapi/src/cap/levels.py and this file mirrors them for the
- * composer.
+ * travel as CAP parameters. The labels, the colour-to-severity pairing and the
+ * "an Outlook has no colour" rule are served by the API (GET
+ * /api/v1/cap/gms-catalogue, from apps/api/fastapi/src/cap/catalogue.py and
+ * levels.py). This file keeps only the presentation and the wire parameter names.
  */
-export const GMS_PRODUCTS = [
-  "Outlook",
-  "Watch",
-  "Warning",
-  "Advisory",
-] as const;
-export type GmsProduct = (typeof GMS_PRODUCTS)[number];
-
-export const PRODUCT_LABEL: Record<GmsProduct, string> = {
-  Outlook: "Outlook",
-  Watch: "Watch",
-  Warning: "Warning",
-  Advisory: "Small Craft Advisory",
-};
-
-export const GMS_COLOURS: readonly GmsColour[] = [
-  "green",
-  "yellow",
-  "orange",
-  "red",
-];
-
-export const COLOUR_LABEL: Record<GmsColour, string> = {
-  green: "Green",
-  yellow: "Yellow",
-  orange: "Orange",
-  red: "Red",
-};
-
-/** MeteoAlarm awareness code and the CAP severity each colour asserts. */
-const AWARENESS: Record<GmsColour, { code: number; severity: CapSeverity }> = {
-  green: { code: 1, severity: "Minor" },
-  yellow: { code: 2, severity: "Moderate" },
-  orange: { code: 3, severity: "Severe" },
-  red: { code: 4, severity: "Extreme" },
-};
+export type GmsProduct = "Outlook" | "Watch" | "Warning" | "Advisory";
+export type GmsCatalogue = GmsCataloguePublic;
 
 /** Fill and legible text for each colour (hazard pairs in foundation.css). */
 export const COLOUR_SURFACE: Record<
@@ -73,31 +41,68 @@ export const AWARENESS_PARAMETER = "awareness_level";
 export const PRODUCT_PARAMETER = "GMS:product";
 export const SECTORS_PARAMETER = "GMS:sectors";
 
-export function severityForColour(colour: GmsColour): CapSeverity {
-  return AWARENESS[colour].severity;
+function colourRule(catalogue: GmsCatalogue, colour: GmsColour) {
+  const rule = catalogue.colours.find((item) => item.key === colour);
+  if (!rule) {
+    throw new Error(`Unknown GMS colour: ${colour}`);
+  }
+  return rule;
 }
 
-export function awarenessValue(colour: GmsColour): string {
-  const { code, severity } = AWARENESS[colour];
-  return `${code}; ${colour}; ${severity}`;
+export function colourLabel(
+  catalogue: GmsCatalogue,
+  colour: GmsColour
+): string {
+  return colourRule(catalogue, colour).label;
+}
+
+export function severityForColour(
+  catalogue: GmsCatalogue,
+  colour: GmsColour
+): CapSeverity {
+  return colourRule(catalogue, colour).severity;
+}
+
+export function awarenessValue(
+  catalogue: GmsCatalogue,
+  colour: GmsColour
+): string {
+  const rule = colourRule(catalogue, colour);
+  return `${rule.awareness_code}; ${colour}; ${rule.severity}`;
+}
+
+export function productLabel(
+  catalogue: GmsCatalogue,
+  product: GmsProduct
+): string {
+  return (
+    catalogue.products.find((item) => item.key === product)?.label ?? product
+  );
 }
 
 /** An Outlook's colour is "not yet assigned"; every other product needs one. */
-export function needsColour(product: GmsProduct): boolean {
-  return product !== "Outlook";
+export function needsColour(
+  catalogue: GmsCatalogue,
+  product: GmsProduct
+): boolean {
+  return (
+    catalogue.products.find((item) => item.key === product)?.needs_colour ??
+    true
+  );
 }
 
 export function levelParameters(
+  catalogue: GmsCatalogue,
   product: GmsProduct,
   colour: GmsColour | null
 ): CapNameValue[] {
   const parameters: CapNameValue[] = [
     { value_name: PRODUCT_PARAMETER, value: product },
   ];
-  if (colour && needsColour(product)) {
+  if (colour && needsColour(catalogue, product)) {
     parameters.push({
       value_name: AWARENESS_PARAMETER,
-      value: awarenessValue(colour),
+      value: awarenessValue(catalogue, colour),
     });
   }
   return parameters;
@@ -129,6 +134,7 @@ export function productTitle(
 
 /** Status-band text for a level: "Orange · Heat Watch" or "Outlook · Heat Outlook". */
 export function levelHeading(
+  catalogue: GmsCatalogue,
   event: string,
   product: GmsProduct | null,
   colour: GmsColour | null
@@ -137,7 +143,7 @@ export function levelHeading(
   if (product === "Outlook") {
     return `Outlook · ${title}`;
   }
-  return colour ? `${COLOUR_LABEL[colour]} · ${title}` : title;
+  return colour ? `${colourLabel(catalogue, colour)} · ${title}` : title;
 }
 
 /** The optional sector tag; no sectors means no parameter (affects everyone). */

@@ -13,7 +13,8 @@ import { Label } from "@barrelsgd/ui/components/ui/label";
 import { Textarea } from "@barrelsgd/ui/components/ui/textarea";
 import { useRouter } from "next/navigation";
 import { useId, useState } from "react";
-import { COLOUR_LABEL } from "@/lib/cap-levels";
+import { useGmsCatalogue } from "@/components/cap/gms-catalogue";
+import { colourLabel } from "@/lib/cap-levels";
 import { useIbfSuggestion } from "./use-ibf-suggestion";
 
 export const WARNING_LEVELS = ["yellow", "orange", "red"] as const;
@@ -47,6 +48,7 @@ export function RaiseToWarningDialog({
   >;
   open: boolean;
 }) {
+  const catalogue = useGmsCatalogue();
   const router = useRouter();
   const [level, setLevel] = useState<WarningLevel>("yellow");
   const [pending, setPending] = useState(false);
@@ -124,7 +126,7 @@ export function RaiseToWarningDialog({
         </fieldset>
         {suggested ? (
           <p className="text-sm" data-testid="matrix-suggestion">
-            The impact matrix suggests {COLOUR_LABEL[suggested]}.
+            The impact matrix suggests {colourLabel(catalogue, suggested)}.
           </p>
         ) : null}
         {showReason ? (
