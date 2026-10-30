@@ -28,7 +28,8 @@ from src.exceptions import AppException
 
 async def effective_roles(session: AsyncSession, user: User) -> list[Role]:
     from src.auth.delegation import DEPARTMENT_AUTHORITY_ROLES
-    from src.hr.models import EmploymentRecord, EmploymentStatus
+    from src.hr.models import EmploymentRecord, live_employment_clause
+    from src.utils.timezones import local_today
 
     active = await _active_assignments(session=session, user_id=user.id)
     ids = {a.role_id for a in active}
@@ -54,7 +55,7 @@ async def effective_roles(session: AsyncSession, user: User) -> list[Role]:
     has_active = await session.scalar(
         select(EmploymentRecord.id).where(
             EmploymentRecord.user_id == user.id,
-            EmploymentRecord.status == EmploymentStatus.ACTIVE,
+            live_employment_clause(local_today()),
         )
     )
     if not (has_record and not has_active):

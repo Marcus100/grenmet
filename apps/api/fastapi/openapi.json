@@ -59540,6 +59540,19 @@
             ],
             "title": "Start Date"
           },
+          "end_date": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "End Date",
+            "description": "Last day of employment. Roles work through that day and end at midnight Grenada time."
+          },
           "continuous_service_date": {
             "anyOf": [
               {
@@ -59688,6 +59701,18 @@
               }
             ],
             "title": "Start Date"
+          },
+          "end_date": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "End Date"
           },
           "continuous_service_date": {
             "anyOf": [
@@ -59852,6 +59877,19 @@
               }
             ],
             "title": "Start Date"
+          },
+          "end_date": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "End Date",
+            "description": "Last day of employment; roles work through that day and end at midnight Grenada time. Send null to clear it."
           },
           "continuous_service_date": {
             "anyOf": [

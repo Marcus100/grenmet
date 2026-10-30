@@ -1,3 +1,7 @@
+import {
+  BARRELS_SUPPORT_EMAIL,
+  BARRELS_SUPPORT_HREF,
+} from "@barrelsgd/ui/lib/support";
 import Link from "next/link";
 import { env } from "@/lib/env";
 
@@ -24,6 +28,16 @@ export function SiteFooter() {
           <Link className="underline" href="/feeds">
             Alert feeds
           </Link>
+        </p>
+        <p className="print:hidden">
+          Problems with this website: Barrels Grenada at{" "}
+          <a
+            className="font-medium text-gm-blue-ink underline"
+            href={BARRELS_SUPPORT_HREF}
+          >
+            {BARRELS_SUPPORT_EMAIL}
+          </a>
+          .
         </p>
       </div>
     </footer>
