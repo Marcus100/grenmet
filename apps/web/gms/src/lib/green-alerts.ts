@@ -1,6 +1,11 @@
 import type { SectorOutlook, SectorOutlookItem } from "@barrelsgd/api-client";
 import type { AlertsResult, GreenStatus } from "@/lib/cap-alerts";
-import { firstSentence, hrefFor, whenLabel } from "@/lib/sector-outlook";
+import {
+  firstSentence,
+  hrefFor,
+  isAllClear,
+  whenLabel,
+} from "@/lib/sector-outlook";
 
 /** A Green (calm) GMS alert in effect, as the alerts page lists it. */
 export interface GreenAlert {
@@ -46,15 +51,6 @@ function inEffect(item: SectorOutlookItem, now: Date): boolean {
   const from = item.valid_from ? new Date(item.valid_from) : null;
   const to = item.valid_to ? new Date(item.valid_to) : null;
   return (!from || from <= now) && (!to || to >= now);
-}
-
-/**
- * A Green bulletin whose notice type is "All clear". Only Green qualifies: an
- * "All clear" at any other level stays a GMS alert, so a higher level is never
- * hidden.
- */
-function isAllClear(item: SectorOutlookItem): boolean {
-  return item.colour === "green" && item.notice_type === "All clear";
 }
 
 /**
