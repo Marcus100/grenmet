@@ -425,6 +425,31 @@ describe("RemoveMemberDialog", () => {
     fireEvent.click(screen.getByRole("button", { name: "Remove member" }));
     expect(await screen.findByText(RE_OWNER_ONLY)).toBeInTheDocument();
   });
+
+  it("shows the API's refusal when the person's Events access comes from an admin or owner role", async () => {
+    const message =
+      "This person's Events access comes from their organisation role (admin/owner). Change their role in organisation settings to remove it.";
+    loadIssuedGrants.mockResolvedValue({ ok: true, data: [] });
+    removeMember.mockResolvedValue({ ok: false, error: message });
+    render(
+      <TeamFeedbackProvider>
+        <RemoveMemberDialog
+          memberName="Ada Admin"
+          membershipId="mem_4"
+          targetRole="admin"
+        />
+      </TeamFeedbackProvider>
+    );
+    fireEvent.click(
+      screen.getByRole("button", {
+        name: "Remove Ada Admin from Events in this organisation",
+      })
+    );
+    await screen.findByText(RE_T7);
+    fireEvent.click(screen.getByRole("button", { name: "Remove member" }));
+    expect(await screen.findByText(message)).toBeInTheDocument();
+    expect(refresh).not.toHaveBeenCalled();
+  });
 });
 
 describe("GrantRoleDialog alert", () => {
