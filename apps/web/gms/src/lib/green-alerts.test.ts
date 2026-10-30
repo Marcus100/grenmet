@@ -4,7 +4,11 @@ import type {
   SectorOutlookItem,
 } from "@barrelsgd/api-client";
 import { describe, expect, it } from "vitest";
-import type { AlertsResult } from "@/lib/cap-alerts";
+import {
+  type AlertsResult,
+  alertsDisplayLevel,
+  alertsSummary,
+} from "@/lib/cap-alerts";
 import { greenAlerts, greenStatus } from "@/lib/green-alerts";
 
 const NOW = new Date("2026-10-30T14:00:00Z");
@@ -38,6 +42,18 @@ function item(overrides: Partial<SectorOutlookItem>): SectorOutlookItem {
   };
 }
 
+/** A Green bulletin whose notice type is "All clear": information, not an alert. */
+function allClear(
+  overrides: Partial<SectorOutlookItem> = {}
+): SectorOutlookItem {
+  return item({
+    title: "Calm seas",
+    notice_type: "All clear",
+    product_id: "0b3c6f1e-5555-4a2b-9c3d-666677778888",
+    ...overrides,
+  });
+}
+
 function outlook(items: SectorOutlookItem[], complete = true): SectorOutlook {
   return {
     as_of: NOW.toISOString(),
@@ -61,6 +77,7 @@ describe("greenAlerts", () => {
       status: "ok",
       complete: true,
       other: 0,
+      information: [],
       items: [
         {
           id: "0b3c6f1e-1111-4a2b-9c3d-222233334444",
@@ -154,6 +171,108 @@ describe("greenAlerts", () => {
     expect(result).toMatchObject({
       items: [{ title: "Green item" }],
       other: 0,
+    });
+  });
+});
+
+describe("All clear bulletins are information, not alerts in effect", () => {
+  it("lists an All clear in effect as information, not as a Green alert", () => {
+    const result = greenAlerts(outlook([allClear()]), NO_WARNINGS, NOW);
+    expect(result).toEqual({
+      status: "ok",
+      complete: true,
+      other: 0,
+      items: [],
+      information: [
+        {
+          id: "0b3c6f1e-5555-4a2b-9c3d-666677778888",
+          title: "Calm seas",
+          when: "In effect until Mon 2 Nov",
+          href: "/weather/issued/0b3c6f1e-5555-4a2b-9c3d-666677778888",
+        },
+      ],
+    });
+  });
+
+  it("says No active alerts, with nothing counted, when only an All clear is in effect", () => {
+    const green = greenAlerts(outlook([allClear()]), NO_WARNINGS, NOW);
+    expect(greenStatus(green)).toEqual({
+      status: "ok",
+      count: 0,
+      other: 0,
+      complete: true,
+    });
+    expect(alertsSummary(NO_WARNINGS, greenStatus(green))).toBe(
+      "No active alerts"
+    );
+    expect(alertsDisplayLevel(NO_WARNINGS, greenStatus(green))).toBe("none");
+  });
+
+  it("counts only the Green alert when an All clear is also in effect", () => {
+    const green = greenAlerts(
+      outlook([allClear(), item({ title: "Green item", reference: "g" })]),
+      NO_WARNINGS,
+      NOW
+    );
+    expect(greenStatus(green)).toMatchObject({ count: 1, other: 0 });
+    expect(green).toMatchObject({
+      items: [{ title: "Green item" }],
+      information: [{ title: "Calm seas" }],
+    });
+    expect(alertsSummary(NO_WARNINGS, greenStatus(green))).toBe(
+      "Green alert in effect"
+    );
+  });
+
+  it("stays grey for an incomplete read, even with an All clear listed", () => {
+    const green = greenAlerts(outlook([allClear()], false), NO_WARNINGS, NOW);
+    expect(green).toMatchObject({
+      status: "ok",
+      complete: false,
+      information: [{ title: "Calm seas" }],
+    });
+    expect(alertsDisplayLevel(NO_WARNINGS, greenStatus(green))).toBe("unknown");
+    expect(alertsSummary(NO_WARNINGS, greenStatus(green))).toBe(
+      "Alert information may be incomplete"
+    );
+  });
+
+  it("leaves out an All clear that has not started or has ended", () => {
+    const result = greenAlerts(
+      outlook([
+        allClear({ valid_from: "2026-11-03T12:00:00Z" }),
+        allClear({ valid_to: "2026-10-29T12:00:00Z" }),
+      ]),
+      NO_WARNINGS,
+      NOW
+    );
+    expect(result).toMatchObject({ status: "ok", information: [] });
+  });
+
+  it("keeps an All clear that is not Green as a GMS alert, never information", () => {
+    const result = greenAlerts(
+      outlook([allClear({ colour: "yellow" })]),
+      NO_WARNINGS,
+      NOW
+    );
+    expect(result).toMatchObject({ status: "ok", other: 1, information: [] });
+    expect(alertsDisplayLevel(NO_WARNINGS, greenStatus(result))).toBe(
+      "unknown"
+    );
+  });
+
+  it("lists an Information or Advisory Green bulletin as a Green alert", () => {
+    const result = greenAlerts(
+      outlook([
+        item({ title: "Info", notice_type: "Information", reference: "i" }),
+        item({ title: "Advice", notice_type: "Advisory", reference: "a" }),
+      ]),
+      NO_WARNINGS,
+      NOW
+    );
+    expect(result).toMatchObject({
+      items: [{ title: "Info" }, { title: "Advice" }],
+      information: [],
     });
   });
 });

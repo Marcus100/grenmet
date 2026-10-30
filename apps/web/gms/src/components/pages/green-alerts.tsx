@@ -41,12 +41,46 @@ export function GreenAlertList({ green }: { green: GreenAlerts }) {
       Some alerts could not be read, so this list may be incomplete.
     </p>
   );
+  // An All clear is information, not an alert: a calm list under its own label.
+  const information =
+    green.information.length > 0 ? (
+      <div className="flex flex-col gap-2">
+        <p className="font-bold text-gm-text-secondary text-label uppercase leading-label tracking-wider">
+          Information
+        </p>
+        <ul className="flex flex-col gap-2">
+          {green.information.map((item) => (
+            <li
+              className="flex flex-col gap-1 rounded-gm-card border border-gm-border bg-background p-4 lg:p-5"
+              key={item.id}
+            >
+              <p className="font-bold text-body text-gm-heading leading-body">
+                All clear: {item.title}
+              </p>
+              <p className="text-body-sm text-gm-text-secondary leading-body-sm">
+                {item.when}
+              </p>
+              {item.href && (
+                <Link
+                  className="flex w-fit items-center gap-1 font-semibold text-body text-gm-blue-ink leading-body hover:underline"
+                  href={item.href as Route}
+                >
+                  Read the full item
+                  <ArrowRightIcon aria-hidden="true" className="size-4" />
+                </Link>
+              )}
+            </li>
+          ))}
+        </ul>
+      </div>
+    ) : null;
   if (green.items.length === 0) {
     return (
       <div className="flex flex-col gap-2 rounded-gm-card border border-gm-border bg-background p-4 lg:p-5">
         <p className="text-body text-gm-text-secondary leading-body">
           No Green alerts are in effect.
         </p>
+        {information}
         {other}
         {incomplete}
       </div>
@@ -86,6 +120,7 @@ export function GreenAlertList({ green }: { green: GreenAlerts }) {
           </li>
         ))}
       </ul>
+      {information}
       {other}
       {incomplete}
     </div>
