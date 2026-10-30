@@ -45,6 +45,8 @@ logger = logging.getLogger(__name__)
 SOURCE_TYPE = "events.order"
 PAID_TOPIC = "events.order_paid"
 REFUNDED_TOPIC = "events.order_refunded"
+#: Refund key for "hand back everything collected on this order" (``refund_in_full``).
+FULL_REFUND_KEY = "refund-in-full"
 _TEST_KEY_PREFIX = "sk_test_"
 
 
@@ -230,12 +232,17 @@ async def refund_in_full(
     )
     if intent is None or intent.captured_minor - intent.refunded_minor <= 0:
         return intent
+    # Local import: order_refunds imports this module. A retry after a lost response
+    # must reuse the refund id, or the provider sees a new idempotency key.
+    from .order_refunds import refund_id_for
+
     await payments_service.refund_intent(
         session,
         organisation_id=organisation_id,
         intent_id=intent.id,
         actor=None,
         payload=payment_schemas.PaymentRefundCreate(reason=reason),
+        refund_id=refund_id_for(order_id, FULL_REFUND_KEY),
     )
     return await intent_for(session, organisation_id=organisation_id, order_id=order_id)
 
