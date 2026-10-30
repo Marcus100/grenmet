@@ -61,6 +61,8 @@ export async function ExploreToday() {
     title: "What this week means for you",
   });
   const tiles = outlook ? buildSectorTiles(outlook, new Date()) : null;
+  // Said once for the whole week instead of six times, once per tile.
+  const quiet = tiles?.every((tile) => tile.items.length === 0) ?? false;
   return (
     <HomeSection tone="surface" {...words}>
       {!tiles && (
@@ -73,6 +75,14 @@ export async function ExploreToday() {
             alerts in effect
           </Link>
           .
+        </p>
+      )}
+      {quiet && (
+        <p
+          className="mb-3 text-body-base text-gm-text-secondary leading-body-base"
+          role="status"
+        >
+          No alerts or warnings are published for any sector this week.
         </p>
       )}
       <ul className="grid grid-cols-2 gap-2 lg:grid-cols-3">
@@ -197,7 +207,7 @@ function SectorItems({ tile }: { tile: SectorTile }) {
   if (tile.items.length === 0) {
     return (
       <p className="text-body-sm text-gm-text-secondary leading-body-sm">
-        No alert or warning impacts published for this sector.
+        Nothing this week
       </p>
     );
   }

@@ -1,4 +1,5 @@
 import { Logo } from "@barrelsgd/gms/components/logo";
+import { CookieSettingsButton } from "@barrelsgd/ui/components/posthog-provider";
 import Link from "next/link";
 import {
   siFacebook,
@@ -166,6 +167,10 @@ export function Footer() {
                 </Link>
               </li>
             ))}
+            {/* Cookie choices live here, not in a floating button that covers content on phones. */}
+            <li>
+              <CookieSettingsButton className={`${LINK} cursor-pointer`} />
+            </li>
           </ul>
         </div>
       </div>

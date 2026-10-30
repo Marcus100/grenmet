@@ -170,7 +170,7 @@ export function WeatherNowPanel({
               <p className="font-bold text-body-base leading-body-base">
                 {current.title}
                 {current.posted && (
-                  <span className="font-mono font-normal text-body-sm text-gm-text-inverse/80 leading-body-sm">
+                  <span className="font-normal text-body-sm text-gm-text-inverse/80 leading-body-sm">
                     {" "}
                     · {current.posted}
                   </span>
@@ -206,7 +206,7 @@ export function WeatherNowPanel({
                     >
                       {item.title}
                       {item.posted && (
-                        <span className="font-mono text-body-sm text-gm-text-inverse/80 leading-body-sm">
+                        <span className="text-body-sm text-gm-text-inverse/80 leading-body-sm">
                           {item.posted}
                         </span>
                       )}
@@ -223,7 +223,7 @@ export function WeatherNowPanel({
             <p className="font-bold text-body-base leading-body-base">
               {note.title}
               {note.posted && (
-                <span className="font-mono font-normal text-body-sm text-gm-text-inverse/80 leading-body-sm">
+                <span className="font-normal text-body-sm text-gm-text-inverse/80 leading-body-sm">
                   {" "}
                   · {note.posted}
                 </span>

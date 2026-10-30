@@ -207,6 +207,14 @@ export function localDay(iso: string): string {
   }).format(new Date(parseGrenadaTime(iso)));
 }
 
+/** "Wed": the weekday of an ISO time, in Grenada time. */
+export function localWeekday(iso: string): string {
+  return new Intl.DateTimeFormat("en-GB", {
+    timeZone: "America/Grenada",
+    weekday: "short",
+  }).format(new Date(parseGrenadaTime(iso)));
+}
+
 const GRENADA_DAY = new Intl.DateTimeFormat("en-CA", {
   timeZone: "America/Grenada",
   year: "numeric",
