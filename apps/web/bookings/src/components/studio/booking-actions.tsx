@@ -79,7 +79,7 @@ export function BookingActions({
 
   return (
     <section aria-labelledby="actions-title" className="space-y-3">
-      <h2 className="font-semibold text-lg" id="actions-title">
+      <h2 className="text-lg font-semibold" id="actions-title">
         Actions
       </h2>
       {keys.length === 0 ? (
@@ -157,8 +157,8 @@ function Notice({
       <p
         className={
           state.warning
-            ? "rounded-lg border border-destructive/40 bg-destructive/10 p-3 font-medium"
-            : "rounded-lg border border-border bg-muted p-3 font-medium"
+            ? "border-destructive/40 bg-destructive/10 rounded-lg border p-3 font-medium"
+            : "border-border bg-muted rounded-lg border p-3 font-medium"
         }
         ref={noticeRef}
         role={state.warning ? "alert" : "status"}
@@ -183,7 +183,7 @@ function ErrorBox({
 }) {
   return (
     <div
-      className="space-y-1 rounded-lg border border-destructive/40 bg-destructive/10 p-3"
+      className="border-destructive/40 bg-destructive/10 space-y-1 rounded-lg border p-3"
       id={id}
       role="alert"
     >
@@ -310,14 +310,14 @@ function ReasonDialog({
               aria-describedby={policyHintId}
               className="space-y-1 border-0 p-0"
             >
-              <legend className="font-medium text-sm">Deposit</legend>
+              <legend className="text-sm font-medium">Deposit</legend>
               {REFUND_CHOICES.map((choice) => (
                 <Label
                   className={`${TARGET} items-center gap-3`}
                   key={choice.value}
                 >
                   <input
-                    className="size-5 accent-primary"
+                    className="accent-primary size-5"
                     defaultChecked={choice.value === "policy"}
                     name="refundChoice"
                     type="radio"

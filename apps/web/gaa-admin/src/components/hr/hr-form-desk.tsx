@@ -81,7 +81,7 @@ function SignedCopyRow({
         <span className="block font-medium">
           Revision {signed.revision ?? 1}
         </span>
-        <span className="block text-muted-foreground text-xs">
+        <span className="text-muted-foreground block text-xs">
           Signed {format(new Date(signed.signed_at), "d MMM yyyy, HH:mm")}
         </span>
       </span>
@@ -155,7 +155,7 @@ export function SignedCopies({
   }
   return (
     <section aria-label={`${label} signed copies`} className="space-y-3">
-      <h2 className="font-medium text-lg">Signed copies</h2>
+      <h2 className="text-lg font-medium">Signed copies</h2>
       {body}
     </section>
   );

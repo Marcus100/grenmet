@@ -78,12 +78,12 @@ export default async function StudioBookingPage({ params }: BookingPageProps) {
     <article className="space-y-6">
       <div className="space-y-1">
         <Link
-          className="inline-flex min-h-11 items-center font-medium text-primary underline underline-offset-4"
+          className="text-primary inline-flex min-h-11 items-center font-medium underline underline-offset-4"
           href={{ pathname: agendaHref }}
         >
           Back to the agenda
         </Link>
-        <h1 className="font-semibold text-2xl">{booking.service_name}</h1>
+        <h1 className="text-2xl font-semibold">{booking.service_name}</h1>
         <p className="text-muted-foreground">
           {formatDateTime(booking.starts_at, zone)} with {booking.provider_name}
         </p>
@@ -119,9 +119,9 @@ export default async function StudioBookingPage({ params }: BookingPageProps) {
       <div className="grid gap-4 md:grid-cols-2">
         <section
           aria-labelledby="customer-title"
-          className="space-y-2 rounded-lg border border-border p-4"
+          className="border-border space-y-2 rounded-lg border p-4"
         >
-          <h2 className="font-semibold text-lg" id="customer-title">
+          <h2 className="text-lg font-semibold" id="customer-title">
             Customer
           </h2>
           <dl className="space-y-1">
@@ -161,9 +161,9 @@ export default async function StudioBookingPage({ params }: BookingPageProps) {
 
         <section
           aria-labelledby="payment-title"
-          className="space-y-2 rounded-lg border border-border p-4"
+          className="border-border space-y-2 rounded-lg border p-4"
         >
-          <h2 className="font-semibold text-lg" id="payment-title">
+          <h2 className="text-lg font-semibold" id="payment-title">
             Price and deposit
           </h2>
           <dl className="space-y-1">
@@ -194,9 +194,9 @@ export default async function StudioBookingPage({ params }: BookingPageProps) {
 
       <section
         aria-labelledby="details-title"
-        className="space-y-2 rounded-lg border border-border p-4"
+        className="border-border space-y-2 rounded-lg border p-4"
       >
-        <h2 className="font-semibold text-lg" id="details-title">
+        <h2 className="text-lg font-semibold" id="details-title">
           Details
         </h2>
         <dl className="space-y-1">
@@ -212,7 +212,7 @@ export default async function StudioBookingPage({ params }: BookingPageProps) {
       </section>
 
       <section aria-labelledby="timeline-title" className="space-y-2">
-        <h2 className="font-semibold text-lg" id="timeline-title">
+        <h2 className="text-lg font-semibold" id="timeline-title">
           Timeline
         </h2>
         {booking.events.length === 0 ? (
@@ -223,7 +223,7 @@ export default async function StudioBookingPage({ params }: BookingPageProps) {
           <ol className="space-y-2">
             {booking.events.map((event) => (
               <li
-                className="rounded-lg border border-border p-3"
+                className="border-border rounded-lg border p-3"
                 key={`${event.created_at}-${event.to_status}`}
               >
                 <p className="font-medium">

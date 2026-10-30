@@ -9,7 +9,7 @@ export interface SuperuserActionFailure {
 }
 
 const MFA_CODE = "superuser_mfa_required";
-const TRAILING_DOT = /\.$/;
+const TRAILING_DOT = /\.$/u;
 
 function statusOf(error: unknown): number | undefined {
   if (error && typeof error === "object" && "status" in error) {

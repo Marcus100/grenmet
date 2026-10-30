@@ -42,7 +42,7 @@ function BoardToggle({
         <button
           aria-selected={board === value}
           className={cn(
-            "flex items-center gap-2 rounded-full px-4 py-1.5 font-medium text-sm transition-colors",
+            "flex items-center gap-2 rounded-full px-4 py-1.5 text-sm font-medium transition-colors",
             board === value
               ? "bg-gaa-gold text-gaa-navy-ink"
               : "text-white/70 hover:text-white"
@@ -72,7 +72,7 @@ function AirportToggle({
       {(Object.keys(AIRPORTS) as AirportCode[]).map((code) => (
         <button
           className={cn(
-            "rounded-full border px-3.5 py-1.5 font-medium text-xs transition-colors",
+            "rounded-full border px-3.5 py-1.5 text-xs font-medium transition-colors",
             airport === code
               ? "border-gaa-gold bg-gaa-gold/15 text-gaa-gold"
               : "border-white/20 text-white/70 hover:border-white/40 hover:text-white"
@@ -106,8 +106,8 @@ function SourceBanner({
 }) {
   if (source === "sample") {
     return (
-      <p className="border-white/10 border-b px-5 py-3 text-sm sm:px-6">
-        <strong className="font-semibold text-gaa-gold">
+      <p className="border-b border-white/10 px-5 py-3 text-sm sm:px-6">
+        <strong className="text-gaa-gold font-semibold">
           Sample schedule, not live flights.
         </strong>{" "}
         Times and statuses are sample data. Confirm your flight with your
@@ -119,7 +119,7 @@ function SourceBanner({
     ? ` Updated ${updatedFormat.format(new Date(fetchedAt))} (Grenada time).`
     : "";
   return (
-    <p className="border-white/10 border-b px-5 py-3 text-sm sm:px-6">
+    <p className="border-b border-white/10 px-5 py-3 text-sm sm:px-6">
       Recent movements at Maurice Bishop International from OpenSky Network
       (research data). This is not a live board or a schedule: it lists aircraft
       seen on the previous day or earlier, with the time they were seen.
@@ -153,7 +153,7 @@ export function FlightBoard({
   return (
     <section
       aria-label={`${AIRPORTS[airport].name} ${board}`}
-      className="overflow-hidden rounded-2xl bg-gaa-navy-ink text-white shadow-xl"
+      className="bg-gaa-navy-ink overflow-hidden rounded-2xl text-white shadow-xl"
     >
       <SourceBanner fetchedAt={fetchedAt} source={source} />
       <div className="flex flex-wrap items-center justify-between gap-3 px-5 pt-5 pb-4 sm:px-6">
@@ -166,7 +166,7 @@ export function FlightBoard({
       <div className="overflow-x-auto" data-testid="flight-table-scroll">
         <table className="w-full text-left text-sm">
           <thead>
-            <tr className="border-white/10 border-t text-white/50 text-xs uppercase tracking-wider">
+            <tr className="border-t border-white/10 text-xs tracking-wider text-white/50 uppercase">
               <th className="px-5 py-3 font-medium sm:px-6" scope="col">
                 Time
               </th>
@@ -193,10 +193,10 @@ export function FlightBoard({
           <tbody>
             {visible.map((flight) => (
               <tr
-                className="border-white/10 border-t transition-colors hover:bg-white/5"
+                className="border-t border-white/10 transition-colors hover:bg-white/5"
                 key={`${flight.flightNumber}-${flight.board}-${flight.scheduled}`}
               >
-                <td className="tabular px-5 py-3.5 font-display font-semibold text-base sm:px-6">
+                <td className="tabular font-display px-5 py-3.5 text-base font-semibold sm:px-6">
                   {flight.scheduled}
                 </td>
                 <td className="tabular px-3 py-3.5 text-white/85">
@@ -204,7 +204,7 @@ export function FlightBoard({
                   {/* Phones: status sits under the flight number so it is never clipped. */}
                   <span
                     className={cn(
-                      "mt-1 block w-fit rounded-full px-2 py-0.5 font-medium text-xs sm:hidden",
+                      "mt-1 block w-fit rounded-full px-2 py-0.5 text-xs font-medium sm:hidden",
                       STATUS_STYLES[flight.status]
                     )}
                     data-testid="status-inline"
@@ -216,7 +216,7 @@ export function FlightBoard({
                   <span className="break-words text-white/90">
                     {flight.city}
                   </span>{" "}
-                  <span className="text-white/45 text-xs">
+                  <span className="text-xs text-white/45">
                     {flight.cityCode}
                   </span>
                 </td>
@@ -226,7 +226,7 @@ export function FlightBoard({
                 <td className="hidden px-5 py-3.5 text-right sm:table-cell sm:px-6">
                   <span
                     className={cn(
-                      "inline-block rounded-full px-2.5 py-1 font-medium text-xs",
+                      "inline-block rounded-full px-2.5 py-1 text-xs font-medium",
                       STATUS_STYLES[flight.status]
                     )}
                   >
@@ -236,7 +236,7 @@ export function FlightBoard({
               </tr>
             ))}
             {visible.length === 0 && (
-              <tr className="border-white/10 border-t">
+              <tr className="border-t border-white/10">
                 <td className="px-5 py-8 text-center text-white/60" colSpan={5}>
                   {source === "sample"
                     ? `No ${board} listed for ${AIRPORTS[airport].shortName} today.`

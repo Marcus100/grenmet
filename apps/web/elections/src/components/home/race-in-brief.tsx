@@ -28,7 +28,7 @@ export function RaceInBrief({
   const house = currentHouse(seats);
   return (
     <div>
-      <ul className="grid gap-px border border-el-rule bg-el-rule md:grid-cols-3">
+      <ul className="border-el-rule bg-el-rule grid gap-px border md:grid-cols-3">
         {(["NDC", "NNP", "DPM"] as const).map((party) => {
           const note = PARTY_NOTES[party];
           const named = Object.keys(campaign.candidates[party] ?? {}).length;
@@ -45,24 +45,24 @@ export function RaceInBrief({
                 className="block h-1 w-10"
                 style={{ background: partyColor(party) }}
               />
-              <h3 className="mt-2 font-bold text-lg leading-tight">
+              <h3 className="mt-2 text-lg leading-tight font-bold">
                 <PartyDot party={party} />
                 {partyInfo(party).name}
               </h3>
-              <p className="mt-1 text-base text-el-ink-2 leading-relaxed">
+              <p className="text-el-ink-2 mt-1 text-base leading-relaxed">
                 {note.text}
                 {note.unverified && (
                   <Flag note={note.unverified} status="unverified" />
                 )}
               </p>
-              <p className="mt-1 text-base text-el-muted leading-relaxed">
+              <p className="text-el-muted mt-1 text-base leading-relaxed">
                 <SourceLink id={note.source} sources={campaign.sources} />
               </p>
               <dl className="mt-3 grid grid-cols-3 gap-2">
                 <div>
                   <dt className={LABEL}>At dissolution</dt>
                   <dd
-                    className="font-semibold text-xl tabular-nums"
+                    className="text-xl font-semibold tabular-nums"
                     style={{ color: partyColor(party, "ink") }}
                   >
                     {house[party] ?? 0}
@@ -70,10 +70,10 @@ export function RaceInBrief({
                 </div>
                 <div>
                   <dt className={LABEL}>2022</dt>
-                  <dd className="font-semibold text-xl tabular-nums">
+                  <dd className="text-xl font-semibold tabular-nums">
                     {won == null ? "–" : won}
                   </dd>
-                  <dd className="text-base text-el-muted">
+                  <dd className="text-el-muted text-base">
                     {votes
                       ? `${pct(votes / result2022.total)} of votes`
                       : "did not stand"}
@@ -81,7 +81,7 @@ export function RaceInBrief({
                 </div>
                 <div>
                   <dt className={LABEL}>Earlier names</dt>
-                  <dd className="font-semibold text-xl tabular-nums">
+                  <dd className="text-xl font-semibold tabular-nums">
                     {named ? `${named}` : "–"}
                     {uncertain > 0 && (
                       <Flag
@@ -90,7 +90,7 @@ export function RaceInBrief({
                       />
                     )}
                   </dd>
-                  <dd className="text-base text-el-muted">
+                  <dd className="text-el-muted text-base">
                     {named
                       ? "in our incomplete directory"
                       : "none recorded here"}
@@ -101,7 +101,7 @@ export function RaceInBrief({
           );
         })}
       </ul>
-      <p className="mt-3 text-base text-el-muted">
+      <p className="text-el-muted mt-3 text-base">
         Names recorded through{" "}
         {campaign.candidate_names_as_of ?? campaign.updated}. See{" "}
         <Link className="underline" href="/candidates">

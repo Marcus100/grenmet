@@ -18,14 +18,14 @@ export default function RouteError({
 
   return (
     <div className="mx-auto max-w-xl space-y-3 p-6" role="alert">
-      <h1 className="font-semibold font-serif text-3xl">
+      <h1 className="font-serif text-3xl font-semibold">
         This page could not be loaded
       </h1>
       <p className="text-foreground text-lg">
         Something went wrong on our side. Try again in a moment.
       </p>
       {error.digest ? (
-        <p className="font-mono text-muted-foreground text-sm">
+        <p className="text-muted-foreground font-mono text-sm">
           Reference: {error.digest}
         </p>
       ) : null}

@@ -37,27 +37,27 @@ export const CONTEXTS = {
 const BRANCH_SYNC_CONFLICTS_FILE = "agent-branch-sync-conflicts.json";
 const ADVISORY_CACHE_FILE = "advisory-review-cache.json";
 const ADVISORY_BASES = new Set(["dev", "staging", "main"]);
-const ADVISORY_CACHE_KEY = /^\d+:[a-f0-9]{40}:(?:code|security)$/;
-const SHA = /^[a-f0-9]{40}$/;
-const APP_BOT_LOGIN = /^[a-z0-9-]+\[bot\]$/;
+const ADVISORY_CACHE_KEY = /^\d+:[a-f0-9]{40}:(?:code|security)$/u;
+const SHA = /^[a-f0-9]{40}$/u;
+const APP_BOT_LOGIN = /^[a-z0-9-]+\[bot\]$/u;
 const FACTORY_PATH =
-  /^(?:\.(?:claude|codex|agents|github|husky)\/|docs\/agents\/|scripts\/(?:agents|guardrails|verification|ci|production)\/|infra\/github\/)|(?:^|\/)AGENTS\.md$/;
+  /^(?:\.(?:claude|codex|agents|github|husky)\/|docs\/agents\/|scripts\/(?:agents|guardrails|verification|ci|production)\/|infra\/github\/)|(?:^|\/)AGENTS\.md$/u;
 const OWNER_MERGE_PATHS = [
-  /^\.claude\//,
-  /^\.codex\//,
-  /^\.agents\//,
-  /^\.husky\//,
-  /^\.github\//,
-  /^infra\/github\//,
-  /^scripts\/(?:guardrails|verification)\//,
-  /^package\.json$/,
-  /^docs\/agents\/routines\.md$/,
-  /^apps\/api\/fastapi\/src\/auth\/permissions\.py$/,
-  /(?:^|\/)AGENTS\.md$/,
+  /^\.claude\//u,
+  /^\.codex\//u,
+  /^\.agents\//u,
+  /^\.husky\//u,
+  /^\.github\//u,
+  /^infra\/github\//u,
+  /^scripts\/(?:guardrails|verification)\//u,
+  /^package\.json$/u,
+  /^docs\/agents\/routines\.md$/u,
+  /^apps\/api\/fastapi\/src\/auth\/permissions\.py$/u,
+  /(?:^|\/)AGENTS\.md$/u,
 ];
 const ROOT = dirname(dirname(dirname(fileURLToPath(import.meta.url))));
 const COMMAND_TIMEOUT_MS = 60_000;
-const MERGE_CONFLICT = /conflict|not mergeable/i;
+const MERGE_CONFLICT = /conflict|not mergeable/iu;
 const MAX_TRUSTED_INSTRUCTIONS = 128 * 1024;
 
 export function securityRequired(files, labels = []) {

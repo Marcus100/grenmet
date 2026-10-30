@@ -107,7 +107,7 @@ export function AccountButton({
         <PopoverContent align="end" className="w-64">
           <div className="space-y-0.5 px-1">
             <p className="font-medium">{account.name}</p>
-            <p className="truncate text-muted-foreground">{account.email}</p>
+            <p className="text-muted-foreground truncate">{account.email}</p>
           </div>
           {account.accountUrl ? (
             <a
@@ -125,7 +125,7 @@ export function AccountButton({
       {noticeOpen ? (
         <section
           aria-label="Signed in"
-          className="fixed top-4 right-4 left-4 z-50 flex items-start gap-3 rounded-lg border border-border bg-background p-4 text-foreground text-sm shadow-card sm:left-auto sm:max-w-sm"
+          className="border-border bg-background text-foreground shadow-card fixed top-4 right-4 left-4 z-50 flex items-start gap-3 rounded-lg border p-4 text-sm sm:left-auto sm:max-w-sm"
           role="status"
         >
           <p className="flex-1">

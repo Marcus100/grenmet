@@ -1,9 +1,9 @@
-const deferredPath = /^(surface|wis2box|geonetcast|wxwatch|gms-ingest)\//;
-const zeroSha = /^0+$/;
-const workspaceManifest = /^(apps\/[^/]+\/[^/]+\/package\.json)$/;
-const rootMarkdown = /^[^/]+\.md$/;
+const deferredPath = /^(surface|wis2box|geonetcast|wxwatch|gms-ingest)\//u;
+const zeroSha = /^0+$/u;
+const workspaceManifest = /^(apps\/[^/]+\/[^/]+\/package\.json)$/u;
+const rootMarkdown = /^[^/]+\.md$/u;
 const nonImagePath =
-  /^(docs\/|\.devcontainer\/|\.vscode\/|\.agents\/|\.claude\/|\.codex\/)/;
+  /^(docs\/|\.devcontainer\/|\.vscode\/|\.agents\/|\.claude\/|\.codex\/)/u;
 
 import { execFileSync } from "node:child_process";
 import { appendFileSync, readFileSync } from "node:fs";

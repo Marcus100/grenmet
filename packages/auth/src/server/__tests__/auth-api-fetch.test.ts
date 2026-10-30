@@ -20,8 +20,8 @@ const config = {
   sessionCookieName: "grenmet_session",
 };
 
-const TIMED_OUT = /did not respond within/i;
-const TIMED_OUT_5MS = /did not respond within 5ms/i;
+const TIMED_OUT = /did not respond within/iu;
+const TIMED_OUT_5MS = /did not respond within 5ms/iu;
 const pingParser = {
   parse(value: unknown): { ok: boolean } {
     if (

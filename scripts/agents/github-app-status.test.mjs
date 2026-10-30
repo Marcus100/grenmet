@@ -25,13 +25,13 @@ const APP_ID = "123456";
 const INSTALLATION_ID = "789012";
 const HEAD = "a".repeat(40);
 const NOW = Date.parse("2026-10-25T13:00:00.000Z");
-const OUTSIDE_REPOSITORY = /outside the repository/;
-const PRIVATE_FILE_MODE = /mode 0600/;
-const STATUS_PERMISSION = /status permission/;
-const UNKNOWN_STATUS = /unrecognized review status/;
-const APP_ID_MISMATCH = /does not match the protected ruleset/;
-const APP_IDENTITY_MISMATCH = /could not verify the configured status App/;
-const BEARER_JWT = /^Bearer eyJ/;
+const OUTSIDE_REPOSITORY = /outside the repository/u;
+const PRIVATE_FILE_MODE = /mode 0600/u;
+const STATUS_PERMISSION = /status permission/u;
+const UNKNOWN_STATUS = /unrecognized review status/u;
+const APP_ID_MISMATCH = /does not match the protected ruleset/u;
+const APP_IDENTITY_MISMATCH = /could not verify the configured status App/u;
+const BEARER_JWT = /^Bearer eyJ/u;
 
 function keyFixture() {
   const parent = mkdtempSync(join(tmpdir(), "grenmet-status-app-test-"));

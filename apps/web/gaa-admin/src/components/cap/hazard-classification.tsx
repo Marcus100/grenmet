@@ -110,7 +110,7 @@ export function HazardClassification({
           : "No CAP category selected. Choose a listed event or set its mapping below."}
       </p>
       <details className="space-y-3">
-        <summary className="cursor-pointer text-gm-text-primary text-label">
+        <summary className="text-gm-text-primary text-label cursor-pointer">
           Edit CAP category mappings
         </summary>
         <p className="text-body-sm text-gm-text-muted">

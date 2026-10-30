@@ -8,10 +8,10 @@ import {
   type StripDay,
 } from "@/components/home/sky-day-strip";
 
-const FRIDAY = /Fri/;
-const NOW_TAB = /Now/;
-const LAST_TAB = /Last reading/;
-const RAIN_CHANCE = /Medium chance of rain/;
+const FRIDAY = /Fri/u;
+const NOW_TAB = /Now/u;
+const LAST_TAB = /Last reading/u;
+const RAIN_CHANCE = /Medium chance of rain/u;
 
 const day = (overrides: Partial<StripDay>): StripDay => ({
   condition: "sunny",

@@ -83,7 +83,7 @@ export function NewsletterSignup() {
   if (state.status === "success") {
     return (
       <p
-        className="rounded border-gm-border border-l-4 bg-gm-surface px-4 py-3 text-body-base text-gm-heading"
+        className="border-gm-border bg-gm-surface text-body-base text-gm-heading rounded border-l-4 px-4 py-3"
         role="status"
       >
         Check your email to confirm. Nothing is sent until you click the link.
@@ -104,9 +104,9 @@ export function NewsletterSignup() {
           type="email"
         />
       </div>
-      <label className="flex items-start gap-3 text-body-base">
+      <label className="text-body-base flex items-start gap-3">
         <input
-          className="mt-1 size-5 shrink-0 accent-primary"
+          className="accent-primary mt-1 size-5 shrink-0"
           name="consent"
           required
           type="checkbox"
@@ -122,7 +122,7 @@ export function NewsletterSignup() {
         {state.status === "submitting" ? "Sending…" : "Email me the newsletter"}
       </Button>
       {state.status === "error" && (
-        <p className="font-medium text-body-base text-destructive" role="alert">
+        <p className="text-body-base text-destructive font-medium" role="alert">
           {state.message}
         </p>
       )}

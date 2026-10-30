@@ -270,7 +270,7 @@ export function DutyRoster() {
           >
             <ChevronLeft className="size-4" />
           </Button>
-          <span className="min-w-40 text-center font-medium text-lg">
+          <span className="min-w-40 text-center text-lg font-medium">
             {monthLabel}
           </span>
           <Button
@@ -366,7 +366,7 @@ export function DutyRoster() {
         </div>
       </div>
 
-      <div className="flex flex-wrap gap-x-4 gap-y-1 text-muted-foreground text-xs">
+      <div className="text-muted-foreground flex flex-wrap gap-x-4 gap-y-1 text-xs">
         <span>
           * Approved absence or leave; the scheduled shift remains shown.
         </span>
@@ -374,7 +374,7 @@ export function DutyRoster() {
           <span className="flex items-center gap-1.5" key={shift.code}>
             <span
               className={cn(
-                "inline-flex size-4 items-center justify-center rounded-sm font-medium text-[10px]",
+                "inline-flex size-4 items-center justify-center rounded-sm text-[10px] font-medium",
                 CODE_STYLE[shift.code] ?? "bg-muted text-muted-foreground"
               )}
             >
@@ -418,7 +418,7 @@ export function DutyRoster() {
           <thead className="bg-muted/50">
             <tr>
               <th
-                className="sticky left-0 z-10 w-40 border-border border-r bg-muted/50 px-2 py-1.5 text-left font-semibold"
+                className="border-border bg-muted/50 sticky left-0 z-10 w-40 border-r px-2 py-1.5 text-left font-semibold"
                 rowSpan={2}
               >
                 Name
@@ -426,11 +426,11 @@ export function DutyRoster() {
               {days.map((d, i) => (
                 <Fragment key={`wk-${d.day}`}>
                   {d.isSunday && i > 0 ? (
-                    <td aria-hidden="true" className="w-2 bg-background" />
+                    <td aria-hidden="true" className="bg-background w-2" />
                   ) : null}
                   <th
                     className={cn(
-                      "w-7 border-border border-l py-0.5 font-medium",
+                      "border-border w-7 border-l py-0.5 font-medium",
                       d.isSunday && "text-destructive"
                     )}
                   >
@@ -443,7 +443,7 @@ export function DutyRoster() {
               {days.map((d, i) => (
                 <Fragment key={`day-${d.day}`}>
                   {d.isSunday && i > 0 ? (
-                    <td aria-hidden="true" className="w-2 bg-background" />
+                    <td aria-hidden="true" className="bg-background w-2" />
                   ) : null}
                   <th
                     className={cn(
@@ -463,7 +463,7 @@ export function DutyRoster() {
                 {group.label ? (
                   <tr className="border-border border-t">
                     <th
-                      className="sticky left-0 z-10 bg-muted/40 px-2 py-1 text-left font-semibold text-[11px] text-muted-foreground uppercase tracking-wide"
+                      className="bg-muted/40 text-muted-foreground sticky left-0 z-10 px-2 py-1 text-left text-[11px] font-semibold tracking-wide uppercase"
                       colSpan={totalColumns}
                       scope="colgroup"
                     >
@@ -481,7 +481,7 @@ export function DutyRoster() {
                   const runMarks = markShiftRuns(rowCodes, workCodes);
                   return (
                     <tr className="border-border border-t" key={member.user_id}>
-                      <td className="sticky left-0 z-10 border-border border-r bg-background px-2 py-1 text-left font-medium">
+                      <td className="border-border bg-background sticky left-0 z-10 border-r px-2 py-1 text-left font-medium">
                         {rosterLabel(member)}
                       </td>
                       {days.map((d, i) => {
@@ -514,10 +514,10 @@ export function DutyRoster() {
                                     : undefined
                                 }
                                 className={cn(
-                                  "h-6 w-full font-medium text-[11px] leading-none outline-none transition-colors hover:bg-muted focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset",
+                                  "hover:bg-muted focus-visible:ring-ring h-6 w-full text-[11px] leading-none font-medium transition-colors outline-none focus-visible:ring-2 focus-visible:ring-inset",
                                   code && CODE_STYLE[code],
-                                  runMarks[i] && "border-current border-b-2",
-                                  isPending && "ring-1 ring-ring ring-inset",
+                                  runMarks[i] && "border-b-2 border-current",
+                                  isPending && "ring-ring ring-1 ring-inset",
                                   !editable && "cursor-default",
                                   exception && "text-destructive"
                                 )}
@@ -545,7 +545,7 @@ export function DutyRoster() {
             {members.length === 0 && !membersQuery.isLoading ? (
               <tr>
                 <td
-                  className="px-2 py-6 text-muted-foreground"
+                  className="text-muted-foreground px-2 py-6"
                   colSpan={totalColumns}
                 >
                   No active members in this department.

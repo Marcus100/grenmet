@@ -66,7 +66,7 @@ export function MobileMenu({ status }: { status?: string }) {
         aria-controls={MENU_ID}
         aria-expanded={open}
         aria-label={open ? "Close menu" : "Open menu"}
-        className="-mr-2 flex @min-7xl/masthead:hidden size-11 items-center justify-center rounded-md"
+        className="-mr-2 flex size-11 items-center justify-center rounded-md @min-7xl/masthead:hidden"
         onClick={toggle}
         ref={button}
         type="button"
@@ -92,7 +92,7 @@ export function MobileMenu({ status }: { status?: string }) {
           <motion.div
             animate={{ opacity: 1 }}
             aria-label="Site menu"
-            className="fixed inset-x-0 bottom-0 z-30 flex @min-7xl/masthead:hidden flex-col overflow-y-auto border-el-ink border-t bg-background"
+            className="border-el-ink bg-background fixed inset-x-0 bottom-0 z-30 flex flex-col overflow-y-auto border-t @min-7xl/masthead:hidden"
             exit={{ opacity: 0 }}
             id={MENU_ID}
             initial={{ opacity: 0 }}
@@ -101,7 +101,7 @@ export function MobileMenu({ status }: { status?: string }) {
             transition={{ duration: 0.15 }}
           >
             {status && (
-              <p className="border-el-rule border-b px-4 py-3 font-semibold text-base text-el-ink-2 uppercase leading-relaxed tracking-[0.08em]">
+              <p className="border-el-rule text-el-ink-2 border-b px-4 py-3 text-base leading-relaxed font-semibold tracking-[0.08em] uppercase">
                 {status}
               </p>
             )}

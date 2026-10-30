@@ -4,8 +4,8 @@
  * as a URL on a poster, before it is sent. Formats follow `events/tickets.py`:
  * a signed token `BT1.<code>.<tag>` or a bare 10-character Crockford code.
  */
-const TOKEN = /^BT1\.[0-9A-Za-z-]{10,12}\.[A-Za-z0-9_-]{8,64}$/;
-const BARE_CODE = /^[0-9A-Za-z]{5}-?[0-9A-Za-z]{5}$/;
+const TOKEN = /^BT1\.[0-9A-Za-z-]{10,12}\.[A-Za-z0-9_-]{8,64}$/u;
+const BARE_CODE = /^[0-9A-Za-z]{5}-?[0-9A-Za-z]{5}$/u;
 const MAX_LENGTH = 128;
 
 export function parseScannedTicket(raw: string): string | null {

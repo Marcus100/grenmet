@@ -17,7 +17,7 @@ import {
   readSessionCookie,
 } from "@/lib/session";
 
-const API_PREFIX = /\/api\/v1(?=\/|$)/;
+const API_PREFIX = /\/api\/v1(?=\/|$)/u;
 async function securityClient(accessToken?: string) {
   let bearerToken = accessToken;
   if (!bearerToken) {

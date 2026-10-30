@@ -30,7 +30,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { invalidateAfterRosterImport } from "@/lib/hr-invalidation";
 
-const MONTH_RE = /^(\d{4})-(\d{2})$/;
+const MONTH_RE = /^(\d{4})-(\d{2})$/u;
 
 // "YYYY-MM" -> the first and last calendar day of that month.
 function monthBounds(month: string): { start: string; end: string } | null {
@@ -214,21 +214,21 @@ export function ImportRosterDialog() {
                 {preview.total_assignments} assignments
               </p>
               {preview.unmatched_names.length > 0 ? (
-                <p className="mt-1 text-destructive">
+                <p className="text-destructive mt-1">
                   Unmatched: {preview.unmatched_names.join(", ")}
                 </p>
               ) : null}
               {preview.errors.length > 0 ? (
-                <ul className="mt-1 list-disc pl-4 text-destructive">
+                <ul className="text-destructive mt-1 list-disc pl-4">
                   {preview.errors.slice(0, 6).map((err) => (
                     <li key={err}>{err}</li>
                   ))}
                 </ul>
               ) : null}
               {preview.can_import ? (
-                <p className="mt-1 text-muted-foreground">Ready to import.</p>
+                <p className="text-muted-foreground mt-1">Ready to import.</p>
               ) : (
-                <p className="mt-1 text-muted-foreground">
+                <p className="text-muted-foreground mt-1">
                   Resolve the issues above, then re-check.
                 </p>
               )}

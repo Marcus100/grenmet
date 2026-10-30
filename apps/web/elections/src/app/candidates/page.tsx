@@ -95,7 +95,7 @@ export default function CandidatesPage() {
             .
           </p>
         )}
-        <div className="grid gap-px border border-el-rule bg-el-rule md:grid-cols-3">
+        <div className="border-el-rule bg-el-rule grid gap-px border md:grid-cols-3">
           {SLATES.map((party) => {
             const slate = Object.entries(campaign.candidates[party] ?? {}) as [
               ConstituencyCode,
@@ -103,11 +103,11 @@ export default function CandidatesPage() {
             ][];
             return (
               <section className="bg-background p-4" key={party}>
-                <h3 className="font-bold text-lg">
+                <h3 className="text-lg font-bold">
                   <PartyDot party={party} />
                   {partyInfo(party).name}
                 </h3>
-                <p className="text-base text-el-muted leading-relaxed">
+                <p className="text-el-muted text-base leading-relaxed">
                   {slate.length} named
                   {slateSources(campaign, party).length > 0 && (
                     <>
@@ -117,7 +117,7 @@ export default function CandidatesPage() {
                   )}
                 </p>
                 {slate.length === 0 ? (
-                  <p className="mt-3 text-base text-el-ink-2 leading-relaxed">
+                  <p className="text-el-ink-2 mt-3 text-base leading-relaxed">
                     {party === "NDC"
                       ? campaign.candidate_flags.NDC
                       : "No candidates named yet."}
@@ -137,7 +137,7 @@ export default function CandidatesPage() {
                           <li key={code}>
                             <b className="font-semibold">{name}</b>
                             {note && <Flag note={note} status="unverified" />}
-                            <span className="block text-base text-el-muted">
+                            <span className="text-el-muted block text-base">
                               <Link
                                 className="hover:underline"
                                 href={constituencyHref(results, code) as Route}
@@ -188,10 +188,10 @@ export default function CandidatesPage() {
           ].map(([label, value, note]) => (
             <div key={label}>
               <dt className={LABEL}>{label}</dt>
-              <dd className="mt-0.5 font-semibold text-xl tabular-nums">
+              <dd className="mt-0.5 text-xl font-semibold tabular-nums">
                 {value}
               </dd>
-              {note && <dd className="text-base text-el-muted">{note}</dd>}
+              {note && <dd className="text-el-muted text-base">{note}</dd>}
             </div>
           ))}
         </dl>
@@ -203,7 +203,7 @@ export default function CandidatesPage() {
           parties={parties}
           rows={rows}
         />
-        <p className="mt-4 max-w-[70ch] text-base text-el-muted leading-relaxed">
+        <p className="text-el-muted mt-4 max-w-[70ch] text-base leading-relaxed">
           People are matched by surname and first initial across elections,
           split when full first names differ or races are more than 16 years
           apart. This can occasionally merge two people or split one;

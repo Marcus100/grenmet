@@ -38,9 +38,9 @@ import AgendaPage from "./page";
 
 const params = Promise.resolve({ orgSlug: "sea-salt" });
 const search = (query: Record<string, string> = {}) => Promise.resolve(query);
-const ADA = /Ada Lovelace/;
-const GRACE = /Grace Hopper/;
-const RETIRED = /with Retired Rae/;
+const ADA = /Ada Lovelace/u;
+const GRACE = /Grace Hopper/u;
+const RETIRED = /with Retired Rae/u;
 const BOOKING = "22222222-2222-4222-8222-222222222222";
 
 function item(overrides: Partial<BookingAgendaItem> = {}): BookingAgendaItem {

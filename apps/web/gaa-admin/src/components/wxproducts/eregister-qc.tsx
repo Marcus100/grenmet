@@ -246,12 +246,12 @@ function ObservationLine({
         </span>
       </div>
       {observation.coded ? (
-        <code className="block overflow-x-auto whitespace-nowrap rounded bg-muted px-2 py-1 font-mono text-xs tabular-nums">
+        <code className="bg-muted block overflow-x-auto rounded px-2 py-1 font-mono text-xs whitespace-nowrap tabular-nums">
           {observation.coded}
         </code>
       ) : null}
       {warnings.length > 0 ? (
-        <ul className="list-disc pl-5 text-warning text-xs">
+        <ul className="text-warning list-disc pl-5 text-xs">
           {warnings.map((issue) => (
             <li key={`${issue.field}-${issue.code}`}>{issue.message}</li>
           ))}
@@ -393,16 +393,16 @@ function QueueSection({
   );
   return (
     <section aria-label={heading}>
-      <p className="border-b px-4 py-2 font-medium text-muted-foreground text-xs uppercase tracking-wide">
+      <p className="text-muted-foreground border-b px-4 py-2 text-xs font-medium tracking-wide uppercase">
         {heading} ({status === "ready" ? total : "…"})
       </p>
       {status === "error" ? (
-        <p className="px-4 py-3 text-destructive text-sm" role="alert">
+        <p className="text-destructive px-4 py-3 text-sm" role="alert">
           This list could not be loaded.
         </p>
       ) : null}
       {status === "ready" && items.length === 0 ? (
-        <p className="px-4 py-3 text-muted-foreground text-sm" role="status">
+        <p className="text-muted-foreground px-4 py-3 text-sm" role="status">
           {empty}
         </p>
       ) : null}

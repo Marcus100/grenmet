@@ -25,16 +25,16 @@ import {
   summarize,
 } from "./skill-evals.mjs";
 
-const UNKNOWN_AGENT = /Unknown agent/;
-const TABLE_HEADER = /agent: claude {2}model: m/;
-const CI_TRIAGE_ROW = /ci-triage +3 +2 +50% \(1\/2\)/;
-const THREE_OF_FOUR = /3\/4 cases passed/;
-const DEFAULT_MODEL = /model: default/;
-const AGENT_REQUIRED = /--agent claude\|codex is required/;
-const IS_REQUIRED = /is required/;
-const LIMIT_FLAG = /--limit/;
-const UNKNOWN_ARGUMENT = /Unknown argument/;
-const NEEDS_VALUE = /needs a value/;
+const UNKNOWN_AGENT = /Unknown agent/u;
+const TABLE_HEADER = /agent: claude {2}model: m/u;
+const CI_TRIAGE_ROW = /ci-triage +3 +2 +50% \(1\/2\)/u;
+const THREE_OF_FOUR = /3\/4 cases passed/u;
+const DEFAULT_MODEL = /model: default/u;
+const AGENT_REQUIRED = /--agent claude\|codex is required/u;
+const IS_REQUIRED = /is required/u;
+const LIMIT_FLAG = /--limit/u;
+const UNKNOWN_ARGUMENT = /Unknown argument/u;
+const NEEDS_VALUE = /needs a value/u;
 
 const claudeLog = [
   JSON.stringify({

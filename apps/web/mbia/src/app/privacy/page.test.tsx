@@ -2,8 +2,8 @@ import { render, screen } from "@testing-library/react";
 import { expect, it } from "vitest";
 import PrivacyPage from "./page";
 
-const TURNSTILE = /Cloudflare Turnstile/;
-const TWENTY_FOUR = /24 months/;
+const TURNSTILE = /Cloudflare Turnstile/u;
+const TWENTY_FOUR = /24 months/u;
 
 it("states the retention periods and the Turnstile processing", () => {
   render(<PrivacyPage />);

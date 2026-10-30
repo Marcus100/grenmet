@@ -3,7 +3,7 @@ import { readdirSync, readFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
-const MASTER_CSV = /\/master_[^/]+\.csv$/;
+const MASTER_CSV = /\/master_[^/]+\.csv$/u;
 const defaultRoot = fileURLToPath(new URL("../../", import.meta.url));
 
 function files(root, folder, accept) {

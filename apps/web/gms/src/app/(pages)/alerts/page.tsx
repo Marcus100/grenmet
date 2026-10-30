@@ -36,14 +36,14 @@ export default async function WarningsPage() {
         <div className="flex flex-col gap-4">
           <AlertGroups result={alerts} />
           {alertsLevel(alerts) === "none" && (
-            <div className="flex flex-col gap-1 rounded-gm-card border border-gm-border border-dashed p-4 text-body leading-body">
+            <div className="rounded-gm-card border-gm-border text-body leading-body flex flex-col gap-1 border border-dashed p-4">
               <b className="text-gm-heading">What we are watching</b>
               <span>
                 The tropical weather outlook covers systems that could affect us
                 over the next seven days.
               </span>
               <Link
-                className="flex w-fit items-center gap-1 font-semibold text-gm-blue-ink hover:underline"
+                className="text-gm-blue-ink flex w-fit items-center gap-1 font-semibold hover:underline"
                 href="/weather/tropics"
               >
                 Tropical weather outlook

@@ -23,11 +23,11 @@ export function ChangePasswordForm() {
     return (
       <div className="space-y-5">
         <div
-          className="rounded-lg border border-border bg-muted px-5 py-4 text-sm leading-6"
+          className="border-border bg-muted rounded-lg border px-5 py-4 text-sm leading-6"
           role="status"
         >
-          <p className="font-medium text-foreground">Password changed</p>
-          <p className="mt-1 text-muted-foreground">
+          <p className="text-foreground font-medium">Password changed</p>
+          <p className="text-muted-foreground mt-1">
             You've been signed out everywhere, including here.
           </p>
         </div>

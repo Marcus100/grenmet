@@ -37,11 +37,11 @@ export function SignUpForm() {
     return (
       <div className="space-y-5">
         <div
-          className="rounded-lg border border-border bg-muted px-5 py-4 text-sm leading-6"
+          className="border-border bg-muted rounded-lg border px-5 py-4 text-sm leading-6"
           role="status"
         >
-          <p className="font-medium text-foreground">Account created</p>
-          <p className="mt-1 text-muted-foreground">
+          <p className="text-foreground font-medium">Account created</p>
+          <p className="text-muted-foreground mt-1">
             You can sign in now and join the apps you need. We also sent a
             verification link to {state.email || "your inbox"}; verify when you
             can. Work at GAA or GMS? Join GAA Admin and an administrator
@@ -51,7 +51,7 @@ export function SignUpForm() {
         <Link className={secondaryButtonClass} href="/">
           Back to sign in
         </Link>
-        <p className="text-center text-body-sm text-muted-foreground">
+        <p className="text-body-sm text-muted-foreground text-center">
           No email?{" "}
           <Link className={textLinkClass} href="/verify-email">
             Send it again
@@ -159,7 +159,7 @@ export function SignUpForm() {
         {pending ? "Creating account…" : "Create account"}
       </button>
 
-      <p className="text-center text-body-sm text-muted-foreground">
+      <p className="text-body-sm text-muted-foreground text-center">
         Already have an account?{" "}
         <Link className={textLinkClass} href="/">
           Sign in

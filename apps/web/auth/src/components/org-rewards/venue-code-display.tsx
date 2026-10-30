@@ -103,12 +103,12 @@ export function VenueCodeDisplay({
         </p>
       ) : null}
       {code ? (
-        <div className="space-y-4 rounded-2xl border border-border p-5 text-center sm:p-8">
+        <div className="border-border space-y-4 rounded-2xl border p-5 text-center sm:p-8">
           <p className="text-muted-foreground text-sm">
             Check-in code for {venueName}
           </p>
           <p
-            className="break-all font-mono font-semibold text-foreground text-xl tracking-wide sm:text-3xl"
+            className="text-foreground font-mono text-xl font-semibold tracking-wide break-all sm:text-3xl"
             data-testid="venue-code"
           >
             {code.token}

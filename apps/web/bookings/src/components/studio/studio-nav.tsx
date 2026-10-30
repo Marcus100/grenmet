@@ -48,7 +48,7 @@ export function StudioNav({ canCreate = false, orgSlug }: StudioNavProps) {
             <Link
               aria-current={item.active ? "page" : undefined}
               className={cn(
-                "flex min-h-11 items-center whitespace-nowrap rounded-md px-4 font-medium",
+                "flex min-h-11 items-center rounded-md px-4 font-medium whitespace-nowrap",
                 item.active
                   ? "bg-primary text-primary-foreground"
                   : "text-foreground hover:bg-muted"

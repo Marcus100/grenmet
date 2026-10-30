@@ -30,13 +30,13 @@ function MemberRow({
     bundles.filter((bundle) => bundle.grantable).map((b) => b.role_key)
   );
   return (
-    <li className="space-y-3 rounded-2xl border border-border bg-card p-4">
+    <li className="border-border bg-card space-y-3 rounded-2xl border p-4">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="min-w-0">
-          <p className="truncate font-medium text-body-base">
+          <p className="text-body-base truncate font-medium">
             {member.fullName}
           </p>
-          <p className="truncate text-caption text-muted-foreground">
+          <p className="text-caption text-muted-foreground truncate">
             {ROLE_WORDS[member.role]}
           </p>
         </div>
@@ -81,11 +81,11 @@ function MemberRow({
             const copy = bundleCopy(grant.role_key);
             return (
               <li
-                className="flex flex-wrap items-center justify-between gap-3 rounded-xl border bg-muted/40 px-3 py-2"
+                className="bg-muted/40 flex flex-wrap items-center justify-between gap-3 rounded-xl border px-3 py-2"
                 key={grant.id}
               >
                 <div className="min-w-0">
-                  <p className="font-medium text-body">{copy.title}</p>
+                  <p className="text-body font-medium">{copy.title}</p>
                   <p className="text-caption text-muted-foreground">
                     {copy.description}
                   </p>
@@ -101,7 +101,7 @@ function MemberRow({
                     memberName={member.fullName}
                   />
                 ) : (
-                  <p className="max-w-xs text-caption text-muted-foreground">
+                  <p className="text-caption text-muted-foreground max-w-xs">
                     You can't take this away because you don't hold it yourself.
                   </p>
                 )}
@@ -133,7 +133,7 @@ export function TeamMembers({
   if (members.length === 0) {
     return (
       <p
-        className="rounded-2xl border border-dashed bg-card px-4 py-8 text-center text-body text-muted-foreground"
+        className="bg-card text-body text-muted-foreground rounded-2xl border border-dashed px-4 py-8 text-center"
         role="status"
       >
         This organisation has no members yet.

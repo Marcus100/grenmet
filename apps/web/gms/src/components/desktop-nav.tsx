@@ -46,7 +46,7 @@ function AlertsStatusNow({ alerts }: { alerts: AlertsResult }) {
     <>
       <span
         className={cn(
-          "w-fit rounded-md px-2.5 py-1 font-bold text-body leading-body",
+          "text-body leading-body w-fit rounded-md px-2.5 py-1 font-bold",
           WARNING_LEVEL_SURFACE[level]
         )}
       >
@@ -82,7 +82,7 @@ function Featured({
         <WithAlerts
           alerts={alerts}
           fallback={
-            <span className="w-fit rounded-md bg-gm-text-inverse/10 px-2.5 py-1 font-bold text-body text-gm-text-inverse leading-body">
+            <span className="bg-gm-text-inverse/10 text-body text-gm-text-inverse leading-body w-fit rounded-md px-2.5 py-1 font-bold">
               {CHECKING_ALERTS}
             </span>
           }
@@ -139,15 +139,15 @@ function Panel({
   );
   return (
     <div className="mx-auto grid max-w-6xl grid-cols-[repeat(4,minmax(0,1fr))_16rem] gap-x-7 gap-y-5 px-6 pt-6 pb-7 xl:px-8">
-      <div className="col-span-full flex items-baseline gap-4 border-gm-text-inverse/15 border-b pb-3">
-        <h2 className="font-bold font-gm-display text-gm-display text-gm-text-inverse uppercase tracking-wide">
+      <div className="border-gm-text-inverse/15 col-span-full flex items-baseline gap-4 border-b pb-3">
+        <h2 className="font-gm-display text-gm-display text-gm-text-inverse font-bold tracking-wide uppercase">
           {section.label}
         </h2>
         <p className="text-body text-gm-text-inverse/80 leading-body">
           {section.blurb}
         </p>
         <NavigationMenuPrimitive.Link
-          className="ml-auto flex items-center gap-1 whitespace-nowrap font-semibold text-body text-gm-lime leading-body hover:underline"
+          className="text-body text-gm-lime leading-body ml-auto flex items-center gap-1 font-semibold whitespace-nowrap hover:underline"
           render={<Link href={section.href as Route} />}
         >
           All {section.label.toLowerCase()}
@@ -159,7 +159,7 @@ function Panel({
         <div className="flex flex-col gap-4" key={c}>
           {groups.map((group) => (
             <div key={group.heading}>
-              <h3 className="mb-1.5 font-bold text-gm-text-inverse/70 text-label uppercase leading-label tracking-wider">
+              <h3 className="text-gm-text-inverse/70 text-label leading-label mb-1.5 font-bold tracking-wider uppercase">
                 {group.heading}
               </h3>
               <ul>
@@ -217,7 +217,7 @@ export function DesktopNav({ alerts, anchor }: DesktopNavProps) {
           side="bottom"
           sideOffset={0}
         >
-          <NavigationMenuPrimitive.Popup className="h-(--popup-height) w-(--popup-width) bg-gm-navy-raised shadow-card transition-[opacity,height] duration-200 data-ending-style:opacity-0 data-starting-style:opacity-0">
+          <NavigationMenuPrimitive.Popup className="bg-gm-navy-raised shadow-card h-(--popup-height) w-(--popup-width) transition-[opacity,height] duration-200 data-ending-style:opacity-0 data-starting-style:opacity-0">
             <NavigationMenuPrimitive.Viewport className="relative size-full overflow-hidden" />
           </NavigationMenuPrimitive.Popup>
         </NavigationMenuPrimitive.Positioner>

@@ -9,7 +9,7 @@ import { getAuthConfig } from "./auth-config";
 
 /** Organisation memberships and invitations on the account page (ADR-0022). */
 
-const API_PREFIX = /\/api\/v1(?=\/|$)/;
+const API_PREFIX = /\/api\/v1(?=\/|$)/u;
 
 function bearerClient(accessToken: string) {
   const config = getAuthConfig();

@@ -180,7 +180,7 @@ export function AdminAccountActions({
         <p
           className={
             notice.warning
-              ? "rounded-md border border-warning px-3 py-2 text-sm"
+              ? "border-warning rounded-md border px-3 py-2 text-sm"
               : "text-sm"
           }
           ref={noticeRef}
@@ -231,7 +231,7 @@ function ConfirmPanel({
   const short = reason.trim().length < MIN_REASON;
   return (
     <fieldset className="flex flex-col gap-3 rounded-md border p-3">
-      <legend className="px-1 font-medium text-sm">
+      <legend className="px-1 text-sm font-medium">
         {mode === "activate" ? "Confirm activation" : "Confirm resend"}
       </legend>
       {mode === "activate" ? (

@@ -80,7 +80,7 @@ export function SeatHistory({ results }: { results: ResultsFile }) {
                     })
                   )}
                   <text
-                    className="fill-(--el-ink-2) font-semibold text-[14px] tabular-nums"
+                    className="fill-(--el-ink-2) text-[14px] font-semibold tabular-nums"
                     textAnchor="middle"
                     x={col * COL + COL / 2}
                     y={TOP + stack + 16}
@@ -93,7 +93,7 @@ export function SeatHistory({ results }: { results: ResultsFile }) {
           </svg>
         </ChartViewport>
       </div>
-      <figcaption className="mt-3 flex flex-wrap gap-x-5 gap-y-1 text-base text-el-ink-2 lg:mt-0 lg:mb-10 lg:flex-col lg:gap-y-2 lg:border-el-rule lg:border-l lg:pl-6">
+      <figcaption className="text-el-ink-2 lg:border-el-rule mt-3 flex flex-wrap gap-x-5 gap-y-1 text-base lg:mt-0 lg:mb-10 lg:flex-col lg:gap-y-2 lg:border-l lg:pl-6">
         {parties.map((p) => (
           <span key={p}>
             <PartyDot party={p} />
@@ -103,7 +103,7 @@ export function SeatHistory({ results }: { results: ResultsFile }) {
         <span>
           <span
             aria-hidden="true"
-            className="mr-1.5 inline-block w-5 border-el-ink border-t border-dashed align-middle"
+            className="border-el-ink mr-1.5 inline-block w-5 border-t border-dashed align-middle"
           />
           {MAJORITY} seats for a majority
         </span>

@@ -156,14 +156,14 @@ export default function UserInfoCard({
   const fullName = `${profile.profile.first_name} ${profile.profile.last_name}`;
 
   return (
-    <div className="rounded-xl border border-border p-5 lg:p-6">
+    <div className="border-border rounded-xl border p-5 lg:p-6">
       {isOpen ? (
         <div className="w-full">
           <div className="px-2 pr-14">
-            <h4 className="mb-2 font-semibold text-2xl text-foreground">
+            <h4 className="text-foreground mb-2 text-2xl font-semibold">
               Edit Personal Information
             </h4>
-            <p className="mb-6 text-muted-foreground text-sm lg:mb-7">
+            <p className="text-muted-foreground mb-6 text-sm lg:mb-7">
               Update your details to keep your profile up-to-date.
             </p>
           </div>
@@ -175,7 +175,7 @@ export default function UserInfoCard({
             }}
           >
             <p
-              className="mb-4 text-destructive text-sm"
+              className="text-destructive mb-4 text-sm"
               hidden={!error}
               role="alert"
             >
@@ -184,7 +184,7 @@ export default function UserInfoCard({
             <fieldset className="min-w-0" disabled={busy}>
               <div className="px-2 pb-3">
                 <div className="mt-7">
-                  <h5 className="mb-5 font-medium text-foreground text-lg lg:mb-6">
+                  <h5 className="text-foreground mb-5 text-lg font-medium lg:mb-6">
                     Personal Information
                   </h5>
 
@@ -400,115 +400,115 @@ export default function UserInfoCard({
       ) : (
         <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
           <div>
-            <h4 className="font-semibold text-foreground text-lg lg:mb-6">
+            <h4 className="text-foreground text-lg font-semibold lg:mb-6">
               Personal Information
             </h4>
 
             <div className="grid grid-cols-1 gap-4 lg:grid-cols-2 lg:gap-7 2xl:gap-x-32">
               <div>
-                <p className="mb-2 text-muted-foreground text-xs leading-normal">
+                <p className="text-muted-foreground mb-2 text-xs leading-normal">
                   Title
                 </p>
-                <p className="font-medium text-foreground text-sm">
+                <p className="text-foreground text-sm font-medium">
                   {profile.profile.title || "-"}
                 </p>
               </div>
 
               <div>
-                <p className="mb-2 text-muted-foreground text-xs leading-normal">
+                <p className="text-muted-foreground mb-2 text-xs leading-normal">
                   First Name
                 </p>
-                <p className="font-medium text-foreground text-sm">
+                <p className="text-foreground text-sm font-medium">
                   {profile.profile.first_name}
                 </p>
               </div>
 
               <div>
-                <p className="mb-2 text-muted-foreground text-xs leading-normal">
+                <p className="text-muted-foreground mb-2 text-xs leading-normal">
                   Middle Name
                 </p>
-                <p className="font-medium text-foreground text-sm">
+                <p className="text-foreground text-sm font-medium">
                   {profile.profile.middle_name || "-"}
                 </p>
               </div>
 
               <div>
-                <p className="mb-2 text-muted-foreground text-xs leading-normal">
+                <p className="text-muted-foreground mb-2 text-xs leading-normal">
                   Last Name
                 </p>
-                <p className="font-medium text-foreground text-sm">
+                <p className="text-foreground text-sm font-medium">
                   {profile.profile.last_name}
                 </p>
               </div>
 
               <div>
-                <p className="mb-2 text-muted-foreground text-xs leading-normal">
+                <p className="text-muted-foreground mb-2 text-xs leading-normal">
                   Email address
                 </p>
-                <p className="font-medium text-foreground text-sm">
+                <p className="text-foreground text-sm font-medium">
                   {profile.identity.email}
                 </p>
               </div>
 
               <div>
-                <p className="mb-2 text-muted-foreground text-xs leading-normal">
+                <p className="text-muted-foreground mb-2 text-xs leading-normal">
                   Phone
                 </p>
-                <p className="font-medium text-foreground text-sm">
+                <p className="text-foreground text-sm font-medium">
                   {profile.identity.phone || "-"}
                 </p>
               </div>
 
               <div>
-                <p className="mb-2 text-muted-foreground text-xs leading-normal">
+                <p className="text-muted-foreground mb-2 text-xs leading-normal">
                   Display Name
                 </p>
-                <p className="font-medium text-foreground text-sm">
+                <p className="text-foreground text-sm font-medium">
                   {profile.profile.display_name || fullName}
                 </p>
               </div>
 
               <div>
-                <p className="mb-2 text-muted-foreground text-xs leading-normal">
+                <p className="text-muted-foreground mb-2 text-xs leading-normal">
                   Nationality
                 </p>
-                <p className="font-medium text-foreground text-sm">
+                <p className="text-foreground text-sm font-medium">
                   {profile.profile.nationality || "-"}
                 </p>
               </div>
 
               <div>
-                <p className="mb-2 text-muted-foreground text-xs leading-normal">
+                <p className="text-muted-foreground mb-2 text-xs leading-normal">
                   Gender
                 </p>
-                <p className="font-medium text-foreground text-sm">
+                <p className="text-foreground text-sm font-medium">
                   {profile.profile.gender || "-"}
                 </p>
               </div>
 
               <div>
-                <p className="mb-2 text-muted-foreground text-xs leading-normal">
+                <p className="text-muted-foreground mb-2 text-xs leading-normal">
                   Emergency Contact
                 </p>
-                <p className="font-medium text-foreground text-sm">
+                <p className="text-foreground text-sm font-medium">
                   {profile.emergency_contact.name || "-"}
                 </p>
               </div>
 
               <div>
-                <p className="mb-2 text-muted-foreground text-xs leading-normal">
+                <p className="text-muted-foreground mb-2 text-xs leading-normal">
                   Emergency Phone
                 </p>
-                <p className="font-medium text-foreground text-sm">
+                <p className="text-foreground text-sm font-medium">
                   {profile.emergency_contact.phone || "-"}
                 </p>
               </div>
 
               <div>
-                <p className="mb-2 text-muted-foreground text-xs leading-normal">
+                <p className="text-muted-foreground mb-2 text-xs leading-normal">
                   Emergency Relationship
                 </p>
-                <p className="font-medium text-foreground text-sm">
+                <p className="text-foreground text-sm font-medium">
                   {profile.emergency_contact.relationship || "-"}
                 </p>
               </div>
@@ -516,7 +516,7 @@ export default function UserInfoCard({
           </div>
 
           <button
-            className="flex w-full items-center justify-center gap-2 rounded-full border border-border bg-background px-4 py-3 font-medium text-foreground text-sm shadow-card hover:bg-muted hover:text-foreground lg:inline-flex lg:w-auto"
+            className="border-border bg-background text-foreground shadow-card hover:bg-muted hover:text-foreground flex w-full items-center justify-center gap-2 rounded-full border px-4 py-3 text-sm font-medium lg:inline-flex lg:w-auto"
             onClick={handleOpen}
             type="button"
           >

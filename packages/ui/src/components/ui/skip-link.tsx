@@ -18,7 +18,7 @@ export function SkipLink({
   return (
     <a
       className={cn(
-        "sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-100 focus:rounded-md focus:bg-primary focus:px-4 focus:py-2.5 focus:font-semibold focus:text-primary-foreground focus:text-sm focus:outline-none focus:ring-3 focus:ring-ring/50",
+        "focus:bg-primary focus:text-primary-foreground focus:ring-ring/50 sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-100 focus:rounded-md focus:px-4 focus:py-2.5 focus:text-sm focus:font-semibold focus:ring-3 focus:outline-none",
         className
       )}
       data-slot="skip-link"

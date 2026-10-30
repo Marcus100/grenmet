@@ -114,7 +114,7 @@ export function SignInForm({ appName, returnTo }: SignInFormProps) {
           <div className="space-y-4">
             <p className="text-muted-foreground text-sm">
               Two-step verification is on for{" "}
-              <span className="font-medium text-foreground">{state.email}</span>
+              <span className="text-foreground font-medium">{state.email}</span>
               . Enter the 6-digit code from your authenticator app.
             </p>
             <CodeField
@@ -134,7 +134,7 @@ export function SignInForm({ appName, returnTo }: SignInFormProps) {
 
         {needsCode ? (
           <a
-            className={`${textLinkClass} block text-center text-body-sm`}
+            className={`${textLinkClass} text-body-sm block text-center`}
             href="/"
           >
             Use a different account
@@ -142,7 +142,7 @@ export function SignInForm({ appName, returnTo }: SignInFormProps) {
         ) : null}
       </form>
 
-      <p className="text-center text-body-sm text-muted-foreground">
+      <p className="text-body-sm text-muted-foreground text-center">
         New here?{" "}
         <Link className={textLinkClass} href="/signup">
           Create an account

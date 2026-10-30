@@ -1,6 +1,6 @@
 import { randomUUID } from "node:crypto";
 
-const LOOPBACK_PORT = /^127\.0\.0\.1:(\d+)$/;
+const LOOPBACK_PORT = /^127\.0\.0\.1:(\d+)$/u;
 const SERVICES = {
   backend: ["backend-db", "redis"],
   storage: ["storage-db"],

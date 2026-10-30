@@ -647,7 +647,7 @@ function render(change = {}) {
   }
 }
 
-const ORG_KEYS_NAME = /ORG_SECRET_ENCRYPTION_KEYS/;
+const ORG_KEYS_NAME = /ORG_SECRET_ENCRYPTION_KEYS/u;
 const GENERATED_LINE = (output, name) =>
   output.split("\n").find((line) => line.startsWith(`${name}=`));
 

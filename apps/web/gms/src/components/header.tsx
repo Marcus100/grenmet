@@ -55,11 +55,11 @@ export function Header({ alerts, accountLabel }: HeaderProps) {
         {(result) => <WarningRibbon alerts={result} />}
       </WithAlerts>
       <header
-        className="sticky top-0 z-40 bg-gm-navy text-gm-text-inverse"
+        className="bg-gm-navy text-gm-text-inverse sticky top-0 z-40"
         ref={headerRef}
       >
-        <div className="hidden border-gm-text-inverse/15 border-b lg:block">
-          <div className="mx-auto flex min-h-9 max-w-6xl items-center gap-5 px-6 text-body-sm text-gm-text-inverse/80 leading-body-sm xl:px-8">
+        <div className="border-gm-text-inverse/15 hidden border-b lg:block">
+          <div className="text-body-sm text-gm-text-inverse/80 leading-body-sm mx-auto flex min-h-9 max-w-6xl items-center gap-5 px-6 xl:px-8">
             <span className="mr-auto">
               Official weather service for Grenada, Carriacou and Petite
               Martinique
@@ -79,7 +79,7 @@ export function Header({ alerts, accountLabel }: HeaderProps) {
             </WithAlerts>
             {UTILITY_LINKS.map(({ href, label, Icon }) => (
               <Link
-                className="flex items-center gap-1.5 hover:text-gm-text-inverse hover:underline"
+                className="hover:text-gm-text-inverse flex items-center gap-1.5 hover:underline"
                 href={href}
                 key={href}
               >
@@ -132,7 +132,7 @@ export function Header({ alerts, accountLabel }: HeaderProps) {
               aria-controls="site-menu"
               aria-expanded={navOpen}
               aria-label={navOpen ? "Close navigation" : "Open navigation"}
-              className="flex size-11 items-center justify-center rounded-md outline-none hover:bg-gm-text-inverse/10 focus-visible:ring-2 focus-visible:ring-gm-lime lg:hidden"
+              className="hover:bg-gm-text-inverse/10 focus-visible:ring-gm-lime flex size-11 items-center justify-center rounded-md outline-none focus-visible:ring-2 lg:hidden"
               onClick={toggleNav}
               type="button"
             >

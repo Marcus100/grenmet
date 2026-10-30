@@ -13,7 +13,7 @@ import config from "../../../../payload.config";
 
 export const dynamic = "force-dynamic";
 
-const WHOLE_NUMBER = /^\d+$/;
+const WHOLE_NUMBER = /^\d+$/u;
 
 /** Drafts must never be cached or indexed. */
 const PREVIEW_HEADERS = {

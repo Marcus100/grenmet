@@ -27,7 +27,7 @@ export function AddMemberForm({
       aria-label="Add member"
       className="grid max-w-md gap-3 rounded-md border p-3"
     >
-      <h3 className="font-medium text-sm">Add member</h3>
+      <h3 className="text-sm font-medium">Add member</h3>
       <p className="text-muted-foreground text-xs">
         Needs two-step verification on your account. Admin and owner roles need
         a verified or administrator-activated person. The use is recorded with

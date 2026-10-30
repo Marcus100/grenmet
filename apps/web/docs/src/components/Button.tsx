@@ -47,7 +47,7 @@ export function Button({
   ...props
 }: ButtonProps) {
   className = cn(
-    "inline-flex justify-center gap-0.5 overflow-hidden font-medium text-sm transition",
+    "inline-flex justify-center gap-0.5 overflow-hidden text-sm font-medium transition",
     variantStyles[variant],
     className
   );

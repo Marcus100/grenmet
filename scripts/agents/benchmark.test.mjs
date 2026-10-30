@@ -37,16 +37,16 @@ import {
 import { validateRecord } from "./run-record.mjs";
 import { claudeBinary } from "./sessions.mjs";
 
-const UNKNOWN_ARGUMENT = /Unknown argument/;
-const NEEDS_MODEL = /--model <name> or --tier/;
-const TIER_ERROR = /--tier must be/;
-const INVALID_RECORD = /Invalid record/;
-const WORKFLOW_PATH = /\.github\/workflows\/x\.yml/;
-const AGENT_NAME_ERROR = /must be claude or codex/;
-const ORIGINAL_TASK = /Original task\./;
-const PREVIOUS_ATTEMPT = /previous attempt/;
-const NOT_FOUND = /not found/;
-const POLICY_VIOLATION = /policy violation/;
+const UNKNOWN_ARGUMENT = /Unknown argument/u;
+const NEEDS_MODEL = /--model <name> or --tier/u;
+const TIER_ERROR = /--tier must be/u;
+const INVALID_RECORD = /Invalid record/u;
+const WORKFLOW_PATH = /\.github\/workflows\/x\.yml/u;
+const AGENT_NAME_ERROR = /must be claude or codex/u;
+const ORIGINAL_TASK = /Original task\./u;
+const PREVIOUS_ATTEMPT = /previous attempt/u;
+const NOT_FOUND = /not found/u;
+const POLICY_VIOLATION = /policy violation/u;
 
 function git(cwd, ...args) {
   const result = spawnSync("git", args, { cwd, encoding: "utf8" });

@@ -38,7 +38,7 @@ export default function RootLayout({
 }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html className={`gm-site ${notoSans.variable}`} lang="en">
-      <body className="flex min-h-screen flex-col bg-background text-foreground antialiased">
+      <body className="bg-background text-foreground flex min-h-screen flex-col antialiased">
         <SkipLink />
         <SiteHeader />
         <main

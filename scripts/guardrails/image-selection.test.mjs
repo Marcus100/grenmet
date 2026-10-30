@@ -1,4 +1,4 @@
-const missingBase = /comparison base/;
+const missingBase = /comparison base/u;
 
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";

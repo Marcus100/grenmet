@@ -47,4 +47,4 @@ describe("employee details", () => {
   });
 });
 
-const PENDING_DETAILS = /Personnel details still need verification/;
+const PENDING_DETAILS = /Personnel details still need verification/u;

@@ -5,8 +5,8 @@ import { STORY_IMAGES } from "@/lib/story-images";
 import { LeadStories } from "./lead-stories";
 import { StoryImage } from "./story-image";
 
-const ARCHIVE_CAPTION = /Archive satellite image/;
-const FILE_CAPTION = /File photo/;
+const ARCHIVE_CAPTION = /Archive satellite image/u;
+const FILE_CAPTION = /File photo/u;
 afterEach(cleanup);
 
 it("renders a credited archive image with descriptive alt text and a local asset", () => {

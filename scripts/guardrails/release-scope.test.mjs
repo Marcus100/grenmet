@@ -17,12 +17,12 @@ import {
   webImages,
 } from "../ci/release-scope.mjs";
 
-const ROLLING_REPLACEMENT = /rolling replacement/;
+const ROLLING_REPLACEMENT = /rolling replacement/u;
 const CHECK_SCRIPT = fileURLToPath(
   new URL("../ci/check-release-scope.mjs", import.meta.url)
 );
 
-const MORE_THAN_ONE_SERVICE = /more than one service/;
+const MORE_THAN_ONE_SERVICE = /more than one service/u;
 
 test("release includes thirteen core images and rejects contradictory weather configuration", () => {
   assert.equal(releaseScope.web.length, 13);
@@ -99,8 +99,8 @@ test("service roles partition the core services and drive the CLI", () => {
   );
 });
 
-const ENVIRONMENT_EXPRESSION = /^ {4}environment: \$\{\{ (.+) \}\}$/m;
-const SENTRY_EXPRESSION = /NEXT_PUBLIC_SENTRY_DSN=\$\{\{ (.+) \}\}/g;
+const ENVIRONMENT_EXPRESSION = /^ {4}environment: \$\{\{ (.+) \}\}$/mu;
+const SENTRY_EXPRESSION = /NEXT_PUBLIC_SENTRY_DSN=\$\{\{ (.+) \}\}/gu;
 test("build environment and Sentry selection keep staging isolated when its key is missing", () => {
   const workflow = readFileSync(
     new URL("../../.github/workflows/build-web-images.yml", import.meta.url),
@@ -144,9 +144,9 @@ test("build environment and Sentry selection keep staging isolated when its key 
   }
 });
 
-const SITE_URL_ARG = /NEXT_PUBLIC_SITE_URL=(.+)$/gm;
+const SITE_URL_ARG = /NEXT_PUBLIC_SITE_URL=(.+)$/gmu;
 const DOMAIN_ROW =
-  /^\| [^|]+ \| (\d{4}) \| (https:\/\/[a-z.]+)[^|]*\| (https:\/\/[a-z.]+)?/gm;
+  /^\| [^|]+ \| (\d{4}) \| (https:\/\/[a-z.]+)[^|]*\| (https:\/\/[a-z.]+)?/gmu;
 
 test("each web image is built with the public address in docs/deployment.md", () => {
   const workflow = readFileSync(
@@ -174,7 +174,7 @@ test("each web image is built with the public address in docs/deployment.md", ()
     if (!expected) continue;
     for (const environment of ["production", "staging"]) {
       if (!expected[environment]) continue;
-      const url = templates[0].replace(/\$\{\{(.+?)\}\}/g, (_, expression) =>
+      const url = templates[0].replace(/\$\{\{(.+?)\}\}/gu, (_, expression) =>
         runInNewContext(expression, {
           matrix: image,
           steps: { ctx: { outputs: { environment } } },

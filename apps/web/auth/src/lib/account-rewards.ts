@@ -15,7 +15,7 @@ import { getAuthConfig } from "./auth-config";
 
 /** Tickets, reward cards and trust badges on the Barrels ID account pages (U1). */
 
-const API_PREFIX = /\/api\/v1(?=\/|$)/;
+const API_PREFIX = /\/api\/v1(?=\/|$)/u;
 
 function bearerClient(accessToken: string) {
   const config = getAuthConfig();

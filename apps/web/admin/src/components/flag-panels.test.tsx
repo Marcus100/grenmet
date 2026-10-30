@@ -13,9 +13,9 @@ vi.mock("@/app/(console)/flags/actions", () => {
   return { deleteFlagAction: action, saveFlagAction: action };
 });
 
-const NO_FLAGS = /No feature flags yet/;
-const THIRTY = /up to 30 seconds/;
-const METRIC_LABEL = /Success metric/;
+const NO_FLAGS = /No feature flags yet/u;
+const THIRTY = /up to 30 seconds/u;
+const METRIC_LABEL = /Success metric/u;
 
 const flag: FeatureFlagAdmin = {
   id: "flag_1",

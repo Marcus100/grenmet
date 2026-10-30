@@ -3,7 +3,7 @@ import { expect, it } from "vitest";
 import { WarningStatusPill } from "@/components/warning-status-pill";
 import type { AlertsResult } from "@/lib/cap-alerts";
 
-const ONE_ACTIVE = /· 1 active$/;
+const ONE_ACTIVE = /· 1 active$/u;
 
 const ACTIVE: AlertsResult = {
   activeCount: 1,

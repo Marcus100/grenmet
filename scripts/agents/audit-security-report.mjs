@@ -1,8 +1,8 @@
 import { createHash } from "node:crypto";
 
 const TRACKERS = new Set([721, 722, 733]);
-const LEGACY_TITLE = /^Open (dependabot|code-scanning) alert (\d+)$/;
-const GENERATED_MARKER = /<!-- codex-audit:[a-f0-9]{16} -->/;
+const LEGACY_TITLE = /^Open (dependabot|code-scanning) alert (\d+)$/u;
+const GENERATED_MARKER = /<!-- codex-audit:[a-f0-9]{16} -->/u;
 const parse = (value) =>
   typeof value === "string" ? JSON.parse(value) : value;
 const flat = (value) => parse(value).flat(Number.POSITIVE_INFINITY);

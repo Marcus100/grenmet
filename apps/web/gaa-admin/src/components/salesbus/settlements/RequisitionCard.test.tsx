@@ -30,7 +30,7 @@ vi.mock("sonner", () => ({ toast: { success: vi.fn(), error: vi.fn() } }));
 import { RequisitionCard } from "./RequisitionCard";
 
 const BASE = "http://localhost";
-const PENS_LABEL = /Pens/;
+const PENS_LABEL = /Pens/u;
 const REQUISITION_ID = "0f0c4c46-6b0c-4c3e-9f55-2d3f7e0b1a11";
 const LINE_ID = "7d3f2c1e-1b6a-4f43-8a52-6a4d2b9c0e22";
 const LOCATION_ID = "5b9d8f40-2f1c-4a76-9c3e-1e2f3a4b5c66";

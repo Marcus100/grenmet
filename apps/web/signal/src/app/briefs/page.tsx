@@ -13,22 +13,22 @@ export default function BriefsPage() {
         </p>
       </PageIntro>
       {briefs.length ? (
-        <div className="divide-y divide-signal-rule">
+        <div className="divide-signal-rule divide-y">
           {briefs.map((brief) => (
             <article
-              className="grid gap-4 border-signal-rule border-t py-8 md:grid-cols-3"
+              className="border-signal-rule grid gap-4 border-t py-8 md:grid-cols-3"
               key={brief.date}
             >
               <p className="text-base">
                 <time dateTime={brief.date}>{formatLongDate(brief.date)}</time>
-                <span className="mt-2 block text-signal-muted text-sm">
+                <span className="text-signal-muted mt-2 block text-sm">
                   {brief.reviewStatus === "editorial-preview"
                     ? "Editorial preview"
                     : "Sample edition"}
                 </span>
               </p>
               <div className="md:col-span-2">
-                <h2 className="font-semibold font-serif text-3xl leading-tight">
+                <h2 className="font-serif text-3xl leading-tight font-semibold">
                   <Link
                     className="hover:text-signal-green hover:underline"
                     href={`/today/${brief.date}`}
@@ -37,7 +37,7 @@ export default function BriefsPage() {
                   </Link>
                 </h2>
                 <p className="mt-3 text-lg leading-relaxed">{brief.dek}</p>
-                <p className="mt-4 text-signal-muted text-sm">
+                <p className="text-signal-muted mt-4 text-sm">
                   {brief.presenter}
                 </p>
               </div>

@@ -27,8 +27,8 @@ export function routesOnDisk(dir: string, segments: string[] = []): string[] {
   return routes;
 }
 
-export const DYNAMIC_SEGMENT = /^\[(\.\.\.)?[^\]]+\]$/;
-const CATCH_ALL = /^\[\.\.\./;
+export const DYNAMIC_SEGMENT = /^\[(\.\.\.)?[^\]]+\]$/u;
+const CATCH_ALL = /^\[\.\.\./u;
 /** `[location]` has dynamicParams = false: only enabled place slugs exist. */
 const LOCATION_SLUGS = new Set(
   prefixedLocationParams().map((params) => params.location)

@@ -105,7 +105,7 @@ export function RaiseToWarningDialog({
           withdraw it.
         </AlertDialogDescription>
         <fieldset className="space-y-2">
-          <legend className="font-medium text-sm">Warning colour</legend>
+          <legend className="text-sm font-medium">Warning colour</legend>
           {WARNING_LEVELS.map((option) => (
             <label className="flex items-center gap-2 text-sm" key={option}>
               <input

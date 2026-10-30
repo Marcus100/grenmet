@@ -230,7 +230,7 @@ export function HolidaysManager({ canManage }: HolidaysManagerProps) {
             save();
           }}
         >
-          <h3 className="font-medium text-sm">
+          <h3 className="text-sm font-medium">
             {editingId ? "Edit holiday" : "Add holiday"}
           </h3>
           <FieldGroup className="grid gap-3 sm:grid-cols-3">

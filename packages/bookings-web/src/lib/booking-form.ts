@@ -21,8 +21,8 @@ export type FieldKey =
 
 export type FieldErrors = Partial<Record<FieldKey, string>>;
 
-const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-const PHONE = /^[+\d][\d\s().-]{5,}$/;
+const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/u;
+const PHONE = /^[+\d][\d\s().-]{5,}$/u;
 const NAME_MAX = 120;
 const EMAIL_MAX = 254;
 const PHONE_MAX = 40;

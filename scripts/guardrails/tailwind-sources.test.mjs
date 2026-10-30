@@ -13,7 +13,7 @@ const root = fileURLToPath(new URL("../..", import.meta.url));
 const APPS = join(root, "apps/web");
 const TAILWIND = '@import "tailwindcss";';
 const PACKAGES = ["ui", "gms"];
-const SOURCE_FILE = /\.(tsx|ts)$/;
+const SOURCE_FILE = /\.(tsx|ts)$/u;
 
 function tailwindEntry(app) {
   for (const path of ["src/app/globals.css", "src/styles/tailwind.css"]) {

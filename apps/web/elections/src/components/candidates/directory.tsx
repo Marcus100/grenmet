@@ -161,7 +161,7 @@ export function CandidateDirectory({
         </label>
         <p
           aria-live="polite"
-          className="pb-2 text-base text-el-muted leading-relaxed"
+          className="text-el-muted pb-2 text-base leading-relaxed"
         >
           {filtered.length} people
         </p>
@@ -214,7 +214,7 @@ export function CandidateDirectory({
       </div>
       {filtered.length > limit && (
         <button
-          className="mt-3 rounded-md border border-el-rule-2 px-3 py-1.5 text-base hover:bg-el-paper-2"
+          className="border-el-rule-2 hover:bg-el-paper-2 mt-3 rounded-md border px-3 py-1.5 text-base"
           onClick={() => setLimit((l) => l + 120)}
           type="button"
         >

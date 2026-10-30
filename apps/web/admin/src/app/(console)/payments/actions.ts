@@ -19,7 +19,7 @@ import { requireGate } from "@/lib/staff-gate";
 
 const SERVER_ERROR = 500;
 const REQUEST_ID =
-  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/iu;
 
 export async function recordPayoutAction(formData: FormData): Promise<never> {
   const gate = await requireGate("/payments");

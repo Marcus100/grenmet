@@ -26,14 +26,14 @@ export function SwapRuleWarnings({ swapId }: SwapRuleWarningsProps) {
   return (
     <section
       aria-label="Exchange rule warnings"
-      className="mt-2 rounded-lg border border-gm-risk-amber/40 bg-gm-risk-amber/10 px-3 py-2 font-normal text-xs"
+      className="border-gm-risk-amber/40 bg-gm-risk-amber/10 mt-2 rounded-lg border px-3 py-2 text-xs font-normal"
     >
       <p className="flex items-center gap-1.5 font-medium">
         <TriangleAlert className="size-3.5" />
         This exchange would breach {violations.length} roster{" "}
         {violations.length === 1 ? "rule" : "rules"}
       </p>
-      <ul className="mt-1 text-muted-foreground">
+      <ul className="text-muted-foreground mt-1">
         {violations.map((v) => (
           <li key={`${v.code}-${v.user_id}-${v.start_date}`}>
             {RULE_TITLE[v.code] ?? v.code} · {v.start_date} · {v.detail}

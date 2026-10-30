@@ -122,13 +122,13 @@ export default async function ContinuePage({ searchParams }: PageProps) {
             <input name="app" type="hidden" value={request.app} />
             <input name="state" type="hidden" value={request.state} />
             <a
-              className="inline-flex h-10 items-center justify-center rounded-lg border border-border font-medium text-sm hover:bg-muted"
+              className="border-border hover:bg-muted inline-flex h-10 items-center justify-center rounded-lg border text-sm font-medium"
               href="/"
             >
               Not now
             </a>
             <button
-              className="inline-flex h-10 items-center justify-center rounded-lg bg-primary font-medium text-primary-foreground text-sm hover:bg-primary/90"
+              className="bg-primary text-primary-foreground hover:bg-primary/90 inline-flex h-10 items-center justify-center rounded-lg text-sm font-medium"
               type="submit"
             >
               Join {result.label}

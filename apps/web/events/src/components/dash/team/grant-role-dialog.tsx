@@ -158,7 +158,7 @@ export function GrantRoleDialog({
         </DialogHeader>
 
         <p
-          className="font-medium text-body text-destructive empty:hidden"
+          className="text-body text-destructive font-medium empty:hidden"
           ref={alertRef}
           role="alert"
           tabIndex={-1}
@@ -175,7 +175,7 @@ export function GrantRoleDialog({
             }}
           >
             <fieldset className="space-y-2">
-              <legend className="font-medium text-body">Role</legend>
+              <legend className="text-body font-medium">Role</legend>
               {bundles.length === 0 ? (
                 <p className="text-body text-muted-foreground" role="status">
                   This organisation has no roles to give yet.
@@ -186,12 +186,12 @@ export function GrantRoleDialog({
                 const reason = unavailableReason(bundle, already);
                 return (
                   <label
-                    className="flex min-h-11 items-start gap-3 rounded-xl border bg-card px-3 py-2 has-[:checked]:border-primary has-[:disabled]:opacity-60"
+                    className="bg-card has-[:checked]:border-primary flex min-h-11 items-start gap-3 rounded-xl border px-3 py-2 has-[:disabled]:opacity-60"
                     key={bundle.role_key}
                   >
                     <input
                       checked={roleKey === bundle.role_key}
-                      className="mt-1 size-5 accent-primary"
+                      className="accent-primary mt-1 size-5"
                       disabled={reason !== null}
                       name={`${ids}-role`}
                       onChange={() => {
@@ -202,14 +202,14 @@ export function GrantRoleDialog({
                       value={bundle.role_key}
                     />
                     <span>
-                      <span className="block font-medium text-body">
+                      <span className="text-body block font-medium">
                         {bundle.label}
                       </span>
-                      <span className="block text-caption text-muted-foreground">
+                      <span className="text-caption text-muted-foreground block">
                         {bundle.description}
                       </span>
                       {reason ? (
-                        <span className="block text-caption text-muted-foreground">
+                        <span className="text-caption text-muted-foreground block">
                           {reason}
                         </span>
                       ) : null}
@@ -265,12 +265,12 @@ export function GrantRoleDialog({
         ) : (
           <div className="space-y-4">
             {chosen ? (
-              <div className="space-y-2 rounded-xl border bg-muted/40 p-3">
-                <p className="font-medium text-body">{chosen.label}</p>
+              <div className="bg-muted/40 space-y-2 rounded-xl border p-3">
+                <p className="text-body font-medium">{chosen.label}</p>
                 <p className="text-body text-muted-foreground">
                   {memberName} will be able to:
                 </p>
-                <ul className="list-disc space-y-1 pl-5 text-body">
+                <ul className="text-body list-disc space-y-1 pl-5">
                   {allowedActions(chosen.permissions).map((line) => (
                     <li key={line}>{line}</li>
                   ))}

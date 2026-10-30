@@ -4,7 +4,7 @@ import { WarningStatusBand } from "@/components/pages/warning-status-band";
 import type { AlertsResult } from "@/lib/cap-alerts";
 
 const CHECKED = new Date("2026-10-23T12:00:00Z");
-const NOT_ALL_CLEAR = /This is not an all-clear/;
+const NOT_ALL_CLEAR = /This is not an all-clear/u;
 const ALL_CLEAR: AlertsResult = { status: "ok", groups: [], activeCount: 0 };
 const UNAVAILABLE: AlertsResult = { status: "unavailable" };
 

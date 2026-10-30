@@ -2,8 +2,8 @@ import Link from "next/link";
 export const metadata = { title: "Accessibility" };
 export default function AccessibilityPage() {
   return (
-    <article className="mx-auto max-w-3xl space-y-6 pt-3 text-body-base text-gm-text-primary leading-body-base lg:pt-4">
-      <h1 className="font-bold text-gm-heading text-heading-md leading-heading-md">
+    <article className="text-body-base text-gm-text-primary leading-body-base mx-auto max-w-3xl space-y-6 pt-3 lg:pt-4">
+      <h1 className="text-gm-heading text-heading-md leading-heading-md font-bold">
         Accessibility
       </h1>
       <p>
@@ -11,7 +11,7 @@ export default function AccessibilityPage() {
         devices. Product pages present the issue time, validity and content as
         text.
       </p>
-      <h2 className="font-bold text-gm-heading text-heading-sm leading-heading-sm">
+      <h2 className="text-gm-heading text-heading-sm leading-heading-sm font-bold">
         Using the site
       </h2>
       <p>
@@ -19,7 +19,7 @@ export default function AccessibilityPage() {
         link. Expandable updates can be opened from their summary. Alert
         severity is stated in words as well as colour.
       </p>
-      <h2 className="font-bold text-gm-heading text-heading-sm leading-heading-sm">
+      <h2 className="text-gm-heading text-heading-sm leading-heading-sm font-bold">
         Report a barrier
       </h2>
       <p>

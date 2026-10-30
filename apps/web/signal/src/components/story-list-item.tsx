@@ -19,10 +19,10 @@ export function StoryListItem({
   publishedAt,
 }: StoryListItemProps) {
   return (
-    <article className="flex flex-col gap-1.5 border-signal-rule border-b py-4 first:pt-0 last:border-b-0">
+    <article className="border-signal-rule flex flex-col gap-1.5 border-b py-4 first:pt-0 last:border-b-0">
       <Eyebrow>{eyebrow}</Eyebrow>
       <Link href={href}>
-        <h3 className="font-semibold font-serif text-lg leading-snug hover:text-signal-green">
+        <h3 className="hover:text-signal-green font-serif text-lg leading-snug font-semibold">
           {title}
         </h3>
       </Link>

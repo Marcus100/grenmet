@@ -42,7 +42,7 @@ function NotificationRow({
     <div className="flex min-w-0 flex-1 flex-col gap-0.5">
       <span className={cn("text-sm", unread && "font-medium")}>
         {notification.urgent ? (
-          <span className="mr-2 rounded bg-destructive/10 px-1.5 py-0.5 font-normal text-destructive text-xs">
+          <span className="bg-destructive/10 text-destructive mr-2 rounded px-1.5 py-0.5 text-xs font-normal">
             Urgent
           </span>
         ) : null}
@@ -52,7 +52,7 @@ function NotificationRow({
           <>
             <span
               aria-hidden
-              className="ml-2 rounded bg-muted px-1.5 py-0.5 font-normal text-muted-foreground text-xs"
+              className="bg-muted text-muted-foreground ml-2 rounded px-1.5 py-0.5 text-xs font-normal"
             >
               ×{notification.repeat_count}
             </span>
@@ -75,7 +75,7 @@ function NotificationRow({
     </div>
   );
   const className = cn(
-    "flex w-full items-start gap-3 rounded-lg px-3 py-2 text-left hover:bg-muted",
+    "hover:bg-muted flex w-full items-start gap-3 rounded-lg px-3 py-2 text-left",
     unread && "bg-muted/50"
   );
   const dot = (
@@ -145,11 +145,11 @@ export function NotificationList({
   }
 
   if (query.isLoading) {
-    return <p className="p-3 text-muted-foreground text-sm">Loading…</p>;
+    return <p className="text-muted-foreground p-3 text-sm">Loading…</p>;
   }
   if (query.isError) {
     return (
-      <p className="p-3 text-destructive text-sm">
+      <p className="text-destructive p-3 text-sm">
         Notifications could not be loaded.
       </p>
     );
@@ -172,7 +172,7 @@ export function NotificationList({
         </Button>
       </div>
       {items.length === 0 ? (
-        <p className="p-3 text-muted-foreground text-sm">
+        <p className="text-muted-foreground p-3 text-sm">
           You're all caught up.
         </p>
       ) : (

@@ -57,7 +57,7 @@ export function AttendeeList({
       </div>
       {rows.length === 0 ? (
         <p
-          className="rounded-2xl border border-dashed bg-card px-4 py-8 text-center text-body text-muted-foreground"
+          className="bg-card text-body text-muted-foreground rounded-2xl border border-dashed px-4 py-8 text-center"
           role="status"
         >
           {status || tierId
@@ -65,17 +65,17 @@ export function AttendeeList({
             : "No attendees yet. Ticket holders appear here once tickets are issued."}
         </p>
       ) : (
-        <ul className="divide-y rounded-2xl border bg-card">
+        <ul className="bg-card divide-y rounded-2xl border">
           {rows.map((attendee) => (
             <li
               className="grid min-h-11 gap-1 px-4 py-3 sm:grid-cols-[1fr_auto] sm:items-center"
               key={attendee.ticket_id}
             >
               <span>
-                <span className="block font-medium text-body">
+                <span className="text-body block font-medium">
                   {attendee.holder_name ?? "Holder without a name"}
                 </span>
-                <span className="block text-caption text-muted-foreground">
+                <span className="text-caption text-muted-foreground block">
                   {attendee.tier_name} ·{" "}
                   <span className="font-mono tracking-wider">
                     {attendee.code}
@@ -89,7 +89,7 @@ export function AttendeeList({
               <span className="flex flex-wrap items-center gap-2 sm:justify-end">
                 <StatusBadge status={ticketStatus(attendee.status)} />
                 <Link
-                  className="inline-flex min-h-11 items-center text-caption underline"
+                  className="text-caption inline-flex min-h-11 items-center underline"
                   href={`/dash/events/${listingId}/orders/${attendee.order_id}`}
                 >
                   View order

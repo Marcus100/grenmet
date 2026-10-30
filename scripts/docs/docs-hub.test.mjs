@@ -4,8 +4,8 @@ import test from "node:test";
 import { fileURLToPath } from "node:url";
 
 const root = fileURLToPath(new URL("../../apps/web/docs/", import.meta.url));
-const fictionalApi = /Protocol API|api\.protocol\.chat|@example\/protocol/i;
-const hurricaneRoute = /hurricane|pre-season|warning-issued|appendix/;
+const fictionalApi = /Protocol API|api\.protocol\.chat|@example\/protocol/iu;
+const hurricaneRoute = /hurricane|pre-season|warning-issued|appendix/u;
 const read = (path) => readFileSync(`${root}${path}`, "utf8");
 const files = readdirSync(`${root}src/content`, { recursive: true }).filter(
   (file) => file.endsWith(".mdx")
@@ -16,7 +16,7 @@ const routes = new Set(
 
 test("every docs navigation destination has content", () => {
   const navigation = read("src/components/Navigation.tsx");
-  for (const match of navigation.matchAll(/href: "([^"]+)"/g)) {
+  for (const match of navigation.matchAll(/href: "([^"]+)"/gu)) {
     assert.ok(routes.has(match[1]), `Missing content for ${match[1]}`);
   }
 });
@@ -35,7 +35,7 @@ test("the homepage is a document catalogue with separate hurricane content", () 
     "src/components/Header.tsx",
     "src/components/Footer.tsx",
   ]) {
-    for (const match of read(file).matchAll(/href[:=]\s*"(\/[^"#]*)"/g)) {
+    for (const match of read(file).matchAll(/href[:=]\s*"(\/[^"#]*)"/gu)) {
       assert.ok(routes.has(match[1]), `${file}: unresolved ${match[1]}`);
     }
   }
@@ -78,7 +78,7 @@ test("docs contain no fictional API instructions or broken local page links", ()
   for (const file of files) {
     const content = read(`src/content/${file}`);
     assert.doesNotMatch(content, fictionalApi, file);
-    for (const match of content.matchAll(/\]\((\/[^)#]*)(?:#[^)]*)?\)/g)) {
+    for (const match of content.matchAll(/\]\((\/[^)#]*)(?:#[^)]*)?\)/gu)) {
       assert.ok(routes.has(match[1]), `${file}: unresolved ${match[1]}`);
     }
   }
@@ -92,7 +92,7 @@ test("staff guide and hurricane plan navigation stay separate", () => {
     return source.slice(start, source.indexOf("\n];", start));
   };
   const hrefs = (text) =>
-    new Set([...text.matchAll(/href: "([^"]+)"/g)].map((match) => match[1]));
+    new Set([...text.matchAll(/href: "([^"]+)"/gu)].map((match) => match[1]));
   const staff = hrefs(block("staffNavigation"));
   const hurricane = hrefs(block("hurricaneNavigation"));
 

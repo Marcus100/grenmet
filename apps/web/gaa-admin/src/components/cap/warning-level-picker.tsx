@@ -40,7 +40,7 @@ export function WarningLevelPicker({
   return (
     <div className="grid gap-4">
       <fieldset className="grid gap-1.5 border-none p-0">
-        <legend className="mb-1.5 text-gm-text-primary text-label">
+        <legend className="text-gm-text-primary text-label mb-1.5">
           Product *
         </legend>
         <div className="grid grid-cols-2 gap-1.5 sm:grid-cols-4">
@@ -79,7 +79,7 @@ export function WarningLevelPicker({
 
       {showColour && (
         <fieldset className="grid gap-1.5 border-none p-0">
-          <legend className="mb-1.5 text-gm-text-primary text-label">
+          <legend className="text-gm-text-primary text-label mb-1.5">
             Colour *
           </legend>
           <div className="grid grid-cols-2 gap-1.5 sm:grid-cols-4">
@@ -104,7 +104,7 @@ export function WarningLevelPicker({
                   />
                   <span
                     aria-hidden="true"
-                    className="mr-1.5 size-2.5 shrink-0 rounded-full border border-gm-text-primary/20"
+                    className="border-gm-text-primary/20 mr-1.5 size-2.5 shrink-0 rounded-full border"
                     style={{ background: COLOUR_SURFACE[option].background }}
                   />
                   {COLOUR_LABEL[option]}

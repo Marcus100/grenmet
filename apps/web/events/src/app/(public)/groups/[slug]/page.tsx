@@ -53,13 +53,13 @@ export default async function GroupPage({ params }: { params: Params }) {
           className="absolute -right-8 -bottom-10 -z-10 size-56 opacity-15"
           strokeWidth={1.5}
         />
-        <p className="font-medium text-caption opacity-80">
+        <p className="text-caption font-medium opacity-80">
           {CATEGORY_LABELS[group.category]} · {PARISH_LABELS[group.parish]}
         </p>
-        <h1 className="mt-2 font-bold font-display text-heading-md tracking-tight sm:text-heading-lg">
+        <h1 className="font-display text-heading-md sm:text-heading-lg mt-2 font-bold tracking-tight">
           {group.name}
         </h1>
-        <p className="mt-2 max-w-xl text-body-base opacity-90">
+        <p className="text-body-base mt-2 max-w-xl opacity-90">
           {group.tagline}
         </p>
         <div className="mt-6 flex flex-wrap items-center gap-4">
@@ -68,13 +68,13 @@ export default async function GroupPage({ params }: { params: Params }) {
             activeLabel={
               group.joinPolicy === "approval" ? "Request sent" : "Member"
             }
-            className="bg-white text-events-ink hover:bg-white/90"
+            className="text-events-ink bg-white hover:bg-white/90"
             idleLabel={
               group.joinPolicy === "approval" ? "Request to join" : "Join group"
             }
             initiallyActive={isMember || pending}
           />
-          <p className="flex items-center gap-1 text-body">
+          <p className="text-body flex items-center gap-1">
             {group.memberCount} members
             {group.joinPolicy === "approval" ? (
               <span className="flex items-center gap-1">
@@ -110,13 +110,13 @@ export default async function GroupPage({ params }: { params: Params }) {
             {group.announcements.length > 0 ? (
               group.announcements.map((announcement) => (
                 <article
-                  className="flex gap-3 rounded-2xl border border-border bg-card p-4"
+                  className="border-border bg-card flex gap-3 rounded-2xl border p-4"
                   key={announcement.id}
                 >
-                  <Megaphone className="mt-0.5 size-5 shrink-0 text-events-hibiscus" />
+                  <Megaphone className="text-events-hibiscus mt-0.5 size-5 shrink-0" />
                   <div>
                     <p className="text-body">{announcement.body}</p>
-                    <p className="mt-1 text-caption text-muted-foreground">
+                    <p className="text-caption text-muted-foreground mt-1">
                       {announcement.author?.name ?? "Member"} ·{" "}
                       {formatEventDate(announcement.postedAt)}
                     </p>
@@ -132,10 +132,10 @@ export default async function GroupPage({ params }: { params: Params }) {
           <TabsContent className="pt-4" value="chat">
             {isMember && group.chatThreadId ? (
               <Link
-                className="block rounded-2xl border border-border bg-card p-4 hover:border-foreground"
+                className="border-border bg-card hover:border-foreground block rounded-2xl border p-4"
                 href={`/messages/${group.chatThreadId}`}
               >
-                <p className="font-medium text-body">Open group chat</p>
+                <p className="text-body font-medium">Open group chat</p>
               </Link>
             ) : (
               <p className="text-body text-muted-foreground">
@@ -150,20 +150,20 @@ export default async function GroupPage({ params }: { params: Params }) {
               {group.members.map((member) => (
                 <li key={member.handle}>
                   <Link
-                    className="flex items-center gap-3 rounded-2xl border border-border bg-card p-3 hover:border-foreground"
+                    className="border-border bg-card hover:border-foreground flex items-center gap-3 rounded-2xl border p-3"
                     href={`/people/${member.handle}`}
                   >
                     <PersonAvatar name={member.name} />
                     <div className="min-w-0">
-                      <p className="truncate font-medium text-body">
+                      <p className="text-body truncate font-medium">
                         {member.name}
                         {member.role === "host" ? (
-                          <span className="ml-2 text-caption text-events-sea">
+                          <span className="text-caption text-events-sea ml-2">
                             Host
                           </span>
                         ) : null}
                       </p>
-                      <p className="truncate text-caption text-muted-foreground">
+                      <p className="text-caption text-muted-foreground truncate">
                         {member.headline}
                       </p>
                     </div>
@@ -173,8 +173,8 @@ export default async function GroupPage({ params }: { params: Params }) {
             </ul>
           </TabsContent>
         </Tabs>
-        <aside className="space-y-3 rounded-2xl border border-border bg-card p-5 lg:self-start">
-          <h2 className="font-display font-semibold text-body-base">About</h2>
+        <aside className="border-border bg-card space-y-3 rounded-2xl border p-5 lg:self-start">
+          <h2 className="font-display text-body-base font-semibold">About</h2>
           <p className="text-body text-muted-foreground">{group.about}</p>
         </aside>
       </div>

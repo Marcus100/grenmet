@@ -13,8 +13,8 @@ vi.mock("@/app/(console)/organisations/site-actions", () => {
 });
 
 const SECRET_VALUE = "super-secret-value";
-const NO_SITES = /No public sites yet/;
-const KEY_WARNING = /key is permanent/;
+const NO_SITES = /No public sites yet/u;
+const KEY_WARNING = /key is permanent/u;
 
 const site: PublicSiteAdmin = {
   id: "site_1",

@@ -43,10 +43,10 @@ export default function WeatherProductsPage() {
           {desks.map((desk) => (
             <li key={desk.href}>
               <Link
-                className="block h-full space-y-2 rounded-lg border bg-card p-6 text-card-foreground transition-colors hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                className="bg-card text-card-foreground hover:bg-accent focus-visible:ring-ring block h-full space-y-2 rounded-lg border p-6 transition-colors focus-visible:ring-2 focus-visible:outline-none"
                 href={desk.href as Route}
               >
-                <h2 className="font-semibold text-heading-sm">{desk.title}</h2>
+                <h2 className="text-heading-sm font-semibold">{desk.title}</h2>
                 <p className="text-body text-muted-foreground">
                   {desk.description}
                 </p>
@@ -59,7 +59,7 @@ export default function WeatherProductsPage() {
         aria-labelledby="hourly-prototype"
         className="space-y-3 rounded-lg border border-dashed p-6"
       >
-        <h2 className="font-semibold text-heading-sm" id="hourly-prototype">
+        <h2 className="text-heading-sm font-semibold" id="hourly-prototype">
           Hourly register — prototype
         </h2>
         <p className="text-body text-muted-foreground">
@@ -67,7 +67,7 @@ export default function WeatherProductsPage() {
           observation register.
         </p>
         <Link
-          className="inline-block rounded-sm text-body underline underline-offset-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          className="text-body focus-visible:ring-ring inline-block rounded-sm underline underline-offset-4 focus-visible:ring-2 focus-visible:outline-none"
           href="/wxproducts/hourly"
         >
           View hourly register prototype

@@ -77,7 +77,7 @@ function ActivationDetails({
   }
   return (
     <section aria-label="Account setup" className="flex flex-col gap-3">
-      <h3 className="font-medium text-sm">Account setup & access</h3>
+      <h3 className="text-sm font-medium">Account setup & access</h3>
       {status.isPending ? <p>Checking access…</p> : null}
       {status.isError ? (
         <p role="alert">
@@ -100,7 +100,7 @@ function ActivationDetails({
           <AdminAccountActions status={status.data} user={user} />
           {status.data.apps.map((app) => (
             <div key={app.app}>
-              <p className="font-medium text-sm">
+              <p className="text-sm font-medium">
                 {app.label}:{" "}
                 {app.available ? "Ready to sign in" : "Setup needed"}
               </p>

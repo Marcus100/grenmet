@@ -32,9 +32,9 @@ export function OrganiserLogo({
   return (
     <section
       aria-labelledby="logo-heading"
-      className="space-y-2 rounded-2xl border border-border bg-card p-4"
+      className="border-border bg-card space-y-2 rounded-2xl border p-4"
     >
-      <h2 className="font-semibold text-body-base" id="logo-heading">
+      <h2 className="text-body-base font-semibold" id="logo-heading">
         Logo
       </h2>
       <ImageUpload

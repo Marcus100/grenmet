@@ -17,8 +17,8 @@ vi.mock("next/navigation", () => ({
 import { listMyOrganisations } from "@/lib/studio-api";
 import StudioPage from "./page";
 
-const EMAIL = /maya@example.com/;
-const PALM = /Palm Studio/;
+const EMAIL = /maya@example.com/u;
+const PALM = /Palm Studio/u;
 const org = (slug: string, name: string) => ({
   id: ORG_ID,
   name,

@@ -15,7 +15,7 @@ import type { Parsed } from "@/lib/organisation-form";
 
 export const MEMBER_ROLES = ["member", "admin", "owner"] as const;
 
-const MEMBERSHIP_ID = /^[A-Za-z0-9_-]{1,100}$/;
+const MEMBERSHIP_ID = /^[A-Za-z0-9_-]{1,100}$/u;
 const UUID = z.uuid();
 
 export function parseMembershipId(value: string): string | undefined {

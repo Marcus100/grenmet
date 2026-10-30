@@ -83,33 +83,33 @@ const REVIEW_HOST_PATHS = [
   "/var/run/dbus/system_bus_socket",
 ];
 
-const PUSHED_LINE = /^Pushed: .*$/m;
-const TREE_LINE = /^Working tree: .*$/m;
+const PUSHED_LINE = /^Pushed: .*$/mu;
+const TREE_LINE = /^Working tree: .*$/mu;
 // findPrivateContent tests vault paths against a file path only, so a vault or
 // home path quoted inside the findings text needs its own check here.
 const VAULT_REFERENCE =
-  /(?:\/home\/[^/\s]+\/|~\/)(?:bishop|\.claude|\.codex|backups|grenmet-cleanup-archives)\b|(?<![\w-])(?:bishop(?:-wt-[\w-]+)?|private|backups|grenmet-cleanup-archives)\/|\b(?:wiki|raw)\/(?:0[0-9]|9[89])-[a-z]/;
+  /(?:\/home\/[^/\s]+\/|~\/)(?:bishop|\.claude|\.codex|backups|grenmet-cleanup-archives)\b|(?<![\w-])(?:bishop(?:-wt-[\w-]+)?|private|backups|grenmet-cleanup-archives)\/|\b(?:wiki|raw)\/(?:0[0-9]|9[89])-[a-z]/u;
 // Shapes the shared redactor does not cover (this repo uses Stripe keys).
 const EXTRA_SECRET_SHAPE =
-  /sk_(?:live|test)_[A-Za-z0-9]{8,}|github_pat_[A-Za-z0-9_]{20,}|-----BEGIN [A-Z ]*PRIVATE KEY-----/;
+  /sk_(?:live|test)_[A-Za-z0-9]{8,}|github_pat_[A-Za-z0-9_]{20,}|-----BEGIN [A-Z ]*PRIVATE KEY-----/u;
 const JWT_SHAPE =
-  /(?:^|[^\w-])eyJ[A-Za-z0-9_-]{8,}\.[A-Za-z0-9_-]{8,}\.[A-Za-z0-9_-]{8,}(?=$|[^\w-])/;
+  /(?:^|[^\w-])eyJ[A-Za-z0-9_-]{8,}\.[A-Za-z0-9_-]{8,}\.[A-Za-z0-9_-]{8,}(?=$|[^\w-])/u;
 const AUTH_TOKEN_FIELD =
-  /["']?(?:access_token|refresh_token|id_token)["']?\s*:/i;
-const PR_NUMBER = /^\d+$/;
-const CHATGPT_LOGIN = /^Logged in using ChatGPT\b/im;
+  /["']?(?:access_token|refresh_token|id_token)["']?\s*:/iu;
+const PR_NUMBER = /^\d+$/u;
+const CHATGPT_LOGIN = /^Logged in using ChatGPT\b/imu;
 const CODEX_DIAGNOSTIC_LINE =
-  /^\s*(?:ERROR(?:\s|:)|WARN(?:ING)?(?:\s|:)|warning:)/i;
-const STDERR_LINE_BREAK = /\r?\n/;
+  /^\s*(?:ERROR(?:\s|:)|WARN(?:ING)?(?:\s|:)|warning:)/iu;
+const STDERR_LINE_BREAK = /\r?\n/u;
 const CODEX_DIAGNOSTIC_CATEGORIES = [
-  ["workspace routing failure", /workspace routing|routing discovery/i],
-  ["model refresh failure", /model.{0,40}refresh|refresh.{0,40}model/i],
-  ["timeout", /\btimeout\b|\btimed out\b/i],
+  ["workspace routing failure", /workspace routing|routing discovery/iu],
+  ["model refresh failure", /model.{0,40}refresh|refresh.{0,40}model/iu],
+  ["timeout", /\btimeout\b|\btimed out\b/iu],
   [
     "network failure",
-    /connection refused|connect(?:ion)? failed|network unreachable|dns|resolve host/i,
+    /connection refused|connect(?:ion)? failed|network unreachable|dns|resolve host/iu,
   ],
-  ["sandbox failure", /sandbox|seccomp|namespace/i],
+  ["sandbox failure", /sandbox|seccomp|namespace/iu],
 ];
 
 function isWithin(child, parent) {

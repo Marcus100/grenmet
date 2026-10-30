@@ -121,7 +121,7 @@ function SendStatus({ send }: { send: SendController }) {
       {send.confirming && (
         <fieldset
           aria-label="Confirm send"
-          className="flex flex-wrap items-center gap-3 rounded-md border border-border border-l-4 border-l-primary bg-card px-3 py-2"
+          className="border-border border-l-primary bg-card flex flex-wrap items-center gap-3 rounded-md border border-l-4 px-3 py-2"
         >
           <p>
             {send.repeat
@@ -228,10 +228,10 @@ export function ERegisterWorkbook({
         const keys = upper ? [upper.key] : columnKeys(column);
         const severity = keys
           .map((k) => issueSeverity(issues, k))
-          .reduce(
+          .reduce<"error" | "warning" | undefined>(
             (worst, next) =>
               worst === "error" || next === "error" ? "error" : (worst ?? next),
-            undefined as "error" | "warning" | undefined
+            undefined
           );
         if (column.computed && layer === "lower") {
           // Calculated from other entries (visibility code, dew point, humidity).
@@ -239,7 +239,7 @@ export function ERegisterWorkbook({
             <Input
               aria-label={`${column.label} (${column.code}), calculated`}
               className={cn(
-                "h-9 cursor-default rounded-none border-0 bg-muted px-0.5 text-center font-mono text-body-sm text-muted-foreground shadow-none",
+                "bg-muted text-body-sm text-muted-foreground h-9 cursor-default rounded-none border-0 px-0.5 text-center font-mono shadow-none",
                 column.signed?.role === "sign" ? "w-10" : "w-12"
               )}
               readOnly
@@ -268,7 +268,7 @@ export function ERegisterWorkbook({
                 : `${column.label} (${column.code})`
             }
             className={cn(
-              "h-9 rounded-none border-0 border-transparent border-b-2 bg-muted/40 px-0.5 text-center font-mono text-body-sm shadow-none hover:bg-muted/70 focus-visible:ring-2 focus-visible:ring-inset",
+              "bg-muted/40 text-body-sm hover:bg-muted/70 h-9 rounded-none border-0 border-b-2 border-transparent px-0.5 text-center font-mono shadow-none focus-visible:ring-2 focus-visible:ring-inset",
               width,
               severity === "error" &&
                 "border-destructive bg-destructive/10 text-destructive",
@@ -375,7 +375,7 @@ export function ERegisterWorkbook({
         </div>
         {errors.length > 0 && (
           <div
-            className="space-y-1 rounded-md border border-destructive/30 border-l-4 border-l-destructive bg-destructive/5 px-3 py-2 text-destructive text-xs"
+            className="border-destructive/30 border-l-destructive bg-destructive/5 text-destructive space-y-1 rounded-md border border-l-4 px-3 py-2 text-xs"
             id="eregister-errors"
             role="alert"
           >
@@ -393,12 +393,12 @@ export function ERegisterWorkbook({
         )}
         {warnings.length > 0 && (
           <div
-            className="space-y-1 rounded-md border border-border border-l-4 border-l-warning bg-card px-3 py-2 text-foreground text-xs"
+            className="border-border border-l-warning bg-card text-foreground space-y-1 rounded-md border border-l-4 px-3 py-2 text-xs"
             id="eregister-warnings"
             role="status"
           >
             <p className="flex items-center gap-1.5 font-semibold">
-              <TriangleAlert className="size-3.5 text-warning" />
+              <TriangleAlert className="text-warning size-3.5" />
               Note · does not block saving
             </p>
             {warnings.map((issue) => (
@@ -472,7 +472,7 @@ export function ERegisterWorkbook({
               WMO encoder will generate this after code-table and cross-field
               validation.
             </p>
-            <code className="block rounded-lg bg-muted px-3 py-3 font-mono text-muted-foreground text-xs">
+            <code className="bg-muted text-muted-foreground block rounded-lg px-3 py-3 font-mono text-xs">
               Pending validation · {station.number} ·{" "}
               {observedAt.replace("T", " ")} UTC
             </code>
@@ -492,7 +492,7 @@ export function ERegisterWorkbook({
               elements are checked). Copy it, or type the report you send; each
               element that differs from the observation is flagged.
             </p>
-            <code className="block overflow-x-auto whitespace-nowrap rounded-lg bg-muted px-3 py-3 font-mono text-xs">
+            <code className="bg-muted block overflow-x-auto rounded-lg px-3 py-3 font-mono text-xs whitespace-nowrap">
               {expectedMetar ?? metarPreview}
             </code>
             <div className="flex gap-2">
@@ -519,7 +519,7 @@ export function ERegisterWorkbook({
             </div>
             {metarIssues.map(({ key, message }) => (
               <p
-                className="text-amber-700 text-xs dark:text-amber-400"
+                className="text-xs text-amber-700 dark:text-amber-400"
                 key={key}
               >
                 {message}

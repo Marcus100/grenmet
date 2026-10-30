@@ -25,7 +25,7 @@ export default function SitemapPage() {
       <div className="space-y-10">
         {NAV_SECTIONS.map((section) => (
           <section
-            className="scroll-mt-24 space-y-3 border-gm-border border-t pt-5"
+            className="border-gm-border scroll-mt-24 space-y-3 border-t pt-5"
             id={sectionId(section.label)}
             key={section.label}
           >
@@ -44,7 +44,7 @@ export default function SitemapPage() {
                   id={groupId(section.label, group.heading)}
                   key={group.heading}
                 >
-                  <h3 className="font-bold text-gm-text-secondary text-label uppercase leading-label tracking-wider">
+                  <h3 className="text-gm-text-secondary text-label leading-label font-bold tracking-wider uppercase">
                     {group.heading}
                   </h3>
                   <ul className="space-y-1.5">
@@ -57,7 +57,7 @@ export default function SitemapPage() {
                           {link.name}
                         </Link>
                         {link.planned && (
-                          <span className="ml-2 text-body-sm text-gm-text-muted leading-body-sm">
+                          <span className="text-body-sm text-gm-text-muted leading-body-sm ml-2">
                             coming soon
                           </span>
                         )}
@@ -69,7 +69,7 @@ export default function SitemapPage() {
             </div>
           </section>
         ))}
-        <section className="space-y-3 border-gm-border border-t pt-5">
+        <section className="border-gm-border space-y-3 border-t pt-5">
           <h2 className={SECTION_HEADING}>Bulletins</h2>
           <ul className="grid gap-2 sm:grid-cols-2">
             {Object.entries(BULLETIN_CATEGORIES).map(([key, label]) => (

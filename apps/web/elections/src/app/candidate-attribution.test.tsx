@@ -5,9 +5,9 @@ import CandidatesPage from "@/app/candidates/page";
 import ConstituencyPage from "@/app/constituencies/[slug]/page";
 
 vi.mock("server-only", () => ({}));
-const CONFIRMATION = /Confirmed to us on 2 October/;
-const OWNER_SOURCE = /Confirmed to Elections Grenada by the site owner/;
-const REMOVED_INTRO = /Names reported so far, with uncertain entries marked/;
+const CONFIRMATION = /Confirmed to us on 2 October/u;
+const OWNER_SOURCE = /Confirmed to Elections Grenada by the site owner/u;
+const REMOVED_INTRO = /Names reported so far, with uncertain entries marked/u;
 
 describe("candidate attribution across pages", () => {
   it("shows owner confirmations beside named candidates in the directory", () => {

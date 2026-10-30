@@ -1,7 +1,7 @@
 import { readFileSync } from "node:fs";
 import { expect, it } from "vitest";
 
-const SCHEMA_REF = /^#\/components\/schemas\//;
+const SCHEMA_REF = /^#\/components\/schemas\//u;
 
 const schema = JSON.parse(
   readFileSync(

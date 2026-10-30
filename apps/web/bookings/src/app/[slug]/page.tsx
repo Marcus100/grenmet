@@ -59,7 +59,7 @@ export default async function BusinessBookingPage({
   return (
     <div className="booking space-y-10">
       <header className="space-y-2">
-        <h1 className="font-bold text-[clamp(1.75rem,5vw,2.5rem)] leading-[1.1] tracking-tight">
+        <h1 className="text-[clamp(1.75rem,5vw,2.5rem)] leading-[1.1] font-bold tracking-tight">
           {storefront.display_name}
         </h1>
         <p className="text-muted-foreground">
@@ -69,7 +69,7 @@ export default async function BusinessBookingPage({
       </header>
 
       <section aria-labelledby="services-title" className="space-y-3">
-        <h2 className="font-semibold text-lg" id="services-title">
+        <h2 className="text-lg font-semibold" id="services-title">
           Services
         </h2>
         {services.length === 0 ? (
@@ -77,7 +77,7 @@ export default async function BusinessBookingPage({
             Online booking is not open for this business yet.
           </p>
         ) : (
-          <ul className="divide-y divide-border rounded-lg border border-border">
+          <ul className="divide-border border-border divide-y rounded-lg border">
             {services.map((service) => (
               <li
                 className="flex items-start justify-between gap-4 px-4 py-3"
@@ -103,13 +103,13 @@ export default async function BusinessBookingPage({
 
       {providers.length > 0 && (
         <section aria-labelledby="providers-title" className="space-y-3">
-          <h2 className="font-semibold text-lg" id="providers-title">
+          <h2 className="text-lg font-semibold" id="providers-title">
             Who you can book with
           </h2>
           <ul className="flex flex-wrap gap-2">
             {providers.map((provider) => (
               <li
-                className="rounded-full border border-border px-3 py-1 text-sm"
+                className="border-border rounded-full border px-3 py-1 text-sm"
                 key={provider.id}
               >
                 {provider.name}
@@ -121,7 +121,7 @@ export default async function BusinessBookingPage({
 
       {services.length > 0 && (
         <section aria-labelledby="book-title" className="space-y-3">
-          <h2 className="font-semibold text-lg" id="book-title">
+          <h2 className="text-lg font-semibold" id="book-title">
             Book online
           </h2>
           <BookingFlow

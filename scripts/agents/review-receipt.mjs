@@ -14,7 +14,7 @@ import {
 import { join, resolve } from "node:path";
 
 const RECEIPT_FILE = "agent-review-receipt.json";
-const SHA = /^[a-f0-9]{40}$/;
+const SHA = /^[a-f0-9]{40}$/u;
 const SEVERITIES = ["blocker", "major", "minor", "nit"];
 
 export const REVIEW_SCHEMA = {

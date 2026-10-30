@@ -44,7 +44,7 @@ export const env = createEnv({
       .default("http://localhost:3003"),
     NEXT_PUBLIC_GA_MEASUREMENT_ID: z
       .string()
-      .regex(/^(G-[A-Z0-9]+)?$/)
+      .regex(/^(G-[A-Z0-9]+)?$/u)
       .optional()
       .default(""),
     // Cloudflare Turnstile public site key. Unset: no widget, no token sent.

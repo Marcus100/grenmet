@@ -13,9 +13,9 @@ export const STATUS_CONTEXTS = new Set([
 ]);
 export const PRIVATE_KEY_LIMIT = 64 * 1024;
 
-const SHA = /^[a-f0-9]{40}$/;
-const APP_ID = /^\d+$/;
-const APP_SLUG = /^[a-z0-9-]+$/;
+const SHA = /^[a-f0-9]{40}$/u;
+const APP_ID = /^\d+$/u;
+const APP_SLUG = /^[a-z0-9-]+$/u;
 const MINUTE = 60_000;
 const MAX_STATUS_DESCRIPTION = 140;
 

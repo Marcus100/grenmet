@@ -100,7 +100,7 @@ export function DocumentEditor({
   return (
     <form
       aria-label={document ? "Edit document" : "Upload document"}
-      className="space-y-4 rounded-lg border border-border p-4"
+      className="border-border space-y-4 rounded-lg border p-4"
       onSubmit={submit}
     >
       <h3 className="font-medium">
@@ -122,7 +122,7 @@ export function DocumentEditor({
             <div className="space-y-2">
               <Label htmlFor={`${id}-category`}>Category</Label>
               <select
-                className="w-full rounded-md border border-input bg-background p-2 text-sm"
+                className="border-input bg-background w-full rounded-md border p-2 text-sm"
                 defaultValue="CERTIFICATION"
                 id={`${id}-category`}
                 name="category"

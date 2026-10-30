@@ -24,7 +24,7 @@ afterEach(() => {
 });
 const params = Promise.resolve({ slug: ["reading-sea-state"] });
 
-const FEATURED_PRODUCT = /^Featured product/;
+const FEATURED_PRODUCT = /^Featured product/u;
 
 it("does not substitute a sample article when CMS is unavailable", async () => {
   vi.mocked(fetchContentBySlug).mockResolvedValue({

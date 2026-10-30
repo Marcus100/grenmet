@@ -4,7 +4,7 @@ import GuidePage, { generateStaticParams } from "@/app/learn/[slug]/page";
 import { GUIDES } from "@/data/learning";
 
 const SEARCH_IS_NOT_REGISTRATION =
-  /Searching the list does not register you or update your details/;
+  /Searching the list does not register you or update your details/u;
 
 vi.mock("server-only", () => ({}));
 describe("learning pages", () => {

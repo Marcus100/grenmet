@@ -51,9 +51,9 @@ const parseChanges = (output) => {
 };
 
 const fastApiContractFilePattern =
-  /^apps\/api\/fastapi\/src\/(?:.+\/)?(?:router|routes|schemas?)\.py$/;
+  /^apps\/api\/fastapi\/src\/(?:.+\/)?(?:router|routes|schemas?)\.py$/u;
 const fastApiContractDirectoryFilePattern =
-  /^apps\/api\/fastapi\/src\/(?:.+\/)?(?:routers|schemas?)\/.*\.py$/;
+  /^apps\/api\/fastapi\/src\/(?:.+\/)?(?:routers|schemas?)\/.*\.py$/u;
 
 const isFastApiContractFile = (file) =>
   file === "apps/api/fastapi/src/main.py" ||

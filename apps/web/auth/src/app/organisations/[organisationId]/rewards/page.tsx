@@ -56,7 +56,7 @@ function Explainer({
 }) {
   return (
     <section aria-label={title} className="space-y-2 py-2">
-      <h2 className="font-medium text-base text-foreground">{title}</h2>
+      <h2 className="text-foreground text-base font-medium">{title}</h2>
       <p className="text-muted-foreground text-sm">{children}</p>
     </section>
   );

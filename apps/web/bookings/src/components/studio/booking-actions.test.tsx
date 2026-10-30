@@ -29,10 +29,10 @@ function show(
   );
 }
 
-const NOTHING_MORE = /nothing more to do/;
-const REASON = /Reason/;
-const BY_HAND = /refund it by hand/;
-const POLICY_HINT = /more than the\s+cancellation cutoff away/;
+const NOTHING_MORE = /nothing more to do/u;
+const REASON = /Reason/u;
+const BY_HAND = /refund it by hand/u;
+const POLICY_HINT = /more than the\s+cancellation cutoff away/u;
 
 const buttons = () =>
   screen.queryAllByRole("button").map((button) => button.textContent);

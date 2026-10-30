@@ -25,7 +25,7 @@ import {
 } from "@/lib/janitorial/test-fixtures";
 import JanitorShiftsPage from "./page";
 
-const CANCEL_MARIA = /^Cancel Maria Joseph/;
+const CANCEL_MARIA = /^Cancel Maria Joseph/u;
 
 async function renderPage(params: Record<string, string>) {
   queries.getJanitorialAccess.mockResolvedValue(managerAccess);

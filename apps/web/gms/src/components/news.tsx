@@ -10,10 +10,10 @@ import { contentToArticle, type WeatherArticle } from "@/lib/editorial";
 function NewsCard({ post }: { post: WeatherArticle }) {
   return (
     <a
-      className="flex flex-col overflow-clip rounded border border-gm-border bg-background p-px shadow-card"
+      className="border-gm-border bg-background shadow-card flex flex-col overflow-clip rounded border p-px"
       href={post.href}
     >
-      <div className="relative h-[254px] w-full shrink-0 overflow-clip bg-gm-surface">
+      <div className="bg-gm-surface relative h-[254px] w-full shrink-0 overflow-clip">
         <Image
           alt=""
           className="object-cover"
@@ -24,7 +24,7 @@ function NewsCard({ post }: { post: WeatherArticle }) {
         />
       </div>
       <div className="flex flex-col gap-2 p-4">
-        <p className="font-bold text-body-base text-gm-heading leading-body-base">
+        <p className="text-body-base text-gm-heading leading-body-base font-bold">
           {post.title}
         </p>
         <p className="text-body-sm text-gm-text-secondary leading-body-sm">
@@ -41,7 +41,7 @@ function NewsCard({ post }: { post: WeatherArticle }) {
 function DesktopNewsCard({ post }: { post: WeatherArticle }) {
   return (
     <a className="flex flex-col gap-4" href={post.href}>
-      <div className="relative h-56 w-full shrink-0 overflow-hidden rounded-md bg-gm-surface">
+      <div className="bg-gm-surface relative h-56 w-full shrink-0 overflow-hidden rounded-md">
         <Image
           alt=""
           className="object-cover"
@@ -52,13 +52,13 @@ function DesktopNewsCard({ post }: { post: WeatherArticle }) {
         />
       </div>
       <div className="flex flex-col gap-2">
-        <p className="font-bold text-gm-heading text-heading-sm leading-heading-sm">
+        <p className="text-gm-heading text-heading-sm leading-heading-sm font-bold">
           {post.title}
         </p>
         <p className="text-body-base text-gm-text-secondary leading-body-base">
           {post.summary}
         </p>
-        <p className="font-semibold text-body-sm text-gm-text-muted leading-body-sm">
+        <p className="text-body-sm text-gm-text-muted leading-body-sm font-semibold">
           Published {post.published}
         </p>
       </div>
@@ -80,9 +80,9 @@ export async function News({
   const posts = result.articles.map(contentToArticle);
 
   return (
-    <section className="mb-4 flex flex-col gap-4 lg:-mx-8 lg:mb-8 lg:gap-7 lg:bg-gm-surface lg:px-8 lg:py-12">
+    <section className="lg:bg-gm-surface mb-4 flex flex-col gap-4 lg:-mx-8 lg:mb-8 lg:gap-7 lg:px-8 lg:py-12">
       <div className="flex h-7 items-center justify-between">
-        <p className="font-bold text-gm-heading text-heading-sm leading-heading-sm lg:text-heading-md lg:leading-heading-md">
+        <p className="text-gm-heading text-heading-sm leading-heading-sm lg:text-heading-md lg:leading-heading-md font-bold">
           {title}
         </p>
         <Link

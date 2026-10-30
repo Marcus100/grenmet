@@ -72,10 +72,10 @@ export function RequisitionCard({
     requisition.can_deliver;
 
   return (
-    <article className="rounded-xl bg-card p-4 sm:p-5">
+    <article className="bg-card rounded-xl p-4 sm:p-5">
       <header className="flex flex-wrap items-start justify-between gap-2">
         <div>
-          <h3 className="font-bold text-foreground text-lg tracking-wide">
+          <h3 className="text-foreground text-lg font-bold tracking-wide">
             {requisition.reference}
           </h3>
           <p className="text-muted-foreground text-sm">
@@ -91,7 +91,7 @@ export function RequisitionCard({
       </header>
 
       {requisition.purpose ? (
-        <p className="mt-2 text-foreground text-sm">{requisition.purpose}</p>
+        <p className="text-foreground mt-2 text-sm">{requisition.purpose}</p>
       ) : null}
       {requisition.needed_by ? (
         <p className="text-muted-foreground text-sm">
@@ -99,14 +99,14 @@ export function RequisitionCard({
         </p>
       ) : null}
 
-      <ul className="mt-3 divide-y divide-border">
+      <ul className="divide-border mt-3 divide-y">
         {requisition.lines.map((line) => (
           <li
             className="flex items-center justify-between gap-3 py-2"
             key={line.id}
           >
             <div className="min-w-0">
-              <p className="truncate font-semibold text-foreground text-sm sm:text-base">
+              <p className="text-foreground truncate text-sm font-semibold sm:text-base">
                 {line.item_name}
               </p>
               <p className="text-muted-foreground text-xs sm:text-sm">
@@ -119,7 +119,7 @@ export function RequisitionCard({
                 <>
                   {line.delivered_quantity} / {line.approved_quantity ?? 0}{" "}
                   {line.unit}
-                  <span className="block text-muted-foreground text-xs">
+                  <span className="text-muted-foreground block text-xs">
                     requested {line.requested_quantity}
                   </span>
                 </>
@@ -134,7 +134,7 @@ export function RequisitionCard({
       </ul>
 
       {requisition.decision_note ? (
-        <p className="mt-2 text-muted-foreground text-sm">
+        <p className="text-muted-foreground mt-2 text-sm">
           Note: {requisition.decision_note}
         </p>
       ) : null}

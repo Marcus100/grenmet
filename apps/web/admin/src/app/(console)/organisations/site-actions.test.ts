@@ -1,7 +1,7 @@
 import { AuthApiError } from "@barrelsgd/auth";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-const SAVED_NOTICE = /notice=secret-storage/;
+const SAVED_NOTICE = /notice=secret-storage/u;
 
 const api = vi.hoisted(() => ({
   createSite: vi.fn(),

@@ -61,20 +61,20 @@ export function CoApproverPicker({
   let listBody: ReactNode;
   if (membersQuery.isLoading) {
     listBody = (
-      <div className="flex items-center gap-2 p-3 text-muted-foreground text-sm">
+      <div className="text-muted-foreground flex items-center gap-2 p-3 text-sm">
         <Spinner className="size-4" /> Loading colleagues…
       </div>
     );
   } else if (members.length === 0) {
     listBody = (
-      <div className="p-3 text-muted-foreground text-sm">
+      <div className="text-muted-foreground p-3 text-sm">
         No colleagues found in your department.
       </div>
     );
   } else {
     listBody = members.map((member) => (
       <button
-        className="flex w-full items-center gap-3 rounded-md px-2 py-2 text-left text-sm hover:bg-muted"
+        className="hover:bg-muted flex w-full items-center gap-3 rounded-md px-2 py-2 text-left text-sm"
         key={member.user_id}
         onClick={() => toggle(member.user_id)}
         type="button"
@@ -128,7 +128,7 @@ export function CoApproverPicker({
               {nameFor(userId)}
               <button
                 aria-label={`Remove ${nameFor(userId)}`}
-                className="rounded-full text-muted-foreground hover:text-destructive"
+                className="text-muted-foreground hover:text-destructive rounded-full"
                 onClick={() => toggle(userId)}
                 type="button"
               >

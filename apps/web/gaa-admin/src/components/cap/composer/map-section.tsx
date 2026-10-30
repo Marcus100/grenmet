@@ -11,13 +11,13 @@ export async function MapSection() {
   return (
     <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_380px]">
       <div className="min-w-0">
-        <h2 className="mb-4 text-gm-text-primary text-heading-md leading-heading-md">
+        <h2 className="text-gm-text-primary text-heading-md leading-heading-md mb-4">
           Active Alert Map
         </h2>
         <AlertMapPreview featureCollection={activeMap} />
       </div>
       <aside className="min-w-0">
-        <h2 className="mb-3 text-gm-text-primary text-heading-sm leading-heading-sm">
+        <h2 className="text-gm-text-primary text-heading-sm leading-heading-sm mb-3">
           Alerts
         </h2>
         <AlertList

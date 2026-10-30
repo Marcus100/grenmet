@@ -74,9 +74,9 @@ function CopyButton({ code }: { code: string }) {
   return (
     <button
       className={cn(
-        "group/button absolute top-3.5 right-4 overflow-hidden rounded-full py-1 pr-3 pl-2 font-medium text-2xs opacity-0 backdrop-blur-sm transition focus:opacity-100 group-hover:opacity-100",
+        "group/button text-2xs absolute top-3.5 right-4 overflow-hidden rounded-full py-1 pr-3 pl-2 font-medium opacity-0 backdrop-blur-sm transition group-hover:opacity-100 focus:opacity-100",
         copied
-          ? "bg-gm-blue/10 ring-1 ring-gm-blue/20 ring-inset"
+          ? "bg-gm-blue/10 ring-gm-blue/20 ring-1 ring-inset"
           : "bg-white/5 hover:bg-white/7.5 dark:bg-white/2.5 dark:hover:bg-white/5"
       )}
       onClick={() => {
@@ -99,7 +99,7 @@ function CopyButton({ code }: { code: string }) {
       <span
         aria-hidden={!copied}
         className={cn(
-          "pointer-events-none absolute inset-0 flex items-center justify-center text-gm-blue-ink transition duration-300",
+          "text-gm-blue-ink pointer-events-none absolute inset-0 flex items-center justify-center transition duration-300",
           !copied && "translate-y-1.5 opacity-0"
         )}
       >
@@ -165,7 +165,7 @@ function CodePanel({
     <div className="group dark:bg-white/2.5">
       <CodePanelHeader label={label} tag={tag} />
       <div className="relative">
-        <pre className="overflow-x-auto p-4 text-white text-xs">{children}</pre>
+        <pre className="overflow-x-auto p-4 text-xs text-white">{children}</pre>
         <CopyButton code={code} />
       </div>
     </div>
@@ -188,16 +188,16 @@ function CodeGroupHeader({
   }
 
   return (
-    <div className="flex min-h-[calc(--spacing(12)+1px)] flex-wrap items-start gap-x-4 border-zinc-700 border-b bg-zinc-800 px-4 dark:border-zinc-800 dark:bg-transparent">
+    <div className="flex min-h-[calc(--spacing(12)+1px)] flex-wrap items-start gap-x-4 border-b border-zinc-700 bg-zinc-800 px-4 dark:border-zinc-800 dark:bg-transparent">
       {title && (
-        <h3 className="mr-auto pt-3 font-semibold text-white text-xs">
+        <h3 className="mr-auto pt-3 text-xs font-semibold text-white">
           {title}
         </h3>
       )}
       {hasTabs && (
         <Tabs.List
           activateOnFocus
-          className="-mb-px flex gap-4 font-medium text-xs"
+          className="-mb-px flex gap-4 text-xs font-medium"
         >
           {Children.map(children, (child, childIndex) => (
             <Tabs.Tab

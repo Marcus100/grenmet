@@ -269,7 +269,7 @@ export function ManageUserDialog({
         <AccountActivation open={open} user={user} />
         <CmsAccessControl open={open} user={user} />
         <div className="flex flex-col gap-3">
-          <span className="font-medium text-sm">Roles</span>
+          <span className="text-sm font-medium">Roles</span>
           {!isSuperuser && (
             <p className="text-muted-foreground text-sm">
               You may grant ordinary staff self-service within your active
@@ -299,7 +299,7 @@ export function ManageUserDialog({
                     : ""}
                   <button
                     aria-label={`Revoke ${role?.name ?? "role"}`}
-                    className="ml-1 rounded-sm hover:text-destructive"
+                    className="hover:text-destructive ml-1 rounded-sm"
                     disabled={revokeMutation.isPending}
                     onClick={() => revoke(assignment.id, role?.name ?? "role")}
                     type="button"
@@ -389,7 +389,7 @@ export function ManageUserDialog({
           <Separator />
 
           <div className="flex flex-col gap-3">
-            <span className="font-medium text-sm">Department & employment</span>
+            <span className="text-sm font-medium">Department & employment</span>
             {employmentQuery.isFetching && !empSeeded ? (
               <span className="text-muted-foreground text-sm">Loading…</span>
             ) : (

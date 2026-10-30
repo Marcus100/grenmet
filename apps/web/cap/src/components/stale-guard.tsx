@@ -35,7 +35,7 @@ export function StaleGuard({
   }
   return (
     <p
-      className="rounded-gm-card border border-gm-warning-amber-border bg-gm-warning-amber-bg p-3 text-body-sm text-gm-warning-amber-fg"
+      className="rounded-gm-card border-gm-warning-amber-border bg-gm-warning-amber-bg text-body-sm text-gm-warning-amber-fg border p-3"
       role="status"
     >
       <strong>This page may be out of date.</strong> It was last updated at{" "}

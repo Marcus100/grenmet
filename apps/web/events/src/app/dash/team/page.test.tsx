@@ -48,7 +48,7 @@ vi.mock("next/navigation", () => ({
 
 import TeamPage from "./page";
 
-const RE_T1 = /is not passed on/;
+const RE_T1 = /is not passed on/u;
 
 const managed = {
   organiser: { slug: "o", name: "Fete Crew", organisationId: "org_1" },

@@ -113,7 +113,7 @@ function SetupDialog({
             <details className="text-muted-foreground text-sm">
               <summary className="cursor-pointer">Can't scan it?</summary>
               <p className="mt-2">Enter this key in your app instead:</p>
-              <code className="mt-1 block break-all rounded-lg border border-border bg-muted p-3 text-foreground">
+              <code className="border-border bg-muted text-foreground mt-1 block rounded-lg border p-3 break-all">
                 {step.secret}
               </code>
             </details>
@@ -268,7 +268,7 @@ function ConfirmDialog({
             <button
               className={
                 destructive
-                  ? "w-full rounded-lg bg-destructive px-5 py-3 font-medium text-sm text-white transition hover:bg-destructive/90 disabled:opacity-60"
+                  ? "bg-destructive hover:bg-destructive/90 w-full rounded-lg px-5 py-3 text-sm font-medium text-white transition disabled:opacity-60"
                   : primaryButtonClass
               }
               disabled={busy}

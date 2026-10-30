@@ -18,10 +18,10 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const root = fileURLToPath(new URL("../../", import.meta.url));
-const ZERO_SHA = /^0+$/;
-const WHITESPACE = /\s+/;
-const SHA = /^[a-f0-9]{40}$/i;
-const AGENT_LOCK_REF = /^refs\/heads\/agent-lock\/[1-9]\d*$/;
+const ZERO_SHA = /^0+$/u;
+const WHITESPACE = /\s+/u;
+const SHA = /^[a-f0-9]{40}$/iu;
+const AGENT_LOCK_REF = /^refs\/heads\/agent-lock\/[1-9]\d*$/u;
 
 // Only coordination refs are exempt: a mixed push still sends application code.
 export function onlyAgentLockRefs(input) {

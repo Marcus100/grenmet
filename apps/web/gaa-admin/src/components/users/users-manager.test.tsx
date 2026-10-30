@@ -23,7 +23,7 @@ const actor = vi.hoisted(() => ({ is_superuser: true }));
 vi.mock("@barrelsgd/auth", () => ({ useSessionUser: () => actor }));
 
 const BASE = "http://localhost";
-const NEW_USER_LABEL = /New user/;
+const NEW_USER_LABEL = /New user/u;
 
 const ROLES = {
   data: [

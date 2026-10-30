@@ -6,24 +6,24 @@ const commit = "0123456789abcdef0123456789abcdef01234567";
 const FIXED_NOW = new Date("2026-10-25T12:00:00.000Z");
 const actorLogin = "audit-bot";
 const generatedHeader = "## Advisory audit observation";
-const MARKER_PATTERN = /<!-- codex-audit:[a-f0-9]+ -->/;
+const MARKER_PATTERN = /<!-- codex-audit:[a-f0-9]+ -->/u;
 const EVIDENCE_COMMAND_PATTERN =
-  /Evidence command: `pnpm audit:advisories --check freshness`/;
+  /Evidence command: `pnpm audit:advisories --check freshness`/u;
 const SANITIZED_LEAK_PATTERN =
-  /ghp_abcdefghijklmnopqrstuvwxyz1234567890|secret=abc|Bearer abcdefghijklmnop|\/home\/eugine/;
-const REPO_RELATIVE_COMMAND_PATTERN = /pnpm --dir apps\/web\/gms test/;
+  /ghp_abcdefghijklmnopqrstuvwxyz1234567890|secret=abc|Bearer abcdefghijklmnop|\/home\/eugine/u;
+const REPO_RELATIVE_COMMAND_PATTERN = /pnpm --dir apps\/web\/gms test/u;
 const PUBLIC_GITHUB_RUN_PATTERN =
-  /https:\/\/github\.com\/Marcus100\/grenmet\/actions\/runs\/77/;
+  /https:\/\/github\.com\/Marcus100\/grenmet\/actions\/runs\/77/u;
 const EMAIL_AND_SECRET_LEAK_PATTERN =
-  /private\.user@example\.test|visible-secret-value|hunter2|token=abc123/;
-const REDACTED_EMAIL_PATTERN = /\[redacted email\]/;
-const REDACTED_API_KEY_PATTERN = /api-key=\[redacted\]/;
-const REPO_VALIDATION_PATTERN = /repo/;
-const COMMIT_VALIDATION_PATTERN = /commit/;
-const STATUS_VALIDATION_PATTERN = /status/;
-const MAX_NEW_ISSUES_PATTERN = /maxNewIssues/;
-const LOGIN_VALIDATION_PATTERN = /authenticated GitHub identity/;
-const OBSERVED_TIMESTAMP_PATTERN = /- Observed: `2026-10-25T00:00:00\.000Z`/;
+  /private\.user@example\.test|visible-secret-value|hunter2|token=abc123/u;
+const REDACTED_EMAIL_PATTERN = /\[redacted email\]/u;
+const REDACTED_API_KEY_PATTERN = /api-key=\[redacted\]/u;
+const REPO_VALIDATION_PATTERN = /repo/u;
+const COMMIT_VALIDATION_PATTERN = /commit/u;
+const STATUS_VALIDATION_PATTERN = /status/u;
+const MAX_NEW_ISSUES_PATTERN = /maxNewIssues/u;
+const LOGIN_VALIDATION_PATTERN = /authenticated GitHub identity/u;
+const OBSERVED_TIMESTAMP_PATTERN = /- Observed: `2026-10-25T00:00:00\.000Z`/u;
 const observation = (overrides = {}) => ({
   key: "check:advisory-42",
   title: "Advisory source freshness",
@@ -97,7 +97,7 @@ test("creates one labeled, safe issue for a failing observation", async () => {
   assert.equal(issues[0].state, "open");
   assert.match(issues[0].body, EVIDENCE_COMMAND_PATTERN);
   assert.match(issues[0].body, OBSERVED_TIMESTAMP_PATTERN);
-  assert.match(issues[0].body, new RegExp(commit));
+  assert.match(issues[0].body, new RegExp(commit, "u"));
   assert.ok(markerFor(issues[0].body));
   assert.equal(result.created.length, 1);
   assert.ok(listCall(calls).includes("--paginate"));

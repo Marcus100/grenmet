@@ -1,8 +1,8 @@
 import reference from "@/data/wxproducts/wmo-reference.json";
 
 export const wmoReference = reference;
-const COMPACT_DESCRIPTOR = /^[0-3]\d{5}$/;
-const SEPARATED_DESCRIPTOR = /^([0-3])[-\s]+(\d{1,2})[-\s]+(\d{1,3})$/;
+const COMPACT_DESCRIPTOR = /^[0-3]\d{5}$/u;
+const SEPARATED_DESCRIPTOR = /^([0-3])[-\s]+(\d{1,2})[-\s]+(\d{1,3})$/u;
 
 /** Accept compact, space-separated and padded/unpadded F-X-Y notation. */
 export function normalizeDescriptor(value: string): string | undefined {

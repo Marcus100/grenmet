@@ -16,8 +16,8 @@ import test from "node:test";
 
 const script = resolve("scripts/agents/audit-operations.py");
 const root = resolve(".");
-const beginReadOnlyPattern = /BEGIN READ ONLY;/g;
-const privateMetadataPattern = /expiresAt|secret name/i;
+const beginReadOnlyPattern = /BEGIN READ ONLY;/gu;
+const privateMetadataPattern = /expiresAt|secret name/iu;
 
 function fixture(t, environments) {
   const dir = mkdtempSync(join(tmpdir(), "audit-operations-"));

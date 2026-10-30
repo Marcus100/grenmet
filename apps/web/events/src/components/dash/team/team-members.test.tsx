@@ -5,13 +5,13 @@ import { TeamFeedbackProvider } from "./team-feedback";
 import { TeamHelp } from "./team-help";
 import { TeamMembers } from "./team-members";
 
-const RE_T1 = /Ends .*UTC/;
-const RE_T2 = /No end date/;
-const RE_T3 = /No roles yet/;
-const RE_T4 = /Owners have every Events role/;
-const RE_T5 = /Take away/;
-const RE_T6 = /Remove/;
-const RE_T7 = /is not passed on/;
+const RE_T1 = /Ends .*UTC/u;
+const RE_T2 = /No end date/u;
+const RE_T3 = /No roles yet/u;
+const RE_T4 = /Owners have every Events role/u;
+const RE_T5 = /Take away/u;
+const RE_T6 = /Remove/u;
+const RE_T7 = /is not passed on/u;
 
 vi.mock("@/data/team-actions", () => ({
   grantRole: vi.fn(),

@@ -214,9 +214,9 @@ export interface CancelCounts {
   readonly ticketsCancelled: number;
 }
 
-const KEY_PROBLEM = /Idempotency-Key/i;
-const STILL_RUNNING = /still being processed/i;
-const REFUND_LEFT = /^Only (\d+) minor units can still be refunded/;
+const KEY_PROBLEM = /Idempotency-Key/iu;
+const STILL_RUNNING = /still being processed/iu;
+const REFUND_LEFT = /^Only (\d+) minor units can still be refunded/u;
 
 const FORBIDDEN = "You don't have permission to do that for this organisation.";
 

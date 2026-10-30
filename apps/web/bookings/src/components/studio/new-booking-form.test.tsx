@@ -8,8 +8,8 @@ vi.mock("@/app/studio/[orgSlug]/bookings/new/actions", () => ({
 
 import { NewBookingForm } from "./new-booking-form";
 
-const UUID = /^[0-9a-f-]{36}$/;
-const CLOCK = /America\/Grenada/;
+const UUID = /^[0-9a-f-]{36}$/u;
+const CLOCK = /America\/Grenada/u;
 const S1 = "44444444-4444-4444-8444-444444444444";
 const S2 = "44444444-4444-4444-8444-444444444445";
 

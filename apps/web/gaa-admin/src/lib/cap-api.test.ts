@@ -17,7 +17,7 @@ vi.mock("@/lib/auth-config", () => ({
 }));
 
 const ALERTS_URL = "http://localhost:8000/api/v1/cap/alerts";
-const LOAD_FAILURE = /Failed to load CAP alerts \(403\)/;
+const LOAD_FAILURE = /Failed to load CAP alerts \(403\)/u;
 
 const ALERTS = {
   count: 1,

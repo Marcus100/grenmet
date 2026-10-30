@@ -5,7 +5,7 @@ import { describe, expect, it, vi } from "vitest";
 import UserAddressCard from "./UserAddressCard";
 import UserInfoCard from "./UserInfoCard";
 
-const EDIT_BUTTON = /Edit/;
+const EDIT_BUTTON = /Edit/u;
 const profile: UserProfilePublic = {
   id: "staff",
   identity: { username: "staff", email: "staff@example.com", status: "ACTIVE" },

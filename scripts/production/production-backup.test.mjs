@@ -11,7 +11,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import test from "node:test";
 
-const EREGISTER_UPLOAD = /aws s3 cp .*eregister_/;
+const EREGISTER_UPLOAD = /aws s3 cp .*eregister_/u;
 
 const workflow = readFileSync(
   new URL("../../.github/workflows/backup-database.yml", import.meta.url),
@@ -101,7 +101,7 @@ if [[ "$*" == *"SELECT COUNT"* ]]; then echo 3; fi
       const databaseCount = scenario === "without CMS" ? 6 : 7;
       assert.equal(status === 0, !fails);
       assert.equal(
-        (calls.match(/aws s3 cp/g) || []).length,
+        (calls.match(/aws s3 cp/gu) || []).length,
         fails ? 0 : databaseCount
       );
       if (!fails) {
@@ -109,7 +109,7 @@ if [[ "$*" == *"SELECT COUNT"* ]]; then echo 3; fi
         assert.match(calls, EREGISTER_UPLOAD);
         // Events lives in the main database dump: no separate events dump.
         assert.ok(!calls.includes("-d events"));
-        assert.equal((calls.match(/pg_restore/g) || []).length, databaseCount);
+        assert.equal((calls.match(/pg_restore/gu) || []).length, databaseCount);
         assert.ok(calls.includes("s3://existing-backups/production/"));
         assert.ok(calls.lastIndexOf("pg_restore") < calls.indexOf("aws s3 cp"));
       }

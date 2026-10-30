@@ -234,7 +234,7 @@ export function isOtherGrenadaDay(
   return GRENADA_DAY.format(time) !== GRENADA_DAY.format(now);
 }
 
-const HAS_ZONE = /(?:Z|[+-]\d{2}:?\d{2})$/i;
+const HAS_ZONE = /(?:Z|[+-]\d{2}:?\d{2})$/iu;
 
 function olderThan(iso: string, limitMs: number, now: Date): boolean {
   const time = parseGrenadaTime(iso);

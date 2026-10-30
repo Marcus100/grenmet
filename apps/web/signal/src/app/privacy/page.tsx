@@ -16,27 +16,27 @@ export default function PrivacyPage() {
         </p>
       </PageIntro>
       <div className="space-y-6 text-lg leading-relaxed">
-        <h2 className="font-semibold font-serif text-3xl">Newsletter</h2>
+        <h2 className="font-serif text-3xl font-semibold">Newsletter</h2>
         <p>
           When you subscribe we store your email address and the time of each
           step. We email you once to confirm the address; you are subscribed
           only after you click the link in that email. Every newsletter has an
           unsubscribe link.
         </p>
-        <h2 className="font-semibold font-serif text-3xl">Page feedback</h2>
+        <h2 className="font-serif text-3xl font-semibold">Page feedback</h2>
         <p>
           If you answer &ldquo;Was this page helpful?&rdquo; we store your
           answer, the page and any comment you type, with no name or email.
           Please do not put personal details in the comment.
         </p>
-        <h2 className="font-semibold font-serif text-3xl">Spam protection</h2>
+        <h2 className="font-serif text-3xl font-semibold">Spam protection</h2>
         <p>
           Forms are protected by Cloudflare Turnstile. Your browser contacts
           Cloudflare, which checks the request comes from a person and tells our
           server the result. Cloudflare processes that data under its own
           privacy policy.
         </p>
-        <h2 className="font-semibold font-serif text-3xl">
+        <h2 className="font-serif text-3xl font-semibold">
           How long we keep it
         </h2>
         <ul className="list-disc space-y-1 pl-6">
@@ -48,7 +48,7 @@ export default function PrivacyPage() {
           </li>
           <li>Page feedback comments are deleted after 24 months.</li>
         </ul>
-        <h2 className="font-semibold font-serif text-3xl">
+        <h2 className="font-serif text-3xl font-semibold">
           Questions or requests
         </h2>
         <p>

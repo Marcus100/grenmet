@@ -342,7 +342,7 @@ export function DailyStatusEditor() {
       {(values) => (
         <HrFormDesk
           editor={
-            <div className="flex flex-col gap-4 rounded-xl border bg-card p-4">
+            <div className="bg-card flex flex-col gap-4 rounded-xl border p-4">
               <div className="flex flex-col gap-3">
                 <SigningPanel submission={submission} />
                 <FormActionBar
@@ -852,7 +852,7 @@ function StatusStaffing({
           row?.employee_name ?? entry.employee_name ?? entry.user_id;
         return (
           <div className="space-y-2 rounded-lg border p-3" key={entry.user_id}>
-            <p className="font-medium text-sm">
+            <p className="text-sm font-medium">
               {label}{" "}
               {row && (
                 <span className="text-muted-foreground">

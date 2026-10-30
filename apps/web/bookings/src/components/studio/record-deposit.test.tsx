@@ -9,7 +9,7 @@ vi.mock("@/app/studio/[orgSlug]/bookings/[id]/actions", () => ({
 
 import { RecordDeposit } from "./record-deposit";
 
-const UUID = /^[0-9a-f-]{36}$/;
+const UUID = /^[0-9a-f-]{36}$/u;
 const TRIGGER = { name: "Record deposit received" };
 
 function ui(due = true, takesDeposit = true) {

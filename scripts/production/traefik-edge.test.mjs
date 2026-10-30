@@ -9,28 +9,28 @@ const read = (path) =>
   readFileSync(new URL(`../../${path}`, import.meta.url), "utf8");
 
 const compose = read("infra/docker/docker-compose.deploy.yml");
-const TOP_LEVEL_KEY = /^\S/;
-const SERVICE_HEADER = /^ {2}([a-z0-9-]+):\s*$/;
-const LIST_ITEM = /^ {6}- (.+?)\s*$/;
-const SECTION = /^ {4}([a-z_]+):(.*)$/;
-const VARIABLE = /\$\{([A-Z0-9_]+)(?:(:-|:\+|:\?)([^${}]*))?\}/g;
+const TOP_LEVEL_KEY = /^\S/u;
+const SERVICE_HEADER = /^ {2}([a-z0-9-]+):\s*$/u;
+const LIST_ITEM = /^ {6}- (.+?)\s*$/u;
+const SECTION = /^ {4}([a-z_]+):(.*)$/u;
+const VARIABLE = /\$\{([A-Z0-9_]+)(?:(:-|:\+|:\?)([^${}]*))?\}/gu;
 const SOCKET = "/var/run/docker.sock";
 const STAGING_ONLY = ["staging-auth", "staging-noindex"];
-const DASHBOARD_USER = /\$\{USERNAME\}/;
-const PROFILE = /^ {4}profiles: \["([a-z]+)"\]/m;
-const ROUTER_LABEL = /^traefik\.http\.routers\.([^.]+)\.(.+)$/;
-const PROVIDER_SUFFIX = /@docker$/;
+const DASHBOARD_USER = /\$\{USERNAME\}/u;
+const PROFILE = /^ {4}profiles: \["([a-z]+)"\]/mu;
+const ROUTER_LABEL = /^traefik\.http\.routers\.([^.]+)\.(.+)$/u;
+const PROVIDER_SUFFIX = /@docker$/u;
 const SOCKET_PROXY_IMAGE =
-  /^ {4}image: tecnativa\/docker-socket-proxy:v[0-9.]+@sha256:[0-9a-f]{64}$/m;
-const CONTAINERS_ALLOWED = /^ {6}CONTAINERS: 1$/m;
-const POST_DENIED = /^ {6}POST: 0$/m;
+  /^ {4}image: tecnativa\/docker-socket-proxy:v[0-9.]+@sha256:[0-9a-f]{64}$/mu;
+const CONTAINERS_ALLOWED = /^ {6}CONTAINERS: 1$/mu;
+const POST_DENIED = /^ {6}POST: 0$/mu;
 const INTERNAL_NETWORK =
-  /^ {2}docker-api:\n {4}driver: bridge\n {4}internal: true$/m;
-const READ_ONLY = /^ {4}read_only: true$/m;
-const DURATION = /[=][1-9][0-9]*s$/;
-const HR_LIMIT = /^MAX_DOCUMENT_BYTES = (.+)$/m;
-const UPLOAD_ROUTER = /^(grenmet-api|web-cms|adminer)/;
-const STAGING_PROFILE = /^ {4}profiles: \["staging"\]$/m;
+  /^ {2}docker-api:\n {4}driver: bridge\n {4}internal: true$/mu;
+const READ_ONLY = /^ {4}read_only: true$/mu;
+const DURATION = /[=][1-9][0-9]*s$/u;
+const HR_LIMIT = /^MAX_DOCUMENT_BYTES = (.+)$/mu;
+const UPLOAD_ROUTER = /^(grenmet-api|web-cms|adminer)/u;
+const STAGING_PROFILE = /^ {4}profiles: \["staging"\]$/mu;
 
 // Top-level `services:` blocks as raw text plus their list-valued sections.
 function services(text) {
@@ -202,7 +202,7 @@ test("only the socket proxy mounts the Docker socket, read-only and allow-listed
   ])
     assert.doesNotMatch(
       socketProxy.body,
-      new RegExp(`^ {6}${denied}: 1$`, "m")
+      new RegExp(`^ {6}${denied}: 1$`, "mu")
     );
   assert.deepEqual(socketProxy.lists.networks, ["docker-api"]);
   for (const service of parsed.values()) {

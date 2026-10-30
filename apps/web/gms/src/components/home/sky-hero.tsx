@@ -19,7 +19,7 @@ import {
 } from "@/lib/locations";
 
 /** "Maurice Bishop International (MBIA)" → "MBIA". */
-const STATION_CODE = /^.*\((.+)\)$/;
+const STATION_CODE = /^.*\((.+)\)$/u;
 
 /**
  * Bold sky hero. One card on top for the selected tab (Now: what is measured
@@ -138,7 +138,7 @@ export function SkyHero({
           </h1>
           <div className="flex min-h-11 flex-wrap items-center justify-between gap-x-3 gap-y-1">
             {/* Brand line: large bold type, readable on the gradient. */}
-            <p className="font-bold font-gm-display text-heading-md uppercase leading-heading-md tracking-wide">
+            <p className="font-gm-display text-heading-md leading-heading-md font-bold tracking-wide uppercase">
               Your spice weather
             </p>
             {switcher}

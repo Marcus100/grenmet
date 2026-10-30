@@ -7,7 +7,7 @@ import { fileURLToPath } from "node:url";
 import { parseArgs } from "node:util";
 
 const ROOT = fileURLToPath(new URL("../../", import.meta.url));
-const DIGITS = /^\d+$/;
+const DIGITS = /^\d+$/u;
 const BASE = "refs/remotes/origin/dev";
 const GENERATED = new Set([
   "node_modules",

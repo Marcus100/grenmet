@@ -15,15 +15,15 @@ export function TransactionSummaryCard({
   href,
 }: TransactionSummaryCardProps) {
   return (
-    <div className="rounded-2xl bg-gradient-to-br from-gm-blue to-gm-navy p-5 text-white sm:p-6">
+    <div className="from-gm-blue to-gm-navy rounded-2xl bg-gradient-to-br p-5 text-white sm:p-6">
       <div className="mb-2">
-        <h3 className="font-bold text-base uppercase tracking-wide sm:text-lg">
+        <h3 className="text-base font-bold tracking-wide uppercase sm:text-lg">
           {title}
         </h3>
         <p className="text-sm text-white/80">{subtitle}</p>
       </div>
 
-      <div className="mb-6 font-bold text-3xl sm:mb-8 sm:text-4xl">{count}</div>
+      <div className="mb-6 text-3xl font-bold sm:mb-8 sm:text-4xl">{count}</div>
 
       <div className="flex justify-end">
         <Link

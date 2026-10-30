@@ -31,17 +31,17 @@ export function RosterRuleWarnings({
   return (
     <section
       aria-label="Roster rule warnings"
-      className="rounded-xl border border-gm-risk-amber/40 bg-gm-risk-amber/10 px-4 py-3 text-sm"
+      className="border-gm-risk-amber/40 bg-gm-risk-amber/10 rounded-xl border px-4 py-3 text-sm"
     >
       <h2 className="flex items-center gap-2 font-medium">
         <TriangleAlert className="size-4" />
         {violations.length} roster rule{" "}
         {violations.length === 1 ? "warning" : "warnings"}
       </h2>
-      <ul className="mt-2 flex flex-col gap-1 text-muted-foreground text-xs">
+      <ul className="text-muted-foreground mt-2 flex flex-col gap-1 text-xs">
         {violations.map((v) => (
           <li key={`${v.code}-${v.user_id}-${v.start_date}`}>
-            <span className="font-medium text-foreground">
+            <span className="text-foreground font-medium">
               {labels.get(v.user_id) ?? "Unknown staff"}
             </span>{" "}
             · {RULE_TITLE[v.code] ?? v.code} · {v.start_date}

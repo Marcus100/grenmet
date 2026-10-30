@@ -502,7 +502,7 @@ function SavedAlert({ alert }: { alert: CapAlertPublic }) {
         const source = readSourceBulletinLink(info.parameters);
         return (
           <section
-            className="space-y-3 rounded-xl border bg-card p-4"
+            className="bg-card space-y-3 rounded-xl border p-4"
             key={info.id}
           >
             <h2 className="font-semibold">
@@ -539,7 +539,7 @@ function SavedAlert({ alert }: { alert: CapAlertPublic }) {
       })}
       <details>
         <summary className="cursor-pointer">Full saved CAP record</summary>
-        <pre className="overflow-auto whitespace-pre-wrap text-xs">
+        <pre className="overflow-auto text-xs whitespace-pre-wrap">
           {JSON.stringify(alert, null, 2)}
         </pre>
       </details>

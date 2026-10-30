@@ -27,8 +27,15 @@
       "!apps/web/cms/src/app/(payload)/admin/importMap.js"
     ]
   },
+  // Biome 2.6 formats YAML by default. Keep .yml/.yaml files unformatted as
+  // before 2.6; adopting YAML formatting is a separate decision.
+  "yaml": {
+    "formatter": { "enabled": false }
+  },
   "linter": {
     "rules": {
+      // Rules marked "adopt separately" arrived with Ultracite 8.1 / Biome 2.6
+      // and need per-site judgement (no safe fix); each is a follow-up.
       "style": {
         "noIncrementDecrement": "off",
         "useDestructuring": "off",
@@ -37,7 +44,10 @@
         "useBlockStatements": "off",
         "useTemplate": "warn",
         "noNestedTernary": "warn",
-        "noProcessEnv": "error"
+        "noProcessEnv": "error",
+        "useImportsFirst": "off", // adopt separately
+        "useNamedCaptureGroup": "off", // adopt separately
+        "useDomQuerySelector": "off" // adopt separately
       },
       "performance": {
         "noAwaitInLoops": "off",
@@ -45,7 +55,14 @@
         "noBarrelFile": "off"
       },
       "a11y": {
-        "noSvgWithoutTitle": "warn"
+        "noSvgWithoutTitle": "warn",
+        "noLabelWithoutControl": "off" // adopt separately
+      },
+      "correctness": {
+        "noComponentHookFactories": "off" // adopt separately
+      },
+      "security": {
+        "useIframeSandbox": "off" // adopt separately
       },
       "complexity": {
         "noRedundantDefaultExport": "off",
@@ -60,7 +77,9 @@
         "noUnnecessaryConditions": "off",
         "noLeakedRender": "off",
         "noEqualsToNull": "off",
-        "noConsole": "warn"
+        "noConsole": "warn",
+        "useBaseline": "off", // adopt separately
+        "noDuplicateSelectors": "off" // adopt separately
       }
     }
   },

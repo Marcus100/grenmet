@@ -7,8 +7,8 @@ import { BULLETIN_CATEGORIES } from "@barrelsgd/gms/products";
 const KIND = "GMS:source-bulletin-kind";
 const ID = "GMS:source-bulletin-id";
 const REVISION = "GMS:source-bulletin-revision";
-const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-const POSITIVE_INTEGER = /^[1-9][0-9]*$/;
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/iu;
+const POSITIVE_INTEGER = /^[1-9][0-9]*$/u;
 
 export interface SourceBulletinLink {
   id: string;

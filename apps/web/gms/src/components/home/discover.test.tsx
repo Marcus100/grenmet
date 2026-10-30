@@ -20,9 +20,9 @@ afterEach(() => {
   vi.clearAllMocks();
 });
 
-const SUN_TIMES = /Sunrise \d:\d\d a\.m\. · sunset \d:\d\d p\.m\./;
-const CLOUD_QUIZ = /Can you name these five clouds/;
-const RAINBOWS = /Where rainbows are/;
+const SUN_TIMES = /Sunrise \d:\d\d a\.m\. · sunset \d:\d\d p\.m\./u;
+const CLOUD_QUIZ = /Can you name these five clouds/u;
+const RAINBOWS = /Where rainbows are/u;
 const NOW = new Date("2026-09-29T15:00:00Z");
 function home(overrides: Partial<HomeContent> = {}): HomeContent {
   const none = { status: "ok" as const, articles: [] };

@@ -18,8 +18,8 @@ function Section({
   title: string;
 }) {
   return (
-    <section className="space-y-2 rounded-2xl border bg-card p-4">
-      <h2 className="font-display font-semibold text-heading-sm">{title}</h2>
+    <section className="bg-card space-y-2 rounded-2xl border p-4">
+      <h2 className="font-display text-heading-sm font-semibold">{title}</h2>
       {children}
     </section>
   );
@@ -106,7 +106,7 @@ export function OrderDetail({ order }: { order: OrgOrderDetail }) {
           <ul className="divide-y">
             {order.items.map((item) => (
               <li
-                className="flex flex-wrap justify-between gap-2 py-2 text-body"
+                className="text-body flex flex-wrap justify-between gap-2 py-2"
                 key={item.tier_id}
               >
                 <span>
@@ -129,7 +129,7 @@ export function OrderDetail({ order }: { order: OrgOrderDetail }) {
           <ul className="divide-y">
             {order.tickets.map((ticket) => (
               <li
-                className="flex flex-wrap items-center justify-between gap-2 py-2 text-body"
+                className="text-body flex flex-wrap items-center justify-between gap-2 py-2"
                 key={ticket.id}
               >
                 <span>

@@ -48,7 +48,7 @@ export default async function GuidePage({ params }: Props) {
         </Section>
       ))}
       <Section id="worked-example" title={guide.example.title}>
-        <div className="max-w-prose bg-el-paper-2 p-6 leading-relaxed">
+        <div className="bg-el-paper-2 max-w-prose p-6 leading-relaxed">
           <p>{guide.example.text}</p>
         </div>
       </Section>
@@ -61,13 +61,13 @@ export default async function GuidePage({ params }: Props) {
         <p className="max-w-prose leading-relaxed">{guide.misconception}</p>
       </Section>
       <Section id="self-check" title="Try explaining it yourself">
-        <details className="max-w-prose border-el-rule border-y py-4">
+        <details className="border-el-rule max-w-prose border-y py-4">
           <summary className="cursor-pointer font-semibold">
             {guide.exercise.question}
           </summary>
           <p className="mt-3 leading-relaxed">{guide.exercise.answer}</p>
         </details>
-        <p className="mt-2 text-el-muted text-lg leading-relaxed">
+        <p className="text-el-muted mt-2 text-lg leading-relaxed">
           Think it through, then open the explanation. No answers are saved.
         </p>
       </Section>

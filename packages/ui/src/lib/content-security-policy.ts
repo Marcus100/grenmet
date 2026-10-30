@@ -32,7 +32,7 @@ const GA_IMG = [
   "https://www.google-analytics.com",
   "https://www.googletagmanager.com",
 ] as const;
-const PROJECT_ID = /^\d+$/;
+const PROJECT_ID = /^\d+$/u;
 const TURNSTILE = "https://challenges.cloudflare.com";
 
 interface AppSources {

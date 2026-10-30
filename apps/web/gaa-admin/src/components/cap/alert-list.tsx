@@ -19,7 +19,7 @@ export function AlertList({
 }) {
   if (alerts.length === 0) {
     return (
-      <div className="border border-gm-border bg-gm-surface px-4 py-8 text-center text-gm-text-muted">
+      <div className="border-gm-border bg-gm-surface text-gm-text-muted border px-4 py-8 text-center">
         {emptyLabel}
       </div>
     );
@@ -31,7 +31,7 @@ export function AlertList({
         const info = primaryInfo(alert);
         return (
           <article
-            className="flex border border-gm-border bg-card shadow-card"
+            className="border-gm-border bg-card shadow-card flex border"
             key={alert.id}
           >
             <span
@@ -54,7 +54,7 @@ export function AlertList({
                 <h2 className="text-gm-text-primary text-heading-sm leading-heading-sm">
                   {info?.headline ?? alert.identifier}
                 </h2>
-                <p className="line-clamp-2 text-body text-gm-text-secondary leading-body">
+                <p className="text-body text-gm-text-secondary leading-body line-clamp-2">
                   {info?.description ?? alert.note ?? "CAP alert"}
                 </p>
               </div>

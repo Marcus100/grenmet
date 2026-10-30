@@ -25,7 +25,7 @@ export default async function NewOrganisationPage({
       <Link className="text-sm underline" href="/organisations">
         All organisations
       </Link>
-      <h1 className="font-semibold text-2xl">New organisation</h1>
+      <h1 className="text-2xl font-semibold">New organisation</h1>
       {notice ? (
         <p className="rounded-md border px-3 py-2 text-sm" role="alert">
           Problem: {notice.text}
@@ -68,7 +68,7 @@ export default async function NewOrganisationPage({
         </label>
         <div>
           <button
-            className="rounded-md border px-3 py-1.5 text-sm hover:bg-muted"
+            className="hover:bg-muted rounded-md border px-3 py-1.5 text-sm"
             type="submit"
           >
             Create organisation

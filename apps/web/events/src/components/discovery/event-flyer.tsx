@@ -49,22 +49,22 @@ export function EventFlyer({
         className="absolute -right-6 -bottom-6 -z-10 size-40 opacity-15"
         strokeWidth={1.5}
       />
-      <span className="w-fit rounded-full bg-black/15 px-2.5 py-1 font-medium text-caption">
+      <span className="text-caption w-fit rounded-full bg-black/15 px-2.5 py-1 font-medium">
         {CATEGORY_LABELS[category]}
       </span>
       <div className="flex items-end justify-between gap-3">
         {title ? (
-          <p className="line-clamp-2 font-display font-semibold text-heading-sm leading-tight">
+          <p className="font-display text-heading-sm line-clamp-2 leading-tight font-semibold">
             {title}
           </p>
         ) : (
           <span />
         )}
-        <span className="flex shrink-0 flex-col items-center rounded-xl bg-white px-3 py-1.5 text-events-ink leading-none">
-          <span className="font-semibold text-caption uppercase">
+        <span className="text-events-ink flex shrink-0 flex-col items-center rounded-xl bg-white px-3 py-1.5 leading-none">
+          <span className="text-caption font-semibold uppercase">
             {stamp.month}
           </span>
-          <span className="font-bold font-display text-heading-sm">
+          <span className="font-display text-heading-sm font-bold">
             {stamp.day}
           </span>
         </span>

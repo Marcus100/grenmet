@@ -8,7 +8,7 @@ vi.mock("@/lib/report-error", () => ({
 }));
 
 const TOKEN = "BT1.ABCDEFGHJK.abcdEFGH12345678";
-const SCAN_BUTTON = /Scan with camera/;
+const SCAN_BUTTON = /Scan with camera/u;
 const stopTrack = vi.fn();
 let detect: ReturnType<typeof vi.fn>;
 let getUserMedia: ReturnType<typeof vi.fn>;

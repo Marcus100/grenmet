@@ -44,8 +44,8 @@ export default async function BulletinPage({
         title={`${BULLETIN_CATEGORIES[category]} bulletins`}
       />
       <PublishedProducts kinds={[category]} />
-      <section className="max-w-prose space-y-3 rounded-gm-card border border-gm-border bg-gm-surface p-5 text-body-base leading-body-base">
-        <h2 className="font-bold font-gm-display text-gm-heading text-heading-md leading-heading-md">
+      <section className="rounded-gm-card border-gm-border bg-gm-surface text-body-base leading-body-base max-w-prose space-y-3 border p-5">
+        <h2 className="font-gm-display text-gm-heading text-heading-md leading-heading-md font-bold">
           Reading a bulletin
         </h2>
         <p>
@@ -59,7 +59,7 @@ export default async function BulletinPage({
           developed.
         </p>
         <Link
-          className="font-semibold text-gm-blue-ink underline"
+          className="text-gm-blue-ink font-semibold underline"
           href="/alerts"
         >
           View current CAP alerts
@@ -68,7 +68,7 @@ export default async function BulletinPage({
       <nav aria-label="Bulletin categories" className="flex flex-wrap gap-3">
         {Object.entries(BULLETIN_CATEGORIES).map(([key, label]) => (
           <Link
-            className="rounded-lg border px-3 py-2 hover:bg-muted"
+            className="hover:bg-muted rounded-lg border px-3 py-2"
             href={`/alerts/bulletins/${key}`}
             key={key}
           >

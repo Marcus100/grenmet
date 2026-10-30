@@ -42,7 +42,7 @@ export function Layout({
             className={
               catalogue
                 ? "contents"
-                : "contents lg:pointer-events-auto lg:block lg:w-72 lg:overflow-y-auto lg:border-zinc-900/10 lg:border-r lg:px-6 lg:pt-4 lg:pb-8 xl:w-80 lg:dark:border-white/10"
+                : "contents lg:pointer-events-auto lg:block lg:w-72 lg:overflow-y-auto lg:border-r lg:border-zinc-900/10 lg:px-6 lg:pt-4 lg:pb-8 xl:w-80 lg:dark:border-white/10"
             }
           >
             <div className={catalogue ? "hidden" : "hidden lg:flex"}>

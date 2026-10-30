@@ -9,11 +9,11 @@ import { fileURLToPath } from "node:url";
 const cliPath = fileURLToPath(
   new URL("./check-portfolio-coverage.mjs", import.meta.url)
 );
-const successPattern = /Portfolio coverage passed/;
+const successPattern = /Portfolio coverage passed/u;
 const missingWorkspacePattern =
-  /missing governed surface `apps\/web\/unmapped`/;
-const prohibitedClaimPattern = /prohibited client-as-product claim/;
-const missingRootPattern = /missing governed surface `field-operations`/;
+  /missing governed surface `apps\/web\/unmapped`/u;
+const prohibitedClaimPattern = /prohibited client-as-product claim/u;
+const missingRootPattern = /missing governed surface `field-operations`/u;
 
 const write = (root, file, contents = "") => {
   const destination = join(root, file);

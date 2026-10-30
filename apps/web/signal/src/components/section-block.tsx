@@ -16,11 +16,11 @@ export function SectionBlock({
 }: SectionBlockProps) {
   return (
     <section className="mx-auto w-full max-w-2xl px-4 py-8" id={id}>
-      <div className="mb-4 flex flex-wrap items-end justify-between gap-4 border-signal-ink border-b-2 pb-2">
-        <h2 className="font-bold font-serif text-xl tracking-tight">{title}</h2>
+      <div className="border-signal-ink mb-4 flex flex-wrap items-end justify-between gap-4 border-b-2 pb-2">
+        <h2 className="font-serif text-xl font-bold tracking-tight">{title}</h2>
         {action ? (
           <Link
-            className="font-semibold text-signal-green text-sm uppercase tracking-wider hover:text-signal-green-dark"
+            className="text-signal-green hover:text-signal-green-dark text-sm font-semibold tracking-wider uppercase"
             href={action.href}
           >
             {action.label} →

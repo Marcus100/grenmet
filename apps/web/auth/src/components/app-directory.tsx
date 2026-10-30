@@ -118,7 +118,7 @@ export function AppDirectory({ hrefs, requestedApp }: AppDirectoryProps) {
     <nav aria-label="Apps" className="space-y-6">
       {APP_GROUPS.map((group) => (
         <section className="space-y-2" key={group.label}>
-          <h2 className="font-mono text-gm-sky text-label uppercase tracking-widest">
+          <h2 className="text-gm-sky text-label font-mono tracking-widest uppercase">
             {group.label}
           </h2>
           <ul className="space-y-1">
@@ -130,19 +130,19 @@ export function AppDirectory({ hrefs, requestedApp }: AppDirectoryProps) {
                   <span
                     aria-hidden="true"
                     className={cn(
-                      "flex size-9 shrink-0 items-center justify-center rounded-lg font-semibold text-body-sm",
+                      "text-body-sm flex size-9 shrink-0 items-center justify-center rounded-lg font-semibold",
                       isCurrent
                         ? "bg-gm-lime text-gm-navy"
-                        : "bg-white/10 text-gm-text-inverse"
+                        : "text-gm-text-inverse bg-white/10"
                     )}
                   >
                     {app.monogram}
                   </span>
                   <span className="min-w-0">
-                    <span className="block font-medium text-gm-text-inverse text-sm">
+                    <span className="text-gm-text-inverse block text-sm font-medium">
                       {app.name}
                     </span>
-                    <span className="block truncate text-body-sm text-gm-surface-muted">
+                    <span className="text-body-sm text-gm-surface-muted block truncate">
                       {app.description}
                     </span>
                   </span>

@@ -27,12 +27,12 @@ const MAX_FINDINGS = 12;
 const SEVERITIES = ["blocker", "major", "minor", "nit"];
 
 const SKIPPED_PATH =
-  /(^|\/)(pnpm-lock\.yaml|uv\.lock|package-lock\.json|openapi\.json)$|^packages\/api-client\/src\/gen\/|\.(png|jpe?g|gif|webp|ico|woff2?|pdf|svg)$/;
+  /(^|\/)(pnpm-lock\.yaml|uv\.lock|package-lock\.json|openapi\.json)$|^packages\/api-client\/src\/gen\/|\.(png|jpe?g|gif|webp|ico|woff2?|pdf|svg)$/u;
 
-const DIFF_SPLIT = /^(?=diff --git )/m;
-const DIFF_HEADER = /^diff --git a\/(\S+) b\//;
-const DIFF_HEADERS = /^diff --git a\/(\S+) b\//gm;
-const MENTION = /@(?=[\w-])/g;
+const DIFF_SPLIT = /^(?=diff --git )/mu;
+const DIFF_HEADER = /^diff --git a\/(\S+) b\//u;
+const DIFF_HEADERS = /^diff --git a\/(\S+) b\//gmu;
+const MENTION = /@(?=[\w-])/gu;
 
 export const isReviewable = (path) => !SKIPPED_PATH.test(path);
 

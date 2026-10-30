@@ -79,7 +79,7 @@ export default function YourPredictionPage() {
         title="Make your map"
       />
       <div className="mx-auto max-w-[1240px] px-4 pt-8 sm:px-6">
-        <p className="mb-6 max-w-[70ch] text-base text-el-muted leading-relaxed">
+        <p className="text-el-muted mb-6 max-w-[70ch] text-base leading-relaxed">
           This tool uses the earlier NDC, NNP and {Object.keys(dpmSlate).length}
           -constituency DPM configuration from our provisional directory. Later
           reporting lists 46 nominees, including nine DPM nominees, which
@@ -95,7 +95,7 @@ export default function YourPredictionPage() {
           land={ringPath(geo.land)}
           seats={seats}
         />
-        <p className="mt-6 max-w-[70ch] text-base text-el-muted leading-relaxed">
+        <p className="text-el-muted mt-6 max-w-[70ch] text-base leading-relaxed">
           Starting from an election, a seat won by 15 points or more is Solid,
           by at least 5 but less than 15 Likely, and by less than 5 Lean; seats
           won by parties not standing in 2026 start as Toss-up. Nothing you

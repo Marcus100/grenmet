@@ -170,7 +170,7 @@ export default async function PartyPage({ params }: Props) {
                     </Link>
                     {!metricEvidence(data, String(p.year), "votes")
                       .official && (
-                      <span className="ml-1 text-base text-el-muted">
+                      <span className="text-el-muted ml-1 text-base">
                         (votes include secondary sources)
                       </span>
                     )}
@@ -226,7 +226,7 @@ export default async function PartyPage({ params }: Props) {
       )}
 
       <Section id="colour" title="On this site">
-        <p className="text-base text-el-ink-2 leading-relaxed">
+        <p className="text-el-ink-2 text-base leading-relaxed">
           <span className={LABEL}>Colour</span> <PartyDot party={code} />
           The {code} is drawn in its colour on every map and chart, always with
           its name.

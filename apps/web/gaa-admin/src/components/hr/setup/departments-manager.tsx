@@ -36,8 +36,8 @@ import { Pencil, Plus } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 
-const NON_SLUG = /[^a-z0-9]+/g;
-const EDGE_UNDERSCORES = /^_+|_+$/g;
+const NON_SLUG = /[^a-z0-9]+/gu;
+const EDGE_UNDERSCORES = /^_+|_+$/gu;
 
 // A department id is a short, permanent code. Suggest one from the name so the
 // user rarely has to think about it, but keep it editable before creation.
@@ -218,7 +218,7 @@ export function DepartmentsManager({
           {departments.length === 0 ? (
             <TableRow>
               <TableCell
-                className="text-center text-muted-foreground text-sm"
+                className="text-muted-foreground text-center text-sm"
                 colSpan={3}
               >
                 {departmentsQuery.isLoading

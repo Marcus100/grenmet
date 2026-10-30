@@ -16,8 +16,8 @@ afterEach(() => {
   cleanup();
   vi.clearAllMocks();
 });
-const CHECKED = /Checked by/;
-const CHECKED_ON = /Checked by a GMS meteorologist on 20 September 2026/;
+const CHECKED = /Checked by/u;
+const CHECKED_ON = /Checked by a GMS meteorologist on 20 September 2026/u;
 const params = Promise.resolve({ slug: "what-is-a-tropical-wave" });
 const question = {
   id: "1",

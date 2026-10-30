@@ -8,18 +8,18 @@ import {
 import { makeOrderDetail } from "@/test/org-factories";
 import { OrderActions } from "./order-actions";
 
-const UUID = /^[0-9a-f-]{36}$/;
-const ALREADY_WAITING = /already waiting/;
-const RE_1 = /Only an order that is awaiting payment/;
-const RE_2 = /nothing left to refund/i;
-const RE_3 = /Payment recorded/;
-const RE_4 = /Refund XCD 150\.00 to the buyer/;
-const RE_5 = /between/;
-const RE_6 = /Follow the business policy/;
-const RE_7 = /at least 48 hours away/;
-const RE_8 = /Refund in full/;
-const RE_9 = /queued/;
-const RE_10 = /Do not refund/;
+const UUID = /^[0-9a-f-]{36}$/u;
+const ALREADY_WAITING = /already waiting/u;
+const RE_1 = /Only an order that is awaiting payment/u;
+const RE_2 = /nothing left to refund/iu;
+const RE_3 = /Payment recorded/u;
+const RE_4 = /Refund XCD 150\.00 to the buyer/u;
+const RE_5 = /between/u;
+const RE_6 = /Follow the business policy/u;
+const RE_7 = /at least 48 hours away/u;
+const RE_8 = /Refund in full/u;
+const RE_9 = /queued/u;
+const RE_10 = /Do not refund/u;
 
 const refresh = vi.fn();
 

@@ -13,11 +13,11 @@ const REQUEST_APPROVED_EMAIL = "Your request was approved, email";
 const REQUEST_APPROVED_BELL = "Your request was approved, bell";
 const FORECAST_BELL = "Forecast overdue, bell";
 const GROUPED_COUNT = "×3";
-const URGENT_LABEL = /^Urgent: Forecast is overdue/;
-const REPEATED_WORDS = /repeated 3 times/;
+const URGENT_LABEL = /^Urgent: Forecast is overdue/u;
+const REPEATED_WORDS = /repeated 3 times/u;
 
 const BASE = "http://localhost";
-const BELL_UNREAD = /Notifications, 2 unread/;
+const BELL_UNREAD = /Notifications, 2 unread/u;
 
 const unreadItem = {
   id: "n1",

@@ -3,7 +3,7 @@
 export default function BusinessError({ reset }: { reset: () => void }) {
   return (
     <section className="space-y-4">
-      <h1 className="font-semibold text-2xl">
+      <h1 className="text-2xl font-semibold">
         Online booking is taking a break
       </h1>
       <p className="text-muted-foreground">

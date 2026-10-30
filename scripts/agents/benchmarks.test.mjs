@@ -20,8 +20,8 @@ const KINDS = [
 ];
 const SOURCES = ["history", "open-issue", "adversarial", "rules"];
 const TIERS = ["low", "standard", "high"];
-const ID = /^bm-\d{2}$/;
-const SHA = /^[0-9a-f]{8}$/;
+const ID = /^bm-\d{2}$/u;
+const SHA = /^[0-9a-f]{8}$/u;
 const TASK_COUNT = 25;
 const MIN_ADVERSARIAL = 3;
 

@@ -48,7 +48,7 @@ export function RiskLadder<T extends string>({
         <legend className="text-gm-text-muted text-micro leading-micro">
           {label}
         </legend>
-        <span className="font-mono text-gm-text-secondary text-micro leading-micro">
+        <span className="text-gm-text-secondary text-micro leading-micro font-mono">
           {value}
         </span>
       </div>
@@ -57,7 +57,7 @@ export function RiskLadder<T extends string>({
           const selected = option === value;
           return (
             <label
-              className="relative flex-1 cursor-pointer rounded-md border border-gm-border px-1 py-2 text-center font-semibold text-caption leading-caption"
+              className="border-gm-border text-caption leading-caption relative flex-1 cursor-pointer rounded-md border px-1 py-2 text-center font-semibold"
               key={option}
             >
               <input

@@ -4,7 +4,7 @@ import { cookies } from "next/headers";
 
 export const ORGANISER_COOKIE = "events_organiser";
 
-const SLUG = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
+const SLUG = /^[a-z0-9]+(?:-[a-z0-9]+)*$/u;
 
 /** The organiser slug this member last picked in /dash, if any. */
 export async function chosenOrganiser(): Promise<string | undefined> {

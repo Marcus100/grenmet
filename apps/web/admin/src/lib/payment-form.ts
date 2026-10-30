@@ -17,8 +17,8 @@ export const LEDGER_KINDS = [
 ] as const;
 export type LedgerKindValue = (typeof LEDGER_KINDS)[number];
 
-const ORGANISATION_ID = /^[A-Za-z0-9_-]{1,100}$/;
-const DATE = /^\d{4}-\d{2}-\d{2}$/;
+const ORGANISATION_ID = /^[A-Za-z0-9_-]{1,100}$/u;
+const DATE = /^\d{4}-\d{2}-\d{2}$/u;
 const MAX_AMOUNT_MINOR = 1_000_000_000;
 const MAX_REFERENCE = 200;
 const MAX_NOTE = 500;

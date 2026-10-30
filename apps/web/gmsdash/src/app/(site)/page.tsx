@@ -20,15 +20,15 @@ export default async function Home() {
   return (
     <>
       <section className="space-y-3">
-        <h1 className="font-semibold text-3xl">GMS Dashboard</h1>
-        <p className="max-w-2xl text-muted-foreground">
+        <h1 className="text-3xl font-semibold">GMS Dashboard</h1>
+        <p className="text-muted-foreground max-w-2xl">
           Point forecasts straight from the global weather models, for the
           places that matter to Grenada: Maurice Bishop International Airport,
           Lauriston (Carriacou) and Petite Martinique. Compare ECMWF IFS, ECMWF
           AIFS and NOAA GFS out to ten days.
         </p>
         <p
-          className="max-w-2xl rounded-md border bg-muted px-3 py-2 text-sm"
+          className="bg-muted max-w-2xl rounded-md border px-3 py-2 text-sm"
           role="note"
         >
           This is raw model guidance, not an official GMS forecast. For official
@@ -37,7 +37,7 @@ export default async function Home() {
       </section>
 
       <section className="space-y-3">
-        <h2 className="font-semibold text-xl">How access works</h2>
+        <h2 className="text-xl font-semibold">How access works</h2>
         <ol className="max-w-2xl list-decimal space-y-1 pl-5 text-sm">
           <li>Sign in with your Barrels account.</li>
           <li>
@@ -53,7 +53,7 @@ export default async function Home() {
 
       {session ? (
         <section className="space-y-3">
-          <h2 className="font-semibold text-xl">Your organisations</h2>
+          <h2 className="text-xl font-semibold">Your organisations</h2>
           {organisations.length === 0 ? (
             <p className="text-muted-foreground text-sm">
               You are not a member of an organisation yet. Ask an organisation
@@ -91,7 +91,7 @@ export default async function Home() {
         </section>
       ) : (
         <a
-          className="inline-block rounded-md bg-primary px-4 py-2 text-primary-foreground text-sm"
+          className="bg-primary text-primary-foreground inline-block rounded-md px-4 py-2 text-sm"
           href="/auth/start"
         >
           Sign in to get started

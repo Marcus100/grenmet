@@ -40,7 +40,7 @@ export default function PrivacyPage() {
           ]}
         />
         <Link
-          className="mt-3 inline-block font-semibold text-body-base text-gm-blue-ink leading-body-base underline"
+          className="text-body-base text-gm-blue-ink leading-body-base mt-3 inline-block font-semibold underline"
           href="/about/contact"
         >
           Contact GMS

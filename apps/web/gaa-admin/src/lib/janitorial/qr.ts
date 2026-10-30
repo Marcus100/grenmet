@@ -1,6 +1,6 @@
 import QRCode from "qrcode";
 
-const TRAILING_SLASHES = /\/+$/;
+const TRAILING_SLASHES = /\/+$/u;
 
 /**
  * What an area's QR label encodes: a link into the janitor app when its origin

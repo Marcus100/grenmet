@@ -4,11 +4,11 @@ import { describe, expect, it } from "vitest";
 import { FlightBoard } from "@/components/flight-board";
 import type { Flight } from "@/lib/flights";
 
-const DEPARTURES_RE = /departures/i;
-const LAURISTON_RE = /lauriston/i;
-const SAMPLE_RE = /sample data/i;
-const RECENT_RE = /recent movements.*not a live board/i;
-const NO_ARRIVALS_RE = /no arrivals listed/i;
+const DEPARTURES_RE = /departures/iu;
+const LAURISTON_RE = /lauriston/iu;
+const SAMPLE_RE = /sample data/iu;
+const RECENT_RE = /recent movements.*not a live board/iu;
+const NO_ARRIVALS_RE = /no arrivals listed/iu;
 
 const FLIGHTS: Flight[] = [
   {

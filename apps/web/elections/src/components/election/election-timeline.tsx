@@ -103,7 +103,7 @@ export function ElectionTimeline({
       viewBox={`0 0 ${W} ${H}`}
     >
       <text
-        className="fill-(--el-ink-2) font-semibold text-[14px] uppercase tracking-[0.07em]"
+        className="fill-(--el-ink-2) text-[14px] font-semibold tracking-[0.07em] uppercase"
         x={LEFT}
         y={24}
       >
@@ -167,8 +167,8 @@ export function ElectionTimeline({
             <text
               className={
                 s.strong
-                  ? "fill-(--el-ink) font-bold font-serif text-[20px]"
-                  : "fill-(--el-ink) font-semibold font-serif text-[16px]"
+                  ? "fill-(--el-ink) font-serif text-[20px] font-bold"
+                  : "fill-(--el-ink) font-serif text-[16px] font-semibold"
               }
               textAnchor={anchor}
               x={tx}
@@ -200,7 +200,7 @@ export function ElectionTimeline({
           />
           {daysToPoll > 0 && (
             <text
-              className="fill-(--el-ink) font-semibold text-[14px]"
+              className="fill-(--el-ink) text-[14px] font-semibold"
               textAnchor="end"
               x={RIGHT}
               y={24}

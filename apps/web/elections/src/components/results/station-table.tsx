@@ -14,8 +14,8 @@ export function StationTable({
   const label = sideLabel;
   const stations = divisions.flatMap((d) => d.stations.map((s) => ({ d, s })));
   return (
-    <details className="mt-3 border-el-rule border-t pt-2">
-      <summary className="cursor-pointer font-semibold text-base">
+    <details className="border-el-rule mt-3 border-t pt-2">
+      <summary className="cursor-pointer text-base font-semibold">
         {divisions.length} polling divisions · {stations.length} stations
       </summary>
       <div className="mt-2 overflow-x-auto">

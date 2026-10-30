@@ -6,9 +6,9 @@ import { join } from "node:path";
 import test from "node:test";
 import { fileURLToPath } from "node:url";
 
-const MISSING_TOOL = /pg_dump is not installed or is not on PATH/;
+const MISSING_TOOL = /pg_dump is not installed or is not on PATH/u;
 const PRIVATE_OUTPUT =
-  /private-test-password|private-reference-password|ECONNREFUSED/;
+  /private-test-password|private-reference-password|ECONNREFUSED/u;
 
 test("missing pg_dump is actionable before database access and does not expose credentials", () => {
   const directory = mkdtempSync(join(tmpdir(), "cms-adopt-test-"));

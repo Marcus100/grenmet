@@ -27,13 +27,13 @@ const PREFIXES = new Set([
   "van",
   "du",
 ]);
-const TITLE = /^(Dr|Mr|Mrs|Ms|Hon|Sir|Dame)\.?\s+/i;
-const DASHES = /[‐‑–]/g;
-const SPACES = /\s+/g;
-const STARS = /\*/g;
-const NOT_LETTERS = /[^a-z]/g;
-const NOT_NAME = /[^A-Za-z]/g;
-const DOTS = /\./g;
+const TITLE = /^(Dr|Mr|Mrs|Ms|Hon|Sir|Dame)\.?\s+/iu;
+const DASHES = /[‐‑–]/gu;
+const SPACES = /\s+/gu;
+const STARS = /\*/gu;
+const NOT_LETTERS = /[^a-z]/gu;
+const NOT_NAME = /[^A-Za-z]/gu;
+const DOTS = /\./gu;
 
 interface ParsedName {
   display: string;

@@ -3,7 +3,7 @@ import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 import { DocumentPreview } from "./document-preview";
 
-const DOWNLOAD_PDF = /download pdf/i;
+const DOWNLOAD_PDF = /download pdf/iu;
 
 describe("DocumentPreview (client-rendered document)", () => {
   it("invokes a custom onDownloadPdf handler", async () => {

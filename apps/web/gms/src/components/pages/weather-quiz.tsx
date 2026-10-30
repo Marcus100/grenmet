@@ -33,11 +33,11 @@ export function WeatherQuiz({
           const choice = picked[qi];
           return (
             <li
-              className="rounded-gm-card border border-gm-border bg-background p-4 lg:p-5"
+              className="rounded-gm-card border-gm-border bg-background border p-4 lg:p-5"
               key={q.question}
             >
               <fieldset>
-                <legend className="font-bold text-body-base text-gm-heading leading-body-base">
+                <legend className="text-body-base text-gm-heading leading-body-base font-bold">
                   {qi + 1}. {q.question}
                 </legend>
                 <div className="mt-3 grid gap-2 sm:grid-cols-2">
@@ -48,7 +48,7 @@ export function WeatherQuiz({
                       <button
                         aria-pressed={isPicked}
                         className={cn(
-                          "flex min-h-11 items-center justify-between gap-2 rounded-md border px-3 py-2 text-left text-body leading-body",
+                          "text-body leading-body flex min-h-11 items-center justify-between gap-2 rounded-md border px-3 py-2 text-left",
                           choice === null &&
                             "border-gm-border-input hover:border-gm-blue-ink",
                           choice !== null && isAnswer && "border-gm-risk-green",
@@ -72,13 +72,13 @@ export function WeatherQuiz({
                       >
                         {option}
                         {choice !== null && isAnswer && (
-                          <span className="flex items-center gap-1 font-bold text-body-sm leading-body-sm">
+                          <span className="text-body-sm leading-body-sm flex items-center gap-1 font-bold">
                             <CheckIcon aria-hidden="true" className="size-4" />
                             Correct answer
                           </span>
                         )}
                         {isPicked && !isAnswer && (
-                          <span className="flex items-center gap-1 font-bold text-body-sm leading-body-sm">
+                          <span className="text-body-sm leading-body-sm flex items-center gap-1 font-bold">
                             <XIcon aria-hidden="true" className="size-4" />
                             Your answer
                           </span>
@@ -90,7 +90,7 @@ export function WeatherQuiz({
                 {choice !== null && (
                   <p
                     aria-live="polite"
-                    className="mt-3 text-body text-gm-text-secondary leading-body"
+                    className="text-body text-gm-text-secondary leading-body mt-3"
                   >
                     {q.explanation}
                   </p>
@@ -102,7 +102,7 @@ export function WeatherQuiz({
       </ol>
       <p
         aria-live="polite"
-        className="font-bold font-gm-display text-gm-heading text-heading-md leading-heading-md"
+        className="font-gm-display text-gm-heading text-heading-md leading-heading-md font-bold"
       >
         {answered === questions.length
           ? `You scored ${score} out of ${questions.length}.`
@@ -110,7 +110,7 @@ export function WeatherQuiz({
       </p>
       {answered > 0 && (
         <button
-          className="h-11 w-fit rounded-md border border-gm-border-input px-4 font-semibold text-body leading-body hover:border-gm-blue-ink"
+          className="border-gm-border-input text-body leading-body hover:border-gm-blue-ink h-11 w-fit rounded-md border px-4 font-semibold"
           onClick={() => setPicked(questions.map(() => null))}
           type="button"
         >

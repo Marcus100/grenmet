@@ -10,12 +10,12 @@ import {
   withSession,
 } from "./run-record.mjs";
 
-const NO_MATCHING_RE = /no matching/;
+const NO_MATCHING_RE = /no matching/u;
 
 const SUMMARY_LINE =
-  /\*\*Agent run:\*\* claude · claude-sonnet-5-5 · success · #366/;
-const INVALID_RUN = /Invalid run record/;
-const KIND_RULE = /kind must be one of/;
+  /\*\*Agent run:\*\* claude · claude-sonnet-5-5 · success · #366/u;
+const INVALID_RUN = /Invalid run record/u;
+const KIND_RULE = /kind must be one of/u;
 const SCRIPT = fileURLToPath(new URL("./run-record.mjs", import.meta.url));
 
 const RUN = {

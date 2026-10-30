@@ -16,12 +16,12 @@ import { afterAll, afterEach, beforeAll, describe, expect, it } from "vitest";
 import { TimesheetEditor } from "./timesheet-editor";
 
 const BASE = "http://localhost";
-const ADD_ENTRY = /add entry/i;
-const SUBMIT_TO_HR = /sign & submit/i;
-const FILL_FROM_ROSTER = /fill from roster/i;
-const ROSTER_NOTE = /2 of 2 rostered shifts added from your published roster/;
-const HOLIDAY_NOTE = /1 rostered day is a public holiday/;
-const NOTHING_ADDED = /0 of 2 rostered shifts added/;
+const ADD_ENTRY = /add entry/iu;
+const SUBMIT_TO_HR = /sign & submit/iu;
+const FILL_FROM_ROSTER = /fill from roster/iu;
+const ROSTER_NOTE = /2 of 2 rostered shifts added from your published roster/u;
+const HOLIDAY_NOTE = /1 rostered day is a public holiday/u;
+const NOTHING_ADDED = /0 of 2 rostered shifts added/u;
 
 const PROFILE = {
   id: "u-1",

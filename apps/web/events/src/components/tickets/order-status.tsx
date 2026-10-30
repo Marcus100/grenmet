@@ -29,8 +29,8 @@ function Panel({
   title: string;
 }) {
   return (
-    <div className="space-y-3 rounded-2xl border border-border bg-card p-6">
-      <h2 className="flex items-center gap-2 font-display font-semibold text-heading-sm">
+    <div className="border-border bg-card space-y-3 rounded-2xl border p-6">
+      <h2 className="font-display text-heading-sm flex items-center gap-2 font-semibold">
         {icon}
         {title}
       </h2>
@@ -94,7 +94,7 @@ export function OrderStatus({ order }: { order: MyOrder }) {
     <div className="space-y-4" role="status">
       {order.status === "pending_payment" ? (
         <Panel
-          icon={<Clock className="size-5 text-primary" />}
+          icon={<Clock className="text-primary size-5" />}
           title="Awaiting payment"
         >
           <p className="text-body">
@@ -111,7 +111,7 @@ export function OrderStatus({ order }: { order: MyOrder }) {
                   Time left{" "}
                   <span
                     aria-hidden="true"
-                    className="font-mono font-semibold text-foreground tabular-nums"
+                    className="text-foreground font-mono font-semibold tabular-nums"
                   >
                     {formatCountdown(remaining)}
                   </span>
@@ -139,7 +139,7 @@ export function OrderStatus({ order }: { order: MyOrder }) {
       ) : null}
       {order.status === "confirmed" ? (
         <Panel
-          icon={<Check className="size-5 text-primary" />}
+          icon={<Check className="text-primary size-5" />}
           title="Payment received"
         >
           <p className="text-body">
@@ -151,7 +151,7 @@ export function OrderStatus({ order }: { order: MyOrder }) {
       ) : null}
       {order.status === "expired" ? (
         <Panel
-          icon={<TimerOff className="size-5 text-destructive" />}
+          icon={<TimerOff className="text-destructive size-5" />}
           title="This order expired"
         >
           <p className="text-body text-muted-foreground">
@@ -164,7 +164,7 @@ export function OrderStatus({ order }: { order: MyOrder }) {
       ) : null}
       {order.status === "refunded" ? (
         <Panel
-          icon={<RotateCcw className="size-5 text-muted-foreground" />}
+          icon={<RotateCcw className="text-muted-foreground size-5" />}
           title="This order was refunded"
         >
           <p className="text-body text-muted-foreground">

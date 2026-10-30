@@ -29,7 +29,7 @@ const SHORT_DATE = new Intl.DateTimeFormat("en-GB", {
 });
 
 /** The same bordered notice as "Grenada in data": one line, aligned to the heading. */
-const NOTICE = cn(HOME_CARD, "p-4 text-body-sm text-gm-text-secondary");
+const NOTICE = cn(HOME_CARD, "text-body-sm text-gm-text-secondary p-4");
 
 /** Unavailable, empty or content — the three states every CMS feed has. */
 function FeedState({
@@ -77,7 +77,7 @@ export function postedLabel(iso: string, now = new Date()): string {
   return `${prefix} at ${clock12(CLOCK.format(when))}`;
 }
 
-const NAME_SEPARATORS = /[\s._-]+/;
+const NAME_SEPARATORS = /[\s._-]+/u;
 
 /** "Eugine Whint" gives "EW"; one word gives its first two letters; no name gives "GMS". */
 export function avatarInitials(name: string | null | undefined): string {
@@ -104,12 +104,12 @@ function DeskPostCard({ item }: { item: PublishedContent }) {
         <header className="flex items-center gap-3">
           <span
             aria-hidden="true"
-            className="flex size-10 shrink-0 items-center justify-center rounded-full bg-gm-sky-ink font-bold text-body-sm text-gm-text-inverse leading-body-sm"
+            className="bg-gm-sky-ink text-body-sm text-gm-text-inverse leading-body-sm flex size-10 shrink-0 items-center justify-center rounded-full font-bold"
           >
             {avatarInitials(item.authorName)}
           </span>
           <span className="flex min-w-0 flex-col">
-            <span className="font-bold text-body text-gm-heading leading-body">
+            <span className="text-body text-gm-heading leading-body font-bold">
               {item.authorName ?? "The forecasters"}
             </span>
             <time
@@ -120,7 +120,7 @@ function DeskPostCard({ item }: { item: PublishedContent }) {
             </time>
           </span>
         </header>
-        <h3 className="text-balance font-bold text-gm-heading text-heading-sm leading-heading-sm">
+        <h3 className="text-gm-heading text-heading-sm leading-heading-sm font-bold text-balance">
           <Link className="hover:underline" href={contentHref(item) as Route}>
             {item.title}
           </Link>
@@ -129,7 +129,7 @@ function DeskPostCard({ item }: { item: PublishedContent }) {
           <p className="text-body-base leading-body-base">{item.summary}</p>
         )}
         {item.imageUrl && (
-          <span className="relative aspect-[4/3] overflow-hidden rounded-lg bg-gm-surface-panel">
+          <span className="bg-gm-surface-panel relative aspect-[4/3] overflow-hidden rounded-lg">
             <Image
               alt={item.imageAlt ?? ""}
               className="object-cover"
@@ -141,7 +141,7 @@ function DeskPostCard({ item }: { item: PublishedContent }) {
           </span>
         )}
         <Link
-          className="mt-auto flex w-fit items-center gap-1 font-semibold text-body text-gm-blue-ink leading-body hover:underline"
+          className="text-body text-gm-blue-ink leading-body mt-auto flex w-fit items-center gap-1 font-semibold hover:underline"
           href={contentHref(item) as Route}
         >
           Read the article
@@ -181,7 +181,7 @@ export async function ForecastDesk() {
       >
         <ul
           aria-label="Latest desk posts"
-          className="-mx-4 flex snap-x snap-mandatory scroll-px-4 gap-4 overflow-x-auto px-4 pb-2 sm:-mx-6 sm:scroll-px-6 sm:px-6 xl:-mx-8 xl:scroll-px-8 xl:px-8 max-lg:[scrollbar-width:none] max-lg:[&::-webkit-scrollbar]:hidden"
+          className="-mx-4 flex snap-x snap-mandatory scroll-px-4 gap-4 overflow-x-auto px-4 pb-2 max-lg:[scrollbar-width:none] sm:-mx-6 sm:scroll-px-6 sm:px-6 xl:-mx-8 xl:scroll-px-8 xl:px-8 max-lg:[&::-webkit-scrollbar]:hidden"
         >
           {updates.articles.slice(0, 8).map((item) => (
             <DeskPostCard item={item} key={item.id} />
@@ -221,7 +221,7 @@ export async function Stories() {
               className="group flex flex-col gap-2"
               href={lead.href as Route}
             >
-              <span className="relative aspect-video overflow-hidden rounded-gm-card bg-gm-surface-panel">
+              <span className="rounded-gm-card bg-gm-surface-panel relative aspect-video overflow-hidden">
                 <Image
                   alt=""
                   className="object-cover"
@@ -231,7 +231,7 @@ export async function Stories() {
                   unoptimized={!isOptimizableImage(lead.imageUrl)}
                 />
               </span>
-              <span className="text-balance font-bold text-gm-heading text-heading-base leading-heading-base group-hover:underline">
+              <span className="text-gm-heading text-heading-base leading-heading-base font-bold text-balance group-hover:underline">
                 {lead.title}
               </span>
               <span className="text-body-base text-gm-text-secondary leading-body-base">
@@ -248,7 +248,7 @@ export async function Stories() {
                     className="group grid grid-cols-[7.5rem_minmax(0,1fr)] gap-3"
                     href={story.href as Route}
                   >
-                    <span className="relative aspect-video overflow-hidden rounded-lg bg-gm-surface-panel">
+                    <span className="bg-gm-surface-panel relative aspect-video overflow-hidden rounded-lg">
                       <Image
                         alt=""
                         className="object-cover"
@@ -259,7 +259,7 @@ export async function Stories() {
                       />
                     </span>
                     <span className="flex flex-col gap-1">
-                      <span className="font-bold text-body-base text-gm-heading leading-body-base group-hover:underline">
+                      <span className="text-body-base text-gm-heading leading-body-base font-bold group-hover:underline">
                         {story.title}
                       </span>
                       <span className="text-body-sm text-gm-text-muted leading-body-sm">
@@ -292,20 +292,20 @@ export async function Explained() {
     >
       <div className="grid gap-5 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)]">
         <Link
-          className="group flex flex-col justify-end gap-2 rounded-gm-card bg-gm-navy p-6 text-gm-text-inverse"
+          className="group rounded-gm-card bg-gm-navy text-gm-text-inverse flex flex-col justify-end gap-2 p-6"
           href="/explore/explained"
         >
-          <span className="font-bold text-gm-lime text-label uppercase leading-label tracking-wider">
+          <span className="text-gm-lime text-label leading-label font-bold tracking-wider uppercase">
             Grenada weather
           </span>
-          <span className="text-balance font-bold font-gm-display text-gm-display uppercase tracking-wide">
+          <span className="font-gm-display text-gm-display font-bold tracking-wide text-balance uppercase">
             Grenada's weather and climate, explained
           </span>
-          <span className="max-w-prose text-body-base text-gm-text-inverse/85 leading-body-base">
+          <span className="text-body-base text-gm-text-inverse/85 leading-body-base max-w-prose">
             Plain-language explainers from the forecast desk: trade winds,
             tropical waves, rain shadows and what a forecast really says.
           </span>
-          <span className="flex items-center gap-1 font-semibold text-body text-gm-lime leading-body group-hover:underline">
+          <span className="text-body text-gm-lime leading-body flex items-center gap-1 font-semibold group-hover:underline">
             Read the explainers
             <ArrowRightIcon aria-hidden="true" className="size-4" />
           </span>
@@ -323,7 +323,7 @@ export async function Explained() {
               {questions.questions.map((item) => (
                 <li className="border-gm-border border-b" key={item.id}>
                   <Link
-                    className="flex items-center justify-between gap-3 py-3.5 font-semibold text-body-base text-gm-heading leading-body-base hover:underline"
+                    className="text-body-base text-gm-heading leading-body-base flex items-center justify-between gap-3 py-3.5 font-semibold hover:underline"
                     href={questionHref(item.slug) as Route}
                   >
                     {item.question}
@@ -337,7 +337,7 @@ export async function Explained() {
             </ul>
           </FeedState>
           <Link
-            className="mt-4 flex items-center justify-between gap-3 rounded-gm-card bg-gm-surface-panel p-4 font-semibold text-body-base text-gm-heading leading-body-base hover:underline"
+            className="rounded-gm-card bg-gm-surface-panel text-body-base text-gm-heading leading-body-base mt-4 flex items-center justify-between gap-3 p-4 font-semibold hover:underline"
             href="/explore/ask"
           >
             Have a question? Ask a meteorologist
@@ -378,7 +378,7 @@ export async function LatestReports() {
         {lead && (
           <div className="grid gap-4 lg:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)]">
             <article className={`${HOME_CARD} flex flex-col gap-3`}>
-              <h3 className="text-balance font-bold text-gm-heading text-heading-sm leading-heading-sm">
+              <h3 className="text-gm-heading text-heading-sm leading-heading-sm font-bold text-balance">
                 <Link
                   className="hover:underline"
                   href={contentHref(lead) as Route}
@@ -387,7 +387,7 @@ export async function LatestReports() {
                 </Link>
               </h3>
               {lead.summary && (
-                <p className="max-w-prose text-body-base leading-body-base">
+                <p className="text-body-base leading-body-base max-w-prose">
                   {lead.summary}
                 </p>
               )}
@@ -397,18 +397,18 @@ export async function LatestReports() {
                 {rest.slice(0, 5).map((note) => (
                   <li key={note.id}>
                     <Link
-                      className={`${HOME_CARD} flex flex-col gap-1 hover:border-gm-blue-ink`}
+                      className={`${HOME_CARD} hover:border-gm-blue-ink flex flex-col gap-1`}
                       href={contentHref(note) as Route}
                     >
                       {note.linkedProduct && (
-                        <span className="font-bold text-gm-sky-ink text-label uppercase leading-label tracking-wider">
+                        <span className="text-gm-sky-ink text-label leading-label font-bold tracking-wider uppercase">
                           {note.linkedProduct.kind &&
                           isProductKind(note.linkedProduct.kind)
                             ? productTitle(note.linkedProduct.kind)
                             : note.linkedProduct.title}
                         </span>
                       )}
-                      <span className="font-bold text-body text-gm-heading leading-body">
+                      <span className="text-body text-gm-heading leading-body font-bold">
                         {note.title}
                       </span>
                     </Link>
@@ -434,20 +434,20 @@ export function GetAlertsStrip() {
       className="bg-background pt-3 pb-4 lg:pt-4 lg:pb-6"
     >
       <div className="mx-auto max-w-6xl px-4 sm:px-6 xl:px-8">
-        <div className="flex flex-col gap-3 rounded-gm-card border border-gm-border bg-gm-navy px-4 py-4 text-gm-text-inverse sm:flex-row sm:flex-wrap sm:items-center sm:gap-x-4 sm:gap-y-2 sm:py-3">
+        <div className="rounded-gm-card border-gm-border bg-gm-navy text-gm-text-inverse flex flex-col gap-3 border px-4 py-4 sm:flex-row sm:flex-wrap sm:items-center sm:gap-x-4 sm:gap-y-2 sm:py-3">
           <div className="flex min-w-0 flex-1 items-center justify-center gap-3 sm:justify-start sm:gap-4">
             <BellIcon
               aria-hidden="true"
-              className="size-5 shrink-0 text-gm-lime"
+              className="text-gm-lime size-5 shrink-0"
             />
             <div className="min-w-0 sm:flex-1">
               <h2
-                className="font-bold text-body-base leading-body-base"
+                className="text-body-base leading-body-base font-bold"
                 id="get-alerts-title"
               >
                 Get official alerts first
               </h2>
-              <p className="hidden text-body-sm text-gm-text-inverse/85 leading-body-sm sm:block">
+              <p className="text-body-sm text-gm-text-inverse/85 leading-body-sm hidden sm:block">
                 The GMS app sends alerts the moment we issue them, or choose
                 WhatsApp, email or a feed.
               </p>
@@ -455,14 +455,14 @@ export function GetAlertsStrip() {
           </div>
           <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center">
             <Link
-              className="flex h-11 items-center justify-center gap-2 rounded-md bg-gm-lime px-4 font-bold text-body text-gm-navy leading-body"
+              className="bg-gm-lime text-body text-gm-navy leading-body flex h-11 items-center justify-center gap-2 rounded-md px-4 font-bold"
               href="/app-guide"
             >
               <SmartphoneIcon aria-hidden="true" className="size-4" />
               Get the app
             </Link>
             <Link
-              className="flex h-11 items-center justify-center rounded-md border border-gm-text-inverse/30 px-3 font-semibold text-body-sm leading-body-sm hover:bg-gm-text-inverse/10"
+              className="border-gm-text-inverse/30 text-body-sm leading-body-sm hover:bg-gm-text-inverse/10 flex h-11 items-center justify-center rounded-md border px-3 font-semibold"
               href="/alerts/get-alerts"
             >
               Other channels

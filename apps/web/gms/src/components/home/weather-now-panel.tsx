@@ -34,7 +34,7 @@ export interface MediaItem {
 const STAGE = "aspect-video w-full rounded-gm-card bg-gm-navy";
 const EMPTY_NOTICE = cn(
   STAGE,
-  "flex items-center justify-center border border-gm-border px-6 text-center text-body leading-body"
+  "border-gm-border text-body leading-body flex items-center justify-center border px-6 text-center"
 );
 
 type TabKey = "satellite" | "radar" | "wind" | "seas" | "audio" | "video";
@@ -111,7 +111,7 @@ export function WeatherNowPanel({
     : undefined;
 
   return (
-    <div className="flex flex-col overflow-hidden rounded-gm-card border border-gm-border bg-gm-navy text-gm-text-inverse">
+    <div className="rounded-gm-card border-gm-border bg-gm-navy text-gm-text-inverse flex flex-col overflow-hidden border">
       <div
         aria-label="Weather now"
         className="grid grid-cols-6 gap-0.5 p-1 sm:flex sm:gap-1 sm:p-2"
@@ -122,9 +122,9 @@ export function WeatherNowPanel({
             aria-controls={`${baseId}-panel`}
             aria-selected={tab === key}
             className={cn(
-              "flex min-h-11 min-w-0 flex-col items-center justify-center gap-0.5 rounded-md px-0.5 py-1.5 font-semibold text-caption leading-caption hover:bg-gm-text-inverse/10 sm:flex-row sm:gap-1.5 sm:whitespace-nowrap sm:px-3 sm:py-2 sm:text-body sm:leading-body",
+              "text-caption leading-caption hover:bg-gm-text-inverse/10 sm:text-body sm:leading-body flex min-h-11 min-w-0 flex-col items-center justify-center gap-0.5 rounded-md px-0.5 py-1.5 font-semibold sm:flex-row sm:gap-1.5 sm:px-3 sm:py-2 sm:whitespace-nowrap",
               tab === key &&
-                "bg-gm-text-inverse/15 ring-2 ring-gm-lime ring-inset"
+                "bg-gm-text-inverse/15 ring-gm-lime ring-2 ring-inset"
             )}
             id={`${baseId}-${key}`}
             key={key}
@@ -143,7 +143,7 @@ export function WeatherNowPanel({
 
       <div
         aria-labelledby={`${baseId}-${tab}`}
-        className="flex flex-col gap-3 bg-gm-navy-raised p-3"
+        className="bg-gm-navy-raised flex flex-col gap-3 p-3"
         id={`${baseId}-panel`}
         role="tabpanel"
       >
@@ -167,10 +167,10 @@ export function WeatherNowPanel({
               title={current.title}
             />
             <div className="flex flex-col gap-1 px-1">
-              <p className="font-bold text-body-base leading-body-base">
+              <p className="text-body-base leading-body-base font-bold">
                 {current.title}
                 {current.posted && (
-                  <span className="font-normal text-body-sm text-gm-text-inverse/80 leading-body-sm">
+                  <span className="text-body-sm text-gm-text-inverse/80 leading-body-sm font-normal">
                     {" "}
                     · {current.posted}
                   </span>
@@ -180,7 +180,7 @@ export function WeatherNowPanel({
                 <p className="text-body leading-body">{current.text}</p>
               )}
               <a
-                className="w-fit text-body-sm text-gm-lime leading-body-sm underline"
+                className="text-body-sm text-gm-lime leading-body-sm w-fit underline"
                 href={current.embed.href}
                 rel="noopener noreferrer"
                 target="_blank"
@@ -191,14 +191,14 @@ export function WeatherNowPanel({
             {items.length > 1 && (
               <ul
                 aria-label={tab === "video" ? "More videos" : "More audio"}
-                className="flex flex-col border-gm-text-inverse/15 border-t"
+                className="border-gm-text-inverse/15 flex flex-col border-t"
               >
                 {items.map((item) => (
                   <li key={item.id}>
                     <button
                       aria-current={item.id === current.id}
                       className={cn(
-                        "flex w-full items-baseline justify-between gap-3 px-1 py-2 text-left text-body leading-body hover:bg-gm-text-inverse/10",
+                        "text-body leading-body hover:bg-gm-text-inverse/10 flex w-full items-baseline justify-between gap-3 px-1 py-2 text-left",
                         item.id === current.id && "font-bold"
                       )}
                       onClick={() => setSelected(item.id)}
@@ -220,10 +220,10 @@ export function WeatherNowPanel({
 
         {note && (
           <div className="flex flex-col gap-1 px-1">
-            <p className="font-bold text-body-base leading-body-base">
+            <p className="text-body-base leading-body-base font-bold">
               {note.title}
               {note.posted && (
-                <span className="font-normal text-body-sm text-gm-text-inverse/80 leading-body-sm">
+                <span className="text-body-sm text-gm-text-inverse/80 leading-body-sm font-normal">
                   {" "}
                   · {note.posted}
                 </span>
@@ -239,7 +239,7 @@ export function WeatherNowPanel({
         )}
 
         <Link
-          className="flex w-fit items-center gap-1 px-1 font-semibold text-body text-gm-lime leading-body hover:underline"
+          className="text-body text-gm-lime leading-body flex w-fit items-center gap-1 px-1 font-semibold hover:underline"
           href={active.href as Route}
         >
           Open the full {active.label.toLowerCase()} page

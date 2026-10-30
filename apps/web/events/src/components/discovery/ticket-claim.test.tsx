@@ -6,14 +6,14 @@ import { goToCheckout } from "@/lib/navigation";
 import { claimableCount, TicketClaim } from "./ticket-claim";
 
 const refresh = vi.fn();
-const CLAIMED_TEXT = /You have 2 new tickets\./;
-const SOLD_OUT_TEXT = /Sold out/;
-const MORE_NAME = /More/;
-const PRICE_TEXT = /EC\$50\.00/;
-const OLD_NOTE = /Online payment arrives/;
-const RESERVED_TEXT = /Reserved, awaiting payment/;
-const PAY_ORGANISER_TEXT = /Pay the organiser/;
-const EXPIRY_TEXT = /holding your tickets until/;
+const CLAIMED_TEXT = /You have 2 new tickets\./u;
+const SOLD_OUT_TEXT = /Sold out/u;
+const MORE_NAME = /More/u;
+const PRICE_TEXT = /EC\$50\.00/u;
+const OLD_NOTE = /Online payment arrives/u;
+const RESERVED_TEXT = /Reserved, awaiting payment/u;
+const PAY_ORGANISER_TEXT = /Pay the organiser/u;
+const EXPIRY_TEXT = /holding your tickets until/u;
 
 vi.mock("@/data/actions", () => ({ claimTickets: vi.fn() }));
 vi.mock("@/lib/navigation", () => ({ goToCheckout: vi.fn() }));

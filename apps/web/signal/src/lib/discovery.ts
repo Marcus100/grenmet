@@ -51,7 +51,7 @@ export interface SearchEntry {
   label: string;
   title: string;
 }
-const WORD_SEPARATOR = /\s+/;
+const WORD_SEPARATOR = /\s+/u;
 export function searchEntries(
   entries: SearchEntry[],
   query: string

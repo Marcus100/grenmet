@@ -102,7 +102,7 @@ export function ElectionUpdates({
     >
       <UpdateStory lead update={lead} />
       {rest.length > 0 && (
-        <ol className="divide-y divide-el-rule border-el-rule border-t lg:border-t-0">
+        <ol className="divide-el-rule border-el-rule divide-y border-t lg:border-t-0">
           {rest.map((u) => (
             <li className="py-6 lg:first:pt-0" key={`${u.date}${u.text}`}>
               <UpdateStory update={u} />
@@ -130,7 +130,7 @@ function UpdateStory({
     <article className={cn("min-w-0", lead && "bg-el-flag-green-tint")}>
       {lead && <FlagStripe />}
       {lead && u.graphic && (
-        <div className="overflow-x-auto bg-el-paper px-3 py-4 sm:px-6">
+        <div className="bg-el-paper overflow-x-auto px-3 py-4 sm:px-6">
           {u.graphic}
         </div>
       )}
@@ -143,14 +143,14 @@ function UpdateStory({
         />
       )}
       <div className={cn(lead && "p-6 sm:p-8")}>
-        <p className="mb-3 font-semibold text-el-ink-2 text-sm uppercase tracking-[0.07em]">
+        <p className="text-el-ink-2 mb-3 text-sm font-semibold tracking-[0.07em] uppercase">
           {u.title ? "Election 2026" : "Campaign"}
         </p>
         {u.title ? (
           <>
             <h3
               className={cn(
-                "font-bold leading-tight tracking-tight",
+                "leading-tight font-bold tracking-tight",
                 lead
                   ? "font-serif text-3xl sm:text-4xl"
                   : "font-sans text-xl lg:text-2xl"
@@ -168,7 +168,7 @@ function UpdateStory({
               )}
             </h3>
             {lead && (
-              <p className="mt-4 text-el-ink-2 text-lg leading-relaxed">
+              <p className="text-el-ink-2 mt-4 text-lg leading-relaxed">
                 {u.text}
               </p>
             )}
@@ -176,7 +176,7 @@ function UpdateStory({
         ) : (
           <p
             className={cn(
-              "font-semibold leading-snug",
+              "leading-snug font-semibold",
               lead ? "font-serif text-2xl sm:text-3xl" : "text-xl"
             )}
           >
@@ -185,7 +185,7 @@ function UpdateStory({
           </p>
         )}
         <time
-          className="mt-4 block font-semibold text-base text-el-muted tabular-nums"
+          className="text-el-muted mt-4 block text-base font-semibold tabular-nums"
           dateTime={u.date}
         >
           {formatIsoDate(u.date)}

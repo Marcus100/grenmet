@@ -104,8 +104,8 @@ export async function TrailsSection({ organisationId, token }: SectionProps) {
                   ))}
                 </ol>
               )}
-              <details className="rounded-lg border border-border p-3">
-                <summary className="cursor-pointer font-medium text-foreground text-sm">
+              <details className="border-border rounded-lg border p-3">
+                <summary className="text-foreground cursor-pointer text-sm font-medium">
                   Add a stop to {trail.name}
                 </summary>
                 <ActionForm
@@ -144,7 +144,7 @@ export async function TrailsSection({ organisationId, token }: SectionProps) {
                       ))}
                     </select>
                   </Field>
-                  <label className="flex items-center gap-2 text-foreground text-sm">
+                  <label className="text-foreground flex items-center gap-2 text-sm">
                     <input
                       defaultChecked
                       name="required_check_in"

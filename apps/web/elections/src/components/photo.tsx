@@ -22,7 +22,7 @@ export function Photo({
   const photo = PHOTOS[id];
   return (
     <figure className={cn("m-0 min-w-0", className)}>
-      <div className={cn("relative overflow-hidden bg-el-paper-2", ratio)}>
+      <div className={cn("bg-el-paper-2 relative overflow-hidden", ratio)}>
         <Image
           alt={photo.alt}
           className="object-cover"
@@ -32,7 +32,7 @@ export function Photo({
           src={photo.src}
         />
       </div>
-      <figcaption className="mt-2 text-el-muted text-sm leading-relaxed">
+      <figcaption className="text-el-muted mt-2 text-sm leading-relaxed">
         {photo.caption}{" "}
         <a className="underline underline-offset-2" href={photo.source}>
           {photo.credit}

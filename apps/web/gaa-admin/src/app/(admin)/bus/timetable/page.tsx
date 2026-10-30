@@ -106,7 +106,7 @@ function DraftAction({ draftId }: { draftId?: number }) {
 function VersionsTable({ versions }: { versions: TimetableVersionSummary[] }) {
   return (
     <section aria-labelledby="versions-heading" className="space-y-3">
-      <h2 className="font-semibold text-lg" id="versions-heading">
+      <h2 className="text-lg font-semibold" id="versions-heading">
         Versions
       </h2>
       <Table>

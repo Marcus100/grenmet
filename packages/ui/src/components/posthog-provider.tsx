@@ -144,16 +144,16 @@ function PublicAnalytics({
   if (!open) return null;
   return createPortal(
     <>
-      <div aria-hidden="true" className="fixed inset-0 z-50 bg-foreground/40" />
+      <div aria-hidden="true" className="bg-foreground/40 fixed inset-0 z-50" />
       <section
         aria-label="Cookie preferences"
         aria-modal="true"
-        className="fixed inset-x-4 top-1/2 z-50 max-h-[calc(100dvh-2rem)] -translate-y-1/2 space-y-5 overflow-y-auto rounded-lg bg-background p-6 text-base text-foreground shadow-card sm:inset-x-auto sm:left-1/2 sm:w-full sm:max-w-md sm:-translate-x-1/2 sm:p-8"
+        className="bg-background text-foreground shadow-card fixed inset-x-4 top-1/2 z-50 max-h-[calc(100dvh-2rem)] -translate-y-1/2 space-y-5 overflow-y-auto rounded-lg p-6 text-base sm:inset-x-auto sm:left-1/2 sm:w-full sm:max-w-md sm:-translate-x-1/2 sm:p-8"
         role="dialog"
       >
         {view === "ask" ? (
           <>
-            <h2 className="text-balance font-bold text-2xl leading-tight">
+            <h2 className="text-2xl leading-tight font-bold text-balance">
               Do you accept our cookie policy?
             </h2>
             <p>
@@ -196,7 +196,7 @@ function PublicAnalytics({
           </>
         ) : (
           <>
-            <h2 className="text-balance font-bold text-2xl leading-tight">
+            <h2 className="text-2xl leading-tight font-bold text-balance">
               Customise your cookie settings
             </h2>
             {privacyHref ? (
@@ -213,12 +213,12 @@ function PublicAnalytics({
               <label className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-1">
                 <input
                   checked
-                  className="mt-1 size-5 accent-primary"
+                  className="accent-primary mt-1 size-5"
                   disabled
                   type="checkbox"
                 />
                 <span className="font-semibold">Essential cookies</span>
-                <span className="col-start-2 text-muted-foreground">
+                <span className="text-muted-foreground col-start-2">
                   Needed for the site to work, such as remembering this choice.
                   Always on.
                 </span>
@@ -226,13 +226,13 @@ function PublicAnalytics({
               <label className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-1">
                 <input
                   checked={analytics}
-                  className="mt-1 size-5 accent-primary"
+                  className="accent-primary mt-1 size-5"
                   disabled={optedOut}
                   onChange={(event) => setAnalytics(event.target.checked)}
                   type="checkbox"
                 />
                 <span className="font-semibold">Analytics cookies</span>
-                <span className="col-start-2 text-muted-foreground">
+                <span className="text-muted-foreground col-start-2">
                   Google Analytics and PostHog count visits and a few actions,
                   without advertising or session replay. Your choice is kept for
                   six months.

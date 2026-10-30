@@ -15,13 +15,13 @@ const DATABASES = [
   "eregister",
   "events",
 ];
-const FRESH_LINE = /app_prod: newest backup 3\.\dh old/;
-const STALE_LINE = /app_prod: newest backup 40\.\dh old \(limit 26h\)/;
-const WXWATCH_STALE = /wxwatch: .*limit/;
-const NO_DUMP = /app_prod: no backup found/;
-const NO_CREDS = /not available to the deploy runner \(missing: bucket name/;
-const LIST_FAILED = /listing the backup bucket failed \(aws exit 255\)/;
-const STAGING_NOTE = /staging: not checked/;
+const FRESH_LINE = /app_prod: newest backup 3\.\dh old/u;
+const STALE_LINE = /app_prod: newest backup 40\.\dh old \(limit 26h\)/u;
+const WXWATCH_STALE = /wxwatch: .*limit/u;
+const NO_DUMP = /app_prod: no backup found/u;
+const NO_CREDS = /not available to the deploy runner \(missing: bucket name/u;
+const LIST_FAILED = /listing the backup bucket failed \(aws exit 255\)/u;
+const STAGING_NOTE = /staging: not checked/u;
 const SECRET = "gate-secret-marker-must-not-leak";
 
 function stamp(date) {

@@ -81,7 +81,7 @@ function ReferendumMap({
           />
           <span>Yes +40</span>
         </span>
-        <span className="mt-1 block text-el-muted">
+        <span className="text-el-muted mt-1 block">
           Yes as a share of Yes and No votes at the selected map level. Grey: no
           readable result. Boundaries are illustrative.
         </span>
@@ -142,7 +142,7 @@ function ConstituencyTable({ id }: { id: "2016r" | "2018r" }) {
                     </td>
                   </>
                 ) : (
-                  <td className="py-2 pr-3 text-el-muted" colSpan={4}>
+                  <td className="text-el-muted py-2 pr-3" colSpan={4}>
                     Gazette page damaged; no readable result
                   </td>
                 )}
@@ -184,7 +184,7 @@ export default function ReferendumsPage() {
         }}
         title="24 November 2016 · seven bills"
       >
-        <p className="mb-4 max-w-prose text-base text-el-ink-2 leading-relaxed">
+        <p className="text-el-ink-2 mb-4 max-w-prose text-base leading-relaxed">
           Each person could vote on seven separate questions. The combined Yes
           and No totals count responses across bills, not distinct people.
           Turnout counts people who voted. Read the{" "}
@@ -228,7 +228,7 @@ export default function ReferendumsPage() {
                     </span>
                     <span
                       aria-hidden="true"
-                      className="absolute -inset-y-1 w-0.5 bg-el-ink"
+                      className="bg-el-ink absolute -inset-y-1 w-0.5"
                       style={{ left: "66.7%" }}
                       title="Two-thirds needed"
                     />
@@ -242,7 +242,7 @@ export default function ReferendumsPage() {
             );
           })}
         </ul>
-        <p className="mt-3 text-base text-el-muted leading-relaxed">
+        <p className="text-el-muted mt-3 text-base leading-relaxed">
           Results by bill: {r16.billsSource}
           <Flag
             note="The PEO certificates give the seven bills combined; per-bill figures are from a secondary source."
@@ -257,7 +257,7 @@ export default function ReferendumsPage() {
           />
           <div>
             <h3 className={LABEL}>By constituency, Yes share highest first</h3>
-            <p className="mt-1 text-base text-el-muted leading-relaxed">
+            <p className="text-el-muted mt-1 text-base leading-relaxed">
               {r16.note}
             </p>
             <div className="mt-2">
@@ -298,11 +298,11 @@ export default function ReferendumsPage() {
             No {pct(r18.no / (r18.yes + r18.no))}
           </span>
         </div>
-        <p className="mt-2 text-base text-el-ink-2 tabular-nums leading-relaxed">
+        <p className="text-el-ink-2 mt-2 text-base leading-relaxed tabular-nums">
           Yes {fmt(r18.yes)} · No {fmt(r18.no)} · invalid {fmt(r18.invalid)} ·
           turnout {pct(n18.turnout)} of {fmt(r18.registered)} registered.
         </p>
-        <p className="mt-3 max-w-[70ch] border-el-rule border-l-2 pl-3 text-base text-el-ink-2 leading-relaxed">
+        <p className="border-el-rule text-el-ink-2 mt-3 max-w-[70ch] border-l-2 pl-3 text-base leading-relaxed">
           {r18.note}
         </p>
         <div className="mt-8 grid grid-cols-[minmax(0,1fr)] gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
@@ -332,7 +332,7 @@ export default function ReferendumsPage() {
               key={t.id}
             >
               <span>{t.label}</span>
-              <span className="h-4 bg-el-paper-2">
+              <span className="bg-el-paper-2 h-4">
                 <span
                   className="block h-full"
                   style={{

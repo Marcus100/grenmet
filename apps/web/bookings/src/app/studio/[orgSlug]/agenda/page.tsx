@@ -152,7 +152,7 @@ export default async function AgendaPage({
       <header className="space-y-1">
         <p className="text-muted-foreground text-sm">{org.value.name}</p>
         <div className="flex flex-wrap items-center justify-between gap-2">
-          <h1 className="font-semibold text-2xl">Agenda</h1>
+          <h1 className="text-2xl font-semibold">Agenda</h1>
           {canManageBookings(org.value.role) ? (
             <Link
               className={pill(true)}
@@ -222,7 +222,7 @@ export default async function AgendaPage({
         </nav>
       ) : null}
 
-      <h2 className="font-semibold text-lg">{rangeLabel(range)}</h2>
+      <h2 className="text-lg font-semibold">{rangeLabel(range)}</h2>
 
       {agenda.ok ? (
         <AgendaDays
@@ -296,7 +296,7 @@ function AgendaDays({
         </EmptyHeader>
         <EmptyContent>
           <Link
-            className="inline-flex min-h-11 items-center font-medium text-primary underline underline-offset-4"
+            className="text-primary inline-flex min-h-11 items-center font-medium underline underline-offset-4"
             href="/"
           >
             See how online booking works
@@ -342,7 +342,7 @@ function AgendaDays({
               </h3>
             ) : null}
             {bookings.length === 0 ? (
-              <p className="rounded-lg border border-border border-dashed p-4 text-muted-foreground">
+              <p className="border-border text-muted-foreground rounded-lg border border-dashed p-4">
                 No bookings.
               </p>
             ) : (
@@ -379,7 +379,7 @@ function BookingRow({
 }) {
   return (
     <Link
-      className="grid min-h-11 gap-2 rounded-lg border border-border p-4 hover:bg-muted md:grid-cols-[13rem_1fr_auto] md:items-center"
+      className="border-border hover:bg-muted grid min-h-11 gap-2 rounded-lg border p-4 md:grid-cols-[13rem_1fr_auto] md:items-center"
       href={{ pathname: `/studio/${orgSlug}/bookings/${booking.id}` }}
     >
       <span className="font-semibold">
@@ -388,7 +388,7 @@ function BookingRow({
       </span>
       <span className="min-w-0">
         <span className="block font-medium">{booking.customer_name}</span>
-        <span className="block text-muted-foreground text-sm">
+        <span className="text-muted-foreground block text-sm">
           {booking.service_name}
           {providerName ? ` with ${providerName}` : ""}
           {`, ${formatMoney(booking.price_minor)}`}

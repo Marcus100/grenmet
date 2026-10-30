@@ -8,12 +8,12 @@ import { fileURLToPath } from "node:url";
 import { computeReport, formatReport } from "./run-report.mjs";
 
 const SCRIPT = fileURLToPath(new URL("./run-report.mjs", import.meta.url));
-const RUNS_LINE = /Runs: 5 /;
-const NA_RATE = /accepted-PR n\/a/;
-const SUCCESS_60 = /success 60%/;
-const ACCEPTED_50 = /accepted-PR 50% \(2 decided\)/;
-const BY_AGENT = /By agent:/;
-const CLAUDE_USAGE = /claude {2,}latest 2026-W42 40%/;
+const RUNS_LINE = /Runs: 5 /u;
+const NA_RATE = /accepted-PR n\/a/u;
+const SUCCESS_60 = /success 60%/u;
+const ACCEPTED_50 = /accepted-PR 50% \(2 decided\)/u;
+const BY_AGENT = /By agent:/u;
+const CLAUDE_USAGE = /claude {2,}latest 2026-W42 40%/u;
 
 const run = (fields) => ({
   agent: "claude",

@@ -1,7 +1,7 @@
 import type { PageDoc } from "@/lib/content-utils";
 import { SECTIONS } from "@/lib/nav";
 
-const TRAILING_SLASHES = /\/+$/;
+const TRAILING_SLASHES = /\/+$/u;
 
 /** Hand-built routes that are not MDX pages (see AGENTS.md "Content model & routes"). */
 export const STATIC_ROUTES = [

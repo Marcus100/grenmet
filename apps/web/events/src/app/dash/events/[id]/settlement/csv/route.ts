@@ -4,7 +4,7 @@ import { reportError } from "@/lib/report-error";
 import { getSession } from "@/lib/session";
 
 const LISTING_ID =
-  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/iu;
 
 /**
  * Settlement CSV download. Only proxies the API's export with the member's

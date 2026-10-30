@@ -26,7 +26,7 @@ function migrate(environment, expectedFailure = false) {
       const redacted = output
         .replaceAll(environment.DATABASE_URL, "[DATABASE_URL]")
         .replaceAll(environment.PAYLOAD_SECRET, "[PAYLOAD_SECRET]")
-        .replace(/postgres(?:ql)?:\/\/[^\s"']+/g, "[DATABASE_URL]");
+        .replace(/postgres(?:ql)?:\/\/[^\s"']+/gu, "[DATABASE_URL]");
       if (code !== 0 && !expectedFailure) console.error(redacted);
       resolve(code);
     });

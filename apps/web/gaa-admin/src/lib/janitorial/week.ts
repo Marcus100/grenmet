@@ -2,7 +2,7 @@
 // (YYYY-MM-DD) handled in UTC so no local timezone shifts a day.
 
 const DAY_MS = 86_400_000;
-const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/;
+const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/u;
 
 function parse(date: string): Date {
   return new Date(`${date}T00:00:00Z`);

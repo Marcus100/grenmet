@@ -5,10 +5,10 @@ import { WarningLegend } from "@/components/pages/warning-legend";
 import { WarningStatusBand } from "@/components/pages/warning-status-band";
 import type { AlertsResult, PublicAlert } from "@/lib/cap-alerts";
 
-const NOT_ALL_CLEAR = /not an all-clear/i;
-const NOT_RETRIEVED = /cannot be retrieved right now/i;
-const FEED_DOWN = /CAP feed not responding/;
-const NONE_IN_EFFECT = /^There are no alerts in effect/;
+const NOT_ALL_CLEAR = /not an all-clear/iu;
+const NOT_RETRIEVED = /cannot be retrieved right now/iu;
+const FEED_DOWN = /CAP feed not responding/u;
+const NONE_IN_EFFECT = /^There are no alerts in effect/u;
 
 const CHECKED_AT = new Date("2026-09-28T20:40:00Z");
 

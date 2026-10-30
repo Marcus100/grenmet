@@ -365,11 +365,11 @@ it("shows the API reason when leave submission is rejected", async () => {
   );
 });
 
-const DAYS_REQUESTED = /^Days Requested/;
-const SUGGESTED_FOUR = /Suggested 4 working days \(Monday to Friday\)/;
+const DAYS_REQUESTED = /^Days Requested/u;
+const SUGGESTED_FOUR = /Suggested 4 working days \(Monday to Friday\)/u;
 const HOLIDAY_HINT =
-  /Public holidays not counted: Test Day 7 Oct \(provisional, HR to verify\)/;
-const BALANCE_AFTER = /Vacation balance after this request: 8 days/;
+  /Public holidays not counted: Test Day 7 Oct \(provisional, HR to verify\)/u;
+const BALANCE_AFTER = /Vacation balance after this request: 8 days/u;
 
 function workingDaysServer(draftDays?: string) {
   server.use(

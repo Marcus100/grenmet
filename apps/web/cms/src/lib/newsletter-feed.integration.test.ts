@@ -20,7 +20,7 @@ const ORIGIN = "https://weather.example.test";
 const DAY = 24 * 60 * 60 * 1000;
 
 const FORECAST_URL =
-  /^https:\/\/weather\.example\.test\/explore\/updates\/\d{4}\/\d{2}\/feed-forecast-update$/;
+  /^https:\/\/weather\.example\.test\/explore\/updates\/\d{4}\/\d{2}\/feed-forecast-update$/u;
 
 const ALL_PUBLISH_KEYS = Object.values(PUBLISH_KEYS);
 

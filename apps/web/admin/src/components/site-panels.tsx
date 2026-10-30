@@ -210,7 +210,7 @@ export function SitesPanel({
         </ul>
       )}
       <details className="max-w-3xl rounded-md border p-3">
-        <summary className="cursor-pointer font-medium text-sm">
+        <summary className="cursor-pointer text-sm font-medium">
           Add a site
         </summary>
         <form action={createSiteAction} className="mt-3 grid max-w-md gap-3">

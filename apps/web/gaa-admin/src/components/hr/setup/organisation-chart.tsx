@@ -61,9 +61,9 @@ export function OrganisationChart({ staff }: { staff: Person[] }) {
   return (
     <section
       aria-label="Organisation chart"
-      className="space-y-3 rounded-lg border border-border p-4"
+      className="border-border space-y-3 rounded-lg border p-4"
     >
-      <h2 className="font-semibold text-xl">Organisation chart</h2>
+      <h2 className="text-xl font-semibold">Organisation chart</h2>
       <p className="text-muted-foreground text-sm">
         Read-only reporting relationships from staff setup. Unassigned
         supervisors and reporting cycles are shown for review.
@@ -71,7 +71,7 @@ export function OrganisationChart({ staff }: { staff: Person[] }) {
       {!rows.length && <p>No staff records available.</p>}
       <ol className="space-y-2">
         {rows.map(({ person, depth, issue }) => (
-          <li className="rounded border border-border p-3" key={person.user_id}>
+          <li className="border-border rounded border p-3" key={person.user_id}>
             <p className="font-medium">
               {depth > 0 && <span aria-hidden="true">↳ </span>}
               {person.name}

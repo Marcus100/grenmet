@@ -14,7 +14,7 @@ export function TransactionList({
 }: TransactionListProps) {
   if (requisitions.length === 0) {
     return (
-      <p className="py-12 text-center text-base text-muted-foreground sm:text-lg">
+      <p className="text-muted-foreground py-12 text-center text-base sm:text-lg">
         {emptyMessage}
       </p>
     );

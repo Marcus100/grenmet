@@ -58,7 +58,7 @@ export default function RegisterPage() {
         learning="register"
         title="Who is on Grenada’s electoral roll"
       >
-        <dl className="mt-6 grid grid-cols-2 gap-4 border-el-rule border-t pt-4 lg:grid-cols-4">
+        <dl className="border-el-rule mt-6 grid grid-cols-2 gap-4 border-t pt-4 lg:grid-cols-4">
           {[
             [
               "Latest snapshot",
@@ -83,10 +83,10 @@ export default function RegisterPage() {
           ].map(([label, value, note]) => (
             <div key={label}>
               <dt className={LABEL}>{label}</dt>
-              <dd className="mt-0.5 font-semibold text-xl tabular-nums">
+              <dd className="mt-0.5 text-xl font-semibold tabular-nums">
                 {value}
               </dd>
-              <dd className="text-base text-el-muted">{note}</dd>
+              <dd className="text-el-muted text-base">{note}</dd>
             </div>
           ))}
         </dl>
@@ -201,9 +201,9 @@ export default function RegisterPage() {
               <span className="text-el-muted tabular-nums">
                 {formatIsoDate(a.date)}
               </span>
-              <span className="h-3 bg-el-paper-2">
+              <span className="bg-el-paper-2 h-3">
                 <span
-                  className="block h-full bg-el-seq-1"
+                  className="bg-el-seq-1 block h-full"
                   style={{ width: `${(a.added / maxAdd) * 100}%` }}
                 />
               </span>
@@ -247,7 +247,7 @@ export default function RegisterPage() {
                 />
                 <span>+20% or more</span>
               </span>
-              <span className="mt-1 block text-el-muted">
+              <span className="text-el-muted mt-1 block">
                 Boundaries are illustrative.
               </span>
             </figcaption>
@@ -309,18 +309,18 @@ export default function RegisterPage() {
         <ol className="grid max-w-4xl gap-x-8 gap-y-1 text-base sm:grid-cols-2 lg:grid-cols-3">
           {register.topOccupations.slice(0, 24).map(([title, n], i) => (
             <li
-              className="flex justify-between gap-3 border-el-rule border-b py-1"
+              className="border-el-rule flex justify-between gap-3 border-b py-1"
               key={title}
             >
               <span>
-                <span className="mr-2 text-el-muted tabular-nums">{i + 1}</span>
+                <span className="text-el-muted mr-2 tabular-nums">{i + 1}</span>
                 {title.charAt(0) + title.slice(1).toLowerCase()}
               </span>
               <span className="tabular-nums">{fmt(n)}</span>
             </li>
           ))}
         </ol>
-        <p className="mt-3 max-w-[70ch] text-base text-el-muted leading-relaxed">
+        <p className="text-el-muted mt-3 max-w-[70ch] text-base leading-relaxed">
           {register.note}
         </p>
       </Section>

@@ -1,8 +1,8 @@
-const anchorHref = /<a\b[^>]*\bhref=["']([^"']+)["']/g;
-const validState = /^[A-Za-z0-9_-]{32}$/;
-const validDomain = /^[a-z0-9.-]+$/;
+const anchorHref = /<a\b[^>]*\bhref=["']([^"']+)["']/gu;
+const validState = /^[A-Za-z0-9_-]{32}$/u;
+const validDomain = /^[a-z0-9.-]+$/u;
 const renderError =
-  /NEXT_HTTP_ERROR_FALLBACK|Application error:|An error occurred in the Server Components render|"digest"\s*:|\\"digest\\"\s*:/;
+  /NEXT_HTTP_ERROR_FALLBACK|Application error:|An error occurred in the Server Components render|"digest"\s*:|\\"digest\\"\s*:/u;
 
 export function validPage(response, body, expected) {
   return response.ok && body.includes(expected) && !renderError.test(body);

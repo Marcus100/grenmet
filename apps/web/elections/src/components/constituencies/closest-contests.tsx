@@ -15,16 +15,16 @@ export function ClosestContests({
     .sort((a, b) => a.margin2022 - b.margin2022)
     .slice(0, count);
   return (
-    <ol className="divide-y divide-el-rule border-el-rule border-y">
+    <ol className="divide-el-rule border-el-rule divide-y border-y">
       {closest.map((seat) => (
         <li key={seat.code}>
           <Link
-            className="flex items-baseline gap-3 py-3 hover:bg-el-paper-2"
+            className="hover:bg-el-paper-2 flex items-baseline gap-3 py-3"
             href={seat.href as Route}
           >
             <span className="min-w-0 flex-1">
-              <b className="font-semibold font-serif">{seat.name}</b>
-              <span className="block text-base text-el-muted">
+              <b className="font-serif font-semibold">{seat.name}</b>
+              <span className="text-el-muted block text-base">
                 <PartyDot party={seat.winner2022.party} />
                 {seat.winner2022.name}, {seat.winner2022.party}
                 {seat.sitting.party !== seat.winner2022.party &&
@@ -33,7 +33,7 @@ export function ClosestContests({
             </span>
             <span className="shrink-0 font-semibold tabular-nums">
               {(seat.margin2022 * 100).toFixed(1)}
-              <small className="ml-0.5 font-normal text-el-muted">pts</small>
+              <small className="text-el-muted ml-0.5 font-normal">pts</small>
             </span>
           </Link>
         </li>

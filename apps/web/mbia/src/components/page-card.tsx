@@ -15,21 +15,21 @@ export function PageCard({
 }) {
   return (
     <Link
-      className="group flex flex-col rounded-2xl border border-gaa-rule bg-white p-6 transition-all hover:-translate-y-0.5 hover:border-gaa-sea/40 hover:shadow-lg"
+      className="group border-gaa-rule hover:border-gaa-sea/40 flex flex-col rounded-2xl border bg-white p-6 transition-all hover:-translate-y-0.5 hover:shadow-lg"
       href={href as Route}
     >
       {meta ? (
-        <p className="mb-2 font-medium text-gaa-sea text-xs uppercase tracking-wider">
+        <p className="text-gaa-sea mb-2 text-xs font-medium tracking-wider uppercase">
           {meta}
         </p>
       ) : null}
-      <h3 className="font-display font-semibold text-gaa-navy text-lg leading-snug">
+      <h3 className="font-display text-gaa-navy text-lg leading-snug font-semibold">
         {title}
       </h3>
-      <p className="mt-2 line-clamp-3 flex-1 text-gaa-muted text-sm leading-relaxed">
+      <p className="text-gaa-muted mt-2 line-clamp-3 flex-1 text-sm leading-relaxed">
         {dek}
       </p>
-      <span className="mt-4 flex items-center gap-1.5 font-medium text-gaa-sea text-sm">
+      <span className="text-gaa-sea mt-4 flex items-center gap-1.5 text-sm font-medium">
         Read more
         <ArrowRight
           aria-hidden="true"

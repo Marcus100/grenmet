@@ -52,7 +52,7 @@ function AlertsTag({
   return (
     <span
       className={cn(
-        "truncate rounded-md px-2 py-0.5 font-bold text-caption leading-caption",
+        "text-caption leading-caption truncate rounded-md px-2 py-0.5 font-bold",
         className
       )}
     >
@@ -86,7 +86,7 @@ export function NavDrawer({
         <motion.div
           animate="show"
           aria-label="Site menu"
-          className="fixed inset-x-0 bottom-0 z-30 flex flex-col bg-background"
+          className="bg-background fixed inset-x-0 bottom-0 z-30 flex flex-col"
           exit="exit"
           id="site-menu"
           initial="hidden"
@@ -96,20 +96,20 @@ export function NavDrawer({
           <div className="flex h-full flex-col">
             {/* Brand accent line under the navy header */}
             <div className="flex h-1 w-full shrink-0">
-              <div className="h-full flex-[55] bg-gm-blue" />
-              <div className="h-full flex-[25] bg-gm-sky" />
-              <div className="h-full flex-[20] bg-gm-lime" />
+              <div className="bg-gm-blue h-full flex-[55]" />
+              <div className="bg-gm-sky h-full flex-[25]" />
+              <div className="bg-gm-lime h-full flex-[20]" />
             </div>
 
-            <div className="grid shrink-0 grid-cols-4 gap-1 border-gm-border border-b px-2 py-2">
+            <div className="border-gm-border grid shrink-0 grid-cols-4 gap-1 border-b px-2 py-2">
               {QUICK_LINKS.map(({ href, label, Icon }) => (
                 <a
-                  className="flex min-h-14 flex-col items-center justify-center gap-1 rounded-lg px-1 text-center font-semibold text-caption text-gm-heading leading-caption hover:bg-gm-surface"
+                  className="text-caption text-gm-heading leading-caption hover:bg-gm-surface flex min-h-14 flex-col items-center justify-center gap-1 rounded-lg px-1 text-center font-semibold"
                   href={href}
                   key={href}
                   onClick={onClose}
                 >
-                  <Icon aria-hidden="true" className="size-5 text-gm-sky-ink" />
+                  <Icon aria-hidden="true" className="text-gm-sky-ink size-5" />
                   {label}
                 </a>
               ))}
@@ -127,14 +127,14 @@ export function NavDrawer({
                       <Accordion.Header className="flex">
                         <Accordion.Trigger
                           className={cn(
-                            "group flex h-header w-full items-center justify-between pr-5 pl-6",
+                            "group h-header flex w-full items-center justify-between pr-5 pl-6",
                             i > 0 && "border-gm-border border-t"
                           )}
                         >
                           {/* Base UI's Accordion.Trigger marks the open state
                               with data-panel-open, not data-open. */}
                           <span className="flex min-w-0 items-center gap-3">
-                            <span className="font-normal text-gm-text-primary text-heading-md leading-heading-md group-data-panel-open:font-semibold group-data-panel-open:text-gm-heading">
+                            <span className="text-gm-text-primary text-heading-md leading-heading-md group-data-panel-open:text-gm-heading font-normal group-data-panel-open:font-semibold">
                               {section.label}
                             </span>
                             {/* The live warning status rides on the Alerts
@@ -161,7 +161,7 @@ export function NavDrawer({
                             )}
                           </span>
                           <div className="flex size-11 items-center justify-center">
-                            <ChevronDownIcon className="size-6 text-gm-text-muted transition-transform duration-150 group-data-panel-open:rotate-180 group-data-panel-open:text-gm-heading motion-reduce:transition-none" />
+                            <ChevronDownIcon className="text-gm-text-muted group-data-panel-open:text-gm-heading size-6 transition-transform duration-150 group-data-panel-open:rotate-180 motion-reduce:transition-none" />
                           </div>
                         </Accordion.Trigger>
                       </Accordion.Header>
@@ -179,7 +179,7 @@ export function NavDrawer({
                               but no descriptions; the desktop mega menu keeps
                               those. */}
                           <a
-                            className="flex min-h-11 items-center gap-1 px-6 font-semibold text-body-base text-gm-blue-ink leading-body-base"
+                            className="text-body-base text-gm-blue-ink leading-body-base flex min-h-11 items-center gap-1 px-6 font-semibold"
                             href={section.href}
                             onClick={onClose}
                           >
@@ -191,14 +191,14 @@ export function NavDrawer({
                           </a>
                           {section.groups.map((group) => (
                             <div className="pb-1" key={group.heading}>
-                              <p className="px-6 pt-3 pb-1 font-semibold text-caption text-gm-text-muted uppercase leading-caption tracking-wider">
+                              <p className="text-caption text-gm-text-muted leading-caption px-6 pt-3 pb-1 font-semibold tracking-wider uppercase">
                                 {group.heading}
                               </p>
                               <ul>
                                 {group.links.map((link) => (
                                   <li key={link.href}>
                                     <a
-                                      className="flex min-h-11 items-center py-2 pr-5 pl-10 text-body-base text-gm-text-primary leading-body-base hover:bg-gm-surface"
+                                      className="text-body-base text-gm-text-primary leading-body-base hover:bg-gm-surface flex min-h-11 items-center py-2 pr-5 pl-10"
                                       href={link.href}
                                       onClick={onClose}
                                     >
@@ -215,8 +215,8 @@ export function NavDrawer({
                   </div>
                 ))}
               </Accordion.Root>
-              <div className="flex flex-col gap-2 border-gm-border border-t px-6 pt-5">
-                <p className="font-bold text-gm-text-muted text-label uppercase leading-label tracking-wider">
+              <div className="border-gm-border flex flex-col gap-2 border-t px-6 pt-5">
+                <p className="text-gm-text-muted text-label leading-label font-bold tracking-wider uppercase">
                   Your account
                 </p>
                 {accountLabel ? (
@@ -224,7 +224,7 @@ export function NavDrawer({
                 ) : (
                   // Static placeholder until sign-in is configured for this site.
                   <button
-                    className="flex h-11 w-fit items-center gap-2 rounded-md border border-gm-border px-4 font-semibold text-body text-gm-text-primary leading-body hover:bg-gm-surface"
+                    className="border-gm-border text-body text-gm-text-primary leading-body hover:bg-gm-surface flex h-11 w-fit items-center gap-2 rounded-md border px-4 font-semibold"
                     type="button"
                   >
                     <LogInIcon aria-hidden="true" className="size-4" />

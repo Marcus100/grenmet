@@ -202,7 +202,7 @@ export function NewBookingForm({
       </div>
       <Label className="min-h-11 items-center gap-3">
         <input
-          className="size-5 accent-primary"
+          className="accent-primary size-5"
           name="sendConfirmation"
           type="checkbox"
         />
@@ -216,7 +216,7 @@ export function NewBookingForm({
       ) : null}
       {state.status === "error" ? (
         <div
-          className="space-y-1 rounded-lg border border-destructive/40 bg-destructive/10 p-3"
+          className="border-destructive/40 bg-destructive/10 space-y-1 rounded-lg border p-3"
           ref={errorRef}
           role="alert"
           tabIndex={-1}

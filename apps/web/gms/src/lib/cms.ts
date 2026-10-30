@@ -166,7 +166,7 @@ export type QuestionsResult =
   | { status: "ok"; questions: PublishedQuestion[] }
   | { status: "unavailable"; questions: [] };
 
-const QUESTION_PREFIX = /^questions\//;
+const QUESTION_PREFIX = /^questions\//u;
 
 /** `questions/why-…` is served at `/explore/explained/why-…`. */
 export const questionHref = (slug: string) =>
@@ -277,7 +277,7 @@ const quizSchema = z.object({
 });
 export type PublishedQuiz = z.infer<typeof quizSchema>;
 
-const QUIZ_PREFIX = /^discover\//;
+const QUIZ_PREFIX = /^discover\//u;
 /** `discover/can-you-…` is played at `/explore/quiz/can-you-…`. */
 export const quizHref = (slug: string) =>
   `/explore/quiz/${slug.replace(QUIZ_PREFIX, "")}`;

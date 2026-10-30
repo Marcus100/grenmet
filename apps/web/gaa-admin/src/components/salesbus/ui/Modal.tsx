@@ -26,7 +26,7 @@ export function Modal({ isOpen, onClose, children, title }: ModalProps) {
       >
         <button
           aria-label="Close"
-          className="absolute top-3 right-3 z-10 flex h-12 w-12 touch-manipulation items-center justify-center rounded-full bg-muted text-muted-foreground transition-colors hover:bg-muted hover:text-foreground active:bg-muted-foreground/20"
+          className="bg-muted text-muted-foreground hover:bg-muted hover:text-foreground active:bg-muted-foreground/20 absolute top-3 right-3 z-10 flex h-12 w-12 touch-manipulation items-center justify-center rounded-full transition-colors"
           onClick={onClose}
           type="button"
         >

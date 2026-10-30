@@ -34,7 +34,7 @@ export default async function NewEventPage() {
           >
             ← My events
           </Link>
-          <h1 className="mt-1 font-display font-semibold text-heading-base">
+          <h1 className="font-display text-heading-base mt-1 font-semibold">
             Create an event
           </h1>
         </div>

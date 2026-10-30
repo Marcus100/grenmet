@@ -64,13 +64,13 @@ export function Guides({ catalogue = false }: { catalogue?: boolean }) {
               )}
             >
               <span className="text-sm">GRENADA METEOROLOGICAL SERVICE</span>
-              <p className="max-w-xs font-semibold text-heading-lg">
+              <p className="text-heading-lg max-w-xs font-semibold">
                 {document.cover}
               </p>
               <span className="text-sm">{document.edition}</span>
             </div>
             <p className="text-gm-text-muted text-sm">{document.category}</p>
-            <h3 className="font-semibold text-gm-text text-heading-sm">
+            <h3 className="text-gm-text text-heading-sm font-semibold">
               {document.title}
             </h3>
             <p className="text-body text-gm-text-muted">
@@ -89,10 +89,10 @@ export function Guides({ catalogue = false }: { catalogue?: boolean }) {
       <Heading id="plan-chapters" level={2}>
         Plan chapters
       </Heading>
-      <div className="not-prose mt-4 grid grid-cols-1 gap-8 border-zinc-900/5 border-t pt-10 sm:grid-cols-2 xl:grid-cols-4 dark:border-white/5">
+      <div className="not-prose mt-4 grid grid-cols-1 gap-8 border-t border-zinc-900/5 pt-10 sm:grid-cols-2 xl:grid-cols-4 dark:border-white/5">
         {guides.map((guide) => (
           <div key={guide.href}>
-            <h3 className="font-semibold text-sm text-zinc-900 dark:text-white">
+            <h3 className="text-sm font-semibold text-zinc-900 dark:text-white">
               {guide.name}
             </h3>
             <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">

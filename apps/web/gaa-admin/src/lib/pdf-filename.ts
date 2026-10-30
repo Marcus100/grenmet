@@ -6,12 +6,12 @@ import { PRODUCT_KINDS, type ProductKind } from "@barrelsgd/gms/products";
  * title, Grenada-local date, revision, never a database ID.
  */
 
-const FORBIDDEN = /[\\/:*?"<>|]+/g;
-const ISO_DAY = /^\d{4}-\d{2}-\d{2}$/;
-const SPACES = /\s+/g;
-const EDGE = /^[ .]+|[ .]+$/g;
+const FORBIDDEN = /[\\/:*?"<>|]+/gu;
+const ISO_DAY = /^\d{4}-\d{2}-\d{2}$/u;
+const SPACES = /\s+/gu;
+const EDGE = /^[ .]+|[ .]+$/gu;
 const MAX_STEM = 120;
-const TRAILING = /[ .-]+$/;
+const TRAILING = /[ .-]+$/u;
 
 const ISSUE_HOURS: Partial<Record<ProductKind, string>> = {
   morning: "0700",

@@ -42,13 +42,13 @@ export function TeamFeedbackProvider({ children }: { children: ReactNode }) {
     <FeedbackContext value={feedback}>
       <div className="min-h-0 space-y-1" ref={region} tabIndex={-1}>
         <p
-          className="font-medium text-body text-primary empty:hidden"
+          className="text-body text-primary font-medium empty:hidden"
           role="status"
         >
           {message?.kind === "notice" ? message.text : null}
         </p>
         <p
-          className="font-medium text-body text-destructive empty:hidden"
+          className="text-body text-destructive font-medium empty:hidden"
           role="alert"
         >
           {message?.kind === "error" ? message.text : null}

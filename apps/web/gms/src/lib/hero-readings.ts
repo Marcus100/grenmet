@@ -7,28 +7,28 @@ import { DEFAULT_UNITS, formatMeasure, type Measure } from "@/lib/units";
 import type { WeatherCondition } from "@/lib/weather-icons";
 
 /* Condition labels, from FastAPI `presentation.conditions` and older issues. */
-const HUMIDITY = /^humidity/i;
-const RAIN_TILE = /^rain$/i;
-const PRESSURE = /^pressure/i;
-const CLOUD_BASE = /^cloud base/i;
-const TIME_SEPARATOR = /,|;| and /;
-const DIGITS = /\d+/;
-const RAIN_CHANCE = /^(chance of rain|rain chance)/i;
-const WAVE_HEIGHT = /^wave height/i;
-const SEA_STATE = /^sea state/i;
-const SWELL = /^swell/i;
-const SWELL_DETAIL = /^swell · /i;
-const HIGH_TIDE = /^high tide/i;
-const LOW_TIDE = /^low tide/i;
-const SUNRISE = /^sunrise/i;
-const SUNSET = /^sunset/i;
-const VISIBILITY = /^visibility/i;
+const HUMIDITY = /^humidity/iu;
+const RAIN_TILE = /^rain$/iu;
+const PRESSURE = /^pressure/iu;
+const CLOUD_BASE = /^cloud base/iu;
+const TIME_SEPARATOR = /,|;| and /u;
+const DIGITS = /\d+/u;
+const RAIN_CHANCE = /^(chance of rain|rain chance)/iu;
+const WAVE_HEIGHT = /^wave height/iu;
+const SEA_STATE = /^sea state/iu;
+const SWELL = /^swell/iu;
+const SWELL_DETAIL = /^swell · /iu;
+const HIGH_TIDE = /^high tide/iu;
+const LOW_TIDE = /^low tide/iu;
+const SUNRISE = /^sunrise/iu;
+const SUNSET = /^sunset/iu;
+const VISIBILITY = /^visibility/iu;
 /** Observer weather words that explain poor visibility (Saharan dust shows as haze). */
-const OBSCURED = /haze|dust|sand|smoke|mist|fog/i;
-const PARTLY = /partly|intervals|mostly sunny/i;
-const SHOWERY = /shower|rain|drizzle|thunder|storm/i;
-const SUNNY = /sun|clear|fair|fine/i;
-const OVERCAST = /overcast|cloudy|cloud|haze|mist|fog/i;
+const OBSCURED = /haze|dust|sand|smoke|mist|fog/iu;
+const PARTLY = /partly|intervals|mostly sunny/iu;
+const SHOWERY = /shower|rain|drizzle|thunder|storm/iu;
+const SUNNY = /sun|clear|fair|fine/iu;
+const OVERCAST = /overcast|cloudy|cloud|haze|mist|fog/iu;
 
 export type ReadingIcon =
   | "air"

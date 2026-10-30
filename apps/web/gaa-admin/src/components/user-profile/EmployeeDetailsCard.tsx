@@ -23,8 +23,8 @@ export function EmployeeDetailsCard({
     ["Employment status", employment.status],
   ];
   return (
-    <section className="space-y-4 rounded-xl border border-border p-5 lg:p-6">
-      <h2 className="font-semibold text-lg">Employment information</h2>
+    <section className="border-border space-y-4 rounded-xl border p-5 lg:p-6">
+      <h2 className="text-lg font-semibold">Employment information</h2>
       {!employment.details_complete && (
         <p className="text-muted-foreground text-sm">
           Your department membership is recorded. Personnel details still need

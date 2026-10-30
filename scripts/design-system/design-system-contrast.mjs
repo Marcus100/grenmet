@@ -10,12 +10,12 @@ const rootDir = join(dirname(fileURLToPath(import.meta.url)), "..", "..");
 const sourcePath = join(rootDir, "packages/gms/src/styles/foundation.css");
 const minimumNormalTextContrast = 4.5;
 const warningLevels = ["green", "yellow", "amber", "red", "grey"];
-const hexColorPattern = /^#([0-9a-f]{3}|[0-9a-f]{6})$/i;
-const variableRefPattern = /^var\((--gm-[a-z0-9-]+)\)$/i;
+const hexColorPattern = /^#([0-9a-f]{3}|[0-9a-f]{6})$/iu;
+const variableRefPattern = /^var\((--gm-[a-z0-9-]+)\)$/iu;
 
 function parseVariables(source) {
   const variables = new Map();
-  const variablePattern = /^\s*(--gm-[a-z0-9-]+)\s*:\s*([^;]+);/gim;
+  const variablePattern = /^\s*(--gm-[a-z0-9-]+)\s*:\s*([^;]+);/gimu;
 
   for (const match of source.matchAll(variablePattern)) {
     variables.set(match[1], match[2].trim());

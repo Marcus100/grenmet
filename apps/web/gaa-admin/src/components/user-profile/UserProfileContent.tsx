@@ -51,7 +51,7 @@ export default function UserProfileContent({
 
   if (profileQuery.isLoading) {
     return (
-      <div className="rounded-xl border border-border p-6 text-muted-foreground text-sm">
+      <div className="border-border text-muted-foreground rounded-xl border p-6 text-sm">
         Loading profile...
       </div>
     );
@@ -59,7 +59,7 @@ export default function UserProfileContent({
 
   if (profileQuery.isError || !profileQuery.data) {
     return (
-      <div className="rounded-xl border border-red-200 bg-red-50 p-6 text-red-700 text-sm">
+      <div className="rounded-xl border border-red-200 bg-red-50 p-6 text-sm text-red-700">
         Unable to load profile data. Please refresh and try again.
       </div>
     );
@@ -117,7 +117,7 @@ export default function UserProfileContent({
       </TabsContent>
 
       <TabsContent value="history">
-        <div className="rounded-xl border border-border p-6">
+        <div className="border-border rounded-xl border p-6">
           <RecordHistory
             entityId={profileQuery.data.id}
             entityType="employee"

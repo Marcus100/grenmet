@@ -12,7 +12,7 @@ export default async function SiteLayout({
 
   return (
     <div className="flex min-h-screen flex-col">
-      <header className="border-b bg-card">
+      <header className="bg-card border-b">
         <div className="mx-auto flex max-w-5xl flex-wrap items-center gap-x-6 gap-y-2 px-4 py-3">
           <Link className="flex items-center gap-3 leading-tight" href="/">
             <Logo
@@ -22,7 +22,7 @@ export default async function SiteLayout({
             />
             <span>
               <span className="block font-semibold">GMS Dashboard</span>
-              <span className="block text-muted-foreground text-xs">
+              <span className="text-muted-foreground block text-xs">
                 Grenada Meteorological Service
               </span>
             </span>
@@ -44,7 +44,7 @@ export default async function SiteLayout({
                 <span className="text-muted-foreground">{session.email}</span>
                 <form action="/auth/logout" method="post">
                   <button
-                    className="rounded-md border px-2.5 py-1 hover:bg-muted"
+                    className="hover:bg-muted rounded-md border px-2.5 py-1"
                     type="submit"
                   >
                     Sign out
@@ -53,7 +53,7 @@ export default async function SiteLayout({
               </>
             ) : (
               <a
-                className="rounded-md border px-2.5 py-1 hover:bg-muted"
+                className="hover:bg-muted rounded-md border px-2.5 py-1"
                 href="/auth/start"
               >
                 Sign in
@@ -69,7 +69,7 @@ export default async function SiteLayout({
       >
         {children}
       </main>
-      <footer className="border-t px-4 py-4 text-center text-muted-foreground text-xs">
+      <footer className="text-muted-foreground border-t px-4 py-4 text-center text-xs">
         A Grenada Meteorological Service client service, built by Barrels
         Grenada. Model guidance is not an official forecast.
       </footer>

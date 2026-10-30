@@ -1,4 +1,4 @@
-const NAME_SEPARATORS = /[\s.-]+/;
+const NAME_SEPARATORS = /[\s.-]+/u;
 
 /** "Marcus Whint" -> "MW": the observer initials keyed in paper column 65. */
 export function observerInitials(name: string | null | undefined): string {

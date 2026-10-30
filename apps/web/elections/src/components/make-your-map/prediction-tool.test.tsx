@@ -6,7 +6,7 @@ import {
 } from "@/components/make-your-map/prediction-tool";
 import { CODES } from "@/data/model";
 
-const OWNER_NOTE = /Owner confirmed; public source pending/;
+const OWNER_NOTE = /Owner confirmed; public source pending/u;
 
 const seats: PredictionSeat[] = CODES.map(
   (code): PredictionSeat => ({

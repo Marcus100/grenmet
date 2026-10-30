@@ -13,15 +13,15 @@ import {
   refundStatus,
 } from "./org-orders";
 
-const RE_1 = /still being processed/;
-const RE_2 = /changed/;
-const RE_3 = /permission/;
-const RE_4 = /Reload/;
-const RE_5 = /queued/;
-const RE_6 = /kept/;
-const RE_7 = /Nothing had been paid/;
+const RE_1 = /still being processed/u;
+const RE_2 = /changed/u;
+const RE_3 = /permission/u;
+const RE_4 = /Reload/u;
+const RE_5 = /queued/u;
+const RE_6 = /kept/u;
+const RE_7 = /Nothing had been paid/u;
 
-const VALIDATION = /rejected some of the details/;
+const VALIDATION = /rejected some of the details/u;
 
 describe("status words", () => {
   it("names every state in words, not only colour", () => {

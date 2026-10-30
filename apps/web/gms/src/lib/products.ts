@@ -62,7 +62,7 @@ export type ProductResult =
   | { status: "not-found" }
   | { status: "unavailable" };
 
-const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/iu;
 
 /**
  * One published product by id, for pages and editorial links. Stays readable

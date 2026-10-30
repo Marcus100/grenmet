@@ -11,8 +11,8 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { ThemeToggle } from "@/components/theme-toggle";
 
-const SYSTEM_DEFAULT = /"theme_mode":"system"/;
-const THEME = /Current theme/;
+const SYSTEM_DEFAULT = /"theme_mode":"system"/u;
+const THEME = /Current theme/u;
 
 function renderToggle() {
   // What the boot script leaves on <html> before hydration.

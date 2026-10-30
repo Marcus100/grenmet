@@ -31,7 +31,7 @@ export function PlaceholderNotice({
           {" "}
           Meanwhile, see{" "}
           <Link
-            className="font-semibold text-gm-blue-ink underline"
+            className="text-gm-blue-ink font-semibold underline"
             href={source.href as Route}
           >
             {source.label}
@@ -44,7 +44,7 @@ export function PlaceholderNotice({
   if (compact) {
     return (
       <p
-        className="mb-4 rounded border-gm-risk-yellow border-l-4 bg-gm-surface px-3 py-2 text-body-sm text-gm-text-secondary leading-body-sm"
+        className="border-gm-risk-yellow bg-gm-surface text-body-sm text-gm-text-secondary leading-body-sm mb-4 rounded border-l-4 px-3 py-2"
         role="note"
       >
         <b className="text-gm-heading">{NOT_YET_AVAILABLE}.</b> {line}
@@ -53,13 +53,13 @@ export function PlaceholderNotice({
   }
   return (
     <div
-      className="mb-6 rounded-gm-card border border-gm-risk-yellow bg-gm-surface p-4 lg:p-5"
+      className="rounded-gm-card border-gm-risk-yellow bg-gm-surface mb-6 border p-4 lg:p-5"
       role="note"
     >
-      <p className="font-bold text-body-base text-gm-heading leading-body-base">
+      <p className="text-body-base text-gm-heading leading-body-base font-bold">
         {NOT_YET_AVAILABLE}
       </p>
-      <p className="mt-1 text-body text-gm-text-secondary leading-body">
+      <p className="text-body text-gm-text-secondary leading-body mt-1">
         {line}
       </p>
     </div>

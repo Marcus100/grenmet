@@ -57,7 +57,7 @@ const files = glob.sync("**/*.mdx", { cwd: contentDir });
 const allSections = {};
 
 for (const file of files) {
-  const slug = file.replace(/\.mdx$/, "");
+  const slug = file.replace(/\.mdx$/u, "");
   const pathname = slug === "index" ? "/" : `/${slug}`;
   const content = readFileSync(join(contentDir, file), "utf8");
   allSections[pathname] = extractPage(content);

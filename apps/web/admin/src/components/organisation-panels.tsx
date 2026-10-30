@@ -131,7 +131,7 @@ export function HistoryPanel({
                   {row.actor_name}, {formatStamp(row.created_at)} UTC
                 </span>
               </div>
-              <ul className="mt-1 space-y-0.5 text-muted-foreground">
+              <ul className="text-muted-foreground mt-1 space-y-0.5">
                 {row.changes.map((change) => (
                   <li key={change.field}>
                     <span className="font-mono">{change.field}</span>

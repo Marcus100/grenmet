@@ -23,17 +23,17 @@ export function LinkedPage({
   return (
     <Link
       className={cn(
-        "flex flex-col gap-1 rounded-gm-card border border-gm-border bg-gm-surface p-4 hover:border-gm-blue-ink",
+        "rounded-gm-card border-gm-border bg-gm-surface hover:border-gm-blue-ink flex flex-col gap-1 border p-4",
         className
       )}
       href={path as Route}
     >
       {page && (
-        <span className="font-bold text-gm-sky-ink text-label uppercase leading-label tracking-wider">
+        <span className="text-gm-sky-ink text-label leading-label font-bold tracking-wider uppercase">
           {page.section}
         </span>
       )}
-      <span className="flex items-center gap-1 font-bold text-body-base text-gm-heading leading-body-base">
+      <span className="text-body-base text-gm-heading leading-body-base flex items-center gap-1 font-bold">
         {page?.title ?? fallbackTitle ?? path}
         <ArrowRightIcon aria-hidden="true" className="size-4" />
       </span>

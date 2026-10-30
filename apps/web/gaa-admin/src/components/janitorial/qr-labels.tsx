@@ -50,12 +50,12 @@ export function QrSymbol({
 
 function Label({ label }: { label: AreaLabel }) {
   return (
-    <div className="flex flex-col items-center justify-between border border-zinc-300 border-dashed p-3 text-center">
+    <div className="flex flex-col items-center justify-between border border-dashed border-zinc-300 p-3 text-center">
       <div className="w-full">
         <p className="truncate text-[11px] text-zinc-600">
           {label.buildingName}
         </p>
-        <p className="line-clamp-2 font-semibold text-sm leading-tight">
+        <p className="line-clamp-2 text-sm leading-tight font-semibold">
           {label.name}
         </p>
       </div>
@@ -102,7 +102,7 @@ export function QrLabelSheet({ labels }: { labels: AreaLabel[] }) {
           Print labels
         </Button>
       </div>
-      <div className="space-y-6 overflow-x-auto rounded-xl border bg-muted p-6">
+      <div className="bg-muted space-y-6 overflow-x-auto rounded-xl border p-6">
         <Pages labels={labels} />
       </div>
       <PrintDocument>

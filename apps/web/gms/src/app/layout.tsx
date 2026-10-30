@@ -75,7 +75,7 @@ export default function RootLayout({
         <ThemeBootScript defaults={THEME_DEFAULTS} />
         <UnitsBootScript />
       </head>
-      <body className="flex min-h-screen flex-col bg-background font-sans text-foreground">
+      <body className="bg-background text-foreground flex min-h-screen flex-col font-sans">
         <SkipLink />
         <PostHogProvider app="gms" privacyHref="/privacy">
           <PreferencesStoreProvider

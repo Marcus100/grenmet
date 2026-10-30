@@ -17,10 +17,10 @@ import {
 const root = join(dirname(fileURLToPath(import.meta.url)), "..", "..");
 const CLAUDE_HAIKU = "claude-haiku-5-5";
 const LUNA = "gpt-6-luna";
-const WEB_EVIDENCE = /^3 runs, pass 97%, tokens 400;/;
-const DIFFERS = /differs from the owner preference/;
-const AGREES_AT_END = /agrees with the owner preference$/;
-const STARRED = /^\*/;
+const WEB_EVIDENCE = /^3 runs, pass 97%, tokens 400;/u;
+const DIFFERS = /differs from the owner preference/u;
+const AGREES_AT_END = /agrees with the owner preference$/u;
+const STARRED = /^\*/u;
 
 const WEB_TASK = { id: "bm-w", hidden_tests: ["apps/web/gms/src/a.test.ts"] };
 const MIXED_TASK = {

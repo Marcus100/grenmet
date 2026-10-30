@@ -24,10 +24,10 @@ function pageFiles(dir: string): string[] {
 }
 
 const PAGES = pageFiles(APP_DIR);
-const TEMPLATE = /template: `%s \| \$\{SITE_NAME\}`/;
-const DEFAULT_TITLE = /default: SITE_NAME/;
-const HAS_METADATA = /export const metadata|generateMetadata/;
-const TITLE_VALUE = /title:\s*"([^"]*)"/g;
+const TEMPLATE = /template: `%s \| \$\{SITE_NAME\}`/u;
+const DEFAULT_TITLE = /default: SITE_NAME/u;
+const HAS_METADATA = /export const metadata|generateMetadata/u;
+const TITLE_VALUE = /title:\s*"([^"]*)"/gu;
 
 describe("page titles", () => {
   it("has a root title template ending in the site name", () => {

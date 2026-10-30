@@ -34,7 +34,7 @@ export function MobileNavSheet({
         side="right"
       >
         <SheetHeader>
-          <SheetTitle className="text-left font-display text-gaa-navy">
+          <SheetTitle className="font-display text-gaa-navy text-left">
             Grenada Airports Authority
           </SheetTitle>
         </SheetHeader>
@@ -51,17 +51,17 @@ export function MobileNavSheet({
           {NAV_GROUPS.map((group) => (
             <div key={group.label}>
               <Link
-                className="mb-2 block font-bold font-display text-gaa-navy text-sm uppercase tracking-wide"
+                className="font-display text-gaa-navy mb-2 block text-sm font-bold tracking-wide uppercase"
                 data-analytics-event="navigation_category_selected"
                 href={group.href as Route}
                 onClick={close}
               >
                 {group.label}
               </Link>
-              <div className="flex flex-col border-gaa-rule border-l">
+              <div className="border-gaa-rule flex flex-col border-l">
                 {group.links.map((link) => (
                   <Link
-                    className="px-3 py-1.5 text-gaa-muted text-sm hover:text-gaa-navy"
+                    className="text-gaa-muted hover:text-gaa-navy px-3 py-1.5 text-sm"
                     data-analytics-event="navigation_category_selected"
                     href={link.href as Route}
                     key={link.href}
@@ -74,7 +74,7 @@ export function MobileNavSheet({
             </div>
           ))}
           <Link
-            className="font-semibold text-gaa-navy text-sm"
+            className="text-gaa-navy text-sm font-semibold"
             data-analytics-event="navigation_category_selected"
             href="/contact"
             onClick={close}

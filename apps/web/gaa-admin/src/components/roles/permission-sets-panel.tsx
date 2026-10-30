@@ -58,7 +58,7 @@ function PermissionEditor({
               />
               <span>
                 {permission.key}
-                <span className="block text-muted-foreground">
+                <span className="text-muted-foreground block">
                   {permission.description}
                 </span>
               </span>
@@ -106,7 +106,7 @@ export function PermissionSetsPanel() {
     );
   return (
     <section className="space-y-3">
-      <h2 className="font-semibold text-xl">Permission sets</h2>
+      <h2 className="text-xl font-semibold">Permission sets</h2>
       <p>
         Grant only the capabilities needed for a task. Job titles do not grant
         these permissions.

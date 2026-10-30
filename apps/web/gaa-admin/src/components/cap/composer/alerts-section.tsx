@@ -48,7 +48,7 @@ export async function AlertsSection() {
 
 function SectionHeading({ title }: { title: string }) {
   return (
-    <h2 className="mb-3 text-gm-text-primary text-heading-sm leading-heading-sm">
+    <h2 className="text-gm-text-primary text-heading-sm leading-heading-sm mb-3">
       {title}
     </h2>
   );
@@ -56,11 +56,11 @@ function SectionHeading({ title }: { title: string }) {
 
 function Metric({ label, value }: { label: string; value: number }) {
   return (
-    <div className="border border-gm-border bg-card p-4 shadow-card">
-      <div className="text-gm-text-muted text-label uppercase leading-label">
+    <div className="border-gm-border bg-card shadow-card border p-4">
+      <div className="text-gm-text-muted text-label leading-label uppercase">
         {label}
       </div>
-      <div className="mt-2 text-gm-text-primary text-heading-md leading-heading-md">
+      <div className="text-gm-text-primary text-heading-md leading-heading-md mt-2">
         {value}
       </div>
     </div>

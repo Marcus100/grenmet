@@ -10,10 +10,10 @@ import {
 } from "@/components/invoice-panels";
 import { todayInGrenada } from "@/lib/invoice-form";
 
-const PAYMENT_TEXT = /bank transfer, ref TT-1/;
-const AMOUNT_LABEL = /Amount/;
-const REASON_LABEL = /Reason/;
-const FINAL_TEXT = /cannot be undone/;
+const PAYMENT_TEXT = /bank transfer, ref TT-1/u;
+const AMOUNT_LABEL = /Amount/u;
+const REASON_LABEL = /Reason/u;
+const FINAL_TEXT = /cannot be undone/u;
 
 vi.mock("@/app/(console)/invoices/actions", () => {
   const action = () => Promise.resolve(undefined as never);

@@ -7,9 +7,9 @@ import { afterAll, afterEach, beforeAll, describe, expect, it } from "vitest";
 import { HolidaysManager } from "./holidays-manager";
 
 const BASE = "http://localhost";
-const LOAD_LABEL = /Load provisional \d{4} holidays/;
-const SAVE_LABEL = /Save changes/;
-const MANAGED_BY_ADMINS = /managed by global roster administrators/;
+const LOAD_LABEL = /Load provisional \d{4} holidays/u;
+const SAVE_LABEL = /Save changes/u;
+const MANAGED_BY_ADMINS = /managed by global roster administrators/u;
 
 const HOLIDAY = {
   id: "11111111-1111-4111-8111-111111111111",

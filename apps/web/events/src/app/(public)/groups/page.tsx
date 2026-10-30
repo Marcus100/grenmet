@@ -17,17 +17,17 @@ export default async function GroupsPage() {
   return (
     <div className="space-y-10">
       <div>
-        <h1 className="font-bold font-display text-heading-base tracking-tight sm:text-heading-md">
+        <h1 className="font-display text-heading-base sm:text-heading-md font-bold tracking-tight">
           Groups & meetups
         </h1>
-        <p className="mt-2 max-w-xl text-body-base text-muted-foreground">
+        <p className="text-body-base text-muted-foreground mt-2 max-w-xl">
           The communities behind the calendar. Join one to get its meetups,
           announcements and group chat.
         </p>
       </div>
       {mine.length > 0 ? (
         <section className="space-y-4">
-          <h2 className="font-display font-semibold text-heading-sm">
+          <h2 className="font-display text-heading-sm font-semibold">
             Your groups
           </h2>
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -46,7 +46,7 @@ export default async function GroupsPage() {
         </section>
       ) : null}
       <section className="space-y-4">
-        <h2 className="font-display font-semibold text-heading-sm">
+        <h2 className="font-display text-heading-sm font-semibold">
           Discover groups
         </h2>
         {others.length > 0 ? (

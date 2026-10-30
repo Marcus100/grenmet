@@ -14,8 +14,8 @@ import {
 } from "@/lib/booking-api";
 import { failureFrom } from "@/lib/booking-errors";
 
-const DAY = /^\d{4}-\d{2}-\d{2}$/;
-const INSTANT = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(:\d{2}(\.\d+)?)?Z$/;
+const DAY = /^\d{4}-\d{2}-\d{2}$/u;
+const INSTANT = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(:\d{2}(\.\d+)?)?Z$/u;
 
 const invalid: Failure = {
   ok: false,

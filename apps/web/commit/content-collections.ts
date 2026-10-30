@@ -19,7 +19,7 @@ const posts = defineCollection({
     // posts that are not tied to a release.
     release: z
       .string()
-      .regex(/^\d+\.\d+\.\d+$/)
+      .regex(/^\d+\.\d+\.\d+$/u)
       .optional(),
     draft: z.boolean().default(false),
   }),

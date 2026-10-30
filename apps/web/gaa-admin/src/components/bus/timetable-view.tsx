@@ -38,7 +38,7 @@ export function TimetableView({
           <div className="flex flex-wrap items-baseline justify-between gap-2">
             <div className="min-w-0">
               <h2
-                className="font-semibold text-lg tracking-tight"
+                className="text-lg font-semibold tracking-tight"
                 id={`route-${group.route.id}`}
               >
                 Route {group.route.number} — {group.route.name}
@@ -61,7 +61,7 @@ export function TimetableView({
           ) : null}
           {group.shifts.map(({ shift, trips }) => (
             <div className="space-y-2" key={shift.id}>
-              <h3 className="font-medium text-muted-foreground text-xs uppercase tracking-wide">
+              <h3 className="text-muted-foreground text-xs font-medium tracking-wide uppercase">
                 {shift.name} shift · {formatTime(shift.startTime)}–
                 {formatTime(shift.endTime)}
               </h3>
@@ -96,25 +96,25 @@ function TripCard({
   trip: TimetableTripView;
 }) {
   return (
-    <details className="rounded-lg border border-border bg-card">
-      <summary className="flex cursor-pointer flex-wrap items-center justify-between gap-2 px-4 py-3 font-medium text-sm">
+    <details className="border-border bg-card rounded-lg border">
+      <summary className="flex cursor-pointer flex-wrap items-center justify-between gap-2 px-4 py-3 text-sm font-medium">
         <span className="flex flex-wrap items-center gap-2">
           {formatDirection(trip.direction)}
           <Badge variant="light-light">{calendar}</Badge>
           <TripStatusBadge status={trip.status} />
         </span>
-        <span className="shrink-0 font-mono text-muted-foreground text-xs">
+        <span className="text-muted-foreground shrink-0 font-mono text-xs">
           {formatTime(trip.departTime)}
           {trip.arriveTime ? ` → ${formatTime(trip.arriveTime)}` : ""}
         </span>
       </summary>
-      <div className="space-y-3 border-border border-t px-4 py-3">
+      <div className="border-border space-y-3 border-t px-4 py-3">
         {trip.notes ? (
           <p className="text-muted-foreground text-sm">{trip.notes}</p>
         ) : null}
         <IssueList issues={issues} />
         {trip.stops.length > 0 ? (
-          <ol className="divide-y divide-border">
+          <ol className="divide-border divide-y">
             {trip.stops.map((stop) => (
               <li
                 className="flex items-center justify-between gap-3 py-2 text-sm"
@@ -122,7 +122,7 @@ function TripCard({
               >
                 <span>{stop.stopName}</span>
                 {stop.time ? (
-                  <span className="shrink-0 font-mono text-muted-foreground text-xs">
+                  <span className="text-muted-foreground shrink-0 font-mono text-xs">
                     {stop.timepoint ? "" : "≈ "}
                     {formatTime(stop.time)}
                   </span>

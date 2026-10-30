@@ -119,7 +119,7 @@ export function ImpactMatrixEditor({
           </dl>
           {problems.length ? (
             <ul
-              className="list-inside list-disc text-destructive text-sm"
+              className="text-destructive list-inside list-disc text-sm"
               role="alert"
             >
               {problems.map((problem) => (

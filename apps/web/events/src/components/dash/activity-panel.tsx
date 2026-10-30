@@ -33,7 +33,7 @@ export function ActivityPanel({
   return (
     <section aria-labelledby="activity-heading" className="space-y-3">
       <h2
-        className="font-display font-semibold text-heading-sm"
+        className="font-display text-heading-sm font-semibold"
         id="activity-heading"
       >
         History
@@ -41,12 +41,12 @@ export function ActivityPanel({
       {entries.length === 0 ? (
         <p className="text-body text-muted-foreground">No changes recorded.</p>
       ) : (
-        <ol className="divide-y rounded-xl border bg-card">
+        <ol className="bg-card divide-y rounded-xl border">
           {entries.map((entry) => (
             <li className="space-y-0.5 px-4 py-3" key={entry.id}>
-              <p className="font-medium text-body">
+              <p className="text-body font-medium">
                 {describeAction(entry.action)}
-                <span className="font-normal text-muted-foreground">
+                <span className="text-muted-foreground font-normal">
                   {" "}
                   by {entry.actorName ?? "an organiser"}
                 </span>

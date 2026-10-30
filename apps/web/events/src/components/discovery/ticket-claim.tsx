@@ -128,11 +128,11 @@ export function TicketClaim({
           const quantity = quantities[tier.id] ?? 0;
           return (
             <li
-              className="flex items-center justify-between gap-3 rounded-xl border border-border px-3 py-2"
+              className="border-border flex items-center justify-between gap-3 rounded-xl border px-3 py-2"
               key={tier.id}
             >
               <div className="min-w-0">
-                <p className="font-medium text-body">{tier.name}</p>
+                <p className="text-body font-medium">{tier.name}</p>
                 <p className="text-caption text-muted-foreground">
                   {formatPrice(tier.price)}
                   {note ? ` · ${note}` : ` · ${tier.remaining} left`}
@@ -171,7 +171,7 @@ export function TicketClaim({
         })}
       </ul>
       <Button
-        className="h-11 w-full text-body-base"
+        className="text-body-base h-11 w-full"
         disabled={pending || total === 0 || outcome?.kind === "redirecting"}
         onClick={submit}
         size="lg"
@@ -212,7 +212,7 @@ function OutcomeNotice({ outcome }: { outcome: Outcome | null }) {
     const { order } = outcome;
     return (
       <div
-        className="space-y-1 rounded-xl border border-border bg-muted p-3 text-body"
+        className="border-border bg-muted text-body space-y-1 rounded-xl border p-3"
         role="status"
       >
         <p className="flex items-center gap-1 font-semibold">
@@ -234,7 +234,7 @@ function OutcomeNotice({ outcome }: { outcome: Outcome | null }) {
     );
   }
   return (
-    <p className="flex items-center gap-1 text-body text-primary" role="status">
+    <p className="text-body text-primary flex items-center gap-1" role="status">
       <Check className="size-4" />
       You have {outcome.count} new ticket{outcome.count === 1 ? "" : "s"}.{" "}
       <Link className="underline" href="/me/tickets">

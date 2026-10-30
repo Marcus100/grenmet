@@ -14,7 +14,7 @@ export default async function MapPage() {
 
   return (
     <div className="space-y-5">
-      <h1 className="font-semibold text-gm-heading text-heading-lg">
+      <h1 className="text-gm-heading text-heading-lg font-semibold">
         Alert map
       </h1>
       <FeedStatus now={now} result={result} />
