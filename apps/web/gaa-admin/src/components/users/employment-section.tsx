@@ -57,6 +57,17 @@ interface EmploymentDraft {
 }
 
 /**
+ * What the server holds, as this form last loaded or saved it. Changes are judged
+ * against this snapshot, never against the live query, so a refetch that brings
+ * in someone else's edit cannot make an unrelated save look like a change.
+ */
+interface SavedEmployment {
+  departmentId: string;
+  endDate: string | null;
+  status: EmploymentStatus;
+}
+
+/**
  * Department and employment record for one person, as HR administrators edit it
  * in the user dialog. Owns the draft form, the confirmation step before a change
  * that ends roles, and the plain-words result of a refused save.
@@ -82,36 +93,36 @@ export function EmploymentSection({
     end_date: "",
   });
   const [empSeeded, setEmpSeeded] = useState(false);
-  // Set when a save needs the admin to confirm first (transfer, or a last day
-  // today or earlier). Cleared by any edit, so the confirmation always matches the form.
+  // Null means no employment record yet (create mode).
+  const [saved, setSaved] = useState<SavedEmployment | null>(null);
+  // Set when a save needs the admin to confirm first (transfer, status that ends
+  // roles, or a last day today or earlier). Cleared by any edit, so the
+  // confirmation always matches the form.
   const [pendingReview, setPendingReview] =
     useState<EmploymentChangeReview | null>(null);
   // Plain-words reason the API refused the last save. Shown on the form.
   const [saveError, setSaveError] = useState<string | null>(null);
 
   const today = grenadaToday();
-  const savedEndDate = currentEmployment?.end_date ?? null;
   const draftEndDate = emp.end_date || null;
-  const endDateProblem = currentEmployment
-    ? lastDayError(emp.end_date, currentEmployment.start_date)
+  const endDateProblem = saved
+    ? lastDayError(emp.end_date, currentEmployment?.start_date)
     : null;
-  const liveReview = currentEmployment
-    ? reviewEmploymentChange({
-        current: {
-          departmentId: currentEmployment.department_id,
-          endDate: savedEndDate,
-        },
-        next: {
-          departmentId: emp.department_id,
-          endDate: draftEndDate,
-          status: emp.status,
-        },
-        today,
-      })
-    : null;
+  const liveReview =
+    saved === null
+      ? null
+      : reviewEmploymentChange({
+          current: saved,
+          next: {
+            departmentId: emp.department_id,
+            endDate: draftEndDate,
+            status: emp.status,
+          },
+          today,
+        });
 
   // Seed the form once per open, after the read + departments settle.
-  // No record (404) leaves currentEmployment undefined → blank fields, "assign" (create) mode.
+  // No record (404) leaves the snapshot null → blank fields, "assign" (create) mode.
   useEffect(() => {
     if (!open) {
       setEmpSeeded(false);
@@ -126,6 +137,15 @@ export function EmploymentSection({
       status: currentEmployment?.status ?? "ACTIVE",
       end_date: currentEmployment?.end_date ?? "",
     });
+    setSaved(
+      currentEmployment
+        ? {
+            departmentId: currentEmployment.department_id,
+            endDate: currentEmployment.end_date ?? null,
+            status: currentEmployment.status,
+          }
+        : null
+    );
     setEmpSeeded(true);
   }, [open, empSeeded, isFetching, currentEmployment, departments]);
 
@@ -133,6 +153,50 @@ export function EmploymentSection({
     setEmp((s) => ({ ...s, ...patch }));
     setPendingReview(null);
     setSaveError(null);
+  }
+
+  /**
+   * Sends only what the admin changed against the snapshot, so a stale form cannot
+   * move, deactivate or clear anything someone else changed after it loaded.
+   */
+  async function sendChanges(base: SavedEmployment) {
+    const sendDepartment = emp.department_id !== base.departmentId;
+    const sendStatus = emp.status !== base.status;
+    const sendEndDate = draftEndDate !== base.endDate;
+    await updateEmploymentMutation.mutateAsync({
+      path: { user_id: user.id },
+      body: {
+        employment: {
+          employee_number: emp.employee_number.trim() || null,
+          position: emp.position.trim() || null,
+          ...(sendDepartment ? { department_id: emp.department_id } : {}),
+          ...(sendStatus ? { status: emp.status } : {}),
+          ...(sendEndDate ? { end_date: draftEndDate } : {}),
+        },
+      },
+    });
+    setSaved({
+      departmentId: sendDepartment ? emp.department_id : base.departmentId,
+      endDate: sendEndDate ? draftEndDate : base.endDate,
+      status: sendStatus ? emp.status : base.status,
+    });
+  }
+
+  async function sendCreate() {
+    await createEmploymentMutation.mutateAsync({
+      path: { user_id: user.id },
+      body: {
+        employee_number: emp.employee_number.trim(),
+        department_id: emp.department_id,
+        position: emp.position.trim() || null,
+      },
+    });
+    // The create request sends no status or last day, so the record starts Active with no last day.
+    setSaved({
+      departmentId: emp.department_id,
+      endDate: null,
+      status: "ACTIVE",
+    });
   }
 
   /** Saves the form. Call only after any confirmation has been given. */
@@ -143,51 +207,34 @@ export function EmploymentSection({
       toast.error("Select a department first");
       return;
     }
-    const previousDepartmentId = currentEmployment?.department_id;
+    if (!(saved || emp.employee_number.trim())) {
+      toast.error("Employee number is required to assign a department");
+      return;
+    }
+    const previousDepartmentId = saved?.departmentId ?? emp.department_id;
     try {
-      if (currentEmployment) {
-        // The last day is sent only when it changed, so a form loaded before
-        // someone else set a date cannot silently clear it.
-        const endDateChanged = draftEndDate !== savedEndDate;
-        await updateEmploymentMutation.mutateAsync({
-          path: { user_id: user.id },
-          body: {
-            employment: {
-              department_id: emp.department_id,
-              employee_number: emp.employee_number.trim() || null,
-              position: emp.position.trim() || null,
-              status: emp.status,
-              ...(endDateChanged ? { end_date: draftEndDate } : {}),
-            },
-          },
-        });
-      } else {
-        if (!emp.employee_number.trim()) {
-          toast.error("Employee number is required to assign a department");
-          return;
-        }
-        await createEmploymentMutation.mutateAsync({
-          path: { user_id: user.id },
-          body: {
-            employee_number: emp.employee_number.trim(),
-            department_id: emp.department_id,
-            position: emp.position.trim() || null,
-          },
-        });
-      }
+      if (saved) await sendChanges(saved);
+      else await sendCreate();
     } catch (error) {
       const failure = employmentSaveFailure(error);
       if (failure.unexpected) reportError(error, "hr-employment");
       setSaveError(failure.message);
       return;
     }
+    await refreshAfterSave(previousDepartmentId, emp.department_id);
+  }
+
+  async function refreshAfterSave(
+    previousDepartmentId: string,
+    nextDepartmentId: string
+  ) {
     // Refresh this user's employment, the users table, and the roster member
     // lists for both the old and new department (moving a person shows in both).
     await invalidateAfterEmploymentChange(queryClient, {
       userId: user.id,
-      departmentIds: [previousDepartmentId, emp.department_id],
+      departmentIds: [previousDepartmentId, nextDepartmentId],
     });
-    // A transfer or a last day ends roles, so the role list changes too.
+    // A transfer, a status change or a last day ends roles, so the role list changes too.
     await queryClient.invalidateQueries({
       queryKey: authGetRoleAssignmentsQueryKey({ query: { user_id: user.id } }),
     });
@@ -197,7 +244,7 @@ export function EmploymentSection({
   /** Save button: asks for confirmation first when the change ends roles. */
   function requestSave() {
     if (endDateProblem) return;
-    if (currentEmployment && liveReview?.requiresConfirmation) {
+    if (saved && liveReview?.requiresConfirmation) {
       setPendingReview(liveReview);
       return;
     }
@@ -270,12 +317,14 @@ export function EmploymentSection({
           value={emp.position}
         />
       </Field>
-      {currentEmployment ? (
+      {saved ? (
         <Field>
           <FieldLabel htmlFor="mu-end">Last day of employment</FieldLabel>
           <div className="flex flex-wrap items-center gap-2">
             <Input
-              aria-describedby="mu-end-help"
+              aria-describedby={
+                endDateProblem ? "mu-end-help mu-end-error" : "mu-end-help"
+              }
               aria-invalid={endDateProblem ? true : undefined}
               className="w-auto"
               id="mu-end"
@@ -298,7 +347,11 @@ export function EmploymentSection({
             {END_DATE_EXPLANATION}
           </p>
           {endDateProblem ? (
-            <p className="text-destructive text-sm" role="status">
+            <p
+              className="text-destructive text-sm"
+              id="mu-end-error"
+              role="status"
+            >
               {endDateProblem}
             </p>
           ) : null}
@@ -314,13 +367,13 @@ export function EmploymentSection({
         </Alert>
       ) : null}
       <Button
-        disabled={employmentBusy || !emp.department_id}
+        disabled={employmentBusy || !emp.department_id || !!endDateProblem}
         onClick={requestSave}
         size="sm"
         type="button"
         variant="outline"
       >
-        {currentEmployment ? "Save employment" : "Assign to department"}
+        {saved ? "Save employment" : "Assign to department"}
       </Button>
       <AlertDialog
         onOpenChange={(next) => {

@@ -55,8 +55,16 @@ export function lastDayError(
   return null;
 }
 
+export const STATUS_ROLES_WARNING =
+  "This ends all of this person's roles in the organisation; they must be granted again if they return.";
+
 export interface EmploymentChangeInput {
-  current: { departmentId: string; endDate: string | null };
+  /** The record as last saved (or as loaded), not the live query value. */
+  current: {
+    departmentId: string;
+    endDate: string | null;
+    status: EmploymentStatus;
+  };
   next: {
     departmentId: string;
     endDate: string | null;
@@ -74,6 +82,8 @@ export interface EmploymentChangeReview {
   /** A new last day that is today or earlier, so access stops tonight or has already stopped. */
   endsNow: boolean;
   requiresConfirmation: boolean;
+  /** The status moves to Inactive or Terminated, which ends every role. */
+  statusEndsRoles: boolean;
 }
 
 /** Decides what the form must confirm before it saves an employment change. */
@@ -86,9 +96,12 @@ export function reviewEmploymentChange({
   const endDateChanged = next.endDate !== current.endDate;
   const endsNow =
     endDateChanged && next.endDate !== null && next.endDate <= today;
+  const statusEndsRoles =
+    next.status !== current.status && next.status !== "ACTIVE";
 
   const confirmationLines: string[] = [];
   if (departmentMoves) confirmationLines.push(DEPARTMENT_TRANSFER_WARNING);
+  if (statusEndsRoles) confirmationLines.push(STATUS_ROLES_WARNING);
   if (endsNow && next.endDate) {
     confirmationLines.push(
       next.endDate === today
@@ -108,6 +121,7 @@ export function reviewEmploymentChange({
     endDateChanged,
     endsNow,
     requiresConfirmation: confirmationLines.length > 0,
+    statusEndsRoles,
   };
 }
 

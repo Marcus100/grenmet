@@ -14,6 +14,7 @@ function review(
   overrides: {
     departmentId?: string;
     currentEnd?: string | null;
+    currentStatus?: "ACTIVE" | "INACTIVE" | "TERMINATED";
     nextEnd?: string | null;
     status?: "ACTIVE" | "INACTIVE" | "TERMINATED";
   } = {}
@@ -22,6 +23,7 @@ function review(
     current: {
       departmentId: "dept_met",
       endDate: overrides.currentEnd ?? null,
+      status: overrides.currentStatus ?? "ACTIVE",
     },
     next: {
       departmentId: overrides.departmentId ?? "dept_met",
@@ -133,6 +135,37 @@ describe("reviewEmploymentChange", () => {
     const result = review({ departmentId: "dept_admin", nextEnd: TODAY });
     expect(result.confirmationLines).toHaveLength(3);
     expect(result.confirmationLines[0]).toBe(DEPARTMENT_TRANSFER_WARNING);
+  });
+});
+
+describe("reviewEmploymentChange — status", () => {
+  it("requires confirmation when status moves to Inactive or Terminated, with the roles warning", () => {
+    for (const status of ["INACTIVE", "TERMINATED"] as const) {
+      const result = review({ status });
+      expect(result.statusEndsRoles).toBe(true);
+      expect(result.requiresConfirmation).toBe(true);
+      expect(result.confirmationLines).toEqual([
+        "This ends all of this person's roles in the organisation; they must be granted again if they return.",
+      ]);
+    }
+  });
+
+  it("requires confirmation when Inactive moves to Terminated (roles already ended, the change is still recorded)", () => {
+    const result = review({ currentStatus: "INACTIVE", status: "TERMINATED" });
+    expect(result.statusEndsRoles).toBe(true);
+    expect(result.requiresConfirmation).toBe(true);
+  });
+
+  it("asks for nothing when the status is unchanged", () => {
+    const result = review({ currentStatus: "INACTIVE", status: "INACTIVE" });
+    expect(result.statusEndsRoles).toBe(false);
+    expect(result.requiresConfirmation).toBe(false);
+  });
+
+  it("asks for nothing when reinstating to Active", () => {
+    const result = review({ currentStatus: "TERMINATED", status: "ACTIVE" });
+    expect(result.statusEndsRoles).toBe(false);
+    expect(result.requiresConfirmation).toBe(false);
   });
 });
 

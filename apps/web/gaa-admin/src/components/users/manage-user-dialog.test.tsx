@@ -198,16 +198,99 @@ describe("ManageUserDialog — department & employment", () => {
       target: { value: "INACTIVE" },
     });
     fireEvent.click(saveBtn);
+    // Inactive ends every role, so the save waits for confirmation.
+    expect(patched).toHaveLength(0);
+    fireEvent.click(screen.getByRole("button", { name: "Confirm and save" }));
 
     await waitFor(() => expect(patched).toHaveLength(1));
+    // Only the changed status is sent; the unchanged department is not.
     expect(patched[0]).toEqual({
       employment: {
-        department_id: "dept_met",
         employee_number: "MET-1",
         position: "Observer",
         status: "INACTIVE",
       },
     });
+  });
+
+  it("confirms a status change to Inactive or Terminated before saving, naming the roles consequence", async () => {
+    const bodies: unknown[] = [];
+    server.use(recordWith({}), patchRecord(bodies));
+    renderDialog();
+    fireEvent.change(await screen.findByLabelText("Status"), {
+      target: { value: "TERMINATED" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Save employment" }));
+    expect(screen.getByText(CONFIRM_TITLE)).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        "This ends all of this person's roles in the organisation; they must be granted again if they return."
+      )
+    ).toBeInTheDocument();
+    expect(bodies).toHaveLength(0);
+
+    fireEvent.click(screen.getByRole("button", { name: "Go back" }));
+    expect(bodies).toHaveLength(0);
+    expect(screen.getByLabelText("Status")).toHaveValue("TERMINATED");
+
+    fireEvent.click(screen.getByRole("button", { name: "Save employment" }));
+    fireEvent.click(screen.getByRole("button", { name: "Confirm and save" }));
+    await waitFor(() => expect(bodies).toHaveLength(1));
+    expect(bodies[0]).toEqual({
+      employment: {
+        employee_number: "MET-1",
+        position: "Observer",
+        status: "TERMINATED",
+      },
+    });
+  });
+
+  it("does not stop a reinstatement to Active for confirmation", async () => {
+    const bodies: unknown[] = [];
+    server.use(recordWith({ status: "INACTIVE" }), patchRecord(bodies));
+    renderDialog();
+    fireEvent.change(await screen.findByLabelText("Status"), {
+      target: { value: "ACTIVE" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Save employment" }));
+    await waitFor(() => expect(bodies).toHaveLength(1));
+    expect(screen.queryByText(CONFIRM_TITLE)).not.toBeInTheDocument();
+  });
+
+  it("does not send a stale department or status after someone else changed the record", async () => {
+    const bodies: unknown[] = [];
+    let getCount = 0;
+    server.use(
+      http.get(`${BASE}/api/v1/hr/employment/u-1`, () => {
+        getCount += 1;
+        // The first read is the form's load; later reads show another admin's edit.
+        return HttpResponse.json(
+          getCount === 1
+            ? RECORD
+            : { ...RECORD, department_id: "dept_admin", status: "INACTIVE" }
+        );
+      }),
+      patchRecord(bodies)
+    );
+    renderDialog();
+    fireEvent.change(await screen.findByLabelText("Position"), {
+      target: { value: "Forecaster" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Save employment" }));
+    await waitFor(() => expect(bodies).toHaveLength(1));
+    // The save after the refetch changes nothing about department or status.
+    fireEvent.change(screen.getByLabelText("Position"), {
+      target: { value: "Senior Forecaster" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Save employment" }));
+    await waitFor(() => expect(bodies).toHaveLength(2));
+    expect(bodies[1]).toEqual({
+      employment: {
+        employee_number: "MET-1",
+        position: "Senior Forecaster",
+      },
+    });
+    expect(screen.queryByText(CONFIRM_TITLE)).not.toBeInTheDocument();
   });
 });
 
@@ -288,16 +371,19 @@ describe("ManageUserDialog — last day of employment", () => {
         "The last day cannot be before the start date (1 Jan 2020)."
       )
     ).toBeInTheDocument();
-    // Save stays enabled until pressed; pressing it saves nothing.
-    const save = screen.getByRole("button", { name: "Save employment" });
-    expect(save).toBeEnabled();
-    fireEvent.click(save);
-    expect(bodies).toHaveLength(0);
+    // Save is disabled while the date is invalid, so nothing is sent or lost silently.
     expect(
-      screen.getByText(
-        "The last day cannot be before the start date (1 Jan 2020)."
-      )
-    ).toBeInTheDocument();
+      screen.getByRole("button", { name: "Save employment" })
+    ).toBeDisabled();
+    expect(bodies).toHaveLength(0);
+    // The field points at the explanation and the error, so a screen reader announces why.
+    const message = screen.getByText(
+      "The last day cannot be before the start date (1 Jan 2020)."
+    );
+    expect(message).toHaveAttribute("id", "mu-end-error");
+    expect(input).toHaveAttribute("aria-invalid", "true");
+    expect(input.getAttribute("aria-describedby")).toContain("mu-end-error");
+    expect(input.getAttribute("aria-describedby")).toContain("mu-end-help");
   });
 
   it("asks for confirmation before a last day today, and saves only after confirming", async () => {
@@ -329,10 +415,8 @@ describe("ManageUserDialog — last day of employment", () => {
     await waitFor(() => expect(bodies).toHaveLength(1));
     expect(bodies[0]).toEqual({
       employment: {
-        department_id: "dept_met",
         employee_number: "MET-1",
         position: "Observer",
-        status: "ACTIVE",
         end_date: today,
       },
     });
@@ -376,6 +460,7 @@ describe("ManageUserDialog — last day of employment", () => {
       target: { value: "INACTIVE" },
     });
     fireEvent.click(screen.getByRole("button", { name: "Save employment" }));
+    fireEvent.click(screen.getByRole("button", { name: "Confirm and save" }));
     await waitFor(() => expect(bodies).toHaveLength(1));
     expect((bodies[0] as { employment: object }).employment).not.toHaveProperty(
       "end_date"

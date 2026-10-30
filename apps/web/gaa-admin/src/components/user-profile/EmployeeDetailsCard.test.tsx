@@ -62,6 +62,17 @@ describe("last day of employment", () => {
     expect(screen.queryByText(TODAY_NOTE)).not.toBeInTheDocument();
   });
 
+  it("shows the start date in the same format as the last day", () => {
+    render(
+      <EmployeeDetailsCard
+        employment={{ start_date: "2020-01-01", status: "ACTIVE" }}
+      />
+    );
+    expect(screen.getByText("Start date")).toBeInTheDocument();
+    expect(screen.getByText("1 Jan 2020")).toBeInTheDocument();
+    expect(screen.queryByText("2020-01-01")).not.toBeInTheDocument();
+  });
+
   it("says plainly when the last day is today", () => {
     render(
       <EmployeeDetailsCard

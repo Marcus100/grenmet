@@ -14,7 +14,10 @@ export function EmployeeDetailsCard({
     ["Grade", employment.grade?.label ?? employment.position],
     ["Employee number", employment.employee_number],
     ["Employment type", employment.employment_type?.replaceAll("_", " ")],
-    ["Start date", employment.start_date],
+    [
+      "Start date",
+      employment.start_date ? formatLastDay(employment.start_date) : null,
+    ],
     ["Last day", lastDay ? formatLastDay(lastDay) : null],
     ["Verified continuous service date", employment.continuous_service_date],
     ["Recorded probation end date", employment.probation_end_date],
