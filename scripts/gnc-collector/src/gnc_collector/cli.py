@@ -1,14 +1,23 @@
 """Command line: `render` one file offline, or `collect` one bounded pass."""
 
 import argparse
+import math
 import os
 import sys
 from pathlib import Path
 
 from gnc_collector.archive import ConfigurationError, Storage, client_from_env
-from gnc_collector.collector import DRY_RUN_STATE_FILE, STATE_FILE, collect
+from gnc_collector.collector import (
+    DRY_RUN_STATE_FILE,
+    STATE_FILE,
+    collect,
+    freshness,
+)
 from gnc_collector.goes import CARIBBEAN, parse_name
 from gnc_collector.render import BANDS, render
+
+# File times this far ahead of the clock are a clock or receiver problem.
+CLOCK_SKEW_MINUTES = 5.0
 
 
 def parse_bands(value: str) -> list[int]:
@@ -21,6 +30,17 @@ def parse_bands(value: str) -> list[int]:
     return bands
 
 
+def positive_minutes(value: str) -> float:
+    """A positive, finite number: NaN or zero would make the stall check meaningless."""
+    try:
+        minutes = float(value)
+    except ValueError:
+        raise argparse.ArgumentTypeError(f"not a number: {value!r}") from None
+    if not math.isfinite(minutes) or minutes <= 0:
+        raise argparse.ArgumentTypeError("must be a positive, finite number of minutes")
+    return minutes
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog="gnc-collector", description=__doc__)
     commands = parser.add_subparsers(dest="command", required=True)
@@ -29,6 +49,18 @@ def build_parser() -> argparse.ArgumentParser:
     one.add_argument("file", type=Path)
     one.add_argument("--output", type=Path, required=True)
     one.add_argument("--no-coastlines", action="store_true")
+
+    check = commands.add_parser(
+        "check", help="exit 1 if the receiver has stopped delivering files"
+    )
+    check.add_argument("--input-dir", type=Path, required=True)
+    check.add_argument("--bands", type=parse_bands, default=[13, 8])
+    check.add_argument(
+        "--max-age-minutes",
+        type=positive_minutes,
+        default=45.0,
+        help="newest file per band must have arrived within this many minutes",
+    )
 
     run = commands.add_parser("collect", help="archive new receiver files")
     run.add_argument(
@@ -75,6 +107,31 @@ def main(argv: list[str] | None = None) -> int:
     if not args.input_dir.is_dir():
         print(f"Input folder does not exist: {args.input_dir}", file=sys.stderr)
         return 2
+    if args.command == "check":
+        stale = False
+        for band in freshness(args.input_dir, args.bands):
+            if band.newest is None or band.received_minutes_ago is None:
+                print(f"band {band.band}: no GOES-19 full-disk file found")
+                stale = True
+                continue
+            if band.received_minutes_ago < -CLOCK_SKEW_MINUTES:
+                # A file dated in the future would look fresh forever and hide a
+                # stall, so a wrong clock counts as a failure.
+                print(
+                    f"band {band.band}: CLOCK - newest {band.newest} is dated "
+                    f"{-band.received_minutes_ago:.0f} min in the future"
+                )
+                stale = True
+                continue
+            late = band.received_minutes_ago > args.max_age_minutes
+            stale = stale or late
+            arrived = max(band.received_minutes_ago, 0.0)
+            print(
+                f"band {band.band}: {'STALE' if late else 'ok'} - newest "
+                f"{band.newest} arrived {arrived:.0f} min ago "
+                f"(scan {band.scan_minutes_ago:.0f} min ago)"
+            )
+        return 1 if stale else 0
     try:
         client = None if args.dry_run else client_from_env()
         storage = Storage.from_env(

@@ -23,15 +23,11 @@ STATE_LIMIT = 5000
 MAX_ATTEMPTS = 3
 
 
-def discover(
-    input_dir: Path,
-    bands: Iterable[int],
-    satellite: int = 19,
-    now: float | None = None,
-) -> list[ScanFile]:
-    """Settled full-disk CMIP files for the bands, newest first."""
+def candidates(
+    input_dir: Path, bands: Iterable[int], satellite: int = 19
+) -> list[tuple[ScanFile, float]]:
+    """Full-disk CMIP files for the bands with their modification times."""
     wanted = set(bands)
-    cutoff = (now if now is not None else time.time()) - SETTLE_SECONDS
     found = []
     root = input_dir.resolve()
     for path in input_dir.rglob("OR_ABI-L2-CMIP*.nc"):
@@ -44,12 +40,61 @@ def discover(
         if not scan.scene.startswith("F"):
             continue  # Only full disk covers the Caribbean every ten minutes.
         try:
-            if path.stat().st_mtime > cutoff:
-                continue
+            found.append((scan, path.stat().st_mtime))
         except FileNotFoundError:
             continue  # Removed by the receiver's cleanup mid-scan.
-        found.append(scan)
+    return found
+
+
+def discover(
+    input_dir: Path,
+    bands: Iterable[int],
+    satellite: int = 19,
+    now: float | None = None,
+) -> list[ScanFile]:
+    """Settled full-disk CMIP files for the bands, newest first."""
+    cutoff = (now if now is not None else time.time()) - SETTLE_SECONDS
+    found = [
+        scan
+        for scan, modified in candidates(input_dir, bands, satellite)
+        if modified <= cutoff
+    ]
     return sorted(found, key=lambda s: (s.scan_start, s.band), reverse=True)
+
+
+@dataclass(frozen=True, slots=True)
+class BandFreshness:
+    band: int
+    newest: str | None
+    received_minutes_ago: float | None  # when the file reached the folder
+    scan_minutes_ago: float | None  # when the satellite scanned it
+
+
+def freshness(
+    input_dir: Path,
+    bands: Iterable[int],
+    satellite: int = 19,
+    now: float | None = None,
+) -> list[BandFreshness]:
+    """Newest file per band, by arrival at the receiver and by scan time."""
+    moment = now if now is not None else time.time()
+    found = candidates(input_dir, bands, satellite)
+    report = []
+    for band in sorted(set(bands)):
+        mine = [(scan, modified) for scan, modified in found if scan.band == band]
+        if not mine:
+            report.append(BandFreshness(band, None, None, None))
+            continue
+        scan, modified = max(mine, key=lambda item: item[1])
+        report.append(
+            BandFreshness(
+                band,
+                scan.path.name,
+                (moment - modified) / 60,
+                (moment - scan.scan_start.timestamp()) / 60,
+            )
+        )
+    return report
 
 
 @dataclass
