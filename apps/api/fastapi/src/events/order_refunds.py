@@ -18,7 +18,10 @@ Where the money moves:
 Locking: every Events money path takes the listing lock (shared, or exclusive for
 an event cancel), then the order lock, and only then touches that order's payments
 intent or tickets. Intent and tickets are not always reached in the same order,
-but both sit behind the order lock, which serialises the paths that matter.
+but both sit behind the order lock, which serialises the paths that matter. The one
+lock taken across that order is the outbox row of a queued refund, and only NOWAIT:
+the outbox holds that row while it sends to the provider, so a request that finds
+it busy answers 409 instead of waiting behind the provider call.
 """
 
 import uuid
@@ -26,6 +29,7 @@ from datetime import datetime, timedelta
 from typing import Literal
 
 from sqlalchemy import select
+from sqlalchemy.exc import DBAPIError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src import outbox
@@ -42,6 +46,9 @@ from .models import Order
 
 REQUESTED_TOPIC = "events.order_refund_requested"
 CANCEL_KEY = "cancel"
+
+#: Postgres ``lock_not_available`` (a NOWAIT lock that another transaction holds).
+_LOCK_NOT_AVAILABLE = "55P03"
 
 RefundResult = Literal["refunded", "queued", "none"]
 ReasonCode = Literal["event_cancelled", "order_cancelled", "organiser_refund"]
@@ -65,6 +72,15 @@ def should_refund(
     if event_cancelled:
         return True
     return starts_at - now >= timedelta(hours=events_settings.REFUND_CUTOFF_HOURS)
+
+
+class RefundAlreadyPending(EventsConflict):
+    """Another refund of this order is still waiting for the payment provider."""
+
+
+def _lock_not_available(error: DBAPIError) -> bool:
+    code = getattr(error.orig, "sqlstate", None) or getattr(error.orig, "pgcode", None)
+    return code == _LOCK_NOT_AVAILABLE
 
 
 def refund_id_for(order_id: uuid.UUID, key: str) -> uuid.UUID:
@@ -147,7 +163,7 @@ async def request_refund(
         .limit(1)
     )
     if waiting is not None:
-        raise EventsConflict(
+        raise RefundAlreadyPending(
             "A refund for this order is already waiting for the payment provider"
         )
     if amount_minor is not None and amount_minor > left:
@@ -171,24 +187,36 @@ async def request_refund(
     if added:
         return "queued", 0
     # The same request is already on the outbox: report what it is really doing.
-    row = await db.scalar(
-        select(outbox.Outbox)
-        .where(
-            outbox.Outbox.topic == REQUESTED_TOPIC,
-            outbox.Outbox.dedupe_key == str(refund_id),
-        )
-        .with_for_update()
-        .execution_options(populate_existing=True)
-    )
+    # The outbox holds this row while it sends to the provider, so never wait for
+    # it here (we hold the order lock): a send in progress answers 409 and the
+    # caller tries again.
+    try:
+        async with db.begin_nested():
+            row = await db.scalar(
+                select(outbox.Outbox)
+                .where(
+                    outbox.Outbox.topic == REQUESTED_TOPIC,
+                    outbox.Outbox.dedupe_key == str(refund_id),
+                )
+                .with_for_update(nowait=True)
+                .execution_options(populate_existing=True)
+            )
+    except DBAPIError as error:
+        if not _lock_not_available(error):
+            raise
+        raise EventsConflict(
+            "This refund is being sent to the payment provider; try again in a moment"
+        ) from None
     if row is None or row.status == outbox.OutboxStatus.DONE.value:
         return "none", 0
     if row.status == outbox.OutboxStatus.DEAD.value:
-        # Re-arm a refund the outbox gave up on, so a re-cancel retries it.
+        # Re-arm a refund the outbox gave up on, so a re-cancel retries it. The amount
+        # stays the one fixed when it was requested: the provider's idempotency key is
+        # bound to it, so another amount under this refund id would be refused.
         row.status = outbox.OutboxStatus.PENDING.value
         row.attempts = 0
         row.next_attempt_at = utc_now()
         row.last_error = None
-        row.payload = payload
     return "queued", 0
 
 

@@ -176,6 +176,7 @@ async def ensure_intent(
                 Intent.organisation_id == organisation_id,
                 Intent.source_type == SOURCE_TYPE,
                 Intent.source_id == str(order.id),
+                Intent.idempotency_key == intent_key(order.id),
             )
             .order_by(Intent.created_at.desc(), Intent.id)
             .limit(1)
@@ -201,6 +202,7 @@ async def intent_for(
         organisation_id=organisation_id,
         source_type=SOURCE_TYPE,
         source_id=str(order_id),
+        idempotency_key=intent_key(order_id),
     )
 
 
@@ -213,6 +215,7 @@ async def stop_collecting(
         organisation_id=organisation_id,
         source_type=SOURCE_TYPE,
         source_id=str(order_id),
+        idempotency_key=intent_key(order_id),
     )
 
 
