@@ -3537,7 +3537,7 @@ requires-dist = [
     { name = "seaborn", specifier = ">=0.13.2" },
     { name = "siphon", specifier = ">=0.10.0" },
     { name = "statsmodels", specifier = ">=0.14.6" },
-    { name = "windrose", specifier = ">=1.10.0" },
+    { name = "windrose", specifier = ">=2.0.0" },
     { name = "xarray", specifier = ">=2026.2.0" },
     { name = "xclim", specifier = ">=0.62.0" },
     { name = "xgboost", specifier = ">=3.2.0" },
@@ -6484,15 +6484,15 @@ wheels = [
 
 [[package]]
 name = "windrose"
-version = "1.10.0"
+version = "2.0.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "matplotlib" },
     { name = "numpy" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/cc/e2/a8f6cfa9432f80a39894be5bca99df98eb4ef3774f696d47cedd54e3f5eb/windrose-1.10.0.tar.gz", hash = "sha256:9e1328206b9a85a80169314decd3fb2ef077bab7e0800ca9420c6c31650cf054", size = 25351, upload-time = "2026-04-10T10:20:14.71Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/b8/8a/c193aa5b1492a4026ed71221bef51ce13fe7366145ec6975c36b934d26d0/windrose-2.0.0.tar.gz", hash = "sha256:205456062db8025b846eaa344a2da5b42eb54ee5a498450f424bac236092da53", size = 25256, upload-time = "2026-10-27T14:23:22.161Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/fc/ca/98b1639cfdd3d6c58271a8cf199c3a302ad548bd9f5ba513ac39104c7886/windrose-1.10.0-py3-none-any.whl", hash = "sha256:956e6fe4823c4fc27d7f72ec496672a90cce5b73d0e91d989c73c541c76a874b", size = 20398, upload-time = "2026-04-10T10:20:13.304Z" },
+    { url = "https://files.pythonhosted.org/packages/49/03/0e98e4c47ea30bab2bc3c3f7c5f54e5ca4842aa40bc96fd6adfb6e1a699b/windrose-2.0.0-py3-none-any.whl", hash = "sha256:dd53a66c8fef0740c7a2c4915e31207a7cbdabb38590ade757c4533c138bc580", size = 20394, upload-time = "2026-10-27T14:23:21.014Z" },
 ]
 
 [[package]]
