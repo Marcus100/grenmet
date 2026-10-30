@@ -10,6 +10,7 @@ import {
 } from "@barrelsgd/api-client";
 import { notFound } from "next/navigation";
 import { getAuthApiPrefix, getCapApiBaseUrl } from "@/lib/auth-config";
+import { reportError } from "@/lib/report-error";
 
 // CAP data types come from the OpenAPI-generated client so they can never drift
 // from the FastAPI schemas. The cap UI refers to them by these local aliases.
@@ -64,30 +65,31 @@ function parseGeoJSONFeatureCollection(
   return { type: "FeatureCollection", features };
 }
 
-const EMPTY_ALERT_LIST: CapAlertList = { data: [], count: 0 };
-const EMPTY_FEATURE_COLLECTION: GeoJSONFeatureCollection = {
-  type: "FeatureCollection",
-  features: [],
-};
+/**
+ * One read of a public CAP feed: its data, or `unavailable` when the feed
+ * could not be reached or did not answer as expected. An unavailable feed is
+ * never an empty list: an outage must not read as "no active alerts".
+ */
+export type CapFeed<T> = { status: "ok"; value: T } | { status: "unavailable" };
 
 export function capPublicUrl(path: string): string {
   return new URL(path, getCapApiBaseUrl()).toString();
 }
 
-export function getLatestActiveAlerts(): Promise<CapAlertList> {
-  return fetchCapJson("/api/cap/latest-active", EMPTY_ALERT_LIST, (payload) =>
+export function getLatestActiveAlerts(): Promise<CapFeed<CapAlertList>> {
+  return fetchCapJson("/api/cap/latest-active", (payload) =>
     capAlertListPublicSchema.parse(payload)
   );
 }
 
-export function getPastAlerts(): Promise<CapAlertList> {
-  return fetchCapJson("/api/cap/past", EMPTY_ALERT_LIST, (payload) =>
+export function getPastAlerts(): Promise<CapFeed<CapAlertList>> {
+  return fetchCapJson("/api/cap/past", (payload) =>
     capAlertListPublicSchema.parse(payload)
   );
 }
 
-export function getAllPublicAlerts(): Promise<CapAlertList> {
-  return fetchCapJson("/api/cap/alerts", EMPTY_ALERT_LIST, (payload) =>
+export function getAllPublicAlerts(): Promise<CapFeed<CapAlertList>> {
+  return fetchCapJson("/api/cap/alerts", (payload) =>
     capAlertListPublicSchema.parse(payload)
   );
 }
@@ -114,12 +116,8 @@ export async function getAlertByIdentifier(
   return parsed.data;
 }
 
-export function getActiveMap(): Promise<GeoJSONFeatureCollection> {
-  return fetchCapJson(
-    "/api/cap/active-map",
-    EMPTY_FEATURE_COLLECTION,
-    parseGeoJSONFeatureCollection
-  );
+export function getActiveMap(): Promise<CapFeed<GeoJSONFeatureCollection>> {
+  return fetchCapJson("/api/cap/active-map", parseGeoJSONFeatureCollection);
 }
 
 /**
@@ -146,30 +144,41 @@ export async function fetchAdminAlerts(
   return capAlertListPublicSchema.parse(await response.json());
 }
 
+/**
+ * Reads one public CAP feed. A failure is reported (so the outage is seen)
+ * and returned as `unavailable`, which each caller shows as a notice.
+ */
 async function fetchCapJson<T>(
   path: string,
-  fallback: T,
   parse: (payload: unknown) => T
-): Promise<T> {
+): Promise<CapFeed<T>> {
   try {
     const response = await fetch(capPublicUrl(path), { cache: "no-store" });
     if (!response.ok) {
-      return fallback;
+      reportError(
+        new Error(`CAP feed ${path} responded ${response.status}`),
+        "cap-feed"
+      );
+      return { status: "unavailable" };
     }
-    return parse(await response.json());
-  } catch {
-    return fallback;
+    return { status: "ok", value: parse(await response.json()) };
+  } catch (error) {
+    reportError(error, "cap-feed");
+    return { status: "unavailable" };
   }
 }
 
+/** A CAP time in Grenada time, labelled AST: "Oct 29, 2026, 10:30 PM AST". */
 export function formatDateTime(value: string | null): string {
   if (!value) {
     return "Not set";
   }
-  return new Intl.DateTimeFormat("en", {
+  const formatted = new Intl.DateTimeFormat("en", {
     dateStyle: "medium",
     timeStyle: "short",
+    timeZone: "America/Grenada",
   }).format(new Date(value));
+  return `${formatted} AST`;
 }
 
 export function primaryInfo(alert: CapAlert): CapInfo | undefined {
