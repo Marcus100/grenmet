@@ -400,11 +400,12 @@ async def _get_or_create_approval_authority(
 
 
 async def _get_employment_record(
-    session: AsyncSession, user_id: uuid.UUID
+    session: AsyncSession, user_id: uuid.UUID, *, for_update: bool = False
 ) -> EmploymentRecord | None:
-    result = await session.execute(
-        select(EmploymentRecord).where(EmploymentRecord.user_id == user_id)
-    )
+    stmt = select(EmploymentRecord).where(EmploymentRecord.user_id == user_id)
+    if for_update:
+        stmt = stmt.with_for_update()
+    result = await session.execute(stmt)
     return result.scalars().first()
 
 
@@ -793,21 +794,32 @@ async def update_employment_for_user(
             hr_constants.ERROR_SUPERVISOR_CAN_ONLY_MANAGE_DEPARTMENT
         )
 
-    employment = await _get_employment_record(session=session, user_id=target_user_id)
+    # Row lock: two concurrent status edits must not both read the old status.
+    employment = await _get_employment_record(
+        session=session, user_id=target_user_id, for_update=True
+    )
     if not employment:
         raise EmploymentNotFoundError()
 
     ended_employment = False
     if employment_update:
         if (
+            "status" in employment_update.model_fields_set
+            and employment_update.status is None
+        ):
+            raise HRValidationError("Employment status cannot be empty")
+        if (
             target_user_id == current_user.id
             and employment_update.status is not None
             and employment_update.status != employment.status
         ):
             raise HRValidationError("You cannot change your own employment status")
-        ended_employment = (
-            employment.status == EmploymentStatus.ACTIVE
-            and employment_update.status not in (None, EmploymentStatus.ACTIVE)
+        # Any move into a non-ACTIVE status ends roles, INACTIVE to TERMINATED
+        # included, so roles granted while inactive do not survive it (#796).
+        ended_employment = employment_update.status not in (
+            None,
+            EmploymentStatus.ACTIVE,
+            employment.status,
         )
         await validate_service_facts(
             employment_update.model_dump(exclude_unset=True), employment
@@ -840,6 +852,7 @@ async def update_employment_for_user(
                 session=session,
                 user_id=target_user_id,
                 organisation_id=employment.organisation_id,
+                actor=current_user,
             )
 
     if approval_update:
