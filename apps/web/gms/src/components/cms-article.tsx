@@ -4,7 +4,6 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import ReactMarkdown from "react-markdown";
 import { FeaturedLink } from "@/components/featured-link";
-import { LinkedProduct } from "@/components/linked-product";
 import { RelatedLinkAnchor } from "@/components/related-link-anchor";
 import { fetchContentBySlug, type PublishedContent } from "@/lib/cms";
 import { contentToArticle } from "@/lib/editorial";
@@ -56,7 +55,11 @@ export function CmsArticleBody({ content }: { content: PublishedContent }) {
   const section = SECTIONS[content.collection];
   // The main link is a card; the others are plain links beneath it.
   const links = content.relatedLinks ?? [];
-  const main = links.find((link) => link.isMain && link.type !== "link");
+  // An issued product stays a plain link (owner, 29 Oct 2026): only a
+  // warning or a GMS page becomes the card.
+  const main = links.find(
+    (link) => link.isMain && (link.type === "cap" || link.type === "page")
+  );
   const others = links.filter((link) => link !== main);
 
   return (
@@ -138,13 +141,7 @@ export function CmsArticleBody({ content }: { content: PublishedContent }) {
         </article>
 
         <aside className="flex flex-col gap-4 self-start lg:sticky lg:top-28">
-          {main ? (
-            <FeaturedLink link={main} />
-          ) : (
-            content.linkedProduct && (
-              <LinkedProduct productId={content.linkedProduct.productId} />
-            )
-          )}
+          {main && <FeaturedLink link={main} />}
           <div
             className={`${ASIDE_BOX} border-transparent bg-gm-surface-panel`}
           >

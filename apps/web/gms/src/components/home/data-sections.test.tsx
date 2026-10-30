@@ -52,7 +52,7 @@ const MONTH_TO_DATE = /Month to date/;
 const ORANGE_LEVEL = /Orange level/;
 const GREEN_LEVEL = /Green level/;
 const MINIMAL_OR_NONE = /minimal|no impact/i;
-const NO_IMPACTS = /No alert or warning impacts/;
+const NO_IMPACTS = /Nothing this week|for any sector this week/;
 
 const home = (settings: Partial<HomeContent["settings"]>): HomeContent => ({
   deskUpdates: { status: "ok", articles: [] },
@@ -170,12 +170,25 @@ it("says nothing is published for a sector, never that there is no impact", asyn
   vi.mocked(fetchHomeContent).mockResolvedValue(home({}));
   vi.mocked(fetchSectorOutlook).mockResolvedValue(outlook([outlookItem()]));
   render(await ExploreToday());
+  expect(tile("Aviation").getByText("Nothing this week")).toBeInTheDocument();
+  // One sector has an alert, so there is no whole-week line.
   expect(
-    tile("Aviation").getByText(
-      "No alert or warning impacts published for this sector."
+    screen.queryByText(
+      "No alerts or warnings are published for any sector this week."
     )
-  ).toBeInTheDocument();
+  ).toBeNull();
   expect(screen.queryByText(MINIMAL_OR_NONE)).toBeNull();
+});
+
+it("says once for the week when no sector has an alert or warning", async () => {
+  vi.mocked(fetchHomeContent).mockResolvedValue(home({}));
+  vi.mocked(fetchSectorOutlook).mockResolvedValue(outlook([]));
+  render(await ExploreToday());
+  expect(screen.getByRole("status")).toHaveTextContent(
+    "No alerts or warnings are published for any sector this week."
+  );
+  // Every tile still shows, each with a short line.
+  expect(screen.getAllByText("Nothing this week")).toHaveLength(6);
 });
 
 it("says so when the feed is unavailable or only partly read, and shows no all-clear", async () => {

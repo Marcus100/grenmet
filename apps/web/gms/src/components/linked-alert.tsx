@@ -53,7 +53,7 @@ export async function LinkedAlert({
         <p className="text-body leading-body">{detail.areas.join(", ")}</p>
       )}
       {detail.expires && !detail.ended && (
-        <p className="font-mono text-body-sm text-gm-text-secondary leading-body-sm">
+        <p className="text-body-sm text-gm-text-secondary leading-body-sm">
           Until {detail.expires}
         </p>
       )}

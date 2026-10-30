@@ -47,6 +47,20 @@ ALLOWED_HOSTS = ['*']
 
 USE_X_FORWARDED_HOST = True
 
+# Both nginx configs (surface/nginx/nginx.conf and infra/weather/surface-nginx.conf)
+# pass X-Forwarded-Proto; the weather one carries Traefik's value, so Django
+# sees https and Django 4's Origin check accepts the public https origin.
+SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+
+# Extra origins Django should trust for unsafe requests, comma separated and
+# with the scheme, for example
+# SURFACE_CSRF_TRUSTED_ORIGINS=https://surface.example.org
+CSRF_TRUSTED_ORIGINS = [
+    origin.strip()
+    for origin in os.getenv('SURFACE_CSRF_TRUSTED_ORIGINS', '').split(',')
+    if origin.strip()
+]
+
 # Application definition
 
 INSTALLED_APPS = [
@@ -123,7 +137,7 @@ WSGI_APPLICATION = 'tempestas_api.wsgi.application'
 
 SECURE_REFERRER_POLICY = "strict-origin-when-cross-origin"
 
-CORS_ORIGIN_ALLOW_ALL = True
+CORS_ALLOW_ALL_ORIGINS = True
 CORS_ALLOW_CREDENTIALS = True
 
 DATABASES = {
@@ -174,7 +188,6 @@ TIME_ZONE = 'UTC'
 
 USE_I18N = True
 
-USE_L10N = True
 
 USE_TZ = True
 
@@ -361,7 +374,7 @@ LOGGING = {
 
 CACHES = {
     'default': {
-        'BACKEND': 'django.core.cache.backends.memcached.MemcachedCache',
+        'BACKEND': 'django.core.cache.backends.memcached.PyMemcacheCache',
         'LOCATION': 'cache:11211',
     }
 }

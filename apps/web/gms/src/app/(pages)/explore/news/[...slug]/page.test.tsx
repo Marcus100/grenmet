@@ -24,6 +24,8 @@ afterEach(() => {
 });
 const params = Promise.resolve({ slug: ["reading-sea-state"] });
 
+const FEATURED_PRODUCT = /^Featured product/;
+
 it("does not substitute a sample article when CMS is unavailable", async () => {
   vi.mocked(fetchContentBySlug).mockResolvedValue({
     status: "unavailable",
@@ -86,7 +88,7 @@ it("renders only the fetched published article", async () => {
   ).toHaveAttribute("href", "/explore/updates");
 });
 
-it("shows the main link as a card and the others as plain links, building site addresses from the id", async () => {
+it("keeps an issued product as a plain link and builds site addresses from the id", async () => {
   vi.mocked(fetchContentBySlug).mockResolvedValue({
     status: "ok",
     articles: [
@@ -139,13 +141,15 @@ it("shows the main link as a card and the others as plain links, building site a
     ],
   });
   render(await ArticlePage({ params }));
+  // An issued product is never a card (owner, 29 Oct 2026), even as the main
+  // link: it stays a plain link built from its id.
+  expect(screen.queryByText(FEATURED_PRODUCT)).not.toBeInTheDocument();
   expect(
-    screen.getByText("Featured product: 0b3c6f1e-1111-4a2b-9c3d-222233334444")
-  ).toBeInTheDocument();
-  // The main link is not repeated in the plain list.
-  expect(
-    screen.queryByRole("link", { name: "Evening Forecast" })
-  ).not.toBeInTheDocument();
+    screen.getByRole("link", { name: "Evening Forecast" })
+  ).toHaveAttribute(
+    "href",
+    "/weather/issued/0b3c6f1e-1111-4a2b-9c3d-222233334444"
+  );
   expect(screen.getByRole("link", { name: "Radar" })).toHaveAttribute(
     "href",
     "/weather/radar"
