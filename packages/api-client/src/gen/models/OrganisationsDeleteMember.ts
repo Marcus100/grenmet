@@ -3,6 +3,7 @@
  * Do not edit manually.
  */
 
+import type { MemberEventsAccessRevokedPublic } from "./MemberEventsAccessRevokedPublic.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 
 export type OrganisationsDeleteMemberPath = {
@@ -16,6 +17,16 @@ export type OrganisationsDeleteMemberHeaders = {
    */
   "X-Barrels-Organisation"?: string | null;
 };
+
+/**
+ * @description Answer to an Events app session's removal: only Events access ended.
+ *
+ * The membership stays (``DELETE .../members/{membership_id}`` answers 204 for an
+ * account session, which removes it from the whole organisation).
+ * @type object
+ */
+export type OrganisationsDeleteMemberStatus200 =
+  MemberEventsAccessRevokedPublic;
 
 export type OrganisationsDeleteMemberStatus204 = unknown;
 
@@ -43,6 +54,7 @@ export type OrganisationsDeleteMemberOptions = {
 };
 
 export type OrganisationsDeleteMemberResponses = {
+  "200": OrganisationsDeleteMemberStatus200;
   "204": OrganisationsDeleteMemberStatus204;
   "400": OrganisationsDeleteMemberStatus400;
   "401": OrganisationsDeleteMemberStatus401;
@@ -56,4 +68,5 @@ export type OrganisationsDeleteMemberResponses = {
  * @description Union of all possible responses
  */
 export type OrganisationsDeleteMemberResponse =
-  OrganisationsDeleteMemberStatus204;
+  | OrganisationsDeleteMemberStatus200
+  | OrganisationsDeleteMemberStatus204;

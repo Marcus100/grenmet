@@ -14,6 +14,8 @@ export const auditEntryPublicSchema = z.object({
   action: z.string(),
   actor_user_id: z.union([z.uuid(), z.null()]),
   actor_name: z.string(),
+  actor_session: z.union([z.string(), z.null()]).optional(),
+  actor_app: z.union([z.string(), z.null()]).optional(),
   changes: z.array(auditChangePublicSchema),
   created_at: z.iso.datetime(),
 });

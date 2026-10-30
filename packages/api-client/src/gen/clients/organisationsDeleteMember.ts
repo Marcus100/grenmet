@@ -11,8 +11,8 @@ import type {
 } from "../models/OrganisationsDeleteMember.js";
 
 /**
- * @description Ends the person's membership. Only owners remove owners; 409 when it would leave the organisation without an owner.
- * @summary Remove a member
+ * @description An account session ends the person's membership in the whole organisation (204). An Events app session ends only their Events access: live events-* roles, grants they issued for Events and their Events app opt-in. The membership and other products stay, and the answer is 200 with `scope` `events`. Only owners remove owners; 409 when it would leave the organisation without an owner.
+ * @summary Remove a member, or end their Events access
  * {@link /api/v1/organisations/:organisation_id/members/:membership_id}
  */
 export function organisationsDeleteMember<ThrowOnError extends boolean = true>(

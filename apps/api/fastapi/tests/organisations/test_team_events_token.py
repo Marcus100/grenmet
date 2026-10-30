@@ -72,7 +72,7 @@ async def test_events_token_is_accepted_on_team_reads(
         assert response.status_code == 200, (url, response.text)
 
 
-async def test_events_token_grants_revokes_and_removes(
+async def test_events_token_grants_revokes_and_ends_events_access(
     async_client: httpx.AsyncClient, db_async: AsyncSession
 ):
     owner, _, _, org, mid = await _world(db_async)
@@ -90,7 +90,9 @@ async def test_events_token_grants_revokes_and_removes(
     removed = await async_client.delete(
         f"{API}/{org.id}/members/{mid}", headers=headers
     )
-    assert removed.status_code == 204, removed.text
+    # An Events session ends Events access only; the membership stays (issue #815).
+    assert removed.status_code == 200, removed.text
+    assert removed.json()["scope"] == "events"
 
 
 async def test_other_apps_tokens_are_refused_on_team_routes(

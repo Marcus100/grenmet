@@ -22,5 +22,9 @@ class AuditEntryPublic(BaseModel):
     actor_user_id: uuid.UUID | None
     # "System" for scheduled jobs and other writes without a signed-in user.
     actor_name: str
+    # How the actor signed in: "account" or "app"; null when not recorded (older
+    # entries, system jobs). ``actor_app`` names the app for an "app" session.
+    actor_session: str | None = None
+    actor_app: str | None = None
     changes: list[AuditChangePublic]
     created_at: UtcDateTime

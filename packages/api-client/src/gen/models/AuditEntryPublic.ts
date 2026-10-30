@@ -18,6 +18,8 @@ export type AuditEntryPublic = {
   action: string;
   actor_user_id: string | null;
   actor_name: string;
+  actor_session?: string | null;
+  actor_app?: string | null;
   changes: AuditChangePublic[];
   /**
    * @description

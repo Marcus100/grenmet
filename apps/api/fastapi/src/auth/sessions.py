@@ -228,8 +228,12 @@ async def revoke_user_app_sessions(
     session: AsyncSession,
     user_id: uuid.UUID,
     app_key: str,
+    commit: bool = True,
 ) -> int:
-    """Revoke a user's active sessions in one app, leaving the rest alone."""
+    """Revoke a user's active sessions in one app, leaving the rest alone.
+
+    ``commit=False`` leaves the transaction to the caller (flushes only), for callers
+    that change other rows in the same unit of work."""
     result = await session.execute(
         select(AuthSession).where(
             AuthSession.user_id == user_id,
@@ -245,7 +249,10 @@ async def revoke_user_app_sessions(
         session.add(db_session)
         revoked += 1
     if revoked:
-        await session.commit()
+        if commit:
+            await session.commit()
+        else:
+            await session.flush()
     return revoked
 
 

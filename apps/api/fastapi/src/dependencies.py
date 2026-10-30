@@ -173,10 +173,12 @@ async def get_authenticated_user(
     from src.auth.access import effective_roles
 
     set_committed_value(user, "roles", await effective_roles(session, user))
-    # Attribute this request's audited changes to the signed-in person.
-    from src.audit.service import set_actor
+    # Attribute this request's audited changes to the signed-in person, and say the
+    # sign-in was an account session (app sessions set their own, see organisations).
+    from src.audit.service import set_actor, set_actor_session
 
     set_actor(session, user.id)
+    set_actor_session(session, app=None)
     return user
 
 
