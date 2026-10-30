@@ -16,7 +16,9 @@ export const employmentUpdateSchema = z.object({
   end_date: z
     .union([z.iso.date(), z.null()])
     .optional()
-    .describe("Last day of employment. Send null to clear it."),
+    .describe(
+      "Last day of employment; roles work through that day and end at midnight Grenada time. Send null to clear it."
+    ),
   continuous_service_date: z.union([z.iso.date(), z.null()]).optional(),
   probation_end_date: z.union([z.iso.date(), z.null()]).optional(),
   probation_completed_date: z.union([z.iso.date(), z.null()]).optional(),

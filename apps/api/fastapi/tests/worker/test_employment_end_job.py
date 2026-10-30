@@ -27,6 +27,8 @@ from tests.factories import (
 )
 
 TODAY = date(2026, 10, 30)
+# The last day was yesterday: roles end at midnight, so the record is due today.
+ENDED_ON = date(2026, 10, 29)
 
 
 def test_job_is_scheduled_at_ten_past_four_utc() -> None:
@@ -59,7 +61,7 @@ async def test_last_day_reached_terminates_and_ends_roles_with_audit(
     db_async: AsyncSession,
 ) -> None:
     department = await make_department(db_async, "end_job_dept1")
-    user, record, grant = await _ended_candidate(db_async, department.id, TODAY)
+    user, record, grant = await _ended_candidate(db_async, department.id, ENDED_ON)
 
     ended = await employment_status.end_due_employments(db_async, today=TODAY)
 
@@ -91,7 +93,7 @@ async def test_last_day_reached_terminates_and_ends_roles_with_audit(
 
 async def test_baseline_staff_role_survives_the_job(db_async: AsyncSession) -> None:
     department = await make_department(db_async, "end_job_dept2")
-    user, _, _ = await _ended_candidate(db_async, department.id, TODAY)
+    user, _, _ = await _ended_candidate(db_async, department.id, ENDED_ON)
     staff = await db_async.scalar(select(Role).where(Role.name == STAFF_ROLE))
     if staff is None:
         staff, _ = await make_role_with_permission(
@@ -113,6 +115,7 @@ async def test_records_not_yet_at_their_last_day_are_left_alone(
         db_async, department.id, date(2026, 10, 31)
     )
     _, open_ended, open_grant = await _ended_candidate(db_async, department.id, None)
+    _, last_day, last_day_grant = await _ended_candidate(db_async, department.id, TODAY)
 
     ended = await employment_status.end_due_employments(db_async, today=TODAY)
 
@@ -121,8 +124,13 @@ async def test_records_not_yet_at_their_last_day_are_left_alone(
     await db_async.refresh(open_ended)
     await db_async.refresh(tomorrow_grant)
     await db_async.refresh(open_grant)
+    await db_async.refresh(last_day)
+    await db_async.refresh(last_day_grant)
     assert tomorrow.status == EmploymentStatus.ACTIVE
     assert open_ended.status == EmploymentStatus.ACTIVE
+    # The last day itself is still worked: nothing ends until it has passed.
+    assert last_day.status == EmploymentStatus.ACTIVE
+    assert last_day_grant.effective_to is None
     assert tomorrow_grant.effective_to is None
     assert open_grant.effective_to is None
 
@@ -131,7 +139,7 @@ async def test_running_twice_changes_nothing_the_second_time(
     db_async: AsyncSession,
 ) -> None:
     department = await make_department(db_async, "end_job_dept4")
-    _, record, _ = await _ended_candidate(db_async, department.id, TODAY)
+    _, record, _ = await _ended_candidate(db_async, department.id, ENDED_ON)
 
     first = await employment_status.end_due_employments(db_async, today=TODAY)
     audit_after_first = len((await db_async.scalars(select(AuditEntry))).all())
@@ -170,10 +178,12 @@ async def test_job_entry_point_uses_the_grenada_date_and_records_the_run(
     """At 02:00 UTC on 30 October it is still 29 October in Grenada."""
     monkeypatch.setattr(timezones, "utc_now", lambda: datetime(2026, 10, 30, 2, 0))
     department = await make_department(db_async, "end_job_dept6")
-    _, on_grenada_yesterday, _ = await _ended_candidate(
-        db_async, department.id, date(2026, 10, 29)
+    # Grenada's today is 29 October: a 28 October end ended at midnight, a 29
+    # October end is the last day and is still worked.
+    _, ended_before_today, _ = await _ended_candidate(
+        db_async, department.id, date(2026, 10, 28)
     )
-    _, later, _ = await _ended_candidate(db_async, department.id, date(2026, 10, 30))
+    _, last_day, _ = await _ended_candidate(db_async, department.id, date(2026, 10, 29))
     recorded: list[tuple[str, bool]] = []
 
     async def record(_: object, name: str, __: str, success: bool) -> None:
@@ -185,7 +195,54 @@ async def test_job_entry_point_uses_the_grenada_date_and_records_the_run(
 
     assert result == 1
     assert recorded == [("end_due_employment_records", True)]
-    await db_async.refresh(on_grenada_yesterday)
-    await db_async.refresh(later)
-    assert on_grenada_yesterday.status == EmploymentStatus.TERMINATED
-    assert later.status == EmploymentStatus.ACTIVE
+    await db_async.refresh(ended_before_today)
+    await db_async.refresh(last_day)
+    assert ended_before_today.status == EmploymentStatus.TERMINATED
+    assert last_day.status == EmploymentStatus.ACTIVE
+
+
+async def test_one_failing_record_does_not_roll_back_the_others(
+    db_async: AsyncSession, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Each record has its own savepoint; the run still reports the failure."""
+    department = await make_department(db_async, "end_job_dept7")
+    failing_user, failing, _ = await _ended_candidate(db_async, department.id, ENDED_ON)
+    _, healthy, _ = await _ended_candidate(db_async, department.id, ENDED_ON)
+    real = employment_status.end_assignments_for_employment
+
+    async def fail_for_one_user(**kwargs):  # type: ignore[no-untyped-def]
+        if kwargs["user_id"] == failing_user.id:
+            raise RuntimeError("simulated failure for one record")
+        return await real(**kwargs)
+
+    monkeypatch.setattr(
+        employment_status, "end_assignments_for_employment", fail_for_one_user
+    )
+
+    with pytest.raises(RuntimeError, match="1 employment record"):
+        await employment_status.end_due_employments(db_async, today=TODAY)
+
+    await db_async.refresh(failing)
+    await db_async.refresh(healthy)
+    assert failing.status == EmploymentStatus.ACTIVE
+    assert healthy.status == EmploymentStatus.TERMINATED
+
+
+async def test_ending_writes_an_audit_entry_for_the_status_change(
+    db_async: AsyncSession,
+) -> None:
+    department = await make_department(db_async, "end_job_dept8")
+    _, record, _ = await _ended_candidate(db_async, department.id, ENDED_ON)
+
+    await employment_status.end_due_employments(db_async, today=TODAY)
+
+    entries = (
+        await db_async.scalars(
+            select(AuditEntry).where(
+                AuditEntry.record_type == "employment_record",
+                AuditEntry.record_id == str(record.id),
+            )
+        )
+    ).all()
+    assert entries, "the TERMINATED change itself must be audited"
+    assert any("TERMINATED" in str(entry.changes) for entry in entries)

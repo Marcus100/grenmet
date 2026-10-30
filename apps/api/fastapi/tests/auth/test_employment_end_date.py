@@ -1,7 +1,8 @@
-"""#797: an employment end date stops access on that date, before any job runs.
+"""#797: an employment end date stops access at midnight after that day.
 
-"Today" is the Grenada calendar date (America/Grenada, UTC-4), never UTC, so a
-record ends on its last day in Grenada rather than at 20:00 local time.
+The end date is the last day of employment: roles work through that whole day
+and stop when it ends (midnight Grenada time, UTC-4). "Today" is the Grenada
+calendar date, never UTC, so a record is ended once its end date is before today.
 """
 
 from datetime import date, datetime
@@ -38,7 +39,7 @@ async def _live_ids(db: AsyncSession, user_id) -> set:
     return {a.id for a in await _active_assignments(session=db, user_id=user_id)}
 
 
-async def test_end_date_today_ends_roles_before_any_job_runs(
+async def test_last_day_keeps_roles_through_the_whole_day(
     db_async: AsyncSession,
 ) -> None:
     department = await make_department(db_async, "end_gate_dept1")
@@ -48,9 +49,27 @@ async def test_end_date_today_ends_roles_before_any_job_runs(
     grant = await assign_role(
         db_async, user=user, role=role, scope=RoleAssignmentScope.ALL
     )
-    assert grant.id in await _live_ids(db_async, user.id)
 
     record.end_date = TODAY
+    await db_async.commit()
+
+    assert grant.id in await _live_ids(db_async, user.id)
+    assert role.id in {r.id for r in await effective_roles(db_async, user)}
+
+
+async def test_roles_end_once_the_last_day_has_passed(
+    db_async: AsyncSession,
+) -> None:
+    department = await make_department(db_async, "end_gate_dept1b")
+    user = await make_user(db_async)
+    record = await make_employee(db_async, user=user, department_id=department.id)
+    role, _ = await make_role_with_permission(db_async, "cap.alert.approve")
+    grant = await assign_role(
+        db_async, user=user, role=role, scope=RoleAssignmentScope.ALL
+    )
+    assert grant.id in await _live_ids(db_async, user.id)
+
+    record.end_date = YESTERDAY
     await db_async.commit()
 
     assert grant.id not in await _live_ids(db_async, user.id)
@@ -99,7 +118,7 @@ async def test_department_scope_role_ends_on_end_date(db_async: AsyncSession) ->
     )
     assert grant.id in await _live_ids(db_async, user.id)
 
-    record.end_date = TODAY
+    record.end_date = YESTERDAY
     await db_async.commit()
 
     assert grant.id not in await _live_ids(db_async, user.id)
@@ -115,7 +134,7 @@ async def test_old_plain_role_link_ends_on_end_date(db_async: AsyncSession) -> N
     await db_async.commit()
     assert role.id in {r.id for r in await effective_roles(db_async, user)}
 
-    record.end_date = TODAY
+    record.end_date = YESTERDAY
     await db_async.commit()
 
     assert role.id not in {r.id for r in await effective_roles(db_async, user)}
@@ -134,13 +153,15 @@ async def test_end_date_gate_uses_the_grenada_calendar_date(
     role, _ = await make_role_with_permission(db_async, "timesheet.approve")
     grant = await assign_role(db_async, user=user, role=role)
 
+    # Grenada's today is 29 October: a 29 October last day is still worked.
     record.end_date = YESTERDAY
     await db_async.commit()
-    assert grant.id not in await _live_ids(db_async, user.id)
-
-    record.end_date = date(2026, 10, 30)
-    await db_async.commit()
     assert grant.id in await _live_ids(db_async, user.id)
+
+    # The day before that has ended in Grenada, though it is still 30 October in UTC.
+    record.end_date = date(2026, 10, 28)
+    await db_async.commit()
+    assert grant.id not in await _live_ids(db_async, user.id)
 
 
 def test_live_employment_helper_matches_the_status_and_end_date_rule() -> None:
@@ -151,7 +172,7 @@ def test_live_employment_helper_matches_the_status_and_end_date_rule() -> None:
 
     assert record(EmploymentStatus.ACTIVE, None).is_live(TODAY)
     assert record(EmploymentStatus.ACTIVE, TOMORROW).is_live(TODAY)
-    assert not record(EmploymentStatus.ACTIVE, TODAY).is_live(TODAY)
+    assert record(EmploymentStatus.ACTIVE, TODAY).is_live(TODAY)
     assert not record(EmploymentStatus.ACTIVE, YESTERDAY).is_live(TODAY)
     assert not record(EmploymentStatus.TERMINATED, None).is_live(TODAY)
     assert not record(EmploymentStatus.INACTIVE, TOMORROW).is_live(TODAY)

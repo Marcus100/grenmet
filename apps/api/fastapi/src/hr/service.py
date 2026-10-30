@@ -843,7 +843,7 @@ async def update_employment_for_user(
         if (
             reinstated_employment
             and resulting_end_date is not None
-            and resulting_end_date <= local_today()
+            and resulting_end_date < local_today()
         ):
             raise HRValidationError(hr_constants.ERROR_REINSTATE_PAST_END_DATE)
         await validate_service_facts(
@@ -895,6 +895,26 @@ async def update_employment_for_user(
         ):
             raise HRPermissionDeniedError(
                 hr_constants.ERROR_TRANSFER_NEEDS_ORGANISATION_AUTHORITY
+            )
+        # Setting an end date ends the person's roles when the job runs, the same
+        # as a transfer, so it needs the same authority (#794, #797). Clearing it
+        # (null) needs none beyond editing the record.
+        end_date_set = (
+            "end_date" in employment_update.model_fields_set
+            and employment_update.end_date is not None
+            and employment_update.end_date != employment.end_date
+        )
+        if (
+            end_date_set
+            and not organisation_wide
+            and await holds_live_organisation_wide_assignment(
+                session,
+                user_id=target_user_id,
+                organisation_id=employment.organisation_id,
+            )
+        ):
+            raise HRPermissionDeniedError(
+                hr_constants.ERROR_END_DATE_NEEDS_ORGANISATION_AUTHORITY
             )
         if status_changed and employment_update.status is not None:
             await set_employment_status(

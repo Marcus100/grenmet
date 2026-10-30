@@ -163,7 +163,7 @@ class EmploymentPublic(BaseModel):
     start_date: date | None = None
     end_date: date | None = Field(
         default=None,
-        description="Last day of employment. Roles end on this date (Grenada time).",
+        description="Last day of employment. Roles work through that day and end at midnight Grenada time.",
     )
     continuous_service_date: date | None = None
     probation_end_date: date | None = None
@@ -277,7 +277,7 @@ class EmploymentUpdate(BaseModel):
     start_date: date | None = None
     end_date: date | None = Field(
         default=None,
-        description="Last day of employment. Send null to clear it.",
+        description="Last day of employment; roles work through that day and end at midnight Grenada time. Send null to clear it.",
     )
     continuous_service_date: date | None = None
     probation_end_date: date | None = None

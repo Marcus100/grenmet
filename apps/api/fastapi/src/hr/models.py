@@ -223,8 +223,9 @@ class EmploymentRecord(Base):
     position: Mapped[str | None] = mapped_column(String(150), nullable=True)
     employment_type: Mapped[EmploymentType | None]
     start_date: Mapped[date | None]
-    # Last day of employment (#797). Once this date is today or earlier (Grenada
-    # time) the record counts as ended for access, and the daily job ends it.
+    # Last day of employment (#797). Roles work through that day and end at
+    # midnight Grenada time: once this date is before today (Grenada time) the
+    # record counts as ended for access, and the daily job ends it.
     end_date: Mapped[date | None] = mapped_column(nullable=True)
     continuous_service_date: Mapped[date | None]
     probation_end_date: Mapped[date | None]
@@ -243,7 +244,7 @@ class EmploymentRecord(Base):
     def is_live(self, today: date) -> bool:
         """Employed for access purposes: ACTIVE and not past its last day (#797)."""
         return self.status == EmploymentStatus.ACTIVE and (
-            self.end_date is None or self.end_date > today
+            self.end_date is None or self.end_date >= today
         )
 
 
@@ -251,7 +252,7 @@ def live_employment_clause(today: date) -> sa.ColumnElement[bool]:
     """SQL form of ``EmploymentRecord.is_live``: ACTIVE with no passed end date."""
     return sa.and_(
         EmploymentRecord.status == EmploymentStatus.ACTIVE,
-        sa.or_(EmploymentRecord.end_date.is_(None), EmploymentRecord.end_date > today),
+        sa.or_(EmploymentRecord.end_date.is_(None), EmploymentRecord.end_date >= today),
     )
 
 
