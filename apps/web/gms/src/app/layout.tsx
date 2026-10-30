@@ -8,7 +8,7 @@ import { Header } from "@/components/header";
 import { MotionProvider } from "@/components/motion-provider";
 import { UnitsBootScript } from "@/components/units-boot-script";
 import { APP_LABEL, signInEnabled } from "@/lib/auth-config";
-import { fetchActiveAlerts } from "@/lib/cap";
+import { fetchMastheadAlerts } from "@/lib/masthead-alerts";
 import "./globals.css";
 import {
   MAIN_CONTENT_ID,
@@ -41,7 +41,7 @@ export default function RootLayout({
   // Not awaited: the page renders at once and the masthead's warning status
   // streams in when the feed answers. React cache in lib/cap shares this
   // request with the weather surface.
-  const alerts = fetchActiveAlerts();
+  const alerts = fetchMastheadAlerts();
 
   return (
     // gm-site scopes the GMS dark palette (packages/gms foundation) to this

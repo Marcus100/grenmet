@@ -14,7 +14,7 @@ import {
 } from "@/components/with-alerts";
 import {
   type AlertsResult,
-  alertsLevel,
+  alertsDisplayLevel,
   alertsSummary,
 } from "@/lib/cap-alerts";
 import {
@@ -40,8 +40,18 @@ const TRIGGER =
 const MENU_LINK =
   "block py-1 text-body text-gm-text-inverse/90 leading-body outline-none hover:text-gm-text-inverse hover:underline focus-visible:underline";
 
+/** Says why the status is grey: a warning feed outage, or Green alerts unreadable. */
+function statusDetail(alerts: AlertsResult, level: string): string {
+  if (level !== "unknown") {
+    return "Live status for Grenada, Carriacou and Petite Martinique.";
+  }
+  return alerts.status === "unavailable"
+    ? "Warning information cannot be retrieved right now. This is not an all-clear."
+    : "Green alerts cannot be retrieved right now. This is not an all-clear.";
+}
+
 function AlertsStatusNow({ alerts }: { alerts: AlertsResult }) {
-  const level = alertsLevel(alerts);
+  const level = alertsDisplayLevel(alerts);
   return (
     <>
       <span
@@ -53,9 +63,7 @@ function AlertsStatusNow({ alerts }: { alerts: AlertsResult }) {
         {alertsSummary(alerts)}
       </span>
       <span className="text-body-sm text-gm-text-inverse/80 leading-body-sm">
-        {level === "unknown"
-          ? "Warning information cannot be retrieved right now. This is not an all-clear."
-          : "Live status for Grenada, Carriacou and Petite Martinique."}
+        {statusDetail(alerts, level)}
       </span>
     </>
   );

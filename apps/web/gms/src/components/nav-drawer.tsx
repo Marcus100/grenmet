@@ -18,7 +18,7 @@ import {
   CHECKING_ALERTS,
   WithAlerts,
 } from "@/components/with-alerts";
-import { alertsLevel, alertsSummary } from "@/lib/cap-alerts";
+import { alertsDisplayLevel, alertsSummary } from "@/lib/cap-alerts";
 import { menuSheet } from "@/lib/motion";
 import { NAV_SECTIONS } from "@/lib/nav-sections";
 import { cn } from "@/lib/utils";
@@ -151,7 +151,9 @@ export function NavDrawer({
                                 {(result) => (
                                   <AlertsTag
                                     className={
-                                      WARNING_LEVEL_SURFACE[alertsLevel(result)]
+                                      WARNING_LEVEL_SURFACE[
+                                        alertsDisplayLevel(result)
+                                      ]
                                     }
                                   >
                                     {alertsSummary(result)}

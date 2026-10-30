@@ -11,7 +11,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
   type AlertsResult,
-  alertsLevel,
+  alertsDisplayLevel,
   alertsSummary,
 } from "@/lib/cap-alerts";
 import { cn } from "@/lib/utils";
@@ -48,7 +48,7 @@ export function MobileTabBar({
   onOpenMenu: () => void;
 }) {
   const pathname = usePathname();
-  const level = alertsLevel(alerts);
+  const level = alertsDisplayLevel(alerts);
 
   return (
     <nav
