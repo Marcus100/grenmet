@@ -378,3 +378,27 @@ async def test_empty_employment_status_is_rejected(db_async: AsyncSession) -> No
     assert raised.value.status_code == 400
     await db_async.refresh(record)
     assert record.status == EmploymentStatus.ACTIVE
+
+
+async def test_department_admin_reinstating_does_not_revive_paused_organisation_roles(
+    db_async: AsyncSession,
+) -> None:
+    """A department HR admin pauses an ALL-scope role on ending; reinstating must not revive it."""
+    department = await make_department(db_async, "ended_roles_dept13")
+    admin = await _hr_admin(db_async, RoleAssignmentScope.DEPARTMENT, department.id)
+    user = await make_user(db_async)
+    await make_employee(db_async, user=user, department_id=department.id)
+    role, _ = await make_role_with_permission(db_async, "cap.alert.approve")
+    wide = await assign_role(
+        db_async, user=user, role=role, scope=RoleAssignmentScope.ALL
+    )
+
+    await _end(db_async, admin, user, EmploymentStatus.TERMINATED)
+    await db_async.refresh(wide)
+    assert wide.effective_to is None  # paused while employment is ended
+
+    await _end(db_async, admin, user, EmploymentStatus.ACTIVE)
+
+    await db_async.refresh(wide)
+    assert wide.effective_to is not None  # ended on reinstatement
+    assert wide.id not in await _live_ids(db_async, user.id)

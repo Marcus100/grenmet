@@ -9,7 +9,10 @@ from sqlalchemy.orm.attributes import set_committed_value
 
 from src.auth import access as auth_access
 from src.auth import policy as auth_policy
-from src.auth.assignments import end_assignments_for_employment
+from src.auth.assignments import (
+    end_assignments_for_employment,
+    has_organisation_wide_hr_authority,
+)
 from src.auth.models import (
     Role,
     RoleAssignmentScope,
@@ -821,6 +824,13 @@ async def update_employment_for_user(
             EmploymentStatus.ACTIVE,
             employment.status,
         )
+        # Reinstating must not revive anything left paused (organisation-wide
+        # roles a department admin could not end), so those end now: ended
+        # roles stay ended, an admin re-grants what is needed.
+        reinstated_employment = (
+            employment.status != EmploymentStatus.ACTIVE
+            and employment_update.status == EmploymentStatus.ACTIVE
+        )
         await validate_service_facts(
             employment_update.model_dump(exclude_unset=True), employment
         )
@@ -847,12 +857,16 @@ async def update_employment_for_user(
             )
         _apply_employment_update(employment, employment_update)
         session.add(employment)
-        if ended_employment:
+        if ended_employment or reinstated_employment:
             await end_assignments_for_employment(
                 session=session,
                 user_id=target_user_id,
                 organisation_id=employment.organisation_id,
-                actor=current_user,
+                organisation_wide=reinstated_employment
+                or current_user.is_superuser
+                or await has_organisation_wide_hr_authority(
+                    session, current_user, employment.organisation_id
+                ),
             )
 
     if approval_update:

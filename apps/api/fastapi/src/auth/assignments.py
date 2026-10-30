@@ -360,34 +360,40 @@ async def delegation_authority(
     raise AppException("No active authority permits this delegated grant", 403)
 
 
+async def has_organisation_wide_hr_authority(
+    session: AsyncSession, actor: User, organisation_id: str
+) -> bool:
+    """True when the actor's `hr.employment.manage` covers the whole organisation."""
+    from src.hr.organisations import require_organisation_permission
+
+    try:
+        await require_organisation_permission(
+            session, actor, organisation_id, "hr.employment.manage"
+        )
+    except AppException:
+        return False
+    return True
+
+
 async def end_assignments_for_employment(
     *,
     session: AsyncSession,
     user_id: uuid.UUID,
     organisation_id: str,
-    actor: User | None = None,
+    organisation_wide: bool,
 ) -> int:
     """Expire the user's live assignments of every scope (except the SELF-scope baseline staff role) in one organisation (#789).
 
-    Called when employment there ends. Does not commit; each ended assignment
-    gets an audit entry. Reinstating employment does not bring them back.
+    Called when employment there ends, and again on reinstatement so nothing
+    left paused revives. Does not commit; each ended assignment gets an audit
+    entry. Reinstating employment does not bring them back.
 
-    An actor whose `hr.employment.manage` covers only a department ends only
-    DEPARTMENT- and SELF-scope assignments; organisation-wide (ALL) ones are
-    left for someone with organisation-wide authority (#794). The read-time
-    gate in `src.auth.policy` still suspends them while employment is ended.
+    With `organisation_wide=False` (an actor whose `hr.employment.manage`
+    covers only a department) organisation-wide (ALL) assignments are left
+    alone for someone with organisation-wide authority to end (#794); the
+    read-time gate in `src.auth.policy` still suspends them while employment
+    is ended. Callers state this explicitly: there is no default.
     """
-    from src.hr.organisations import require_organisation_permission
-
-    organisation_wide = actor is None or actor.is_superuser
-    if actor is not None and not organisation_wide:
-        try:
-            await require_organisation_permission(
-                session, actor, organisation_id, "hr.employment.manage"
-            )
-            organisation_wide = True
-        except AppException:
-            organisation_wide = False
     now = utc_now()
     conditions = [
         UserRoleAssignment.user_id == user_id,
