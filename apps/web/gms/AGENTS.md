@@ -69,6 +69,13 @@ src/app/
   navigation skeleton (the previous page stays until the item arrives).
   Static event pages and CAP alert ids under `(pages)` still answer 200 when
   missing (not fixed).
+- **Masthead and /alerts status (30 Oct 2026):** the CAP warnings and the GMS
+  outlook's Green counts are separate promises. `WithStatus`
+  (`components/with-alerts.tsx`) shows a warning at once and awaits the outlook
+  only when no warning is in effect. `fetchGreenStatus` / `fetchGreenAlerts`
+  (`lib/green-status.ts`) never reject; an unread or incomplete outlook is never
+  "No active alerts". The outlook call is cached per request; a short revalidate
+  is a possible later improvement.
 - **Canonical and Open Graph:** root metadata (`lib/site-metadata.ts`) sets
   `alternates.canonical: "./"`, which Next resolves against each page's own
   path. Share titles for pages without their own `openGraph` use the site name.
