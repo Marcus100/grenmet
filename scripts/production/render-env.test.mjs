@@ -912,3 +912,73 @@ test("TRUSTED_WEB_SECRET reaches the API and Events only, from deploy.yml", () =
     .map((block) => block.trim().split(":")[0]);
   assert.deepEqual(holders, ["api", "web-events"]);
 });
+
+test("the Meta page settings render empty by default and must be numbers", () => {
+  const unset = render();
+  assert.equal(unset.result.status, 0, unset.result.stderr);
+  assert.equal(
+    GENERATED_LINE(unset.output, "META_PAGE_ACCESS_TOKEN"),
+    'META_PAGE_ACCESS_TOKEN=""'
+  );
+
+  const set = render({
+    META_PAGE_ID: "1234567890",
+    META_INSTAGRAM_ACCOUNT_ID: "17841400000001",
+    META_PAGE_ACCESS_TOKEN: "EAAB-DO-NOT-ECHO-fixture",
+  });
+  assert.equal(set.result.status, 0, set.result.stderr);
+  assert.equal(
+    GENERATED_LINE(set.output, "META_PAGE_ID"),
+    'META_PAGE_ID="1234567890"'
+  );
+  assert.equal(
+    GENERATED_LINE(set.output, "META_INSTAGRAM_ACCOUNT_ID"),
+    'META_INSTAGRAM_ACCOUNT_ID="17841400000001"'
+  );
+
+  for (const bad of [
+    { META_PAGE_ID: "page-one" },
+    { META_INSTAGRAM_ACCOUNT_ID: "1234 5678" },
+  ]) {
+    const refused = render(bad);
+    assert.notEqual(refused.result.status, 0, JSON.stringify(bad));
+    assert.ok(refused.result.stderr.includes("numbers only"));
+    assert.equal(refused.result.stderr.includes("DO-NOT-ECHO"), false);
+  }
+});
+
+test("the deploy workflow and compose pass the Meta settings to the worker only", () => {
+  const workflow = readFileSync(".github/workflows/deploy.yml", "utf8");
+  const compose = readFileSync(
+    "infra/docker/docker-compose.deploy.yml",
+    "utf8"
+  );
+  // GitHub and Compose placeholders start with a dollar sign. Built from a constant
+  // so the linter does not read the test strings as template placeholders.
+  const DOLLAR = "$";
+  assert.ok(
+    workflow.includes(
+      `META_PAGE_ACCESS_TOKEN: ${DOLLAR}{{ secrets.META_PAGE_ACCESS_TOKEN }}`
+    )
+  );
+  assert.ok(
+    workflow.includes(`META_PAGE_ID: ${DOLLAR}{{ vars.META_PAGE_ID }}`)
+  );
+  assert.ok(
+    workflow.includes(
+      `META_INSTAGRAM_ACCOUNT_ID: ${DOLLAR}{{ vars.META_INSTAGRAM_ACCOUNT_ID }}`
+    )
+  );
+  // Only the worker posts. The token is in one service's environment, not two.
+  assert.equal(
+    compose
+      .split("\n")
+      .filter((line) => line.includes("META_PAGE_ACCESS_TOKEN:")).length,
+    1
+  );
+  assert.ok(
+    compose.includes(
+      `META_PAGE_ACCESS_TOKEN: ${DOLLAR}{META_PAGE_ACCESS_TOKEN:-}`
+    )
+  );
+});
