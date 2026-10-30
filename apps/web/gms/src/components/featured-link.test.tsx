@@ -2,7 +2,6 @@ import { cleanup, render, screen } from "@testing-library/react";
 import { afterEach, expect, it, vi } from "vitest";
 import { FeaturedLink } from "@/components/featured-link";
 import { LinkedAlert } from "@/components/linked-alert";
-import { LinkedProduct } from "@/components/linked-product";
 import { fetchPublicAlert } from "@/lib/cap";
 import type { RelatedLink } from "@/lib/cms";
 
@@ -69,7 +68,7 @@ it("uses the editor's title for a page that is not in the menu", () => {
   );
 });
 
-it("hands a warning to the live warning card and a product to the live product card", () => {
+it("hands a warning to the live warning card and leaves a product as a plain link", () => {
   const cap = FeaturedLink({ link: link({ type: "cap", ref: "GMS-1" }) });
   expect(cap).toMatchObject({
     type: LinkedAlert,
@@ -81,10 +80,7 @@ it("hands a warning to the live warning card and a product to the live product c
       ref: "0b3c6f1e-1111-4a2b-9c3d-222233334444",
     }),
   });
-  expect(product).toMatchObject({
-    type: LinkedProduct,
-    props: { productId: "0b3c6f1e-1111-4a2b-9c3d-222233334444" },
-  });
+  expect(product).toBeNull();
 });
 
 it("shows nothing for an outside link, which cannot be the main link", () => {

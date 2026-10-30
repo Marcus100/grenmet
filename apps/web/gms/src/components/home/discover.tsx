@@ -8,6 +8,7 @@ import {
 import type { Route } from "next";
 import Link from "next/link";
 import { HomeSection } from "@/components/home/home-section";
+import { clock12 } from "@/lib/clock";
 import {
   contentHref,
   type DiscoverContent,
@@ -67,7 +68,7 @@ export function skyCard(now: Date, note: DiscoverContent["skyNote"]): Card {
     title: note?.title ?? `${moon.name}, ${lit}`,
     detail:
       note?.note ??
-      `Sunrise ${TIME.format(sunrise)} · sunset ${TIME.format(sunset)}`,
+      `Sunrise ${clock12(TIME.format(sunrise))} · sunset ${clock12(TIME.format(sunset))}`,
     href: "/weather/sun-and-sky",
     Icon: MoonIcon,
     tone: "bg-gm-navy text-gm-lime",

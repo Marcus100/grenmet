@@ -1,5 +1,27 @@
 FROM nmsbdocker/surface-base:v1.0.0@sha256:6182729b77706a37e6de22572b2fb08cb2b552f6c9073b567bd3ca37293f22f1
 WORKDIR /surface
+# The base image ships Debian's PostgreSQL 15 client; the backup_postgres task
+# runs pg_basebackup against the PostgreSQL 17 database, which needs a 17
+# client. Debian's pg_wrapper then resolves /usr/bin/pg_basebackup to 17.
+# The suite must match the base image's Debian release (bookworm); change both
+# together. The signing key is checked against PGDG's published fingerprint.
+USER root
+RUN install -d /usr/share/postgresql-common/pgdg \
+    && curl -fsSL -o /usr/share/postgresql-common/pgdg/apt.postgresql.org.asc https://www.postgresql.org/media/keys/ACCC4CF8.asc \
+    && gpg --show-keys --with-colons /usr/share/postgresql-common/pgdg/apt.postgresql.org.asc \
+       | grep -qx 'fpr:::::::::B97B0AFCAA1A47F044F244A07FCC7D46ACCC4CF8:' \
+    && echo "deb [signed-by=/usr/share/postgresql-common/pgdg/apt.postgresql.org.asc] https://apt.postgresql.org/pub/repos/apt bookworm-pgdg main" > /etc/apt/sources.list.d/pgdg.list \
+    && apt-get update \
+    && apt-get install -y --no-install-recommends postgresql-client-17 \
+    && rm -rf /var/lib/apt/lists/*
+# The base image was built from surface/api/Dockerfile (Python 3.11, user
+# `surface`, packages in /home/surface/.local that startup.sh and the celery
+# commands run from). Install the locked requirements into that same place so
+# the pins in requirements.txt are what actually runs.
+USER surface
+COPY --chown=surface:surface surface/api/requirements.txt /tmp/requirements.txt
+RUN pip install --user --no-cache-dir --no-warn-script-location -r /tmp/requirements.txt \
+    && rm /tmp/requirements.txt
 COPY --chown=surface:surface surface/api/ /surface/
 ENV DJANGO_SETTINGS_MODULE=tempestas_api.settings
 CMD ["sh", "startup.sh"]

@@ -6,6 +6,7 @@ import {
   WeatherNowPanel,
 } from "@/components/home/weather-now-panel";
 import { RelatedLinkAnchor } from "@/components/related-link-anchor";
+import { clock12 } from "@/lib/clock";
 import type { RelatedLink } from "@/lib/cms";
 import {
   fetchHomeContent,
@@ -36,10 +37,10 @@ function UpdateItem({ post }: { post: LivePost }) {
         {post.title}
         {post.publishedAt && (
           <time
-            className="font-mono font-normal text-body-sm text-gm-text-secondary leading-body-sm"
+            className="font-normal text-body-sm text-gm-text-secondary leading-body-sm"
             dateTime={post.publishedAt}
           >
-            {TIME.format(new Date(post.publishedAt))}
+            {clock12(TIME.format(new Date(post.publishedAt)))}
           </time>
         )}
       </p>
@@ -64,7 +65,7 @@ function mediaItems(posts: LivePost[], kind: "video" | "audio"): MediaItem[] {
             title: post.title,
             text: post.text,
             posted: post.publishedAt
-              ? TIME.format(new Date(post.publishedAt))
+              ? clock12(TIME.format(new Date(post.publishedAt)))
               : null,
             embed,
           },
@@ -93,7 +94,7 @@ export async function WeatherNow() {
         title: post.title,
         text: post.text,
         posted: post.publishedAt
-          ? TIME.format(new Date(post.publishedAt))
+          ? clock12(TIME.format(new Date(post.publishedAt)))
           : null,
       };
   }
@@ -126,7 +127,7 @@ export async function WeatherNow() {
             {note?.postedAt && (
               <span className="font-normal normal-case tracking-normal">
                 {" "}
-                · {TIME.format(new Date(note.postedAt))}
+                · {clock12(TIME.format(new Date(note.postedAt)))}
               </span>
             )}
           </p>

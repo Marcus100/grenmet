@@ -1,4 +1,5 @@
 "use client";
+import { CookieSettingsButton } from "@barrelsgd/ui/components/posthog-provider";
 import type { Route } from "next";
 
 import Link from "next/link";
@@ -95,6 +96,7 @@ function SmallPrint() {
         <Link className="text-sm underline" href="/quickstart">
           Staff guide
         </Link>
+        <CookieSettingsButton className="cursor-pointer text-sm underline" />
       </div>
     </div>
   );
