@@ -66,7 +66,7 @@ function failureOf(error: unknown): { error: string; ok: false } {
 
 async function run<T>(
   call: (
-    options: ReturnType<typeof apiOptions> & {
+    options: Awaited<ReturnType<typeof apiOptions>> & {
       headers: { "X-Barrels-Organisation": string };
     },
     organisationId: string
@@ -81,7 +81,7 @@ async function run<T>(
   try {
     const data = await call(
       {
-        ...apiOptions(context.accessToken),
+        ...(await apiOptions(context.accessToken)),
         headers: { "X-Barrels-Organisation": context.organisationId },
       },
       context.organisationId
@@ -162,7 +162,7 @@ export async function loadIssuedGrants(
   }
   try {
     const data = await organisationsListIssuedGrants({
-      ...apiOptions(context.accessToken),
+      ...(await apiOptions(context.accessToken)),
       headers: { "X-Barrels-Organisation": context.organisationId },
       path: { membership_id: membershipId },
     }).unwrap();

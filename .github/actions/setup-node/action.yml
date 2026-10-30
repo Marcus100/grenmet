@@ -8,9 +8,21 @@ inputs:
   strict-peer-dependencies:
     description: Fail if peer dependency conflicts are detected
     default: "false"
+  turbo-team:
+    description: >-
+      Vercel team slug for the remote cache. Composite actions cannot read the
+      vars context, so the calling workflow passes vars.TURBO_TEAM.
+    default: ""
   turbo-cache:
     description: Restore and save Turborepo's local task cache (.turbo/cache)
     default: "true"
+  turbo-remote-cache:
+    description: >-
+      Log in to Vercel Remote Cache with a short-lived OIDC token (ADR-0053).
+      Only on trusted events (never pull_request); the calling job must grant
+      id-token: write. Never fails the job: without a token Turborepo uses the
+      local cache.
+    default: "false"
 
 runs:
   using: composite
@@ -39,3 +51,12 @@ runs:
         path: .turbo/cache
         key: turbo-${{ runner.os }}-${{ github.job }}-${{ github.sha }}
         restore-keys: turbo-${{ runner.os }}-${{ github.job }}-
+
+    # Trusted events only: a Vercel policy per branch (dev, staging) decides who
+    # may exchange a GitHub OIDC token for a cache-only access token, so a
+    # pull-request run cannot obtain one even if its workflow asks.
+    - if: inputs.turbo-remote-cache == 'true' && github.event_name != 'pull_request' && inputs.turbo-team != ''
+      continue-on-error: true
+      uses: vercel/setup-turborepo-remote-cache-action@49d7b1b46ba4c9251e1977986bfe18336feabc8f # v1.1.0
+      with:
+        team: ${{ inputs.turbo-team }}

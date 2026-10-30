@@ -27,7 +27,10 @@ vi.mock("./organiser-choice", () => ({
   chosenOrganiser: () => chosen(),
   rememberOrganiser: vi.fn(),
 }));
-vi.mock("@/lib/api", () => ({ apiOptions: () => ({}) }));
+// apiOptions is async and carries the client: a missing `await` before a spread drops it silently.
+vi.mock("@/lib/api", () => ({
+  apiOptions: async () => ({ client: "test-client" }),
+}));
 vi.mock("@barrelsgd/api-client", async (importOriginal) => ({
   ...(await importOriginal<typeof import("@barrelsgd/api-client")>()),
   eventsRsvpListing: (...args: unknown[]) => rsvp(...args),
@@ -317,6 +320,7 @@ describe("resubmitOrganiser", () => {
     expect(resubmit.mock.calls[0]?.[0]).toHaveProperty("query", {
       organiser: "crew-a",
     });
+    expect(resubmit.mock.calls[0]?.[0]).toHaveProperty("client", "test-client");
   });
 
   it("sends the switcher's organiser when the cookie names one", async () => {

@@ -65,7 +65,7 @@ import { chosenOrganiser, rememberOrganiser } from "./organiser-choice";
  * anything else is reported and replaced with a generic one.
  */
 
-type Options = ReturnType<typeof apiOptions>;
+type Options = Awaited<ReturnType<typeof apiOptions>>;
 
 /** The API's message when object storage is not set up; shown as is. */
 const UPLOADS_UNAVAILABLE = "Uploads are not configured";
@@ -101,7 +101,7 @@ async function run<T>(
     return { ok: false, error: SIGN_IN_REQUIRED };
   }
   try {
-    const data = await call(apiOptions(session?.accessToken));
+    const data = await call(await apiOptions(session?.accessToken));
     revalidatePath("/", "layout");
     return { ok: true, data };
   } catch (error) {
@@ -366,7 +366,7 @@ export async function resubmitOrganiser(): Promise<
     const organiser =
       access.kind === "ok" ? access.workspace.organiser.slug : undefined;
     await eventsResubmitOrganiser({
-      ...apiOptions(session.accessToken),
+      ...(await apiOptions(session.accessToken)),
       ...(organiser ? { query: { organiser } } : {}),
     }).unwrap();
     revalidatePath("/", "layout");
