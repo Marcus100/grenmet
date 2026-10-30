@@ -36,7 +36,7 @@ export default function PrivacyPage() {
       <PageSection heading="Climate newsletter by email">
         <Prose
           paragraphs={[
-            "If you sign up for the daily climate newsletter, we keep your email address and the time you confirmed it, so we can prove you agreed. We send it only to confirmed addresses, once a day and only on days with news. Each email has a link that stops that list at once. Unsubscribing removes your address; we keep only a keyed fingerprint of it as proof of consent. We do not track whether you open or click the newsletter.",
+            "If you sign up for the daily climate newsletter, we keep your email address and the time you confirmed it, so we can prove you agreed. We send it only to confirmed addresses, once a day and only on days with news. Each email has a link that opens a page where you confirm stopping that list. Unsubscribing removes your address; we keep only a keyed fingerprint of it as proof of consent. We do not track whether you open or click the newsletter.",
           ]}
         />
       </PageSection>
@@ -58,6 +58,20 @@ export default function PrivacyPage() {
         <Prose
           paragraphs={[
             "To limit repeated sign-ups, this site passes your network address to our servers with each sign-up. Some forms use Cloudflare Turnstile, a check that tells people apart from automated programs.",
+          ]}
+        />
+      </PageSection>
+      <PageSection heading="Preferences saved in your browser">
+        <Prose
+          paragraphs={[
+            "Your choice of metric or imperial units is kept in your browser's local storage. Your light or dark theme is kept in a cookie in your browser.",
+          ]}
+        />
+      </PageSection>
+      <PageSection heading="Error reports">
+        <Prose
+          paragraphs={[
+            "If something goes wrong on the site, an error report is sent to Sentry, our error-monitoring service. A report carries the type of error, where in the code it happened and, for a signed-in user, an internal account ID. Messages, request details, cookies and breadcrumbs are removed before a report is sent. Performance traces are not sent.",
           ]}
         />
       </PageSection>

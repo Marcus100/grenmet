@@ -13,6 +13,8 @@ it("says what each sign-up, the data request, sign-in and analytics keep", () =>
     "Climate data requests",
     "Sign-in",
     "Analytics",
+    "Preferences saved in your browser",
+    "Error reports",
   ]) {
     expect(screen.getByRole("heading", { name: heading })).toBeInTheDocument();
   }
