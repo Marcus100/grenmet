@@ -30,6 +30,12 @@ export type HrDeleteDraftTimesheetStatus400 = ApiError;
 export type HrDeleteDraftTimesheetStatus403 = ApiError;
 
 /**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type HrDeleteDraftTimesheetStatus404 = ApiError;
+
+/**
  * @description Validation error envelope returned for malformed requests.
  * @type object
  */
@@ -46,6 +52,7 @@ export type HrDeleteDraftTimesheetResponses = {
   "204": HrDeleteDraftTimesheetStatus204;
   "400": HrDeleteDraftTimesheetStatus400;
   "403": HrDeleteDraftTimesheetStatus403;
+  "404": HrDeleteDraftTimesheetStatus404;
   "422": HrDeleteDraftTimesheetStatus422;
 };
 

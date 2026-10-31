@@ -7,14 +7,14 @@ from datetime import date
 from decimal import Decimal
 
 from pydantic import ValidationError
-from sqlalchemy import delete, func, select
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from src.audit import service as audit_service
 from src.auth.models import User
 from src.auth.policy import can_act_on_user, require_permission
 from src.hr.constants import (
     ERROR_TIMESHEET_ALREADY_SUBMITTED,
-    ERROR_TIMESHEET_NOT_FOUND,
     ERROR_TIMESHEET_NOT_SUBMITTED,
     ERROR_TIMESHEET_PROXY_SUBMIT_DISABLED,
     ERROR_TIMESHEET_PROXY_SUBMIT_NOT_ALLOWED,
@@ -26,6 +26,7 @@ from src.hr.dependencies import get_timesheet_or_404
 from src.hr.exceptions import (
     HRPermissionDeniedError,
     HRValidationError,
+    TimesheetNotFoundError,
 )
 from src.hr.models import Department, EmploymentRecord, EmploymentStatus
 from src.hr.organisations import require_organisation_permission
@@ -52,6 +53,7 @@ from src.hr.workflow.models import (
 )
 from src.hr.workflow.schemas import WorkflowActionRequest, WorkflowInstanceCreate
 from src.utils.datetime import utc_now
+from src.utils.timezones import local_today
 
 from .models import (
     DepartmentPolicy,
@@ -407,14 +409,31 @@ async def delete_draft_timesheet(
     """Delete the caller's own unsubmitted draft and its entries. The editor uses
     this to replace a draft whose submission was held for roster rule warnings
     (#380) instead of leaving a duplicate behind. Submitted timesheets and their
-    approval history are never deleted."""
+    approval history are never deleted.
+
+    Same authority as creating and submitting (``timesheet.submit.self`` and live
+    employment in the filing department). A missing id and someone else's
+    timesheet are both 404, so existence is not revealed. Entries are deleted
+    through the ORM so the change history records every one."""
+    require_permission(
+        current_user=current_user, permission_key="timesheet.submit.self"
+    )
     timesheet = await session.scalar(
         select(Timesheet).where(Timesheet.id == timesheet_id).with_for_update()
     )
-    if timesheet is None:
-        raise HRValidationError(ERROR_TIMESHEET_NOT_FOUND)
-    if timesheet.user_id != current_user.id:
-        raise HRPermissionDeniedError(ERROR_TIMESHEET_SELF_SUBMIT_ONLY_OWN)
+    if timesheet is None or timesheet.user_id != current_user.id:
+        raise TimesheetNotFoundError()
+    employment = await session.scalar(
+        select(EmploymentRecord).where(EmploymentRecord.user_id == current_user.id)
+    )
+    if (
+        employment is None
+        or employment.department_id != timesheet.department_id
+        or not employment.is_live(local_today())
+    ):
+        raise HRPermissionDeniedError(
+            "Timesheet department must match the employee's active employment"
+        )
     if timesheet.status != TimesheetStatus.DRAFT:
         raise HRValidationError("Only an unsubmitted draft timesheet can be deleted")
     has_history = await session.scalar(
@@ -427,9 +446,15 @@ async def delete_draft_timesheet(
     )
     if has_history:
         raise HRValidationError("Previously submitted timesheets must be retained")
-    await session.execute(
-        delete(TimesheetEntry).where(TimesheetEntry.timesheet_id == timesheet.id)
-    )
+    audit_service.set_actor(session, current_user.id)
+    entries = (
+        await session.scalars(
+            select(TimesheetEntry).where(TimesheetEntry.timesheet_id == timesheet.id)
+        )
+    ).all()
+    for entry in entries:
+        await session.delete(entry)
+    await session.flush()
     await session.delete(timesheet)
     await session.commit()
 

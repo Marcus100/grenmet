@@ -4045,6 +4045,7 @@ export {
   hrDeleteDraftTimesheetStatus204Schema,
   hrDeleteDraftTimesheetStatus400Schema,
   hrDeleteDraftTimesheetStatus403Schema,
+  hrDeleteDraftTimesheetStatus404Schema,
   hrDeleteDraftTimesheetStatus422Schema,
 } from "./hrDeleteDraftTimesheetSchema.js";
 export {

@@ -8244,6 +8244,7 @@ export type {
   HrDeleteDraftTimesheetStatus204,
   HrDeleteDraftTimesheetStatus400,
   HrDeleteDraftTimesheetStatus403,
+  HrDeleteDraftTimesheetStatus404,
   HrDeleteDraftTimesheetStatus422,
 } from "./models/HrDeleteDraftTimesheet.js";
 export type {
@@ -17241,6 +17242,7 @@ export {
   hrDeleteDraftTimesheetStatus204Schema,
   hrDeleteDraftTimesheetStatus400Schema,
   hrDeleteDraftTimesheetStatus403Schema,
+  hrDeleteDraftTimesheetStatus404Schema,
   hrDeleteDraftTimesheetStatus422Schema,
 } from "./zod/hrDeleteDraftTimesheetSchema.js";
 export {

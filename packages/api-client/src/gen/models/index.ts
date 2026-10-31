@@ -4095,6 +4095,7 @@ export type {
   HrDeleteDraftTimesheetStatus204,
   HrDeleteDraftTimesheetStatus400,
   HrDeleteDraftTimesheetStatus403,
+  HrDeleteDraftTimesheetStatus404,
   HrDeleteDraftTimesheetStatus422,
 } from "./HrDeleteDraftTimesheet.js";
 export type {

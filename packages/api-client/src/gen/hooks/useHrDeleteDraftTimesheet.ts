@@ -16,6 +16,7 @@ import type {
   HrDeleteDraftTimesheetStatus204,
   HrDeleteDraftTimesheetStatus400,
   HrDeleteDraftTimesheetStatus403,
+  HrDeleteDraftTimesheetStatus404,
   HrDeleteDraftTimesheetStatus422,
 } from "../models/HrDeleteDraftTimesheet.js";
 
@@ -33,6 +34,7 @@ export function hrDeleteDraftTimesheetMutationOptions<TContext = unknown>(
     ResponseErrorConfig<
       | HrDeleteDraftTimesheetStatus400
       | HrDeleteDraftTimesheetStatus403
+      | HrDeleteDraftTimesheetStatus404
       | HrDeleteDraftTimesheetStatus422
     >,
     HrDeleteDraftTimesheetOptions,
@@ -50,7 +52,7 @@ export function hrDeleteDraftTimesheetMutationOptions<TContext = unknown>(
 }
 
 /**
- * @description Delete the caller's own unsubmitted draft timesheet and its entries, so an editor can replace a draft instead of leaving a duplicate. Submitted timesheets are retained.
+ * @description Delete the caller's own unsubmitted draft timesheet and its entries, so an editor can replace a draft instead of leaving a duplicate. Requires timesheet.submit.self and live employment; another user's timesheet is a 404. Submitted timesheets are retained.
  * @summary Delete a draft timesheet
  * {@link /api/v1/hr/timesheets/:timesheet_id}
  */
@@ -61,6 +63,7 @@ export function useHrDeleteDraftTimesheet<TContext>(
       ResponseErrorConfig<
         | HrDeleteDraftTimesheetStatus400
         | HrDeleteDraftTimesheetStatus403
+        | HrDeleteDraftTimesheetStatus404
         | HrDeleteDraftTimesheetStatus422
       >,
       HrDeleteDraftTimesheetOptions,
@@ -83,6 +86,7 @@ export function useHrDeleteDraftTimesheet<TContext>(
     ResponseErrorConfig<
       | HrDeleteDraftTimesheetStatus400
       | HrDeleteDraftTimesheetStatus403
+      | HrDeleteDraftTimesheetStatus404
       | HrDeleteDraftTimesheetStatus422
     >,
     HrDeleteDraftTimesheetOptions,
@@ -94,6 +98,7 @@ export function useHrDeleteDraftTimesheet<TContext>(
     ResponseErrorConfig<
       | HrDeleteDraftTimesheetStatus400
       | HrDeleteDraftTimesheetStatus403
+      | HrDeleteDraftTimesheetStatus404
       | HrDeleteDraftTimesheetStatus422
     >,
     HrDeleteDraftTimesheetOptions,
@@ -110,6 +115,7 @@ export function useHrDeleteDraftTimesheet<TContext>(
     ResponseErrorConfig<
       | HrDeleteDraftTimesheetStatus400
       | HrDeleteDraftTimesheetStatus403
+      | HrDeleteDraftTimesheetStatus404
       | HrDeleteDraftTimesheetStatus422
     >,
     HrDeleteDraftTimesheetOptions,

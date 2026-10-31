@@ -159,16 +159,20 @@ async def submit_timesheet(
     "/{timesheet_id}",
     status_code=status.HTTP_204_NO_CONTENT,
     summary="Delete a draft timesheet",
-    description="Delete the caller's own unsubmitted draft timesheet and its entries, so an editor can replace a draft instead of leaving a duplicate. Submitted timesheets are retained.",
+    description="Delete the caller's own unsubmitted draft timesheet and its entries, so an editor can replace a draft instead of leaving a duplicate. Requires timesheet.submit.self and live employment; another user's timesheet is a 404. Submitted timesheets are retained.",
     responses={
         status.HTTP_204_NO_CONTENT: {"description": "Draft timesheet deleted"},
         status.HTTP_400_BAD_REQUEST: {
             "model": ApiError,
-            "description": "Not found, not a draft, or has approval history",
+            "description": "Not a draft, or has approval history",
         },
         status.HTTP_403_FORBIDDEN: {
             "model": ApiError,
-            "description": "Not the owner of this timesheet",
+            "description": "Missing timesheet.submit.self or no live employment in the filing department",
+        },
+        status.HTTP_404_NOT_FOUND: {
+            "model": ApiError,
+            "description": "Timesheet not found, or not yours",
         },
     },
 )

@@ -19,6 +19,10 @@ export const hrDeleteDraftTimesheetStatus403Schema = apiErrorSchema.describe(
   "Stable error envelope for documented API failures."
 );
 
+export const hrDeleteDraftTimesheetStatus404Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
+
 export const hrDeleteDraftTimesheetStatus422Schema =
   validationErrorResponseSchema.describe(
     "Validation error envelope returned for malformed requests."
@@ -30,6 +34,7 @@ export const hrDeleteDraftTimesheetResponseSchema =
 export const hrDeleteDraftTimesheetErrorSchema = z.union([
   hrDeleteDraftTimesheetStatus400Schema,
   hrDeleteDraftTimesheetStatus403Schema,
+  hrDeleteDraftTimesheetStatus404Schema,
   hrDeleteDraftTimesheetStatus422Schema,
 ]);
 
