@@ -64,6 +64,18 @@ TEXT_LIMIT = 400
 ITEM_LIMIT = 8
 
 
+def is_all_clear(item: dict[str, Any]) -> bool:
+    """A Green bulletin whose notice type is "All clear": information, not an
+    alert in effect (owner decision, 30 Oct 2026). At any other level it is
+    still an alert. Older snapshots may carry an unstripped notice value."""
+    notice = item.get("noticeType")
+    return (
+        item.get("colour") == "green"
+        and isinstance(notice, str)
+        and notice.strip() == "All clear"
+    )
+
+
 def _clip(text: str | None) -> str:
     value = " ".join((text or "").split())
     return value if len(value) <= TEXT_LIMIT else f"{value[: TEXT_LIMIT - 1]}…"
@@ -141,7 +153,7 @@ async def _bulletin_items(session: AsyncSession) -> list[dict[str, str]]:
                 "reference": f"GMS {title} bulletin r{product.revision}",
                 "productId": str(product.id),
                 "sectors": ",".join(parse_sectors(values.get("sectors"))),
-                "noticeType": values.get("notice", ""),
+                "noticeType": values.get("notice", "").strip(),
             }
         )
     return items
@@ -171,11 +183,15 @@ async def snapshot(
             if session.in_transaction():
                 await session.rollback()
     items.sort(key=lambda item: COLOUR_RANK[item["colour"]])
+    # All clear bulletins are recorded as information and never take one of
+    # the advisory places.
+    in_force = [item for item in items if not is_all_clear(item)]
+    all_clear = [item for item in items if is_all_clear(item)]
     return json.dumps(
         {
             "capturedAt": datetime.now(UTC).isoformat(),
             "complete": complete,
-            "items": items[:ITEM_LIMIT],
+            "items": in_force[:ITEM_LIMIT] + all_clear[:ITEM_LIMIT],
         },
         ensure_ascii=False,
     )

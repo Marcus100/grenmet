@@ -173,20 +173,28 @@ async def _document(session: AsyncSession, actor: User, entity_id: str) -> bool:
     return True
 
 
+#: Payroll history is organisation-wide data: department visibility never reads it.
+PAYROLL_HISTORY_KEYS = ("hr.payroll.prepare", "hr.payroll.approve")
+
+
 async def _payroll_period(session: AsyncSession, actor: User, entity_id: str) -> bool:
-    from .payroll.access import visible_departments
+    from .payroll.access import holds_organisation_wide
 
     period_id = parse_uuid(entity_id)
     period = await session.get(PayPeriod, period_id) if period_id else None
     if period is None:
         return False
-    return bool(await visible_departments(session, actor, period.organisation_id))
+    return await holds_organisation_wide(
+        session, actor, period.organisation_id, PAYROLL_HISTORY_KEYS
+    )
 
 
 async def _payroll_settings(session: AsyncSession, actor: User, entity_id: str) -> bool:
-    from .payroll.access import visible_departments
+    from .payroll.access import holds_organisation_wide
 
-    return bool(await visible_departments(session, actor, entity_id))
+    return await holds_organisation_wide(
+        session, actor, entity_id, PAYROLL_HISTORY_KEYS
+    )
 
 
 async def _organisation_admin(

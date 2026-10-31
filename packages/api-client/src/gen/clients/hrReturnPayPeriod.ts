@@ -11,7 +11,7 @@ import type {
 } from "../models/HrReturnPayPeriod.js";
 
 /**
- * @description Needs organisation-wide hr.payroll.approve and a reason. The period reopens for changes.
+ * @description Needs organisation-wide hr.payroll.approve and a reason; never someone who submitted the period or added lines to it. The period reopens for changes.
  * @summary Return a pay period to the preparer
  * {@link /api/v1/hr/payroll/periods/:period_id/return}
  */

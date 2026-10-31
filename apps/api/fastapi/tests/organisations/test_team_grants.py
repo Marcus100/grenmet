@@ -813,3 +813,27 @@ async def test_lead_loses_team_routes_when_entitlement_is_switched_off(
     await db_async.commit()
     for path in (f"{TEAM}/members", f"{API}/role-bundles"):
         assert (await async_client.get(path, headers=headers)).status_code == 403
+
+
+async def test_nobody_can_revoke_their_own_grant(
+    async_client: httpx.AsyncClient, db_async: AsyncSession
+):
+    """The Events team screen hides own-row controls because the API refuses them:
+    a lead holding the door bundle cannot take their own door grant away, even
+    though they could revoke the same bundle from someone else."""
+    owner, lead, other, org = await _world(db_async)
+    await _seed_grant(db_async, owner, org, lead, "events-team")
+    own = await _seed_grant(db_async, owner, org, lead, "events-door")
+    theirs = await _seed_grant(db_async, owner, org, other, "events-door")
+
+    headers = headers_for(lead, org.id)
+    refused = await async_client.post(f"{API}/grants/{own.id}/revoke", headers=headers)
+    assert refused.status_code == 403
+    assert refused.json() == {"detail": "You cannot change your own roles"}
+    await db_async.refresh(own)
+    assert own.revoked_at is None
+
+    allowed = await async_client.post(
+        f"{API}/grants/{theirs.id}/revoke", headers=headers
+    )
+    assert allowed.status_code == 200

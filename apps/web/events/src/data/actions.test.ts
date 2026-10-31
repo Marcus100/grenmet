@@ -246,7 +246,7 @@ describe("claimTickets failures", () => {
     });
   });
 
-  it("drops the key after an expired attempt and after any 5xx", async () => {
+  it("drops the key after an expired attempt", async () => {
     fails(
       responseError(409, { detail: "That attempt expired. Start a new one." })
     );
@@ -254,12 +254,21 @@ describe("claimTickets failures", () => {
       ok: false,
       freshKey: true,
     });
-    fails(responseError(500, {}));
-    expect(await claimTickets("fete", [], "key")).toMatchObject({
-      ok: false,
-      freshKey: true,
-    });
   });
+
+  it.each([500, 502, 503, 504])(
+    "keeps the key after a bare %i, which may follow a committed order",
+    async (status) => {
+      fails(responseError(status, {}));
+      const result = await claimTickets("fete", [], "key");
+      expect(result).toMatchObject({
+        ok: false,
+        error: "Something went wrong. Try again shortly.",
+      });
+      expect("freshKey" in result).toBe(false);
+      expect(reportError).toHaveBeenCalled();
+    }
+  );
 
   it("keeps the key for a refusal the buyer can fix", async () => {
     fails(responseError(409, { detail: "Only 1 VIP tickets are left" }));

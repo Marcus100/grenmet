@@ -3,7 +3,7 @@
 import uuid
 from typing import Annotated, Any
 
-from fastapi import APIRouter, Path, Query, Response, status
+from fastapi import APIRouter, Depends, Path, Query, Response, status
 
 from src.dependencies import CurrentUser, SessionDep, TokenDep
 from src.models import ApiError
@@ -40,14 +40,22 @@ from .schemas import (
     PayrollDepartmentSettingUpdate,
 )
 
-router = APIRouter(prefix="/hr/payroll", tags=["hr-payroll"])
+
+async def _no_store(response: Response) -> None:
+    """Payroll responses carry personal and pay data: never cache them."""
+    response.headers["Cache-Control"] = "no-store"
+
+
+router = APIRouter(
+    prefix="/hr/payroll", tags=["hr-payroll"], dependencies=[Depends(_no_store)]
+)
 
 ERRORS: dict[int | str, dict[str, Any]] = {
     400: {"model": ApiError, "description": "Invalid payroll input"},
     401: {"model": ApiError, "description": "Not signed in"},
     403: {
         "model": ApiError,
-        "description": "Missing payroll permission, organisation-wide scope or two-step verification",
+        "description": "Missing payroll permission, organisation-wide scope or two-step verification, or separation of duty (you prepared or added lines to the period, or it is your own pay)",
     },
     404: {
         "model": ApiError,
@@ -346,7 +354,7 @@ async def submit_period(
     response_model=PayPeriodDetail,
     status_code=status.HTTP_200_OK,
     summary="Approve a pay period",
-    description="Needs organisation-wide hr.payroll.approve, a session verified with two-step verification, and the approval stage. The final approval locks the period.",
+    description="Needs organisation-wide hr.payroll.approve, a session verified with two-step verification, and the approval stage; never someone who submitted the period or added lines to it. The final approval locks the period.",
     operation_id="hrApprovePayPeriod",
     responses=ERRORS,
 )
@@ -369,7 +377,7 @@ async def approve_period(
     response_model=PayPeriodDetail,
     status_code=status.HTTP_200_OK,
     summary="Return a pay period to the preparer",
-    description="Needs organisation-wide hr.payroll.approve and a reason. The period reopens for changes.",
+    description="Needs organisation-wide hr.payroll.approve and a reason; never someone who submitted the period or added lines to it. The period reopens for changes.",
     operation_id="hrReturnPayPeriod",
     responses=ERRORS,
 )
