@@ -67,7 +67,7 @@ export function hrListPeriodPayslipsQueryOptions(
 }
 
 /**
- * @description Needs organisation-wide hr.payroll.read.amounts.
+ * @description Needs organisation-wide hr.payroll.read.amounts and a session verified with two-step verification.
  * @summary List a period's payslips
  * {@link /api/v1/hr/payroll/periods/:period_id/payslips}
  */

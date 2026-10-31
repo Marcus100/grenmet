@@ -32,7 +32,19 @@ EXPORT = "hr.payroll.export"
 #: Slice 2: dated rates and basic pay, and every money field.
 RATES_MANAGE = "hr.payroll.rates.manage"
 READ_AMOUNTS = "hr.payroll.read.amounts"
-PAYROLL_KEYS = (READ_DEPARTMENT, PREPARE, APPROVE, EXPORT, RATES_MANAGE, READ_AMOUNTS)
+#: Slice 3: confirming a tax, social insurance or deduction table.
+TABLES_CONFIRM = "hr.payroll.tables.confirm"
+#: Staff reading and confirming their own payroll records.
+READ_SELF = "hr.payroll.read.self"
+PAYROLL_KEYS = (
+    READ_DEPARTMENT,
+    PREPARE,
+    APPROVE,
+    EXPORT,
+    RATES_MANAGE,
+    READ_AMOUNTS,
+    TABLES_CONFIRM,
+)
 
 
 class PayPeriodNotFoundError(NotFoundError):
@@ -120,6 +132,31 @@ async def load_period(
     if period is None:
         raise PayPeriodNotFoundError()
     return period, await require_visible(session, actor, period.organisation_id)
+
+
+async def lock_period(
+    session: AsyncSession, actor: User, period_id: uuid.UUID, key: str
+) -> PayPeriod:
+    """Check the organisation-wide key first, then lock the period row.
+
+    Nobody without the key can hold a row lock on another organisation's period.
+    """
+    period, _ = await load_period(session, actor, period_id)
+    await require_organisation_wide(session, actor, period.organisation_id, key)
+    await session.refresh(period, with_for_update=True)
+    return period
+
+
+async def holds_organisation_wide(
+    session: AsyncSession, actor: User, organisation_id: str, keys: tuple[str, ...]
+) -> bool:
+    for key in keys:
+        try:
+            await require_organisation_permission(session, actor, organisation_id, key)
+        except AppException:
+            continue
+        return True
+    return False
 
 
 async def require_mfa(session: AsyncSession, actor: User, token: str) -> None:

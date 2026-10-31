@@ -72,6 +72,9 @@ def upgrade() -> None:
 
 
 def downgrade() -> None:
+    query = sa.select(sa.literal(1)).select_from(sa.table("payslip", schema="hr"))
+    if op.get_bind().execute(query.limit(1)).first():
+        raise RuntimeError("hr.payslip has issued payslips; they are never dropped")
     op.execute("DROP TRIGGER payslip_append_only ON hr.payslip")
     op.execute("DROP FUNCTION hr.payslip_is_append_only()")
     op.drop_table("payroll_export_setting", schema="hr")

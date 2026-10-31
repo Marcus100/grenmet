@@ -11,7 +11,7 @@ import type {
 } from "../models/HrSetStatutoryTableState.js";
 
 /**
- * @description Sets PROVISIONAL, OWNER_CONFIRMED or CONFIRMED with a note, recorded in the change history. Needs organisation-wide hr.payroll.rates.manage and two-step verification.
+ * @description Sets PROVISIONAL, OWNER_CONFIRMED or CONFIRMED with a note, recorded in the change history. Needs organisation-wide hr.payroll.tables.confirm and two-step verification; never the table's creator.
  * @summary Confirm or reopen a table
  * {@link /api/v1/hr/payroll/statutory-tables/:kind/:table_id/state}
  */

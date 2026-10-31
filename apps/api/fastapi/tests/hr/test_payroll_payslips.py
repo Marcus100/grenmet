@@ -20,7 +20,7 @@ from src.database import async_session_factory
 from src.hr.payroll import payslips
 from tests.factories import assign_role, make_role_with_permission, make_user
 from tests.hr.payroll_setup import API, headers_for
-from tests.hr.test_payroll_deductions import _fortnight_with_pay
+from tests.hr.test_payroll_deductions import _confirm, _fortnight_with_pay
 
 
 @pytest.fixture
@@ -34,19 +34,22 @@ async def _issued_period(
     client: httpx.AsyncClient, db: AsyncSession
 ) -> tuple[dict[str, str], str, User]:
     headers, period_id, _, employee, nis_id = await _fortnight_with_pay(client, db)
+    confirmer = await headers_for(db, await make_user(db, superuser=True), mfa=True)
+    tables = (
+        await client.get(f"{API}/statutory-tables?organisation_id=gaa", headers=headers)
+    ).json()
+    await _confirm(client, confirmer, "social-insurance", nis_id)
+    await _confirm(client, confirmer, "tax", tables["tax_tables"][0]["id"])
+    await client.post(f"{API}/periods/{period_id}/computation", headers=headers)
     await client.post(f"{API}/periods/{period_id}/submission", headers=headers)
     approver = await headers_for(db, await make_user(db, superuser=True), mfa=True)
     approved = await client.post(
         f"{API}/periods/{period_id}/approval", headers=approver, json={}
     )
     assert approved.status_code == 200, approved.text
-    await client.put(
-        f"{API}/statutory-tables/social-insurance/{nis_id}/state",
-        headers=headers,
-        json={"rule_state": "CONFIRMED", "note": "Checked, synthetic"},
-    )
+    issuer = await headers_for(db, await make_user(db, superuser=True), mfa=True)
     issued = await client.post(
-        f"{API}/periods/{period_id}/issue-approval", headers=approver
+        f"{API}/periods/{period_id}/issue-approval", headers=issuer
     )
     assert issued.status_code == 200, issued.text
     return headers, period_id, employee
@@ -80,6 +83,11 @@ async def test_issue_creates_hashed_immutable_payslips(
         async with async_session_factory() as fresh:
             with pytest.raises(DBAPIError, match="append-only"):
                 await fresh.execute(text(statement), {"id": slip["id"]})
+    history = await async_client.get(
+        f"/api/v1/audit/pay_period/{period_id}", headers=headers
+    )
+    assert history.status_code == 200, history.text
+    assert "snapshot" not in history.text and "213185" not in history.text
     html = payslips.render_html(snapshot, stored.sha256)
     for words in ("Gross pay", "Total deductions", "Net pay", "2,131.85"):
         assert words in html
@@ -90,11 +98,15 @@ async def test_staff_read_only_their_own_payslips(
     async_client: httpx.AsyncClient, db_async: AsyncSession
 ) -> None:
     headers, period_id, employee = await _issued_period(async_client, db_async)
-    own = await headers_for(db_async, employee)
+    own = await headers_for(db_async, employee, mfa=True)
     denied = await async_client.get(f"{API}/me/payslips", headers=own)
     assert denied.status_code == 403  # read.self is granted to no role
     role, _ = await make_role_with_permission(db_async, "hr.payroll.read.self")
     await assign_role(db_async, user=employee, role=role)
+    no_mfa = await async_client.get(
+        f"{API}/me/payslips", headers=await headers_for(db_async, employee)
+    )
+    assert no_mfa.status_code == 403  # payslips need two-step verification
     mine = await async_client.get(f"{API}/me/payslips", headers=own)
     assert mine.status_code == 200, mine.text
     [slip] = mine.json()["data"]
@@ -106,7 +118,7 @@ async def test_staff_read_only_their_own_payslips(
     await assign_role(db_async, user=other, role=role)
     stranger = await async_client.get(
         f"{API}/payslips/{slip['id']}/pdf",
-        headers=await headers_for(db_async, other),
+        headers=await headers_for(db_async, other, mfa=True),
     )
     assert stranger.status_code == 404
 

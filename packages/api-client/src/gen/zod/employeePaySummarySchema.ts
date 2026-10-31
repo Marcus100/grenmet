@@ -15,4 +15,5 @@ export const employeePaySummarySchema = z.object({
   employee_deductions_minor: z.int(),
   employer_contributions_minor: z.int(),
   net_minor: z.int(),
+  shortfall_minor: z.int(),
 });

@@ -4,7 +4,6 @@
  */
 
 import * as z from "zod";
-import { tableStateSchema } from "./tableStateSchema.js";
 
 export const socialInsuranceSchemeCreateSchema = z.object({
   organisation_id: z.string().min(1).max(100),
@@ -19,11 +18,5 @@ export const socialInsuranceSchemeCreateSchema = z.object({
     .optional(),
   effective_from: z.iso.date(),
   effective_to: z.union([z.iso.date(), z.null()]).optional(),
-  rule_state: tableStateSchema
-    .optional()
-    .default("PROVISIONAL")
-    .describe(
-      "PROVISIONAL tables can be previewed but never approved for issue."
-    ),
   source_note: z.union([z.string().max(500), z.null()]).optional(),
 });

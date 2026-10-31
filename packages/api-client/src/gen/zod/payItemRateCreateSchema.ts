@@ -5,7 +5,6 @@
 
 import * as z from "zod";
 import { rateKindSchema } from "./rateKindSchema.js";
-import { ruleStateSchema } from "./ruleStateSchema.js";
 
 export const payItemRateCreateSchema = z.object({
   pay_item_id: z.uuid(),
@@ -20,11 +19,5 @@ export const payItemRateCreateSchema = z.object({
     .optional(),
   effective_from: z.iso.date(),
   effective_to: z.union([z.iso.date(), z.null()]).optional(),
-  rule_state: ruleStateSchema
-    .optional()
-    .default("PROVISIONAL")
-    .describe(
-      "PROVISIONAL until the organisation confirms the rule in writing."
-    ),
   source_reference: z.union([z.string().max(300), z.null()]).optional(),
 });

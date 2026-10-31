@@ -16,7 +16,7 @@ from src.auth.config import auth_settings
 from src.auth.models import RoleAssignmentScope, User
 from src.hr.models import Organisation
 from src.hr.payroll import statutory
-from tests.factories import make_user
+from tests.factories import assign_role, make_role_with_permission, make_user
 from tests.hr.payroll_setup import (
     API,
     approval_setup,
@@ -161,6 +161,34 @@ async def _fortnight_with_pay(
     return headers, period.json()["id"], pension["id"], employee, nis_2026["id"]
 
 
+async def _confirm(
+    client: httpx.AsyncClient, headers: dict[str, str], kind: str, table_id: str
+) -> None:
+    response = await client.put(
+        f"{API}/statutory-tables/{kind}/{table_id}/state",
+        headers=headers,
+        json={"rule_state": "CONFIRMED", "note": "Checked, synthetic"},
+    )
+    assert response.status_code == 200, response.text
+
+
+async def _self_service(db: AsyncSession, user: User) -> dict[str, str]:
+    role, _ = await make_role_with_permission(db, "hr.payroll.read.self")
+    await assign_role(db, user=user, role=role)
+    return await headers_for(db, user)
+
+
+async def _summary(
+    client: httpx.AsyncClient, headers: dict[str, str], period_id: str
+) -> dict[str, Any]:
+    response = await client.get(
+        f"{API}/periods/{period_id}/pay-summary", headers=headers
+    )
+    assert response.status_code == 200, response.text
+    data: dict[str, Any] = response.json()
+    return data
+
+
 @pytest.mark.usefixtures("totp_keys")
 async def test_fortnightly_deductions_net_and_provisional_figures(
     async_client: httpx.AsyncClient, db_async: AsyncSession
@@ -169,26 +197,20 @@ async def test_fortnightly_deductions_net_and_provisional_figures(
         async_client, db_async
     )
     await async_client.post(f"{API}/periods/{period_id}/computation", headers=headers)
-    summary = (
-        await async_client.get(
-            f"{API}/periods/{period_id}/pay-summary", headers=headers
-        )
-    ).json()
+    summary = await _summary(async_client, headers, period_id)
     row = summary["employees"][0]
     by_code = {d["code"]: d for d in row["deductions"]}
     assert row["gross_minor"] == 240_000  # 520,000 x 12/26
     assert by_code["NIS"]["employee_minor"] == 15_000
     assert by_code["NIS"]["employer_minor"] == 17_400
     assert by_code["PAYE"]["employee_minor"] == 11_815
-    assert by_code["PAYE"]["rule_state"] == "OWNER_CONFIRMED"
     assert "PENSION" not in by_code  # no authorisation recorded yet
     assert row["net_minor"] == 240_000 - 15_000 - 11_815
-    assert summary["provisional_figures"] is True
     assert summary["label"] == "Provisional figures"
-    assert summary["blocking_tables"] == ["NIS"]
+    assert summary["blocking_tables"] == ["NIS", "PAYE"]  # PAYE is provisional too
 
-    # Record the employee's pension authorisation, recompute: 5% of basic each.
-    await async_client.post(
+    # The signed form is recorded, but nothing is taken until the employee confirms.
+    created = await async_client.post(
         f"{API}/employee-deductions",
         headers=headers,
         json={
@@ -199,18 +221,49 @@ async def test_fortnightly_deductions_net_and_provisional_figures(
             "authorisation_reference": "Signed pension form, synthetic",
         },
     )
+    assert created.status_code == 201, created.text
     await async_client.post(f"{API}/periods/{period_id}/computation", headers=headers)
-    summary = (
-        await async_client.get(
-            f"{API}/periods/{period_id}/pay-summary", headers=headers
-        )
-    ).json()
+    codes = {
+        d["code"]
+        for d in (await _summary(async_client, headers, period_id))["employees"][0][
+            "deductions"
+        ]
+    }
+    assert "PENSION" not in codes
+    own = await _self_service(db_async, employee)
+    confirmed = await async_client.post(
+        f"{API}/me/deductions/{created.json()['id']}/confirmation", headers=own
+    )
+    assert confirmed.status_code == 200, confirmed.text
+    await async_client.post(f"{API}/periods/{period_id}/computation", headers=headers)
     pension = next(
-        d for d in summary["employees"][0]["deductions"] if d["code"] == "PENSION"
+        d
+        for d in (await _summary(async_client, headers, period_id))["employees"][0][
+            "deductions"
+        ]
+        if d["code"] == "PENSION"
     )
     assert (pension["employee_minor"], pension["employer_minor"]) == (12_000, 12_000)
 
-    # HARD RULE: approved quantities, but NIS is provisional, so no issue.
+    # A separate person confirms the tables; the snapshot needs a recompute.
+    confirmer = await headers_for(
+        db_async, await make_user(db_async, superuser=True), mfa=True
+    )
+    tables = (
+        await async_client.get(
+            f"{API}/statutory-tables?organisation_id=gaa", headers=headers
+        )
+    ).json()
+    await _confirm(async_client, confirmer, "social-insurance", nis_id)
+    await _confirm(async_client, confirmer, "tax", tables["tax_tables"][0]["id"])
+    assert (await _summary(async_client, headers, period_id))[
+        "provisional_figures"
+    ] is True
+    await async_client.post(f"{API}/periods/{period_id}/computation", headers=headers)
+    assert (await _summary(async_client, headers, period_id))[
+        "provisional_figures"
+    ] is False
+
     submitted = await async_client.post(
         f"{API}/periods/{period_id}/submission", headers=headers
     )
@@ -222,33 +275,127 @@ async def test_fortnightly_deductions_net_and_provisional_figures(
         f"{API}/periods/{period_id}/approval", headers=approver, json={}
     )
     assert approved.status_code == 200, approved.text
-    preparer_issue = await async_client.post(
-        f"{API}/periods/{period_id}/issue-approval", headers=headers
+    for who in (headers, approver, confirmer):  # preparer, approver, confirmer
+        refused = await async_client.post(
+            f"{API}/periods/{period_id}/issue-approval", headers=who
+        )
+        assert refused.status_code == 403, refused.text
+    issuer = await headers_for(
+        db_async, await make_user(db_async, superuser=True), mfa=True
     )
-    assert preparer_issue.status_code == 403
-    blocked = await async_client.post(
-        f"{API}/periods/{period_id}/issue-approval", headers=approver
-    )
-    assert blocked.status_code == 409
-    assert "Provisional figures" in blocked.json()["detail"]
-
-    confirmed = await async_client.put(
-        f"{API}/statutory-tables/social-insurance/{nis_id}/state",
-        headers=headers,
-        json={"rule_state": "CONFIRMED", "note": "Checked against the NIS schedule"},
-    )
-    assert confirmed.status_code == 200, confirmed.text
     issued = await async_client.post(
-        f"{API}/periods/{period_id}/issue-approval", headers=approver
+        f"{API}/periods/{period_id}/issue-approval", headers=issuer
     )
     assert issued.status_code == 200, issued.text
-    summary = (
+    # Reopening a table later does not rewrite the computed period.
+    await _confirm(async_client, confirmer, "social-insurance", nis_id)
+    reopened = await async_client.put(
+        f"{API}/statutory-tables/social-insurance/{nis_id}/state",
+        headers=confirmer,
+        json={"rule_state": "PROVISIONAL", "note": "Reopened for review"},
+    )
+    assert reopened.status_code == 200
+    assert (await _summary(async_client, headers, period_id))[
+        "provisional_figures"
+    ] is False
+
+
+@pytest.mark.usefixtures("totp_keys")
+async def test_one_person_cannot_create_confirm_and_issue(
+    async_client: httpx.AsyncClient, db_async: AsyncSession
+) -> None:
+    ops, _, _ = await departments(db_async)
+    actor = await headers_for(
+        db_async, await make_user(db_async, superuser=True), mfa=True
+    )
+    created = await async_client.post(
+        f"{API}/tax-tables",
+        headers=actor,
+        json={
+            "organisation_id": "gaa",
+            "code": "TEST_TAX",
+            "name": "Test tax",
+            "annual_allowance_minor": 0,
+            "effective_from": "2030-01-01",
+            "rule_state": "CONFIRMED",
+            "bands": [{"rate": "0.1"}],
+        },
+    )
+    assert created.status_code == 201, created.text
+    assert created.json()["rule_state"] == "PROVISIONAL"  # never client-settable
+    own = await async_client.put(
+        f"{API}/statutory-tables/tax/{created.json()['id']}/state",
+        headers=actor,
+        json={"rule_state": "CONFIRMED", "note": "Self-confirmed"},
+    )
+    assert own.status_code == 403
+    holder = await payroll_user(
+        db_async, "hr.payroll.rates.manage", department_id=ops.id
+    )
+    no_key = await async_client.put(
+        f"{API}/statutory-tables/tax/{created.json()['id']}/state",
+        headers=await headers_for(db_async, holder, mfa=True),
+        json={"rule_state": "CONFIRMED", "note": "Not allowed"},
+    )
+    assert no_key.status_code == 403
+    overlap = await async_client.post(
+        f"{API}/social-insurance-schemes",
+        headers=actor,
+        json={
+            "organisation_id": "gaa",
+            "code": "NIS",
+            "name": "Overlapping NIS",
+            "employee_rate": "0.05",
+            "employer_rate": "0.05",
+            "monthly_ceiling_minor": 1,
+            "weekly_ceiling_minor": 1,
+            "effective_from": "2026-06-01",
+        },
+    )
+    assert overlap.status_code == 409
+
+
+@pytest.mark.usefixtures("totp_keys")
+async def test_net_pay_never_goes_below_zero(
+    async_client: httpx.AsyncClient, db_async: AsyncSession
+) -> None:
+    headers, period_id, _, employee, _ = await _fortnight_with_pay(
+        async_client, db_async
+    )
+    tables = (
         await async_client.get(
-            f"{API}/periods/{period_id}/pay-summary", headers=headers
+            f"{API}/statutory-tables?organisation_id=gaa", headers=headers
         )
     ).json()
-    assert summary["provisional_figures"] is False
-    assert summary["issue_approved_at"] is not None
+    dues = next(t for t in tables["deduction_types"] if t["code"] == "UNION_DUES")
+    created = await async_client.post(
+        f"{API}/employee-deductions",
+        headers=headers,
+        json={
+            "organisation_id": "gaa",
+            "user_id": str(employee.id),
+            "deduction_type_id": dues["id"],
+            "employee_amount_minor": 999_999,
+            "effective_from": "2026-09-01",
+            "authorisation_reference": "Signed dues form, synthetic",
+        },
+    )
+    assert created.status_code == 201, created.text
+    own = await _self_service(db_async, employee)
+    await async_client.post(
+        f"{API}/me/deductions/{created.json()['id']}/confirmation", headers=own
+    )
+    mine = (await async_client.get(f"{API}/me/deductions", headers=own)).json()["data"]
+    assert mine and all("amount" not in key for key in mine[0])
+    await async_client.post(f"{API}/periods/{period_id}/computation", headers=headers)
+    row = (await _summary(async_client, headers, period_id))["employees"][0]
+    assert row["net_minor"] == 0
+    assert row["shortfall_minor"] > 0
+    stranger = await _self_service(db_async, await make_user(db_async))
+    other = await async_client.post(
+        f"{API}/me/deductions/{created.json()['id']}/confirmation", headers=stranger
+    )
+    assert other.status_code == 404
 
 
 @pytest.mark.usefixtures("totp_keys")

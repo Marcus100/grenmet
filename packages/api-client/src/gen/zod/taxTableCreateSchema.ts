@@ -4,7 +4,6 @@
  */
 
 import * as z from "zod";
-import { tableStateSchema } from "./tableStateSchema.js";
 import { taxBandCreateSchema } from "./taxBandCreateSchema.js";
 import { taxMethodSchema } from "./taxMethodSchema.js";
 
@@ -17,12 +16,6 @@ export const taxTableCreateSchema = z.object({
   deduct_social_insurance: z.boolean().optional().default(false),
   effective_from: z.iso.date(),
   effective_to: z.union([z.iso.date(), z.null()]).optional(),
-  rule_state: tableStateSchema
-    .optional()
-    .default("PROVISIONAL")
-    .describe(
-      "PROVISIONAL tables can be previewed but never approved for issue."
-    ),
   source_note: z.union([z.string().max(500), z.null()]).optional(),
   bands: z.array(taxBandCreateSchema).min(1).max(20),
 });

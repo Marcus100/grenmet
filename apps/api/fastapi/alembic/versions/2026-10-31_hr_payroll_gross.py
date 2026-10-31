@@ -185,6 +185,18 @@ def upgrade() -> None:
 
 
 def downgrade() -> None:
+    bind = op.get_bind()
+    for table, where in (
+        ("employee_basic_pay", None),
+        ("pay_line", "amount_minor IS NOT NULL"),
+    ):
+        query = sa.select(sa.literal(1)).select_from(sa.table(table, schema="hr"))
+        if where:
+            query = query.where(sa.column("amount_minor").is_not(None))
+        if bind.execute(query.limit(1)).first():
+            raise RuntimeError(
+                f"hr.{table} holds pay data; remove it before downgrading"
+            )
     op.drop_constraint("pay_line_basic_pay_id_fkey", "pay_line", schema="hr")
     op.drop_constraint("pay_line_pay_item_rate_id_fkey", "pay_line", schema="hr")
     for name in (

@@ -62,6 +62,11 @@ tax, NIS or bank field exists in any request, response or export.
   scope; approve and export also need an MFA-verified session (403 otherwise). A
   period outside the caller's payroll access is 404. Generic workflow action and
   instance-create routes refuse `pay_period` entities.
+- Separation of duty: whoever submitted a period or added any line to it cannot
+  approve or return it, and nobody adds pay lines for themselves or edits their
+  own pay profile (403). Payroll responses send `Cache-Control: no-store`.
+  Payroll change history (`/audit/pay_period/...`, `/audit/payroll_settings/...`)
+  needs organisation-wide prepare or approve; department scope never reads it.
 - `WorkflowType` gains `PAYROLL_RUN` (additive; clients should render unknown
   types generically).
 - Overtime band items (`method: OVERTIME_BAND`) compute nothing until the roster
@@ -82,6 +87,9 @@ tax, NIS or bank field exists in any request, response or export.
   fortnightly needs `calendar_override_reason` (409 otherwise).
 - Unpriced lines (no rate, or no basic pay on file) have `amount_minor: null`,
   never 0.
+- New rates are always `PROVISIONAL` (`rule_state` is not accepted on create).
+  Basic-pay and rate history (`/audit/payroll_money/{organisation_id}`) needs
+  organisation-wide `hr.payroll.read.amounts` and records no money values.
 
 ### Payroll deductions (slice 3)
 
@@ -92,12 +100,25 @@ tax, NIS or bank field exists in any request, response or export.
   `PUT statutory-tables/{kind}/{table_id}/state`, need organisation-wide
   `hr.payroll.rates.manage` and an MFA-verified session. Tables cannot be edited,
   only confirmed (`PROVISIONAL`, `OWNER_CONFIRMED`, `CONFIRMED`).
+- Tables are always created `PROVISIONAL` (`rule_state` is not accepted on create);
+  overlapping dates for the same organisation and code are refused (409).
+  Confirming needs organisation-wide `hr.payroll.tables.confirm` (granted to no
+  role) and MFA, never by the table's creator; `confirmed_by_user_id`,
+  `confirmed_at` and `confirmation_note` record it and the source note is kept.
+  The rule state is snapshotted onto deduction lines when a period computes.
+- A deduction that needs authorisation is taken only after HR records the signed
+  document reference and the employee confirms it at
+  `POST me/deductions/{deduction_id}/confirmation` (`hr.payroll.read.self`);
+  `GET me/deductions` lists them.
 - `GET periods/{period_id}/pay-summary` (organisation-wide `hr.payroll.read.amounts`)
   previews gross, deductions, employer contributions and net per employee, with
   `provisional_figures`, `label: "Provisional figures"` and `blocking_tables`.
-- `POST periods/{period_id}/issue-approval` (organisation-wide `hr.payroll.approve`,
-  MFA, never the preparer) is refused with 409 while an income tax or social
-  insurance table used is PROVISIONAL or any line is unpriced.
+- `POST periods/{period_id}/issue-approval` needs organisation-wide
+  `hr.payroll.approve` and `hr.payroll.read.amounts` and MFA. It is refused (403)
+  to the period's preparer or approver, a creator or confirmer of a table it used,
+  and anyone who set a rate, basic pay or deduction in force in the period; and
+  (409) while a table used was PROVISIONAL when computed, a line is unpriced, or
+  net pay would go below zero (`shortfall_minor`).
 
 ### Payroll payslips and files (slice 4)
 
@@ -108,6 +129,9 @@ tax, NIS or bank field exists in any request, response or export.
   `GET periods/{period_id}/payslips` (organisation-wide `hr.payroll.read.amounts`),
   `GET payslips/{payslip_id}/pdf` (own with `read.self`, or `read.amounts`;
   WeasyPrint from the snapshot after the hash check; `X-Payslip-SHA256` header).
+- Every payslip route needs a session verified with two-step verification; the
+  PDF route is rate limited (20 a minute). Payslip change history records the id,
+  period and hash only, never the snapshot or net pay.
 - `POST periods/{period_id}/bank-transfer.csv` and `gl-journal.csv` need
   organisation-wide `hr.payroll.export`, MFA and an issue-approved period; both are
   audited. Bank account numbers are not stored: that column reads `NOT STORED`.
@@ -828,8 +852,9 @@ order; `follow_policy` refunds when the event starts at least `EVENTS_REFUND_CUT
 orders are refunded in full, unpaid holds released) cancels an event. The legacy
 `POST /events/manage/{id}/cancel` takes the same optional `refund` but defaults to `none`, and
 saving a listing as cancelled never moves money. Event cancel reports `orders_refunded`
-(manual rail, settled inline), `orders_queued` (provider rail), `orders_kept`, `orders_released`
-and `refunds_failed`.
+(manual rail, settled inline), `orders_queued` (provider rail), `orders_kept`, `orders_released`,
+`refunds_failed` and `orders_pending` (an earlier refund of the order is still waiting for the
+payment provider: not failed, not queued again).
 
 Provider-rail (card) refunds are never sent inside a request (one may wait per order; a second is 409, and the buyer email is shown to org admins/owners only): they are queued on the outbox topic
 `events.order_refund_requested` and sent with retries; the refund id is derived from the order and
@@ -880,7 +905,8 @@ Shared APIs for every Barrels app. Zones follow ADR-0025.
   optional UTC `expires_at`), `POST /grants/{grant_id}/revoke`, and admin-only
   `GET /members/{membership_id}/issued-grants`. Entry needs some entitled product's
   `team.manage` key (owner and admin implicitly); the grant rules (hold the bundle,
-  no self-grant 403, expiry cap 422, duplicate or lost race 409) live in
+  no self-grant and no revoking one's own grant, both 403; expiry cap 422; duplicate
+  or lost race 409) live in
   `grants.py`. Responses carry display names, never emails. Removing a member also
   revokes live grants they issued (audited with a count); a demotion only lists them.
   `issued-grants` lists direct grants only: revocation is not transitive. Member grant

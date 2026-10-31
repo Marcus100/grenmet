@@ -66,6 +66,14 @@ class Outbox(Base):
         sa.UniqueConstraint("topic", "dedupe_key", name="outbox_topic_dedupe_key_key"),
         sa.CheckConstraint("status IN ('pending', 'done', 'dead')", name="status"),
         sa.Index("outbox_due_idx", "status", "next_attempt_at"),
+        # Pending rows by the order they are about (``pending_for_order``), e.g.
+        # the Events check for a refund already waiting on an order.
+        sa.Index(
+            "outbox_pending_order_idx",
+            "topic",
+            sa.text("(payload ->> 'order_id')"),
+            postgresql_where=sa.text("status = 'pending'"),
+        ),
         {"schema": "platform"},
     )
 
@@ -163,6 +171,19 @@ async def enqueue(
         .on_conflict_do_nothing(index_elements=["topic", "dedupe_key"])
     )
     return bool(getattr(result, "rowcount", 0))
+
+
+def pending_for_order(topic: str, order_id: str) -> sa.ColumnElement[bool]:
+    """Pending rows of ``topic`` whose payload names ``order_id``.
+
+    The status and the payload key are written as SQL constants, not bound
+    parameters, so the planner matches ``outbox_pending_order_idx`` (its
+    expression and partial predicate) even under a generic prepared plan."""
+    return sa.and_(
+        Outbox.topic == topic,
+        Outbox.status == sa.literal_column(f"'{OutboxStatus.PENDING.value}'"),
+        Outbox.payload.op("->>")(sa.literal_column("'order_id'")) == order_id,
+    )
 
 
 async def drain(

@@ -4,7 +4,6 @@
  */
 
 import type { DeductionKind } from "./DeductionKind.js";
-import type { TableState } from "./TableState.js";
 
 export type DeductionTypeCreate = {
   /**
@@ -49,11 +48,5 @@ export type DeductionTypeCreate = {
    */
   effective_from: string;
   effective_to?: string | null;
-  /**
-   * @description PROVISIONAL tables can be previewed but never approved for issue.
-   * @default 'PROVISIONAL'
-   * @type string | undefined
-   */
-  rule_state?: TableState;
   source_note?: string | null;
 };

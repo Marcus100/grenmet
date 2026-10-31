@@ -9,6 +9,15 @@ import type { TaxMethod } from "./TaxMethod.js";
 
 export type TaxTablePublic = {
   /**
+   * @description PROVISIONAL tables can be previewed but never approved for issue.
+   * @type string
+   */
+  rule_state: TableState;
+  created_by_user_id: string | null;
+  confirmed_by_user_id: string | null;
+  confirmed_at: string | null;
+  confirmation_note: string | null;
+  /**
    * @description
    * Format: `uuid`
    * @type string
@@ -27,11 +36,6 @@ export type TaxTablePublic = {
    */
   effective_from: string;
   effective_to: string | null;
-  /**
-   * @description PROVISIONAL tables can be previewed but never approved for issue.
-   * @type string
-   */
-  rule_state: TableState;
   source_note: string | null;
   /**
    * @default []

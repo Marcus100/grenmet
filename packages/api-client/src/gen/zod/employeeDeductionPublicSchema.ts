@@ -15,4 +15,5 @@ export const employeeDeductionPublicSchema = z.object({
   effective_to: z.union([z.iso.date(), z.null()]),
   authorised_at: z.union([z.iso.datetime(), z.null()]),
   authorisation_reference: z.union([z.string(), z.null()]),
+  employee_confirmed_at: z.union([z.iso.datetime(), z.null()]),
 });

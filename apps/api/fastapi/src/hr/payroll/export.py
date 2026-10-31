@@ -7,6 +7,7 @@ provisional. A generic layout until GAA supplies an HrPlus import sample.
 
 import csv
 import io
+import re
 import uuid
 from collections.abc import Mapping, Sequence
 from datetime import date
@@ -79,8 +80,14 @@ def render(
     return buffer.getvalue()
 
 
+def safe_filename(name: str) -> str:
+    """Only letters, digits, dot, dash and underscore reach Content-Disposition."""
+    cleaned = re.sub(r"[^A-Za-z0-9._-]", "-", name).strip(".-") or "download"
+    return cleaned[:120]
+
+
 def filename(period: PayPeriod) -> str:
-    return (
+    return safe_filename(
         f"pay-inputs-{period.organisation_id}-"
         f"{period.start_date.isoformat()}-{period.end_date.isoformat()}.csv"
     )

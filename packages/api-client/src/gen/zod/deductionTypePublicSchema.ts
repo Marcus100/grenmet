@@ -8,6 +8,13 @@ import { deductionKindSchema } from "./deductionKindSchema.js";
 import { tableStateSchema } from "./tableStateSchema.js";
 
 export const deductionTypePublicSchema = z.object({
+  rule_state: tableStateSchema.describe(
+    "PROVISIONAL tables can be previewed but never approved for issue."
+  ),
+  created_by_user_id: z.union([z.uuid(), z.null()]),
+  confirmed_by_user_id: z.union([z.uuid(), z.null()]),
+  confirmed_at: z.union([z.iso.datetime(), z.null()]),
+  confirmation_note: z.union([z.string(), z.null()]),
   organisation_id: z.string().min(1).max(100),
   code: z.string().min(1).max(40),
   name: z.string().min(1).max(120),
@@ -28,12 +35,6 @@ export const deductionTypePublicSchema = z.object({
   is_active: z.boolean().optional().default(true),
   effective_from: z.iso.date(),
   effective_to: z.union([z.iso.date(), z.null()]).optional(),
-  rule_state: tableStateSchema
-    .optional()
-    .default("PROVISIONAL")
-    .describe(
-      "PROVISIONAL tables can be previewed but never approved for issue."
-    ),
   source_note: z.union([z.string().max(500), z.null()]).optional(),
   id: z.uuid(),
 });

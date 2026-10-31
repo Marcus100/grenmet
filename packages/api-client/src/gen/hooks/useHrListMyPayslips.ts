@@ -58,7 +58,7 @@ export function hrListMyPayslipsQueryOptions(
 }
 
 /**
- * @description The caller's own issued payslips. Needs hr.payroll.read.self.
+ * @description The caller's own issued payslips. Needs hr.payroll.read.self and a session verified with two-step verification.
  * @summary List my payslips
  * {@link /api/v1/hr/payroll/me/payslips}
  */

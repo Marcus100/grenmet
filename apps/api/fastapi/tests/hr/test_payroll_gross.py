@@ -392,3 +392,58 @@ def test_fortnightly_basic_is_twelve_twenty_sixths_of_a_month() -> None:
         started, date(2026, 9, 13), date(2026, 9, 26), "FORTNIGHTLY"
     )
     assert pricing.basic_salary_minor(started, half) == 120_000  # 7 of 14 days
+
+
+@pytest.mark.usefixtures("totp_keys")
+async def test_money_history_needs_organisation_wide_amounts_and_holds_no_money(
+    async_client: httpx.AsyncClient, db_async: AsyncSession
+) -> None:
+    ops, _, _ = await departments(db_async)
+    employee = await employee_in(db_async, ops)
+    admin_user = await make_user(db_async, superuser=True)
+    admin = await headers_for(db_async, admin_user, mfa=True)
+    created = await _basic(
+        async_client, admin, employee.id, basis="HOURLY", amount_minor=2468
+    )
+    assert created.status_code == 201, created.text
+    own = await _basic(
+        async_client, admin, admin_user.id, basis="HOURLY", amount_minor=1
+    )
+    assert own.status_code == 403  # superusers do not set their own pay either
+    items = (await async_client.get(f"{API}/items", headers=admin)).json()["data"]
+    rate = await async_client.post(
+        f"{API}/rates",
+        headers=admin,
+        json={
+            "pay_item_id": items[0]["id"],
+            "rate_kind": "HOURLY_MULTIPLIER",
+            "multiplier": "1.25",
+            "effective_from": "2030-01-01",
+            "rule_state": "CONFIRMED",
+        },
+    )
+    assert rate.status_code == 201, rate.text
+    assert rate.json()["rule_state"] == "PROVISIONAL"
+
+    scoped = await payroll_user(
+        db_async,
+        "hr.payroll.read.department",
+        "hr.payroll.read.amounts",
+        "audit.view_sensitive",
+        department_id=ops.id,
+        scope=RoleAssignmentScope.DEPARTMENT,
+        scoped_department=ops.id,
+    )
+    refused = await async_client.get(
+        "/api/v1/audit/payroll_money/gaa", headers=await headers_for(db_async, scoped)
+    )
+    assert refused.status_code == 403
+    reader = await payroll_user(
+        db_async, "hr.payroll.read.amounts", department_id=ops.id
+    )
+    history = await async_client.get(
+        "/api/v1/audit/payroll_money/gaa", headers=await headers_for(db_async, reader)
+    )
+    assert history.status_code == 200, history.text
+    assert "2468" not in history.text
+    assert "amount_minor" not in history.text

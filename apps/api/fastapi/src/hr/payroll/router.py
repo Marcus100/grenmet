@@ -3,13 +3,15 @@
 import uuid
 from typing import Annotated, Any
 
-from fastapi import APIRouter, Path, Query, Response, status
+from fastapi import APIRouter, Depends, Path, Query, Request, Response, status
 from fastapi.concurrency import run_in_threadpool
 
 from src.dependencies import CurrentUser, SessionDep, TokenDep
 from src.models import ApiError
+from src.rate_limit import limiter
 
 from . import deductions, gross, overtime, payslips, service
+from .export import safe_filename
 from .models import PayItem, PayPeriod
 from .schemas import (
     DeductionTypeCreate,
@@ -23,6 +25,7 @@ from .schemas import (
     EmployeePayProfilePublic,
     EmployeePayProfilesPublic,
     EmployeePayProfileUpdate,
+    MyDeductionsPublic,
     PayCalendarCreate,
     PayCalendarPublic,
     PayCalendarsPublic,
@@ -58,14 +61,22 @@ from .schemas import (
     TaxTablePublic,
 )
 
-router = APIRouter(prefix="/hr/payroll", tags=["hr-payroll"])
+
+async def _no_store(response: Response) -> None:
+    """Payroll responses carry personal and pay data: never cache them."""
+    response.headers["Cache-Control"] = "no-store"
+
+
+router = APIRouter(
+    prefix="/hr/payroll", tags=["hr-payroll"], dependencies=[Depends(_no_store)]
+)
 
 ERRORS: dict[int | str, dict[str, Any]] = {
     400: {"model": ApiError, "description": "Invalid payroll input"},
     401: {"model": ApiError, "description": "Not signed in"},
     403: {
         "model": ApiError,
-        "description": "Missing payroll permission, organisation-wide scope or two-step verification",
+        "description": "Missing payroll permission, organisation-wide scope or two-step verification, or separation of duty (you prepared or added lines to the period, or it is your own pay)",
     },
     404: {
         "model": ApiError,
@@ -364,7 +375,7 @@ async def submit_period(
     response_model=PayPeriodDetail,
     status_code=status.HTTP_200_OK,
     summary="Approve a pay period",
-    description="Needs organisation-wide hr.payroll.approve, a session verified with two-step verification, and the approval stage. The final approval locks the period.",
+    description="Needs organisation-wide hr.payroll.approve, a session verified with two-step verification, and the approval stage; never someone who submitted the period or added lines to it. The final approval locks the period.",
     operation_id="hrApprovePayPeriod",
     responses=ERRORS,
 )
@@ -387,7 +398,7 @@ async def approve_period(
     response_model=PayPeriodDetail,
     status_code=status.HTTP_200_OK,
     summary="Return a pay period to the preparer",
-    description="Needs organisation-wide hr.payroll.approve and a reason. The period reopens for changes.",
+    description="Needs organisation-wide hr.payroll.approve and a reason; never someone who submitted the period or added lines to it. The period reopens for changes.",
     operation_id="hrReturnPayPeriod",
     responses=ERRORS,
 )
@@ -805,7 +816,7 @@ async def create_deduction_type(
     response_model=TableStatePublic,
     status_code=status.HTTP_200_OK,
     summary="Confirm or reopen a table",
-    description="Sets PROVISIONAL, OWNER_CONFIRMED or CONFIRMED with a note, recorded in the change history. Needs organisation-wide hr.payroll.rates.manage and two-step verification.",
+    description="Sets PROVISIONAL, OWNER_CONFIRMED or CONFIRMED with a note, recorded in the change history. Needs organisation-wide hr.payroll.tables.confirm and two-step verification; never the table's creator.",
     operation_id="hrSetStatutoryTableState",
     responses=ERRORS,
 )
@@ -875,6 +886,44 @@ async def create_employee_deduction(
     return EmployeeDeductionPublic.model_validate(row, from_attributes=True)
 
 
+@router.get(
+    "/me/deductions",
+    response_model=MyDeductionsPublic,
+    status_code=status.HTTP_200_OK,
+    summary="List my deductions",
+    description="Deductions set up for the caller, and whether they have confirmed each. Needs hr.payroll.read.self.",
+    operation_id="hrListMyDeductions",
+    responses=ERRORS,
+)
+async def list_my_deductions(
+    *, session: SessionDep, current_user: CurrentUser
+) -> MyDeductionsPublic:
+    return MyDeductionsPublic.model_validate(
+        {"data": await deductions.my_deductions(session, current_user)}
+    )
+
+
+@router.post(
+    "/me/deductions/{deduction_id}/confirmation",
+    response_model=MyDeductionsPublic,
+    status_code=status.HTTP_200_OK,
+    summary="Confirm a deduction set up for me",
+    description="The employee confirms a deduction whose signed authorisation HR has recorded; it is not deducted before this. Needs hr.payroll.read.self.",
+    operation_id="hrConfirmMyDeduction",
+    responses=ERRORS,
+)
+async def confirm_my_deduction(
+    *, session: SessionDep, current_user: CurrentUser, deduction_id: uuid.UUID
+) -> MyDeductionsPublic:
+    return MyDeductionsPublic.model_validate(
+        {
+            "data": await deductions.confirm_my_deduction(
+                session, current_user, deduction_id
+            )
+        }
+    )
+
+
 # ── Slice 4: payslips, bank and GL files ────────────────────────────────────
 
 
@@ -899,14 +948,14 @@ def _payslip(row: Any) -> PayslipPublic:
     response_model=PayslipsPublic,
     status_code=status.HTTP_200_OK,
     summary="List my payslips",
-    description="The caller's own issued payslips. Needs hr.payroll.read.self.",
+    description="The caller's own issued payslips. Needs hr.payroll.read.self and a session verified with two-step verification.",
     operation_id="hrListMyPayslips",
     responses=ERRORS,
 )
 async def list_my_payslips(
-    *, session: SessionDep, current_user: CurrentUser
+    *, session: SessionDep, current_user: CurrentUser, token: TokenDep
 ) -> PayslipsPublic:
-    rows = await payslips.my_payslips(session, current_user)
+    rows = await payslips.my_payslips(session, current_user, token=token)
     return PayslipsPublic(data=[_payslip(r) for r in rows])
 
 
@@ -915,14 +964,18 @@ async def list_my_payslips(
     response_model=PayslipsPublic,
     status_code=status.HTTP_200_OK,
     summary="List a period's payslips",
-    description="Needs organisation-wide hr.payroll.read.amounts.",
+    description="Needs organisation-wide hr.payroll.read.amounts and a session verified with two-step verification.",
     operation_id="hrListPeriodPayslips",
     responses=ERRORS,
 )
 async def list_period_payslips(
-    *, session: SessionDep, current_user: CurrentUser, period_id: uuid.UUID
+    *,
+    session: SessionDep,
+    current_user: CurrentUser,
+    token: TokenDep,
+    period_id: uuid.UUID,
 ) -> PayslipsPublic:
-    rows = await payslips.period_payslips(session, current_user, period_id)
+    rows = await payslips.period_payslips(session, current_user, period_id, token=token)
     return PayslipsPublic(data=[_payslip(r) for r in rows])
 
 
@@ -931,7 +984,7 @@ async def list_period_payslips(
     response_class=Response,
     status_code=status.HTTP_200_OK,
     summary="Download a payslip PDF",
-    description="Rendered by WeasyPrint from the frozen snapshot after its SHA-256 is checked. Own payslip with hr.payroll.read.self, or organisation-wide hr.payroll.read.amounts.",
+    description="Rendered by WeasyPrint from the frozen snapshot after its SHA-256 is checked. Own payslip with hr.payroll.read.self, or organisation-wide hr.payroll.read.amounts; both need two-step verification. Rate limited.",
     operation_id="hrGetPayslipPdf",
     responses={
         **ERRORS,
@@ -943,17 +996,27 @@ async def list_period_payslips(
         },
     },
 )
+@limiter.limit("20/minute")
 async def download_payslip_pdf(
-    *, session: SessionDep, current_user: CurrentUser, payslip_id: uuid.UUID
+    *,
+    request: Request,
+    session: SessionDep,
+    current_user: CurrentUser,
+    token: TokenDep,
+    payslip_id: uuid.UUID,
 ) -> Response:
-    slip = await payslips.readable_payslip(session, current_user, payslip_id)
+    del request  # the rate limiter keys on it
+    slip = await payslips.readable_payslip(
+        session, current_user, payslip_id, token=token
+    )
     payslips.verify(slip)
     document = await run_in_threadpool(payslips.render_pdf, slip.snapshot, slip.sha256)
     return Response(
         content=document,
         media_type="application/pdf",
         headers={
-            "Content-Disposition": f'attachment; filename="payslip-{slip.snapshot["period_start"]}.pdf"',
+            "Content-Disposition": "attachment; filename="
+            + f'"{safe_filename(f"payslip-{slip.snapshot['period_start']}.pdf")}"',
             "Cache-Control": "no-store",
             "X-Payslip-SHA256": slip.sha256,
         },

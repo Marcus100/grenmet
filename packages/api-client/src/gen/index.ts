@@ -308,6 +308,7 @@ export { hrClock } from "./clients/hrClock.js";
 export { hrClosePayPeriod } from "./clients/hrClosePayPeriod.js";
 export { hrClosePeriod } from "./clients/hrClosePeriod.js";
 export { hrComputePayPeriod } from "./clients/hrComputePayPeriod.js";
+export { hrConfirmMyDeduction } from "./clients/hrConfirmMyDeduction.js";
 export { hrCreateAbsenteeReport } from "./clients/hrCreateAbsenteeReport.js";
 export { hrCreateCalendarEvent } from "./clients/hrCreateCalendarEvent.js";
 export { hrCreateClockSite } from "./clients/hrCreateClockSite.js";
@@ -407,6 +408,7 @@ export { hrListEmployeeBasicPay } from "./clients/hrListEmployeeBasicPay.js";
 export { hrListEmployeeDeductions } from "./clients/hrListEmployeeDeductions.js";
 export { hrListEmployeePayProfiles } from "./clients/hrListEmployeePayProfiles.js";
 export { hrListHolidays } from "./clients/hrListHolidays.js";
+export { hrListMyDeductions } from "./clients/hrListMyDeductions.js";
 export { hrListMyPayslips } from "./clients/hrListMyPayslips.js";
 export { hrListMyShiftSwaps } from "./clients/hrListMyShiftSwaps.js";
 export { hrListPayCalendars } from "./clients/hrListPayCalendars.js";
@@ -2259,6 +2261,11 @@ export {
   useHrComputePayPeriod,
 } from "./hooks/useHrComputePayPeriod.js";
 export {
+  hrConfirmMyDeductionMutationKey,
+  hrConfirmMyDeductionMutationOptions,
+  useHrConfirmMyDeduction,
+} from "./hooks/useHrConfirmMyDeduction.js";
+export {
   hrCreateAbsenteeReportMutationKey,
   hrCreateAbsenteeReportMutationOptions,
   useHrCreateAbsenteeReport,
@@ -2753,6 +2760,11 @@ export {
   hrListHolidaysQueryOptions,
   useHrListHolidays,
 } from "./hooks/useHrListHolidays.js";
+export {
+  hrListMyDeductionsQueryKey,
+  hrListMyDeductionsQueryOptions,
+  useHrListMyDeductions,
+} from "./hooks/useHrListMyDeductions.js";
 export {
   hrListMyPayslipsQueryKey,
   hrListMyPayslipsQueryOptions,
@@ -8281,6 +8293,19 @@ export type {
   HrComputePayPeriodStatus422,
 } from "./models/HrComputePayPeriod.js";
 export type {
+  HrConfirmMyDeductionOptions,
+  HrConfirmMyDeductionPath,
+  HrConfirmMyDeductionResponse,
+  HrConfirmMyDeductionResponses,
+  HrConfirmMyDeductionStatus200,
+  HrConfirmMyDeductionStatus400,
+  HrConfirmMyDeductionStatus401,
+  HrConfirmMyDeductionStatus403,
+  HrConfirmMyDeductionStatus404,
+  HrConfirmMyDeductionStatus409,
+  HrConfirmMyDeductionStatus422,
+} from "./models/HrConfirmMyDeduction.js";
+export type {
   HrCreateAbsenteeReportBody,
   HrCreateAbsenteeReportOptions,
   HrCreateAbsenteeReportResponse,
@@ -9353,6 +9378,18 @@ export type {
   HrListHolidaysStatus403,
   HrListHolidaysStatus422,
 } from "./models/HrListHolidays.js";
+export type {
+  HrListMyDeductionsOptions,
+  HrListMyDeductionsResponse,
+  HrListMyDeductionsResponses,
+  HrListMyDeductionsStatus200,
+  HrListMyDeductionsStatus400,
+  HrListMyDeductionsStatus401,
+  HrListMyDeductionsStatus403,
+  HrListMyDeductionsStatus404,
+  HrListMyDeductionsStatus409,
+  HrListMyDeductionsStatus422,
+} from "./models/HrListMyDeductions.js";
 export type {
   HrListMyPayslipsOptions,
   HrListMyPayslipsResponse,
@@ -10662,6 +10699,8 @@ export type {
 } from "./models/ModelsListOrganisations.js";
 export type { MovementKind } from "./models/MovementKind.js";
 export { movementKind } from "./models/MovementKind.js";
+export type { MyDeductionPublic } from "./models/MyDeductionPublic.js";
+export type { MyDeductionsPublic } from "./models/MyDeductionsPublic.js";
 export type { MyMembershipPublic } from "./models/MyMembershipPublic.js";
 export type { MyProfile } from "./models/MyProfile.js";
 export type { MyProfilePropertiesIntentsItemsEnum } from "./models/MyProfilePropertiesIntentsItemsEnum.js";
@@ -17780,6 +17819,19 @@ export {
   hrComputePayPeriodStatus422Schema,
 } from "./zod/hrComputePayPeriodSchema.js";
 export {
+  hrConfirmMyDeductionErrorSchema,
+  hrConfirmMyDeductionPathDeductionIdSchema,
+  hrConfirmMyDeductionPathSchema,
+  hrConfirmMyDeductionResponseSchema,
+  hrConfirmMyDeductionStatus200Schema,
+  hrConfirmMyDeductionStatus400Schema,
+  hrConfirmMyDeductionStatus401Schema,
+  hrConfirmMyDeductionStatus403Schema,
+  hrConfirmMyDeductionStatus404Schema,
+  hrConfirmMyDeductionStatus409Schema,
+  hrConfirmMyDeductionStatus422Schema,
+} from "./zod/hrConfirmMyDeductionSchema.js";
+export {
   hrCreateAbsenteeReportBodySchema,
   hrCreateAbsenteeReportErrorSchema,
   hrCreateAbsenteeReportResponseSchema,
@@ -18857,6 +18909,17 @@ export {
   hrListHolidaysStatus403Schema,
   hrListHolidaysStatus422Schema,
 } from "./zod/hrListHolidaysSchema.js";
+export {
+  hrListMyDeductionsErrorSchema,
+  hrListMyDeductionsResponseSchema,
+  hrListMyDeductionsStatus200Schema,
+  hrListMyDeductionsStatus400Schema,
+  hrListMyDeductionsStatus401Schema,
+  hrListMyDeductionsStatus403Schema,
+  hrListMyDeductionsStatus404Schema,
+  hrListMyDeductionsStatus409Schema,
+  hrListMyDeductionsStatus422Schema,
+} from "./zod/hrListMyDeductionsSchema.js";
 export {
   hrListMyPayslipsErrorSchema,
   hrListMyPayslipsResponseSchema,
@@ -20128,6 +20191,8 @@ export {
   modelsListOrganisationsStatus422Schema,
 } from "./zod/modelsListOrganisationsSchema.js";
 export { movementKindSchema } from "./zod/movementKindSchema.js";
+export { myDeductionPublicSchema } from "./zod/myDeductionPublicSchema.js";
+export { myDeductionsPublicSchema } from "./zod/myDeductionsPublicSchema.js";
 export { myMembershipPublicSchema } from "./zod/myMembershipPublicSchema.js";
 export { myProfilePropertiesIntentsItemsEnumSchema } from "./zod/myProfilePropertiesIntentsItemsEnumSchema.js";
 export { myProfilePropertiesVisibilityEnumSchema } from "./zod/myProfilePropertiesVisibilityEnumSchema.js";

@@ -84,7 +84,7 @@ ul, ol { list-style: none; }
 .caption { font-size: 7.2pt; }
 .caption li { margin-bottom: 1.2mm; }
 .caption b { display: inline-block; width: 3.4mm; height: 3.4mm; border-radius: 50%; background: var(--gm-navy); color: var(--gm-text-inverse); font-size: 5.5pt; text-align: center; line-height: 3.4mm; margin-right: 1mm; }
-.caption .none { color: var(--gm-text-secondary); }
+.caption .none, .caption .info { color: var(--gm-text-secondary); }
 
 .risk-green { background: var(--gm-warning-green-bg); color: var(--gm-warning-green-fg); }
 .risk-yellow { background: var(--gm-warning-yellow-bg); color: var(--gm-warning-yellow-fg); }

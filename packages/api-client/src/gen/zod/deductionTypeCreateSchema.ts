@@ -5,7 +5,6 @@
 
 import * as z from "zod";
 import { deductionKindSchema } from "./deductionKindSchema.js";
-import { tableStateSchema } from "./tableStateSchema.js";
 
 export const deductionTypeCreateSchema = z.object({
   organisation_id: z.string().min(1).max(100),
@@ -34,11 +33,5 @@ export const deductionTypeCreateSchema = z.object({
   is_active: z.boolean().optional().default(true),
   effective_from: z.iso.date(),
   effective_to: z.union([z.iso.date(), z.null()]).optional(),
-  rule_state: tableStateSchema
-    .optional()
-    .default("PROVISIONAL")
-    .describe(
-      "PROVISIONAL tables can be previewed but never approved for issue."
-    ),
   source_note: z.union([z.string().max(500), z.null()]).optional(),
 });

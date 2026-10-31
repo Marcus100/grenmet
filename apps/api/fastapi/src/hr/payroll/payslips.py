@@ -46,7 +46,7 @@ from .models import (
 
 logger = logging.getLogger(__name__)
 
-READ_SELF = "hr.payroll.read.self"
+READ_SELF = access.READ_SELF
 BANK_ACCOUNT_PLACEHOLDER = "NOT STORED"
 BANK_COLUMNS = {
     "employee_number": "Employee number",
@@ -214,10 +214,13 @@ async def _people(
 # ── Reading payslips ───────────────────────────────────────────────────────────
 
 
-async def my_payslips(session: AsyncSession, actor: User) -> list[Payslip]:
+async def my_payslips(
+    session: AsyncSession, actor: User, *, token: str
+) -> list[Payslip]:
     from src.auth.policy import require_permission
 
     require_permission(current_user=actor, permission_key=READ_SELF)
+    await access.require_mfa(session, actor, token)
     return list(
         (
             await session.execute(
@@ -230,12 +233,13 @@ async def my_payslips(session: AsyncSession, actor: User) -> list[Payslip]:
 
 
 async def period_payslips(
-    session: AsyncSession, actor: User, period_id: uuid.UUID
+    session: AsyncSession, actor: User, period_id: uuid.UUID, *, token: str
 ) -> list[Payslip]:
     period, _ = await access.load_period(session, actor, period_id)
     await access.require_organisation_wide(
         session, actor, period.organisation_id, access.READ_AMOUNTS
     )
+    await access.require_mfa(session, actor, token)
     return list(
         (
             await session.execute(select(Payslip).where(Payslip.period_id == period.id))
@@ -244,11 +248,15 @@ async def period_payslips(
 
 
 async def readable_payslip(
-    session: AsyncSession, actor: User, payslip_id: uuid.UUID
+    session: AsyncSession, actor: User, payslip_id: uuid.UUID, *, token: str
 ) -> Payslip:
-    """Own payslip with hr.payroll.read.self, or any with organisation-wide amounts."""
+    """Own payslip with hr.payroll.read.self, or any with organisation-wide amounts.
+
+    Both need a session that passed two-step verification.
+    """
     from src.auth.policy import has_permission
 
+    await access.require_mfa(session, actor, token)
     payslip = await session.get(Payslip, payslip_id)
     if payslip is None:
         raise NotFoundError("Payslip not found")

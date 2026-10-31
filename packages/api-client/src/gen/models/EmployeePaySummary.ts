@@ -19,4 +19,5 @@ export type EmployeePaySummary = {
   employee_deductions_minor: number;
   employer_contributions_minor: number;
   net_minor: number;
+  shortfall_minor: number;
 };
