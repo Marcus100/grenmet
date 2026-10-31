@@ -131,3 +131,26 @@ async def test_weather_feed_rejects_unknown_kind_with_error_key(
     )
     assert response.status_code == 400
     assert response.json() == {"error": "Unknown product type"}
+
+
+@pytest.mark.asyncio
+@pytest.mark.usefixtures("db_async")
+async def test_account_lockout_429_returns_detail_string(
+    async_client: httpx.AsyncClient, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """An application lockout is HTTPException 429 with ``detail``, not the limiter's ``error``."""
+    from src.auth.lockout import login_lockout
+
+    async def locked(_identifier: str) -> bool:
+        return True
+
+    monkeypatch.setattr(login_lockout, "is_locked", locked)
+    response = await async_client.post(
+        f"{settings.API_V1_STR}/auth/token",
+        data={"username": "locked@example.com", "password": "x"},
+    )
+    assert response.status_code == 429
+    _detail_body(response)
+    assert response.json() == {
+        "detail": "Account temporarily locked due to repeated failed logins"
+    }

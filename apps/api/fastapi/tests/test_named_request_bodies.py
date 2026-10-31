@@ -2,23 +2,32 @@
 
 Each wrapper replaced an anonymous annotation so the OpenAPI body is a ``$ref``.
 The wire behaviour (accepted values, validation error locations and types) must
-not change, so every wrapper is compared with the annotation it replaced.
+not change, so every wrapper is compared with the annotation it replaced. The
+optional bodies are also called over HTTP with no body and with ``null``.
 """
 
-from collections.abc import Callable
+import uuid
+from collections.abc import Callable, Iterator
+from datetime import date
 from typing import Any
 
+import httpx
 import pytest
+from fastapi.responses import JSONResponse
 from pydantic import TypeAdapter, ValidationError
 
+from src.billing import invoices
 from src.billing.schemas import InvoiceIssue, InvoiceIssueBody
+from src.bookings import public
 from src.bookings.schemas import BookingPublicCancel, BookingPublicCancelBody
+from src.config import settings
 from src.eregister.schemas import (
     QcDecisionBody,
     QcDecisionRequest,
     SendObservationBody,
     SendObservationRequest,
 )
+from src.hr.attendance import punch_service
 from src.hr.attendance.clock_schemas import ClockPunchApprove, ClockPunchApproveBody
 from src.notifications.schemas import (
     NotificationPreferenceUpdate,
@@ -73,16 +82,103 @@ def test_wrapper_matches_the_replaced_annotation(
         assert actual == expected, f"{wrapper.__name__} diverges on {sample!r}"
 
 
-@pytest.mark.parametrize(
-    "wrapper",
-    [
-        InvoiceIssueBody,
-        BookingPublicCancelBody,
-        ClockPunchApproveBody,
-        SendObservationBody,
-        QcDecisionBody,
-    ],
-)
-def test_absent_optional_body_defaults_to_none(wrapper: Any) -> None:
-    # Routes declare ``payload: Wrapper = Wrapper(None)``: an absent body is None.
-    assert wrapper(None).root is None
+@pytest.fixture
+def captured(monkeypatch: pytest.MonkeyPatch) -> Iterator[dict[str, Any]]:
+    """Record the arguments each service receives; the route returns a Response.
+
+    FastAPI returns a Response object unvalidated, so the fakes need no domain data.
+    """
+    calls: dict[str, Any] = {}
+
+    async def issue(
+        _session: Any, _manager: Any, invoice_id: uuid.UUID, **kwargs: Any
+    ) -> JSONResponse:
+        calls["issue"] = {"invoice_id": invoice_id, **kwargs}
+        return JSONResponse({"ok": True})
+
+    async def cancel(_session: Any, token: str, **kwargs: Any) -> JSONResponse:
+        calls["cancel"] = {"token": token, **kwargs}
+        return JSONResponse({"ok": True})
+
+    async def approve(**kwargs: Any) -> JSONResponse:
+        calls["approve"] = kwargs
+        return JSONResponse({"ok": True})
+
+    monkeypatch.setattr(invoices, "issue", issue)
+    monkeypatch.setattr(public, "cancel_booking", cancel)
+    monkeypatch.setattr(punch_service, "approve_punch", approve)
+    yield calls
+
+
+# Each route with its optional body: the URL, and the service call the body feeds.
+ROUTES = [
+    pytest.param(
+        f"{settings.API_V1_STR}/billing/invoices/{uuid.uuid4()}/issue",
+        "issue",
+        {"issue_date": "2026-11-01"},
+        "issue_date",
+        date(2026, 11, 1),
+        id="billing-issue-invoice",
+    ),
+    pytest.param(
+        f"{settings.API_V1_STR}/bookings/public/bookings/{'t' * 32}/cancel",
+        "cancel",
+        {"reason": "Cannot attend"},
+        "reason",
+        "Cannot attend",
+        id="bookings-public-cancel",
+    ),
+    pytest.param(
+        f"{settings.API_V1_STR}/hr/attendance/clock-punches/{uuid.uuid4()}/approve",
+        "approve",
+        {"note": "Checked against the terminal"},
+        "note",
+        "Checked against the terminal",
+        id="hr-clock-punch-approve",
+    ),
+]
+
+
+@pytest.mark.asyncio
+@pytest.mark.usefixtures("db_async")
+@pytest.mark.parametrize(("url", "service", "_body", "field", "_value"), ROUTES)
+@pytest.mark.parametrize("variant", ["absent", "null"])
+async def test_optional_body_absent_or_null_reaches_the_service_as_none(
+    async_client: httpx.AsyncClient,
+    superuser_token_headers_async: dict[str, str],
+    captured: dict[str, Any],
+    url: str,
+    service: str,
+    _body: dict[str, Any],
+    field: str,
+    _value: Any,
+    variant: str,
+) -> None:
+    headers = dict(superuser_token_headers_async)
+    if variant == "null":
+        headers["Content-Type"] = "application/json"
+        response = await async_client.post(url, headers=headers, content=b"null")
+    else:
+        response = await async_client.post(url, headers=headers)
+    assert response.status_code == 200, response.text
+    assert captured[service][field] is None
+
+
+@pytest.mark.asyncio
+@pytest.mark.usefixtures("db_async")
+@pytest.mark.parametrize(("url", "service", "body", "field", "value"), ROUTES)
+async def test_optional_body_value_reaches_the_service(
+    async_client: httpx.AsyncClient,
+    superuser_token_headers_async: dict[str, str],
+    captured: dict[str, Any],
+    url: str,
+    service: str,
+    body: dict[str, Any],
+    field: str,
+    value: Any,
+) -> None:
+    response = await async_client.post(
+        url, headers=superuser_token_headers_async, json=body
+    )
+    assert response.status_code == 200, response.text
+    assert captured[service][field] == value

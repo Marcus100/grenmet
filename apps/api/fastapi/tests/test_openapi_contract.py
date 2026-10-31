@@ -1,5 +1,6 @@
 """Contract-level invariants for FastAPI, Kubb, and AI consumers."""
 
+import json
 import re
 from collections.abc import Iterator
 from typing import Any
@@ -125,6 +126,29 @@ def test_documented_error_responses_have_a_body_schema() -> None:
             if not any(schemas):
                 offenders.append(f"{method.upper()} {path} {status}")
     assert not offenders, "4xx responses without a body schema: " + ", ".join(offenders)
+
+
+JSON_ERROR_REF = re.compile(r'"#/components/schemas/(ApiError|ErrorMessage)"')
+
+
+def test_json_error_models_are_declared_as_application_json() -> None:
+    # ApiError and ErrorMessage are JSON envelopes. On an HTML or other non-JSON
+    # route FastAPI files a response model under the route's own media type, so
+    # a JSON error model under text/html is wrong. Such routes declare their
+    # error body as text/html, or name application/json explicitly.
+    offenders = []
+    for path, method, operation in _operations():
+        for status, response in operation.get("responses", {}).items():
+            if not status.startswith("4"):
+                continue
+            for media_type, media in response.get("content", {}).items():
+                if media_type == "application/json":
+                    continue
+                if JSON_ERROR_REF.search(json.dumps(media.get("schema", {}))):
+                    offenders.append(f"{method.upper()} {path} {status} ({media_type})")
+    assert not offenders, "JSON error models under a non-JSON media type: " + ", ".join(
+        offenders
+    )
 
 
 def test_request_bodies_are_named_component_references() -> None:

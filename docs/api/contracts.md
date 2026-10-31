@@ -463,12 +463,17 @@ pins the runtime bodies. The `AuthoringError` model on wxproducts authoring
 routes allows `detail` to be a list, which the runtime never sends; it is kept
 for compatibility.
 
+HTML routes (for example the unsubscribe pages and the password recovery
+preview) declare their error bodies under the page's media type, or name
+`application/json` explicitly when the error is JSON. `ApiError` under `text/html`
+is a contract error that `tests/test_openapi_contract.py` rejects.
+
 Request bodies are named: every `requestBody` is a `$ref` to a named component.
 A body that may be omitted or sent as `null` is a `RootModel[X | None]` wrapper
 (for example `QcDecisionBody`), and a bare array is a `RootModel[list[...]]`
 (`NotificationPreferenceUpdateList`). The wire format did not change.
 
-Contract rule for new endpoints: return structured JSON errors and document non-obvious status codes in the route `responses` metadata. Spread the shared constants (`AUTHENTICATED`, `NOT_FOUND`, `CONFLICT`, `BAD_REQUEST`, `RATE_LIMITED`) so each 4xx carries its body model, and give every request body a named schema.
+Contract rule for new endpoints: return structured JSON errors and document non-obvious status codes in the route `responses` metadata. Spread the shared constants (`AUTHENTICATED`, `NOT_FOUND`, `CONFLICT`, `BAD_REQUEST`) so each 4xx carries its body model, and give every request body a named schema.
 
 ## Request IDs
 

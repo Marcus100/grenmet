@@ -55,7 +55,12 @@ from src.email import (
 )
 from src.email_config import email_settings
 from src.models import ApiError, Message, Token
-from src.openapi_responses import AUTHENTICATED, NOT_FOUND, RateLimitedBody
+from src.openapi_responses import (
+    AUTHENTICATED,
+    NOT_FOUND,
+    RateLimitedBody,
+    as_json,
+)
 from src.rate_limit import limiter
 from src.utils.datetime import utc_now
 
@@ -504,7 +509,7 @@ async def reset_password(
     "/password/recovery/preview",
     dependencies=[Depends(get_current_active_superuser)],
     response_class=HTMLResponse,
-    responses={**AUTHENTICATED, **NOT_FOUND},
+    responses=as_json({**AUTHENTICATED, **NOT_FOUND}),
 )
 async def recover_password_html_content(body: EmailRequest, session: SessionDep) -> Any:
     """

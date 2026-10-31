@@ -544,7 +544,7 @@
           "401": {
             "description": "Missing or invalid credentials",
             "content": {
-              "text/html": {
+              "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/ApiError"
                 }
@@ -554,7 +554,7 @@
           "403": {
             "description": "Account not permitted: inactive, not yet approved, or lacking the required permission",
             "content": {
-              "text/html": {
+              "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/ApiError"
                 }
@@ -564,7 +564,7 @@
           "404": {
             "description": "Resource not found",
             "content": {
-              "text/html": {
+              "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/ApiError"
                 }
@@ -36491,11 +36491,11 @@
             "description": "Unprocessable Content"
           },
           "400": {
-            "description": "Malformed request",
+            "description": "Invalid or expired link: an HTML page explains it and changes nothing",
             "content": {
               "text/html": {
                 "schema": {
-                  "$ref": "#/components/schemas/ApiError"
+                  "type": "string"
                 }
               }
             }
@@ -36544,11 +36544,11 @@
             "description": "Unprocessable Content"
           },
           "400": {
-            "description": "Malformed request",
+            "description": "Invalid or expired link: an HTML page explains it",
             "content": {
               "text/html": {
                 "schema": {
-                  "$ref": "#/components/schemas/ApiError"
+                  "type": "string"
                 }
               }
             }
@@ -72918,7 +72918,7 @@
           "error"
         ],
         "title": "ErrorMessage",
-        "description": "Error envelope keyed ``error`` rather than ``detail`` (rate limiter, public weather feed)."
+        "description": "Error envelope keyed ``error`` rather than ``detail``; the rate limiter answers 429 with it."
       },
       "EventCategoryNode": {
         "properties": {

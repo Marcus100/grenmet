@@ -10,5 +10,5 @@ export const errorMessageSchema = z
     error: z.string(),
   })
   .describe(
-    "Error envelope keyed ``error`` rather than ``detail`` (rate limiter, public weather feed)."
+    "Error envelope keyed ``error`` rather than ``detail``; the rate limiter answers 429 with it."
   );

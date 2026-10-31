@@ -51,7 +51,7 @@ class ApiError(BaseModel):
 
 
 class ErrorMessage(BaseModel):
-    """Error envelope keyed ``error`` rather than ``detail`` (rate limiter, public weather feed)."""
+    """Error envelope keyed ``error`` rather than ``detail``; the rate limiter answers 429 with it."""
 
     error: str
 

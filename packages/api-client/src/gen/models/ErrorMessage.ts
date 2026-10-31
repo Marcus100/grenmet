@@ -4,7 +4,7 @@
  */
 
 /**
- * @description Error envelope keyed ``error`` rather than ``detail`` (rate limiter, public weather feed).
+ * @description Error envelope keyed ``error`` rather than ``detail``; the rate limiter answers 429 with it.
  * @type object
  */
 export type ErrorMessage = {
