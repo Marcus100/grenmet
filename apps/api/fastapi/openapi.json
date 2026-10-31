@@ -53783,7 +53783,7 @@
           "events"
         ],
         "summary": "Cancel an event",
-        "description": "Cancels a published event: every valid ticket is cancelled and members are notified. `refund` decides the money already paid online: `full`, `none` or `follow_policy` (default; an organiser-cancelled event is refunded in full). A refund that fails is counted in `refunds_failed` and can be retried from the order; it never undoes the cancel.",
+        "description": "Cancels a published event: every valid ticket is cancelled and members are notified. `refund` decides the money already paid online: `full`, `none` or `follow_policy` (default; an organiser-cancelled event is refunded in full). A refund that fails is counted in `refunds_failed` and can be retried from the order; it never undoes the cancel. An order whose earlier refund is still waiting for the payment provider is counted in `orders_pending`.",
         "operationId": "eventsOrgCancelEvent",
         "security": [
           {
@@ -66490,6 +66490,11 @@
           "orders_released": {
             "type": "integer",
             "title": "Orders Released",
+            "default": 0
+          },
+          "orders_pending": {
+            "type": "integer",
+            "title": "Orders Pending",
             "default": 0
           }
         },
