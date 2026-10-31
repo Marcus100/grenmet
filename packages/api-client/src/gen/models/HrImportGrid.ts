@@ -6,6 +6,7 @@
 import type { ApiError } from "./ApiError.js";
 import type { RosterGridImportRequest } from "./RosterGridImportRequest.js";
 import type { RosterGridImportResult } from "./RosterGridImportResult.js";
+import type { RosterRuleWarningsErrorPublic } from "./RosterRuleWarningsErrorPublic.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 
 export type HrImportGridStatus200 = RosterGridImportResult;
@@ -29,6 +30,14 @@ export type HrImportGridStatus403 = ApiError;
 export type HrImportGridStatus404 = ApiError;
 
 /**
+ * @description 409 body. An ordinary conflict carries only ``detail``. Roster rule
+ * warnings add ``code: ROSTER_RULE_WARNINGS``, the ``context`` and the
+ * ``violations``; resend with ``rule_override_reason`` to save anyway.
+ * @type object
+ */
+export type HrImportGridStatus409 = RosterRuleWarningsErrorPublic;
+
+/**
  * @description Validation error envelope returned for malformed requests.
  * @type object
  */
@@ -48,6 +57,7 @@ export type HrImportGridResponses = {
   "400": HrImportGridStatus400;
   "403": HrImportGridStatus403;
   "404": HrImportGridStatus404;
+  "409": HrImportGridStatus409;
   "422": HrImportGridStatus422;
 };
 

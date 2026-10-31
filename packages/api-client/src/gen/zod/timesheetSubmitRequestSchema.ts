@@ -9,4 +9,10 @@ import { submissionModeSchema } from "./submissionModeSchema.js";
 export const timesheetSubmitRequestSchema = z.object({
   signature_version: z.union([z.uuid(), z.null()]).optional(),
   mode: submissionModeSchema.optional().default("SELF"),
+  rule_override_reason: z
+    .union([z.string().max(1000), z.null()])
+    .optional()
+    .describe(
+      "Required to save a change that breaks a roster rule; recorded with the supervisor, the time and the rules overridden. At most 1,000 characters; NUL is refused, and control, bidi and zero-width characters are removed."
+    ),
 });

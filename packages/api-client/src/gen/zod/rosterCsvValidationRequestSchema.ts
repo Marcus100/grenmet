@@ -10,4 +10,10 @@ export const rosterCsvValidationRequestSchema = z.object({
   file_name: z.string().optional().default("roster.csv"),
   roster_period_id: z.union([z.uuid(), z.null()]).optional(),
   csv_text: z.string(),
+  rule_override_reason: z
+    .union([z.string().max(1000), z.null()])
+    .optional()
+    .describe(
+      "Required to save a change that breaks a roster rule; recorded with the supervisor, the time and the rules overridden. At most 1,000 characters; NUL is refused, and control, bidi and zero-width characters are removed."
+    ),
 });

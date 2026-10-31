@@ -31,8 +31,11 @@ export function HrSetupTabs() {
   const globalKeys = accessQuery.data?.global_permission_keys ?? [];
   const canManageSharedShifts =
     actor.is_superuser || globalKeys.includes("roster.manage");
-  const canManageRosterRules =
-    actor.is_superuser || allScopeKeys.includes("roster.manage");
+  const scopedKeys = accessQuery.data?.permission_keys ?? [];
+  const canEditOrganisationRules =
+    actor.is_superuser || allScopeKeys.includes("roster.rules.manage");
+  const canEditDepartmentRules =
+    actor.is_superuser || scopedKeys.includes("roster.rules.manage");
   const canManageNotifications =
     actor.is_superuser || allScopeKeys.includes("notifications.manage");
   const organisationsQuery = useHrGetOrganisations();
@@ -102,7 +105,8 @@ export function HrSetupTabs() {
           </TabsContent>
           <TabsContent className="w-full min-w-0" value="rules">
             <RosterRulesManager
-              canManage={canManageRosterRules}
+              canEditDepartment={canEditDepartmentRules}
+              canEditOrganisation={canEditOrganisationRules}
               organisationId={organisationId}
             />
           </TabsContent>

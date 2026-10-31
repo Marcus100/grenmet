@@ -116,3 +116,54 @@ describe("ApprovalsInbox returning a request", () => {
     expect(actionBodies[0]).toMatchObject({ action: "REJECT" });
   });
 });
+
+describe("ApprovalsInbox approving against roster rules", () => {
+  it("shows the warnings and resends the approval with the reason", async () => {
+    server.use(
+      http.post(ACTION_URL, async ({ request }) => {
+        const body = (await request.json()) as Record<string, unknown>;
+        actionBodies.push(body);
+        if (!body.rule_override_reason) {
+          return HttpResponse.json(
+            {
+              detail: "1 roster rule warning: give a reason to save anyway",
+              code: "ROSTER_RULE_WARNINGS",
+              context: "LEAVE",
+              violations: [
+                {
+                  code: "MAX_WEEKLY_HOURS",
+                  user_id: "u1",
+                  start_date: "2026-07-05",
+                  end_date: "2026-07-11",
+                  observed: "48.00",
+                  limit: "40.00",
+                  detail:
+                    "48.00 h in the week (Sunday to Saturday); maximum is 40 h",
+                },
+              ],
+            },
+            { status: 409 }
+          );
+        }
+        inbox = [];
+        return HttpResponse.json({ id: "i1" });
+      })
+    );
+    renderInbox();
+    fireEvent.click(await screen.findByRole("button", { name: "Approve" }));
+    const warnings = await screen.findByRole("list", { name: "Rule warnings" });
+    expect(warnings).toHaveTextContent("Gerad Tamar");
+    expect(warnings).toHaveTextContent("Weekly hours over limit");
+    fireEvent.change(screen.getByLabelText("Reason for saving anyway"), {
+      target: { value: "Leave withdrawn at the officer's request" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Continue anyway" }));
+    await waitFor(() => expect(actionBodies).toHaveLength(2));
+    expect(actionBodies[0]).toEqual({ action: "APPROVE", step_id: "s1" });
+    expect(actionBodies[1]).toEqual({
+      action: "APPROVE",
+      step_id: "s1",
+      rule_override_reason: "Leave withdrawn at the officer's request",
+    });
+  });
+});
