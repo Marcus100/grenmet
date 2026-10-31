@@ -5,6 +5,7 @@ Synthetic people and amounts only (XCD cents).
 
 from datetime import date
 from decimal import Decimal
+from typing import Any
 
 import httpx
 import pytest
@@ -12,7 +13,7 @@ from cryptography.fernet import Fernet
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.auth.config import auth_settings
-from src.auth.models import RoleAssignmentScope
+from src.auth.models import RoleAssignmentScope, User
 from src.hr.models import Organisation
 from src.hr.payroll import statutory
 from tests.factories import make_user
@@ -80,7 +81,7 @@ def test_paye_is_annualised_over_twenty_six_fortnights() -> None:
 
 
 def test_other_deductions_never_default_to_zero() -> None:
-    common = {
+    common: dict[str, Any] = {
         "basic_minor": 240_000,
         "gross_minor": 260_000,
         "employee_rate": None,
@@ -100,7 +101,7 @@ def test_other_deductions_never_default_to_zero() -> None:
 
 async def _fortnight_with_pay(
     client: httpx.AsyncClient, db: AsyncSession
-) -> tuple[dict[str, str], str, str, object, str]:
+) -> tuple[dict[str, str], str, str, User, str]:
     ops, _, accounts = await departments(db)
     await approval_setup(db, accounts.id)
     employee = await employee_in(db, ops)
@@ -192,7 +193,7 @@ async def test_fortnightly_deductions_net_and_provisional_figures(
         headers=headers,
         json={
             "organisation_id": "gaa",
-            "user_id": str(employee.id),  # type: ignore[attr-defined]
+            "user_id": str(employee.id),
             "deduction_type_id": pension_id,
             "effective_from": "2026-09-01",
             "authorisation_reference": "Signed pension form, synthetic",

@@ -306,7 +306,7 @@ async def _recorded_amounts(
 
 async def list_amounts(
     session: AsyncSession, actor: User, period_id: uuid.UUID
-) -> dict[str, object]:
+) -> dict[str, Any]:
     from .service import _line_columns
 
     period, _ = await access.load_period(session, actor, period_id)
@@ -331,7 +331,7 @@ async def list_amounts(
             )
         ).all()
     ]
-    employees: dict[uuid.UUID, dict[str, object]] = {}
+    employees: dict[uuid.UUID, dict[str, Any]] = {}
     for row in rows:
         entry = employees.setdefault(
             row["user_id"],
@@ -344,9 +344,9 @@ async def list_amounts(
             },
         )
         if row["amount_minor"] is None:
-            entry["unpriced_line_count"] = int(entry["unpriced_line_count"]) + 1  # type: ignore[call-overload]
+            entry["unpriced_line_count"] = int(entry["unpriced_line_count"]) + 1
         else:
-            entry["gross_minor"] = int(entry["gross_minor"]) + row["amount_minor"]  # type: ignore[call-overload]
+            entry["gross_minor"] = int(entry["gross_minor"]) + row["amount_minor"]
     logger.info(
         "Payroll amounts read",
         extra={"period_id": str(period.id), "actor_id": str(actor.id)},
@@ -356,7 +356,7 @@ async def list_amounts(
         "currency": "XCD",
         "lines": rows,
         "employees": list(employees.values()),
-        "gross_minor": sum(int(e["gross_minor"]) for e in employees.values()),  # type: ignore[call-overload]
+        "gross_minor": sum(int(e["gross_minor"]) for e in employees.values()),
     }
 
 

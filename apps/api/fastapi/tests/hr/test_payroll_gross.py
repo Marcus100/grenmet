@@ -7,6 +7,7 @@ import uuid
 from collections.abc import Iterator
 from datetime import date
 from decimal import Decimal
+from typing import Any
 
 import httpx
 import pytest
@@ -74,16 +75,16 @@ async def _basic(
 
 async def _amounts(
     client: httpx.AsyncClient, headers: dict[str, str], period_id: str
-) -> dict[str, object]:
+) -> dict[str, Any]:
     response = await client.get(f"{API}/periods/{period_id}/amounts", headers=headers)
     assert response.status_code == 200, response.text
-    data: dict[str, object] = response.json()
+    data: dict[str, Any] = response.json()
     return data
 
 
-def _by_code(data: dict[str, object]) -> dict[str, int | None]:
+def _by_code(data: dict[str, Any]) -> dict[str, int | None]:
     totals: dict[str, int | None] = {}
-    for line in data["lines"]:  # type: ignore[attr-defined]
+    for line in data["lines"]:
         totals[line["pay_item_code"]] = line["amount_minor"]
     return totals
 
@@ -124,7 +125,7 @@ async def test_hourly_worker_gross_from_rates(
     assert amounts["OT_TIME_AND_HALF"] == 12150  # 4 h x 2025 x 1.5
     assert amounts["MEAL"] == 4000
     assert data["gross_minor"] == 16200 + 12150 + 4000
-    assert data["employees"][0]["unpriced_line_count"] == 0  # type: ignore[index]
+    assert data["employees"][0]["unpriced_line_count"] == 0
 
 
 @pytest.mark.usefixtures("totp_keys", "band_engine")

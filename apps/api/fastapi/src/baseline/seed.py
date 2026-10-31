@@ -11,7 +11,11 @@ from src.auth.utils import get_password_hash
 from src.baseline.department import GMS_DEPARTMENT_IDS
 from src.baseline.models import ApprovalPolicy, BaselineStep, StaffCredential
 from src.hr.models import Department, EmploymentRecord, Grade
-from src.hr.workflow.models import WorkflowStepTemplate, WorkflowTemplate, WorkflowType
+from src.hr.workflow.models import (
+    DEPARTMENT_WORKFLOW_TYPES,
+    WorkflowStepTemplate,
+    WorkflowTemplate,
+)
 
 KEY = "gaa-gms-production-v1"
 
@@ -239,7 +243,7 @@ def seed_baseline(
                         else None,
                     )
                 )
-    for kind in WorkflowType:
+    for kind in DEPARTMENT_WORKFLOW_TYPES:
         template = (
             session.execute(
                 select(WorkflowTemplate).where(

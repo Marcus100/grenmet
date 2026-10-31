@@ -15,6 +15,7 @@ from sqlalchemy.exc import DBAPIError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.auth.config import auth_settings
+from src.auth.models import User
 from src.database import async_session_factory
 from src.hr.payroll import payslips
 from tests.factories import assign_role, make_role_with_permission, make_user
@@ -31,7 +32,7 @@ def totp_keys(monkeypatch: pytest.MonkeyPatch) -> None:
 
 async def _issued_period(
     client: httpx.AsyncClient, db: AsyncSession
-) -> tuple[dict[str, str], str, object]:
+) -> tuple[dict[str, str], str, User]:
     headers, period_id, _, employee, nis_id = await _fortnight_with_pay(client, db)
     await client.post(f"{API}/periods/{period_id}/submission", headers=headers)
     approver = await headers_for(db, await make_user(db, superuser=True), mfa=True)
@@ -61,7 +62,7 @@ async def test_issue_creates_hashed_immutable_payslips(
     )
     assert listed.status_code == 200, listed.text
     [slip] = listed.json()["data"]
-    assert slip["user_id"] == str(employee.id)  # type: ignore[attr-defined]
+    assert slip["user_id"] == str(employee.id)
     assert slip["net_minor"] == 240_000 - 15_000 - 11_815
     from src.hr.payroll.models import Payslip
 
@@ -89,11 +90,11 @@ async def test_staff_read_only_their_own_payslips(
     async_client: httpx.AsyncClient, db_async: AsyncSession
 ) -> None:
     headers, period_id, employee = await _issued_period(async_client, db_async)
-    own = await headers_for(db_async, employee)  # type: ignore[arg-type]
+    own = await headers_for(db_async, employee)
     denied = await async_client.get(f"{API}/me/payslips", headers=own)
     assert denied.status_code == 403  # read.self is granted to no role
     role, _ = await make_role_with_permission(db_async, "hr.payroll.read.self")
-    await assign_role(db_async, user=employee, role=role)  # type: ignore[arg-type]
+    await assign_role(db_async, user=employee, role=role)
     mine = await async_client.get(f"{API}/me/payslips", headers=own)
     assert mine.status_code == 200, mine.text
     [slip] = mine.json()["data"]
