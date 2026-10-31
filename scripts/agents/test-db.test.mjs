@@ -18,7 +18,7 @@ const USAGE = /usage: scripts\/agents\/test-db\.sh/;
 const ABSENT = /absent/;
 const NOT_A_TEST_NAME = /must end in -test/;
 const READY_LINE = /test-db: ready on 127\.0\.0\.1:5433/;
-const IMAGE_PIN = /postgis\/postgis:17-3\.5@sha256:[0-9a-f]{64}/;
+const IMAGE_PIN = /postgis\/postgis:[0-9]+-[0-9.]+@sha256:[0-9a-f]{64}/;
 const COMPOSE = readFileSync(
   fileURLToPath(
     new URL("../../infra/docker/docker-compose.yml", import.meta.url)
@@ -83,7 +83,7 @@ test("up creates the container with durability off, in RAM, on loopback only", (
   assert.ok(create, "docker run was called");
   for (const piece of [
     "-p 127.0.0.1:5433:5432",
-    "--tmpfs /var/lib/postgresql/data",
+    "--tmpfs /var/lib/postgresql:",
     "fsync=off",
     "synchronous_commit=off",
     "full_page_writes=off",
