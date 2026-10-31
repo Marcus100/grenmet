@@ -13,7 +13,7 @@ import hashlib
 import logging
 import secrets
 import uuid
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from datetime import timedelta
 from urllib.parse import urlencode
 
@@ -66,6 +66,13 @@ def hash_token(token: str) -> str:
 
 # Roles that carry administrative power; the account needs a verified email (ADR-0018).
 _POWER_ROLES = frozenset({MembershipRole.ADMIN.value, MembershipRole.OWNER.value})
+
+
+_ROLE_RANK = {
+    MembershipRole.MEMBER.value: 0,
+    MembershipRole.ADMIN.value: 1,
+    MembershipRole.OWNER.value: 2,
+}
 
 
 def _is_owner(role: str) -> bool:
@@ -175,18 +182,21 @@ async def apply_role_change(
             session, user, "receive an administrator role"
         )
     if role.value != membership.role:
+        demoted = _ROLE_RANK[role.value] < _ROLE_RANK[membership.role]
         if _is_owner(membership.role):
             await _ensure_not_last_owner(session, organisation_id, membership)
         membership.role = role.value
         await session.flush()
-        # A demotion can take away keys the member's own grants relied on (#527).
-        await grants.revoke_dependent_grants(
-            session,
-            organisation_id=organisation_id,
-            seed_membership_ids=[membership.id],
-            actor_id=actor_id,
-            cause="role_changed",
-        )
+        if demoted:
+            # A demoted member's grants to others end with them, transitively (#527).
+            await grants.end_issued_transitively(
+                session,
+                organisation_id=organisation_id,
+                seed_membership_ids=[membership.id],
+                actor_id=actor_id,
+                trigger="demoted",
+                root=membership.id,
+            )
     return membership, user
 
 
@@ -225,8 +235,8 @@ async def apply_removal(
     await grants.revoke_all_for_membership(
         session, membership_id=membership.id, actor_id=actor_id
     )
-    # Access the removed person handed out ends with their own (ADR-0044, S3).
-    # Whoever they handed it to is re-checked below (#527).
+    # Access the removed person handed out ends with their own (ADR-0044, S3), and so
+    # does everything passed on from it (#527).
     recipients = await grants.issued_recipient_ids(
         session, organisation_id=organisation_id, user_id=membership.user_id
     )
@@ -248,12 +258,13 @@ async def apply_removal(
             changes={"grants_revoked": (None, ended)},
             organisation_id=organisation_id,
         )
-    await grants.revoke_dependent_grants(
+    await grants.end_issued_transitively(
         session,
         organisation_id=organisation_id,
         seed_membership_ids=recipients,
         actor_id=actor_id,
-        cause="removed",
+        trigger="removed",
+        root=membership.id,
     )
     return membership
 
@@ -280,6 +291,16 @@ async def revoke_events_access(
     organisation_id = context.organisation_id
     audit_service.set_actor(session, context.user.id)
     await grants.lock_roster(session, organisation_id)
+    revoker = await session.get(
+        Membership, context.membership.id, populate_existing=True
+    )
+    if (
+        revoker is None
+        or revoker.organisation_id != organisation_id
+        or revoker.status != MembershipStatus.ACTIVE.value
+    ):
+        raise OrganisationRoleError()
+    context = replace(context, membership=revoker)
     membership = await _get_membership(session, organisation_id, membership_id)
     if context.role != MembershipRole.OWNER and _is_owner(membership.role):
         raise OrganisationRoleError()
@@ -322,12 +343,14 @@ async def revoke_events_access(
         },
         organisation_id=organisation_id,
     )
-    await grants.revoke_dependent_grants(
+    await grants.end_issued_transitively(
         session,
         organisation_id=organisation_id,
         seed_membership_ids=recipients,
         actor_id=context.user.id,
-        cause="events_access_removed",
+        trigger="events_access_removed",
+        root=membership.id,
+        products=products,
     )
     logger.info(
         "organisation events access revoked",

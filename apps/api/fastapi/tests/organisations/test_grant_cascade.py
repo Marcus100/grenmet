@@ -12,14 +12,25 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from src.audit.models import AuditEntry
 from src.organisations import grants, service
 from src.organisations.dependencies import OrgContext
+from src.organisations.exceptions import GrantCascadeTooLargeError, GrantNotHeldError
 from src.organisations.members import apply_removal, apply_role_change
-from src.organisations.models import Membership, MembershipGrant, MembershipRole
+from src.organisations.models import (
+    Membership,
+    MembershipGrant,
+    MembershipRole,
+    MembershipStatus,
+)
+from src.utils.datetime import utc_now
 from tests.factories import make_user
 from tests.organisations.support import headers_for, make_org
 
 API = "/api/v1/organisations/org"
 ORG_API = "/api/v1/organisations"
 CASCADE = "revoke_cascade"
+
+
+async def _users(db: AsyncSession, count: int) -> list:
+    return [await make_user(db) for _ in range(count)]
 
 
 async def _users(db: AsyncSession, count: int) -> list:
@@ -91,19 +102,22 @@ async def _cascade_entries(db: AsyncSession, org) -> list[AuditEntry]:
     )
 
 
-async def test_a_chain_is_revoked_from_the_top(db_async: AsyncSession):
+async def _org(db: AsyncSession, name: str, roles, apps=("events",)):
+    return await make_org(db, name, members=roles, apps=apps)
+
+
+async def test_a_chain_is_revoked_from_the_top_with_root_audit(db_async: AsyncSession):
     owner = await make_user(db_async)
     m1, m2, m3 = await _users(db_async, 3)
-    org = await make_org(
+    org = await _org(
         db_async,
         "Chain",
-        members=(
+        (
             (owner, MembershipRole.OWNER),
             (m1, MembershipRole.MEMBER),
             (m2, MembershipRole.MEMBER),
             (m3, MembershipRole.MEMBER),
         ),
-        apps=("events",),
     )
     g1 = await _grant(db_async, owner, org, m1, "events-team")
     g2 = await _grant(db_async, m1, org, m2, "events-team")
@@ -113,40 +127,38 @@ async def test_a_chain_is_revoked_from_the_top(db_async: AsyncSession):
 
     assert [await _is_live(db_async, g) for g in (g1, g2, g3)] == [False, False, False]
     entries = await _cascade_entries(db_async, org)
-    assert len(entries) == 2
     assert {e.record_id for e in entries} == {g2.id, g3.id}
     assert all(e.actor_user_id == owner.id for e in entries)
-    assert {_field(e, "cause") for e in entries} == {"grant_revoked"}
+    assert {_field(e, "root") for e in entries} == {g1.id}
+    assert {_field(e, "trigger") for e in entries} == {"grant_revoked"}
 
 
-async def test_a_cycle_ends_and_keeps_the_grants_it_does_not_break(
-    db_async: AsyncSession,
-):
+async def test_mutual_support_with_no_root_is_revoked(db_async: AsyncSession):
+    """A and B back each other's grants. Once the owner's grant to A ends, neither
+    chain reaches an owner or admin, so both loops of grants end."""
     owner = await make_user(db_async)
-    m1 = await make_user(db_async)
-    m2 = await make_user(db_async)
-    org = await make_org(
+    a, b = await _users(db_async, 2)
+    org = await _org(
         db_async,
-        "Cycle",
-        members=(
+        "Loop",
+        (
             (owner, MembershipRole.OWNER),
-            (m1, MembershipRole.MEMBER),
-            (m2, MembershipRole.MEMBER),
+            (a, MembershipRole.MEMBER),
+            (b, MembershipRole.MEMBER),
         ),
-        apps=("events",),
     )
-    to_m1 = await _grant(db_async, owner, org, m1, "events-team")
-    to_m2 = await _grant(db_async, owner, org, m2, "events-door")
-    m1_to_m2 = await _grant(db_async, m1, org, m2, "events-team")
-    m2_to_m1 = await _grant(db_async, m2, org, m1, "events-door")
+    to_a = await _grant(db_async, owner, org, a, "events-team")
+    to_b = await _grant(db_async, owner, org, b, "events-door")
+    a_to_b = await _grant(db_async, a, org, b, "events-team")
+    b_to_a = await _grant(db_async, b, org, a, "events-door")
 
-    await _revoke(db_async, owner, org, to_m1)
+    await _revoke(db_async, owner, org, to_a)
 
-    assert await _is_live(db_async, to_m1) is False
-    assert await _is_live(db_async, m1_to_m2) is False
-    assert await _is_live(db_async, m2_to_m1) is False
-    # The owner's grant to m2 does not depend on m1, so it stays.
-    assert await _is_live(db_async, to_m2) is True
+    assert await _is_live(db_async, to_a) is False
+    assert await _is_live(db_async, a_to_b) is False
+    assert await _is_live(db_async, b_to_a) is False
+    # The owner's grant to B has its own root and stays.
+    assert await _is_live(db_async, to_b) is True
 
 
 async def test_grants_that_do_not_depend_on_the_revoked_one_survive(
@@ -154,17 +166,16 @@ async def test_grants_that_do_not_depend_on_the_revoked_one_survive(
 ):
     owner = await make_user(db_async)
     m1, m2, m3, m4 = await _users(db_async, 4)
-    org = await make_org(
+    org = await _org(
         db_async,
         "Unrelated",
-        members=(
+        (
             (owner, MembershipRole.OWNER),
             (m1, MembershipRole.MEMBER),
             (m2, MembershipRole.MEMBER),
             (m3, MembershipRole.MEMBER),
             (m4, MembershipRole.MEMBER),
         ),
-        apps=("events",),
     )
     owner_to_m1 = await _grant(db_async, owner, org, m1, "events-team")
     owner_to_m2 = await _grant(db_async, owner, org, m2, "events-door")
@@ -181,54 +192,91 @@ async def test_grants_that_do_not_depend_on_the_revoked_one_survive(
     assert await _cascade_entries(db_async, org) == []
 
 
-@pytest.mark.parametrize("role", [MembershipRole.ADMIN, MembershipRole.OWNER])
-async def test_owners_and_admins_keep_the_grants_they_issued(
-    db_async: AsyncSession, role: MembershipRole
-):
+async def test_expiring_cover_is_not_counted_once_it_lapses(db_async: AsyncSession):
+    """The cover for m1's grant to m2 lapses. Its grant to m2 no longer has a supported
+    chain, so the next explicit revoke that reaches m1 ends it."""
+    from datetime import timedelta
+
     owner = await make_user(db_async)
-    manager = await make_user(db_async)
-    member = await make_user(db_async)
-    org = await make_org(
+    m1, m2 = await _users(db_async, 2)
+    org = await _org(
         db_async,
-        "Managers",
-        members=(
+        "Lapse",
+        (
             (owner, MembershipRole.OWNER),
-            (manager, role),
-            (member, MembershipRole.MEMBER),
+            (m1, MembershipRole.MEMBER),
+            (m2, MembershipRole.MEMBER),
         ),
-        apps=("events",),
     )
-    # Owners and admins already hold every key, so this grant only adds a duplicate.
-    granted_to_manager = await _grant(db_async, owner, org, manager, "events-team")
-    manager_to_member = await _grant(db_async, manager, org, member, "events-door")
+    cover = await _grant(db_async, owner, org, m1, "events-team")
+    dependent = await _grant(db_async, m1, org, m2, "events-team")
+    root = await _grant(db_async, owner, org, m1, "events-till")
+    cover.expires_at = utc_now() - timedelta(minutes=1)
+    await db_async.commit()
 
-    await _revoke(db_async, owner, org, granted_to_manager)
+    await _revoke(db_async, owner, org, root)
 
-    assert await _is_live(db_async, granted_to_manager) is False
-    assert await _is_live(db_async, manager_to_member) is True
-    assert await _cascade_entries(db_async, org) == []
+    assert await _is_live(db_async, dependent) is False
+    assert {_field(e, "root") for e in await _cascade_entries(db_async, org)} == {
+        root.id
+    }
 
 
-async def test_demoting_an_admin_revokes_what_they_issued_beyond_their_keys(
-    async_client: httpx.AsyncClient, db_async: AsyncSession
-):
+async def test_entitlements_do_not_change_coverage(db_async: AsyncSession):
+    """Coverage is computed by reachability from owner and admin roots, ignoring
+    entitlements. The same org's chains are judged the same with the product off."""
+    from src.organisations import service as org_service
+
     owner = await make_user(db_async)
     admin = await make_user(db_async)
-    m1 = await make_user(db_async)
-    m2 = await make_user(db_async)
-    org = await make_org(
+    m1, m2, m3 = await _users(db_async, 3)
+    org = await _org(
         db_async,
-        "Demotion",
-        members=(
+        "Entitlements",
+        (
             (owner, MembershipRole.OWNER),
             (admin, MembershipRole.ADMIN),
             (m1, MembershipRole.MEMBER),
             (m2, MembershipRole.MEMBER),
+            (m3, MembershipRole.MEMBER),
         ),
-        apps=("events",),
+    )
+    await _grant(db_async, admin, org, m1, "events-team")
+    via_admin = await _grant(db_async, m1, org, m2, "events-team")
+    owner_door = await _grant(db_async, owner, org, m3, "events-door")
+    await org_service.set_app_enabled(
+        db_async, organisation_id=org.id, app_key="events", enabled=False
+    )
+    await db_async.commit()
+
+    members = await grants._active_members(db_async, org.id)
+    live = await grants._live_grants(db_async, org.id, utc_now())
+    supported = grants._supported_grant_ids(members, live)
+
+    assert via_admin.id in supported
+    assert owner_door.id in supported
+
+
+async def test_demoting_an_admin_ends_all_grants_it_issued_transitively(
+    async_client: httpx.AsyncClient, db_async: AsyncSession
+):
+    owner = await make_user(db_async)
+    admin = await make_user(db_async)
+    m1, m2, m3 = await _users(db_async, 3)
+    org = await _org(
+        db_async,
+        "Demotion",
+        (
+            (owner, MembershipRole.OWNER),
+            (admin, MembershipRole.ADMIN),
+            (m1, MembershipRole.MEMBER),
+            (m2, MembershipRole.MEMBER),
+            (m3, MembershipRole.MEMBER),
+        ),
     )
     admin_to_m1 = await _grant(db_async, admin, org, m1, "events-team")
     m1_to_m2 = await _grant(db_async, m1, org, m2, "events-team")
+    m2_to_m3 = await _grant(db_async, m2, org, m3, "events-team")
     admin_mid = (await _membership(db_async, org.id, admin)).id
 
     demoted = await async_client.patch(
@@ -238,33 +286,35 @@ async def test_demoting_an_admin_revokes_what_they_issued_beyond_their_keys(
     )
 
     assert demoted.status_code == 200
-    assert await _is_live(db_async, admin_to_m1) is False
-    assert await _is_live(db_async, m1_to_m2) is False
+    assert [await _is_live(db_async, g) for g in (admin_to_m1, m1_to_m2, m2_to_m3)] == [
+        False,
+        False,
+        False,
+    ]
     entries = await _cascade_entries(db_async, org)
-    assert {e.record_id for e in entries} == {admin_to_m1.id, m1_to_m2.id}
-    assert {_field(e, "cause") for e in entries} == {"role_changed"}
+    assert {e.record_id for e in entries} == {m1_to_m2.id, m2_to_m3.id}
+    assert {_field(e, "trigger") for e in entries} == {"demoted"}
 
 
-async def test_demotion_keeps_grants_the_member_still_covers(
-    db_async: AsyncSession,
-):
+async def test_demotion_stops_at_owners_and_admins(db_async: AsyncSession):
+    """An admin demoted to member loses what they issued, but a grant issued by another
+    admin is their own and stays, including what that admin passed on."""
     owner = await make_user(db_async)
     admin = await make_user(db_async)
-    m1 = await make_user(db_async)
-    org = await make_org(
+    other_admin = await make_user(db_async)
+    member = await make_user(db_async)
+    org = await _org(
         db_async,
-        "Covered",
-        members=(
+        "Admins",
+        (
             (owner, MembershipRole.OWNER),
             (admin, MembershipRole.ADMIN),
-            (m1, MembershipRole.MEMBER),
+            (other_admin, MembershipRole.ADMIN),
+            (member, MembershipRole.MEMBER),
         ),
-        apps=("events",),
     )
-    # The admin holds the team-manage key through a grant of their own, so their
-    # onward grant of the same bundle stays covered once the admin role is gone.
-    await _grant(db_async, owner, org, admin, "events-team")
-    admin_to_m1 = await _grant(db_async, admin, org, m1, "events-team")
+    admin_to_other = await _grant(db_async, admin, org, other_admin, "events-team")
+    other_to_member = await _grant(db_async, other_admin, org, member, "events-door")
     admin_row = await _membership(db_async, org.id, admin)
 
     await apply_role_change(
@@ -277,23 +327,22 @@ async def test_demotion_keeps_grants_the_member_still_covers(
     )
     await db_async.commit()
 
-    assert await _is_live(db_async, admin_to_m1) is True
-    assert await _cascade_entries(db_async, org) == []
+    assert await _is_live(db_async, admin_to_other) is False
+    assert await _is_live(db_async, other_to_member) is True
 
 
 async def test_removing_an_issuer_cascades_down_the_chain(db_async: AsyncSession):
     owner = await make_user(db_async)
     m1, m2, m3 = await _users(db_async, 3)
-    org = await make_org(
+    org = await _org(
         db_async,
         "Removal",
-        members=(
+        (
             (owner, MembershipRole.OWNER),
             (m1, MembershipRole.MEMBER),
             (m2, MembershipRole.MEMBER),
             (m3, MembershipRole.MEMBER),
         ),
-        apps=("events",),
     )
     await _grant(db_async, owner, org, m1, "events-team")
     m1_to_m2 = await _grant(db_async, m1, org, m2, "events-team")
@@ -313,21 +362,19 @@ async def test_removing_an_issuer_cascades_down_the_chain(db_async: AsyncSession
     assert await _is_live(db_async, m2_to_m3) is False
 
 
-async def test_grant_revoke_route_cascades_and_audits(
+async def test_revoke_route_returns_the_cascade_count(
     async_client: httpx.AsyncClient, db_async: AsyncSession
 ):
     owner = await make_user(db_async)
-    m1 = await make_user(db_async)
-    m2 = await make_user(db_async)
-    org = await make_org(
+    m1, m2 = await _users(db_async, 2)
+    org = await _org(
         db_async,
         "Route",
-        members=(
+        (
             (owner, MembershipRole.OWNER),
             (m1, MembershipRole.MEMBER),
             (m2, MembershipRole.MEMBER),
         ),
-        apps=("events",),
     )
     owner_to_m1 = await _grant(db_async, owner, org, m1, "events-team")
     m1_to_m2 = await _grant(db_async, m1, org, m2, "events-team")
@@ -338,37 +385,90 @@ async def test_grant_revoke_route_cascades_and_audits(
     )
 
     assert response.status_code == 200
+    assert response.json()["cascaded_revocations"] == 1
     assert await _is_live(db_async, m1_to_m2) is False
     entries = await _cascade_entries(db_async, org)
     assert [e.record_id for e in entries] == [m1_to_m2.id]
     assert entries[0].actor_user_id == owner.id
 
 
-async def test_cascade_never_reaches_another_organisation(db_async: AsyncSession):
+async def test_a_revoker_removed_before_the_lock_is_refused(db_async: AsyncSession):
+    """The caller's membership was read before the revoke, then removed. The stale
+    context must not revoke anything."""
+    owner = await make_user(db_async)
+    other_owner = await make_user(db_async)
+    m1 = await make_user(db_async)
+    org = await _org(
+        db_async,
+        "Stale",
+        (
+            (owner, MembershipRole.OWNER),
+            (other_owner, MembershipRole.OWNER),
+            (m1, MembershipRole.MEMBER),
+        ),
+    )
+    grant_row = await _grant(db_async, owner, org, m1, "events-team")
+    stale = await _context(db_async, other_owner, org)
+    removed = await _membership(db_async, org.id, other_owner)
+    removed.status = MembershipStatus.REMOVED.value
+    await db_async.commit()
+
+    with pytest.raises(GrantNotHeldError):
+        await grants.revoke_grant(db_async, stale, grant_id=grant_row.id)
+    await db_async.rollback()
+    assert await _is_live(db_async, grant_row) is True
+
+
+async def test_the_cascade_is_bounded(db_async: AsyncSession, monkeypatch):
+    monkeypatch.setattr(grants, "MAX_CASCADE_GRANTS", 1)
+    owner = await make_user(db_async)
+    m1, m2, m3 = await _users(db_async, 3)
+    org = await _org(
+        db_async,
+        "Bound",
+        (
+            (owner, MembershipRole.OWNER),
+            (m1, MembershipRole.MEMBER),
+            (m2, MembershipRole.MEMBER),
+            (m3, MembershipRole.MEMBER),
+        ),
+    )
+    root = await _grant(db_async, owner, org, m1, "events-team")
+    await _grant(db_async, m1, org, m2, "events-team")
+    await _grant(db_async, m2, org, m3, "events-team")
+
+    context = await _context(db_async, owner, org)
+    with pytest.raises(GrantCascadeTooLargeError):
+        await grants.revoke_grant(db_async, context, grant_id=root.id)
+    await db_async.rollback()
+    assert await _is_live(db_async, root) is True
+
+
+async def test_cross_organisation_cascade_stays_inside_its_organisation(
+    db_async: AsyncSession,
+):
     owner_one = await make_user(db_async)
     owner_two = await make_user(db_async)
     shared = await make_user(db_async)
     peer_one = await make_user(db_async)
     peer_two = await make_user(db_async)
-    org_one = await make_org(
+    org_one = await _org(
         db_async,
         "One",
-        members=(
+        (
             (owner_one, MembershipRole.OWNER),
             (shared, MembershipRole.MEMBER),
             (peer_one, MembershipRole.MEMBER),
         ),
-        apps=("events",),
     )
-    org_two = await make_org(
+    org_two = await _org(
         db_async,
         "Two",
-        members=(
+        (
             (owner_two, MembershipRole.OWNER),
             (shared, MembershipRole.MEMBER),
             (peer_two, MembershipRole.MEMBER),
         ),
-        apps=("events",),
     )
     granted_one = await _grant(db_async, owner_one, org_one, shared, "events-team")
     shared_to_peer_one = await _grant(

@@ -18,6 +18,7 @@ audit actor is the grantor, so grant history commits with the change.
 import logging
 import uuid
 from collections.abc import Collection
+from dataclasses import dataclass, replace
 from datetime import UTC, datetime
 from typing import TYPE_CHECKING
 
@@ -29,6 +30,7 @@ from src.audit import service as audit_service
 from src.auth.permissions import ORGANISATION_BOUND_KEYS
 from src.organisations import api_key_scopes, role_bundles
 from src.organisations.exceptions import (
+    GrantCascadeTooLargeError,
     GrantExpiryExceedsGrantorError,
     GrantExpiryInvalidError,
     GrantNotFoundError,
@@ -288,11 +290,169 @@ async def grant_role(
     return grant
 
 
-async def revoke_grant(
+#: Most grants one revoke or role change may end through the cascade. Above this the
+#: action is refused with 409 and nothing is ended, so one change cannot empty an
+#: organisation by accident.
+MAX_CASCADE_GRANTS = 200
+
+
+@dataclass(frozen=True)
+class GrantRevocation:
+    """The revoked grant and how many grants the cascade ended after it."""
+
+    grant: MembershipGrant
+    cascaded: int
+
+
+async def _live_grants(
+    session: AsyncSession,
+    organisation_id: str,
+    now: datetime,
+    products: Collection[str] | None = None,
+) -> list[MembershipGrant]:
+    rows = await session.scalars(
+        select(MembershipGrant)
+        .where(
+            MembershipGrant.organisation_id == organisation_id,
+            *_live(now),
+            *_product_filter(products),
+        )
+        .order_by(MembershipGrant.id)
+    )
+    return list(rows.all())
+
+
+async def _active_members(
+    session: AsyncSession, organisation_id: str
+) -> dict[str, Membership]:
+    rows = await session.scalars(
+        select(Membership).where(
+            Membership.organisation_id == organisation_id,
+            Membership.status == MembershipStatus.ACTIVE.value,
+        )
+    )
+    return {m.id: m for m in rows.all()}
+
+
+def _supported_grant_ids(
+    members: dict[str, Membership], live: list[MembershipGrant]
+) -> set[str]:
+    """The live grants a chain of grants from an owner or admin still supports.
+
+    A grantor holds a grant's keys only if they hold them through a supported grant
+    of their own, or as an owner or admin (every key, marked ``None``). Entitlements
+    are ignored on purpose: a switched-off product does not break a chain. A loop
+    with no owner or admin at its root supports nothing."""
+    by_user = {m.user_id: m for m in members.values()}
+    held: dict[str, frozenset[str] | None] = {
+        m.id: None
+        for m in members.values()
+        if m.role in (MembershipRole.OWNER.value, MembershipRole.ADMIN.value)
+    }
+    supported: set[str] = set()
+    progressed = True
+    while progressed:
+        progressed = False
+        for grant in live:
+            if grant.id in supported:
+                continue
+            grantor = by_user.get(grant.granted_by)
+            bundle = role_bundles.bundle_keys(grant.role_key)
+            if grantor is None or bundle is None or grantor.id not in held:
+                continue
+            have = held[grantor.id]
+            if have is not None and not required_keys(bundle) <= have:
+                continue
+            supported.add(grant.id)
+            progressed = True
+            recipient = grant.membership_id
+            if recipient not in members:
+                continue
+            if recipient not in held:
+                held[recipient] = frozenset(bundle)
+            elif held[recipient] is not None:
+                held[recipient] = held[recipient] | bundle
+    return supported
+
+
+def _downstream(
+    members: dict[str, Membership],
+    live: list[MembershipGrant],
+    recipient_id: str,
+) -> list[MembershipGrant]:
+    """Live grants issued by ``recipient_id`` and, transitively, by whoever those grants
+    went to. Each grant is listed once, so cycles end."""
+    issued: dict[uuid.UUID, list[MembershipGrant]] = {}
+    for grant in live:
+        issued.setdefault(grant.granted_by, []).append(grant)
+    out: list[MembershipGrant] = []
+    seen_grants: set[str] = set()
+    seen_members = {recipient_id}
+    frontier = [recipient_id]
+    while frontier:
+        member = members.get(frontier.pop())
+        if member is None:
+            continue
+        for grant in issued.get(member.user_id, []):
+            if grant.id in seen_grants:
+                continue
+            seen_grants.add(grant.id)
+            out.append(grant)
+            if grant.membership_id not in seen_members:
+                seen_members.add(grant.membership_id)
+                frontier.append(grant.membership_id)
+    return out
+
+
+async def _end_cascaded(
+    session: AsyncSession,
+    grant: MembershipGrant,
+    *,
+    organisation_id: str,
+    trigger: str,
+    root: str,
+    grantor_membership_id: str,
+) -> None:
+    """End one grant the cascade reached, audited with its trigger and root (#527)."""
+    grant.revoked_at = utc_now()
+    session.add(grant)
+    await audit_service.record_change(
+        session,
+        entity_type="platform_organisation",
+        entity_id=organisation_id,
+        record_type="organisation_membership_grant",
+        record_id=grant.id,
+        action="revoke_cascade",
+        changes={
+            "trigger": (None, trigger),
+            "root": (None, root),
+            "grantor_membership": (None, grantor_membership_id),
+        },
+        organisation_id=organisation_id,
+    )
+
+
+async def revoke_grant_detailed(
     session: AsyncSession, context: OrgContext, *, grant_id: str
-) -> MembershipGrant:
+) -> GrantRevocation:
+    """Revoke a grant and every grant that depended on it (ADR-0044 S3, #527).
+
+    A downstream grant is ended only when it loses support: no chain of supported
+    grants from an owner or admin still reaches its grantor. Owners and admins are
+    roots, so their grants survive. The check ignores entitlements. Stale callers are
+    refused: the revoker's membership is re-read after the roster lock."""
     audit_service.set_actor(session, context.user.id)
     await lock_roster(session, context.organisation_id)
+    revoker = await session.get(
+        Membership, context.membership.id, populate_existing=True
+    )
+    if (
+        revoker is None
+        or revoker.organisation_id != context.organisation_id
+        or revoker.status != MembershipStatus.ACTIVE.value
+    ):
+        raise GrantNotHeldError()
+    context = replace(context, membership=revoker)
     grant = await session.scalar(
         select(MembershipGrant)
         .where(
@@ -320,19 +480,55 @@ async def revoke_grant(
         ):
             raise GrantNotHeldError()
     if grant.revoked_at is not None:
-        return grant
-    was_live = grant.expires_at is None or grant.expires_at > utc_now()
-    grant.revoked_at = utc_now()
-    await session.flush()
+        return GrantRevocation(grant=grant, cascaded=0)
+
+    now = utc_now()
+    was_live = grant.expires_at is None or grant.expires_at > now
+    organisation_id = context.organisation_id
+    candidates: list[MembershipGrant] = []
     if was_live:
-        await revoke_dependent_grants(
-            session,
-            organisation_id=context.organisation_id,
-            seed_membership_ids=[grant.membership_id],
-            actor_id=context.user.id,
-            cause="grant_revoked",
+        members = await _active_members(session, organisation_id)
+        before = await _live_grants(session, organisation_id, now)
+        candidates = _downstream(members, before, grant.membership_id)
+    grant.revoked_at = now
+    await session.flush()
+    victims: list[MembershipGrant] = []
+    if was_live:
+        members = await _active_members(session, organisation_id)
+        supported = _supported_grant_ids(
+            members, await _live_grants(session, organisation_id, now)
         )
-    return grant
+        victims = [c for c in candidates if c.id != grant.id and c.id not in supported]
+        if len(victims) > MAX_CASCADE_GRANTS:
+            raise GrantCascadeTooLargeError(MAX_CASCADE_GRANTS)
+        for victim in victims:
+            await _end_cascaded(
+                session,
+                victim,
+                organisation_id=organisation_id,
+                trigger="grant_revoked",
+                root=grant.id,
+                grantor_membership_id=_grantor_membership(members, victim),
+            )
+        await session.flush()
+    logger.info(
+        "organisation grant revoked",
+        extra={"organisation_id": organisation_id, "cascaded": len(victims)},
+    )
+    return GrantRevocation(grant=grant, cascaded=len(victims))
+
+
+def _grantor_membership(members: dict[str, Membership], grant: MembershipGrant) -> str:
+    for member in members.values():
+        if member.user_id == grant.granted_by:
+            return member.id
+    return ""
+
+
+async def revoke_grant(
+    session: AsyncSession, context: OrgContext, *, grant_id: str
+) -> MembershipGrant:
+    return (await revoke_grant_detailed(session, context, grant_id=grant_id)).grant
 
 
 async def issued_recipient_ids(
@@ -344,7 +540,7 @@ async def issued_recipient_ids(
 ) -> list[str]:
     """Membership ids of the people holding live grants that ``user_id`` issued here.
 
-    Read before those grants are ended, so the caller can re-check what they relied on."""
+    Read before those grants are ended, so the cascade can start from them."""
     rows = await session.scalars(
         select(MembershipGrant.membership_id)
         .where(
@@ -358,78 +554,63 @@ async def issued_recipient_ids(
     return list(rows.all())
 
 
-async def revoke_dependent_grants(
+async def end_issued_transitively(
     session: AsyncSession,
     *,
     organisation_id: str,
     seed_membership_ids: Collection[str],
     actor_id: uuid.UUID,
-    cause: str,
+    trigger: str,
+    root: str,
+    products: Collection[str] | None = None,
 ) -> int:
-    """Transitive revocation (issue #527, ADR-0044 S3). Returns the grants ended.
+    """End every live grant the seed members issued, then every grant their recipients
+    issued, transitively (ADR-0044 S3, #527). Returns the grants ended.
 
-    A grant is only as good as its grantor's authority. When a member loses keys (a
-    grant they hold was ended, they were demoted, or they were removed), each live
-    grant they issued that they no longer cover is ended too. Its recipient then
-    loses those keys, so the same check runs for them, until nothing changes. Two
-    managers therefore cannot keep access between them by granting onward.
-
-    Coverage is ``required_keys`` of the bundle against ``effective_keys`` after the
-    changes so far. Owners and admins hold every key through their role, so grants
-    they issued survive a revoke of what they were granted. Each pass only ends
-    grants, so a cycle ends after at most one revoke per grant. Callers hold the
-    roster lock (``lock_roster``) and this function flushes. Each end is audited with
-    the cause and the member whose authority dropped."""
+    Used when a member is demoted or removed. Owners and admins are never traversed,
+    neither as seeds nor as recipients: their keys come from their role and their own
+    grants stay. Each end is audited with its trigger and root. Callers hold the roster
+    lock and this function flushes."""
     audit_service.set_actor(session, actor_id)
-    pending = list(dict.fromkeys(seed_membership_ids))
+    now = utc_now()
+    members_rows = await session.scalars(
+        select(Membership).where(Membership.organisation_id == organisation_id)
+    )
+    members = {m.id: m for m in members_rows.all()}
+    live = await _live_grants(session, organisation_id, now, products)
+    issued: dict[uuid.UUID, list[MembershipGrant]] = {}
+    for grant in live:
+        issued.setdefault(grant.granted_by, []).append(grant)
+    frontier = list(dict.fromkeys(seed_membership_ids))
+    seen_members = set(frontier)
+    seen_grants: set[str] = set()
     ended = 0
-    while pending:
-        membership_id = pending.pop(0)
-        membership = await session.scalar(
-            select(Membership).where(
-                Membership.id == membership_id,
-                Membership.organisation_id == organisation_id,
-            )
-        )
-        if membership is None:
+    privileged = (MembershipRole.OWNER.value, MembershipRole.ADMIN.value)
+    while frontier:
+        member = members.get(frontier.pop())
+        if member is None:
             continue
-        keys = await effective_keys(session, membership=membership)
-        issued = await session.scalars(
-            select(MembershipGrant)
-            .where(
-                MembershipGrant.organisation_id == organisation_id,
-                MembershipGrant.granted_by == membership.user_id,
-                *_live(utc_now()),
-            )
-            .order_by(MembershipGrant.id)
-            .with_for_update()
-        )
-        for grant in issued.all():
-            bundle = role_bundles.bundle_keys(grant.role_key)
-            if bundle is not None and required_keys(bundle) <= keys:
+        if member.status == MembershipStatus.ACTIVE.value and member.role in privileged:
+            continue
+        for grant in issued.get(member.user_id, []):
+            if grant.id in seen_grants:
                 continue
-            grant.revoked_at = utc_now()
+            seen_grants.add(grant.id)
             ended += 1
-            await audit_service.record_change(
+            if ended > MAX_CASCADE_GRANTS:
+                raise GrantCascadeTooLargeError(MAX_CASCADE_GRANTS)
+            await _end_cascaded(
                 session,
-                entity_type="platform_organisation",
-                entity_id=organisation_id,
-                record_type="organisation_membership_grant",
-                record_id=grant.id,
-                action="revoke_cascade",
-                changes={
-                    "cause": (None, cause),
-                    "authority_lost_by": (None, membership.id),
-                },
+                grant,
                 organisation_id=organisation_id,
+                trigger=trigger,
+                root=root,
+                grantor_membership_id=member.id,
             )
-            pending.append(grant.membership_id)
-        await session.flush()
-    if ended:
-        logger.info(
-            "organisation grants revoked by cascade",
-            extra={"organisation_id": organisation_id, "grants_revoked": ended},
-        )
+            if grant.membership_id not in seen_members:
+                seen_members.add(grant.membership_id)
+                frontier.append(grant.membership_id)
+    await session.flush()
     return ended
 
 

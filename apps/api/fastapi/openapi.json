@@ -26889,7 +26889,7 @@
           "organisations"
         ],
         "summary": "Revoke a role grant",
-        "description": "Needs the bundle's permissions and its product's team-manage permission. Nobody can revoke their own grant (403). Revoking an already revoked grant returns it unchanged.",
+        "description": "Needs the bundle's permissions and its product's team-manage permission. Nobody can revoke their own grant (403). Revoking an already revoked grant returns it unchanged. Grants that depended on it, through the members it was granted to, are revoked too; ``cascaded_revocations`` counts them. Revoking a team grant can end the grants its holder issued. 409 when the cascade would end more than 200 roles.",
         "operationId": "organisationsRevokeMemberGrant",
         "security": [
           {
@@ -26931,7 +26931,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/MembershipGrantPublic"
+                  "$ref": "#/components/schemas/GrantRevokePublic"
                 }
               }
             }
@@ -74125,6 +74125,81 @@
           "buildingIds"
         ],
         "title": "GrantCreate"
+      },
+      "GrantRevokePublic": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "membership_id": {
+            "type": "string",
+            "title": "Membership Id"
+          },
+          "member_name": {
+            "type": "string",
+            "title": "Member Name"
+          },
+          "role_key": {
+            "type": "string",
+            "title": "Role Key"
+          },
+          "granted_by_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Granted By Name"
+          },
+          "granted_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Granted At"
+          },
+          "expires_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Expires At"
+          },
+          "revoked_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Revoked At"
+          },
+          "cascaded_revocations": {
+            "type": "integer",
+            "title": "Cascaded Revocations",
+            "default": 0
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "membership_id",
+          "member_name",
+          "role_key",
+          "granted_at"
+        ],
+        "title": "GrantRevokePublic",
+        "description": "The revoked grant and how many other grants the cascade ended (#527)."
       },
       "GroupDetail": {
         "properties": {

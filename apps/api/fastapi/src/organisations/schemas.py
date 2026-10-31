@@ -379,6 +379,12 @@ class MembershipGrantPublic(BaseModel):
     revoked_at: UtcDateTime | None = None
 
 
+class GrantRevokePublic(MembershipGrantPublic):
+    """The revoked grant and how many other grants the cascade ended (#527)."""
+
+    cascaded_revocations: int = 0
+
+
 class TeamMemberGrantPublic(BaseModel):
     """A live role on the roster. Only products the caller manages are listed."""
 
