@@ -257,6 +257,7 @@ _APPEND_ONLY = (
     ("rewards.entry", "entry_append_only"),
     ("payments.ledger_entry", "ledger_entry_append_only"),
     ("events.activity", "activity_append_only"),
+    ("hr.pay_line", "pay_line_locked"),
 )
 _clear_sql: str | None = None
 

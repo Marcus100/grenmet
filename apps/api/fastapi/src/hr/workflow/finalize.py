@@ -25,6 +25,11 @@ from src.utils.datetime import utc_now
 async def finalize_entity(
     session: AsyncSession, instance: WorkflowInstance, actor_id: uuid.UUID
 ) -> None:
+    if instance.entity_type == "pay_period":
+        from src.hr.payroll import service as payroll_service
+
+        await payroll_service.finalize_review(session, instance, actor_id)
+        return
     if instance.entity_type == "attendance_correction":
         from src.hr.attendance.models import AttendanceCorrection, AttendanceRecord
         from src.hr.workflow.models import WorkflowType

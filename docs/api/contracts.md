@@ -38,6 +38,33 @@ Shared HR shift and public-holiday definitions require this global
 `roster.manage` authority or a superuser for writes; organisation `ALL`,
 department and SELF grants cannot mutate definitions shared by other employers.
 
+## HR payroll inputs (slice 1, added 31 Oct 2026)
+
+`/api/v1/hr/payroll/*` produces pay-input **quantities** (hours and counts) per
+pay period and employee for GAA's payroll of record, HrPlus. No rate, amount,
+tax, NIS or bank field exists in any request, response or export.
+
+- Catalogue and setup: `GET items`, `GET|POST calendars`, `GET profiles`,
+  `PUT profiles/{user_id}`, `GET department-settings`,
+  `PUT department-settings/{department_id}`. A new organisation's `items` list is
+  empty; GAA's items are seeded `PROVISIONAL` with a `source_reference`.
+- Periods: `GET|POST periods`, `GET periods/{period_id}` (totals and
+  `allowed_actions`), `GET|POST periods/{period_id}/lines`,
+  `DELETE periods/{period_id}/lines/{line_id}` (manual lines, open periods only).
+- Lifecycle: `POST computation` (idempotent), `POST submission` (starts the
+  `PAYROLL_RUN` workflow), `POST approval` and `POST return` (second person only),
+  `POST export.csv` (`text/csv`), `POST closure`.
+- Access: keys `hr.payroll.read.department`, `.prepare`, `.approve`, `.export`,
+  granted to no default role. Prepare, approve and export need organisation-wide
+  scope; approve and export also need an MFA-verified session (403 otherwise). A
+  period outside the caller's payroll access is 404. Generic workflow action and
+  instance-create routes refuse `pay_period` entities.
+- `WorkflowType` gains `PAYROLL_RUN` (additive; clients should render unknown
+  types generically).
+- Overtime band items (`method: OVERTIME_BAND`) compute nothing until the roster
+  rules engine (#380) provides bands; `overtime_bands_available` says which, and
+  `accepts_manual_lines` marks items preparers may enter by hand.
+
 ## Base URLs
 
 | Environment | API base URL |

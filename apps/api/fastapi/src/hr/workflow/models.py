@@ -18,6 +18,7 @@ class WorkflowType(str, Enum):
     STATUS_REPORT = "STATUS_REPORT"
     TIMESHEET = "TIMESHEET"
     PARKING_PERMIT = "PARKING_PERMIT"
+    PAYROLL_RUN = "PAYROLL_RUN"
 
 
 class WorkflowStatus(str, Enum):

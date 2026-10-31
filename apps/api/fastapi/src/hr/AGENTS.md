@@ -4,7 +4,7 @@
 
 ## Layout
 Sub-packages, each with its own `router.py`/`service.py`/`schemas.py`/`models.py`:
-`absentee`, `calendar`, `dailystatus`, `dashboard`, `documents`, `exchange`, `leave`, `parking`, `roster`, `signatures`, `timesheet`, `training`, `workflow`. Profile/employment routes are in `routers/profile.py`; organisations in `organisations.py`.
+`absentee`, `attendance`, `calendar`, `dailystatus`, `dashboard`, `documents`, `exchange`, `leave`, `parking`, `payroll` (pay-input quantities for HrPlus; read `payroll/AGENTS.md`), `roster`, `signatures`, `timesheet`, `training`, `workflow`. Profile/employment routes are in `routers/profile.py`; organisations in `organisations.py`.
 All tables live in the `hr` schema of the main database (main Alembic history).
 
 ## Invariants

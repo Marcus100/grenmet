@@ -40,6 +40,14 @@ from .models import (
 )
 from .organisations import permitted_departments
 from .parking.models import ParkingPermit
+from .payroll.models import (
+    EmployeePayProfile,
+    PayCalendar,
+    PayItem,
+    PayLine,
+    PayPeriod,
+    PayrollDepartmentSetting,
+)
 from .roster.models import PublicHoliday
 from .timesheet.models import DepartmentPolicy, Timesheet, TimesheetEntry
 from .training.models import TrainingRecord
@@ -161,6 +169,22 @@ async def _document(session: AsyncSession, actor: User, entity_id: str) -> bool:
     except AppException:
         return False
     return True
+
+
+async def _payroll_period(session: AsyncSession, actor: User, entity_id: str) -> bool:
+    from .payroll.access import visible_departments
+
+    period_id = parse_uuid(entity_id)
+    period = await session.get(PayPeriod, period_id) if period_id else None
+    if period is None:
+        return False
+    return bool(await visible_departments(session, actor, period.organisation_id))
+
+
+async def _payroll_settings(session: AsyncSession, actor: User, entity_id: str) -> bool:
+    from .payroll.access import visible_departments
+
+    return bool(await visible_departments(session, actor, entity_id))
 
 
 async def _organisation_admin(
@@ -412,4 +436,48 @@ def register() -> None:
         record_type="clock_punch",
         label="Phone clock punch",
         sensitive=("review_note",),
+    )
+
+    # Payroll inputs: periods (status, approval, export count) and lines entered
+    # by hand under the period; calendars, the catalogue, pay profiles and
+    # department defaults under the organisation. Computed lines are bulk
+    # writes summarised by one "compute" entry per computation.
+    registry.register_entity("pay_period", _payroll_period)
+    registry.track(PayPeriod, record_type="pay_period", label="Pay period")
+    registry.track(
+        PayLine,
+        record_type="pay_line",
+        entity_type="pay_period",
+        entity_id_attr="period_id",
+        label="Pay line",
+        sensitive=("reason",),
+    )
+    registry.register_entity("payroll_settings", _payroll_settings)
+    registry.track(
+        PayCalendar,
+        record_type="pay_calendar",
+        entity_type="payroll_settings",
+        entity_id_attr="organisation_id",
+        label="Pay calendar",
+    )
+    registry.track(
+        PayItem,
+        record_type="pay_item",
+        entity_type="payroll_settings",
+        entity_id_attr="organisation_id",
+        label="Pay item",
+    )
+    registry.track(
+        EmployeePayProfile,
+        record_type="employee_pay_profile",
+        entity_type="payroll_settings",
+        entity_id_attr="organisation_id",
+        label="Employee pay profile",
+    )
+    registry.track(
+        PayrollDepartmentSetting,
+        record_type="payroll_department_setting",
+        entity_type="payroll_settings",
+        entity_id_attr="organisation_id",
+        label="Payroll department default",
     )
