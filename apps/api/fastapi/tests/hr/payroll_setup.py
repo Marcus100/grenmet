@@ -2,6 +2,7 @@
 
 import uuid
 from datetime import date, datetime
+from typing import Any
 
 import httpx
 from sqlalchemy import select
@@ -124,9 +125,8 @@ async def employee_in(db: AsyncSession, department: Department) -> User:
             WorkflowTemplate.workflow_type == WorkflowType.TIMESHEET,
         )
     ):
-        await make_submission_setup(  # type: ignore[no-untyped-call]
-            db, employee, department.id, WorkflowType.TIMESHEET
-        )
+        setup: Any = make_submission_setup
+        await setup(db, employee, department.id, WorkflowType.TIMESHEET)
     else:
         from tests.factories import make_ready_staff
 

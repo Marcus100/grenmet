@@ -19146,7 +19146,7 @@
           "hr-payroll"
         ],
         "summary": "Read a pay period",
-        "description": "Status, totals per pay item and the actions the caller may take. Totals cover only the departments the caller may read.",
+        "description": "Status, totals per pay item (quantities only, never money) and the actions the caller may take. Totals cover only the departments the caller may read.",
         "operationId": "hrGetPayPeriod",
         "security": [
           {
