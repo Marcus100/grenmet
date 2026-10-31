@@ -897,7 +897,7 @@ test("TRUSTED_WEB_SECRET is required, at least 32 characters and distinct, witho
   }
 });
 
-test("TRUSTED_WEB_SECRET reaches the API and Events only, from deploy.yml", () => {
+test("TRUSTED_WEB_SECRET reaches the API and the visitor-forwarding web hosts only, from deploy.yml", () => {
   const workflow = readFileSync(".github/workflows/deploy.yml", "utf8");
   const compose = readFileSync(
     "infra/docker/docker-compose.deploy.yml",
@@ -910,7 +910,7 @@ test("TRUSTED_WEB_SECRET reaches the API and Events only, from deploy.yml", () =
       block.includes("TRUSTED_WEB_SECRET: ${TRUSTED_WEB_SECRET")
     )
     .map((block) => block.trim().split(":")[0]);
-  assert.deepEqual(holders, ["api", "web-events"]);
+  assert.deepEqual(holders, ["api", "web-gms", "web-events", "web-bookings"]);
 });
 
 test("the Meta page settings render empty by default and must be numbers", () => {

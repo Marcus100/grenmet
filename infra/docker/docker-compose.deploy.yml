@@ -168,7 +168,8 @@ services:
       BACKEND_CORS_ORIGINS: ${BACKEND_CORS_ORIGINS}
       # Single sign-on (ADR-0017): each app's URL and the secret its server
       # presents to redeem codes. Events is optional; staff apps are required.
-      # Shared with the web hosts that forward the visitor address (web-events),
+      # Shared with the web hosts that forward the visitor address (web-events,
+      # web-gms, web-bookings),
       # so rate limits key on the visitor, not the web container (src/rate_limit.py).
       TRUSTED_WEB_SECRET: ${TRUSTED_WEB_SECRET:?TRUSTED_WEB_SECRET required}
       EVENTS_APP_URL: https://events.${BASE_DOMAIN}
@@ -639,6 +640,12 @@ services:
       AUTH_API_URL: http://api:8000
       AUTH_API_V1_STR: /api/v1
       AUTH_ALLOWED_RETURN_HOSTS: .${BASE_DOMAIN}${EXTRA_RETURN_HOSTS:-}
+      # Alert sign-ups (src/lib/visitor-client.ts).
+      # Same value as the API: forwards each visitor's address (X-Visitor-IP).
+      # Hops: proxies in front of this container that append to x-forwarded-for
+      # (Traefik alone: 1; behind Cloudflare with trustedIPs: 2; render-env.py).
+      TRUSTED_WEB_SECRET: ${TRUSTED_WEB_SECRET:?TRUSTED_WEB_SECRET required}
+      VISITOR_IP_PROXY_HOPS: ${VISITOR_IP_PROXY_HOPS:-1}
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.web-gms${ROUTER_SUFFIX}.rule=Host(`weather.${BASE_DOMAIN}`)"
@@ -810,6 +817,12 @@ services:
       AUTH_APP_URL: https://auth.${BASE_DOMAIN}
       # Optional: empty keeps sign-in off (single sign-on, ADR-0017).
       BOOKINGS_SSO_CLIENT_SECRET: ${BOOKINGS_SSO_CLIENT_SECRET:-}
+      # Booking and code requests (src/lib/booking-api.ts).
+      # Same value as the API: forwards each visitor's address (X-Visitor-IP).
+      # Hops: proxies in front of this container that append to x-forwarded-for
+      # (Traefik alone: 1; behind Cloudflare with trustedIPs: 2; render-env.py).
+      TRUSTED_WEB_SECRET: ${TRUSTED_WEB_SECRET:?TRUSTED_WEB_SECRET required}
+      VISITOR_IP_PROXY_HOPS: ${VISITOR_IP_PROXY_HOPS:-1}
       NEXT_PUBLIC_SENTRY_DSN: ${SENTRY_DSN_BOOKINGS:-}
       NEXT_PUBLIC_SENTRY_ENVIRONMENT: ${ENVIRONMENT}
     labels:
