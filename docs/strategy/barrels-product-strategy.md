@@ -444,7 +444,8 @@ software.
     unfinished everything app.
 
 This sequence describes dependencies, not automatic authorization or fixed
-delivery dates.
+delivery dates. The daily-home proposal in step 6 is unscheduled and creates no
+prerequisite for steps 7–9; the portfolio plan governs their actual order.
 
 ## Measures of success
 
