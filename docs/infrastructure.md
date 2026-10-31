@@ -130,6 +130,7 @@ Review these access points at least quarterly and after staff changes:
 Owner hardening runbooks (step-by-step, with verify and undo for each step):
 
 - [Host hardening](operations/host-hardening.md): updates, SSH, fail2ban, DigitalOcean Cloud Firewall, runner least privilege.
+- [Cloudflare proxy](operations/cloudflare-proxy.md): orange cloud, Traefik trusted ranges, visitor hops, origin firewall and cache rules, switched by `CLOUDFLARE_PROXY_ENABLED`.
 - [Domain security](operations/domain-security.md): registrar lock, DNSSEC, wildcards, CAA, Microsoft 365 mail, DMARC.
 - [Account 2FA checklist](operations/account-2fa-checklist.md): provider 2FA and read-only audit tokens.
 - [Sentry hardening](operations/sentry-hardening.md): organization privacy and scrubbing settings.

@@ -440,6 +440,7 @@ export { hrPutDepartmentRuleSet } from "./hrPutDepartmentRuleSet.js";
 export { hrPutDepartmentRules } from "./hrPutDepartmentRules.js";
 export { hrPutOrganisationRuleSet } from "./hrPutOrganisationRuleSet.js";
 export { hrPutRuleProfile } from "./hrPutRuleProfile.js";
+export { hrRefreshPayPeriodTableState } from "./hrRefreshPayPeriodTableState.js";
 export { hrRejectClockPunch } from "./hrRejectClockPunch.js";
 export { hrRemoveHoliday } from "./hrRemoveHoliday.js";
 export { hrRenameOrganisation } from "./hrRenameOrganisation.js";

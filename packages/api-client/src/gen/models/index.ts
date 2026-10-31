@@ -5427,6 +5427,19 @@ export type {
   HrPutRuleProfileStatus422,
 } from "./HrPutRuleProfile.js";
 export type {
+  HrRefreshPayPeriodTableStateOptions,
+  HrRefreshPayPeriodTableStatePath,
+  HrRefreshPayPeriodTableStateResponse,
+  HrRefreshPayPeriodTableStateResponses,
+  HrRefreshPayPeriodTableStateStatus200,
+  HrRefreshPayPeriodTableStateStatus400,
+  HrRefreshPayPeriodTableStateStatus401,
+  HrRefreshPayPeriodTableStateStatus403,
+  HrRefreshPayPeriodTableStateStatus404,
+  HrRefreshPayPeriodTableStateStatus409,
+  HrRefreshPayPeriodTableStateStatus422,
+} from "./HrRefreshPayPeriodTableState.js";
+export type {
   HrRejectClockPunchBody,
   HrRejectClockPunchOptions,
   HrRejectClockPunchPath,

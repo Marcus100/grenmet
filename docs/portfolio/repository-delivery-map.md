@@ -121,6 +121,7 @@ GMS or GAA.
 | `infra/docker` | Barrels platform infrastructure | Active; legacy naming remains during transition | Shared app/API databases and local/staging/production composition |
 | `infra/weather` | GMS weather delivery operated by Barrels | Active development | Separate SURFACE/WIS2 lifecycles, collector schedules, durable storage and recovery; GeoNetCast remains local |
 | `infra/postgres` | Barrels database bootstrap and compatibility assets | Active | Keep roles/extensions aligned with application migrations and independently managed stacks |
+| `infra/cloudflare` | Barrels edge configuration: vendored Cloudflare edge address ranges | Active; used only when `CLOUDFLARE_PROXY_ENABLED` is on | Refresh with `scripts/production/cloudflare_ranges.py --check` / `--update` (quarterly); trusted by Traefik and the origin firewall ([runbook](../operations/cloudflare-proxy.md)) |
 | `infra/github` | Barrels repository governance: committed snapshot of GitHub branch rulesets | Active | Regenerate with `scripts/guardrails/github-rulesets.mjs --snapshot` after a ruleset change; `rulesets-drift.yml` fails when GitHub differs from it |
 | `.github/workflows` | Barrels engineering delivery automation | Active | CI, images, deployment orchestration, backups, and database preparation |
 | `.github/security` | Barrels engineering security policy | Active | Versioned, reviewed vulnerability exceptions with bounded expiry |

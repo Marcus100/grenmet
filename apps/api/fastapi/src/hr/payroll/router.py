@@ -76,7 +76,7 @@ ERRORS: dict[int | str, dict[str, Any]] = {
     401: {"model": ApiError, "description": "Not signed in"},
     403: {
         "model": ApiError,
-        "description": "Missing payroll permission, organisation-wide scope or two-step verification, or separation of duty (you prepared or added lines to the period, or it is your own pay)",
+        "description": "Missing payroll permission, organisation-wide scope or two-step verification, or separation of duty (you prepared, added lines to, or changed a profile used in the period, or it contains your own pay)",
     },
     404: {
         "model": ApiError,
@@ -375,7 +375,7 @@ async def submit_period(
     response_model=PayPeriodDetail,
     status_code=status.HTTP_200_OK,
     summary="Approve a pay period",
-    description="Needs organisation-wide hr.payroll.approve, a session verified with two-step verification, and the approval stage; never someone who submitted the period or added lines to it. The final approval locks the period.",
+    description="Needs organisation-wide hr.payroll.approve, a session verified with two-step verification, and the approval stage; never someone who submitted the period, added lines to it, has their own pay in it, or changed a pay profile or shift-worker default it relies on. The final approval locks the period.",
     operation_id="hrApprovePayPeriod",
     responses=ERRORS,
 )
@@ -398,7 +398,7 @@ async def approve_period(
     response_model=PayPeriodDetail,
     status_code=status.HTTP_200_OK,
     summary="Return a pay period to the preparer",
-    description="Needs organisation-wide hr.payroll.approve and a reason; never someone who submitted the period or added lines to it. The period reopens for changes.",
+    description="Needs organisation-wide hr.payroll.approve and a reason; never someone who submitted the period, added lines to it, has their own pay in it, or changed a pay profile or shift-worker default it relies on. The period reopens for changes.",
     operation_id="hrReturnPayPeriod",
     responses=ERRORS,
 )
@@ -721,6 +721,26 @@ async def approve_for_issue(
     period_id: uuid.UUID,
 ) -> PayPeriodDetail:
     await deductions.approve_for_issue(session, current_user, period_id, token=token)
+    return await _detail(session, current_user, period_id)
+
+
+@router.post(
+    "/periods/{period_id}/table-state-refresh",
+    response_model=PayPeriodDetail,
+    status_code=status.HTTP_200_OK,
+    summary="Refresh a period's table states before issue",
+    description="After a table is confirmed, copies the current state of each table onto an approved period's deduction lines (state only, no figures change) so it can be approved for issue. Audited. Needs organisation-wide hr.payroll.approve and two-step verification; never someone excluded from approving the period; only before issue approval.",
+    operation_id="hrRefreshPayPeriodTableState",
+    responses=ERRORS,
+)
+async def refresh_table_state(
+    *,
+    session: SessionDep,
+    current_user: CurrentUser,
+    token: TokenDep,
+    period_id: uuid.UUID,
+) -> PayPeriodDetail:
+    await deductions.refresh_table_state(session, current_user, period_id, token=token)
     return await _detail(session, current_user, period_id)
 
 

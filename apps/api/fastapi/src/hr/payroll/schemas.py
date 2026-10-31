@@ -447,7 +447,6 @@ class DeductionTypeCreate(BaseModel):
     employer_amount_minor: Minor | None = None
     premium_minor: Minor | None = None
     employee_share: Rate | None = None
-    requires_authorisation: bool = True
     is_active: bool = True
     effective_from: date
     effective_to: date | None = None
@@ -456,6 +455,9 @@ class DeductionTypeCreate(BaseModel):
 
 class DeductionTypePublic(DeductionTypeCreate, TableProvenance):
     id: uuid.UUID
+    #: Always true: the employee's recorded authorisation and confirmation are
+    #: required before any deduction type is taken. Not settable on create.
+    requires_authorisation: bool
 
 
 class StatutoryTablesPublic(BaseModel):

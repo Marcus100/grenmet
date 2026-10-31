@@ -239,11 +239,36 @@ def upgrade() -> None:
         ["user_id"],
         schema="hr",
     )
+    # Locked like pay lines, with one controlled exception: the audited "table
+    # state refresh" may change source_rule_state only (nothing else), and only
+    # inside a transaction that set payroll.refresh_table_state.
     op.execute(
         """
+        CREATE FUNCTION hr.pay_deduction_line_is_locked() RETURNS trigger AS $$
+        DECLARE
+          period_status text;
+        BEGIN
+          SELECT status INTO period_status FROM hr.pay_period
+            WHERE id = COALESCE(NEW.period_id, OLD.period_id);
+          IF TG_OP = 'UPDATE'
+             AND COALESCE(current_setting('payroll.refresh_table_state', true), '') = 'on'
+             AND (to_jsonb(NEW) - 'source_rule_state') = (to_jsonb(OLD) - 'source_rule_state')
+             AND period_status IN ('APPROVED', 'EXPORTED') THEN
+            RETURN NEW;
+          END IF;
+          IF period_status IS DISTINCT FROM 'OPEN' THEN
+            RAISE EXCEPTION 'hr.pay_deduction_line: period % is %, lines are locked',
+              COALESCE(NEW.period_id, OLD.period_id), period_status;
+          END IF;
+          IF TG_OP = 'DELETE' THEN
+            RETURN OLD;
+          END IF;
+          RETURN NEW;
+        END;
+        $$ LANGUAGE plpgsql;
         CREATE TRIGGER pay_deduction_line_locked
           BEFORE INSERT OR UPDATE OR DELETE ON hr.pay_deduction_line
-          FOR EACH ROW EXECUTE FUNCTION hr.pay_line_is_locked();
+          FOR EACH ROW EXECUTE FUNCTION hr.pay_deduction_line_is_locked();
         """
     )
 
@@ -254,7 +279,25 @@ def downgrade() -> None:
         query = sa.select(sa.literal(1)).select_from(sa.table(table, schema="hr"))
         if bind.execute(query.limit(1)).first():
             raise RuntimeError(f"hr.{table} has rows; remove them before downgrading")
+    # Tables someone created or confirmed (seeded rows have neither) are
+    # payroll decisions: never dropped by a downgrade.
+    for table in ("tax_table", "social_insurance_scheme", "deduction_type"):
+        entered = (
+            sa.select(sa.literal(1))
+            .select_from(sa.table(table, schema="hr"))
+            .where(
+                sa.or_(
+                    sa.column("created_by_user_id").is_not(None),
+                    sa.column("confirmed_by_user_id").is_not(None),
+                )
+            )
+        )
+        if bind.execute(entered.limit(1)).first():
+            raise RuntimeError(
+                f"hr.{table} holds tables entered or confirmed by staff; remove them first"
+            )
     op.execute("DROP TRIGGER pay_deduction_line_locked ON hr.pay_deduction_line")
+    op.execute("DROP FUNCTION hr.pay_deduction_line_is_locked()")
     for table in (
         "pay_deduction_line",
         "employee_deduction",

@@ -197,6 +197,16 @@ def downgrade() -> None:
             raise RuntimeError(
                 f"hr.{table} holds pay data; remove it before downgrading"
             )
+    # Rates someone entered (seeded rows have no creator) are pay data too.
+    entered = (
+        sa.select(sa.literal(1))
+        .select_from(sa.table("pay_item_rate", schema="hr"))
+        .where(sa.column("created_by_user_id").is_not(None))
+    )
+    if bind.execute(entered.limit(1)).first():
+        raise RuntimeError(
+            "hr.pay_item_rate holds rates entered by staff; remove them before downgrading"
+        )
     op.drop_constraint("pay_line_basic_pay_id_fkey", "pay_line", schema="hr")
     op.drop_constraint("pay_line_pay_item_rate_id_fkey", "pay_line", schema="hr")
     for name in (

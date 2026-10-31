@@ -443,6 +443,7 @@ export { hrPutDepartmentRuleSet } from "./clients/hrPutDepartmentRuleSet.js";
 export { hrPutDepartmentRules } from "./clients/hrPutDepartmentRules.js";
 export { hrPutOrganisationRuleSet } from "./clients/hrPutOrganisationRuleSet.js";
 export { hrPutRuleProfile } from "./clients/hrPutRuleProfile.js";
+export { hrRefreshPayPeriodTableState } from "./clients/hrRefreshPayPeriodTableState.js";
 export { hrRejectClockPunch } from "./clients/hrRejectClockPunch.js";
 export { hrRemoveHoliday } from "./clients/hrRemoveHoliday.js";
 export { hrRenameOrganisation } from "./clients/hrRenameOrganisation.js";
@@ -2943,6 +2944,11 @@ export {
   hrPutRuleProfileMutationOptions,
   useHrPutRuleProfile,
 } from "./hooks/useHrPutRuleProfile.js";
+export {
+  hrRefreshPayPeriodTableStateMutationKey,
+  hrRefreshPayPeriodTableStateMutationOptions,
+  useHrRefreshPayPeriodTableState,
+} from "./hooks/useHrRefreshPayPeriodTableState.js";
 export {
   hrRejectClockPunchMutationKey,
   hrRejectClockPunchMutationOptions,
@@ -9821,6 +9827,19 @@ export type {
   HrPutRuleProfileStatus404,
   HrPutRuleProfileStatus422,
 } from "./models/HrPutRuleProfile.js";
+export type {
+  HrRefreshPayPeriodTableStateOptions,
+  HrRefreshPayPeriodTableStatePath,
+  HrRefreshPayPeriodTableStateResponse,
+  HrRefreshPayPeriodTableStateResponses,
+  HrRefreshPayPeriodTableStateStatus200,
+  HrRefreshPayPeriodTableStateStatus400,
+  HrRefreshPayPeriodTableStateStatus401,
+  HrRefreshPayPeriodTableStateStatus403,
+  HrRefreshPayPeriodTableStateStatus404,
+  HrRefreshPayPeriodTableStateStatus409,
+  HrRefreshPayPeriodTableStateStatus422,
+} from "./models/HrRefreshPayPeriodTableState.js";
 export type {
   HrRejectClockPunchBody,
   HrRejectClockPunchOptions,
@@ -19461,6 +19480,19 @@ export {
   hrPutRuleProfileStatus404Schema,
   hrPutRuleProfileStatus422Schema,
 } from "./zod/hrPutRuleProfileSchema.js";
+export {
+  hrRefreshPayPeriodTableStateErrorSchema,
+  hrRefreshPayPeriodTableStatePathPeriodIdSchema,
+  hrRefreshPayPeriodTableStatePathSchema,
+  hrRefreshPayPeriodTableStateResponseSchema,
+  hrRefreshPayPeriodTableStateStatus200Schema,
+  hrRefreshPayPeriodTableStateStatus400Schema,
+  hrRefreshPayPeriodTableStateStatus401Schema,
+  hrRefreshPayPeriodTableStateStatus403Schema,
+  hrRefreshPayPeriodTableStateStatus404Schema,
+  hrRefreshPayPeriodTableStateStatus409Schema,
+  hrRefreshPayPeriodTableStateStatus422Schema,
+} from "./zod/hrRefreshPayPeriodTableStateSchema.js";
 export {
   hrRejectClockPunchBodySchema,
   hrRejectClockPunchErrorSchema,
