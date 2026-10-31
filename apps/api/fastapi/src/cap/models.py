@@ -187,6 +187,10 @@ class CapAlert(Base):
         default=CapLifecycleState.DRAFT, index=True
     )
     allow_self_approval: Mapped[bool] = column(default=True)
+    # An imported alert that does not fully follow the CAP 1.2 schema is kept for
+    # review with the first schema error. We never publish it.
+    schema_conformant: Mapped[bool] = column(default=True)
+    schema_error: Mapped[str | None] = column(default=None, max_length=1000)
     created_by_user_id: Mapped[uuid.UUID] = column(foreign_key="user.id", index=True)
     updated_by_user_id: Mapped[uuid.UUID | None] = column(
         default=None, foreign_key="user.id"

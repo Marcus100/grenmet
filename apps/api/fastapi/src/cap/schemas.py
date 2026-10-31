@@ -1,3 +1,4 @@
+import re
 import uuid
 from typing import Annotated, Any, Literal
 
@@ -10,6 +11,7 @@ from src.cap.models import (
     CapIntegrationStatus,
     CapLifecycleState,
     CapMessageType,
+    CapResponseType,
     CapScope,
     CapSeverity,
     CapStatus,
@@ -97,11 +99,43 @@ class CapInfoBase(BaseModel):
 
 
 class CapInfoCreate(CapInfoBase):
+    """Save-time checks. They run on what a forecaster types, not on stored rows."""
+
     effective: Annotated[UtcDateTime, AwareDatetime()] | None = None
     onset: Annotated[UtcDateTime, AwareDatetime()] | None = None
     expires: Annotated[UtcDateTime, AwareDatetime()] | None = None
     resources: list[CapResourceCreate] = Field(default_factory=list)
     areas: list[CapAreaCreate] = Field(default_factory=list)
+
+    @field_validator("response_types")
+    @classmethod
+    def _response_types_are_cap_values(cls, values: list[str]) -> list[str]:
+        allowed = [item.value for item in CapResponseType]
+        bad = [value for value in values if value not in allowed]
+        if bad:
+            raise ValueError(
+                f"responseType {', '.join(repr(value) for value in bad)} is not a CAP "
+                f"response type. Use one or more of: {', '.join(allowed)}."
+            )
+        return values
+
+    @field_validator("language")
+    @classmethod
+    def _language_is_a_language_tag(cls, value: str) -> str:
+        if not re.fullmatch(r"[A-Za-z]{1,8}(?:-[A-Za-z0-9]{1,8})*", value):
+            raise ValueError(
+                f"language {value!r} is not a language tag such as en or en-GD."
+            )
+        return value
+
+    @field_validator("web")
+    @classmethod
+    def _web_is_one_address(cls, value: str | None) -> str | None:
+        if value is not None and re.search(r"\s|[<>\"]", value):
+            raise ValueError(
+                "web must be one web address with no spaces, quotes or angle brackets."
+            )
+        return value
 
 
 class CapInfoPublic(CapInfoBase):
@@ -212,6 +246,9 @@ class CapAlertPublic(BaseModel):
     id: uuid.UUID
     identifier: str
     sender: str
+    # False for an imported alert that does not fully follow the CAP 1.2 schema.
+    schema_conformant: bool = True
+    schema_error: str | None = None
     sent: UtcDateTime
     status: CapStatus
     msg_type: CapMessageType

@@ -53900,6 +53900,22 @@
             "type": "string",
             "title": "Sender"
           },
+          "schema_conformant": {
+            "type": "boolean",
+            "title": "Schema Conformant",
+            "default": true
+          },
+          "schema_error": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Schema Error"
+          },
           "sent": {
             "type": "string",
             "format": "date-time",
@@ -55256,7 +55272,8 @@
           "headline",
           "description"
         ],
-        "title": "CapInfoCreate"
+        "title": "CapInfoCreate",
+        "description": "Save-time checks. They run on what a forecaster types, not on stored rows."
       },
       "CapInfoPublic": {
         "properties": {

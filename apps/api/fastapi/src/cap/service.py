@@ -35,10 +35,11 @@ from src.cap.exceptions import (
     CapAlertNotFoundError,
     CapFeedNotFoundError,
     CapImportError,
-    CapSchemaValidationError,
+    CapNonConformingAlertError,
     CapStateError,
     CapValidationFailedError,
 )
+from src.cap.import_coerce import coerce_for_import
 from src.cap.levels import INTERNAL_PARAMETERS
 from src.cap.mapping import (
     _alert_selectinload_options,
@@ -104,11 +105,16 @@ from src.cap.validation import (
     validate_import_url,
 )
 from src.cap.xml import alert_to_cap_xml, ensure_well_formed, xml_to_alert_data
-from src.cap.xsd import ensure_cap_schema
+from src.cap.xsd import ensure_cap_schema, first_schema_error
 from src.config import settings as app_config
 from src.utils.datetime import utc_now
 
 logger = logging.getLogger(__name__)
+
+_NON_CONFORMING_PUBLISH = (
+    "This alert was imported and does not fully follow the CAP 1.2 schema, so it "
+    "cannot be published. Author a new alert instead."
+)
 
 __all__ = [
     "PUBLIC_HAZARD_GROUPS",
@@ -229,11 +235,21 @@ async def import_alert(
     else:
         raw_xml = value
 
-    # Order: well-formed and DTD-free (400), then the official schema (422), then
-    # the field-level parse (400). A bad enumeration is a schema refusal, not a 400.
+    # Only malformed XML and a DTD are refused (400). Anything else that breaks the
+    # CAP 1.2 schema is stored and flagged: never published, never copied.
     ensure_well_formed(raw_xml)
-    ensure_cap_schema(raw_xml, action="import")
-    payload = xml_to_alert_data(raw_xml)
+    raw_bytes = raw_xml.encode("utf-8") if isinstance(raw_xml, str) else raw_xml
+    schema_error = first_schema_error(raw_bytes)
+    payload = xml_to_alert_data(coerce_for_import(raw_bytes))
+    if schema_error is not None:
+        logger.warning(
+            "Imported CAP alert does not fully follow the CAP 1.2 schema",
+            extra={
+                "identifier": payload.identifier,
+                "source": source,
+                "schema_error": schema_error,
+            },
+        )
     if payload.identifier:
         existing = await session.execute(
             select(CapAlert).where(CapAlert.identifier == payload.identifier)
@@ -241,12 +257,19 @@ async def import_alert(
         if existing.scalars().first() is not None:
             raise CapImportError(f"alert {payload.identifier} already exists")
     return await create_alert(
-        session=session, current_user=current_user, payload=payload
+        session=session,
+        current_user=current_user,
+        payload=payload,
+        schema_error=schema_error,
     )
 
 
 async def create_alert(
-    *, session: AsyncSession, current_user: User, payload: CapAlertCreate
+    *,
+    session: AsyncSession,
+    current_user: User,
+    payload: CapAlertCreate,
+    schema_error: str | None = None,
 ) -> CapAlertPublic:
     require_permission(current_user=current_user, permission_key="cap.alert.create")
     settings = await get_or_create_settings(session=session)
@@ -263,6 +286,8 @@ async def create_alert(
         addresses=payload.addresses,
         codes=payload.codes,
         note=payload.note,
+        schema_conformant=schema_error is None,
+        schema_error=schema_error,
         created_by_user_id=current_user.id,
         updated_by_user_id=current_user.id,
     )
@@ -346,6 +371,11 @@ async def duplicate_alert(
 ) -> CapAlertPublic:
     require_permission(current_user=current_user, permission_key="cap.alert.create")
     original = await get_alert_or_404(session=session, alert_id=alert_id)
+    if not original.schema_conformant:
+        raise CapNonConformingAlertError(
+            "This alert was imported and does not fully follow the CAP 1.2 schema, "
+            "so it cannot be copied. Author a new alert instead."
+        )
     public = await _to_public(session=session, alert=original)
     # Database timestamps are naive UTC; use the public UTC representation when
     # constructing a new input, whose timestamps must carry explicit offsets.
@@ -634,6 +664,12 @@ async def _publish(
     note: str | None,
     emergency_reason: str | None = None,
 ) -> tuple[CapAlertPublic, CapSnapshotPublic]:
+    if not alert.schema_conformant:
+        logger.warning(
+            "Refused to publish an imported alert that does not follow the CAP 1.2 schema",
+            extra={"alert_id": str(alert.id), "identifier": alert.identifier},
+        )
+        raise CapNonConformingAlertError(_NON_CONFORMING_PUBLISH)
     public = await _to_public(session=session, alert=alert)
     validation = validate_cap_alert(public)
     if not validation.is_valid:
@@ -1233,8 +1269,7 @@ async def ingest_feed(
                 http_client=http_client,
             )
             created += 1
-        except CapImportError, CapSchemaValidationError:
-            # Malformed, non-conforming or duplicate: skip it and keep going.
+        except CapImportError:  # malformed, a DTD, or a duplicate: skip, keep going
             skipped += 1
 
     feed.last_checked_at = utc_now()

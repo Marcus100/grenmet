@@ -15,6 +15,8 @@ export const capAlertPublicSchema = z.object({
   id: z.uuid(),
   identifier: z.string(),
   sender: z.string(),
+  schema_conformant: z.boolean().optional().default(true),
+  schema_error: z.union([z.string(), z.null()]).optional(),
   sent: z.iso.datetime(),
   status: capStatusSchema,
   msg_type: capMessageTypeSchema,

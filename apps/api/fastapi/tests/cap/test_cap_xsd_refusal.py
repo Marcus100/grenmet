@@ -19,9 +19,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from src.auth.models import User
 from src.cap import service as cap_service
 from src.cap import xsd
-from src.cap.exceptions import CapSchemaValidationError
+from src.cap.exceptions import CapNonConformingAlertError, CapSchemaValidationError
 from src.cap.models import CapAlert, CapFeedImport, CapLifecycleState, CapScope
-from src.cap.schemas import CapAlertAction, CapAlertCreate
+from src.cap.schemas import CapAlertAction
 from src.cap.xml import alert_to_cap_xml
 from src.cap.xsd import cap_schema_errors, ensure_cap_schema
 from tests.factories import make_user
@@ -41,6 +41,7 @@ def _enabled_refusal_logger(monkeypatch: pytest.MonkeyPatch) -> None:
     # Alembic's fileConfig (run by the database bootstrap) disables loggers that
     # already exist, so re-enable ours to keep the log assertions order-independent.
     monkeypatch.setattr(xsd.logger, "disabled", False)
+    monkeypatch.setattr(cap_service.logger, "disabled", False)
 
 
 def _base_xml() -> bytes:
@@ -211,39 +212,60 @@ def test_schema_does_not_replace_the_rules_in_validation_py() -> None:
 _BAD_XML = _ENTRY_XML.replace(
     b"<severity>Moderate</severity>", b"<severity>Critical</severity>"
 )
+_DTD_XML = (
+    b'<?xml version="1.0"?><!DOCTYPE alert [<!ENTITY x "y">]>'
+    + _ENTRY_XML.split(b"?>", 1)[1]
+)
 
 
-async def test_publish_refuses_non_conforming_xml_and_publishes_nothing(
+async def test_import_stores_a_non_conforming_document_flagged_and_never_publishes_it(
     db_async: AsyncSession, caplog: pytest.LogCaptureFixture
 ) -> None:
     user = await make_user(db_async, superuser=True)
-    payload = {
-        **_VALID_PAYLOAD_DICT,
-        "info": [{**_VALID_PAYLOAD_DICT["info"][0], "response_types": ["Hide"]}],
-    }
-    created = await cap_service.create_alert(
-        session=db_async,
-        current_user=user,
-        payload=CapAlertCreate(**payload),
-    )
+    with caplog.at_level(logging.WARNING, logger="src.cap.service"):
+        imported = await cap_service.import_alert(
+            session=db_async,
+            current_user=user,
+            source="xml",
+            value=_BAD_XML.decode("utf-8"),
+        )
 
-    with caplog.at_level(logging.WARNING, logger="src.cap.xsd"):
-        with pytest.raises(CapSchemaValidationError) as raised:
-            await _publish_approved(
-                session=db_async,
-                current_user=user,
-                alert_id=created.id,
-                payload=CapAlertAction(),
-            )
+    assert imported.schema_conformant is False
+    assert "Critical" in (imported.schema_error or "")
+    assert imported.info[0].severity == "Unknown"  # stored as a neutral value
+    assert any(getattr(r, "identifier", None) == "FEED-001" for r in caplog.records)
 
+    with pytest.raises(CapNonConformingAlertError) as raised:
+        await _publish_approved(
+            session=db_async,
+            current_user=user,
+            alert_id=imported.id,
+            payload=CapAlertAction(),
+        )
     assert raised.value.status_code == 422
-    stored = await db_async.get(CapAlert, created.id)
+    stored = await db_async.get(CapAlert, imported.id)
     assert stored is not None
     assert stored.lifecycle_state == CapLifecycleState.APPROVED
-    assert any(getattr(r, "action", None) == "publish" for r in caplog.records)
 
 
-async def test_import_api_refuses_non_conforming_xml_with_422(
+async def test_an_imported_non_conforming_alert_cannot_be_copied(
+    db_async: AsyncSession,
+) -> None:
+    user = await make_user(db_async, superuser=True)
+    imported = await cap_service.import_alert(
+        session=db_async,
+        current_user=user,
+        source="xml",
+        value=_BAD_XML.decode("utf-8"),
+    )
+
+    with pytest.raises(CapNonConformingAlertError):
+        await cap_service.duplicate_alert(
+            session=db_async, current_user=user, alert_id=imported.id
+        )
+
+
+async def test_import_api_stores_the_document_with_a_flag(
     async_client: httpx.AsyncClient,
     superuser_token_headers_async: dict[str, str],
     db_async: AsyncSession,
@@ -254,12 +276,28 @@ async def test_import_api_refuses_non_conforming_xml_with_422(
         json={"source": "xml", "value": _BAD_XML.decode("utf-8")},
     )
 
-    assert resp.status_code == 422, resp.text
-    assert "official CAP 1.2 schema" in resp.json()["detail"]
+    assert resp.status_code == 201, resp.text
+    body = resp.json()
+    assert body["schema_conformant"] is False
+    assert "official" not in body["schema_error"]  # the error is the schema's own text
+    assert "Critical" in body["schema_error"]
     stored = await db_async.execute(
         select(CapAlert).where(CapAlert.identifier == "FEED-001")
     )
-    assert stored.scalars().first() is None
+    assert stored.scalars().first() is not None
+
+
+async def test_import_api_still_refuses_a_document_with_a_dtd(
+    async_client: httpx.AsyncClient,
+    superuser_token_headers_async: dict[str, str],
+) -> None:
+    resp = await async_client.post(
+        "/api/v1/cap/alerts/import",
+        headers=superuser_token_headers_async,
+        json={"source": "xml", "value": _DTD_XML.decode("utf-8")},
+    )
+
+    assert resp.status_code == 400, resp.text
 
 
 async def test_import_keeps_400_for_malformed_xml(
@@ -275,7 +313,7 @@ async def test_import_keeps_400_for_malformed_xml(
     assert resp.status_code == 400, resp.text
 
 
-async def test_feed_skips_a_non_conforming_entry_and_keeps_going(
+async def test_feed_imports_a_non_conforming_entry_flagged_and_keeps_going(
     db_async: AsyncSession, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     su: User = await make_user(db_async, superuser=True)
@@ -299,12 +337,73 @@ async def test_feed_skips_a_non_conforming_entry_and_keeps_going(
             session=db_async, feed=row, system_user=su, http_client=client
         )
 
-    assert result == {"created": 1, "skipped": 1}
-    kept = await db_async.execute(
-        select(CapAlert).where(CapAlert.identifier == "FEED-GOOD")
-    )
-    assert kept.scalars().first() is not None
-    refused = await db_async.execute(
+    assert result == {"created": 2, "skipped": 0}
+    flagged = await db_async.execute(
         select(CapAlert).where(CapAlert.identifier == "FEED-001")
     )
-    assert refused.scalars().first() is None
+    flagged_row = flagged.scalars().first()
+    assert flagged_row is not None and flagged_row.schema_conformant is False
+    clean = await db_async.execute(
+        select(CapAlert).where(CapAlert.identifier == "FEED-GOOD")
+    )
+    clean_row = clean.scalars().first()
+    assert clean_row is not None and clean_row.schema_conformant is True
+
+
+async def test_a_feed_entry_with_a_dtd_is_still_skipped(
+    db_async: AsyncSession, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    su: User = await make_user(db_async, superuser=True)
+    row = CapFeedImport(name="GD peer", url="https://feeds.test/cap.rss")
+    db_async.add(row)
+    await db_async.commit()
+    await db_async.refresh(row)
+    links = ["https://feeds.test/dtd.xml"]
+    _patch_feedparser(monkeypatch, links)
+
+    def handler(_request: httpx.Request) -> httpx.Response:
+        return httpx.Response(200, content=_DTD_XML)
+
+    async with httpx.AsyncClient(transport=httpx.MockTransport(handler)) as client:
+        result = await cap_service.ingest_feed(
+            session=db_async, feed=row, system_user=su, http_client=client
+        )
+
+    assert result == {"created": 0, "skipped": 1}
+
+
+async def test_the_save_time_checks_refuse_a_bad_value_before_it_is_stored(
+    async_client: httpx.AsyncClient,
+    superuser_token_headers_async: dict[str, str],
+) -> None:
+    base = {
+        **_VALID_PAYLOAD_DICT,
+        "info": [{**_VALID_PAYLOAD_DICT["info"][0]}],
+    }
+    cases = {
+        "responseType": {"response_types": ["Hide"]},
+        "language": {"language": "en_GB"},
+        "web": {"web": "https://example.test/a page"},
+    }
+    for label, change in cases.items():
+        payload = {**base, "info": [{**base["info"][0], **change}]}
+        resp = await async_client.post(
+            "/api/v1/cap/alerts", headers=superuser_token_headers_async, json=payload
+        )
+        assert resp.status_code == 422, (label, resp.text)
+        assert label in resp.text or label.lower() in resp.text.lower(), resp.text
+
+    valid = {
+        **base,
+        "info": [
+            {
+                **base["info"][0],
+                "response_types": ["Prepare"],
+                "web": "https://example.test/gms",
+            }
+        ],
+    }
+    resp = await async_client.post(
+        "/api/v1/cap/alerts", headers=superuser_token_headers_async, json=valid
+    )
+    assert resp.status_code == 201, resp.text

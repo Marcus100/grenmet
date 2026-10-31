@@ -48,6 +48,12 @@ def cap_schema_errors(xml: str | bytes) -> list[str]:
     return []
 
 
+def first_schema_error(xml: str | bytes) -> str | None:
+    """The first schema error for ``xml``, cut to fit the stored column, or None when it conforms."""
+    errors = cap_schema_errors(xml)
+    return errors[0][:1000] if errors else None
+
+
 def ensure_cap_schema(
     xml: str | bytes,
     *,

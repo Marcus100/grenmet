@@ -20,6 +20,12 @@ export type CapAlertPublic = {
   identifier: string;
   sender: string;
   /**
+   * @default true
+   * @type boolean | undefined
+   */
+  schema_conformant?: boolean;
+  schema_error?: string | null;
+  /**
    * @description
    * Format: `date-time`
    * @type string

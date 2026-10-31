@@ -92,6 +92,8 @@ def _to_public_from_loaded(
         id=alert.id,
         identifier=alert.identifier,
         sender=alert.sender,
+        schema_conformant=alert.schema_conformant,
+        schema_error=alert.schema_error,
         sent=alert.sent,
         status=alert.status,
         msg_type=alert.msg_type,
