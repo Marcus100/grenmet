@@ -20,6 +20,21 @@ button and the drawer's "Your account" block. The auth routes, callback,
 `/auth/me` and account handling are unchanged. Tests: `header.test.tsx`,
 `nav-drawer.test.tsx`, `auth-config.test.ts`. Documented in `docs/env.md`.
 
+**Not wired in deploy yet.** `infra/docker/docker-compose.deploy.yml` (the
+`web-gms` service) and `scripts/production/render-env.py` do not pass
+`WEATHER_SHOW_SIGN_IN`, so a deployed site keeps the button hidden. Those are
+owner-merge files and were left unchanged. To show the button again, add one
+line to the `web-gms` environment block, next to `WEATHER_SSO_CLIENT_SECRET`:
+
+```yaml
+      WEATHER_SHOW_SIGN_IN: ${WEATHER_SHOW_SIGN_IN:-false}
+```
+
+and add `WEATHER_SHOW_SIGN_IN` to the GMS web entries in `render-env.py` so the
+value reaches the environment. The value is read when the pages are rendered,
+and the standing pages are static, so a change shows only after a redeploy
+(rebuild if it is read at build time).
+
 ## Data sources — no database
 
 No DB access. Two backends, never gaa-admin (it only authors into FastAPI):
@@ -158,7 +173,7 @@ src/app/
   hero tabs (marine lives at `/marine`). The website has no bottom tab bar;
   `MobileTabBar` is kept for the app.
 - **Units (28 Oct 2026):** every hero measurement is metric or imperial,
-  metric until a visitor chooses (owner first chose imperial, then metric) (switch in the top corner of the home hero card, above the tabs, `components/units-toggle.tsx` placed by `components/home/sky-hero.tsx`; it was in the header until 31 Oct 2026, so only the home page has the switch and other pages show the saved choice; saved in `localStorage`
+  metric until a visitor chooses (owner first chose imperial, then metric) (switch in the top corner of the home hero card, above the tabs, `components/units-toggle.tsx` placed by `components/home/sky-hero.tsx`; it was in the header until 31 Oct 2026, so only the home page has the switch and other pages show the saved choice (the switch is on the home page only, in the hero card); saved in `localStorage`
   `gm-units`). The API sends WMO units (°C, knots, metres, km, hPa, mm). A figure
   is a `Measure` (`lib/units.ts`) rendered by `components/measure.tsx` in both
   systems; `globals.css` shows one by `<html data-units>`, so static pages never

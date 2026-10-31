@@ -304,6 +304,24 @@ for the header and the nav drawer). The switch only hides the button: the
 `/auth` routes, the callback and the account handling stay live, and the
 `WEATHER_SSO_CLIENT_SECRET` check still decides whether sign-in works at all.
 
+**Not wired in deploy yet.** `infra/docker/docker-compose.deploy.yml` (the
+`web-gms` service) and `scripts/production/render-env.py` do not pass
+`WEATHER_SHOW_SIGN_IN`, so a deployed site keeps the button hidden. Those are
+owner-merge files and were left unchanged. To show the button again, add one
+line to the `web-gms` environment block, next to `WEATHER_SSO_CLIENT_SECRET`:
+
+```yaml
+      WEATHER_SHOW_SIGN_IN: ${WEATHER_SHOW_SIGN_IN:-false}
+```
+
+and add `WEATHER_SHOW_SIGN_IN` to the GMS web entries in `render-env.py` so the
+value reaches the environment. The value is read when the pages are rendered,
+and the standing pages are static, so a change shows only after a redeploy
+(rebuild if it is read at build time).
+
+The units switch is on the home page only (it lives in the home hero card, not
+the header), so other pages show the saved choice without a control.
+
 In `infra/docker/docker-compose.deploy.yml` every web service (and the CMS) sets
 `AUTH_API_URL: http://api:8000`, never the public `https://api.<domain>`.
 Calling the public hostname hairpins through Traefik, which replaces the
