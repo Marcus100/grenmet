@@ -7,6 +7,7 @@ from src.dependencies import CurrentUser, SessionDep
 from src.hr.dependencies import LeaveRequestDep
 from src.hr.filenames import preview_filename
 from src.hr.submission import submission_list, submission_public
+from src.models import ApiError
 from src.openapi_responses import AUTHENTICATED
 from src.pagination import PaginationDep
 from src.utils.pdf_response import PDF_HEADERS_DOC, pdf_response
@@ -38,8 +39,11 @@ router = APIRouter(prefix="/hr", tags=["hr-leave"])
             "description": "Draft PDF preview",
             "headers": PDF_HEADERS_DOC,
         },
-        400: {"description": "Invalid date order, day count or travel dates"},
-        403: {"description": "Permission or department mismatch"},
+        400: {
+            "model": ApiError,
+            "description": "Invalid date order, day count or travel dates",
+        },
+        403: {"model": ApiError, "description": "Permission or department mismatch"},
         422: {"description": "Invalid leave request fields"},
     },
 )
@@ -60,8 +64,14 @@ async def preview_leave_request_pdf(
     description="Create a leave request for the current user. Requires leave.request.create.self permission.",
     responses={
         status.HTTP_201_CREATED: {"description": "Leave request created"},
-        status.HTTP_400_BAD_REQUEST: {"description": "Invalid leave request fields"},
-        status.HTTP_403_FORBIDDEN: {"description": "Insufficient permission"},
+        status.HTTP_400_BAD_REQUEST: {
+            "model": ApiError,
+            "description": "Invalid leave request fields",
+        },
+        status.HTTP_403_FORBIDDEN: {
+            "model": ApiError,
+            "description": "Insufficient permission",
+        },
     },
 )
 async def create_leave_request(
@@ -81,12 +91,17 @@ async def create_leave_request(
     responses={
         status.HTTP_200_OK: {"description": "Leave request submitted"},
         status.HTTP_400_BAD_REQUEST: {
-            "description": "Leave request is not a draft or required fields are invalid"
+            "model": ApiError,
+            "description": "Leave request is not a draft or required fields are invalid",
         },
         status.HTTP_403_FORBIDDEN: {
-            "description": "Not allowed to submit this leave request"
+            "model": ApiError,
+            "description": "Not allowed to submit this leave request",
         },
-        status.HTTP_404_NOT_FOUND: {"description": "Leave request not found"},
+        status.HTTP_404_NOT_FOUND: {
+            "model": ApiError,
+            "description": "Leave request not found",
+        },
     },
 )
 async def submit_leave_request(
@@ -112,9 +127,18 @@ async def submit_leave_request(
     description="Update a still-DRAFT leave request in place. Requires leave.request.create.self permission and ownership.",
     responses={
         status.HTTP_200_OK: {"description": "Leave request updated"},
-        status.HTTP_400_BAD_REQUEST: {"description": "Leave request is not a draft"},
-        status.HTTP_403_FORBIDDEN: {"description": "Not allowed to edit this request"},
-        status.HTTP_404_NOT_FOUND: {"description": "Leave request not found"},
+        status.HTTP_400_BAD_REQUEST: {
+            "model": ApiError,
+            "description": "Leave request is not a draft",
+        },
+        status.HTTP_403_FORBIDDEN: {
+            "model": ApiError,
+            "description": "Not allowed to edit this request",
+        },
+        status.HTTP_404_NOT_FOUND: {
+            "model": ApiError,
+            "description": "Leave request not found",
+        },
     },
 )
 async def update_leave_request(
@@ -140,11 +164,18 @@ async def update_leave_request(
     description="Delete an own DRAFT leave request. Requires leave.request.create.self permission and ownership.",
     responses={
         status.HTTP_204_NO_CONTENT: {"description": "Leave request deleted"},
-        status.HTTP_400_BAD_REQUEST: {"description": "Leave request is not a draft"},
-        status.HTTP_403_FORBIDDEN: {
-            "description": "Not allowed to delete this request"
+        status.HTTP_400_BAD_REQUEST: {
+            "model": ApiError,
+            "description": "Leave request is not a draft",
         },
-        status.HTTP_404_NOT_FOUND: {"description": "Leave request not found"},
+        status.HTTP_403_FORBIDDEN: {
+            "model": ApiError,
+            "description": "Not allowed to delete this request",
+        },
+        status.HTTP_404_NOT_FOUND: {
+            "model": ApiError,
+            "description": "Leave request not found",
+        },
     },
 )
 async def delete_leave_request(
@@ -168,9 +199,13 @@ async def delete_leave_request(
     responses={
         status.HTTP_200_OK: {"description": "Leave request updated"},
         status.HTTP_403_FORBIDDEN: {
-            "description": "Not allowed to action this leave request"
+            "model": ApiError,
+            "description": "Not allowed to action this leave request",
         },
-        status.HTTP_404_NOT_FOUND: {"description": "Leave request not found"},
+        status.HTTP_404_NOT_FOUND: {
+            "model": ApiError,
+            "description": "Leave request not found",
+        },
     },
 )
 async def action_leave_request(
@@ -224,8 +259,14 @@ async def read_my_leave_requests(
     responses={
         **AUTHENTICATED,
         status.HTTP_200_OK: {"description": "Working day count returned"},
-        status.HTTP_400_BAD_REQUEST: {"description": "Invalid or too long range"},
-        status.HTTP_403_FORBIDDEN: {"description": "Insufficient permission"},
+        status.HTTP_400_BAD_REQUEST: {
+            "model": ApiError,
+            "description": "Invalid or too long range",
+        },
+        status.HTTP_403_FORBIDDEN: {
+            "model": ApiError,
+            "description": "Insufficient permission",
+        },
     },
 )
 async def read_working_days(

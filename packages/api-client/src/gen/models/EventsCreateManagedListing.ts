@@ -3,6 +3,8 @@
  * Do not edit manually.
  */
 
+import type { ApiError } from "./ApiError.js";
+import type { ErrorMessage } from "./ErrorMessage.js";
 import type { ListingUpsert } from "./ListingUpsert.js";
 import type { ManagedListing } from "./ManagedListing.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
@@ -16,13 +18,29 @@ export type EventsCreateManagedListingQuery = {
 
 export type EventsCreateManagedListingStatus201 = ManagedListing;
 
-export type EventsCreateManagedListingStatus401 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type EventsCreateManagedListingStatus401 = ApiError;
 
-export type EventsCreateManagedListingStatus403 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type EventsCreateManagedListingStatus403 = ApiError;
 
-export type EventsCreateManagedListingStatus404 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type EventsCreateManagedListingStatus404 = ApiError;
 
-export type EventsCreateManagedListingStatus409 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type EventsCreateManagedListingStatus409 = ApiError;
 
 /**
  * @description Validation error envelope returned for malformed requests.
@@ -30,7 +48,7 @@ export type EventsCreateManagedListingStatus409 = unknown;
  */
 export type EventsCreateManagedListingStatus422 = ValidationErrorResponse;
 
-export type EventsCreateManagedListingStatus429 = unknown;
+export type EventsCreateManagedListingStatus429 = ApiError | ErrorMessage;
 
 export type EventsCreateManagedListingBody = ListingUpsert;
 

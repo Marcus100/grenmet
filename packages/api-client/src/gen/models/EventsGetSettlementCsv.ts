@@ -3,6 +3,8 @@
  * Do not edit manually.
  */
 
+import type { ApiError } from "./ApiError.js";
+import type { ErrorMessage } from "./ErrorMessage.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 
 export type EventsGetSettlementCsvPath = {
@@ -23,13 +25,29 @@ export type EventsGetSettlementCsvQuery = {
 
 export type EventsGetSettlementCsvStatus200 = string;
 
-export type EventsGetSettlementCsvStatus401 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type EventsGetSettlementCsvStatus401 = ApiError;
 
-export type EventsGetSettlementCsvStatus403 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type EventsGetSettlementCsvStatus403 = ApiError;
 
-export type EventsGetSettlementCsvStatus404 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type EventsGetSettlementCsvStatus404 = ApiError;
 
-export type EventsGetSettlementCsvStatus409 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type EventsGetSettlementCsvStatus409 = ApiError;
 
 /**
  * @description Validation error envelope returned for malformed requests.
@@ -37,7 +55,7 @@ export type EventsGetSettlementCsvStatus409 = unknown;
  */
 export type EventsGetSettlementCsvStatus422 = ValidationErrorResponse;
 
-export type EventsGetSettlementCsvStatus429 = unknown;
+export type EventsGetSettlementCsvStatus429 = ApiError | ErrorMessage;
 
 export type EventsGetSettlementCsvOptions = {
   body?: never;

@@ -4,6 +4,7 @@
  */
 
 import type { AbsenteeReportCreate } from "./AbsenteeReportCreate.js";
+import type { ApiError } from "./ApiError.js";
 
 export type HrPreviewAbsenteeReportPdfStatus200Json = unknown;
 
@@ -13,9 +14,17 @@ export type HrPreviewAbsenteeReportPdfStatus200 =
   | HrPreviewAbsenteeReportPdfStatus200Json
   | HrPreviewAbsenteeReportPdfStatus200Pdf;
 
-export type HrPreviewAbsenteeReportPdfStatus400 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type HrPreviewAbsenteeReportPdfStatus400 = ApiError;
 
-export type HrPreviewAbsenteeReportPdfStatus403 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type HrPreviewAbsenteeReportPdfStatus403 = ApiError;
 
 export type HrPreviewAbsenteeReportPdfStatus422 = unknown;
 

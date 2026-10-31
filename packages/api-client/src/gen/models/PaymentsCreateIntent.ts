@@ -3,6 +3,7 @@
  * Do not edit manually.
  */
 
+import type { ApiError } from "./ApiError.js";
 import type { PaymentCheckoutPublic } from "./PaymentCheckoutPublic.js";
 import type { PaymentIntentCreate } from "./PaymentIntentCreate.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
@@ -20,15 +21,35 @@ export type PaymentsCreateIntentHeaders = {
  */
 export type PaymentsCreateIntentStatus201 = PaymentCheckoutPublic;
 
-export type PaymentsCreateIntentStatus400 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type PaymentsCreateIntentStatus400 = ApiError;
 
-export type PaymentsCreateIntentStatus401 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type PaymentsCreateIntentStatus401 = ApiError;
 
-export type PaymentsCreateIntentStatus403 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type PaymentsCreateIntentStatus403 = ApiError;
 
-export type PaymentsCreateIntentStatus404 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type PaymentsCreateIntentStatus404 = ApiError;
 
-export type PaymentsCreateIntentStatus409 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type PaymentsCreateIntentStatus409 = ApiError;
 
 /**
  * @description Validation error envelope returned for malformed requests.

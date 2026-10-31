@@ -3,6 +3,7 @@
  * Do not edit manually.
  */
 
+import type { ApiError } from "./ApiError.js";
 import type { Message } from "./Message.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 
@@ -17,11 +18,23 @@ export type HrApproveStaffRegistrationPath = {
 
 export type HrApproveStaffRegistrationStatus200 = Message;
 
-export type HrApproveStaffRegistrationStatus403 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type HrApproveStaffRegistrationStatus403 = ApiError;
 
-export type HrApproveStaffRegistrationStatus404 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type HrApproveStaffRegistrationStatus404 = ApiError;
 
-export type HrApproveStaffRegistrationStatus409 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type HrApproveStaffRegistrationStatus409 = ApiError;
 
 /**
  * @description Validation error envelope returned for malformed requests.

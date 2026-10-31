@@ -3,6 +3,7 @@
  * Do not edit manually.
  */
 
+import type { ApiError } from "./ApiError.js";
 import type { TrainingArchiveInput } from "./TrainingArchiveInput.js";
 import type { TrainingRecordPublic } from "./TrainingRecordPublic.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
@@ -18,9 +19,17 @@ export type HrArchiveTrainingRecordPath = {
 
 export type HrArchiveTrainingRecordStatus200 = TrainingRecordPublic;
 
-export type HrArchiveTrainingRecordStatus403 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type HrArchiveTrainingRecordStatus403 = ApiError;
 
-export type HrArchiveTrainingRecordStatus404 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type HrArchiveTrainingRecordStatus404 = ApiError;
 
 /**
  * @description Validation error envelope returned for malformed requests.

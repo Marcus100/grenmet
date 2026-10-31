@@ -4,6 +4,7 @@
  */
 
 import * as z from "zod";
+import { apiErrorSchema } from "./apiErrorSchema.js";
 import { receivablesPublicSchema } from "./receivablesPublicSchema.js";
 import { validationErrorResponseSchema } from "./validationErrorResponseSchema.js";
 
@@ -25,9 +26,13 @@ export const billingGetReceivablesQuerySizeSchema = z
 
 export const billingGetReceivablesStatus200Schema = receivablesPublicSchema;
 
-export const billingGetReceivablesStatus401Schema = z.unknown();
+export const billingGetReceivablesStatus401Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
-export const billingGetReceivablesStatus403Schema = z.unknown();
+export const billingGetReceivablesStatus403Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
 export const billingGetReceivablesStatus422Schema =
   validationErrorResponseSchema.describe(

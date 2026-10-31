@@ -3,6 +3,7 @@
  * Do not edit manually.
  */
 
+import type { ApiError } from "./ApiError.js";
 import type { NotificationSnoozePublic } from "./NotificationSnoozePublic.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 
@@ -13,7 +14,11 @@ export type NotificationsGetNotificationSnoozesQuery = {
 export type NotificationsGetNotificationSnoozesStatus200 =
   NotificationSnoozePublic[];
 
-export type NotificationsGetNotificationSnoozesStatus403 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type NotificationsGetNotificationSnoozesStatus403 = ApiError;
 
 /**
  * @description Validation error envelope returned for malformed requests.

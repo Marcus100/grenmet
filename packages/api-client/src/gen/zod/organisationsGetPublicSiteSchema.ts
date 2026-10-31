@@ -4,6 +4,7 @@
  */
 
 import * as z from "zod";
+import { apiErrorSchema } from "./apiErrorSchema.js";
 import { publicSitePublicSchema } from "./publicSitePublicSchema.js";
 import { validationErrorResponseSchema } from "./validationErrorResponseSchema.js";
 
@@ -14,7 +15,8 @@ export const organisationsGetPublicSiteStatus200Schema =
     "What a public website needs to render its forms. Never holds a secret."
   );
 
-export const organisationsGetPublicSiteStatus404Schema = z.unknown();
+export const organisationsGetPublicSiteStatus404Schema =
+  apiErrorSchema.describe("Stable error envelope for documented API failures.");
 
 export const organisationsGetPublicSiteStatus422Schema =
   validationErrorResponseSchema.describe(

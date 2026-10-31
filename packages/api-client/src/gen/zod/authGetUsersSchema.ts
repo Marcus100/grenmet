@@ -4,6 +4,7 @@
  */
 
 import * as z from "zod";
+import { apiErrorSchema } from "./apiErrorSchema.js";
 import { paginatedResponseUserPublicSchema } from "./paginatedResponseUserPublicSchema.js";
 import { validationErrorResponseSchema } from "./validationErrorResponseSchema.js";
 
@@ -25,9 +26,13 @@ export const authGetUsersQuerySizeSchema = z
 
 export const authGetUsersStatus200Schema = paginatedResponseUserPublicSchema;
 
-export const authGetUsersStatus401Schema = z.unknown();
+export const authGetUsersStatus401Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
-export const authGetUsersStatus403Schema = z.unknown();
+export const authGetUsersStatus403Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
 export const authGetUsersStatus422Schema =
   validationErrorResponseSchema.describe(

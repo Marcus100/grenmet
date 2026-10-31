@@ -3,6 +3,8 @@
  * Do not edit manually.
  */
 
+import type { ApiError } from "./ApiError.js";
+import type { ErrorMessage } from "./ErrorMessage.js";
 import type { PublicMonthSummaryResponse } from "./PublicMonthSummaryResponse.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 
@@ -21,7 +23,7 @@ export type EregisterPublicMonthSummaryStatus200 = PublicMonthSummaryResponse;
  */
 export type EregisterPublicMonthSummaryStatus422 = ValidationErrorResponse;
 
-export type EregisterPublicMonthSummaryStatus429 = unknown;
+export type EregisterPublicMonthSummaryStatus429 = ApiError | ErrorMessage;
 
 export type EregisterPublicMonthSummaryStatus503 = unknown;
 

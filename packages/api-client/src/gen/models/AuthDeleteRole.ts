@@ -3,6 +3,7 @@
  * Do not edit manually.
  */
 
+import type { ApiError } from "./ApiError.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 
 export type AuthDeleteRolePath = {
@@ -16,9 +17,17 @@ export type AuthDeleteRolePath = {
 
 export type AuthDeleteRoleStatus204 = unknown;
 
-export type AuthDeleteRoleStatus400 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type AuthDeleteRoleStatus400 = ApiError;
 
-export type AuthDeleteRoleStatus404 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type AuthDeleteRoleStatus404 = ApiError;
 
 /**
  * @description Validation error envelope returned for malformed requests.

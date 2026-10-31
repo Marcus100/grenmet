@@ -1064,6 +1064,7 @@ export { bookingProviderCreateSchema } from "./bookingProviderCreateSchema.js";
 export { bookingProviderPublicSchema } from "./bookingProviderPublicSchema.js";
 export { bookingProviderSettingsSchema } from "./bookingProviderSettingsSchema.js";
 export { bookingProviderUpdateSchema } from "./bookingProviderUpdateSchema.js";
+export { bookingPublicCancelBodySchema } from "./bookingPublicCancelBodySchema.js";
 export { bookingPublicCancelSchema } from "./bookingPublicCancelSchema.js";
 export { bookingPublicCreateSchema } from "./bookingPublicCreateSchema.js";
 export { bookingPublicDetailSchema } from "./bookingPublicDetailSchema.js";
@@ -2092,6 +2093,7 @@ export { challengeStatusSchema } from "./challengeStatusSchema.js";
 export { checkInCreateSchema } from "./checkInCreateSchema.js";
 export { checkInPublicSchema } from "./checkInPublicSchema.js";
 export { checkoutSessionPublicSchema } from "./checkoutSessionPublicSchema.js";
+export { clockPunchApproveBodySchema } from "./clockPunchApproveBodySchema.js";
 export { clockPunchApproveSchema } from "./clockPunchApproveSchema.js";
 export { clockPunchesPublicSchema } from "./clockPunchesPublicSchema.js";
 export { clockPunchKindSchema } from "./clockPunchKindSchema.js";
@@ -2604,6 +2606,7 @@ export {
   eregisterValidateSynopObservationStatus403Schema,
   eregisterValidateSynopObservationStatus422Schema,
 } from "./eregisterValidateSynopObservationSchema.js";
+export { errorMessageSchema } from "./errorMessageSchema.js";
 export { eventCategoryNodePropertiesAppliesToItemsEnumSchema } from "./eventCategoryNodePropertiesAppliesToItemsEnumSchema.js";
 export { eventCategoryNodeSchema } from "./eventCategoryNodeSchema.js";
 export { eventCategorySubSchema } from "./eventCategorySubSchema.js";
@@ -5248,6 +5251,7 @@ export { invitationCreateSchema } from "./invitationCreateSchema.js";
 export { invitationPublicSchema } from "./invitationPublicSchema.js";
 export { invoiceDetailPublicSchema } from "./invoiceDetailPublicSchema.js";
 export { invoiceDraftWriteSchema } from "./invoiceDraftWriteSchema.js";
+export { invoiceIssueBodySchema } from "./invoiceIssueBodySchema.js";
 export { invoiceIssueSchema } from "./invoiceIssueSchema.js";
 export { invoiceLineInputSchema } from "./invoiceLineInputSchema.js";
 export { invoiceLinePublicSchema } from "./invoiceLinePublicSchema.js";
@@ -5734,6 +5738,7 @@ export { nhcPullRequestSchema } from "./nhcPullRequestSchema.js";
 export { nhcSourceCheckSchema } from "./nhcSourceCheckSchema.js";
 export { notificationParamsSchema } from "./notificationParamsSchema.js";
 export { notificationPreferencePublicSchema } from "./notificationPreferencePublicSchema.js";
+export { notificationPreferenceUpdateListSchema } from "./notificationPreferenceUpdateListSchema.js";
 export { notificationPreferenceUpdateSchema } from "./notificationPreferenceUpdateSchema.js";
 export { notificationPublicSchema } from "./notificationPublicSchema.js";
 export { notificationSettingPublicSchema } from "./notificationSettingPublicSchema.js";
@@ -6648,6 +6653,8 @@ export { productFeedErrorSchema } from "./productFeedErrorSchema.js";
 export { productGuidanceSchema } from "./productGuidanceSchema.js";
 export { productHistoryEntrySchema } from "./productHistoryEntrySchema.js";
 export { productHistorySchema } from "./productHistorySchema.js";
+export { productPreviewBodySchema } from "./productPreviewBodySchema.js";
+export { productWriteBodySchema } from "./productWriteBodySchema.js";
 export { profAppointmentTypeSchema } from "./profAppointmentTypeSchema.js";
 export { profileAuditPublicSchema } from "./profileAuditPublicSchema.js";
 export { profileDetailsPublicSchema } from "./profileDetailsPublicSchema.js";
@@ -6718,6 +6725,7 @@ export {
   pushVapidPublicKeyStatus200Schema,
   pushVapidPublicKeyStatus422Schema,
 } from "./pushVapidPublicKeySchema.js";
+export { qcDecisionBodySchema } from "./qcDecisionBodySchema.js";
 export { qcDecisionRequestSchema } from "./qcDecisionRequestSchema.js";
 export { readinessUnavailableSchema } from "./readinessUnavailableSchema.js";
 export { receivableRowPublicSchema } from "./receivableRowPublicSchema.js";
@@ -7394,6 +7402,7 @@ export { sectorOutlookItemSchema } from "./sectorOutlookItemSchema.js";
 export { sectorOutlookSchema } from "./sectorOutlookSchema.js";
 export { securityProofSchema } from "./securityProofSchema.js";
 export { securitySessionPublicSchema } from "./securitySessionPublicSchema.js";
+export { sendObservationBodySchema } from "./sendObservationBodySchema.js";
 export { sendObservationRequestSchema } from "./sendObservationRequestSchema.js";
 export { serviceCalendarViewSchema } from "./serviceCalendarViewSchema.js";
 export { sessionAccessTokenResponseSchema } from "./sessionAccessTokenResponseSchema.js";

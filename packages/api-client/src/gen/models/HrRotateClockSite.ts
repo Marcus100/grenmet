@@ -3,6 +3,7 @@
  * Do not edit manually.
  */
 
+import type { ApiError } from "./ApiError.js";
 import type { ClockSiteIssued } from "./ClockSiteIssued.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 
@@ -21,9 +22,17 @@ export type HrRotateClockSitePath = {
  */
 export type HrRotateClockSiteStatus200 = ClockSiteIssued;
 
-export type HrRotateClockSiteStatus403 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type HrRotateClockSiteStatus403 = ApiError;
 
-export type HrRotateClockSiteStatus404 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type HrRotateClockSiteStatus404 = ApiError;
 
 /**
  * @description Validation error envelope returned for malformed requests.

@@ -4,21 +4,32 @@
  */
 
 import * as z from "zod";
+import { apiErrorSchema } from "./apiErrorSchema.js";
 import { rewardsGiftCreateSchema } from "./rewardsGiftCreateSchema.js";
 import { rewardsGiftPublicSchema } from "./rewardsGiftPublicSchema.js";
 import { validationErrorResponseSchema } from "./validationErrorResponseSchema.js";
 
 export const rewardsCreateGiftStatus201Schema = rewardsGiftPublicSchema;
 
-export const rewardsCreateGiftStatus400Schema = z.unknown();
+export const rewardsCreateGiftStatus400Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
-export const rewardsCreateGiftStatus401Schema = z.unknown();
+export const rewardsCreateGiftStatus401Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
-export const rewardsCreateGiftStatus403Schema = z.unknown();
+export const rewardsCreateGiftStatus403Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
-export const rewardsCreateGiftStatus404Schema = z.unknown();
+export const rewardsCreateGiftStatus404Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
-export const rewardsCreateGiftStatus409Schema = z.unknown();
+export const rewardsCreateGiftStatus409Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
 export const rewardsCreateGiftStatus422Schema =
   validationErrorResponseSchema.describe(

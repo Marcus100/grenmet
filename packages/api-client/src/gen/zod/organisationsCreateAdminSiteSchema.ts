@@ -4,6 +4,7 @@
  */
 
 import * as z from "zod";
+import { apiErrorSchema } from "./apiErrorSchema.js";
 import { publicSiteAdminSchema } from "./publicSiteAdminSchema.js";
 import { publicSiteCreateSchema } from "./publicSiteCreateSchema.js";
 import { validationErrorResponseSchema } from "./validationErrorResponseSchema.js";
@@ -13,13 +14,17 @@ export const organisationsCreateAdminSiteStatus201Schema =
     "A public site's settings for organisation admins and the control plane.\n\nThe Turnstile secret is write-only: only whether it is set is returned."
   );
 
-export const organisationsCreateAdminSiteStatus401Schema = z.unknown();
+export const organisationsCreateAdminSiteStatus401Schema =
+  apiErrorSchema.describe("Stable error envelope for documented API failures.");
 
-export const organisationsCreateAdminSiteStatus403Schema = z.unknown();
+export const organisationsCreateAdminSiteStatus403Schema =
+  apiErrorSchema.describe("Stable error envelope for documented API failures.");
 
-export const organisationsCreateAdminSiteStatus404Schema = z.unknown();
+export const organisationsCreateAdminSiteStatus404Schema =
+  apiErrorSchema.describe("Stable error envelope for documented API failures.");
 
-export const organisationsCreateAdminSiteStatus409Schema = z.unknown();
+export const organisationsCreateAdminSiteStatus409Schema =
+  apiErrorSchema.describe("Stable error envelope for documented API failures.");
 
 export const organisationsCreateAdminSiteStatus422Schema =
   validationErrorResponseSchema.describe(

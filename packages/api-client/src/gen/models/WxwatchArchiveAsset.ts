@@ -3,6 +3,7 @@
  * Do not edit manually.
  */
 
+import type { ApiError } from "./ApiError.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 
 export type WxwatchArchiveAssetPath = {
@@ -31,7 +32,11 @@ export type WxwatchArchiveAssetStatus200 =
   | WxwatchArchiveAssetStatus200Webp
   | WxwatchArchiveAssetStatus200OctetStream;
 
-export type WxwatchArchiveAssetStatus404 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type WxwatchArchiveAssetStatus404 = ApiError;
 
 /**
  * @description Validation error envelope returned for malformed requests.

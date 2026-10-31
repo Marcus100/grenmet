@@ -4,6 +4,7 @@
  */
 
 import * as z from "zod";
+import { apiErrorSchema } from "./apiErrorSchema.js";
 import { organisationAdminDetailSchema } from "./organisationAdminDetailSchema.js";
 import { platformOrganisationCreateSchema } from "./platformOrganisationCreateSchema.js";
 import { validationErrorResponseSchema } from "./validationErrorResponseSchema.js";
@@ -11,11 +12,17 @@ import { validationErrorResponseSchema } from "./validationErrorResponseSchema.j
 export const organisationsCreateOneStatus201Schema =
   organisationAdminDetailSchema;
 
-export const organisationsCreateOneStatus401Schema = z.unknown();
+export const organisationsCreateOneStatus401Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
-export const organisationsCreateOneStatus403Schema = z.unknown();
+export const organisationsCreateOneStatus403Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
-export const organisationsCreateOneStatus409Schema = z.unknown();
+export const organisationsCreateOneStatus409Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
 export const organisationsCreateOneStatus422Schema =
   validationErrorResponseSchema.describe(

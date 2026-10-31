@@ -4,6 +4,7 @@
  */
 
 import * as z from "zod";
+import { apiErrorSchema } from "./apiErrorSchema.js";
 import { validationErrorResponseSchema } from "./validationErrorResponseSchema.js";
 
 export const notificationsDeleteNotificationSnoozePathSnoozeIdSchema = z.uuid();
@@ -14,9 +15,11 @@ export const notificationsDeleteNotificationSnoozeQueryOrganisationIdSchema = z
 
 export const notificationsDeleteNotificationSnoozeStatus204Schema = z.unknown();
 
-export const notificationsDeleteNotificationSnoozeStatus403Schema = z.unknown();
+export const notificationsDeleteNotificationSnoozeStatus403Schema =
+  apiErrorSchema.describe("Stable error envelope for documented API failures.");
 
-export const notificationsDeleteNotificationSnoozeStatus404Schema = z.unknown();
+export const notificationsDeleteNotificationSnoozeStatus404Schema =
+  apiErrorSchema.describe("Stable error envelope for documented API failures.");
 
 export const notificationsDeleteNotificationSnoozeStatus422Schema =
   validationErrorResponseSchema.describe(

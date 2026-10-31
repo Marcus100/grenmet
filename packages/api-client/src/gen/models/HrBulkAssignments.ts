@@ -3,17 +3,30 @@
  * Do not edit manually.
  */
 
+import type { ApiError } from "./ApiError.js";
 import type { RosterAssignmentBulkCreate } from "./RosterAssignmentBulkCreate.js";
 import type { RosterAssignmentPublic } from "./RosterAssignmentPublic.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 
 export type HrBulkAssignmentsStatus200 = RosterAssignmentPublic[];
 
-export type HrBulkAssignmentsStatus400 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type HrBulkAssignmentsStatus400 = ApiError;
 
-export type HrBulkAssignmentsStatus403 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type HrBulkAssignmentsStatus403 = ApiError;
 
-export type HrBulkAssignmentsStatus404 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type HrBulkAssignmentsStatus404 = ApiError;
 
 /**
  * @description Validation error envelope returned for malformed requests.

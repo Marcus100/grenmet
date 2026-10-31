@@ -6,6 +6,7 @@ from pydantic import (
     AwareDatetime,
     ConfigDict,
     Field,
+    RootModel,
     StrictBool,
     StringConstraints,
     TypeAdapter,
@@ -642,3 +643,11 @@ class TropicalSystemPublicHistory(BaseModel):
     nhc_storm_id: str | None
     status: TropicalSystemStatus
     entries: list[TropicalSystemPublicEntry]
+
+
+class ProductWriteBody(RootModel[ProductWrite]):
+    """A product save: a forecast, bulletin or outlook, discriminated by kind."""
+
+
+class ProductPreviewBody(RootModel[ProductPreviewInput]):
+    """A draft product to validate or render as a PDF preview, discriminated by kind."""

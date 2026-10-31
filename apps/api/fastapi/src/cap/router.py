@@ -36,6 +36,7 @@ from src.cap.schemas import (
     PublicWarnings,
 )
 from src.dependencies import CurrentUser, SessionDep
+from src.models import ApiError
 from src.openapi_responses import AUTHENTICATED, NOT_FOUND
 from src.pagination import PaginationDep
 from src.rate_limit import limiter
@@ -268,9 +269,10 @@ async def submit_alert(
         **AUTHENTICATED,
         **NOT_FOUND,
         403: {
-            "description": "Missing permission, or the author reviewing their own alert"
+            "model": ApiError,
+            "description": "Missing permission, or the author reviewing their own alert",
         },
-        409: {"description": "Alert is cancelled or expired"},
+        409: {"model": ApiError, "description": "Alert is cancelled or expired"},
     },
 )
 async def record_alert_review(
@@ -654,7 +656,9 @@ async def read_public_alert(*, session: SessionDep, identifier: str) -> CapAlert
     operation_id="capDownloadPublicAttachment",
     response_class=RedirectResponse,
     status_code=307,
-    responses={404: {"description": "Public attachment not available"}},
+    responses={
+        404: {"model": ApiError, "description": "Public attachment not available"}
+    },
     summary="Download a generated public CAP attachment",
     description="Checks the public alert scope and publication lifecycle, then redirects to a private-storage URL valid for 60 seconds. Actual alerts only; PDF, social image and map only.",
 )

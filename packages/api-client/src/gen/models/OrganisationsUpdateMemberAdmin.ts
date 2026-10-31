@@ -3,6 +3,7 @@
  * Do not edit manually.
  */
 
+import type { ApiError } from "./ApiError.js";
 import type { MemberPublic } from "./MemberPublic.js";
 import type { PlatformMemberRoleUpdate } from "./PlatformMemberRoleUpdate.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
@@ -14,13 +15,29 @@ export type OrganisationsUpdateMemberAdminPath = {
 
 export type OrganisationsUpdateMemberAdminStatus200 = MemberPublic;
 
-export type OrganisationsUpdateMemberAdminStatus401 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type OrganisationsUpdateMemberAdminStatus401 = ApiError;
 
-export type OrganisationsUpdateMemberAdminStatus403 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type OrganisationsUpdateMemberAdminStatus403 = ApiError;
 
-export type OrganisationsUpdateMemberAdminStatus404 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type OrganisationsUpdateMemberAdminStatus404 = ApiError;
 
-export type OrganisationsUpdateMemberAdminStatus409 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type OrganisationsUpdateMemberAdminStatus409 = ApiError;
 
 /**
  * @description Validation error envelope returned for malformed requests.

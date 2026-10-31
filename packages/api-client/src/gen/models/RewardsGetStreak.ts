@@ -3,6 +3,7 @@
  * Do not edit manually.
  */
 
+import type { ApiError } from "./ApiError.js";
 import type { StreakPublic } from "./StreakPublic.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 
@@ -12,9 +13,17 @@ import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
  */
 export type RewardsGetStreakStatus200 = StreakPublic;
 
-export type RewardsGetStreakStatus401 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type RewardsGetStreakStatus401 = ApiError;
 
-export type RewardsGetStreakStatus403 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type RewardsGetStreakStatus403 = ApiError;
 
 /**
  * @description Validation error envelope returned for malformed requests.

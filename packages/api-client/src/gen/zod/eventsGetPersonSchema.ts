@@ -4,6 +4,7 @@
  */
 
 import * as z from "zod";
+import { apiErrorSchema } from "./apiErrorSchema.js";
 import { profilePublicSchema } from "./profilePublicSchema.js";
 import { validationErrorResponseSchema } from "./validationErrorResponseSchema.js";
 
@@ -13,7 +14,9 @@ export const eventsGetPersonPathHandleSchema = z
 
 export const eventsGetPersonStatus200Schema = profilePublicSchema;
 
-export const eventsGetPersonStatus404Schema = z.unknown();
+export const eventsGetPersonStatus404Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
 export const eventsGetPersonStatus422Schema =
   validationErrorResponseSchema.describe(

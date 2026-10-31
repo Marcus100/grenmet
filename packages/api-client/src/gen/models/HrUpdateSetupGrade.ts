@@ -3,6 +3,7 @@
  * Do not edit manually.
  */
 
+import type { ApiError } from "./ApiError.js";
 import type { GradeInput } from "./GradeInput.js";
 import type { GradeSetup } from "./GradeSetup.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
@@ -13,11 +14,23 @@ export type HrUpdateSetupGradePath = {
 
 export type HrUpdateSetupGradeStatus200 = GradeSetup;
 
-export type HrUpdateSetupGradeStatus403 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type HrUpdateSetupGradeStatus403 = ApiError;
 
-export type HrUpdateSetupGradeStatus404 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type HrUpdateSetupGradeStatus404 = ApiError;
 
-export type HrUpdateSetupGradeStatus409 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type HrUpdateSetupGradeStatus409 = ApiError;
 
 /**
  * @description Validation error envelope returned for malformed requests.

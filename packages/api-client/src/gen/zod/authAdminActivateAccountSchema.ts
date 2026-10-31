@@ -5,6 +5,7 @@
 
 import * as z from "zod";
 import { adminActivationSchema } from "./adminActivationSchema.js";
+import { apiErrorSchema } from "./apiErrorSchema.js";
 import { onboardingStatusSchema } from "./onboardingStatusSchema.js";
 import { validationErrorResponseSchema } from "./validationErrorResponseSchema.js";
 
@@ -12,11 +13,17 @@ export const authAdminActivateAccountPathUserIdSchema = z.uuid();
 
 export const authAdminActivateAccountStatus200Schema = onboardingStatusSchema;
 
-export const authAdminActivateAccountStatus403Schema = z.unknown();
+export const authAdminActivateAccountStatus403Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
-export const authAdminActivateAccountStatus404Schema = z.unknown();
+export const authAdminActivateAccountStatus404Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
-export const authAdminActivateAccountStatus409Schema = z.unknown();
+export const authAdminActivateAccountStatus409Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
 export const authAdminActivateAccountStatus422Schema =
   validationErrorResponseSchema.describe(

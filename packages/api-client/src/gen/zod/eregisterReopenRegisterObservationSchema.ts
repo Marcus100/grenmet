@@ -4,7 +4,8 @@
  */
 
 import * as z from "zod";
-import { qcDecisionRequestSchema } from "./qcDecisionRequestSchema.js";
+import { apiErrorSchema } from "./apiErrorSchema.js";
+import { qcDecisionBodySchema } from "./qcDecisionBodySchema.js";
 import { registerObservationReadSchema } from "./registerObservationReadSchema.js";
 
 export const eregisterReopenRegisterObservationPathObservationIdSchema =
@@ -13,13 +14,17 @@ export const eregisterReopenRegisterObservationPathObservationIdSchema =
 export const eregisterReopenRegisterObservationStatus200Schema =
   registerObservationReadSchema;
 
-export const eregisterReopenRegisterObservationStatus401Schema = z.unknown();
+export const eregisterReopenRegisterObservationStatus401Schema =
+  apiErrorSchema.describe("Stable error envelope for documented API failures.");
 
-export const eregisterReopenRegisterObservationStatus403Schema = z.unknown();
+export const eregisterReopenRegisterObservationStatus403Schema =
+  apiErrorSchema.describe("Stable error envelope for documented API failures.");
 
-export const eregisterReopenRegisterObservationStatus404Schema = z.unknown();
+export const eregisterReopenRegisterObservationStatus404Schema =
+  apiErrorSchema.describe("Stable error envelope for documented API failures.");
 
-export const eregisterReopenRegisterObservationStatus409Schema = z.unknown();
+export const eregisterReopenRegisterObservationStatus409Schema =
+  apiErrorSchema.describe("Stable error envelope for documented API failures.");
 
 export const eregisterReopenRegisterObservationStatus422Schema = z.unknown();
 
@@ -34,9 +39,9 @@ export const eregisterReopenRegisterObservationErrorSchema = z.union([
   eregisterReopenRegisterObservationStatus422Schema,
 ]);
 
-export const eregisterReopenRegisterObservationBodySchema = z
-  .union([qcDecisionRequestSchema, z.null()])
-  .optional();
+export const eregisterReopenRegisterObservationBodySchema = qcDecisionBodySchema
+  .optional()
+  .describe("Optional QC decision. An absent body and null are both accepted.");
 
 export const eregisterReopenRegisterObservationPathSchema = z.object({
   observation_id: z.uuid(),

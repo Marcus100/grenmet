@@ -5201,6 +5201,7 @@ export type { BookingProviderPublic } from "./models/BookingProviderPublic.js";
 export type { BookingProviderSettings } from "./models/BookingProviderSettings.js";
 export type { BookingProviderUpdate } from "./models/BookingProviderUpdate.js";
 export type { BookingPublicCancel } from "./models/BookingPublicCancel.js";
+export type { BookingPublicCancelBody } from "./models/BookingPublicCancelBody.js";
 export type { BookingPublicCreate } from "./models/BookingPublicCreate.js";
 export type { BookingPublicDetail } from "./models/BookingPublicDetail.js";
 export type { BookingPublicProvider } from "./models/BookingPublicProvider.js";
@@ -6237,6 +6238,7 @@ export type { CheckInCreate } from "./models/CheckInCreate.js";
 export type { CheckInPublic } from "./models/CheckInPublic.js";
 export type { CheckoutSessionPublic } from "./models/CheckoutSessionPublic.js";
 export type { ClockPunchApprove } from "./models/ClockPunchApprove.js";
+export type { ClockPunchApproveBody } from "./models/ClockPunchApproveBody.js";
 export type { ClockPunchesPublic } from "./models/ClockPunchesPublic.js";
 export type { ClockPunchKind } from "./models/ClockPunchKind.js";
 export { clockPunchKind } from "./models/ClockPunchKind.js";
@@ -6752,6 +6754,7 @@ export type {
   EregisterValidateSynopObservationStatus403,
   EregisterValidateSynopObservationStatus422,
 } from "./models/EregisterValidateSynopObservation.js";
+export type { ErrorMessage } from "./models/ErrorMessage.js";
 export type { EventCategoryNode } from "./models/EventCategoryNode.js";
 export type { EventCategoryNodePropertiesAppliesToItemsEnum } from "./models/EventCategoryNodePropertiesAppliesToItemsEnum.js";
 export { eventCategoryNodePropertiesAppliesToItemsEnum } from "./models/EventCategoryNodePropertiesAppliesToItemsEnum.js";
@@ -9384,6 +9387,7 @@ export type { InvitationPublic } from "./models/InvitationPublic.js";
 export type { InvoiceDetailPublic } from "./models/InvoiceDetailPublic.js";
 export type { InvoiceDraftWrite } from "./models/InvoiceDraftWrite.js";
 export type { InvoiceIssue } from "./models/InvoiceIssue.js";
+export type { InvoiceIssueBody } from "./models/InvoiceIssueBody.js";
 export type { InvoiceLineInput } from "./models/InvoiceLineInput.js";
 export type { InvoiceLinePublic } from "./models/InvoiceLinePublic.js";
 export type { InvoiceListPublic } from "./models/InvoiceListPublic.js";
@@ -9907,6 +9911,7 @@ export type { NhcSourceCheck } from "./models/NhcSourceCheck.js";
 export type { NotificationParams } from "./models/NotificationParams.js";
 export type { NotificationPreferencePublic } from "./models/NotificationPreferencePublic.js";
 export type { NotificationPreferenceUpdate } from "./models/NotificationPreferenceUpdate.js";
+export type { NotificationPreferenceUpdateList } from "./models/NotificationPreferenceUpdateList.js";
 export type { NotificationPublic } from "./models/NotificationPublic.js";
 export type { NotificationSettingPublic } from "./models/NotificationSettingPublic.js";
 export type { NotificationSettingsPublic } from "./models/NotificationSettingsPublic.js";
@@ -10794,6 +10799,8 @@ export type { ProductFeedError } from "./models/ProductFeedError.js";
 export type { ProductGuidance } from "./models/ProductGuidance.js";
 export type { ProductHistory } from "./models/ProductHistory.js";
 export type { ProductHistoryEntry } from "./models/ProductHistoryEntry.js";
+export type { ProductPreviewBody } from "./models/ProductPreviewBody.js";
+export type { ProductWriteBody } from "./models/ProductWriteBody.js";
 export type { ProfAppointmentType } from "./models/ProfAppointmentType.js";
 export { profAppointmentType } from "./models/ProfAppointmentType.js";
 export type { ProfileAuditPublic } from "./models/ProfileAuditPublic.js";
@@ -10875,6 +10882,7 @@ export type {
   PushVapidPublicKeyStatus200,
   PushVapidPublicKeyStatus422,
 } from "./models/PushVapidPublicKey.js";
+export type { QcDecisionBody } from "./models/QcDecisionBody.js";
 export type { QcDecisionRequest } from "./models/QcDecisionRequest.js";
 export type { ReadinessUnavailable } from "./models/ReadinessUnavailable.js";
 export type { ReceivableRowPublic } from "./models/ReceivableRowPublic.js";
@@ -11559,6 +11567,7 @@ export type { SectorOutlookItemPropertiesSourceEnum } from "./models/SectorOutlo
 export { sectorOutlookItemPropertiesSourceEnum } from "./models/SectorOutlookItemPropertiesSourceEnum.js";
 export type { SecurityProof } from "./models/SecurityProof.js";
 export type { SecuritySessionPublic } from "./models/SecuritySessionPublic.js";
+export type { SendObservationBody } from "./models/SendObservationBody.js";
 export type { SendObservationRequest } from "./models/SendObservationRequest.js";
 export type { ServiceCalendarView } from "./models/ServiceCalendarView.js";
 export type { SessionAccessTokenResponse } from "./models/SessionAccessTokenResponse.js";
@@ -14078,6 +14087,7 @@ export { bookingProviderCreateSchema } from "./zod/bookingProviderCreateSchema.j
 export { bookingProviderPublicSchema } from "./zod/bookingProviderPublicSchema.js";
 export { bookingProviderSettingsSchema } from "./zod/bookingProviderSettingsSchema.js";
 export { bookingProviderUpdateSchema } from "./zod/bookingProviderUpdateSchema.js";
+export { bookingPublicCancelBodySchema } from "./zod/bookingPublicCancelBodySchema.js";
 export { bookingPublicCancelSchema } from "./zod/bookingPublicCancelSchema.js";
 export { bookingPublicCreateSchema } from "./zod/bookingPublicCreateSchema.js";
 export { bookingPublicDetailSchema } from "./zod/bookingPublicDetailSchema.js";
@@ -15106,6 +15116,7 @@ export { challengeStatusSchema } from "./zod/challengeStatusSchema.js";
 export { checkInCreateSchema } from "./zod/checkInCreateSchema.js";
 export { checkInPublicSchema } from "./zod/checkInPublicSchema.js";
 export { checkoutSessionPublicSchema } from "./zod/checkoutSessionPublicSchema.js";
+export { clockPunchApproveBodySchema } from "./zod/clockPunchApproveBodySchema.js";
 export { clockPunchApproveSchema } from "./zod/clockPunchApproveSchema.js";
 export { clockPunchesPublicSchema } from "./zod/clockPunchesPublicSchema.js";
 export { clockPunchKindSchema } from "./zod/clockPunchKindSchema.js";
@@ -15618,6 +15629,7 @@ export {
   eregisterValidateSynopObservationStatus403Schema,
   eregisterValidateSynopObservationStatus422Schema,
 } from "./zod/eregisterValidateSynopObservationSchema.js";
+export { errorMessageSchema } from "./zod/errorMessageSchema.js";
 export { eventCategoryNodePropertiesAppliesToItemsEnumSchema } from "./zod/eventCategoryNodePropertiesAppliesToItemsEnumSchema.js";
 export { eventCategoryNodeSchema } from "./zod/eventCategoryNodeSchema.js";
 export { eventCategorySubSchema } from "./zod/eventCategorySubSchema.js";
@@ -18262,6 +18274,7 @@ export { invitationCreateSchema } from "./zod/invitationCreateSchema.js";
 export { invitationPublicSchema } from "./zod/invitationPublicSchema.js";
 export { invoiceDetailPublicSchema } from "./zod/invoiceDetailPublicSchema.js";
 export { invoiceDraftWriteSchema } from "./zod/invoiceDraftWriteSchema.js";
+export { invoiceIssueBodySchema } from "./zod/invoiceIssueBodySchema.js";
 export { invoiceIssueSchema } from "./zod/invoiceIssueSchema.js";
 export { invoiceLineInputSchema } from "./zod/invoiceLineInputSchema.js";
 export { invoiceLinePublicSchema } from "./zod/invoiceLinePublicSchema.js";
@@ -18748,6 +18761,7 @@ export { nhcPullRequestSchema } from "./zod/nhcPullRequestSchema.js";
 export { nhcSourceCheckSchema } from "./zod/nhcSourceCheckSchema.js";
 export { notificationParamsSchema } from "./zod/notificationParamsSchema.js";
 export { notificationPreferencePublicSchema } from "./zod/notificationPreferencePublicSchema.js";
+export { notificationPreferenceUpdateListSchema } from "./zod/notificationPreferenceUpdateListSchema.js";
 export { notificationPreferenceUpdateSchema } from "./zod/notificationPreferenceUpdateSchema.js";
 export { notificationPublicSchema } from "./zod/notificationPublicSchema.js";
 export { notificationSettingPublicSchema } from "./zod/notificationSettingPublicSchema.js";
@@ -19662,6 +19676,8 @@ export { productFeedErrorSchema } from "./zod/productFeedErrorSchema.js";
 export { productGuidanceSchema } from "./zod/productGuidanceSchema.js";
 export { productHistoryEntrySchema } from "./zod/productHistoryEntrySchema.js";
 export { productHistorySchema } from "./zod/productHistorySchema.js";
+export { productPreviewBodySchema } from "./zod/productPreviewBodySchema.js";
+export { productWriteBodySchema } from "./zod/productWriteBodySchema.js";
 export { profAppointmentTypeSchema } from "./zod/profAppointmentTypeSchema.js";
 export { profileAuditPublicSchema } from "./zod/profileAuditPublicSchema.js";
 export { profileDetailsPublicSchema } from "./zod/profileDetailsPublicSchema.js";
@@ -19732,6 +19748,7 @@ export {
   pushVapidPublicKeyStatus200Schema,
   pushVapidPublicKeyStatus422Schema,
 } from "./zod/pushVapidPublicKeySchema.js";
+export { qcDecisionBodySchema } from "./zod/qcDecisionBodySchema.js";
 export { qcDecisionRequestSchema } from "./zod/qcDecisionRequestSchema.js";
 export { readinessUnavailableSchema } from "./zod/readinessUnavailableSchema.js";
 export { receivableRowPublicSchema } from "./zod/receivableRowPublicSchema.js";
@@ -20408,6 +20425,7 @@ export { sectorOutlookItemSchema } from "./zod/sectorOutlookItemSchema.js";
 export { sectorOutlookSchema } from "./zod/sectorOutlookSchema.js";
 export { securityProofSchema } from "./zod/securityProofSchema.js";
 export { securitySessionPublicSchema } from "./zod/securitySessionPublicSchema.js";
+export { sendObservationBodySchema } from "./zod/sendObservationBodySchema.js";
 export { sendObservationRequestSchema } from "./zod/sendObservationRequestSchema.js";
 export { serviceCalendarViewSchema } from "./zod/serviceCalendarViewSchema.js";
 export { sessionAccessTokenResponseSchema } from "./zod/sessionAccessTokenResponseSchema.js";

@@ -4,6 +4,7 @@
  */
 
 import * as z from "zod";
+import { apiErrorSchema } from "./apiErrorSchema.js";
 import { membershipGrantCreateSchema } from "./membershipGrantCreateSchema.js";
 import { membershipGrantPublicSchema } from "./membershipGrantPublicSchema.js";
 import { validationErrorResponseSchema } from "./validationErrorResponseSchema.js";
@@ -22,15 +23,20 @@ export const organisationsGrantMemberRoleStatus201Schema =
     "A role a member holds. Display names only; never email addresses."
   );
 
-export const organisationsGrantMemberRoleStatus400Schema = z.unknown();
+export const organisationsGrantMemberRoleStatus400Schema =
+  apiErrorSchema.describe("Stable error envelope for documented API failures.");
 
-export const organisationsGrantMemberRoleStatus401Schema = z.unknown();
+export const organisationsGrantMemberRoleStatus401Schema =
+  apiErrorSchema.describe("Stable error envelope for documented API failures.");
 
-export const organisationsGrantMemberRoleStatus403Schema = z.unknown();
+export const organisationsGrantMemberRoleStatus403Schema =
+  apiErrorSchema.describe("Stable error envelope for documented API failures.");
 
-export const organisationsGrantMemberRoleStatus404Schema = z.unknown();
+export const organisationsGrantMemberRoleStatus404Schema =
+  apiErrorSchema.describe("Stable error envelope for documented API failures.");
 
-export const organisationsGrantMemberRoleStatus409Schema = z.unknown();
+export const organisationsGrantMemberRoleStatus409Schema =
+  apiErrorSchema.describe("Stable error envelope for documented API failures.");
 
 export const organisationsGrantMemberRoleStatus422Schema =
   validationErrorResponseSchema.describe(

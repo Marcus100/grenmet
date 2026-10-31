@@ -4,6 +4,7 @@
  */
 
 import * as z from "zod";
+import { apiErrorSchema } from "./apiErrorSchema.js";
 import { synopValidationRequestSchema } from "./synopValidationRequestSchema.js";
 import { synopValidationResponseSchema } from "./synopValidationResponseSchema.js";
 import { validationErrorResponseSchema } from "./validationErrorResponseSchema.js";
@@ -11,9 +12,11 @@ import { validationErrorResponseSchema } from "./validationErrorResponseSchema.j
 export const eregisterValidateSynopObservationStatus200Schema =
   synopValidationResponseSchema;
 
-export const eregisterValidateSynopObservationStatus401Schema = z.unknown();
+export const eregisterValidateSynopObservationStatus401Schema =
+  apiErrorSchema.describe("Stable error envelope for documented API failures.");
 
-export const eregisterValidateSynopObservationStatus403Schema = z.unknown();
+export const eregisterValidateSynopObservationStatus403Schema =
+  apiErrorSchema.describe("Stable error envelope for documented API failures.");
 
 export const eregisterValidateSynopObservationStatus422Schema =
   validationErrorResponseSchema.describe(

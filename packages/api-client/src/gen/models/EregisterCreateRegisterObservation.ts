@@ -3,6 +3,7 @@
  * Do not edit manually.
  */
 
+import type { ApiError } from "./ApiError.js";
 import type { RegisterObservationCreate } from "./RegisterObservationCreate.js";
 import type { RegisterObservationRead } from "./RegisterObservationRead.js";
 
@@ -12,11 +13,23 @@ export type EregisterCreateRegisterObservationStatus200 =
 export type EregisterCreateRegisterObservationStatus201 =
   RegisterObservationRead;
 
-export type EregisterCreateRegisterObservationStatus401 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type EregisterCreateRegisterObservationStatus401 = ApiError;
 
-export type EregisterCreateRegisterObservationStatus403 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type EregisterCreateRegisterObservationStatus403 = ApiError;
 
-export type EregisterCreateRegisterObservationStatus409 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type EregisterCreateRegisterObservationStatus409 = ApiError;
 
 export type EregisterCreateRegisterObservationStatus422 = unknown;
 

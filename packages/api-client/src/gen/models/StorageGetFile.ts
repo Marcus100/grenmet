@@ -3,6 +3,7 @@
  * Do not edit manually.
  */
 
+import type { ApiError } from "./ApiError.js";
 import type { FileAccess } from "./FileAccess.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 
@@ -28,11 +29,23 @@ export type StorageGetFileHeaders = {
  */
 export type StorageGetFileStatus200 = FileAccess;
 
-export type StorageGetFileStatus401 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type StorageGetFileStatus401 = ApiError;
 
-export type StorageGetFileStatus403 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type StorageGetFileStatus403 = ApiError;
 
-export type StorageGetFileStatus404 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type StorageGetFileStatus404 = ApiError;
 
 /**
  * @description Validation error envelope returned for malformed requests.

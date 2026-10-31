@@ -110,6 +110,36 @@ def test_operations_document_error_responses() -> None:
     )
 
 
+def test_documented_error_responses_have_a_body_schema() -> None:
+    # Every documented 4xx names its body model (ApiError, ErrorMessage or a
+    # domain error model). 422 is excluded: it already documents
+    # HTTPValidationError. Constants live in src/openapi_responses.py.
+    offenders = []
+    for path, method, operation in _operations():
+        for status, response in operation.get("responses", {}).items():
+            if not status.startswith("4") or status == "422":
+                continue
+            schemas = [
+                media.get("schema") for media in response.get("content", {}).values()
+            ]
+            if not any(schemas):
+                offenders.append(f"{method.upper()} {path} {status}")
+    assert not offenders, "4xx responses without a body schema: " + ", ".join(offenders)
+
+
+def test_request_bodies_are_named_component_references() -> None:
+    # An anonymous request schema (inline object, array or union) gives the
+    # generated client an unnamed type. Each body must $ref a named component.
+    offenders = []
+    for path, method, operation in _operations():
+        request_body = operation.get("requestBody") or {}
+        for media_type, media in request_body.get("content", {}).items():
+            reference = media.get("schema", {}).get("$ref", "")
+            if not reference.startswith("#/components/schemas/"):
+                offenders.append(f"{method.upper()} {path} ({media_type})")
+    assert not offenders, "Anonymous request bodies: " + ", ".join(offenders)
+
+
 def test_openapi_has_no_anonymous_enums() -> None:
     offenders = list(
         _inline_enums(

@@ -4,6 +4,7 @@
  */
 
 import * as z from "zod";
+import { apiErrorSchema } from "./apiErrorSchema.js";
 import { timesheetPrefillPublicSchema } from "./timesheetPrefillPublicSchema.js";
 import { validationErrorResponseSchema } from "./validationErrorResponseSchema.js";
 
@@ -15,11 +16,17 @@ export const hrGetTimesheetPrefillQueryPeriodSchema = z
 export const hrGetTimesheetPrefillStatus200Schema =
   timesheetPrefillPublicSchema;
 
-export const hrGetTimesheetPrefillStatus400Schema = z.unknown();
+export const hrGetTimesheetPrefillStatus400Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
-export const hrGetTimesheetPrefillStatus401Schema = z.unknown();
+export const hrGetTimesheetPrefillStatus401Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
-export const hrGetTimesheetPrefillStatus403Schema = z.unknown();
+export const hrGetTimesheetPrefillStatus403Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
 export const hrGetTimesheetPrefillStatus422Schema =
   validationErrorResponseSchema.describe(

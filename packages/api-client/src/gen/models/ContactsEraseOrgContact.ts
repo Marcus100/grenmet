@@ -3,6 +3,7 @@
  * Do not edit manually.
  */
 
+import type { ApiError } from "./ApiError.js";
 import type { ContactDetailPublic } from "./ContactDetailPublic.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 
@@ -19,15 +20,35 @@ export type ContactsEraseOrgContactHeaders = {
 
 export type ContactsEraseOrgContactStatus200 = ContactDetailPublic;
 
-export type ContactsEraseOrgContactStatus400 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type ContactsEraseOrgContactStatus400 = ApiError;
 
-export type ContactsEraseOrgContactStatus401 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type ContactsEraseOrgContactStatus401 = ApiError;
 
-export type ContactsEraseOrgContactStatus403 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type ContactsEraseOrgContactStatus403 = ApiError;
 
-export type ContactsEraseOrgContactStatus404 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type ContactsEraseOrgContactStatus404 = ApiError;
 
-export type ContactsEraseOrgContactStatus409 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type ContactsEraseOrgContactStatus409 = ApiError;
 
 /**
  * @description Validation error envelope returned for malformed requests.

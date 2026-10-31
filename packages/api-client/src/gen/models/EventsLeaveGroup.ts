@@ -3,6 +3,8 @@
  * Do not edit manually.
  */
 
+import type { ApiError } from "./ApiError.js";
+import type { ErrorMessage } from "./ErrorMessage.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 
 export type EventsLeaveGroupPath = {
@@ -15,9 +17,17 @@ export type EventsLeaveGroupPath = {
 
 export type EventsLeaveGroupStatus204 = unknown;
 
-export type EventsLeaveGroupStatus401 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type EventsLeaveGroupStatus401 = ApiError;
 
-export type EventsLeaveGroupStatus404 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type EventsLeaveGroupStatus404 = ApiError;
 
 /**
  * @description Validation error envelope returned for malformed requests.
@@ -25,7 +35,7 @@ export type EventsLeaveGroupStatus404 = unknown;
  */
 export type EventsLeaveGroupStatus422 = ValidationErrorResponse;
 
-export type EventsLeaveGroupStatus429 = unknown;
+export type EventsLeaveGroupStatus429 = ApiError | ErrorMessage;
 
 export type EventsLeaveGroupOptions = {
   body?: never;

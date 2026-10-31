@@ -3,6 +3,7 @@
  * Do not edit manually.
  */
 
+import type { ApiError } from "./ApiError.js";
 import type { NotificationSnoozeCreate } from "./NotificationSnoozeCreate.js";
 import type { NotificationSnoozePublic } from "./NotificationSnoozePublic.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
@@ -14,11 +15,23 @@ export type NotificationsCreateNotificationSnoozeQuery = {
 export type NotificationsCreateNotificationSnoozeStatus201 =
   NotificationSnoozePublic;
 
-export type NotificationsCreateNotificationSnoozeStatus400 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type NotificationsCreateNotificationSnoozeStatus400 = ApiError;
 
-export type NotificationsCreateNotificationSnoozeStatus403 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type NotificationsCreateNotificationSnoozeStatus403 = ApiError;
 
-export type NotificationsCreateNotificationSnoozeStatus404 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type NotificationsCreateNotificationSnoozeStatus404 = ApiError;
 
 /**
  * @description Validation error envelope returned for malformed requests.

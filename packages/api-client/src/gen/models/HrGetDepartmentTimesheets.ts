@@ -3,6 +3,7 @@
  * Do not edit manually.
  */
 
+import type { ApiError } from "./ApiError.js";
 import type { TimesheetListPublic } from "./TimesheetListPublic.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 
@@ -28,9 +29,17 @@ export type HrGetDepartmentTimesheetsQuery = {
 
 export type HrGetDepartmentTimesheetsStatus200 = TimesheetListPublic;
 
-export type HrGetDepartmentTimesheetsStatus400 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type HrGetDepartmentTimesheetsStatus400 = ApiError;
 
-export type HrGetDepartmentTimesheetsStatus403 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type HrGetDepartmentTimesheetsStatus403 = ApiError;
 
 /**
  * @description Validation error envelope returned for malformed requests.

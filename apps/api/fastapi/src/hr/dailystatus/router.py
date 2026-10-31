@@ -7,6 +7,7 @@ from src.dependencies import CurrentUser, SessionDep
 from src.hr.dependencies import StatusReportDep
 from src.hr.filenames import preview_filename
 from src.hr.submission import submission_list, submission_public
+from src.models import ApiError
 from src.pagination import PaginationDep
 from src.utils.pdf_response import PDF_HEADERS_DOC, pdf_response
 
@@ -32,9 +33,9 @@ router = APIRouter(prefix="/hr", tags=["hr-dailystatus"])
     summary="Get planned shift staffing",
     description="Published or closed roster staff and approved exceptions for the local M/E/N shift start date. Scheduled staffing does not establish actual attendance. Requires scoped status.report.create permission.",
     responses={
-        400: {"description": "Invalid reporting shift"},
-        403: {"description": "Department access denied"},
-        404: {"description": "Department not found"},
+        400: {"model": ApiError, "description": "Invalid reporting shift"},
+        403: {"model": ApiError, "description": "Department access denied"},
+        404: {"model": ApiError, "description": "Department not found"},
     },
 )
 async def get_status_staffing(
@@ -63,9 +64,9 @@ async def get_status_staffing(
     description="Render unsaved status values using the signed-document Python renderer. No report, workflow or signature is saved. Requires scoped status.report.create permission.",
     responses={
         200: {"content": {"application/pdf": {}}, "headers": PDF_HEADERS_DOC},
-        400: {"description": "Invalid report values"},
-        403: {"description": "Department access denied"},
-        404: {"description": "Department not found"},
+        400: {"model": ApiError, "description": "Invalid report values"},
+        403: {"model": ApiError, "description": "Department access denied"},
+        404: {"model": ApiError, "description": "Department not found"},
     },
 )
 async def preview_status_report_pdf(
@@ -86,9 +87,13 @@ async def preview_status_report_pdf(
     responses={
         status.HTTP_201_CREATED: {"description": "Status report created"},
         status.HTTP_400_BAD_REQUEST: {
-            "description": "Invalid personnel or operational answers"
+            "model": ApiError,
+            "description": "Invalid personnel or operational answers",
         },
-        status.HTTP_403_FORBIDDEN: {"description": "Insufficient permission"},
+        status.HTTP_403_FORBIDDEN: {
+            "model": ApiError,
+            "description": "Insufficient permission",
+        },
     },
 )
 async def create_status_report(
@@ -114,12 +119,17 @@ async def create_status_report(
     responses={
         status.HTTP_200_OK: {"description": "Status report submitted"},
         status.HTTP_400_BAD_REQUEST: {
-            "description": "Status report is not a draft or contains invalid personnel or operational answers"
+            "model": ApiError,
+            "description": "Status report is not a draft or contains invalid personnel or operational answers",
         },
         status.HTTP_403_FORBIDDEN: {
-            "description": "Not allowed to submit this status report"
+            "model": ApiError,
+            "description": "Not allowed to submit this status report",
         },
-        status.HTTP_404_NOT_FOUND: {"description": "Status report not found"},
+        status.HTTP_404_NOT_FOUND: {
+            "model": ApiError,
+            "description": "Status report not found",
+        },
     },
 )
 async def submit_status_report(
@@ -146,12 +156,17 @@ async def submit_status_report(
     responses={
         status.HTTP_200_OK: {"description": "Status report updated"},
         status.HTTP_400_BAD_REQUEST: {
-            "description": "Status report is not a draft or contains invalid personnel or operational answers"
+            "model": ApiError,
+            "description": "Status report is not a draft or contains invalid personnel or operational answers",
         },
         status.HTTP_403_FORBIDDEN: {
-            "description": "Not allowed to edit this status report"
+            "model": ApiError,
+            "description": "Not allowed to edit this status report",
         },
-        status.HTTP_404_NOT_FOUND: {"description": "Status report not found"},
+        status.HTTP_404_NOT_FOUND: {
+            "model": ApiError,
+            "description": "Status report not found",
+        },
     },
 )
 async def update_status_report(
@@ -178,12 +193,17 @@ async def update_status_report(
     responses={
         status.HTTP_204_NO_CONTENT: {"description": "Status report deleted"},
         status.HTTP_400_BAD_REQUEST: {
-            "description": "Status report is not a draft or contains invalid personnel or operational answers"
+            "model": ApiError,
+            "description": "Status report is not a draft or contains invalid personnel or operational answers",
         },
         status.HTTP_403_FORBIDDEN: {
-            "description": "Not allowed to delete this status report"
+            "model": ApiError,
+            "description": "Not allowed to delete this status report",
         },
-        status.HTTP_404_NOT_FOUND: {"description": "Status report not found"},
+        status.HTTP_404_NOT_FOUND: {
+            "model": ApiError,
+            "description": "Status report not found",
+        },
     },
 )
 async def delete_status_report(
@@ -206,7 +226,10 @@ async def delete_status_report(
     description="List status reports. Requires status.report.read permission. Optionally filter by department_id.",
     responses={
         status.HTTP_200_OK: {"description": "Status reports returned"},
-        status.HTTP_403_FORBIDDEN: {"description": "Insufficient permission"},
+        status.HTTP_403_FORBIDDEN: {
+            "model": ApiError,
+            "description": "Insufficient permission",
+        },
     },
 )
 async def read_status_reports(
@@ -237,8 +260,14 @@ async def read_status_reports(
     description="Return a status report with its personnel entries. Requires status.report.read permission.",
     responses={
         status.HTTP_200_OK: {"description": "Status report and entries returned"},
-        status.HTTP_404_NOT_FOUND: {"description": "Status report not found"},
-        status.HTTP_403_FORBIDDEN: {"description": "Insufficient permission"},
+        status.HTTP_404_NOT_FOUND: {
+            "model": ApiError,
+            "description": "Status report not found",
+        },
+        status.HTTP_403_FORBIDDEN: {
+            "model": ApiError,
+            "description": "Insufficient permission",
+        },
     },
 )
 async def read_status_report(

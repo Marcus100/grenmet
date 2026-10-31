@@ -3,6 +3,7 @@
  * Do not edit manually.
  */
 
+import type { ApiError } from "./ApiError.js";
 import type { Message } from "./Message.js";
 import type { StaffInput } from "./StaffInput.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
@@ -18,13 +19,29 @@ export type HrUpdateStaffSetupPath = {
 
 export type HrUpdateStaffSetupStatus200 = Message;
 
-export type HrUpdateStaffSetupStatus400 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type HrUpdateStaffSetupStatus400 = ApiError;
 
-export type HrUpdateStaffSetupStatus403 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type HrUpdateStaffSetupStatus403 = ApiError;
 
-export type HrUpdateStaffSetupStatus404 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type HrUpdateStaffSetupStatus404 = ApiError;
 
-export type HrUpdateStaffSetupStatus409 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type HrUpdateStaffSetupStatus409 = ApiError;
 
 /**
  * @description Validation error envelope returned for malformed requests.

@@ -3,6 +3,7 @@
  * Do not edit manually.
  */
 
+import type { ApiError } from "./ApiError.js";
 import type { ContactMessageAccepted } from "./ContactMessageAccepted.js";
 import type { ContactMessageBody } from "./ContactMessageBody.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
@@ -17,9 +18,17 @@ export type ContactSendSiteContactMessagePath = {
 
 export type ContactSendSiteContactMessageStatus202 = ContactMessageAccepted;
 
-export type ContactSendSiteContactMessageStatus400 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type ContactSendSiteContactMessageStatus400 = ApiError;
 
-export type ContactSendSiteContactMessageStatus404 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type ContactSendSiteContactMessageStatus404 = ApiError;
 
 /**
  * @description Validation error envelope returned for malformed requests.

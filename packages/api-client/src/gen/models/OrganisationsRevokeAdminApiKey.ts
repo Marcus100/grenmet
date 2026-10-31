@@ -3,6 +3,7 @@
  * Do not edit manually.
  */
 
+import type { ApiError } from "./ApiError.js";
 import type { ApiKeyPublic } from "./ApiKeyPublic.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 
@@ -16,11 +17,23 @@ export type OrganisationsRevokeAdminApiKeyPath = {
 
 export type OrganisationsRevokeAdminApiKeyStatus200 = ApiKeyPublic;
 
-export type OrganisationsRevokeAdminApiKeyStatus401 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type OrganisationsRevokeAdminApiKeyStatus401 = ApiError;
 
-export type OrganisationsRevokeAdminApiKeyStatus403 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type OrganisationsRevokeAdminApiKeyStatus403 = ApiError;
 
-export type OrganisationsRevokeAdminApiKeyStatus404 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type OrganisationsRevokeAdminApiKeyStatus404 = ApiError;
 
 /**
  * @description Validation error envelope returned for malformed requests.

@@ -4,6 +4,8 @@
  */
 
 import type { ActivityEntry } from "./ActivityEntry.js";
+import type { ApiError } from "./ApiError.js";
+import type { ErrorMessage } from "./ErrorMessage.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 
 export type EventsGetListingActivityPath = {
@@ -31,13 +33,29 @@ export type EventsGetListingActivityQuery = {
 
 export type EventsGetListingActivityStatus200 = ActivityEntry[];
 
-export type EventsGetListingActivityStatus401 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type EventsGetListingActivityStatus401 = ApiError;
 
-export type EventsGetListingActivityStatus403 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type EventsGetListingActivityStatus403 = ApiError;
 
-export type EventsGetListingActivityStatus404 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type EventsGetListingActivityStatus404 = ApiError;
 
-export type EventsGetListingActivityStatus409 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type EventsGetListingActivityStatus409 = ApiError;
 
 /**
  * @description Validation error envelope returned for malformed requests.
@@ -45,7 +63,7 @@ export type EventsGetListingActivityStatus409 = unknown;
  */
 export type EventsGetListingActivityStatus422 = ValidationErrorResponse;
 
-export type EventsGetListingActivityStatus429 = unknown;
+export type EventsGetListingActivityStatus429 = ApiError | ErrorMessage;
 
 export type EventsGetListingActivityOptions = {
   body?: never;

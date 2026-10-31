@@ -5,6 +5,7 @@
 
 import type { AccessRequestDecide } from "./AccessRequestDecide.js";
 import type { AccessRequestPublic } from "./AccessRequestPublic.js";
+import type { ApiError } from "./ApiError.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 
 export type ModelsDecideAccessRequestPath = {
@@ -18,13 +19,29 @@ export type ModelsDecideAccessRequestPath = {
 
 export type ModelsDecideAccessRequestStatus200 = AccessRequestPublic;
 
-export type ModelsDecideAccessRequestStatus401 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type ModelsDecideAccessRequestStatus401 = ApiError;
 
-export type ModelsDecideAccessRequestStatus403 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type ModelsDecideAccessRequestStatus403 = ApiError;
 
-export type ModelsDecideAccessRequestStatus404 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type ModelsDecideAccessRequestStatus404 = ApiError;
 
-export type ModelsDecideAccessRequestStatus409 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type ModelsDecideAccessRequestStatus409 = ApiError;
 
 /**
  * @description Validation error envelope returned for malformed requests.

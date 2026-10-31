@@ -4,6 +4,7 @@
  */
 
 import * as z from "zod";
+import { apiErrorSchema } from "./apiErrorSchema.js";
 import { eventCategoryNodePropertiesAppliesToItemsEnumSchema } from "./eventCategoryNodePropertiesAppliesToItemsEnumSchema.js";
 import { eventsListListingsParametersSchemaAnyOfEnum2Schema } from "./eventsListListingsParametersSchemaAnyOfEnum2Schema.js";
 import { eventsListListingsParametersSchemaAnyOfEnumSchema } from "./eventsListListingsParametersSchemaAnyOfEnumSchema.js";
@@ -87,7 +88,9 @@ export const eventsListListingsQueryOffsetSchema = z
 
 export const eventsListListingsStatus200Schema = listingCardListSchema;
 
-export const eventsListListingsStatus401Schema = z.unknown();
+export const eventsListListingsStatus401Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
 export const eventsListListingsStatus422Schema =
   validationErrorResponseSchema.describe(

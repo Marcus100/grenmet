@@ -3,15 +3,24 @@
  * Do not edit manually.
  */
 
+import type { ApiError } from "./ApiError.js";
 import type { CapPredefinedAreaCreate } from "./CapPredefinedAreaCreate.js";
 import type { CapPredefinedAreaPublic } from "./CapPredefinedAreaPublic.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 
 export type CapCreatePredefinedAreaStatus201 = CapPredefinedAreaPublic;
 
-export type CapCreatePredefinedAreaStatus401 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type CapCreatePredefinedAreaStatus401 = ApiError;
 
-export type CapCreatePredefinedAreaStatus403 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type CapCreatePredefinedAreaStatus403 = ApiError;
 
 /**
  * @description Validation error envelope returned for malformed requests.

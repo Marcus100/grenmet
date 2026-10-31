@@ -4,20 +4,27 @@
  */
 
 import * as z from "zod";
+import { apiErrorSchema } from "./apiErrorSchema.js";
+import { errorMessageSchema } from "./errorMessageSchema.js";
 import { sessionLoginRequestSchema } from "./sessionLoginRequestSchema.js";
 import { sessionLoginResponseSchema } from "./sessionLoginResponseSchema.js";
 import { validationErrorResponseSchema } from "./validationErrorResponseSchema.js";
 
 export const authLoginSessionStatus200Schema = sessionLoginResponseSchema;
 
-export const authLoginSessionStatus400Schema = z.unknown();
+export const authLoginSessionStatus400Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
 export const authLoginSessionStatus422Schema =
   validationErrorResponseSchema.describe(
     "Validation error envelope returned for malformed requests."
   );
 
-export const authLoginSessionStatus429Schema = z.unknown();
+export const authLoginSessionStatus429Schema = z.union([
+  apiErrorSchema,
+  errorMessageSchema,
+]);
 
 export const authLoginSessionResponseSchema = authLoginSessionStatus200Schema;
 

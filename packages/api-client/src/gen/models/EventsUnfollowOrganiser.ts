@@ -3,6 +3,8 @@
  * Do not edit manually.
  */
 
+import type { ApiError } from "./ApiError.js";
+import type { ErrorMessage } from "./ErrorMessage.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 
 export type EventsUnfollowOrganiserPath = {
@@ -15,9 +17,17 @@ export type EventsUnfollowOrganiserPath = {
 
 export type EventsUnfollowOrganiserStatus204 = unknown;
 
-export type EventsUnfollowOrganiserStatus401 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type EventsUnfollowOrganiserStatus401 = ApiError;
 
-export type EventsUnfollowOrganiserStatus404 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type EventsUnfollowOrganiserStatus404 = ApiError;
 
 /**
  * @description Validation error envelope returned for malformed requests.
@@ -25,7 +35,7 @@ export type EventsUnfollowOrganiserStatus404 = unknown;
  */
 export type EventsUnfollowOrganiserStatus422 = ValidationErrorResponse;
 
-export type EventsUnfollowOrganiserStatus429 = unknown;
+export type EventsUnfollowOrganiserStatus429 = ApiError | ErrorMessage;
 
 export type EventsUnfollowOrganiserOptions = {
   body?: never;

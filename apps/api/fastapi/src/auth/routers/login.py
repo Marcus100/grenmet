@@ -54,8 +54,8 @@ from src.email import (
     send_email,
 )
 from src.email_config import email_settings
-from src.models import Message, Token
-from src.openapi_responses import AUTHENTICATED, NOT_FOUND
+from src.models import ApiError, Message, Token
+from src.openapi_responses import AUTHENTICATED, NOT_FOUND, RateLimitedBody
 from src.rate_limit import limiter
 from src.utils.datetime import utc_now
 
@@ -125,9 +125,11 @@ def _session_auth_response(
             "model": Token,
         },
         status.HTTP_400_BAD_REQUEST: {
+            "model": ApiError,
             "description": "Incorrect email/password or inactive user",
         },
         status.HTTP_429_TOO_MANY_REQUESTS: {
+            "model": RateLimitedBody,
             "description": "Rate limit exceeded",
         },
     },
@@ -185,9 +187,11 @@ async def login_access_token(
     responses={
         status.HTTP_200_OK: {"description": "Session created successfully"},
         status.HTTP_400_BAD_REQUEST: {
+            "model": ApiError,
             "description": "Incorrect email/password or inactive user",
         },
         status.HTTP_429_TOO_MANY_REQUESTS: {
+            "model": RateLimitedBody,
             "description": "Rate limit exceeded",
         },
     },
@@ -426,7 +430,10 @@ async def read_staff_me(current_user: CurrentUser) -> Any:
 @router.post(
     "/password/recovery",
     responses={
-        status.HTTP_429_TOO_MANY_REQUESTS: {"description": "Rate limit exceeded"},
+        status.HTTP_429_TOO_MANY_REQUESTS: {
+            "model": RateLimitedBody,
+            "description": "Rate limit exceeded",
+        },
     },
 )
 @limiter.limit("5/minute")
@@ -469,7 +476,10 @@ async def recover_password(
 @router.post(
     "/password/reset",
     responses={
-        status.HTTP_429_TOO_MANY_REQUESTS: {"description": "Rate limit exceeded"},
+        status.HTTP_429_TOO_MANY_REQUESTS: {
+            "model": RateLimitedBody,
+            "description": "Rate limit exceeded",
+        },
     },
 )
 @limiter.limit("5/minute")

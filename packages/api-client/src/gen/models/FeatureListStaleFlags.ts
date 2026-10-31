@@ -3,14 +3,23 @@
  * Do not edit manually.
  */
 
+import type { ApiError } from "./ApiError.js";
 import type { FeatureFlagAdminList } from "./FeatureFlagAdminList.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 
 export type FeatureListStaleFlagsStatus200 = FeatureFlagAdminList;
 
-export type FeatureListStaleFlagsStatus401 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type FeatureListStaleFlagsStatus401 = ApiError;
 
-export type FeatureListStaleFlagsStatus403 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type FeatureListStaleFlagsStatus403 = ApiError;
 
 /**
  * @description Validation error envelope returned for malformed requests.

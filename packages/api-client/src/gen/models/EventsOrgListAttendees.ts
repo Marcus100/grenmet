@@ -3,6 +3,7 @@
  * Do not edit manually.
  */
 
+import type { ApiError } from "./ApiError.js";
 import type { OrgAttendeePropertiesStatusEnum } from "./OrgAttendeePropertiesStatusEnum.js";
 import type { PaginatedResponseOrgAttendee } from "./PaginatedResponseOrgAttendee.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
@@ -46,11 +47,23 @@ export type EventsOrgListAttendeesHeaders = {
 
 export type EventsOrgListAttendeesStatus200 = PaginatedResponseOrgAttendee;
 
-export type EventsOrgListAttendeesStatus401 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type EventsOrgListAttendeesStatus401 = ApiError;
 
-export type EventsOrgListAttendeesStatus403 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type EventsOrgListAttendeesStatus403 = ApiError;
 
-export type EventsOrgListAttendeesStatus404 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type EventsOrgListAttendeesStatus404 = ApiError;
 
 /**
  * @description Validation error envelope returned for malformed requests.

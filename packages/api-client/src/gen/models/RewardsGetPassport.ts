@@ -3,14 +3,23 @@
  * Do not edit manually.
  */
 
+import type { ApiError } from "./ApiError.js";
 import type { PassportTrailPublic } from "./PassportTrailPublic.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 
 export type RewardsGetPassportStatus200 = PassportTrailPublic[];
 
-export type RewardsGetPassportStatus401 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type RewardsGetPassportStatus401 = ApiError;
 
-export type RewardsGetPassportStatus403 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type RewardsGetPassportStatus403 = ApiError;
 
 /**
  * @description Validation error envelope returned for malformed requests.

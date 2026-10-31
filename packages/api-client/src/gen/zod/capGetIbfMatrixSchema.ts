@@ -4,6 +4,7 @@
  */
 
 import * as z from "zod";
+import { apiErrorSchema } from "./apiErrorSchema.js";
 import { ibfMatrixPublicSchema } from "./ibfMatrixPublicSchema.js";
 import { validationErrorResponseSchema } from "./validationErrorResponseSchema.js";
 
@@ -15,9 +16,13 @@ export const capGetIbfMatrixStatus200Schema = ibfMatrixPublicSchema.describe(
   "The grid a forecaster reads for one hazard kind."
 );
 
-export const capGetIbfMatrixStatus401Schema = z.unknown();
+export const capGetIbfMatrixStatus401Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
-export const capGetIbfMatrixStatus403Schema = z.unknown();
+export const capGetIbfMatrixStatus403Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
 export const capGetIbfMatrixStatus422Schema =
   validationErrorResponseSchema.describe(

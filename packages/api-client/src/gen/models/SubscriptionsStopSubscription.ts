@@ -3,6 +3,7 @@
  * Do not edit manually.
  */
 
+import type { ApiError } from "./ApiError.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 
 export type SubscriptionsStopSubscriptionQuery = {
@@ -11,7 +12,11 @@ export type SubscriptionsStopSubscriptionQuery = {
 
 export type SubscriptionsStopSubscriptionStatus200 = string;
 
-export type SubscriptionsStopSubscriptionStatus400 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type SubscriptionsStopSubscriptionStatus400 = ApiError;
 
 /**
  * @description Validation error envelope returned for malformed requests.

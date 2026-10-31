@@ -3,6 +3,7 @@
  * Do not edit manually.
  */
 
+import type { ApiError } from "./ApiError.js";
 import type { CapProfileCellTextPropertiesImpactEnum } from "./CapProfileCellTextPropertiesImpactEnum.js";
 import type { CapProfileCellTextPropertiesLikelihoodEnum } from "./CapProfileCellTextPropertiesLikelihoodEnum.js";
 import type { IbfSuggestion } from "./IbfSuggestion.js";
@@ -25,9 +26,17 @@ export type CapSuggestIbfQuery = {
  */
 export type CapSuggestIbfStatus200 = IbfSuggestion;
 
-export type CapSuggestIbfStatus401 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type CapSuggestIbfStatus401 = ApiError;
 
-export type CapSuggestIbfStatus403 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type CapSuggestIbfStatus403 = ApiError;
 
 /**
  * @description Validation error envelope returned for malformed requests.

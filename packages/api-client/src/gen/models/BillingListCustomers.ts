@@ -3,6 +3,7 @@
  * Do not edit manually.
  */
 
+import type { ApiError } from "./ApiError.js";
 import type { CustomerListPublic } from "./CustomerListPublic.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 
@@ -28,9 +29,17 @@ export type BillingListCustomersQuery = {
 
 export type BillingListCustomersStatus200 = CustomerListPublic;
 
-export type BillingListCustomersStatus401 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type BillingListCustomersStatus401 = ApiError;
 
-export type BillingListCustomersStatus403 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type BillingListCustomersStatus403 = ApiError;
 
 /**
  * @description Validation error envelope returned for malformed requests.

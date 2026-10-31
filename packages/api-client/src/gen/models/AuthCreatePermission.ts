@@ -3,15 +3,24 @@
  * Do not edit manually.
  */
 
+import type { ApiError } from "./ApiError.js";
 import type { PermissionCreate } from "./PermissionCreate.js";
 import type { PermissionPublic } from "./PermissionPublic.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 
 export type AuthCreatePermissionStatus201 = PermissionPublic;
 
-export type AuthCreatePermissionStatus401 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type AuthCreatePermissionStatus401 = ApiError;
 
-export type AuthCreatePermissionStatus403 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type AuthCreatePermissionStatus403 = ApiError;
 
 /**
  * @description Validation error envelope returned for malformed requests.

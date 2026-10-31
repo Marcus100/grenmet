@@ -16,7 +16,7 @@ from src.auth.onboarding_schemas import (
 )
 from src.auth.schemas import UserPublic
 from src.dependencies import CurrentUser, MfaAdminUser, SessionDep
-from src.models import Message
+from src.models import ApiError, Message
 from src.rate_limit import limiter
 
 router = APIRouter(prefix="/auth/onboarding", tags=["onboarding"])
@@ -30,8 +30,8 @@ router = APIRouter(prefix="/auth/onboarding", tags=["onboarding"])
     summary="Create an account for activation",
     description="Superuser creates an account without choosing or sharing its password. Does not grant app roles.",
     responses={
-        403: {"description": "Superuser required"},
-        409: {"description": "Account exists"},
+        403: {"model": ApiError, "description": "Superuser required"},
+        409: {"model": ApiError, "description": "Account exists"},
     },
 )
 async def create_account(
@@ -49,8 +49,8 @@ async def create_account(
     summary="Explain account and app readiness",
     description="Superuser view of account activation and staff/CMS access blockers. Domain workflow readiness remains domain-owned.",
     responses={
-        403: {"description": "Superuser required"},
-        404: {"description": "Account not found"},
+        403: {"model": ApiError, "description": "Superuser required"},
+        404: {"model": ApiError, "description": "Account not found"},
     },
 )
 async def status(
@@ -67,10 +67,10 @@ async def status(
     summary="Issue a one-use activation link",
     description="Superuser confirms identity and delivers a 30-minute link directly. Replaces previous activation links. Never verifies email or grants roles.",
     responses={
-        400: {"description": "Identity confirmation required"},
-        403: {"description": "Superuser required"},
-        404: {"description": "Account not found"},
-        409: {"description": "Use account recovery instead"},
+        400: {"model": ApiError, "description": "Identity confirmation required"},
+        403: {"model": ApiError, "description": "Superuser required"},
+        404: {"model": ApiError, "description": "Account not found"},
+        409: {"model": ApiError, "description": "Use account recovery instead"},
     },
 )
 @limiter.limit("5/minute")
@@ -97,8 +97,8 @@ async def issue(
     summary="Revoke an activation link",
     description="Superuser invalidates outstanding activation links for an account.",
     responses={
-        403: {"description": "Superuser required"},
-        404: {"description": "Account not found"},
+        403: {"model": ApiError, "description": "Superuser required"},
+        404: {"model": ApiError, "description": "Account not found"},
     },
 )
 async def revoke(
@@ -123,10 +123,11 @@ async def revoke(
     ),
     responses={
         403: {
-            "description": "Superuser with an authenticator required (superuser_mfa_required)"
+            "model": ApiError,
+            "description": "Superuser with an authenticator required (superuser_mfa_required)",
         },
-        404: {"description": "Account not found"},
-        409: {"description": "Inactive or superuser account"},
+        404: {"model": ApiError, "description": "Account not found"},
+        409: {"model": ApiError, "description": "Inactive or superuser account"},
     },
 )
 @limiter.limit("20/minute")
@@ -159,10 +160,11 @@ async def admin_activate(
     ),
     responses={
         403: {
-            "description": "Superuser with an authenticator required (superuser_mfa_required)"
+            "model": ApiError,
+            "description": "Superuser with an authenticator required (superuser_mfa_required)",
         },
-        404: {"description": "Account not found"},
-        409: {"description": "Inactive account"},
+        404: {"model": ApiError, "description": "Account not found"},
+        409: {"model": ApiError, "description": "Inactive account"},
     },
 )
 @limiter.limit("5/minute")
@@ -188,7 +190,9 @@ async def resend_verification(
     operation_id="authConfirmActivation",
     summary="Activate an administrator-approved account",
     description="Public endpoint requires a valid single-use activation secret and a new password. Does not establish a session or verify email.",
-    responses={400: {"description": "Invalid, expired or used activation"}},
+    responses={
+        400: {"model": ApiError, "description": "Invalid, expired or used activation"}
+    },
 )
 @limiter.limit("5/minute")
 async def confirm(

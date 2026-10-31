@@ -3,13 +3,18 @@
  * Do not edit manually.
  */
 
+import type { ApiError } from "./ApiError.js";
 import type { NotificationPreferencePublic } from "./NotificationPreferencePublic.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 
 export type NotificationsGetNotificationPreferencesStatus200 =
   NotificationPreferencePublic[];
 
-export type NotificationsGetNotificationPreferencesStatus401 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type NotificationsGetNotificationPreferencesStatus401 = ApiError;
 
 /**
  * @description Validation error envelope returned for malformed requests.

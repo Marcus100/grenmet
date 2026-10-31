@@ -4,6 +4,7 @@
  */
 
 import * as z from "zod";
+import { apiErrorSchema } from "./apiErrorSchema.js";
 import { capEscalationLookupSchema } from "./capEscalationLookupSchema.js";
 import { validationErrorResponseSchema } from "./validationErrorResponseSchema.js";
 
@@ -14,9 +15,13 @@ export const capGetEscalationStatus200Schema =
     "The CAP warning raised from a GMS alert, if one is open or published."
   );
 
-export const capGetEscalationStatus401Schema = z.unknown();
+export const capGetEscalationStatus401Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
-export const capGetEscalationStatus403Schema = z.unknown();
+export const capGetEscalationStatus403Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
 export const capGetEscalationStatus422Schema =
   validationErrorResponseSchema.describe(

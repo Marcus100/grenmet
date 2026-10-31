@@ -3,6 +3,7 @@
  * Do not edit manually.
  */
 
+import type { ApiError } from "./ApiError.js";
 import type { ProfilePublic } from "./ProfilePublic.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 
@@ -16,7 +17,11 @@ export type EventsGetPersonPath = {
 
 export type EventsGetPersonStatus200 = ProfilePublic;
 
-export type EventsGetPersonStatus404 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type EventsGetPersonStatus404 = ApiError;
 
 /**
  * @description Validation error envelope returned for malformed requests.
