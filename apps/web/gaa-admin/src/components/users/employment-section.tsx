@@ -25,7 +25,7 @@ import { Field, FieldLabel } from "@barrelsgd/ui/components/ui/field";
 import { Input } from "@barrelsgd/ui/components/ui/input";
 import { NativeSelect } from "@barrelsgd/ui/components/ui/native-select";
 import { useQueryClient } from "@tanstack/react-query";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { grenadaToday } from "@/components/hr/expiry";
 import {
@@ -164,7 +164,7 @@ function StatusField({
 
 /** Shown when the record changed on the server after this form loaded it. */
 export const CHANGED_ELSEWHERE_NOTICE =
-  "This record was changed after you opened it, perhaps by another administrator. The form still shows what you loaded; only the fields you edit are saved.";
+  "This record was changed after you opened it, perhaps by another administrator. The form still shows what you loaded; only the fields you edit are saved. Load latest values shows the saved record and discards your unsaved edits.";
 
 /** Says the record changed elsewhere, with a way to reload it. Nothing when `show` is false. */
 function ChangedElsewhereNotice({
@@ -230,6 +230,9 @@ export function EmploymentSection({
   const [saveError, setSaveError] = useState<string | null>(null);
   // Plain status message, such as "No changes to save". Not an error.
   const [notice, setNotice] = useState<string | null>(null);
+  // "Load latest values" removes its own button, so focus moves here instead of
+  // falling back to the page.
+  const departmentRef = useRef<HTMLSelectElement>(null);
   // The fetched record the snapshot was last set against (at load or save). Only
   // a record fetched after that can show a change made elsewhere; the stale
   // cached record right after this form's own save is not one.
@@ -428,6 +431,8 @@ export function EmploymentSection({
     setSaveError(null);
     setNotice(null);
     setEmpSeeded(false);
+    // The select stays mounted while the form reseeds (no fetch runs).
+    departmentRef.current?.focus();
   }
 
   /** Save button: asks for confirmation first when the change ends roles. */
@@ -457,6 +462,7 @@ export function EmploymentSection({
         <NativeSelect
           id="mu-dept"
           onChange={(e) => editEmployment({ department_id: e.target.value })}
+          ref={departmentRef}
           value={emp.department_id}
         >
           <option value="">Select department…</option>
