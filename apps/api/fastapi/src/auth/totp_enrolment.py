@@ -26,6 +26,7 @@ from src.auth.models import Session as AuthSession
 from src.auth.models import (
     User,
 )
+from src.auth.modern_models import AuthChallenge
 from src.utils.datetime import utc_now
 
 logger = logging.getLogger(__name__)
@@ -231,7 +232,7 @@ async def _issue_enrolment_code(session: AsyncSession, user: User) -> str:
 
 async def _check_enrolment_code(
     session: AsyncSession, user: User, email_code: str | None
-):
+) -> AuthChallenge:
     """Return the stored code, not yet consumed, when ``email_code`` matches it.
 
     A wrong, missing, expired or used code raises 400 and is audited. The shared store
