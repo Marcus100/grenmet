@@ -10,4 +10,7 @@ export const employeePayProfileUpdateSchema = z.object({
   calendar_id: z.union([z.uuid(), z.null()]).optional(),
   shift_worker: z.union([z.boolean(), z.null()]).optional(),
   payroll_reference: z.union([z.string().min(1).max(50), z.null()]).optional(),
+  calendar_override_reason: z
+    .union([z.string().min(3).max(300), z.null()])
+    .optional(),
 });

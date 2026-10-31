@@ -1549,6 +1549,11 @@ export {
   useHrCreateDepartment,
 } from "./useHrCreateDepartment.js";
 export {
+  hrCreateEmployeeBasicPayMutationKey,
+  hrCreateEmployeeBasicPayMutationOptions,
+  useHrCreateEmployeeBasicPay,
+} from "./useHrCreateEmployeeBasicPay.js";
+export {
   hrCreateHolidayMutationKey,
   hrCreateHolidayMutationOptions,
   useHrCreateHoliday,
@@ -1583,6 +1588,11 @@ export {
   hrCreatePayCalendarMutationOptions,
   useHrCreatePayCalendar,
 } from "./useHrCreatePayCalendar.js";
+export {
+  hrCreatePayItemRateMutationKey,
+  hrCreatePayItemRateMutationOptions,
+  useHrCreatePayItemRate,
+} from "./useHrCreatePayItemRate.js";
 export {
   hrCreatePayLineMutationKey,
   hrCreatePayLineMutationOptions,
@@ -1804,6 +1814,11 @@ export {
   useHrGetPayPeriod,
 } from "./useHrGetPayPeriod.js";
 export {
+  hrGetPayPeriodAmountsQueryKey,
+  hrGetPayPeriodAmountsQueryOptions,
+  useHrGetPayPeriodAmounts,
+} from "./useHrGetPayPeriodAmounts.js";
+export {
   hrGetPeriodQueryKey,
   hrGetPeriodQueryOptions,
   useHrGetPeriod,
@@ -1959,6 +1974,11 @@ export {
   useHrListDepartments,
 } from "./useHrListDepartments.js";
 export {
+  hrListEmployeeBasicPayQueryKey,
+  hrListEmployeeBasicPayQueryOptions,
+  useHrListEmployeeBasicPay,
+} from "./useHrListEmployeeBasicPay.js";
+export {
   hrListEmployeePayProfilesQueryKey,
   hrListEmployeePayProfilesQueryOptions,
   useHrListEmployeePayProfiles,
@@ -1978,6 +1998,11 @@ export {
   hrListPayCalendarsQueryOptions,
   useHrListPayCalendars,
 } from "./useHrListPayCalendars.js";
+export {
+  hrListPayItemRatesQueryKey,
+  hrListPayItemRatesQueryOptions,
+  useHrListPayItemRates,
+} from "./useHrListPayItemRates.js";
 export {
   hrListPayItemsQueryKey,
   hrListPayItemsQueryOptions,

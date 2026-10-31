@@ -21269,6 +21269,510 @@
         }
       }
     },
+    "/api/v1/hr/payroll/periods/{period_id}/amounts": {
+      "get": {
+        "tags": [
+          "hr-payroll"
+        ],
+        "summary": "Read a pay period's gross amounts",
+        "description": "Amounts in minor units per line and per employee. Needs organisation-wide hr.payroll.read.amounts; department readers never receive amounts.",
+        "operationId": "hrGetPayPeriodAmounts",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "period_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Period Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PayPeriodAmountsPublic"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "400": {
+            "description": "Invalid payroll input",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Not signed in",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Missing payroll permission, organisation-wide scope or two-step verification, or separation of duty (you prepared or added lines to the period, or it is your own pay)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found, or no payroll access in this organisation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "The period is not in a state that allows this, or the data conflicts",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/hr/payroll/rates": {
+      "get": {
+        "tags": [
+          "hr-payroll"
+        ],
+        "summary": "List pay item rates",
+        "description": "Dated multipliers and fixed amounts. Needs organisation-wide hr.payroll.read.amounts or hr.payroll.rates.manage.",
+        "operationId": "hrListPayItemRates",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "organisation_id",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "maxLength": 100,
+              "title": "Organisation Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PayItemRatesPublic"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "400": {
+            "description": "Invalid payroll input",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Not signed in",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Missing payroll permission, organisation-wide scope or two-step verification, or separation of duty (you prepared or added lines to the period, or it is your own pay)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found, or no payroll access in this organisation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "The period is not in a state that allows this, or the data conflicts",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "hr-payroll"
+        ],
+        "summary": "Add a dated pay item rate",
+        "description": "Needs organisation-wide hr.payroll.rates.manage and a session verified with two-step verification. An open-ended earlier rate ends the day before.",
+        "operationId": "hrCreatePayItemRate",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PayItemRateCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PayItemRatePublic"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "400": {
+            "description": "Invalid payroll input",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Not signed in",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Missing payroll permission, organisation-wide scope or two-step verification, or separation of duty (you prepared or added lines to the period, or it is your own pay)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found, or no payroll access in this organisation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "The period is not in a state that allows this, or the data conflicts",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/hr/payroll/basic-pay": {
+      "get": {
+        "tags": [
+          "hr-payroll"
+        ],
+        "summary": "List dated basic pay",
+        "description": "Needs organisation-wide hr.payroll.read.amounts or hr.payroll.rates.manage.",
+        "operationId": "hrListEmployeeBasicPay",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "organisation_id",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "maxLength": 100,
+              "title": "Organisation Id"
+            }
+          },
+          {
+            "name": "user_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "User Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EmployeeBasicPaysPublic"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "400": {
+            "description": "Invalid payroll input",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Not signed in",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Missing payroll permission, organisation-wide scope or two-step verification, or separation of duty (you prepared or added lines to the period, or it is your own pay)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found, or no payroll access in this organisation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "The period is not in a state that allows this, or the data conflicts",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "hr-payroll"
+        ],
+        "summary": "Record dated basic pay",
+        "description": "Needs organisation-wide hr.payroll.rates.manage and a session verified with two-step verification. Nobody sets their own. An hourly-paid person on a calendar longer than fortnightly needs an override reason.",
+        "operationId": "hrCreateEmployeeBasicPay",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EmployeeBasicPayCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EmployeeBasicPayPublic"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "400": {
+            "description": "Invalid payroll input",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Not signed in",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Missing payroll permission, organisation-wide scope or two-step verification, or separation of duty (you prepared or added lines to the period, or it is your own pay)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found, or no payroll access in this organisation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "The period is not in a state that allows this, or the data conflicts",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/hr/training-records": {
       "get": {
         "tags": [
@@ -74649,6 +75153,191 @@
         "type": "object",
         "title": "EmergencyContactUpdate"
       },
+      "EmployeeBasicPayCreate": {
+        "properties": {
+          "organisation_id": {
+            "type": "string",
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Organisation Id"
+          },
+          "user_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "User Id"
+          },
+          "pay_basis": {
+            "$ref": "#/components/schemas/PayBasis"
+          },
+          "amount_minor": {
+            "type": "integer",
+            "maximum": 100000000.0,
+            "exclusiveMinimum": 0.0,
+            "title": "Amount Minor"
+          },
+          "standard_monthly_hours": {
+            "anyOf": [
+              {
+                "type": "number",
+                "maximum": 744.0,
+                "exclusiveMinimum": 0.0
+              },
+              {
+                "type": "string"
+              }
+            ],
+            "title": "Standard Monthly Hours"
+          },
+          "effective_from": {
+            "type": "string",
+            "format": "date",
+            "title": "Effective From"
+          },
+          "effective_to": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Effective To"
+          },
+          "reason": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 300
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reason"
+          },
+          "calendar_override_reason": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 300,
+                "minLength": 3
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Calendar Override Reason"
+          }
+        },
+        "type": "object",
+        "required": [
+          "organisation_id",
+          "user_id",
+          "pay_basis",
+          "amount_minor",
+          "standard_monthly_hours",
+          "effective_from"
+        ],
+        "title": "EmployeeBasicPayCreate"
+      },
+      "EmployeeBasicPayPublic": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "user_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "User Id"
+          },
+          "employee_name": {
+            "type": "string",
+            "title": "Employee Name"
+          },
+          "organisation_id": {
+            "type": "string",
+            "title": "Organisation Id"
+          },
+          "pay_basis": {
+            "$ref": "#/components/schemas/PayBasis"
+          },
+          "amount_minor": {
+            "type": "integer",
+            "title": "Amount Minor"
+          },
+          "standard_monthly_hours": {
+            "type": "string",
+            "title": "Standard Monthly Hours"
+          },
+          "currency": {
+            "type": "string",
+            "title": "Currency"
+          },
+          "effective_from": {
+            "type": "string",
+            "format": "date",
+            "title": "Effective From"
+          },
+          "effective_to": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Effective To"
+          },
+          "reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reason"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "user_id",
+          "employee_name",
+          "organisation_id",
+          "pay_basis",
+          "amount_minor",
+          "standard_monthly_hours",
+          "currency",
+          "effective_from",
+          "effective_to",
+          "reason"
+        ],
+        "title": "EmployeeBasicPayPublic"
+      },
+      "EmployeeBasicPaysPublic": {
+        "properties": {
+          "data": {
+            "items": {
+              "$ref": "#/components/schemas/EmployeeBasicPayPublic"
+            },
+            "type": "array",
+            "title": "Data"
+          }
+        },
+        "type": "object",
+        "required": [
+          "data"
+        ],
+        "title": "EmployeeBasicPaysPublic"
+      },
       "EmployeeDocumentListPublic": {
         "properties": {
           "can_upload": {
@@ -74944,6 +75633,47 @@
         "title": "EmployeeDocumentUpdate",
         "description": "Correctable metadata only.\n\nCategory is not updatable: moving a MEDICAL document to OTHER would widen who\ncan read it after the fact. Re-file it instead, so the audit trail shows two\nrows rather than one silently reclassified one."
       },
+      "EmployeeGrossPublic": {
+        "properties": {
+          "user_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "User Id"
+          },
+          "employee_name": {
+            "type": "string",
+            "title": "Employee Name"
+          },
+          "employee_number": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Employee Number"
+          },
+          "gross_minor": {
+            "type": "integer",
+            "title": "Gross Minor"
+          },
+          "unpriced_line_count": {
+            "type": "integer",
+            "title": "Unpriced Line Count"
+          }
+        },
+        "type": "object",
+        "required": [
+          "user_id",
+          "employee_name",
+          "employee_number",
+          "gross_minor",
+          "unpriced_line_count"
+        ],
+        "title": "EmployeeGrossPublic"
+      },
       "EmployeePayProfilePublic": {
         "properties": {
           "user_id": {
@@ -75065,6 +75795,19 @@
               }
             ],
             "title": "Payroll Reference"
+          },
+          "calendar_override_reason": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 300,
+                "minLength": 3
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Calendar Override Reason"
           }
         },
         "type": "object",
@@ -87118,6 +87861,14 @@
         ],
         "title": "PassportTrailPublic"
       },
+      "PayBasis": {
+        "type": "string",
+        "enum": [
+          "SALARIED",
+          "HOURLY"
+        ],
+        "title": "PayBasis"
+      },
       "PayCalendarCreate": {
         "properties": {
           "organisation_id": {
@@ -87280,7 +88031,8 @@
           "TIME_WINDOW",
           "THRESHOLD_EVENT",
           "OVERTIME_BAND",
-          "MANUAL"
+          "MANUAL",
+          "BASIC_SALARY"
         ],
         "title": "PayItemMethod",
         "description": "How a pay item's quantity is found (``params`` holds the rule's numbers)."
@@ -87377,6 +88129,245 @@
         ],
         "title": "PayItemPublic"
       },
+      "PayItemRateCreate": {
+        "properties": {
+          "pay_item_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Pay Item Id"
+          },
+          "rate_kind": {
+            "$ref": "#/components/schemas/RateKind"
+          },
+          "multiplier": {
+            "anyOf": [
+              {
+                "type": "number",
+                "exclusiveMinimum": 0.0
+              },
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Multiplier"
+          },
+          "amount_minor": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 100000000.0,
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Amount Minor"
+          },
+          "guaranteed_hours": {
+            "anyOf": [
+              {
+                "type": "number",
+                "exclusiveMinimum": 0.0
+              },
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Guaranteed Hours"
+          },
+          "guaranteed_multiplier": {
+            "anyOf": [
+              {
+                "type": "number",
+                "exclusiveMinimum": 0.0
+              },
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Guaranteed Multiplier"
+          },
+          "effective_from": {
+            "type": "string",
+            "format": "date",
+            "title": "Effective From"
+          },
+          "effective_to": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Effective To"
+          },
+          "source_reference": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 300
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source Reference"
+          }
+        },
+        "type": "object",
+        "required": [
+          "pay_item_id",
+          "rate_kind",
+          "effective_from"
+        ],
+        "title": "PayItemRateCreate"
+      },
+      "PayItemRatePublic": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "pay_item_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Pay Item Id"
+          },
+          "organisation_id": {
+            "type": "string",
+            "title": "Organisation Id"
+          },
+          "rate_kind": {
+            "$ref": "#/components/schemas/RateKind"
+          },
+          "multiplier": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Multiplier"
+          },
+          "amount_minor": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Amount Minor"
+          },
+          "guaranteed_hours": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Guaranteed Hours"
+          },
+          "guaranteed_multiplier": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Guaranteed Multiplier"
+          },
+          "currency": {
+            "type": "string",
+            "title": "Currency"
+          },
+          "effective_from": {
+            "type": "string",
+            "format": "date",
+            "title": "Effective From"
+          },
+          "effective_to": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Effective To"
+          },
+          "rule_state": {
+            "$ref": "#/components/schemas/RuleState"
+          },
+          "source_reference": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source Reference"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "pay_item_id",
+          "organisation_id",
+          "rate_kind",
+          "multiplier",
+          "amount_minor",
+          "guaranteed_hours",
+          "guaranteed_multiplier",
+          "currency",
+          "effective_from",
+          "effective_to",
+          "rule_state",
+          "source_reference"
+        ],
+        "title": "PayItemRatePublic"
+      },
+      "PayItemRatesPublic": {
+        "properties": {
+          "data": {
+            "items": {
+              "$ref": "#/components/schemas/PayItemRatePublic"
+            },
+            "type": "array",
+            "title": "Data"
+          }
+        },
+        "type": "object",
+        "required": [
+          "data"
+        ],
+        "title": "PayItemRatesPublic"
+      },
       "PayItemTotal": {
         "properties": {
           "pay_item_id": {
@@ -87451,6 +88442,220 @@
           "overtime_bands_available"
         ],
         "title": "PayItemsPublic"
+      },
+      "PayLineAmountPublic": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "run_kind": {
+            "$ref": "#/components/schemas/PayRunKind"
+          },
+          "line_kind": {
+            "$ref": "#/components/schemas/PayLineKind"
+          },
+          "user_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "User Id"
+          },
+          "employee_name": {
+            "type": "string",
+            "title": "Employee Name"
+          },
+          "employee_number": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Employee Number"
+          },
+          "payroll_reference": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Payroll Reference"
+          },
+          "department_id": {
+            "type": "string",
+            "title": "Department Id"
+          },
+          "pay_item_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Pay Item Id"
+          },
+          "pay_item_code": {
+            "type": "string",
+            "title": "Pay Item Code"
+          },
+          "pay_item_name": {
+            "type": "string",
+            "title": "Pay Item Name"
+          },
+          "unit": {
+            "$ref": "#/components/schemas/PayItemUnit"
+          },
+          "rule_state": {
+            "$ref": "#/components/schemas/RuleState"
+          },
+          "quantity": {
+            "type": "string",
+            "title": "Quantity"
+          },
+          "work_date": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Work Date"
+          },
+          "source_type": {
+            "type": "string",
+            "title": "Source Type"
+          },
+          "source_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source Id"
+          },
+          "reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reason"
+          },
+          "adjusts_period_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Adjusts Period Id"
+          },
+          "adjusts_line_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Adjusts Line Id"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "amount_minor": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Amount Minor"
+          },
+          "hourly_rate": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Hourly Rate"
+          },
+          "multiplier": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Multiplier"
+          },
+          "fixed_amount_minor": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Fixed Amount Minor"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "run_kind",
+          "line_kind",
+          "user_id",
+          "employee_name",
+          "employee_number",
+          "payroll_reference",
+          "department_id",
+          "pay_item_id",
+          "pay_item_code",
+          "pay_item_name",
+          "unit",
+          "rule_state",
+          "quantity",
+          "work_date",
+          "source_type",
+          "source_id",
+          "reason",
+          "adjusts_period_id",
+          "adjusts_line_id",
+          "created_at",
+          "amount_minor",
+          "hourly_rate",
+          "multiplier",
+          "fixed_amount_minor"
+        ],
+        "title": "PayLineAmountPublic"
       },
       "PayLineKind": {
         "type": "string",
@@ -87711,6 +88916,46 @@
           "count"
         ],
         "title": "PayLinesPublic"
+      },
+      "PayPeriodAmountsPublic": {
+        "properties": {
+          "period_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Period Id"
+          },
+          "currency": {
+            "type": "string",
+            "title": "Currency"
+          },
+          "gross_minor": {
+            "type": "integer",
+            "title": "Gross Minor"
+          },
+          "employees": {
+            "items": {
+              "$ref": "#/components/schemas/EmployeeGrossPublic"
+            },
+            "type": "array",
+            "title": "Employees"
+          },
+          "lines": {
+            "items": {
+              "$ref": "#/components/schemas/PayLineAmountPublic"
+            },
+            "type": "array",
+            "title": "Lines"
+          }
+        },
+        "type": "object",
+        "required": [
+          "period_id",
+          "currency",
+          "gross_minor",
+          "employees",
+          "lines"
+        ],
+        "title": "PayPeriodAmountsPublic"
       },
       "PayPeriodCreate": {
         "properties": {
@@ -92017,6 +93262,14 @@
         },
         "type": "object",
         "title": "QcDecisionRequest"
+      },
+      "RateKind": {
+        "type": "string",
+        "enum": [
+          "HOURLY_MULTIPLIER",
+          "FIXED_AMOUNT"
+        ],
+        "title": "RateKind"
       },
       "ReadinessUnavailable": {
         "properties": {
