@@ -6,6 +6,7 @@ reconciliation never see a provider's own payload shapes.
 
 import uuid
 from collections.abc import Mapping
+from contextlib import AbstractAsyncContextManager
 from dataclasses import dataclass
 from enum import Enum
 from typing import Protocol
@@ -42,6 +43,15 @@ class ProviderRefund:
     status: str
     #: Our refund id, echoed back in the provider's metadata when we made the refund.
     refund_id: uuid.UUID | None = None
+
+
+@dataclass(frozen=True)
+class RefundListing:
+    """Every refund the provider holds for one payment, for reconciliation."""
+
+    refunds: tuple[ProviderRefund, ...]
+    #: False when the listing stopped early (more pages than the adapter will read).
+    complete: bool = True
 
 
 @dataclass(frozen=True)
@@ -102,3 +112,9 @@ class PaymentProvider(Protocol):
     ) -> RefundResult: ...
 
     async def fetch_status(self, intent: Intent, /) -> ProviderStatus: ...
+
+    async def list_refunds(self, intent: Intent, /) -> RefundListing: ...
+
+    def batch(self) -> AbstractAsyncContextManager[None]:
+        """Reuse one connection for every call made inside the block."""
+        ...

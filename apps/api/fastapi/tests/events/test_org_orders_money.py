@@ -9,6 +9,7 @@ from typing import Any, cast
 import httpx
 import pytest
 from sqlalchemy import func, select, update
+from sqlalchemy import text as sa_text
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src import outbox
@@ -1484,3 +1485,81 @@ async def test_a_refund_the_provider_failed_is_terminal_and_the_operator_refunds
     )
     assert (await _row(events_db, order_id)).refunded_minor == 2000
     assert await _ledger_refunds(db_async, order_id) == [-2000, -2000]
+
+
+@pytest.mark.asyncio
+@pytest.mark.usefixtures("stripe_env")
+async def test_the_event_cancel_response_reports_an_order_with_a_refund_already_pending(
+    db_async: AsyncSession,
+    async_client: httpx.AsyncClient,
+    events_db: SessionFactory,
+) -> None:
+    """#517 L3: the cancel response says how many orders still wait for an earlier
+    refund (``orders_pending``), and the activity row records the same count."""
+    shop = await _shop_with_events(db_async, events_db, allocation=5)
+    order_id, _ = await _pending(db_async, shop)
+    await _pay_stripe(db_async, async_client, order_id)
+    actor = await db_async.get(User, shop.owner.id)
+    order = await db_async.get(Order, uuid.UUID(order_id))
+    assert actor is not None and order is not None
+    queued, _ = await order_refunds.request_refund(
+        db_async,
+        organisation_id=shop.organisation_id,
+        order=order,
+        actor=actor,
+        reason="Partial refund",
+        reason_code="organiser_refund",
+        key="partial-1",
+        amount_minor=1000,
+    )
+    await db_async.commit()
+    assert queued == "queued"
+
+    async with await _desk() as client:
+        response = await client.post(
+            f"{ORG}/events/{shop.listing_id}/cancel",
+            headers=_h(shop),
+            json={"confirm": True, "refund": "full"},
+        )
+    assert response.status_code == 200, response.text
+    body = response.json()
+    assert (
+        body["orders_pending"],
+        body["orders_queued"],
+        body["refunds_failed"],
+    ) == (1, 0, 0)
+
+
+@pytest.mark.asyncio
+async def test_the_waiting_refund_lookup_can_use_the_pending_order_index(
+    db_async: AsyncSession,
+) -> None:
+    """#517: the check for a refund already waiting on an order is served by
+    ``outbox_pending_order_idx``, also under a generic prepared plan (bound topic and
+    order id): its expression and partial predicate are SQL constants in the query.
+    Sequential scans are switched off to ask the planner whether the index applies;
+    the table is tiny in tests."""
+    statement = select(outbox.Outbox.id).where(
+        outbox.pending_for_order(order_refunds.REQUESTED_TOPIC, str(uuid.uuid4()))
+    )
+    sql = str(statement.compile(dialect=db_async.bind.dialect))
+    assert "'pending'" in sql and "'order_id'" in sql
+    await db_async.execute(sa_text("SET LOCAL plan_cache_mode = force_generic_plan"))
+    await db_async.execute(sa_text("SET LOCAL enable_seqscan = off"))
+    await db_async.execute(
+        sa_text(f"PREPARE waiting_refund (varchar, varchar) AS {sql}")
+    )
+    plan = (
+        (
+            await db_async.execute(
+                sa_text(
+                    "EXPLAIN EXECUTE waiting_refund('events.order_refund_requested', 'x')"
+                )
+            )
+        )
+        .scalars()
+        .all()
+    )
+    await db_async.execute(sa_text("DEALLOCATE waiting_refund"))
+    await db_async.rollback()
+    assert any("outbox_pending_order_idx" in line for line in plan), plan
