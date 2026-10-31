@@ -2,9 +2,11 @@ import json
 import re
 from pathlib import Path
 from types import SimpleNamespace
+from typing import cast
 from uuid import uuid4
 
 import pytest
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.main import app
 from src.wxproducts import advisories, forecast_pdf, presentation, validation
@@ -300,8 +302,8 @@ async def test_snapshot_keeps_all_clear_out_of_the_advisory_limit(monkeypatch):
 
     monkeypatch.setattr(advisories.cap_service, "public_latest_active", active)
     monkeypatch.setattr(advisories.service, "list_published_products", published)
-    session = SimpleNamespace(in_transaction=lambda: False)
-    data = json.loads(await advisories.snapshot(session, session))  # type: ignore[arg-type]
+    session = cast("AsyncSession", SimpleNamespace(in_transaction=lambda: False))
+    data = json.loads(await advisories.snapshot(session, session))
     items = data["items"]
     assert len(items) == advisories.ITEM_LIMIT + 1
     assert [item["noticeType"] for item in items[: advisories.ITEM_LIMIT]] == [
