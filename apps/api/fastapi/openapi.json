@@ -26889,7 +26889,7 @@
           "organisations"
         ],
         "summary": "Revoke a role grant",
-        "description": "Needs the bundle's permissions and its product's team-manage permission. Revoking an already revoked grant returns it unchanged.",
+        "description": "Needs the bundle's permissions and its product's team-manage permission. Nobody can revoke their own grant (403). Revoking an already revoked grant returns it unchanged.",
         "operationId": "organisationsRevokeMemberGrant",
         "security": [
           {
@@ -26957,7 +26957,7 @@
             }
           },
           "403": {
-            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission",
+            "description": "Lacks the bundle's permissions or the product's team-manage permission, or the grant is the caller's own",
             "content": {
               "application/json": {
                 "schema": {

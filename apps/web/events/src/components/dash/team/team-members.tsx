@@ -61,7 +61,8 @@ function MemberRow({
   viewer: TeamViewer;
 }) {
   const implicit = member.role !== "member";
-  // The API refuses changes to the viewer's own roles and membership.
+  // The API refuses giving or taking away the viewer's own roles; removing
+  // yourself is not offered here either (leaving is not a team-manager action).
   const self = member.isSelf;
   // Only an owner may remove an owner; admins and owners may remove the rest.
   const canRemove =
