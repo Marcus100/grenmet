@@ -4,7 +4,7 @@
  */
 
 import type { ApiError } from "./ApiError.js";
-import type { MembershipGrantPublic } from "./MembershipGrantPublic.js";
+import type { GrantRevokePublic } from "./GrantRevokePublic.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 
 export type OrganisationsRevokeMemberGrantPath = {
@@ -19,10 +19,10 @@ export type OrganisationsRevokeMemberGrantHeaders = {
 };
 
 /**
- * @description A role a member holds. Display names only; never email addresses.
+ * @description The revoked grant and how many other grants the cascade ended (#527).
  * @type object
  */
-export type OrganisationsRevokeMemberGrantStatus200 = MembershipGrantPublic;
+export type OrganisationsRevokeMemberGrantStatus200 = GrantRevokePublic;
 
 /**
  * @description Stable error envelope for documented API failures.

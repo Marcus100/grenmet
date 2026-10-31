@@ -10,4 +10,5 @@ export type TwoFactorCodeRequest = {
    * @type string
    */
   code: string;
+  email_code?: string | null;
 };
