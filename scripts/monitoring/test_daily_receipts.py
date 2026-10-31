@@ -214,6 +214,80 @@ class DailyReceiptTests(unittest.TestCase):
             self.assertFalse(receipt["sources"]["sentry"]["complete"])
             self.assertEqual(fetch.calls, [])
 
+    def test_sentry_host_must_match_the_strict_allow_list(self):
+        for url in (
+            "https://evil.com\\.sentry.io",
+            "https://evil.com%5c.sentry.io",
+            "https://sentry.io.evil.com",
+            "https://evilsentry.io",
+            "https://sentry.io:444",
+            "https://sentry.io/api/0/",
+            "https://de.sentry.io?x=1",
+            "https://de.sentry.io#fragment",
+            "https://user:pass@sentry.io",
+            "https:// sentry.io",
+        ):
+            fetch = fake_sentry([])
+            receipt, _, _ = self.collect(
+                fetch=fetch, env={**ENV, "MONITORING_SENTRY_URL": url}
+            )
+            self.assertEqual(
+                receipt["sources"]["sentry"],
+                {"complete": False, "reason": "Sentry API address invalid"},
+                url,
+            )
+            self.assertEqual(fetch.calls, [], url)
+        for url, origin in (
+            ("https://de.sentry.io", "https://de.sentry.io"),
+            ("https://US.Sentry.IO/", "https://us.sentry.io"),
+            ("https://sentry.io", "https://sentry.io"),
+        ):
+            fetch = fake_sentry([[], []])
+            receipt, _, _ = self.collect(
+                fetch=fetch, env={**ENV, "MONITORING_SENTRY_URL": url}
+            )
+            self.assertTrue(receipt["sources"]["sentry"]["complete"], url)
+            self.assertTrue(
+                all(call.startswith(f"{origin}/api/0/") for call, _ in fetch.calls)
+            )
+
+    def test_spaces_endpoint_must_be_a_digitalocean_spaces_region_host(self):
+        for endpoint in (
+            "https://evil.example",
+            "https://nyc3.digitaloceanspaces.com.evil.com",
+            "https://grenmet-backups.nyc3.digitaloceanspaces.com",
+            "https://evil.com\\.digitaloceanspaces.com",
+            "https://nyc3.digitaloceanspaces.com:8443",
+            "https://nyc3.digitaloceanspaces.com/bucket",
+            "https://key@nyc3.digitaloceanspaces.com",
+            "http://nyc3.digitaloceanspaces.com",
+            "",
+        ):
+            runner = FakeRunner()
+            receipt, _, _ = self.collect(
+                runner=runner, env={**ENV, "MONITORING_SPACES_ENDPOINT": endpoint}
+            )
+            self.assertEqual(
+                receipt["sources"]["backups"],
+                {"complete": False, "reason": "backup storage config unavailable"},
+                endpoint,
+            )
+            self.assertFalse(any(c["args"][0] == "aws" for c in runner.calls))
+        runner = FakeRunner()
+        receipt, _, _ = self.collect(
+            runner=runner,
+            env={
+                **ENV,
+                "MONITORING_SPACES_ENDPOINT": "https://SFO3.digitaloceanspaces.com/",
+            },
+        )
+        self.assertTrue(receipt["sources"]["backups"]["complete"])
+        aws = next(c for c in runner.calls if c["args"][0] == "aws")
+        self.assertEqual(
+            aws["args"][aws["args"].index("--endpoint-url") + 1],
+            "https://sfo3.digitaloceanspaces.com",
+        )
+
     def test_unknown_role_or_backup_kind_is_refused(self):
         receipt, runner, _ = self.collect(
             env={

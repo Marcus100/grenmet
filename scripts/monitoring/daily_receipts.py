@@ -27,6 +27,7 @@ import importlib.util
 import json
 import os
 import re
+import subprocess
 import sys
 import urllib.error
 import urllib.parse
@@ -67,10 +68,15 @@ SLUG = re.compile(r"[a-z0-9][a-z0-9_-]{0,49}")
 BUCKET = re.compile(r"[a-z0-9][a-z0-9.-]{1,62}")
 CONTAINER = re.compile(r"[0-9a-f]{12,64}")
 REDIS_FIELD = re.compile(r"[a-z_]{1,64}\|(completed|failed)")
+# Exact host allow-lists, matched after lower-casing; never a suffix test.
+SPACES_HOST = re.compile(r"[a-z0-9-]+\.digitaloceanspaces\.com")
+SENTRY_HOST = re.compile(r"([a-z0-9-]+\.)*sentry\.io")
 MAX_RESPONSE_BYTES = 1_000_000
 # What check_marker raises for a stale, incomplete or malformed marker. A named
 # tuple keeps this file valid on the droplet's system Python (older than 3.14).
 MARKER_ERRORS = (KeyError, IndexError, TypeError, ValueError, AttributeError)
+# Anything else a source can raise; recorded as "collector error" for that source.
+SOURCE_ERRORS = (*MARKER_ERRORS, OSError, subprocess.SubprocessError)
 SENTRY_QUERIES = (
     # New in the last day, then regressed and still seen in the last day.
     "is:unresolved firstSeen:-24h",
@@ -79,6 +85,26 @@ SENTRY_QUERIES = (
 
 Runner = Callable[..., Any]
 Fetch = Callable[[str, str], Any]
+
+
+def https_origin(raw: str, host: re.Pattern[str]) -> str:
+    """`https://<host>` for a bare HTTPS origin whose host matches exactly."""
+    if not raw or "\\" in raw or any(ch.isspace() or ord(ch) < 32 for ch in raw):
+        raise ValueError("address invalid")
+    parts = urllib.parse.urlsplit(raw)
+    hostname = (parts.hostname or "").lower()
+    if (
+        parts.scheme != "https"
+        or parts.username
+        or parts.password
+        or parts.port is not None
+        or parts.path not in {"", "/"}
+        or parts.query
+        or parts.fragment
+        or not host.fullmatch(hostname)
+    ):
+        raise ValueError("address invalid")
+    return f"https://{hostname}"
 
 
 def deploy_config(environment: str) -> dict[str, str]:
@@ -197,16 +223,11 @@ def backup_failures(
     ):
         raise Unavailable("backup coverage config unavailable")
     bucket = env.get("MONITORING_SPACES_BUCKET", "")
-    endpoint = urllib.parse.urlsplit(env.get("MONITORING_SPACES_ENDPOINT", ""))
-    if (
-        not BUCKET.fullmatch(bucket)
-        or endpoint.scheme != "https"
-        or not endpoint.hostname
-        or endpoint.username
-        or endpoint.password
-        or endpoint.path not in {"", "/"}
-        or endpoint.query
-    ):
+    try:
+        endpoint = https_origin(env.get("MONITORING_SPACES_ENDPOINT", ""), SPACES_HOST)
+    except ValueError as exc:
+        raise Unavailable("backup storage config unavailable") from exc
+    if not BUCKET.fullmatch(bucket):
         raise Unavailable("backup storage config unavailable")
     if not (
         env.get("MONITORING_SPACES_KEY_ID") and env.get("MONITORING_SPACES_SECRET_KEY")
@@ -231,7 +252,7 @@ def backup_failures(
                 f"s3://{bucket}/{environment}/{kind}/latest-success.json",
                 "-",
                 "--endpoint-url",
-                f"https://{endpoint.netloc}",
+                endpoint,
                 "--only-show-errors",
             ],
             env=aws_env,
@@ -291,20 +312,12 @@ def sentry_failures(env: dict[str, str], fetch: Fetch = sentry_fetch) -> int:
         raise Unavailable("Sentry organisation or project unavailable")
     if not token:
         raise Unavailable("Sentry read token unavailable")
-    base = urllib.parse.urlsplit(
-        env.get("MONITORING_SENTRY_URL") or "https://sentry.io"
-    )
-    host = base.hostname or ""
-    if (
-        base.scheme != "https"
-        or not (host == "sentry.io" or host.endswith(".sentry.io"))
-        or base.username
-        or base.password
-        or base.path not in {"", "/"}
-        or base.query
-    ):
-        raise Unavailable("Sentry API address invalid")
-    origin = f"https://{base.netloc}"
+    try:
+        origin = https_origin(
+            env.get("MONITORING_SENTRY_URL") or "https://sentry.io", SENTRY_HOST
+        )
+    except ValueError as exc:
+        raise Unavailable("Sentry API address invalid") from exc
     details = fetch(f"{origin}/api/0/projects/{org}/{project}/", token)
     project_id = str(details.get("id", "")) if isinstance(details, dict) else ""
     if not project_id.isdigit():
@@ -369,7 +382,8 @@ def collect(
         except Unavailable as exc:
             # Fixed category strings only; never command output or values.
             sources[source] = {"complete": False, "reason": str(exc)}
-        except Exception:  # noqa: BLE001 - one broken source must not hide the rest
+        except SOURCE_ERRORS:
+            # One broken source must not hide the rest; the reason stays fixed.
             sources[source] = {"complete": False, "reason": "collector error"}
     return {
         "version": 1,
