@@ -1815,6 +1815,17 @@ export type {
   CapGetAlertStatus422,
 } from "./CapGetAlert.js";
 export type {
+  CapGetAlertByIdentifierOptions,
+  CapGetAlertByIdentifierPath,
+  CapGetAlertByIdentifierResponse,
+  CapGetAlertByIdentifierResponses,
+  CapGetAlertByIdentifierStatus200,
+  CapGetAlertByIdentifierStatus401,
+  CapGetAlertByIdentifierStatus403,
+  CapGetAlertByIdentifierStatus404,
+  CapGetAlertByIdentifierStatus422,
+} from "./CapGetAlertByIdentifier.js";
+export type {
   CapGetAlertsOptions,
   CapGetAlertsQuery,
   CapGetAlertsResponse,

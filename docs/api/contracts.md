@@ -1384,7 +1384,9 @@ An import (`POST /api/v1/cap/alerts/import`, feeds too) is refused only when it 
 
 `sent` is the time an alert went out: publish (normal and emergency) stamps it, and so do cancellations. The drafting time is not kept. The CAP settings `wmo_oid` must be a WMO OID of the form `2.49.0.1.<country>.<authority>` (digits and dots only); anything else is a 422.
 
-The public routes (`/api/cap/alerts`, `/alerts/{identifier}`, `/past`, `/latest-active`) return `CapAlertPublicView`, which drops `schema_conformant`, `schema_error`, `import_source`, `note`, `created_by_user_id` and `updated_by_user_id`. Staff routes return the full `CapAlertPublic`.
+The public routes (`/api/cap/alerts`, `/alerts/{identifier}`, `/past`, `/latest-active`) return `CapAlertPublicView`, which drops `schema_conformant`, `schema_error`, `import_source`, `created_by_user_id` and `updated_by_user_id` (who created or changed an alert is not public). `note` stays: the CAP XML publishes it too. Staff routes return the full `CapAlertPublic`. `GET /api/v1/cap/alerts/by-identifier/{identifier}` (`cap.alert.read`) is the staff detail lookup by CAP identifier, including drafts and imports.
+
+Feeds and URL imports are fetched only over https (plain http only for a registered feed that uses it), through a helper that connects to the address the host check validated, rebuilds the URL from parsed components, does not follow redirects, and caps the body at 5 MB.
 
 Save-time checks (422, naming the value): `responseType` must be one of the nine CAP values, `language` must be an xs:language tag, and `web` must be one address with no spaces, quotes or angle brackets.
 

@@ -62,4 +62,5 @@ export type CapAlertPublicView = {
   xml_url?: string | null;
   replaced_by_identifier?: string | null;
   cancellation_reason?: string | null;
+  note?: string | null;
 };

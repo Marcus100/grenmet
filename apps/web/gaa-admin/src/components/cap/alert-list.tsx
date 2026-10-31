@@ -58,7 +58,7 @@ export function AlertList({
                   {info?.headline ?? alert.identifier}
                 </h2>
                 <p className="line-clamp-2 text-body text-gm-text-secondary leading-body">
-                  {info?.description ?? "CAP alert"}
+                  {info?.description ?? alert.note ?? "CAP alert"}
                 </p>
               </div>
               <div className="flex shrink-0 gap-2">

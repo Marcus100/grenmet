@@ -3,7 +3,7 @@ import re
 import socket
 from datetime import UTC, datetime
 from typing import Any
-from urllib.parse import urlparse, urlsplit, urlunsplit
+from urllib.parse import urlparse
 from uuid import UUID
 
 from fastapi.concurrency import run_in_threadpool
@@ -51,7 +51,7 @@ def validate_import_url(url: str) -> None:
 async def ensure_public_host(host: str) -> str:
     """Resolve ``host``, reject it if any address is non-public, and return the first address.
 
-    The caller connects to the returned address (see ``pinned_request``), so the
+    The caller connects to the returned address (see ``src.cap.safe_fetch``), so the
     name is not resolved a second time between this check and the connection.
     """
     try:
@@ -71,26 +71,6 @@ async def ensure_public_host(host: str) -> str:
     if not addresses:
         raise CapImportError(f"could not resolve host '{host}'")
     return addresses[0]
-
-
-def pinned_request(
-    url: str, address: str | None
-) -> tuple[str, dict[str, str], dict[str, str]]:
-    """The URL to request with its host pinned to the address we checked.
-
-    Returns ``(url, headers, extensions)``. With no address (a test client) the URL is
-    unchanged. Otherwise the connection goes to ``address``, while the Host header and
-    the TLS server name stay the original host, so certificates still match.
-    """
-    if address is None:
-        return url, {}, {}
-    parts = urlsplit(url)
-    host = parts.hostname or ""
-    port = f":{parts.port}" if parts.port else ""
-    netloc = f"[{address}]{port}" if ":" in address else f"{address}{port}"
-    pinned = urlunsplit((parts.scheme, netloc, parts.path or "/", parts.query, ""))
-    extensions = {"sni_hostname": host} if parts.scheme == "https" else {}
-    return pinned, {"Host": parts.netloc}, extensions
 
 
 def validate_cap_alert(alert: CapAlertPublic) -> CapValidationResult:

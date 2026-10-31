@@ -714,6 +714,11 @@ export {
   useCapGetAlert,
 } from "./useCapGetAlert.js";
 export {
+  capGetAlertByIdentifierQueryKey,
+  capGetAlertByIdentifierQueryOptions,
+  useCapGetAlertByIdentifier,
+} from "./useCapGetAlertByIdentifier.js";
+export {
   capGetAlertsQueryKey,
   capGetAlertsQueryOptions,
   useCapGetAlerts,

@@ -278,39 +278,6 @@ async def test_the_settings_route_refuses_a_bad_oid_with_422(
 # ── Pinned connection ───────────────────────────────────────────────────────
 
 
-def test_the_connection_goes_to_the_checked_address_with_the_original_host_kept() -> (
-    None
-):
-    from src.cap.validation import pinned_request
-
-    url, headers, extensions = pinned_request(
-        "https://feeds.example.test:8443/cap.xml?x=1", "93.184.216.34"
-    )
-    assert url == "https://93.184.216.34:8443/cap.xml?x=1"
-    assert headers == {"Host": "feeds.example.test:8443"}
-    assert extensions == {"sni_hostname": "feeds.example.test"}
-
-
-def test_an_ipv6_address_is_bracketed_and_http_needs_no_tls_name() -> None:
-    from src.cap.validation import pinned_request
-
-    url, _headers, extensions = pinned_request(
-        "http://feeds.example.test/cap.xml", "2606:2800:220:1::1"
-    )
-    assert url == "http://[2606:2800:220:1::1]/cap.xml"
-    assert extensions == {}
-
-
-def test_without_a_checked_address_the_url_is_unchanged() -> None:
-    from src.cap.validation import pinned_request
-
-    assert pinned_request("https://feeds.test/cap.xml", None) == (
-        "https://feeds.test/cap.xml",
-        {},
-        {},
-    )
-
-
 async def test_the_host_check_returns_the_address_it_checked() -> None:
     from src.cap.validation import ensure_public_host
 

@@ -172,6 +172,21 @@ async def import_alert(
 
 
 @router.get(
+    "/alerts/by-identifier/{identifier}",
+    response_model=CapAlertPublic,
+    summary="Get a CAP alert by identifier",
+    description="Returns one CAP alert by its CAP identifier, with every staff field (schema check, imported marker). Drafts and imports are visible here.",
+    responses={**AUTHENTICATED, **NOT_FOUND},
+)
+async def read_alert_by_identifier(
+    *, session: SessionDep, current_user: CurrentUser, identifier: str
+) -> CapAlertPublic:
+    return await service.get_alert_by_identifier(
+        session=session, current_user=current_user, identifier=identifier
+    )
+
+
+@router.get(
     "/alerts/{alert_id}",
     response_model=CapAlertPublic,
     summary="Get a CAP alert",

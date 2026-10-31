@@ -144,6 +144,7 @@ export { capEmergencyPublishAlert } from "./clients/capEmergencyPublishAlert.js"
 export { capExpireAlert } from "./clients/capExpireAlert.js";
 export { capGetActiveMap } from "./clients/capGetActiveMap.js";
 export { capGetAlert } from "./clients/capGetAlert.js";
+export { capGetAlertByIdentifier } from "./clients/capGetAlertByIdentifier.js";
 export { capGetAlerts } from "./clients/capGetAlerts.js";
 export { capGetAlertsGeojson } from "./clients/capGetAlertsGeojson.js";
 export { capGetAudit } from "./clients/capGetAudit.js";
@@ -1407,6 +1408,11 @@ export {
   capGetAlertQueryOptions,
   useCapGetAlert,
 } from "./hooks/useCapGetAlert.js";
+export {
+  capGetAlertByIdentifierQueryKey,
+  capGetAlertByIdentifierQueryOptions,
+  useCapGetAlertByIdentifier,
+} from "./hooks/useCapGetAlertByIdentifier.js";
 export {
   capGetAlertsQueryKey,
   capGetAlertsQueryOptions,
@@ -5963,6 +5969,17 @@ export type {
   CapGetAlertStatus404,
   CapGetAlertStatus422,
 } from "./models/CapGetAlert.js";
+export type {
+  CapGetAlertByIdentifierOptions,
+  CapGetAlertByIdentifierPath,
+  CapGetAlertByIdentifierResponse,
+  CapGetAlertByIdentifierResponses,
+  CapGetAlertByIdentifierStatus200,
+  CapGetAlertByIdentifierStatus401,
+  CapGetAlertByIdentifierStatus403,
+  CapGetAlertByIdentifierStatus404,
+  CapGetAlertByIdentifierStatus422,
+} from "./models/CapGetAlertByIdentifier.js";
 export type {
   CapGetAlertsOptions,
   CapGetAlertsQuery,
@@ -14981,6 +14998,17 @@ export {
   capGetActiveMapStatus200Schema,
   capGetActiveMapStatus422Schema,
 } from "./zod/capGetActiveMapSchema.js";
+export {
+  capGetAlertByIdentifierErrorSchema,
+  capGetAlertByIdentifierPathIdentifierSchema,
+  capGetAlertByIdentifierPathSchema,
+  capGetAlertByIdentifierResponseSchema,
+  capGetAlertByIdentifierStatus200Schema,
+  capGetAlertByIdentifierStatus401Schema,
+  capGetAlertByIdentifierStatus403Schema,
+  capGetAlertByIdentifierStatus404Schema,
+  capGetAlertByIdentifierStatus422Schema,
+} from "./zod/capGetAlertByIdentifierSchema.js";
 export {
   capGetAlertErrorSchema,
   capGetAlertPathAlertIdSchema,

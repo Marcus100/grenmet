@@ -10,13 +10,13 @@ from src.cap.schemas import CapAlertAction, CapAlertCreate, CapPublishAction
 from tests.cap.test_cap_state_machine import _VALID_PAYLOAD_DICT
 from tests.factories import make_user
 
+# note is public: the CAP XML publishes it. Who created or changed an alert is not.
 STAFF_ONLY = {
     "schema_conformant",
     "schema_error",
     "import_source",
     "created_by_user_id",
     "updated_by_user_id",
-    "note",
 }
 
 
@@ -98,3 +98,30 @@ async def test_staff_routes_keep_the_full_model(
     )
     assert detail.status_code == 200, detail.text
     assert STAFF_ONLY <= set(detail.json())
+
+
+async def test_the_staff_detail_by_identifier_shows_a_draft_and_its_flags(
+    async_client: httpx.AsyncClient,
+    db_async: AsyncSession,
+    superuser_token_headers_async: dict[str, str],
+) -> None:
+    """The desk's detail page reads this: drafts and imports, with the schema flag."""
+    user = await make_user(db_async, superuser=True)
+    draft = await cap_service.create_alert(
+        session=db_async,
+        current_user=user,
+        payload=CapAlertCreate(**_VALID_PAYLOAD_DICT),
+    )
+    resp = await async_client.get(
+        f"/api/v1/cap/alerts/by-identifier/{draft.identifier}",
+        headers=superuser_token_headers_async,
+    )
+    assert resp.status_code == 200, resp.text
+    body = resp.json()
+    assert body["identifier"] == draft.identifier
+    assert STAFF_ONLY <= set(body)
+    missing = await async_client.get(
+        "/api/v1/cap/alerts/by-identifier/no-such-alert",
+        headers=superuser_token_headers_async,
+    )
+    assert missing.status_code == 404

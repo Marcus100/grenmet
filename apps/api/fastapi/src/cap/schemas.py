@@ -400,6 +400,8 @@ class CapAlertPublicView(BaseModel):
     xml_url: str | None = None
     replaced_by_identifier: str | None = None
     cancellation_reason: str | None = None
+    # Published in the CAP XML too (alert_to_cap_xml writes <note>), so public.
+    note: str | None = None
 
 
 class CapAlertListPublicView(BaseModel):

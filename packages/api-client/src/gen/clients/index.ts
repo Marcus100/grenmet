@@ -141,6 +141,7 @@ export { capEmergencyPublishAlert } from "./capEmergencyPublishAlert.js";
 export { capExpireAlert } from "./capExpireAlert.js";
 export { capGetActiveMap } from "./capGetActiveMap.js";
 export { capGetAlert } from "./capGetAlert.js";
+export { capGetAlertByIdentifier } from "./capGetAlertByIdentifier.js";
 export { capGetAlerts } from "./capGetAlerts.js";
 export { capGetAlertsGeojson } from "./capGetAlertsGeojson.js";
 export { capGetAudit } from "./capGetAudit.js";
