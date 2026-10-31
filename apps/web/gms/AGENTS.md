@@ -217,7 +217,8 @@ src/app/
   item addresses (`/explore/news|updates|reports/...`, `/explore/explained/<slug>`,
   `/explore/quiz/<slug>`). On a full page load it asks the CMS's public list
   endpoint whether the item exists (`lib/cms-item.ts` maps the address to the
-  slug, `lib/cms-item-exists.ts` asks and keeps answers one minute); a missing
+  slug, `lib/cms-item-exists.ts` asks; found items are kept 60 s, missing ones 10 s
+  so a newly published item shows within seconds, "could not tell" 5 s); a missing
   item is rewritten to Next's `/_not-found`, rendered on the server with status
   404. Reason: a `notFound()` thrown while a dynamic page renders makes Next 16
   send an empty error document (`<html id="__next_error__">`) that only fills
