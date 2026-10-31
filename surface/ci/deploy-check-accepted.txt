@@ -1,0 +1,11 @@
+# Django `check --deploy` warnings the SURFACE CI job accepts
+# (.github/workflows/ci-surface.yml). One check ID per line, then the reason.
+#
+# The job fails when check --deploy reports an ID that is not listed here (a new
+# problem) and when a listed ID no longer appears (it was fixed, so delete the
+# line). Keep each reason current; link the issue that will remove the entry.
+
+security.W004  No SECURE_HSTS_SECONDS and no HSTS header from the surface Traefik router; fix tracked in #904
+security.W008  No SECURE_SSL_REDIRECT: by design, infra/weather/docker-compose.proxy.yml redirects the web entrypoint to websecure
+security.W012  SESSION_COOKIE_SECURE is not True; fix tracked in #904
+security.W016  CSRF_COOKIE_SECURE is not True; fix tracked in #904

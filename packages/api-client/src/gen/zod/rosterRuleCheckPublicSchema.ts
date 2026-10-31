@@ -4,6 +4,7 @@
  */
 
 import * as z from "zod";
+import { rosterRuleSetPublicSchema } from "./rosterRuleSetPublicSchema.js";
 import { rosterRulesPublicSchema } from "./rosterRulesPublicSchema.js";
 import { ruleViolationPublicSchema } from "./ruleViolationPublicSchema.js";
 
@@ -12,4 +13,5 @@ export const rosterRuleCheckPublicSchema = z.object({
   rules: rosterRulesPublicSchema,
   violations: z.array(ruleViolationPublicSchema),
   count: z.int(),
+  rule_set: z.union([rosterRuleSetPublicSchema, z.null()]).optional(),
 });

@@ -12,4 +12,10 @@ export type RosterGridImportResult = {
   roster_period_id: string;
   total_assignments: number;
   published: boolean;
+  /**
+   * @description Roster rule warnings that stopped publishing; review them and publish from the roster screen.
+   * @default 0
+   * @type integer | undefined
+   */
+  rule_warning_count?: number;
 };

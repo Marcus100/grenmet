@@ -450,7 +450,9 @@ async def action_leave_request(
             session=session,
             current_user=current_user,
             workflow_instance_id=leave_request.workflow_instance_id,
-            action_in=WorkflowActionRequest(action=action),
+            action_in=WorkflowActionRequest(
+                action=action, rule_override_reason=payload.rule_override_reason
+            ),
         )
         await session.refresh(leave_request)
         return leave_request
@@ -471,6 +473,19 @@ async def action_leave_request(
         and payload.status == RequestStatus.CANCELLED
     ):
         raise HRValidationError("Request already resolved")
+    if (
+        leave_request.status == RequestStatus.APPROVED
+        and payload.status == RequestStatus.CANCELLED
+    ):
+        # Legacy cancellation without a workflow: same roster rule check (#380).
+        from src.hr.roster import change_checks
+
+        await change_checks.check_cancelled_absence(
+            session,
+            entity=leave_request,
+            actor_id=current_user.id,
+            reason=payload.rule_override_reason,
+        )
     leave_request.status = payload.status
     if payload.head_of_dept_comments is not None:
         leave_request.head_of_dept_comments = payload.head_of_dept_comments

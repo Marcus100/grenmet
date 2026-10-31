@@ -38,6 +38,7 @@ from src.dependencies import SessionDep
 from src.email import send_email
 from src.exceptions import AppException
 from src.models import Message
+from src.rate_limit import request_ip
 from src.utils.datetime import utc_now
 
 
@@ -296,7 +297,7 @@ async def google_finish(
         )
     user.email_verified_at = utc_now()
     user_agent = request.headers.get("user-agent")
-    ip_address = request.client.host if request.client else None
+    ip_address = request_ip(request)
     new_device = remember_device(user, user_agent)
     session.add(user)
     await session.commit()

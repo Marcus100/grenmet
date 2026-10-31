@@ -9,4 +9,11 @@ export const rosterGridImportResultSchema = z.object({
   roster_period_id: z.uuid(),
   total_assignments: z.int(),
   published: z.boolean(),
+  rule_warning_count: z
+    .int()
+    .optional()
+    .default(0)
+    .describe(
+      "Roster rule warnings that stopped publishing; review them and publish from the roster screen."
+    ),
 });
