@@ -7,4 +7,5 @@ import * as z from "zod";
 
 export const capEmergencyPublishSchema = z.object({
   reason: z.string().min(1).max(2000),
+  confirm_imported: z.boolean().optional().default(false),
 });

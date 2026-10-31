@@ -5,12 +5,15 @@
 
 import * as z from "zod";
 import { apiErrorSchema } from "./apiErrorSchema.js";
-import { capAlertPublicSchema } from "./capAlertPublicSchema.js";
+import { capAlertPublicViewSchema } from "./capAlertPublicViewSchema.js";
 import { validationErrorResponseSchema } from "./validationErrorResponseSchema.js";
 
 export const capGetPublicAlertPathIdentifierSchema = z.string();
 
-export const capGetPublicAlertStatus200Schema = capAlertPublicSchema;
+export const capGetPublicAlertStatus200Schema =
+  capAlertPublicViewSchema.describe(
+    "An alert as the anonymous public sees it.\n\nStaff-only fields are left out: the schema check result, the imported marker,\nthe internal note, and who created or last changed the alert."
+  );
 
 export const capGetPublicAlertStatus404Schema = apiErrorSchema.describe(
   "Stable error envelope for documented API failures."

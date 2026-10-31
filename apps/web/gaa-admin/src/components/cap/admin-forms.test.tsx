@@ -1,5 +1,6 @@
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { fireEvent, screen, waitFor } from "@testing-library/react";
 import { beforeEach, expect, it, vi } from "vitest";
+import { renderWithGmsCatalogue as render } from "@/test/with-gms-catalogue";
 
 const mocks = vi.hoisted(() => ({
   settings: vi.fn(),
