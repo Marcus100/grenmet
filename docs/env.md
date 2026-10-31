@@ -809,6 +809,16 @@ change does not provision secrets or enable enforcement in production.
 
 `MBIA_CONTACT_RECIPIENT`, `BARRELS_CONTACT_RECIPIENT` and `SUBSCRIPTIONS_SITE_URLS` are now fallbacks for the same values on the public site rows. Remove them once every environment sets `contact_recipient` and `site_url` through `PATCH /api/v1/organisations/admin/sites/{site_id}`.
 
+### Payslip signing keys (payroll slice 4)
+
+`PAYSLIP_HMAC_KEYS` is a comma-separated list of `keyid:secret` pairs, the current key first (for example `k2:<secret>,k1:<secret>`). A key id is letters, digits, `_` or `-` (up to 32); a secret is at least 32 characters with no spaces. It signs each payslip's snapshot (HMAC-SHA256) and the key id is stored on the payslip row, never the secret. It is a dedicated setting: never derive it from, or reuse, `SECRET_KEY`, `AUTH_TOTP_ENCRYPTION_KEYS` or `ORG_SECRET_ENCRYPTION_KEYS`.
+
+- **Unset (the default):** issuing payslips (approving a pay period for issue) is refused with a 409 that names the setting. Nothing is written.
+- **Malformed:** the API refuses to start (a short secret, a repeated key id, a missing `:`); the error never contains a secret.
+- **Generate a secret:** `openssl rand -hex 32` (64 characters, no spaces). Keep it in the deployment's secret store, never in a file in the repository, a log or a ticket.
+- **Rotation:** (1) add the new key at the front (`k2:...,k1:...`) and deploy; new payslips are signed with `k2`, and payslips already issued still verify with `k1`. (2) Keep `k1` for as long as its payslips may be opened, exported or audited. (3) Remove a key only when nothing signed with it needs checking: a payslip whose key id is not configured returns a 409 that names the missing key id (not its secret) on its PDF and on the bank and GL files.
+- **Deployment wiring:** the compose files, `.github/workflows/deploy.yml` and `scripts/production/render-env.py` do not yet carry this setting (workflow and infra changes the owner merges). Until they do, set `PAYSLIP_HMAC_KEYS` in the API service's environment by hand.
+
 ### Payments (PF4, test mode only)
 
 The payments core (`src/payments`, ADR-0027) is built, and its Stripe adapter runs in **test mode only**. They are wired into the deployment (`deploy.yml` → `render-env.py` → the API and worker in `docker-compose.deploy.yml`), but leave them **unset** in staging and production until the owner approves a payment rail. `render-env.py` refuses a `PAYMENTS_STRIPE_SECRET_KEY` that does not start with `sk_test_`, so a live key cannot be deployed by accident. It also refuses a half-set Stripe configuration: `PAYMENTS_STRIPE_SECRET_KEY`, `_WEBHOOK_SECRET`, `_SUCCESS_URL` and `_CANCEL_URL` are set together or not at all, and both URLs must be `https://`.

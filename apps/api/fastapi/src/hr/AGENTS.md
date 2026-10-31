@@ -125,9 +125,12 @@ files and cutover are later slices that need their own approval.
 ### Payslips and files (slice 4, `payslips.py`)
 - Issue approval creates every payslip in the same transaction (an itemised
   statement is required for each payment: Employment Act ss. 47-48, secondary
-  source). A payslip is a JSON snapshot plus the SHA-256 of its canonical JSON;
-  the PDF renders from the snapshot after the hash check. `payslip_append_only`
-  refuses updates and deletes.
+  source). A payslip is a JSON snapshot plus an HMAC-SHA256 of its canonical JSON
+  under a key from `PAYSLIP_HMAC_KEYS` (`payroll/config.py`; docs/env.md); the row
+  stores the key id, so rotation keeps old payslips verifiable. No key configured:
+  issue is refused (fail closed); a stored key id that is no longer configured: a
+  409 naming the id. The PDF renders from the snapshot after the hash check.
+  `payslip_append_only` refuses updates and deletes.
 - Staff see their own payslips with `hr.payroll.read.self` (granted to no role).
 - Bank and GL CSVs: organisation-wide export key, MFA, audited; columns and GL
   account codes are per-organisation settings. **Bank account numbers are not

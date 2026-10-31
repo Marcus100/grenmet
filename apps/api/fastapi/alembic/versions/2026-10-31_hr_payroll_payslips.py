@@ -28,6 +28,7 @@ def upgrade() -> None:
         sa.Column("organisation_id", sa.String(length=100), nullable=False),
         sa.Column("snapshot", postgresql.JSONB(astext_type=sa.Text()), nullable=False),
         sa.Column("sha256", sa.String(length=64), nullable=False),
+        sa.Column("hmac_key_id", sa.String(length=32), nullable=False),
         sa.Column("net_minor", sa.BigInteger(), nullable=False),
         sa.Column("issued_at", sa.DateTime(), nullable=False),
         sa.Column("issued_by_user_id", sa.Uuid(), nullable=False),

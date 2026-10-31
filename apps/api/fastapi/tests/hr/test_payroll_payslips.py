@@ -5,19 +5,21 @@ Synthetic people and amounts only (XCD cents).
 
 import csv
 import io
+import uuid
 from decimal import Decimal
 
 import httpx
 import pytest
 from cryptography.fernet import Fernet
-from sqlalchemy import text
+from pydantic import SecretStr
+from sqlalchemy import select, text
 from sqlalchemy.exc import DBAPIError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.auth.config import auth_settings
 from src.auth.models import User
 from src.database import async_session_factory
-from src.hr.payroll import export, payslips
+from src.hr.payroll import config, export, payslips
 from tests.factories import assign_role, make_role_with_permission, make_user
 from tests.hr.payroll_setup import API, headers_for
 from tests.hr.test_payroll_deductions import _confirm, _fortnight_with_pay
@@ -30,9 +32,10 @@ def totp_keys(monkeypatch: pytest.MonkeyPatch) -> None:
     )
 
 
-async def _issued_period(
+async def _ready_period(
     client: httpx.AsyncClient, db: AsyncSession
-) -> tuple[dict[str, str], str, User]:
+) -> tuple[dict[str, str], str, User, dict[str, str]]:
+    """Everything up to, but not including, the issue approval."""
     headers, period_id, _, employee, nis_id = await _fortnight_with_pay(client, db)
     confirmer = await headers_for(db, await make_user(db, superuser=True), mfa=True)
     tables = (
@@ -48,6 +51,13 @@ async def _issued_period(
     )
     assert approved.status_code == 200, approved.text
     issuer = await headers_for(db, await make_user(db, superuser=True), mfa=True)
+    return headers, period_id, employee, issuer
+
+
+async def _issued_period(
+    client: httpx.AsyncClient, db: AsyncSession
+) -> tuple[dict[str, str], str, User]:
+    headers, period_id, employee, issuer = await _ready_period(client, db)
     issued = await client.post(
         f"{API}/periods/{period_id}/issue-approval", headers=issuer
     )
@@ -71,7 +81,11 @@ async def test_issue_creates_hashed_immutable_payslips(
 
     stored = await db_async.get(Payslip, slip["id"])
     assert stored is not None
-    assert payslips.digest(stored.snapshot) == stored.sha256 == slip["sha256"]
+    assert (
+        payslips.digest(stored.snapshot, stored.hmac_key_id)
+        == stored.sha256
+        == slip["sha256"]
+    )
     snapshot = stored.snapshot
     assert snapshot["gross_minor"] == 240_000
     assert {d["code"] for d in snapshot["deductions"]} == {"NIS", "PAYE"}
@@ -184,10 +198,14 @@ async def test_hash_is_keyed_files_verify_first_and_pdf_limit_is_per_user(
     assert slip is not None
     plain = hashlib.sha256(payslips.canonical(slip.snapshot).encode()).hexdigest()
     assert slip.sha256 != plain  # keyed, so likely pay figures cannot be tried offline
-    assert payslips.digest(slip.snapshot) == slip.sha256
+    assert payslips.digest(slip.snapshot, slip.hmac_key_id) == slip.sha256
     with monkeypatch.context() as scoped:
-        scoped.setattr(auth_settings, "SECRET_KEY", "another-server-key-" + "x" * 20)
-        assert payslips.digest(slip.snapshot) != slip.sha256
+        scoped.setattr(
+            config.payslip_settings,
+            "PAYSLIP_HMAC_KEYS",
+            SecretStr("test1:" + "z" * 40),  # same id, different secret
+        )
+        assert payslips.digest(slip.snapshot, "test1") != slip.sha256
 
     # File names are sanitised.
     bank = await async_client.post(
@@ -199,7 +217,7 @@ async def test_hash_is_keyed_files_verify_first_and_pdf_limit_is_per_user(
 
     # A payslip that fails its integrity check blocks the bank and GL files.
     with monkeypatch.context() as scoped:
-        scoped.setattr(payslips, "digest", lambda _snapshot: "tampered")
+        scoped.setattr(payslips, "digest", lambda _snapshot, _key: "tampered")
         for path in ("bank-transfer.csv", "gl-journal.csv"):
             blocked = await async_client.post(
                 f"{API}/periods/{period_id}/{path}", headers=headers
@@ -222,3 +240,107 @@ async def test_hash_is_keyed_files_verify_first_and_pdf_limit_is_per_user(
     assert codes == [200, 200, 429]
     other = await async_client.get(f"{API}/payslips/{stored}/pdf", headers=headers)
     assert other.status_code == 200  # a different person has their own allowance
+
+
+@pytest.mark.usefixtures("totp_keys")
+async def test_rotation_keeps_old_payslips_verifiable(
+    async_client: httpx.AsyncClient,
+    db_async: AsyncSession,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from src.hr.payroll.models import Payslip
+
+    headers, period_id, employee = await _issued_period(async_client, db_async)
+    slip = (await db_async.execute(select(Payslip))).scalars().one()
+    assert slip.hmac_key_id == "test1"
+    role, _ = await make_role_with_permission(db_async, "hr.payroll.read.self")
+    await assign_role(db_async, user=employee, role=role)
+    own = await headers_for(db_async, employee, mfa=True)
+    new_key = "test2:" + "n" * 40
+    old_key = "test1:" + "k" * 40
+    with monkeypatch.context() as scoped:
+        # A new current key goes in front; the old payslip still verifies.
+        scoped.setattr(
+            config.payslip_settings,
+            "PAYSLIP_HMAC_KEYS",
+            SecretStr(f"{new_key},{old_key}"),
+        )
+        assert payslips.current_key()[0] == "test2"
+        ok = await async_client.get(f"{API}/payslips/{slip.id}/pdf", headers=own)
+        assert ok.status_code == 200, ok.text
+    with monkeypatch.context() as scoped:
+        # The old key is gone: a clear 409 naming the key id, never the secret.
+        scoped.setattr(config.payslip_settings, "PAYSLIP_HMAC_KEYS", SecretStr(new_key))
+        missing = await async_client.get(f"{API}/payslips/{slip.id}/pdf", headers=own)
+        assert missing.status_code == 409
+        assert "test1" in missing.json()["detail"]
+        assert "k" * 40 not in missing.text and "n" * 40 not in missing.text
+        bank = await async_client.post(
+            f"{API}/periods/{period_id}/bank-transfer.csv", headers=headers
+        )
+        assert bank.status_code == 409
+        assert "test1" in bank.json()["detail"]
+
+
+@pytest.mark.usefixtures("totp_keys")
+async def test_issue_fails_closed_without_a_signing_key(
+    async_client: httpx.AsyncClient,
+    db_async: AsyncSession,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from src.hr.payroll.models import PayPeriod, Payslip
+
+    headers, period_id, _, issuer = await _ready_period(async_client, db_async)
+    with monkeypatch.context() as scoped:
+        scoped.setattr(config.payslip_settings, "PAYSLIP_HMAC_KEYS", SecretStr(""))
+        refused = await async_client.post(
+            f"{API}/periods/{period_id}/issue-approval", headers=issuer
+        )
+        assert refused.status_code == 409
+        assert "PAYSLIP_HMAC_KEYS" in refused.json()["detail"]
+    period = await db_async.get(PayPeriod, uuid.UUID(period_id))
+    await db_async.refresh(period)
+    assert period is not None and period.issue_approved_at is None
+    assert (await db_async.execute(select(Payslip))).first() is None
+    issued = await async_client.post(
+        f"{API}/periods/{period_id}/issue-approval", headers=issuer
+    )
+    assert issued.status_code == 200, issued.text  # works once a key is set
+
+
+def test_signing_key_settings_are_validated_and_never_echoed() -> None:
+    good = "a1:" + "s" * 32
+    assert config.parse_keys(f"b2:{'t' * 32}, {good}") == [
+        ("b2", "t" * 32),
+        ("a1", "s" * 32),
+    ]
+    assert config.parse_keys("") == []
+    for bad in (
+        "nosecret",
+        "k:" + "s" * 31,  # too short
+        "bad id:" + "s" * 32,
+        f"{good},a1:{'u' * 32}",  # repeated id
+        "k:" + "s" * 16 + " " + "s" * 16,  # whitespace
+    ):
+        with pytest.raises(config.PayslipKeyError) as caught:
+            config.parse_keys(bad)
+        assert "s" * 16 not in str(caught.value)
+    with pytest.raises(ValueError):
+        config.PayslipConfig(PAYSLIP_HMAC_KEYS=SecretStr("k:short"))
+    assert "s" * 32 not in repr(config.PayslipConfig(PAYSLIP_HMAC_KEYS=SecretStr(good)))
+
+
+async def test_pdf_limiter_backend_failure_fails_open_with_a_warning(
+    monkeypatch: pytest.MonkeyPatch, caplog: pytest.LogCaptureFixture
+) -> None:
+    from src.rate_limit import limiter
+
+    def broken(*_args: object) -> bool:
+        raise ConnectionError("limiter backend down")
+
+    monkeypatch.setattr(limiter, "enabled", True)
+    monkeypatch.setattr(limiter.limiter, "hit", broken)
+    payslips.logger.disabled = False
+    with caplog.at_level("WARNING", logger=payslips.logger.name):
+        assert await payslips.within_pdf_limit(uuid.uuid4()) is True
+    assert "limiter unavailable" in caplog.text

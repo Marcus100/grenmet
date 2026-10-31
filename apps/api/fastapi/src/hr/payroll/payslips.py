@@ -28,13 +28,12 @@ from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.audit import service as audit_service
-from src.auth.config import auth_settings
 from src.auth.models import User
 from src.billing.calc import format_money
 from src.exceptions import AppException, NotFoundError
 from src.hr.models import Department, EmploymentRecord, Organisation
 
-from . import access
+from . import access, config
 from .export import _text, safe_filename
 from .models import (
     DeductionCategory,
@@ -82,22 +81,49 @@ def canonical(snapshot: dict[str, Any]) -> str:
     return json.dumps(snapshot, sort_keys=True, separators=(",", ":"), default=str)
 
 
-def _snapshot_key() -> bytes:
-    """A server-side key for payslip hashes, derived from the application secret.
+class SigningKeyError(AppException):
+    def __init__(self, message: str) -> None:
+        super().__init__(message, 409)
 
-    A plain hash of a payslip could be guessed by trying likely pay figures; an
-    HMAC cannot be checked or forged without this key.
-    """
+
+def _configured_keys() -> list[tuple[str, str]]:
+    try:
+        return config.parse_keys(
+            config.payslip_settings.PAYSLIP_HMAC_KEYS.get_secret_value()
+        )
+    except config.PayslipKeyError as exc:
+        logger.error("Payslip signing keys are misconfigured")
+        raise SigningKeyError(str(exc)) from None
+
+
+def current_key() -> tuple[str, str]:
+    """The key new payslips are signed with. Fails closed when none is set."""
+    keys = _configured_keys()
+    if not keys:
+        raise SigningKeyError(
+            "Payslips cannot be issued: no signing key is configured. "
+            "Set PAYSLIP_HMAC_KEYS (docs/env.md)."
+        )
+    return keys[0]
+
+
+def key_for(key_id: str) -> str | None:
+    return dict(_configured_keys()).get(key_id)
+
+
+def digest(snapshot: dict[str, Any], key_id: str) -> str:
+    """HMAC-SHA256 of the snapshot under the named key (a plain hash of likely
+    pay figures could be tried offline)."""
+    secret = key_for(key_id)
+    if secret is None:
+        raise SigningKeyError(
+            f"Payslip signing key '{key_id}' is not configured; add it to "
+            "PAYSLIP_HMAC_KEYS to check payslips signed with it."
+        )
     return hmac.new(
-        auth_settings.SECRET_KEY.encode("utf-8"),
-        b"hr-payslip-snapshot-v1",
+        secret.encode("utf-8"),
+        b"hr-payslip-snapshot-v1\n" + canonical(snapshot).encode("utf-8"),
         hashlib.sha256,
-    ).digest()
-
-
-def digest(snapshot: dict[str, Any]) -> str:
-    return hmac.new(
-        _snapshot_key(), canonical(snapshot).encode("utf-8"), hashlib.sha256
     ).hexdigest()
 
 
@@ -106,6 +132,7 @@ async def issue(session: AsyncSession, period: PayPeriod, actor: User) -> int:
     from .deductions import summary_for
     from .service import employee_name
 
+    key_id, _ = current_key()  # fail closed before anything is written
     summary = await summary_for(session, period, employee_name)
     organisation = await session.get(Organisation, period.organisation_id)
     earnings = await _earnings(session, period)
@@ -150,7 +177,8 @@ async def issue(session: AsyncSession, period: PayPeriod, actor: User) -> int:
                 user_id=user_id,
                 organisation_id=period.organisation_id,
                 snapshot=snapshot,
-                sha256=digest(snapshot),
+                sha256=digest(snapshot, key_id),
+                hmac_key_id=key_id,
                 net_minor=row["net_minor"],
                 issued_by_user_id=actor.id,
             )
@@ -294,7 +322,10 @@ async def readable_payslip(
 
 
 def verify(payslip: Payslip) -> None:
-    if digest(payslip.snapshot) != payslip.sha256:
+    """Check the stored HMAC with the key named on the row (so rotation keeps
+    old payslips verifiable); a missing key is a clear 409, never a pass."""
+    expected = digest(payslip.snapshot, payslip.hmac_key_id)
+    if not hmac.compare_digest(expected, payslip.sha256):
         logger.error("Payslip hash mismatch", extra={"payslip_id": str(payslip.id)})
         raise AppException("This payslip failed its integrity check", 409)
 
@@ -567,8 +598,12 @@ async def within_pdf_limit(user_id: uuid.UUID) -> bool:
 
     if not limiter.enabled:
         return True
-    return bool(
-        await run_in_threadpool(
-            limiter.limiter.hit, parse(PDF_LIMIT), "payslip-pdf", str(user_id)
+    try:
+        return bool(
+            await run_in_threadpool(
+                limiter.limiter.hit, parse(PDF_LIMIT), "payslip-pdf", str(user_id)
+            )
         )
-    )
+    except Exception:  # the limiter's backend (Redis) is down: serve, but say so
+        logger.warning("Payslip PDF rate limiter unavailable; allowing the request")
+        return True

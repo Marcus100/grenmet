@@ -702,6 +702,8 @@ class Payslip(Base):
     )
     snapshot: Mapped[dict[str, Any]] = mapped_column(JSONB)
     sha256: Mapped[str] = mapped_column(String(64))
+    #: Which PAYSLIP_HMAC_KEYS entry signed this payslip (never the secret).
+    hmac_key_id: Mapped[str] = mapped_column(String(32))
     net_minor: Mapped[int] = mapped_column(sa.BigInteger)
     issued_at: Mapped[datetime] = mapped_column(default=utc_now)
     issued_by_user_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("user.id"))

@@ -400,6 +400,9 @@ async def approve_for_issue(
         session, actor, period.organisation_id, access.READ_AMOUNTS
     )
     await access.require_mfa(session, actor, token)
+    from . import payslips
+
+    payslips.current_key()  # fail closed: no signing key, no issue
     if period.status not in LOCKED_VALUES:
         raise AppException("Approve the pay period's quantities first", 409)
     if period.issue_approved_at is not None:
