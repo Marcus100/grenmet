@@ -1649,6 +1649,11 @@ export {
   useHrDeleteAbsenteeReport,
 } from "./useHrDeleteAbsenteeReport.js";
 export {
+  hrDeleteDepartmentRuleSetMutationKey,
+  hrDeleteDepartmentRuleSetMutationOptions,
+  useHrDeleteDepartmentRuleSet,
+} from "./useHrDeleteDepartmentRuleSet.js";
+export {
   hrDeleteLeaveRequestMutationKey,
   hrDeleteLeaveRequestMutationOptions,
   useHrDeleteLeaveRequest,
@@ -1708,6 +1713,11 @@ export {
   hrGetAttendanceWeekPdfQueryOptions,
   useHrGetAttendanceWeekPdf,
 } from "./useHrGetAttendanceWeekPdf.js";
+export {
+  hrGetDepartmentRuleSetQueryKey,
+  hrGetDepartmentRuleSetQueryOptions,
+  useHrGetDepartmentRuleSet,
+} from "./useHrGetDepartmentRuleSet.js";
 export {
   hrGetDepartmentRulesQueryKey,
   hrGetDepartmentRulesQueryOptions,
@@ -1783,6 +1793,11 @@ export {
   hrGetOrganisationCatalogueQueryOptions,
   useHrGetOrganisationCatalogue,
 } from "./useHrGetOrganisationCatalogue.js";
+export {
+  hrGetOrganisationRuleSetQueryKey,
+  hrGetOrganisationRuleSetQueryOptions,
+  useHrGetOrganisationRuleSet,
+} from "./useHrGetOrganisationRuleSet.js";
 export {
   hrGetOrganisationsQueryKey,
   hrGetOrganisationsQueryOptions,
@@ -2019,6 +2034,16 @@ export {
   useHrListPeriods,
 } from "./useHrListPeriods.js";
 export {
+  hrListRuleOverridesQueryKey,
+  hrListRuleOverridesQueryOptions,
+  useHrListRuleOverrides,
+} from "./useHrListRuleOverrides.js";
+export {
+  hrListRuleProfilesQueryKey,
+  hrListRuleProfilesQueryOptions,
+  useHrListRuleProfiles,
+} from "./useHrListRuleProfiles.js";
+export {
   hrListShiftCatalogQueryKey,
   hrListShiftCatalogQueryOptions,
   useHrListShiftCatalog,
@@ -2084,10 +2109,25 @@ export {
   useHrPublishPeriod,
 } from "./useHrPublishPeriod.js";
 export {
+  hrPutDepartmentRuleSetMutationKey,
+  hrPutDepartmentRuleSetMutationOptions,
+  useHrPutDepartmentRuleSet,
+} from "./useHrPutDepartmentRuleSet.js";
+export {
   hrPutDepartmentRulesMutationKey,
   hrPutDepartmentRulesMutationOptions,
   useHrPutDepartmentRules,
 } from "./useHrPutDepartmentRules.js";
+export {
+  hrPutOrganisationRuleSetMutationKey,
+  hrPutOrganisationRuleSetMutationOptions,
+  useHrPutOrganisationRuleSet,
+} from "./useHrPutOrganisationRuleSet.js";
+export {
+  hrPutRuleProfileMutationKey,
+  hrPutRuleProfileMutationOptions,
+  useHrPutRuleProfile,
+} from "./useHrPutRuleProfile.js";
 export {
   hrRejectClockPunchMutationKey,
   hrRejectClockPunchMutationOptions,

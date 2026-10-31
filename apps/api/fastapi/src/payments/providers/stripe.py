@@ -431,10 +431,13 @@ class StripeProvider:
             return ProviderStatus(status=IntentStatus.CANCELLED.value)
         return ProviderStatus(status=IntentStatus.REQUIRES_PAYMENT.value)
 
-    async def list_refunds(self, intent: Intent) -> RefundListing:
+    async def list_refunds(
+        self, intent: Intent, *, stop: Callable[[], bool] | None = None
+    ) -> RefundListing:
         """Every refund Stripe holds for the payment, newest first, following
         ``has_more`` page by page. A refund object that cannot be read is skipped.
-        Stops after ``REFUND_MAX_PAGES`` pages and reports the listing incomplete."""
+        Stops after ``REFUND_MAX_PAGES`` pages, or when ``stop()`` is true before a
+        further page (a caller's time budget), and reports the listing incomplete."""
         if not intent.provider_payment_ref:
             return RefundListing(refunds=())
         refunds: list[ProviderRefund] = []
@@ -462,6 +465,12 @@ class StripeProvider:
                 # More pages but no cursor to ask for them: never loop on page one.
                 raise ProviderRequestError()
             params = {**params, "starting_after": cursor}
+            if stop is not None and stop():
+                logger.warning(
+                    "Stripe refund listing stopped early for the time budget",
+                    extra={"intent_id": str(intent.id), "listed": len(refunds)},
+                )
+                return RefundListing(refunds=tuple(refunds), complete=False)
         logger.error(
             "Stripe refund listing stopped at the page limit",
             extra={"intent_id": str(intent.id), "pages": REFUND_MAX_PAGES},

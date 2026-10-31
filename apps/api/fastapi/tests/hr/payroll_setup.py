@@ -162,12 +162,15 @@ async def worked_shift(
     approve: bool = True,
     submit: bool = True,
     break_minutes: int = 0,
+    scheduled: tuple[str, str] | None = None,
 ) -> AttendanceRecord:
     """Roster, record, submit and (by default) approve one shift.
 
     ``arrive``/``depart`` are local ISO datetimes with the -04:00 offset."""
     start = datetime.fromisoformat(arrive).strftime("%H:%M")
     end = datetime.fromisoformat(depart).strftime("%H:%M")
+    if scheduled is not None:
+        start, end = scheduled
     code = await _shift(db, start, end)
     month_start = day.replace(day=1)
     period = await db.scalar(
@@ -223,7 +226,11 @@ async def worked_shift(
             session=db,
             current_user=supervisor,
             workflow_instance_id=record.workflow_instance_id,
-            action_in=WorkflowActionRequest(action=WorkflowAction.APPROVE),
+            # Long synthetic shifts trip #890's roster rule warnings.
+            action_in=WorkflowActionRequest(
+                action=WorkflowAction.APPROVE,
+                rule_override_reason="Synthetic overtime for payroll tests",
+            ),
         )
     await db.refresh(record)
     return record

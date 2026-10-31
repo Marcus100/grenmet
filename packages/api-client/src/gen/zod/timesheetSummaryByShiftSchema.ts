@@ -4,6 +4,7 @@
  */
 
 import * as z from "zod";
+import { overtimeBandPublicSchema } from "./overtimeBandPublicSchema.js";
 import { shiftHoursSummarySchema } from "./shiftHoursSummarySchema.js";
 
 export const timesheetSummaryByShiftSchema = z.object({
@@ -12,4 +13,8 @@ export const timesheetSummaryByShiftSchema = z.object({
   grand_total_roster: z.string(),
   grand_total_actual: z.string(),
   grand_total_overtime: z.string(),
+  overtime_bands: z
+    .array(overtimeBandPublicSchema)
+    .optional()
+    .describe("Overtime hours by rate multiplier for the whole timesheet."),
 });

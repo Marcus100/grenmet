@@ -2,6 +2,7 @@
 
 import {
   hrGetInboxQueryKey,
+  type RosterRuleWarningsErrorPublic,
   useHrGetInbox,
   useHrTakeAction,
   type WorkflowAction,
@@ -34,6 +35,8 @@ import { Check, CornerUpLeft, X } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 import { toast } from "sonner";
+import { ruleWarningsFrom } from "./roster/rule-codes";
+import { RuleOverrideDialog } from "./roster/rule-override-dialog";
 import { SwapRuleWarnings } from "./shift/swap-rule-warnings";
 import { AttendanceReview } from "./timesheet/attendance-review";
 
@@ -75,6 +78,12 @@ export function ApprovalsInbox() {
   const [returning, setReturning] = useState<WorkflowInboxItem | undefined>();
   const [reason, setReason] = useState("");
   const [reasonError, setReasonError] = useState<string | undefined>();
+  // An approval that breaks roster rules, waiting for the approver's reason.
+  const [override, setOverride] = useState<{
+    item: WorkflowInboxItem;
+    action: WorkflowAction;
+    warnings: RosterRuleWarningsErrorPublic;
+  } | null>(null);
 
   const items = inboxQuery.data?.data ?? [];
 
@@ -82,13 +91,21 @@ export function ApprovalsInbox() {
     instanceId: string,
     action: WorkflowAction,
     stepId?: string | null,
-    comments?: string
+    comments?: string,
+    ruleOverrideReason?: string
   ): Promise<boolean> {
     setPendingId(instanceId);
     try {
       await actionMutation.mutateAsync({
         path: { instance_id: instanceId },
-        body: { action, step_id: stepId, comments },
+        body: {
+          action,
+          step_id: stepId,
+          comments,
+          ...(ruleOverrideReason
+            ? { rule_override_reason: ruleOverrideReason }
+            : {}),
+        },
       });
       await queryClient.invalidateQueries({
         queryKey: hrGetInboxQueryKey(),
@@ -101,6 +118,12 @@ export function ApprovalsInbox() {
       toast.success(doneLabel[action] ?? "Done");
       return true;
     } catch (error) {
+      const warnings = ruleWarningsFrom(error);
+      const item = items.find((entry) => entry.instance_id === instanceId);
+      if (warnings && item) {
+        setOverride({ item, action, warnings });
+        return false;
+      }
       const detail =
         error instanceof Error ? error.message : "Something went wrong";
       toast.error(`Action failed: ${detail}`);
@@ -268,6 +291,33 @@ export function ApprovalsInbox() {
           })}
         </TableBody>
       </Table>
+      <RuleOverrideDialog
+        busy={override ? pendingId === override.item.instance_id : false}
+        labels={
+          override?.item.requester_name && override.item.requested_by_user_id
+            ? new Map([
+                [
+                  override.item.requested_by_user_id,
+                  override.item.requester_name,
+                ],
+              ])
+            : undefined
+        }
+        onCancel={() => setOverride(null)}
+        onConfirm={async (ruleReason) => {
+          if (!override) return;
+          const { item, action } = override;
+          setOverride(null);
+          await act(
+            item.instance_id,
+            action,
+            item.step_id,
+            undefined,
+            ruleReason
+          );
+        }}
+        warnings={override?.warnings ?? null}
+      />
       <AlertDialog
         onOpenChange={(open) => {
           if (!open) {

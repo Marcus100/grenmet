@@ -50,7 +50,7 @@ from .payroll.models import (
     PayPeriod,
     PayrollDepartmentSetting,
 )
-from .roster.models import PublicHoliday
+from .roster.models import PublicHoliday, RosterPeriod, RosterRuleSet
 from .timesheet.models import DepartmentPolicy, Timesheet, TimesheetEntry
 from .training.models import TrainingRecord
 from .workflow.models import (
@@ -312,14 +312,25 @@ def register() -> None:
         _owned(Timesheet, ("user_id",), ("timesheet.read.department",)),
     )
     registry.track(Timesheet, record_type="timesheet", label="Timesheet")
-    registry.register_entity(
-        "attendance",
-        _owned(
-            AttendanceRecord,
-            ("user_id",),
-            ("timesheet.read.department", "timesheet.approve"),
-        ),
+    attendance_check = _owned(
+        AttendanceRecord,
+        ("user_id",),
+        ("timesheet.read.department", "timesheet.approve"),
     )
+    registry.register_entity("attendance", attendance_check)
+
+    # Roster rule overrides on a correction (#380) are recorded under the
+    # correction; whoever may read the attendance may read them.
+    async def _correction(session: AsyncSession, actor: User, entity_id: str) -> bool:
+        correction_id = parse_uuid(entity_id)
+        if correction_id is None:
+            return False
+        correction = await session.get(AttendanceCorrection, correction_id)
+        if correction is None:
+            return False
+        return await attendance_check(session, actor, str(correction.attendance_id))
+
+    registry.register_entity("attendance_correction", _correction)
     registry.track(
         AttendanceRecord,
         record_type="attendance",
@@ -385,6 +396,16 @@ def register() -> None:
     # Employer registration is platform-admin owned; no membership is inferred.
     registry.register_entity("organisation", _organisation_admin)
     registry.track(Organisation, record_type="organisation", label="Organisation")
+    # Roster rule sets (#380), organisation default and department rows alike:
+    # who changed which limit and when. Overrides are logged separately in
+    # hr.roster_rule_override and in the saved record's history.
+    registry.track(
+        RosterRuleSet,
+        record_type="roster_rule_set",
+        entity_type="organisation",
+        entity_id_attr="organisation_id",
+        label="Roster rules",
+    )
 
     # Setup records: readable by whoever may manage or view that setup area.
     registry.register_entity(
@@ -418,6 +439,13 @@ def register() -> None:
     registry.track(CalendarEvent, record_type="calendar_event", label="Calendar entry")
     registry.register_entity("public_holiday", _permission("calendar.view"))
     registry.track(PublicHoliday, record_type="public_holiday", label="Public holiday")
+
+    # Roster period history: publish and published-roster changes saved despite
+    # roster rule warnings (#380), for the department's roster managers.
+    registry.register_entity(
+        "roster_period",
+        _department_permission(RosterPeriod, "roster.manage", uuid_id=True),
+    )
 
     # Roster rule limits share a row with the timesheet submission policy; both are
     # history under the department, readable by those who manage its roster.

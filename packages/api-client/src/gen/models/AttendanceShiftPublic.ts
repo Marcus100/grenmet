@@ -3,6 +3,7 @@
  * Do not edit manually.
  */
 
+import type { OvertimeBandPublic } from "./OvertimeBandPublic.js";
 import type { RosterAvailability } from "./RosterAvailability.js";
 import type { WorkflowStatus } from "./WorkflowStatus.js";
 
@@ -65,4 +66,9 @@ export type AttendanceShiftPublic = {
   review_status?: WorkflowStatus | null;
   reviewer_name?: string | null;
   reviewed_at?: string | null;
+  /**
+   * @description Overtime hours by rate multiplier (hours only, no pay).
+   * @type array | undefined
+   */
+  overtime_bands?: OvertimeBandPublic[];
 };

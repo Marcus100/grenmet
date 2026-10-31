@@ -63,6 +63,14 @@ The owner decided to proceed on best assumptions and have HR correct them in the
 
 Phase 0 checklist (issue #379), documentation view only: opening balances, an authenticated agreement reading and HR sign-off still need GAA HR. The holiday list and the former "HR decision pending" rows now hold provisional values. Built since (provisional): the `JURY_DUTY` leave type, the extra-day-for-holiday-in-vacation suggestion, and holiday marking on timesheets.
 
+## Roster rules (Articles 5, 6 and 8)
+
+The owner confirmed the roster terms on 2026-10-31 (issue #380). They are built as
+editable data, all on by default; a break needs a supervisor's recorded reason. Values,
+the engine's readings and the owner's decisions of 31 Oct 2026 are in
+[roster rules](roster-rules.md). No minimum-rest rule applies. Overtime is counted in
+hours by rate band only; pay treatment remains future payroll work.
+
 ## Inputs to request from GAA HR
 
 1. HR authentication of the supplied 2024–28 memorandum, its amendments, covered staff groups, and which GMS staff are in the bargaining unit. Record the HR-approved interpretation where it and the handbook differ.

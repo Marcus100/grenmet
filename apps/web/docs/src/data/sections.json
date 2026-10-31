@@ -329,7 +329,7 @@
     "sections": [
       {
         "id": "title-using-the-public-api-description-check-each-endpoints-parameters-and-distinguish-public-data-from-staff-records",
-        "title": "title: 'Using the public API'\ndescription: 'Check each endpoint's parameters and distinguish public data from staff records.'"
+        "title": "title: 'Using the public API'\ndescription: \"Check each endpoint's parameters and distinguish public data from staff records.\""
       },
       {
         "id": "choose-the-correct-endpoint",
