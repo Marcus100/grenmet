@@ -59,7 +59,7 @@ export function organisationsRevokeMemberGrantMutationOptions<
 }
 
 /**
- * @description Needs the bundle's permissions and its product's team-manage permission. Nobody can revoke their own grant (403). Revoking an already revoked grant returns it unchanged.
+ * @description Needs the bundle's permissions and its product's team-manage permission. Nobody can revoke their own grant (403). Revoking an already revoked grant returns it unchanged. Grants that depended on it, through the members it was granted to, are revoked too; ``cascaded_revocations`` counts them. Revoking a team grant can end the grants its holder issued. 409 when the cascade would end more than 200 roles.
  * @summary Revoke a role grant
  * {@link /api/v1/organisations/org/grants/:grant_id/revoke}
  */

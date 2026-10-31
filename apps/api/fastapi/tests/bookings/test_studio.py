@@ -1,6 +1,7 @@
 """Bookings B5: studio actions, API-key writes, agenda."""
 
 import uuid
+from datetime import timedelta
 from typing import Any
 
 import httpx
@@ -11,6 +12,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from src.bookings.models import Booking, BookingEvent
 from src.organisations import service as org_service
 from src.organisations.models import MembershipRole
+from tests.bookings.booking_day import MONDAY
 from tests.bookings.test_public_bookings import (
     API,
     DAY,
@@ -360,7 +362,7 @@ async def test_agenda_groups_by_local_day_and_pages(
     slots = await _slots(async_client, studio)
     for slot in (0, 0, 3):
         await _booked(db_async, async_client, studio=studio, slot=slot)
-    params = {"from_date": DAY, "to_date": "2027-01-10"}
+    params = {"from_date": DAY, "to_date": (MONDAY + timedelta(days=6)).isoformat()}
     response = await async_client.get(
         f"{API}/org/agenda", headers=studio.headers, params=params
     )
