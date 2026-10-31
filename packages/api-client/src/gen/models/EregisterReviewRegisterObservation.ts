@@ -3,6 +3,7 @@
  * Do not edit manually.
  */
 
+import type { ApiError } from "./ApiError.js";
 import type { RegisterObservationRead } from "./RegisterObservationRead.js";
 import type { ReviewRequest } from "./ReviewRequest.js";
 
@@ -18,13 +19,29 @@ export type EregisterReviewRegisterObservationPath = {
 export type EregisterReviewRegisterObservationStatus200 =
   RegisterObservationRead;
 
-export type EregisterReviewRegisterObservationStatus401 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type EregisterReviewRegisterObservationStatus401 = ApiError;
 
-export type EregisterReviewRegisterObservationStatus403 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type EregisterReviewRegisterObservationStatus403 = ApiError;
 
-export type EregisterReviewRegisterObservationStatus404 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type EregisterReviewRegisterObservationStatus404 = ApiError;
 
-export type EregisterReviewRegisterObservationStatus409 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type EregisterReviewRegisterObservationStatus409 = ApiError;
 
 export type EregisterReviewRegisterObservationStatus422 = unknown;
 

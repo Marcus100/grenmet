@@ -3,6 +3,7 @@
  * Do not edit manually.
  */
 
+import type { ApiError } from "./ApiError.js";
 import type { AppEntitlementUpdate } from "./AppEntitlementUpdate.js";
 import type { OrganisationAdminDetail } from "./OrganisationAdminDetail.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
@@ -14,11 +15,23 @@ export type OrganisationsSetAppPath = {
 
 export type OrganisationsSetAppStatus200 = OrganisationAdminDetail;
 
-export type OrganisationsSetAppStatus401 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type OrganisationsSetAppStatus401 = ApiError;
 
-export type OrganisationsSetAppStatus403 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type OrganisationsSetAppStatus403 = ApiError;
 
-export type OrganisationsSetAppStatus404 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type OrganisationsSetAppStatus404 = ApiError;
 
 /**
  * @description Validation error envelope returned for malformed requests.

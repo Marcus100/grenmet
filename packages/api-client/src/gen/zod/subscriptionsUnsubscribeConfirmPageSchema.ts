@@ -10,7 +10,7 @@ export const subscriptionsUnsubscribeConfirmPageQueryTokenSchema = z.string();
 
 export const subscriptionsUnsubscribeConfirmPageStatus200Schema = z.string();
 
-export const subscriptionsUnsubscribeConfirmPageStatus400Schema = z.unknown();
+export const subscriptionsUnsubscribeConfirmPageStatus400Schema = z.string();
 
 export const subscriptionsUnsubscribeConfirmPageStatus422Schema =
   validationErrorResponseSchema.describe(

@@ -3,6 +3,7 @@
  * Do not edit manually.
  */
 
+import type { ApiError } from "./ApiError.js";
 import type { SignedDocumentList } from "./SignedDocumentList.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 
@@ -31,9 +32,17 @@ export type HrGetMySignedDocumentsQuery = {
 
 export type HrGetMySignedDocumentsStatus200 = SignedDocumentList;
 
-export type HrGetMySignedDocumentsStatus400 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type HrGetMySignedDocumentsStatus400 = ApiError;
 
-export type HrGetMySignedDocumentsStatus401 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type HrGetMySignedDocumentsStatus401 = ApiError;
 
 /**
  * @description Validation error envelope returned for malformed requests.

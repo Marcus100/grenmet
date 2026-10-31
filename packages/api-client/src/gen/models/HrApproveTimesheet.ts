@@ -3,6 +3,7 @@
  * Do not edit manually.
  */
 
+import type { ApiError } from "./ApiError.js";
 import type { TimesheetPublic } from "./TimesheetPublic.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 
@@ -17,11 +18,23 @@ export type HrApproveTimesheetPath = {
 
 export type HrApproveTimesheetStatus200 = TimesheetPublic;
 
-export type HrApproveTimesheetStatus400 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type HrApproveTimesheetStatus400 = ApiError;
 
-export type HrApproveTimesheetStatus403 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type HrApproveTimesheetStatus403 = ApiError;
 
-export type HrApproveTimesheetStatus404 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type HrApproveTimesheetStatus404 = ApiError;
 
 /**
  * @description Validation error envelope returned for malformed requests.

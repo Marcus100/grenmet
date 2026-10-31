@@ -3,6 +3,7 @@
  * Do not edit manually.
  */
 
+import type { ApiError } from "./ApiError.js";
 import type { ClockSitesPublic } from "./ClockSitesPublic.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 
@@ -12,9 +13,17 @@ export type HrListClockSitesQuery = {
 
 export type HrListClockSitesStatus200 = ClockSitesPublic;
 
-export type HrListClockSitesStatus403 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type HrListClockSitesStatus403 = ApiError;
 
-export type HrListClockSitesStatus404 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type HrListClockSitesStatus404 = ApiError;
 
 /**
  * @description Validation error envelope returned for malformed requests.

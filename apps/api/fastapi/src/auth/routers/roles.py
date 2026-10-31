@@ -13,6 +13,7 @@ from src.auth.constants import ERROR_ROLE_IN_USE, ERROR_ROLE_NOT_FOUND
 from src.auth.dependencies import get_current_active_superuser
 from src.auth.schemas import RoleCreate, RolePublic, RoleUpdate
 from src.dependencies import CurrentUser, SessionDep, get_current_user_manager
+from src.models import ApiError
 from src.openapi_responses import AUTHENTICATED
 from src.pagination import PaginatedResponse, PaginationParams, get_pagination_params
 
@@ -57,7 +58,7 @@ async def read_roles(
     description="Return a role by ID (superuser only).",
     responses={
         status.HTTP_200_OK: {"description": "Role returned"},
-        status.HTTP_404_NOT_FOUND: {"description": "Role not found"},
+        status.HTTP_404_NOT_FOUND: {"model": ApiError, "description": "Role not found"},
     },
 )
 async def read_role(session: SessionDep, role_id: uuid.UUID) -> Any:
@@ -91,7 +92,7 @@ async def create_role(*, session: SessionDep, role_in: RoleCreate) -> Any:
     description="Update a role's name or description (superuser only).",
     responses={
         status.HTTP_200_OK: {"description": "Role updated"},
-        status.HTTP_404_NOT_FOUND: {"description": "Role not found"},
+        status.HTTP_404_NOT_FOUND: {"model": ApiError, "description": "Role not found"},
     },
 )
 async def update_role(
@@ -111,8 +112,11 @@ async def update_role(
     description="Delete a role (superuser only). Fails while any user still holds the role.",
     responses={
         status.HTTP_204_NO_CONTENT: {"description": "Role deleted"},
-        status.HTTP_400_BAD_REQUEST: {"description": "Role is still assigned"},
-        status.HTTP_404_NOT_FOUND: {"description": "Role not found"},
+        status.HTTP_400_BAD_REQUEST: {
+            "model": ApiError,
+            "description": "Role is still assigned",
+        },
+        status.HTTP_404_NOT_FOUND: {"model": ApiError, "description": "Role not found"},
     },
 )
 async def delete_role(*, session: SessionDep, role_id: uuid.UUID) -> None:

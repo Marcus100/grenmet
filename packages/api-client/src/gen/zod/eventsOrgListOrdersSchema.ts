@@ -4,6 +4,7 @@
  */
 
 import * as z from "zod";
+import { apiErrorSchema } from "./apiErrorSchema.js";
 import { orderPublicPropertiesStatusEnumSchema } from "./orderPublicPropertiesStatusEnumSchema.js";
 import { paginatedResponseOrgOrderRowSchema } from "./paginatedResponseOrgOrderRowSchema.js";
 import { validationErrorResponseSchema } from "./validationErrorResponseSchema.js";
@@ -40,11 +41,17 @@ export const eventsOrgListOrdersHeaderXBarrelsOrganisationSchema = z
 export const eventsOrgListOrdersStatus200Schema =
   paginatedResponseOrgOrderRowSchema;
 
-export const eventsOrgListOrdersStatus401Schema = z.unknown();
+export const eventsOrgListOrdersStatus401Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
-export const eventsOrgListOrdersStatus403Schema = z.unknown();
+export const eventsOrgListOrdersStatus403Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
-export const eventsOrgListOrdersStatus404Schema = z.unknown();
+export const eventsOrgListOrdersStatus404Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
 export const eventsOrgListOrdersStatus422Schema =
   validationErrorResponseSchema.describe(

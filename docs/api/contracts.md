@@ -321,6 +321,22 @@ Rules:
 
 CI also regenerates the client and fails if `packages/api-client/src/gen` differs from the committed output.
 
+### oasdiff breaking-change check
+
+The same `api-breaking-changes` job then runs [oasdiff](https://github.com/oasdiff/oasdiff)'s full breaking-change rule set (`oasdiff/oasdiff-action/breaking`, pinned by SHA) on the PR's `openapi.json` against the base branch, and fails on any error-level change. It covers more than the hand-written check, for example:
+
+- enum changes beyond a plain list diff: a request field, parameter or header newly restricted to an enum, and enums reached through `x-extensible-enum`;
+- required/optional flips in responses: a response property that was always present becoming optional;
+- security: an endpoint's security requirement removed (for example `HTTPBearer` dropped from a route);
+- new bounds: `maxLength`, `maximum`, `minItems` and similar limits set or tightened on request input;
+- a removed response media type or success status code.
+
+Settings live in `scripts/api/oasdiff.yaml`. It lowers one rule to a warning: a new enum value in a response (`response-property-enum-value-added`), because adding a status is how the API grows and the generated client ships in the same PR, which matches `check-api-breaking.mjs`. Explain any new override in that file.
+
+Run it locally with `pnpm check:api-breaking:oasdiff` (or `scripts/api/check-api-breaking-oasdiff.sh <base-ref>`). It needs the `oasdiff` binary from its [releases](https://github.com/oasdiff/oasdiff/releases) on `PATH` or in `OASDIFF`; it is not installed by `pnpm install`.
+
+**Override:** the `breaking-change` label covers both checks. With the label, the oasdiff step still runs and prints its findings but cannot fail the job. Only add the label when the break is intended and every consumer is updated in the same PR.
+
 ## Authentication
 
 The API supports two auth paths:
@@ -430,13 +446,34 @@ Implemented examples:
 | Pydantic validation handler | `{"detail":"Validation error","errors":[...]}` |
 | Database integrity error | `{"detail":"Resource already exists or constraint violation"}` |
 | FastAPI `HTTPException` | `{"detail": ...}` |
-| Rate limit exceeded | SlowAPI's 429 response |
+| Rate limit exceeded (SlowAPI) | `{"error": "Rate limit exceeded: ..."}` (429) |
+| Account lockout after failed sign-ins | `{"detail": ...}` (429) |
+| Public weather product feed (`/wxproducts/public/*`) | `{"error": "..."}` (400, 404, 503) |
 
 The generated FastAPI `ValidationError` schema includes optional `input` and
 `ctx` fields alongside required `loc`, `msg` and `type`. Clients must tolerate
 those optional fields; they do not change application route definitions.
 
-Contract rule for new endpoints: return structured JSON errors and document non-obvious status codes in the route `responses` metadata.
+Documented error bodies: every documented 4xx except 422 names a body schema in
+the OpenAPI document. `ApiError` (`detail: string`) covers 400, 401, 403, 404 and
+409. A 429 documents `ApiError | ErrorMessage` (`error: string`) because the
+rate limiter and the account lockout answer with different keys. Shared
+constants live in `src/openapi_responses.py`; `tests/test_error_response_bodies.py`
+pins the runtime bodies. The `AuthoringError` model on wxproducts authoring
+routes allows `detail` to be a list, which the runtime never sends; it is kept
+for compatibility.
+
+HTML routes (for example the unsubscribe pages and the password recovery
+preview) declare their error bodies under the page's media type, or name
+`application/json` explicitly when the error is JSON. `ApiError` under `text/html`
+is a contract error that `tests/test_openapi_contract.py` rejects.
+
+Request bodies are named: every `requestBody` is a `$ref` to a named component.
+A body that may be omitted or sent as `null` is a `RootModel[X | None]` wrapper
+(for example `QcDecisionBody`), and a bare array is a `RootModel[list[...]]`
+(`NotificationPreferenceUpdateList`). The wire format did not change.
+
+Contract rule for new endpoints: return structured JSON errors and document non-obvious status codes in the route `responses` metadata. Spread the shared constants (`AUTHENTICATED`, `NOT_FOUND`, `CONFLICT`, `BAD_REQUEST`) so each 4xx carries its body model, and give every request body a named schema.
 
 ## Request IDs
 
@@ -598,7 +635,8 @@ belong to the category, priced tiers need `pricing_type=paid`, `service` is
 refused, and `access_type=private` forces `visibility=unlisted`.
 `booking_mode=slots` (reserved for the Bookings bridge) and `booking_mode=external`
 or `external_ticket_url` (set by Barrels staff through the later curation routes,
-ADR-0048) answer 422 on the organiser routes. External links are https only,
+ADR-0048) answer 422 on the organiser routes. The organiser upsert schema does not
+declare `external_ticket_url`; sending it still answers 422. External links are https only,
 normalised, and refuse userinfo, control or bidi characters and non-ASCII hosts.
 
 ### Events tickets (E1)
@@ -767,11 +805,16 @@ Shared APIs for every Barrels app. Zones follow ADR-0025.
   lists show only products whose `team.manage` the caller holds. Each bundle carries a
   human `label` and `description` (`role_bundles.BUNDLE_COPY`). `GET /team/members`
   (team managers) is the paginated roster of active members: membership id, display
-  name, org role and live grants limited to the products the caller manages, no
-  emails. `GET /team/me` (any member) returns the caller's org role, the products
+  name, org role, `is_self` (the row is the caller's own) and live grants limited to
+  the products the caller manages, each with `granted_by_name` (the giver's display
+  name), no emails. `GET /team/me` (any member) returns the caller's org role, the products
   whose `team.manage` they hold and `is_admin_or_owner`.
   These team routes, and member removal (`DELETE /{organisation_id}/members/{id}`), also
   accept an Events app token (`EventsOrg*` dependencies); any other app's token is 401.
+  Removal depends on the sign-in (issue #815): an account session removes the membership
+  from the organisation (204); an Events app session ends only that person's Events access
+  in that organisation and answers 200 with `scope: "events"` and the counts. The
+  membership, other organisations and the account-level Events sign-in stay.
 - **Feature flags** (PF7, ADR-0020): superuser `/feature-flags/admin` (CRUD,
   `/admin/stale`) and `GET /feature-flags/org/evaluate` and `/feature-flags/me/evaluate`,
   which return only flags marked exposed. `GET /feature-flags/public/evaluate?keys=a,b`
@@ -970,7 +1013,8 @@ authenticated session.
 
 **Change history.** Registered models (`src/hr/audit.py`) are captured field by field on
 every flush into `public.audit_entry`, attributed to the signed-in user (or "System" for
-worker jobs). Bulk `update()`/`delete()` statements are not captured; call
+worker jobs) and to how they signed in: `actor_session` (`account` or `app`) and `actor_app`
+(for an app session, the app key; NULL when not recorded). Bulk `update()`/`delete()` statements are not captured; call
 `src.audit.service.record_change` for those.
 
 | Endpoint | Access and purpose |
@@ -1360,7 +1404,7 @@ Leave balances come only from the append-only `hr.leave_balance_event` ledger, w
 
 ### Employee membership and account security
 
-Employment records may represent confirmed department/grade membership with a null employee number or employment type. `EmploymentPublic` includes `grade`, `supervisor_name` and `details_complete`; clients must display unknown fields explicitly rather than infer values. `GET /api/v1/auth/users/me/security` returns current-account security status and active-session metadata (app, client type, recorded `user_agent` and `ip_address`, last-used and expiry times), never bearer tokens, session secrets or TOTP secrets. The IP and user agent are shown only to the account owner so they can recognise their own devices. The response also carries `password_changed_at` (null until the password is next changed, reset or set up after the column shipped). Password and Google sign-in remember the browser/OS family of each device (`user.known_device_keys`, capped at 20); a sign-in from an unfamiliar family after the first ever device emails the account owner a "New sign-in" alert in the background, linking to `/sessions`. Alert failures are logged and never block sign-in. Existing `/auth/users/me/security/2fa/setup` and `/auth/users/me/security/2fa/activate` endpoints provide enrollment; setup rejects an already-enabled authenticator.
+Employment records may represent confirmed department/grade membership with a null employee number or employment type. `EmploymentPublic` includes `grade`, `supervisor_name` and `details_complete`; clients must display unknown fields explicitly rather than infer values. `EmploymentPublic`, `EmploymentRecordPublic` (the admin read) and `EmploymentUpdate` carry `end_date` (last day of employment, #797; null clears it, and it cannot precede `start_date`). That date is the last day of employment: roles work through it and stop at midnight Grenada time after it, and a daily job then sets the status to `TERMINATED`. Changing an end date (setting, moving or clearing it) on someone who holds live organisation-wide roles needs organisation-wide `hr.employment.manage` (403 otherwise). A change of `department_id` to another department ends the person's live roles in that organisation (#797); see `apps/api/fastapi/src/hr/AGENTS.md`. `GET /api/v1/auth/users/me/security` returns current-account security status and active-session metadata (app, client type, recorded `user_agent` and `ip_address`, last-used and expiry times), never bearer tokens, session secrets or TOTP secrets. The IP and user agent are shown only to the account owner so they can recognise their own devices. The response also carries `password_changed_at` (null until the password is next changed, reset or set up after the column shipped). Password and Google sign-in remember the browser/OS family of each device (`user.known_device_keys`, capped at 20); a sign-in from an unfamiliar family after the first ever device emails the account owner a "New sign-in" alert in the background, linking to `/sessions`. Alert failures are logged and never block sign-in. Existing `/auth/users/me/security/2fa/setup` and `/auth/users/me/security/2fa/activate` endpoints provide enrollment; setup rejects an already-enabled authenticator.
 
 Managed HR workflows must be created through their form submission endpoints. Public generic workflow creation cannot attach a new workflow to a managed HR record. Finalization validates the record's authoritative workflow and department before status or balance changes. The dashboard honours `roster.view` for department data and preserves personal roster access when that permission is absent.
 
@@ -1743,11 +1787,15 @@ of today (Grenada) for `days` days: `{as_of, window_start, window_end, complete,
 items[]}`. Each item has `source` (`CAP` or `Bulletin`), `title`, `product`,
 `colour`, `likelihood`, `impact`, `impacts`, `response`, `valid_from`, `valid_to`,
 `reference`, `identifier` (a warning's CAP identifier) or `product_id` (a
-bulletin), `sectors` and `affects_everyone`. Sectors are the keys in
+bulletin), `sectors`, `affects_everyone` and `notice_type` (a bulletin's stored
+notice type, `Information`, `Advisory` or `All clear`; null for CAP warnings and
+for values the bulletin form no longer offers). Sectors are the keys in
 `src/sectors.py` (tourism, marine, aviation, agriculture, health,
 roads-transport), set on a CAP warning in its `GMS:sectors` info parameter and on
 a bulletin in its `sectors` value (comma-separated; unknown names are rejected).
-An item with no sectors has `affects_everyone: true`. `complete` is false when
+An item with no sectors has `affects_everyone: true`. A Green `All clear` bulletin
+is information, not an alert in effect: the weather site lists it as information
+and never counts it. `complete` is false when
 CAP or the bulletin store could not be read; callers must not show an all-clear
 then. Bulletins appear only while published and in force, so a bulletin with a
 future start is not listed.

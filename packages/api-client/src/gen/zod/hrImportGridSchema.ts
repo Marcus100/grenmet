@@ -4,17 +4,24 @@
  */
 
 import * as z from "zod";
+import { apiErrorSchema } from "./apiErrorSchema.js";
 import { rosterGridImportRequestSchema } from "./rosterGridImportRequestSchema.js";
 import { rosterGridImportResultSchema } from "./rosterGridImportResultSchema.js";
 import { validationErrorResponseSchema } from "./validationErrorResponseSchema.js";
 
 export const hrImportGridStatus200Schema = rosterGridImportResultSchema;
 
-export const hrImportGridStatus400Schema = z.unknown();
+export const hrImportGridStatus400Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
-export const hrImportGridStatus403Schema = z.unknown();
+export const hrImportGridStatus403Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
-export const hrImportGridStatus404Schema = z.unknown();
+export const hrImportGridStatus404Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
 export const hrImportGridStatus422Schema =
   validationErrorResponseSchema.describe(

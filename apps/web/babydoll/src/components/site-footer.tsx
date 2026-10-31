@@ -1,3 +1,7 @@
+import {
+  BARRELS_SUPPORT_EMAIL,
+  BARRELS_SUPPORT_HREF,
+} from "@barrelsgd/ui/lib/support";
 import Image from "next/image";
 import Link from "next/link";
 import { BUSINESS, NAV, SOCIALS } from "@/data/site";
@@ -47,6 +51,10 @@ export function SiteFooter() {
           <span>© 2026 {BUSINESS.legalName} · Grenada</span>
           <span>
             Website by <a href="https://barrels.gd/">Barrels Grenada</a>
+          </span>
+          <span>
+            Website support:{" "}
+            <a href={BARRELS_SUPPORT_HREF}>{BARRELS_SUPPORT_EMAIL}</a>
           </span>
         </div>
       </div>

@@ -4,22 +4,31 @@
  */
 
 import * as z from "zod";
+import { apiErrorSchema } from "./apiErrorSchema.js";
+import { errorMessageSchema } from "./errorMessageSchema.js";
 import { validationErrorResponseSchema } from "./validationErrorResponseSchema.js";
 
 export const eventsRemoveConnectionPathConnectionIdSchema = z.uuid();
 
 export const eventsRemoveConnectionStatus204Schema = z.unknown();
 
-export const eventsRemoveConnectionStatus401Schema = z.unknown();
+export const eventsRemoveConnectionStatus401Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
-export const eventsRemoveConnectionStatus404Schema = z.unknown();
+export const eventsRemoveConnectionStatus404Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
 export const eventsRemoveConnectionStatus422Schema =
   validationErrorResponseSchema.describe(
     "Validation error envelope returned for malformed requests."
   );
 
-export const eventsRemoveConnectionStatus429Schema = z.unknown();
+export const eventsRemoveConnectionStatus429Schema = z.union([
+  apiErrorSchema,
+  errorMessageSchema,
+]);
 
 export const eventsRemoveConnectionResponseSchema =
   eventsRemoveConnectionStatus204Schema;

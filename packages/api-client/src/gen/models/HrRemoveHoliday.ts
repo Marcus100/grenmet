@@ -3,6 +3,7 @@
  * Do not edit manually.
  */
 
+import type { ApiError } from "./ApiError.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 
 export type HrRemoveHolidayPath = {
@@ -16,9 +17,17 @@ export type HrRemoveHolidayPath = {
 
 export type HrRemoveHolidayStatus204 = unknown;
 
-export type HrRemoveHolidayStatus403 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type HrRemoveHolidayStatus403 = ApiError;
 
-export type HrRemoveHolidayStatus404 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type HrRemoveHolidayStatus404 = ApiError;
 
 /**
  * @description Validation error envelope returned for malformed requests.

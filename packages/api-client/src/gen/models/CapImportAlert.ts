@@ -3,15 +3,24 @@
  * Do not edit manually.
  */
 
+import type { ApiError } from "./ApiError.js";
 import type { CapAlertImportRequest } from "./CapAlertImportRequest.js";
 import type { CapAlertPublic } from "./CapAlertPublic.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 
 export type CapImportAlertStatus201 = CapAlertPublic;
 
-export type CapImportAlertStatus401 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type CapImportAlertStatus401 = ApiError;
 
-export type CapImportAlertStatus403 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type CapImportAlertStatus403 = ApiError;
 
 /**
  * @description Validation error envelope returned for malformed requests.

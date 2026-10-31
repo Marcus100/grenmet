@@ -4,6 +4,7 @@
  */
 
 import * as z from "zod";
+import { apiErrorSchema } from "./apiErrorSchema.js";
 import { rewardsTrailCreateSchema } from "./rewardsTrailCreateSchema.js";
 import { rewardsTrailPublicSchema } from "./rewardsTrailPublicSchema.js";
 import { validationErrorResponseSchema } from "./validationErrorResponseSchema.js";
@@ -17,15 +18,25 @@ export const rewardsOrgCreateTrailHeaderXBarrelsOrganisationSchema = z
 
 export const rewardsOrgCreateTrailStatus201Schema = rewardsTrailPublicSchema;
 
-export const rewardsOrgCreateTrailStatus400Schema = z.unknown();
+export const rewardsOrgCreateTrailStatus400Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
-export const rewardsOrgCreateTrailStatus401Schema = z.unknown();
+export const rewardsOrgCreateTrailStatus401Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
-export const rewardsOrgCreateTrailStatus403Schema = z.unknown();
+export const rewardsOrgCreateTrailStatus403Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
-export const rewardsOrgCreateTrailStatus404Schema = z.unknown();
+export const rewardsOrgCreateTrailStatus404Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
-export const rewardsOrgCreateTrailStatus409Schema = z.unknown();
+export const rewardsOrgCreateTrailStatus409Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
 export const rewardsOrgCreateTrailStatus422Schema =
   validationErrorResponseSchema.describe(

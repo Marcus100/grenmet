@@ -17,6 +17,7 @@ import { Tabs, TabsList, TabsTrigger } from "@barrelsgd/ui/components/ui/tabs";
 import { Textarea } from "@barrelsgd/ui/components/ui/textarea";
 import { useState } from "react";
 import { SectionCard } from "@/components/wxproducts/eregister-ui";
+import { ProductDiscardDialog } from "@/components/wxproducts/product-discard-dialog";
 
 type AviationKind = AviationDraftRead["kind"];
 
@@ -105,6 +106,7 @@ export function AviationDraft() {
   const [drafts, setDrafts] = useState<AviationDraftRead[]>([]);
   const [history, setHistory] = useState<AviationRevisionRead[]>([]);
   const [busy, setBusy] = useState(false);
+  const [discardOpen, setDiscardOpen] = useState(false);
   const [status, setStatus] = useState("");
   const [coding, setCoding] = useState<{
     issues: AviationIssue[];
@@ -277,6 +279,15 @@ export function AviationDraft() {
         </div>
         <Badge variant="secondary">{draftState}</Badge>
       </header>
+      <ProductDiscardDialog
+        onConfirm={() => {
+          setDiscardOpen(false);
+          setForm(baseline);
+          setStatus("Unsaved changes discarded.");
+        }}
+        onOpenChange={setDiscardOpen}
+        open={discardOpen}
+      />
       <div className="grid @4xl:grid-cols-[minmax(0,3fr)_minmax(18rem,2fr)] items-start gap-6">
         <SectionCard
           action={<Badge variant="secondary">Draft · not transmitted</Badge>}
@@ -285,10 +296,7 @@ export function AviationDraft() {
           <fieldset className="space-y-5 p-4" disabled={busy}>
             {dirty ? (
               <Button
-                onClick={() => {
-                  setForm(baseline);
-                  setStatus("Unsaved changes discarded.");
-                }}
+                onClick={() => setDiscardOpen(true)}
                 type="button"
                 variant="outline"
               >

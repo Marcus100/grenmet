@@ -6,19 +6,28 @@
 import * as z from "zod";
 import { activationIssueSchema } from "./activationIssueSchema.js";
 import { activationLinkSchema } from "./activationLinkSchema.js";
+import { apiErrorSchema } from "./apiErrorSchema.js";
 import { validationErrorResponseSchema } from "./validationErrorResponseSchema.js";
 
 export const authIssueActivationPathUserIdSchema = z.uuid();
 
 export const authIssueActivationStatus201Schema = activationLinkSchema;
 
-export const authIssueActivationStatus400Schema = z.unknown();
+export const authIssueActivationStatus400Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
-export const authIssueActivationStatus403Schema = z.unknown();
+export const authIssueActivationStatus403Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
-export const authIssueActivationStatus404Schema = z.unknown();
+export const authIssueActivationStatus404Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
-export const authIssueActivationStatus409Schema = z.unknown();
+export const authIssueActivationStatus409Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
 export const authIssueActivationStatus422Schema =
   validationErrorResponseSchema.describe(

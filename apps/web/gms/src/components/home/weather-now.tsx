@@ -6,7 +6,7 @@ import {
   WeatherNowPanel,
 } from "@/components/home/weather-now-panel";
 import { RelatedLinkAnchor } from "@/components/related-link-anchor";
-import { clock12 } from "@/lib/clock";
+import { postedLabel } from "@/lib/clock";
 import type { RelatedLink } from "@/lib/cms";
 import {
   fetchHomeContent,
@@ -16,13 +16,6 @@ import {
 } from "@/lib/cms";
 import { mediaEmbed } from "@/lib/media-embed";
 
-const TIME = new Intl.DateTimeFormat("en-GB", {
-  timeZone: "America/Grenada",
-  hour: "2-digit",
-  minute: "2-digit",
-});
-
-/** A quick text update under the duty forecaster's note. */
 /** The link to show under a live post: its main link, else the first. */
 function leadLink(post: LivePost): RelatedLink | null {
   const links = post.relatedLinks ?? [];
@@ -40,7 +33,7 @@ function UpdateItem({ post }: { post: LivePost }) {
             className="font-normal text-body-sm text-gm-text-secondary leading-body-sm"
             dateTime={post.publishedAt}
           >
-            {clock12(TIME.format(new Date(post.publishedAt)))}
+            {postedLabel(post.publishedAt)}
           </time>
         )}
       </p>
@@ -64,9 +57,7 @@ function mediaItems(posts: LivePost[], kind: "video" | "audio"): MediaItem[] {
             id: post.id,
             title: post.title,
             text: post.text,
-            posted: post.publishedAt
-              ? clock12(TIME.format(new Date(post.publishedAt)))
-              : null,
+            posted: post.publishedAt ? postedLabel(post.publishedAt) : null,
             embed,
           },
         ]
@@ -84,6 +75,11 @@ export async function WeatherNow() {
   if (await isSectionHidden("weather-now")) return null;
   const { weatherNow, livePosts, settings } = await fetchHomeContent();
   const updates = livePosts.posts.filter((post) => post.kind === "update");
+  // The live list always shows, so an empty or unreachable feed is said, not hidden.
+  const updatesNotice =
+    livePosts.status === "unavailable"
+      ? "Live updates cannot be retrieved right now."
+      : "No live updates from GMS right now.";
   // The newest post for each imagery tab shows as a note under that tab.
   const notes: TabNotes = {};
   for (const kind of NOTE_KINDS) {
@@ -93,9 +89,7 @@ export async function WeatherNow() {
         link: leadLink(post),
         title: post.title,
         text: post.text,
-        posted: post.publishedAt
-          ? clock12(TIME.format(new Date(post.publishedAt)))
-          : null,
+        posted: post.publishedAt ? postedLabel(post.publishedAt) : null,
       };
   }
   const note = weatherNow?.note;
@@ -127,7 +121,7 @@ export async function WeatherNow() {
             {note?.postedAt && (
               <span className="font-normal normal-case tracking-normal">
                 {" "}
-                · {clock12(TIME.format(new Date(note.postedAt)))}
+                · {postedLabel(note.postedAt)}
               </span>
             )}
           </p>
@@ -149,18 +143,22 @@ export async function WeatherNow() {
               </a>
             )
           )}
-          {updates.length > 0 && (
-            <section aria-label="Live from GMS" className="mt-2">
-              <h3 className="mb-1 font-bold text-gm-text-muted text-label uppercase leading-label tracking-wider">
-                Live from GMS
-              </h3>
+          <section aria-label="Live from GMS" className="mt-2">
+            <h3 className="mb-1 font-bold text-gm-text-muted text-label uppercase leading-label tracking-wider">
+              Live from GMS
+            </h3>
+            {updates.length > 0 ? (
               <ul className="flex flex-col gap-3">
                 {updates.map((post) => (
                   <UpdateItem key={post.id} post={post} />
                 ))}
               </ul>
-            </section>
-          )}
+            ) : (
+              <p className="text-body leading-body" role="status">
+                {updatesNotice}
+              </p>
+            )}
+          </section>
         </div>
       </div>
     </HomeSection>

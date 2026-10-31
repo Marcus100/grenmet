@@ -5,6 +5,7 @@
 ## How it works
 - Domains opt models in with `src.audit.registry.track(...)` (see `src/hr/audit.py`). The flush listener (`listener.py`) writes one `AuditEntry` per changed row **in the same transaction** as the change.
 - For changes outside the ORM flush, call `src.audit.service.record_change`.
+- Each row records the actor's sign-in: `actor_session` (`account`/`app`) and `actor_app`. The sign-in dependency sets them with `service.set_actor_session` (per session, not reset by `set_actor`). Rows written without a sign-in dependency keep them NULL.
 - `GET /api/v1/audit/{entity_type}/{entity_id}`: paginated, newest first; readable by anyone who may read the record. Sensitive fields return `masked: true` unless the reader holds `audit.view_sensitive`.
 
 ## Invariants

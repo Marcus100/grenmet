@@ -3,16 +3,29 @@
  * Do not edit manually.
  */
 
+import type { ApiError } from "./ApiError.js";
 import type { EmailRequest } from "./EmailRequest.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 
 export type AuthRecoverPasswordHtmlContentStatus200 = string;
 
-export type AuthRecoverPasswordHtmlContentStatus401 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type AuthRecoverPasswordHtmlContentStatus401 = ApiError;
 
-export type AuthRecoverPasswordHtmlContentStatus403 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type AuthRecoverPasswordHtmlContentStatus403 = ApiError;
 
-export type AuthRecoverPasswordHtmlContentStatus404 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type AuthRecoverPasswordHtmlContentStatus404 = ApiError;
 
 /**
  * @description Validation error envelope returned for malformed requests.

@@ -5,10 +5,9 @@
 
 import * as z from "zod";
 import { authoringErrorSchema } from "./authoringErrorSchema.js";
-import { legacyProductWriteSchema } from "./legacyProductWriteSchema.js";
 import { legacyStoredProductSchema } from "./legacyStoredProductSchema.js";
-import { outlookProductWriteSchema } from "./outlookProductWriteSchema.js";
 import { outlookStoredProductSchema } from "./outlookStoredProductSchema.js";
+import { productWriteBodySchema } from "./productWriteBodySchema.js";
 
 export const wxproductsSaveProductStatus200Schema = z.discriminatedUnion(
   "kind",
@@ -56,24 +55,6 @@ export const wxproductsSaveProductErrorSchema = z.union([
   wxproductsSaveProductStatus503Schema,
 ]);
 
-export const wxproductsSaveProductBodySchema = z.discriminatedUnion("kind", [
-  outlookProductWriteSchema.extend({
-    kind: z.enum(["outlook"]),
-  }),
-  legacyProductWriteSchema.extend({
-    kind: z.enum([
-      "morning",
-      "midday",
-      "evening",
-      "cyclone",
-      "marine",
-      "flood",
-      "thunderstorm",
-      "wind",
-      "heat",
-      "dust",
-      "coastal",
-      "tsunami",
-    ]),
-  }),
-]);
+export const wxproductsSaveProductBodySchema = productWriteBodySchema.describe(
+  "A product save: a forecast, bulletin or outlook, discriminated by kind."
+);

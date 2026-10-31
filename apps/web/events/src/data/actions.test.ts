@@ -10,22 +10,33 @@ const completeUpload = vi.fn();
 const setLogo = vi.fn();
 const claim = vi.fn();
 const resubmit = vi.fn();
+const getManaged = vi.fn();
+const chosen = vi.fn();
 
 vi.mock("next/cache", () => ({ revalidatePath: vi.fn() }));
 vi.mock("@/lib/session", () => ({ getSession: () => getSession() }));
 vi.mock("@/lib/report-error", () => ({
   reportError: (...args: unknown[]) => reportError(...args),
 }));
+vi.mock("server-only", () => ({}));
+vi.mock("react", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("react")>()),
+  cache: <T>(fn: T) => fn,
+}));
 vi.mock("./organiser-choice", () => ({
-  chosenOrganiser: async () => undefined,
+  chosenOrganiser: () => chosen(),
   rememberOrganiser: vi.fn(),
 }));
-vi.mock("@/lib/api", () => ({ apiOptions: () => ({}) }));
+// apiOptions is async and carries the client: a missing `await` before a spread drops it silently.
+vi.mock("@/lib/api", () => ({
+  apiOptions: async () => ({ client: "test-client" }),
+}));
 vi.mock("@barrelsgd/api-client", async (importOriginal) => ({
   ...(await importOriginal<typeof import("@barrelsgd/api-client")>()),
   eventsRsvpListing: (...args: unknown[]) => rsvp(...args),
   eventsCancelListingRsvp: (...args: unknown[]) => cancelRsvp(...args),
   eventsResubmitOrganiser: (...args: unknown[]) => resubmit(...args),
+  eventsGetManagedOrganiser: (...args: unknown[]) => getManaged(...args),
   eventsClaimTickets: (...args: unknown[]) => claim(...args),
   eventsSetOrganiserLogo: (...args: unknown[]) => setLogo(...args),
   storageCompleteUpload: (...args: unknown[]) => completeUpload(...args),
@@ -258,12 +269,67 @@ describe("claimTickets failures", () => {
   });
 });
 
+/** The managed-organiser answer for a member who runs `slugs`, first one by default. */
+function managedFor(slugs: string[]) {
+  const organisers = slugs.map((slug) => ({
+    slug,
+    name: slug,
+    organisation_id: null,
+  }));
+  const first = organisers[0];
+  return {
+    unwrap: async () => ({
+      id: `id-${first?.slug ?? "none"}`,
+      slug: first?.slug ?? "none",
+      name: first?.name ?? "none",
+      bio: "",
+      verified: false,
+      organisation_id: null,
+      logo_file_id: null,
+      follower_count: 0,
+      viewer_following: null,
+      organisers,
+      listings: [],
+    }),
+  };
+}
+
 describe("resubmitOrganiser", () => {
   beforeEach(() => {
-    for (const mock of [getSession, reportError, resubmit]) {
+    for (const mock of [
+      getSession,
+      reportError,
+      resubmit,
+      getManaged,
+      chosen,
+    ]) {
       mock.mockReset();
     }
     getSession.mockResolvedValue({ accessToken: "tok" });
+    chosen.mockResolvedValue(undefined);
+    getManaged.mockReturnValue(managedFor(["crew-a"]));
+    resubmit.mockReturnValue({ unwrap: async () => ({}) });
+  });
+
+  it("sends the organiser the dashboard shows when no cookie is set and the member runs two", async () => {
+    getManaged.mockReturnValue(managedFor(["crew-a", "crew-b"]));
+    expect(await resubmitOrganiser()).toEqual({
+      ok: true,
+      data: "resubmitted",
+    });
+    expect(resubmit.mock.calls[0]?.[0]).toHaveProperty("query", {
+      organiser: "crew-a",
+    });
+    expect(resubmit.mock.calls[0]?.[0]).toHaveProperty("client", "test-client");
+  });
+
+  it("sends the switcher's organiser when the cookie names one", async () => {
+    chosen.mockResolvedValue("crew-b");
+    getManaged.mockReturnValue(managedFor(["crew-b"]));
+    expect((await resubmitOrganiser()).ok).toBe(true);
+    expect(resubmit.mock.calls[0]?.[0]).toHaveProperty("query", {
+      organiser: "crew-b",
+    });
   });
 
   it("asks visitors to sign in without calling the API", async () => {

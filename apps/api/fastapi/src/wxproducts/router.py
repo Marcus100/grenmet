@@ -50,8 +50,8 @@ from .schemas import (
     ProductHistoryEntry,
     ProductKind,
     ProductPreview,
-    ProductPreviewInput,
-    ProductWrite,
+    ProductPreviewBody,
+    ProductWriteBody,
     PublicForecast,
     PublicProductDetail,
     PublicPublishedProduct,
@@ -246,9 +246,10 @@ async def save_product(
     session: AuthoringSessionDep,
     cap_session: AdvisorySessionDep,
     response: Response,
-    body: ProductWrite,
+    payload: ProductWriteBody,
 ) -> StoredProduct:
     response.headers.update(NO_STORE)
+    body = payload.root
     author.require_kind(body.kind)
     if body.action != "withdraw":
         body.guidance = await guidance.validate(body.guidance)
@@ -498,10 +499,11 @@ async def preview_product(
     *,
     author: AuthorDep,
     response: Response,
-    body: ProductPreviewInput,
+    payload: ProductPreviewBody,
     cap_session: AdvisorySessionDep,
     weather_session: WxProductsSessionDep,
 ) -> ProductPreview:
+    body = payload.root
     author.require_kind(body.kind)
     body.guidance = await guidance.validate(body.guidance)
     response.headers.update(NO_STORE)
@@ -538,10 +540,11 @@ async def preview_product(
 async def preview_product_pdf(
     *,
     author: AuthorDep,
-    body: ProductPreviewInput,
+    payload: ProductPreviewBody,
     cap_session: AdvisorySessionDep,
     weather_session: WxProductsSessionDep,
 ) -> Response:
+    body = payload.root
     author.require_kind(body.kind)
     body.guidance = await guidance.validate(body.guidance)
     if body.kind not in forecast_pdf.SHEET_KINDS:

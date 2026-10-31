@@ -4,6 +4,8 @@
  */
 
 import * as z from "zod";
+import { apiErrorSchema } from "./apiErrorSchema.js";
+import { errorMessageSchema } from "./errorMessageSchema.js";
 import { suggestionPublicSchema } from "./suggestionPublicSchema.js";
 import { suggestionUpdateSchema } from "./suggestionUpdateSchema.js";
 import { validationErrorResponseSchema } from "./validationErrorResponseSchema.js";
@@ -12,18 +14,27 @@ export const eventsUpdateSuggestionPathSuggestionIdSchema = z.uuid();
 
 export const eventsUpdateSuggestionStatus200Schema = suggestionPublicSchema;
 
-export const eventsUpdateSuggestionStatus401Schema = z.unknown();
+export const eventsUpdateSuggestionStatus401Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
-export const eventsUpdateSuggestionStatus403Schema = z.unknown();
+export const eventsUpdateSuggestionStatus403Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
-export const eventsUpdateSuggestionStatus404Schema = z.unknown();
+export const eventsUpdateSuggestionStatus404Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
 export const eventsUpdateSuggestionStatus422Schema =
   validationErrorResponseSchema.describe(
     "Validation error envelope returned for malformed requests."
   );
 
-export const eventsUpdateSuggestionStatus429Schema = z.unknown();
+export const eventsUpdateSuggestionStatus429Schema = z.union([
+  apiErrorSchema,
+  errorMessageSchema,
+]);
 
 export const eventsUpdateSuggestionResponseSchema =
   eventsUpdateSuggestionStatus200Schema;

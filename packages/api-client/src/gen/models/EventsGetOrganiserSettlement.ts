@@ -3,6 +3,8 @@
  * Do not edit manually.
  */
 
+import type { ApiError } from "./ApiError.js";
+import type { ErrorMessage } from "./ErrorMessage.js";
 import type { SettlementOverview } from "./SettlementOverview.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 
@@ -15,13 +17,29 @@ export type EventsGetOrganiserSettlementQuery = {
 
 export type EventsGetOrganiserSettlementStatus200 = SettlementOverview;
 
-export type EventsGetOrganiserSettlementStatus401 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type EventsGetOrganiserSettlementStatus401 = ApiError;
 
-export type EventsGetOrganiserSettlementStatus403 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type EventsGetOrganiserSettlementStatus403 = ApiError;
 
-export type EventsGetOrganiserSettlementStatus404 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type EventsGetOrganiserSettlementStatus404 = ApiError;
 
-export type EventsGetOrganiserSettlementStatus409 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type EventsGetOrganiserSettlementStatus409 = ApiError;
 
 /**
  * @description Validation error envelope returned for malformed requests.
@@ -29,7 +47,7 @@ export type EventsGetOrganiserSettlementStatus409 = unknown;
  */
 export type EventsGetOrganiserSettlementStatus422 = ValidationErrorResponse;
 
-export type EventsGetOrganiserSettlementStatus429 = unknown;
+export type EventsGetOrganiserSettlementStatus429 = ApiError | ErrorMessage;
 
 export type EventsGetOrganiserSettlementOptions = {
   body?: never;

@@ -6,6 +6,7 @@
 import * as z from "zod";
 import { accessRequestDecideSchema } from "./accessRequestDecideSchema.js";
 import { accessRequestPublicSchema } from "./accessRequestPublicSchema.js";
+import { apiErrorSchema } from "./apiErrorSchema.js";
 import { validationErrorResponseSchema } from "./validationErrorResponseSchema.js";
 
 export const modelsDecideAccessRequestPathRequestIdSchema = z.uuid();
@@ -13,13 +14,21 @@ export const modelsDecideAccessRequestPathRequestIdSchema = z.uuid();
 export const modelsDecideAccessRequestStatus200Schema =
   accessRequestPublicSchema;
 
-export const modelsDecideAccessRequestStatus401Schema = z.unknown();
+export const modelsDecideAccessRequestStatus401Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
-export const modelsDecideAccessRequestStatus403Schema = z.unknown();
+export const modelsDecideAccessRequestStatus403Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
-export const modelsDecideAccessRequestStatus404Schema = z.unknown();
+export const modelsDecideAccessRequestStatus404Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
-export const modelsDecideAccessRequestStatus409Schema = z.unknown();
+export const modelsDecideAccessRequestStatus409Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
 export const modelsDecideAccessRequestStatus422Schema =
   validationErrorResponseSchema.describe(

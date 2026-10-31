@@ -4,6 +4,7 @@
  */
 
 import * as z from "zod";
+import { apiErrorSchema } from "./apiErrorSchema.js";
 import { invitationCreateSchema } from "./invitationCreateSchema.js";
 import { invitationPublicSchema } from "./invitationPublicSchema.js";
 import { validationErrorResponseSchema } from "./validationErrorResponseSchema.js";
@@ -22,15 +23,20 @@ export const organisationsCreateInvitationStatus201Schema =
     "A pending offer. The token is only ever emailed, never returned."
   );
 
-export const organisationsCreateInvitationStatus400Schema = z.unknown();
+export const organisationsCreateInvitationStatus400Schema =
+  apiErrorSchema.describe("Stable error envelope for documented API failures.");
 
-export const organisationsCreateInvitationStatus401Schema = z.unknown();
+export const organisationsCreateInvitationStatus401Schema =
+  apiErrorSchema.describe("Stable error envelope for documented API failures.");
 
-export const organisationsCreateInvitationStatus403Schema = z.unknown();
+export const organisationsCreateInvitationStatus403Schema =
+  apiErrorSchema.describe("Stable error envelope for documented API failures.");
 
-export const organisationsCreateInvitationStatus404Schema = z.unknown();
+export const organisationsCreateInvitationStatus404Schema =
+  apiErrorSchema.describe("Stable error envelope for documented API failures.");
 
-export const organisationsCreateInvitationStatus409Schema = z.unknown();
+export const organisationsCreateInvitationStatus409Schema =
+  apiErrorSchema.describe("Stable error envelope for documented API failures.");
 
 export const organisationsCreateInvitationStatus422Schema =
   validationErrorResponseSchema.describe(

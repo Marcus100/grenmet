@@ -279,10 +279,18 @@ it("cancels a published alert after confirming, and issuing a Cancel message", a
   expect(actions).toEqual(["cancel"]);
 });
 
-it("marks a published alert expired without a confirmation dialog", async () => {
+it("asks before marking a published alert expired, and does nothing until confirmed", async () => {
   alert.lifecycle_state = "PUBLISHED";
   show();
   fireEvent.click(await screen.findByRole("button", { name: "Mark expired" }));
+  fireEvent.click(
+    await screen.findByRole("button", { name: "Keep it published" })
+  );
+  expect(actions).toEqual([]);
+  fireEvent.click(await screen.findByRole("button", { name: "Mark expired" }));
+  fireEvent.click(
+    await screen.findByRole("button", { name: "Confirm: mark expired" })
+  );
   await screen.findByText("CAP state: EXPIRED.");
   expect(actions).toEqual(["expire"]);
 });

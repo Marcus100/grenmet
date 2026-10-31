@@ -566,6 +566,85 @@ async def test_roster_for_team_manager_is_limited_to_their_products(
     assert by_id[owner_row.id]["name"] == owner.full_name
 
 
+async def test_roster_marks_only_the_callers_own_row(
+    async_client: httpx.AsyncClient, db_async: AsyncSession
+):
+    owner, lead, other, org = await _world(db_async)
+    await _seed_grant(db_async, owner, org, lead, "events-team")
+    owner_row = await _membership(db_async, org.id, owner)
+    lead_row = await _membership(db_async, org.id, lead)
+    other_row = await _membership(db_async, org.id, other)
+
+    lead_view = await async_client.get(
+        f"{TEAM}/members", headers=headers_for(lead, org.id)
+    )
+    assert lead_view.status_code == 200
+    lead_flags = {m["membership_id"]: m["is_self"] for m in lead_view.json()["data"]}
+    assert lead_flags == {
+        owner_row.id: False,
+        lead_row.id: True,
+        other_row.id: False,
+    }
+
+    owner_view = await async_client.get(
+        f"{TEAM}/members", headers=headers_for(owner, org.id)
+    )
+    owner_flags = {m["membership_id"]: m["is_self"] for m in owner_view.json()["data"]}
+    assert owner_flags == {
+        owner_row.id: True,
+        lead_row.id: False,
+        other_row.id: False,
+    }
+    assert "@" not in lead_view.text + owner_view.text
+    assert owner.email not in owner_view.text
+
+
+async def test_roster_names_who_gave_each_grant(
+    async_client: httpx.AsyncClient, db_async: AsyncSession
+):
+    owner, lead, other, org = await _world(db_async)
+    await _seed_grant(db_async, owner, org, lead, "events-team")
+    lead_row = await _membership(db_async, org.id, lead)
+
+    view = await async_client.get(f"{TEAM}/members", headers=headers_for(lead, org.id))
+    by_id = {m["membership_id"]: m for m in view.json()["data"]}
+    [given] = by_id[lead_row.id]["grants"]
+    assert given["granted_by_name"] == owner.full_name
+    assert owner.email not in view.text
+    assert "@" not in view.text
+
+
+async def test_roster_names_a_giver_who_has_since_been_removed(
+    async_client: httpx.AsyncClient, db_async: AsyncSession
+):
+    owner, lead, other, org = await _world(db_async)
+    await _seed_grant(db_async, owner, org, lead, "events-team")
+    lead_row = await _membership(db_async, org.id, lead)
+    await apply_removal(
+        db_async, org.id, lead_row.id, actor_id=owner.id, actor_may_grant_owner=True
+    )
+    # Removal normally revokes what a person handed out. A live grant whose giver
+    # is no longer a member must still name them rather than show nothing.
+    other_row = await _membership(db_async, org.id, other)
+    db_async.add(
+        MembershipGrant(
+            id="grant_from_removed",
+            organisation_id=org.id,
+            membership_id=other_row.id,
+            role_key="events-door",
+            granted_by=lead.id,
+        )
+    )
+    await db_async.commit()
+
+    view = await async_client.get(f"{TEAM}/members", headers=headers_for(owner, org.id))
+    by_id = {m["membership_id"]: m for m in view.json()["data"]}
+    assert lead_row.id not in by_id
+    [given] = by_id[other_row.id]["grants"]
+    assert given["granted_by_name"] == lead.full_name
+    assert lead.email not in view.text
+
+
 async def test_roster_refuses_plain_member_and_unknown_org(
     async_client: httpx.AsyncClient, db_async: AsyncSession
 ):

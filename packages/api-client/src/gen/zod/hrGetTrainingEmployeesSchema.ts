@@ -4,6 +4,7 @@
  */
 
 import * as z from "zod";
+import { apiErrorSchema } from "./apiErrorSchema.js";
 import { trainingEmployeeListSchema } from "./trainingEmployeeListSchema.js";
 import { validationErrorResponseSchema } from "./validationErrorResponseSchema.js";
 
@@ -33,7 +34,9 @@ export const hrGetTrainingEmployeesQuerySizeSchema = z
 
 export const hrGetTrainingEmployeesStatus200Schema = trainingEmployeeListSchema;
 
-export const hrGetTrainingEmployeesStatus403Schema = z.unknown();
+export const hrGetTrainingEmployeesStatus403Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
 export const hrGetTrainingEmployeesStatus422Schema =
   validationErrorResponseSchema.describe(

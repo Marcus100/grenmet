@@ -3,13 +3,18 @@
  * Do not edit manually.
  */
 
+import type { ApiError } from "./ApiError.js";
 import type { UserPublic } from "./UserPublic.js";
 import type { UserUpdateMe } from "./UserUpdateMe.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 
 export type AuthUpdateUserMeStatus200 = UserPublic;
 
-export type AuthUpdateUserMeStatus409 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type AuthUpdateUserMeStatus409 = ApiError;
 
 /**
  * @description Validation error envelope returned for malformed requests.

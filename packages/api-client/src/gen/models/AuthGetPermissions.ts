@@ -3,6 +3,7 @@
  * Do not edit manually.
  */
 
+import type { ApiError } from "./ApiError.js";
 import type { PaginatedResponsePermissionPublic } from "./PaginatedResponsePermissionPublic.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 
@@ -27,9 +28,17 @@ export type AuthGetPermissionsQuery = {
 
 export type AuthGetPermissionsStatus200 = PaginatedResponsePermissionPublic;
 
-export type AuthGetPermissionsStatus401 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type AuthGetPermissionsStatus401 = ApiError;
 
-export type AuthGetPermissionsStatus403 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type AuthGetPermissionsStatus403 = ApiError;
 
 /**
  * @description Validation error envelope returned for malformed requests.

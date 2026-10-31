@@ -20,6 +20,7 @@ tooling. Start with `docs/technical-overview.md`.
 | `apps/web/<app>/AGENTS.md` | admin, auth, bookings, cap, cms, docs, elections, events, gaa-admin, gms, gmsdash, mbia, signal |
 | `apps/web/barrels/AGENTS.md` | Static Barrels Grenada company homepage |
 | `apps/web/babydoll/AGENTS.md` | Babydoll Beauty Bar client website (Next.js, Vercel) |
+| `apps/web/commit/AGENTS.md` | Commit, the Barrels engineering blog (one post per release; static Next.js on Cloudflare Pages) |
 | `packages/bookings-web/AGENTS.md` | Public booking flow (slot picker, booking form, manage-booking, Turnstile) shared by babydoll and a future bookings app; host owns server calls |
 | `packages/<pkg>/AGENTS.md` | api-client, auth, bookings-web, email-templates, gms, theme, ui |
 | `docs/playbooks/full-stack-feature.md` | End-to-end: model → migration → route → OpenAPI → client → UI → tests |
@@ -29,7 +30,7 @@ tooling. Start with `docs/technical-overview.md`.
 ```bash
 pnpm install  # dependencies
 pnpm start  # Docker services (Postgres, Redis, FastAPI, worker) — HOST ONLY
-pnpm dev:web:<app>  # auth:3000 gaa-admin:3001 docs:3002 gms:3003 signal:3004 mbia:3005 cms:3006 elections:3007 events:3009 cap:3010 admin:3012 gmsdash:3013 babydoll:3014 bookings:3015 — HOST ONLY
+pnpm dev:web:<app>  # auth:3000 gaa-admin:3001 docs:3002 gms:3003 signal:3004 mbia:3005 cms:3006 elections:3007 events:3009 cap:3010 admin:3012 gmsdash:3013 babydoll:3014 bookings:3015 commit:3019 — HOST ONLY
 pnpm verify:changed  # only the gates this diff needs (--dry-run to list; --full adds fuzz; PYTEST_WORKERS=n)
 pnpm fix:changed  # formats dirty files; in shared checkouts use `pnpm exec ultracite fix <owned-files>`
 pnpm type-check  # TypeScript across all packages

@@ -140,9 +140,16 @@ async def get_account_user(session: SessionDep, token: TokenDep) -> User:
 
 
 async def get_authenticated_user(
-    session: AsyncSession, user_id: uuid.UUID, *, allow_unapproved: bool = False
+    session: AsyncSession,
+    user_id: uuid.UUID,
+    *,
+    allow_unapproved: bool = False,
+    session_app: str | None = None,
 ) -> User:
-    """Apply the same live account and role checks for every credential type."""
+    """Apply the same live account and role checks for every credential type.
+
+    ``session_app`` is the app claim of the token the caller validated (``None`` for
+    an account token). It stamps how the actor signed in, once per request."""
     stmt = (
         select(User)
         .where(User.id == user_id)
@@ -173,10 +180,12 @@ async def get_authenticated_user(
     from src.auth.access import effective_roles
 
     set_committed_value(user, "roles", await effective_roles(session, user))
-    # Attribute this request's audited changes to the signed-in person.
-    from src.audit.service import set_actor
+    # Attribute this request's audited changes to the signed-in person, and say the
+    # sign-in was an account session (app sessions set their own, see organisations).
+    from src.audit.service import set_actor, set_actor_session
 
     set_actor(session, user.id)
+    set_actor_session(session, app=session_app)
     return user
 
 
@@ -255,21 +264,24 @@ async def optional_account(
     if scheme.lower() != "bearer" or not token.strip():
         return None
     try:
+        token_app = _token_app(token.strip())
         user = await get_authenticated_user(
             session,
             _token_user_id(token.strip(), app=app),
             allow_unapproved=True,
+            session_app=token_app,
         )
-        if app is not None and _token_app(token.strip()) == app:
+        if app is not None and token_app == app:
             # An app session counts only while the account still holds that
             # app's access (the check user_for_app makes).
             from src.auth.eligibility import is_eligible_for_app
 
             if not await is_eligible_for_app(session=session, user=user, app_key=app):
                 # A guest from here on: undo the audit attribution made above.
-                from src.audit.service import set_actor
+                from src.audit.service import clear_actor_session, set_actor
 
                 set_actor(session, None)
+                clear_actor_session(session)
                 return None
         return user
     except HTTPException:

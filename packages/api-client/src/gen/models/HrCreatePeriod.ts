@@ -3,15 +3,24 @@
  * Do not edit manually.
  */
 
+import type { ApiError } from "./ApiError.js";
 import type { RosterPeriodCreate } from "./RosterPeriodCreate.js";
 import type { RosterPeriodPublic } from "./RosterPeriodPublic.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 
 export type HrCreatePeriodStatus201 = RosterPeriodPublic;
 
-export type HrCreatePeriodStatus400 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type HrCreatePeriodStatus400 = ApiError;
 
-export type HrCreatePeriodStatus403 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type HrCreatePeriodStatus403 = ApiError;
 
 /**
  * @description Validation error envelope returned for malformed requests.

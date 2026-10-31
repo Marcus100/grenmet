@@ -4,6 +4,8 @@
  */
 
 import * as z from "zod";
+import { apiErrorSchema } from "./apiErrorSchema.js";
+import { memberEventsAccessRevokedPublicSchema } from "./memberEventsAccessRevokedPublicSchema.js";
 import { validationErrorResponseSchema } from "./validationErrorResponseSchema.js";
 
 export const organisationsDeleteMemberPathOrganisationIdSchema = z.string();
@@ -17,25 +19,42 @@ export const organisationsDeleteMemberHeaderXBarrelsOrganisationSchema = z
     "Id of the organisation the request acts for. The caller must be an active member, signed in with an account or the Events app."
   );
 
+export const organisationsDeleteMemberStatus200Schema =
+  memberEventsAccessRevokedPublicSchema.describe(
+    "Answer to an Events app session's removal: only Events access ended.\n\nThe membership stays (``DELETE .../members/{membership_id}`` answers 204 for an\naccount session, which removes it from the whole organisation)."
+  );
+
 export const organisationsDeleteMemberStatus204Schema = z.unknown();
 
-export const organisationsDeleteMemberStatus400Schema = z.unknown();
+export const organisationsDeleteMemberStatus400Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
-export const organisationsDeleteMemberStatus401Schema = z.unknown();
+export const organisationsDeleteMemberStatus401Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
-export const organisationsDeleteMemberStatus403Schema = z.unknown();
+export const organisationsDeleteMemberStatus403Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
-export const organisationsDeleteMemberStatus404Schema = z.unknown();
+export const organisationsDeleteMemberStatus404Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
-export const organisationsDeleteMemberStatus409Schema = z.unknown();
+export const organisationsDeleteMemberStatus409Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
 export const organisationsDeleteMemberStatus422Schema =
   validationErrorResponseSchema.describe(
     "Validation error envelope returned for malformed requests."
   );
 
-export const organisationsDeleteMemberResponseSchema =
-  organisationsDeleteMemberStatus204Schema;
+export const organisationsDeleteMemberResponseSchema = z.union([
+  organisationsDeleteMemberStatus200Schema,
+  organisationsDeleteMemberStatus204Schema,
+]);
 
 export const organisationsDeleteMemberErrorSchema = z.union([
   organisationsDeleteMemberStatus400Schema,

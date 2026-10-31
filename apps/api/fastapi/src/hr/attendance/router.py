@@ -11,6 +11,7 @@ from src.hr.filenames import timesheet_week_filename
 from src.hr.roster import service as roster_service
 from src.hr.roster.models import RosterAvailability
 from src.hr.workflow.models import WorkflowStatus
+from src.models import ApiError
 from src.utils.pdf_response import pdf_response
 
 from . import pdf, service
@@ -27,11 +28,12 @@ from .schemas import (
 
 router = APIRouter(prefix="/hr/attendance", tags=["hr-attendance"])
 ERRORS: dict[int | str, dict[str, Any]] = {
-    400: {"description": "Invalid attendance or roster context"},
-    403: {"description": "Employee or department access denied"},
-    404: {"description": "Record not found"},
+    400: {"model": ApiError, "description": "Invalid attendance or roster context"},
+    403: {"model": ApiError, "description": "Employee or department access denied"},
+    404: {"model": ApiError, "description": "Record not found"},
     409: {
-        "description": "Stale revision, locked review, or approval workflow not configured"
+        "model": ApiError,
+        "description": "Stale revision, locked review, or approval workflow not configured",
     },
 }
 

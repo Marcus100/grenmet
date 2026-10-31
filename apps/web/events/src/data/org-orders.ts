@@ -22,9 +22,9 @@ export interface Page<T> {
   readonly totalPages: number;
 }
 
-function request(context: Ready) {
+async function request(context: Ready) {
   return {
-    ...apiOptions(context.accessToken),
+    ...(await apiOptions(context.accessToken)),
     headers: { "X-Barrels-Organisation": context.organisationId },
   };
 }
@@ -56,14 +56,14 @@ async function read<T, U>(
   }
 }
 
-export function getOrgOrders(
+export async function getOrgOrders(
   context: Ready,
   listingId: string,
   filter: { page: number; status?: OrgOrderRow["status"] }
 ): Promise<OrgRead<Page<OrgOrderRow>>> {
   return read(
     eventsOrgListOrders({
-      ...request(context),
+      ...(await request(context)),
       path: { listing_id: listingId },
       query: {
         page: filter.page,
@@ -80,20 +80,20 @@ export function getOrgOrders(
   );
 }
 
-export function getOrgOrder(
+export async function getOrgOrder(
   context: Ready,
   orderId: string
 ): Promise<OrgRead<OrgOrderDetail>> {
   return read(
     eventsOrgGetOrder({
-      ...request(context),
+      ...(await request(context)),
       path: { order_id: orderId },
     }).unwrap(),
     (order) => order
   );
 }
 
-export function getOrgAttendees(
+export async function getOrgAttendees(
   context: Ready,
   listingId: string,
   filter: {
@@ -104,7 +104,7 @@ export function getOrgAttendees(
 ): Promise<OrgRead<Page<OrgAttendee>>> {
   return read(
     eventsOrgListAttendees({
-      ...request(context),
+      ...(await request(context)),
       path: { listing_id: listingId },
       query: {
         page: filter.page,

@@ -3,17 +3,30 @@
  * Do not edit manually.
  */
 
+import type { ApiError } from "./ApiError.js";
 import type { RosterGridImportRequest } from "./RosterGridImportRequest.js";
 import type { RosterGridImportResult } from "./RosterGridImportResult.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 
 export type HrImportGridStatus200 = RosterGridImportResult;
 
-export type HrImportGridStatus400 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type HrImportGridStatus400 = ApiError;
 
-export type HrImportGridStatus403 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type HrImportGridStatus403 = ApiError;
 
-export type HrImportGridStatus404 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type HrImportGridStatus404 = ApiError;
 
 /**
  * @description Validation error envelope returned for malformed requests.

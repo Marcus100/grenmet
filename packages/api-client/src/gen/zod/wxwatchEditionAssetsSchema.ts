@@ -4,6 +4,7 @@
  */
 
 import * as z from "zod";
+import { apiErrorSchema } from "./apiErrorSchema.js";
 import { editionAssetSchema } from "./editionAssetSchema.js";
 import { validationErrorResponseSchema } from "./validationErrorResponseSchema.js";
 
@@ -11,11 +12,17 @@ export const wxwatchEditionAssetsPathEditionIdSchema = z.uuid();
 
 export const wxwatchEditionAssetsStatus200Schema = z.array(editionAssetSchema);
 
-export const wxwatchEditionAssetsStatus401Schema = z.unknown();
+export const wxwatchEditionAssetsStatus401Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
-export const wxwatchEditionAssetsStatus403Schema = z.unknown();
+export const wxwatchEditionAssetsStatus403Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
-export const wxwatchEditionAssetsStatus404Schema = z.unknown();
+export const wxwatchEditionAssetsStatus404Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
 export const wxwatchEditionAssetsStatus422Schema =
   validationErrorResponseSchema.describe(

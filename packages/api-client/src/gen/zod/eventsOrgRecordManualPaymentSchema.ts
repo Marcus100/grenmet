@@ -4,6 +4,7 @@
  */
 
 import * as z from "zod";
+import { apiErrorSchema } from "./apiErrorSchema.js";
 import { orgManualPaymentCreateSchema } from "./orgManualPaymentCreateSchema.js";
 import { orgOrderDetailSchema } from "./orgOrderDetailSchema.js";
 import { validationErrorResponseSchema } from "./validationErrorResponseSchema.js";
@@ -26,15 +27,20 @@ export const eventsOrgRecordManualPaymentHeaderIdempotencyKeySchema = z
 
 export const eventsOrgRecordManualPaymentStatus201Schema = orgOrderDetailSchema;
 
-export const eventsOrgRecordManualPaymentStatus400Schema = z.unknown();
+export const eventsOrgRecordManualPaymentStatus400Schema =
+  apiErrorSchema.describe("Stable error envelope for documented API failures.");
 
-export const eventsOrgRecordManualPaymentStatus401Schema = z.unknown();
+export const eventsOrgRecordManualPaymentStatus401Schema =
+  apiErrorSchema.describe("Stable error envelope for documented API failures.");
 
-export const eventsOrgRecordManualPaymentStatus403Schema = z.unknown();
+export const eventsOrgRecordManualPaymentStatus403Schema =
+  apiErrorSchema.describe("Stable error envelope for documented API failures.");
 
-export const eventsOrgRecordManualPaymentStatus404Schema = z.unknown();
+export const eventsOrgRecordManualPaymentStatus404Schema =
+  apiErrorSchema.describe("Stable error envelope for documented API failures.");
 
-export const eventsOrgRecordManualPaymentStatus409Schema = z.unknown();
+export const eventsOrgRecordManualPaymentStatus409Schema =
+  apiErrorSchema.describe("Stable error envelope for documented API failures.");
 
 export const eventsOrgRecordManualPaymentStatus422Schema =
   validationErrorResponseSchema.describe(

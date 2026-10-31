@@ -3,21 +3,42 @@
  * Do not edit manually.
  */
 
+import type { ApiError } from "./ApiError.js";
 import type { CheckInCreate } from "./CheckInCreate.js";
 import type { CheckInPublic } from "./CheckInPublic.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 
 export type RewardsCreateCheckInStatus201 = CheckInPublic;
 
-export type RewardsCreateCheckInStatus400 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type RewardsCreateCheckInStatus400 = ApiError;
 
-export type RewardsCreateCheckInStatus401 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type RewardsCreateCheckInStatus401 = ApiError;
 
-export type RewardsCreateCheckInStatus403 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type RewardsCreateCheckInStatus403 = ApiError;
 
-export type RewardsCreateCheckInStatus404 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type RewardsCreateCheckInStatus404 = ApiError;
 
-export type RewardsCreateCheckInStatus409 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type RewardsCreateCheckInStatus409 = ApiError;
 
 /**
  * @description Validation error envelope returned for malformed requests.

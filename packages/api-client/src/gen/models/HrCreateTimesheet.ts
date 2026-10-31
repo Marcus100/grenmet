@@ -3,15 +3,24 @@
  * Do not edit manually.
  */
 
+import type { ApiError } from "./ApiError.js";
 import type { TimesheetCreate } from "./TimesheetCreate.js";
 import type { TimesheetDetails } from "./TimesheetDetails.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 
 export type HrCreateTimesheetStatus201 = TimesheetDetails;
 
-export type HrCreateTimesheetStatus400 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type HrCreateTimesheetStatus400 = ApiError;
 
-export type HrCreateTimesheetStatus403 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type HrCreateTimesheetStatus403 = ApiError;
 
 /**
  * @description Validation error envelope returned for malformed requests.

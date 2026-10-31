@@ -6,6 +6,7 @@ from fastapi import APIRouter, Query, status
 from src.dependencies import CurrentUser, SessionDep
 from src.hr.dependencies import PublicHolidayDep, RosterPeriodDep
 from src.hr.timesheet.models import DepartmentPolicy
+from src.models import ApiError
 
 from . import rule_service, service
 from .models import RosterAvailability, RosterPeriodStatus
@@ -55,7 +56,10 @@ router = APIRouter(prefix="/hr/rosters", tags=["hr-rosters"])
     ),
     responses={
         status.HTTP_200_OK: {"description": "Shift catalog returned"},
-        status.HTTP_403_FORBIDDEN: {"description": "Insufficient permission"},
+        status.HTTP_403_FORBIDDEN: {
+            "model": ApiError,
+            "description": "Insufficient permission",
+        },
     },
 )
 async def list_shift_catalog(
@@ -85,8 +89,14 @@ async def list_shift_catalog(
     description="Create a shift catalog entry. Requires roster.manage permission.",
     responses={
         status.HTTP_201_CREATED: {"description": "Shift type created"},
-        status.HTTP_400_BAD_REQUEST: {"description": "A shift with this code exists"},
-        status.HTTP_403_FORBIDDEN: {"description": "Insufficient permission"},
+        status.HTTP_400_BAD_REQUEST: {
+            "model": ApiError,
+            "description": "A shift with this code exists",
+        },
+        status.HTTP_403_FORBIDDEN: {
+            "model": ApiError,
+            "description": "Insufficient permission",
+        },
     },
 )
 async def create_shift(
@@ -108,8 +118,14 @@ async def create_shift(
     ),
     responses={
         status.HTTP_200_OK: {"description": "Shift type updated"},
-        status.HTTP_403_FORBIDDEN: {"description": "Insufficient permission"},
-        status.HTTP_404_NOT_FOUND: {"description": "Shift type not found"},
+        status.HTTP_403_FORBIDDEN: {
+            "model": ApiError,
+            "description": "Insufficient permission",
+        },
+        status.HTTP_404_NOT_FOUND: {
+            "model": ApiError,
+            "description": "Shift type not found",
+        },
     },
 )
 async def update_shift(
@@ -132,7 +148,10 @@ async def update_shift(
     description="Return roster periods for a department, newest first. Requires roster.view permission.",
     responses={
         status.HTTP_200_OK: {"description": "Roster periods returned"},
-        status.HTTP_403_FORBIDDEN: {"description": "Insufficient permission"},
+        status.HTTP_403_FORBIDDEN: {
+            "model": ApiError,
+            "description": "Insufficient permission",
+        },
     },
 )
 async def list_periods(
@@ -165,9 +184,13 @@ async def list_periods(
     responses={
         status.HTTP_201_CREATED: {"description": "Roster period created"},
         status.HTTP_400_BAD_REQUEST: {
-            "description": "Validation error (e.g. period_end before period_start)"
+            "model": ApiError,
+            "description": "Validation error (e.g. period_end before period_start)",
         },
-        status.HTTP_403_FORBIDDEN: {"description": "Insufficient permission"},
+        status.HTTP_403_FORBIDDEN: {
+            "model": ApiError,
+            "description": "Insufficient permission",
+        },
     },
 )
 async def create_period(
@@ -186,10 +209,17 @@ async def create_period(
     responses={
         status.HTTP_200_OK: {"description": "Assignments created or updated"},
         status.HTTP_400_BAD_REQUEST: {
-            "description": "Invalid batch or roster conflict"
+            "model": ApiError,
+            "description": "Invalid batch or roster conflict",
         },
-        status.HTTP_404_NOT_FOUND: {"description": "Roster period not found"},
-        status.HTTP_403_FORBIDDEN: {"description": "Insufficient permission"},
+        status.HTTP_404_NOT_FOUND: {
+            "model": ApiError,
+            "description": "Roster period not found",
+        },
+        status.HTTP_403_FORBIDDEN: {
+            "model": ApiError,
+            "description": "Insufficient permission",
+        },
     },
 )
 async def bulk_assignments(
@@ -225,8 +255,14 @@ async def bulk_assignments(
     description="Return a roster period and its assignments. Requires roster.view permission.",
     responses={
         status.HTTP_200_OK: {"description": "Period and assignments returned"},
-        status.HTTP_404_NOT_FOUND: {"description": "Roster period not found"},
-        status.HTTP_403_FORBIDDEN: {"description": "Insufficient permission"},
+        status.HTTP_404_NOT_FOUND: {
+            "model": ApiError,
+            "description": "Roster period not found",
+        },
+        status.HTTP_403_FORBIDDEN: {
+            "model": ApiError,
+            "description": "Insufficient permission",
+        },
     },
 )
 async def get_period(
@@ -270,9 +306,18 @@ async def get_period(
     ),
     responses={
         status.HTTP_200_OK: {"description": "Assignments returned"},
-        status.HTTP_400_BAD_REQUEST: {"description": "Invalid date range"},
-        status.HTTP_403_FORBIDDEN: {"description": "Insufficient permission"},
-        status.HTTP_404_NOT_FOUND: {"description": "Department not found"},
+        status.HTTP_400_BAD_REQUEST: {
+            "model": ApiError,
+            "description": "Invalid date range",
+        },
+        status.HTTP_403_FORBIDDEN: {
+            "model": ApiError,
+            "description": "Insufficient permission",
+        },
+        status.HTTP_404_NOT_FOUND: {
+            "model": ApiError,
+            "description": "Department not found",
+        },
     },
 )
 async def list_assignments(
@@ -326,8 +371,14 @@ async def list_assignments(
     description="Parse a name×day grid CSV, match names to department staff, and report unmatched names / invalid codes without importing. Requires roster.manage permission.",
     responses={
         status.HTTP_200_OK: {"description": "Preview returned"},
-        status.HTTP_403_FORBIDDEN: {"description": "Insufficient permission"},
-        status.HTTP_404_NOT_FOUND: {"description": "Department not found"},
+        status.HTTP_403_FORBIDDEN: {
+            "model": ApiError,
+            "description": "Insufficient permission",
+        },
+        status.HTTP_404_NOT_FOUND: {
+            "model": ApiError,
+            "description": "Department not found",
+        },
     },
 )
 async def validate_grid(
@@ -349,10 +400,17 @@ async def validate_grid(
     responses={
         status.HTTP_200_OK: {"description": "Roster imported"},
         status.HTTP_400_BAD_REQUEST: {
-            "description": "Grid has unmatched names or invalid codes"
+            "model": ApiError,
+            "description": "Grid has unmatched names or invalid codes",
         },
-        status.HTTP_403_FORBIDDEN: {"description": "Insufficient permission"},
-        status.HTTP_404_NOT_FOUND: {"description": "Department not found"},
+        status.HTTP_403_FORBIDDEN: {
+            "model": ApiError,
+            "description": "Insufficient permission",
+        },
+        status.HTTP_404_NOT_FOUND: {
+            "model": ApiError,
+            "description": "Department not found",
+        },
     },
 )
 async def import_grid(
@@ -374,9 +432,13 @@ async def import_grid(
     responses={
         status.HTTP_200_OK: {"description": "Validation result returned"},
         status.HTTP_400_BAD_REQUEST: {
-            "description": "Invalid CSV (e.g. missing header or columns)"
+            "model": ApiError,
+            "description": "Invalid CSV (e.g. missing header or columns)",
         },
-        status.HTTP_403_FORBIDDEN: {"description": "Insufficient permission"},
+        status.HTTP_403_FORBIDDEN: {
+            "model": ApiError,
+            "description": "Insufficient permission",
+        },
     },
 )
 async def validate_csv(
@@ -397,8 +459,11 @@ async def validate_csv(
     description="Create roster import job and optionally apply valid rows. Requires roster.import permission.",
     responses={
         status.HTTP_200_OK: {"description": "Import job created"},
-        status.HTTP_400_BAD_REQUEST: {"description": "Invalid CSV"},
-        status.HTTP_403_FORBIDDEN: {"description": "Insufficient permission"},
+        status.HTTP_400_BAD_REQUEST: {"model": ApiError, "description": "Invalid CSV"},
+        status.HTTP_403_FORBIDDEN: {
+            "model": ApiError,
+            "description": "Insufficient permission",
+        },
     },
 )
 async def import_csv(
@@ -436,10 +501,17 @@ async def import_csv(
     responses={
         status.HTTP_200_OK: {"description": "Roster period published"},
         status.HTTP_400_BAD_REQUEST: {
-            "description": "Period already published or closed"
+            "model": ApiError,
+            "description": "Period already published or closed",
         },
-        status.HTTP_404_NOT_FOUND: {"description": "Roster period not found"},
-        status.HTTP_403_FORBIDDEN: {"description": "Insufficient permission"},
+        status.HTTP_404_NOT_FOUND: {
+            "model": ApiError,
+            "description": "Roster period not found",
+        },
+        status.HTTP_403_FORBIDDEN: {
+            "model": ApiError,
+            "description": "Insufficient permission",
+        },
     },
 )
 async def publish_period(
@@ -465,10 +537,17 @@ async def publish_period(
     responses={
         status.HTTP_200_OK: {"description": "Roster period closed"},
         status.HTTP_400_BAD_REQUEST: {
-            "description": "Period not published or already closed"
+            "model": ApiError,
+            "description": "Period not published or already closed",
         },
-        status.HTTP_404_NOT_FOUND: {"description": "Roster period not found"},
-        status.HTTP_403_FORBIDDEN: {"description": "Insufficient permission"},
+        status.HTTP_404_NOT_FOUND: {
+            "model": ApiError,
+            "description": "Roster period not found",
+        },
+        status.HTTP_403_FORBIDDEN: {
+            "model": ApiError,
+            "description": "Insufficient permission",
+        },
     },
 )
 async def close_period(
@@ -486,8 +565,14 @@ async def close_period(
     description="Return the revision history for a roster period. Requires roster.view permission.",
     responses={
         status.HTTP_200_OK: {"description": "Revisions returned"},
-        status.HTTP_404_NOT_FOUND: {"description": "Roster period not found"},
-        status.HTTP_403_FORBIDDEN: {"description": "Insufficient permission"},
+        status.HTTP_404_NOT_FOUND: {
+            "model": ApiError,
+            "description": "Roster period not found",
+        },
+        status.HTTP_403_FORBIDDEN: {
+            "model": ApiError,
+            "description": "Insufficient permission",
+        },
     },
 )
 async def get_period_revisions(
@@ -520,8 +605,14 @@ async def get_period_revisions(
     description="Add a public holiday. Requires roster.manage permission.",
     responses={
         status.HTTP_200_OK: {"description": "Public holiday created"},
-        status.HTTP_400_BAD_REQUEST: {"description": "Duplicate date"},
-        status.HTTP_403_FORBIDDEN: {"description": "Insufficient permission"},
+        status.HTTP_400_BAD_REQUEST: {
+            "model": ApiError,
+            "description": "Duplicate date",
+        },
+        status.HTTP_403_FORBIDDEN: {
+            "model": ApiError,
+            "description": "Insufficient permission",
+        },
     },
 )
 async def create_holiday(
@@ -539,7 +630,10 @@ async def create_holiday(
     description="Return public holidays, optionally filtered by year. Requires roster.view permission.",
     responses={
         status.HTTP_200_OK: {"description": "Public holidays returned"},
-        status.HTTP_403_FORBIDDEN: {"description": "Insufficient permission"},
+        status.HTTP_403_FORBIDDEN: {
+            "model": ApiError,
+            "description": "Insufficient permission",
+        },
     },
 )
 async def list_holidays(
@@ -563,9 +657,18 @@ async def list_holidays(
     summary="Update public holiday",
     description="Edit a public holiday's name, date, source or verification flag. Requires global roster.manage permission.",
     responses={
-        status.HTTP_400_BAD_REQUEST: {"description": "Duplicate date"},
-        status.HTTP_404_NOT_FOUND: {"description": "Public holiday not found"},
-        status.HTTP_403_FORBIDDEN: {"description": "Insufficient permission"},
+        status.HTTP_400_BAD_REQUEST: {
+            "model": ApiError,
+            "description": "Duplicate date",
+        },
+        status.HTTP_404_NOT_FOUND: {
+            "model": ApiError,
+            "description": "Public holiday not found",
+        },
+        status.HTTP_403_FORBIDDEN: {
+            "model": ApiError,
+            "description": "Insufficient permission",
+        },
     },
 )
 async def update_holiday(
@@ -590,8 +693,14 @@ async def update_holiday(
     summary="Load provisional public holidays",
     description="Add the provisional Grenada public holidays for a year, skipping dates that already exist. Rows are marked provisional for GAA HR to verify and edit. Requires global roster.manage permission.",
     responses={
-        status.HTTP_400_BAD_REQUEST: {"description": "Year out of range"},
-        status.HTTP_403_FORBIDDEN: {"description": "Insufficient permission"},
+        status.HTTP_400_BAD_REQUEST: {
+            "model": ApiError,
+            "description": "Year out of range",
+        },
+        status.HTTP_403_FORBIDDEN: {
+            "model": ApiError,
+            "description": "Insufficient permission",
+        },
     },
 )
 async def load_provisional_holidays(
@@ -618,8 +727,14 @@ async def load_provisional_holidays(
     description="Remove a public holiday. Requires roster.manage permission.",
     responses={
         status.HTTP_204_NO_CONTENT: {"description": "Public holiday deleted"},
-        status.HTTP_404_NOT_FOUND: {"description": "Public holiday not found"},
-        status.HTTP_403_FORBIDDEN: {"description": "Insufficient permission"},
+        status.HTTP_404_NOT_FOUND: {
+            "model": ApiError,
+            "description": "Public holiday not found",
+        },
+        status.HTTP_403_FORBIDDEN: {
+            "model": ApiError,
+            "description": "Insufficient permission",
+        },
     },
 )
 async def remove_holiday(
@@ -653,7 +768,10 @@ def _rules_public(
     ),
     responses={
         status.HTTP_200_OK: {"description": "Rule limits returned"},
-        status.HTTP_403_FORBIDDEN: {"description": "Department outside your scope"},
+        status.HTTP_403_FORBIDDEN: {
+            "model": ApiError,
+            "description": "Department outside your scope",
+        },
     },
 )
 async def get_department_rules(
@@ -676,7 +794,10 @@ async def get_department_rules(
     ),
     responses={
         status.HTTP_200_OK: {"description": "Rule limits saved"},
-        status.HTTP_403_FORBIDDEN: {"description": "Insufficient permission"},
+        status.HTTP_403_FORBIDDEN: {
+            "model": ApiError,
+            "description": "Insufficient permission",
+        },
     },
 )
 async def put_department_rules(
@@ -707,8 +828,14 @@ async def put_department_rules(
     ),
     responses={
         status.HTTP_200_OK: {"description": "Rule check returned"},
-        status.HTTP_403_FORBIDDEN: {"description": "Department outside your scope"},
-        status.HTTP_404_NOT_FOUND: {"description": "Roster period not found"},
+        status.HTTP_403_FORBIDDEN: {
+            "model": ApiError,
+            "description": "Department outside your scope",
+        },
+        status.HTTP_404_NOT_FOUND: {
+            "model": ApiError,
+            "description": "Roster period not found",
+        },
     },
 )
 async def check_period_rules(

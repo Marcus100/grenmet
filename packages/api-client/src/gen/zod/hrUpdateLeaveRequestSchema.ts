@@ -4,6 +4,7 @@
  */
 
 import * as z from "zod";
+import { apiErrorSchema } from "./apiErrorSchema.js";
 import { leaveRequestCreateSchema } from "./leaveRequestCreateSchema.js";
 import { leaveRequestPublicSchema } from "./leaveRequestPublicSchema.js";
 import { validationErrorResponseSchema } from "./validationErrorResponseSchema.js";
@@ -12,11 +13,17 @@ export const hrUpdateLeaveRequestPathLeaveRequestIdSchema = z.uuid();
 
 export const hrUpdateLeaveRequestStatus200Schema = leaveRequestPublicSchema;
 
-export const hrUpdateLeaveRequestStatus400Schema = z.unknown();
+export const hrUpdateLeaveRequestStatus400Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
-export const hrUpdateLeaveRequestStatus403Schema = z.unknown();
+export const hrUpdateLeaveRequestStatus403Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
-export const hrUpdateLeaveRequestStatus404Schema = z.unknown();
+export const hrUpdateLeaveRequestStatus404Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
 export const hrUpdateLeaveRequestStatus422Schema =
   validationErrorResponseSchema.describe(

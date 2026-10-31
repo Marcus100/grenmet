@@ -4,6 +4,7 @@
  */
 
 import * as z from "zod";
+import { apiErrorSchema } from "./apiErrorSchema.js";
 import { bookingSettingsSchema } from "./bookingSettingsSchema.js";
 import { validationErrorResponseSchema } from "./validationErrorResponseSchema.js";
 
@@ -19,13 +20,21 @@ export const bookingsGetSettingsStatus200Schema =
     "Everything the settings screen renders, in one call."
   );
 
-export const bookingsGetSettingsStatus400Schema = z.unknown();
+export const bookingsGetSettingsStatus400Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
-export const bookingsGetSettingsStatus401Schema = z.unknown();
+export const bookingsGetSettingsStatus401Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
-export const bookingsGetSettingsStatus403Schema = z.unknown();
+export const bookingsGetSettingsStatus403Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
-export const bookingsGetSettingsStatus404Schema = z.unknown();
+export const bookingsGetSettingsStatus404Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
 export const bookingsGetSettingsStatus422Schema =
   validationErrorResponseSchema.describe(

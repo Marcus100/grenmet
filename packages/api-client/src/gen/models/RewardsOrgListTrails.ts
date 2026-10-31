@@ -3,6 +3,7 @@
  * Do not edit manually.
  */
 
+import type { ApiError } from "./ApiError.js";
 import type { RewardsTrailPublic } from "./RewardsTrailPublic.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 
@@ -15,13 +16,29 @@ export type RewardsOrgListTrailsHeaders = {
 
 export type RewardsOrgListTrailsStatus200 = RewardsTrailPublic[];
 
-export type RewardsOrgListTrailsStatus400 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type RewardsOrgListTrailsStatus400 = ApiError;
 
-export type RewardsOrgListTrailsStatus401 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type RewardsOrgListTrailsStatus401 = ApiError;
 
-export type RewardsOrgListTrailsStatus403 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type RewardsOrgListTrailsStatus403 = ApiError;
 
-export type RewardsOrgListTrailsStatus404 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type RewardsOrgListTrailsStatus404 = ApiError;
 
 /**
  * @description Validation error envelope returned for malformed requests.

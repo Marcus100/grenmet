@@ -3,6 +3,7 @@
  * Do not edit manually.
  */
 
+import type { ApiError } from "./ApiError.js";
 import type { BalanceInput } from "./BalanceInput.js";
 import type { Message } from "./Message.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
@@ -18,11 +19,23 @@ export type HrUpdateStaffBalancePath = {
 
 export type HrUpdateStaffBalanceStatus200 = Message;
 
-export type HrUpdateStaffBalanceStatus403 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type HrUpdateStaffBalanceStatus403 = ApiError;
 
-export type HrUpdateStaffBalanceStatus404 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type HrUpdateStaffBalanceStatus404 = ApiError;
 
-export type HrUpdateStaffBalanceStatus409 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type HrUpdateStaffBalanceStatus409 = ApiError;
 
 /**
  * @description Validation error envelope returned for malformed requests.

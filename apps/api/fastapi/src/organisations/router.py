@@ -2,12 +2,14 @@ from typing import Annotated, Any
 
 from fastapi import APIRouter, Path, Query, Response
 from fastapi import status as http_status
+from fastapi.responses import JSONResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 from starlette.requests import Request
 
 from src.auth.models import User
 from src.dependencies import AccountUser, AdminUser, MfaAdminUser, SessionDep
 from src.events.service import organiser_verification as events_verification
+from src.models import ApiError
 from src.openapi_responses import AUTHENTICATED, BAD_REQUEST, CONFLICT, NOT_FOUND
 from src.organisations.dependencies import (
     EventsOrgAdmin,
@@ -54,6 +56,7 @@ from .schemas import (
     InvitationAccept,
     InvitationCreate,
     InvitationPublic,
+    MemberEventsAccessRevokedPublic,
     MemberListPublic,
     MemberPublic,
     MemberRoleUpdate,
@@ -830,9 +833,10 @@ MFA_ERRORS = {
     **NOT_FOUND,
     **CONFLICT,
     403: {
+        "model": ApiError,
         "description": "Superuser with an enrolled authenticator required "
         "(superuser_mfa_required), or the target lacks a verified or "
-        "administrator-activated email for an owner/admin role"
+        "administrator-activated email for an owner/admin role",
     },
 }
 
@@ -1018,12 +1022,22 @@ async def update_member(
 @router.delete(
     "/{organisation_id}/members/{membership_id}",
     status_code=204,
-    summary="Remove a member",
+    summary="Remove a member, or end their Events access",
     description=(
-        "Ends the person's membership. Only owners remove owners; 409 when it "
-        "would leave the organisation without an owner."
+        "An account session ends the person's membership in the whole organisation "
+        "(204). An Events app session ends only their Events access in this "
+        "organisation: live events-* roles here and grants they issued for Events "
+        "here. The membership, other products, other organisations and their Events "
+        "sign-in stay, and the answer is 200 with `scope` `events`. Only owners "
+        "remove owners; 409 when it would leave the organisation without an owner."
     ),
-    responses=MANAGE_ERRORS,
+    responses={
+        **MANAGE_ERRORS,
+        http_status.HTTP_200_OK: {
+            "model": MemberEventsAccessRevokedPublic,
+            "description": "Events access ended from an Events app session.",
+        },
+    },
 )
 async def delete_member(
     *,
@@ -1031,10 +1045,20 @@ async def delete_member(
     context: EventsOrgAdmin,
     organisation_id: str,
     membership_id: str,
-) -> None:
+) -> Response:
     _require_path_match(context, organisation_id)
-    await team.run_and_commit(
+    revoked = await team.run_and_commit(
         session, members.remove_member(session, context, membership_id)
+    )
+    if revoked is None:
+        return Response(status_code=http_status.HTTP_204_NO_CONTENT)
+    body = MemberEventsAccessRevokedPublic(
+        membership_id=revoked.membership_id,
+        grants_revoked=revoked.grants_revoked,
+        issued_grants_revoked=revoked.issued_grants_revoked,
+    )
+    return JSONResponse(
+        status_code=http_status.HTTP_200_OK, content=body.model_dump(mode="json")
     )
 
 

@@ -3,17 +3,30 @@
  * Do not edit manually.
  */
 
+import type { ApiError } from "./ApiError.js";
 import type { NhcJob } from "./NhcJob.js";
 import type { NhcPullRequest } from "./NhcPullRequest.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 
 export type WxwatchPullStatus202 = NhcJob;
 
-export type WxwatchPullStatus401 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type WxwatchPullStatus401 = ApiError;
 
-export type WxwatchPullStatus403 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type WxwatchPullStatus403 = ApiError;
 
-export type WxwatchPullStatus404 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type WxwatchPullStatus404 = ApiError;
 
 /**
  * @description Validation error envelope returned for malformed requests.

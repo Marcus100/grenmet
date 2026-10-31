@@ -3,6 +3,7 @@
  * Do not edit manually.
  */
 
+import type { ApiError } from "./ApiError.js";
 import type { OrganiserPublic } from "./OrganiserPublic.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 
@@ -16,7 +17,11 @@ export type EventsGetOrganiserPath = {
 
 export type EventsGetOrganiserStatus200 = OrganiserPublic;
 
-export type EventsGetOrganiserStatus404 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type EventsGetOrganiserStatus404 = ApiError;
 
 /**
  * @description Validation error envelope returned for malformed requests.

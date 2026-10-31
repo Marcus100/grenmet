@@ -17,13 +17,14 @@ from src.hr.workflow.schemas import (
     WorkflowConfigurationInput,
     WorkflowConfigurationPublic,
 )
+from src.models import ApiError
 
 router = APIRouter(
     tags=["governance"],
     responses={
-        401: {"description": "Authentication required"},
-        403: {"description": "Insufficient access"},
-        409: {"description": "Configuration conflict"},
+        401: {"model": ApiError, "description": "Authentication required"},
+        403: {"model": ApiError, "description": "Insufficient access"},
+        409: {"model": ApiError, "description": "Configuration conflict"},
     },
 )
 

@@ -1,4 +1,5 @@
 import os
+import time
 from pathlib import Path
 from typing import Any
 
@@ -10,6 +11,7 @@ from gnc_collector.collector import (
     STATE_FILE,
     collect,
     discover,
+    freshness,
     storage_path,
 )
 from gnc_collector.goes import CARIBBEAN, parse_name
@@ -210,3 +212,19 @@ def test_a_failed_finish_is_reported_not_raised(tmp_path: Path, receiver: Path) 
     assert result.failed == [
         "finishing run: Archive API returned HTTP 409 for /runs/x/finish"
     ]
+
+
+def test_freshness_reports_the_newest_file_per_band(receiver: Path) -> None:
+    now = time.time()
+    report = {r.band: r for r in freshness(receiver, [13, 8], now=now)}
+    assert report[13].newest is not None and "s2026299122" in report[13].newest
+    assert report[13].received_minutes_ago is not None
+    assert report[13].received_minutes_ago < 1  # the unsettled file is the newest
+    assert report[8].received_minutes_ago is not None
+    assert 9 < report[8].received_minutes_ago < 11  # fixture files are 10 min old
+
+
+def test_freshness_marks_a_band_with_no_files(tmp_path: Path) -> None:
+    (tmp_path / "empty").mkdir()
+    (band,) = freshness(tmp_path, [13])
+    assert band.newest is None and band.received_minutes_ago is None

@@ -3,17 +3,31 @@
  * Do not edit manually.
  */
 
+import type { ApiError } from "./ApiError.js";
+import type { ErrorMessage } from "./ErrorMessage.js";
 import type { OrganiserCreate } from "./OrganiserCreate.js";
 import type { OrganiserPublic } from "./OrganiserPublic.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 
 export type EventsRequestOrganiserStatus201 = OrganiserPublic;
 
-export type EventsRequestOrganiserStatus401 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type EventsRequestOrganiserStatus401 = ApiError;
 
-export type EventsRequestOrganiserStatus404 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type EventsRequestOrganiserStatus404 = ApiError;
 
-export type EventsRequestOrganiserStatus409 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type EventsRequestOrganiserStatus409 = ApiError;
 
 /**
  * @description Validation error envelope returned for malformed requests.
@@ -21,7 +35,7 @@ export type EventsRequestOrganiserStatus409 = unknown;
  */
 export type EventsRequestOrganiserStatus422 = ValidationErrorResponse;
 
-export type EventsRequestOrganiserStatus429 = unknown;
+export type EventsRequestOrganiserStatus429 = ApiError | ErrorMessage;
 
 export type EventsRequestOrganiserBody = OrganiserCreate;
 

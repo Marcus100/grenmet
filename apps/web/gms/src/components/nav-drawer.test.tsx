@@ -120,6 +120,7 @@ describe("NavDrawer", () => {
     render(
       <NavDrawer
         alerts={{ activeCount: 0, groups: [], status: "ok" }}
+        green={{ status: "ok", count: 0, other: 0, complete: true }}
         onClose={() => undefined}
         open
       />

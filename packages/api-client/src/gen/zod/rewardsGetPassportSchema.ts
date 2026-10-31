@@ -4,6 +4,7 @@
  */
 
 import * as z from "zod";
+import { apiErrorSchema } from "./apiErrorSchema.js";
 import { passportTrailPublicSchema } from "./passportTrailPublicSchema.js";
 import { validationErrorResponseSchema } from "./validationErrorResponseSchema.js";
 
@@ -11,9 +12,13 @@ export const rewardsGetPassportStatus200Schema = z.array(
   passportTrailPublicSchema
 );
 
-export const rewardsGetPassportStatus401Schema = z.unknown();
+export const rewardsGetPassportStatus401Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
-export const rewardsGetPassportStatus403Schema = z.unknown();
+export const rewardsGetPassportStatus403Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
 export const rewardsGetPassportStatus422Schema =
   validationErrorResponseSchema.describe(

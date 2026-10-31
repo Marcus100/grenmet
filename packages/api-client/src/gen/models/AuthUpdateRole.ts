@@ -3,6 +3,7 @@
  * Do not edit manually.
  */
 
+import type { ApiError } from "./ApiError.js";
 import type { RolePublic } from "./RolePublic.js";
 import type { RoleUpdate } from "./RoleUpdate.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
@@ -18,7 +19,11 @@ export type AuthUpdateRolePath = {
 
 export type AuthUpdateRoleStatus200 = RolePublic;
 
-export type AuthUpdateRoleStatus404 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type AuthUpdateRoleStatus404 = ApiError;
 
 /**
  * @description Validation error envelope returned for malformed requests.

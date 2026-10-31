@@ -4,6 +4,7 @@
  */
 
 import * as z from "zod";
+import { apiErrorSchema } from "./apiErrorSchema.js";
 import { scopeKindSchema } from "./scopeKindSchema.js";
 import { validationErrorResponseSchema } from "./validationErrorResponseSchema.js";
 
@@ -14,9 +15,11 @@ export const rewardsWithdrawFromLeaderboardPathScopeIdSchema = z.string();
 
 export const rewardsWithdrawFromLeaderboardStatus204Schema = z.unknown();
 
-export const rewardsWithdrawFromLeaderboardStatus401Schema = z.unknown();
+export const rewardsWithdrawFromLeaderboardStatus401Schema =
+  apiErrorSchema.describe("Stable error envelope for documented API failures.");
 
-export const rewardsWithdrawFromLeaderboardStatus403Schema = z.unknown();
+export const rewardsWithdrawFromLeaderboardStatus403Schema =
+  apiErrorSchema.describe("Stable error envelope for documented API failures.");
 
 export const rewardsWithdrawFromLeaderboardStatus422Schema =
   validationErrorResponseSchema.describe(

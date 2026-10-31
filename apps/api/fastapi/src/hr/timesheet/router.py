@@ -9,6 +9,7 @@ from src.hr.dependencies import TimesheetDep
 from src.hr.roster import service as roster_service
 from src.hr.roster.models import RosterAvailability
 from src.hr.submission import signed_document_ids
+from src.models import ApiError
 from src.openapi_responses import AUTHENTICATED
 from src.pagination import PaginationDep
 
@@ -52,9 +53,13 @@ async def _public(session: AsyncSession, row: Timesheet) -> TimesheetPublic:
     description="Create a timesheet atomically for active employment in the filing department. Validates dates and recorded hours; links only published or closed roster assignments. Policy controls self/proxy submission.",
     responses={
         status.HTTP_201_CREATED: {"description": "Timesheet and entries created"},
-        status.HTTP_400_BAD_REQUEST: {"description": "Unknown or mismatched shift"},
+        status.HTTP_400_BAD_REQUEST: {
+            "model": ApiError,
+            "description": "Unknown or mismatched shift",
+        },
         status.HTTP_403_FORBIDDEN: {
-            "description": "Self/proxy submission disabled or not allowed for user"
+            "model": ApiError,
+            "description": "Self/proxy submission disabled or not allowed for user",
         },
     },
 )
@@ -93,12 +98,17 @@ async def create_timesheet(
     responses={
         status.HTTP_200_OK: {"description": "Timesheet submitted"},
         status.HTTP_400_BAD_REQUEST: {
-            "description": "Timesheet already submitted or invalid stored dates, hours or roster link"
+            "model": ApiError,
+            "description": "Timesheet already submitted or invalid stored dates, hours or roster link",
         },
         status.HTTP_403_FORBIDDEN: {
-            "description": "Not allowed (self only for own; proxy not allowed)"
+            "model": ApiError,
+            "description": "Not allowed (self only for own; proxy not allowed)",
         },
-        status.HTTP_404_NOT_FOUND: {"description": "Timesheet not found"},
+        status.HTTP_404_NOT_FOUND: {
+            "model": ApiError,
+            "description": "Timesheet not found",
+        },
     },
 )
 async def submit_timesheet(
@@ -126,11 +136,18 @@ async def submit_timesheet(
     description="Approve a submitted timesheet. Requires timesheet.approve and scope over the filing department, or an explicitly named review stage. Workflow approval rules still apply.",
     responses={
         status.HTTP_200_OK: {"description": "Timesheet approved"},
-        status.HTTP_400_BAD_REQUEST: {"description": "Timesheet is not submitted"},
-        status.HTTP_403_FORBIDDEN: {
-            "description": "Not allowed to approve this timesheet"
+        status.HTTP_400_BAD_REQUEST: {
+            "model": ApiError,
+            "description": "Timesheet is not submitted",
         },
-        status.HTTP_404_NOT_FOUND: {"description": "Timesheet not found"},
+        status.HTTP_403_FORBIDDEN: {
+            "model": ApiError,
+            "description": "Not allowed to approve this timesheet",
+        },
+        status.HTTP_404_NOT_FOUND: {
+            "model": ApiError,
+            "description": "Timesheet not found",
+        },
     },
 )
 async def approve_timesheet(
@@ -151,8 +168,14 @@ async def approve_timesheet(
     responses={
         **AUTHENTICATED,
         status.HTTP_200_OK: {"description": "Roster-derived rows returned"},
-        status.HTTP_400_BAD_REQUEST: {"description": "Invalid period"},
-        status.HTTP_403_FORBIDDEN: {"description": "Insufficient permission"},
+        status.HTTP_400_BAD_REQUEST: {
+            "model": ApiError,
+            "description": "Invalid period",
+        },
+        status.HTTP_403_FORBIDDEN: {
+            "model": ApiError,
+            "description": "Insufficient permission",
+        },
     },
 )
 async def read_timesheet_prefill(
@@ -201,8 +224,14 @@ async def read_my_timesheets(
     description="Return timesheets for a department. Requires timesheet.read.department permission.",
     responses={
         status.HTTP_200_OK: {"description": "Timesheets returned"},
-        status.HTTP_400_BAD_REQUEST: {"description": "Department not found"},
-        status.HTTP_403_FORBIDDEN: {"description": "Insufficient permission"},
+        status.HTTP_400_BAD_REQUEST: {
+            "model": ApiError,
+            "description": "Department not found",
+        },
+        status.HTTP_403_FORBIDDEN: {
+            "model": ApiError,
+            "description": "Insufficient permission",
+        },
     },
 )
 async def read_department_timesheets(
@@ -234,9 +263,13 @@ async def read_department_timesheets(
     responses={
         status.HTTP_200_OK: {"description": "Summary returned"},
         status.HTTP_403_FORBIDDEN: {
-            "description": "Not allowed to read this timesheet"
+            "model": ApiError,
+            "description": "Not allowed to read this timesheet",
         },
-        status.HTTP_404_NOT_FOUND: {"description": "Timesheet not found"},
+        status.HTTP_404_NOT_FOUND: {
+            "model": ApiError,
+            "description": "Timesheet not found",
+        },
     },
 )
 async def read_timesheet_summary(
@@ -257,9 +290,13 @@ async def read_timesheet_summary(
     responses={
         status.HTTP_200_OK: {"description": "Timesheet and entries returned"},
         status.HTTP_403_FORBIDDEN: {
-            "description": "Not allowed to read this timesheet"
+            "model": ApiError,
+            "description": "Not allowed to read this timesheet",
         },
-        status.HTTP_404_NOT_FOUND: {"description": "Timesheet not found"},
+        status.HTTP_404_NOT_FOUND: {
+            "model": ApiError,
+            "description": "Timesheet not found",
+        },
     },
 )
 async def read_timesheet(

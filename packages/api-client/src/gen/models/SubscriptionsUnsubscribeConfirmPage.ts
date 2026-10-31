@@ -11,7 +11,7 @@ export type SubscriptionsUnsubscribeConfirmPageQuery = {
 
 export type SubscriptionsUnsubscribeConfirmPageStatus200 = string;
 
-export type SubscriptionsUnsubscribeConfirmPageStatus400 = unknown;
+export type SubscriptionsUnsubscribeConfirmPageStatus400 = string;
 
 /**
  * @description Validation error envelope returned for malformed requests.

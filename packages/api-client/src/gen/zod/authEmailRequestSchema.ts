@@ -4,15 +4,20 @@
  */
 
 import * as z from "zod";
+import { apiErrorSchema } from "./apiErrorSchema.js";
 import { emailRequestSchema } from "./emailRequestSchema.js";
 import { messageSchema } from "./messageSchema.js";
 import { validationErrorResponseSchema } from "./validationErrorResponseSchema.js";
 
 export const authEmailRequestStatus200Schema = messageSchema;
 
-export const authEmailRequestStatus400Schema = z.unknown();
+export const authEmailRequestStatus400Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
-export const authEmailRequestStatus403Schema = z.unknown();
+export const authEmailRequestStatus403Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
 export const authEmailRequestStatus422Schema =
   validationErrorResponseSchema.describe(

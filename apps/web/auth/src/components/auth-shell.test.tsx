@@ -21,6 +21,17 @@ describe("AuthShell", () => {
     expect(screen.getByText("Form goes here")).toBeInTheDocument();
   });
 
+  it("links the Barrels support address by name", () => {
+    render(
+      <AuthShell greeting="Hello" subtitle="Sign in.">
+        <p>Form</p>
+      </AuthShell>
+    );
+    expect(
+      screen.getByRole("link", { name: "support@barrels.gd" })
+    ).toHaveAttribute("href", "mailto:support@barrels.gd");
+  });
+
   it("puts the brand panel on the right when asked", () => {
     const { container } = render(
       <AuthShell greeting="Welcome" side="right" subtitle="Hi">

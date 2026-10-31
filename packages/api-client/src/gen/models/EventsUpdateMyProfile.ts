@@ -3,17 +3,31 @@
  * Do not edit manually.
  */
 
+import type { ApiError } from "./ApiError.js";
+import type { ErrorMessage } from "./ErrorMessage.js";
 import type { MyProfile } from "./MyProfile.js";
 import type { ProfileUpdate } from "./ProfileUpdate.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 
 export type EventsUpdateMyProfileStatus200 = MyProfile;
 
-export type EventsUpdateMyProfileStatus401 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type EventsUpdateMyProfileStatus401 = ApiError;
 
-export type EventsUpdateMyProfileStatus404 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type EventsUpdateMyProfileStatus404 = ApiError;
 
-export type EventsUpdateMyProfileStatus409 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type EventsUpdateMyProfileStatus409 = ApiError;
 
 /**
  * @description Validation error envelope returned for malformed requests.
@@ -21,7 +35,7 @@ export type EventsUpdateMyProfileStatus409 = unknown;
  */
 export type EventsUpdateMyProfileStatus422 = ValidationErrorResponse;
 
-export type EventsUpdateMyProfileStatus429 = unknown;
+export type EventsUpdateMyProfileStatus429 = ApiError | ErrorMessage;
 
 export type EventsUpdateMyProfileBody = ProfileUpdate;
 

@@ -3,6 +3,7 @@
  * Do not edit manually.
  */
 
+import type { ApiError } from "./ApiError.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 import type { WorkflowStepTemplateCreate } from "./WorkflowStepTemplateCreate.js";
 import type { WorkflowStepTemplatePublic } from "./WorkflowStepTemplatePublic.js";
@@ -20,9 +21,17 @@ export type HrCreateTemplateStepStatus200 = unknown;
 
 export type HrCreateTemplateStepStatus201 = WorkflowStepTemplatePublic;
 
-export type HrCreateTemplateStepStatus403 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type HrCreateTemplateStepStatus403 = ApiError;
 
-export type HrCreateTemplateStepStatus404 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type HrCreateTemplateStepStatus404 = ApiError;
 
 /**
  * @description Validation error envelope returned for malformed requests.

@@ -4,6 +4,7 @@ Signing is real (local, no network); only the network calls (HEAD, DELETE) are
 served from an in-memory dict.
 """
 
+import uuid
 from collections.abc import Iterator
 from datetime import timedelta
 from typing import Any
@@ -11,10 +12,15 @@ from urllib.parse import parse_qs, urlparse
 
 import httpx
 import pytest
+from fastapi.security import HTTPAuthorizationCredentials
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from src.audit import service as audit_service
+from src.audit.models import AuditEntry
 from src.auth.utils import create_access_token
 from src.organisations.models import MembershipRole
+from src.storage import dependencies as storage_deps
 from src.storage import service as storage
 from src.storage import uploads
 from src.storage.config import StorageConfig
@@ -360,3 +366,36 @@ async def test_events_scoped_token_uploads_for_events_only(
         headers={"Authorization": f"Bearer {other}", "X-Barrels-Organisation": org.id},
     )
     assert refused.status_code == 401
+
+
+async def test_events_token_caller_is_the_audit_actor(db_async: AsyncSession):
+    """#478: an app-scoped caller is attributed like an account caller, so an
+    audited change made in the same request names the user."""
+    user = await user_with_role(db_async, "events-organiser")
+    org = await make_org(db_async, "Fete Co", members=((user, MembershipRole.OWNER),))
+    token = create_access_token(user.id, timedelta(minutes=5), app="events")
+    credentials = HTTPAuthorizationCredentials(scheme="Bearer", credentials=token)
+
+    caller = storage_deps.get_upload_context(db_async, credentials, organisation=org.id)
+    context = await anext(caller)
+    assert context.user.id == user.id
+    assert context.token_app == "events"
+
+    await audit_service.record_change(
+        db_async,
+        entity_type="platform_organisation",
+        entity_id=org.id,
+        record_type="upload_probe",
+        record_id=str(uuid.uuid4()),
+        action="create",
+        changes={"purpose": (None, "organiser-logo")},
+        organisation_id=org.id,
+    )
+    await db_async.commit()
+    await caller.aclose()
+
+    entry = await db_async.scalar(
+        select(AuditEntry).where(AuditEntry.record_type == "upload_probe")
+    )
+    assert entry is not None
+    assert entry.actor_user_id == user.id

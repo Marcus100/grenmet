@@ -50,12 +50,35 @@ src/app/
     weather/[year]/[month]/[day] ← a dated forecast day
   (pages)/                       ← standing pages, breadcrumbs + max-w-6xl
     alerts/ weather/ marine/ climate/ services/ explore/ about/
-    [...planned]/                ← placeholders for nav links marked `planned`
     help/ app-guide/ sitemap/ privacy/ accessibility/ disclaimer/
+  (planned)/[...planned]/        ← placeholders for nav links marked `planned`
+  (articles)/                    ← CMS items that 404 when missing: news, updates,
+                                   reports, quiz/[slug], explained/[slug]
+                                   (outside (pages) on purpose: see 404s below)
   layout.tsx                     ← root layout: masthead, footer, tab bar
+  robots.ts, sitemap.ts          ← crawlers: all pages allowed; sitemap from lib/sitemap-paths.ts
   api/health/route.ts
 ```
 
+- **404s and streaming (30 Oct 2026):** a `loading.tsx` streams its response
+  before a page's `notFound()` runs, so that status is 200 (Next docs,
+  "Status codes"). `(pages)/loading.tsx` covers the standing pages, so the
+  planned placeholders (`(planned)/`) and the CMS items (`(articles)/`) live
+  outside it: a missing item there is a real 404. Never add a loading file above
+  a route that must 404 for an unknown URL. Trade-off: those routes have no
+  navigation skeleton (the previous page stays until the item arrives).
+  Static event pages and CAP alert ids under `(pages)` still answer 200 when
+  missing (not fixed).
+- **Masthead and /alerts status (30 Oct 2026):** the CAP warnings and the GMS
+  outlook's Green counts are separate promises. `WithStatus`
+  (`components/with-alerts.tsx`) shows a warning at once and awaits the outlook
+  only when no warning is in effect. `fetchGreenStatus` / `fetchGreenAlerts`
+  (`lib/green-status.ts`) never reject; an unread or incomplete outlook is never
+  "No active alerts". The outlook call is cached per request; a short revalidate
+  is a possible later improvement.
+- **Canonical and Open Graph:** root metadata (`lib/site-metadata.ts`) sets
+  `alternates.canonical: "./"`, which Next resolves against each page's own
+  path. Share titles for pages without their own `openGraph` use the site name.
 - **Moving a route:** add the old prefix → new home to `ROUTE_MOVES` in
   `src/lib/route-moves.ts` (it feeds `next.config.ts` redirects); never delete
   a public URL without one. `route-moves.test.ts` fails if an old route is still

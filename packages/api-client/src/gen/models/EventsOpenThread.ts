@@ -3,17 +3,31 @@
  * Do not edit manually.
  */
 
+import type { ApiError } from "./ApiError.js";
+import type { ErrorMessage } from "./ErrorMessage.js";
 import type { ThreadCreate } from "./ThreadCreate.js";
 import type { ThreadSummary } from "./ThreadSummary.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 
 export type EventsOpenThreadStatus200 = ThreadSummary;
 
-export type EventsOpenThreadStatus401 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type EventsOpenThreadStatus401 = ApiError;
 
-export type EventsOpenThreadStatus403 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type EventsOpenThreadStatus403 = ApiError;
 
-export type EventsOpenThreadStatus404 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type EventsOpenThreadStatus404 = ApiError;
 
 /**
  * @description Validation error envelope returned for malformed requests.
@@ -21,7 +35,7 @@ export type EventsOpenThreadStatus404 = unknown;
  */
 export type EventsOpenThreadStatus422 = ValidationErrorResponse;
 
-export type EventsOpenThreadStatus429 = unknown;
+export type EventsOpenThreadStatus429 = ApiError | ErrorMessage;
 
 export type EventsOpenThreadBody = ThreadCreate;
 

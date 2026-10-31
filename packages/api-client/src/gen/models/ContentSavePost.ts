@@ -3,6 +3,7 @@
  * Do not edit manually.
  */
 
+import type { ApiError } from "./ApiError.js";
 import type { PostAccepted } from "./PostAccepted.js";
 import type { PostIn } from "./PostIn.js";
 
@@ -12,7 +13,11 @@ export type ContentSavePostHeaders = {
 
 export type ContentSavePostStatus202 = PostAccepted;
 
-export type ContentSavePostStatus401 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type ContentSavePostStatus401 = ApiError;
 
 export type ContentSavePostStatus422 = unknown;
 

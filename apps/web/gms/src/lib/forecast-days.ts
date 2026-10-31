@@ -1,8 +1,4 @@
-import {
-  DAY_FORECASTS,
-  type DayForecast,
-  REFERENCE_DATE,
-} from "@/lib/forecast-data";
+import type { DayForecast } from "@/lib/forecast-data";
 import type { WeatherCondition } from "@/lib/weather-icons";
 
 export interface ForecastDay {
@@ -18,9 +14,14 @@ export interface ForecastDay {
   slug: string; // YYYY-MM-DD, the key used to look up the day's component
 }
 
+/**
+ * Five days from `baseDate` (the issue's day, Grenada time) with the issued
+ * forecast for each. Both come from the live snapshot: there is no sample
+ * default, so a caller with no data cannot show sample days.
+ */
 export function getForecastDays(
-  baseDate = REFERENCE_DATE,
-  forecasts: DayForecast[] = DAY_FORECASTS
+  baseDate: string,
+  forecasts: readonly DayForecast[]
 ): ForecastDay[] {
   const today = new Date(`${baseDate}T12:00:00Z`);
   return Array.from({ length: 5 }, (_, i) => {
@@ -43,12 +44,6 @@ export function getForecastDays(
       slug,
     };
   });
-}
-
-export function getUpcomingDaySlugs(): string[] {
-  return getForecastDays()
-    .slice(1)
-    .map((d) => d.slug);
 }
 
 /** Browser title for a dated forecast: "Forecast for Friday 23 October 2026". */

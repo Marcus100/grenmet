@@ -4,6 +4,7 @@
  */
 
 import * as z from "zod";
+import { apiErrorSchema } from "./apiErrorSchema.js";
 import { contactListPublicSchema } from "./contactListPublicSchema.js";
 import { validationErrorResponseSchema } from "./validationErrorResponseSchema.js";
 
@@ -38,11 +39,17 @@ export const contactsListAdminContactsQuerySizeSchema = z
 
 export const contactsListAdminContactsStatus200Schema = contactListPublicSchema;
 
-export const contactsListAdminContactsStatus400Schema = z.unknown();
+export const contactsListAdminContactsStatus400Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
-export const contactsListAdminContactsStatus401Schema = z.unknown();
+export const contactsListAdminContactsStatus401Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
-export const contactsListAdminContactsStatus403Schema = z.unknown();
+export const contactsListAdminContactsStatus403Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
 export const contactsListAdminContactsStatus422Schema =
   validationErrorResponseSchema.describe(

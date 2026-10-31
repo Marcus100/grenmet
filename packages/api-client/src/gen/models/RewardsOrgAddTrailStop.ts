@@ -3,6 +3,7 @@
  * Do not edit manually.
  */
 
+import type { ApiError } from "./ApiError.js";
 import type { RewardsTrailStopCreate } from "./RewardsTrailStopCreate.js";
 import type { RewardsTrailStopPublic } from "./RewardsTrailStopPublic.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
@@ -25,15 +26,35 @@ export type RewardsOrgAddTrailStopHeaders = {
 
 export type RewardsOrgAddTrailStopStatus201 = RewardsTrailStopPublic;
 
-export type RewardsOrgAddTrailStopStatus400 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type RewardsOrgAddTrailStopStatus400 = ApiError;
 
-export type RewardsOrgAddTrailStopStatus401 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type RewardsOrgAddTrailStopStatus401 = ApiError;
 
-export type RewardsOrgAddTrailStopStatus403 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type RewardsOrgAddTrailStopStatus403 = ApiError;
 
-export type RewardsOrgAddTrailStopStatus404 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type RewardsOrgAddTrailStopStatus404 = ApiError;
 
-export type RewardsOrgAddTrailStopStatus409 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type RewardsOrgAddTrailStopStatus409 = ApiError;
 
 /**
  * @description Validation error envelope returned for malformed requests.

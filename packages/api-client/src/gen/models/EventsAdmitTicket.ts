@@ -5,6 +5,8 @@
 
 import type { AdmissionCreate } from "./AdmissionCreate.js";
 import type { AdmissionPublic } from "./AdmissionPublic.js";
+import type { ApiError } from "./ApiError.js";
+import type { ErrorMessage } from "./ErrorMessage.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 
 export type EventsAdmitTicketPath = {
@@ -25,13 +27,29 @@ export type EventsAdmitTicketQuery = {
 
 export type EventsAdmitTicketStatus200 = AdmissionPublic;
 
-export type EventsAdmitTicketStatus401 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type EventsAdmitTicketStatus401 = ApiError;
 
-export type EventsAdmitTicketStatus403 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type EventsAdmitTicketStatus403 = ApiError;
 
-export type EventsAdmitTicketStatus404 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type EventsAdmitTicketStatus404 = ApiError;
 
-export type EventsAdmitTicketStatus409 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type EventsAdmitTicketStatus409 = ApiError;
 
 /**
  * @description Validation error envelope returned for malformed requests.
@@ -39,7 +57,7 @@ export type EventsAdmitTicketStatus409 = unknown;
  */
 export type EventsAdmitTicketStatus422 = ValidationErrorResponse;
 
-export type EventsAdmitTicketStatus429 = unknown;
+export type EventsAdmitTicketStatus429 = ApiError | ErrorMessage;
 
 export type EventsAdmitTicketBody = AdmissionCreate;
 

@@ -368,7 +368,7 @@
                         {% for item in ag_grid_config %}
                             {% if item.var_type == 'numeric' %}
                                 <v-tab key="{{ item.id }}">
-                                    {{ item.name }}
+                                    <span v-pre>{{ item.name }}</span>
                                 </v-tab>
                             {% endif %}
                         {% endfor %}
@@ -391,7 +391,7 @@
                                 >
                                     <!-- graph heading -->
                                     <div class="text-center">
-                                        <span class="srf-display-2 text-uppercase">{{ item.name }} Graph</span>
+                                        <span class="srf-display-2 text-uppercase"><span v-pre>{{ item.name }}</span> Graph</span>
                                     </div>
 
                                     <!-- the graph -->

@@ -4,8 +4,7 @@
  */
 
 import type { AuthoringError } from "./AuthoringError.js";
-import type { LegacyProductPreviewInput } from "./LegacyProductPreviewInput.js";
-import type { OutlookProductPreviewInput } from "./OutlookProductPreviewInput.js";
+import type { ProductPreviewBody } from "./ProductPreviewBody.js";
 
 /**
  * @description
@@ -20,25 +19,10 @@ export type WxproductsPreviewProductPdfStatus403 = AuthoringError;
 
 export type WxproductsPreviewProductPdfStatus422 = AuthoringError;
 
-export type WxproductsPreviewProductPdfBody =
-  | (OutlookProductPreviewInput & {
-      kind: "outlook";
-    })
-  | (LegacyProductPreviewInput & {
-      kind:
-        | "morning"
-        | "midday"
-        | "evening"
-        | "cyclone"
-        | "marine"
-        | "flood"
-        | "thunderstorm"
-        | "wind"
-        | "heat"
-        | "dust"
-        | "coastal"
-        | "tsunami";
-    });
+/**
+ * @description A draft product to validate or render as a PDF preview, discriminated by kind.
+ */
+export type WxproductsPreviewProductPdfBody = ProductPreviewBody;
 
 export type WxproductsPreviewProductPdfOptions = {
   body: WxproductsPreviewProductPdfBody;

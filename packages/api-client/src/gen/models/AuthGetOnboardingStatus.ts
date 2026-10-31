@@ -3,6 +3,7 @@
  * Do not edit manually.
  */
 
+import type { ApiError } from "./ApiError.js";
 import type { OnboardingStatus } from "./OnboardingStatus.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 
@@ -17,9 +18,17 @@ export type AuthGetOnboardingStatusPath = {
 
 export type AuthGetOnboardingStatusStatus200 = OnboardingStatus;
 
-export type AuthGetOnboardingStatusStatus403 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type AuthGetOnboardingStatusStatus403 = ApiError;
 
-export type AuthGetOnboardingStatusStatus404 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type AuthGetOnboardingStatusStatus404 = ApiError;
 
 /**
  * @description Validation error envelope returned for malformed requests.

@@ -13,6 +13,7 @@ import type { RequestConfig, ResponseErrorConfig } from "../.kubb/client.js";
 import { organisationsDeleteMember } from "../clients/organisationsDeleteMember.js";
 import type {
   OrganisationsDeleteMemberOptions,
+  OrganisationsDeleteMemberStatus200,
   OrganisationsDeleteMemberStatus204,
   OrganisationsDeleteMemberStatus400,
   OrganisationsDeleteMemberStatus401,
@@ -34,7 +35,7 @@ export function organisationsDeleteMemberMutationOptions<TContext = unknown>(
 ) {
   const mutationKey = organisationsDeleteMemberMutationKey();
   return mutationOptions<
-    OrganisationsDeleteMemberStatus204,
+    OrganisationsDeleteMemberStatus200 | OrganisationsDeleteMemberStatus204,
     ResponseErrorConfig<
       | OrganisationsDeleteMemberStatus400
       | OrganisationsDeleteMemberStatus401
@@ -59,14 +60,14 @@ export function organisationsDeleteMemberMutationOptions<TContext = unknown>(
 }
 
 /**
- * @description Ends the person's membership. Only owners remove owners; 409 when it would leave the organisation without an owner.
- * @summary Remove a member
+ * @description An account session ends the person's membership in the whole organisation (204). An Events app session ends only their Events access in this organisation: live events-* roles here and grants they issued for Events here. The membership, other products, other organisations and their Events sign-in stay, and the answer is 200 with `scope` `events`. Only owners remove owners; 409 when it would leave the organisation without an owner.
+ * @summary Remove a member, or end their Events access
  * {@link /api/v1/organisations/:organisation_id/members/:membership_id}
  */
 export function useOrganisationsDeleteMember<TContext>(
   options: {
     mutation?: UseMutationOptions<
-      OrganisationsDeleteMemberStatus204,
+      OrganisationsDeleteMemberStatus200 | OrganisationsDeleteMemberStatus204,
       ResponseErrorConfig<
         | OrganisationsDeleteMemberStatus400
         | OrganisationsDeleteMemberStatus401
@@ -91,7 +92,7 @@ export function useOrganisationsDeleteMember<TContext>(
   const baseOptions = organisationsDeleteMemberMutationOptions(
     config
   ) as UseMutationOptions<
-    OrganisationsDeleteMemberStatus204,
+    OrganisationsDeleteMemberStatus200 | OrganisationsDeleteMemberStatus204,
     ResponseErrorConfig<
       | OrganisationsDeleteMemberStatus400
       | OrganisationsDeleteMemberStatus401
@@ -105,7 +106,7 @@ export function useOrganisationsDeleteMember<TContext>(
   >;
 
   return useMutation<
-    OrganisationsDeleteMemberStatus204,
+    OrganisationsDeleteMemberStatus200 | OrganisationsDeleteMemberStatus204,
     ResponseErrorConfig<
       | OrganisationsDeleteMemberStatus400
       | OrganisationsDeleteMemberStatus401
@@ -124,7 +125,7 @@ export function useOrganisationsDeleteMember<TContext>(
     },
     queryClient
   ) as UseMutationResult<
-    OrganisationsDeleteMemberStatus204,
+    OrganisationsDeleteMemberStatus200 | OrganisationsDeleteMemberStatus204,
     ResponseErrorConfig<
       | OrganisationsDeleteMemberStatus400
       | OrganisationsDeleteMemberStatus401

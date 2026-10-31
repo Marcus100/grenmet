@@ -3,6 +3,8 @@
  * Do not edit manually.
  */
 
+import type { ApiError } from "./ApiError.js";
+import type { ErrorMessage } from "./ErrorMessage.js";
 import type { ThreadDetail } from "./ThreadDetail.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 
@@ -17,9 +19,17 @@ export type EventsGetThreadPath = {
 
 export type EventsGetThreadStatus200 = ThreadDetail;
 
-export type EventsGetThreadStatus401 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type EventsGetThreadStatus401 = ApiError;
 
-export type EventsGetThreadStatus404 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type EventsGetThreadStatus404 = ApiError;
 
 /**
  * @description Validation error envelope returned for malformed requests.
@@ -27,7 +37,7 @@ export type EventsGetThreadStatus404 = unknown;
  */
 export type EventsGetThreadStatus422 = ValidationErrorResponse;
 
-export type EventsGetThreadStatus429 = unknown;
+export type EventsGetThreadStatus429 = ApiError | ErrorMessage;
 
 export type EventsGetThreadOptions = {
   body?: never;

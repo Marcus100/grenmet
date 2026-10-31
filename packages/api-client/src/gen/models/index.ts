@@ -1106,6 +1106,7 @@ export type { BookingProviderPublic } from "./BookingProviderPublic.js";
 export type { BookingProviderSettings } from "./BookingProviderSettings.js";
 export type { BookingProviderUpdate } from "./BookingProviderUpdate.js";
 export type { BookingPublicCancel } from "./BookingPublicCancel.js";
+export type { BookingPublicCancelBody } from "./BookingPublicCancelBody.js";
 export type { BookingPublicCreate } from "./BookingPublicCreate.js";
 export type { BookingPublicDetail } from "./BookingPublicDetail.js";
 export type { BookingPublicProvider } from "./BookingPublicProvider.js";
@@ -2142,6 +2143,7 @@ export type { CheckInCreate } from "./CheckInCreate.js";
 export type { CheckInPublic } from "./CheckInPublic.js";
 export type { CheckoutSessionPublic } from "./CheckoutSessionPublic.js";
 export type { ClockPunchApprove } from "./ClockPunchApprove.js";
+export type { ClockPunchApproveBody } from "./ClockPunchApproveBody.js";
 export type { ClockPunchesPublic } from "./ClockPunchesPublic.js";
 export type { ClockPunchKind } from "./ClockPunchKind.js";
 export { clockPunchKind } from "./ClockPunchKind.js";
@@ -2657,6 +2659,7 @@ export type {
   EregisterValidateSynopObservationStatus403,
   EregisterValidateSynopObservationStatus422,
 } from "./EregisterValidateSynopObservation.js";
+export type { ErrorMessage } from "./ErrorMessage.js";
 export type { EventCategoryNode } from "./EventCategoryNode.js";
 export type { EventCategoryNodePropertiesAppliesToItemsEnum } from "./EventCategoryNodePropertiesAppliesToItemsEnum.js";
 export { eventCategoryNodePropertiesAppliesToItemsEnum } from "./EventCategoryNodePropertiesAppliesToItemsEnum.js";
@@ -5289,6 +5292,7 @@ export type { InvitationPublic } from "./InvitationPublic.js";
 export type { InvoiceDetailPublic } from "./InvoiceDetailPublic.js";
 export type { InvoiceDraftWrite } from "./InvoiceDraftWrite.js";
 export type { InvoiceIssue } from "./InvoiceIssue.js";
+export type { InvoiceIssueBody } from "./InvoiceIssueBody.js";
 export type { InvoiceLineInput } from "./InvoiceLineInput.js";
 export type { InvoiceLinePublic } from "./InvoiceLinePublic.js";
 export type { InvoiceListPublic } from "./InvoiceListPublic.js";
@@ -5683,6 +5687,7 @@ export { manualMethod } from "./ManualMethod.js";
 export type { ManualPaymentCreate } from "./ManualPaymentCreate.js";
 export type { MarineResponse } from "./MarineResponse.js";
 export type { MarineRow } from "./MarineRow.js";
+export type { MemberEventsAccessRevokedPublic } from "./MemberEventsAccessRevokedPublic.js";
 export type { MemberListPublic } from "./MemberListPublic.js";
 export type { MemberPublic } from "./MemberPublic.js";
 export type { MemberRoleUpdate } from "./MemberRoleUpdate.js";
@@ -5811,6 +5816,7 @@ export type { NhcSourceCheck } from "./NhcSourceCheck.js";
 export type { NotificationParams } from "./NotificationParams.js";
 export type { NotificationPreferencePublic } from "./NotificationPreferencePublic.js";
 export type { NotificationPreferenceUpdate } from "./NotificationPreferenceUpdate.js";
+export type { NotificationPreferenceUpdateList } from "./NotificationPreferenceUpdateList.js";
 export type { NotificationPublic } from "./NotificationPublic.js";
 export type { NotificationSettingPublic } from "./NotificationSettingPublic.js";
 export type { NotificationSettingsPublic } from "./NotificationSettingsPublic.js";
@@ -6040,6 +6046,7 @@ export type {
   OrganisationsDeleteMemberPath,
   OrganisationsDeleteMemberResponse,
   OrganisationsDeleteMemberResponses,
+  OrganisationsDeleteMemberStatus200,
   OrganisationsDeleteMemberStatus204,
   OrganisationsDeleteMemberStatus400,
   OrganisationsDeleteMemberStatus401,
@@ -6697,6 +6704,8 @@ export type { ProductFeedError } from "./ProductFeedError.js";
 export type { ProductGuidance } from "./ProductGuidance.js";
 export type { ProductHistory } from "./ProductHistory.js";
 export type { ProductHistoryEntry } from "./ProductHistoryEntry.js";
+export type { ProductPreviewBody } from "./ProductPreviewBody.js";
+export type { ProductWriteBody } from "./ProductWriteBody.js";
 export type { ProfAppointmentType } from "./ProfAppointmentType.js";
 export { profAppointmentType } from "./ProfAppointmentType.js";
 export type { ProfileAuditPublic } from "./ProfileAuditPublic.js";
@@ -6778,6 +6787,7 @@ export type {
   PushVapidPublicKeyStatus200,
   PushVapidPublicKeyStatus422,
 } from "./PushVapidPublicKey.js";
+export type { QcDecisionBody } from "./QcDecisionBody.js";
 export type { QcDecisionRequest } from "./QcDecisionRequest.js";
 export type { ReadinessUnavailable } from "./ReadinessUnavailable.js";
 export type { ReceivableRowPublic } from "./ReceivableRowPublic.js";
@@ -7458,10 +7468,13 @@ export type { SectionUpdate } from "./SectionUpdate.js";
 export type { SectionView } from "./SectionView.js";
 export type { SectorOutlook } from "./SectorOutlook.js";
 export type { SectorOutlookItem } from "./SectorOutlookItem.js";
+export type { SectorOutlookItemPropertiesNoticeTypeAnyOfEnum } from "./SectorOutlookItemPropertiesNoticeTypeAnyOfEnum.js";
+export { sectorOutlookItemPropertiesNoticeTypeAnyOfEnum } from "./SectorOutlookItemPropertiesNoticeTypeAnyOfEnum.js";
 export type { SectorOutlookItemPropertiesSourceEnum } from "./SectorOutlookItemPropertiesSourceEnum.js";
 export { sectorOutlookItemPropertiesSourceEnum } from "./SectorOutlookItemPropertiesSourceEnum.js";
 export type { SecurityProof } from "./SecurityProof.js";
 export type { SecuritySessionPublic } from "./SecuritySessionPublic.js";
+export type { SendObservationBody } from "./SendObservationBody.js";
 export type { SendObservationRequest } from "./SendObservationRequest.js";
 export type { ServiceCalendarView } from "./ServiceCalendarView.js";
 export type { SessionAccessTokenResponse } from "./SessionAccessTokenResponse.js";

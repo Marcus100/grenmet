@@ -4,16 +4,23 @@
  */
 
 import * as z from "zod";
+import { apiErrorSchema } from "./apiErrorSchema.js";
 import { productAccessCurrentSchema } from "./productAccessCurrentSchema.js";
 import { validationErrorResponseSchema } from "./validationErrorResponseSchema.js";
 
 export const hrGetProductAccessStatus200Schema = productAccessCurrentSchema;
 
-export const hrGetProductAccessStatus403Schema = z.unknown();
+export const hrGetProductAccessStatus403Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
-export const hrGetProductAccessStatus404Schema = z.unknown();
+export const hrGetProductAccessStatus404Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
-export const hrGetProductAccessStatus409Schema = z.unknown();
+export const hrGetProductAccessStatus409Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
 export const hrGetProductAccessStatus422Schema =
   validationErrorResponseSchema.describe(

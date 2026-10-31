@@ -4,6 +4,8 @@
  */
 
 import * as z from "zod";
+import { apiErrorSchema } from "./apiErrorSchema.js";
+import { errorMessageSchema } from "./errorMessageSchema.js";
 import { outletOverviewSchema } from "./outletOverviewSchema.js";
 import { validationErrorResponseSchema } from "./validationErrorResponseSchema.js";
 
@@ -16,20 +18,31 @@ export const eventsGetOutletQueryOrganiserSchema = z
 
 export const eventsGetOutletStatus200Schema = outletOverviewSchema;
 
-export const eventsGetOutletStatus401Schema = z.unknown();
+export const eventsGetOutletStatus401Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
-export const eventsGetOutletStatus403Schema = z.unknown();
+export const eventsGetOutletStatus403Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
-export const eventsGetOutletStatus404Schema = z.unknown();
+export const eventsGetOutletStatus404Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
-export const eventsGetOutletStatus409Schema = z.unknown();
+export const eventsGetOutletStatus409Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
 export const eventsGetOutletStatus422Schema =
   validationErrorResponseSchema.describe(
     "Validation error envelope returned for malformed requests."
   );
 
-export const eventsGetOutletStatus429Schema = z.unknown();
+export const eventsGetOutletStatus429Schema = z.union([
+  apiErrorSchema,
+  errorMessageSchema,
+]);
 
 export const eventsGetOutletResponseSchema = eventsGetOutletStatus200Schema;
 

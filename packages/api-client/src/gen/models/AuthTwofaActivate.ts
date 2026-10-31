@@ -3,13 +3,18 @@
  * Do not edit manually.
  */
 
+import type { ApiError } from "./ApiError.js";
 import type { TwoFactorCodeRequest } from "./TwoFactorCodeRequest.js";
 import type { TwoFactorStatusPublic } from "./TwoFactorStatusPublic.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 
 export type AuthTwofaActivateStatus200 = TwoFactorStatusPublic;
 
-export type AuthTwofaActivateStatus400 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type AuthTwofaActivateStatus400 = ApiError;
 
 /**
  * @description Validation error envelope returned for malformed requests.

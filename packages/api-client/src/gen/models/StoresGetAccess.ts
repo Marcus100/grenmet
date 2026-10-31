@@ -3,6 +3,7 @@
  * Do not edit manually.
  */
 
+import type { ApiError } from "./ApiError.js";
 import type { StoresAccessPublic } from "./StoresAccessPublic.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 
@@ -12,9 +13,17 @@ import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
  */
 export type StoresGetAccessStatus200 = StoresAccessPublic;
 
-export type StoresGetAccessStatus401 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type StoresGetAccessStatus401 = ApiError;
 
-export type StoresGetAccessStatus403 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type StoresGetAccessStatus403 = ApiError;
 
 /**
  * @description Validation error envelope returned for malformed requests.

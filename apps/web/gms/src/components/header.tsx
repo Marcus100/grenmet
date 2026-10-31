@@ -15,7 +15,12 @@ import {
   CheckingStatusPill,
   WarningStatusPill,
 } from "@/components/warning-status-pill";
-import { type AlertsSource, WithAlerts } from "@/components/with-alerts";
+import {
+  type AlertsSource,
+  type GreenSource,
+  WithAlerts,
+  WithStatus,
+} from "@/components/with-alerts";
 import { cn } from "@/lib/utils";
 
 interface HeaderProps {
@@ -23,6 +28,8 @@ interface HeaderProps {
   accountLabel?: string;
   /** The warning feed; a promise streams in without holding up the page. */
   alerts: AlertsSource;
+  /** The GMS outlook's Green counts, read separately so warnings never wait on it. */
+  green: GreenSource;
 }
 
 const UTILITY_LINKS = [
@@ -35,7 +42,7 @@ const UTILITY_LINKS = [
  * Bold sky masthead: warning ribbon (only when there is something to say),
  * a navy utility bar and main bar, the mega menu, and on mobile the drawer.
  */
-export function Header({ alerts, accountLabel }: HeaderProps) {
+export function Header({ alerts, green, accountLabel }: HeaderProps) {
   const [navOpen, setNavOpen] = useState(false);
   const [menuTop, setMenuTop] = useState(0);
   const headerRef = useRef<HTMLElement>(null);
@@ -66,17 +73,19 @@ export function Header({ alerts, accountLabel }: HeaderProps) {
             </span>
             {/* 1024–1279px: the main bar has no room for the pill, so the
                 status sits here instead — it is never hidden. */}
-            <WithAlerts
+            <WithStatus
               alerts={alerts}
               fallback={<CheckingStatusPill className="flex h-7 xl:hidden" />}
+              green={green}
             >
-              {(result) => (
+              {(result, outlook) => (
                 <WarningStatusPill
                   alerts={result}
                   className="flex h-7 xl:hidden"
+                  green={outlook}
                 />
               )}
-            </WithAlerts>
+            </WithStatus>
             {UTILITY_LINKS.map(({ href, label, Icon }) => (
               <Link
                 className="flex items-center gap-1.5 hover:text-gm-text-inverse hover:underline"
@@ -101,7 +110,7 @@ export function Header({ alerts, accountLabel }: HeaderProps) {
           </Link>
 
           <div className="flex min-w-0 flex-1 justify-center">
-            <DesktopNav alerts={alerts} anchor={headerRef} />
+            <DesktopNav alerts={alerts} anchor={headerRef} green={green} />
           </div>
 
           <div className="flex shrink-0 items-center gap-1">
@@ -115,19 +124,21 @@ export function Header({ alerts, accountLabel }: HeaderProps) {
                 <AccountButton appLabel={accountLabel} />
               </div>
             ) : null}
-            <WithAlerts
+            <WithStatus
               alerts={alerts}
               fallback={
                 <CheckingStatusPill className="flex lg:hidden xl:flex" />
               }
+              green={green}
             >
-              {(result) => (
+              {(result, outlook) => (
                 <WarningStatusPill
                   alerts={result}
                   className="flex lg:hidden xl:flex"
+                  green={outlook}
                 />
               )}
-            </WithAlerts>
+            </WithStatus>
             <button
               aria-controls="site-menu"
               aria-expanded={navOpen}
@@ -159,6 +170,7 @@ export function Header({ alerts, accountLabel }: HeaderProps) {
       <NavDrawer
         accountLabel={accountLabel}
         alerts={alerts}
+        green={green}
         onClose={() => setNavOpen(false)}
         open={navOpen}
         top={menuTop}

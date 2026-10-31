@@ -13,6 +13,7 @@ from src.auth.models import (
 from src.auth.permissions import ORGANISATION_BOUND_KEYS
 from src.exceptions import AuthorizationError
 from src.utils.datetime import utc_now
+from src.utils.timezones import local_today
 
 logger = logging.getLogger(__name__)
 
@@ -27,14 +28,17 @@ async def _active_assignments(
 ) -> list[UserRoleAssignment]:
     now = utc_now()
     from src.auth.delegation import DEPARTMENT_AUTHORITY_ROLES
-    from src.hr.models import EmploymentRecord, EmploymentStatus
+    from src.hr.models import EmploymentRecord, live_employment_clause
 
+    # An employment record past its end date counts as ended, like a non-ACTIVE
+    # status, so access stops on that date before the daily job runs (#797).
+    today = local_today()
     live_appointment = exists(
         select(EmploymentRecord.id).where(
             EmploymentRecord.user_id == UserRoleAssignment.user_id,
             EmploymentRecord.organisation_id == UserRoleAssignment.organisation_id,
             EmploymentRecord.department_id == UserRoleAssignment.department_id,
-            EmploymentRecord.status == EmploymentStatus.ACTIVE,
+            live_employment_clause(today),
             UserRoleAssignment.scope == RoleAssignmentScope.DEPARTMENT,
             UserRoleAssignment.user_id.in_(
                 select(User.id).where(User.is_active.is_(True))
@@ -57,7 +61,7 @@ async def _active_assignments(
             select(EmploymentRecord.id).where(
                 EmploymentRecord.user_id == UserRoleAssignment.user_id,
                 EmploymentRecord.organisation_id == UserRoleAssignment.organisation_id,
-                EmploymentRecord.status == EmploymentStatus.ACTIVE,
+                live_employment_clause(today),
             )
         )
     ) & UserRoleAssignment.user_id.in_(select(User.id).where(User.is_active.is_(True)))

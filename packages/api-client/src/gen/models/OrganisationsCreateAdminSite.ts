@@ -3,6 +3,7 @@
  * Do not edit manually.
  */
 
+import type { ApiError } from "./ApiError.js";
 import type { PublicSiteAdmin } from "./PublicSiteAdmin.js";
 import type { PublicSiteCreate } from "./PublicSiteCreate.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
@@ -15,13 +16,29 @@ import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
  */
 export type OrganisationsCreateAdminSiteStatus201 = PublicSiteAdmin;
 
-export type OrganisationsCreateAdminSiteStatus401 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type OrganisationsCreateAdminSiteStatus401 = ApiError;
 
-export type OrganisationsCreateAdminSiteStatus403 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type OrganisationsCreateAdminSiteStatus403 = ApiError;
 
-export type OrganisationsCreateAdminSiteStatus404 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type OrganisationsCreateAdminSiteStatus404 = ApiError;
 
-export type OrganisationsCreateAdminSiteStatus409 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type OrganisationsCreateAdminSiteStatus409 = ApiError;
 
 /**
  * @description Validation error envelope returned for malformed requests.

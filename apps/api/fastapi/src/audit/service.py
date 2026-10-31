@@ -12,7 +12,7 @@ from src.pagination import PaginatedResponse
 from src.utils.datetime import utc_now
 
 from . import registry
-from .listener import ACTOR_KEY, json_value
+from .listener import ACTOR_KEY, ACTOR_SESSION_KEY, actor_session_fields, json_value
 from .models import AuditEntry
 from .schemas import AuditChangePublic, AuditEntryPublic, AuditValue
 
@@ -21,8 +21,28 @@ SYSTEM_ACTOR = "System"
 
 
 def set_actor(session: AsyncSession, actor_id: uuid.UUID | None) -> None:
-    """Attribute this session's later flushes to ``actor_id`` (None = system)."""
+    """Attribute this session's later flushes to ``actor_id`` (None = system).
+
+    Leaves the sign-in kind alone: a service may name the actor again later in the
+    same request, and the request's sign-in (``set_actor_session``) stays."""
     session.info[ACTOR_KEY] = actor_id
+
+
+def set_actor_session(session: AsyncSession, *, app: str | None) -> None:
+    """Record how the actor signed in: an app session (``app`` = its key) or, when
+    ``app`` is None, an account session.
+
+    Once per request, first writer wins: a later dependency in the same request
+    cannot change the value, so the stamp always matches the token the request
+    presented. ``clear_actor_session`` undoes it for a request that ends up a guest."""
+    session.info.setdefault(
+        ACTOR_SESSION_KEY, ("app", app) if app else ("account", None)
+    )
+
+
+def clear_actor_session(session: AsyncSession) -> None:
+    """Forget the sign-in kind (the request turned out to have no signed-in actor)."""
+    session.info.pop(ACTOR_SESSION_KEY, None)
 
 
 async def record_change(
@@ -38,6 +58,7 @@ async def record_change(
     organisation_id: str | None = None,
 ) -> None:
     """Explicit entry for writes the flush listener cannot see (bulk statements)."""
+    actor_kind, actor_app = actor_session_fields(session.info)
     session.add(
         AuditEntry(
             entity_type=entity_type,
@@ -47,6 +68,8 @@ async def record_change(
             organisation_id=organisation_id,
             action=action,
             actor_user_id=session.info.get(ACTOR_KEY),
+            actor_session=actor_kind,
+            actor_app=actor_app,
             changes=[
                 {
                     "field": field,
@@ -118,6 +141,8 @@ async def list_history(
                 if entry.actor_user_id
                 else SYSTEM_ACTOR
             ),
+            actor_session=entry.actor_session,
+            actor_app=entry.actor_app,
             changes=[
                 AuditChangePublic(field=change["field"], masked=True)
                 if change.get("sensitive") and not see_sensitive

@@ -3,6 +3,7 @@
  * Do not edit manually.
  */
 
+import type { ApiError } from "./ApiError.js";
 import type { PaginatedResponseNotificationPublic } from "./PaginatedResponseNotificationPublic.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 
@@ -33,7 +34,11 @@ export type NotificationsGetNotificationsQuery = {
 export type NotificationsGetNotificationsStatus200 =
   PaginatedResponseNotificationPublic;
 
-export type NotificationsGetNotificationsStatus401 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type NotificationsGetNotificationsStatus401 = ApiError;
 
 /**
  * @description Validation error envelope returned for malformed requests.

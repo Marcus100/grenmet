@@ -4,6 +4,7 @@
  */
 
 import * as z from "zod";
+import { apiErrorSchema } from "./apiErrorSchema.js";
 import { publicHolidaysPublicSchema } from "./publicHolidaysPublicSchema.js";
 import { validationErrorResponseSchema } from "./validationErrorResponseSchema.js";
 
@@ -13,7 +14,9 @@ export const hrListHolidaysQueryYearSchema = z
 
 export const hrListHolidaysStatus200Schema = publicHolidaysPublicSchema;
 
-export const hrListHolidaysStatus403Schema = z.unknown();
+export const hrListHolidaysStatus403Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
 export const hrListHolidaysStatus422Schema =
   validationErrorResponseSchema.describe(

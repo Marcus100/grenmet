@@ -1,5 +1,6 @@
 import { Logo } from "@barrelsgd/gms/components/logo";
 import { ArrowRightIcon } from "lucide-react";
+import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import ReactMarkdown from "react-markdown";
@@ -7,6 +8,8 @@ import { FeaturedLink } from "@/components/featured-link";
 import { RelatedLinkAnchor } from "@/components/related-link-anchor";
 import { fetchContentBySlug, type PublishedContent } from "@/lib/cms";
 import { contentToArticle } from "@/lib/editorial";
+import { SITE_DESCRIPTION, SITE_LOCALE } from "@/lib/site-metadata";
+import { SITE_NAME } from "@/lib/site-name";
 
 const SECTIONS = {
   "desk-updates": { title: "From the Desk", href: "/explore/updates" },
@@ -21,10 +24,33 @@ const PROSE =
 const ASIDE_BOX =
   "flex flex-col gap-2 rounded-gm-card border border-gm-border p-4 text-body leading-body";
 
-/** Page metadata for a CMS article by its full slug. */
-export async function cmsArticleMetadata(slug: string) {
+/**
+ * Page metadata for a CMS article by its full slug: its title, its summary as
+ * the description, and the article's Open Graph fields for shared links.
+ */
+export async function cmsArticleMetadata(slug: string): Promise<Metadata> {
   const result = await fetchContentBySlug(slug);
-  return { title: result.articles[0]?.title ?? "GMS article" };
+  // The page says the article cannot be retrieved right now: that answer is
+  // not for search engines to index.
+  if (result.status === "unavailable") {
+    return { title: "GMS article", robots: { index: false, follow: false } };
+  }
+  const article = result.articles[0];
+  if (!article) return { title: "GMS article" };
+  const description = article.summary || SITE_DESCRIPTION;
+  return {
+    title: article.title,
+    description,
+    openGraph: {
+      type: "article",
+      title: article.title,
+      description,
+      siteName: SITE_NAME,
+      locale: SITE_LOCALE,
+      publishedTime: article.publishedAt ?? undefined,
+      modifiedTime: article.updatedAt,
+    },
+  };
 }
 
 /**

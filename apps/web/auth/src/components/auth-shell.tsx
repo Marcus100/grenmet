@@ -1,4 +1,8 @@
 import { Logo } from "@barrelsgd/gms/components/logo";
+import {
+  BARRELS_SUPPORT_EMAIL,
+  BARRELS_SUPPORT_HREF,
+} from "@barrelsgd/ui/lib/support";
 import { cn } from "@barrelsgd/ui/lib/utils";
 import type { ReactNode } from "react";
 import { AppDirectory, type AppId } from "@/components/app-directory";
@@ -55,6 +59,17 @@ export function AuthShell({
         >
           <Logo className="h-8 w-auto lg:hidden" variant="monogram" />
           {children}
+          <p className="text-center text-muted-foreground text-sm">
+            Need help with your Barrels account? Email Barrels Grenada support
+            at{" "}
+            <a
+              className="text-foreground underline underline-offset-4"
+              href={BARRELS_SUPPORT_HREF}
+            >
+              {BARRELS_SUPPORT_EMAIL}
+            </a>
+            .
+          </p>
         </div>
       </main>
     </div>

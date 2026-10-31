@@ -1,7 +1,7 @@
 from typing import Annotated, Any, Literal
 from uuid import UUID, uuid4
 
-from pydantic import AwareDatetime, ConfigDict, Field, StringConstraints
+from pydantic import AwareDatetime, ConfigDict, Field, RootModel, StringConstraints
 
 from src.models import BaseModel, UtcDateTime
 
@@ -459,3 +459,11 @@ class ObservationSend(BaseModel):
 
 class ObservationSendList(BaseModel):
     sends: list[ObservationSend]
+
+
+class SendObservationBody(RootModel[SendObservationRequest | None]):
+    """Optional send options. An absent body and null are both accepted."""
+
+
+class QcDecisionBody(RootModel[QcDecisionRequest | None]):
+    """Optional QC decision. An absent body and null are both accepted."""

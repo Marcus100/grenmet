@@ -3,8 +3,9 @@
  * Do not edit manually.
  */
 
+import type { ApiError } from "./ApiError.js";
 import type { ObservationSend } from "./ObservationSend.js";
-import type { SendObservationRequest } from "./SendObservationRequest.js";
+import type { SendObservationBody } from "./SendObservationBody.js";
 
 export type EregisterEmailRegisterObservationPath = {
   /**
@@ -21,18 +22,37 @@ export type EregisterEmailRegisterObservationPath = {
  */
 export type EregisterEmailRegisterObservationStatus202 = ObservationSend;
 
-export type EregisterEmailRegisterObservationStatus401 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type EregisterEmailRegisterObservationStatus401 = ApiError;
 
-export type EregisterEmailRegisterObservationStatus403 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type EregisterEmailRegisterObservationStatus403 = ApiError;
 
-export type EregisterEmailRegisterObservationStatus404 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type EregisterEmailRegisterObservationStatus404 = ApiError;
 
-export type EregisterEmailRegisterObservationStatus409 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type EregisterEmailRegisterObservationStatus409 = ApiError;
 
 export type EregisterEmailRegisterObservationStatus422 = unknown;
 
+/**
+ * @description Optional send options. An absent body and null are both accepted.
+ */
 export type EregisterEmailRegisterObservationBody =
-  | (SendObservationRequest | null)
+  | SendObservationBody
   | undefined;
 
 export type EregisterEmailRegisterObservationOptions = {

@@ -3,15 +3,24 @@
  * Do not edit manually.
  */
 
+import type { ApiError } from "./ApiError.js";
 import type { GoogleChallengePublic } from "./GoogleChallengePublic.js";
 import type { GoogleComplete } from "./GoogleComplete.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 
 export type AuthGoogleCompleteStatus200 = GoogleChallengePublic;
 
-export type AuthGoogleCompleteStatus400 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type AuthGoogleCompleteStatus400 = ApiError;
 
-export type AuthGoogleCompleteStatus403 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type AuthGoogleCompleteStatus403 = ApiError;
 
 /**
  * @description Validation error envelope returned for malformed requests.

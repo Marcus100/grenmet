@@ -3,6 +3,7 @@
  * Do not edit manually.
  */
 
+import type { ApiError } from "./ApiError.js";
 import type { NhcSourceCheck } from "./NhcSourceCheck.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 
@@ -12,11 +13,23 @@ export type WxwatchSourceChecksQuery = {
 
 export type WxwatchSourceChecksStatus200 = NhcSourceCheck[];
 
-export type WxwatchSourceChecksStatus401 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type WxwatchSourceChecksStatus401 = ApiError;
 
-export type WxwatchSourceChecksStatus403 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type WxwatchSourceChecksStatus403 = ApiError;
 
-export type WxwatchSourceChecksStatus404 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type WxwatchSourceChecksStatus404 = ApiError;
 
 /**
  * @description Validation error envelope returned for malformed requests.

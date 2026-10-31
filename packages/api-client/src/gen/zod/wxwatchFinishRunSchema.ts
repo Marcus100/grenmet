@@ -4,6 +4,7 @@
  */
 
 import * as z from "zod";
+import { apiErrorSchema } from "./apiErrorSchema.js";
 import { runFinishSchema } from "./runFinishSchema.js";
 import { validationErrorResponseSchema } from "./validationErrorResponseSchema.js";
 
@@ -15,9 +16,13 @@ export const wxwatchFinishRunHeaderAuthorizationSchema = z
 
 export const wxwatchFinishRunStatus204Schema = z.unknown();
 
-export const wxwatchFinishRunStatus401Schema = z.unknown();
+export const wxwatchFinishRunStatus401Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
-export const wxwatchFinishRunStatus409Schema = z.unknown();
+export const wxwatchFinishRunStatus409Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
 export const wxwatchFinishRunStatus422Schema =
   validationErrorResponseSchema.describe(

@@ -3,6 +3,7 @@
  * Do not edit manually.
  */
 
+import type { ApiError } from "./ApiError.js";
 import type { ProductAccessInput } from "./ProductAccessInput.js";
 import type { ProductAccessPublic } from "./ProductAccessPublic.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
@@ -13,15 +14,35 @@ export type HrUpdateProductPolicyPath = {
 
 export type HrUpdateProductPolicyStatus200 = ProductAccessPublic;
 
-export type HrUpdateProductPolicyStatus400 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type HrUpdateProductPolicyStatus400 = ApiError;
 
-export type HrUpdateProductPolicyStatus401 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type HrUpdateProductPolicyStatus401 = ApiError;
 
-export type HrUpdateProductPolicyStatus403 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type HrUpdateProductPolicyStatus403 = ApiError;
 
-export type HrUpdateProductPolicyStatus404 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type HrUpdateProductPolicyStatus404 = ApiError;
 
-export type HrUpdateProductPolicyStatus409 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type HrUpdateProductPolicyStatus409 = ApiError;
 
 /**
  * @description Validation error envelope returned for malformed requests.

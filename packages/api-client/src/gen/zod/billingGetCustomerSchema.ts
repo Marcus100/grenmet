@@ -4,6 +4,7 @@
  */
 
 import * as z from "zod";
+import { apiErrorSchema } from "./apiErrorSchema.js";
 import { customerPublicSchema } from "./customerPublicSchema.js";
 import { validationErrorResponseSchema } from "./validationErrorResponseSchema.js";
 
@@ -11,11 +12,17 @@ export const billingGetCustomerPathCustomerIdSchema = z.uuid();
 
 export const billingGetCustomerStatus200Schema = customerPublicSchema;
 
-export const billingGetCustomerStatus401Schema = z.unknown();
+export const billingGetCustomerStatus401Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
-export const billingGetCustomerStatus403Schema = z.unknown();
+export const billingGetCustomerStatus403Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
-export const billingGetCustomerStatus404Schema = z.unknown();
+export const billingGetCustomerStatus404Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
 export const billingGetCustomerStatus422Schema =
   validationErrorResponseSchema.describe(

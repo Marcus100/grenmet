@@ -3,6 +3,7 @@
  * Do not edit manually.
  */
 
+import type { ApiError } from "./ApiError.js";
 import type { WebhookAdminDisable } from "./WebhookAdminDisable.js";
 import type { WebhookEndpointPublic } from "./WebhookEndpointPublic.js";
 
@@ -16,15 +17,35 @@ export type WebhooksOutAdminDisableEndpointPath = {
  */
 export type WebhooksOutAdminDisableEndpointStatus200 = WebhookEndpointPublic;
 
-export type WebhooksOutAdminDisableEndpointStatus400 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type WebhooksOutAdminDisableEndpointStatus400 = ApiError;
 
-export type WebhooksOutAdminDisableEndpointStatus401 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type WebhooksOutAdminDisableEndpointStatus401 = ApiError;
 
-export type WebhooksOutAdminDisableEndpointStatus403 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type WebhooksOutAdminDisableEndpointStatus403 = ApiError;
 
-export type WebhooksOutAdminDisableEndpointStatus404 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type WebhooksOutAdminDisableEndpointStatus404 = ApiError;
 
-export type WebhooksOutAdminDisableEndpointStatus409 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type WebhooksOutAdminDisableEndpointStatus409 = ApiError;
 
 export type WebhooksOutAdminDisableEndpointStatus422 = unknown;
 
