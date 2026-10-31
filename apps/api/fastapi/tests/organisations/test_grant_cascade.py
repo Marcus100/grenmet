@@ -292,7 +292,11 @@ async def test_demoting_an_admin_ends_all_grants_it_issued_transitively(
         False,
     ]
     entries = await _cascade_entries(db_async, org)
-    assert {e.record_id for e in entries} == {m1_to_m2.id, m2_to_m3.id}
+    assert {e.record_id for e in entries} == {
+        admin_to_m1.id,
+        m1_to_m2.id,
+        m2_to_m3.id,
+    }
     assert {_field(e, "trigger") for e in entries} == {"demoted"}
 
 
@@ -413,10 +417,15 @@ async def test_a_revoker_removed_before_the_lock_is_refused(db_async: AsyncSessi
     removed.status = MembershipStatus.REMOVED.value
     await db_async.commit()
 
+    grant_id = grant_row.id
     with pytest.raises(GrantNotHeldError):
-        await grants.revoke_grant(db_async, stale, grant_id=grant_row.id)
+        await grants.revoke_grant(db_async, stale, grant_id=grant_id)
     await db_async.rollback()
-    assert await _is_live(db_async, grant_row) is True
+    assert (
+        await db_async.scalar(
+            select(MembershipGrant.revoked_at).where(MembershipGrant.id == grant_id)
+        )
+    ) is None
 
 
 async def test_the_cascade_is_bounded(db_async: AsyncSession, monkeypatch):
@@ -437,11 +446,16 @@ async def test_the_cascade_is_bounded(db_async: AsyncSession, monkeypatch):
     await _grant(db_async, m1, org, m2, "events-team")
     await _grant(db_async, m2, org, m3, "events-team")
 
+    root_id = root.id
     context = await _context(db_async, owner, org)
     with pytest.raises(GrantCascadeTooLargeError):
-        await grants.revoke_grant(db_async, context, grant_id=root.id)
+        await grants.revoke_grant(db_async, context, grant_id=root_id)
     await db_async.rollback()
-    assert await _is_live(db_async, root) is True
+    assert (
+        await db_async.scalar(
+            select(MembershipGrant.revoked_at).where(MembershipGrant.id == root_id)
+        )
+    ) is None
 
 
 async def test_cross_organisation_cascade_stays_inside_its_organisation(
