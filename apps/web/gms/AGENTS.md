@@ -194,6 +194,17 @@ src/app/
   `next.config.ts` header), never in the sitemap or nav. Set the CMS's
   `GMS_PREVIEW_URL` to this page's address. Tests: `lib/cms-preview.test.ts`
   (expired, forged, malformed, outage), `app/(pages)/preview/page.test.tsx`.
+- **Missing CMS items (30 Oct 2026):** `src/proxy.ts` runs only on the CMS
+  item addresses (`/explore/news|updates|reports/...`, `/explore/explained/<slug>`,
+  `/explore/quiz/<slug>`). On a full page load it asks the CMS's public list
+  endpoint whether the item exists (`lib/cms-item.ts` maps the address to the
+  slug, `lib/cms-item-exists.ts` asks and keeps answers one minute); a missing
+  item is rewritten to Next's `/_not-found`, rendered on the server with status
+  404. Reason: a `notFound()` thrown while a dynamic page renders makes Next 16
+  send an empty error document (`<html id="__next_error__">`) that only fills
+  in with JavaScript; moving live data into Suspense or a segment `not-found`
+  does not change that. Client navigations and a CMS that cannot answer fall
+  through to the page (which shows its "cannot be retrieved" message).
 - **Satellite:** `/weather/satellite` reads FastAPI `wxwatch/public/latest`
   (`lib/satellite.ts`) and shows images through `app/api/satellite/[id]` (a proxy;
   the API host and bucket are never exposed). No image is the "Not yet available"
