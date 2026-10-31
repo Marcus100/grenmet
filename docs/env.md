@@ -298,6 +298,12 @@ site's secret is set; the same value must be set for the API. Elections
 | gmsdash | `gmsdash` | `GMSDASH_SSO_CLIENT_SECRET` | `gmsdash_session` |
 | bookings | `bookings` | `BOOKINGS_SSO_CLIENT_SECRET` | `bookings_session` |
 
+The weather site (gms) also hides its "Sign in" button unless
+`WEATHER_SHOW_SIGN_IN=true` (owner, 31 Oct 2026; `false` by default, the same
+for the header and the nav drawer). The switch only hides the button: the
+`/auth` routes, the callback and the account handling stay live, and the
+`WEATHER_SSO_CLIENT_SECRET` check still decides whether sign-in works at all.
+
 In `infra/docker/docker-compose.deploy.yml` every web service (and the CMS) sets
 `AUTH_API_URL: http://api:8000`, never the public `https://api.<domain>`.
 Calling the public hostname hairpins through Traefik, which replaces the
@@ -314,6 +320,7 @@ Secrets are optional GitHub environment secrets (32+ characters).
 | `AUTH_API_URL` | FastAPI base URL |
 | `AUTH_API_V1_STR` | API version prefix |
 | `AUTH_ALLOWED_RETURN_HOSTS` | Safe redirect hosts used by shared auth helpers |
+| `WEATHER_SHOW_SIGN_IN` | **gms only.** `true` shows the "Sign in" button in the header and the nav drawer; `false` (default) hides it. Only the button is affected; the sign-in routes keep working. Accepts exactly `true` or `false`. |
 | `CAP_API_URL` | **gms only.** FastAPI base URL for the unauthenticated public CAP endpoints (`/api/cap/*`) that render the current-warnings panel. Separate from `AUTH_API_URL` because these endpoints need no session |
 | `NEXT_PUBLIC_SENTRY_DSN` / `NEXT_PUBLIC_SENTRY_ENVIRONMENT` | Optional browser error reporting |
 | `NEXT_PUBLIC_POSTHOG_KEY` / `NEXT_PUBLIC_POSTHOG_HOST` | Optional browser analytics |
