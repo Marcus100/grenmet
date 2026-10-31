@@ -151,3 +151,82 @@ async def require_mfa(session: AsyncSession, actor: User, token: str) -> None:
     await privileged_mfa.require_mfa_session(
         session, actor, token=token, app_key=_token_app(token)
     )
+
+
+async def period_approvers(session: AsyncSession, period: PayPeriod) -> set[uuid.UUID]:
+    """Everyone who approved this period, across ALL of its workflow instances.
+
+    A returned and resubmitted period gets a new instance each time, so looking
+    only at the current one would let an earlier approver slip back in.
+    """
+    from src.hr.workflow.models import (
+        WorkflowAction,
+        WorkflowInstance,
+        WorkflowStepInstance,
+    )
+
+    return {
+        user_id
+        for user_id in (
+            await session.execute(
+                select(WorkflowStepInstance.approver_user_id)
+                .join(
+                    WorkflowInstance,
+                    WorkflowInstance.id == WorkflowStepInstance.workflow_instance_id,
+                )
+                .where(
+                    WorkflowInstance.entity_type == "pay_period",
+                    WorkflowInstance.entity_id == period.id,
+                    WorkflowStepInstance.action == WorkflowAction.APPROVE,
+                )
+            )
+        ).scalars()
+        if user_id is not None
+    }
+
+
+async def period_conflict(
+    session: AsyncSession, actor: User, period: PayPeriod
+) -> str | None:
+    """Why this person may not approve or return the period, or None.
+
+    Refused to whoever prepared it or added any line, whoever has pay in it
+    (their own lines, hence payslip), and whoever last changed a pay profile or
+    a department's shift-worker default that the period's lines depend on.
+    """
+    from .models import EmployeePayProfile, PayLine, PayrollDepartmentSetting
+
+    if period.submitted_by_user_id == actor.id or await session.scalar(
+        select(PayLine.id)
+        .where(PayLine.period_id == period.id, PayLine.created_by_user_id == actor.id)
+        .limit(1)
+    ):
+        return "Someone who prepared or added lines to this period cannot approve or return it"
+    if await session.scalar(
+        select(PayLine.id)
+        .where(PayLine.period_id == period.id, PayLine.user_id == actor.id)
+        .limit(1)
+    ):
+        return "This period contains your own pay, so you cannot approve or return it"
+    if await session.scalar(
+        select(EmployeePayProfile.user_id)
+        .join(PayLine, PayLine.user_id == EmployeePayProfile.user_id)
+        .where(
+            PayLine.period_id == period.id,
+            EmployeePayProfile.updated_by_user_id == actor.id,
+        )
+        .limit(1)
+    ) or await session.scalar(
+        select(PayrollDepartmentSetting.department_id)
+        .join(PayLine, PayLine.department_id == PayrollDepartmentSetting.department_id)
+        .where(
+            PayLine.period_id == period.id,
+            PayrollDepartmentSetting.updated_by_user_id == actor.id,
+        )
+        .limit(1)
+    ):
+        return (
+            "You changed a pay profile or shift-worker default this period relies on, "
+            "so you cannot approve or return it"
+        )
+    return None

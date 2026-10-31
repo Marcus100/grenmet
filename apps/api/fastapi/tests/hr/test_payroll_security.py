@@ -176,3 +176,106 @@ async def test_finalize_only_moves_a_period_in_review() -> None:
 def test_download_names_are_sanitised() -> None:
     assert export.safe_filename('pay"; evil\r\n.csv') == "pay---evil--.csv"
     assert export.safe_filename("../../x") == "x"
+
+
+@pytest.mark.usefixtures("totp_keys")
+async def test_own_pay_and_changed_profiles_bar_approval(
+    async_client: httpx.AsyncClient, db_async: AsyncSession
+) -> None:
+    ops, _, accounts = await departments(db_async)
+    await approval_setup(db_async, accounts.id)
+    employee = await employee_in(db_async, ops)
+    other = await employee_in(db_async, ops)
+    await worked_shift(
+        db_async,
+        employee,
+        ops,
+        day=date(2026, 9, 8),
+        arrive="2026-09-08T08:00:00-04:00",
+        depart="2026-09-08T16:00:00-04:00",
+    )
+    preparer = await headers_for(db_async, await make_user(db_async, superuser=True))
+    _, period_id = await calendar_and_period(
+        async_client, preparer, accounts.id, SEPTEMBER
+    )
+    # An approver who has their own pay in the period is refused.
+    employee.is_superuser = True
+    await db_async.commit()
+    own = await headers_for(db_async, employee, mfa=True)
+    # Someone who changed the shift-worker default of the period's department.
+    changer_user = await make_user(db_async, superuser=True)
+    changer = await headers_for(db_async, changer_user, mfa=True)
+    changed = await async_client.put(
+        f"{API}/department-settings/{ops.id}",
+        headers=changer,
+        json={"shift_worker_default": True},
+    )
+    assert changed.status_code == 200, changed.text
+    other_profile = await async_client.put(
+        f"{API}/profiles/{other.id}",
+        headers=changer,
+        json={"organisation_id": "gaa", "shift_worker": True},
+    )
+    assert other_profile.status_code == 200
+    await async_client.post(f"{API}/periods/{period_id}/computation", headers=preparer)
+    submitted = await async_client.post(
+        f"{API}/periods/{period_id}/submission", headers=preparer
+    )
+    assert submitted.status_code == 200, submitted.text
+    for who, text in ((own, "your own pay"), (changer, "changed a pay profile")):
+        for path, body in (("approval", {}), ("return", {"comments": "No thanks"})):
+            refused = await async_client.post(
+                f"{API}/periods/{period_id}/{path}", headers=who, json=body
+            )
+            assert refused.status_code == 403, (text, path, refused.text)
+            assert text in refused.json()["detail"]
+    clean = await headers_for(
+        db_async, await make_user(db_async, superuser=True), mfa=True
+    )
+    approved = await async_client.post(
+        f"{API}/periods/{period_id}/approval", headers=clean, json={}
+    )
+    assert approved.status_code == 200, approved.text
+
+
+async def test_recompute_stops_when_manual_bands_would_count_twice(
+    async_client: httpx.AsyncClient, db_async: AsyncSession
+) -> None:
+    from src.hr.payroll import overtime
+
+    ops, _, accounts = await departments(db_async)
+    employee = await employee_in(db_async, ops)
+    admin = await headers_for(db_async, await make_user(db_async, superuser=True))
+    _, period_id = await calendar_and_period(
+        async_client, admin, accounts.id, SEPTEMBER
+    )
+    items = (await async_client.get(f"{API}/items", headers=admin)).json()["data"]
+    band = next(i for i in items if i["code"] == "OT_TIME_AND_HALF")
+    previous = overtime.install(overtime.PendingOvertimeBands())
+    try:
+        added = await async_client.post(
+            f"{API}/periods/{period_id}/lines",
+            headers=admin,
+            json={
+                "user_id": str(employee.id),
+                "pay_item_id": band["id"],
+                "quantity": "2",
+                "reason": "Typed in before the roster computed bands",
+            },
+        )
+        assert added.status_code == 201, added.text
+    finally:
+        overtime.install(previous)  # the department now computes bands
+    refused = await async_client.post(
+        f"{API}/periods/{period_id}/computation", headers=admin
+    )
+    assert refused.status_code == 409
+    assert "duplicate" in refused.json()["detail"]
+    removed = await async_client.delete(
+        f"{API}/periods/{period_id}/lines/{added.json()['id']}", headers=admin
+    )
+    assert removed.status_code == 204
+    again = await async_client.post(
+        f"{API}/periods/{period_id}/computation", headers=admin
+    )
+    assert again.status_code == 200, again.text

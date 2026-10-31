@@ -57,7 +57,7 @@ export function hrReturnPayPeriodMutationOptions<TContext = unknown>(
 }
 
 /**
- * @description Needs organisation-wide hr.payroll.approve and a reason; never someone who submitted the period or added lines to it. The period reopens for changes.
+ * @description Needs organisation-wide hr.payroll.approve and a reason; never someone who submitted the period, added lines to it, has their own pay in it, or changed a pay profile or shift-worker default it relies on. The period reopens for changes.
  * @summary Return a pay period to the preparer
  * {@link /api/v1/hr/payroll/periods/:period_id/return}
  */
