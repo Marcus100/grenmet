@@ -103,6 +103,7 @@ Go into each environment and add the following secrets. Staging and production u
 | `JANITORIAL_DB_PASSWORD` | Janitorial database password | Generate a separate random value |
 | `TRANSPORT_DB_PASSWORD` | Transport database password | Generate a separate random value |
 | `GAA_ADMIN_SSO_CLIENT_SECRET` | GAA Admin single sign-on secret    | `openssl rand -base64 32` (different per environment and per app)   |
+| `CAP_SSO_CLIENT_SECRET` | CAP warning desk single sign-on secret (`cap.${BASE_DOMAIN}/desk`; empty keeps its sign-in off, public alert pages unaffected) | `openssl rand -base64 32` (different per environment and per app) |
 | `BARRELS_ADMIN_SSO_CLIENT_SECRET` | Barrels staff console single sign-on secret (empty keeps its sign-in off; superusers only) | `openssl rand -base64 32` (different per environment and per app) |
 | `CMS_SSO_CLIENT_SECRET`    | CMS single sign-on secret             | `openssl rand -base64 32` (different per environment and per app)   |
 | `GMSDASH_SSO_CLIENT_SECRET` | GMS Dashboard single sign-on secret (optional; empty keeps sign-in off) | `openssl rand -base64 32` (different per environment and per app) |
