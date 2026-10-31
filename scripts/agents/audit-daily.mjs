@@ -11,6 +11,21 @@ export const DAILY_SOURCES = [
   "secrets",
   "backups",
 ];
+// Several sources share one issue: both send targets and both worker counters.
+export const DAILY_ROOT_CAUSES = {
+  "coverage:daily:eregister-sends": "coverage:daily:delivery-monitoring",
+  "coverage:daily:wis2-sends": "coverage:daily:delivery-monitoring",
+  "coverage:daily:worker-jobs": "coverage:daily:worker-telemetry",
+  "coverage:daily:notification-sweeps": "coverage:daily:worker-telemetry",
+};
+// Accepted provenance for Sentry receipts: the Sentry MCP adapter on the WSL
+// host, or the read-only API collector on the droplet runners.
+const SENTRY_PROVENANCE = new Set(["sentry-mcp", "sentry-api"]);
+// With `dailySources: "runner"` the droplet runners own these sources and this
+// host must not publish them, or the two paths would reopen each other's issues.
+export function runnerOwnsDailySources(config) {
+  return config?.dailySources === "runner";
+}
 function gap(source) {
   return observation(
     `coverage:daily:${source}`,
@@ -31,7 +46,7 @@ export function aggregateReceipt(source, receipt, now = Date.now()) {
     !Number.isFinite(Date.parse(receipt.observedAt)) ||
     now - Date.parse(receipt.observedAt) > 26 * 3_600_000 ||
     Date.parse(receipt.observedAt) > now ||
-    (source === "sentry" && receipt.via !== "sentry-mcp")
+    (source === "sentry" && !SENTRY_PROVENANCE.has(receipt.via))
   )
     return [gap(source)];
   const results = [];
@@ -79,6 +94,12 @@ export function readAggregate(source, path, now) {
   } catch {
     return [gap(source)];
   }
+}
+function operationalReceipts(config, now) {
+  if (runnerOwnsDailySources(config)) return [];
+  return DAILY_SOURCES.flatMap((source) =>
+    readAggregate(source, config.receipts?.[source], now)
+  );
 }
 export function certificateDays(host, now = Date.now()) {
   return new Promise((resolve) => {
@@ -161,7 +182,6 @@ export async function daily({
       );
     }
   }
-  for (const source of DAILY_SOURCES)
-    results.push(...readAggregate(source, config.receipts?.[source], now));
+  results.push(...operationalReceipts(config, now));
   return results;
 }

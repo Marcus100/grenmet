@@ -15,7 +15,11 @@ import {
   sourceRisks,
   weeklyPlan,
 } from "./audit-checks.mjs";
-import { daily } from "./audit-daily.mjs";
+import {
+  DAILY_ROOT_CAUSES,
+  daily,
+  runnerOwnsDailySources,
+} from "./audit-daily.mjs";
 import { testExecutor } from "./audit-executor.mjs";
 import {
   command,
@@ -209,7 +213,7 @@ export async function audit({
     });
   else if (mode === "daily") {
     const dailyConfig = { ...config, receipts: { ...config.receipts } };
-    if (config.operationsConfig) {
+    if (config.operationsConfig && !runnerOwnsDailySources(config)) {
       for (const source of [
         "eregister-sends",
         "wis2-sends",
@@ -361,10 +365,7 @@ export async function audit({
     }
   }
   observations = groupObservations(observations, {
-    "coverage:daily:eregister-sends": "coverage:daily:delivery-monitoring",
-    "coverage:daily:wis2-sends": "coverage:daily:delivery-monitoring",
-    "coverage:daily:worker-jobs": "coverage:daily:worker-telemetry",
-    "coverage:daily:notification-sweeps": "coverage:daily:worker-telemetry",
+    ...DAILY_ROOT_CAUSES,
     ...config.rootCauses,
   });
   writeFileSync(
