@@ -31,7 +31,18 @@ from src.models import BaseModel, UtcDateTime
 MAX_IMPORT_CHARS = 5 * 1024 * 1024
 
 # XML 1.0 Char production: what a CAP document may carry at all.
-_XML_ILLEGAL = re.compile("[^\t\n\r -\ud7ff\ue000-\ufffd\U00010000-\U0010ffff]")
+WMO_OID = re.compile(r"2\.49\.0\.1\.\d+\.\d+")
+
+
+def _xml_char(char: str) -> bool:
+    """True for characters the XML 1.0 Char production allows."""
+    code = ord(char)
+    return (
+        code in (0x9, 0xA, 0xD)
+        or 0x20 <= code <= 0xD7FF
+        or 0xE000 <= code <= 0xFFFD
+        or 0x10000 <= code <= 0x10FFFF
+    )
 
 
 def clean_xml_text(value: str, field: str) -> str:
@@ -42,11 +53,11 @@ def clean_xml_text(value: str, field: str) -> str:
     on save, rather than failing at publish.
     """
     value = value.replace("\x0b", "\n").replace("\x0c", "\n")
-    bad = _XML_ILLEGAL.search(value)
+    bad = next((char for char in value if not _xml_char(char)), None)
     if bad is not None:
         raise ValueError(
             f"{field} contains a character that CAP XML cannot carry "
-            f"(U+{ord(bad.group()):04X}). Remove it."
+            f"(U+{ord(bad):04X}). Remove it."
         )
     return value
 
@@ -458,12 +469,30 @@ class CapSettingsPublic(BaseModel):
 class CapSettingsUpdate(BaseModel):
     sender: str | None = Field(default=None, min_length=1, max_length=255)
     sender_name: str | None = Field(default=None, min_length=1, max_length=255)
-    wmo_oid: str | None = Field(default=None, max_length=120)
+    wmo_oid: str | None = Field(
+        default=None,
+        max_length=120,
+        description="WMO OID of the form 2.49.0.1.<country>.<authority>, digits and dots only. Empty clears it.",
+    )
     web: str | None = Field(default=None, max_length=500)
     contact: str | None = Field(default=None, max_length=500)
     feed_limit: int | None = Field(default=None, ge=1, le=500)
     signing_enabled: bool | None = None
     signing_certificate_ref: str | None = Field(default=None, max_length=255)
+
+    @field_validator("wmo_oid")
+    @classmethod
+    def _wmo_oid_form(cls, value: str | None) -> str | None:
+        """WMO form 2.49.0.1.<country>.<authority>, digits and dots only. Empty clears it."""
+        if value is None or not value.strip():
+            return None
+        value = value.strip()
+        if not WMO_OID.fullmatch(value):
+            raise ValueError(
+                "wmo_oid must be a WMO OID of the form 2.49.0.1.<country>.<authority>, "
+                "digits and dots only, for example 2.49.0.1.308.1."
+            )
+        return value
 
 
 class CapCatalogsPublic(BaseModel):

@@ -107,6 +107,7 @@ from src.cap.tasks import enqueue_publish_side_effects
 from src.cap.validation import (
     MAX_IMPORT_BYTES,
     ensure_public_host,
+    pinned_request,
     validate_cap_alert,
     validate_import_url,
 )
@@ -206,12 +207,18 @@ async def _fetch_document(
     The host must resolve to public addresses on every fetch, whether or not a client
     was injected. Redirects are not followed. The body is capped while it is read.
     """
-    await ensure_public_host(urlparse(url).hostname or "")
+    address = await ensure_public_host(urlparse(url).hostname or "")
+    request_url, pinned_headers, extensions = pinned_request(url, address)
     owns_client = http_client is None
     client = http_client or httpx.AsyncClient()
     try:
         async with client.stream(
-            "GET", url, timeout=15.0, follow_redirects=False, headers=headers
+            "GET",
+            request_url,
+            timeout=15.0,
+            follow_redirects=False,
+            headers={**(headers or {}), **pinned_headers},
+            extensions=extensions or None,
         ) as response:
             if response.is_redirect:
                 raise CapImportError("redirects are not followed for CAP imports")
@@ -730,6 +737,12 @@ async def _publish(
     replaced = await _published_references_for_update(
         session=session, alert=alert, public=public
     )
+    # CAP "sent" is the time the message went out, not when it was drafted. Set it
+    # here, on publish, so the XML, the snapshot and the feeds all carry it.
+    alert.sent = utc_now().replace(microsecond=0)
+    session.add(alert)
+    await session.flush()
+    public = await _to_public(session=session, alert=alert)
     emergency = emergency_reason is not None
     xml, mismatch = await gate_cap_xml(
         alert_to_cap_xml(public),

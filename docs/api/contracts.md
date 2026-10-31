@@ -1358,6 +1358,8 @@ A normal publish checks the generated XML against the official OASIS CAP 1.2 sch
 
 An import (`POST /api/v1/cap/alerts/import`, feeds too) is refused only when it is malformed XML or contains a DTD (400). Any other problem is stored: `schema_conformant: false`, with every problem in `schema_error`. An import changed to be storable is flagged the same way and lists each change. `import_source` is `feed` or `manual`. Publishing an imported alert, normally or in an emergency, needs `confirm_imported: true` in the request body (409 without it). Save-time checks (422, naming the value): a `responseType` outside the nine CAP values, a `language` that is not an xs:language tag, a `web` address with spaces, quotes or angle brackets, a character XML cannot carry (vertical tab and form feed become newlines), and a non-finite altitude, ceiling or coordinate. The import body is capped at 5 MB.
 
+`sent` is the time an alert went out: publish (normal and emergency) stamps it, and so do cancellations. The drafting time is not kept. The CAP settings `wmo_oid` must be a WMO OID of the form `2.49.0.1.<country>.<authority>` (digits and dots only); anything else is a 422.
+
 The public routes (`/api/cap/alerts`, `/alerts/{identifier}`, `/past`, `/latest-active`) return `CapAlertPublicView`, which drops `schema_conformant`, `schema_error`, `import_source`, `note`, `created_by_user_id` and `updated_by_user_id`. Staff routes return the full `CapAlertPublic`.
 
 Save-time checks (422, naming the value): `responseType` must be one of the nine CAP values, `language` must be an xs:language tag, and `web` must be one address with no spaces, quotes or angle brackets.

@@ -69797,7 +69797,8 @@
                 "type": "null"
               }
             ],
-            "title": "Wmo Oid"
+            "title": "Wmo Oid",
+            "description": "WMO OID of the form 2.49.0.1.<country>.<authority>, digits and dots only. Empty clears it."
           },
           "web": {
             "anyOf": [
