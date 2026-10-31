@@ -104,3 +104,36 @@ async def test_code_sign_in_is_audited_without_secrets(
     )
     assert entries, "a code sign-in must leave an audit entry"
     assert all("123456" not in str(entry.changes) for entry in entries)
+
+
+@pytest.mark.asyncio
+async def test_privileged_code_sign_in_still_needs_the_authenticator(
+    async_client, db_async, monkeypatch
+):
+    """The emailed code is the first factor; an enrolled authenticator is required too."""
+    from src.auth.models import User
+
+    monkeypatch.setattr(app_service, "new_code", lambda: "123456")
+    monkeypatch.setattr(app_service, "send_email", lambda **kwargs: None)
+    email = "admin-mfa@example.com"
+    db_async.add(
+        User(
+            email=email,
+            username="admin-mfa",
+            first_name="Admin",
+            last_name="Mfa",
+            hashed_password="not-used",
+            is_active=True,
+            is_superuser=True,
+            totp_enabled=True,
+            totp_secret="JBSWY3DPEHPK3PXP",
+        )
+    )
+    await db_async.commit()
+    await async_client.post(f"{BASE}/email-code/start", json={"email": email})
+    response = await async_client.post(
+        f"{BASE}/email-code/verify", json={"email": email, "code": "123456"}
+    )
+    assert response.status_code == 400
+    assert "Two-factor authentication code required" in response.json()["detail"]
+    assert "access_token" not in response.json()
