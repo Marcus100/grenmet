@@ -4,7 +4,8 @@ export type ActionResult<T = undefined> =
   | {
       readonly error: string;
       readonly ok: false;
-      /** The attempt cannot be replayed (server failure): drop its idempotency key. */
+      /** The server confirmed the attempt is over (card payment unavailable, or the
+       * attempt expired): drop its idempotency key. Never set for a bare 5xx. */
       readonly freshKey?: true;
     };
 
