@@ -1,7 +1,7 @@
 """cap alert schema conformance
 
 Revision ID: capalertschema20261030
-Revises: rosterrulesets20261031
+Revises: payrollinputs20261031
 Create Date: 2026-10-30
 
 Additive: two columns on cap.alert. An imported CAP alert that does not fully
@@ -15,7 +15,7 @@ import sqlalchemy as sa
 from alembic import op
 
 revision = "capalertschema20261030"
-down_revision = "rosterrulesets20261031"
+down_revision = "payrollinputs20261031"
 branch_labels = None
 depends_on = None
 
