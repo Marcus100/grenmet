@@ -356,6 +356,8 @@ def _supported_grant_ids(
         for grant in live:
             if grant.id in supported:
                 continue
+            if grant.granted_by is None:
+                continue
             grantor = by_user.get(grant.granted_by)
             bundle = role_bundles.bundle_keys(grant.role_key)
             if grantor is None or bundle is None or grantor.id not in held:
@@ -370,8 +372,10 @@ def _supported_grant_ids(
                 continue
             if recipient not in held:
                 held[recipient] = frozenset(bundle)
-            elif held[recipient] is not None:
-                held[recipient] = held[recipient] | bundle
+            else:
+                current = held[recipient]
+                if current is not None:
+                    held[recipient] = current | bundle
     return supported
 
 
@@ -384,7 +388,8 @@ def _downstream(
     went to. Each grant is listed once, so cycles end."""
     issued: dict[uuid.UUID, list[MembershipGrant]] = {}
     for grant in live:
-        issued.setdefault(grant.granted_by, []).append(grant)
+        if grant.granted_by is not None:
+            issued.setdefault(grant.granted_by, []).append(grant)
     out: list[MembershipGrant] = []
     seen_grants: set[str] = set()
     seen_members = {recipient_id}
@@ -580,7 +585,8 @@ async def end_issued_transitively(
     live = await _live_grants(session, organisation_id, now, products)
     issued: dict[uuid.UUID, list[MembershipGrant]] = {}
     for grant in live:
-        issued.setdefault(grant.granted_by, []).append(grant)
+        if grant.granted_by is not None:
+            issued.setdefault(grant.granted_by, []).append(grant)
     frontier = list(dict.fromkeys(seed_membership_ids))
     seen_members = set(frontier)
     seen_grants: set[str] = set()
