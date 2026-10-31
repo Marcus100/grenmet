@@ -183,6 +183,10 @@ services:
       # superusers only). Empty secret keeps its sign-in off.
       BARRELS_ADMIN_APP_URL: https://admin.${BASE_DOMAIN}
       BARRELS_ADMIN_SSO_CLIENT_SECRET: ${BARRELS_ADMIN_SSO_CLIENT_SECRET:-}
+      # CAP warning desk (apps/web/cap at /desk, registry key cap, staff scope).
+      # Empty secret keeps its sign-in off; the public alert pages are unaffected.
+      CAP_APP_URL: https://cap.${BASE_DOMAIN}
+      CAP_SSO_CLIENT_SECRET: ${CAP_SSO_CLIENT_SECRET:-}
       CMS_APP_URL: https://cms.${BASE_DOMAIN}
       CMS_SSO_CLIENT_SECRET: ${CMS_SSO_CLIENT_SECRET:?CMS_SSO_CLIENT_SECRET required}
       # Public sites with "Sign in" (optional; empty keeps it off per site).
@@ -505,7 +509,7 @@ services:
       # lands back in it instead of on this app's home page. Each one must match its
       # entry in the api service. scripts/production/auth-return-origins.test.mjs
       # checks the two lists agree. EXTRA_RETURN_HOSTS, if set, must start with a comma.
-      AUTH_ALLOWED_RETURN_HOSTS: https://admin.${BASE_DOMAIN},https://bookings.${BASE_DOMAIN},https://cms.${BASE_DOMAIN},https://elections.${BASE_DOMAIN},https://gmsdash.${BASE_DOMAIN}${EXTRA_RETURN_HOSTS:-}
+      AUTH_ALLOWED_RETURN_HOSTS: https://admin.${BASE_DOMAIN},https://bookings.${BASE_DOMAIN},https://cap.${BASE_DOMAIN},https://cms.${BASE_DOMAIN},https://elections.${BASE_DOMAIN},https://gmsdash.${BASE_DOMAIN}${EXTRA_RETURN_HOSTS:-}
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.web-auth${ROUTER_SUFFIX}.rule=Host(`auth.${BASE_DOMAIN}`)"
@@ -746,9 +750,14 @@ services:
       retries: 3
       start_period: 20s
     environment:
-      # Public alert hub: server-side fetches of the unauthenticated CAP feeds
-      # only, so there is no sign-in, cookie or CORS configuration here.
+      # Public alert hub: server-side fetches of the unauthenticated CAP feeds.
+      # The staff warning desk under /desk signs in through auth (ADR-0017) with
+      # its own host-only cookie; an empty secret keeps the desk's sign-in off.
       CAP_API_URL: http://api:8000
+      AUTH_API_URL: http://api:8000
+      AUTH_API_V1_STR: /api/v1
+      AUTH_APP_URL: https://auth.${BASE_DOMAIN}
+      CAP_SSO_CLIENT_SECRET: ${CAP_SSO_CLIENT_SECRET:-}
       GMS_SITE_URL: https://weather.${BASE_DOMAIN}
       NEXT_PUBLIC_SENTRY_DSN: ${SENTRY_DSN_CAP:-}
       NEXT_PUBLIC_SENTRY_ENVIRONMENT: ${ENVIRONMENT}
