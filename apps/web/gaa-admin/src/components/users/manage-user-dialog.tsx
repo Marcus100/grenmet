@@ -37,6 +37,7 @@ import { toast } from "sonner";
 import { AccountActivation } from "./account-activation";
 import { CmsAccessControl } from "./cms-access-control";
 import { EmploymentSection } from "./employment-section";
+import { SignInSetup } from "./sign-in-setup";
 
 interface ManageUserDialogProps {
   onOpenChange?: (open: boolean) => void;
@@ -178,6 +179,7 @@ export function ManageUserDialog({
         </DialogHeader>
 
         <AccountActivation open={open} user={user} />
+        <SignInSetup open={open} user={user} />
         <CmsAccessControl open={open} user={user} />
         <div className="flex flex-col gap-3">
           <span className="font-medium text-sm">Roles</span>
