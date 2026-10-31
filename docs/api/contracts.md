@@ -809,8 +809,10 @@ Shared APIs for every Barrels app. Zones follow ADR-0025.
   no self-grant and no revoking one's own grant, both 403; expiry cap 422; duplicate
   or lost race 409) live in
   `grants.py`. Responses carry display names, never emails. Removing a member also
-  revokes live grants they issued (audited with a count); a demotion only lists them.
-  `issued-grants` lists direct grants only: revocation is not transitive. Member grant
+  revokes live grants they issued, transitively, and so does a demotion (#527). Revoking
+  a grant ends the downstream grants that lose support from an owner or admin, and the
+  response's `cascaded_revocations` counts them (409 above 200 roles, nothing ended).
+  Revoking a team grant can end the grants its holder issued. Member grant
   lists show only products whose `team.manage` the caller holds. Each bundle carries a
   human `label` and `description` (`role_bundles.BUNDLE_COPY`). `GET /team/members`
   (team managers) is the paginated roster of active members: membership id, display
