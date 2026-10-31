@@ -10,6 +10,11 @@ overtime as MANUAL lines against the band's pay item in the meantime (the
 service allows manual lines on OVERTIME_BAND items while the source is not
 available). When #380 lands, implement this protocol over its banding and
 install it with :func:`install`; nothing else in payroll changes.
+
+#890 computes bands when they are read and does not store them, and its bands
+for past records can shift when rules or holidays change. Payroll therefore
+copies band hours into pay-line quantities when it computes a period, and the
+lines lock when the period is submitted: approved figures never move.
 """
 
 import uuid
@@ -21,7 +26,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from .rules import ShiftFacts
 
-#: Hours per band code per attendance record, e.g. {att_id: {"WEEKDAY_FIRST_4": 2}}.
+#: Hours per band per attendance record, e.g. {att_id: {"1.5": 2, "2": 1}}. A band
+#: is named as the roster rules engine (#890) names it: its multiplier as a
+#: normalised decimal string (``format(rate.normalize(), "f")``).
 BandHours = dict[uuid.UUID, dict[str, Decimal]]
 
 

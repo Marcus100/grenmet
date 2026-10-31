@@ -40,15 +40,18 @@ class PayItemSeed:
     params: dict[str, Any] = field(default_factory=dict)
 
 
-def _band(code: str, name: str, clause: str) -> PayItemSeed:
+def _band(code: str, name: str, band: str, clauses: str) -> PayItemSeed:
+    """Overtime bands are named as the roster rules engine (#890) names them:
+    the band's multiplier as a normalised decimal string ("1.5", "2", "3").
+    It identifies a quantity bucket; slice 1 stores no money."""
     return PayItemSeed(
         code,
         name,
         PayItemKind.OVERTIME,
         PayItemUnit.HOURS,
         PayItemMethod.OVERTIME_BAND,
-        f"{MEMORANDUM}, {clause}, PDF p. 12; band hours come from the roster rules (#380)",
-        {"band": code},
+        f"{MEMORANDUM}, {clauses}, PDF p. 12; band hours from the roster rules (#890)",
+        {"band": band},
     )
 
 
@@ -62,19 +65,24 @@ GAA_PAY_ITEMS: tuple[PayItemSeed, ...] = (
         f"{MEMORANDUM}, hours of work: 8 standard hours a day inclusive of a lunch break, PDF p. 11",
         {"standard_hours": "8", "hours_basis": "ELAPSED"},
     ),
-    _band("OT_WEEKDAY_FIRST_4", "Overtime, weekday, first 4 hours", "Art. 6(2)(a)"),
-    _band("OT_WEEKDAY_AFTER_4", "Overtime, weekday, after 4 hours", "Art. 6(2)(a)"),
-    _band("OT_SATURDAY_MORNING", "Overtime, Saturday 08:00 to 12:00", "Art. 6(2)(b)"),
-    _band("OT_SATURDAY_AFTER_NOON", "Overtime, Saturday after 12:00", "Art. 6(2)(b)"),
     _band(
-        "OT_REST_DAY_FIRST_8",
-        "Sunday, public holiday or day off, first 8 hours",
-        "Art. 6(2)(c)",
+        "OT_TIME_AND_HALF",
+        "Overtime at time and a half",
+        "1.5",
+        "Art. 6(2)(a)-(b): weekday first 4 hours, Saturday 08:00 to 12:00",
     ),
     _band(
-        "OT_REST_DAY_AFTER_8",
-        "Sunday, public holiday or day off, after 8 hours",
-        "Art. 6(2)(c)",
+        "OT_DOUBLE",
+        "Overtime at double time",
+        "2",
+        "Art. 6(2)(a)-(e): weekday after 4 hours, Saturday afternoon, "
+        "Sunday, public holiday or day off first 8 hours, after midnight",
+    ),
+    _band(
+        "OT_TRIPLE",
+        "Overtime at triple time",
+        "3",
+        "Art. 6(2)(c): Sunday, public holiday or day off after 8 hours",
     ),
     PayItemSeed(
         "PUBLIC_HOLIDAY",

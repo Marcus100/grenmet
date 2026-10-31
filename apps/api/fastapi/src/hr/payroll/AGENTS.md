@@ -34,10 +34,14 @@ files and cutover are later slices that need their own approval.
   assignments; SELF grants nothing); prepare, approve and export need ALL scope.
   A period in an organisation without payroll access is a 404. Export needs an
   MFA-verified session and writes a `pay_period_export` audit entry with counts.
-- **Overtime bands (#380).** `OVERTIME_BAND` items read band hours through
-  `overtime.OvertimeBandSource`. Until #380 installs a real source
+- **Overtime bands (#380, PR #890).** `OVERTIME_BAND` items name a `band` as
+  #890 names it, the multiplier as a normalised decimal string ("1.5", "2",
+  "3"), and read band hours through `overtime.OvertimeBandSource`. Do not
+  duplicate #890's band maths here. Until #890 lands and installs a source
   (`overtime.install`), `PendingOvertimeBands` returns nothing and preparers may
-  enter band hours as MANUAL lines with a reason.
+  enter band hours as MANUAL lines with a reason. #890 computes bands on read,
+  so payroll copies them into pay-line quantities at computation; the lines
+  lock at submission and approved figures never move.
 - **Logs and Sentry:** IDs and counts only, never names, quantities or reasons.
 
 ## Rules (all provisional, parameters in the GAA catalogue)

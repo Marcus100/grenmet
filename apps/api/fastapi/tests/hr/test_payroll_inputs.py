@@ -72,9 +72,7 @@ class HoursOverEight:
     ) -> overtime.BandHours:
         del session, organisation_id
         return {
-            shift.attendance_id: {
-                "OT_WEEKDAY_FIRST_4": max(shift.hours() - Decimal(8), Decimal(0))
-            }
+            shift.attendance_id: {"1.5": max(shift.hours() - Decimal(8), Decimal(0))}
             for shift in shifts
         }
 
@@ -137,7 +135,7 @@ async def test_twelve_hour_shift_gives_base_band_and_meal(
     await _compute(async_client, admin, period_id)
     totals = quantities(await lines(async_client, admin, period_id))
     assert totals["BASE"] == 8
-    assert totals["OT_WEEKDAY_FIRST_4"] == 4
+    assert totals["OT_TIME_AND_HALF"] == 4
     assert totals["MEAL"] == 1
     assert "SHIFT_PREMIUM" not in totals  # 07:00-19:00 is outside 21:00-06:00
 
@@ -166,7 +164,7 @@ async def test_without_the_band_engine_no_overtime_is_computed(
     assert not any(code.startswith("OT_") for code in totals)
     # Until #380 lands, a preparer enters band hours by hand with a reason.
     items = (await async_client.get(f"{API}/items", headers=admin)).json()["data"]
-    band = next(i for i in items if i["code"] == "OT_WEEKDAY_FIRST_4")
+    band = next(i for i in items if i["code"] == "OT_TIME_AND_HALF")
     assert band["accepts_manual_lines"] is True
     manual = await async_client.post(
         f"{API}/periods/{period_id}/lines",
