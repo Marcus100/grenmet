@@ -89,6 +89,8 @@ jobs:
           SENTRY_DSN_PRODUCTION: ${{ secrets.SENTRY_DSN_PRODUCTION }}
           TELEMETRY_ENABLED: ${{ vars.TELEMETRY_ENABLED }}
           TELEMETRY_WORKER_HEARTBEAT_URL: ${{ secrets.WORKER_HEARTBEAT_URL }}
+          # Cloudflare proxy edge (docs/operations/cloudflare-proxy.md). Unset is off.
+          CLOUDFLARE_PROXY_ENABLED: ${{ vars.CLOUDFLARE_PROXY_ENABLED }}
           CORE_REDIS_IMAGE: ${{ vars.CORE_REDIS_IMAGE }}
           CORE_POSTGRES_IMAGE: ${{ vars.CORE_POSTGRES_IMAGE }}
           CORE_PRIVATE_IP: ${{ vars.CORE_PRIVATE_IP }}
