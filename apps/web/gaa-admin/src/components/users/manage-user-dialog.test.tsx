@@ -104,6 +104,42 @@ function renderDialog() {
   return { ...view, queryClient };
 }
 
+/**
+ * Records whether the changed-elsewhere notice is ever added to the page, even
+ * for one render: every added node is inspected as it arrives, so a notice that
+ * appears and disappears before the next check is still caught.
+ */
+function watchForNotice() {
+  let flashed = false;
+  const watcher = new MutationObserver((records) => {
+    for (const record of records) {
+      for (const node of record.addedNodes) {
+        if (node.textContent?.includes(CHANGED_ELSEWHERE_NOTICE))
+          flashed = true;
+      }
+    }
+  });
+  watcher.observe(document.body, { childList: true, subtree: true });
+  return {
+    /** Stops watching and says whether the notice ever showed. */
+    stop() {
+      for (const record of watcher.takeRecords()) {
+        for (const node of record.addedNodes) {
+          if (node.textContent?.includes(CHANGED_ELSEWHERE_NOTICE)) {
+            flashed = true;
+          }
+        }
+      }
+      watcher.disconnect();
+      return flashed;
+    },
+  };
+}
+
+/** Lets any late render or request settle before a final check. */
+const settle = () =>
+  act(() => new Promise((resolve) => setTimeout(resolve, 50)));
+
 /** No employment record yet: a 404 puts the section in create mode. */
 const noRecord = () =>
   http.get(
@@ -383,6 +419,8 @@ describe("ManageUserDialog — department & employment", () => {
     expect(
       screen.queryByText(CHANGED_ELSEWHERE_NOTICE)
     ).not.toBeInTheDocument();
+    // The button is gone, so keyboard focus moves to the first field, not the page.
+    expect(screen.getByLabelText("Department")).toHaveFocus();
   });
 
   it("does not report this form's own save as a change made elsewhere", async () => {
@@ -406,21 +444,51 @@ describe("ManageUserDialog — department & employment", () => {
     });
     // Watch every render: the stale cached record before the refetch must not
     // flash the notice either.
-    let flashed = false;
-    const watcher = new MutationObserver(() => {
-      if (document.body.textContent?.includes(CHANGED_ELSEWHERE_NOTICE)) {
-        flashed = true;
-      }
-    });
-    watcher.observe(document.body, {
-      characterData: true,
-      childList: true,
-      subtree: true,
-    });
+    const watch = watchForNotice();
     fireEvent.click(screen.getByRole("button", { name: "Save employment" }));
     await waitFor(() => expect(successToast).toHaveBeenCalled());
-    watcher.disconnect();
-    expect(flashed).toBe(false);
+    await settle();
+    expect(watch.stop()).toBe(false);
+    expect(
+      screen.queryByText(CHANGED_ELSEWHERE_NOTICE)
+    ).not.toBeInTheDocument();
+    successToast.mockRestore();
+  });
+
+  it("does not report a successful create as a change made elsewhere", async () => {
+    const successToast = vi.spyOn(toast, "success");
+    let record: Record<string, unknown> | null = null;
+    server.use(
+      http.get(`${BASE}/api/v1/hr/employment/u-1`, () =>
+        record
+          ? HttpResponse.json(record)
+          : new HttpResponse(null, { status: 404 })
+      ),
+      http.post(`${BASE}/api/v1/hr/employment/u-1`, async ({ request }) => {
+        const body = (await request.json()) as Record<string, unknown>;
+        record = { ...RECORD, ...body, status: "ACTIVE", end_date: null };
+        return HttpResponse.json(record, { status: 201 });
+      })
+    );
+    renderDialog();
+    const assignBtn = await screen.findByRole("button", {
+      name: "Assign to department",
+    });
+    fireEvent.change(screen.getByLabelText("Employee #"), {
+      target: { value: "MET-9" },
+    });
+    fireEvent.change(screen.getByLabelText("Position"), {
+      target: { value: "Forecaster" },
+    });
+    const watch = watchForNotice();
+    fireEvent.click(assignBtn);
+    await waitFor(() => expect(successToast).toHaveBeenCalled());
+    // The refetch brings the new record and the form switches to edit mode.
+    expect(
+      await screen.findByRole("button", { name: "Save employment" })
+    ).toBeInTheDocument();
+    await settle();
+    expect(watch.stop()).toBe(false);
     expect(
       screen.queryByText(CHANGED_ELSEWHERE_NOTICE)
     ).not.toBeInTheDocument();
