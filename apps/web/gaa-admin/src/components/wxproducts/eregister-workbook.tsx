@@ -1,5 +1,6 @@
 "use client";
 
+import type { SynopValidationIssue } from "@barrelsgd/api-client";
 import { Badge } from "@barrelsgd/ui/components/ui/badge";
 import { Button } from "@barrelsgd/ui/components/ui/button";
 import { Input } from "@barrelsgd/ui/components/ui/input";
@@ -18,11 +19,7 @@ interface Station {
   position: string;
 }
 
-interface ValidationIssue {
-  field: string;
-  message: string;
-  severity?: "error" | "warning";
-}
+type ValidationIssue = SynopValidationIssue;
 type Status = "idle" | "checking" | "valid" | "invalid" | "error";
 type SaveStatus = "idle" | "saving" | "saved" | "error";
 

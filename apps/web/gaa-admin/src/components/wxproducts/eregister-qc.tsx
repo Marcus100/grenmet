@@ -1,12 +1,15 @@
 "use client";
 
 import {
+  type ApiError,
+  type EregisterValidationError,
   eregisterAcceptRegisterObservation,
   eregisterListRegisterObservations,
   eregisterRejectRegisterObservation,
   eregisterReopenRegisterObservation,
   eregisterReviewRegisterObservation,
   type RegisterObservationRead,
+  type ValidationErrorResponse,
 } from "@barrelsgd/api-client";
 import { Badge } from "@barrelsgd/ui/components/ui/badge";
 import { Button } from "@barrelsgd/ui/components/ui/button";
@@ -20,6 +23,7 @@ import {
 } from "@barrelsgd/ui/components/ui/dialog";
 import { Textarea } from "@barrelsgd/ui/components/ui/textarea";
 import { useCallback, useEffect, useState } from "react";
+import { isSynopRefusal } from "./eregister-refusal";
 import { SectionCard } from "./eregister-ui";
 
 export type QcState = RegisterObservationRead["state"];
@@ -93,11 +97,8 @@ export function decisionError(
   if (error && typeof error === "object" && "detail" in error) {
     const { detail } = error as { detail: unknown };
     if (typeof detail === "string") return detail;
-    if (detail && typeof detail === "object" && "message" in detail) {
-      const { message } = detail as { message: unknown };
-      if (typeof message === "string") return message;
-    }
   }
+  if (isSynopRefusal(error)) return error.detail.message;
   if (status === 403) {
     return "You need an eRegister permission, and cannot review your own observation.";
   }
@@ -109,13 +110,20 @@ function utcLabel(iso: string): string {
   return new Date(stamp).toISOString().slice(0, 16).replace("T", " ");
 }
 
+/** The four decision calls answer the same shapes; one type lets them share a caller. */
+interface DecisionResult {
+  data?: RegisterObservationRead;
+  error?: ApiError | EregisterValidationError | ValidationErrorResponse;
+  response?: Response;
+}
+
 function decide(
   action: QcAction,
   id: string,
   reason: string,
   outcome: ReviewOutcome,
   seenUpdatedAt: string
-) {
+): Promise<DecisionResult> {
   const path = { observation_id: id };
   const text = reason.trim() || null;
   if (action === "review") {

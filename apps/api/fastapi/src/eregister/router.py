@@ -11,13 +11,14 @@ from src.auth.browser import BrowserUser
 from src.auth.models import User
 from src.auth.policy import has_permission, require_permission
 from src.dependencies import SessionDep
-from src.models import ApiError
-from src.openapi_responses import AUTHENTICATED, RateLimitedBody
+from src.models import ApiError, ValidationErrorResponse
+from src.openapi_responses import AUTHENTICATED, RateLimitedBody, ResponseMap
 from src.rate_limit import limiter
 
 from . import derive, entries, metar, public, qc, registry, rules, sends, stations
 from .dependencies import PublicRegisterSession, RegisterSession
 from .schemas import (
+    EregisterValidationError,
     ObservationSend,
     ObservationSendList,
     PublicCurrentConditions,
@@ -54,6 +55,23 @@ REGISTER_RESPONSES = {
     403: {
         "model": ApiError,
         "description": "Missing `eregister.observe`, `eregister.qc` or `eregister.send`",
+    },
+}
+
+
+#: A SYNOP that fails validation answers ``{"detail": {"message", "issues"}}``
+#: (EregisterValidationError); a malformed request answers the app's request
+#: validation 422. Documented as the union so neither shape is claimed away.
+SynopRefusedBody = EregisterValidationError | ValidationErrorResponse
+#: A missing reason or note, or a send of an invalid observation, answers
+#: ``{"detail": "<string>"}`` (ApiError), beside the request validation 422.
+DecisionRefusedBody = ApiError | ValidationErrorResponse
+
+SYNOP_REFUSED: ResponseMap = {
+    422: {
+        "model": SynopRefusedBody,
+        "description": "The SYNOP workbook has errors (see `detail.issues`), "
+        "or the request is malformed",
     },
 }
 
@@ -221,7 +239,7 @@ async def validate_synop_observation(
             "model": ApiError,
             "description": "A live observation for this station and time exists",
         },
-        422: {"description": "The SYNOP workbook has errors; see `detail.issues`"},
+        **SYNOP_REFUSED,
     },
 )
 async def create_register_observation(
@@ -265,7 +283,7 @@ async def create_register_observation(
             "model": ApiError,
             "description": "The observation is rejected or already superseded",
         },
-        422: {"description": "The SYNOP workbook has errors; see `detail.issues`"},
+        **SYNOP_REFUSED,
     },
 )
 async def correct_register_observation(
@@ -298,7 +316,10 @@ SEND_RESPONSES = {
         "model": ApiError,
         "description": "Not configured, not sendable, or already sent (use resend)",
     },
-    422: {"description": "Observation does not pass validation"},
+    422: {
+        "model": DecisionRefusedBody,
+        "description": "Observation does not pass validation, or the request is malformed",
+    },
 }
 
 
@@ -380,7 +401,10 @@ QC_RESPONSES = {
         "model": ApiError,
         "description": "The observation is not in a state that allows this",
     },
-    422: {"description": "Missing reason, or the observation fails validation"},
+    422: {
+        "model": DecisionRefusedBody,
+        "description": "Missing reason or note, or the request is malformed",
+    },
 }
 
 
@@ -422,7 +446,7 @@ async def _decide(
         "hand-off never undoes the acceptance; see the send history). Requires "
         "`eregister.observe`, `eregister.qc` or `eregister.send`. Audited."
     ),
-    responses=QC_RESPONSES,
+    responses={**QC_RESPONSES, **SYNOP_REFUSED},
 )
 async def accept_register_observation(
     observation_id: UUID,
