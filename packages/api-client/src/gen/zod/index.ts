@@ -1956,6 +1956,18 @@ export {
 export { capInfoCreateSchema } from "./capInfoCreateSchema.js";
 export { capInfoPublicSchema } from "./capInfoPublicSchema.js";
 export { capIntegrationStatusSchema } from "./capIntegrationStatusSchema.js";
+export {
+  capIssueAlertUpdateErrorSchema,
+  capIssueAlertUpdatePathAlertIdSchema,
+  capIssueAlertUpdatePathSchema,
+  capIssueAlertUpdateResponseSchema,
+  capIssueAlertUpdateStatus201Schema,
+  capIssueAlertUpdateStatus401Schema,
+  capIssueAlertUpdateStatus403Schema,
+  capIssueAlertUpdateStatus404Schema,
+  capIssueAlertUpdateStatus409Schema,
+  capIssueAlertUpdateStatus422Schema,
+} from "./capIssueAlertUpdateSchema.js";
 export { capLifecycleStateSchema } from "./capLifecycleStateSchema.js";
 export { capMessageTypeSchema } from "./capMessageTypeSchema.js";
 export { capNameValueSchema } from "./capNameValueSchema.js";

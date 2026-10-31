@@ -1,6 +1,7 @@
 import hashlib
 import logging
 import uuid
+from datetime import UTC
 from urllib.parse import urlparse
 
 import feedparser
@@ -406,36 +407,31 @@ async def update_alert(
     return await _to_public(session=session, alert=alert)
 
 
-async def duplicate_alert(
-    *, session: AsyncSession, current_user: User, alert_id: uuid.UUID
-) -> CapAlertPublic:
-    require_permission(current_user=current_user, permission_key="cap.alert.create")
-    original = await get_alert_or_404(session=session, alert_id=alert_id)
-    if not original.schema_conformant:
-        raise CapNonConformingAlertError(
-            "This alert was imported and does not fully follow the CAP 1.2 schema, "
-            "so it cannot be copied. Author a new alert instead."
-        )
-    public = await _to_public(session=session, alert=original)
-    # Database timestamps are naive UTC; use the public UTC representation when
-    # constructing a new input, whose timestamps must carry explicit offsets.
-    public = CapAlertPublic.model_validate(public.model_dump(mode="json"))
-    payload = CapAlertCreate(
+def _copy_payload(
+    public: CapAlertPublic,
+    *,
+    status: CapStatus,
+    msg_type: CapMessageType,
+    references: list[CapReferenceCreate],
+    note: str | None,
+    headline_prefix: str,
+) -> CapAlertCreate:
+    """A new draft's input copied from ``public`` (timestamps already UTC-aware).
+
+    Internal parameters (the override reason) are left out: a copy is a new
+    decision and needs its own.
+    """
+    return CapAlertCreate(
         sender=public.sender,
-        status=CapStatus.DRAFT,
-        msg_type=public.msg_type,
+        status=status,
+        msg_type=msg_type,
         source=public.source,
         scope=public.scope,
         restriction=public.restriction,
         addresses=public.addresses,
         codes=public.codes,
-        note=public.note,
-        references=[
-            CapReferenceCreate(
-                sender=item.sender, identifier=item.identifier, sent=item.sent
-            )
-            for item in public.references
-        ],
+        note=note,
+        references=references,
         incidents=public.incidents,
         info=[
             CapInfoCreate(
@@ -452,7 +448,7 @@ async def duplicate_alert(
                 onset=info.onset,
                 expires=info.expires,
                 sender_name=info.sender_name,
-                headline=f"Copy of {info.headline}",
+                headline=f"{headline_prefix}{info.headline}",
                 description=info.description,
                 instruction=info.instruction,
                 web=info.web,
@@ -493,9 +489,139 @@ async def duplicate_alert(
             for info in public.info
         ],
     )
+
+
+async def duplicate_alert(
+    *, session: AsyncSession, current_user: User, alert_id: uuid.UUID
+) -> CapAlertPublic:
+    require_permission(current_user=current_user, permission_key="cap.alert.create")
+    original = await get_alert_or_404(session=session, alert_id=alert_id)
+    if not original.schema_conformant:
+        raise CapNonConformingAlertError(
+            "This alert was imported and does not fully follow the CAP 1.2 schema, "
+            "so it cannot be copied. Author a new alert instead."
+        )
+    public = await _to_public(session=session, alert=original)
+    # Database timestamps are naive UTC; use the public UTC representation when
+    # constructing a new input, whose timestamps must carry explicit offsets.
+    public = CapAlertPublic.model_validate(public.model_dump(mode="json"))
     return await create_alert(
-        session=session, current_user=current_user, payload=payload
+        session=session,
+        current_user=current_user,
+        payload=_copy_payload(
+            public,
+            status=CapStatus.DRAFT,
+            msg_type=public.msg_type,
+            references=[
+                CapReferenceCreate(
+                    sender=item.sender, identifier=item.identifier, sent=item.sent
+                )
+                for item in public.references
+            ],
+            note=public.note,
+            headline_prefix="Copy of ",
+        ),
     )
+
+
+UPDATABLE_TYPES = {CapMessageType.ALERT, CapMessageType.UPDATE}
+
+
+async def _open_update_of(*, session: AsyncSession, identifier: str) -> CapAlert | None:
+    """An Update still being prepared (draft, submitted or approved) for ``identifier``."""
+    return (
+        (
+            await session.execute(
+                select(CapAlert)
+                .join(CapReference, CapReference.alert_id == CapAlert.id)
+                .where(
+                    CapReference.identifier == identifier,
+                    CapAlert.msg_type == CapMessageType.UPDATE,
+                    CapAlert.lifecycle_state.in_(EDITABLE_STATES),
+                )
+                .order_by(CapAlert.created_at)
+            )
+        )
+        .scalars()
+        .first()
+    )
+
+
+async def issue_update(
+    *, session: AsyncSession, current_user: User, alert_id: uuid.UUID
+) -> tuple[CapAlertPublic, bool]:
+    """Start an Update of a published warning: a draft that references it.
+
+    The draft copies the warning's content, keeps its status, sender and scope
+    (publishing checks the reference against them) and goes through the usual
+    approval. Publishing it supersedes the original. Returns ``(draft, created)``:
+    when an Update of this warning is already being prepared, that draft is
+    returned instead (``created`` False), so two forecasters do not issue two.
+    """
+    require_permission(current_user=current_user, permission_key="cap.alert.create")
+    # Row lock: two simultaneous requests for the same warning create one draft.
+    original = await get_alert_or_404(
+        session=session, alert_id=alert_id, for_update=True
+    )
+    if original.lifecycle_state != CapLifecycleState.PUBLISHED:
+        raise CapStateError("Only a published warning can be updated.")
+    if original.msg_type not in UPDATABLE_TYPES:
+        raise CapStateError("Only an Alert or Update can be updated.")
+    if original.import_source:
+        raise CapStateError(
+            "This alert was imported from another sender. Only its sender can "
+            "issue an Update of it."
+        )
+    if not original.schema_conformant:
+        raise CapNonConformingAlertError(
+            "This alert does not fully follow the CAP 1.2 schema, so it cannot be "
+            "copied into an Update. Author a new alert instead."
+        )
+    existing = await _open_update_of(session=session, identifier=original.identifier)
+    if existing is not None:
+        return await _to_public(session=session, alert=existing), False
+    public = await _to_public(session=session, alert=original)
+    public = CapAlertPublic.model_validate(public.model_dump(mode="json"))
+    draft = await create_alert(
+        session=session,
+        current_user=current_user,
+        payload=_copy_payload(
+            public,
+            status=public.status,
+            msg_type=CapMessageType.UPDATE,
+            references=[
+                CapReferenceCreate(
+                    sender=original.sender,
+                    identifier=original.identifier,
+                    # From the row, not the JSON copy: that drops microseconds,
+                    # and publishing compares the reference with the stored value.
+                    sent=original.sent.replace(tzinfo=UTC),
+                )
+            ],
+            note=None,
+            headline_prefix="",
+        ),
+    )
+    _record_audit(
+        session=session,
+        alert_id=original.id,
+        actor=current_user,
+        action="update_started",
+        previous_state=original.lifecycle_state.value,
+        next_state=original.lifecycle_state.value,
+        note=f"Update drafted as {draft.identifier}",
+        payload={"update_alert_id": str(draft.id)},
+    )
+    await session.commit()
+    logger.info(
+        "CAP update drafted",
+        extra={
+            "alert_id": str(original.id),
+            "update_alert_id": str(draft.id),
+            "user_id": str(current_user.id),
+        },
+    )
+    return draft, True
 
 
 async def validate_alert(
@@ -814,9 +940,10 @@ async def _publish(
         public_xml_key(alert.identifier),
         *(public_xml_key(item.identifier) for item in replaced),
     )
-    return await _to_public(
-        session=session, alert=alert
-    ), CapSnapshotPublic.model_validate(snapshot, from_attributes=True)
+    snapshot_public = CapSnapshotPublic.model_validate(
+        snapshot, from_attributes=True
+    ).model_copy(update={"schema_mismatch": mismatch})
+    return await _to_public(session=session, alert=alert), snapshot_public
 
 
 async def cancel_alert(

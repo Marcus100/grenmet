@@ -814,6 +814,11 @@ export {
   useCapImportAlert,
 } from "./useCapImportAlert.js";
 export {
+  capIssueAlertUpdateMutationKey,
+  capIssueAlertUpdateMutationOptions,
+  useCapIssueAlertUpdate,
+} from "./useCapIssueAlertUpdate.js";
+export {
   capPublishAlertMutationKey,
   capPublishAlertMutationOptions,
   useCapPublishAlert,

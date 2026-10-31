@@ -224,6 +224,44 @@ async def duplicate_alert(
 
 
 @router.post(
+    "/alerts/{alert_id}/updates",
+    response_model=CapAlertPublic,
+    status_code=status.HTTP_201_CREATED,
+    summary="Start an Update of a published CAP alert",
+    description=(
+        "Creates a draft Update that copies the published Alert or Update and "
+        "references it (same status, sender and scope). It follows the normal "
+        "approval; publishing it supersedes the original. Returns 200 with the "
+        "existing draft when an Update of this alert is already being prepared. "
+        "Imported alerts and alerts that do not follow the CAP 1.2 schema cannot "
+        "be updated. Needs cap.alert.create."
+    ),
+    responses={
+        **AUTHENTICATED,
+        **NOT_FOUND,
+        409: {
+            "model": ApiError,
+            "description": "Not published, not an Alert or Update, or imported",
+        },
+        422: {"model": ApiError, "description": "Does not follow the CAP 1.2 schema"},
+    },
+)
+async def issue_alert_update(
+    *,
+    session: SessionDep,
+    current_user: CurrentUser,
+    alert_id: uuid.UUID,
+    response: Response,
+) -> CapAlertPublic:
+    draft, created = await service.issue_update(
+        session=session, current_user=current_user, alert_id=alert_id
+    )
+    if not created:
+        response.status_code = status.HTTP_200_OK
+    return draft
+
+
+@router.post(
     "/alerts/{alert_id}/validate",
     response_model=CapValidationResult,
     summary="Validate a CAP alert",
