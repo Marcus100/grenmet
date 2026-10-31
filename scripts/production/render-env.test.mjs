@@ -897,7 +897,7 @@ test("TRUSTED_WEB_SECRET is required, at least 32 characters and distinct, witho
   }
 });
 
-test("TRUSTED_WEB_SECRET reaches the API and Events only, from deploy.yml", () => {
+test("TRUSTED_WEB_SECRET reaches the API and the visitor-forwarding web hosts only, from deploy.yml", () => {
   const workflow = readFileSync(".github/workflows/deploy.yml", "utf8");
   const compose = readFileSync(
     "infra/docker/docker-compose.deploy.yml",
@@ -910,7 +910,7 @@ test("TRUSTED_WEB_SECRET reaches the API and Events only, from deploy.yml", () =
       block.includes("TRUSTED_WEB_SECRET: ${TRUSTED_WEB_SECRET")
     )
     .map((block) => block.trim().split(":")[0]);
-  assert.deepEqual(holders, ["api", "web-events"]);
+  assert.deepEqual(holders, ["api", "web-gms", "web-events", "web-bookings"]);
 });
 
 test("the Meta page settings render empty by default and must be numbers", () => {
@@ -1087,4 +1087,145 @@ test("the CMS gets the weather site origin from BASE_DOMAIN, the same value web-
   // Built from BASE_DOMAIN, so staging and production each get their own weather site.
   // It is not a new GitHub variable or secret.
   assert.equal(workflow.includes("GMS_SITE_URL"), false);
+});
+
+// Cloudflare proxy switch (docs/operations/cloudflare-proxy.md): one variable
+// moves Traefik's trusted ranges, the per-client cap, the visitor hops and the
+// certificate challenge together; unset is Traefik's default.
+const EDGE_NAMES = [
+  "CLOUDFLARE_PROXY_ENABLED",
+  "VISITOR_IP_PROXY_HOPS",
+  "TRAEFIK_FORWARDED_HEADERS",
+  "TRAEFIK_CLIENT_IP_DEPTH",
+  "TRAEFIK_ACME_CHALLENGE",
+  "TRAEFIK_ORIGIN_GATE_RULE",
+];
+const ORIGIN_SECRET = "a1b2c3d4".repeat(8);
+const PROXY_ON = {
+  CLOUDFLARE_PROXY_ENABLED: "true",
+  CLOUDFLARE_ORIGIN_SECRET: ORIGIN_SECRET,
+};
+const CIDR_LINE = /^[0-9a-f:.]+\/\d+$/;
+const SWITCH_PASS =
+  /^\s+CLOUDFLARE_PROXY_ENABLED: \$\{\{ vars\.CLOUDFLARE_PROXY_ENABLED \}\}$/m;
+
+function edgeValues(output) {
+  return Object.fromEntries(
+    EDGE_NAMES.map((name) => [
+      name,
+      JSON.parse(GENERATED_LINE(output, name).slice(name.length + 1)),
+    ])
+  );
+}
+
+function vendoredRanges() {
+  return readFileSync("infra/cloudflare/ip-ranges.txt", "utf8")
+    .split("\n")
+    .filter((line) => CIDR_LINE.test(line));
+}
+
+test("the Cloudflare switch is off by default and leaves Traefik at its defaults", () => {
+  for (const value of [undefined, "", "false"]) {
+    const { result, output } = render({ CLOUDFLARE_PROXY_ENABLED: value });
+    assert.equal(result.status, 0, result.stderr);
+    assert.deepEqual(edgeValues(output), {
+      CLOUDFLARE_PROXY_ENABLED: "false",
+      VISITOR_IP_PROXY_HOPS: "1",
+      TRAEFIK_FORWARDED_HEADERS: "insecure=false",
+      TRAEFIK_CLIENT_IP_DEPTH: "0",
+      TRAEFIK_ACME_CHALLENGE: "tlschallenge=true",
+      TRAEFIK_ORIGIN_GATE_RULE: "ClientIP(`255.255.255.255/32`)",
+    });
+  }
+});
+
+test("the Cloudflare switch trusts exactly the vendored ranges and moves hops, depth and challenge", () => {
+  const { result, output } = render(PROXY_ON);
+  assert.equal(result.status, 0, result.stderr);
+  const values = edgeValues(output);
+  assert.equal(values.CLOUDFLARE_PROXY_ENABLED, "true");
+  assert.equal(values.VISITOR_IP_PROXY_HOPS, "2");
+  assert.equal(values.TRAEFIK_CLIENT_IP_DEPTH, "1");
+  assert.equal(values.TRAEFIK_ACME_CHALLENGE, "httpchallenge.entrypoint=web");
+  const [key, list] = values.TRAEFIK_FORWARDED_HEADERS.split("=");
+  assert.equal(key, "trustedIPs");
+  const trusted = list.split(",");
+  assert.deepEqual([...trusted].sort(), [...vendoredRanges()].sort());
+  assert.ok(
+    trusted.some((range) => range.includes(":")),
+    "IPv6 ranges"
+  );
+  for (const everything of ["0.0.0.0/0", "::/0"])
+    assert.equal(trusted.includes(everything), false);
+});
+
+test("the Cloudflare switch refuses anything but true or false", () => {
+  for (const value of ["yes", "1", "TRUE", "on"]) {
+    const { result } = render({ CLOUDFLARE_PROXY_ENABLED: value });
+    assert.notEqual(result.status, 0, value);
+    assert.ok(result.stderr.includes("CLOUDFLARE_PROXY_ENABLED"));
+  }
+});
+
+test("deploy.yml passes the Cloudflare switch from the GitHub environment", () => {
+  const workflow = readFileSync(".github/workflows/deploy.yml", "utf8");
+  assert.match(workflow, SWITCH_PASS);
+});
+
+test("the origin gate refuses Cloudflare addresses without the secret, and accepts a previous one", () => {
+  const { result, output } = render({
+    ...PROXY_ON,
+    CLOUDFLARE_ORIGIN_SECRET_PREVIOUS: "f0e1d2c3".repeat(8),
+  });
+  assert.equal(result.status, 0, result.stderr);
+  const rule = edgeValues(output).TRAEFIK_ORIGIN_GATE_RULE;
+  const sources = vendoredRanges().map((range) => `ClientIP(\`${range}\`)`);
+  assert.equal(
+    rule,
+    `(${sources.join(" || ")}) && !Header(\`X-Barrels-Origin\`, \`${ORIGIN_SECRET}\`) && !Header(\`X-Barrels-Origin\`, \`${"f0e1d2c3".repeat(8)}\`)`
+  );
+  // The secret appears only inside the gate rule, never as its own variable.
+  assert.equal(
+    output.split("\n").filter((line) => line.includes(ORIGIN_SECRET)).length,
+    1
+  );
+});
+
+test("the origin secret is required when the switch is on, well formed and unique, never echoed", () => {
+  const shared =
+    "test-only-configuration-value-32-characters-TRUSTED_WEB_SECRET";
+  for (const [change, reason] of [
+    [{ CLOUDFLARE_ORIGIN_SECRET: "" }, "is required"],
+    [{ CLOUDFLARE_ORIGIN_SECRET: "short-DO-NOT-ECHO" }, "32 to 128"],
+    [
+      { CLOUDFLARE_ORIGIN_SECRET: `${"x".repeat(40)}\`DO-NOT-ECHO` },
+      "32 to 128",
+    ],
+    [
+      { CLOUDFLARE_ORIGIN_SECRET_PREVIOUS: "bad value DO-NOT-ECHO" },
+      "PREVIOUS",
+    ],
+    [{ CLOUDFLARE_ORIGIN_SECRET: shared }, "differ"],
+  ]) {
+    const { result } = render({ ...PROXY_ON, ...change });
+    assert.notEqual(result.status, 0, JSON.stringify(change));
+    assert.ok(result.stderr.includes(reason), `${reason}: ${result.stderr}`);
+    for (const secret of ["DO-NOT-ECHO", ORIGIN_SECRET, shared])
+      assert.equal(result.stderr.includes(secret), false);
+  }
+  // Off, the secret is not needed and not used.
+  const off = render({ CLOUDFLARE_ORIGIN_SECRET: "" });
+  assert.equal(off.result.status, 0, off.result.stderr);
+});
+
+test("deploy.yml passes the origin secrets from the GitHub environment", () => {
+  const workflow = readFileSync(".github/workflows/deploy.yml", "utf8");
+  for (const name of [
+    "CLOUDFLARE_ORIGIN_SECRET",
+    "CLOUDFLARE_ORIGIN_SECRET_PREVIOUS",
+  ])
+    assert.ok(
+      workflow.includes(`          ${name}: \${{ secrets.${name} }}`),
+      `${name} is not passed`
+    );
 });
