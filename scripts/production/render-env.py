@@ -2,6 +2,7 @@
 """Create a private runner-only .env.local. Never executes dotenv content."""
 import base64
 import binascii
+import importlib.util
 import ipaddress
 import json
 import os
@@ -10,9 +11,16 @@ import sys
 from pathlib import Path
 from urllib.parse import quote, urlparse
 
-# Also importable as a module from elsewhere (deploy-preflight.test.mjs).
-sys.path.insert(0, str(Path(__file__).resolve().parent))
-from cloudflare_ranges import load as load_cloudflare_ranges  # noqa: E402
+
+def _sibling(name):
+    """Load scripts/production/<name>.py, wherever this script is run or loaded from."""
+    spec = importlib.util.spec_from_file_location(name, Path(__file__).resolve().with_name(f"{name}.py"))
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+load_cloudflare_ranges = _sibling("cloudflare_ranges").load
 
 
 def read_config(path):

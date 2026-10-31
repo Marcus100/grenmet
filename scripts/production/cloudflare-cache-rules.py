@@ -24,13 +24,23 @@ Runbook: docs/operations/cloudflare-proxy.md.
 """
 
 import argparse
+import importlib.util
 import json
 import sys
 from pathlib import Path
 
-# Also loadable as a module from elsewhere (cloudflare-proxy.test.mjs).
-sys.path.insert(0, str(Path(__file__).resolve().parent))
-from cloudflare_rulesets import PRIVATE_HOSTS, PUBLIC_HOSTS, base_domain, host_set, sync  # noqa: E402
+
+def _sibling(name):
+    """Load scripts/production/<name>.py, wherever this script is run or loaded from."""
+    spec = importlib.util.spec_from_file_location(name, Path(__file__).resolve().with_name(f"{name}.py"))
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+_rules = _sibling("cloudflare_rulesets")
+PRIVATE_HOSTS, PUBLIC_HOSTS = _rules.PRIVATE_HOSTS, _rules.PUBLIC_HOSTS
+base_domain, host_set, sync = _rules.base_domain, _rules.host_set, _rules.sync
 
 PHASE = "http_request_cache_settings"
 # Every app's session cookie is `<app>_session` (also `_session_sso` and
