@@ -41,14 +41,19 @@ from .models import (
 from .organisations import permitted_departments
 from .parking.models import ParkingPermit
 from .payroll.models import (
+    DeductionType,
     EmployeeBasicPay,
+    EmployeeDeduction,
     EmployeePayProfile,
     PayCalendar,
+    PayDeductionLine,
     PayItem,
     PayItemRate,
     PayLine,
     PayPeriod,
     PayrollDepartmentSetting,
+    SocialInsuranceScheme,
+    TaxTable,
 )
 from .roster.models import PublicHoliday, RosterPeriod, RosterRuleSet
 from .timesheet.models import DepartmentPolicy, Timesheet, TimesheetEntry
@@ -513,6 +518,52 @@ def register() -> None:
         label="Basic pay",
         sensitive=("reason",),
         exclude=("amount_minor", "standard_monthly_hours"),
+    )
+    # Statutory tables and enrolments: organisation-wide read.amounts only, and
+    # no money values in history (they are read from the tables themselves).
+    for model, record_type, label, money in (
+        (TaxTable, "tax_table", "Income tax table", ("annual_allowance_minor",)),
+        (
+            SocialInsuranceScheme,
+            "social_insurance_scheme",
+            "Social insurance scheme",
+            (
+                "monthly_ceiling_minor",
+                "weekly_ceiling_minor",
+                "fortnightly_ceiling_minor",
+            ),
+        ),
+        (
+            DeductionType,
+            "deduction_type",
+            "Deduction type",
+            ("employee_amount_minor", "employer_amount_minor", "premium_minor"),
+        ),
+    ):
+        registry.track(
+            model,
+            record_type=record_type,
+            entity_type="payroll_money",
+            entity_id_attr="organisation_id",
+            label=label,
+            exclude=money,
+        )
+    registry.track(
+        EmployeeDeduction,
+        record_type="employee_deduction",
+        entity_type="payroll_money",
+        entity_id_attr="organisation_id",
+        label="Employee deduction",
+        sensitive=("authorisation_reference",),
+        exclude=("employee_amount_minor",),
+    )
+    registry.track(
+        PayDeductionLine,
+        record_type="pay_deduction_line",
+        entity_type="pay_period",
+        entity_id_attr="period_id",
+        label="Deduction line",
+        exclude=("base_minor", "employee_minor", "employer_minor"),
     )
     registry.track(
         PayItemRate,
