@@ -88,10 +88,12 @@ async def _detail(
     session: SessionDep, current_user: CurrentUser, period_id: uuid.UUID
 ) -> PayPeriodDetail:
     data = await service.period_detail(session, current_user, period_id)
+    view = data.pop("view")
+    assert isinstance(view, tuple)
     return PayPeriodDetail.model_validate(
         {
             **data,
-            "period": _period(data.pop("view")),  # type: ignore[arg-type]
+            "period": _period(view),
             "overtime_bands_available": overtime.source().available,
         }
     )
@@ -209,7 +211,7 @@ async def create_period(
     response_model=PayPeriodDetail,
     status_code=status.HTTP_200_OK,
     summary="Read a pay period",
-    description="Status, totals per pay item and the actions the caller may take. Totals cover only the departments the caller may read.",
+    description="Status, totals per pay item (quantities only, never money) and the actions the caller may take. Totals cover only the departments the caller may read.",
     operation_id="hrGetPayPeriod",
     responses=ERRORS,
 )

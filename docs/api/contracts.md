@@ -51,8 +51,8 @@ tax, NIS or bank field exists in any request, response or export.
 - Calendars are `MONTHLY` or `FORTNIGHTLY` (`anchor_date` required; periods
   start a whole number of fortnights from it and run 14 days). Without a
   `frequency`, GAA calendars are fortnightly and others monthly.
-- Periods: `GET|POST periods`, `GET periods/{period_id}` (totals and
-  `allowed_actions`), `GET|POST periods/{period_id}/lines`,
+- Periods: `GET|POST periods`, `GET periods/{period_id}` (quantity totals and
+  `allowed_actions`; never money), `GET|POST periods/{period_id}/lines`,
   `DELETE periods/{period_id}/lines/{line_id}` (manual lines, open periods only).
 - Lifecycle: `POST computation` (idempotent), `POST submission` (starts the
   `PAYROLL_RUN` workflow), `POST approval` and `POST return` (second person only),

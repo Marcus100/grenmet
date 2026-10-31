@@ -11,7 +11,7 @@ import type {
 } from "../models/HrGetPayPeriod.js";
 
 /**
- * @description Status, totals per pay item and the actions the caller may take. Totals cover only the departments the caller may read.
+ * @description Status, totals per pay item (quantities only, never money) and the actions the caller may take. Totals cover only the departments the caller may read.
  * @summary Read a pay period
  * {@link /api/v1/hr/payroll/periods/:period_id}
  */
