@@ -26,6 +26,14 @@ MIN_SECRET_LENGTH = 32
 GRAPH_API_VERSION_PATTERN = re.compile(r"v[0-9]{1,2}\.[0-9]{1,2}")
 # Graph object ids are numeric. Validated because they become URL path segments.
 GRAPH_ID_PATTERN = re.compile(r"[0-9]{1,32}")
+# Meta access tokens are long runs of letters, digits and a few punctuation marks
+# (app tokens carry an "app id|secret" form, hence the bar). Anything else, such as
+# whitespace inside a pasted value, is refused before a request is made.
+TOKEN_PATTERN = re.compile(r"[A-Za-z0-9_\-|.]{20,2048}")
+
+
+def _hosts(raw: str) -> frozenset[str]:
+    return frozenset(entry.strip().lower() for entry in raw.split(",") if entry.strip())
 
 
 @dataclass(frozen=True)
@@ -56,6 +64,12 @@ class ContentDistributionConfig(BaseSettings):
     META_INSTAGRAM_ACCOUNT_ID: str | None = None
     # Long-lived Page access token with the publishing permissions (secret).
     META_PAGE_ACCESS_TOKEN: SecretStr | None = None
+    # Comma-separated hostnames a post's link may point to (the GMS site, for
+    # example gms.example.org). Empty refuses every post at intake: fail closed.
+    SOCIAL_LINK_HOSTS: str = ""
+    # Comma-separated hostnames a post's image may come from (the CMS media host).
+    # Empty refuses every image at intake.
+    SOCIAL_IMAGE_HOSTS: str = ""
 
     @field_validator("SOCIAL_TOKEN_ENCRYPTION_KEYS")
     @classmethod
@@ -84,12 +98,31 @@ class ContentDistributionConfig(BaseSettings):
         value = self.CMS_DISTRIBUTION_SECRET.get_secret_value()
         return value if len(value) >= MIN_SECRET_LENGTH else None
 
-    def platform_credentials(self, platform: str) -> PlatformCredentials | None:
-        """What a live post to ``platform`` needs, or None when any part is missing."""
+    def link_hosts(self) -> frozenset[str]:
+        """Hosts a post's link may point to. Empty refuses every post."""
+        return _hosts(self.SOCIAL_LINK_HOSTS)
+
+    def image_hosts(self) -> frozenset[str]:
+        """Hosts a post's image may come from. Empty refuses every image."""
+        return _hosts(self.SOCIAL_IMAGE_HOSTS)
+
+    def _token(self) -> str | None:
+        """The page token with surrounding whitespace removed, or None when empty."""
         if self.META_PAGE_ACCESS_TOKEN is None:
             return None
-        token = self.META_PAGE_ACCESS_TOKEN.get_secret_value()
-        if not token:
+        token = self.META_PAGE_ACCESS_TOKEN.get_secret_value().strip()
+        return token or None
+
+    def token_looks_malformed(self) -> bool:
+        """True when a token is set but cannot be a Meta token. Never reveals it."""
+        token = self._token()
+        return token is not None and not TOKEN_PATTERN.fullmatch(token)
+
+    def platform_credentials(self, platform: str) -> PlatformCredentials | None:
+        """What a live post to ``platform`` needs, or None when any part is missing
+        or the token is malformed (see ``token_looks_malformed``)."""
+        token = self._token()
+        if token is None or not TOKEN_PATTERN.fullmatch(token):
             return None
         if platform == PLATFORM_FACEBOOK:
             account = self.META_PAGE_ID

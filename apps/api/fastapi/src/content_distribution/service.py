@@ -26,6 +26,7 @@ from .constants import (
     REASON_FLAG_OFF,
     REASON_NO_IMAGE,
     REASON_NOT_CONFIGURED,
+    REASON_TOKEN_MALFORMED,
     SOCIAL_LIVE_FLAG,
     STATUS_DEAD,
     STATUS_DRY_RUN_SENT,
@@ -40,6 +41,7 @@ from .constants import (
 )
 from .exceptions import (
     SocialCaptionMissing,
+    SocialHostNotAllowed,
     SocialImageRequired,
     SocialWarningNotAllowed,
 )
@@ -65,10 +67,24 @@ def _is_warning_link(url: str) -> bool:
     )
 
 
+def _host(url: str) -> str | None:
+    # urlsplit lower-cases the hostname; None for a URL with no host.
+    return urlsplit(url).hostname
+
+
 def check_post_rules(body: PostIn) -> None:
-    """Refuse official warnings, and posts missing what a platform needs."""
+    """Refuse official warnings, links and images on unapproved hosts, and posts
+    missing what a platform needs. The approved hosts are settings, so an empty
+    list refuses every post (fail closed)."""
     if body.collection in WARNING_COLLECTIONS or _is_warning_link(body.url):
         raise SocialWarningNotAllowed()
+    link_host = _host(body.url)
+    if link_host not in content_distribution_settings.link_hosts():
+        raise SocialHostNotAllowed("link", link_host)
+    if body.image_url is not None:
+        image_host = _host(body.image_url)
+        if image_host not in content_distribution_settings.image_hosts():
+            raise SocialHostNotAllowed("image", image_host)
     for platform in body.platforms:
         if platform in IMAGE_REQUIRED_PLATFORMS and not body.image_url:
             raise SocialImageRequired(platform)
@@ -335,7 +351,12 @@ async def post_delivery(session: AsyncSession, message: OutboxMessage) -> None:
     credentials = content_distribution_settings.platform_credentials(row.platform)
     live_on = await flag_service.is_enabled(session, SOCIAL_LIVE_FLAG)
     if not live_on or credentials is None:
-        reason = REASON_NOT_CONFIGURED if live_on else REASON_FLAG_OFF
+        if not live_on:
+            reason = REASON_FLAG_OFF
+        elif content_distribution_settings.token_looks_malformed():
+            reason = REASON_TOKEN_MALFORMED
+        else:
+            reason = REASON_NOT_CONFIGURED
         logger.info(
             "Dry-run social post recorded",
             extra={"platform": row.platform, "delivery_id": str(row.id)},

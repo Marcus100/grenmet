@@ -84,8 +84,8 @@ async def test_retry_after_seconds_are_honoured(wire: Callable[..., Replies]) ->
 async def test_a_retry_after_longer_than_the_cap_is_left_to_the_outbox(
     wire: Callable[..., Replies],
 ) -> None:
-    replies = wire(httpx.Response(503, headers={"Retry-After": "300"}))
-    with pytest.raises(GraphRetryable, match="HTTP 503"):
+    replies = wire(httpx.Response(429, headers={"Retry-After": "300"}))
+    with pytest.raises(GraphRetryable, match="HTTP 429"):
         await _client().post(f"{PAGE}/feed", data={}, publishing=True)
     assert replies.waits == []
     assert len(replies.requests) == 1
@@ -141,6 +141,52 @@ async def test_a_read_timeout_on_a_read_is_retried_then_retryable(
 
 
 # --- Outcomes of a publish request ----------------------------------------------
+
+
+@pytest.mark.parametrize("status", [500, 502, 503, 504])
+async def test_a_server_error_on_a_publish_call_is_unknown_at_once(
+    wire: Callable[..., Replies], status: int
+) -> None:
+    # Meta may have accepted the post before it failed, so the publish is never repeated.
+    replies = wire(httpx.Response(status), _ok({"id": "post-x"}))
+    with pytest.raises(GraphOutcomeUnknown):
+        await _client().post(f"{PAGE}/feed", data={}, publishing=True)
+    assert len(replies.requests) == 1
+    assert replies.waits == []
+
+
+async def test_a_rate_limit_on_a_publish_call_is_retried(
+    wire: Callable[..., Replies],
+) -> None:
+    # Graph's rate-limit codes are answered before Meta creates anything: safe to retry.
+    replies = wire(
+        httpx.Response(400, json={"error": {"code": 17, "message": "User limit"}}),
+        _ok({"id": "post-y"}),
+    )
+    body = await _client().post(f"{PAGE}/feed", data={}, publishing=True)
+    assert body == {"id": "post-y"}
+    assert len(replies.requests) == 2
+
+
+async def test_a_server_error_on_a_read_is_still_retried(
+    wire: Callable[..., Replies],
+) -> None:
+    replies = wire(httpx.Response(500))
+    with pytest.raises(GraphRetryable, match="HTTP 500"):
+        await _client().get("container-status", params={"fields": "status_code"})
+    assert len(replies.requests) == 3
+
+
+async def test_a_non_numeric_container_id_is_refused_before_any_further_call(
+    wire: Callable[..., Replies],
+) -> None:
+    # The id becomes a URL path segment in the next call, so Meta's answer is checked.
+    replies = wire(_ok({"id": "1/../../me"}))
+    with pytest.raises(GraphRejected, match="unexpected container id"):
+        await meta_graph.publish_instagram(
+            _client(), account_id=IG, caption="c", image_url="https://x.test/a.jpg"
+        )
+    assert len(replies.requests) == 1
 
 
 async def test_a_timeout_after_a_publish_request_is_unknown_and_never_retried(
@@ -271,9 +317,9 @@ async def test_the_pinned_version_is_in_every_path(
 ) -> None:
     replies = wire(_ok({"status_code": "FINISHED"}))
     client = GraphClient(access_token=TOKEN, api_version="v25.1")
-    await client.get("container-9", params={"fields": "status_code"})
+    await client.get("status-9", params={"fields": "status_code"})
     [request] = replies.requests
-    assert request.url.path == "/v25.1/container-9"
+    assert request.url.path == "/v25.1/status-9"
     assert request.url.params["fields"] == "status_code"
 
 
@@ -324,7 +370,7 @@ async def test_an_instagram_container_is_polled_until_finished_then_published(
             return _ok({"status_code": "FINISHED"})
         if request.url.path.endswith("/media_publish"):
             return _ok({"id": "media-1"})
-        return _ok({"id": "container-1"})
+        return _ok({"id": "5001"})
 
     replies = wire(answers)
     post_id = await meta_graph.publish_instagram(
@@ -333,7 +379,7 @@ async def test_an_instagram_container_is_polled_until_finished_then_published(
     assert post_id == "media-1"
     assert [f"{r.method} {r.url.path}" for r in replies.requests] == [
         f"POST /v24.0/{IG}/media",
-        "GET /v24.0/container-1",
+        "GET /v24.0/5001",
         f"POST /v24.0/{IG}/media_publish",
     ]
 
@@ -342,7 +388,7 @@ async def test_an_instagram_container_still_processing_is_polled_again(
     wire: Callable[..., Replies],
 ) -> None:
     replies = wire(
-        _ok({"id": "container-2"}),
+        _ok({"id": "5002"}),
         _ok({"status_code": "IN_PROGRESS"}),
         _ok({"status_code": "FINISHED"}),
         _ok({"id": "media-2"}),
@@ -357,7 +403,7 @@ async def test_an_instagram_container_still_processing_is_polled_again(
 async def test_an_instagram_container_that_errors_is_rejected(
     wire: Callable[..., Replies],
 ) -> None:
-    wire(_ok({"id": "container-3"}), _ok({"status_code": "ERROR"}))
+    wire(_ok({"id": "5003"}), _ok({"status_code": "ERROR"}))
     with pytest.raises(GraphRejected, match="could not process the image"):
         await meta_graph.publish_instagram(
             _client(), account_id=IG, caption="c", image_url="https://x.test/a.png"
@@ -368,7 +414,7 @@ async def test_an_instagram_container_that_never_finishes_is_retryable(
     wire: Callable[..., Replies],
 ) -> None:
     replies = wire(
-        _ok({"id": "container-4"}),
+        _ok({"id": "5004"}),
         _ok({"status_code": "IN_PROGRESS"}),
     )
     with pytest.raises(GraphRetryable, match="still processing"):

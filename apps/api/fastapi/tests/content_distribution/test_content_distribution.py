@@ -37,6 +37,9 @@ _FUTURE = "2099-01-01T09:00:00Z"
 @pytest.fixture
 def cms_secret(monkeypatch: pytest.MonkeyPatch) -> dict[str, str]:
     monkeypatch.setattr(settings, "CMS_DISTRIBUTION_SECRET", SecretStr(_SECRET))
+    # The approved hosts the test posts use (the GMS site for links and images).
+    monkeypatch.setattr(settings, "SOCIAL_LINK_HOSTS", "GMS.example.test")
+    monkeypatch.setattr(settings, "SOCIAL_IMAGE_HOSTS", "gms.example.test")
     return {"X-CMS-Secret": _SECRET}
 
 
@@ -193,6 +196,9 @@ async def test_resaving_a_sent_post_never_changes_or_reposts(
         ({"platforms": []}, None),
         ({"slug": "Bad Slug"}, None),
         ({"url": "http://plain.example.test/x"}, None),
+        ({"url": "https://evil.example.test/stories/x"}, "host"),
+        ({"imageUrl": "https://evil.example.test/images/x.png"}, "host"),
+        ({"url": "https://gms.example.test.evil.example/stories/x"}, "host"),
     ],
 )
 async def test_refused_posts_answer_422_with_a_reason(
@@ -213,7 +219,23 @@ async def test_refused_posts_answer_422_with_a_reason(
         assert "image" in resp.text.lower()
     if reason == "caption":
         assert "caption" in resp.text.lower()
+    if reason == "host":
+        assert "approved host" in resp.text
     assert await _rows(db_async, slug) == []
+
+
+async def test_unset_host_settings_refuse_every_post(
+    async_client: httpx.AsyncClient,
+    db_async: AsyncSession,
+    cms_secret: dict[str, str],
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    # Fail closed: until the owner lists the approved hosts, nothing is accepted.
+    monkeypatch.setattr(settings, "SOCIAL_LINK_HOSTS", "")
+    resp = await async_client.post(_URL, json=_body("no-hosts-set"), headers=cms_secret)
+    assert resp.status_code == 422
+    assert "approved host" in resp.text
+    assert await _rows(db_async, "no-hosts-set") == []
 
 
 async def test_whatsapp_is_stored_but_never_released(

@@ -26,6 +26,17 @@ class SocialWarningNotAllowed(AppException):
         )
 
 
+class SocialHostNotAllowed(AppException):
+    def __init__(self, what: str, host: str | None) -> None:
+        shown = host if host else "an address with no host name"
+        super().__init__(
+            f"The {what} is on {shown}, which is not an approved host for social "
+            "posts. The owner adds approved hosts to SOCIAL_LINK_HOSTS (links) or "
+            "SOCIAL_IMAGE_HOSTS (images) on the server.",
+            status.HTTP_422_UNPROCESSABLE_ENTITY,
+        )
+
+
 class SocialImageRequired(AppException):
     def __init__(self, platform: str) -> None:
         super().__init__(

@@ -39,22 +39,22 @@ def test_each_platform_needs_its_own_account_and_the_token() -> None:
         _env_file=None,
         META_PAGE_ID="123",
         META_INSTAGRAM_ACCOUNT_ID="456",
-        META_PAGE_ACCESS_TOKEN=SecretStr("page-token-value"),
+        META_PAGE_ACCESS_TOKEN=SecretStr("EAABpage-token-value-0123456789"),
     )
     facebook = config.platform_credentials("facebook")
     instagram = config.platform_credentials("instagram")
     assert facebook is not None and facebook.account_id == "123"
     assert instagram is not None and instagram.account_id == "456"
-    assert facebook.access_token == "page-token-value"
+    assert facebook.access_token == "EAABpage-token-value-0123456789"
     # WhatsApp is never automated, so it never has credentials.
     assert config.platform_credentials("whatsapp") is None
     # The token never shows in a repr, so it cannot reach a log by accident.
-    assert "page-token-value" not in repr(config)
+    assert "EAABpage-token-value-0123456789" not in repr(config)
 
     no_instagram_account = ContentDistributionConfig(
         _env_file=None,
         META_PAGE_ID="123",
-        META_PAGE_ACCESS_TOKEN=SecretStr("page-token-value"),
+        META_PAGE_ACCESS_TOKEN=SecretStr("EAABpage-token-value-0123456789"),
     )
     assert no_instagram_account.platform_credentials("instagram") is None
     assert no_instagram_account.platform_credentials("facebook") is not None
@@ -99,3 +99,63 @@ def test_sealing_without_keys_refuses(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr(settings, "SOCIAL_TOKEN_ENCRYPTION_KEYS", [])
     with pytest.raises(SecretBoxError):
         tokens.seal("anything")
+
+
+def test_approved_hosts_are_comma_separated_lower_cased_hostnames() -> None:
+    config = ContentDistributionConfig(
+        _env_file=None,
+        SOCIAL_LINK_HOSTS=" GMS.example.org , www.gms.example.org,,",
+        SOCIAL_IMAGE_HOSTS="media.example.org",
+    )
+    assert config.link_hosts() == frozenset({"gms.example.org", "www.gms.example.org"})
+    assert config.image_hosts() == frozenset({"media.example.org"})
+    unset = ContentDistributionConfig(_env_file=None)
+    assert unset.link_hosts() == frozenset()
+    assert unset.image_hosts() == frozenset()
+
+
+def test_a_padded_token_is_stripped_before_use() -> None:
+    token = "EAAB" + "a1B2c3D4e5F6g7H8i9J0k1L2m3"
+    config = ContentDistributionConfig(
+        _env_file=None,
+        META_PAGE_ID="123",
+        META_PAGE_ACCESS_TOKEN=SecretStr(f"  {token}\n"),
+    )
+    credentials = config.platform_credentials("facebook")
+    assert credentials is not None
+    assert credentials.access_token == token
+    assert config.token_looks_malformed() is False
+
+
+@pytest.mark.parametrize(
+    "value",
+    [
+        "EAAB first half and second half",  # a pasted value with spaces
+        "EAAB first\nhalf",  # a line break inside the value
+        "too-short",  # far too short to be a Meta token
+        "EAAB<html>value</html>",  # something other than a token
+    ],
+)
+def test_a_malformed_token_is_not_used_and_is_reported_without_the_value(
+    value: str,
+) -> None:
+    config = ContentDistributionConfig(
+        _env_file=None,
+        META_PAGE_ID="123",
+        META_INSTAGRAM_ACCOUNT_ID="456",
+        META_PAGE_ACCESS_TOKEN=SecretStr(value),
+    )
+    assert config.token_looks_malformed() is True
+    assert config.platform_credentials("facebook") is None
+    assert config.platform_credentials("instagram") is None
+    assert value not in repr(config)
+
+
+def test_an_empty_or_whitespace_token_is_unset_not_malformed() -> None:
+    config = ContentDistributionConfig(
+        _env_file=None,
+        META_PAGE_ID="123",
+        META_PAGE_ACCESS_TOKEN=SecretStr("   "),
+    )
+    assert config.token_looks_malformed() is False
+    assert config.platform_credentials("facebook") is None

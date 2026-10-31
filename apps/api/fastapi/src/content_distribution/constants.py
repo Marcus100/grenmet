@@ -41,10 +41,16 @@ REASON_NOT_CONFIGURED: Final = (
     "Live posting is switched on but the Meta page settings or token are missing. "
     "Recorded as a dry run."
 )
+REASON_TOKEN_MALFORMED: Final = (
+    "Live posting is switched on but the Meta page access token does not look like a "
+    "token (it must be one unbroken value). The token is not shown here. Recorded as "
+    "a dry run."
+)
 REASON_NO_IMAGE: Final = (
     "Instagram posts need an image. This post has none, so it was skipped."
 )
-# Shown for a publish call that may have reached Meta without an answer.
+# Shown for a publish call that may have reached Meta without an answer (including a
+# server error on the publish call itself).
 ERROR_OUTCOME_UNKNOWN: Final = (
     "Outcome unknown: the request to Meta may have published the post. It was not "
     "sent again. Check the Facebook page or Instagram account before posting by hand."

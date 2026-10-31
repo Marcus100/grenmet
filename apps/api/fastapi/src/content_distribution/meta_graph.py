@@ -12,22 +12,29 @@ Each call ends in one of four outcomes, and the handler acts on each one:
 - ``GraphRejected``: Meta refused the request (a 4xx other than a rate limit). The
   handler records the reason and never retries;
 - ``GraphOutcomeUnknown``: the publish request was sent and no usable answer came
-  back (timeout, dropped connection, unreadable success). The post may be live, so
-  the handler records it for a person to check and never sends it again.
+  back (timeout, dropped connection, unreadable success, or an HTTP 5xx, which may
+  come after Meta accepted the post). The post may be live, so the handler records
+  it for a person to check and never sends it again.
 
-Inside one call, HTTP 429, 5xx and the Graph rate-limit codes back off and honour
-``Retry-After`` (waits longer than ``MAX_WAIT_SECONDS`` are left to the outbox). A
-connection that was never opened is retried. Only the publish requests can end as
-``GraphOutcomeUnknown``: creating an Instagram container publishes nothing.
+Inside one call, HTTP 429 and the Graph rate-limit codes (4, 17, 32, 613) back off
+and honour ``Retry-After`` (waits longer than ``MAX_WAIT_SECONDS`` are left to the
+outbox). They are answered before Meta creates anything, so retrying them is safe.
+A 5xx on a non-publish call (creating a container, reading its status) is retried.
+A 5xx on a publish call is never retried. A connection that was never opened is
+retried. Only the publish requests can end as ``GraphOutcomeUnknown``: creating an
+Instagram container publishes nothing.
 """
 
 import asyncio
+import re
 from collections.abc import Awaitable, Callable
 from typing import Any, Final
 
 import httpx
 
 GRAPH_BASE_URL: Final = "https://graph.facebook.com"
+# Instagram container ids are numeric. Used as a URL path segment, so checked first.
+CONTAINER_ID_PATTERN: Final = re.compile(r"[0-9]+")
 # Five seconds to connect, fifteen for the whole request.
 TIMEOUT: Final = httpx.Timeout(15.0, connect=5.0)
 MAX_ATTEMPTS: Final = 3
@@ -193,6 +200,12 @@ class GraphClient:
                 raise GraphRetryable("Meta answered without a readable result")
 
             code, detail = _error_detail(response)
+            if publishing and response.status_code >= 500:
+                # A server error on a publish request may come after Meta accepted it.
+                # It is never sent again, here or by the outbox: the editor checks the page.
+                raise GraphOutcomeUnknown(
+                    f"Meta answered HTTP {response.status_code} to the publish request"
+                )
             busy = (
                 response.status_code == 429
                 or response.status_code >= 500
@@ -252,6 +265,9 @@ async def publish_instagram(
         f"{account_id}/media", data={"image_url": image_url, "caption": caption}
     )
     container_id = _graph_id(created, ("id",), GraphRetryable)
+    # The id becomes a URL path segment in the next calls, so only digits are accepted.
+    if not CONTAINER_ID_PATTERN.fullmatch(container_id):
+        raise GraphRejected("Meta returned an unexpected container id")
     await _wait_until_ready(client, container_id)
     published = await client.post(
         f"{account_id}/media_publish",

@@ -123,8 +123,10 @@ site key), never a secret. Superusers manage sites through
   `stories/2026/10/title`); `publishAt` may be null or missing, which means now.
   Authenticated by the `X-CMS-Secret` header
   against `CMS_DISTRIBUTION_SECRET` (503 unset, 401 wrong). 202 with one outcome per
-  platform. Idempotent per collection, slug and platform; refuses official warnings
-  and posts missing an image (Instagram) or caption with 422. Machine-authenticated,
+  platform. Idempotent per collection, slug and platform; refuses official warnings,
+  a link or image on a host that is not in the approved lists (`SOCIAL_LINK_HOSTS`,
+  `SOCIAL_IMAGE_HOSTS`; an empty list refuses every post), and posts missing an image
+  (Instagram) or caption, all with 422. Machine-authenticated,
   so no `require_permission`.
 - `GET /api/v1/content-distribution/admin/posts` (staff, `cms.article.social.manage`):
   one row per post and platform with `status` (`pending`, `scheduled`, `posted`,

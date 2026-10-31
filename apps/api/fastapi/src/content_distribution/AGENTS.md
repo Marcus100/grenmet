@@ -40,6 +40,11 @@ content.
   (A stored Instagram row with no image is still skipped by the handler, with the
   reason, as a backstop.)
 - Duplicate platforms and non-HTTPS links are refused by the schema.
+- The link (`url`) and the image (`imageUrl`) must be on an approved host: the hostnames
+  in `SOCIAL_LINK_HOSTS` and `SOCIAL_IMAGE_HOSTS`. Otherwise 422 (`SocialHostNotAllowed`,
+  the message names the host). The lists are empty by default, which refuses every post
+  until the owner sets them. The CMS sends posts through this route, so an unset list
+  shows as a CMS report, not a publishing failure.
 - A slug is `/`-separated segments (`stories/2026/10/title`), each lowercase
   letters, digits and hyphens. No empty segment, no leading or trailing slash, max
   200 characters. The longest dedupe key (`cms:` + 60-character collection + slug
@@ -75,12 +80,14 @@ content.
   feed or media id). Handler returns normally, so the outbox row is `done`.
 - `GraphRejected` (a 4xx other than a rate limit): `dead`, `error` = Meta's code and
   message with the token redacted. Never retried.
-- `GraphRetryable` (connection never opened, 429, 5xx or a rate-limit code after the
-  client's own retries; or an Instagram container not ready): the handler clears
+- `GraphRetryable` (connection never opened, 429 or a rate-limit code after the
+  client's own retries, or a 5xx on a non-publish call after its retries; or an
+  Instagram container not ready): the handler clears
   `publish_started_at`, stores `error`, commits and raises, so the outbox retries
   with backoff. Nothing was published.
 - `GraphOutcomeUnknown` (a publish request was sent and no usable answer came back,
-  or a 2xx without an id): `dead` with `ERROR_OUTCOME_UNKNOWN`, logged at error level
+  including a **5xx on the publish call itself, which is not retried**, or a 2xx without
+  an id): `dead` with `ERROR_OUTCOME_UNKNOWN`, logged at error level
   so it reaches Sentry. Never sent again. A person checks the page.
 
 ### At most once
@@ -91,11 +98,11 @@ row mid-call. A crash or lost answer after that point leaves the marker set, and
 retry gives the row up instead of sending it again. Only a Meta answer that clearly
 did not publish (retryable) clears the marker.
 
-Residual risk, accepted and documented: a 5xx or 429 on the **publish** request is
-retried inside the call. The code assumes a 5xx means Meta did not publish; Meta's
-documentation does not promise that. If it published and then answered 5xx, the
-retry could post a second time. A reconciliation check (page against posted rows)
-would catch it; none exists yet.
+A 5xx on a publish call is not retried, in the call or by the outbox: Meta may have
+accepted the post before failing, so it is an unknown outcome for the editor to check.
+Meta's 429 and rate-limit codes (4, 17, 32, 613) are answered before anything is
+created, so those are retried. A 5xx on a non-publish call (container creation or
+status reads) is retried, since nothing is published by those calls.
 
 The outbox (ADR-0026) gives at-least-once delivery. Handlers are idempotent by the
 row status and the marker above. `check_outbox_backlog` watches the platform outbox.
@@ -117,7 +124,13 @@ for 30 seconds in each worker.
   `^v\d{1,2}\.\d{1,2}$`), `META_PAGE_ID` and `META_INSTAGRAM_ACCOUNT_ID` (numbers
   only, because they become URL path segments), `META_PAGE_ACCESS_TOKEN` (a
   `SecretStr`). `platform_credentials(platform)` returns what a live post needs, or
-  None.
+  None. The token is stripped of surrounding whitespace first, and a value that is not
+  one unbroken run of token characters (`TOKEN_PATTERN`) is treated as unset with the
+  reason `REASON_TOKEN_MALFORMED`, which never shows the value. `SOCIAL_LINK_HOSTS` and
+  `SOCIAL_IMAGE_HOSTS` (comma-separated hostnames, empty refuses every post) are the
+  approved hosts checked at intake. The API container (not the worker) receives them.
+- A Meta-returned Instagram container id must be digits only (`CONTAINER_ID_PATTERN`):
+  it becomes a URL path segment in the next call. Anything else is refused.
 - The Graph host is a constant (`graph.facebook.com`), never configuration, so the
   token can only go to Meta. The token is sent in the `Authorization` header, never
   in a URL. Nothing logs ids, captions, titles, links or response bodies; logs carry

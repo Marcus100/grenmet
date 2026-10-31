@@ -29,6 +29,7 @@ from src.content_distribution.constants import (
     REASON_FLAG_OFF,
     REASON_NO_IMAGE,
     REASON_NOT_CONFIGURED,
+    REASON_TOKEN_MALFORMED,
     SOCIAL_LIVE_FLAG,
 )
 from src.content_distribution.models import ContentDelivery
@@ -91,6 +92,8 @@ def _fresh_flag_cache() -> Iterator[None]:
 @pytest.fixture
 def cms_secret(monkeypatch: pytest.MonkeyPatch) -> dict[str, str]:
     monkeypatch.setattr(settings, "CMS_DISTRIBUTION_SECRET", SecretStr(_SECRET))
+    monkeypatch.setattr(settings, "SOCIAL_LINK_HOSTS", "gms.example.test")
+    monkeypatch.setattr(settings, "SOCIAL_IMAGE_HOSTS", "gms.example.test")
     return {"X-CMS-Secret": _SECRET}
 
 
@@ -329,7 +332,7 @@ async def test_instagram_creates_a_container_then_publishes_it(
             return _ok({"status_code": "FINISHED"})
         if request.url.path.endswith("/media_publish"):
             return _ok({"id": "17900000000000001"})
-        return _ok({"id": "container-1"})
+        return _ok({"id": "5001"})
 
     fake_meta.answer = answer
     await _intake_and_release(
@@ -339,11 +342,11 @@ async def test_instagram_creates_a_container_then_publishes_it(
 
     assert [f"{r.method} {r.url.path}" for r in fake_meta.requests] == [
         f"POST /v24.0/{IG_ID}/media",
-        "GET /v24.0/container-1",
+        "GET /v24.0/5001",
         f"POST /v24.0/{IG_ID}/media_publish",
     ]
     assert _form(fake_meta.requests[0])["image_url"] == [IMAGE]
-    assert _form(fake_meta.requests[2])["creation_id"] == ["container-1"]
+    assert _form(fake_meta.requests[2])["creation_id"] == ["5001"]
     row = await _one(db_async, "ig-photo", "instagram")
     assert row.status == "posted"
     assert row.external_id == "17900000000000001"
@@ -384,7 +387,7 @@ async def test_a_busy_meta_is_retried_after_retry_after_and_then_posts(
 ) -> None:
     await _switch_live_on(db_async)
     fake_meta.answer = _answer_with(
-        httpx.Response(503, headers={"Retry-After": "7"}),
+        httpx.Response(429, headers={"Retry-After": "7"}),
         _ok({"id": FB_POST}),
     )
     await _intake_and_release(
@@ -431,7 +434,7 @@ async def test_a_busy_meta_that_never_recovers_ends_dead_with_the_reason(
     fake_meta: FakeMeta,
 ) -> None:
     await _switch_live_on(db_async)
-    fake_meta.answer = _answer_with(httpx.Response(503))
+    fake_meta.answer = _answer_with(httpx.Response(429))
     await _intake_and_release(
         async_client, db_async, cms_secret, "always-busy", ["facebook"], image=False
     )
@@ -443,11 +446,11 @@ async def test_a_busy_meta_that_never_recovers_ends_dead_with_the_reason(
             # the next attempt may send it.
             assert row.status == "scheduled"
             assert row.publish_started_at is None
-            assert row.error == "Meta is busy (HTTP 503)"
+            assert row.error == "Meta is busy (HTTP 429)"
 
     row = await _one(db_async, "always-busy", "facebook")
     assert row.status == "dead"
-    assert row.error == "Meta is busy (HTTP 503)"
+    assert row.error == "Meta is busy (HTTP 429)"
     # Each attempt makes three calls inside itself before the outbox retries.
     assert len(fake_meta.requests) == 3 * MAX_ATTEMPTS
 
@@ -479,7 +482,7 @@ async def test_a_retryable_failure_is_sent_once_when_the_outbox_tries_again(
 ) -> None:
     await _switch_live_on(db_async)
     fake_meta.answer = _answer_with(
-        *[httpx.Response(503) for _ in range(3)], _ok({"id": FB_POST})
+        *[httpx.Response(429) for _ in range(3)], _ok({"id": FB_POST})
     )
     await _intake_and_release(
         async_client, db_async, cms_secret, "retry-once", ["facebook"], image=False
@@ -517,6 +520,32 @@ async def test_a_lost_answer_after_the_publish_request_is_never_sent_again(
     assert row.error == ERROR_OUTCOME_UNKNOWN
     assert row.external_id is None
     assert row.publish_started_at is not None
+    assert len(fake_meta.requests) == 1
+
+
+async def test_a_server_error_on_the_publish_call_is_unknown_and_sent_once(
+    async_client: httpx.AsyncClient,
+    db_async: AsyncSession,
+    cms_secret: dict[str, str],
+    fake_meta: FakeMeta,
+) -> None:
+    # Meta may have accepted the post before the server failed, so it is not retried:
+    # one request, an unknown outcome, and the editor checks the page.
+    await _switch_live_on(db_async)
+    fake_meta.answer = _answer_with(httpx.Response(500))
+    await _intake_and_release(
+        async_client,
+        db_async,
+        cms_secret,
+        "server-error-publish",
+        ["facebook"],
+        image=False,
+    )
+    assert await _drain(db_async, TOPIC_FB) == 1
+    assert await _drain(db_async, TOPIC_FB, day=5) == 0
+    row = await _one(db_async, "server-error-publish", "facebook")
+    assert row.status == "dead"
+    assert row.error == ERROR_OUTCOME_UNKNOWN
     assert len(fake_meta.requests) == 1
 
 
@@ -593,6 +622,48 @@ async def test_a_posted_row_is_never_posted_again(
 
 
 # --- Secrets ---------------------------------------------------------------------
+
+
+async def test_a_token_that_is_not_one_value_is_a_dry_run_that_says_so(
+    async_client: httpx.AsyncClient,
+    db_async: AsyncSession,
+    cms_secret: dict[str, str],
+    fake_meta: FakeMeta,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    await _switch_live_on(db_async)
+    monkeypatch.setattr(
+        settings, "META_PAGE_ACCESS_TOKEN", SecretStr("EAAB first half\nsecond half")
+    )
+    await _intake_and_release(
+        async_client, db_async, cms_secret, "malformed-token", ["facebook"], image=False
+    )
+    assert await _drain(db_async, TOPIC_FB) == 1
+    row = await _one(db_async, "malformed-token", "facebook")
+    assert row.status == "dry_run_sent"
+    assert row.reason == REASON_TOKEN_MALFORMED
+    # The reason never shows the token.
+    assert "EAAB" not in (row.reason or "")
+    assert fake_meta.requests == []
+
+
+async def test_a_token_pasted_with_surrounding_whitespace_is_stripped_before_use(
+    async_client: httpx.AsyncClient,
+    db_async: AsyncSession,
+    cms_secret: dict[str, str],
+    fake_meta: FakeMeta,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    await _switch_live_on(db_async)
+    monkeypatch.setattr(settings, "META_PAGE_ACCESS_TOKEN", SecretStr(f"  {TOKEN}\n"))
+    fake_meta.answer = _answer_with(_ok({"id": FB_POST}))
+    await _intake_and_release(
+        async_client, db_async, cms_secret, "padded-token", ["facebook"], image=False
+    )
+    assert await _drain(db_async, TOPIC_FB) == 1
+    [request] = fake_meta.requests
+    assert request.headers["Authorization"] == f"Bearer {TOKEN}"
+    assert (await _one(db_async, "padded-token", "facebook")).status == "posted"
 
 
 async def test_the_token_never_reaches_logs_stored_reasons_or_the_url(
@@ -715,7 +786,7 @@ async def test_the_staff_list_shows_a_retrying_post_as_failed_with_its_reason(
     superuser_token_headers_async: dict[str, str],
 ) -> None:
     await _switch_live_on(db_async)
-    fake_meta.answer = _answer_with(httpx.Response(503))
+    fake_meta.answer = _answer_with(httpx.Response(429))
     await _intake_and_release(
         async_client,
         db_async,
@@ -734,5 +805,5 @@ async def test_the_staff_list_shows_a_retrying_post_as_failed_with_its_reason(
     )
     by_platform = {item["platform"]: item for item in resp.json()["data"]}
     assert by_platform["facebook"]["status"] == "failed"
-    assert by_platform["facebook"]["error"] == "Meta is busy (HTTP 503)"
+    assert by_platform["facebook"]["error"] == "Meta is busy (HTTP 429)"
     assert by_platform["whatsapp"]["status"] == "pending"
