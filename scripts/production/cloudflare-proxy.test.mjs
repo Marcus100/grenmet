@@ -18,6 +18,8 @@ const RANGES = "infra/cloudflare/ip-ranges.txt";
 const FIREWALL = "scripts/production/cloudflare-origin-firewall.py";
 const CACHE = "scripts/production/cloudflare-cache-rules.py";
 const CIDR_LINE = /^[0-9a-f:.]+\/\d+$/;
+const SOURCES_LINE =
+  "# Sources: https://www.cloudflare.com/ips-v4 and https://www.cloudflare.com/ips-v6";
 const OVERSIZED = /^refused .*more than 16384 bytes/;
 const FETCHED_LINE = /^# Fetched: \d{4}-\d{2}-\d{2}$/m;
 const UNTOUCHED_PORT = /ports:(22|5432)\b/;
@@ -58,8 +60,8 @@ test("the vendored list parses, covers both families and names its source", () =
     "IPv6"
   );
   const text = readFileSync(RANGES, "utf8");
-  assert.ok(text.includes("https://www.cloudflare.com/ips-v4"));
-  assert.ok(text.includes("https://www.cloudflare.com/ips-v6"));
+  // The exact header line, so the sources cannot drift to another host.
+  assert.ok(text.split("\n").includes(SOURCES_LINE), "names both sources");
   assert.match(text, FETCHED_LINE);
 });
 
