@@ -2,7 +2,6 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const RE_UNABLE_TO_REACH = /unable to reach/i;
 const RE_REQUIRED = /required/i;
-const RE_DO_NOT_MATCH = /do not match/i;
 const RE_NOT_ACCEPTED = /not accepted/i;
 
 // vi.hoisted ensures these are available when vi.mock factories are hoisted.
@@ -29,7 +28,7 @@ vi.mock("posthog-node", () => ({
   })),
 }));
 
-import { signInAction, signOutAction, signUpAction } from "@/app/actions";
+import { signInAction, signOutAction } from "@/app/actions";
 import {
   signInAwaitingApproval,
   signInBadCredentials,
@@ -38,8 +37,6 @@ import {
   signInServiceDown,
   signInSuccess,
   signOutSuccess,
-  signUpEmailTaken,
-  signUpSuccess,
 } from "./handlers";
 import { server } from "./msw-server";
 
@@ -165,52 +162,6 @@ describe("signInAction", () => {
     );
     expect(result.error).toMatch(RE_REQUIRED);
     expect(mockRedirect).not.toHaveBeenCalled();
-  });
-});
-
-describe("signUpAction", () => {
-  const validFields = {
-    email: "new@example.com",
-    username: "newuser",
-    password: "password1",
-    confirm_password: "password1",
-    first_name: "New",
-    last_name: "User",
-  };
-
-  it("returns success state when signup succeeds", async () => {
-    server.use(signUpSuccess);
-    const result = await signUpAction(
-      { email: "", error: null, success: false },
-      makeFormData(validFields)
-    );
-    expect(result.success).toBe(true);
-    expect(result.error).toBeNull();
-  });
-
-  it("returns error when passwords do not match", async () => {
-    const result = await signUpAction(
-      { email: "", error: null, success: false },
-      makeFormData({ ...validFields, confirm_password: "different" })
-    );
-    expect(result.error).toMatch(RE_DO_NOT_MATCH);
-  });
-
-  it("returns error when email is already registered", async () => {
-    server.use(signUpEmailTaken);
-    const result = await signUpAction(
-      { email: "", error: null, success: false },
-      makeFormData(validFields)
-    );
-    expect(result.error).toBe("Email already registered");
-  });
-
-  it("returns validation error when required fields are missing", async () => {
-    const result = await signUpAction(
-      { email: "", error: null, success: false },
-      new FormData()
-    );
-    expect(result.error).toMatch(RE_REQUIRED);
   });
 });
 

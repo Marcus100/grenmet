@@ -18,14 +18,12 @@ import {
   readSessionCookie,
   requestPasswordRecovery,
   resetPassword,
-  signUp,
   writeSessionCookie,
 } from "@/lib/session";
 import type {
   ForgotPasswordState,
   ResetPasswordState,
   SignInState,
-  SignUpState,
 } from "./actions-types";
 
 function readString(formData: FormData, key: string): string {
@@ -205,52 +203,6 @@ export async function resetPasswordAction(
   } catch (error) {
     reportError(error, "auth-reset-password");
     return {
-      error: isAuthApiError(error)
-        ? error.detail
-        : "Unable to reach the auth service.",
-      success: false,
-    };
-  }
-}
-
-export async function signUpAction(
-  _previousState: SignUpState,
-  formData: FormData
-): Promise<SignUpState> {
-  const email = readString(formData, "email");
-  const username = readString(formData, "username");
-  const password = readString(formData, "password");
-  const confirmPassword = readString(formData, "confirm_password");
-  const firstName = readString(formData, "first_name");
-  const lastName = readString(formData, "last_name");
-  const middleName = readString(formData, "middle_name") || null;
-
-  if (!(email && username && password && firstName && lastName)) {
-    return {
-      email,
-      error: "All required fields must be filled in.",
-      success: false,
-    };
-  }
-
-  if (password !== confirmPassword) {
-    return { email, error: "Passwords do not match.", success: false };
-  }
-
-  try {
-    await signUp({
-      email,
-      username,
-      password,
-      firstName,
-      lastName,
-      middleName,
-    });
-    return { email, error: null, success: true };
-  } catch (error) {
-    reportError(error, "auth-sign-up");
-    return {
-      email,
       error: isAuthApiError(error)
         ? error.detail
         : "Unable to reach the auth service.",
