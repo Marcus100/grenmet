@@ -3,6 +3,7 @@
  * Do not edit manually.
  */
 
+import type { ApiError } from "./ApiError.js";
 import type { GmsCataloguePublic } from "./GmsCataloguePublic.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 
@@ -12,9 +13,17 @@ import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
  */
 export type CapGetGmsCatalogueStatus200 = GmsCataloguePublic;
 
-export type CapGetGmsCatalogueStatus401 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type CapGetGmsCatalogueStatus401 = ApiError;
 
-export type CapGetGmsCatalogueStatus403 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type CapGetGmsCatalogueStatus403 = ApiError;
 
 /**
  * @description Validation error envelope returned for malformed requests.

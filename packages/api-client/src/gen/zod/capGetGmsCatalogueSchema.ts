@@ -4,6 +4,7 @@
  */
 
 import * as z from "zod";
+import { apiErrorSchema } from "./apiErrorSchema.js";
 import { gmsCataloguePublicSchema } from "./gmsCataloguePublicSchema.js";
 import { validationErrorResponseSchema } from "./validationErrorResponseSchema.js";
 
@@ -12,9 +13,13 @@ export const capGetGmsCatalogueStatus200Schema =
     "GMS warning catalogue: hazard list, parish geocodes, product and colour rules."
   );
 
-export const capGetGmsCatalogueStatus401Schema = z.unknown();
+export const capGetGmsCatalogueStatus401Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
-export const capGetGmsCatalogueStatus403Schema = z.unknown();
+export const capGetGmsCatalogueStatus403Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
 export const capGetGmsCatalogueStatus422Schema =
   validationErrorResponseSchema.describe(
