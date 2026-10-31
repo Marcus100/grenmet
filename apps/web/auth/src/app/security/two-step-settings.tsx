@@ -357,7 +357,7 @@ export function TwoStepSettings({
                     kind: "scan",
                     secret: result.secret,
                     uri: result.provisioning_uri,
-                    emailCodeRequired: result.email_code_required,
+                    emailCodeRequired: result.email_code_required === true,
                   });
                 } catch {
                   toast.error("Unable to start authenticator setup.");
