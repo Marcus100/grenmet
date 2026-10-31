@@ -1,8 +1,8 @@
-# Cloudflare proxy runbook (public sites behind Cloudflare, free plan)
+# Cloudflare proxy runbook (public sites behind Cloudflare, free plan plus Advanced Certificate Manager)
 
 **Status:** Ready for the owner; nothing applied. Every switch is off until the owner turns it on.  
 **Owner:** Barrels Grenada engineering (operator: repository owner)  
-**Last updated:** 2026-10-30  
+**Last updated:** 2026-10-31  
 **Issue:** #859 (the pairing documented in #544)
 
 Today every `*.barrels.gd` and `*.staging.barrels.gd` hostname resolves straight to
@@ -38,7 +38,7 @@ behaviour. Anything other than `true`/`false` stops the deploy.
 | Let's Encrypt challenge | TLS challenge on 443 (today) | HTTP challenge on 80 (Cloudflare ends TLS in front of the droplet, so the TLS challenge cannot reach Traefik) |
 
 The switch acts on the whole droplet: every hostname on that droplet must be
-proxied at the same time (step 4 of the order below), or the grey ones pool
+proxied at the same time (step 5 of the order below), or the grey ones pool
 their visitors into one rate-limit bucket. Turning the switch on while the
 hostnames are still grey is safe, but rate limits pool until the clouds are
 orange, so do the two steps back to back.
@@ -50,22 +50,21 @@ on the droplets: leave their records exactly as they are, and leave Babydoll's
 
 ## Before you start: owner decisions
 
-1. **Staging certificates cost money on the free plan.** Cloudflare's free
+1. **Decided 2026-10-31: pay for Advanced Certificate Manager (about US$10 a
+   month) so staging is proxied and tested first.** Cloudflare's free
    certificate (Universal SSL) covers `barrels.gd` and one level below it
    (`events.barrels.gd`), **not** `events.staging.barrels.gd`. Proxying a staging
    hostname without another certificate makes browsers refuse it
    ([Cloudflare: Universal SSL limitations](https://developers.cloudflare.com/ssl/edge-certificates/universal-ssl/limitations/)).
-   Choices:
-   - **A. Advanced Certificate Manager, about US$10 a month** on the `barrels.gd`
-     zone, with an advanced certificate for `*.staging.barrels.gd` (or Total
-     TLS). Lets you do staging first, as #859 asks. Can be cancelled afterwards,
-     but staging must go back to grey first.
-   - **B. Free:** skip the staging proxy. On staging run steps 1-3 and the
-     firewall script in plan mode only (never `--apply` while staging is grey:
-     it would take staging offline). That proves the deploy, the cache-rule
-     script and the firewall plan. Then do production in a quiet hour with the
-     rollback ready.
-   Uploading your own certificate to Cloudflare is not available on the free plan.
+   Advanced Certificate Manager is a paid add-on on the `barrels.gd` zone; the
+   zone itself stays on the free plan. Step 1 of the order of work orders the
+   certificate. Keep the subscription while any staging record is proxied; if
+   it is ever cancelled, grey every staging record first.
+   *Fallback only, if the add-on cannot be bought:* skip the staging orange
+   cloud. On staging run steps 2-4 and the firewall script in plan mode only
+   (never `--apply` while staging is grey: it would take staging offline), then
+   do production in a quiet hour with the rollback ready. Uploading your own
+   certificate is not available on the free plan.
 2. **The storm cache plan conflicts with "never cache the API".**
    `docs/operations/cloudflare-storm-cache.md` plans to cache `/alerts`,
    `/api/alerts/*`, `/api/satellite/*` on the weather site and
@@ -123,17 +122,32 @@ ORIGIN_IP=<staging droplet public IPv4>   # never commit it
 AUTH=(-u "<one staging basic-auth user:password>")   # production: AUTH=()
 ```
 
-1. **Range list current.** `python3 scripts/production/cloudflare_ranges.py --check`
+1. **Advanced certificate, Active before any orange cloud.** Cloudflare →
+   barrels.gd → SSL/TLS → Edge Certificates → **Order Advanced Certificate**
+   (the first order asks you to subscribe to Advanced Certificate Manager,
+   about US$10 a month). Hostnames, exactly these three: `barrels.gd`,
+   `*.barrels.gd`, `*.staging.barrels.gd` (the zone apex must be on the
+   certificate; a wildcard covers one level only, so `*.barrels.gd` does not
+   cover `events.staging.barrels.gd`). Certificate authority: Let's Encrypt or
+   Google Trust Services; validation method: TXT (Cloudflare adds the records
+   itself because it hosts the zone's DNS); validity: the default, which
+   renews automatically. Save, then wait on the Edge Certificates page until
+   the certificate's status is **Active** (it passes Initializing, Pending
+   Validation, Pending Issuance and Pending Deployment; usually minutes for a
+   zone whose DNS is on Cloudflare). **Do not orange-cloud anything until it
+   is Active.** Leave Universal SSL on; it keeps serving anything the advanced
+   certificate does not cover.
+2. **Range list current.** `python3 scripts/production/cloudflare_ranges.py --check`
    prints "matches". On drift run `--update`, commit through a PR and wait for it
    to reach the environment.
-2. **Cache rules (harmless while grey).**
+3. **Cache rules (harmless while grey).**
    ```bash
    python3 scripts/production/cloudflare-cache-rules.py --environment staging --print   # read the rules
    python3 scripts/production/cloudflare-cache-rules.py --environment staging           # plan
    python3 scripts/production/cloudflare-cache-rules.py --environment staging --apply
    ```
    Run it again: it must say "No change".
-3. **Switch on.** GitHub → Settings → Environments → `staging` → Variables → add
+4. **Switch on.** GitHub → Settings → Environments → `staging` → Variables → add
    `CLOUDFLARE_PROXY_ENABLED` = `true`. Redeploy staging (Actions → Deploy →
    Run workflow, environment `staging`, image tag of the current staging
    deploy, or merge the next change to `staging`). On the droplet confirm:
@@ -146,7 +160,7 @@ AUTH=(-u "<one staging basic-auth user:password>")   # production: AUTH=()
      docker inspect "$P-$c-1" --format '{{range .Config.Env}}{{println .}}{{end}}' | grep VISITOR_IP_PROXY_HOPS
    done   # each: VISITOR_IP_PROXY_HOPS=2
    ```
-4. **Orange cloud, straight after step 3** (Cloudflare → barrels.gd → DNS →
+5. **Orange cloud, straight after step 4** (Cloudflare → barrels.gd → DNS →
    Records; edit each record, toggle **Proxy status** to Proxied, Save). Only
    records that point at the staging droplet, in this order: the public sites
    first, staff hosts last, so a problem shows on a low-risk host first:
@@ -156,10 +170,15 @@ AUTH=(-u "<one staging basic-auth user:password>")   # production: AUTH=()
       order: `weather`, `cap`, `gmsdash`, `events`, `bookings`, `signal`,
       `mbia`, `docs`, then `auth`, `admin`, `gms`, `cms`, `api`, `adminer`.
    After each one: `curl -sI "${AUTH[@]}" https://<host>.$DOMAIN/ | grep -iE '^(server|cf-ray)'`
-   shows `server: cloudflare`. A 525/526 error means the origin certificate is
-   wrong; grey that record and check Traefik's logs.
-5. **Verify** every acceptance item below.
-6. **Origin firewall** (only once *every* droplet hostname is orange: a grey one
+   shows `server: cloudflare`, and the browser-facing certificate is the
+   advanced one:
+   `openssl s_client -connect <host>.$DOMAIN:443 -servername <host>.$DOMAIN </dev/null 2>/dev/null | openssl x509 -noout -ext subjectAltName`
+   lists `*.staging.barrels.gd`. A certificate error in the browser means the
+   advanced certificate is not Active yet: grey the record and wait. A 525/526
+   error means the origin certificate is wrong; grey that record and check
+   Traefik's logs.
+6. **Verify** every acceptance item below.
+7. **Origin firewall** (only once *every* droplet hostname is orange: a grey one
    stops working the moment this applies).
    ```bash
    python3 scripts/production/cloudflare-origin-firewall.py --firewall core-staging           # plan: read it
@@ -169,11 +188,12 @@ AUTH=(-u "<one staging basic-auth user:password>")   # production: AUTH=()
    then removes the "everyone" rules, so the ports never close), keeps SSH, the
    private 5432 rule, ICMP and all outbound rules, and re-reads the firewall to
    confirm. Then run the direct-origin test below.
-7. **Certificate renewal check** within a day: `docker logs "$P-proxy-1" 2>&1 | grep -i acme`
+8. **Certificate renewal check** within a day: `docker logs "$P-proxy-1" 2>&1 | grep -i acme`
    shows no errors. To force one, the owner can watch the next renewal (Traefik
    renews 30 days before expiry); certificates stay valid meanwhile.
-8. **Soak** for at least two days of normal staging use, then repeat steps 1-7
-   for production (`--environment production`, firewall `core-production`,
+9. **Soak** for at least two days of normal staging use, then repeat steps 2-8
+   for production (the advanced certificate from step 1 already covers
+   `barrels.gd` and `*.barrels.gd`) (`--environment production`, firewall `core-production`,
    GitHub environment `production`, records `*` and the explicit production
    hostnames on the production droplet). Production's switch reaches the droplet
    with the next production release, or a manual Deploy run of the current
@@ -228,7 +248,7 @@ the shared web-host secret is ignored as before.
 
 ### 3. The droplet refuses direct HTTPS from outside Cloudflare
 
-After step 6, from your laptop:
+After step 7, from your laptop:
 
 ```bash
 curl -sk --connect-timeout 8 -o /dev/null -w '%{http_code}\n' \
@@ -287,6 +307,8 @@ Fastest first. Each step is independent; stop when the problem is gone.
    `python3 scripts/production/cloudflare-cache-rules.py --environment staging --remove --apply`.
 5. Turn **Always Use HTTPS** back on only after every record is grey again and
    the switch is off (the TLS challenge is back).
+6. Keep the advanced certificate and its subscription unless the proxy is
+   abandoned for good; cancel only after every staging record is grey.
 
 ## Requests longer than Cloudflare's timeout (inventory)
 
