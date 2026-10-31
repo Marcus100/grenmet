@@ -354,7 +354,11 @@ async def action_shift_swap_request(
             session=session,
             current_user=current_user,
             workflow_instance_id=request.workflow_instance_id,
-            action_in=WorkflowActionRequest(action=action, comments=payload.comments),
+            action_in=WorkflowActionRequest(
+                action=action,
+                comments=payload.comments,
+                rule_override_reason=payload.rule_override_reason,
+            ),
         )
         await session.refresh(request)
         return request

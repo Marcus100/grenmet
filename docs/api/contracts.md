@@ -38,6 +38,43 @@ Shared HR shift and public-holiday definitions require this global
 `roster.manage` authority or a superuser for writes; organisation `ALL`,
 department and SELF grants cannot mutate definitions shared by other employers.
 
+## HR payroll inputs (slice 1, added 31 Oct 2026)
+
+`/api/v1/hr/payroll/*` produces pay-input **quantities** (hours and counts) per
+pay period and employee for GAA's payroll of record, HrPlus. No rate, amount,
+tax, NIS or bank field exists in any request, response or export.
+
+- Catalogue and setup: `GET items`, `GET|POST calendars`, `GET profiles`,
+  `PUT profiles/{user_id}`, `GET department-settings`,
+  `PUT department-settings/{department_id}`. A new organisation's `items` list is
+  empty; GAA's items are seeded `PROVISIONAL` with a `source_reference`.
+- Calendars are `MONTHLY` or `FORTNIGHTLY` (`anchor_date` required; periods
+  start a whole number of fortnights from it and run 14 days). Without a
+  `frequency`, GAA calendars are fortnightly and others monthly.
+- Periods: `GET|POST periods`, `GET periods/{period_id}` (quantity totals and
+  `allowed_actions`; never money), `GET|POST periods/{period_id}/lines`,
+  `DELETE periods/{period_id}/lines/{line_id}` (manual lines, open periods only).
+- Lifecycle: `POST computation` (idempotent), `POST submission` (starts the
+  `PAYROLL_RUN` workflow), `POST approval` and `POST return` (second person only),
+  `POST export.csv` (`text/csv`), `POST closure`.
+- Access: keys `hr.payroll.read.department`, `.prepare`, `.approve`, `.export`,
+  granted to no default role. Prepare, approve and export need organisation-wide
+  scope; approve and export also need an MFA-verified session (403 otherwise). A
+  period outside the caller's payroll access is 404. Generic workflow action and
+  instance-create routes refuse `pay_period` entities.
+- Separation of duty: whoever submitted a period, added any line to it, has
+  their own pay in it, or changed a pay profile or shift-worker default it relies
+  on cannot approve or return it (403); nobody adds pay lines for themselves or
+  edits their own pay profile. Hand-entered overtime band lines that duplicate
+  bands the roster now computes stop a recompute (409) until removed. Payroll responses send `Cache-Control: no-store`.
+  Payroll change history (`/audit/pay_period/...`, `/audit/payroll_settings/...`)
+  needs organisation-wide prepare or approve; department scope never reads it.
+- `WorkflowType` gains `PAYROLL_RUN` (additive; clients should render unknown
+  types generically).
+- Overtime band items (`method: OVERTIME_BAND`) take band hours from the roster
+  rules engine (#890); `overtime_bands_available` is true. Manual band lines are
+  refused (400) where the employee's department computes bands.
+
 ## Base URLs
 
 | Environment | API base URL |
@@ -753,8 +790,9 @@ order; `follow_policy` refunds when the event starts at least `EVENTS_REFUND_CUT
 orders are refunded in full, unpaid holds released) cancels an event. The legacy
 `POST /events/manage/{id}/cancel` takes the same optional `refund` but defaults to `none`, and
 saving a listing as cancelled never moves money. Event cancel reports `orders_refunded`
-(manual rail, settled inline), `orders_queued` (provider rail), `orders_kept`, `orders_released`
-and `refunds_failed`.
+(manual rail, settled inline), `orders_queued` (provider rail), `orders_kept`, `orders_released`,
+`refunds_failed` and `orders_pending` (an earlier refund of the order is still waiting for the
+payment provider: not failed, not queued again).
 
 Provider-rail (card) refunds are never sent inside a request (one may wait per order; a second is 409, and the buyer email is shown to org admins/owners only): they are queued on the outbox topic
 `events.order_refund_requested` and sent with retries; the refund id is derived from the order and
@@ -805,10 +843,13 @@ Shared APIs for every Barrels app. Zones follow ADR-0025.
   optional UTC `expires_at`), `POST /grants/{grant_id}/revoke`, and admin-only
   `GET /members/{membership_id}/issued-grants`. Entry needs some entitled product's
   `team.manage` key (owner and admin implicitly); the grant rules (hold the bundle,
-  no self-grant 403, expiry cap 422, duplicate or lost race 409) live in
+  no self-grant and no revoking one's own grant, both 403; expiry cap 422; duplicate
+  or lost race 409) live in
   `grants.py`. Responses carry display names, never emails. Removing a member also
-  revokes live grants they issued (audited with a count); a demotion only lists them.
-  `issued-grants` lists direct grants only: revocation is not transitive. Member grant
+  revokes live grants they issued, transitively, and so does a demotion (#527). Revoking
+  a grant ends the downstream grants that lose support from an owner or admin, and the
+  response's `cascaded_revocations` counts them (409 above 200 roles, nothing ended).
+  Revoking a team grant can end the grants its holder issued. Member grant
   lists show only products whose `team.manage` the caller holds. Each bundle carries a
   human `label` and `description` (`role_bundles.BUNDLE_COPY`). `GET /team/members`
   (team managers) is the paginated roster of active members: membership id, display
@@ -1071,6 +1112,30 @@ by permission keys from `src/auth/permissions.py` (`tests/auth/test_permission_r
 fails if a key used in code is missing from the catalog). Routers:
 `profile`, `rosters`, `calendar`, `timesheets`, `attendance`, `leave-requests`, `shift-swaps`,
 `absentee-reports`, `status-reports`, `parking-permits`, `documents`, `workflows`.
+
+### Roster rules (#380)
+
+| Endpoint | Permission | Purpose |
+| --- | --- | --- |
+| `GET/PUT /api/v1/hr/rosters/organisations/{organisation_id}/rule-set` | organisation-wide `roster.rules.manage` | The organisation's default roster rules (`source` is `DEFAULT` until saved). A null limit disables a rule |
+| `GET /api/v1/hr/rosters/departments/{department_id}/rule-set` | `roster.view` in scope | The rules that apply: `source` `DEPARTMENT`, `ORGANISATION` or `DEFAULT` |
+| `PUT/DELETE /api/v1/hr/rosters/departments/{department_id}/rule-set` | `roster.rules.manage` in scope | Give a department its own rules, or return it to the organisation's |
+| `GET /api/v1/hr/rosters/departments/{department_id}/rule-profiles`, `PUT /api/v1/hr/rosters/employees/{user_id}/rule-profile` | `roster.rules.manage` in scope | Union coverage and worker type per employee; not for your own record |
+| `GET /api/v1/hr/rosters/departments/{department_id}/rule-overrides` | `roster.rules.manage` or `roster.manage` in scope | Saves made despite warnings: who, when, rules, reason |
+| `GET /api/v1/hr/rosters/departments/{department_id}/rules` (deprecated) | read `roster.view`; write `roster.rules.manage` | Old shape mapped onto the rule set: consecutive days and weekly hours; `min_rest_hours` is always null |
+
+`rule_override_reason` is accepted by publish (`PATCH .../periods/{id}/publish`; the
+body is optional and an omitted body means no reason), published-roster edits
+(`POST .../assignments/bulk`), CSV and grid import, shift-exchange actions, workflow
+actions (`POST /hr/workflows/instances/{id}/actions`), leave actions, timesheet submit
+and approve (`PATCH /hr/timesheets/{id}/approve`, optional body), attendance submit and
+attendance corrections. Without it, a change that breaks a rule fails with 409 and
+`RosterRuleWarningsErrorPublic`; that model is a superset of `ApiError` (`detail`,
+plus `code: ROSTER_RULE_WARNINGS`, `context` and `violations` for rule warnings), so
+ordinary 409s on those routes keep their shape. A reason containing NUL is a 422; other control characters, Unicode bidi controls and zero-width characters are removed.
+Shift definitions carry `break_minutes` (unpaid break, 0 to 240). Attendance week
+rows, timesheet entries and the timesheet summary carry `overtime_bands` (rate and
+hours, no pay). Details: `docs/hr/roster-rules.md`.
 
 ### Form prefill endpoints
 
@@ -1358,7 +1423,11 @@ A normal publish checks the generated XML against the official OASIS CAP 1.2 sch
 
 An import (`POST /api/v1/cap/alerts/import`, feeds too) is refused only when it is malformed XML or contains a DTD (400). Any other problem is stored: `schema_conformant: false`, with every problem in `schema_error`. An import changed to be storable is flagged the same way and lists each change. `import_source` is `feed` or `manual`. Publishing an imported alert, normally or in an emergency, needs `confirm_imported: true` in the request body (409 without it). Save-time checks (422, naming the value): a `responseType` outside the nine CAP values, a `language` that is not an xs:language tag, a `web` address with spaces, quotes or angle brackets, a character XML cannot carry (vertical tab and form feed become newlines), and a non-finite altitude, ceiling or coordinate. The import body is capped at 5 MB.
 
-The public routes (`/api/cap/alerts`, `/alerts/{identifier}`, `/past`, `/latest-active`) return `CapAlertPublicView`, which drops `schema_conformant`, `schema_error`, `import_source`, `note`, `created_by_user_id` and `updated_by_user_id`. Staff routes return the full `CapAlertPublic`.
+`sent` is the time an alert went out: publish (normal and emergency) stamps it, and so do cancellations. The drafting time is not kept. The CAP settings `wmo_oid` must be a WMO OID of the form `2.49.0.1.<country>.<authority>` (digits and dots only); anything else is a 422.
+
+The public routes (`/api/cap/alerts`, `/alerts/{identifier}`, `/past`, `/latest-active`) return `CapAlertPublicView`, which drops `schema_conformant`, `schema_error`, `import_source`, `created_by_user_id` and `updated_by_user_id` (who created or changed an alert is not public). `note` stays: the CAP XML publishes it too. Staff routes return the full `CapAlertPublic`. `GET /api/v1/cap/alerts/by-identifier/{identifier}` (`cap.alert.read`) is the staff detail lookup by CAP identifier, including drafts and imports.
+
+Feeds and URL imports are fetched only over https (plain http only for a registered feed that uses it), through a helper that connects to the address the host check validated, rebuilds the URL from parsed components, does not follow redirects, and caps the body at 5 MB.
 
 Save-time checks (422, naming the value): `responseType` must be one of the nine CAP values, `language` must be an xs:language tag, and `web` must be one address with no spaces, quotes or angle brackets.
 
@@ -1425,7 +1494,7 @@ Leave balances come only from the append-only `hr.leave_balance_event` ledger, w
 
 ### Employee membership and account security
 
-Employment records may represent confirmed department/grade membership with a null employee number or employment type. `EmploymentPublic` includes `grade`, `supervisor_name` and `details_complete`; clients must display unknown fields explicitly rather than infer values. `EmploymentPublic`, `EmploymentRecordPublic` (the admin read) and `EmploymentUpdate` carry `end_date` (last day of employment, #797; null clears it, and it cannot precede `start_date`). That date is the last day of employment: roles work through it and stop at midnight Grenada time after it, and a daily job then sets the status to `TERMINATED`. Changing an end date (setting, moving or clearing it) on someone who holds live organisation-wide roles needs organisation-wide `hr.employment.manage` (403 otherwise). A change of `department_id` to another department ends the person's live roles in that organisation (#797); see `apps/api/fastapi/src/hr/AGENTS.md`. `GET /api/v1/auth/users/me/security` returns current-account security status and active-session metadata (app, client type, recorded `user_agent` and `ip_address`, last-used and expiry times), never bearer tokens, session secrets or TOTP secrets. The IP and user agent are shown only to the account owner so they can recognise their own devices. The response also carries `password_changed_at` (null until the password is next changed, reset or set up after the column shipped). Password and Google sign-in remember the browser/OS family of each device (`user.known_device_keys`, capped at 20); a sign-in from an unfamiliar family after the first ever device emails the account owner a "New sign-in" alert in the background, linking to `/sessions`. Alert failures are logged and never block sign-in. Existing `/auth/users/me/security/2fa/setup` and `/auth/users/me/security/2fa/activate` endpoints provide enrollment; setup rejects an already-enabled authenticator.
+Employment records may represent confirmed department/grade membership with a null employee number or employment type. `EmploymentPublic` includes `grade`, `supervisor_name` and `details_complete`; clients must display unknown fields explicitly rather than infer values. `EmploymentPublic`, `EmploymentRecordPublic` (the admin read) and `EmploymentUpdate` carry `end_date` (last day of employment, #797; null clears it, and it cannot precede `start_date`). That date is the last day of employment: roles work through it and stop at midnight Grenada time after it, and a daily job then sets the status to `TERMINATED`. Changing an end date (setting, moving or clearing it) on someone who holds live organisation-wide roles needs organisation-wide `hr.employment.manage` (403 otherwise). A change of `department_id` to another department ends the person's live roles in that organisation (#797); see `apps/api/fastapi/src/hr/AGENTS.md`. `GET /api/v1/auth/users/me/security` returns current-account security status and active-session metadata (app, client type, recorded `user_agent` and `ip_address`, last-used and expiry times), never bearer tokens, session secrets or TOTP secrets. The IP and user agent are shown only to the account owner so they can recognise their own devices. The response also carries `password_changed_at` (null until the password is next changed, reset or set up after the column shipped). Password and Google sign-in remember the browser/OS family of each device (`user.known_device_keys`, capped at 20); a sign-in from an unfamiliar family after the first ever device emails the account owner a "New sign-in" alert in the background, linking to `/sessions`. Alert failures are logged and never block sign-in. Existing `/auth/users/me/security/2fa/setup` and `/auth/users/me/security/2fa/activate` endpoints provide enrollment; setup rejects an already-enabled authenticator. For a privileged account (`privileged_mfa.is_privileged`) setup also emails a one-time code to the account (issue #625): setup returns `email_code_required: true`, and activate needs that code as the optional `email_code` field alongside the TOTP `code`. Wrong or missing codes are 400; five wrong codes lock the enrolment for 30 minutes and setup then starts again. Setup is limited to three codes per account in 15 minutes and ten per 24 hours (429); a code counts only once its email is sent. The code expires after ten minutes. Changing the email of a privileged account with no authenticator is refused (403, `email_change_blocked`).
 
 Managed HR workflows must be created through their form submission endpoints. Public generic workflow creation cannot attach a new workflow to a managed HR record. Finalization validates the record's authoritative workflow and department before status or balance changes. The dashboard honours `roster.view` for department data and preserves personal roster access when that permission is absent.
 

@@ -1,5 +1,6 @@
 import "server-only";
 import {
+  capAlertPublicSchema,
   capAuditEventListPublicSchema,
   capCatalogsPublicSchema,
   capGetFeedsResponseSchema,
@@ -8,9 +9,11 @@ import {
   capSettingsPublicSchema,
   gmsCataloguePublicSchema,
 } from "@barrelsgd/api-client";
+import { notFound } from "next/navigation";
 import {
   authApiFetch,
   exchangeSessionForAccessToken,
+  isAuthApiError,
   readSessionCookie,
 } from "@/lib/server-session";
 
@@ -18,6 +21,25 @@ async function accessToken() {
   const session = await readSessionCookie();
   if (!session) throw new Error("Sign in to use CAP administration.");
   return (await exchangeSessionForAccessToken(session)).access_token;
+}
+
+/**
+ * One alert by identifier, staff view (every field, including the schema flag and
+ * the imported marker). A missing alert is a 404 page; any other failure is thrown.
+ */
+export async function loadCapAlertByIdentifier(identifier: string) {
+  try {
+    return await authApiFetch(
+      `/cap/alerts/by-identifier/${encodeURIComponent(identifier)}`,
+      capAlertPublicSchema,
+      { accessToken: await accessToken(), cache: "no-store" }
+    );
+  } catch (error) {
+    if (isAuthApiError(error) && error.status === 404) {
+      notFound();
+    }
+    throw error;
+  }
 }
 
 export async function loadCapCatalogs() {

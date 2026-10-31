@@ -86,6 +86,7 @@ from src.cap.public_queries import (
     public_warnings,
     select_public_warnings,
 )
+from src.cap.safe_fetch import fetch_pinned
 from src.cap.schemas import (
     CapAlertAction,
     CapAlertCreate,
@@ -186,6 +187,27 @@ async def list_alerts(
     return alerts, total or 0
 
 
+async def get_alert_by_identifier(
+    *, session: AsyncSession, current_user: User, identifier: str
+) -> CapAlertPublic:
+    """One alert by its CAP identifier, with every staff field (the desk's detail page)."""
+    require_permission(current_user=current_user, permission_key="cap.alert.read")
+    row = (
+        (
+            await session.execute(
+                select(CapAlert)
+                .where(CapAlert.identifier == identifier)
+                .options(*_alert_selectinload_options())
+            )
+        )
+        .scalars()
+        .first()
+    )
+    if row is None:
+        raise CapAlertNotFoundError()
+    return await _to_public(session=session, alert=row)
+
+
 async def get_alert(
     *, session: AsyncSession, current_user: User, alert_id: uuid.UUID
 ) -> CapAlertPublic:
@@ -201,36 +223,26 @@ async def _fetch_document(
     *,
     http_client: httpx.AsyncClient | None,
     headers: dict[str, str] | None = None,
+    allow_http: bool = False,
 ) -> tuple[int, httpx.Headers, bytes]:
     """GET a CAP document through the SSRF guard, reading at most MAX_IMPORT_BYTES.
 
-    The host must resolve to public addresses on every fetch, whether or not a client
-    was injected. Redirects are not followed. The body is capped while it is read.
+    The host is checked on every fetch, whether or not a client was injected, and the
+    connection goes to the address that check returned (see ``src.cap.safe_fetch``).
     """
-    await ensure_public_host(urlparse(url).hostname or "")
+    address = await ensure_public_host(urlparse(url).hostname or "")
     owns_client = http_client is None
     client = http_client or httpx.AsyncClient()
     try:
-        async with client.stream(
-            "GET", url, timeout=15.0, follow_redirects=False, headers=headers
-        ) as response:
-            if response.is_redirect:
-                raise CapImportError("redirects are not followed for CAP imports")
-            if response.status_code == 304:
-                return 304, response.headers, b""
-            response.raise_for_status()
-            chunks: list[bytes] = []
-            total = 0
-            async for chunk in response.aiter_bytes():
-                total += len(chunk)
-                if total > MAX_IMPORT_BYTES:
-                    raise CapImportError(
-                        f"import exceeds {MAX_IMPORT_BYTES} byte limit"
-                    )
-                chunks.append(chunk)
-            return response.status_code, response.headers, b"".join(chunks)
-    except httpx.HTTPError as exc:
-        raise CapImportError(f"could not fetch source: {type(exc).__name__}") from exc
+        fetched = await fetch_pinned(
+            client,
+            url,
+            address=address,
+            max_bytes=MAX_IMPORT_BYTES,
+            headers=headers,
+            allow_http=allow_http,
+        )
+        return fetched.status, fetched.headers, fetched.body
     finally:
         if owns_client:
             await client.aclose()
@@ -856,6 +868,12 @@ async def _publish(
     replaced = await _published_references_for_update(
         session=session, alert=alert, public=public
     )
+    # CAP "sent" is the time the message went out, not when it was drafted. Set it
+    # here, on publish, so the XML, the snapshot and the feeds all carry it.
+    alert.sent = utc_now().replace(microsecond=0)
+    session.add(alert)
+    await session.flush()
+    public = await _to_public(session=session, alert=alert)
     emergency = emergency_reason is not None
     xml, mismatch = await gate_cap_xml(
         alert_to_cap_xml(public),
@@ -1457,7 +1475,10 @@ async def ingest_feed(
         validate_import_url(feed.url)
         headers = {"If-None-Match": feed.last_etag} if feed.last_etag else None
         status, response_headers, body = await _fetch_document(
-            feed.url, http_client=http_client, headers=headers
+            feed.url,
+            http_client=http_client,
+            headers=headers,
+            allow_http=feed.url.startswith("http://"),
         )
     except CapImportError as exc:
         feed.last_checked_at = now

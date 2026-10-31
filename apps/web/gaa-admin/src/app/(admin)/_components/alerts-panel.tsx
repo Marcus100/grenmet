@@ -46,7 +46,7 @@ function AlertRows({ alerts }: { alerts: CapPublicAlert[] }) {
                   {info?.headline ?? alert.identifier}
                 </p>
                 <p className="mt-0.5 line-clamp-1 text-muted-foreground text-xs">
-                  {info?.description ?? "CAP alert"}
+                  {info?.description ?? alert.note ?? "CAP alert"}
                 </p>
               </div>
               <div className="flex shrink-0 flex-col items-end gap-1">

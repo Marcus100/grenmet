@@ -568,7 +568,9 @@ hurricane/spice hosts; no legacy redirects are installed.
 
 Cloudflare wildcard A records point `*.barrels.gd` to the production droplet and
 `*.staging.barrels.gd` to the staging droplet (IPs: see the DigitalOcean dashboard). The DNS configuration supplied on 2026-09-06 uses DNS-only mode;
-Traefik obtains host certificates through the existing ACME challenge.
+Traefik obtains host certificates through the existing ACME challenge. Moving the
+droplet hostnames behind Cloudflare's proxy is one planned change (issue #859):
+see the [Cloudflare proxy runbook](operations/cloudflare-proxy.md).
 
 Roll out staging first and verify every app health endpoint, login return URLs,
 and API CORS. Promote through main and a new release after staging succeeds.

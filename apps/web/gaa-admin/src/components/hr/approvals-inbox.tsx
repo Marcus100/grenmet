@@ -2,6 +2,7 @@
 
 import {
   hrGetInboxQueryKey,
+  type RosterRuleWarningsErrorPublic,
   useHrGetInbox,
   useHrTakeAction,
   type WorkflowAction,
@@ -17,7 +18,7 @@ import {
   AlertDialogTitle,
 } from "@barrelsgd/ui/components/ui/alert-dialog";
 import { Badge } from "@barrelsgd/ui/components/ui/badge";
-import { Button } from "@barrelsgd/ui/components/ui/button";
+import { Button, buttonVariants } from "@barrelsgd/ui/components/ui/button";
 import { Field, FieldLabel } from "@barrelsgd/ui/components/ui/field";
 import { Spinner } from "@barrelsgd/ui/components/ui/spinner";
 import {
@@ -31,8 +32,11 @@ import {
 import { Textarea } from "@barrelsgd/ui/components/ui/textarea";
 import { useQueryClient } from "@tanstack/react-query";
 import { Check, CornerUpLeft, X } from "lucide-react";
+import Link from "next/link";
 import { useState } from "react";
 import { toast } from "sonner";
+import { ruleWarningsFrom } from "./roster/rule-codes";
+import { RuleOverrideDialog } from "./roster/rule-override-dialog";
 import { SwapRuleWarnings } from "./shift/swap-rule-warnings";
 import { AttendanceReview } from "./timesheet/attendance-review";
 
@@ -49,6 +53,7 @@ const WORKFLOW_TYPE_LABELS: Record<WorkflowType, string> = {
   STATUS_REPORT: "Daily status",
   TIMESHEET: "Timesheet",
   PARKING_PERMIT: "Parking permit",
+  PAYROLL_RUN: "Payroll inputs",
 };
 
 function formatDate(value: string | null | undefined): string {
@@ -73,6 +78,12 @@ export function ApprovalsInbox() {
   const [returning, setReturning] = useState<WorkflowInboxItem | undefined>();
   const [reason, setReason] = useState("");
   const [reasonError, setReasonError] = useState<string | undefined>();
+  // An approval that breaks roster rules, waiting for the approver's reason.
+  const [override, setOverride] = useState<{
+    item: WorkflowInboxItem;
+    action: WorkflowAction;
+    warnings: RosterRuleWarningsErrorPublic;
+  } | null>(null);
 
   const items = inboxQuery.data?.data ?? [];
 
@@ -80,13 +91,21 @@ export function ApprovalsInbox() {
     instanceId: string,
     action: WorkflowAction,
     stepId?: string | null,
-    comments?: string
+    comments?: string,
+    ruleOverrideReason?: string
   ): Promise<boolean> {
     setPendingId(instanceId);
     try {
       await actionMutation.mutateAsync({
         path: { instance_id: instanceId },
-        body: { action, step_id: stepId, comments },
+        body: {
+          action,
+          step_id: stepId,
+          comments,
+          ...(ruleOverrideReason
+            ? { rule_override_reason: ruleOverrideReason }
+            : {}),
+        },
       });
       await queryClient.invalidateQueries({
         queryKey: hrGetInboxQueryKey(),
@@ -99,6 +118,12 @@ export function ApprovalsInbox() {
       toast.success(doneLabel[action] ?? "Done");
       return true;
     } catch (error) {
+      const warnings = ruleWarningsFrom(error);
+      const item = items.find((entry) => entry.instance_id === instanceId);
+      if (warnings && item) {
+        setOverride({ item, action, warnings });
+        return false;
+      }
       const detail =
         error instanceof Error ? error.message : "Something went wrong";
       toast.error(`Action failed: ${detail}`);
@@ -200,56 +225,99 @@ export function ApprovalsInbox() {
                   </Badge>
                 </TableCell>
                 <TableCell>
-                  <div className="flex justify-end gap-2">
-                    {item.purpose !== "RECORDING" &&
-                      item.is_required !== false && (
-                        <>
-                          <Button
-                            disabled={busy}
-                            onClick={() => setReturning(item)}
-                            size="sm"
-                            type="button"
-                            variant="ghost"
-                          >
-                            <CornerUpLeft data-icon="inline-start" />
-                            Return
-                          </Button>
-                          <Button
-                            disabled={busy}
-                            onClick={() =>
-                              act(item.instance_id, "REJECT", item.step_id)
-                            }
-                            size="sm"
-                            type="button"
-                            variant="outline"
-                          >
-                            <X data-icon="inline-start" />
-                            Reject
-                          </Button>
-                        </>
-                      )}
-                    <Button
-                      disabled={busy}
-                      onClick={() =>
-                        act(item.instance_id, "APPROVE", item.step_id)
-                      }
-                      size="sm"
-                      type="button"
-                    >
-                      {busy ? (
-                        <Spinner className="size-4" data-icon="inline-start" />
-                      ) : (
-                        <Check data-icon="inline-start" />
-                      )}
-                      {approvalActionLabel(item.purpose)}
-                    </Button>
-                  </div>
+                  {item.entity_type === "pay_period" ? (
+                    // Payroll needs two-step verification and its own checks,
+                    // so it is approved on the pay period page.
+                    <div className="flex justify-end">
+                      <Link
+                        className={buttonVariants({ size: "sm" })}
+                        href={`/hr/payroll/${item.entity_id}`}
+                      >
+                        Open in payroll
+                      </Link>
+                    </div>
+                  ) : (
+                    <div className="flex justify-end gap-2">
+                      {item.purpose !== "RECORDING" &&
+                        item.is_required !== false && (
+                          <>
+                            <Button
+                              disabled={busy}
+                              onClick={() => setReturning(item)}
+                              size="sm"
+                              type="button"
+                              variant="ghost"
+                            >
+                              <CornerUpLeft data-icon="inline-start" />
+                              Return
+                            </Button>
+                            <Button
+                              disabled={busy}
+                              onClick={() =>
+                                act(item.instance_id, "REJECT", item.step_id)
+                              }
+                              size="sm"
+                              type="button"
+                              variant="outline"
+                            >
+                              <X data-icon="inline-start" />
+                              Reject
+                            </Button>
+                          </>
+                        )}
+                      <Button
+                        disabled={busy}
+                        onClick={() =>
+                          act(item.instance_id, "APPROVE", item.step_id)
+                        }
+                        size="sm"
+                        type="button"
+                      >
+                        {busy ? (
+                          <Spinner
+                            className="size-4"
+                            data-icon="inline-start"
+                          />
+                        ) : (
+                          <Check data-icon="inline-start" />
+                        )}
+                        {approvalActionLabel(item.purpose)}
+                      </Button>
+                    </div>
+                  )}
                 </TableCell>
               </TableRow>
             );
           })}
         </TableBody>
       </Table>
+      <RuleOverrideDialog
+        busy={override ? pendingId === override.item.instance_id : false}
+        labels={
+          override?.item.requester_name && override.item.requested_by_user_id
+            ? new Map([
+                [
+                  override.item.requested_by_user_id,
+                  override.item.requester_name,
+                ],
+              ])
+            : undefined
+        }
+        onCancel={() => setOverride(null)}
+        onConfirm={async (ruleReason) => {
+          if (!override) return;
+          const { item, action } = override;
+          setOverride(null);
+          await act(
+            item.instance_id,
+            action,
+            item.step_id,
+            undefined,
+            ruleReason
+          );
+        }}
+        warnings={override?.warnings ?? null}
+      />
       <AlertDialog
         onOpenChange={(open) => {
           if (!open) {

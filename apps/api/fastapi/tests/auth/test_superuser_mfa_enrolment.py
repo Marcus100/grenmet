@@ -4,13 +4,19 @@ import pyotp
 import pytest
 from cryptography.fernet import Fernet
 
-from src.auth import devices, service
+from src.auth import app_service, devices, service
 from src.auth.config import AuthConfig, auth_settings
 from tests.auth.test_config import STRONG_SECRET
 from tests.factories import assign_role, make_role_with_permission, make_user
 
 CODE = "mfa_enrolment_required"
 PRIVILEGED = "/api/v1/auth/staff/me"
+
+
+@pytest.fixture(autouse=True)
+def fixed_enrolment_code(monkeypatch):
+    """The one-time enrolment code emailed to privileged accounts (issue #625)."""
+    monkeypatch.setattr(app_service, "new_code", lambda: "424242")
 
 
 @pytest.fixture(autouse=True)
@@ -54,7 +60,7 @@ async def test_enrolment_stays_reachable_and_then_privileged_route_works(
     activate = await async_client.post(
         "/api/v1/auth/users/me/security/2fa/activate",
         headers=headers,
-        json={"code": pyotp.TOTP(secret).now()},
+        json={"code": pyotp.TOTP(secret).now(), "email_code": "424242"},
     )
     assert activate.status_code == 200
     # The password-only session never upgrades; a fresh two-step sign-in works.
@@ -142,7 +148,10 @@ async def test_non_superuser_privileged_holder_is_refused(
 async def _activate(db_async, user):
     secret = await service.begin_totp_setup(session=db_async, user=user)
     assert await service.activate_totp(
-        session=db_async, user=user, code=pyotp.TOTP(secret).now()
+        session=db_async,
+        user=user,
+        code=pyotp.TOTP(secret).now(),
+        email_code="424242",
     )
 
 

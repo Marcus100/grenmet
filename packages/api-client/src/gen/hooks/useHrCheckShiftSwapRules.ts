@@ -61,7 +61,7 @@ export function hrCheckShiftSwapRulesQueryOptions(
 }
 
 /**
- * @description Return warn-only breaches of the department's rest, consecutive-day and weekly-hour limits that this exchange would introduce for the two employees. Never blocks approval. Available to the two employees and to holders of roster.view in the department scope.
+ * @description Return the roster rule breaches this exchange would introduce for the two employees, and short notice for each exchanged date. Final approval of an exchange with breaches needs a rule_override_reason. Available to the two employees and to holders of roster.view in the department scope.
  * @summary Check a shift exchange against department roster rules
  * {@link /api/v1/hr/shift-swaps/:shift_swap_id/rule-check}
  */

@@ -66,9 +66,9 @@ export async function beginMfa() {
     client: await securityClient(),
   }).unwrap();
 }
-export async function activateMfa(code: string) {
+export async function activateMfa(code: string, emailCode?: string) {
   return authTwofaActivate({
-    body: { code },
+    body: { code, email_code: emailCode },
     client: await securityClient(),
   }).unwrap();
 }

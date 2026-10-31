@@ -25,12 +25,17 @@ def encryption(monkeypatch):
         auth_settings, "AUTH_TOTP_ENCRYPTION_KEYS", [Fernet.generate_key().decode()]
     )
     monkeypatch.setattr(auth_settings, "AUTH_PRIVILEGED_MFA_MODE", "disabled")
+    # The emailed enrolment code is fixed so ``enrol`` can pass the value that was issued.
+    monkeypatch.setattr(app_service, "new_code", lambda: "424242")
 
 
 async def enrol(session, user):
     secret = await service.begin_totp_setup(session=session, user=user)
     assert await service.activate_totp(
-        session=session, user=user, code=pyotp.TOTP(secret).now()
+        session=session,
+        user=user,
+        code=pyotp.TOTP(secret).now(),
+        email_code=app_service.new_code(),
     )
     codes = await new_recovery_codes(
         session, user, "password123", pyotp.TOTP(secret).now()

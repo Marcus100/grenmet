@@ -24,11 +24,11 @@ from src.organisations import service as organisation_service
 from src.organisations.models import MembershipRole, PublicSite, new_public_site_id
 from src.outbox import Outbox
 from src.utils.datetime import utc_now
+from tests.bookings.booking_day import DAY, MONDAY, utc_iso
 from tests.factories import make_user
 from tests.organisations.support import headers_for, make_org
 
 API = "/api/v1/bookings"
-DAY = "2027-01-04"  # a Monday, outside every lead time and inside the horizon
 MANAGE = "https://babydoll.example/manage/{token}"
 
 
@@ -380,7 +380,7 @@ async def test_a_taken_or_unknown_slot_is_409(
     starts_at = (await _slots(async_client, studio))[0]
     assert (await _book(async_client, studio, starts_at)).status_code == 201
     assert (await _book(async_client, studio, starts_at)).status_code == 409
-    off_grid = await _book(async_client, studio, "2027-01-04T13:41:00Z")
+    off_grid = await _book(async_client, studio, utc_iso(9, 41))
     assert off_grid.status_code == 409
     wrong_provider = await _book(
         async_client,
@@ -684,9 +684,7 @@ async def test_reschedule_moves_the_booking_and_keeps_it_active(
     token = receipt["manage_token"]
     # The booking's own blocked range must not make a nearby slot look taken.
     target = next(
-        s
-        for s in slots
-        if s > receipt["booking"]["starts_at"] and s < "2027-01-04T15:30:00Z"
+        s for s in slots if s > receipt["booking"]["starts_at"] and s < utc_iso(11, 30)
     )
     response = await async_client.post(
         f"{API}/public/bookings/{token}/reschedule", json={"starts_at": target}
@@ -738,7 +736,7 @@ async def test_reschedule_to_a_taken_slot_or_inside_the_cutoff_is_409(
     assert taken.status_code == 409
     nonsense = await async_client.post(
         f"{API}/public/bookings/{token}/reschedule",
-        json={"starts_at": "2027-01-05T03:00:00Z"},
+        json={"starts_at": utc_iso(23)},  # 23:00 local: after hours
     )
     assert nonsense.status_code == 409
     starts_at = datetime.fromisoformat(receipt["booking"]["starts_at"]).replace(
@@ -764,7 +762,7 @@ async def test_ics_download(
     text = response.content.decode()
     assert text.startswith("BEGIN:VCALENDAR\r\n")
     assert f"UID:booking-{receipt['booking']['id']}@barrels.gd\r\n" in text
-    assert "DTSTART:20270104T133000Z\r\n" in text
+    assert f"DTSTART:{MONDAY:%Y%m%d}T133000Z\r\n" in text
     assert "SUMMARY:Classic full set at Babydoll Beauty Bar\r\n" in text
     assert "STATUS:CONFIRMED\r\n" in text
     await async_client.post(f"{API}/public/bookings/{token}/cancel")

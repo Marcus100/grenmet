@@ -714,6 +714,11 @@ export {
   useCapGetAlert,
 } from "./useCapGetAlert.js";
 export {
+  capGetAlertByIdentifierQueryKey,
+  capGetAlertByIdentifierQueryOptions,
+  useCapGetAlertByIdentifier,
+} from "./useCapGetAlertByIdentifier.js";
+export {
   capGetAlertsQueryKey,
   capGetAlertsQueryOptions,
   useCapGetAlerts,
@@ -1479,6 +1484,11 @@ export {
   useHrApproveClockPunch,
 } from "./useHrApproveClockPunch.js";
 export {
+  hrApprovePayPeriodMutationKey,
+  hrApprovePayPeriodMutationOptions,
+  useHrApprovePayPeriod,
+} from "./useHrApprovePayPeriod.js";
+export {
   hrApproveStaffRegistrationMutationKey,
   hrApproveStaffRegistrationMutationOptions,
   useHrApproveStaffRegistration,
@@ -1519,10 +1529,20 @@ export {
   useHrClock,
 } from "./useHrClock.js";
 export {
+  hrClosePayPeriodMutationKey,
+  hrClosePayPeriodMutationOptions,
+  useHrClosePayPeriod,
+} from "./useHrClosePayPeriod.js";
+export {
   hrClosePeriodMutationKey,
   hrClosePeriodMutationOptions,
   useHrClosePeriod,
 } from "./useHrClosePeriod.js";
+export {
+  hrComputePayPeriodMutationKey,
+  hrComputePayPeriodMutationOptions,
+  useHrComputePayPeriod,
+} from "./useHrComputePayPeriod.js";
 export {
   hrCreateAbsenteeReportMutationKey,
   hrCreateAbsenteeReportMutationOptions,
@@ -1574,6 +1594,21 @@ export {
   useHrCreateParkingPermit,
 } from "./useHrCreateParkingPermit.js";
 export {
+  hrCreatePayCalendarMutationKey,
+  hrCreatePayCalendarMutationOptions,
+  useHrCreatePayCalendar,
+} from "./useHrCreatePayCalendar.js";
+export {
+  hrCreatePayLineMutationKey,
+  hrCreatePayLineMutationOptions,
+  useHrCreatePayLine,
+} from "./useHrCreatePayLine.js";
+export {
+  hrCreatePayPeriodMutationKey,
+  hrCreatePayPeriodMutationOptions,
+  useHrCreatePayPeriod,
+} from "./useHrCreatePayPeriod.js";
+export {
   hrCreatePeriodMutationKey,
   hrCreatePeriodMutationOptions,
   useHrCreatePeriod,
@@ -1619,6 +1654,11 @@ export {
   useHrDeleteAbsenteeReport,
 } from "./useHrDeleteAbsenteeReport.js";
 export {
+  hrDeleteDepartmentRuleSetMutationKey,
+  hrDeleteDepartmentRuleSetMutationOptions,
+  useHrDeleteDepartmentRuleSet,
+} from "./useHrDeleteDepartmentRuleSet.js";
+export {
   hrDeleteLeaveRequestMutationKey,
   hrDeleteLeaveRequestMutationOptions,
   useHrDeleteLeaveRequest,
@@ -1628,6 +1668,11 @@ export {
   hrDeleteMySignatureMutationOptions,
   useHrDeleteMySignature,
 } from "./useHrDeleteMySignature.js";
+export {
+  hrDeletePayLineMutationKey,
+  hrDeletePayLineMutationOptions,
+  useHrDeletePayLine,
+} from "./useHrDeletePayLine.js";
 export {
   hrDeleteShiftSwapMutationKey,
   hrDeleteShiftSwapMutationOptions,
@@ -1649,6 +1694,11 @@ export {
   useHrDownloadSignedDocument,
 } from "./useHrDownloadSignedDocument.js";
 export {
+  hrExportPayPeriodCsvMutationKey,
+  hrExportPayPeriodCsvMutationOptions,
+  useHrExportPayPeriodCsv,
+} from "./useHrExportPayPeriodCsv.js";
+export {
   hrGetAbsenteeReportsQueryKey,
   hrGetAbsenteeReportsQueryOptions,
   useHrGetAbsenteeReports,
@@ -1668,6 +1718,11 @@ export {
   hrGetAttendanceWeekPdfQueryOptions,
   useHrGetAttendanceWeekPdf,
 } from "./useHrGetAttendanceWeekPdf.js";
+export {
+  hrGetDepartmentRuleSetQueryKey,
+  hrGetDepartmentRuleSetQueryOptions,
+  useHrGetDepartmentRuleSet,
+} from "./useHrGetDepartmentRuleSet.js";
 export {
   hrGetDepartmentRulesQueryKey,
   hrGetDepartmentRulesQueryOptions,
@@ -1744,6 +1799,11 @@ export {
   useHrGetOrganisationCatalogue,
 } from "./useHrGetOrganisationCatalogue.js";
 export {
+  hrGetOrganisationRuleSetQueryKey,
+  hrGetOrganisationRuleSetQueryOptions,
+  useHrGetOrganisationRuleSet,
+} from "./useHrGetOrganisationRuleSet.js";
+export {
   hrGetOrganisationsQueryKey,
   hrGetOrganisationsQueryOptions,
   useHrGetOrganisations,
@@ -1753,6 +1813,11 @@ export {
   hrGetParkingPermitsQueryOptions,
   useHrGetParkingPermits,
 } from "./useHrGetParkingPermits.js";
+export {
+  hrGetPayPeriodQueryKey,
+  hrGetPayPeriodQueryOptions,
+  useHrGetPayPeriod,
+} from "./useHrGetPayPeriod.js";
 export {
   hrGetPeriodQueryKey,
   hrGetPeriodQueryOptions,
@@ -1909,6 +1974,11 @@ export {
   useHrListDepartments,
 } from "./useHrListDepartments.js";
 export {
+  hrListEmployeePayProfilesQueryKey,
+  hrListEmployeePayProfilesQueryOptions,
+  useHrListEmployeePayProfiles,
+} from "./useHrListEmployeePayProfiles.js";
+export {
   hrListHolidaysQueryKey,
   hrListHolidaysQueryOptions,
   useHrListHolidays,
@@ -1919,6 +1989,31 @@ export {
   useHrListMyShiftSwaps,
 } from "./useHrListMyShiftSwaps.js";
 export {
+  hrListPayCalendarsQueryKey,
+  hrListPayCalendarsQueryOptions,
+  useHrListPayCalendars,
+} from "./useHrListPayCalendars.js";
+export {
+  hrListPayItemsQueryKey,
+  hrListPayItemsQueryOptions,
+  useHrListPayItems,
+} from "./useHrListPayItems.js";
+export {
+  hrListPayLinesQueryKey,
+  hrListPayLinesQueryOptions,
+  useHrListPayLines,
+} from "./useHrListPayLines.js";
+export {
+  hrListPayPeriodsQueryKey,
+  hrListPayPeriodsQueryOptions,
+  useHrListPayPeriods,
+} from "./useHrListPayPeriods.js";
+export {
+  hrListPayrollDepartmentSettingsQueryKey,
+  hrListPayrollDepartmentSettingsQueryOptions,
+  useHrListPayrollDepartmentSettings,
+} from "./useHrListPayrollDepartmentSettings.js";
+export {
   hrListPendingClockPunchesQueryKey,
   hrListPendingClockPunchesQueryOptions,
   useHrListPendingClockPunches,
@@ -1928,6 +2023,16 @@ export {
   hrListPeriodsQueryOptions,
   useHrListPeriods,
 } from "./useHrListPeriods.js";
+export {
+  hrListRuleOverridesQueryKey,
+  hrListRuleOverridesQueryOptions,
+  useHrListRuleOverrides,
+} from "./useHrListRuleOverrides.js";
+export {
+  hrListRuleProfilesQueryKey,
+  hrListRuleProfilesQueryOptions,
+  useHrListRuleProfiles,
+} from "./useHrListRuleProfiles.js";
 export {
   hrListShiftCatalogQueryKey,
   hrListShiftCatalogQueryOptions,
@@ -1994,10 +2099,25 @@ export {
   useHrPublishPeriod,
 } from "./useHrPublishPeriod.js";
 export {
+  hrPutDepartmentRuleSetMutationKey,
+  hrPutDepartmentRuleSetMutationOptions,
+  useHrPutDepartmentRuleSet,
+} from "./useHrPutDepartmentRuleSet.js";
+export {
   hrPutDepartmentRulesMutationKey,
   hrPutDepartmentRulesMutationOptions,
   useHrPutDepartmentRules,
 } from "./useHrPutDepartmentRules.js";
+export {
+  hrPutOrganisationRuleSetMutationKey,
+  hrPutOrganisationRuleSetMutationOptions,
+  useHrPutOrganisationRuleSet,
+} from "./useHrPutOrganisationRuleSet.js";
+export {
+  hrPutRuleProfileMutationKey,
+  hrPutRuleProfileMutationOptions,
+  useHrPutRuleProfile,
+} from "./useHrPutRuleProfile.js";
 export {
   hrRejectClockPunchMutationKey,
   hrRejectClockPunchMutationOptions,
@@ -2013,6 +2133,11 @@ export {
   hrRenameOrganisationMutationOptions,
   useHrRenameOrganisation,
 } from "./useHrRenameOrganisation.js";
+export {
+  hrReturnPayPeriodMutationKey,
+  hrReturnPayPeriodMutationOptions,
+  useHrReturnPayPeriod,
+} from "./useHrReturnPayPeriod.js";
 export {
   hrRotateClockSiteMutationKey,
   hrRotateClockSiteMutationOptions,
@@ -2059,6 +2184,11 @@ export {
   useHrSubmitParkingPermit,
 } from "./useHrSubmitParkingPermit.js";
 export {
+  hrSubmitPayPeriodMutationKey,
+  hrSubmitPayPeriodMutationOptions,
+  useHrSubmitPayPeriod,
+} from "./useHrSubmitPayPeriod.js";
+export {
   hrSubmitShiftSwapMutationKey,
   hrSubmitShiftSwapMutationOptions,
   useHrSubmitShiftSwap,
@@ -2094,6 +2224,11 @@ export {
   useHrUpdateDepartment,
 } from "./useHrUpdateDepartment.js";
 export {
+  hrUpdateEmployeePayProfileMutationKey,
+  hrUpdateEmployeePayProfileMutationOptions,
+  useHrUpdateEmployeePayProfile,
+} from "./useHrUpdateEmployeePayProfile.js";
+export {
   hrUpdateHolidayMutationKey,
   hrUpdateHolidayMutationOptions,
   useHrUpdateHoliday,
@@ -2118,6 +2253,11 @@ export {
   hrUpdateParkingPermitMutationOptions,
   useHrUpdateParkingPermit,
 } from "./useHrUpdateParkingPermit.js";
+export {
+  hrUpdatePayrollDepartmentSettingMutationKey,
+  hrUpdatePayrollDepartmentSettingMutationOptions,
+  useHrUpdatePayrollDepartmentSetting,
+} from "./useHrUpdatePayrollDepartmentSetting.js";
 export {
   hrUpdateProductPolicyMutationKey,
   hrUpdateProductPolicyMutationOptions,

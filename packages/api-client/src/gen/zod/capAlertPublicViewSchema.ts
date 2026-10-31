@@ -37,6 +37,7 @@ export const capAlertPublicViewSchema = z
     xml_url: z.union([z.string(), z.null()]).optional(),
     replaced_by_identifier: z.union([z.string(), z.null()]).optional(),
     cancellation_reason: z.union([z.string(), z.null()]).optional(),
+    note: z.union([z.string(), z.null()]).optional(),
   })
   .describe(
     "An alert as the anonymous public sees it.\n\nStaff-only fields are left out: the schema check result, the imported marker,\nthe internal note, and who created or last changed the alert."

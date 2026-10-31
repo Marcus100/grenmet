@@ -557,6 +557,9 @@ async def test_update_retires_only_its_referenced_message(
         alert_id=original.id,
         payload=CapPublishAction(),
     )
+    # sent is the time the original went out; re-read it, the draft value is gone.
+    original = await db_async.get(CapAlert, original.id)
+    await db_async.refresh(original)
     update = await create_alert(
         session=db_async,
         current_user=user,
