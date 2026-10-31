@@ -11,8 +11,10 @@ https://docs.djangoproject.com/en/1.11/ref/settings/
 """
 
 import os
+import warnings
 from datetime import timedelta
 from cryptography.fernet import Fernet
+from django.core.exceptions import ImproperlyConfigured
 
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
@@ -122,17 +124,51 @@ WSGI_APPLICATION = 'tempestas_api.wsgi.application'
 SECURE_REFERRER_POLICY = "strict-origin-when-cross-origin"
 
 
-def _env_flag(name, default):
-    return os.getenv(name, str(default)).strip().lower() in ("1", "true", "yes", "on")
+_FALSE_VALUES = ("0", "false", "no", "off")
+_TRUE_VALUES = ("1", "true", "yes", "on")
+
+
+def _secure_cookies_from_env(value):
+    """Secure cookies are on unless the value is an explicit false (0, false,
+    no, off, any case). Unset is on. Empty or unrecognised values (a typo such
+    as "ture") also stay on, with a warning, so a mistake never weakens it."""
+    if value is None:
+        return True
+    text = value.strip().lower()
+    if text in _FALSE_VALUES:
+        return False
+    if text not in _TRUE_VALUES:
+        warnings.warn(
+            "SURFACE_SECURE_COOKIES=%r is not a recognised value; keeping "
+            "Secure cookies on. Use 0, false, no or off to turn them off, or "
+            "1, true, yes or on." % value,
+            RuntimeWarning,
+        )
+    return True
+
+
+def _hsts_seconds_from_env(value):
+    """HSTS max-age in seconds: a whole number, zero or more. Anything else
+    stops startup so a bad value is never silently ignored."""
+    try:
+        seconds = int(value)
+    except (TypeError, ValueError):
+        seconds = -1
+    if seconds < 0:
+        raise ImproperlyConfigured(
+            "SURFACE_HSTS_SECONDS must be a whole number of seconds, zero or "
+            "more (got %r)." % (value,)
+        )
+    return seconds
 
 
 # HTTPS hardening (#904). Production serves SURFACE only over HTTPS behind
 # Traefik, which sets X-Forwarded-Proto (see SECURE_PROXY_SSL_HEADER above).
-# Secure cookies are the default; a plain-HTTP stack (the local
-# surface/docker-compose.yml on http://localhost:8081, or a LAN address) sets
-# SURFACE_SECURE_COOKIES=False in its env file, or browsers drop the session
-# and CSRF cookies and sign-in fails.
-SESSION_COOKIE_SECURE = _env_flag('SURFACE_SECURE_COOKIES', True)
+# Secure cookies are the default and only an explicit false turns them off. The
+# local surface/docker-compose.yml serves plain HTTP (http://localhost:8081)
+# and sets SURFACE_SECURE_COOKIES=False for its api service; without that,
+# browsers drop the session and CSRF cookies and sign-in fails.
+SESSION_COOKIE_SECURE = _secure_cookies_from_env(os.getenv('SURFACE_SECURE_COOKIES'))
 CSRF_COOKIE_SECURE = SESSION_COOKIE_SECURE
 
 # HSTS is sent only on HTTPS responses, so plain-HTTP stacks are unaffected.
@@ -141,7 +177,7 @@ CSRF_COOKIE_SECURE = SESSION_COOKIE_SECURE
 # Browsers remember the value, so lowering it later only takes effect after
 # the old max-age expires. includeSubDomains and preload stay off: SURFACE is
 # one host and must not commit its parent domain.
-SECURE_HSTS_SECONDS = int(os.getenv('SURFACE_HSTS_SECONDS', '3600'))
+SECURE_HSTS_SECONDS = _hsts_seconds_from_env(os.getenv('SURFACE_HSTS_SECONDS', '3600'))
 SECURE_HSTS_INCLUDE_SUBDOMAINS = False
 SECURE_HSTS_PRELOAD = False
 

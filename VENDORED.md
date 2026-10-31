@@ -59,11 +59,17 @@ the database to PostgreSQL 17, because Django 5.2 needs PostgreSQL 14 or newer.
 | `django-timescaledb` | 0.2.12 | 0.2.13 | Last release 2023; works on 5.2 and TimescaleDB 2.31 in the smoke run below |
 | `django-ckeditor` | 6.7.1 | removed | Bundled CKEditor 4 was end of life (#803). The six rich-text fields are plain `TextField`s with plain text boxes; migration `wx/0079` converts stored HTML to plain text once. It is not reversible: take a database dump (`pg_dump`, or a copy of the `data/postgresql` volume) before running `migrate`, and old migrations reference `models.TextField` |
 
-HTTPS hardening (#904): session and CSRF cookies are Secure and HSTS is sent
-(`SURFACE_HSTS_SECONDS`, default 3600 with a documented ramp to one year; no
-includeSubDomains or preload) in `tempestas_api/settings.py`. A plain-HTTP stack,
-such as the local `docker-compose.yml`, must set `SURFACE_SECURE_COOKIES=False` in
-its env file or sign-in fails with a CSRF error (`api/production.env.example`).
+HTTPS hardening (#904): session and CSRF cookies are Secure and HSTS is sent, in
+`tempestas_api/settings.py`. Only an explicit `SURFACE_SECURE_COOKIES` of `0`,
+`false`, `no` or `off` (any case) turns Secure cookies off; unset, empty or a typo
+such as `ture` keeps them on (the last two log a warning). `SURFACE_HSTS_SECONDS`
+defaults to 3600 and must be a whole number, zero or more, or startup stops; ramp
+it to one year as `api/production.env.example` describes. No includeSubDomains or
+preload. The local `docker-compose.yml` serves plain HTTP, so its `api` service
+sets `SURFACE_SECURE_COOKIES=False` (override with `SURFACE_SECURE_COOKIES=True`
+in the shell or the compose `.env` when fronting it with HTTPS); the production
+stack (`infra/weather/docker-compose.surface.yml`) does not set it. Any other
+plain-HTTP deployment must set it itself or sign-in fails with a CSRF error.
 
 Django 5 code changes: sign-out in `templates/base.html` is a POST form
 (`LogoutView` no longer accepts GET), and the unused `USE_L10N` setting is gone.
