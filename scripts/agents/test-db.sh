@@ -23,7 +23,7 @@ case "$NAME" in
   *) echo "test-db: refusing container name '$NAME': it must end in -test" >&2; exit 2 ;;
 esac
 # Same pinned image as infra/docker/docker-compose.yml.
-IMAGE="postgis/postgis:17-3.5@sha256:01a6a70e41e6c4467c8f55f6063555ed72db2d6662cd0d571040d42eadaeb6f6"
+IMAGE="postgis/postgis:18-3.6@sha256:4a43e3c3e5d55b9208240fc71db543b79c638766280c625a425bd0a2390989c4"
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd -P)"
 PASSWORD="changethis"
 
@@ -70,7 +70,7 @@ create() {
   # The development stack names the CMS database and role gms_cms.
   args+=(-e CMS_DB_NAME=gms_cms -e CMS_DB_USER=gms_cms -e "CMS_DB_PASSWORD=$PASSWORD")
   docker run -d --name "$NAME" -p "127.0.0.1:$PORT:5432" \
-    --tmpfs /var/lib/postgresql/data:rw,size=3g --shm-size=512m \
+    --tmpfs /var/lib/postgresql:rw,size=3g --shm-size=512m \
     -v "$ROOT/infra/postgres/init-databases.sh:/docker-entrypoint-initdb.d/01-init.sh:ro" \
     -v "$ROOT/infra/postgres/init-cms.sh:/docker-entrypoint-initdb.d/02-cms.sh:ro" \
     -e POSTGRES_DB=app -e POSTGRES_USER=app -e "POSTGRES_PASSWORD=$PASSWORD" \
