@@ -27,7 +27,9 @@ class LoginLockout:
         lockout_seconds: int,
         window_seconds: int,
         client: Redis | None = None,
+        prefix: str = "login",
     ) -> None:
+        self._prefix = prefix
         self._redis_url = redis_url
         self._max = max_attempts
         self._lock_ttl = lockout_seconds
@@ -43,13 +45,11 @@ class LoginLockout:
         self._client = Redis.from_url(self._redis_url, decode_responses=True)
         return self._client
 
-    @staticmethod
-    def _fail_key(identifier: str) -> str:
-        return f"login:fail:{identifier.strip().lower()}"
+    def _fail_key(self, identifier: str) -> str:
+        return f"{self._prefix}:fail:{identifier.strip().lower()}"
 
-    @staticmethod
-    def _lock_key(identifier: str) -> str:
-        return f"login:lock:{identifier.strip().lower()}"
+    def _lock_key(self, identifier: str) -> str:
+        return f"{self._prefix}:lock:{identifier.strip().lower()}"
 
     async def is_locked(self, identifier: str) -> bool:
         if not self._enabled:
@@ -96,4 +96,15 @@ login_lockout = LoginLockout(
     max_attempts=auth_settings.LOGIN_MAX_FAILED_ATTEMPTS,
     lockout_seconds=auth_settings.LOGIN_LOCKOUT_SECONDS,
     window_seconds=auth_settings.LOGIN_FAILURE_WINDOW_SECONDS,
+)
+
+# Emailed codes: at most five codes per address per hour (email bombing). The
+# count is kept with the same store, under its own prefix. Like login lockout it
+# fails open when Redis is unavailable, so an outage cannot block sign-in.
+email_code_send_limit = LoginLockout(
+    redis_url=worker_settings.REDIS_URL,
+    max_attempts=5,
+    lockout_seconds=3600,
+    window_seconds=3600,
+    prefix="codesend",
 )

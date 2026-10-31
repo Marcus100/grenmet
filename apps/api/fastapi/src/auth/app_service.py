@@ -38,7 +38,7 @@ from src.auth.app_schemas import (
 from src.auth.apps import AppDefinition, is_registered, registered_apps, require_method
 from src.auth.config import auth_settings
 from src.auth.devices import remember_device, schedule_new_sign_in_alert
-from src.auth.lockout import login_lockout
+from src.auth.lockout import email_code_send_limit, login_lockout
 from src.auth.models import Role, User, UserRoleLink
 from src.auth.models import Session as LoginSession
 from src.auth.modern_models import AuthChallenge, ExternalIdentity
@@ -282,6 +282,11 @@ async def email_code_start(
     """Send a code. New addresses get an account only after verifying it."""
     require_method(app, "email_code")
     email = str(body.email).lower()
+    # Email bombing: past the per-address hourly cap, answer the same generic
+    # way as an unknown address, so the reply never reveals anything.
+    if await email_code_send_limit.is_locked(email):
+        return Message(message=GENERIC_SENT)
+    await email_code_send_limit.record_failure(email)
     user = await service.get_user_by_email(session=session, email=email)
     if user is None and not app.self_signup:
         return Message(message=GENERIC_SENT)
@@ -303,7 +308,7 @@ async def email_code_start(
             await run_in_threadpool(
                 send_email,
                 email_to=email,
-                subject=f"Your {app.label} sign-in code: {code}",
+                subject="Your sign-in code",
                 html_content=(
                     f"<p>Your {app.label} code is</p>"
                     f'<p style="font-size:28px;font-weight:700;letter-spacing:4px">{code}</p>'
