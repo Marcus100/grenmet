@@ -119,6 +119,31 @@ async def load_period(
     return period, await require_visible(session, actor, period.organisation_id)
 
 
+async def lock_period(
+    session: AsyncSession, actor: User, period_id: uuid.UUID, key: str
+) -> PayPeriod:
+    """Check the organisation-wide key first, then lock the period row.
+
+    Nobody without the key can hold a row lock on another organisation's period.
+    """
+    period, _ = await load_period(session, actor, period_id)
+    await require_organisation_wide(session, actor, period.organisation_id, key)
+    await session.refresh(period, with_for_update=True)
+    return period
+
+
+async def holds_organisation_wide(
+    session: AsyncSession, actor: User, organisation_id: str, keys: tuple[str, ...]
+) -> bool:
+    for key in keys:
+        try:
+            await require_organisation_permission(session, actor, organisation_id, key)
+        except AppException:
+            continue
+        return True
+    return False
+
+
 async def require_mfa(session: AsyncSession, actor: User, token: str) -> None:
     """Approve and export need an enrolled authenticator and an MFA-verified session."""
     from src.dependencies import _token_app

@@ -11,7 +11,7 @@ import type {
 } from "../models/HrApprovePayPeriod.js";
 
 /**
- * @description Needs organisation-wide hr.payroll.approve, a session verified with two-step verification, and the approval stage. The final approval locks the period.
+ * @description Needs organisation-wide hr.payroll.approve, a session verified with two-step verification, and the approval stage; never someone who submitted the period or added lines to it. The final approval locks the period.
  * @summary Approve a pay period
  * {@link /api/v1/hr/payroll/periods/:period_id/approval}
  */

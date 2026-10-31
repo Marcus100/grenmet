@@ -76,6 +76,8 @@ from .schemas import (
 logger = logging.getLogger(__name__)
 
 ENTITY_TYPE = "pay_period"
+#: Keys whose organisation-wide holders see manual-line reasons.
+ORGANISATION_WIDE_READERS = (access.PREPARE, access.APPROVE, access.EXPORT)
 FORTNIGHT_DAYS = 14
 #: Pay frequency when a new calendar does not say (owner, 2026-10-31: GAA pays
 #: fortnightly). Every other organisation defaults to calendar months.
@@ -280,6 +282,8 @@ async def update_profile(
     await access.require_organisation_wide(
         session, actor, organisation_id, access.PREPARE
     )
+    if user_id == actor.id:
+        raise AppException("You cannot change your own pay profile", 403)
     employment = await session.scalar(
         select(EmploymentRecord).where(
             EmploymentRecord.user_id == user_id,
@@ -601,7 +605,13 @@ async def list_lines(
             .limit(limit)
         )
     ).all()
-    return [dict(row._mapping) for row in rows], count or 0
+    result = [dict(row._mapping) for row in rows]
+    if not await access.holds_organisation_wide(
+        session, actor, period.organisation_id, ORGANISATION_WIDE_READERS
+    ):
+        for row in result:
+            row["reason"] = None  # free text stays with organisation-wide staff
+    return result, count or 0
 
 
 def _line_columns() -> Select[Any]:
@@ -1113,10 +1123,7 @@ async def _compute(session: AsyncSession, period: PayPeriod, actor: User) -> int
 async def compute(
     session: AsyncSession, actor: User, period_id: uuid.UUID
 ) -> PayPeriod:
-    period, _ = await access.load_period(session, actor, period_id, for_update=True)
-    await access.require_organisation_wide(
-        session, actor, period.organisation_id, access.PREPARE
-    )
+    period = await access.lock_period(session, actor, period_id, access.PREPARE)
     if period.status != PayPeriodStatus.OPEN:
         raise PayrollConflictError("Only an open period can be recomputed")
     await _compute(session, period, actor)
@@ -1134,12 +1141,11 @@ async def add_manual_line(
     period_id: uuid.UUID,
     payload: PayLineManualCreate,
 ) -> PayLine:
-    period, _ = await access.load_period(session, actor, period_id, for_update=True)
-    await access.require_organisation_wide(
-        session, actor, period.organisation_id, access.PREPARE
-    )
+    period = await access.lock_period(session, actor, period_id, access.PREPARE)
     if period.status != PayPeriodStatus.OPEN:
         raise PayrollConflictError("Lines can only be added while the period is open")
+    if payload.user_id == actor.id:
+        raise AppException("You cannot add pay lines for yourself", 403)
     item = await session.get(PayItem, payload.pay_item_id)
     if item is None or item.organisation_id != period.organisation_id:
         raise NotFoundError("Pay item not found")
@@ -1217,10 +1223,7 @@ async def add_manual_line(
 async def delete_manual_line(
     session: AsyncSession, actor: User, period_id: uuid.UUID, line_id: uuid.UUID
 ) -> None:
-    period, _ = await access.load_period(session, actor, period_id, for_update=True)
-    await access.require_organisation_wide(
-        session, actor, period.organisation_id, access.PREPARE
-    )
+    period = await access.lock_period(session, actor, period_id, access.PREPARE)
     line = await session.get(PayLine, line_id)
     if line is None or line.period_id != period.id:
         raise NotFoundError("Pay line not found")
@@ -1236,10 +1239,7 @@ async def delete_manual_line(
 
 
 async def submit(session: AsyncSession, actor: User, period_id: uuid.UUID) -> PayPeriod:
-    period, _ = await access.load_period(session, actor, period_id, for_update=True)
-    await access.require_organisation_wide(
-        session, actor, period.organisation_id, access.PREPARE
-    )
+    period = await access.lock_period(session, actor, period_id, access.PREPARE)
     if period.status != PayPeriodStatus.OPEN:
         raise PayrollConflictError("Only an open period can be submitted for approval")
     calendar = await session.get(PayCalendar, period.calendar_id)
@@ -1278,10 +1278,7 @@ async def _review(
     comments: str | None,
     token: str | None,
 ) -> PayPeriod:
-    period, _ = await access.load_period(session, actor, period_id, for_update=True)
-    await access.require_organisation_wide(
-        session, actor, period.organisation_id, access.APPROVE
-    )
+    period = await access.lock_period(session, actor, period_id, access.APPROVE)
     if token is not None:
         await access.require_mfa(session, actor, token)
     if (
@@ -1289,9 +1286,14 @@ async def _review(
         or period.workflow_instance_id is None
     ):
         raise PayrollConflictError("This period is not awaiting approval")
-    if period.submitted_by_user_id == actor.id:
+    if period.submitted_by_user_id == actor.id or await session.scalar(
+        select(PayLine.id)
+        .where(PayLine.period_id == period.id, PayLine.created_by_user_id == actor.id)
+        .limit(1)
+    ):
         raise AppException(
-            "The person who prepared this period cannot approve or return it", 403
+            "Someone who prepared or added lines to this period cannot approve or return it",
+            403,
         )
     await workflow_service.apply_workflow_action(
         session=session,
@@ -1349,6 +1351,8 @@ async def finalize_review(
         or instance.workflow_type != WorkflowType.PAYROLL_RUN
     ):
         raise PayrollConflictError("Workflow does not match this pay period")
+    if period.status != PayPeriodStatus.IN_REVIEW:
+        raise PayrollConflictError("This pay period is not awaiting approval")
     if instance.status == WorkflowStatus.APPROVED:
         period.status = PayPeriodStatus.APPROVED.value
         period.approved_at = utc_now()
@@ -1364,10 +1368,7 @@ async def finalize_review(
 async def export_csv(
     session: AsyncSession, actor: User, period_id: uuid.UUID, *, token: str
 ) -> tuple[str, str]:
-    period, _ = await access.load_period(session, actor, period_id, for_update=True)
-    await access.require_organisation_wide(
-        session, actor, period.organisation_id, access.EXPORT
-    )
+    period = await access.lock_period(session, actor, period_id, access.EXPORT)
     await access.require_mfa(session, actor, token)
     if period.status not in LOCKED_VALUES:
         raise PayrollConflictError("Only an approved period can be exported")
@@ -1435,10 +1436,7 @@ async def export_csv(
 
 
 async def close(session: AsyncSession, actor: User, period_id: uuid.UUID) -> PayPeriod:
-    period, _ = await access.load_period(session, actor, period_id, for_update=True)
-    await access.require_organisation_wide(
-        session, actor, period.organisation_id, access.PREPARE
-    )
+    period = await access.lock_period(session, actor, period_id, access.PREPARE)
     if period.status != PayPeriodStatus.EXPORTED:
         raise PayrollConflictError("Export the period before closing it")
     period.status = PayPeriodStatus.CLOSED.value
