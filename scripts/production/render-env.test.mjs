@@ -982,3 +982,42 @@ test("the deploy workflow and compose pass the Meta settings to the worker only"
     )
   );
 });
+
+test("the approved social hosts render empty by default and reach the API only", () => {
+  const unset = render();
+  assert.equal(unset.result.status, 0, unset.result.stderr);
+  assert.equal(
+    GENERATED_LINE(unset.output, "SOCIAL_LINK_HOSTS"),
+    'SOCIAL_LINK_HOSTS=""'
+  );
+  const set = render({
+    SOCIAL_LINK_HOSTS: "gms.example.org",
+    SOCIAL_IMAGE_HOSTS: "media.example.org",
+  });
+  assert.equal(set.result.status, 0, set.result.stderr);
+  assert.equal(
+    GENERATED_LINK_LINE(set.output),
+    'SOCIAL_LINK_HOSTS="gms.example.org"'
+  );
+
+  const workflow = readFileSync(".github/workflows/deploy.yml", "utf8");
+  const compose = readFileSync(
+    "infra/docker/docker-compose.deploy.yml",
+    "utf8"
+  );
+  const DOLLAR = "$";
+  assert.ok(
+    workflow.includes(
+      `SOCIAL_LINK_HOSTS: ${DOLLAR}{{ vars.SOCIAL_LINK_HOSTS }}`
+    )
+  );
+  // The hosts are read by the API only: one service's environment, not the worker.
+  assert.equal(
+    compose.split("\n").filter((line) => line.includes("SOCIAL_LINK_HOSTS:"))
+      .length,
+    1
+  );
+});
+
+const GENERATED_LINK_LINE = (output) =>
+  GENERATED_LINE(output, "SOCIAL_LINK_HOSTS");

@@ -186,6 +186,10 @@ jobs:
           META_PAGE_ID: ${{ vars.META_PAGE_ID }}
           META_INSTAGRAM_ACCOUNT_ID: ${{ vars.META_INSTAGRAM_ACCOUNT_ID }}
           META_PAGE_ACCESS_TOKEN: ${{ secrets.META_PAGE_ACCESS_TOKEN }}
+          # Hostnames an approved social post may link to or take its image from. Empty
+          # refuses every post at intake (fail closed). Read by the API only.
+          SOCIAL_LINK_HOSTS: ${{ vars.SOCIAL_LINK_HOSTS }}
+          SOCIAL_IMAGE_HOSTS: ${{ vars.SOCIAL_IMAGE_HOSTS }}
           GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           # Pre-migration backup gate (release runbook, "Backup gate"). Mode defaults to
           # warn in core.sh when the variable is unset; nothing here enables enforce.
