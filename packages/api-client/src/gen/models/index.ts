@@ -3946,6 +3946,19 @@ export type {
   HrComputePayPeriodStatus422,
 } from "./HrComputePayPeriod.js";
 export type {
+  HrConfirmMyDeductionOptions,
+  HrConfirmMyDeductionPath,
+  HrConfirmMyDeductionResponse,
+  HrConfirmMyDeductionResponses,
+  HrConfirmMyDeductionStatus200,
+  HrConfirmMyDeductionStatus400,
+  HrConfirmMyDeductionStatus401,
+  HrConfirmMyDeductionStatus403,
+  HrConfirmMyDeductionStatus404,
+  HrConfirmMyDeductionStatus409,
+  HrConfirmMyDeductionStatus422,
+} from "./HrConfirmMyDeduction.js";
+export type {
   HrCreateAbsenteeReportBody,
   HrCreateAbsenteeReportOptions,
   HrCreateAbsenteeReportResponse,
@@ -4966,6 +4979,18 @@ export type {
   HrListHolidaysStatus403,
   HrListHolidaysStatus422,
 } from "./HrListHolidays.js";
+export type {
+  HrListMyDeductionsOptions,
+  HrListMyDeductionsResponse,
+  HrListMyDeductionsResponses,
+  HrListMyDeductionsStatus200,
+  HrListMyDeductionsStatus400,
+  HrListMyDeductionsStatus401,
+  HrListMyDeductionsStatus403,
+  HrListMyDeductionsStatus404,
+  HrListMyDeductionsStatus409,
+  HrListMyDeductionsStatus422,
+} from "./HrListMyDeductions.js";
 export type {
   HrListMyShiftSwapsOptions,
   HrListMyShiftSwapsQuery,
@@ -6237,6 +6262,8 @@ export type {
 } from "./ModelsListOrganisations.js";
 export type { MovementKind } from "./MovementKind.js";
 export { movementKind } from "./MovementKind.js";
+export type { MyDeductionPublic } from "./MyDeductionPublic.js";
+export type { MyDeductionsPublic } from "./MyDeductionsPublic.js";
 export type { MyMembershipPublic } from "./MyMembershipPublic.js";
 export type { MyProfile } from "./MyProfile.js";
 export type { MyProfilePropertiesIntentsItemsEnum } from "./MyProfilePropertiesIntentsItemsEnum.js";

@@ -22,6 +22,7 @@ from .schemas import (
     EmployeePayProfilePublic,
     EmployeePayProfilesPublic,
     EmployeePayProfileUpdate,
+    MyDeductionsPublic,
     PayCalendarCreate,
     PayCalendarPublic,
     PayCalendarsPublic,
@@ -808,7 +809,7 @@ async def create_deduction_type(
     response_model=TableStatePublic,
     status_code=status.HTTP_200_OK,
     summary="Confirm or reopen a table",
-    description="Sets PROVISIONAL, OWNER_CONFIRMED or CONFIRMED with a note, recorded in the change history. Needs organisation-wide hr.payroll.rates.manage and two-step verification.",
+    description="Sets PROVISIONAL, OWNER_CONFIRMED or CONFIRMED with a note, recorded in the change history. Needs organisation-wide hr.payroll.tables.confirm and two-step verification; never the table's creator.",
     operation_id="hrSetStatutoryTableState",
     responses=ERRORS,
 )
@@ -876,3 +877,41 @@ async def create_employee_deduction(
         session, current_user, payload, token=token
     )
     return EmployeeDeductionPublic.model_validate(row, from_attributes=True)
+
+
+@router.get(
+    "/me/deductions",
+    response_model=MyDeductionsPublic,
+    status_code=status.HTTP_200_OK,
+    summary="List my deductions",
+    description="Deductions set up for the caller, and whether they have confirmed each. Needs hr.payroll.read.self.",
+    operation_id="hrListMyDeductions",
+    responses=ERRORS,
+)
+async def list_my_deductions(
+    *, session: SessionDep, current_user: CurrentUser
+) -> MyDeductionsPublic:
+    return MyDeductionsPublic.model_validate(
+        {"data": await deductions.my_deductions(session, current_user)}
+    )
+
+
+@router.post(
+    "/me/deductions/{deduction_id}/confirmation",
+    response_model=MyDeductionsPublic,
+    status_code=status.HTTP_200_OK,
+    summary="Confirm a deduction set up for me",
+    description="The employee confirms a deduction whose signed authorisation HR has recorded; it is not deducted before this. Needs hr.payroll.read.self.",
+    operation_id="hrConfirmMyDeduction",
+    responses=ERRORS,
+)
+async def confirm_my_deduction(
+    *, session: SessionDep, current_user: CurrentUser, deduction_id: uuid.UUID
+) -> MyDeductionsPublic:
+    return MyDeductionsPublic.model_validate(
+        {
+            "data": await deductions.confirm_my_deduction(
+                session, current_user, deduction_id
+            )
+        }
+    )

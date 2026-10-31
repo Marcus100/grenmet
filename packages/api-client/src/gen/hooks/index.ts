@@ -1534,6 +1534,11 @@ export {
   useHrComputePayPeriod,
 } from "./useHrComputePayPeriod.js";
 export {
+  hrConfirmMyDeductionMutationKey,
+  hrConfirmMyDeductionMutationOptions,
+  useHrConfirmMyDeduction,
+} from "./useHrConfirmMyDeduction.js";
+export {
   hrCreateAbsenteeReportMutationKey,
   hrCreateAbsenteeReportMutationOptions,
   useHrCreateAbsenteeReport,
@@ -2008,6 +2013,11 @@ export {
   hrListHolidaysQueryOptions,
   useHrListHolidays,
 } from "./useHrListHolidays.js";
+export {
+  hrListMyDeductionsQueryKey,
+  hrListMyDeductionsQueryOptions,
+  useHrListMyDeductions,
+} from "./useHrListMyDeductions.js";
 export {
   hrListMyShiftSwapsQueryKey,
   hrListMyShiftSwapsQueryOptions,

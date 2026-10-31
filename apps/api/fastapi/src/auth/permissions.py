@@ -92,6 +92,14 @@ PERMISSIONS: tuple[PermissionDef, ...] = (
         "Set dated pay rates and basic pay (organisation-wide); needs two-step verification",
     ),
     PermissionDef(
+        "hr.payroll.tables.confirm",
+        "Confirm tax, social insurance and deduction tables someone else created; needs two-step verification",
+    ),
+    PermissionDef(
+        "hr.payroll.read.self",
+        "See and confirm your own payroll records",
+    ),
+    PermissionDef(
         "hr.payroll.read.amounts",
         "See pay amounts, rates and basic pay (organisation-wide only)",
     ),

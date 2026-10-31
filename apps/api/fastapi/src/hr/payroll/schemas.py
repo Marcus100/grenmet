@@ -390,12 +390,21 @@ class TaxTableCreate(BaseModel):
     deduct_social_insurance: bool = False
     effective_from: date
     effective_to: date | None = None
-    rule_state: TableState = TableState.PROVISIONAL
     source_note: Note | None = None
     bands: Annotated[list[TaxBandCreate], Field(min_length=1, max_length=20)]
 
 
-class TaxTablePublic(BaseModel):
+class TableProvenance(BaseModel):
+    """Every table is created PROVISIONAL; someone else confirms it."""
+
+    rule_state: TableState
+    created_by_user_id: uuid.UUID | None
+    confirmed_by_user_id: uuid.UUID | None
+    confirmed_at: UtcDateTime | None
+    confirmation_note: str | None
+
+
+class TaxTablePublic(TableProvenance):
     id: uuid.UUID
     organisation_id: str
     code: str
@@ -405,7 +414,6 @@ class TaxTablePublic(BaseModel):
     deduct_social_insurance: bool
     effective_from: date
     effective_to: date | None
-    rule_state: TableState
     source_note: str | None
     bands: list[TaxBandPublic] = []
 
@@ -421,11 +429,10 @@ class SocialInsuranceSchemeCreate(BaseModel):
     fortnightly_ceiling_minor: Minor | None = None
     effective_from: date
     effective_to: date | None = None
-    rule_state: TableState = TableState.PROVISIONAL
     source_note: Note | None = None
 
 
-class SocialInsuranceSchemePublic(SocialInsuranceSchemeCreate):
+class SocialInsuranceSchemePublic(SocialInsuranceSchemeCreate, TableProvenance):
     id: uuid.UUID
 
 
@@ -444,11 +451,10 @@ class DeductionTypeCreate(BaseModel):
     is_active: bool = True
     effective_from: date
     effective_to: date | None = None
-    rule_state: TableState = TableState.PROVISIONAL
     source_note: Note | None = None
 
 
-class DeductionTypePublic(DeductionTypeCreate):
+class DeductionTypePublic(DeductionTypeCreate, TableProvenance):
     id: uuid.UUID
 
 
@@ -472,8 +478,8 @@ class EmployeeDeductionCreate(BaseModel):
     employee_amount_minor: Minor | None = None
     effective_from: date
     effective_to: date | None = None
-    #: The employee's written authorisation (form number, date); recording it
-    #: authorises the deduction.
+    #: Reference to the employee's signed authorisation document. The deduction
+    #: is taken only after the employee also confirms it themselves.
     authorisation_reference: (
         Annotated[
             str, StringConstraints(strip_whitespace=True, min_length=3, max_length=200)
@@ -492,6 +498,7 @@ class EmployeeDeductionPublic(BaseModel):
     effective_to: date | None
     authorised_at: UtcDateTime | None
     authorisation_reference: str | None
+    employee_confirmed_at: UtcDateTime | None
 
 
 class EmployeeDeductionsPublic(BaseModel):
@@ -516,7 +523,10 @@ class EmployeePaySummary(BaseModel):
     deductions: list[DeductionLinePublic]
     employee_deductions_minor: int
     employer_contributions_minor: int
+    #: Never below zero; when deductions exceed gross the excess is here and the
+    #: period cannot be approved for issue.
     net_minor: int
+    shortfall_minor: int
 
 
 class PaySummaryPublic(BaseModel):
@@ -535,3 +545,17 @@ class TableStatePublic(BaseModel):
     id: uuid.UUID
     rule_state: TableState
     source_note: str | None
+
+
+class MyDeductionPublic(BaseModel):
+    id: uuid.UUID
+    deduction_code: str
+    deduction_name: str
+    effective_from: date
+    effective_to: date | None
+    authorisation_reference: str | None
+    employee_confirmed_at: UtcDateTime | None
+
+
+class MyDeductionsPublic(BaseModel):
+    data: list[MyDeductionPublic]

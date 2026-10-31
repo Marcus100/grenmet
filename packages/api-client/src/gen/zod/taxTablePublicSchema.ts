@@ -9,6 +9,13 @@ import { taxBandPublicSchema } from "./taxBandPublicSchema.js";
 import { taxMethodSchema } from "./taxMethodSchema.js";
 
 export const taxTablePublicSchema = z.object({
+  rule_state: tableStateSchema.describe(
+    "PROVISIONAL tables can be previewed but never approved for issue."
+  ),
+  created_by_user_id: z.union([z.uuid(), z.null()]),
+  confirmed_by_user_id: z.union([z.uuid(), z.null()]),
+  confirmed_at: z.union([z.iso.datetime(), z.null()]),
+  confirmation_note: z.union([z.string(), z.null()]),
   id: z.uuid(),
   organisation_id: z.string(),
   code: z.string(),
@@ -18,9 +25,6 @@ export const taxTablePublicSchema = z.object({
   deduct_social_insurance: z.boolean(),
   effective_from: z.iso.date(),
   effective_to: z.union([z.iso.date(), z.null()]),
-  rule_state: tableStateSchema.describe(
-    "PROVISIONAL tables can be previewed but never approved for issue."
-  ),
   source_note: z.union([z.string(), z.null()]),
   bands: z.array(taxBandPublicSchema).optional().default([]),
 });

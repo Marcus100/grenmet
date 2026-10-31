@@ -100,12 +100,25 @@ tax, NIS or bank field exists in any request, response or export.
   `PUT statutory-tables/{kind}/{table_id}/state`, need organisation-wide
   `hr.payroll.rates.manage` and an MFA-verified session. Tables cannot be edited,
   only confirmed (`PROVISIONAL`, `OWNER_CONFIRMED`, `CONFIRMED`).
+- Tables are always created `PROVISIONAL` (`rule_state` is not accepted on create);
+  overlapping dates for the same organisation and code are refused (409).
+  Confirming needs organisation-wide `hr.payroll.tables.confirm` (granted to no
+  role) and MFA, never by the table's creator; `confirmed_by_user_id`,
+  `confirmed_at` and `confirmation_note` record it and the source note is kept.
+  The rule state is snapshotted onto deduction lines when a period computes.
+- A deduction that needs authorisation is taken only after HR records the signed
+  document reference and the employee confirms it at
+  `POST me/deductions/{deduction_id}/confirmation` (`hr.payroll.read.self`);
+  `GET me/deductions` lists them.
 - `GET periods/{period_id}/pay-summary` (organisation-wide `hr.payroll.read.amounts`)
   previews gross, deductions, employer contributions and net per employee, with
   `provisional_figures`, `label: "Provisional figures"` and `blocking_tables`.
-- `POST periods/{period_id}/issue-approval` (organisation-wide `hr.payroll.approve`,
-  MFA, never the preparer) is refused with 409 while an income tax or social
-  insurance table used is PROVISIONAL or any line is unpriced.
+- `POST periods/{period_id}/issue-approval` needs organisation-wide
+  `hr.payroll.approve` and `hr.payroll.read.amounts` and MFA. It is refused (403)
+  to the period's preparer or approver, a creator or confirmer of a table it used,
+  and anyone who set a rate, basic pay or deduction in force in the period; and
+  (409) while a table used was PROVISIONAL when computed, a line is unpriced, or
+  net pay would go below zero (`shortfall_minor`).
 
 ## Base URLs
 

@@ -509,6 +509,13 @@ class TaxTable(Base):
         String(16), default=TableState.PROVISIONAL.value
     )
     source_note: Mapped[str | None] = mapped_column(String(500))
+    # B4 provenance: who created the row, and who confirmed it (never the creator).
+    created_by_user_id: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("user.id"))
+    confirmed_by_user_id: Mapped[uuid.UUID | None] = mapped_column(
+        ForeignKey("user.id")
+    )
+    confirmed_at: Mapped[datetime | None]
+    confirmation_note: Mapped[str | None] = mapped_column(String(200))
     created_at: Mapped[datetime] = mapped_column(default=utc_now)
 
 
@@ -556,6 +563,13 @@ class SocialInsuranceScheme(Base):
         String(16), default=TableState.PROVISIONAL.value
     )
     source_note: Mapped[str | None] = mapped_column(String(500))
+    # B4 provenance: who created the row, and who confirmed it (never the creator).
+    created_by_user_id: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("user.id"))
+    confirmed_by_user_id: Mapped[uuid.UUID | None] = mapped_column(
+        ForeignKey("user.id")
+    )
+    confirmed_at: Mapped[datetime | None]
+    confirmation_note: Mapped[str | None] = mapped_column(String(200))
     created_at: Mapped[datetime] = mapped_column(default=utc_now)
 
 
@@ -596,6 +610,13 @@ class DeductionType(Base):
         String(16), default=TableState.PROVISIONAL.value
     )
     source_note: Mapped[str | None] = mapped_column(String(500))
+    # B4 provenance: who created the row, and who confirmed it (never the creator).
+    created_by_user_id: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("user.id"))
+    confirmed_by_user_id: Mapped[uuid.UUID | None] = mapped_column(
+        ForeignKey("user.id")
+    )
+    confirmed_at: Mapped[datetime | None]
+    confirmation_note: Mapped[str | None] = mapped_column(String(200))
     created_at: Mapped[datetime] = mapped_column(default=utc_now)
 
 
@@ -620,6 +641,8 @@ class EmployeeDeduction(Base):
         ForeignKey("user.id")
     )
     authorisation_reference: Mapped[str | None] = mapped_column(String(200))
+    #: The employee's own confirmation; nothing is deducted before it.
+    employee_confirmed_at: Mapped[datetime | None]
     created_by_user_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("user.id"))
     created_at: Mapped[datetime] = mapped_column(default=utc_now)
 

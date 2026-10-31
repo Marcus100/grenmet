@@ -46,6 +46,14 @@ def _common() -> list[sa.Column]:
         sa.Column("effective_to", sa.Date(), nullable=True),
         sa.Column("rule_state", sa.String(length=16), nullable=False),
         sa.Column("source_note", sa.String(length=500), nullable=True),
+        sa.Column(
+            "created_by_user_id", sa.Uuid(), sa.ForeignKey("user.id"), nullable=True
+        ),
+        sa.Column(
+            "confirmed_by_user_id", sa.Uuid(), sa.ForeignKey("user.id"), nullable=True
+        ),
+        sa.Column("confirmed_at", sa.DateTime(), nullable=True),
+        sa.Column("confirmation_note", sa.String(length=200), nullable=True),
         sa.Column("created_at", sa.DateTime(), nullable=False),
     ]
 
@@ -175,6 +183,7 @@ def upgrade() -> None:
         sa.Column("authorised_at", sa.DateTime(), nullable=True),
         sa.Column("authorised_by_user_id", sa.Uuid(), nullable=True),
         sa.Column("authorisation_reference", sa.String(length=200), nullable=True),
+        sa.Column("employee_confirmed_at", sa.DateTime(), nullable=True),
         sa.Column("created_by_user_id", sa.Uuid(), nullable=False),
         sa.Column("created_at", sa.DateTime(), nullable=False),
         _dated("employee_deduction"),
@@ -240,6 +249,11 @@ def upgrade() -> None:
 
 
 def downgrade() -> None:
+    bind = op.get_bind()
+    for table in ("pay_deduction_line", "employee_deduction"):
+        query = sa.select(sa.literal(1)).select_from(sa.table(table, schema="hr"))
+        if bind.execute(query.limit(1)).first():
+            raise RuntimeError(f"hr.{table} has rows; remove them before downgrading")
     op.execute("DROP TRIGGER pay_deduction_line_locked ON hr.pay_deduction_line")
     for table in (
         "pay_deduction_line",

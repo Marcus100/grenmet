@@ -3,7 +3,6 @@
  * Do not edit manually.
  */
 
-import type { TableState } from "./TableState.js";
 import type { TaxBandCreate } from "./TaxBandCreate.js";
 import type { TaxMethod } from "./TaxMethod.js";
 
@@ -49,12 +48,6 @@ export type TaxTableCreate = {
    */
   effective_from: string;
   effective_to?: string | null;
-  /**
-   * @description PROVISIONAL tables can be previewed but never approved for issue.
-   * @default 'PROVISIONAL'
-   * @type string | undefined
-   */
-  rule_state?: TableState;
   source_note?: string | null;
   bands: TaxBandCreate[];
 };

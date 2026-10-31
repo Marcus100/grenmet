@@ -211,8 +211,10 @@ async def compute(session: AsyncSession, period: PayPeriod) -> int:
                 )
             )
         for enrolment, kind in by_user.get(user_id, []):
-            if kind.requires_authorisation and enrolment.authorised_at is None:
-                continue  # never deducted without a recorded authorisation
+            if kind.requires_authorisation and not (
+                enrolment.authorised_at and enrolment.employee_confirmed_at
+            ):
+                continue  # never before the document and the employee's confirmation
             split_or_none = statutory.other_deduction(
                 kind.kind,
                 basic_minor=basic,
@@ -296,25 +298,19 @@ async def _sync(
 async def provisional_codes(
     session: AsyncSession, lines: list[PayDeductionLine]
 ) -> list[str]:
-    """Statutory tables used by these lines that are PROVISIONAL now.
+    """Statutory tables that were PROVISIONAL when the period was computed.
 
-    Tables cannot be edited after creation (only their rule state changes), so a
-    table confirmed after the period was computed unblocks it without changing
-    any figure.
+    The rule state is snapshotted onto each deduction line, so confirming or
+    reopening a table later never rewrites a computed period's history:
+    confirm the table, then recompute while the period is open.
     """
-    ids = {d.source_id for d in lines if d.category in STATUTORY}
-    if not ids:
-        return []
-    states: dict[uuid.UUID, tuple[str, str]] = {}
-    for model in (TaxTable, SocialInsuranceScheme):
-        for row_id, code, state in (
-            await session.execute(
-                select(model.id, model.code, model.rule_state).where(model.id.in_(ids))
-            )
-        ).all():
-            states[row_id] = (code, state)
+    del session
     return sorted(
-        {code for code, state in states.values() if state == TableState.PROVISIONAL}
+        {
+            d.code
+            for d in lines
+            if d.category in STATUTORY and d.source_rule_state == TableState.PROVISIONAL
+        }
     )
 
 
@@ -360,6 +356,7 @@ async def summary_for(
     for user_id, gross, unpriced in gross_rows:
         deductions = by_user.get(user_id, [])
         employee_total = sum(d.employee_minor for d in deductions)
+        net = int(gross) - employee_total
         employees.append(
             {
                 "user_id": user_id,
@@ -382,7 +379,8 @@ async def summary_for(
                 "employer_contributions_minor": sum(
                     d.employer_minor for d in deductions
                 ),
-                "net_minor": int(gross) - employee_total,
+                "net_minor": max(0, net),
+                "shortfall_minor": max(0, -net),
             }
         )
     blocking = await provisional_codes(session, lines)
@@ -400,9 +398,9 @@ async def summary_for(
 async def approve_for_issue(
     session: AsyncSession, actor: User, period_id: uuid.UUID, *, token: str
 ) -> PayPeriod:
-    period, _ = await access.load_period(session, actor, period_id, for_update=True)
+    period = await access.lock_period(session, actor, period_id, access.APPROVE)
     await access.require_organisation_wide(
-        session, actor, period.organisation_id, access.APPROVE
+        session, actor, period.organisation_id, access.READ_AMOUNTS
     )
     await access.require_mfa(session, actor, token)
     if period.status not in LOCKED_VALUES:
@@ -426,6 +424,17 @@ async def approve_for_issue(
             "Provisional figures: the "
             + ", ".join(provisional)
             + " table is provisional. Confirm it before approving for issue.",
+            409,
+        )
+    await _require_issue_separation(session, actor, period, lines)
+    from .service import employee_name
+
+    summary = await summary_for(session, period, employee_name)
+    short = sum(1 for e in summary["employees"] if e["shortfall_minor"])
+    if short:
+        raise AppException(
+            f"Deductions exceed gross pay for {short} employee(s); net pay cannot be "
+            "below zero. Correct the deductions first.",
             409,
         )
     if not {d.category for d in lines} >= STATUTORY:
@@ -457,6 +466,81 @@ async def approve_for_issue(
     await session.refresh(period)
     logger.info("Pay period approved for issue", extra={"period_id": str(period.id)})
     return period
+
+
+async def _require_issue_separation(
+    session: AsyncSession, actor: User, period: PayPeriod, lines: list[PayDeductionLine]
+) -> None:
+    """Issue approval is a further pair of eyes.
+
+    Refused to anyone who submitted or approved the period's quantities, who
+    created or confirmed a statutory table it used, or who created a rate, a
+    basic-pay row or a deduction enrolment in force during the period. A
+    table's confirmer must also differ from the period's submitter and approver.
+    """
+    from src.hr.workflow.models import WorkflowAction, WorkflowStepInstance
+
+    from .models import EmployeeBasicPay, PayItemRate
+
+    approvers = set(
+        (
+            await session.execute(
+                select(WorkflowStepInstance.approver_user_id).where(
+                    WorkflowStepInstance.workflow_instance_id
+                    == period.workflow_instance_id,
+                    WorkflowStepInstance.action == WorkflowAction.APPROVE,
+                )
+            )
+        ).scalars()
+    )
+    if actor.id == period.submitted_by_user_id or actor.id in approvers:
+        raise AppException(
+            "Whoever prepared or approved this period's quantities cannot approve it for issue",
+            403,
+        )
+    reviewers = approvers | {period.submitted_by_user_id}
+    statutory_ids = {d.source_id for d in lines if d.category in STATUTORY}
+    for model in (TaxTable, SocialInsuranceScheme):
+        for created_by, confirmed_by in (
+            await session.execute(
+                select(model.created_by_user_id, model.confirmed_by_user_id).where(
+                    model.id.in_(statutory_ids)
+                )
+            )
+        ).all():
+            if actor.id in {created_by, confirmed_by}:
+                raise AppException(
+                    "You created or confirmed a tax or social insurance table this "
+                    "period uses, so you cannot approve it for issue",
+                    403,
+                )
+            if confirmed_by is not None and confirmed_by in reviewers:
+                raise AppException(
+                    "A table this period uses was confirmed by its preparer or "
+                    "approver; another person must confirm it",
+                    409,
+                )
+    models: tuple[Any, ...] = (PayItemRate, EmployeeBasicPay, EmployeeDeduction)
+    for model in models:
+        mine = await session.scalar(
+            select(model.id)
+            .where(
+                model.organisation_id == period.organisation_id,
+                model.created_by_user_id == actor.id,
+                model.effective_from <= period.end_date,
+                or_(
+                    model.effective_to.is_(None),
+                    model.effective_to >= period.start_date,
+                ),
+            )
+            .limit(1)
+        )
+        if mine is not None:
+            raise AppException(
+                "You set a rate, basic pay or deduction in force in this period, "
+                "so you cannot approve it for issue",
+                403,
+            )
 
 
 # ── Table management (rates.manage + MFA; reads also with read.amounts) ────────
@@ -524,16 +608,49 @@ def _row(record: Any) -> dict[str, Any]:
     return {c.key: getattr(record, c.key) for c in record.__table__.columns}
 
 
+async def _refuse_overlap(
+    session: AsyncSession,
+    model: Any,
+    organisation_id: str,
+    code: str,
+    start: date,
+    end: date | None,
+) -> None:
+    clash = await session.scalar(
+        select(model.id)
+        .where(
+            model.organisation_id == organisation_id,
+            model.code == code,
+            model.effective_from <= (end or date.max),
+            or_(model.effective_to.is_(None), model.effective_to >= start),
+        )
+        .limit(1)
+    )
+    if clash is not None:
+        raise AppException(
+            f"A {code} entry already covers some of these dates; end it first", 409
+        )
+
+
 async def create_tax_table(
     session: AsyncSession, actor: User, payload: TaxTableCreate, *, token: str
 ) -> TaxTable:
     await _require_writer(session, actor, payload.organisation_id, token)
     if not payload.bands or payload.bands[-1].width_minor is not None:
         raise AppException("The last tax band must have no upper limit", 400)
+    await _refuse_overlap(
+        session,
+        TaxTable,
+        payload.organisation_id,
+        payload.code,
+        payload.effective_from,
+        payload.effective_to,
+    )
     table = TaxTable(
-        **payload.model_dump(exclude={"bands", "rule_state", "method"}),
+        **payload.model_dump(exclude={"bands", "method"}),
         method=payload.method.value,
-        rule_state=payload.rule_state.value,
+        rule_state=TableState.PROVISIONAL.value,
+        created_by_user_id=actor.id,
     )
     session.add(table)
     await session.flush()
@@ -554,9 +671,18 @@ async def create_scheme(
     token: str,
 ) -> SocialInsuranceScheme:
     await _require_writer(session, actor, payload.organisation_id, token)
+    await _refuse_overlap(
+        session,
+        SocialInsuranceScheme,
+        payload.organisation_id,
+        payload.code,
+        payload.effective_from,
+        payload.effective_to,
+    )
     scheme = SocialInsuranceScheme(
-        **payload.model_dump(exclude={"rule_state"}),
-        rule_state=payload.rule_state.value,
+        **payload.model_dump(),
+        rule_state=TableState.PROVISIONAL.value,
+        created_by_user_id=actor.id,
     )
     session.add(scheme)
     await session.commit()
@@ -568,10 +694,19 @@ async def create_deduction_type(
     session: AsyncSession, actor: User, payload: DeductionTypeCreate, *, token: str
 ) -> DeductionType:
     await _require_writer(session, actor, payload.organisation_id, token)
+    await _refuse_overlap(
+        session,
+        DeductionType,
+        payload.organisation_id,
+        payload.code,
+        payload.effective_from,
+        payload.effective_to,
+    )
     kind = DeductionType(
-        **payload.model_dump(exclude={"rule_state", "kind"}),
+        **payload.model_dump(exclude={"kind"}),
         kind=payload.kind.value,
-        rule_state=payload.rule_state.value,
+        rule_state=TableState.PROVISIONAL.value,
+        created_by_user_id=actor.id,
     )
     session.add(kind)
     await session.commit()
@@ -598,11 +733,24 @@ async def set_table_state(
     record: Any = await session.get(model, table_id)
     if record is None:
         raise NotFoundError("Table not found")
-    await _require_writer(session, actor, record.organisation_id, token)
+    await access.require_visible(session, actor, record.organisation_id)
+    await access.require_organisation_wide(
+        session, actor, record.organisation_id, access.TABLES_CONFIRM
+    )
+    await access.require_mfa(session, actor, token)
+    if record.created_by_user_id == actor.id:
+        raise AppException(
+            "Someone other than the table's creator must confirm it", 403
+        )
     previous = record.rule_state
     record.rule_state = payload.rule_state.value
-    note = f"{payload.rule_state.value} by {actor.id} on {date.today().isoformat()}: {payload.note}"
-    record.source_note = ((record.source_note or "") + " | " + note)[-500:]
+    if payload.rule_state == TableState.PROVISIONAL:
+        record.confirmed_by_user_id = record.confirmed_at = None
+    else:
+        record.confirmed_by_user_id = actor.id
+        record.confirmed_at = utc_now()
+    # The original source note is provenance and is never rewritten.
+    record.confirmation_note = payload.note
     await audit_service.record_change(
         session,
         entity_type="payroll_settings",
@@ -645,6 +793,8 @@ async def create_employee_deduction(
     )
     if employment is None:
         raise NotFoundError("Employee not found in this organisation")
+    if payload.user_id == actor.id:
+        raise AppException("You cannot set up your own deductions", 403)
     enrolment = EmployeeDeduction(
         **payload.model_dump(exclude={"authorisation_reference"}),
         created_by_user_id=actor.id,
@@ -657,3 +807,51 @@ async def create_employee_deduction(
     await session.commit()
     await session.refresh(enrolment)
     return enrolment
+
+
+async def my_deductions(session: AsyncSession, actor: User) -> list[dict[str, Any]]:
+    from src.auth.policy import require_permission
+
+    require_permission(current_user=actor, permission_key=access.READ_SELF)
+    rows = (
+        await session.execute(
+            select(EmployeeDeduction, DeductionType.code, DeductionType.name)
+            .join(
+                DeductionType, DeductionType.id == EmployeeDeduction.deduction_type_id
+            )
+            .where(EmployeeDeduction.user_id == actor.id)
+            .order_by(EmployeeDeduction.effective_from.desc())
+        )
+    ).all()
+    return [
+        {
+            "id": enrolment.id,
+            "deduction_code": code,
+            "deduction_name": name,
+            "effective_from": enrolment.effective_from,
+            "effective_to": enrolment.effective_to,
+            "authorisation_reference": enrolment.authorisation_reference,
+            "employee_confirmed_at": enrolment.employee_confirmed_at,
+        }
+        for enrolment, code, name in rows
+    ]
+
+
+async def confirm_my_deduction(
+    session: AsyncSession, actor: User, deduction_id: uuid.UUID
+) -> list[dict[str, Any]]:
+    """The employee confirms a deduction set up for them (hr.payroll.read.self)."""
+    from src.auth.policy import require_permission
+
+    require_permission(current_user=actor, permission_key=access.READ_SELF)
+    enrolment = await session.get(EmployeeDeduction, deduction_id)
+    if enrolment is None or enrolment.user_id != actor.id:
+        raise NotFoundError("Deduction not found")
+    if enrolment.authorisation_reference is None:
+        raise AppException(
+            "HR must record your signed authorisation before you confirm", 409
+        )
+    if enrolment.employee_confirmed_at is None:
+        enrolment.employee_confirmed_at = utc_now()
+        await session.commit()
+    return await my_deductions(session, actor)

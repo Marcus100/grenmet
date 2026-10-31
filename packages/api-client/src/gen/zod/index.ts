@@ -3910,6 +3910,19 @@ export {
   hrComputePayPeriodStatus422Schema,
 } from "./hrComputePayPeriodSchema.js";
 export {
+  hrConfirmMyDeductionErrorSchema,
+  hrConfirmMyDeductionPathDeductionIdSchema,
+  hrConfirmMyDeductionPathSchema,
+  hrConfirmMyDeductionResponseSchema,
+  hrConfirmMyDeductionStatus200Schema,
+  hrConfirmMyDeductionStatus400Schema,
+  hrConfirmMyDeductionStatus401Schema,
+  hrConfirmMyDeductionStatus403Schema,
+  hrConfirmMyDeductionStatus404Schema,
+  hrConfirmMyDeductionStatus409Schema,
+  hrConfirmMyDeductionStatus422Schema,
+} from "./hrConfirmMyDeductionSchema.js";
+export {
   hrCreateAbsenteeReportBodySchema,
   hrCreateAbsenteeReportErrorSchema,
   hrCreateAbsenteeReportResponseSchema,
@@ -4935,6 +4948,17 @@ export {
   hrListHolidaysStatus403Schema,
   hrListHolidaysStatus422Schema,
 } from "./hrListHolidaysSchema.js";
+export {
+  hrListMyDeductionsErrorSchema,
+  hrListMyDeductionsResponseSchema,
+  hrListMyDeductionsStatus200Schema,
+  hrListMyDeductionsStatus400Schema,
+  hrListMyDeductionsStatus401Schema,
+  hrListMyDeductionsStatus403Schema,
+  hrListMyDeductionsStatus404Schema,
+  hrListMyDeductionsStatus409Schema,
+  hrListMyDeductionsStatus422Schema,
+} from "./hrListMyDeductionsSchema.js";
 export {
   hrListMyShiftSwapsErrorSchema,
   hrListMyShiftSwapsQueryPageSchema,
@@ -6170,6 +6194,8 @@ export {
   modelsListOrganisationsStatus422Schema,
 } from "./modelsListOrganisationsSchema.js";
 export { movementKindSchema } from "./movementKindSchema.js";
+export { myDeductionPublicSchema } from "./myDeductionPublicSchema.js";
+export { myDeductionsPublicSchema } from "./myDeductionsPublicSchema.js";
 export { myMembershipPublicSchema } from "./myMembershipPublicSchema.js";
 export { myProfilePropertiesIntentsItemsEnumSchema } from "./myProfilePropertiesIntentsItemsEnumSchema.js";
 export { myProfilePropertiesVisibilityEnumSchema } from "./myProfilePropertiesVisibilityEnumSchema.js";

@@ -8,6 +8,15 @@ import type { TableState } from "./TableState.js";
 
 export type DeductionTypePublic = {
   /**
+   * @description PROVISIONAL tables can be previewed but never approved for issue.
+   * @type string
+   */
+  rule_state: TableState;
+  created_by_user_id: string | null;
+  confirmed_by_user_id: string | null;
+  confirmed_at: string | null;
+  confirmation_note: string | null;
+  /**
    * @minLength 1
    * @maxLength 100
    * @type string
@@ -49,12 +58,6 @@ export type DeductionTypePublic = {
    */
   effective_from: string;
   effective_to?: string | null;
-  /**
-   * @description PROVISIONAL tables can be previewed but never approved for issue.
-   * @default 'PROVISIONAL'
-   * @type string | undefined
-   */
-  rule_state?: TableState;
   source_note?: string | null;
   /**
    * @description

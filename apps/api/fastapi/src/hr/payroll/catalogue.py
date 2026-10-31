@@ -364,7 +364,8 @@ def _statutory_rows() -> list[object]:
         annual_allowance_minor=3_600_000,
         deduct_social_insurance=False,
         effective_from=date(2026, 1, 1),
-        rule_state=TableState.OWNER_CONFIRMED.value,
+        # HR confirms it (hr.payroll.tables.confirm); the owner's reading is the source.
+        rule_state=TableState.PROVISIONAL.value,
         source_note=(
             "Owner, from a real GAA payslip (2026-10-31): EC$36,000 allowance, 10% "
             "on the first EC$24,000 chargeable, then 28%. HR still verifies. Another "

@@ -33,4 +33,5 @@ export type EmployeeDeductionPublic = {
   effective_to: string | null;
   authorised_at: string | null;
   authorisation_reference: string | null;
+  employee_confirmed_at: string | null;
 };

@@ -21244,7 +21244,7 @@
             }
           },
           "403": {
-            "description": "Missing payroll permission, organisation-wide scope or two-step verification",
+            "description": "Missing payroll permission, organisation-wide scope or two-step verification, or separation of duty (you prepared or added lines to the period, or it is your own pay)",
             "content": {
               "application/json": {
                 "schema": {
@@ -21343,7 +21343,7 @@
             }
           },
           "403": {
-            "description": "Missing payroll permission, organisation-wide scope or two-step verification",
+            "description": "Missing payroll permission, organisation-wide scope or two-step verification, or separation of duty (you prepared or added lines to the period, or it is your own pay)",
             "content": {
               "application/json": {
                 "schema": {
@@ -21442,7 +21442,7 @@
             }
           },
           "403": {
-            "description": "Missing payroll permission, organisation-wide scope or two-step verification",
+            "description": "Missing payroll permission, organisation-wide scope or two-step verification, or separation of duty (you prepared or added lines to the period, or it is your own pay)",
             "content": {
               "application/json": {
                 "schema": {
@@ -21534,7 +21534,7 @@
             }
           },
           "403": {
-            "description": "Missing payroll permission, organisation-wide scope or two-step verification",
+            "description": "Missing payroll permission, organisation-wide scope or two-step verification, or separation of duty (you prepared or added lines to the period, or it is your own pay)",
             "content": {
               "application/json": {
                 "schema": {
@@ -21631,7 +21631,7 @@
             }
           },
           "403": {
-            "description": "Missing payroll permission, organisation-wide scope or two-step verification",
+            "description": "Missing payroll permission, organisation-wide scope or two-step verification, or separation of duty (you prepared or added lines to the period, or it is your own pay)",
             "content": {
               "application/json": {
                 "schema": {
@@ -21728,7 +21728,7 @@
             }
           },
           "403": {
-            "description": "Missing payroll permission, organisation-wide scope or two-step verification",
+            "description": "Missing payroll permission, organisation-wide scope or two-step verification, or separation of duty (you prepared or added lines to the period, or it is your own pay)",
             "content": {
               "application/json": {
                 "schema": {
@@ -21771,7 +21771,7 @@
           "hr-payroll"
         ],
         "summary": "Confirm or reopen a table",
-        "description": "Sets PROVISIONAL, OWNER_CONFIRMED or CONFIRMED with a note, recorded in the change history. Needs organisation-wide hr.payroll.rates.manage and two-step verification.",
+        "description": "Sets PROVISIONAL, OWNER_CONFIRMED or CONFIRMED with a note, recorded in the change history. Needs organisation-wide hr.payroll.tables.confirm and two-step verification; never the table's creator.",
         "operationId": "hrSetStatutoryTableState",
         "security": [
           {
@@ -21852,7 +21852,7 @@
             }
           },
           "403": {
-            "description": "Missing payroll permission, organisation-wide scope or two-step verification",
+            "description": "Missing payroll permission, organisation-wide scope or two-step verification, or separation of duty (you prepared or added lines to the period, or it is your own pay)",
             "content": {
               "application/json": {
                 "schema": {
@@ -21968,7 +21968,7 @@
             }
           },
           "403": {
-            "description": "Missing payroll permission, organisation-wide scope or two-step verification",
+            "description": "Missing payroll permission, organisation-wide scope or two-step verification, or separation of duty (you prepared or added lines to the period, or it is your own pay)",
             "content": {
               "application/json": {
                 "schema": {
@@ -22063,7 +22063,193 @@
             }
           },
           "403": {
-            "description": "Missing payroll permission, organisation-wide scope or two-step verification",
+            "description": "Missing payroll permission, organisation-wide scope or two-step verification, or separation of duty (you prepared or added lines to the period, or it is your own pay)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found, or no payroll access in this organisation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "The period is not in a state that allows this, or the data conflicts",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/hr/payroll/me/deductions": {
+      "get": {
+        "tags": [
+          "hr-payroll"
+        ],
+        "summary": "List my deductions",
+        "description": "Deductions set up for the caller, and whether they have confirmed each. Needs hr.payroll.read.self.",
+        "operationId": "hrListMyDeductions",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MyDeductionsPublic"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Content",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid payroll input",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Not signed in",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Missing payroll permission, organisation-wide scope or two-step verification, or separation of duty (you prepared or added lines to the period, or it is your own pay)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found, or no payroll access in this organisation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "The period is not in a state that allows this, or the data conflicts",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/hr/payroll/me/deductions/{deduction_id}/confirmation": {
+      "post": {
+        "tags": [
+          "hr-payroll"
+        ],
+        "summary": "Confirm a deduction set up for me",
+        "description": "The employee confirms a deduction whose signed authorisation HR has recorded; it is not deducted before this. Needs hr.payroll.read.self.",
+        "operationId": "hrConfirmMyDeduction",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "deduction_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Deduction Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MyDeductionsPublic"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "400": {
+            "description": "Invalid payroll input",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Not signed in",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Missing payroll permission, organisation-wide scope or two-step verification, or separation of duty (you prepared or added lines to the period, or it is your own pay)",
             "content": {
               "application/json": {
                 "schema": {
@@ -74864,10 +75050,6 @@
             ],
             "title": "Effective To"
           },
-          "rule_state": {
-            "$ref": "#/components/schemas/TableState",
-            "default": "PROVISIONAL"
-          },
           "source_note": {
             "anyOf": [
               {
@@ -74893,6 +75075,56 @@
       },
       "DeductionTypePublic": {
         "properties": {
+          "rule_state": {
+            "$ref": "#/components/schemas/TableState"
+          },
+          "created_by_user_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Created By User Id"
+          },
+          "confirmed_by_user_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Confirmed By User Id"
+          },
+          "confirmed_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Confirmed At"
+          },
+          "confirmation_note": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Confirmation Note"
+          },
           "organisation_id": {
             "type": "string",
             "maxLength": 100,
@@ -75013,10 +75245,6 @@
             ],
             "title": "Effective To"
           },
-          "rule_state": {
-            "$ref": "#/components/schemas/TableState",
-            "default": "PROVISIONAL"
-          },
           "source_note": {
             "anyOf": [
               {
@@ -75037,6 +75265,11 @@
         },
         "type": "object",
         "required": [
+          "rule_state",
+          "created_by_user_id",
+          "confirmed_by_user_id",
+          "confirmed_at",
+          "confirmation_note",
           "organisation_id",
           "code",
           "name",
@@ -76127,6 +76360,18 @@
               }
             ],
             "title": "Authorisation Reference"
+          },
+          "employee_confirmed_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Employee Confirmed At"
           }
         },
         "type": "object",
@@ -76139,7 +76384,8 @@
           "effective_from",
           "effective_to",
           "authorised_at",
-          "authorisation_reference"
+          "authorisation_reference",
+          "employee_confirmed_at"
         ],
         "title": "EmployeeDeductionPublic"
       },
@@ -76695,6 +76941,10 @@
           "net_minor": {
             "type": "integer",
             "title": "Net Minor"
+          },
+          "shortfall_minor": {
+            "type": "integer",
+            "title": "Shortfall Minor"
           }
         },
         "type": "object",
@@ -76706,7 +76956,8 @@
           "deductions",
           "employee_deductions_minor",
           "employer_contributions_minor",
-          "net_minor"
+          "net_minor",
+          "shortfall_minor"
         ],
         "title": "EmployeePaySummary"
       },
@@ -84154,6 +84405,90 @@
           "ADJUSTMENT"
         ],
         "title": "MovementKind"
+      },
+      "MyDeductionPublic": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "deduction_code": {
+            "type": "string",
+            "title": "Deduction Code"
+          },
+          "deduction_name": {
+            "type": "string",
+            "title": "Deduction Name"
+          },
+          "effective_from": {
+            "type": "string",
+            "format": "date",
+            "title": "Effective From"
+          },
+          "effective_to": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Effective To"
+          },
+          "authorisation_reference": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Authorisation Reference"
+          },
+          "employee_confirmed_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Employee Confirmed At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "deduction_code",
+          "deduction_name",
+          "effective_from",
+          "effective_to",
+          "authorisation_reference",
+          "employee_confirmed_at"
+        ],
+        "title": "MyDeductionPublic"
+      },
+      "MyDeductionsPublic": {
+        "properties": {
+          "data": {
+            "items": {
+              "$ref": "#/components/schemas/MyDeductionPublic"
+            },
+            "type": "array",
+            "title": "Data"
+          }
+        },
+        "type": "object",
+        "required": [
+          "data"
+        ],
+        "title": "MyDeductionsPublic"
       },
       "MyMembershipPublic": {
         "properties": {
@@ -100512,10 +100847,6 @@
             ],
             "title": "Effective To"
           },
-          "rule_state": {
-            "$ref": "#/components/schemas/TableState",
-            "default": "PROVISIONAL"
-          },
           "source_note": {
             "anyOf": [
               {
@@ -100544,6 +100875,56 @@
       },
       "SocialInsuranceSchemePublic": {
         "properties": {
+          "rule_state": {
+            "$ref": "#/components/schemas/TableState"
+          },
+          "created_by_user_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Created By User Id"
+          },
+          "confirmed_by_user_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Confirmed By User Id"
+          },
+          "confirmed_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Confirmed At"
+          },
+          "confirmation_note": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Confirmation Note"
+          },
           "organisation_id": {
             "type": "string",
             "maxLength": 100,
@@ -100612,10 +100993,6 @@
             ],
             "title": "Effective To"
           },
-          "rule_state": {
-            "$ref": "#/components/schemas/TableState",
-            "default": "PROVISIONAL"
-          },
           "source_note": {
             "anyOf": [
               {
@@ -100636,6 +101013,11 @@
         },
         "type": "object",
         "required": [
+          "rule_state",
+          "created_by_user_id",
+          "confirmed_by_user_id",
+          "confirmed_at",
+          "confirmation_note",
           "organisation_id",
           "code",
           "name",
@@ -104762,10 +105144,6 @@
             ],
             "title": "Effective To"
           },
-          "rule_state": {
-            "$ref": "#/components/schemas/TableState",
-            "default": "PROVISIONAL"
-          },
           "source_note": {
             "anyOf": [
               {
@@ -104801,6 +105179,56 @@
       },
       "TaxTablePublic": {
         "properties": {
+          "rule_state": {
+            "$ref": "#/components/schemas/TableState"
+          },
+          "created_by_user_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Created By User Id"
+          },
+          "confirmed_by_user_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Confirmed By User Id"
+          },
+          "confirmed_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Confirmed At"
+          },
+          "confirmation_note": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Confirmation Note"
+          },
           "id": {
             "type": "string",
             "format": "uuid",
@@ -104846,9 +105274,6 @@
             ],
             "title": "Effective To"
           },
-          "rule_state": {
-            "$ref": "#/components/schemas/TableState"
-          },
           "source_note": {
             "anyOf": [
               {
@@ -104871,6 +105296,11 @@
         },
         "type": "object",
         "required": [
+          "rule_state",
+          "created_by_user_id",
+          "confirmed_by_user_id",
+          "confirmed_at",
+          "confirmation_note",
           "id",
           "organisation_id",
           "code",
@@ -104880,7 +105310,6 @@
           "deduct_social_insurance",
           "effective_from",
           "effective_to",
-          "rule_state",
           "source_note"
         ],
         "title": "TaxTablePublic"
