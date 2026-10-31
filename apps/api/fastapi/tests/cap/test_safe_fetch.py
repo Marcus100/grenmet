@@ -4,6 +4,8 @@ Network-free: a fake httpx transport records every request, so the test sees the
 address the connection would go to, and the URL the request would send.
 """
 
+from typing import Any
+
 import httpx
 import pytest
 
@@ -154,3 +156,39 @@ async def test_a_not_modified_feed_is_reported_without_a_body() -> None:
         )
     assert fetched.status == 304 and fetched.body == b""
     assert transport.requests[0].headers["if-none-match"] == "etag-1"
+
+
+async def test_feed_and_import_clients_ignore_proxy_environment(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Proxy variables must not route a fetch around the pinned address."""
+    from src.cap import service as cap_service
+
+    monkeypatch.setenv("HTTPS_PROXY", "http://127.0.0.1:9")
+    monkeypatch.setenv("HTTP_PROXY", "http://127.0.0.1:9")
+    seen: list[dict[str, object]] = []
+
+    class Spy(httpx.AsyncClient):
+        def __init__(self, **kwargs: Any) -> None:
+            seen.append(kwargs)
+            super().__init__(**kwargs)
+
+    class Stop(Exception):
+        pass
+
+    async def pinned_address(_host: str) -> str:
+        return "203.0.113.10"
+
+    async def stop_before_network(*_args: object, **_kwargs: object) -> None:
+        raise Stop
+
+    monkeypatch.setattr(cap_service.httpx, "AsyncClient", Spy)
+    monkeypatch.setattr(cap_service, "ensure_public_host", pinned_address)
+    monkeypatch.setattr(cap_service, "fetch_pinned", stop_before_network)
+
+    with pytest.raises(Stop):
+        await cap_service._fetch_document(
+            "https://feeds.example.com/cap.xml", http_client=None
+        )
+
+    assert seen == [{"trust_env": False}]

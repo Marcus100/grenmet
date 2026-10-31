@@ -144,7 +144,21 @@ async def gate_cap_xml(
         try:
             errors = await run_in_threadpool(cap_schema_errors, xml)
         except etree.XMLSyntaxError as exc:
-            raise CapSchemaValidationError([f"not well-formed XML: {exc.msg}"]) from exc
+            problem = f"not well-formed XML: {exc.msg}"
+            if not allow_mismatch:
+                raise CapSchemaValidationError([problem]) from exc
+            # Emergency publish and cancellation must never be blocked. The stripped
+            # XML goes out and the problem is audited and notified by the caller.
+            logger.error(
+                "CAP XML still not well-formed after stripping; sent as is",
+                extra={
+                    "action": action,
+                    "identifier": identifier,
+                    "alert_id": str(alert_id),
+                    "schema_error": problem,
+                },
+            )
+            return xml, problem
     if not errors:
         return xml, None
     if not allow_mismatch:

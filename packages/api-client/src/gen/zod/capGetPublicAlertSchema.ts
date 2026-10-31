@@ -12,7 +12,7 @@ export const capGetPublicAlertPathIdentifierSchema = z.string();
 
 export const capGetPublicAlertStatus200Schema =
   capAlertPublicViewSchema.describe(
-    "An alert as the anonymous public sees it.\n\nStaff-only fields are left out: the schema check result, the imported marker,\nthe internal note, and who created or last changed the alert."
+    "An alert as the anonymous public sees it.\n\nStaff-only fields are left out: the schema check result, the imported marker,\nand who created or last changed the alert. The note is kept on purpose: the\npublic XML publishes it as ``<note>``."
   );
 
 export const capGetPublicAlertStatus404Schema = apiErrorSchema.describe(
