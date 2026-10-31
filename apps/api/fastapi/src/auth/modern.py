@@ -180,7 +180,6 @@ async def revoke_security_session(
     description="Email a 6-digit code for signing in at auth.barrels.gd. The reply never reveals whether the address has an account.",
     responses={
         429: {"model": RateLimitedBody, "description": "Rate limit exceeded"},
-        503: {"description": "Email delivery failed"},
     },
 )
 @limiter.limit("5/minute")

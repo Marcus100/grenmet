@@ -4,6 +4,7 @@ Every flow ends in ``_session_response``, which creates a session bound to one
 app and mints an access token carrying that app's claim (ADR-0016).
 """
 
+import asyncio
 import base64
 import hashlib
 import logging
@@ -276,6 +277,36 @@ async def _require_totp(
 # --- Email one-time code (passwordless sign-in and sign-up) --------------------
 
 
+# Code emails in flight. Held here so the tasks are not garbage collected.
+_pending_code_emails: set[asyncio.Task[None]] = set()
+
+
+def _schedule_code_email(*, email: str, app_label: str, code: str) -> None:
+    task = asyncio.get_running_loop().create_task(
+        _deliver_code_email(email=email, app_label=app_label, code=code)
+    )
+    _pending_code_emails.add(task)
+    task.add_done_callback(_pending_code_emails.discard)
+
+
+async def _deliver_code_email(*, email: str, app_label: str, code: str) -> None:
+    try:
+        await run_in_threadpool(
+            send_email,
+            email_to=email,
+            subject="Your sign-in code",
+            html_content=(
+                f"<p>Your {app_label} code is</p>"
+                f'<p style="font-size:28px;font-weight:700;letter-spacing:4px">{code}</p>'
+                f"<p>It expires in {CODE_TTL_MINUTES} minutes. If you didn't ask for it, ignore this email.</p>"
+            ),
+        )
+    except Exception:
+        # The reply already went out. Log without the address or the code; the
+        # person can ask for a new code.
+        logger.warning("Sign-in code email could not be sent", exc_info=True)
+
+
 async def email_code_start(
     *, session: AsyncSession, app: AppDefinition, body: AppEmailCodeStart
 ) -> Message:
@@ -304,21 +335,8 @@ async def email_code_start(
     )
     await session.commit()
     if email_settings.EMAILS_ENABLED:
-        try:
-            await run_in_threadpool(
-                send_email,
-                email_to=email,
-                subject="Your sign-in code",
-                html_content=(
-                    f"<p>Your {app.label} code is</p>"
-                    f'<p style="font-size:28px;font-weight:700;letter-spacing:4px">{code}</p>'
-                    f"<p>It expires in {CODE_TTL_MINUTES} minutes. If you didn't ask for it, ignore this email.</p>"
-                ),
-            )
-        except Exception as exc:
-            raise AppException(
-                "We couldn't send the code. Try again shortly.", 503
-            ) from exc
+        # Sent in the background so the reply never waits on the mail provider.
+        _schedule_code_email(email=email, app_label=app.label, code=code)
     elif auth_settings.ENVIRONMENT == "local":
         logger.warning("Email code for %s (%s): %s", email, app.key, code)
     return Message(message=GENERIC_SENT)
