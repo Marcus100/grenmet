@@ -5,7 +5,7 @@ reconciliation never see a provider's own payload shapes.
 """
 
 import uuid
-from collections.abc import Mapping
+from collections.abc import Callable, Mapping
 from contextlib import AbstractAsyncContextManager
 from dataclasses import dataclass
 from enum import Enum
@@ -113,7 +113,12 @@ class PaymentProvider(Protocol):
 
     async def fetch_status(self, intent: Intent, /) -> ProviderStatus: ...
 
-    async def list_refunds(self, intent: Intent, /) -> RefundListing: ...
+    async def list_refunds(
+        self, intent: Intent, /, *, stop: Callable[[], bool] | None = None
+    ) -> RefundListing:
+        """Every refund of the payment. ``stop`` is asked before each further page;
+        True ends the listing early, reported incomplete."""
+        ...
 
     def batch(self) -> AbstractAsyncContextManager[None]:
         """Reuse one connection for every call made inside the block."""
