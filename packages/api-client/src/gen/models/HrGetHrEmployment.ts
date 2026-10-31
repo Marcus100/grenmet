@@ -3,6 +3,7 @@
  * Do not edit manually.
  */
 
+import type { ApiError } from "./ApiError.js";
 import type { EmploymentRecordPublic } from "./EmploymentRecordPublic.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 
@@ -17,9 +18,17 @@ export type HrGetHrEmploymentPath = {
 
 export type HrGetHrEmploymentStatus200 = EmploymentRecordPublic;
 
-export type HrGetHrEmploymentStatus403 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type HrGetHrEmploymentStatus403 = ApiError;
 
-export type HrGetHrEmploymentStatus404 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type HrGetHrEmploymentStatus404 = ApiError;
 
 /**
  * @description Validation error envelope returned for malformed requests.

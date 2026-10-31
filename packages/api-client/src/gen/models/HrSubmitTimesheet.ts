@@ -3,6 +3,7 @@
  * Do not edit manually.
  */
 
+import type { ApiError } from "./ApiError.js";
 import type { TimesheetPublic } from "./TimesheetPublic.js";
 import type { TimesheetSubmitRequest } from "./TimesheetSubmitRequest.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
@@ -18,11 +19,23 @@ export type HrSubmitTimesheetPath = {
 
 export type HrSubmitTimesheetStatus200 = TimesheetPublic;
 
-export type HrSubmitTimesheetStatus400 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type HrSubmitTimesheetStatus400 = ApiError;
 
-export type HrSubmitTimesheetStatus403 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type HrSubmitTimesheetStatus403 = ApiError;
 
-export type HrSubmitTimesheetStatus404 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type HrSubmitTimesheetStatus404 = ApiError;
 
 /**
  * @description Validation error envelope returned for malformed requests.

@@ -4,6 +4,7 @@
  */
 
 import * as z from "zod";
+import { apiErrorSchema } from "./apiErrorSchema.js";
 import { streakPublicSchema } from "./streakPublicSchema.js";
 import { validationErrorResponseSchema } from "./validationErrorResponseSchema.js";
 
@@ -11,9 +12,13 @@ export const rewardsGetStreakStatus200Schema = streakPublicSchema.describe(
   "Consecutive Grenada calendar days with a venue check-in."
 );
 
-export const rewardsGetStreakStatus401Schema = z.unknown();
+export const rewardsGetStreakStatus401Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
-export const rewardsGetStreakStatus403Schema = z.unknown();
+export const rewardsGetStreakStatus403Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
 export const rewardsGetStreakStatus422Schema =
   validationErrorResponseSchema.describe(

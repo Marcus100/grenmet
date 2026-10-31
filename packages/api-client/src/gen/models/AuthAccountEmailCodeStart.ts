@@ -3,7 +3,9 @@
  * Do not edit manually.
  */
 
+import type { ApiError } from "./ApiError.js";
 import type { AppEmailCodeStart } from "./AppEmailCodeStart.js";
+import type { ErrorMessage } from "./ErrorMessage.js";
 import type { Message } from "./Message.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 
@@ -15,7 +17,7 @@ export type AuthAccountEmailCodeStartStatus200 = Message;
  */
 export type AuthAccountEmailCodeStartStatus422 = ValidationErrorResponse;
 
-export type AuthAccountEmailCodeStartStatus429 = unknown;
+export type AuthAccountEmailCodeStartStatus429 = ApiError | ErrorMessage;
 
 export type AuthAccountEmailCodeStartStatus503 = unknown;
 

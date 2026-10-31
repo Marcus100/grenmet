@@ -3,16 +3,29 @@
  * Do not edit manually.
  */
 
+import type { ApiError } from "./ApiError.js";
 import type { RoleConfiguration } from "./RoleConfiguration.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 
 export type HrGetRoleConfigurationStatus200 = RoleConfiguration[];
 
-export type HrGetRoleConfigurationStatus403 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type HrGetRoleConfigurationStatus403 = ApiError;
 
-export type HrGetRoleConfigurationStatus404 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type HrGetRoleConfigurationStatus404 = ApiError;
 
-export type HrGetRoleConfigurationStatus409 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type HrGetRoleConfigurationStatus409 = ApiError;
 
 /**
  * @description Validation error envelope returned for malformed requests.

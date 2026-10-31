@@ -3,6 +3,7 @@
  * Do not edit manually.
  */
 
+import type { ApiError } from "./ApiError.js";
 import type { RedemptionConfirm } from "./RedemptionConfirm.js";
 import type { RedemptionConfirmed } from "./RedemptionConfirmed.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
@@ -20,15 +21,35 @@ export type RewardsConfirmRedemptionHeaders = {
  */
 export type RewardsConfirmRedemptionStatus200 = RedemptionConfirmed;
 
-export type RewardsConfirmRedemptionStatus400 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type RewardsConfirmRedemptionStatus400 = ApiError;
 
-export type RewardsConfirmRedemptionStatus401 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type RewardsConfirmRedemptionStatus401 = ApiError;
 
-export type RewardsConfirmRedemptionStatus403 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type RewardsConfirmRedemptionStatus403 = ApiError;
 
-export type RewardsConfirmRedemptionStatus404 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type RewardsConfirmRedemptionStatus404 = ApiError;
 
-export type RewardsConfirmRedemptionStatus409 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type RewardsConfirmRedemptionStatus409 = ApiError;
 
 /**
  * @description Validation error envelope returned for malformed requests.

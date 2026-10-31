@@ -4,6 +4,7 @@
  */
 
 import * as z from "zod";
+import { apiErrorSchema } from "./apiErrorSchema.js";
 import { capProfilePublicSchema } from "./capProfilePublicSchema.js";
 import { validationErrorResponseSchema } from "./validationErrorResponseSchema.js";
 
@@ -11,9 +12,13 @@ export const capGetHazardProfilesStatus200Schema = z.array(
   capProfilePublicSchema
 );
 
-export const capGetHazardProfilesStatus401Schema = z.unknown();
+export const capGetHazardProfilesStatus401Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
-export const capGetHazardProfilesStatus403Schema = z.unknown();
+export const capGetHazardProfilesStatus403Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
 export const capGetHazardProfilesStatus422Schema =
   validationErrorResponseSchema.describe(

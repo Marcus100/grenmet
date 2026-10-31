@@ -4,6 +4,7 @@
  */
 
 import * as z from "zod";
+import { apiErrorSchema } from "./apiErrorSchema.js";
 import { entryKindSchema } from "./entryKindSchema.js";
 import { rewardsOrgEntryListPublicSchema } from "./rewardsOrgEntryListPublicSchema.js";
 import { validationErrorResponseSchema } from "./validationErrorResponseSchema.js";
@@ -42,13 +43,21 @@ export const rewardsOrgListEntriesHeaderXBarrelsOrganisationSchema = z
 export const rewardsOrgListEntriesStatus200Schema =
   rewardsOrgEntryListPublicSchema;
 
-export const rewardsOrgListEntriesStatus400Schema = z.unknown();
+export const rewardsOrgListEntriesStatus400Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
-export const rewardsOrgListEntriesStatus401Schema = z.unknown();
+export const rewardsOrgListEntriesStatus401Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
-export const rewardsOrgListEntriesStatus403Schema = z.unknown();
+export const rewardsOrgListEntriesStatus403Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
-export const rewardsOrgListEntriesStatus404Schema = z.unknown();
+export const rewardsOrgListEntriesStatus404Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
 export const rewardsOrgListEntriesStatus422Schema =
   validationErrorResponseSchema.describe(

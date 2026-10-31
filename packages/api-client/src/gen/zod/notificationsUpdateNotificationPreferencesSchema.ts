@@ -4,15 +4,16 @@
  */
 
 import * as z from "zod";
+import { apiErrorSchema } from "./apiErrorSchema.js";
 import { notificationPreferencePublicSchema } from "./notificationPreferencePublicSchema.js";
-import { notificationPreferenceUpdateSchema } from "./notificationPreferenceUpdateSchema.js";
+import { notificationPreferenceUpdateListSchema } from "./notificationPreferenceUpdateListSchema.js";
 import { validationErrorResponseSchema } from "./validationErrorResponseSchema.js";
 
 export const notificationsUpdateNotificationPreferencesStatus200Schema =
   z.array(notificationPreferencePublicSchema);
 
 export const notificationsUpdateNotificationPreferencesStatus400Schema =
-  z.unknown();
+  apiErrorSchema.describe("Stable error envelope for documented API failures.");
 
 export const notificationsUpdateNotificationPreferencesStatus422Schema =
   validationErrorResponseSchema.describe(
@@ -27,6 +28,7 @@ export const notificationsUpdateNotificationPreferencesErrorSchema = z.union([
   notificationsUpdateNotificationPreferencesStatus422Schema,
 ]);
 
-export const notificationsUpdateNotificationPreferencesBodySchema = z.array(
-  notificationPreferenceUpdateSchema
-);
+export const notificationsUpdateNotificationPreferencesBodySchema =
+  notificationPreferenceUpdateListSchema.describe(
+    "The bare JSON array of preference changes (the wire format is unchanged)."
+  );

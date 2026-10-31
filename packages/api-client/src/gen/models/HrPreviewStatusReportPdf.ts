@@ -3,16 +3,29 @@
  * Do not edit manually.
  */
 
+import type { ApiError } from "./ApiError.js";
 import type { StatusReportCreate } from "./StatusReportCreate.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 
 export type HrPreviewStatusReportPdfStatus200 = Blob;
 
-export type HrPreviewStatusReportPdfStatus400 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type HrPreviewStatusReportPdfStatus400 = ApiError;
 
-export type HrPreviewStatusReportPdfStatus403 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type HrPreviewStatusReportPdfStatus403 = ApiError;
 
-export type HrPreviewStatusReportPdfStatus404 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type HrPreviewStatusReportPdfStatus404 = ApiError;
 
 /**
  * @description Validation error envelope returned for malformed requests.

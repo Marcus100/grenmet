@@ -4,6 +4,7 @@
  */
 
 import * as z from "zod";
+import { apiErrorSchema } from "./apiErrorSchema.js";
 import { validationErrorResponseSchema } from "./validationErrorResponseSchema.js";
 
 export const webhooksOutDeleteEndpointPathEndpointIdSchema = z.string();
@@ -17,13 +18,21 @@ export const webhooksOutDeleteEndpointHeaderXBarrelsOrganisationSchema = z
 
 export const webhooksOutDeleteEndpointStatus204Schema = z.unknown();
 
-export const webhooksOutDeleteEndpointStatus400Schema = z.unknown();
+export const webhooksOutDeleteEndpointStatus400Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
-export const webhooksOutDeleteEndpointStatus401Schema = z.unknown();
+export const webhooksOutDeleteEndpointStatus401Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
-export const webhooksOutDeleteEndpointStatus403Schema = z.unknown();
+export const webhooksOutDeleteEndpointStatus403Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
-export const webhooksOutDeleteEndpointStatus404Schema = z.unknown();
+export const webhooksOutDeleteEndpointStatus404Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
 export const webhooksOutDeleteEndpointStatus422Schema =
   validationErrorResponseSchema.describe(

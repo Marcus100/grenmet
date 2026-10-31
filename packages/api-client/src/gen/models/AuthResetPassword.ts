@@ -3,6 +3,8 @@
  * Do not edit manually.
  */
 
+import type { ApiError } from "./ApiError.js";
+import type { ErrorMessage } from "./ErrorMessage.js";
 import type { Message } from "./Message.js";
 import type { NewPassword } from "./NewPassword.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
@@ -15,7 +17,7 @@ export type AuthResetPasswordStatus200 = Message;
  */
 export type AuthResetPasswordStatus422 = ValidationErrorResponse;
 
-export type AuthResetPasswordStatus429 = unknown;
+export type AuthResetPasswordStatus429 = ApiError | ErrorMessage;
 
 export type AuthResetPasswordBody = NewPassword;
 

@@ -9,6 +9,7 @@ from starlette.requests import Request
 from src.auth.models import User
 from src.dependencies import AccountUser, AdminUser, MfaAdminUser, SessionDep
 from src.events.service import organiser_verification as events_verification
+from src.models import ApiError
 from src.openapi_responses import AUTHENTICATED, BAD_REQUEST, CONFLICT, NOT_FOUND
 from src.organisations.dependencies import (
     EventsOrgAdmin,
@@ -832,9 +833,10 @@ MFA_ERRORS = {
     **NOT_FOUND,
     **CONFLICT,
     403: {
+        "model": ApiError,
         "description": "Superuser with an enrolled authenticator required "
         "(superuser_mfa_required), or the target lacks a verified or "
-        "administrator-activated email for an owner/admin role"
+        "administrator-activated email for an owner/admin role",
     },
 }
 

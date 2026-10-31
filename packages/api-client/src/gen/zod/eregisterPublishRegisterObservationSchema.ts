@@ -4,8 +4,9 @@
  */
 
 import * as z from "zod";
+import { apiErrorSchema } from "./apiErrorSchema.js";
 import { observationSendSchema } from "./observationSendSchema.js";
-import { sendObservationRequestSchema } from "./sendObservationRequestSchema.js";
+import { sendObservationBodySchema } from "./sendObservationBodySchema.js";
 
 export const eregisterPublishRegisterObservationPathObservationIdSchema =
   z.uuid();
@@ -15,13 +16,17 @@ export const eregisterPublishRegisterObservationStatus202Schema =
     "One email or WIS2 hand-off of a register observation."
   );
 
-export const eregisterPublishRegisterObservationStatus401Schema = z.unknown();
+export const eregisterPublishRegisterObservationStatus401Schema =
+  apiErrorSchema.describe("Stable error envelope for documented API failures.");
 
-export const eregisterPublishRegisterObservationStatus403Schema = z.unknown();
+export const eregisterPublishRegisterObservationStatus403Schema =
+  apiErrorSchema.describe("Stable error envelope for documented API failures.");
 
-export const eregisterPublishRegisterObservationStatus404Schema = z.unknown();
+export const eregisterPublishRegisterObservationStatus404Schema =
+  apiErrorSchema.describe("Stable error envelope for documented API failures.");
 
-export const eregisterPublishRegisterObservationStatus409Schema = z.unknown();
+export const eregisterPublishRegisterObservationStatus409Schema =
+  apiErrorSchema.describe("Stable error envelope for documented API failures.");
 
 export const eregisterPublishRegisterObservationStatus422Schema = z.unknown();
 
@@ -36,9 +41,12 @@ export const eregisterPublishRegisterObservationErrorSchema = z.union([
   eregisterPublishRegisterObservationStatus422Schema,
 ]);
 
-export const eregisterPublishRegisterObservationBodySchema = z
-  .union([sendObservationRequestSchema, z.null()])
-  .optional();
+export const eregisterPublishRegisterObservationBodySchema =
+  sendObservationBodySchema
+    .optional()
+    .describe(
+      "Optional send options. An absent body and null are both accepted."
+    );
 
 export const eregisterPublishRegisterObservationPathSchema = z.object({
   observation_id: z.uuid(),

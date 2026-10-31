@@ -3,6 +3,7 @@
  * Do not edit manually.
  */
 
+import type { ApiError } from "./ApiError.js";
 import type { ClockPunchPublic } from "./ClockPunchPublic.js";
 import type { ClockPunchReject } from "./ClockPunchReject.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
@@ -18,11 +19,23 @@ export type HrRejectClockPunchPath = {
 
 export type HrRejectClockPunchStatus200 = ClockPunchPublic;
 
-export type HrRejectClockPunchStatus403 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type HrRejectClockPunchStatus403 = ApiError;
 
-export type HrRejectClockPunchStatus404 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type HrRejectClockPunchStatus404 = ApiError;
 
-export type HrRejectClockPunchStatus409 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type HrRejectClockPunchStatus409 = ApiError;
 
 /**
  * @description Validation error envelope returned for malformed requests.

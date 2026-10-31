@@ -3,6 +3,7 @@
  * Do not edit manually.
  */
 
+import type { ApiError } from "./ApiError.js";
 import type { PublicSiteListPublic } from "./PublicSiteListPublic.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 
@@ -12,9 +13,17 @@ export type OrganisationsListAdminSitesQuery = {
 
 export type OrganisationsListAdminSitesStatus200 = PublicSiteListPublic;
 
-export type OrganisationsListAdminSitesStatus401 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type OrganisationsListAdminSitesStatus401 = ApiError;
 
-export type OrganisationsListAdminSitesStatus403 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type OrganisationsListAdminSitesStatus403 = ApiError;
 
 /**
  * @description Validation error envelope returned for malformed requests.

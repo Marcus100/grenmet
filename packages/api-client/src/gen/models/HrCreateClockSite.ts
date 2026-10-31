@@ -3,6 +3,7 @@
  * Do not edit manually.
  */
 
+import type { ApiError } from "./ApiError.js";
 import type { ClockSiteCreate } from "./ClockSiteCreate.js";
 import type { ClockSiteIssued } from "./ClockSiteIssued.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
@@ -13,9 +14,17 @@ import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
  */
 export type HrCreateClockSiteStatus201 = ClockSiteIssued;
 
-export type HrCreateClockSiteStatus403 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type HrCreateClockSiteStatus403 = ApiError;
 
-export type HrCreateClockSiteStatus404 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type HrCreateClockSiteStatus404 = ApiError;
 
 /**
  * @description Validation error envelope returned for malformed requests.

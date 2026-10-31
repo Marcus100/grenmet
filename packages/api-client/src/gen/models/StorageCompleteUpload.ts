@@ -3,6 +3,7 @@
  * Do not edit manually.
  */
 
+import type { ApiError } from "./ApiError.js";
 import type { StoredFile } from "./StoredFile.js";
 
 export type StorageCompleteUploadPath = {
@@ -23,13 +24,29 @@ export type StorageCompleteUploadHeaders = {
 
 export type StorageCompleteUploadStatus200 = StoredFile;
 
-export type StorageCompleteUploadStatus401 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type StorageCompleteUploadStatus401 = ApiError;
 
-export type StorageCompleteUploadStatus403 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type StorageCompleteUploadStatus403 = ApiError;
 
-export type StorageCompleteUploadStatus404 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type StorageCompleteUploadStatus404 = ApiError;
 
-export type StorageCompleteUploadStatus409 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type StorageCompleteUploadStatus409 = ApiError;
 
 export type StorageCompleteUploadStatus422 = unknown;
 

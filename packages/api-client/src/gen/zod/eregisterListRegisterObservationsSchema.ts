@@ -4,6 +4,7 @@
  */
 
 import * as z from "zod";
+import { apiErrorSchema } from "./apiErrorSchema.js";
 import { registerObservationListSchema } from "./registerObservationListSchema.js";
 import { validationErrorResponseSchema } from "./validationErrorResponseSchema.js";
 
@@ -60,9 +61,11 @@ export const eregisterListRegisterObservationsQueryOffsetSchema = z
 export const eregisterListRegisterObservationsStatus200Schema =
   registerObservationListSchema;
 
-export const eregisterListRegisterObservationsStatus401Schema = z.unknown();
+export const eregisterListRegisterObservationsStatus401Schema =
+  apiErrorSchema.describe("Stable error envelope for documented API failures.");
 
-export const eregisterListRegisterObservationsStatus403Schema = z.unknown();
+export const eregisterListRegisterObservationsStatus403Schema =
+  apiErrorSchema.describe("Stable error envelope for documented API failures.");
 
 export const eregisterListRegisterObservationsStatus422Schema =
   validationErrorResponseSchema.describe(

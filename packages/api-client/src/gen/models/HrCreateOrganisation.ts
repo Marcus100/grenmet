@@ -3,15 +3,24 @@
  * Do not edit manually.
  */
 
+import type { ApiError } from "./ApiError.js";
 import type { OrganisationCreate } from "./OrganisationCreate.js";
 import type { OrganisationPublic } from "./OrganisationPublic.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 
 export type HrCreateOrganisationStatus201 = OrganisationPublic;
 
-export type HrCreateOrganisationStatus403 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type HrCreateOrganisationStatus403 = ApiError;
 
-export type HrCreateOrganisationStatus409 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type HrCreateOrganisationStatus409 = ApiError;
 
 /**
  * @description Validation error envelope returned for malformed requests.

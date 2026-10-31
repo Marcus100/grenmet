@@ -4,6 +4,7 @@
  */
 
 import * as z from "zod";
+import { apiErrorSchema } from "./apiErrorSchema.js";
 import { notificationSnoozePublicSchema } from "./notificationSnoozePublicSchema.js";
 import { validationErrorResponseSchema } from "./validationErrorResponseSchema.js";
 
@@ -15,7 +16,8 @@ export const notificationsGetNotificationSnoozesStatus200Schema = z.array(
   notificationSnoozePublicSchema
 );
 
-export const notificationsGetNotificationSnoozesStatus403Schema = z.unknown();
+export const notificationsGetNotificationSnoozesStatus403Schema =
+  apiErrorSchema.describe("Stable error envelope for documented API failures.");
 
 export const notificationsGetNotificationSnoozesStatus422Schema =
   validationErrorResponseSchema.describe(

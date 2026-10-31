@@ -3,6 +3,8 @@
  * Do not edit manually.
  */
 
+import type { ApiError } from "./ApiError.js";
+import type { ErrorMessage } from "./ErrorMessage.js";
 import type { OrganiserLogoUpdate } from "./OrganiserLogoUpdate.js";
 import type { OrganiserPublic } from "./OrganiserPublic.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
@@ -16,13 +18,29 @@ export type EventsSetOrganiserLogoQuery = {
 
 export type EventsSetOrganiserLogoStatus200 = OrganiserPublic;
 
-export type EventsSetOrganiserLogoStatus401 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type EventsSetOrganiserLogoStatus401 = ApiError;
 
-export type EventsSetOrganiserLogoStatus403 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type EventsSetOrganiserLogoStatus403 = ApiError;
 
-export type EventsSetOrganiserLogoStatus404 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type EventsSetOrganiserLogoStatus404 = ApiError;
 
-export type EventsSetOrganiserLogoStatus409 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type EventsSetOrganiserLogoStatus409 = ApiError;
 
 /**
  * @description Validation error envelope returned for malformed requests.
@@ -30,7 +48,7 @@ export type EventsSetOrganiserLogoStatus409 = unknown;
  */
 export type EventsSetOrganiserLogoStatus422 = ValidationErrorResponse;
 
-export type EventsSetOrganiserLogoStatus429 = unknown;
+export type EventsSetOrganiserLogoStatus429 = ApiError | ErrorMessage;
 
 export type EventsSetOrganiserLogoBody = OrganiserLogoUpdate;
 

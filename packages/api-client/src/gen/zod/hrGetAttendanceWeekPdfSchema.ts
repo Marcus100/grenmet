@@ -4,6 +4,7 @@
  */
 
 import * as z from "zod";
+import { apiErrorSchema } from "./apiErrorSchema.js";
 import { validationErrorResponseSchema } from "./validationErrorResponseSchema.js";
 
 export const hrGetAttendanceWeekPdfQueryDaySchema = z.iso.date();
@@ -14,13 +15,21 @@ export const hrGetAttendanceWeekPdfQueryDepartmentIdSchema = z
 
 export const hrGetAttendanceWeekPdfStatus200Schema = z.instanceof(File);
 
-export const hrGetAttendanceWeekPdfStatus400Schema = z.unknown();
+export const hrGetAttendanceWeekPdfStatus400Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
-export const hrGetAttendanceWeekPdfStatus403Schema = z.unknown();
+export const hrGetAttendanceWeekPdfStatus403Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
-export const hrGetAttendanceWeekPdfStatus404Schema = z.unknown();
+export const hrGetAttendanceWeekPdfStatus404Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
-export const hrGetAttendanceWeekPdfStatus409Schema = z.unknown();
+export const hrGetAttendanceWeekPdfStatus409Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
 export const hrGetAttendanceWeekPdfStatus422Schema =
   validationErrorResponseSchema.describe(

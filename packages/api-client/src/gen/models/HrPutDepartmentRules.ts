@@ -3,6 +3,7 @@
  * Do not edit manually.
  */
 
+import type { ApiError } from "./ApiError.js";
 import type { RosterRulesPublic } from "./RosterRulesPublic.js";
 import type { RosterRulesUpdate } from "./RosterRulesUpdate.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
@@ -13,7 +14,11 @@ export type HrPutDepartmentRulesPath = {
 
 export type HrPutDepartmentRulesStatus200 = RosterRulesPublic;
 
-export type HrPutDepartmentRulesStatus403 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type HrPutDepartmentRulesStatus403 = ApiError;
 
 /**
  * @description Validation error envelope returned for malformed requests.

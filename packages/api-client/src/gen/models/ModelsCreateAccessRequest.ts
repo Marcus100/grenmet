@@ -5,6 +5,7 @@
 
 import type { AccessRequestCreate } from "./AccessRequestCreate.js";
 import type { AccessRequestPublic } from "./AccessRequestPublic.js";
+import type { ApiError } from "./ApiError.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 
 export type ModelsCreateAccessRequestHeaders = {
@@ -16,13 +17,29 @@ export type ModelsCreateAccessRequestHeaders = {
 
 export type ModelsCreateAccessRequestStatus201 = AccessRequestPublic;
 
-export type ModelsCreateAccessRequestStatus401 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type ModelsCreateAccessRequestStatus401 = ApiError;
 
-export type ModelsCreateAccessRequestStatus403 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type ModelsCreateAccessRequestStatus403 = ApiError;
 
-export type ModelsCreateAccessRequestStatus404 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type ModelsCreateAccessRequestStatus404 = ApiError;
 
-export type ModelsCreateAccessRequestStatus409 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type ModelsCreateAccessRequestStatus409 = ApiError;
 
 /**
  * @description Validation error envelope returned for malformed requests.

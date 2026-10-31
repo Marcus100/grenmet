@@ -3,15 +3,24 @@
  * Do not edit manually.
  */
 
+import type { ApiError } from "./ApiError.js";
 import type { ProvisionalHolidaysRequest } from "./ProvisionalHolidaysRequest.js";
 import type { PublicHolidaysPublic } from "./PublicHolidaysPublic.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 
 export type HrLoadProvisionalHolidaysStatus201 = PublicHolidaysPublic;
 
-export type HrLoadProvisionalHolidaysStatus400 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type HrLoadProvisionalHolidaysStatus400 = ApiError;
 
-export type HrLoadProvisionalHolidaysStatus403 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type HrLoadProvisionalHolidaysStatus403 = ApiError;
 
 /**
  * @description Validation error envelope returned for malformed requests.

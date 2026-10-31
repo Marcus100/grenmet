@@ -3,6 +3,7 @@
  * Do not edit manually.
  */
 
+import type { ApiError } from "./ApiError.js";
 import type { ParkingPermitListPublic } from "./ParkingPermitListPublic.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 
@@ -28,7 +29,11 @@ export type HrGetParkingPermitsQuery = {
 
 export type HrGetParkingPermitsStatus200 = ParkingPermitListPublic;
 
-export type HrGetParkingPermitsStatus403 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type HrGetParkingPermitsStatus403 = ApiError;
 
 /**
  * @description Validation error envelope returned for malformed requests.

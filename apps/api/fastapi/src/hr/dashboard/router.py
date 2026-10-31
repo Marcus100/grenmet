@@ -3,6 +3,7 @@ from fastapi import APIRouter
 from src.dependencies import CurrentUser, SessionDep
 from src.hr.dashboard import service
 from src.hr.dashboard.schemas import HrDashboardPublic
+from src.models import ApiError
 
 router = APIRouter(prefix="/hr", tags=["hr-dashboard"])
 
@@ -14,8 +15,8 @@ router = APIRouter(prefix="/hr", tags=["hr-dashboard"])
     summary="Read the live HR dashboard",
     description="Read personal requests and recorded vacation balance, published department roster and actionable approvals. Missing balances remain null.",
     responses={
-        401: {"description": "Authentication required"},
-        403: {"description": "Account verification required"},
+        401: {"model": ApiError, "description": "Authentication required"},
+        403: {"model": ApiError, "description": "Account verification required"},
     },
 )
 async def read_hr_dashboard(

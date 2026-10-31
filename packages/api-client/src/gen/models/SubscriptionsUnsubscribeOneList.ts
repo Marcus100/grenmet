@@ -3,13 +3,18 @@
  * Do not edit manually.
  */
 
+import type { ApiError } from "./ApiError.js";
 import type { PreferencesUnsubscribeRequest } from "./PreferencesUnsubscribeRequest.js";
 import type { SubscriptionPreferences } from "./SubscriptionPreferences.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 
 export type SubscriptionsUnsubscribeOneListStatus200 = SubscriptionPreferences;
 
-export type SubscriptionsUnsubscribeOneListStatus400 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type SubscriptionsUnsubscribeOneListStatus400 = ApiError;
 
 /**
  * @description Validation error envelope returned for malformed requests.

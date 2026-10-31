@@ -3,6 +3,7 @@
  * Do not edit manually.
  */
 
+import type { ApiError } from "./ApiError.js";
 import type { ReceivablesPublic } from "./ReceivablesPublic.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 
@@ -27,9 +28,17 @@ export type BillingGetReceivablesQuery = {
 
 export type BillingGetReceivablesStatus200 = ReceivablesPublic;
 
-export type BillingGetReceivablesStatus401 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type BillingGetReceivablesStatus401 = ApiError;
 
-export type BillingGetReceivablesStatus403 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type BillingGetReceivablesStatus403 = ApiError;
 
 /**
  * @description Validation error envelope returned for malformed requests.

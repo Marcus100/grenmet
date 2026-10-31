@@ -4,6 +4,7 @@
  */
 
 import * as z from "zod";
+import { apiErrorSchema } from "./apiErrorSchema.js";
 import { contactConsentHistoryPublicSchema } from "./contactConsentHistoryPublicSchema.js";
 import { validationErrorResponseSchema } from "./validationErrorResponseSchema.js";
 
@@ -21,13 +22,17 @@ export const contactsGetOrgContactConsentsStatus200Schema =
     "Current decision per purpose, then every decision oldest first."
   );
 
-export const contactsGetOrgContactConsentsStatus400Schema = z.unknown();
+export const contactsGetOrgContactConsentsStatus400Schema =
+  apiErrorSchema.describe("Stable error envelope for documented API failures.");
 
-export const contactsGetOrgContactConsentsStatus401Schema = z.unknown();
+export const contactsGetOrgContactConsentsStatus401Schema =
+  apiErrorSchema.describe("Stable error envelope for documented API failures.");
 
-export const contactsGetOrgContactConsentsStatus403Schema = z.unknown();
+export const contactsGetOrgContactConsentsStatus403Schema =
+  apiErrorSchema.describe("Stable error envelope for documented API failures.");
 
-export const contactsGetOrgContactConsentsStatus404Schema = z.unknown();
+export const contactsGetOrgContactConsentsStatus404Schema =
+  apiErrorSchema.describe("Stable error envelope for documented API failures.");
 
 export const contactsGetOrgContactConsentsStatus422Schema =
   validationErrorResponseSchema.describe(

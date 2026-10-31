@@ -3,7 +3,9 @@
  * Do not edit manually.
  */
 
+import type { ApiError } from "./ApiError.js";
 import type { AppPasswordLogin } from "./AppPasswordLogin.js";
+import type { ErrorMessage } from "./ErrorMessage.js";
 import type { SessionLoginResponse } from "./SessionLoginResponse.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 
@@ -17,11 +19,23 @@ export type AuthAppPasswordLoginPath = {
 
 export type AuthAppPasswordLoginStatus200 = SessionLoginResponse;
 
-export type AuthAppPasswordLoginStatus400 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type AuthAppPasswordLoginStatus400 = ApiError;
 
-export type AuthAppPasswordLoginStatus403 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type AuthAppPasswordLoginStatus403 = ApiError;
 
-export type AuthAppPasswordLoginStatus404 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type AuthAppPasswordLoginStatus404 = ApiError;
 
 /**
  * @description Validation error envelope returned for malformed requests.
@@ -29,7 +43,7 @@ export type AuthAppPasswordLoginStatus404 = unknown;
  */
 export type AuthAppPasswordLoginStatus422 = ValidationErrorResponse;
 
-export type AuthAppPasswordLoginStatus429 = unknown;
+export type AuthAppPasswordLoginStatus429 = ApiError | ErrorMessage;
 
 export type AuthAppPasswordLoginStatus503 = unknown;
 

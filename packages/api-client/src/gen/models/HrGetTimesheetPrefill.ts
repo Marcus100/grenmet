@@ -3,6 +3,7 @@
  * Do not edit manually.
  */
 
+import type { ApiError } from "./ApiError.js";
 import type { TimesheetPrefillPublic } from "./TimesheetPrefillPublic.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 
@@ -17,11 +18,23 @@ export type HrGetTimesheetPrefillQuery = {
 
 export type HrGetTimesheetPrefillStatus200 = TimesheetPrefillPublic;
 
-export type HrGetTimesheetPrefillStatus400 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type HrGetTimesheetPrefillStatus400 = ApiError;
 
-export type HrGetTimesheetPrefillStatus401 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type HrGetTimesheetPrefillStatus401 = ApiError;
 
-export type HrGetTimesheetPrefillStatus403 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type HrGetTimesheetPrefillStatus403 = ApiError;
 
 /**
  * @description Validation error envelope returned for malformed requests.

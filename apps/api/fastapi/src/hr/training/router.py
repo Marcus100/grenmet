@@ -4,6 +4,7 @@ from typing import Annotated, Any
 from fastapi import APIRouter, Query
 
 from src.dependencies import CurrentUser, SessionDep
+from src.models import ApiError
 from src.pagination import PaginationDep
 
 from . import service
@@ -24,7 +25,7 @@ router = APIRouter(prefix="/hr", tags=["hr-training"])
     status_code=200,
     summary="Read employee training history",
     description="Own history or history within active training read/manage grants. Scope is applied before pagination.",
-    responses={403: {"description": "Organisation access denied"}},
+    responses={403: {"model": ApiError, "description": "Organisation access denied"}},
 )
 async def read_training_records(
     *,
@@ -52,7 +53,7 @@ async def read_training_records(
     status_code=200,
     summary="Find employees within training access",
     description="Scoped employee search for training history. Employees can find themselves; managers can find employees within their active grants.",
-    responses={403: {"description": "Organisation access denied"}},
+    responses={403: {"model": ApiError, "description": "Organisation access denied"}},
 )
 async def read_training_employees(
     *,
@@ -79,8 +80,8 @@ async def read_training_employees(
     summary="Record an employee training outcome",
     description="Requires an active hr.training.manage grant for the employee's department. A completion record does not certify competency.",
     responses={
-        400: {"description": "Invalid training date"},
-        403: {"description": "Training management access denied"},
+        400: {"model": ApiError, "description": "Invalid training date"},
+        403: {"model": ApiError, "description": "Training management access denied"},
     },
 )
 async def create_training_record(
@@ -101,8 +102,11 @@ async def create_training_record(
     summary="Archive an incorrect training record",
     description="Retains history and records an archive reason. Corrections are entered as replacement records.",
     responses={
-        403: {"description": "Organisation access denied"},
-        404: {"description": "Training record not found or inaccessible"},
+        403: {"model": ApiError, "description": "Organisation access denied"},
+        404: {
+            "model": ApiError,
+            "description": "Training record not found or inaccessible",
+        },
     },
 )
 async def archive_training_record(

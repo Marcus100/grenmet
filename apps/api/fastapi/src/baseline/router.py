@@ -26,15 +26,15 @@ from src.baseline.schemas import (
 )
 from src.dependencies import CurrentUser, SessionDep
 from src.hr.models import Grade
-from src.models import Message
+from src.models import ApiError, Message
 
 router = APIRouter(
     prefix="/hr",
     tags=["staff-setup"],
     responses={
-        403: {"description": "Administrator access required"},
-        404: {"description": "Record not found"},
-        409: {"description": "Setup conflict"},
+        403: {"model": ApiError, "description": "Administrator access required"},
+        404: {"model": ApiError, "description": "Record not found"},
+        409: {"model": ApiError, "description": "Setup conflict"},
     },
 )
 
@@ -60,7 +60,8 @@ async def read_staff_card(
     description="Review staff onboarding for a selected organisation or eligible unassigned accounts. Omitted organisation context retains the superuser-only legacy list.",
     responses={
         400: {
-            "description": "Unassigned accounts cannot be combined with organisation context"
+            "model": ApiError,
+            "description": "Unassigned accounts cannot be combined with organisation context",
         }
     },
 )
@@ -82,7 +83,10 @@ async def read_staff_setup(
     status_code=200,
     description="Complete or update staff onboarding, including separately verified continuous service and probation facts with their HR source. Does not infer eligibility or alter role assignments.",
     responses={
-        400: {"description": "Invalid grade, supervisor or recorded service facts"}
+        400: {
+            "model": ApiError,
+            "description": "Invalid grade, supervisor or recorded service facts",
+        }
     },
 )
 async def update_staff_setup(
@@ -170,7 +174,8 @@ async def read_setup_grades(
     description="Create or update a grade. Grade codes are unique within a department.",
     responses={
         409: {
-            "description": "Grade conflicts with the current department configuration"
+            "model": ApiError,
+            "description": "Grade conflicts with the current department configuration",
         }
     },
 )
@@ -292,9 +297,12 @@ async def read_product_policies(
     response_model=ProductAccessPublic,
     status_code=200,
     responses={
-        400: {"description": "Unknown product kind or inactive/non-GMS grade"},
-        401: {"description": "Authentication required"},
-        403: {"description": "Administrator access required"},
+        400: {
+            "model": ApiError,
+            "description": "Unknown product kind or inactive/non-GMS grade",
+        },
+        401: {"model": ApiError, "description": "Authentication required"},
+        403: {"model": ApiError, "description": "Administrator access required"},
     },
     summary="Configure authored product grade access",
     description="Replace one product's allowed GMS grades and record an audit event. An empty list permits only superusers. CAP is unchanged.",

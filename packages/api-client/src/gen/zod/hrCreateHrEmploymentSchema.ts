@@ -4,6 +4,7 @@
  */
 
 import * as z from "zod";
+import { apiErrorSchema } from "./apiErrorSchema.js";
 import { employmentCreateSchema } from "./employmentCreateSchema.js";
 import { employmentRecordPublicSchema } from "./employmentRecordPublicSchema.js";
 import { validationErrorResponseSchema } from "./validationErrorResponseSchema.js";
@@ -12,11 +13,17 @@ export const hrCreateHrEmploymentPathUserIdSchema = z.uuid();
 
 export const hrCreateHrEmploymentStatus201Schema = employmentRecordPublicSchema;
 
-export const hrCreateHrEmploymentStatus400Schema = z.unknown();
+export const hrCreateHrEmploymentStatus400Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
-export const hrCreateHrEmploymentStatus403Schema = z.unknown();
+export const hrCreateHrEmploymentStatus403Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
-export const hrCreateHrEmploymentStatus404Schema = z.unknown();
+export const hrCreateHrEmploymentStatus404Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
 export const hrCreateHrEmploymentStatus422Schema =
   validationErrorResponseSchema.describe(

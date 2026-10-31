@@ -4,6 +4,7 @@
  */
 
 import * as z from "zod";
+import { apiErrorSchema } from "./apiErrorSchema.js";
 import { gradeSetupSchema } from "./gradeSetupSchema.js";
 import { validationErrorResponseSchema } from "./validationErrorResponseSchema.js";
 
@@ -13,11 +14,17 @@ export const hrGetSetupGradesQueryOrganisationIdSchema = z
 
 export const hrGetSetupGradesStatus200Schema = z.array(gradeSetupSchema);
 
-export const hrGetSetupGradesStatus403Schema = z.unknown();
+export const hrGetSetupGradesStatus403Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
-export const hrGetSetupGradesStatus404Schema = z.unknown();
+export const hrGetSetupGradesStatus404Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
-export const hrGetSetupGradesStatus409Schema = z.unknown();
+export const hrGetSetupGradesStatus409Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
 export const hrGetSetupGradesStatus422Schema =
   validationErrorResponseSchema.describe(

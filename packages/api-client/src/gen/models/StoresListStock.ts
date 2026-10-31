@@ -3,6 +3,7 @@
  * Do not edit manually.
  */
 
+import type { ApiError } from "./ApiError.js";
 import type { StockLevelListPublic } from "./StockLevelListPublic.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 
@@ -29,9 +30,17 @@ export type StoresListStockQuery = {
 
 export type StoresListStockStatus200 = StockLevelListPublic;
 
-export type StoresListStockStatus401 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type StoresListStockStatus401 = ApiError;
 
-export type StoresListStockStatus403 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type StoresListStockStatus403 = ApiError;
 
 /**
  * @description Validation error envelope returned for malformed requests.

@@ -3,17 +3,30 @@
  * Do not edit manually.
  */
 
+import type { ApiError } from "./ApiError.js";
 import type { NhcPrefill } from "./NhcPrefill.js";
 import type { NhcPrefillRequest } from "./NhcPrefillRequest.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 
 export type WxwatchProposeStatus200 = NhcPrefill;
 
-export type WxwatchProposeStatus401 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type WxwatchProposeStatus401 = ApiError;
 
-export type WxwatchProposeStatus403 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type WxwatchProposeStatus403 = ApiError;
 
-export type WxwatchProposeStatus404 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type WxwatchProposeStatus404 = ApiError;
 
 /**
  * @description Validation error envelope returned for malformed requests.

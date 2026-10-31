@@ -3,6 +3,7 @@
  * Do not edit manually.
  */
 
+import type { ApiError } from "./ApiError.js";
 import type { ShiftCatalogPublic } from "./ShiftCatalogPublic.js";
 import type { ShiftCatalogUpdate } from "./ShiftCatalogUpdate.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
@@ -13,9 +14,17 @@ export type HrUpdateShiftPath = {
 
 export type HrUpdateShiftStatus200 = ShiftCatalogPublic;
 
-export type HrUpdateShiftStatus403 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type HrUpdateShiftStatus403 = ApiError;
 
-export type HrUpdateShiftStatus404 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type HrUpdateShiftStatus404 = ApiError;
 
 /**
  * @description Validation error envelope returned for malformed requests.

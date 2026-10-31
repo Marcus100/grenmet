@@ -4,6 +4,7 @@
  */
 
 import * as z from "zod";
+import { apiErrorSchema } from "./apiErrorSchema.js";
 import { bookingStorefrontSchema } from "./bookingStorefrontSchema.js";
 import { validationErrorResponseSchema } from "./validationErrorResponseSchema.js";
 
@@ -14,7 +15,9 @@ export const bookingsGetStorefrontStatus200Schema =
     "What a client site needs to render its booking page."
   );
 
-export const bookingsGetStorefrontStatus404Schema = z.unknown();
+export const bookingsGetStorefrontStatus404Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
 export const bookingsGetStorefrontStatus422Schema =
   validationErrorResponseSchema.describe(

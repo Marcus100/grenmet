@@ -3,6 +3,7 @@
  * Do not edit manually.
  */
 
+import type { ApiError } from "./ApiError.js";
 import type { ProgramAdminListPublic } from "./ProgramAdminListPublic.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 
@@ -27,9 +28,17 @@ export type RewardsAdminListProgramsQuery = {
 
 export type RewardsAdminListProgramsStatus200 = ProgramAdminListPublic;
 
-export type RewardsAdminListProgramsStatus401 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type RewardsAdminListProgramsStatus401 = ApiError;
 
-export type RewardsAdminListProgramsStatus403 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type RewardsAdminListProgramsStatus403 = ApiError;
 
 /**
  * @description Validation error envelope returned for malformed requests.

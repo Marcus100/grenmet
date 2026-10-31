@@ -3,14 +3,24 @@
  * Do not edit manually.
  */
 
+import type { ApiError } from "./ApiError.js";
+import type { ErrorMessage } from "./ErrorMessage.js";
 import type { PlansPublic } from "./PlansPublic.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 
 export type EventsGetMyPlansStatus200 = PlansPublic;
 
-export type EventsGetMyPlansStatus401 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type EventsGetMyPlansStatus401 = ApiError;
 
-export type EventsGetMyPlansStatus404 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type EventsGetMyPlansStatus404 = ApiError;
 
 /**
  * @description Validation error envelope returned for malformed requests.
@@ -18,7 +28,7 @@ export type EventsGetMyPlansStatus404 = unknown;
  */
 export type EventsGetMyPlansStatus422 = ValidationErrorResponse;
 
-export type EventsGetMyPlansStatus429 = unknown;
+export type EventsGetMyPlansStatus429 = ApiError | ErrorMessage;
 
 export type EventsGetMyPlansOptions = {
   body?: never;

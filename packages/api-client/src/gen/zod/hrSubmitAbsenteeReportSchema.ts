@@ -6,17 +6,24 @@
 import * as z from "zod";
 import { absenteeReportPublicSchema } from "./absenteeReportPublicSchema.js";
 import { absenteeReportSubmitSchema } from "./absenteeReportSubmitSchema.js";
+import { apiErrorSchema } from "./apiErrorSchema.js";
 import { validationErrorResponseSchema } from "./validationErrorResponseSchema.js";
 
 export const hrSubmitAbsenteeReportPathAbsenteeReportIdSchema = z.uuid();
 
 export const hrSubmitAbsenteeReportStatus200Schema = absenteeReportPublicSchema;
 
-export const hrSubmitAbsenteeReportStatus400Schema = z.unknown();
+export const hrSubmitAbsenteeReportStatus400Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
-export const hrSubmitAbsenteeReportStatus403Schema = z.unknown();
+export const hrSubmitAbsenteeReportStatus403Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
-export const hrSubmitAbsenteeReportStatus404Schema = z.unknown();
+export const hrSubmitAbsenteeReportStatus404Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
 export const hrSubmitAbsenteeReportStatus422Schema =
   validationErrorResponseSchema.describe(

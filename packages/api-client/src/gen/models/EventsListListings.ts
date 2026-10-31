@@ -3,6 +3,7 @@
  * Do not edit manually.
  */
 
+import type { ApiError } from "./ApiError.js";
 import type { EventCategoryNodePropertiesAppliesToItemsEnum } from "./EventCategoryNodePropertiesAppliesToItemsEnum.js";
 import type { EventsListListingsParametersSchemaAnyOfEnum } from "./EventsListListingsParametersSchemaAnyOfEnum.js";
 import type { EventsListListingsParametersSchemaAnyOfEnum2 } from "./EventsListListingsParametersSchemaAnyOfEnum2.js";
@@ -50,7 +51,11 @@ export type EventsListListingsQuery = {
 
 export type EventsListListingsStatus200 = ListingCardList;
 
-export type EventsListListingsStatus401 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type EventsListListingsStatus401 = ApiError;
 
 /**
  * @description Validation error envelope returned for malformed requests.

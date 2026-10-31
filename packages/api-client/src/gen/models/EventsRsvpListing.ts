@@ -3,6 +3,8 @@
  * Do not edit manually.
  */
 
+import type { ApiError } from "./ApiError.js";
+import type { ErrorMessage } from "./ErrorMessage.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 
 export type EventsRsvpListingPath = {
@@ -15,9 +17,17 @@ export type EventsRsvpListingPath = {
 
 export type EventsRsvpListingStatus204 = unknown;
 
-export type EventsRsvpListingStatus401 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type EventsRsvpListingStatus401 = ApiError;
 
-export type EventsRsvpListingStatus404 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type EventsRsvpListingStatus404 = ApiError;
 
 /**
  * @description Validation error envelope returned for malformed requests.
@@ -25,7 +35,7 @@ export type EventsRsvpListingStatus404 = unknown;
  */
 export type EventsRsvpListingStatus422 = ValidationErrorResponse;
 
-export type EventsRsvpListingStatus429 = unknown;
+export type EventsRsvpListingStatus429 = ApiError | ErrorMessage;
 
 export type EventsRsvpListingOptions = {
   body?: never;

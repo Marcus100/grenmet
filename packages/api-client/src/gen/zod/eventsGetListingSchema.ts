@@ -4,6 +4,7 @@
  */
 
 import * as z from "zod";
+import { apiErrorSchema } from "./apiErrorSchema.js";
 import { listingDetailSchema } from "./listingDetailSchema.js";
 import { validationErrorResponseSchema } from "./validationErrorResponseSchema.js";
 
@@ -13,7 +14,9 @@ export const eventsGetListingPathSlugSchema = z
 
 export const eventsGetListingStatus200Schema = listingDetailSchema;
 
-export const eventsGetListingStatus404Schema = z.unknown();
+export const eventsGetListingStatus404Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
 export const eventsGetListingStatus422Schema =
   validationErrorResponseSchema.describe(

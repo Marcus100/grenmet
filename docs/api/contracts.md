@@ -446,13 +446,34 @@ Implemented examples:
 | Pydantic validation handler | `{"detail":"Validation error","errors":[...]}` |
 | Database integrity error | `{"detail":"Resource already exists or constraint violation"}` |
 | FastAPI `HTTPException` | `{"detail": ...}` |
-| Rate limit exceeded | SlowAPI's 429 response |
+| Rate limit exceeded (SlowAPI) | `{"error": "Rate limit exceeded: ..."}` (429) |
+| Account lockout after failed sign-ins | `{"detail": ...}` (429) |
+| Public weather product feed (`/wxproducts/public/*`) | `{"error": "..."}` (400, 404, 503) |
 
 The generated FastAPI `ValidationError` schema includes optional `input` and
 `ctx` fields alongside required `loc`, `msg` and `type`. Clients must tolerate
 those optional fields; they do not change application route definitions.
 
-Contract rule for new endpoints: return structured JSON errors and document non-obvious status codes in the route `responses` metadata.
+Documented error bodies: every documented 4xx except 422 names a body schema in
+the OpenAPI document. `ApiError` (`detail: string`) covers 400, 401, 403, 404 and
+409. A 429 documents `ApiError | ErrorMessage` (`error: string`) because the
+rate limiter and the account lockout answer with different keys. Shared
+constants live in `src/openapi_responses.py`; `tests/test_error_response_bodies.py`
+pins the runtime bodies. The `AuthoringError` model on wxproducts authoring
+routes allows `detail` to be a list, which the runtime never sends; it is kept
+for compatibility.
+
+HTML routes (for example the unsubscribe pages and the password recovery
+preview) declare their error bodies under the page's media type, or name
+`application/json` explicitly when the error is JSON. `ApiError` under `text/html`
+is a contract error that `tests/test_openapi_contract.py` rejects.
+
+Request bodies are named: every `requestBody` is a `$ref` to a named component.
+A body that may be omitted or sent as `null` is a `RootModel[X | None]` wrapper
+(for example `QcDecisionBody`), and a bare array is a `RootModel[list[...]]`
+(`NotificationPreferenceUpdateList`). The wire format did not change.
+
+Contract rule for new endpoints: return structured JSON errors and document non-obvious status codes in the route `responses` metadata. Spread the shared constants (`AUTHENTICATED`, `NOT_FOUND`, `CONFLICT`, `BAD_REQUEST`) so each 4xx carries its body model, and give every request body a named schema.
 
 ## Request IDs
 

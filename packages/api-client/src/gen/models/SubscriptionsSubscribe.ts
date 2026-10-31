@@ -3,13 +3,18 @@
  * Do not edit manually.
  */
 
+import type { ApiError } from "./ApiError.js";
 import type { SubscribeAccepted } from "./SubscribeAccepted.js";
 import type { SubscribeRequest } from "./SubscribeRequest.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 
 export type SubscriptionsSubscribeStatus202 = SubscribeAccepted;
 
-export type SubscriptionsSubscribeStatus400 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type SubscriptionsSubscribeStatus400 = ApiError;
 
 /**
  * @description Validation error envelope returned for malformed requests.

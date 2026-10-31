@@ -4,6 +4,7 @@
  */
 
 import * as z from "zod";
+import { apiErrorSchema } from "./apiErrorSchema.js";
 import { roleConfigurationSchema } from "./roleConfigurationSchema.js";
 import { rolePermissionsInputSchema } from "./rolePermissionsInputSchema.js";
 import { validationErrorResponseSchema } from "./validationErrorResponseSchema.js";
@@ -12,11 +13,17 @@ export const hrUpdateRoleConfigurationPathRoleIdSchema = z.uuid();
 
 export const hrUpdateRoleConfigurationStatus200Schema = roleConfigurationSchema;
 
-export const hrUpdateRoleConfigurationStatus403Schema = z.unknown();
+export const hrUpdateRoleConfigurationStatus403Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
-export const hrUpdateRoleConfigurationStatus404Schema = z.unknown();
+export const hrUpdateRoleConfigurationStatus404Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
-export const hrUpdateRoleConfigurationStatus409Schema = z.unknown();
+export const hrUpdateRoleConfigurationStatus409Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
 export const hrUpdateRoleConfigurationStatus422Schema =
   validationErrorResponseSchema.describe(

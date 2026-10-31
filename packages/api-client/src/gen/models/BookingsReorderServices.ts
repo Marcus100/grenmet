@@ -3,6 +3,7 @@
  * Do not edit manually.
  */
 
+import type { ApiError } from "./ApiError.js";
 import type { BookingOrder } from "./BookingOrder.js";
 import type { BookingServicePublic } from "./BookingServicePublic.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
@@ -16,15 +17,35 @@ export type BookingsReorderServicesHeaders = {
 
 export type BookingsReorderServicesStatus200 = BookingServicePublic[];
 
-export type BookingsReorderServicesStatus400 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type BookingsReorderServicesStatus400 = ApiError;
 
-export type BookingsReorderServicesStatus401 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type BookingsReorderServicesStatus401 = ApiError;
 
-export type BookingsReorderServicesStatus403 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type BookingsReorderServicesStatus403 = ApiError;
 
-export type BookingsReorderServicesStatus404 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type BookingsReorderServicesStatus404 = ApiError;
 
-export type BookingsReorderServicesStatus409 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type BookingsReorderServicesStatus409 = ApiError;
 
 /**
  * @description Validation error envelope returned for malformed requests.

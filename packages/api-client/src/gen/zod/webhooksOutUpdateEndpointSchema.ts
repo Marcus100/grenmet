@@ -4,6 +4,7 @@
  */
 
 import * as z from "zod";
+import { apiErrorSchema } from "./apiErrorSchema.js";
 import { webhookEndpointPublicSchema } from "./webhookEndpointPublicSchema.js";
 import { webhookEndpointUpdateSchema } from "./webhookEndpointUpdateSchema.js";
 
@@ -19,15 +20,25 @@ export const webhooksOutUpdateEndpointHeaderXBarrelsOrganisationSchema = z
 export const webhooksOutUpdateEndpointStatus200Schema =
   webhookEndpointPublicSchema.describe("Never carries the signing secret.");
 
-export const webhooksOutUpdateEndpointStatus400Schema = z.unknown();
+export const webhooksOutUpdateEndpointStatus400Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
-export const webhooksOutUpdateEndpointStatus401Schema = z.unknown();
+export const webhooksOutUpdateEndpointStatus401Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
-export const webhooksOutUpdateEndpointStatus403Schema = z.unknown();
+export const webhooksOutUpdateEndpointStatus403Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
-export const webhooksOutUpdateEndpointStatus404Schema = z.unknown();
+export const webhooksOutUpdateEndpointStatus404Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
-export const webhooksOutUpdateEndpointStatus409Schema = z.unknown();
+export const webhooksOutUpdateEndpointStatus409Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
 export const webhooksOutUpdateEndpointStatus422Schema = z.unknown();
 

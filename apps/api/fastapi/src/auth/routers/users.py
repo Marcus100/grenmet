@@ -50,7 +50,7 @@ from src.dependencies import (
 )
 from src.email import generate_new_account_email, send_email
 from src.email_config import email_settings
-from src.models import Message
+from src.models import ApiError, Message
 from src.openapi_responses import AUTHENTICATED
 from src.pagination import PaginatedResponse, PaginationParams, get_pagination_params
 from src.rate_limit import limiter
@@ -97,9 +97,13 @@ async def read_users(
     responses={
         status.HTTP_201_CREATED: {"description": "User created"},
         status.HTTP_400_BAD_REQUEST: {
-            "description": "User with this email already exists"
+            "model": ApiError,
+            "description": "User with this email already exists",
         },
-        status.HTTP_403_FORBIDDEN: {"description": "Insufficient privileges"},
+        status.HTTP_403_FORBIDDEN: {
+            "model": ApiError,
+            "description": "Insufficient privileges",
+        },
     },
 )
 async def create_user(
@@ -158,7 +162,10 @@ async def read_user_me(current_user: AccountUser) -> Any:
     description="Update profile fields for the currently authenticated user.",
     responses={
         status.HTTP_200_OK: {"description": "User updated"},
-        status.HTTP_409_CONFLICT: {"description": "Email already exists"},
+        status.HTTP_409_CONFLICT: {
+            "model": ApiError,
+            "description": "Email already exists",
+        },
     },
 )
 async def update_user_me(
@@ -177,7 +184,8 @@ async def update_user_me(
     responses={
         status.HTTP_200_OK: {"description": "Password updated"},
         status.HTTP_400_BAD_REQUEST: {
-            "description": "Current password incorrect or new password unchanged"
+            "model": ApiError,
+            "description": "Current password incorrect or new password unchanged",
         },
     },
 )
@@ -203,8 +211,14 @@ async def update_password_me(
         "setup and the approval queue; repeating the request keeps the first date."
     ),
     responses={
-        status.HTTP_401_UNAUTHORIZED: {"description": "Not signed in"},
-        status.HTTP_403_FORBIDDEN: {"description": "Verify your email first"},
+        status.HTTP_401_UNAUTHORIZED: {
+            "model": ApiError,
+            "description": "Not signed in",
+        },
+        status.HTTP_403_FORBIDDEN: {
+            "model": ApiError,
+            "description": "Verify your email first",
+        },
     },
 )
 async def request_staff_access(
@@ -221,7 +235,8 @@ async def request_staff_access(
     responses={
         status.HTTP_200_OK: {"description": "User deleted"},
         status.HTTP_403_FORBIDDEN: {
-            "description": "Superuser cannot delete own account"
+            "model": ApiError,
+            "description": "Superuser cannot delete own account",
         },
     },
 )
@@ -244,6 +259,7 @@ async def delete_user_me(session: SessionDep, current_user: CurrentUser) -> Any:
             "model": UserPublic,
         },
         status.HTTP_400_BAD_REQUEST: {
+            "model": ApiError,
             "description": "User with this email already exists",
         },
     },
@@ -297,7 +313,10 @@ async def register_user(
     description="Return yourself or a user within active management scope. Scoped managers cannot read platform administrator accounts.",
     responses={
         status.HTTP_200_OK: {"description": "User returned"},
-        status.HTTP_403_FORBIDDEN: {"description": "Insufficient privileges"},
+        status.HTTP_403_FORBIDDEN: {
+            "model": ApiError,
+            "description": "Insufficient privileges",
+        },
     },
 )
 async def read_user_by_id(
@@ -327,9 +346,15 @@ async def read_user_by_id(
     description="Update a user within active management scope. Scoped managers may correct names and titles; global account security, activation and platform/app privileges are superuser-only.",
     responses={
         status.HTTP_200_OK: {"description": "User updated"},
-        status.HTTP_403_FORBIDDEN: {"description": "Insufficient privileges"},
-        status.HTTP_404_NOT_FOUND: {"description": "User not found"},
-        status.HTTP_409_CONFLICT: {"description": "Email already exists"},
+        status.HTTP_403_FORBIDDEN: {
+            "model": ApiError,
+            "description": "Insufficient privileges",
+        },
+        status.HTTP_404_NOT_FOUND: {"model": ApiError, "description": "User not found"},
+        status.HTTP_409_CONFLICT: {
+            "model": ApiError,
+            "description": "Email already exists",
+        },
     },
 )
 async def update_user(
@@ -374,9 +399,10 @@ async def update_user(
     responses={
         status.HTTP_200_OK: {"description": "User deleted"},
         status.HTTP_403_FORBIDDEN: {
-            "description": "Insufficient privileges or self-deletion"
+            "model": ApiError,
+            "description": "Insufficient privileges or self-deletion",
         },
-        status.HTTP_404_NOT_FOUND: {"description": "User not found"},
+        status.HTTP_404_NOT_FOUND: {"model": ApiError, "description": "User not found"},
     },
 )
 async def delete_user(
