@@ -17,6 +17,19 @@ For an existing account, open **Users → row menu → Manage roles & access**. 
 
 Closing the panel hides the link. **Replace activation link** invalidates the old one; **Revoke activation link** cancels it. No emails are sent by this flow. Email remains unverified until an actual verification flow succeeds; that is shown to administrators but never blocks access or approval. Activation keeps any configured MFA and replaces the password, signs out sessions, and invalidates outstanding challenges.
 
+## Set up sign-in for someone who cannot receive email codes
+
+Use this when a person cannot get sign-in codes by email: their work mailbox is not live yet, or the address on their account is wrong or unverified. Sign-in is passwordless by default, so they need a password for this route.
+
+1. Open **Users**, select **Manage** on the person's row, and expand **Set up sign-in for this person**. You need the `user.manage` permission over them (their department or organisation) and an authenticator on your account, verified at sign-in. Owners can be set up only by a superuser. You cannot set up your own account.
+2. Confirm the person's identity in person or through a trusted direct channel, tick the box, and select **Create setup link**.
+3. Copy the private link and send it to the person directly. Do not put it in tickets, group chats or logs. The link expires in 72 hours and works once. Creating another link replaces it; **Revoke link** cancels it.
+4. The person opens the link, chooses their own password, and signs in normally with their email and password. You never see the password, and nothing in the record shows it.
+
+The link does not verify their email address, does not grant roles, departments or app access, and does not change staff approval or CMS access. Those steps stay as described above. The email address on the account is still the sign-in identifier, so get it right first.
+
+Issuance is limited to 20 links per administrator and 5 per person in an hour, and every issue, revoke and completion is written to the account's audit history with ids and the expiry only. Links are refused for ended employment and inactive accounts; if a person's employment has ended, reinstate or correct their employment record first. Completing the link signs out their existing sessions. For a person who should not have any access, disable the account rather than issuing a link.
+
 ## Staff workflows and current limits
 
 CMS access does not require employment details. For HR workflows, department, employment, staff credentials, approval and relevant balances may still be needed. The access panel explains GAA Admin admission, not every workflow's readiness. HR Setup also offers **New account without email** and refreshes its staff list when the work identity is created. HR Setup brings account activation, staff approval and personnel details into each staff panel. Expand the person, use Account setup to issue an activation link, then refresh onboarding status after they complete it. Save the department and grade, and approve staff access when needed. Approval accepts verified email or completed, audited administrator-issued activation; it grants only the ordinary staff role.
