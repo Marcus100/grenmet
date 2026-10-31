@@ -213,6 +213,10 @@ def _missing_response_models(application: FastAPI) -> list[str]:
         "admin_get_reconciliation_csv",
         # Payroll inputs export is a CSV download (quantities only).
         "export_pay_period_csv",
+        # Payslip PDF and payroll bank and GL files.
+        "download_payslip_pdf",
+        "export_bank_csv",
+        "export_gl_csv",
         # A booking's iCalendar file (text/calendar).
         "get_public_booking_ics",
     }

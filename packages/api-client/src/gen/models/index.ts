@@ -4368,6 +4368,32 @@ export type {
   HrDownloadSignedDocumentStatus422,
 } from "./HrDownloadSignedDocument.js";
 export type {
+  HrExportBankTransferCsvOptions,
+  HrExportBankTransferCsvPath,
+  HrExportBankTransferCsvResponse,
+  HrExportBankTransferCsvResponses,
+  HrExportBankTransferCsvStatus200,
+  HrExportBankTransferCsvStatus400,
+  HrExportBankTransferCsvStatus401,
+  HrExportBankTransferCsvStatus403,
+  HrExportBankTransferCsvStatus404,
+  HrExportBankTransferCsvStatus409,
+  HrExportBankTransferCsvStatus422,
+} from "./HrExportBankTransferCsv.js";
+export type {
+  HrExportGlJournalCsvOptions,
+  HrExportGlJournalCsvPath,
+  HrExportGlJournalCsvResponse,
+  HrExportGlJournalCsvResponses,
+  HrExportGlJournalCsvStatus200,
+  HrExportGlJournalCsvStatus400,
+  HrExportGlJournalCsvStatus401,
+  HrExportGlJournalCsvStatus403,
+  HrExportGlJournalCsvStatus404,
+  HrExportGlJournalCsvStatus409,
+  HrExportGlJournalCsvStatus422,
+} from "./HrExportGlJournalCsv.js";
+export type {
   HrExportPayPeriodCsvOptions,
   HrExportPayPeriodCsvPath,
   HrExportPayPeriodCsvResponse,
@@ -4642,6 +4668,33 @@ export type {
   HrGetPayPeriodSummaryStatus409,
   HrGetPayPeriodSummaryStatus422,
 } from "./HrGetPayPeriodSummary.js";
+export type {
+  HrGetPayrollExportSettingsOptions,
+  HrGetPayrollExportSettingsQuery,
+  HrGetPayrollExportSettingsResponse,
+  HrGetPayrollExportSettingsResponses,
+  HrGetPayrollExportSettingsStatus200,
+  HrGetPayrollExportSettingsStatus400,
+  HrGetPayrollExportSettingsStatus401,
+  HrGetPayrollExportSettingsStatus403,
+  HrGetPayrollExportSettingsStatus404,
+  HrGetPayrollExportSettingsStatus409,
+  HrGetPayrollExportSettingsStatus422,
+} from "./HrGetPayrollExportSettings.js";
+export type {
+  HrGetPayslipPdfOptions,
+  HrGetPayslipPdfPath,
+  HrGetPayslipPdfResponse,
+  HrGetPayslipPdfResponses,
+  HrGetPayslipPdfStatus200,
+  HrGetPayslipPdfStatus400,
+  HrGetPayslipPdfStatus401,
+  HrGetPayslipPdfStatus403,
+  HrGetPayslipPdfStatus404,
+  HrGetPayslipPdfStatus409,
+  HrGetPayslipPdfStatus422,
+  HrGetPayslipPdfStatus429,
+} from "./HrGetPayslipPdf.js";
 export type {
   HrGetPeriodOptions,
   HrGetPeriodPath,
@@ -5026,6 +5079,18 @@ export type {
   HrListMyDeductionsStatus422,
 } from "./HrListMyDeductions.js";
 export type {
+  HrListMyPayslipsOptions,
+  HrListMyPayslipsResponse,
+  HrListMyPayslipsResponses,
+  HrListMyPayslipsStatus200,
+  HrListMyPayslipsStatus400,
+  HrListMyPayslipsStatus401,
+  HrListMyPayslipsStatus403,
+  HrListMyPayslipsStatus404,
+  HrListMyPayslipsStatus409,
+  HrListMyPayslipsStatus422,
+} from "./HrListMyPayslips.js";
+export type {
   HrListMyShiftSwapsOptions,
   HrListMyShiftSwapsQuery,
   HrListMyShiftSwapsResponse,
@@ -5123,6 +5188,19 @@ export type {
   HrListPendingClockPunchesStatus403,
   HrListPendingClockPunchesStatus422,
 } from "./HrListPendingClockPunches.js";
+export type {
+  HrListPeriodPayslipsOptions,
+  HrListPeriodPayslipsPath,
+  HrListPeriodPayslipsResponse,
+  HrListPeriodPayslipsResponses,
+  HrListPeriodPayslipsStatus200,
+  HrListPeriodPayslipsStatus400,
+  HrListPeriodPayslipsStatus401,
+  HrListPeriodPayslipsStatus403,
+  HrListPeriodPayslipsStatus404,
+  HrListPeriodPayslipsStatus409,
+  HrListPeriodPayslipsStatus422,
+} from "./HrListPeriodPayslips.js";
 export type {
   HrListPeriodsOptions,
   HrListPeriodsQuery,
@@ -5712,6 +5790,19 @@ export type {
   HrUpdatePayrollDepartmentSettingStatus409,
   HrUpdatePayrollDepartmentSettingStatus422,
 } from "./HrUpdatePayrollDepartmentSetting.js";
+export type {
+  HrUpdatePayrollExportSettingsBody,
+  HrUpdatePayrollExportSettingsOptions,
+  HrUpdatePayrollExportSettingsResponse,
+  HrUpdatePayrollExportSettingsResponses,
+  HrUpdatePayrollExportSettingsStatus200,
+  HrUpdatePayrollExportSettingsStatus400,
+  HrUpdatePayrollExportSettingsStatus401,
+  HrUpdatePayrollExportSettingsStatus403,
+  HrUpdatePayrollExportSettingsStatus404,
+  HrUpdatePayrollExportSettingsStatus409,
+  HrUpdatePayrollExportSettingsStatus422,
+} from "./HrUpdatePayrollExportSettings.js";
 export type {
   HrUpdateProductPolicyBody,
   HrUpdateProductPolicyOptions,
@@ -7299,7 +7390,11 @@ export { payRunKind } from "./PayRunKind.js";
 export type { PayrollDepartmentSettingPublic } from "./PayrollDepartmentSettingPublic.js";
 export type { PayrollDepartmentSettingsPublic } from "./PayrollDepartmentSettingsPublic.js";
 export type { PayrollDepartmentSettingUpdate } from "./PayrollDepartmentSettingUpdate.js";
+export type { PayrollExportSettingsPublic } from "./PayrollExportSettingsPublic.js";
+export type { PayrollExportSettingsUpdate } from "./PayrollExportSettingsUpdate.js";
 export type { PaySummaryPublic } from "./PaySummaryPublic.js";
+export type { PayslipPublic } from "./PayslipPublic.js";
+export type { PayslipsPublic } from "./PayslipsPublic.js";
 export type { PermissionCreate } from "./PermissionCreate.js";
 export type { PermissionPublic } from "./PermissionPublic.js";
 export type { PersonChip } from "./PersonChip.js";

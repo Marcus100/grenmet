@@ -3,12 +3,14 @@
 import uuid
 from typing import Annotated, Any
 
-from fastapi import APIRouter, Depends, Path, Query, Response, status
+from fastapi import APIRouter, Depends, HTTPException, Path, Query, Response, status
+from fastapi.concurrency import run_in_threadpool
 
 from src.dependencies import CurrentUser, SessionDep, TokenDep
 from src.models import ApiError
 
-from . import deductions, gross, overtime, service
+from . import deductions, gross, overtime, payslips, service
+from .export import safe_filename
 from .models import PayItem, PayPeriod
 from .schemas import (
     DeductionTypeCreate,
@@ -44,6 +46,10 @@ from .schemas import (
     PayrollDepartmentSettingPublic,
     PayrollDepartmentSettingsPublic,
     PayrollDepartmentSettingUpdate,
+    PayrollExportSettingsPublic,
+    PayrollExportSettingsUpdate,
+    PayslipPublic,
+    PayslipsPublic,
     PaySummaryPublic,
     SocialInsuranceSchemeCreate,
     SocialInsuranceSchemePublic,
@@ -934,4 +940,218 @@ async def confirm_my_deduction(
                 session, current_user, deduction_id
             )
         }
+    )
+
+
+# ── Slice 4: payslips, bank and GL files ────────────────────────────────────
+
+
+def _payslip(row: Any) -> PayslipPublic:
+    snap = row.snapshot
+    return PayslipPublic(
+        id=row.id,
+        period_id=row.period_id,
+        user_id=row.user_id,
+        period_start=snap["period_start"],
+        period_end=snap["period_end"],
+        employee_name=snap["employee_name"],
+        net_minor=row.net_minor,
+        currency=snap["currency"],
+        sha256=row.sha256,
+        issued_at=row.issued_at,
+    )
+
+
+@router.get(
+    "/me/payslips",
+    response_model=PayslipsPublic,
+    status_code=status.HTTP_200_OK,
+    summary="List my payslips",
+    description="The caller's own issued payslips. Needs hr.payroll.read.self and a session verified with two-step verification.",
+    operation_id="hrListMyPayslips",
+    responses=ERRORS,
+)
+async def list_my_payslips(
+    *, session: SessionDep, current_user: CurrentUser, token: TokenDep
+) -> PayslipsPublic:
+    rows = await payslips.my_payslips(session, current_user, token=token)
+    return PayslipsPublic(data=[_payslip(r) for r in rows])
+
+
+@router.get(
+    "/periods/{period_id}/payslips",
+    response_model=PayslipsPublic,
+    status_code=status.HTTP_200_OK,
+    summary="List a period's payslips",
+    description="Needs organisation-wide hr.payroll.read.amounts and a session verified with two-step verification.",
+    operation_id="hrListPeriodPayslips",
+    responses=ERRORS,
+)
+async def list_period_payslips(
+    *,
+    session: SessionDep,
+    current_user: CurrentUser,
+    token: TokenDep,
+    period_id: uuid.UUID,
+) -> PayslipsPublic:
+    rows = await payslips.period_payslips(session, current_user, period_id, token=token)
+    return PayslipsPublic(data=[_payslip(r) for r in rows])
+
+
+@router.get(
+    "/payslips/{payslip_id}/pdf",
+    response_class=Response,
+    status_code=status.HTTP_200_OK,
+    summary="Download a payslip PDF",
+    description="Rendered by WeasyPrint from the frozen snapshot after its SHA-256 is checked. Own payslip with hr.payroll.read.self, or organisation-wide hr.payroll.read.amounts; both need two-step verification. Rate limited per user.",
+    operation_id="hrGetPayslipPdf",
+    responses={
+        **ERRORS,
+        429: {"model": ApiError, "description": "Too many payslip downloads"},
+        200: {
+            "description": "Payslip PDF",
+            "content": {
+                "application/pdf": {"schema": {"type": "string", "format": "binary"}}
+            },
+        },
+    },
+)
+async def download_payslip_pdf(
+    *,
+    session: SessionDep,
+    current_user: CurrentUser,
+    token: TokenDep,
+    payslip_id: uuid.UUID,
+) -> Response:
+    if not await payslips.within_pdf_limit(current_user.id):
+        raise HTTPException(
+            status.HTTP_429_TOO_MANY_REQUESTS, "Too many payslip downloads; slow down"
+        )
+    slip = await payslips.readable_payslip(
+        session, current_user, payslip_id, token=token
+    )
+    payslips.verify(slip)
+    document = await run_in_threadpool(payslips.render_pdf, slip.snapshot, slip.sha256)
+    return Response(
+        content=document,
+        media_type="application/pdf",
+        headers={
+            "Content-Disposition": "attachment; filename="
+            + f'"{safe_filename(f"payslip-{slip.snapshot['period_start']}.pdf")}"',
+            "Cache-Control": "no-store",
+            "X-Payslip-SHA256": slip.sha256,
+        },
+    )
+
+
+@router.post(
+    "/periods/{period_id}/bank-transfer.csv",
+    response_class=Response,
+    status_code=status.HTTP_200_OK,
+    summary="Export the bank-transfer file",
+    description="Net pay per payslip in the organisation's configured columns. Bank account numbers are not stored, so that column reads NOT STORED. Needs organisation-wide hr.payroll.export and two-step verification; audited.",
+    operation_id="hrExportBankTransferCsv",
+    responses={
+        **ERRORS,
+        200: {
+            "description": "Bank CSV",
+            "content": {"text/csv": {"schema": {"type": "string"}}},
+        },
+    },
+)
+async def export_bank_csv(
+    *,
+    session: SessionDep,
+    current_user: CurrentUser,
+    token: TokenDep,
+    period_id: uuid.UUID,
+) -> Response:
+    name, content = await payslips.bank_csv(
+        session, current_user, period_id, token=token
+    )
+    return _csv(name, content)
+
+
+@router.post(
+    "/periods/{period_id}/gl-journal.csv",
+    response_class=Response,
+    status_code=status.HTTP_200_OK,
+    summary="Export the GL journal",
+    description="A balanced journal per department with the organisation's account codes (UNMAPPED where none is set). Needs organisation-wide hr.payroll.export and two-step verification; audited.",
+    operation_id="hrExportGlJournalCsv",
+    responses={
+        **ERRORS,
+        200: {
+            "description": "GL CSV",
+            "content": {"text/csv": {"schema": {"type": "string"}}},
+        },
+    },
+)
+async def export_gl_csv(
+    *,
+    session: SessionDep,
+    current_user: CurrentUser,
+    token: TokenDep,
+    period_id: uuid.UUID,
+) -> Response:
+    name, content = await payslips.gl_csv(session, current_user, period_id, token=token)
+    return _csv(name, content)
+
+
+def _csv(name: str, content: str) -> Response:
+    return Response(
+        content=content,
+        media_type="text/csv",
+        headers={
+            "Content-Disposition": f'attachment; filename="{name}"',
+            "Cache-Control": "no-store",
+        },
+    )
+
+
+@router.get(
+    "/export-settings",
+    response_model=PayrollExportSettingsPublic,
+    status_code=status.HTTP_200_OK,
+    summary="Read bank and GL export settings",
+    description="Needs organisation-wide hr.payroll.export.",
+    operation_id="hrGetPayrollExportSettings",
+    responses=ERRORS,
+)
+async def read_export_settings(
+    *,
+    session: SessionDep,
+    current_user: CurrentUser,
+    organisation_id: Annotated[str, Query(max_length=100)],
+) -> PayrollExportSettingsPublic:
+    return PayrollExportSettingsPublic.model_validate(
+        await payslips.read_settings(session, current_user, organisation_id)
+    )
+
+
+@router.put(
+    "/export-settings",
+    response_model=PayrollExportSettingsPublic,
+    status_code=status.HTTP_200_OK,
+    summary="Set bank and GL export settings",
+    description="Bank columns from the available list and GL account codes. Needs organisation-wide hr.payroll.rates.manage and two-step verification.",
+    operation_id="hrUpdatePayrollExportSettings",
+    responses=ERRORS,
+)
+async def update_export_settings(
+    *,
+    session: SessionDep,
+    current_user: CurrentUser,
+    token: TokenDep,
+    payload: PayrollExportSettingsUpdate,
+) -> PayrollExportSettingsPublic:
+    return PayrollExportSettingsPublic.model_validate(
+        await payslips.save_settings(
+            session,
+            current_user,
+            payload.organisation_id,
+            payload.bank_columns,
+            payload.gl_accounts,
+            token=token,
+        )
     )

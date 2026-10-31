@@ -673,3 +673,50 @@ class PayDeductionLine(Base):
     source_id: Mapped[uuid.UUID]
     source_rule_state: Mapped[str] = mapped_column(String(16))
     created_at: Mapped[datetime] = mapped_column(default=utc_now)
+
+
+# ── Slice 4: payslips and export settings ──────────────────────────────────────
+
+
+class Payslip(Base):
+    """An itemised pay statement, frozen when the period is approved for issue.
+
+    The snapshot is the statement: the PDF is rendered from it, and
+    ``sha256`` is the hash of its canonical JSON, checked on every render.
+    Rows are append-only (``payslip_append_only`` trigger).
+    """
+
+    __tablename__ = "payslip"
+    __table_args__ = (
+        sa.UniqueConstraint("period_id", "user_id", name="uq_hr_payslip_period_user"),
+        {"schema": "hr"},
+    )
+
+    id: Mapped[uuid.UUID] = mapped_column(primary_key=True, default=uuid.uuid4)
+    period_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("hr.pay_period.id"), index=True
+    )
+    user_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("user.id"), index=True)
+    organisation_id: Mapped[str] = mapped_column(
+        String(100), ForeignKey("hr.organisation.id"), index=True
+    )
+    snapshot: Mapped[dict[str, Any]] = mapped_column(JSONB)
+    sha256: Mapped[str] = mapped_column(String(64))
+    net_minor: Mapped[int] = mapped_column(sa.BigInteger)
+    issued_at: Mapped[datetime] = mapped_column(default=utc_now)
+    issued_by_user_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("user.id"))
+
+
+class PayrollExportSetting(Base):
+    """Per-organisation bank-transfer columns and GL account codes."""
+
+    __tablename__ = "payroll_export_setting"
+    __table_args__ = {"schema": "hr"}
+
+    organisation_id: Mapped[str] = mapped_column(
+        String(100), ForeignKey("hr.organisation.id"), primary_key=True
+    )
+    bank_columns: Mapped[list[str]] = mapped_column(JSONB, default=list)
+    gl_accounts: Mapped[dict[str, str]] = mapped_column(JSONB, default=dict)
+    updated_by_user_id: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("user.id"))
+    updated_at: Mapped[datetime] = mapped_column(default=utc_now)

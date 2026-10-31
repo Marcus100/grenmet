@@ -98,7 +98,7 @@ PERMISSIONS: tuple[PermissionDef, ...] = (
     ),
     PermissionDef(
         "hr.payroll.read.self",
-        "See and confirm your own payroll records",
+        "See and confirm your own payroll records and issued payslips",
     ),
     PermissionDef(
         "hr.payroll.read.amounts",

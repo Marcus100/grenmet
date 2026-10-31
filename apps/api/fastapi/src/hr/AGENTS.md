@@ -117,6 +117,18 @@ files and cutover are later slices that need their own approval.
   EC$5,200 a month / EC$1,200 a week (PROVISIONAL); pension 5%/5% of basic,
   health 40/60 split premium, union dues (all PROVISIONAL, authorisation needed).
 
+### Payslips and files (slice 4, `payslips.py`)
+- Issue approval creates every payslip in the same transaction (an itemised
+  statement is required for each payment: Employment Act ss. 47-48, secondary
+  source). A payslip is a JSON snapshot plus the SHA-256 of its canonical JSON;
+  the PDF renders from the snapshot after the hash check. `payslip_append_only`
+  refuses updates and deletes.
+- Staff see their own payslips with `hr.payroll.read.self` (granted to no role).
+- Bank and GL CSVs: organisation-wide export key, MFA, audited; columns and GL
+  account codes are per-organisation settings. **Bank account numbers are not
+  stored** (no field-encryption helper exists for them; the TOTP Fernet keys must
+  not be reused for bank data): the bank column reads NOT STORED.
+
 ### Rules (all provisional, parameters in the GAA catalogue)
 - Base hours: arrival to departure (`hours_basis` ELAPSED, the memorandum's
   8 hours inclusive of lunch) capped at `standard_hours`.
@@ -131,7 +143,8 @@ files and cutover are later slices that need their own approval.
 ### Tests
 `tests/hr/test_payroll_inputs.py` (the eleven acceptance checks, through the API),
 `tests/hr/test_payroll_rules.py` (pure rule edges), `tests/hr/test_payroll_gross.py`
-(gross pay), `tests/hr/test_payroll_deductions.py` (deductions). Synthetic data only.
+(gross pay), `tests/hr/test_payroll_deductions.py` (deductions),
+`tests/hr/test_payroll_payslips.py` (payslips and files). Synthetic data only.
 
 ## Roster rules (#380)
 - Rules are data: `roster.RosterRuleSet` (organisation default, department rows replace it; built-in `rules.DEFAULT_RULES` when none). Edit with `roster.rules.manage` (HR admins; organisation rows need organisation-wide scope). Union coverage and worker type live on `EmploymentRecord` (`union_covered`, `rule_worker_type`) and are edited only through `PUT /hr/rosters/employees/{id}/rule-profile` with the same key, never by the employee themselves.

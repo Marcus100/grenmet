@@ -132,6 +132,25 @@ tax, NIS or bank field exists in any request, response or export.
   (409) while a table used was PROVISIONAL when computed, a line is unpriced, or
   net pay would go below zero (`shortfall_minor`).
 
+### Payroll payslips and files (slice 4)
+
+- Approving a period for issue creates one payslip per paid employee: a frozen
+  JSON snapshot (earnings, gross, each deduction, net, employer contributions)
+  with its SHA-256. Payslips are append-only.
+- `GET me/payslips` (needs `hr.payroll.read.self`, granted to no role),
+  `GET periods/{period_id}/payslips` (organisation-wide `hr.payroll.read.amounts`),
+  `GET payslips/{payslip_id}/pdf` (own with `read.self`, or `read.amounts`;
+  WeasyPrint from the snapshot after the hash check; `X-Payslip-SHA256` header).
+- Every payslip route needs a session verified with two-step verification; the
+  PDF route is rate limited per signed-in user (20 a minute; 429). A payslip's
+  hash is an HMAC under a server-side key, checked before a PDF, bank file or GL
+  journal is produced (409 on a mismatch). Payslip change history records the id,
+  period and hash only, never the snapshot or net pay.
+- `POST periods/{period_id}/bank-transfer.csv` and `gl-journal.csv` need
+  organisation-wide `hr.payroll.export`, MFA and an issue-approved period; both are
+  audited. Bank account numbers are not stored: that column reads `NOT STORED`.
+  `GET|PUT export-settings` configures bank columns and GL account codes.
+
 ## Base URLs
 
 | Environment | API base URL |
