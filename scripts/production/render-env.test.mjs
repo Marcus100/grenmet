@@ -1088,3 +1088,79 @@ test("the CMS gets the weather site origin from BASE_DOMAIN, the same value web-
   // It is not a new GitHub variable or secret.
   assert.equal(workflow.includes("GMS_SITE_URL"), false);
 });
+
+// Cloudflare proxy switch (docs/operations/cloudflare-proxy.md): one variable
+// moves Traefik's trusted ranges, the per-client cap, the visitor hops and the
+// certificate challenge together; unset is Traefik's default.
+const EDGE_NAMES = [
+  "CLOUDFLARE_PROXY_ENABLED",
+  "VISITOR_IP_PROXY_HOPS",
+  "TRAEFIK_FORWARDED_HEADERS",
+  "TRAEFIK_CLIENT_IP_DEPTH",
+  "TRAEFIK_ACME_CHALLENGE",
+];
+const CIDR_LINE = /^[0-9a-f:.]+\/\d+$/;
+const SWITCH_PASS =
+  /^\s+CLOUDFLARE_PROXY_ENABLED: \$\{\{ vars\.CLOUDFLARE_PROXY_ENABLED \}\}$/m;
+
+function edgeValues(output) {
+  return Object.fromEntries(
+    EDGE_NAMES.map((name) => [
+      name,
+      JSON.parse(GENERATED_LINE(output, name).slice(name.length + 1)),
+    ])
+  );
+}
+
+function vendoredRanges() {
+  return readFileSync("infra/cloudflare/ip-ranges.txt", "utf8")
+    .split("\n")
+    .filter((line) => CIDR_LINE.test(line));
+}
+
+test("the Cloudflare switch is off by default and leaves Traefik at its defaults", () => {
+  for (const value of [undefined, "", "false"]) {
+    const { result, output } = render({ CLOUDFLARE_PROXY_ENABLED: value });
+    assert.equal(result.status, 0, result.stderr);
+    assert.deepEqual(edgeValues(output), {
+      CLOUDFLARE_PROXY_ENABLED: "false",
+      VISITOR_IP_PROXY_HOPS: "1",
+      TRAEFIK_FORWARDED_HEADERS: "insecure=false",
+      TRAEFIK_CLIENT_IP_DEPTH: "0",
+      TRAEFIK_ACME_CHALLENGE: "tlschallenge=true",
+    });
+  }
+});
+
+test("the Cloudflare switch trusts exactly the vendored ranges and moves hops, depth and challenge", () => {
+  const { result, output } = render({ CLOUDFLARE_PROXY_ENABLED: "true" });
+  assert.equal(result.status, 0, result.stderr);
+  const values = edgeValues(output);
+  assert.equal(values.CLOUDFLARE_PROXY_ENABLED, "true");
+  assert.equal(values.VISITOR_IP_PROXY_HOPS, "2");
+  assert.equal(values.TRAEFIK_CLIENT_IP_DEPTH, "1");
+  assert.equal(values.TRAEFIK_ACME_CHALLENGE, "httpchallenge.entrypoint=web");
+  const [key, list] = values.TRAEFIK_FORWARDED_HEADERS.split("=");
+  assert.equal(key, "trustedIPs");
+  const trusted = list.split(",");
+  assert.deepEqual([...trusted].sort(), [...vendoredRanges()].sort());
+  assert.ok(
+    trusted.some((range) => range.includes(":")),
+    "IPv6 ranges"
+  );
+  for (const everything of ["0.0.0.0/0", "::/0"])
+    assert.equal(trusted.includes(everything), false);
+});
+
+test("the Cloudflare switch refuses anything but true or false", () => {
+  for (const value of ["yes", "1", "TRUE", "on"]) {
+    const { result } = render({ CLOUDFLARE_PROXY_ENABLED: value });
+    assert.notEqual(result.status, 0, value);
+    assert.ok(result.stderr.includes("CLOUDFLARE_PROXY_ENABLED"));
+  }
+});
+
+test("deploy.yml passes the Cloudflare switch from the GitHub environment", () => {
+  const workflow = readFileSync(".github/workflows/deploy.yml", "utf8");
+  assert.match(workflow, SWITCH_PASS);
+});

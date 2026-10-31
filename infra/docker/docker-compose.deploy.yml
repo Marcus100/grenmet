@@ -172,6 +172,10 @@ services:
       # web-gms, web-bookings),
       # so rate limits key on the visitor, not the web container (src/rate_limit.py).
       TRUSTED_WEB_SECRET: ${TRUSTED_WEB_SECRET:?TRUSTED_WEB_SECRET required}
+      # Browser calls straight to api.*: proxies appending to X-Forwarded-For in
+      # front of the API (1: Traefik; 2: Cloudflare then Traefik). Set by
+      # render-env.py from CLOUDFLARE_PROXY_ENABLED.
+      VISITOR_IP_PROXY_HOPS: ${VISITOR_IP_PROXY_HOPS:-1}
       EVENTS_APP_URL: https://events.${BASE_DOMAIN}
       EVENTS_SSO_CLIENT_SECRET: ${EVENTS_SSO_CLIENT_SECRET:-}
       GMSDASH_APP_URL: https://gmsdash.${BASE_DOMAIN}
@@ -727,7 +731,7 @@ services:
       EVENTS_SSO_CLIENT_SECRET: ${EVENTS_SSO_CLIENT_SECRET:-}
       # Same value as the API: forwards each visitor's address (X-Visitor-IP).
       # Hops: proxies in front of this container that append to x-forwarded-for
-      # (Traefik alone: 1; behind Cloudflare with trustedIPs: 2).
+      # (Traefik alone: 1; behind Cloudflare with trustedIPs: 2; render-env.py).
       TRUSTED_WEB_SECRET: ${TRUSTED_WEB_SECRET:?TRUSTED_WEB_SECRET required}
       VISITOR_IP_PROXY_HOPS: ${VISITOR_IP_PROXY_HOPS:-1}
       NEXT_PUBLIC_SENTRY_DSN: ${SENTRY_DSN_EVENTS:-}
@@ -929,6 +933,11 @@ services:
       - --entrypoints.web.http.redirections.entrypoint.scheme=https
       - --entrypoints.web.http.redirections.entrypoint.permanent=true
       - --entrypoints.websecure.address=:443
+      # Forwarded headers (X-Forwarded-For and friends): trusted from nobody
+      # (Traefik's default, spelled out) unless CLOUDFLARE_PROXY_ENABLED, when
+      # render-env.py sets `trustedIPs=<Cloudflare ranges>` from
+      # infra/cloudflare/ip-ranges.txt. docs/operations/cloudflare-proxy.md.
+      - --entrypoints.websecure.forwardedHeaders.${TRAEFIK_FORWARDED_HEADERS:-insecure=false}
       # Read 60s = Traefik's default (a 25 MiB HR upload at ~3.5 Mbit/s); write
       # 120s covers upload + synchronous PDF rendering + buffered response; idle
       # 180s = Traefik's default keep-alive.
@@ -940,7 +949,10 @@ services:
       - --entrypoints.websecure.http.middlewares=secure-headers${ROUTER_SUFFIX}@docker,inflight-per-ip${ROUTER_SUFFIX}@docker
       - --certificatesresolvers.letsencrypt.acme.email=${EMAIL}
       - --certificatesresolvers.letsencrypt.acme.storage=/certificates/acme.json
-      - --certificatesresolvers.letsencrypt.acme.tlschallenge=true
+      # TLS-ALPN challenge by default. Behind Cloudflare's proxy Cloudflare ends
+      # TLS, so render-env.py switches to the HTTP challenge on :80
+      # (`httpchallenge.entrypoint=web`); it wins over the entrypoint redirect.
+      - --certificatesresolvers.letsencrypt.acme.${TRAEFIK_ACME_CHALLENGE:-tlschallenge=true}
       # JSON to stdout; request headers and query strings (tokens, emails) dropped.
       - --accesslog
       - --accesslog.format=json
@@ -978,11 +990,13 @@ services:
       - "traefik.http.middlewares.secure-headers${ROUTER_SUFFIX}.headers.referrerPolicy=strict-origin-when-cross-origin"
       - "traefik.http.middlewares.secure-headers${ROUTER_SUFFIX}.headers.permissionsPolicy=camera=(), microphone=(), geolocation=(), payment=(), usb=()"
       - "traefik.http.middlewares.secure-headers${ROUTER_SUFFIX}.headers.customResponseHeaders.Cross-Origin-Opener-Policy=same-origin-allow-popups"
-      # At most 100 concurrent requests per client IP (DNS-only Cloudflare, so
-      # the remote address is the client). Without ipStrategy Traefik would group
-      # by Host header instead.
+      # At most 100 concurrent requests per client IP. Depth 0 (DNS-only
+      # Cloudflare): the remote address is the client. Depth 1 (Cloudflare
+      # proxy, render-env.py): the right-most X-Forwarded-For entry, which
+      # Cloudflare wrote, because the remote address is a Cloudflare edge.
+      # Without ipStrategy Traefik would group by Host header instead.
       - "traefik.http.middlewares.inflight-per-ip${ROUTER_SUFFIX}.inflightreq.amount=100"
-      - "traefik.http.middlewares.inflight-per-ip${ROUTER_SUFFIX}.inflightreq.sourceCriterion.ipStrategy.depth=0"
+      - "traefik.http.middlewares.inflight-per-ip${ROUTER_SUFFIX}.inflightreq.sourceCriterion.ipStrategy.depth=${TRAEFIK_CLIENT_IP_DEPTH:-0}"
       # Request body limit for the routers that accept uploads (API, CMS, Adminer;
       # 413 above it). Largest API upload: an HR document (25 MiB,
       # src/hr/documents/service.py); event images go straight to object storage

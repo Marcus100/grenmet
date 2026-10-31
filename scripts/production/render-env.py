@@ -10,6 +10,10 @@ import sys
 from pathlib import Path
 from urllib.parse import quote, urlparse
 
+# Also importable as a module from elsewhere (deploy-preflight.test.mjs).
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from cloudflare_ranges import load as load_cloudflare_ranges  # noqa: E402
+
 
 def read_config(path):
     result = {}
@@ -44,6 +48,36 @@ def fernet_keys(environment, name):
     except (ValueError, UnicodeError, binascii.Error):
         raise ValueError(f"{name} must be a JSON array of Fernet keys") from None
     return keys
+
+
+# Edge settings for CLOUDFLARE_PROXY_ENABLED (docs/operations/cloudflare-proxy.md).
+# Off is Traefik's own default (forwarded headers trusted from nobody) and the
+# existing TLS challenge, so an unset switch changes nothing. On, all four move
+# together: Traefik trusts forwarded headers only from Cloudflare's ranges, the
+# per-client cap and the visitor address skip Cloudflare's hop (2 = Cloudflare
+# then Traefik), and certificates renew over HTTP because Cloudflare terminates
+# TLS in front of the origin.
+EDGE_OFF = {
+    "VISITOR_IP_PROXY_HOPS": "1",
+    "TRAEFIK_FORWARDED_HEADERS": "insecure=false",
+    "TRAEFIK_CLIENT_IP_DEPTH": "0",
+    "TRAEFIK_ACME_CHALLENGE": "tlschallenge=true",
+}
+
+
+def cloudflare_edge(environment):
+    switch = environment.get("CLOUDFLARE_PROXY_ENABLED", "")
+    if switch not in {"", "true", "false"}:
+        raise ValueError("CLOUDFLARE_PROXY_ENABLED must be true or false")
+    if switch != "true":
+        return {"CLOUDFLARE_PROXY_ENABLED": "false", **EDGE_OFF}
+    return {
+        "CLOUDFLARE_PROXY_ENABLED": "true",
+        "VISITOR_IP_PROXY_HOPS": "2",
+        "TRAEFIK_FORWARDED_HEADERS": "trustedIPs=" + ",".join(load_cloudflare_ranges()),
+        "TRAEFIK_CLIENT_IP_DEPTH": "1",
+        "TRAEFIK_ACME_CHALLENGE": "httpchallenge.entrypoint=web",
+    }
 
 
 def render(config, environment):
@@ -120,6 +154,7 @@ def render(config, environment):
     if telemetry_enabled not in {"", "true", "false"}:
         raise ValueError("TELEMETRY_ENABLED must be true or false")
     values["TELEMETRY_ENABLED"] = "true" if telemetry_enabled == "true" else "false"
+    values.update(cloudflare_edge(environment))
     values["TELEMETRY_WORKER_HEARTBEAT_URL"] = environment.get("TELEMETRY_WORKER_HEARTBEAT_URL", "")
     heartbeat = values["TELEMETRY_WORKER_HEARTBEAT_URL"]
     if heartbeat:

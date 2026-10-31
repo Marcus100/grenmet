@@ -31,6 +31,8 @@ const DURATION = /[=][1-9][0-9]*s$/;
 const HR_LIMIT = /^MAX_DOCUMENT_BYTES = (.+)$/m;
 const UPLOAD_ROUTER = /^(grenmet-api|web-cms|adminer)/;
 const STAGING_PROFILE = /^ {4}profiles: \["staging"\]$/m;
+const SWITCHED_FORWARDED_HEADERS =
+  /\$\{TRAEFIK_FORWARDED_HEADERS:-insecure=false\}$/;
 
 // Top-level `services:` blocks as raw text plus their list-valued sections.
 function services(text) {
@@ -426,4 +428,35 @@ test("Adminer stays staging-only behind its own credentials", () => {
       "adminer-auth-staging"
     )
   );
+});
+
+test("forwarded headers, the client-IP depth and the challenge come only from the Cloudflare switch", () => {
+  // Off (the env files alone, as before render-env.py) is Traefik's default.
+  const off = {};
+  assert.deepEqual(
+    flags
+      .filter((flag) => flag.includes("forwardedHeaders"))
+      .map((flag) => interpolate(flag, off)),
+    ["--entrypoints.websecure.forwardedHeaders.insecure=false"]
+  );
+  assert.deepEqual(
+    flags
+      .filter((flag) => flag.includes("challenge"))
+      .map((flag) => interpolate(flag, off)),
+    ["--certificatesresolvers.letsencrypt.acme.tlschallenge=true"]
+  );
+  // Nothing hard-codes trust: the ranges arrive only through render-env.py.
+  const items = [...parsed.values()].flatMap((service) =>
+    Object.values(service.lists).flat()
+  );
+  assert.equal(
+    items.some((item) => item.includes("trustedIPs=")),
+    false
+  );
+  assert.equal(
+    items.some((item) => item.includes("insecure=true")),
+    false
+  );
+  for (const flag of flags.filter((item) => item.includes("forwardedHeaders")))
+    assert.match(flag, SWITCHED_FORWARDED_HEADERS);
 });
