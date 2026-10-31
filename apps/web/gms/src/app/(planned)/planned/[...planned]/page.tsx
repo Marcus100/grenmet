@@ -9,9 +9,10 @@ import { plannedPage, plannedPaths, sectionLinks } from "@/lib/nav-sections";
 /**
  * Pages the navigation promises but that are not built yet (links marked
  * `planned` in NAV_SECTIONS). Each renders the not-yet-available notice and
- * points to the finished pages in the same section. Only planned paths are
- * generated; any other URL is a 404, and a real route always wins over this
- * catch-all.
+ * points to the finished pages in the same section. Visitors reach it through
+ * a rewrite from the link's own address (`lib/planned-routes.ts`); it sits
+ * under `/planned` so it never catches unknown URLs. Only planned paths are
+ * generated; any other path here is a 404.
  */
 export const dynamicParams = false;
 
@@ -30,8 +31,13 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { planned } = await params;
   const page = plannedPage(`/${planned.join("/")}`);
+  // Canonical is the public address, never the internal /planned one.
   return page
-    ? { title: page.link.name, description: page.link.description }
+    ? {
+        title: page.link.name,
+        description: page.link.description,
+        alternates: { canonical: page.link.href },
+      }
     : {};
 }
 

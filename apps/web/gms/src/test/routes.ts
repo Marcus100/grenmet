@@ -1,6 +1,7 @@
 import { existsSync, readdirSync } from "node:fs";
 import path from "node:path";
 import { prefixedLocationParams } from "@/lib/locations";
+import { PLANNED_ROUTE_PREFIX } from "@/lib/planned-routes";
 
 /** Node-only helpers for tests that check links against the routes on disk. */
 export const APP_DIR = path.resolve(import.meta.dirname, "../app");
@@ -36,14 +37,19 @@ const LOCATION_SLUGS = new Set(
 
 /**
  * Does a route pattern such as `/alerts/bulletins/[hazard]` serve `href`?
- * The planned-page catch-all is excluded so it cannot vouch for real links.
+ * The planned-page route is excluded so it cannot vouch for real links.
  */
 export function serves(pattern: string, href: string): boolean {
-  const want = href.split("/").filter(Boolean);
-  const have = pattern.split("/").filter(Boolean);
-  if (have[0] === "[...planned]") {
+  if (pattern.startsWith(`${PLANNED_ROUTE_PREFIX}/`)) {
     return false;
   }
+  return matches(pattern, href);
+}
+
+/** Does a route pattern match `href` by its segments, whatever the route is? */
+export function matches(pattern: string, href: string): boolean {
+  const want = href.split("/").filter(Boolean);
+  const have = pattern.split("/").filter(Boolean);
   for (const [i, segment] of have.entries()) {
     if (CATCH_ALL.test(segment)) {
       return want.length > i;

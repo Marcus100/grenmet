@@ -6,7 +6,7 @@
 import { readdirSync } from "node:fs";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
-import { APP_DIR } from "@/test/routes";
+import { APP_DIR, matches, routesOnDisk } from "@/test/routes";
 
 const PAGE_FILE = /^page\.(tsx|ts|jsx|js)$/;
 const LOADING = /^loading\.(tsx|ts|jsx|js)$/;
@@ -58,6 +58,22 @@ describe("routes that must answer 404 for a missing item", () => {
           `loading file in ${path.relative(APP_DIR, above) || "app"}`
         ).toEqual([]);
       }
+    }
+  );
+});
+
+// A page that throws notFound() while it renders on the server makes Next send
+// an empty error document (`<html id="__next_error__">`) that stays blank until
+// JavaScript runs. An unknown URL must therefore match no page at all, so Next
+// answers with the server-rendered not-found page. A catch-all at the site
+// root broke this for every unknown URL.
+describe("an unknown URL", () => {
+  const pages = routesOnDisk(APP_DIR);
+
+  it.each(["/this-page-does-not-exist", "/alerts/zz/yy", "/a/b/c/d/e"])(
+    "%s matches no page route",
+    (href) => {
+      expect(pages.filter((pattern) => matches(pattern, href))).toEqual([]);
     }
   );
 });
