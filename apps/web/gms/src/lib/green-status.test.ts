@@ -78,6 +78,18 @@ describe("fetchGreenStatus", () => {
     });
   });
 
+  it("does not count an All clear in effect as a Green or other alert", async () => {
+    vi.mocked(fetchSectorOutlook).mockResolvedValue(
+      outlook([item({ notice_type: "All clear", title: "Calm seas" })])
+    );
+    expect(await fetchGreenStatus()).toEqual({
+      status: "ok",
+      count: 0,
+      other: 0,
+      complete: true,
+    });
+  });
+
   it("counts a non-Green item with no CAP warning as other, not ignored", async () => {
     vi.mocked(fetchSectorOutlook).mockResolvedValue(
       outlook([item({ colour: "yellow", identifier: null, title: "Gale" })])

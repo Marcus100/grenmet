@@ -42,6 +42,13 @@ from src.utils.datetime import utc_now
 logger = logging.getLogger(__name__)
 
 MAX_ATTEMPTS = 5
+
+
+class TerminalFailure(Exception):
+    """A handler failure that no retry can fix. The row is dead-lettered at once
+    (the dead-letter signal fires) instead of after ``MAX_ATTEMPTS``."""
+
+
 BATCH_SIZE = 50
 _RETRY_BASE_SECONDS = 60
 _RETRY_MAX_SECONDS = 3600
@@ -255,7 +262,7 @@ async def _record_failure(
     # The exception type only: messages can quote the payload's personal data.
     row.last_error = type(error).__name__
     row.updated_at = moment
-    dead = row.attempts >= MAX_ATTEMPTS
+    dead = row.attempts >= MAX_ATTEMPTS or isinstance(error, TerminalFailure)
     if dead:
         row.status = OutboxStatus.DEAD.value
         await _run_dead_handler(session, message, error)

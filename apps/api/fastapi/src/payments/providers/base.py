@@ -17,6 +17,8 @@ class EventKind(str, Enum):
     PAYMENT_SUCCEEDED = "payment_succeeded"
     PAYMENT_FAILED = "payment_failed"
     REFUNDED = "refunded"
+    #: A provider refund report (``refund.created|updated|failed``): one refund.
+    REFUND_REPORTED = "refund_reported"
     #: A verified event the core has no use for; answered 2xx and dropped.
     IGNORED = "ignored"
 
@@ -28,6 +30,18 @@ class PaymentStart:
     provider_ref: str | None = None
     #: Hosted checkout the payer is sent to; ``None`` for staff-recorded rails.
     checkout_url: str | None = None
+
+
+@dataclass(frozen=True)
+class ProviderRefund:
+    """One refund listed on the provider's charge, in the core's vocabulary."""
+
+    provider_ref: str | None
+    amount_minor: int
+    #: The provider's status: ``succeeded``, ``pending``, ``failed`` or ``canceled``.
+    status: str
+    #: Our refund id, echoed back in the provider's metadata when we made the refund.
+    refund_id: uuid.UUID | None = None
 
 
 @dataclass(frozen=True)
@@ -47,6 +61,14 @@ class ProviderEvent:
     currency: str | None = None
     #: For ``REFUNDED``: the provider's running total refunded on the payment.
     refunded_total_minor: int | None = None
+    #: For ``REFUNDED``: the refunds the provider listed on the payment.
+    refunds: tuple[ProviderRefund, ...] = ()
+    #: False when the provider listed only some of the refunds (more exist), or
+    #: sent no list at all.
+    refunds_complete: bool = True
+    #: False when a ``charge.refunded`` carried no refund list (Stripe lists refunds
+    #: only when expanded, and webhooks are not expanded).
+    refunds_listed: bool = True
     failure_code: str | None = None
 
 

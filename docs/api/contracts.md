@@ -1773,11 +1773,15 @@ of today (Grenada) for `days` days: `{as_of, window_start, window_end, complete,
 items[]}`. Each item has `source` (`CAP` or `Bulletin`), `title`, `product`,
 `colour`, `likelihood`, `impact`, `impacts`, `response`, `valid_from`, `valid_to`,
 `reference`, `identifier` (a warning's CAP identifier) or `product_id` (a
-bulletin), `sectors` and `affects_everyone`. Sectors are the keys in
+bulletin), `sectors`, `affects_everyone` and `notice_type` (a bulletin's stored
+notice type, `Information`, `Advisory` or `All clear`; null for CAP warnings and
+for values the bulletin form no longer offers). Sectors are the keys in
 `src/sectors.py` (tourism, marine, aviation, agriculture, health,
 roads-transport), set on a CAP warning in its `GMS:sectors` info parameter and on
 a bulletin in its `sectors` value (comma-separated; unknown names are rejected).
-An item with no sectors has `affects_everyone: true`. `complete` is false when
+An item with no sectors has `affects_everyone: true`. A Green `All clear` bulletin
+is information, not an alert in effect: the weather site lists it as information
+and never counts it. `complete` is false when
 CAP or the bulletin store could not be read; callers must not show an all-clear
 then. Bulletins appear only while published and in force, so a bulletin with a
 future start is not listed.

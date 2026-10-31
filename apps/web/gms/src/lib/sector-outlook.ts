@@ -11,6 +11,11 @@ const asLevel = (colour: string | null | undefined): Level | null =>
 
 /** One alert or warning as a sector tile shows it. */
 export interface SectorItem {
+  /**
+   * A Green "All clear" bulletin: information, not an alert. It has no level
+   * and never raises the tile's impact bar.
+   */
+  allClear: boolean;
   /** Its impact level, or null for an outlook with none. */
   colour: Level | null;
   /** Applies to every sector because nobody tagged it. */
@@ -72,6 +77,15 @@ export function whenLabel(
   return `${start} to ${end}`;
 }
 
+/**
+ * A Green bulletin whose notice type is "All clear" (owner decision, 30 Oct
+ * 2026). Only Green qualifies: an "All clear" at another level is still an
+ * alert, so it keeps its level.
+ */
+export function isAllClear(item: SectorOutlook["items"][number]): boolean {
+  return item.colour === "green" && item.notice_type === "All clear";
+}
+
 const levelLabel = (colour: string | null | undefined) =>
   colour ? `${colour[0]?.toUpperCase()}${colour.slice(1)} level` : "Outlook";
 
@@ -94,20 +108,25 @@ export function buildSectorTiles(
   return SECTORS.map(({ value: sector }) => {
     const all: SectorItem[] = outlook.items
       .filter((item) => item.affects_everyone || item.sectors.includes(sector))
-      .map((item) => ({
-        id: item.identifier ?? item.product_id ?? item.reference,
-        title: item.title,
-        level: levelLabel(item.colour),
-        when: whenLabel(
-          item.valid_from ? new Date(item.valid_from) : null,
-          item.valid_to ? new Date(item.valid_to) : null,
-          now
-        ),
-        summary: firstSentence(item.impacts),
-        href: hrefFor(item),
-        everyone: item.affects_everyone,
-        colour: asLevel(item.colour),
-      }));
+      .map((item) => {
+        const allClear = isAllClear(item);
+        return {
+          id: item.identifier ?? item.product_id ?? item.reference,
+          title: item.title,
+          level: allClear ? "All clear" : levelLabel(item.colour),
+          when: whenLabel(
+            item.valid_from ? new Date(item.valid_from) : null,
+            item.valid_to ? new Date(item.valid_to) : null,
+            now
+          ),
+          summary: firstSentence(item.impacts),
+          href: hrefFor(item),
+          everyone: item.affects_everyone,
+          allClear,
+          // An All clear has no level, so it never sets the tile's peak.
+          colour: allClear ? null : asLevel(item.colour),
+        };
+      });
     const peakIndex = Math.max(
       -1,
       ...all.map((item) => (item.colour ? LEVELS.indexOf(item.colour) : -1))
