@@ -89,10 +89,18 @@ a CSRF-enforced client signed in and loaded the station map, admin, the
 maintenance report list, the new-report form and a report whose text fields held
 `<script>` and `<img onerror>` strings, which rendered escaped.
 
-**No CI gate covers SURFACE.** `scripts/ci/select-images.mjs` treats `surface/`
-as deferred and no workflow runs its tests, so verification on the host stack
-(`surface/docker-compose.yml` or the weather compose) is the only gate. Run
-`wx/tests` with the `manage.py test` command inside the built image too.
+**CI gate (#805).** `.github/workflows/ci-surface.yml`, called from `ci-api.yml`,
+builds `Dockerfile.deploy` (not pushed) and runs, inside that image against the
+`timescaledb-ha` image from `docker-compose.yml`: `manage.py check --fail-level
+WARNING`, `check --deploy`, `makemigrations --check --dry-run` and `manage.py
+test` (which applies every migration to a fresh database). `CI Success` requires it
+only when `scripts/ci/select-images.mjs` selects SURFACE: a change under
+`surface/` or to that workflow, including on promotion PRs. `check --deploy`
+warnings that are known and accepted are listed with their reasons in
+`surface/ci/deploy-check-accepted.txt`; the job fails on an unlisted warning and on a
+listed one that no longer appears. No tests are skipped. Host verification with
+`docker-compose.yml` is still the check for the running stack (sign-in, pages,
+Celery).
 
 ## wis2box/
 
