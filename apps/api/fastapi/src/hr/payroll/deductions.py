@@ -39,6 +39,7 @@ from .models import (
     PayItemMethod,
     PayLine,
     PayPeriod,
+    PayPeriodStatus,
     SocialInsuranceScheme,
     TableState,
     TaxBand,
@@ -547,10 +548,18 @@ async def refresh_table_state(
     approval still applies every separation rule to the confirmed tables.
     """
     period = await access.lock_period(session, actor, period_id, access.APPROVE)
+    await access.require_organisation_wide(
+        session, actor, period.organisation_id, access.READ_AMOUNTS
+    )
     await access.require_mfa(session, actor, token)
-    if period.status not in LOCKED_VALUES or period.issue_approved_at is not None:
+    if (
+        period.status
+        not in {PayPeriodStatus.APPROVED.value, PayPeriodStatus.EXPORTED.value}
+        or period.issue_approved_at is not None
+    ):
         raise AppException(
-            "Table states refresh only after quantities are approved and before issue",
+            "Table states refresh only for a period whose quantities are approved "
+            "(not closed) and that has not been approved for issue",
             409,
         )
     if reason := await access.period_conflict(session, actor, period):

@@ -7,4 +7,5 @@ import * as z from "zod";
 
 export const twoFactorCodeRequestSchema = z.object({
   code: z.string().min(6).max(10),
+  email_code: z.union([z.string().min(6).max(6), z.null()]).optional(),
 });

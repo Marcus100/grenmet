@@ -3728,6 +3728,7 @@ export type { GradeInput } from "./GradeInput.js";
 export type { GradePublic } from "./GradePublic.js";
 export type { GradeSetup } from "./GradeSetup.js";
 export type { GrantCreate } from "./GrantCreate.js";
+export type { GrantRevokePublic } from "./GrantRevokePublic.js";
 export type { GroupDetail } from "./GroupDetail.js";
 export type { GroupDetailPropertiesCategoryEnum } from "./GroupDetailPropertiesCategoryEnum.js";
 export { groupDetailPropertiesCategoryEnum } from "./GroupDetailPropertiesCategoryEnum.js";

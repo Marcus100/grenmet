@@ -78,6 +78,11 @@ files and cutover are later slices that need their own approval.
   at computation and the lines lock at submission. Manual band lines are refused
   where the employee's department computes bands, and allowed with a reason
   where it does not.
+- **Known limit of the profile and shift-default checks.** `period_conflict`
+  excludes whoever made the *last* edit to a pay profile or a department's
+  shift-worker default (`updated_by_user_id`). Earlier editors are in the change
+  history (`/audit/payroll_settings`) but are not checked automatically; the
+  approver's own pay and every line they added are always checked.
 - **Logs and Sentry:** IDs and counts only, never names, quantities or reasons.
 
 ### Gross pay (slice 2, `gross.py`, `pricing.py`)

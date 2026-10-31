@@ -11,7 +11,7 @@ import type {
 } from "../models/AuthTwofaActivate.js";
 
 /**
- * @description Confirms a TOTP code and enables two-factor authentication for the current account.
+ * @description Confirms a TOTP code and enables two-factor authentication for the current account. The first authenticator of a privileged account also needs email_code, the code emailed when setup began.
  * @summary Activate 2FA
  * {@link /api/v1/auth/users/me/security/2fa/activate}
  */

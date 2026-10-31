@@ -11,11 +11,13 @@ from typing import Any
 import httpx
 import pytest
 from cryptography.fernet import Fernet
-from sqlalchemy import select
+from sqlalchemy import select, text
+from sqlalchemy.exc import DBAPIError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.auth.config import auth_settings
 from src.auth.models import RoleAssignmentScope, User
+from src.database import async_session_factory
 from src.hr.models import Organisation
 from src.hr.payroll import statutory
 from tests.factories import assign_role, make_role_with_permission, make_user
@@ -674,3 +676,47 @@ async def test_approvers_are_counted_across_every_workflow_instance(
         )
     await db_async.flush()
     assert await access.period_approvers(db_async, period) == {first.id, second.id}
+
+
+@pytest.mark.usefixtures("totp_keys")
+async def test_refresh_needs_read_amounts_and_shows_no_money(
+    async_client: httpx.AsyncClient, db_async: AsyncSession
+) -> None:
+    headers, approver, period_id, nis_id, tables = await _approved_period(
+        async_client, db_async
+    )
+    ops, _, _ = await departments(db_async)
+    approve_only = await payroll_user(
+        db_async, "hr.payroll.approve", department_id=ops.id
+    )
+    refused = await async_client.post(
+        f"{API}/periods/{period_id}/table-state-refresh",
+        headers=await headers_for(db_async, approve_only, mfa=True),
+    )
+    assert refused.status_code == 403  # approving is not enough: amounts are involved
+    issuer = await headers_for(
+        db_async, await make_user(db_async, superuser=True), mfa=True
+    )
+    done = await async_client.post(
+        f"{API}/periods/{period_id}/table-state-refresh", headers=issuer
+    )
+    assert done.status_code == 200, done.text
+    assert "amount" not in done.text and "minor" not in done.text  # quantities only
+    # A closed period is refused cleanly, and the database agrees (defence in depth).
+    await db_async.execute(
+        text("UPDATE hr.pay_period SET status = 'CLOSED' WHERE id = :id"),
+        {"id": period_id},
+    )
+    await db_async.commit()
+    closed = await async_client.post(
+        f"{API}/periods/{period_id}/table-state-refresh", headers=issuer
+    )
+    assert closed.status_code == 409
+    async with async_session_factory() as fresh:
+        await fresh.execute(
+            text("SELECT set_config('payroll.refresh_table_state','on',true)")
+        )
+        with pytest.raises(DBAPIError, match="locked"):
+            await fresh.execute(
+                text("UPDATE hr.pay_deduction_line SET source_rule_state = 'CONFIRMED'")
+            )

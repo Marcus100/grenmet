@@ -728,7 +728,7 @@ async def approve_for_issue(
     response_model=PayPeriodDetail,
     status_code=status.HTTP_200_OK,
     summary="Refresh a period's table states before issue",
-    description="After a table is confirmed, copies the current state of each table onto an approved period's deduction lines (state only, no figures change) so it can be approved for issue. Audited. Needs organisation-wide hr.payroll.approve and two-step verification; never someone excluded from approving the period; only before issue approval.",
+    description="After a table is confirmed, copies the current state of each table onto an approved period's deduction lines (state only, no figures change) so it can be approved for issue. Audited. Needs organisation-wide hr.payroll.approve and hr.payroll.read.amounts and two-step verification; never someone excluded from approving the period; only for an approved, unclosed period before issue approval. Returns quantities only.",
     operation_id="hrRefreshPayPeriodTableState",
     responses=ERRORS,
 )
