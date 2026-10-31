@@ -4,7 +4,7 @@
 **Recorded:** 2026-07-19  
 **Horizon:** Five years  
 **Owner:** Barrels Grenada  
-**Last updated:** 2026-10-21
+**Last updated:** 2026-10-31
 
 ## Purpose
 
@@ -105,13 +105,62 @@ infinite feed.
 
 ### Barrels App
 
-The resident-facing experience for discovery and transactions. In accordance
-with the transition plan, `barrels.gd` begins as the Barrels corporate hub. It
-should progressively become the public Barrels experience as resident services
-launch. Company information can remain available within that experience.
+The resident-facing experience connects discovery, transactions, participation,
+and personal activity. The company homepage exists at `barrels.gd`. The current
+candidate for a separate daily personal home is `dash.barrels.gd`; the final
+hostname and long-term role of the corporate homepage remain undecided.
 
 The Barrels App should eventually provide one coherent entry point without
 forcing every product into one application, deployment, or code boundary.
+
+### Connected ecosystem direction — 31 October 2026
+
+The owner is exploring a living digital ecosystem for people and organisations.
+The choices below are confirmed planning direction, not implementation or launch
+approval. Existing portfolio priorities remain in force.
+
+- **Daily home:** personal activity first (upcoming appointments, tickets,
+  orders and relevant updates), with a smaller discovery section. Start with
+  one consistent layout and immediate access; choosing interests is optional.
+  Account management belongs within this experience too.
+- **Independent products:** people can complete everyday tasks inside an app
+  without visiting the daily home. Products and client businesses retain their
+  own identities and purpose while participating in Barrels.
+- **Personal identity:** one personal Barrels account from the start across
+  Barrels apps and client customer experiences. Each app has separate sessions
+  and permissions; shared sign-in never grants blanket application access.
+- **Customer continuity:** the preferred default is to show a person's own
+  bookings, tickets and purchases across participating businesses in their
+  home. This does not expose those records to other businesses or establish
+  permission for cross-product marketing or recommendation use.
+- **Work separation:** personal and work accounts are distinct and use different
+  email addresses. Each business has a separate work account for the person,
+  including business owners. Work accounts are invitation-only, except when
+  creating a business workspace and its first owner account. Work permissions
+  and records must not be combined with the personal home.
+- **Public participation:** personal profiles are private by default. People
+  explicitly choose to participate publicly, using one chosen display name
+  and public identity across Barrels. They choose open or approval-required
+  following. Private customer activity remains private.
+- **Community:** an eventual X-like app is part of the long-term direction.
+  Posting mechanics, moderation, launch scope and scheduling need later
+  discovery; they are not decided by this amendment.
+- **Business and client services:** Barrels serves both consumers and business
+  operations. Organisations may buy standalone or custom software without
+  appearing in a public marketplace or discovery experience.
+
+The existing account model and staff-access flows do not yet establish the
+personal/work separation above. Reconcile ADR-0016, ADR-0017, organisation
+memberships and staff-operations access through a future architecture decision
+and migration plan before implementation. Do not reinterpret existing grants
+or split live accounts based on this strategy alone.
+
+The source brainstorm also proposes responsive interactions, saves and follows,
+activity history, recognition, optional gamification, collections, annual recaps,
+and AI assistance. These are candidate capabilities, not a blanket approved
+backlog. Standard/Playful modes, digital-asset trading, universal points and a
+first connected journey remain undecided. Reuse existing rewards capabilities;
+their approved rules and launch gates still apply.
 
 ### Barrels Business
 
@@ -350,7 +399,6 @@ regulated areas require specific legal and operational review before launch.
 
 Barrels should not become:
 
-- A conventional social-media platform
 - A product optimized for addictive engagement or infinite scrolling
 - A bank, speculative fintech company, or unapproved custodial wallet
 - A restaurant, retailer, promoter, utility, or government agency
@@ -361,9 +409,10 @@ Barrels should not become:
 - A collection of unrelated client-specific software forks
 - A closed platform that prevents reasonable data export or interoperability
 
-Social capabilities may exist when they improve discovery, trust,
-coordination, or transaction completion. They should not become the product's
-purpose.
+Community is a long-term product pillar, including an eventual X-like app.
+Its participation and moderation model needs dedicated discovery. Useful
+relationships and contributions, alongside successful tasks, should guide
+evaluation; scrolling time is not the portfolio's principal success measure.
 
 Barrels should generally buy or partner for cloud infrastructure,
 telecommunications, payment rails, satellite services, data-centre hardware,
@@ -383,8 +432,8 @@ software.
 3. Launch the `barrels.gd` corporate hub.
 4. Discover and design Events/Tickets as a separately approved product.
 5. Pilot Events/Tickets with a small group of trusted organizers.
-6. Evolve `barrels.gd` into a personalized event-discovery and transaction
-   experience.
+6. Develop a shared personal daily home after its identity and product
+   dependencies are agreed; `dash.barrels.gd` is the candidate host.
 7. Develop the organizer console into the first module of Barrels Business.
 8. Stabilize organization identity, payments, notifications, refunds, search,
    support, and analytics through real Events/Tickets usage.
@@ -437,8 +486,8 @@ The following directions were explicitly confirmed during strategy discovery:
   product.
 - Event publishing initially uses verified organizers.
 - The product strategy and platform transition work together.
-- `barrels.gd` begins as the corporate hub and evolves into the public Barrels
-  experience.
+- `barrels.gd` is the corporate hub. The 31 October amendment proposes a
+  separate personal daily home; the final destination is unresolved.
 
 Other details in this document are recommendations to validate through product
 discovery, user research, institutional engagement, legal review, prototypes,

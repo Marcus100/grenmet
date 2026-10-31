@@ -4,7 +4,17 @@
 **Recorded:** 2026-10-17  
 **Horizon:** 2026–2035, expressed through readiness gates  
 **Owner:** Barrels Grenada  
-**Last updated:** 2026-10-17
+**Last updated:** 2026-10-31
+
+## Standalone client delivery — 31 October 2026
+
+Barrels supports both its connected consumer ecosystem and organisations buying
+business operations or custom software. A client need not participate in the
+public marketplace, discovery experience or social app to buy these services.
+Reuse platform capabilities where suitable while preserving each client's
+identity, permissions and operational boundaries. The
+[ecosystem direction](barrels-product-strategy.md#connected-ecosystem-direction--31-october-2026)
+records the target separation between personal and business work accounts.
 
 ## Purpose
 

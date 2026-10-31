@@ -3,7 +3,7 @@
 **Status:** Authoritative repository coverage map  
 **Effective:** 2026-08-16  
 **Owner:** Barrels Grenada engineering  
-**Last updated:** 2026-10-18
+**Last updated:** 2026-10-31
 
 ## Purpose
 
@@ -22,6 +22,20 @@ and vendored code keeps its upstream licence. See the
 Lifecycle terms are **active**, **prototype**, **planned**, **independent**,
 **reference**, **generated**, and **historical**. They do not imply production
 acceptance.
+
+## Future ecosystem surfaces — 31 October 2026
+
+The [ecosystem direction](../strategy/barrels-product-strategy.md#connected-ecosystem-direction--31-october-2026)
+proposes a personal daily home (candidate `dash.barrels.gd`) and an eventual
+X-like community app. Neither is an implemented repository surface. No package,
+port or deployment allocation is made here. Barrels owns product acceptance;
+the portfolio amendment records discovery dependencies.
+
+The auth application currently includes account management and rewards. Moving
+those experiences into the daily home is future work, gated on identity and
+migration design. The target separate personal and per-business work accounts
+must not be presented as existing enforcement. Client sites and standalone apps
+retain their own purpose; the Barrels admin control plane remains distinct.
 
 ## Applications and APIs
 
