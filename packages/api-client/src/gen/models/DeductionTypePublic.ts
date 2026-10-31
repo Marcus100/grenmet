@@ -45,11 +45,6 @@ export type DeductionTypePublic = {
    * @default true
    * @type boolean | undefined
    */
-  requires_authorisation?: boolean;
-  /**
-   * @default true
-   * @type boolean | undefined
-   */
   is_active?: boolean;
   /**
    * @description
@@ -65,4 +60,5 @@ export type DeductionTypePublic = {
    * @type string
    */
   id: string;
+  requires_authorisation: boolean;
 };

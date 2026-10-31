@@ -108,6 +108,16 @@ tax, NIS or bank field exists in any request, response or export.
   role) and MFA, never by the table's creator; `confirmed_by_user_id`,
   `confirmed_at` and `confirmation_note` record it and the source note is kept.
   The rule state is snapshotted onto deduction lines when a period computes.
+- Deduction types follow the same gate as tax tables and schemes: created
+  `PROVISIONAL`, confirmed by someone else with `hr.payroll.tables.confirm`, and
+  an unconfirmed type blocks issue. `requires_authorisation` is not settable on
+  create (always true). Anyone who may confirm tables may read them. Creators
+  and confirmers of any table or type a period uses cannot approve it for issue.
+- `POST periods/{period_id}/table-state-refresh` (organisation-wide
+  `hr.payroll.approve`, MFA, not the preparer or quantities approver) copies the
+  current state of each table onto an approved period's deduction lines (no figure
+  changes; audited) so a period approved while a table was provisional can be
+  issued after the table is confirmed. Refused once issued.
 - A deduction that needs authorisation is taken only after HR records the signed
   document reference and the employee confirms it at
   `POST me/deductions/{deduction_id}/confirmation` (`hr.payroll.read.self`);

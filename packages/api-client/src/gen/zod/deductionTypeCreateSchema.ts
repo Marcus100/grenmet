@@ -29,7 +29,6 @@ export const deductionTypeCreateSchema = z.object({
   employee_share: z
     .union([z.number().min(0).max(1), z.string(), z.null()])
     .optional(),
-  requires_authorisation: z.boolean().optional().default(true),
   is_active: z.boolean().optional().default(true),
   effective_from: z.iso.date(),
   effective_to: z.union([z.iso.date(), z.null()]).optional(),

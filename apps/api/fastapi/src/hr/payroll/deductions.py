@@ -18,7 +18,7 @@ from dataclasses import dataclass
 from datetime import date
 from typing import Any
 
-from sqlalchemy import delete, func, insert, or_, select, update
+from sqlalchemy import delete, func, insert, or_, select, text, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.audit import service as audit_service
@@ -306,11 +306,7 @@ async def provisional_codes(
     """
     del session
     return sorted(
-        {
-            d.code
-            for d in lines
-            if d.category in STATUTORY and d.source_rule_state == TableState.PROVISIONAL
-        }
+        {d.code for d in lines if d.source_rule_state == TableState.PROVISIONAL}
     )
 
 
@@ -407,10 +403,6 @@ async def approve_for_issue(
         raise AppException("Approve the pay period's quantities first", 409)
     if period.issue_approved_at is not None:
         return period
-    if period.submitted_by_user_id == actor.id:
-        raise AppException(
-            "The person who prepared this period cannot approve it for issue", 403
-        )
     lines = list(
         (
             await session.execute(
@@ -473,45 +465,39 @@ async def _require_issue_separation(
 ) -> None:
     """Issue approval is a further pair of eyes.
 
-    Refused to anyone who submitted or approved the period's quantities, who
-    created or confirmed a statutory table it used, or who created a rate, a
-    basic-pay row or a deduction enrolment in force during the period. A
-    table's confirmer must also differ from the period's submitter and approver.
+    Refused to anyone the quantity review already excludes (preparer, line
+    adders, own pay, profile changers: ``access.period_conflict``), to anyone
+    who approved any of the period's workflow instances, to creators and
+    confirmers of every table, scheme or deduction type it used, and to anyone
+    who created a rate, a basic-pay row or an enrolment in force during the
+    period. A table's confirmer must also differ from the period's submitter
+    and approvers.
     """
-    from src.hr.workflow.models import WorkflowAction, WorkflowStepInstance
-
     from .models import EmployeeBasicPay, PayItemRate
 
-    approvers = set(
-        (
-            await session.execute(
-                select(WorkflowStepInstance.approver_user_id).where(
-                    WorkflowStepInstance.workflow_instance_id
-                    == period.workflow_instance_id,
-                    WorkflowStepInstance.action == WorkflowAction.APPROVE,
-                )
-            )
-        ).scalars()
-    )
-    if actor.id == period.submitted_by_user_id or actor.id in approvers:
+    if reason := await access.period_conflict(session, actor, period):
         raise AppException(
-            "Whoever prepared or approved this period's quantities cannot approve it for issue",
-            403,
+            reason.replace("approve or return", "approve for issue"), 403
+        )
+    approvers = await access.period_approvers(session, period)
+    if actor.id in approvers:
+        raise AppException(
+            "Whoever approved this period's quantities cannot approve it for issue", 403
         )
     reviewers = approvers | {period.submitted_by_user_id}
-    statutory_ids = {d.source_id for d in lines if d.category in STATUTORY}
-    for model in (TaxTable, SocialInsuranceScheme):
+    source_ids = {d.source_id for d in lines}
+    for model in (TaxTable, SocialInsuranceScheme, DeductionType):
         for created_by, confirmed_by in (
             await session.execute(
                 select(model.created_by_user_id, model.confirmed_by_user_id).where(
-                    model.id.in_(statutory_ids)
+                    model.id.in_(source_ids)
                 )
             )
         ).all():
             if actor.id in {created_by, confirmed_by}:
                 raise AppException(
-                    "You created or confirmed a tax or social insurance table this "
-                    "period uses, so you cannot approve it for issue",
+                    "You created or confirmed a tax, social insurance or deduction "
+                    "table this period uses, so you cannot approve it for issue",
                     403,
                 )
             if confirmed_by is not None and confirmed_by in reviewers:
@@ -543,6 +529,81 @@ async def _require_issue_separation(
             )
 
 
+async def refresh_table_state(
+    session: AsyncSession, actor: User, period_id: uuid.UUID, *, token: str
+) -> PayPeriod:
+    """Bring a period's frozen table states up to date, before issue approval.
+
+    A period approved while a table was provisional keeps that state on its
+    deduction lines, so it could never be issued once the table is confirmed.
+    This audited action copies each source table's current state onto the lines
+    (state only; no figure changes). It needs the approve key and MFA, runs only
+    while quantities are approved and the period is not issued, and the issue
+    approval still applies every separation rule to the confirmed tables.
+    """
+    period = await access.lock_period(session, actor, period_id, access.APPROVE)
+    await access.require_mfa(session, actor, token)
+    if period.status not in LOCKED_VALUES or period.issue_approved_at is not None:
+        raise AppException(
+            "Table states refresh only after quantities are approved and before issue",
+            409,
+        )
+    if reason := await access.period_conflict(session, actor, period):
+        raise AppException(reason.replace("approve or return", "refresh"), 403)
+    if actor.id in await access.period_approvers(session, period):
+        raise AppException(
+            "Whoever approved this period's quantities cannot refresh its table states",
+            403,
+        )
+    lines = list(
+        (
+            await session.execute(
+                select(PayDeductionLine).where(PayDeductionLine.period_id == period.id)
+            )
+        ).scalars()
+    )
+    states: dict[uuid.UUID, str] = {}
+    for model in (TaxTable, SocialInsuranceScheme, DeductionType):
+        for row_id, state in (
+            await session.execute(
+                select(model.id, model.rule_state).where(
+                    model.id.in_({d.source_id for d in lines})
+                )
+            )
+        ).all():
+            states[row_id] = state
+    changed = 0
+    await session.execute(
+        text("SELECT set_config('payroll.refresh_table_state', 'on', true)")
+    )
+    for line in lines:
+        live = states.get(line.source_id)
+        if live is not None and live != line.source_rule_state:
+            await session.execute(
+                update(PayDeductionLine)
+                .where(PayDeductionLine.id == line.id)
+                .values(source_rule_state=live)
+            )
+            changed += 1
+    await audit_service.record_change(
+        session,
+        entity_type="pay_period",
+        entity_id=str(period.id),
+        record_type="pay_period_table_refresh",
+        record_id=str(period.id),
+        action="update",
+        changes={"refreshed_lines": (None, changed)},
+        organisation_id=period.organisation_id,
+    )
+    await session.commit()
+    await session.refresh(period)
+    logger.info(
+        "Pay period table states refreshed",
+        extra={"period_id": str(period.id), "lines": changed},
+    )
+    return period
+
+
 # ── Table management (rates.manage + MFA; reads also with read.amounts) ────────
 
 
@@ -550,7 +611,13 @@ async def _require_reader(session: AsyncSession, actor: User, org: str) -> None:
     from .gross import _require_reader as reader
 
     await access.require_visible(session, actor, org)
-    await reader(session, actor, org)
+    try:
+        await reader(session, actor, org)
+    except AppException:
+        # Whoever may confirm a table may read it: nobody confirms blind.
+        await access.require_organisation_wide(
+            session, actor, org, access.TABLES_CONFIRM
+        )
 
 
 async def _require_writer(

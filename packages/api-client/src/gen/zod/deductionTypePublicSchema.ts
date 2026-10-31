@@ -31,10 +31,10 @@ export const deductionTypePublicSchema = z.object({
     .union([z.int().min(0).max(10000000000), z.null()])
     .optional(),
   employee_share: z.union([z.string(), z.null()]).optional(),
-  requires_authorisation: z.boolean().optional().default(true),
   is_active: z.boolean().optional().default(true),
   effective_from: z.iso.date(),
   effective_to: z.union([z.iso.date(), z.null()]).optional(),
   source_note: z.union([z.string().max(500), z.null()]).optional(),
   id: z.uuid(),
+  requires_authorisation: z.boolean(),
 });

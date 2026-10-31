@@ -717,6 +717,26 @@ async def approve_for_issue(
     return await _detail(session, current_user, period_id)
 
 
+@router.post(
+    "/periods/{period_id}/table-state-refresh",
+    response_model=PayPeriodDetail,
+    status_code=status.HTTP_200_OK,
+    summary="Refresh a period's table states before issue",
+    description="After a table is confirmed, copies the current state of each table onto an approved period's deduction lines (state only, no figures change) so it can be approved for issue. Audited. Needs organisation-wide hr.payroll.approve and two-step verification; never someone excluded from approving the period; only before issue approval.",
+    operation_id="hrRefreshPayPeriodTableState",
+    responses=ERRORS,
+)
+async def refresh_table_state(
+    *,
+    session: SessionDep,
+    current_user: CurrentUser,
+    token: TokenDep,
+    period_id: uuid.UUID,
+) -> PayPeriodDetail:
+    await deductions.refresh_table_state(session, current_user, period_id, token=token)
+    return await _detail(session, current_user, period_id)
+
+
 @router.get(
     "/statutory-tables",
     response_model=StatutoryTablesPublic,

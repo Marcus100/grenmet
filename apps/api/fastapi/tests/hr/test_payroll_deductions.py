@@ -3,6 +3,7 @@
 Synthetic people and amounts only (XCD cents).
 """
 
+import uuid
 from datetime import date
 from decimal import Decimal
 from typing import Any
@@ -10,6 +11,7 @@ from typing import Any
 import httpx
 import pytest
 from cryptography.fernet import Fernet
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.auth.config import auth_settings
@@ -256,9 +258,11 @@ async def test_fortnightly_deductions_net_and_provisional_figures(
     ).json()
     await _confirm(async_client, confirmer, "social-insurance", nis_id)
     await _confirm(async_client, confirmer, "tax", tables["tax_tables"][0]["id"])
-    assert (await _summary(async_client, headers, period_id))[
-        "provisional_figures"
-    ] is True
+    # An unconfirmed deduction type blocks issue just like a tax table does.
+    blocked = await _summary(async_client, headers, period_id)
+    assert blocked["provisional_figures"] is True
+    assert "PENSION" in blocked["blocking_tables"]
+    await _confirm(async_client, confirmer, "deduction", pension_id)
     await async_client.post(f"{API}/periods/{period_id}/computation", headers=headers)
     assert (await _summary(async_client, headers, period_id))[
         "provisional_figures"
@@ -484,3 +488,189 @@ async def test_deduction_access_and_empty_new_organisation(
         },
     )
     assert open_band_missing.status_code == 400
+
+
+async def _approved_period(
+    client: httpx.AsyncClient, db: AsyncSession
+) -> tuple[dict[str, str], dict[str, str], str, str, dict[str, Any]]:
+    """An approved-quantities period computed while NIS and PAYE are provisional."""
+    headers, period_id, _, _, nis_id = await _fortnight_with_pay(client, db)
+    await client.post(f"{API}/periods/{period_id}/computation", headers=headers)
+    submitted = await client.post(
+        f"{API}/periods/{period_id}/submission", headers=headers
+    )
+    assert submitted.status_code == 200, submitted.text
+    approver = await headers_for(db, await make_user(db, superuser=True), mfa=True)
+    approved = await client.post(
+        f"{API}/periods/{period_id}/approval", headers=approver, json={}
+    )
+    assert approved.status_code == 200, approved.text
+    tables = (
+        await client.get(f"{API}/statutory-tables?organisation_id=gaa", headers=headers)
+    ).json()
+    return headers, approver, period_id, nis_id, tables
+
+
+@pytest.mark.usefixtures("totp_keys")
+async def test_confirming_after_approval_needs_the_audited_refresh(
+    async_client: httpx.AsyncClient, db_async: AsyncSession
+) -> None:
+    headers, approver, period_id, nis_id, tables = await _approved_period(
+        async_client, db_async
+    )
+    confirmer = await headers_for(
+        db_async, await make_user(db_async, superuser=True), mfa=True
+    )
+    await _confirm(async_client, confirmer, "social-insurance", nis_id)
+    await _confirm(async_client, confirmer, "tax", tables["tax_tables"][0]["id"])
+    issuer = await headers_for(
+        db_async, await make_user(db_async, superuser=True), mfa=True
+    )
+    # The frozen snapshot still says provisional, so issue is refused.
+    stuck = await async_client.post(
+        f"{API}/periods/{period_id}/issue-approval", headers=issuer
+    )
+    assert stuck.status_code == 409
+    # The preparer and the quantities approver cannot refresh; an unrelated approver can.
+    for who in (headers, approver):
+        denied = await async_client.post(
+            f"{API}/periods/{period_id}/table-state-refresh", headers=who
+        )
+        assert denied.status_code == 403, denied.text
+    no_mfa = await async_client.post(
+        f"{API}/periods/{period_id}/table-state-refresh",
+        headers=await headers_for(db_async, await make_user(db_async, superuser=True)),
+    )
+    assert no_mfa.status_code == 403
+    refreshed = await async_client.post(
+        f"{API}/periods/{period_id}/table-state-refresh", headers=issuer
+    )
+    assert refreshed.status_code == 200, refreshed.text
+    # Figures did not change; only the states did, and the refresh is audited.
+    summary = await _summary(async_client, headers, period_id)
+    assert summary["provisional_figures"] is False
+    assert summary["employees"][0]["net_minor"] == 240_000 - 15_000 - 11_815
+    history = await async_client.get(
+        f"/api/v1/audit/pay_period/{period_id}", headers=headers
+    )
+    assert "pay_period_table_refresh" in history.text
+    # The confirmer of the tables is still excluded from issuing.
+    by_confirmer = await async_client.post(
+        f"{API}/periods/{period_id}/issue-approval", headers=confirmer
+    )
+    assert by_confirmer.status_code == 403
+    done = await async_client.post(
+        f"{API}/periods/{period_id}/issue-approval", headers=issuer
+    )
+    assert done.status_code == 200, done.text
+    after = await async_client.post(
+        f"{API}/periods/{period_id}/table-state-refresh", headers=issuer
+    )
+    assert after.status_code == 409  # never once issued
+
+
+@pytest.mark.usefixtures("totp_keys")
+async def test_deduction_types_follow_the_same_gate_and_confirmers_can_read(
+    async_client: httpx.AsyncClient, db_async: AsyncSession
+) -> None:
+    ops, _, _ = await departments(db_async)
+    typist = await headers_for(
+        db_async, await make_user(db_async, superuser=True), mfa=True
+    )
+    created = await async_client.post(
+        f"{API}/deduction-types",
+        headers=typist,
+        json={
+            "organisation_id": "gaa",
+            "code": "CUSTOM",
+            "name": "Custom deduction",
+            "kind": "FIXED",
+            "employee_amount_minor": 1000,
+            "effective_from": "2030-01-01",
+            "requires_authorisation": False,
+            "rule_state": "CONFIRMED",
+        },
+    )
+    assert created.status_code == 201, created.text
+    body = created.json()
+    assert body["requires_authorisation"] is True  # not settable by the creator
+    assert body["rule_state"] == "PROVISIONAL"
+    confirm_only = await payroll_user(
+        db_async, "hr.payroll.tables.confirm", department_id=ops.id
+    )
+    confirmer = await headers_for(db_async, confirm_only, mfa=True)
+    tables = await async_client.get(
+        f"{API}/statutory-tables?organisation_id=gaa", headers=confirmer
+    )
+    assert tables.status_code == 200, tables.text  # nobody confirms blind
+    assert "CUSTOM" in tables.text
+    own = await async_client.put(
+        f"{API}/statutory-tables/deduction/{body['id']}/state",
+        headers=typist,
+        json={"rule_state": "CONFIRMED", "note": "Self-confirm"},
+    )
+    assert own.status_code == 403
+    done = await async_client.put(
+        f"{API}/statutory-tables/deduction/{body['id']}/state",
+        headers=confirmer,
+        json={"rule_state": "CONFIRMED", "note": "Checked, synthetic"},
+    )
+    assert done.status_code == 200, done.text
+    assert done.json()["rule_state"] == "CONFIRMED"
+
+
+async def test_approvers_are_counted_across_every_workflow_instance(
+    db_async: AsyncSession,
+) -> None:
+    from src.hr.payroll import access
+    from src.hr.payroll.models import PayPeriod
+    from src.hr.workflow.models import (
+        WorkflowAction,
+        WorkflowInstance,
+        WorkflowStatus,
+        WorkflowStepInstance,
+        WorkflowTemplate,
+        WorkflowType,
+    )
+
+    _, _, accounts = await departments(db_async)
+    await approval_setup(db_async, accounts.id)
+    template = await db_async.scalar(
+        select(WorkflowTemplate).where(
+            WorkflowTemplate.department_id == accounts.id,
+            WorkflowTemplate.workflow_type == WorkflowType.PAYROLL_RUN,
+        )
+    )
+    assert template is not None
+    requester = await make_user(db_async)
+    first, second = await make_user(db_async), await make_user(db_async)
+    period = PayPeriod(
+        id=uuid.uuid4(),
+        calendar_id=None,
+        organisation_id="gaa",
+        start_date=date(2026, 9, 1),
+        end_date=date(2026, 9, 30),
+        status="IN_REVIEW",
+    )
+    for approver in (first, second):
+        instance = WorkflowInstance(
+            workflow_template_id=template.id,
+            department_id=accounts.id,
+            workflow_type=WorkflowType.PAYROLL_RUN,
+            entity_type="pay_period",
+            entity_id=period.id,
+            requested_by_user_id=requester.id,
+            status=WorkflowStatus.RETURNED,
+        )
+        db_async.add(instance)
+        await db_async.flush()
+        db_async.add(
+            WorkflowStepInstance(
+                workflow_instance_id=instance.id,
+                step_order=1,
+                approver_user_id=approver.id,
+                action=WorkflowAction.APPROVE,
+            )
+        )
+    await db_async.flush()
+    assert await access.period_approvers(db_async, period) == {first.id, second.id}
