@@ -6,6 +6,7 @@
 import type { ApiError } from "./ApiError.js";
 import type { RegisterObservationRead } from "./RegisterObservationRead.js";
 import type { ReviewRequest } from "./ReviewRequest.js";
+import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 
 export type EregisterReviewRegisterObservationPath = {
   /**
@@ -43,7 +44,9 @@ export type EregisterReviewRegisterObservationStatus404 = ApiError;
  */
 export type EregisterReviewRegisterObservationStatus409 = ApiError;
 
-export type EregisterReviewRegisterObservationStatus422 = unknown;
+export type EregisterReviewRegisterObservationStatus422 =
+  | ApiError
+  | ValidationErrorResponse;
 
 export type EregisterReviewRegisterObservationBody = ReviewRequest;
 

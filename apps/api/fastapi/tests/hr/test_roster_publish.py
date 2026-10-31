@@ -25,6 +25,9 @@ from src.hr.roster.service import (
 from tests.factories import make_employee
 from tests.utils.utils import random_email, random_lower_string
 
+# Fixture rosters are not under test for the roster rules (#380).
+FIXTURE_REASON = "Fixture roster; roster rules are not under test"
+
 
 async def test_publish_snapshots_full_assignments(db_async: AsyncSession) -> None:
     manager = await create_user(
@@ -97,7 +100,10 @@ async def test_publish_snapshots_full_assignments(db_async: AsyncSession) -> Non
     )
 
     await publish_roster_period(
-        session=db_async, current_user=manager, period_id=period.id
+        session=db_async,
+        current_user=manager,
+        period_id=period.id,
+        rule_override_reason=FIXTURE_REASON,
     )
 
     result = await db_async.execute(

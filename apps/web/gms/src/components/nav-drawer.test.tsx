@@ -27,16 +27,32 @@ describe("NavDrawer", () => {
     expect(container).toBeEmptyDOMElement();
   });
 
-  it("offers sign-in when an account is configured, and no appearance switch", () => {
+  it("hides the whole account block by default", () => {
     render(<NavDrawer accountLabel="Weather" onClose={() => undefined} open />);
+    expect(
+      screen.queryByRole("button", { name: "Sign in to Weather" })
+    ).not.toBeInTheDocument();
+    expect(screen.queryByText("Your account")).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Sign in" })).toBeNull();
+  });
+
+  it("offers sign-in when the switch is on and an account is configured", () => {
+    render(
+      <NavDrawer
+        accountLabel="Weather"
+        onClose={() => undefined}
+        open
+        showSignIn
+      />
+    );
     expect(
       screen.getByRole("button", { name: "Sign in to Weather" })
     ).toBeInTheDocument();
     expect(screen.queryByText("Appearance")).not.toBeInTheDocument();
   });
 
-  it("shows a static sign-in when no account is configured", () => {
-    render(<NavDrawer onClose={() => undefined} open />);
+  it("shows a static sign-in when the switch is on and no account is configured", () => {
+    render(<NavDrawer onClose={() => undefined} open showSignIn />);
     expect(screen.getByRole("button", { name: "Sign in" })).toBeInTheDocument();
     expect(screen.queryByText("Coming soon")).not.toBeInTheDocument();
   });

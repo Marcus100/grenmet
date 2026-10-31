@@ -36,9 +36,11 @@ vi.mock("./balance-import", () => ({
   BalanceImport: () => <p>Balance import</p>,
 }));
 vi.mock("./roster-rules-manager", () => ({
-  RosterRulesManager: ({ canManage }: { canManage: boolean }) => (
-    <p>Roster rules: {canManage ? "editable" : "read only"}</p>
-  ),
+  RosterRulesManager: ({
+    canEditOrganisation,
+  }: {
+    canEditOrganisation: boolean;
+  }) => <p>Roster rules: {canEditOrganisation ? "editable" : "read only"}</p>,
 }));
 vi.mock("./notification-settings", () => ({
   NotificationSettings: () => null,
@@ -173,4 +175,46 @@ it("permits shared editing from preserved unscoped authority", async () => {
   expect(
     await screen.findByText("Shared shifts: editable")
   ).toBeInTheDocument();
+});
+
+it("needs roster.rules.manage, not roster.manage, to edit roster rules", async () => {
+  actor.is_superuser = false;
+  server.use(
+    http.get(`${BASE}/api/v1/auth/access/me`, () =>
+      HttpResponse.json({
+        is_superuser: false,
+        role_names: ["global-roster-admin"],
+        permission_keys: ["roster.manage"],
+        all_scope_permission_keys: ["roster.manage"],
+        global_permission_keys: [],
+      })
+    )
+  );
+  show();
+  const selector = await screen.findByLabelText("Employer organisation");
+  fireEvent.change(selector, { target: { value: "gaa" } });
+  fireEvent.click(screen.getByRole("tab", { name: "Roster rules" }));
+  expect(
+    await screen.findByText("Roster rules: read only")
+  ).toBeInTheDocument();
+});
+
+it("lets an organisation-wide HR administrator edit roster rules", async () => {
+  actor.is_superuser = false;
+  server.use(
+    http.get(`${BASE}/api/v1/auth/access/me`, () =>
+      HttpResponse.json({
+        is_superuser: false,
+        role_names: ["hr-admin"],
+        permission_keys: ["roster.rules.manage"],
+        all_scope_permission_keys: ["roster.rules.manage"],
+        global_permission_keys: [],
+      })
+    )
+  );
+  show();
+  const selector = await screen.findByLabelText("Employer organisation");
+  fireEvent.change(selector, { target: { value: "gaa" } });
+  fireEvent.click(screen.getByRole("tab", { name: "Roster rules" }));
+  expect(await screen.findByText("Roster rules: editable")).toBeInTheDocument();
 });

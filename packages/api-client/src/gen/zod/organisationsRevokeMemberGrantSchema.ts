@@ -5,7 +5,7 @@
 
 import * as z from "zod";
 import { apiErrorSchema } from "./apiErrorSchema.js";
-import { membershipGrantPublicSchema } from "./membershipGrantPublicSchema.js";
+import { grantRevokePublicSchema } from "./grantRevokePublicSchema.js";
 import { validationErrorResponseSchema } from "./validationErrorResponseSchema.js";
 
 export const organisationsRevokeMemberGrantPathGrantIdSchema = z.string();
@@ -18,8 +18,8 @@ export const organisationsRevokeMemberGrantHeaderXBarrelsOrganisationSchema = z
   );
 
 export const organisationsRevokeMemberGrantStatus200Schema =
-  membershipGrantPublicSchema.describe(
-    "A role a member holds. Display names only; never email addresses."
+  grantRevokePublicSchema.describe(
+    "The revoked grant and how many other grants the cascade ended (#527)."
   );
 
 export const organisationsRevokeMemberGrantStatus400Schema =

@@ -5,6 +5,7 @@ import {
   hrGetPeriodQueryKey,
   hrListPeriodsQueryKey,
   type RosterAssignmentInput,
+  type RosterRuleWarningsErrorPublic,
   useHrBulkAssignments,
   useHrCreatePeriod,
   useHrGetPeriod,
@@ -41,6 +42,8 @@ import {
 import { Fragment, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { rosterLabel } from "@/lib/people";
+import { reportError } from "@/lib/report-error";
+import { hrApiErrorMessage } from "../api-error";
 import { RosterRuleWarnings } from "./roster-rule-warnings";
 import {
   buildAssignmentMap,
@@ -55,6 +58,8 @@ import {
   nextCode,
   workShiftCodes,
 } from "./roster-utils";
+import { ruleWarningsFrom } from "./rule-codes";
+import { RuleOverrideDialog } from "./rule-override-dialog";
 
 const WEEKDAY = ["S", "M", "T", "W", "T", "F", "S"];
 
@@ -139,6 +144,11 @@ export function DutyRoster() {
   const createPeriodMutation = useHrCreatePeriod();
   const bulkMutation = useHrBulkAssignments();
   const publishMutation = useHrPublishPeriod();
+  // Rule warnings from a save or publish, waiting for a supervisor's reason.
+  const [override, setOverride] = useState<{
+    action: "save" | "publish";
+    warnings: RosterRuleWarningsErrorPublic;
+  } | null>(null);
 
   const year = monthDate.getFullYear();
   const month = monthDate.getMonth();
@@ -208,7 +218,21 @@ export function DutyRoster() {
     toast.success(`Roster period created for ${monthLabel}`);
   }
 
-  async function save() {
+  function handleFailure(
+    error: unknown,
+    action: "save" | "publish",
+    area: string
+  ): void {
+    const warnings = ruleWarningsFrom(error);
+    if (warnings) {
+      setOverride({ action, warnings });
+      return;
+    }
+    reportError(error, area);
+    toast.error(hrApiErrorMessage(error));
+  }
+
+  async function save(reason?: string) {
     if (!period || pendingCount === 0) return;
     const assignments: RosterAssignmentInput[] = Object.entries(
       pendingEdits
@@ -220,9 +244,19 @@ export function DutyRoster() {
         shift_code: shiftCode,
       };
     });
-    await bulkMutation.mutateAsync({
-      body: { roster_period_id: period.id, assignments },
-    });
+    try {
+      await bulkMutation.mutateAsync({
+        body: {
+          roster_period_id: period.id,
+          assignments,
+          ...(reason ? { rule_override_reason: reason } : {}),
+        },
+      });
+    } catch (error) {
+      handleFailure(error, "save", "roster-save");
+      return;
+    }
+    setOverride(null);
     await Promise.all([
       queryClient.invalidateQueries({
         queryKey: hrGetPeriodQueryKey({
@@ -239,9 +273,18 @@ export function DutyRoster() {
     toast.success(`Saved ${assignments.length} assignment(s)`);
   }
 
-  async function publish() {
+  async function publish(reason?: string) {
     if (!period) return;
-    await publishMutation.mutateAsync({ path: { period_id: period.id } });
+    try {
+      await publishMutation.mutateAsync({
+        path: { period_id: period.id },
+        body: reason ? { rule_override_reason: reason } : undefined,
+      });
+    } catch (error) {
+      handleFailure(error, "publish", "roster-publish");
+      return;
+    }
+    setOverride(null);
     await Promise.all([
       queryClient.invalidateQueries({
         queryKey: hrListPeriodsQueryKey({
@@ -312,7 +355,7 @@ export function DutyRoster() {
           </Button>
           <Button
             disabled={!period || pendingCount === 0 || bulkMutation.isPending}
-            onClick={save}
+            onClick={() => save()}
             size="sm"
             type="button"
           >
@@ -347,7 +390,7 @@ export function DutyRoster() {
                   <DialogClose render={<Button variant="outline" />}>
                     Cancel
                   </DialogClose>
-                  <DialogClose render={<Button onClick={publish} />}>
+                  <DialogClose render={<Button onClick={() => publish()} />}>
                     Publish
                   </DialogClose>
                 </DialogFooter>
@@ -393,6 +436,16 @@ export function DutyRoster() {
       {period ? (
         <RosterRuleWarnings labels={memberLabels} periodId={period.id} />
       ) : null}
+
+      <RuleOverrideDialog
+        busy={bulkMutation.isPending || publishMutation.isPending}
+        labels={memberLabels}
+        onCancel={() => setOverride(null)}
+        onConfirm={(reason) =>
+          override?.action === "publish" ? publish(reason) : save(reason)
+        }
+        warnings={override?.warnings ?? null}
+      />
 
       {period ? null : (
         <div className="flex items-center justify-between rounded-xl border border-dashed px-4 py-3 text-sm">

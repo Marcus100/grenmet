@@ -92,9 +92,9 @@ describe("decisionError", () => {
     expect(decisionError({ detail: "Cannot accept" }, 409)).toBe(
       "Cannot accept"
     );
-    expect(decisionError({ detail: { message: "dew_point: bad" } }, 422)).toBe(
-      "dew_point: bad"
-    );
+    expect(
+      decisionError({ detail: { issues: [], message: "dew_point: bad" } }, 422)
+    ).toBe("dew_point: bad");
     expect(decisionError(undefined, 403)).toContain("permission");
   });
 });

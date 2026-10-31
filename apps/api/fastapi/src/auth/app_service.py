@@ -56,6 +56,7 @@ from src.email import send_email
 from src.email_config import email_settings
 from src.exceptions import AppException
 from src.models import Message
+from src.rate_limit import request_ip
 from src.utils.datetime import utc_now
 
 logger = logging.getLogger(__name__)
@@ -210,7 +211,7 @@ async def _session_response(
     if not eligible:
         raise AppException("This account can't sign in to this app.", 403)
     user_agent = request.headers.get("user-agent")
-    ip_address = request.client.host if request.client else None
+    ip_address = request_ip(request)
     new_device = remember_device(user, user_agent)
     db_session, session_token = await service.create_session(
         session=session,
@@ -800,7 +801,7 @@ async def account_email_code_verify(
     await session.commit()
 
     user_agent = request.headers.get("user-agent")
-    ip_address = request.client.host if request.client else None
+    ip_address = request_ip(request)
     new_device = remember_device(user, user_agent)
     db_session, session_token = await service.create_session(
         session=session,

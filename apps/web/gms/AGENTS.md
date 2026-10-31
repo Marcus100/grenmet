@@ -12,6 +12,29 @@ routes `src/app/auth/{start,callback,me,logout}`, config `src/lib/auth-config.ts
 (registry key `weather`). Off until `WEATHER_SSO_CLIENT_SECRET` is set. The
 button loads the account in the browser (`/auth/me`), so pages stay static.
 
+**Button hidden by default (owner, 31 Oct 2026).** `WEATHER_SHOW_SIGN_IN`
+(`src/lib/env.ts`, boolean `true`/`false`, default `false`) gates only the
+button's visibility, read by `signInVisible()` in `src/lib/auth-config.ts` and
+passed to `Header` (`showSignIn`) and `NavDrawer` (`showSignIn`), which hide the
+button and the drawer's "Your account" block. The auth routes, callback,
+`/auth/me` and account handling are unchanged. Tests: `header.test.tsx`,
+`nav-drawer.test.tsx`, `auth-config.test.ts`. Documented in `docs/env.md`.
+
+**Not wired in deploy yet.** `infra/docker/docker-compose.deploy.yml` (the
+`web-gms` service) and `scripts/production/render-env.py` do not pass
+`WEATHER_SHOW_SIGN_IN`, so a deployed site keeps the button hidden. Those are
+owner-merge files and were left unchanged. To show the button again, add one
+line to the `web-gms` environment block, next to `WEATHER_SSO_CLIENT_SECRET`:
+
+```yaml
+      WEATHER_SHOW_SIGN_IN: ${WEATHER_SHOW_SIGN_IN:-false}
+```
+
+and add `WEATHER_SHOW_SIGN_IN` to the GMS web entries in `render-env.py` so the
+value reaches the environment. The value is read when the pages are rendered,
+and the standing pages are static, so a change shows only after a redeploy
+(rebuild if it is read at build time).
+
 ## Data sources — no database
 
 No DB access. Two backends, never gaa-admin (it only authors into FastAPI):
@@ -150,7 +173,7 @@ src/app/
   hero tabs (marine lives at `/marine`). The website has no bottom tab bar;
   `MobileTabBar` is kept for the app.
 - **Units (28 Oct 2026):** every hero measurement is metric or imperial,
-  metric until a visitor chooses (owner first chose imperial, then metric) (header button, saved in `localStorage`
+  metric until a visitor chooses (owner first chose imperial, then metric) (switch in the top corner of the home hero card, above the tabs, `components/units-toggle.tsx` placed by `components/home/sky-hero.tsx`; it was in the header until 31 Oct 2026, so only the home page has the switch and other pages show the saved choice (the switch is on the home page only, in the hero card); saved in `localStorage`
   `gm-units`). The API sends WMO units (°C, knots, metres, km, hPa, mm). A figure
   is a `Measure` (`lib/units.ts`) rendered by `components/measure.tsx` in both
   systems; `globals.css` shows one by `<html data-units>`, so static pages never
@@ -213,6 +236,18 @@ src/app/
   `next.config.ts` header), never in the sitemap or nav. Set the CMS's
   `GMS_PREVIEW_URL` to this page's address. Tests: `lib/cms-preview.test.ts`
   (expired, forged, malformed, outage), `app/(pages)/preview/page.test.tsx`.
+- **Missing CMS items (30 Oct 2026):** `src/proxy.ts` runs only on the CMS
+  item addresses (`/explore/news|updates|reports/...`, `/explore/explained/<slug>`,
+  `/explore/quiz/<slug>`). On a full page load it asks the CMS's public list
+  endpoint whether the item exists (`lib/cms-item.ts` maps the address to the
+  slug, `lib/cms-item-exists.ts` asks; found items are kept 60 s, missing ones 10 s
+  so a newly published item shows within seconds, "could not tell" 5 s); a missing
+  item is rewritten to Next's `/_not-found`, rendered on the server with status
+  404. Reason: a `notFound()` thrown while a dynamic page renders makes Next 16
+  send an empty error document (`<html id="__next_error__">`) that only fills
+  in with JavaScript; moving live data into Suspense or a segment `not-found`
+  does not change that. Client navigations and a CMS that cannot answer fall
+  through to the page (which shows its "cannot be retrieved" message).
 - **Satellite:** `/weather/satellite` reads FastAPI `wxwatch/public/latest`
   (`lib/satellite.ts`) and shows images through `app/api/satellite/[id]` (a proxy;
   the API host and bucket are never exposed). No image is the "Not yet available"

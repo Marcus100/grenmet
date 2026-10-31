@@ -16,3 +16,11 @@ export const APP_LABEL = "Grenada Meteorological Service";
 export function signInEnabled(): boolean {
   return Boolean(env.WEATHER_SSO_CLIENT_SECRET);
 }
+
+/**
+ * Whether the "Sign in" button is shown (WEATHER_SHOW_SIGN_IN, off by default).
+ * It only hides the button: the auth routes and account handling still run.
+ */
+export function signInVisible(): boolean {
+  return env.WEATHER_SHOW_SIGN_IN;
+}
