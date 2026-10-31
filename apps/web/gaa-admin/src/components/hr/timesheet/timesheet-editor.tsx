@@ -7,6 +7,7 @@ import {
   type TimesheetEntryInput,
   type TimesheetPrefillEntry,
   useHrCreateTimesheet,
+  useHrDeleteDraftTimesheet,
   useHrGetHrProfileMe,
   useHrSubmitTimesheet,
 } from "@barrelsgd/api-client";
@@ -123,6 +124,7 @@ export function TimesheetEditor() {
   const profileQuery = useHrGetHrProfileMe();
   const departmentId = profileQuery.data?.employment?.department?.id;
   const createMutation = useHrCreateTimesheet();
+  const deleteDraftMutation = useHrDeleteDraftTimesheet();
 
   const submitMutation = useHrSubmitTimesheet();
   // A submission the approval template approves at once, breaking roster
@@ -136,11 +138,15 @@ export function TimesheetEditor() {
   const [rosterBusy, setRosterBusy] = useState(false);
   const [rosterNote, setRosterNote] = useState<string | null>(null);
   const [savedTimesheetId, setSavedTimesheetId] = useState<string | null>(null);
+  // What the saved draft holds, so an edited form replaces it (no duplicates).
+  const [savedFingerprint, setSavedFingerprint] = useState<string | null>(null);
   const [submission, setSubmission] = useState<SubmissionMetadata | null>(null);
   function reset() {
     form.reset();
     setRosterNote(null);
     setSavedTimesheetId(null);
+    setSavedFingerprint(null);
+    setOverride(null);
     setSubmission(null);
   }
 
@@ -199,43 +205,63 @@ export function TimesheetEditor() {
     }
   }
 
+  /** Returns false when the submission failed, so a typed override reason is kept. */
   async function submitToHr(
     values: typeof EMPTY_TIMESHEET,
     ruleReason?: string
-  ) {
+  ): Promise<boolean> {
     if (!signature.data) {
       toast.error("Save your signature in your profile before signing");
-      return;
+      return false;
     }
     const rows = values.rows.filter((row) => !isRowEmpty(row));
     if (rows.length === 0) {
       toast.error("Add at least one entry before submitting");
-      return;
+      return false;
     }
     const dates = rows.map((row) => row.date).sort();
     const periodStart = dates.at(0);
     const periodEnd = dates.at(-1);
     if (!(periodStart && periodEnd)) {
       toast.error("Every entry needs a date");
-      return;
+      return false;
     }
     if (!departmentId) {
       toast.error("Your employment record has no department — contact HR");
-      return;
+      return false;
     }
     try {
+      const entries = rows.map(toEntry);
+      const fingerprint = JSON.stringify({
+        departmentId,
+        periodStart,
+        periodEnd,
+        entries,
+      });
       let timesheetId = savedTimesheetId;
+      if (timesheetId && savedFingerprint !== fingerprint) {
+        // The form changed after the draft was saved (for example the user
+        // cancelled the rule override dialog to fix the hours): replace the
+        // draft rather than submit stale entries or leave a duplicate.
+        await deleteDraftMutation.mutateAsync({
+          path: { timesheet_id: timesheetId },
+        });
+        timesheetId = null;
+        setSavedTimesheetId(null);
+        setSavedFingerprint(null);
+      }
       if (!timesheetId) {
         const created = await createMutation.mutateAsync({
           body: {
             department_id: departmentId,
             period_start: periodStart,
             period_end: periodEnd,
-            entries: rows.map(toEntry),
+            entries,
           },
         });
         timesheetId = created.timesheet.id;
         setSavedTimesheetId(timesheetId);
+        setSavedFingerprint(fingerprint);
       }
       if (!timesheetId) throw new Error("The saved timesheet has no ID");
       const submitted = await submitMutation.mutateAsync({
@@ -253,15 +279,19 @@ export function TimesheetEditor() {
         queryKey: hrGetMyTimesheetsQueryKey({}),
       });
       toast.success("Time sheet submitted");
+      return true;
     } catch (error) {
       const warnings = ruleWarningsFrom(error);
       if (warnings) {
         setOverride({ values, warnings });
-        return;
+        return false;
       }
+      // Any other failure closes the dialog; the typed reason is kept.
+      setOverride(null);
       const detail =
         error instanceof Error ? error.message : "Something went wrong";
       toast.error(`Submission failed: ${detail}`);
+      return false;
     }
   }
 
@@ -272,11 +302,15 @@ export function TimesheetEditor() {
           editor={
             <div className="flex flex-col gap-4 rounded-xl border bg-card p-4">
               <RuleOverrideDialog
-                busy={createMutation.isPending || submitMutation.isPending}
+                busy={
+                  createMutation.isPending ||
+                  submitMutation.isPending ||
+                  deleteDraftMutation.isPending
+                }
                 defaultLabel="You"
                 onCancel={() => setOverride(null)}
                 onConfirm={(ruleReason) =>
-                  override ? submitToHr(override.values, ruleReason) : undefined
+                  override ? submitToHr(override.values, ruleReason) : false
                 }
                 warnings={override?.warnings ?? null}
               />
@@ -317,7 +351,7 @@ export function TimesheetEditor() {
               <SigningPanel submission={submission} />
               <Separator />
 
-              {!savedTimesheetId && (
+              {!submission && (
                 <form
                   className="flex flex-col gap-4"
                   inert={createMutation.isPending || submitMutation.isPending}

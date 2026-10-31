@@ -323,6 +323,201 @@ describe("AttendanceTimesheet", () => {
     });
   });
 
+  describe("held for roster rule warnings", () => {
+    const WARNING_409 = {
+      detail: "1 roster rule warning: give a reason to save anyway",
+      code: "ROSTER_RULE_WARNINGS",
+      context: "ATTENDANCE",
+      violations: [
+        {
+          code: "MAX_DAILY_HOURS",
+          user_id: "employee-1",
+          start_date: "2026-09-26",
+          end_date: "2026-09-26",
+          observed: "11.00",
+          limit: "8.00",
+          detail: "11.00 h on the day; maximum is 8 h",
+        },
+      ],
+    };
+    const SUBMIT_URL = `${BASE}/api/v1/hr/attendance/attendance-1/submit`;
+    const CORRECTION_URL = `${BASE}/api/v1/hr/attendance/attendance-1/corrections`;
+
+    interface Calls {
+      corrections: Record<string, unknown>[];
+      saves: number;
+      submits: Record<string, unknown>[];
+      weeks: number;
+    }
+
+    /** Submits and corrections are held (409) until a reason is sent; with one
+     *  they succeed, or fail with a 500 when `resend` is "fail". */
+    function hold(resend: "ok" | "fail" = "ok", approved = false): Calls {
+      const calls: Calls = { weeks: 0, saves: 0, submits: [], corrections: [] };
+      const recorded = approved
+        ? {
+            ...SHIFT,
+            attendance_id: "attendance-1",
+            arrived_at: "2026-09-27T02:00:00Z",
+            departed_at: "2026-09-27T10:00:00Z",
+            revision: 1,
+            review_status: "APPROVED",
+          }
+        : SHIFT;
+      const answer = (body: Record<string, unknown>) => {
+        if (!body.rule_override_reason)
+          return HttpResponse.json(WARNING_409, { status: 409 });
+        if (resend === "fail")
+          return HttpResponse.json({ detail: "Down" }, { status: 500 });
+        return HttpResponse.json({ id: "ok" });
+      };
+      server.use(
+        http.get(`${BASE}/api/v1/hr/attendance/week`, () => {
+          calls.weeks += 1;
+          return HttpResponse.json({ ...WEEK, shifts: [recorded] });
+        }),
+        http.put(`${BASE}/api/v1/hr/attendance`, () => {
+          calls.saves += 1;
+          return HttpResponse.json({
+            ...SHIFT,
+            attendance_id: "attendance-1",
+            revision: 1,
+          });
+        }),
+        http.post(SUBMIT_URL, async ({ request }) => {
+          const body = (await request.json()) as Record<string, unknown>;
+          calls.submits.push(body);
+          return answer(body);
+        }),
+        http.post(CORRECTION_URL, async ({ request }) => {
+          const body = (await request.json()) as Record<string, unknown>;
+          calls.corrections.push(body);
+          return answer(body);
+        })
+      );
+      return calls;
+    }
+
+    async function fillAndSubmit() {
+      await screen.findByText(SHIFT_LABEL);
+      fireEvent.change(screen.getByLabelText("Arrival"), {
+        target: { value: "2026-09-26T22:00" },
+      });
+      fireEvent.change(screen.getByLabelText("Departure"), {
+        target: { value: "2026-09-27T09:00" },
+      });
+      await userEvent.click(
+        screen.getByRole("button", { name: "Submit shift for review" })
+      );
+      await screen.findByRole("list", { name: "Rule warnings" });
+    }
+
+    it("Cancel closes the dialog, refreshes the shift, keeps the typed times and sends nothing more", async () => {
+      const calls = hold();
+      renderUi();
+      await fillAndSubmit();
+      const weeksBefore = calls.weeks;
+
+      await userEvent.click(screen.getByRole("button", { name: "Cancel" }));
+      await waitFor(() =>
+        expect(
+          screen.queryByRole("list", { name: "Rule warnings" })
+        ).not.toBeInTheDocument()
+      );
+      await waitFor(() => expect(calls.weeks).toBeGreaterThan(weeksBefore));
+      expect(screen.getByLabelText("Departure")).toHaveValue(
+        "2026-09-27T09:00"
+      );
+      expect(calls.saves).toBe(1);
+      expect(calls.submits).toHaveLength(1);
+    });
+
+    it("a failed resend closes the dialog, shows the failure and keeps the typed reason", async () => {
+      hold("fail");
+      renderUi();
+      await fillAndSubmit();
+      fireEvent.change(screen.getByLabelText("Reason for saving anyway"), {
+        target: { value: "Relief officer delayed" },
+      });
+      await userEvent.click(
+        screen.getByRole("button", { name: "Approve anyway" })
+      );
+      await waitFor(() =>
+        expect(
+          screen.queryByRole("list", { name: "Rule warnings" })
+        ).not.toBeInTheDocument()
+      );
+      expect(await screen.findByRole("alert")).toHaveTextContent("Down");
+
+      await userEvent.click(
+        screen.getByRole("button", { name: "Submit shift for review" })
+      );
+      await screen.findByRole("list", { name: "Rule warnings" });
+      expect(screen.getByLabelText("Reason for saving anyway")).toHaveValue(
+        "Relief officer delayed"
+      );
+    });
+
+    it("asks for a reason when a correction breaks a roster rule, then resends it", async () => {
+      const calls = hold("ok", true);
+      renderUi();
+      await userEvent.click(
+        await screen.findByRole("button", { name: "Propose time correction" })
+      );
+      fireEvent.change(screen.getByLabelText("Departure"), {
+        target: { value: "2026-09-27T09:00" },
+      });
+      await userEvent.type(
+        screen.getByLabelText("Correction reason"),
+        "Stayed on for the storm"
+      );
+      await userEvent.click(
+        screen.getByRole("button", { name: "Send correction for review" })
+      );
+      const warnings = await screen.findByRole("list", {
+        name: "Rule warnings",
+      });
+      expect(warnings).toHaveTextContent("Test Employee");
+
+      fireEvent.change(screen.getByLabelText("Reason for saving anyway"), {
+        target: { value: "Storm coverage approved by the manager" },
+      });
+      await userEvent.click(
+        screen.getByRole("button", { name: "Approve anyway" })
+      );
+      await waitFor(() => expect(calls.corrections).toHaveLength(2));
+      expect(calls.corrections[1]).toMatchObject({
+        reason: "Stayed on for the storm",
+        rule_override_reason: "Storm coverage approved by the manager",
+      });
+      expect(calls.corrections[0]).not.toHaveProperty("rule_override_reason");
+    });
+
+    it("Cancel on a correction warning sends nothing more and keeps the form", async () => {
+      const calls = hold("ok", true);
+      renderUi();
+      await userEvent.click(
+        await screen.findByRole("button", { name: "Propose time correction" })
+      );
+      fireEvent.change(screen.getByLabelText("Departure"), {
+        target: { value: "2026-09-27T09:00" },
+      });
+      await userEvent.type(screen.getByLabelText("Correction reason"), "Storm");
+      await userEvent.click(
+        screen.getByRole("button", { name: "Send correction for review" })
+      );
+      await screen.findByRole("list", { name: "Rule warnings" });
+      await userEvent.click(screen.getByRole("button", { name: "Cancel" }));
+      await waitFor(() =>
+        expect(
+          screen.queryByRole("list", { name: "Rule warnings" })
+        ).not.toBeInTheDocument()
+      );
+      expect(screen.getByLabelText("Correction reason")).toHaveValue("Storm");
+      expect(calls.corrections).toHaveLength(1);
+    });
+  });
+
   it("loads actual attendance and correction reason on supervisor review disclosure", async () => {
     server.use(
       http.get(`${BASE}/api/v1/hr/attendance/review`, () =>

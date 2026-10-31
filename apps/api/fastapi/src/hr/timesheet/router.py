@@ -1,3 +1,4 @@
+import uuid
 from collections.abc import Sequence
 from typing import Annotated, Any
 
@@ -152,6 +153,31 @@ async def submit_timesheet(
     )
 
     return await _public(session, result)
+
+
+@router.delete(
+    "/{timesheet_id}",
+    status_code=status.HTTP_204_NO_CONTENT,
+    summary="Delete a draft timesheet",
+    description="Delete the caller's own unsubmitted draft timesheet and its entries, so an editor can replace a draft instead of leaving a duplicate. Submitted timesheets are retained.",
+    responses={
+        status.HTTP_204_NO_CONTENT: {"description": "Draft timesheet deleted"},
+        status.HTTP_400_BAD_REQUEST: {
+            "model": ApiError,
+            "description": "Not found, not a draft, or has approval history",
+        },
+        status.HTTP_403_FORBIDDEN: {
+            "model": ApiError,
+            "description": "Not the owner of this timesheet",
+        },
+    },
+)
+async def delete_draft_timesheet(
+    *, session: SessionDep, current_user: CurrentUser, timesheet_id: uuid.UUID
+) -> None:
+    await service.delete_draft_timesheet(
+        session=session, current_user=current_user, timesheet_id=timesheet_id
+    )
 
 
 @router.patch(

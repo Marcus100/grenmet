@@ -7,13 +7,14 @@ from datetime import date
 from decimal import Decimal
 
 from pydantic import ValidationError
-from sqlalchemy import func, select
+from sqlalchemy import delete, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.auth.models import User
 from src.auth.policy import can_act_on_user, require_permission
 from src.hr.constants import (
     ERROR_TIMESHEET_ALREADY_SUBMITTED,
+    ERROR_TIMESHEET_NOT_FOUND,
     ERROR_TIMESHEET_NOT_SUBMITTED,
     ERROR_TIMESHEET_PROXY_SUBMIT_DISABLED,
     ERROR_TIMESHEET_PROXY_SUBMIT_NOT_ALLOWED,
@@ -398,6 +399,39 @@ async def submit_timesheet(
         },
     )
     return timesheet
+
+
+async def delete_draft_timesheet(
+    *, session: AsyncSession, current_user: User, timesheet_id: uuid.UUID
+) -> None:
+    """Delete the caller's own unsubmitted draft and its entries. The editor uses
+    this to replace a draft whose submission was held for roster rule warnings
+    (#380) instead of leaving a duplicate behind. Submitted timesheets and their
+    approval history are never deleted."""
+    timesheet = await session.scalar(
+        select(Timesheet).where(Timesheet.id == timesheet_id).with_for_update()
+    )
+    if timesheet is None:
+        raise HRValidationError(ERROR_TIMESHEET_NOT_FOUND)
+    if timesheet.user_id != current_user.id:
+        raise HRPermissionDeniedError(ERROR_TIMESHEET_SELF_SUBMIT_ONLY_OWN)
+    if timesheet.status != TimesheetStatus.DRAFT:
+        raise HRValidationError("Only an unsubmitted draft timesheet can be deleted")
+    has_history = await session.scalar(
+        select(WorkflowInstance.id)
+        .where(
+            WorkflowInstance.entity_type == "timesheet",
+            WorkflowInstance.entity_id == timesheet.id,
+        )
+        .limit(1)
+    )
+    if has_history:
+        raise HRValidationError("Previously submitted timesheets must be retained")
+    await session.execute(
+        delete(TimesheetEntry).where(TimesheetEntry.timesheet_id == timesheet.id)
+    )
+    await session.delete(timesheet)
+    await session.commit()
 
 
 async def approve_timesheet(

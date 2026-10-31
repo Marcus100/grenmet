@@ -5,12 +5,13 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.exceptions import AuthorizationError
 from src.hr.exceptions import HRPermissionDeniedError, HRValidationError
-from src.hr.timesheet.models import SubmissionMode, TimesheetStatus
+from src.hr.timesheet.models import SubmissionMode, Timesheet, TimesheetStatus
 from src.hr.timesheet.schemas import TimesheetCreate
 from src.hr.timesheet.service import (
     _get_or_create_policy,
     approve_timesheet,
     create_timesheet,
+    delete_draft_timesheet,
     submit_timesheet,
 )
 from tests.factories import (
@@ -180,3 +181,48 @@ async def test_approve_timesheet_succeeds(db_async: AsyncSession) -> None:
     )
     assert approved.status == TimesheetStatus.APPROVED
     assert approved.approved_by_user_id == supervisor.id
+
+
+async def test_owner_deletes_an_unsubmitted_draft(db_async: AsyncSession) -> None:
+    dept = await make_department(db_async, "dept_ts_delete_draft")
+    user = await make_user(db_async)
+    await make_employee(db_async, user=user, department_id=dept.id)
+    role, _ = await make_role_with_permission(db_async, "timesheet.submit.self")
+    await assign_role(db_async, user=user, role=role)
+    timesheet = await _make_timesheet(db_async, user, dept.id)
+    timesheet_id = timesheet.id
+
+    await delete_draft_timesheet(
+        session=db_async, current_user=user, timesheet_id=timesheet_id
+    )
+    assert await db_async.get(Timesheet, timesheet_id) is None
+
+
+async def test_draft_delete_refuses_others_and_submitted_timesheets(
+    db_async: AsyncSession,
+) -> None:
+    dept = await make_department(db_async, "dept_ts_delete_refused")
+    owner = await make_user(db_async)
+    other = await make_user(db_async)
+    await make_employee(db_async, user=owner, department_id=dept.id)
+    await make_employee(db_async, user=other, department_id=dept.id)
+    role, _ = await make_role_with_permission(db_async, "timesheet.submit.self")
+    await assign_role(db_async, user=owner, role=role)
+    timesheet = await _make_timesheet(db_async, owner, dept.id)
+    timesheet_id = timesheet.id
+
+    with pytest.raises(HRPermissionDeniedError):
+        await delete_draft_timesheet(
+            session=db_async, current_user=other, timesheet_id=timesheet_id
+        )
+    await submit_timesheet(
+        session=db_async,
+        current_user=owner,
+        timesheet_id=timesheet_id,
+        submission_mode=SubmissionMode.SELF,
+    )
+    with pytest.raises(HRValidationError):
+        await delete_draft_timesheet(
+            session=db_async, current_user=owner, timesheet_id=timesheet_id
+        )
+    assert await db_async.get(Timesheet, timesheet_id) is not None

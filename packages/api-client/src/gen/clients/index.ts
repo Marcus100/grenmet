@@ -321,6 +321,7 @@ export { hrCreateTimesheet } from "./hrCreateTimesheet.js";
 export { hrCreateTrainingRecord } from "./hrCreateTrainingRecord.js";
 export { hrDeleteAbsenteeReport } from "./hrDeleteAbsenteeReport.js";
 export { hrDeleteDepartmentRuleSet } from "./hrDeleteDepartmentRuleSet.js";
+export { hrDeleteDraftTimesheet } from "./hrDeleteDraftTimesheet.js";
 export { hrDeleteLeaveRequest } from "./hrDeleteLeaveRequest.js";
 export { hrDeleteMySignature } from "./hrDeleteMySignature.js";
 export { hrDeleteShiftSwap } from "./hrDeleteShiftSwap.js";

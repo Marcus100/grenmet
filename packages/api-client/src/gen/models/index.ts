@@ -4088,6 +4088,16 @@ export type {
   HrDeleteDepartmentRuleSetStatus422,
 } from "./HrDeleteDepartmentRuleSet.js";
 export type {
+  HrDeleteDraftTimesheetOptions,
+  HrDeleteDraftTimesheetPath,
+  HrDeleteDraftTimesheetResponse,
+  HrDeleteDraftTimesheetResponses,
+  HrDeleteDraftTimesheetStatus204,
+  HrDeleteDraftTimesheetStatus400,
+  HrDeleteDraftTimesheetStatus403,
+  HrDeleteDraftTimesheetStatus422,
+} from "./HrDeleteDraftTimesheet.js";
+export type {
   HrDeleteLeaveRequestOptions,
   HrDeleteLeaveRequestPath,
   HrDeleteLeaveRequestResponse,

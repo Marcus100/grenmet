@@ -17459,6 +17459,135 @@
         }
       }
     },
+    "/api/v1/hr/timesheets/{timesheet_id}": {
+      "delete": {
+        "tags": [
+          "hr-timesheets"
+        ],
+        "summary": "Delete a draft timesheet",
+        "description": "Delete the caller's own unsubmitted draft timesheet and its entries, so an editor can replace a draft instead of leaving a duplicate. Submitted timesheets are retained.",
+        "operationId": "hrDeleteDraftTimesheet",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "timesheet_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Timesheet Id"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Draft timesheet deleted"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "400": {
+            "description": "Not found, not a draft, or has approval history",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Not the owner of this timesheet",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "hr-timesheets"
+        ],
+        "summary": "Get timesheet details",
+        "description": "Return a timesheet and its entries. Owner, explicitly named reviewer, or timesheet.read.department within the filing department. Employee transfers do not change historical access.",
+        "operationId": "hrGetTimesheet",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "timesheet_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Timesheet Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Timesheet and entries returned",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TimesheetDetails"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "403": {
+            "description": "Not allowed to read this timesheet",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Timesheet not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/hr/timesheets/{timesheet_id}/approve": {
       "patch": {
         "tags": [
@@ -17854,75 +17983,6 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/TimesheetSummaryByShift"
-                }
-              }
-            }
-          },
-          "422": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ValidationErrorResponse"
-                }
-              }
-            },
-            "description": "Unprocessable Content"
-          },
-          "403": {
-            "description": "Not allowed to read this timesheet",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiError"
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "Timesheet not found",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiError"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/v1/hr/timesheets/{timesheet_id}": {
-      "get": {
-        "tags": [
-          "hr-timesheets"
-        ],
-        "summary": "Get timesheet details",
-        "description": "Return a timesheet and its entries. Owner, explicitly named reviewer, or timesheet.read.department within the filing department. Employee transfers do not change historical access.",
-        "operationId": "hrGetTimesheet",
-        "security": [
-          {
-            "OAuth2PasswordBearer": []
-          }
-        ],
-        "parameters": [
-          {
-            "name": "timesheet_id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid",
-              "title": "Timesheet Id"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Timesheet and entries returned",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/TimesheetDetails"
                 }
               }
             }

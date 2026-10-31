@@ -77,17 +77,17 @@ function AttendanceShift({
     markedArrival = arrival,
     markedDeparture = departure,
     ruleReason?: string
-  ) {
+  ): Promise<boolean> {
     setError(null);
     if (!markedArrival || ((review || correcting) && !markedDeparture)) {
       setError(
         "Record arrival and departure before requesting supervisor review"
       );
-      return;
+      return false;
     }
     if (correcting && !reason.trim()) {
       setError("Explain why the recorded time needs correction");
-      return;
+      return false;
     }
     const body = {
       roster_assignment_id: id,
@@ -137,19 +137,27 @@ function AttendanceShift({
           departure: markedDeparture,
           warnings,
         });
-        return;
+        return false;
       }
+      // Any other failure closes the dialog; the typed reason is kept.
+      setOverride(null);
       reportError(caught, "hr-attendance");
       setError(errorDetail(caught));
+      return false;
     }
     setOverride(null);
+    return true;
   }
   return (
     <article className="space-y-4 rounded-lg border bg-card p-4">
       <RuleOverrideDialog
         busy={pending}
         labels={new Map([[shift.user_id, shift.employee_name]])}
-        onCancel={() => setOverride(null)}
+        onCancel={() => {
+          setOverride(null);
+          // The save before the held submission raised the revision.
+          refresh();
+        }}
         onConfirm={(ruleReason) =>
           override
             ? persist(
@@ -158,7 +166,7 @@ function AttendanceShift({
                 override.departure,
                 ruleReason
               )
-            : undefined
+            : false
         }
         warnings={override?.warnings ?? null}
       />

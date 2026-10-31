@@ -4,6 +4,7 @@ import {
   type RosterGridPreview,
   type RosterRuleWarningsErrorPublic,
   useHrImportGrid,
+  useHrListDepartmentMembers,
   useHrListDepartments,
   useHrValidateGrid,
 } from "@barrelsgd/api-client";
@@ -27,10 +28,11 @@ import { Input } from "@barrelsgd/ui/components/ui/input";
 import { NativeSelect } from "@barrelsgd/ui/components/ui/native-select";
 import { useQueryClient } from "@tanstack/react-query";
 import { Upload } from "lucide-react";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { toast } from "sonner";
 import { invalidateAfterRosterImport } from "@/lib/hr-invalidation";
-import { ruleWarningsFrom } from "./rule-codes";
+import { rosterLabel } from "@/lib/people";
+import { ruleWarningsFrom, warningCountText } from "./rule-codes";
 import { RuleOverrideDialog } from "./rule-override-dialog";
 
 const MONTH_RE = /^(\d{4})-(\d{2})$/;
@@ -66,6 +68,18 @@ export function ImportRosterDialog() {
   const departmentsQuery = useHrListDepartments();
   const departments = departmentsQuery.data?.data ?? [];
   const deptId = departmentId || departments[0]?.id || "";
+
+  const membersQuery = useHrListDepartmentMembers(
+    { path: { department_id: deptId } },
+    { query: { enabled: Boolean(deptId) } }
+  );
+  const memberLabels = useMemo(
+    () =>
+      new Map(
+        (membersQuery.data?.data ?? []).map((m) => [m.user_id, rosterLabel(m)])
+      ),
+    [membersQuery.data?.data]
+  );
 
   const validateMutation = useHrValidateGrid();
   const importMutation = useHrImportGrid();
@@ -113,9 +127,10 @@ export function ImportRosterDialog() {
     }
   }
 
-  async function runImport(reason?: string) {
+  /** Returns false when the import failed, so a typed override reason is kept. */
+  async function runImport(reason?: string): Promise<boolean> {
     if (!(bounds && preview?.can_import)) {
-      return;
+      return false;
     }
     try {
       const result = await importMutation.mutateAsync({
@@ -134,28 +149,30 @@ export function ImportRosterDialog() {
         departmentId: deptId,
         periodId: result.roster_period_id,
       });
-      toast.success(
-        `Imported ${result.total_assignments} assignments${result.published ? " (published)" : " as a draft"}`
-      );
-      if (
-        publish &&
-        !result.published &&
-        (result.rule_warning_count ?? 0) > 0
-      ) {
+      const held = result.rule_warning_count ?? 0;
+      if (publish && !result.published && held > 0) {
         toast.warning(
-          `Not published: ${result.rule_warning_count} roster rule warnings. Review them and publish from the roster.`
+          `Imported ${result.total_assignments} assignments as a draft. Not published: ${warningCountText(held)}. Review them and publish from the roster.`
+        );
+      } else {
+        toast.success(
+          `Imported ${result.total_assignments} assignments${result.published ? " (published)" : " as a draft"}`
         );
       }
       setOpen(false);
+      return true;
     } catch (error) {
       const found = ruleWarningsFrom(error);
       if (found) {
         setWarnings(found);
-        return;
+        return false;
       }
+      // Any other failure closes the dialog; the typed reason is kept.
+      setWarnings(null);
       const detail =
         error instanceof Error ? error.message : "Something went wrong";
       toast.error(`Import failed: ${detail}`);
+      return false;
     }
   }
 
@@ -292,6 +309,7 @@ export function ImportRosterDialog() {
         </DialogFooter>
         <RuleOverrideDialog
           busy={importMutation.isPending}
+          labels={memberLabels}
           onCancel={() => setWarnings(null)}
           onConfirm={(reason) => runImport(reason)}
           warnings={warnings}
