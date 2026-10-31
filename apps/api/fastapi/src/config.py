@@ -5,6 +5,7 @@ from pydantic import (
     AnyUrl,
     BeforeValidator,
     EmailStr,
+    Field,
     HttpUrl,
     PostgresDsn,
     computed_field,
@@ -76,6 +77,12 @@ class Settings(BaseSettings):
     # limits key on the real visitor (src/rate_limit.py). Empty (the default)
     # ignores the header and keys on the connecting address.
     TRUSTED_WEB_SECRET: str = ""
+
+    # Proxies in front of the API that append to X-Forwarded-For: 1 is Traefik
+    # alone (the default; uvicorn's address is used as is), 2 is Cloudflare's
+    # proxy then Traefik (docs/operations/cloudflare-proxy.md). Rate limits on
+    # direct browser calls then key on the visitor, not a Cloudflare edge.
+    VISITOR_IP_PROXY_HOPS: int = Field(default=1, ge=1, le=5)
 
     FIRST_SUPERUSER: EmailStr
     FIRST_SUPERUSER_PASSWORD: str

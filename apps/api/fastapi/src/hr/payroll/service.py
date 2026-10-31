@@ -1082,10 +1082,41 @@ async def _adjustments(
     return specs
 
 
+async def _refuse_duplicate_band_lines(
+    session: AsyncSession, period: PayPeriod
+) -> None:
+    """Hand-entered band hours and roster-computed bands would count twice.
+
+    A department may start computing bands after a preparer typed some in; the
+    computation then stops until those lines are removed.
+    """
+    rows = (
+        await session.execute(
+            select(PayLine.id, PayLine.department_id)
+            .join(PayItem, PayItem.id == PayLine.pay_item_id)
+            .where(
+                PayLine.period_id == period.id,
+                PayLine.line_kind == PayLineKind.MANUAL.value,
+                PayItem.method == PayItemMethod.OVERTIME_BAND.value,
+            )
+        )
+    ).all()
+    duplicates = 0
+    for department_id in {row[1] for row in rows}:
+        if await overtime.source().computes_for(session, department_id):
+            duplicates += sum(1 for row in rows if row[1] == department_id)
+    if duplicates:
+        raise PayrollConflictError(
+            f"{duplicates} hand-entered overtime line(s) duplicate bands the roster "
+            "now computes; remove them, then recompute"
+        )
+
+
 async def _compute(session: AsyncSession, period: PayPeriod, actor: User) -> int:
     calendar = await session.get(PayCalendar, period.calendar_id)
     if calendar is None:
         raise NotFoundError("Pay calendar not found")
+    await _refuse_duplicate_band_lines(session, period)
     runs = await _runs(session, period)
     items = await _computed_items(session, period.organisation_id, period.end_date)
     shifts = await approved_shifts(
@@ -1340,15 +1371,8 @@ async def _review(
         or period.workflow_instance_id is None
     ):
         raise PayrollConflictError("This period is not awaiting approval")
-    if period.submitted_by_user_id == actor.id or await session.scalar(
-        select(PayLine.id)
-        .where(PayLine.period_id == period.id, PayLine.created_by_user_id == actor.id)
-        .limit(1)
-    ):
-        raise AppException(
-            "Someone who prepared or added lines to this period cannot approve or return it",
-            403,
-        )
+    if reason := await access.period_conflict(session, actor, period):
+        raise AppException(reason, 403)
     await workflow_service.apply_workflow_action(
         session=session,
         current_user=actor,

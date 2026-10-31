@@ -61,7 +61,7 @@ from src.openapi_responses import (
     RateLimitedBody,
     as_json,
 )
-from src.rate_limit import limiter
+from src.rate_limit import limiter, request_ip
 from src.utils.datetime import utc_now
 
 from ..utils import create_access_token
@@ -71,7 +71,7 @@ router = APIRouter(prefix="/auth", tags=["login"])
 
 def _request_metadata(request: Request) -> tuple[str | None, str | None]:
     user_agent = request.headers.get("user-agent")
-    ip_address = request.client.host if request.client else None
+    ip_address = request_ip(request)
     return user_agent, ip_address
 
 

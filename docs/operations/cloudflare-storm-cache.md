@@ -24,6 +24,12 @@ Errors (5xx) are never cacheable (`no-store`), so a bad response is not stored.
 
 ## Cloudflare settings (dashboard, one-off)
 
+> **Conflict to resolve first:** the cache rules from the
+> [Cloudflare proxy runbook](cloudflare-proxy.md) (issue #859) never cache the
+> API host or any `/api/` path and run after other rules, so they override rules
+> 1 and 2 below. Making these public feeds a reviewed exception is an owner
+> decision; until then they are not cached.
+
 1. **Cache Rules**: create a rule "GMS storm paths". Match `(http.host eq "<gms host>") and (starts_with(http.request.uri.path, "/alerts") or starts_with(http.request.uri.path, "/api/alerts/") or starts_with(http.request.uri.path, "/api/satellite/"))`. Action: *Eligible for cache*, *Edge TTL: use cache-control header if present*, *Browser TTL: respect origin*.
 2. Add the same rule for the API host for `/api/v1/wxwatch/public/*` and `/api/cap/*` (the CAP feed and attachments).
 3. **Always Online / serve stale**: Cloudflare honours `stale-if-error` and `stale-while-revalidate` from the origin on cached assets. Also enable *Always Online* (Caching > Configuration) as a backstop for pages the origin never marked cacheable.
