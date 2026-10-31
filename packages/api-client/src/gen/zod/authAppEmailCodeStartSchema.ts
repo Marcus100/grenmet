@@ -4,7 +4,9 @@
  */
 
 import * as z from "zod";
+import { apiErrorSchema } from "./apiErrorSchema.js";
 import { appEmailCodeStartSchema } from "./appEmailCodeStartSchema.js";
+import { errorMessageSchema } from "./errorMessageSchema.js";
 import { messageSchema } from "./messageSchema.js";
 import { validationErrorResponseSchema } from "./validationErrorResponseSchema.js";
 
@@ -14,18 +16,27 @@ export const authAppEmailCodeStartPathAppSchema = z
 
 export const authAppEmailCodeStartStatus200Schema = messageSchema;
 
-export const authAppEmailCodeStartStatus400Schema = z.unknown();
+export const authAppEmailCodeStartStatus400Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
-export const authAppEmailCodeStartStatus403Schema = z.unknown();
+export const authAppEmailCodeStartStatus403Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
-export const authAppEmailCodeStartStatus404Schema = z.unknown();
+export const authAppEmailCodeStartStatus404Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
 export const authAppEmailCodeStartStatus422Schema =
   validationErrorResponseSchema.describe(
     "Validation error envelope returned for malformed requests."
   );
 
-export const authAppEmailCodeStartStatus429Schema = z.unknown();
+export const authAppEmailCodeStartStatus429Schema = z.union([
+  apiErrorSchema,
+  errorMessageSchema,
+]);
 
 export const authAppEmailCodeStartStatus503Schema = z.unknown();
 

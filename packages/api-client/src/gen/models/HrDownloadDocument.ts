@@ -3,6 +3,7 @@
  * Do not edit manually.
  */
 
+import type { ApiError } from "./ApiError.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 
 export type HrDownloadDocumentPath = {
@@ -16,9 +17,17 @@ export type HrDownloadDocumentPath = {
 
 export type HrDownloadDocumentStatus307 = unknown;
 
-export type HrDownloadDocumentStatus403 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type HrDownloadDocumentStatus403 = ApiError;
 
-export type HrDownloadDocumentStatus404 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type HrDownloadDocumentStatus404 = ApiError;
 
 /**
  * @description Validation error envelope returned for malformed requests.

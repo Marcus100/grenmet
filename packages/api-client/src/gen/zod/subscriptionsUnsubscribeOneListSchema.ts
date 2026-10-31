@@ -4,6 +4,7 @@
  */
 
 import * as z from "zod";
+import { apiErrorSchema } from "./apiErrorSchema.js";
 import { preferencesUnsubscribeRequestSchema } from "./preferencesUnsubscribeRequestSchema.js";
 import { subscriptionPreferencesSchema } from "./subscriptionPreferencesSchema.js";
 import { validationErrorResponseSchema } from "./validationErrorResponseSchema.js";
@@ -11,7 +12,8 @@ import { validationErrorResponseSchema } from "./validationErrorResponseSchema.j
 export const subscriptionsUnsubscribeOneListStatus200Schema =
   subscriptionPreferencesSchema;
 
-export const subscriptionsUnsubscribeOneListStatus400Schema = z.unknown();
+export const subscriptionsUnsubscribeOneListStatus400Schema =
+  apiErrorSchema.describe("Stable error envelope for documented API failures.");
 
 export const subscriptionsUnsubscribeOneListStatus422Schema =
   validationErrorResponseSchema.describe(

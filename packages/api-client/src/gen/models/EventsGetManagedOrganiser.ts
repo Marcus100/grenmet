@@ -3,6 +3,8 @@
  * Do not edit manually.
  */
 
+import type { ApiError } from "./ApiError.js";
+import type { ErrorMessage } from "./ErrorMessage.js";
 import type { ManagedOrganiser } from "./ManagedOrganiser.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 
@@ -15,13 +17,29 @@ export type EventsGetManagedOrganiserQuery = {
 
 export type EventsGetManagedOrganiserStatus200 = ManagedOrganiser;
 
-export type EventsGetManagedOrganiserStatus401 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type EventsGetManagedOrganiserStatus401 = ApiError;
 
-export type EventsGetManagedOrganiserStatus403 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type EventsGetManagedOrganiserStatus403 = ApiError;
 
-export type EventsGetManagedOrganiserStatus404 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type EventsGetManagedOrganiserStatus404 = ApiError;
 
-export type EventsGetManagedOrganiserStatus409 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type EventsGetManagedOrganiserStatus409 = ApiError;
 
 /**
  * @description Validation error envelope returned for malformed requests.
@@ -29,7 +47,7 @@ export type EventsGetManagedOrganiserStatus409 = unknown;
  */
 export type EventsGetManagedOrganiserStatus422 = ValidationErrorResponse;
 
-export type EventsGetManagedOrganiserStatus429 = unknown;
+export type EventsGetManagedOrganiserStatus429 = ApiError | ErrorMessage;
 
 export type EventsGetManagedOrganiserOptions = {
   body?: never;

@@ -4,14 +4,19 @@
  */
 
 import * as z from "zod";
+import { apiErrorSchema } from "./apiErrorSchema.js";
 import { capSettingsPublicSchema } from "./capSettingsPublicSchema.js";
 import { validationErrorResponseSchema } from "./validationErrorResponseSchema.js";
 
 export const capGetCapSettingsStatus200Schema = capSettingsPublicSchema;
 
-export const capGetCapSettingsStatus401Schema = z.unknown();
+export const capGetCapSettingsStatus401Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
-export const capGetCapSettingsStatus403Schema = z.unknown();
+export const capGetCapSettingsStatus403Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
 export const capGetCapSettingsStatus422Schema =
   validationErrorResponseSchema.describe(

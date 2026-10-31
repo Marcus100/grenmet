@@ -4,6 +4,7 @@
  */
 
 import * as z from "zod";
+import { apiErrorSchema } from "./apiErrorSchema.js";
 import { nhcEditionPropertiesFamilyEnumSchema } from "./nhcEditionPropertiesFamilyEnumSchema.js";
 import { nhcPageSchema } from "./nhcPageSchema.js";
 import { validationErrorResponseSchema } from "./validationErrorResponseSchema.js";
@@ -49,11 +50,17 @@ export const wxwatchEditionsQueryLimitSchema = z
 
 export const wxwatchEditionsStatus200Schema = nhcPageSchema;
 
-export const wxwatchEditionsStatus401Schema = z.unknown();
+export const wxwatchEditionsStatus401Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
-export const wxwatchEditionsStatus403Schema = z.unknown();
+export const wxwatchEditionsStatus403Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
-export const wxwatchEditionsStatus404Schema = z.unknown();
+export const wxwatchEditionsStatus404Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
 export const wxwatchEditionsStatus422Schema =
   validationErrorResponseSchema.describe(

@@ -12,6 +12,7 @@ from src.auth.schemas import (
     TwoFactorStatusPublic,
 )
 from src.dependencies import AccountUser, SessionDep, TokenDep
+from src.models import ApiError
 from src.openapi_responses import AUTHENTICATED
 
 router = APIRouter(prefix="/auth/users/me/security/2fa", tags=["2fa"])
@@ -52,7 +53,12 @@ async def twofa_setup(
     "/activate",
     response_model=TwoFactorStatusPublic,
     summary="Activate 2FA",
-    responses={status.HTTP_400_BAD_REQUEST: {"description": "Invalid or expired code"}},
+    responses={
+        status.HTTP_400_BAD_REQUEST: {
+            "model": ApiError,
+            "description": "Invalid or expired code",
+        }
+    },
     description="Confirms a TOTP code and enables two-factor authentication for the current account.",
 )
 async def twofa_activate(
@@ -81,7 +87,12 @@ async def twofa_activate(
     response_model=TwoFactorStatusPublic,
     summary="Disable 2FA",
     description="Disable 2FA after confirming the account password.",
-    responses={status.HTTP_400_BAD_REQUEST: {"description": "Incorrect password"}},
+    responses={
+        status.HTTP_400_BAD_REQUEST: {
+            "model": ApiError,
+            "description": "Incorrect password",
+        }
+    },
 )
 async def twofa_disable(
     *, session: SessionDep, current_user: AccountUser, payload: TwoFactorDisableRequest

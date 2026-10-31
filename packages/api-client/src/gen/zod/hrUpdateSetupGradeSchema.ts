@@ -4,6 +4,7 @@
  */
 
 import * as z from "zod";
+import { apiErrorSchema } from "./apiErrorSchema.js";
 import { gradeInputSchema } from "./gradeInputSchema.js";
 import { gradeSetupSchema } from "./gradeSetupSchema.js";
 import { validationErrorResponseSchema } from "./validationErrorResponseSchema.js";
@@ -12,11 +13,17 @@ export const hrUpdateSetupGradePathGradeIdSchema = z.string();
 
 export const hrUpdateSetupGradeStatus200Schema = gradeSetupSchema;
 
-export const hrUpdateSetupGradeStatus403Schema = z.unknown();
+export const hrUpdateSetupGradeStatus403Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
-export const hrUpdateSetupGradeStatus404Schema = z.unknown();
+export const hrUpdateSetupGradeStatus404Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
-export const hrUpdateSetupGradeStatus409Schema = z.unknown();
+export const hrUpdateSetupGradeStatus409Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
 export const hrUpdateSetupGradeStatus422Schema =
   validationErrorResponseSchema.describe(

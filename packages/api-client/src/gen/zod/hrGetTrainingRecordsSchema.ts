@@ -4,6 +4,7 @@
  */
 
 import * as z from "zod";
+import { apiErrorSchema } from "./apiErrorSchema.js";
 import { trainingRecordListSchema } from "./trainingRecordListSchema.js";
 import { validationErrorResponseSchema } from "./validationErrorResponseSchema.js";
 
@@ -36,7 +37,9 @@ export const hrGetTrainingRecordsQuerySizeSchema = z
 
 export const hrGetTrainingRecordsStatus200Schema = trainingRecordListSchema;
 
-export const hrGetTrainingRecordsStatus403Schema = z.unknown();
+export const hrGetTrainingRecordsStatus403Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
 export const hrGetTrainingRecordsStatus422Schema =
   validationErrorResponseSchema.describe(

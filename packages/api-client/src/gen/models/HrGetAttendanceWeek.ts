@@ -3,6 +3,7 @@
  * Do not edit manually.
  */
 
+import type { ApiError } from "./ApiError.js";
 import type { AttendanceWeekPublic } from "./AttendanceWeekPublic.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 
@@ -18,13 +19,29 @@ export type HrGetAttendanceWeekQuery = {
 
 export type HrGetAttendanceWeekStatus200 = AttendanceWeekPublic;
 
-export type HrGetAttendanceWeekStatus400 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type HrGetAttendanceWeekStatus400 = ApiError;
 
-export type HrGetAttendanceWeekStatus403 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type HrGetAttendanceWeekStatus403 = ApiError;
 
-export type HrGetAttendanceWeekStatus404 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type HrGetAttendanceWeekStatus404 = ApiError;
 
-export type HrGetAttendanceWeekStatus409 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type HrGetAttendanceWeekStatus409 = ApiError;
 
 /**
  * @description Validation error envelope returned for malformed requests.

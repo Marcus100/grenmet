@@ -4,14 +4,19 @@
  */
 
 import * as z from "zod";
+import { apiErrorSchema } from "./apiErrorSchema.js";
 import { twoFactorSetupResponseSchema } from "./twoFactorSetupResponseSchema.js";
 import { validationErrorResponseSchema } from "./validationErrorResponseSchema.js";
 
 export const authTwofaSetupStatus200Schema = twoFactorSetupResponseSchema;
 
-export const authTwofaSetupStatus401Schema = z.unknown();
+export const authTwofaSetupStatus401Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
-export const authTwofaSetupStatus403Schema = z.unknown();
+export const authTwofaSetupStatus403Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
 export const authTwofaSetupStatus422Schema =
   validationErrorResponseSchema.describe(

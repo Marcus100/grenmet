@@ -4,14 +4,19 @@
  */
 
 import * as z from "zod";
+import { apiErrorSchema } from "./apiErrorSchema.js";
 import { hrDashboardPublicSchema } from "./hrDashboardPublicSchema.js";
 import { validationErrorResponseSchema } from "./validationErrorResponseSchema.js";
 
 export const hrGetHrDashboardStatus200Schema = hrDashboardPublicSchema;
 
-export const hrGetHrDashboardStatus401Schema = z.unknown();
+export const hrGetHrDashboardStatus401Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
-export const hrGetHrDashboardStatus403Schema = z.unknown();
+export const hrGetHrDashboardStatus403Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
 export const hrGetHrDashboardStatus422Schema =
   validationErrorResponseSchema.describe(

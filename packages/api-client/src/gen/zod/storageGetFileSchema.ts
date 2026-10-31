@@ -4,6 +4,7 @@
  */
 
 import * as z from "zod";
+import { apiErrorSchema } from "./apiErrorSchema.js";
 import { fileAccessSchema } from "./fileAccessSchema.js";
 import { validationErrorResponseSchema } from "./validationErrorResponseSchema.js";
 
@@ -18,11 +19,17 @@ export const storageGetFileStatus200Schema = fileAccessSchema.describe(
   "A short-lived presigned GET for a private read."
 );
 
-export const storageGetFileStatus401Schema = z.unknown();
+export const storageGetFileStatus401Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
-export const storageGetFileStatus403Schema = z.unknown();
+export const storageGetFileStatus403Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
-export const storageGetFileStatus404Schema = z.unknown();
+export const storageGetFileStatus404Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
 export const storageGetFileStatus422Schema =
   validationErrorResponseSchema.describe(

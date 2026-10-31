@@ -3,6 +3,7 @@
  * Do not edit manually.
  */
 
+import type { ApiError } from "./ApiError.js";
 import type { BookingPublicDetail } from "./BookingPublicDetail.js";
 import type { BookingPublicReschedule } from "./BookingPublicReschedule.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
@@ -23,9 +24,17 @@ export type BookingsReschedulePublicBookingPath = {
  */
 export type BookingsReschedulePublicBookingStatus200 = BookingPublicDetail;
 
-export type BookingsReschedulePublicBookingStatus404 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type BookingsReschedulePublicBookingStatus404 = ApiError;
 
-export type BookingsReschedulePublicBookingStatus409 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type BookingsReschedulePublicBookingStatus409 = ApiError;
 
 /**
  * @description Validation error envelope returned for malformed requests.

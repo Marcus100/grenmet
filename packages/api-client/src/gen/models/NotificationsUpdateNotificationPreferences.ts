@@ -3,14 +3,19 @@
  * Do not edit manually.
  */
 
+import type { ApiError } from "./ApiError.js";
 import type { NotificationPreferencePublic } from "./NotificationPreferencePublic.js";
-import type { NotificationPreferenceUpdate } from "./NotificationPreferenceUpdate.js";
+import type { NotificationPreferenceUpdateList } from "./NotificationPreferenceUpdateList.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 
 export type NotificationsUpdateNotificationPreferencesStatus200 =
   NotificationPreferencePublic[];
 
-export type NotificationsUpdateNotificationPreferencesStatus400 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type NotificationsUpdateNotificationPreferencesStatus400 = ApiError;
 
 /**
  * @description Validation error envelope returned for malformed requests.
@@ -19,8 +24,12 @@ export type NotificationsUpdateNotificationPreferencesStatus400 = unknown;
 export type NotificationsUpdateNotificationPreferencesStatus422 =
   ValidationErrorResponse;
 
+/**
+ * @description The bare JSON array of preference changes (the wire format is unchanged).
+ * @type array
+ */
 export type NotificationsUpdateNotificationPreferencesBody =
-  NotificationPreferenceUpdate[];
+  NotificationPreferenceUpdateList;
 
 export type NotificationsUpdateNotificationPreferencesOptions = {
   body: NotificationsUpdateNotificationPreferencesBody;

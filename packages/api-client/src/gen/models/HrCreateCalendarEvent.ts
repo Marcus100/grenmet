@@ -3,6 +3,7 @@
  * Do not edit manually.
  */
 
+import type { ApiError } from "./ApiError.js";
 import type { CalendarEventCreate } from "./CalendarEventCreate.js";
 import type { CalendarEventPublic } from "./CalendarEventPublic.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
@@ -17,11 +18,23 @@ import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
  */
 export type HrCreateCalendarEventStatus201 = CalendarEventPublic;
 
-export type HrCreateCalendarEventStatus400 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type HrCreateCalendarEventStatus400 = ApiError;
 
-export type HrCreateCalendarEventStatus403 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type HrCreateCalendarEventStatus403 = ApiError;
 
-export type HrCreateCalendarEventStatus404 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type HrCreateCalendarEventStatus404 = ApiError;
 
 /**
  * @description Validation error envelope returned for malformed requests.

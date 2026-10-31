@@ -3,14 +3,24 @@
  * Do not edit manually.
  */
 
+import type { ApiError } from "./ApiError.js";
+import type { ErrorMessage } from "./ErrorMessage.js";
 import type { NetworkPublic } from "./NetworkPublic.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 
 export type EventsGetMyNetworkStatus200 = NetworkPublic;
 
-export type EventsGetMyNetworkStatus401 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type EventsGetMyNetworkStatus401 = ApiError;
 
-export type EventsGetMyNetworkStatus404 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type EventsGetMyNetworkStatus404 = ApiError;
 
 /**
  * @description Validation error envelope returned for malformed requests.
@@ -18,7 +28,7 @@ export type EventsGetMyNetworkStatus404 = unknown;
  */
 export type EventsGetMyNetworkStatus422 = ValidationErrorResponse;
 
-export type EventsGetMyNetworkStatus429 = unknown;
+export type EventsGetMyNetworkStatus429 = ApiError | ErrorMessage;
 
 export type EventsGetMyNetworkOptions = {
   body?: never;

@@ -3,6 +3,7 @@
  * Do not edit manually.
  */
 
+import type { ApiError } from "./ApiError.js";
 import type { WebhookTestResult } from "./WebhookTestResult.js";
 
 export type WebhooksOutTestEndpointPath = {
@@ -23,15 +24,35 @@ export type WebhooksOutTestEndpointHeaders = {
  */
 export type WebhooksOutTestEndpointStatus200 = WebhookTestResult;
 
-export type WebhooksOutTestEndpointStatus400 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type WebhooksOutTestEndpointStatus400 = ApiError;
 
-export type WebhooksOutTestEndpointStatus401 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type WebhooksOutTestEndpointStatus401 = ApiError;
 
-export type WebhooksOutTestEndpointStatus403 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type WebhooksOutTestEndpointStatus403 = ApiError;
 
-export type WebhooksOutTestEndpointStatus404 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type WebhooksOutTestEndpointStatus404 = ApiError;
 
-export type WebhooksOutTestEndpointStatus409 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type WebhooksOutTestEndpointStatus409 = ApiError;
 
 export type WebhooksOutTestEndpointStatus422 = unknown;
 

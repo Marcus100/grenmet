@@ -4,6 +4,7 @@
  */
 
 import * as z from "zod";
+import { apiErrorSchema } from "./apiErrorSchema.js";
 import { trainingArchiveInputSchema } from "./trainingArchiveInputSchema.js";
 import { trainingRecordPublicSchema } from "./trainingRecordPublicSchema.js";
 import { validationErrorResponseSchema } from "./validationErrorResponseSchema.js";
@@ -13,9 +14,13 @@ export const hrArchiveTrainingRecordPathRecordIdSchema = z.uuid();
 export const hrArchiveTrainingRecordStatus200Schema =
   trainingRecordPublicSchema;
 
-export const hrArchiveTrainingRecordStatus403Schema = z.unknown();
+export const hrArchiveTrainingRecordStatus403Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
-export const hrArchiveTrainingRecordStatus404Schema = z.unknown();
+export const hrArchiveTrainingRecordStatus404Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
 export const hrArchiveTrainingRecordStatus422Schema =
   validationErrorResponseSchema.describe(

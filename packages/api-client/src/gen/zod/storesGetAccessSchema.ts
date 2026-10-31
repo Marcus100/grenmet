@@ -4,6 +4,7 @@
  */
 
 import * as z from "zod";
+import { apiErrorSchema } from "./apiErrorSchema.js";
 import { storesAccessPublicSchema } from "./storesAccessPublicSchema.js";
 import { validationErrorResponseSchema } from "./validationErrorResponseSchema.js";
 
@@ -11,9 +12,13 @@ export const storesGetAccessStatus200Schema = storesAccessPublicSchema.describe(
   "UI hint: the API still enforces every permission."
 );
 
-export const storesGetAccessStatus401Schema = z.unknown();
+export const storesGetAccessStatus401Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
-export const storesGetAccessStatus403Schema = z.unknown();
+export const storesGetAccessStatus403Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
 export const storesGetAccessStatus422Schema =
   validationErrorResponseSchema.describe(

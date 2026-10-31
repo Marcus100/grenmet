@@ -4,15 +4,20 @@
  */
 
 import * as z from "zod";
+import { apiErrorSchema } from "./apiErrorSchema.js";
 import { rosterCsvImportResponseSchema } from "./rosterCsvImportResponseSchema.js";
 import { rosterCsvValidationRequestSchema } from "./rosterCsvValidationRequestSchema.js";
 import { validationErrorResponseSchema } from "./validationErrorResponseSchema.js";
 
 export const hrImportCsvStatus200Schema = rosterCsvImportResponseSchema;
 
-export const hrImportCsvStatus400Schema = z.unknown();
+export const hrImportCsvStatus400Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
-export const hrImportCsvStatus403Schema = z.unknown();
+export const hrImportCsvStatus403Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
 export const hrImportCsvStatus422Schema =
   validationErrorResponseSchema.describe(

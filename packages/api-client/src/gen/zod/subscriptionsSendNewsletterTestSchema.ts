@@ -4,6 +4,7 @@
  */
 
 import * as z from "zod";
+import { apiErrorSchema } from "./apiErrorSchema.js";
 import { newsletterTestAcceptedSchema } from "./newsletterTestAcceptedSchema.js";
 import { newsletterTestRequestSchema } from "./newsletterTestRequestSchema.js";
 import { validationErrorResponseSchema } from "./validationErrorResponseSchema.js";
@@ -11,11 +12,14 @@ import { validationErrorResponseSchema } from "./validationErrorResponseSchema.j
 export const subscriptionsSendNewsletterTestStatus202Schema =
   newsletterTestAcceptedSchema;
 
-export const subscriptionsSendNewsletterTestStatus401Schema = z.unknown();
+export const subscriptionsSendNewsletterTestStatus401Schema =
+  apiErrorSchema.describe("Stable error envelope for documented API failures.");
 
-export const subscriptionsSendNewsletterTestStatus403Schema = z.unknown();
+export const subscriptionsSendNewsletterTestStatus403Schema =
+  apiErrorSchema.describe("Stable error envelope for documented API failures.");
 
-export const subscriptionsSendNewsletterTestStatus409Schema = z.unknown();
+export const subscriptionsSendNewsletterTestStatus409Schema =
+  apiErrorSchema.describe("Stable error envelope for documented API failures.");
 
 export const subscriptionsSendNewsletterTestStatus422Schema =
   validationErrorResponseSchema.describe(

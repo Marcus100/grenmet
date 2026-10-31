@@ -7,6 +7,7 @@ from src.dependencies import CurrentUser, SessionDep
 from src.hr import organisations
 from src.hr.organisations import organisation_choices
 from src.hr.schemas import OrganisationCreate, OrganisationPublic, OrganisationUpdate
+from src.models import ApiError
 from src.openapi_responses import AUTHENTICATED
 
 from .. import service
@@ -51,8 +52,8 @@ async def read_organisations(
     summary="Register an HR organisation",
     description="Superuser-only registration of an employer identity. Does not grant membership, app access or enable other modules.",
     responses={
-        403: {"description": "Superuser required"},
-        409: {"description": "ID or code exists"},
+        403: {"model": ApiError, "description": "Superuser required"},
+        409: {"model": ApiError, "description": "ID or code exists"},
     },
 )
 async def create_organisation(
@@ -71,8 +72,8 @@ async def create_organisation(
     summary="Rename an HR organisation",
     description="Superuser-only display-name change. Stable IDs, ownership and access remain unchanged.",
     responses={
-        403: {"description": "Superuser required"},
-        404: {"description": "Organisation not found"},
+        403: {"model": ApiError, "description": "Superuser required"},
+        404: {"model": ApiError, "description": "Organisation not found"},
     },
 )
 async def rename_organisation(
@@ -95,7 +96,10 @@ async def rename_organisation(
     description="Return all departments, ordered by name. Requires roster.view permission.",
     responses={
         status.HTTP_200_OK: {"description": "Departments returned"},
-        status.HTTP_403_FORBIDDEN: {"description": "Insufficient permission"},
+        status.HTTP_403_FORBIDDEN: {
+            "model": ApiError,
+            "description": "Insufficient permission",
+        },
     },
 )
 async def list_departments_endpoint(
@@ -121,8 +125,14 @@ async def list_departments_endpoint(
     description="Create a department. Requires user.manage permission.",
     responses={
         status.HTTP_201_CREATED: {"description": "Department created"},
-        status.HTTP_400_BAD_REQUEST: {"description": "Department already exists"},
-        status.HTTP_403_FORBIDDEN: {"description": "Insufficient permission"},
+        status.HTTP_400_BAD_REQUEST: {
+            "model": ApiError,
+            "description": "Department already exists",
+        },
+        status.HTTP_403_FORBIDDEN: {
+            "model": ApiError,
+            "description": "Insufficient permission",
+        },
     },
 )
 async def create_department_endpoint(
@@ -140,9 +150,18 @@ async def create_department_endpoint(
     description="Update a department's name. Requires user.manage permission.",
     responses={
         status.HTTP_200_OK: {"description": "Department updated"},
-        status.HTTP_400_BAD_REQUEST: {"description": "Department name already taken"},
-        status.HTTP_403_FORBIDDEN: {"description": "Insufficient permission"},
-        status.HTTP_404_NOT_FOUND: {"description": "Department not found"},
+        status.HTTP_400_BAD_REQUEST: {
+            "model": ApiError,
+            "description": "Department name already taken",
+        },
+        status.HTTP_403_FORBIDDEN: {
+            "model": ApiError,
+            "description": "Insufficient permission",
+        },
+        status.HTTP_404_NOT_FOUND: {
+            "model": ApiError,
+            "description": "Department not found",
+        },
     },
 )
 async def update_department_endpoint(
@@ -169,10 +188,17 @@ async def update_department_endpoint(
     responses={
         status.HTTP_201_CREATED: {"description": "Employment record created"},
         status.HTTP_400_BAD_REQUEST: {
-            "description": "Employment record already exists"
+            "model": ApiError,
+            "description": "Employment record already exists",
         },
-        status.HTTP_403_FORBIDDEN: {"description": "Insufficient permission"},
-        status.HTTP_404_NOT_FOUND: {"description": "User or department not found"},
+        status.HTTP_403_FORBIDDEN: {
+            "model": ApiError,
+            "description": "Insufficient permission",
+        },
+        status.HTTP_404_NOT_FOUND: {
+            "model": ApiError,
+            "description": "User or department not found",
+        },
     },
 )
 async def create_hr_employment(
@@ -197,9 +223,13 @@ async def create_hr_employment(
     description="Return a user's employment record (department, status, position) so an admin can review or edit it. Supervisor or admin only.",
     responses={
         status.HTTP_200_OK: {"description": "Employment record returned"},
-        status.HTTP_403_FORBIDDEN: {"description": "Insufficient permission"},
+        status.HTTP_403_FORBIDDEN: {
+            "model": ApiError,
+            "description": "Insufficient permission",
+        },
         status.HTTP_404_NOT_FOUND: {
-            "description": "User has no employment record, or user not found"
+            "model": ApiError,
+            "description": "User has no employment record, or user not found",
         },
     },
 )
@@ -220,8 +250,14 @@ async def read_hr_employment(
     description="Return active members of a department with their employment details, for roster rows. Requires roster.view permission.",
     responses={
         status.HTTP_200_OK: {"description": "Department members returned"},
-        status.HTTP_403_FORBIDDEN: {"description": "Insufficient permission"},
-        status.HTTP_404_NOT_FOUND: {"description": "Department not found"},
+        status.HTTP_403_FORBIDDEN: {
+            "model": ApiError,
+            "description": "Insufficient permission",
+        },
+        status.HTTP_404_NOT_FOUND: {
+            "model": ApiError,
+            "description": "Department not found",
+        },
     },
 )
 async def list_department_members_endpoint(
@@ -262,7 +298,8 @@ async def list_department_members_endpoint(
     responses={
         status.HTTP_200_OK: {"description": "HR profile returned"},
         status.HTTP_404_NOT_FOUND: {
-            "description": "HR profile not found for this user"
+            "model": ApiError,
+            "description": "HR profile not found for this user",
         },
     },
 )
@@ -280,7 +317,8 @@ async def read_hr_profile_me(session: SessionDep, current_user: CurrentUser) -> 
     responses={
         status.HTTP_200_OK: {"description": "Profile updated"},
         status.HTTP_404_NOT_FOUND: {
-            "description": "HR profile not found for this user"
+            "model": ApiError,
+            "description": "HR profile not found for this user",
         },
     },
 )
@@ -306,11 +344,16 @@ async def update_hr_profile_me(
     responses={
         status.HTTP_200_OK: {"description": "Employment updated"},
         status.HTTP_400_BAD_REQUEST: {
-            "description": "Invalid supervisor or recorded service facts"
+            "model": ApiError,
+            "description": "Invalid supervisor or recorded service facts",
         },
-        status.HTTP_403_FORBIDDEN: {"description": "Insufficient permission"},
+        status.HTTP_403_FORBIDDEN: {
+            "model": ApiError,
+            "description": "Insufficient permission",
+        },
         status.HTTP_404_NOT_FOUND: {
-            "description": "User or employment record not found"
+            "model": ApiError,
+            "description": "User or employment record not found",
         },
     },
 )

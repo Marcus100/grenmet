@@ -4,6 +4,7 @@
  */
 
 import * as z from "zod";
+import { apiErrorSchema } from "./apiErrorSchema.js";
 import { rewardsLeaderboardOptInCreateSchema } from "./rewardsLeaderboardOptInCreateSchema.js";
 import { rewardsLeaderboardOptInPublicSchema } from "./rewardsLeaderboardOptInPublicSchema.js";
 import { scopeKindSchema } from "./scopeKindSchema.js";
@@ -16,15 +17,25 @@ export const rewardsOptInToLeaderboardPathScopeIdSchema = z.string();
 export const rewardsOptInToLeaderboardStatus200Schema =
   rewardsLeaderboardOptInPublicSchema;
 
-export const rewardsOptInToLeaderboardStatus400Schema = z.unknown();
+export const rewardsOptInToLeaderboardStatus400Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
-export const rewardsOptInToLeaderboardStatus401Schema = z.unknown();
+export const rewardsOptInToLeaderboardStatus401Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
-export const rewardsOptInToLeaderboardStatus403Schema = z.unknown();
+export const rewardsOptInToLeaderboardStatus403Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
-export const rewardsOptInToLeaderboardStatus404Schema = z.unknown();
+export const rewardsOptInToLeaderboardStatus404Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
-export const rewardsOptInToLeaderboardStatus409Schema = z.unknown();
+export const rewardsOptInToLeaderboardStatus409Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
 export const rewardsOptInToLeaderboardStatus422Schema =
   validationErrorResponseSchema.describe(

@@ -3,6 +3,7 @@
  * Do not edit manually.
  */
 
+import type { ApiError } from "./ApiError.js";
 import type { Message } from "./Message.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 
@@ -17,9 +18,17 @@ export type UtilsTestEmailQuery = {
 
 export type UtilsTestEmailStatus201 = Message;
 
-export type UtilsTestEmailStatus401 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type UtilsTestEmailStatus401 = ApiError;
 
-export type UtilsTestEmailStatus403 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type UtilsTestEmailStatus403 = ApiError;
 
 /**
  * @description Validation error envelope returned for malformed requests.

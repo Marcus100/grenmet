@@ -5,6 +5,7 @@
 
 import * as z from "zod";
 import { accessRequestPublicSchema } from "./accessRequestPublicSchema.js";
+import { apiErrorSchema } from "./apiErrorSchema.js";
 import { validationErrorResponseSchema } from "./validationErrorResponseSchema.js";
 
 export const modelsListAccessRequestsQueryStatusSchema = z
@@ -15,9 +16,13 @@ export const modelsListAccessRequestsStatus200Schema = z.array(
   accessRequestPublicSchema
 );
 
-export const modelsListAccessRequestsStatus401Schema = z.unknown();
+export const modelsListAccessRequestsStatus401Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
-export const modelsListAccessRequestsStatus403Schema = z.unknown();
+export const modelsListAccessRequestsStatus403Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
 export const modelsListAccessRequestsStatus422Schema =
   validationErrorResponseSchema.describe(

@@ -4,6 +4,7 @@
  */
 
 import * as z from "zod";
+import { apiErrorSchema } from "./apiErrorSchema.js";
 import { roleBundlePublicSchema } from "./roleBundlePublicSchema.js";
 import { validationErrorResponseSchema } from "./validationErrorResponseSchema.js";
 
@@ -18,11 +19,14 @@ export const organisationsListRoleBundlesStatus200Schema = z.array(
   roleBundlePublicSchema
 );
 
-export const organisationsListRoleBundlesStatus401Schema = z.unknown();
+export const organisationsListRoleBundlesStatus401Schema =
+  apiErrorSchema.describe("Stable error envelope for documented API failures.");
 
-export const organisationsListRoleBundlesStatus403Schema = z.unknown();
+export const organisationsListRoleBundlesStatus403Schema =
+  apiErrorSchema.describe("Stable error envelope for documented API failures.");
 
-export const organisationsListRoleBundlesStatus404Schema = z.unknown();
+export const organisationsListRoleBundlesStatus404Schema =
+  apiErrorSchema.describe("Stable error envelope for documented API failures.");
 
 export const organisationsListRoleBundlesStatus422Schema =
   validationErrorResponseSchema.describe(

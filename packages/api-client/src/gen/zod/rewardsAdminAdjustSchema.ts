@@ -5,20 +5,31 @@
 
 import * as z from "zod";
 import { adjustmentCreateSchema } from "./adjustmentCreateSchema.js";
+import { apiErrorSchema } from "./apiErrorSchema.js";
 import { rewardEntryPublicSchema } from "./rewardEntryPublicSchema.js";
 import { validationErrorResponseSchema } from "./validationErrorResponseSchema.js";
 
 export const rewardsAdminAdjustStatus201Schema = rewardEntryPublicSchema;
 
-export const rewardsAdminAdjustStatus400Schema = z.unknown();
+export const rewardsAdminAdjustStatus400Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
-export const rewardsAdminAdjustStatus401Schema = z.unknown();
+export const rewardsAdminAdjustStatus401Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
-export const rewardsAdminAdjustStatus403Schema = z.unknown();
+export const rewardsAdminAdjustStatus403Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
-export const rewardsAdminAdjustStatus404Schema = z.unknown();
+export const rewardsAdminAdjustStatus404Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
-export const rewardsAdminAdjustStatus409Schema = z.unknown();
+export const rewardsAdminAdjustStatus409Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
 export const rewardsAdminAdjustStatus422Schema =
   validationErrorResponseSchema.describe(

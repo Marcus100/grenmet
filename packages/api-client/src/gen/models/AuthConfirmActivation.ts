@@ -4,12 +4,17 @@
  */
 
 import type { ActivationConfirm } from "./ActivationConfirm.js";
+import type { ApiError } from "./ApiError.js";
 import type { Message } from "./Message.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 
 export type AuthConfirmActivationStatus200 = Message;
 
-export type AuthConfirmActivationStatus400 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type AuthConfirmActivationStatus400 = ApiError;
 
 /**
  * @description Validation error envelope returned for malformed requests.

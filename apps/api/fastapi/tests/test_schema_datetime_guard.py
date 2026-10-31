@@ -150,10 +150,14 @@ def test_open_map_types_are_explicitly_exempted() -> None:
 
 
 def test_wxproducts_typed_contract_has_discriminator() -> None:
-    save = app.openapi()["paths"]["/api/v1/wxproducts/products"]["post"]
-    preview = app.openapi()["paths"]["/api/v1/wxproducts/products/preview"]["post"]
+    document = app.openapi()
+    save = document["paths"]["/api/v1/wxproducts/products"]["post"]
+    preview = document["paths"]["/api/v1/wxproducts/products/preview"]["post"]
     for operation in (save, preview):
-        schema = operation["requestBody"]["content"]["application/json"]["schema"]
+        # Request bodies are named $ref components; the discriminator lives there.
+        reference = operation["requestBody"]["content"]["application/json"]["schema"]
+        name = reference["$ref"].rsplit("/", 1)[-1]
+        schema = document["components"]["schemas"][name]
         assert schema["discriminator"]["propertyName"] == "kind"
         assert len(schema["oneOf"]) == 2
 

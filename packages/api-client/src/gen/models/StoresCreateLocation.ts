@@ -3,21 +3,42 @@
  * Do not edit manually.
  */
 
+import type { ApiError } from "./ApiError.js";
 import type { LocationCreate } from "./LocationCreate.js";
 import type { LocationPublic } from "./LocationPublic.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 
 export type StoresCreateLocationStatus201 = LocationPublic;
 
-export type StoresCreateLocationStatus400 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type StoresCreateLocationStatus400 = ApiError;
 
-export type StoresCreateLocationStatus401 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type StoresCreateLocationStatus401 = ApiError;
 
-export type StoresCreateLocationStatus403 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type StoresCreateLocationStatus403 = ApiError;
 
-export type StoresCreateLocationStatus404 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type StoresCreateLocationStatus404 = ApiError;
 
-export type StoresCreateLocationStatus409 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type StoresCreateLocationStatus409 = ApiError;
 
 /**
  * @description Validation error envelope returned for malformed requests.

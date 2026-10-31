@@ -3,6 +3,7 @@
  * Do not edit manually.
  */
 
+import type { ApiError } from "./ApiError.js";
 import type { PaginatedResponseRolePublic } from "./PaginatedResponseRolePublic.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 
@@ -27,9 +28,17 @@ export type AuthGetRolesQuery = {
 
 export type AuthGetRolesStatus200 = PaginatedResponseRolePublic;
 
-export type AuthGetRolesStatus401 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type AuthGetRolesStatus401 = ApiError;
 
-export type AuthGetRolesStatus403 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type AuthGetRolesStatus403 = ApiError;
 
 /**
  * @description Validation error envelope returned for malformed requests.

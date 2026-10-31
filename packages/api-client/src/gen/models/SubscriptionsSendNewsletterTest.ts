@@ -3,17 +3,30 @@
  * Do not edit manually.
  */
 
+import type { ApiError } from "./ApiError.js";
 import type { NewsletterTestAccepted } from "./NewsletterTestAccepted.js";
 import type { NewsletterTestRequest } from "./NewsletterTestRequest.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 
 export type SubscriptionsSendNewsletterTestStatus202 = NewsletterTestAccepted;
 
-export type SubscriptionsSendNewsletterTestStatus401 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type SubscriptionsSendNewsletterTestStatus401 = ApiError;
 
-export type SubscriptionsSendNewsletterTestStatus403 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type SubscriptionsSendNewsletterTestStatus403 = ApiError;
 
-export type SubscriptionsSendNewsletterTestStatus409 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type SubscriptionsSendNewsletterTestStatus409 = ApiError;
 
 /**
  * @description Validation error envelope returned for malformed requests.

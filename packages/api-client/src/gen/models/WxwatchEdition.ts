@@ -3,6 +3,7 @@
  * Do not edit manually.
  */
 
+import type { ApiError } from "./ApiError.js";
 import type { NhcContent } from "./NhcContent.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 
@@ -17,11 +18,23 @@ export type WxwatchEditionPath = {
 
 export type WxwatchEditionStatus200 = NhcContent;
 
-export type WxwatchEditionStatus401 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type WxwatchEditionStatus401 = ApiError;
 
-export type WxwatchEditionStatus403 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type WxwatchEditionStatus403 = ApiError;
 
-export type WxwatchEditionStatus404 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type WxwatchEditionStatus404 = ApiError;
 
 /**
  * @description Validation error envelope returned for malformed requests.

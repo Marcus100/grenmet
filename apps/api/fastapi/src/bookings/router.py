@@ -15,7 +15,14 @@ from fastapi.security import HTTPAuthorizationCredentials
 from src import idempotency
 from src.auth.models import User
 from src.dependencies import SessionDep, TokenDep, optional_account
-from src.openapi_responses import AUTHENTICATED, BAD_REQUEST, CONFLICT, NOT_FOUND
+from src.models import ApiError
+from src.openapi_responses import (
+    AUTHENTICATED,
+    BAD_REQUEST,
+    CONFLICT,
+    NOT_FOUND,
+    RateLimitedBody,
+)
 from src.organisations.api_key_auth import OrgAccess, org_or_key
 from src.organisations.dependencies import (
     OrgContext,
@@ -45,7 +52,7 @@ from .schemas import (
     BookingProviderCreate,
     BookingProviderPublic,
     BookingProviderUpdate,
-    BookingPublicCancel,
+    BookingPublicCancelBody,
     BookingPublicCreate,
     BookingPublicDetail,
     BookingPublicReceipt,
@@ -788,11 +795,12 @@ ManageToken = Annotated[
         **NOT_FOUND,
         **CONFLICT,
         403: {
+            "model": ApiError,
             "description": (
                 "A deposit is due and the email is not verified: no valid "
                 "`email_proof` and no signed-in account vouching for it "
                 "(`email_verification_required`)"
-            )
+            ),
         },
     },
 )
@@ -855,7 +863,10 @@ async def create_public_booking(
     responses={
         **BAD_REQUEST,
         **NOT_FOUND,
-        429: {"description": "Too many codes requested or attempts made"},
+        429: {
+            "model": RateLimitedBody,
+            "description": "Too many codes requested or attempts made",
+        },
         503: {"description": "Verification is temporarily unavailable"},
     },
 )
@@ -893,7 +904,10 @@ async def request_email_code(
     responses={
         **BAD_REQUEST,
         **NOT_FOUND,
-        429: {"description": "Too many attempts; locked for a while"},
+        429: {
+            "model": RateLimitedBody,
+            "description": "Too many attempts; locked for a while",
+        },
         503: {"description": "Verification is temporarily unavailable"},
     },
 )
@@ -947,11 +961,11 @@ async def cancel_public_booking(
     request: Request,
     session: SessionDep,
     token: ManageToken,
-    payload: BookingPublicCancel | None = None,
+    payload: BookingPublicCancelBody = BookingPublicCancelBody(None),
 ) -> Any:
     _ = request
     result = await public.cancel_booking(
-        session, token, reason=payload.reason if payload else None
+        session, token, reason=payload.root.reason if payload.root else None
     )
     await session.commit()
     return result

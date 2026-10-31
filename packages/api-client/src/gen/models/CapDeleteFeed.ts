@@ -3,6 +3,7 @@
  * Do not edit manually.
  */
 
+import type { ApiError } from "./ApiError.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 
 export type CapDeleteFeedPath = {
@@ -16,11 +17,23 @@ export type CapDeleteFeedPath = {
 
 export type CapDeleteFeedStatus204 = unknown;
 
-export type CapDeleteFeedStatus401 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type CapDeleteFeedStatus401 = ApiError;
 
-export type CapDeleteFeedStatus403 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type CapDeleteFeedStatus403 = ApiError;
 
-export type CapDeleteFeedStatus404 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type CapDeleteFeedStatus404 = ApiError;
 
 /**
  * @description Validation error envelope returned for malformed requests.

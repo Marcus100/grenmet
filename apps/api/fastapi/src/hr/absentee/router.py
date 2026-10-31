@@ -6,6 +6,7 @@ from fastapi import APIRouter, Response, status
 from src.dependencies import CurrentUser, SessionDep
 from src.hr.filenames import preview_filename
 from src.hr.submission import submission_list, submission_public
+from src.models import ApiError
 from src.pagination import PaginationDep
 from src.utils.pdf_response import PDF_HEADERS_DOC, pdf_response
 
@@ -28,13 +29,19 @@ router = APIRouter(prefix="/hr", tags=["hr-absentee"])
     summary="Preview an absentee report PDF",
     description="Render an unsaved absentee report with the Python signed-document renderer. Requires scoped absentee.report.create access. Stores no report or signature.",
     responses={
-        status.HTTP_400_BAD_REQUEST: {"description": "Invalid shift or absence times"},
+        status.HTTP_400_BAD_REQUEST: {
+            "model": ApiError,
+            "description": "Invalid shift or absence times",
+        },
         200: {
             "content": {"application/pdf": {}},
             "description": "Draft PDF preview",
             "headers": PDF_HEADERS_DOC,
         },
-        403: {"description": "Employee or department is outside the reporter's scope"},
+        403: {
+            "model": ApiError,
+            "description": "Employee or department is outside the reporter's scope",
+        },
         422: {"description": "Invalid report fields"},
     },
 )
@@ -56,9 +63,13 @@ async def preview_absentee_report_pdf(
     responses={
         status.HTTP_201_CREATED: {"description": "Absentee report created"},
         status.HTTP_400_BAD_REQUEST: {
-            "description": "Required reason details are missing"
+            "model": ApiError,
+            "description": "Required reason details are missing",
         },
-        status.HTTP_403_FORBIDDEN: {"description": "Insufficient permission"},
+        status.HTTP_403_FORBIDDEN: {
+            "model": ApiError,
+            "description": "Insufficient permission",
+        },
     },
 )
 async def create_absentee_report(
@@ -77,11 +88,18 @@ async def create_absentee_report(
     description="Submit a previously-saved DRAFT absentee report, attaching named co-approvers. Requires absentee.report.create permission and ownership of the report.",
     responses={
         status.HTTP_200_OK: {"description": "Absentee report submitted"},
-        status.HTTP_400_BAD_REQUEST: {"description": "Absentee report is not a draft"},
-        status.HTTP_403_FORBIDDEN: {
-            "description": "Not allowed to submit this absentee report"
+        status.HTTP_400_BAD_REQUEST: {
+            "model": ApiError,
+            "description": "Absentee report is not a draft",
         },
-        status.HTTP_404_NOT_FOUND: {"description": "Absentee report not found"},
+        status.HTTP_403_FORBIDDEN: {
+            "model": ApiError,
+            "description": "Not allowed to submit this absentee report",
+        },
+        status.HTTP_404_NOT_FOUND: {
+            "model": ApiError,
+            "description": "Absentee report not found",
+        },
     },
 )
 async def submit_absentee_report(
@@ -107,11 +125,18 @@ async def submit_absentee_report(
     description="Update a still-DRAFT absentee report in place. Requires absentee.report.create permission and ownership.",
     responses={
         status.HTTP_200_OK: {"description": "Absentee report updated"},
-        status.HTTP_400_BAD_REQUEST: {"description": "Absentee report is not a draft"},
-        status.HTTP_403_FORBIDDEN: {
-            "description": "Not allowed to edit this absentee report"
+        status.HTTP_400_BAD_REQUEST: {
+            "model": ApiError,
+            "description": "Absentee report is not a draft",
         },
-        status.HTTP_404_NOT_FOUND: {"description": "Absentee report not found"},
+        status.HTTP_403_FORBIDDEN: {
+            "model": ApiError,
+            "description": "Not allowed to edit this absentee report",
+        },
+        status.HTTP_404_NOT_FOUND: {
+            "model": ApiError,
+            "description": "Absentee report not found",
+        },
     },
 )
 async def update_absentee_report(
@@ -137,11 +162,18 @@ async def update_absentee_report(
     description="Delete an own DRAFT absentee report. Requires absentee.report.create permission and ownership.",
     responses={
         status.HTTP_204_NO_CONTENT: {"description": "Absentee report deleted"},
-        status.HTTP_400_BAD_REQUEST: {"description": "Absentee report is not a draft"},
-        status.HTTP_403_FORBIDDEN: {
-            "description": "Not allowed to delete this absentee report"
+        status.HTTP_400_BAD_REQUEST: {
+            "model": ApiError,
+            "description": "Absentee report is not a draft",
         },
-        status.HTTP_404_NOT_FOUND: {"description": "Absentee report not found"},
+        status.HTTP_403_FORBIDDEN: {
+            "model": ApiError,
+            "description": "Not allowed to delete this absentee report",
+        },
+        status.HTTP_404_NOT_FOUND: {
+            "model": ApiError,
+            "description": "Absentee report not found",
+        },
     },
 )
 async def delete_absentee_report(
@@ -164,7 +196,10 @@ async def delete_absentee_report(
     description="List reports about the current employee or filed by them. A department filter requires scoped absentee.report.read.department access.",
     responses={
         status.HTTP_200_OK: {"description": "Absentee reports returned"},
-        status.HTTP_403_FORBIDDEN: {"description": "Insufficient permission"},
+        status.HTTP_403_FORBIDDEN: {
+            "model": ApiError,
+            "description": "Insufficient permission",
+        },
     },
 )
 async def read_absentee_reports(

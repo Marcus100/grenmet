@@ -3,6 +3,7 @@
  * Do not edit manually.
  */
 
+import type { ApiError } from "./ApiError.js";
 import type { CapAlertPublic } from "./CapAlertPublic.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 
@@ -12,7 +13,11 @@ export type CapGetPublicAlertPath = {
 
 export type CapGetPublicAlertStatus200 = CapAlertPublic;
 
-export type CapGetPublicAlertStatus404 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type CapGetPublicAlertStatus404 = ApiError;
 
 /**
  * @description Validation error envelope returned for malformed requests.

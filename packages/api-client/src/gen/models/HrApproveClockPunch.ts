@@ -3,7 +3,8 @@
  * Do not edit manually.
  */
 
-import type { ClockPunchApprove } from "./ClockPunchApprove.js";
+import type { ApiError } from "./ApiError.js";
+import type { ClockPunchApproveBody } from "./ClockPunchApproveBody.js";
 import type { ClockPunchPublic } from "./ClockPunchPublic.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 
@@ -18,11 +19,23 @@ export type HrApproveClockPunchPath = {
 
 export type HrApproveClockPunchStatus200 = ClockPunchPublic;
 
-export type HrApproveClockPunchStatus403 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type HrApproveClockPunchStatus403 = ApiError;
 
-export type HrApproveClockPunchStatus404 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type HrApproveClockPunchStatus404 = ApiError;
 
-export type HrApproveClockPunchStatus409 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type HrApproveClockPunchStatus409 = ApiError;
 
 /**
  * @description Validation error envelope returned for malformed requests.
@@ -30,7 +43,10 @@ export type HrApproveClockPunchStatus409 = unknown;
  */
 export type HrApproveClockPunchStatus422 = ValidationErrorResponse;
 
-export type HrApproveClockPunchBody = (ClockPunchApprove | null) | undefined;
+/**
+ * @description Optional approval note. An absent body and null are both accepted.
+ */
+export type HrApproveClockPunchBody = ClockPunchApproveBody | undefined;
 
 export type HrApproveClockPunchOptions = {
   body: HrApproveClockPunchBody;

@@ -21,7 +21,8 @@ from src.auth.modern_schemas import (
 )
 from src.auth.schemas import SessionLoginResponse
 from src.dependencies import AccountUser, SessionDep
-from src.models import Message
+from src.models import ApiError, Message
+from src.openapi_responses import RateLimitedBody
 from src.rate_limit import limiter
 
 router = APIRouter(prefix="/auth", tags=["modern-auth"])
@@ -34,8 +35,8 @@ router = APIRouter(prefix="/auth", tags=["modern-auth"])
     status_code=200,
     description="Request verified password setup. Intentionally public; proof of account ownership is required to establish a session.",
     responses={
-        400: {"description": "Invalid or expired proof"},
-        403: {"description": "Account is not eligible"},
+        400: {"model": ApiError, "description": "Invalid or expired proof"},
+        403: {"model": ApiError, "description": "Account is not eligible"},
     },
 )
 @limiter.limit("5/minute")
@@ -52,8 +53,8 @@ async def email_request(
     status_code=200,
     description="Verify email and establish password. Intentionally public; proof of account ownership is required to establish a session.",
     responses={
-        400: {"description": "Invalid or expired proof"},
-        403: {"description": "Account is not eligible"},
+        400: {"model": ApiError, "description": "Invalid or expired proof"},
+        403: {"model": ApiError, "description": "Account is not eligible"},
     },
 )
 @limiter.limit("10/minute")
@@ -70,8 +71,8 @@ async def email_confirm(
     status_code=200,
     description="Start Google sign-in. Intentionally public; proof of account ownership is required to establish a session.",
     responses={
-        400: {"description": "Invalid or expired proof"},
-        403: {"description": "Account is not eligible"},
+        400: {"model": ApiError, "description": "Invalid or expired proof"},
+        403: {"model": ApiError, "description": "Account is not eligible"},
     },
 )
 @limiter.limit("10/minute")
@@ -88,8 +89,8 @@ async def google_start(
     status_code=200,
     description="Verify Google callback. Intentionally public; proof of account ownership is required to establish a session.",
     responses={
-        400: {"description": "Invalid or expired proof"},
-        403: {"description": "Account is not eligible"},
+        400: {"model": ApiError, "description": "Invalid or expired proof"},
+        403: {"model": ApiError, "description": "Account is not eligible"},
     },
 )
 @limiter.limit("10/minute")
@@ -106,8 +107,8 @@ async def google_complete(
     status_code=200,
     description="Finish Google sign-in with MFA. Intentionally public; proof of account ownership is required to establish a session.",
     responses={
-        400: {"description": "Invalid or expired proof"},
-        403: {"description": "Account is not eligible"},
+        400: {"model": ApiError, "description": "Invalid or expired proof"},
+        403: {"model": ApiError, "description": "Account is not eligible"},
     },
 )
 @limiter.limit("5/minute")
@@ -124,8 +125,8 @@ async def google_finish(
     summary="Read account security",
     description="Show verified sign-in methods and active sessions for the current account, without exposing session secrets.",
     responses={
-        401: {"description": "Authentication required"},
-        403: {"description": "Verify account email first"},
+        401: {"model": ApiError, "description": "Authentication required"},
+        403: {"model": ApiError, "description": "Verify account email first"},
     },
 )
 async def read_account_security(
@@ -140,7 +141,7 @@ async def read_account_security(
     status_code=200,
     summary="Replace MFA recovery codes",
     description="Returns eight recovery codes once after confirming password and an authenticator or existing recovery code. Only hashes are stored.",
-    responses={400: {"description": "Confirmation failed"}},
+    responses={400: {"model": ApiError, "description": "Confirmation failed"}},
 )
 @limiter.limit("5/minute")
 async def replace_recovery_codes(
@@ -162,7 +163,7 @@ async def replace_recovery_codes(
     status_code=200,
     summary="Revoke one of your sessions",
     description="Revokes only a session owned by the authenticated user.",
-    responses={404: {"description": "Session not found"}},
+    responses={404: {"model": ApiError, "description": "Session not found"}},
 )
 async def revoke_security_session(
     *, session: SessionDep, current_user: AccountUser, session_id: uuid.UUID
@@ -178,7 +179,7 @@ async def revoke_security_session(
     summary="Send a Barrels account sign-in code",
     description="Email a 6-digit code for signing in at auth.barrels.gd. The reply never reveals whether the address has an account.",
     responses={
-        429: {"description": "Rate limit exceeded"},
+        429: {"model": RateLimitedBody, "description": "Rate limit exceeded"},
         503: {"description": "Email delivery failed"},
     },
 )
@@ -197,9 +198,9 @@ async def account_email_code_start(
     summary="Sign in to the Barrels account with an email code",
     description="Verify the code and open an account session (ADR-0017); the first verified code creates the account when sign-up is open.",
     responses={
-        400: {"description": "Wrong or expired code"},
-        403: {"description": "Registration closed"},
-        429: {"description": "Rate limit exceeded"},
+        400: {"model": ApiError, "description": "Wrong or expired code"},
+        403: {"model": ApiError, "description": "Registration closed"},
+        429: {"model": RateLimitedBody, "description": "Rate limit exceeded"},
     },
 )
 @limiter.limit("10/minute")

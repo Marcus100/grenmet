@@ -3,6 +3,8 @@
  * Do not edit manually.
  */
 
+import type { ApiError } from "./ApiError.js";
+import type { ErrorMessage } from "./ErrorMessage.js";
 import type { OrderCreate } from "./OrderCreate.js";
 import type { OrderPublic } from "./OrderPublic.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
@@ -24,11 +26,23 @@ export type EventsClaimTicketsHeaders = {
 
 export type EventsClaimTicketsStatus201 = OrderPublic;
 
-export type EventsClaimTicketsStatus401 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type EventsClaimTicketsStatus401 = ApiError;
 
-export type EventsClaimTicketsStatus404 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type EventsClaimTicketsStatus404 = ApiError;
 
-export type EventsClaimTicketsStatus409 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type EventsClaimTicketsStatus409 = ApiError;
 
 /**
  * @description Validation error envelope returned for malformed requests.
@@ -36,7 +50,7 @@ export type EventsClaimTicketsStatus409 = unknown;
  */
 export type EventsClaimTicketsStatus422 = ValidationErrorResponse;
 
-export type EventsClaimTicketsStatus429 = unknown;
+export type EventsClaimTicketsStatus429 = ApiError | ErrorMessage;
 
 export type EventsClaimTicketsBody = OrderCreate;
 

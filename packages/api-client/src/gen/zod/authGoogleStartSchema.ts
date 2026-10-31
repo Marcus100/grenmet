@@ -4,15 +4,20 @@
  */
 
 import * as z from "zod";
+import { apiErrorSchema } from "./apiErrorSchema.js";
 import { googleStartPublicSchema } from "./googleStartPublicSchema.js";
 import { googleStartSchema } from "./googleStartSchema.js";
 import { validationErrorResponseSchema } from "./validationErrorResponseSchema.js";
 
 export const authGoogleStartStatus200Schema = googleStartPublicSchema;
 
-export const authGoogleStartStatus400Schema = z.unknown();
+export const authGoogleStartStatus400Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
-export const authGoogleStartStatus403Schema = z.unknown();
+export const authGoogleStartStatus403Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
 export const authGoogleStartStatus422Schema =
   validationErrorResponseSchema.describe(

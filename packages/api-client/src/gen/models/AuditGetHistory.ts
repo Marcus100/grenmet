@@ -3,6 +3,7 @@
  * Do not edit manually.
  */
 
+import type { ApiError } from "./ApiError.js";
 import type { PaginatedResponseAuditEntryPublic } from "./PaginatedResponseAuditEntryPublic.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 
@@ -32,9 +33,17 @@ export type AuditGetHistoryQuery = {
 
 export type AuditGetHistoryStatus200 = PaginatedResponseAuditEntryPublic;
 
-export type AuditGetHistoryStatus403 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type AuditGetHistoryStatus403 = ApiError;
 
-export type AuditGetHistoryStatus404 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type AuditGetHistoryStatus404 = ApiError;
 
 /**
  * @description Validation error envelope returned for malformed requests.

@@ -4,7 +4,8 @@
  */
 
 import * as z from "zod";
-import { bookingPublicCancelSchema } from "./bookingPublicCancelSchema.js";
+import { apiErrorSchema } from "./apiErrorSchema.js";
+import { bookingPublicCancelBodySchema } from "./bookingPublicCancelBodySchema.js";
 import { bookingPublicDetailSchema } from "./bookingPublicDetailSchema.js";
 import { validationErrorResponseSchema } from "./validationErrorResponseSchema.js";
 
@@ -17,9 +18,11 @@ export const bookingsCancelPublicBookingPathTokenSchema = z
 export const bookingsCancelPublicBookingStatus200Schema =
   bookingPublicDetailSchema.describe("A booking as its customer sees it.");
 
-export const bookingsCancelPublicBookingStatus404Schema = z.unknown();
+export const bookingsCancelPublicBookingStatus404Schema =
+  apiErrorSchema.describe("Stable error envelope for documented API failures.");
 
-export const bookingsCancelPublicBookingStatus409Schema = z.unknown();
+export const bookingsCancelPublicBookingStatus409Schema =
+  apiErrorSchema.describe("Stable error envelope for documented API failures.");
 
 export const bookingsCancelPublicBookingStatus422Schema =
   validationErrorResponseSchema.describe(
@@ -35,9 +38,12 @@ export const bookingsCancelPublicBookingErrorSchema = z.union([
   bookingsCancelPublicBookingStatus422Schema,
 ]);
 
-export const bookingsCancelPublicBookingBodySchema = z
-  .union([bookingPublicCancelSchema, z.null()])
-  .optional();
+export const bookingsCancelPublicBookingBodySchema =
+  bookingPublicCancelBodySchema
+    .optional()
+    .describe(
+      "Optional cancellation request. An absent body and null are both accepted."
+    );
 
 export const bookingsCancelPublicBookingPathSchema = z.object({
   token: z

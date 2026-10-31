@@ -3,13 +3,18 @@
  * Do not edit manually.
  */
 
+import type { ApiError } from "./ApiError.js";
 import type { UserPublic } from "./UserPublic.js";
 import type { UserRegister } from "./UserRegister.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 
 export type AuthRegisterUserStatus201 = UserPublic;
 
-export type AuthRegisterUserStatus400 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type AuthRegisterUserStatus400 = ApiError;
 
 /**
  * @description Validation error envelope returned for malformed requests.

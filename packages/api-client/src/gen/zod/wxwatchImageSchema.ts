@@ -4,15 +4,20 @@
  */
 
 import * as z from "zod";
+import { apiErrorSchema } from "./apiErrorSchema.js";
 import { validationErrorResponseSchema } from "./validationErrorResponseSchema.js";
 
 export const wxwatchImagePathImageIdSchema = z.int();
 
 export const wxwatchImageStatus307Schema = z.unknown();
 
-export const wxwatchImageStatus400Schema = z.unknown();
+export const wxwatchImageStatus400Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
-export const wxwatchImageStatus404Schema = z.unknown();
+export const wxwatchImageStatus404Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
 export const wxwatchImageStatus422Schema =
   validationErrorResponseSchema.describe(

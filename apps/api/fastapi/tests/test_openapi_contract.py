@@ -1,5 +1,6 @@
 """Contract-level invariants for FastAPI, Kubb, and AI consumers."""
 
+import json
 import re
 from collections.abc import Iterator
 from typing import Any
@@ -108,6 +109,59 @@ def test_operations_document_error_responses() -> None:
     assert not offenders, "Operations missing a documented 4xx response: " + ", ".join(
         offenders
     )
+
+
+def test_documented_error_responses_have_a_body_schema() -> None:
+    # Every documented 4xx names its body model (ApiError, ErrorMessage or a
+    # domain error model). 422 is excluded: it already documents
+    # HTTPValidationError. Constants live in src/openapi_responses.py.
+    offenders = []
+    for path, method, operation in _operations():
+        for status, response in operation.get("responses", {}).items():
+            if not status.startswith("4") or status == "422":
+                continue
+            schemas = [
+                media.get("schema") for media in response.get("content", {}).values()
+            ]
+            if not any(schemas):
+                offenders.append(f"{method.upper()} {path} {status}")
+    assert not offenders, "4xx responses without a body schema: " + ", ".join(offenders)
+
+
+JSON_ERROR_REF = re.compile(r'"#/components/schemas/(ApiError|ErrorMessage)"')
+
+
+def test_json_error_models_are_declared_as_application_json() -> None:
+    # ApiError and ErrorMessage are JSON envelopes. On an HTML or other non-JSON
+    # route FastAPI files a response model under the route's own media type, so
+    # a JSON error model under text/html is wrong. Such routes declare their
+    # error body as text/html, or name application/json explicitly.
+    offenders = []
+    for path, method, operation in _operations():
+        for status, response in operation.get("responses", {}).items():
+            if not status.startswith("4"):
+                continue
+            for media_type, media in response.get("content", {}).items():
+                if media_type == "application/json":
+                    continue
+                if JSON_ERROR_REF.search(json.dumps(media.get("schema", {}))):
+                    offenders.append(f"{method.upper()} {path} {status} ({media_type})")
+    assert not offenders, "JSON error models under a non-JSON media type: " + ", ".join(
+        offenders
+    )
+
+
+def test_request_bodies_are_named_component_references() -> None:
+    # An anonymous request schema (inline object, array or union) gives the
+    # generated client an unnamed type. Each body must $ref a named component.
+    offenders = []
+    for path, method, operation in _operations():
+        request_body = operation.get("requestBody") or {}
+        for media_type, media in request_body.get("content", {}).items():
+            reference = media.get("schema", {}).get("$ref", "")
+            if not reference.startswith("#/components/schemas/"):
+                offenders.append(f"{method.upper()} {path} ({media_type})")
+    assert not offenders, "Anonymous request bodies: " + ", ".join(offenders)
 
 
 def test_openapi_has_no_anonymous_enums() -> None:

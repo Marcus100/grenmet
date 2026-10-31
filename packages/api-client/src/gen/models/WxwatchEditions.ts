@@ -3,6 +3,7 @@
  * Do not edit manually.
  */
 
+import type { ApiError } from "./ApiError.js";
 import type { NhcEditionPropertiesFamilyEnum } from "./NhcEditionPropertiesFamilyEnum.js";
 import type { NhcPage } from "./NhcPage.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
@@ -36,11 +37,23 @@ export type WxwatchEditionsQuery = {
 
 export type WxwatchEditionsStatus200 = NhcPage;
 
-export type WxwatchEditionsStatus401 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type WxwatchEditionsStatus401 = ApiError;
 
-export type WxwatchEditionsStatus403 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type WxwatchEditionsStatus403 = ApiError;
 
-export type WxwatchEditionsStatus404 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type WxwatchEditionsStatus404 = ApiError;
 
 /**
  * @description Validation error envelope returned for malformed requests.

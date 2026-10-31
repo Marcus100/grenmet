@@ -3,6 +3,8 @@
  * Do not edit manually.
  */
 
+import type { ApiError } from "./ApiError.js";
+import type { ErrorMessage } from "./ErrorMessage.js";
 import type { PostponeEvent } from "./PostponeEvent.js";
 import type { PostponeResult } from "./PostponeResult.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
@@ -25,13 +27,29 @@ export type EventsPostponeEventQuery = {
 
 export type EventsPostponeEventStatus200 = PostponeResult;
 
-export type EventsPostponeEventStatus401 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type EventsPostponeEventStatus401 = ApiError;
 
-export type EventsPostponeEventStatus403 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type EventsPostponeEventStatus403 = ApiError;
 
-export type EventsPostponeEventStatus404 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type EventsPostponeEventStatus404 = ApiError;
 
-export type EventsPostponeEventStatus409 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type EventsPostponeEventStatus409 = ApiError;
 
 /**
  * @description Validation error envelope returned for malformed requests.
@@ -39,7 +57,7 @@ export type EventsPostponeEventStatus409 = unknown;
  */
 export type EventsPostponeEventStatus422 = ValidationErrorResponse;
 
-export type EventsPostponeEventStatus429 = unknown;
+export type EventsPostponeEventStatus429 = ApiError | ErrorMessage;
 
 export type EventsPostponeEventBody = PostponeEvent;
 

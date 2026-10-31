@@ -3,6 +3,7 @@
  * Do not edit manually.
  */
 
+import type { ApiError } from "./ApiError.js";
 import type { RequisitionPublic } from "./RequisitionPublic.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 
@@ -17,15 +18,35 @@ export type StoresCancelRequisitionPath = {
 
 export type StoresCancelRequisitionStatus200 = RequisitionPublic;
 
-export type StoresCancelRequisitionStatus400 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type StoresCancelRequisitionStatus400 = ApiError;
 
-export type StoresCancelRequisitionStatus401 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type StoresCancelRequisitionStatus401 = ApiError;
 
-export type StoresCancelRequisitionStatus403 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type StoresCancelRequisitionStatus403 = ApiError;
 
-export type StoresCancelRequisitionStatus404 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type StoresCancelRequisitionStatus404 = ApiError;
 
-export type StoresCancelRequisitionStatus409 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type StoresCancelRequisitionStatus409 = ApiError;
 
 /**
  * @description Validation error envelope returned for malformed requests.

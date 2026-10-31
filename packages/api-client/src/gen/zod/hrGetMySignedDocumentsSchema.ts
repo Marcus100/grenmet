@@ -4,6 +4,7 @@
  */
 
 import * as z from "zod";
+import { apiErrorSchema } from "./apiErrorSchema.js";
 import { signedDocumentListSchema } from "./signedDocumentListSchema.js";
 import { validationErrorResponseSchema } from "./validationErrorResponseSchema.js";
 
@@ -32,9 +33,13 @@ export const hrGetMySignedDocumentsQuerySizeSchema = z
 
 export const hrGetMySignedDocumentsStatus200Schema = signedDocumentListSchema;
 
-export const hrGetMySignedDocumentsStatus400Schema = z.unknown();
+export const hrGetMySignedDocumentsStatus400Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
-export const hrGetMySignedDocumentsStatus401Schema = z.unknown();
+export const hrGetMySignedDocumentsStatus401Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
 export const hrGetMySignedDocumentsStatus422Schema =
   validationErrorResponseSchema.describe(

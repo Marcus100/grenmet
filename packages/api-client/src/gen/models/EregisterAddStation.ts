@@ -3,6 +3,7 @@
  * Do not edit manually.
  */
 
+import type { ApiError } from "./ApiError.js";
 import type { StationCreate } from "./StationCreate.js";
 import type { StationRecord } from "./StationRecord.js";
 
@@ -12,13 +13,29 @@ import type { StationRecord } from "./StationRecord.js";
  */
 export type EregisterAddStationStatus201 = StationRecord;
 
-export type EregisterAddStationStatus401 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type EregisterAddStationStatus401 = ApiError;
 
-export type EregisterAddStationStatus403 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type EregisterAddStationStatus403 = ApiError;
 
-export type EregisterAddStationStatus404 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type EregisterAddStationStatus404 = ApiError;
 
-export type EregisterAddStationStatus409 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type EregisterAddStationStatus409 = ApiError;
 
 export type EregisterAddStationStatus422 = unknown;
 

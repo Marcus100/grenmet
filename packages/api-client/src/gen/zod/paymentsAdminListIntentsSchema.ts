@@ -4,6 +4,7 @@
  */
 
 import * as z from "zod";
+import { apiErrorSchema } from "./apiErrorSchema.js";
 import { intentStatusSchema } from "./intentStatusSchema.js";
 import { paymentIntentListPublicSchema } from "./paymentIntentListPublicSchema.js";
 import { validationErrorResponseSchema } from "./validationErrorResponseSchema.js";
@@ -35,9 +36,13 @@ export const paymentsAdminListIntentsQuerySizeSchema = z
 export const paymentsAdminListIntentsStatus200Schema =
   paymentIntentListPublicSchema;
 
-export const paymentsAdminListIntentsStatus401Schema = z.unknown();
+export const paymentsAdminListIntentsStatus401Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
-export const paymentsAdminListIntentsStatus403Schema = z.unknown();
+export const paymentsAdminListIntentsStatus403Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
 export const paymentsAdminListIntentsStatus422Schema =
   validationErrorResponseSchema.describe(

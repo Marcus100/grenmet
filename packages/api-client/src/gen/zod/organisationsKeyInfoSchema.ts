@@ -4,14 +4,19 @@
  */
 
 import * as z from "zod";
+import { apiErrorSchema } from "./apiErrorSchema.js";
 import { apiKeyInfoPublicSchema } from "./apiKeyInfoPublicSchema.js";
 import { validationErrorResponseSchema } from "./validationErrorResponseSchema.js";
 
 export const organisationsKeyInfoStatus200Schema = apiKeyInfoPublicSchema;
 
-export const organisationsKeyInfoStatus401Schema = z.unknown();
+export const organisationsKeyInfoStatus401Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
-export const organisationsKeyInfoStatus403Schema = z.unknown();
+export const organisationsKeyInfoStatus403Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
 export const organisationsKeyInfoStatus422Schema =
   validationErrorResponseSchema.describe(

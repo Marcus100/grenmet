@@ -7,6 +7,7 @@ from src.hr.dependencies import ShiftSwapDep
 from src.hr.filenames import preview_filename
 from src.hr.roster.schemas import RosterRulesPublic, RuleViolationPublic
 from src.hr.submission import submission_list, submission_public
+from src.models import ApiError
 from src.openapi_responses import AUTHENTICATED
 from src.pagination import PaginationDep
 from src.utils.pdf_response import PDF_HEADERS_DOC, pdf_response
@@ -37,8 +38,8 @@ router = APIRouter(prefix="/hr", tags=["hr-exchange"])
             "description": "Draft PDF",
             "headers": PDF_HEADERS_DOC,
         },
-        400: {"description": "Invalid exchange"},
-        403: {"description": "Insufficient permission"},
+        400: {"model": ApiError, "description": "Invalid exchange"},
+        403: {"model": ApiError, "description": "Insufficient permission"},
     },
 )
 async def preview_shift_swap(
@@ -85,9 +86,13 @@ async def list_my_shift_swaps(
     description="Create a shift swap request. Requires shift_swap.request.create.self permission.",
     responses={
         status.HTTP_201_CREATED: {"description": "Shift swap request created"},
-        status.HTTP_403_FORBIDDEN: {"description": "Insufficient permission"},
+        status.HTTP_403_FORBIDDEN: {
+            "model": ApiError,
+            "description": "Insufficient permission",
+        },
         status.HTTP_400_BAD_REQUEST: {
-            "description": "Invalid participants or roster conflict"
+            "model": ApiError,
+            "description": "Invalid participants or roster conflict",
         },
     },
 )
@@ -108,12 +113,17 @@ async def create_shift_swap(
     responses={
         status.HTTP_200_OK: {"description": "Shift swap request submitted"},
         status.HTTP_400_BAD_REQUEST: {
-            "description": "Shift swap request is not a draft"
+            "model": ApiError,
+            "description": "Shift swap request is not a draft",
         },
         status.HTTP_403_FORBIDDEN: {
-            "description": "Not allowed to submit this shift swap request"
+            "model": ApiError,
+            "description": "Not allowed to submit this shift swap request",
         },
-        status.HTTP_404_NOT_FOUND: {"description": "Shift swap request not found"},
+        status.HTTP_404_NOT_FOUND: {
+            "model": ApiError,
+            "description": "Shift swap request not found",
+        },
     },
 )
 async def submit_shift_swap(
@@ -140,12 +150,17 @@ async def submit_shift_swap(
     responses={
         status.HTTP_200_OK: {"description": "Shift swap request updated"},
         status.HTTP_400_BAD_REQUEST: {
-            "description": "Shift swap request is not a draft"
+            "model": ApiError,
+            "description": "Shift swap request is not a draft",
         },
         status.HTTP_403_FORBIDDEN: {
-            "description": "Not allowed to edit this shift swap request"
+            "model": ApiError,
+            "description": "Not allowed to edit this shift swap request",
         },
-        status.HTTP_404_NOT_FOUND: {"description": "Shift swap request not found"},
+        status.HTTP_404_NOT_FOUND: {
+            "model": ApiError,
+            "description": "Shift swap request not found",
+        },
     },
 )
 async def update_shift_swap(
@@ -172,12 +187,17 @@ async def update_shift_swap(
     responses={
         status.HTTP_204_NO_CONTENT: {"description": "Shift swap request deleted"},
         status.HTTP_400_BAD_REQUEST: {
-            "description": "Shift swap request is not a draft"
+            "model": ApiError,
+            "description": "Shift swap request is not a draft",
         },
         status.HTTP_403_FORBIDDEN: {
-            "description": "Not allowed to delete this shift swap request"
+            "model": ApiError,
+            "description": "Not allowed to delete this shift swap request",
         },
-        status.HTTP_404_NOT_FOUND: {"description": "Shift swap request not found"},
+        status.HTTP_404_NOT_FOUND: {
+            "model": ApiError,
+            "description": "Shift swap request not found",
+        },
     },
 )
 async def delete_shift_swap(
@@ -201,11 +221,16 @@ async def delete_shift_swap(
     responses={
         status.HTTP_200_OK: {"description": "Shift swap request updated"},
         status.HTTP_403_FORBIDDEN: {
-            "description": "Not allowed to action this shift swap"
+            "model": ApiError,
+            "description": "Not allowed to action this shift swap",
         },
-        status.HTTP_404_NOT_FOUND: {"description": "Shift swap request not found"},
+        status.HTTP_404_NOT_FOUND: {
+            "model": ApiError,
+            "description": "Shift swap request not found",
+        },
         status.HTTP_400_BAD_REQUEST: {
-            "description": "Invalid stage action or changed roster"
+            "model": ApiError,
+            "description": "Invalid stage action or changed roster",
         },
     },
 )
@@ -238,8 +263,14 @@ async def action_shift_swap(
     ),
     responses={
         status.HTTP_200_OK: {"description": "Rule check returned"},
-        status.HTTP_403_FORBIDDEN: {"description": "Not permitted to view this swap"},
-        status.HTTP_404_NOT_FOUND: {"description": "Shift swap not found"},
+        status.HTTP_403_FORBIDDEN: {
+            "model": ApiError,
+            "description": "Not permitted to view this swap",
+        },
+        status.HTTP_404_NOT_FOUND: {
+            "model": ApiError,
+            "description": "Shift swap not found",
+        },
     },
 )
 async def check_shift_swap_rules(

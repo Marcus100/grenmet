@@ -4,6 +4,7 @@
  */
 
 import * as z from "zod";
+import { apiErrorSchema } from "./apiErrorSchema.js";
 import { onboardingStatusSchema } from "./onboardingStatusSchema.js";
 import { validationErrorResponseSchema } from "./validationErrorResponseSchema.js";
 
@@ -11,9 +12,13 @@ export const authGetOnboardingStatusPathUserIdSchema = z.uuid();
 
 export const authGetOnboardingStatusStatus200Schema = onboardingStatusSchema;
 
-export const authGetOnboardingStatusStatus403Schema = z.unknown();
+export const authGetOnboardingStatusStatus403Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
-export const authGetOnboardingStatusStatus404Schema = z.unknown();
+export const authGetOnboardingStatusStatus404Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
 export const authGetOnboardingStatusStatus422Schema =
   validationErrorResponseSchema.describe(

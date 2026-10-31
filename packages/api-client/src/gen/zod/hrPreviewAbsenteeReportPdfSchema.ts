@@ -5,6 +5,7 @@
 
 import * as z from "zod";
 import { absenteeReportCreateSchema } from "./absenteeReportCreateSchema.js";
+import { apiErrorSchema } from "./apiErrorSchema.js";
 
 export const hrPreviewAbsenteeReportPdfStatus200SchemaJson = z.unknown();
 
@@ -15,9 +16,11 @@ export const hrPreviewAbsenteeReportPdfStatus200Schema = z.union([
   hrPreviewAbsenteeReportPdfStatus200SchemaPdf,
 ]);
 
-export const hrPreviewAbsenteeReportPdfStatus400Schema = z.unknown();
+export const hrPreviewAbsenteeReportPdfStatus400Schema =
+  apiErrorSchema.describe("Stable error envelope for documented API failures.");
 
-export const hrPreviewAbsenteeReportPdfStatus403Schema = z.unknown();
+export const hrPreviewAbsenteeReportPdfStatus403Schema =
+  apiErrorSchema.describe("Stable error envelope for documented API failures.");
 
 export const hrPreviewAbsenteeReportPdfStatus422Schema = z.unknown();
 

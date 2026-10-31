@@ -3,6 +3,7 @@
  * Do not edit manually.
  */
 
+import type { ApiError } from "./ApiError.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 
 export type HrDeleteLeaveRequestPath = {
@@ -16,11 +17,23 @@ export type HrDeleteLeaveRequestPath = {
 
 export type HrDeleteLeaveRequestStatus204 = unknown;
 
-export type HrDeleteLeaveRequestStatus400 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type HrDeleteLeaveRequestStatus400 = ApiError;
 
-export type HrDeleteLeaveRequestStatus403 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type HrDeleteLeaveRequestStatus403 = ApiError;
 
-export type HrDeleteLeaveRequestStatus404 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type HrDeleteLeaveRequestStatus404 = ApiError;
 
 /**
  * @description Validation error envelope returned for malformed requests.

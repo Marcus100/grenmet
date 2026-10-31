@@ -4,6 +4,7 @@
  */
 
 import * as z from "zod";
+import { apiErrorSchema } from "./apiErrorSchema.js";
 import { capAlertPublicSchema } from "./capAlertPublicSchema.js";
 import { validationErrorResponseSchema } from "./validationErrorResponseSchema.js";
 
@@ -11,7 +12,9 @@ export const capGetPublicAlertPathIdentifierSchema = z.string();
 
 export const capGetPublicAlertStatus200Schema = capAlertPublicSchema;
 
-export const capGetPublicAlertStatus404Schema = z.unknown();
+export const capGetPublicAlertStatus404Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
 export const capGetPublicAlertStatus422Schema =
   validationErrorResponseSchema.describe(

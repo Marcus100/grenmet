@@ -4,17 +4,24 @@
  */
 
 import * as z from "zod";
+import { apiErrorSchema } from "./apiErrorSchema.js";
 import { nhcJobSchema } from "./nhcJobSchema.js";
 import { nhcPointRequestSchema } from "./nhcPointRequestSchema.js";
 import { validationErrorResponseSchema } from "./validationErrorResponseSchema.js";
 
 export const wxwatchPointStatus202Schema = nhcJobSchema;
 
-export const wxwatchPointStatus401Schema = z.unknown();
+export const wxwatchPointStatus401Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
-export const wxwatchPointStatus403Schema = z.unknown();
+export const wxwatchPointStatus403Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
-export const wxwatchPointStatus404Schema = z.unknown();
+export const wxwatchPointStatus404Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
 export const wxwatchPointStatus422Schema =
   validationErrorResponseSchema.describe(

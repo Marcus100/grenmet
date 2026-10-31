@@ -4,14 +4,23 @@
  */
 
 import type { ActivationAccountCreate } from "./ActivationAccountCreate.js";
+import type { ApiError } from "./ApiError.js";
 import type { UserPublic } from "./UserPublic.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 
 export type AuthCreateOnboardingAccountStatus201 = UserPublic;
 
-export type AuthCreateOnboardingAccountStatus403 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type AuthCreateOnboardingAccountStatus403 = ApiError;
 
-export type AuthCreateOnboardingAccountStatus409 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type AuthCreateOnboardingAccountStatus409 = ApiError;
 
 /**
  * @description Validation error envelope returned for malformed requests.
