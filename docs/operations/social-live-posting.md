@@ -180,8 +180,9 @@ look at the row after you have checked the page.
   website is not blocked. The host is checked again just before a post is sent: if the
   owner removes a host after the post was saved, the post is marked dead and not sent.
 - A link or image address must be plain https: no backslash, no user information (no
-  `name@` before the host), and no port other than 443. These are refused when the CMS
-  saves the post. Browsers and URL parsers read such addresses differently, so the
+  `name@` before the host), no port other than 443, and no address the parser cannot read.
+  These are refused when the CMS saves the post, and a saved post with such an address is
+  never sent. Browsers and URL parsers read such addresses differently, so the
   host list alone cannot be trusted with them.
 - **Captions are posted as written.** The host lists restrict the link card and the
   image. A link typed into the caption text is not checked against the lists. The CMS

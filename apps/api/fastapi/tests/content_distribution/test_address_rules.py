@@ -58,3 +58,17 @@ def test_a_port_other_than_443_or_an_invalid_port_is_refused(
 )
 def test_plain_addresses_and_the_https_port_pass(url: str) -> None:
     assert address_problem(url) is None
+
+
+@pytest.mark.parametrize(
+    "url",
+    [
+        "https://[::1",  # unbalanced IPv6 bracket
+        "https://allowed.com[/",  # a bracket in the host name
+        "https://[allowed.com]/",  # brackets around a name, not an address
+        "https://allowed.com＠evil.com/x",  # fullwidth @ changes under NFKC
+        "https://allowed.com／evil.com/x",  # fullwidth slash in the host part
+    ],
+)
+def test_an_address_the_parser_cannot_read_is_refused_not_an_error(url: str) -> None:
+    assert address_problem(url) == "is not a valid address"

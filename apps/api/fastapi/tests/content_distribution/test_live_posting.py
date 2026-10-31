@@ -854,3 +854,43 @@ async def test_an_image_host_removed_after_intake_is_not_posted(
     assert row.error is not None
     assert "image host is no longer on the approved list" in row.error
     assert fake_meta.requests == []
+
+
+@pytest.mark.parametrize(
+    ("platform", "field", "bypass"),
+    [
+        ("facebook", "url", "https://evil.com\\x@allowed.com/p"),
+        ("instagram", "imageUrl", "https://evil.com\\x@allowed.com/p"),
+    ],
+)
+async def test_a_row_saved_before_the_address_rule_is_not_published(
+    async_client: httpx.AsyncClient,
+    db_async: AsyncSession,
+    cms_secret: dict[str, str],
+    fake_meta: FakeMeta,
+    monkeypatch: pytest.MonkeyPatch,
+    platform: str,
+    field: str,
+    bypass: str,
+) -> None:
+    # The bypass address was saved before the rule existed: the row is edited directly.
+    # allowed.com is on the approved list, so only the address rule can stop the post.
+    await _switch_live_on(db_async)
+    slug = f"legacy-{platform}-{field.lower()}"
+    await _intake_and_release(async_client, db_async, cms_secret, slug, [platform])
+    monkeypatch.setattr(settings, "SOCIAL_LINK_HOSTS", "gms.example.test,allowed.com")
+    monkeypatch.setattr(settings, "SOCIAL_IMAGE_HOSTS", "gms.example.test,allowed.com")
+    [row] = await _rows(db_async, slug)
+    if field == "url":
+        row.url = bypass
+        row.payload = {**row.payload, "url": bypass}
+    else:
+        row.payload = {**row.payload, "imageUrl": bypass}
+    await db_async.commit()
+
+    assert await _drain(db_async, f"social.post.{platform}") == 1
+    row = await _one(db_async, slug, platform)
+    assert row.status == "dead"
+    assert row.error is not None
+    assert "is not a plain https address" in row.error
+    assert fake_meta.requests == []

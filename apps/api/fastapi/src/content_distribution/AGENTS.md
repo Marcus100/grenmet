@@ -41,7 +41,9 @@ content.
   reason, as a backstop.)
 - Duplicate platforms and non-HTTPS links are refused by the schema.
 - A link or image address must be plain https: no backslash, no user information and no
-  port other than 443 (`service.address_problem`, a 422 `SocialAddressNotPlain` at intake). Python's parser
+  port other than 443, and an address the parser cannot read (`service.address_problem`, a
+  422 `SocialAddressNotPlain` at intake; the same check runs again before any publish, so
+  a saved row with such an address is dead, not sent). Python's parser
   and a browser read `https://evil.com\x@allowed.com` differently, so the address is refused
   before the host list is consulted.
 - The link (`url`) and the image (`imageUrl`) must be on an approved host: the hostnames

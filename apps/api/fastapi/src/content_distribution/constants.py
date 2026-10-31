@@ -49,6 +49,13 @@ REASON_TOKEN_MALFORMED: Final = (
 REASON_NO_IMAGE: Final = (
     "Instagram posts need an image. This post has none, so it was skipped."
 )
+# A saved post whose link or image is not a plain https address (saved before the rule,
+# or edited in the database) is never sent either. {what} is "link" or "image".
+ERROR_ADDRESS_NOT_PLAIN: Final = (
+    "Not posted: the {what} is not a plain https address (it has a backslash, user "
+    "information, a port other than 443, or cannot be read). Post it by hand if it is "
+    "still needed; saving the post again does not change this row."
+)
 # A post whose approved host was removed after it was saved is never sent. {what} is
 # "link" or "image".
 ERROR_HOST_REMOVED: Final = (

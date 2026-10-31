@@ -583,3 +583,33 @@ async def test_an_explicit_https_port_is_accepted_at_intake(
     body["url"] = "https://allowed.com:443/stories/x"
     resp = await async_client.post(_URL, json=body, headers=cms_secret)
     assert resp.status_code == 202, resp.text
+
+
+@pytest.mark.parametrize(
+    ("field", "value"),
+    [
+        ("url", "https://[::1"),
+        ("imageUrl", "https://[::1"),
+        ("url", "https://allowed.com[/"),
+        ("imageUrl", "https://[allowed.com]/"),
+        ("url", "https://allowed.com＠evil.com/x"),
+        ("imageUrl", "https://allowed.com／evil.com/x"),
+    ],
+)
+async def test_an_unparseable_address_is_a_422_not_a_server_error(
+    async_client: httpx.AsyncClient,
+    db_async: AsyncSession,
+    cms_secret: dict[str, str],
+    monkeypatch: pytest.MonkeyPatch,
+    field: str,
+    value: str,
+) -> None:
+    monkeypatch.setattr(settings, "SOCIAL_LINK_HOSTS", "gms.example.test,allowed.com")
+    monkeypatch.setattr(settings, "SOCIAL_IMAGE_HOSTS", "gms.example.test,allowed.com")
+    slug = f"unparsed-{uuid.uuid4().hex[:8]}"
+    body = _body(slug)
+    body[field] = value
+    resp = await async_client.post(_URL, json=body, headers=cms_secret)
+    assert resp.status_code == 422, resp.text
+    assert "not a valid address" in resp.text
+    assert await _rows(db_async, slug) == []

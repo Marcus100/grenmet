@@ -20,6 +20,7 @@ from . import meta_graph
 from .config import PlatformCredentials, content_distribution_settings
 from .constants import (
     AUTOMATED_PLATFORMS,
+    ERROR_ADDRESS_NOT_PLAIN,
     ERROR_HOST_REMOVED,
     ERROR_OUTCOME_UNKNOWN,
     IMAGE_REQUIRED_PLATFORMS,
@@ -83,7 +84,11 @@ def address_problem(url: str) -> str | None:
     """
     if "\\" in url:
         return "contains a backslash"
-    parts = urlsplit(url)
+    try:
+        parts = urlsplit(url)
+    except ValueError:
+        # Unbalanced brackets, or characters that change under NFKC (fullwidth @ or /).
+        return "is not a valid address"
     if parts.username is not None or parts.password is not None or "@" in parts.netloc:
         return "contains user information"
     try:
@@ -100,19 +105,21 @@ def _host(url: str) -> str | None:
     return urlsplit(url).hostname
 
 
-def _delivery_host_problem(url: str | None, image_url: str | None) -> str | None:
-    """Which of a saved post's addresses is no longer approved ("link" or "image"),
-    or None. Run again at delivery: the approved lists can change after intake."""
-    link_host = _host(url) if url else None
-    if link_host is None or link_host not in content_distribution_settings.link_hosts():
-        return "link"
+def _delivery_problem(url: str | None, image_url: str | None) -> str | None:
+    """The staff message for a saved post that must not be published, or None.
+
+    Run again at delivery, for two reasons: a row saved before a rule existed must not
+    go out under the new rule, and the approved host lists can change after intake.
+    The address rule runs first, so a row saved with an unsafe address is named as
+    one, not as a host that was removed."""
+    checks = [("link", url, content_distribution_settings.link_hosts())]
     if image_url is not None:
-        image_host = _host(image_url)
-        if (
-            image_host is None
-            or image_host not in content_distribution_settings.image_hosts()
-        ):
-            return "image"
+        checks.append(("image", image_url, content_distribution_settings.image_hosts()))
+    for what, address, approved in checks:
+        if address is None or address_problem(address) is not None:
+            return ERROR_ADDRESS_NOT_PLAIN.format(what=what)
+        if _host(address) not in approved:
+            return ERROR_HOST_REMOVED.format(what=what)
     return None
 
 
@@ -120,12 +127,14 @@ def check_post_rules(body: PostIn) -> None:
     """Refuse official warnings, links and images on unapproved hosts, and posts
     missing what a platform needs. The approved hosts are settings, so an empty
     list refuses every post (fail closed)."""
-    if body.collection in WARNING_COLLECTIONS or _is_warning_link(body.url):
-        raise SocialWarningNotAllowed()
+    # Addresses first: the warning-link check below parses the URL, and an address that
+    # cannot be parsed must be a 422, not an error.
     for what, address in ("link", body.url), ("image", body.image_url):
         problem = address_problem(address) if address is not None else None
         if problem is not None:
             raise SocialAddressNotPlain(what, problem)
+    if body.collection in WARNING_COLLECTIONS or _is_warning_link(body.url):
+        raise SocialWarningNotAllowed()
     link_host = _host(body.url)
     if link_host not in content_distribution_settings.link_hosts():
         raise SocialHostNotAllowed("link", link_host)
@@ -417,18 +426,13 @@ async def post_delivery(session: AsyncSession, message: OutboxMessage) -> None:
             reason=reason,
         )
         return
-    host_problem = _delivery_host_problem(_text(row.payload.get("url")), image_url)
-    if host_problem is not None:
+    problem = _delivery_problem(_text(row.payload.get("url")), image_url)
+    if problem is not None:
         logger.warning(
-            "Approved host removed after intake; social post not sent",
+            "Saved social post not sent: address or approved host",
             extra={"platform": row.platform, "delivery_id": str(row.id)},
         )
-        _settle(
-            row,
-            message,
-            status=STATUS_DEAD,
-            error=ERROR_HOST_REMOVED.format(what=host_problem),
-        )
+        _settle(row, message, status=STATUS_DEAD, error=problem)
         return
     await _publish_live(session, row, message, credentials, image_url)
 
