@@ -513,3 +513,28 @@ test("the origin header script refuses a missing or malformed secret without ech
     );
   }
 });
+
+test("the origin header rule also covers router aliases such as api.weather.gd", () => {
+  const run = (extra) =>
+    python([HEADER_SCRIPT, "--environment", "production", "--print"], {
+      env: { PATH: process.env.PATH, CLOUDFLARE_EXTRA_HOSTS: extra },
+    });
+  const withAlias = run("api.weather.gd, API.Weather.gd");
+  assert.equal(withAlias.status, 0, withAlias.stderr);
+  const [rule] = JSON.parse(withAlias.stdout);
+  assert.equal(
+    rule.expression.split('"api.weather.gd"').length,
+    2,
+    "listed once"
+  );
+  assert.ok(rule.expression.includes('"api.barrels.gd"'));
+  const bad = run("not a host");
+  assert.notEqual(bad.status, 0);
+  // Aliases in *_EXTRA_HOSTS_RULE (env file) are read the same way.
+  const parsed = python([
+    "-c",
+    "import importlib.util, json, sys; s = importlib.util.spec_from_file_location('m', sys.argv[1]); m = importlib.util.module_from_spec(s); s.loader.exec_module(m); print(json.dumps(m.EXTRA_HOST.findall(' || Host(`api.weather.gd`) || Host(`weather.gd`)')))",
+    HEADER_SCRIPT,
+  ]);
+  assert.deepEqual(JSON.parse(parsed.stdout), ["api.weather.gd", "weather.gd"]);
+});

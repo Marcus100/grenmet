@@ -30,22 +30,55 @@ from pathlib import Path
 
 # Also loadable as a module from elsewhere (cloudflare-proxy.test.mjs).
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from cloudflare_rulesets import PRIVATE_HOSTS, PUBLIC_HOSTS, base_domain, host_set, sync  # noqa: E402
+from cloudflare_rulesets import (  # noqa: E402
+    PRIVATE_HOSTS,
+    PUBLIC_HOSTS,
+    ROOT,
+    base_domain,
+    host_set,
+    sync,
+)
 
 PHASE = "http_request_late_transform"
 # Must match ORIGIN_HEADER and ORIGIN_SECRET in render-env.py.
 ORIGIN_HEADER = "X-Barrels-Origin"
 ORIGIN_SECRET = re.compile(r"[A-Za-z0-9_-]{32,128}")
 MASK = "<CLOUDFLARE_ORIGIN_SECRET>"
+EXTRA_HOST = re.compile(r"Host\(`([a-z0-9.-]+)`\)")
+HOSTNAME = re.compile(r"(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z]{2,63}")
 
 
-def rules(environment, secret):
+def extra_hosts(environment, environ=os.environ):
+    """Router aliases outside BASE_DOMAIN that also reach the droplet.
+
+    Read from the env file's *_EXTRA_HOSTS_RULE values (for example
+    API_EXTRA_HOSTS_RULE=" || Host(`api.weather.gd`)" at the weather.gd cutover)
+    plus CLOUDFLARE_EXTRA_HOSTS (comma-separated), so a new alias gets the
+    header as soon as it is configured. A host in another Cloudflare zone needs
+    this script run again with that zone's CLOUDFLARE_ZONE_ID."""
+    hosts = []
+    for line in (ROOT / f"infra/docker/{environment}.env").read_text().splitlines():
+        key, _, value = line.partition("=")
+        if key.endswith("_EXTRA_HOSTS_RULE"):
+            hosts += EXTRA_HOST.findall(value)
+    hosts += [h.strip().lower() for h in environ.get("CLOUDFLARE_EXTRA_HOSTS", "").split(",") if h.strip()]
+    for host in hosts:
+        if not HOSTNAME.fullmatch(host):
+            raise ValueError(f"extra host {host!r} is not a hostname")
+    return list(dict.fromkeys(hosts))
+
+
+def rules(environment, secret, environ=os.environ):
     domain = base_domain(environment)
+    hosts = host_set(PUBLIC_HOSTS + PRIVATE_HOSTS, domain)
+    extras = extra_hosts(environment, environ)
+    if extras:
+        hosts = hosts[:-1] + " " + " ".join(f'"{host}"' for host in extras) + "}"
     return [
         {
             "ref": f"grenmet-{environment}-origin-secret",
             "description": f"GrenMet {environment}: origin secret Traefik requires from Cloudflare",
-            "expression": f"(http.host in {host_set(PUBLIC_HOSTS + PRIVATE_HOSTS, domain)})",
+            "expression": f"(http.host in {hosts})",
             "action": "rewrite",
             # `set` overwrites any value a visitor sends.
             "action_parameters": {"headers": {ORIGIN_HEADER: {"operation": "set", "value": secret}}},
