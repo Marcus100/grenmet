@@ -92342,6 +92342,17 @@
           "affects_everyone": {
             "type": "boolean",
             "title": "Affects Everyone"
+          },
+          "notice_type": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/SectorOutlookItemPropertiesNoticeTypeAnyOfEnum"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Notice Type"
           }
         },
         "type": "object",
@@ -105479,6 +105490,14 @@
         "enum": [
           "CAP",
           "Bulletin"
+        ]
+      },
+      "SectorOutlookItemPropertiesNoticeTypeAnyOfEnum": {
+        "type": "string",
+        "enum": [
+          "Information",
+          "Advisory",
+          "All clear"
         ]
       },
       "SettlementChannelPropertiesChannelEnum": {

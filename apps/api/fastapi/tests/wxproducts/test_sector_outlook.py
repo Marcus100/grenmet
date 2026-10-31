@@ -40,22 +40,21 @@ def _bulletin(
     sectors="",
     valid_from="2026-10-28T06:00",
     valid_to="2026-10-29T18:00",
+    notice="Information",
 ):
-    return SimpleNamespace(
-        id=uuid4(),
-        kind=kind,
-        revision=1,
-        values={
-            "level": "Green",
-            "likelihood": "Low",
-            "impact": "Minor",
-            "impacts": "Choppy seas.",
-            "response": "Use caution.",
-            "validFrom": valid_from,
-            "validTo": valid_to,
-            "sectors": sectors,
-        },
-    )
+    values = {
+        "level": "Green",
+        "likelihood": "Low",
+        "impact": "Minor",
+        "impacts": "Choppy seas.",
+        "response": "Use caution.",
+        "validFrom": valid_from,
+        "validTo": valid_to,
+        "sectors": sectors,
+    }
+    if notice is not None:
+        values["notice"] = notice
+    return SimpleNamespace(id=uuid4(), kind=kind, revision=1, values=values)
 
 
 def _sources(monkeypatch, alerts, bulletins):
@@ -161,3 +160,68 @@ async def test_public_endpoint_is_open_and_validates_days(async_client, monkeypa
             f"/api/v1/wxproducts/public/sector-outlook?days={bad}"
         )
         assert response.status_code == 422
+
+
+async def test_bulletin_carries_its_notice_type_and_cap_items_do_not(monkeypatch):
+    _sources(
+        monkeypatch,
+        [_alert("GMS-1")],
+        [
+            _bulletin("marine", notice="All clear", valid_to="2026-10-31T06:00"),
+            _bulletin("heat", notice="Advisory"),
+            _bulletin("wind", notice="Information"),
+        ],
+    )
+    outlook = await _outlook()
+    by_title = {item.title: item for item in outlook.items}
+    assert by_title["Marine"].notice_type == "All clear"
+    assert by_title["Heat"].notice_type == "Advisory"
+    assert by_title["Wind"].notice_type == "Information"
+    cap = next(item for item in outlook.items if item.source == "CAP")
+    assert cap.notice_type is None
+
+
+async def test_notice_type_is_null_when_missing_or_not_a_form_value(monkeypatch):
+    # Saved older revisions may carry notice values the form no longer offers
+    # (for example Watch or Warning); they are never read as an All clear.
+    _sources(
+        monkeypatch,
+        [],
+        [
+            _bulletin("marine", notice=None),
+            _bulletin("heat", notice="Watch"),
+            _bulletin("wind", notice="all clear"),
+        ],
+    )
+    outlook = await _outlook()
+    assert [item.notice_type for item in outlook.items] == [None, None, None]
+
+
+async def test_notice_type_is_serialised_on_the_public_endpoint(
+    async_client, monkeypatch
+):
+    async def fake(_cap, _weather, *, now, days):
+        item = advisories.SectorOutlookItem(
+            source="Bulletin",
+            title="Marine",
+            product="Bulletin",
+            colour="green",
+            impacts="",
+            response="",
+            reference="GMS Marine bulletin r1",
+            sectors=[],
+            affects_everyone=True,
+            notice_type="All clear",
+        )
+        return advisories.SectorOutlook(
+            as_of=now,
+            window_start=now,
+            window_end=now + timedelta(days=days),
+            complete=True,
+            items=[item],
+        )
+
+    monkeypatch.setattr(advisories, "sector_outlook", fake)
+    response = await async_client.get("/api/v1/wxproducts/public/sector-outlook?days=3")
+    assert response.status_code == 200
+    assert response.json()["items"][0]["notice_type"] == "All clear"

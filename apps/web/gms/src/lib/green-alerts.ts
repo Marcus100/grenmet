@@ -1,12 +1,30 @@
 import type { SectorOutlook, SectorOutlookItem } from "@barrelsgd/api-client";
 import type { AlertsResult, GreenStatus } from "@/lib/cap-alerts";
-import { firstSentence, hrefFor, whenLabel } from "@/lib/sector-outlook";
+import {
+  firstSentence,
+  hrefFor,
+  isAllClear,
+  whenLabel,
+} from "@/lib/sector-outlook";
 
 /** A Green (calm) GMS alert in effect, as the alerts page lists it. */
 export interface GreenAlert {
   href: string | null;
   id: string;
   summary: string;
+  title: string;
+  /** "In effect until Fri 30 Oct", or "In effect" when it has no end. */
+  when: string;
+}
+
+/**
+ * A Green "All clear" bulletin in effect. It is information, not an alert in
+ * effect: it is listed as "All clear: <title>" and never counted (owner
+ * decision, 30 Oct 2026).
+ */
+export interface AllClearInformation {
+  href: string | null;
+  id: string;
   title: string;
   /** "In effect until Fri 30 Oct", or "In effect" when it has no end. */
   when: string;
@@ -24,6 +42,8 @@ export type GreenAlerts =
        * not yet published as CAP). Never listed as Green, never ignored.
        */
       other: number;
+      /** Green "All clear" bulletins in effect: information, never counted. */
+      information: AllClearInformation[];
     };
 
 /** In effect at `now`: started (or no start) and not yet ended (or no end). */
@@ -37,8 +57,10 @@ function inEffect(item: SectorOutlookItem, now: Date): boolean {
  * The GMS items in effect now, from the same sector outlook that feeds "Plan
  * your week" on the home page. Green items are listed. Yellow and above that
  * are CAP warnings are listed by the warnings feed, so they are not repeated;
- * any other item in effect with no CAP warning is counted as `other`. A
- * `null` outlook (the feed did not answer) is `unavailable`, never an empty list.
+ * any other item in effect with no CAP warning is counted as `other`. Green
+ * "All clear" bulletins are information and are neither listed as alerts nor
+ * counted. A `null` outlook (the feed did not answer) is `unavailable`, never
+ * an empty list.
  */
 export function greenAlerts(
   outlook: SectorOutlook | null,
@@ -58,7 +80,8 @@ export function greenAlerts(
       inEffect(item, now) &&
       !(item.identifier && warningIds.has(item.identifier))
   );
-  const items = inForce
+  const alerts = inForce.filter((item) => !isAllClear(item));
+  const items = alerts
     .filter((item) => item.colour === "green")
     .map((item) => ({
       id: item.identifier ?? item.product_id ?? item.reference,
@@ -71,8 +94,24 @@ export function greenAlerts(
       ),
       href: hrefFor(item),
     }));
-  const other = inForce.filter((item) => item.colour !== "green").length;
-  return { status: "ok", complete: outlook.complete, items, other };
+  const other = alerts.filter((item) => item.colour !== "green").length;
+  const information = inForce.filter(isAllClear).map((item) => ({
+    id: item.identifier ?? item.product_id ?? item.reference,
+    title: item.title,
+    when: whenLabel(
+      item.valid_from ? new Date(item.valid_from) : null,
+      item.valid_to ? new Date(item.valid_to) : null,
+      now
+    ),
+    href: hrefFor(item),
+  }));
+  return {
+    status: "ok",
+    complete: outlook.complete,
+    items,
+    other,
+    information,
+  };
 }
 
 /** The masthead's view of the same read: counts only, or unavailable. */

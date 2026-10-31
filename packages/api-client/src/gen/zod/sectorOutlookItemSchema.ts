@@ -5,6 +5,7 @@
 
 import * as z from "zod";
 import { publicWarningPropertiesColourAnyOfEnumSchema } from "./publicWarningPropertiesColourAnyOfEnumSchema.js";
+import { sectorOutlookItemPropertiesNoticeTypeAnyOfEnumSchema } from "./sectorOutlookItemPropertiesNoticeTypeAnyOfEnumSchema.js";
 import { sectorOutlookItemPropertiesSourceEnumSchema } from "./sectorOutlookItemPropertiesSourceEnumSchema.js";
 
 export const sectorOutlookItemSchema = z
@@ -26,6 +27,9 @@ export const sectorOutlookItemSchema = z
     product_id: z.union([z.uuid(), z.null()]).optional(),
     sectors: z.array(z.string()),
     affects_everyone: z.boolean(),
+    notice_type: z
+      .union([sectorOutlookItemPropertiesNoticeTypeAnyOfEnumSchema, z.null()])
+      .optional(),
   })
   .describe(
     "One alert or warning that applies to the coming days, with its sectors."

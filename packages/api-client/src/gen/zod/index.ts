@@ -7397,6 +7397,7 @@ export { scopeKindSchema } from "./scopeKindSchema.js";
 export { sectionCreateSchema } from "./sectionCreateSchema.js";
 export { sectionUpdateSchema } from "./sectionUpdateSchema.js";
 export { sectionViewSchema } from "./sectionViewSchema.js";
+export { sectorOutlookItemPropertiesNoticeTypeAnyOfEnumSchema } from "./sectorOutlookItemPropertiesNoticeTypeAnyOfEnumSchema.js";
 export { sectorOutlookItemPropertiesSourceEnumSchema } from "./sectorOutlookItemPropertiesSourceEnumSchema.js";
 export { sectorOutlookItemSchema } from "./sectorOutlookItemSchema.js";
 export { sectorOutlookSchema } from "./sectorOutlookSchema.js";

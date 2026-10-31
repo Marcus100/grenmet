@@ -7468,6 +7468,8 @@ export type { SectionUpdate } from "./SectionUpdate.js";
 export type { SectionView } from "./SectionView.js";
 export type { SectorOutlook } from "./SectorOutlook.js";
 export type { SectorOutlookItem } from "./SectorOutlookItem.js";
+export type { SectorOutlookItemPropertiesNoticeTypeAnyOfEnum } from "./SectorOutlookItemPropertiesNoticeTypeAnyOfEnum.js";
+export { sectorOutlookItemPropertiesNoticeTypeAnyOfEnum } from "./SectorOutlookItemPropertiesNoticeTypeAnyOfEnum.js";
 export type { SectorOutlookItemPropertiesSourceEnum } from "./SectorOutlookItemPropertiesSourceEnum.js";
 export { sectorOutlookItemPropertiesSourceEnum } from "./SectorOutlookItemPropertiesSourceEnum.js";
 export type { SecurityProof } from "./SecurityProof.js";
