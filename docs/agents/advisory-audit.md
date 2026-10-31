@@ -2,7 +2,7 @@
 
 **Status:** Active reference  
 **Owner:** Barrels Grenada engineering  
-**Last updated:** 2026-10-26
+**Last updated:** 2026-10-30
 
 The auditor helps Claude find errors. It never merges, synchronizes pull request
 branches, changes rulesets, repairs applications, or makes its results required.
@@ -19,7 +19,7 @@ available. Times are universal time, with up to one minute of jitter.
 | --- | --- | --- |
 | grenmet-audit-hourly | Every hour at :10 | Current development workflow failures, persistent pull request problems, security alerts |
 | grenmet-audit-sixhourly | 00:30, 06:30, 12:30, 18:30 | Clean pinned development checkout, type checks, lint, each app test script, backend tests, all migration chains, client drift, dependency audit |
-| grenmet-audit-daily | 05:30 | Read-only staging and production health, readiness, certificates, operational aggregate reports |
+| grenmet-audit-daily | 05:30 | Read-only staging and production health, readiness, certificates; operational aggregate reports only when the droplet runner path is not primary (see below) |
 | grenmet-audit-weekly | Sunday 07:30 | Suppression baseline, oversized source modules, unfinished-work markers, dead-code reports |
 
 Persistent timers catch up after downtime. They cannot run while the host sleeps.
@@ -60,6 +60,34 @@ Install reviewed source as a detached checkout at
 The runner needs Node, pnpm, uv, GitHub command-line authentication, Docker and
 network access. It must not receive application credentials for test commands.
 
+## Daily operational monitoring: the droplet runners are primary
+
+Since the owner chose it on 2026-10-31, the primary path for the seven daily operational sources
+(`sentry`, `eregister-sends`, `wis2-sends`, `worker-jobs`, `notification-sweeps`,
+`secrets`, `backups`, reported as issues #644 to #648) is
+`.github/workflows/monitoring-daily.yml`. It runs at 04:50 UTC on each
+environment's own self-hosted runner, so it reaches the private database and
+Redis containers directly and runs while this host is off.
+`scripts/monitoring/daily_receipts.py` writes one aggregate-only receipt per
+environment. A GitHub-hosted job then runs `scripts/agents/audit-runner-publish.mjs`,
+which merges the two halves into the receipt shape below and publishes through
+the same `aggregateReceipt`, root-cause grouping and `publishObservations`
+code as this host. Keys, titles and markers are identical, so the same issues
+open, update and close. A missing, stale or incomplete half is a coverage gap
+and never closes an issue. Each started collect job always hands over a file
+(its receipt or a disabled marker), so a crashed collector fails the run after
+publishing its gap, and a run where nothing reported fails without touching
+the issues. The workflow is off until the owner sets
+`MONITORING_DAILY_ENABLED=true`; the inputs and the read-only role, key and
+token are listed in [launch monitoring inputs](../operations/launch-monitoring-inputs.md).
+
+This WSL auditor stays available as an optional advisory path. When the runner
+path is enabled, set `"dailySources": "runner"` in `audit.json`: the daily mode
+then keeps its health and certificate probes but neither collects nor publishes
+the seven sources. Without that switch both paths publish the same keys and the
+later one (this host, at 05:30) would overwrite the runner's result. To fall
+back, remove the switch and configure `operationsConfig` as described below.
+
 ## Operational coverage and private configuration
 
 Place a protected configuration file at
@@ -86,11 +114,11 @@ within 26 hours. Example shape:
 }
 ```
 
-Sentry collection must use the Sentry connector and count new issues, regressions
-and top recurring errors without copying titles, event bodies, identities or
-request data. This host currently has no Sentry connector configured; that is an
-explicit owner coverage issue, not a successful check. A connector-backed
-collector must refresh the report before the daily audit.
+Sentry receipts count new and regressed issues without copying titles, event
+bodies, identities or request data. Accepted provenance is `via: "sentry-mcp"`
+(a connector-backed job on this host) or `via: "sentry-api"` (the runner
+collector, which uses a read-only API token). This host has no Sentry connector
+configured, so on this path Sentry stays an owner coverage issue.
 
 The remaining sources are `eregister-sends`, `wis2-sends`, `worker-jobs`,
 `notification-sweeps`, `secrets` and `backups`. Counts must cover both
@@ -115,7 +143,7 @@ The command output and detailed reports stay under
 Each command log is capped at one megabyte plus a bounded final tail. Recognized owned run evidence is retained for 14 days or the newest 100 runs; unfamiliar files are preserved. New issues are limited to ten per run, with severe findings first; deferred findings remain private and are reconsidered next run. Existing updates and closures still run. Public issue bodies never contain raw logs, event details, secrets or personal
 data. Blockers also go to the main checkout's `SESSION_LOG.md`.
 
-The publisher verifies the authenticated GitHub identity and modifies only generated issues authored by that identity. Public marker text alone is not trusted. Dependency advisories and repeated code-scanning locations are grouped into root-cause keys. If investigation
+The publisher verifies the authenticated GitHub identity and modifies only generated issues authored by that identity or by `github-actions[bot]` (the runner workflow). The runner workflow cannot read its own identity, so it names `github-actions[bot]` explicitly and also trusts the repository owner, who authored the existing issues. Public marker text alone is not trusted. Dependency advisories and repeated code-scanning locations are grouped into root-cause keys. If investigation
 shows two check failures share one underlying defect, consolidate them into one
 issue and map their check keys through the protected rootCauses configuration object before adding further monitors.
 Report-only dead-code scans require human assessment before a cleanup proposal.
@@ -140,9 +168,13 @@ Database values are passed through the subprocess environment, never arguments.
 Backup read credentials remain in the protected service environment. No
 credential values belong in the example, issues or repository.
 
-Existing telemetry currently declares only partial coverage, so job and sweep
-collectors deliberately emit no complete receipt. Missing Sentry connectivity,
-operational access and incomplete telemetry are owner coverage findings.
+Job and sweep collectors read the previous, fully elapsed UTC day
+(`python -m src.metrics_report --complete-day`, or one `HGETALL` of that day's
+job hash on the runner). The report is `complete` only when every tracked job
+(`process_cap_jobs`, `ingest_cap_feeds`, `send_notification_emails`,
+`run_notification_sweeps`) recorded an outcome that day. A rolling "today"
+window is never complete, because the daily sweep runs at 10:00 UTC, after the
+audit. Empty or disabled telemetry stays unknown, never zero.
 ## Security issue consolidation
 
 Detection reads every Dependabot, code-scanning and secret-scanning alert.

@@ -26889,7 +26889,7 @@
           "organisations"
         ],
         "summary": "Revoke a role grant",
-        "description": "Needs the bundle's permissions and its product's team-manage permission. Revoking an already revoked grant returns it unchanged.",
+        "description": "Needs the bundle's permissions and its product's team-manage permission. Nobody can revoke their own grant (403). Revoking an already revoked grant returns it unchanged.",
         "operationId": "organisationsRevokeMemberGrant",
         "security": [
           {
@@ -26957,7 +26957,7 @@
             }
           },
           "403": {
-            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission",
+            "description": "Lacks the bundle's permissions or the product's team-manage permission, or the grant is the caller's own",
             "content": {
               "application/json": {
                 "schema": {
@@ -37113,7 +37113,7 @@
           "content-distribution"
         ],
         "summary": "Save a post for social sharing (CMS hook)",
-        "description": "Called by the CMS when an editor approves a post for social. Authenticated by the X-CMS-Secret header, not a user session. Idempotent per collection, slug and platform: a pending post is updated, a sent post is never reposted. Official warnings are refused (422). Dry run only until live posting is built.",
+        "description": "Called by the CMS when an editor approves a post for social. Authenticated by the X-CMS-Secret header, not a user session. Idempotent per collection, slug and platform: a pending post is updated, a sent post is never reposted. Official warnings are refused (422), and so is a link or image on a host that is not approved in the server settings. Live posting is off unless its feature flag and the Meta settings are set.",
         "operationId": "contentSavePost",
         "parameters": [
           {
@@ -37155,7 +37155,7 @@
             }
           },
           "422": {
-            "description": "Refused: warning post, or a platform needs a caption or image"
+            "description": "Refused: warning post, a link or image on an unapproved host, or a platform needs a caption or image"
           },
           "401": {
             "description": "Missing or invalid credentials",
@@ -37179,7 +37179,7 @@
           "content-distribution"
         ],
         "summary": "List social posts and their per-platform status",
-        "description": "One row per post and platform, newest first. status is pending, scheduled, dry_run_sent, failed (the outbox is retrying) or dead. Needs the social publishing permission.",
+        "description": "One row per post and platform, newest first. status is pending, scheduled, posted (live on the platform; external_id is its id), dry_run_sent (not sent live; reason says why), skipped (not sent; reason says why), failed (the outbox is retrying; error says why) or dead (given up; error says why). Needs the social publishing permission.",
         "operationId": "contentListPosts",
         "security": [
           {
@@ -53783,7 +53783,7 @@
           "events"
         ],
         "summary": "Cancel an event",
-        "description": "Cancels a published event: every valid ticket is cancelled and members are notified. `refund` decides the money already paid online: `full`, `none` or `follow_policy` (default; an organiser-cancelled event is refunded in full). A refund that fails is counted in `refunds_failed` and can be retried from the order; it never undoes the cancel.",
+        "description": "Cancels a published event: every valid ticket is cancelled and members are notified. `refund` decides the money already paid online: `full`, `none` or `follow_policy` (default; an organiser-cancelled event is refunded in full). A refund that fails is counted in `refunds_failed` and can be retried from the order; it never undoes the cancel. An order whose earlier refund is still waiting for the payment provider is counted in `orders_pending`.",
         "operationId": "eventsOrgCancelEvent",
         "security": [
           {
@@ -66491,6 +66491,11 @@
             "type": "integer",
             "title": "Orders Released",
             "default": 0
+          },
+          "orders_pending": {
+            "type": "integer",
+            "title": "Orders Pending",
+            "default": 0
           }
         },
         "type": "object",
@@ -71207,6 +71212,17 @@
             ],
             "title": "External Id"
           },
+          "reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reason"
+          },
           "error": {
             "anyOf": [
               {
@@ -71253,6 +71269,7 @@
           "automated",
           "attempts",
           "external_id",
+          "reason",
           "error",
           "publish_at",
           "processed_at",
@@ -104920,6 +104937,8 @@
           "pending",
           "scheduled",
           "dry_run_sent",
+          "posted",
+          "skipped",
           "failed",
           "dead"
         ]

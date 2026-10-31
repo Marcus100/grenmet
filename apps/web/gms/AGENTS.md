@@ -51,7 +51,7 @@ src/app/
   (pages)/                       ← standing pages, breadcrumbs + max-w-6xl
     alerts/ weather/ marine/ climate/ services/ explore/ about/
     help/ app-guide/ sitemap/ privacy/ accessibility/ disclaimer/
-  (planned)/[...planned]/        ← placeholders for nav links marked `planned`
+  (planned)/planned/[...planned]/ ← placeholders for nav links marked `planned` (reached by rewrites)
   (articles)/                    ← CMS items that 404 when missing: news, updates,
                                    reports, quiz/[slug], explained/[slug]
                                    (outside (pages) on purpose: see 404s below)
@@ -69,6 +69,24 @@ src/app/
   navigation skeleton (the previous page stays until the item arrives).
   Static event pages and CAP alert ids under `(pages)` still answer 200 when
   missing (not fixed).
+- **Unknown URLs never reach a page (30 Oct 2026):** a `notFound()` thrown
+  while a page renders on the server (every gms page is dynamic: the root
+  layout reads live alerts) makes Next 16 send an empty error document
+  (`<html id="__next_error__">`) that stays blank until JavaScript runs. So no
+  catch-all may sit at the site root: an unknown URL must match no page, and
+  Next then serves `app/not-found.tsx` rendered on the server, status 404. The
+  planned placeholders live under `/planned` and each planned link is rewritten
+  there (`lib/planned-routes.ts`, `next.config.ts`); `/planned/*` is internal
+  (`noindex`, canonical is the public address, never linked). `route-structure.test.ts`
+  guards that no catch-all sits at the root, and `planned-routes.test.ts`
+  enforces that no real route serves a planned address. The root single-segment
+  `(weather)/[location]` route has `dynamicParams = false` and calls
+  `notFound()` for other slugs: it answers unknown one-segment URLs with the
+  server-rendered 404 only while it is prerendered (today no second place is
+  enabled, so Next's router rejects every slug). If enabling a place makes it
+  render on demand, recheck `/this-page-does-not-exist` with curl. A CMS item
+  or other dynamic page that calls `notFound()` for a missing item still gets
+  the empty error document (not fixed).
 - **Masthead and /alerts status (30 Oct 2026):** the CAP warnings and the GMS
   outlook's Green counts are separate promises. `WithStatus`
   (`components/with-alerts.tsx`) shows a warning at once and awaits the outlook
@@ -85,7 +103,8 @@ src/app/
   served or a destination has no page.
 - **Nav:** `NAV_SECTIONS` in `src/lib/nav-sections.ts` feeds the mega menu,
   drawer, sitemap, breadcrumbs and section index pages. A link to a page that
-  does not exist yet is marked `planned` and served by `[...planned]`;
+  does not exist yet is marked `planned` and served by `planned/[...planned]`
+  through a rewrite;
   `nav-sections.test.ts` fails if a built link has no route or a planned link is
   shadowed by one. Build the page, then drop `planned`.
 - **No invented figures (owner rule, 18 Oct 2026):** the public site never

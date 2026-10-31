@@ -80,10 +80,15 @@ export function whenLabel(
 /**
  * A Green bulletin whose notice type is "All clear" (owner decision, 30 Oct
  * 2026). Only Green qualifies: an "All clear" at another level is still an
- * alert, so it keeps its level.
+ * alert, so it keeps its level. Takes a sector outlook item, or a forecast's
+ * advisories snapshot item mapped to these two fields.
  */
-export function isAllClear(item: SectorOutlook["items"][number]): boolean {
-  return item.colour === "green" && item.notice_type === "All clear";
+export function isAllClear(item: {
+  colour?: string | null;
+  notice_type?: string | null;
+}): boolean {
+  // Compared trimmed: older saved forecast snapshots may carry " All clear".
+  return item.colour === "green" && item.notice_type?.trim() === "All clear";
 }
 
 const levelLabel = (colour: string | null | undefined) =>

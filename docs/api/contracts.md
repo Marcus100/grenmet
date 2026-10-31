@@ -115,7 +115,7 @@ site key), never a secret. Superusers manage sites through
   helpful?" answer (`site`, `page_path`, `helpful`, optional `comment` up to
   1000 characters); 10/min per IP; stores no personal data.
 
-## Content distribution (social posting, dry run)
+## Content distribution (social posting)
 
 - `POST /api/v1/content-distribution/internal/posts` (CMS hook, additive): body
   is camelCase (`collection`, `slug`, `url`, `title`, `summary`, `captions`,
@@ -123,14 +123,21 @@ site key), never a secret. Superusers manage sites through
   `stories/2026/10/title`); `publishAt` may be null or missing, which means now.
   Authenticated by the `X-CMS-Secret` header
   against `CMS_DISTRIBUTION_SECRET` (503 unset, 401 wrong). 202 with one outcome per
-  platform. Idempotent per collection, slug and platform; refuses official warnings
-  and posts missing an image (Instagram) or caption with 422. Machine-authenticated,
+  platform. Idempotent per collection, slug and platform; refuses official warnings,
+  a link or image on a host that is not in the approved lists (`SOCIAL_LINK_HOSTS`,
+  `SOCIAL_IMAGE_HOSTS`; an empty list refuses every post), and posts missing an image
+  (Instagram) or caption, all with 422. Machine-authenticated,
   so no `require_permission`.
 - `GET /api/v1/content-distribution/admin/posts` (staff, `cms.article.social.manage`):
-  one row per post and platform with `status`, `error`, `attempts` and `automated`,
-  filterable by `slug` and `collection`.
-- Nothing is sent to a real social network: `SOCIAL_POSTING_LIVE` is false, and the
-  worker records dry runs. Domain notes: `apps/api/fastapi/src/content_distribution/AGENTS.md`.
+  one row per post and platform with `status` (`pending`, `scheduled`, `posted`,
+  `dry_run_sent`, `skipped`, `failed`, `dead`), `external_id`, `reason` (why a dry run
+  or skip), `error` (why it failed), `attempts` and `automated`, filterable by `slug`
+  and `collection`. Adding `posted` and `skipped` to `status` was flagged as a warning
+  by the breaking-change check (not a break): clients that switch on `status` need them.
+- Live posting to Facebook and Instagram runs only when the feature flag
+  `social-live-posting` is on and the Meta settings are present; otherwise the worker
+  records a dry run. Owner checklist: `docs/operations/social-live-posting.md`.
+  Domain notes: `apps/api/fastapi/src/content_distribution/AGENTS.md`.
 
 See [integration readiness](../operations/integration-readiness.md) for matching
 environment endpoints and provider setup. Changes to this hidden callback's
@@ -746,8 +753,9 @@ order; `follow_policy` refunds when the event starts at least `EVENTS_REFUND_CUT
 orders are refunded in full, unpaid holds released) cancels an event. The legacy
 `POST /events/manage/{id}/cancel` takes the same optional `refund` but defaults to `none`, and
 saving a listing as cancelled never moves money. Event cancel reports `orders_refunded`
-(manual rail, settled inline), `orders_queued` (provider rail), `orders_kept`, `orders_released`
-and `refunds_failed`.
+(manual rail, settled inline), `orders_queued` (provider rail), `orders_kept`, `orders_released`,
+`refunds_failed` and `orders_pending` (an earlier refund of the order is still waiting for the
+payment provider: not failed, not queued again).
 
 Provider-rail (card) refunds are never sent inside a request (one may wait per order; a second is 409, and the buyer email is shown to org admins/owners only): they are queued on the outbox topic
 `events.order_refund_requested` and sent with retries; the refund id is derived from the order and
@@ -798,7 +806,8 @@ Shared APIs for every Barrels app. Zones follow ADR-0025.
   optional UTC `expires_at`), `POST /grants/{grant_id}/revoke`, and admin-only
   `GET /members/{membership_id}/issued-grants`. Entry needs some entitled product's
   `team.manage` key (owner and admin implicitly); the grant rules (hold the bundle,
-  no self-grant 403, expiry cap 422, duplicate or lost race 409) live in
+  no self-grant and no revoking one's own grant, both 403; expiry cap 422; duplicate
+  or lost race 409) live in
   `grants.py`. Responses carry display names, never emails. Removing a member also
   revokes live grants they issued (audited with a count); a demotion only lists them.
   `issued-grants` lists direct grants only: revocation is not transitive. Member grant

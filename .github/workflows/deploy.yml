@@ -118,6 +118,8 @@ jobs:
           GAA_ADMIN_SSO_CLIENT_SECRET: ${{ secrets.GAA_ADMIN_SSO_CLIENT_SECRET }}
           BARRELS_ADMIN_SSO_CLIENT_SECRET: ${{ secrets.BARRELS_ADMIN_SSO_CLIENT_SECRET }}
           CMS_SSO_CLIENT_SECRET: ${{ secrets.CMS_SSO_CLIENT_SECRET }}
+          # Shared by the API and the CMS (X-CMS-Secret). Empty keeps social posts off.
+          CMS_DISTRIBUTION_SECRET: ${{ secrets.CMS_DISTRIBUTION_SECRET }}
           WEATHER_SSO_CLIENT_SECRET: ${{ secrets.WEATHER_SSO_CLIENT_SECRET }}
           MBIA_SSO_CLIENT_SECRET: ${{ secrets.MBIA_SSO_CLIENT_SECRET }}
           SIGNAL_SSO_CLIENT_SECRET: ${{ secrets.SIGNAL_SSO_CLIENT_SECRET }}
@@ -180,6 +182,16 @@ jobs:
           PAYMENTS_STRIPE_WEBHOOK_SECRET: ${{ secrets.PAYMENTS_STRIPE_WEBHOOK_SECRET }}
           PAYMENTS_STRIPE_SUCCESS_URL: ${{ vars.PAYMENTS_STRIPE_SUCCESS_URL }}
           PAYMENTS_STRIPE_CANCEL_URL: ${{ vars.PAYMENTS_STRIPE_CANCEL_URL }}
+          # Live social posting (Facebook Page and Instagram). Empty until the owner sets
+          # them; the worker then keeps dry-running posts. Live posting also needs the
+          # social-live-posting feature flag on. See docs/operations/social-live-posting.md.
+          META_PAGE_ID: ${{ vars.META_PAGE_ID }}
+          META_INSTAGRAM_ACCOUNT_ID: ${{ vars.META_INSTAGRAM_ACCOUNT_ID }}
+          META_PAGE_ACCESS_TOKEN: ${{ secrets.META_PAGE_ACCESS_TOKEN }}
+          # Hostnames an approved social post may link to or take its image from. Empty
+          # refuses every post at intake (fail closed). Read by the API only.
+          SOCIAL_LINK_HOSTS: ${{ vars.SOCIAL_LINK_HOSTS }}
+          SOCIAL_IMAGE_HOSTS: ${{ vars.SOCIAL_IMAGE_HOSTS }}
           GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           # Pre-migration backup gate (release runbook, "Backup gate"). Mode defaults to
           # warn in core.sh when the variable is unset; nothing here enables enforce.

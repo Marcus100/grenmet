@@ -17,6 +17,7 @@ export const deliveryAdminSchema = z.object({
   automated: z.boolean(),
   attempts: z.int(),
   external_id: z.union([z.string(), z.null()]),
+  reason: z.union([z.string(), z.null()]),
   error: z.union([z.string(), z.null()]),
   publish_at: z.iso.datetime(),
   processed_at: z.union([z.iso.datetime(), z.null()]),

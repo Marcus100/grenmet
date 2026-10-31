@@ -912,3 +912,179 @@ test("TRUSTED_WEB_SECRET reaches the API and Events only, from deploy.yml", () =
     .map((block) => block.trim().split(":")[0]);
   assert.deepEqual(holders, ["api", "web-events"]);
 });
+
+test("the Meta page settings render empty by default and must be numbers", () => {
+  const unset = render();
+  assert.equal(unset.result.status, 0, unset.result.stderr);
+  assert.equal(
+    GENERATED_LINE(unset.output, "META_PAGE_ACCESS_TOKEN"),
+    'META_PAGE_ACCESS_TOKEN=""'
+  );
+
+  const set = render({
+    META_PAGE_ID: "1234567890",
+    META_INSTAGRAM_ACCOUNT_ID: "17841400000001",
+    META_PAGE_ACCESS_TOKEN: "EAAB-DO-NOT-ECHO-fixture",
+  });
+  assert.equal(set.result.status, 0, set.result.stderr);
+  assert.equal(
+    GENERATED_LINE(set.output, "META_PAGE_ID"),
+    'META_PAGE_ID="1234567890"'
+  );
+  assert.equal(
+    GENERATED_LINE(set.output, "META_INSTAGRAM_ACCOUNT_ID"),
+    'META_INSTAGRAM_ACCOUNT_ID="17841400000001"'
+  );
+
+  for (const bad of [
+    { META_PAGE_ID: "page-one" },
+    { META_INSTAGRAM_ACCOUNT_ID: "1234 5678" },
+  ]) {
+    const refused = render(bad);
+    assert.notEqual(refused.result.status, 0, JSON.stringify(bad));
+    assert.ok(refused.result.stderr.includes("numbers only"));
+    assert.equal(refused.result.stderr.includes("DO-NOT-ECHO"), false);
+  }
+});
+
+test("the deploy workflow and compose pass the Meta settings to the worker only", () => {
+  const workflow = readFileSync(".github/workflows/deploy.yml", "utf8");
+  const compose = readFileSync(
+    "infra/docker/docker-compose.deploy.yml",
+    "utf8"
+  );
+  // GitHub and Compose placeholders start with a dollar sign. Built from a constant
+  // so the linter does not read the test strings as template placeholders.
+  const DOLLAR = "$";
+  assert.ok(
+    workflow.includes(
+      `META_PAGE_ACCESS_TOKEN: ${DOLLAR}{{ secrets.META_PAGE_ACCESS_TOKEN }}`
+    )
+  );
+  assert.ok(
+    workflow.includes(`META_PAGE_ID: ${DOLLAR}{{ vars.META_PAGE_ID }}`)
+  );
+  assert.ok(
+    workflow.includes(
+      `META_INSTAGRAM_ACCOUNT_ID: ${DOLLAR}{{ vars.META_INSTAGRAM_ACCOUNT_ID }}`
+    )
+  );
+  // Only the worker posts. The token is in one service's environment, not two.
+  assert.equal(
+    compose
+      .split("\n")
+      .filter((line) => line.includes("META_PAGE_ACCESS_TOKEN:")).length,
+    1
+  );
+  assert.ok(
+    compose.includes(
+      `META_PAGE_ACCESS_TOKEN: ${DOLLAR}{META_PAGE_ACCESS_TOKEN:-}`
+    )
+  );
+});
+
+test("the approved social hosts render empty by default and reach the API only", () => {
+  const unset = render();
+  assert.equal(unset.result.status, 0, unset.result.stderr);
+  assert.equal(
+    GENERATED_LINE(unset.output, "SOCIAL_LINK_HOSTS"),
+    'SOCIAL_LINK_HOSTS=""'
+  );
+  const set = render({
+    SOCIAL_LINK_HOSTS: "gms.example.org",
+    SOCIAL_IMAGE_HOSTS: "media.example.org",
+  });
+  assert.equal(set.result.status, 0, set.result.stderr);
+  assert.equal(
+    GENERATED_LINK_LINE(set.output),
+    'SOCIAL_LINK_HOSTS="gms.example.org"'
+  );
+
+  const workflow = readFileSync(".github/workflows/deploy.yml", "utf8");
+  const compose = readFileSync(
+    "infra/docker/docker-compose.deploy.yml",
+    "utf8"
+  );
+  const DOLLAR = "$";
+  assert.ok(
+    workflow.includes(
+      `SOCIAL_LINK_HOSTS: ${DOLLAR}{{ vars.SOCIAL_LINK_HOSTS }}`
+    )
+  );
+  // The hosts are read by the API only: one service's environment, not the worker.
+  assert.equal(
+    compose.split("\n").filter((line) => line.includes("SOCIAL_LINK_HOSTS:"))
+      .length,
+    1
+  );
+});
+
+const GENERATED_LINK_LINE = (output) =>
+  GENERATED_LINE(output, "SOCIAL_LINK_HOSTS");
+
+test("CMS_DISTRIBUTION_SECRET renders empty by default, needs 32 characters, and comes from a secret", () => {
+  const unset = render();
+  assert.equal(unset.result.status, 0, unset.result.stderr);
+  assert.equal(
+    GENERATED_LINE(unset.output, "CMS_DISTRIBUTION_SECRET"),
+    'CMS_DISTRIBUTION_SECRET=""'
+  );
+
+  const value = `distribution-fixture-${"x".repeat(20)}`;
+  const set = render({ CMS_DISTRIBUTION_SECRET: value });
+  assert.equal(set.result.status, 0, set.result.stderr);
+  assert.equal(
+    GENERATED_LINE(set.output, "CMS_DISTRIBUTION_SECRET"),
+    `CMS_DISTRIBUTION_SECRET="${value}"`
+  );
+
+  const short = render({ CMS_DISTRIBUTION_SECRET: "short-DO-NOT-ECHO" });
+  assert.notEqual(short.result.status, 0);
+  assert.ok(short.result.stderr.includes("at least 32 characters"));
+  assert.equal(short.result.stderr.includes("DO-NOT-ECHO"), false);
+
+  const workflow = readFileSync(".github/workflows/deploy.yml", "utf8");
+  const compose = readFileSync(
+    "infra/docker/docker-compose.deploy.yml",
+    "utf8"
+  );
+  const DOLLAR = "$";
+  // A GitHub environment secret, never a variable.
+  assert.ok(
+    workflow.includes(
+      `CMS_DISTRIBUTION_SECRET: ${DOLLAR}{{ secrets.CMS_DISTRIBUTION_SECRET }}`
+    )
+  );
+  assert.equal(workflow.includes("vars.CMS_DISTRIBUTION_SECRET"), false);
+  // The API service and the CMS environment anchor (shared by cms-migrate and web-cms).
+  assert.equal(
+    compose
+      .split("\n")
+      .filter((line) =>
+        line.includes(
+          `CMS_DISTRIBUTION_SECRET: ${DOLLAR}{CMS_DISTRIBUTION_SECRET:-}`
+        )
+      ).length,
+    2
+  );
+});
+
+test("the CMS gets the weather site origin from BASE_DOMAIN, the same value web-cap uses", () => {
+  const compose = readFileSync(
+    "infra/docker/docker-compose.deploy.yml",
+    "utf8"
+  );
+  const workflow = readFileSync(".github/workflows/deploy.yml", "utf8");
+  const DOLLAR = "$";
+  const line = `      GMS_SITE_URL: https://weather.${DOLLAR}{BASE_DOMAIN}`;
+  // The CMS environment anchor (shared by cms-migrate and web-cms) carries the line...
+  const anchorStart = compose.indexOf("  cms-migrate:");
+  const anchorEnd = compose.indexOf("  web-cms:");
+  assert.ok(anchorStart > 0 && anchorEnd > anchorStart);
+  assert.ok(compose.slice(anchorStart, anchorEnd).includes(line));
+  // ...and it is exactly the value web-cap already uses: one line in each service.
+  assert.equal(compose.split("\n").filter((text) => text === line).length, 2);
+  // Built from BASE_DOMAIN, so staging and production each get their own weather site.
+  // It is not a new GitHub variable or secret.
+  assert.equal(workflow.includes("GMS_SITE_URL"), false);
+});

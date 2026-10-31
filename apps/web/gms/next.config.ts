@@ -1,6 +1,7 @@
 import { fileURLToPath } from "node:url";
 import { withSentryConfig } from "@sentry/nextjs/config";
 import type { NextConfig } from "next";
+import { plannedRewrites } from "./src/lib/planned-routes";
 import { routeMoveRedirects } from "./src/lib/route-moves";
 import { STORM_CACHE_CONTROL } from "./src/lib/storm-cache";
 
@@ -13,6 +14,9 @@ const nextConfig: NextConfig = {
   output: "standalone",
   // Bold sky IA: old section roots redirect to their new homes.
   redirects: async () => routeMoveRedirects(),
+  // Planned placeholder pages live under an internal prefix so unknown URLs
+  // match no page and get the server-rendered 404 (src/lib/planned-routes.ts).
+  rewrites: async () => plannedRewrites(),
   // Storm mode: alert pages are cacheable so the CDN can serve the last good copy.
   headers: async () => [
     {

@@ -18,6 +18,15 @@ function findPage(path: string) {
   );
 }
 
+/**
+ * Only the content pages exist. Any other path is answered by Next's router
+ * with the not-found page rendered on the server (status 404). Rendering an
+ * unknown path on demand would make the page call notFound() mid-render, and
+ * Next 16 then sends an empty error document that only fills in with
+ * JavaScript.
+ */
+export const dynamicParams = false;
+
 export function generateStaticParams() {
   return allHurricanepages.map((page) => ({
     slug: page._meta.path === "index" ? undefined : page._meta.path.split("/"),

@@ -31,7 +31,6 @@ export default async function TeamPage({
   const query = await searchParams;
   await requireViewer("/dash/team");
   const session = await getSession();
-  // Guards a missing id until the roster gains is_self (#821).
   if (!session?.userId) {
     // No signed-in user id means signed out, never an empty id.
     redirect(`/sign-in?returnTo=${encodeURIComponent("/dash/team")}`);
