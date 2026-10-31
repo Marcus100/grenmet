@@ -4,7 +4,6 @@
  */
 
 import type { RateKind } from "./RateKind.js";
-import type { RuleState } from "./RuleState.js";
 
 export type PayItemRateCreate = {
   /**
@@ -25,11 +24,5 @@ export type PayItemRateCreate = {
    */
   effective_from: string;
   effective_to?: string | null;
-  /**
-   * @description PROVISIONAL until the organisation confirms the rule in writing.
-   * @default 'PROVISIONAL'
-   * @type string | undefined
-   */
-  rule_state?: RuleState;
   source_reference?: string | null;
 };

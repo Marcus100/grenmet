@@ -87,6 +87,9 @@ tax, NIS or bank field exists in any request, response or export.
   fortnightly needs `calendar_override_reason` (409 otherwise).
 - Unpriced lines (no rate, or no basic pay on file) have `amount_minor: null`,
   never 0.
+- New rates are always `PROVISIONAL` (`rule_state` is not accepted on create).
+  Basic-pay and rate history (`/audit/payroll_money/{organisation_id}`) needs
+  organisation-wide `hr.payroll.read.amounts` and records no money values.
 
 ## Base URLs
 

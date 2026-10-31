@@ -286,7 +286,6 @@ class PayItemRateCreate(BaseModel):
     ) = None
     effective_from: date
     effective_to: date | None = None
-    rule_state: RuleState = RuleState.PROVISIONAL
     source_reference: (
         Annotated[str, StringConstraints(strip_whitespace=True, max_length=300)] | None
     ) = None

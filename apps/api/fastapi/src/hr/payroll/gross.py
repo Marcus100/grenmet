@@ -39,6 +39,7 @@ from .models import (
     PayLineKind,
     PayPeriod,
     RateKind,
+    RuleState,
 )
 from .schemas import EmployeeBasicPayCreate, PayItemRateCreate
 
@@ -426,7 +427,8 @@ async def create_rate(
         guaranteed_multiplier=payload.guaranteed_multiplier,
         effective_from=payload.effective_from,
         effective_to=payload.effective_to,
-        rule_state=payload.rule_state.value,
+        # Created rates are always provisional; nobody self-certifies a rate.
+        rule_state=RuleState.PROVISIONAL.value,
         source_reference=payload.source_reference,
         created_by_user_id=actor.id,
     )
@@ -494,6 +496,8 @@ async def create_basic_pay(
         session, actor, payload.organisation_id, access.RATES_MANAGE
     )
     await access.require_mfa(session, actor, token)
+    if actor.id == payload.user_id:
+        raise AppException("You cannot set your own basic pay", 403)
     employment = await session.scalar(
         select(EmploymentRecord).where(
             EmploymentRecord.user_id == payload.user_id,
@@ -502,8 +506,6 @@ async def create_basic_pay(
     )
     if employment is None:
         raise NotFoundError("Employee not found in this organisation")
-    if actor.id == payload.user_id and not actor.is_superuser:
-        raise AppException("You cannot set your own basic pay", 403)
     reason = payload.reason
     if payload.pay_basis == PayBasis.HOURLY:
         frequency = await calendar_frequency(
