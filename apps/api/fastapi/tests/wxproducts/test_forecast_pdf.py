@@ -251,6 +251,23 @@ def test_all_clear_is_an_information_line_not_an_advisory():
     assert "All clear (information): Marine bulletin, 07:00 Thu 24 Sep" in html
 
 
+def test_all_clear_without_validity_reads_until_further_notice():
+    item = ALL_CLEAR | {"validFrom": "", "validTo": ""}
+    values = STRUCTURED | {
+        "advisories": json.dumps({"complete": True, "items": [item]}),
+    }
+    context = forecast_pdf.forecast_context(
+        "morning", values, status="PUBLISHED ISSUE", revision="r1"
+    )
+    assert [entry["valid"] for entry in context["all_clear"]] == [
+        "Until further notice"
+    ]
+    html = (
+        forecast_pdf._environment().get_template("forecast.html.j2").render(**context)
+    )
+    assert "All clear (information): Marine bulletin, Until further notice" in html
+
+
 def test_only_all_clear_reads_as_nothing_in_force():
     values = STRUCTURED | {
         "advisories": json.dumps({"complete": True, "items": [ALL_CLEAR]}),
