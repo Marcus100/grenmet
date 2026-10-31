@@ -7,7 +7,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.auth.models import User
-from src.auth.policy import require_permission
+from src.auth.policy import require_any_permission, require_permission
 from src.cap import catalogue
 from src.cap.common import _record_audit
 from src.cap.mapping import _predefined_area_to_public
@@ -103,7 +103,12 @@ def get_catalogs(*, current_user: User) -> CapCatalogsPublic:
 
 
 def get_gms_catalogue(*, current_user: User) -> GmsCataloguePublic:
-    require_permission(current_user=current_user, permission_key="cap.alert.read")
+    # Reference data, not sensitive: anyone who can open the CAP desk or the
+    # wxproducts desk (app.weather.access) reads the hazard list and colour rules.
+    require_any_permission(
+        current_user=current_user,
+        permission_keys=("cap.alert.read", "app.weather.access"),
+    )
     return GmsCataloguePublic(
         hazard_groups=[
             CapHazardGroupPublic(
