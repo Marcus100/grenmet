@@ -6,6 +6,7 @@ from typing import Literal
 from pydantic import Field
 
 from src.hr.models import RequestStatus
+from src.hr.roster.schemas import OverrideReason
 from src.hr.signatures.schemas import SignatureConsent
 from src.hr.submission import SubmittedFormPublic
 from src.models import BaseModel, UtcDateTime
@@ -45,6 +46,7 @@ class LeaveRequestSubmit(SignatureConsent):
 class LeaveRequestAction(BaseModel):
     status: RequestStatus
     head_of_dept_comments: str | None = None
+    rule_override_reason: OverrideReason = None
 
 
 class LeaveRequestPublic(SubmittedFormPublic):

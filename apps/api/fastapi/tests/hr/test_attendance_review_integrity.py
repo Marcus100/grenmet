@@ -46,11 +46,15 @@ from tests.factories import (
 )
 from tests.hr.test_attendance import payload, setup_shift
 
+# Fixture rosters are not under test for the roster rules (#380).
+FIXTURE_REASON = "Fixture roster; roster rules are not under test"
+
 
 @pytest.mark.parametrize("key", ["timesheet.read.department", "timesheet.approve"])
 async def test_self_grant_cannot_read_coworkers_attendance(
     db_async: AsyncSession, key: str
 ) -> None:
+
     employee, assignment = await setup_shift(db_async)
     record = await attendance.save_attendance(
         session=db_async, current_user=employee, payload=payload(assignment)
@@ -108,7 +112,10 @@ async def test_roster_write_revision_and_import_scope(db_async: AsyncSession) ->
             ),
         ),
         lambda: roster.publish_roster_period(
-            session=db_async, current_user=manager, period_id=period.id
+            session=db_async,
+            current_user=manager,
+            period_id=period.id,
+            rule_override_reason=FIXTURE_REASON,
         ),
         lambda: roster.close_roster_period(
             session=db_async, current_user=manager, period_id=period.id

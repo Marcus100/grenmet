@@ -40,3 +40,19 @@ for (const path of ["/this-page-does-not-exist", "/alerts/zz/yy"]) {
     expect(html).toContain("Page not found");
   });
 }
+
+test("a missing CMS item is never an empty document", async ({ request }) => {
+  // Fetch the HTML without running any script. With a CMS configured the
+  // proxy answers 404 with the not-found page in the document itself; with no
+  // CMS reachable the page says the article cannot be retrieved. Either way
+  // the server sends real content, never Next's empty error shell.
+  const response = await request.get("/explore/news/no-such-story-e2e-check");
+  const html = await response.text();
+  expect(html).not.toContain('id="__next_error__"');
+  if (response.status() === 404) {
+    expect(html).toContain("Page not found");
+  } else {
+    expect(response.status()).toBe(200);
+    expect(html).toContain("cannot be retrieved right now");
+  }
+});

@@ -31,6 +31,9 @@ class PaymentsConfig(BaseSettings):
     REFUND_RECONCILE_BATCH: int = 200
     #: The run stops cleanly after this long, before the worker's 300 s job timeout.
     REFUND_RECONCILE_BUDGET_SECONDS: float = 240.0
+    #: A payment's listing stops paging (incomplete, totals not compared) once less
+    #: than this much of the run's budget is left.
+    REFUND_RECONCILE_PAGE_MARGIN_SECONDS: float = 20.0
 
 
 payments_settings = PaymentsConfig()

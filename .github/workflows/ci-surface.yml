@@ -1,0 +1,155 @@
+# SURFACE CDMS build and test (#805).
+#
+# Called by ci-api.yml. Its `CI Success` gate requires this run only when
+# scripts/ci/select-images.mjs selects SURFACE: a change under surface/ or to
+# this file, or a comparison it cannot make. SURFACE is not part of the release
+# (select-images.mjs defers it), so nothing else can change what this checks:
+# the image's build context is surface/api only.
+#
+# Builds the deploy image without pushing (publishing stays in
+# build-weather-images.yml), then runs Django's checks and the test suite inside
+# it against the same TimescaleDB + PostGIS image SURFACE deploys with.
+# No concurrency group here: ci-api.yml's group already covers its children.
+name: SURFACE
+
+on:
+  workflow_call:
+    secrets:
+      DOCKERHUB_USERNAME:
+        required: false
+      DOCKERHUB_TOKEN:
+        required: false
+
+permissions:
+  contents: read
+
+jobs:
+  build-test:
+    name: Build and test
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+
+    services:
+      postgres:
+        # Same tag and digest as surface/docker-compose.yml (a guardrail test
+        # keeps them equal): PostgreSQL 17, TimescaleDB, PostGIS and tablefunc,
+        # which SURFACE's migrations need.
+        image: timescale/timescaledb-ha:pg17.11-ts2.31.0@sha256:3f0b3f6bdf4912878444a36e6113a18346309583c4d1a61d81a0c511342a1afd
+        credentials:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+        env:
+          POSTGRES_USER: dba
+          POSTGRES_PASSWORD: surface-ci
+          POSTGRES_DB: surface_db
+          TIMESCALEDB_TELEMETRY: "off"
+        options: >-
+          --health-cmd "pg_isready -U dba -d surface_db -h 127.0.0.1"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 24
+        ports:
+          - 5432:5432
+
+    steps:
+      - name: Check out SURFACE
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.3.1
+        with:
+          # The image needs surface/ only; skip the rest of the monorepo.
+          sparse-checkout: surface
+
+      - name: Log in to Docker Hub for base images
+        # Fork and Dependabot PRs cannot access repository Actions secrets.
+        if: github.actor != 'dependabot[bot]' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository)
+        uses: docker/login-action@81c6f93d4bc991e510b342a00b419b3bb4efc5c6 # v4.7.0
+        with:
+          registry: docker.io
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build the deploy image (not pushed)
+        # Plain BuildKit build straight into the local image store: the base
+        # image is about 5 GB, and a Buildx container builder plus `load` would
+        # keep a second copy on the runner's limited disk.
+        run: docker build --file surface/Dockerfile.deploy --tag surface-ci:test .
+
+      - name: Write placeholder settings
+        # Dummy values only; the job talks to nothing but its own database.
+        # The two keys are generated per run, as production.env.example says.
+        run: |
+          umask 077
+          {
+          echo "SURFACE_SECRET_ENCRYPTION_KEY=$(openssl rand -base64 32 | tr '+/' '-_')"
+          echo "SURFACE_SECRET_KEY=$(openssl rand -base64 48)"
+          cat <<'SETTINGS'
+          TIMESCALEDB_TELEMETRY=off
+          SURFACE_DB_ENGINE=django.contrib.gis.db.backends.postgis
+          SURFACE_DB_HOST=127.0.0.1
+          SURFACE_DB_PORT=5432
+          SURFACE_DB_NAME=surface_db
+          SURFACE_DB_USER=dba
+          SURFACE_DB_PASSWORD=surface-ci
+          SURFACE_BROKER_URL=redis://127.0.0.1:6379/0
+          SURFACE_DJANGO_DEBUG=False
+          SURFACE_DATA_DIR=/data
+          SURFACE_CDMS_VERSION=ci
+          LOGIN_REDIRECT_URL=/wx/stations/map/
+          LOGOUT_REDIRECT_URL=/accounts/login/
+          ENTL_PRIMARY_SERVER_HOST=127.0.0.1
+          ENTL_PRIMARY_SERVER_PORT=2324
+          ENTL_SECONDARY_SERVER_HOST=127.0.0.1
+          ENTL_SECONDARY_SERVER_PORT=2324
+          EMAIL_HOST=smtp.example.invalid
+          DEFAULT_FROM_EMAIL=surface-ci@example.invalid
+          TIMEZONE_NAME=America/Grenada
+          TIMEZONE_OFFSET=-240
+          MAP_LATITUDE=12.231984
+          MAP_LONGITUDE=-61.624374
+          MAP_ZOOM=11
+          SPATIAL_ANALYSIS_INITIAL_LATITUDE=11.982065
+          SPATIAL_ANALYSIS_INITIAL_LONGITUDE=-61.822987
+          SPATIAL_ANALYSIS_FINAL_LATITUDE=12.531859
+          SPATIAL_ANALYSIS_FINAL_LONGITUDE=-61.363707
+          SPATIAL_ANALYSIS_SHAPE_FILE_PATH=/surface/static/shape.png
+          STATION_MAP_WIND_SPEED_ID=51
+          STATION_MAP_WIND_GUST_ID=53
+          STATION_MAP_WIND_DIRECTION_ID=56
+          STATION_MAP_TEMP_MAX_ID=16
+          STATION_MAP_TEMP_MIN_ID=14
+          STATION_MAP_TEMP_AVG_ID=10
+          STATION_MAP_ATM_PRESSURE_ID=60
+          STATION_MAP_PRECIPITATION_ID=0
+          STATION_MAP_RELATIVE_HUMIDITY_ID=30
+          STATION_MAP_SOLAR_RADIATION_ID=72
+          SETTINGS
+          } > "$RUNNER_TEMP/surface-settings.list"
+
+      - name: System check
+        run: docker run --rm --network host --env-file "$RUNNER_TEMP/surface-settings.list" surface-ci:test python manage.py check --fail-level WARNING
+
+      - name: Deployment check (accepted warnings in surface/ci/deploy-check-accepted.txt)
+        # Fails on a warning that is not accepted, and on an accepted one that
+        # no longer appears, so the list only ever shrinks to what is real.
+        run: |
+          set -euo pipefail
+          docker run --rm --network host --env-file "$RUNNER_TEMP/surface-settings.list" surface-ci:test \
+            python manage.py check --deploy 2>&1 | tee "$RUNNER_TEMP/deploy-check.txt"
+          found=$(grep -oE '\([a-z_]+\.[A-Z][0-9]+\)' "$RUNNER_TEMP/deploy-check.txt" | tr -d '()' | sort -u || true)
+          accepted=$(awk '!/^[[:space:]]*(#|$)/ {print $1}' surface/ci/deploy-check-accepted.txt | sort -u)
+          new=$(comm -23 <(printf '%s\n' "$found") <(printf '%s\n' "$accepted") | sed '/^$/d')
+          fixed=$(comm -13 <(printf '%s\n' "$found") <(printf '%s\n' "$accepted") | sed '/^$/d')
+          if [ -n "$new" ]; then
+            echo "::error::check --deploy reported warnings that are not accepted: $(echo $new)"
+          fi
+          if [ -n "$fixed" ]; then
+            echo "::error::No longer reported, so delete from surface/ci/deploy-check-accepted.txt: $(echo $fixed)"
+          fi
+          [ -z "$new" ] && [ -z "$fixed" ]
+
+      - name: Migrations match the models
+        run: docker run --rm --network host --env-file "$RUNNER_TEMP/surface-settings.list" surface-ci:test python manage.py makemigrations --check --dry-run
+
+      - name: Django tests (applies every migration to a fresh test database)
+        run: docker run --rm --network host --env-file "$RUNNER_TEMP/surface-settings.list" surface-ci:test python manage.py test --noinput -v 2

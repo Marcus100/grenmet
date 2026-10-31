@@ -3754,6 +3754,7 @@ export type {
   HrActionLeaveRequestStatus200,
   HrActionLeaveRequestStatus403,
   HrActionLeaveRequestStatus404,
+  HrActionLeaveRequestStatus409,
   HrActionLeaveRequestStatus422,
 } from "./HrActionLeaveRequest.js";
 export type {
@@ -3766,6 +3767,7 @@ export type {
   HrActionShiftSwapStatus400,
   HrActionShiftSwapStatus403,
   HrActionShiftSwapStatus404,
+  HrActionShiftSwapStatus409,
   HrActionShiftSwapStatus422,
 } from "./HrActionShiftSwap.js";
 export type {
@@ -3806,6 +3808,7 @@ export type {
   HrApproveStaffRegistrationStatus422,
 } from "./HrApproveStaffRegistration.js";
 export type {
+  HrApproveTimesheetBody,
   HrApproveTimesheetOptions,
   HrApproveTimesheetPath,
   HrApproveTimesheetResponse,
@@ -3814,6 +3817,7 @@ export type {
   HrApproveTimesheetStatus400,
   HrApproveTimesheetStatus403,
   HrApproveTimesheetStatus404,
+  HrApproveTimesheetStatus409,
   HrApproveTimesheetStatus422,
 } from "./HrApproveTimesheet.js";
 export type {
@@ -3846,6 +3850,7 @@ export type {
   HrBulkAssignmentsStatus400,
   HrBulkAssignmentsStatus403,
   HrBulkAssignmentsStatus404,
+  HrBulkAssignmentsStatus409,
   HrBulkAssignmentsStatus422,
 } from "./HrBulkAssignments.js";
 export type {
@@ -4157,6 +4162,15 @@ export type {
   HrDeleteAbsenteeReportStatus422,
 } from "./HrDeleteAbsenteeReport.js";
 export type {
+  HrDeleteDepartmentRuleSetOptions,
+  HrDeleteDepartmentRuleSetPath,
+  HrDeleteDepartmentRuleSetResponse,
+  HrDeleteDepartmentRuleSetResponses,
+  HrDeleteDepartmentRuleSetStatus204,
+  HrDeleteDepartmentRuleSetStatus403,
+  HrDeleteDepartmentRuleSetStatus422,
+} from "./HrDeleteDepartmentRuleSet.js";
+export type {
   HrDeleteLeaveRequestOptions,
   HrDeleteLeaveRequestPath,
   HrDeleteLeaveRequestResponse,
@@ -4292,6 +4306,15 @@ export type {
   HrGetAttendanceWeekPdfStatus409,
   HrGetAttendanceWeekPdfStatus422,
 } from "./HrGetAttendanceWeekPdf.js";
+export type {
+  HrGetDepartmentRuleSetOptions,
+  HrGetDepartmentRuleSetPath,
+  HrGetDepartmentRuleSetResponse,
+  HrGetDepartmentRuleSetResponses,
+  HrGetDepartmentRuleSetStatus200,
+  HrGetDepartmentRuleSetStatus403,
+  HrGetDepartmentRuleSetStatus422,
+} from "./HrGetDepartmentRuleSet.js";
 export type {
   HrGetDepartmentRulesOptions,
   HrGetDepartmentRulesPath,
@@ -4434,6 +4457,15 @@ export type {
   HrGetOrganisationCatalogueStatus409,
   HrGetOrganisationCatalogueStatus422,
 } from "./HrGetOrganisationCatalogue.js";
+export type {
+  HrGetOrganisationRuleSetOptions,
+  HrGetOrganisationRuleSetPath,
+  HrGetOrganisationRuleSetResponse,
+  HrGetOrganisationRuleSetResponses,
+  HrGetOrganisationRuleSetStatus200,
+  HrGetOrganisationRuleSetStatus403,
+  HrGetOrganisationRuleSetStatus422,
+} from "./HrGetOrganisationRuleSet.js";
 export type {
   HrGetOrganisationsOptions,
   HrGetOrganisationsResponse,
@@ -4687,6 +4719,7 @@ export type {
   HrImportCsvStatus200,
   HrImportCsvStatus400,
   HrImportCsvStatus403,
+  HrImportCsvStatus409,
   HrImportCsvStatus422,
 } from "./HrImportCsv.js";
 export type {
@@ -4698,6 +4731,7 @@ export type {
   HrImportGridStatus400,
   HrImportGridStatus403,
   HrImportGridStatus404,
+  HrImportGridStatus409,
   HrImportGridStatus422,
 } from "./HrImportGrid.js";
 export type {
@@ -4903,6 +4937,25 @@ export type {
   HrListPeriodsStatus422,
 } from "./HrListPeriods.js";
 export type {
+  HrListRuleOverridesOptions,
+  HrListRuleOverridesPath,
+  HrListRuleOverridesQuery,
+  HrListRuleOverridesResponse,
+  HrListRuleOverridesResponses,
+  HrListRuleOverridesStatus200,
+  HrListRuleOverridesStatus403,
+  HrListRuleOverridesStatus422,
+} from "./HrListRuleOverrides.js";
+export type {
+  HrListRuleProfilesOptions,
+  HrListRuleProfilesPath,
+  HrListRuleProfilesResponse,
+  HrListRuleProfilesResponses,
+  HrListRuleProfilesStatus200,
+  HrListRuleProfilesStatus403,
+  HrListRuleProfilesStatus422,
+} from "./HrListRuleProfiles.js";
+export type {
   HrListShiftCatalogOptions,
   HrListShiftCatalogQuery,
   HrListShiftCatalogResponse,
@@ -5034,6 +5087,7 @@ export type {
   HrProposeAttendanceCorrectionStatus422,
 } from "./HrProposeAttendanceCorrection.js";
 export type {
+  HrPublishPeriodBody,
   HrPublishPeriodOptions,
   HrPublishPeriodPath,
   HrPublishPeriodResponse,
@@ -5042,8 +5096,19 @@ export type {
   HrPublishPeriodStatus400,
   HrPublishPeriodStatus403,
   HrPublishPeriodStatus404,
+  HrPublishPeriodStatus409,
   HrPublishPeriodStatus422,
 } from "./HrPublishPeriod.js";
+export type {
+  HrPutDepartmentRuleSetBody,
+  HrPutDepartmentRuleSetOptions,
+  HrPutDepartmentRuleSetPath,
+  HrPutDepartmentRuleSetResponse,
+  HrPutDepartmentRuleSetResponses,
+  HrPutDepartmentRuleSetStatus200,
+  HrPutDepartmentRuleSetStatus403,
+  HrPutDepartmentRuleSetStatus422,
+} from "./HrPutDepartmentRuleSet.js";
 export type {
   HrPutDepartmentRulesBody,
   HrPutDepartmentRulesOptions,
@@ -5054,6 +5119,27 @@ export type {
   HrPutDepartmentRulesStatus403,
   HrPutDepartmentRulesStatus422,
 } from "./HrPutDepartmentRules.js";
+export type {
+  HrPutOrganisationRuleSetBody,
+  HrPutOrganisationRuleSetOptions,
+  HrPutOrganisationRuleSetPath,
+  HrPutOrganisationRuleSetResponse,
+  HrPutOrganisationRuleSetResponses,
+  HrPutOrganisationRuleSetStatus200,
+  HrPutOrganisationRuleSetStatus403,
+  HrPutOrganisationRuleSetStatus422,
+} from "./HrPutOrganisationRuleSet.js";
+export type {
+  HrPutRuleProfileBody,
+  HrPutRuleProfileOptions,
+  HrPutRuleProfilePath,
+  HrPutRuleProfileResponse,
+  HrPutRuleProfileResponses,
+  HrPutRuleProfileStatus200,
+  HrPutRuleProfileStatus403,
+  HrPutRuleProfileStatus404,
+  HrPutRuleProfileStatus422,
+} from "./HrPutRuleProfile.js";
 export type {
   HrRejectClockPunchBody,
   HrRejectClockPunchOptions,
@@ -5253,6 +5339,7 @@ export type {
   HrSubmitTimesheetStatus400,
   HrSubmitTimesheetStatus403,
   HrSubmitTimesheetStatus404,
+  HrSubmitTimesheetStatus409,
   HrSubmitTimesheetStatus422,
 } from "./HrSubmitTimesheet.js";
 export type {
@@ -5265,6 +5352,7 @@ export type {
   HrTakeActionStatus400,
   HrTakeActionStatus403,
   HrTakeActionStatus404,
+  HrTakeActionStatus409,
   HrTakeActionStatus422,
 } from "./HrTakeAction.js";
 export type {
@@ -6748,6 +6836,7 @@ export type { OutlookProductPreviewInput } from "./OutlookProductPreviewInput.js
 export type { OutlookProductWrite } from "./OutlookProductWrite.js";
 export type { OutlookStoredProduct } from "./OutlookStoredProduct.js";
 export type { OutlookValuesDraft } from "./OutlookValuesDraft.js";
+export type { OvertimeBandPublic } from "./OvertimeBandPublic.js";
 export type { PageFeedbackAccepted } from "./PageFeedbackAccepted.js";
 export type { PageFeedbackCreate } from "./PageFeedbackCreate.js";
 export type { PaginatedResponseAuditEntryPublic } from "./PaginatedResponseAuditEntryPublic.js";
@@ -7733,14 +7822,27 @@ export { rosterPeriodStatus } from "./RosterPeriodStatus.js";
 export type { RosterPeriodsPublic } from "./RosterPeriodsPublic.js";
 export type { RosterPreferencesPublic } from "./RosterPreferencesPublic.js";
 export type { RosterPreferencesUpdate } from "./RosterPreferencesUpdate.js";
+export type { RosterPublishRequest } from "./RosterPublishRequest.js";
 export type { RosterRevisionAction } from "./RosterRevisionAction.js";
 export { rosterRevisionAction } from "./RosterRevisionAction.js";
 export type { RosterRevisionPublic } from "./RosterRevisionPublic.js";
 export type { RosterRevisionsPublic } from "./RosterRevisionsPublic.js";
 export type { RosterRuleCheckPublic } from "./RosterRuleCheckPublic.js";
+export type { RosterRuleOverridePublic } from "./RosterRuleOverridePublic.js";
+export type { RosterRuleOverridesPublic } from "./RosterRuleOverridesPublic.js";
+export type { RosterRuleProfilePublic } from "./RosterRuleProfilePublic.js";
+export type { RosterRuleProfilesPublic } from "./RosterRuleProfilesPublic.js";
+export type { RosterRuleProfileUpdate } from "./RosterRuleProfileUpdate.js";
+export type { RosterRuleSetPublic } from "./RosterRuleSetPublic.js";
+export type { RosterRuleSetUpdate } from "./RosterRuleSetUpdate.js";
 export type { RosterRulesPublic } from "./RosterRulesPublic.js";
 export type { RosterRulesUpdate } from "./RosterRulesUpdate.js";
+export type { RosterRuleWarningsErrorPublic } from "./RosterRuleWarningsErrorPublic.js";
 export type { RouteView } from "./RouteView.js";
+export type { RuleOverrideContext } from "./RuleOverrideContext.js";
+export { ruleOverrideContext } from "./RuleOverrideContext.js";
+export type { RuleSetSource } from "./RuleSetSource.js";
+export { ruleSetSource } from "./RuleSetSource.js";
 export type { RuleState } from "./RuleState.js";
 export { ruleState } from "./RuleState.js";
 export type { RuleViolationPublic } from "./RuleViolationPublic.js";
@@ -8262,6 +8364,7 @@ export type { TillOpen } from "./TillOpen.js";
 export type { TillPublic } from "./TillPublic.js";
 export type { TillPublicPropertiesStatusEnum } from "./TillPublicPropertiesStatusEnum.js";
 export { tillPublicPropertiesStatusEnum } from "./TillPublicPropertiesStatusEnum.js";
+export type { TimesheetApproveRequest } from "./TimesheetApproveRequest.js";
 export type { TimesheetCreate } from "./TimesheetCreate.js";
 export type { TimesheetDetails } from "./TimesheetDetails.js";
 export type { TimesheetEntryInput } from "./TimesheetEntryInput.js";
@@ -8742,6 +8845,8 @@ export type {
   WebhooksOutUpdateEndpointStatus422,
 } from "./WebhooksOutUpdateEndpoint.js";
 export type { WebhookTestResult } from "./WebhookTestResult.js";
+export type { WorkerType } from "./WorkerType.js";
+export { workerType } from "./WorkerType.js";
 export type { WorkflowAction } from "./WorkflowAction.js";
 export { workflowAction } from "./WorkflowAction.js";
 export type { WorkflowActionRequest } from "./WorkflowActionRequest.js";
@@ -8768,6 +8873,8 @@ export type { WorkingDayHoliday } from "./WorkingDayHoliday.js";
 export type { WorkingDaysPublic } from "./WorkingDaysPublic.js";
 export type { WorkingDaysPublicPropertiesMethodEnum } from "./WorkingDaysPublicPropertiesMethodEnum.js";
 export { workingDaysPublicPropertiesMethodEnum } from "./WorkingDaysPublicPropertiesMethodEnum.js";
+export type { WorkPattern } from "./WorkPattern.js";
+export { workPattern } from "./WorkPattern.js";
 export type {
   WxproductsCreateTropicalSystemBody,
   WxproductsCreateTropicalSystemOptions,
