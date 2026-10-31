@@ -85,13 +85,36 @@ def _trusted_visitor_ip(
     return _parse_visitor_ip(claimed) if matches else None
 
 
+def connecting_address(request: Request) -> str:
+    """The address of whoever connected through the edge proxies.
+
+    uvicorn (``--proxy-headers``, trusting the compose network) already resolves
+    the right-most ``X-Forwarded-For`` entry: the peer Traefik saw. Behind
+    Cloudflare's proxy that peer is a Cloudflare edge, so with
+    ``VISITOR_IP_PROXY_HOPS`` = 2 the visitor is the entry Cloudflare appended,
+    one further left. Entries further left are visitor-controlled and never
+    read. A missing or malformed entry falls back to uvicorn's address, as do
+    server-side calls from the web hosts (they send no ``X-Forwarded-For``).
+    """
+    fallback = get_remote_address(request)
+    hops = settings.VISITOR_IP_PROXY_HOPS
+    if hops <= 1:
+        return fallback
+    forwarded = ",".join(request.headers.getlist("x-forwarded-for"))
+    entries = [entry.strip() for entry in forwarded.split(",")] if forwarded else []
+    if len(entries) < hops:
+        return fallback
+    ip = _parse_visitor_ip(entries[-hops])
+    return str(ip) if ip is not None else fallback
+
+
 def visitor_ip(request: Request) -> str:
     """The real client address, unmasked: for services that need an IP (Turnstile).
 
     The validated ``X-Visitor-IP`` from a trusted web host, else the connecting
     address."""
     ip = _trusted_visitor_ip(request)
-    return str(ip) if ip is not None else get_remote_address(request)
+    return str(ip) if ip is not None else connecting_address(request)
 
 
 def visitor_address(request: Request) -> str:
@@ -108,7 +131,7 @@ def visitor_address(request: Request) -> str:
     """
     ip = _trusted_visitor_ip(request)
     if ip is None:
-        return get_remote_address(request)
+        return connecting_address(request)
     if isinstance(ip, ipaddress.IPv6Address):
         return str(ipaddress.ip_network(f"{ip}/64", strict=False))
     return str(ip)
