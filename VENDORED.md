@@ -59,6 +59,12 @@ the database to PostgreSQL 17, because Django 5.2 needs PostgreSQL 14 or newer.
 | `django-timescaledb` | 0.2.12 | 0.2.13 | Last release 2023; works on 5.2 and TimescaleDB 2.31 in the smoke run below |
 | `django-ckeditor` | 6.7.1 | removed | Bundled CKEditor 4 was end of life (#803). The six rich-text fields are plain `TextField`s with plain text boxes; migration `wx/0079` converts stored HTML to plain text once. It is not reversible: take a database dump (`pg_dump`, or a copy of the `data/postgresql` volume) before running `migrate`, and old migrations reference `models.TextField` |
 
+HTTPS hardening (#904): session and CSRF cookies are Secure and HSTS is sent
+(`SURFACE_HSTS_SECONDS`, default 3600 with a documented ramp to one year; no
+includeSubDomains or preload) in `tempestas_api/settings.py`. A plain-HTTP stack,
+such as the local `docker-compose.yml`, must set `SURFACE_SECURE_COOKIES=False` in
+its env file or sign-in fails with a CSRF error (`api/production.env.example`).
+
 Django 5 code changes: sign-out in `templates/base.html` is a POST form
 (`LogoutView` no longer accepts GET), and the unused `USE_L10N` setting is gone.
 
@@ -96,7 +102,7 @@ WARNING`, `check --deploy`, `makemigrations --check --dry-run` and `manage.py
 test` (which applies every migration to a fresh database). `CI Success` requires it
 only when `scripts/ci/select-images.mjs` selects SURFACE: a change under
 `surface/` or to that workflow, including on promotion PRs. `check --deploy`
-warnings that are known and accepted are listed with their reasons in
+warnings that are accepted by design (W005, W008, W021) are listed with their reasons in
 `surface/ci/deploy-check-accepted.txt`; the job fails on an unlisted warning and on a
 listed one that no longer appears. No tests are skipped. Host verification with
 `docker-compose.yml` is still the check for the running stack (sign-in, pages,

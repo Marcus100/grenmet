@@ -121,6 +121,30 @@ WSGI_APPLICATION = 'tempestas_api.wsgi.application'
 
 SECURE_REFERRER_POLICY = "strict-origin-when-cross-origin"
 
+
+def _env_flag(name, default):
+    return os.getenv(name, str(default)).strip().lower() in ("1", "true", "yes", "on")
+
+
+# HTTPS hardening (#904). Production serves SURFACE only over HTTPS behind
+# Traefik, which sets X-Forwarded-Proto (see SECURE_PROXY_SSL_HEADER above).
+# Secure cookies are the default; a plain-HTTP stack (the local
+# surface/docker-compose.yml on http://localhost:8081, or a LAN address) sets
+# SURFACE_SECURE_COOKIES=False in its env file, or browsers drop the session
+# and CSRF cookies and sign-in fails.
+SESSION_COOKIE_SECURE = _env_flag('SURFACE_SECURE_COOKIES', True)
+CSRF_COOKIE_SECURE = SESSION_COOKIE_SECURE
+
+# HSTS is sent only on HTTPS responses, so plain-HTTP stacks are unaffected.
+# Ramp the max-age up once SURFACE has run cleanly on HTTPS: 3600 (1 hour,
+# the default) -> 604800 (1 week) -> 2592000 (30 days) -> 31536000 (1 year).
+# Browsers remember the value, so lowering it later only takes effect after
+# the old max-age expires. includeSubDomains and preload stay off: SURFACE is
+# one host and must not commit its parent domain.
+SECURE_HSTS_SECONDS = int(os.getenv('SURFACE_HSTS_SECONDS', '3600'))
+SECURE_HSTS_INCLUDE_SUBDOMAINS = False
+SECURE_HSTS_PRELOAD = False
+
 CORS_ALLOW_ALL_ORIGINS = True
 CORS_ALLOW_CREDENTIALS = True
 
