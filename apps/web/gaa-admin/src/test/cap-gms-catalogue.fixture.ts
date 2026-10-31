@@ -360,20 +360,56 @@ export const gmsCatalogueFixture: GmsCataloguePublic = {
       events: ["Other Emergency"],
     },
   ],
-  category_labels: {
-    Geo: "Geophysical",
-    Met: "Meteorological",
-    Safety: "Public safety",
-    Security: "Security",
-    Rescue: "Rescue",
-    Fire: "Fire",
-    Health: "Health",
-    Env: "Environmental",
-    Transport: "Transport",
-    Infra: "Infrastructure",
-    CBRNE: "Chemical, biological, radiological, nuclear or explosive",
-    Other: "Other",
-  },
+  category_labels: [
+    {
+      key: "Geo",
+      label: "Geophysical",
+    },
+    {
+      key: "Met",
+      label: "Meteorological",
+    },
+    {
+      key: "Safety",
+      label: "Public safety",
+    },
+    {
+      key: "Security",
+      label: "Security",
+    },
+    {
+      key: "Rescue",
+      label: "Rescue",
+    },
+    {
+      key: "Fire",
+      label: "Fire",
+    },
+    {
+      key: "Health",
+      label: "Health",
+    },
+    {
+      key: "Env",
+      label: "Environmental",
+    },
+    {
+      key: "Transport",
+      label: "Transport",
+    },
+    {
+      key: "Infra",
+      label: "Infrastructure",
+    },
+    {
+      key: "CBRNE",
+      label: "Chemical, biological, radiological, nuclear or explosive",
+    },
+    {
+      key: "Other",
+      label: "Other",
+    },
+  ],
   parishes: [
     {
       id: "andrew",

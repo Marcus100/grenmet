@@ -30,6 +30,7 @@ from src.cap.models import (
 from src.cap.schemas import (
     CapAuditEventPublic,
     CapCatalogsPublic,
+    CapCategoryLabelPublic,
     CapColourRulePublic,
     CapHazardGroupPublic,
     CapParishPublic,
@@ -118,10 +119,10 @@ def get_gms_catalogue(*, current_user: User) -> GmsCataloguePublic:
             )
             for group in catalogue.HAZARD_GROUPS
         ],
-        category_labels={
-            category.value: label
+        category_labels=[
+            CapCategoryLabelPublic(key=category, label=label)
             for category, label in catalogue.CATEGORY_LABELS.items()
-        },
+        ],
         parishes=[
             CapParishPublic(
                 id=parish.id,

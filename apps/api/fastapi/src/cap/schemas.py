@@ -381,11 +381,18 @@ class CapColourRulePublic(BaseModel):
     severity: CapSeverity
 
 
+class CapCategoryLabelPublic(BaseModel):
+    """One CAP category and the name the desk shows for it (a closed set)."""
+
+    key: CapCategory
+    label: str
+
+
 class GmsCataloguePublic(BaseModel):
     """GMS warning catalogue: hazard list, parish geocodes, product and colour rules."""
 
     hazard_groups: list[CapHazardGroupPublic]
-    category_labels: dict[str, str]
+    category_labels: list[CapCategoryLabelPublic]
     parishes: list[CapParishPublic]
     products: list[CapProductRulePublic]
     colours: list[CapColourRulePublic]

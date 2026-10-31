@@ -5770,6 +5770,7 @@ export type {
 export type { CapCatalogsPublic } from "./models/CapCatalogsPublic.js";
 export type { CapCategory } from "./models/CapCategory.js";
 export { capCategory } from "./models/CapCategory.js";
+export type { CapCategoryLabelPublic } from "./models/CapCategoryLabelPublic.js";
 export type { CapCertainty } from "./models/CapCertainty.js";
 export { capCertainty } from "./models/CapCertainty.js";
 export type { CapColourRulePublic } from "./models/CapColourRulePublic.js";
@@ -14683,6 +14684,7 @@ export {
   capCancelAlertStatus422Schema,
 } from "./zod/capCancelAlertSchema.js";
 export { capCatalogsPublicSchema } from "./zod/capCatalogsPublicSchema.js";
+export { capCategoryLabelPublicSchema } from "./zod/capCategoryLabelPublicSchema.js";
 export { capCategorySchema } from "./zod/capCategorySchema.js";
 export { capCertaintySchema } from "./zod/capCertaintySchema.js";
 export { capColourRulePublicSchema } from "./zod/capColourRulePublicSchema.js";

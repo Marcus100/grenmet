@@ -1649,6 +1649,7 @@ export {
   capCancelAlertStatus422Schema,
 } from "./capCancelAlertSchema.js";
 export { capCatalogsPublicSchema } from "./capCatalogsPublicSchema.js";
+export { capCategoryLabelPublicSchema } from "./capCategoryLabelPublicSchema.js";
 export { capCategorySchema } from "./capCategorySchema.js";
 export { capCertaintySchema } from "./capCertaintySchema.js";
 export { capColourRulePublicSchema } from "./capColourRulePublicSchema.js";

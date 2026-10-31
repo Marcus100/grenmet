@@ -41,7 +41,8 @@ async def test_served_catalogue_matches_the_desk_snapshot(
     body = await _served(async_client, superuser_token_headers_async)
 
     assert body["hazard_groups"] == SNAPSHOT["hazard_groups"]
-    assert body["category_labels"] == SNAPSHOT["category_labels"]
+    labels = {item["key"]: item["label"] for item in body["category_labels"]}
+    assert labels == SNAPSHOT["category_labels"]
     assert body["parishes"] == SNAPSHOT["parishes"]
     assert body["products"] == SNAPSHOT["products"]
     assert body["colours"] == SNAPSHOT["colours"]

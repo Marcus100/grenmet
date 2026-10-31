@@ -4,6 +4,7 @@
  */
 
 import * as z from "zod";
+import { capCategoryLabelPublicSchema } from "./capCategoryLabelPublicSchema.js";
 import { capColourRulePublicSchema } from "./capColourRulePublicSchema.js";
 import { capHazardGroupPublicSchema } from "./capHazardGroupPublicSchema.js";
 import { capParishPublicSchema } from "./capParishPublicSchema.js";
@@ -12,7 +13,7 @@ import { capProductRulePublicSchema } from "./capProductRulePublicSchema.js";
 export const gmsCataloguePublicSchema = z
   .object({
     hazard_groups: z.array(capHazardGroupPublicSchema),
-    category_labels: z.record(z.string(), z.string()),
+    category_labels: z.array(capCategoryLabelPublicSchema),
     parishes: z.array(capParishPublicSchema),
     products: z.array(capProductRulePublicSchema),
     colours: z.array(capColourRulePublicSchema),

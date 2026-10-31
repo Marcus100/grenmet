@@ -54765,6 +54765,24 @@
         ],
         "title": "CapCategory"
       },
+      "CapCategoryLabelPublic": {
+        "properties": {
+          "key": {
+            "$ref": "#/components/schemas/CapCategory"
+          },
+          "label": {
+            "type": "string",
+            "title": "Label"
+          }
+        },
+        "type": "object",
+        "required": [
+          "key",
+          "label"
+        ],
+        "title": "CapCategoryLabelPublic",
+        "description": "One CAP category and the name the desk shows for it (a closed set)."
+      },
       "CapCertainty": {
         "type": "string",
         "enum": [
@@ -61131,10 +61149,10 @@
             "title": "Hazard Groups"
           },
           "category_labels": {
-            "additionalProperties": {
-              "type": "string"
+            "items": {
+              "$ref": "#/components/schemas/CapCategoryLabelPublic"
             },
-            "type": "object",
+            "type": "array",
             "title": "Category Labels"
           },
           "parishes": {

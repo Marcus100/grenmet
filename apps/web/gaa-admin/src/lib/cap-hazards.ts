@@ -8,14 +8,17 @@ import type { CapCategory, GmsCataloguePublic } from "@barrelsgd/api-client";
 export type CapHazardGroup = GmsCataloguePublic["hazard_groups"][number];
 
 export function categoryKeys(catalogue: GmsCataloguePublic): CapCategory[] {
-  return Object.keys(catalogue.category_labels) as CapCategory[];
+  return catalogue.category_labels.map((item) => item.key);
 }
 
 export function categoryLabel(
   catalogue: GmsCataloguePublic,
   category: CapCategory
 ): string {
-  return catalogue.category_labels[category] ?? category;
+  return (
+    catalogue.category_labels.find((item) => item.key === category)?.label ??
+    category
+  );
 }
 
 export function suggestedCategories(

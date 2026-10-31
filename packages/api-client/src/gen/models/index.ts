@@ -1669,6 +1669,7 @@ export type {
 export type { CapCatalogsPublic } from "./CapCatalogsPublic.js";
 export type { CapCategory } from "./CapCategory.js";
 export { capCategory } from "./CapCategory.js";
+export type { CapCategoryLabelPublic } from "./CapCategoryLabelPublic.js";
 export type { CapCertainty } from "./CapCertainty.js";
 export { capCertainty } from "./CapCertainty.js";
 export type { CapColourRulePublic } from "./CapColourRulePublic.js";

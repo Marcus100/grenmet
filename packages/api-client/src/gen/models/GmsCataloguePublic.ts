@@ -3,6 +3,7 @@
  * Do not edit manually.
  */
 
+import type { CapCategoryLabelPublic } from "./CapCategoryLabelPublic.js";
 import type { CapColourRulePublic } from "./CapColourRulePublic.js";
 import type { CapHazardGroupPublic } from "./CapHazardGroupPublic.js";
 import type { CapParishPublic } from "./CapParishPublic.js";
@@ -14,9 +15,7 @@ import type { CapProductRulePublic } from "./CapProductRulePublic.js";
  */
 export type GmsCataloguePublic = {
   hazard_groups: CapHazardGroupPublic[];
-  category_labels: {
-    [key: string]: string;
-  };
+  category_labels: CapCategoryLabelPublic[];
   parishes: CapParishPublic[];
   products: CapProductRulePublic[];
   colours: CapColourRulePublic[];
