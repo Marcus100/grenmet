@@ -126,6 +126,14 @@ def connecting_address(request: Request) -> str:
     return _bucket(connecting_ip(request))
 
 
+def request_ip(request: Request) -> str | None:
+    """The address to record on a sign-in session, or None without a client.
+
+    Behind Cloudflare's proxy ``request.client`` is a Cloudflare edge; this is
+    the visitor (``connecting_ip``, unmasked)."""
+    return connecting_ip(request) if request.client else None
+
+
 def visitor_ip(request: Request) -> str:
     """The real client address, unmasked: for services that need an IP (Turnstile).
 

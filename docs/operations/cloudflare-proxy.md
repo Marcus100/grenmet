@@ -348,11 +348,12 @@ None is user-facing and long-running. Long work belongs in the worker.
   certificate for this zone only (free on all plans: Traefik then requires
   Cloudflare's client certificate), a separate reviewed change. Treat the
   droplets' addresses as already known: they were public in DNS until now.
-- **Session records and logs show Cloudflare's address for direct API calls.**
-  Sign-in metadata (`request.client.host` in `src/auth`) and Traefik access logs
-  record the connecting peer, which becomes a Cloudflare edge. Rate limits are
-  not affected (`src/rate_limit.py` `connecting_address`). Sign-in from the web
-  apps goes through the web servers anyway.
+- **Traefik's access logs show Cloudflare's address.** Their `ClientAddr` is the
+  connecting peer, which becomes a Cloudflare edge; use `cf-ray` and the API's
+  own records to trace a visitor. Sign-in sessions record the visitor, not the
+  edge: `src/auth` takes the address from `src/rate_limit.py` `request_ip()`
+  (the same hop rule as the rate limits, unmasked), and a test fails if
+  `request.client.host` is read there again.
 - **The range list changes occasionally.** Run `cloudflare_ranges.py --check`
   every quarter (and before each production release that touches the edge). A
   new Cloudflare range missing from the list means visitors through that range
