@@ -64,9 +64,10 @@ or `BYPASS` for `/desk`, `/desk/signin` and `/auth/start`. The cache rules from
 `scripts/production/cloudflare-cache-rules.py` (docs/operations/cloudflare-proxy.md)
 cache static assets only and bypass any request that carries a `*_session`
 cookie (the desk's is `cap_desk_session`), so the desk is already outside the
-cache. A follow-up adds explicit `/desk` and `/auth/` paths to the "never cache"
-rule as a second line of defence; until the owner re-runs that script, rely on
-the check above.
+cache. The "never cache" rule also names `/desk` and `/auth/` explicitly as a second
+line of defence. That rule changes only when the owner re-runs
+`cloudflare-cache-rules.py --apply` for the environment; until then rely on the
+check above.
 
 ## What the new desk does not do yet
 

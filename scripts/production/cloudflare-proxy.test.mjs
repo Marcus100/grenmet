@@ -399,6 +399,13 @@ test("cache rules: default no-cache, then static assets on public hosts, then th
     assert.ok(
       bypass.expression.includes('starts_with(http.request.uri.path, "/api/")')
     );
+    // The CAP warning desk shares cap.* with the public pages (ADR-0054).
+    for (const path of ["/desk", "/auth/"])
+      assert.ok(
+        bypass.expression.includes(
+          `starts_with(http.request.uri.path, "${path}")`
+        )
+      );
     // Rules stay inside their own environment's hostnames.
     if (environment === "production")
       for (const rule of rules)
