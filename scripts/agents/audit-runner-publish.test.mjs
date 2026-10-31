@@ -14,11 +14,13 @@ import {
   BOT_LOGIN,
   main,
   mergedReceipt,
+  parseExpected,
   readEnvironmentReceipts,
   runnerObservations,
 } from "./audit-runner-publish.mjs";
 
 const CLOSED_FIRST_LIVE_ISSUE = /closed: #644/;
+const NO_COLLECTOR_PATTERN = /No collector reported/;
 const NOW = Date.parse("2026-10-31T04:55:00Z");
 const OBSERVED = "2026-10-31T04:50:00+00:00";
 const COMMIT = "0123456789abcdef0123456789abcdef01234567";
@@ -145,21 +147,23 @@ test("a missing, incomplete or stale half is a gap and emits no daily counts", (
     half("staging", { observedAt: "2026-10-29T00:00:00Z" }),
     half("production", { observedAt: "2026-10-31T06:00:00Z" }),
   ]);
-  assert.deepEqual(readEnvironmentReceipts(dir, NOW), {});
+  assert.deepEqual(readEnvironmentReceipts(dir, NOW).halves, {});
 });
 
 test("receipts must be private files named for their own environment", (t) => {
   assert.deepEqual(
-    readEnvironmentReceipts(directory(t, [half("staging")], 0o644), NOW),
+    readEnvironmentReceipts(directory(t, [half("staging")], 0o644), NOW).halves,
     {}
   );
   const dir = directory(t, []);
   const path = join(dir, "daily-receipt-staging.json");
   writeFileSync(path, JSON.stringify(half("production")));
   chmodSync(path, 0o600);
-  assert.deepEqual(readEnvironmentReceipts(dir, NOW), {});
+  assert.deepEqual(readEnvironmentReceipts(dir, NOW).halves, {});
   assert.deepEqual(
-    Object.keys(readEnvironmentReceipts(directory(t, [half("staging")]), NOW)),
+    Object.keys(
+      readEnvironmentReceipts(directory(t, [half("staging")]), NOW).halves
+    ),
     ["staging"]
   );
 });
@@ -218,21 +222,35 @@ test("publication closes the owner's live issues as the Actions bot without gh a
   );
   assert.equal(result.closed, 5);
   assert.equal(result.created, 1);
+  assert.equal(result.healthy, true);
   const summary = readFileSync(summaryPath, "utf8");
   assert.match(summary, CLOSED_FIRST_LIVE_ISSUE);
   assert.equal(BOT_LOGIN, "github-actions[bot]");
 });
 
+function disabledMarker(environment) {
+  return { version: 1, environment, observedAt: OBSERVED, disabled: true };
+}
+
+// A collect job whose collector crashed leaves the placeholder it wrote first.
+function placeholder(environment) {
+  return { version: 1, environment, observedAt: OBSERVED, sources: {} };
+}
+
 test("dry run and an all-disabled run change nothing", async (t) => {
   const empty = fakeGh([]);
-  assert.deepEqual(
-    await main(["--input-dir", directory(t, []), "--publish"], {
-      env: ENV,
-      runGh: empty,
-      now: NOW,
-    }),
-    { published: false, environments: [] }
-  );
+  const disabled = directory(t, [
+    disabledMarker("staging"),
+    disabledMarker("production"),
+  ]);
+  const off = await main(["--input-dir", disabled, "--publish"], {
+    env: ENV,
+    runGh: empty,
+    now: NOW,
+  });
+  assert.equal(off.published, false);
+  assert.equal(off.healthy, true);
+  assert.deepEqual(off.missing, []);
   assert.deepEqual(empty.calls, []);
 
   const runGh = fakeGh(
@@ -246,6 +264,75 @@ test("dry run and an all-disabled run change nothing", async (t) => {
   });
   assert.equal(result.closed, 5);
   assert.ok(runGh.calls.every((args) => args[0] === "api"));
+});
+
+test("dead-man's switch: no report at all fails without touching issues", async (t) => {
+  const runGh = fakeGh([]);
+  const summaryPath = join(directory(t, []), "summary.md");
+  const result = await main(
+    [
+      "--input-dir",
+      directory(t, []),
+      "--publish",
+      "--collect-result",
+      "failure",
+    ],
+    { env: { ...ENV, GITHUB_STEP_SUMMARY: summaryPath }, runGh, now: NOW }
+  );
+  assert.equal(result.published, false);
+  assert.equal(result.healthy, false);
+  assert.deepEqual(result.missing, ["staging", "production"]);
+  assert.deepEqual(runGh.calls, []);
+  assert.match(readFileSync(summaryPath, "utf8"), NO_COLLECTOR_PATTERN);
+  // Only the selected environment is expected on a single-environment run.
+  const single = await main(
+    [
+      "--input-dir",
+      directory(t, [disabledMarker("staging")]),
+      "--expect",
+      "staging",
+    ],
+    { env: ENV, runGh, now: NOW }
+  );
+  assert.equal(single.healthy, true);
+  assert.deepEqual(runGh.calls, []);
+});
+
+test("dead-man's switch: a missing or crashed collector publishes a gap and fails", async (t) => {
+  const issues = Object.entries(LIVE).map(([number, key]) =>
+    liveIssue(number, key)
+  );
+  for (const halves of [
+    [half("staging")],
+    [half("staging"), placeholder("production")],
+  ]) {
+    const runGh = fakeGh(issues);
+    const result = await main(
+      [
+        "--input-dir",
+        directory(t, halves),
+        "--publish",
+        "--collect-result",
+        "failure",
+      ],
+      { env: ENV, runGh, now: NOW }
+    );
+    assert.equal(result.published, true);
+    assert.equal(result.healthy, false);
+    assert.equal(result.closed, 0);
+    assert.equal(
+      runGh.calls.some((args) => args[0] === "issue" && args[1] === "close"),
+      false
+    );
+    // The live issues are rewritten as coverage gaps, never closed.
+    assert.ok(result.updated > 0);
+  }
+});
+
+test("--expect accepts only staging and production", () => {
+  assert.deepEqual(parseExpected("staging"), ["staging"]);
+  assert.deepEqual(parseExpected(), ["staging", "production"]);
+  assert.throws(() => parseExpected("staging,dev"));
 });
 
 test("refuses to run outside the canonical repository", async (t) => {

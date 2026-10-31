@@ -8,6 +8,12 @@
 // so observation keys, titles, bodies and grouping are identical and the existing
 // issues (#644 to #648) open, update and close by their markers. A missing,
 // stale or incomplete half is a coverage gap; an unknown result never closes.
+//
+// Dead-man's switch: every collect job that starts uploads a file, either a
+// disabled marker or its receipt (a placeholder with no sources until the
+// collector overwrites it). So "every environment disabled" (nothing to do) is
+// distinguishable from "nothing arrived" (runner offline or job never ran) and
+// from "a collector failed" (published as a gap). The last two exit non-zero.
 
 import { execFile } from "node:child_process";
 import { appendFileSync, lstatSync, readdirSync, readFileSync } from "node:fs";
@@ -29,14 +35,20 @@ const RECEIPT_FILE = /^daily-receipt-(staging|production)\.json$/;
 const MAX_BYTES = 65_536;
 const MAX_AGE_MS = 26 * 3_600_000;
 
-function validHalf(receipt, environment, now) {
+function fresh(receipt, environment, now) {
   const observed = Date.parse(receipt?.observedAt);
   return (
     receipt?.version === 1 &&
     receipt.environment === environment &&
     Number.isFinite(observed) &&
     observed <= now &&
-    now - observed <= MAX_AGE_MS &&
+    now - observed <= MAX_AGE_MS
+  );
+}
+
+function validHalf(receipt) {
+  return (
+    receipt.disabled === undefined &&
     receipt.sources !== null &&
     typeof receipt.sources === "object" &&
     !Array.isArray(receipt.sources)
@@ -44,14 +56,16 @@ function validHalf(receipt, environment, now) {
 }
 
 // Same file rules as the WSL auditor: a private (no group/other bits) regular
-// file under 64 KB, fresher than 26 hours and not from the future.
+// file under 64 KB, fresher than 26 hours and not from the future. Returns the
+// receipt halves and the environments that reported themselves disabled.
 export function readEnvironmentReceipts(directory, now = Date.now()) {
   const halves = {};
+  const disabled = new Set();
   let names;
   try {
     names = readdirSync(directory);
   } catch {
-    return halves;
+    return { halves, disabled };
   }
   for (const name of names) {
     const match = RECEIPT_FILE.exec(name);
@@ -61,12 +75,24 @@ export function readEnvironmentReceipts(directory, now = Date.now()) {
       const stat = lstatSync(path);
       if (!stat.isFile() || stat.size > MAX_BYTES || stat.mode % 64) continue;
       const receipt = JSON.parse(readFileSync(path, "utf8"));
-      if (validHalf(receipt, match[1], now)) halves[match[1]] = receipt;
+      if (!fresh(receipt, match[1], now)) continue;
+      if (receipt.disabled === true) disabled.add(match[1]);
+      else if (validHalf(receipt)) halves[match[1]] = receipt;
     } catch {
       // An unreadable half is treated as missing, which is a coverage gap.
     }
   }
-  return halves;
+  return { halves, disabled };
+}
+
+export function parseExpected(value = "staging,production") {
+  const expected = [...new Set(value.split(",").map((item) => item.trim()))];
+  if (
+    !expected.length ||
+    expected.some((environment) => !ENVIRONMENTS.includes(environment))
+  )
+    throw new Error("--expect must list staging and/or production");
+  return expected;
 }
 
 function completeEntry(item) {
@@ -133,11 +159,17 @@ export function ghRunner(env) {
     });
 }
 
-function summary(environments, observations, result, publish) {
+function summary(environments, missing, observations, result, publish) {
   const lines = [
     `### Daily monitoring publication (${publish ? "published" : "dry run"})`,
     "",
     `Receipts: ${environments.length ? environments.join(", ") : "none"}`,
+    ...(missing.length
+      ? [
+          "",
+          `**No report from: ${missing.join(", ")}.** The runner was offline or its collector failed; published as a coverage gap.`,
+        ]
+      : []),
     "",
     "| Observation | Status |",
     "| --- | --- |",
@@ -165,19 +197,39 @@ export async function main(
     options: {
       "input-dir": { type: "string" },
       publish: { type: "boolean" },
+      expect: { type: "string", default: "staging,production" },
+      "collect-result": { type: "string", default: "success" },
     },
   });
   if (env.GITHUB_REPOSITORY !== REPO)
     throw new Error("Runs only in the canonical repository");
-  const halves = readEnvironmentReceipts(values["input-dir"], now);
-  const environments = Object.keys(halves).sort();
-  if (!environments.length) {
-    // Nothing enabled (the default): publish nothing, change nothing.
-    const message =
-      "No enabled environment produced a daily receipt; nothing published.\n";
+  const expected = parseExpected(values.expect);
+  const { halves, disabled } = readEnvironmentReceipts(
+    values["input-dir"],
+    now
+  );
+  const note = (message) => {
     if (env.GITHUB_STEP_SUMMARY)
-      appendFileSync(env.GITHUB_STEP_SUMMARY, message);
-    return { published: false, environments };
+      appendFileSync(env.GITHUB_STEP_SUMMARY, `${message}\n`);
+  };
+  const environments = Object.keys(halves).sort();
+  const missing = expected.filter(
+    (environment) => !(halves[environment] || disabled.has(environment))
+  );
+  if (missing.length === expected.length) {
+    // Nothing arrived, so the enabled state is unknown: fail loudly, but do not
+    // touch the issues (this also happens while monitoring is still disabled).
+    note(
+      `No collector reported (${missing.join(", ")}): runner offline or job never ran. Nothing published.`
+    );
+    return { published: false, healthy: false, environments, missing };
+  }
+  if (expected.every((environment) => disabled.has(environment))) {
+    // Every environment is intentionally off (the default): change nothing.
+    note(
+      "Daily monitoring is disabled in every environment; nothing published."
+    );
+    return { published: false, healthy: true, environments, missing };
   }
   const observations = runnerObservations(halves, now);
   const publish = Boolean(values.publish);
@@ -198,11 +250,13 @@ export async function main(
   if (env.GITHUB_STEP_SUMMARY)
     appendFileSync(
       env.GITHUB_STEP_SUMMARY,
-      summary(environments, observations, result, publish)
+      summary(environments, missing, observations, result, publish)
     );
   return {
     published: publish,
+    healthy: !missing.length && values["collect-result"] === "success",
     environments,
+    missing,
     created: result.created.length,
     updated: result.updated.length,
     reopened: result.reopened.length,
@@ -216,7 +270,11 @@ if (
   import.meta.url === pathToFileURL(resolve(process.argv[1])).href
 ) {
   main()
-    .then((result) => console.log(JSON.stringify(result)))
+    .then((result) => {
+      console.log(JSON.stringify(result));
+      // A missing or failed collector fails the job after publishing its gap.
+      if (!result.healthy) process.exitCode = 1;
+    })
     .catch(() => {
       console.error(
         "Daily monitoring publication could not complete; no receipt content was printed."
