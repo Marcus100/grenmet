@@ -92,7 +92,27 @@ changes nothing for visitors.
    end on HTTPS. Minimum TLS version 1.2 stays. Leave Cloudflare's HSTS setting
    off: Traefik sends HSTS.
 3. **Security → Bots:** Bot Fight Mode **Off** (decision 3 above).
-4. **Speed / Caching:** no "Cache Everything" page rules; leave Rocket Loader and
+4. **Browser Integrity Check: exempt the machine clients.** It is on by default
+   on every plan and challenges requests whose `User-Agent` is missing or looks
+   like a script, which is what the weather collectors, Stripe, Resend and the
+   uptime probes send. Keep it on for people, and switch it off only for those
+   paths: Rules → Configuration Rules → Create rule, name
+   `GrenMet machine clients (no Browser Integrity Check)`, custom expression
+   (production; on staging use `api.staging.barrels.gd`):
+   ```txt
+   (http.host eq "api.barrels.gd" and (
+     starts_with(http.request.uri.path, "/api/v1/wxwatch/")
+     or http.request.uri.path eq "/api/v1/webhooks/resend"
+     or http.request.uri.path eq "/api/v1/billing/webhooks/stripe"
+     or starts_with(http.request.uri.path, "/api/v1/payments/public/webhooks/")))
+   ```
+   then **Browser Integrity Check: Off**, Deploy. (The free plan allows 10
+   configuration rules.) These paths authenticate every caller themselves
+   (ingest token, webhook signatures). If a machine client still gets a
+   Cloudflare 403 or challenge page, Security → Events shows which feature
+   stopped it; add its path here rather than turning the feature off for the
+   zone.
+5. **Speed / Caching:** no "Cache Everything" page rules; leave Rocket Loader and
    Auto Minify off (they rewrite pages and break the content security policy).
 
 ## Tokens and names you need (never commit them)
@@ -334,7 +354,7 @@ There are no WebSockets and no server-sent event streams in the codebase.
 | File and image streams | `GET /storage/assets/{id}`, wxwatch archive assets | first byte quickly | Streamed; the timeout counts time without data, not the total. |
 | Publishing and sending | CAP publish, eRegister publish (WIS2, email), notifications | under a second in the request | Side effects are queued to the worker, not done in the request. |
 | Next.js pages | every web host | seconds | Streamed; server-side API calls time out at 5-30 seconds. |
-| Machine clients | weather collectors (`POST /wxwatch/ingest`), Stripe and Resend webhooks, uptime probes, deploy smoke test | seconds | Not user-facing. Keep Bot Fight Mode off so they are not challenged. |
+| Machine clients | weather collectors (`POST /wxwatch/ingest`), Stripe and Resend webhooks, uptime probes, deploy smoke test | seconds | Not user-facing. Keep Bot Fight Mode off and exempt their paths from Browser Integrity Check (zone settings, step 4) so they are not challenged. |
 
 None is user-facing and long-running. Long work belongs in the worker.
 

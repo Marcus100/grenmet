@@ -67,6 +67,8 @@ test("range parsing refuses entries that would trust too much", () => {
   for (const [bad, reason] of [
     [`0.0.0.0/0\n${v6}`, "broader"],
     [`104.0.0.0/8\n${v6}`, "broader"],
+    [`104.16.0.0/12\n${v6}`, "broader than /13"],
+    ["104.16.0.0/13\n2a06:98c0::/28", "broader than /29"],
     [`10.1.0.0/16\n${v6}`, "public"],
     [`192.168.1.0/24\n${v6}`, "public"],
     [`104.16.0.1/13\n${v6}`, "CIDR"],
@@ -83,6 +85,30 @@ test("range parsing refuses entries that would trust too much", () => {
   );
   assert.ok(ok);
   assert.deepEqual(ranges, ["104.16.0.0/13", v6]);
+});
+
+test("fetching refuses an oversized answer instead of parsing it", () => {
+  const result = python([
+    "-c",
+    [
+      "import sys; sys.path.insert(0, 'scripts/production'); import cloudflare_ranges as c",
+      "class Answer:",
+      "    def __init__(self, body): self.body = body",
+      "    def __enter__(self): return self",
+      "    def __exit__(self, *args): return False",
+      "    def read(self, size=-1): return self.body[:size] if size >= 0 else self.body",
+      "def opener(body): return lambda request, timeout: Answer(body)",
+      "ok = c.fetch(opener(b'104.16.0.0/13\\n2606:4700::/32\\n'))",
+      "print(len(ok))",
+      "try: c.fetch(opener(b'104.16.0.0/13\\n' * 5000))",
+      "except ValueError as e: print('refused', e)",
+    ].join("\n"),
+  ]);
+  assert.equal(result.status, 0, result.stderr);
+  const [count, refused] = result.stdout.trim().split("\n");
+  // Both sources answer the same body here, so duplicates collapse to two ranges.
+  assert.equal(count, "2");
+  assert.match(refused, /^refused .*more than 16384 bytes/);
 });
 
 // ── Origin firewall ──────────────────────────────────────────────────────────

@@ -23,10 +23,12 @@ from pathlib import Path
 
 SOURCES = ("https://www.cloudflare.com/ips-v4", "https://www.cloudflare.com/ips-v6")
 RANGES_FILE = Path(__file__).resolve().parents[2] / "infra/cloudflare/ip-ranges.txt"
-# Cloudflare publishes /13 or longer (IPv4) and /29 or longer (IPv6). A much
-# broader prefix means a corrupted or hostile list, so it is refused.
-BROADEST_PREFIX = {4: 10, 6: 24}
+# Cloudflare publishes /13 or longer (IPv4) and /29 or longer (IPv6). Anything
+# broader means a corrupted or hostile list, so it is refused.
+BROADEST_PREFIX = {4: 13, 6: 29}
 MAX_RANGES = 100
+# Each published list is well under 1 KiB; a larger answer is not Cloudflare's list.
+MAX_RESPONSE_BYTES = 16 * 1024
 
 
 def parse(text):
@@ -78,7 +80,10 @@ def fetch(opener=urllib.request.urlopen):
         # Cloudflare answers 403 to urllib's default User-Agent.
         request = urllib.request.Request(url, headers={"User-Agent": "grenmet-ranges/1 (+curl-compatible)"})
         with opener(request, timeout=20) as response:
-            parts.append(response.read().decode("ascii"))
+            body = response.read(MAX_RESPONSE_BYTES + 1)
+        if len(body) > MAX_RESPONSE_BYTES:
+            raise ValueError(f"{url} answered more than {MAX_RESPONSE_BYTES} bytes")
+        parts.append(body.decode("ascii"))
     return parse("\n".join(parts))
 
 
