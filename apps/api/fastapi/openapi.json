@@ -14793,6 +14793,16 @@
                 }
               }
             }
+          },
+          "409": {
+            "description": "Or the change breaks roster rules (code roster_rule_warnings); resend with rule_override_reason to save anyway",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RosterRuleWarningsErrorPublic"
+                }
+              }
+            }
           }
         }
       }
@@ -15210,6 +15220,16 @@
                 }
               }
             }
+          },
+          "409": {
+            "description": "The change breaks roster rules; resend with rule_override_reason to save anyway",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RosterRuleWarningsErrorPublic"
+                }
+              }
+            }
           }
         },
         "security": [
@@ -15536,6 +15556,16 @@
                 }
               }
             }
+          },
+          "409": {
+            "description": "Or the change breaks roster rules (code roster_rule_warnings); resend with rule_override_reason to save anyway",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RosterRuleWarningsErrorPublic"
+                }
+              }
+            }
           }
         },
         "security": [
@@ -15670,6 +15700,16 @@
                 }
               }
             }
+          },
+          "409": {
+            "description": "Or the change breaks roster rules (code roster_rule_warnings); resend with rule_override_reason to save anyway",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RosterRuleWarningsErrorPublic"
+                }
+              }
+            }
           }
         },
         "security": [
@@ -15685,7 +15725,7 @@
           "hr-rosters"
         ],
         "summary": "Publish roster period",
-        "description": "Transition a draft roster period to published. Roster rule warnings are recorded on the published revision and never block publishing. Requires roster.manage permission.",
+        "description": "Transition a draft roster period to published. If the roster breaks a roster rule the request fails with 409 and the warnings; resend with rule_override_reason to publish anyway (recorded with the supervisor and the rules). Requires roster.manage permission.",
         "operationId": "hrPublishPeriod",
         "security": [
           {
@@ -15704,6 +15744,16 @@
             }
           }
         ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RosterPublishRequest",
+                "default": {}
+              }
+            }
+          }
+        },
         "responses": {
           "200": {
             "description": "Roster period published",
@@ -15751,6 +15801,16 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "The change breaks roster rules; resend with rule_override_reason to save anyway",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RosterRuleWarningsErrorPublic"
                 }
               }
             }
@@ -16260,9 +16320,10 @@
         "tags": [
           "hr-rosters"
         ],
-        "summary": "Read department roster rule limits",
-        "description": "Return the roster rule limits for a department. A null limit means the rule is disabled. Requires roster.view within the department scope.",
+        "summary": "Read department roster rule limits (deprecated)",
+        "description": "Deprecated: use GET /departments/{department_id}/rule-set. Returns the effective consecutive-shift and weekly-hour limits; min_rest_hours is always null (there is no minimum-rest rule). Requires roster.view within the department scope.",
         "operationId": "hrGetDepartmentRules",
+        "deprecated": true,
         "security": [
           {
             "OAuth2PasswordBearer": []
@@ -16316,9 +16377,10 @@
         "tags": [
           "hr-rosters"
         ],
-        "summary": "Set department roster rule limits",
-        "description": "Replace the roster rule limits for a department; null disables a rule. Rules only produce warnings and never block publishing. Requires roster.manage within the department scope.",
+        "summary": "Set department roster rule limits (deprecated)",
+        "description": "Deprecated: use PUT /departments/{department_id}/rule-set. Sets the department's consecutive-shift and weekly-hour limits on its rule set; min_rest_hours is ignored. Requires roster.rules.manage within the department scope.",
         "operationId": "hrPutDepartmentRules",
+        "deprecated": true,
         "security": [
           {
             "OAuth2PasswordBearer": []
@@ -16385,7 +16447,7 @@
           "hr-rosters"
         ],
         "summary": "Check a roster period against department rules",
-        "description": "Return warn-only violations of the department's rest, consecutive-day and weekly-hour limits for a roster period. Neighbouring published periods are included so runs crossing the boundary are seen. Requires roster.view.",
+        "description": "Return the roster rule breaches in a roster period (consecutive shifts, days off, daily and weekly hours, weekends, Monday-to-Friday pattern). Neighbouring published periods are included so runs crossing the edge are seen; staff not covered by the union agreement are not checked. Requires roster.view.",
         "operationId": "hrCheckPeriodRules",
         "security": [
           {
@@ -16437,6 +16499,510 @@
           },
           "404": {
             "description": "Roster period not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/hr/rosters/organisations/{organisation_id}/rule-set": {
+      "get": {
+        "tags": [
+          "hr-rosters"
+        ],
+        "summary": "Read the organisation's default roster rules",
+        "description": "Return the organisation's default roster rule set (source DEFAULT when none is saved and the built-in values apply). Requires organisation-wide roster.rules.manage.",
+        "operationId": "hrGetOrganisationRuleSet",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "organisation_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Organisation Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Rule set returned",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RosterRuleSetPublic"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "403": {
+            "description": "Insufficient permission",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "hr-rosters"
+        ],
+        "summary": "Save the organisation's default roster rules",
+        "description": "Replace the organisation's default roster rules, used by every department without its own rule set. A null limit disables that rule. Requires organisation-wide roster.rules.manage.",
+        "operationId": "hrPutOrganisationRuleSet",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "organisation_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Organisation Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RosterRuleSetUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Rule set saved",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RosterRuleSetPublic"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "403": {
+            "description": "Insufficient permission",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/hr/rosters/departments/{department_id}/rule-set": {
+      "get": {
+        "tags": [
+          "hr-rosters"
+        ],
+        "summary": "Read a department's effective roster rules",
+        "description": "Return the rules that apply to a department: its own rule set, else the organisation default, else the built-in defaults (see source). Requires roster.view within the department scope.",
+        "operationId": "hrGetDepartmentRuleSet",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "department_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Department Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Rule set returned",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RosterRuleSetPublic"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "403": {
+            "description": "Department outside your scope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "hr-rosters"
+        ],
+        "summary": "Save a department's own roster rules",
+        "description": "Give a department its own roster rules, replacing the organisation default for it. A null limit disables that rule. Requires roster.rules.manage within the department scope.",
+        "operationId": "hrPutDepartmentRuleSet",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "department_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Department Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RosterRuleSetUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Rule set saved",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RosterRuleSetPublic"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "403": {
+            "description": "Insufficient permission",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "hr-rosters"
+        ],
+        "summary": "Return a department to the organisation's roster rules",
+        "description": "Remove the department's own rule set so the organisation default applies again. Requires roster.rules.manage within the department scope.",
+        "operationId": "hrDeleteDepartmentRuleSet",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "department_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Department Id"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Department rule set removed"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "403": {
+            "description": "Insufficient permission",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/hr/rosters/departments/{department_id}/rule-profiles": {
+      "get": {
+        "tags": [
+          "hr-rosters"
+        ],
+        "summary": "List staff union coverage and worker type",
+        "description": "Return each department member's union coverage flag and worker type for the roster rules. Requires roster.rules.manage within the department scope.",
+        "operationId": "hrListRuleProfiles",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "department_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Department Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Profiles returned",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RosterRuleProfilesPublic"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "403": {
+            "description": "Insufficient permission",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/hr/rosters/employees/{user_id}/rule-profile": {
+      "put": {
+        "tags": [
+          "hr-rosters"
+        ],
+        "summary": "Set an employee's union coverage and worker type",
+        "description": "Turn the union roster rules on or off for an employee (for example off for management) and optionally set their worker type. Uncovered staff are not checked. Audited. Requires roster.rules.manage within the employee's department scope; you cannot change your own.",
+        "operationId": "hrPutRuleProfile",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "user_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "User Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RosterRuleProfileUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Profile saved",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RosterRuleProfilePublic"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "403": {
+            "description": "Insufficient permission",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Employee not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/hr/rosters/departments/{department_id}/rule-overrides": {
+      "get": {
+        "tags": [
+          "hr-rosters"
+        ],
+        "summary": "List roster rule overrides",
+        "description": "Return the latest saves made despite roster rule warnings in a department: who, when, which rules and the reason. Requires roster.rules.manage or roster.manage within the department scope.",
+        "operationId": "hrListRuleOverrides",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "department_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Department Id"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 200,
+              "minimum": 1,
+              "default": 50,
+              "title": "Limit"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Overrides returned",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RosterRuleOverridesPublic"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "403": {
+            "description": "Insufficient permission",
             "content": {
               "application/json": {
                 "schema": {
@@ -16879,6 +17445,16 @@
                 }
               }
             }
+          },
+          "409": {
+            "description": "Or the change breaks roster rules (code roster_rule_warnings); resend with rule_override_reason to save anyway",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RosterRuleWarningsErrorPublic"
+                }
+              }
+            }
           }
         }
       }
@@ -16908,6 +17484,16 @@
             }
           }
         ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TimesheetApproveRequest",
+                "default": {}
+              }
+            }
+          }
+        },
         "responses": {
           "200": {
             "description": "Timesheet approved",
@@ -16955,6 +17541,16 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Or the change breaks roster rules (code roster_rule_warnings); resend with rule_override_reason to save anyway",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RosterRuleWarningsErrorPublic"
                 }
               }
             }
@@ -18480,11 +19076,11 @@
             }
           },
           "409": {
-            "description": "Stale revision, locked review, or approval workflow not configured",
+            "description": "Stale revision, locked review, or approval workflow not configured; or the change breaks roster rules (code ROSTER_RULE_WARNINGS); resend with rule_override_reason to save anyway",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ApiError"
+                  "$ref": "#/components/schemas/RosterRuleWarningsErrorPublic"
                 }
               }
             }
@@ -18579,11 +19175,11 @@
             }
           },
           "409": {
-            "description": "Stale revision, locked review, or approval workflow not configured",
+            "description": "Stale revision, locked review, or approval workflow not configured; or the change breaks roster rules (code ROSTER_RULE_WARNINGS); resend with rule_override_reason to save anyway",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ApiError"
+                  "$ref": "#/components/schemas/RosterRuleWarningsErrorPublic"
                 }
               }
             }
@@ -23464,6 +24060,16 @@
                 }
               }
             }
+          },
+          "409": {
+            "description": "Or the change breaks roster rules (code roster_rule_warnings); resend with rule_override_reason to save anyway",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RosterRuleWarningsErrorPublic"
+                }
+              }
+            }
           }
         }
       }
@@ -24721,6 +25327,16 @@
                 }
               }
             }
+          },
+          "409": {
+            "description": "Or the change breaks roster rules (code roster_rule_warnings); resend with rule_override_reason to save anyway",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RosterRuleWarningsErrorPublic"
+                }
+              }
+            }
           }
         }
       }
@@ -24731,7 +25347,7 @@
           "hr-exchange"
         ],
         "summary": "Check a shift exchange against department roster rules",
-        "description": "Return warn-only breaches of the department's rest, consecutive-day and weekly-hour limits that this exchange would introduce for the two employees. Never blocks approval. Available to the two employees and to holders of roster.view in the department scope.",
+        "description": "Return the roster rule breaches this exchange would introduce for the two employees, and short notice for each exchanged date. Final approval of an exchange with breaches needs a rule_override_reason. Available to the two employees and to holders of roster.view in the department scope.",
         "operationId": "hrCheckShiftSwapRules",
         "security": [
           {
@@ -66042,6 +66658,19 @@
             "maxLength": 500,
             "minLength": 1,
             "title": "Reason"
+          },
+          "rule_override_reason": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 1000
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rule Override Reason",
+            "description": "Required to save a change that breaks a roster rule; recorded with the supervisor, the time and the rules overridden. At most 1,000 characters; NUL is refused, and control, bidi and zero-width characters are removed."
           }
         },
         "type": "object",
@@ -66378,6 +67007,14 @@
               }
             ],
             "title": "Reviewed At"
+          },
+          "overtime_bands": {
+            "items": {
+              "$ref": "#/components/schemas/OvertimeBandPublic"
+            },
+            "type": "array",
+            "title": "Overtime Bands",
+            "description": "Overtime hours by rate multiplier (hours only, no pay)."
           }
         },
         "type": "object",
@@ -66399,6 +67036,19 @@
             "type": "integer",
             "minimum": 1.0,
             "title": "Expected Revision"
+          },
+          "rule_override_reason": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 1000
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rule Override Reason",
+            "description": "Required to save a change that breaks a roster rule; recorded with the supervisor, the time and the rules overridden. At most 1,000 characters; NUL is refused, and control, bidi and zero-width characters are removed."
           }
         },
         "type": "object",
@@ -81795,6 +82445,19 @@
               }
             ],
             "title": "Head Of Dept Comments"
+          },
+          "rule_override_reason": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 1000
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rule Override Reason",
+            "description": "Required to save a change that breaks a roster rule; recorded with the supervisor, the time and the rules overridden. At most 1,000 characters; NUL is refused, and control, bidi and zero-width characters are removed."
           }
         },
         "type": "object",
@@ -87946,6 +88609,25 @@
         "additionalProperties": false,
         "type": "object",
         "title": "OutlookValuesDraft"
+      },
+      "OvertimeBandPublic": {
+        "properties": {
+          "rate": {
+            "type": "string",
+            "title": "Rate"
+          },
+          "hours": {
+            "type": "string",
+            "title": "Hours"
+          }
+        },
+        "type": "object",
+        "required": [
+          "rate",
+          "hours"
+        ],
+        "title": "OvertimeBandPublic",
+        "description": "Overtime hours at one rate multiplier. Hours only; no pay amount."
       },
       "PageFeedbackAccepted": {
         "properties": {
@@ -97441,6 +98123,19 @@
             },
             "type": "array",
             "title": "Assignments"
+          },
+          "rule_override_reason": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 1000
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rule Override Reason",
+            "description": "Required to save a change that breaks a roster rule; recorded with the supervisor, the time and the rules overridden. At most 1,000 characters; NUL is refused, and control, bidi and zero-width characters are removed."
           }
         },
         "type": "object",
@@ -97739,6 +98434,19 @@
           "csv_text": {
             "type": "string",
             "title": "Csv Text"
+          },
+          "rule_override_reason": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 1000
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rule Override Reason",
+            "description": "Required to save a change that breaks a roster rule; recorded with the supervisor, the time and the rules overridden. At most 1,000 characters; NUL is refused, and control, bidi and zero-width characters are removed."
           }
         },
         "type": "object",
@@ -97808,6 +98516,19 @@
             "type": "boolean",
             "title": "Publish",
             "default": false
+          },
+          "rule_override_reason": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 1000
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rule Override Reason",
+            "description": "Required to save a change that breaks a roster rule; recorded with the supervisor, the time and the rules overridden. At most 1,000 characters; NUL is refused, and control, bidi and zero-width characters are removed."
           }
         },
         "type": "object",
@@ -97833,6 +98554,12 @@
           "published": {
             "type": "boolean",
             "title": "Published"
+          },
+          "rule_warning_count": {
+            "type": "integer",
+            "title": "Rule Warning Count",
+            "description": "Roster rule warnings that stopped publishing; review them and publish from the roster screen.",
+            "default": 0
           }
         },
         "type": "object",
@@ -98101,6 +98828,25 @@
         "type": "object",
         "title": "RosterPreferencesUpdate"
       },
+      "RosterPublishRequest": {
+        "properties": {
+          "rule_override_reason": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 1000
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rule Override Reason",
+            "description": "Required to save a change that breaks a roster rule; recorded with the supervisor, the time and the rules overridden. At most 1,000 characters; NUL is refused, and control, bidi and zero-width characters are removed."
+          }
+        },
+        "type": "object",
+        "title": "RosterPublishRequest"
+      },
       "RosterRevisionAction": {
         "type": "string",
         "enum": [
@@ -98210,6 +98956,16 @@
           "count": {
             "type": "integer",
             "title": "Count"
+          },
+          "rule_set": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/RosterRuleSetPublic"
+              },
+              {
+                "type": "null"
+              }
+            ]
           }
         },
         "type": "object",
@@ -98220,6 +98976,727 @@
           "count"
         ],
         "title": "RosterRuleCheckPublic"
+      },
+      "RosterRuleOverridePublic": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "department_id": {
+            "type": "string",
+            "title": "Department Id"
+          },
+          "context": {
+            "$ref": "#/components/schemas/RuleOverrideContext"
+          },
+          "entity_type": {
+            "type": "string",
+            "title": "Entity Type"
+          },
+          "entity_id": {
+            "type": "string",
+            "title": "Entity Id"
+          },
+          "rule_codes": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Rule Codes"
+          },
+          "violations": {
+            "items": {
+              "$ref": "#/components/schemas/RuleViolationPublic"
+            },
+            "type": "array",
+            "title": "Violations"
+          },
+          "reason": {
+            "type": "string",
+            "title": "Reason"
+          },
+          "overridden_by_user_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Overridden By User Id"
+          },
+          "overridden_by_name": {
+            "type": "string",
+            "title": "Overridden By Name"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "department_id",
+          "context",
+          "entity_type",
+          "entity_id",
+          "rule_codes",
+          "violations",
+          "reason",
+          "overridden_by_user_id",
+          "overridden_by_name",
+          "created_at"
+        ],
+        "title": "RosterRuleOverridePublic"
+      },
+      "RosterRuleOverridesPublic": {
+        "properties": {
+          "data": {
+            "items": {
+              "$ref": "#/components/schemas/RosterRuleOverridePublic"
+            },
+            "type": "array",
+            "title": "Data"
+          },
+          "count": {
+            "type": "integer",
+            "title": "Count"
+          }
+        },
+        "type": "object",
+        "required": [
+          "data",
+          "count"
+        ],
+        "title": "RosterRuleOverridesPublic"
+      },
+      "RosterRuleProfilePublic": {
+        "properties": {
+          "user_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "User Id"
+          },
+          "full_name": {
+            "type": "string",
+            "title": "Full Name"
+          },
+          "employee_number": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Employee Number"
+          },
+          "union_covered": {
+            "type": "boolean",
+            "title": "Union Covered"
+          },
+          "worker_type": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/WorkerType"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Per-employee override; null uses the department's."
+          },
+          "effective_worker_type": {
+            "$ref": "#/components/schemas/WorkerType"
+          }
+        },
+        "type": "object",
+        "required": [
+          "user_id",
+          "full_name",
+          "union_covered",
+          "effective_worker_type"
+        ],
+        "title": "RosterRuleProfilePublic"
+      },
+      "RosterRuleProfileUpdate": {
+        "properties": {
+          "union_covered": {
+            "type": "boolean",
+            "title": "Union Covered"
+          },
+          "worker_type": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/WorkerType"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "type": "object",
+        "required": [
+          "union_covered"
+        ],
+        "title": "RosterRuleProfileUpdate"
+      },
+      "RosterRuleProfilesPublic": {
+        "properties": {
+          "data": {
+            "items": {
+              "$ref": "#/components/schemas/RosterRuleProfilePublic"
+            },
+            "type": "array",
+            "title": "Data"
+          },
+          "count": {
+            "type": "integer",
+            "title": "Count"
+          }
+        },
+        "type": "object",
+        "required": [
+          "data",
+          "count"
+        ],
+        "title": "RosterRuleProfilesPublic"
+      },
+      "RosterRuleSetPublic": {
+        "properties": {
+          "work_pattern": {
+            "$ref": "#/components/schemas/WorkPattern",
+            "default": "ROTATION"
+          },
+          "worker_type": {
+            "$ref": "#/components/schemas/WorkerType",
+            "default": "SHIFT"
+          },
+          "max_consecutive_shifts": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 31.0,
+                "minimum": 1.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Max Consecutive Shifts"
+          },
+          "min_days_off_after_run": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 14.0,
+                "minimum": 1.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Min Days Off After Run"
+          },
+          "shift_daily_hours": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Shift Daily Hours"
+          },
+          "shift_weekly_hours": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Shift Weekly Hours"
+          },
+          "non_shift_daily_hours": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Non Shift Daily Hours"
+          },
+          "non_shift_weekly_hours": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Non Shift Weekly Hours"
+          },
+          "weekend_window_weeks": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 13.0,
+                "minimum": 1.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Weekend Window Weeks"
+          },
+          "notice_days": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 60.0,
+                "minimum": 1.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Notice Days"
+          },
+          "overtime_bands_enabled": {
+            "type": "boolean",
+            "title": "Overtime Bands Enabled",
+            "default": true
+          },
+          "weekday_first_hours": {
+            "type": "string",
+            "title": "Weekday First Hours",
+            "default": "4"
+          },
+          "weekday_first_rate": {
+            "type": "string",
+            "title": "Weekday First Rate",
+            "default": "1.5"
+          },
+          "weekday_after_rate": {
+            "type": "string",
+            "title": "Weekday After Rate",
+            "default": "2"
+          },
+          "saturday_window_start": {
+            "type": "string",
+            "pattern": "^([01][0-9]|2[0-3]):[0-5][0-9]$",
+            "title": "Saturday Window Start",
+            "default": "08:00"
+          },
+          "saturday_window_end": {
+            "type": "string",
+            "pattern": "^([01][0-9]|2[0-3]):[0-5][0-9]$",
+            "title": "Saturday Window End",
+            "default": "12:00"
+          },
+          "saturday_window_rate": {
+            "type": "string",
+            "title": "Saturday Window Rate",
+            "default": "1.5"
+          },
+          "saturday_after_rate": {
+            "type": "string",
+            "title": "Saturday After Rate",
+            "default": "2"
+          },
+          "rest_day_first_hours": {
+            "type": "string",
+            "title": "Rest Day First Hours",
+            "default": "8"
+          },
+          "rest_day_first_rate": {
+            "type": "string",
+            "title": "Rest Day First Rate",
+            "default": "2"
+          },
+          "rest_day_after_rate": {
+            "type": "string",
+            "title": "Rest Day After Rate",
+            "default": "3"
+          },
+          "after_midnight_rate": {
+            "type": "string",
+            "title": "After Midnight Rate",
+            "default": "2"
+          },
+          "organisation_id": {
+            "type": "string",
+            "title": "Organisation Id"
+          },
+          "department_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Department Id"
+          },
+          "source": {
+            "$ref": "#/components/schemas/RuleSetSource"
+          },
+          "updated_by_user_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Updated By User Id"
+          },
+          "updated_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Updated At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "organisation_id",
+          "source"
+        ],
+        "title": "RosterRuleSetPublic"
+      },
+      "RosterRuleSetUpdate": {
+        "properties": {
+          "work_pattern": {
+            "$ref": "#/components/schemas/WorkPattern",
+            "default": "ROTATION"
+          },
+          "worker_type": {
+            "$ref": "#/components/schemas/WorkerType",
+            "default": "SHIFT"
+          },
+          "max_consecutive_shifts": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 31.0,
+                "minimum": 1.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Max Consecutive Shifts"
+          },
+          "min_days_off_after_run": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 14.0,
+                "minimum": 1.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Min Days Off After Run"
+          },
+          "shift_daily_hours": {
+            "anyOf": [
+              {
+                "type": "number",
+                "maximum": 168.0,
+                "exclusiveMinimum": 0.0
+              },
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Shift Daily Hours"
+          },
+          "shift_weekly_hours": {
+            "anyOf": [
+              {
+                "type": "number",
+                "maximum": 168.0,
+                "exclusiveMinimum": 0.0
+              },
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Shift Weekly Hours"
+          },
+          "non_shift_daily_hours": {
+            "anyOf": [
+              {
+                "type": "number",
+                "maximum": 168.0,
+                "exclusiveMinimum": 0.0
+              },
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Non Shift Daily Hours"
+          },
+          "non_shift_weekly_hours": {
+            "anyOf": [
+              {
+                "type": "number",
+                "maximum": 168.0,
+                "exclusiveMinimum": 0.0
+              },
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Non Shift Weekly Hours"
+          },
+          "weekend_window_weeks": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 13.0,
+                "minimum": 1.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Weekend Window Weeks"
+          },
+          "notice_days": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 60.0,
+                "minimum": 1.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Notice Days"
+          },
+          "overtime_bands_enabled": {
+            "type": "boolean",
+            "title": "Overtime Bands Enabled",
+            "default": true
+          },
+          "weekday_first_hours": {
+            "anyOf": [
+              {
+                "type": "number",
+                "maximum": 24.0,
+                "minimum": 0.0
+              },
+              {
+                "type": "string"
+              }
+            ],
+            "title": "Weekday First Hours",
+            "default": "4"
+          },
+          "weekday_first_rate": {
+            "anyOf": [
+              {
+                "type": "number",
+                "maximum": 10.0,
+                "minimum": 1.0
+              },
+              {
+                "type": "string"
+              }
+            ],
+            "title": "Weekday First Rate",
+            "default": "1.5"
+          },
+          "weekday_after_rate": {
+            "anyOf": [
+              {
+                "type": "number",
+                "maximum": 10.0,
+                "minimum": 1.0
+              },
+              {
+                "type": "string"
+              }
+            ],
+            "title": "Weekday After Rate",
+            "default": "2"
+          },
+          "saturday_window_start": {
+            "type": "string",
+            "pattern": "^([01][0-9]|2[0-3]):[0-5][0-9]$",
+            "title": "Saturday Window Start",
+            "default": "08:00"
+          },
+          "saturday_window_end": {
+            "type": "string",
+            "pattern": "^([01][0-9]|2[0-3]):[0-5][0-9]$",
+            "title": "Saturday Window End",
+            "default": "12:00"
+          },
+          "saturday_window_rate": {
+            "anyOf": [
+              {
+                "type": "number",
+                "maximum": 10.0,
+                "minimum": 1.0
+              },
+              {
+                "type": "string"
+              }
+            ],
+            "title": "Saturday Window Rate",
+            "default": "1.5"
+          },
+          "saturday_after_rate": {
+            "anyOf": [
+              {
+                "type": "number",
+                "maximum": 10.0,
+                "minimum": 1.0
+              },
+              {
+                "type": "string"
+              }
+            ],
+            "title": "Saturday After Rate",
+            "default": "2"
+          },
+          "rest_day_first_hours": {
+            "anyOf": [
+              {
+                "type": "number",
+                "maximum": 24.0,
+                "minimum": 0.0
+              },
+              {
+                "type": "string"
+              }
+            ],
+            "title": "Rest Day First Hours",
+            "default": "8"
+          },
+          "rest_day_first_rate": {
+            "anyOf": [
+              {
+                "type": "number",
+                "maximum": 10.0,
+                "minimum": 1.0
+              },
+              {
+                "type": "string"
+              }
+            ],
+            "title": "Rest Day First Rate",
+            "default": "2"
+          },
+          "rest_day_after_rate": {
+            "anyOf": [
+              {
+                "type": "number",
+                "maximum": 10.0,
+                "minimum": 1.0
+              },
+              {
+                "type": "string"
+              }
+            ],
+            "title": "Rest Day After Rate",
+            "default": "3"
+          },
+          "after_midnight_rate": {
+            "anyOf": [
+              {
+                "type": "number",
+                "maximum": 10.0,
+                "minimum": 1.0
+              },
+              {
+                "type": "string"
+              }
+            ],
+            "title": "After Midnight Rate",
+            "default": "2"
+          }
+        },
+        "type": "object",
+        "title": "RosterRuleSetUpdate",
+        "description": "Replace every rule value; a null limit disables that rule."
+      },
+      "RosterRuleWarningsErrorPublic": {
+        "properties": {
+          "detail": {
+            "type": "string",
+            "title": "Detail"
+          },
+          "code": {
+            "anyOf": [
+              {
+                "type": "string",
+                "const": "ROSTER_RULE_WARNINGS"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Code"
+          },
+          "context": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/RuleOverrideContext"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "violations": {
+            "items": {
+              "$ref": "#/components/schemas/RuleViolationPublic"
+            },
+            "type": "array",
+            "title": "Violations"
+          }
+        },
+        "type": "object",
+        "required": [
+          "detail"
+        ],
+        "title": "RosterRuleWarningsErrorPublic",
+        "description": "409 body. An ordinary conflict carries only ``detail``. Roster rule\nwarnings add ``code: ROSTER_RULE_WARNINGS``, the ``context`` and the\n``violations``; resend with ``rule_override_reason`` to save anyway."
       },
       "RosterRulesPublic": {
         "properties": {
@@ -98349,6 +99826,30 @@
           "shifts"
         ],
         "title": "RouteView"
+      },
+      "RuleOverrideContext": {
+        "type": "string",
+        "enum": [
+          "PUBLISH",
+          "ROSTER_CHANGE",
+          "SHIFT_SWAP",
+          "LEAVE",
+          "ABSENCE",
+          "TIMESHEET",
+          "ATTENDANCE"
+        ],
+        "title": "RuleOverrideContext",
+        "description": "Where a supervisor saved a change despite roster rule warnings."
+      },
+      "RuleSetSource": {
+        "type": "string",
+        "enum": [
+          "DEFAULT",
+          "ORGANISATION",
+          "DEPARTMENT"
+        ],
+        "title": "RuleSetSource",
+        "description": "Where an effective rule set comes from."
       },
       "RuleState": {
         "type": "string",
@@ -99799,6 +101300,14 @@
             "title": "Ends Next Day",
             "default": false
           },
+          "break_minutes": {
+            "type": "integer",
+            "maximum": 240.0,
+            "minimum": 0.0,
+            "title": "Break Minutes",
+            "description": "Unpaid break inside the shift.",
+            "default": 0
+          },
           "counts_as_work_hours": {
             "anyOf": [
               {
@@ -99879,6 +101388,12 @@
           "ends_next_day": {
             "type": "boolean",
             "title": "Ends Next Day"
+          },
+          "break_minutes": {
+            "type": "integer",
+            "title": "Break Minutes",
+            "description": "Unpaid break inside the shift, in minutes.",
+            "default": 0
           },
           "counts_as_work_hours": {
             "type": "boolean",
@@ -99968,6 +101483,19 @@
               }
             ],
             "title": "Ends Next Day"
+          },
+          "break_minutes": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 240.0,
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Break Minutes"
           },
           "counts_as_work_hours": {
             "anyOf": [
@@ -100188,6 +101716,19 @@
               }
             ],
             "title": "Comments"
+          },
+          "rule_override_reason": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 1000
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rule Override Reason",
+            "description": "Required to save a change that breaks a roster rule; recorded with the supervisor, the time and the rules overridden. At most 1,000 characters; NUL is refused, and control, bidi and zero-width characters are removed."
           }
         },
         "type": "object",
@@ -106005,6 +107546,25 @@
         ],
         "title": "TillPublic"
       },
+      "TimesheetApproveRequest": {
+        "properties": {
+          "rule_override_reason": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 1000
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rule Override Reason",
+            "description": "Required to save a change that breaks a roster rule; recorded with the supervisor, the time and the rules overridden. At most 1,000 characters; NUL is refused, and control, bidi and zero-width characters are removed."
+          }
+        },
+        "type": "object",
+        "title": "TimesheetApproveRequest"
+      },
       "TimesheetCreate": {
         "properties": {
           "user_id": {
@@ -106284,6 +107844,14 @@
           "availability": {
             "$ref": "#/components/schemas/RosterAvailability",
             "default": "SCHEDULED"
+          },
+          "overtime_bands": {
+            "items": {
+              "$ref": "#/components/schemas/OvertimeBandPublic"
+            },
+            "type": "array",
+            "title": "Overtime Bands",
+            "description": "Overtime hours by rate multiplier (hours only, no pay)."
           }
         },
         "type": "object",
@@ -106631,6 +108199,19 @@
           "mode": {
             "$ref": "#/components/schemas/SubmissionMode",
             "default": "SELF"
+          },
+          "rule_override_reason": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 1000
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rule Override Reason",
+            "description": "Required to save a change that breaks a roster rule; recorded with the supervisor, the time and the rules overridden. At most 1,000 characters; NUL is refused, and control, bidi and zero-width characters are removed."
           }
         },
         "type": "object",
@@ -106661,6 +108242,14 @@
           "grand_total_overtime": {
             "type": "string",
             "title": "Grand Total Overtime"
+          },
+          "overtime_bands": {
+            "items": {
+              "$ref": "#/components/schemas/OvertimeBandPublic"
+            },
+            "type": "array",
+            "title": "Overtime Bands",
+            "description": "Overtime hours by rate multiplier for the whole timesheet."
           }
         },
         "type": "object",
@@ -110879,6 +112468,24 @@
         "title": "WebhookTestResult",
         "description": "Outcome of a synchronous ping. A failed ping does not count towards\nauto-disable."
       },
+      "WorkPattern": {
+        "type": "string",
+        "enum": [
+          "ROTATION",
+          "WEEKDAYS"
+        ],
+        "title": "WorkPattern",
+        "description": "ROTATION: consecutive-shift and days-off rules; WEEKDAYS: Monday to Friday."
+      },
+      "WorkerType": {
+        "type": "string",
+        "enum": [
+          "SHIFT",
+          "NON_SHIFT"
+        ],
+        "title": "WorkerType",
+        "description": "Which hour limits apply: shift workers or non-shift (Monday to Friday) staff."
+      },
       "WorkflowAction": {
         "type": "string",
         "enum": [
@@ -110918,6 +112525,19 @@
               }
             ],
             "title": "Comments"
+          },
+          "rule_override_reason": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 1000
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rule Override Reason",
+            "description": "Required to save a change that breaks a roster rule; recorded with the supervisor, the time and the rules overridden. At most 1,000 characters; NUL is refused, and control, bidi and zero-width characters are removed."
           }
         },
         "type": "object",

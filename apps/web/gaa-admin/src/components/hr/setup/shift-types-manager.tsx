@@ -26,6 +26,7 @@ import {
 } from "@barrelsgd/ui/components/ui/dialog";
 import {
   Field,
+  FieldDescription,
   FieldGroup,
   FieldLabel,
 } from "@barrelsgd/ui/components/ui/field";
@@ -55,6 +56,8 @@ const CATEGORIES: { value: Category; label: string }[] = [
 ];
 
 interface ShiftForm {
+  /** Unpaid break inside the shift, in minutes, as typed. */
+  break_minutes: string;
   category: Category;
   code: string;
   counts_as_work_hours: boolean;
@@ -86,6 +89,7 @@ function emptyForm(): ShiftForm {
     start_time: "",
     end_time: "",
     ends_next_day: false,
+    break_minutes: "0",
     ...deriveFlags("WORK"),
   };
 }
@@ -98,6 +102,7 @@ function formFromShift(shift: ShiftCatalogPublic): ShiftForm {
     start_time: shift.start_time ?? "",
     end_time: shift.end_time ?? "",
     ends_next_day: shift.ends_next_day,
+    break_minutes: String(shift.break_minutes ?? 0),
     counts_as_work_hours: shift.counts_as_work_hours,
     needs_reason: shift.needs_reason,
     needs_approval: shift.needs_approval,
@@ -137,7 +142,10 @@ function ShiftTypeDialog({
     setShowAdvanced(false);
   }
 
-  const canSubmit = form.code.trim() && form.label.trim();
+  const breakMinutes = Number(form.break_minutes.trim() || "0");
+  const breakValid =
+    Number.isInteger(breakMinutes) && breakMinutes >= 0 && breakMinutes <= 240;
+  const canSubmit = form.code.trim() && form.label.trim() && breakValid;
 
   let submitLabel = "Create";
   if (isEdit) {
@@ -157,6 +165,7 @@ function ShiftTypeDialog({
       start_time: form.start_time.trim() || null,
       end_time: form.end_time.trim() || null,
       ends_next_day: form.ends_next_day,
+      break_minutes: breakMinutes,
       counts_as_work_hours: form.counts_as_work_hours,
       needs_reason: form.needs_reason,
       needs_approval: form.needs_approval,
@@ -271,6 +280,26 @@ function ShiftTypeDialog({
             />
             Ends the next day (e.g. a night shift)
           </label>
+          <Field className="w-auto">
+            <FieldLabel htmlFor="st-break">Unpaid break (minutes)</FieldLabel>
+            <Input
+              aria-invalid={breakValid ? undefined : true}
+              className="w-20"
+              id="st-break"
+              inputMode="numeric"
+              onChange={(e) => set("break_minutes", e.target.value)}
+              value={form.break_minutes}
+            />
+            <FieldDescription>
+              Not counted as worked time for the roster hour limits and
+              overtime. GMS M and E shifts have a 30-minute meal break.
+            </FieldDescription>
+            {breakValid ? null : (
+              <p className="text-destructive text-sm" role="alert">
+                Enter whole minutes from 0 to 240.
+              </p>
+            )}
+          </Field>
 
           <Collapsible onOpenChange={setShowAdvanced} open={showAdvanced}>
             <CollapsibleTrigger
@@ -436,7 +465,7 @@ export function ShiftTypesManager({
                 </TableCell>
                 <TableCell className="text-muted-foreground tabular-nums">
                   {shift.start_time && shift.end_time
-                    ? `${shift.start_time}–${shift.end_time}${shift.ends_next_day ? " (+1)" : ""}`
+                    ? `${shift.start_time}–${shift.end_time}${shift.ends_next_day ? " (+1)" : ""}${shift.break_minutes ? ` · ${shift.break_minutes} min break` : ""}`
                     : "—"}
                 </TableCell>
                 <TableCell>

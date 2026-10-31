@@ -55,6 +55,17 @@ export function selectImages(paths, mode = "affected") {
   };
 }
 
+// SURFACE (vendored Django app) is deferred from releases but has its own CI
+// job, .github/workflows/ci-surface.yml. Its image is built from surface/api
+// only, so only SURFACE paths and that workflow can change the result. Unlike
+// the image checks, promotion ("full") runs use the diff too: nothing outside
+// these paths enters the SURFACE image.
+const surfacePath = /^(surface\/|\.github\/workflows\/ci-surface\.yml$)/;
+export function selectSurface(paths, mode = "affected") {
+  if (mode === "deployment") return false;
+  return paths.some((path) => surfacePath.test(path));
+}
+
 // Web apps whose Vitest coverage floors CI enforces (scripts/guardrails/
 // coverage-baseline.json). gaa-admin is left out: its full coverage run takes
 // about 40 minutes locally (docs/testing.md, Coverage floors).
@@ -92,20 +103,26 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
   } = process.env;
   let selection;
   let coverage;
+  let surface;
   try {
+    // Deployment builds own their checks; every other mode needs the diff,
+    // at least for the SURFACE selection.
     const paths =
-      mode === "affected"
-        ? changedPaths(JSON.parse(readFileSync(eventPath, "utf8")))
-        : [];
+      mode === "deployment"
+        ? []
+        : changedPaths(JSON.parse(readFileSync(eventPath, "utf8")));
     selection = selectImages(paths, mode);
     coverage = selectCoverage(paths, mode);
+    surface = selectSurface(paths, mode);
   } catch {
     console.error("Image comparison unavailable; checking every image.");
     selection = selectImages([], "full");
     coverage = selectCoverage([], "full");
+    surface = true;
   }
   for (const [key, value] of Object.entries(selection))
     appendFileSync(output, `${key}=${JSON.stringify(value)}\n`);
+  appendFileSync(output, `surface=${JSON.stringify(surface)}\n`);
   // Matrix entries for the web coverage job: app name and package directory.
   const coverageMatrix = coverage.map(({ app, path }) => ({ app, path }));
   appendFileSync(output, `coverage=${JSON.stringify(coverageMatrix)}\n`);

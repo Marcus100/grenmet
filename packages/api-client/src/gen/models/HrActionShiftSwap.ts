@@ -4,6 +4,7 @@
  */
 
 import type { ApiError } from "./ApiError.js";
+import type { RosterRuleWarningsErrorPublic } from "./RosterRuleWarningsErrorPublic.js";
 import type { ShiftSwapAction } from "./ShiftSwapAction.js";
 import type { ShiftSwapRequestPublic } from "./ShiftSwapRequestPublic.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
@@ -38,6 +39,14 @@ export type HrActionShiftSwapStatus403 = ApiError;
 export type HrActionShiftSwapStatus404 = ApiError;
 
 /**
+ * @description 409 body. An ordinary conflict carries only ``detail``. Roster rule
+ * warnings add ``code: ROSTER_RULE_WARNINGS``, the ``context`` and the
+ * ``violations``; resend with ``rule_override_reason`` to save anyway.
+ * @type object
+ */
+export type HrActionShiftSwapStatus409 = RosterRuleWarningsErrorPublic;
+
+/**
  * @description Validation error envelope returned for malformed requests.
  * @type object
  */
@@ -57,6 +66,7 @@ export type HrActionShiftSwapResponses = {
   "400": HrActionShiftSwapStatus400;
   "403": HrActionShiftSwapStatus403;
   "404": HrActionShiftSwapStatus404;
+  "409": HrActionShiftSwapStatus409;
   "422": HrActionShiftSwapStatus422;
 };
 

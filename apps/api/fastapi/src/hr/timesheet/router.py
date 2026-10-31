@@ -1,21 +1,24 @@
 from collections.abc import Sequence
 from typing import Annotated, Any
 
-from fastapi import APIRouter, Query, status
+from fastapi import APIRouter, Body, Query, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.dependencies import CurrentUser, SessionDep
 from src.hr.dependencies import TimesheetDep
+from src.hr.roster import overtime_service
 from src.hr.roster import service as roster_service
 from src.hr.roster.models import RosterAvailability
+from src.hr.roster.schemas import OvertimeBandPublic, with_rule_warnings
 from src.hr.submission import signed_document_ids
 from src.models import ApiError
 from src.openapi_responses import AUTHENTICATED
 from src.pagination import PaginationDep
 
 from . import service
-from .models import Timesheet
+from .models import Timesheet, TimesheetEntry
 from .schemas import (
+    TimesheetApproveRequest,
     TimesheetCreate,
     TimesheetDetails,
     TimesheetEntryPublic,
@@ -27,6 +30,9 @@ from .schemas import (
 )
 
 router = APIRouter(prefix="/hr/timesheets", tags=["hr-timesheets"])
+
+# Approving without a body is the usual case: no override reason.
+_NO_OVERRIDE = TimesheetApproveRequest()
 
 
 async def _public_list(
@@ -69,25 +75,41 @@ async def create_timesheet(
     timesheet, entries = await service.create_timesheet(
         session=session, current_user=current_user, payload=payload
     )
+    return TimesheetDetails(
+        timesheet=await _public(session, timesheet),
+        entries=await _entries_public(session, timesheet, entries),
+    )
+
+
+async def _entries_public(
+    session: SessionDep, timesheet: Timesheet, entries: list[TimesheetEntry]
+) -> list[TimesheetEntryPublic]:
     availability = await roster_service.assignment_availability(
         session,
         [entry.roster_assignment_id for entry in entries if entry.roster_assignment_id],
     )
-    return TimesheetDetails(
-        timesheet=await _public(session, timesheet),
-        entries=[
-            TimesheetEntryPublic.model_validate(entry, from_attributes=True).model_copy(
-                update={
-                    "availability": availability.get(
-                        entry.roster_assignment_id, RosterAvailability.SCHEDULED
-                    )
-                    if entry.roster_assignment_id
-                    else RosterAvailability.SCHEDULED
-                }
-            )
-            for entry in entries
-        ],
+    bands = await overtime_service.timesheet_bands(
+        session,
+        user_id=timesheet.user_id,
+        department_id=timesheet.department_id,
+        entries=entries,
     )
+    return [
+        TimesheetEntryPublic.model_validate(entry, from_attributes=True).model_copy(
+            update={
+                "availability": availability.get(
+                    entry.roster_assignment_id, RosterAvailability.SCHEDULED
+                )
+                if entry.roster_assignment_id
+                else RosterAvailability.SCHEDULED,
+                "overtime_bands": [
+                    OvertimeBandPublic(rate=band.rate, hours=band.hours)
+                    for band in bands.get(entry.id, [])
+                ],
+            }
+        )
+        for entry in entries
+    ]
 
 
 @router.patch(
@@ -95,21 +117,23 @@ async def create_timesheet(
     response_model=TimesheetPublic,
     summary="Submit timesheet",
     description="Submit a draft timesheet (self or proxy). Requires timesheet.submit.self or timesheet.submit.proxy.",
-    responses={
-        status.HTTP_200_OK: {"description": "Timesheet submitted"},
-        status.HTTP_400_BAD_REQUEST: {
-            "model": ApiError,
-            "description": "Timesheet already submitted or invalid stored dates, hours or roster link",
-        },
-        status.HTTP_403_FORBIDDEN: {
-            "model": ApiError,
-            "description": "Not allowed (self only for own; proxy not allowed)",
-        },
-        status.HTTP_404_NOT_FOUND: {
-            "model": ApiError,
-            "description": "Timesheet not found",
-        },
-    },
+    responses=with_rule_warnings(
+        {
+            status.HTTP_200_OK: {"description": "Timesheet submitted"},
+            status.HTTP_400_BAD_REQUEST: {
+                "model": ApiError,
+                "description": "Timesheet already submitted or invalid stored dates, hours or roster link",
+            },
+            status.HTTP_403_FORBIDDEN: {
+                "model": ApiError,
+                "description": "Not allowed (self only for own; proxy not allowed)",
+            },
+            status.HTTP_404_NOT_FOUND: {
+                "model": ApiError,
+                "description": "Timesheet not found",
+            },
+        }
+    ),
 )
 async def submit_timesheet(
     *,
@@ -124,6 +148,7 @@ async def submit_timesheet(
         timesheet_id=timesheet.id,
         submission_mode=payload.mode,
         signature_version=payload.signature_version,
+        rule_override_reason=payload.rule_override_reason,
     )
 
     return await _public(session, result)
@@ -134,27 +159,36 @@ async def submit_timesheet(
     response_model=TimesheetPublic,
     summary="Approve timesheet",
     description="Approve a submitted timesheet. Requires timesheet.approve and scope over the filing department, or an explicitly named review stage. Workflow approval rules still apply.",
-    responses={
-        status.HTTP_200_OK: {"description": "Timesheet approved"},
-        status.HTTP_400_BAD_REQUEST: {
-            "model": ApiError,
-            "description": "Timesheet is not submitted",
-        },
-        status.HTTP_403_FORBIDDEN: {
-            "model": ApiError,
-            "description": "Not allowed to approve this timesheet",
-        },
-        status.HTTP_404_NOT_FOUND: {
-            "model": ApiError,
-            "description": "Timesheet not found",
-        },
-    },
+    responses=with_rule_warnings(
+        {
+            status.HTTP_200_OK: {"description": "Timesheet approved"},
+            status.HTTP_400_BAD_REQUEST: {
+                "model": ApiError,
+                "description": "Timesheet is not submitted",
+            },
+            status.HTTP_403_FORBIDDEN: {
+                "model": ApiError,
+                "description": "Not allowed to approve this timesheet",
+            },
+            status.HTTP_404_NOT_FOUND: {
+                "model": ApiError,
+                "description": "Timesheet not found",
+            },
+        }
+    ),
 )
 async def approve_timesheet(
-    *, session: SessionDep, current_user: CurrentUser, timesheet: TimesheetDep
+    *,
+    session: SessionDep,
+    current_user: CurrentUser,
+    timesheet: TimesheetDep,
+    payload: Annotated[TimesheetApproveRequest, Body()] = _NO_OVERRIDE,
 ) -> Any:
     result = await service.approve_timesheet(
-        session=session, current_user=current_user, timesheet_id=timesheet.id
+        session=session,
+        current_user=current_user,
+        timesheet_id=timesheet.id,
+        rule_override_reason=payload.rule_override_reason,
     )
 
     return await _public(session, result)
@@ -307,22 +341,7 @@ async def read_timesheet(
     timesheet_data, entries = await service.read_timesheet_details(
         session=session, current_user=current_user, timesheet_id=timesheet.id
     )
-    availability = await roster_service.assignment_availability(
-        session,
-        [entry.roster_assignment_id for entry in entries if entry.roster_assignment_id],
-    )
     return TimesheetDetails(
         timesheet=await _public(session, timesheet_data),
-        entries=[
-            TimesheetEntryPublic.model_validate(entry, from_attributes=True).model_copy(
-                update={
-                    "availability": availability.get(
-                        entry.roster_assignment_id, RosterAvailability.SCHEDULED
-                    )
-                    if entry.roster_assignment_id
-                    else RosterAvailability.SCHEDULED
-                }
-            )
-            for entry in entries
-        ],
+        entries=await _entries_public(session, timesheet_data, entries),
     )

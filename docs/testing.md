@@ -31,7 +31,7 @@ current behavior as correct. Track unknown requirements explicitly.
 | Payload CMS | Access rules, real database editorial workflows, migrations, public content and media behavior |
 | Configuration-only packages | Consumer type checks, configuration validation and runtime image checks; no artificial unit suite required |
 | Collectors | Existing pytest/unittest suites with recorded or synthetic weather input, temporary output and simulated network/hardware failures |
-| SURFACE | Its Django test suite and dedicated PostGIS integration checks for maintained custom behavior |
+| SURFACE | Its Django test suite and dedicated PostGIS integration checks for maintained custom behavior; CI runs them in the built deploy image when SURFACE changes (`.github/workflows/ci-surface.yml`, see `VENDORED.md`) |
 | wis2box | Configuration and supported runtime ingestion/publication/recovery checks; software runs from upstream images |
 | geonetcast and notebooks | Representative input/output and scientific invariants for operational transformations; classify exploratory notebooks separately |
 | Repository scripts | Existing Node/Python tests for guardrails, environment rendering, migration orchestration, backups and verification lifecycle |

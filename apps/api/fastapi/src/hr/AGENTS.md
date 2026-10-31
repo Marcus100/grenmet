@@ -70,14 +70,14 @@ files and cutover are later slices that need their own approval.
   assignments; SELF grants nothing); prepare, approve and export need ALL scope.
   A period in an organisation without payroll access is a 404. Export needs an
   MFA-verified session and writes a `pay_period_export` audit entry with counts.
-- **Overtime bands (#380, PR #890).** `OVERTIME_BAND` items name a `band` as
-  #890 names it, the multiplier as a normalised decimal string ("1.5", "2",
-  "3"), and read band hours through `overtime.OvertimeBandSource`. Do not
-  duplicate #890's band maths here. Until #890 lands and installs a source
-  (`overtime.install`), `PendingOvertimeBands` returns nothing and preparers may
-  enter band hours as MANUAL lines with a reason. #890 computes bands on read,
-  so payroll copies them into pay-line quantities at computation; the lines
-  lock at submission and approved figures never move.
+- **Overtime bands (#890).** `OVERTIME_BAND` items name a `band` as #890 names
+  it (the multiplier: "1.5", "2", "3"). `overtime.RosterOvertimeBands` reads
+  them from `roster.overtime_service.attendance_bands` (time outside the rostered
+  shift, and whole holiday or rest days); payroll never repeats the band maths.
+  #890 computes bands on read, so payroll copies them into pay-line quantities
+  at computation and the lines lock at submission. Manual band lines are refused
+  where the employee's department computes bands, and allowed with a reason
+  where it does not.
 - **Logs and Sentry:** IDs and counts only, never names, quantities or reasons.
 
 ### Gross pay (slice 2, `gross.py`, `pricing.py`)
@@ -132,3 +132,10 @@ files and cutover are later slices that need their own approval.
 `tests/hr/test_payroll_inputs.py` (the eleven acceptance checks, through the API),
 `tests/hr/test_payroll_rules.py` (pure rule edges), `tests/hr/test_payroll_gross.py`
 (gross pay), `tests/hr/test_payroll_deductions.py` (deductions). Synthetic data only.
+
+## Roster rules (#380)
+- Rules are data: `roster.RosterRuleSet` (organisation default, department rows replace it; built-in `rules.DEFAULT_RULES` when none). Edit with `roster.rules.manage` (HR admins; organisation rows need organisation-wide scope). Union coverage and worker type live on `EmploymentRecord` (`union_covered`, `rule_worker_type`) and are edited only through `PUT /hr/rosters/employees/{id}/rule-profile` with the same key, never by the employee themselves.
+- Every path that changes scheduled or worked time must call the shared checks and `rule_service.enforce`: publish and published-roster edits (`roster/service.py`), exchange approval, leave/absence cancellation, timesheet and attendance approval (`roster/change_checks.py` via `workflow/finalize.py`). A break raises `RosterRuleWarningsError` (409) unless `rule_override_reason` is given; the override is stored in `RosterRuleOverride` and the record's change history. Report only breaches the change introduces (`rules.introduced`), except at publish.
+- Worked hours are the shift span minus `ShiftCatalog.break_minutes` (`expansion.worked_shift_hours`); never use the raw span for limits or bands. Every route that can raise the warnings wraps its `responses` in `roster.schemas.with_rule_warnings` and takes an `OverrideReason` field.
+- Overtime bands (`roster/overtime.py`, `overtime_service.py`) are hours only and computed on read. Readings and open questions: `docs/hr/roster-rules.md`. Do not copy agreement text into the repository.
+- Tests that publish fixture rosters not about rules pass `rule_override_reason`.

@@ -5,6 +5,8 @@
 
 import type { ApiError } from "./ApiError.js";
 import type { RosterPeriodPublic } from "./RosterPeriodPublic.js";
+import type { RosterPublishRequest } from "./RosterPublishRequest.js";
+import type { RosterRuleWarningsErrorPublic } from "./RosterRuleWarningsErrorPublic.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 
 export type HrPublishPeriodPath = {
@@ -37,13 +39,27 @@ export type HrPublishPeriodStatus403 = ApiError;
 export type HrPublishPeriodStatus404 = ApiError;
 
 /**
+ * @description 409 body. An ordinary conflict carries only ``detail``. Roster rule
+ * warnings add ``code: ROSTER_RULE_WARNINGS``, the ``context`` and the
+ * ``violations``; resend with ``rule_override_reason`` to save anyway.
+ * @type object
+ */
+export type HrPublishPeriodStatus409 = RosterRuleWarningsErrorPublic;
+
+/**
  * @description Validation error envelope returned for malformed requests.
  * @type object
  */
 export type HrPublishPeriodStatus422 = ValidationErrorResponse;
 
+/**
+ * @default {}
+ * @type object | undefined
+ */
+export type HrPublishPeriodBody = RosterPublishRequest | undefined;
+
 export type HrPublishPeriodOptions = {
-  body?: never;
+  body: HrPublishPeriodBody;
   path: HrPublishPeriodPath;
   query?: never;
   headers?: never;
@@ -54,6 +70,7 @@ export type HrPublishPeriodResponses = {
   "400": HrPublishPeriodStatus400;
   "403": HrPublishPeriodStatus403;
   "404": HrPublishPeriodStatus404;
+  "409": HrPublishPeriodStatus409;
   "422": HrPublishPeriodStatus422;
 };
 

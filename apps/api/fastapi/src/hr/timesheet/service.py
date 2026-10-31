@@ -266,6 +266,7 @@ async def submit_timesheet(
     timesheet_id: uuid.UUID,
     submission_mode: SubmissionMode,
     signature_version: uuid.UUID | None = None,
+    rule_override_reason: str | None = None,
 ) -> Timesheet:
     await session.execute(
         select(Timesheet).where(Timesheet.id == timesheet_id).with_for_update()
@@ -362,7 +363,10 @@ async def submit_timesheet(
             )
 
     await ensure_timesheet_workflow(
-        session=session, current_user=current_user, timesheet=timesheet
+        session=session,
+        current_user=current_user,
+        timesheet=timesheet,
+        rule_override_reason=rule_override_reason,
     )
     timesheet.status = TimesheetStatus.SUBMITTED
     timesheet.submitted_by_user_id = current_user.id
@@ -397,7 +401,11 @@ async def submit_timesheet(
 
 
 async def approve_timesheet(
-    *, session: AsyncSession, current_user: User, timesheet_id: uuid.UUID
+    *,
+    session: AsyncSession,
+    current_user: User,
+    timesheet_id: uuid.UUID,
+    rule_override_reason: str | None = None,
 ) -> Timesheet:
     require_permission(current_user=current_user, permission_key="timesheet.approve")
     timesheet = await get_timesheet_or_404(session=session, timesheet_id=timesheet_id)
@@ -425,7 +433,10 @@ async def approve_timesheet(
             session=session,
             current_user=current_user,
             workflow_instance_id=instance.id,
-            action_in=WorkflowActionRequest(action=WorkflowAction.APPROVE),
+            action_in=WorkflowActionRequest(
+                action=WorkflowAction.APPROVE,
+                rule_override_reason=rule_override_reason,
+            ),
         )
         await session.refresh(timesheet)
         return timesheet
@@ -435,6 +446,15 @@ async def approve_timesheet(
         raise HRValidationError(
             "Staff timesheets require the configured approval workflow"
         )
+    # Legacy approval without a workflow runs the same roster rule checks (#380).
+    from src.hr.roster import change_checks
+
+    await change_checks.check_timesheet_approval(
+        session,
+        timesheet=timesheet,
+        actor_id=current_user.id,
+        reason=rule_override_reason,
+    )
     timesheet.status = TimesheetStatus.APPROVED
     timesheet.approved_by_user_id = current_user.id
     timesheet.approved_at = utc_now()
@@ -544,17 +564,35 @@ async def get_timesheet_summary(
         grand_actual += total_actual
         grand_overtime += total_overtime
 
+    from src.hr.roster import overtime_service
+    from src.hr.roster.overtime import merge_bands
+    from src.hr.roster.schemas import OvertimeBandPublic
+
+    bands = await overtime_service.timesheet_bands(
+        session,
+        user_id=timesheet.user_id,
+        department_id=timesheet.department_id,
+        entries=entries,
+    )
     return TimesheetSummaryByShift(
         timesheet_id=timesheet_id,
         shifts=shifts,
         grand_total_roster=grand_roster,
         grand_total_actual=grand_actual,
         grand_total_overtime=grand_overtime,
+        overtime_bands=[
+            OvertimeBandPublic(rate=band.rate, hours=band.hours)
+            for band in merge_bands(bands.values())
+        ],
     )
 
 
 async def ensure_timesheet_workflow(
-    *, session: AsyncSession, current_user: User, timesheet: Timesheet
+    *,
+    session: AsyncSession,
+    current_user: User,
+    timesheet: Timesheet,
+    rule_override_reason: str | None = None,
 ) -> None:
     result = await session.execute(
         select(WorkflowTemplate).where(
@@ -589,7 +627,10 @@ async def ensure_timesheet_workflow(
         session=session,
         current_user=current_user,
         workflow_instance_id=instance.id,
-        action_in=WorkflowActionRequest(action=WorkflowAction.SUBMIT),
+        action_in=WorkflowActionRequest(
+            action=WorkflowAction.SUBMIT,
+            rule_override_reason=rule_override_reason,
+        ),
         require_actor_permission=False,
         commit=False,
     )

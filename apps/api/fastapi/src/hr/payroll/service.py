@@ -115,9 +115,9 @@ async def organisation_for(
 
 
 def accepts_manual_lines(item: PayItem) -> bool:
-    return item.method == PayItemMethod.MANUAL or (
-        item.method == PayItemMethod.OVERTIME_BAND and not overtime.source().available
-    )
+    # Band items take manual lines only where the roster computes no bands for
+    # the employee's department; add_manual_line checks that per department.
+    return item.method in {PayItemMethod.MANUAL, PayItemMethod.OVERTIME_BAND}
 
 
 async def list_items(
@@ -1188,9 +1188,15 @@ async def add_manual_line(
         raise NotFoundError("Pay item not found")
     if not item.is_active:
         raise PayrollValidationError("This pay item is no longer in use")
-    if not accepts_manual_lines(item):
+    if not accepts_manual_lines(item) or (
+        item.method == PayItemMethod.OVERTIME_BAND
+        and await overtime.source().computes_for(
+            session, await _department_of(session, payload.user_id, period)
+        )
+    ):
         raise PayrollValidationError(
-            "This pay item is counted from approved attendance; correct the attendance instead"
+            "This pay item is counted from approved attendance or the roster's "
+            "overtime rules; correct those instead"
         )
     if (
         item.unit == PayItemUnit.COUNT
@@ -1255,6 +1261,18 @@ async def add_manual_line(
         extra={"period_id": str(period.id), "line_id": str(line.id)},
     )
     return line
+
+
+async def _department_of(
+    session: AsyncSession, user_id: uuid.UUID, period: PayPeriod
+) -> str:
+    department = await session.scalar(
+        select(EmploymentRecord.department_id).where(
+            EmploymentRecord.user_id == user_id,
+            EmploymentRecord.organisation_id == period.organisation_id,
+        )
+    )
+    return department or ""
 
 
 async def delete_manual_line(
