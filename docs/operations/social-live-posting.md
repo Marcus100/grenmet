@@ -60,6 +60,7 @@ Do not paste the token into chat, email, a ticket or a file in the repository.
 | Page id | GitHub environment **variable** `META_PAGE_ID` (staging, then production) | Numbers only. |
 | Instagram account id | GitHub environment **variable** `META_INSTAGRAM_ACCOUNT_ID` | Numbers only. |
 | Page access token | GitHub environment **secret** `META_PAGE_ACCESS_TOKEN` | Never a variable, never in a file. |
+| Approved hosts | GitHub environment **variables** `SOCIAL_LINK_HOSTS` (the GMS site, for example `gms.example.org`) and `SOCIAL_IMAGE_HOSTS` (the CMS media host) | Plain hostnames, comma-separated. Empty refuses every social post, so set them before the CMS sends posts. |
 | Feature flag | The Barrels admin app, Flags page: create the flag `social-live-posting` | See step 3. |
 
 The deployment passes these to the worker only. The release preflight refuses a page id
@@ -85,6 +86,21 @@ Create the flag with these settings:
   expiry switches off by itself).
 
 Flags take up to 30 seconds to reach the worker.
+
+## Before you switch live posting on
+
+1. **Approved hosts.** Set `SOCIAL_LINK_HOSTS` to the GMS site's host and
+   `SOCIAL_IMAGE_HOSTS` to the host the CMS serves images from (plain hostnames, such
+   as `gms.example.org`). Until these are set, the CMS cannot save any social post: the
+   API refuses it with a message that names the host.
+2. **Rotate `CMS_DISTRIBUTION_SECRET`.** The secret that the CMS sends to the API. Before
+   live posting is switched on, generate a new value of at least 32 characters, set the
+   same value in the CMS and in the API, and deploy both. Do this once, so a value that
+   was used before go-live cannot post.
+3. **Open item (not yet done in the software).** The deployment files do not pass
+   `CMS_DISTRIBUTION_SECRET` to the API container yet. Until that is wired, the API
+   answers 503 to the CMS in deployed environments, and no social post is saved. This
+   needs a change to the deploy workflow, which the owner reviews.
 
 ## 4. Switch on in staging first
 
@@ -115,6 +131,7 @@ and a test Instagram account for staging, and set the staging values to those.
 | `posted` | Live on the platform. `external_id` is the Meta post id. | Nothing. |
 | `dry_run_sent` with reason "switched off" | The flag is off. Not sent. | Switch the flag on if you want posts to go out. |
 | `dry_run_sent` with reason "not configured" | The flag is on, but a Meta value or the token is missing. Not sent. | Check the three values in the environment. |
+| `dry_run_sent` with reason "does not look like a token" | The token is set but is not one unbroken value (for example it has a space or a line break). It is never shown in the reason. Not sent. | Paste the token again as one line, without spaces. |
 | `skipped` | Not sent. Instagram needs an image and this post has none. Saving the post again does not change a skipped row. | Post by hand, or ask engineering to look at the row. |
 | `failed` (shown while retrying) | Meta was busy or unreachable. The system tries again, up to five times, with waits. | Nothing, unless it stays failed. |
 | `dead` with a Meta message | Meta refused the post. The message says why (for example a wrong page id, a missing permission, or an image Instagram cannot read). Not retried. | Fix the cause. Post by hand if the story is still needed. |
@@ -141,9 +158,14 @@ look at the row after you have checked the page.
   before going live; Meta retires each version after about two years.
 - The first live post has not been tested against Meta. The tests use a stand-in for
   Meta. Expect to fix something on the first staging run.
-- A post that Meta publishes and then reports as a server error could be sent a second
-  time. The software treats a server error as "not published". This is a known and
-  accepted risk; compare the page with the staff list after the first weeks.
+- A server error (HTTP 5xx) on the publish call is **not retried**. The post shows as
+  "Outcome unknown" and was sent once. Meta may have published it before failing, so
+  check the page before posting the story by hand, otherwise it may appear twice.
+- Meta's rate-limit answers (HTTP 429 and the rate-limit codes) are retried, because
+  Meta answers them before creating anything.
+- A link or image on a host that is not in `SOCIAL_LINK_HOSTS` or `SOCIAL_IMAGE_HOSTS`
+  is refused when the CMS saves the post. The CMS reports the refusal; publishing on the
+  website is not blocked.
 
 ## Engineering reference
 
