@@ -1271,6 +1271,7 @@ async def reconcile_refunds(
     *,
     now: datetime | None = None,
     provider: PaymentProvider | None = None,
+    stop: Callable[[], bool] | None = None,
 ) -> RefundCheck | None:
     """Compare one captured payment's refunds with the provider's full list (#869).
 
@@ -1306,7 +1307,7 @@ async def reconcile_refunds(
     session.expunge(intent)
     await session.rollback()
     listed_at = now or utc_now()
-    listing = await provider.list_refunds(intent)
+    listing = await provider.list_refunds(intent, stop=stop)
 
     locked = (
         await session.execute(
@@ -1380,9 +1381,13 @@ async def reconcile_recent_refunds(
     ``REFUND_RECONCILE_BATCH``, oldest-checked first, over one provider connection.
 
     One payment never stops the run: a provider error or any other failure is rolled
-    back, logged and counted in ``failed`` (the payment stays first in line for the
-    next run). The run stops before ``REFUND_RECONCILE_BUDGET_SECONDS`` and is then
-    ``partial``."""
+    back, logged and counted in ``failed``, and the payment is still stamped checked,
+    so one that fails every time (a purged test payment answering 404) goes to the
+    back of the queue instead of taking a slot at the front of every run. The run
+    stops before ``REFUND_RECONCILE_BUDGET_SECONDS`` and is then ``partial``; a
+    payment whose listing would page past the last
+    ``REFUND_RECONCILE_PAGE_MARGIN_SECONDS`` stops paging and is treated as an
+    incomplete listing (no totals compared)."""
     moment = now or utc_now()
     started = clock()
     run = RefundCheckRun()
@@ -1405,6 +1410,12 @@ async def reconcile_recent_refunds(
         logger.info("refund reconciliation skipped: the provider is off")
         run.provider_off = True
         return run
+    budget = payments_settings.REFUND_RECONCILE_BUDGET_SECONDS
+    margin = payments_settings.REFUND_RECONCILE_PAGE_MARGIN_SECONDS
+
+    def out_of_time() -> bool:
+        return budget - (clock() - started) < margin
+
     async with provider.batch():
         for intent_id in candidates:
             if clock() - started >= payments_settings.REFUND_RECONCILE_BUDGET_SECONDS:
@@ -1417,7 +1428,9 @@ async def reconcile_recent_refunds(
                     },
                 )
                 break
-            await _reconcile_one(session, intent_id, moment, provider, run)
+            await _reconcile_one(
+                session, intent_id, moment, provider, run, stop=out_of_time
+            )
     return run
 
 
@@ -1427,18 +1440,21 @@ async def _reconcile_one(
     moment: datetime,
     provider: PaymentProvider,
     run: RefundCheckRun,
+    *,
+    stop: Callable[[], bool] | None = None,
 ) -> None:
     try:
         check = await reconcile_refunds(
-            session, intent_id, now=moment, provider=provider
+            session, intent_id, now=moment, provider=provider, stop=stop
         )
     except ProviderRequestError:
         await session.rollback()
         logger.warning(
-            "refund reconciliation could not read the provider; retried next run",
+            "refund reconciliation could not read the provider; retried in its turn",
             extra={"intent_id": str(intent_id)},
         )
         run.failed += 1
+        await _stamp_failed(session, intent_id, moment)
         return
     except Exception as error:
         # Any other failure is this payment's alone: undo it, report it, go on.
@@ -1449,6 +1465,7 @@ async def _reconcile_one(
             exc_info=error,
         )
         run.failed += 1
+        await _stamp_failed(session, intent_id, moment)
         return
     if check is None:
         return
@@ -1456,6 +1473,23 @@ async def _reconcile_one(
     run.changed += int(check.changed)
     run.mismatched += int(check.mismatch)
     run.skipped_legacy += int(check.skipped_legacy)
+
+
+async def _stamp_failed(
+    session: AsyncSession, intent_id: uuid.UUID, moment: datetime
+) -> None:
+    """Stamp a payment whose check failed, so it waits its turn in the rotation
+    like the others. Best effort: a failed stamp is logged and the run goes on."""
+    try:
+        await _mark_checked(session, intent_id, moment)
+        await session.commit()
+    except Exception as error:
+        await session.rollback()
+        logger.error(
+            "refund reconciliation could not stamp a failed payment",
+            extra={"intent_id": str(intent_id), "error": type(error).__name__},
+            exc_info=error,
+        )
 
 
 async def _refund_mismatch(
