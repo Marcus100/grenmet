@@ -254,6 +254,11 @@ export {
   useAuthIssueActivation,
 } from "./useAuthIssueActivation.js";
 export {
+  authIssueSignInSetupMutationKey,
+  authIssueSignInSetupMutationOptions,
+  useAuthIssueSignInSetup,
+} from "./useAuthIssueSignInSetup.js";
+export {
   authJoinAccountAppMutationKey,
   authJoinAccountAppMutationOptions,
   useAuthJoinAccountApp,
@@ -338,6 +343,11 @@ export {
   authRevokeSecuritySessionMutationOptions,
   useAuthRevokeSecuritySession,
 } from "./useAuthRevokeSecuritySession.js";
+export {
+  authRevokeSignInSetupMutationKey,
+  authRevokeSignInSetupMutationOptions,
+  useAuthRevokeSignInSetup,
+} from "./useAuthRevokeSignInSetup.js";
 export {
   authTwofaActivateMutationKey,
   authTwofaActivateMutationOptions,
