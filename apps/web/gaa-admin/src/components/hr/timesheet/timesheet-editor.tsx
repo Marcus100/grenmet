@@ -3,6 +3,7 @@
 import {
   hrGetMyTimesheetsQueryKey,
   hrGetTimesheetPrefill,
+  type RosterRuleWarningsErrorPublic,
   type TimesheetEntryInput,
   type TimesheetPrefillEntry,
   useHrCreateTimesheet,
@@ -42,6 +43,8 @@ import {
   useProfileReference,
 } from "@/components/hr/use-editor-prefill";
 import { reportError } from "@/lib/report-error";
+import { ruleWarningsFrom } from "../roster/rule-codes";
+import { RuleOverrideDialog } from "../roster/rule-override-dialog";
 import {
   EMPTY_TIMESHEET,
   EMPTY_TIMESHEET_ROW,
@@ -122,6 +125,12 @@ export function TimesheetEditor() {
   const createMutation = useHrCreateTimesheet();
 
   const submitMutation = useHrSubmitTimesheet();
+  // A submission the approval template approves at once, breaking roster
+  // rules: it waits for the submitter's reason.
+  const [override, setOverride] = useState<{
+    values: typeof EMPTY_TIMESHEET;
+    warnings: RosterRuleWarningsErrorPublic;
+  } | null>(null);
   const reference = useProfileReference();
   const [rosterMonth, setRosterMonth] = useState(format(new Date(), "yyyy-MM"));
   const [rosterBusy, setRosterBusy] = useState(false);
@@ -190,7 +199,10 @@ export function TimesheetEditor() {
     }
   }
 
-  async function submitToHr(values: typeof EMPTY_TIMESHEET) {
+  async function submitToHr(
+    values: typeof EMPTY_TIMESHEET,
+    ruleReason?: string
+  ) {
     if (!signature.data) {
       toast.error("Save your signature in your profile before signing");
       return;
@@ -228,8 +240,13 @@ export function TimesheetEditor() {
       if (!timesheetId) throw new Error("The saved timesheet has no ID");
       const submitted = await submitMutation.mutateAsync({
         path: { timesheet_id: timesheetId },
-        body: { mode: "SELF", signature_version: signature.data.version },
+        body: {
+          mode: "SELF",
+          signature_version: signature.data.version,
+          ...(ruleReason ? { rule_override_reason: ruleReason } : {}),
+        },
       });
+      setOverride(null);
       setSubmission(submitted);
       await queryClient.invalidateQueries({ queryKey: signedDocumentsKey });
       await queryClient.invalidateQueries({
@@ -237,6 +254,11 @@ export function TimesheetEditor() {
       });
       toast.success("Time sheet submitted");
     } catch (error) {
+      const warnings = ruleWarningsFrom(error);
+      if (warnings) {
+        setOverride({ values, warnings });
+        return;
+      }
       const detail =
         error instanceof Error ? error.message : "Something went wrong";
       toast.error(`Submission failed: ${detail}`);
@@ -249,6 +271,15 @@ export function TimesheetEditor() {
         <HrFormDesk
           editor={
             <div className="flex flex-col gap-4 rounded-xl border bg-card p-4">
+              <RuleOverrideDialog
+                busy={createMutation.isPending || submitMutation.isPending}
+                defaultLabel="You"
+                onCancel={() => setOverride(null)}
+                onConfirm={(ruleReason) =>
+                  override ? submitToHr(override.values, ruleReason) : undefined
+                }
+                warnings={override?.warnings ?? null}
+              />
               <div className="flex items-center justify-between">
                 <h2 className="font-medium text-lg">Official Time Sheet</h2>
                 <div className="flex gap-2">

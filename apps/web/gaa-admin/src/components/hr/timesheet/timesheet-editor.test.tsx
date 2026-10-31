@@ -222,6 +222,86 @@ describe("TimesheetEditor", () => {
     }
   );
 
+  it("asks for a reason when submitting breaks a roster rule, then resends it", async () => {
+    const submitted: Record<string, unknown>[] = [];
+    server.use(
+      http.post(`${BASE}/api/v1/hr/timesheets`, () =>
+        HttpResponse.json(
+          {
+            timesheet: {
+              id: "ts-1",
+              user_id: "u-1",
+              department_id: "dept_met",
+              period_start: "2026-07-01",
+              period_end: "2026-07-01",
+              status: "DRAFT",
+              created_at: "2026-07-04T00:00:00+0000",
+              updated_at: "2026-07-04T00:00:00+0000",
+            },
+            entries: [],
+          },
+          { status: 201 }
+        )
+      ),
+      http.patch(
+        `${BASE}/api/v1/hr/timesheets/ts-1/submit`,
+        async ({ request }) => {
+          const body = (await request.json()) as Record<string, unknown>;
+          submitted.push(body);
+          if (!body.rule_override_reason)
+            return HttpResponse.json(
+              {
+                detail: "1 roster rule warning: give a reason to save anyway",
+                code: "ROSTER_RULE_WARNINGS",
+                context: "TIMESHEET",
+                violations: [
+                  {
+                    code: "MAX_WEEKLY_HOURS",
+                    user_id: "u-1",
+                    start_date: "2026-07-05",
+                    end_date: "2026-07-11",
+                    observed: "46.00",
+                    limit: "40.00",
+                    detail:
+                      "46.00 h in the week (Sunday to Saturday); maximum is 40 h",
+                  },
+                ],
+              },
+              { status: 409 }
+            );
+          return HttpResponse.json({
+            id: "ts-1",
+            status: "SUBMITTED",
+            submitted_at: "2026-09-07T02:30:00Z",
+          });
+        }
+      )
+    );
+    const user = userEvent.setup();
+    renderEditor();
+    await user.click(screen.getByRole("button", { name: ADD_ENTRY }));
+    await user.click(screen.getByLabelText("DATE"));
+    const grid = await screen.findByRole("grid");
+    await user.click(within(grid).getByText("15"));
+    await user.type(screen.getByLabelText("ROSTER HRS"), "8");
+    await user.click(screen.getByRole("button", { name: SUBMIT_TO_HR }));
+
+    const warnings = await screen.findByRole("list", { name: "Rule warnings" });
+    expect(warnings).toHaveTextContent("You");
+    expect(warnings).toHaveTextContent("Weekly hours over limit");
+    await user.type(
+      screen.getByLabelText("Reason for saving anyway"),
+      "Hurricane watch overtime"
+    );
+    await user.click(screen.getByRole("button", { name: "Approve anyway" }));
+    await waitFor(() => expect(submitted).toHaveLength(2));
+    expect(submitted[1]).toEqual({
+      mode: "SELF",
+      signature_version: "11111111-1111-4111-8111-111111111111",
+      rule_override_reason: "Hurricane watch overtime",
+    });
+  });
+
   it("fills entries from the published roster without duplicating existing dates", async () => {
     server.use(
       http.get(`${BASE}/api/v1/hr/timesheets/prefill`, ({ request }) => {

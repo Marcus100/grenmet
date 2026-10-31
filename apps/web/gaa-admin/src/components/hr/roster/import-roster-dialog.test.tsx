@@ -98,4 +98,81 @@ describe("ImportRosterDialog", () => {
       period_end: "2026-07-31",
     });
   });
+
+  it("asks for a reason when importing into a published roster breaks a rule", async () => {
+    const imported: Record<string, unknown>[] = [];
+    server.use(
+      http.post(`${BASE}/api/v1/hr/rosters/import-grid/validate`, () =>
+        HttpResponse.json({
+          total_people: 1,
+          matched_people: 1,
+          unmatched_names: [],
+          total_assignments: 2,
+          errors: [],
+          can_import: true,
+        })
+      ),
+      http.post(
+        `${BASE}/api/v1/hr/rosters/import-grid`,
+        async ({ request }) => {
+          const body = (await request.json()) as Record<string, unknown>;
+          imported.push(body);
+          if (!body.rule_override_reason)
+            return HttpResponse.json(
+              {
+                detail: "1 roster rule warning: give a reason to save anyway",
+                code: "ROSTER_RULE_WARNINGS",
+                context: "ROSTER_CHANGE",
+                violations: [
+                  {
+                    code: "SHORT_NOTICE",
+                    user_id: "u1",
+                    start_date: "2026-07-02",
+                    end_date: "2026-07-02",
+                    observed: "1",
+                    limit: "7",
+                    detail:
+                      "Published roster changed with 1 day notice; 7 required",
+                  },
+                ],
+              },
+              { status: 409 }
+            );
+          return HttpResponse.json({
+            roster_period_id: "00000000-0000-0000-0000-000000000000",
+            total_assignments: 2,
+            published: false,
+          });
+        }
+      )
+    );
+    renderDialog();
+    fireEvent.click(await screen.findByRole("button", { name: OPEN_LABEL }));
+    fireEvent.change(await screen.findByLabelText("Month"), {
+      target: { value: "2026-07" },
+    });
+    fireEvent.change(screen.getByLabelText("CSV file"), {
+      target: {
+        files: [
+          new File(["name,1,2\nu_x,M,N\n"], "roster.csv", { type: "text/csv" }),
+        ],
+      },
+    });
+    await waitFor(() =>
+      expect(screen.getByRole("button", { name: CHECK_LABEL })).toBeEnabled()
+    );
+    fireEvent.click(screen.getByRole("button", { name: CHECK_LABEL }));
+    await screen.findByText(MATCHED_TEXT);
+    fireEvent.click(screen.getByRole("button", { name: IMPORT_LABEL }));
+    const warnings = await screen.findByRole("list", { name: "Rule warnings" });
+    expect(warnings).toHaveTextContent("Less than the required notice");
+    fireEvent.change(screen.getByLabelText("Reason for saving anyway"), {
+      target: { value: "Corrected the paper roster" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Save anyway" }));
+    await waitFor(() => expect(imported).toHaveLength(2));
+    expect(imported[1]).toMatchObject({
+      rule_override_reason: "Corrected the paper roster",
+    });
+  });
 });

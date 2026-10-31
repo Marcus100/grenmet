@@ -177,6 +177,78 @@ describe("AttendanceTimesheet", () => {
     });
   });
 
+  it("asks for a reason when the submission breaks a roster rule, then resends it", async () => {
+    const submitted: Record<string, unknown>[] = [];
+    server.use(
+      http.put(`${BASE}/api/v1/hr/attendance`, () =>
+        HttpResponse.json({
+          ...SHIFT,
+          attendance_id: "attendance-1",
+          revision: 1,
+        })
+      ),
+      http.post(
+        `${BASE}/api/v1/hr/attendance/attendance-1/submit`,
+        async ({ request }) => {
+          const body = (await request.json()) as Record<string, unknown>;
+          submitted.push(body);
+          if (!body.rule_override_reason) {
+            return HttpResponse.json(
+              {
+                detail: "1 roster rule warning: give a reason to save anyway",
+                code: "ROSTER_RULE_WARNINGS",
+                context: "ATTENDANCE",
+                violations: [
+                  {
+                    code: "MAX_DAILY_HOURS",
+                    user_id: "employee-1",
+                    start_date: "2026-09-26",
+                    end_date: "2026-09-26",
+                    observed: "11.00",
+                    limit: "8.00",
+                    detail: "11.00 h on the day; maximum is 8 h",
+                  },
+                ],
+              },
+              { status: 409 }
+            );
+          }
+          return HttpResponse.json({
+            ...SHIFT,
+            attendance_id: "attendance-1",
+            revision: 1,
+            review_status: "PENDING",
+          });
+        }
+      )
+    );
+    renderUi();
+    await screen.findByText(SHIFT_LABEL);
+    fireEvent.change(screen.getByLabelText("Arrival"), {
+      target: { value: "2026-09-26T22:00" },
+    });
+    fireEvent.change(screen.getByLabelText("Departure"), {
+      target: { value: "2026-09-27T09:00" },
+    });
+    await userEvent.click(
+      screen.getByRole("button", { name: "Submit shift for review" })
+    );
+    const warnings = await screen.findByRole("list", { name: "Rule warnings" });
+    expect(warnings).toHaveTextContent("Test Employee");
+    expect(warnings).toHaveTextContent("Daily hours over limit");
+    fireEvent.change(screen.getByLabelText("Reason for saving anyway"), {
+      target: { value: "Relief officer delayed by weather" },
+    });
+    await userEvent.click(
+      screen.getByRole("button", { name: "Approve anyway" })
+    );
+    await waitFor(() => expect(submitted).toHaveLength(2));
+    expect(submitted[1]).toEqual({
+      expected_revision: 1,
+      rule_override_reason: "Relief officer delayed by weather",
+    });
+  });
+
   it("shows server validation detail", async () => {
     server.use(
       http.put(`${BASE}/api/v1/hr/attendance`, () =>

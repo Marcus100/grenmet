@@ -34,7 +34,8 @@ const ACTION_LABEL: Record<string, string> = {
 
 interface RuleOverrideDialogProps {
   busy?: boolean;
-  /** Display names keyed by user id; unknown ids show "Staff member". */
+  defaultLabel?: string;
+  /** Display names keyed by user id; unknown ids show ``defaultLabel``. */
   labels?: ReadonlyMap<string, string>;
   onCancel: () => void;
   /** Resend the change with this reason. */
@@ -50,6 +51,7 @@ interface RuleOverrideDialogProps {
 export function RuleOverrideDialog({
   warnings,
   labels,
+  defaultLabel = "Staff member",
   busy = false,
   onCancel,
   onConfirm,
@@ -100,7 +102,7 @@ export function RuleOverrideDialog({
           {violations.map((v) => (
             <li key={`${v.code}-${v.user_id}-${v.start_date}-${v.end_date}`}>
               <span className="font-medium">
-                {labels?.get(v.user_id) ?? "Staff member"}
+                {labels?.get(v.user_id) ?? defaultLabel}
               </span>{" "}
               · {ruleTitle(v.code)} · {violationDates(v)} ·{" "}
               <span className="text-muted-foreground">{v.detail}</span>

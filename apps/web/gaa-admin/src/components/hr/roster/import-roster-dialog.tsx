@@ -2,6 +2,7 @@
 
 import {
   type RosterGridPreview,
+  type RosterRuleWarningsErrorPublic,
   useHrImportGrid,
   useHrListDepartments,
   useHrValidateGrid,
@@ -29,6 +30,8 @@ import { Upload } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 import { invalidateAfterRosterImport } from "@/lib/hr-invalidation";
+import { ruleWarningsFrom } from "./rule-codes";
+import { RuleOverrideDialog } from "./rule-override-dialog";
 
 const MONTH_RE = /^(\d{4})-(\d{2})$/;
 
@@ -56,6 +59,9 @@ export function ImportRosterDialog() {
   const [fileName, setFileName] = useState("");
   const [publish, setPublish] = useState(false);
   const [preview, setPreview] = useState<RosterGridPreview | null>(null);
+  // Rule warnings from importing into a published roster, awaiting a reason.
+  const [warnings, setWarnings] =
+    useState<RosterRuleWarningsErrorPublic | null>(null);
 
   const departmentsQuery = useHrListDepartments();
   const departments = departmentsQuery.data?.data ?? [];
@@ -107,7 +113,7 @@ export function ImportRosterDialog() {
     }
   }
 
-  async function runImport() {
+  async function runImport(reason?: string) {
     if (!(bounds && preview?.can_import)) {
       return;
     }
@@ -120,8 +126,10 @@ export function ImportRosterDialog() {
           csv_text: csvText,
           file_name: fileName || "roster.csv",
           publish,
+          ...(reason ? { rule_override_reason: reason } : {}),
         },
       });
+      setWarnings(null);
       await invalidateAfterRosterImport(queryClient, {
         departmentId: deptId,
         periodId: result.roster_period_id,
@@ -129,8 +137,22 @@ export function ImportRosterDialog() {
       toast.success(
         `Imported ${result.total_assignments} assignments${result.published ? " (published)" : " as a draft"}`
       );
+      if (
+        publish &&
+        !result.published &&
+        (result.rule_warning_count ?? 0) > 0
+      ) {
+        toast.warning(
+          `Not published: ${result.rule_warning_count} roster rule warnings. Review them and publish from the roster.`
+        );
+      }
       setOpen(false);
     } catch (error) {
+      const found = ruleWarningsFrom(error);
+      if (found) {
+        setWarnings(found);
+        return;
+      }
       const detail =
         error instanceof Error ? error.message : "Something went wrong";
       toast.error(`Import failed: ${detail}`);
@@ -262,12 +284,18 @@ export function ImportRosterDialog() {
           </Button>
           <Button
             disabled={!preview?.can_import || importMutation.isPending}
-            onClick={runImport}
+            onClick={() => runImport()}
             type="button"
           >
             {importMutation.isPending ? "Importing…" : "Import"}
           </Button>
         </DialogFooter>
+        <RuleOverrideDialog
+          busy={importMutation.isPending}
+          onCancel={() => setWarnings(null)}
+          onConfirm={(reason) => runImport(reason)}
+          warnings={warnings}
+        />
       </DialogContent>
     </Dialog>
   );
