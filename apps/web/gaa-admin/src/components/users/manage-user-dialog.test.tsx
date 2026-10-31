@@ -4,9 +4,16 @@ import {
   type UserPublic,
 } from "@barrelsgd/api-client";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import {
+  act,
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+} from "@testing-library/react";
 import { HttpResponse, http } from "msw";
 import { setupServer } from "msw/node";
+import { toast } from "sonner";
 import {
   afterAll,
   afterEach,
@@ -23,6 +30,7 @@ import {
   END_DATE_EXPLANATION,
 } from "@/lib/employment-end";
 import { reportError } from "@/lib/report-error";
+import { CHANGED_ELSEWHERE_NOTICE } from "./employment-section";
 import { ManageUserDialog } from "./manage-user-dialog";
 
 const actor = vi.hoisted(() => ({ is_superuser: true }));
@@ -88,12 +96,20 @@ function renderDialog() {
   const queryClient = new QueryClient({
     defaultOptions: { queries: { retry: false } },
   });
-  return render(
+  const view = render(
     <QueryClientProvider client={queryClient}>
       <ManageUserDialog open={true} roles={ROLES} user={USER} />
     </QueryClientProvider>
   );
+  return { ...view, queryClient };
 }
+
+/** No employment record yet: a 404 puts the section in create mode. */
+const noRecord = () =>
+  http.get(
+    `${BASE}/api/v1/hr/employment/u-1`,
+    () => new HttpResponse(null, { status: 404 })
+  );
 
 describe("ManageUserDialog — department & employment", () => {
   it("shows bounded staff delegation and hides platform controls for managers", async () => {
@@ -274,8 +290,13 @@ describe("ManageUserDialog — department & employment", () => {
     await waitFor(() => expect(bodies).toHaveLength(1));
     expect(bodies[0]).toEqual({ employment: { employee_number: "MET-2" } });
 
-    // Wait for the refetch that carries the other admin's position change.
+    // Wait for the refetch that carries the other admin's position change. The
+    // form says the record changed, but keeps what this admin loaded.
     await waitFor(() => expect(getCount).toBeGreaterThanOrEqual(2));
+    expect(
+      await screen.findByText(CHANGED_ELSEWHERE_NOTICE)
+    ).toBeInTheDocument();
+    expect(screen.getByLabelText("Position")).toHaveValue("Observer");
     fireEvent.change(screen.getByLabelText("Employee #"), {
       target: { value: "MET-3" },
     });
@@ -285,6 +306,183 @@ describe("ManageUserDialog — department & employment", () => {
     // another admin set are left alone.
     expect(bodies[1]).toEqual({ employment: { employee_number: "MET-3" } });
     expect(screen.queryByText(CONFIRM_TITLE)).not.toBeInTheDocument();
+  });
+
+  it("hides the Status select before the record exists: a new record starts Active", async () => {
+    server.use(noRecord());
+    renderDialog();
+    await screen.findByRole("button", { name: "Assign to department" });
+    expect(screen.queryByLabelText("Status")).not.toBeInTheDocument();
+    expect(
+      screen.getByText("Active. A new record always starts Active.")
+    ).toBeInTheDocument();
+  });
+
+  it("requires an employee number in create mode and sends nothing without one", async () => {
+    const errorToast = vi.spyOn(toast, "error");
+    const posted: unknown[] = [];
+    server.use(
+      noRecord(),
+      http.post(`${BASE}/api/v1/hr/employment/u-1`, async ({ request }) => {
+        posted.push(await request.json());
+        return HttpResponse.json({}, { status: 201 });
+      })
+    );
+    renderDialog();
+    const assignBtn = await screen.findByRole("button", {
+      name: "Assign to department",
+    });
+    fireEvent.change(screen.getByLabelText("Department"), {
+      target: { value: "dept_met" },
+    });
+    fireEvent.change(screen.getByLabelText("Employee #"), {
+      target: { value: "   " },
+    });
+    fireEvent.click(assignBtn);
+    await waitFor(() =>
+      expect(errorToast).toHaveBeenCalledWith(
+        "Employee number is required to assign a department"
+      )
+    );
+    expect(posted).toHaveLength(0);
+    errorToast.mockRestore();
+  });
+
+  it("says when the record changed elsewhere and loads the latest values on request", async () => {
+    let getCount = 0;
+    server.use(
+      http.get(`${BASE}/api/v1/hr/employment/u-1`, () => {
+        getCount += 1;
+        return HttpResponse.json(
+          getCount === 1 ? RECORD : { ...RECORD, position: "Senior Observer" }
+        );
+      })
+    );
+    const { queryClient } = renderDialog();
+    fireEvent.change(await screen.findByLabelText("Employee #"), {
+      target: { value: "MET-2" },
+    });
+    expect(
+      screen.queryByText(CHANGED_ELSEWHERE_NOTICE)
+    ).not.toBeInTheDocument();
+
+    // Another admin saves; this dialog refetches without saving anything.
+    await act(() => queryClient.invalidateQueries());
+    expect(
+      await screen.findByText(CHANGED_ELSEWHERE_NOTICE)
+    ).toBeInTheDocument();
+    // Nothing on screen changes until the admin asks.
+    expect(screen.getByLabelText("Position")).toHaveValue("Observer");
+    expect(screen.getByLabelText("Employee #")).toHaveValue("MET-2");
+
+    fireEvent.click(screen.getByRole("button", { name: "Load latest values" }));
+    await waitFor(() =>
+      expect(screen.getByLabelText("Position")).toHaveValue("Senior Observer")
+    );
+    expect(screen.getByLabelText("Employee #")).toHaveValue("MET-1");
+    expect(
+      screen.queryByText(CHANGED_ELSEWHERE_NOTICE)
+    ).not.toBeInTheDocument();
+  });
+
+  it("does not report this form's own save as a change made elsewhere", async () => {
+    const successToast = vi.spyOn(toast, "success");
+    let record = { ...RECORD };
+    server.use(
+      http.get(`${BASE}/api/v1/hr/employment/u-1`, () =>
+        HttpResponse.json(record)
+      ),
+      http.patch(`${BASE}/api/v1/hr/employment/u-1`, async ({ request }) => {
+        const body = (await request.json()) as {
+          employment: Partial<typeof RECORD>;
+        };
+        record = { ...record, ...body.employment };
+        return HttpResponse.json({}, { status: 200 });
+      })
+    );
+    renderDialog();
+    fireEvent.change(await screen.findByLabelText("Employee #"), {
+      target: { value: "MET-2" },
+    });
+    // Watch every render: the stale cached record before the refetch must not
+    // flash the notice either.
+    let flashed = false;
+    const watcher = new MutationObserver(() => {
+      if (document.body.textContent?.includes(CHANGED_ELSEWHERE_NOTICE)) {
+        flashed = true;
+      }
+    });
+    watcher.observe(document.body, {
+      characterData: true,
+      childList: true,
+      subtree: true,
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Save employment" }));
+    await waitFor(() => expect(successToast).toHaveBeenCalled());
+    watcher.disconnect();
+    expect(flashed).toBe(false);
+    expect(
+      screen.queryByText(CHANGED_ELSEWHERE_NOTICE)
+    ).not.toBeInTheDocument();
+    successToast.mockRestore();
+  });
+
+  it("sends one save when Save employment is clicked twice quickly", async () => {
+    const bodies: unknown[] = [];
+    server.use(recordWith({}), patchRecord(bodies));
+    renderDialog();
+    fireEvent.change(await screen.findByLabelText("Employee #"), {
+      target: { value: "MET-2" },
+    });
+    const saveBtn = screen.getByRole("button", { name: "Save employment" });
+    fireEvent.click(saveBtn);
+    fireEvent.click(saveBtn);
+    await waitFor(() => expect(bodies).toHaveLength(1));
+    // Let any second request arrive before checking there was none.
+    await act(() => new Promise((resolve) => setTimeout(resolve, 50)));
+    expect(bodies).toHaveLength(1);
+  });
+
+  it("sends one save when Confirm and save is clicked twice quickly", async () => {
+    const bodies: unknown[] = [];
+    server.use(recordWith({}), patchRecord(bodies));
+    renderDialog();
+    fireEvent.change(await screen.findByLabelText("Status"), {
+      target: { value: "INACTIVE" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Save employment" }));
+    const confirm = screen.getByRole("button", { name: "Confirm and save" });
+    fireEvent.click(confirm);
+    fireEvent.click(confirm);
+    await waitFor(() => expect(bodies).toHaveLength(1));
+    await act(() => new Promise((resolve) => setTimeout(resolve, 50)));
+    expect(bodies).toEqual([{ employment: { status: "INACTIVE" } }]);
+  });
+
+  it("Escape closes only the confirmation, keeps the draft and returns focus to Save", async () => {
+    const bodies: unknown[] = [];
+    server.use(recordWith({}), patchRecord(bodies));
+    renderDialog();
+    fireEvent.change(await screen.findByLabelText("Status"), {
+      target: { value: "TERMINATED" },
+    });
+    const saveBtn = screen.getByRole("button", { name: "Save employment" });
+    saveBtn.focus();
+    fireEvent.click(saveBtn);
+    expect(screen.getByText(CONFIRM_TITLE)).toBeInTheDocument();
+    // Focus starts on the safe choice inside the confirmation.
+    await waitFor(() =>
+      expect(screen.getByRole("button", { name: "Go back" })).toHaveFocus()
+    );
+
+    fireEvent.keyDown(document.activeElement as Element, { key: "Escape" });
+    await waitFor(() =>
+      expect(screen.queryByText(CONFIRM_TITLE)).not.toBeInTheDocument()
+    );
+    // The user dialog stays open with the edit intact, and nothing was sent.
+    expect(screen.getByLabelText("Status")).toHaveValue("TERMINATED");
+    expect(bodies).toHaveLength(0);
+    await waitFor(() => expect(saveBtn).toHaveFocus());
   });
 
   it("says there is nothing to save and sends nothing when no field changed", async () => {
