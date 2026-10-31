@@ -64,6 +64,7 @@ from src.auth.totp_enrolment import (
     activate_totp,
     begin_totp_setup,
     disable_totp,
+    enrolment_needs_email_code,
 )
 from src.auth.user_queries import (
     get_user_by_email,
@@ -86,6 +87,7 @@ __all__ = [
     "activate_totp",
     "audit_assignment",
     "begin_totp_setup",
+    "enrolment_needs_email_code",
     "count_role_assignments_for_role",
     "create_permission",
     "create_role",
