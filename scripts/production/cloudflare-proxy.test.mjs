@@ -358,7 +358,15 @@ test("cache rules: default no-cache, then static assets on public hosts, then th
     assert.equal(first.action_parameters.cache, false);
     assert.equal(bypass.action_parameters.cache, false);
     assert.equal(staticRule.action_parameters.cache, true);
-    assert.equal(staticRule.action_parameters.edge_ttl.mode, "respect_origin");
+    // Only what the origin marks cacheable: no Cache-Control means no cache.
+    assert.equal(
+      staticRule.action_parameters.edge_ttl.mode,
+      "bypass_by_default"
+    );
+    assert.equal(
+      staticRule.action_parameters.browser_ttl.mode,
+      "bypass_by_default"
+    );
     assert.equal(
       staticRule.action_parameters.cache_key.cache_deception_armor,
       true

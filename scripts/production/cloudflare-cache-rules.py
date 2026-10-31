@@ -14,8 +14,9 @@ http_request_cache_settings phase and keeps every other rule as it is.
 Rules run in order and a later match wins, so the three rules are:
   1. every host of the environment: do not cache (Cloudflare would otherwise cache
      some file extensions, PDFs and spreadsheets included, on any host);
-  2. public hosts: cache /_next/static/ and static asset extensions, honouring
-     the origin's Cache-Control, with Cache Deception Armor;
+  2. public hosts: /_next/static/ and static asset extensions may be cached, but
+     only when the origin's Cache-Control says so (no header: not cached, not
+     even with Cloudflare's default TTLs), with Cache Deception Armor;
   3. bypass again for the API and staff hosts, any /api/ path, and any request
      carrying a session cookie (every app's cookie ends in `_session`, plus the
      CMS's `payload-token`).
@@ -78,7 +79,7 @@ def rules(environment):
         },
         {
             "ref": f"{ref}-static-assets",
-            "description": f"GrenMet {environment}: cache static assets on public hosts (origin Cache-Control)",
+            "description": f"GrenMet {environment}: static assets on public hosts, only when the origin marks them cacheable",
             "expression": (
                 f"(http.host in {public}) and (starts_with(http.request.uri.path, \"/_next/static/\") "
                 f"or http.request.uri.path.extension in {extensions})"
@@ -86,8 +87,9 @@ def rules(environment):
             "action": "set_cache_settings",
             "action_parameters": {
                 "cache": True,
-                "edge_ttl": {"mode": "respect_origin"},
-                "browser_ttl": {"mode": "respect_origin"},
+                # Use Cache-Control when present, never cache when absent.
+                "edge_ttl": {"mode": "bypass_by_default"},
+                "browser_ttl": {"mode": "bypass_by_default"},
                 "cache_key": {"cache_deception_armor": True},
             },
             "enabled": True,

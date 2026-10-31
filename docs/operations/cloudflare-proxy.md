@@ -21,7 +21,7 @@ bucket or lets a visitor choose their own address. Do them in the order below.
 | 2 | Traefik trusts `X-Forwarded-For` only from Cloudflare's published ranges | `infra/docker/docker-compose.deploy.yml`, ranges in `infra/cloudflare/ip-ranges.txt` | `CLOUDFLARE_PROXY_ENABLED` |
 | 3 | Visitor address counted 2 hops from the right (Cloudflare, then Traefik) on the API and the web hosts that forward it (events, bookings, weather) | `render-env.py` sets `VISITOR_IP_PROXY_HOPS` | `CLOUDFLARE_PROXY_ENABLED` |
 | 4 | Only Cloudflare's ranges may reach 80/443 on the droplet | DigitalOcean Cloud Firewall, `scripts/production/cloudflare-origin-firewall.py` | Owner runs the script |
-| 5 | Cache static assets only; never the API, staff hosts, signed-in requests | Cloudflare cache rules, `scripts/production/cloudflare-cache-rules.py` | Owner runs the script |
+| 5 | Cache static assets only, and only when the origin's `Cache-Control` marks them cacheable (no header: not cached); never the API, staff hosts, signed-in requests | Cloudflare cache rules, `scripts/production/cloudflare-cache-rules.py` | Owner runs the script |
 
 ### What `CLOUDFLARE_PROXY_ENABLED` changes
 
@@ -166,7 +166,11 @@ AUTH=(-u "<one staging basic-auth user:password>")   # production: AUTH=()
    python3 scripts/production/cloudflare-cache-rules.py --environment staging           # plan
    python3 scripts/production/cloudflare-cache-rules.py --environment staging --apply
    ```
-   Run it again: it must say "No change".
+   Run it again: it must say "No change". The static rule caches only what the
+   origin explicitly marks cacheable (edge and browser TTL "use cache-control
+   header if present, bypass cache if not"): Next.js marks `/_next/static/`
+   files `public, max-age=31536000, immutable`; anything without a
+   `Cache-Control` header is never stored, even with a static extension.
 4. **Switch on.** GitHub → Settings → Environments → `staging` → Variables → add
    `CLOUDFLARE_PROXY_ENABLED` = `true`. Redeploy staging (Actions → Deploy →
    Run workflow, environment `staging`, image tag of the current staging
