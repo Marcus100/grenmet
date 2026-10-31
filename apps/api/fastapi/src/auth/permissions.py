@@ -92,6 +92,10 @@ PERMISSIONS: tuple[PermissionDef, ...] = (
         "Set dated pay rates and basic pay (organisation-wide); needs two-step verification",
     ),
     PermissionDef(
+        "hr.payroll.read.self",
+        "See your own issued payslips",
+    ),
+    PermissionDef(
         "hr.payroll.read.amounts",
         "See pay amounts, rates and basic pay (organisation-wide only)",
     ),

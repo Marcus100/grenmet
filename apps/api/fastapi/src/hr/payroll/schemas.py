@@ -536,3 +536,38 @@ class TableStatePublic(BaseModel):
     id: uuid.UUID
     rule_state: TableState
     source_note: str | None
+
+
+# ── Slice 4: payslips and export settings ──────────────────────────────────────
+
+
+class PayslipPublic(BaseModel):
+    id: uuid.UUID
+    period_id: uuid.UUID
+    user_id: uuid.UUID
+    period_start: date
+    period_end: date
+    employee_name: str
+    net_minor: int
+    currency: str
+    sha256: str
+    issued_at: UtcDateTime
+
+
+class PayslipsPublic(BaseModel):
+    data: list[PayslipPublic]
+
+
+class PayrollExportSettingsPublic(BaseModel):
+    organisation_id: str
+    bank_columns: list[str]
+    gl_accounts: dict[str, str]
+    available_bank_columns: list[str]
+
+
+class PayrollExportSettingsUpdate(BaseModel):
+    organisation_id: Annotated[str, StringConstraints(min_length=1, max_length=100)]
+    bank_columns: Annotated[list[str], Field(min_length=1, max_length=20)]
+    gl_accounts: dict[
+        str, Annotated[str, StringConstraints(strip_whitespace=True, max_length=60)]
+    ]

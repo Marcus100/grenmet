@@ -81,6 +81,18 @@ files and cutover are later slices that need their own approval.
   EC$5,200 a month / EC$1,200 a week (PROVISIONAL); pension 5%/5% of basic,
   health 40/60 split premium, union dues (all PROVISIONAL, authorisation needed).
 
+## Payslips and files (slice 4, `payslips.py`)
+- Issue approval creates every payslip in the same transaction (an itemised
+  statement is required for each payment: Employment Act ss. 47-48, secondary
+  source). A payslip is a JSON snapshot plus the SHA-256 of its canonical JSON;
+  the PDF renders from the snapshot after the hash check. `payslip_append_only`
+  refuses updates and deletes.
+- Staff see their own payslips with `hr.payroll.read.self` (granted to no role).
+- Bank and GL CSVs: organisation-wide export key, MFA, audited; columns and GL
+  account codes are per-organisation settings. **Bank account numbers are not
+  stored** (no field-encryption helper exists for them; the TOTP Fernet keys must
+  not be reused for bank data): the bank column reads NOT STORED.
+
 ## Rules (all provisional, parameters in the GAA catalogue)
 - Base hours: arrival to departure (`hours_basis` ELAPSED, the memorandum's
   8 hours inclusive of lunch) capped at `standard_hours`.
