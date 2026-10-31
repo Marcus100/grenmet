@@ -33011,7 +33011,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/CapAlertAction"
+                "$ref": "#/components/schemas/CapPublishAction"
               }
             }
           }
@@ -34202,7 +34202,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/CapAlertListPublic"
+                  "$ref": "#/components/schemas/CapAlertListPublicView"
                 }
               }
             }
@@ -34234,7 +34234,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/CapAlertListPublic"
+                  "$ref": "#/components/schemas/CapAlertListPublicView"
                 }
               }
             }
@@ -34266,7 +34266,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/CapAlertListPublic"
+                  "$ref": "#/components/schemas/CapAlertListPublicView"
                 }
               }
             }
@@ -34309,7 +34309,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/CapAlertPublic"
+                  "$ref": "#/components/schemas/CapAlertPublicView"
                 }
               }
             }
@@ -66708,6 +66708,7 @@
           },
           "value": {
             "type": "string",
+            "maxLength": 5242880,
             "minLength": 1,
             "title": "Value"
           }
@@ -66749,6 +66750,37 @@
         ],
         "title": "CapAlertListPublic"
       },
+      "CapAlertListPublicView": {
+        "properties": {
+          "data": {
+            "items": {
+              "$ref": "#/components/schemas/CapAlertPublicView"
+            },
+            "type": "array",
+            "title": "Data"
+          },
+          "count": {
+            "type": "integer",
+            "title": "Count"
+          },
+          "page": {
+            "type": "integer",
+            "title": "Page",
+            "default": 1
+          },
+          "size": {
+            "type": "integer",
+            "title": "Size",
+            "default": 100
+          }
+        },
+        "type": "object",
+        "required": [
+          "data",
+          "count"
+        ],
+        "title": "CapAlertListPublicView"
+      },
       "CapAlertPublic": {
         "properties": {
           "id": {
@@ -66779,6 +66811,17 @@
               }
             ],
             "title": "Schema Error"
+          },
+          "import_source": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Import Source"
           },
           "sent": {
             "type": "string",
@@ -66989,6 +67032,203 @@
           "updated_at"
         ],
         "title": "CapAlertPublic"
+      },
+      "CapAlertPublicView": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "identifier": {
+            "type": "string",
+            "title": "Identifier"
+          },
+          "sender": {
+            "type": "string",
+            "title": "Sender"
+          },
+          "sent": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Sent"
+          },
+          "status": {
+            "$ref": "#/components/schemas/CapStatus"
+          },
+          "msg_type": {
+            "$ref": "#/components/schemas/CapMessageType"
+          },
+          "source": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source"
+          },
+          "scope": {
+            "$ref": "#/components/schemas/CapScope"
+          },
+          "restriction": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Restriction"
+          },
+          "addresses": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Addresses"
+          },
+          "codes": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Codes"
+          },
+          "lifecycle_state": {
+            "$ref": "#/components/schemas/CapLifecycleState"
+          },
+          "submitted_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Submitted At"
+          },
+          "approved_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Approved At"
+          },
+          "published_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Published At"
+          },
+          "expired_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Expired At"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Updated At"
+          },
+          "references": {
+            "items": {
+              "$ref": "#/components/schemas/CapReferencePublic"
+            },
+            "type": "array",
+            "title": "References"
+          },
+          "incidents": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Incidents"
+          },
+          "info": {
+            "items": {
+              "$ref": "#/components/schemas/CapInfoPublic"
+            },
+            "type": "array",
+            "title": "Info"
+          },
+          "xml_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Xml Url"
+          },
+          "replaced_by_identifier": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Replaced By Identifier"
+          },
+          "cancellation_reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cancellation Reason"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "identifier",
+          "sender",
+          "sent",
+          "status",
+          "msg_type",
+          "scope",
+          "lifecycle_state",
+          "created_at",
+          "updated_at"
+        ],
+        "title": "CapAlertPublicView",
+        "description": "An alert as the anonymous public sees it.\n\nStaff-only fields are left out: the schema check result, the imported marker,\nthe internal note, and who created or last changed the alert."
       },
       "CapAlertUpdate": {
         "properties": {
@@ -67277,7 +67517,8 @@
         "required": [
           "area_desc"
         ],
-        "title": "CapAreaCreate"
+        "title": "CapAreaCreate",
+        "description": "Save-time checks: a height and every coordinate must be a finite number."
       },
       "CapAreaKind": {
         "type": "string",
@@ -67692,6 +67933,11 @@
             "maxLength": 2000,
             "minLength": 1,
             "title": "Reason"
+          },
+          "confirm_imported": {
+            "type": "boolean",
+            "title": "Confirm Imported",
+            "default": false
           }
         },
         "type": "object",
@@ -69127,6 +69373,30 @@
           "level"
         ],
         "title": "CapProfileTemplate"
+      },
+      "CapPublishAction": {
+        "properties": {
+          "note": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 2000
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Note"
+          },
+          "confirm_imported": {
+            "type": "boolean",
+            "title": "Confirm Imported",
+            "default": false
+          }
+        },
+        "type": "object",
+        "title": "CapPublishAction",
+        "description": "Publish request. An imported alert needs ``confirm_imported`` (409 without it)."
       },
       "CapPublishPublic": {
         "properties": {

@@ -191,6 +191,8 @@ class CapAlert(Base):
     # review with the first schema error. We never publish it.
     schema_conformant: Mapped[bool] = column(default=True)
     schema_error: Mapped[str | None] = column(default=None, max_length=1000)
+    # "feed" or "manual" for an imported alert; None for one authored here.
+    import_source: Mapped[str | None] = column(default=None, max_length=16)
     created_by_user_id: Mapped[uuid.UUID] = column(foreign_key="user.id", index=True)
     updated_by_user_id: Mapped[uuid.UUID | None] = column(
         default=None, foreign_key="user.id"

@@ -86,7 +86,7 @@ CAP payload validation is implemented in three places:
 
 - Pydantic schemas validate basic shape and time-order constraints.
 - `src.cap.validation.validate_cap_alert` validates warning-content requirements before publication.
-- `src.cap.xsd` checks the generated XML against the official OASIS CAP 1.2 schema (`src/cap/standards/CAP-v1.2.xsd`, see its README) before publication, cancellation and import. A document that does not conform is refused with 422 and the refusal is logged. Malformed XML on import is a 400.
+- `src.cap.xsd` checks the generated XML against the official OASIS CAP 1.2 schema (`src/cap/standards/CAP-v1.2.xsd`, see its README). Normal publish refuses a non-conforming document with 422 and logs the refusal. Emergency publish and cancellation go out past a mismatch: it is audited, logged as an error, and sent to the duty supervisor. Imports are stored and flagged rather than refused; only malformed XML and a DTD are refused (400). Publishing an imported alert needs `confirm_imported` (409 without it).
 
 Publication fails with 422 if CAP validation errors are present or the XML does not conform to the schema. The schema check is structural. The rules it cannot express (for example, a Restricted scope needs a restriction) stay in `validate_cap_alert`.
 

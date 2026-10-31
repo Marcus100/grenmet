@@ -1607,7 +1607,9 @@ export { capAlertCreateSchema } from "./capAlertCreateSchema.js";
 export { capAlertImportRequestPropertiesSourceEnumSchema } from "./capAlertImportRequestPropertiesSourceEnumSchema.js";
 export { capAlertImportRequestSchema } from "./capAlertImportRequestSchema.js";
 export { capAlertListPublicSchema } from "./capAlertListPublicSchema.js";
+export { capAlertListPublicViewSchema } from "./capAlertListPublicViewSchema.js";
 export { capAlertPublicSchema } from "./capAlertPublicSchema.js";
+export { capAlertPublicViewSchema } from "./capAlertPublicViewSchema.js";
 export { capAlertUpdateSchema } from "./capAlertUpdateSchema.js";
 export {
   capApproveAlertBodySchema,
@@ -1978,6 +1980,7 @@ export { capProfileRuleSchema } from "./capProfileRuleSchema.js";
 export { capProfileSaveSchema } from "./capProfileSaveSchema.js";
 export { capProfileSubtypeSchema } from "./capProfileSubtypeSchema.js";
 export { capProfileTemplateSchema } from "./capProfileTemplateSchema.js";
+export { capPublishActionSchema } from "./capPublishActionSchema.js";
 export {
   capPublishAlertBodySchema,
   capPublishAlertErrorSchema,

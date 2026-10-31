@@ -15,7 +15,9 @@ from src.cap.schemas import (
     CapAlertCreate,
     CapAlertImportRequest,
     CapAlertListPublic,
+    CapAlertListPublicView,
     CapAlertPublic,
+    CapAlertPublicView,
     CapAlertUpdate,
     CapAuditEventListPublic,
     CapCatalogsPublic,
@@ -28,6 +30,7 @@ from src.cap.schemas import (
     CapFeedImportUpdate,
     CapPredefinedAreaCreate,
     CapPredefinedAreaPublic,
+    CapPublishAction,
     CapPublishPublic,
     CapReviewRecord,
     CapSettingsPublic,
@@ -328,7 +331,7 @@ async def publish_alert(
     session: SessionDep,
     current_user: CurrentUser,
     alert_id: uuid.UUID,
-    payload: CapAlertAction,
+    payload: CapPublishAction,
 ) -> CapPublishPublic:
     alert, snapshot = await service.publish_alert(
         session=session,
@@ -594,6 +597,11 @@ async def delete_feed(
     )
 
 
+def _public_list_view(result: CapAlertListPublic) -> CapAlertListPublicView:
+    """The anonymous view of a list: staff-only fields are left out."""
+    return CapAlertListPublicView.model_validate(result.model_dump())
+
+
 @public_router.get(
     "/warnings",
     response_model=PublicWarnings,
@@ -618,49 +626,52 @@ async def read_public_warnings(
 
 @public_router.get(
     "/latest-active",
-    response_model=CapAlertListPublic,
+    response_model=CapAlertListPublicView,
     summary="List active public CAP alerts",
     description="Returns currently active public CAP alerts. The response is briefly cached for public feed consumers.",
 )
 async def read_public_latest_active(*, session: SessionDep) -> Any:
     async def _produce() -> dict[str, Any]:
         result = await service.public_latest_active(session=session)
-        return result.model_dump(mode="json")
+        return _public_list_view(result).model_dump(mode="json")
 
     return await cache.cached_json(cache.PUBLIC_LATEST_ACTIVE, 30, _produce)
 
 
 @public_router.get(
     "/alerts",
-    response_model=CapAlertListPublic,
+    response_model=CapAlertListPublicView,
     summary="List public CAP alerts",
     description="Returns all public CAP alerts available through the public feed.",
 )
-async def read_public_alerts(*, session: SessionDep) -> CapAlertListPublic:
-    return await service.public_all_alerts(session=session)
+async def read_public_alerts(*, session: SessionDep) -> CapAlertListPublicView:
+    return _public_list_view(await service.public_all_alerts(session=session))
 
 
 @public_router.get(
     "/past",
-    response_model=CapAlertListPublic,
+    response_model=CapAlertListPublicView,
     summary="List past public CAP alerts",
     description="Returns previously published public CAP alerts from the public feed.",
 )
-async def read_public_past_alerts(*, session: SessionDep) -> CapAlertListPublic:
-    return await service.public_past_alerts(session=session)
+async def read_public_past_alerts(*, session: SessionDep) -> CapAlertListPublicView:
+    return _public_list_view(await service.public_past_alerts(session=session))
 
 
 @public_router.get(
     "/alerts/{identifier}",
-    response_model=CapAlertPublic,
+    response_model=CapAlertPublicView,
     summary="Get a public CAP alert",
     description="Returns one published public CAP alert by its CAP identifier.",
     responses={**NOT_FOUND},
 )
-async def read_public_alert(*, session: SessionDep, identifier: str) -> CapAlertPublic:
-    return await service.public_alert_by_identifier(
+async def read_public_alert(
+    *, session: SessionDep, identifier: str
+) -> CapAlertPublicView:
+    alert = await service.public_alert_by_identifier(
         session=session, identifier=identifier
     )
+    return CapAlertPublicView.model_validate(alert.model_dump())
 
 
 @public_router.get(

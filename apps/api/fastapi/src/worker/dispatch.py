@@ -12,7 +12,7 @@ from datetime import timedelta
 from typing import Any
 
 import httpx
-from sqlalchemy import or_, select
+from sqlalchemy import or_, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.cap.models import CapAlert, CapJobEvent, CapJobStatus, CapScope, CapStatus
@@ -168,6 +168,36 @@ async def fail_abandoned_jobs(*, session: AsyncSession, max_attempts: int) -> in
     return len(jobs)
 
 
+# Channels that no longer have a publisher (owner decision 2026-10-30). Jobs queued
+# for them before that decision are retired here, not left to fail as exhausted.
+RETIRED_CHANNEL_KINDS = ("publish.mqtt", "publish.wis2box")
+RETIRED_CHANNEL_REASON = (
+    "channel not configured: MQTT is not planned and WIS2 waits for the local wis2box"
+)
+
+
+async def retire_unconfigured_channel_jobs(*, session: AsyncSession) -> int:
+    """Mark queued or failed jobs of retired channels SKIPPED, with the reason. Idempotent."""
+    result = await session.execute(
+        update(CapJobEvent)
+        .where(
+            CapJobEvent.kind.in_(RETIRED_CHANNEL_KINDS),
+            CapJobEvent.status.in_((CapJobStatus.QUEUED, CapJobStatus.FAILED)),
+        )
+        .values(
+            status=CapJobStatus.SKIPPED,
+            next_retry_at=None,
+            result={"skipped": True, "reason": RETIRED_CHANNEL_REASON},
+            updated_at=utc_now(),
+        )
+        .execution_options(synchronize_session=False)
+    )
+    await session.commit()
+    # The update statement reports how many rows it touched; typed as a generic Result.
+    rowcount = getattr(result, "rowcount", 0) or 0
+    return int(rowcount)
+
+
 async def process_due_jobs(
     *,
     session: AsyncSession,
@@ -184,6 +214,7 @@ async def process_due_jobs(
     client = http_client or httpx.AsyncClient()
     handled = 0
     try:
+        await retire_unconfigured_channel_jobs(session=session)
         await fail_abandoned_jobs(session=session, max_attempts=max_attempts)
         while handled < limit:
             result = await session.execute(

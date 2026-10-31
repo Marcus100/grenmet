@@ -1,8 +1,9 @@
 import { Button } from "@barrelsgd/ui/components/ui/button";
 import { ArrowRight, FileText } from "lucide-react";
 import Link from "next/link";
+import type { SchemaFlagFields } from "@/components/cap/schema-flag";
 import {
-  type CapAlert,
+  type CapPublicAlert,
   capPublicUrl,
   formatDateTime,
   primaryInfo,
@@ -15,7 +16,7 @@ export function AlertList({
   alerts,
   emptyLabel,
 }: {
-  alerts: CapAlert[];
+  alerts: Array<CapPublicAlert & SchemaFlagFields>;
   emptyLabel: string;
 }) {
   if (alerts.length === 0) {
@@ -57,7 +58,7 @@ export function AlertList({
                   {info?.headline ?? alert.identifier}
                 </h2>
                 <p className="line-clamp-2 text-body text-gm-text-secondary leading-body">
-                  {info?.description ?? alert.note ?? "CAP alert"}
+                  {info?.description ?? "CAP alert"}
                 </p>
               </div>
               <div className="flex shrink-0 gap-2">

@@ -1,8 +1,16 @@
+import math
 import re
 import uuid
+from enum import Enum
 from typing import Annotated, Any, Literal
 
-from pydantic import AwareDatetime, Field, field_validator, model_validator
+from pydantic import (
+    AwareDatetime,
+    Field,
+    ValidationInfo,
+    field_validator,
+    model_validator,
+)
 
 from src.cap.models import (
     CapAreaKind,
@@ -19,8 +27,60 @@ from src.cap.models import (
 )
 from src.models import BaseModel, UtcDateTime
 
+# Largest import (and feed entry) we read, in bytes; the import request caps its text to match.
+MAX_IMPORT_CHARS = 5 * 1024 * 1024
 
-class CapNameValue(BaseModel):
+# XML 1.0 Char production: what a CAP document may carry at all.
+_XML_ILLEGAL = re.compile("[^\t\n\r -\ud7ff\ue000-\ufffd\U00010000-\U0010ffff]")
+
+
+def clean_xml_text(value: str, field: str) -> str:
+    """Return ``value`` ready for CAP XML, or raise a 422 that names ``field``.
+
+    Vertical tab and form feed (what Word writes for soft breaks) become newlines,
+    so they are not an error. Any other character XML 1.0 forbids is refused here,
+    on save, rather than failing at publish.
+    """
+    value = value.replace("\x0b", "\n").replace("\x0c", "\n")
+    bad = _XML_ILLEGAL.search(value)
+    if bad is not None:
+        raise ValueError(
+            f"{field} contains a character that CAP XML cannot carry "
+            f"(U+{ord(bad.group()):04X}). Remove it."
+        )
+    return value
+
+
+class CapTextInput(BaseModel):
+    """Text a forecaster types. Every string field must be carriable in CAP XML."""
+
+    @field_validator("*", mode="after")
+    @classmethod
+    def _xml_carriable_text(cls, value: Any, info: ValidationInfo) -> Any:
+        # Enum members are str subclasses: pass them through, so they keep their type.
+        name = info.field_name or "field"
+        if isinstance(value, Enum):
+            return value
+        if isinstance(value, str):
+            return clean_xml_text(value, name)
+        if isinstance(value, list) and value and all(type(v) is str for v in value):
+            return [clean_xml_text(v, name) for v in value]
+        return value
+
+
+def _all_finite(value: object) -> bool:
+    if isinstance(value, bool):
+        return True
+    if isinstance(value, (int, float)):
+        return math.isfinite(value)
+    if isinstance(value, dict):
+        return all(_all_finite(item) for item in value.values())
+    if isinstance(value, (list, tuple)):
+        return all(_all_finite(item) for item in value)
+    return True
+
+
+class CapNameValue(CapTextInput):
     value_name: str = Field(min_length=1, max_length=255)
     value: str = Field(min_length=1, max_length=1000)
 
@@ -34,7 +94,7 @@ class CapResourceBase(BaseModel):
     digest: str | None = Field(default=None, max_length=255)
 
 
-class CapResourceCreate(CapResourceBase):
+class CapResourceCreate(CapResourceBase, CapTextInput):
     pass
 
 
@@ -56,8 +116,22 @@ class CapAreaBase(BaseModel):
     ceiling: float | None = None
 
 
-class CapAreaCreate(CapAreaBase):
-    pass
+class CapAreaCreate(CapAreaBase, CapTextInput):
+    """Save-time checks: a height and every coordinate must be a finite number."""
+
+    @field_validator("altitude", "ceiling")
+    @classmethod
+    def _finite_height(cls, value: float | None, info: ValidationInfo) -> float | None:
+        if value is not None and not math.isfinite(value):
+            raise ValueError(f"{info.field_name} must be a finite number")
+        return value
+
+    @field_validator("polygons", "multipolygons", "circles")
+    @classmethod
+    def _finite_geometry(cls, value: Any, info: ValidationInfo) -> Any:
+        if not _all_finite(value):
+            raise ValueError(f"{info.field_name} must contain only finite numbers")
+        return value
 
 
 class CapAreaPublic(CapAreaBase):
@@ -98,7 +172,7 @@ class CapInfoBase(BaseModel):
         return self
 
 
-class CapInfoCreate(CapInfoBase):
+class CapInfoCreate(CapInfoBase, CapTextInput):
     """Save-time checks. They run on what a forecaster types, not on stored rows."""
 
     effective: Annotated[UtcDateTime, AwareDatetime()] | None = None
@@ -151,7 +225,7 @@ class CapReferenceBase(BaseModel):
     sent: UtcDateTime
 
 
-class CapReferenceCreate(CapReferenceBase):
+class CapReferenceCreate(CapReferenceBase, CapTextInput):
     sent: Annotated[UtcDateTime, AwareDatetime()]
 
 
@@ -194,13 +268,13 @@ class CapAlertBase(BaseModel):
         return self
 
 
-class CapAlertCreate(CapAlertBase):
+class CapAlertCreate(CapAlertBase, CapTextInput):
     sent: Annotated[UtcDateTime, AwareDatetime()] | None = None
 
 
 class CapAlertImportRequest(BaseModel):
     source: Literal["url", "xml"] = "xml"
-    value: str = Field(min_length=1)
+    value: str = Field(min_length=1, max_length=MAX_IMPORT_CHARS)
 
 
 class CapFeedImportCreate(BaseModel):
@@ -225,7 +299,7 @@ class CapFeedImportPublic(BaseModel):
     updated_at: UtcDateTime
 
 
-class CapAlertUpdate(BaseModel):
+class CapAlertUpdate(CapTextInput):
     identifier: str | None = Field(default=None, max_length=255)
     sender: str | None = Field(default=None, max_length=255)
     sent: Annotated[UtcDateTime, AwareDatetime()] | None = None
@@ -249,6 +323,8 @@ class CapAlertPublic(BaseModel):
     # False for an imported alert that does not fully follow the CAP 1.2 schema.
     schema_conformant: bool = True
     schema_error: str | None = None
+    # "feed" or "manual" for an imported alert; None for one authored here.
+    import_source: str | None = None
     sent: UtcDateTime
     status: CapStatus
     msg_type: CapMessageType
@@ -282,8 +358,54 @@ class CapAlertListPublic(BaseModel):
     size: int = 100
 
 
-class CapAlertAction(BaseModel):
+class CapAlertPublicView(BaseModel):
+    """An alert as the anonymous public sees it.
+
+    Staff-only fields are left out: the schema check result, the imported marker,
+    the internal note, and who created or last changed the alert.
+    """
+
+    id: uuid.UUID
+    identifier: str
+    sender: str
+    sent: UtcDateTime
+    status: CapStatus
+    msg_type: CapMessageType
+    source: str | None = None
+    scope: CapScope
+    restriction: str | None = None
+    addresses: list[str] = Field(default_factory=list)
+    codes: list[str] = Field(default_factory=list)
+    lifecycle_state: CapLifecycleState
+    submitted_at: UtcDateTime | None = None
+    approved_at: UtcDateTime | None = None
+    published_at: UtcDateTime | None = None
+    expired_at: UtcDateTime | None = None
+    created_at: UtcDateTime
+    updated_at: UtcDateTime
+    references: list[CapReferencePublic] = Field(default_factory=list)
+    incidents: list[str] = Field(default_factory=list)
+    info: list[CapInfoPublic] = Field(default_factory=list)
+    xml_url: str | None = None
+    replaced_by_identifier: str | None = None
+    cancellation_reason: str | None = None
+
+
+class CapAlertListPublicView(BaseModel):
+    data: list[CapAlertPublicView]
+    count: int
+    page: int = 1
+    size: int = 100
+
+
+class CapAlertAction(CapTextInput):
     note: str | None = Field(default=None, max_length=2000)
+
+
+class CapPublishAction(CapAlertAction):
+    """Publish request. An imported alert needs ``confirm_imported`` (409 without it)."""
+
+    confirm_imported: bool = False
 
 
 class CapReviewRecord(BaseModel):
@@ -293,8 +415,9 @@ class CapReviewRecord(BaseModel):
     note: str | None = Field(default=None, max_length=2000)
 
 
-class CapEmergencyPublish(BaseModel):
+class CapEmergencyPublish(CapTextInput):
     reason: str = Field(min_length=1, max_length=2000)
+    confirm_imported: bool = False
 
 
 class CapValidationResult(BaseModel):

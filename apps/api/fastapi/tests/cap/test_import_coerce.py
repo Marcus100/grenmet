@@ -31,13 +31,18 @@ def _doc(body: str) -> bytes:
 
 
 def _parsed(raw: bytes):  # the importer's own parse of the coerced document
-    return xml_to_alert_data(coerce_for_import(raw))
+    document, _changes = coerce_for_import(raw)
+    return xml_to_alert_data(document)
 
 
-def test_a_conforming_document_keeps_its_meaning() -> None:
+def test_a_conforming_document_keeps_its_meaning_and_needs_no_change() -> None:
     raw = _ENTRY_XML
     assert first_schema_error(raw) is None
-    assert _parsed(raw).model_dump() == xml_to_alert_data(raw).model_dump()
+    document, changes = coerce_for_import(raw)
+    assert changes == []
+    assert (
+        xml_to_alert_data(document).model_dump() == xml_to_alert_data(raw).model_dump()
+    )
 
 
 def test_unknown_enumeration_values_become_neutral_values_and_are_flagged() -> None:

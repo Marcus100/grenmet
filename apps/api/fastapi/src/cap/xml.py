@@ -206,7 +206,7 @@ def ensure_well_formed(xml: str | bytes) -> None:
     # defusedxml rejects DTDs, entity expansion, and external references, closing
     # the XXE / billion-laughs vectors on untrusted feed/import XML.
     try:
-        DefusedET.fromstring(raw)
+        DefusedET.fromstring(raw, forbid_dtd=True)
     except (ET.ParseError, DefusedXmlException) as exc:
         raise CapImportError(f"invalid XML: {exc}") from exc
 
@@ -215,7 +215,7 @@ def xml_to_alert_data(xml: str | bytes) -> CapAlertCreate:
     """Parse CAP 1.x XML into a ``CapAlertCreate``. Raises ``CapImportError``."""
     raw = xml.encode("utf-8") if isinstance(xml, str) else xml
     ensure_well_formed(raw)
-    root = DefusedET.fromstring(raw)
+    root = DefusedET.fromstring(raw, forbid_dtd=True)
     if _local(root.tag) != "alert":
         raise CapImportError(f"root element <{_local(root.tag)}> is not a CAP <alert>")
 

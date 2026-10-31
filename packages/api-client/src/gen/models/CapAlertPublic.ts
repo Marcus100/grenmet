@@ -25,6 +25,7 @@ export type CapAlertPublic = {
    */
   schema_conformant?: boolean;
   schema_error?: string | null;
+  import_source?: string | null;
   /**
    * @description
    * Format: `date-time`

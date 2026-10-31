@@ -36,8 +36,14 @@ def upgrade() -> None:
         sa.Column("schema_error", sa.String(length=1000), nullable=True),
         schema="cap",
     )
+    op.add_column(
+        "alert",
+        sa.Column("import_source", sa.String(length=16), nullable=True),
+        schema="cap",
+    )
 
 
 def downgrade() -> None:
+    op.drop_column("alert", "import_source", schema="cap")
     op.drop_column("alert", "schema_error", schema="cap")
     op.drop_column("alert", "schema_conformant", schema="cap")

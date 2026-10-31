@@ -1,15 +1,16 @@
-import type { CapAlertPublic } from "@barrelsgd/api-client";
-
 /**
  * Marks an imported alert that does not fully follow the CAP 1.2 standard. The
- * first schema error is the tooltip. We never publish such an alert.
+ * first schema error is the tooltip. Public feeds omit both fields, so only an
+ * explicit `false` shows the flag.
  */
-export function SchemaFlag({
-  alert,
-}: {
-  alert: Pick<CapAlertPublic, "schema_conformant" | "schema_error">;
-}) {
-  if (alert.schema_conformant) {
+/** The staff-only fields. Public alerts do not carry them. */
+export interface SchemaFlagFields {
+  schema_conformant?: boolean;
+  schema_error?: string | null;
+}
+
+export function SchemaFlag({ alert }: { alert: SchemaFlagFields }) {
+  if (alert.schema_conformant !== false) {
     return null;
   }
   return (

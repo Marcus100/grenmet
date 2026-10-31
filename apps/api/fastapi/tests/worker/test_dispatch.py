@@ -109,11 +109,10 @@ async def test_unknown_kind_fails(db_async: AsyncSession) -> None:
     assert job.status == CapJobStatus.FAILED
 
 
-async def test_retired_channel_job_fails_instead_of_skipping(
+async def test_a_queued_job_of_a_retired_channel_is_skipped_with_its_reason(
     db_async: AsyncSession,
 ) -> None:
-    """A job for a channel with no publisher (MQTT) is a failure, never a silent
-    skip that finishes like a success."""
+    """MQTT is retired: a job queued before that is marked SKIPPED, never run or failed."""
     job = await _add_job(db_async, "publish.mqtt")
 
     def handler(_request: httpx.Request) -> httpx.Response:  # pragma: no cover
@@ -123,9 +122,9 @@ async def test_retired_channel_job_fails_instead_of_skipping(
         await process_due_jobs(session=db_async, http_client=client)
 
     await db_async.refresh(job)
-    assert job.status == CapJobStatus.FAILED
+    assert job.status == CapJobStatus.SKIPPED
     assert job.result is not None
-    assert "no handler" in str(job.result.get("error"))
+    assert "not configured" in str(job.result.get("reason"))
 
 
 async def _clear_backoff(session: AsyncSession, job: CapJobEvent) -> None:
@@ -564,3 +563,32 @@ async def test_job_abandoned_on_the_final_attempt_is_failed_and_reported(
         session=db_async, max_attempts=5, window=timedelta(hours=1)
     )
     assert [job.id for job in reported] == [abandoned.id]
+
+
+async def test_queued_and_failed_jobs_of_retired_channels_are_marked_skipped(
+    db_async: AsyncSession,
+) -> None:
+    """Jobs queued before MQTT and WIS2 were retired are not left to exhaust."""
+    from src.worker.dispatch import (
+        RETIRED_CHANNEL_REASON,
+        retire_unconfigured_channel_jobs,
+    )
+
+    queued = await _add_job(db_async, "publish.mqtt")
+    failed = await _add_job(db_async, "publish.wis2box")
+    failed.status = CapJobStatus.FAILED
+    failed.attempts = 5
+    db_async.add(failed)
+    webhook = await _add_job(db_async, "publish.webhooks")
+    await db_async.commit()
+
+    changed = await retire_unconfigured_channel_jobs(session=db_async)
+
+    assert changed == 2
+    for job in (queued, failed):
+        await db_async.refresh(job)
+        assert job.status == CapJobStatus.SKIPPED
+        assert job.result == {"skipped": True, "reason": RETIRED_CHANNEL_REASON}
+    await db_async.refresh(webhook)
+    assert webhook.status == CapJobStatus.QUEUED
+    assert await retire_unconfigured_channel_jobs(session=db_async) == 0

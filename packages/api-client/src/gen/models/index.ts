@@ -1624,7 +1624,9 @@ export type { CapAlertImportRequest } from "./CapAlertImportRequest.js";
 export type { CapAlertImportRequestPropertiesSourceEnum } from "./CapAlertImportRequestPropertiesSourceEnum.js";
 export { capAlertImportRequestPropertiesSourceEnum } from "./CapAlertImportRequestPropertiesSourceEnum.js";
 export type { CapAlertListPublic } from "./CapAlertListPublic.js";
+export type { CapAlertListPublicView } from "./CapAlertListPublicView.js";
 export type { CapAlertPublic } from "./CapAlertPublic.js";
+export type { CapAlertPublicView } from "./CapAlertPublicView.js";
 export type { CapAlertUpdate } from "./CapAlertUpdate.js";
 export type {
   CapApproveAlertBody,
@@ -2023,6 +2025,7 @@ export { capProfileRulePropertiesOperatorEnum } from "./CapProfileRuleProperties
 export type { CapProfileSave } from "./CapProfileSave.js";
 export type { CapProfileSubtype } from "./CapProfileSubtype.js";
 export type { CapProfileTemplate } from "./CapProfileTemplate.js";
+export type { CapPublishAction } from "./CapPublishAction.js";
 export type {
   CapPublishAlertBody,
   CapPublishAlertOptions,
