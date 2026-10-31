@@ -75,3 +75,32 @@ async def test_subject_line_does_not_carry_the_code(
     )
     assert subjects == ["Your sign-in code"]
     assert "123456" not in subjects[0]
+
+
+@pytest.mark.asyncio
+async def test_code_sign_in_is_audited_without_secrets(
+    async_client, db_async, monkeypatch
+):
+    from sqlalchemy import select
+
+    from src.audit.models import AuditEntry
+
+    monkeypatch.setattr(app_service, "new_code", lambda: "123456")
+    monkeypatch.setattr(app_service, "send_email", lambda **kwargs: None)
+    email = "audited@example.com"
+    await async_client.post(f"{BASE}/email-code/start", json={"email": email})
+    response = await async_client.post(
+        f"{BASE}/email-code/verify", json={"email": email, "code": "123456"}
+    )
+    assert response.status_code == 200
+    entries = (
+        (
+            await db_async.execute(
+                select(AuditEntry).where(AuditEntry.action == "code_sign_in")
+            )
+        )
+        .scalars()
+        .all()
+    )
+    assert entries, "a code sign-in must leave an audit entry"
+    assert all("123456" not in str(entry.changes) for entry in entries)

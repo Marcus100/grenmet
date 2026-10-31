@@ -21,7 +21,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from starlette.requests import Request
 
 from src.auth import modern_service, otp, service
-from src.auth.account_security import verify_factor
+from src.auth.account_security import record_security, verify_factor
 from src.auth.app_schemas import (
     AccountAppPublic,
     AppEmailCodeStart,
@@ -353,6 +353,7 @@ async def email_code_verify(
     if user.email_verified_at is None:
         user.email_verified_at = utc_now()
         session.add(user)
+    await record_security(session, user, "code_sign_in")
     await session.commit()
     await ensure_member(session, user, app)
     return await _session_response(
@@ -803,6 +804,7 @@ async def account_email_code_verify(
     if user.email_verified_at is None:
         user.email_verified_at = utc_now()
         session.add(user)
+    await record_security(session, user, "code_sign_in")
     await session.commit()
 
     user_agent = request.headers.get("user-agent")
