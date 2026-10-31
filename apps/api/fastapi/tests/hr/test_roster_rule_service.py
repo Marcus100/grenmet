@@ -26,6 +26,7 @@ from src.hr.roster.models import (
     ShiftCatalog,
     ShiftCategory,
 )
+from src.hr.roster.overtime import OvertimeBand
 from src.hr.roster.rule_service import (
     RosterRuleWarningsError,
     check_period_rules,
@@ -140,8 +141,8 @@ def _utc(day: date, hh: int, mm: int = 0) -> datetime:
     return local.astimezone(UTC).replace(tzinfo=None)
 
 
-def _band_map(bands: list[object]) -> dict[str, str]:
-    return {str(b.rate): str(b.hours) for b in bands}  # type: ignore[attr-defined]
+def _band_map(bands: list[OvertimeBand]) -> dict[str, str]:
+    return {str(b.rate): str(b.hours) for b in bands}
 
 
 # --- rule sets --------------------------------------------------------------

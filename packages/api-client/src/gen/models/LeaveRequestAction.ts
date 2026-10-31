@@ -9,7 +9,7 @@ export type LeaveRequestAction = {
   status: RequestStatus;
   head_of_dept_comments?: string | null;
   /**
-   * @description Required to save a change that breaks a roster rule; recorded with the supervisor, the time and the rules overridden.
+   * @description Required to save a change that breaks a roster rule; recorded with the supervisor, the time and the rules overridden. At most 1,000 characters; NUL is refused, and control, bidi and zero-width characters are removed.
    */
   rule_override_reason?: string | null;
 };

@@ -1093,7 +1093,7 @@ and approve (`PATCH /hr/timesheets/{id}/approve`, optional body), attendance sub
 attendance corrections. Without it, a change that breaks a rule fails with 409 and
 `RosterRuleWarningsErrorPublic`; that model is a superset of `ApiError` (`detail`,
 plus `code: ROSTER_RULE_WARNINGS`, `context` and `violations` for rule warnings), so
-ordinary 409s on those routes keep their shape. A reason containing NUL is a 422.
+ordinary 409s on those routes keep their shape. A reason containing NUL is a 422; other control characters, Unicode bidi controls and zero-width characters are removed.
 Shift definitions carry `break_minutes` (unpaid break, 0 to 240). Attendance week
 rows, timesheet entries and the timesheet summary carry `overtime_bands` (rate and
 hours, no pay). Details: `docs/hr/roster-rules.md`.

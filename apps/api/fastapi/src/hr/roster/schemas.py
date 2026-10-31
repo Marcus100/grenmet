@@ -21,12 +21,16 @@ from .models import (
 )
 from .rules import RuleViolation
 
-_CONTROL = re.compile(r"[\x01-\x08\x0b-\x1f\x7f-\x9f]")
+# C0/C1 controls except tab and newline, plus Unicode bidi controls (which can
+# make a reason read differently from what is stored) and zero-width characters.
+_CONTROL = re.compile(
+    "[\x01-\x08\x0b-\x1f\x7f-\x9f\u061c\u200b-\u200f\u202a-\u202e\u2060-\u2069\ufeff]"
+)
 
 
 def _clean_reason(value: str | None) -> str | None:
-    """A supervisor's override reason: NUL is refused (422), other control
-    characters are removed; newlines and tabs are kept."""
+    """A supervisor's override reason: NUL is refused (422); other control,
+    bidi and zero-width characters are removed; newlines and tabs are kept."""
     if value is None:
         return None
     if "\x00" in value:
@@ -46,7 +50,9 @@ OverrideReason = Annotated[
         default=None,
         description=(
             "Required to save a change that breaks a roster rule; recorded with "
-            "the supervisor, the time and the rules overridden."
+            "the supervisor, the time and the rules overridden. At most 1,000 "
+            "characters; NUL is refused, and control, bidi and zero-width "
+            "characters are removed."
         ),
     ),
 ]

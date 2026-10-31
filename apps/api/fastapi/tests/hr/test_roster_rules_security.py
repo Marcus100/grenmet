@@ -1,5 +1,6 @@
 """Roster rules (#380): scope boundaries, legacy paths, reason hygiene, audit."""
 
+from collections.abc import Awaitable
 from datetime import date, timedelta
 from decimal import Decimal
 
@@ -8,6 +9,7 @@ import pytest
 from pydantic import ValidationError
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
+from starlette.requests import Request
 
 from src.auth.models import RoleAssignmentScope, User
 from src.config import settings
@@ -93,9 +95,9 @@ async def _rules_admin(
     return admin
 
 
-async def _denied(call: object) -> int:
+async def _denied(call: Awaitable[object]) -> int:
     with pytest.raises(AppException) as raised:
-        await call  # type: ignore[misc]
+        await call
     return raised.value.status_code
 
 
@@ -351,12 +353,16 @@ def test_reason_refuses_nul_and_strips_control_characters() -> None:
         RosterPublishRequest(rule_override_reason="cover\x00shift")
     cleaned = RosterPublishRequest(rule_override_reason="\x07Cover\tfor\nleave\x1b")
     assert cleaned.rule_override_reason == "Cover\tfor\nleave"
+    spoofed = RosterPublishRequest(
+        rule_override_reason="Sick\u202ecover\u200b leave\u2066\ufeff"
+    )
+    assert spoofed.rule_override_reason == "Sickcover leave"
 
 
 async def test_extra_error_fields_never_replace_detail() -> None:
     error = AppException("Real message", 409)
     error.extra = {"detail": "spoofed", "code": "ROSTER_RULE_WARNINGS"}
-    response = await app_exception_handler(None, error)  # type: ignore[arg-type]
+    response = await app_exception_handler(Request({"type": "http"}), error)
     body = response.body.decode()
     assert '"detail":"Real message"' in body
     assert "spoofed" not in body

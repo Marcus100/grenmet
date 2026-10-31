@@ -1,6 +1,7 @@
 # Roster rules (union roster terms)
 
 **Owner:** GAA/GMS (the rules and their values); Barrels Grenada engineering (the engine)
+**Last updated:** 2026-10-31
 **Status:** Built (issue #380). The owner confirmed the rules on 2026-10-31 and asked
 that they be enforced as fully as possible. Source references: GAA–GTAWU memorandum
 2024–2028, Articles 5, 6 and 8, from the controlled local copy cited in
@@ -79,7 +80,8 @@ reason; the API answers 409 with `code: ROSTER_RULE_WARNINGS`, the `context` and
 `violations`, and the client resends with `rule_override_reason`. Every route that can
 return these warnings declares its 409 as `RosterRuleWarningsErrorPublic`, a superset of
 `ApiError`: an ordinary conflict has only `detail`. The reason is at most 1,000
-characters; a NUL character is refused (422) and other control characters are removed.
+characters; a NUL character is refused (422) and other control characters, Unicode bidi
+controls and zero-width characters are removed.
 
 | Path | Checked | Context |
 | --- | --- | --- |
