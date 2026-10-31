@@ -8,9 +8,34 @@ Backend and public-feed contract: `apps/api/fastapi/src/cap/AGENTS.md`.
 
 ## Boundary
 
-- **Public and read-only for now.** No sign-in, cookies or CORS. CAP authoring
-  behind sign-in moves here from `apps/web/gaa-admin` later; do not add it
-  without a task for it.
+- **Public pages stay public and read-only.** Everything outside `/desk` and
+  `/auth` has no sign-in, never reads cookies or headers, and keeps the edge
+  cache header. Pages live in the `(public)` route group (header and footer);
+  the root layout is the document shell only.
+- **Staff warning desk under `/desk` (ADR-0054).** Registry key `cap`, staff
+  scope (ADR-0017): `/desk/signin` -> `/auth/start` -> auth.barrels.gd ->
+  `/auth/callback` (needs `CAP_SSO_CLIENT_SECRET`; unset, sign-in says it is
+  off). `src/proxy.ts` runs only for `/desk*` and checks the cookie exists;
+  `lib/desk/gate.ts` is the real check (staff token plus `cap.alert.read`),
+  called by every page. `/desk*` and `/auth/*` send `private, no-store` and
+  `X-Robots-Tag: noindex` (`next.config.ts`); Cloudflare needs a bypass rule
+  for both prefixes. Browser calls use `@barrelsgd/api-client` with base URL
+  `/desk`, through `app/desk/api/[...path]/route.ts`: an allow-list
+  (`lib/desk/proxy-rules.ts`), a same-origin check for changes, minimal
+  headers, the token added server-side. Add a rule there before using a new
+  endpoint from the desk. Server reads: `lib/desk/api.ts`.
+- **Desk scope.** Board, new warning, edit draft (PATCH), validate, submit,
+  review, approve, publish, emergency publish, cancel, expire and Issue update
+  (`POST /cap/alerts/{id}/updates`). Imported alerts are flagged and need the
+  "checked against the source" tick (`confirm_imported`). The editor reads the
+  GMS catalogue from `/cap/gms-catalogue`; `lib/desk/alert-form.ts` turns a
+  saved draft back into the form and carries over everything the form does not
+  show (other info blocks, parameters, resources, references are never sent).
+  The area picker restores parishes, one circle or one polygon only when it
+  would rebuild the same area; anything else is kept as saved. Admin screens
+  (settings, areas, feeds, profiles, import, audit) are still in GAA Admin,
+  whose desk keeps working during the parallel run
+  (`docs/operations/cap-desk-acceptance.md`).
 - Pages and feed routes only validate, proxy to or render FastAPI's public
   endpoints (`/api/cap/latest-active`, `/past`, `/alerts/{id}`,
   `/alerts.geojson`, `/rss.xml`, `/{id}.xml`). No database access, no warning
@@ -42,8 +67,9 @@ Backend and public-feed contract: `apps/api/fastapi/src/cap/AGENTS.md`.
   on the server from the GeoJSON, with no map library and no client JS. It
   shows alert areas and approximate place markers, not coastlines.
 - **Weight.** About 106 KB gzip of first-load JavaScript for modern browsers.
-  Keep it under 120 KB: no client Sentry SDK or analytics, no client
-  components beyond those named above.
+  Keep public pages under 120 KB: no client Sentry SDK or analytics, no client
+  components beyond those named above. Desk code (maps, editor) must stay
+  under `app/desk` and `components/desk` so it never reaches a public page.
 
 ## Routes
 
@@ -51,6 +77,9 @@ Backend and public-feed contract: `apps/api/fastapi/src/cap/AGENTS.md`.
 the whole past list, paged here, 20 per page), `/feeds`, `/about`,
 `/feeds/rss.xml`, `/feeds/alerts.geojson`, `/feeds/latest-active.json`,
 `/feeds/alerts/<identifier>.xml` (proxies of the API feeds), `/api/health`.
+Staff: `/desk`, `/desk/new`, `/desk/alerts/[id]`, `/desk/alerts/[id]/edit`,
+`/desk/signin`, `/desk/api/...` (proxy), `/auth/start|callback|logout`.
+E2E smoke: `pnpm --filter @barrelsgd/web-cap test:e2e` (needs the dev server).
 
 ## Commands
 

@@ -8,6 +8,12 @@ import type { NextConfig } from "next";
 const EDGE_CACHE =
   "public, max-age=0, s-maxage=60, stale-while-revalidate=300, stale-if-error=86400";
 
+// The staff warning desk (/desk) and its single sign-on routes (/auth) carry a
+// forecaster's session: never cached anywhere. Cloudflare also needs a bypass
+// rule for both prefixes (docs/operations/cap-desk-acceptance.md).
+const STAFF_NO_STORE = "private, no-store";
+const STAFF_PATHS = ["/desk", "/desk/:path*", "/auth/:path*"];
+
 const nextConfig: NextConfig = {
   // Link hrefs are checked against the app's routes at build time.
   typedRoutes: true,
@@ -18,11 +24,19 @@ const nextConfig: NextConfig = {
   outputFileTracingRoot: fileURLToPath(new URL("../../..", import.meta.url)),
   headers: async () => [
     {
-      // Pages only: static assets keep their immutable headers, health and
-      // the feed proxies set their own.
-      source: "/((?!_next/|api/|feeds/).*)",
+      // Public pages only: static assets keep their immutable headers, health
+      // and the feed proxies set their own, and the staff desk and its sign-in
+      // routes must never be stored by the edge or the browser (below).
+      source: "/((?!_next/|api/|feeds/|desk|auth/).*)",
       headers: [{ key: "Cache-Control", value: EDGE_CACHE }],
     },
+    ...STAFF_PATHS.map((source) => ({
+      source,
+      headers: [
+        { key: "Cache-Control", value: STAFF_NO_STORE },
+        { key: "X-Robots-Tag", value: "noindex, nofollow" },
+      ],
+    })),
   ],
 };
 
