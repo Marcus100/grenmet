@@ -5,12 +5,19 @@ which is what today's invoice and Events outlet records already are.
 """
 
 import uuid
-from collections.abc import Mapping
+from collections.abc import AsyncIterator, Mapping
+from contextlib import asynccontextmanager
 
 from src.payments.exceptions import InvalidCallbackError
 from src.payments.models import Intent, IntentStatus, ProviderKey
 
-from .base import PaymentStart, ProviderEvent, ProviderStatus, RefundResult
+from .base import (
+    PaymentStart,
+    ProviderEvent,
+    ProviderStatus,
+    RefundListing,
+    RefundResult,
+)
 
 
 class ManualProvider:
@@ -42,3 +49,12 @@ class ManualProvider:
 
     async def fetch_status(self, intent: Intent, /) -> ProviderStatus:
         return ProviderStatus(status=IntentStatus(intent.status).value)
+
+    async def list_refunds(self, _intent: Intent, /) -> RefundListing:
+        # Staff-recorded refunds have no provider copy to compare with.
+        return RefundListing(refunds=())
+
+    @asynccontextmanager
+    async def batch(self) -> AsyncIterator[None]:
+        # Nothing to connect to.
+        yield
