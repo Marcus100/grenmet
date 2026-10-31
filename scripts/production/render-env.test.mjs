@@ -1021,3 +1021,50 @@ test("the approved social hosts render empty by default and reach the API only",
 
 const GENERATED_LINK_LINE = (output) =>
   GENERATED_LINE(output, "SOCIAL_LINK_HOSTS");
+
+test("CMS_DISTRIBUTION_SECRET renders empty by default, needs 32 characters, and comes from a secret", () => {
+  const unset = render();
+  assert.equal(unset.result.status, 0, unset.result.stderr);
+  assert.equal(
+    GENERATED_LINE(unset.output, "CMS_DISTRIBUTION_SECRET"),
+    'CMS_DISTRIBUTION_SECRET=""'
+  );
+
+  const value = `distribution-fixture-${"x".repeat(20)}`;
+  const set = render({ CMS_DISTRIBUTION_SECRET: value });
+  assert.equal(set.result.status, 0, set.result.stderr);
+  assert.equal(
+    GENERATED_LINE(set.output, "CMS_DISTRIBUTION_SECRET"),
+    `CMS_DISTRIBUTION_SECRET="${value}"`
+  );
+
+  const short = render({ CMS_DISTRIBUTION_SECRET: "short-DO-NOT-ECHO" });
+  assert.notEqual(short.result.status, 0);
+  assert.ok(short.result.stderr.includes("at least 32 characters"));
+  assert.equal(short.result.stderr.includes("DO-NOT-ECHO"), false);
+
+  const workflow = readFileSync(".github/workflows/deploy.yml", "utf8");
+  const compose = readFileSync(
+    "infra/docker/docker-compose.deploy.yml",
+    "utf8"
+  );
+  const DOLLAR = "$";
+  // A GitHub environment secret, never a variable.
+  assert.ok(
+    workflow.includes(
+      `CMS_DISTRIBUTION_SECRET: ${DOLLAR}{{ secrets.CMS_DISTRIBUTION_SECRET }}`
+    )
+  );
+  assert.equal(workflow.includes("vars.CMS_DISTRIBUTION_SECRET"), false);
+  // The API service and the CMS environment anchor (shared by cms-migrate and web-cms).
+  assert.equal(
+    compose
+      .split("\n")
+      .filter((line) =>
+        line.includes(
+          `CMS_DISTRIBUTION_SECRET: ${DOLLAR}{CMS_DISTRIBUTION_SECRET:-}`
+        )
+      ).length,
+    2
+  );
+});

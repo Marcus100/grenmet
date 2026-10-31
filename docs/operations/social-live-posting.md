@@ -61,6 +61,7 @@ Do not paste the token into chat, email, a ticket or a file in the repository.
 | Instagram account id | GitHub environment **variable** `META_INSTAGRAM_ACCOUNT_ID` | Numbers only. |
 | Page access token | GitHub environment **secret** `META_PAGE_ACCESS_TOKEN` | Never a variable, never in a file. |
 | Approved hosts | GitHub environment **variables** `SOCIAL_LINK_HOSTS` (the GMS site, for example `gms.example.org`) and `SOCIAL_IMAGE_HOSTS` (the CMS media host) | Plain hostnames, comma-separated. Empty refuses every social post, so set them before the CMS sends posts. |
+| Distribution secret | GitHub environment **secret** `CMS_DISTRIBUTION_SECRET` (staging and production) | One value, at least 32 characters. The deployment gives it to both the API and the CMS. Never a variable, never in a file, never in chat. |
 | Feature flag | The Barrels admin app, Flags page: create the flag `social-live-posting` | See step 3. |
 
 The deployment passes these to the worker only. The release preflight refuses a page id
@@ -93,14 +94,22 @@ Flags take up to 30 seconds to reach the worker.
    `SOCIAL_IMAGE_HOSTS` to the host the CMS serves images from (plain hostnames, such
    as `gms.example.org`). Until these are set, the CMS cannot save any social post: the
    API refuses it with a message that names the host.
-2. **Rotate `CMS_DISTRIBUTION_SECRET`.** The secret that the CMS sends to the API. Before
-   live posting is switched on, generate a new value of at least 32 characters, set the
-   same value in the CMS and in the API, and deploy both. Do this once, so a value that
-   was used before go-live cannot post.
-3. **Open item (not yet done in the software).** The deployment files do not pass
-   `CMS_DISTRIBUTION_SECRET` to the API container yet. Until that is wired, the API
-   answers 503 to the CMS in deployed environments, and no social post is saved. This
-   needs a change to the deploy workflow, which the owner reviews.
+2. **Set `CMS_DISTRIBUTION_SECRET` in the staging and production environments.** In
+   GitHub, open the repository's Settings, then Environments, then `staging` (and later
+   `production`). Under Environment secrets, add a secret named exactly
+   `CMS_DISTRIBUTION_SECRET`. The value is at least 32 characters; generate it with
+   `openssl rand -base64 32` and paste it straight into GitHub. The next deploy passes
+   it to the API and the CMS. Until it is set, the API answers 503 to the CMS and no
+   social post is saved. Nothing is written to an `.env` file, and the value must not
+   go into chat, email or a ticket.
+   - Set it once, before go-live, so a value that was ever used in a test cannot post.
+     To change it later, set a new value in the same place and deploy.
+3. **The CMS also needs `GMS_SITE_URL`, which is an owner decision (open item).** The
+   CMS builds post addresses from the weather site's public origin
+   (`https://weather.<your domain>`). The deployment does not pass it to the CMS yet, so
+   the CMS sends nothing until it does. It is not wired because it also turns on post
+   addresses in the newsletter feed, which changes public output. Decide that first,
+   then ask engineering to wire it.
 
 ## 4. Switch on in staging first
 
