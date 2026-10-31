@@ -581,6 +581,8 @@ services:
       ENVIRONMENT: ${ENVIRONMENT}
       WXPRODUCTS_DB_NAME: ${WXPRODUCTS_DB_NAME}
       CAP_API_URL: http://api:8000
+      # "Try the new desk" link on /cap during the parallel run (apps/web/cap).
+      CAP_DESK_URL: https://cap.${BASE_DOMAIN}/desk
     labels:
       - "traefik.enable=true"
       # Hostname gms.* is the Met office portal; the public weather site is the
