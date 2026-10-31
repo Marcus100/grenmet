@@ -130,5 +130,28 @@ def month_fraction(basic: BasicPayFacts, start: date, end: date) -> Decimal:
     return Decimal(days) / Decimal(month_days)
 
 
+FORTNIGHTS_PER_YEAR = Decimal(26)
+MONTHS_PER_YEAR = Decimal(12)
+
+
+def period_fraction(
+    basic: BasicPayFacts, start: date, end: date, frequency: str
+) -> Decimal:
+    """Share of the monthly basic a period pays.
+
+    Monthly calendars: days covered over the days in the month. Fortnightly
+    calendars: 12/26 of a month for a full fortnight, prorated by the days of
+    the fortnight the basic covers.
+    """
+    if frequency != "FORTNIGHTLY":
+        return month_fraction(basic, start, end)
+    lo = max(start, basic.effective_from)
+    hi = min(end, basic.effective_to or end)
+    if hi < lo:
+        return Decimal(0)
+    days = Decimal((hi - lo + timedelta(days=1)).days)
+    return days / Decimal(14) * MONTHS_PER_YEAR / FORTNIGHTS_PER_YEAR
+
+
 def basic_salary_minor(basic: BasicPayFacts, fraction: Decimal) -> int:
     return to_minor(Decimal(basic.amount_minor) * fraction)

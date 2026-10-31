@@ -135,8 +135,8 @@ async def basic_salary_rows(
     ).all()
     result = []
     for basic, department_id in rows:
-        fraction = pricing.month_fraction(
-            _basic(basic), period.start_date, period.end_date
+        fraction = pricing.period_fraction(
+            _basic(basic), period.start_date, period.end_date, calendar.frequency
         )
         if fraction <= 0:
             continue
@@ -185,6 +185,12 @@ async def price_period(session: AsyncSession, period: PayPeriod) -> int:
     if not rates_by_item and not basics_by_user:
         return 0  # nothing priced in this organisation: slice 1 behaviour
     reversed_amounts = await _recorded_amounts(session, period, lines)
+    frequency = (
+        await session.scalar(
+            select(PayCalendar.frequency).where(PayCalendar.id == period.calendar_id)
+        )
+        or PayFrequency.MONTHLY.value
+    )
     changed = 0
     for line, method in lines:
         day = line.work_date or period.end_date
@@ -218,8 +224,11 @@ async def price_period(session: AsyncSession, period: PayPeriod) -> int:
                 pricing.Price(
                     pricing.basic_salary_minor(
                         _basic(own_basic),
-                        pricing.month_fraction(
-                            _basic(own_basic), period.start_date, period.end_date
+                        pricing.period_fraction(
+                            _basic(own_basic),
+                            period.start_date,
+                            period.end_date,
+                            frequency,
                         ),
                     )
                 )

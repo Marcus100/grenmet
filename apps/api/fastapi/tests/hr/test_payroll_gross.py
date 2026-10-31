@@ -369,3 +369,25 @@ async def test_hourly_staff_on_a_monthly_calendar_need_an_override(
     )
     assert overridden.status_code == 201, overridden.text
     assert overridden.json()["reason"].startswith("Calendar override:")
+
+
+def test_fortnightly_basic_is_twelve_twenty_sixths_of_a_month() -> None:
+    basic = pricing.BasicPayFacts(
+        id=1,
+        pay_basis="SALARIED",
+        amount_minor=520_000,
+        standard_monthly_hours=Decimal(160),
+        effective_from=date(2026, 1, 1),
+        effective_to=None,
+    )
+    full = pricing.period_fraction(
+        basic, date(2026, 9, 13), date(2026, 9, 26), "FORTNIGHTLY"
+    )
+    assert pricing.basic_salary_minor(basic, full) == 240_000  # 520000 x 12/26
+    started = pricing.BasicPayFacts(
+        **{**basic.__dict__, "effective_from": date(2026, 9, 20)}
+    )
+    half = pricing.period_fraction(
+        started, date(2026, 9, 13), date(2026, 9, 26), "FORTNIGHTLY"
+    )
+    assert pricing.basic_salary_minor(started, half) == 120_000  # 7 of 14 days
