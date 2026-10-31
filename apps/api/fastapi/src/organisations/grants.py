@@ -286,6 +286,9 @@ async def revoke_grant(
     )
     if grant is None:
         raise GrantNotFoundError()
+    if grant.membership_id == context.membership.id:
+        # Nobody changes their own roles, in either direction (``grant_role`` too).
+        raise SelfGrantError()
     bundle = role_bundles.bundle_keys(grant.role_key)
     if bundle is not None:
         await _require_may_change(session, context, bundle)

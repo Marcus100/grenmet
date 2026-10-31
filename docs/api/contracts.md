@@ -753,8 +753,9 @@ order; `follow_policy` refunds when the event starts at least `EVENTS_REFUND_CUT
 orders are refunded in full, unpaid holds released) cancels an event. The legacy
 `POST /events/manage/{id}/cancel` takes the same optional `refund` but defaults to `none`, and
 saving a listing as cancelled never moves money. Event cancel reports `orders_refunded`
-(manual rail, settled inline), `orders_queued` (provider rail), `orders_kept`, `orders_released`
-and `refunds_failed`.
+(manual rail, settled inline), `orders_queued` (provider rail), `orders_kept`, `orders_released`,
+`refunds_failed` and `orders_pending` (an earlier refund of the order is still waiting for the
+payment provider: not failed, not queued again).
 
 Provider-rail (card) refunds are never sent inside a request (one may wait per order; a second is 409, and the buyer email is shown to org admins/owners only): they are queued on the outbox topic
 `events.order_refund_requested` and sent with retries; the refund id is derived from the order and
@@ -805,7 +806,8 @@ Shared APIs for every Barrels app. Zones follow ADR-0025.
   optional UTC `expires_at`), `POST /grants/{grant_id}/revoke`, and admin-only
   `GET /members/{membership_id}/issued-grants`. Entry needs some entitled product's
   `team.manage` key (owner and admin implicitly); the grant rules (hold the bundle,
-  no self-grant 403, expiry cap 422, duplicate or lost race 409) live in
+  no self-grant and no revoking one's own grant, both 403; expiry cap 422; duplicate
+  or lost race 409) live in
   `grants.py`. Responses carry display names, never emails. Removing a member also
   revokes live grants they issued (audited with a count); a demotion only lists them.
   `issued-grants` lists direct grants only: revocation is not transitive. Member grant

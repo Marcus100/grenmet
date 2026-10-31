@@ -25,6 +25,15 @@ class PaymentsConfig(BaseSettings):
     #: How old a signed webhook may be before it is refused as a replay.
     WEBHOOK_TOLERANCE_SECONDS: int = 300
     REQUEST_TIMEOUT_SECONDS: float = 10.0
+    #: The daily refund reconciliation job (#869) checks captured provider payments
+    #: created in this many days, at most ``REFUND_RECONCILE_BATCH`` per run.
+    REFUND_RECONCILE_WINDOW_DAYS: int = 180
+    REFUND_RECONCILE_BATCH: int = 200
+    #: The run stops cleanly after this long, before the worker's 300 s job timeout.
+    REFUND_RECONCILE_BUDGET_SECONDS: float = 240.0
+    #: A payment's listing stops paging (incomplete, totals not compared) once less
+    #: than this much of the run's budget is left.
+    REFUND_RECONCILE_PAGE_MARGIN_SECONDS: float = 20.0
 
 
 payments_settings = PaymentsConfig()

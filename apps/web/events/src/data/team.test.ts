@@ -38,10 +38,16 @@ const failing = (status: number) => ({
       })
     ),
 });
-const rosterMember = (id: string, role = "member", grants: unknown[] = []) => ({
+const rosterMember = (
+  id: string,
+  role = "member",
+  grants: unknown[] = [],
+  isSelf = false
+) => ({
   membership_id: id,
   name: ` ${id} `,
   role,
+  is_self: isSelf,
   grants,
 });
 
@@ -93,6 +99,25 @@ describe("getTeam", () => {
     expect(team.members[0]).not.toHaveProperty("email");
     expect(team.bundles).toHaveLength(1);
     expect(team.totalPages).toBe(1);
+  });
+
+  it("carries the API's own-row flag onto each member", async () => {
+    rosterCall.mockReturnValue(
+      ok({
+        data: [rosterMember("m1", "member", [], true), rosterMember("m2")],
+        count: 2,
+        page: 1,
+        size: 25,
+      })
+    );
+    const team = await getTeam(context, viewer);
+    if (team.kind !== "ok") {
+      throw new Error("expected ok");
+    }
+    expect(team.members.map((m) => [m.fullName, m.isSelf])).toEqual([
+      ["m1", true],
+      ["m2", false],
+    ]);
   });
 
   it("takes removal and owner status from the capabilities, not from a refusal", async () => {

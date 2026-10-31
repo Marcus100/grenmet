@@ -367,9 +367,19 @@ async def grant_member_role(
     summary="Revoke a role grant",
     description=(
         "Needs the bundle's permissions and its product's team-manage permission. "
-        "Revoking an already revoked grant returns it unchanged."
+        "Nobody can revoke their own grant (403). Revoking an already revoked grant "
+        "returns it unchanged."
     ),
-    responses={**GRANT_ERRORS},
+    responses={
+        **GRANT_ERRORS,
+        403: {
+            "model": ApiError,
+            "description": (
+                "Lacks the bundle's permissions or the product's team-manage "
+                "permission, or the grant is the caller's own"
+            ),
+        },
+    },
 )
 async def revoke_member_grant(
     *, session: SessionDep, context: EventsOrgTeamManager, grant_id: str
