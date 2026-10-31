@@ -42,7 +42,11 @@ behaviour. Anything other than `true`/`false` stops the deploy.
 
 Direct connections from addresses outside Cloudflare are never matched by the
 gate: Traefik does not trust their forwarded headers at all, so they cannot pick
-a bucket either way, and the gate cannot cause an outage while records are grey.
+a bucket either way. The gate does match visitors who reach a **grey** record
+from a Cloudflare address: people using Cloudflare WARP (1.1.1.1 with WARP) or
+iCloud Private Relay can exit through Cloudflare's ranges, and with the switch
+on they get 403 until the record is orange (see the lockout window below).
+
 The secret sits in the Traefik router rule, so anyone who can read the droplet's
 container labels or the Traefik dashboard (SSH tunnel and basic auth) can read
 it; that is already root-equivalent access.
@@ -57,7 +61,7 @@ one person can **lock everyone else out**:
 
 | State | What is shared | What one abuser can do |
 | --- | --- | --- |
-| Switch on, records grey (or visitors whose DNS still points at the droplet) | Traefik's per-client cap: every direct visitor gets the same empty key, so 100 requests in flight in total. Events, bookings and weather send no visitor address to the API (no Cloudflare entry to read), so their limits key on the web container: for example 5 weather alert sign-ups a minute for everyone. The API's own direct limits (sign-in) still key on each visitor. | Hold 100 slow requests and stall the droplet's sites for everyone; or use up a shared sign-up or booking-code limit. |
+| Switch on, records grey (or visitors whose DNS still points at the droplet) | Visitors using Cloudflare WARP or iCloud Private Relay leave the internet from Cloudflare's addresses, so the origin gate refuses them (403) until the record is orange. For everyone else: Traefik's per-client cap: every direct visitor gets the same empty key, so 100 requests in flight in total. Events, bookings and weather send no visitor address to the API (no Cloudflare entry to read), so their limits key on the web container: for example 5 weather alert sign-ups a minute for everyone. The API's own direct limits (sign-in) still key on each visitor. | Hold 100 slow requests and stall the droplet's sites for everyone; or use up a shared sign-up or booking-code limit. (WARP and Private Relay users are refused outright, no abuser needed.) |
 | Switch off, records orange | Traefik does not trust Cloudflare, so every visitor appears as a Cloudflare edge: Traefik's cap, the API's limits and the web hosts' limits all key per edge. Most visitors from Grenada arrive through the same one or two edges. | Lock out everyone on their edge: sign-in, sign-ups, booking codes, the in-flight cap. |
 
 So keep the window to a couple of minutes, at a quiet hour, with the
@@ -117,21 +121,27 @@ changes nothing for visitors.
 3. **Security → Bots:** Bot Fight Mode **Off** (decision 3 above).
 4. **Browser Integrity Check: exempt the machine clients.** It is on by default
    on every plan and challenges requests whose `User-Agent` is missing or looks
-   like a script, which is what the weather collectors, Stripe, Resend and the
-   uptime probes send. Keep it on for people, and switch it off only for those
-   paths: Rules → Configuration Rules → Create rule, name
+   like a script, which is what the weather collectors, Stripe and Resend send.
+   Keep it on for people, and switch it off only for exactly these paths: Rules → Configuration Rules → Create rule, name
    `GrenMet machine clients (no Browser Integrity Check)`, custom expression
    (production; on staging use `api.staging.barrels.gd`):
    ```txt
    (http.host eq "api.barrels.gd" and (
-     starts_with(http.request.uri.path, "/api/v1/wxwatch/")
+     http.request.uri.path eq "/api/v1/wxwatch/ingest"
+     or starts_with(http.request.uri.path, "/api/v1/wxwatch/runs")
+     or http.request.uri.path eq "/api/v1/wxwatch/derivations"
      or http.request.uri.path eq "/api/v1/webhooks/resend"
      or http.request.uri.path eq "/api/v1/billing/webhooks/stripe"
      or starts_with(http.request.uri.path, "/api/v1/payments/public/webhooks/")))
    ```
    then **Browser Integrity Check: Off**, Deploy. (The free plan allows 10
-   configuration rules.) These paths authenticate every caller themselves
-   (ingest token, webhook signatures). If a machine client still gets a
+   configuration rules.) Each of these paths checks the caller itself: the
+   wxwatch ingest, run and derivation routes require the worker's ingest token
+   (`authenticate_worker`), and the three webhook routes reject a request
+   without a valid provider signature (Resend's Svix signature, Stripe's
+   `Stripe-Signature`, the payments provider's signature). Uptime probes and
+   the deploy smoke test send ordinary page requests; if Security → Events
+   shows one challenged, exempt that one health path the same way. If a machine client still gets a
    Cloudflare 403 or challenge page, Security → Events shows which feature
    stopped it; add its path here rather than turning the feature off for the
    zone.
@@ -199,7 +209,16 @@ AUTH=(-u "<one staging basic-auth user:password>")   # production: AUTH=()
    python3 scripts/production/cloudflare-origin-header.py --environment staging --apply
    ```
    This must be in place before the switch is on and any record is orange,
-   or Traefik refuses every proxied request with 403.
+   or Traefik refuses every proxied request with 403. The rule covers every
+   `<host>.$DOMAIN` plus any router alias in the env file's
+   `*_EXTRA_HOSTS_RULE` values (for example ``API_EXTRA_HOSTS_RULE=" || Host(`api.weather.gd`)"``
+   at the weather.gd cutover, `docs/weather-gd-golive.md`) and in
+   `CLOUDFLARE_EXTRA_HOSTS` (comma-separated). **When such an alias goes live**
+   and its record is proxied, re-run this step; if the alias is in another
+   Cloudflare zone (weather.gd), run it once more with that zone's
+   `CLOUDFLARE_ZONE_ID`, or the gate refuses the alias with 403. The cache
+   rules do not list aliases: an alias of `api.*` must also get its own
+   "never cache" rule in that zone before it is proxied.
 4. **Cache rules (harmless while grey).**
    ```bash
    python3 scripts/production/cloudflare-cache-rules.py --environment staging --print   # read the rules
@@ -261,7 +280,11 @@ switch on until the last record is orange.
    advanced certificate is not Active yet: grey the record and wait. A 525/526
    error means the origin certificate is wrong; follow the rollback, which keeps
    the same one-sitting order.
-8. **Verify** every acceptance item below.
+8. **Verify** every acceptance item below. On staging, test 3 has three parts
+   and all are required before production: the forged chain sent straight to
+   the droplet, the runtime check that requests through Cloudflare with the
+   secret answer 200 (Traefik routes before it strips the header), and the
+   header rule removed for a minute giving 403.
 9. **Origin firewall** (only once *every* droplet hostname is orange: a grey one
    stops working the moment this applies).
    ```bash
@@ -345,6 +368,24 @@ curl -s -o /dev/null -w '%{http_code}\n' --resolve "api.$DOMAIN:443:$ORIGIN_IP" 
 # still 429: the connection is not from Cloudflare, so Traefik drops the
 # forged X-Forwarded-For and the API keys on network A's real address
 ```
+
+**Through Cloudflare with the secret, at runtime.** Traefik must look for the
+header when it picks a router and only then remove it (the remove step runs on
+the entrypoint, after routing). If the order were wrong, every proxied request
+would be refused. With the header rule in place:
+
+```bash
+for host in events weather api; do
+  curl -s -o /dev/null -w "$host %{http_code}\n" "${AUTH[@]}" "https://$host.$DOMAIN/"
+done   # events 200, weather 200, api 404 or 200 (no 403 anywhere)
+curl -s "${AUTH[@]}" -H 'X-Barrels-Origin: guessed-by-a-visitor' -o /dev/null -w '%{http_code}\n' "https://events.$DOMAIN/"
+# 200: Cloudflare overwrites whatever a visitor sends with the real secret
+docker logs --since 5m "$P-proxy-1" 2>&1 | grep -c X-Barrels-Origin   # 0: never logged
+```
+
+That the header never reaches an app is covered by the repository's container
+check (Traefik with the same labels, header absent at the backend) and by the
+strip middleware being on every websecure request.
 
 **From Cloudflare's addresses without our zone's secret** (what another
 Cloudflare customer's Worker would look like): take the origin header rule off
