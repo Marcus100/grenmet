@@ -64,23 +64,3 @@ export const signInServiceDown = http.post(`${BASE}/auth/sessions`, () =>
 export const signOutSuccess = http.post(`${BASE}/auth/sessions/logout`, () =>
   HttpResponse.json({ message: "Logged out" })
 );
-
-export const signUpSuccess = http.post(`${BASE}/auth/users/signup`, () =>
-  HttpResponse.json({
-    id: "00000000-0000-4000-8000-000000000003",
-    email: "new@example.com",
-    username: "newuser",
-    first_name: "New",
-    last_name: "User",
-    middle_name: null,
-    full_name: "New User",
-    is_active: true,
-    is_superuser: false,
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString(),
-  })
-);
-
-export const signUpEmailTaken = http.post(`${BASE}/auth/users/signup`, () =>
-  HttpResponse.json({ detail: "Email already registered" }, { status: 400 })
-);
