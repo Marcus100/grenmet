@@ -33,6 +33,7 @@ from src.organisations.models import (
     MembershipStatus,
 )
 from src.organisations.schemas import (
+    GrantRevokePublic,
     MembershipGrantPublic,
     RoleBundlePublic,
     TeamCapabilitiesPublic,
@@ -319,7 +320,10 @@ async def grant(
 
 async def revoke(
     session: AsyncSession, context: OrgContext, *, grant_id: str
-) -> MembershipGrantPublic:
+) -> GrantRevokePublic:
     async with conflicts_as_409():
-        row = await grants.revoke_grant(session, context, grant_id=grant_id)
-    return (await _to_public(session, [row]))[0]
+        result = await grants.revoke_grant_detailed(session, context, grant_id=grant_id)
+    public = (await _to_public(session, [result.grant]))[0]
+    return GrantRevokePublic(
+        **public.model_dump(), cascaded_revocations=result.cascaded
+    )
