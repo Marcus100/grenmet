@@ -1330,7 +1330,7 @@
           "2fa"
         ],
         "summary": "Begin 2FA enrollment",
-        "description": "Generate a new TOTP secret and provisioning URI. 2FA is not active until a code is confirmed via /auth/users/me/security/2fa/activate.",
+        "description": "Generate a new TOTP secret and provisioning URI. 2FA is not active until a code is confirmed via /auth/users/me/security/2fa/activate. For a privileged account a one-time code is emailed to the account, and activation needs it as email_code (email_code_required is true).",
         "operationId": "authTwofaSetup",
         "responses": {
           "200": {
@@ -1387,7 +1387,7 @@
           "2fa"
         ],
         "summary": "Activate 2FA",
-        "description": "Confirms a TOTP code and enables two-factor authentication for the current account.",
+        "description": "Confirms a TOTP code and enables two-factor authentication for the current account. The first authenticator of a privileged account also needs email_code, the code emailed when setup began.",
         "operationId": "authTwofaActivate",
         "requestBody": {
           "content": {
@@ -30091,7 +30091,7 @@
           "organisations"
         ],
         "summary": "Revoke a role grant",
-        "description": "Needs the bundle's permissions and its product's team-manage permission. Nobody can revoke their own grant (403). Revoking an already revoked grant returns it unchanged.",
+        "description": "Needs the bundle's permissions and its product's team-manage permission. Nobody can revoke their own grant (403). Revoking an already revoked grant returns it unchanged. Grants that depended on it, through the members it was granted to, are revoked too; ``cascaded_revocations`` counts them. Revoking a team grant can end the grants its holder issued. 409 when the cascade would end more than 200 roles.",
         "operationId": "organisationsRevokeMemberGrant",
         "security": [
           {
@@ -30133,7 +30133,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/MembershipGrantPublic"
+                  "$ref": "#/components/schemas/GrantRevokePublic"
                 }
               }
             }
@@ -77751,6 +77751,81 @@
         ],
         "title": "GrantCreate"
       },
+      "GrantRevokePublic": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "membership_id": {
+            "type": "string",
+            "title": "Membership Id"
+          },
+          "member_name": {
+            "type": "string",
+            "title": "Member Name"
+          },
+          "role_key": {
+            "type": "string",
+            "title": "Role Key"
+          },
+          "granted_by_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Granted By Name"
+          },
+          "granted_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Granted At"
+          },
+          "expires_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Expires At"
+          },
+          "revoked_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Revoked At"
+          },
+          "cascaded_revocations": {
+            "type": "integer",
+            "title": "Cascaded Revocations",
+            "default": 0
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "membership_id",
+          "member_name",
+          "role_key",
+          "granted_at"
+        ],
+        "title": "GrantRevokePublic",
+        "description": "The revoked grant and how many other grants the cascade ended (#527)."
+      },
       "GroupDetail": {
         "properties": {
           "id": {
@@ -107664,6 +107739,19 @@
             "maxLength": 10,
             "minLength": 6,
             "title": "Code"
+          },
+          "email_code": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 6,
+                "minLength": 6
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Email Code"
           }
         },
         "type": "object",
@@ -107703,6 +107791,11 @@
           "provisioning_uri": {
             "type": "string",
             "title": "Provisioning Uri"
+          },
+          "email_code_required": {
+            "type": "boolean",
+            "title": "Email Code Required",
+            "default": false
           }
         },
         "type": "object",
