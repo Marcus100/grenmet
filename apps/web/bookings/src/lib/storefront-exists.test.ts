@@ -2,7 +2,6 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
   forgetStorefrontAnswers,
   STOREFRONT_ANSWER_TTL_MS,
-  STOREFRONT_UNKNOWN_TTL_MS,
   storefrontExists,
 } from "@/lib/storefront-exists";
 
@@ -66,13 +65,7 @@ describe("storefrontExists", () => {
     // A stalled API is not asked again straight away.
     expect(await storefrontExists("sea-salt", visitor, 1000 + 4000)).toBeNull();
     expect(sent).toHaveLength(0);
-    expect(
-      await storefrontExists(
-        "sea-salt",
-        visitor,
-        1000 + STOREFRONT_UNKNOWN_TTL_MS
-      )
-    ).toBe(true);
+    expect(await storefrontExists("sea-salt", visitor, 1000 + 5000)).toBe(true);
   });
 
   it("gives the API a deadline, and treats running out of time as unknown", async () => {
@@ -110,8 +103,6 @@ describe("storefrontExists", () => {
     expect(await storefrontExists("gone", visitor, 1000 + 59_000)).toBe(false);
     expect(sent).toHaveLength(1);
     answer(200);
-    expect(
-      await storefrontExists("gone", visitor, 1000 + STOREFRONT_ANSWER_TTL_MS)
-    ).toBe(true);
+    expect(await storefrontExists("gone", visitor, 1000 + 60_000)).toBe(true);
   });
 });
