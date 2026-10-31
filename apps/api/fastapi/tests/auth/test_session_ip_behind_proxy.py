@@ -17,7 +17,9 @@ from tests.factories import make_user
 
 CLOUDFLARE_EDGE = "172.70.1.1"
 AUTH_SOURCE = Path(__file__).resolve().parents[2] / "src" / "auth"
-CLIENT_HOST = re.compile(r"request\.client\.host")
+# Any direct read of the connecting peer: request.client(.host), or slowapi's
+# get_remote_address, which reads the same thing.
+RAW_PEER = re.compile(r"\.client\b|get_remote_address")
 
 
 def _request(forwarded: str | None, client: tuple[str, int] | None) -> Request:
@@ -63,13 +65,15 @@ def test_one_hop_keeps_uvicorns_address(monkeypatch: pytest.MonkeyPatch) -> None
     assert request_ip(request) == CLOUDFLARE_EDGE
 
 
-def test_auth_never_reads_the_raw_client_host() -> None:
+def test_auth_never_reads_the_raw_peer_address() -> None:
     offenders = [
         str(path.relative_to(AUTH_SOURCE))
         for path in AUTH_SOURCE.rglob("*.py")
-        if CLIENT_HOST.search(path.read_text())
+        if RAW_PEER.search(path.read_text())
     ]
-    assert offenders == [], "use src.rate_limit.request_ip() for session addresses"
+    assert offenders == [], (
+        "use src.rate_limit.request_ip() or connecting_address(), not request.client"
+    )
 
 
 async def test_password_sign_in_records_the_visitor_behind_cloudflare(
