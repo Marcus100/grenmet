@@ -8,6 +8,7 @@ import {
   primaryInfo,
 } from "@/lib/cap-api";
 import { SEVERITY_RISK_VAR } from "@/lib/cap-severity";
+import { SchemaFlag } from "./schema-flag";
 import { SeverityBadge } from "./severity-badge";
 
 export function AlertList({
@@ -44,6 +45,7 @@ export function AlertList({
               <div className="min-w-0 space-y-2">
                 <div className="flex flex-wrap items-center gap-2">
                   {info ? <SeverityBadge severity={info.severity} /> : null}
+                  <SchemaFlag alert={alert} />
                   <span className="text-body-sm text-gm-text-muted leading-body-sm">
                     {alert.lifecycle_state}
                   </span>

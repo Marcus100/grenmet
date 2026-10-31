@@ -18,8 +18,12 @@ import {
   SelectValue,
 } from "@barrelsgd/ui/components/ui/select";
 import { useRouter } from "next/navigation";
+import type { ComponentProps } from "react";
 import { useState } from "react";
-import { useGmsCatalogue } from "@/components/cap/gms-catalogue";
+import {
+  GmsCatalogueBoundary,
+  useGmsCatalogue,
+} from "@/components/cap/gms-catalogue";
 import { WarningLevelPicker } from "@/components/cap/warning-level-picker";
 import { type GmsProduct, needsColour } from "@/lib/cap-levels";
 import { emptySubtype, floodProfile } from "@/lib/cap-profile-defaults";
@@ -35,7 +39,7 @@ const CHANNELS = [
   "Agency channels",
 ] as const;
 
-export function ProfileEditor({
+function ProfileEditorContent({
   initialVersions,
   canManageLibrary = false,
 }: {
@@ -437,5 +441,16 @@ export function ProfileEditor({
         </section>
       </fieldset>
     </div>
+  );
+}
+
+/** Shows a message in place of this panel when the GMS catalogue cannot load. */
+export function ProfileEditor(
+  props: ComponentProps<typeof ProfileEditorContent>
+) {
+  return (
+    <GmsCatalogueBoundary>
+      <ProfileEditorContent {...props} />
+    </GmsCatalogueBoundary>
   );
 }

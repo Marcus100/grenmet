@@ -1,6 +1,7 @@
 import { Button } from "@barrelsgd/ui/components/ui/button";
 import { FileText, MapPin } from "lucide-react";
 import type { Metadata } from "next";
+import { SchemaFlag } from "@/components/cap/schema-flag";
 import { SeverityBadge } from "@/components/cap/severity-badge";
 import {
   capPublicUrl,
@@ -35,6 +36,7 @@ export default async function AlertDetailPage({ params }: Props) {
         <div className="min-w-0">
           <div className="mb-3 flex flex-wrap items-center gap-2">
             {info ? <SeverityBadge severity={info.severity} /> : null}
+            <SchemaFlag alert={alert} />
             <span className="text-body-sm text-gm-text-muted leading-body-sm">
               {alert.msg_type}
             </span>

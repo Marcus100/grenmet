@@ -12,8 +12,12 @@ import {
 import { Label } from "@barrelsgd/ui/components/ui/label";
 import { Textarea } from "@barrelsgd/ui/components/ui/textarea";
 import { useRouter } from "next/navigation";
+import type { ComponentProps } from "react";
 import { useId, useState } from "react";
-import { useGmsCatalogue } from "@/components/cap/gms-catalogue";
+import {
+  GmsCatalogueBoundary,
+  useGmsCatalogue,
+} from "@/components/cap/gms-catalogue";
 import { colourLabel } from "@/lib/cap-levels";
 import { useIbfSuggestion } from "./use-ibf-suggestion";
 
@@ -27,7 +31,7 @@ export const MIN_OVERRIDE_REASON = 10;
  * draft, asks FastAPI for the pre-filled CAP draft and resolves to its id, or
  * to an error message. The green alert itself is left in force.
  */
-export function RaiseToWarningDialog({
+function RaiseToWarningDialogContent({
   onOpenChange,
   onRaise,
   open,
@@ -192,5 +196,16 @@ export function RaiseToWarningDialog({
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>
+  );
+}
+
+/** Shows a message in place of this panel when the GMS catalogue cannot load. */
+export function RaiseToWarningDialog(
+  props: ComponentProps<typeof RaiseToWarningDialogContent>
+) {
+  return (
+    <GmsCatalogueBoundary>
+      <RaiseToWarningDialogContent {...props} />
+    </GmsCatalogueBoundary>
   );
 }

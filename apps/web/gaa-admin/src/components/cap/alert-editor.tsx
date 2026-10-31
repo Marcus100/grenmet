@@ -34,10 +34,13 @@ import { ArrowLeft, Save } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import type { ComponentProps } from "react";
 import { useState } from "react";
-
 import { AreaPicker } from "@/components/cap/area-picker";
-import { useGmsCatalogue } from "@/components/cap/gms-catalogue";
+import {
+  GmsCatalogueBoundary,
+  useGmsCatalogue,
+} from "@/components/cap/gms-catalogue";
 import { HazardClassification } from "@/components/cap/hazard-classification";
 import { LivePreview, ReadinessChecklist } from "@/components/cap/live-preview";
 import { RiskLadder } from "@/components/cap/risk-ladder";
@@ -156,7 +159,7 @@ function SettingsHint({ show }: { show: boolean }) {
   ) : null;
 }
 
-export function NewAlertEditor({
+function NewAlertEditorContent({
   catalogs,
   settings,
 }: {
@@ -510,17 +513,21 @@ export function NewAlertEditor({
               />
             </div>
             <Field label="Language">
-              <Input
-                list="cap-languages"
-                onChange={(e) => update("language", e.target.value)}
-                placeholder="e.g. en"
+              <Select
+                onValueChange={(v) => update("language", v ?? "")}
                 value={form.language}
-              />
-              <datalist id="cap-languages">
-                {catalogs.languages.map((language) => (
-                  <option key={language} value={language} />
-                ))}
-              </datalist>
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {catalogs.languages.map((language) => (
+                    <SelectItem key={language} value={language}>
+                      {language}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </Field>
           </Section>
 
@@ -719,5 +726,16 @@ export function NewAlertEditor({
         </Button>
       </div>
     </div>
+  );
+}
+
+/** Shows a message in place of this panel when the GMS catalogue cannot load. */
+export function NewAlertEditor(
+  props: ComponentProps<typeof NewAlertEditorContent>
+) {
+  return (
+    <GmsCatalogueBoundary>
+      <NewAlertEditorContent {...props} />
+    </GmsCatalogueBoundary>
   );
 }

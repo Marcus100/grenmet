@@ -11,10 +11,14 @@ import { Label } from "@barrelsgd/ui/components/ui/label";
 import { booleanPointInPolygon } from "@turf/boolean-point-in-polygon";
 import { Check, RotateCcw } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
+import type { ComponentProps } from "react";
 import { useEffect, useId, useMemo, useState } from "react";
 import type { MapLayerMouseEvent } from "react-map-gl/maplibre";
 import { Layer, Source } from "react-map-gl/maplibre";
-import { useGmsCatalogue } from "@/components/cap/gms-catalogue";
+import {
+  GmsCatalogueBoundary,
+  useGmsCatalogue,
+} from "@/components/cap/gms-catalogue";
 import { GRENADA_PARISH_BOUNDARIES } from "@/data/cap/grenada-boundaries";
 import {
   buildCircleArea,
@@ -47,7 +51,7 @@ export interface AreaPickerProps {
  * boundary map. Every mode ends in a plain CapAreaCreate[] the parent form
  * posts as-is; there is no separate "visual" model to keep in sync.
  */
-export function AreaPicker({ onAreasChange, severity }: AreaPickerProps) {
+function AreaPickerContent({ onAreasChange, severity }: AreaPickerProps) {
   const catalogue = useGmsCatalogue();
   const [mode, setMode] = useState<AreaMode>("GEOCODE");
   const [parishIds, setParishIds] = useState<string[]>([]);
@@ -445,5 +449,14 @@ function AreaMap({
         ) : null}
       </CapMap>
     </div>
+  );
+}
+
+/** Shows a message in place of this panel when the GMS catalogue cannot load. */
+export function AreaPicker(props: ComponentProps<typeof AreaPickerContent>) {
+  return (
+    <GmsCatalogueBoundary>
+      <AreaPickerContent {...props} />
+    </GmsCatalogueBoundary>
   );
 }

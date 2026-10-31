@@ -1,5 +1,9 @@
 "use client";
-import { useGmsCatalogue } from "@/components/cap/gms-catalogue";
+import type { ComponentProps } from "react";
+import {
+  GmsCatalogueBoundary,
+  useGmsCatalogue,
+} from "@/components/cap/gms-catalogue";
 import { COLOUR_SURFACE, colourLabel } from "@/lib/cap-levels";
 import { useIbfSuggestion } from "./use-ibf-suggestion";
 
@@ -8,7 +12,7 @@ import { useIbfSuggestion } from "./use-ibf-suggestion";
  * chosen in the form. It only advises: the forecaster decides, and choosing a
  * different colour when raising a warning needs a reason.
  */
-export function ImpactMatrixPanel({
+function ImpactMatrixPanelContent({
   kind,
   likelihood,
   impact,
@@ -56,5 +60,16 @@ export function ImpactMatrixPanel({
         </p>
       )}
     </section>
+  );
+}
+
+/** Shows a message in place of this panel when the GMS catalogue cannot load. */
+export function ImpactMatrixPanel(
+  props: ComponentProps<typeof ImpactMatrixPanelContent>
+) {
+  return (
+    <GmsCatalogueBoundary>
+      <ImpactMatrixPanelContent {...props} />
+    </GmsCatalogueBoundary>
   );
 }

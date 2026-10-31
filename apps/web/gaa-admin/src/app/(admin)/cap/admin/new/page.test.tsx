@@ -102,11 +102,10 @@ function clickSaveDraft() {
 }
 
 describe("NewAlertPage", () => {
-  it("offers language suggestions from the server catalogue", () => {
+  it("constrains the language to the server's language list, with no free text", () => {
     render(<NewAlertPage />);
-    expect(
-      document.querySelector('#cap-languages option[value="fr"]')
-    ).not.toBeNull();
+    expect(document.querySelector("#cap-languages")).toBeNull();
+    expect(screen.getByText("en")).toBeInTheDocument();
   });
   it("submits a CapAlertCreate payload and opens the saved draft", async () => {
     await renderWithLevel();
