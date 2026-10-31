@@ -17,8 +17,15 @@ interface HeaderReader {
 
 /** Answers are kept this long, so repeat visits do not each cost an extra call. */
 export const STOREFRONT_ANSWER_TTL_MS = 60_000;
+/**
+ * "Could not tell" is kept only briefly: long enough that a stalled API does
+ * not add the timeout to every request, short enough to recover quickly.
+ */
+export const STOREFRONT_UNKNOWN_TTL_MS = 5000;
+/** The API gets this long to answer before the page is left to decide. */
+export const STOREFRONT_TIMEOUT_MS = 3000;
 const MAX_ANSWERS = 500;
-const answers = new Map<string, { at: number; exists: boolean }>();
+const answers = new Map<string, { at: number; exists: boolean | null }>();
 
 /** Forgets every kept answer. For tests. */
 export function forgetStorefrontAnswers(): void {
@@ -28,8 +35,8 @@ export function forgetStorefrontAnswers(): void {
 /**
  * True when `slug` has a booking page, false when the API says there is none
  * (404, or 422 for a slug it cannot read), and null when the API could not
- * answer: the page then makes the call itself and decides. Definite answers
- * are kept for a minute.
+ * answer in time: the page then makes the call itself and decides. Definite
+ * answers are kept for a minute, "could not tell" for five seconds.
  */
 export async function storefrontExists(
   slug: string,
@@ -37,10 +44,16 @@ export async function storefrontExists(
   now: number = Date.now()
 ): Promise<boolean | null> {
   const kept = answers.get(slug);
-  if (kept && now - kept.at < STOREFRONT_ANSWER_TTL_MS) {
-    return kept.exists;
+  if (kept) {
+    const ttl =
+      kept.exists === null
+        ? STOREFRONT_UNKNOWN_TTL_MS
+        : STOREFRONT_ANSWER_TTL_MS;
+    if (now - kept.at < ttl) {
+      return kept.exists;
+    }
   }
-  let exists: boolean;
+  let exists: boolean | null;
   try {
     await bookingsGetStorefront({
       client: createClient({
@@ -53,6 +66,7 @@ export async function storefrontExists(
         ),
       }),
       path: { slug },
+      signal: AbortSignal.timeout(STOREFRONT_TIMEOUT_MS),
     }).unwrap();
     exists = true;
   } catch (error) {
@@ -62,15 +76,25 @@ export async function storefrontExists(
     ) {
       exists = false;
     } else {
-      return null;
+      exists = null;
     }
   }
+  remember(slug, { at: now, exists });
+  return exists;
+}
+
+/** Keeps an answer as the newest entry, dropping the oldest when full. */
+function remember(
+  slug: string,
+  answer: { at: number; exists: boolean | null }
+): void {
+  // Re-inserting moves the key to the end, so a live entry is not evicted early.
+  answers.delete(slug);
   if (answers.size >= MAX_ANSWERS) {
     const oldest = answers.keys().next().value;
     if (oldest !== undefined) {
       answers.delete(oldest);
     }
   }
-  answers.set(slug, { at: now, exists });
-  return exists;
+  answers.set(slug, answer);
 }
