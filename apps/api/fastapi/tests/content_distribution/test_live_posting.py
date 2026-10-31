@@ -807,3 +807,50 @@ async def test_the_staff_list_shows_a_retrying_post_as_failed_with_its_reason(
     assert by_platform["facebook"]["status"] == "failed"
     assert by_platform["facebook"]["error"] == "Meta is busy (HTTP 429)"
     assert by_platform["whatsapp"]["status"] == "pending"
+
+
+async def test_a_link_host_removed_after_intake_is_not_posted(
+    async_client: httpx.AsyncClient,
+    db_async: AsyncSession,
+    cms_secret: dict[str, str],
+    fake_meta: FakeMeta,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    await _switch_live_on(db_async)
+    fake_meta.answer = _answer_with(_ok({"id": FB_POST}))
+    await _intake_and_release(
+        async_client,
+        db_async,
+        cms_secret,
+        "host-removed-link",
+        ["facebook"],
+        image=False,
+    )
+    # The owner takes the link host off the list after the post was saved.
+    monkeypatch.setattr(settings, "SOCIAL_LINK_HOSTS", "elsewhere.example.test")
+    assert await _drain(db_async, TOPIC_FB) == 1
+    row = await _one(db_async, "host-removed-link", "facebook")
+    assert row.status == "dead"
+    assert row.error is not None
+    assert "link host is no longer on the approved list" in row.error
+    assert fake_meta.requests == []
+
+
+async def test_an_image_host_removed_after_intake_is_not_posted(
+    async_client: httpx.AsyncClient,
+    db_async: AsyncSession,
+    cms_secret: dict[str, str],
+    fake_meta: FakeMeta,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    await _switch_live_on(db_async)
+    await _intake_and_release(
+        async_client, db_async, cms_secret, "host-removed-image", ["instagram"]
+    )
+    monkeypatch.setattr(settings, "SOCIAL_IMAGE_HOSTS", "elsewhere.example.test")
+    assert await _drain(db_async, TOPIC_IG) == 1
+    row = await _one(db_async, "host-removed-image", "instagram")
+    assert row.status == "dead"
+    assert row.error is not None
+    assert "image host is no longer on the approved list" in row.error
+    assert fake_meta.requests == []

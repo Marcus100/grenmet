@@ -20,6 +20,7 @@ from . import meta_graph
 from .config import PlatformCredentials, content_distribution_settings
 from .constants import (
     AUTOMATED_PLATFORMS,
+    ERROR_HOST_REMOVED,
     ERROR_OUTCOME_UNKNOWN,
     IMAGE_REQUIRED_PLATFORMS,
     PLATFORM_FACEBOOK,
@@ -40,6 +41,7 @@ from .constants import (
     WARNING_PATH_PREFIXES,
 )
 from .exceptions import (
+    SocialAddressNotPlain,
     SocialCaptionMissing,
     SocialHostNotAllowed,
     SocialImageRequired,
@@ -67,9 +69,51 @@ def _is_warning_link(url: str) -> bool:
     )
 
 
+# Ports a post address may name: none, or the https default.
+ALLOWED_PORTS = (None, 443)
+
+
+def address_problem(url: str) -> str | None:
+    """Why a link or image address is refused, or None when it is a plain address.
+
+    Checked before the host allowlist, because a URL parser and a browser can disagree
+    about where a URL goes. Python reads ``https://evil.com\\x@allowed.com`` as the host
+    ``allowed.com``; a browser treats the backslash as a slash and goes to ``evil.com``.
+    So backslashes, user information and ports other than 443 are refused outright.
+    """
+    if "\\" in url:
+        return "contains a backslash"
+    parts = urlsplit(url)
+    if parts.username is not None or parts.password is not None or "@" in parts.netloc:
+        return "contains user information"
+    try:
+        port = parts.port
+    except ValueError:
+        return "has an invalid port"
+    if port not in ALLOWED_PORTS:
+        return "uses a port other than 443"
+    return None
+
+
 def _host(url: str) -> str | None:
     # urlsplit lower-cases the hostname; None for a URL with no host.
     return urlsplit(url).hostname
+
+
+def _delivery_host_problem(url: str | None, image_url: str | None) -> str | None:
+    """Which of a saved post's addresses is no longer approved ("link" or "image"),
+    or None. Run again at delivery: the approved lists can change after intake."""
+    link_host = _host(url) if url else None
+    if link_host is None or link_host not in content_distribution_settings.link_hosts():
+        return "link"
+    if image_url is not None:
+        image_host = _host(image_url)
+        if (
+            image_host is None
+            or image_host not in content_distribution_settings.image_hosts()
+        ):
+            return "image"
+    return None
 
 
 def check_post_rules(body: PostIn) -> None:
@@ -78,6 +122,10 @@ def check_post_rules(body: PostIn) -> None:
     list refuses every post (fail closed)."""
     if body.collection in WARNING_COLLECTIONS or _is_warning_link(body.url):
         raise SocialWarningNotAllowed()
+    for what, address in ("link", body.url), ("image", body.image_url):
+        problem = address_problem(address) if address is not None else None
+        if problem is not None:
+            raise SocialAddressNotPlain(what, problem)
     link_host = _host(body.url)
     if link_host not in content_distribution_settings.link_hosts():
         raise SocialHostNotAllowed("link", link_host)
@@ -367,6 +415,19 @@ async def post_delivery(session: AsyncSession, message: OutboxMessage) -> None:
             status=STATUS_DRY_RUN_SENT,
             external_id=f"dry-run:{row.id}",
             reason=reason,
+        )
+        return
+    host_problem = _delivery_host_problem(_text(row.payload.get("url")), image_url)
+    if host_problem is not None:
+        logger.warning(
+            "Approved host removed after intake; social post not sent",
+            extra={"platform": row.platform, "delivery_id": str(row.id)},
+        )
+        _settle(
+            row,
+            message,
+            status=STATUS_DEAD,
+            error=ERROR_HOST_REMOVED.format(what=host_problem),
         )
         return
     await _publish_live(session, row, message, credentials, image_url)

@@ -49,6 +49,13 @@ REASON_TOKEN_MALFORMED: Final = (
 REASON_NO_IMAGE: Final = (
     "Instagram posts need an image. This post has none, so it was skipped."
 )
+# A post whose approved host was removed after it was saved is never sent. {what} is
+# "link" or "image".
+ERROR_HOST_REMOVED: Final = (
+    "Not posted: the {what} host is no longer on the approved list (SOCIAL_LINK_HOSTS "
+    "or SOCIAL_IMAGE_HOSTS changed after the post was saved). Post it by hand if it is "
+    "still needed; saving the post again does not change this row."
+)
 # Shown for a publish call that may have reached Meta without an answer (including a
 # server error on the publish call itself).
 ERROR_OUTCOME_UNKNOWN: Final = (

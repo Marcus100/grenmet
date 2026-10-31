@@ -159,3 +159,16 @@ def test_an_empty_or_whitespace_token_is_unset_not_malformed() -> None:
     )
     assert config.token_looks_malformed() is False
     assert config.platform_credentials("facebook") is None
+
+
+def test_the_access_token_never_appears_in_the_credentials_repr() -> None:
+    token = "EAABpage-token-value-0123456789"
+    config = ContentDistributionConfig(
+        _env_file=None,
+        META_PAGE_ID="123",
+        META_PAGE_ACCESS_TOKEN=SecretStr(token),
+    )
+    credentials = config.platform_credentials("facebook")
+    assert credentials is not None
+    assert token not in repr(credentials)
+    assert "123" in repr(credentials)

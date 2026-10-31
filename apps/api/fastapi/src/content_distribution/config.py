@@ -10,7 +10,7 @@ database. ``SOCIAL_TOKEN_ENCRYPTION_KEYS`` is for sealing platform tokens at res
 """
 
 import re
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 from pydantic import SecretStr, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -38,10 +38,11 @@ def _hosts(raw: str) -> frozenset[str]:
 
 @dataclass(frozen=True)
 class PlatformCredentials:
-    """What one live platform needs. ``access_token`` is a secret: never log it."""
+    """What one live platform needs. ``access_token`` is a secret: it is left out of
+    ``repr`` so an exception or a debug print cannot show it."""
 
     account_id: str
-    access_token: str
+    access_token: str = field(repr=False)
 
 
 class ContentDistributionConfig(BaseSettings):

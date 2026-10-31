@@ -26,6 +26,15 @@ class SocialWarningNotAllowed(AppException):
         )
 
 
+class SocialAddressNotPlain(AppException):
+    def __init__(self, what: str, problem: str) -> None:
+        super().__init__(
+            f"The {what} address {problem}. Use a plain https address with no user "
+            "information, no backslash and no port other than 443.",
+            status.HTTP_422_UNPROCESSABLE_ENTITY,
+        )
+
+
 class SocialHostNotAllowed(AppException):
     def __init__(self, what: str, host: str | None) -> None:
         shown = host if host else "an address with no host name"

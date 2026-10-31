@@ -40,6 +40,10 @@ content.
   (A stored Instagram row with no image is still skipped by the handler, with the
   reason, as a backstop.)
 - Duplicate platforms and non-HTTPS links are refused by the schema.
+- A link or image address must be plain https: no backslash, no user information and no
+  port other than 443 (`service.address_problem`, a 422 `SocialAddressNotPlain` at intake). Python's parser
+  and a browser read `https://evil.com\x@allowed.com` differently, so the address is refused
+  before the host list is consulted.
 - The link (`url`) and the image (`imageUrl`) must be on an approved host: the hostnames
   in `SOCIAL_LINK_HOSTS` and `SOCIAL_IMAGE_HOSTS`. Otherwise 422 (`SocialHostNotAllowed`,
   the message names the host). The lists are empty by default, which refuses every post
@@ -74,6 +78,11 @@ content.
    - otherwise `_publish_live` sends it through `meta_graph.py` and records the answer.
 4. **Give up:** after 5 attempts the outbox runs `dead_letter`, which marks the row
    `dead` with the error text for the editor (the Meta message when there is one).
+
+The handler checks the link and image hosts against the current lists again, just before
+publishing. A host removed after intake makes the row `dead` with `ERROR_HOST_REMOVED`
+(which names the host kind) and nothing is sent. This runs only where a live publish
+would happen; a dry run is unchanged.
 
 ### Live answers (`meta_graph.py`)
 - Success: `posted`, `external_id` = the Meta id (a photo post's `post_id`, else the
@@ -151,6 +160,13 @@ for 30 seconds in each worker.
 - Live posting has not been run against Meta. Every Graph path and field name is
   covered by mocked tests only; the first real run is staging, with the owner's
   Meta app and token.
+
+- Captions are posted as written. The host lists restrict the link card and the image,
+  not a link typed into the caption text. The CMS approval step is the control.
+- The publish runs in the shared `drain_outbox` job (twice a minute, up to 50 rows, 300 s
+  job timeout). A slow Meta answer delays other outbox work in that job, email included.
+  A job cancelled while a publish is in flight leaves the in-flight marker, so its retry
+  ends as `ERROR_OUTCOME_UNKNOWN`.
 
 ## Tests
 - `tests/content_distribution/test_content_distribution.py`: intake, rules, release,

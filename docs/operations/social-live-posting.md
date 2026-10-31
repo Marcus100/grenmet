@@ -101,15 +101,18 @@ Flags take up to 30 seconds to reach the worker.
    `openssl rand -base64 32` and paste it straight into GitHub. The next deploy passes
    it to the API and the CMS. Until it is set, the API answers 503 to the CMS and no
    social post is saved. Nothing is written to an `.env` file, and the value must not
-   go into chat, email or a ticket.
+   go into chat, email or a ticket. The value must be random: use the `openssl` command
+   above, never a word, a date or a value you made up.
    - Set it once, before go-live, so a value that was ever used in a test cannot post.
      To change it later, set a new value in the same place and deploy.
-3. **The CMS also needs `GMS_SITE_URL`, which is an owner decision (open item).** The
-   CMS builds post addresses from the weather site's public origin
-   (`https://weather.<your domain>`). The deployment does not pass it to the CMS yet, so
-   the CMS sends nothing until it does. It is not wired because it also turns on post
-   addresses in the newsletter feed, which changes public output. Decide that first,
-   then ask engineering to wire it.
+3. **Nothing to do for `GMS_SITE_URL`.** The deployment sets it for the CMS from
+   `BASE_DOMAIN` (`https://weather.<domain>`, so staging and production each get their
+   own weather site). It is the same value the weather site's CAP app uses. It has two
+   effects. The social send can now work. The CMS's public newsletter route serves the
+   posts ticked "Include in newsletter" in the last few days. The daily newsletter digest
+   reads that route only when the API's `NEWSLETTER_POSTS_FEED_URL` is set and
+   `NEWSLETTER_DIGEST_ENABLED` is on. The deployment sets neither, so no subscriber
+   receives those posts yet.
 
 ## 4. Switch on in staging first
 
@@ -174,7 +177,22 @@ look at the row after you have checked the page.
   Meta answers them before creating anything.
 - A link or image on a host that is not in `SOCIAL_LINK_HOSTS` or `SOCIAL_IMAGE_HOSTS`
   is refused when the CMS saves the post. The CMS reports the refusal; publishing on the
-  website is not blocked.
+  website is not blocked. The host is checked again just before a post is sent: if the
+  owner removes a host after the post was saved, the post is marked dead and not sent.
+- A link or image address must be plain https: no backslash, no user information (no
+  `name@` before the host), and no port other than 443. These are refused when the CMS
+  saves the post. Browsers and URL parsers read such addresses differently, so the
+  host list alone cannot be trusted with them.
+- **Captions are posted as written.** The host lists restrict the link card and the
+  image. A link typed into the caption text is not checked against the lists. The CMS
+  approval step is the control: the editor who approves a post for social answers for
+  its caption.
+- **Publishing shares the outbox job.** Social posts go through the platform outbox,
+  which the worker drains in one job, twice a minute, up to 50 rows in turn, with a
+  300-second job timeout. A slow answer from Meta delays the other outbox work in the
+  same job, including email. If the job is cancelled while a publish is in flight, the
+  post keeps its in-flight marker and its retry ends as "Outcome unknown". It is not
+  sent again.
 
 ## Engineering reference
 

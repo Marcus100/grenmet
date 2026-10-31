@@ -539,3 +539,47 @@ async def test_no_publish_time_means_now_so_the_post_is_due_at_once(
     await outbox.drain(db_async, only_topics=["social.post.facebook"], now=later)
     [row] = await _rows(db_async, slug)
     assert row.status == "dry_run_sent"
+
+
+@pytest.mark.parametrize(
+    ("field", "value"),
+    [
+        ("url", "https://evil.com\\x@allowed.com/p"),
+        ("imageUrl", "https://evil.com\\x@allowed.com/p"),
+        ("url", "https://user@allowed.com/p"),
+        ("imageUrl", "https://user@allowed.com/p"),
+        ("url", "https://allowed.com:8443/p"),
+        ("imageUrl", "https://allowed.com:99999/p"),
+    ],
+)
+async def test_addresses_a_parser_and_a_browser_read_differently_are_refused_at_intake(
+    async_client: httpx.AsyncClient,
+    db_async: AsyncSession,
+    cms_secret: dict[str, str],
+    monkeypatch: pytest.MonkeyPatch,
+    field: str,
+    value: str,
+) -> None:
+    # allowed.com is approved here, so only the address rule can refuse these.
+    monkeypatch.setattr(settings, "SOCIAL_LINK_HOSTS", "gms.example.test,allowed.com")
+    monkeypatch.setattr(settings, "SOCIAL_IMAGE_HOSTS", "gms.example.test,allowed.com")
+    slug = f"address-{uuid.uuid4().hex[:8]}"
+    body = _body(slug)
+    body[field] = value
+    resp = await async_client.post(_URL, json=body, headers=cms_secret)
+    assert resp.status_code == 422
+    assert "plain https address" in resp.text
+    assert await _rows(db_async, slug) == []
+
+
+async def test_an_explicit_https_port_is_accepted_at_intake(
+    async_client: httpx.AsyncClient,
+    cms_secret: dict[str, str],
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(settings, "SOCIAL_LINK_HOSTS", "allowed.com")
+    slug = f"https-port-{uuid.uuid4().hex[:8]}"
+    body = _body(slug, platforms=["facebook"], imageUrl=None)
+    body["url"] = "https://allowed.com:443/stories/x"
+    resp = await async_client.post(_URL, json=body, headers=cms_secret)
+    assert resp.status_code == 202, resp.text
