@@ -2195,9 +2195,12 @@ differs from `observed_at` in UTC) are `422` with `detail.message` and
 `detail.issues` (`EregisterValidationError`; the same body on `correct` and
 `accept`); warnings pass. On those routes the 422 is documented as
 `EregisterValidationError | ValidationErrorResponse`, since a malformed request
-answers the request validation body instead; review, reject, reopen, email and
-publish document `ApiError | ValidationErrorResponse` (their 422 detail is a string). There is one live observation per station, time
-and kind (partial unique index): saving again as the observer of an unsent draft
+answers the request validation body instead. Review, reject, reopen, email and
+publish document `ApiError | ValidationErrorResponse`, because their 422 detail
+is a string.
+
+There is one live observation per station, time and kind (partial unique
+index): saving again as the observer of an unsent draft
 updates it in place (`200`, same `id`); otherwise `409`.
 `POST .../{id}/correct` (body `{"body": {...}, "reason": "..."}`, `201`) saves a
 replacement that supersedes the observation (`supersedes_id`); the old row
