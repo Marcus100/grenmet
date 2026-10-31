@@ -111,6 +111,23 @@ class SynopValidationIssue(BaseModel):
     severity: Literal["error", "warning"] = "error"
 
 
+class SynopValidationErrorDetail(BaseModel):
+    """Why a SYNOP was refused: a summary and every issue, warnings included."""
+
+    message: str = Field(
+        description="Summary naming the first few errors, for a banner or toast."
+    )
+    issues: list[SynopValidationIssue] = Field(
+        description="Every issue found; at least one has severity `error`."
+    )
+
+
+class EregisterValidationError(BaseModel):
+    """422 body when a SYNOP workbook fails validation on save, correct or accept."""
+
+    detail: SynopValidationErrorDetail
+
+
 class SynopDecoded(BaseModel):
     """SI values decoded from the coded groups; missing or unobserved is null."""
 

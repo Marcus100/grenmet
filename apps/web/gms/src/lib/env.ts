@@ -19,6 +19,13 @@ export const env = createEnv({
       (value) => value || undefined,
       z.string().min(32).optional()
     ),
+    // Shows the "Sign in" button in the header and the nav drawer. Off by
+    // default (owner, 31 Oct 2026): the sign-in routes and account code stay
+    // live either way; only the button is hidden. Set "true" to show it.
+    WEATHER_SHOW_SIGN_IN: z
+      .enum(["true", "false"])
+      .default("false")
+      .transform((value) => value === "true"),
     AUTH_ALLOWED_RETURN_HOSTS: z.string().optional().default(""),
     // Shared with the API's TRUSTED_WEB_SECRET so sign-up rate limits key on the
     // visitor's own address. Unset or "": every visitor shares this server's bucket.
@@ -69,6 +76,7 @@ export const env = createEnv({
     AUTH_APP_URL: process.env.AUTH_APP_URL,
     WEATHER_SESSION_COOKIE_NAME: process.env.WEATHER_SESSION_COOKIE_NAME,
     WEATHER_SSO_CLIENT_SECRET: process.env.WEATHER_SSO_CLIENT_SECRET,
+    WEATHER_SHOW_SIGN_IN: process.env.WEATHER_SHOW_SIGN_IN,
     AUTH_ALLOWED_RETURN_HOSTS: process.env.AUTH_ALLOWED_RETURN_HOSTS,
     TRUSTED_WEB_SECRET: process.env.TRUSTED_WEB_SECRET,
     VISITOR_IP_PROXY_HOPS: process.env.VISITOR_IP_PROXY_HOPS,

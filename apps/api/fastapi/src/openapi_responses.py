@@ -11,6 +11,9 @@ Runtime bodies (verified in tests/test_error_response_bodies.py): application
 and HTTP errors are ``{"detail": "<string>"}`` (ApiError). The rate limiter's
 429 is ``{"error": "<string>"}`` (ErrorMessage), and a 429 from an application
 lockout is ``{"detail": ...}``, so a 429 documents either shape.
+eRegister names its 422 bodies in ``src/eregister/router.py``
+(``EregisterValidationError`` for a refused SYNOP, ``ApiError`` for a missing
+reason), each beside the request validation body.
 
 HTML routes (response_class=HTMLResponse) use ``html_error`` or ``as_json``
 instead, because FastAPI files a ``model`` under the route's own media type.

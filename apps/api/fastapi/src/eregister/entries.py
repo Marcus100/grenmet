@@ -28,6 +28,7 @@ from .schemas import (
     RegisterObservationCorrection,
     RegisterObservationCreate,
     RegisterObservationRead,
+    SynopValidationErrorDetail,
     SynopValidationIssue,
     SynopWorkbook,
 )
@@ -129,12 +130,13 @@ def require_valid_synop(
     errors = [issue for issue in issues if issue.severity == "error"]
     if errors:
         summary = "; ".join(f"{i.field}: {i.message}" for i in errors[:ISSUE_PREVIEW])
+        # Shaped by the documented EregisterValidationError so the two cannot drift.
         raise HTTPException(
             422,
-            detail={
-                "message": f"Observation does not pass validation: {summary}",
-                "issues": [issue.model_dump() for issue in issues],
-            },
+            detail=SynopValidationErrorDetail(
+                message=f"Observation does not pass validation: {summary}",
+                issues=issues,
+            ).model_dump(),
         )
 
 

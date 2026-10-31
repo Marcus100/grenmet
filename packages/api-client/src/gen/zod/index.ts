@@ -2636,6 +2636,7 @@ export {
   eregisterValidateSynopObservationStatus403Schema,
   eregisterValidateSynopObservationStatus422Schema,
 } from "./eregisterValidateSynopObservationSchema.js";
+export { eregisterValidationErrorSchema } from "./eregisterValidationErrorSchema.js";
 export { errorMessageSchema } from "./errorMessageSchema.js";
 export { eventCategoryNodePropertiesAppliesToItemsEnumSchema } from "./eventCategoryNodePropertiesAppliesToItemsEnumSchema.js";
 export { eventCategoryNodeSchema } from "./eventCategoryNodeSchema.js";
@@ -8291,6 +8292,7 @@ export { synopDecodedSchema } from "./synopDecodedSchema.js";
 export { synopticImageGroupSchema } from "./synopticImageGroupSchema.js";
 export { synopticImageGroupsSchema } from "./synopticImageGroupsSchema.js";
 export { synopticSlotsSchema } from "./synopticSlotsSchema.js";
+export { synopValidationErrorDetailSchema } from "./synopValidationErrorDetailSchema.js";
 export { synopValidationIssueSchema } from "./synopValidationIssueSchema.js";
 export { synopValidationRequestSchema } from "./synopValidationRequestSchema.js";
 export { synopValidationResponseSchema } from "./synopValidationResponseSchema.js";
