@@ -55,7 +55,7 @@ Option 2, run in parallel with GAA Admin's desk until GMS signs off:
 - Browser calls go through `/desk/api/...`: an explicit allow-list of CAP
   routes, a same-origin check for changes (Lax cookies reach same-site hosts),
   the token added server-side, nothing cached.
-- Cloudflare needs a bypass rule for `/desk*` and `/auth*` once its proxy is on.
+- Cloudflare's cache rules (static assets only; bypass for `*_session` cookies) already keep the desk out of the cache; `/desk` and `/auth/` are to be named in the never-cache rule as well.
 - New API: `POST /api/v1/cap/alerts/{id}/updates` (Issue Update) and
   `snapshot.schema_mismatch` on publish (the emergency path says it went out
   with a format problem). Edit draft uses the existing

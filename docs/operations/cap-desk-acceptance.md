@@ -59,9 +59,14 @@ curl -sI https://cap.staging.barrels.gd/about | grep -i cache-control  # public,
 ```
 
 The desk and `/auth/*` must never show `s-maxage` or a Cloudflare `cf-cache-status: HIT`.
-When the Cloudflare proxy is switched on for `cap.*`, add a cache rule "Bypass
-cache" for URI paths starting with `/desk` or `/auth`, ahead of any rule that
-caches HTML (`docs/operations/cloudflare-proxy.md` once that guide lands).
+With the Cloudflare proxy on for `cap.*`, `cf-cache-status` must be `DYNAMIC`
+or `BYPASS` for `/desk`, `/desk/signin` and `/auth/start`. The cache rules from
+`scripts/production/cloudflare-cache-rules.py` (docs/operations/cloudflare-proxy.md)
+cache static assets only and bypass any request that carries a `*_session`
+cookie (the desk's is `cap_desk_session`), so the desk is already outside the
+cache. A follow-up adds explicit `/desk` and `/auth/` paths to the "never cache"
+rule as a second line of defence; until the owner re-runs that script, rely on
+the check above.
 
 ## What the new desk does not do yet
 

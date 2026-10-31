@@ -18,8 +18,10 @@ Backend and public-feed contract: `apps/api/fastapi/src/cap/AGENTS.md`.
   off). `src/proxy.ts` runs only for `/desk*` and checks the cookie exists;
   `lib/desk/gate.ts` is the real check (staff token plus `cap.alert.read`),
   called by every page. `/desk*` and `/auth/*` send `private, no-store` and
-  `X-Robots-Tag: noindex` (`next.config.ts`); Cloudflare needs a bypass rule
-  for both prefixes. Browser calls use `@barrelsgd/api-client` with base URL
+  `X-Robots-Tag: noindex` (`next.config.ts`). Cloudflare's cache rules
+  (`scripts/production/cloudflare-cache-rules.py`) cache static assets only and
+  bypass `*_session` cookies, which already keeps the desk out; keep
+  `/desk` and `/auth/` listed in its never-cache rule too. Browser calls use `@barrelsgd/api-client` with base URL
   `/desk`, through `app/desk/api/[...path]/route.ts`: an allow-list
   (`lib/desk/proxy-rules.ts`), a same-origin check for changes, minimal
   headers, the token added server-side. Add a rule there before using a new
