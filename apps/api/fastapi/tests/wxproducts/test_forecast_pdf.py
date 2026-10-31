@@ -2,9 +2,11 @@ import json
 import re
 from pathlib import Path
 from types import SimpleNamespace
+from typing import cast
 from uuid import uuid4
 
 import pytest
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.main import app
 from src.wxproducts import advisories, forecast_pdf, presentation, validation
@@ -208,6 +210,107 @@ async def test_snapshot_maps_cap_and_bulletins(monkeypatch):
         "reference": "CAP gms-1",
     }
     assert bulletin["reference"] == "GMS Marine bulletin r2"
+
+
+ALL_CLEAR = ITEM | {
+    "colour": "green",
+    "likelihood": "Low",
+    "noticeType": "All clear",
+    "reference": "GMS Marine bulletin r3",
+}
+
+
+def test_all_clear_is_an_information_line_not_an_advisory():
+    # Owner rule (30 Oct 2026): a Green All clear is information, not an alert
+    # in effect. Older snapshots may carry an unstripped notice value.
+    values = STRUCTURED | {
+        "advisories": json.dumps(
+            {
+                "complete": True,
+                "items": [ITEM, ALL_CLEAR | {"noticeType": " All clear"}],
+            }
+        ),
+    }
+    context = forecast_pdf.forecast_context(
+        "morning", values, status="PUBLISHED ISSUE", revision="r1"
+    )
+    assert [item["reference"] for item in context["advisories"]] == [
+        "GMS Marine bulletin r2"
+    ]
+    assert [item["reference"] for item in context["all_clear"]] == [
+        "GMS Marine bulletin r3"
+    ]
+    marks = [
+        mark for row in context["matrix"] for cell in row for mark in cell["marks"]
+    ]
+    assert marks == [1]
+    html = (
+        forecast_pdf._environment().get_template("forecast.html.j2").render(**context)
+    )
+    assert html.count('<article class="alert">') == 1
+    assert "All clear (information): Marine bulletin, 07:00 Thu 24 Sep" in html
+
+
+def test_only_all_clear_reads_as_nothing_in_force():
+    values = STRUCTURED | {
+        "advisories": json.dumps({"complete": True, "items": [ALL_CLEAR]}),
+    }
+    context = forecast_pdf.forecast_context(
+        "morning", values, status="PUBLISHED ISSUE", revision="r1"
+    )
+    assert context["advisories"] == []
+    html = (
+        forecast_pdf._environment().get_template("forecast.html.j2").render(**context)
+    )
+    assert "No CAP alerts or GMS bulletins were in force at issue." in html
+    assert "Alerts and advisories in force" not in html
+    assert "All clear (information): Marine bulletin" in html
+
+
+def test_all_clear_above_green_stays_an_advisory():
+    # Only Green qualifies; an All clear at another level keeps its level.
+    item = ALL_CLEAR | {"colour": "yellow"}
+    assert not advisories.is_all_clear(item)
+    values = STRUCTURED | {
+        "advisories": json.dumps({"complete": True, "items": [item]}),
+    }
+    context = forecast_pdf.forecast_context(
+        "morning", values, status="PUBLISHED ISSUE", revision="r1"
+    )
+    assert len(context["advisories"]) == 1
+    assert context["all_clear"] == []
+
+
+async def test_snapshot_keeps_all_clear_out_of_the_advisory_limit(monkeypatch):
+    def bulletin(kind, notice):
+        return SimpleNamespace(
+            id=uuid4(),
+            kind=kind,
+            revision=1,
+            values={"level": "Green", "notice": notice, "likelihood": "Low"},
+        )
+
+    kinds = list(advisories.BULLETIN_TITLES)
+    in_force = [bulletin(kind, "Advisory") for kind in kinds[: advisories.ITEM_LIMIT]]
+    cleared = bulletin(kinds[advisories.ITEM_LIMIT], " All clear ")
+
+    async def active(**_):
+        return SimpleNamespace(data=[])
+
+    async def published(*_):
+        return [cleared, *in_force]
+
+    monkeypatch.setattr(advisories.cap_service, "public_latest_active", active)
+    monkeypatch.setattr(advisories.service, "list_published_products", published)
+    session = cast("AsyncSession", SimpleNamespace(in_transaction=lambda: False))
+    data = json.loads(await advisories.snapshot(session, session))
+    items = data["items"]
+    assert len(items) == advisories.ITEM_LIMIT + 1
+    assert [item["noticeType"] for item in items[: advisories.ITEM_LIMIT]] == [
+        "Advisory"
+    ] * advisories.ITEM_LIMIT
+    assert items[-1]["noticeType"] == "All clear"
+    assert advisories.is_all_clear(items[-1])
 
 
 async def test_snapshot_marks_missing_sources_incomplete():

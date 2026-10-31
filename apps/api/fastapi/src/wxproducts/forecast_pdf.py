@@ -292,6 +292,10 @@ def forecast_context(
         for item in snapshot.get("items", [])
         if isinstance(item, dict)
     ]
+    # An All clear is information: a short line, not plotted or carded, and
+    # never counted toward the advisory limit (older snapshots may hold one).
+    in_force = [item for item in items if not advisories.is_all_clear(item)]
+    all_clear = [item for item in items if advisories.is_all_clear(item)]
     return {
         "title": TITLES[kind],
         "issued": _when(values.get("issuedAt", "")),
@@ -302,8 +306,9 @@ def forecast_context(
         "summary": values.get("summary", ""),
         "condition_icon": CONDITION_ICONS.get(values.get("condition", ""), "cloud-sun"),
         "tiles": _headline_tiles(kind, values),
-        "matrix": _matrix(items),
-        "advisories": items,
+        "matrix": _matrix(in_force[: advisories.ITEM_LIMIT]),
+        "advisories": in_force[: advisories.ITEM_LIMIT],
+        "all_clear": all_clear[: advisories.ITEM_LIMIT],
         "complete": bool(snapshot.get("complete", True)),
         "colour_names": COLOUR_NAMES,
         "outlook": _outlook(values) if kind == "evening" else [],
