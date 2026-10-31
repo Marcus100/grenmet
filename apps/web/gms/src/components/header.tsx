@@ -9,7 +9,6 @@ import { DesktopNav } from "@/components/desktop-nav";
 import { NavDrawer } from "@/components/nav-drawer";
 import { SiteSearch } from "@/components/site-search";
 import { ThemeToggle } from "@/components/theme-toggle";
-import { UnitsToggle } from "@/components/units-toggle";
 import { WarningRibbon } from "@/components/warning-ribbon";
 import {
   CheckingStatusPill,
@@ -30,6 +29,8 @@ interface HeaderProps {
   alerts: AlertsSource;
   /** The GMS outlook's Green counts, read separately so warnings never wait on it. */
   green: GreenSource;
+  /** Shows "Sign in" (WEATHER_SHOW_SIGN_IN). Hidden unless the switch is on. */
+  showSignIn?: boolean;
 }
 
 const UTILITY_LINKS = [
@@ -42,7 +43,12 @@ const UTILITY_LINKS = [
  * Bold sky masthead: warning ribbon (only when there is something to say),
  * a navy utility bar and main bar, the mega menu, and on mobile the drawer.
  */
-export function Header({ alerts, green, accountLabel }: HeaderProps) {
+export function Header({
+  accountLabel,
+  alerts,
+  green,
+  showSignIn = false,
+}: HeaderProps) {
   const [navOpen, setNavOpen] = useState(false);
   const [menuTop, setMenuTop] = useState(0);
   const headerRef = useRef<HTMLElement>(null);
@@ -116,8 +122,7 @@ export function Header({ alerts, green, accountLabel }: HeaderProps) {
           <div className="flex shrink-0 items-center gap-1">
             <SiteSearch />
             <ThemeToggle />
-            <UnitsToggle />
-            {accountLabel ? (
+            {showSignIn && accountLabel ? (
               // The `dark` scope gives the outline button navy-safe tokens.
               // Phones and tablets sign in from the drawer instead.
               <div className="dark hidden lg:block">
@@ -173,6 +178,7 @@ export function Header({ alerts, green, accountLabel }: HeaderProps) {
         green={green}
         onClose={() => setNavOpen(false)}
         open={navOpen}
+        showSignIn={showSignIn}
         top={menuTop}
       />
     </>
