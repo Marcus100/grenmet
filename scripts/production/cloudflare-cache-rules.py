@@ -25,20 +25,14 @@ Runbook: docs/operations/cloudflare-proxy.md.
 
 import argparse
 import json
-import os
-import re
 import sys
-import urllib.error
-import urllib.request
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parents[2]
-API = "https://api.cloudflare.com/client/v4"
+# Also loadable as a module from elsewhere (cloudflare-proxy.test.mjs).
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from cloudflare_rulesets import PRIVATE_HOSTS, PUBLIC_HOSTS, base_domain, host_set, sync  # noqa: E402
+
 PHASE = "http_request_cache_settings"
-# Hostname prefixes (before BASE_DOMAIN) of the routers in docker-compose.deploy.yml.
-# cloudflare-proxy.test.mjs fails when a router's host is in neither list.
-PUBLIC_HOSTS = ("weather", "events", "bookings", "cap", "gmsdash", "signal", "mbia", "docs")
-PRIVATE_HOSTS = ("api", "auth", "admin", "gms", "cms", "adminer")
 # Every app's session cookie is `<app>_session` (also `_session_sso` and
 # `_session_notice`, packages/auth); Payload's own admin cookie is payload-token.
 SESSION_COOKIE_MARKERS = ("_session", "payload-token")
@@ -46,18 +40,6 @@ STATIC_EXTENSIONS = (
     "css", "js", "mjs", "woff", "woff2", "ttf", "otf", "ico",
     "png", "jpg", "jpeg", "gif", "webp", "avif", "svg",
 )
-KEPT_FIELDS = ("id", "ref", "expression", "action", "action_parameters", "description", "enabled", "logging")
-
-
-def base_domain(environment):
-    for line in (ROOT / f"infra/docker/{environment}.env").read_text().splitlines():
-        if line.startswith("BASE_DOMAIN="):
-            return line.split("=", 1)[1].strip()
-    raise ValueError(f"BASE_DOMAIN missing from infra/docker/{environment}.env")
-
-
-def host_set(prefixes, domain):
-    return "{" + " ".join(f'"{prefix}.{domain}"' for prefix in prefixes) + "}"
 
 
 def rules(environment):
@@ -108,39 +90,6 @@ def rules(environment):
     ]
 
 
-def merge(current, environment, managed):
-    """Foreign rules first, unchanged and in order; this environment's rules last."""
-    prefix = f"grenmet-{environment}-"
-    kept = [
-        {key: rule[key] for key in KEPT_FIELDS if key in rule}
-        for rule in current
-        if not str(rule.get("ref", "")).startswith(prefix)
-    ]
-    return kept + managed
-
-
-def comparable(rule_list):
-    return [{key: rule.get(key) for key in KEPT_FIELDS if key not in {"id"}} for rule in rule_list]
-
-
-def call(method, path, token, body=None):
-    request = urllib.request.Request(
-        f"{API}{path}",
-        method=method,
-        data=json.dumps(body).encode() if body is not None else None,
-        headers={"Authorization": f"Bearer {token}", "Content-Type": "application/json"},
-    )
-    try:
-        with urllib.request.urlopen(request, timeout=30) as response:
-            return json.loads(response.read())
-    except urllib.error.HTTPError as error:
-        if method == "GET" and error.code == 404:
-            return {"result": {"rules": []}}
-        detail = error.read().decode(errors="replace")
-        messages = "; ".join(item.get("message", "") for item in json.loads(detail or "{}").get("errors", [])) if detail.startswith("{") else detail[:300]
-        raise RuntimeError(f"Cloudflare API {method} answered {error.code}: {messages}") from None
-
-
 def main(argv):
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument("--environment", required=True, choices=["staging", "production"])
@@ -153,33 +102,7 @@ def main(argv):
     if args.print:
         print(json.dumps(managed, indent=2))
         return 0
-    token = os.environ.get("CLOUDFLARE_API_TOKEN", "")
-    zone = os.environ.get("CLOUDFLARE_ZONE_ID", "")
-    if not token or not re.fullmatch(r"[0-9a-f]{32}", zone):
-        raise ValueError("set CLOUDFLARE_API_TOKEN and CLOUDFLARE_ZONE_ID (32 hex characters) first")
-
-    path = f"/zones/{zone}/rulesets/phases/{PHASE}/entrypoint"
-    current = call("GET", path, token)["result"].get("rules") or []
-    desired = merge(current, args.environment, managed)
-    if comparable(desired) == comparable([{k: r.get(k) for k in KEPT_FIELDS if k in r} for r in current]):
-        print(f"No change: {args.environment} cache rules are already in place ({len(current)} rules in the zone).")
-        return 0
-    prefix = f"grenmet-{args.environment}-"
-    before = {r.get("ref") for r in current if str(r.get("ref", "")).startswith(prefix)}
-    after = {r["ref"] for r in managed}
-    print(f"Zone cache rules: {len(current)} now, {len(desired)} after (the free plan allows 10).")
-    for ref in sorted(after - before):
-        print(f"  add     {ref}")
-    for ref in sorted(after & before):
-        print(f"  replace {ref}")
-    for ref in sorted(before - after):
-        print(f"  remove  {ref}")
-    if not args.apply:
-        print("Dry run: nothing changed. --print shows the rules; re-run with --apply to write them.")
-        return 0
-    call("PUT", path, token, {"rules": desired})
-    print(f"Applied. Check {args.environment} with the runbook's cf-cache-status commands.")
-    return 0
+    return sync(PHASE, args.environment, managed, args.apply, "cache rules", 10)
 
 
 if __name__ == "__main__":

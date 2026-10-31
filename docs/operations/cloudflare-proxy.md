@@ -10,9 +10,9 @@ its DigitalOcean droplet ("DNS only", grey cloud). This runbook puts the droplet
 hostnames behind Cloudflare's proxy (orange cloud), so Cloudflare absorbs floods
 and hides the droplet's address, without breaking per-visitor rate limits.
 
-## The five things that change together
+## The six things that change together
 
-Missing one of the first four either puts every visitor in one shared rate-limit
+Missing one of the first five either puts every visitor in one shared rate-limit
 bucket or lets a visitor choose their own address. Do them in the order below.
 
 | # | Change | Where | Switch |
@@ -21,7 +21,8 @@ bucket or lets a visitor choose their own address. Do them in the order below.
 | 2 | Traefik trusts `X-Forwarded-For` only from Cloudflare's published ranges | `infra/docker/docker-compose.deploy.yml`, ranges in `infra/cloudflare/ip-ranges.txt` | `CLOUDFLARE_PROXY_ENABLED` |
 | 3 | Visitor address counted 2 hops from the right (Cloudflare, then Traefik) on the API and the web hosts that forward it (events, bookings, weather) | `render-env.py` sets `VISITOR_IP_PROXY_HOPS` | `CLOUDFLARE_PROXY_ENABLED` |
 | 4 | Only Cloudflare's ranges may reach 80/443 on the droplet | DigitalOcean Cloud Firewall, `scripts/production/cloudflare-origin-firewall.py` | Owner runs the script |
-| 5 | Cache static assets only, and only when the origin's `Cache-Control` marks them cacheable (no header: not cached); never the API, staff hosts, signed-in requests | Cloudflare cache rules, `scripts/production/cloudflare-cache-rules.py` | Owner runs the script |
+| 5 | **Origin gate:** only *our* zone may use Cloudflare's addresses. Cloudflare adds a secret header to every request (Transform Rule); Traefik answers 403 to a Cloudflare-address connection without it, so another Cloudflare customer's Worker cannot reach the droplet and pick its own `X-Forwarded-For`. Required before production. | `scripts/production/cloudflare-origin-header.py` (Cloudflare side), `render-env.py` and the `origin-gate` router (Traefik side), secret `CLOUDFLARE_ORIGIN_SECRET` | `CLOUDFLARE_PROXY_ENABLED` plus owner runs the script |
+| 6 | Cache static assets only, and only when the origin's `Cache-Control` marks them cacheable (no header: not cached); never the API, staff hosts, signed-in requests | Cloudflare cache rules, `scripts/production/cloudflare-cache-rules.py` | Owner runs the script |
 
 ### What `CLOUDFLARE_PROXY_ENABLED` changes
 
@@ -36,9 +37,18 @@ behaviour. Anything other than `true`/`false` stops the deploy.
 | Traefik per-client cap of 100 requests in flight | Keyed on the connecting address (`depth=0`) | Keyed on the address Cloudflare appended (`depth=1`) |
 | `VISITOR_IP_PROXY_HOPS` (API, web-events, web-gms, web-bookings) | `1` | `2` |
 | Let's Encrypt challenge | TLS challenge on 443 (today) | HTTP challenge on 80 (Cloudflare ends TLS in front of the droplet, so the TLS challenge cannot reach Traefik) |
+| Origin gate (`origin-gate` router, top priority) | Rule `ClientIP(255.255.255.255/32)`: matches nothing | 403 for a connection from a Cloudflare range without `X-Barrels-Origin: <CLOUDFLARE_ORIGIN_SECRET>` (or `_PREVIOUS`); a deploy with the switch on and no secret stops before anything changes |
+| `X-Barrels-Origin` request header | Removed before any app sees it | Removed before any app sees it |
+
+Direct connections from addresses outside Cloudflare are never matched by the
+gate: Traefik does not trust their forwarded headers at all, so they cannot pick
+a bucket either way, and the gate cannot cause an outage while records are grey.
+The secret sits in the Traefik router rule, so anyone who can read the droplet's
+container labels or the Traefik dashboard (SSH tunnel and basic auth) can read
+it; that is already root-equivalent access.
 
 The switch acts on the whole droplet: every hostname on that droplet must be
-proxied at the same time (step 5 of the order below), or the grey ones pool
+proxied at the same time (step 6 of the order below), or the grey ones pool
 their visitors into one rate-limit bucket. Turning the switch on while the
 hostnames are still grey is safe, but rate limits pool until the clouds are
 orange, so do the two steps back to back.
@@ -61,7 +71,7 @@ on the droplets: leave their records exactly as they are, and leave Babydoll's
    certificate. Keep the subscription while any staging record is proxied; if
    it is ever cancelled, grey every staging record first.
    *Fallback only, if the add-on cannot be bought:* skip the staging orange
-   cloud. On staging run steps 2-4 and the firewall script in plan mode only
+   cloud. On staging run steps 2-5 and the firewall script in plan mode only
    (never `--apply` while staging is grey: it would take staging offline), then
    do production in a quiet hour with the rollback ready. Uploading your own
    certificate is not available on the free plan.
@@ -117,8 +127,15 @@ changes nothing for visitors.
 
 ## Tokens and names you need (never commit them)
 
-- **Cloudflare API token** for the cache-rule script: My Profile → API Tokens →
-  Create Token → Custom: permission **Zone → Cache Rules → Edit**, zone resources
+- **Origin secret**, one per environment: `openssl rand -hex 32`. Store it as the
+  GitHub **environment secret** `CLOUDFLARE_ORIGIN_SECRET` (Settings →
+  Environments → `staging` → Secrets; production gets a different value), and
+  export the same value in your shell for `cloudflare-origin-header.py`. It
+  must differ from every other deployment secret (`render-env.py` refuses
+  otherwise, without printing it). Never write it to a file in the repository.
+- **Cloudflare API token** for the cache-rule and origin-header scripts: My
+  Profile → API Tokens → Create Token → Custom: permissions **Zone → Cache
+  Rules → Edit** and **Zone → Transform Rules → Edit**, zone resources
   **Include → Specific zone → barrels.gd**. Cloudflare's docs also list Account
   Rulesets Edit and Account Filter Lists Edit; add them only if the script is
   refused. Export it in your shell as `CLOUDFLARE_API_TOKEN` and the zone ID
@@ -160,7 +177,17 @@ AUTH=(-u "<one staging basic-auth user:password>")   # production: AUTH=()
 2. **Range list current.** `python3 scripts/production/cloudflare_ranges.py --check`
    prints "matches". On drift run `--update`, commit through a PR and wait for it
    to reach the environment.
-3. **Cache rules (harmless while grey).**
+3. **Origin secret header (harmless while grey or while the switch is off).**
+   Create the secret first (Tokens and names, above), then:
+   ```bash
+   export CLOUDFLARE_ORIGIN_SECRET=<the staging value>
+   python3 scripts/production/cloudflare-origin-header.py --environment staging --print   # secret masked
+   python3 scripts/production/cloudflare-origin-header.py --environment staging           # plan
+   python3 scripts/production/cloudflare-origin-header.py --environment staging --apply
+   ```
+   This must be in place before the switch is on and any record is orange,
+   or Traefik refuses every proxied request with 403.
+4. **Cache rules (harmless while grey).**
    ```bash
    python3 scripts/production/cloudflare-cache-rules.py --environment staging --print   # read the rules
    python3 scripts/production/cloudflare-cache-rules.py --environment staging           # plan
@@ -171,8 +198,9 @@ AUTH=(-u "<one staging basic-auth user:password>")   # production: AUTH=()
    header if present, bypass cache if not"): Next.js marks `/_next/static/`
    files `public, max-age=31536000, immutable`; anything without a
    `Cache-Control` header is never stored, even with a static extension.
-4. **Switch on.** GitHub → Settings → Environments → `staging` → Variables → add
-   `CLOUDFLARE_PROXY_ENABLED` = `true`. Redeploy staging (Actions → Deploy →
+5. **Switch on.** Confirm the `CLOUDFLARE_ORIGIN_SECRET` environment secret
+   exists (the deploy stops without it), then GitHub → Settings → Environments →
+   `staging` → Variables → add `CLOUDFLARE_PROXY_ENABLED` = `true`. Redeploy staging (Actions → Deploy →
    Run workflow, environment `staging`, image tag of the current staging
    deploy, or merge the next change to `staging`). On the droplet confirm:
    ```bash
@@ -180,11 +208,13 @@ AUTH=(-u "<one staging basic-auth user:password>")   # production: AUTH=()
    docker inspect "$P-proxy-1" --format '{{join .Args "\n"}}' | grep -E 'forwardedHeaders|challenge'
    # --entrypoints.websecure.forwardedHeaders.trustedIPs=103.21.244.0/22,...
    # --certificatesresolvers.letsencrypt.acme.httpchallenge.entrypoint=web
+   docker inspect "$P-proxy-1" --format '{{index .Config.Labels "traefik.http.routers.origin-gate-staging.rule"}}' | cut -c1-60
+   # (ClientIP(`103.21.244.0/22`) || ...   (production label: origin-gate.rule)
    for c in api web-events web-gms web-bookings; do
      docker inspect "$P-$c-1" --format '{{range .Config.Env}}{{println .}}{{end}}' | grep VISITOR_IP_PROXY_HOPS
    done   # each: VISITOR_IP_PROXY_HOPS=2
    ```
-5. **Orange cloud, straight after step 4** (Cloudflare → barrels.gd → DNS →
+6. **Orange cloud, straight after step 5** (Cloudflare → barrels.gd → DNS →
    Records; edit each record, toggle **Proxy status** to Proxied, Save). Only
    records that point at the staging droplet, in this order: the public sites
    first, staff hosts last, so a problem shows on a low-risk host first:
@@ -201,8 +231,8 @@ AUTH=(-u "<one staging basic-auth user:password>")   # production: AUTH=()
    advanced certificate is not Active yet: grey the record and wait. A 525/526
    error means the origin certificate is wrong; grey that record and check
    Traefik's logs.
-6. **Verify** every acceptance item below.
-7. **Origin firewall** (only once *every* droplet hostname is orange: a grey one
+7. **Verify** every acceptance item below.
+8. **Origin firewall** (only once *every* droplet hostname is orange: a grey one
    stops working the moment this applies).
    ```bash
    python3 scripts/production/cloudflare-origin-firewall.py --firewall core-staging           # plan: read it
@@ -212,10 +242,10 @@ AUTH=(-u "<one staging basic-auth user:password>")   # production: AUTH=()
    then removes the "everyone" rules, so the ports never close), keeps SSH, the
    private 5432 rule, ICMP and all outbound rules, and re-reads the firewall to
    confirm. Then run the direct-origin test below.
-8. **Certificate renewal check** within a day: `docker logs "$P-proxy-1" 2>&1 | grep -i acme`
+9. **Certificate renewal check** within a day: `docker logs "$P-proxy-1" 2>&1 | grep -i acme`
    shows no errors. To force one, the owner can watch the next renewal (Traefik
    renews 30 days before expiry); certificates stay valid meanwhile.
-9. **Soak** for at least two days of normal staging use, then repeat steps 2-8
+10. **Soak** for at least two days of normal staging use, then repeat steps 2-9
    for production (the advanced certificate from step 1 already covers
    `barrels.gd` and `*.barrels.gd`) (`--environment production`, firewall `core-production`,
    GitHub environment `production`, records `*` and the explicit production
@@ -270,9 +300,42 @@ Cloudflare appends the real address after the forged one and the API reads the
 entry Cloudflare wrote, so the forged value is ignored. `X-Visitor-IP` without
 the shared web-host secret is ignored as before.
 
-### 3. The droplet refuses direct HTTPS from outside Cloudflare
+### 3. A path that avoids our zone cannot pick its bucket
 
-After step 7, from your laptop:
+Two ways round our zone, both checked on staging before the firewall step.
+
+**Straight to the droplet with a forged chain** (after step 7, before step 8,
+while network A is still limited from test 1):
+
+```bash
+curl -s -o /dev/null -w '%{http_code}\n' --resolve "api.$DOMAIN:443:$ORIGIN_IP" \
+  -X POST "https://api.$DOMAIN/api/v1/auth/token" \
+  -H 'X-Forwarded-For: 198.51.100.77, 198.51.100.78' \
+  --data 'username=ratelimit-probe@example.invalid&password=wrong'
+# still 429: the connection is not from Cloudflare, so Traefik drops the
+# forged X-Forwarded-For and the API keys on network A's real address
+```
+
+**From Cloudflare's addresses without our zone's secret** (what another
+Cloudflare customer's Worker would look like): take the origin header rule off
+for a minute and every proxied request must be refused by the origin gate.
+
+```bash
+python3 scripts/production/cloudflare-origin-header.py --environment staging --remove --apply
+sleep 30   # rule changes reach Cloudflare's edge within seconds
+curl -s -o /dev/null -w '%{http_code}\n' "${AUTH[@]}" -H 'X-Forwarded-For: 198.51.100.77' "https://events.$DOMAIN/"
+# 403 (from the droplet; cf-ray present, server: cloudflare)
+python3 scripts/production/cloudflare-origin-header.py --environment staging --apply
+curl -s -o /dev/null -w '%{http_code}\n' "${AUTH[@]}" "https://events.$DOMAIN/"   # 200 again
+```
+
+Staging only: this takes every staging host down for that minute. On
+production, rely on the staging result and on `docker inspect` showing the gate
+rule (step 5).
+
+### 4. The droplet refuses direct HTTPS from outside Cloudflare
+
+After step 8, from your laptop:
 
 ```bash
 curl -sk --connect-timeout 8 -o /dev/null -w '%{http_code}\n' \
@@ -283,7 +346,7 @@ nc -vz -w 5 "$ORIGIN_IP" 22     # still succeeds from your SSH address
 curl -sI "${AUTH[@]}" "https://events.$DOMAIN/" | head -1   # still answers through Cloudflare
 ```
 
-### 4. Signed-in pages and API responses are never cached
+### 5. Signed-in pages and API responses are never cached
 
 ```bash
 for url in "https://api.$DOMAIN/api/v1/utils/health-check/" "https://auth.$DOMAIN/" \
@@ -307,7 +370,7 @@ curl -sI -H 'Cookie: events_session=probe' "https://events.$DOMAIN$asset" | grep
 Signed in, in a browser: developer tools → Network → the page document → response
 header `cf-cache-status` is `DYNAMIC` or `BYPASS`.
 
-### 5. No user-facing request runs past Cloudflare's timeout
+### 6. No user-facing request runs past Cloudflare's timeout
 
 See the inventory below. During the soak, Cloudflare → Analytics → look for any
 **524** responses; there should be none.
@@ -327,7 +390,8 @@ Fastest first. Each step is independent; stop when the problem is gone.
 3. **Switch off:** set `CLOUDFLARE_PROXY_ENABLED` to `false` (or delete it) on the
    GitHub environment and redeploy. Do this soon after step 2: with the switch on
    and the records grey, rate limits pool into one bucket (never spoofable).
-4. **Cache rules** (optional; they do nothing while grey):
+4. **Cache rules and the origin header rule** (optional; they do nothing while grey; only after steps 2 and 3, because with the switch on and records orange, removing the header rule makes every request 403):
+   `python3 scripts/production/cloudflare-origin-header.py --environment staging --remove --apply`,
    `python3 scripts/production/cloudflare-cache-rules.py --environment staging --remove --apply`.
 5. Turn **Always Use HTTPS** back on only after every record is grey again and
    the switch is off (the TLS challenge is back).
@@ -364,14 +428,20 @@ None is user-facing and long-running. Long work belongs in the worker.
 
 ## Known limits and follow-ups
 
-- **Anyone on Cloudflare can reach the droplet from Cloudflare's addresses.** The
-  firewall and `trustedIPs` admit every Cloudflare address, including
-  Cloudflare Workers run by other customers that connect to the droplet's
-  address directly. Such a request could set its own `X-Forwarded-For` and pick a
-  rate-limit bucket. Closing this needs **Authenticated Origin Pulls** with a
-  certificate for this zone only (free on all plans: Traefik then requires
-  Cloudflare's client certificate), a separate reviewed change. Treat the
-  droplets' addresses as already known: they were public in DNS until now.
+- **Cloudflare's addresses are shared by every Cloudflare customer.** The
+  firewall and `trustedIPs` admit all of them, so the origin gate (step 3 and
+  the `origin-gate` router) is what keeps another customer's Worker from
+  connecting to the droplet and choosing its own `X-Forwarded-For`. It is
+  **required before production**: never run production with the switch on and
+  no origin header rule. The secret is a shared header value: if it leaks
+  (dashboard, container labels, a Cloudflare account member), rotate it:
+  set the new value as `CLOUDFLARE_ORIGIN_SECRET` and the old one as
+  `CLOUDFLARE_ORIGIN_SECRET_PREVIOUS`, redeploy, run the origin-header script
+  with the new value, then delete `_PREVIOUS` and redeploy again. A stronger,
+  certificate-based option is **Authenticated Origin Pulls** with a certificate
+  for this zone only (free; Traefik then requires Cloudflare's client
+  certificate); it is a separate reviewed change. Treat the droplets' addresses
+  as already known: they were public in DNS until now.
 - **Traefik's access logs show Cloudflare's address.** Their `ClientAddr` is the
   connecting peer, which becomes a Cloudflare edge; use `cf-ray` and the API's
   own records to trace a visitor. Sign-in sessions record the visitor, not the

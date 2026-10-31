@@ -18,6 +18,7 @@ const RANGES = "infra/cloudflare/ip-ranges.txt";
 const FIREWALL = "scripts/production/cloudflare-origin-firewall.py";
 const CACHE = "scripts/production/cloudflare-cache-rules.py";
 const CIDR_LINE = /^[0-9a-f:.]+\/\d+$/;
+const OVERSIZED = /^refused .*more than 16384 bytes/;
 const FETCHED_LINE = /^# Fetched: \d{4}-\d{2}-\d{2}$/m;
 const UNTOUCHED_PORT = /ports:(22|5432)\b/;
 const ROUTER_HOST = /Host\(`([a-z0-9-]+)\.\$\{BASE_DOMAIN\}`\)/g;
@@ -108,7 +109,7 @@ test("fetching refuses an oversized answer instead of parsing it", () => {
   const [count, refused] = result.stdout.trim().split("\n");
   // Both sources answer the same body here, so duplicates collapse to two ranges.
   assert.equal(count, "2");
-  assert.match(refused, /^refused .*more than 16384 bytes/);
+  assert.match(refused, OVERSIZED);
 });
 
 // ── Origin firewall ──────────────────────────────────────────────────────────
@@ -424,4 +425,91 @@ test("the cache-rule script needs the token and zone from the environment and ne
     env: { PATH: process.env.PATH },
   });
   assert.notEqual(missing.status, 0);
+});
+
+// ── Origin secret header (Transform Rule) ─────────────────────────────────────
+
+const HEADER_SCRIPT = "scripts/production/cloudflare-origin-header.py";
+
+function moduleValues(path, names) {
+  const result = python([
+    "-c",
+    `import importlib.util, json, sys; s = importlib.util.spec_from_file_location('m', sys.argv[1]); m = importlib.util.module_from_spec(s); s.loader.exec_module(m); print(json.dumps([getattr(m, n) if not hasattr(getattr(m, n), 'pattern') else getattr(m, n).pattern for n in sys.argv[2:]]))`,
+    path,
+    ...names,
+  ]);
+  assert.equal(result.status, 0, result.stderr);
+  return JSON.parse(result.stdout);
+}
+
+test("the origin header rule sets the secret on every host of its environment, masked when printed", () => {
+  for (const [environment, domain] of [
+    ["staging", "staging.barrels.gd"],
+    ["production", "barrels.gd"],
+  ]) {
+    const result = python([
+      HEADER_SCRIPT,
+      "--environment",
+      environment,
+      "--print",
+    ]);
+    assert.equal(result.status, 0, result.stderr);
+    const [rule, ...others] = JSON.parse(result.stdout);
+    assert.deepEqual(others, []);
+    assert.equal(rule.ref, `grenmet-${environment}-origin-secret`);
+    assert.equal(rule.action, "rewrite");
+    assert.deepEqual(rule.action_parameters.headers, {
+      "X-Barrels-Origin": {
+        operation: "set",
+        value: "<CLOUDFLARE_ORIGIN_SECRET>",
+      },
+    });
+    for (const host of [...classes()[0], ...classes()[1]])
+      assert.ok(rule.expression.includes(`"${host}.${domain}"`), host);
+    if (environment === "production")
+      assert.equal(rule.expression.includes("staging."), false);
+  }
+});
+
+test("the origin header name and secret format match Traefik's gate and its strip middleware", () => {
+  const [scriptHeader, scriptPattern] = moduleValues(HEADER_SCRIPT, [
+    "ORIGIN_HEADER",
+    "ORIGIN_SECRET",
+  ]);
+  const [renderHeader, renderPattern] = moduleValues(
+    "scripts/production/render-env.py",
+    ["ORIGIN_HEADER", "ORIGIN_SECRET"]
+  );
+  assert.equal(scriptHeader, renderHeader);
+  assert.equal(scriptPattern, renderPattern);
+  const compose = readFileSync(
+    "infra/docker/docker-compose.deploy.yml",
+    "utf8"
+  );
+  assert.ok(
+    compose.includes(`.headers.customrequestheaders.${renderHeader}="`)
+  );
+});
+
+test("the origin header script refuses a missing or malformed secret without echoing it", () => {
+  for (const secret of [
+    "",
+    "short-DO-NOT-ECHO",
+    `${"a".repeat(40)} DO-NOT-ECHO`,
+  ]) {
+    const result = python([HEADER_SCRIPT, "--environment", "staging"], {
+      env: {
+        PATH: process.env.PATH,
+        CLOUDFLARE_ORIGIN_SECRET: secret,
+        CLOUDFLARE_API_TOKEN: "DO-NOT-ECHO-token",
+        CLOUDFLARE_ZONE_ID: "0".repeat(32),
+      },
+    });
+    assert.notEqual(result.status, 0, secret);
+    assert.ok(result.stderr.includes("CLOUDFLARE_ORIGIN_SECRET"));
+    assert.equal(
+      `${result.stdout}${result.stderr}`.includes("DO-NOT-ECHO"),
+      false
+    );
+  }
 });

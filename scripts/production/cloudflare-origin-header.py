@@ -1,0 +1,88 @@
+#!/usr/bin/env python3
+"""Cloudflare Transform Rule that adds the origin secret to every request.
+
+Owner-run only; nothing calls this automatically. Idempotent: it owns the rule
+with ref `grenmet-<environment>-origin-secret` in the zone's
+http_request_late_transform phase and keeps every other rule as it is.
+
+Traefik's origin gate (CLOUDFLARE_PROXY_ENABLED, render-env.py) refuses with 403
+any connection from a Cloudflare address that lacks this header, so another
+Cloudflare customer's Worker cannot reach the droplet directly and choose its own
+X-Forwarded-For. Install the rule BEFORE turning the switch on, or every proxied
+request is refused. Traefik removes the header before any app sees it.
+
+    export CLOUDFLARE_API_TOKEN=...      # Zone > Transform Rules > Edit, barrels.gd only; never commit it
+    export CLOUDFLARE_ZONE_ID=...
+    export CLOUDFLARE_ORIGIN_SECRET=...  # the same value as the GitHub environment secret
+    python3 scripts/production/cloudflare-origin-header.py --environment staging            # plan
+    python3 scripts/production/cloudflare-origin-header.py --environment staging --apply
+    python3 scripts/production/cloudflare-origin-header.py --environment staging --remove --apply
+
+Runbook: docs/operations/cloudflare-proxy.md.
+"""
+
+import argparse
+import json
+import os
+import re
+import sys
+from pathlib import Path
+
+# Also loadable as a module from elsewhere (cloudflare-proxy.test.mjs).
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from cloudflare_rulesets import PRIVATE_HOSTS, PUBLIC_HOSTS, base_domain, host_set, sync  # noqa: E402
+
+PHASE = "http_request_late_transform"
+# Must match ORIGIN_HEADER and ORIGIN_SECRET in render-env.py.
+ORIGIN_HEADER = "X-Barrels-Origin"
+ORIGIN_SECRET = re.compile(r"[A-Za-z0-9_-]{32,128}")
+MASK = "<CLOUDFLARE_ORIGIN_SECRET>"
+
+
+def rules(environment, secret):
+    domain = base_domain(environment)
+    return [
+        {
+            "ref": f"grenmet-{environment}-origin-secret",
+            "description": f"GrenMet {environment}: origin secret Traefik requires from Cloudflare",
+            "expression": f"(http.host in {host_set(PUBLIC_HOSTS + PRIVATE_HOSTS, domain)})",
+            "action": "rewrite",
+            # `set` overwrites any value a visitor sends.
+            "action_parameters": {"headers": {ORIGIN_HEADER: {"operation": "set", "value": secret}}},
+            "enabled": True,
+        }
+    ]
+
+
+def main(argv):
+    parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
+    parser.add_argument("--environment", required=True, choices=["staging", "production"])
+    parser.add_argument("--apply", action="store_true", help="write the rule (default: print the plan)")
+    parser.add_argument("--remove", action="store_true", help="delete this environment's rule (gate test or rollback)")
+    parser.add_argument("--print", action="store_true", help="print the rule as JSON, secret masked, and exit")
+    args = parser.parse_args(argv)
+
+    if args.remove:
+        managed = []
+    elif args.print:
+        managed = rules(args.environment, MASK)
+    else:
+        secret = os.environ.get("CLOUDFLARE_ORIGIN_SECRET", "")
+        if not ORIGIN_SECRET.fullmatch(secret):
+            raise ValueError(
+                "set CLOUDFLARE_ORIGIN_SECRET to the GitHub environment secret "
+                "(32 to 128 letters, digits, '-' or '_'; openssl rand -hex 32)"
+            )
+        managed = rules(args.environment, secret)
+    if args.print:
+        print(json.dumps(managed, indent=2))
+        return 0
+    return sync(PHASE, args.environment, managed, args.apply, "request header transform rules", 10)
+
+
+if __name__ == "__main__":
+    try:
+        sys.exit(main(sys.argv[1:]))
+    except (ValueError, OSError, RuntimeError, KeyError) as error:
+        print(f"Origin header rule refused: {error}", file=sys.stderr)
+        sys.exit(1)

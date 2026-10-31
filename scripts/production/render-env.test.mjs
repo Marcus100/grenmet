@@ -1098,7 +1098,13 @@ const EDGE_NAMES = [
   "TRAEFIK_FORWARDED_HEADERS",
   "TRAEFIK_CLIENT_IP_DEPTH",
   "TRAEFIK_ACME_CHALLENGE",
+  "TRAEFIK_ORIGIN_GATE_RULE",
 ];
+const ORIGIN_SECRET = "a1b2c3d4".repeat(8);
+const PROXY_ON = {
+  CLOUDFLARE_PROXY_ENABLED: "true",
+  CLOUDFLARE_ORIGIN_SECRET: ORIGIN_SECRET,
+};
 const CIDR_LINE = /^[0-9a-f:.]+\/\d+$/;
 const SWITCH_PASS =
   /^\s+CLOUDFLARE_PROXY_ENABLED: \$\{\{ vars\.CLOUDFLARE_PROXY_ENABLED \}\}$/m;
@@ -1128,12 +1134,13 @@ test("the Cloudflare switch is off by default and leaves Traefik at its defaults
       TRAEFIK_FORWARDED_HEADERS: "insecure=false",
       TRAEFIK_CLIENT_IP_DEPTH: "0",
       TRAEFIK_ACME_CHALLENGE: "tlschallenge=true",
+      TRAEFIK_ORIGIN_GATE_RULE: "ClientIP(`255.255.255.255/32`)",
     });
   }
 });
 
 test("the Cloudflare switch trusts exactly the vendored ranges and moves hops, depth and challenge", () => {
-  const { result, output } = render({ CLOUDFLARE_PROXY_ENABLED: "true" });
+  const { result, output } = render(PROXY_ON);
   assert.equal(result.status, 0, result.stderr);
   const values = edgeValues(output);
   assert.equal(values.CLOUDFLARE_PROXY_ENABLED, "true");
@@ -1163,4 +1170,62 @@ test("the Cloudflare switch refuses anything but true or false", () => {
 test("deploy.yml passes the Cloudflare switch from the GitHub environment", () => {
   const workflow = readFileSync(".github/workflows/deploy.yml", "utf8");
   assert.match(workflow, SWITCH_PASS);
+});
+
+test("the origin gate refuses Cloudflare addresses without the secret, and accepts a previous one", () => {
+  const { result, output } = render({
+    ...PROXY_ON,
+    CLOUDFLARE_ORIGIN_SECRET_PREVIOUS: "f0e1d2c3".repeat(8),
+  });
+  assert.equal(result.status, 0, result.stderr);
+  const rule = edgeValues(output).TRAEFIK_ORIGIN_GATE_RULE;
+  const sources = vendoredRanges().map((range) => `ClientIP(\`${range}\`)`);
+  assert.equal(
+    rule,
+    `(${sources.join(" || ")}) && !Header(\`X-Barrels-Origin\`, \`${ORIGIN_SECRET}\`) && !Header(\`X-Barrels-Origin\`, \`${"f0e1d2c3".repeat(8)}\`)`
+  );
+  // The secret appears only inside the gate rule, never as its own variable.
+  assert.equal(
+    output.split("\n").filter((line) => line.includes(ORIGIN_SECRET)).length,
+    1
+  );
+});
+
+test("the origin secret is required when the switch is on, well formed and unique, never echoed", () => {
+  const shared =
+    "test-only-configuration-value-32-characters-TRUSTED_WEB_SECRET";
+  for (const [change, reason] of [
+    [{ CLOUDFLARE_ORIGIN_SECRET: "" }, "is required"],
+    [{ CLOUDFLARE_ORIGIN_SECRET: "short-DO-NOT-ECHO" }, "32 to 128"],
+    [
+      { CLOUDFLARE_ORIGIN_SECRET: `${"x".repeat(40)}\`DO-NOT-ECHO` },
+      "32 to 128",
+    ],
+    [
+      { CLOUDFLARE_ORIGIN_SECRET_PREVIOUS: "bad value DO-NOT-ECHO" },
+      "PREVIOUS",
+    ],
+    [{ CLOUDFLARE_ORIGIN_SECRET: shared }, "differ"],
+  ]) {
+    const { result } = render({ ...PROXY_ON, ...change });
+    assert.notEqual(result.status, 0, JSON.stringify(change));
+    assert.ok(result.stderr.includes(reason), `${reason}: ${result.stderr}`);
+    for (const secret of ["DO-NOT-ECHO", ORIGIN_SECRET, shared])
+      assert.equal(result.stderr.includes(secret), false);
+  }
+  // Off, the secret is not needed and not used.
+  const off = render({ CLOUDFLARE_ORIGIN_SECRET: "" });
+  assert.equal(off.result.status, 0, off.result.stderr);
+});
+
+test("deploy.yml passes the origin secrets from the GitHub environment", () => {
+  const workflow = readFileSync(".github/workflows/deploy.yml", "utf8");
+  for (const name of [
+    "CLOUDFLARE_ORIGIN_SECRET",
+    "CLOUDFLARE_ORIGIN_SECRET_PREVIOUS",
+  ])
+    assert.ok(
+      workflow.includes(`          ${name}: \${{ secrets.${name} }}`),
+      `${name} is not passed`
+    );
 });

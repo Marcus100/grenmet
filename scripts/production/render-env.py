@@ -57,26 +57,69 @@ def fernet_keys(environment, name):
 # per-client cap and the visitor address skip Cloudflare's hop (2 = Cloudflare
 # then Traefik), and certificates renew over HTTP because Cloudflare terminates
 # TLS in front of the origin.
+#
+# On also turns on the origin gate: a connection from a Cloudflare address
+# without the zone's secret header (CLOUDFLARE_ORIGIN_SECRET, set on every
+# request by a Cloudflare Transform Rule, scripts/production/cloudflare-origin-header.py)
+# is refused with 403 before any router sees it. Cloudflare's addresses are
+# shared by every Cloudflare customer, so without this anyone's Worker could
+# connect to the droplet and choose its own X-Forwarded-For. Direct connections
+# from elsewhere are not matched: Traefik never trusts their forwarded headers.
+# CLOUDFLARE_ORIGIN_SECRET_PREVIOUS is also accepted while a rotation is applied.
+ORIGIN_HEADER = "X-Barrels-Origin"
+# Off: a rule no request can match (no TCP client has the broadcast address).
+ORIGIN_GATE_OFF = "ClientIP(`255.255.255.255/32`)"
+ORIGIN_SECRET = re.compile(r"[A-Za-z0-9_-]{32,128}")
 EDGE_OFF = {
     "VISITOR_IP_PROXY_HOPS": "1",
     "TRAEFIK_FORWARDED_HEADERS": "insecure=false",
     "TRAEFIK_CLIENT_IP_DEPTH": "0",
     "TRAEFIK_ACME_CHALLENGE": "tlschallenge=true",
+    "TRAEFIK_ORIGIN_GATE_RULE": ORIGIN_GATE_OFF,
 }
 
 
-def cloudflare_edge(environment):
+def origin_gate_rule(ranges, secrets):
+    sources = " || ".join(f"ClientIP(`{network}`)" for network in ranges)
+    accepted = " && ".join(f"!Header(`{ORIGIN_HEADER}`, `{secret}`)" for secret in secrets)
+    return f"({sources}) && {accepted}"
+
+
+def origin_secrets(environment, values):
+    """The accepted origin secrets (current first). Errors never echo values."""
+    current = environment.get("CLOUDFLARE_ORIGIN_SECRET", "")
+    previous = environment.get("CLOUDFLARE_ORIGIN_SECRET_PREVIOUS", "")
+    if not current:
+        raise ValueError("CLOUDFLARE_ORIGIN_SECRET is required when CLOUDFLARE_PROXY_ENABLED is true")
+    for name, value in (("CLOUDFLARE_ORIGIN_SECRET", current), ("CLOUDFLARE_ORIGIN_SECRET_PREVIOUS", previous)):
+        if value and not ORIGIN_SECRET.fullmatch(value):
+            raise ValueError(f"{name} must be 32 to 128 letters, digits, '-' or '_' (openssl rand -hex 32)")
+    if previous == current:
+        previous = ""
+    others = {
+        value
+        for key, value in values.items()
+        if value and (key.endswith(("_SECRET", "_PASSWORD", "_KEY", "_TOKEN")) or key == "EMAIL_HASH_PEPPER")
+    }
+    if current in others or previous in others:
+        raise ValueError("CLOUDFLARE_ORIGIN_SECRET must differ from every other deployment secret")
+    return [current, previous] if previous else [current]
+
+
+def cloudflare_edge(environment, values):
     switch = environment.get("CLOUDFLARE_PROXY_ENABLED", "")
     if switch not in {"", "true", "false"}:
         raise ValueError("CLOUDFLARE_PROXY_ENABLED must be true or false")
     if switch != "true":
         return {"CLOUDFLARE_PROXY_ENABLED": "false", **EDGE_OFF}
+    ranges = load_cloudflare_ranges()
     return {
         "CLOUDFLARE_PROXY_ENABLED": "true",
         "VISITOR_IP_PROXY_HOPS": "2",
-        "TRAEFIK_FORWARDED_HEADERS": "trustedIPs=" + ",".join(load_cloudflare_ranges()),
+        "TRAEFIK_FORWARDED_HEADERS": "trustedIPs=" + ",".join(ranges),
         "TRAEFIK_CLIENT_IP_DEPTH": "1",
         "TRAEFIK_ACME_CHALLENGE": "httpchallenge.entrypoint=web",
+        "TRAEFIK_ORIGIN_GATE_RULE": origin_gate_rule(ranges, origin_secrets(environment, values)),
     }
 
 
@@ -154,7 +197,7 @@ def render(config, environment):
     if telemetry_enabled not in {"", "true", "false"}:
         raise ValueError("TELEMETRY_ENABLED must be true or false")
     values["TELEMETRY_ENABLED"] = "true" if telemetry_enabled == "true" else "false"
-    values.update(cloudflare_edge(environment))
+    values.update(cloudflare_edge(environment, values))
     values["TELEMETRY_WORKER_HEARTBEAT_URL"] = environment.get("TELEMETRY_WORKER_HEARTBEAT_URL", "")
     heartbeat = values["TELEMETRY_WORKER_HEARTBEAT_URL"]
     if heartbeat:

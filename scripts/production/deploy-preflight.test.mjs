@@ -183,6 +183,9 @@ const VENDORED_RANGES = readFileSync(
   .split("\n")
   .filter((line) => line && !line.startsWith("#"));
 const VISITOR_HOSTS = ["api", "web-gms", "web-events", "web-bookings"];
+const ORIGIN_SECRET = "0123456789abcdef".repeat(4);
+const GATE_RULE_LABEL = (environment) =>
+  `traefik.http.routers.origin-gate${environment === "staging" ? "-staging" : ""}.rule`;
 const DEPTH_LABEL = (environment) =>
   `traefik.http.middlewares.inflight-per-ip${environment === "staging" ? "-staging" : ""}.inflightreq.sourceCriterion.ipStrategy.depth`;
 
@@ -195,6 +198,7 @@ for (const environment of ["staging", "production"]) {
         acme: "--certificatesresolvers.letsencrypt.acme.tlschallenge=true",
         depth: "0",
         hops: "1",
+        gate: "ClientIP(`255.255.255.255/32`)",
       },
     ],
     [
@@ -204,6 +208,7 @@ for (const environment of ["staging", "production"]) {
         acme: "--certificatesresolvers.letsencrypt.acme.httpchallenge.entrypoint=web",
         depth: "1",
         hops: "2",
+        gate: `(${VENDORED_RANGES.map((range) => `ClientIP(\`${range}\`)`).join(" || ")}) && !Header(\`X-Barrels-Origin\`, \`${ORIGIN_SECRET}\`)`,
       },
     ],
   ]) {
@@ -213,6 +218,7 @@ for (const environment of ["staging", "production"]) {
       withDirectory((directory) => {
         const { result, destination } = render(environment, directory, null, {
           CLOUDFLARE_PROXY_ENABLED: switchValue,
+          CLOUDFLARE_ORIGIN_SECRET: ORIGIN_SECRET,
         });
         assert.equal(result.status, 0, result.stderr);
         const { services } = composeModel(environment, destination);
@@ -230,6 +236,10 @@ for (const environment of ["staging", "production"]) {
         assert.equal(
           services.proxy.labels[DEPTH_LABEL(environment)],
           expected.depth
+        );
+        assert.equal(
+          services.proxy.labels[GATE_RULE_LABEL(environment)],
+          expected.gate
         );
         for (const name of VISITOR_HOSTS) {
           assert.equal(

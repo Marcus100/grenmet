@@ -31,6 +31,7 @@ const DURATION = /[=][1-9][0-9]*s$/;
 const HR_LIMIT = /^MAX_DOCUMENT_BYTES = (.+)$/m;
 const UPLOAD_ROUTER = /^(grenmet-api|web-cms|adminer)/;
 const STAGING_PROFILE = /^ {4}profiles: \["staging"\]$/m;
+const ORIGIN_GATE = /^origin-gate/;
 const SWITCHED_FORWARDED_HEADERS =
   /\$\{TRAEFIK_FORWARDED_HEADERS:-insecure=false\}$/;
 
@@ -181,10 +182,13 @@ function middlewareKind(name, labels) {
   return key?.slice(prefix.length).split(".")[0];
 }
 
+// The app routers on websecure (the origin gate is tested on its own below).
 function websecureRouters(environment) {
   const { routers } = edge(environment);
-  return [...routers].filter(([, router]) =>
-    (router.entrypoints ?? "").split(",").includes("websecure")
+  return [...routers].filter(
+    ([name, router]) =>
+      !ORIGIN_GATE.test(name) &&
+      (router.entrypoints ?? "").split(",").includes("websecure")
   );
 }
 
@@ -459,4 +463,41 @@ test("forwarded headers, the client-IP depth and the challenge come only from th
   );
   for (const flag of flags.filter((item) => item.includes("forwardedHeaders")))
     assert.match(flag, SWITCHED_FORWARDED_HEADERS);
+});
+
+test("the origin gate outranks every router, refuses with 403 and is inert when off", () => {
+  for (const environment of Object.keys(ENVIRONMENTS)) {
+    const { labels, routers, entrypointMiddlewares } = edge(environment);
+    const suffix = environment === "staging" ? "-staging" : "";
+    const gate = routers.get(`origin-gate${suffix}`);
+    assert.ok(gate, `${environment} has the origin gate`);
+    // Off (env files only): a rule no TCP client can match.
+    assert.equal(gate.rule, "ClientIP(`255.255.255.255/32`)");
+    assert.equal(gate.entrypoints, "websecure");
+    assert.equal(gate.tls, "true");
+    assert.equal(gate.service, "noop@internal");
+    for (const [name, router] of routers)
+      if (name !== `origin-gate${suffix}`)
+        assert.ok(
+          Number(router.priority ?? 0) < Number(gate.priority),
+          `${name} must rank below the gate`
+        );
+    assert.equal(gate.middlewares, `origin-deny${suffix}`);
+    assert.equal(
+      labels[
+        `traefik.http.middlewares.origin-deny${suffix}.ipallowlist.sourcerange`
+      ],
+      "127.0.0.1/32"
+    );
+    // The secret header never reaches an app, gate on or off.
+    assert.ok(
+      entrypointMiddlewares.includes(`strip-origin-secret${suffix}@docker`)
+    );
+    assert.equal(
+      labels[
+        `traefik.http.middlewares.strip-origin-secret${suffix}.headers.customrequestheaders.X-Barrels-Origin`
+      ],
+      ""
+    );
+  }
 });

@@ -944,9 +944,10 @@ services:
       - --entrypoints.websecure.transport.respondingtimeouts.readtimeout=60s
       - --entrypoints.websecure.transport.respondingtimeouts.writetimeout=120s
       - --entrypoints.websecure.transport.respondingtimeouts.idletimeout=180s
-      # Security headers and the per-client concurrency cap on every HTTPS
-      # request (middlewares defined in labels below).
-      - --entrypoints.websecure.http.middlewares=secure-headers${ROUTER_SUFFIX}@docker,inflight-per-ip${ROUTER_SUFFIX}@docker
+      # Security headers, the per-client concurrency cap and removal of the
+      # Cloudflare origin secret on every HTTPS request (middlewares defined in
+      # labels below).
+      - --entrypoints.websecure.http.middlewares=secure-headers${ROUTER_SUFFIX}@docker,inflight-per-ip${ROUTER_SUFFIX}@docker,strip-origin-secret${ROUTER_SUFFIX}@docker
       - --certificatesresolvers.letsencrypt.acme.email=${EMAIL}
       - --certificatesresolvers.letsencrypt.acme.storage=/certificates/acme.json
       # TLS-ALPN challenge by default. Behind Cloudflare's proxy Cloudflare ends
@@ -997,6 +998,21 @@ services:
       # Without ipStrategy Traefik would group by Host header instead.
       - "traefik.http.middlewares.inflight-per-ip${ROUTER_SUFFIX}.inflightreq.amount=100"
       - "traefik.http.middlewares.inflight-per-ip${ROUTER_SUFFIX}.inflightreq.sourceCriterion.ipStrategy.depth=${TRAEFIK_CLIENT_IP_DEPTH:-0}"
+      # Origin gate (docs/operations/cloudflare-proxy.md). With
+      # CLOUDFLARE_PROXY_ENABLED, render-env.py sets the rule: a connection from a
+      # Cloudflare address WITHOUT the zone's secret X-Barrels-Origin header (added
+      # by a Cloudflare Transform Rule) gets 403 before any other router, so
+      # another Cloudflare customer's Worker cannot reach the apps or pick its own
+      # X-Forwarded-For. Off, the rule matches nothing (no TCP client has the
+      # broadcast address). The header is removed before any app sees it.
+      - "traefik.http.routers.origin-gate${ROUTER_SUFFIX}.rule=${TRAEFIK_ORIGIN_GATE_RULE:-ClientIP(`255.255.255.255/32`)}"
+      - "traefik.http.routers.origin-gate${ROUTER_SUFFIX}.entrypoints=websecure"
+      - "traefik.http.routers.origin-gate${ROUTER_SUFFIX}.priority=1000000"
+      - "traefik.http.routers.origin-gate${ROUTER_SUFFIX}.tls=true"
+      - "traefik.http.routers.origin-gate${ROUTER_SUFFIX}.middlewares=origin-deny${ROUTER_SUFFIX}"
+      - "traefik.http.routers.origin-gate${ROUTER_SUFFIX}.service=noop@internal"
+      - "traefik.http.middlewares.origin-deny${ROUTER_SUFFIX}.ipallowlist.sourcerange=127.0.0.1/32"
+      - "traefik.http.middlewares.strip-origin-secret${ROUTER_SUFFIX}.headers.customrequestheaders.X-Barrels-Origin="
       # Request body limit for the routers that accept uploads (API, CMS, Adminer;
       # 413 above it). Largest API upload: an HR document (25 MiB,
       # src/hr/documents/service.py); event images go straight to object storage
