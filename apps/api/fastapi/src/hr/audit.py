@@ -177,20 +177,41 @@ async def _document(session: AsyncSession, actor: User, entity_id: str) -> bool:
     return True
 
 
+#: Payroll history is organisation-wide data: department visibility never reads it.
+PAYROLL_HISTORY_KEYS = (
+    "hr.payroll.prepare",
+    "hr.payroll.approve",
+    "hr.payroll.read.amounts",
+)
+
+
 async def _payroll_period(session: AsyncSession, actor: User, entity_id: str) -> bool:
-    from .payroll.access import visible_departments
+    from .payroll.access import holds_organisation_wide
 
     period_id = parse_uuid(entity_id)
     period = await session.get(PayPeriod, period_id) if period_id else None
     if period is None:
         return False
-    return bool(await visible_departments(session, actor, period.organisation_id))
+    return await holds_organisation_wide(
+        session, actor, period.organisation_id, PAYROLL_HISTORY_KEYS
+    )
 
 
 async def _payroll_settings(session: AsyncSession, actor: User, entity_id: str) -> bool:
-    from .payroll.access import visible_departments
+    from .payroll.access import holds_organisation_wide
 
-    return bool(await visible_departments(session, actor, entity_id))
+    return await holds_organisation_wide(
+        session, actor, entity_id, PAYROLL_HISTORY_KEYS
+    )
+
+
+async def _payroll_money(session: AsyncSession, actor: User, entity_id: str) -> bool:
+    """Basic pay and rates history: organisation-wide hr.payroll.read.amounts only."""
+    from .payroll.access import holds_organisation_wide
+
+    return await holds_organisation_wide(
+        session, actor, entity_id, ("hr.payroll.read.amounts",)
+    )
 
 
 async def _organisation_admin(
@@ -456,21 +477,18 @@ def register() -> None:
         entity_type="pay_period",
         entity_id_attr="period_id",
         label="Pay line",
-        sensitive=(
-            "reason",
-            "amount_minor",
-            "hourly_rate",
-            "multiplier",
-            "fixed_amount_minor",
-        ),
+        sensitive=("reason",),
+        # Money never enters change history: amounts are read from the period.
+        exclude=("amount_minor", "hourly_rate", "multiplier", "fixed_amount_minor"),
     )
     registry.track(
         EmployeeBasicPay,
         record_type="employee_basic_pay",
-        entity_type="payroll_settings",
+        entity_type="payroll_money",
         entity_id_attr="organisation_id",
         label="Basic pay",
-        sensitive=("amount_minor", "standard_monthly_hours", "reason"),
+        sensitive=("reason",),
+        exclude=("amount_minor", "standard_monthly_hours"),
     )
     for model, record_type, label in (
         (TaxTable, "tax_table", "Income tax table"),
@@ -495,11 +513,17 @@ def register() -> None:
     registry.track(
         PayItemRate,
         record_type="pay_item_rate",
-        entity_type="payroll_settings",
+        entity_type="payroll_money",
         entity_id_attr="organisation_id",
         label="Pay item rate",
-        sensitive=("amount_minor", "multiplier", "guaranteed_multiplier"),
+        exclude=(
+            "amount_minor",
+            "multiplier",
+            "guaranteed_hours",
+            "guaranteed_multiplier",
+        ),
     )
+    registry.register_entity("payroll_money", _payroll_money)
     registry.register_entity("payroll_settings", _payroll_settings)
     registry.track(
         PayCalendar,

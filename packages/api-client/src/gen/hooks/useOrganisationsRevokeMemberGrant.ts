@@ -59,7 +59,7 @@ export function organisationsRevokeMemberGrantMutationOptions<
 }
 
 /**
- * @description Needs the bundle's permissions and its product's team-manage permission. Revoking an already revoked grant returns it unchanged.
+ * @description Needs the bundle's permissions and its product's team-manage permission. Nobody can revoke their own grant (403). Revoking an already revoked grant returns it unchanged.
  * @summary Revoke a role grant
  * {@link /api/v1/organisations/org/grants/:grant_id/revoke}
  */

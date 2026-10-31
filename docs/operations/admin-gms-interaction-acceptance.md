@@ -108,7 +108,7 @@ placeholder is not an implemented service.
 | gaa-admin | `/wxwatch/[year]/[month]/[day]` | Pending |
 | gaa-admin | `/wxwatch` | Pending |
 | gaa-admin | `/signin` | Pending |
-| gms | `/[...planned]` | Pending |
+| gms | Planned placeholders (`/planned/[...planned]`, reached from each planned link) | Pending |
 | gms | `/about` | Pending |
 | gms | `/about/careers` | Pending |
 | gms | `/about/contact` | Pending |
@@ -244,6 +244,8 @@ placeholder is not an implemented service.
 GMS routes follow the seven-section Bold sky IA (28 Sep 2026). Old URLs
 308-redirect via `apps/web/gms/src/lib/route-moves.ts`; accept a sample of
 them. `/[location]` routes are empty until a second place is enabled
-(`apps/web/gms/src/lib/locations.ts`). `/[...planned]` serves every nav link
-marked `planned` as a sample-content placeholder (list: `plannedPaths()` in
-`apps/web/gms/src/lib/nav-sections.ts`).
+(`apps/web/gms/src/lib/locations.ts`). Every nav link marked `planned` is
+rewritten to the internal `/planned/[...planned]` route, which shows a
+sample-content placeholder at the link's own address (list: `plannedPaths()`
+in `apps/web/gms/src/lib/nav-sections.ts`; rewrites in
+`apps/web/gms/src/lib/planned-routes.ts`).

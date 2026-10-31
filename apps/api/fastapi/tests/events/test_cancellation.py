@@ -90,6 +90,7 @@ async def test_cancelling_an_event_cancels_every_ticket_and_tells_holders(
         "orders_queued": 0,
         "orders_kept": 0,
         "refunds_failed": 0,
+        "orders_pending": 0,
         "orders_released": 0,
     }
     async with events_db() as db:

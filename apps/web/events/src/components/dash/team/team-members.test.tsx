@@ -12,6 +12,7 @@ const RE_T4 = /Owners have every Events role/;
 const RE_T5 = /Take away/;
 const RE_T6 = /Remove/;
 const RE_T7 = /is not passed on/;
+const RE_GIVEN_BY = /^Given by /;
 
 vi.mock("@/data/team-actions", () => ({
   grantRole: vi.fn(),
@@ -30,7 +31,14 @@ const viewerAdmin = { canRemove: true, isOwner: false };
 function show(
   members: Parameters<typeof TeamMembers>[0]["members"],
   viewer = viewerAdmin,
-  bundles = [makeBundle(), makeBundle({ role_key: "events-till" })]
+  bundles = [
+    makeBundle(),
+    makeBundle({
+      role_key: "events-till",
+      label: "Box office",
+      description: "Sell tickets at the outlet till.",
+    }),
+  ]
 ) {
   return render(
     <TeamFeedbackProvider>
@@ -117,6 +125,71 @@ describe("TeamMembers", () => {
     unmount();
     show([owner], { canRemove: true, isOwner: true });
     expect(screen.getByRole("button", { name: RE_T6 })).toBeInTheDocument();
+  });
+
+  it("marks the viewer's own row and offers no change controls on it", () => {
+    show([
+      makeTeamMember({
+        fullName: "Me Myself",
+        isSelf: true,
+        grants: [makeGrant()],
+      }),
+    ]);
+    const row = screen.getByText("Me Myself").closest("li");
+    if (!row) {
+      throw new Error("row missing");
+    }
+    expect(within(row).getByText("(you)")).toBeInTheDocument();
+    expect(
+      within(row).getByText(
+        "You can't change your own roles. Ask another team manager."
+      )
+    ).toBeInTheDocument();
+    expect(within(row).queryByRole("button")).toBeNull();
+    expect(
+      within(row).queryByText(
+        "You can't take this away because you don't hold it yourself."
+      )
+    ).toBeNull();
+  });
+
+  it("keeps the controls on other members' rows", () => {
+    show([makeTeamMember({ grants: [makeGrant()] })]);
+    expect(screen.queryByText("(you)")).toBeNull();
+    expect(
+      screen.getByRole("button", { name: "Give a role to Ana Door" })
+    ).toBeInTheDocument();
+  });
+
+  it("says who gave a role, and nothing when the API does not know", () => {
+    show([
+      makeTeamMember({
+        grants: [
+          makeGrant(),
+          makeGrant({
+            id: "g2",
+            role_key: "events-till",
+            granted_by_name: null,
+          }),
+        ],
+      }),
+    ]);
+    expect(screen.getAllByText(RE_GIVEN_BY)).toHaveLength(1);
+    expect(screen.getByText("Given by Olu Owner.")).toBeInTheDocument();
+  });
+
+  it("names a role with the API bundle's label and description", () => {
+    show([makeTeamMember({ grants: [makeGrant()] })], viewerAdmin, [
+      makeBundle({
+        label: "Door team",
+        description: "Admit guests at the gate",
+      }),
+    ]);
+    expect(screen.getByText("Door team")).toBeInTheDocument();
+    expect(screen.getByText("Admit guests at the gate")).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Take away Door team from Ana Door" })
+    ).toBeInTheDocument();
   });
 
   it("offers no Give role on owner and admin rows", () => {

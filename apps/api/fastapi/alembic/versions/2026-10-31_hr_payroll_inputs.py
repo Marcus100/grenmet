@@ -9,7 +9,7 @@ The roster rules lane (#380) also adds a migration; whichever lands second
 re-points its ``down_revision`` at the other.
 
 Revision ID: payrollinputs20261031
-Revises: sociallive20261030
+Revises: refundcheck20261031
 """
 
 import sqlalchemy as sa
@@ -18,7 +18,7 @@ from sqlalchemy.dialects import postgresql
 from alembic import op
 
 revision = "payrollinputs20261031"
-down_revision = "sociallive20261030"
+down_revision = "refundcheck20261031"
 branch_labels = None
 depends_on = None
 
@@ -330,7 +330,25 @@ def upgrade() -> None:
     )
 
 
+def _refuse_if_rows(*tables: str) -> None:
+    """Never drop payroll data: downgrade only an empty install."""
+    for table in tables:
+        query = sa.select(sa.literal(1)).select_from(sa.table(table, schema="hr"))
+        if op.get_bind().execute(query.limit(1)).first():
+            raise RuntimeError(
+                f"hr.{table} has rows; export and remove payroll data before downgrading"
+            )
+
+
 def downgrade() -> None:
+    _refuse_if_rows(
+        "pay_line",
+        "pay_run",
+        "pay_period",
+        "pay_calendar",
+        "employee_pay_profile",
+        "payroll_department_setting",
+    )  # pay_item holds the seeded catalogue, not payroll data
     op.execute("DROP TRIGGER pay_line_locked ON hr.pay_line")
     op.execute("DROP FUNCTION hr.pay_line_is_locked()")
     op.drop_table("pay_line", schema="hr")

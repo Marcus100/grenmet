@@ -810,6 +810,9 @@ class CancelResult(BaseModel):
     refunds_failed: int = 0
     #: Unpaid orders released because the event is off.
     orders_released: int = 0
+    #: Paid orders whose earlier organiser refund is still waiting for the payment
+    #: provider. Not failed and not queued again; follow each order's refund status.
+    orders_pending: int = 0
 
 
 class PostponeEvent(BaseModel):

@@ -25,7 +25,7 @@ import { Field, FieldLabel } from "@barrelsgd/ui/components/ui/field";
 import { Input } from "@barrelsgd/ui/components/ui/input";
 import { NativeSelect } from "@barrelsgd/ui/components/ui/native-select";
 import { useQueryClient } from "@tanstack/react-query";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { grenadaToday } from "@/components/hr/expiry";
 import {
@@ -75,6 +75,124 @@ function orNull(value: string | null | undefined): string | null {
   return value?.trim() || null;
 }
 
+/** The record as this form compares it, or null when there is none yet. */
+function snapshotOf(
+  record: EmploymentRecordPublic | undefined
+): SavedEmployment | null {
+  return record
+    ? {
+        departmentId: record.department_id,
+        employeeNumber: orNull(record.employee_number),
+        endDate: record.end_date ?? null,
+        position: orNull(record.position),
+        status: record.status,
+      }
+    : null;
+}
+
+function sameSnapshot(a: SavedEmployment | null, b: SavedEmployment | null) {
+  if (a === null || b === null) return a === b;
+  return (
+    a.departmentId === b.departmentId &&
+    a.employeeNumber === b.employeeNumber &&
+    a.endDate === b.endDate &&
+    a.position === b.position &&
+    a.status === b.status
+  );
+}
+
+/**
+ * True when, with the form loaded and nothing fetching, `latest` is a record
+ * fetched after `compared` (the one the snapshot was set against) and it no
+ * longer matches the snapshot.
+ */
+function changedSinceLoad({
+  compared,
+  fetching,
+  latest,
+  saved,
+  seeded,
+}: {
+  compared: EmploymentRecordPublic | undefined;
+  fetching: boolean;
+  latest: EmploymentRecordPublic | undefined;
+  saved: SavedEmployment | null;
+  seeded: boolean;
+}) {
+  if (!seeded || fetching || latest === compared) return false;
+  return !sameSnapshot(snapshotOf(latest), saved);
+}
+
+/**
+ * Status select for an existing record. The create request has no status, so
+ * before the record exists the form says it starts Active instead.
+ */
+function StatusField({
+  editable,
+  onChange,
+  value,
+}: {
+  editable: boolean;
+  onChange: (status: EmploymentStatus) => void;
+  value: EmploymentStatus;
+}) {
+  if (!editable) {
+    return (
+      <div className="flex flex-col gap-1">
+        <span className="font-medium text-sm">Status</span>
+        <p className="text-muted-foreground text-sm">
+          Active. A new record always starts Active.
+        </p>
+      </div>
+    );
+  }
+  return (
+    <Field>
+      <FieldLabel htmlFor="mu-status">Status</FieldLabel>
+      <NativeSelect
+        id="mu-status"
+        onChange={(e) => onChange(e.target.value as EmploymentStatus)}
+        value={value}
+      >
+        <option value="ACTIVE">Active</option>
+        <option value="INACTIVE">Inactive</option>
+        <option value="TERMINATED">Terminated</option>
+      </NativeSelect>
+    </Field>
+  );
+}
+
+/** Shown when the record changed on the server after this form loaded it. */
+export const CHANGED_ELSEWHERE_NOTICE =
+  "This record was changed after you opened it, perhaps by another administrator. The form still shows what you loaded; only the fields you edit are saved. Load latest values shows the saved record and discards your unsaved edits.";
+
+/** Says the record changed elsewhere, with a way to reload it. Nothing when `show` is false. */
+function ChangedElsewhereNotice({
+  onLoadLatest,
+  show,
+}: {
+  onLoadLatest: () => void;
+  show: boolean;
+}) {
+  if (!show) return null;
+  return (
+    <Alert variant="warning">
+      <AlertDescription>
+        <span className="block">{CHANGED_ELSEWHERE_NOTICE}</span>
+        <Button
+          className="mt-2"
+          onClick={onLoadLatest}
+          size="sm"
+          type="button"
+          variant="outline"
+        >
+          Load latest values
+        </Button>
+      </AlertDescription>
+    </Alert>
+  );
+}
+
 /**
  * Department and employment record for one person, as HR administrators edit it
  * in the user dialog. Owns the draft form, the confirmation step before a change
@@ -112,6 +230,15 @@ export function EmploymentSection({
   const [saveError, setSaveError] = useState<string | null>(null);
   // Plain status message, such as "No changes to save". Not an error.
   const [notice, setNotice] = useState<string | null>(null);
+  // "Load latest values" removes its own button, so focus moves here instead of
+  // falling back to the page.
+  const departmentRef = useRef<HTMLSelectElement>(null);
+  // The fetched record the snapshot was last set against (at load or save). Only
+  // a record fetched after that can show a change made elsewhere; the stale
+  // cached record right after this form's own save is not one.
+  const [comparedRecord, setComparedRecord] = useState<
+    EmploymentRecordPublic | undefined
+  >(undefined);
 
   const today = grenadaToday();
   const draftEndDate = emp.end_date || null;
@@ -131,6 +258,16 @@ export function EmploymentSection({
           today,
         });
 
+  // A newly fetched record differs from the one this form loaded or saved
+  // (another admin saved in between). Never judged mid-fetch.
+  const changedElsewhere = changedSinceLoad({
+    compared: comparedRecord,
+    fetching: isFetching,
+    latest: currentEmployment,
+    saved,
+    seeded: empSeeded,
+  });
+
   // Seed the form once per open, after the read + departments settle.
   // No record (404) leaves the snapshot null → blank fields, "assign" (create) mode.
   useEffect(() => {
@@ -147,17 +284,8 @@ export function EmploymentSection({
       status: currentEmployment?.status ?? "ACTIVE",
       end_date: currentEmployment?.end_date ?? "",
     });
-    setSaved(
-      currentEmployment
-        ? {
-            departmentId: currentEmployment.department_id,
-            employeeNumber: orNull(currentEmployment.employee_number),
-            endDate: currentEmployment.end_date ?? null,
-            position: orNull(currentEmployment.position),
-            status: currentEmployment.status,
-          }
-        : null
-    );
+    setSaved(snapshotOf(currentEmployment));
+    setComparedRecord(currentEmployment);
     setEmpSeeded(true);
   }, [open, empSeeded, isFetching, currentEmployment, departments]);
 
@@ -231,6 +359,7 @@ export function EmploymentSection({
       })
     );
     if (!ok) return;
+    setComparedRecord(currentEmployment);
     setSaved(changes.next);
     await refreshAfterSave(base.departmentId, changes.next.departmentId);
   }
@@ -248,6 +377,7 @@ export function EmploymentSection({
     );
     if (!ok) return;
     // The create request sends no status or last day, so the record starts Active with no last day.
+    setComparedRecord(currentEmployment);
     setSaved({
       departmentId: emp.department_id,
       employeeNumber: orNull(emp.employee_number),
@@ -295,6 +425,16 @@ export function EmploymentSection({
     toast.success(`Updated employment for ${user.username}`);
   }
 
+  /** Reloads the form from the server's record, dropping unsaved edits. */
+  function loadLatest() {
+    setPendingReview(null);
+    setSaveError(null);
+    setNotice(null);
+    setEmpSeeded(false);
+    // The select stays mounted while the form reseeds (no fetch runs).
+    departmentRef.current?.focus();
+  }
+
   /** Save button: asks for confirmation first when the change ends roles. */
   function requestSave() {
     if (endDateProblem) return;
@@ -322,6 +462,7 @@ export function EmploymentSection({
         <NativeSelect
           id="mu-dept"
           onChange={(e) => editEmployment({ department_id: e.target.value })}
+          ref={departmentRef}
           value={emp.department_id}
         >
           <option value="">Select department…</option>
@@ -348,20 +489,11 @@ export function EmploymentSection({
             value={emp.employee_number}
           />
         </Field>
-        <Field>
-          <FieldLabel htmlFor="mu-status">Status</FieldLabel>
-          <NativeSelect
-            id="mu-status"
-            onChange={(e) =>
-              editEmployment({ status: e.target.value as EmploymentStatus })
-            }
-            value={emp.status}
-          >
-            <option value="ACTIVE">Active</option>
-            <option value="INACTIVE">Inactive</option>
-            <option value="TERMINATED">Terminated</option>
-          </NativeSelect>
-        </Field>
+        <StatusField
+          editable={saved !== null}
+          onChange={(status) => editEmployment({ status })}
+          value={emp.status}
+        />
       </div>
       <Field>
         <FieldLabel htmlFor="mu-position">Position</FieldLabel>
@@ -415,6 +547,10 @@ export function EmploymentSection({
           A last day can be recorded once the employment record is saved.
         </p>
       )}
+      <ChangedElsewhereNotice
+        onLoadLatest={loadLatest}
+        show={changedElsewhere}
+      />
       {saveError ? (
         <Alert role="alert" variant="destructive">
           <AlertDescription>{saveError}</AlertDescription>
