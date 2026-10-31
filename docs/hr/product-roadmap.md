@@ -121,10 +121,11 @@ off, daily and weekly hours, weekends off, 7 days' notice, overtime hours by rat
 band, and per-employee union coverage. Checked at publish, published-roster edits,
 exchange approval, leave and absence cancellation, and timesheet and attendance
 approval; a break needs a supervisor's recorded reason. See
-[roster rules](roster-rules.md), including its open questions for GAA HR.
+[roster rules](roster-rules.md), including the owner's decisions of 31 Oct 2026.
 
-Exit: seeded violations are caught on every path (tests), and GAA HR has answered the
-open questions in [roster rules](roster-rules.md).
+Exit: seeded violations are caught on every path (tests). The owner settled the open
+readings on 31 Oct 2026 (unpaid M and E meal break, holiday overtime, notice exemption
+for agreed exchanges); see [roster rules](roster-rules.md).
 
 ### Phase 2: attendance from the existing terminal (replaces the old clock-in phase)
 

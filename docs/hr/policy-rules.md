@@ -67,7 +67,7 @@ Phase 0 checklist (issue #379), documentation view only: opening balances, an au
 
 The owner confirmed the roster terms on 2026-10-31 (issue #380). They are built as
 editable data, all on by default; a break needs a supervisor's recorded reason. Values,
-the engine's readings and the open questions for GAA HR are in
+the engine's readings and the owner's decisions of 31 Oct 2026 are in
 [roster rules](roster-rules.md). No minimum-rest rule applies. Overtime is counted in
 hours by rate band only; pay treatment remains future payroll work.
 
