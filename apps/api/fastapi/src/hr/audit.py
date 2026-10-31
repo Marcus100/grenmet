@@ -41,9 +41,11 @@ from .models import (
 from .organisations import permitted_departments
 from .parking.models import ParkingPermit
 from .payroll.models import (
+    EmployeeBasicPay,
     EmployeePayProfile,
     PayCalendar,
     PayItem,
+    PayItemRate,
     PayLine,
     PayPeriod,
     PayrollDepartmentSetting,
@@ -450,7 +452,29 @@ def register() -> None:
         entity_type="pay_period",
         entity_id_attr="period_id",
         label="Pay line",
-        sensitive=("reason",),
+        sensitive=(
+            "reason",
+            "amount_minor",
+            "hourly_rate",
+            "multiplier",
+            "fixed_amount_minor",
+        ),
+    )
+    registry.track(
+        EmployeeBasicPay,
+        record_type="employee_basic_pay",
+        entity_type="payroll_settings",
+        entity_id_attr="organisation_id",
+        label="Basic pay",
+        sensitive=("amount_minor", "standard_monthly_hours", "reason"),
+    )
+    registry.track(
+        PayItemRate,
+        record_type="pay_item_rate",
+        entity_type="payroll_settings",
+        entity_id_attr="organisation_id",
+        label="Pay item rate",
+        sensitive=("amount_minor", "multiplier", "guaranteed_multiplier"),
     )
     registry.register_entity("payroll_settings", _payroll_settings)
     registry.track(

@@ -699,7 +699,7 @@ async def test_new_organisation_catalogue_is_empty(
         await async_client.get(f"{API}/items?organisation_id=gaa", headers=admin)
     ).json()
     assert {item["code"] for item in gaa["data"]} == {
-        seed.code for seed in catalogue.GAA_PAY_ITEMS
+        seed.code for seed in (*catalogue.GAA_PAY_ITEMS, catalogue.BASIC_ITEM)
     }
     assert {item["rule_state"] for item in gaa["data"]} == {"PROVISIONAL"}
     assert all(item["source_reference"] for item in gaa["data"])

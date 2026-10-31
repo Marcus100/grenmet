@@ -311,6 +311,7 @@ export { hrCreateAbsenteeReport } from "./clients/hrCreateAbsenteeReport.js";
 export { hrCreateCalendarEvent } from "./clients/hrCreateCalendarEvent.js";
 export { hrCreateClockSite } from "./clients/hrCreateClockSite.js";
 export { hrCreateDepartment } from "./clients/hrCreateDepartment.js";
+export { hrCreateEmployeeBasicPay } from "./clients/hrCreateEmployeeBasicPay.js";
 export { hrCreateHoliday } from "./clients/hrCreateHoliday.js";
 export { hrCreateHrEmployment } from "./clients/hrCreateHrEmployment.js";
 export { hrCreateInstance } from "./clients/hrCreateInstance.js";
@@ -318,6 +319,7 @@ export { hrCreateLeaveRequest } from "./clients/hrCreateLeaveRequest.js";
 export { hrCreateOrganisation } from "./clients/hrCreateOrganisation.js";
 export { hrCreateParkingPermit } from "./clients/hrCreateParkingPermit.js";
 export { hrCreatePayCalendar } from "./clients/hrCreatePayCalendar.js";
+export { hrCreatePayItemRate } from "./clients/hrCreatePayItemRate.js";
 export { hrCreatePayLine } from "./clients/hrCreatePayLine.js";
 export { hrCreatePayPeriod } from "./clients/hrCreatePayPeriod.js";
 export { hrCreatePeriod } from "./clients/hrCreatePeriod.js";
@@ -359,6 +361,7 @@ export { hrGetOrganisationCatalogue } from "./clients/hrGetOrganisationCatalogue
 export { hrGetOrganisations } from "./clients/hrGetOrganisations.js";
 export { hrGetParkingPermits } from "./clients/hrGetParkingPermits.js";
 export { hrGetPayPeriod } from "./clients/hrGetPayPeriod.js";
+export { hrGetPayPeriodAmounts } from "./clients/hrGetPayPeriodAmounts.js";
 export { hrGetPeriod } from "./clients/hrGetPeriod.js";
 export { hrGetPeriodRevisions } from "./clients/hrGetPeriodRevisions.js";
 export { hrGetProductAccess } from "./clients/hrGetProductAccess.js";
@@ -390,10 +393,12 @@ export { hrListCalendarEvents } from "./clients/hrListCalendarEvents.js";
 export { hrListClockSites } from "./clients/hrListClockSites.js";
 export { hrListDepartmentMembers } from "./clients/hrListDepartmentMembers.js";
 export { hrListDepartments } from "./clients/hrListDepartments.js";
+export { hrListEmployeeBasicPay } from "./clients/hrListEmployeeBasicPay.js";
 export { hrListEmployeePayProfiles } from "./clients/hrListEmployeePayProfiles.js";
 export { hrListHolidays } from "./clients/hrListHolidays.js";
 export { hrListMyShiftSwaps } from "./clients/hrListMyShiftSwaps.js";
 export { hrListPayCalendars } from "./clients/hrListPayCalendars.js";
+export { hrListPayItemRates } from "./clients/hrListPayItemRates.js";
 export { hrListPayItems } from "./clients/hrListPayItems.js";
 export { hrListPayLines } from "./clients/hrListPayLines.js";
 export { hrListPayPeriods } from "./clients/hrListPayPeriods.js";
@@ -2253,6 +2258,11 @@ export {
   useHrCreateDepartment,
 } from "./hooks/useHrCreateDepartment.js";
 export {
+  hrCreateEmployeeBasicPayMutationKey,
+  hrCreateEmployeeBasicPayMutationOptions,
+  useHrCreateEmployeeBasicPay,
+} from "./hooks/useHrCreateEmployeeBasicPay.js";
+export {
   hrCreateHolidayMutationKey,
   hrCreateHolidayMutationOptions,
   useHrCreateHoliday,
@@ -2287,6 +2297,11 @@ export {
   hrCreatePayCalendarMutationOptions,
   useHrCreatePayCalendar,
 } from "./hooks/useHrCreatePayCalendar.js";
+export {
+  hrCreatePayItemRateMutationKey,
+  hrCreatePayItemRateMutationOptions,
+  useHrCreatePayItemRate,
+} from "./hooks/useHrCreatePayItemRate.js";
 export {
   hrCreatePayLineMutationKey,
   hrCreatePayLineMutationOptions,
@@ -2493,6 +2508,11 @@ export {
   useHrGetPayPeriod,
 } from "./hooks/useHrGetPayPeriod.js";
 export {
+  hrGetPayPeriodAmountsQueryKey,
+  hrGetPayPeriodAmountsQueryOptions,
+  useHrGetPayPeriodAmounts,
+} from "./hooks/useHrGetPayPeriodAmounts.js";
+export {
   hrGetPeriodQueryKey,
   hrGetPeriodQueryOptions,
   useHrGetPeriod,
@@ -2648,6 +2668,11 @@ export {
   useHrListDepartments,
 } from "./hooks/useHrListDepartments.js";
 export {
+  hrListEmployeeBasicPayQueryKey,
+  hrListEmployeeBasicPayQueryOptions,
+  useHrListEmployeeBasicPay,
+} from "./hooks/useHrListEmployeeBasicPay.js";
+export {
   hrListEmployeePayProfilesQueryKey,
   hrListEmployeePayProfilesQueryOptions,
   useHrListEmployeePayProfiles,
@@ -2667,6 +2692,11 @@ export {
   hrListPayCalendarsQueryOptions,
   useHrListPayCalendars,
 } from "./hooks/useHrListPayCalendars.js";
+export {
+  hrListPayItemRatesQueryKey,
+  hrListPayItemRatesQueryOptions,
+  useHrListPayItemRates,
+} from "./hooks/useHrListPayItemRates.js";
 export {
   hrListPayItemsQueryKey,
   hrListPayItemsQueryOptions,
@@ -6610,9 +6640,13 @@ export type { EmailConfirm } from "./models/EmailConfirm.js";
 export type { EmailRequest } from "./models/EmailRequest.js";
 export type { EmergencyContactPublic } from "./models/EmergencyContactPublic.js";
 export type { EmergencyContactUpdate } from "./models/EmergencyContactUpdate.js";
+export type { EmployeeBasicPayCreate } from "./models/EmployeeBasicPayCreate.js";
+export type { EmployeeBasicPayPublic } from "./models/EmployeeBasicPayPublic.js";
+export type { EmployeeBasicPaysPublic } from "./models/EmployeeBasicPaysPublic.js";
 export type { EmployeeDocumentListPublic } from "./models/EmployeeDocumentListPublic.js";
 export type { EmployeeDocumentPublic } from "./models/EmployeeDocumentPublic.js";
 export type { EmployeeDocumentUpdate } from "./models/EmployeeDocumentUpdate.js";
+export type { EmployeeGrossPublic } from "./models/EmployeeGrossPublic.js";
 export type { EmployeePayProfilePublic } from "./models/EmployeePayProfilePublic.js";
 export type { EmployeePayProfilesPublic } from "./models/EmployeePayProfilesPublic.js";
 export type { EmployeePayProfileUpdate } from "./models/EmployeePayProfileUpdate.js";
@@ -8168,6 +8202,19 @@ export type {
   HrCreateDepartmentStatus422,
 } from "./models/HrCreateDepartment.js";
 export type {
+  HrCreateEmployeeBasicPayBody,
+  HrCreateEmployeeBasicPayOptions,
+  HrCreateEmployeeBasicPayResponse,
+  HrCreateEmployeeBasicPayResponses,
+  HrCreateEmployeeBasicPayStatus201,
+  HrCreateEmployeeBasicPayStatus400,
+  HrCreateEmployeeBasicPayStatus401,
+  HrCreateEmployeeBasicPayStatus403,
+  HrCreateEmployeeBasicPayStatus404,
+  HrCreateEmployeeBasicPayStatus409,
+  HrCreateEmployeeBasicPayStatus422,
+} from "./models/HrCreateEmployeeBasicPay.js";
+export type {
   HrCreateHolidayBody,
   HrCreateHolidayOptions,
   HrCreateHolidayResponse,
@@ -8244,6 +8291,19 @@ export type {
   HrCreatePayCalendarStatus409,
   HrCreatePayCalendarStatus422,
 } from "./models/HrCreatePayCalendar.js";
+export type {
+  HrCreatePayItemRateBody,
+  HrCreatePayItemRateOptions,
+  HrCreatePayItemRateResponse,
+  HrCreatePayItemRateResponses,
+  HrCreatePayItemRateStatus201,
+  HrCreatePayItemRateStatus400,
+  HrCreatePayItemRateStatus401,
+  HrCreatePayItemRateStatus403,
+  HrCreatePayItemRateStatus404,
+  HrCreatePayItemRateStatus409,
+  HrCreatePayItemRateStatus422,
+} from "./models/HrCreatePayItemRate.js";
 export type {
   HrCreatePayLineBody,
   HrCreatePayLineOptions,
@@ -8675,6 +8735,19 @@ export type {
   HrGetPayPeriodStatus422,
 } from "./models/HrGetPayPeriod.js";
 export type {
+  HrGetPayPeriodAmountsOptions,
+  HrGetPayPeriodAmountsPath,
+  HrGetPayPeriodAmountsResponse,
+  HrGetPayPeriodAmountsResponses,
+  HrGetPayPeriodAmountsStatus200,
+  HrGetPayPeriodAmountsStatus400,
+  HrGetPayPeriodAmountsStatus401,
+  HrGetPayPeriodAmountsStatus403,
+  HrGetPayPeriodAmountsStatus404,
+  HrGetPayPeriodAmountsStatus409,
+  HrGetPayPeriodAmountsStatus422,
+} from "./models/HrGetPayPeriodAmounts.js";
+export type {
   HrGetPeriodOptions,
   HrGetPeriodPath,
   HrGetPeriodResponse,
@@ -8996,6 +9069,19 @@ export type {
   HrListDepartmentsStatus422,
 } from "./models/HrListDepartments.js";
 export type {
+  HrListEmployeeBasicPayOptions,
+  HrListEmployeeBasicPayQuery,
+  HrListEmployeeBasicPayResponse,
+  HrListEmployeeBasicPayResponses,
+  HrListEmployeeBasicPayStatus200,
+  HrListEmployeeBasicPayStatus400,
+  HrListEmployeeBasicPayStatus401,
+  HrListEmployeeBasicPayStatus403,
+  HrListEmployeeBasicPayStatus404,
+  HrListEmployeeBasicPayStatus409,
+  HrListEmployeeBasicPayStatus422,
+} from "./models/HrListEmployeeBasicPay.js";
+export type {
   HrListEmployeePayProfilesOptions,
   HrListEmployeePayProfilesQuery,
   HrListEmployeePayProfilesResponse,
@@ -9040,6 +9126,19 @@ export type {
   HrListPayCalendarsStatus409,
   HrListPayCalendarsStatus422,
 } from "./models/HrListPayCalendars.js";
+export type {
+  HrListPayItemRatesOptions,
+  HrListPayItemRatesQuery,
+  HrListPayItemRatesResponse,
+  HrListPayItemRatesResponses,
+  HrListPayItemRatesStatus200,
+  HrListPayItemRatesStatus400,
+  HrListPayItemRatesStatus401,
+  HrListPayItemRatesStatus403,
+  HrListPayItemRatesStatus404,
+  HrListPayItemRatesStatus409,
+  HrListPayItemRatesStatus422,
+} from "./models/HrListPayItemRates.js";
 export type {
   HrListPayItemsOptions,
   HrListPayItemsQuery,
@@ -10979,6 +11078,8 @@ export type { ParkingPermitPublic } from "./models/ParkingPermitPublic.js";
 export type { ParkingPermitSubmit } from "./models/ParkingPermitSubmit.js";
 export type { PassportStopPublic } from "./models/PassportStopPublic.js";
 export type { PassportTrailPublic } from "./models/PassportTrailPublic.js";
+export type { PayBasis } from "./models/PayBasis.js";
+export { payBasis } from "./models/PayBasis.js";
 export type { PayCalendarCreate } from "./models/PayCalendarCreate.js";
 export type { PayCalendarPublic } from "./models/PayCalendarPublic.js";
 export type { PayCalendarsPublic } from "./models/PayCalendarsPublic.js";
@@ -10989,10 +11090,14 @@ export { payItemKind } from "./models/PayItemKind.js";
 export type { PayItemMethod } from "./models/PayItemMethod.js";
 export { payItemMethod } from "./models/PayItemMethod.js";
 export type { PayItemPublic } from "./models/PayItemPublic.js";
+export type { PayItemRateCreate } from "./models/PayItemRateCreate.js";
+export type { PayItemRatePublic } from "./models/PayItemRatePublic.js";
+export type { PayItemRatesPublic } from "./models/PayItemRatesPublic.js";
 export type { PayItemsPublic } from "./models/PayItemsPublic.js";
 export type { PayItemTotal } from "./models/PayItemTotal.js";
 export type { PayItemUnit } from "./models/PayItemUnit.js";
 export { payItemUnit } from "./models/PayItemUnit.js";
+export type { PayLineAmountPublic } from "./models/PayLineAmountPublic.js";
 export type { PayLineKind } from "./models/PayLineKind.js";
 export { payLineKind } from "./models/PayLineKind.js";
 export type { PayLineManualCreate } from "./models/PayLineManualCreate.js";
@@ -11161,6 +11266,7 @@ export type {
   PaymentsRecordManualPaymentStatus409,
   PaymentsRecordManualPaymentStatus422,
 } from "./models/PaymentsRecordManualPayment.js";
+export type { PayPeriodAmountsPublic } from "./models/PayPeriodAmountsPublic.js";
 export type { PayPeriodCreate } from "./models/PayPeriodCreate.js";
 export type { PayPeriodDetail } from "./models/PayPeriodDetail.js";
 export type { PayPeriodPublic } from "./models/PayPeriodPublic.js";
@@ -11286,6 +11392,8 @@ export type {
 } from "./models/PushVapidPublicKey.js";
 export type { QcDecisionBody } from "./models/QcDecisionBody.js";
 export type { QcDecisionRequest } from "./models/QcDecisionRequest.js";
+export type { RateKind } from "./models/RateKind.js";
+export { rateKind } from "./models/RateKind.js";
 export type { ReadinessUnavailable } from "./models/ReadinessUnavailable.js";
 export type { ReceivableRowPublic } from "./models/ReceivableRowPublic.js";
 export type { ReceivablesPublic } from "./models/ReceivablesPublic.js";
@@ -15782,9 +15890,13 @@ export { emailConfirmSchema } from "./zod/emailConfirmSchema.js";
 export { emailRequestSchema } from "./zod/emailRequestSchema.js";
 export { emergencyContactPublicSchema } from "./zod/emergencyContactPublicSchema.js";
 export { emergencyContactUpdateSchema } from "./zod/emergencyContactUpdateSchema.js";
+export { employeeBasicPayCreateSchema } from "./zod/employeeBasicPayCreateSchema.js";
+export { employeeBasicPayPublicSchema } from "./zod/employeeBasicPayPublicSchema.js";
+export { employeeBasicPaysPublicSchema } from "./zod/employeeBasicPaysPublicSchema.js";
 export { employeeDocumentListPublicSchema } from "./zod/employeeDocumentListPublicSchema.js";
 export { employeeDocumentPublicSchema } from "./zod/employeeDocumentPublicSchema.js";
 export { employeeDocumentUpdateSchema } from "./zod/employeeDocumentUpdateSchema.js";
+export { employeeGrossPublicSchema } from "./zod/employeeGrossPublicSchema.js";
 export { employeePayProfilePublicSchema } from "./zod/employeePayProfilePublicSchema.js";
 export { employeePayProfilesPublicSchema } from "./zod/employeePayProfilesPublicSchema.js";
 export { employeePayProfileUpdateSchema } from "./zod/employeePayProfileUpdateSchema.js";
@@ -17350,6 +17462,18 @@ export {
   hrCreateDepartmentStatus422Schema,
 } from "./zod/hrCreateDepartmentSchema.js";
 export {
+  hrCreateEmployeeBasicPayBodySchema,
+  hrCreateEmployeeBasicPayErrorSchema,
+  hrCreateEmployeeBasicPayResponseSchema,
+  hrCreateEmployeeBasicPayStatus201Schema,
+  hrCreateEmployeeBasicPayStatus400Schema,
+  hrCreateEmployeeBasicPayStatus401Schema,
+  hrCreateEmployeeBasicPayStatus403Schema,
+  hrCreateEmployeeBasicPayStatus404Schema,
+  hrCreateEmployeeBasicPayStatus409Schema,
+  hrCreateEmployeeBasicPayStatus422Schema,
+} from "./zod/hrCreateEmployeeBasicPaySchema.js";
+export {
   hrCreateHolidayBodySchema,
   hrCreateHolidayErrorSchema,
   hrCreateHolidayResponseSchema,
@@ -17420,6 +17544,18 @@ export {
   hrCreatePayCalendarStatus409Schema,
   hrCreatePayCalendarStatus422Schema,
 } from "./zod/hrCreatePayCalendarSchema.js";
+export {
+  hrCreatePayItemRateBodySchema,
+  hrCreatePayItemRateErrorSchema,
+  hrCreatePayItemRateResponseSchema,
+  hrCreatePayItemRateStatus201Schema,
+  hrCreatePayItemRateStatus400Schema,
+  hrCreatePayItemRateStatus401Schema,
+  hrCreatePayItemRateStatus403Schema,
+  hrCreatePayItemRateStatus404Schema,
+  hrCreatePayItemRateStatus409Schema,
+  hrCreatePayItemRateStatus422Schema,
+} from "./zod/hrCreatePayItemRateSchema.js";
 export {
   hrCreatePayLineBodySchema,
   hrCreatePayLineErrorSchema,
@@ -17846,6 +17982,19 @@ export {
   hrGetParkingPermitsStatus422Schema,
 } from "./zod/hrGetParkingPermitsSchema.js";
 export {
+  hrGetPayPeriodAmountsErrorSchema,
+  hrGetPayPeriodAmountsPathPeriodIdSchema,
+  hrGetPayPeriodAmountsPathSchema,
+  hrGetPayPeriodAmountsResponseSchema,
+  hrGetPayPeriodAmountsStatus200Schema,
+  hrGetPayPeriodAmountsStatus400Schema,
+  hrGetPayPeriodAmountsStatus401Schema,
+  hrGetPayPeriodAmountsStatus403Schema,
+  hrGetPayPeriodAmountsStatus404Schema,
+  hrGetPayPeriodAmountsStatus409Schema,
+  hrGetPayPeriodAmountsStatus422Schema,
+} from "./zod/hrGetPayPeriodAmountsSchema.js";
+export {
   hrGetPayPeriodErrorSchema,
   hrGetPayPeriodPathPeriodIdSchema,
   hrGetPayPeriodPathSchema,
@@ -18189,6 +18338,20 @@ export {
   hrListDepartmentsStatus422Schema,
 } from "./zod/hrListDepartmentsSchema.js";
 export {
+  hrListEmployeeBasicPayErrorSchema,
+  hrListEmployeeBasicPayQueryOrganisationIdSchema,
+  hrListEmployeeBasicPayQuerySchema,
+  hrListEmployeeBasicPayQueryUserIdSchema,
+  hrListEmployeeBasicPayResponseSchema,
+  hrListEmployeeBasicPayStatus200Schema,
+  hrListEmployeeBasicPayStatus400Schema,
+  hrListEmployeeBasicPayStatus401Schema,
+  hrListEmployeeBasicPayStatus403Schema,
+  hrListEmployeeBasicPayStatus404Schema,
+  hrListEmployeeBasicPayStatus409Schema,
+  hrListEmployeeBasicPayStatus422Schema,
+} from "./zod/hrListEmployeeBasicPaySchema.js";
+export {
   hrListEmployeePayProfilesErrorSchema,
   hrListEmployeePayProfilesQueryLimitSchema,
   hrListEmployeePayProfilesQueryOrganisationIdSchema,
@@ -18236,6 +18399,19 @@ export {
   hrListPayCalendarsStatus409Schema,
   hrListPayCalendarsStatus422Schema,
 } from "./zod/hrListPayCalendarsSchema.js";
+export {
+  hrListPayItemRatesErrorSchema,
+  hrListPayItemRatesQueryOrganisationIdSchema,
+  hrListPayItemRatesQuerySchema,
+  hrListPayItemRatesResponseSchema,
+  hrListPayItemRatesStatus200Schema,
+  hrListPayItemRatesStatus400Schema,
+  hrListPayItemRatesStatus401Schema,
+  hrListPayItemRatesStatus403Schema,
+  hrListPayItemRatesStatus404Schema,
+  hrListPayItemRatesStatus409Schema,
+  hrListPayItemRatesStatus422Schema,
+} from "./zod/hrListPayItemRatesSchema.js";
 export {
   hrListPayItemsErrorSchema,
   hrListPayItemsQueryOrganisationIdSchema,
@@ -20142,6 +20318,7 @@ export { parkingPermitPublicSchema } from "./zod/parkingPermitPublicSchema.js";
 export { parkingPermitSubmitSchema } from "./zod/parkingPermitSubmitSchema.js";
 export { passportStopPublicSchema } from "./zod/passportStopPublicSchema.js";
 export { passportTrailPublicSchema } from "./zod/passportTrailPublicSchema.js";
+export { payBasisSchema } from "./zod/payBasisSchema.js";
 export { payCalendarCreateSchema } from "./zod/payCalendarCreateSchema.js";
 export { payCalendarPublicSchema } from "./zod/payCalendarPublicSchema.js";
 export { payCalendarsPublicSchema } from "./zod/payCalendarsPublicSchema.js";
@@ -20149,9 +20326,13 @@ export { payFrequencySchema } from "./zod/payFrequencySchema.js";
 export { payItemKindSchema } from "./zod/payItemKindSchema.js";
 export { payItemMethodSchema } from "./zod/payItemMethodSchema.js";
 export { payItemPublicSchema } from "./zod/payItemPublicSchema.js";
+export { payItemRateCreateSchema } from "./zod/payItemRateCreateSchema.js";
+export { payItemRatePublicSchema } from "./zod/payItemRatePublicSchema.js";
+export { payItemRatesPublicSchema } from "./zod/payItemRatesPublicSchema.js";
 export { payItemsPublicSchema } from "./zod/payItemsPublicSchema.js";
 export { payItemTotalSchema } from "./zod/payItemTotalSchema.js";
 export { payItemUnitSchema } from "./zod/payItemUnitSchema.js";
+export { payLineAmountPublicSchema } from "./zod/payLineAmountPublicSchema.js";
 export { payLineKindSchema } from "./zod/payLineKindSchema.js";
 export { payLineManualCreateSchema } from "./zod/payLineManualCreateSchema.js";
 export { payLinePublicSchema } from "./zod/payLinePublicSchema.js";
@@ -20334,6 +20515,7 @@ export {
   paymentsRecordManualPaymentStatus409Schema,
   paymentsRecordManualPaymentStatus422Schema,
 } from "./zod/paymentsRecordManualPaymentSchema.js";
+export { payPeriodAmountsPublicSchema } from "./zod/payPeriodAmountsPublicSchema.js";
 export { payPeriodCreateSchema } from "./zod/payPeriodCreateSchema.js";
 export { payPeriodDetailSchema } from "./zod/payPeriodDetailSchema.js";
 export { payPeriodPublicSchema } from "./zod/payPeriodPublicSchema.js";
@@ -20445,6 +20627,7 @@ export {
 } from "./zod/pushVapidPublicKeySchema.js";
 export { qcDecisionBodySchema } from "./zod/qcDecisionBodySchema.js";
 export { qcDecisionRequestSchema } from "./zod/qcDecisionRequestSchema.js";
+export { rateKindSchema } from "./zod/rateKindSchema.js";
 export { readinessUnavailableSchema } from "./zod/readinessUnavailableSchema.js";
 export { receivableRowPublicSchema } from "./zod/receivableRowPublicSchema.js";
 export { receivablesPublicSchema } from "./zod/receivablesPublicSchema.js";

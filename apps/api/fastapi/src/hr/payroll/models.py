@@ -72,6 +72,18 @@ class PayItemMethod(str, Enum):
     THRESHOLD_EVENT = "THRESHOLD_EVENT"
     OVERTIME_BAND = "OVERTIME_BAND"
     MANUAL = "MANUAL"
+    #: Slice 2: one line per salaried person per period, priced from the basic.
+    BASIC_SALARY = "BASIC_SALARY"
+
+
+class PayBasis(str, Enum):
+    SALARIED = "SALARIED"
+    HOURLY = "HOURLY"
+
+
+class RateKind(str, Enum):
+    HOURLY_MULTIPLIER = "HOURLY_MULTIPLIER"
+    FIXED_AMOUNT = "FIXED_AMOUNT"
 
 
 class PayRunKind(str, Enum):
@@ -248,6 +260,8 @@ class EmployeePayProfile(Base):
     shift_worker: Mapped[bool | None]
     # The person's identifier in the payroll of record (HrPlus), when known.
     payroll_reference: Mapped[str | None] = mapped_column(String(50))
+    # Slice 2: why an hourly-paid person is on a calendar longer than fortnightly.
+    calendar_override_reason: Mapped[str | None] = mapped_column(String(300))
     updated_by_user_id: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("user.id"))
     created_at: Mapped[datetime] = mapped_column(default=utc_now)
     updated_at: Mapped[datetime] = mapped_column(default=utc_now)
@@ -328,5 +342,96 @@ class PayLine(Base):
     adjusts_line_id: Mapped[uuid.UUID | None] = mapped_column(
         ForeignKey("hr.pay_line.id")
     )
+    # Slice 2 pricing, filled while the period is OPEN and locked with the line.
+    # Null amount means "not priced" (no rate or no basic pay on file).
+    amount_minor: Mapped[int | None] = mapped_column(sa.BigInteger)
+    hourly_rate: Mapped[Decimal | None] = mapped_column(Numeric(14, 4))
+    multiplier: Mapped[Decimal | None] = mapped_column(Numeric(6, 3))
+    fixed_amount_minor: Mapped[int | None] = mapped_column(sa.BigInteger)
+    pay_item_rate_id: Mapped[uuid.UUID | None] = mapped_column(
+        ForeignKey("hr.pay_item_rate.id")
+    )
+    basic_pay_id: Mapped[uuid.UUID | None] = mapped_column(
+        ForeignKey("hr.employee_basic_pay.id")
+    )
+    created_by_user_id: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("user.id"))
+    created_at: Mapped[datetime] = mapped_column(default=utc_now)
+
+
+class EmployeeBasicPay(Base):
+    """Dated basic pay (slice 2): a monthly salary or an hourly rate, in minor units.
+
+    Rows for one person must not overlap (checked by the service). Readable only
+    with organisation-wide hr.payroll.read.amounts or hr.payroll.rates.manage.
+    """
+
+    __tablename__ = "employee_basic_pay"
+    __table_args__ = (
+        sa.CheckConstraint("amount_minor > 0", name="ck_hr_employee_basic_pay_amount"),
+        sa.CheckConstraint(
+            "standard_monthly_hours > 0", name="ck_hr_employee_basic_pay_hours"
+        ),
+        sa.CheckConstraint(
+            "effective_to IS NULL OR effective_to >= effective_from",
+            name="ck_hr_employee_basic_pay_dates",
+        ),
+        _check_in("pay_basis", PayBasis, "ck_hr_employee_basic_pay_basis"),
+        sa.Index("ix_hr_employee_basic_pay_user_from", "user_id", "effective_from"),
+        {"schema": "hr"},
+    )
+
+    id: Mapped[uuid.UUID] = mapped_column(primary_key=True, default=uuid.uuid4)
+    user_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("user.id"))
+    organisation_id: Mapped[str] = mapped_column(
+        String(100), ForeignKey("hr.organisation.id"), index=True
+    )
+    pay_basis: Mapped[str] = mapped_column(String(16))
+    amount_minor: Mapped[int] = mapped_column(sa.BigInteger)
+    standard_monthly_hours: Mapped[Decimal] = mapped_column(Numeric(6, 2))
+    currency: Mapped[str] = mapped_column(String(3), default="XCD")
+    effective_from: Mapped[date]
+    effective_to: Mapped[date | None]
+    reason: Mapped[str | None] = mapped_column(String(300))
+    created_by_user_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("user.id"))
+    created_at: Mapped[datetime] = mapped_column(default=utc_now)
+
+
+class PayItemRate(Base):
+    """Dated rate for a pay item (slice 2): a multiplier or a fixed amount."""
+
+    __tablename__ = "pay_item_rate"
+    __table_args__ = (
+        sa.CheckConstraint(
+            "(rate_kind = 'HOURLY_MULTIPLIER' AND multiplier IS NOT NULL AND multiplier > 0)"
+            " OR (rate_kind = 'FIXED_AMOUNT' AND amount_minor IS NOT NULL AND amount_minor >= 0)",
+            name="ck_hr_pay_item_rate_value",
+        ),
+        sa.CheckConstraint(
+            "effective_to IS NULL OR effective_to >= effective_from",
+            name="ck_hr_pay_item_rate_dates",
+        ),
+        _check_in("rate_kind", RateKind, "ck_hr_pay_item_rate_kind"),
+        _check_in("rule_state", RuleState, "ck_hr_pay_item_rate_rule_state"),
+        sa.Index("ix_hr_pay_item_rate_item_from", "pay_item_id", "effective_from"),
+        {"schema": "hr"},
+    )
+
+    id: Mapped[uuid.UUID] = mapped_column(primary_key=True, default=uuid.uuid4)
+    pay_item_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("hr.pay_item.id"))
+    organisation_id: Mapped[str] = mapped_column(
+        String(100), ForeignKey("hr.organisation.id"), index=True
+    )
+    rate_kind: Mapped[str] = mapped_column(String(24))
+    multiplier: Mapped[Decimal | None] = mapped_column(Numeric(6, 3))
+    amount_minor: Mapped[int | None] = mapped_column(sa.BigInteger)
+    guaranteed_hours: Mapped[Decimal | None] = mapped_column(Numeric(6, 2))
+    guaranteed_multiplier: Mapped[Decimal | None] = mapped_column(Numeric(6, 3))
+    currency: Mapped[str] = mapped_column(String(3), default="XCD")
+    effective_from: Mapped[date]
+    effective_to: Mapped[date | None]
+    rule_state: Mapped[str] = mapped_column(
+        String(16), default=RuleState.PROVISIONAL.value
+    )
+    source_reference: Mapped[str | None] = mapped_column(String(300))
     created_by_user_id: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("user.id"))
     created_at: Mapped[datetime] = mapped_column(default=utc_now)

@@ -9,6 +9,7 @@ from src.hr.workflow.models import WorkflowStatus
 from src.models import BaseModel, UtcDateTime
 
 from .models import (
+    PayBasis,
     PayFrequency,
     PayItemKind,
     PayItemMethod,
@@ -16,6 +17,7 @@ from .models import (
     PayLineKind,
     PayPeriodStatus,
     PayRunKind,
+    RateKind,
     RuleState,
 )
 
@@ -219,6 +221,13 @@ class EmployeePayProfileUpdate(BaseModel):
         ]
         | None
     ) = None
+    #: Needed to put an hourly-paid person on a calendar longer than fortnightly.
+    calendar_override_reason: (
+        Annotated[
+            str, StringConstraints(strip_whitespace=True, min_length=3, max_length=300)
+        ]
+        | None
+    ) = None
 
 
 class PayrollDepartmentSettingPublic(BaseModel):
@@ -233,3 +242,113 @@ class PayrollDepartmentSettingsPublic(BaseModel):
 
 class PayrollDepartmentSettingUpdate(BaseModel):
     shift_worker_default: bool
+
+
+# ── Slice 2: gross pay. Only organisation-wide hr.payroll.read.amounts sees these.
+
+
+class PayLineAmountPublic(PayLinePublic):
+    amount_minor: int | None
+    hourly_rate: Decimal | None
+    multiplier: Decimal | None
+    fixed_amount_minor: int | None
+
+
+class EmployeeGrossPublic(BaseModel):
+    user_id: uuid.UUID
+    employee_name: str
+    employee_number: str | None
+    gross_minor: int
+    #: Lines with no rate or no basic pay on file; never counted as zero.
+    unpriced_line_count: int
+
+
+class PayPeriodAmountsPublic(BaseModel):
+    period_id: uuid.UUID
+    currency: str
+    gross_minor: int
+    employees: list[EmployeeGrossPublic]
+    lines: list[PayLineAmountPublic]
+
+
+class PayItemRateCreate(BaseModel):
+    pay_item_id: uuid.UUID
+    rate_kind: RateKind
+    multiplier: (
+        Annotated[Decimal, Field(gt=0, max_digits=6, decimal_places=3)] | None
+    ) = None
+    amount_minor: Annotated[int, Field(ge=0, le=100_000_000)] | None = None
+    guaranteed_hours: (
+        Annotated[Decimal, Field(gt=0, max_digits=6, decimal_places=2)] | None
+    ) = None
+    guaranteed_multiplier: (
+        Annotated[Decimal, Field(gt=0, max_digits=6, decimal_places=3)] | None
+    ) = None
+    effective_from: date
+    effective_to: date | None = None
+    rule_state: RuleState = RuleState.PROVISIONAL
+    source_reference: (
+        Annotated[str, StringConstraints(strip_whitespace=True, max_length=300)] | None
+    ) = None
+
+
+class PayItemRatePublic(BaseModel):
+    id: uuid.UUID
+    pay_item_id: uuid.UUID
+    organisation_id: str
+    rate_kind: RateKind
+    multiplier: Decimal | None
+    amount_minor: int | None
+    guaranteed_hours: Decimal | None
+    guaranteed_multiplier: Decimal | None
+    currency: str
+    effective_from: date
+    effective_to: date | None
+    rule_state: RuleState
+    source_reference: str | None
+
+
+class PayItemRatesPublic(BaseModel):
+    data: list[PayItemRatePublic]
+
+
+class EmployeeBasicPayCreate(BaseModel):
+    organisation_id: Annotated[str, StringConstraints(min_length=1, max_length=100)]
+    user_id: uuid.UUID
+    pay_basis: PayBasis
+    #: Monthly salary (SALARIED) or hourly rate (HOURLY), in minor units (cents).
+    amount_minor: Annotated[int, Field(gt=0, le=100_000_000)]
+    standard_monthly_hours: Annotated[
+        Decimal, Field(gt=0, le=744, max_digits=6, decimal_places=2)
+    ]
+    effective_from: date
+    effective_to: date | None = None
+    reason: (
+        Annotated[str, StringConstraints(strip_whitespace=True, max_length=300)] | None
+    ) = None
+    #: Needed when an hourly-paid person sits on a calendar longer than
+    #: fortnightly (Employment Act wage-period rule, secondary source).
+    calendar_override_reason: (
+        Annotated[
+            str, StringConstraints(strip_whitespace=True, min_length=3, max_length=300)
+        ]
+        | None
+    ) = None
+
+
+class EmployeeBasicPayPublic(BaseModel):
+    id: uuid.UUID
+    user_id: uuid.UUID
+    employee_name: str
+    organisation_id: str
+    pay_basis: PayBasis
+    amount_minor: int
+    standard_monthly_hours: Decimal
+    currency: str
+    effective_from: date
+    effective_to: date | None
+    reason: str | None
+
+
+class EmployeeBasicPaysPublic(BaseModel):
+    data: list[EmployeeBasicPayPublic]

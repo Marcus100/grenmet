@@ -10,8 +10,10 @@ The load is recorded with a BaselineStep marker, so an item HR later edits or
 retires is never re-created by a later seed run.
 """
 
+import uuid
 from dataclasses import dataclass, field
 from datetime import date
+from decimal import Decimal
 from typing import Any
 
 from sqlalchemy import select
@@ -20,7 +22,15 @@ from sqlalchemy.orm import Session
 
 from src.baseline.models import BaselineStep
 
-from .models import PayItem, PayItemKind, PayItemMethod, PayItemUnit, RuleState
+from .models import (
+    PayItem,
+    PayItemKind,
+    PayItemMethod,
+    PayItemRate,
+    PayItemUnit,
+    RateKind,
+    RuleState,
+)
 
 GAA_ORGANISATION_ID = "gaa"
 MARKER = "payroll:gaa-pay-items:v1"
@@ -156,6 +166,7 @@ def _rows(existing: set[str]) -> list[PayItem]:
 
 def seed_gaa_pay_items(session: Session) -> None:
     if session.get(BaselineStep, MARKER) is not None:
+        seed_gaa_rates(session)
         return
     existing = set(
         session.execute(
@@ -167,10 +178,12 @@ def seed_gaa_pay_items(session: Session) -> None:
     session.add_all(_rows(existing))
     session.add(BaselineStep(key=MARKER))
     session.flush()
+    seed_gaa_rates(session)
 
 
 async def seed_gaa_pay_items_async(session: AsyncSession) -> None:
     if await session.get(BaselineStep, MARKER) is not None:
+        await seed_gaa_rates_async(session)
         return
     existing = set(
         (
@@ -185,4 +198,137 @@ async def seed_gaa_pay_items_async(session: AsyncSession) -> None:
     )
     session.add_all(_rows(existing))
     session.add(BaselineStep(key=MARKER))
+    await session.flush()
+    await seed_gaa_rates_async(session)
+
+
+# ── Slice 2: the basic salary item and provisional rates (amounts in cents) ────
+
+RATES_MARKER = "payroll:gaa-pay-rates:v1"
+BASIC_ITEM = PayItemSeed(
+    "BASIC",
+    "Basic salary",
+    PayItemKind.OTHER,
+    PayItemUnit.COUNT,
+    PayItemMethod.BASIC_SALARY,
+    "Monthly basic from each person's dated basic pay; share of the month covered",
+)
+
+
+@dataclass(frozen=True)
+class RateSeed:
+    code: str
+    rate_kind: RateKind
+    source: str
+    multiplier: Decimal | None = None
+    amount_minor: int | None = None
+    guaranteed_hours: Decimal | None = None
+    guaranteed_multiplier: Decimal | None = None
+
+
+def _times(code: str, multiplier: str, clause: str) -> RateSeed:
+    return RateSeed(
+        code,
+        RateKind.HOURLY_MULTIPLIER,
+        f"{MEMORANDUM}, {clause}",
+        multiplier=Decimal(multiplier),
+    )
+
+
+GAA_RATES: tuple[RateSeed, ...] = (
+    _times("BASE", "1", "hours of work (hourly-paid staff only), PDF p. 11"),
+    _times("OT_TIME_AND_HALF", "1.5", "Art. 6(2)(a)-(b), PDF p. 12"),
+    _times("OT_DOUBLE", "2", "Art. 6(2)(a)-(e), PDF p. 12"),
+    _times("OT_TRIPLE", "3", "Art. 6(2)(c), PDF p. 12"),
+    RateSeed(
+        "MEAL",
+        RateKind.FIXED_AMOUNT,
+        f"{MEMORANDUM}, Art. 8(1)(a)-(b), $40.00, PDF p. 18",
+        amount_minor=4000,
+    ),
+    RateSeed(
+        "CALL_OUT",
+        RateKind.FIXED_AMOUNT,
+        f"{MEMORANDUM}, Art. 8(7): $40.00 plus a guaranteed 4 hours overtime, "
+        "PDF p. 19; the overtime multiplier (1.5) is assumed",
+        amount_minor=4000,
+        guaranteed_hours=Decimal(4),
+        guaranteed_multiplier=Decimal("1.5"),
+    ),
+)
+
+
+def _rate_rows(items: dict[str, uuid.UUID]) -> list[PayItemRate]:
+    return [
+        PayItemRate(
+            pay_item_id=items[seed.code],
+            organisation_id=GAA_ORGANISATION_ID,
+            rate_kind=seed.rate_kind.value,
+            multiplier=seed.multiplier,
+            amount_minor=seed.amount_minor,
+            guaranteed_hours=seed.guaranteed_hours,
+            guaranteed_multiplier=seed.guaranteed_multiplier,
+            effective_from=EFFECTIVE_FROM,
+            rule_state=RuleState.PROVISIONAL.value,
+            source_reference=seed.source,
+        )
+        for seed in GAA_RATES
+        if seed.code in items
+    ]
+
+
+def _basic_item() -> PayItem:
+    return PayItem(
+        organisation_id=GAA_ORGANISATION_ID,
+        code=BASIC_ITEM.code,
+        name=BASIC_ITEM.name,
+        kind=BASIC_ITEM.kind.value,
+        unit=BASIC_ITEM.unit.value,
+        method=BASIC_ITEM.method.value,
+        params={},
+        effective_from=EFFECTIVE_FROM,
+        rule_state=RuleState.PROVISIONAL.value,
+        source_reference=BASIC_ITEM.source,
+        sort_order=0,
+    )
+
+
+def seed_gaa_rates(session: Session) -> None:
+    if session.get(BaselineStep, RATES_MARKER) is not None:
+        return
+    items: dict[str, uuid.UUID] = {
+        row[0]: row[1]
+        for row in session.execute(
+            select(PayItem.code, PayItem.id).where(
+                PayItem.organisation_id == GAA_ORGANISATION_ID
+            )
+        ).all()
+    }
+    if BASIC_ITEM.code not in items:
+        basic = _basic_item()
+        session.add(basic)
+        session.flush()
+    session.add_all(_rate_rows(items))
+    session.add(BaselineStep(key=RATES_MARKER))
+    session.flush()
+
+
+async def seed_gaa_rates_async(session: AsyncSession) -> None:
+    if await session.get(BaselineStep, RATES_MARKER) is not None:
+        return
+    items: dict[str, uuid.UUID] = {
+        row[0]: row[1]
+        for row in (
+            await session.execute(
+                select(PayItem.code, PayItem.id).where(
+                    PayItem.organisation_id == GAA_ORGANISATION_ID
+                )
+            )
+        ).all()
+    }
+    if BASIC_ITEM.code not in items:
+        session.add(_basic_item())
+        await session.flush()
+    session.add_all(_rate_rows(items))
+    session.add(BaselineStep(key=RATES_MARKER))
     await session.flush()

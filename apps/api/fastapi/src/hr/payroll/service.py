@@ -48,11 +48,13 @@ from src.hr.workflow.models import (
 )
 from src.hr.workflow.schemas import WorkflowActionRequest
 from src.utils.datetime import utc_now
+from src.utils.timezones import local_today
 
-from . import access, export, overtime, rules
+from . import access, export, gross, overtime, rules
 from .models import (
     LOCKED_STATUSES,
     EmployeePayProfile,
+    PayBasis,
     PayCalendar,
     PayFrequency,
     PayItem,
@@ -215,6 +217,11 @@ class ProfileRow:
     payroll_reference: str | None
 
 
+async def employee_name(session: AsyncSession, user_id: uuid.UUID) -> str:
+    name = await session.scalar(select(_employee_name()).where(User.id == user_id))
+    return name or ""
+
+
 def _employee_name() -> ColumnElement[str]:
     return func.concat(User.first_name, " ", User.last_name)
 
@@ -292,6 +299,16 @@ async def update_profile(
         calendar = await session.get(PayCalendar, payload.calendar_id)
         if calendar is None or calendar.organisation_id != organisation_id:
             raise PayrollValidationError("Pay calendar not found in this organisation")
+        if (
+            calendar.frequency not in gross.WAGE_PERIOD_OK
+            and await gross.current_basis(session, user_id, local_today())
+            == PayBasis.HOURLY
+            and not payload.calendar_override_reason
+        ):
+            raise PayrollConflictError(
+                "Hourly-paid staff must be paid at least fortnightly; choose a "
+                "fortnightly calendar or give an override reason"
+            )
     profile = await session.get(EmployeePayProfile, user_id)
     if profile is None:
         profile = EmployeePayProfile(user_id=user_id, organisation_id=organisation_id)
@@ -299,6 +316,7 @@ async def update_profile(
     profile.calendar_id = payload.calendar_id
     profile.shift_worker = payload.shift_worker
     profile.payroll_reference = payload.payroll_reference
+    profile.calendar_override_reason = payload.calendar_override_reason
     profile.updated_by_user_id = actor.id
     profile.updated_at = utc_now()
     try:
@@ -651,6 +669,7 @@ class LineSpec:
     source_revision: int
     work_date: date
     adjusts_period_id: uuid.UUID | None = None
+    source_type: str = ATTENDANCE_SOURCE
 
 
 async def _runs(session: AsyncSession, period: PayPeriod) -> dict[str, PayRun]:
@@ -851,6 +870,8 @@ async def shift_quantities(
 
 
 def _source_key(spec: LineSpec) -> str:
+    if spec.source_type == gross.BASIC_SOURCE:
+        return f"basic:{spec.source_id}"
     if spec.line_kind == PayLineKind.COMPUTED:
         return f"att:{spec.source_id}:{spec.pay_item_id}"
     return f"adj:{spec.source_id}:{spec.pay_item_id}:{spec.line_kind.value.lower()}"
@@ -903,7 +924,7 @@ async def _sync_run(
                     "pay_item_id": spec.pay_item_id,
                     "quantity": spec.quantity,
                     "line_kind": spec.line_kind.value,
-                    "source_type": ATTENDANCE_SOURCE,
+                    "source_type": spec.source_type,
                     "source_id": spec.source_id,
                     "source_revision": spec.source_revision,
                     "source_key": key,
@@ -1075,6 +1096,20 @@ async def _compute(session: AsyncSession, period: PayPeriod, actor: User) -> int
             await shift_quantities(session, period.organisation_id, items, shifts)
         ).items()
     ]
+    regular += [
+        LineSpec(
+            user_id=row.user_id,
+            department_id=row.department_id,
+            pay_item_id=row.pay_item_id,
+            quantity=row.quantity,
+            line_kind=PayLineKind.COMPUTED,
+            source_id=row.basic_pay_id,
+            source_revision=0,
+            work_date=row.work_date,
+            source_type=gross.BASIC_SOURCE,
+        )
+        for row in await gross.basic_salary_rows(session, period, calendar)
+    ]
     changes = await _sync_run(
         session,
         period,
@@ -1091,6 +1126,7 @@ async def _compute(session: AsyncSession, period: PayPeriod, actor: User) -> int
         (PayLineKind.REVERSAL, PayLineKind.REPLACEMENT),
         actor.id,
     )
+    changes += await gross.price_period(session, period)
     period.computed_at = period.updated_at = utc_now()
     if changes:
         await audit_service.record_change(
@@ -1378,7 +1414,11 @@ async def export_csv(
                 _line_columns()
                 .add_columns(Department.code.label("department_code"))
                 .join(Department, Department.id == PayLine.department_id)
-                .where(PayLine.period_id == period.id)
+                .where(
+                    PayLine.period_id == period.id,
+                    # The quantity CSV leaves salary to HrPlus (slice 1 scope).
+                    PayLine.source_type != gross.BASIC_SOURCE,
+                )
                 .order_by(
                     EmploymentRecord.employee_number.nulls_last(),
                     PayLine.user_id,

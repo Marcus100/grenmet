@@ -44,6 +44,23 @@ files and cutover are later slices that need their own approval.
   lock at submission and approved figures never move.
 - **Logs and Sentry:** IDs and counts only, never names, quantities or reasons.
 
+## Gross pay (slice 2, `gross.py`, `pricing.py`)
+- Money is integer minor units (XCD cents), Decimal arithmetic, rounded half-up
+  per line (the billing pattern). Totals are sums of rounded lines.
+- `employee_basic_pay` is dated: SALARIED (monthly basic) or HOURLY (hourly rate),
+  plus standard monthly hours. `pay_item_rate` is dated: HOURLY_MULTIPLIER, or
+  FIXED_AMOUNT with optional guaranteed hours (call-out: $40 + 4 h at 1.5,
+  the 1.5 assumed). An open-ended earlier row ends the day before a new one.
+- Pricing runs at the end of every computation and is frozen with the lines.
+  A line with no rate or no basic pay has `amount_minor` NULL, never 0. Salaried
+  base hours are covered by the BASIC line. Reversals take the negated recorded
+  amount. A retroactive basic change is not adjusted automatically.
+- `hr.payroll.read.amounts` (organisation-wide only) is the only way to see money:
+  `PayLinePublic` has no money fields (tested). `hr.payroll.rates.manage` writes
+  need MFA; nobody sets their own basic pay.
+- Hourly-paid staff on a calendar longer than fortnightly need an override
+  reason (Employment Act wage periods, secondary source).
+
 ## Rules (all provisional, parameters in the GAA catalogue)
 - Base hours: arrival to departure (`hours_basis` ELAPSED, the memorandum's
   8 hours inclusive of lunch) capped at `standard_hours`.

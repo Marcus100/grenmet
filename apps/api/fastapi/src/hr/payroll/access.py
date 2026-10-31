@@ -29,7 +29,10 @@ READ_DEPARTMENT = "hr.payroll.read.department"
 PREPARE = "hr.payroll.prepare"
 APPROVE = "hr.payroll.approve"
 EXPORT = "hr.payroll.export"
-PAYROLL_KEYS = (READ_DEPARTMENT, PREPARE, APPROVE, EXPORT)
+#: Slice 2: dated rates and basic pay, and every money field.
+RATES_MANAGE = "hr.payroll.rates.manage"
+READ_AMOUNTS = "hr.payroll.read.amounts"
+PAYROLL_KEYS = (READ_DEPARTMENT, PREPARE, APPROVE, EXPORT, RATES_MANAGE, READ_AMOUNTS)
 
 
 class PayPeriodNotFoundError(NotFoundError):
