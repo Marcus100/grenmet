@@ -17,7 +17,7 @@ import {
   AlertDialogTitle,
 } from "@barrelsgd/ui/components/ui/alert-dialog";
 import { Badge } from "@barrelsgd/ui/components/ui/badge";
-import { Button } from "@barrelsgd/ui/components/ui/button";
+import { Button, buttonVariants } from "@barrelsgd/ui/components/ui/button";
 import { Field, FieldLabel } from "@barrelsgd/ui/components/ui/field";
 import { Spinner } from "@barrelsgd/ui/components/ui/spinner";
 import {
@@ -31,6 +31,7 @@ import {
 import { Textarea } from "@barrelsgd/ui/components/ui/textarea";
 import { useQueryClient } from "@tanstack/react-query";
 import { Check, CornerUpLeft, X } from "lucide-react";
+import Link from "next/link";
 import { useState } from "react";
 import { toast } from "sonner";
 import { SwapRuleWarnings } from "./shift/swap-rule-warnings";
@@ -49,6 +50,7 @@ const WORKFLOW_TYPE_LABELS: Record<WorkflowType, string> = {
   STATUS_REPORT: "Daily status",
   TIMESHEET: "Timesheet",
   PARKING_PERMIT: "Parking permit",
+  PAYROLL_RUN: "Payroll inputs",
 };
 
 function formatDate(value: string | null | undefined): string {
@@ -200,50 +202,66 @@ export function ApprovalsInbox() {
                   </Badge>
                 </TableCell>
                 <TableCell>
-                  <div className="flex justify-end gap-2">
-                    {item.purpose !== "RECORDING" &&
-                      item.is_required !== false && (
-                        <>
-                          <Button
-                            disabled={busy}
-                            onClick={() => setReturning(item)}
-                            size="sm"
-                            type="button"
-                            variant="ghost"
-                          >
-                            <CornerUpLeft data-icon="inline-start" />
-                            Return
-                          </Button>
-                          <Button
-                            disabled={busy}
-                            onClick={() =>
-                              act(item.instance_id, "REJECT", item.step_id)
-                            }
-                            size="sm"
-                            type="button"
-                            variant="outline"
-                          >
-                            <X data-icon="inline-start" />
-                            Reject
-                          </Button>
-                        </>
-                      )}
-                    <Button
-                      disabled={busy}
-                      onClick={() =>
-                        act(item.instance_id, "APPROVE", item.step_id)
-                      }
-                      size="sm"
-                      type="button"
-                    >
-                      {busy ? (
-                        <Spinner className="size-4" data-icon="inline-start" />
-                      ) : (
-                        <Check data-icon="inline-start" />
-                      )}
-                      {approvalActionLabel(item.purpose)}
-                    </Button>
-                  </div>
+                  {item.entity_type === "pay_period" ? (
+                    // Payroll needs two-step verification and its own checks,
+                    // so it is approved on the pay period page.
+                    <div className="flex justify-end">
+                      <Link
+                        className={buttonVariants({ size: "sm" })}
+                        href={`/hr/payroll/${item.entity_id}`}
+                      >
+                        Open in payroll
+                      </Link>
+                    </div>
+                  ) : (
+                    <div className="flex justify-end gap-2">
+                      {item.purpose !== "RECORDING" &&
+                        item.is_required !== false && (
+                          <>
+                            <Button
+                              disabled={busy}
+                              onClick={() => setReturning(item)}
+                              size="sm"
+                              type="button"
+                              variant="ghost"
+                            >
+                              <CornerUpLeft data-icon="inline-start" />
+                              Return
+                            </Button>
+                            <Button
+                              disabled={busy}
+                              onClick={() =>
+                                act(item.instance_id, "REJECT", item.step_id)
+                              }
+                              size="sm"
+                              type="button"
+                              variant="outline"
+                            >
+                              <X data-icon="inline-start" />
+                              Reject
+                            </Button>
+                          </>
+                        )}
+                      <Button
+                        disabled={busy}
+                        onClick={() =>
+                          act(item.instance_id, "APPROVE", item.step_id)
+                        }
+                        size="sm"
+                        type="button"
+                      >
+                        {busy ? (
+                          <Spinner
+                            className="size-4"
+                            data-icon="inline-start"
+                          />
+                        ) : (
+                          <Check data-icon="inline-start" />
+                        )}
+                        {approvalActionLabel(item.purpose)}
+                      </Button>
+                    </div>
+                  )}
                 </TableCell>
               </TableRow>
             );

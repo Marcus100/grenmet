@@ -116,3 +116,22 @@ describe("ApprovalsInbox returning a request", () => {
     expect(actionBodies[0]).toMatchObject({ action: "REJECT" });
   });
 });
+
+describe("ApprovalsInbox payroll periods", () => {
+  it("sends the approver to the payroll page instead of approving here", async () => {
+    inbox = [
+      {
+        ...ITEM,
+        instance_id: "i9",
+        workflow_type: "PAYROLL_RUN",
+        entity_type: "pay_period",
+        entity_id: "period-1",
+      },
+    ];
+    renderInbox();
+    const link = await screen.findByRole("link", { name: "Open in payroll" });
+    expect(link).toHaveAttribute("href", "/hr/payroll/period-1");
+    expect(screen.getByText("Payroll inputs")).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Approve" })).toBeNull();
+  });
+});
