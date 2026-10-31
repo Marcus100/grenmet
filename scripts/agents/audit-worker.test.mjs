@@ -4,7 +4,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import test from "node:test";
 import { hourly, runWithRetry, sixHourlyPlan } from "./audit-checks.mjs";
-import { aggregateReceipt, daily } from "./audit-daily.mjs";
+import { aggregateReceipt, DAILY_SOURCES, daily } from "./audit-daily.mjs";
 import { testEnvironment } from "./audit-process.mjs";
 import { groupKey } from "./audit-security.mjs";
 import { cleanCheckout, executePlan, SCHEDULES } from "./audit-worker.mjs";
@@ -291,6 +291,29 @@ test("daily flags near-expiry certificates while an accepted HTTPS response can 
   );
 });
 
+test("runner-owned daily sources are left to the droplet workflow", async () => {
+  const results = await daily({
+    config: {
+      dailySources: "runner",
+      endpoints: {
+        staging: ["https://stage.example.test/ready"],
+        production: [],
+      },
+      receipts: {},
+    },
+    now: Date.parse("2026-10-25T12:00:00Z"),
+    fetchHttp: async () => new Response("ok"),
+    daysRemaining: () => 30,
+  });
+  assert.equal(
+    results.some((item) =>
+      DAILY_SOURCES.some((source) => item.key.includes(`daily:${source}`))
+    ),
+    false
+  );
+  assert.ok(results.some((item) => item.key === "health:staging:0"));
+});
+
 test("aggregate receipts require fresh complete counts for both environments and Sentry MCP provenance", () => {
   const now = Date.parse("2026-10-25T12:00:00Z");
   const receipt = (source, overrides = {}) => ({
@@ -309,6 +332,11 @@ test("aggregate receipts require fresh complete counts for both environments and
   assert.deepEqual(
     valid.slice(0, 2).map((item) => item.status),
     ["fail", "pass"]
+  );
+  assert.equal(
+    aggregateReceipt("sentry", receipt("sentry", { via: "sentry-api" }), now)
+      .length,
+    3
   );
   for (const invalid of [
     receipt("sentry", { complete: false }),

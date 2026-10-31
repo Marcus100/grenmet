@@ -15,6 +15,9 @@ export async function publishReport(path, publish) {
     ...report,
     repo: "Marcus100/grenmet",
     dryRun: !publish,
+    // The droplet runner workflow publishes the same keys as this identity, so
+    // either path can update the other's issues instead of opening duplicates.
+    trustedAuthors: ["github-actions[bot]"],
     runGh: async (args) => {
       const result = await command(["gh", ...args], {
         timeout: 120_000,
