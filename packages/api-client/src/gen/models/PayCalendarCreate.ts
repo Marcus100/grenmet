@@ -24,11 +24,8 @@ export type PayCalendarCreate = {
    * @type string
    */
   approval_department_id: string;
-  /**
-   * @default 'MONTHLY'
-   * @type string | undefined
-   */
-  frequency?: PayFrequency;
+  frequency?: PayFrequency | null;
+  anchor_date?: string | null;
   /**
    * @default true
    * @type boolean | undefined

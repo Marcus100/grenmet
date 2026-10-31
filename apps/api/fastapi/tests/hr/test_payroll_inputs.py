@@ -803,3 +803,59 @@ async def test_csv_has_quantities_only_with_provisional_flag(
     assert locked.status_code == 409
     count = len((await db_async.execute(select(PayLine.id))).all())
     assert count == 4
+
+
+async def test_gaa_calendars_default_to_fortnightly_from_an_anchor(
+    async_client: httpx.AsyncClient, db_async: AsyncSession
+) -> None:
+    ops, _, accounts = await departments(db_async)
+    employee = await employee_in(db_async, ops)
+    admin = await _superuser_headers(db_async)
+    missing_anchor = await async_client.post(
+        f"{API}/calendars",
+        headers=admin,
+        json={
+            "organisation_id": "gaa",
+            "name": "Fortnightly",
+            "approval_department_id": accounts.id,
+        },
+    )
+    assert missing_anchor.status_code == 400
+    created = await async_client.post(
+        f"{API}/calendars",
+        headers=admin,
+        json={
+            "organisation_id": "gaa",
+            "name": "Fortnightly",
+            "approval_department_id": accounts.id,
+            "anchor_date": "2026-08-30",
+        },
+    )
+    assert created.status_code == 201, created.text
+    calendar = created.json()
+    assert calendar["frequency"] == "FORTNIGHTLY"
+    misaligned = await async_client.post(
+        f"{API}/periods",
+        headers=admin,
+        json={"calendar_id": calendar["id"], "start_date": "2026-09-01"},
+    )
+    assert misaligned.status_code == 400
+    period = await async_client.post(
+        f"{API}/periods",
+        headers=admin,
+        json={"calendar_id": calendar["id"], "start_date": "2026-09-13"},
+    )
+    assert period.status_code == 201, period.text
+    assert period.json()["end_date"] == "2026-09-26"
+    for day in (12, 14):
+        await worked_shift(
+            db_async,
+            employee,
+            ops,
+            day=date(2026, 9, day),
+            arrive=f"2026-09-{day}T08:00:00-04:00",
+            depart=f"2026-09-{day}T16:00:00-04:00",
+        )
+    await _compute(async_client, admin, period.json()["id"])
+    rows = await lines(async_client, admin, period.json()["id"])
+    assert {row["work_date"] for row in rows} == {"2026-09-14"}  # the 12th is outside

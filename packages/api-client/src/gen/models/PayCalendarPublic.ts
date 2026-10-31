@@ -18,6 +18,7 @@ export type PayCalendarPublic = {
   frequency: PayFrequency;
   approval_department_id: string;
   is_default: boolean;
+  anchor_date: string | null;
   /**
    * @description PROVISIONAL until the organisation confirms the rule in writing.
    * @type string

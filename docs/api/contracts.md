@@ -48,6 +48,9 @@ tax, NIS or bank field exists in any request, response or export.
   `PUT profiles/{user_id}`, `GET department-settings`,
   `PUT department-settings/{department_id}`. A new organisation's `items` list is
   empty; GAA's items are seeded `PROVISIONAL` with a `source_reference`.
+- Calendars are `MONTHLY` or `FORTNIGHTLY` (`anchor_date` required; periods
+  start a whole number of fortnights from it and run 14 days). Without a
+  `frequency`, GAA calendars are fortnightly and others monthly.
 - Periods: `GET|POST periods`, `GET periods/{period_id}` (totals and
   `allowed_actions`), `GET|POST periods/{period_id}/lines`,
   `DELETE periods/{period_id}/lines/{line_id}` (manual lines, open periods only).

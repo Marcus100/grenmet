@@ -14,6 +14,7 @@ export const payCalendarPublicSchema = z.object({
   frequency: payFrequencySchema,
   approval_department_id: z.string(),
   is_default: z.boolean(),
+  anchor_date: z.union([z.iso.date(), z.null()]),
   rule_state: ruleStateSchema.describe(
     "PROVISIONAL until the organisation confirms the rule in writing."
   ),

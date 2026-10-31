@@ -249,6 +249,7 @@ async def calendar_and_period(
                 "organisation_id": "gaa",
                 "name": "Monthly (provisional)",
                 "approval_department_id": approval_department_id,
+                "frequency": "MONTHLY",
             },
         )
         assert created.status_code == 201, created.text

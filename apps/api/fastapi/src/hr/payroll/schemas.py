@@ -57,7 +57,10 @@ class PayCalendarCreate(BaseModel):
     approval_department_id: Annotated[
         str, StringConstraints(min_length=1, max_length=100)
     ]
-    frequency: PayFrequency = PayFrequency.MONTHLY
+    #: Empty: the organisation's default (fortnightly for GAA, else monthly).
+    frequency: PayFrequency | None = None
+    #: Fortnightly calendars: the first day of any one pay fortnight.
+    anchor_date: date | None = None
     is_default: bool = True
 
 
@@ -68,6 +71,7 @@ class PayCalendarPublic(BaseModel):
     frequency: PayFrequency
     approval_department_id: str
     is_default: bool
+    anchor_date: date | None
     rule_state: RuleState
     created_at: UtcDateTime
 
@@ -79,7 +83,8 @@ class PayCalendarsPublic(BaseModel):
 class PayPeriodCreate(BaseModel):
     calendar_id: uuid.UUID
     start_date: date
-    #: Leave empty for the calendar's default: the last day of the start month.
+    #: Leave empty for the calendar's default: the last day of the start month
+    #: (monthly) or 13 days after the start (fortnightly).
     end_date: date | None = None
 
 

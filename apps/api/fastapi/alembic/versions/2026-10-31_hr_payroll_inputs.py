@@ -44,11 +44,17 @@ def upgrade() -> None:
         sa.Column("frequency", sa.String(length=16), nullable=False),
         sa.Column("approval_department_id", sa.String(length=100), nullable=False),
         sa.Column("is_default", sa.Boolean(), nullable=False),
+        sa.Column("anchor_date", sa.Date(), nullable=True),
         sa.Column("rule_state", sa.String(length=16), nullable=False),
         sa.Column("created_by_user_id", sa.Uuid(), nullable=False),
         *_timestamps(),
         sa.CheckConstraint(
-            "frequency IN ('MONTHLY')", name="ck_hr_pay_calendar_frequency"
+            "frequency IN ('MONTHLY', 'FORTNIGHTLY')",
+            name="ck_hr_pay_calendar_frequency",
+        ),
+        sa.CheckConstraint(
+            "frequency <> 'FORTNIGHTLY' OR anchor_date IS NOT NULL",
+            name="ck_hr_pay_calendar_fortnight_anchor",
         ),
         sa.CheckConstraint(
             "rule_state IN ('PROVISIONAL', 'CONFIRMED')",

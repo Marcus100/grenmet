@@ -2,7 +2,10 @@
 
 import {
   type EmployeePayProfilePublic,
+  type PayCalendarPublic,
+  type PayFrequency,
   type PayItemMethod,
+  type PayPeriodPublic,
   useHrCreatePayCalendar,
   useHrCreatePayPeriod,
   useHrGetOrganisations,
@@ -42,6 +45,7 @@ import { hrApiErrorMessage } from "@/components/hr/api-error";
 import { PageTabsList } from "@/components/layout/page-tabs";
 import { reportError } from "@/lib/report-error";
 import {
+  dayAfter,
   formatDay,
   isPayrollQuery,
   nextMonthStart,
@@ -57,6 +61,18 @@ const METHOD_LABEL: Record<PayItemMethod, string> = {
   OVERTIME_BAND: "Overtime band (roster rules)",
   MANUAL: "Entered by hand",
 };
+
+function suggestStart(
+  calendar: PayCalendarPublic | undefined,
+  latest: PayPeriodPublic | undefined
+): string {
+  if (calendar?.frequency === "FORTNIGHTLY") {
+    return latest ? dayAfter(latest.end_date) : (calendar.anchor_date ?? "");
+  }
+  return latest
+    ? nextMonthStart(latest.start_date)
+    : `${new Date().toISOString().slice(0, 7)}-01`;
+}
 
 function useRefreshPayroll() {
   const queryClient = useQueryClient();
@@ -81,8 +97,10 @@ function CalendarForm({ organisationId }: { organisationId: string }) {
     query: { organisation_id: organisationId },
   });
   const create = useHrCreatePayCalendar();
-  const [name, setName] = useState("Monthly (provisional)");
+  const [name, setName] = useState("Pay calendar (provisional)");
   const [department, setDepartment] = useState("");
+  const [frequency, setFrequency] = useState<"" | PayFrequency>("");
+  const [anchor, setAnchor] = useState("");
   const [problem, setProblem] = useState("");
 
   async function onSubmit(event: FormEvent<HTMLFormElement>) {
@@ -97,6 +115,8 @@ function CalendarForm({ organisationId }: { organisationId: string }) {
           organisation_id: organisationId,
           name,
           approval_department_id: department,
+          frequency: frequency || null,
+          anchor_date: anchor || null,
         },
       });
       await refresh();
@@ -134,6 +154,32 @@ function CalendarForm({ organisationId }: { organisationId: string }) {
           ))}
         </NativeSelect>
       </Field>
+      <Field>
+        <FieldLabel htmlFor="payroll-calendar-frequency">How often</FieldLabel>
+        <NativeSelect
+          id="payroll-calendar-frequency"
+          onChange={(event) =>
+            setFrequency(event.target.value as "" | PayFrequency)
+          }
+          value={frequency}
+        >
+          <option value="">Organisation default</option>
+          <option value="FORTNIGHTLY">Fortnightly</option>
+          <option value="MONTHLY">Calendar month</option>
+        </NativeSelect>
+      </Field>
+      <Field>
+        <FieldLabel htmlFor="payroll-calendar-anchor">
+          First day of a fortnight
+        </FieldLabel>
+        <Input
+          className="w-40"
+          id="payroll-calendar-anchor"
+          onChange={(event) => setAnchor(event.target.value)}
+          type="date"
+          value={anchor}
+        />
+      </Field>
       <Button disabled={create.isPending} type="submit">
         Create calendar
       </Button>
@@ -162,12 +208,12 @@ function PeriodsPanel({ organisationId }: { organisationId: string }) {
   const [start, setStart] = useState("");
   const [problem, setProblem] = useState("");
   const chosenCalendar = calendarId || calendars[0]?.id || "";
+  const calendar = calendars.find((row) => row.id === chosenCalendar);
+  const fortnightly = calendar?.frequency === "FORTNIGHTLY";
   const latest = periods.find(
     (period) => period.calendar_id === chosenCalendar
   );
-  const suggestedStart = latest
-    ? nextMonthStart(latest.start_date)
-    : `${new Date().toISOString().slice(0, 7)}-01`;
+  const suggestedStart = suggestStart(calendar, latest);
 
   if (calendarsQuery.isError || periodsQuery.isError) {
     return <NoAccess />;
@@ -255,7 +301,9 @@ function PeriodsPanel({ organisationId }: { organisationId: string }) {
             Open period
           </Button>
           <p className="text-muted-foreground text-sm">
-            The period runs to the end of that month.
+            {fortnightly
+              ? "The period runs for 14 days."
+              : "The period runs to the end of that month."}
           </p>
           {problem && (
             <p className="w-full text-destructive text-sm" role="alert">

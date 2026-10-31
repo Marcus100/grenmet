@@ -10,6 +10,7 @@ export const payCalendarCreateSchema = z.object({
   organisation_id: z.string().min(1).max(100),
   name: z.string().min(2).max(120),
   approval_department_id: z.string().min(1).max(100),
-  frequency: payFrequencySchema.optional().default("MONTHLY"),
+  frequency: z.union([payFrequencySchema, z.null()]).optional(),
+  anchor_date: z.union([z.iso.date(), z.null()]).optional(),
   is_default: z.boolean().optional().default(true),
 });

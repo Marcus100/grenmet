@@ -23,6 +23,8 @@ from src.utils.datetime import utc_now
 
 class PayFrequency(str, Enum):
     MONTHLY = "MONTHLY"
+    #: 14-day periods counted from the calendar's anchor date (GAA, 2026-10-31).
+    FORTNIGHTLY = "FORTNIGHTLY"
 
 
 class RuleState(str, Enum):
@@ -107,6 +109,10 @@ class PayCalendar(Base):
             postgresql_where=sa.text("is_default"),
         ),
         _check_in("frequency", PayFrequency, "ck_hr_pay_calendar_frequency"),
+        sa.CheckConstraint(
+            "frequency <> 'FORTNIGHTLY' OR anchor_date IS NOT NULL",
+            name="ck_hr_pay_calendar_fortnight_anchor",
+        ),
         _check_in("rule_state", RuleState, "ck_hr_pay_calendar_rule_state"),
         {"schema": "hr"},
     )
@@ -123,6 +129,9 @@ class PayCalendar(Base):
     # periods (for GAA, Accounts Payroll once confirmed).
     approval_department_id: Mapped[str] = mapped_column(String(100))
     is_default: Mapped[bool] = mapped_column(default=False)
+    # FORTNIGHTLY only: the first day of any one fortnight; every period starts
+    # a whole number of fortnights from it.
+    anchor_date: Mapped[date | None]
     rule_state: Mapped[str] = mapped_column(
         String(16), default=RuleState.PROVISIONAL.value
     )

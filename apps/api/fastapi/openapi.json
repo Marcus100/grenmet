@@ -86377,8 +86377,26 @@
             "title": "Approval Department Id"
           },
           "frequency": {
-            "$ref": "#/components/schemas/PayFrequency",
-            "default": "MONTHLY"
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/PayFrequency"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "anchor_date": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Anchor Date"
           },
           "is_default": {
             "type": "boolean",
@@ -86420,6 +86438,18 @@
             "type": "boolean",
             "title": "Is Default"
           },
+          "anchor_date": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Anchor Date"
+          },
           "rule_state": {
             "$ref": "#/components/schemas/RuleState"
           },
@@ -86437,6 +86467,7 @@
           "frequency",
           "approval_department_id",
           "is_default",
+          "anchor_date",
           "rule_state",
           "created_at"
         ],
@@ -86461,7 +86492,8 @@
       "PayFrequency": {
         "type": "string",
         "enum": [
-          "MONTHLY"
+          "MONTHLY",
+          "FORTNIGHTLY"
         ],
         "title": "PayFrequency"
       },

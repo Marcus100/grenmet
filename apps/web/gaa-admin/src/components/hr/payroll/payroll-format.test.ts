@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  dayAfter,
   formatQuantity,
   isPayrollQuery,
   nextMonthStart,
@@ -16,6 +17,11 @@ describe("payroll formatting", () => {
   it("suggests the next month's first day", () => {
     expect(nextMonthStart("2026-09-01")).toBe("2026-10-01");
     expect(nextMonthStart("2026-12-01")).toBe("2027-01-01");
+  });
+
+  it("suggests the day after a fortnight", () => {
+    expect(dayAfter("2026-09-26")).toBe("2026-09-27");
+    expect(dayAfter("2026-12-31")).toBe("2027-01-01");
   });
 
   it("labels every period status in words", () => {

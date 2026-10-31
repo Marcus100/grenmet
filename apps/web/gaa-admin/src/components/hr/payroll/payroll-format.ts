@@ -75,6 +75,16 @@ export function nextMonthStart(day: string): string {
   return `${next[0]}-${String(next[1]).padStart(2, "0")}-01`;
 }
 
+/** The day after ``day`` (yyyy-mm-dd), for the next fortnightly period. */
+export function dayAfter(day: string): string {
+  const parsed = new Date(`${day}T12:00:00Z`);
+  if (Number.isNaN(parsed.getTime())) {
+    return "";
+  }
+  parsed.setUTCDate(parsed.getUTCDate() + 1);
+  return parsed.toISOString().slice(0, 10);
+}
+
 /** Every payroll query, so one action refreshes totals, lines and lists. */
 export function isPayrollQuery(queryKey: QueryKey): boolean {
   const [head] = queryKey;

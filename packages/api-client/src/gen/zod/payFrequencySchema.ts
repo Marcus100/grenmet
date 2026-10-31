@@ -5,4 +5,4 @@
 
 import * as z from "zod";
 
-export const payFrequencySchema = z.enum(["MONTHLY"]);
+export const payFrequencySchema = z.enum(["MONTHLY", "FORTNIGHTLY"]);

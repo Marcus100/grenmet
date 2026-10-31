@@ -5,6 +5,7 @@
 
 export const payFrequency = {
   MONTHLY: "MONTHLY",
+  FORTNIGHTLY: "FORTNIGHTLY",
 } as const;
 
 export type PayFrequency = (typeof payFrequency)[keyof typeof payFrequency];

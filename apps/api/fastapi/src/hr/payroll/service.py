@@ -14,7 +14,7 @@ import logging
 import uuid
 from collections.abc import Iterable
 from dataclasses import dataclass
-from datetime import date
+from datetime import date, timedelta
 from decimal import Decimal
 from typing import Any
 
@@ -54,6 +54,7 @@ from .models import (
     LOCKED_STATUSES,
     EmployeePayProfile,
     PayCalendar,
+    PayFrequency,
     PayItem,
     PayItemMethod,
     PayItemUnit,
@@ -75,6 +76,12 @@ from .schemas import (
 logger = logging.getLogger(__name__)
 
 ENTITY_TYPE = "pay_period"
+FORTNIGHT_DAYS = 14
+#: Pay frequency when a new calendar does not say (owner, 2026-10-31: GAA pays
+#: fortnightly). Every other organisation defaults to calendar months.
+DEFAULT_FREQUENCY = {"gaa": PayFrequency.FORTNIGHTLY}
+#: Periods a year, for annualised calculations in later slices.
+PERIODS_PER_YEAR = {PayFrequency.MONTHLY: 12, PayFrequency.FORTNIGHTLY: 26}
 ATTENDANCE_SOURCE = "attendance"
 MANUAL_SOURCE = "manual"
 LOCKED_VALUES = frozenset(status.value for status in LOCKED_STATUSES)
@@ -160,6 +167,13 @@ async def create_calendar(
             PayCalendar.is_default.is_(True),
         )
     )
+    frequency = payload.frequency or DEFAULT_FREQUENCY.get(
+        payload.organisation_id, PayFrequency.MONTHLY
+    )
+    if frequency == PayFrequency.FORTNIGHTLY and payload.anchor_date is None:
+        raise PayrollValidationError(
+            "Give the first day of one fortnightly pay period as the anchor date"
+        )
     is_default = payload.is_default or has_default is None
     if is_default and has_default is not None:
         await session.execute(
@@ -170,9 +184,12 @@ async def create_calendar(
     calendar = PayCalendar(
         organisation_id=payload.organisation_id,
         name=payload.name,
-        frequency=payload.frequency.value,
+        frequency=frequency.value,
         approval_department_id=payload.approval_department_id,
         is_default=is_default,
+        anchor_date=(
+            payload.anchor_date if frequency == PayFrequency.FORTNIGHTLY else None
+        ),
         created_by_user_id=actor.id,
     )
     session.add(calendar)
@@ -360,7 +377,18 @@ async def create_period(
         session, actor, calendar.organisation_id, access.PREPARE
     )
     start = payload.start_date
-    end = payload.end_date or month_end(start)
+    if calendar.frequency == PayFrequency.FORTNIGHTLY:
+        assert calendar.anchor_date is not None
+        if (start - calendar.anchor_date).days % FORTNIGHT_DAYS:
+            raise PayrollValidationError(
+                "A fortnightly period must start a whole number of fortnights "
+                f"from the calendar's anchor date ({calendar.anchor_date.isoformat()})"
+            )
+        end = start + timedelta(days=FORTNIGHT_DAYS - 1)
+        if payload.end_date not in {None, end}:
+            raise PayrollValidationError("A fortnightly period is 14 days long")
+    else:
+        end = payload.end_date or month_end(start)
     if end < start:
         raise PayrollValidationError("The period cannot end before it starts")
     if (end - start).days > 62:
