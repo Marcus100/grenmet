@@ -52,6 +52,8 @@ class FakeStripe:
     refunds: dict[str, list[dict[str, Any]]] = field(default_factory=dict)
     requests: list[httpx.Request] = field(default_factory=list)
     fail_listing: bool = False
+    #: Payments Stripe no longer knows (a purged test payment): listing is a 404.
+    gone: set[str] = field(default_factory=set)
     sessions: int = 0
 
     def add(
@@ -104,9 +106,11 @@ class FakeStripe:
             )
             return httpx.Response(200, json=refund)
         if request.method == "GET" and path == "/v1/refunds":
+            params = request.url.params
             if self.fail_listing:
                 return httpx.Response(500, json={"error": {"message": "down"}})
-            params = request.url.params
+            if params["payment_intent"] in self.gone:
+                return httpx.Response(404, json={"error": {"message": "No such"}})
             listed = self.refunds.get(params["payment_intent"], [])
             start = 0
             if "starting_after" in params:
@@ -601,7 +605,8 @@ async def test_one_failing_payment_does_not_stop_the_run(
     assert (run.checked, run.changed, run.failed) == (1, 1, 1)
     # The failing payment's half-written refund was rolled back.
     assert await _rows(db_async, broken) == []
-    assert (await _intent(db_async, broken)).refunds_checked_at is None
+    # Stamped all the same, so it waits its turn instead of leading every run.
+    assert (await _intent(db_async, broken)).refunds_checked_at is not None
     assert [r.amount_minor for r in await _rows(db_async, healthy)] == [200]
 
 
@@ -683,3 +688,55 @@ async def test_every_payment_in_the_window_is_reached_in_turn(
     # The fourth run goes back to the one checked longest ago.
     await service.reconcile_recent_refunds(db_async, now=start + timedelta(minutes=3))
     assert fake_stripe.listing_requests()[-1].url.params["payment_intent"] == listed[0]
+
+
+async def test_a_payment_that_always_fails_goes_to_the_back_of_the_queue(
+    async_client: httpx.AsyncClient,
+    db_async: AsyncSession,
+    fake_stripe: FakeStripe,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    _, healthy = await _captured(async_client, db_async, "pi_healthy")
+    _, gone = await _captured(async_client, db_async, "pi_gone")  # newest: first
+    fake_stripe.gone.add("pi_gone")
+    monkeypatch.setattr(payments_settings, "REFUND_RECONCILE_BATCH", 1)
+    start = utc_now()
+
+    first = await service.reconcile_recent_refunds(db_async, now=start)
+    assert (first.checked, first.failed) == (0, 1)
+    assert (await _intent(db_async, gone)).refunds_checked_at is not None
+
+    second = await service.reconcile_recent_refunds(
+        db_async, now=start + timedelta(minutes=1)
+    )
+    assert (second.checked, second.failed) == (1, 0)
+    listed = [r.url.params["payment_intent"] for r in fake_stripe.listing_requests()]
+    assert listed == ["pi_gone", "pi_healthy"]
+    assert (await _intent(db_async, healthy)).refunds_checked_at is not None
+
+
+async def test_a_listing_stops_paging_near_the_end_of_the_run_budget(
+    async_client: httpx.AsyncClient,
+    db_async: AsyncSession,
+    fake_stripe: FakeStripe,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Under 20 s of the run's 240 s left before a further page: the listing ends
+    there, incomplete, so what was listed is reconciled but totals are not compared."""
+    _, intent_id = await _captured(async_client, db_async)
+    for _ in range(250):
+        fake_stripe.add(PAYMENT, 1)
+    log = MagicMock()
+    monkeypatch.setattr(service, "logger", log)
+    ticks = iter([0.0, 0.0])
+
+    def clock() -> float:
+        return next(ticks, 225.0)  # 15 s left once the first page is in
+
+    run = await service.reconcile_recent_refunds(db_async, clock=clock)
+    assert (run.checked, run.changed, run.mismatched) == (1, 1, 0)
+    assert len(fake_stripe.listing_requests()) == 1
+    assert len(await _rows(db_async, intent_id)) == 100
+    errors = [call.args[0] for call in log.error.call_args_list]
+    assert any("listing incomplete" in message for message in errors)
+    assert not any("mismatch" in message for message in errors)

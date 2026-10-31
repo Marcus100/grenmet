@@ -549,6 +549,14 @@ async def apply_workflow_action(
             )
         ):
             raise HRPermissionDeniedError(ERROR_WORKFLOW_PERMISSION_DENIED)
+        from src.hr.roster import change_checks
+
+        await change_checks.check_swap_reversal(
+            session,
+            swap=request,
+            actor_id=current_user.id,
+            reason=action_in.rule_override_reason,
+        )
         await roster_effects.reverse_exchange(session, request, current_user.id)
         request.status = RequestStatus.CANCELLED
         request.updated_at = utc_now()
@@ -596,7 +604,12 @@ async def apply_workflow_action(
             raise HRPermissionDeniedError(ERROR_WORKFLOW_PERMISSION_DENIED)
         workflow_instance.status = WorkflowStatus.CANCELLED
         workflow_instance.resolved_at = workflow_instance.updated_at = utc_now()
-        await finalize_entity(session, workflow_instance, current_user.id)
+        await finalize_entity(
+            session,
+            workflow_instance,
+            current_user.id,
+            rule_override_reason=action_in.rule_override_reason,
+        )
         session.add(
             ApprovalActionLog(
                 workflow_instance_id=workflow_instance.id,
@@ -896,7 +909,12 @@ async def apply_workflow_action(
     ):
         from src.hr.workflow.finalize import finalize_entity
 
-        await finalize_entity(session, workflow_instance, current_user.id)
+        await finalize_entity(
+            session,
+            workflow_instance,
+            current_user.id,
+            rule_override_reason=action_in.rule_override_reason,
+        )
     workflow_instance.updated_at = utc_now()
     session.add(workflow_instance)
     await session.flush()
@@ -1025,6 +1043,7 @@ async def start_workflow_for_entity(
     entity_id: uuid.UUID,
     co_approver_user_ids: list[uuid.UUID] | None = None,
     submit: bool = True,
+    rule_override_reason: str | None = None,
 ) -> uuid.UUID | None:
     """Look up an active workflow template and create an instance for an entity.
 
@@ -1072,7 +1091,12 @@ async def start_workflow_for_entity(
         session=session,
         current_user=current_user,
         workflow_instance_id=instance.id,
-        action_in=WorkflowActionRequest(action=WorkflowAction.SUBMIT),
+        action_in=WorkflowActionRequest(
+            action=WorkflowAction.SUBMIT,
+            # A template without a required step approves at submission, which
+            # runs the roster rule checks (#380).
+            rule_override_reason=rule_override_reason,
+        ),
         require_actor_permission=False,
         commit=False,
     )
@@ -1086,6 +1110,7 @@ async def submit_draft_workflow(
     workflow_instance_id: uuid.UUID,
     co_approver_user_ids: list[uuid.UUID] | None = None,
     commit: bool = True,
+    rule_override_reason: str | None = None,
 ) -> WorkflowInstance:
     """Build the approval chain for a DRAFT instance and submit it.
 
@@ -1172,7 +1197,12 @@ async def submit_draft_workflow(
         session=session,
         current_user=current_user,
         workflow_instance_id=instance.id,
-        action_in=WorkflowActionRequest(action=WorkflowAction.SUBMIT),
+        action_in=WorkflowActionRequest(
+            action=WorkflowAction.SUBMIT,
+            # A template without a required step approves at submission, which
+            # runs the roster rule checks (#380).
+            rule_override_reason=rule_override_reason,
+        ),
         require_actor_permission=False,
         commit=commit,
     )

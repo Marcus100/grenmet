@@ -14,6 +14,7 @@ import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { reportError } from "@/lib/report-error";
 import { hrApiErrorMessage } from "../api-error";
+import { OvertimeBands } from "./overtime-bands";
 
 const GRENADA = "America/Grenada";
 
@@ -203,7 +204,8 @@ function AttendanceShift({
         </div>
         <p className="text-muted-foreground text-sm">
           Elapsed: {shift.elapsed_hours ?? "—"} h · Recorded work:{" "}
-          {shift.actual_hours ?? "—"} h
+          {shift.actual_hours ?? "—"} h ·{" "}
+          <OvertimeBands bands={shift.overtime_bands} />
         </p>
       </div>
       {correcting && (
@@ -330,8 +332,8 @@ export function AttendanceTimesheet() {
           </p>
           <p className="text-muted-foreground text-xs">
             Overnight shifts stay with their scheduled start date. D shift is
-            recorded once; M/E reports reference the same attendance. Hours
-            shown do not determine pay or overtime.
+            recorded once; M/E reports reference the same attendance. Overtime
+            is counted by rate band (hours only); pay is not calculated here.
           </p>
           {week.data.shifts.length === 0 && (
             <p className="rounded-lg border p-4 text-sm">

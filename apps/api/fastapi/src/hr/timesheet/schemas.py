@@ -5,6 +5,7 @@ from decimal import Decimal
 from pydantic import Field, model_validator
 
 from src.hr.roster.models import RosterAvailability
+from src.hr.roster.schemas import OverrideReason, OvertimeBandPublic
 from src.hr.signatures.schemas import SignatureConsent
 from src.models import BaseModel, UtcDateTime
 
@@ -109,6 +110,10 @@ class TimesheetEntryPublic(BaseModel):
     medical_certificate_attached: bool
     comments: str | None = None
     availability: RosterAvailability = RosterAvailability.SCHEDULED
+    overtime_bands: list[OvertimeBandPublic] = Field(
+        default_factory=list,
+        description="Overtime hours by rate multiplier (hours only, no pay).",
+    )
 
 
 class TimesheetDetails(BaseModel):
@@ -118,6 +123,11 @@ class TimesheetDetails(BaseModel):
 
 class TimesheetSubmitRequest(SignatureConsent):
     mode: SubmissionMode = SubmissionMode.SELF
+    rule_override_reason: OverrideReason = None
+
+
+class TimesheetApproveRequest(BaseModel):
+    rule_override_reason: OverrideReason = None
 
 
 class TimesheetListPublic(BaseModel):
@@ -145,6 +155,10 @@ class TimesheetSummaryByShift(BaseModel):
     grand_total_roster: Decimal
     grand_total_actual: Decimal
     grand_total_overtime: Decimal
+    overtime_bands: list[OvertimeBandPublic] = Field(
+        default_factory=list,
+        description="Overtime hours by rate multiplier for the whole timesheet.",
+    )
 
 
 class TimesheetPrefillEntry(BaseModel):

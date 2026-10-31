@@ -48,3 +48,22 @@ def shift_hours(shift: ShiftCatalog) -> Decimal | None:
     start, end = interval
     seconds = (end - start).total_seconds()
     return (Decimal(seconds) / Decimal(3600)).quantize(Decimal("0.01"))
+
+
+def worked_shift_hours(shift: ShiftCatalog) -> Decimal | None:
+    """Paid hours of a shift: its span minus the unpaid break (#380). Used by the
+    roster hour limits and overtime bands; None for codes without clock times."""
+    span = shift_hours(shift)
+    if span is None:
+        return None
+    breaks = Decimal(shift.break_minutes or 0) / Decimal(60)
+    return max(Decimal(0), span - breaks).quantize(Decimal("0.01"))
+
+
+def validate_break(shift: ShiftCatalog) -> None:
+    """A break must be shorter than the shift it sits in."""
+    span = shift_hours(shift)
+    if (shift.break_minutes or 0) and (
+        span is None or Decimal(shift.break_minutes) / Decimal(60) >= span
+    ):
+        raise ValueError("The unpaid break must be shorter than the shift")

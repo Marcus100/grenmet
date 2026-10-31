@@ -4,6 +4,7 @@
  */
 
 import * as z from "zod";
+import { overtimeBandPublicSchema } from "./overtimeBandPublicSchema.js";
 import { rosterAvailabilitySchema } from "./rosterAvailabilitySchema.js";
 import { workflowStatusSchema } from "./workflowStatusSchema.js";
 
@@ -29,4 +30,8 @@ export const attendanceShiftPublicSchema = z.object({
   review_status: z.union([workflowStatusSchema, z.null()]).optional(),
   reviewer_name: z.union([z.string(), z.null()]).optional(),
   reviewed_at: z.union([z.iso.datetime(), z.null()]).optional(),
+  overtime_bands: z
+    .array(overtimeBandPublicSchema)
+    .optional()
+    .describe("Overtime hours by rate multiplier (hours only, no pay)."),
 });
