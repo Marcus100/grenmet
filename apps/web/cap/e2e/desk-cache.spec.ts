@@ -1,7 +1,9 @@
 import { expect, test } from "@playwright/test";
 
 // The staff desk shares a host with the public, edge-cached alert pages. These
-// checks stop at the first hop: they never follow sign-in to the auth app.
+// (The public pages' edge header is checked in src/lib/cache-headers.test.ts:
+// `next dev` replaces Cache-Control, so only a production build shows it.)
+// These checks stop at the first hop: they never follow sign-in to the auth app.
 
 const TEMPORARY_REDIRECT = 307;
 
@@ -52,10 +54,5 @@ test.describe("staff warning desk on the public host", () => {
       headers: { origin: "https://events.barrels.gd" },
     });
     expect(response.status()).toBe(403);
-  });
-
-  test("public pages keep their edge cache header", async ({ request }) => {
-    const response = await request.get("/about");
-    expect(response.headers()["cache-control"]).toContain("s-maxage=60");
   });
 });
