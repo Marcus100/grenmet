@@ -10,6 +10,7 @@ from src.rate_limit import (
     VISITOR_IP_HEADER,
     VISITOR_SECRET_HEADER,
     connecting_address,
+    connecting_ip,
     visitor_address,
     visitor_ip,
 )
@@ -134,3 +135,38 @@ def test_hops_setting_is_bounded() -> None:
     bounds = {type(item).__name__: item for item in field.metadata}
     assert bounds["Ge"].ge == 1
     assert bounds["Le"].le == 5
+
+
+# ── IPv6: one bucket per /64, as on the trusted web-host path ────────────────
+
+
+def test_ipv6_visitor_behind_cloudflare_buckets_per_64(hops: SetHops) -> None:
+    hops(2)
+    one = _request(f"2001:db8:1:2::10, {CLOUDFLARE_EDGE}")
+    other = _request(f"2001:db8:1:2:ffff::99, {CLOUDFLARE_EDGE}")
+    assert connecting_address(one) == connecting_address(other) == "2001:db8:1:2::/64"
+    # The unmasked address stays available for records and Turnstile.
+    assert connecting_ip(one) == "2001:db8:1:2::10"
+    assert visitor_ip(one) == "2001:db8:1:2::10"
+
+
+def test_ipv6_direct_client_buckets_per_64(hops: SetHops) -> None:
+    hops(1)
+    request = _request(client="2001:db8:5:6::1")
+    assert connecting_address(request) == "2001:db8:5:6::/64"
+    assert connecting_ip(request) == "2001:db8:5:6::1"
+
+
+def test_ipv4_and_non_ip_clients_keep_their_address(hops: SetHops) -> None:
+    hops(1)
+    assert connecting_address(_request(client="203.0.113.9")) == "203.0.113.9"
+    assert connecting_address(_request(client="testclient")) == "testclient"
+
+
+def test_rate_limit_key_without_trusted_header_is_the_64(
+    hops: SetHops, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    hops(2)
+    monkeypatch.setattr(settings, "TRUSTED_WEB_SECRET", SECRET)
+    request = _request(f"2001:db8:9::1, {CLOUDFLARE_EDGE}")
+    assert visitor_address(request) == "2001:db8:9::/64"

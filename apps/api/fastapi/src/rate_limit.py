@@ -85,8 +85,11 @@ def _trusted_visitor_ip(
     return _parse_visitor_ip(claimed) if matches else None
 
 
-def connecting_address(request: Request) -> str:
-    """The address of whoever connected through the edge proxies.
+def connecting_ip(request: Request) -> str:
+    """The address of whoever connected through the edge proxies, unmasked.
+
+    For records that store one address (sign-in sessions) and services that
+    need one (Turnstile); rate limits use ``connecting_address``.
 
     uvicorn (``--proxy-headers``, trusting the compose network) already resolves
     the right-most ``X-Forwarded-For`` entry: the peer Traefik saw. Behind
@@ -108,13 +111,28 @@ def connecting_address(request: Request) -> str:
     return str(ip) if ip is not None else fallback
 
 
+def _bucket(address: str) -> str:
+    """IPv6 addresses share one bucket per /64 (one subscriber can rotate
+    through it); IPv4 and non-IP values (test clients) are returned as is."""
+    ip = _parse_visitor_ip(address)
+    if isinstance(ip, ipaddress.IPv6Address):
+        return str(ipaddress.ip_network(f"{ip}/64", strict=False))
+    return str(ip) if ip is not None else address
+
+
+def connecting_address(request: Request) -> str:
+    """The rate-limit key for the connecting address: ``connecting_ip``, with
+    IPv6 grouped per /64 as on the trusted web-host path."""
+    return _bucket(connecting_ip(request))
+
+
 def visitor_ip(request: Request) -> str:
     """The real client address, unmasked: for services that need an IP (Turnstile).
 
     The validated ``X-Visitor-IP`` from a trusted web host, else the connecting
     address."""
     ip = _trusted_visitor_ip(request)
-    return str(ip) if ip is not None else connecting_address(request)
+    return str(ip) if ip is not None else connecting_ip(request)
 
 
 def visitor_address(request: Request) -> str:
@@ -132,9 +150,7 @@ def visitor_address(request: Request) -> str:
     ip = _trusted_visitor_ip(request)
     if ip is None:
         return connecting_address(request)
-    if isinstance(ip, ipaddress.IPv6Address):
-        return str(ipaddress.ip_network(f"{ip}/64", strict=False))
-    return str(ip)
+    return _bucket(str(ip))
 
 
 # Use a shared Redis store when REDIS_URL is configured (required for correct
