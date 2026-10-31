@@ -1068,3 +1068,23 @@ test("CMS_DISTRIBUTION_SECRET renders empty by default, needs 32 characters, and
     2
   );
 });
+
+test("the CMS gets the weather site origin from BASE_DOMAIN, the same value web-cap uses", () => {
+  const compose = readFileSync(
+    "infra/docker/docker-compose.deploy.yml",
+    "utf8"
+  );
+  const workflow = readFileSync(".github/workflows/deploy.yml", "utf8");
+  const DOLLAR = "$";
+  const line = `      GMS_SITE_URL: https://weather.${DOLLAR}{BASE_DOMAIN}`;
+  // The CMS environment anchor (shared by cms-migrate and web-cms) carries the line...
+  const anchorStart = compose.indexOf("  cms-migrate:");
+  const anchorEnd = compose.indexOf("  web-cms:");
+  assert.ok(anchorStart > 0 && anchorEnd > anchorStart);
+  assert.ok(compose.slice(anchorStart, anchorEnd).includes(line));
+  // ...and it is exactly the value web-cap already uses: one line in each service.
+  assert.equal(compose.split("\n").filter((text) => text === line).length, 2);
+  // Built from BASE_DOMAIN, so staging and production each get their own weather site.
+  // It is not a new GitHub variable or secret.
+  assert.equal(workflow.includes("GMS_SITE_URL"), false);
+});

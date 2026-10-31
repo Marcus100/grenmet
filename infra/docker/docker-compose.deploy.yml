@@ -437,6 +437,9 @@ services:
       CMS_SSO_CLIENT_SECRET: ${CMS_SSO_CLIENT_SECRET:?CMS_SSO_CLIENT_SECRET required}
       # Sent to the API as X-CMS-Secret when an editor approves a post for social.
       CMS_DISTRIBUTION_SECRET: ${CMS_DISTRIBUTION_SECRET:-}
+      # The weather site's public origin, the same value web-cap uses. Builds post
+      # addresses for the public newsletter feed and the social send.
+      GMS_SITE_URL: https://weather.${BASE_DOMAIN}
       NEXT_PUBLIC_SENTRY_DSN: ${SENTRY_DSN_CMS:-}
       NEXT_PUBLIC_SENTRY_ENVIRONMENT: ${ENVIRONMENT}
     depends_on:
