@@ -39,9 +39,17 @@ day at 04:50 UTC, from `main` only:
 
 Both environments are needed for a source to pass: a missing, stale or
 incomplete half keeps the issue open as "needs configuration". An unknown result
-never closes an issue. Nothing runs, and nothing changes, until
+never closes an issue. Nothing is collected or published until
 `MONITORING_DAILY_ENABLED=true` is set (step 8). Because the jobs run on the
 droplets, they work while the owner's PC is off.
+
+The run fails (a red workflow, which GitHub emails about) when monitoring cannot
+report:
+
+- **A collector failed:** its half is published as a coverage gap, and then the job fails.
+- **No collector reported at all** (runner offline, or the job never started): the job fails without touching the issues.
+
+A run where every environment is disabled passes and changes nothing.
 
 **Optional advisory path: the WSL auditor.** The daily systemd service on the
 owner's WSL host (`scripts/agents/systemd/grenmet-audit-daily.service`, see
@@ -78,8 +86,17 @@ close once production is complete too.
 
 The existing `production` environment requires a reviewer, so a daily job there
 would wait for approval every day. The monitoring jobs use their own
-environments instead, holding only the read-only inputs below. They never see
-deploy secrets.
+environments instead, holding only the read-only inputs below, so they get no
+deploy secrets from GitHub's secret store. That is the only separation: the
+self-hosted runner hosts themselves hold the deploy files (`runtime/.env.local`
+and Docker access), so any job that reaches a droplet runner can read them. The
+real boundary is the `main`-only branch policy below plus who has write access
+to the repository.
+
+GitHub creates an environment automatically, **with no branch policy**, the
+first time a job references it. So create both environments and their
+`main`-only policy **before** adding any secret to them, and before this
+workflow first runs.
 
 - [ ] Create `staging-monitoring` and `production-monitoring` (Settings,
   Environments, New environment). No required reviewers. Under Deployment
@@ -94,6 +111,19 @@ gh api -X PUT repos/Marcus100/grenmet/environments/staging-monitoring \
 gh api -X POST repos/Marcus100/grenmet/environments/staging-monitoring/deployment-branch-policies \
   -f name=main
 ```
+
+- [ ] Verify each environment allows `main` and nothing else:
+
+```bash
+gh api repos/Marcus100/grenmet/environments/staging-monitoring/deployment-branch-policies --jq '[.branch_policies[].name]'     # ["main"]
+gh api repos/Marcus100/grenmet/environments/production-monitoring/deployment-branch-policies --jq '[.branch_policies[].name]'  # ["main"]
+```
+
+- [ ] Confirm workflows from fork pull requests need approval before they run
+  (Settings, Actions, General, "Approval for running fork pull request
+  workflows from contributors"; choose at least "Require approval for
+  first-time contributors", or stricter). This repository is public and its
+  runners sit on the droplets.
 
 ### Step 2: create the read-only database role (once per droplet)
 
@@ -130,6 +160,24 @@ GRANT SELECT (status, target, next_retry_at, created_at)
 docker exec -i "$db" psql -U grenmet_monitor -d eregister_staging -c "SELECT COUNT(*) FROM public.eregister_send"      # a number
 docker exec -i "$db" psql -U grenmet_monitor -d eregister_staging -c "SELECT last_error FROM public.eregister_send LIMIT 1"  # permission denied
 ```
+
+- [ ] Confirm two negative checks. Another database's tables are denied (the
+  main application database is `app_staging` on staging and `app_prod` on
+  production):
+
+```bash
+docker exec -i "$db" psql -U grenmet_monitor -d app_staging -c "SELECT COUNT(*) FROM public.alembic_version"  # permission denied
+```
+
+  And a network (non-socket) login fails. This connects to the container's own
+  network address, not the local socket, without a password:
+
+```bash
+docker exec -i "$db" sh -c 'psql -w -h "$(hostname -i | cut -d" " -f1)" -U grenmet_monitor -d eregister_staging -c "SELECT 1"'
+# fe_sendauth: no password supplied (or password authentication failed)
+```
+
+  If either command succeeds instead, stop and tell engineering before going on.
 
 To use a different role name, set `MONITORING_DB_ROLE` (step 5).
 

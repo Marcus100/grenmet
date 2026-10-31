@@ -74,7 +74,10 @@ which merges the two halves into the receipt shape below and publishes through
 the same `aggregateReceipt`, root-cause grouping and `publishObservations`
 code as this host. Keys, titles and markers are identical, so the same issues
 open, update and close. A missing, stale or incomplete half is a coverage gap
-and never closes an issue. The workflow is off until the owner sets
+and never closes an issue. Each started collect job always hands over a file
+(its receipt or a disabled marker), so a crashed collector fails the run after
+publishing its gap, and a run where nothing reported fails without touching
+the issues. The workflow is off until the owner sets
 `MONITORING_DAILY_ENABLED=true`; the inputs and the read-only role, key and
 token are listed in [launch monitoring inputs](../operations/launch-monitoring-inputs.md).
 
