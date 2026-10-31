@@ -1,0 +1,146 @@
+name: Monitoring daily receipts
+
+# Daily, read-only operational monitoring for the codex-audit issues (#644 sentry,
+# #645 eRegister/WIS2 sends, #646 worker jobs, #647 secret expiry, #648 backups).
+# Each environment's own droplet runner collects an aggregate-only receipt; a
+# GitHub-hosted job merges both and opens, updates or closes the issues.
+# Off until the environment variable MONITORING_DAILY_ENABLED=true is set in
+# `staging-monitoring` / `production-monitoring`. Owner checklist:
+# docs/operations/launch-monitoring-inputs.md.
+
+on:
+  schedule:
+    # Before the optional WSL advisory audit (05:30 UTC).
+    - cron: '50 4 * * *'
+  workflow_dispatch:
+    inputs:
+      environment:
+        type: choice
+        options: [both, staging, production]
+        default: both
+        required: true
+      mode:
+        description: dry-run writes only the job summary; publish updates the issues
+        type: choice
+        options: [dry-run, publish]
+        default: dry-run
+        required: true
+
+permissions:
+  contents: read
+
+jobs:
+  collect:
+    strategy:
+      fail-fast: false
+      matrix:
+        environment: ${{ fromJSON(inputs.environment == 'staging' && '["staging"]' || inputs.environment == 'production' && '["production"]' || '["staging","production"]') }}
+    # Never execute privileged jobs from pull requests or arbitrary dispatch refs.
+    if: github.ref == format('refs/heads/{0}', github.event.repository.default_branch)
+    runs-on: [self-hosted, '${{ matrix.environment }}', core]
+    # Dedicated environments hold only the read-only monitoring inputs, so this job
+    # never sees deploy secrets and does not wait on production deploy approval.
+    environment: ${{ matrix.environment }}-monitoring
+    concurrency:
+      group: monitoring-daily-${{ matrix.environment }}
+      cancel-in-progress: false
+    timeout-minutes: 10
+    steps:
+      - name: Check this environment is enabled
+        id: target
+        env:
+          ENABLED: ${{ vars.MONITORING_DAILY_ENABLED }}
+          TARGET: ${{ matrix.environment }}
+        run: |
+          set -euo pipefail
+          rm -f "$RUNNER_TEMP/daily-receipt-$TARGET.json"
+          if [[ "$ENABLED" != true ]]; then
+            echo 'enabled=false' >> "$GITHUB_OUTPUT"
+            echo "Daily monitoring for $TARGET is intentionally disabled (MONITORING_DAILY_ENABLED is not true)." >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+          echo 'enabled=true' >> "$GITHUB_OUTPUT"
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        if: steps.target.outputs.enabled == 'true'
+        with:
+          persist-credentials: false
+      - name: Collect read-only aggregate receipt
+        if: steps.target.outputs.enabled == 'true'
+        env:
+          TARGET: ${{ matrix.environment }}
+          MONITORING_DB_ROLE: ${{ vars.MONITORING_DB_ROLE }}
+          MONITORING_BACKUP_KINDS: ${{ vars.MONITORING_BACKUP_KINDS }}
+          MONITORING_SECRET_EXPIRY_DATES: ${{ vars.MONITORING_SECRET_EXPIRY_DATES }}
+          MONITORING_SENTRY_ORG: ${{ vars.MONITORING_SENTRY_ORG }}
+          MONITORING_SENTRY_PROJECT: ${{ vars.MONITORING_SENTRY_PROJECT }}
+          MONITORING_SENTRY_URL: ${{ vars.MONITORING_SENTRY_URL }}
+          MONITORING_SENTRY_TOKEN: ${{ secrets.MONITORING_SENTRY_TOKEN }}
+          MONITORING_SPACES_REGION: ${{ vars.MONITORING_SPACES_REGION }}
+          MONITORING_SPACES_BUCKET: ${{ secrets.MONITORING_SPACES_BUCKET }}
+          MONITORING_SPACES_ENDPOINT: ${{ secrets.MONITORING_SPACES_ENDPOINT }}
+          MONITORING_SPACES_KEY_ID: ${{ secrets.MONITORING_SPACES_KEY_ID }}
+          MONITORING_SPACES_SECRET_KEY: ${{ secrets.MONITORING_SPACES_SECRET_KEY }}
+        run: |
+          set -euo pipefail
+          umask 077
+          python3 scripts/monitoring/daily_receipts.py \
+            --environment "$TARGET" \
+            --output "$RUNNER_TEMP/daily-receipt-$TARGET.json" \
+            --summary "$GITHUB_STEP_SUMMARY"
+      # Counts and fixed reason categories only; the same counts appear in the
+      # public issues. Kept for one day, just long enough for the publish job.
+      - name: Hand the receipt to the publish job
+        if: steps.target.outputs.enabled == 'true'
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: daily-receipt-${{ matrix.environment }}
+          path: ${{ runner.temp }}/daily-receipt-${{ matrix.environment }}.json
+          retention-days: 1
+          if-no-files-found: error
+      - name: Remove the local receipt
+        if: always() && steps.target.outputs.enabled == 'true'
+        env:
+          TARGET: ${{ matrix.environment }}
+        run: rm -f "$RUNNER_TEMP/daily-receipt-$TARGET.json"
+
+  publish:
+    needs: collect
+    # Runs after both collectors even when one failed: a missing half is published
+    # as a coverage gap. Nothing is published when no environment is enabled.
+    if: ${{ !cancelled() && github.ref == format('refs/heads/{0}', github.event.repository.default_branch) }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      issues: write
+    concurrency:
+      group: monitoring-daily-publish
+      cancel-in-progress: false
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24
+      - name: Download this run's receipts
+        # No artifact exists when every environment is disabled.
+        continue-on-error: true
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          pattern: daily-receipt-*
+          path: ${{ runner.temp }}/receipts
+          merge-multiple: true
+      - name: Publish codex-audit issues
+        env:
+          GH_TOKEN: ${{ github.token }}
+          MODE: ${{ github.event_name == 'schedule' && 'publish' || inputs.mode }}
+        run: |
+          set -euo pipefail
+          receipts="$RUNNER_TEMP/receipts"
+          mkdir -p "$receipts"
+          # Same private-file rule as the WSL auditor's receipts.
+          find "$receipts" -type f -exec chmod 600 {} +
+          args=(--input-dir "$receipts")
+          if [[ "$MODE" == publish ]]; then args+=(--publish); fi
+          node scripts/agents/audit-runner-publish.mjs "${args[@]}"
