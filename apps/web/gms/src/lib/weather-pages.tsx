@@ -12,6 +12,7 @@ import {
 import type { Condition, ForecastDayData } from "@/lib/forecast-data";
 import { UNAVAILABLE_SOURCE } from "@/lib/forecast-selection";
 import { reportError } from "@/lib/report-error";
+import { isAllClear } from "@/lib/sector-outlook";
 import { bothUnits } from "@/lib/units";
 
 /** Placeholder for a value the source did not supply. */
@@ -269,16 +270,37 @@ function importedWatch(raw: string | undefined): string[] | null {
     !!parsed &&
     typeof parsed === "object" &&
     (parsed as { complete?: unknown }).complete !== false;
-  const listed = items.flatMap((item) => {
-    if (!item || typeof item !== "object") return [];
-    const { title, impacts } = item as { title?: unknown; impacts?: unknown };
-    const name = typeof title === "string" ? title.trim() : "";
-    const detail = typeof impacts === "string" ? impacts.trim() : "";
-    if (!name) return detail ? [detail] : [];
-    return [detail ? `${name}: ${detail}` : name];
-  });
+  const entries = items.flatMap(watchEntry);
+  // An All clear is information, not an alert in force (owner decision, 30 Oct
+  // 2026): it follows the alerts as "All clear: <title>", as on the alerts page.
+  const listed = [
+    ...entries.filter((entry) => !entry.allClear),
+    ...entries.filter((entry) => entry.allClear),
+  ].map((entry) => entry.line);
   // A source that could not be read is not "nothing in force": say so.
   return complete ? listed : [...listed, ALERTS_UNCONFIRMED];
+}
+
+const text = (value: unknown) =>
+  typeof value === "string" ? value.trim() : "";
+
+/** One snapshot item as a "What to watch" line, or nothing when it has no words. */
+function watchEntry(item: unknown): { allClear: boolean; line: string }[] {
+  if (!item || typeof item !== "object") return [];
+  const { colour, impacts, noticeType, title } = item as Record<
+    string,
+    unknown
+  >;
+  const name = text(title);
+  const detail = text(impacts);
+  if (
+    name &&
+    isAllClear({ colour: text(colour), notice_type: text(noticeType) })
+  ) {
+    return [{ allClear: true, line: `All clear: ${name}` }];
+  }
+  if (!name) return detail ? [{ allClear: false, line: detail }] : [];
+  return [{ allClear: false, line: detail ? `${name}: ${detail}` : name }];
 }
 
 function paragraphsOf(text: string | undefined) {

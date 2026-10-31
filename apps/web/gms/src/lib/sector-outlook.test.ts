@@ -3,12 +3,34 @@ import { describe, expect, it } from "vitest";
 import {
   buildSectorTiles,
   firstSentence,
+  isAllClear,
   whenLabel,
 } from "@/lib/sector-outlook";
 
 // 28 Oct 2026, 11:00 in Grenada (UTC-4).
 const NOW = new Date("2026-10-28T15:00:00Z");
 const at = (iso: string) => new Date(iso);
+
+describe("isAllClear", () => {
+  it("is a Green item whose notice is All clear, compared trimmed", () => {
+    expect(isAllClear({ colour: "green", notice_type: "All clear" })).toBe(
+      true
+    );
+    expect(isAllClear({ colour: "green", notice_type: " All clear " })).toBe(
+      true
+    );
+  });
+
+  it("is not an All clear above Green, or any other notice", () => {
+    expect(isAllClear({ colour: "yellow", notice_type: "All clear" })).toBe(
+      false
+    );
+    expect(isAllClear({ colour: "green", notice_type: "Advisory" })).toBe(
+      false
+    );
+    expect(isAllClear({ colour: "green", notice_type: null })).toBe(false);
+  });
+});
 
 describe("whenLabel", () => {
   it("says in effect for something already running", () => {
