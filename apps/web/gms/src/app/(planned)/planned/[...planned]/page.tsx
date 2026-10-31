@@ -37,6 +37,8 @@ export async function generateMetadata({
         title: page.link.name,
         description: page.link.description,
         alternates: { canonical: page.link.href },
+        // Placeholders: kept out of search, and /planned/* is internal.
+        robots: { index: false, follow: false },
       }
     : {};
 }

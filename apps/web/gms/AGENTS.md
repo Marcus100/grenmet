@@ -69,16 +69,24 @@ src/app/
   navigation skeleton (the previous page stays until the item arrives).
   Static event pages and CAP alert ids under `(pages)` still answer 200 when
   missing (not fixed).
-- **Unknown URLs never reach a page (31 Oct 2026):** a `notFound()` thrown
+- **Unknown URLs never reach a page (30 Oct 2026):** a `notFound()` thrown
   while a page renders on the server (every gms page is dynamic: the root
   layout reads live alerts) makes Next 16 send an empty error document
   (`<html id="__next_error__">`) that stays blank until JavaScript runs. So no
   catch-all may sit at the site root: an unknown URL must match no page, and
   Next then serves `app/not-found.tsx` rendered on the server, status 404. The
   planned placeholders live under `/planned` and each planned link is rewritten
-  there (`lib/planned-routes.ts`, `next.config.ts`); `route-structure.test.ts`
-  guards it. A CMS item or other dynamic page that calls `notFound()` for a
-  missing item still gets the empty error document (not fixed).
+  there (`lib/planned-routes.ts`, `next.config.ts`); `/planned/*` is internal
+  (`noindex`, canonical is the public address, never linked). `route-structure.test.ts`
+  guards that no catch-all sits at the root, and `planned-routes.test.ts`
+  enforces that no real route serves a planned address. The root single-segment
+  `(weather)/[location]` route has `dynamicParams = false` and calls
+  `notFound()` for other slugs: it answers unknown one-segment URLs with the
+  server-rendered 404 only while it is prerendered (today no second place is
+  enabled, so Next's router rejects every slug). If enabling a place makes it
+  render on demand, recheck `/this-page-does-not-exist` with curl. A CMS item
+  or other dynamic page that calls `notFound()` for a missing item still gets
+  the empty error document (not fixed).
 - **Masthead and /alerts status (30 Oct 2026):** the CAP warnings and the GMS
   outlook's Green counts are separate promises. `WithStatus`
   (`components/with-alerts.tsx`) shows a warning at once and awaits the outlook

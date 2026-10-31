@@ -18,7 +18,7 @@ describe("planned page rewrites", () => {
     expect(rewrites.map((rewrite) => rewrite.source)).toEqual(plannedPaths());
     for (const { source, destination } of rewrites) {
       expect(matches(plannedRoute, destination)).toBe(true);
-      // A real page always wins; a planned link must not have one yet.
+      // No real route may serve a planned address: it would shadow the rewrite.
       expect(routes.filter((route) => serves(route, source))).toEqual([]);
     }
   });

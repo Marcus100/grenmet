@@ -6,7 +6,7 @@
 import { readdirSync } from "node:fs";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
-import { APP_DIR, matches, routesOnDisk } from "@/test/routes";
+import { APP_DIR, CATCH_ALL, matches, routesOnDisk } from "@/test/routes";
 
 const PAGE_FILE = /^page\.(tsx|ts|jsx|js)$/;
 const LOADING = /^loading\.(tsx|ts|jsx|js)$/;
@@ -67,8 +67,27 @@ describe("routes that must answer 404 for a missing item", () => {
 // JavaScript runs. An unknown URL must therefore match no page at all, so Next
 // answers with the server-rendered not-found page. A catch-all at the site
 // root broke this for every unknown URL.
+/** Folder names of the first URL segment: route groups are unwrapped. */
+function topLevelSegments(dir: string): string[] {
+  return readdirSync(dir, { withFileTypes: true }).flatMap((entry) => {
+    if (!entry.isDirectory()) {
+      return [];
+    }
+    const isGroup = entry.name.startsWith("(") && entry.name.endsWith(")");
+    return isGroup
+      ? topLevelSegments(path.join(dir, entry.name))
+      : [entry.name];
+  });
+}
+
 describe("an unknown URL", () => {
   const pages = routesOnDisk(APP_DIR);
+
+  it("has no catch-all folder at the site root to fall into", () => {
+    expect(
+      topLevelSegments(APP_DIR).filter((name) => CATCH_ALL.test(name))
+    ).toEqual([]);
+  });
 
   it.each(["/this-page-does-not-exist", "/alerts/zz/yy", "/a/b/c/d/e"])(
     "%s matches no page route",

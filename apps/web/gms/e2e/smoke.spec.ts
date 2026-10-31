@@ -27,14 +27,16 @@ for (const { name, path } of PAGES) {
   });
 }
 
-test("a missing page is rendered on the server with status 404", async ({
-  request,
-}) => {
-  // Fetch the HTML without running any script: the not-found page must be in
-  // the document itself, not an empty error shell filled in by JavaScript.
-  const response = await request.get("/this-page-does-not-exist");
-  expect(response.status()).toBe(404);
-  const html = await response.text();
-  expect(html).not.toContain('id="__next_error__"');
-  expect(html).toContain("Page not found");
-});
+for (const path of ["/this-page-does-not-exist", "/alerts/zz/yy"]) {
+  test(`missing page ${path} is rendered on the server with status 404`, async ({
+    request,
+  }) => {
+    // Fetch the HTML without running any script: the not-found page must be in
+    // the document itself, not an empty error shell filled in by JavaScript.
+    const response = await request.get(path);
+    expect(response.status()).toBe(404);
+    const html = await response.text();
+    expect(html).not.toContain('id="__next_error__"');
+    expect(html).toContain("Page not found");
+  });
+}
