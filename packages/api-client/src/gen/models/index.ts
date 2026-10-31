@@ -2659,6 +2659,7 @@ export type {
   EregisterValidateSynopObservationStatus403,
   EregisterValidateSynopObservationStatus422,
 } from "./EregisterValidateSynopObservation.js";
+export type { EregisterValidationError } from "./EregisterValidationError.js";
 export type { ErrorMessage } from "./ErrorMessage.js";
 export type { EventCategoryNode } from "./EventCategoryNode.js";
 export type { EventCategoryNodePropertiesAppliesToItemsEnum } from "./EventCategoryNodePropertiesAppliesToItemsEnum.js";
@@ -8049,6 +8050,7 @@ export type { SynopDecoded } from "./SynopDecoded.js";
 export type { SynopticImageGroup } from "./SynopticImageGroup.js";
 export type { SynopticImageGroups } from "./SynopticImageGroups.js";
 export type { SynopticSlots } from "./SynopticSlots.js";
+export type { SynopValidationErrorDetail } from "./SynopValidationErrorDetail.js";
 export type { SynopValidationIssue } from "./SynopValidationIssue.js";
 export type { SynopValidationRequest } from "./SynopValidationRequest.js";
 export type { SynopValidationResponse } from "./SynopValidationResponse.js";
