@@ -9,8 +9,9 @@ import csv
 import hashlib
 import io
 import logging
+import time as time_module
 import uuid
-from collections.abc import Mapping, Sequence
+from collections.abc import Callable, Mapping, Sequence
 from dataclasses import dataclass
 from datetime import date, datetime, time, timedelta
 from typing import Any
@@ -49,7 +50,13 @@ from .models import (
     RefundStatus,
 )
 from .providers import registry
-from .providers.base import EventKind, ProviderEvent, ProviderRefund, RefundListing
+from .providers.base import (
+    EventKind,
+    PaymentProvider,
+    ProviderEvent,
+    ProviderRefund,
+    RefundListing,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -1204,13 +1211,17 @@ class RefundCheck:
     mismatch: bool
     #: False when the provider's listing was cut short (no totals were compared).
     complete: bool
+    #: True when nothing was written because the payment has a refund row with no
+    #: provider refund id (see ``reconcile_refunds``).
+    skipped_legacy: bool = False
 
 
 async def refund_check_candidates(
     session: AsyncSession, *, since: datetime, limit: int
 ) -> list[uuid.UUID]:
-    """Captured provider payments created since ``since``, newest first: the ones
-    whose refunds the reconciliation job compares with the provider."""
+    """Captured provider payments created since ``since`` that the reconciliation
+    job compares with the provider: never checked first, then the longest since
+    their last check, so every payment in the window is reached in turn."""
     return list(
         await session.scalars(
             select(Intent.id)
@@ -1220,14 +1231,46 @@ async def refund_check_candidates(
                 Intent.provider_payment_ref.is_not(None),
                 Intent.created_at >= since,
             )
-            .order_by(Intent.created_at.desc(), Intent.id)
+            .order_by(
+                Intent.refunds_checked_at.asc().nulls_first(),
+                Intent.created_at.desc(),
+                Intent.id,
+            )
             .limit(limit)
         )
     )
 
 
+async def _legacy_refund_ids(session: AsyncSession, intent_id: uuid.UUID) -> list[str]:
+    """Refund rows of the payment (any status) that carry no provider refund id."""
+    return [
+        str(refund_id)
+        for refund_id in await session.scalars(
+            select(Refund.id).where(
+                Refund.intent_id == intent_id, Refund.provider_ref.is_(None)
+            )
+        )
+    ]
+
+
+async def _mark_checked(
+    session: AsyncSession, intent_id: uuid.UUID, moment: datetime
+) -> None:
+    # A bookkeeping stamp: keeps ``updated_at`` as it was.
+    await session.execute(
+        sa.update(Intent)
+        .where(Intent.id == intent_id)
+        .values(refunds_checked_at=moment, updated_at=Intent.updated_at)
+        .execution_options(synchronize_session=False)
+    )
+
+
 async def reconcile_refunds(
-    session: AsyncSession, intent_id: uuid.UUID, *, now: datetime | None = None
+    session: AsyncSession,
+    intent_id: uuid.UUID,
+    *,
+    now: datetime | None = None,
+    provider: PaymentProvider | None = None,
 ) -> RefundCheck | None:
     """Compare one captured payment's refunds with the provider's full list (#869).
 
@@ -1238,11 +1281,17 @@ async def reconcile_refunds(
     refund id), so a run twice writes nothing the second time. Afterwards the
     refunded totals are compared and a difference is logged as an error (Sentry).
 
+    **Legacy rows:** a payment with any refund row that has no provider refund id
+    (written by the old total-based path, ``_apply_refunded`` without a complete
+    list) gets no writes at all: that row cannot be matched, so the provider's copy
+    of the same refund would be recorded a second time. It is logged (internal ids
+    only) and its totals are still compared, so a real difference still alerts.
+
     The provider call runs with no transaction open and no lock held; the intent row
-    is locked only to apply the result. Commits. Returns None for a payment that
-    is not a captured provider payment. Raises ``ProviderUnavailableError`` when the
-    provider is off (Stripe unset or not a test key) and ``ProviderRequestError``
-    when the provider call fails."""
+    is locked only to apply the result. Stamps ``refunds_checked_at`` and commits.
+    Returns None for a payment that is not a captured provider payment. Raises
+    ``ProviderUnavailableError`` when the provider is off (Stripe unset or not a
+    test key) and ``ProviderRequestError`` when the provider call fails."""
     intent = await session.scalar(
         select(Intent)
         .where(Intent.id == intent_id)
@@ -1251,7 +1300,8 @@ async def reconcile_refunds(
     if intent is None or not intent.provider_payment_ref:
         await session.rollback()
         return None
-    provider = registry.get_provider(intent.provider)
+    if provider is None or provider.key != intent.provider:
+        provider = registry.get_provider(intent.provider)
     # Keep the loaded values, then end the read so nothing is held across the call.
     session.expunge(intent)
     await session.rollback()
@@ -1266,12 +1316,19 @@ async def reconcile_refunds(
             .execution_options(populate_existing=True)
         )
     ).scalar_one()
+    legacy = await _legacy_refund_ids(session, intent_id)
     changed = False
-    for refund in listing.refunds:
-        if await _reconcile_listed_refund(
-            session, locked, refund, provider=locked.provider, event_id=None
-        ):
-            changed = True
+    if legacy:
+        logger.warning(
+            "refund reconciliation skipped: refund rows without a provider refund id",
+            extra={"intent_id": str(intent_id), "refund_ids": legacy},
+        )
+    else:
+        for refund in listing.refunds:
+            if await _reconcile_listed_refund(
+                session, locked, refund, provider=locked.provider, event_id=None
+            ):
+                changed = True
     mismatch = False
     if listing.complete:
         mismatch = await _refund_mismatch(session, locked, listing, listed_at)
@@ -1280,6 +1337,7 @@ async def reconcile_refunds(
             "provider refund listing incomplete; totals not compared",
             extra={"intent_id": str(intent_id)},
         )
+    await _mark_checked(session, intent_id, listed_at)
     await session.commit()
     if changed:
         logger.info(
@@ -1291,6 +1349,7 @@ async def reconcile_refunds(
         changed=changed,
         mismatch=mismatch,
         complete=listing.complete,
+        skipped_legacy=bool(legacy),
     )
 
 
@@ -1302,18 +1361,30 @@ class RefundCheckRun:
     changed: int = 0
     mismatched: int = 0
     failed: int = 0
+    #: Payments left untouched because of refund rows with no provider refund id.
+    skipped_legacy: int = 0
+    #: True when the run stopped at its time budget; the rest wait for the next run.
+    partial: bool = False
     #: True when the provider is off (Stripe unset or not a test key): nothing ran.
     provider_off: bool = False
 
 
 async def reconcile_recent_refunds(
-    session: AsyncSession, *, now: datetime | None = None
+    session: AsyncSession,
+    *,
+    now: datetime | None = None,
+    clock: Callable[[], float] = time_module.monotonic,
 ) -> RefundCheckRun:
-    """The daily job (#869): ``reconcile_refunds`` for each captured provider payment
-    of the last ``REFUND_RECONCILE_WINDOW_DAYS`` days, newest first, at most
-    ``REFUND_RECONCILE_BATCH``. A provider error on one payment is logged and the
-    run goes on; the next run retries it."""
+    """The daily job (#869): ``reconcile_refunds`` for captured provider payments of
+    the last ``REFUND_RECONCILE_WINDOW_DAYS`` days, at most
+    ``REFUND_RECONCILE_BATCH``, oldest-checked first, over one provider connection.
+
+    One payment never stops the run: a provider error or any other failure is rolled
+    back, logged and counted in ``failed`` (the payment stays first in line for the
+    next run). The run stops before ``REFUND_RECONCILE_BUDGET_SECONDS`` and is then
+    ``partial``."""
     moment = now or utc_now()
+    started = clock()
     run = RefundCheckRun()
     candidates = await refund_check_candidates(
         session,
@@ -1321,33 +1392,70 @@ async def reconcile_recent_refunds(
         limit=payments_settings.REFUND_RECONCILE_BATCH,
     )
     await session.rollback()
+    if not candidates:
+        return run
     if len(candidates) >= payments_settings.REFUND_RECONCILE_BATCH:
         logger.warning(
-            "refund reconciliation batch is full; older payments wait for a later run",
+            "refund reconciliation batch is full; the rest wait for a later run",
             extra={"batch": payments_settings.REFUND_RECONCILE_BATCH},
         )
-    for intent_id in candidates:
-        try:
-            check = await reconcile_refunds(session, intent_id, now=moment)
-        except ProviderUnavailableError:
-            await session.rollback()
-            logger.info("refund reconciliation skipped: the provider is off")
-            run.provider_off = True
-            return run
-        except ProviderRequestError:
-            await session.rollback()
-            logger.warning(
-                "refund reconciliation could not read the provider; retried next run",
-                extra={"intent_id": str(intent_id)},
-            )
-            run.failed += 1
-            continue
-        if check is None:
-            continue
-        run.checked += 1
-        run.changed += int(check.changed)
-        run.mismatched += int(check.mismatch)
+    try:
+        provider = registry.get_provider(ProviderKey.STRIPE.value)
+    except ProviderUnavailableError:
+        logger.info("refund reconciliation skipped: the provider is off")
+        run.provider_off = True
+        return run
+    async with provider.batch():
+        for intent_id in candidates:
+            if clock() - started >= payments_settings.REFUND_RECONCILE_BUDGET_SECONDS:
+                run.partial = True
+                logger.warning(
+                    "refund reconciliation stopped at its time budget",
+                    extra={
+                        "checked": run.checked,
+                        "left": len(candidates) - run.checked,
+                    },
+                )
+                break
+            await _reconcile_one(session, intent_id, moment, provider, run)
     return run
+
+
+async def _reconcile_one(
+    session: AsyncSession,
+    intent_id: uuid.UUID,
+    moment: datetime,
+    provider: PaymentProvider,
+    run: RefundCheckRun,
+) -> None:
+    try:
+        check = await reconcile_refunds(
+            session, intent_id, now=moment, provider=provider
+        )
+    except ProviderRequestError:
+        await session.rollback()
+        logger.warning(
+            "refund reconciliation could not read the provider; retried next run",
+            extra={"intent_id": str(intent_id)},
+        )
+        run.failed += 1
+        return
+    except Exception as error:
+        # Any other failure is this payment's alone: undo it, report it, go on.
+        await session.rollback()
+        logger.error(
+            "refund reconciliation failed for one payment; the run goes on",
+            extra={"intent_id": str(intent_id), "error": type(error).__name__},
+            exc_info=error,
+        )
+        run.failed += 1
+        return
+    if check is None:
+        return
+    run.checked += 1
+    run.changed += int(check.changed)
+    run.mismatched += int(check.mismatch)
+    run.skipped_legacy += int(check.skipped_legacy)
 
 
 async def _refund_mismatch(

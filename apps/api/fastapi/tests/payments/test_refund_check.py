@@ -18,6 +18,7 @@ from unittest.mock import MagicMock
 import httpx
 import pytest
 from sqlalchemy import select
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.payments import schemas, service
@@ -60,11 +61,17 @@ class FakeStripe:
         *,
         refund_id: object | None = None,
         status: str = "succeeded",
+        listed_under: str | None = None,
+        currency: str = "xcd",
     ) -> dict[str, Any]:
-        listed = self.refunds.setdefault(payment_intent, [])
+        """A refund on ``payment_intent``. ``listed_under`` files it under another
+        payment's listing (a provider echo that does not match)."""
+        listed = self.refunds.setdefault(listed_under or payment_intent, [])
         refund = provider_refund(
             f"re_{len(listed) + 1:04d}", amount, refund_id=refund_id, status=status
         )
+        refund["payment_intent"] = payment_intent
+        refund["currency"] = currency
         listed.insert(0, refund)
         return refund
 
@@ -501,3 +508,178 @@ def test_the_job_is_registered_and_scheduled_daily() -> None:
     ]
     assert len(jobs) == 1
     assert jobs[0].hour == 4 and jobs[0].minute == 40
+
+
+# --- review follow-ups: legacy rows, isolation, echoes, budget, rotation ---------------
+
+
+async def _legacy_dashboard_refund(
+    client: httpx.AsyncClient, fake: FakeStripe, amount: int
+) -> None:
+    """A dashboard refund recorded by the old total path: a complete but empty
+    refund list, so the remainder is written with no provider refund id."""
+    fake.add(PAYMENT, amount)
+    body, headers = signed(
+        charge_refunded(
+            "evt_legacy_total",
+            amount_refunded=amount,
+            refunds=[],
+            payment_intent=PAYMENT,
+        )
+    )
+    assert (
+        await client.post(WEBHOOK, content=body, headers=headers)
+    ).status_code == 200
+
+
+async def test_a_legacy_row_without_a_provider_id_blocks_every_write(
+    async_client: httpx.AsyncClient, db_async: AsyncSession, fake_stripe: FakeStripe
+) -> None:
+    _, intent_id = await _captured(async_client, db_async)
+    await _legacy_dashboard_refund(async_client, fake_stripe, 500)
+    rows = await _rows(db_async, intent_id)
+    assert [(r.amount_minor, r.provider_ref) for r in rows] == [(500, None)]
+
+    run = await service.reconcile_recent_refunds(db_async)
+    assert (run.checked, run.changed, run.skipped_legacy, run.mismatched) == (
+        1,
+        0,
+        1,
+        0,
+    )
+    # Stripe's copy of the same refund was not recorded a second time.
+    assert [
+        (r.amount_minor, r.provider_ref) for r in await _rows(db_async, intent_id)
+    ] == [(500, None)]
+    assert await _refund_ledger(db_async, intent_id) == [-500]
+
+
+async def test_a_mixed_payment_writes_nothing_but_still_alerts_on_totals(
+    async_client: httpx.AsyncClient,
+    db_async: AsyncSession,
+    fake_stripe: FakeStripe,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    _, intent_id = await _captured(async_client, db_async)
+    await _legacy_dashboard_refund(async_client, fake_stripe, 500)
+    fake_stripe.add(PAYMENT, 300)  # A refund we never recorded.
+    log = MagicMock()
+    monkeypatch.setattr(service, "logger", log)
+
+    check = await service.reconcile_refunds(db_async, uuid.UUID(intent_id))
+    assert check is not None
+    assert check.skipped_legacy and not check.changed and check.mismatch
+    assert len(await _rows(db_async, intent_id)) == 1
+    assert await _refund_ledger(db_async, intent_id) == [-500]
+    warning = log.warning.call_args_list[0]
+    assert warning.kwargs["extra"]["intent_id"] == intent_id
+    assert len(warning.kwargs["extra"]["refund_ids"]) == 1
+
+
+async def test_one_failing_payment_does_not_stop_the_run(
+    async_client: httpx.AsyncClient,
+    db_async: AsyncSession,
+    fake_stripe: FakeStripe,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    _, broken = await _captured(async_client, db_async, "pi_broken")
+    _, healthy = await _captured(async_client, db_async, "pi_healthy")
+    fake_stripe.add("pi_broken", 100)
+    fake_stripe.add("pi_healthy", 200)
+    real = service._reconcile_listed_refund
+
+    async def flaky(
+        session: AsyncSession, intent: Intent, *args: Any, **kwargs: Any
+    ) -> bool:
+        if str(intent.id) == broken:
+            await real(session, intent, *args, **kwargs)
+            raise IntegrityError("INSERT", {}, Exception("duplicate key"))
+        return await real(session, intent, *args, **kwargs)
+
+    monkeypatch.setattr(service, "_reconcile_listed_refund", flaky)
+    run = await service.reconcile_recent_refunds(db_async)
+    assert (run.checked, run.changed, run.failed) == (1, 1, 1)
+    # The failing payment's half-written refund was rolled back.
+    assert await _rows(db_async, broken) == []
+    assert (await _intent(db_async, broken)).refunds_checked_at is None
+    assert [r.amount_minor for r in await _rows(db_async, healthy)] == [200]
+
+
+async def test_a_listed_refund_for_another_payment_or_currency_is_skipped(
+    async_client: httpx.AsyncClient, db_async: AsyncSession, fake_stripe: FakeStripe
+) -> None:
+    _, intent_id = await _captured(async_client, db_async)
+    fake_stripe.add(PAYMENT, 100)
+    fake_stripe.add("pi_someone_else", 200, listed_under=PAYMENT)
+    fake_stripe.add(PAYMENT, 300, currency="usd")
+    listing = await registry.get_provider("stripe").list_refunds(
+        await _intent(db_async, intent_id)
+    )
+    assert [refund.amount_minor for refund in listing.refunds] == [100]
+
+    check = await service.reconcile_refunds(db_async, uuid.UUID(intent_id))
+    assert check is not None and check.changed
+    assert [r.amount_minor for r in await _rows(db_async, intent_id)] == [100]
+
+
+async def test_the_run_stops_at_its_time_budget_and_says_so(
+    async_client: httpx.AsyncClient, db_async: AsyncSession, fake_stripe: FakeStripe
+) -> None:
+    await _captured(async_client, db_async, "pi_one")
+    await _captured(async_client, db_async, "pi_two")
+    ticks = iter([0.0, 0.0, 1000.0])
+    run = await service.reconcile_recent_refunds(db_async, clock=lambda: next(ticks))
+    assert run.partial
+    assert run.checked == 1
+    assert len(fake_stripe.listing_requests()) == 1
+
+
+async def test_the_run_uses_one_http_client(
+    async_client: httpx.AsyncClient,
+    db_async: AsyncSession,
+    fake_stripe: FakeStripe,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    await _captured(async_client, db_async, "pi_one")
+    await _captured(async_client, db_async, "pi_two")
+    opened: list[httpx.AsyncClient] = []
+    real = stripe_module.StripeProvider._new_client
+
+    def counting(self: stripe_module.StripeProvider) -> httpx.AsyncClient:
+        client = real(self)
+        opened.append(client)
+        return client
+
+    monkeypatch.setattr(stripe_module.StripeProvider, "_new_client", counting)
+    run = await service.reconcile_recent_refunds(db_async)
+    assert run.checked == 2
+    assert len(opened) == 1
+    assert len(fake_stripe.listing_requests()) == 2
+
+
+async def test_every_payment_in_the_window_is_reached_in_turn(
+    async_client: httpx.AsyncClient,
+    db_async: AsyncSession,
+    fake_stripe: FakeStripe,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    payments = ["pi_a", "pi_b", "pi_c"]
+    ids = [(await _captured(async_client, db_async, p))[1] for p in payments]
+    before = {i: (await _intent(db_async, i)).updated_at for i in ids}
+    monkeypatch.setattr(payments_settings, "REFUND_RECONCILE_BATCH", 1)
+    start = utc_now()
+    for day in range(3):
+        run = await service.reconcile_recent_refunds(
+            db_async, now=start + timedelta(minutes=day)
+        )
+        assert run.checked == 1
+    listed = [r.url.params["payment_intent"] for r in fake_stripe.listing_requests()]
+    assert sorted(listed) == payments
+    for intent_id in ids:
+        intent = await _intent(db_async, intent_id)
+        assert intent.refunds_checked_at is not None
+        # The stamp is bookkeeping: the payment's own updated_at is unchanged.
+        assert intent.updated_at == before[intent_id]
+    # The fourth run goes back to the one checked longest ago.
+    await service.reconcile_recent_refunds(db_async, now=start + timedelta(minutes=3))
+    assert fake_stripe.listing_requests()[-1].url.params["payment_intent"] == listed[0]

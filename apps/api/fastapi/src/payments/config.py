@@ -29,6 +29,8 @@ class PaymentsConfig(BaseSettings):
     #: created in this many days, at most ``REFUND_RECONCILE_BATCH`` per run.
     REFUND_RECONCILE_WINDOW_DAYS: int = 180
     REFUND_RECONCILE_BATCH: int = 200
+    #: The run stops cleanly after this long, before the worker's 300 s job timeout.
+    REFUND_RECONCILE_BUDGET_SECONDS: float = 240.0
 
 
 payments_settings = PaymentsConfig()

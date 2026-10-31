@@ -19,7 +19,8 @@ import json
 import logging
 import time
 import uuid
-from collections.abc import Callable, Mapping
+from collections.abc import AsyncIterator, Callable, Mapping
+from contextlib import asynccontextmanager
 from typing import Any
 
 import httpx
@@ -172,6 +173,31 @@ def _listed_refunds(listing: object) -> tuple[tuple[ProviderRefund, ...], bool]:
     return refunds, listing.get("has_more") is not True
 
 
+def _echoes(intent: Intent, item: object) -> bool:
+    """True when a listed refund is about this payment: its ``payment_intent`` is the
+    intent's provider payment and its currency the intent's. Anything else is
+    logged and left out of the listing, so it is never reconciled onto this payment."""
+    if not isinstance(item, dict):
+        return False
+    payment = item.get("payment_intent")
+    if isinstance(payment, dict):
+        payment = payment.get("id")
+    same_payment = payment == intent.provider_payment_ref
+    same_currency = _currency(item.get("currency")) == intent.currency.upper()
+    if same_payment and same_currency:
+        return True
+    logger.warning(
+        "Stripe listed a refund for another payment or currency; skipped",
+        extra={
+            "intent_id": str(intent.id),
+            "refund_ref": _str(item.get("id")),
+            "payment_matches": same_payment,
+            "currency_matches": same_currency,
+        },
+    )
+    return False
+
+
 def normalise_event(event: dict[str, Any]) -> ProviderEvent:
     """Map a verified Stripe event to the core's vocabulary."""
     event_id = _str(event.get("id"))
@@ -249,6 +275,8 @@ class StripeProvider:
         self._config = config or payments_settings
         # Refuses a missing or non-test key before anything can be sent.
         self._secret_key = require_test_key(self._config.STRIPE_SECRET_KEY)
+        #: Set inside ``batch()``: one HTTP client for every request in the block.
+        self._client: httpx.AsyncClient | None = None
 
     # --- HTTP ------------------------------------------------------------------
 
@@ -265,14 +293,15 @@ class StripeProvider:
         if idempotency_key:
             headers["Idempotency-Key"] = idempotency_key
         try:
-            async with httpx.AsyncClient(
-                base_url=self._config.STRIPE_API_BASE,
-                timeout=self._config.REQUEST_TIMEOUT_SECONDS,
-                transport=_transport,
-            ) as client:
-                response = await client.request(
+            if self._client is not None:
+                response = await self._client.request(
                     method, path, data=data, params=params, headers=headers
                 )
+            else:
+                async with self._new_client() as client:
+                    response = await client.request(
+                        method, path, data=data, params=params, headers=headers
+                    )
         except httpx.HTTPError:
             logger.warning("Stripe request failed", extra={"path": path})
             raise ProviderRequestError() from None
@@ -289,6 +318,24 @@ class StripeProvider:
         if not isinstance(body, dict):
             raise ProviderRequestError()
         return body
+
+    def _new_client(self) -> httpx.AsyncClient:
+        return httpx.AsyncClient(
+            base_url=self._config.STRIPE_API_BASE,
+            timeout=self._config.REQUEST_TIMEOUT_SECONDS,
+            transport=_transport,
+        )
+
+    @asynccontextmanager
+    async def batch(self) -> AsyncIterator[None]:
+        """Send every request made inside the block over one HTTP client (one
+        connection pool), as a batch job does. Outside it each request opens its own."""
+        async with self._new_client() as client:
+            self._client = client
+            try:
+                yield
+            finally:
+                self._client = None
 
     # --- PaymentProvider -------------------------------------------------------
 
@@ -402,7 +449,9 @@ class StripeProvider:
                 raise ProviderRequestError()
             refunds.extend(
                 refund
-                for refund in (_refund_object(item) for item in data)
+                for refund in (
+                    _refund_object(item) for item in data if _echoes(intent, item)
+                )
                 if refund is not None
             )
             if body.get("has_more") is not True:

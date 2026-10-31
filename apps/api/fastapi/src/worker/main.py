@@ -289,6 +289,8 @@ async def reconcile_provider_refunds(ctx: dict[str, Any]) -> int:
             "changed": run.changed,
             "mismatched": run.mismatched,
             "failed": run.failed,
+            "skipped_legacy": run.skipped_legacy,
+            "partial": run.partial,
             "provider_off": run.provider_off,
         },
     )

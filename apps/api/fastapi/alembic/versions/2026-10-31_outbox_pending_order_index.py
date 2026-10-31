@@ -23,6 +23,10 @@ INDEX = "outbox_pending_order_idx"
 
 
 def upgrade() -> None:
+    # A plain CREATE INDEX, not CONCURRENTLY, on purpose: the outbox is small (done
+    # rows are deleted after 30 days), the build takes well under a second, and this
+    # ships before launch with little traffic, so the brief write lock is harmless.
+    # CONCURRENTLY would also need its own non-transactional migration step.
     op.create_index(
         INDEX,
         "outbox",
