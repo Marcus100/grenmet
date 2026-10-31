@@ -3,6 +3,8 @@
  * Do not edit manually.
  */
 
+import type { ApiError } from "./ApiError.js";
+import type { ErrorMessage } from "./ErrorMessage.js";
 import type { OrganiserPublic } from "./OrganiserPublic.js";
 import type { OrganiserReview } from "./OrganiserReview.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
@@ -18,13 +20,29 @@ export type EventsReviewOrganiserPath = {
 
 export type EventsReviewOrganiserStatus200 = OrganiserPublic;
 
-export type EventsReviewOrganiserStatus401 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type EventsReviewOrganiserStatus401 = ApiError;
 
-export type EventsReviewOrganiserStatus403 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type EventsReviewOrganiserStatus403 = ApiError;
 
-export type EventsReviewOrganiserStatus404 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type EventsReviewOrganiserStatus404 = ApiError;
 
-export type EventsReviewOrganiserStatus409 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type EventsReviewOrganiserStatus409 = ApiError;
 
 /**
  * @description Validation error envelope returned for malformed requests.
@@ -32,7 +50,7 @@ export type EventsReviewOrganiserStatus409 = unknown;
  */
 export type EventsReviewOrganiserStatus422 = ValidationErrorResponse;
 
-export type EventsReviewOrganiserStatus429 = unknown;
+export type EventsReviewOrganiserStatus429 = ApiError | ErrorMessage;
 
 export type EventsReviewOrganiserBody = OrganiserReview;
 

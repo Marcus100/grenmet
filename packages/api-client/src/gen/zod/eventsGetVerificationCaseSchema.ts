@@ -4,6 +4,7 @@
  */
 
 import * as z from "zod";
+import { apiErrorSchema } from "./apiErrorSchema.js";
 import { validationErrorResponseSchema } from "./validationErrorResponseSchema.js";
 import { verificationCaseDetailSchema } from "./verificationCaseDetailSchema.js";
 
@@ -14,11 +15,17 @@ export const eventsGetVerificationCasePathOrganisationIdSchema = z
 export const eventsGetVerificationCaseStatus200Schema =
   verificationCaseDetailSchema;
 
-export const eventsGetVerificationCaseStatus401Schema = z.unknown();
+export const eventsGetVerificationCaseStatus401Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
-export const eventsGetVerificationCaseStatus403Schema = z.unknown();
+export const eventsGetVerificationCaseStatus403Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
-export const eventsGetVerificationCaseStatus404Schema = z.unknown();
+export const eventsGetVerificationCaseStatus404Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
 export const eventsGetVerificationCaseStatus422Schema =
   validationErrorResponseSchema.describe(

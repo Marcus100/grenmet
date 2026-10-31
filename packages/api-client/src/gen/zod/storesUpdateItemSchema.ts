@@ -4,6 +4,7 @@
  */
 
 import * as z from "zod";
+import { apiErrorSchema } from "./apiErrorSchema.js";
 import { itemPublicSchema } from "./itemPublicSchema.js";
 import { itemUpdateSchema } from "./itemUpdateSchema.js";
 import { validationErrorResponseSchema } from "./validationErrorResponseSchema.js";
@@ -12,15 +13,25 @@ export const storesUpdateItemPathItemIdSchema = z.uuid();
 
 export const storesUpdateItemStatus200Schema = itemPublicSchema;
 
-export const storesUpdateItemStatus400Schema = z.unknown();
+export const storesUpdateItemStatus400Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
-export const storesUpdateItemStatus401Schema = z.unknown();
+export const storesUpdateItemStatus401Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
-export const storesUpdateItemStatus403Schema = z.unknown();
+export const storesUpdateItemStatus403Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
-export const storesUpdateItemStatus404Schema = z.unknown();
+export const storesUpdateItemStatus404Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
-export const storesUpdateItemStatus409Schema = z.unknown();
+export const storesUpdateItemStatus409Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
 export const storesUpdateItemStatus422Schema =
   validationErrorResponseSchema.describe(

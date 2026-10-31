@@ -53,6 +53,8 @@ const ORANGE_LEVEL = /Orange level/;
 const GREEN_LEVEL = /Green level/;
 const MINIMAL_OR_NONE = /minimal|no impact/i;
 const NO_IMPACTS = /Nothing this week|for any sector this week/;
+const ALL_CLEAR_NOTE = /All clear · /;
+const HIGHEST = /Highest this week/;
 
 const home = (settings: Partial<HomeContent["settings"]>): HomeContent => ({
   deskUpdates: { status: "ok", articles: [] },
@@ -164,6 +166,28 @@ it("shows each tagged item under its sectors only, and says what is untagged", a
     "/weather/issued/0b3c6f1e-1111-4a2b-9c3d-222233334444"
   );
   expect(tile("Marine").getByText(GREEN_LEVEL)).toBeInTheDocument();
+});
+
+it("shows an All clear on its tile as a note, with no impact level", async () => {
+  vi.mocked(fetchHomeContent).mockResolvedValue(home({}));
+  vi.mocked(fetchSectorOutlook).mockResolvedValue(
+    outlook([
+      outlookItem({
+        title: "Calm seas",
+        colour: "green",
+        notice_type: "All clear",
+        impacts: "No hazards are expected at sea.",
+        sectors: ["marine"],
+        affects_everyone: false,
+        identifier: "AC",
+      }),
+    ])
+  );
+  render(await ExploreToday());
+  expect(tile("Marine").getByText("Calm seas")).toBeInTheDocument();
+  expect(tile("Marine").getByText(ALL_CLEAR_NOTE)).toBeInTheDocument();
+  expect(tile("Marine").queryByText(HIGHEST)).toBeNull();
+  expect(tile("Marine").queryByText(GREEN_LEVEL)).toBeNull();
 });
 
 it("says nothing is published for a sector, never that there is no impact", async () => {

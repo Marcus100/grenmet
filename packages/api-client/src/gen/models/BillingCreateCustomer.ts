@@ -3,19 +3,36 @@
  * Do not edit manually.
  */
 
+import type { ApiError } from "./ApiError.js";
 import type { CustomerCreate } from "./CustomerCreate.js";
 import type { CustomerPublic } from "./CustomerPublic.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 
 export type BillingCreateCustomerStatus201 = CustomerPublic;
 
-export type BillingCreateCustomerStatus401 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type BillingCreateCustomerStatus401 = ApiError;
 
-export type BillingCreateCustomerStatus403 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type BillingCreateCustomerStatus403 = ApiError;
 
-export type BillingCreateCustomerStatus404 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type BillingCreateCustomerStatus404 = ApiError;
 
-export type BillingCreateCustomerStatus409 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type BillingCreateCustomerStatus409 = ApiError;
 
 /**
  * @description Validation error envelope returned for malformed requests.

@@ -3,6 +3,7 @@
  * Do not edit manually.
  */
 
+import type { ApiError } from "./ApiError.js";
 import type { ScopeKind } from "./ScopeKind.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 
@@ -13,9 +14,17 @@ export type RewardsWithdrawFromLeaderboardPath = {
 
 export type RewardsWithdrawFromLeaderboardStatus204 = unknown;
 
-export type RewardsWithdrawFromLeaderboardStatus401 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type RewardsWithdrawFromLeaderboardStatus401 = ApiError;
 
-export type RewardsWithdrawFromLeaderboardStatus403 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type RewardsWithdrawFromLeaderboardStatus403 = ApiError;
 
 /**
  * @description Validation error envelope returned for malformed requests.

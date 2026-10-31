@@ -4,6 +4,7 @@
  */
 
 import * as z from "zod";
+import { apiErrorSchema } from "./apiErrorSchema.js";
 import { organisationAdminDetailSchema } from "./organisationAdminDetailSchema.js";
 import { validationErrorResponseSchema } from "./validationErrorResponseSchema.js";
 import { verificationDecisionSchema } from "./verificationDecisionSchema.js";
@@ -13,13 +14,21 @@ export const organisationsVerifyOnePathOrganisationIdSchema = z.string();
 export const organisationsVerifyOneStatus200Schema =
   organisationAdminDetailSchema;
 
-export const organisationsVerifyOneStatus401Schema = z.unknown();
+export const organisationsVerifyOneStatus401Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
-export const organisationsVerifyOneStatus403Schema = z.unknown();
+export const organisationsVerifyOneStatus403Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
-export const organisationsVerifyOneStatus404Schema = z.unknown();
+export const organisationsVerifyOneStatus404Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
-export const organisationsVerifyOneStatus409Schema = z.unknown();
+export const organisationsVerifyOneStatus409Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
 export const organisationsVerifyOneStatus422Schema =
   validationErrorResponseSchema.describe(

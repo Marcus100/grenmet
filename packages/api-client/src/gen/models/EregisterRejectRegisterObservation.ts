@@ -3,7 +3,8 @@
  * Do not edit manually.
  */
 
-import type { QcDecisionRequest } from "./QcDecisionRequest.js";
+import type { ApiError } from "./ApiError.js";
+import type { QcDecisionBody } from "./QcDecisionBody.js";
 import type { RegisterObservationRead } from "./RegisterObservationRead.js";
 
 export type EregisterRejectRegisterObservationPath = {
@@ -18,19 +19,36 @@ export type EregisterRejectRegisterObservationPath = {
 export type EregisterRejectRegisterObservationStatus200 =
   RegisterObservationRead;
 
-export type EregisterRejectRegisterObservationStatus401 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type EregisterRejectRegisterObservationStatus401 = ApiError;
 
-export type EregisterRejectRegisterObservationStatus403 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type EregisterRejectRegisterObservationStatus403 = ApiError;
 
-export type EregisterRejectRegisterObservationStatus404 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type EregisterRejectRegisterObservationStatus404 = ApiError;
 
-export type EregisterRejectRegisterObservationStatus409 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type EregisterRejectRegisterObservationStatus409 = ApiError;
 
 export type EregisterRejectRegisterObservationStatus422 = unknown;
 
-export type EregisterRejectRegisterObservationBody =
-  | (QcDecisionRequest | null)
-  | undefined;
+/**
+ * @description Optional QC decision. An absent body and null are both accepted.
+ */
+export type EregisterRejectRegisterObservationBody = QcDecisionBody | undefined;
 
 export type EregisterRejectRegisterObservationOptions = {
   body: EregisterRejectRegisterObservationBody;

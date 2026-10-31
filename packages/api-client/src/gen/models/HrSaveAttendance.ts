@@ -3,19 +3,36 @@
  * Do not edit manually.
  */
 
+import type { ApiError } from "./ApiError.js";
 import type { AttendanceSave } from "./AttendanceSave.js";
 import type { AttendanceShiftPublic } from "./AttendanceShiftPublic.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 
 export type HrSaveAttendanceStatus200 = AttendanceShiftPublic;
 
-export type HrSaveAttendanceStatus400 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type HrSaveAttendanceStatus400 = ApiError;
 
-export type HrSaveAttendanceStatus403 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type HrSaveAttendanceStatus403 = ApiError;
 
-export type HrSaveAttendanceStatus404 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type HrSaveAttendanceStatus404 = ApiError;
 
-export type HrSaveAttendanceStatus409 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type HrSaveAttendanceStatus409 = ApiError;
 
 /**
  * @description Validation error envelope returned for malformed requests.

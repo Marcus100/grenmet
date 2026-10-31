@@ -3,6 +3,7 @@
  * Do not edit manually.
  */
 
+import type { ApiError } from "./ApiError.js";
 import type { MemberEventsAccessRevokedPublic } from "./MemberEventsAccessRevokedPublic.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 
@@ -30,15 +31,35 @@ export type OrganisationsDeleteMemberStatus200 =
 
 export type OrganisationsDeleteMemberStatus204 = unknown;
 
-export type OrganisationsDeleteMemberStatus400 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type OrganisationsDeleteMemberStatus400 = ApiError;
 
-export type OrganisationsDeleteMemberStatus401 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type OrganisationsDeleteMemberStatus401 = ApiError;
 
-export type OrganisationsDeleteMemberStatus403 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type OrganisationsDeleteMemberStatus403 = ApiError;
 
-export type OrganisationsDeleteMemberStatus404 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type OrganisationsDeleteMemberStatus404 = ApiError;
 
-export type OrganisationsDeleteMemberStatus409 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type OrganisationsDeleteMemberStatus409 = ApiError;
 
 /**
  * @description Validation error envelope returned for malformed requests.

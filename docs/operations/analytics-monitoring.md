@@ -159,6 +159,10 @@ Internal commands (no public telemetry endpoint or database migration):
 TELEMETRY_ENABLED=true TELEMETRY_ENVIRONMENT=development \
   TELEMETRY_REDIS_URL=redis://host.docker.internal:6379/0 \
   uv run --frozen --package fast-back python -m src.metrics_report --days 1
+# --days is a rolling window and never "complete". --complete-day reads only the
+# previous full UTC day of job counters; it is "complete" when all four tracked
+# jobs ran. The daily monitoring receipts (#646) use that rule; see
+# docs/operations/launch-monitoring-inputs.md.
 
 # From the repository root; outputs are new governed datasets:
 python3 scripts/monitoring/probe.py --environment staging \

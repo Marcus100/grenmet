@@ -4,15 +4,20 @@
  */
 
 import * as z from "zod";
+import { apiErrorSchema } from "./apiErrorSchema.js";
 import { departmentCreateSchema } from "./departmentCreateSchema.js";
 import { departmentPublicSchema } from "./departmentPublicSchema.js";
 import { validationErrorResponseSchema } from "./validationErrorResponseSchema.js";
 
 export const hrCreateDepartmentStatus201Schema = departmentPublicSchema;
 
-export const hrCreateDepartmentStatus400Schema = z.unknown();
+export const hrCreateDepartmentStatus400Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
-export const hrCreateDepartmentStatus403Schema = z.unknown();
+export const hrCreateDepartmentStatus403Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
 export const hrCreateDepartmentStatus422Schema =
   validationErrorResponseSchema.describe(

@@ -3,6 +3,7 @@
  * Do not edit manually.
  */
 
+import type { ApiError } from "./ApiError.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 
 export type HrDownloadSignedDocumentPath = {
@@ -22,9 +23,17 @@ export type HrDownloadSignedDocumentStatus200 =
   | HrDownloadSignedDocumentStatus200Json
   | HrDownloadSignedDocumentStatus200Pdf;
 
-export type HrDownloadSignedDocumentStatus403 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type HrDownloadSignedDocumentStatus403 = ApiError;
 
-export type HrDownloadSignedDocumentStatus404 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type HrDownloadSignedDocumentStatus404 = ApiError;
 
 /**
  * @description Validation error envelope returned for malformed requests.

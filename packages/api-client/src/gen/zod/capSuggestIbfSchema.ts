@@ -4,6 +4,7 @@
  */
 
 import * as z from "zod";
+import { apiErrorSchema } from "./apiErrorSchema.js";
 import { capProfileCellTextPropertiesImpactEnumSchema } from "./capProfileCellTextPropertiesImpactEnumSchema.js";
 import { capProfileCellTextPropertiesLikelihoodEnumSchema } from "./capProfileCellTextPropertiesLikelihoodEnumSchema.js";
 import { ibfSuggestionSchema } from "./ibfSuggestionSchema.js";
@@ -27,9 +28,13 @@ export const capSuggestIbfStatus200Schema = ibfSuggestionSchema.describe(
   "The colour and starting wording for one likelihood and impact."
 );
 
-export const capSuggestIbfStatus401Schema = z.unknown();
+export const capSuggestIbfStatus401Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
-export const capSuggestIbfStatus403Schema = z.unknown();
+export const capSuggestIbfStatus403Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
 export const capSuggestIbfStatus422Schema =
   validationErrorResponseSchema.describe(

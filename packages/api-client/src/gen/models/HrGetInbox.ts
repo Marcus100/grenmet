@@ -3,12 +3,17 @@
  * Do not edit manually.
  */
 
+import type { ApiError } from "./ApiError.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 import type { WorkflowInboxList } from "./WorkflowInboxList.js";
 
 export type HrGetInboxStatus200 = WorkflowInboxList;
 
-export type HrGetInboxStatus403 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type HrGetInboxStatus403 = ApiError;
 
 /**
  * @description Validation error envelope returned for malformed requests.

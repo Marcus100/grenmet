@@ -3,6 +3,7 @@
  * Do not edit manually.
  */
 
+import type { ApiError } from "./ApiError.js";
 import type { CurrentOrganisationPublic } from "./CurrentOrganisationPublic.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 
@@ -19,13 +20,29 @@ export type OrganisationsGetCurrentHeaders = {
  */
 export type OrganisationsGetCurrentStatus200 = CurrentOrganisationPublic;
 
-export type OrganisationsGetCurrentStatus400 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type OrganisationsGetCurrentStatus400 = ApiError;
 
-export type OrganisationsGetCurrentStatus401 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type OrganisationsGetCurrentStatus401 = ApiError;
 
-export type OrganisationsGetCurrentStatus403 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type OrganisationsGetCurrentStatus403 = ApiError;
 
-export type OrganisationsGetCurrentStatus404 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type OrganisationsGetCurrentStatus404 = ApiError;
 
 /**
  * @description Validation error envelope returned for malformed requests.

@@ -4,6 +4,7 @@
  */
 
 import * as z from "zod";
+import { apiErrorSchema } from "./apiErrorSchema.js";
 import { rosterAssignmentBulkCreateSchema } from "./rosterAssignmentBulkCreateSchema.js";
 import { rosterAssignmentPublicSchema } from "./rosterAssignmentPublicSchema.js";
 import { validationErrorResponseSchema } from "./validationErrorResponseSchema.js";
@@ -12,11 +13,17 @@ export const hrBulkAssignmentsStatus200Schema = z.array(
   rosterAssignmentPublicSchema
 );
 
-export const hrBulkAssignmentsStatus400Schema = z.unknown();
+export const hrBulkAssignmentsStatus400Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
-export const hrBulkAssignmentsStatus403Schema = z.unknown();
+export const hrBulkAssignmentsStatus403Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
-export const hrBulkAssignmentsStatus404Schema = z.unknown();
+export const hrBulkAssignmentsStatus404Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
 export const hrBulkAssignmentsStatus422Schema =
   validationErrorResponseSchema.describe(

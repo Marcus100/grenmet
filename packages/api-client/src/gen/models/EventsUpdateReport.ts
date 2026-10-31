@@ -3,6 +3,8 @@
  * Do not edit manually.
  */
 
+import type { ApiError } from "./ApiError.js";
+import type { ErrorMessage } from "./ErrorMessage.js";
 import type { ReportPublic } from "./ReportPublic.js";
 import type { ReportUpdate } from "./ReportUpdate.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
@@ -18,11 +20,23 @@ export type EventsUpdateReportPath = {
 
 export type EventsUpdateReportStatus200 = ReportPublic;
 
-export type EventsUpdateReportStatus401 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type EventsUpdateReportStatus401 = ApiError;
 
-export type EventsUpdateReportStatus403 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type EventsUpdateReportStatus403 = ApiError;
 
-export type EventsUpdateReportStatus404 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type EventsUpdateReportStatus404 = ApiError;
 
 /**
  * @description Validation error envelope returned for malformed requests.
@@ -30,7 +44,7 @@ export type EventsUpdateReportStatus404 = unknown;
  */
 export type EventsUpdateReportStatus422 = ValidationErrorResponse;
 
-export type EventsUpdateReportStatus429 = unknown;
+export type EventsUpdateReportStatus429 = ApiError | ErrorMessage;
 
 export type EventsUpdateReportBody = ReportUpdate;
 

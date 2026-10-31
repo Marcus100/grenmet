@@ -6,6 +6,7 @@ from pydantic import (
     AwareDatetime,
     ConfigDict,
     Field,
+    RootModel,
     StrictBool,
     StringConstraints,
     TypeAdapter,
@@ -284,6 +285,10 @@ class ProductFeedError(BaseModel):
     error: str
 
 
+# The bulletin form's notice types (`notice` in packages/gms/src/products.ts).
+BulletinNoticeType = Literal["Information", "Advisory", "All clear"]
+
+
 class SectorOutlookItem(BaseModel):
     """One alert or warning that applies to the coming days, with its sectors."""
 
@@ -304,6 +309,10 @@ class SectorOutlookItem(BaseModel):
     # Known sectors, in menu order. Empty means untagged: affects everyone.
     sectors: list[str]
     affects_everyone: bool
+    # A bulletin's notice type as its form stored it; null for CAP warnings and
+    # for values the form no longer offers. "All clear" is information, not an
+    # alert in effect (owner decision, 30 Oct 2026).
+    notice_type: BulletinNoticeType | None = None
 
 
 class SectorOutlook(BaseModel):
@@ -642,3 +651,11 @@ class TropicalSystemPublicHistory(BaseModel):
     nhc_storm_id: str | None
     status: TropicalSystemStatus
     entries: list[TropicalSystemPublicEntry]
+
+
+class ProductWriteBody(RootModel[ProductWrite]):
+    """A product save: a forecast, bulletin or outlook, discriminated by kind."""
+
+
+class ProductPreviewBody(RootModel[ProductPreviewInput]):
+    """A draft product to validate or render as a PDF preview, discriminated by kind."""

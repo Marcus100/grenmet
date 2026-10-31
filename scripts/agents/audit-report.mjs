@@ -14,6 +14,8 @@ const EXPECTED_REPO = "Marcus100/grenmet";
 const LABEL = "codex-audit";
 const GENERATED_HEADER = "## Advisory audit observation";
 const LOGIN_PATTERN = /^[a-zA-Z0-9-]{1,39}$/;
+// GitHub App identities such as `github-actions[bot]`, which cannot call `gh api user`.
+const BOT_LOGIN_PATTERN = /^[a-zA-Z0-9-]{1,39}\[bot\]$/;
 const OBSERVED_AT_LINE_PATTERN = /^- Observed: `([^`]+)`$/m;
 const STATUSES = new Set(["pass", "fail", "unknown"]);
 const SEVERITIES = new Set(["blocker", "high", "normal", "low"]);
@@ -111,7 +113,18 @@ function issueBody(observation, commit, observedAt) {
   return lines.join("\n");
 }
 
-async function authenticatedLogin(runGh) {
+function validLogin(login) {
+  return (
+    typeof login === "string" &&
+    (LOGIN_PATTERN.test(login) || BOT_LOGIN_PATTERN.test(login))
+  );
+}
+
+async function authenticatedLogin(runGh, login) {
+  if (login !== undefined) {
+    if (!validLogin(login)) throw new Error("login override is invalid");
+    return login;
+  }
   let identity;
   try {
     const result = await runGh(["api", "user"]);
@@ -213,12 +226,15 @@ async function updateIssue({ issue, title, body, repo, runGh }) {
   return true;
 }
 
-function matchingIssues(issues, key, login) {
+// `authors` is the publishing login or a Set of trusted logins. Only issues
+// those identities authored, with the generated header and marker, are matched.
+function matchingIssues(issues, key, authors) {
   const marker = markerFor(key);
+  const trusted = authors instanceof Set ? authors : new Set([authors]);
   return issues
     .filter(
       (issue) =>
-        issue.user?.login === login &&
+        trusted.has(issue.user?.login) &&
         typeof issue.body === "string" &&
         issue.body.startsWith(`${GENERATED_HEADER}\n\n`) &&
         issue.body.split("\n").includes(marker)
@@ -290,13 +306,13 @@ function planFailure(observation, active, commit, observedAt, planned, result) {
 function planObservation(
   observation,
   issues,
-  login,
+  authors,
   commit,
   observedAt,
   planned,
   result
 ) {
-  const matches = matchingIssues(issues, observation.key, login);
+  const matches = matchingIssues(issues, observation.key, authors);
   const active = matches.find(isOpen) ?? matches[0];
   recordBlocker(result, observation, active);
   if (matches.some((issue) => isNewerThanReport(issue, observedAt))) {
@@ -380,7 +396,7 @@ function limitNewIssues(planned, maxNewIssues, result) {
 function planObservations(
   observations,
   issues,
-  login,
+  authors,
   commit,
   observedAt,
   result
@@ -390,7 +406,7 @@ function planObservations(
     planObservation(
       observation,
       issues,
-      login,
+      authors,
       commit,
       observedAt,
       planned,
@@ -501,13 +517,18 @@ export async function publishObservations(options) {
     maxNewIssues = 10,
     nowISO,
     now = new Date(),
+    login: loginOverride,
+    trustedAuthors = [],
   } = options;
   validateRequest({ observations, repo, commit, runGh, maxNewIssues });
+  if (!(Array.isArray(trustedAuthors) && trustedAuthors.every(validLogin)))
+    throw new Error("trustedAuthors must be valid GitHub logins");
   const observedDate = nowISO === undefined ? new Date(now) : new Date(nowISO);
   if (!Number.isFinite(observedDate.getTime()))
     throw new Error("nowISO must be a valid date");
   const observedAt = observedDate.toISOString();
-  const login = await authenticatedLogin(runGh);
+  const login = await authenticatedLogin(runGh, loginOverride);
+  const authors = new Set([login, ...trustedAuthors]);
   const issues = await listAuditIssues({ repo, runGh });
   const result = createResult();
   const targets = await updateTrackers({
@@ -523,7 +544,7 @@ export async function publishObservations(options) {
     planObservations(
       observations.filter((i) => !targets.has(i.key)),
       issues,
-      login,
+      authors,
       commit,
       observedAt,
       result

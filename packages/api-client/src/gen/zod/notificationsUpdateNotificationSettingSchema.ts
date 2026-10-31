@@ -4,6 +4,7 @@
  */
 
 import * as z from "zod";
+import { apiErrorSchema } from "./apiErrorSchema.js";
 import { notificationSettingPublicSchema } from "./notificationSettingPublicSchema.js";
 import { notificationSettingUpdateSchema } from "./notificationSettingUpdateSchema.js";
 import { validationErrorResponseSchema } from "./validationErrorResponseSchema.js";
@@ -19,13 +20,13 @@ export const notificationsUpdateNotificationSettingStatus200Schema =
   notificationSettingPublicSchema;
 
 export const notificationsUpdateNotificationSettingStatus400Schema =
-  z.unknown();
+  apiErrorSchema.describe("Stable error envelope for documented API failures.");
 
 export const notificationsUpdateNotificationSettingStatus403Schema =
-  z.unknown();
+  apiErrorSchema.describe("Stable error envelope for documented API failures.");
 
 export const notificationsUpdateNotificationSettingStatus404Schema =
-  z.unknown();
+  apiErrorSchema.describe("Stable error envelope for documented API failures.");
 
 export const notificationsUpdateNotificationSettingStatus422Schema =
   validationErrorResponseSchema.describe(

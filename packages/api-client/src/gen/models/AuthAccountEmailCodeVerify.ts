@@ -3,15 +3,25 @@
  * Do not edit manually.
  */
 
+import type { ApiError } from "./ApiError.js";
 import type { AppEmailCodeVerify } from "./AppEmailCodeVerify.js";
+import type { ErrorMessage } from "./ErrorMessage.js";
 import type { SessionLoginResponse } from "./SessionLoginResponse.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 
 export type AuthAccountEmailCodeVerifyStatus200 = SessionLoginResponse;
 
-export type AuthAccountEmailCodeVerifyStatus400 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type AuthAccountEmailCodeVerifyStatus400 = ApiError;
 
-export type AuthAccountEmailCodeVerifyStatus403 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type AuthAccountEmailCodeVerifyStatus403 = ApiError;
 
 /**
  * @description Validation error envelope returned for malformed requests.
@@ -19,7 +29,7 @@ export type AuthAccountEmailCodeVerifyStatus403 = unknown;
  */
 export type AuthAccountEmailCodeVerifyStatus422 = ValidationErrorResponse;
 
-export type AuthAccountEmailCodeVerifyStatus429 = unknown;
+export type AuthAccountEmailCodeVerifyStatus429 = ApiError | ErrorMessage;
 
 export type AuthAccountEmailCodeVerifyBody = AppEmailCodeVerify;
 

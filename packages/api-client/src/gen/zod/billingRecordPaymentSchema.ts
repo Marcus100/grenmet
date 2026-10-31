@@ -4,6 +4,7 @@
  */
 
 import * as z from "zod";
+import { apiErrorSchema } from "./apiErrorSchema.js";
 import { invoiceDetailPublicSchema } from "./invoiceDetailPublicSchema.js";
 import { paymentCreateSchema } from "./paymentCreateSchema.js";
 import { validationErrorResponseSchema } from "./validationErrorResponseSchema.js";
@@ -12,13 +13,21 @@ export const billingRecordPaymentPathInvoiceIdSchema = z.uuid();
 
 export const billingRecordPaymentStatus201Schema = invoiceDetailPublicSchema;
 
-export const billingRecordPaymentStatus401Schema = z.unknown();
+export const billingRecordPaymentStatus401Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
-export const billingRecordPaymentStatus403Schema = z.unknown();
+export const billingRecordPaymentStatus403Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
-export const billingRecordPaymentStatus404Schema = z.unknown();
+export const billingRecordPaymentStatus404Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
-export const billingRecordPaymentStatus409Schema = z.unknown();
+export const billingRecordPaymentStatus409Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
 export const billingRecordPaymentStatus422Schema =
   validationErrorResponseSchema.describe(

@@ -4,6 +4,7 @@
  */
 
 import * as z from "zod";
+import { apiErrorSchema } from "./apiErrorSchema.js";
 import { locationPublicSchema } from "./locationPublicSchema.js";
 import { locationUpdateSchema } from "./locationUpdateSchema.js";
 import { validationErrorResponseSchema } from "./validationErrorResponseSchema.js";
@@ -12,15 +13,25 @@ export const storesUpdateLocationPathLocationIdSchema = z.uuid();
 
 export const storesUpdateLocationStatus200Schema = locationPublicSchema;
 
-export const storesUpdateLocationStatus400Schema = z.unknown();
+export const storesUpdateLocationStatus400Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
-export const storesUpdateLocationStatus401Schema = z.unknown();
+export const storesUpdateLocationStatus401Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
-export const storesUpdateLocationStatus403Schema = z.unknown();
+export const storesUpdateLocationStatus403Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
-export const storesUpdateLocationStatus404Schema = z.unknown();
+export const storesUpdateLocationStatus404Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
-export const storesUpdateLocationStatus409Schema = z.unknown();
+export const storesUpdateLocationStatus409Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
 export const storesUpdateLocationStatus422Schema =
   validationErrorResponseSchema.describe(

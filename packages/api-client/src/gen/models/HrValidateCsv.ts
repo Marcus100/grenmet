@@ -3,15 +3,24 @@
  * Do not edit manually.
  */
 
+import type { ApiError } from "./ApiError.js";
 import type { RosterCsvValidationRequest } from "./RosterCsvValidationRequest.js";
 import type { RosterCsvValidationResponse } from "./RosterCsvValidationResponse.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 
 export type HrValidateCsvStatus200 = RosterCsvValidationResponse;
 
-export type HrValidateCsvStatus400 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type HrValidateCsvStatus400 = ApiError;
 
-export type HrValidateCsvStatus403 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type HrValidateCsvStatus403 = ApiError;
 
 /**
  * @description Validation error envelope returned for malformed requests.

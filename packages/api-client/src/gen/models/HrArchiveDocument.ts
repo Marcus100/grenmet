@@ -3,6 +3,7 @@
  * Do not edit manually.
  */
 
+import type { ApiError } from "./ApiError.js";
 import type { EmployeeDocumentPublic } from "./EmployeeDocumentPublic.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 
@@ -17,9 +18,17 @@ export type HrArchiveDocumentPath = {
 
 export type HrArchiveDocumentStatus200 = EmployeeDocumentPublic;
 
-export type HrArchiveDocumentStatus403 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type HrArchiveDocumentStatus403 = ApiError;
 
-export type HrArchiveDocumentStatus404 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type HrArchiveDocumentStatus404 = ApiError;
 
 /**
  * @description Validation error envelope returned for malformed requests.

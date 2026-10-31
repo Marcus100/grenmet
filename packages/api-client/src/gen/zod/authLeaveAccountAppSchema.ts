@@ -5,6 +5,7 @@
 
 import * as z from "zod";
 import { accountSessionRequestSchema } from "./accountSessionRequestSchema.js";
+import { apiErrorSchema } from "./apiErrorSchema.js";
 import { appLeaveResultSchema } from "./appLeaveResultSchema.js";
 import { validationErrorResponseSchema } from "./validationErrorResponseSchema.js";
 
@@ -14,11 +15,17 @@ export const authLeaveAccountAppPathAppSchema = z
 
 export const authLeaveAccountAppStatus200Schema = appLeaveResultSchema;
 
-export const authLeaveAccountAppStatus401Schema = z.unknown();
+export const authLeaveAccountAppStatus401Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
-export const authLeaveAccountAppStatus403Schema = z.unknown();
+export const authLeaveAccountAppStatus403Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
-export const authLeaveAccountAppStatus404Schema = z.unknown();
+export const authLeaveAccountAppStatus404Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
 export const authLeaveAccountAppStatus422Schema =
   validationErrorResponseSchema.describe(

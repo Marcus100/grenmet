@@ -11,7 +11,8 @@ from src.auth.browser import BrowserUser
 from src.auth.models import User
 from src.auth.policy import has_permission, require_permission
 from src.dependencies import SessionDep
-from src.openapi_responses import AUTHENTICATED
+from src.models import ApiError
+from src.openapi_responses import AUTHENTICATED, RateLimitedBody
 from src.rate_limit import limiter
 
 from . import derive, entries, metar, public, qc, registry, rules, sends, stations
@@ -21,13 +22,14 @@ from .schemas import (
     ObservationSendList,
     PublicCurrentConditions,
     PublicMonthSummaryResponse,
+    QcDecisionBody,
     QcDecisionRequest,
     RegisterObservationCorrection,
     RegisterObservationCreate,
     RegisterObservationList,
     RegisterObservationRead,
     ReviewRequest,
-    SendObservationRequest,
+    SendObservationBody,
     StationCreate,
     StationRecord,
     StationRecordList,
@@ -50,7 +52,8 @@ REGISTER_ACCESS_KEYS = ("eregister.observe", "eregister.qc", "eregister.send")
 REGISTER_RESPONSES = {
     **AUTHENTICATED,
     403: {
-        "description": "Missing `eregister.observe`, `eregister.qc` or `eregister.send`"
+        "model": ApiError,
+        "description": "Missing `eregister.observe`, `eregister.qc` or `eregister.send`",
     },
 }
 
@@ -214,7 +217,10 @@ async def validate_synop_observation(
             "model": RegisterObservationRead,
             "description": "The observer's own unsent draft was updated",
         },
-        409: {"description": "A live observation for this station and time exists"},
+        409: {
+            "model": ApiError,
+            "description": "A live observation for this station and time exists",
+        },
         422: {"description": "The SYNOP workbook has errors; see `detail.issues`"},
     },
 )
@@ -254,8 +260,11 @@ async def create_register_observation(
     ),
     responses={
         **REGISTER_RESPONSES,
-        404: {"description": "Observation not found"},
-        409: {"description": "The observation is rejected or already superseded"},
+        404: {"model": ApiError, "description": "Observation not found"},
+        409: {
+            "model": ApiError,
+            "description": "The observation is rejected or already superseded",
+        },
         422: {"description": "The SYNOP workbook has errors; see `detail.issues`"},
     },
 )
@@ -284,8 +293,11 @@ async def correct_register_observation(
 
 SEND_RESPONSES = {
     **AUTHENTICATED,
-    404: {"description": "Observation not found"},
-    409: {"description": "Not configured, not sendable, or already sent (use resend)"},
+    404: {"model": ApiError, "description": "Observation not found"},
+    409: {
+        "model": ApiError,
+        "description": "Not configured, not sendable, or already sent (use resend)",
+    },
     422: {"description": "Observation does not pass validation"},
 }
 
@@ -308,7 +320,7 @@ async def email_register_observation(
     user: BrowserUser,
     register: RegisterSession,
     session: SessionDep,
-    body: SendObservationRequest | None = None,
+    body: SendObservationBody = SendObservationBody(None),
 ) -> ObservationSend:
     require_permission(current_user=user, permission_key="eregister.send")
     item = await sends.load_sendable(register, observation_id)
@@ -317,7 +329,7 @@ async def email_register_observation(
         item=item,
         observation_id=observation_id,
         user=user,
-        resend=bool(body and body.resend),
+        resend=bool(body.root and body.root.resend),
     )
 
 
@@ -343,7 +355,7 @@ async def publish_register_observation(
     user: BrowserUser,
     register: RegisterSession,
     session: SessionDep,
-    body: SendObservationRequest | None = None,
+    body: SendObservationBody = SendObservationBody(None),
 ) -> ObservationSend:
     require_permission(current_user=user, permission_key="eregister.send")
     item = await sends.load_sendable(register, observation_id, require_accepted=True)
@@ -353,17 +365,21 @@ async def publish_register_observation(
         item=item,
         observation_id=observation_id,
         user=user,
-        resend=bool(body and body.resend),
+        resend=bool(body.root and body.root.resend),
     )
 
 
 QC_RESPONSES = {
     **AUTHENTICATED,
     403: {
-        "description": "Missing `eregister.observe`, `eregister.qc` or `eregister.send`"
+        "model": ApiError,
+        "description": "Missing `eregister.observe`, `eregister.qc` or `eregister.send`",
     },
-    404: {"description": "Observation not found"},
-    409: {"description": "The observation is not in a state that allows this"},
+    404: {"model": ApiError, "description": "Observation not found"},
+    409: {
+        "model": ApiError,
+        "description": "The observation is not in a state that allows this",
+    },
     422: {"description": "Missing reason, or the observation fails validation"},
 }
 
@@ -413,9 +429,9 @@ async def accept_register_observation(
     user: BrowserUser,
     register: RegisterSession,
     session: SessionDep,
-    body: QcDecisionRequest | None = None,
+    body: QcDecisionBody = QcDecisionBody(None),
 ) -> RegisterObservationRead:
-    return await _decide("accept", observation_id, user, register, session, body)
+    return await _decide("accept", observation_id, user, register, session, body.root)
 
 
 @router.post(
@@ -435,7 +451,10 @@ async def accept_register_observation(
     ),
     responses={
         **QC_RESPONSES,
-        403: {"description": "Not register staff, or the observer reviewing their own"},
+        403: {
+            "model": ApiError,
+            "description": "Not register staff, or the observer reviewing their own",
+        },
     },
 )
 async def review_register_observation(
@@ -475,9 +494,9 @@ async def reject_register_observation(
     user: BrowserUser,
     register: RegisterSession,
     session: SessionDep,
-    body: QcDecisionRequest | None = None,
+    body: QcDecisionBody = QcDecisionBody(None),
 ) -> RegisterObservationRead:
-    return await _decide("reject", observation_id, user, register, session, body)
+    return await _decide("reject", observation_id, user, register, session, body.root)
 
 
 @router.post(
@@ -496,9 +515,9 @@ async def reopen_register_observation(
     user: BrowserUser,
     register: RegisterSession,
     session: SessionDep,
-    body: QcDecisionRequest | None = None,
+    body: QcDecisionBody = QcDecisionBody(None),
 ) -> RegisterObservationRead:
-    return await _decide("reopen", observation_id, user, register, session, body)
+    return await _decide("reopen", observation_id, user, register, session, body.root)
 
 
 @router.get(
@@ -521,8 +540,11 @@ async def list_observation_sends(
 
 STATION_RESPONSES = {
     **REGISTER_RESPONSES,
-    404: {"description": "Unknown station"},
-    409: {"description": "Station id or WIGOS identifier already registered"},
+    404: {"model": ApiError, "description": "Unknown station"},
+    409: {
+        "model": ApiError,
+        "description": "Station id or WIGOS identifier already registered",
+    },
     422: {"description": "Schedule contradicts the source kind, or invalid format"},
 }
 
@@ -596,7 +618,10 @@ async def add_station(
         "One registry entry. Requires `eregister.observe`, `eregister.qc` or "
         "`eregister.send`."
     ),
-    responses={**REGISTER_RESPONSES, 404: {"description": "Unknown station"}},
+    responses={
+        **REGISTER_RESPONSES,
+        404: {"model": ApiError, "description": "Unknown station"},
+    },
 )
 async def get_registry_station(
     station_id: str,
@@ -658,7 +683,10 @@ async def edit_station(
         "an amount not yet supplied is null and listed in `pending`. Requires "
         "`eregister.observe`, `eregister.qc` or `eregister.send`."
     ),
-    responses={**REGISTER_RESPONSES, 404: {"description": "Unknown station"}},
+    responses={
+        **REGISTER_RESPONSES,
+        404: {"model": ApiError, "description": "Unknown station"},
+    },
 )
 async def get_station_settings(
     station_id: str,
@@ -684,7 +712,10 @@ async def get_station_settings(
         "`eregister_station_settings`) with the amounts before and after and the "
         "actor. Requires `eregister.qc`."
     ),
-    responses={**REGISTER_RESPONSES, 404: {"description": "Unknown station"}},
+    responses={
+        **REGISTER_RESPONSES,
+        404: {"model": ApiError, "description": "Unknown station"},
+    },
 )
 async def put_station_settings(
     station_id: str,
@@ -749,7 +780,7 @@ async def public_current_conditions(
         "never zero. Returns 503 when the register is unavailable."
     ),
     responses={
-        429: {"description": "Rate limit exceeded"},
+        429: {"model": RateLimitedBody, "description": "Rate limit exceeded"},
         503: {"description": "Register unavailable"},
     },
 )

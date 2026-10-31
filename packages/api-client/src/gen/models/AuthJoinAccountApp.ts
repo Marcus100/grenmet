@@ -4,6 +4,7 @@
  */
 
 import type { AccountSessionRequest } from "./AccountSessionRequest.js";
+import type { ApiError } from "./ApiError.js";
 import type { AppJoinResult } from "./AppJoinResult.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 
@@ -17,11 +18,23 @@ export type AuthJoinAccountAppPath = {
 
 export type AuthJoinAccountAppStatus200 = AppJoinResult;
 
-export type AuthJoinAccountAppStatus401 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type AuthJoinAccountAppStatus401 = ApiError;
 
-export type AuthJoinAccountAppStatus403 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type AuthJoinAccountAppStatus403 = ApiError;
 
-export type AuthJoinAccountAppStatus404 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type AuthJoinAccountAppStatus404 = ApiError;
 
 /**
  * @description Validation error envelope returned for malformed requests.

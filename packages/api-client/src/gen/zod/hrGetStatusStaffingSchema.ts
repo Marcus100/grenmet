@@ -4,6 +4,7 @@
  */
 
 import * as z from "zod";
+import { apiErrorSchema } from "./apiErrorSchema.js";
 import { statusStaffingPublicSchema } from "./statusStaffingPublicSchema.js";
 import { validationErrorResponseSchema } from "./validationErrorResponseSchema.js";
 
@@ -15,11 +16,17 @@ export const hrGetStatusStaffingQueryShiftCodeSchema = z.string();
 
 export const hrGetStatusStaffingStatus200Schema = statusStaffingPublicSchema;
 
-export const hrGetStatusStaffingStatus400Schema = z.unknown();
+export const hrGetStatusStaffingStatus400Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
-export const hrGetStatusStaffingStatus403Schema = z.unknown();
+export const hrGetStatusStaffingStatus403Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
-export const hrGetStatusStaffingStatus404Schema = z.unknown();
+export const hrGetStatusStaffingStatus404Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
 export const hrGetStatusStaffingStatus422Schema =
   validationErrorResponseSchema.describe(

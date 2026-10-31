@@ -4,6 +4,7 @@
  */
 
 import * as z from "zod";
+import { apiErrorSchema } from "./apiErrorSchema.js";
 import { rewardsQrTokenPublicSchema } from "./rewardsQrTokenPublicSchema.js";
 import { validationErrorResponseSchema } from "./validationErrorResponseSchema.js";
 
@@ -21,13 +22,21 @@ export const rewardsOrgGetVenueQrTokenStatus200Schema =
     "The current code for the venue's display screen; refetch before it expires."
   );
 
-export const rewardsOrgGetVenueQrTokenStatus400Schema = z.unknown();
+export const rewardsOrgGetVenueQrTokenStatus400Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
-export const rewardsOrgGetVenueQrTokenStatus401Schema = z.unknown();
+export const rewardsOrgGetVenueQrTokenStatus401Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
-export const rewardsOrgGetVenueQrTokenStatus403Schema = z.unknown();
+export const rewardsOrgGetVenueQrTokenStatus403Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
-export const rewardsOrgGetVenueQrTokenStatus404Schema = z.unknown();
+export const rewardsOrgGetVenueQrTokenStatus404Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
 export const rewardsOrgGetVenueQrTokenStatus422Schema =
   validationErrorResponseSchema.describe(

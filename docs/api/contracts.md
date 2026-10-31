@@ -115,7 +115,7 @@ site key), never a secret. Superusers manage sites through
   helpful?" answer (`site`, `page_path`, `helpful`, optional `comment` up to
   1000 characters); 10/min per IP; stores no personal data.
 
-## Content distribution (social posting, dry run)
+## Content distribution (social posting)
 
 - `POST /api/v1/content-distribution/internal/posts` (CMS hook, additive): body
   is camelCase (`collection`, `slug`, `url`, `title`, `summary`, `captions`,
@@ -123,14 +123,21 @@ site key), never a secret. Superusers manage sites through
   `stories/2026/10/title`); `publishAt` may be null or missing, which means now.
   Authenticated by the `X-CMS-Secret` header
   against `CMS_DISTRIBUTION_SECRET` (503 unset, 401 wrong). 202 with one outcome per
-  platform. Idempotent per collection, slug and platform; refuses official warnings
-  and posts missing an image (Instagram) or caption with 422. Machine-authenticated,
+  platform. Idempotent per collection, slug and platform; refuses official warnings,
+  a link or image on a host that is not in the approved lists (`SOCIAL_LINK_HOSTS`,
+  `SOCIAL_IMAGE_HOSTS`; an empty list refuses every post), and posts missing an image
+  (Instagram) or caption, all with 422. Machine-authenticated,
   so no `require_permission`.
 - `GET /api/v1/content-distribution/admin/posts` (staff, `cms.article.social.manage`):
-  one row per post and platform with `status`, `error`, `attempts` and `automated`,
-  filterable by `slug` and `collection`.
-- Nothing is sent to a real social network: `SOCIAL_POSTING_LIVE` is false, and the
-  worker records dry runs. Domain notes: `apps/api/fastapi/src/content_distribution/AGENTS.md`.
+  one row per post and platform with `status` (`pending`, `scheduled`, `posted`,
+  `dry_run_sent`, `skipped`, `failed`, `dead`), `external_id`, `reason` (why a dry run
+  or skip), `error` (why it failed), `attempts` and `automated`, filterable by `slug`
+  and `collection`. Adding `posted` and `skipped` to `status` was flagged as a warning
+  by the breaking-change check (not a break): clients that switch on `status` need them.
+- Live posting to Facebook and Instagram runs only when the feature flag
+  `social-live-posting` is on and the Meta settings are present; otherwise the worker
+  records a dry run. Owner checklist: `docs/operations/social-live-posting.md`.
+  Domain notes: `apps/api/fastapi/src/content_distribution/AGENTS.md`.
 
 See [integration readiness](../operations/integration-readiness.md) for matching
 environment endpoints and provider setup. Changes to this hidden callback's
@@ -446,13 +453,34 @@ Implemented examples:
 | Pydantic validation handler | `{"detail":"Validation error","errors":[...]}` |
 | Database integrity error | `{"detail":"Resource already exists or constraint violation"}` |
 | FastAPI `HTTPException` | `{"detail": ...}` |
-| Rate limit exceeded | SlowAPI's 429 response |
+| Rate limit exceeded (SlowAPI) | `{"error": "Rate limit exceeded: ..."}` (429) |
+| Account lockout after failed sign-ins | `{"detail": ...}` (429) |
+| Public weather product feed (`/wxproducts/public/*`) | `{"error": "..."}` (400, 404, 503) |
 
 The generated FastAPI `ValidationError` schema includes optional `input` and
 `ctx` fields alongside required `loc`, `msg` and `type`. Clients must tolerate
 those optional fields; they do not change application route definitions.
 
-Contract rule for new endpoints: return structured JSON errors and document non-obvious status codes in the route `responses` metadata.
+Documented error bodies: every documented 4xx except 422 names a body schema in
+the OpenAPI document. `ApiError` (`detail: string`) covers 400, 401, 403, 404 and
+409. A 429 documents `ApiError | ErrorMessage` (`error: string`) because the
+rate limiter and the account lockout answer with different keys. Shared
+constants live in `src/openapi_responses.py`; `tests/test_error_response_bodies.py`
+pins the runtime bodies. The `AuthoringError` model on wxproducts authoring
+routes allows `detail` to be a list, which the runtime never sends; it is kept
+for compatibility.
+
+HTML routes (for example the unsubscribe pages and the password recovery
+preview) declare their error bodies under the page's media type, or name
+`application/json` explicitly when the error is JSON. `ApiError` under `text/html`
+is a contract error that `tests/test_openapi_contract.py` rejects.
+
+Request bodies are named: every `requestBody` is a `$ref` to a named component.
+A body that may be omitted or sent as `null` is a `RootModel[X | None]` wrapper
+(for example `QcDecisionBody`), and a bare array is a `RootModel[list[...]]`
+(`NotificationPreferenceUpdateList`). The wire format did not change.
+
+Contract rule for new endpoints: return structured JSON errors and document non-obvious status codes in the route `responses` metadata. Spread the shared constants (`AUTHENTICATED`, `NOT_FOUND`, `CONFLICT`, `BAD_REQUEST`) so each 4xx carries its body model, and give every request body a named schema.
 
 ## Request IDs
 
@@ -1774,11 +1802,15 @@ of today (Grenada) for `days` days: `{as_of, window_start, window_end, complete,
 items[]}`. Each item has `source` (`CAP` or `Bulletin`), `title`, `product`,
 `colour`, `likelihood`, `impact`, `impacts`, `response`, `valid_from`, `valid_to`,
 `reference`, `identifier` (a warning's CAP identifier) or `product_id` (a
-bulletin), `sectors` and `affects_everyone`. Sectors are the keys in
+bulletin), `sectors`, `affects_everyone` and `notice_type` (a bulletin's stored
+notice type, `Information`, `Advisory` or `All clear`; null for CAP warnings and
+for values the bulletin form no longer offers). Sectors are the keys in
 `src/sectors.py` (tourism, marine, aviation, agriculture, health,
 roads-transport), set on a CAP warning in its `GMS:sectors` info parameter and on
 a bulletin in its `sectors` value (comma-separated; unknown names are rejected).
-An item with no sectors has `affects_everyone: true`. `complete` is false when
+An item with no sectors has `affects_everyone: true`. A Green `All clear` bulletin
+is information, not an alert in effect: the weather site lists it as information
+and never counts it. `complete` is false when
 CAP or the bulletin store could not be read; callers must not show an all-clear
 then. Bulletins appear only while published and in force, so a bulletin with a
 future start is not listed.

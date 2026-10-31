@@ -7,6 +7,8 @@ export const deliveryAdminPropertiesStatusEnum = {
   pending: "pending",
   scheduled: "scheduled",
   dry_run_sent: "dry_run_sent",
+  posted: "posted",
+  skipped: "skipped",
   failed: "failed",
   dead: "dead",
 } as const;

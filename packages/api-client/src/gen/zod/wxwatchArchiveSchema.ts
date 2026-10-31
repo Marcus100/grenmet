@@ -4,6 +4,7 @@
  */
 
 import * as z from "zod";
+import { apiErrorSchema } from "./apiErrorSchema.js";
 import { archivePageSchema } from "./archivePageSchema.js";
 import { validationErrorResponseSchema } from "./validationErrorResponseSchema.js";
 
@@ -44,9 +45,13 @@ export const wxwatchArchiveQueryLimitSchema = z
 
 export const wxwatchArchiveStatus200Schema = archivePageSchema;
 
-export const wxwatchArchiveStatus401Schema = z.unknown();
+export const wxwatchArchiveStatus401Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
-export const wxwatchArchiveStatus403Schema = z.unknown();
+export const wxwatchArchiveStatus403Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
 export const wxwatchArchiveStatus422Schema =
   validationErrorResponseSchema.describe(

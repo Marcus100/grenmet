@@ -3,6 +3,7 @@
  * Do not edit manually.
  */
 
+import type { ApiError } from "./ApiError.js";
 import type { AttendanceCorrectionCreate } from "./AttendanceCorrectionCreate.js";
 import type { AttendanceCorrectionPublic } from "./AttendanceCorrectionPublic.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
@@ -18,13 +19,29 @@ export type HrProposeAttendanceCorrectionPath = {
 
 export type HrProposeAttendanceCorrectionStatus201 = AttendanceCorrectionPublic;
 
-export type HrProposeAttendanceCorrectionStatus400 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type HrProposeAttendanceCorrectionStatus400 = ApiError;
 
-export type HrProposeAttendanceCorrectionStatus403 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type HrProposeAttendanceCorrectionStatus403 = ApiError;
 
-export type HrProposeAttendanceCorrectionStatus404 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type HrProposeAttendanceCorrectionStatus404 = ApiError;
 
-export type HrProposeAttendanceCorrectionStatus409 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type HrProposeAttendanceCorrectionStatus409 = ApiError;
 
 /**
  * @description Validation error envelope returned for malformed requests.

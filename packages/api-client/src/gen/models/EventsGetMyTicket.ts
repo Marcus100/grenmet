@@ -3,6 +3,8 @@
  * Do not edit manually.
  */
 
+import type { ApiError } from "./ApiError.js";
+import type { ErrorMessage } from "./ErrorMessage.js";
 import type { TicketDetail } from "./TicketDetail.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 
@@ -17,9 +19,17 @@ export type EventsGetMyTicketPath = {
 
 export type EventsGetMyTicketStatus200 = TicketDetail;
 
-export type EventsGetMyTicketStatus401 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type EventsGetMyTicketStatus401 = ApiError;
 
-export type EventsGetMyTicketStatus404 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type EventsGetMyTicketStatus404 = ApiError;
 
 /**
  * @description Validation error envelope returned for malformed requests.
@@ -27,7 +37,7 @@ export type EventsGetMyTicketStatus404 = unknown;
  */
 export type EventsGetMyTicketStatus422 = ValidationErrorResponse;
 
-export type EventsGetMyTicketStatus429 = unknown;
+export type EventsGetMyTicketStatus429 = ApiError | ErrorMessage;
 
 export type EventsGetMyTicketOptions = {
   body?: never;

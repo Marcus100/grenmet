@@ -3,6 +3,7 @@
  * Do not edit manually.
  */
 
+import type { ApiError } from "./ApiError.js";
 import type { LeaveRequestAction } from "./LeaveRequestAction.js";
 import type { LeaveRequestPublic } from "./LeaveRequestPublic.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
@@ -18,9 +19,17 @@ export type HrActionLeaveRequestPath = {
 
 export type HrActionLeaveRequestStatus200 = LeaveRequestPublic;
 
-export type HrActionLeaveRequestStatus403 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type HrActionLeaveRequestStatus403 = ApiError;
 
-export type HrActionLeaveRequestStatus404 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type HrActionLeaveRequestStatus404 = ApiError;
 
 /**
  * @description Validation error envelope returned for malformed requests.

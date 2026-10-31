@@ -4,6 +4,7 @@
  */
 
 import * as z from "zod";
+import { apiErrorSchema } from "./apiErrorSchema.js";
 import { paymentReconciliationPublicSchema } from "./paymentReconciliationPublicSchema.js";
 import { validationErrorResponseSchema } from "./validationErrorResponseSchema.js";
 
@@ -18,11 +19,14 @@ export const paymentsAdminGetReconciliationQueryOrganisationIdSchema = z
 export const paymentsAdminGetReconciliationStatus200Schema =
   paymentReconciliationPublicSchema;
 
-export const paymentsAdminGetReconciliationStatus400Schema = z.unknown();
+export const paymentsAdminGetReconciliationStatus400Schema =
+  apiErrorSchema.describe("Stable error envelope for documented API failures.");
 
-export const paymentsAdminGetReconciliationStatus401Schema = z.unknown();
+export const paymentsAdminGetReconciliationStatus401Schema =
+  apiErrorSchema.describe("Stable error envelope for documented API failures.");
 
-export const paymentsAdminGetReconciliationStatus403Schema = z.unknown();
+export const paymentsAdminGetReconciliationStatus403Schema =
+  apiErrorSchema.describe("Stable error envelope for documented API failures.");
 
 export const paymentsAdminGetReconciliationStatus422Schema =
   validationErrorResponseSchema.describe(

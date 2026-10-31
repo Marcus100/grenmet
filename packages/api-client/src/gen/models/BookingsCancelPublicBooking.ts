@@ -3,7 +3,8 @@
  * Do not edit manually.
  */
 
-import type { BookingPublicCancel } from "./BookingPublicCancel.js";
+import type { ApiError } from "./ApiError.js";
+import type { BookingPublicCancelBody } from "./BookingPublicCancelBody.js";
 import type { BookingPublicDetail } from "./BookingPublicDetail.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 
@@ -23,9 +24,17 @@ export type BookingsCancelPublicBookingPath = {
  */
 export type BookingsCancelPublicBookingStatus200 = BookingPublicDetail;
 
-export type BookingsCancelPublicBookingStatus404 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type BookingsCancelPublicBookingStatus404 = ApiError;
 
-export type BookingsCancelPublicBookingStatus409 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type BookingsCancelPublicBookingStatus409 = ApiError;
 
 /**
  * @description Validation error envelope returned for malformed requests.
@@ -33,8 +42,11 @@ export type BookingsCancelPublicBookingStatus409 = unknown;
  */
 export type BookingsCancelPublicBookingStatus422 = ValidationErrorResponse;
 
+/**
+ * @description Optional cancellation request. An absent body and null are both accepted.
+ */
 export type BookingsCancelPublicBookingBody =
-  | (BookingPublicCancel | null)
+  | BookingPublicCancelBody
   | undefined;
 
 export type BookingsCancelPublicBookingOptions = {

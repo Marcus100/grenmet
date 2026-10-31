@@ -4,13 +4,15 @@
  */
 
 import * as z from "zod";
+import { apiErrorSchema } from "./apiErrorSchema.js";
 import { unreadCountPublicSchema } from "./unreadCountPublicSchema.js";
 import { validationErrorResponseSchema } from "./validationErrorResponseSchema.js";
 
 export const notificationsGetUnreadCountStatus200Schema =
   unreadCountPublicSchema;
 
-export const notificationsGetUnreadCountStatus401Schema = z.unknown();
+export const notificationsGetUnreadCountStatus401Schema =
+  apiErrorSchema.describe("Stable error envelope for documented API failures.");
 
 export const notificationsGetUnreadCountStatus422Schema =
   validationErrorResponseSchema.describe(

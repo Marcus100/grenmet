@@ -3,6 +3,7 @@
  * Do not edit manually.
  */
 
+import type { ApiError } from "./ApiError.js";
 import type { AttendanceReviewPublic } from "./AttendanceReviewPublic.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 
@@ -13,13 +14,29 @@ export type HrGetAttendanceReviewQuery = {
 
 export type HrGetAttendanceReviewStatus200 = AttendanceReviewPublic;
 
-export type HrGetAttendanceReviewStatus400 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type HrGetAttendanceReviewStatus400 = ApiError;
 
-export type HrGetAttendanceReviewStatus403 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type HrGetAttendanceReviewStatus403 = ApiError;
 
-export type HrGetAttendanceReviewStatus404 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type HrGetAttendanceReviewStatus404 = ApiError;
 
-export type HrGetAttendanceReviewStatus409 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type HrGetAttendanceReviewStatus409 = ApiError;
 
 /**
  * @description Validation error envelope returned for malformed requests.

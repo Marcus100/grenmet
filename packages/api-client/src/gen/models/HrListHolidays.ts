@@ -3,6 +3,7 @@
  * Do not edit manually.
  */
 
+import type { ApiError } from "./ApiError.js";
 import type { PublicHolidaysPublic } from "./PublicHolidaysPublic.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 
@@ -12,7 +13,11 @@ export type HrListHolidaysQuery = {
 
 export type HrListHolidaysStatus200 = PublicHolidaysPublic;
 
-export type HrListHolidaysStatus403 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type HrListHolidaysStatus403 = ApiError;
 
 /**
  * @description Validation error envelope returned for malformed requests.

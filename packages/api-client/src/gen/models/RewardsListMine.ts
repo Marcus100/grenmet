@@ -3,14 +3,23 @@
  * Do not edit manually.
  */
 
+import type { ApiError } from "./ApiError.js";
 import type { RewardCardPublic } from "./RewardCardPublic.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 
 export type RewardsListMineStatus200 = RewardCardPublic[];
 
-export type RewardsListMineStatus401 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type RewardsListMineStatus401 = ApiError;
 
-export type RewardsListMineStatus403 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type RewardsListMineStatus403 = ApiError;
 
 /**
  * @description Validation error envelope returned for malformed requests.

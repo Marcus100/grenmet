@@ -4,14 +4,19 @@
  */
 
 import * as z from "zod";
+import { apiErrorSchema } from "./apiErrorSchema.js";
 import { buildingViewSchema } from "./buildingViewSchema.js";
 import { validationErrorResponseSchema } from "./validationErrorResponseSchema.js";
 
 export const janitorialSpecStatus200Schema = z.array(buildingViewSchema);
 
-export const janitorialSpecStatus401Schema = z.unknown();
+export const janitorialSpecStatus401Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
-export const janitorialSpecStatus403Schema = z.unknown();
+export const janitorialSpecStatus403Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
 export const janitorialSpecStatus422Schema =
   validationErrorResponseSchema.describe(

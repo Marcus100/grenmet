@@ -3,12 +3,17 @@
  * Do not edit manually.
  */
 
+import type { ApiError } from "./ApiError.js";
 import type { CheckoutSessionPublic } from "./CheckoutSessionPublic.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 
 export type BillingCreateSubscriptionCheckoutStatus201 = CheckoutSessionPublic;
 
-export type BillingCreateSubscriptionCheckoutStatus401 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type BillingCreateSubscriptionCheckoutStatus401 = ApiError;
 
 /**
  * @description Validation error envelope returned for malformed requests.

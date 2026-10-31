@@ -24,7 +24,7 @@ from .schemas import (
     CustomerUpdate,
     InvoiceDetailPublic,
     InvoiceDraftWrite,
-    InvoiceIssue,
+    InvoiceIssueBody,
     InvoiceListPublic,
     InvoiceVoid,
     PaymentCreate,
@@ -223,13 +223,13 @@ async def issue_invoice(
     session: SessionDep,
     manager: BillingManager,
     invoice_id: uuid.UUID,
-    payload: InvoiceIssue | None = None,
+    payload: InvoiceIssueBody = InvoiceIssueBody(None),
 ) -> Any:
     result = await invoices.issue(
         session,
         manager,
         invoice_id,
-        issue_date=payload.issue_date if payload else None,
+        issue_date=payload.root.issue_date if payload.root else None,
     )
     await session.commit()
     return result

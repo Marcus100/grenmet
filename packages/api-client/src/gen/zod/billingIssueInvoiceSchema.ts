@@ -4,21 +4,30 @@
  */
 
 import * as z from "zod";
+import { apiErrorSchema } from "./apiErrorSchema.js";
 import { invoiceDetailPublicSchema } from "./invoiceDetailPublicSchema.js";
-import { invoiceIssueSchema } from "./invoiceIssueSchema.js";
+import { invoiceIssueBodySchema } from "./invoiceIssueBodySchema.js";
 import { validationErrorResponseSchema } from "./validationErrorResponseSchema.js";
 
 export const billingIssueInvoicePathInvoiceIdSchema = z.uuid();
 
 export const billingIssueInvoiceStatus200Schema = invoiceDetailPublicSchema;
 
-export const billingIssueInvoiceStatus401Schema = z.unknown();
+export const billingIssueInvoiceStatus401Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
-export const billingIssueInvoiceStatus403Schema = z.unknown();
+export const billingIssueInvoiceStatus403Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
-export const billingIssueInvoiceStatus404Schema = z.unknown();
+export const billingIssueInvoiceStatus404Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
-export const billingIssueInvoiceStatus409Schema = z.unknown();
+export const billingIssueInvoiceStatus409Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
 export const billingIssueInvoiceStatus422Schema =
   validationErrorResponseSchema.describe(
@@ -36,9 +45,11 @@ export const billingIssueInvoiceErrorSchema = z.union([
   billingIssueInvoiceStatus422Schema,
 ]);
 
-export const billingIssueInvoiceBodySchema = z
-  .union([invoiceIssueSchema, z.null()])
-  .optional();
+export const billingIssueInvoiceBodySchema = invoiceIssueBodySchema
+  .optional()
+  .describe(
+    "Optional issue request. An absent body and null are both accepted."
+  );
 
 export const billingIssueInvoicePathSchema = z.object({
   invoice_id: z.uuid(),

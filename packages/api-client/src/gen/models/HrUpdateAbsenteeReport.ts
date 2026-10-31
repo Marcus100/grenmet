@@ -5,6 +5,7 @@
 
 import type { AbsenteeReportCreate } from "./AbsenteeReportCreate.js";
 import type { AbsenteeReportPublic } from "./AbsenteeReportPublic.js";
+import type { ApiError } from "./ApiError.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 
 export type HrUpdateAbsenteeReportPath = {
@@ -18,11 +19,23 @@ export type HrUpdateAbsenteeReportPath = {
 
 export type HrUpdateAbsenteeReportStatus200 = AbsenteeReportPublic;
 
-export type HrUpdateAbsenteeReportStatus400 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type HrUpdateAbsenteeReportStatus400 = ApiError;
 
-export type HrUpdateAbsenteeReportStatus403 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type HrUpdateAbsenteeReportStatus403 = ApiError;
 
-export type HrUpdateAbsenteeReportStatus404 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type HrUpdateAbsenteeReportStatus404 = ApiError;
 
 /**
  * @description Validation error envelope returned for malformed requests.

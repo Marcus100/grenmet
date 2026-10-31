@@ -3,6 +3,7 @@
  * Do not edit manually.
  */
 
+import type { ApiError } from "./ApiError.js";
 import type { UserPublic } from "./UserPublic.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 
@@ -17,7 +18,11 @@ export type AuthGetUserByIdPath = {
 
 export type AuthGetUserByIdStatus200 = UserPublic;
 
-export type AuthGetUserByIdStatus403 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type AuthGetUserByIdStatus403 = ApiError;
 
 /**
  * @description Validation error envelope returned for malformed requests.

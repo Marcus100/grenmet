@@ -4,6 +4,8 @@
  */
 
 import * as z from "zod";
+import { apiErrorSchema } from "./apiErrorSchema.js";
+import { errorMessageSchema } from "./errorMessageSchema.js";
 import { manifestSchema } from "./manifestSchema.js";
 import { validationErrorResponseSchema } from "./validationErrorResponseSchema.js";
 
@@ -16,20 +18,31 @@ export const eventsGetManifestQueryOrganiserSchema = z
 
 export const eventsGetManifestStatus200Schema = manifestSchema;
 
-export const eventsGetManifestStatus401Schema = z.unknown();
+export const eventsGetManifestStatus401Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
-export const eventsGetManifestStatus403Schema = z.unknown();
+export const eventsGetManifestStatus403Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
-export const eventsGetManifestStatus404Schema = z.unknown();
+export const eventsGetManifestStatus404Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
-export const eventsGetManifestStatus409Schema = z.unknown();
+export const eventsGetManifestStatus409Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
 export const eventsGetManifestStatus422Schema =
   validationErrorResponseSchema.describe(
     "Validation error envelope returned for malformed requests."
   );
 
-export const eventsGetManifestStatus429Schema = z.unknown();
+export const eventsGetManifestStatus429Schema = z.union([
+  apiErrorSchema,
+  errorMessageSchema,
+]);
 
 export const eventsGetManifestResponseSchema = eventsGetManifestStatus200Schema;
 

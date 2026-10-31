@@ -3,14 +3,23 @@
  * Do not edit manually.
  */
 
+import type { ApiError } from "./ApiError.js";
 import type { BuildingView } from "./BuildingView.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 
 export type JanitorialSpecStatus200 = BuildingView[];
 
-export type JanitorialSpecStatus401 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type JanitorialSpecStatus401 = ApiError;
 
-export type JanitorialSpecStatus403 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type JanitorialSpecStatus403 = ApiError;
 
 /**
  * @description Validation error envelope returned for malformed requests.

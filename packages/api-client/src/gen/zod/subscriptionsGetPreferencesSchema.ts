@@ -4,6 +4,7 @@
  */
 
 import * as z from "zod";
+import { apiErrorSchema } from "./apiErrorSchema.js";
 import { subscriptionPreferencesSchema } from "./subscriptionPreferencesSchema.js";
 import { validationErrorResponseSchema } from "./validationErrorResponseSchema.js";
 
@@ -12,7 +13,8 @@ export const subscriptionsGetPreferencesQueryTokenSchema = z.string();
 export const subscriptionsGetPreferencesStatus200Schema =
   subscriptionPreferencesSchema;
 
-export const subscriptionsGetPreferencesStatus400Schema = z.unknown();
+export const subscriptionsGetPreferencesStatus400Schema =
+  apiErrorSchema.describe("Stable error envelope for documented API failures.");
 
 export const subscriptionsGetPreferencesStatus422Schema =
   validationErrorResponseSchema.describe(

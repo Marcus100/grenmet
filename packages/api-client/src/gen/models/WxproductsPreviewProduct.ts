@@ -5,9 +5,8 @@
 
 import type { AuthoringError } from "./AuthoringError.js";
 import type { LegacyProductPreview } from "./LegacyProductPreview.js";
-import type { LegacyProductPreviewInput } from "./LegacyProductPreviewInput.js";
 import type { OutlookProductPreview } from "./OutlookProductPreview.js";
-import type { OutlookProductPreviewInput } from "./OutlookProductPreviewInput.js";
+import type { ProductPreviewBody } from "./ProductPreviewBody.js";
 
 export type WxproductsPreviewProductStatus200 =
   | (OutlookProductPreview & {
@@ -35,25 +34,10 @@ export type WxproductsPreviewProductStatus403 = AuthoringError;
 
 export type WxproductsPreviewProductStatus422 = AuthoringError;
 
-export type WxproductsPreviewProductBody =
-  | (OutlookProductPreviewInput & {
-      kind: "outlook";
-    })
-  | (LegacyProductPreviewInput & {
-      kind:
-        | "morning"
-        | "midday"
-        | "evening"
-        | "cyclone"
-        | "marine"
-        | "flood"
-        | "thunderstorm"
-        | "wind"
-        | "heat"
-        | "dust"
-        | "coastal"
-        | "tsunami";
-    });
+/**
+ * @description A draft product to validate or render as a PDF preview, discriminated by kind.
+ */
+export type WxproductsPreviewProductBody = ProductPreviewBody;
 
 export type WxproductsPreviewProductOptions = {
   body: WxproductsPreviewProductBody;

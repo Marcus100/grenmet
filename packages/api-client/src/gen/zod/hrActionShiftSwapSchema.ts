@@ -4,6 +4,7 @@
  */
 
 import * as z from "zod";
+import { apiErrorSchema } from "./apiErrorSchema.js";
 import { shiftSwapActionSchema } from "./shiftSwapActionSchema.js";
 import { shiftSwapRequestPublicSchema } from "./shiftSwapRequestPublicSchema.js";
 import { validationErrorResponseSchema } from "./validationErrorResponseSchema.js";
@@ -12,11 +13,17 @@ export const hrActionShiftSwapPathShiftSwapIdSchema = z.uuid();
 
 export const hrActionShiftSwapStatus200Schema = shiftSwapRequestPublicSchema;
 
-export const hrActionShiftSwapStatus400Schema = z.unknown();
+export const hrActionShiftSwapStatus400Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
-export const hrActionShiftSwapStatus403Schema = z.unknown();
+export const hrActionShiftSwapStatus403Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
-export const hrActionShiftSwapStatus404Schema = z.unknown();
+export const hrActionShiftSwapStatus404Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
 export const hrActionShiftSwapStatus422Schema =
   validationErrorResponseSchema.describe(

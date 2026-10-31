@@ -7,7 +7,13 @@ from fastapi import status as http_status
 
 from src.auth.policy import require_permission
 from src.dependencies import AccountUser, AdminUser, SessionDep
-from src.openapi_responses import AUTHENTICATED, BAD_REQUEST, CONFLICT, NOT_FOUND
+from src.openapi_responses import (
+    AUTHENTICATED,
+    BAD_REQUEST,
+    CONFLICT,
+    NOT_FOUND,
+    RateLimitedBody,
+)
 from src.organisations.dependencies import OrgMember
 from src.pagination import PaginationDep
 from src.rate_limit import limiter
@@ -38,7 +44,7 @@ FlagId = Path(min_length=1, max_length=100)
         "are absent. Cacheable for 30 seconds; callers should cache about 60 "
         "seconds and treat 429 or any error as flag off."
     ),
-    responses={429: {"description": "Rate limit exceeded"}},
+    responses={429: {"model": RateLimitedBody, "description": "Rate limit exceeded"}},
 )
 @limiter.limit("600/minute")
 async def evaluate_public(

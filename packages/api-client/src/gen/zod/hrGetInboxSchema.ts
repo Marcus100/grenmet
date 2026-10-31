@@ -4,12 +4,15 @@
  */
 
 import * as z from "zod";
+import { apiErrorSchema } from "./apiErrorSchema.js";
 import { validationErrorResponseSchema } from "./validationErrorResponseSchema.js";
 import { workflowInboxListSchema } from "./workflowInboxListSchema.js";
 
 export const hrGetInboxStatus200Schema = workflowInboxListSchema;
 
-export const hrGetInboxStatus403Schema = z.unknown();
+export const hrGetInboxStatus403Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
 export const hrGetInboxStatus422Schema = validationErrorResponseSchema.describe(
   "Validation error envelope returned for malformed requests."

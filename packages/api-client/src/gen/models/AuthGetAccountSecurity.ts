@@ -4,13 +4,22 @@
  */
 
 import type { AccountSecurityPublic } from "./AccountSecurityPublic.js";
+import type { ApiError } from "./ApiError.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 
 export type AuthGetAccountSecurityStatus200 = AccountSecurityPublic;
 
-export type AuthGetAccountSecurityStatus401 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type AuthGetAccountSecurityStatus401 = ApiError;
 
-export type AuthGetAccountSecurityStatus403 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type AuthGetAccountSecurityStatus403 = ApiError;
 
 /**
  * @description Validation error envelope returned for malformed requests.

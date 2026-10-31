@@ -3,6 +3,7 @@
  * Do not edit manually.
  */
 
+import type { ApiError } from "./ApiError.js";
 import type { UploadRequest } from "./UploadRequest.js";
 import type { UploadTicket } from "./UploadTicket.js";
 
@@ -19,11 +20,23 @@ export type StorageCreateUploadHeaders = {
  */
 export type StorageCreateUploadStatus201 = UploadTicket;
 
-export type StorageCreateUploadStatus401 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type StorageCreateUploadStatus401 = ApiError;
 
-export type StorageCreateUploadStatus403 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type StorageCreateUploadStatus403 = ApiError;
 
-export type StorageCreateUploadStatus404 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type StorageCreateUploadStatus404 = ApiError;
 
 export type StorageCreateUploadStatus422 = unknown;
 

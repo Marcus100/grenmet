@@ -10,7 +10,7 @@ applied at the time, without a live join. The snapshot is JSON in the
 import json
 import logging
 from datetime import UTC, datetime, timedelta
-from typing import Any, Literal, cast
+from typing import Any, Literal, cast, get_args
 from uuid import UUID
 
 from sqlalchemy.exc import SQLAlchemyError
@@ -22,7 +22,12 @@ from src.sectors import parse_sectors
 from src.utils.timezones import GRENADA
 
 from . import service
-from .schemas import SectorOutlook, SectorOutlookItem, values_as_dict
+from .schemas import (
+    BulletinNoticeType,
+    SectorOutlook,
+    SectorOutlookItem,
+    values_as_dict,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -40,6 +45,7 @@ BULLETIN_TITLES = {
 # Colour names follow CAP `awareness_level`; bulletins say "Amber".
 COLOURS = {"green", "yellow", "orange", "red"}
 COLOUR_RANK = {"red": 0, "orange": 1, "yellow": 2, "green": 3, "": 4}
+NOTICE_TYPES: tuple[str, ...] = get_args(BulletinNoticeType)
 # CAP certainty/severity mapped onto the IBF matrix axes. The colour a source
 # declares is authoritative; the mapping only positions the matrix mark.
 LIKELIHOOD_FROM_CERTAINTY = {
@@ -135,6 +141,7 @@ async def _bulletin_items(session: AsyncSession) -> list[dict[str, str]]:
                 "reference": f"GMS {title} bulletin r{product.revision}",
                 "productId": str(product.id),
                 "sectors": ",".join(parse_sectors(values.get("sectors"))),
+                "noticeType": values.get("notice", ""),
             }
         )
     return items
@@ -268,4 +275,9 @@ def _outlook_item(item: dict[str, str]) -> SectorOutlookItem:
         product_id=UUID(product_id) if (product_id := item.get("productId")) else None,
         sectors=sectors,
         affects_everyone=not sectors,
+        notice_type=_notice_type(item.get("noticeType", "")),
     )
+
+
+def _notice_type(value: str) -> BulletinNoticeType | None:
+    return cast("BulletinNoticeType", value) if value in NOTICE_TYPES else None

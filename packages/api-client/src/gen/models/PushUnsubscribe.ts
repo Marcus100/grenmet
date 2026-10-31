@@ -3,13 +3,18 @@
  * Do not edit manually.
  */
 
+import type { ApiError } from "./ApiError.js";
 import type { PushAccepted } from "./PushAccepted.js";
 import type { PushUnsubscribeRequest } from "./PushUnsubscribeRequest.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 
 export type PushUnsubscribeStatus200 = PushAccepted;
 
-export type PushUnsubscribeStatus400 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type PushUnsubscribeStatus400 = ApiError;
 
 /**
  * @description Validation error envelope returned for malformed requests.

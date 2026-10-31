@@ -5,6 +5,7 @@
 
 import * as z from "zod";
 import { accessStatusPublicSchema } from "./accessStatusPublicSchema.js";
+import { apiErrorSchema } from "./apiErrorSchema.js";
 import { validationErrorResponseSchema } from "./validationErrorResponseSchema.js";
 
 export const modelsGetAccessStatusHeaderXBarrelsOrganisationSchema = z
@@ -14,11 +15,17 @@ export const modelsGetAccessStatusHeaderXBarrelsOrganisationSchema = z
 
 export const modelsGetAccessStatusStatus200Schema = accessStatusPublicSchema;
 
-export const modelsGetAccessStatusStatus401Schema = z.unknown();
+export const modelsGetAccessStatusStatus401Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
-export const modelsGetAccessStatusStatus403Schema = z.unknown();
+export const modelsGetAccessStatusStatus403Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
-export const modelsGetAccessStatusStatus404Schema = z.unknown();
+export const modelsGetAccessStatusStatus404Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
 export const modelsGetAccessStatusStatus422Schema =
   validationErrorResponseSchema.describe(

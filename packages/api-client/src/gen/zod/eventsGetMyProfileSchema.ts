@@ -4,21 +4,30 @@
  */
 
 import * as z from "zod";
+import { apiErrorSchema } from "./apiErrorSchema.js";
+import { errorMessageSchema } from "./errorMessageSchema.js";
 import { myProfileSchema } from "./myProfileSchema.js";
 import { validationErrorResponseSchema } from "./validationErrorResponseSchema.js";
 
 export const eventsGetMyProfileStatus200Schema = myProfileSchema;
 
-export const eventsGetMyProfileStatus401Schema = z.unknown();
+export const eventsGetMyProfileStatus401Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
-export const eventsGetMyProfileStatus404Schema = z.unknown();
+export const eventsGetMyProfileStatus404Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
 export const eventsGetMyProfileStatus422Schema =
   validationErrorResponseSchema.describe(
     "Validation error envelope returned for malformed requests."
   );
 
-export const eventsGetMyProfileStatus429Schema = z.unknown();
+export const eventsGetMyProfileStatus429Schema = z.union([
+  apiErrorSchema,
+  errorMessageSchema,
+]);
 
 export const eventsGetMyProfileResponseSchema =
   eventsGetMyProfileStatus200Schema;

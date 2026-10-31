@@ -3,6 +3,7 @@
  * Do not edit manually.
  */
 
+import type { ApiError } from "./ApiError.js";
 import type { PaymentReconciliationPublic } from "./PaymentReconciliationPublic.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 
@@ -25,11 +26,23 @@ export type PaymentsAdminGetReconciliationQuery = {
 export type PaymentsAdminGetReconciliationStatus200 =
   PaymentReconciliationPublic;
 
-export type PaymentsAdminGetReconciliationStatus400 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type PaymentsAdminGetReconciliationStatus400 = ApiError;
 
-export type PaymentsAdminGetReconciliationStatus401 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type PaymentsAdminGetReconciliationStatus401 = ApiError;
 
-export type PaymentsAdminGetReconciliationStatus403 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type PaymentsAdminGetReconciliationStatus403 = ApiError;
 
 /**
  * @description Validation error envelope returned for malformed requests.

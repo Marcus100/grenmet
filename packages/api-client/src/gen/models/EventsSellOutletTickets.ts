@@ -3,6 +3,8 @@
  * Do not edit manually.
  */
 
+import type { ApiError } from "./ApiError.js";
+import type { ErrorMessage } from "./ErrorMessage.js";
 import type { OutletSale } from "./OutletSale.js";
 import type { OutletSaleCreate } from "./OutletSaleCreate.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
@@ -25,13 +27,29 @@ export type EventsSellOutletTicketsQuery = {
 
 export type EventsSellOutletTicketsStatus201 = OutletSale;
 
-export type EventsSellOutletTicketsStatus401 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type EventsSellOutletTicketsStatus401 = ApiError;
 
-export type EventsSellOutletTicketsStatus403 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type EventsSellOutletTicketsStatus403 = ApiError;
 
-export type EventsSellOutletTicketsStatus404 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type EventsSellOutletTicketsStatus404 = ApiError;
 
-export type EventsSellOutletTicketsStatus409 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type EventsSellOutletTicketsStatus409 = ApiError;
 
 /**
  * @description Validation error envelope returned for malformed requests.
@@ -39,7 +57,7 @@ export type EventsSellOutletTicketsStatus409 = unknown;
  */
 export type EventsSellOutletTicketsStatus422 = ValidationErrorResponse;
 
-export type EventsSellOutletTicketsStatus429 = unknown;
+export type EventsSellOutletTicketsStatus429 = ApiError | ErrorMessage;
 
 export type EventsSellOutletTicketsBody = OutletSaleCreate;
 
