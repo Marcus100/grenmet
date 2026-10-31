@@ -51,7 +51,11 @@ export type HrPublishPeriodStatus409 = RosterRuleWarningsErrorPublic;
  */
 export type HrPublishPeriodStatus422 = ValidationErrorResponse;
 
-export type HrPublishPeriodBody = (RosterPublishRequest | null) | undefined;
+/**
+ * @default {}
+ * @type object | undefined
+ */
+export type HrPublishPeriodBody = RosterPublishRequest | undefined;
 
 export type HrPublishPeriodOptions = {
   body: HrPublishPeriodBody;

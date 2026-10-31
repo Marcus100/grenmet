@@ -1083,7 +1083,7 @@ fails if a key used in code is missing from the catalog). Routers:
 | `GET /api/v1/hr/rosters/departments/{department_id}/rule-overrides` | `roster.rules.manage` or `roster.manage` in scope | Saves made despite warnings: who, when, rules, reason |
 | `GET /api/v1/hr/rosters/departments/{department_id}/rules` (deprecated) | read `roster.view`; write `roster.rules.manage` | Old shape mapped onto the rule set: consecutive days and weekly hours; `min_rest_hours` is always null |
 
-Publish (`PATCH .../periods/{id}/publish`, optional body), published-roster edits
+Publish (`PATCH .../periods/{id}/publish`; the body is optional and an omitted body means no reason), published-roster edits
 (`POST .../assignments/bulk`), shift-exchange actions and workflow actions
 (`POST /hr/workflows/instances/{id}/actions`) accept `rule_override_reason`. Without
 it, a change that breaks a rule fails with 409 and `RosterRuleWarningsErrorPublic`

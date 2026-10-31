@@ -46,9 +46,9 @@ export const hrPublishPeriodErrorSchema = z.union([
   hrPublishPeriodStatus422Schema,
 ]);
 
-export const hrPublishPeriodBodySchema = z
-  .union([rosterPublishRequestSchema, z.null()])
-  .optional();
+export const hrPublishPeriodBodySchema = rosterPublishRequestSchema
+  .optional()
+  .default({});
 
 export const hrPublishPeriodPathSchema = z.object({
   period_id: z.uuid(),

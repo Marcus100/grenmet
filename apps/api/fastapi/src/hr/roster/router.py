@@ -518,6 +518,10 @@ async def import_csv(
 # ---------------------------------------------------------------------------
 
 
+# Publishing without a body is the usual case: no override reason.
+_NO_OVERRIDE = RosterPublishRequest()
+
+
 @router.patch(
     "/periods/{period_id}/publish",
     response_model=RosterPeriodPublic,
@@ -550,13 +554,13 @@ async def publish_period(
     session: SessionDep,
     current_user: CurrentUser,
     period: RosterPeriodDep,
-    payload: Annotated[RosterPublishRequest | None, Body()] = None,
+    payload: Annotated[RosterPublishRequest, Body()] = _NO_OVERRIDE,
 ) -> Any:
     return await service.publish_roster_period(
         session=session,
         current_user=current_user,
         period_id=period.id,
-        rule_override_reason=payload.rule_override_reason if payload else None,
+        rule_override_reason=payload.rule_override_reason,
     )
 
 
