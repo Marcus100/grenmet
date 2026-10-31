@@ -144,6 +144,7 @@ async def _ensure_not_last_owner(
             Membership.role == MembershipRole.OWNER.value,
             Membership.status == MembershipStatus.ACTIVE.value,
         )
+        .order_by(Membership.id)
         .with_for_update()
     )
     if len(owners.all()) <= 1:
@@ -161,6 +162,7 @@ async def apply_role_change(
 ) -> tuple[Membership, User]:
     """Shared by the organisation-scoped route and the audited control-plane route."""
     audit_service.set_actor(session, actor_id)
+    await grants.lock_roster(session, organisation_id)
     membership = await _get_membership(session, organisation_id, membership_id)
     if not actor_may_grant_owner and (
         _is_owner(membership.role) or _is_owner(role.value)
@@ -177,6 +179,14 @@ async def apply_role_change(
             await _ensure_not_last_owner(session, organisation_id, membership)
         membership.role = role.value
         await session.flush()
+        # A demotion can take away keys the member's own grants relied on (#527).
+        await grants.revoke_dependent_grants(
+            session,
+            organisation_id=organisation_id,
+            seed_membership_ids=[membership.id],
+            actor_id=actor_id,
+            cause="role_changed",
+        )
     return membership, user
 
 
@@ -205,6 +215,7 @@ async def apply_removal(
     actor_may_grant_owner: bool,
 ) -> Membership:
     audit_service.set_actor(session, actor_id)
+    await grants.lock_roster(session, organisation_id)
     membership = await _get_membership(session, organisation_id, membership_id)
     if not actor_may_grant_owner and _is_owner(membership.role):
         raise OrganisationRoleError()
@@ -215,7 +226,10 @@ async def apply_removal(
         session, membership_id=membership.id, actor_id=actor_id
     )
     # Access the removed person handed out ends with their own (ADR-0044, S3).
-    # A demotion only lists it (``GET .../issued-grants``): admins decide.
+    # Whoever they handed it to is re-checked below (#527).
+    recipients = await grants.issued_recipient_ids(
+        session, organisation_id=organisation_id, user_id=membership.user_id
+    )
     ended = await grants.revoke_issued_by(
         session,
         organisation_id=organisation_id,
@@ -234,6 +248,13 @@ async def apply_removal(
             changes={"grants_revoked": (None, ended)},
             organisation_id=organisation_id,
         )
+    await grants.revoke_dependent_grants(
+        session,
+        organisation_id=organisation_id,
+        seed_membership_ids=recipients,
+        actor_id=actor_id,
+        cause="removed",
+    )
     return membership
 
 
@@ -258,6 +279,7 @@ async def revoke_events_access(
     same as for a full removal."""
     organisation_id = context.organisation_id
     audit_service.set_actor(session, context.user.id)
+    await grants.lock_roster(session, organisation_id)
     membership = await _get_membership(session, organisation_id, membership_id)
     if context.role != MembershipRole.OWNER and _is_owner(membership.role):
         raise OrganisationRoleError()
@@ -267,6 +289,12 @@ async def revoke_events_access(
         # grant to end here. Refuse instead of reporting a removal that changed nothing.
         raise EventsAccessFromRoleError()
     products = (TEAM_SESSION_APP,)
+    recipients = await grants.issued_recipient_ids(
+        session,
+        organisation_id=organisation_id,
+        user_id=membership.user_id,
+        products=products,
+    )
     grants_revoked = await grants.revoke_product_grants(
         session,
         organisation_id=organisation_id,
@@ -293,6 +321,13 @@ async def revoke_events_access(
             "issued_grants_revoked": (None, issued),
         },
         organisation_id=organisation_id,
+    )
+    await grants.revoke_dependent_grants(
+        session,
+        organisation_id=organisation_id,
+        seed_membership_ids=recipients,
+        actor_id=context.user.id,
+        cause="events_access_removed",
     )
     logger.info(
         "organisation events access revoked",

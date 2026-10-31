@@ -185,6 +185,21 @@ async def _expiry_ceiling(
     return ceiling
 
 
+async def lock_roster(session: AsyncSession, organisation_id: str) -> None:
+    """Lock every membership row of the organisation, in id order.
+
+    Every change to an organisation's roles or grants takes this lock first, and
+    then the rows it needs, so two such changes always lock in the same order and
+    cannot deadlock (issue #528 L1). It serialises role and grant changes within one
+    organisation only."""
+    await session.execute(
+        select(Membership.id)
+        .where(Membership.organisation_id == organisation_id)
+        .order_by(Membership.id)
+        .with_for_update()
+    )
+
+
 async def grant_role(
     session: AsyncSession,
     context: OrgContext,
@@ -206,6 +221,7 @@ async def grant_role(
     if expires_at is not None and expires_at <= now:
         raise GrantExpiryInvalidError()
     audit_service.set_actor(session, context.user.id)
+    await lock_roster(session, context.organisation_id)
     # Lock the target and the grantor rows (fixed order by id, so two grants cannot
     # deadlock). ``populate_existing`` refreshes the grantor's role and status, so a
     # grantor removed a moment ago cannot slip a grant past ``apply_removal``'s
@@ -276,6 +292,7 @@ async def revoke_grant(
     session: AsyncSession, context: OrgContext, *, grant_id: str
 ) -> MembershipGrant:
     audit_service.set_actor(session, context.user.id)
+    await lock_roster(session, context.organisation_id)
     grant = await session.scalar(
         select(MembershipGrant)
         .where(
@@ -304,9 +321,116 @@ async def revoke_grant(
             raise GrantNotHeldError()
     if grant.revoked_at is not None:
         return grant
+    was_live = grant.expires_at is None or grant.expires_at > utc_now()
     grant.revoked_at = utc_now()
     await session.flush()
+    if was_live:
+        await revoke_dependent_grants(
+            session,
+            organisation_id=context.organisation_id,
+            seed_membership_ids=[grant.membership_id],
+            actor_id=context.user.id,
+            cause="grant_revoked",
+        )
     return grant
+
+
+async def issued_recipient_ids(
+    session: AsyncSession,
+    *,
+    organisation_id: str,
+    user_id: uuid.UUID,
+    products: Collection[str] | None = None,
+) -> list[str]:
+    """Membership ids of the people holding live grants that ``user_id`` issued here.
+
+    Read before those grants are ended, so the caller can re-check what they relied on."""
+    rows = await session.scalars(
+        select(MembershipGrant.membership_id)
+        .where(
+            MembershipGrant.organisation_id == organisation_id,
+            MembershipGrant.granted_by == user_id,
+            *_live(utc_now()),
+            *_product_filter(products),
+        )
+        .distinct()
+    )
+    return list(rows.all())
+
+
+async def revoke_dependent_grants(
+    session: AsyncSession,
+    *,
+    organisation_id: str,
+    seed_membership_ids: Collection[str],
+    actor_id: uuid.UUID,
+    cause: str,
+) -> int:
+    """Transitive revocation (issue #527, ADR-0044 S3). Returns the grants ended.
+
+    A grant is only as good as its grantor's authority. When a member loses keys (a
+    grant they hold was ended, they were demoted, or they were removed), each live
+    grant they issued that they no longer cover is ended too. Its recipient then
+    loses those keys, so the same check runs for them, until nothing changes. Two
+    managers therefore cannot keep access between them by granting onward.
+
+    Coverage is ``required_keys`` of the bundle against ``effective_keys`` after the
+    changes so far. Owners and admins hold every key through their role, so grants
+    they issued survive a revoke of what they were granted. Each pass only ends
+    grants, so a cycle ends after at most one revoke per grant. Callers hold the
+    roster lock (``lock_roster``) and this function flushes. Each end is audited with
+    the cause and the member whose authority dropped."""
+    audit_service.set_actor(session, actor_id)
+    pending = list(dict.fromkeys(seed_membership_ids))
+    ended = 0
+    while pending:
+        membership_id = pending.pop(0)
+        membership = await session.scalar(
+            select(Membership).where(
+                Membership.id == membership_id,
+                Membership.organisation_id == organisation_id,
+            )
+        )
+        if membership is None:
+            continue
+        keys = await effective_keys(session, membership=membership)
+        issued = await session.scalars(
+            select(MembershipGrant)
+            .where(
+                MembershipGrant.organisation_id == organisation_id,
+                MembershipGrant.granted_by == membership.user_id,
+                *_live(utc_now()),
+            )
+            .order_by(MembershipGrant.id)
+            .with_for_update()
+        )
+        for grant in issued.all():
+            bundle = role_bundles.bundle_keys(grant.role_key)
+            if bundle is not None and required_keys(bundle) <= keys:
+                continue
+            grant.revoked_at = utc_now()
+            ended += 1
+            await audit_service.record_change(
+                session,
+                entity_type="platform_organisation",
+                entity_id=organisation_id,
+                record_type="organisation_membership_grant",
+                record_id=grant.id,
+                action="revoke_cascade",
+                changes={
+                    "cause": (None, cause),
+                    "authority_lost_by": (None, membership.id),
+                },
+                organisation_id=organisation_id,
+            )
+            pending.append(grant.membership_id)
+        await session.flush()
+    if ended:
+        logger.info(
+            "organisation grants revoked by cascade",
+            extra={"organisation_id": organisation_id, "grants_revoked": ended},
+        )
+    return ended
 
 
 async def revoke_all_for_membership(
@@ -339,8 +463,8 @@ async def revoke_issued_by(
     the issuer is removed, so access they handed out does not outlive their own).
     A lapsed grant is closed at its real end, a live one now. Returns the number of
     live grants ended. ``products`` limits it to those products' roles. Direct
-    grants only: grants issued by the people whose roles this ends are not followed
-    (revocation is not transitive)."""
+    grants only: the caller follows the people they granted to through
+    ``revoke_dependent_grants``."""
     audit_service.set_actor(session, actor_id)
     rows = await session.scalars(
         select(MembershipGrant)
