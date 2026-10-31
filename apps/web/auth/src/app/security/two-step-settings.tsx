@@ -106,7 +106,7 @@ function SetupDialog({
                 await activateMfa(code, emailCode);
                 onEnabled(0);
                 setStep({ kind: "codes" });
-              }, "That code was not accepted. Try the current code from your app.");
+              }, "That code was not accepted. Try the current code from your app. After five wrong codes, set up two-step verification again.");
             }}
           >
             <DialogHeader>
@@ -360,7 +360,9 @@ export function TwoStepSettings({
                     emailCodeRequired: result.email_code_required === true,
                   });
                 } catch {
-                  toast.error("Unable to start authenticator setup.");
+                  toast.error(
+                    "Unable to start authenticator setup. If you have tried several times, wait 30 minutes or try again tomorrow."
+                  );
                 } finally {
                   setStarting(false);
                 }

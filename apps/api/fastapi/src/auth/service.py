@@ -65,6 +65,7 @@ from src.auth.totp_enrolment import (
     begin_totp_setup,
     disable_totp,
     enrolment_needs_email_code,
+    ensure_email_change_allowed,
 )
 from src.auth.user_queries import (
     get_user_by_email,
@@ -173,6 +174,7 @@ async def update_user(
         hashed_password = await get_password_hash_async(password)
         extra_data["hashed_password"] = hashed_password
     if user_in.email and user_in.email != db_user.email:
+        await ensure_email_change_allowed(session=session, user=db_user)
         db_user.email_verified_at = None
         db_user.email_verification_required = True
     for key, value in {**user_data, **extra_data}.items():
@@ -207,6 +209,7 @@ async def update_user_me(
             raise AppException("User with this email already exists", 409)
     user_data = user_in.model_dump(exclude_unset=True)
     if user_in.email and user_in.email != current_user.email:
+        await ensure_email_change_allowed(session=session, user=current_user)
         current_user.email_verified_at = None
         current_user.email_verification_required = True
         await session.execute(

@@ -217,25 +217,132 @@ async def test_an_expired_code_is_refused(async_client, db_async):
     assert user.totp_enabled is False
 
 
-async def test_five_wrong_guesses_lock_the_code(async_client, db_async):
+async def test_five_wrong_guesses_lock_the_enrolment_then_setup_restarts(
+    async_client, db_async
+):
     user = await make_user(db_async, superuser=True)
     headers = await bearer(async_client, user)
     secret = (await async_client.post(SETUP, headers=headers)).json()["secret"]
 
     for _ in range(app_service.MAX_CODE_ATTEMPTS):
-        await async_client.post(
+        response = await async_client.post(
             ACTIVATE,
             json={"code": pyotp.TOTP(secret).now(), "email_code": "000000"},
             headers=headers,
         )
+        assert response.status_code == 400
+    assert "set up two-step verification again" in response.json()["detail"]
     locked = await async_client.post(
         ACTIVATE,
         json={"code": pyotp.TOTP(secret).now(), "email_code": CODE},
         headers=headers,
     )
-    assert locked.status_code == 400
+    assert locked.status_code == 429
+    refused = await async_client.post(SETUP, headers=headers)
+    assert refused.status_code == 429
+    assert "30 minutes" in refused.json()["detail"]
+
+    await _age_audit(db_async, user, totp_enrolment.ENROLMENT_CODE_REJECTED, minutes=31)
+    restarted = await async_client.post(SETUP, headers=headers)
+    assert restarted.status_code == 200
+
+
+async def _age_audit(db, user, action: str, *, minutes: int) -> None:
+    from datetime import timedelta
+
+    for entry in (
+        await db.scalars(
+            select(AuditEntry).where(
+                AuditEntry.record_id == str(user.id), AuditEntry.action == action
+            )
+        )
+    ).all():
+        entry.created_at = utc_now() - timedelta(minutes=minutes)
+    await db.commit()
+
+
+async def test_a_failed_send_does_not_use_up_a_try(async_client, db_async, monkeypatch):
+    from src.exceptions import AppException
+
+    async def failing(**_kwargs):
+        raise AppException("We couldn't send the code. Try again shortly.", 503)
+
+    user = await make_user(db_async, superuser=True)
+    headers = await bearer(async_client, user)
+    monkeypatch.setattr(totp_enrolment, "_send_enrolment_code", failing)
+    for _ in range(totp_enrolment.ENROLMENT_CODES_PER_WINDOW + 1):
+        assert (await async_client.post(SETUP, headers=headers)).status_code == 503
+    assert await _count(db_async, user, totp_enrolment.ENROLMENT_CODE_SENT) == 0
+
+    sent: list[str] = []
+    monkeypatch.setattr(
+        totp_enrolment, "_send_enrolment_code", lambda **kw: _record(sent, kw["code"])
+    )
+    assert (await async_client.post(SETUP, headers=headers)).status_code == 200
+    assert await _count(db_async, user, totp_enrolment.ENROLMENT_CODE_SENT) == 1
+
+
+async def _count(db, user, action: str) -> int:
+    return len(
+        (
+            await db.scalars(
+                select(AuditEntry).where(
+                    AuditEntry.record_id == str(user.id), AuditEntry.action == action
+                )
+            )
+        ).all()
+    )
+
+
+async def test_daily_cap_limits_setups_to_ten_a_day(
+    async_client, db_async, monkeypatch
+):
+    monkeypatch.setattr(
+        totp_enrolment, "_send_enrolment_code", lambda **kw: _record([], kw["code"])
+    )
+    user = await make_user(db_async, superuser=True)
+    headers = await bearer(async_client, user)
+    for _batch in range(
+        totp_enrolment.ENROLMENT_CODES_PER_DAY
+        // totp_enrolment.ENROLMENT_CODES_PER_WINDOW
+        + 1
+    ):
+        for _ in range(totp_enrolment.ENROLMENT_CODES_PER_WINDOW):
+            if (
+                await _count(db_async, user, totp_enrolment.ENROLMENT_CODE_SENT)
+                >= totp_enrolment.ENROLMENT_CODES_PER_DAY
+            ):
+                break
+            assert (await async_client.post(SETUP, headers=headers)).status_code == 200
+        await _age_audit(db_async, user, totp_enrolment.ENROLMENT_CODE_SENT, minutes=20)
+    capped = await async_client.post(SETUP, headers=headers)
+    assert capped.status_code == 429
+    assert "tomorrow" in capped.json()["detail"]
+
+
+async def test_email_change_is_blocked_until_two_step_is_on(async_client, db_async):
+    user = await make_user(db_async, superuser=True)
+    headers = await bearer(async_client, user)
+    blocked = await async_client.patch(
+        "/api/v1/auth/users/me",
+        json={"email": "moved@example.com"},
+        headers=headers,
+    )
+    assert blocked.status_code == 403
+    assert "email_change_blocked" in blocked.json()["detail"]
     await db_async.refresh(user)
-    assert user.totp_enabled is False
+    assert user.email != "moved@example.com"
+
+
+async def test_an_ordinary_account_can_change_its_email(async_client, db_async):
+    user = await make_user(db_async)
+    headers = await bearer(async_client, user)
+    response = await async_client.patch(
+        "/api/v1/auth/users/me",
+        json={"email": "moved@example.com"},
+        headers=headers,
+    )
+    assert response.status_code == 200
 
 
 async def test_setup_is_rate_limited_per_account(async_client, db_async, monkeypatch):
