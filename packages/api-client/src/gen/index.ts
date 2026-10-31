@@ -6919,6 +6919,7 @@ export type {
   EregisterValidateSynopObservationStatus403,
   EregisterValidateSynopObservationStatus422,
 } from "./models/EregisterValidateSynopObservation.js";
+export type { EregisterValidationError } from "./models/EregisterValidationError.js";
 export type { ErrorMessage } from "./models/ErrorMessage.js";
 export type { EventCategoryNode } from "./models/EventCategoryNode.js";
 export type { EventCategoryNodePropertiesAppliesToItemsEnum } from "./models/EventCategoryNodePropertiesAppliesToItemsEnum.js";
@@ -12597,6 +12598,7 @@ export type { SynopDecoded } from "./models/SynopDecoded.js";
 export type { SynopticImageGroup } from "./models/SynopticImageGroup.js";
 export type { SynopticImageGroups } from "./models/SynopticImageGroups.js";
 export type { SynopticSlots } from "./models/SynopticSlots.js";
+export type { SynopValidationErrorDetail } from "./models/SynopValidationErrorDetail.js";
 export type { SynopValidationIssue } from "./models/SynopValidationIssue.js";
 export type { SynopValidationRequest } from "./models/SynopValidationRequest.js";
 export type { SynopValidationResponse } from "./models/SynopValidationResponse.js";
@@ -16194,6 +16196,7 @@ export {
   eregisterValidateSynopObservationStatus403Schema,
   eregisterValidateSynopObservationStatus422Schema,
 } from "./zod/eregisterValidateSynopObservationSchema.js";
+export { eregisterValidationErrorSchema } from "./zod/eregisterValidationErrorSchema.js";
 export { errorMessageSchema } from "./zod/errorMessageSchema.js";
 export { eventCategoryNodePropertiesAppliesToItemsEnumSchema } from "./zod/eventCategoryNodePropertiesAppliesToItemsEnumSchema.js";
 export { eventCategoryNodeSchema } from "./zod/eventCategoryNodeSchema.js";
@@ -21848,6 +21851,7 @@ export { synopDecodedSchema } from "./zod/synopDecodedSchema.js";
 export { synopticImageGroupSchema } from "./zod/synopticImageGroupSchema.js";
 export { synopticImageGroupsSchema } from "./zod/synopticImageGroupsSchema.js";
 export { synopticSlotsSchema } from "./zod/synopticSlotsSchema.js";
+export { synopValidationErrorDetailSchema } from "./zod/synopValidationErrorDetailSchema.js";
 export { synopValidationIssueSchema } from "./zod/synopValidationIssueSchema.js";
 export { synopValidationRequestSchema } from "./zod/synopValidationRequestSchema.js";
 export { synopValidationResponseSchema } from "./zod/synopValidationResponseSchema.js";

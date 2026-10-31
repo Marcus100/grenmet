@@ -4,8 +4,10 @@
  */
 
 import type { ApiError } from "./ApiError.js";
+import type { EregisterValidationError } from "./EregisterValidationError.js";
 import type { RegisterObservationCorrection } from "./RegisterObservationCorrection.js";
 import type { RegisterObservationRead } from "./RegisterObservationRead.js";
+import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 
 export type EregisterCorrectRegisterObservationPath = {
   /**
@@ -43,7 +45,9 @@ export type EregisterCorrectRegisterObservationStatus404 = ApiError;
  */
 export type EregisterCorrectRegisterObservationStatus409 = ApiError;
 
-export type EregisterCorrectRegisterObservationStatus422 = unknown;
+export type EregisterCorrectRegisterObservationStatus422 =
+  | EregisterValidationError
+  | ValidationErrorResponse;
 
 /**
  * @description The replacement for an observation; station, kind and time are kept.

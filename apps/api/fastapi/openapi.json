@@ -42737,7 +42737,22 @@
             }
           },
           "422": {
-            "description": "The SYNOP workbook has errors; see `detail.issues`"
+            "description": "The SYNOP workbook has errors (see `detail.issues`), or the request is malformed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/EregisterValidationError"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ValidationErrorResponse"
+                    }
+                  ],
+                  "title": "Response 422 Eregistercreateregisterobservation"
+                }
+              }
+            }
           },
           "401": {
             "description": "Missing or invalid credentials",
@@ -42902,7 +42917,22 @@
             }
           },
           "422": {
-            "description": "The SYNOP workbook has errors; see `detail.issues`"
+            "description": "The SYNOP workbook has errors (see `detail.issues`), or the request is malformed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/EregisterValidationError"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ValidationErrorResponse"
+                    }
+                  ],
+                  "title": "Response 422 Eregistercorrectregisterobservation"
+                }
+              }
+            }
           },
           "401": {
             "description": "Missing or invalid credentials",
@@ -42996,7 +43026,22 @@
             }
           },
           "422": {
-            "description": "Observation does not pass validation"
+            "description": "Observation does not pass validation, or the request is malformed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/ApiError"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ValidationErrorResponse"
+                    }
+                  ],
+                  "title": "Response 422 Eregisteremailregisterobservation"
+                }
+              }
+            }
           },
           "401": {
             "description": "Missing or invalid credentials",
@@ -43090,7 +43135,22 @@
             }
           },
           "422": {
-            "description": "Observation does not pass validation"
+            "description": "Observation does not pass validation, or the request is malformed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/ApiError"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ValidationErrorResponse"
+                    }
+                  ],
+                  "title": "Response 422 Eregisterpublishregisterobservation"
+                }
+              }
+            }
           },
           "401": {
             "description": "Missing or invalid credentials",
@@ -43184,7 +43244,22 @@
             }
           },
           "422": {
-            "description": "Missing reason, or the observation fails validation"
+            "description": "The SYNOP workbook has errors (see `detail.issues`), or the request is malformed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/EregisterValidationError"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ValidationErrorResponse"
+                    }
+                  ],
+                  "title": "Response 422 Eregisteracceptregisterobservation"
+                }
+              }
+            }
           },
           "401": {
             "description": "Missing or invalid credentials",
@@ -43279,7 +43354,22 @@
             }
           },
           "422": {
-            "description": "Missing reason, or the observation fails validation"
+            "description": "Missing reason or note, or the request is malformed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/ApiError"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ValidationErrorResponse"
+                    }
+                  ],
+                  "title": "Response 422 Eregisterreviewregisterobservation"
+                }
+              }
+            }
           },
           "401": {
             "description": "Missing or invalid credentials",
@@ -43373,7 +43463,22 @@
             }
           },
           "422": {
-            "description": "Missing reason, or the observation fails validation"
+            "description": "Missing reason or note, or the request is malformed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/ApiError"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ValidationErrorResponse"
+                    }
+                  ],
+                  "title": "Response 422 Eregisterrejectregisterobservation"
+                }
+              }
+            }
           },
           "401": {
             "description": "Missing or invalid credentials",
@@ -43467,7 +43572,22 @@
             }
           },
           "422": {
-            "description": "Missing reason, or the observation fails validation"
+            "description": "Missing reason or note, or the request is malformed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/ApiError"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ValidationErrorResponse"
+                    }
+                  ],
+                  "title": "Response 422 Eregisterreopenregisterobservation"
+                }
+              }
+            }
           },
           "401": {
             "description": "Missing or invalid credentials",
@@ -75805,6 +75925,19 @@
           "production"
         ]
       },
+      "EregisterValidationError": {
+        "properties": {
+          "detail": {
+            "$ref": "#/components/schemas/SynopValidationErrorDetail"
+          }
+        },
+        "type": "object",
+        "required": [
+          "detail"
+        ],
+        "title": "EregisterValidationError",
+        "description": "422 body when a SYNOP workbook fails validation on save, correct or accept."
+      },
       "ErrorMessage": {
         "properties": {
           "error": {
@@ -101956,6 +102089,30 @@
         "type": "object",
         "title": "SynopDecoded",
         "description": "SI values decoded from the coded groups; missing or unobserved is null."
+      },
+      "SynopValidationErrorDetail": {
+        "properties": {
+          "message": {
+            "type": "string",
+            "title": "Message",
+            "description": "Summary naming the first few errors, for a banner or toast."
+          },
+          "issues": {
+            "items": {
+              "$ref": "#/components/schemas/SynopValidationIssue"
+            },
+            "type": "array",
+            "title": "Issues",
+            "description": "Every issue found; at least one has severity `error`."
+          }
+        },
+        "type": "object",
+        "required": [
+          "message",
+          "issues"
+        ],
+        "title": "SynopValidationErrorDetail",
+        "description": "Why a SYNOP was refused: a summary and every issue, warnings included."
       },
       "SynopValidationIssue": {
         "properties": {

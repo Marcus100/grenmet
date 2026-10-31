@@ -501,7 +501,8 @@ those optional fields; they do not change application route definitions.
 Documented error bodies: every documented 4xx except 422 names a body schema in
 the OpenAPI document. `ApiError` (`detail: string`) covers 400, 401, 403, 404 and
 409. A 429 documents `ApiError | ErrorMessage` (`error: string`) because the
-rate limiter and the account lockout answer with different keys. Shared
+rate limiter and the account lockout answer with different keys. eRegister
+observation routes name their 422 bodies too (see eRegister below). Shared
 constants live in `src/openapi_responses.py`; `tests/test_error_response_bodies.py`
 pins the runtime bodies. The `AuthoringError` model on wxproducts authoring
 routes allows `detail` to be a list, which the runtime never sends; it is kept
@@ -2230,8 +2231,15 @@ warnings included) and `actor_name` (who recorded it).
 
 `POST /observations` validates a SYNOP: errors (including a keyed day or hour that
 differs from `observed_at` in UTC) are `422` with `detail.message` and
-`detail.issues`; warnings pass. There is one live observation per station, time
-and kind (partial unique index): saving again as the observer of an unsent draft
+`detail.issues` (`EregisterValidationError`; the same body on `correct` and
+`accept`); warnings pass. On those routes the 422 is documented as
+`EregisterValidationError | ValidationErrorResponse`, since a malformed request
+answers the request validation body instead. Review, reject, reopen, email and
+publish document `ApiError | ValidationErrorResponse`, because their 422 detail
+is a string.
+
+There is one live observation per station, time and kind (partial unique
+index): saving again as the observer of an unsent draft
 updates it in place (`200`, same `id`); otherwise `409`.
 `POST .../{id}/correct` (body `{"body": {...}, "reason": "..."}`, `201`) saves a
 replacement that supersedes the observation (`supersedes_id`); the old row
