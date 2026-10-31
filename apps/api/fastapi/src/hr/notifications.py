@@ -50,6 +50,7 @@ REQUEST_TYPE_LABELS: dict[WorkflowType, str] = {
     WorkflowType.STATUS_REPORT: "Daily status report",
     WorkflowType.TIMESHEET: "Timesheet",
     WorkflowType.PARKING_PERMIT: "Parking permit",
+    WorkflowType.PAYROLL_RUN: "Payroll inputs",
 }
 
 # Where the requester follows up on their own request in gaa-admin.
@@ -62,6 +63,7 @@ REQUESTER_LINKS: dict[str, str] = {
     "attendance": "/hr/timesheet",
     "attendance_correction": "/hr/timesheet",
     "parking_permit": "/hr/parking",
+    "pay_period": "/hr/payroll",
 }
 APPROVALS_LINK = "/hr/approvals"
 
@@ -284,6 +286,14 @@ async def _summary(session: AsyncSession, instance: WorkflowInstance) -> str:
                 return f"Shift {assignment.shift_code} on {_day(assignment.assignment_date)}"
         case "parking_permit":
             return "Parking decal application"
+        case "pay_period":
+            from src.hr.payroll.models import PayPeriod
+
+            period = await session.get(PayPeriod, entity_id)
+            if period:
+                return (
+                    f"Pay period {_day(period.start_date)} to {_day(period.end_date)}"
+                )
     return REQUEST_TYPE_LABELS.get(instance.workflow_type, "Request")
 
 
@@ -429,6 +439,10 @@ async def workflow_transitioned(
     }
     requester = (instance.requested_by_user_id,)
     requester_link = REQUESTER_LINKS.get(instance.entity_type, "/hr")
+    # Payroll is approved on its own page (MFA), not in the approvals inbox.
+    approvals_link = (
+        requester_link if instance.entity_type == "pay_period" else APPROVALS_LINK
+    )
 
     async def notify(event_key: str, recipients: Any, link: str) -> None:
         await notification_service.notify(
@@ -444,7 +458,7 @@ async def workflow_transitioned(
         await notify(
             "workflow.step_awaiting",
             await pending_approvers(session, instance),
-            APPROVALS_LINK,
+            approvals_link,
         )
         if instance.entity_type == "shift_swap":
             swap = await session.get(ShiftSwapRequest, instance.entity_id)
@@ -462,7 +476,7 @@ async def workflow_transitioned(
         await notify(
             "workflow.step_awaiting",
             await pending_approvers(session, instance),
-            APPROVALS_LINK,
+            approvals_link,
         )
     elif status == WorkflowStatus.APPROVED:
         await notify("workflow.approved", requester, requester_link)

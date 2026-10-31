@@ -258,6 +258,7 @@ async def create_workflow_instance(
         "timesheet",
         "attendance",
         "attendance_correction",
+        "pay_period",
     }:
         raise HRValidationError(
             "Submit the HR form to create its authoritative approval workflow"
@@ -270,14 +271,16 @@ async def create_workflow_instance(
     from src.baseline.models import ApprovalPolicy
     from src.baseline.service import require_ready
 
-    await require_ready(
-        session,
-        current_user.id,
-        workflow_template.department_id,
-        own_prior_department=_is_attendance_review(
-            instance_in.entity_type, workflow_template.workflow_type
-        ),
-    )
+    # A pay period's requester is its preparer, not the record's subject.
+    if instance_in.entity_type != "pay_period":
+        await require_ready(
+            session,
+            current_user.id,
+            workflow_template.department_id,
+            own_prior_department=_is_attendance_review(
+                instance_in.entity_type, workflow_template.workflow_type
+            ),
+        )
     policy = await session.get(
         ApprovalPolicy,
         f"hr:{workflow_template.department_id}:{workflow_template.workflow_type.value}",
@@ -523,6 +526,10 @@ async def apply_workflow_action(
         workflow_instance_id=workflow_instance_id,
         current_user=current_user if require_actor_permission else None,
     )
+    if require_actor_permission and workflow_instance.entity_type == "pay_period":
+        # Payroll approval needs hr.payroll.approve and a two-step-verified
+        # session; only the payroll routes check both, so act there.
+        raise HRPermissionDeniedError("Approve or return payroll from the payroll page")
 
     if (
         workflow_instance.entity_type == "shift_swap"
@@ -659,14 +666,17 @@ async def apply_workflow_action(
         from src.baseline.models import ApprovalPolicy
         from src.baseline.service import require_leave_ready, require_ready
 
-        await require_ready(
-            session,
-            workflow_instance.requested_by_user_id,
-            workflow_instance.department_id,
-            own_prior_department=_is_attendance_review(
-                workflow_instance.entity_type, workflow_instance.workflow_type
-            ),
-        )
+        # A pay period's requester is its preparer, not a subject of the record:
+        # they need not be set-up staff of the approving department.
+        if workflow_instance.entity_type != "pay_period":
+            await require_ready(
+                session,
+                workflow_instance.requested_by_user_id,
+                workflow_instance.department_id,
+                own_prior_department=_is_attendance_review(
+                    workflow_instance.entity_type, workflow_instance.workflow_type
+                ),
+            )
         if workflow_instance.entity_type == "leave_request":
             from src.hr.leave.models import LeaveRequest
 
@@ -904,6 +914,7 @@ async def apply_workflow_action(
                 "status_report",
                 "parking_permit",
                 "timesheet",
+                "pay_period",
             }
         )
     ):
