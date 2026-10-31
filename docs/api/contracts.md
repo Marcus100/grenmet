@@ -62,9 +62,11 @@ tax, NIS or bank field exists in any request, response or export.
   scope; approve and export also need an MFA-verified session (403 otherwise). A
   period outside the caller's payroll access is 404. Generic workflow action and
   instance-create routes refuse `pay_period` entities.
-- Separation of duty: whoever submitted a period or added any line to it cannot
-  approve or return it, and nobody adds pay lines for themselves or edits their
-  own pay profile (403). Payroll responses send `Cache-Control: no-store`.
+- Separation of duty: whoever submitted a period, added any line to it, has
+  their own pay in it, or changed a pay profile or shift-worker default it relies
+  on cannot approve or return it (403); nobody adds pay lines for themselves or
+  edits their own pay profile. Hand-entered overtime band lines that duplicate
+  bands the roster now computes stop a recompute (409) until removed. Payroll responses send `Cache-Control: no-store`.
   Payroll change history (`/audit/pay_period/...`, `/audit/payroll_settings/...`)
   needs organisation-wide prepare or approve; department scope never reads it.
 - `WorkflowType` gains `PAYROLL_RUN` (additive; clients should render unknown

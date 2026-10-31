@@ -257,13 +257,16 @@ deployments.
 
 ### Later: allow 80/443 only from Cloudflare
 
-Only after the web DNS records are switched to **Proxied** (orange cloud) in
-Cloudflare, replace "All IPv4/IPv6" on 80 and 443 with Cloudflare's published
-ranges from [cloudflare.com/ips](https://www.cloudflare.com/ips/). **Why:** stops
-people bypassing Cloudflare by hitting the droplet directly. **Unverified:**
-Let's Encrypt HTTP validation will then fail unless Traefik switches to a DNS
-challenge or Cloudflare origin certificates; plan that change first. The ranges
-change occasionally; re-check them every quarter.
+Only after every web DNS record on the droplet is switched to **Proxied** (orange
+cloud) in Cloudflare, limit 80 and 443 to Cloudflare's published ranges with
+`scripts/production/cloudflare-origin-firewall.py` (plan by default, `--apply` to
+change, `--restore-open` to undo). **Why:** stops people bypassing Cloudflare by
+hitting the droplet directly. It must change together with Traefik's trusted
+ranges, the visitor hop count and the certificate challenge
+(`CLOUDFLARE_PROXY_ENABLED`): follow the
+[Cloudflare proxy runbook](cloudflare-proxy.md). Certificates keep renewing
+through Cloudflare over the HTTP challenge. The ranges change occasionally;
+re-check them every quarter with `scripts/production/cloudflare_ranges.py --check`.
 
 ### Verify
 

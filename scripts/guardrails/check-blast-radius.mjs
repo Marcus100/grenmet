@@ -241,6 +241,36 @@ const janitorialUnsectionedAreaChange = (comparison) => {
 
 // Only isolate the existing CAP advisory session. Route declarations, request
 // fields and response types must remain identical for this exception to apply.
+// Sign-in sessions record the visitor behind Cloudflare's proxy (#859): the
+// legacy login router takes the session address from src.rate_limit.request_ip
+// instead of request.client.host. Session metadata is never part of a request
+// or response model, so the OpenAPI contract is unaffected. Only this exact
+// edit is exempt; anything else in login.py keeps the companion gate.
+const loginRequestIpChange = (comparison) => {
+  const file = "apps/api/fastapi/src/auth/routers/login.py";
+  const refs =
+    comparison.mode === "staged"
+      ? [`HEAD:${file}`, `:${file}`]
+      : [`${comparison.base}:${file}`, `${comparison.head}:${file}`];
+  const versions = refs.map((ref) =>
+    spawnSync("git", ["show", ref], { encoding: "utf8" })
+  );
+  if (versions.some((result) => result.error || result.status !== 0))
+    return false;
+  const before = versions[0].stdout;
+  const after = versions[1].stdout;
+  const expected = before
+    .replace(
+      "from src.rate_limit import limiter\n",
+      "from src.rate_limit import limiter, request_ip\n"
+    )
+    .replace(
+      "    ip_address = request.client.host if request.client else None\n",
+      "    ip_address = request_ip(request)\n"
+    );
+  return before !== after && expected === after;
+};
+
 const wxproductsAdvisorySessionChange = (comparison) => {
   const file = "apps/api/fastapi/src/wxproducts/router.py";
   const refs =
@@ -483,6 +513,8 @@ const evaluateChanges = (changes, comparison) => {
             janitorialUnsectionedAreaChange(comparison)) ||
           (file === "apps/api/fastapi/src/wxproducts/router.py" &&
             wxproductsAdvisorySessionChange(comparison)) ||
+          (file === "apps/api/fastapi/src/auth/routers/login.py" &&
+            loginRequestIpChange(comparison)) ||
           (file === "apps/api/fastapi/src/webhooks/router.py" &&
             hiddenWebhookImplementationChange(comparison))
         )

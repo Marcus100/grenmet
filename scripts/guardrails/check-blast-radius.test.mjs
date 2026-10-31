@@ -669,3 +669,47 @@ for (const suffix of ["", "app.include_router(new_router)\n"]) {
     );
   });
 }
+
+const LOGIN_ROUTER = `from src.rate_limit import limiter
+
+def _request_metadata(request: Request) -> tuple[str | None, str | None]:
+    user_agent = request.headers.get("user-agent")
+    ip_address = request.client.host if request.client else None
+    return user_agent, ip_address
+
+async def login_session(request: Request, body: SessionLoginRequest) -> SessionResponse:
+    pass
+`;
+const LOGIN_ROUTER_VISITOR_IP = LOGIN_ROUTER.replace(
+  "from src.rate_limit import limiter\n",
+  "from src.rate_limit import limiter, request_ip\n"
+).replace(
+  "    ip_address = request.client.host if request.client else None\n",
+  "    ip_address = request_ip(request)\n"
+);
+
+test("the exact sign-in visitor address fix passes staged and CI range checks", (t) => {
+  const file = "apps/api/fastapi/src/auth/routers/login.py";
+  const { base, repository } = createRepository(t, { [file]: LOGIN_ROUTER });
+  write(repository, file, LOGIN_ROUTER_VISITOR_IP);
+  git(repository, "add", file);
+  const staged = check(repository, ["--staged"]);
+  assert.equal(staged.status, 0, staged.stderr);
+  const head = commit(repository);
+  const range = check(repository, ["--base", base, "--head", head]);
+  assert.equal(range.status, 0, range.stderr);
+});
+
+test("the sign-in visitor address fix with a response change still requires companions", (t) => {
+  const file = "apps/api/fastapi/src/auth/routers/login.py";
+  const { repository } = createRepository(t, { [file]: LOGIN_ROUTER });
+  write(
+    repository,
+    file,
+    LOGIN_ROUTER_VISITOR_IP.replace("-> SessionResponse:", "-> NewSession:")
+  );
+  git(repository, "add", file);
+  const staged = check(repository, ["--staged"]);
+  assert.equal(staged.status, 1);
+  assert.match(staged.stderr, /FastAPI contract companions/);
+});
