@@ -55,8 +55,11 @@ async def app_exception_handler(
     exc: AppException,
 ) -> JSONResponse:
     """Handle application exceptions."""
-    content: dict[str, object] = ApiError(detail=exc.message).model_dump()
-    content.update(exc.extra)
+    # Extra fields never replace the stable ``detail``.
+    content: dict[str, object] = {
+        **exc.extra,
+        **ApiError(detail=exc.message).model_dump(),
+    }
     return JSONResponse(status_code=exc.status_code, content=content)
 
 

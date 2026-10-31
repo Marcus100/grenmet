@@ -42,4 +42,8 @@ export type AttendanceCorrectionCreate = {
    * @type string
    */
   reason: string;
+  /**
+   * @description Required to save a change that breaks a roster rule; recorded with the supervisor, the time and the rules overridden.
+   */
+  rule_override_reason?: string | null;
 };

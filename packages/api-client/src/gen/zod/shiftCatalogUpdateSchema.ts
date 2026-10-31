@@ -12,6 +12,7 @@ export const shiftCatalogUpdateSchema = z.object({
   start_time: z.union([z.string().max(5), z.null()]).optional(),
   end_time: z.union([z.string().max(5), z.null()]).optional(),
   ends_next_day: z.union([z.boolean(), z.null()]).optional(),
+  break_minutes: z.union([z.int().min(0).max(240), z.null()]).optional(),
   counts_as_work_hours: z.union([z.boolean(), z.null()]).optional(),
   needs_reason: z.union([z.boolean(), z.null()]).optional(),
   needs_approval: z.union([z.boolean(), z.null()]).optional(),

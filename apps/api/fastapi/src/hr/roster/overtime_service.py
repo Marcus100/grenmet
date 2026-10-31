@@ -6,12 +6,14 @@ docs/hr/roster-rules.md for the proposed snapshot at approval).
 
 What counts as overtime:
 - Attendance: time worked before the scheduled start or after the scheduled end.
-  The whole attendance is overtime when the employee was called in on a rostered
-  day off (the published roster had a non-work code for that day), or for a
-  non-shift employee on a Saturday, Sunday or public holiday.
+  The whole attendance, less its unpaid break, is overtime on a public holiday
+  (owner, 2026-10-31, Art. 6), when the employee was called in on a rostered day off
+  (the published roster had a non-work code for that day), and for non-shift staff
+  on a Saturday or Sunday.
 - Timesheet entries: ``overtime_hours`` as an extension right after the shift
   ends, or from the Saturday window start (08:00 by default) when the day had no
-  timed shift.
+  timed shift. On those whole-day days the rostered shift's worked hours (span
+  minus break) count first, from the shift start.
 
 Staff not covered by the union agreement get no bands.
 """
@@ -27,7 +29,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from src.utils.timezones import GRENADA
 
 from . import rule_service
-from .expansion import expand_shift
+from .expansion import expand_shift, worked_shift_hours
 from .models import (
     PublicHoliday,
     RosterAssignment,
@@ -165,9 +167,12 @@ class _Context:
 def _whole_day(
     *, non_shift: bool, called_in: bool, day: date, holidays: set[date]
 ) -> bool:
-    if called_in:
+    """The whole worked shift is overtime: on a public holiday for everyone
+    (owner, 2026-10-31, Art. 6), when called in on a rostered day off, and for
+    non-shift staff on a Saturday or Sunday."""
+    if called_in or day in holidays:
         return True
-    return non_shift and (day.weekday() >= 5 or day in holidays)
+    return non_shift and day.weekday() >= 5
 
 
 async def attendance_bands(
@@ -222,7 +227,10 @@ async def attendance_bands(
             day=assignment.assignment_date,
             holidays=ctx.holidays,
         ):
-            spells = [OvertimeSpell(arrived, departed)]
+            # The unpaid break is not worked: the recorded one, or the shift's.
+            unpaid = record.break_minutes or shift.break_minutes or 0
+            end = max(arrived, departed - timedelta(minutes=unpaid))
+            spells = [OvertimeSpell(arrived, end)]
         else:
             spells = []
             if arrived < scheduled_start:
@@ -247,15 +255,15 @@ async def timesheet_bands(
     department_id: str,
     entries: Sequence[object],
 ) -> dict[uuid.UUID, list[OvertimeBand]]:
-    """Bands per timesheet entry id for entries with overtime hours."""
+    """Bands per timesheet entry id: entries with overtime hours, and rostered
+    work on a day where the whole shift is overtime (a public holiday, or a
+    Saturday or Sunday for non-shift staff)."""
     from src.hr.timesheet.models import TimesheetEntry
 
-    with_overtime = [
-        e for e in entries if isinstance(e, TimesheetEntry) and e.overtime_hours > 0
-    ]
-    if not with_overtime:
+    rows = [e for e in entries if isinstance(e, TimesheetEntry)]
+    if not rows:
         return {}
-    dates = [e.entry_date for e in with_overtime]
+    dates = [e.entry_date for e in rows]
     ctx = _Context()
     await ctx.load(
         session,
@@ -283,7 +291,7 @@ async def timesheet_bands(
             )
         ).all()
     }
-    codes = {e.shift_code for e in with_overtime if e.shift_code}
+    codes = {e.shift_code for e in rows if e.shift_code}
     catalogue = {
         s.code: s
         for s in await session.scalars(
@@ -291,23 +299,38 @@ async def timesheet_bands(
         )
     }
     result: dict[uuid.UUID, list[OvertimeBand]] = {}
-    for entry in with_overtime:
+    for entry in rows:
         shift = rostered.get(entry.entry_date) or catalogue.get(entry.shift_code or "")
-        worked_shift = shift is not None and shift.category == ShiftCategory.WORK
         interval = (
             expand_shift(entry.entry_date, shift)
-            if shift is not None and worked_shift
+            if shift is not None
+            and shift.category == ShiftCategory.WORK
+            and shift.counts_as_work_hours
             else None
         )
-        spell = extension_spell(
-            interval[1] if interval else None,
-            entry.entry_date,
-            Decimal(entry.overtime_hours),
-            day_start=rules.overtime.saturday_window_start,
+        extra = Decimal(entry.overtime_hours)
+        whole_day = interval is not None and _whole_day(
+            non_shift=non_shift,
+            called_in=False,
+            day=entry.entry_date,
+            holidays=ctx.holidays,
         )
-        if spell is None:
-            continue
-        day_off = not non_shift and not worked_shift
+        if whole_day and interval is not None and shift is not None:
+            worked = (worked_shift_hours(shift) or Decimal(0)) + extra
+            spell = OvertimeSpell(
+                interval[0], interval[0] + timedelta(seconds=float(worked * 3600))
+            )
+        else:
+            maybe = extension_spell(
+                interval[1] if interval else None,
+                entry.entry_date,
+                extra,
+                day_start=rules.overtime.saturday_window_start,
+            )
+            if maybe is None:
+                continue
+            spell = maybe
+        day_off = not non_shift and interval is None
         bands = band_overtime(
             [spell],
             attributed_day=entry.entry_date,

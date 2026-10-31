@@ -47,6 +47,9 @@ class ShiftCatalog(Base):
     start_time: Mapped[str | None] = mapped_column(String(5), nullable=True)
     end_time: Mapped[str | None] = mapped_column(String(5), nullable=True)
     ends_next_day: Mapped[bool] = mapped_column(default=False)
+    # Unpaid break inside the shift (#380): worked hours are the span minus this,
+    # for the roster hour limits and overtime bands. GMS M and E carry 30.
+    break_minutes: Mapped[int] = mapped_column(default=0, server_default=sa.text("0"))
     counts_as_work_hours: Mapped[bool] = mapped_column(default=True)
     needs_reason: Mapped[bool] = mapped_column(default=False)
     needs_approval: Mapped[bool] = mapped_column(default=False)

@@ -5,7 +5,11 @@ from fastapi import APIRouter, Response, status
 from src.dependencies import CurrentUser, SessionDep
 from src.hr.dependencies import ShiftSwapDep
 from src.hr.filenames import preview_filename
-from src.hr.roster.schemas import RosterRulesPublic, violation_public
+from src.hr.roster.schemas import (
+    RosterRulesPublic,
+    violation_public,
+    with_rule_warnings,
+)
 from src.hr.submission import submission_list, submission_public
 from src.models import ApiError
 from src.openapi_responses import AUTHENTICATED
@@ -218,21 +222,23 @@ async def delete_shift_swap(
     response_model=ShiftSwapRequestPublic,
     summary="Action shift swap request",
     description="Approve or reject a shift swap request. Requires shift_swap.request.action and scope over the requesting user.",
-    responses={
-        status.HTTP_200_OK: {"description": "Shift swap request updated"},
-        status.HTTP_403_FORBIDDEN: {
-            "model": ApiError,
-            "description": "Not allowed to action this shift swap",
-        },
-        status.HTTP_404_NOT_FOUND: {
-            "model": ApiError,
-            "description": "Shift swap request not found",
-        },
-        status.HTTP_400_BAD_REQUEST: {
-            "model": ApiError,
-            "description": "Invalid stage action or changed roster",
-        },
-    },
+    responses=with_rule_warnings(
+        {
+            status.HTTP_200_OK: {"description": "Shift swap request updated"},
+            status.HTTP_403_FORBIDDEN: {
+                "model": ApiError,
+                "description": "Not allowed to action this shift swap",
+            },
+            status.HTTP_404_NOT_FOUND: {
+                "model": ApiError,
+                "description": "Shift swap request not found",
+            },
+            status.HTTP_400_BAD_REQUEST: {
+                "model": ApiError,
+                "description": "Invalid stage action or changed roster",
+            },
+        }
+    ),
 )
 async def action_shift_swap(
     *,

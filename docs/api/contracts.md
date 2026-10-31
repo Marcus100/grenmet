@@ -1085,11 +1085,16 @@ fails if a key used in code is missing from the catalog). Routers:
 | `GET /api/v1/hr/rosters/departments/{department_id}/rule-overrides` | `roster.rules.manage` or `roster.manage` in scope | Saves made despite warnings: who, when, rules, reason |
 | `GET /api/v1/hr/rosters/departments/{department_id}/rules` (deprecated) | read `roster.view`; write `roster.rules.manage` | Old shape mapped onto the rule set: consecutive days and weekly hours; `min_rest_hours` is always null |
 
-Publish (`PATCH .../periods/{id}/publish`; the body is optional and an omitted body means no reason), published-roster edits
-(`POST .../assignments/bulk`), shift-exchange actions and workflow actions
-(`POST /hr/workflows/instances/{id}/actions`) accept `rule_override_reason`. Without
-it, a change that breaks a rule fails with 409 and `RosterRuleWarningsErrorPublic`
-(`detail`, `code: ROSTER_RULE_WARNINGS`, `context`, `violations`). Attendance week
+`rule_override_reason` is accepted by publish (`PATCH .../periods/{id}/publish`; the
+body is optional and an omitted body means no reason), published-roster edits
+(`POST .../assignments/bulk`), CSV and grid import, shift-exchange actions, workflow
+actions (`POST /hr/workflows/instances/{id}/actions`), leave actions, timesheet submit
+and approve (`PATCH /hr/timesheets/{id}/approve`, optional body), attendance submit and
+attendance corrections. Without it, a change that breaks a rule fails with 409 and
+`RosterRuleWarningsErrorPublic`; that model is a superset of `ApiError` (`detail`,
+plus `code: ROSTER_RULE_WARNINGS`, `context` and `violations` for rule warnings), so
+ordinary 409s on those routes keep their shape. A reason containing NUL is a 422.
+Shift definitions carry `break_minutes` (unpaid break, 0 to 240). Attendance week
 rows, timesheet entries and the timesheet summary carry `overtime_bands` (rate and
 hours, no pay). Details: `docs/hr/roster-rules.md`.
 

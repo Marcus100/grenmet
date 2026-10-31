@@ -185,6 +185,16 @@ def test_daily_limit_flags_long_shifts_only() -> None:
     assert violation.observed == Decimal("8.50")
 
 
+def test_unpaid_break_is_not_worked_time() -> None:
+    # GMS M and E: 8.5 h span with a 30-minute unpaid meal break = 8 h worked.
+    morning = _shift("M", "05:30", "14:00")
+    morning.break_minutes = 30
+    rules = RosterRules(shift_daily_hours=Decimal(8), shift_weekly_hours=Decimal(40))
+    week = [_on(USER, day, morning) for day in range(4, 9)]  # Sun 4 - Thu 8
+    assert check_roster_rules(week, rules) == []
+    assert week[0].hours == Decimal("8.00")
+
+
 def test_overnight_hours_count_on_the_start_date() -> None:
     [violation] = check_roster_rules(
         [_on(USER, 7, NIGHT)], RosterRules(shift_daily_hours=Decimal(7))

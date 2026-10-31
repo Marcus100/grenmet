@@ -12,5 +12,7 @@ export const shiftSwapActionSchema = z.object({
   rule_override_reason: z
     .union([z.string().max(1000), z.null()])
     .optional()
-    .describe("Required to approve an exchange that breaks a roster rule."),
+    .describe(
+      "Required to save a change that breaks a roster rule; recorded with the supervisor, the time and the rules overridden."
+    ),
 });

@@ -43,7 +43,7 @@ from src.hr.models import Department, EmploymentRecord, EmploymentStatus, Reques
 from src.hr.workflow.models import WorkflowInstance, WorkflowStatus
 from src.utils.datetime import utc_now
 
-from .expansion import expand_shift
+from .expansion import expand_shift, validate_break
 from .grid import parse_grid, resolve_user
 from .holidays import MAX_YEAR, MIN_YEAR, PROVISIONAL_SOURCE, provisional_holidays
 from .models import (
@@ -547,6 +547,13 @@ def _default_shift_flags(category: ShiftCategory) -> dict[str, bool]:
     }
 
 
+def _check_break(shift: ShiftCatalog) -> None:
+    try:
+        validate_break(shift)
+    except ValueError as exc:
+        raise HRValidationError(str(exc)) from exc
+
+
 async def create_shift(
     *, session: AsyncSession, current_user: User, shift_in: ShiftCatalogCreate
 ) -> ShiftCatalog:
@@ -560,6 +567,7 @@ async def create_shift(
         if data.get(key) is None:
             data[key] = default_value
     db_shift = ShiftCatalog(**data)
+    _check_break(db_shift)
     session.add(db_shift)
     await session.commit()
     await session.refresh(db_shift)
@@ -610,6 +618,7 @@ async def update_shift(
             )
     for key, value in changes.items():
         setattr(db_shift, key, value)
+    _check_break(db_shift)
     db_shift.updated_at = utc_now()
     session.add(db_shift)
     await session.commit()
@@ -1161,7 +1170,9 @@ async def import_roster_grid(
         session=session,
         current_user=current_user,
         payload=RosterAssignmentBulkCreate(
-            roster_period_id=period.id, assignments=assignments
+            roster_period_id=period.id,
+            assignments=assignments,
+            rule_override_reason=payload.rule_override_reason,
         ),
     )
 
@@ -1172,7 +1183,10 @@ async def import_roster_grid(
 
         try:
             await publish_roster_period(
-                session=session, current_user=current_user, period_id=period.id
+                session=session,
+                current_user=current_user,
+                period_id=period.id,
+                rule_override_reason=payload.rule_override_reason,
             )
             published = True
         except RosterRuleWarningsError as warnings:
@@ -1240,7 +1254,9 @@ async def import_roster_csv(
             session=session,
             current_user=current_user,
             payload=RosterAssignmentBulkCreate(
-                roster_period_id=payload.roster_period_id, assignments=assignments
+                roster_period_id=payload.roster_period_id,
+                assignments=assignments,
+                rule_override_reason=payload.rule_override_reason,
             ),
             permission_key="roster.import",
             commit=False,

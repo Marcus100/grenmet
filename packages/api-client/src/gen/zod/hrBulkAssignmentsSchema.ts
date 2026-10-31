@@ -28,7 +28,7 @@ export const hrBulkAssignmentsStatus404Schema = apiErrorSchema.describe(
 
 export const hrBulkAssignmentsStatus409Schema =
   rosterRuleWarningsErrorPublicSchema.describe(
-    "409 body when a change breaks roster rules and no override reason was\ngiven. Resend the request with ``rule_override_reason`` to save anyway."
+    "409 body. An ordinary conflict carries only ``detail``. Roster rule\nwarnings add ``code: ROSTER_RULE_WARNINGS``, the ``context`` and the\n``violations``; resend with ``rule_override_reason`` to save anyway."
   );
 
 export const hrBulkAssignmentsStatus422Schema =

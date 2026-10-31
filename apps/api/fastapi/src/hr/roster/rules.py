@@ -26,7 +26,7 @@ from decimal import Decimal
 from enum import Enum
 from uuid import UUID
 
-from .expansion import shift_hours
+from .expansion import shift_hours, worked_shift_hours
 from .models import ShiftCatalog, WorkerType, WorkPattern
 
 _SATURDAY = 5
@@ -150,14 +150,14 @@ class RosterShift:
     assignment_date: date
     shift: ShiftCatalog
     #: Hours actually worked (attendance or timesheet overtime); None means the
-    #: catalogue duration.
+    #: catalogue span minus its unpaid break.
     worked_hours: Decimal | None = None
 
     @property
     def hours(self) -> Decimal | None:
         if self.worked_hours is not None:
             return self.worked_hours
-        return shift_hours(self.shift)
+        return worked_shift_hours(self.shift)
 
     @property
     def is_worked(self) -> bool:

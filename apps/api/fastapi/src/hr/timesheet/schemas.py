@@ -5,7 +5,7 @@ from decimal import Decimal
 from pydantic import Field, model_validator
 
 from src.hr.roster.models import RosterAvailability
-from src.hr.roster.schemas import OvertimeBandPublic
+from src.hr.roster.schemas import OverrideReason, OvertimeBandPublic
 from src.hr.signatures.schemas import SignatureConsent
 from src.models import BaseModel, UtcDateTime
 
@@ -123,6 +123,11 @@ class TimesheetDetails(BaseModel):
 
 class TimesheetSubmitRequest(SignatureConsent):
     mode: SubmissionMode = SubmissionMode.SELF
+    rule_override_reason: OverrideReason = None
+
+
+class TimesheetApproveRequest(BaseModel):
+    rule_override_reason: OverrideReason = None
 
 
 class TimesheetListPublic(BaseModel):

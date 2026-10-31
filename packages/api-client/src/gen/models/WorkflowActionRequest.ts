@@ -10,7 +10,7 @@ export type WorkflowActionRequest = {
   action: WorkflowAction;
   comments?: string | null;
   /**
-   * @description Required when the final approval (or a cancellation) breaks a roster rule; recorded with the approver and the rules overridden.
+   * @description Required to save a change that breaks a roster rule; recorded with the supervisor, the time and the rules overridden.
    */
   rule_override_reason?: string | null;
 };

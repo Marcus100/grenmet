@@ -7,4 +7,10 @@ import * as z from "zod";
 
 export const attendanceSubmitSchema = z.object({
   expected_revision: z.int().min(1),
+  rule_override_reason: z
+    .union([z.string().max(1000), z.null()])
+    .optional()
+    .describe(
+      "Required to save a change that breaks a roster rule; recorded with the supervisor, the time and the rules overridden."
+    ),
 });

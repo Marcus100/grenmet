@@ -551,6 +551,7 @@ async def test_attendance_overtime_and_bands(db_async: AsyncSession) -> None:
             db_async,
             record=record,
             hours=Decimal(14),
+            breaks_recorded=False,
             actor_id=manager.id,
             reason=None,
             entity_type="attendance",
@@ -634,6 +635,55 @@ async def test_timesheet_bands_on_a_public_holiday(db_async: AsyncSession) -> No
     bands = await overtime_service.timesheet_bands(
         db_async, user_id=manager.id, department_id=DEPT, entries=[entry]
     )
-    # 16:00 to 02:00: eight holiday hours at 2x, then two hours after midnight
-    # on an ordinary Tuesday, also at 2x.
-    assert _band_map(bands[entry.id]) == {"2": "10.00"}
+    # On a public holiday the whole rostered shift is overtime (Art. 6): the
+    # 8 h D shift plus 10 h overtime run 08:00 to 02:00. Holiday hours: 8 at 2x,
+    # then 8 at 3x; the 2 h after midnight on an ordinary Tuesday are 2x.
+    assert _band_map(bands[entry.id]) == {"2": "10.00", "3": "8.00"}
+
+
+async def test_holiday_shift_is_all_overtime_less_the_unpaid_break(
+    db_async: AsyncSession,
+) -> None:
+    manager = await _manager(db_async)
+    morning = await db_async.get(ShiftCatalog, "M")
+    assert morning is not None
+    morning.break_minutes = 30
+    db_async.add(
+        PublicHoliday(
+            name="Test holiday", holiday_date=FAR, created_by_user_id=manager.id
+        )
+    )
+    period = await _published(db_async, manager, {FAR: "M"})
+    assignment = await db_async.scalar(
+        select(RosterAssignment).where(RosterAssignment.roster_period_id == period.id)
+    )
+    assert assignment is not None
+    record = AttendanceRecord(
+        roster_assignment_id=assignment.id,
+        user_id=manager.id,
+        department_id=DEPT,
+        arrived_at=_utc(FAR, 5, 30),
+        departed_at=_utc(FAR, 14),
+    )
+    db_async.add(record)
+    await db_async.commit()
+    bands = await overtime_service.attendance_bands(
+        db_async, [(assignment, period, morning, record)]
+    )
+    # 8.5 h span less the 30-minute unpaid break: 8 worked hours, all at 2x.
+    assert _band_map(bands[assignment.id]) == {"2": "8.00"}
+
+
+async def test_an_8_5_hour_shift_with_its_break_is_not_warned(
+    db_async: AsyncSession,
+) -> None:
+    manager = await _manager(db_async)
+    morning = await db_async.get(ShiftCatalog, "M")
+    assert morning is not None
+    morning.break_minutes = 30
+    await db_async.commit()
+    period = await _roster(db_async, manager, FAR, _run(FAR, 3, "M"))
+    _, _, violations = await check_period_rules(
+        session=db_async, current_user=manager, period_id=period.id
+    )
+    assert violations == []

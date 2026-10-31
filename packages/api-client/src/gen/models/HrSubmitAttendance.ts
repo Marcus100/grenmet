@@ -6,6 +6,7 @@
 import type { ApiError } from "./ApiError.js";
 import type { AttendanceShiftPublic } from "./AttendanceShiftPublic.js";
 import type { AttendanceSubmit } from "./AttendanceSubmit.js";
+import type { RosterRuleWarningsErrorPublic } from "./RosterRuleWarningsErrorPublic.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 
 export type HrSubmitAttendancePath = {
@@ -38,10 +39,12 @@ export type HrSubmitAttendanceStatus403 = ApiError;
 export type HrSubmitAttendanceStatus404 = ApiError;
 
 /**
- * @description Stable error envelope for documented API failures.
+ * @description 409 body. An ordinary conflict carries only ``detail``. Roster rule
+ * warnings add ``code: ROSTER_RULE_WARNINGS``, the ``context`` and the
+ * ``violations``; resend with ``rule_override_reason`` to save anyway.
  * @type object
  */
-export type HrSubmitAttendanceStatus409 = ApiError;
+export type HrSubmitAttendanceStatus409 = RosterRuleWarningsErrorPublic;
 
 /**
  * @description Validation error envelope returned for malformed requests.

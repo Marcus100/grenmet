@@ -1,10 +1,11 @@
+import re
 import uuid
 from datetime import date
 from decimal import Decimal
 from enum import Enum
 from typing import Annotated, Literal
 
-from pydantic import Field, model_validator
+from pydantic import AfterValidator, Field, model_validator
 
 from src.models import BaseModel, UtcDateTime
 
@@ -20,6 +21,36 @@ from .models import (
 )
 from .rules import RuleViolation
 
+_CONTROL = re.compile(r"[\x01-\x08\x0b-\x1f\x7f-\x9f]")
+
+
+def _clean_reason(value: str | None) -> str | None:
+    """A supervisor's override reason: NUL is refused (422), other control
+    characters are removed; newlines and tabs are kept."""
+    if value is None:
+        return None
+    if "\x00" in value:
+        raise ValueError("The reason contains a NUL character")
+    return _CONTROL.sub("", value)
+
+
+def clean_reason(value: str | None) -> str | None:
+    return _clean_reason(value)
+
+
+#: Optional reason to save a change that breaks roster rules (#380).
+OverrideReason = Annotated[
+    Annotated[str, Field(max_length=1000)] | None,
+    AfterValidator(_clean_reason),
+    Field(
+        default=None,
+        description=(
+            "Required to save a change that breaks a roster rule; recorded with "
+            "the supervisor, the time and the rules overridden."
+        ),
+    ),
+]
+
 
 class ShiftCatalogPublic(BaseModel):
     code: str
@@ -28,6 +59,9 @@ class ShiftCatalogPublic(BaseModel):
     start_time: str | None = None
     end_time: str | None = None
     ends_next_day: bool
+    break_minutes: int = Field(
+        default=0, description="Unpaid break inside the shift, in minutes."
+    )
     counts_as_work_hours: bool
     needs_reason: bool
     needs_approval: bool
@@ -46,6 +80,9 @@ class ShiftCatalogCreate(BaseModel):
     start_time: str | None = Field(default=None, max_length=5)
     end_time: str | None = Field(default=None, max_length=5)
     ends_next_day: bool = False
+    break_minutes: int = Field(
+        default=0, ge=0, le=240, description="Unpaid break inside the shift."
+    )
     # Advanced overrides — when None, the service derives them from the category.
     counts_as_work_hours: bool | None = None
     needs_reason: bool | None = None
@@ -60,6 +97,7 @@ class ShiftCatalogUpdate(BaseModel):
     start_time: str | None = Field(default=None, max_length=5)
     end_time: str | None = Field(default=None, max_length=5)
     ends_next_day: bool | None = None
+    break_minutes: int | None = Field(default=None, ge=0, le=240)
     counts_as_work_hours: bool | None = None
     needs_reason: bool | None = None
     needs_approval: bool | None = None
@@ -73,6 +111,7 @@ class RosterGridImportRequest(BaseModel):
     csv_text: str
     file_name: str = "roster.csv"
     publish: bool = False
+    rule_override_reason: OverrideReason = None
 
 
 class RosterGridPreview(BaseModel):
@@ -129,14 +168,7 @@ class RosterAssignmentInput(BaseModel):
 class RosterAssignmentBulkCreate(BaseModel):
     roster_period_id: uuid.UUID
     assignments: list[RosterAssignmentInput] = Field(default_factory=list)
-    rule_override_reason: str | None = Field(
-        default=None,
-        max_length=1000,
-        description=(
-            "Required to save a change to a published roster that breaks a roster "
-            "rule; recorded with the supervisor and the rules overridden."
-        ),
-    )
+    rule_override_reason: OverrideReason = None
 
 
 class RosterAssignmentPublic(BaseModel):
@@ -194,6 +226,8 @@ class RosterCsvValidationRequest(BaseModel):
     file_name: str = "roster.csv"
     roster_period_id: uuid.UUID | None = None
     csv_text: str
+    #: Used on import into a published roster; ignored by validation.
+    rule_override_reason: OverrideReason = None
 
 
 class RosterCsvRowValidation(BaseModel):
@@ -386,24 +420,40 @@ class RosterRuleSetPublic(RosterRuleSetUpdate):
 
 
 class RosterRuleWarningsErrorPublic(BaseModel):
-    """409 body when a change breaks roster rules and no override reason was
-    given. Resend the request with ``rule_override_reason`` to save anyway."""
+    """409 body. An ordinary conflict carries only ``detail``. Roster rule
+    warnings add ``code: ROSTER_RULE_WARNINGS``, the ``context`` and the
+    ``violations``; resend with ``rule_override_reason`` to save anyway."""
 
     detail: str
-    code: Literal["ROSTER_RULE_WARNINGS"] = "ROSTER_RULE_WARNINGS"
-    context: RuleOverrideContext
-    violations: list[RuleViolationPublic]
+    code: Literal["ROSTER_RULE_WARNINGS"] | None = None
+    context: RuleOverrideContext | None = None
+    violations: list[RuleViolationPublic] = Field(default_factory=list)
+
+
+def with_rule_warnings(
+    responses: dict[int | str, dict[str, object]],
+) -> dict[int | str, dict[str, object]]:
+    """Declare the 409 of a route that can return roster rule warnings, keeping
+    any conflict it already documents."""
+    existing = responses.get(409, {})
+    description = str(existing.get("description", "")).rstrip(".")
+    warning = (
+        "or the change breaks roster rules (code ROSTER_RULE_WARNINGS); resend "
+        "with rule_override_reason to save anyway"
+    )
+    return {
+        **responses,
+        409: {
+            "model": RosterRuleWarningsErrorPublic,
+            "description": f"{description}; {warning}"
+            if description
+            else warning.capitalize(),
+        },
+    }
 
 
 class RosterPublishRequest(BaseModel):
-    rule_override_reason: str | None = Field(
-        default=None,
-        max_length=1000,
-        description=(
-            "Required to publish a roster that breaks a roster rule; recorded with "
-            "the supervisor and the rules overridden."
-        ),
-    )
+    rule_override_reason: OverrideReason = None
 
 
 class RosterRuleProfilePublic(BaseModel):

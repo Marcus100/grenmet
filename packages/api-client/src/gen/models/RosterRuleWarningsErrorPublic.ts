@@ -7,21 +7,14 @@ import type { RuleOverrideContext } from "./RuleOverrideContext.js";
 import type { RuleViolationPublic } from "./RuleViolationPublic.js";
 
 /**
- * @description 409 body when a change breaks roster rules and no override reason was
- * given. Resend the request with ``rule_override_reason`` to save anyway.
+ * @description 409 body. An ordinary conflict carries only ``detail``. Roster rule
+ * warnings add ``code: ROSTER_RULE_WARNINGS``, the ``context`` and the
+ * ``violations``; resend with ``rule_override_reason`` to save anyway.
  * @type object
  */
 export type RosterRuleWarningsErrorPublic = {
   detail: string;
-  /**
-   * @default 'ROSTER_RULE_WARNINGS'
-   * @type string | undefined
-   */
-  code?: "ROSTER_RULE_WARNINGS";
-  /**
-   * @description Where a supervisor saved a change despite roster rule warnings.
-   * @type string
-   */
-  context: RuleOverrideContext;
-  violations: RuleViolationPublic[];
+  code?: "ROSTER_RULE_WARNINGS" | null;
+  context?: RuleOverrideContext | null;
+  violations?: RuleViolationPublic[];
 };

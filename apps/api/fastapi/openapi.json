@@ -14793,6 +14793,16 @@
                 }
               }
             }
+          },
+          "409": {
+            "description": "Or the change breaks roster rules (code roster_rule_warnings); resend with rule_override_reason to save anyway",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RosterRuleWarningsErrorPublic"
+                }
+              }
+            }
           }
         }
       }
@@ -15546,6 +15556,16 @@
                 }
               }
             }
+          },
+          "409": {
+            "description": "Or the change breaks roster rules (code roster_rule_warnings); resend with rule_override_reason to save anyway",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RosterRuleWarningsErrorPublic"
+                }
+              }
+            }
           }
         },
         "security": [
@@ -15677,6 +15697,16 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Or the change breaks roster rules (code roster_rule_warnings); resend with rule_override_reason to save anyway",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RosterRuleWarningsErrorPublic"
                 }
               }
             }
@@ -17415,6 +17445,16 @@
                 }
               }
             }
+          },
+          "409": {
+            "description": "Or the change breaks roster rules (code roster_rule_warnings); resend with rule_override_reason to save anyway",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RosterRuleWarningsErrorPublic"
+                }
+              }
+            }
           }
         }
       }
@@ -17444,6 +17484,16 @@
             }
           }
         ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TimesheetApproveRequest",
+                "default": {}
+              }
+            }
+          }
+        },
         "responses": {
           "200": {
             "description": "Timesheet approved",
@@ -17491,6 +17541,16 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Or the change breaks roster rules (code roster_rule_warnings); resend with rule_override_reason to save anyway",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RosterRuleWarningsErrorPublic"
                 }
               }
             }
@@ -19016,11 +19076,11 @@
             }
           },
           "409": {
-            "description": "Stale revision, locked review, or approval workflow not configured",
+            "description": "Stale revision, locked review, or approval workflow not configured; or the change breaks roster rules (code ROSTER_RULE_WARNINGS); resend with rule_override_reason to save anyway",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ApiError"
+                  "$ref": "#/components/schemas/RosterRuleWarningsErrorPublic"
                 }
               }
             }
@@ -19115,11 +19175,11 @@
             }
           },
           "409": {
-            "description": "Stale revision, locked review, or approval workflow not configured",
+            "description": "Stale revision, locked review, or approval workflow not configured; or the change breaks roster rules (code ROSTER_RULE_WARNINGS); resend with rule_override_reason to save anyway",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ApiError"
+                  "$ref": "#/components/schemas/RosterRuleWarningsErrorPublic"
                 }
               }
             }
@@ -20307,6 +20367,16 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Or the change breaks roster rules (code roster_rule_warnings); resend with rule_override_reason to save anyway",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RosterRuleWarningsErrorPublic"
                 }
               }
             }
@@ -21564,6 +21634,16 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Or the change breaks roster rules (code roster_rule_warnings); resend with rule_override_reason to save anyway",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RosterRuleWarningsErrorPublic"
                 }
               }
             }
@@ -62888,6 +62968,19 @@
             "maxLength": 500,
             "minLength": 1,
             "title": "Reason"
+          },
+          "rule_override_reason": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 1000
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rule Override Reason",
+            "description": "Required to save a change that breaks a roster rule; recorded with the supervisor, the time and the rules overridden."
           }
         },
         "type": "object",
@@ -63253,6 +63346,19 @@
             "type": "integer",
             "minimum": 1.0,
             "title": "Expected Revision"
+          },
+          "rule_override_reason": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 1000
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rule Override Reason",
+            "description": "Required to save a change that breaks a roster rule; recorded with the supervisor, the time and the rules overridden."
           }
         },
         "type": "object",
@@ -77590,6 +77696,19 @@
               }
             ],
             "title": "Head Of Dept Comments"
+          },
+          "rule_override_reason": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 1000
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rule Override Reason",
+            "description": "Required to save a change that breaks a roster rule; recorded with the supervisor, the time and the rules overridden."
           }
         },
         "type": "object",
@@ -91669,7 +91788,7 @@
               }
             ],
             "title": "Rule Override Reason",
-            "description": "Required to save a change to a published roster that breaks a roster rule; recorded with the supervisor and the rules overridden."
+            "description": "Required to save a change that breaks a roster rule; recorded with the supervisor, the time and the rules overridden."
           }
         },
         "type": "object",
@@ -91968,6 +92087,19 @@
           "csv_text": {
             "type": "string",
             "title": "Csv Text"
+          },
+          "rule_override_reason": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 1000
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rule Override Reason",
+            "description": "Required to save a change that breaks a roster rule; recorded with the supervisor, the time and the rules overridden."
           }
         },
         "type": "object",
@@ -92037,6 +92169,19 @@
             "type": "boolean",
             "title": "Publish",
             "default": false
+          },
+          "rule_override_reason": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 1000
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rule Override Reason",
+            "description": "Required to save a change that breaks a roster rule; recorded with the supervisor, the time and the rules overridden."
           }
         },
         "type": "object",
@@ -92349,7 +92494,7 @@
               }
             ],
             "title": "Rule Override Reason",
-            "description": "Required to publish a roster that breaks a roster rule; recorded with the supervisor and the rules overridden."
+            "description": "Required to save a change that breaks a roster rule; recorded with the supervisor, the time and the rules overridden."
           }
         },
         "type": "object",
@@ -93170,13 +93315,26 @@
             "title": "Detail"
           },
           "code": {
-            "type": "string",
-            "const": "ROSTER_RULE_WARNINGS",
-            "title": "Code",
-            "default": "ROSTER_RULE_WARNINGS"
+            "anyOf": [
+              {
+                "type": "string",
+                "const": "ROSTER_RULE_WARNINGS"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Code"
           },
           "context": {
-            "$ref": "#/components/schemas/RuleOverrideContext"
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/RuleOverrideContext"
+              },
+              {
+                "type": "null"
+              }
+            ]
           },
           "violations": {
             "items": {
@@ -93188,12 +93346,10 @@
         },
         "type": "object",
         "required": [
-          "detail",
-          "context",
-          "violations"
+          "detail"
         ],
         "title": "RosterRuleWarningsErrorPublic",
-        "description": "409 body when a change breaks roster rules and no override reason was\ngiven. Resend the request with ``rule_override_reason`` to save anyway."
+        "description": "409 body. An ordinary conflict carries only ``detail``. Roster rule\nwarnings add ``code: ROSTER_RULE_WARNINGS``, the ``context`` and the\n``violations``; resend with ``rule_override_reason`` to save anyway."
       },
       "RosterRulesPublic": {
         "properties": {
@@ -94788,6 +94944,14 @@
             "title": "Ends Next Day",
             "default": false
           },
+          "break_minutes": {
+            "type": "integer",
+            "maximum": 240.0,
+            "minimum": 0.0,
+            "title": "Break Minutes",
+            "description": "Unpaid break inside the shift.",
+            "default": 0
+          },
           "counts_as_work_hours": {
             "anyOf": [
               {
@@ -94868,6 +95032,12 @@
           "ends_next_day": {
             "type": "boolean",
             "title": "Ends Next Day"
+          },
+          "break_minutes": {
+            "type": "integer",
+            "title": "Break Minutes",
+            "description": "Unpaid break inside the shift, in minutes.",
+            "default": 0
           },
           "counts_as_work_hours": {
             "type": "boolean",
@@ -94957,6 +95127,19 @@
               }
             ],
             "title": "Ends Next Day"
+          },
+          "break_minutes": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 240.0,
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Break Minutes"
           },
           "counts_as_work_hours": {
             "anyOf": [
@@ -95189,7 +95372,7 @@
               }
             ],
             "title": "Rule Override Reason",
-            "description": "Required to approve an exchange that breaks a roster rule."
+            "description": "Required to save a change that breaks a roster rule; recorded with the supervisor, the time and the rules overridden."
           }
         },
         "type": "object",
@@ -100344,6 +100527,25 @@
         ],
         "title": "TillPublic"
       },
+      "TimesheetApproveRequest": {
+        "properties": {
+          "rule_override_reason": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 1000
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rule Override Reason",
+            "description": "Required to save a change that breaks a roster rule; recorded with the supervisor, the time and the rules overridden."
+          }
+        },
+        "type": "object",
+        "title": "TimesheetApproveRequest"
+      },
       "TimesheetCreate": {
         "properties": {
           "user_id": {
@@ -100978,6 +101180,19 @@
           "mode": {
             "$ref": "#/components/schemas/SubmissionMode",
             "default": "SELF"
+          },
+          "rule_override_reason": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 1000
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rule Override Reason",
+            "description": "Required to save a change that breaks a roster rule; recorded with the supervisor, the time and the rules overridden."
           }
         },
         "type": "object",
@@ -105303,7 +105518,7 @@
               }
             ],
             "title": "Rule Override Reason",
-            "description": "Required when the final approval (or a cancellation) breaks a roster rule; recorded with the approver and the rules overridden."
+            "description": "Required to save a change that breaks a roster rule; recorded with the supervisor, the time and the rules overridden."
           }
         },
         "type": "object",

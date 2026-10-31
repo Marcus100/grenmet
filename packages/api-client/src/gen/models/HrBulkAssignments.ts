@@ -30,8 +30,9 @@ export type HrBulkAssignmentsStatus403 = ApiError;
 export type HrBulkAssignmentsStatus404 = ApiError;
 
 /**
- * @description 409 body when a change breaks roster rules and no override reason was
- * given. Resend the request with ``rule_override_reason`` to save anyway.
+ * @description 409 body. An ordinary conflict carries only ``detail``. Roster rule
+ * warnings add ``code: ROSTER_RULE_WARNINGS``, the ``context`` and the
+ * ``violations``; resend with ``rule_override_reason`` to save anyway.
  * @type object
  */
 export type HrBulkAssignmentsStatus409 = RosterRuleWarningsErrorPublic;

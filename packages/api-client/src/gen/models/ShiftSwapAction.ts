@@ -9,7 +9,7 @@ export type ShiftSwapAction = {
   status: RequestStatus;
   comments?: string | null;
   /**
-   * @description Required to approve an exchange that breaks a roster rule.
+   * @description Required to save a change that breaks a roster rule; recorded with the supervisor, the time and the rules overridden.
    */
   rule_override_reason?: string | null;
 };

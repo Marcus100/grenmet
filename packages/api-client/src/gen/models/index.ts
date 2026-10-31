@@ -3751,6 +3751,7 @@ export type {
   HrActionLeaveRequestStatus200,
   HrActionLeaveRequestStatus403,
   HrActionLeaveRequestStatus404,
+  HrActionLeaveRequestStatus409,
   HrActionLeaveRequestStatus422,
 } from "./HrActionLeaveRequest.js";
 export type {
@@ -3763,6 +3764,7 @@ export type {
   HrActionShiftSwapStatus400,
   HrActionShiftSwapStatus403,
   HrActionShiftSwapStatus404,
+  HrActionShiftSwapStatus409,
   HrActionShiftSwapStatus422,
 } from "./HrActionShiftSwap.js";
 export type {
@@ -3789,6 +3791,7 @@ export type {
   HrApproveStaffRegistrationStatus422,
 } from "./HrApproveStaffRegistration.js";
 export type {
+  HrApproveTimesheetBody,
   HrApproveTimesheetOptions,
   HrApproveTimesheetPath,
   HrApproveTimesheetResponse,
@@ -3797,6 +3800,7 @@ export type {
   HrApproveTimesheetStatus400,
   HrApproveTimesheetStatus403,
   HrApproveTimesheetStatus404,
+  HrApproveTimesheetStatus409,
   HrApproveTimesheetStatus422,
 } from "./HrApproveTimesheet.js";
 export type {
@@ -4593,6 +4597,7 @@ export type {
   HrImportCsvStatus200,
   HrImportCsvStatus400,
   HrImportCsvStatus403,
+  HrImportCsvStatus409,
   HrImportCsvStatus422,
 } from "./HrImportCsv.js";
 export type {
@@ -4604,6 +4609,7 @@ export type {
   HrImportGridStatus400,
   HrImportGridStatus403,
   HrImportGridStatus404,
+  HrImportGridStatus409,
   HrImportGridStatus422,
 } from "./HrImportGrid.js";
 export type {
@@ -5105,6 +5111,7 @@ export type {
   HrSubmitTimesheetStatus400,
   HrSubmitTimesheetStatus403,
   HrSubmitTimesheetStatus404,
+  HrSubmitTimesheetStatus409,
   HrSubmitTimesheetStatus422,
 } from "./HrSubmitTimesheet.js";
 export type {
@@ -5117,6 +5124,7 @@ export type {
   HrTakeActionStatus400,
   HrTakeActionStatus403,
   HrTakeActionStatus404,
+  HrTakeActionStatus409,
   HrTakeActionStatus422,
 } from "./HrTakeAction.js";
 export type {
@@ -8066,6 +8074,7 @@ export type { TillOpen } from "./TillOpen.js";
 export type { TillPublic } from "./TillPublic.js";
 export type { TillPublicPropertiesStatusEnum } from "./TillPublicPropertiesStatusEnum.js";
 export { tillPublicPropertiesStatusEnum } from "./TillPublicPropertiesStatusEnum.js";
+export type { TimesheetApproveRequest } from "./TimesheetApproveRequest.js";
 export type { TimesheetCreate } from "./TimesheetCreate.js";
 export type { TimesheetDetails } from "./TimesheetDetails.js";
 export type { TimesheetEntryInput } from "./TimesheetEntryInput.js";

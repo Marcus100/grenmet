@@ -1,10 +1,11 @@
-"""Roster rule check for a proposed shift exchange (#380).
+"""Roster rule check for a shift exchange (#380).
 
 Applies the exchange to the two employees' published rosters in memory and reports
-only the breaches the exchange would introduce, so a pre-existing breach is not
-blamed on the swap, plus short notice for each exchanged date. The workflow's
-final approval enforces the same check (``swap_violations``): the approver must
-give a reason to approve an exchange that breaks a rule.
+only the breaches it would introduce, so a pre-existing breach is not blamed on the
+swap. An exchange both employees agreed to is exempt from the 7-day notice rule
+(owner, 2026-10-31). Reversing an approved exchange is a supervisor's change, so it
+is checked including notice. Final approval and reversal enforce these checks: the
+approver must give a reason when a rule breaks.
 """
 
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -25,8 +26,11 @@ from .models import ShiftSwapRequest
 
 
 async def swap_violations(
-    session: AsyncSession, swap: ShiftSwapRequest
+    session: AsyncSession, swap: ShiftSwapRequest, *, notice: bool = False
 ) -> tuple[RosterRules, list[RuleViolation]]:
+    """Breaches from exchanging the two employees' cells on the swap dates. The
+    same exchange applied to the swapped roster reverses it, so reversal uses this
+    with ``notice=True``."""
     parties = {swap.requesting_user_id, swap.counterpart_user_id}
     dates = {swap.source_date, swap.target_date}
     changed: list[rule_service.Cell] = []
@@ -58,9 +62,11 @@ async def swap_violations(
         dates=dates,
         mutate=mutate,
     )
-    # Notice applies to the cells the exchange actually changes.
-    profiles = await rule_service.profiles_for(session, parties)
-    found += check_notice(changed, today=local_today(), rules=rules, profiles=profiles)
+    if notice:
+        profiles = await rule_service.profiles_for(session, parties)
+        found += check_notice(
+            changed, today=local_today(), rules=rules, profiles=profiles
+        )
     return rules, found
 
 

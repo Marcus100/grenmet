@@ -3719,6 +3719,7 @@ export {
   hrActionLeaveRequestStatus200Schema,
   hrActionLeaveRequestStatus403Schema,
   hrActionLeaveRequestStatus404Schema,
+  hrActionLeaveRequestStatus409Schema,
   hrActionLeaveRequestStatus422Schema,
 } from "./hrActionLeaveRequestSchema.js";
 export {
@@ -3731,6 +3732,7 @@ export {
   hrActionShiftSwapStatus400Schema,
   hrActionShiftSwapStatus403Schema,
   hrActionShiftSwapStatus404Schema,
+  hrActionShiftSwapStatus409Schema,
   hrActionShiftSwapStatus422Schema,
 } from "./hrActionShiftSwapSchema.js";
 export {
@@ -3757,6 +3759,7 @@ export {
   hrApproveStaffRegistrationStatus422Schema,
 } from "./hrApproveStaffRegistrationSchema.js";
 export {
+  hrApproveTimesheetBodySchema,
   hrApproveTimesheetErrorSchema,
   hrApproveTimesheetPathSchema,
   hrApproveTimesheetPathTimesheetIdSchema,
@@ -3765,6 +3768,7 @@ export {
   hrApproveTimesheetStatus400Schema,
   hrApproveTimesheetStatus403Schema,
   hrApproveTimesheetStatus404Schema,
+  hrApproveTimesheetStatus409Schema,
   hrApproveTimesheetStatus422Schema,
 } from "./hrApproveTimesheetSchema.js";
 export {
@@ -4565,6 +4569,7 @@ export {
   hrImportCsvStatus200Schema,
   hrImportCsvStatus400Schema,
   hrImportCsvStatus403Schema,
+  hrImportCsvStatus409Schema,
   hrImportCsvStatus422Schema,
 } from "./hrImportCsvSchema.js";
 export {
@@ -4575,6 +4580,7 @@ export {
   hrImportGridStatus400Schema,
   hrImportGridStatus403Schema,
   hrImportGridStatus404Schema,
+  hrImportGridStatus409Schema,
   hrImportGridStatus422Schema,
 } from "./hrImportGridSchema.js";
 export {
@@ -5074,6 +5080,7 @@ export {
   hrSubmitTimesheetStatus400Schema,
   hrSubmitTimesheetStatus403Schema,
   hrSubmitTimesheetStatus404Schema,
+  hrSubmitTimesheetStatus409Schema,
   hrSubmitTimesheetStatus422Schema,
 } from "./hrSubmitTimesheetSchema.js";
 export {
@@ -5086,6 +5093,7 @@ export {
   hrTakeActionStatus400Schema,
   hrTakeActionStatus403Schema,
   hrTakeActionStatus404Schema,
+  hrTakeActionStatus409Schema,
   hrTakeActionStatus422Schema,
 } from "./hrTakeActionSchema.js";
 export {
@@ -7987,6 +7995,7 @@ export { tillCloseSchema } from "./tillCloseSchema.js";
 export { tillOpenSchema } from "./tillOpenSchema.js";
 export { tillPublicPropertiesStatusEnumSchema } from "./tillPublicPropertiesStatusEnumSchema.js";
 export { tillPublicSchema } from "./tillPublicSchema.js";
+export { timesheetApproveRequestSchema } from "./timesheetApproveRequestSchema.js";
 export { timesheetCreateSchema } from "./timesheetCreateSchema.js";
 export { timesheetDetailsSchema } from "./timesheetDetailsSchema.js";
 export { timesheetEntryInputSchema } from "./timesheetEntryInputSchema.js";

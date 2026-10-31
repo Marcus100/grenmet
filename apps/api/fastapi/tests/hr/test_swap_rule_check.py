@@ -140,15 +140,29 @@ async def test_rules_switched_off_report_nothing(db_async: AsyncSession) -> None
     assert violations == []
 
 
-async def test_swap_inside_the_notice_window_is_flagged(
+async def test_an_agreed_swap_is_exempt_from_notice(
     db_async: AsyncSession,
 ) -> None:
-    manager, other, swap = await _setup(db_async, local_today() + timedelta(days=1))
+    manager, _, swap = await _setup(db_async, local_today() + timedelta(days=1))
     _, violations = await check_swap_rules(
         session=db_async, current_user=manager, swap=swap
     )
-    notice = [v for v in violations if v.code == RuleCode.SHORT_NOTICE]
+    assert RuleCode.SHORT_NOTICE not in {v.code for v in violations}
+
+
+async def test_reversing_a_swap_inside_the_notice_window_needs_a_reason(
+    db_async: AsyncSession,
+) -> None:
+    manager, other, swap = await _setup(db_async, local_today() + timedelta(days=1))
+    with pytest.raises(RosterRuleWarningsError) as warned:
+        await change_checks.check_swap_reversal(
+            db_async, swap=swap, actor_id=manager.id, reason=None
+        )
+    notice = [v for v in warned.value.violations if v.code == RuleCode.SHORT_NOTICE]
     assert {v.user_id for v in notice} == {manager.id, other.id}
+    await change_checks.check_swap_reversal(
+        db_async, swap=swap, actor_id=manager.id, reason="Officer back from leave"
+    )
 
 
 async def test_approval_needs_a_reason_for_a_breaking_swap(

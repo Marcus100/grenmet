@@ -10,15 +10,10 @@ import { ruleViolationPublicSchema } from "./ruleViolationPublicSchema.js";
 export const rosterRuleWarningsErrorPublicSchema = z
   .object({
     detail: z.string(),
-    code: z
-      .enum(["ROSTER_RULE_WARNINGS"])
-      .optional()
-      .default("ROSTER_RULE_WARNINGS"),
-    context: ruleOverrideContextSchema.describe(
-      "Where a supervisor saved a change despite roster rule warnings."
-    ),
-    violations: z.array(ruleViolationPublicSchema),
+    code: z.union([z.enum(["ROSTER_RULE_WARNINGS"]), z.null()]).optional(),
+    context: z.union([ruleOverrideContextSchema, z.null()]).optional(),
+    violations: z.array(ruleViolationPublicSchema).optional(),
   })
   .describe(
-    "409 body when a change breaks roster rules and no override reason was\ngiven. Resend the request with ``rule_override_reason`` to save anyway."
+    "409 body. An ordinary conflict carries only ``detail``. Roster rule\nwarnings add ``code: ROSTER_RULE_WARNINGS``, the ``context`` and the\n``violations``; resend with ``rule_override_reason`` to save anyway."
   );

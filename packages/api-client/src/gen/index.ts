@@ -7894,6 +7894,7 @@ export type {
   HrActionLeaveRequestStatus200,
   HrActionLeaveRequestStatus403,
   HrActionLeaveRequestStatus404,
+  HrActionLeaveRequestStatus409,
   HrActionLeaveRequestStatus422,
 } from "./models/HrActionLeaveRequest.js";
 export type {
@@ -7906,6 +7907,7 @@ export type {
   HrActionShiftSwapStatus400,
   HrActionShiftSwapStatus403,
   HrActionShiftSwapStatus404,
+  HrActionShiftSwapStatus409,
   HrActionShiftSwapStatus422,
 } from "./models/HrActionShiftSwap.js";
 export type {
@@ -7932,6 +7934,7 @@ export type {
   HrApproveStaffRegistrationStatus422,
 } from "./models/HrApproveStaffRegistration.js";
 export type {
+  HrApproveTimesheetBody,
   HrApproveTimesheetOptions,
   HrApproveTimesheetPath,
   HrApproveTimesheetResponse,
@@ -7940,6 +7943,7 @@ export type {
   HrApproveTimesheetStatus400,
   HrApproveTimesheetStatus403,
   HrApproveTimesheetStatus404,
+  HrApproveTimesheetStatus409,
   HrApproveTimesheetStatus422,
 } from "./models/HrApproveTimesheet.js";
 export type {
@@ -8736,6 +8740,7 @@ export type {
   HrImportCsvStatus200,
   HrImportCsvStatus400,
   HrImportCsvStatus403,
+  HrImportCsvStatus409,
   HrImportCsvStatus422,
 } from "./models/HrImportCsv.js";
 export type {
@@ -8747,6 +8752,7 @@ export type {
   HrImportGridStatus400,
   HrImportGridStatus403,
   HrImportGridStatus404,
+  HrImportGridStatus409,
   HrImportGridStatus422,
 } from "./models/HrImportGrid.js";
 export type {
@@ -9248,6 +9254,7 @@ export type {
   HrSubmitTimesheetStatus400,
   HrSubmitTimesheetStatus403,
   HrSubmitTimesheetStatus404,
+  HrSubmitTimesheetStatus409,
   HrSubmitTimesheetStatus422,
 } from "./models/HrSubmitTimesheet.js";
 export type {
@@ -9260,6 +9267,7 @@ export type {
   HrTakeActionStatus400,
   HrTakeActionStatus403,
   HrTakeActionStatus404,
+  HrTakeActionStatus409,
   HrTakeActionStatus422,
 } from "./models/HrTakeAction.js";
 export type {
@@ -12209,6 +12217,7 @@ export type { TillOpen } from "./models/TillOpen.js";
 export type { TillPublic } from "./models/TillPublic.js";
 export type { TillPublicPropertiesStatusEnum } from "./models/TillPublicPropertiesStatusEnum.js";
 export { tillPublicPropertiesStatusEnum } from "./models/TillPublicPropertiesStatusEnum.js";
+export type { TimesheetApproveRequest } from "./models/TimesheetApproveRequest.js";
 export type { TimesheetCreate } from "./models/TimesheetCreate.js";
 export type { TimesheetDetails } from "./models/TimesheetDetails.js";
 export type { TimesheetEntryInput } from "./models/TimesheetEntryInput.js";
@@ -16890,6 +16899,7 @@ export {
   hrActionLeaveRequestStatus200Schema,
   hrActionLeaveRequestStatus403Schema,
   hrActionLeaveRequestStatus404Schema,
+  hrActionLeaveRequestStatus409Schema,
   hrActionLeaveRequestStatus422Schema,
 } from "./zod/hrActionLeaveRequestSchema.js";
 export {
@@ -16902,6 +16912,7 @@ export {
   hrActionShiftSwapStatus400Schema,
   hrActionShiftSwapStatus403Schema,
   hrActionShiftSwapStatus404Schema,
+  hrActionShiftSwapStatus409Schema,
   hrActionShiftSwapStatus422Schema,
 } from "./zod/hrActionShiftSwapSchema.js";
 export {
@@ -16928,6 +16939,7 @@ export {
   hrApproveStaffRegistrationStatus422Schema,
 } from "./zod/hrApproveStaffRegistrationSchema.js";
 export {
+  hrApproveTimesheetBodySchema,
   hrApproveTimesheetErrorSchema,
   hrApproveTimesheetPathSchema,
   hrApproveTimesheetPathTimesheetIdSchema,
@@ -16936,6 +16948,7 @@ export {
   hrApproveTimesheetStatus400Schema,
   hrApproveTimesheetStatus403Schema,
   hrApproveTimesheetStatus404Schema,
+  hrApproveTimesheetStatus409Schema,
   hrApproveTimesheetStatus422Schema,
 } from "./zod/hrApproveTimesheetSchema.js";
 export {
@@ -17736,6 +17749,7 @@ export {
   hrImportCsvStatus200Schema,
   hrImportCsvStatus400Schema,
   hrImportCsvStatus403Schema,
+  hrImportCsvStatus409Schema,
   hrImportCsvStatus422Schema,
 } from "./zod/hrImportCsvSchema.js";
 export {
@@ -17746,6 +17760,7 @@ export {
   hrImportGridStatus400Schema,
   hrImportGridStatus403Schema,
   hrImportGridStatus404Schema,
+  hrImportGridStatus409Schema,
   hrImportGridStatus422Schema,
 } from "./zod/hrImportGridSchema.js";
 export {
@@ -18245,6 +18260,7 @@ export {
   hrSubmitTimesheetStatus400Schema,
   hrSubmitTimesheetStatus403Schema,
   hrSubmitTimesheetStatus404Schema,
+  hrSubmitTimesheetStatus409Schema,
   hrSubmitTimesheetStatus422Schema,
 } from "./zod/hrSubmitTimesheetSchema.js";
 export {
@@ -18257,6 +18273,7 @@ export {
   hrTakeActionStatus400Schema,
   hrTakeActionStatus403Schema,
   hrTakeActionStatus404Schema,
+  hrTakeActionStatus409Schema,
   hrTakeActionStatus422Schema,
 } from "./zod/hrTakeActionSchema.js";
 export {
@@ -21158,6 +21175,7 @@ export { tillCloseSchema } from "./zod/tillCloseSchema.js";
 export { tillOpenSchema } from "./zod/tillOpenSchema.js";
 export { tillPublicPropertiesStatusEnumSchema } from "./zod/tillPublicPropertiesStatusEnumSchema.js";
 export { tillPublicSchema } from "./zod/tillPublicSchema.js";
+export { timesheetApproveRequestSchema } from "./zod/timesheetApproveRequestSchema.js";
 export { timesheetCreateSchema } from "./zod/timesheetCreateSchema.js";
 export { timesheetDetailsSchema } from "./zod/timesheetDetailsSchema.js";
 export { timesheetEntryInputSchema } from "./zod/timesheetEntryInputSchema.js";

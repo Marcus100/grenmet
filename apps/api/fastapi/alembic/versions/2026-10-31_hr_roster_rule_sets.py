@@ -10,12 +10,15 @@ Additive only:
   ``rule_worker_type`` (NULL = the department's worker type).
 - Permission ``roster.rules.manage``, granted to the existing ``hr-admin`` role
   (role seeding never adds a key to a role that already exists).
+- ``hr.shift_catalog.break_minutes`` (default 0): the unpaid break inside a shift.
+  The seeded GMS M (05:30-14:00) and E (14:00-22:30) shifts get 30 minutes (owner,
+  2026-10-31), so they count as 8 worked hours.
 
 The old ``hr.department_policy`` rule columns stay in place and are no longer
 read. Downgrade drops everything this revision added.
 
 Revision ID: rosterrulesets20261031
-Revises: sociallive20261030
+Revises: refundcheck20261031
 """
 
 import uuid
@@ -25,7 +28,7 @@ import sqlalchemy as sa
 from alembic import op
 
 revision = "rosterrulesets20261031"
-down_revision = "sociallive20261030"
+down_revision = "refundcheck20261031"
 branch_labels = None
 depends_on = None
 
@@ -186,6 +189,21 @@ def upgrade() -> None:
         schema="hr",
     )
 
+    op.add_column(
+        "shift_catalog",
+        sa.Column(
+            "break_minutes", sa.Integer(), server_default=sa.text("0"), nullable=False
+        ),
+        schema="hr",
+    )
+    op.execute(
+        """
+        UPDATE hr.shift_catalog SET break_minutes = 30
+        WHERE (code = 'M' AND start_time = '05:30' AND end_time = '14:00')
+           OR (code = 'E' AND start_time = '14:00' AND end_time = '22:30')
+        """
+    )
+
     # Confirmed GAA defaults (owner, 2026-10-31); editable per organisation and
     # department in HR setup.
     op.execute(
@@ -249,6 +267,7 @@ def downgrade() -> None:
         ).bindparams(key=KEY)
     )
     op.execute(sa.text("DELETE FROM permission WHERE key = :key").bindparams(key=KEY))
+    op.drop_column("shift_catalog", "break_minutes", schema="hr")
     op.drop_constraint(
         op.f(EMPLOYMENT_CHECK), "employment_record", schema="hr", type_="check"
     )

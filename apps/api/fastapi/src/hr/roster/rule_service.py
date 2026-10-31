@@ -54,6 +54,7 @@ from .schemas import (
     RosterRuleSetUpdate,
     RosterRulesUpdate,
     RuleSetSource,
+    clean_reason,
 )
 from .service import require_roster_manage_scope, require_roster_read_scope
 
@@ -640,7 +641,10 @@ async def enforce(
     override (who, when, rules, reason) and let the change continue."""
     if not violations:
         return None
-    text = (reason or "").strip()
+    try:
+        text = (clean_reason(reason) or "").strip()
+    except ValueError as exc:
+        raise HRValidationError(str(exc)) from exc
     if not text:
         raise RosterRuleWarningsError(context, violations)
     if len(text) < _REASON_MIN:
@@ -673,6 +677,8 @@ async def enforce(
             "rules_overridden": (None, ", ".join(codes)),
             "override_reason": (None, text),
         },
+        # Reasons can mention sickness or personal matters.
+        sensitive=frozenset({"override_reason"}),
         organisation_id=department.organisation_id,
     )
     return override

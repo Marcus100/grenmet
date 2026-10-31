@@ -5,7 +5,7 @@ from decimal import Decimal
 from pydantic import Field, field_validator
 
 from src.hr.roster.models import RosterAvailability
-from src.hr.roster.schemas import OvertimeBandPublic
+from src.hr.roster.schemas import OverrideReason, OvertimeBandPublic
 from src.hr.workflow.models import WorkflowStatus
 from src.models import BaseModel, UtcDateTime
 
@@ -28,11 +28,13 @@ class AttendanceSave(BaseModel):
 
 class AttendanceSubmit(BaseModel):
     expected_revision: int = Field(ge=1)
+    rule_override_reason: OverrideReason = None
 
 
 class AttendanceCorrectionCreate(AttendanceSave):
     departed_at: UtcDateTime
     reason: str = Field(min_length=1, max_length=500)
+    rule_override_reason: OverrideReason = None
 
 
 class AttendanceCorrectionPublic(BaseModel):

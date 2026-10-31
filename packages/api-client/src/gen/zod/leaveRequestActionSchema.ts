@@ -9,4 +9,10 @@ import { requestStatusSchema } from "./requestStatusSchema.js";
 export const leaveRequestActionSchema = z.object({
   status: requestStatusSchema,
   head_of_dept_comments: z.union([z.string(), z.null()]).optional(),
+  rule_override_reason: z
+    .union([z.string().max(1000), z.null()])
+    .optional()
+    .describe(
+      "Required to save a change that breaks a roster rule; recorded with the supervisor, the time and the rules overridden."
+    ),
 });

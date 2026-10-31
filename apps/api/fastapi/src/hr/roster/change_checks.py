@@ -3,7 +3,8 @@
 Called from ``workflow.finalize.finalize_entity`` before the decision takes
 effect, so a breach stops the approval (409) unless the approver gives a reason:
 
-- shift exchange approval: breaches the exchange introduces, and short notice;
+- shift exchange approval: breaches the exchange introduces (an agreed exchange is
+  exempt from notice); reversing an approved exchange: breaches and short notice;
 - cancelling approved leave or an approved absence: the rostered shifts come back,
   so any breach that brings back is checked (approval only removes work and can
   never introduce a breach);
@@ -23,7 +24,7 @@ from src.auth.models import User
 from src.exceptions import AppException
 
 from . import rule_service
-from .expansion import shift_hours
+from .expansion import worked_shift_hours
 from .models import (
     RosterAssignment,
     RuleOverrideContext,
@@ -65,6 +66,31 @@ async def check_swap_approval(
 
     assert isinstance(swap, ShiftSwapRequest)
     _, violations = await swap_violations(session, swap)
+    await rule_service.enforce(
+        session,
+        actor=await _actor(session, actor_id),
+        violations=violations,
+        reason=reason,
+        context=RuleOverrideContext.SHIFT_SWAP,
+        entity_type="shift_swap",
+        entity_id=str(swap.id),
+        department_id=swap.department_id,
+    )
+
+
+async def check_swap_reversal(
+    session: AsyncSession,
+    *,
+    swap: object,
+    actor_id: uuid.UUID,
+    reason: str | None,
+) -> None:
+    """Cancelling an approved exchange puts the original shifts back."""
+    from src.hr.exchange.models import ShiftSwapRequest
+    from src.hr.exchange.swap_rules import swap_violations
+
+    assert isinstance(swap, ShiftSwapRequest)
+    _, violations = await swap_violations(session, swap, notice=True)
     await rule_service.enforce(
         session,
         actor=await _actor(session, actor_id),
@@ -194,7 +220,7 @@ async def check_timesheet_approval(
     for entry in entries:
         shift = rostered.get(entry.entry_date)
         base = (
-            shift_hours(shift) or Decimal(0)
+            worked_shift_hours(shift) or Decimal(0)
             if shift is not None and shift.counts_as_work_hours
             else Decimal(0)
         )
@@ -220,12 +246,14 @@ async def check_attendance_approval(
     *,
     record: object,
     hours: Decimal | None,
+    breaks_recorded: bool,
     actor_id: uuid.UUID,
     reason: str | None,
     entity_type: str,
     entity_id: uuid.UUID,
 ) -> None:
-    """Attendance (or a correction): the day counts as the hours worked."""
+    """Attendance (or a correction): the day counts as the hours worked. With no
+    break recorded, the shift's unpaid break is assumed to have been taken."""
     from src.hr.attendance.models import AttendanceRecord
 
     assert isinstance(record, AttendanceRecord)
@@ -242,6 +270,8 @@ async def check_attendance_approval(
         return
     assignment, shift = row
     day: date = assignment.assignment_date
+    if not breaks_recorded and shift.break_minutes:
+        hours = max(Decimal(0), hours - Decimal(shift.break_minutes) / Decimal(60))
     await _worked_check(
         session,
         department_id=record.department_id,

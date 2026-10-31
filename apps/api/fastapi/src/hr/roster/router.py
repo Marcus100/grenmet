@@ -7,6 +7,7 @@ from fastapi import APIRouter, Body, Query, status
 from src.auth.models import User
 from src.dependencies import CurrentUser, SessionDep
 from src.hr.dependencies import PublicHolidayDep, RosterPeriodDep
+from src.hr.roster.schemas import with_rule_warnings
 from src.models import ApiError
 
 from . import rule_service, service
@@ -426,21 +427,23 @@ async def validate_grid(
     response_model=RosterGridImportResult,
     summary="Import a grid roster",
     description="Import a name×day grid CSV into a draft roster period (created or reused for the month). Blocked if any name is unmatched or any code invalid. Requires roster.manage permission.",
-    responses={
-        status.HTTP_200_OK: {"description": "Roster imported"},
-        status.HTTP_400_BAD_REQUEST: {
-            "model": ApiError,
-            "description": "Grid has unmatched names or invalid codes",
-        },
-        status.HTTP_403_FORBIDDEN: {
-            "model": ApiError,
-            "description": "Insufficient permission",
-        },
-        status.HTTP_404_NOT_FOUND: {
-            "model": ApiError,
-            "description": "Department not found",
-        },
-    },
+    responses=with_rule_warnings(
+        {
+            status.HTTP_200_OK: {"description": "Roster imported"},
+            status.HTTP_400_BAD_REQUEST: {
+                "model": ApiError,
+                "description": "Grid has unmatched names or invalid codes",
+            },
+            status.HTTP_403_FORBIDDEN: {
+                "model": ApiError,
+                "description": "Insufficient permission",
+            },
+            status.HTTP_404_NOT_FOUND: {
+                "model": ApiError,
+                "description": "Department not found",
+            },
+        }
+    ),
 )
 async def import_grid(
     *,
@@ -486,14 +489,19 @@ async def validate_csv(
     response_model=RosterCsvImportResponse,
     summary="Import roster from CSV",
     description="Create roster import job and optionally apply valid rows. Requires roster.import permission.",
-    responses={
-        status.HTTP_200_OK: {"description": "Import job created"},
-        status.HTTP_400_BAD_REQUEST: {"model": ApiError, "description": "Invalid CSV"},
-        status.HTTP_403_FORBIDDEN: {
-            "model": ApiError,
-            "description": "Insufficient permission",
-        },
-    },
+    responses=with_rule_warnings(
+        {
+            status.HTTP_200_OK: {"description": "Import job created"},
+            status.HTTP_400_BAD_REQUEST: {
+                "model": ApiError,
+                "description": "Invalid CSV",
+            },
+            status.HTTP_403_FORBIDDEN: {
+                "model": ApiError,
+                "description": "Insufficient permission",
+            },
+        }
+    ),
 )
 async def import_csv(
     *,
