@@ -8,8 +8,10 @@ from fastapi.concurrency import run_in_threadpool
 
 from src.dependencies import CurrentUser, SessionDep
 from src.hr.filenames import timesheet_week_filename
+from src.hr.roster import overtime_service
 from src.hr.roster import service as roster_service
 from src.hr.roster.models import RosterAvailability
+from src.hr.roster.schemas import OvertimeBandPublic
 from src.hr.workflow.models import WorkflowStatus
 from src.models import ApiError
 from src.utils.pdf_response import pdf_response
@@ -133,6 +135,9 @@ async def read_week(
     availability = await roster_service.assignment_availability(
         session, [assignment.id for assignment, _, _, _, _, _ in rows]
     )
+    bands = await overtime_service.attendance_bands(
+        session, [(a, p, s, r) for a, p, s, _, r, _ in rows]
+    )
     recorded = Decimal("0.00")
     approved = Decimal("0.00")
     for assignment, period, shift, employee, record, workflow in rows:
@@ -165,6 +170,10 @@ async def read_week(
                 notes=record.notes if record else None,
                 workflow_instance_id=record.workflow_instance_id if record else None,
                 review_status=workflow.status if workflow else None,
+                overtime_bands=[
+                    OvertimeBandPublic(rate=b.rate, hours=b.hours)
+                    for b in bands.get(assignment.id, [])
+                ],
                 reviewer_name=reviewers[workflow.id][0]
                 if workflow and workflow.id in reviewers
                 else None,
@@ -258,7 +267,14 @@ async def public_record(
     availability = await roster_service.assignment_availability(
         session, [assignment.id]
     )
+    bands = await overtime_service.attendance_bands(
+        session, [(assignment, period, shift, record)]
+    )
     return AttendanceShiftPublic(
+        overtime_bands=[
+            OvertimeBandPublic(rate=b.rate, hours=b.hours)
+            for b in bands.get(assignment.id, [])
+        ],
         roster_assignment_id=assignment.id,
         user_id=record.user_id,
         employee_name=employee.full_name or employee.email,

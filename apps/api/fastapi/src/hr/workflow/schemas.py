@@ -107,6 +107,14 @@ class WorkflowActionRequest(BaseModel):
     step_id: uuid.UUID | None = None
     action: WorkflowAction
     comments: str | None = Field(default=None, max_length=1000)
+    rule_override_reason: str | None = Field(
+        default=None,
+        max_length=1000,
+        description=(
+            "Required when the final approval (or a cancellation) breaks a roster "
+            "rule; recorded with the approver and the rules overridden."
+        ),
+    )
 
 
 class WorkflowInstanceDetails(BaseModel):

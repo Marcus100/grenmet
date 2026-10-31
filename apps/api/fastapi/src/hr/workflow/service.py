@@ -596,7 +596,12 @@ async def apply_workflow_action(
             raise HRPermissionDeniedError(ERROR_WORKFLOW_PERMISSION_DENIED)
         workflow_instance.status = WorkflowStatus.CANCELLED
         workflow_instance.resolved_at = workflow_instance.updated_at = utc_now()
-        await finalize_entity(session, workflow_instance, current_user.id)
+        await finalize_entity(
+            session,
+            workflow_instance,
+            current_user.id,
+            rule_override_reason=action_in.rule_override_reason,
+        )
         session.add(
             ApprovalActionLog(
                 workflow_instance_id=workflow_instance.id,
@@ -896,7 +901,12 @@ async def apply_workflow_action(
     ):
         from src.hr.workflow.finalize import finalize_entity
 
-        await finalize_entity(session, workflow_instance, current_user.id)
+        await finalize_entity(
+            session,
+            workflow_instance,
+            current_user.id,
+            rule_override_reason=action_in.rule_override_reason,
+        )
     workflow_instance.updated_at = utc_now()
     session.add(workflow_instance)
     await session.flush()

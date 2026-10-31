@@ -544,12 +544,26 @@ async def get_timesheet_summary(
         grand_actual += total_actual
         grand_overtime += total_overtime
 
+    from src.hr.roster import overtime_service
+    from src.hr.roster.overtime import merge_bands
+    from src.hr.roster.schemas import OvertimeBandPublic
+
+    bands = await overtime_service.timesheet_bands(
+        session,
+        user_id=timesheet.user_id,
+        department_id=timesheet.department_id,
+        entries=entries,
+    )
     return TimesheetSummaryByShift(
         timesheet_id=timesheet_id,
         shifts=shifts,
         grand_total_roster=grand_roster,
         grand_total_actual=grand_actual,
         grand_total_overtime=grand_overtime,
+        overtime_bands=[
+            OvertimeBandPublic(rate=band.rate, hours=band.hours)
+            for band in merge_bands(bands.values())
+        ],
     )
 
 

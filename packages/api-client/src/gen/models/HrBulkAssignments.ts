@@ -6,6 +6,7 @@
 import type { ApiError } from "./ApiError.js";
 import type { RosterAssignmentBulkCreate } from "./RosterAssignmentBulkCreate.js";
 import type { RosterAssignmentPublic } from "./RosterAssignmentPublic.js";
+import type { RosterRuleWarningsErrorPublic } from "./RosterRuleWarningsErrorPublic.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 
 export type HrBulkAssignmentsStatus200 = RosterAssignmentPublic[];
@@ -29,6 +30,13 @@ export type HrBulkAssignmentsStatus403 = ApiError;
 export type HrBulkAssignmentsStatus404 = ApiError;
 
 /**
+ * @description 409 body when a change breaks roster rules and no override reason was
+ * given. Resend the request with ``rule_override_reason`` to save anyway.
+ * @type object
+ */
+export type HrBulkAssignmentsStatus409 = RosterRuleWarningsErrorPublic;
+
+/**
  * @description Validation error envelope returned for malformed requests.
  * @type object
  */
@@ -48,6 +56,7 @@ export type HrBulkAssignmentsResponses = {
   "400": HrBulkAssignmentsStatus400;
   "403": HrBulkAssignmentsStatus403;
   "404": HrBulkAssignmentsStatus404;
+  "409": HrBulkAssignmentsStatus409;
   "422": HrBulkAssignmentsStatus422;
 };
 

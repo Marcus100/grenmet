@@ -3,6 +3,7 @@
  * Do not edit manually.
  */
 
+import type { OvertimeBandPublic } from "./OvertimeBandPublic.js";
 import type { RosterAvailability } from "./RosterAvailability.js";
 
 export type TimesheetEntryPublic = {
@@ -39,4 +40,9 @@ export type TimesheetEntryPublic = {
    * @type string | undefined
    */
   availability?: RosterAvailability;
+  /**
+   * @description Overtime hours by rate multiplier (hours only, no pay).
+   * @type array | undefined
+   */
+  overtime_bands?: OvertimeBandPublic[];
 };

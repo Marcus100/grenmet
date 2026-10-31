@@ -10,4 +10,10 @@ export const workflowActionRequestSchema = z.object({
   step_id: z.union([z.uuid(), z.null()]).optional(),
   action: workflowActionSchema,
   comments: z.union([z.string().max(1000), z.null()]).optional(),
+  rule_override_reason: z
+    .union([z.string().max(1000), z.null()])
+    .optional()
+    .describe(
+      "Required when the final approval (or a cancellation) breaks a roster rule; recorded with the approver and the rules overridden."
+    ),
 });

@@ -1072,6 +1072,25 @@ fails if a key used in code is missing from the catalog). Routers:
 `profile`, `rosters`, `calendar`, `timesheets`, `attendance`, `leave-requests`, `shift-swaps`,
 `absentee-reports`, `status-reports`, `parking-permits`, `documents`, `workflows`.
 
+### Roster rules (#380)
+
+| Endpoint | Permission | Purpose |
+| --- | --- | --- |
+| `GET/PUT /api/v1/hr/rosters/organisations/{organisation_id}/rule-set` | organisation-wide `roster.rules.manage` | The organisation's default roster rules (`source` is `DEFAULT` until saved). A null limit disables a rule |
+| `GET /api/v1/hr/rosters/departments/{department_id}/rule-set` | `roster.view` in scope | The rules that apply: `source` `DEPARTMENT`, `ORGANISATION` or `DEFAULT` |
+| `PUT/DELETE /api/v1/hr/rosters/departments/{department_id}/rule-set` | `roster.rules.manage` in scope | Give a department its own rules, or return it to the organisation's |
+| `GET /api/v1/hr/rosters/departments/{department_id}/rule-profiles`, `PUT /api/v1/hr/rosters/employees/{user_id}/rule-profile` | `roster.rules.manage` in scope | Union coverage and worker type per employee; not for your own record |
+| `GET /api/v1/hr/rosters/departments/{department_id}/rule-overrides` | `roster.rules.manage` or `roster.manage` in scope | Saves made despite warnings: who, when, rules, reason |
+| `GET /api/v1/hr/rosters/departments/{department_id}/rules` (deprecated) | read `roster.view`; write `roster.rules.manage` | Old shape mapped onto the rule set: consecutive days and weekly hours; `min_rest_hours` is always null |
+
+Publish (`PATCH .../periods/{id}/publish`, optional body), published-roster edits
+(`POST .../assignments/bulk`), shift-exchange actions and workflow actions
+(`POST /hr/workflows/instances/{id}/actions`) accept `rule_override_reason`. Without
+it, a change that breaks a rule fails with 409 and `RosterRuleWarningsErrorPublic`
+(`detail`, `code: ROSTER_RULE_WARNINGS`, `context`, `violations`). Attendance week
+rows, timesheet entries and the timesheet summary carry `overtime_bands` (rate and
+hours, no pay). Details: `docs/hr/roster-rules.md`.
+
 ### Form prefill endpoints
 
 Read-only helpers that let the HR forms start from stored data. Each returns suggestions; the requester still edits and signs the figures.

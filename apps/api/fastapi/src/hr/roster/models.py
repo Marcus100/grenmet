@@ -1,5 +1,6 @@
 import uuid
 from datetime import date, datetime
+from decimal import Decimal
 from enum import Enum
 
 import sqlalchemy as sa
@@ -165,4 +166,141 @@ class RosterImportRow(Base):
     raw_data: Mapped[dict[str, str]] = mapped_column(JSON, default=dict)
     validation_errors: Mapped[list[str]] = mapped_column(JSON, default=list)
     is_valid: Mapped[bool] = mapped_column(default=False)
+    created_at: Mapped[datetime] = mapped_column(default=utc_now)
+
+
+class WorkPattern(str, Enum):
+    """ROTATION: consecutive-shift and days-off rules; WEEKDAYS: Monday to Friday."""
+
+    ROTATION = "ROTATION"
+    WEEKDAYS = "WEEKDAYS"
+
+
+class WorkerType(str, Enum):
+    """Which hour limits apply: shift workers or non-shift (Monday to Friday) staff."""
+
+    SHIFT = "SHIFT"
+    NON_SHIFT = "NON_SHIFT"
+
+
+class RosterRuleSet(Base):
+    """Roster rule limits as data (#380).
+
+    One row per organisation with ``department_id`` NULL holds the organisation
+    default; a row with a department replaces it entirely for that department.
+    Without any row the built-in defaults in ``rules.DEFAULT_RULES`` apply. A NULL
+    limit disables that rule.
+    """
+
+    __tablename__ = "roster_rule_set"
+    __table_args__ = (
+        sa.Index(
+            "uq_hr_roster_rule_set_org_default",
+            "organisation_id",
+            unique=True,
+            postgresql_where=sa.text("department_id IS NULL"),
+        ),
+        sa.Index(
+            "uq_hr_roster_rule_set_department",
+            "department_id",
+            unique=True,
+            postgresql_where=sa.text("department_id IS NOT NULL"),
+        ),
+        sa.CheckConstraint(
+            "work_pattern IN ('ROTATION', 'WEEKDAYS')",
+            name="ck_hr_roster_rule_set_work_pattern",
+        ),
+        sa.CheckConstraint(
+            "worker_type IN ('SHIFT', 'NON_SHIFT')",
+            name="ck_hr_roster_rule_set_worker_type",
+        ),
+        {"schema": "hr"},
+    )
+    id: Mapped[uuid.UUID] = mapped_column(primary_key=True, default=uuid.uuid4)
+    organisation_id: Mapped[str] = mapped_column(
+        String(100), ForeignKey("hr.organisation.id"), index=True
+    )
+    department_id: Mapped[str | None] = mapped_column(
+        String(100), ForeignKey("hr.department.id"), nullable=True
+    )
+    work_pattern: Mapped[str] = mapped_column(
+        String(20), default=WorkPattern.ROTATION.value
+    )
+    worker_type: Mapped[str] = mapped_column(String(20), default=WorkerType.SHIFT.value)
+    max_consecutive_shifts: Mapped[int | None] = mapped_column(nullable=True)
+    min_days_off_after_run: Mapped[int | None] = mapped_column(nullable=True)
+    shift_daily_hours: Mapped[Decimal | None] = mapped_column(
+        sa.Numeric(5, 2), nullable=True
+    )
+    shift_weekly_hours: Mapped[Decimal | None] = mapped_column(
+        sa.Numeric(5, 2), nullable=True
+    )
+    non_shift_daily_hours: Mapped[Decimal | None] = mapped_column(
+        sa.Numeric(5, 2), nullable=True
+    )
+    non_shift_weekly_hours: Mapped[Decimal | None] = mapped_column(
+        sa.Numeric(5, 2), nullable=True
+    )
+    weekend_window_weeks: Mapped[int | None] = mapped_column(nullable=True)
+    notice_days: Mapped[int | None] = mapped_column(nullable=True)
+    overtime_bands_enabled: Mapped[bool] = mapped_column(default=True)
+    weekday_first_hours: Mapped[Decimal] = mapped_column(sa.Numeric(5, 2))
+    weekday_first_rate: Mapped[Decimal] = mapped_column(sa.Numeric(4, 2))
+    weekday_after_rate: Mapped[Decimal] = mapped_column(sa.Numeric(4, 2))
+    saturday_window_start: Mapped[str] = mapped_column(String(5))
+    saturday_window_end: Mapped[str] = mapped_column(String(5))
+    saturday_window_rate: Mapped[Decimal] = mapped_column(sa.Numeric(4, 2))
+    saturday_after_rate: Mapped[Decimal] = mapped_column(sa.Numeric(4, 2))
+    rest_day_first_hours: Mapped[Decimal] = mapped_column(sa.Numeric(5, 2))
+    rest_day_first_rate: Mapped[Decimal] = mapped_column(sa.Numeric(4, 2))
+    rest_day_after_rate: Mapped[Decimal] = mapped_column(sa.Numeric(4, 2))
+    after_midnight_rate: Mapped[Decimal] = mapped_column(sa.Numeric(4, 2))
+    updated_by_user_id: Mapped[uuid.UUID | None] = mapped_column(
+        ForeignKey("user.id"), nullable=True
+    )
+    created_at: Mapped[datetime] = mapped_column(default=utc_now)
+    updated_at: Mapped[datetime] = mapped_column(default=utc_now)
+
+
+class RuleOverrideContext(str, Enum):
+    """Where a supervisor saved a change despite roster rule warnings."""
+
+    PUBLISH = "PUBLISH"
+    ROSTER_CHANGE = "ROSTER_CHANGE"
+    SHIFT_SWAP = "SHIFT_SWAP"
+    LEAVE = "LEAVE"
+    ABSENCE = "ABSENCE"
+    TIMESHEET = "TIMESHEET"
+    ATTENDANCE = "ATTENDANCE"
+
+
+class RosterRuleOverride(Base):
+    """Audit record of a supervisor saving despite roster rule warnings (#380):
+    who, when, which rules and why. Rows are only ever inserted."""
+
+    __tablename__ = "roster_rule_override"
+    __table_args__ = (
+        sa.Index(
+            "ix_hr_roster_rule_override_department_created",
+            "department_id",
+            "created_at",
+        ),
+        {"schema": "hr"},
+    )
+    id: Mapped[uuid.UUID] = mapped_column(primary_key=True, default=uuid.uuid4)
+    organisation_id: Mapped[str] = mapped_column(
+        String(100), ForeignKey("hr.organisation.id"), index=True
+    )
+    department_id: Mapped[str] = mapped_column(
+        String(100), ForeignKey("hr.department.id")
+    )
+    context: Mapped[str] = mapped_column(String(20))
+    entity_type: Mapped[str] = mapped_column(String(50))
+    entity_id: Mapped[str] = mapped_column(String(100))
+    rule_codes: Mapped[list[str]] = mapped_column(JSON, default=list)
+    violations: Mapped[list[dict[str, object]]] = mapped_column(JSON, default=list)
+    reason: Mapped[str] = mapped_column(String(1000))
+    overridden_by_user_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("user.id"), index=True
+    )
     created_at: Mapped[datetime] = mapped_column(default=utc_now)

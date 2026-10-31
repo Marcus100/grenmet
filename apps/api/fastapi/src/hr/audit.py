@@ -40,7 +40,7 @@ from .models import (
 )
 from .organisations import permitted_departments
 from .parking.models import ParkingPermit
-from .roster.models import PublicHoliday
+from .roster.models import PublicHoliday, RosterRuleSet
 from .timesheet.models import DepartmentPolicy, Timesheet, TimesheetEntry
 from .training.models import TrainingRecord
 from .workflow.models import (
@@ -338,6 +338,16 @@ def register() -> None:
     # Employer registration is platform-admin owned; no membership is inferred.
     registry.register_entity("organisation", _organisation_admin)
     registry.track(Organisation, record_type="organisation", label="Organisation")
+    # Roster rule sets (#380), organisation default and department rows alike:
+    # who changed which limit and when. Overrides are logged separately in
+    # hr.roster_rule_override and in the saved record's history.
+    registry.track(
+        RosterRuleSet,
+        record_type="roster_rule_set",
+        entity_type="organisation",
+        entity_id_attr="organisation_id",
+        label="Roster rules",
+    )
 
     # Setup records: readable by whoever may manage or view that setup area.
     registry.register_entity(

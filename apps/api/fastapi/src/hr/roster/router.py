@@ -1,15 +1,24 @@
+import uuid
 from datetime import date
 from typing import Annotated, Any, Literal
 
-from fastapi import APIRouter, Query, status
+from fastapi import APIRouter, Body, Query, status
 
+from src.auth.models import User
 from src.dependencies import CurrentUser, SessionDep
 from src.hr.dependencies import PublicHolidayDep, RosterPeriodDep
-from src.hr.timesheet.models import DepartmentPolicy
 from src.models import ApiError
 
 from . import rule_service, service
-from .models import RosterAvailability, RosterPeriodStatus
+from .models import (
+    RosterAvailability,
+    RosterPeriodStatus,
+    RosterRuleOverride,
+    RosterRuleSet,
+    RuleOverrideContext,
+    WorkerType,
+)
+from .rules import RosterRules
 from .schemas import (
     ProvisionalHolidaysRequest,
     PublicHolidayCreate,
@@ -30,19 +39,38 @@ from .schemas import (
     RosterPeriodDetails,
     RosterPeriodPublic,
     RosterPeriodsPublic,
+    RosterPublishRequest,
     RosterRevisionPublic,
     RosterRevisionsPublic,
     RosterRuleCheckPublic,
+    RosterRuleOverridePublic,
+    RosterRuleOverridesPublic,
+    RosterRuleProfilePublic,
+    RosterRuleProfilesPublic,
+    RosterRuleProfileUpdate,
+    RosterRuleSetPublic,
+    RosterRuleSetUpdate,
     RosterRulesPublic,
     RosterRulesUpdate,
+    RosterRuleWarningsErrorPublic,
+    RuleSetSource,
     RuleViolationPublic,
     ShiftCatalogCreate,
     ShiftCatalogPublic,
     ShiftCatalogsPublic,
     ShiftCatalogUpdate,
+    violation_public,
 )
 
 router = APIRouter(prefix="/hr/rosters", tags=["hr-rosters"])
+
+RULE_WARNINGS_RESPONSE = {
+    "model": RosterRuleWarningsErrorPublic,
+    "description": (
+        "The change breaks roster rules; resend with rule_override_reason to save "
+        "anyway"
+    ),
+}
 
 
 @router.get(
@@ -220,6 +248,7 @@ async def create_period(
             "model": ApiError,
             "description": "Insufficient permission",
         },
+        status.HTTP_409_CONFLICT: RULE_WARNINGS_RESPONSE,
     },
 )
 async def bulk_assignments(
@@ -494,9 +523,10 @@ async def import_csv(
     response_model=RosterPeriodPublic,
     summary="Publish roster period",
     description=(
-        "Transition a draft roster period to published. Roster rule warnings "
-        "are recorded on the published revision and never block publishing. "
-        "Requires roster.manage permission."
+        "Transition a draft roster period to published. If the roster breaks a "
+        "roster rule the request fails with 409 and the warnings; resend with "
+        "rule_override_reason to publish anyway (recorded with the supervisor and "
+        "the rules). Requires roster.manage permission."
     ),
     responses={
         status.HTTP_200_OK: {"description": "Roster period published"},
@@ -512,20 +542,21 @@ async def import_csv(
             "model": ApiError,
             "description": "Insufficient permission",
         },
+        status.HTTP_409_CONFLICT: RULE_WARNINGS_RESPONSE,
     },
 )
 async def publish_period(
-    *, session: SessionDep, current_user: CurrentUser, period: RosterPeriodDep
+    *,
+    session: SessionDep,
+    current_user: CurrentUser,
+    period: RosterPeriodDep,
+    payload: Annotated[RosterPublishRequest | None, Body()] = None,
 ) -> Any:
-    # Warn-only: violations are recorded on the revision but never block publish.
-    _, _, warnings = await rule_service.check_period_rules(
-        session=session, current_user=current_user, period_id=period.id
-    )
     return await service.publish_roster_period(
         session=session,
         current_user=current_user,
         period_id=period.id,
-        rule_warnings=warnings,
+        rule_override_reason=payload.rule_override_reason if payload else None,
     )
 
 
@@ -745,26 +776,44 @@ async def remove_holiday(
     )
 
 
-def _rules_public(
-    department_id: str, policy: DepartmentPolicy | None
-) -> RosterRulesPublic:
-    if policy is None:
-        return RosterRulesPublic(department_id=department_id)
+def _rules_public(department_id: str, rules: RosterRules) -> RosterRulesPublic:
+    """Pre-#380 shape: consecutive days and weekly hours only."""
     return RosterRulesPublic(
         department_id=department_id,
-        min_rest_hours=policy.min_rest_hours,
-        max_consecutive_days=policy.max_consecutive_days,
-        max_weekly_hours=policy.max_weekly_hours,
+        min_rest_hours=None,
+        max_consecutive_days=rules.max_consecutive_shifts,
+        max_weekly_hours=rules.shift_weekly_hours,
+    )
+
+
+def rule_set_public(
+    *,
+    organisation_id: str,
+    department_id: str | None,
+    row: RosterRuleSet | None,
+    source: RuleSetSource,
+) -> RosterRuleSetPublic:
+    values = rule_service.update_from_rules(rule_service.rules_from_row(row))
+    return RosterRuleSetPublic(
+        **values.model_dump(),
+        organisation_id=organisation_id,
+        department_id=department_id,
+        source=source,
+        updated_by_user_id=row.updated_by_user_id if row else None,
+        updated_at=row.updated_at if row else None,
     )
 
 
 @router.get(
     "/departments/{department_id}/rules",
     response_model=RosterRulesPublic,
-    summary="Read department roster rule limits",
+    deprecated=True,
+    summary="Read department roster rule limits (deprecated)",
     description=(
-        "Return the roster rule limits for a department. A null limit means the "
-        "rule is disabled. Requires roster.view within the department scope."
+        "Deprecated: use GET /departments/{department_id}/rule-set. Returns the "
+        "effective consecutive-shift and weekly-hour limits; min_rest_hours is "
+        "always null (there is no minimum-rest rule). Requires roster.view within "
+        "the department scope."
     ),
     responses={
         status.HTTP_200_OK: {"description": "Rule limits returned"},
@@ -777,20 +826,22 @@ def _rules_public(
 async def get_department_rules(
     *, session: SessionDep, current_user: CurrentUser, department_id: str
 ) -> Any:
-    policy = await rule_service.read_department_rules(
+    rules = await rule_service.read_department_rules(
         session=session, current_user=current_user, department_id=department_id
     )
-    return _rules_public(department_id, policy)
+    return _rules_public(department_id, rules)
 
 
 @router.put(
     "/departments/{department_id}/rules",
     response_model=RosterRulesPublic,
-    summary="Set department roster rule limits",
+    deprecated=True,
+    summary="Set department roster rule limits (deprecated)",
     description=(
-        "Replace the roster rule limits for a department; null disables a rule. "
-        "Rules only produce warnings and never block publishing. Requires "
-        "roster.manage within the department scope."
+        "Deprecated: use PUT /departments/{department_id}/rule-set. Sets the "
+        "department's consecutive-shift and weekly-hour limits on its rule set; "
+        "min_rest_hours is ignored. Requires roster.rules.manage within the "
+        "department scope."
     ),
     responses={
         status.HTTP_200_OK: {"description": "Rule limits saved"},
@@ -807,13 +858,13 @@ async def put_department_rules(
     department_id: str,
     data: RosterRulesUpdate,
 ) -> Any:
-    policy = await rule_service.update_department_rules(
+    rules = await rule_service.update_department_rules(
         session=session,
         current_user=current_user,
         department_id=department_id,
         data=data,
     )
-    return _rules_public(department_id, policy)
+    return _rules_public(department_id, rules)
 
 
 @router.get(
@@ -821,10 +872,11 @@ async def put_department_rules(
     response_model=RosterRuleCheckPublic,
     summary="Check a roster period against department rules",
     description=(
-        "Return warn-only violations of the department's rest, consecutive-day "
-        "and weekly-hour limits for a roster period. Neighbouring published "
-        "periods are included so runs crossing the boundary are seen. Requires "
-        "roster.view."
+        "Return the roster rule breaches in a roster period (consecutive shifts, "
+        "days off, daily and weekly hours, weekends, Monday-to-Friday pattern). "
+        "Neighbouring published periods are included so runs crossing the edge "
+        "are seen; staff not covered by the union agreement are not checked. "
+        "Requires roster.view."
     ),
     responses={
         status.HTTP_200_OK: {"description": "Rule check returned"},
@@ -844,25 +896,307 @@ async def check_period_rules(
     checked, rules, violations = await rule_service.check_period_rules(
         session=session, current_user=current_user, period_id=period.id
     )
+    department, row, source = await rule_service.read_department_rule_set(
+        session=session, current_user=current_user, department_id=checked.department_id
+    )
     return RosterRuleCheckPublic(
         period_id=checked.id,
-        rules=RosterRulesPublic(
-            department_id=checked.department_id,
-            min_rest_hours=rules.min_rest_hours,
-            max_consecutive_days=rules.max_consecutive_days,
-            max_weekly_hours=rules.max_weekly_hours,
-        ),
-        violations=[
-            RuleViolationPublic(
-                code=v.code.value,
-                user_id=v.user_id,
-                start_date=v.start_date,
-                end_date=v.end_date,
-                observed=v.observed,
-                limit=v.limit,
-                detail=v.detail,
-            )
-            for v in violations
-        ],
+        rules=_rules_public(checked.department_id, rules),
+        violations=[violation_public(v) for v in violations],
         count=len(violations),
+        rule_set=rule_set_public(
+            organisation_id=department.organisation_id,
+            department_id=department.id,
+            row=row,
+            source=source,
+        ),
     )
+
+
+@router.get(
+    "/organisations/{organisation_id}/rule-set",
+    response_model=RosterRuleSetPublic,
+    summary="Read the organisation's default roster rules",
+    description=(
+        "Return the organisation's default roster rule set (source DEFAULT when "
+        "none is saved and the built-in values apply). Requires organisation-wide "
+        "roster.rules.manage."
+    ),
+    responses={
+        status.HTTP_200_OK: {"description": "Rule set returned"},
+        status.HTTP_403_FORBIDDEN: {
+            "model": ApiError,
+            "description": "Insufficient permission",
+        },
+    },
+)
+async def get_organisation_rule_set(
+    *, session: SessionDep, current_user: CurrentUser, organisation_id: str
+) -> Any:
+    row, source = await rule_service.read_organisation_rule_set(
+        session=session, current_user=current_user, organisation_id=organisation_id
+    )
+    return rule_set_public(
+        organisation_id=organisation_id, department_id=None, row=row, source=source
+    )
+
+
+@router.put(
+    "/organisations/{organisation_id}/rule-set",
+    response_model=RosterRuleSetPublic,
+    summary="Save the organisation's default roster rules",
+    description=(
+        "Replace the organisation's default roster rules, used by every department "
+        "without its own rule set. A null limit disables that rule. Requires "
+        "organisation-wide roster.rules.manage."
+    ),
+    responses={
+        status.HTTP_200_OK: {"description": "Rule set saved"},
+        status.HTTP_403_FORBIDDEN: {
+            "model": ApiError,
+            "description": "Insufficient permission",
+        },
+    },
+)
+async def put_organisation_rule_set(
+    *,
+    session: SessionDep,
+    current_user: CurrentUser,
+    organisation_id: str,
+    data: RosterRuleSetUpdate,
+) -> Any:
+    row = await rule_service.save_organisation_rule_set(
+        session=session,
+        current_user=current_user,
+        organisation_id=organisation_id,
+        data=data,
+    )
+    return rule_set_public(
+        organisation_id=organisation_id,
+        department_id=None,
+        row=row,
+        source=RuleSetSource.ORGANISATION,
+    )
+
+
+@router.get(
+    "/departments/{department_id}/rule-set",
+    response_model=RosterRuleSetPublic,
+    summary="Read a department's effective roster rules",
+    description=(
+        "Return the rules that apply to a department: its own rule set, else the "
+        "organisation default, else the built-in defaults (see source). Requires "
+        "roster.view within the department scope."
+    ),
+    responses={
+        status.HTTP_200_OK: {"description": "Rule set returned"},
+        status.HTTP_403_FORBIDDEN: {
+            "model": ApiError,
+            "description": "Department outside your scope",
+        },
+    },
+)
+async def get_department_rule_set(
+    *, session: SessionDep, current_user: CurrentUser, department_id: str
+) -> Any:
+    department, row, source = await rule_service.read_department_rule_set(
+        session=session, current_user=current_user, department_id=department_id
+    )
+    return rule_set_public(
+        organisation_id=department.organisation_id,
+        department_id=department.id,
+        row=row,
+        source=source,
+    )
+
+
+@router.put(
+    "/departments/{department_id}/rule-set",
+    response_model=RosterRuleSetPublic,
+    summary="Save a department's own roster rules",
+    description=(
+        "Give a department its own roster rules, replacing the organisation "
+        "default for it. A null limit disables that rule. Requires "
+        "roster.rules.manage within the department scope."
+    ),
+    responses={
+        status.HTTP_200_OK: {"description": "Rule set saved"},
+        status.HTTP_403_FORBIDDEN: {
+            "model": ApiError,
+            "description": "Insufficient permission",
+        },
+    },
+)
+async def put_department_rule_set(
+    *,
+    session: SessionDep,
+    current_user: CurrentUser,
+    department_id: str,
+    data: RosterRuleSetUpdate,
+) -> Any:
+    row = await rule_service.save_department_rule_set(
+        session=session,
+        current_user=current_user,
+        department_id=department_id,
+        data=data,
+    )
+    return rule_set_public(
+        organisation_id=row.organisation_id,
+        department_id=department_id,
+        row=row,
+        source=RuleSetSource.DEPARTMENT,
+    )
+
+
+@router.delete(
+    "/departments/{department_id}/rule-set",
+    status_code=status.HTTP_204_NO_CONTENT,
+    summary="Return a department to the organisation's roster rules",
+    description=(
+        "Remove the department's own rule set so the organisation default applies "
+        "again. Requires roster.rules.manage within the department scope."
+    ),
+    responses={
+        status.HTTP_204_NO_CONTENT: {"description": "Department rule set removed"},
+        status.HTTP_403_FORBIDDEN: {
+            "model": ApiError,
+            "description": "Insufficient permission",
+        },
+    },
+)
+async def delete_department_rule_set(
+    *, session: SessionDep, current_user: CurrentUser, department_id: str
+) -> None:
+    await rule_service.clear_department_rule_set(
+        session=session, current_user=current_user, department_id=department_id
+    )
+
+
+def _profile_public(
+    rules: RosterRules, employment: Any, user: User
+) -> RosterRuleProfilePublic:
+    worker = (
+        WorkerType(employment.rule_worker_type) if employment.rule_worker_type else None
+    )
+    return RosterRuleProfilePublic(
+        user_id=user.id,
+        full_name=f"{user.first_name} {user.last_name}".strip(),
+        employee_number=employment.employee_number,
+        union_covered=employment.union_covered,
+        worker_type=worker,
+        effective_worker_type=worker or rules.worker_type,
+    )
+
+
+@router.get(
+    "/departments/{department_id}/rule-profiles",
+    response_model=RosterRuleProfilesPublic,
+    summary="List staff union coverage and worker type",
+    description=(
+        "Return each department member's union coverage flag and worker type for "
+        "the roster rules. Requires roster.rules.manage within the department "
+        "scope."
+    ),
+    responses={
+        status.HTTP_200_OK: {"description": "Profiles returned"},
+        status.HTTP_403_FORBIDDEN: {
+            "model": ApiError,
+            "description": "Insufficient permission",
+        },
+    },
+)
+async def list_rule_profiles(
+    *, session: SessionDep, current_user: CurrentUser, department_id: str
+) -> Any:
+    rules, rows = await rule_service.list_rule_profiles(
+        session=session, current_user=current_user, department_id=department_id
+    )
+    data = [_profile_public(rules, employment, user) for employment, user in rows]
+    return RosterRuleProfilesPublic(data=data, count=len(data))
+
+
+@router.put(
+    "/employees/{user_id}/rule-profile",
+    response_model=RosterRuleProfilePublic,
+    summary="Set an employee's union coverage and worker type",
+    description=(
+        "Turn the union roster rules on or off for an employee (for example off "
+        "for management) and optionally set their worker type. Uncovered staff "
+        "are not checked. Audited. Requires roster.rules.manage within the "
+        "employee's department scope; you cannot change your own."
+    ),
+    responses={
+        status.HTTP_200_OK: {"description": "Profile saved"},
+        status.HTTP_403_FORBIDDEN: {
+            "model": ApiError,
+            "description": "Insufficient permission",
+        },
+        status.HTTP_404_NOT_FOUND: {
+            "model": ApiError,
+            "description": "Employee not found",
+        },
+    },
+)
+async def put_rule_profile(
+    *,
+    session: SessionDep,
+    current_user: CurrentUser,
+    user_id: uuid.UUID,
+    data: RosterRuleProfileUpdate,
+) -> Any:
+    rules, employment, user = await rule_service.update_rule_profile(
+        session=session, current_user=current_user, user_id=user_id, data=data
+    )
+    return _profile_public(rules, employment, user)
+
+
+def _override_public(
+    override: RosterRuleOverride, user: User
+) -> RosterRuleOverridePublic:
+    return RosterRuleOverridePublic(
+        id=override.id,
+        department_id=override.department_id,
+        context=RuleOverrideContext(override.context),
+        entity_type=override.entity_type,
+        entity_id=override.entity_id,
+        rule_codes=override.rule_codes,
+        violations=[RuleViolationPublic.model_validate(v) for v in override.violations],
+        reason=override.reason,
+        overridden_by_user_id=override.overridden_by_user_id,
+        overridden_by_name=f"{user.first_name} {user.last_name}".strip(),
+        created_at=override.created_at,
+    )
+
+
+@router.get(
+    "/departments/{department_id}/rule-overrides",
+    response_model=RosterRuleOverridesPublic,
+    summary="List roster rule overrides",
+    description=(
+        "Return the latest saves made despite roster rule warnings in a "
+        "department: who, when, which rules and the reason. Requires "
+        "roster.rules.manage or roster.manage within the department scope."
+    ),
+    responses={
+        status.HTTP_200_OK: {"description": "Overrides returned"},
+        status.HTTP_403_FORBIDDEN: {
+            "model": ApiError,
+            "description": "Insufficient permission",
+        },
+    },
+)
+async def list_rule_overrides(
+    *,
+    session: SessionDep,
+    current_user: CurrentUser,
+    department_id: str,
+    limit: Annotated[int, Query(ge=1, le=200)] = 50,
+) -> Any:
+    rows = await rule_service.list_overrides(
+        session=session,
+        current_user=current_user,
+        department_id=department_id,
+        limit=limit,
+    )
+    data = [_override_public(override, user) for override, user in rows]
+    return RosterRuleOverridesPublic(data=data, count=len(data))

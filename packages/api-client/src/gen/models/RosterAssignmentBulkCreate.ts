@@ -13,4 +13,8 @@ export type RosterAssignmentBulkCreate = {
    */
   roster_period_id: string;
   assignments?: RosterAssignmentInput[];
+  /**
+   * @description Required to save a change to a published roster that breaks a roster rule; recorded with the supervisor and the rules overridden.
+   */
+  rule_override_reason?: string | null;
 };

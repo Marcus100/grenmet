@@ -1,6 +1,5 @@
 import csv
 import uuid
-from collections.abc import Sequence
 from datetime import date
 from io import StringIO
 
@@ -58,10 +57,10 @@ from .models import (
     RosterPeriodStatus,
     RosterRevision,
     RosterRevisionAction,
+    RuleOverrideContext,
     ShiftCatalog,
     ShiftCategory,
 )
-from .rules import RuleViolation
 from .schemas import (
     PublicHolidayCreate,
     PublicHolidayUpdate,
@@ -405,10 +404,13 @@ async def publish_roster_period(
     session: AsyncSession,
     current_user: User,
     period_id: uuid.UUID,
-    rule_warnings: Sequence[RuleViolation] = (),
+    rule_override_reason: str | None = None,
 ) -> RosterPeriod:
-    """Publish a draft period. ``rule_warnings`` are recorded on the revision and
-    never prevent publishing."""
+    """Publish a draft period. Roster rule breaches stop publishing until the
+    supervisor gives a reason (#380); the warnings and the override are recorded
+    on the published revision and in the override log."""
+    from . import rule_service
+
     require_permission(current_user=current_user, permission_key="roster.manage")
     period = await get_roster_period_or_404(session=session, period_id=period_id)
     await require_roster_manage_scope(session, current_user, period.department_id)
@@ -416,6 +418,17 @@ async def publish_roster_period(
         raise HRValidationError(ERROR_ROSTER_PERIOD_ALREADY_PUBLISHED)
     if period.status == RosterPeriodStatus.CLOSED:
         raise HRValidationError(ERROR_ROSTER_PERIOD_ALREADY_CLOSED)
+    _, rule_warnings = await rule_service.period_violations(session, period)
+    override = await rule_service.enforce(
+        session,
+        actor=current_user,
+        violations=rule_warnings,
+        reason=rule_override_reason,
+        context=RuleOverrideContext.PUBLISH,
+        entity_type="roster_period",
+        entity_id=str(period.id),
+        department_id=period.department_id,
+    )
     period.status = RosterPeriodStatus.PUBLISHED
     period.updated_at = utc_now()
     session.add(period)
@@ -460,7 +473,8 @@ async def publish_roster_period(
                             "detail": warning.detail,
                         }
                         for warning in rule_warnings
-                    ]
+                    ],
+                    "rule_override_reason": override.reason if override else None,
                 }
                 if rule_warnings
                 else {}
@@ -732,6 +746,14 @@ async def bulk_upsert_roster_assignments(
         raise HRValidationError(
             "Recorded attendance or submitted work prevents changing the roster shift; review an HR correction"
         )
+    if period.status == RosterPeriodStatus.PUBLISHED:
+        await _enforce_published_change(
+            session,
+            current_user=current_user,
+            period=period,
+            payload=payload,
+            by_cell=by_cell,
+        )
     # Preserve identifiers: timesheets and attendance refer to these rows, even
     # when the same roster is imported or saved again.
     for assignment in payload.assignments:
@@ -768,6 +790,65 @@ async def bulk_upsert_roster_assignments(
     )
     created_assignments = list(result.scalars().all())
     return created_assignments
+
+
+async def _enforce_published_change(
+    session: AsyncSession,
+    *,
+    current_user: User,
+    period: RosterPeriod,
+    payload: RosterAssignmentBulkCreate,
+    by_cell: dict[tuple[uuid.UUID, date], RosterAssignment],
+) -> None:
+    """Rule check for edits to a published roster: breaches the edit introduces
+    and short notice for each changed cell (#380)."""
+    from . import rule_service
+    from .rules import RosterShift
+
+    changed = [
+        item
+        for item in payload.assignments
+        if (row := by_cell.get((item.user_id, item.assignment_date))) is None
+        or row.shift_code != item.shift_code
+    ]
+    if not changed:
+        return
+    catalogue = {
+        shift.code: shift
+        for shift in await session.scalars(
+            select(ShiftCatalog).where(
+                ShiftCatalog.code.in_({item.shift_code for item in changed})
+            )
+        )
+    }
+
+    def mutate(cells: rule_service.Cells) -> rule_service.Cells:
+        for item in changed:
+            cells[(item.user_id, item.assignment_date)] = RosterShift(
+                user_id=item.user_id,
+                assignment_date=item.assignment_date,
+                shift=catalogue[item.shift_code],
+            )
+        return cells
+
+    _, violations = await rule_service.change_violations(
+        session,
+        department_id=period.department_id,
+        user_ids={item.user_id for item in changed},
+        dates={item.assignment_date for item in changed},
+        mutate=mutate,
+        changed=[(item.user_id, item.assignment_date) for item in changed],
+    )
+    await rule_service.enforce(
+        session,
+        actor=current_user,
+        violations=violations,
+        reason=payload.rule_override_reason,
+        context=RuleOverrideContext.ROSTER_CHANGE,
+        entity_type="roster_period",
+        entity_id=str(period.id),
+        department_id=period.department_id,
+    )
 
 
 async def read_roster_period_details(
@@ -1085,16 +1166,25 @@ async def import_roster_grid(
     )
 
     published = False
+    rule_warning_count = 0
     if payload.publish and period.status == RosterPeriodStatus.DRAFT:
-        await publish_roster_period(
-            session=session, current_user=current_user, period_id=period.id
-        )
-        published = True
+        from .rule_service import RosterRuleWarningsError
+
+        try:
+            await publish_roster_period(
+                session=session, current_user=current_user, period_id=period.id
+            )
+            published = True
+        except RosterRuleWarningsError as warnings:
+            # The import is kept; publishing waits for a supervisor's reviewed
+            # override on the roster screen.
+            rule_warning_count = len(warnings.violations)
 
     return RosterGridImportResult(
         roster_period_id=period.id,
         total_assignments=len(assignments),
         published=published,
+        rule_warning_count=rule_warning_count,
     )
 
 

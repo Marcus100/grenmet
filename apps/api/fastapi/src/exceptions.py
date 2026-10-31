@@ -16,6 +16,9 @@ class AppException(Exception):
     def __init__(self, message: str, status_code: int = 500):
         self.message = message
         self.status_code = status_code
+        #: Extra documented fields merged into the error body next to ``detail``
+        #: (for example roster rule warnings); empty for ordinary errors.
+        self.extra: dict[str, object] = {}
         super().__init__(self.message)
 
 
@@ -52,9 +55,9 @@ async def app_exception_handler(
     exc: AppException,
 ) -> JSONResponse:
     """Handle application exceptions."""
-    return JSONResponse(
-        status_code=exc.status_code, content=ApiError(detail=exc.message).model_dump()
-    )
+    content: dict[str, object] = ApiError(detail=exc.message).model_dump()
+    content.update(exc.extra)
+    return JSONResponse(status_code=exc.status_code, content=content)
 
 
 async def validation_exception_handler(

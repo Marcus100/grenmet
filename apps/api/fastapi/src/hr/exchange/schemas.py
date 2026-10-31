@@ -37,6 +37,11 @@ class ShiftSwapSubmit(SignatureConsent):
 class ShiftSwapAction(BaseModel):
     status: RequestStatus
     comments: str | None = None
+    rule_override_reason: str | None = Field(
+        default=None,
+        max_length=1000,
+        description="Required to approve an exchange that breaks a roster rule.",
+    )
 
 
 class ShiftSwapRequestPublic(SubmittedFormPublic):

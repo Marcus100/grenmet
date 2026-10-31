@@ -7,6 +7,7 @@ import * as z from "zod";
 import { apiErrorSchema } from "./apiErrorSchema.js";
 import { rosterAssignmentBulkCreateSchema } from "./rosterAssignmentBulkCreateSchema.js";
 import { rosterAssignmentPublicSchema } from "./rosterAssignmentPublicSchema.js";
+import { rosterRuleWarningsErrorPublicSchema } from "./rosterRuleWarningsErrorPublicSchema.js";
 import { validationErrorResponseSchema } from "./validationErrorResponseSchema.js";
 
 export const hrBulkAssignmentsStatus200Schema = z.array(
@@ -25,6 +26,11 @@ export const hrBulkAssignmentsStatus404Schema = apiErrorSchema.describe(
   "Stable error envelope for documented API failures."
 );
 
+export const hrBulkAssignmentsStatus409Schema =
+  rosterRuleWarningsErrorPublicSchema.describe(
+    "409 body when a change breaks roster rules and no override reason was\ngiven. Resend the request with ``rule_override_reason`` to save anyway."
+  );
+
 export const hrBulkAssignmentsStatus422Schema =
   validationErrorResponseSchema.describe(
     "Validation error envelope returned for malformed requests."
@@ -36,6 +42,7 @@ export const hrBulkAssignmentsErrorSchema = z.union([
   hrBulkAssignmentsStatus400Schema,
   hrBulkAssignmentsStatus403Schema,
   hrBulkAssignmentsStatus404Schema,
+  hrBulkAssignmentsStatus409Schema,
   hrBulkAssignmentsStatus422Schema,
 ]);
 

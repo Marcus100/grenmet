@@ -9,4 +9,8 @@ export type WorkflowActionRequest = {
   step_id?: string | null;
   action: WorkflowAction;
   comments?: string | null;
+  /**
+   * @description Required when the final approval (or a cancellation) breaks a roster rule; recorded with the approver and the rules overridden.
+   */
+  rule_override_reason?: string | null;
 };

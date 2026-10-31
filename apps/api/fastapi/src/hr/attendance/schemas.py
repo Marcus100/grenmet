@@ -5,6 +5,7 @@ from decimal import Decimal
 from pydantic import Field, field_validator
 
 from src.hr.roster.models import RosterAvailability
+from src.hr.roster.schemas import OvertimeBandPublic
 from src.hr.workflow.models import WorkflowStatus
 from src.models import BaseModel, UtcDateTime
 
@@ -70,6 +71,10 @@ class AttendanceShiftPublic(BaseModel):
     review_status: WorkflowStatus | None = None
     reviewer_name: str | None = None
     reviewed_at: UtcDateTime | None = None
+    overtime_bands: list[OvertimeBandPublic] = Field(
+        default_factory=list,
+        description="Overtime hours by rate multiplier (hours only, no pay).",
+    )
 
 
 class AttendanceWeekPublic(BaseModel):

@@ -9,4 +9,10 @@ import { rosterAssignmentInputSchema } from "./rosterAssignmentInputSchema.js";
 export const rosterAssignmentBulkCreateSchema = z.object({
   roster_period_id: z.uuid(),
   assignments: z.array(rosterAssignmentInputSchema).optional(),
+  rule_override_reason: z
+    .union([z.string().max(1000), z.null()])
+    .optional()
+    .describe(
+      "Required to save a change to a published roster that breaks a roster rule; recorded with the supervisor and the rules overridden."
+    ),
 });

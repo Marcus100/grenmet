@@ -9,4 +9,8 @@ import { requestStatusSchema } from "./requestStatusSchema.js";
 export const shiftSwapActionSchema = z.object({
   status: requestStatusSchema,
   comments: z.union([z.string(), z.null()]).optional(),
+  rule_override_reason: z
+    .union([z.string().max(1000), z.null()])
+    .optional()
+    .describe("Required to approve an exchange that breaks a roster rule."),
 });
