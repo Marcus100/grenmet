@@ -222,6 +222,86 @@ describe("TimesheetEditor", () => {
     }
   );
 
+  it("asks for a reason when submitting breaks a roster rule, then resends it", async () => {
+    const submitted: Record<string, unknown>[] = [];
+    server.use(
+      http.post(`${BASE}/api/v1/hr/timesheets`, () =>
+        HttpResponse.json(
+          {
+            timesheet: {
+              id: "ts-1",
+              user_id: "u-1",
+              department_id: "dept_met",
+              period_start: "2026-07-01",
+              period_end: "2026-07-01",
+              status: "DRAFT",
+              created_at: "2026-07-04T00:00:00+0000",
+              updated_at: "2026-07-04T00:00:00+0000",
+            },
+            entries: [],
+          },
+          { status: 201 }
+        )
+      ),
+      http.patch(
+        `${BASE}/api/v1/hr/timesheets/ts-1/submit`,
+        async ({ request }) => {
+          const body = (await request.json()) as Record<string, unknown>;
+          submitted.push(body);
+          if (!body.rule_override_reason)
+            return HttpResponse.json(
+              {
+                detail: "1 roster rule warning: give a reason to save anyway",
+                code: "ROSTER_RULE_WARNINGS",
+                context: "TIMESHEET",
+                violations: [
+                  {
+                    code: "MAX_WEEKLY_HOURS",
+                    user_id: "u-1",
+                    start_date: "2026-07-05",
+                    end_date: "2026-07-11",
+                    observed: "46.00",
+                    limit: "40.00",
+                    detail:
+                      "46.00 h in the week (Sunday to Saturday); maximum is 40 h",
+                  },
+                ],
+              },
+              { status: 409 }
+            );
+          return HttpResponse.json({
+            id: "ts-1",
+            status: "SUBMITTED",
+            submitted_at: "2026-09-07T02:30:00Z",
+          });
+        }
+      )
+    );
+    const user = userEvent.setup();
+    renderEditor();
+    await user.click(screen.getByRole("button", { name: ADD_ENTRY }));
+    await user.click(screen.getByLabelText("DATE"));
+    const grid = await screen.findByRole("grid");
+    await user.click(within(grid).getByText("15"));
+    await user.type(screen.getByLabelText("ROSTER HRS"), "8");
+    await user.click(screen.getByRole("button", { name: SUBMIT_TO_HR }));
+
+    const warnings = await screen.findByRole("list", { name: "Rule warnings" });
+    expect(warnings).toHaveTextContent("You");
+    expect(warnings).toHaveTextContent("Weekly hours over limit");
+    await user.type(
+      screen.getByLabelText("Reason for saving anyway"),
+      "Hurricane watch overtime"
+    );
+    await user.click(screen.getByRole("button", { name: "Approve anyway" }));
+    await waitFor(() => expect(submitted).toHaveLength(2));
+    expect(submitted[1]).toEqual({
+      mode: "SELF",
+      signature_version: "11111111-1111-4111-8111-111111111111",
+      rule_override_reason: "Hurricane watch overtime",
+    });
+  });
+
   it("fills entries from the published roster without duplicating existing dates", async () => {
     server.use(
       http.get(`${BASE}/api/v1/hr/timesheets/prefill`, ({ request }) => {
@@ -283,5 +363,162 @@ describe("TimesheetEditor", () => {
     await user.click(screen.getByRole("button", { name: FILL_FROM_ROSTER }));
     await screen.findByText(NOTHING_ADDED);
     expect(screen.queryByText("Entry 3")).not.toBeInTheDocument();
+  });
+});
+
+const WARNING_409 = {
+  detail: "1 roster rule warning: give a reason to save anyway",
+  code: "ROSTER_RULE_WARNINGS",
+  context: "TIMESHEET",
+  violations: [
+    {
+      code: "MAX_WEEKLY_HOURS",
+      user_id: "u-1",
+      start_date: "2026-07-05",
+      end_date: "2026-07-11",
+      observed: "46.00",
+      limit: "40.00",
+      detail: "46.00 h in the week (Sunday to Saturday); maximum is 40 h",
+    },
+  ],
+};
+
+describe("TimesheetEditor held for roster rule warnings", () => {
+  interface Calls {
+    created: unknown[];
+    deleted: string[];
+    submitted: { id: string; body: Record<string, unknown> }[];
+  }
+
+  /** Every submit without a reason is held (409); with a reason it succeeds,
+   *  or fails with a 500 when `resend` is "fail". */
+  function hold(resend: "ok" | "fail" = "ok"): Calls {
+    const calls: Calls = { created: [], deleted: [], submitted: [] };
+    server.use(
+      http.post(`${BASE}/api/v1/hr/timesheets`, async ({ request }) => {
+        calls.created.push(await request.json());
+        return HttpResponse.json(
+          {
+            timesheet: {
+              id: `ts-${calls.created.length}`,
+              user_id: "u-1",
+              department_id: "dept_met",
+              period_start: "2026-07-01",
+              period_end: "2026-07-01",
+              status: "DRAFT",
+              created_at: "2026-07-04T00:00:00+0000",
+              updated_at: "2026-07-04T00:00:00+0000",
+            },
+            entries: [],
+          },
+          { status: 201 }
+        );
+      }),
+      http.delete(`${BASE}/api/v1/hr/timesheets/:id`, ({ params }) => {
+        calls.deleted.push(String(params.id));
+        return new HttpResponse(null, { status: 204 });
+      }),
+      http.patch(
+        `${BASE}/api/v1/hr/timesheets/:id/submit`,
+        async ({ params, request }) => {
+          const body = (await request.json()) as Record<string, unknown>;
+          calls.submitted.push({ id: String(params.id), body });
+          if (!body.rule_override_reason)
+            return HttpResponse.json(WARNING_409, { status: 409 });
+          if (resend === "fail")
+            return HttpResponse.json({ detail: "Down" }, { status: 500 });
+          return HttpResponse.json({
+            id: String(params.id),
+            status: "SUBMITTED",
+            submitted_at: "2026-09-07T02:30:00Z",
+          });
+        }
+      )
+    );
+    return calls;
+  }
+
+  async function fillAndSubmit(user: ReturnType<typeof userEvent.setup>) {
+    await user.click(screen.getByRole("button", { name: ADD_ENTRY }));
+    await user.click(screen.getByLabelText("DATE"));
+    const grid = await screen.findByRole("grid");
+    await user.click(within(grid).getByText("15"));
+    await user.type(screen.getByLabelText("ROSTER HRS"), "8");
+    await user.click(screen.getByRole("button", { name: SUBMIT_TO_HR }));
+    await screen.findByRole("list", { name: "Rule warnings" });
+  }
+
+  it("Cancel closes the dialog, keeps the editable form and sends nothing more", async () => {
+    const calls = hold();
+    const user = userEvent.setup();
+    renderEditor();
+    await fillAndSubmit(user);
+
+    await user.click(screen.getByRole("button", { name: "Cancel" }));
+    await waitFor(() =>
+      expect(
+        screen.queryByRole("list", { name: "Rule warnings" })
+      ).not.toBeInTheDocument()
+    );
+    expect(screen.getByLabelText("ROSTER HRS")).toHaveValue("8");
+    expect(screen.getByRole("button", { name: ADD_ENTRY })).toBeEnabled();
+    expect(calls.created).toHaveLength(1);
+    expect(calls.submitted).toHaveLength(1);
+    expect(calls.deleted).toEqual([]);
+  });
+
+  it("resubmitting unchanged entries after Cancel reuses the saved draft", async () => {
+    const calls = hold();
+    const user = userEvent.setup();
+    renderEditor();
+    await fillAndSubmit(user);
+    await user.click(screen.getByRole("button", { name: "Cancel" }));
+    await user.click(screen.getByRole("button", { name: SUBMIT_TO_HR }));
+    await screen.findByRole("list", { name: "Rule warnings" });
+
+    expect(calls.created).toHaveLength(1);
+    expect(calls.deleted).toEqual([]);
+    expect(calls.submitted.map((c) => c.id)).toEqual(["ts-1", "ts-1"]);
+  });
+
+  it("editing after Cancel replaces the saved draft instead of duplicating it", async () => {
+    const calls = hold();
+    const user = userEvent.setup();
+    renderEditor();
+    await fillAndSubmit(user);
+    await user.click(screen.getByRole("button", { name: "Cancel" }));
+
+    await user.type(screen.getByLabelText("ACTUAL HRS"), "6");
+    await user.click(screen.getByRole("button", { name: SUBMIT_TO_HR }));
+    await screen.findByRole("list", { name: "Rule warnings" });
+
+    expect(calls.deleted).toEqual(["ts-1"]);
+    expect(calls.created).toHaveLength(2);
+    expect(calls.submitted.map((c) => c.id)).toEqual(["ts-1", "ts-2"]);
+  });
+
+  it("a failed resend closes the dialog and keeps the typed reason", async () => {
+    hold("fail");
+    const user = userEvent.setup();
+    renderEditor();
+    await fillAndSubmit(user);
+    await user.type(
+      screen.getByLabelText("Reason for saving anyway"),
+      "Hurricane watch overtime"
+    );
+    await user.click(screen.getByRole("button", { name: "Approve anyway" }));
+
+    await waitFor(() =>
+      expect(
+        screen.queryByRole("list", { name: "Rule warnings" })
+      ).not.toBeInTheDocument()
+    );
+    expect(screen.getByRole("button", { name: SUBMIT_TO_HR })).toBeEnabled();
+
+    await user.click(screen.getByRole("button", { name: SUBMIT_TO_HR }));
+    await screen.findByRole("list", { name: "Rule warnings" });
+    expect(screen.getByLabelText("Reason for saving anyway")).toHaveValue(
+      "Hurricane watch overtime"
+    );
   });
 });
