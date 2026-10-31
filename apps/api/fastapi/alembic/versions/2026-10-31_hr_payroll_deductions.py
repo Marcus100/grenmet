@@ -247,13 +247,16 @@ def upgrade() -> None:
         CREATE FUNCTION hr.pay_deduction_line_is_locked() RETURNS trigger AS $$
         DECLARE
           period_status text;
+          period_issued timestamp;
         BEGIN
-          SELECT status INTO period_status FROM hr.pay_period
+          SELECT status, issue_approved_at INTO period_status, period_issued
+            FROM hr.pay_period
             WHERE id = COALESCE(NEW.period_id, OLD.period_id);
           IF TG_OP = 'UPDATE'
              AND COALESCE(current_setting('payroll.refresh_table_state', true), '') = 'on'
              AND (to_jsonb(NEW) - 'source_rule_state') = (to_jsonb(OLD) - 'source_rule_state')
-             AND period_status IN ('APPROVED', 'EXPORTED') THEN
+             AND period_status IN ('APPROVED', 'EXPORTED')
+             AND period_issued IS NULL THEN
             RETURN NEW;
           END IF;
           IF period_status IS DISTINCT FROM 'OPEN' THEN

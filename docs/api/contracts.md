@@ -114,7 +114,7 @@ tax, NIS or bank field exists in any request, response or export.
   create (always true). Anyone who may confirm tables may read them. Creators
   and confirmers of any table or type a period uses cannot approve it for issue.
 - `POST periods/{period_id}/table-state-refresh` (organisation-wide
-  `hr.payroll.approve`, MFA, not the preparer or quantities approver) copies the
+  `hr.payroll.approve` and `hr.payroll.read.amounts`, MFA, not the preparer or quantities approver) copies the
   current state of each table onto an approved period's deduction lines (no figure
   changes; audited) so a period approved while a table was provisional can be
   issued after the table is confirmed. Refused once issued.
