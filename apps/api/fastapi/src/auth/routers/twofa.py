@@ -34,7 +34,9 @@ async def twofa_status(*, current_user: AccountUser) -> TwoFactorStatusPublic:
     response_model=TwoFactorSetupResponse,
     summary="Begin 2FA enrollment",
     description="Generate a new TOTP secret and provisioning URI. 2FA is not active "
-    "until a code is confirmed via /auth/users/me/security/2fa/activate.",
+    "until a code is confirmed via /auth/users/me/security/2fa/activate. For a "
+    "privileged account a one-time code is emailed to the account, and activation "
+    "needs it as email_code (email_code_required is true).",
     responses={**AUTHENTICATED},
 )
 async def twofa_setup(
@@ -45,6 +47,9 @@ async def twofa_setup(
         secret=secret,
         provisioning_uri=totp.provisioning_uri(
             secret=secret, account_name=current_user.email
+        ),
+        email_code_required=await service.enrolment_needs_email_code(
+            session=session, user=current_user
         ),
     )
 
@@ -59,7 +64,8 @@ async def twofa_setup(
             "description": "Invalid or expired code",
         }
     },
-    description="Confirms a TOTP code and enables two-factor authentication for the current account.",
+    description="Confirms a TOTP code and enables two-factor authentication for the current account. "
+    "The first authenticator of a privileged account also needs email_code, the code emailed when setup began.",
 )
 async def twofa_activate(
     *,
@@ -73,6 +79,7 @@ async def twofa_activate(
         user=current_user,
         code=payload.code,
         keep_session_id=session_id_from_token(token),
+        email_code=payload.email_code,
     )
     if not ok:
         raise HTTPException(
