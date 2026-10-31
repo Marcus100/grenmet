@@ -38,6 +38,18 @@ src/app/
 
 `POST /api/email/render` is called **only by FastAPI** (not by browsers) to render React Email templates to HTML. Protected by `EMAIL_RENDER_SECRET` header. Uses `@barrelsgd/email-templates` package.
 
+## Passwordless sign-up and sign-in (#958)
+
+- `/signup` and the "Continue with email" form share `EmailCodeForm`: one email, then the 6-digit code. The code creates the account on first use, verifies the email and signs the person in, then returns to `returnTo`. There is no password at sign-up and no confirm field anywhere in sign-up, activation or verify-email.
+- Password sign-in stays at `/` ("Sign in with a password instead"). Existing password accounts are unchanged.
+- The optional name is asked on the account page after sign-in (`NamePrompt`, `saveNameAction`), never at sign-up. The unverified-email banner (`VerifyBanner`) is non-blocking.
+- Security shows a Password row; "Add a password" opens `/verify-email`, which sends the password-setup link (`/auth/password/setup`).
+- Verification: a code sign-in confirms the email, so passwordless sign-in IS the verification. Password accounts can still send a confirmation link.
+
+Redis (production requirement): the emailed-code send cap and login lockout count in Redis (`REDIS_URL`). Unset, both fail open and nothing is limited. Confirm production sets it before relying on these limits.
+
+Not built, Ask-first (see issues): Turnstile on the code start step (#959); passkeys (WebAuthn) after launch (#960, needs owner approval of a Python WebAuthn dependency, for example `py_webauthn`; no passkey UI until shipped).
+
 ## Key conventions
 
 - A page-level form that submits only through `onSubmit` (`SignUpForm`, `change-password-form`) disables its submit until `useHydrated()` (`src/lib/use-hydrated.ts`) is true; before hydration a native submit would be a GET that puts passwords and personal data in the URL. Keep typed values after a refusal (rules: `docs/agents/extended-rules.md`, Form patterns).

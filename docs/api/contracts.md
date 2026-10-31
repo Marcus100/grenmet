@@ -464,7 +464,12 @@ route. Only these self-service routes accept unapproved accounts (`AccountUser`)
 `POST /auth/token` (machine clients) still requires staff approval.
 `POST /auth/email-code/start` and `/verify` sign in to the account with a
 6-digit emailed code (the first verified code creates the account when sign-up is
-open); they open the same account session as password and Google sign-in.
+open); they open the same account session as password and Google sign-in. This is
+the sign-up path too (#958): `/signup` in the auth app asks for an email only.
+Start replies the same for known and unknown addresses. Past five requests per
+address an hour no code is sent (email bombing). A code sign-in confirms the
+email and writes an audit entry (`code_sign_in`). `POST /auth/users/signup`
+(password, names required) is still served but the auth app no longer uses it.
 
 Public sites registered for single sign-on (`weather`, `mbia`, `signal`, `docs`,
 `elections`) have no sign-in routes of their own and `join_prompt=False`: the
