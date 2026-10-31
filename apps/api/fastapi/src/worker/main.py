@@ -262,6 +262,45 @@ async def expire_unpaid_event_orders(ctx: dict[str, Any]) -> int:
     return result
 
 
+@monitored(schedule="40 4 * * *", checkin_margin=30, max_runtime=30)
+async def reconcile_provider_refunds(ctx: dict[str, Any]) -> int:
+    """Daily: compare captured Stripe payments' refunds with Stripe's full refund
+    list and record any a truncated webhook list missed (#869). Stripe is test mode
+    only (the adapter refuses any other key); with Stripe off the run does nothing.
+    Returns the number of payments whose refunds changed."""
+    from src.database import async_session_factory
+    from src.payments import service as payments_service
+
+    async with async_session_factory() as session:
+        try:
+            run = await payments_service.reconcile_recent_refunds(session)
+        except Exception:
+            await operational_metrics.record_job(
+                ctx.get("redis"),
+                "reconcile_provider_refunds",
+                str(ctx.get("job_id", "")),
+                False,
+            )
+            raise
+    logger.info(
+        "refund reconciliation run",
+        extra={
+            "checked": run.checked,
+            "changed": run.changed,
+            "mismatched": run.mismatched,
+            "failed": run.failed,
+            "provider_off": run.provider_off,
+        },
+    )
+    await operational_metrics.record_job(
+        ctx.get("redis"),
+        "reconcile_provider_refunds",
+        str(ctx.get("job_id", "")),
+        run.failed == 0,
+    )
+    return run.changed
+
+
 async def send_daily_newsletter(ctx: dict[str, Any]) -> int:
     """Daily climate newsletter at 07:30 Grenada time; queues nothing until switched on."""
     from src.database import async_session_factory
@@ -641,6 +680,7 @@ class WorkerSettings:
         enqueue_booking_reminders,
         expire_unpaid_bookings,
         expire_unpaid_event_orders,
+        reconcile_provider_refunds,
         send_wis2_publications,
         run_notification_sweeps,
         run_gms_notification_sweeps,
@@ -700,6 +740,8 @@ class WorkerSettings:
             run_at_startup=False,
         ),
         # eRegister observations queued for wis2box (retries live on the row).
+        # Stripe refunds beyond a webhook's ten-refund list (#869), daily 00:40 Grenada.
+        cron(reconcile_provider_refunds, hour=4, minute=40, run_at_startup=False),
         cron(send_wis2_publications, second={20, 50}, run_at_startup=False),
         # Daily reminders (expiries, overdue approvals) at 06:00 Grenada (UTC-4).
         cron(run_notification_sweeps, hour=10, minute=0, run_at_startup=False),

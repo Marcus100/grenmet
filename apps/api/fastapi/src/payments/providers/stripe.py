@@ -39,6 +39,7 @@ from .base import (
     ProviderEvent,
     ProviderRefund,
     ProviderStatus,
+    RefundListing,
     RefundResult,
 )
 
@@ -51,6 +52,10 @@ WHSEC_PREFIX = "whsec_"  # prefix of a Stripe webhook signing key
 _transport: httpx.AsyncBaseTransport | None = None
 #: Longest checkout line-item name we send.
 _TITLE_MAX = 120
+#: Refunds per page when listing a payment's refunds (Stripe's maximum).
+REFUND_PAGE_SIZE = 100
+#: Pages read before a listing is reported incomplete (bounds a runaway loop).
+REFUND_MAX_PAGES = 20
 # Test seam: the clock used for the webhook tolerance window.
 _now: Callable[[], float] = time.time
 
@@ -253,6 +258,7 @@ class StripeProvider:
         path: str,
         *,
         data: dict[str, str] | None = None,
+        params: dict[str, str] | None = None,
         idempotency_key: str | None = None,
     ) -> dict[str, Any]:
         headers = {"Authorization": f"Bearer {self._secret_key}"}
@@ -265,7 +271,7 @@ class StripeProvider:
                 transport=_transport,
             ) as client:
                 response = await client.request(
-                    method, path, data=data, headers=headers
+                    method, path, data=data, params=params, headers=headers
                 )
         except httpx.HTTPError:
             logger.warning("Stripe request failed", extra={"path": path})
@@ -377,3 +383,38 @@ class StripeProvider:
         if body.get("status") == "expired":
             return ProviderStatus(status=IntentStatus.CANCELLED.value)
         return ProviderStatus(status=IntentStatus.REQUIRES_PAYMENT.value)
+
+    async def list_refunds(self, intent: Intent) -> RefundListing:
+        """Every refund Stripe holds for the payment, newest first, following
+        ``has_more`` page by page. A refund object that cannot be read is skipped.
+        Stops after ``REFUND_MAX_PAGES`` pages and reports the listing incomplete."""
+        if not intent.provider_payment_ref:
+            return RefundListing(refunds=())
+        refunds: list[ProviderRefund] = []
+        params = {
+            "payment_intent": intent.provider_payment_ref,
+            "limit": str(REFUND_PAGE_SIZE),
+        }
+        for _ in range(REFUND_MAX_PAGES):
+            body = await self._request("GET", "/v1/refunds", params=params)
+            data = body.get("data")
+            if not isinstance(data, list):
+                raise ProviderRequestError()
+            refunds.extend(
+                refund
+                for refund in (_refund_object(item) for item in data)
+                if refund is not None
+            )
+            if body.get("has_more") is not True:
+                return RefundListing(refunds=tuple(refunds))
+            last = data[-1] if data else None
+            cursor = _str(last.get("id")) if isinstance(last, dict) else None
+            if cursor is None:
+                # More pages but no cursor to ask for them: never loop on page one.
+                raise ProviderRequestError()
+            params = {**params, "starting_after": cursor}
+        logger.error(
+            "Stripe refund listing stopped at the page limit",
+            extra={"intent_id": str(intent.id), "pages": REFUND_MAX_PAGES},
+        )
+        return RefundListing(refunds=tuple(refunds), complete=False)

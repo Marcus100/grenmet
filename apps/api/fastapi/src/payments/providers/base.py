@@ -45,6 +45,15 @@ class ProviderRefund:
 
 
 @dataclass(frozen=True)
+class RefundListing:
+    """Every refund the provider holds for one payment, for reconciliation."""
+
+    refunds: tuple[ProviderRefund, ...]
+    #: False when the listing stopped early (more pages than the adapter will read).
+    complete: bool = True
+
+
+@dataclass(frozen=True)
 class ProviderEvent:
     """A verified provider callback in the core's vocabulary."""
 
@@ -102,3 +111,5 @@ class PaymentProvider(Protocol):
     ) -> RefundResult: ...
 
     async def fetch_status(self, intent: Intent, /) -> ProviderStatus: ...
+
+    async def list_refunds(self, intent: Intent, /) -> RefundListing: ...
