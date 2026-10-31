@@ -13,6 +13,7 @@ helper exists for them), so the bank file carries a placeholder column.
 
 import csv
 import hashlib
+import hmac
 import io
 import json
 import logging
@@ -27,13 +28,14 @@ from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.audit import service as audit_service
+from src.auth.config import auth_settings
 from src.auth.models import User
 from src.billing.calc import format_money
 from src.exceptions import AppException, NotFoundError
 from src.hr.models import Department, EmploymentRecord, Organisation
 
 from . import access
-from .export import _text
+from .export import _text, safe_filename
 from .models import (
     DeductionCategory,
     EmployeePayProfile,
@@ -80,8 +82,23 @@ def canonical(snapshot: dict[str, Any]) -> str:
     return json.dumps(snapshot, sort_keys=True, separators=(",", ":"), default=str)
 
 
+def _snapshot_key() -> bytes:
+    """A server-side key for payslip hashes, derived from the application secret.
+
+    A plain hash of a payslip could be guessed by trying likely pay figures; an
+    HMAC cannot be checked or forged without this key.
+    """
+    return hmac.new(
+        auth_settings.SECRET_KEY.encode("utf-8"),
+        b"hr-payslip-snapshot-v1",
+        hashlib.sha256,
+    ).digest()
+
+
 def digest(snapshot: dict[str, Any]) -> str:
-    return hashlib.sha256(canonical(snapshot).encode("utf-8")).hexdigest()
+    return hmac.new(
+        _snapshot_key(), canonical(snapshot).encode("utf-8"), hashlib.sha256
+    ).hexdigest()
 
 
 async def issue(session: AsyncSession, period: PayPeriod, actor: User) -> int:
@@ -420,6 +437,8 @@ async def _issued(
     )
     if not slips:
         raise AppException("This period has no payslips", 409)
+    for slip in slips:
+        verify(slip)  # never export a file built from a tampered payslip
     return period, slips
 
 
@@ -468,7 +487,9 @@ async def bank_csv(
         writer.writerow([values[c] for c in columns])
     await _record_export(session, period, "bank_file", len(slips))
     return (
-        f"bank-transfer-{period.organisation_id}-{period.start_date}.csv",
+        safe_filename(
+            f"bank-transfer-{period.organisation_id}-{period.start_date}.csv"
+        ),
         buffer.getvalue(),
     )
 
@@ -528,6 +549,26 @@ async def gl_csv(
             count += 1
     await _record_export(session, period, "gl_journal", count)
     return (
-        f"gl-journal-{period.organisation_id}-{period.start_date}.csv",
+        safe_filename(f"gl-journal-{period.organisation_id}-{period.start_date}.csv"),
         buffer.getvalue(),
+    )
+
+
+#: Payslip PDFs are CPU-heavy to render: a person gets this many a minute.
+PDF_LIMIT = "20/minute"
+
+
+async def within_pdf_limit(user_id: uuid.UUID) -> bool:
+    """Rate limit PDF rendering per signed-in user, not per network address."""
+    from fastapi.concurrency import run_in_threadpool
+    from limits import parse
+
+    from src.rate_limit import limiter
+
+    if not limiter.enabled:
+        return True
+    return bool(
+        await run_in_threadpool(
+            limiter.limiter.hit, parse(PDF_LIMIT), "payslip-pdf", str(user_id)
+        )
     )

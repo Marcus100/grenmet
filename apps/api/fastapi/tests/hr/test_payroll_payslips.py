@@ -17,7 +17,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from src.auth.config import auth_settings
 from src.auth.models import User
 from src.database import async_session_factory
-from src.hr.payroll import payslips
+from src.hr.payroll import export, payslips
 from tests.factories import assign_role, make_role_with_permission, make_user
 from tests.hr.payroll_setup import API, headers_for
 from tests.hr.test_payroll_deductions import _confirm, _fortnight_with_pay
@@ -165,3 +165,60 @@ async def test_bank_and_gl_files(
     accounts = {r["account_key"]: r["account"] for r in lines}
     assert accounts["GROSS_PAY_EXPENSE"] == "6000"
     assert accounts["INCOME_TAX_PAYABLE"] == "UNMAPPED:INCOME_TAX_PAYABLE"
+
+
+@pytest.mark.usefixtures("totp_keys")
+async def test_hash_is_keyed_files_verify_first_and_pdf_limit_is_per_user(
+    async_client: httpx.AsyncClient,
+    db_async: AsyncSession,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    import hashlib
+
+    from src.hr.payroll.models import Payslip
+    from src.rate_limit import limiter
+
+    headers, period_id, employee = await _issued_period(async_client, db_async)
+    stored = (await db_async.execute(text("SELECT id FROM hr.payslip"))).scalar_one()
+    slip = await db_async.get(Payslip, stored)
+    assert slip is not None
+    plain = hashlib.sha256(payslips.canonical(slip.snapshot).encode()).hexdigest()
+    assert slip.sha256 != plain  # keyed, so likely pay figures cannot be tried offline
+    assert payslips.digest(slip.snapshot) == slip.sha256
+    with monkeypatch.context() as scoped:
+        scoped.setattr(auth_settings, "SECRET_KEY", "another-server-key-" + "x" * 20)
+        assert payslips.digest(slip.snapshot) != slip.sha256
+
+    # File names are sanitised.
+    bank = await async_client.post(
+        f"{API}/periods/{period_id}/bank-transfer.csv", headers=headers
+    )
+    assert bank.status_code == 200, bank.text
+    name = bank.headers["content-disposition"].split("filename=")[1].strip('"')
+    assert name == export.safe_filename(name)
+
+    # A payslip that fails its integrity check blocks the bank and GL files.
+    with monkeypatch.context() as scoped:
+        scoped.setattr(payslips, "digest", lambda _snapshot: "tampered")
+        for path in ("bank-transfer.csv", "gl-journal.csv"):
+            blocked = await async_client.post(
+                f"{API}/periods/{period_id}/{path}", headers=headers
+            )
+            assert blocked.status_code == 409, path
+            assert "integrity" in blocked.json()["detail"]
+
+    # The PDF limit counts per signed-in user.
+    monkeypatch.setattr(limiter, "enabled", True)
+    monkeypatch.setattr(payslips, "PDF_LIMIT", "2/minute")
+    role, _ = await make_role_with_permission(db_async, "hr.payroll.read.self")
+    await assign_role(db_async, user=employee, role=role)
+    own = await headers_for(db_async, employee, mfa=True)
+    codes = [
+        (
+            await async_client.get(f"{API}/payslips/{stored}/pdf", headers=own)
+        ).status_code
+        for _ in range(3)
+    ]
+    assert codes == [200, 200, 429]
+    other = await async_client.get(f"{API}/payslips/{stored}/pdf", headers=headers)
+    assert other.status_code == 200  # a different person has their own allowance

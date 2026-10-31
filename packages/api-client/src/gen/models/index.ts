@@ -4693,6 +4693,7 @@ export type {
   HrGetPayslipPdfStatus404,
   HrGetPayslipPdfStatus409,
   HrGetPayslipPdfStatus422,
+  HrGetPayslipPdfStatus429,
 } from "./HrGetPayslipPdf.js";
 export type {
   HrGetPeriodOptions,

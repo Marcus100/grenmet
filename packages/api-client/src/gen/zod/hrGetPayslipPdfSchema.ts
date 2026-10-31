@@ -36,6 +36,10 @@ export const hrGetPayslipPdfStatus422Schema =
     "Validation error envelope returned for malformed requests."
   );
 
+export const hrGetPayslipPdfStatus429Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
+
 export const hrGetPayslipPdfResponseSchema = hrGetPayslipPdfStatus200Schema;
 
 export const hrGetPayslipPdfErrorSchema = z.union([
@@ -45,6 +49,7 @@ export const hrGetPayslipPdfErrorSchema = z.union([
   hrGetPayslipPdfStatus404Schema,
   hrGetPayslipPdfStatus409Schema,
   hrGetPayslipPdfStatus422Schema,
+  hrGetPayslipPdfStatus429Schema,
 ]);
 
 export const hrGetPayslipPdfPathSchema = z.object({

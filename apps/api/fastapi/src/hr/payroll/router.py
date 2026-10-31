@@ -3,12 +3,11 @@
 import uuid
 from typing import Annotated, Any
 
-from fastapi import APIRouter, Depends, Path, Query, Request, Response, status
+from fastapi import APIRouter, Depends, HTTPException, Path, Query, Response, status
 from fastapi.concurrency import run_in_threadpool
 
 from src.dependencies import CurrentUser, SessionDep, TokenDep
 from src.models import ApiError
-from src.rate_limit import limiter
 
 from . import deductions, gross, overtime, payslips, service
 from .export import safe_filename
@@ -1004,10 +1003,11 @@ async def list_period_payslips(
     response_class=Response,
     status_code=status.HTTP_200_OK,
     summary="Download a payslip PDF",
-    description="Rendered by WeasyPrint from the frozen snapshot after its SHA-256 is checked. Own payslip with hr.payroll.read.self, or organisation-wide hr.payroll.read.amounts; both need two-step verification. Rate limited.",
+    description="Rendered by WeasyPrint from the frozen snapshot after its SHA-256 is checked. Own payslip with hr.payroll.read.self, or organisation-wide hr.payroll.read.amounts; both need two-step verification. Rate limited per user.",
     operation_id="hrGetPayslipPdf",
     responses={
         **ERRORS,
+        429: {"model": ApiError, "description": "Too many payslip downloads"},
         200: {
             "description": "Payslip PDF",
             "content": {
@@ -1016,16 +1016,17 @@ async def list_period_payslips(
         },
     },
 )
-@limiter.limit("20/minute")
 async def download_payslip_pdf(
     *,
-    request: Request,
     session: SessionDep,
     current_user: CurrentUser,
     token: TokenDep,
     payslip_id: uuid.UUID,
 ) -> Response:
-    del request  # the rate limiter keys on it
+    if not await payslips.within_pdf_limit(current_user.id):
+        raise HTTPException(
+            status.HTTP_429_TOO_MANY_REQUESTS, "Too many payslip downloads; slow down"
+        )
     slip = await payslips.readable_payslip(
         session, current_user, payslip_id, token=token
     )

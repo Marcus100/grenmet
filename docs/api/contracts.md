@@ -142,7 +142,9 @@ tax, NIS or bank field exists in any request, response or export.
   `GET payslips/{payslip_id}/pdf` (own with `read.self`, or `read.amounts`;
   WeasyPrint from the snapshot after the hash check; `X-Payslip-SHA256` header).
 - Every payslip route needs a session verified with two-step verification; the
-  PDF route is rate limited (20 a minute). Payslip change history records the id,
+  PDF route is rate limited per signed-in user (20 a minute; 429). A payslip's
+  hash is an HMAC under a server-side key, checked before a PDF, bank file or GL
+  journal is produced (409 on a mismatch). Payslip change history records the id,
   period and hash only, never the snapshot or net pay.
 - `POST periods/{period_id}/bank-transfer.csv` and `gl-journal.csv` need
   organisation-wide `hr.payroll.export`, MFA and an issue-approved period; both are

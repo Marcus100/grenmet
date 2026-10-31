@@ -58,6 +58,12 @@ export type HrGetPayslipPdfStatus409 = ApiError;
  */
 export type HrGetPayslipPdfStatus422 = ValidationErrorResponse;
 
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type HrGetPayslipPdfStatus429 = ApiError;
+
 export type HrGetPayslipPdfOptions = {
   body?: never;
   path: HrGetPayslipPdfPath;
@@ -73,6 +79,7 @@ export type HrGetPayslipPdfResponses = {
   "404": HrGetPayslipPdfStatus404;
   "409": HrGetPayslipPdfStatus409;
   "422": HrGetPayslipPdfStatus422;
+  "429": HrGetPayslipPdfStatus429;
 };
 
 /**

@@ -4649,6 +4649,7 @@ export {
   hrGetPayslipPdfStatus404Schema,
   hrGetPayslipPdfStatus409Schema,
   hrGetPayslipPdfStatus422Schema,
+  hrGetPayslipPdfStatus429Schema,
 } from "./hrGetPayslipPdfSchema.js";
 export {
   hrGetPeriodRevisionsErrorSchema,

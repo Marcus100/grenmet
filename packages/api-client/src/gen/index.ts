@@ -9094,6 +9094,7 @@ export type {
   HrGetPayslipPdfStatus404,
   HrGetPayslipPdfStatus409,
   HrGetPayslipPdfStatus422,
+  HrGetPayslipPdfStatus429,
 } from "./models/HrGetPayslipPdf.js";
 export type {
   HrGetPeriodOptions,
@@ -18732,6 +18733,7 @@ export {
   hrGetPayslipPdfStatus404Schema,
   hrGetPayslipPdfStatus409Schema,
   hrGetPayslipPdfStatus422Schema,
+  hrGetPayslipPdfStatus429Schema,
 } from "./zod/hrGetPayslipPdfSchema.js";
 export {
   hrGetPeriodRevisionsErrorSchema,
