@@ -63,6 +63,10 @@ class HoursOverEight:
 
     available = True
 
+    async def computes_for(self, session: AsyncSession, department_id: str) -> bool:
+        del session, department_id
+        return True
+
     async def band_hours(
         self,
         session: AsyncSession,
@@ -80,6 +84,13 @@ class HoursOverEight:
 @pytest.fixture
 def band_engine() -> Iterator[None]:
     previous = overtime.install(HoursOverEight())
+    yield
+    overtime.install(previous)
+
+
+@pytest.fixture
+def no_band_engine() -> Iterator[None]:
+    previous = overtime.install(overtime.PendingOvertimeBands())
     yield
     overtime.install(previous)
 
@@ -140,6 +151,7 @@ async def test_twelve_hour_shift_gives_base_band_and_meal(
     assert "SHIFT_PREMIUM" not in totals  # 07:00-19:00 is outside 21:00-06:00
 
 
+@pytest.mark.usefixtures("no_band_engine")
 async def test_without_the_band_engine_no_overtime_is_computed(
     async_client: httpx.AsyncClient, db_async: AsyncSession
 ) -> None:
@@ -269,7 +281,8 @@ async def test_public_holiday_hours_from_approved_attendance(
     )
     await _compute(async_client, admin, period_id)
     totals = quantities(await lines(async_client, admin, period_id))
-    assert totals == {"BASE": 8, "PUBLIC_HOLIDAY": 8}
+    # #890 counts every hour worked on a public holiday as overtime at 2x.
+    assert totals == {"BASE": 8, "PUBLIC_HOLIDAY": 8, "OT_DOUBLE": 8}
 
 
 # 4 ─ unapproved attendance gives nothing
@@ -857,3 +870,45 @@ async def test_gaa_calendars_default_to_fortnightly_from_an_anchor(
     await _compute(async_client, admin, period.json()["id"])
     rows = await lines(async_client, admin, period.json()["id"])
     assert {row["work_date"] for row in rows} == {"2026-09-14"}  # the 12th is outside
+
+
+async def test_overtime_bands_come_from_the_roster_rules_engine(
+    async_client: httpx.AsyncClient, db_async: AsyncSession
+) -> None:
+    """#890 bands: hours past the rostered 16:00 end, 4 h at 1.5x then 2x."""
+    assert isinstance(overtime.source(), overtime.RosterOvertimeBands)
+    ops, _, accounts = await departments(db_async)
+    employee = await employee_in(db_async, ops)
+    admin = await _superuser_headers(db_async)
+    await worked_shift(
+        db_async,
+        employee,
+        ops,
+        day=date(2026, 9, 14),  # a Monday
+        arrive="2026-09-14T08:00:00-04:00",
+        depart="2026-09-14T22:00:00-04:00",
+        scheduled=("08:00", "16:00"),
+    )
+    _, period_id = await calendar_and_period(
+        async_client, admin, accounts.id, SEPTEMBER
+    )
+    detail = await _compute(async_client, admin, period_id)
+    assert detail["overtime_bands_available"] is True
+    totals = quantities(await lines(async_client, admin, period_id))
+    assert totals["OT_TIME_AND_HALF"] == 4
+    assert totals["OT_DOUBLE"] == 2
+    assert totals["BASE"] == 8
+    # Computed bands rule out hand-entered band hours for this department.
+    items = (await async_client.get(f"{API}/items", headers=admin)).json()["data"]
+    band = next(i for i in items if i["code"] == "OT_DOUBLE")
+    refused = await async_client.post(
+        f"{API}/periods/{period_id}/lines",
+        headers=admin,
+        json={
+            "user_id": str(employee.id),
+            "pay_item_id": band["id"],
+            "quantity": "1",
+            "reason": "Double counting attempt",
+        },
+    )
+    assert refused.status_code == 400

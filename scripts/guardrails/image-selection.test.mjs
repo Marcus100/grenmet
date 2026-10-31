@@ -2,7 +2,13 @@ const missingBase = /comparison base/;
 
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
-import { mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import {
+  mkdirSync,
+  mkdtempSync,
+  readFileSync,
+  rmSync,
+  writeFileSync,
+} from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import test from "node:test";
@@ -11,6 +17,7 @@ import {
   changedPaths,
   selectCoverage,
   selectImages,
+  selectSurface,
   webImages,
 } from "../ci/select-images.mjs";
 
@@ -171,6 +178,7 @@ test("CLI selects all images when comparison history or event data is missing", 
       );
       assert.deepEqual(outputs, {
         ...selectImages([], "full"),
+        surface: true,
         coverage: selectCoverage([], "full").map(({ app, path }) => ({
           app,
           path,
@@ -207,4 +215,84 @@ test("coverage runs only the floor-tracked apps and follows the image scope", ()
     ["signal"]
   );
   assert.deepEqual(selectCoverage(["pnpm-lock.yaml"], "deployment"), []);
+});
+
+test("SURFACE CI runs only for SURFACE source and its own workflow", () => {
+  for (const path of [
+    "surface/api/wx/models.py",
+    "surface/api/requirements.txt",
+    "surface/Dockerfile.deploy",
+    "surface/ci/deploy-check-accepted.txt",
+    ".github/workflows/ci-surface.yml",
+  ]) {
+    assert.equal(selectSurface([path]), true, path);
+    // Promotion PRs and main pushes use the diff too.
+    assert.equal(selectSurface([path], "full"), true, path);
+    assert.equal(selectSurface([path], "deployment"), false, path);
+  }
+  for (const path of [
+    ".github/workflows/ci-api.yml",
+    "pnpm-lock.yaml",
+    "uv.lock",
+    "apps/api/fastapi/src/main.py",
+    "infra/weather/docker-compose.surface.yml",
+    "docs/surface.md",
+    "wis2box/wis2box.env.example",
+  ])
+    assert.equal(selectSurface([path]), false, path);
+  assert.equal(selectSurface([], "full"), false);
+});
+
+test("CLI selects SURFACE from the diff in full mode and never for deployments", () => {
+  const dir = mkdtempSync(join(tmpdir(), "surface-selection-"));
+  try {
+    const git = (args) =>
+      spawnSync("git", args, { cwd: dir, encoding: "utf8" }).stdout.trim();
+    git(["init", "-q"]);
+    git(["config", "user.email", "ci@example.invalid"]);
+    git(["config", "user.name", "CI"]);
+    writeFileSync(join(dir, "README.md"), "x\n");
+    git(["add", "."]);
+    git(["commit", "-qm", "base"]);
+    const base = git(["rev-parse", "HEAD"]);
+    writeFileSync(join(dir, "README.md"), "y\n");
+    git(["commit", "-qam", "docs only"]);
+    const docsHead = git(["rev-parse", "HEAD"]);
+    mkdirSync(join(dir, "surface/api"), { recursive: true });
+    writeFileSync(join(dir, "surface/api/manage.py"), "\n");
+    git(["add", "."]);
+    git(["commit", "-qm", "surface"]);
+    const surfaceHead = git(["rev-parse", "HEAD"]);
+    const event = join(dir, "event.json");
+    const output = join(dir, "output");
+    const surfaceFor = (head, mode) => {
+      writeFileSync(event, JSON.stringify({ before: base, after: head }));
+      writeFileSync(output, "");
+      const result = spawnSync(
+        process.execPath,
+        [fileURLToPath(new URL("../ci/select-images.mjs", import.meta.url))],
+        {
+          cwd: dir,
+          env: {
+            ...process.env,
+            IMAGE_BUILD_MODE: mode,
+            GITHUB_EVENT_PATH: event,
+            GITHUB_OUTPUT: output,
+          },
+        }
+      );
+      assert.equal(result.status, 0);
+      const line = readFileSync(output, "utf8")
+        .split("\n")
+        .find((entry) => entry.startsWith("surface="));
+      return JSON.parse(line.slice("surface=".length));
+    };
+    assert.equal(surfaceFor(docsHead, "full"), false);
+    assert.equal(surfaceFor(surfaceHead, "full"), true);
+    assert.equal(surfaceFor(docsHead, "affected"), false);
+    assert.equal(surfaceFor(surfaceHead, "affected"), true);
+    assert.equal(surfaceFor(surfaceHead, "deployment"), false);
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
 });

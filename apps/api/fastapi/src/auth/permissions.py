@@ -64,6 +64,7 @@ PERMISSIONS: tuple[PermissionDef, ...] = (
     PermissionDef("roster.view", "View rosters"),
     PermissionDef("roster.manage", "Create and manage rosters"),
     PermissionDef("roster.import", "Import rosters from CSV"),
+    PermissionDef("roster.rules.manage", "Edit roster rules and union coverage"),
     # HR — timesheet
     PermissionDef("timesheet.submit.self", "Submit own timesheet"),
     PermissionDef("timesheet.submit.proxy", "Submit a timesheet on behalf of another"),
@@ -530,6 +531,7 @@ DEFAULT_ROLES: dict[str, tuple[str, tuple[str, ...]]] = {
             "roster.view",
             "roster.manage",
             "roster.import",
+            "roster.rules.manage",
             "timesheet.approve",
             "timesheet.read.department",
             "timesheet.submit.proxy",

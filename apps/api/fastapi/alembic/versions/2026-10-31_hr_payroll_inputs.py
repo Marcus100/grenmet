@@ -9,7 +9,7 @@ The roster rules lane (#380) also adds a migration; whichever lands second
 re-points its ``down_revision`` at the other.
 
 Revision ID: payrollinputs20261031
-Revises: refundcheck20261031
+Revises: rosterrulesets20261031
 """
 
 import sqlalchemy as sa
@@ -18,7 +18,7 @@ from sqlalchemy.dialects import postgresql
 from alembic import op
 
 revision = "payrollinputs20261031"
-down_revision = "refundcheck20261031"
+down_revision = "rosterrulesets20261031"
 branch_labels = None
 depends_on = None
 

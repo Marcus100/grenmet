@@ -15,7 +15,8 @@ const webGate = webSource
 const apiGate = readWorkflow("ci-api.yml")
   .split("      - name: Check all jobs")[1]
   .split("        run: |\n")[1];
-const needsExpression = /\$\{\{ needs\.([a-z-]+)\.(result|outputs\.api) \}\}/g;
+const needsExpression =
+  /\$\{\{ needs\.([a-z-]+)\.(result|outputs\.api|outputs\.surface) \}\}/g;
 
 function webResults(selected = true) {
   return Object.fromEntries(
@@ -67,16 +68,24 @@ test("web gate accepts intentional empty selection, rejects unexpected skips and
   assert.notEqual(runWeb(omitted), 0);
 });
 
-test("API gate permits only intentionally omitted Docker checks", () => {
-  const run = (overrides = {}, selected = "true") => {
-    const script = apiGate.replace(needsExpression, (_match, name, field) =>
-      field === "outputs.api" ? selected : (overrides[name] ?? "success")
-    );
+test("API gate permits only intentionally omitted Docker and SURFACE checks", () => {
+  const run = (overrides = {}, selected = "true", surface = selected) => {
+    const script = apiGate.replace(needsExpression, (_match, name, field) => {
+      if (field === "outputs.api") return selected;
+      if (field === "outputs.surface") return surface;
+      return overrides[name] ?? "success";
+    });
     return spawnSync("bash", ["-e"], { input: script }).status;
   };
+  const optional = new Set(["docker", "surface"]);
   assert.equal(run(), 0);
-  assert.equal(run({ docker: "skipped" }, "false"), 0);
+  assert.equal(run({ docker: "skipped" }, "false", "true"), 0);
   assert.notEqual(run({ docker: "skipped" }), 0);
+  assert.equal(run({ surface: "skipped" }, "true", "false"), 0);
+  assert.notEqual(run({ surface: "skipped" }), 0);
+  // A selected SURFACE run must pass even when the API image is not selected.
+  for (const result of ["failure", "cancelled", "skipped"])
+    assert.notEqual(run({ surface: result }, "false", "true"), 0, result);
   for (const job of [
     "image-selection",
     "quality",
@@ -84,15 +93,61 @@ test("API gate permits only intentionally omitted Docker checks", () => {
     "test",
     "collectors",
     "docker",
+    "surface",
     "docs",
   ])
     for (const result of ["failure", "cancelled", "skipped"])
-      if (job !== "docker" || result !== "skipped")
+      if (!optional.has(job) || result !== "skipped")
         assert.notEqual(
           run({ [job]: result }, "false"),
           0,
           `${job}: ${result}`
         );
+});
+
+const SURFACE_DB_IMAGE =
+  /image: (timescale\/timescaledb-ha:\S+@sha256:[0-9a-f]{64})/;
+const ACTION_REF = /uses: ([^\s#]+)/g;
+const PINNED_ACTION = /^[\w.-]+\/[\w./-]+@[0-9a-f]{40}$/;
+
+test("SURFACE CI builds without publishing, on the deployed database image", () => {
+  const source = readWorkflow("ci-surface.yml");
+  const compose = readFileSync(
+    new URL("../../surface/docker-compose.yml", import.meta.url),
+    "utf8"
+  );
+  assert.equal(
+    source.match(SURFACE_DB_IMAGE)?.[1],
+    compose.match(SURFACE_DB_IMAGE)?.[1],
+    "ci-surface.yml must test against surface/docker-compose.yml's database image"
+  );
+  for (const [, ref] of source.matchAll(ACTION_REF))
+    assert.match(ref, PINNED_ACTION, `pin ${ref} by full commit SHA`);
+  const login = source.indexOf("- name: Log in to Docker Hub for base images");
+  const build = source.indexOf("docker build ");
+  assert.ok(login > 0 && login < build, "authenticate before pulling bases");
+  assert.ok(
+    source
+      .slice(login, build)
+      .includes(
+        "github.event.pull_request.head.repo.full_name == github.repository"
+      )
+  );
+  for (const forbidden of ["push: true", "docker push", "packages: write"])
+    assert.ok(!source.includes(forbidden), forbidden);
+  for (const command of [
+    "manage.py check --fail-level WARNING",
+    "manage.py check --deploy",
+    "manage.py makemigrations --check --dry-run",
+    "manage.py test --noinput",
+  ])
+    assert.ok(source.includes(command), command);
+  const caller = readWorkflow("ci-api.yml").split("\n  surface:\n")[1];
+  assert.ok(caller, "ci-api.yml must call the SURFACE workflow");
+  assert.ok(
+    caller.includes("if: needs.image-selection.outputs.surface == 'true'")
+  );
+  assert.ok(caller.includes("uses: ./.github/workflows/ci-surface.yml"));
 });
 
 test("publishing follows successful smoke verification on the same builder", () => {

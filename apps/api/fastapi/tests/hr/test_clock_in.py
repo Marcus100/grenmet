@@ -25,6 +25,9 @@ from src.hr.roster.service import (
 from tests.factories import make_employee, make_user
 from tests.utils.utils import random_email, random_lower_string
 
+# Fixture rosters are not under test for the roster rules (#380).
+FIXTURE_REASON = "Fixture roster; roster rules are not under test"
+
 DEPT = "dept_clock"
 OTHER = "dept_clock_other"
 SHIFT_DAY = datetime(2026, 7, 6).date()
@@ -89,7 +92,12 @@ async def _setup(db: AsyncSession) -> User:
             ],
         ),
     )
-    await publish_roster_period(session=db, current_user=employee, period_id=period.id)
+    await publish_roster_period(
+        session=db,
+        current_user=employee,
+        period_id=period.id,
+        rule_override_reason=FIXTURE_REASON,
+    )
     return employee
 
 

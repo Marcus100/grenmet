@@ -17,6 +17,7 @@ import type {
   HrImportGridStatus400,
   HrImportGridStatus403,
   HrImportGridStatus404,
+  HrImportGridStatus409,
   HrImportGridStatus422,
 } from "../models/HrImportGrid.js";
 
@@ -35,6 +36,7 @@ export function hrImportGridMutationOptions<TContext = unknown>(
       | HrImportGridStatus400
       | HrImportGridStatus403
       | HrImportGridStatus404
+      | HrImportGridStatus409
       | HrImportGridStatus422
     >,
     HrImportGridOptions,
@@ -60,6 +62,7 @@ export function useHrImportGrid<TContext>(
         | HrImportGridStatus400
         | HrImportGridStatus403
         | HrImportGridStatus404
+        | HrImportGridStatus409
         | HrImportGridStatus422
       >,
       HrImportGridOptions,
@@ -80,6 +83,7 @@ export function useHrImportGrid<TContext>(
       | HrImportGridStatus400
       | HrImportGridStatus403
       | HrImportGridStatus404
+      | HrImportGridStatus409
       | HrImportGridStatus422
     >,
     HrImportGridOptions,
@@ -92,6 +96,7 @@ export function useHrImportGrid<TContext>(
       | HrImportGridStatus400
       | HrImportGridStatus403
       | HrImportGridStatus404
+      | HrImportGridStatus409
       | HrImportGridStatus422
     >,
     HrImportGridOptions,
@@ -109,6 +114,7 @@ export function useHrImportGrid<TContext>(
       | HrImportGridStatus400
       | HrImportGridStatus403
       | HrImportGridStatus404
+      | HrImportGridStatus409
       | HrImportGridStatus422
     >,
     HrImportGridOptions,
