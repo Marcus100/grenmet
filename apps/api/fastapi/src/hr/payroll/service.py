@@ -50,7 +50,7 @@ from src.hr.workflow.schemas import WorkflowActionRequest
 from src.utils.datetime import utc_now
 from src.utils.timezones import local_today
 
-from . import access, export, gross, overtime, rules
+from . import access, deductions, export, gross, overtime, rules
 from .models import (
     LOCKED_STATUSES,
     EmployeePayProfile,
@@ -1127,6 +1127,7 @@ async def _compute(session: AsyncSession, period: PayPeriod, actor: User) -> int
         actor.id,
     )
     changes += await gross.price_period(session, period)
+    changes += await deductions.compute(session, period)
     period.computed_at = period.updated_at = utc_now()
     if changes:
         await audit_service.record_change(

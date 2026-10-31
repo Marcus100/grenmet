@@ -41,7 +41,9 @@ from .models import (
 from .organisations import permitted_departments
 from .parking.models import ParkingPermit
 from .payroll.models import (
+    DeductionType,
     EmployeeBasicPay,
+    EmployeeDeduction,
     EmployeePayProfile,
     PayCalendar,
     PayItem,
@@ -49,6 +51,8 @@ from .payroll.models import (
     PayLine,
     PayPeriod,
     PayrollDepartmentSetting,
+    SocialInsuranceScheme,
+    TaxTable,
 )
 from .roster.models import PublicHoliday
 from .timesheet.models import DepartmentPolicy, Timesheet, TimesheetEntry
@@ -467,6 +471,26 @@ def register() -> None:
         entity_id_attr="organisation_id",
         label="Basic pay",
         sensitive=("amount_minor", "standard_monthly_hours", "reason"),
+    )
+    for model, record_type, label in (
+        (TaxTable, "tax_table", "Income tax table"),
+        (SocialInsuranceScheme, "social_insurance_scheme", "Social insurance scheme"),
+        (DeductionType, "deduction_type", "Deduction type"),
+    ):
+        registry.track(
+            model,
+            record_type=record_type,
+            entity_type="payroll_settings",
+            entity_id_attr="organisation_id",
+            label=label,
+        )
+    registry.track(
+        EmployeeDeduction,
+        record_type="employee_deduction",
+        entity_type="payroll_settings",
+        entity_id_attr="organisation_id",
+        label="Employee deduction",
+        sensitive=("employee_amount_minor", "authorisation_reference"),
     )
     registry.track(
         PayItemRate,

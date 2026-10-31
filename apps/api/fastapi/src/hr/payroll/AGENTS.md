@@ -61,6 +61,26 @@ files and cutover are later slices that need their own approval.
 - Hourly-paid staff on a calendar longer than fortnightly need an override
   reason (Employment Act wage periods, secondary source).
 
+## Deductions (slice 3, `deductions.py`, `statutory.py`)
+- Generic dated tables per organisation: `tax_table` + `tax_band` (ANNUALISED:
+  period pay x periods a year, less the allowance, through the bands, back to a
+  period; 12 or 26 periods), `social_insurance_scheme` (employee and employer
+  rate; per-period ceiling: monthly, or weekly x 2 per fortnight unless
+  `fortnightly_ceiling_minor`), `deduction_type` (percent of basic or gross,
+  fixed, split premium) and `employee_deduction`. A type that requires
+  authorisation is never deducted until the employee's authorisation is recorded.
+- Deduction lines are computed with the period while OPEN and locked by the
+  same trigger as pay lines. Tables are immutable apart from their rule state.
+- **HARD RULE:** `issue-approval` refuses while any income tax or social
+  insurance table a period used is PROVISIONAL now (live state), or any line is
+  unpriced. The preview is labelled "Provisional figures". OWNER_CONFIRMED counts
+  as not provisional (PAYE, from a real GAA payslip; HR still verifies).
+- GAA seed (marker `payroll:gaa-statutory:v1`): PAYE EC$36,000 allowance, 10%
+  on the first EC$24,000 then 28% (OWNER_CONFIRMED; the conflicting 15%/30%
+  source is noted); NIS 6.25%/7.25% for 2026 and 6.50%/7.50% from 2027, ceiling
+  EC$5,200 a month / EC$1,200 a week (PROVISIONAL); pension 5%/5% of basic,
+  health 40/60 split premium, union dues (all PROVISIONAL, authorisation needed).
+
 ## Rules (all provisional, parameters in the GAA catalogue)
 - Base hours: arrival to departure (`hours_basis` ELAPSED, the memorandum's
   8 hours inclusive of lunch) capped at `standard_hours`.

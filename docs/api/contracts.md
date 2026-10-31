@@ -83,6 +83,22 @@ tax, NIS or bank field exists in any request, response or export.
 - Unpriced lines (no rate, or no basic pay on file) have `amount_minor: null`,
   never 0.
 
+### Payroll deductions (slice 3)
+
+- `GET statutory-tables` lists dated income tax tables (allowance and bands),
+  social insurance schemes (rates, monthly and weekly ceilings; a fortnight is the
+  weekly ceiling x 2 unless set) and deduction types. `POST tax-tables`,
+  `social-insurance-schemes`, `deduction-types` and `employee-deductions`, and
+  `PUT statutory-tables/{kind}/{table_id}/state`, need organisation-wide
+  `hr.payroll.rates.manage` and an MFA-verified session. Tables cannot be edited,
+  only confirmed (`PROVISIONAL`, `OWNER_CONFIRMED`, `CONFIRMED`).
+- `GET periods/{period_id}/pay-summary` (organisation-wide `hr.payroll.read.amounts`)
+  previews gross, deductions, employer contributions and net per employee, with
+  `provisional_figures`, `label: "Provisional figures"` and `blocking_tables`.
+- `POST periods/{period_id}/issue-approval` (organisation-wide `hr.payroll.approve`,
+  MFA, never the preparer) is refused with 409 while an income tax or social
+  insurance table used is PROVISIONAL or any line is unpriced.
+
 ## Base URLs
 
 | Environment | API base URL |

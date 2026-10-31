@@ -23,6 +23,8 @@ from sqlalchemy.orm import Session
 from src.baseline.models import BaselineStep
 
 from .models import (
+    DeductionKind,
+    DeductionType,
     PayItem,
     PayItemKind,
     PayItemMethod,
@@ -30,6 +32,11 @@ from .models import (
     PayItemUnit,
     RateKind,
     RuleState,
+    SocialInsuranceScheme,
+    TableState,
+    TaxBand,
+    TaxMethod,
+    TaxTable,
 )
 
 GAA_ORGANISATION_ID = "gaa"
@@ -167,6 +174,7 @@ def _rows(existing: set[str]) -> list[PayItem]:
 def seed_gaa_pay_items(session: Session) -> None:
     if session.get(BaselineStep, MARKER) is not None:
         seed_gaa_rates(session)
+        seed_gaa_statutory(session)
         return
     existing = set(
         session.execute(
@@ -179,11 +187,13 @@ def seed_gaa_pay_items(session: Session) -> None:
     session.add(BaselineStep(key=MARKER))
     session.flush()
     seed_gaa_rates(session)
+    seed_gaa_statutory(session)
 
 
 async def seed_gaa_pay_items_async(session: AsyncSession) -> None:
     if await session.get(BaselineStep, MARKER) is not None:
         await seed_gaa_rates_async(session)
+        await seed_gaa_statutory_async(session)
         return
     existing = set(
         (
@@ -200,6 +210,7 @@ async def seed_gaa_pay_items_async(session: AsyncSession) -> None:
     session.add(BaselineStep(key=MARKER))
     await session.flush()
     await seed_gaa_rates_async(session)
+    await seed_gaa_statutory_async(session)
 
 
 # ── Slice 2: the basic salary item and provisional rates (amounts in cents) ────
@@ -331,4 +342,131 @@ async def seed_gaa_rates_async(session: AsyncSession) -> None:
         await session.flush()
     session.add_all(_rate_rows(items))
     session.add(BaselineStep(key=RATES_MARKER))
+    await session.flush()
+
+
+# ── Slice 3: Grenada statutory defaults for GAA (amounts in cents) ────────────
+
+STATUTORY_MARKER = "payroll:gaa-statutory:v1"
+NIS_SOURCE = (
+    "NIS Grenada employer page (nisgrenada.org), secondary source; the fortnight "
+    "ceiling is the weekly ceiling x 2 unless NIS says otherwise; HR verifies"
+)
+
+
+def _statutory_rows() -> list[object]:
+    paye = TaxTable(
+        id=uuid.uuid4(),
+        organisation_id=GAA_ORGANISATION_ID,
+        code="PAYE",
+        name="Income tax (PAYE)",
+        method=TaxMethod.ANNUALISED.value,
+        annual_allowance_minor=3_600_000,
+        deduct_social_insurance=False,
+        effective_from=date(2026, 1, 1),
+        rule_state=TableState.OWNER_CONFIRMED.value,
+        source_note=(
+            "Owner, from a real GAA payslip (2026-10-31): EC$36,000 allowance, 10% "
+            "on the first EC$24,000 chargeable, then 28%. HR still verifies. Another "
+            "source gives 15%/30%: conflict noted. Whether NIS is deducted before "
+            "tax is unconfirmed (assumed not)."
+        ),
+    )
+    rows: list[object] = [
+        paye,
+        TaxBand(
+            tax_table_id=paye.id,
+            sort_order=1,
+            width_minor=2_400_000,
+            rate=Decimal("0.10"),
+        ),
+        TaxBand(
+            tax_table_id=paye.id, sort_order=2, width_minor=None, rate=Decimal("0.28")
+        ),
+    ]
+    for start, end, employee, employer, note in (
+        (date(2026, 1, 1), date(2026, 12, 31), "0.0625", "0.0725", "2026 rates"),
+        (
+            date(2027, 1, 1),
+            None,
+            "0.0650",
+            "0.0750",
+            "2027 schedule; ceilings assumed unchanged",
+        ),
+    ):
+        rows.append(
+            SocialInsuranceScheme(
+                organisation_id=GAA_ORGANISATION_ID,
+                code="NIS",
+                name="National Insurance (NIS)",
+                employee_rate=Decimal(employee),
+                employer_rate=Decimal(employer),
+                monthly_ceiling_minor=520_000,
+                weekly_ceiling_minor=120_000,
+                effective_from=start,
+                effective_to=end,
+                rule_state=TableState.PROVISIONAL.value,
+                source_note=f"{NIS_SOURCE}; {note}",
+            )
+        )
+    rows += [
+        DeductionType(
+            organisation_id=GAA_ORGANISATION_ID,
+            code="PENSION",
+            name="Pension",
+            kind=DeductionKind.PERCENT_OF_BASIC.value,
+            employee_rate=Decimal("0.05"),
+            employer_rate=Decimal("0.05"),
+            requires_authorisation=True,
+            effective_from=EFFECTIVE_FROM,
+            rule_state=TableState.PROVISIONAL.value,
+            source_note=f"{MEMORANDUM}, Art. 21: 5% employee, 5% employer of basic",
+        ),
+        DeductionType(
+            organisation_id=GAA_ORGANISATION_ID,
+            code="HEALTH",
+            name="Health insurance",
+            kind=DeductionKind.SPLIT_PREMIUM.value,
+            employee_share=Decimal("0.40"),
+            requires_authorisation=True,
+            effective_from=EFFECTIVE_FROM,
+            rule_state=TableState.PROVISIONAL.value,
+            source_note=(
+                f"{MEMORANDUM}, Art. 15: contributory, 40% employee / 60% employer; "
+                "premium per period not yet known"
+            ),
+        ),
+        DeductionType(
+            organisation_id=GAA_ORGANISATION_ID,
+            code="UNION_DUES",
+            name="Union dues",
+            kind=DeductionKind.FIXED.value,
+            requires_authorisation=True,
+            effective_from=EFFECTIVE_FROM,
+            rule_state=TableState.PROVISIONAL.value,
+            source_note="Configurable amount per period; set per employee with authorisation",
+        ),
+    ]
+    return rows
+
+
+def seed_gaa_statutory(session: Session) -> None:
+    if session.get(BaselineStep, STATUTORY_MARKER) is not None:
+        return
+    rows = _statutory_rows()
+    session.add_all(rows[:1])
+    session.flush()
+    session.add_all(rows[1:])
+    session.add(BaselineStep(key=STATUTORY_MARKER))
+    session.flush()
+
+
+async def seed_gaa_statutory_async(session: AsyncSession) -> None:
+    if await session.get(BaselineStep, STATUTORY_MARKER) is not None:
+        return
+    rows = _statutory_rows()
+    session.add_all(rows[:1])
+    await session.flush()
+    session.add_all(rows[1:])
+    session.add(BaselineStep(key=STATUTORY_MARKER))
     await session.flush()
