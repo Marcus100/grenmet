@@ -1,25 +1,6 @@
 import type { CapAlertPublic } from "@barrelsgd/api-client";
-import { capAlertImportRequestSchema } from "@barrelsgd/api-client";
 import { isAuthApiError } from "@barrelsgd/auth";
-import { z } from "zod";
 import { type DeskError, describeDeskError } from "@/lib/desk/errors";
-
-/**
- * What the import form may send. The reviewed flag is checked here as well as
- * in the browser: the API never sees an import the forecaster did not confirm.
- */
-export const importInputSchema = z.object({
-  reviewed: z.literal(true, {
-    message: "Tick the confirmation that you checked the source.",
-  }),
-  source: capAlertImportRequestSchema.shape.source,
-  value: z
-    .string()
-    .trim()
-    .min(1, { message: "Paste the CAP XML or the public https address." }),
-});
-
-export type ImportInput = z.infer<typeof importInputSchema>;
 
 export type ImportOutcome =
   | {

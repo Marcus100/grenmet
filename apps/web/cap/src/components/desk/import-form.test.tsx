@@ -10,6 +10,7 @@ vi.mock("@/app/desk/import/actions", () => action);
 import { ImportForm } from "./import-form";
 
 const ID = "11111111-2222-4333-8444-555555555555";
+const TOO_LARGE = /larger than 5 MB/;
 const NOT_FULLY_CONFORMANT = /does not fully follow CAP 1.2/;
 
 function fillAndReview(text: string) {
@@ -134,5 +135,13 @@ describe("ImportForm", () => {
     expect(
       await screen.findByText("You do not have permission for this action.")
     ).toBeInTheDocument();
+  });
+
+  it("refuses an oversized paste with a plain message and never calls the server", () => {
+    render(<ImportForm />);
+    fillAndReview("a".repeat(5 * 1024 * 1024 + 1));
+    fireEvent.click(screen.getByRole("button", { name: "Import as draft" }));
+    expect(screen.getByText(TOO_LARGE)).toBeInTheDocument();
+    expect(action.importAlertAction).not.toHaveBeenCalled();
   });
 });

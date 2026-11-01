@@ -1,10 +1,7 @@
 import type { CapAlertPublic } from "@barrelsgd/api-client";
 import { describe, expect, it, vi } from "vitest";
-import {
-  describeImportError,
-  importInputSchema,
-  outcomeFromAlert,
-} from "./import";
+import { describeImportError, outcomeFromAlert } from "./import";
+import { importInputSchema, MAX_IMPORT_BYTES } from "./import-input";
 
 const auth = vi.hoisted(() => {
   class FakeAuthApiError extends Error {
@@ -27,6 +24,7 @@ vi.mock("@barrelsgd/auth", () => ({
 const { FakeAuthApiError } = auth;
 
 const PATTERN_1 = /Nothing was saved/;
+const TOO_LARGE_TEXT = /larger than 5 MB/;
 
 describe("importInputSchema", () => {
   it("accepts a reviewed XML paste with surrounding space trimmed", () => {
@@ -139,5 +137,39 @@ describe("describeImportError", () => {
   it("treats an unknown failure as a service that did not answer", () => {
     const result = describeImportError(new FakeAuthApiError(503, "down"));
     expect(result.kind).toBe("unavailable");
+  });
+});
+
+describe("importInputSchema size limit", () => {
+  it("accepts a document at the API cap and refuses one byte over", () => {
+    const atCap = "a".repeat(MAX_IMPORT_BYTES);
+    expect(
+      importInputSchema.safeParse({
+        reviewed: true,
+        source: "xml",
+        value: atCap,
+      }).success
+    ).toBe(true);
+    const parsed = importInputSchema.safeParse({
+      reviewed: true,
+      source: "xml",
+      value: `${atCap}a`,
+    });
+    expect(parsed.success).toBe(false);
+    if (!parsed.success) {
+      expect(parsed.error.issues[0]?.message).toMatch(TOO_LARGE_TEXT);
+    }
+  });
+
+  it("counts UTF-8 bytes, not characters", () => {
+    // 3 bytes per character: the cap in characters is a third of the byte cap.
+    const multibyte = "€".repeat(Math.floor(MAX_IMPORT_BYTES / 3) + 1);
+    expect(
+      importInputSchema.safeParse({
+        reviewed: true,
+        source: "xml",
+        value: multibyte,
+      }).success
+    ).toBe(false);
   });
 });

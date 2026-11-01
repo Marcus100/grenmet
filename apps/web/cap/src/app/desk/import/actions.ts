@@ -7,9 +7,9 @@ import { getDeskGate } from "@/lib/desk/gate";
 import {
   describeImportError,
   type ImportOutcome,
-  importInputSchema,
   outcomeFromAlert,
 } from "@/lib/desk/import";
+import { importInputSchema } from "@/lib/desk/import-input";
 import { reportError } from "@/lib/report-error";
 
 const NOT_ALLOWED: DeskError = describeDeskError({

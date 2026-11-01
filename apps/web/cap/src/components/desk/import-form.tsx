@@ -10,6 +10,7 @@ import { importAlertAction } from "@/app/desk/import/actions";
 import { DeskErrorNotice } from "@/components/desk/error-notice";
 import type { DeskError } from "@/lib/desk/errors";
 import type { ImportOutcome } from "@/lib/desk/import";
+import { importInputSchema } from "@/lib/desk/import-input";
 
 type Source = "url" | "xml";
 
@@ -54,12 +55,24 @@ export function ImportForm() {
     if (!canSubmit) return;
     setError(null);
     setSaved(null);
-    startTransition(async () => {
-      const outcome: ImportOutcome = await importAlertAction({
-        reviewed: true,
-        source,
-        value,
+    // Checked here first, so an oversized paste gets a plain message and never
+    // reaches the server action's body limit.
+    const checked = importInputSchema.safeParse({
+      reviewed: true,
+      source,
+      value,
+    });
+    if (!checked.success) {
+      setError({
+        items: checked.error.issues.map((issue) => issue.message),
+        kind: "validation",
+        status: null,
+        title: "Check the import before sending it.",
       });
+      return;
+    }
+    startTransition(async () => {
+      const outcome: ImportOutcome = await importAlertAction(checked.data);
       if (!outcome.ok) {
         setError(outcome.error);
         return;
