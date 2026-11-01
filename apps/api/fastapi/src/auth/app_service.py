@@ -39,7 +39,14 @@ from src.auth.app_schemas import (
 from src.auth.apps import AppDefinition, is_registered, registered_apps, require_method
 from src.auth.config import auth_settings
 from src.auth.devices import remember_device, schedule_new_sign_in_alert
-from src.auth.lockout import email_code_send_limit, login_lockout
+from src.auth.email_verification import is_admin_activated
+from src.auth.lockout import (
+    email_code_cooldown,
+    email_code_ip_limit,
+    email_code_send_limit,
+    login_lockout,
+    normalised_address,
+)
 from src.auth.models import Role, User, UserRoleLink
 from src.auth.models import Session as LoginSession
 from src.auth.modern_models import AuthChallenge, ExternalIdentity
@@ -307,17 +314,52 @@ async def _deliver_code_email(*, email: str, app_label: str, code: str) -> None:
         logger.warning("Sign-in code email could not be sent", exc_info=True)
 
 
+async def _retire_unverified_password(session: AsyncSession, user: User) -> None:
+    """Drop a password set before the mailbox was proven.
+
+    The old public sign-up let anyone register someone else's address with their
+    own password. A code sign-in proves the mailbox, so on the first verified code
+    the unverified password goes, every session is revoked and the account must
+    set a password through a verified flow. Admin-activated accounts are exempt:
+    their password came from an administrator-issued link.
+    """
+    if user.email_verified_at is not None or user.password_setup_pending:
+        return
+    if await is_admin_activated(session, user):
+        return
+    user.hashed_password = await get_password_hash_async(secrets.token_urlsafe(32))
+    user.password_setup_pending = True
+    await session.execute(delete(LoginSession).where(LoginSession.user_id == user.id))
+    await record_security(session, user, "pw_retired")
+
+
+async def _code_request_allowed(client_ip: str | None, mailbox_key: str) -> bool:
+    """Limits for a code request, in the order that keeps them honest.
+
+    The per-mailbox cooldown runs first, so requests it ignores do not use up
+    the hourly cap. Each check counts with one atomic INCR.
+    """
+    if client_ip is not None and not await email_code_ip_limit.allow(client_ip):
+        return False
+    if not await email_code_cooldown.allow(mailbox_key):
+        return False
+    return await email_code_send_limit.allow(mailbox_key)
+
+
 async def email_code_start(
-    *, session: AsyncSession, app: AppDefinition, body: AppEmailCodeStart
+    *,
+    session: AsyncSession,
+    app: AppDefinition,
+    body: AppEmailCodeStart,
+    client_ip: str | None = None,
 ) -> Message:
     """Send a code. New addresses get an account only after verifying it."""
     require_method(app, "email_code")
     email = str(body.email).lower()
-    # Email bombing: past the per-address hourly cap, answer the same generic
-    # way as an unknown address, so the reply never reveals anything.
-    if await email_code_send_limit.is_locked(email):
+    # Past any limit the reply is the same generic one as for an unknown address,
+    # and nothing is issued or sent, so the reply never reveals anything.
+    if not await _code_request_allowed(client_ip, normalised_address(email)):
         return Message(message=GENERIC_SENT)
-    await email_code_send_limit.record_failure(email)
     user = await service.get_user_by_email(session=session, email=email)
     if user is None and not app.self_signup:
         return Message(message=GENERIC_SENT)
@@ -368,6 +410,7 @@ async def email_code_verify(
         raise AppException("That code is wrong or has expired. Request a new one.", 400)
     await _require_totp(session, user, body.totp_code)
     await session.delete(challenge)
+    await _retire_unverified_password(session, user)
     if user.email_verified_at is None:
         user.email_verified_at = utc_now()
         session.add(user)
@@ -787,9 +830,11 @@ def _account() -> AppDefinition:
 
 
 async def account_email_code_start(
-    *, session: AsyncSession, body: AppEmailCodeStart
+    *, session: AsyncSession, body: AppEmailCodeStart, client_ip: str | None = None
 ) -> Message:
-    return await email_code_start(session=session, app=_account(), body=body)
+    return await email_code_start(
+        session=session, app=_account(), body=body, client_ip=client_ip
+    )
 
 
 async def account_email_code_verify(
@@ -819,6 +864,7 @@ async def account_email_code_verify(
         raise AppException("That code is wrong or has expired. Request a new one.", 400)
     await _require_totp(session, user, body.totp_code)
     await session.delete(challenge)
+    await _retire_unverified_password(session, user)
     if user.email_verified_at is None:
         user.email_verified_at = utc_now()
         session.add(user)

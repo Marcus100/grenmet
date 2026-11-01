@@ -466,10 +466,13 @@ route. Only these self-service routes accept unapproved accounts (`AccountUser`)
 6-digit emailed code (the first verified code creates the account when sign-up is
 open); they open the same account session as password and Google sign-in. This is
 the sign-up path too (#958): `/signup` in the auth app asks for an email only.
-Start replies the same for known and unknown addresses. Past five requests per
-address an hour no code is sent (email bombing). A code sign-in confirms the
-email and writes an audit entry (`code_sign_in`). `POST /auth/users/signup`
-(password, names required) is still served but the auth app no longer uses it.
+Start replies the same for known and unknown addresses and never waits on mail.
+Limits: one code per mailbox per 60 seconds, five per mailbox per hour, twenty
+per client address per hour (mailboxes fold `+tags`, and Gmail dots, before keying).
+A code sign-in confirms the email, writes an audit entry (`code_sign_in`), and on
+an unverified account clears any earlier password and revokes its sessions
+(`pw_retired`). `POST /auth/users/signup` is retired: it answers 410 Gone and
+creates nothing (breaking change, #958).
 
 Public sites registered for single sign-on (`weather`, `mbia`, `signal`, `docs`,
 `elections`) have no sign-in routes of their own and `join_prompt=False`: the

@@ -11,12 +11,12 @@ import type {
 } from "../models/AuthRegisterUser.js";
 
 /**
- * @description Create a new user account without authentication. Public endpoint for user registration.
- * @summary Register new user
+ * @description Retired (#958). Accounts are created by the emailed sign-in code: POST /auth/email-code/start, then /auth/email-code/verify. This route never creates an account, so no one can register an address with a password.
+ * @summary Password sign-up (retired)
  * {@link /api/v1/auth/users/signup}
  */
 export function authRegisterUser<ThrowOnError extends boolean = true>(
-  options: Options<AuthRegisterUserOptions, ThrowOnError>
+  options: Options<AuthRegisterUserOptions, ThrowOnError> = {}
 ): Unwrappable<RequestResult<AuthRegisterUserResponses, ThrowOnError>> {
   const { client: request = client, ...config } = options;
 
