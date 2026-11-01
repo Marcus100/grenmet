@@ -26,6 +26,7 @@ export default function ContactPage() {
             ],
             ["Telephone (main line)", "+1 473 444 4142"],
             ["Forecast office", "+1 473 444 4101, extension 2059"],
+            ["WhatsApp", "+1 473 534 5234"],
             ["General enquiries", "meteorology@gaa.gd"],
           ]}
         />

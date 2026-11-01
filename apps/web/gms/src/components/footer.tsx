@@ -65,7 +65,7 @@ const SOCIAL: readonly { href: string; icon?: string; label: string }[] = [
   { label: "Instagram", href: "https://www.instagram.com/spiceweather473", icon: siInstagram.path },
   { label: "YouTube", href: "https://youtube.com", icon: siYoutube.path },
   { label: "LinkedIn", href: "https://linkedin.com" },
-  { label: "WhatsApp", href: "https://whatsapp.com", icon: siWhatsapp.path },
+  { label: "WhatsApp", href: "https://wa.me/14735345234", icon: siWhatsapp.path },
 ];
 
 /** A brand mark as inline SVG; decorative, the link's aria-label names it. */
