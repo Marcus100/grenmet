@@ -32,6 +32,11 @@ function readValues(form: FormData): FeedValues {
   };
 }
 
+function saveLabel(pending: boolean, feed?: CapFeedImportPublic): string {
+  if (pending) return "Working…";
+  return feed ? "Save feed" : "Add feed";
+}
+
 /**
  * One feed source: a name and URL form, plus delete behind a confirmation.
  * `feed` is absent for the "add" form. Each save goes through a server action
@@ -122,9 +127,7 @@ function FeedForm({ feed }: { feed?: CapFeedImportPublic }) {
             </p>
           ) : null}
           <div className="flex flex-wrap gap-3">
-            <Button type="submit">
-              {pending ? "Working…" : feed ? "Save feed" : "Add feed"}
-            </Button>
+            <Button type="submit">{saveLabel(pending, feed)}</Button>
             {feed ? (
               <Button
                 onClick={() => setConfirmDelete(true)}
