@@ -8,6 +8,7 @@ from fastapi.concurrency import run_in_threadpool
 
 from src.dependencies import CurrentUser, SessionDep, TokenDep
 from src.models import ApiError
+from src.utils.pdf_response import pdf_response
 
 from . import deductions, gross, overtime, payslips, service
 from .export import safe_filename
@@ -1003,7 +1004,7 @@ async def list_period_payslips(
     response_class=Response,
     status_code=status.HTTP_200_OK,
     summary="Download a payslip PDF",
-    description="Rendered by WeasyPrint from the frozen snapshot after its SHA-256 is checked. Own payslip with hr.payroll.read.self, or organisation-wide hr.payroll.read.amounts; both need two-step verification. Rate limited per user.",
+    description="Rendered by WeasyPrint from the frozen snapshot after its SHA-256 is checked. Own payslip with hr.payroll.read.self, or organisation-wide hr.payroll.read.amounts; both need two-step verification. Rate limited per user. Sent private and never cached or sniffed.",
     operation_id="hrGetPayslipPdf",
     responses={
         **ERRORS,
@@ -1032,16 +1033,13 @@ async def download_payslip_pdf(
     )
     payslips.verify(slip)
     document = await run_in_threadpool(payslips.render_pdf, slip.snapshot, slip.sha256)
-    return Response(
-        content=document,
-        media_type="application/pdf",
-        headers={
-            "Content-Disposition": "attachment; filename="
-            + f'"{safe_filename(f"payslip-{slip.snapshot['period_start']}.pdf")}"',
-            "Cache-Control": "no-store",
-            "X-Payslip-SHA256": slip.sha256,
-        },
+    response = pdf_response(
+        document,
+        safe_filename(f"payslip-{slip.snapshot['period_start']}.pdf"),
+        "attachment",
     )
+    response.headers["X-Payslip-SHA256"] = slip.sha256
+    return response
 
 
 @router.post(

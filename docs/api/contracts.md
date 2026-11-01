@@ -143,7 +143,7 @@ tax, NIS or bank field exists in any request, response or export.
   `GET payslips/{payslip_id}/pdf` (own with `read.self`, or `read.amounts`;
   WeasyPrint from the snapshot after the hash check; `X-Payslip-SHA256` header).
 - Every payslip route needs a session verified with two-step verification; the
-  PDF route is rate limited per signed-in user (20 a minute; 429). A payslip's
+  PDF route is rate limited per signed-in user (20 a minute; 429). It uses the shared `pdf_response` helper (private, no-store, nosniff). A payslip's
   hash is an HMAC under a dedicated key from `PAYSLIP_HMAC_KEYS` (the key id is
   stored on the payslip, so rotation keeps old payslips valid), checked before a
   PDF, bank file or GL journal is produced (409 on a mismatch or a key id that is

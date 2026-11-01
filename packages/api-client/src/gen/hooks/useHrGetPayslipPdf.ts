@@ -67,7 +67,7 @@ export function hrGetPayslipPdfQueryOptions(
 }
 
 /**
- * @description Rendered by WeasyPrint from the frozen snapshot after its SHA-256 is checked. Own payslip with hr.payroll.read.self, or organisation-wide hr.payroll.read.amounts; both need two-step verification. Rate limited per user.
+ * @description Rendered by WeasyPrint from the frozen snapshot after its SHA-256 is checked. Own payslip with hr.payroll.read.self, or organisation-wide hr.payroll.read.amounts; both need two-step verification. Rate limited per user. Sent private and never cached or sniffed.
  * @summary Download a payslip PDF
  * {@link /api/v1/hr/payroll/payslips/:payslip_id/pdf}
  */
