@@ -87,7 +87,17 @@ const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 // timeout, absorbs that cold start. Its outcome is ignored on purpose: the
 // checks that follow decide pass or fail.
 export async function warmUp(domain, fetcher = fetch) {
-  const hosts = ["api", "gms", "cms", "auth", "docs", "weather", "signal", "mbia", "events"];
+  const hosts = [
+    "api",
+    "gms",
+    "cms",
+    "auth",
+    "docs",
+    "weather",
+    "signal",
+    "mbia",
+    "events",
+  ];
   await Promise.all(
     hosts.map(async (host) => {
       try {
