@@ -5,6 +5,7 @@ import {
   loadPayroll,
   payrollSecurityUrl,
 } from "@/components/hr/payroll/load-payroll";
+import { PayrollSectionLinks } from "@/components/hr/payroll/payroll-section-links";
 import { MyDeductionsView } from "@/components/hr/payroll/self/my-deductions-view";
 import { PageHeader } from "@/components/layout/page-header";
 
@@ -20,6 +21,7 @@ export default async function MyDeductionsPage() {
     : { state: "forbidden" as const };
   return (
     <div className="space-y-6">
+      <PayrollSectionLinks />
       <PageHeader
         description="Deductions HR has set up for you. Confirm each one. Nothing is taken until you have."
         title="My deductions"

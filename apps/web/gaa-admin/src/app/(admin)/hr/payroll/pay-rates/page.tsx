@@ -11,6 +11,7 @@ import {
   PayrollChooseOrganisation,
   PayrollNoOrganisation,
 } from "@/components/hr/payroll/payroll-scope-chooser";
+import { PayrollSectionLinks } from "@/components/hr/payroll/payroll-section-links";
 import { PayRatesView } from "@/components/hr/payroll/rates/pay-rates-view";
 import { PageHeader } from "@/components/layout/page-header";
 
@@ -57,6 +58,7 @@ export default async function PayRatesPage({ searchParams }: PageProps) {
   ]);
   return (
     <div className="space-y-6">
+      <PayrollSectionLinks />
       <PageHeader
         description="Dated basic pay and item rates. Every change needs two-step verification. Rates start as PROVISIONAL until the organisation confirms them in writing."
         title="Pay rates"

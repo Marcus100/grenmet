@@ -5,6 +5,7 @@ import {
   loadPayroll,
   payrollSecurityUrl,
 } from "@/components/hr/payroll/load-payroll";
+import { PayrollSectionLinks } from "@/components/hr/payroll/payroll-section-links";
 import { MyPayslipsView } from "@/components/hr/payroll/self/my-payslips-view";
 import { PageHeader } from "@/components/layout/page-header";
 
@@ -20,6 +21,7 @@ export default async function MyPayslipsPage() {
     : { state: "forbidden" as const };
   return (
     <div className="space-y-6">
+      <PayrollSectionLinks />
       <PageHeader
         description="Payslips issued to you. Downloading one needs two-step verification."
         title="My payslips"

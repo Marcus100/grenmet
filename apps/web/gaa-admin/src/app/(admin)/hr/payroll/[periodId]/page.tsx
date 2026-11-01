@@ -7,6 +7,7 @@ import {
   payrollSecurityUrl,
 } from "@/components/hr/payroll/load-payroll";
 import { PayPeriodDetail } from "@/components/hr/payroll/pay-period-detail";
+import { PayrollSectionLinks } from "@/components/hr/payroll/payroll-section-links";
 import { PayPeriodIssue } from "@/components/hr/payroll/period/pay-period-issue";
 import { PeriodPayslips } from "@/components/hr/payroll/period/period-payslips";
 import { PageHeader } from "@/components/layout/page-header";
@@ -41,6 +42,7 @@ export default async function PayPeriodPage({ params }: PageProps) {
         description="Recompute, add call-outs, submit, approve, then export the CSV for HrPlus. Pay summary, issue approval and payslips appear below."
         title="Pay period"
       />
+      <PayrollSectionLinks />
       <PayPeriodDetail periodId={periodId} />
       <PayPeriodIssue
         access={access}

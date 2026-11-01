@@ -10,6 +10,7 @@ import {
   PayrollChooseOrganisation,
   PayrollNoOrganisation,
 } from "@/components/hr/payroll/payroll-scope-chooser";
+import { PayrollSectionLinks } from "@/components/hr/payroll/payroll-section-links";
 import { TablesView } from "@/components/hr/payroll/tables/tables-view";
 import { PageHeader } from "@/components/layout/page-header";
 
@@ -61,6 +62,7 @@ export default async function TablesPage({ searchParams }: PageProps) {
   }
   return (
     <div className="space-y-6">
+      <PayrollSectionLinks />
       <PageHeader
         description="Tables start as PROVISIONAL. Someone other than the creator confirms each one before its figures can be issued. Employees must confirm deductions that need their authorisation."
         title="Tax and deductions"
