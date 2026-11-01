@@ -1,7 +1,9 @@
 """Verified email and Google OIDC, sharing the existing persisted sessions."""
 
+import asyncio
 import base64
 import hashlib
+import logging
 import secrets
 import uuid
 from datetime import timedelta
@@ -19,6 +21,11 @@ from src.auth import service
 from src.auth.account_security import verify_factor
 from src.auth.config import auth_settings
 from src.auth.devices import remember_device, schedule_new_sign_in_alert
+from src.auth.lockout import (
+    normalised_address,
+    password_setup_ip_limit,
+    password_setup_send_limit,
+)
 from src.auth.models import User
 from src.auth.modern_models import AuthChallenge, ExternalIdentity
 from src.auth.modern_schemas import (
@@ -40,6 +47,8 @@ from src.exceptions import AppException
 from src.models import Message
 from src.rate_limit import request_ip
 from src.utils.datetime import utc_now
+
+logger = logging.getLogger(__name__)
 
 
 def digest(value: str) -> str:
@@ -89,10 +98,49 @@ class VerificationDeliveryError(RuntimeError):
     """The verification provider could not deliver the requested message."""
 
 
+_GENERIC_LINK_REPLY = "If your account is ready, a verification link has been sent."
+# Password-setup mail in flight. Held so the tasks are not garbage collected.
+_pending_setup_emails: set[asyncio.Task[None]] = set()
+
+
+async def _deliver_setup_email(*, email: str, url: str) -> None:
+    try:
+        await run_in_threadpool(
+            send_email,
+            email_to=email,
+            subject="Verify your email and set your password",
+            html_content=f'<p>Finish setting up your account. This link expires in 15 minutes.</p><p><a href="{url}">Verify email and set password</a></p>',
+        )
+    except Exception:
+        # The reply already went out, so it cannot tell a delivery failure apart.
+        # Log without the address or the link.
+        logger.warning("Password setup email could not be sent", exc_info=True)
+
+
+def _schedule_setup_email(*, email: str, url: str) -> None:
+    task = asyncio.get_running_loop().create_task(
+        _deliver_setup_email(email=email, url=url)
+    )
+    _pending_setup_emails.add(task)
+    task.add_done_callback(_pending_setup_emails.discard)
+
+
+async def drain_setup_emails() -> None:
+    """Wait for queued setup mail (tests and shutdown)."""
+    if _pending_setup_emails:
+        await asyncio.gather(*list(_pending_setup_emails), return_exceptions=True)
+
+
 async def email_request(
     request: Request, session: SessionDep, body: EmailRequest
 ) -> Message:
-    _ = request
+    # Same reply, same limits and no SMTP wait for every address, so the reply
+    # reveals nothing: known, unknown, capped and failed delivery all look alike.
+    ip = request_ip(request)
+    if ip is not None and not await password_setup_ip_limit.allow(ip):
+        return Message(message=_GENERIC_LINK_REPLY)
+    if not await password_setup_send_limit.allow(normalised_address(str(body.email))):
+        return Message(message=_GENERIC_LINK_REPLY)
     user = await service.get_user_by_email(session=session, email=body.email)
     if user and user.is_active:
         await session.execute(
@@ -105,21 +153,9 @@ async def email_request(
             session, "email", user_id=user.id, data={"email": user.email}
         )
         url = f"{auth_settings.AUTH_FRONTEND_URL.rstrip('/')}/verify-email?{urlencode({'token': token})}"
-        try:
-            await run_in_threadpool(
-                send_email,
-                email_to=user.email,
-                subject="Verify your email and set your password",
-                html_content=f'<p>Finish setting up your account. This link expires in 15 minutes.</p><p><a href="{url}">Verify email and set password</a></p>',
-            )
-        except Exception as exc:
-            raise VerificationDeliveryError(
-                "Verification delivery unavailable"
-            ) from exc
         await session.commit()
-    return Message(
-        message="If your account is ready, a verification link has been sent."
-    )
+        _schedule_setup_email(email=user.email, url=url)
+    return Message(message=_GENERIC_LINK_REPLY)
 
 
 async def email_confirm(

@@ -23,7 +23,7 @@ from src.auth.schemas import SessionLoginResponse
 from src.dependencies import AccountUser, SessionDep
 from src.models import ApiError, Message
 from src.openapi_responses import RateLimitedBody
-from src.rate_limit import limiter
+from src.rate_limit import limiter, request_ip
 
 router = APIRouter(prefix="/auth", tags=["modern-auth"])
 
@@ -187,8 +187,9 @@ async def revoke_security_session(
 async def account_email_code_start(
     *, request: Request, session: SessionDep, body: AppEmailCodeStart
 ) -> Message:
-    _ = request
-    return await app_service.account_email_code_start(session=session, body=body)
+    return await app_service.account_email_code_start(
+        session=session, body=body, client_ip=request_ip(request)
+    )
 
 
 @router.post(

@@ -718,11 +718,9 @@ export {
   authRefreshSessionStatus422Schema,
 } from "./authRefreshSessionSchema.js";
 export {
-  authRegisterUserBodySchema,
   authRegisterUserErrorSchema,
   authRegisterUserResponseSchema,
-  authRegisterUserStatus201Schema,
-  authRegisterUserStatus400Schema,
+  authRegisterUserStatus410Schema,
   authRegisterUserStatus422Schema,
 } from "./authRegisterUserSchema.js";
 export {
@@ -8550,7 +8548,6 @@ export { userProfilePublicSchema } from "./userProfilePublicSchema.js";
 export { userProfileUpdateMeSchema } from "./userProfileUpdateMeSchema.js";
 export { userPublicPropertiesCmsAccessEnumSchema } from "./userPublicPropertiesCmsAccessEnumSchema.js";
 export { userPublicSchema } from "./userPublicSchema.js";
-export { userRegisterSchema } from "./userRegisterSchema.js";
 export { userRoleAssignmentCreateSchema } from "./userRoleAssignmentCreateSchema.js";
 export { userRoleAssignmentPublicSchema } from "./userRoleAssignmentPublicSchema.js";
 export { userRoleAssignmentsPublicSchema } from "./userRoleAssignmentsPublicSchema.js";
