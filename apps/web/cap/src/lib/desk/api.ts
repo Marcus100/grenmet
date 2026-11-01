@@ -1,6 +1,7 @@
 import "server-only";
 
 import {
+  type CapAlertImportRequest,
   type CapLifecycleState,
   capAlertListPublicSchema,
   capAlertPublicSchema,
@@ -44,6 +45,14 @@ function write<T>(
     cache: "no-store",
     method: "POST",
   });
+}
+
+/**
+ * Imports one CAP document from pasted XML or a public https address. The
+ * API keeps the alert as a draft flagged as imported; it never publishes it.
+ */
+export function importAlert(accessToken: string, body: CapAlertImportRequest) {
+  return write(accessToken, "/cap/alerts/import", body, capAlertPublicSchema);
 }
 
 export function listAlerts(

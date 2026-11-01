@@ -93,10 +93,12 @@ it("switches the panel between tabs, each linking to its full page", async () =>
   expect(
     screen.getByRole("link", { name: "Open the full satellite page" })
   ).toHaveAttribute("href", "/weather/satellite");
-  fireEvent.click(screen.getByRole("tab", { name: "Radar" }));
+  // No Radar tab until a radar feed exists (owner, 1 Nov 2026).
+  expect(screen.queryByRole("tab", { name: "Radar" })).not.toBeInTheDocument();
+  fireEvent.click(screen.getByRole("tab", { name: "Wind" }));
   expect(
-    screen.getByRole("link", { name: "Open the full radar page" })
-  ).toHaveAttribute("href", "/weather/radar");
+    screen.getByRole("link", { name: "Open the full wind page" })
+  ).toHaveAttribute("href", "/weather/conditions");
   fireEvent.click(screen.getByRole("tab", { name: "Video" }));
   expect(screen.getByRole("tabpanel")).toHaveTextContent(
     "No videos posted yet."

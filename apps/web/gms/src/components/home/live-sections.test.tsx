@@ -4,7 +4,6 @@ import {
   avatarInitials,
   Explained,
   ForecastDesk,
-  GetAlertsStrip,
   LatestReports,
   Stories,
 } from "@/components/home/live-sections";
@@ -52,8 +51,6 @@ const hidden = (sections: string[]): HomeContent => ({
 });
 
 const READ_ARTICLE = /^Read the article: /;
-const EMAIL_OR_BROWSER = /email or browser notifications/;
-const NO_APP_OR_WHATSAPP = /WhatsApp|the app/;
 
 it("labels a post Today, Yesterday or by date, in Grenada time", () => {
   const post = "2026-10-28T02:00:00Z"; // 27 Oct, 22:00 in Grenada
@@ -76,21 +73,37 @@ it("drops sections editors hide", async () => {
   expect(await Explained()).toBeNull();
 });
 
+it("lists six stories beside the lead, three on phones", async () => {
+  const articles: PublishedContent[] = Array.from({ length: 8 }, (_, i) => ({
+    id: `00000000-0000-4000-8000-00000000000${i}`,
+    collection: "stories",
+    title: `Story ${i}`,
+    slug: `story-${i}`,
+    summary: "Summary.",
+    body: "Body.",
+    imageUrl: null,
+    updatedAt: "2026-10-30T02:30:00Z",
+    publishedAt: "2026-10-30T02:30:00Z",
+    linkedProduct: null,
+  }));
+  vi.mocked(fetchHomeContent).mockResolvedValue({
+    ...hidden([]),
+    stories: { status: "ok", articles },
+  });
+  render(await Stories());
+  const rows = screen.getAllByRole("listitem");
+  expect(rows).toHaveLength(6);
+  expect(
+    rows.slice(0, 3).every((row) => !row.className.includes("hidden"))
+  ).toBe(true);
+  expect(
+    rows.slice(3).every((row) => row.className.includes("hidden sm:block"))
+  ).toBe(true);
+});
+
 it("hides Latest reports when editors hide it", async () => {
   vi.mocked(fetchHomeContent).mockResolvedValue(hidden(["reports"]));
   expect(await LatestReports()).toBeNull();
-});
-
-it("offers the alerts sign-up as its own strip", () => {
-  render(<GetAlertsStrip />);
-  expect(
-    screen.getByRole("heading", { name: "Get official alerts first" })
-  ).toBeInTheDocument();
-  const link = screen.getByRole("link", { name: "Get alerts" });
-  expect(link).toHaveAttribute("href", "/alerts/get-alerts");
-  // Email and browser notifications are the channels offered; no app, no WhatsApp.
-  expect(screen.getByText(EMAIL_OR_BROWSER)).toBeVisible();
-  expect(screen.queryByText(NO_APP_OR_WHATSAPP)).not.toBeInTheDocument();
 });
 
 it("shows an empty state, not a stale list, when no questions are published", async () => {

@@ -1,5 +1,5 @@
 import { isProductKind, productTitle } from "@barrelsgd/gms/products";
-import { ArrowRightIcon, BellIcon, ChevronRightIcon } from "lucide-react";
+import { ArrowRightIcon, ChevronRightIcon } from "lucide-react";
 import type { Route } from "next";
 import Image from "next/image";
 import Link from "next/link";
@@ -172,7 +172,6 @@ export async function Stories() {
   const [lead, ...rest] = result.articles.map(contentToArticle);
   return (
     <HomeSection
-      tone="surface"
       {...words}
       link={{ href: "/explore/news", label: "More stories" }}
     >
@@ -211,8 +210,12 @@ export async function Stories() {
               </span>
             </Link>
             <ul className="flex flex-col gap-4">
-              {rest.slice(0, 4).map((story) => (
-                <li key={story.id}>
+              {/* Six rows; phones show three (owner, 1 Nov 2026). */}
+              {rest.slice(0, 6).map((story, index) => (
+                <li
+                  className={cn(index >= 3 && "hidden sm:block")}
+                  key={story.id}
+                >
                   <Link
                     className="group grid grid-cols-[7.5rem_minmax(0,1fr)] gap-3"
                     href={story.href as Route}
@@ -389,49 +392,5 @@ export async function LatestReports() {
         )}
       </FeedState>
     </HomeSection>
-  );
-}
-
-/**
- * A slim navy strip under the sky hero: subscribe to warnings before they are
- * needed. Live alerts themselves sit above it (header pill, hero takeover).
- */
-export function GetAlertsStrip() {
-  return (
-    <section
-      aria-labelledby="get-alerts-title"
-      className="bg-background pt-3 pb-4 lg:pt-4 lg:pb-6"
-    >
-      <div className="mx-auto max-w-6xl px-4 sm:px-6 xl:px-8">
-        <div className="flex flex-col gap-3 rounded-gm-card border border-gm-border bg-gm-navy px-4 py-4 text-gm-text-inverse sm:flex-row sm:flex-wrap sm:items-center sm:gap-x-4 sm:gap-y-2 sm:py-3">
-          <div className="flex min-w-0 flex-1 items-center justify-center gap-3 sm:justify-start sm:gap-4">
-            <BellIcon
-              aria-hidden="true"
-              className="size-5 shrink-0 text-gm-lime"
-            />
-            <div className="min-w-0 sm:flex-1">
-              <h2
-                className="font-bold text-body-base leading-body-base"
-                id="get-alerts-title"
-              >
-                Get official alerts first
-              </h2>
-              <p className="hidden text-body-sm text-gm-text-inverse/85 leading-body-sm sm:block">
-                We send alerts the moment we issue them, by email or browser
-                notifications.
-              </p>
-            </div>
-          </div>
-          <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center">
-            <Link
-              className="flex h-11 items-center justify-center gap-2 rounded-md bg-gm-lime px-4 font-bold text-body text-gm-navy leading-body"
-              href="/alerts/get-alerts"
-            >
-              Get alerts
-            </Link>
-          </div>
-        </div>
-      </div>
-    </section>
   );
 }
