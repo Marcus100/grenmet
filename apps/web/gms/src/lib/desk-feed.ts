@@ -14,12 +14,12 @@ import type { WarningLevel } from "@/lib/warning-level";
 
 /** An issued GMS product shown as an official card in From the Desk. */
 export interface OfficialCard {
-  /** "Expired 7:00 a.m. · next forecast due 12:00 p.m." when out of date. */
-  expiredNote: string | null;
   href: string;
   id: string;
   issued: string;
   kind: "briefing" | "outlook";
+  /** Set only when the product is no longer current (the API normally omits those). */
+  staleNote: string | null;
   summary: string;
   title: string;
   valid: string;
@@ -28,6 +28,11 @@ export interface OfficialCard {
 export interface DeskFeed {
   /** Under a red warning desk posts wait behind "Earlier posts" (owner, 1 Nov 2026). */
   collapsePosts: boolean;
+  /**
+   * When the products feed answered but no public forecast is in effect (the
+   * API leaves out expired ones): "The next forecast is due at 12:00 p.m."
+   */
+  missingBriefing: string | null;
   official: OfficialCard[];
   posts: PublishedContent[];
 }
@@ -44,26 +49,53 @@ function localLabel(value: string | undefined, now: Date): string | null {
     : null;
 }
 
-/** "12:00 p.m."-style label for the next scheduled public forecast. */
+const clock = (time: string) => {
+  const [hours = 0, minutes = 0] = time.split(":").map(Number);
+  const suffix = hours < 12 ? "a.m." : "p.m.";
+  const hour12 = hours % 12 === 0 ? 12 : hours % 12;
+  return `${hour12}:${String(minutes).padStart(2, "0")} ${suffix}`;
+};
+
+/**
+ * When the next public forecast is due, in Grenada time: "12:00 p.m.",
+ * "7:00 a.m. tomorrow", or within the hour after an issue time "now (the
+ * 7:00 a.m. forecast)", because that one is being prepared.
+ */
 export function nextForecastDue(now: Date): string {
   const times = FORECAST_KINDS.flatMap(
     (kind) => ISSUE_TIMES[kind] ?? []
   ).sort();
-  const local = new Date(now.getTime() - 4 * 60 * 60 * 1000)
-    .toISOString()
-    .slice(11, 16);
-  const next = times.find((time) => time > local) ?? times[0] ?? "07:00";
-  const [hours = 0, minutes = 0] = next.split(":").map(Number);
-  const suffix = hours < 12 ? "a.m." : "p.m.";
-  const hour12 = hours % 12 === 0 ? 12 : hours % 12;
-  const day = times.some((time) => time > local) ? "" : " tomorrow";
-  return `${hour12}:${String(minutes).padStart(2, "0")} ${suffix}${day}`;
+  const local = new Date(now.getTime() - 4 * 60 * 60 * 1000);
+  const minutesNow = local.getUTCHours() * 60 + local.getUTCMinutes();
+  const minutesOf = (time: string) => {
+    const [h = 0, m = 0] = time.split(":").map(Number);
+    return h * 60 + m;
+  };
+  const due = times.find(
+    (time) => minutesNow >= minutesOf(time) && minutesNow < minutesOf(time) + 60
+  );
+  if (due) return `now (the ${clock(due)} forecast)`;
+  const next = times.find((time) => minutesOf(time) > minutesNow);
+  return next ? clock(next) : `${clock(times[0] ?? "07:00")} tomorrow`;
+}
+
+/** The placeholder briefing's words; "p.m." already ends the sentence. */
+function noForecastNote(now: Date): string {
+  const due = nextForecastDue(now);
+  return `No public forecast is in effect right now. The next forecast is due ${due}${due.endsWith(".") ? "" : "."}`;
+}
+
+/** A product's issue time (Grenada local), falling back to its publish time. */
+function issuedTime(product: PublicPublishedProduct): number {
+  const issued = product.values.issuedAt;
+  const time = issued ? Date.parse(`${issued}:00-04:00`) : Number.NaN;
+  return Number.isFinite(time) ? time : Date.parse(product.publishedAt);
 }
 
 function newest(products: PublicPublishedProduct[], kinds: readonly string[]) {
   return products
     .filter((product) => kinds.includes(product.kind))
-    .sort((a, b) => Date.parse(b.publishedAt) - Date.parse(a.publishedAt))[0];
+    .sort((a, b) => issuedTime(b) - issuedTime(a))[0];
 }
 
 function officialCard(
@@ -89,10 +121,7 @@ function officialCard(
       ? values.summary
       : (values.systems ?? values.formation)) ?? "";
   return {
-    expiredNote:
-      current || kind !== "briefing"
-        ? null
-        : `Expired${validTo ? ` ${validTo}` : ""} · next forecast due ${nextForecastDue(now)}`,
+    staleNote: current ? null : "No longer in effect",
     href: `/weather/issued/${product.id}`,
     id: product.id,
     issued: `Issued ${localLabel(values.issuedAt, now) ?? postedLabel(product.publishedAt, now)}`,
@@ -105,7 +134,7 @@ function officialCard(
 
 /**
  * The From the Desk feed (homepage v2, owner 1 Nov 2026): the latest public
- * forecast pinned first and the latest Tropical Weather Outlook, then desk
+ * forecast (by issue time) pinned first and the latest Tropical Weather Outlook, then desk
  * posts and report write-ups newest first. Official cards always lead; under
  * a red ("take action") warning the desk posts wait behind "Earlier posts".
  */
@@ -114,11 +143,14 @@ export function buildDeskFeed({
   now = new Date(),
   posts,
   products,
+  productsAvailable = true,
 }: {
   level: WarningLevel;
   now?: Date;
   posts: PublishedContent[];
   products: PublicPublishedProduct[];
+  /** False when the products feed failed; then nothing is said about forecasts here. */
+  productsAvailable?: boolean;
 }): DeskFeed {
   const briefing = newest(
     products.filter((product) =>
@@ -138,5 +170,11 @@ export function buildDeskFeed({
         Date.parse(a.publishedAt ?? a.updatedAt)
     )
     .slice(0, MAX_POSTS);
-  return { collapsePosts: level === "take-action", official, posts: sorted };
+  return {
+    collapsePosts: level === "take-action",
+    missingBriefing:
+      productsAvailable && !briefing ? noForecastNote(now) : null,
+    official,
+    posts: sorted,
+  };
 }

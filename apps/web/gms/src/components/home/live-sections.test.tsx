@@ -66,6 +66,8 @@ const hidden = (sections: string[]): HomeContent => ({
 });
 
 const READ_ARTICLE = /^Read the article: /;
+const ISSUED_UNAVAILABLE = /Issued forecasts cannot be retrieved right now/;
+const NO_FORECAST = /No public forecast is in effect right now/;
 
 it("labels a post Today, Yesterday or by date, in Grenada time", () => {
   const post = "2026-10-28T02:00:00Z"; // 27 Oct, 22:00 in Grenada
@@ -183,7 +185,12 @@ it("links each desk post card to its article; a linked product stays a label", a
 
 it("says so honestly when nothing is published", async () => {
   vi.mocked(fetchHomeContent).mockResolvedValue(hidden([]));
+  vi.mocked(fetchPublishedProducts).mockResolvedValue({
+    status: "unavailable",
+    products: [],
+  });
   render(await ForecastDesk());
+  expect(screen.getByText(ISSUED_UNAVAILABLE)).toBeInTheDocument();
   expect(
     screen.getByText("No forecasts or desk posts are published yet.")
   ).toBeInTheDocument();
@@ -237,6 +244,14 @@ it("pins the latest issued forecast first, as an official card", async () => {
   expect(
     screen.getByRole("link", { name: "Read the Midday Forecast" })
   ).toHaveAttribute("href", `/weather/issued/${PRODUCT_ID}`);
+});
+
+it("shows a placeholder briefing when no public forecast is in effect", async () => {
+  vi.mocked(fetchHomeContent).mockResolvedValue(hidden([]));
+  render(await ForecastDesk());
+  const [first] = screen.getAllByRole("listitem");
+  expect(first).toHaveTextContent(NO_FORECAST);
+  expect(first).toHaveTextContent("Official briefing");
 });
 
 it("keeps desk posts behind Earlier posts during a red warning", async () => {

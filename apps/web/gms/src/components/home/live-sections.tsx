@@ -193,12 +193,9 @@ function OfficialProductCard({ card }: { card: OfficialCard }) {
           {card.issued}
           {card.valid && <> · {card.valid}</>}
         </p>
-        {card.expiredNote && (
-          <p
-            className="font-semibold text-body-sm text-gm-heading leading-body-sm"
-            role="status"
-          >
-            {card.expiredNote}
+        {card.staleNote && (
+          <p className="font-semibold text-body-sm text-gm-heading leading-body-sm">
+            {card.staleNote}
           </p>
         )}
         <Link
@@ -240,6 +237,7 @@ export async function ForecastDesk() {
     level: alertsLevel(alerts),
     posts: [...updates.articles, ...(showNotes ? notes.articles : [])],
     products: products.products,
+    productsAvailable: products.status === "ok",
   });
   const postCards = feed.posts.map((item) => (
     <DeskPostCard item={item} key={item.id} />
@@ -262,7 +260,11 @@ export async function ForecastDesk() {
         </p>
       )}
       <FeedState
-        count={feed.official.length + feed.posts.length}
+        count={
+          feed.official.length +
+          feed.posts.length +
+          (feed.missingBriefing ? 1 : 0)
+        }
         empty="No forecasts or desk posts are published yet."
         unavailable={
           updates.status === "unavailable" &&
@@ -271,6 +273,33 @@ export async function ForecastDesk() {
         }
       >
         <ul aria-label="Latest from the forecast desk" className={ROW}>
+          {feed.missingBriefing && (
+            <li className={CARD_ITEM}>
+              <article
+                className={cn(
+                  HOME_CARD,
+                  "flex h-full flex-col gap-3 border-gm-navy"
+                )}
+              >
+                <span className="w-fit rounded-full bg-gm-navy px-2.5 py-0.5 font-bold text-gm-text-inverse text-label uppercase leading-label tracking-wider dark:text-gm-navy">
+                  Official briefing
+                </span>
+                <h3 className="font-bold text-gm-heading text-heading-sm leading-heading-sm">
+                  Public Weather Forecast
+                </h3>
+                <p className="text-body-base leading-body-base">
+                  {feed.missingBriefing}
+                </p>
+                <Link
+                  className="mt-auto flex w-fit items-center gap-1 font-semibold text-body text-gm-blue-ink leading-body hover:underline"
+                  href={"/weather/issued" as Route}
+                >
+                  All issued products
+                  <ArrowRightIcon aria-hidden="true" className="size-4" />
+                </Link>
+              </article>
+            </li>
+          )}
           {feed.official.map((card) => (
             <OfficialProductCard card={card} key={card.id} />
           ))}
