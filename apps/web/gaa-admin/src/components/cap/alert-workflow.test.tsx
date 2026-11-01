@@ -1,6 +1,6 @@
 import { type CapAlertPublic, configureApiClient } from "@barrelsgd/api-client";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { fireEvent, screen, waitFor } from "@testing-library/react";
 import { HttpResponse, http } from "msw";
 import { setupServer } from "msw/node";
 import {
@@ -12,6 +12,7 @@ import {
   it,
   vi,
 } from "vitest";
+import { renderWithGmsCatalogue as render } from "@/test/with-gms-catalogue";
 import { AlertWorkflow } from "./alert-workflow";
 
 vi.mock("next/navigation", () => ({ useRouter: () => ({ refresh: vi.fn() }) }));

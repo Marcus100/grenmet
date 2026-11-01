@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { SeverityBadge } from "@/components/cap/severity-badge";
-import { type CapAlert, primaryInfo } from "@/lib/cap-api";
+import { type CapPublicAlert, primaryInfo } from "@/lib/cap-api";
 import { relativeTime } from "./home-data";
 import { loadAlerts } from "./home-loaders";
 import { Panel, PanelEmpty, PanelUnavailable } from "./panel";
@@ -26,7 +26,7 @@ export async function AlertsPanel({ className }: { className?: string }) {
   );
 }
 
-function AlertRows({ alerts }: { alerts: CapAlert[] }) {
+function AlertRows({ alerts }: { alerts: CapPublicAlert[] }) {
   if (alerts.length === 0) {
     return <PanelEmpty>No alerts in effect. All clear.</PanelEmpty>;
   }

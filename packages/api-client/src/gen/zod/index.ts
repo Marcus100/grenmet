@@ -1606,7 +1606,9 @@ export { capAlertCreateSchema } from "./capAlertCreateSchema.js";
 export { capAlertImportRequestPropertiesSourceEnumSchema } from "./capAlertImportRequestPropertiesSourceEnumSchema.js";
 export { capAlertImportRequestSchema } from "./capAlertImportRequestSchema.js";
 export { capAlertListPublicSchema } from "./capAlertListPublicSchema.js";
+export { capAlertListPublicViewSchema } from "./capAlertListPublicViewSchema.js";
 export { capAlertPublicSchema } from "./capAlertPublicSchema.js";
+export { capAlertPublicViewSchema } from "./capAlertPublicViewSchema.js";
 export { capAlertUpdateSchema } from "./capAlertUpdateSchema.js";
 export {
   capApproveAlertBodySchema,
@@ -1649,8 +1651,10 @@ export {
   capCancelAlertStatus422Schema,
 } from "./capCancelAlertSchema.js";
 export { capCatalogsPublicSchema } from "./capCatalogsPublicSchema.js";
+export { capCategoryLabelPublicSchema } from "./capCategoryLabelPublicSchema.js";
 export { capCategorySchema } from "./capCategorySchema.js";
 export { capCertaintySchema } from "./capCertaintySchema.js";
+export { capColourRulePublicSchema } from "./capColourRulePublicSchema.js";
 export {
   capCreateAlertBodySchema,
   capCreateAlertErrorSchema,
@@ -1773,6 +1777,17 @@ export {
   capGetActiveMapStatus422Schema,
 } from "./capGetActiveMapSchema.js";
 export {
+  capGetAlertByIdentifierErrorSchema,
+  capGetAlertByIdentifierPathIdentifierSchema,
+  capGetAlertByIdentifierPathSchema,
+  capGetAlertByIdentifierResponseSchema,
+  capGetAlertByIdentifierStatus200Schema,
+  capGetAlertByIdentifierStatus401Schema,
+  capGetAlertByIdentifierStatus403Schema,
+  capGetAlertByIdentifierStatus404Schema,
+  capGetAlertByIdentifierStatus422Schema,
+} from "./capGetAlertByIdentifierSchema.js";
+export {
   capGetAlertErrorSchema,
   capGetAlertPathAlertIdSchema,
   capGetAlertPathSchema,
@@ -1857,6 +1872,14 @@ export {
   capGetFeedsStatus422Schema,
 } from "./capGetFeedsSchema.js";
 export {
+  capGetGmsCatalogueErrorSchema,
+  capGetGmsCatalogueResponseSchema,
+  capGetGmsCatalogueStatus200Schema,
+  capGetGmsCatalogueStatus401Schema,
+  capGetGmsCatalogueStatus403Schema,
+  capGetGmsCatalogueStatus422Schema,
+} from "./capGetGmsCatalogueSchema.js";
+export {
   capGetHazardProfilesErrorSchema,
   capGetHazardProfilesResponseSchema,
   capGetHazardProfilesStatus200Schema,
@@ -1930,6 +1953,7 @@ export {
   capGetRssStatus200Schema,
   capGetRssStatus422Schema,
 } from "./capGetRssSchema.js";
+export { capHazardGroupPublicSchema } from "./capHazardGroupPublicSchema.js";
 export {
   capImportAlertBodySchema,
   capImportAlertErrorSchema,
@@ -1945,8 +1969,10 @@ export { capIntegrationStatusSchema } from "./capIntegrationStatusSchema.js";
 export { capLifecycleStateSchema } from "./capLifecycleStateSchema.js";
 export { capMessageTypeSchema } from "./capMessageTypeSchema.js";
 export { capNameValueSchema } from "./capNameValueSchema.js";
+export { capParishPublicSchema } from "./capParishPublicSchema.js";
 export { capPredefinedAreaCreateSchema } from "./capPredefinedAreaCreateSchema.js";
 export { capPredefinedAreaPublicSchema } from "./capPredefinedAreaPublicSchema.js";
+export { capProductRulePublicSchema } from "./capProductRulePublicSchema.js";
 export { capProfileCellTextPropertiesImpactEnumSchema } from "./capProfileCellTextPropertiesImpactEnumSchema.js";
 export { capProfileCellTextPropertiesLikelihoodEnumSchema } from "./capProfileCellTextPropertiesLikelihoodEnumSchema.js";
 export { capProfileCellTextSchema } from "./capProfileCellTextSchema.js";
@@ -1964,6 +1990,7 @@ export { capProfileRuleSchema } from "./capProfileRuleSchema.js";
 export { capProfileSaveSchema } from "./capProfileSaveSchema.js";
 export { capProfileSubtypeSchema } from "./capProfileSubtypeSchema.js";
 export { capProfileTemplateSchema } from "./capProfileTemplateSchema.js";
+export { capPublishActionSchema } from "./capPublishActionSchema.js";
 export {
   capPublishAlertBodySchema,
   capPublishAlertErrorSchema,
@@ -2326,6 +2353,11 @@ export { dashboardRequestSchema } from "./dashboardRequestSchema.js";
 export { dataFormatSchema } from "./dataFormatSchema.js";
 export { dataParameterSchema } from "./dataParameterSchema.js";
 export { dataRequestCreateSchema } from "./dataRequestCreateSchema.js";
+export { deductionCategorySchema } from "./deductionCategorySchema.js";
+export { deductionKindSchema } from "./deductionKindSchema.js";
+export { deductionLinePublicSchema } from "./deductionLinePublicSchema.js";
+export { deductionTypeCreateSchema } from "./deductionTypeCreateSchema.js";
+export { deductionTypePublicSchema } from "./deductionTypePublicSchema.js";
 export { deliveryAdminListSchema } from "./deliveryAdminListSchema.js";
 export { deliveryAdminPropertiesStatusEnumSchema } from "./deliveryAdminPropertiesStatusEnumSchema.js";
 export { deliveryAdminSchema } from "./deliveryAdminSchema.js";
@@ -2352,12 +2384,20 @@ export { emailConfirmSchema } from "./emailConfirmSchema.js";
 export { emailRequestSchema } from "./emailRequestSchema.js";
 export { emergencyContactPublicSchema } from "./emergencyContactPublicSchema.js";
 export { emergencyContactUpdateSchema } from "./emergencyContactUpdateSchema.js";
+export { employeeBasicPayCreateSchema } from "./employeeBasicPayCreateSchema.js";
+export { employeeBasicPayPublicSchema } from "./employeeBasicPayPublicSchema.js";
+export { employeeBasicPaysPublicSchema } from "./employeeBasicPaysPublicSchema.js";
+export { employeeDeductionCreateSchema } from "./employeeDeductionCreateSchema.js";
+export { employeeDeductionPublicSchema } from "./employeeDeductionPublicSchema.js";
+export { employeeDeductionsPublicSchema } from "./employeeDeductionsPublicSchema.js";
 export { employeeDocumentListPublicSchema } from "./employeeDocumentListPublicSchema.js";
 export { employeeDocumentPublicSchema } from "./employeeDocumentPublicSchema.js";
 export { employeeDocumentUpdateSchema } from "./employeeDocumentUpdateSchema.js";
+export { employeeGrossPublicSchema } from "./employeeGrossPublicSchema.js";
 export { employeePayProfilePublicSchema } from "./employeePayProfilePublicSchema.js";
 export { employeePayProfilesPublicSchema } from "./employeePayProfilesPublicSchema.js";
 export { employeePayProfileUpdateSchema } from "./employeePayProfileUpdateSchema.js";
+export { employeePaySummarySchema } from "./employeePaySummarySchema.js";
 export { employmentAdminUpdateSchema } from "./employmentAdminUpdateSchema.js";
 export { employmentCreateSchema } from "./employmentCreateSchema.js";
 export { employmentPublicSchema } from "./employmentPublicSchema.js";
@@ -3681,6 +3721,7 @@ export { forecastSourcePropertiesKindEnumSchema } from "./forecastSourceProperti
 export { forecastSourceSchema } from "./forecastSourceSchema.js";
 export { frequencySchema } from "./frequencySchema.js";
 export { genderSchema } from "./genderSchema.js";
+export { gmsCataloguePublicSchema } from "./gmsCataloguePublicSchema.js";
 export { gmsColourSchema } from "./gmsColourSchema.js";
 export { googleChallengePublicSchema } from "./googleChallengePublicSchema.js";
 export { googleCompleteSchema } from "./googleCompleteSchema.js";
@@ -3751,6 +3792,19 @@ export {
   hrApproveClockPunchStatus409Schema,
   hrApproveClockPunchStatus422Schema,
 } from "./hrApproveClockPunchSchema.js";
+export {
+  hrApprovePayPeriodForIssueErrorSchema,
+  hrApprovePayPeriodForIssuePathPeriodIdSchema,
+  hrApprovePayPeriodForIssuePathSchema,
+  hrApprovePayPeriodForIssueResponseSchema,
+  hrApprovePayPeriodForIssueStatus200Schema,
+  hrApprovePayPeriodForIssueStatus400Schema,
+  hrApprovePayPeriodForIssueStatus401Schema,
+  hrApprovePayPeriodForIssueStatus403Schema,
+  hrApprovePayPeriodForIssueStatus404Schema,
+  hrApprovePayPeriodForIssueStatus409Schema,
+  hrApprovePayPeriodForIssueStatus422Schema,
+} from "./hrApprovePayPeriodForIssueSchema.js";
 export {
   hrApprovePayPeriodBodySchema,
   hrApprovePayPeriodErrorSchema,
@@ -3890,6 +3944,19 @@ export {
   hrComputePayPeriodStatus422Schema,
 } from "./hrComputePayPeriodSchema.js";
 export {
+  hrConfirmMyDeductionErrorSchema,
+  hrConfirmMyDeductionPathDeductionIdSchema,
+  hrConfirmMyDeductionPathSchema,
+  hrConfirmMyDeductionResponseSchema,
+  hrConfirmMyDeductionStatus200Schema,
+  hrConfirmMyDeductionStatus400Schema,
+  hrConfirmMyDeductionStatus401Schema,
+  hrConfirmMyDeductionStatus403Schema,
+  hrConfirmMyDeductionStatus404Schema,
+  hrConfirmMyDeductionStatus409Schema,
+  hrConfirmMyDeductionStatus422Schema,
+} from "./hrConfirmMyDeductionSchema.js";
+export {
   hrCreateAbsenteeReportBodySchema,
   hrCreateAbsenteeReportErrorSchema,
   hrCreateAbsenteeReportResponseSchema,
@@ -3918,6 +3985,18 @@ export {
   hrCreateClockSiteStatus422Schema,
 } from "./hrCreateClockSiteSchema.js";
 export {
+  hrCreateDeductionTypeBodySchema,
+  hrCreateDeductionTypeErrorSchema,
+  hrCreateDeductionTypeResponseSchema,
+  hrCreateDeductionTypeStatus201Schema,
+  hrCreateDeductionTypeStatus400Schema,
+  hrCreateDeductionTypeStatus401Schema,
+  hrCreateDeductionTypeStatus403Schema,
+  hrCreateDeductionTypeStatus404Schema,
+  hrCreateDeductionTypeStatus409Schema,
+  hrCreateDeductionTypeStatus422Schema,
+} from "./hrCreateDeductionTypeSchema.js";
+export {
   hrCreateDepartmentBodySchema,
   hrCreateDepartmentErrorSchema,
   hrCreateDepartmentResponseSchema,
@@ -3926,6 +4005,30 @@ export {
   hrCreateDepartmentStatus403Schema,
   hrCreateDepartmentStatus422Schema,
 } from "./hrCreateDepartmentSchema.js";
+export {
+  hrCreateEmployeeBasicPayBodySchema,
+  hrCreateEmployeeBasicPayErrorSchema,
+  hrCreateEmployeeBasicPayResponseSchema,
+  hrCreateEmployeeBasicPayStatus201Schema,
+  hrCreateEmployeeBasicPayStatus400Schema,
+  hrCreateEmployeeBasicPayStatus401Schema,
+  hrCreateEmployeeBasicPayStatus403Schema,
+  hrCreateEmployeeBasicPayStatus404Schema,
+  hrCreateEmployeeBasicPayStatus409Schema,
+  hrCreateEmployeeBasicPayStatus422Schema,
+} from "./hrCreateEmployeeBasicPaySchema.js";
+export {
+  hrCreateEmployeeDeductionBodySchema,
+  hrCreateEmployeeDeductionErrorSchema,
+  hrCreateEmployeeDeductionResponseSchema,
+  hrCreateEmployeeDeductionStatus201Schema,
+  hrCreateEmployeeDeductionStatus400Schema,
+  hrCreateEmployeeDeductionStatus401Schema,
+  hrCreateEmployeeDeductionStatus403Schema,
+  hrCreateEmployeeDeductionStatus404Schema,
+  hrCreateEmployeeDeductionStatus409Schema,
+  hrCreateEmployeeDeductionStatus422Schema,
+} from "./hrCreateEmployeeDeductionSchema.js";
 export {
   hrCreateHolidayBodySchema,
   hrCreateHolidayErrorSchema,
@@ -3998,6 +4101,18 @@ export {
   hrCreatePayCalendarStatus422Schema,
 } from "./hrCreatePayCalendarSchema.js";
 export {
+  hrCreatePayItemRateBodySchema,
+  hrCreatePayItemRateErrorSchema,
+  hrCreatePayItemRateResponseSchema,
+  hrCreatePayItemRateStatus201Schema,
+  hrCreatePayItemRateStatus400Schema,
+  hrCreatePayItemRateStatus401Schema,
+  hrCreatePayItemRateStatus403Schema,
+  hrCreatePayItemRateStatus404Schema,
+  hrCreatePayItemRateStatus409Schema,
+  hrCreatePayItemRateStatus422Schema,
+} from "./hrCreatePayItemRateSchema.js";
+export {
   hrCreatePayLineBodySchema,
   hrCreatePayLineErrorSchema,
   hrCreatePayLinePathPeriodIdSchema,
@@ -4051,6 +4166,18 @@ export {
   hrCreateShiftSwapStatus422Schema,
 } from "./hrCreateShiftSwapSchema.js";
 export {
+  hrCreateSocialInsuranceSchemeBodySchema,
+  hrCreateSocialInsuranceSchemeErrorSchema,
+  hrCreateSocialInsuranceSchemeResponseSchema,
+  hrCreateSocialInsuranceSchemeStatus201Schema,
+  hrCreateSocialInsuranceSchemeStatus400Schema,
+  hrCreateSocialInsuranceSchemeStatus401Schema,
+  hrCreateSocialInsuranceSchemeStatus403Schema,
+  hrCreateSocialInsuranceSchemeStatus404Schema,
+  hrCreateSocialInsuranceSchemeStatus409Schema,
+  hrCreateSocialInsuranceSchemeStatus422Schema,
+} from "./hrCreateSocialInsuranceSchemeSchema.js";
+export {
   hrCreateStatusReportBodySchema,
   hrCreateStatusReportErrorSchema,
   hrCreateStatusReportResponseSchema,
@@ -4059,6 +4186,18 @@ export {
   hrCreateStatusReportStatus403Schema,
   hrCreateStatusReportStatus422Schema,
 } from "./hrCreateStatusReportSchema.js";
+export {
+  hrCreateTaxTableBodySchema,
+  hrCreateTaxTableErrorSchema,
+  hrCreateTaxTableResponseSchema,
+  hrCreateTaxTableStatus201Schema,
+  hrCreateTaxTableStatus400Schema,
+  hrCreateTaxTableStatus401Schema,
+  hrCreateTaxTableStatus403Schema,
+  hrCreateTaxTableStatus404Schema,
+  hrCreateTaxTableStatus409Schema,
+  hrCreateTaxTableStatus422Schema,
+} from "./hrCreateTaxTableSchema.js";
 export {
   hrCreateTemplateBodySchema,
   hrCreateTemplateErrorSchema,
@@ -4119,6 +4258,17 @@ export {
   hrDeleteDepartmentRuleSetStatus403Schema,
   hrDeleteDepartmentRuleSetStatus422Schema,
 } from "./hrDeleteDepartmentRuleSetSchema.js";
+export {
+  hrDeleteDraftTimesheetErrorSchema,
+  hrDeleteDraftTimesheetPathSchema,
+  hrDeleteDraftTimesheetPathTimesheetIdSchema,
+  hrDeleteDraftTimesheetResponseSchema,
+  hrDeleteDraftTimesheetStatus204Schema,
+  hrDeleteDraftTimesheetStatus400Schema,
+  hrDeleteDraftTimesheetStatus403Schema,
+  hrDeleteDraftTimesheetStatus404Schema,
+  hrDeleteDraftTimesheetStatus422Schema,
+} from "./hrDeleteDraftTimesheetSchema.js";
 export {
   hrDeleteLeaveRequestErrorSchema,
   hrDeleteLeaveRequestPathLeaveRequestIdSchema,
@@ -4450,6 +4600,19 @@ export {
   hrGetParkingPermitsStatus422Schema,
 } from "./hrGetParkingPermitsSchema.js";
 export {
+  hrGetPayPeriodAmountsErrorSchema,
+  hrGetPayPeriodAmountsPathPeriodIdSchema,
+  hrGetPayPeriodAmountsPathSchema,
+  hrGetPayPeriodAmountsResponseSchema,
+  hrGetPayPeriodAmountsStatus200Schema,
+  hrGetPayPeriodAmountsStatus400Schema,
+  hrGetPayPeriodAmountsStatus401Schema,
+  hrGetPayPeriodAmountsStatus403Schema,
+  hrGetPayPeriodAmountsStatus404Schema,
+  hrGetPayPeriodAmountsStatus409Schema,
+  hrGetPayPeriodAmountsStatus422Schema,
+} from "./hrGetPayPeriodAmountsSchema.js";
+export {
   hrGetPayPeriodErrorSchema,
   hrGetPayPeriodPathPeriodIdSchema,
   hrGetPayPeriodPathSchema,
@@ -4462,6 +4625,19 @@ export {
   hrGetPayPeriodStatus409Schema,
   hrGetPayPeriodStatus422Schema,
 } from "./hrGetPayPeriodSchema.js";
+export {
+  hrGetPayPeriodSummaryErrorSchema,
+  hrGetPayPeriodSummaryPathPeriodIdSchema,
+  hrGetPayPeriodSummaryPathSchema,
+  hrGetPayPeriodSummaryResponseSchema,
+  hrGetPayPeriodSummaryStatus200Schema,
+  hrGetPayPeriodSummaryStatus400Schema,
+  hrGetPayPeriodSummaryStatus401Schema,
+  hrGetPayPeriodSummaryStatus403Schema,
+  hrGetPayPeriodSummaryStatus404Schema,
+  hrGetPayPeriodSummaryStatus409Schema,
+  hrGetPayPeriodSummaryStatus422Schema,
+} from "./hrGetPayPeriodSummarySchema.js";
 export {
   hrGetPeriodRevisionsErrorSchema,
   hrGetPeriodRevisionsPathPeriodIdSchema,
@@ -4795,6 +4971,34 @@ export {
   hrListDepartmentsStatus422Schema,
 } from "./hrListDepartmentsSchema.js";
 export {
+  hrListEmployeeBasicPayErrorSchema,
+  hrListEmployeeBasicPayQueryOrganisationIdSchema,
+  hrListEmployeeBasicPayQuerySchema,
+  hrListEmployeeBasicPayQueryUserIdSchema,
+  hrListEmployeeBasicPayResponseSchema,
+  hrListEmployeeBasicPayStatus200Schema,
+  hrListEmployeeBasicPayStatus400Schema,
+  hrListEmployeeBasicPayStatus401Schema,
+  hrListEmployeeBasicPayStatus403Schema,
+  hrListEmployeeBasicPayStatus404Schema,
+  hrListEmployeeBasicPayStatus409Schema,
+  hrListEmployeeBasicPayStatus422Schema,
+} from "./hrListEmployeeBasicPaySchema.js";
+export {
+  hrListEmployeeDeductionsErrorSchema,
+  hrListEmployeeDeductionsQueryOrganisationIdSchema,
+  hrListEmployeeDeductionsQuerySchema,
+  hrListEmployeeDeductionsQueryUserIdSchema,
+  hrListEmployeeDeductionsResponseSchema,
+  hrListEmployeeDeductionsStatus200Schema,
+  hrListEmployeeDeductionsStatus400Schema,
+  hrListEmployeeDeductionsStatus401Schema,
+  hrListEmployeeDeductionsStatus403Schema,
+  hrListEmployeeDeductionsStatus404Schema,
+  hrListEmployeeDeductionsStatus409Schema,
+  hrListEmployeeDeductionsStatus422Schema,
+} from "./hrListEmployeeDeductionsSchema.js";
+export {
   hrListEmployeePayProfilesErrorSchema,
   hrListEmployeePayProfilesQueryLimitSchema,
   hrListEmployeePayProfilesQueryOrganisationIdSchema,
@@ -4819,6 +5023,17 @@ export {
   hrListHolidaysStatus422Schema,
 } from "./hrListHolidaysSchema.js";
 export {
+  hrListMyDeductionsErrorSchema,
+  hrListMyDeductionsResponseSchema,
+  hrListMyDeductionsStatus200Schema,
+  hrListMyDeductionsStatus400Schema,
+  hrListMyDeductionsStatus401Schema,
+  hrListMyDeductionsStatus403Schema,
+  hrListMyDeductionsStatus404Schema,
+  hrListMyDeductionsStatus409Schema,
+  hrListMyDeductionsStatus422Schema,
+} from "./hrListMyDeductionsSchema.js";
+export {
   hrListMyShiftSwapsErrorSchema,
   hrListMyShiftSwapsQueryPageSchema,
   hrListMyShiftSwapsQuerySchema,
@@ -4842,6 +5057,19 @@ export {
   hrListPayCalendarsStatus409Schema,
   hrListPayCalendarsStatus422Schema,
 } from "./hrListPayCalendarsSchema.js";
+export {
+  hrListPayItemRatesErrorSchema,
+  hrListPayItemRatesQueryOrganisationIdSchema,
+  hrListPayItemRatesQuerySchema,
+  hrListPayItemRatesResponseSchema,
+  hrListPayItemRatesStatus200Schema,
+  hrListPayItemRatesStatus400Schema,
+  hrListPayItemRatesStatus401Schema,
+  hrListPayItemRatesStatus403Schema,
+  hrListPayItemRatesStatus404Schema,
+  hrListPayItemRatesStatus409Schema,
+  hrListPayItemRatesStatus422Schema,
+} from "./hrListPayItemRatesSchema.js";
 export {
   hrListPayItemsErrorSchema,
   hrListPayItemsQueryOrganisationIdSchema,
@@ -4951,6 +5179,19 @@ export {
   hrListShiftCatalogStatus403Schema,
   hrListShiftCatalogStatus422Schema,
 } from "./hrListShiftCatalogSchema.js";
+export {
+  hrListStatutoryTablesErrorSchema,
+  hrListStatutoryTablesQueryOrganisationIdSchema,
+  hrListStatutoryTablesQuerySchema,
+  hrListStatutoryTablesResponseSchema,
+  hrListStatutoryTablesStatus200Schema,
+  hrListStatutoryTablesStatus400Schema,
+  hrListStatutoryTablesStatus401Schema,
+  hrListStatutoryTablesStatus403Schema,
+  hrListStatutoryTablesStatus404Schema,
+  hrListStatutoryTablesStatus409Schema,
+  hrListStatutoryTablesStatus422Schema,
+} from "./hrListStatutoryTablesSchema.js";
 export {
   hrLoadProvisionalHolidaysBodySchema,
   hrLoadProvisionalHolidaysErrorSchema,
@@ -5121,6 +5362,19 @@ export {
   hrPutRuleProfileStatus422Schema,
 } from "./hrPutRuleProfileSchema.js";
 export {
+  hrRefreshPayPeriodTableStateErrorSchema,
+  hrRefreshPayPeriodTableStatePathPeriodIdSchema,
+  hrRefreshPayPeriodTableStatePathSchema,
+  hrRefreshPayPeriodTableStateResponseSchema,
+  hrRefreshPayPeriodTableStateStatus200Schema,
+  hrRefreshPayPeriodTableStateStatus400Schema,
+  hrRefreshPayPeriodTableStateStatus401Schema,
+  hrRefreshPayPeriodTableStateStatus403Schema,
+  hrRefreshPayPeriodTableStateStatus404Schema,
+  hrRefreshPayPeriodTableStateStatus409Schema,
+  hrRefreshPayPeriodTableStateStatus422Schema,
+} from "./hrRefreshPayPeriodTableStateSchema.js";
+export {
   hrRejectClockPunchBodySchema,
   hrRejectClockPunchErrorSchema,
   hrRejectClockPunchPathPunchIdSchema,
@@ -5221,6 +5475,21 @@ export {
   hrSetClockSiteActiveStatus404Schema,
   hrSetClockSiteActiveStatus422Schema,
 } from "./hrSetClockSiteActiveSchema.js";
+export {
+  hrSetStatutoryTableStateBodySchema,
+  hrSetStatutoryTableStateErrorSchema,
+  hrSetStatutoryTableStatePathKindSchema,
+  hrSetStatutoryTableStatePathSchema,
+  hrSetStatutoryTableStatePathTableIdSchema,
+  hrSetStatutoryTableStateResponseSchema,
+  hrSetStatutoryTableStateStatus200Schema,
+  hrSetStatutoryTableStateStatus400Schema,
+  hrSetStatutoryTableStateStatus401Schema,
+  hrSetStatutoryTableStateStatus403Schema,
+  hrSetStatutoryTableStateStatus404Schema,
+  hrSetStatutoryTableStateStatus409Schema,
+  hrSetStatutoryTableStateStatus422Schema,
+} from "./hrSetStatutoryTableStateSchema.js";
 export {
   hrSubmitAbsenteeReportBodySchema,
   hrSubmitAbsenteeReportErrorSchema,
@@ -6067,6 +6336,8 @@ export {
   modelsListOrganisationsStatus422Schema,
 } from "./modelsListOrganisationsSchema.js";
 export { movementKindSchema } from "./movementKindSchema.js";
+export { myDeductionPublicSchema } from "./myDeductionPublicSchema.js";
+export { myDeductionsPublicSchema } from "./myDeductionsPublicSchema.js";
 export { myMembershipPublicSchema } from "./myMembershipPublicSchema.js";
 export { myProfilePropertiesIntentsItemsEnumSchema } from "./myProfilePropertiesIntentsItemsEnumSchema.js";
 export { myProfilePropertiesVisibilityEnumSchema } from "./myProfilePropertiesVisibilityEnumSchema.js";
@@ -6804,6 +7075,7 @@ export { parkingPermitPublicSchema } from "./parkingPermitPublicSchema.js";
 export { parkingPermitSubmitSchema } from "./parkingPermitSubmitSchema.js";
 export { passportStopPublicSchema } from "./passportStopPublicSchema.js";
 export { passportTrailPublicSchema } from "./passportTrailPublicSchema.js";
+export { payBasisSchema } from "./payBasisSchema.js";
 export { payCalendarCreateSchema } from "./payCalendarCreateSchema.js";
 export { payCalendarPublicSchema } from "./payCalendarPublicSchema.js";
 export { payCalendarsPublicSchema } from "./payCalendarsPublicSchema.js";
@@ -6811,9 +7083,13 @@ export { payFrequencySchema } from "./payFrequencySchema.js";
 export { payItemKindSchema } from "./payItemKindSchema.js";
 export { payItemMethodSchema } from "./payItemMethodSchema.js";
 export { payItemPublicSchema } from "./payItemPublicSchema.js";
+export { payItemRateCreateSchema } from "./payItemRateCreateSchema.js";
+export { payItemRatePublicSchema } from "./payItemRatePublicSchema.js";
+export { payItemRatesPublicSchema } from "./payItemRatesPublicSchema.js";
 export { payItemsPublicSchema } from "./payItemsPublicSchema.js";
 export { payItemTotalSchema } from "./payItemTotalSchema.js";
 export { payItemUnitSchema } from "./payItemUnitSchema.js";
+export { payLineAmountPublicSchema } from "./payLineAmountPublicSchema.js";
 export { payLineKindSchema } from "./payLineKindSchema.js";
 export { payLineManualCreateSchema } from "./payLineManualCreateSchema.js";
 export { payLinePublicSchema } from "./payLinePublicSchema.js";
@@ -6996,6 +7272,7 @@ export {
   paymentsRecordManualPaymentStatus409Schema,
   paymentsRecordManualPaymentStatus422Schema,
 } from "./paymentsRecordManualPaymentSchema.js";
+export { payPeriodAmountsPublicSchema } from "./payPeriodAmountsPublicSchema.js";
 export { payPeriodCreateSchema } from "./payPeriodCreateSchema.js";
 export { payPeriodDetailSchema } from "./payPeriodDetailSchema.js";
 export { payPeriodPublicSchema } from "./payPeriodPublicSchema.js";
@@ -7007,6 +7284,7 @@ export { payRunKindSchema } from "./payRunKindSchema.js";
 export { payrollDepartmentSettingPublicSchema } from "./payrollDepartmentSettingPublicSchema.js";
 export { payrollDepartmentSettingsPublicSchema } from "./payrollDepartmentSettingsPublicSchema.js";
 export { payrollDepartmentSettingUpdateSchema } from "./payrollDepartmentSettingUpdateSchema.js";
+export { paySummaryPublicSchema } from "./paySummaryPublicSchema.js";
 export { permissionCreateSchema } from "./permissionCreateSchema.js";
 export { permissionPublicSchema } from "./permissionPublicSchema.js";
 export { personChipSchema } from "./personChipSchema.js";
@@ -7107,6 +7385,7 @@ export {
 } from "./pushVapidPublicKeySchema.js";
 export { qcDecisionBodySchema } from "./qcDecisionBodySchema.js";
 export { qcDecisionRequestSchema } from "./qcDecisionRequestSchema.js";
+export { rateKindSchema } from "./rateKindSchema.js";
 export { readinessUnavailableSchema } from "./readinessUnavailableSchema.js";
 export { receivableRowPublicSchema } from "./receivableRowPublicSchema.js";
 export { receivablesPublicSchema } from "./receivablesPublicSchema.js";
@@ -7839,6 +8118,8 @@ export { signaturePublicSchema } from "./signaturePublicSchema.js";
 export { signedDocumentListSchema } from "./signedDocumentListSchema.js";
 export { signedDocumentPublicSchema } from "./signedDocumentPublicSchema.js";
 export { siteSubscribeRequestSchema } from "./siteSubscribeRequestSchema.js";
+export { socialInsuranceSchemeCreateSchema } from "./socialInsuranceSchemeCreateSchema.js";
+export { socialInsuranceSchemePublicSchema } from "./socialInsuranceSchemePublicSchema.js";
 export { staffCardSchema } from "./staffCardSchema.js";
 export { staffCreateSchema } from "./staffCreateSchema.js";
 export { staffEventRowSchema } from "./staffEventRowSchema.js";
@@ -7864,6 +8145,7 @@ export { statusReportPublicSchema } from "./statusReportPublicSchema.js";
 export { statusReportSubmitSchema } from "./statusReportSubmitSchema.js";
 export { statusStaffingEntrySchema } from "./statusStaffingEntrySchema.js";
 export { statusStaffingPublicSchema } from "./statusStaffingPublicSchema.js";
+export { statutoryTablesPublicSchema } from "./statutoryTablesPublicSchema.js";
 export { stockLevelListPublicSchema } from "./stockLevelListPublicSchema.js";
 export { stockLevelPublicSchema } from "./stockLevelPublicSchema.js";
 export { stockMovementCreateSchema } from "./stockMovementCreateSchema.js";
@@ -8268,9 +8550,17 @@ export { synopValidationIssueSchema } from "./synopValidationIssueSchema.js";
 export { synopValidationRequestSchema } from "./synopValidationRequestSchema.js";
 export { synopValidationResponseSchema } from "./synopValidationResponseSchema.js";
 export { synopWorkbookSchema } from "./synopWorkbookSchema.js";
+export { tableStatePublicSchema } from "./tableStatePublicSchema.js";
+export { tableStateSchema } from "./tableStateSchema.js";
+export { tableStateUpdateSchema } from "./tableStateUpdateSchema.js";
 export { taskCreateSchema } from "./taskCreateSchema.js";
 export { taskUpdateSchema } from "./taskUpdateSchema.js";
 export { taskViewSchema } from "./taskViewSchema.js";
+export { taxBandCreateSchema } from "./taxBandCreateSchema.js";
+export { taxBandPublicSchema } from "./taxBandPublicSchema.js";
+export { taxMethodSchema } from "./taxMethodSchema.js";
+export { taxTableCreateSchema } from "./taxTableCreateSchema.js";
+export { taxTablePublicSchema } from "./taxTablePublicSchema.js";
 export { teamCapabilitiesPublicSchema } from "./teamCapabilitiesPublicSchema.js";
 export { teamMemberGrantPublicSchema } from "./teamMemberGrantPublicSchema.js";
 export { teamMemberListPublicSchema } from "./teamMemberListPublicSchema.js";

@@ -41,6 +41,9 @@ vi.mock("@/lib/report-error", () => ({ reportError: vi.fn() }));
 
 const BASE = "http://localhost";
 const DELEGATION_EXPLANATION = /Delegated access ends when your authority ends/;
+const CLASS_SEPARATOR = /\s+/;
+/** A grid-cols-2 that applies below md (no responsive prefix). */
+const BARE_GRID_COLS_TWO = /(^|\s)grid-cols-2(\s|$)/;
 
 const ROLES: RolePublic[] = [
   {
@@ -890,5 +893,50 @@ describe("CMS access", () => {
     expect(
       screen.queryByRole("button", { name: "Save CMS access" })
     ).toBeNull();
+  });
+});
+
+describe("ManageUserDialog — width and layout", () => {
+  it("is full width on phones with a small margin, and wide and scrollable on desktop", async () => {
+    renderDialog();
+    await screen.findByText("Department & employment");
+    const content = document.querySelector<HTMLElement>(
+      '[data-slot="dialog-content"]'
+    );
+    expect(content).not.toBeNull();
+    const classes = content?.className.split(CLASS_SEPARATOR) ?? [];
+    expect(classes).toContain("max-w-[calc(100vw-1rem)]");
+    expect(classes).toContain("sm:max-w-4xl");
+    expect(classes).toContain("max-h-[90dvh]");
+    expect(classes).toContain("overflow-y-auto");
+    // The primitive's own desktop cap (sm:max-w-sm) must not win.
+    expect(classes).not.toContain("sm:max-w-sm");
+  });
+
+  it("lays the sections out in two columns from md up, one column on phones, in reading order", async () => {
+    renderDialog();
+    await screen.findByText("Department & employment");
+    const grid = document.querySelector<HTMLElement>(
+      '[data-slot="manage-user-sections"]'
+    );
+    expect(grid).not.toBeNull();
+    expect(grid?.className).toContain("grid");
+    expect(grid?.className).toContain("md:grid-cols-2");
+    expect(grid?.className).not.toMatch(BARE_GRID_COLS_TWO);
+
+    const cells = Array.from(grid?.children ?? []);
+    // Account setup, CMS access, roles, employment, then the footer row.
+    expect(cells).toHaveLength(5);
+    expect(cells[2]).toHaveAttribute("data-slot", "manage-user-roles");
+    expect(cells[2]).toHaveTextContent("Roles");
+    expect(cells[3]).toHaveTextContent("Department & employment");
+    expect(cells[4]?.className).toContain("md:col-span-2");
+  });
+
+  it("keeps the roles and employment sections when empty instead of hiding them", async () => {
+    renderDialog();
+    await screen.findByText("Department & employment");
+    expect(await screen.findByText("No roles assigned.")).toBeInTheDocument();
+    expect(screen.getByText("Roles")).toBeInTheDocument();
   });
 });
