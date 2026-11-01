@@ -84,7 +84,7 @@ it("renders only the fetched published article", async () => {
     screen.getByRole("link", { name: "Read the outlook" })
   ).toHaveAttribute("href", "https://weather.gd/forecasts");
   expect(
-    screen.getByRole("link", { name: "More from From the Desk" })
+    screen.getByRole("link", { name: "More from From the desk" })
   ).toHaveAttribute("href", "/explore/updates");
 });
 

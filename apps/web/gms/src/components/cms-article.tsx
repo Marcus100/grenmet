@@ -12,7 +12,7 @@ import { SITE_DESCRIPTION, SITE_LOCALE } from "@/lib/site-metadata";
 import { SITE_NAME } from "@/lib/site-name";
 
 const SECTIONS = {
-  "desk-updates": { title: "From the Desk", href: "/explore/updates" },
+  "desk-updates": { title: "From the desk", href: "/explore/updates" },
   stories: { title: "Stories", href: "/explore/news" },
   "report-notes": { title: "Latest reports", href: "/explore/reports" },
 } as const;
