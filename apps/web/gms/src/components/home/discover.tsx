@@ -191,7 +191,7 @@ export async function Discover({ now = new Date() }: { now?: Date } = {}) {
     title: "Discover",
   });
   return (
-    <HomeSection tone="surface" {...words}>
+    <HomeSection {...words}>
       <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         {cards.map((card) => (
           <li key={card.key}>

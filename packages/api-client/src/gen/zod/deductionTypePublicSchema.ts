@@ -12,7 +12,9 @@ export const deductionTypePublicSchema = z.object({
     "PROVISIONAL tables can be previewed but never approved for issue."
   ),
   created_by_user_id: z.union([z.uuid(), z.null()]),
+  created_by_name: z.union([z.string(), z.null()]),
   confirmed_by_user_id: z.union([z.uuid(), z.null()]),
+  confirmed_by_name: z.union([z.string(), z.null()]),
   confirmed_at: z.union([z.iso.datetime(), z.null()]),
   confirmation_note: z.union([z.string(), z.null()]),
   organisation_id: z.string().min(1).max(100),

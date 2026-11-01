@@ -46938,7 +46938,7 @@
           "eregister"
         ],
         "summary": "MBIA month-to-date summary",
-        "description": "Anonymous. Rainfall, rain days (24 h total of at least 0.2 mm, WMO), highest and lowest temperature from non-rejected SYNOPs for station 78958, for one UTC month (default: the current month to date). Provisional until every contributing reading is accepted. `summary` is null with no readings; individual figures are null when not reported, never zero. Returns 503 when the register is unavailable.",
+        "description": "Anonymous. Rainfall, rain days (24 h total of at least 0.2 mm, WMO), heavy rain days (10 mm or more) and dry spells (under 1 mm; Climpact R10mm and CDD), highest and lowest temperature, mean wind with the prevailing direction and the top gust, from non-rejected SYNOPs for station 78958, for one UTC month (default: the current month to date). Provisional until every contributing reading is accepted. `summary` is null with no readings; individual figures are null when not reported, never zero. Returns 503 when the register is unavailable.",
         "operationId": "eregisterPublicMonthSummary",
         "parameters": [
           {
@@ -60495,7 +60495,7 @@
           "onboarding"
         ],
         "summary": "Issue a one-use sign-in setup link",
-        "description": "Manager with `user.manage` in scope (or a superuser) and an MFA-verified session issues a 24-hour one-use link. The person opens it and chooses a password; the administrator never sees the password. Replaces earlier sign-in links. Never verifies email, grants roles or app access. Refused for the caller's own account, for owners unless the caller is a superuser, and for inactive or ended-employment accounts. A reason (3 to 500 characters) is required unless the email is unverified or password setup is pending. A courtesy notice goes to the address on file. Only a superuser can set up privileged accounts. Rate limited per administrator and per account.",
+        "description": "Manager with `user.manage` in scope (or a superuser) and an MFA-verified session issues a 24-hour one-use link. The person opens it and chooses a password; the administrator never sees the password. Replaces earlier sign-in links. Never verifies email, grants roles or app access. Refused for the caller's own account, for owners unless the caller is a superuser, and for inactive or ended-employment accounts. A reason is required unless the email is unverified or password setup is pending: 3 to 500 characters, or at least 10 when the email is verified. Confirming the link also signs the account out everywhere (sessions, Google links, remembered devices, API keys) but keeps its authenticator. A courtesy notice goes to the address on file. Only a superuser can set up privileged accounts. Rate limited per administrator and per account.",
         "operationId": "authIssueSignInSetup",
         "security": [
           {
@@ -60536,17 +60536,17 @@
             }
           },
           "422": {
+            "description": "Reason missing or shorter than 10 characters while the email is verified",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                  "$ref": "#/components/schemas/ApiError"
                 }
               }
-            },
-            "description": "Unprocessable Content"
+            }
           },
           "400": {
-            "description": "Identity confirmation or reason required",
+            "description": "Identity confirmation required",
             "content": {
               "application/json": {
                 "schema": {
@@ -75479,7 +75479,8 @@
                 "type": "null"
               }
             ],
-            "title": "Web"
+            "title": "Web",
+            "description": "Public web address of the service, https only. Empty clears it."
           },
           "contact": {
             "anyOf": [
@@ -75491,7 +75492,8 @@
                 "type": "null"
               }
             ],
-            "title": "Contact"
+            "title": "Contact",
+            "description": "Plain-text contact details: no control characters or angle brackets. Empty clears it."
           },
           "feed_limit": {
             "anyOf": [
@@ -77545,6 +77547,17 @@
             ],
             "title": "Created By User Id"
           },
+          "created_by_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Created By Name"
+          },
           "confirmed_by_user_id": {
             "anyOf": [
               {
@@ -77556,6 +77569,17 @@
               }
             ],
             "title": "Confirmed By User Id"
+          },
+          "confirmed_by_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Confirmed By Name"
           },
           "confirmed_at": {
             "anyOf": [
@@ -77721,7 +77745,9 @@
         "required": [
           "rule_state",
           "created_by_user_id",
+          "created_by_name",
           "confirmed_by_user_id",
+          "confirmed_by_name",
           "confirmed_at",
           "confirmation_note",
           "organisation_id",
@@ -96103,6 +96129,123 @@
             ],
             "title": "Min Temperature At"
           },
+          "heavy_rain_days": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Heavy Rain Days",
+            "description": "Days with a 24 h total of 10 mm or more (R10mm)."
+          },
+          "heavy_rain_threshold_mm": {
+            "type": "number",
+            "title": "Heavy Rain Threshold Mm",
+            "default": 10.0
+          },
+          "longest_dry_spell_days": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Longest Dry Spell Days",
+            "description": "Longest run of reported days under 1 mm (CDD); a day without a total breaks it."
+          },
+          "longest_dry_spell_start": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Longest Dry Spell Start"
+          },
+          "longest_dry_spell_end": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Longest Dry Spell End"
+          },
+          "current_dry_spell_days": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Current Dry Spell Days",
+            "description": "Dry days in a row up to the latest reported day; 0 if it rained; null when the latest total is more than a day old."
+          },
+          "dry_day_threshold_mm": {
+            "type": "number",
+            "title": "Dry Day Threshold Mm",
+            "default": 1.0
+          },
+          "mean_wind_kt": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Mean Wind Kt",
+            "description": "Mean of the reported wind speeds, calm as 0 kn."
+          },
+          "prevailing_wind_direction": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Prevailing Wind Direction",
+            "description": "Most frequent 8-point direction of non-calm readings."
+          },
+          "max_gust_kt": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Max Gust Kt"
+          },
+          "max_gust_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Max Gust At"
+          },
           "provisional": {
             "type": "boolean",
             "title": "Provisional"
@@ -104555,6 +104698,17 @@
             ],
             "title": "Created By User Id"
           },
+          "created_by_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Created By Name"
+          },
           "confirmed_by_user_id": {
             "anyOf": [
               {
@@ -104566,6 +104720,17 @@
               }
             ],
             "title": "Confirmed By User Id"
+          },
+          "confirmed_by_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Confirmed By Name"
           },
           "confirmed_at": {
             "anyOf": [
@@ -104680,7 +104845,9 @@
         "required": [
           "rule_state",
           "created_by_user_id",
+          "created_by_name",
           "confirmed_by_user_id",
+          "confirmed_by_name",
           "confirmed_at",
           "confirmation_note",
           "organisation_id",
@@ -108883,6 +109050,17 @@
             ],
             "title": "Created By User Id"
           },
+          "created_by_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Created By Name"
+          },
           "confirmed_by_user_id": {
             "anyOf": [
               {
@@ -108894,6 +109072,17 @@
               }
             ],
             "title": "Confirmed By User Id"
+          },
+          "confirmed_by_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Confirmed By Name"
           },
           "confirmed_at": {
             "anyOf": [
@@ -108987,7 +109176,9 @@
         "required": [
           "rule_state",
           "created_by_user_id",
+          "created_by_name",
           "confirmed_by_user_id",
+          "confirmed_by_name",
           "confirmed_at",
           "confirmation_note",
           "id",

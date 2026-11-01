@@ -33,6 +33,7 @@ const OUTSIDE_SCOPE = /outside your management scope/i;
 const COPY_FAILED_TEXT = /Copying did not work in this browser/;
 const REASON_LABEL = /Reason/;
 const TWO_STEP_TEXT = /two-step verification/i;
+const TEN_CHARACTER_HINT = /at least 10 characters when the email is verified/i;
 const LINK = "https://auth.example/activate#token=private-link-token";
 const SETUP_URL =
   "http://localhost/api/v1/auth/onboarding/target-user/sign-in-setup";
@@ -186,6 +187,23 @@ it("maps a 409 to the server reason and says nothing changed", async () => {
   expect(
     await screen.findByText(
       "Employment has ended, so sign-in setup is not available. Nothing was changed."
+    )
+  ).toBeTruthy();
+});
+
+it("states the 10-character reason rule and shows the server's 422 reason", async () => {
+  issueStatus = 422;
+  issueDetail =
+    "Give a reason of at least 10 characters: this person's email is verified, so sign-in setup needs one";
+  renderPanel();
+  openPanel();
+  expect(screen.getByText(TEN_CHARACTER_HINT)).toBeTruthy();
+  fireEvent.click(screen.getByRole("checkbox"));
+  fillReason();
+  fireEvent.click(screen.getByRole("button", { name: "Create setup link" }));
+  expect(
+    await screen.findByText(
+      "Give a reason of at least 10 characters: this person's email is verified, so sign-in setup needs one. Nothing was changed."
     )
   ).toBeTruthy();
 });

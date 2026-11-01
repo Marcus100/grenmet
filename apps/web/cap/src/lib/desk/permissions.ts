@@ -7,6 +7,7 @@ export interface DeskPermissions {
   create: boolean;
   edit: boolean;
   emergencyPublish: boolean;
+  libraryManage: boolean;
   publish: boolean;
   read: boolean;
   submit: boolean;
@@ -25,6 +26,7 @@ export function deskPermissions(access: Access): DeskPermissions {
     create: has("cap.alert.create"),
     edit: has("cap.alert.edit"),
     emergencyPublish: has("cap.alert.publish_emergency"),
+    libraryManage: has("cap.library.manage"),
     publish: has("cap.alert.publish"),
     read: has("cap.alert.read"),
     submit: has("cap.alert.submit"),

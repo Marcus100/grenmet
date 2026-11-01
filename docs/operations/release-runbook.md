@@ -33,6 +33,13 @@ is their committed copy and `pnpm guardrails:rulesets` checks it.
 
 ## 2. Promote dev → staging
 
+- **Automated (when `PROMOTE_STAGING_ENABLED` is `true`):** `promote-staging.yml`
+  creates or updates the `dev` to `staging` PR every day at 06:00 Grenada time
+  and arms auto-merge on it (staging only). Agents then do not open, edit or
+  merge that PR. `staging-smoke.yml` tests the deployed staging and comments the
+  result; review that and do the signed-in checks. Setup, hold and recovery:
+  `docs/operations/staging-promotion-automation.md`. The steps below apply when
+  the automation is off.
 - Once the authorized batch has been merged into `dev`, automatically
   create or update its staging promotion PR with a recap. Reuse an open PR.
 - Review the entire promotion diff; exclude unrelated or unfinished work.

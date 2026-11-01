@@ -21,6 +21,7 @@ class ActivationIssue(BaseModel):
 class SignInSetupIssue(BaseModel):
     identity_confirmed: bool
     # Required unless the person's email is unverified or their password setup is pending.
+    # When the email is verified the service requires at least 10 characters (422).
     reason: Annotated[
         str | None,
         StringConstraints(strip_whitespace=True, min_length=3, max_length=500),

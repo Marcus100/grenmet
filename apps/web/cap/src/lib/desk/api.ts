@@ -1,11 +1,14 @@
 import "server-only";
 
 import {
+  type CapAlertImportRequest,
   type CapLifecycleState,
   capAlertListPublicSchema,
   capAlertPublicSchema,
   capAuditEventListPublicSchema,
   capCatalogsPublicSchema,
+  capGetHazardProfilesResponseSchema,
+  capProfilePublicSchema,
   capSettingsPublicSchema,
   gmsCataloguePublicSchema,
 } from "@barrelsgd/api-client";
@@ -28,6 +31,29 @@ function read<T>(
 }
 
 export const BOARD_PAGE_SIZE = 50;
+
+/** A staff write with the forecaster's token. Never cached. */
+function write<T>(
+  accessToken: string,
+  path: string,
+  body: unknown,
+  parser: { parse: (value: unknown) => T }
+): Promise<T> {
+  return authApiFetch(getAuthConfig(), path, parser, {
+    accessToken,
+    body,
+    cache: "no-store",
+    method: "POST",
+  });
+}
+
+/**
+ * Imports one CAP document from pasted XML or a public https address. The
+ * API keeps the alert as a draft flagged as imported; it never publishes it.
+ */
+export function importAlert(accessToken: string, body: CapAlertImportRequest) {
+  return write(accessToken, "/cap/alerts/import", body, capAlertPublicSchema);
+}
 
 export function listAlerts(
   accessToken: string,
@@ -73,4 +99,27 @@ export function getCatalogs(accessToken: string) {
 
 export function getSettings(accessToken: string) {
   return read(accessToken, "/cap/settings", capSettingsPublicSchema);
+}
+
+/** Every saved version of every hazard profile, newest first per key. */
+export function listHazardProfiles(accessToken: string) {
+  return read(
+    accessToken,
+    "/cap/hazard-profiles",
+    capGetHazardProfilesResponseSchema
+  );
+}
+
+/**
+ * Approves one draft profile version. The API refuses the author's own
+ * version (a different reviewer must approve) and any version with
+ * `approval_errors`; the desk shows those refusals as they come back.
+ */
+export function approveHazardProfile(accessToken: string, profileId: string) {
+  return write(
+    accessToken,
+    `/cap/hazard-profiles/${encodeURIComponent(profileId)}/approve`,
+    undefined,
+    capProfilePublicSchema
+  );
 }

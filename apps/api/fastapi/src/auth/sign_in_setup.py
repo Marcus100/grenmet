@@ -5,7 +5,9 @@ address). The administrator holds ``user.manage`` in scope and an MFA-verified s
 The link is hashed, expires after ``LIFETIME_HOURS``, is bound to the account's current
 password fingerprint and is spent on first use. Confirming it never verifies email,
 never changes ``email_verification_required``, and never grants roles, memberships or
-app access.
+app access. It does sign the account out everywhere: sessions, Google links, remembered
+devices and API keys the account created are revoked, the same clean-up as the squatting
+retirement. The authenticator and recovery codes are kept.
 
 Privilege ceiling: a manager (not a superuser) may only set up ordinary accounts whose
 live permissions they already hold. Anyone privileged, holding ``user.manage``, holding
@@ -18,7 +20,8 @@ verified, or password setup pending). Otherwise the administrator must state a r
 Both the person's address on file and nothing else receive a courtesy notice when a
 link is issued and when it is completed. The notice carries no link.
 
-Audit rows hold ids, the action, the expiry and the stated reason. Logs never carry the
+Audit rows hold ids, the action, the expiry and the stated reason. The reason is marked
+sensitive, so readers without ``audit.view_sensitive`` see it masked. Logs never carry the
 reason, a link, a password or an address.
 
 Challenges reuse the shared store in ``onboarding`` (purpose ``sign_in_setup``) and the
@@ -36,10 +39,9 @@ from sqlalchemy.orm import selectinload
 
 from src.audit import service as audit
 from src.audit.models import AuditEntry
-from src.auth import assignments, modern_service, privileged_mfa, totp
+from src.auth import app_service, assignments, modern_service, privileged_mfa, totp
 from src.auth.config import auth_settings
 from src.auth.models import Role, User
-from src.auth.models import Session as LoginSession
 from src.auth.modern_models import AuthChallenge
 from src.auth.onboarding_schemas import ActivationConfirm, ActivationLink
 from src.auth.utils import get_password_hash_async
@@ -69,6 +71,8 @@ MANAGER_ROLE_NAMES = frozenset(
     }
 )
 REASON_MIN = 3
+# A verified mailbox means the person can already be reached by code, so the link needs a real reason.
+REASON_MIN_VERIFIED = 10
 
 _INVALID_LINK = (
     "This sign-in link is no longer valid. Ask your administrator for a new link."
@@ -225,6 +229,7 @@ async def _audit(
     target_id: uuid.UUID,
     action: str,
     changes: dict[str, tuple[object, object]],
+    sensitive: frozenset[str] = frozenset(),
 ) -> None:
     audit.set_actor(session, actor_id)
     await audit.record_change(
@@ -235,6 +240,7 @@ async def _audit(
         record_id=str(target_id),
         action=action,
         changes=changes,
+        sensitive=sensitive,
     )
 
 
@@ -257,9 +263,18 @@ async def _recent_issues(
     return int(await session.scalar(statement) or 0)
 
 
-async def _lock_issuer(session: AsyncSession, actor: User) -> None:
-    """Serialise issuance per administrator so the hourly count cannot be raced."""
-    await session.execute(select(User.id).where(User.id == actor.id).with_for_update())
+async def _lock_in_id_order(session: AsyncSession, *user_ids: uuid.UUID) -> None:
+    """Row-lock the given accounts one at a time, in ascending id order.
+
+    Two administrators issuing links for each other take the same two locks in the
+    same order, so neither waits on a lock the other already holds (#984). The
+    issuer's row stays locked until commit, which serialises the hourly per-admin
+    count so it cannot be raced.
+    """
+    for user_id in sorted(set(user_ids)):
+        await session.execute(
+            select(User.id).where(User.id == user_id).with_for_update()
+        )
 
 
 async def _enforce_issue_limits(
@@ -301,14 +316,15 @@ async def issue(
     """Issue a one-use link for ``user_id``, replacing any earlier sign-in link."""
     if not identity_confirmed:
         raise AppException("Confirm the person's identity before issuing a link", 400)
-    await _lock_issuer(session, actor)
+    await _lock_in_id_order(session, actor.id, user_id)
     target = await _in_scope(session, actor, user_id)
     await _check_eligible(session, actor, target)
     delivery_problem = _has_delivery_problem(target)
-    if not delivery_problem and (reason is None or len(reason) < REASON_MIN):
+    if not delivery_problem and (reason is None or len(reason) < REASON_MIN_VERIFIED):
         raise AppException(
-            "Give a reason: this person's email is verified, so sign-in setup needs one",
-            400,
+            f"Give a reason of at least {REASON_MIN_VERIFIED} characters: this "
+            "person's email is verified, so sign-in setup needs one",
+            422,
         )
     await _enforce_issue_limits(session, actor, target)
     await session.execute(
@@ -344,6 +360,7 @@ async def issue(
         target_id=target.id,
         action="issued",
         changes=changes,
+        sensitive=frozenset({"reason"}),
     )
     _notify(session, target, _ISSUE_NOTICE_SUBJECT, _ISSUE_NOTICE_HTML)
     await session.commit()
@@ -405,9 +422,11 @@ async def confirm(session: AsyncSession, body: ActivationConfirm) -> None:
     user.hashed_password = await get_password_hash_async(body.new_password)
     user.password_changed_at = utc_now()
     user.password_setup_pending = False
-    # Email verification flags, roles, memberships and app grants are untouched.
+    # Email verification flags, roles, memberships, app grants and the authenticator
+    # are untouched. Sessions, Google links, remembered devices and API keys go, as in
+    # the squatting retirement (#984).
     await session.execute(delete(AuthChallenge).where(AuthChallenge.user_id == user.id))
-    await session.execute(delete(LoginSession).where(LoginSession.user_id == user.id))
+    await app_service.revoke_access_material(session, user)
     session.add(user)
     await _audit(
         session,

@@ -2,6 +2,7 @@ import { PageHeader } from "@/components/page-header";
 import { InfoTable } from "@/components/pages/info-table";
 import { PageSection } from "@/components/pages/page-section";
 import { Prose } from "@/components/pages/prose";
+import { GMS_CONTACTS } from "@/lib/contacts";
 
 export const metadata = {
   title: "Contact us",
@@ -24,10 +25,10 @@ export default function ContactPage() {
               "Address",
               "Grenada Meteorological Service, Maurice Bishop International Airport, Point Salines, St. George's, Grenada",
             ],
-            ["Telephone (main line)", "+1 473 444 4142"],
-            ["Forecast office", "+1 473 444 4101, extension 2059"],
-            ["WhatsApp", "+1 473 534 5234"],
-            ["General enquiries", "meteorology@gaa.gd"],
+            ["Telephone (main line)", GMS_CONTACTS.mainLine.label],
+            ["Forecast office", GMS_CONTACTS.forecastOffice.label],
+            ["WhatsApp", GMS_CONTACTS.whatsApp.label],
+            ["General enquiries", GMS_CONTACTS.email],
           ]}
         />
       </PageSection>

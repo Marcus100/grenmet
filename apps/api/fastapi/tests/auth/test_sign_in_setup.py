@@ -609,8 +609,8 @@ async def test_reason_required_when_the_person_email_works(async_client, db_asyn
     no_reason = await issue_status(
         async_client, headers, employee_id, {"identity_confirmed": True}
     )
-    assert no_reason.status_code == 400
-    assert "reason" in no_reason.text.lower()
+    assert no_reason.status_code == 422
+    assert "at least 10 characters" in no_reason.text
     too_short = await issue_status(
         async_client,
         headers,
@@ -618,7 +618,20 @@ async def test_reason_required_when_the_person_email_works(async_client, db_asyn
         {"identity_confirmed": True, "reason": "ab"},
     )
     assert too_short.status_code == 422
-    accepted = await issue_status(async_client, headers, employee_id)
+    nine_characters = await issue_status(
+        async_client,
+        headers,
+        employee_id,
+        {"identity_confirmed": True, "reason": "nine char"},
+    )
+    assert nine_characters.status_code == 422
+    assert "at least 10 characters" in nine_characters.text
+    accepted = await issue_status(
+        async_client,
+        headers,
+        employee_id,
+        {"identity_confirmed": True, "reason": "ten chars!"},
+    )
     assert accepted.status_code == 201, accepted.text
 
 
@@ -697,3 +710,175 @@ async def test_per_admin_cap_holds_under_concurrent_issues(
     codes = sorted(response.status_code for response in responses)
     assert codes.count(201) == 2, codes
     assert codes.count(429) == 2, codes
+
+
+@pytest.mark.asyncio
+@pytest.mark.usefixtures("db_async", "encryption_keys")
+async def test_confirm_revokes_sessions_keys_devices_and_identities_keeps_totp(
+    async_client, db_async
+):
+    """#984 (a): confirm clears what the squatting retire clears, but never the authenticator."""
+    from src.auth.models import Session as LoginSession
+    from src.auth.modern_models import ExternalIdentity
+    from src.organisations.models import ApiKey
+    from tests.organisations.support import make_org
+
+    supervisor, employee, _, _ = await make_supervised_pair(db_async, MANAGE)
+    target = await db_async.get(User, employee.id)
+    assert target is not None
+    secret = totp.encrypt_secret(totp.generate_secret())
+    target.totp_enabled = True
+    target.totp_secret = secret
+    target.mfa_recovery_hashes = ["deadbeef"]
+    target.known_device_keys = ["Chrome on Linux"]
+    db_async.add(
+        ExternalIdentity(subject="google-sub-984", provider="google", user_id=target.id)
+    )
+    org = await make_org(db_async, "Sign-in follow-up org")
+    key_id = f"key-{uuid.uuid4().hex[:12]}"
+    db_async.add(
+        ApiKey(
+            id=key_id,
+            organisation_id=org.id,
+            name="Target key",
+            key_prefix="abcd1234",
+            key_hash=uuid.uuid4().hex + uuid.uuid4().hex,
+            scopes=[],
+            created_by_user_id=target.id,
+        )
+    )
+    await db_async.commit()
+    stored, _ = await service.create_session(
+        session=db_async, user=target, app_name=None, enforce_approval=False
+    )
+    assert stored is not None
+    token = token_from(
+        await issue_status(
+            async_client, await mfa_headers(db_async, supervisor), target.id
+        )
+    )
+
+    done = await async_client.post(
+        f"{BASE}/activate", json={"token": token, "new_password": PASSWORD}
+    )
+    assert done.status_code == 200, done.text
+
+    refreshed = target
+    await db_async.refresh(refreshed)
+    assert refreshed.totp_enabled is True
+    assert refreshed.totp_secret == secret
+    assert refreshed.mfa_recovery_hashes == ["deadbeef"]
+    assert refreshed.known_device_keys == []
+    assert await verify_password_async(PASSWORD, refreshed.hashed_password)
+    sessions = await db_async.scalars(
+        select(LoginSession.id).where(LoginSession.user_id == target.id)
+    )
+    assert sessions.all() == []
+    identities = await db_async.scalars(
+        select(ExternalIdentity.subject).where(ExternalIdentity.user_id == target.id)
+    )
+    assert identities.all() == []
+    key = await db_async.get(ApiKey, key_id)
+    assert key is not None and key.revoked_at is not None
+
+
+@pytest.mark.asyncio
+@pytest.mark.usefixtures("db_async", "encryption_keys")
+async def test_mutual_issuance_takes_both_administrator_locks_in_id_order(
+    async_client, db_async
+):
+    """#984 (b): two administrators issuing for each other lock the lower id first."""
+    from sqlalchemy import event
+
+    low_user, high_user = sorted(
+        [
+            await make_user(db_async, superuser=True),
+            await make_user(db_async, superuser=True),
+        ],
+        key=lambda user: user.id,
+    )
+    low_headers = await mfa_headers(db_async, low_user)
+    high_headers = await mfa_headers(db_async, high_user)
+    locked: list[str] = []
+
+    def record_lock(_conn, _cursor, statement, parameters, _context, _executemany):
+        if "FOR UPDATE" in statement:
+            locked.append(repr(parameters))
+
+    engine = db_async.bind.sync_engine
+    event.listen(engine, "before_cursor_execute", record_lock)
+    try:
+        for headers, target in (
+            (high_headers, low_user),
+            (low_headers, high_user),
+        ):
+            locked.clear()
+            response = await issue_status(async_client, headers, target.id)
+            assert response.status_code == 201, response.text
+            order: list[str] = []
+            for statement in locked:
+                for account in (low_user, high_user):
+                    if str(account.id) in statement and str(account.id) not in order:
+                        order.append(str(account.id))
+            assert order == [str(low_user.id), str(high_user.id)], order
+    finally:
+        event.remove(engine, "before_cursor_execute", record_lock)
+
+
+@pytest.mark.asyncio
+@pytest.mark.usefixtures("db_async", "encryption_keys")
+async def test_reason_is_stored_but_masked_for_readers_without_view_sensitive(
+    async_client, db_async
+):
+    """#984 (c): the reason is kept in the audit trail, masked for ordinary readers."""
+    from src.audit import service as audit_service
+
+    supervisor, employee, _, _ = await make_supervised_pair(db_async, MANAGE)
+    reason = "Work mailbox not live yet"
+    response = await issue_status(
+        async_client,
+        await mfa_headers(db_async, supervisor),
+        employee.id,
+        {"identity_confirmed": True, "reason": reason},
+    )
+    assert response.status_code == 201, response.text
+
+    stored = (
+        await db_async.scalars(
+            select(AuditEntry).where(
+                AuditEntry.record_type == "sign_in_setup",
+                AuditEntry.action == "issued",
+                AuditEntry.entity_id == str(employee.id),
+            )
+        )
+    ).one()
+    reason_change = next(c for c in stored.changes if c["field"] == "reason")
+    assert reason_change["new"] == reason
+    assert reason_change["sensitive"] is True
+
+    def issued_reason(page):
+        entry = next(
+            e
+            for e in page.data
+            if e.record_type == "sign_in_setup" and e.action == "issued"
+        )
+        return next(c for c in entry.changes if c.field == "reason")
+
+    own = await audit_service.list_history(
+        session=db_async,
+        actor=employee,
+        entity_type="account",
+        entity_id=str(employee.id),
+    )
+    masked = issued_reason(own)
+    assert masked.masked is True
+    assert masked.new is None and masked.old is None
+
+    superuser = await make_user(db_async, superuser=True)
+    seen = await audit_service.list_history(
+        session=db_async,
+        actor=superuser,
+        entity_type="account",
+        entity_id=str(employee.id),
+    )
+    assert issued_reason(seen).new == reason

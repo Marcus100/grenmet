@@ -39,5 +39,39 @@ export type PublicMonthSummary = {
   max_temperature_at?: string | null;
   min_temperature_c?: number | null;
   min_temperature_at?: string | null;
+  /**
+   * @description Days with a 24 h total of 10 mm or more (R10mm).
+   */
+  heavy_rain_days?: number | null;
+  /**
+   * @default 10
+   * @type number | undefined
+   */
+  heavy_rain_threshold_mm?: number;
+  /**
+   * @description Longest run of reported days under 1 mm (CDD); a day without a total breaks it.
+   */
+  longest_dry_spell_days?: number | null;
+  longest_dry_spell_start?: string | null;
+  longest_dry_spell_end?: string | null;
+  /**
+   * @description Dry days in a row up to the latest reported day; 0 if it rained; null when the latest total is more than a day old.
+   */
+  current_dry_spell_days?: number | null;
+  /**
+   * @default 1
+   * @type number | undefined
+   */
+  dry_day_threshold_mm?: number;
+  /**
+   * @description Mean of the reported wind speeds, calm as 0 kn.
+   */
+  mean_wind_kt?: number | null;
+  /**
+   * @description Most frequent 8-point direction of non-calm readings.
+   */
+  prevailing_wind_direction?: string | null;
+  max_gust_kt?: number | null;
+  max_gust_at?: string | null;
   provisional: boolean;
 };
