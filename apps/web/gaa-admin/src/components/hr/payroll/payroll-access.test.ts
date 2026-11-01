@@ -12,9 +12,7 @@ describe("payrollAccess", () => {
   });
 
   it("reads self-service from any held key", () => {
-    expect(
-      payrollAccess([], ["hr.payroll.read.self"]).canReadSelf
-    ).toBe(true);
+    expect(payrollAccess([], ["hr.payroll.read.self"]).canReadSelf).toBe(true);
     expect(payrollAccess([], []).canReadSelf).toBe(false);
   });
 });

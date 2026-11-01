@@ -14,7 +14,8 @@ export interface PayrollFailure {
   message: string;
 }
 
-const MFA_DETAIL = /two-step verification|sign in again with your authenticator/i;
+const MFA_DETAIL =
+  /two-step verification|sign in again with your authenticator/i;
 
 function statusOf(error: unknown): number | undefined {
   if (error && typeof error === "object" && "status" in error) {
@@ -47,8 +48,7 @@ export function describePayrollFailure(error: unknown): PayrollFailure {
   if (status === 404) {
     return {
       kind: "not_found",
-      message:
-        "This was not found, or you do not have payroll access to it.",
+      message: "This was not found, or you do not have payroll access to it.",
     };
   }
   if (status === 409) {

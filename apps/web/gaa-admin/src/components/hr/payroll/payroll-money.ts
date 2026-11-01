@@ -6,6 +6,9 @@
 
 const LOCALE = "en-GB";
 const DEFAULT_CURRENCY = "XCD";
+const CURRENCY_PREFIX = /^(EC|XCD)?\$?\s*/i;
+const PERCENT_SUFFIX = /%$/;
+const PERCENT_NUMBER = /^\d+(\.\d{1,2})?$/;
 
 export function minorUnitDigits(currency: string = DEFAULT_CURRENCY): number {
   return (
@@ -42,12 +45,8 @@ export function parseMoneyToMinor(
   currency: string = DEFAULT_CURRENCY
 ): number | null {
   const digits = minorUnitDigits(currency);
-  const cleaned = input
-    .trim()
-    .replace(/^(EC|XCD)?\$?\s*/i, "")
-    .replaceAll(",", "");
-  const pattern = new RegExp(`^\\d+(\\.\\d{1,${digits}})?$`);
-  if (!pattern.test(cleaned)) {
+  const cleaned = input.trim().replace(CURRENCY_PREFIX, "").replaceAll(",", "");
+  if (!new RegExp(`^\\d+(\\.\\d{1,${digits}})?$`).test(cleaned)) {
     return null;
   }
   const [whole = "0", fraction = ""] = cleaned.split(".");
@@ -57,8 +56,8 @@ export function parseMoneyToMinor(
 
 /** Percent typed by a person ("10", "6.25") as the API's decimal fraction ("0.1000"). */
 export function percentToRate(input: string): string | null {
-  const trimmed = input.trim().replace(/%$/, "").trim();
-  if (!/^\d+(\.\d{1,2})?$/.test(trimmed)) {
+  const trimmed = input.trim().replace(PERCENT_SUFFIX, "").trim();
+  if (!PERCENT_NUMBER.test(trimmed)) {
     return null;
   }
   const value = Number(trimmed) / 100;

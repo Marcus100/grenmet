@@ -4,12 +4,12 @@
  * The API still enforces every check; this only decides what to show.
  */
 export interface PayrollAccess {
-  canReadAmounts: boolean;
-  canManageRates: boolean;
-  canConfirmTables: boolean;
-  canPrepare: boolean;
   canApprove: boolean;
+  canConfirmTables: boolean;
   canExport: boolean;
+  canManageRates: boolean;
+  canPrepare: boolean;
+  canReadAmounts: boolean;
   canReadSelf: boolean;
 }
 
