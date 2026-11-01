@@ -61258,9 +61258,6 @@
                 }
               }
             }
-          },
-          "503": {
-            "description": "Email delivery failed"
           }
         }
       }

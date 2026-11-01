@@ -22,6 +22,7 @@ import {
 } from "@/lib/session";
 import type {
   ForgotPasswordState,
+  NamePromptState,
   ResetPasswordState,
   SignInState,
 } from "./actions-types";
@@ -224,4 +225,43 @@ export async function requestStaffAccessAction(): Promise<void> {
     { accessToken, method: "POST" }
   );
   revalidatePath("/");
+}
+
+/** Optional, after sign-in: add the name that sign-up no longer asks for. */
+export async function saveNameAction(
+  _previousState: NamePromptState,
+  formData: FormData
+): Promise<NamePromptState> {
+  const firstName = readString(formData, "first_name");
+  const lastName = readString(formData, "last_name");
+  if (!(firstName && lastName)) {
+    return {
+      error: "Enter your first and last name, or skip this.",
+      saved: false,
+    };
+  }
+  if (firstName.length > 100 || lastName.length > 100) {
+    return { error: "Names can be up to 100 characters.", saved: false };
+  }
+  const sessionToken = await readSessionCookie();
+  if (!sessionToken) redirect("/");
+  try {
+    const { access_token: accessToken } =
+      await exchangeSessionForAccessToken(sessionToken);
+    await authApiFetch(getAuthConfig(), "/auth/users/me", userPublicSchema, {
+      accessToken,
+      body: { first_name: firstName, last_name: lastName },
+      method: "PATCH",
+    });
+  } catch (error) {
+    reportError(error, "auth-save-name");
+    return {
+      error: isAuthApiError(error)
+        ? error.detail
+        : "Unable to save your name. Try again.",
+      saved: false,
+    };
+  }
+  revalidatePath("/");
+  return { error: null, saved: true };
 }

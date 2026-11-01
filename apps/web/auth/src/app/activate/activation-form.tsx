@@ -52,12 +52,6 @@ export function ActivationForm() {
             placeholder="At least 12 characters"
             showStrength
           />
-          <PasswordField
-            autoComplete="new-password"
-            id="confirm"
-            label="Confirm password"
-            name="confirm"
-          />
           <button
             className={primaryButtonClass}
             disabled={pending}
