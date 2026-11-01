@@ -73,7 +73,8 @@ export async function GET() {
     part("stories", async () =>
       withPins(
         settings.leadStory ? [toArticle("stories", settings.leadStory)] : [],
-        await findArticles(payload, "stories", { limit: 5 }),
+        // A lead plus six rows on the GMS homepage (owner, 1 Nov 2026).
+        await findArticles(payload, "stories", { limit: 7 }),
         5
       )
     ),

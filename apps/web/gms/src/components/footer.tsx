@@ -9,12 +9,14 @@ import {
   siX,
   siYoutube,
 } from "simple-icons";
+import { GMS_CONTACTS } from "@/lib/contacts";
 
 const COLUMNS = [
   {
     heading: "Weather",
     links: [
       { label: "Forecasts", href: "/weather" },
+      { label: "Radar", href: "/weather/radar" },
       { label: "Satellite", href: "/weather/satellite" },
       { label: "Tropics", href: "/weather/tropics" },
       { label: "Observations", href: "/weather/observations" },
@@ -182,14 +184,14 @@ export function Footer() {
             International Airport, St. George.
           </p>
           <address className="flex flex-col gap-0.5 text-body-sm not-italic leading-body-sm lg:text-body lg:leading-body">
-            <a className={LINK} href="tel:+14734444142">
-              Main line +1 473 444 4142
+            <a className={LINK} href={`tel:${GMS_CONTACTS.mainLine.tel}`}>
+              Main line {GMS_CONTACTS.mainLine.label}
             </a>
-            <a className={LINK} href="tel:+14734444101,2059">
-              Forecast office +1 473 444 4101 ext. 2059
+            <a className={LINK} href={`tel:${GMS_CONTACTS.forecastOffice.tel}`}>
+              Forecast office {GMS_CONTACTS.forecastOffice.short}
             </a>
-            <a className={LINK} href="mailto:meteorology@gaa.gd">
-              meteorology@gaa.gd
+            <a className={LINK} href={`mailto:${GMS_CONTACTS.email}`}>
+              {GMS_CONTACTS.email}
             </a>
           </address>
           <ul aria-label="GMS on social media" className="flex flex-wrap gap-2">
