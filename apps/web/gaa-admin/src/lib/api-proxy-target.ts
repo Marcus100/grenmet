@@ -5,7 +5,8 @@
  * segment is percent-decoded once, and each decoded segment must be a plain
  * token: letters, digits, `.`, `_`, `~` or `-`, not `.` or `..`. Anything else
  * (empty segments from `//`, encoded slashes, `:` or `@` that could start a
- * host, `%` that could hide a second encoding) is refused. The URL is then
+ * host, `%` that could hide a second encoding) is refused. The one exception
+ * is a single final `/` (for example `/api/v1/utils/ready/`), which is kept. The URL is then
  * assembled from a fixed base origin plus those validated segments, so the
  * browser can change the path under the API base and nothing else.
  *
@@ -19,10 +20,13 @@ export function buildApiProxyUrl(
   search: string,
   apiBaseUrl: string
 ): URL | null {
-  if (!pathname.startsWith("/api/")) return null;
+  if (!pathname.startsWith("/api/") || pathname === "/api/") return null;
+
+  const trailingSlash = pathname.endsWith("/");
+  const body = trailingSlash ? pathname.slice(0, -1) : pathname;
 
   const segments: string[] = [];
-  for (const raw of pathname.slice(1).split("/")) {
+  for (const raw of body.slice(1).split("/")) {
     let decoded: string;
     try {
       decoded = decodeURIComponent(raw);
@@ -37,7 +41,7 @@ export function buildApiProxyUrl(
 
   const base = new URL(apiBaseUrl);
   const url = new URL(base.href);
-  url.pathname = `/${segments.join("/")}`;
+  url.pathname = `/${segments.join("/")}${trailingSlash ? "/" : ""}`;
   url.search = search;
   url.hash = "";
 

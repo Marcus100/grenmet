@@ -84,12 +84,44 @@ describe("buildApiProxyUrl: encoded dots and slashes", () => {
 });
 
 describe("buildApiProxyUrl: empty segments", () => {
-  it.each(["/api//v1/x", "/api/v1//x", "/api/v1/x/", "/api/", "/api"])(
-    "refuses %s",
-    (pathname) => {
-      expect(target(pathname)).toBeNull();
-    }
-  );
+  it.each([
+    "/api//v1/x",
+    "/api/v1//x",
+    "/api/v1/x//",
+    "/api//",
+    "/api/",
+    "/api",
+    "/api/v1//",
+    "/api/a//b",
+  ])("refuses %s", (pathname) => {
+    expect(target(pathname)).toBeNull();
+  });
+});
+
+describe("buildApiProxyUrl: one trailing slash", () => {
+  it.each([
+    [
+      "/api/v1/utils/health-check/",
+      "http://fastapi.test/api/v1/utils/health-check/",
+    ],
+    [
+      "/api/v1/utils/test-email/",
+      "http://fastapi.test/api/v1/utils/test-email/",
+    ],
+    ["/api/v1/utils/ready/", "http://fastapi.test/api/v1/utils/ready/"],
+  ])("keeps the single final slash on %s", (pathname, expected) => {
+    expect(target(pathname)).toBe(expected);
+  });
+
+  it("keeps the query string with a trailing slash", () => {
+    expect(target("/api/v1/utils/ready/", "?verbose=1")).toBe(
+      "http://fastapi.test/api/v1/utils/ready/?verbose=1"
+    );
+  });
+
+  it("refuses a double slash even at the end", () => {
+    expect(target("/api/v1/utils/ready//")).toBeNull();
+  });
 });
 
 describe("buildApiProxyUrl: host switch attempts", () => {
