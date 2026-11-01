@@ -248,7 +248,7 @@ async def resend_verification(
     audit.set_actor(session, actor.id)
     try:
         await modern_service.email_request(
-            request, session, EmailRequest(email=user.email)
+            request, session, EmailRequest(email=user.email), await_delivery=True
         )
     except modern_service.VerificationDeliveryError:
         await session.rollback()

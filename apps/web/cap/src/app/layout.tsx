@@ -1,13 +1,7 @@
 import "./globals.css";
 
-import {
-  MAIN_CONTENT_ID,
-  SkipLink,
-} from "@barrelsgd/ui/components/ui/skip-link";
 import type { Metadata, Viewport } from "next";
 import { Noto_Sans } from "next/font/google";
-import { SiteFooter } from "@/components/site-footer";
-import { SiteHeader } from "@/components/site-header";
 import { env } from "@/lib/env";
 
 // The brand font: --brand-font-sans resolves to --font-noto-sans, so without
@@ -33,22 +27,18 @@ export const viewport: Viewport = {
   width: "device-width",
 };
 
+/**
+ * Document shell only. The public pages add their header and footer in
+ * `(public)/layout.tsx`; the staff warning desk has its own in `desk/layout.tsx`.
+ * Nothing here reads cookies or headers, so public pages stay edge-cacheable.
+ */
 export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html className={`gm-site ${notoSans.variable}`} lang="en">
       <body className="flex min-h-screen flex-col bg-background text-foreground antialiased">
-        <SkipLink />
-        <SiteHeader />
-        <main
-          className="mx-auto w-full max-w-4xl flex-1 px-4 py-6 outline-none"
-          id={MAIN_CONTENT_ID}
-          tabIndex={-1}
-        >
-          {children}
-        </main>
-        <SiteFooter />
+        {children}
       </body>
     </html>
   );

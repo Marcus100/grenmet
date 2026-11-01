@@ -242,7 +242,7 @@ const STAGING = {
     events: "https://events.staging.barrels.gd",
   },
   hosts:
-    "https://admin.staging.barrels.gd,https://bookings.staging.barrels.gd,https://cms.staging.barrels.gd,https://elections.staging.barrels.gd,https://gmsdash.staging.barrels.gd",
+    "https://admin.staging.barrels.gd,https://bookings.staging.barrels.gd,https://cap.staging.barrels.gd,https://cms.staging.barrels.gd,https://elections.staging.barrels.gd,https://gmsdash.staging.barrels.gd",
 };
 
 describe("getSafeReturnTo: the staging compose configuration", () => {
@@ -252,7 +252,7 @@ describe("getSafeReturnTo: the staging compose configuration", () => {
       ...Object.values(STAGING.apps),
       ...STAGING.hosts.split(","),
     ];
-    expect(origins).toHaveLength(12);
+    expect(origins).toHaveLength(13);
     for (const origin of origins) {
       expect(getSafeReturnTo(`${origin}/start?x=1`)).toBe(
         `${origin}/start?x=1`

@@ -123,9 +123,11 @@ jobs:
           TRUSTED_WEB_SECRET: ${{ secrets.TRUSTED_WEB_SECRET }}
           GAA_ADMIN_SSO_CLIENT_SECRET: ${{ secrets.GAA_ADMIN_SSO_CLIENT_SECRET }}
           BARRELS_ADMIN_SSO_CLIENT_SECRET: ${{ secrets.BARRELS_ADMIN_SSO_CLIENT_SECRET }}
+          CAP_SSO_CLIENT_SECRET: ${{ secrets.CAP_SSO_CLIENT_SECRET }}
           CMS_SSO_CLIENT_SECRET: ${{ secrets.CMS_SSO_CLIENT_SECRET }}
           # Shared by the API and the CMS (X-CMS-Secret). Empty keeps social posts off.
           CMS_DISTRIBUTION_SECRET: ${{ secrets.CMS_DISTRIBUTION_SECRET }}
+          PAYSLIP_HMAC_KEYS: ${{ secrets.PAYSLIP_HMAC_KEYS }}
           WEATHER_SSO_CLIENT_SECRET: ${{ secrets.WEATHER_SSO_CLIENT_SECRET }}
           MBIA_SSO_CLIENT_SECRET: ${{ secrets.MBIA_SSO_CLIENT_SECRET }}
           SIGNAL_SSO_CLIENT_SECRET: ${{ secrets.SIGNAL_SSO_CLIENT_SECRET }}

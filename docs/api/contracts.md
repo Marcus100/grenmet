@@ -75,6 +75,85 @@ tax, NIS or bank field exists in any request, response or export.
   rules engine (#890); `overtime_bands_available` is true. Manual band lines are
   refused (400) where the employee's department computes bands.
 
+### Payroll gross pay (slice 2)
+
+- `GET periods/{period_id}/amounts` returns per-line `amount_minor` (XCD cents,
+  rounded half-up per line), the hourly rate and multiplier used, and per-employee
+  gross. It needs organisation-wide `hr.payroll.read.amounts`. `PayLinePublic` and
+  every quantity route never carry money fields.
+- `GET|POST rates` (dated multipliers or fixed amounts per pay item) and
+  `GET|POST basic-pay` (dated monthly salary or hourly rate). Reads need
+  `hr.payroll.read.amounts` or `hr.payroll.rates.manage`. Writes need
+  organisation-wide `hr.payroll.rates.manage` and an MFA-verified session, and
+  nobody sets their own basic pay. An hourly-paid person on a calendar longer than
+  fortnightly needs `calendar_override_reason` (409 otherwise).
+- Unpriced lines (no rate, or no basic pay on file) have `amount_minor: null`,
+  never 0.
+- No quantity route carries money; only `periods/{period_id}/amounts` does.
+- New rates are always `PROVISIONAL` (`rule_state` is not accepted on create).
+  Basic-pay and rate history (`/audit/payroll_money/{organisation_id}`) needs
+  organisation-wide `hr.payroll.read.amounts` and records no money values.
+
+### Payroll deductions (slice 3)
+
+- `GET statutory-tables` lists dated income tax tables (allowance and bands),
+  social insurance schemes (rates, monthly and weekly ceilings; a fortnight is the
+  weekly ceiling x 2 unless set) and deduction types. `POST tax-tables`,
+  `social-insurance-schemes`, `deduction-types` and `employee-deductions`, and
+  `PUT statutory-tables/{kind}/{table_id}/state`, need organisation-wide
+  `hr.payroll.rates.manage` and an MFA-verified session. Tables cannot be edited,
+  only confirmed (`PROVISIONAL`, `OWNER_CONFIRMED`, `CONFIRMED`).
+- Tables are always created `PROVISIONAL` (`rule_state` is not accepted on create);
+  overlapping dates for the same organisation and code are refused (409).
+  Confirming needs organisation-wide `hr.payroll.tables.confirm` (granted to no
+  role) and MFA, never by the table's creator; `confirmed_by_user_id`,
+  `confirmed_at` and `confirmation_note` record it and the source note is kept.
+  The rule state is snapshotted onto deduction lines when a period computes.
+- Deduction types follow the same gate as tax tables and schemes: created
+  `PROVISIONAL`, confirmed by someone else with `hr.payroll.tables.confirm`, and
+  an unconfirmed type blocks issue. `requires_authorisation` is not settable on
+  create (always true). Anyone who may confirm tables may read them. Creators
+  and confirmers of any table or type a period uses cannot approve it for issue.
+- `POST periods/{period_id}/table-state-refresh` (organisation-wide
+  `hr.payroll.approve` and `hr.payroll.read.amounts`, MFA, not the preparer or quantities approver) copies the
+  current state of each table onto an approved period's deduction lines (no figure
+  changes; audited) so a period approved while a table was provisional can be
+  issued after the table is confirmed. Refused once issued.
+- A deduction that needs authorisation is taken only after HR records the signed
+  document reference and the employee confirms it at
+  `POST me/deductions/{deduction_id}/confirmation` (`hr.payroll.read.self`);
+  `GET me/deductions` lists them.
+- `GET periods/{period_id}/pay-summary` (organisation-wide `hr.payroll.read.amounts`)
+  previews gross, deductions, employer contributions and net per employee, with
+  `provisional_figures`, `label: "Provisional figures"` and `blocking_tables`.
+- `POST periods/{period_id}/issue-approval` needs organisation-wide
+  `hr.payroll.approve` and `hr.payroll.read.amounts` and MFA. It is refused (403)
+  to the period's preparer or approver, a creator or confirmer of a table it used,
+  and anyone who set a rate, basic pay or deduction in force in the period; and
+  (409) while a table used was PROVISIONAL when computed, a line is unpriced, or
+  net pay would go below zero (`shortfall_minor`).
+
+### Payroll payslips and files (slice 4)
+
+- Approving a period for issue creates one payslip per paid employee: a frozen
+  JSON snapshot (earnings, gross, each deduction, net, employer contributions)
+  with its SHA-256. Payslips are append-only.
+- `GET me/payslips` (needs `hr.payroll.read.self`, granted to no role),
+  `GET periods/{period_id}/payslips` (organisation-wide `hr.payroll.read.amounts`),
+  `GET payslips/{payslip_id}/pdf` (own with `read.self`, or `read.amounts`;
+  WeasyPrint from the snapshot after the hash check; `X-Payslip-SHA256` header).
+- Every payslip route needs a session verified with two-step verification; the
+  PDF route is rate limited per signed-in user (20 a minute; 429). It uses the shared `pdf_response` helper (private, no-store, nosniff). A payslip's
+  hash is an HMAC under a dedicated key from `PAYSLIP_HMAC_KEYS` (the key id is
+  stored on the payslip, so rotation keeps old payslips valid), checked before a
+  PDF, bank file or GL journal is produced (409 on a mismatch or a key id that is
+  no longer configured). With no key configured, issue approval is refused (409). Payslip change history records the id,
+  period and hash only, never the snapshot or net pay.
+- `POST periods/{period_id}/bank-transfer.csv` and `gl-journal.csv` need
+  organisation-wide `hr.payroll.export`, MFA and an issue-approved period; both are
+  audited. Bank account numbers are not stored: that column reads `NOT STORED`.
+  `GET|PUT export-settings` configures bank columns and GL account codes.
+
 ## Base URLs
 
 | Environment | API base URL |
@@ -464,7 +543,17 @@ route. Only these self-service routes accept unapproved accounts (`AccountUser`)
 `POST /auth/token` (machine clients) still requires staff approval.
 `POST /auth/email-code/start` and `/verify` sign in to the account with a
 6-digit emailed code (the first verified code creates the account when sign-up is
-open); they open the same account session as password and Google sign-in.
+open); they open the same account session as password and Google sign-in. This is
+the sign-up path too (#958): `/signup` in the auth app asks for an email only.
+Start replies the same for known and unknown addresses and never waits on mail.
+Limits: one code per mailbox per 60 seconds, five per mailbox per hour, twenty
+per client address per hour (mailboxes fold `+tags`, and Gmail dots, before keying).
+A code sign-in confirms the email, writes an audit entry (`code_sign_in`), and on
+an unverified account clears any earlier password and revokes its sessions
+(`pw_retired`). `POST /auth/users/signup` is retired: it never creates an account; it
+answers like `email-code/start` (the same generic reply for every address) and
+sends a sign-in code. Its success response changed from 201 UserPublic to 200
+Message (breaking change, #958).
 
 Public sites registered for single sign-on (`weather`, `mbia`, `signal`, `docs`,
 `elections`) have no sign-in routes of their own and `join_prompt=False`: the
@@ -1134,7 +1223,7 @@ attendance corrections. Without it, a change that breaks a rule fails with 409 a
 `RosterRuleWarningsErrorPublic`; that model is a superset of `ApiError` (`detail`,
 plus `code: ROSTER_RULE_WARNINGS`, `context` and `violations` for rule warnings), so
 ordinary 409s on those routes keep their shape. A reason containing NUL is a 422; other control characters, Unicode bidi controls and zero-width characters are removed.
-Shift definitions carry `break_minutes` (unpaid break, 0 to 240). Attendance week
+Shift definitions carry `break_minutes` (unpaid break, 0 to 240). `DELETE /api/v1/hr/timesheets/{id}` removes the caller's own unsubmitted draft (no approval history), so the editor can replace a draft whose submission was held for rule warnings. It needs `timesheet.submit.self` and live employment in the filing department (403 otherwise); a missing id and another user's timesheet are both 404; a submitted timesheet is 400. Entries are deleted through the ORM, so the change history records the timesheet and each entry; only a superuser can read that trail afterwards, because the record's own access check needs the deleted timesheet. Attendance week
 rows, timesheet entries and the timesheet summary carry `overtime_bands` (rate and
 hours, no pay). Details: `docs/hr/roster-rules.md`.
 
@@ -1418,7 +1507,9 @@ CAP management routes are under `/api/v1/cap` and require authenticated users pl
 
 `GET /api/v1/cap/gms-catalogue` (permission `cap.alert.read` or `app.weather.access`, either desk) returns the GMS warning catalogue: the hazard groups and event names, the category labels (`category_labels`: a list of `{key, label}` objects, one per CAP category), the parish geocodes (`ISO3166-2:GD`), and the product and colour rules (MeteoAlarm awareness code and CAP severity per colour). It is read-only; the desk reads it instead of keeping its own copy. The rules change only through a reviewed code change.
 
-A normal publish checks the generated XML against the official OASIS CAP 1.2 schema (`src/cap/standards`) and refuses a non-conforming document with 422 (the message begins `CAP XML does not conform`). Emergency publish (`POST .../emergency-publish`) and cancellation (`POST .../cancel`) are never blocked by a schema mismatch: the warning goes out, the mismatch is recorded in the audit entry (`schema_mismatch`), logged as an error, and sent to the duty supervisor. This is an audited path, not an approval bypass.
+A normal publish checks the generated XML against the official OASIS CAP 1.2 schema (`src/cap/standards`) and refuses a non-conforming document with 422 (the message begins `CAP XML does not conform`). Emergency publish (`POST .../emergency-publish`) and cancellation (`POST .../cancel`) are never blocked by a schema mismatch: the warning goes out, the mismatch is recorded in the audit entry (`schema_mismatch`), logged as an error, and sent to the duty supervisor. This is an audited path, not an approval bypass. When an emergency publish goes out past a mismatch, the response's `snapshot.schema_mismatch` carries the first problem (null otherwise), so the desk can say the warning was published with a format problem.
+
+`POST /api/v1/cap/alerts/{id}/updates` (permission `cap.alert.create`) starts an Update of a published Alert or Update: a Draft with `msg_type: Update` that copies the content, keeps the status, sender and scope, and references the original (its stored `sent`, exactly). It goes through the normal approval; publishing it supersedes the original. 201 for a new draft, 200 with the existing one when an Update of that alert is already being prepared (draft, submitted or approved). 409 when the alert is not published, is not an Alert or Update, or was imported; 422 when it does not follow the CAP 1.2 schema. The original's audit trail records `update_started`.
 
 An import (`POST /api/v1/cap/alerts/import`, feeds too) is refused only when it is malformed XML or contains a DTD (400). Any other problem is stored: `schema_conformant: false`, with every problem in `schema_error`. An import changed to be storable is flagged the same way and lists each change. `import_source` is `feed` or `manual`. Publishing an imported alert, normally or in an emergency, needs `confirm_imported: true` in the request body (409 without it). Save-time checks (422, naming the value): a `responseType` outside the nine CAP values, a `language` that is not an xs:language tag, a `web` address with spaces, quotes or angle brackets, a character XML cannot carry (vertical tab and form feed become newlines), and a non-finite altitude, ceiling or coordinate. The import body is capped at 5 MB.
 
@@ -1502,7 +1593,7 @@ HR form submission dates: leave, shift swap, absentee, daily status and parking 
 
 ### Registration approval and recovery
 
-Public signup creates an active but `registration_pending` account and sends a verification email; verification is recorded (`email_verified_at`) but never blocks sign-in, joining, app access or staff approval (16 October 2026). `ALLOW_PUBLIC_SIGNUP` defaults to true; explicitly setting it false closes registration. Pending accounts cannot obtain sessions, use bearer-authenticated endpoints, or complete Google sign-in. Existing accounts default to approved when the migration is applied. Signup accepts passwords of 12–128 characters and ignores privilege fields. Verification delivery failure preserves the pending account so verification can be requested again.
+Public sign-up no longer creates accounts from a password (#958). `POST /auth/users/signup` answers like `email-code/start` and sends a sign-in code; the first verified code creates a self-service `registration_pending` account. A code sign-in confirms the email (`email_verified_at`); verification never blocks sign-in with a password, joining, app access or staff approval (16 October 2026, updated 31 October 2026). `ALLOW_PUBLIC_SIGNUP` defaults to true; setting it false closes code sign-up. The first verified code for an unverified self-registered account clears any password, authenticator, recovery codes, remembered devices, external identities and API keys, revokes its sessions and audits `pw_retired`; administrator-created and admin-activated accounts are not affected. Pending accounts cannot obtain sessions, use bearer-authenticated endpoints, or complete Google sign-in. Existing accounts default to approved when the migration is applied.
 
 An administrator saves department/grade membership and issues the permanent staff credential, then calls `POST /api/v1/hr/setup/staff/{user_id}/approve-registration`. Approval requires active employment and a non-revoked credential, grants the existing `staff` role with self scope, and writes an audit entry. It does not infer management privileges from a grade. Missing employee number, employment type or start date does not block credential activation; `StaffCard.employment_ready` reports this separately from account approval and email verification. HR submission readiness rules still apply.
 

@@ -448,6 +448,10 @@ class CapSnapshotPublic(BaseModel):
     generated_at: UtcDateTime
     signed_at: UtcDateTime | None = None
     signing_key_ref: str | None = None
+    # Set only when an emergency publish went out although the XML does not
+    # follow the CAP 1.2 schema: the first problem found. The same text is in
+    # the audit entry (``schema_mismatch``) and the duty supervisor is notified.
+    schema_mismatch: str | None = None
 
 
 class CapPublishPublic(BaseModel):

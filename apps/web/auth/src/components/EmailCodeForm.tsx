@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useActionState } from "react";
+import { startTransition, useActionState } from "react";
 import { initialEmailCodeState } from "@/app/actions-types";
 import { emailCodeAction } from "@/app/code/actions";
 import { CodeField } from "@/components/code-field";
@@ -12,16 +12,33 @@ import {
   primaryButtonClass,
   textLinkClass,
 } from "@/components/form-styles";
+import { useHydrated } from "@/lib/use-hydrated";
 
+/**
+ * Passwordless sign-in and sign-up: one email, then the 6-digit code. The same
+ * code creates the account on first use. Submits through onSubmit and waits for
+ * hydration, so the email never travels in a URL.
+ */
 export function EmailCodeForm({ returnTo }: { returnTo: string | null }) {
   const [state, formAction, pending] = useActionState(
     emailCodeAction,
     initialEmailCodeState
   );
+  const hydrated = useHydrated();
   const sent = state.step !== "email";
 
+  // React resets an uncontrolled form after its action settles, which would
+  // wipe the typed email on a refusal. Passing FormData keeps the values.
+  function submit(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const data = new FormData(event.currentTarget);
+    startTransition(() => {
+      formAction(data);
+    });
+  }
+
   return (
-    <form action={formAction} className="space-y-5">
+    <form className="space-y-5" onSubmit={submit}>
       <input name="returnTo" type="hidden" value={returnTo ?? ""} />
       {state.error ? (
         <div className={errorBoxClass} role="alert">
@@ -53,27 +70,37 @@ export function EmailCodeForm({ returnTo }: { returnTo: string | null }) {
             Email address
           </label>
           <input
+            autoCapitalize="none"
             autoComplete="email"
             className={inputClass}
             defaultValue={state.email}
             id="email"
+            inputMode="email"
             name="email"
             placeholder="jane@example.com"
             required
+            spellCheck={false}
             type="email"
           />
         </div>
       )}
 
-      <button className={primaryButtonClass} disabled={pending} type="submit">
+      <button
+        className={primaryButtonClass}
+        disabled={pending || !hydrated}
+        type="submit"
+      >
         {pending && "Please wait…"}
         {!pending && (sent ? "Sign in" : "Email me a code")}
       </button>
 
       <p className="text-center text-body-sm text-muted-foreground">
         New here? The same code creates your account.{" "}
-        <Link className={textLinkClass} href="/">
-          Use a password instead
+        <Link
+          className={textLinkClass}
+          href={returnTo ? `/?returnTo=${encodeURIComponent(returnTo)}` : "/"}
+        >
+          Sign in with a password instead
         </Link>
       </p>
     </form>
