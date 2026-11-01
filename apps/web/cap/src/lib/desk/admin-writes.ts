@@ -5,6 +5,7 @@ import {
   type CapFeedImportUpdate,
   type CapPredefinedAreaCreate,
   type CapSettingsUpdate,
+  capAlertPublicSchema,
   capFeedImportPublicSchema,
   capPredefinedAreaPublicSchema,
   capSettingsPublicSchema,
@@ -78,5 +79,18 @@ export function createPredefinedArea(
     "/cap/areas/predefined",
     capPredefinedAreaPublicSchema,
     { accessToken, body, cache: "no-store", method: "POST" }
+  );
+}
+
+/**
+ * A new Draft copied from one alert. It is not an Update of the original: the
+ * copy has its own identifier and cannot replace the warning it came from.
+ */
+export function duplicateCapAlert(accessToken: string, alertId: string) {
+  return authApiFetch(
+    getAuthConfig(),
+    `/cap/alerts/${encodeURIComponent(alertId)}/duplicate`,
+    capAlertPublicSchema,
+    { accessToken, cache: "no-store", method: "POST" }
   );
 }
