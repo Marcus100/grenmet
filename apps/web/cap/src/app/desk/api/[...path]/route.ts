@@ -2,12 +2,16 @@ import { isAuthApiError } from "@barrelsgd/auth";
 import {
   clearSessionCookieOnResponse,
   exchangeSessionForAccessToken,
-  getRequestOrigin,
   readSessionCookie,
 } from "@barrelsgd/auth/server";
 import { type NextRequest, NextResponse } from "next/server";
 import { getAuthConfig } from "@/lib/desk/auth-config";
 import { DESK_API_PREFIX, isAllowedDeskCall } from "@/lib/desk/proxy-rules";
+import {
+  BodyTooLargeError,
+  isSameOrigin,
+  readLimitedBody,
+} from "@/lib/desk/request-guards";
 import { reportError } from "@/lib/report-error";
 
 /**
@@ -33,11 +37,8 @@ async function handle(request: NextRequest): Promise<NextResponse> {
   }
   // Same-site pages on other barrels.gd hosts still send a Lax cookie, so a
   // change must come from this host's own pages.
-  if (request.method !== "GET") {
-    const origin = request.headers.get("origin");
-    if (origin !== getRequestOrigin(request.headers)) {
-      return refuse(403, "This request did not come from the warning desk.");
-    }
+  if (request.method !== "GET" && !isSameOrigin(request.headers)) {
+    return refuse(403, "This request did not come from the warning desk.");
   }
 
   const config = getAuthConfig();
@@ -67,12 +68,21 @@ async function handle(request: NextRequest): Promise<NextResponse> {
   const requestId = request.headers.get("x-request-id");
   if (requestId) headers.set("x-request-id", requestId);
 
-  const body =
-    request.method === "GET" ? undefined : await request.arrayBuffer();
+  let body: Uint8Array | undefined;
+  if (request.method !== "GET") {
+    try {
+      body = await readLimitedBody(request);
+    } catch (error) {
+      if (error instanceof BodyTooLargeError) {
+        return refuse(413, "The request is too large.");
+      }
+      throw error;
+    }
+  }
   const upstream = await fetch(
     new URL(`${path}${request.nextUrl.search}`, config.authApiBaseUrl),
     {
-      body: body && body.byteLength > 0 ? body : undefined,
+      body: body && body.byteLength > 0 ? Buffer.from(body) : undefined,
       cache: "no-store",
       headers,
       method: request.method,
