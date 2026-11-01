@@ -42,7 +42,7 @@ function describeRefusal(error: unknown): string | null {
   if (status === 404) {
     return "This person is outside your management scope, or the account no longer exists.";
   }
-  if (status === 400 || status === 409) {
+  if (status === 400 || status === 409 || status === 422) {
     return `${detail.replace(TRAILING_DOT, "")}. Nothing was changed.`;
   }
   if (status === 429) {
@@ -184,9 +184,16 @@ function SignInSetupDetails({
       </label>
       <div className="flex flex-col gap-1">
         <label className="text-sm" htmlFor={`${fieldId}-reason`}>
-          Reason (3 to 500 characters, kept in the audit trail)
+          Reason (kept in the audit trail)
         </label>
+        <p
+          className="text-muted-foreground text-xs"
+          id={`${fieldId}-reason-hint`}
+        >
+          Use at least 10 characters when the email is verified.
+        </p>
         <Input
+          aria-describedby={`${fieldId}-reason-hint`}
           autoComplete="off"
           id={`${fieldId}-reason`}
           maxLength={REASON_MAX}
