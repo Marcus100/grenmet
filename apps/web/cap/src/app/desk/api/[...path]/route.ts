@@ -6,7 +6,11 @@ import {
 } from "@barrelsgd/auth/server";
 import { type NextRequest, NextResponse } from "next/server";
 import { getAuthConfig } from "@/lib/desk/auth-config";
-import { DESK_API_PREFIX, isAllowedDeskCall } from "@/lib/desk/proxy-rules";
+import {
+  DESK_API_PREFIX,
+  deskUpstreamUrl,
+  resolveDeskCall,
+} from "@/lib/desk/proxy-rules";
 import {
   BodyTooLargeError,
   isSameOrigin,
@@ -32,7 +36,10 @@ function refuse(status: number, detail: string): NextResponse {
 
 async function handle(request: NextRequest): Promise<NextResponse> {
   const path = request.nextUrl.pathname.slice(DESK_API_PREFIX.length);
-  if (!isAllowedDeskCall(request.method, path)) {
+  // Only the allow-listed template and its UUIDs reach the upstream URL below.
+  // The browser's path and query string are never used to build it.
+  const call = resolveDeskCall(request.method, path);
+  if (!call) {
     return refuse(404, "Not found.");
   }
   // Same-site pages on other barrels.gd hosts still send a Lax cookie, so a
@@ -79,16 +86,13 @@ async function handle(request: NextRequest): Promise<NextResponse> {
       throw error;
     }
   }
-  const upstream = await fetch(
-    new URL(`${path}${request.nextUrl.search}`, config.authApiBaseUrl),
-    {
-      body: body && body.byteLength > 0 ? Buffer.from(body) : undefined,
-      cache: "no-store",
-      headers,
-      method: request.method,
-      redirect: "manual",
-    }
-  );
+  const upstream = await fetch(deskUpstreamUrl(call, config.authApiBaseUrl), {
+    body: body && body.byteLength > 0 ? Buffer.from(body) : undefined,
+    cache: "no-store",
+    headers,
+    method: request.method,
+    redirect: "manual",
+  });
 
   const response = new NextResponse(upstream.body, {
     status: upstream.status,
