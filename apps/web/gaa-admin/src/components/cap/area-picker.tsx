@@ -1,19 +1,25 @@
 "use client";
 
-import type { CapAreaCreate, CapSeverity } from "@barrelsgd/api-client";
+import type {
+  CapAreaCreate,
+  CapSeverity,
+  GmsCataloguePublic,
+} from "@barrelsgd/api-client";
 import { Button } from "@barrelsgd/ui/components/ui/button";
 import { Input } from "@barrelsgd/ui/components/ui/input";
 import { Label } from "@barrelsgd/ui/components/ui/label";
 import { booleanPointInPolygon } from "@turf/boolean-point-in-polygon";
 import { Check, RotateCcw } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
+import type { ComponentProps } from "react";
 import { useEffect, useId, useMemo, useState } from "react";
 import type { MapLayerMouseEvent } from "react-map-gl/maplibre";
 import { Layer, Source } from "react-map-gl/maplibre";
 import {
-  GRENADA_PARISH_BOUNDARIES,
-  GRENADA_PARISHES,
-} from "@/data/cap/grenada-boundaries";
+  GmsCatalogueBoundary,
+  useGmsCatalogue,
+} from "@/components/cap/gms-catalogue";
+import { GRENADA_PARISH_BOUNDARIES } from "@/data/cap/grenada-boundaries";
 import {
   buildCircleArea,
   buildGeocodeArea,
@@ -45,7 +51,8 @@ export interface AreaPickerProps {
  * boundary map. Every mode ends in a plain CapAreaCreate[] the parent form
  * posts as-is; there is no separate "visual" model to keep in sync.
  */
-export function AreaPicker({ onAreasChange, severity }: AreaPickerProps) {
+function AreaPickerContent({ onAreasChange, severity }: AreaPickerProps) {
+  const catalogue = useGmsCatalogue();
   const [mode, setMode] = useState<AreaMode>("GEOCODE");
   const [parishIds, setParishIds] = useState<string[]>([]);
   const [circle, setCircle] = useState<CircleArea | null>(null);
@@ -55,10 +62,10 @@ export function AreaPicker({ onAreasChange, severity }: AreaPickerProps) {
 
   const autoDesc = useMemo(() => {
     if (mode === "GEOCODE") {
-      return parishNames(parishIds).join(", ");
+      return parishNames(catalogue, parishIds).join(", ");
     }
     if (mode === "CIRCLE" && circle) {
-      const parish = parishAt(circle.lon, circle.lat);
+      const parish = parishAt(catalogue, circle.lon, circle.lat);
       const centre = `${circle.lat.toFixed(2)}°N, ${Math.abs(circle.lon).toFixed(2)}°W`;
       return `${circle.radiusKm} km radius${parish ? ` near ${parish}` : ""} (${centre})`;
     }
@@ -66,13 +73,13 @@ export function AreaPicker({ onAreasChange, severity }: AreaPickerProps) {
       return `Custom area (${polygonPoints.length}-point polygon)`;
     }
     return "";
-  }, [mode, parishIds, circle, polygonPoints]);
+  }, [catalogue, mode, parishIds, circle, polygonPoints]);
 
   const areaDesc = areaDescEdited ?? autoDesc;
 
   const areas = useMemo<CapAreaCreate[]>(() => {
     if (mode === "GEOCODE") {
-      const area = buildGeocodeArea(parishIds);
+      const area = buildGeocodeArea(catalogue, parishIds);
       return area ? [{ ...area, area_desc: areaDesc || area.area_desc }] : [];
     }
     if (mode === "CIRCLE" && circle) {
@@ -83,7 +90,7 @@ export function AreaPicker({ onAreasChange, severity }: AreaPickerProps) {
       return area ? [area] : [];
     }
     return [];
-  }, [mode, parishIds, circle, polygonPoints, areaDesc, autoDesc]);
+  }, [catalogue, mode, parishIds, circle, polygonPoints, areaDesc, autoDesc]);
 
   useEffect(() => {
     onAreasChange(areas);
@@ -141,7 +148,7 @@ export function AreaPicker({ onAreasChange, severity }: AreaPickerProps) {
           {mode === "GEOCODE" ? (
             <ModeFade key="geocode-list">
               <div className="flex flex-col gap-1.5">
-                {GRENADA_PARISHES.map((parish) => {
+                {catalogue.parishes.map((parish) => {
                   const selected = parishIds.includes(parish.id);
                   return (
                     <button
@@ -161,7 +168,7 @@ export function AreaPicker({ onAreasChange, severity }: AreaPickerProps) {
                       }}
                       type="button"
                     >
-                      {parish.shortName}
+                      {parish.short_name}
                       {selected ? (
                         <Check aria-hidden="true" className="size-3.5" />
                       ) : null}
@@ -296,13 +303,17 @@ function ModeFade({ children }: { children: React.ReactNode }) {
   );
 }
 
-function parishAt(lon: number, lat: number): string | undefined {
+function parishAt(
+  catalogue: GmsCataloguePublic,
+  lon: number,
+  lat: number
+): string | undefined {
   const feature = GRENADA_PARISH_BOUNDARIES.features.find((candidate) =>
     booleanPointInPolygon([lon, lat], candidate)
   );
   return feature
-    ? GRENADA_PARISHES.find((parish) => parish.id === feature.properties.id)
-        ?.shortName
+    ? catalogue.parishes.find((parish) => parish.id === feature.properties.id)
+        ?.short_name
     : undefined;
 }
 
@@ -438,5 +449,14 @@ function AreaMap({
         ) : null}
       </CapMap>
     </div>
+  );
+}
+
+/** Shows a message in place of this panel when the GMS catalogue cannot load. */
+export function AreaPicker(props: ComponentProps<typeof AreaPickerContent>) {
+  return (
+    <GmsCatalogueBoundary>
+      <AreaPickerContent {...props} />
+    </GmsCatalogueBoundary>
   );
 }

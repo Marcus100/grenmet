@@ -12,8 +12,13 @@ import {
 import { Label } from "@barrelsgd/ui/components/ui/label";
 import { Textarea } from "@barrelsgd/ui/components/ui/textarea";
 import { useRouter } from "next/navigation";
+import type { ComponentProps } from "react";
 import { useId, useState } from "react";
-import { COLOUR_LABEL } from "@/lib/cap-levels";
+import {
+  GmsCatalogueBoundary,
+  useGmsCatalogue,
+} from "@/components/cap/gms-catalogue";
+import { colourLabel } from "@/lib/cap-levels";
 import { useIbfSuggestion } from "./use-ibf-suggestion";
 
 export const WARNING_LEVELS = ["yellow", "orange", "red"] as const;
@@ -26,7 +31,7 @@ export const MIN_OVERRIDE_REASON = 10;
  * draft, asks FastAPI for the pre-filled CAP draft and resolves to its id, or
  * to an error message. The green alert itself is left in force.
  */
-export function RaiseToWarningDialog({
+function RaiseToWarningDialogContent({
   onOpenChange,
   onRaise,
   open,
@@ -47,6 +52,7 @@ export function RaiseToWarningDialog({
   >;
   open: boolean;
 }) {
+  const catalogue = useGmsCatalogue();
   const router = useRouter();
   const [level, setLevel] = useState<WarningLevel>("yellow");
   const [pending, setPending] = useState(false);
@@ -124,7 +130,7 @@ export function RaiseToWarningDialog({
         </fieldset>
         {suggested ? (
           <p className="text-sm" data-testid="matrix-suggestion">
-            The impact matrix suggests {COLOUR_LABEL[suggested]}.
+            The impact matrix suggests {colourLabel(catalogue, suggested)}.
           </p>
         ) : null}
         {showReason ? (
@@ -190,5 +196,16 @@ export function RaiseToWarningDialog({
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>
+  );
+}
+
+/** Shows a message in place of this panel when the GMS catalogue cannot load. */
+export function RaiseToWarningDialog(
+  props: ComponentProps<typeof RaiseToWarningDialogContent>
+) {
+  return (
+    <GmsCatalogueBoundary>
+      <RaiseToWarningDialogContent {...props} />
+    </GmsCatalogueBoundary>
   );
 }

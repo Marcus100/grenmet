@@ -17439,6 +17439,145 @@
         }
       }
     },
+    "/api/v1/hr/timesheets/{timesheet_id}": {
+      "delete": {
+        "tags": [
+          "hr-timesheets"
+        ],
+        "summary": "Delete a draft timesheet",
+        "description": "Delete the caller's own unsubmitted draft timesheet and its entries, so an editor can replace a draft instead of leaving a duplicate. Requires timesheet.submit.self and live employment; another user's timesheet is a 404. Submitted timesheets are retained.",
+        "operationId": "hrDeleteDraftTimesheet",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "timesheet_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Timesheet Id"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Draft timesheet deleted"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "400": {
+            "description": "Not a draft, or has approval history",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Missing timesheet.submit.self or no live employment in the filing department",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Timesheet not found, or not yours",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "hr-timesheets"
+        ],
+        "summary": "Get timesheet details",
+        "description": "Return a timesheet and its entries. Owner, explicitly named reviewer, or timesheet.read.department within the filing department. Employee transfers do not change historical access.",
+        "operationId": "hrGetTimesheet",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "timesheet_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Timesheet Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Timesheet and entries returned",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TimesheetDetails"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "403": {
+            "description": "Not allowed to read this timesheet",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Timesheet not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/hr/timesheets/{timesheet_id}/approve": {
       "patch": {
         "tags": [
@@ -17834,75 +17973,6 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/TimesheetSummaryByShift"
-                }
-              }
-            }
-          },
-          "422": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ValidationErrorResponse"
-                }
-              }
-            },
-            "description": "Unprocessable Content"
-          },
-          "403": {
-            "description": "Not allowed to read this timesheet",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiError"
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "Timesheet not found",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiError"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/v1/hr/timesheets/{timesheet_id}": {
-      "get": {
-        "tags": [
-          "hr-timesheets"
-        ],
-        "summary": "Get timesheet details",
-        "description": "Return a timesheet and its entries. Owner, explicitly named reviewer, or timesheet.read.department within the filing department. Employee transfers do not change historical access.",
-        "operationId": "hrGetTimesheet",
-        "security": [
-          {
-            "OAuth2PasswordBearer": []
-          }
-        ],
-        "parameters": [
-          {
-            "name": "timesheet_id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid",
-              "title": "Timesheet Id"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Timesheet and entries returned",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/TimesheetDetails"
                 }
               }
             }
@@ -21182,6 +21252,1713 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/PayrollDepartmentSettingPublic"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "400": {
+            "description": "Invalid payroll input",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Not signed in",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Missing payroll permission, organisation-wide scope or two-step verification, or separation of duty (you prepared, added lines to, or changed a profile used in the period, or it contains your own pay)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found, or no payroll access in this organisation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "The period is not in a state that allows this, or the data conflicts",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/hr/payroll/periods/{period_id}/amounts": {
+      "get": {
+        "tags": [
+          "hr-payroll"
+        ],
+        "summary": "Read a pay period's gross amounts",
+        "description": "Amounts in minor units per line and per employee. Needs organisation-wide hr.payroll.read.amounts; department readers never receive amounts, and no quantity route carries money.",
+        "operationId": "hrGetPayPeriodAmounts",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "period_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Period Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PayPeriodAmountsPublic"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "400": {
+            "description": "Invalid payroll input",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Not signed in",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Missing payroll permission, organisation-wide scope or two-step verification, or separation of duty (you prepared, added lines to, or changed a profile used in the period, or it contains your own pay)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found, or no payroll access in this organisation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "The period is not in a state that allows this, or the data conflicts",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/hr/payroll/rates": {
+      "get": {
+        "tags": [
+          "hr-payroll"
+        ],
+        "summary": "List pay item rates",
+        "description": "Dated multipliers and fixed amounts. Needs organisation-wide hr.payroll.read.amounts or hr.payroll.rates.manage.",
+        "operationId": "hrListPayItemRates",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "organisation_id",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "maxLength": 100,
+              "title": "Organisation Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PayItemRatesPublic"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "400": {
+            "description": "Invalid payroll input",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Not signed in",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Missing payroll permission, organisation-wide scope or two-step verification, or separation of duty (you prepared, added lines to, or changed a profile used in the period, or it contains your own pay)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found, or no payroll access in this organisation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "The period is not in a state that allows this, or the data conflicts",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "hr-payroll"
+        ],
+        "summary": "Add a dated pay item rate",
+        "description": "Needs organisation-wide hr.payroll.rates.manage and a session verified with two-step verification. An open-ended earlier rate ends the day before.",
+        "operationId": "hrCreatePayItemRate",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PayItemRateCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PayItemRatePublic"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "400": {
+            "description": "Invalid payroll input",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Not signed in",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Missing payroll permission, organisation-wide scope or two-step verification, or separation of duty (you prepared, added lines to, or changed a profile used in the period, or it contains your own pay)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found, or no payroll access in this organisation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "The period is not in a state that allows this, or the data conflicts",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/hr/payroll/basic-pay": {
+      "get": {
+        "tags": [
+          "hr-payroll"
+        ],
+        "summary": "List dated basic pay",
+        "description": "Needs organisation-wide hr.payroll.read.amounts or hr.payroll.rates.manage.",
+        "operationId": "hrListEmployeeBasicPay",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "organisation_id",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "maxLength": 100,
+              "title": "Organisation Id"
+            }
+          },
+          {
+            "name": "user_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "User Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EmployeeBasicPaysPublic"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "400": {
+            "description": "Invalid payroll input",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Not signed in",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Missing payroll permission, organisation-wide scope or two-step verification, or separation of duty (you prepared, added lines to, or changed a profile used in the period, or it contains your own pay)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found, or no payroll access in this organisation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "The period is not in a state that allows this, or the data conflicts",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "hr-payroll"
+        ],
+        "summary": "Record dated basic pay",
+        "description": "Needs organisation-wide hr.payroll.rates.manage and a session verified with two-step verification. Nobody sets their own. An hourly-paid person on a calendar longer than fortnightly needs an override reason.",
+        "operationId": "hrCreateEmployeeBasicPay",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EmployeeBasicPayCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EmployeeBasicPayPublic"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "400": {
+            "description": "Invalid payroll input",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Not signed in",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Missing payroll permission, organisation-wide scope or two-step verification, or separation of duty (you prepared, added lines to, or changed a profile used in the period, or it contains your own pay)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found, or no payroll access in this organisation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "The period is not in a state that allows this, or the data conflicts",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/hr/payroll/periods/{period_id}/pay-summary": {
+      "get": {
+        "tags": [
+          "hr-payroll"
+        ],
+        "summary": "Preview gross, deductions and net pay",
+        "description": "Per employee. Needs organisation-wide hr.payroll.read.amounts. Marked 'Provisional figures' while an income tax or social insurance table used is provisional.",
+        "operationId": "hrGetPayPeriodSummary",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "period_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Period Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaySummaryPublic"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "400": {
+            "description": "Invalid payroll input",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Not signed in",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Missing payroll permission, organisation-wide scope or two-step verification, or separation of duty (you prepared, added lines to, or changed a profile used in the period, or it contains your own pay)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found, or no payroll access in this organisation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "The period is not in a state that allows this, or the data conflicts",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/hr/payroll/periods/{period_id}/issue-approval": {
+      "post": {
+        "tags": [
+          "hr-payroll"
+        ],
+        "summary": "Approve a pay period's money figures for issue",
+        "description": "Needs organisation-wide hr.payroll.approve and two-step verification; never the preparer. Refused (409) while an income tax or social insurance table used is provisional, or a line is unpriced.",
+        "operationId": "hrApprovePayPeriodForIssue",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "period_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Period Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PayPeriodDetail"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "400": {
+            "description": "Invalid payroll input",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Not signed in",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Missing payroll permission, organisation-wide scope or two-step verification, or separation of duty (you prepared, added lines to, or changed a profile used in the period, or it contains your own pay)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found, or no payroll access in this organisation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "The period is not in a state that allows this, or the data conflicts",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/hr/payroll/periods/{period_id}/table-state-refresh": {
+      "post": {
+        "tags": [
+          "hr-payroll"
+        ],
+        "summary": "Refresh a period's table states before issue",
+        "description": "After a table is confirmed, copies the current state of each table onto an approved period's deduction lines (state only, no figures change) so it can be approved for issue. Audited. Needs organisation-wide hr.payroll.approve and hr.payroll.read.amounts and two-step verification; never someone excluded from approving the period; only for an approved, unclosed period before issue approval. Returns quantities only.",
+        "operationId": "hrRefreshPayPeriodTableState",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "period_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Period Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PayPeriodDetail"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "400": {
+            "description": "Invalid payroll input",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Not signed in",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Missing payroll permission, organisation-wide scope or two-step verification, or separation of duty (you prepared, added lines to, or changed a profile used in the period, or it contains your own pay)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found, or no payroll access in this organisation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "The period is not in a state that allows this, or the data conflicts",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/hr/payroll/statutory-tables": {
+      "get": {
+        "tags": [
+          "hr-payroll"
+        ],
+        "summary": "List tax, social insurance and deduction tables",
+        "description": "Dated tables with their rule state and source. Needs organisation-wide hr.payroll.read.amounts or hr.payroll.rates.manage.",
+        "operationId": "hrListStatutoryTables",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "organisation_id",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "maxLength": 100,
+              "title": "Organisation Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StatutoryTablesPublic"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "400": {
+            "description": "Invalid payroll input",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Not signed in",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Missing payroll permission, organisation-wide scope or two-step verification, or separation of duty (you prepared, added lines to, or changed a profile used in the period, or it contains your own pay)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found, or no payroll access in this organisation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "The period is not in a state that allows this, or the data conflicts",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/hr/payroll/tax-tables": {
+      "post": {
+        "tags": [
+          "hr-payroll"
+        ],
+        "summary": "Add a dated income tax table",
+        "description": "Annual allowance and bands (the last band has no limit). Needs organisation-wide hr.payroll.rates.manage and two-step verification.",
+        "operationId": "hrCreateTaxTable",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TaxTableCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TaxTablePublic"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Content",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid payroll input",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Not signed in",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Missing payroll permission, organisation-wide scope or two-step verification, or separation of duty (you prepared, added lines to, or changed a profile used in the period, or it contains your own pay)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found, or no payroll access in this organisation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "The period is not in a state that allows this, or the data conflicts",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/hr/payroll/social-insurance-schemes": {
+      "post": {
+        "tags": [
+          "hr-payroll"
+        ],
+        "summary": "Add a dated social insurance scheme",
+        "description": "Employee and employer rates with monthly and weekly insurable ceilings. Needs organisation-wide hr.payroll.rates.manage and two-step verification.",
+        "operationId": "hrCreateSocialInsuranceScheme",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SocialInsuranceSchemeCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SocialInsuranceSchemePublic"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Content",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid payroll input",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Not signed in",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Missing payroll permission, organisation-wide scope or two-step verification, or separation of duty (you prepared, added lines to, or changed a profile used in the period, or it contains your own pay)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found, or no payroll access in this organisation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "The period is not in a state that allows this, or the data conflicts",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/hr/payroll/deduction-types": {
+      "post": {
+        "tags": [
+          "hr-payroll"
+        ],
+        "summary": "Add a dated deduction type",
+        "description": "Percentage of basic or gross, fixed, or a split premium; may require the employee's authorisation. Needs organisation-wide hr.payroll.rates.manage and two-step verification.",
+        "operationId": "hrCreateDeductionType",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DeductionTypeCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DeductionTypePublic"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Content",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid payroll input",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Not signed in",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Missing payroll permission, organisation-wide scope or two-step verification, or separation of duty (you prepared, added lines to, or changed a profile used in the period, or it contains your own pay)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found, or no payroll access in this organisation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "The period is not in a state that allows this, or the data conflicts",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/hr/payroll/statutory-tables/{kind}/{table_id}/state": {
+      "put": {
+        "tags": [
+          "hr-payroll"
+        ],
+        "summary": "Confirm or reopen a table",
+        "description": "Sets PROVISIONAL, OWNER_CONFIRMED or CONFIRMED with a note, recorded in the change history. Needs organisation-wide hr.payroll.tables.confirm and two-step verification; never the table's creator.",
+        "operationId": "hrSetStatutoryTableState",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "kind",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^(tax|social-insurance|deduction)$",
+              "title": "Kind"
+            }
+          },
+          {
+            "name": "table_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Table Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TableStateUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TableStatePublic"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "400": {
+            "description": "Invalid payroll input",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Not signed in",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Missing payroll permission, organisation-wide scope or two-step verification, or separation of duty (you prepared, added lines to, or changed a profile used in the period, or it contains your own pay)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found, or no payroll access in this organisation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "The period is not in a state that allows this, or the data conflicts",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/hr/payroll/employee-deductions": {
+      "get": {
+        "tags": [
+          "hr-payroll"
+        ],
+        "summary": "List employee deduction enrolments",
+        "description": "Needs organisation-wide hr.payroll.read.amounts or hr.payroll.rates.manage.",
+        "operationId": "hrListEmployeeDeductions",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "organisation_id",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "maxLength": 100,
+              "title": "Organisation Id"
+            }
+          },
+          {
+            "name": "user_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "User Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EmployeeDeductionsPublic"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "400": {
+            "description": "Invalid payroll input",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Not signed in",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Missing payroll permission, organisation-wide scope or two-step verification, or separation of duty (you prepared, added lines to, or changed a profile used in the period, or it contains your own pay)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found, or no payroll access in this organisation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "The period is not in a state that allows this, or the data conflicts",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "hr-payroll"
+        ],
+        "summary": "Enrol an employee in a deduction",
+        "description": "A deduction that requires authorisation is only taken once its authorisation reference is recorded. Needs organisation-wide hr.payroll.rates.manage and two-step verification.",
+        "operationId": "hrCreateEmployeeDeduction",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EmployeeDeductionCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EmployeeDeductionPublic"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "400": {
+            "description": "Invalid payroll input",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Not signed in",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Missing payroll permission, organisation-wide scope or two-step verification, or separation of duty (you prepared, added lines to, or changed a profile used in the period, or it contains your own pay)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found, or no payroll access in this organisation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "The period is not in a state that allows this, or the data conflicts",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/hr/payroll/me/deductions": {
+      "get": {
+        "tags": [
+          "hr-payroll"
+        ],
+        "summary": "List my deductions",
+        "description": "Deductions set up for the caller, and whether they have confirmed each. Needs hr.payroll.read.self.",
+        "operationId": "hrListMyDeductions",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MyDeductionsPublic"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Content",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid payroll input",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Not signed in",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Missing payroll permission, organisation-wide scope or two-step verification, or separation of duty (you prepared, added lines to, or changed a profile used in the period, or it contains your own pay)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found, or no payroll access in this organisation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "The period is not in a state that allows this, or the data conflicts",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/hr/payroll/me/deductions/{deduction_id}/confirmation": {
+      "post": {
+        "tags": [
+          "hr-payroll"
+        ],
+        "summary": "Confirm a deduction set up for me",
+        "description": "The employee confirms a deduction whose signed authorisation HR has recorded; it is not deducted before this. Needs hr.payroll.read.self.",
+        "operationId": "hrConfirmMyDeduction",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "deduction_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Deduction Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MyDeductionsPublic"
                 }
               }
             }
@@ -35058,6 +36835,84 @@
         ]
       }
     },
+    "/api/v1/cap/alerts/by-identifier/{identifier}": {
+      "get": {
+        "tags": [
+          "cap"
+        ],
+        "summary": "Get a CAP alert by identifier",
+        "description": "Returns one CAP alert by its CAP identifier, with every staff field (schema check, imported marker). Drafts and imports are visible here.",
+        "operationId": "capGetAlertByIdentifier",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "identifier",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Identifier"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CapAlertPublic"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Resource not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/cap/alerts/{alert_id}": {
       "get": {
         "tags": [
@@ -35689,7 +37544,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/CapAlertAction"
+                "$ref": "#/components/schemas/CapPublishAction"
               }
             }
           }
@@ -36152,6 +38007,63 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/CapCatalogsPublic"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Content",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/cap/gms-catalogue": {
+      "get": {
+        "tags": [
+          "cap"
+        ],
+        "summary": "Read the GMS warning catalogue",
+        "description": "Returns the hazard list, parish geocodes, and the product and colour rules the warning desk uses. The rules are owned by GMS and change only through a reviewed code change.",
+        "operationId": "capGetGmsCatalogue",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GmsCataloguePublic"
                 }
               }
             }
@@ -36823,7 +38735,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/CapAlertListPublic"
+                  "$ref": "#/components/schemas/CapAlertListPublicView"
                 }
               }
             }
@@ -36855,7 +38767,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/CapAlertListPublic"
+                  "$ref": "#/components/schemas/CapAlertListPublicView"
                 }
               }
             }
@@ -36887,7 +38799,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/CapAlertListPublic"
+                  "$ref": "#/components/schemas/CapAlertListPublicView"
                 }
               }
             }
@@ -36930,7 +38842,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/CapAlertPublic"
+                  "$ref": "#/components/schemas/CapAlertPublicView"
                 }
               }
             }
@@ -69488,6 +71400,7 @@
           },
           "value": {
             "type": "string",
+            "maxLength": 5242880,
             "minLength": 1,
             "title": "Value"
           }
@@ -69529,6 +71442,37 @@
         ],
         "title": "CapAlertListPublic"
       },
+      "CapAlertListPublicView": {
+        "properties": {
+          "data": {
+            "items": {
+              "$ref": "#/components/schemas/CapAlertPublicView"
+            },
+            "type": "array",
+            "title": "Data"
+          },
+          "count": {
+            "type": "integer",
+            "title": "Count"
+          },
+          "page": {
+            "type": "integer",
+            "title": "Page",
+            "default": 1
+          },
+          "size": {
+            "type": "integer",
+            "title": "Size",
+            "default": 100
+          }
+        },
+        "type": "object",
+        "required": [
+          "data",
+          "count"
+        ],
+        "title": "CapAlertListPublicView"
+      },
       "CapAlertPublic": {
         "properties": {
           "id": {
@@ -69543,6 +71487,33 @@
           "sender": {
             "type": "string",
             "title": "Sender"
+          },
+          "schema_conformant": {
+            "type": "boolean",
+            "title": "Schema Conformant",
+            "default": true
+          },
+          "schema_error": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Schema Error"
+          },
+          "import_source": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Import Source"
           },
           "sent": {
             "type": "string",
@@ -69753,6 +71724,214 @@
           "updated_at"
         ],
         "title": "CapAlertPublic"
+      },
+      "CapAlertPublicView": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "identifier": {
+            "type": "string",
+            "title": "Identifier"
+          },
+          "sender": {
+            "type": "string",
+            "title": "Sender"
+          },
+          "sent": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Sent"
+          },
+          "status": {
+            "$ref": "#/components/schemas/CapStatus"
+          },
+          "msg_type": {
+            "$ref": "#/components/schemas/CapMessageType"
+          },
+          "source": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source"
+          },
+          "scope": {
+            "$ref": "#/components/schemas/CapScope"
+          },
+          "restriction": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Restriction"
+          },
+          "addresses": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Addresses"
+          },
+          "codes": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Codes"
+          },
+          "lifecycle_state": {
+            "$ref": "#/components/schemas/CapLifecycleState"
+          },
+          "submitted_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Submitted At"
+          },
+          "approved_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Approved At"
+          },
+          "published_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Published At"
+          },
+          "expired_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Expired At"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Updated At"
+          },
+          "references": {
+            "items": {
+              "$ref": "#/components/schemas/CapReferencePublic"
+            },
+            "type": "array",
+            "title": "References"
+          },
+          "incidents": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Incidents"
+          },
+          "info": {
+            "items": {
+              "$ref": "#/components/schemas/CapInfoPublic"
+            },
+            "type": "array",
+            "title": "Info"
+          },
+          "xml_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Xml Url"
+          },
+          "replaced_by_identifier": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Replaced By Identifier"
+          },
+          "cancellation_reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cancellation Reason"
+          },
+          "note": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Note"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "identifier",
+          "sender",
+          "sent",
+          "status",
+          "msg_type",
+          "scope",
+          "lifecycle_state",
+          "created_at",
+          "updated_at"
+        ],
+        "title": "CapAlertPublicView",
+        "description": "An alert as the anonymous public sees it.\n\nStaff-only fields are left out: the schema check result, the imported marker,\nand who created or last changed the alert. The note is kept on purpose: the\npublic XML publishes it as ``<note>``."
       },
       "CapAlertUpdate": {
         "properties": {
@@ -70041,7 +72220,8 @@
         "required": [
           "area_desc"
         ],
-        "title": "CapAreaCreate"
+        "title": "CapAreaCreate",
+        "description": "Save-time checks: a height and every coordinate must be a finite number."
       },
       "CapAreaKind": {
         "type": "string",
@@ -70393,6 +72573,24 @@
         ],
         "title": "CapCategory"
       },
+      "CapCategoryLabelPublic": {
+        "properties": {
+          "key": {
+            "$ref": "#/components/schemas/CapCategory"
+          },
+          "label": {
+            "type": "string",
+            "title": "Label"
+          }
+        },
+        "type": "object",
+        "required": [
+          "key",
+          "label"
+        ],
+        "title": "CapCategoryLabelPublic",
+        "description": "One CAP category and the name the desk shows for it (a closed set)."
+      },
       "CapCertainty": {
         "type": "string",
         "enum": [
@@ -70404,6 +72602,33 @@
         ],
         "title": "CapCertainty"
       },
+      "CapColourRulePublic": {
+        "properties": {
+          "key": {
+            "type": "string",
+            "title": "Key"
+          },
+          "label": {
+            "type": "string",
+            "title": "Label"
+          },
+          "awareness_code": {
+            "type": "integer",
+            "title": "Awareness Code"
+          },
+          "severity": {
+            "$ref": "#/components/schemas/CapSeverity"
+          }
+        },
+        "type": "object",
+        "required": [
+          "key",
+          "label",
+          "awareness_code",
+          "severity"
+        ],
+        "title": "CapColourRulePublic"
+      },
       "CapEmergencyPublish": {
         "properties": {
           "reason": {
@@ -70411,6 +72636,11 @@
             "maxLength": 2000,
             "minLength": 1,
             "title": "Reason"
+          },
+          "confirm_imported": {
+            "type": "boolean",
+            "title": "Confirm Imported",
+            "default": false
           }
         },
         "type": "object",
@@ -70660,6 +72890,35 @@
         "type": "object",
         "title": "CapFeedImportUpdate"
       },
+      "CapHazardGroupPublic": {
+        "properties": {
+          "label": {
+            "type": "string",
+            "title": "Label"
+          },
+          "categories": {
+            "items": {
+              "$ref": "#/components/schemas/CapCategory"
+            },
+            "type": "array",
+            "title": "Categories"
+          },
+          "events": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Events"
+          }
+        },
+        "type": "object",
+        "required": [
+          "label",
+          "categories",
+          "events"
+        ],
+        "title": "CapHazardGroupPublic"
+      },
       "CapInfoCreate": {
         "properties": {
           "language": {
@@ -70844,7 +73103,8 @@
           "headline",
           "description"
         ],
-        "title": "CapInfoCreate"
+        "title": "CapInfoCreate",
+        "description": "Save-time checks. They run on what a forecaster types, not on stored rows."
       },
       "CapInfoPublic": {
         "properties": {
@@ -71097,6 +73357,34 @@
         ],
         "title": "CapNameValue"
       },
+      "CapParishPublic": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "iso_code": {
+            "type": "string",
+            "title": "Iso Code"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "short_name": {
+            "type": "string",
+            "title": "Short Name"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "iso_code",
+          "name",
+          "short_name"
+        ],
+        "title": "CapParishPublic"
+      },
       "CapPredefinedAreaCreate": {
         "properties": {
           "name": {
@@ -71284,6 +73572,29 @@
           "updated_at"
         ],
         "title": "CapPredefinedAreaPublic"
+      },
+      "CapProductRulePublic": {
+        "properties": {
+          "key": {
+            "type": "string",
+            "title": "Key"
+          },
+          "label": {
+            "type": "string",
+            "title": "Label"
+          },
+          "needs_colour": {
+            "type": "boolean",
+            "title": "Needs Colour"
+          }
+        },
+        "type": "object",
+        "required": [
+          "key",
+          "label",
+          "needs_colour"
+        ],
+        "title": "CapProductRulePublic"
       },
       "CapProfileCellText": {
         "properties": {
@@ -71766,6 +74077,30 @@
         ],
         "title": "CapProfileTemplate"
       },
+      "CapPublishAction": {
+        "properties": {
+          "note": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 2000
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Note"
+          },
+          "confirm_imported": {
+            "type": "boolean",
+            "title": "Confirm Imported",
+            "default": false
+          }
+        },
+        "type": "object",
+        "title": "CapPublishAction",
+        "description": "Publish request. An imported alert needs ``confirm_imported`` (409 without it)."
+      },
       "CapPublishPublic": {
         "properties": {
           "alert": {
@@ -72160,7 +74495,8 @@
                 "type": "null"
               }
             ],
-            "title": "Wmo Oid"
+            "title": "Wmo Oid",
+            "description": "WMO OID of the form 2.49.0.1.<country>.<authority>, digits and dots only. Empty clears it."
           },
           "web": {
             "anyOf": [
@@ -73995,6 +76331,427 @@
         ],
         "title": "DataRequestCreate"
       },
+      "DeductionCategory": {
+        "type": "string",
+        "enum": [
+          "INCOME_TAX",
+          "SOCIAL_INSURANCE",
+          "OTHER"
+        ],
+        "title": "DeductionCategory"
+      },
+      "DeductionKind": {
+        "type": "string",
+        "enum": [
+          "PERCENT_OF_BASIC",
+          "PERCENT_OF_GROSS",
+          "FIXED",
+          "SPLIT_PREMIUM"
+        ],
+        "title": "DeductionKind"
+      },
+      "DeductionLinePublic": {
+        "properties": {
+          "category": {
+            "$ref": "#/components/schemas/DeductionCategory"
+          },
+          "code": {
+            "type": "string",
+            "title": "Code"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "base_minor": {
+            "type": "integer",
+            "title": "Base Minor"
+          },
+          "employee_minor": {
+            "type": "integer",
+            "title": "Employee Minor"
+          },
+          "employer_minor": {
+            "type": "integer",
+            "title": "Employer Minor"
+          },
+          "rule_state": {
+            "$ref": "#/components/schemas/TableState"
+          }
+        },
+        "type": "object",
+        "required": [
+          "category",
+          "code",
+          "name",
+          "base_minor",
+          "employee_minor",
+          "employer_minor",
+          "rule_state"
+        ],
+        "title": "DeductionLinePublic"
+      },
+      "DeductionTypeCreate": {
+        "properties": {
+          "organisation_id": {
+            "type": "string",
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Organisation Id"
+          },
+          "code": {
+            "type": "string",
+            "maxLength": 40,
+            "minLength": 1,
+            "title": "Code"
+          },
+          "name": {
+            "type": "string",
+            "maxLength": 120,
+            "minLength": 1,
+            "title": "Name"
+          },
+          "kind": {
+            "$ref": "#/components/schemas/DeductionKind"
+          },
+          "employee_rate": {
+            "anyOf": [
+              {
+                "type": "number",
+                "maximum": 1.0,
+                "minimum": 0.0
+              },
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Employee Rate"
+          },
+          "employer_rate": {
+            "anyOf": [
+              {
+                "type": "number",
+                "maximum": 1.0,
+                "minimum": 0.0
+              },
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Employer Rate"
+          },
+          "employee_amount_minor": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 10000000000.0,
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Employee Amount Minor"
+          },
+          "employer_amount_minor": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 10000000000.0,
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Employer Amount Minor"
+          },
+          "premium_minor": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 10000000000.0,
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Premium Minor"
+          },
+          "employee_share": {
+            "anyOf": [
+              {
+                "type": "number",
+                "maximum": 1.0,
+                "minimum": 0.0
+              },
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Employee Share"
+          },
+          "is_active": {
+            "type": "boolean",
+            "title": "Is Active",
+            "default": true
+          },
+          "effective_from": {
+            "type": "string",
+            "format": "date",
+            "title": "Effective From"
+          },
+          "effective_to": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Effective To"
+          },
+          "source_note": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 500
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source Note"
+          }
+        },
+        "type": "object",
+        "required": [
+          "organisation_id",
+          "code",
+          "name",
+          "kind",
+          "effective_from"
+        ],
+        "title": "DeductionTypeCreate"
+      },
+      "DeductionTypePublic": {
+        "properties": {
+          "rule_state": {
+            "$ref": "#/components/schemas/TableState"
+          },
+          "created_by_user_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Created By User Id"
+          },
+          "confirmed_by_user_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Confirmed By User Id"
+          },
+          "confirmed_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Confirmed At"
+          },
+          "confirmation_note": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Confirmation Note"
+          },
+          "organisation_id": {
+            "type": "string",
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Organisation Id"
+          },
+          "code": {
+            "type": "string",
+            "maxLength": 40,
+            "minLength": 1,
+            "title": "Code"
+          },
+          "name": {
+            "type": "string",
+            "maxLength": 120,
+            "minLength": 1,
+            "title": "Name"
+          },
+          "kind": {
+            "$ref": "#/components/schemas/DeductionKind"
+          },
+          "employee_rate": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Employee Rate"
+          },
+          "employer_rate": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Employer Rate"
+          },
+          "employee_amount_minor": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 10000000000.0,
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Employee Amount Minor"
+          },
+          "employer_amount_minor": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 10000000000.0,
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Employer Amount Minor"
+          },
+          "premium_minor": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 10000000000.0,
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Premium Minor"
+          },
+          "employee_share": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Employee Share"
+          },
+          "is_active": {
+            "type": "boolean",
+            "title": "Is Active",
+            "default": true
+          },
+          "effective_from": {
+            "type": "string",
+            "format": "date",
+            "title": "Effective From"
+          },
+          "effective_to": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Effective To"
+          },
+          "source_note": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 500
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source Note"
+          },
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "requires_authorisation": {
+            "type": "boolean",
+            "title": "Requires Authorisation"
+          }
+        },
+        "type": "object",
+        "required": [
+          "rule_state",
+          "created_by_user_id",
+          "confirmed_by_user_id",
+          "confirmed_at",
+          "confirmation_note",
+          "organisation_id",
+          "code",
+          "name",
+          "kind",
+          "effective_from",
+          "id",
+          "requires_authorisation"
+        ],
+        "title": "DeductionTypePublic"
+      },
       "DeliveryAdmin": {
         "properties": {
           "id": {
@@ -74749,6 +77506,378 @@
         "type": "object",
         "title": "EmergencyContactUpdate"
       },
+      "EmployeeBasicPayCreate": {
+        "properties": {
+          "organisation_id": {
+            "type": "string",
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Organisation Id"
+          },
+          "user_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "User Id"
+          },
+          "pay_basis": {
+            "$ref": "#/components/schemas/PayBasis"
+          },
+          "amount_minor": {
+            "type": "integer",
+            "maximum": 100000000.0,
+            "exclusiveMinimum": 0.0,
+            "title": "Amount Minor"
+          },
+          "standard_monthly_hours": {
+            "anyOf": [
+              {
+                "type": "number",
+                "maximum": 744.0,
+                "exclusiveMinimum": 0.0
+              },
+              {
+                "type": "string"
+              }
+            ],
+            "title": "Standard Monthly Hours"
+          },
+          "effective_from": {
+            "type": "string",
+            "format": "date",
+            "title": "Effective From"
+          },
+          "effective_to": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Effective To"
+          },
+          "reason": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 300
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reason"
+          },
+          "calendar_override_reason": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 300,
+                "minLength": 3
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Calendar Override Reason"
+          }
+        },
+        "type": "object",
+        "required": [
+          "organisation_id",
+          "user_id",
+          "pay_basis",
+          "amount_minor",
+          "standard_monthly_hours",
+          "effective_from"
+        ],
+        "title": "EmployeeBasicPayCreate"
+      },
+      "EmployeeBasicPayPublic": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "user_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "User Id"
+          },
+          "employee_name": {
+            "type": "string",
+            "title": "Employee Name"
+          },
+          "organisation_id": {
+            "type": "string",
+            "title": "Organisation Id"
+          },
+          "pay_basis": {
+            "$ref": "#/components/schemas/PayBasis"
+          },
+          "amount_minor": {
+            "type": "integer",
+            "title": "Amount Minor"
+          },
+          "standard_monthly_hours": {
+            "type": "string",
+            "title": "Standard Monthly Hours"
+          },
+          "currency": {
+            "type": "string",
+            "title": "Currency"
+          },
+          "effective_from": {
+            "type": "string",
+            "format": "date",
+            "title": "Effective From"
+          },
+          "effective_to": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Effective To"
+          },
+          "reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reason"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "user_id",
+          "employee_name",
+          "organisation_id",
+          "pay_basis",
+          "amount_minor",
+          "standard_monthly_hours",
+          "currency",
+          "effective_from",
+          "effective_to",
+          "reason"
+        ],
+        "title": "EmployeeBasicPayPublic"
+      },
+      "EmployeeBasicPaysPublic": {
+        "properties": {
+          "data": {
+            "items": {
+              "$ref": "#/components/schemas/EmployeeBasicPayPublic"
+            },
+            "type": "array",
+            "title": "Data"
+          }
+        },
+        "type": "object",
+        "required": [
+          "data"
+        ],
+        "title": "EmployeeBasicPaysPublic"
+      },
+      "EmployeeDeductionCreate": {
+        "properties": {
+          "organisation_id": {
+            "type": "string",
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Organisation Id"
+          },
+          "user_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "User Id"
+          },
+          "deduction_type_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Deduction Type Id"
+          },
+          "employee_amount_minor": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 10000000000.0,
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Employee Amount Minor"
+          },
+          "effective_from": {
+            "type": "string",
+            "format": "date",
+            "title": "Effective From"
+          },
+          "effective_to": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Effective To"
+          },
+          "authorisation_reference": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 200,
+                "minLength": 3
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Authorisation Reference"
+          }
+        },
+        "type": "object",
+        "required": [
+          "organisation_id",
+          "user_id",
+          "deduction_type_id",
+          "effective_from"
+        ],
+        "title": "EmployeeDeductionCreate"
+      },
+      "EmployeeDeductionPublic": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "user_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "User Id"
+          },
+          "organisation_id": {
+            "type": "string",
+            "title": "Organisation Id"
+          },
+          "deduction_type_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Deduction Type Id"
+          },
+          "employee_amount_minor": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Employee Amount Minor"
+          },
+          "effective_from": {
+            "type": "string",
+            "format": "date",
+            "title": "Effective From"
+          },
+          "effective_to": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Effective To"
+          },
+          "authorised_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Authorised At"
+          },
+          "authorisation_reference": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Authorisation Reference"
+          },
+          "employee_confirmed_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Employee Confirmed At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "user_id",
+          "organisation_id",
+          "deduction_type_id",
+          "employee_amount_minor",
+          "effective_from",
+          "effective_to",
+          "authorised_at",
+          "authorisation_reference",
+          "employee_confirmed_at"
+        ],
+        "title": "EmployeeDeductionPublic"
+      },
+      "EmployeeDeductionsPublic": {
+        "properties": {
+          "data": {
+            "items": {
+              "$ref": "#/components/schemas/EmployeeDeductionPublic"
+            },
+            "type": "array",
+            "title": "Data"
+          }
+        },
+        "type": "object",
+        "required": [
+          "data"
+        ],
+        "title": "EmployeeDeductionsPublic"
+      },
       "EmployeeDocumentListPublic": {
         "properties": {
           "can_upload": {
@@ -75044,6 +78173,47 @@
         "title": "EmployeeDocumentUpdate",
         "description": "Correctable metadata only.\n\nCategory is not updatable: moving a MEDICAL document to OTHER would widen who\ncan read it after the fact. Re-file it instead, so the audit trail shows two\nrows rather than one silently reclassified one."
       },
+      "EmployeeGrossPublic": {
+        "properties": {
+          "user_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "User Id"
+          },
+          "employee_name": {
+            "type": "string",
+            "title": "Employee Name"
+          },
+          "employee_number": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Employee Number"
+          },
+          "gross_minor": {
+            "type": "integer",
+            "title": "Gross Minor"
+          },
+          "unpriced_line_count": {
+            "type": "integer",
+            "title": "Unpriced Line Count"
+          }
+        },
+        "type": "object",
+        "required": [
+          "user_id",
+          "employee_name",
+          "employee_number",
+          "gross_minor",
+          "unpriced_line_count"
+        ],
+        "title": "EmployeeGrossPublic"
+      },
       "EmployeePayProfilePublic": {
         "properties": {
           "user_id": {
@@ -75165,6 +78335,19 @@
               }
             ],
             "title": "Payroll Reference"
+          },
+          "calendar_override_reason": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 300,
+                "minLength": 3
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Calendar Override Reason"
           }
         },
         "type": "object",
@@ -75193,6 +78376,63 @@
           "count"
         ],
         "title": "EmployeePayProfilesPublic"
+      },
+      "EmployeePaySummary": {
+        "properties": {
+          "user_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "User Id"
+          },
+          "employee_name": {
+            "type": "string",
+            "title": "Employee Name"
+          },
+          "gross_minor": {
+            "type": "integer",
+            "title": "Gross Minor"
+          },
+          "unpriced_line_count": {
+            "type": "integer",
+            "title": "Unpriced Line Count"
+          },
+          "deductions": {
+            "items": {
+              "$ref": "#/components/schemas/DeductionLinePublic"
+            },
+            "type": "array",
+            "title": "Deductions"
+          },
+          "employee_deductions_minor": {
+            "type": "integer",
+            "title": "Employee Deductions Minor"
+          },
+          "employer_contributions_minor": {
+            "type": "integer",
+            "title": "Employer Contributions Minor"
+          },
+          "net_minor": {
+            "type": "integer",
+            "title": "Net Minor"
+          },
+          "shortfall_minor": {
+            "type": "integer",
+            "title": "Shortfall Minor"
+          }
+        },
+        "type": "object",
+        "required": [
+          "user_id",
+          "employee_name",
+          "gross_minor",
+          "unpriced_line_count",
+          "deductions",
+          "employee_deductions_minor",
+          "employer_contributions_minor",
+          "net_minor",
+          "shortfall_minor"
+        ],
+        "title": "EmployeePaySummary"
       },
       "EmploymentAdminUpdate": {
         "properties": {
@@ -76841,6 +80081,60 @@
           "UNSPECIFIED"
         ],
         "title": "Gender"
+      },
+      "GmsCataloguePublic": {
+        "properties": {
+          "hazard_groups": {
+            "items": {
+              "$ref": "#/components/schemas/CapHazardGroupPublic"
+            },
+            "type": "array",
+            "title": "Hazard Groups"
+          },
+          "category_labels": {
+            "items": {
+              "$ref": "#/components/schemas/CapCategoryLabelPublic"
+            },
+            "type": "array",
+            "title": "Category Labels"
+          },
+          "parishes": {
+            "items": {
+              "$ref": "#/components/schemas/CapParishPublic"
+            },
+            "type": "array",
+            "title": "Parishes"
+          },
+          "products": {
+            "items": {
+              "$ref": "#/components/schemas/CapProductRulePublic"
+            },
+            "type": "array",
+            "title": "Products"
+          },
+          "colours": {
+            "items": {
+              "$ref": "#/components/schemas/CapColourRulePublic"
+            },
+            "type": "array",
+            "title": "Colours"
+          },
+          "geocode_name": {
+            "type": "string",
+            "title": "Geocode Name"
+          }
+        },
+        "type": "object",
+        "required": [
+          "hazard_groups",
+          "category_labels",
+          "parishes",
+          "products",
+          "colours",
+          "geocode_name"
+        ],
+        "title": "GmsCataloguePublic",
+        "description": "GMS warning catalogue: hazard list, parish geocodes, product and colour rules."
       },
       "GmsColour": {
         "type": "string",
@@ -82740,6 +86034,90 @@
         ],
         "title": "MovementKind"
       },
+      "MyDeductionPublic": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "deduction_code": {
+            "type": "string",
+            "title": "Deduction Code"
+          },
+          "deduction_name": {
+            "type": "string",
+            "title": "Deduction Name"
+          },
+          "effective_from": {
+            "type": "string",
+            "format": "date",
+            "title": "Effective From"
+          },
+          "effective_to": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Effective To"
+          },
+          "authorisation_reference": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Authorisation Reference"
+          },
+          "employee_confirmed_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Employee Confirmed At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "deduction_code",
+          "deduction_name",
+          "effective_from",
+          "effective_to",
+          "authorisation_reference",
+          "employee_confirmed_at"
+        ],
+        "title": "MyDeductionPublic"
+      },
+      "MyDeductionsPublic": {
+        "properties": {
+          "data": {
+            "items": {
+              "$ref": "#/components/schemas/MyDeductionPublic"
+            },
+            "type": "array",
+            "title": "Data"
+          }
+        },
+        "type": "object",
+        "required": [
+          "data"
+        ],
+        "title": "MyDeductionsPublic"
+      },
       "MyMembershipPublic": {
         "properties": {
           "membership_id": {
@@ -87231,6 +90609,14 @@
         ],
         "title": "PassportTrailPublic"
       },
+      "PayBasis": {
+        "type": "string",
+        "enum": [
+          "SALARIED",
+          "HOURLY"
+        ],
+        "title": "PayBasis"
+      },
       "PayCalendarCreate": {
         "properties": {
           "organisation_id": {
@@ -87393,7 +90779,8 @@
           "TIME_WINDOW",
           "THRESHOLD_EVENT",
           "OVERTIME_BAND",
-          "MANUAL"
+          "MANUAL",
+          "BASIC_SALARY"
         ],
         "title": "PayItemMethod",
         "description": "How a pay item's quantity is found (``params`` holds the rule's numbers)."
@@ -87490,6 +90877,245 @@
         ],
         "title": "PayItemPublic"
       },
+      "PayItemRateCreate": {
+        "properties": {
+          "pay_item_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Pay Item Id"
+          },
+          "rate_kind": {
+            "$ref": "#/components/schemas/RateKind"
+          },
+          "multiplier": {
+            "anyOf": [
+              {
+                "type": "number",
+                "exclusiveMinimum": 0.0
+              },
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Multiplier"
+          },
+          "amount_minor": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 100000000.0,
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Amount Minor"
+          },
+          "guaranteed_hours": {
+            "anyOf": [
+              {
+                "type": "number",
+                "exclusiveMinimum": 0.0
+              },
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Guaranteed Hours"
+          },
+          "guaranteed_multiplier": {
+            "anyOf": [
+              {
+                "type": "number",
+                "exclusiveMinimum": 0.0
+              },
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Guaranteed Multiplier"
+          },
+          "effective_from": {
+            "type": "string",
+            "format": "date",
+            "title": "Effective From"
+          },
+          "effective_to": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Effective To"
+          },
+          "source_reference": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 300
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source Reference"
+          }
+        },
+        "type": "object",
+        "required": [
+          "pay_item_id",
+          "rate_kind",
+          "effective_from"
+        ],
+        "title": "PayItemRateCreate"
+      },
+      "PayItemRatePublic": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "pay_item_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Pay Item Id"
+          },
+          "organisation_id": {
+            "type": "string",
+            "title": "Organisation Id"
+          },
+          "rate_kind": {
+            "$ref": "#/components/schemas/RateKind"
+          },
+          "multiplier": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Multiplier"
+          },
+          "amount_minor": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Amount Minor"
+          },
+          "guaranteed_hours": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Guaranteed Hours"
+          },
+          "guaranteed_multiplier": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Guaranteed Multiplier"
+          },
+          "currency": {
+            "type": "string",
+            "title": "Currency"
+          },
+          "effective_from": {
+            "type": "string",
+            "format": "date",
+            "title": "Effective From"
+          },
+          "effective_to": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Effective To"
+          },
+          "rule_state": {
+            "$ref": "#/components/schemas/RuleState"
+          },
+          "source_reference": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source Reference"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "pay_item_id",
+          "organisation_id",
+          "rate_kind",
+          "multiplier",
+          "amount_minor",
+          "guaranteed_hours",
+          "guaranteed_multiplier",
+          "currency",
+          "effective_from",
+          "effective_to",
+          "rule_state",
+          "source_reference"
+        ],
+        "title": "PayItemRatePublic"
+      },
+      "PayItemRatesPublic": {
+        "properties": {
+          "data": {
+            "items": {
+              "$ref": "#/components/schemas/PayItemRatePublic"
+            },
+            "type": "array",
+            "title": "Data"
+          }
+        },
+        "type": "object",
+        "required": [
+          "data"
+        ],
+        "title": "PayItemRatesPublic"
+      },
       "PayItemTotal": {
         "properties": {
           "pay_item_id": {
@@ -87564,6 +91190,220 @@
           "overtime_bands_available"
         ],
         "title": "PayItemsPublic"
+      },
+      "PayLineAmountPublic": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "run_kind": {
+            "$ref": "#/components/schemas/PayRunKind"
+          },
+          "line_kind": {
+            "$ref": "#/components/schemas/PayLineKind"
+          },
+          "user_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "User Id"
+          },
+          "employee_name": {
+            "type": "string",
+            "title": "Employee Name"
+          },
+          "employee_number": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Employee Number"
+          },
+          "payroll_reference": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Payroll Reference"
+          },
+          "department_id": {
+            "type": "string",
+            "title": "Department Id"
+          },
+          "pay_item_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Pay Item Id"
+          },
+          "pay_item_code": {
+            "type": "string",
+            "title": "Pay Item Code"
+          },
+          "pay_item_name": {
+            "type": "string",
+            "title": "Pay Item Name"
+          },
+          "unit": {
+            "$ref": "#/components/schemas/PayItemUnit"
+          },
+          "rule_state": {
+            "$ref": "#/components/schemas/RuleState"
+          },
+          "quantity": {
+            "type": "string",
+            "title": "Quantity"
+          },
+          "work_date": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Work Date"
+          },
+          "source_type": {
+            "type": "string",
+            "title": "Source Type"
+          },
+          "source_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source Id"
+          },
+          "reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reason"
+          },
+          "adjusts_period_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Adjusts Period Id"
+          },
+          "adjusts_line_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Adjusts Line Id"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "amount_minor": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Amount Minor"
+          },
+          "hourly_rate": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Hourly Rate"
+          },
+          "multiplier": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Multiplier"
+          },
+          "fixed_amount_minor": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Fixed Amount Minor"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "run_kind",
+          "line_kind",
+          "user_id",
+          "employee_name",
+          "employee_number",
+          "payroll_reference",
+          "department_id",
+          "pay_item_id",
+          "pay_item_code",
+          "pay_item_name",
+          "unit",
+          "rule_state",
+          "quantity",
+          "work_date",
+          "source_type",
+          "source_id",
+          "reason",
+          "adjusts_period_id",
+          "adjusts_line_id",
+          "created_at",
+          "amount_minor",
+          "hourly_rate",
+          "multiplier",
+          "fixed_amount_minor"
+        ],
+        "title": "PayLineAmountPublic"
       },
       "PayLineKind": {
         "type": "string",
@@ -87824,6 +91664,46 @@
           "count"
         ],
         "title": "PayLinesPublic"
+      },
+      "PayPeriodAmountsPublic": {
+        "properties": {
+          "period_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Period Id"
+          },
+          "currency": {
+            "type": "string",
+            "title": "Currency"
+          },
+          "gross_minor": {
+            "type": "integer",
+            "title": "Gross Minor"
+          },
+          "employees": {
+            "items": {
+              "$ref": "#/components/schemas/EmployeeGrossPublic"
+            },
+            "type": "array",
+            "title": "Employees"
+          },
+          "lines": {
+            "items": {
+              "$ref": "#/components/schemas/PayLineAmountPublic"
+            },
+            "type": "array",
+            "title": "Lines"
+          }
+        },
+        "type": "object",
+        "required": [
+          "period_id",
+          "currency",
+          "gross_minor",
+          "employees",
+          "lines"
+        ],
+        "title": "PayPeriodAmountsPublic"
       },
       "PayPeriodCreate": {
         "properties": {
@@ -88117,6 +91997,71 @@
           "ADJUSTMENT"
         ],
         "title": "PayRunKind"
+      },
+      "PaySummaryPublic": {
+        "properties": {
+          "period_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Period Id"
+          },
+          "currency": {
+            "type": "string",
+            "title": "Currency"
+          },
+          "provisional_figures": {
+            "type": "boolean",
+            "title": "Provisional Figures"
+          },
+          "label": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Label"
+          },
+          "blocking_tables": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Blocking Tables"
+          },
+          "issue_approved_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Issue Approved At"
+          },
+          "employees": {
+            "items": {
+              "$ref": "#/components/schemas/EmployeePaySummary"
+            },
+            "type": "array",
+            "title": "Employees"
+          }
+        },
+        "type": "object",
+        "required": [
+          "period_id",
+          "currency",
+          "provisional_figures",
+          "label",
+          "blocking_tables",
+          "issue_approved_at",
+          "employees"
+        ],
+        "title": "PaySummaryPublic"
       },
       "PaymentAttemptPublic": {
         "properties": {
@@ -92130,6 +96075,14 @@
         },
         "type": "object",
         "title": "QcDecisionRequest"
+      },
+      "RateKind": {
+        "type": "string",
+        "enum": [
+          "HOURLY_MULTIPLIER",
+          "FIXED_AMOUNT"
+        ],
+        "title": "RateKind"
       },
       "ReadinessUnavailable": {
         "properties": {
@@ -99312,6 +103265,277 @@
         "title": "SiteSubscribeRequest",
         "description": "Subscribe to the list of the public site named in the path."
       },
+      "SocialInsuranceSchemeCreate": {
+        "properties": {
+          "organisation_id": {
+            "type": "string",
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Organisation Id"
+          },
+          "code": {
+            "type": "string",
+            "maxLength": 40,
+            "minLength": 1,
+            "title": "Code"
+          },
+          "name": {
+            "type": "string",
+            "maxLength": 120,
+            "minLength": 1,
+            "title": "Name"
+          },
+          "employee_rate": {
+            "anyOf": [
+              {
+                "type": "number",
+                "maximum": 1.0,
+                "minimum": 0.0
+              },
+              {
+                "type": "string"
+              }
+            ],
+            "title": "Employee Rate"
+          },
+          "employer_rate": {
+            "anyOf": [
+              {
+                "type": "number",
+                "maximum": 1.0,
+                "minimum": 0.0
+              },
+              {
+                "type": "string"
+              }
+            ],
+            "title": "Employer Rate"
+          },
+          "monthly_ceiling_minor": {
+            "type": "integer",
+            "maximum": 10000000000.0,
+            "minimum": 0.0,
+            "title": "Monthly Ceiling Minor"
+          },
+          "weekly_ceiling_minor": {
+            "type": "integer",
+            "maximum": 10000000000.0,
+            "minimum": 0.0,
+            "title": "Weekly Ceiling Minor"
+          },
+          "fortnightly_ceiling_minor": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 10000000000.0,
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Fortnightly Ceiling Minor"
+          },
+          "effective_from": {
+            "type": "string",
+            "format": "date",
+            "title": "Effective From"
+          },
+          "effective_to": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Effective To"
+          },
+          "source_note": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 500
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source Note"
+          }
+        },
+        "type": "object",
+        "required": [
+          "organisation_id",
+          "code",
+          "name",
+          "employee_rate",
+          "employer_rate",
+          "monthly_ceiling_minor",
+          "weekly_ceiling_minor",
+          "effective_from"
+        ],
+        "title": "SocialInsuranceSchemeCreate"
+      },
+      "SocialInsuranceSchemePublic": {
+        "properties": {
+          "rule_state": {
+            "$ref": "#/components/schemas/TableState"
+          },
+          "created_by_user_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Created By User Id"
+          },
+          "confirmed_by_user_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Confirmed By User Id"
+          },
+          "confirmed_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Confirmed At"
+          },
+          "confirmation_note": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Confirmation Note"
+          },
+          "organisation_id": {
+            "type": "string",
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Organisation Id"
+          },
+          "code": {
+            "type": "string",
+            "maxLength": 40,
+            "minLength": 1,
+            "title": "Code"
+          },
+          "name": {
+            "type": "string",
+            "maxLength": 120,
+            "minLength": 1,
+            "title": "Name"
+          },
+          "employee_rate": {
+            "type": "string",
+            "title": "Employee Rate"
+          },
+          "employer_rate": {
+            "type": "string",
+            "title": "Employer Rate"
+          },
+          "monthly_ceiling_minor": {
+            "type": "integer",
+            "maximum": 10000000000.0,
+            "minimum": 0.0,
+            "title": "Monthly Ceiling Minor"
+          },
+          "weekly_ceiling_minor": {
+            "type": "integer",
+            "maximum": 10000000000.0,
+            "minimum": 0.0,
+            "title": "Weekly Ceiling Minor"
+          },
+          "fortnightly_ceiling_minor": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 10000000000.0,
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Fortnightly Ceiling Minor"
+          },
+          "effective_from": {
+            "type": "string",
+            "format": "date",
+            "title": "Effective From"
+          },
+          "effective_to": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Effective To"
+          },
+          "source_note": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 500
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source Note"
+          },
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          }
+        },
+        "type": "object",
+        "required": [
+          "rule_state",
+          "created_by_user_id",
+          "confirmed_by_user_id",
+          "confirmed_at",
+          "confirmation_note",
+          "organisation_id",
+          "code",
+          "name",
+          "employee_rate",
+          "employer_rate",
+          "monthly_ceiling_minor",
+          "weekly_ceiling_minor",
+          "effective_from",
+          "id"
+        ],
+        "title": "SocialInsuranceSchemePublic"
+      },
       "StaffCard": {
         "properties": {
           "email_verified": {
@@ -101134,6 +105358,38 @@
           "entries"
         ],
         "title": "StatusStaffingPublic"
+      },
+      "StatutoryTablesPublic": {
+        "properties": {
+          "tax_tables": {
+            "items": {
+              "$ref": "#/components/schemas/TaxTablePublic"
+            },
+            "type": "array",
+            "title": "Tax Tables"
+          },
+          "social_insurance": {
+            "items": {
+              "$ref": "#/components/schemas/SocialInsuranceSchemePublic"
+            },
+            "type": "array",
+            "title": "Social Insurance"
+          },
+          "deduction_types": {
+            "items": {
+              "$ref": "#/components/schemas/DeductionTypePublic"
+            },
+            "type": "array",
+            "title": "Deduction Types"
+          }
+        },
+        "type": "object",
+        "required": [
+          "tax_tables",
+          "social_insurance",
+          "deduction_types"
+        ],
+        "title": "StatutoryTablesPublic"
       },
       "StockLevelListPublic": {
         "properties": {
@@ -103121,6 +107377,65 @@
         ],
         "title": "SynopticSlots"
       },
+      "TableState": {
+        "type": "string",
+        "enum": [
+          "PROVISIONAL",
+          "OWNER_CONFIRMED",
+          "CONFIRMED"
+        ],
+        "title": "TableState",
+        "description": "PROVISIONAL tables can be previewed but never approved for issue."
+      },
+      "TableStatePublic": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "rule_state": {
+            "$ref": "#/components/schemas/TableState"
+          },
+          "source_note": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source Note"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "rule_state",
+          "source_note"
+        ],
+        "title": "TableStatePublic"
+      },
+      "TableStateUpdate": {
+        "properties": {
+          "rule_state": {
+            "$ref": "#/components/schemas/TableState"
+          },
+          "note": {
+            "type": "string",
+            "maxLength": 200,
+            "minLength": 3,
+            "title": "Note"
+          }
+        },
+        "type": "object",
+        "required": [
+          "rule_state",
+          "note"
+        ],
+        "title": "TableStateUpdate"
+      },
       "TaskCreate": {
         "properties": {
           "activity": {
@@ -103227,6 +107542,307 @@
           "mode"
         ],
         "title": "TaskView"
+      },
+      "TaxBandCreate": {
+        "properties": {
+          "width_minor": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 10000000000.0,
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Width Minor"
+          },
+          "rate": {
+            "anyOf": [
+              {
+                "type": "number",
+                "maximum": 1.0,
+                "minimum": 0.0
+              },
+              {
+                "type": "string"
+              }
+            ],
+            "title": "Rate"
+          }
+        },
+        "type": "object",
+        "required": [
+          "rate"
+        ],
+        "title": "TaxBandCreate"
+      },
+      "TaxBandPublic": {
+        "properties": {
+          "width_minor": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 10000000000.0,
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Width Minor"
+          },
+          "rate": {
+            "type": "string",
+            "title": "Rate"
+          },
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "sort_order": {
+            "type": "integer",
+            "title": "Sort Order"
+          }
+        },
+        "type": "object",
+        "required": [
+          "rate",
+          "id",
+          "sort_order"
+        ],
+        "title": "TaxBandPublic"
+      },
+      "TaxMethod": {
+        "type": "string",
+        "enum": [
+          "ANNUALISED"
+        ],
+        "title": "TaxMethod"
+      },
+      "TaxTableCreate": {
+        "properties": {
+          "organisation_id": {
+            "type": "string",
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Organisation Id"
+          },
+          "code": {
+            "type": "string",
+            "maxLength": 40,
+            "minLength": 1,
+            "title": "Code"
+          },
+          "name": {
+            "type": "string",
+            "maxLength": 120,
+            "minLength": 1,
+            "title": "Name"
+          },
+          "method": {
+            "$ref": "#/components/schemas/TaxMethod",
+            "default": "ANNUALISED"
+          },
+          "annual_allowance_minor": {
+            "type": "integer",
+            "maximum": 10000000000.0,
+            "minimum": 0.0,
+            "title": "Annual Allowance Minor"
+          },
+          "deduct_social_insurance": {
+            "type": "boolean",
+            "title": "Deduct Social Insurance",
+            "default": false
+          },
+          "effective_from": {
+            "type": "string",
+            "format": "date",
+            "title": "Effective From"
+          },
+          "effective_to": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Effective To"
+          },
+          "source_note": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 500
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source Note"
+          },
+          "bands": {
+            "items": {
+              "$ref": "#/components/schemas/TaxBandCreate"
+            },
+            "type": "array",
+            "maxItems": 20,
+            "minItems": 1,
+            "title": "Bands"
+          }
+        },
+        "type": "object",
+        "required": [
+          "organisation_id",
+          "code",
+          "name",
+          "annual_allowance_minor",
+          "effective_from",
+          "bands"
+        ],
+        "title": "TaxTableCreate"
+      },
+      "TaxTablePublic": {
+        "properties": {
+          "rule_state": {
+            "$ref": "#/components/schemas/TableState"
+          },
+          "created_by_user_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Created By User Id"
+          },
+          "confirmed_by_user_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Confirmed By User Id"
+          },
+          "confirmed_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Confirmed At"
+          },
+          "confirmation_note": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Confirmation Note"
+          },
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "organisation_id": {
+            "type": "string",
+            "title": "Organisation Id"
+          },
+          "code": {
+            "type": "string",
+            "title": "Code"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "method": {
+            "$ref": "#/components/schemas/TaxMethod"
+          },
+          "annual_allowance_minor": {
+            "type": "integer",
+            "title": "Annual Allowance Minor"
+          },
+          "deduct_social_insurance": {
+            "type": "boolean",
+            "title": "Deduct Social Insurance"
+          },
+          "effective_from": {
+            "type": "string",
+            "format": "date",
+            "title": "Effective From"
+          },
+          "effective_to": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Effective To"
+          },
+          "source_note": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source Note"
+          },
+          "bands": {
+            "items": {
+              "$ref": "#/components/schemas/TaxBandPublic"
+            },
+            "type": "array",
+            "title": "Bands",
+            "default": []
+          }
+        },
+        "type": "object",
+        "required": [
+          "rule_state",
+          "created_by_user_id",
+          "confirmed_by_user_id",
+          "confirmed_at",
+          "confirmation_note",
+          "id",
+          "organisation_id",
+          "code",
+          "name",
+          "method",
+          "annual_allowance_minor",
+          "deduct_social_insurance",
+          "effective_from",
+          "effective_to",
+          "source_note"
+        ],
+        "title": "TaxTablePublic"
       },
       "TeamCapabilitiesPublic": {
         "properties": {

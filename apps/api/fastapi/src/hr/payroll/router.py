@@ -8,20 +8,33 @@ from fastapi import APIRouter, Depends, Path, Query, Response, status
 from src.dependencies import CurrentUser, SessionDep, TokenDep
 from src.models import ApiError
 
-from . import overtime, service
+from . import deductions, gross, overtime, service
 from .models import PayItem, PayPeriod
 from .schemas import (
+    DeductionTypeCreate,
+    DeductionTypePublic,
+    EmployeeBasicPayCreate,
+    EmployeeBasicPayPublic,
+    EmployeeBasicPaysPublic,
+    EmployeeDeductionCreate,
+    EmployeeDeductionPublic,
+    EmployeeDeductionsPublic,
     EmployeePayProfilePublic,
     EmployeePayProfilesPublic,
     EmployeePayProfileUpdate,
+    MyDeductionsPublic,
     PayCalendarCreate,
     PayCalendarPublic,
     PayCalendarsPublic,
     PayItemPublic,
+    PayItemRateCreate,
+    PayItemRatePublic,
+    PayItemRatesPublic,
     PayItemsPublic,
     PayLineManualCreate,
     PayLinePublic,
     PayLinesPublic,
+    PayPeriodAmountsPublic,
     PayPeriodCreate,
     PayPeriodDetail,
     PayPeriodPublic,
@@ -31,6 +44,14 @@ from .schemas import (
     PayrollDepartmentSettingPublic,
     PayrollDepartmentSettingsPublic,
     PayrollDepartmentSettingUpdate,
+    PaySummaryPublic,
+    SocialInsuranceSchemeCreate,
+    SocialInsuranceSchemePublic,
+    StatutoryTablesPublic,
+    TableStatePublic,
+    TableStateUpdate,
+    TaxTableCreate,
+    TaxTablePublic,
 )
 
 
@@ -537,4 +558,380 @@ async def update_department_setting(
     )
     return PayrollDepartmentSettingPublic(
         department_id=row[0], department_name=row[1], shift_worker_default=row[2]
+    )
+
+
+# ── Slice 2: gross pay. Organisation-wide hr.payroll.read.amounts only. ───────
+
+
+@router.get(
+    "/periods/{period_id}/amounts",
+    response_model=PayPeriodAmountsPublic,
+    status_code=status.HTTP_200_OK,
+    summary="Read a pay period's gross amounts",
+    description="Amounts in minor units per line and per employee. Needs organisation-wide hr.payroll.read.amounts; department readers never receive amounts, and no quantity route carries money.",
+    operation_id="hrGetPayPeriodAmounts",
+    responses=ERRORS,
+)
+async def read_period_amounts(
+    *, session: SessionDep, current_user: CurrentUser, period_id: uuid.UUID
+) -> PayPeriodAmountsPublic:
+    data = await gross.list_amounts(session, current_user, period_id)
+    return PayPeriodAmountsPublic.model_validate(data)
+
+
+@router.get(
+    "/rates",
+    response_model=PayItemRatesPublic,
+    status_code=status.HTTP_200_OK,
+    summary="List pay item rates",
+    description="Dated multipliers and fixed amounts. Needs organisation-wide hr.payroll.read.amounts or hr.payroll.rates.manage.",
+    operation_id="hrListPayItemRates",
+    responses=ERRORS,
+)
+async def list_rates(
+    *,
+    session: SessionDep,
+    current_user: CurrentUser,
+    organisation_id: Annotated[str, Query(max_length=100)],
+) -> PayItemRatesPublic:
+    rows = await gross.list_rates(session, current_user, organisation_id)
+    return PayItemRatesPublic(
+        data=[PayItemRatePublic.model_validate(r, from_attributes=True) for r in rows]
+    )
+
+
+@router.post(
+    "/rates",
+    response_model=PayItemRatePublic,
+    status_code=status.HTTP_201_CREATED,
+    summary="Add a dated pay item rate",
+    description="Needs organisation-wide hr.payroll.rates.manage and a session verified with two-step verification. An open-ended earlier rate ends the day before.",
+    operation_id="hrCreatePayItemRate",
+    responses=ERRORS,
+)
+async def create_rate(
+    *,
+    session: SessionDep,
+    current_user: CurrentUser,
+    token: TokenDep,
+    payload: PayItemRateCreate,
+) -> PayItemRatePublic:
+    rate = await gross.create_rate(session, current_user, payload, token=token)
+    return PayItemRatePublic.model_validate(rate, from_attributes=True)
+
+
+def _basic_public(row: Any, name: str) -> EmployeeBasicPayPublic:
+    return EmployeeBasicPayPublic.model_validate(
+        {
+            **{
+                column: getattr(row, column)
+                for column in EmployeeBasicPayPublic.model_fields
+                if column != "employee_name"
+            },
+            "employee_name": name,
+        }
+    )
+
+
+@router.get(
+    "/basic-pay",
+    response_model=EmployeeBasicPaysPublic,
+    status_code=status.HTTP_200_OK,
+    summary="List dated basic pay",
+    description="Needs organisation-wide hr.payroll.read.amounts or hr.payroll.rates.manage.",
+    operation_id="hrListEmployeeBasicPay",
+    responses=ERRORS,
+)
+async def list_basic_pay(
+    *,
+    session: SessionDep,
+    current_user: CurrentUser,
+    organisation_id: Annotated[str, Query(max_length=100)],
+    user_id: uuid.UUID | None = None,
+) -> EmployeeBasicPaysPublic:
+    rows = await gross.list_basic_pay(session, current_user, organisation_id, user_id)
+    return EmployeeBasicPaysPublic(data=[_basic_public(r, n) for r, n in rows])
+
+
+@router.post(
+    "/basic-pay",
+    response_model=EmployeeBasicPayPublic,
+    status_code=status.HTTP_201_CREATED,
+    summary="Record dated basic pay",
+    description="Needs organisation-wide hr.payroll.rates.manage and a session verified with two-step verification. Nobody sets their own. An hourly-paid person on a calendar longer than fortnightly needs an override reason.",
+    operation_id="hrCreateEmployeeBasicPay",
+    responses=ERRORS,
+)
+async def create_basic_pay(
+    *,
+    session: SessionDep,
+    current_user: CurrentUser,
+    token: TokenDep,
+    payload: EmployeeBasicPayCreate,
+) -> EmployeeBasicPayPublic:
+    basic = await gross.create_basic_pay(session, current_user, payload, token=token)
+    name = await service.employee_name(session, basic.user_id)
+    return _basic_public(basic, name)
+
+
+# ── Slice 3: deductions. Organisation-wide amounts, approval or rates keys. ───
+
+TableKind = Annotated[str, Path(pattern="^(tax|social-insurance|deduction)$")]
+
+
+@router.get(
+    "/periods/{period_id}/pay-summary",
+    response_model=PaySummaryPublic,
+    status_code=status.HTTP_200_OK,
+    summary="Preview gross, deductions and net pay",
+    description="Per employee. Needs organisation-wide hr.payroll.read.amounts. Marked 'Provisional figures' while an income tax or social insurance table used is provisional.",
+    operation_id="hrGetPayPeriodSummary",
+    responses=ERRORS,
+)
+async def read_pay_summary(
+    *, session: SessionDep, current_user: CurrentUser, period_id: uuid.UUID
+) -> PaySummaryPublic:
+    return PaySummaryPublic.model_validate(
+        await deductions.pay_summary(session, current_user, period_id)
+    )
+
+
+@router.post(
+    "/periods/{period_id}/issue-approval",
+    response_model=PayPeriodDetail,
+    status_code=status.HTTP_200_OK,
+    summary="Approve a pay period's money figures for issue",
+    description="Needs organisation-wide hr.payroll.approve and two-step verification; never the preparer. Refused (409) while an income tax or social insurance table used is provisional, or a line is unpriced.",
+    operation_id="hrApprovePayPeriodForIssue",
+    responses=ERRORS,
+)
+async def approve_for_issue(
+    *,
+    session: SessionDep,
+    current_user: CurrentUser,
+    token: TokenDep,
+    period_id: uuid.UUID,
+) -> PayPeriodDetail:
+    await deductions.approve_for_issue(session, current_user, period_id, token=token)
+    return await _detail(session, current_user, period_id)
+
+
+@router.post(
+    "/periods/{period_id}/table-state-refresh",
+    response_model=PayPeriodDetail,
+    status_code=status.HTTP_200_OK,
+    summary="Refresh a period's table states before issue",
+    description="After a table is confirmed, copies the current state of each table onto an approved period's deduction lines (state only, no figures change) so it can be approved for issue. Audited. Needs organisation-wide hr.payroll.approve and hr.payroll.read.amounts and two-step verification; never someone excluded from approving the period; only for an approved, unclosed period before issue approval. Returns quantities only.",
+    operation_id="hrRefreshPayPeriodTableState",
+    responses=ERRORS,
+)
+async def refresh_table_state(
+    *,
+    session: SessionDep,
+    current_user: CurrentUser,
+    token: TokenDep,
+    period_id: uuid.UUID,
+) -> PayPeriodDetail:
+    await deductions.refresh_table_state(session, current_user, period_id, token=token)
+    return await _detail(session, current_user, period_id)
+
+
+@router.get(
+    "/statutory-tables",
+    response_model=StatutoryTablesPublic,
+    status_code=status.HTTP_200_OK,
+    summary="List tax, social insurance and deduction tables",
+    description="Dated tables with their rule state and source. Needs organisation-wide hr.payroll.read.amounts or hr.payroll.rates.manage.",
+    operation_id="hrListStatutoryTables",
+    responses=ERRORS,
+)
+async def list_statutory_tables(
+    *,
+    session: SessionDep,
+    current_user: CurrentUser,
+    organisation_id: Annotated[str, Query(max_length=100)],
+) -> StatutoryTablesPublic:
+    return StatutoryTablesPublic.model_validate(
+        await deductions.list_tables(session, current_user, organisation_id)
+    )
+
+
+@router.post(
+    "/tax-tables",
+    response_model=TaxTablePublic,
+    status_code=status.HTTP_201_CREATED,
+    summary="Add a dated income tax table",
+    description="Annual allowance and bands (the last band has no limit). Needs organisation-wide hr.payroll.rates.manage and two-step verification.",
+    operation_id="hrCreateTaxTable",
+    responses=ERRORS,
+)
+async def create_tax_table(
+    *,
+    session: SessionDep,
+    current_user: CurrentUser,
+    token: TokenDep,
+    payload: TaxTableCreate,
+) -> TaxTablePublic:
+    table = await deductions.create_tax_table(
+        session, current_user, payload, token=token
+    )
+    data = await deductions.list_tables(session, current_user, table.organisation_id)
+    return TaxTablePublic.model_validate(
+        next(t for t in data["tax_tables"] if t["id"] == table.id)
+    )
+
+
+@router.post(
+    "/social-insurance-schemes",
+    response_model=SocialInsuranceSchemePublic,
+    status_code=status.HTTP_201_CREATED,
+    summary="Add a dated social insurance scheme",
+    description="Employee and employer rates with monthly and weekly insurable ceilings. Needs organisation-wide hr.payroll.rates.manage and two-step verification.",
+    operation_id="hrCreateSocialInsuranceScheme",
+    responses=ERRORS,
+)
+async def create_scheme(
+    *,
+    session: SessionDep,
+    current_user: CurrentUser,
+    token: TokenDep,
+    payload: SocialInsuranceSchemeCreate,
+) -> SocialInsuranceSchemePublic:
+    scheme = await deductions.create_scheme(session, current_user, payload, token=token)
+    return SocialInsuranceSchemePublic.model_validate(scheme, from_attributes=True)
+
+
+@router.post(
+    "/deduction-types",
+    response_model=DeductionTypePublic,
+    status_code=status.HTTP_201_CREATED,
+    summary="Add a dated deduction type",
+    description="Percentage of basic or gross, fixed, or a split premium; may require the employee's authorisation. Needs organisation-wide hr.payroll.rates.manage and two-step verification.",
+    operation_id="hrCreateDeductionType",
+    responses=ERRORS,
+)
+async def create_deduction_type(
+    *,
+    session: SessionDep,
+    current_user: CurrentUser,
+    token: TokenDep,
+    payload: DeductionTypeCreate,
+) -> DeductionTypePublic:
+    kind = await deductions.create_deduction_type(
+        session, current_user, payload, token=token
+    )
+    return DeductionTypePublic.model_validate(kind, from_attributes=True)
+
+
+@router.put(
+    "/statutory-tables/{kind}/{table_id}/state",
+    response_model=TableStatePublic,
+    status_code=status.HTTP_200_OK,
+    summary="Confirm or reopen a table",
+    description="Sets PROVISIONAL, OWNER_CONFIRMED or CONFIRMED with a note, recorded in the change history. Needs organisation-wide hr.payroll.tables.confirm and two-step verification; never the table's creator.",
+    operation_id="hrSetStatutoryTableState",
+    responses=ERRORS,
+)
+async def set_table_state(
+    *,
+    session: SessionDep,
+    current_user: CurrentUser,
+    token: TokenDep,
+    kind: TableKind,
+    table_id: uuid.UUID,
+    payload: TableStateUpdate,
+) -> TableStatePublic:
+    record = await deductions.set_table_state(
+        session, current_user, kind, table_id, payload, token=token
+    )
+    return TableStatePublic(
+        id=record.id, rule_state=record.rule_state, source_note=record.source_note
+    )
+
+
+@router.get(
+    "/employee-deductions",
+    response_model=EmployeeDeductionsPublic,
+    status_code=status.HTTP_200_OK,
+    summary="List employee deduction enrolments",
+    description="Needs organisation-wide hr.payroll.read.amounts or hr.payroll.rates.manage.",
+    operation_id="hrListEmployeeDeductions",
+    responses=ERRORS,
+)
+async def list_employee_deductions(
+    *,
+    session: SessionDep,
+    current_user: CurrentUser,
+    organisation_id: Annotated[str, Query(max_length=100)],
+    user_id: uuid.UUID | None = None,
+) -> EmployeeDeductionsPublic:
+    rows = await deductions.list_employee_deductions(
+        session, current_user, organisation_id, user_id
+    )
+    return EmployeeDeductionsPublic(
+        data=[
+            EmployeeDeductionPublic.model_validate(r, from_attributes=True)
+            for r in rows
+        ]
+    )
+
+
+@router.post(
+    "/employee-deductions",
+    response_model=EmployeeDeductionPublic,
+    status_code=status.HTTP_201_CREATED,
+    summary="Enrol an employee in a deduction",
+    description="A deduction that requires authorisation is only taken once its authorisation reference is recorded. Needs organisation-wide hr.payroll.rates.manage and two-step verification.",
+    operation_id="hrCreateEmployeeDeduction",
+    responses=ERRORS,
+)
+async def create_employee_deduction(
+    *,
+    session: SessionDep,
+    current_user: CurrentUser,
+    token: TokenDep,
+    payload: EmployeeDeductionCreate,
+) -> EmployeeDeductionPublic:
+    row = await deductions.create_employee_deduction(
+        session, current_user, payload, token=token
+    )
+    return EmployeeDeductionPublic.model_validate(row, from_attributes=True)
+
+
+@router.get(
+    "/me/deductions",
+    response_model=MyDeductionsPublic,
+    status_code=status.HTTP_200_OK,
+    summary="List my deductions",
+    description="Deductions set up for the caller, and whether they have confirmed each. Needs hr.payroll.read.self.",
+    operation_id="hrListMyDeductions",
+    responses=ERRORS,
+)
+async def list_my_deductions(
+    *, session: SessionDep, current_user: CurrentUser
+) -> MyDeductionsPublic:
+    return MyDeductionsPublic.model_validate(
+        {"data": await deductions.my_deductions(session, current_user)}
+    )
+
+
+@router.post(
+    "/me/deductions/{deduction_id}/confirmation",
+    response_model=MyDeductionsPublic,
+    status_code=status.HTTP_200_OK,
+    summary="Confirm a deduction set up for me",
+    description="The employee confirms a deduction whose signed authorisation HR has recorded; it is not deducted before this. Needs hr.payroll.read.self.",
+    operation_id="hrConfirmMyDeduction",
+    responses=ERRORS,
+)
+async def confirm_my_deduction(
+    *, session: SessionDep, current_user: CurrentUser, deduction_id: uuid.UUID
+) -> MyDeductionsPublic:
+    return MyDeductionsPublic.model_validate(
+        {
+            "data": await deductions.confirm_my_deduction(
+                session, current_user, deduction_id
+            )
+        }
     )

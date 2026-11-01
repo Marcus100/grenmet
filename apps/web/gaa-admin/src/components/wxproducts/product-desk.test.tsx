@@ -13,6 +13,8 @@ import {
 } from "@testing-library/react";
 import type { ReactElement } from "react";
 import { beforeEach, expect, it, vi } from "vitest";
+import { GmsCatalogueProvider } from "@/components/cap/gms-catalogue";
+import { gmsCatalogueFixture } from "@/test/cap-gms-catalogue.fixture";
 import { ProductDesk } from "./product-desk";
 
 const PUBLICATION_CONFIRMATION = /checked the content/;
@@ -95,17 +97,19 @@ vi.mock("@barrelsgd/gms/components/product-content", () => ({
 
 function render(ui: ReactElement) {
   return baseRender(
-    <SessionUserProvider
-      user={{
-        id: "u-1",
-        email: "forecaster@gms.gd",
-        full_name: "Signed In Forecaster",
-        is_active: true,
-        is_superuser: false,
-      }}
-    >
-      {ui}
-    </SessionUserProvider>
+    <GmsCatalogueProvider catalogue={gmsCatalogueFixture}>
+      <SessionUserProvider
+        user={{
+          id: "u-1",
+          email: "forecaster@gms.gd",
+          full_name: "Signed In Forecaster",
+          is_active: true,
+          is_superuser: false,
+        }}
+      >
+        {ui}
+      </SessionUserProvider>
+    </GmsCatalogueProvider>
   );
 }
 beforeEach(() => {

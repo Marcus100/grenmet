@@ -1,6 +1,7 @@
 import { capInsertTargets } from "@barrelsgd/gms/products";
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { fireEvent, screen, waitFor } from "@testing-library/react";
 import { afterEach, expect, it, vi } from "vitest";
+import { renderWithGmsCatalogue as render } from "@/test/with-gms-catalogue";
 import { CapForecastPicker } from "./cap-forecast-picker";
 
 const RESPONSE_LABEL = /Response:/;

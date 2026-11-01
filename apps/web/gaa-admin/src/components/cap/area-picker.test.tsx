@@ -1,5 +1,6 @@
-import { fireEvent, render, screen } from "@testing-library/react";
+import { fireEvent, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
+import { renderWithGmsCatalogue as render } from "@/test/with-gms-catalogue";
 import { AreaPicker } from "./area-picker";
 
 vi.mock("react-map-gl/maplibre", () => ({

@@ -13,6 +13,7 @@ export const payItemMethodSchema = z
     "THRESHOLD_EVENT",
     "OVERTIME_BAND",
     "MANUAL",
+    "BASIC_SALARY",
   ])
   .describe(
     "How a pay item's quantity is found (``params`` holds the rule's numbers)."
