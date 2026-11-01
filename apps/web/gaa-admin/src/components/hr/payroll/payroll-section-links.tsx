@@ -4,6 +4,7 @@ const SECTIONS = [
   { href: "/hr/payroll", label: "Payroll inputs" },
   { href: "/hr/payroll/pay-rates", label: "Pay rates" },
   { href: "/hr/payroll/tables", label: "Tax and deductions" },
+  { href: "/hr/payroll/export-settings", label: "Bank and GL export" },
   { href: "/hr/payroll/my-payslips", label: "My payslips" },
   { href: "/hr/payroll/my-deductions", label: "My deductions" },
 ] as const;
