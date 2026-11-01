@@ -797,8 +797,10 @@ async def public_current_conditions(
     summary="MBIA month-to-date summary",
     description=(
         "Anonymous. Rainfall, rain days (24 h total of at least 0.2 mm, WMO), "
-        "highest and lowest temperature from non-rejected SYNOPs for station "
-        "78958, for one UTC month (default: the current month to date). "
+        "heavy rain days (10 mm or more) and dry spells (under 1 mm; Climpact "
+        "R10mm and CDD), highest and lowest temperature, mean wind with the "
+        "prevailing direction and the top gust, from non-rejected SYNOPs for "
+        "station 78958, for one UTC month (default: the current month to date). "
         "Provisional until every contributing reading is accepted. `summary` is "
         "null with no readings; individual figures are null when not reported, "
         "never zero. Returns 503 when the register is unavailable."

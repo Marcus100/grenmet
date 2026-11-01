@@ -20,6 +20,13 @@ const nextConfig: NextConfig = {
   // Do not advertise the framework in every response.
   poweredByHeader: false,
   reactCompiler: true,
+  experimental: {
+    // Server actions default to a 1 MB body. The desk's CAP import accepts up
+    // to 5 MiB of XML (apps/api/fastapi/src/cap/validation.py) and JSON
+    // escaping adds some overhead, so 6 MB is the smallest limit that never
+    // refuses a document the API would take. The form checks the size first.
+    serverActions: { bodySizeLimit: "6mb" },
+  },
   output: "standalone",
   outputFileTracingRoot: fileURLToPath(new URL("../../..", import.meta.url)),
   headers: async () => [

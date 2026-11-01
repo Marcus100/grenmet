@@ -478,7 +478,7 @@ function NewAlertEditorContent({
               product={product}
             />
             <SectorCheckboxes onChange={setSectors} value={sectors} />
-            <div className="grid gap-4 sm:grid-cols-3">
+            <div className="grid min-w-0 gap-4">
               {/* A colour fixes CAP severity; only an Outlook (or a message
                   before a product is chosen) assesses it directly. */}
               {colour ? (

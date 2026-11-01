@@ -3,8 +3,35 @@ import { describe, expect, it } from "vitest";
 import { Footer } from "@/components/footer";
 
 const PATH_START = /^M/;
+const EMAIL_OR_BROWSER = /email or browser notifications/;
+const NO_APP = /the app/;
 
 describe("Footer", () => {
+  it("opens with the alerts sign-up and emergency advice", () => {
+    render(<Footer />);
+    const alerts = screen.getByRole("region", {
+      name: "Get official alerts first",
+    });
+    expect(
+      within(alerts).getByRole("link", { name: "Get alerts" })
+    ).toHaveAttribute("href", "/alerts/get-alerts");
+    // Email and browser notifications are the channels offered; there is no app yet.
+    expect(within(alerts).getByText(EMAIL_OR_BROWSER)).toBeVisible();
+    expect(within(alerts).queryByText(NO_APP)).not.toBeInTheDocument();
+    const emergency = screen.getByRole("region", { name: "In an emergency" });
+    expect(emergency).toHaveTextContent("Call 911");
+  });
+
+  it("lists the published contact details as tap-to-call and email links", () => {
+    render(<Footer />);
+    expect(
+      screen.getByRole("link", { name: "Main line +1 473 444 4142" })
+    ).toHaveAttribute("href", "tel:+14734444142");
+    expect(
+      screen.getByRole("link", { name: "meteorology@gaa.gd" })
+    ).toHaveAttribute("href", "mailto:meteorology@gaa.gd");
+  });
+
   it("names each social network, with an icon or its name", () => {
     render(<Footer />);
     const list = screen.getByRole("list", { name: "GMS on social media" });
@@ -37,9 +64,10 @@ describe("Footer", () => {
 
   it("aligns its rows to the page column like the header", () => {
     const { container } = render(<Footer />);
-    // Both rows (link columns, legal line) sit in a centred max-w-6xl box.
+    // All three rows (alerts and emergency, link columns, legal line) sit in a
+    // centred max-w-6xl box.
     const rows = [...container.querySelectorAll("footer .mx-auto.max-w-6xl")];
-    expect(rows).toHaveLength(2);
+    expect(rows).toHaveLength(3);
   });
 
   it("keeps the four link columns and the legal row", () => {

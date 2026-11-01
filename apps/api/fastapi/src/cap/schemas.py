@@ -3,6 +3,7 @@ import re
 import uuid
 from enum import Enum
 from typing import Annotated, Any, Literal
+from urllib.parse import urlsplit
 
 from pydantic import (
     AwareDatetime,
@@ -481,11 +482,54 @@ class CapSettingsUpdate(BaseModel):
         max_length=120,
         description="WMO OID of the form 2.49.0.1.<country>.<authority>, digits and dots only. Empty clears it.",
     )
-    web: str | None = Field(default=None, max_length=500)
-    contact: str | None = Field(default=None, max_length=500)
+    web: str | None = Field(
+        default=None,
+        max_length=500,
+        description="Public web address of the service, https only. Empty clears it.",
+    )
+    contact: str | None = Field(
+        default=None,
+        max_length=500,
+        description="Plain-text contact details: no control characters or angle brackets. Empty clears it.",
+    )
     feed_limit: int | None = Field(default=None, ge=1, le=500)
     signing_enabled: bool | None = None
     signing_certificate_ref: str | None = Field(default=None, max_length=255)
+
+    @field_validator("web")
+    @classmethod
+    def _web_is_https_address(cls, value: str | None) -> str | None:
+        """An https web address with a host and no credentials, spaces or quotes."""
+        if value is None or not value.strip():
+            return None
+        value = value.strip()
+        if re.search(r"[\s\x00-\x1f\x7f\"<>]", value):
+            raise ValueError(
+                "web must be one https web address with no spaces, quotes or angle brackets."
+            )
+        try:
+            parts = urlsplit(value)
+            _ = parts.port  # raises ValueError for a bad port
+        except ValueError as exc:
+            raise ValueError("web must be a valid https web address.") from exc
+        if parts.scheme.lower() != "https" or not parts.hostname:
+            raise ValueError("web must be an https web address with a host.")
+        if parts.username or parts.password:
+            raise ValueError("web must not contain a username or password.")
+        return value
+
+    @field_validator("contact")
+    @classmethod
+    def _contact_is_plain_text(cls, value: str | None) -> str | None:
+        """Plain text: no control characters or line breaks, no angle brackets."""
+        if value is None or not value.strip():
+            return None
+        value = value.strip()
+        if re.search(r"[\x00-\x1f\x7f<>]", value):
+            raise ValueError(
+                "contact must be plain text: no control characters, line breaks or angle brackets."
+            )
+        return value
 
     @field_validator("wmo_oid")
     @classmethod

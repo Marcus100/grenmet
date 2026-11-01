@@ -15,7 +15,14 @@ from starlette.requests import Request
 
 from src.audit import registry
 from src.audit import service as audit
-from src.auth import email_verification, modern_service, service, superuser_mfa, totp
+from src.auth import (
+    email_verification,
+    modern_service,
+    service,
+    sign_in_setup,
+    superuser_mfa,
+    totp,
+)
 from src.auth.config import auth_settings
 from src.auth.models import Session as LoginSession
 from src.auth.models import User
@@ -269,6 +276,16 @@ async def resend_verification(
 
 
 async def confirm_activation(session: AsyncSession, body: ActivationConfirm) -> None:
+    # Administrator-issued sign-in setup links share this endpoint (see sign_in_setup).
+    link_purpose = await session.scalar(
+        select(AuthChallenge.purpose).where(
+            AuthChallenge.token_hash == modern_service.digest(body.token),
+            AuthChallenge.purpose.in_((PURPOSE, sign_in_setup.PURPOSE)),
+        )
+    )
+    if link_purpose == sign_in_setup.PURPOSE:
+        await sign_in_setup.confirm(session, body)
+        return
     # Lock the account before its challenge, matching issuance/revocation lock order.
     user_id = await session.scalar(
         select(AuthChallenge.user_id).where(

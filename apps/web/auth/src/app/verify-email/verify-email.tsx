@@ -25,23 +25,14 @@ export function VerifyEmail({ token }: { token: string }) {
         </div>
       )}
       {token ? (
-        <>
-          <PasswordField
-            autoComplete="new-password"
-            id="password"
-            label="New password"
-            name="password"
-            placeholder="At least 12 characters"
-            showStrength
-          />
-          <PasswordField
-            autoComplete="new-password"
-            id="confirm"
-            label="Confirm password"
-            name="confirm"
-            placeholder="Repeat your password"
-          />
-        </>
+        <PasswordField
+          autoComplete="new-password"
+          id="password"
+          label="New password"
+          name="password"
+          placeholder="At least 12 characters"
+          showStrength
+        />
       ) : (
         <div className="space-y-2">
           <label className={labelClass} htmlFor="email">

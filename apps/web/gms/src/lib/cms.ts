@@ -55,6 +55,12 @@ export const contentSchema = z.object({
   summary: z.string().nullable(),
   /** Who created the post (their sign-in name); older feeds and posts have none. */
   authorName: z.string().nullable().optional(),
+  /** The author's role for the byline, e.g. "Duty forecaster" (desk posts). */
+  authorRole: z.string().nullable().optional(),
+  /** A desk post's type; older feeds send none, read as standard. */
+  format: z.enum(["standard", "audio", "video", "chart"]).nullable().optional(),
+  /** The audio or video share link of a desk post; played only on request. */
+  mediaUrl: z.string().nullable().optional(),
   category: z.string().nullable().optional(),
   body: z.string(),
   imageUrl: z.string().nullable(),

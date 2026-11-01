@@ -3,10 +3,6 @@
     "pageTitle": "Actions after the hurricane or storm",
     "sections": [
       {
-        "id": "title-actions-after-the-hurricane-or-storm-description-post-storm-recovery-and-restoration-actions-after-event-passage",
-        "title": "title: 'Actions after the hurricane or storm'\ndescription: 'Post-storm recovery and restoration actions after event passage.'"
-      },
-      {
         "id": "source-note",
         "title": "Source note"
       },
@@ -19,10 +15,6 @@
   "/attachments": {
     "pageTitle": "Documents and forms",
     "sections": [
-      {
-        "id": "title-documents-and-forms-description-find-a-form-keep-track-of-a-submission-and-use-the-right-operational-reference",
-        "title": "title: 'Documents and forms'\ndescription: 'Find a form, keep track of a submission and use the right operational reference.'"
-      },
       {
         "id": "staff-documents",
         "title": "Staff documents"
@@ -49,10 +41,6 @@
     "pageTitle": "Signing in and account security",
     "sections": [
       {
-        "id": "title-signing-in-and-account-security-description-use-your-staff-account-and-manage-its-sign-in-protection",
-        "title": "title: 'Signing in and account security'\ndescription: 'Use your staff account and manage its sign-in protection.'"
-      },
-      {
         "id": "sign-in",
         "title": "Sign in"
       },
@@ -78,10 +66,6 @@
     "pageTitle": "Staff directory and duty roster",
     "sections": [
       {
-        "id": "title-staff-directory-and-duty-roster-description-find-staff-information-and-check-the-correct-roster-period",
-        "title": "title: 'Staff directory and duty roster'\ndescription: 'Find staff information and check the correct roster period.'"
-      },
-      {
         "id": "find-a-colleague",
         "title": "Find a colleague"
       },
@@ -106,10 +90,6 @@
   "/conversations": {
     "pageTitle": "Preparing and reviewing CAP alerts",
     "sections": [
-      {
-        "id": "title-preparing-and-reviewing-cap-alerts-description-follow-the-saved-alert-workflow-and-check-the-intended-publication-channels",
-        "title": "title: 'Preparing and reviewing CAP alerts'\ndescription: 'Follow the saved-alert workflow and check the intended publication channels.'"
-      },
       {
         "id": "compose",
         "title": "Compose"
@@ -140,10 +120,6 @@
     "pageTitle": "Actions during the hurricane or storm",
     "sections": [
       {
-        "id": "title-actions-during-the-hurricane-or-storm-description-actions-to-be-taken-while-hurricane-or-storm-conditions-are-in-effect",
-        "title": "title: 'Actions during the hurricane or storm'\ndescription: 'Actions to be taken while hurricane or storm conditions are in effect.'"
-      },
-      {
         "id": "action-checklist",
         "title": "Action checklist"
       }
@@ -152,10 +128,6 @@
   "/errors": {
     "pageTitle": "Troubleshooting and getting help",
     "sections": [
-      {
-        "id": "title-troubleshooting-and-getting-help-description-recognise-common-problems-and-preserve-enough-information-for-support",
-        "title": "title: 'Troubleshooting and getting help'\ndescription: 'Recognise common problems and preserve enough information for support.'"
-      },
       {
         "id": "sign-in-or-permission-problems",
         "title": "Sign-in or permission problems"
@@ -186,10 +158,6 @@
     "pageTitle": "Forecast for Season",
     "sections": [
       {
-        "id": "title-forecast-for-season-description-forecast-context-for-the-2024-atlantic-hurricane-season",
-        "title": "title: 'Forecast for Season'\ndescription: 'Forecast context for the 2024 Atlantic hurricane season.'"
-      },
-      {
         "id": "2024-outlook",
         "title": "2024 outlook"
       },
@@ -210,10 +178,6 @@
   "/groups": {
     "pageTitle": "Roles and permissions",
     "sections": [
-      {
-        "id": "title-roles-and-permissions-description-understand-the-difference-between-seeing-a-tool-and-being-authorised-to-use-it",
-        "title": "title: 'Roles and permissions'\ndescription: 'Understand the difference between seeing a tool and being authorised to use it.'"
-      },
       {
         "id": "your-account-and-role",
         "title": "Your account and role"
@@ -240,10 +204,6 @@
     "pageTitle": "Tropical Cyclone Emergency Plan",
     "sections": [
       {
-        "id": "title-tropical-cyclone-emergency-plan-description-introduction-to-the-grenada-airports-authority-tropical-cyclone-emergency-plan-2024",
-        "title": "title: 'Tropical Cyclone Emergency Plan'\ndescription: 'Introduction to the Grenada Airports Authority Tropical Cyclone Emergency Plan (2024).'"
-      },
-      {
         "id": "coverage",
         "title": "Coverage"
       },
@@ -261,10 +221,6 @@
     "pageTitle": "Met Office documentation",
     "sections": [
       {
-        "id": "title-met-office-documentation-description-guides-plans-and-reference-documents-for-the-grenada-meteorological-service",
-        "title": "title: 'Met Office documentation'\ndescription: 'Guides, plans and reference documents for the Grenada Meteorological Service.'"
-      },
-      {
         "id": "our-documents",
         "title": "Our documents"
       },
@@ -277,10 +233,6 @@
   "/messages": {
     "pageTitle": "Preparing and publishing forecasts",
     "sections": [
-      {
-        "id": "title-preparing-and-publishing-forecasts-description-save-drafts-review-previews-and-verify-the-published-issue",
-        "title": "title: 'Preparing and publishing forecasts'\ndescription: 'Save drafts, review previews and verify the published issue.'"
-      },
       {
         "id": "prepare-the-product",
         "title": "Prepare the product"
@@ -311,10 +263,6 @@
     "pageTitle": "Objectives",
     "sections": [
       {
-        "id": "title-objectives-description-objectives-of-the-gaa-tropical-cyclone-emergency-plan",
-        "title": "title: 'Objectives'\ndescription: 'Objectives of the GAA Tropical Cyclone Emergency Plan.'"
-      },
-      {
         "id": "plan-objectives",
         "title": "Plan objectives"
       },
@@ -327,10 +275,6 @@
   "/pagination": {
     "pageTitle": "Using the public API",
     "sections": [
-      {
-        "id": "title-using-the-public-api-description-check-each-endpoints-parameters-and-distinguish-public-data-from-staff-records",
-        "title": "title: 'Using the public API'\ndescription: \"Check each endpoint's parameters and distinguish public data from staff records.\""
-      },
       {
         "id": "choose-the-correct-endpoint",
         "title": "Choose the correct endpoint"
@@ -356,10 +300,6 @@
   "/quickstart": {
     "pageTitle": "GMS staff quick start",
     "sections": [
-      {
-        "id": "title-gms-staff-quick-start-description-find-your-tools-save-your-work-and-check-the-published-result",
-        "title": "title: 'GMS staff quick start'\ndescription: 'Find your tools, save your work and check the published result.'"
-      },
       {
         "id": "start-your-shift",
         "title": "Start your shift"
@@ -390,10 +330,6 @@
     "pageTitle": "Representation",
     "sections": [
       {
-        "id": "title-representation-description-eoc-representation-and-leadership-roles-under-the-hurricane-plan",
-        "title": "title: 'Representation'\ndescription: 'EOC representation and leadership roles under the Hurricane Plan.'"
-      },
-      {
         "id": "eoc-representation",
         "title": "EOC representation"
       },
@@ -406,10 +342,6 @@
   "/sdks": {
     "pageTitle": "GMS tools overview",
     "sections": [
-      {
-        "id": "title-gms-tools-overview-description-choose-the-tool-for-your-observation-forecast-alert-or-staff-task",
-        "title": "title: 'GMS tools overview'\ndescription: 'Choose the tool for your observation, forecast, alert or staff task.'"
-      },
       {
         "id": "weather-and-staff-tools",
         "title": "Weather and staff tools"
@@ -435,10 +367,6 @@
   "/useful-terms-definitions": {
     "pageTitle": "Useful terms and definitions",
     "sections": [
-      {
-        "id": "title-useful-terms-and-definitions-description-operational-storm-terminology-used-in-this-plan",
-        "title": "title: 'Useful terms and definitions'\ndescription: 'Operational storm terminology used in this plan.'"
-      },
       {
         "id": "advisory",
         "title": "Advisory"
@@ -497,10 +425,6 @@
     "pageTitle": "Public weather data feeds",
     "sections": [
       {
-        "id": "title-public-weather-data-feeds-description-understand-the-public-weather-read-endpoints-and-their-limits",
-        "title": "title: 'Public weather data feeds'\ndescription: 'Understand the public weather read endpoints and their limits.'"
-      },
-      {
         "id": "published-weather-products",
         "title": "Published weather products"
       },
@@ -521,10 +445,6 @@
   "/appendix/emergency-personnel": {
     "pageTitle": "Appendix A: List of Emergency Personnel",
     "sections": [
-      {
-        "id": "title-appendix-a-list-of-emergency-personnel-description-emergency-personnel-contacts-for-cyclone-operations-as-listed-in-appendix-a",
-        "title": "title: 'Appendix A: List of Emergency Personnel'\ndescription: 'Emergency personnel contacts for cyclone operations as listed in Appendix A.'"
-      },
       {
         "id": "meteorologists-and-forecasters",
         "title": "Meteorologists and forecasters"
@@ -567,10 +487,6 @@
     "pageTitle": "Appendix B: List of MBIA Vehicles",
     "sections": [
       {
-        "id": "title-appendix-b-list-of-mbia-vehicles-description-mbia-vehicle-inventory-referenced-in-appendix-b-of-the-2024-plan",
-        "title": "title: 'Appendix B: List of MBIA Vehicles'\ndescription: 'MBIA vehicle inventory referenced in Appendix B of the 2024 plan.'"
-      },
-      {
         "id": "vehicle-list",
         "title": "Vehicle list"
       },
@@ -583,10 +499,6 @@
   "/pre-season/administration": {
     "pageTitle": "Pre-season actions: Administration",
     "sections": [
-      {
-        "id": "title-pre-season-actions-administration-description-pre-season-preparedness-actions-for-administration",
-        "title": "title: 'Pre-season actions: Administration'\ndescription: 'Pre-season preparedness actions for Administration.'"
-      },
       {
         "id": "information-technology",
         "title": "Information Technology"
@@ -601,10 +513,6 @@
     "pageTitle": "Pre-season actions: Air Traffic",
     "sections": [
       {
-        "id": "title-pre-season-actions-air-traffic-description-pre-season-preparedness-actions-for-air-traffic-services",
-        "title": "title: 'Pre-season actions: Air Traffic'\ndescription: 'Pre-season preparedness actions for Air Traffic Services.'"
-      },
-      {
         "id": "action-checklist",
         "title": "Action checklist"
       }
@@ -614,10 +522,6 @@
     "pageTitle": "Pre-season actions: CFR",
     "sections": [
       {
-        "id": "title-pre-season-actions-cfr-description-pre-season-preparedness-actions-for-crash-fire-rescue-cfr",
-        "title": "title: 'Pre-season actions: CFR'\ndescription: 'Pre-season preparedness actions for Crash Fire Rescue (CFR).'"
-      },
-      {
         "id": "action-checklist",
         "title": "Action checklist"
       }
@@ -626,10 +530,6 @@
   "/pre-season/general": {
     "pageTitle": "Pre-season actions: General",
     "sections": [
-      {
-        "id": "title-pre-season-actions-general-description-general-readiness-actions-required-before-hurricane-season",
-        "title": "title: 'Pre-season actions: General'\ndescription: 'General readiness actions required before hurricane season.'"
-      },
       {
         "id": "annual-planning-and-readiness",
         "title": "Annual planning and readiness"
@@ -652,10 +552,6 @@
     "pageTitle": "Pre-season actions: Maintenance",
     "sections": [
       {
-        "id": "title-pre-season-actions-maintenance-description-pre-season-readiness-actions-for-the-maintenance-department",
-        "title": "title: 'Pre-season actions: Maintenance'\ndescription: 'Pre-season readiness actions for the Maintenance Department.'"
-      },
-      {
         "id": "electrical",
         "title": "Electrical"
       },
@@ -677,10 +573,6 @@
     "pageTitle": "Pre-season actions: Met Department",
     "sections": [
       {
-        "id": "title-pre-season-actions-met-department-description-pre-season-preparedness-actions-for-the-meteorological-department",
-        "title": "title: 'Pre-season actions: Met Department'\ndescription: 'Pre-season preparedness actions for the Meteorological Department.'"
-      },
-      {
         "id": "consumables-and-equipment",
         "title": "Consumables and equipment"
       },
@@ -698,10 +590,6 @@
     "pageTitle": "Pre-season actions: Security",
     "sections": [
       {
-        "id": "title-pre-season-actions-security-description-pre-season-preparedness-actions-for-security-and-emergency-services",
-        "title": "title: 'Pre-season actions: Security'\ndescription: 'Pre-season preparedness actions for Security and Emergency Services.'"
-      },
-      {
         "id": "action-checklist",
         "title": "Action checklist"
       }
@@ -710,10 +598,6 @@
   "/special-operating-procedures/met-department": {
     "pageTitle": "Special operating procedures of Met Department",
     "sections": [
-      {
-        "id": "title-special-operating-procedures-of-met-department-description-special-operating-procedures-for-meteorological-department-during-the-hurricane-season",
-        "title": "title: 'Special operating procedures of Met Department'\ndescription: 'Special operating procedures for Meteorological Department during the hurricane season.'"
-      },
       {
         "id": "routine-monitoring-during-hurricane-season",
         "title": "Routine monitoring during hurricane season"
@@ -740,10 +624,6 @@
     "pageTitle": "Warning issued actions: Administration",
     "sections": [
       {
-        "id": "title-warning-issued-actions-administration-description-administration-actions-when-a-storm-or-hurricane-warning-is-issued",
-        "title": "title: 'Warning issued actions: Administration'\ndescription: 'Administration actions when a storm or hurricane warning is issued.'"
-      },
-      {
         "id": "information-technology-centre",
         "title": "Information Technology Centre"
       },
@@ -757,10 +637,6 @@
     "pageTitle": "Warning issued actions: Air Traffic",
     "sections": [
       {
-        "id": "title-warning-issued-actions-air-traffic-description-air-traffic-services-actions-when-a-storm-or-hurricane-warning-is-issued",
-        "title": "title: 'Warning issued actions: Air Traffic'\ndescription: 'Air Traffic Services actions when a storm or hurricane warning is issued.'"
-      },
-      {
         "id": "action-checklist",
         "title": "Action checklist"
       }
@@ -769,10 +645,6 @@
   "/warning-issued/airport-tenants": {
     "pageTitle": "Warning issued actions: Airport Tenants",
     "sections": [
-      {
-        "id": "title-warning-issued-actions-airport-tenants-description-airport-tenant-responsibilities-under-storm-hurricane-watch-and-warning",
-        "title": "title: 'Warning issued actions: Airport Tenants'\ndescription: 'Airport tenant responsibilities under storm/hurricane watch and warning.'"
-      },
       {
         "id": "actions-when-watch-is-issued",
         "title": "Actions when watch is issued"
@@ -787,10 +659,6 @@
     "pageTitle": "Warning issued actions: Carriacou",
     "sections": [
       {
-        "id": "title-warning-issued-actions-carriacou-description-carriacou-airport-actions-when-warning-is-issued",
-        "title": "title: 'Warning issued actions: Carriacou'\ndescription: 'Carriacou airport actions when warning is issued.'"
-      },
-      {
         "id": "action-checklist",
         "title": "Action checklist"
       }
@@ -799,10 +667,6 @@
   "/warning-issued/cfr": {
     "pageTitle": "Warning issued actions: CFR",
     "sections": [
-      {
-        "id": "title-warning-issued-actions-cfr-description-crash-fire-rescue-actions-when-warning-is-issued",
-        "title": "title: 'Warning issued actions: CFR'\ndescription: 'Crash Fire Rescue actions when warning is issued.'"
-      },
       {
         "id": "action-checklist",
         "title": "Action checklist"
@@ -813,10 +677,6 @@
     "pageTitle": "Warning issued actions: ECCAA",
     "sections": [
       {
-        "id": "title-warning-issued-actions-eccaa-description-eccaa-technical-actions-when-a-storm-or-hurricane-warning-is-issued",
-        "title": "title: 'Warning issued actions: ECCAA'\ndescription: 'ECCAA technical actions when a storm or hurricane warning is issued.'"
-      },
-      {
         "id": "action-checklist",
         "title": "Action checklist"
       }
@@ -825,10 +685,6 @@
   "/warning-issued/maintenance": {
     "pageTitle": "Warning issued actions: Maintenance",
     "sections": [
-      {
-        "id": "title-warning-issued-actions-maintenance-description-maintenance-actions-when-a-storm-or-hurricane-warning-is-issued",
-        "title": "title: 'Warning issued actions: Maintenance'\ndescription: 'Maintenance actions when a storm or hurricane warning is issued.'"
-      },
       {
         "id": "electrical",
         "title": "Electrical"
@@ -855,10 +711,6 @@
     "pageTitle": "Warning issued actions: Met Department",
     "sections": [
       {
-        "id": "title-warning-issued-actions-met-department-description-meteorological-office-actions-when-storm-or-hurricane-watch-warning-is-issued",
-        "title": "title: 'Warning issued actions: Met Department'\ndescription: 'Meteorological Office actions when storm or hurricane watch/warning is issued.'"
-      },
-      {
         "id": "forecaster-officer-in-charge",
         "title": "Forecaster / Officer-in-Charge"
       },
@@ -872,10 +724,6 @@
     "pageTitle": "Warning issued actions: Operation",
     "sections": [
       {
-        "id": "title-warning-issued-actions-operation-description-operations-team-actions-when-a-storm-or-hurricane-warning-is-issued",
-        "title": "title: 'Warning issued actions: Operation'\ndescription: 'Operations team actions when a storm or hurricane warning is issued.'"
-      },
-      {
         "id": "action-checklist",
         "title": "Action checklist"
       }
@@ -884,10 +732,6 @@
   "/warning-issued/security": {
     "pageTitle": "Warning issued actions: Security",
     "sections": [
-      {
-        "id": "title-warning-issued-actions-security-description-security-and-emergency-services-actions-when-warning-is-issued",
-        "title": "title: 'Warning issued actions: Security'\ndescription: 'Security and Emergency Services actions when warning is issued.'"
-      },
       {
         "id": "action-checklist",
         "title": "Action checklist"

@@ -394,6 +394,15 @@ def test_fortnightly_basic_is_twelve_twenty_sixths_of_a_month() -> None:
     assert pricing.basic_salary_minor(started, half) == 120_000  # 7 of 14 days
 
 
+def _json_values(node: object) -> list[object]:
+    """Every scalar value anywhere in a decoded JSON document."""
+    if isinstance(node, dict):
+        return [v for child in node.values() for v in _json_values(child)]
+    if isinstance(node, list):
+        return [v for child in node for v in _json_values(child)]
+    return [node]
+
+
 @pytest.mark.usefixtures("totp_keys")
 async def test_money_history_needs_organisation_wide_amounts_and_holds_no_money(
     async_client: httpx.AsyncClient, db_async: AsyncSession
@@ -445,5 +454,9 @@ async def test_money_history_needs_organisation_wide_amounts_and_holds_no_money(
         "/api/v1/audit/payroll_money/gaa", headers=await headers_for(db_async, reader)
     )
     assert history.status_code == 200, history.text
-    assert "2468" not in history.text
+    # A bare substring check flaked when 2468 appeared inside a random id; look
+    # for the amount only as a whole JSON value instead.
+    values = _json_values(history.json())
+    assert 2468 not in values
+    assert "2468" not in values
     assert "amount_minor" not in history.text

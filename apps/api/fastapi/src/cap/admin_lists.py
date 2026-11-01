@@ -1,6 +1,7 @@
 """Settings, catalogues, predefined areas, audit events and integrations."""
 
 import uuid
+from typing import Any
 
 import sqlalchemy as sa
 from sqlalchemy import select
@@ -66,12 +67,32 @@ async def read_settings(
     return CapSettingsPublic.model_validate(settings, from_attributes=True)
 
 
+# Settings fields whose values are masked in the audit trail. The value is a reference
+# to the signing material, and the audit trail is read by every CAP desk user.
+SENSITIVE_SETTINGS_FIELDS = frozenset({"signing_certificate_ref"})
+
+
+def _settings_change(*, field: str, old: object, new: object) -> dict[str, Any]:
+    """One audit change, shaped like ``src.audit.listener`` rows (field, old, new, sensitive).
+
+    A sensitive field keeps its name and a ``masked`` flag, but not its values.
+    """
+    if field in SENSITIVE_SETTINGS_FIELDS:
+        return {"field": field, "sensitive": True, "masked": True}
+    return {"field": field, "old": old, "new": new, "sensitive": False}
+
+
 async def update_settings(
     *, session: AsyncSession, current_user: User, payload: CapSettingsUpdate
 ) -> CapSettingsPublic:
     require_permission(current_user=current_user, permission_key="cap.settings.manage")
     settings = await get_or_create_settings(session=session)
+    changes: list[dict[str, Any]] = []
     for key, value in payload.model_dump(exclude_unset=True).items():
+        old = getattr(settings, key)
+        if old == value:
+            continue
+        changes.append(_settings_change(field=key, old=old, new=value))
         setattr(settings, key, value)
     settings.updated_at = utc_now()
     session.add(settings)
@@ -82,6 +103,7 @@ async def update_settings(
         action="settings.update",
         previous_state=None,
         next_state=None,
+        payload={"changes": changes},
     )
     await session.commit()
     await session.refresh(settings)

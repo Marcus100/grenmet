@@ -445,16 +445,24 @@ function shiftChoice(value: boolean | null | undefined): string {
 }
 
 function ProfileRow({
+  calendars,
   organisationId,
   profile,
 }: {
+  calendars: PayCalendarPublic[];
   organisationId: string;
   profile: EmployeePayProfilePublic;
 }) {
   const refresh = useRefreshPayroll();
   const update = useHrUpdateEmployeePayProfile();
+  const [calendarId, setCalendarId] = useState(profile.calendar_id ?? "");
+  const [overrideReason, setOverrideReason] = useState("");
   const [shift, setShift] = useState(shiftChoice(profile.shift_worker));
   const [reference, setReference] = useState(profile.payroll_reference ?? "");
+  const chosen = calendars.find((calendar) => calendar.id === calendarId);
+  // Hourly-paid staff on a calendar longer than fortnightly need a reason; the API decides.
+  const needsReason =
+    chosen !== undefined && chosen.frequency !== "FORTNIGHTLY";
 
   async function save() {
     try {
@@ -462,7 +470,9 @@ function ProfileRow({
         path: { user_id: profile.user_id },
         body: {
           organisation_id: organisationId,
-          calendar_id: profile.calendar_id ?? null,
+          calendar_id: calendarId || null,
+          calendar_override_reason:
+            needsReason && overrideReason.trim() ? overrideReason.trim() : null,
           shift_worker: shift === "default" ? null : shift === "yes",
           payroll_reference: reference.trim() || null,
         },
@@ -481,6 +491,30 @@ function ProfileRow({
         <span className="block font-mono text-muted-foreground text-xs">
           {profile.employee_number ?? "No employee number"}
         </span>
+      </TableCell>
+      <TableCell>
+        <NativeSelect
+          aria-label={`Pay calendar: ${profile.employee_name}`}
+          onChange={(event) => setCalendarId(event.target.value)}
+          value={calendarId}
+        >
+          <option value="">No calendar</option>
+          {calendars.map((calendar) => (
+            <option key={calendar.id} value={calendar.id}>
+              {calendar.name}
+            </option>
+          ))}
+        </NativeSelect>
+        {needsReason ? (
+          <Input
+            aria-label={`Override reason: ${profile.employee_name}`}
+            className="mt-2 w-48"
+            maxLength={300}
+            onChange={(event) => setOverrideReason(event.target.value)}
+            placeholder="Reason (hourly pay only)"
+            value={overrideReason}
+          />
+        ) : null}
       </TableCell>
       <TableCell>
         <NativeSelect
@@ -528,6 +562,10 @@ function ProfilesPanel({ organisationId }: { organisationId: string }) {
   const departmentsQuery = useHrListPayrollDepartmentSettings({
     query: { organisation_id: organisationId },
   });
+  const calendarsQuery = useHrListPayCalendars({
+    query: { organisation_id: organisationId },
+  });
+  const calendars = calendarsQuery.data?.data ?? [];
   const updateDepartment = useHrUpdatePayrollDepartmentSetting();
   if (profilesQuery.isError || departmentsQuery.isError) {
     return <NoAccess />;
@@ -602,6 +640,7 @@ function ProfilesPanel({ organisationId }: { organisationId: string }) {
             <TableHeader>
               <TableRow>
                 <TableHead>Employee</TableHead>
+                <TableHead>Pay calendar</TableHead>
                 <TableHead>Shift worker</TableHead>
                 <TableHead>Payroll reference</TableHead>
                 <TableHead className="text-right">Action</TableHead>
@@ -612,7 +651,7 @@ function ProfilesPanel({ organisationId }: { organisationId: string }) {
                 <TableRow>
                   <TableCell
                     className="text-center text-muted-foreground"
-                    colSpan={4}
+                    colSpan={5}
                   >
                     {profilesQuery.isPending
                       ? "Loading employees…"
@@ -622,6 +661,7 @@ function ProfilesPanel({ organisationId }: { organisationId: string }) {
               ) : (
                 profiles.map((profile) => (
                   <ProfileRow
+                    calendars={calendars}
                     key={profile.user_id}
                     organisationId={organisationId}
                     profile={profile}

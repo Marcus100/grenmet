@@ -806,7 +806,9 @@ async def create_scheme(
     payload: SocialInsuranceSchemeCreate,
 ) -> SocialInsuranceSchemePublic:
     scheme = await deductions.create_scheme(session, current_user, payload, token=token)
-    return SocialInsuranceSchemePublic.model_validate(scheme, from_attributes=True)
+    return SocialInsuranceSchemePublic.model_validate(
+        await deductions.table_row(session, scheme)
+    )
 
 
 @router.post(
@@ -828,7 +830,7 @@ async def create_deduction_type(
     kind = await deductions.create_deduction_type(
         session, current_user, payload, token=token
     )
-    return DeductionTypePublic.model_validate(kind, from_attributes=True)
+    return DeductionTypePublic.model_validate(await deductions.table_row(session, kind))
 
 
 @router.put(

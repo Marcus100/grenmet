@@ -5,8 +5,6 @@ import { HomeSection } from "@/components/home/home-section";
 import {
   Explained,
   ForecastDesk,
-  GetAlertsStrip,
-  LatestReports,
   Stories,
 } from "@/components/home/live-sections";
 import { WeatherNow } from "@/components/home/weather-now";
@@ -22,9 +20,10 @@ function Loading({ title }: { title: string }) {
 }
 
 /**
- * The Bold sky sections under the hero (owner order, 30 Sep 2026): the alerts
- * sign-up strip, live imagery and the forecasters' words, planning, the
- * explained reports, editorial and fun, with the climate record last.
+ * The sections under the hero (homepage v2, owner 1 Nov 2026): the
+ * forecasters' words and the issued products first (one feed), then the
+ * week ahead (folds into the feed in #1000), live imagery, stories, the climate record and
+ * explore. The alerts sign-up lives at the top of the footer.
  * Backgrounds alternate white / surface in this order. Shared by the home page
  * and the dated forecast days, so picking a day in the strip swaps only the
  * hero's selection and keeps the page like a tab.
@@ -32,21 +31,17 @@ function Loading({ title }: { title: string }) {
 export function HomeSections() {
   return (
     <>
-      <GetAlertsStrip />
-      <WeatherNow />
       <Suspense fallback={<Loading title="From the forecast desk" />}>
         <ForecastDesk />
       </Suspense>
       <ExploreToday />
-      <Suspense fallback={<Loading title="Latest reports" />}>
-        <LatestReports />
-      </Suspense>
+      <WeatherNow />
       <Suspense fallback={<Loading title="Weather news" />}>
         <Stories />
       </Suspense>
+      <GrenadaInData />
       <Explained />
       <Discover />
-      <GrenadaInData />
     </>
   );
 }

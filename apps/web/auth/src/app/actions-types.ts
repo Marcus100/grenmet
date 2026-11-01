@@ -46,3 +46,13 @@ export const initialEmailCodeState: EmailCodeState = {
   error: null,
   step: "email",
 };
+
+export interface NamePromptState {
+  error: string | null;
+  saved: boolean;
+}
+
+export const initialNamePromptState: NamePromptState = {
+  error: null,
+  saved: false,
+};

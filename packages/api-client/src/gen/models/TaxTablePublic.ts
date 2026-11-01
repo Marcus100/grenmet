@@ -14,7 +14,9 @@ export type TaxTablePublic = {
    */
   rule_state: TableState;
   created_by_user_id: string | null;
+  created_by_name: string | null;
   confirmed_by_user_id: string | null;
+  confirmed_by_name: string | null;
   confirmed_at: string | null;
   confirmation_note: string | null;
   /**

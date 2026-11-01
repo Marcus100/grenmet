@@ -36,6 +36,7 @@ const ALL: DeskPermissions = {
   create: true,
   edit: true,
   emergencyPublish: true,
+  libraryManage: true,
   publish: true,
   read: true,
   submit: true,

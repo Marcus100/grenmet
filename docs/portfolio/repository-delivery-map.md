@@ -107,6 +107,7 @@ GMS or GAA.
 | `scripts/wxregister` | GMS data migration/extraction utility | Reference utility | Retain until migration need is resolved; promote or retire explicitly |
 | `scripts/docs` | Barrels engineering documentation guardrails | Active | Enforce links, portfolio coverage, and document-system integrity |
 | `scripts/design-system` | Barrels engineering design-system automation | Active | Separate brand-neutral enforcement from GMS-specific contracts |
+| `scripts/ops` | Barrels engineering staging promotion automation and post-deploy staging smoke test | Active | Owner enables the promotion workflow and token; failures stay loud and the dev to staging PR is never merged by the script itself |
 | `scripts/ci` | Barrels engineering CI image selection | Active | Select affected images conservatively and retain full verification on promotion PRs |
 | `scripts/guardrails` | Barrels engineering change-safety automation | Active | Preserve blast-radius checks across all products and programmes |
 | `scripts/agents` | Barrels engineering agent-factory tooling: atomic issue claims, run records and reports, session-log archiving and benchmark checks | Active | Keep claims atomic, records validated and reports reproducible; never store secrets, client data or issue text in a record |

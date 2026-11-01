@@ -679,17 +679,59 @@ async def list_tables(session: AsyncSession, actor: User, org: str) -> dict[str,
             .order_by(DeductionType.code)
         )
     ).scalars()
-    return {
-        "tax_tables": [
-            {**_row(t), "bands": [_row(b) for b in bands[t.id]]} for t in taxes
+    tax_rows = [{**_row(t), "bands": [_row(b) for b in bands[t.id]]} for t in taxes]
+    scheme_rows = [_row(s) for s in schemes]
+    type_rows = [_row(d) for d in types]
+    names = await _display_names(
+        session,
+        [
+            user_id
+            for row in [*tax_rows, *scheme_rows, *type_rows]
+            for user_id in (row["created_by_user_id"], row["confirmed_by_user_id"])
         ],
-        "social_insurance": [_row(s) for s in schemes],
-        "deduction_types": [_row(d) for d in types],
+    )
+    return {
+        "tax_tables": [_with_names(row, names) for row in tax_rows],
+        "social_insurance": [_with_names(row, names) for row in scheme_rows],
+        "deduction_types": [_with_names(row, names) for row in type_rows],
     }
 
 
 def _row(record: Any) -> dict[str, Any]:
     return {c.key: getattr(record, c.key) for c in record.__table__.columns}
+
+
+async def _display_names(
+    session: AsyncSession, user_ids: list[uuid.UUID | None]
+) -> dict[uuid.UUID, str]:
+    """First and last name for each id; ids with no user (or no name) are left out."""
+    wanted = {user_id for user_id in user_ids if user_id is not None}
+    if not wanted:
+        return {}
+    result = await session.execute(
+        select(
+            User.id,
+            func.trim(func.concat(User.first_name, " ", User.last_name)),
+        ).where(User.id.in_(wanted))
+    )
+    return {user_id: name for user_id, name in result.all() if name}
+
+
+def _with_names(row: dict[str, Any], names: dict[uuid.UUID, str]) -> dict[str, Any]:
+    return {
+        **row,
+        "created_by_name": names.get(row["created_by_user_id"]),
+        "confirmed_by_name": names.get(row["confirmed_by_user_id"]),
+    }
+
+
+async def table_row(session: AsyncSession, record: Any) -> dict[str, Any]:
+    """One saved table in the list shape, with display names, for create responses."""
+    row = _row(record)
+    names = await _display_names(
+        session, [row["created_by_user_id"], row["confirmed_by_user_id"]]
+    )
+    return _with_names(row, names)
 
 
 async def _refuse_overlap(

@@ -19,8 +19,6 @@ export type AuthAccountEmailCodeStartStatus422 = ValidationErrorResponse;
 
 export type AuthAccountEmailCodeStartStatus429 = ApiError | ErrorMessage;
 
-export type AuthAccountEmailCodeStartStatus503 = unknown;
-
 export type AuthAccountEmailCodeStartBody = AppEmailCodeStart;
 
 export type AuthAccountEmailCodeStartOptions = {
@@ -34,7 +32,6 @@ export type AuthAccountEmailCodeStartResponses = {
   "200": AuthAccountEmailCodeStartStatus200;
   "422": AuthAccountEmailCodeStartStatus422;
   "429": AuthAccountEmailCodeStartStatus429;
-  "503": AuthAccountEmailCodeStartStatus503;
 };
 
 /**

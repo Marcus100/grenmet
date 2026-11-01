@@ -58,6 +58,37 @@ def fernet_keys(environment, name):
     return keys
 
 
+PAYSLIP_KEY_ID = re.compile(r"[A-Za-z0-9_-]{1,32}")
+# A deploy-safe subset: the value is written into a quoted env file and passed
+# through compose interpolation, so no quotes, "$", backslashes or spaces.
+PAYSLIP_KEY_SECRET = re.compile(r"[A-Za-z0-9._~+/=-]{32,}")
+
+
+def payslip_hmac_keys(environment):
+    """Optional keyid:secret pairs, comma separated, current key first.
+
+    Unset is allowed (the API then refuses to issue payslips). The error names
+    the entry position only and never echoes a key id or secret.
+    """
+    raw = (environment.get("PAYSLIP_HMAC_KEYS", "") or "").strip()
+    if not raw:
+        return ""
+    seen = set()
+    for position, item in enumerate(raw.split(","), start=1):
+        key_id, separator, secret = item.strip().partition(":")
+        if not separator or not PAYSLIP_KEY_ID.fullmatch(key_id):
+            raise ValueError(f"PAYSLIP_HMAC_KEYS entry {position} must look like keyid:secret") from None
+        if not PAYSLIP_KEY_SECRET.fullmatch(secret):
+            raise ValueError(
+                f"PAYSLIP_HMAC_KEYS entry {position} needs a secret of at least 32 "
+                "letters, digits or . _ ~ + / = -"
+            ) from None
+        if key_id in seen:
+            raise ValueError(f"PAYSLIP_HMAC_KEYS entry {position} repeats a key id") from None
+        seen.add(key_id)
+    return ",".join(item.strip() for item in raw.split(","))
+
+
 # Edge settings for CLOUDFLARE_PROXY_ENABLED (docs/operations/cloudflare-proxy.md).
 # Off is Traefik's own default (forwarded headers trusted from nobody) and the
 # existing TLS challenge, so an unset switch changes nothing. On, all four move
@@ -171,6 +202,8 @@ def render(config, environment):
     values["ORG_SECRET_ENCRYPTION_KEYS"] = json.dumps(
         fernet_keys(environment, "ORG_SECRET_ENCRYPTION_KEYS"), separators=(",", ":")
     )
+    # Payroll payslip signing keys (docs/env.md): a dedicated secret, API only.
+    values["PAYSLIP_HMAC_KEYS"] = payslip_hmac_keys(environment)
     # The payments core runs in Stripe TEST mode only (ADR-0027): a live key must
     # never reach a deployment until the owner approves a live rail.
     stripe_key = values["PAYMENTS_STRIPE_SECRET_KEY"]

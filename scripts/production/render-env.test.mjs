@@ -1229,3 +1229,59 @@ test("deploy.yml passes the origin secrets from the GitHub environment", () => {
       `${name} is not passed`
     );
 });
+
+test("PAYSLIP_HMAC_KEYS renders empty by default, validates keyid:secret pairs without echoing them, and reaches only the API", () => {
+  const unset = render();
+  assert.equal(unset.result.status, 0, unset.result.stderr);
+  assert.equal(
+    GENERATED_LINE(unset.output, "PAYSLIP_HMAC_KEYS"),
+    'PAYSLIP_HMAC_KEYS=""'
+  );
+
+  const current = `k2:${"a".repeat(40)}`;
+  const retained = `k1:${"b".repeat(32)}`;
+  const set = render({ PAYSLIP_HMAC_KEYS: `${current}, ${retained}` });
+  assert.equal(set.result.status, 0, set.result.stderr);
+  assert.equal(
+    GENERATED_LINE(set.output, "PAYSLIP_HMAC_KEYS"),
+    `PAYSLIP_HMAC_KEYS="${current},${retained}"`
+  );
+
+  for (const bad of [
+    "no-separator",
+    `bad id:${"c".repeat(40)}`,
+    "k1:short-DO-NOT-ECHO",
+    `k1:${"d".repeat(31)}`,
+    `k1:${"e".repeat(40)},k1:${"f".repeat(40)}`,
+    `k1:${"g".repeat(20)}$${"g".repeat(20)}`,
+  ]) {
+    const { result } = render({ PAYSLIP_HMAC_KEYS: bad });
+    assert.notEqual(result.status, 0, bad);
+    assert.ok(result.stderr.includes("PAYSLIP_HMAC_KEYS"));
+    assert.equal(result.stderr.includes("DO-NOT-ECHO"), false);
+    assert.equal(result.stderr.includes("g".repeat(20)), false);
+    assert.equal(result.stderr.includes("e".repeat(40)), false);
+  }
+
+  const workflow = readFileSync(".github/workflows/deploy.yml", "utf8");
+  const compose = readFileSync(
+    "infra/docker/docker-compose.deploy.yml",
+    "utf8"
+  );
+  const DOLLAR = "$";
+  assert.ok(
+    workflow.includes(
+      `PAYSLIP_HMAC_KEYS: ${DOLLAR}{{ secrets.PAYSLIP_HMAC_KEYS }}`
+    )
+  );
+  assert.equal(workflow.includes("vars.PAYSLIP_HMAC_KEYS"), false);
+  const line = `PAYSLIP_HMAC_KEYS: ${DOLLAR}{PAYSLIP_HMAC_KEYS:-}`;
+  const lines = compose.split("\n").filter((entry) => entry.includes(line));
+  assert.equal(lines.length, 1);
+  // Inside the api service only: after "  api:" and before "  redis:".
+  const api = compose.slice(
+    compose.indexOf("\n  api:\n"),
+    compose.indexOf("\n  redis:\n")
+  );
+  assert.ok(api.includes(line));
+});

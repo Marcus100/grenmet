@@ -10,7 +10,13 @@ export type CapSettingsUpdate = {
    * @description WMO OID of the form 2.49.0.1.<country>.<authority>, digits and dots only. Empty clears it.
    */
   wmo_oid?: string | null;
+  /**
+   * @description Public web address of the service, https only. Empty clears it.
+   */
   web?: string | null;
+  /**
+   * @description Plain-text contact details: no control characters or angle brackets. Empty clears it.
+   */
   contact?: string | null;
   feed_limit?: number | null;
   signing_enabled?: boolean | null;

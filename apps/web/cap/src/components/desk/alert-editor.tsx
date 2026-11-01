@@ -424,7 +424,7 @@ export function AlertEditor(props: AlertEditorProps) {
               }
               value={form.sectors}
             />
-            <div className="grid gap-4 sm:grid-cols-3">
+            <div className="grid min-w-0 gap-4">
               {form.colour ? (
                 <div className="grid gap-1.5">
                   <span className="font-medium text-caption">Severity</span>

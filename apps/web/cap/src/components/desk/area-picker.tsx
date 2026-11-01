@@ -406,16 +406,6 @@ function AreaMap({
   parishIds: string[];
   polygonPoints: [number, number][];
 }) {
-  const parishFillPaint = useMemo(
-    () => [
-      "match",
-      ["get", "id"],
-      ...parishIds.flatMap((id) => [id, fillColor]),
-      "#ede6d6",
-    ],
-    [parishIds, fillColor]
-  );
-
   function handleClick(event: MapLayerMouseEvent) {
     if (mode === "GEOCODE") {
       const id = event.features?.[0]?.properties?.id as string | undefined;
@@ -441,7 +431,9 @@ function AreaMap({
         height={320}
         interactiveLayerIds={mode === "GEOCODE" ? [PARISH_FILL_LAYER_ID] : []}
         onClick={handleClick}
-        parishFillPaint={mode === "GEOCODE" ? parishFillPaint : undefined}
+        parishHighlight={
+          mode === "GEOCODE" ? { ids: parishIds, colour: fillColor } : undefined
+        }
       >
         {circleRing ? (
           <Source

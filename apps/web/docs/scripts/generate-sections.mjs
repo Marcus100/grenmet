@@ -10,44 +10,13 @@
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
-import { slugifyWithCounter } from "@sindresorhus/slugify";
 import glob from "fast-glob";
-import { toString as mdastToString } from "mdast-util-to-string";
-import { mdxAnnotations } from "mdx-annotations";
-import { remark } from "remark";
-import remarkMdx from "remark-mdx";
-import { visit } from "unist-util-visit";
+import { extractPage } from "./extract-page.mjs";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const contentDir = join(__dirname, "../src/content");
 const outDir = join(__dirname, "../src/data");
 const outFile = join(outDir, "sections.json");
-
-const processor = remark().use(remarkMdx).use(mdxAnnotations.remark);
-
-function extractPage(mdxContent) {
-  const slugify = slugifyWithCounter();
-  let pageTitle = null;
-  const sections = [];
-
-  const tree = processor.parse(mdxContent);
-  processor.runSync(tree, { value: mdxContent });
-
-  visit(tree, "heading", (node) => {
-    if (node.depth === 1 && pageTitle === null) {
-      pageTitle = mdastToString(node);
-    } else if (node.depth === 2) {
-      const title = mdastToString(node);
-      const id = slugify(title);
-      const annotation = node.data?.hProperties?.annotation;
-      const section = { id, title };
-      if (annotation?.tag) section.tag = annotation.tag;
-      sections.push(section);
-    }
-  });
-
-  return { pageTitle, sections };
-}
 
 // MDX files are now in src/content/ (flat slugs, no page.mdx nesting)
 // index.mdx → pathname "/"

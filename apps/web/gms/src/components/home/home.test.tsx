@@ -119,7 +119,6 @@ describe("data sections", () => {
     render(await WeatherNow());
     expect(screen.getAllByRole("tab").map((tab) => tab.textContent)).toEqual([
       "Satellite",
-      "Radar",
       "Wind",
       "Seas",
       "Audio",

@@ -15,7 +15,7 @@ export default function EnsoPage() {
     <>
       <PageHeader
         description="How the Pacific shapes our seasons."
-        title="El Niño & La Niña"
+        title="El Niño and La Niña"
       />
       <PageSection heading="Current status">
         <PlaceholderNotice compact product="The ENSO status" />

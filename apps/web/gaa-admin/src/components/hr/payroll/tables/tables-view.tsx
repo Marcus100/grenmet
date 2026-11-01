@@ -37,31 +37,30 @@ export interface TablesData {
   tables: PayrollLoad<StatutoryTablesPublic>;
 }
 
-const NAME_UNKNOWN = "Another staff member";
+const NAME_NOT_AVAILABLE = "Name not available";
 
-function who(
-  people: Map<string, string>,
-  userId: string | null | undefined
-): string {
-  return userId ? (people.get(userId) ?? NAME_UNKNOWN) : "Not recorded";
+/** The display name the API gives; "Not recorded" when no user is linked. */
+function who(name: string | null, userId: string | null): string {
+  if (name) return name;
+  return userId ? NAME_NOT_AVAILABLE : "Not recorded";
 }
 
 function Provenance({
-  people,
   row,
 }: {
-  people: Map<string, string>;
   row: {
+    created_by_name: string | null;
     created_by_user_id: string | null;
-    confirmed_by_user_id: string | null;
     confirmed_at: string | null;
+    confirmed_by_name: string | null;
+    confirmed_by_user_id: string | null;
   };
 }) {
   return (
     <span className="block text-muted-foreground text-xs">
-      Created by {who(people, row.created_by_user_id)}
+      Created by {who(row.created_by_name, row.created_by_user_id)}
       {row.confirmed_by_user_id
-        ? `, confirmed by ${who(people, row.confirmed_by_user_id)} on ${formatDay(row.confirmed_at)}`
+        ? `, confirmed by ${who(row.confirmed_by_name, row.confirmed_by_user_id)} on ${formatDay(row.confirmed_at)}`
         : ", not confirmed"}
     </span>
   );
@@ -69,7 +68,9 @@ function Provenance({
 
 interface TableRowBase {
   confirmed_at: string | null;
+  confirmed_by_name: string | null;
   confirmed_by_user_id: string | null;
+  created_by_name: string | null;
   created_by_user_id: string | null;
   id: string;
   name: string;
@@ -79,14 +80,12 @@ interface TableRowBase {
 function TableList<T extends TableRowBase>({
   canConfirm,
   kind,
-  people,
   rows,
   securityUrl,
   describe,
 }: {
   canConfirm: boolean;
   kind: TableKind;
-  people: Map<string, string>;
   rows: T[];
   securityUrl: string;
   describe: (row: T) => string;
@@ -103,7 +102,7 @@ function TableList<T extends TableRowBase>({
             <RuleStateBadge state={row.rule_state} />
           </div>
           <p className="text-sm">{describe(row)}</p>
-          <Provenance people={people} row={row} />
+          <Provenance row={row} />
           {canConfirm ? (
             <TableStateAction
               kind={kind}
@@ -182,7 +181,6 @@ export function TablesView({
           canConfirm={access.canConfirmTables}
           describe={taxSummary}
           kind="tax"
-          people={data.people}
           rows={tables.tax_tables}
           securityUrl={securityUrl}
         />
@@ -200,7 +198,6 @@ export function TablesView({
           canConfirm={access.canConfirmTables}
           describe={schemeSummary}
           kind="social-insurance"
-          people={data.people}
           rows={tables.social_insurance}
           securityUrl={securityUrl}
         />
@@ -218,7 +215,6 @@ export function TablesView({
           canConfirm={access.canConfirmTables}
           describe={typeSummary}
           kind="deduction"
-          people={data.people}
           rows={types}
           securityUrl={securityUrl}
         />
