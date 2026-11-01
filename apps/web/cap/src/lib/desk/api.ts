@@ -6,11 +6,13 @@ import {
   capAlertPublicSchema,
   capAuditEventListPublicSchema,
   capCatalogsPublicSchema,
+  capFeedImportPublicSchema,
   capGetIntegrationsResponseSchema,
   capSettingsPublicSchema,
   gmsCataloguePublicSchema,
 } from "@barrelsgd/api-client";
 import { authApiFetch } from "@barrelsgd/auth/server";
+import { z } from "zod";
 import { getAuthConfig } from "./auth-config";
 
 /**
@@ -80,6 +82,11 @@ export function listAuditEvents(
     `/cap/audit?${query}`,
     capAuditEventListPublicSchema
   );
+}
+
+/** Configured external CAP feed sources. */
+export function listFeeds(accessToken: string) {
+  return read(accessToken, "/cap/feeds", z.array(capFeedImportPublicSchema));
 }
 
 /** Channel configuration and recent job events. Read-only; never a delivery claim. */

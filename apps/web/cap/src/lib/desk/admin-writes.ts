@@ -1,10 +1,13 @@
 import "server-only";
 
 import {
+  type CapFeedImportCreate,
+  type CapFeedImportUpdate,
   type CapSettingsUpdate,
+  capFeedImportPublicSchema,
   capSettingsPublicSchema,
 } from "@barrelsgd/api-client";
-import { authApiFetch } from "@barrelsgd/auth/server";
+import { authApiFetch, authApiFetchResponse } from "@barrelsgd/auth/server";
 import { getAuthConfig } from "./auth-config";
 
 /**
@@ -24,5 +27,41 @@ export function patchCapSettings(accessToken: string, body: CapSettingsUpdate) {
       cache: "no-store",
       method: "PATCH",
     }
+  );
+}
+
+export function createCapFeed(accessToken: string, body: CapFeedImportCreate) {
+  return authApiFetch(
+    getAuthConfig(),
+    "/cap/feeds",
+    capFeedImportPublicSchema,
+    {
+      accessToken,
+      body,
+      cache: "no-store",
+      method: "POST",
+    }
+  );
+}
+
+export function updateCapFeed(
+  accessToken: string,
+  feedId: string,
+  body: CapFeedImportUpdate
+) {
+  return authApiFetch(
+    getAuthConfig(),
+    `/cap/feeds/${encodeURIComponent(feedId)}`,
+    capFeedImportPublicSchema,
+    { accessToken, body, cache: "no-store", method: "PATCH" }
+  );
+}
+
+/** FastAPI answers 204 with no body, so only the status is checked. */
+export async function deleteCapFeed(accessToken: string, feedId: string) {
+  await authApiFetchResponse(
+    getAuthConfig(),
+    `/cap/feeds/${encodeURIComponent(feedId)}`,
+    { accessToken, cache: "no-store", method: "DELETE" }
   );
 }
