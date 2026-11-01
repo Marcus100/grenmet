@@ -28,9 +28,11 @@ const user: UserPublic = {
 
 const OPEN_LINK_STEP = /they open the link and choose their own password/i;
 const NEVER_SEE_PASSWORD = /you never see the password/i;
-const SEVENTY_TWO_HOURS = /72 hours/;
+const TWENTY_FOUR_HOURS = /24 hours/;
 const OUTSIDE_SCOPE = /outside your management scope/i;
-const TWO_STEP = /two-step verification/i;
+const COPY_FAILED_TEXT = /Copying did not work in this browser/;
+const REASON_LABEL = /Reason/;
+const TWO_STEP_TEXT = /two-step verification/i;
 const LINK = "https://auth.example/activate#token=private-link-token";
 const SETUP_URL =
   "http://localhost/api/v1/auth/onboarding/target-user/sign-in-setup";
@@ -43,7 +45,10 @@ let revoked = false;
 const server = setupServer(
   http.post(SETUP_URL, async ({ request }) => {
     issueCalls++;
-    expect(await request.json()).toEqual({ identity_confirmed: true });
+    expect(await request.json()).toEqual({
+      identity_confirmed: true,
+      reason: "Work mailbox not live yet",
+    });
     if (issueStatus !== 201) {
       return HttpResponse.json(
         { detail: issueDetail },
@@ -87,21 +92,29 @@ function renderPanel() {
   );
 }
 
+function fillReason() {
+  fireEvent.change(screen.getByLabelText(REASON_LABEL), {
+    target: { value: "Work mailbox not live yet" },
+  });
+}
+
 function openPanel() {
   fireEvent.click(
     screen.getByRole("button", { name: "Set up sign-in for this person" })
   );
 }
 
-it("explains the step in plain language and keeps create disabled until identity is confirmed", () => {
+it("explains the step in plain language and keeps create disabled until identity and reason are given", () => {
   renderPanel();
   openPanel();
   expect(screen.getByText(OPEN_LINK_STEP)).toBeTruthy();
   expect(screen.getByText(NEVER_SEE_PASSWORD)).toBeTruthy();
-  expect(screen.getByText(SEVENTY_TWO_HOURS)).toBeTruthy();
+  expect(screen.getByText(TWENTY_FOUR_HOURS)).toBeTruthy();
   const create = screen.getByRole("button", { name: "Create setup link" });
   expect((create as HTMLButtonElement).disabled).toBe(true);
   fireEvent.click(screen.getByRole("checkbox"));
+  expect((create as HTMLButtonElement).disabled).toBe(true);
+  fillReason();
   expect((create as HTMLButtonElement).disabled).toBe(false);
 });
 
@@ -114,6 +127,7 @@ it("shows the link once and copies it on request", async () => {
   renderPanel();
   openPanel();
   fireEvent.click(screen.getByRole("checkbox"));
+  fillReason();
   fireEvent.click(screen.getByRole("button", { name: "Create setup link" }));
   const field = await screen.findByDisplayValue(LINK);
   expect((field as HTMLInputElement).readOnly).toBe(true);
@@ -122,12 +136,28 @@ it("shows the link once and copies it on request", async () => {
   expect(issueCalls).toBe(1);
 });
 
+it("explains a failed clipboard write in plain words", async () => {
+  Object.defineProperty(navigator, "clipboard", {
+    configurable: true,
+    value: { writeText: vi.fn(() => Promise.reject(new Error("denied"))) },
+  });
+  renderPanel();
+  openPanel();
+  fireEvent.click(screen.getByRole("checkbox"));
+  fillReason();
+  fireEvent.click(screen.getByRole("button", { name: "Create setup link" }));
+  await screen.findByDisplayValue(LINK);
+  fireEvent.click(screen.getByRole("button", { name: "Copy link" }));
+  expect(await screen.findByText(COPY_FAILED_TEXT)).toBeTruthy();
+});
+
 it("explains a scope refusal without naming the account", async () => {
   issueStatus = 404;
   issueDetail = "Account not found";
   renderPanel();
   openPanel();
   fireEvent.click(screen.getByRole("checkbox"));
+  fillReason();
   fireEvent.click(screen.getByRole("button", { name: "Create setup link" }));
   expect(await screen.findByText(OUTSIDE_SCOPE)).toBeTruthy();
   expect(screen.queryByDisplayValue(LINK)).toBeNull();
@@ -140,8 +170,9 @@ it("asks for two-step verification when the caller has no authenticator", async 
   renderPanel();
   openPanel();
   fireEvent.click(screen.getByRole("checkbox"));
+  fillReason();
   fireEvent.click(screen.getByRole("button", { name: "Create setup link" }));
-  expect(await screen.findByText(TWO_STEP)).toBeTruthy();
+  expect(await screen.findByText(TWO_STEP_TEXT)).toBeTruthy();
 });
 
 it("maps a 409 to the server reason and says nothing changed", async () => {
@@ -150,6 +181,7 @@ it("maps a 409 to the server reason and says nothing changed", async () => {
   renderPanel();
   openPanel();
   fireEvent.click(screen.getByRole("checkbox"));
+  fillReason();
   fireEvent.click(screen.getByRole("button", { name: "Create setup link" }));
   expect(
     await screen.findByText(
@@ -162,6 +194,7 @@ it("revokes an issued link", async () => {
   renderPanel();
   openPanel();
   fireEvent.click(screen.getByRole("checkbox"));
+  fillReason();
   fireEvent.click(screen.getByRole("button", { name: "Create setup link" }));
   await screen.findByDisplayValue(LINK);
   fireEvent.click(screen.getByRole("button", { name: "Revoke link" }));
