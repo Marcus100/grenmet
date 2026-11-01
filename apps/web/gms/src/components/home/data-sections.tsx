@@ -274,7 +274,7 @@ export async function GrenadaInData() {
     kicker: shown.label,
     title: "Grenada in data",
   });
-  const month = summary ? monthStats(summary) : null;
+  const month = summary ? monthStats(summary, shown.previous) : null;
   return (
     <HomeSection {...words} link={{ href: "/climate", label: "Climate" }}>
       {month ? (

@@ -96166,7 +96166,7 @@
               }
             ],
             "title": "Current Dry Spell Days",
-            "description": "Dry days in a row up to the latest reported day; 0 if it rained."
+            "description": "Dry days in a row up to the latest reported day; 0 if it rained; null when the latest total is more than a day old."
           },
           "dry_day_threshold_mm": {
             "type": "number",

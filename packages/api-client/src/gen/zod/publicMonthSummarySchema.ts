@@ -40,7 +40,7 @@ export const publicMonthSummarySchema = z
       .union([z.int(), z.null()])
       .optional()
       .describe(
-        "Dry days in a row up to the latest reported day; 0 if it rained."
+        "Dry days in a row up to the latest reported day; 0 if it rained; null when the latest total is more than a day old."
       ),
     dry_day_threshold_mm: z.number().optional().default(1),
     mean_wind_kt: z

@@ -2052,7 +2052,8 @@ Climpact figures (owner, 1 Nov 2026) come from the same daily totals:
 `longest_dry_spell_start`/`_end` dates and `current_dry_spell_days` count
 consecutive reported days under 1 mm (CDD, `dry_day_threshold_mm`), a day with no
 total breaking a run, and the current spell ending at the latest reported day (0
-when it was wet). Wind is decoded per reading like `/public/current`:
+when it was wet, `null` when that total is more than a day older than the period's
+last day). Wind is decoded per reading like `/public/current`:
 `mean_wind_kt` averages reported speeds with calm as 0 kn,
 `prevailing_wind_direction` is the most frequent 8-point direction of non-calm
 readings, and `max_gust_kt`/`max_gust_at` give the strongest gust. All are

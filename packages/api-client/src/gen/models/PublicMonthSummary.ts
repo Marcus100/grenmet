@@ -55,7 +55,7 @@ export type PublicMonthSummary = {
   longest_dry_spell_start?: string | null;
   longest_dry_spell_end?: string | null;
   /**
-   * @description Dry days in a row up to the latest reported day; 0 if it rained.
+   * @description Dry days in a row up to the latest reported day; 0 if it rained; null when the latest total is more than a day old.
    */
   current_dry_spell_days?: number | null;
   /**

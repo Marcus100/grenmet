@@ -92,6 +92,17 @@ describe("monthStats", () => {
   });
 });
 
+describe("a finished month", () => {
+  it("drops 'so far' and 'current' from the labels", () => {
+    const labels = monthStats(summary, true).groups.flatMap((g) =>
+      g.stats.map((x) => x.label)
+    );
+    expect(labels).toContain("Total");
+    expect(labels).toContain("Dry spell at month end");
+    expect(labels).not.toContain("Total so far");
+  });
+});
+
 describe("dataMonth", () => {
   it("shows the previous month in full until the 5th, then the month so far", () => {
     // 3 Nov, 10:00 in Grenada.

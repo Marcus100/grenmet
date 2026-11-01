@@ -454,7 +454,7 @@ class PublicMonthSummary(BaseModel):
     longest_dry_spell_end: date | None = None
     current_dry_spell_days: int | None = Field(
         default=None,
-        description="Dry days in a row up to the latest reported day; 0 if it rained.",
+        description="Dry days in a row up to the latest reported day; 0 if it rained; null when the latest total is more than a day old.",
     )
     dry_day_threshold_mm: float = 1.0
     mean_wind_kt: float | None = Field(

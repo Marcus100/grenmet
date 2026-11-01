@@ -321,7 +321,8 @@ async def test_month_summary_aggregates_in_sql(register_db):
         date(2026, 10, 3),
         date(2026, 10, 4),
     )
-    assert result.current_dry_spell_days == 0  # the latest total was wet
+    # The latest total (the 5th) is long before the 18th: the spell is unknown.
+    assert result.current_dry_spell_days is None
     assert result.mean_wind_kt is None and result.max_gust_kt is None
 
     # Past month: full period, nothing from October leaks in.
@@ -393,6 +394,9 @@ def test_dry_spells_count_reported_days_under_one_millimetre():
         1,
     )
     assert public.dry_spells([]) == (None, None, None, None)
+    # Through the 7th: the run is current. Through the 10th: unknown.
+    assert public.dry_spells(days, d + timedelta(days=7))[3] == 1
+    assert public.dry_spells(days, d + timedelta(days=10))[3] is None
 
 
 def test_wind_month_means_speeds_and_finds_the_prevailing_point_and_top_gust():

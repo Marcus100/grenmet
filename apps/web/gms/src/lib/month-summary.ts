@@ -73,7 +73,11 @@ const POINT_WORDS: Record<string, string> = {
  * so instead of showing a made-up number. No 1991-2020 normals yet: the
  * comparison line waits for GMS's normals.
  */
-export function monthStats(summary: PublicMonthSummary): MonthStats {
+export function monthStats(
+  summary: PublicMonthSummary,
+  /** A finished month (shown until the 5th): no "so far" or "current". */
+  final = false
+): MonthStats {
   const longest = summary.longest_dry_spell_days ?? null;
   const spell =
     summary.longest_dry_spell_start && summary.longest_dry_spell_end
@@ -93,7 +97,7 @@ export function monthStats(summary: PublicMonthSummary): MonthStats {
         name: "Rainfall",
         stats: [
           {
-            label: "Total so far",
+            label: final ? "Total" : "Total so far",
             measure: { quantity: "rain", value: summary.rainfall_mm ?? null },
             value:
               summary.rainfall_mm == null ? null : String(summary.rainfall_mm),
@@ -167,7 +171,7 @@ export function monthStats(summary: PublicMonthSummary): MonthStats {
             detail: spell,
           },
           {
-            label: "Current dry spell",
+            label: final ? "Dry spell at month end" : "Current dry spell",
             value: count(current),
             unit: days(current),
             detail:

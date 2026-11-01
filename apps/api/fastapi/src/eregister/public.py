@@ -431,11 +431,14 @@ _WIND_SQL = text(
 
 def dry_spells(
     days: list[tuple[date, Decimal]],
+    through: date | None = None,
 ) -> tuple[int | None, date | None, date | None, int | None]:
     """(longest run, its first and last day, the run up to the latest day).
 
     A dry day has under 1 mm (Climpact CDD). A day with no 24 h total breaks
     a run: the register cannot say it was dry. None without any daily total.
+    ``through`` is the last day of the period: when the latest total is more
+    than a day older, the current spell is unknown (None), not still running.
     """
     if not days:
         return None, None, None, None
@@ -454,13 +457,22 @@ def dry_spells(
         else:
             run = 0
         previous = day
+    if (
+        through is not None
+        and previous is not None
+        and previous < through - timedelta(days=1)
+    ):
+        return best[0], best[1], best[2], None
     return best[0], best[1], best[2], run
 
 
 def _workbook(value: Any) -> dict[str, Any]:
     """The workbook JSON as a dict, whichever way the driver returns jsonb."""
     if isinstance(value, str):
-        value = json.loads(value)
+        try:
+            value = json.loads(value)
+        except ValueError:
+            return {}
     return value if isinstance(value, dict) else {}
 
 
@@ -538,13 +550,15 @@ async def month_summary(
         (date.fromisoformat(str(day)), Decimal(str(rain)))
         for day, rain in raw_daily or []
     ]
-    longest, dry_from, dry_to, current = dry_spells(daily)
+    period_end = min(stop, now)
+    longest, dry_from, dry_to, current = dry_spells(
+        daily, (period_end - timedelta(microseconds=1)).date()
+    )
     wind_rows = [
         (r["observed_at"], _workbook(r["wb"]))
         for r in (await session.execute(_WIND_SQL, window)).mappings()
     ]
     mean_wind, prevailing, top_gust, top_gust_at = wind_month(wind_rows)
-    period_end = min(stop, now)
     rain_known = row["rain_report_days"] > 0
     return PublicMonthSummary(
         station_id=MBIA_STATION,
