@@ -1,3 +1,4 @@
+from datetime import date
 from typing import Annotated, Any, Literal
 from uuid import UUID, uuid4
 
@@ -441,6 +442,30 @@ class PublicMonthSummary(BaseModel):
     max_temperature_at: UtcDateTime | None = None
     min_temperature_c: float | None = None
     min_temperature_at: UtcDateTime | None = None
+    heavy_rain_days: int | None = Field(
+        default=None, description="Days with a 24 h total of 10 mm or more (R10mm)."
+    )
+    heavy_rain_threshold_mm: float = 10.0
+    longest_dry_spell_days: int | None = Field(
+        default=None,
+        description="Longest run of reported days under 1 mm (CDD); a day without a total breaks it.",
+    )
+    longest_dry_spell_start: date | None = None
+    longest_dry_spell_end: date | None = None
+    current_dry_spell_days: int | None = Field(
+        default=None,
+        description="Dry days in a row up to the latest reported day; 0 if it rained; null when the latest total is more than a day old.",
+    )
+    dry_day_threshold_mm: float = 1.0
+    mean_wind_kt: float | None = Field(
+        default=None, description="Mean of the reported wind speeds, calm as 0 kn."
+    )
+    prevailing_wind_direction: str | None = Field(
+        default=None,
+        description="Most frequent 8-point direction of non-calm readings.",
+    )
+    max_gust_kt: int | None = None
+    max_gust_at: UtcDateTime | None = None
     provisional: bool
 
 
