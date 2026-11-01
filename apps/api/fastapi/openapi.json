@@ -23054,6 +23054,694 @@
         }
       }
     },
+    "/api/v1/hr/payroll/me/payslips": {
+      "get": {
+        "tags": [
+          "hr-payroll"
+        ],
+        "summary": "List my payslips",
+        "description": "The caller's own issued payslips. Needs hr.payroll.read.self and a session verified with two-step verification.",
+        "operationId": "hrListMyPayslips",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PayslipsPublic"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Content",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid payroll input",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Not signed in",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Missing payroll permission, organisation-wide scope or two-step verification, or separation of duty (you prepared, added lines to, or changed a profile used in the period, or it contains your own pay)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found, or no payroll access in this organisation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "The period is not in a state that allows this, or the data conflicts",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/hr/payroll/periods/{period_id}/payslips": {
+      "get": {
+        "tags": [
+          "hr-payroll"
+        ],
+        "summary": "List a period's payslips",
+        "description": "Needs organisation-wide hr.payroll.read.amounts and a session verified with two-step verification.",
+        "operationId": "hrListPeriodPayslips",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "period_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Period Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PayslipsPublic"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "400": {
+            "description": "Invalid payroll input",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Not signed in",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Missing payroll permission, organisation-wide scope or two-step verification, or separation of duty (you prepared, added lines to, or changed a profile used in the period, or it contains your own pay)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found, or no payroll access in this organisation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "The period is not in a state that allows this, or the data conflicts",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/hr/payroll/payslips/{payslip_id}/pdf": {
+      "get": {
+        "tags": [
+          "hr-payroll"
+        ],
+        "summary": "Download a payslip PDF",
+        "description": "Rendered by WeasyPrint from the frozen snapshot after its SHA-256 is checked. Own payslip with hr.payroll.read.self, or organisation-wide hr.payroll.read.amounts; both need two-step verification. Rate limited per user. Sent private and never cached or sniffed.",
+        "operationId": "hrGetPayslipPdf",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "payslip_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Payslip Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Payslip PDF",
+            "content": {
+              "application/pdf": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "400": {
+            "description": "Invalid payroll input",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Not signed in",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Missing payroll permission, organisation-wide scope or two-step verification, or separation of duty (you prepared, added lines to, or changed a profile used in the period, or it contains your own pay)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found, or no payroll access in this organisation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "The period is not in a state that allows this, or the data conflicts",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too many payslip downloads",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/hr/payroll/periods/{period_id}/bank-transfer.csv": {
+      "post": {
+        "tags": [
+          "hr-payroll"
+        ],
+        "summary": "Export the bank-transfer file",
+        "description": "Net pay per payslip in the organisation's configured columns. Bank account numbers are not stored, so that column reads NOT STORED. Needs organisation-wide hr.payroll.export and two-step verification; audited.",
+        "operationId": "hrExportBankTransferCsv",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "period_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Period Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Bank CSV",
+            "content": {
+              "text/csv": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "400": {
+            "description": "Invalid payroll input",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Not signed in",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Missing payroll permission, organisation-wide scope or two-step verification, or separation of duty (you prepared, added lines to, or changed a profile used in the period, or it contains your own pay)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found, or no payroll access in this organisation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "The period is not in a state that allows this, or the data conflicts",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/hr/payroll/periods/{period_id}/gl-journal.csv": {
+      "post": {
+        "tags": [
+          "hr-payroll"
+        ],
+        "summary": "Export the GL journal",
+        "description": "A balanced journal per department with the organisation's account codes (UNMAPPED where none is set). Needs organisation-wide hr.payroll.export and two-step verification; audited.",
+        "operationId": "hrExportGlJournalCsv",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "period_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Period Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "GL CSV",
+            "content": {
+              "text/csv": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "400": {
+            "description": "Invalid payroll input",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Not signed in",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Missing payroll permission, organisation-wide scope or two-step verification, or separation of duty (you prepared, added lines to, or changed a profile used in the period, or it contains your own pay)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found, or no payroll access in this organisation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "The period is not in a state that allows this, or the data conflicts",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/hr/payroll/export-settings": {
+      "get": {
+        "tags": [
+          "hr-payroll"
+        ],
+        "summary": "Read bank and GL export settings",
+        "description": "Needs organisation-wide hr.payroll.export.",
+        "operationId": "hrGetPayrollExportSettings",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "organisation_id",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "maxLength": 100,
+              "title": "Organisation Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PayrollExportSettingsPublic"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "400": {
+            "description": "Invalid payroll input",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Not signed in",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Missing payroll permission, organisation-wide scope or two-step verification, or separation of duty (you prepared, added lines to, or changed a profile used in the period, or it contains your own pay)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found, or no payroll access in this organisation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "The period is not in a state that allows this, or the data conflicts",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "hr-payroll"
+        ],
+        "summary": "Set bank and GL export settings",
+        "description": "Bank columns from the available list and GL account codes. Needs organisation-wide hr.payroll.rates.manage and two-step verification.",
+        "operationId": "hrUpdatePayrollExportSettings",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PayrollExportSettingsUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PayrollExportSettingsPublic"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "400": {
+            "description": "Invalid payroll input",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Not signed in",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Missing payroll permission, organisation-wide scope or two-step verification, or separation of duty (you prepared, added lines to, or changed a profile used in the period, or it contains your own pay)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found, or no payroll access in this organisation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "The period is not in a state that allows this, or the data conflicts",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/hr/training-records": {
       "get": {
         "tags": [
@@ -92921,6 +93609,157 @@
           "data"
         ],
         "title": "PayrollDepartmentSettingsPublic"
+      },
+      "PayrollExportSettingsPublic": {
+        "properties": {
+          "organisation_id": {
+            "type": "string",
+            "title": "Organisation Id"
+          },
+          "bank_columns": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Bank Columns"
+          },
+          "gl_accounts": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "type": "object",
+            "title": "Gl Accounts"
+          },
+          "available_bank_columns": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Available Bank Columns"
+          }
+        },
+        "type": "object",
+        "required": [
+          "organisation_id",
+          "bank_columns",
+          "gl_accounts",
+          "available_bank_columns"
+        ],
+        "title": "PayrollExportSettingsPublic"
+      },
+      "PayrollExportSettingsUpdate": {
+        "properties": {
+          "organisation_id": {
+            "type": "string",
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Organisation Id"
+          },
+          "bank_columns": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "maxItems": 20,
+            "minItems": 1,
+            "title": "Bank Columns"
+          },
+          "gl_accounts": {
+            "additionalProperties": {
+              "type": "string",
+              "maxLength": 60
+            },
+            "type": "object",
+            "title": "Gl Accounts"
+          }
+        },
+        "type": "object",
+        "required": [
+          "organisation_id",
+          "bank_columns",
+          "gl_accounts"
+        ],
+        "title": "PayrollExportSettingsUpdate"
+      },
+      "PayslipPublic": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "period_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Period Id"
+          },
+          "user_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "User Id"
+          },
+          "period_start": {
+            "type": "string",
+            "format": "date",
+            "title": "Period Start"
+          },
+          "period_end": {
+            "type": "string",
+            "format": "date",
+            "title": "Period End"
+          },
+          "employee_name": {
+            "type": "string",
+            "title": "Employee Name"
+          },
+          "net_minor": {
+            "type": "integer",
+            "title": "Net Minor"
+          },
+          "currency": {
+            "type": "string",
+            "title": "Currency"
+          },
+          "sha256": {
+            "type": "string",
+            "title": "Sha256"
+          },
+          "issued_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Issued At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "period_id",
+          "user_id",
+          "period_start",
+          "period_end",
+          "employee_name",
+          "net_minor",
+          "currency",
+          "sha256",
+          "issued_at"
+        ],
+        "title": "PayslipPublic"
+      },
+      "PayslipsPublic": {
+        "properties": {
+          "data": {
+            "items": {
+              "$ref": "#/components/schemas/PayslipPublic"
+            },
+            "type": "array",
+            "title": "Data"
+          }
+        },
+        "type": "object",
+        "required": [
+          "data"
+        ],
+        "title": "PayslipsPublic"
       },
       "PermissionCreate": {
         "properties": {
