@@ -272,6 +272,18 @@ export interface DeskUpdate {
     | 'community'
     | 'announcement';
   /**
+   * Standard: words and a picture. Audio or Video: also paste a share link, played only when a reader presses play. Chart: the picture is a chart (owner, 1 Nov 2026).
+   */
+  format: 'standard' | 'audio' | 'video' | 'chart';
+  /**
+   * YouTube or Facebook for video, SoundCloud for audio. Paste the share link.
+   */
+  mediaUrl?: string | null;
+  /**
+   * Shown after your name on the card, e.g. "Duty forecaster" or "Climate officer".
+   */
+  authorRole?: string | null;
+  /**
    * Shown on cards and in search. 200 characters at most.
    */
   summary: string;
@@ -1040,6 +1052,9 @@ export interface LivePostsSelect<T extends boolean = true> {
 export interface DeskUpdatesSelect<T extends boolean = true> {
   title?: T;
   kind?: T;
+  format?: T;
+  mediaUrl?: T;
+  authorRole?: T;
   summary?: T;
   image?: T;
   imageCaption?: T;

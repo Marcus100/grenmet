@@ -3,6 +3,7 @@ import {
   ArrowRightIcon,
   ChevronRightIcon,
   CloudSunIcon,
+  PlayIcon,
   TornadoIcon,
 } from "lucide-react";
 import type { Route } from "next";
@@ -23,6 +24,7 @@ import {
 } from "@/lib/cms";
 import { buildDeskFeed, type OfficialCard } from "@/lib/desk-feed";
 import { contentToArticle } from "@/lib/editorial";
+import { mediaEmbed } from "@/lib/media-embed";
 import { fetchPublishedProducts } from "@/lib/products";
 import { cn } from "@/lib/utils";
 
@@ -76,8 +78,19 @@ export function avatarInitials(name: string | null | undefined): string {
  * One desk post as a card: who posted it and when, the words, its picture (a
  * chart or map) and a link to the article, which carries any linked product.
  */
+const FORMAT_LABEL = {
+  audio: "Listen",
+  video: "Watch",
+  chart: "Chart",
+} as const;
+
 function DeskPostCard({ item }: { item: PublishedContent }) {
   const posted = item.publishedAt ?? item.updatedAt;
+  const format = item.format ?? "standard";
+  const media =
+    format === "audio" || format === "video"
+      ? mediaEmbed(format, item.mediaUrl ?? null)
+      : null;
   // `relative` keeps the link's screen-reader text inside the scrolling row;
   // without it that hidden text widens the whole page on phones.
   return (
@@ -94,12 +107,10 @@ function DeskPostCard({ item }: { item: PublishedContent }) {
             <span className="font-bold text-body text-gm-heading leading-body">
               {item.authorName ?? "The forecasters"}
             </span>
-            <time
-              className="text-body-sm text-gm-text-secondary leading-body-sm"
-              dateTime={posted}
-            >
-              {postedLabel(posted)}
-            </time>
+            <span className="text-body-sm text-gm-text-secondary leading-body-sm">
+              {item.authorRole && <>{item.authorRole} · </>}
+              <time dateTime={posted}>{postedLabel(posted)}</time>
+            </span>
           </span>
         </header>
         <h3 className="text-balance font-bold text-gm-heading text-heading-sm leading-heading-sm">
@@ -110,6 +121,11 @@ function DeskPostCard({ item }: { item: PublishedContent }) {
         {item.summary && (
           <p className="text-body-base leading-body-base">{item.summary}</p>
         )}
+        {format !== "standard" && (
+          <span className="w-fit rounded-full bg-gm-surface-panel px-2.5 py-0.5 font-bold text-gm-heading text-label uppercase leading-label tracking-wider">
+            {FORMAT_LABEL[format]}
+          </span>
+        )}
         {item.linkedProduct && (
           <span className="w-fit rounded-full bg-gm-surface-panel px-2.5 py-0.5 font-bold text-gm-heading text-label uppercase leading-label tracking-wider">
             {item.linkedProduct.kind && isProductKind(item.linkedProduct.kind)
@@ -118,16 +134,36 @@ function DeskPostCard({ item }: { item: PublishedContent }) {
           </span>
         )}
         {item.imageUrl && (
-          <span className="relative aspect-[4/3] overflow-hidden rounded-lg bg-gm-surface-panel">
-            <Image
-              alt={item.imageAlt ?? ""}
-              className="object-cover"
-              fill
-              sizes="(min-width: 640px) 24rem, 85vw"
-              src={item.imageUrl}
-              unoptimized={!isOptimizableImage(item.imageUrl)}
-            />
-          </span>
+          <figure className="flex flex-col gap-1">
+            <span className="relative aspect-[4/3] overflow-hidden rounded-lg bg-gm-surface-panel">
+              <Image
+                alt={item.imageAlt ?? ""}
+                className="object-cover"
+                fill
+                sizes="(min-width: 640px) 24rem, 85vw"
+                src={item.imageUrl}
+                unoptimized={!isOptimizableImage(item.imageUrl)}
+              />
+            </span>
+            {item.imageCredit && (
+              <figcaption className="text-caption text-gm-text-muted leading-caption">
+                {item.imageCredit}
+              </figcaption>
+            )}
+          </figure>
+        )}
+        {media && (
+          // Nothing loads from the provider until the reader follows the link.
+          <a
+            className="flex w-fit items-center gap-2 rounded-full bg-gm-surface-panel px-3 py-1.5 font-semibold text-body-sm text-gm-heading leading-body-sm hover:underline"
+            href={media.href}
+            rel="noopener noreferrer"
+            target="_blank"
+          >
+            <PlayIcon aria-hidden="true" className="size-4" />
+            {format === "audio" ? "Listen" : "Watch"} on {media.provider}
+            <span className="sr-only"> (opens in a new tab)</span>
+          </a>
         )}
         <Link
           className="mt-auto flex w-fit items-center gap-1 font-semibold text-body text-gm-blue-ink leading-body hover:underline"
