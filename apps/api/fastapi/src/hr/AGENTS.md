@@ -78,7 +78,64 @@ files and cutover are later slices that need their own approval.
   at computation and the lines lock at submission. Manual band lines are refused
   where the employee's department computes bands, and allowed with a reason
   where it does not.
+- **Known limit of the profile and shift-default checks.** `period_conflict`
+  excludes whoever made the *last* edit to a pay profile or a department's
+  shift-worker default (`updated_by_user_id`). Earlier editors are in the change
+  history (`/audit/payroll_settings`) but are not checked automatically; the
+  approver's own pay and every line they added are always checked.
 - **Logs and Sentry:** IDs and counts only, never names, quantities or reasons.
+
+### Gross pay (slice 2, `gross.py`, `pricing.py`)
+- Money is integer minor units (XCD cents), Decimal arithmetic, rounded half-up
+  per line (the billing pattern). Totals are sums of rounded lines.
+- `employee_basic_pay` is dated: SALARIED (monthly basic) or HOURLY (hourly rate),
+  plus standard monthly hours. `pay_item_rate` is dated: HOURLY_MULTIPLIER, or
+  FIXED_AMOUNT with optional guaranteed hours (call-out: $40 + 4 h at 1.5,
+  the 1.5 assumed). An open-ended earlier row ends the day before a new one.
+- Pricing runs at the end of every computation and is frozen with the lines.
+  A line with no rate or no basic pay has `amount_minor` NULL, never 0. Salaried
+  base hours are covered by the BASIC line. Reversals take the negated recorded
+  amount. A retroactive basic change is not adjusted automatically.
+- `hr.payroll.read.amounts` (organisation-wide only) is the only way to see money:
+  `PayLinePublic` has no money fields (tested). `hr.payroll.rates.manage` writes
+  need MFA; nobody sets their own basic pay.
+- Hourly-paid staff on a calendar longer than fortnightly need an override
+  reason (Employment Act wage periods, secondary source).
+
+### Deductions (slice 3, `deductions.py`, `statutory.py`)
+- Generic dated tables per organisation: `tax_table` + `tax_band` (ANNUALISED:
+  period pay x periods a year, less the allowance, through the bands, back to a
+  period; 12 or 26 periods), `social_insurance_scheme` (employee and employer
+  rate; per-period ceiling: monthly, or weekly x 2 per fortnight unless
+  `fortnightly_ceiling_minor`), `deduction_type` (percent of basic or gross,
+  fixed, split premium) and `employee_deduction`. A type that requires
+  authorisation is never deducted until the employee's authorisation is recorded.
+- Deduction lines are computed with the period while OPEN and locked by the
+  same trigger as pay lines. Tables are immutable apart from their rule state.
+- **HARD RULE:** `issue-approval` refuses while any income tax or social
+  insurance table a period used is PROVISIONAL now (live state), or any line is
+  unpriced. The preview is labelled "Provisional figures". OWNER_CONFIRMED counts
+  as not provisional (PAYE, from a real GAA payslip; HR still verifies).
+- GAA seed (marker `payroll:gaa-statutory:v1`): PAYE EC$36,000 allowance, 10%
+  on the first EC$24,000 then 28% (OWNER_CONFIRMED; the conflicting 15%/30%
+  source is noted); NIS 6.25%/7.25% for 2026 and 6.50%/7.50% from 2027, ceiling
+  EC$5,200 a month / EC$1,200 a week (PROVISIONAL); pension 5%/5% of basic,
+  health 40/60 split premium, union dues (all PROVISIONAL, authorisation needed).
+
+### Payslips and files (slice 4, `payslips.py`)
+- Issue approval creates every payslip in the same transaction (an itemised
+  statement is required for each payment: Employment Act ss. 47-48, secondary
+  source). A payslip is a JSON snapshot plus an HMAC-SHA256 of its canonical JSON
+  under a key from `PAYSLIP_HMAC_KEYS` (`payroll/config.py`; docs/env.md); the row
+  stores the key id, so rotation keeps old payslips verifiable. No key configured:
+  issue is refused (fail closed); a stored key id that is no longer configured: a
+  409 naming the id. The PDF renders from the snapshot after the hash check.
+  `payslip_append_only` refuses updates and deletes.
+- Staff see their own payslips with `hr.payroll.read.self` (granted to no role).
+- Bank and GL CSVs: organisation-wide export key, MFA, audited; columns and GL
+  account codes are per-organisation settings. **Bank account numbers are not
+  stored** (no field-encryption helper exists for them; the TOTP Fernet keys must
+  not be reused for bank data): the bank column reads NOT STORED.
 
 ### Rules (all provisional, parameters in the GAA catalogue)
 - Base hours: arrival to departure (`hours_basis` ELAPSED, the memorandum's
@@ -93,7 +150,9 @@ files and cutover are later slices that need their own approval.
 
 ### Tests
 `tests/hr/test_payroll_inputs.py` (the eleven acceptance checks, through the API),
-`tests/hr/test_payroll_rules.py` (pure rule edges). Synthetic data only.
+`tests/hr/test_payroll_rules.py` (pure rule edges), `tests/hr/test_payroll_gross.py`
+(gross pay), `tests/hr/test_payroll_deductions.py` (deductions),
+`tests/hr/test_payroll_payslips.py` (payslips and files). Synthetic data only.
 
 ## Roster rules (#380)
 - Rules are data: `roster.RosterRuleSet` (organisation default, department rows replace it; built-in `rules.DEFAULT_RULES` when none). Edit with `roster.rules.manage` (HR admins; organisation rows need organisation-wide scope). Union coverage and worker type live on `EmploymentRecord` (`union_covered`, `rule_worker_type`) and are edited only through `PUT /hr/rosters/employees/{id}/rule-profile` with the same key, never by the employee themselves.

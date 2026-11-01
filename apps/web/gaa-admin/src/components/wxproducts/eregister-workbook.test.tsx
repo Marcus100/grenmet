@@ -22,7 +22,7 @@ function renderWorkbook(
   render(
     <ERegisterWorkbook
       expectedMetar={extra.expectedMetar}
-      issues={issues}
+      issues={issues.map((issue) => ({ code: "test", ...issue }))}
       metarPreview="TGPY"
       observedAt="2026-07-07T23:00"
       onBack={vi.fn()}

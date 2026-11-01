@@ -120,6 +120,25 @@ from src.utils.datetime import utc_now
 logger = logging.getLogger(__name__)
 
 
+async def _notify_mismatch_safely(
+    *, session: AsyncSession, alert: CapAlert, problem: str, action: str
+) -> None:
+    """Tell the duty supervisor about a format problem without ever blocking the send.
+
+    The warning or cancellation has already been accepted at this point, so a failed
+    notification is logged (identifiers only, no personal data) and swallowed.
+    """
+    try:
+        await notify_schema_mismatch(
+            session=session, alert=alert, problem=problem, action=action
+        )
+    except Exception:
+        logger.exception(
+            "CAP schema-mismatch notification failed; the alert was still sent",
+            extra={"action": action, "identifier": alert.identifier},
+        )
+
+
 __all__ = [
     "PUBLIC_HAZARD_GROUPS",
     "_alert_selectinload_options",
@@ -232,7 +251,7 @@ async def _fetch_document(
     """
     address = await ensure_public_host(urlparse(url).hostname or "")
     owns_client = http_client is None
-    client = http_client or httpx.AsyncClient()
+    client = http_client or httpx.AsyncClient(trust_env=False)
     try:
         fetched = await fetch_pinned(
             client,
@@ -925,7 +944,7 @@ async def _publish(
         audit_payload["reason"] = emergency_reason
     if mismatch is not None:
         audit_payload["schema_mismatch"] = mismatch
-        await notify_schema_mismatch(
+        await _notify_mismatch_safely(
             session=session,
             alert=alert,
             problem=mismatch,
@@ -1070,7 +1089,7 @@ async def cancel_alert(
         session=session, alert=cancellation, actor=current_user, about=alert
     )
     if cancel_mismatch is not None:
-        await notify_schema_mismatch(
+        await _notify_mismatch_safely(
             session=session,
             alert=cancellation,
             problem=cancel_mismatch,
@@ -1533,7 +1552,7 @@ async def ingest_all_active_feeds(
     )
     feeds = list(result.scalars().all())
     owns_client = http_client is None
-    client = http_client or httpx.AsyncClient()
+    client = http_client or httpx.AsyncClient(trust_env=False)
     try:
         for feed in feeds:
             try:

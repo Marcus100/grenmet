@@ -13,4 +13,5 @@ export type EmployeePayProfileUpdate = {
   calendar_id?: string | null;
   shift_worker?: boolean | null;
   payroll_reference?: string | null;
+  calendar_override_reason?: string | null;
 };

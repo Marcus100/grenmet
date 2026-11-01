@@ -10,6 +10,7 @@ export const payItemMethod = {
   THRESHOLD_EVENT: "THRESHOLD_EVENT",
   OVERTIME_BAND: "OVERTIME_BAND",
   MANUAL: "MANUAL",
+  BASIC_SALARY: "BASIC_SALARY",
 } as const;
 
 export type PayItemMethod = (typeof payItemMethod)[keyof typeof payItemMethod];

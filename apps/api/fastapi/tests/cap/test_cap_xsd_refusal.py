@@ -784,3 +784,105 @@ async def test_unknown_and_oddly_cased_response_types_are_stored_flagged_not_ref
     assert imported.info[0].response_types == ["Prepare", "AllClear"]
     assert imported.schema_conformant is False
     assert "'Hide' is not a CAP response type" in (imported.schema_error or "")
+
+
+# ── Hardening: a failing duty notice never blocks the send ──────────────────────
+
+
+@pytest.mark.usefixtures("forced_mismatch")
+async def test_a_failing_mismatch_notice_still_publishes_and_audits(
+    db_async: AsyncSession,
+    monkeypatch: pytest.MonkeyPatch,
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    async def broken(**_kwargs: object) -> int:
+        raise RuntimeError("notification backend down")
+
+    monkeypatch.setattr(cap_service, "notify_schema_mismatch", broken)
+    user = await make_user(db_async, superuser=True)
+    alert = await _approved_alert(db_async, user)
+
+    with caplog.at_level(logging.ERROR, logger="src.cap.service"):
+        published, _snapshot = await cap_service.emergency_publish_alert(
+            session=db_async,
+            current_user=user,
+            alert_id=alert.id,
+            payload=CapEmergencyPublish(reason="Flash flood now"),
+        )
+
+    assert published.lifecycle_state == CapLifecycleState.PUBLISHED
+    assert any("notification failed" in r.getMessage() for r in caplog.records)
+    from src.cap.models import CapAuditEvent
+
+    events = (
+        (
+            await db_async.execute(
+                select(CapAuditEvent).where(CapAuditEvent.alert_id == alert.id)
+            )
+        )
+        .scalars()
+        .all()
+    )
+    assert any(
+        e.action == "emergency_publish" and "schema_mismatch" in (e.payload or {})
+        for e in events
+    )
+
+
+async def test_a_failing_mismatch_notice_still_cancels_and_audits(
+    db_async: AsyncSession,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    user = await make_user(db_async, superuser=True)
+    alert = await _approved_alert(db_async, user)
+    await cap_service.publish_alert(
+        session=db_async,
+        current_user=user,
+        alert_id=alert.id,
+        payload=CapPublishAction(),
+    )
+
+    async def broken(**_kwargs: object) -> int:
+        raise RuntimeError("notification backend down")
+
+    monkeypatch.setattr(cap_service, "notify_schema_mismatch", broken)
+    monkeypatch.setattr(
+        xsd,
+        "cap_schema_errors",
+        lambda xml: ["line 2: element 'forced': this is a forced test mismatch"],
+    )
+
+    cancelled = await cap_service.cancel_alert(
+        session=db_async,
+        current_user=user,
+        alert_id=alert.id,
+        payload=CapAlertAction(note="Event has passed"),
+    )
+
+    assert cancelled.lifecycle_state == CapLifecycleState.CANCELLED
+
+
+# ── Hardening: stripped XML that is still not well-formed goes out when allowed ──
+
+
+async def test_an_emergency_gate_sends_still_malformed_xml_with_the_problem() -> None:
+    xml, problem = await xsd.gate_cap_xml(
+        "<alert><unclosed></alert>",
+        action="emergency_publish",
+        identifier="ID-1",
+        alert_id=uuid.uuid4(),
+        allow_mismatch=True,
+    )
+    assert xml == "<alert><unclosed></alert>"
+    assert problem is not None and "not well-formed XML" in problem
+
+
+async def test_a_normal_gate_still_refuses_still_malformed_xml() -> None:
+    with pytest.raises(CapSchemaValidationError):
+        await xsd.gate_cap_xml(
+            "<alert><unclosed></alert>",
+            action="publish",
+            identifier="ID-1",
+            alert_id=uuid.uuid4(),
+            allow_mismatch=False,
+        )

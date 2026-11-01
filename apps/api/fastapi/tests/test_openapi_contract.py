@@ -3,11 +3,14 @@
 import json
 import re
 from collections.abc import Iterator
+from datetime import UTC, datetime
 from typing import Any
 
-from fastapi import APIRouter, FastAPI
+from fastapi import APIRouter, FastAPI, HTTPException
 from fastapi.routing import APIRoute, iter_route_contexts
 
+from src.eregister import entries
+from src.eregister.schemas import EregisterValidationError
 from src.main import app
 
 
@@ -128,6 +131,64 @@ def test_documented_error_responses_have_a_body_schema() -> None:
     assert not offenders, "4xx responses without a body schema: " + ", ".join(offenders)
 
 
+# Operations whose 422 can carry the structured SYNOP refusal
+# (``entries.require_valid_synop``), and those whose 422 is a plain string.
+SYNOP_REFUSAL_OPERATIONS = {
+    "eregisterCreateRegisterObservation",
+    "eregisterCorrectRegisterObservation",
+    "eregisterAcceptRegisterObservation",
+}
+PLAIN_422_OPERATIONS = {
+    "eregisterReviewRegisterObservation",
+    "eregisterRejectRegisterObservation",
+    "eregisterReopenRegisterObservation",
+    "eregisterEmailRegisterObservation",
+    "eregisterPublishRegisterObservation",
+}
+
+
+def _422_refs(operation: dict[str, Any]) -> set[str]:
+    schema = operation["responses"]["422"]["content"]["application/json"]["schema"]
+    return {
+        option["$ref"].rsplit("/", 1)[-1] for option in schema.get("anyOf", [schema])
+    }
+
+
+def test_eregister_observation_422s_name_their_bodies() -> None:
+    # The SYNOP refusal is {"detail": {"message", "issues"}}, not a string; a
+    # malformed request on the same route answers the request validation 422.
+    seen = {}
+    for _path, _method, operation in _operations():
+        if operation["operationId"] in SYNOP_REFUSAL_OPERATIONS | PLAIN_422_OPERATIONS:
+            seen[operation["operationId"]] = _422_refs(operation)
+    expected_refusal = {"EregisterValidationError", "ValidationErrorResponse"}
+    expected_plain = {"ApiError", "ValidationErrorResponse"}
+    assert seen == {
+        **dict.fromkeys(SYNOP_REFUSAL_OPERATIONS, expected_refusal),
+        **dict.fromkeys(PLAIN_422_OPERATIONS, expected_plain),
+    }
+    components = app.openapi()["components"]["schemas"]
+    detail = components["SynopValidationErrorDetail"]
+    assert detail["required"] == ["message", "issues"]
+    assert detail["properties"]["issues"]["items"] == {
+        "$ref": "#/components/schemas/SynopValidationIssue"
+    }
+
+
+def test_the_synop_refusal_body_matches_its_documented_model() -> None:
+    # The runtime body is built from the model; this pins that it validates.
+    observed = datetime(2026, 7, 7, 12, tzinfo=UTC)
+    try:
+        entries.require_valid_synop({"day": "123"}, observed)
+    except HTTPException as exc:
+        assert exc.status_code == 422
+        body = EregisterValidationError.model_validate({"detail": exc.detail})
+    else:
+        raise AssertionError("an invalid workbook must be refused")
+    assert body.detail.message.startswith("Observation does not pass validation")
+    assert [(i.field, i.code) for i in body.detail.issues] == [("day", "invalid_value")]
+
+
 JSON_ERROR_REF = re.compile(r'"#/components/schemas/(ApiError|ErrorMessage)"')
 
 
@@ -213,6 +274,10 @@ def _missing_response_models(application: FastAPI) -> list[str]:
         "admin_get_reconciliation_csv",
         # Payroll inputs export is a CSV download (quantities only).
         "export_pay_period_csv",
+        # Payslip PDF and payroll bank and GL files.
+        "download_payslip_pdf",
+        "export_bank_csv",
+        "export_gl_csv",
         # A booking's iCalendar file (text/calendar).
         "get_public_booking_ics",
     }

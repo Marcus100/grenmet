@@ -299,6 +299,30 @@ site's secret is set; the same value must be set for the API. Elections
 | gmsdash | `gmsdash` | `GMSDASH_SSO_CLIENT_SECRET` | `gmsdash_session` |
 | bookings | `bookings` | `BOOKINGS_SSO_CLIENT_SECRET` | `bookings_session` |
 
+The weather site (gms) also hides its "Sign in" button unless
+`WEATHER_SHOW_SIGN_IN=true` (owner, 31 Oct 2026; `false` by default, the same
+for the header and the nav drawer). The switch only hides the button: the
+`/auth` routes, the callback and the account handling stay live, and the
+`WEATHER_SSO_CLIENT_SECRET` check still decides whether sign-in works at all.
+
+**Not wired in deploy yet.** `infra/docker/docker-compose.deploy.yml` (the
+`web-gms` service) and `scripts/production/render-env.py` do not pass
+`WEATHER_SHOW_SIGN_IN`, so a deployed site keeps the button hidden. Those are
+owner-merge files and were left unchanged. To show the button again, add one
+line to the `web-gms` environment block, next to `WEATHER_SSO_CLIENT_SECRET`:
+
+```yaml
+      WEATHER_SHOW_SIGN_IN: ${WEATHER_SHOW_SIGN_IN:-false}
+```
+
+and add `WEATHER_SHOW_SIGN_IN` to the GMS web entries in `render-env.py` so the
+value reaches the environment. The value is read when the pages are rendered,
+and the standing pages are static, so a change shows only after a redeploy
+(rebuild if it is read at build time).
+
+The units switch is on the home page only (it lives in the home hero card, not
+the header), so other pages show the saved choice without a control.
+
 In `infra/docker/docker-compose.deploy.yml` every web service (and the CMS) sets
 `AUTH_API_URL: http://api:8000`, never the public `https://api.<domain>`.
 Calling the public hostname hairpins through Traefik, which replaces the
@@ -315,6 +339,7 @@ Secrets are optional GitHub environment secrets (32+ characters).
 | `AUTH_API_URL` | FastAPI base URL |
 | `AUTH_API_V1_STR` | API version prefix |
 | `AUTH_ALLOWED_RETURN_HOSTS` | Safe redirect hosts used by shared auth helpers |
+| `WEATHER_SHOW_SIGN_IN` | **gms only.** `true` shows the "Sign in" button in the header and the nav drawer; `false` (default) hides it. Only the button is affected; the sign-in routes keep working. Accepts exactly `true` or `false`. |
 | `CAP_API_URL` | **gms only.** FastAPI base URL for the unauthenticated public CAP endpoints (`/api/cap/*`) that render the current-warnings panel. Separate from `AUTH_API_URL` because these endpoints need no session |
 | `NEXT_PUBLIC_SENTRY_DSN` / `NEXT_PUBLIC_SENTRY_ENVIRONMENT` | Optional browser error reporting |
 | `NEXT_PUBLIC_POSTHOG_KEY` / `NEXT_PUBLIC_POSTHOG_HOST` | Optional browser analytics |
@@ -813,6 +838,16 @@ change does not provision secrets or enable enforcement in production.
 - **Deployment:** a GitHub environment **secret** named `ORG_SECRET_ENCRYPTION_KEYS` (`.github/workflows/deploy.yml`), validated by `scripts/production/render-env.py` (a JSON array of 32-byte Fernet keys; empty is allowed; the error never echoes values) and passed to the API, prestart, worker and nhc-worker (never the web apps). Generate a key with `python3 -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())"` and store `["<key>"]`; to rotate, put the new key first and keep the old one after it until every stored secret has been re-saved. **Losing the keys makes stored organisation secrets unreadable** (Turnstile then falls back to the global setting), so keep a copy in the password manager.
 
 `MBIA_CONTACT_RECIPIENT`, `BARRELS_CONTACT_RECIPIENT` and `SUBSCRIPTIONS_SITE_URLS` are now fallbacks for the same values on the public site rows. Remove them once every environment sets `contact_recipient` and `site_url` through `PATCH /api/v1/organisations/admin/sites/{site_id}`.
+
+### Payslip signing keys (payroll slice 4)
+
+`PAYSLIP_HMAC_KEYS` is a comma-separated list of `keyid:secret` pairs, the current key first (for example `k2:<secret>,k1:<secret>`). A key id is letters, digits, `_` or `-` (up to 32); a secret is at least 32 characters with no spaces. It signs each payslip's snapshot (HMAC-SHA256) and the key id is stored on the payslip row, never the secret. It is a dedicated setting: never derive it from, or reuse, `SECRET_KEY`, `AUTH_TOTP_ENCRYPTION_KEYS` or `ORG_SECRET_ENCRYPTION_KEYS`.
+
+- **Unset (the default):** issuing payslips (approving a pay period for issue) is refused with a 409 that names the setting. Nothing is written.
+- **Malformed:** the API refuses to start (a short secret, a repeated key id, a missing `:`); the error never contains a secret.
+- **Generate a secret:** `openssl rand -hex 32` (64 characters, no spaces). Keep it in the deployment's secret store, never in a file in the repository, a log or a ticket.
+- **Rotation:** (1) add the new key at the front (`k2:...,k1:...`) and deploy; new payslips are signed with `k2`, and payslips already issued still verify with `k1`. (2) Keep `k1` for as long as its payslips may be opened, exported or audited. (3) Remove a key only when nothing signed with it needs checking: a payslip whose key id is not configured returns a 409 that names the missing key id (not its secret) on its PDF and on the bank and GL files.
+- **Deployment wiring:** the compose files, `.github/workflows/deploy.yml` and `scripts/production/render-env.py` do not yet carry this setting (workflow and infra changes the owner merges). Until they do, set `PAYSLIP_HMAC_KEYS` in the API service's environment by hand.
 
 ### Payments (PF4, test mode only)
 

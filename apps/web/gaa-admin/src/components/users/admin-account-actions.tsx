@@ -237,13 +237,15 @@ function ConfirmPanel({
       {mode === "activate" ? (
         <p className="text-sm">
           This unlocks staff roles and organisation membership for{" "}
-          <strong>{email}</strong>. It does not verify the email address and
-          does not unlock deposits. The use is recorded with your reason.
+          <strong className="break-all">{email}</strong>. It does not verify the
+          email address and does not unlock deposits. The use is recorded with
+          your reason.
         </p>
       ) : (
         <p className="text-sm">
-          This sends the verification email to <strong>{email}</strong> again.
-          The use is recorded with your reason.
+          This sends the verification email to{" "}
+          <strong className="break-all">{email}</strong> again. The use is
+          recorded with your reason.
         </p>
       )}
       <label className="text-sm" htmlFor={`${fieldId}-reason`}>

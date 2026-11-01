@@ -373,7 +373,8 @@ class CapAlertPublicView(BaseModel):
     """An alert as the anonymous public sees it.
 
     Staff-only fields are left out: the schema check result, the imported marker,
-    the internal note, and who created or last changed the alert.
+    and who created or last changed the alert. The note is kept on purpose: the
+    public XML publishes it as ``<note>``.
     """
 
     id: uuid.UUID

@@ -75,6 +75,85 @@ tax, NIS or bank field exists in any request, response or export.
   rules engine (#890); `overtime_bands_available` is true. Manual band lines are
   refused (400) where the employee's department computes bands.
 
+### Payroll gross pay (slice 2)
+
+- `GET periods/{period_id}/amounts` returns per-line `amount_minor` (XCD cents,
+  rounded half-up per line), the hourly rate and multiplier used, and per-employee
+  gross. It needs organisation-wide `hr.payroll.read.amounts`. `PayLinePublic` and
+  every quantity route never carry money fields.
+- `GET|POST rates` (dated multipliers or fixed amounts per pay item) and
+  `GET|POST basic-pay` (dated monthly salary or hourly rate). Reads need
+  `hr.payroll.read.amounts` or `hr.payroll.rates.manage`. Writes need
+  organisation-wide `hr.payroll.rates.manage` and an MFA-verified session, and
+  nobody sets their own basic pay. An hourly-paid person on a calendar longer than
+  fortnightly needs `calendar_override_reason` (409 otherwise).
+- Unpriced lines (no rate, or no basic pay on file) have `amount_minor: null`,
+  never 0.
+- No quantity route carries money; only `periods/{period_id}/amounts` does.
+- New rates are always `PROVISIONAL` (`rule_state` is not accepted on create).
+  Basic-pay and rate history (`/audit/payroll_money/{organisation_id}`) needs
+  organisation-wide `hr.payroll.read.amounts` and records no money values.
+
+### Payroll deductions (slice 3)
+
+- `GET statutory-tables` lists dated income tax tables (allowance and bands),
+  social insurance schemes (rates, monthly and weekly ceilings; a fortnight is the
+  weekly ceiling x 2 unless set) and deduction types. `POST tax-tables`,
+  `social-insurance-schemes`, `deduction-types` and `employee-deductions`, and
+  `PUT statutory-tables/{kind}/{table_id}/state`, need organisation-wide
+  `hr.payroll.rates.manage` and an MFA-verified session. Tables cannot be edited,
+  only confirmed (`PROVISIONAL`, `OWNER_CONFIRMED`, `CONFIRMED`).
+- Tables are always created `PROVISIONAL` (`rule_state` is not accepted on create);
+  overlapping dates for the same organisation and code are refused (409).
+  Confirming needs organisation-wide `hr.payroll.tables.confirm` (granted to no
+  role) and MFA, never by the table's creator; `confirmed_by_user_id`,
+  `confirmed_at` and `confirmation_note` record it and the source note is kept.
+  The rule state is snapshotted onto deduction lines when a period computes.
+- Deduction types follow the same gate as tax tables and schemes: created
+  `PROVISIONAL`, confirmed by someone else with `hr.payroll.tables.confirm`, and
+  an unconfirmed type blocks issue. `requires_authorisation` is not settable on
+  create (always true). Anyone who may confirm tables may read them. Creators
+  and confirmers of any table or type a period uses cannot approve it for issue.
+- `POST periods/{period_id}/table-state-refresh` (organisation-wide
+  `hr.payroll.approve` and `hr.payroll.read.amounts`, MFA, not the preparer or quantities approver) copies the
+  current state of each table onto an approved period's deduction lines (no figure
+  changes; audited) so a period approved while a table was provisional can be
+  issued after the table is confirmed. Refused once issued.
+- A deduction that needs authorisation is taken only after HR records the signed
+  document reference and the employee confirms it at
+  `POST me/deductions/{deduction_id}/confirmation` (`hr.payroll.read.self`);
+  `GET me/deductions` lists them.
+- `GET periods/{period_id}/pay-summary` (organisation-wide `hr.payroll.read.amounts`)
+  previews gross, deductions, employer contributions and net per employee, with
+  `provisional_figures`, `label: "Provisional figures"` and `blocking_tables`.
+- `POST periods/{period_id}/issue-approval` needs organisation-wide
+  `hr.payroll.approve` and `hr.payroll.read.amounts` and MFA. It is refused (403)
+  to the period's preparer or approver, a creator or confirmer of a table it used,
+  and anyone who set a rate, basic pay or deduction in force in the period; and
+  (409) while a table used was PROVISIONAL when computed, a line is unpriced, or
+  net pay would go below zero (`shortfall_minor`).
+
+### Payroll payslips and files (slice 4)
+
+- Approving a period for issue creates one payslip per paid employee: a frozen
+  JSON snapshot (earnings, gross, each deduction, net, employer contributions)
+  with its SHA-256. Payslips are append-only.
+- `GET me/payslips` (needs `hr.payroll.read.self`, granted to no role),
+  `GET periods/{period_id}/payslips` (organisation-wide `hr.payroll.read.amounts`),
+  `GET payslips/{payslip_id}/pdf` (own with `read.self`, or `read.amounts`;
+  WeasyPrint from the snapshot after the hash check; `X-Payslip-SHA256` header).
+- Every payslip route needs a session verified with two-step verification; the
+  PDF route is rate limited per signed-in user (20 a minute; 429). It uses the shared `pdf_response` helper (private, no-store, nosniff). A payslip's
+  hash is an HMAC under a dedicated key from `PAYSLIP_HMAC_KEYS` (the key id is
+  stored on the payslip, so rotation keeps old payslips valid), checked before a
+  PDF, bank file or GL journal is produced (409 on a mismatch or a key id that is
+  no longer configured). With no key configured, issue approval is refused (409). Payslip change history records the id,
+  period and hash only, never the snapshot or net pay.
+- `POST periods/{period_id}/bank-transfer.csv` and `gl-journal.csv` need
+  organisation-wide `hr.payroll.export`, MFA and an issue-approved period; both are
+  audited. Bank account numbers are not stored: that column reads `NOT STORED`.
+  `GET|PUT export-settings` configures bank columns and GL account codes.
+
 ## Base URLs
 
 | Environment | API base URL |
@@ -501,7 +580,8 @@ those optional fields; they do not change application route definitions.
 Documented error bodies: every documented 4xx except 422 names a body schema in
 the OpenAPI document. `ApiError` (`detail: string`) covers 400, 401, 403, 404 and
 409. A 429 documents `ApiError | ErrorMessage` (`error: string`) because the
-rate limiter and the account lockout answer with different keys. Shared
+rate limiter and the account lockout answer with different keys. eRegister
+observation routes name their 422 bodies too (see eRegister below). Shared
 constants live in `src/openapi_responses.py`; `tests/test_error_response_bodies.py`
 pins the runtime bodies. The `AuthoringError` model on wxproducts authoring
 routes allows `detail` to be a list, which the runtime never sends; it is kept
@@ -1133,7 +1213,7 @@ attendance corrections. Without it, a change that breaks a rule fails with 409 a
 `RosterRuleWarningsErrorPublic`; that model is a superset of `ApiError` (`detail`,
 plus `code: ROSTER_RULE_WARNINGS`, `context` and `violations` for rule warnings), so
 ordinary 409s on those routes keep their shape. A reason containing NUL is a 422; other control characters, Unicode bidi controls and zero-width characters are removed.
-Shift definitions carry `break_minutes` (unpaid break, 0 to 240). Attendance week
+Shift definitions carry `break_minutes` (unpaid break, 0 to 240). `DELETE /api/v1/hr/timesheets/{id}` removes the caller's own unsubmitted draft (no approval history), so the editor can replace a draft whose submission was held for rule warnings. It needs `timesheet.submit.self` and live employment in the filing department (403 otherwise); a missing id and another user's timesheet are both 404; a submitted timesheet is 400. Entries are deleted through the ORM, so the change history records the timesheet and each entry; only a superuser can read that trail afterwards, because the record's own access check needs the deleted timesheet. Attendance week
 rows, timesheet entries and the timesheet summary carry `overtime_bands` (rate and
 hours, no pay). Details: `docs/hr/roster-rules.md`.
 
@@ -1413,7 +1493,7 @@ these anonymous endpoints:
 | `GET /api/cap/{identifier}.xml` | Latest CAP XML snapshot for an identifier |
 
 CAP management routes are under `/api/v1/cap` and require authenticated users plus permission checks.
-`POST /alerts/{id}/publish` accepts only an `APPROVED` alert with a recorded approval, which the author may give (409 otherwise; owner decision 2026-10-23, ADR-0023 amendment). `POST /alerts/{id}/reviews` (`{"outcome": "reviewed" | "changes_requested", "note": "..."}`, permission `cap.alert.approve`) records an optional colleague review by someone other than the author (403 for the author, 409 unless the alert is Submitted or Approved); it never changes the alert's state. Asking for a review is the submit step; `POST /alerts/{id}/emergency-publish` (`{"reason": "..."}`, permission `cap.alert.publish_emergency`) publishes a Draft, Submitted or Approved alert without approval and records an `emergency_publish` audit event (ADR-0023). Editing a Submitted or Approved alert returns it to `DRAFT`.
+`POST /alerts/{id}/publish` accepts only an `APPROVED` alert with a recorded approval, which the author may give (409 otherwise; owner decision 2026-10-23, ADR-0023 amendment). `POST /alerts/{id}/reviews` (`{"outcome": "reviewed" | "changes_requested", "note": "..."}`, permission `cap.alert.approve`) records an optional colleague review by someone other than the author (403 for the author, 409 unless the alert is Submitted or Approved); it never changes the alert's state. Asking for a review is the submit step; `POST /alerts/{id}/emergency-publish` (`{"reason": "..."}`, permission `cap.alert.publish_emergency`) publishes a Draft, Submitted or Approved alert without approval and records an `emergency_publish` audit event (ADR-0023). A failed duty-supervisor notice about a schema mismatch is logged and never stops the send, publish or cancel. Editing a Submitted or Approved alert returns it to `DRAFT`.
 
 `GET /api/v1/cap/gms-catalogue` (permission `cap.alert.read` or `app.weather.access`, either desk) returns the GMS warning catalogue: the hazard groups and event names, the category labels (`category_labels`: a list of `{key, label}` objects, one per CAP category), the parish geocodes (`ISO3166-2:GD`), and the product and colour rules (MeteoAlarm awareness code and CAP severity per colour). It is read-only; the desk reads it instead of keeping its own copy. The rules change only through a reviewed code change.
 
@@ -2248,8 +2328,15 @@ warnings included) and `actor_name` (who recorded it).
 
 `POST /observations` validates a SYNOP: errors (including a keyed day or hour that
 differs from `observed_at` in UTC) are `422` with `detail.message` and
-`detail.issues`; warnings pass. There is one live observation per station, time
-and kind (partial unique index): saving again as the observer of an unsent draft
+`detail.issues` (`EregisterValidationError`; the same body on `correct` and
+`accept`); warnings pass. On those routes the 422 is documented as
+`EregisterValidationError | ValidationErrorResponse`, since a malformed request
+answers the request validation body instead. Review, reject, reopen, email and
+publish document `ApiError | ValidationErrorResponse`, because their 422 detail
+is a string.
+
+There is one live observation per station, time and kind (partial unique
+index): saving again as the observer of an unsent draft
 updates it in place (`200`, same `id`); otherwise `409`.
 `POST .../{id}/correct` (body `{"body": {...}, "reason": "..."}`, `201`) saves a
 replacement that supersedes the observation (`supersedes_id`); the old row

@@ -2,7 +2,9 @@
 
 import {
   type RosterGridPreview,
+  type RosterRuleWarningsErrorPublic,
   useHrImportGrid,
+  useHrListDepartmentMembers,
   useHrListDepartments,
   useHrValidateGrid,
 } from "@barrelsgd/api-client";
@@ -26,9 +28,12 @@ import { Input } from "@barrelsgd/ui/components/ui/input";
 import { NativeSelect } from "@barrelsgd/ui/components/ui/native-select";
 import { useQueryClient } from "@tanstack/react-query";
 import { Upload } from "lucide-react";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { toast } from "sonner";
 import { invalidateAfterRosterImport } from "@/lib/hr-invalidation";
+import { rosterLabel } from "@/lib/people";
+import { ruleWarningsFrom, warningCountText } from "./rule-codes";
+import { RuleOverrideDialog } from "./rule-override-dialog";
 
 const MONTH_RE = /^(\d{4})-(\d{2})$/;
 
@@ -56,10 +61,25 @@ export function ImportRosterDialog() {
   const [fileName, setFileName] = useState("");
   const [publish, setPublish] = useState(false);
   const [preview, setPreview] = useState<RosterGridPreview | null>(null);
+  // Rule warnings from importing into a published roster, awaiting a reason.
+  const [warnings, setWarnings] =
+    useState<RosterRuleWarningsErrorPublic | null>(null);
 
   const departmentsQuery = useHrListDepartments();
   const departments = departmentsQuery.data?.data ?? [];
   const deptId = departmentId || departments[0]?.id || "";
+
+  const membersQuery = useHrListDepartmentMembers(
+    { path: { department_id: deptId } },
+    { query: { enabled: Boolean(deptId) } }
+  );
+  const memberLabels = useMemo(
+    () =>
+      new Map(
+        (membersQuery.data?.data ?? []).map((m) => [m.user_id, rosterLabel(m)])
+      ),
+    [membersQuery.data?.data]
+  );
 
   const validateMutation = useHrValidateGrid();
   const importMutation = useHrImportGrid();
@@ -107,9 +127,10 @@ export function ImportRosterDialog() {
     }
   }
 
-  async function runImport() {
+  /** Returns false when the import failed, so a typed override reason is kept. */
+  async function runImport(reason?: string): Promise<boolean> {
     if (!(bounds && preview?.can_import)) {
-      return;
+      return false;
     }
     try {
       const result = await importMutation.mutateAsync({
@@ -120,20 +141,38 @@ export function ImportRosterDialog() {
           csv_text: csvText,
           file_name: fileName || "roster.csv",
           publish,
+          ...(reason ? { rule_override_reason: reason } : {}),
         },
       });
+      setWarnings(null);
       await invalidateAfterRosterImport(queryClient, {
         departmentId: deptId,
         periodId: result.roster_period_id,
       });
-      toast.success(
-        `Imported ${result.total_assignments} assignments${result.published ? " (published)" : " as a draft"}`
-      );
+      const held = result.rule_warning_count ?? 0;
+      if (publish && !result.published && held > 0) {
+        toast.warning(
+          `Imported ${result.total_assignments} assignments as a draft. Not published: ${warningCountText(held)}. Review them and publish from the roster.`
+        );
+      } else {
+        toast.success(
+          `Imported ${result.total_assignments} assignments${result.published ? " (published)" : " as a draft"}`
+        );
+      }
       setOpen(false);
+      return true;
     } catch (error) {
+      const found = ruleWarningsFrom(error);
+      if (found) {
+        setWarnings(found);
+        return false;
+      }
+      // Any other failure closes the dialog; the typed reason is kept.
+      setWarnings(null);
       const detail =
         error instanceof Error ? error.message : "Something went wrong";
       toast.error(`Import failed: ${detail}`);
+      return false;
     }
   }
 
@@ -262,12 +301,19 @@ export function ImportRosterDialog() {
           </Button>
           <Button
             disabled={!preview?.can_import || importMutation.isPending}
-            onClick={runImport}
+            onClick={() => runImport()}
             type="button"
           >
             {importMutation.isPending ? "Importing…" : "Import"}
           </Button>
         </DialogFooter>
+        <RuleOverrideDialog
+          busy={importMutation.isPending}
+          labels={memberLabels}
+          onCancel={() => setWarnings(null)}
+          onConfirm={(reason) => runImport(reason)}
+          warnings={warnings}
+        />
       </DialogContent>
     </Dialog>
   );
