@@ -6,7 +6,7 @@ units (XCD cents). The existing ``pay_line_locked`` trigger also locks the new
 columns once a period leaves OPEN.
 
 Revision ID: payrollgross20261031
-Revises: payrollinputs20261031
+Revises: capalertschema20261030
 """
 
 import sqlalchemy as sa
@@ -14,7 +14,7 @@ import sqlalchemy as sa
 from alembic import op
 
 revision = "payrollgross20261031"
-down_revision = "payrollinputs20261031"
+down_revision = "capalertschema20261030"
 branch_labels = None
 depends_on = None
 

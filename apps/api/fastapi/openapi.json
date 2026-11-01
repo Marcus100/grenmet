@@ -21275,7 +21275,7 @@
           "hr-payroll"
         ],
         "summary": "Read a pay period's gross amounts",
-        "description": "Amounts in minor units per line and per employee. Needs organisation-wide hr.payroll.read.amounts; department readers never receive amounts.",
+        "description": "Amounts in minor units per line and per employee. Needs organisation-wide hr.payroll.read.amounts; department readers never receive amounts, and no quantity route carries money.",
         "operationId": "hrGetPayPeriodAmounts",
         "security": [
           {
@@ -21336,7 +21336,7 @@
             }
           },
           "403": {
-            "description": "Missing payroll permission, organisation-wide scope or two-step verification, or separation of duty (you prepared or added lines to the period, or it is your own pay)",
+            "description": "Missing payroll permission, organisation-wide scope or two-step verification, or separation of duty (you prepared, added lines to, or changed a profile used in the period, or it contains your own pay)",
             "content": {
               "application/json": {
                 "schema": {
@@ -21435,7 +21435,7 @@
             }
           },
           "403": {
-            "description": "Missing payroll permission, organisation-wide scope or two-step verification, or separation of duty (you prepared or added lines to the period, or it is your own pay)",
+            "description": "Missing payroll permission, organisation-wide scope or two-step verification, or separation of duty (you prepared, added lines to, or changed a profile used in the period, or it contains your own pay)",
             "content": {
               "application/json": {
                 "schema": {
@@ -21530,7 +21530,7 @@
             }
           },
           "403": {
-            "description": "Missing payroll permission, organisation-wide scope or two-step verification, or separation of duty (you prepared or added lines to the period, or it is your own pay)",
+            "description": "Missing payroll permission, organisation-wide scope or two-step verification, or separation of duty (you prepared, added lines to, or changed a profile used in the period, or it contains your own pay)",
             "content": {
               "application/json": {
                 "schema": {
@@ -21646,7 +21646,7 @@
             }
           },
           "403": {
-            "description": "Missing payroll permission, organisation-wide scope or two-step verification, or separation of duty (you prepared or added lines to the period, or it is your own pay)",
+            "description": "Missing payroll permission, organisation-wide scope or two-step verification, or separation of duty (you prepared, added lines to, or changed a profile used in the period, or it contains your own pay)",
             "content": {
               "application/json": {
                 "schema": {
@@ -21741,7 +21741,7 @@
             }
           },
           "403": {
-            "description": "Missing payroll permission, organisation-wide scope or two-step verification, or separation of duty (you prepared or added lines to the period, or it is your own pay)",
+            "description": "Missing payroll permission, organisation-wide scope or two-step verification, or separation of duty (you prepared, added lines to, or changed a profile used in the period, or it contains your own pay)",
             "content": {
               "application/json": {
                 "schema": {

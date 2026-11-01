@@ -11,7 +11,7 @@ import type {
 } from "../models/HrGetPayPeriodAmounts.js";
 
 /**
- * @description Amounts in minor units per line and per employee. Needs organisation-wide hr.payroll.read.amounts; department readers never receive amounts.
+ * @description Amounts in minor units per line and per employee. Needs organisation-wide hr.payroll.read.amounts; department readers never receive amounts, and no quantity route carries money.
  * @summary Read a pay period's gross amounts
  * {@link /api/v1/hr/payroll/periods/:period_id/amounts}
  */
