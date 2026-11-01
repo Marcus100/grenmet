@@ -63,6 +63,24 @@ export function getAlertAudit(accessToken: string, alertId: string) {
   );
 }
 
+/** The global audit trail, newest first, optionally for one alert. */
+export function listAuditEvents(
+  accessToken: string,
+  {
+    alertId,
+    page,
+    size,
+  }: { alertId: string | null; page: number; size: number }
+) {
+  const query = new URLSearchParams({ page: String(page), size: String(size) });
+  if (alertId) query.set("alert_id", alertId);
+  return read(
+    accessToken,
+    `/cap/audit?${query}`,
+    capAuditEventListPublicSchema
+  );
+}
+
 export function getGmsCatalogue(accessToken: string) {
   return read(accessToken, "/cap/gms-catalogue", gmsCataloguePublicSchema);
 }
