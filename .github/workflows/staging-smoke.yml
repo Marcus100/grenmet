@@ -1,0 +1,90 @@
+name: Staging Smoke
+
+# Runs after the Staging Pipeline finishes on staging. Success: scripted smoke
+# test, result in the job summary and as a comment on the promotion PR (or the
+# "Staging smoke" issue). Failure of the pipeline: opens or updates the issue
+# "Staging deploy failed". Variables are never set automatically.
+# Docs: docs/operations/staging-promotion-automation.md
+
+on:
+  workflow_run:
+    workflows: ["Staging Pipeline"]
+    types: [completed]
+    branches: [staging]
+
+concurrency:
+  group: staging-smoke
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  pull-requests: write
+  issues: write
+
+jobs:
+  smoke:
+    name: Smoke test staging
+    if: github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.3.1
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
+          persist-credentials: false
+      - name: Run smoke checks
+        id: smoke
+        env:
+          STAGING_BASIC_AUTH: ${{ secrets.STAGING_BASIC_AUTH }}
+          STAGING_SHA: ${{ github.event.workflow_run.head_sha }}
+        run: |
+          set +e
+          node scripts/ops/staging-smoke.mjs --out "$RUNNER_TEMP/smoke.md" --wait-minutes 10
+          echo "code=$?" >> "$GITHUB_OUTPUT"
+          cat "$RUNNER_TEMP/smoke.md" >> "$GITHUB_STEP_SUMMARY"
+      - name: Report the result
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          SHA: ${{ github.event.workflow_run.head_sha }}
+        run: |
+          gh label create staging-smoke --color fbca04 --description "Staging smoke results" 2>/dev/null || true
+          pr=$(gh api "repos/$GH_REPO/commits/$SHA/pulls" --jq '[.[] | select(.base.ref=="staging")][0].number // empty')
+          if [ -n "$pr" ]; then
+            gh pr comment "$pr" --body-file "$RUNNER_TEMP/smoke.md"
+          else
+            existing=$(gh issue list --label staging-smoke --state open --json number --jq '.[0].number // empty')
+            if [ -n "$existing" ]; then
+              gh issue comment "$existing" --body-file "$RUNNER_TEMP/smoke.md"
+            else
+              gh issue create --title "Staging smoke" --label staging-smoke --body-file "$RUNNER_TEMP/smoke.md"
+            fi
+          fi
+      - name: Fail when a check failed
+        if: steps.smoke.outputs.code != '0'
+        run: |
+          echo "::error::Staging smoke checks failed; see the job summary."
+          exit 1
+
+  deploy-failed:
+    name: Report failed staging deploy
+    if: github.event.workflow_run.conclusion == 'failure'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Open or update the issue
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          RUN_URL: ${{ github.event.workflow_run.html_url }}
+          SHA: ${{ github.event.workflow_run.head_sha }}
+        run: |
+          body="The Staging Pipeline failed for \`${SHA:0:9}\`: $RUN_URL
+
+          Open the failing job there. To stop further automatic promotions until it is fixed, set the repository variable \`PROMOTE_STAGING_HOLD\` to \`true\` (this workflow never sets variables). Clear it when staging is healthy."
+          existing=$(gh issue list --search '"Staging deploy failed" in:title' --state open --json number --jq '.[0].number // empty')
+          if [ -n "$existing" ]; then
+            gh issue comment "$existing" --body "$body"
+          else
+            gh issue create --title "Staging deploy failed" --body "$body"
+          fi
