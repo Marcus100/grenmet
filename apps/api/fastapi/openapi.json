@@ -46938,7 +46938,7 @@
           "eregister"
         ],
         "summary": "MBIA month-to-date summary",
-        "description": "Anonymous. Rainfall, rain days (24 h total of at least 0.2 mm, WMO), highest and lowest temperature from non-rejected SYNOPs for station 78958, for one UTC month (default: the current month to date). Provisional until every contributing reading is accepted. `summary` is null with no readings; individual figures are null when not reported, never zero. Returns 503 when the register is unavailable.",
+        "description": "Anonymous. Rainfall, rain days (24 h total of at least 0.2 mm, WMO), heavy rain days (10 mm or more) and dry spells (under 1 mm; Climpact R10mm and CDD), highest and lowest temperature, mean wind with the prevailing direction and the top gust, from non-rejected SYNOPs for station 78958, for one UTC month (default: the current month to date). Provisional until every contributing reading is accepted. `summary` is null with no readings; individual figures are null when not reported, never zero. Returns 503 when the register is unavailable.",
         "operationId": "eregisterPublicMonthSummary",
         "parameters": [
           {
@@ -96126,6 +96126,123 @@
               }
             ],
             "title": "Min Temperature At"
+          },
+          "heavy_rain_days": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Heavy Rain Days",
+            "description": "Days with a 24 h total of 10 mm or more (R10mm)."
+          },
+          "heavy_rain_threshold_mm": {
+            "type": "number",
+            "title": "Heavy Rain Threshold Mm",
+            "default": 10.0
+          },
+          "longest_dry_spell_days": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Longest Dry Spell Days",
+            "description": "Longest run of reported days under 1 mm (CDD); a day without a total breaks it."
+          },
+          "longest_dry_spell_start": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Longest Dry Spell Start"
+          },
+          "longest_dry_spell_end": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Longest Dry Spell End"
+          },
+          "current_dry_spell_days": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Current Dry Spell Days",
+            "description": "Dry days in a row up to the latest reported day; 0 if it rained; null when the latest total is more than a day old."
+          },
+          "dry_day_threshold_mm": {
+            "type": "number",
+            "title": "Dry Day Threshold Mm",
+            "default": 1.0
+          },
+          "mean_wind_kt": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Mean Wind Kt",
+            "description": "Mean of the reported wind speeds, calm as 0 kn."
+          },
+          "prevailing_wind_direction": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Prevailing Wind Direction",
+            "description": "Most frequent 8-point direction of non-calm readings."
+          },
+          "max_gust_kt": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Max Gust Kt"
+          },
+          "max_gust_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Max Gust At"
           },
           "provisional": {
             "type": "boolean",
