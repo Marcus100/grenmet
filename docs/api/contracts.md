@@ -94,6 +94,45 @@ tax, NIS or bank field exists in any request, response or export.
   Basic-pay and rate history (`/audit/payroll_money/{organisation_id}`) needs
   organisation-wide `hr.payroll.read.amounts` and records no money values.
 
+### Payroll deductions (slice 3)
+
+- `GET statutory-tables` lists dated income tax tables (allowance and bands),
+  social insurance schemes (rates, monthly and weekly ceilings; a fortnight is the
+  weekly ceiling x 2 unless set) and deduction types. `POST tax-tables`,
+  `social-insurance-schemes`, `deduction-types` and `employee-deductions`, and
+  `PUT statutory-tables/{kind}/{table_id}/state`, need organisation-wide
+  `hr.payroll.rates.manage` and an MFA-verified session. Tables cannot be edited,
+  only confirmed (`PROVISIONAL`, `OWNER_CONFIRMED`, `CONFIRMED`).
+- Tables are always created `PROVISIONAL` (`rule_state` is not accepted on create);
+  overlapping dates for the same organisation and code are refused (409).
+  Confirming needs organisation-wide `hr.payroll.tables.confirm` (granted to no
+  role) and MFA, never by the table's creator; `confirmed_by_user_id`,
+  `confirmed_at` and `confirmation_note` record it and the source note is kept.
+  The rule state is snapshotted onto deduction lines when a period computes.
+- Deduction types follow the same gate as tax tables and schemes: created
+  `PROVISIONAL`, confirmed by someone else with `hr.payroll.tables.confirm`, and
+  an unconfirmed type blocks issue. `requires_authorisation` is not settable on
+  create (always true). Anyone who may confirm tables may read them. Creators
+  and confirmers of any table or type a period uses cannot approve it for issue.
+- `POST periods/{period_id}/table-state-refresh` (organisation-wide
+  `hr.payroll.approve` and `hr.payroll.read.amounts`, MFA, not the preparer or quantities approver) copies the
+  current state of each table onto an approved period's deduction lines (no figure
+  changes; audited) so a period approved while a table was provisional can be
+  issued after the table is confirmed. Refused once issued.
+- A deduction that needs authorisation is taken only after HR records the signed
+  document reference and the employee confirms it at
+  `POST me/deductions/{deduction_id}/confirmation` (`hr.payroll.read.self`);
+  `GET me/deductions` lists them.
+- `GET periods/{period_id}/pay-summary` (organisation-wide `hr.payroll.read.amounts`)
+  previews gross, deductions, employer contributions and net per employee, with
+  `provisional_figures`, `label: "Provisional figures"` and `blocking_tables`.
+- `POST periods/{period_id}/issue-approval` needs organisation-wide
+  `hr.payroll.approve` and `hr.payroll.read.amounts` and MFA. It is refused (403)
+  to the period's preparer or approver, a creator or confirmer of a table it used,
+  and anyone who set a rate, basic pay or deduction in force in the period; and
+  (409) while a table used was PROVISIONAL when computed, a line is unpriced, or
+  net pay would go below zero (`shortfall_minor`).
+
 ## Base URLs
 
 | Environment | API base URL |

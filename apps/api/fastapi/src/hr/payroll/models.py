@@ -187,6 +187,11 @@ class PayPeriod(Base):
     exported_at: Mapped[datetime | None]
     export_count: Mapped[int] = mapped_column(default=0)
     closed_at: Mapped[datetime | None]
+    # Slice 3: a second approval that the money figures may be issued.
+    issue_approved_at: Mapped[datetime | None]
+    issue_approved_by_user_id: Mapped[uuid.UUID | None] = mapped_column(
+        ForeignKey("user.id")
+    )
     created_by_user_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("user.id"))
     created_at: Mapped[datetime] = mapped_column(default=utc_now)
     updated_at: Mapped[datetime] = mapped_column(default=utc_now)
@@ -434,4 +439,237 @@ class PayItemRate(Base):
     )
     source_reference: Mapped[str | None] = mapped_column(String(300))
     created_by_user_id: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("user.id"))
+    created_at: Mapped[datetime] = mapped_column(default=utc_now)
+
+
+# ── Slice 3: statutory and other deductions, dated per organisation ──────────
+
+
+class TableState(str, Enum):
+    """PROVISIONAL tables can be previewed but never approved for issue."""
+
+    PROVISIONAL = "PROVISIONAL"
+    #: The owner confirmed it (e.g. from a real payslip); HR still verifies.
+    OWNER_CONFIRMED = "OWNER_CONFIRMED"
+    CONFIRMED = "CONFIRMED"
+
+
+class TaxMethod(str, Enum):
+    #: Period pay x periods a year, less the allowance, through the annual bands,
+    #: divided back by periods a year.
+    ANNUALISED = "ANNUALISED"
+
+
+class DeductionKind(str, Enum):
+    PERCENT_OF_BASIC = "PERCENT_OF_BASIC"
+    PERCENT_OF_GROSS = "PERCENT_OF_GROSS"
+    FIXED = "FIXED"
+    #: A premium per period split between employee and employer.
+    SPLIT_PREMIUM = "SPLIT_PREMIUM"
+
+
+class DeductionCategory(str, Enum):
+    INCOME_TAX = "INCOME_TAX"
+    SOCIAL_INSURANCE = "SOCIAL_INSURANCE"
+    OTHER = "OTHER"
+
+
+def _dated(prefix: str) -> sa.CheckConstraint:
+    return sa.CheckConstraint(
+        "effective_to IS NULL OR effective_to >= effective_from",
+        name=f"ck_hr_{prefix}_dates",
+    )
+
+
+class TaxTable(Base):
+    __tablename__ = "tax_table"
+    __table_args__ = (
+        _dated("tax_table"),
+        _check_in("method", TaxMethod, "ck_hr_tax_table_method"),
+        _check_in("rule_state", TableState, "ck_hr_tax_table_rule_state"),
+        sa.CheckConstraint(
+            "annual_allowance_minor >= 0", name="ck_hr_tax_table_allowance"
+        ),
+        {"schema": "hr"},
+    )
+
+    id: Mapped[uuid.UUID] = mapped_column(primary_key=True, default=uuid.uuid4)
+    organisation_id: Mapped[str] = mapped_column(
+        String(100), ForeignKey("hr.organisation.id"), index=True
+    )
+    code: Mapped[str] = mapped_column(String(40))
+    name: Mapped[str] = mapped_column(String(120))
+    method: Mapped[str] = mapped_column(String(24), default=TaxMethod.ANNUALISED.value)
+    annual_allowance_minor: Mapped[int] = mapped_column(sa.BigInteger)
+    #: Whether the employee's social insurance is deducted before tax.
+    deduct_social_insurance: Mapped[bool] = mapped_column(default=False)
+    effective_from: Mapped[date]
+    effective_to: Mapped[date | None]
+    rule_state: Mapped[str] = mapped_column(
+        String(16), default=TableState.PROVISIONAL.value
+    )
+    source_note: Mapped[str | None] = mapped_column(String(500))
+    # B4 provenance: who created the row, and who confirmed it (never the creator).
+    created_by_user_id: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("user.id"))
+    confirmed_by_user_id: Mapped[uuid.UUID | None] = mapped_column(
+        ForeignKey("user.id")
+    )
+    confirmed_at: Mapped[datetime | None]
+    confirmation_note: Mapped[str | None] = mapped_column(String(200))
+    created_at: Mapped[datetime] = mapped_column(default=utc_now)
+
+
+class TaxBand(Base):
+    __tablename__ = "tax_band"
+    __table_args__ = (
+        sa.CheckConstraint("rate >= 0 AND rate <= 1", name="ck_hr_tax_band_rate"),
+        sa.UniqueConstraint("tax_table_id", "sort_order", name="uq_hr_tax_band_order"),
+        {"schema": "hr"},
+    )
+
+    id: Mapped[uuid.UUID] = mapped_column(primary_key=True, default=uuid.uuid4)
+    tax_table_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("hr.tax_table.id", ondelete="CASCADE"), index=True
+    )
+    sort_order: Mapped[int]
+    #: Width of the band in annual chargeable income; NULL is "everything above".
+    width_minor: Mapped[int | None] = mapped_column(sa.BigInteger)
+    rate: Mapped[Decimal] = mapped_column(Numeric(6, 4))
+
+
+class SocialInsuranceScheme(Base):
+    __tablename__ = "social_insurance_scheme"
+    __table_args__ = (
+        _dated("social_insurance_scheme"),
+        _check_in("rule_state", TableState, "ck_hr_social_insurance_scheme_rule_state"),
+        {"schema": "hr"},
+    )
+
+    id: Mapped[uuid.UUID] = mapped_column(primary_key=True, default=uuid.uuid4)
+    organisation_id: Mapped[str] = mapped_column(
+        String(100), ForeignKey("hr.organisation.id"), index=True
+    )
+    code: Mapped[str] = mapped_column(String(40))
+    name: Mapped[str] = mapped_column(String(120))
+    employee_rate: Mapped[Decimal] = mapped_column(Numeric(6, 4))
+    employer_rate: Mapped[Decimal] = mapped_column(Numeric(6, 4))
+    monthly_ceiling_minor: Mapped[int] = mapped_column(sa.BigInteger)
+    weekly_ceiling_minor: Mapped[int] = mapped_column(sa.BigInteger)
+    #: NULL: a fortnight's ceiling is the weekly ceiling x 2.
+    fortnightly_ceiling_minor: Mapped[int | None] = mapped_column(sa.BigInteger)
+    effective_from: Mapped[date]
+    effective_to: Mapped[date | None]
+    rule_state: Mapped[str] = mapped_column(
+        String(16), default=TableState.PROVISIONAL.value
+    )
+    source_note: Mapped[str | None] = mapped_column(String(500))
+    # B4 provenance: who created the row, and who confirmed it (never the creator).
+    created_by_user_id: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("user.id"))
+    confirmed_by_user_id: Mapped[uuid.UUID | None] = mapped_column(
+        ForeignKey("user.id")
+    )
+    confirmed_at: Mapped[datetime | None]
+    confirmation_note: Mapped[str | None] = mapped_column(String(200))
+    created_at: Mapped[datetime] = mapped_column(default=utc_now)
+
+
+class DeductionType(Base):
+    __tablename__ = "deduction_type"
+    __table_args__ = (
+        sa.UniqueConstraint(
+            "organisation_id",
+            "code",
+            "effective_from",
+            name="uq_hr_deduction_type_code",
+        ),
+        _dated("deduction_type"),
+        _check_in("kind", DeductionKind, "ck_hr_deduction_type_kind"),
+        _check_in("rule_state", TableState, "ck_hr_deduction_type_rule_state"),
+        {"schema": "hr"},
+    )
+
+    id: Mapped[uuid.UUID] = mapped_column(primary_key=True, default=uuid.uuid4)
+    organisation_id: Mapped[str] = mapped_column(
+        String(100), ForeignKey("hr.organisation.id"), index=True
+    )
+    code: Mapped[str] = mapped_column(String(40))
+    name: Mapped[str] = mapped_column(String(120))
+    kind: Mapped[str] = mapped_column(String(24))
+    employee_rate: Mapped[Decimal | None] = mapped_column(Numeric(6, 4))
+    employer_rate: Mapped[Decimal | None] = mapped_column(Numeric(6, 4))
+    employee_amount_minor: Mapped[int | None] = mapped_column(sa.BigInteger)
+    employer_amount_minor: Mapped[int | None] = mapped_column(sa.BigInteger)
+    premium_minor: Mapped[int | None] = mapped_column(sa.BigInteger)
+    employee_share: Mapped[Decimal | None] = mapped_column(Numeric(6, 4))
+    #: The employee's written authorisation must be recorded before deducting.
+    requires_authorisation: Mapped[bool] = mapped_column(default=True)
+    is_active: Mapped[bool] = mapped_column(default=True)
+    effective_from: Mapped[date]
+    effective_to: Mapped[date | None]
+    rule_state: Mapped[str] = mapped_column(
+        String(16), default=TableState.PROVISIONAL.value
+    )
+    source_note: Mapped[str | None] = mapped_column(String(500))
+    # B4 provenance: who created the row, and who confirmed it (never the creator).
+    created_by_user_id: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("user.id"))
+    confirmed_by_user_id: Mapped[uuid.UUID | None] = mapped_column(
+        ForeignKey("user.id")
+    )
+    confirmed_at: Mapped[datetime | None]
+    confirmation_note: Mapped[str | None] = mapped_column(String(200))
+    created_at: Mapped[datetime] = mapped_column(default=utc_now)
+
+
+class EmployeeDeduction(Base):
+    __tablename__ = "employee_deduction"
+    __table_args__ = (_dated("employee_deduction"), {"schema": "hr"})
+
+    id: Mapped[uuid.UUID] = mapped_column(primary_key=True, default=uuid.uuid4)
+    user_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("user.id"), index=True)
+    organisation_id: Mapped[str] = mapped_column(
+        String(100), ForeignKey("hr.organisation.id"), index=True
+    )
+    deduction_type_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("hr.deduction_type.id")
+    )
+    #: Per-period override of the type's employee amount (FIXED kinds).
+    employee_amount_minor: Mapped[int | None] = mapped_column(sa.BigInteger)
+    effective_from: Mapped[date]
+    effective_to: Mapped[date | None]
+    authorised_at: Mapped[datetime | None]
+    authorised_by_user_id: Mapped[uuid.UUID | None] = mapped_column(
+        ForeignKey("user.id")
+    )
+    authorisation_reference: Mapped[str | None] = mapped_column(String(200))
+    #: The employee's own confirmation; nothing is deducted before it.
+    employee_confirmed_at: Mapped[datetime | None]
+    created_by_user_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("user.id"))
+    created_at: Mapped[datetime] = mapped_column(default=utc_now)
+
+
+class PayDeductionLine(Base):
+    """One deduction for one person and period. Locked with the pay lines."""
+
+    __tablename__ = "pay_deduction_line"
+    __table_args__ = (
+        sa.UniqueConstraint(
+            "period_id", "user_id", "code", name="uq_hr_pay_deduction_line_code"
+        ),
+        _check_in("category", DeductionCategory, "ck_hr_pay_deduction_line_category"),
+        {"schema": "hr"},
+    )
+
+    id: Mapped[uuid.UUID] = mapped_column(primary_key=True, default=uuid.uuid4)
+    period_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("hr.pay_period.id"), index=True
+    )
+    user_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("user.id"), index=True)
+    category: Mapped[str] = mapped_column(String(24))
+    code: Mapped[str] = mapped_column(String(40))
+    name: Mapped[str] = mapped_column(String(120))
+    base_minor: Mapped[int] = mapped_column(sa.BigInteger)
+    employee_minor: Mapped[int] = mapped_column(sa.BigInteger)
+    employer_minor: Mapped[int] = mapped_column(sa.BigInteger)
+    source_id: Mapped[uuid.UUID]
+    source_rule_state: Mapped[str] = mapped_column(String(16))
     created_at: Mapped[datetime] = mapped_column(default=utc_now)
