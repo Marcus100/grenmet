@@ -8,6 +8,7 @@ import {
   capCatalogsPublicSchema,
   capFeedImportPublicSchema,
   capGetIntegrationsResponseSchema,
+  capPredefinedAreaPublicSchema,
   capSettingsPublicSchema,
   gmsCataloguePublicSchema,
 } from "@barrelsgd/api-client";
@@ -81,6 +82,15 @@ export function listAuditEvents(
     accessToken,
     `/cap/audit?${query}`,
     capAuditEventListPublicSchema
+  );
+}
+
+/** Saved predefined areas (any staff member may read them). */
+export function listPredefinedAreas(accessToken: string) {
+  return read(
+    accessToken,
+    "/cap/areas/predefined",
+    z.array(capPredefinedAreaPublicSchema)
   );
 }
 

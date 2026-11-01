@@ -38,6 +38,11 @@ export default async function DeskLayout({
                 </Link>
               ) : null}
               {gate.permissions.read ? (
+                <Link className="text-info hover:underline" href="/desk/areas">
+                  Areas
+                </Link>
+              ) : null}
+              {gate.permissions.read ? (
                 <Link className="text-info hover:underline" href="/desk/audit">
                   Audit
                 </Link>

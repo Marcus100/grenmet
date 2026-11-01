@@ -3,8 +3,10 @@ import "server-only";
 import {
   type CapFeedImportCreate,
   type CapFeedImportUpdate,
+  type CapPredefinedAreaCreate,
   type CapSettingsUpdate,
   capFeedImportPublicSchema,
+  capPredefinedAreaPublicSchema,
   capSettingsPublicSchema,
 } from "@barrelsgd/api-client";
 import { authApiFetch, authApiFetchResponse } from "@barrelsgd/auth/server";
@@ -63,5 +65,18 @@ export async function deleteCapFeed(accessToken: string, feedId: string) {
     getAuthConfig(),
     `/cap/feeds/${encodeURIComponent(feedId)}`,
     { accessToken, cache: "no-store", method: "DELETE" }
+  );
+}
+
+/** A saved area is reusable in every later alert. Needs cap.settings.manage. */
+export function createPredefinedArea(
+  accessToken: string,
+  body: CapPredefinedAreaCreate
+) {
+  return authApiFetch(
+    getAuthConfig(),
+    "/cap/areas/predefined",
+    capPredefinedAreaPublicSchema,
+    { accessToken, body, cache: "no-store", method: "POST" }
   );
 }
