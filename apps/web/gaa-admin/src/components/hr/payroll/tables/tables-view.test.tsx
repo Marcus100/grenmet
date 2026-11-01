@@ -58,7 +58,9 @@ const TAX = {
   source_note: null,
   rule_state: "PROVISIONAL",
   created_by_user_id: "creator",
+  created_by_name: "Synthetic Creator",
   confirmed_by_user_id: null,
+  confirmed_by_name: null,
   confirmed_at: null,
   confirmation_note: null,
   bands: [
@@ -92,6 +94,11 @@ function renderView(access: PayrollAccess, view: TablesData) {
 
 const CREATED_BY = /Created by Synthetic Creator, not confirmed/;
 const BANDS = /Bands: 10%, 28%/;
+const CREATED_AND_CONFIRMED =
+  /Created by Synthetic Creator, confirmed by Synthetic Confirmer/;
+const ANOTHER_STAFF = /Another staff member/;
+const NAME_NOT_AVAILABLE_TEXT = /Created by Name not available, not confirmed/;
+const NOT_RECORDED_TEXT = /Created by Not recorded, not confirmed/;
 
 const server = setupServer();
 beforeAll(() => {
@@ -149,5 +156,65 @@ describe("TablesView states", () => {
     );
     fireEvent.click(screen.getByRole("button", { name: "Save" }));
     await waitFor(() => expect(screen.getByText(MFA_TEXT)).toBeTruthy());
+  });
+});
+
+describe("TablesView provenance names", () => {
+  it("shows the names the API gives for the creator and the confirmer", () => {
+    renderView(
+      ALL,
+      data({
+        tables: {
+          state: "ready",
+          data: {
+            ...EMPTY_TABLES,
+            tax_tables: [
+              {
+                ...TAX,
+                confirmed_by_user_id: "boss",
+                confirmed_by_name: "Synthetic Confirmer",
+                confirmed_at: "2026-02-01T10:00:00Z",
+              },
+            ],
+          },
+        },
+      })
+    );
+    expect(screen.getByText(CREATED_AND_CONFIRMED)).toBeTruthy();
+    expect(screen.queryByText(ANOTHER_STAFF)).toBeNull();
+  });
+
+  it("says the name is not available when a user is linked but has no name", () => {
+    renderView(
+      ALL,
+      data({
+        tables: {
+          state: "ready",
+          data: {
+            ...EMPTY_TABLES,
+            tax_tables: [{ ...TAX, created_by_name: null }],
+          },
+        },
+      })
+    );
+    expect(screen.getByText(NAME_NOT_AVAILABLE_TEXT)).toBeTruthy();
+  });
+
+  it("says not recorded when no user created the table", () => {
+    renderView(
+      ALL,
+      data({
+        tables: {
+          state: "ready",
+          data: {
+            ...EMPTY_TABLES,
+            tax_tables: [
+              { ...TAX, created_by_user_id: null, created_by_name: null },
+            ],
+          },
+        },
+      })
+    );
+    expect(screen.getByText(NOT_RECORDED_TEXT)).toBeTruthy();
   });
 });

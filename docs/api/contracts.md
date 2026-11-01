@@ -108,6 +108,9 @@ tax, NIS or bank field exists in any request, response or export.
   Confirming needs organisation-wide `hr.payroll.tables.confirm` (granted to no
   role) and MFA, never by the table's creator; `confirmed_by_user_id`,
   `confirmed_at` and `confirmation_note` record it and the source note is kept.
+  Every table response also carries `created_by_name` and `confirmed_by_name`:
+  the first and last name of that user, or null when no user is linked. They are
+  additive display fields for the same readers; no other personal detail is sent.
   The rule state is snapshotted onto deduction lines when a period computes.
 - Deduction types follow the same gate as tax tables and schemes: created
   `PROVISIONAL`, confirmed by someone else with `hr.payroll.tables.confirm`, and
