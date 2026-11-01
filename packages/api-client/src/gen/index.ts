@@ -348,6 +348,8 @@ export { hrDeleteShiftSwap } from "./clients/hrDeleteShiftSwap.js";
 export { hrDeleteStatusReport } from "./clients/hrDeleteStatusReport.js";
 export { hrDownloadDocument } from "./clients/hrDownloadDocument.js";
 export { hrDownloadSignedDocument } from "./clients/hrDownloadSignedDocument.js";
+export { hrExportBankTransferCsv } from "./clients/hrExportBankTransferCsv.js";
+export { hrExportGlJournalCsv } from "./clients/hrExportGlJournalCsv.js";
 export { hrExportPayPeriodCsv } from "./clients/hrExportPayPeriodCsv.js";
 export { hrGetAbsenteeReports } from "./clients/hrGetAbsenteeReports.js";
 export { hrGetAttendanceReview } from "./clients/hrGetAttendanceReview.js";
@@ -375,6 +377,8 @@ export { hrGetParkingPermits } from "./clients/hrGetParkingPermits.js";
 export { hrGetPayPeriod } from "./clients/hrGetPayPeriod.js";
 export { hrGetPayPeriodAmounts } from "./clients/hrGetPayPeriodAmounts.js";
 export { hrGetPayPeriodSummary } from "./clients/hrGetPayPeriodSummary.js";
+export { hrGetPayrollExportSettings } from "./clients/hrGetPayrollExportSettings.js";
+export { hrGetPayslipPdf } from "./clients/hrGetPayslipPdf.js";
 export { hrGetPeriod } from "./clients/hrGetPeriod.js";
 export { hrGetPeriodRevisions } from "./clients/hrGetPeriodRevisions.js";
 export { hrGetProductAccess } from "./clients/hrGetProductAccess.js";
@@ -411,6 +415,7 @@ export { hrListEmployeeDeductions } from "./clients/hrListEmployeeDeductions.js"
 export { hrListEmployeePayProfiles } from "./clients/hrListEmployeePayProfiles.js";
 export { hrListHolidays } from "./clients/hrListHolidays.js";
 export { hrListMyDeductions } from "./clients/hrListMyDeductions.js";
+export { hrListMyPayslips } from "./clients/hrListMyPayslips.js";
 export { hrListMyShiftSwaps } from "./clients/hrListMyShiftSwaps.js";
 export { hrListPayCalendars } from "./clients/hrListPayCalendars.js";
 export { hrListPayItemRates } from "./clients/hrListPayItemRates.js";
@@ -419,6 +424,7 @@ export { hrListPayLines } from "./clients/hrListPayLines.js";
 export { hrListPayPeriods } from "./clients/hrListPayPeriods.js";
 export { hrListPayrollDepartmentSettings } from "./clients/hrListPayrollDepartmentSettings.js";
 export { hrListPendingClockPunches } from "./clients/hrListPendingClockPunches.js";
+export { hrListPeriodPayslips } from "./clients/hrListPeriodPayslips.js";
 export { hrListPeriods } from "./clients/hrListPeriods.js";
 export { hrListRuleOverrides } from "./clients/hrListRuleOverrides.js";
 export { hrListRuleProfiles } from "./clients/hrListRuleProfiles.js";
@@ -470,6 +476,7 @@ export { hrUpdateHrProfileMe } from "./clients/hrUpdateHrProfileMe.js";
 export { hrUpdateLeaveRequest } from "./clients/hrUpdateLeaveRequest.js";
 export { hrUpdateParkingPermit } from "./clients/hrUpdateParkingPermit.js";
 export { hrUpdatePayrollDepartmentSetting } from "./clients/hrUpdatePayrollDepartmentSetting.js";
+export { hrUpdatePayrollExportSettings } from "./clients/hrUpdatePayrollExportSettings.js";
 export { hrUpdateProductPolicy } from "./clients/hrUpdateProductPolicy.js";
 export { hrUpdateRoleConfiguration } from "./clients/hrUpdateRoleConfiguration.js";
 export { hrUpdateSetupGrade } from "./clients/hrUpdateSetupGrade.js";
@@ -2466,6 +2473,16 @@ export {
   useHrDownloadSignedDocument,
 } from "./hooks/useHrDownloadSignedDocument.js";
 export {
+  hrExportBankTransferCsvMutationKey,
+  hrExportBankTransferCsvMutationOptions,
+  useHrExportBankTransferCsv,
+} from "./hooks/useHrExportBankTransferCsv.js";
+export {
+  hrExportGlJournalCsvMutationKey,
+  hrExportGlJournalCsvMutationOptions,
+  useHrExportGlJournalCsv,
+} from "./hooks/useHrExportGlJournalCsv.js";
+export {
   hrExportPayPeriodCsvMutationKey,
   hrExportPayPeriodCsvMutationOptions,
   useHrExportPayPeriodCsv,
@@ -2600,6 +2617,16 @@ export {
   hrGetPayPeriodSummaryQueryOptions,
   useHrGetPayPeriodSummary,
 } from "./hooks/useHrGetPayPeriodSummary.js";
+export {
+  hrGetPayrollExportSettingsQueryKey,
+  hrGetPayrollExportSettingsQueryOptions,
+  useHrGetPayrollExportSettings,
+} from "./hooks/useHrGetPayrollExportSettings.js";
+export {
+  hrGetPayslipPdfQueryKey,
+  hrGetPayslipPdfQueryOptions,
+  useHrGetPayslipPdf,
+} from "./hooks/useHrGetPayslipPdf.js";
 export {
   hrGetPeriodQueryKey,
   hrGetPeriodQueryOptions,
@@ -2781,6 +2808,11 @@ export {
   useHrListMyDeductions,
 } from "./hooks/useHrListMyDeductions.js";
 export {
+  hrListMyPayslipsQueryKey,
+  hrListMyPayslipsQueryOptions,
+  useHrListMyPayslips,
+} from "./hooks/useHrListMyPayslips.js";
+export {
   hrListMyShiftSwapsQueryKey,
   hrListMyShiftSwapsQueryOptions,
   useHrListMyShiftSwaps,
@@ -2820,6 +2852,11 @@ export {
   hrListPendingClockPunchesQueryOptions,
   useHrListPendingClockPunches,
 } from "./hooks/useHrListPendingClockPunches.js";
+export {
+  hrListPeriodPayslipsQueryKey,
+  hrListPeriodPayslipsQueryOptions,
+  useHrListPeriodPayslips,
+} from "./hooks/useHrListPeriodPayslips.js";
 export {
   hrListPeriodsQueryKey,
   hrListPeriodsQueryOptions,
@@ -3075,6 +3112,11 @@ export {
   hrUpdatePayrollDepartmentSettingMutationOptions,
   useHrUpdatePayrollDepartmentSetting,
 } from "./hooks/useHrUpdatePayrollDepartmentSetting.js";
+export {
+  hrUpdatePayrollExportSettingsMutationKey,
+  hrUpdatePayrollExportSettingsMutationOptions,
+  useHrUpdatePayrollExportSettings,
+} from "./hooks/useHrUpdatePayrollExportSettings.js";
 export {
   hrUpdateProductPolicyMutationKey,
   hrUpdateProductPolicyMutationOptions,
@@ -8787,6 +8829,32 @@ export type {
   HrDownloadSignedDocumentStatus422,
 } from "./models/HrDownloadSignedDocument.js";
 export type {
+  HrExportBankTransferCsvOptions,
+  HrExportBankTransferCsvPath,
+  HrExportBankTransferCsvResponse,
+  HrExportBankTransferCsvResponses,
+  HrExportBankTransferCsvStatus200,
+  HrExportBankTransferCsvStatus400,
+  HrExportBankTransferCsvStatus401,
+  HrExportBankTransferCsvStatus403,
+  HrExportBankTransferCsvStatus404,
+  HrExportBankTransferCsvStatus409,
+  HrExportBankTransferCsvStatus422,
+} from "./models/HrExportBankTransferCsv.js";
+export type {
+  HrExportGlJournalCsvOptions,
+  HrExportGlJournalCsvPath,
+  HrExportGlJournalCsvResponse,
+  HrExportGlJournalCsvResponses,
+  HrExportGlJournalCsvStatus200,
+  HrExportGlJournalCsvStatus400,
+  HrExportGlJournalCsvStatus401,
+  HrExportGlJournalCsvStatus403,
+  HrExportGlJournalCsvStatus404,
+  HrExportGlJournalCsvStatus409,
+  HrExportGlJournalCsvStatus422,
+} from "./models/HrExportGlJournalCsv.js";
+export type {
   HrExportPayPeriodCsvOptions,
   HrExportPayPeriodCsvPath,
   HrExportPayPeriodCsvResponse,
@@ -9061,6 +9129,33 @@ export type {
   HrGetPayPeriodSummaryStatus409,
   HrGetPayPeriodSummaryStatus422,
 } from "./models/HrGetPayPeriodSummary.js";
+export type {
+  HrGetPayrollExportSettingsOptions,
+  HrGetPayrollExportSettingsQuery,
+  HrGetPayrollExportSettingsResponse,
+  HrGetPayrollExportSettingsResponses,
+  HrGetPayrollExportSettingsStatus200,
+  HrGetPayrollExportSettingsStatus400,
+  HrGetPayrollExportSettingsStatus401,
+  HrGetPayrollExportSettingsStatus403,
+  HrGetPayrollExportSettingsStatus404,
+  HrGetPayrollExportSettingsStatus409,
+  HrGetPayrollExportSettingsStatus422,
+} from "./models/HrGetPayrollExportSettings.js";
+export type {
+  HrGetPayslipPdfOptions,
+  HrGetPayslipPdfPath,
+  HrGetPayslipPdfResponse,
+  HrGetPayslipPdfResponses,
+  HrGetPayslipPdfStatus200,
+  HrGetPayslipPdfStatus400,
+  HrGetPayslipPdfStatus401,
+  HrGetPayslipPdfStatus403,
+  HrGetPayslipPdfStatus404,
+  HrGetPayslipPdfStatus409,
+  HrGetPayslipPdfStatus422,
+  HrGetPayslipPdfStatus429,
+} from "./models/HrGetPayslipPdf.js";
 export type {
   HrGetPeriodOptions,
   HrGetPeriodPath,
@@ -9445,6 +9540,18 @@ export type {
   HrListMyDeductionsStatus422,
 } from "./models/HrListMyDeductions.js";
 export type {
+  HrListMyPayslipsOptions,
+  HrListMyPayslipsResponse,
+  HrListMyPayslipsResponses,
+  HrListMyPayslipsStatus200,
+  HrListMyPayslipsStatus400,
+  HrListMyPayslipsStatus401,
+  HrListMyPayslipsStatus403,
+  HrListMyPayslipsStatus404,
+  HrListMyPayslipsStatus409,
+  HrListMyPayslipsStatus422,
+} from "./models/HrListMyPayslips.js";
+export type {
   HrListMyShiftSwapsOptions,
   HrListMyShiftSwapsQuery,
   HrListMyShiftSwapsResponse,
@@ -9542,6 +9649,19 @@ export type {
   HrListPendingClockPunchesStatus403,
   HrListPendingClockPunchesStatus422,
 } from "./models/HrListPendingClockPunches.js";
+export type {
+  HrListPeriodPayslipsOptions,
+  HrListPeriodPayslipsPath,
+  HrListPeriodPayslipsResponse,
+  HrListPeriodPayslipsResponses,
+  HrListPeriodPayslipsStatus200,
+  HrListPeriodPayslipsStatus400,
+  HrListPeriodPayslipsStatus401,
+  HrListPeriodPayslipsStatus403,
+  HrListPeriodPayslipsStatus404,
+  HrListPeriodPayslipsStatus409,
+  HrListPeriodPayslipsStatus422,
+} from "./models/HrListPeriodPayslips.js";
 export type {
   HrListPeriodsOptions,
   HrListPeriodsQuery,
@@ -10131,6 +10251,19 @@ export type {
   HrUpdatePayrollDepartmentSettingStatus409,
   HrUpdatePayrollDepartmentSettingStatus422,
 } from "./models/HrUpdatePayrollDepartmentSetting.js";
+export type {
+  HrUpdatePayrollExportSettingsBody,
+  HrUpdatePayrollExportSettingsOptions,
+  HrUpdatePayrollExportSettingsResponse,
+  HrUpdatePayrollExportSettingsResponses,
+  HrUpdatePayrollExportSettingsStatus200,
+  HrUpdatePayrollExportSettingsStatus400,
+  HrUpdatePayrollExportSettingsStatus401,
+  HrUpdatePayrollExportSettingsStatus403,
+  HrUpdatePayrollExportSettingsStatus404,
+  HrUpdatePayrollExportSettingsStatus409,
+  HrUpdatePayrollExportSettingsStatus422,
+} from "./models/HrUpdatePayrollExportSettings.js";
 export type {
   HrUpdateProductPolicyBody,
   HrUpdateProductPolicyOptions,
@@ -11718,7 +11851,11 @@ export { payRunKind } from "./models/PayRunKind.js";
 export type { PayrollDepartmentSettingPublic } from "./models/PayrollDepartmentSettingPublic.js";
 export type { PayrollDepartmentSettingsPublic } from "./models/PayrollDepartmentSettingsPublic.js";
 export type { PayrollDepartmentSettingUpdate } from "./models/PayrollDepartmentSettingUpdate.js";
+export type { PayrollExportSettingsPublic } from "./models/PayrollExportSettingsPublic.js";
+export type { PayrollExportSettingsUpdate } from "./models/PayrollExportSettingsUpdate.js";
 export type { PaySummaryPublic } from "./models/PaySummaryPublic.js";
+export type { PayslipPublic } from "./models/PayslipPublic.js";
+export type { PayslipsPublic } from "./models/PayslipsPublic.js";
 export type { PermissionCreate } from "./models/PermissionCreate.js";
 export type { PermissionPublic } from "./models/PermissionPublic.js";
 export type { PersonChip } from "./models/PersonChip.js";
@@ -18357,6 +18494,32 @@ export {
   hrDownloadSignedDocumentStatus422Schema,
 } from "./zod/hrDownloadSignedDocumentSchema.js";
 export {
+  hrExportBankTransferCsvErrorSchema,
+  hrExportBankTransferCsvPathPeriodIdSchema,
+  hrExportBankTransferCsvPathSchema,
+  hrExportBankTransferCsvResponseSchema,
+  hrExportBankTransferCsvStatus200Schema,
+  hrExportBankTransferCsvStatus400Schema,
+  hrExportBankTransferCsvStatus401Schema,
+  hrExportBankTransferCsvStatus403Schema,
+  hrExportBankTransferCsvStatus404Schema,
+  hrExportBankTransferCsvStatus409Schema,
+  hrExportBankTransferCsvStatus422Schema,
+} from "./zod/hrExportBankTransferCsvSchema.js";
+export {
+  hrExportGlJournalCsvErrorSchema,
+  hrExportGlJournalCsvPathPeriodIdSchema,
+  hrExportGlJournalCsvPathSchema,
+  hrExportGlJournalCsvResponseSchema,
+  hrExportGlJournalCsvStatus200Schema,
+  hrExportGlJournalCsvStatus400Schema,
+  hrExportGlJournalCsvStatus401Schema,
+  hrExportGlJournalCsvStatus403Schema,
+  hrExportGlJournalCsvStatus404Schema,
+  hrExportGlJournalCsvStatus409Schema,
+  hrExportGlJournalCsvStatus422Schema,
+} from "./zod/hrExportGlJournalCsvSchema.js";
+export {
   hrExportPayPeriodCsvErrorSchema,
   hrExportPayPeriodCsvPathPeriodIdSchema,
   hrExportPayPeriodCsvPathSchema,
@@ -18647,6 +18810,33 @@ export {
   hrGetPayPeriodSummaryStatus409Schema,
   hrGetPayPeriodSummaryStatus422Schema,
 } from "./zod/hrGetPayPeriodSummarySchema.js";
+export {
+  hrGetPayrollExportSettingsErrorSchema,
+  hrGetPayrollExportSettingsQueryOrganisationIdSchema,
+  hrGetPayrollExportSettingsQuerySchema,
+  hrGetPayrollExportSettingsResponseSchema,
+  hrGetPayrollExportSettingsStatus200Schema,
+  hrGetPayrollExportSettingsStatus400Schema,
+  hrGetPayrollExportSettingsStatus401Schema,
+  hrGetPayrollExportSettingsStatus403Schema,
+  hrGetPayrollExportSettingsStatus404Schema,
+  hrGetPayrollExportSettingsStatus409Schema,
+  hrGetPayrollExportSettingsStatus422Schema,
+} from "./zod/hrGetPayrollExportSettingsSchema.js";
+export {
+  hrGetPayslipPdfErrorSchema,
+  hrGetPayslipPdfPathPayslipIdSchema,
+  hrGetPayslipPdfPathSchema,
+  hrGetPayslipPdfResponseSchema,
+  hrGetPayslipPdfStatus200Schema,
+  hrGetPayslipPdfStatus400Schema,
+  hrGetPayslipPdfStatus401Schema,
+  hrGetPayslipPdfStatus403Schema,
+  hrGetPayslipPdfStatus404Schema,
+  hrGetPayslipPdfStatus409Schema,
+  hrGetPayslipPdfStatus422Schema,
+  hrGetPayslipPdfStatus429Schema,
+} from "./zod/hrGetPayslipPdfSchema.js";
 export {
   hrGetPeriodRevisionsErrorSchema,
   hrGetPeriodRevisionsPathPeriodIdSchema,
@@ -19043,6 +19233,17 @@ export {
   hrListMyDeductionsStatus422Schema,
 } from "./zod/hrListMyDeductionsSchema.js";
 export {
+  hrListMyPayslipsErrorSchema,
+  hrListMyPayslipsResponseSchema,
+  hrListMyPayslipsStatus200Schema,
+  hrListMyPayslipsStatus400Schema,
+  hrListMyPayslipsStatus401Schema,
+  hrListMyPayslipsStatus403Schema,
+  hrListMyPayslipsStatus404Schema,
+  hrListMyPayslipsStatus409Schema,
+  hrListMyPayslipsStatus422Schema,
+} from "./zod/hrListMyPayslipsSchema.js";
+export {
   hrListMyShiftSwapsErrorSchema,
   hrListMyShiftSwapsQueryPageSchema,
   hrListMyShiftSwapsQuerySchema,
@@ -19149,6 +19350,19 @@ export {
   hrListPendingClockPunchesStatus403Schema,
   hrListPendingClockPunchesStatus422Schema,
 } from "./zod/hrListPendingClockPunchesSchema.js";
+export {
+  hrListPeriodPayslipsErrorSchema,
+  hrListPeriodPayslipsPathPeriodIdSchema,
+  hrListPeriodPayslipsPathSchema,
+  hrListPeriodPayslipsResponseSchema,
+  hrListPeriodPayslipsStatus200Schema,
+  hrListPeriodPayslipsStatus400Schema,
+  hrListPeriodPayslipsStatus401Schema,
+  hrListPeriodPayslipsStatus403Schema,
+  hrListPeriodPayslipsStatus404Schema,
+  hrListPeriodPayslipsStatus409Schema,
+  hrListPeriodPayslipsStatus422Schema,
+} from "./zod/hrListPeriodPayslipsSchema.js";
 export {
   hrListPeriodsErrorSchema,
   hrListPeriodsQueryDepartmentIdSchema,
@@ -19731,6 +19945,18 @@ export {
   hrUpdatePayrollDepartmentSettingStatus409Schema,
   hrUpdatePayrollDepartmentSettingStatus422Schema,
 } from "./zod/hrUpdatePayrollDepartmentSettingSchema.js";
+export {
+  hrUpdatePayrollExportSettingsBodySchema,
+  hrUpdatePayrollExportSettingsErrorSchema,
+  hrUpdatePayrollExportSettingsResponseSchema,
+  hrUpdatePayrollExportSettingsStatus200Schema,
+  hrUpdatePayrollExportSettingsStatus400Schema,
+  hrUpdatePayrollExportSettingsStatus401Schema,
+  hrUpdatePayrollExportSettingsStatus403Schema,
+  hrUpdatePayrollExportSettingsStatus404Schema,
+  hrUpdatePayrollExportSettingsStatus409Schema,
+  hrUpdatePayrollExportSettingsStatus422Schema,
+} from "./zod/hrUpdatePayrollExportSettingsSchema.js";
 export {
   hrUpdateProductPolicyBodySchema,
   hrUpdateProductPolicyErrorSchema,
@@ -21293,7 +21519,11 @@ export { payRunKindSchema } from "./zod/payRunKindSchema.js";
 export { payrollDepartmentSettingPublicSchema } from "./zod/payrollDepartmentSettingPublicSchema.js";
 export { payrollDepartmentSettingsPublicSchema } from "./zod/payrollDepartmentSettingsPublicSchema.js";
 export { payrollDepartmentSettingUpdateSchema } from "./zod/payrollDepartmentSettingUpdateSchema.js";
+export { payrollExportSettingsPublicSchema } from "./zod/payrollExportSettingsPublicSchema.js";
+export { payrollExportSettingsUpdateSchema } from "./zod/payrollExportSettingsUpdateSchema.js";
 export { paySummaryPublicSchema } from "./zod/paySummaryPublicSchema.js";
+export { payslipPublicSchema } from "./zod/payslipPublicSchema.js";
+export { payslipsPublicSchema } from "./zod/payslipsPublicSchema.js";
 export { permissionCreateSchema } from "./zod/permissionCreateSchema.js";
 export { permissionPublicSchema } from "./zod/permissionPublicSchema.js";
 export { personChipSchema } from "./zod/personChipSchema.js";
