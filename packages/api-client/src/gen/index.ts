@@ -5005,11 +5005,13 @@ export type {
   AuthRefreshSessionStatus422,
 } from "./models/AuthRefreshSession.js";
 export type {
+  AuthRegisterUserBody,
   AuthRegisterUserOptions,
   AuthRegisterUserResponse,
   AuthRegisterUserResponses,
-  AuthRegisterUserStatus410,
+  AuthRegisterUserStatus200,
   AuthRegisterUserStatus422,
+  AuthRegisterUserStatus429,
 } from "./models/AuthRegisterUser.js";
 export type {
   AuthReplaceRecoveryCodesBody,
@@ -12905,6 +12907,7 @@ export type { UserProfileUpdateMe } from "./models/UserProfileUpdateMe.js";
 export type { UserPublic } from "./models/UserPublic.js";
 export type { UserPublicPropertiesCmsAccessEnum } from "./models/UserPublicPropertiesCmsAccessEnum.js";
 export { userPublicPropertiesCmsAccessEnum } from "./models/UserPublicPropertiesCmsAccessEnum.js";
+export type { UserRegister } from "./models/UserRegister.js";
 export type { UserRoleAssignmentCreate } from "./models/UserRoleAssignmentCreate.js";
 export type { UserRoleAssignmentPublic } from "./models/UserRoleAssignmentPublic.js";
 export type { UserRoleAssignmentsPublic } from "./models/UserRoleAssignmentsPublic.js";
@@ -14300,10 +14303,12 @@ export {
   authRefreshSessionStatus422Schema,
 } from "./zod/authRefreshSessionSchema.js";
 export {
+  authRegisterUserBodySchema,
   authRegisterUserErrorSchema,
   authRegisterUserResponseSchema,
-  authRegisterUserStatus410Schema,
+  authRegisterUserStatus200Schema,
   authRegisterUserStatus422Schema,
+  authRegisterUserStatus429Schema,
 } from "./zod/authRegisterUserSchema.js";
 export {
   authReplaceRecoveryCodesBodySchema,
@@ -22130,6 +22135,7 @@ export { userProfilePublicSchema } from "./zod/userProfilePublicSchema.js";
 export { userProfileUpdateMeSchema } from "./zod/userProfileUpdateMeSchema.js";
 export { userPublicPropertiesCmsAccessEnumSchema } from "./zod/userPublicPropertiesCmsAccessEnumSchema.js";
 export { userPublicSchema } from "./zod/userPublicSchema.js";
+export { userRegisterSchema } from "./zod/userRegisterSchema.js";
 export { userRoleAssignmentCreateSchema } from "./zod/userRoleAssignmentCreateSchema.js";
 export { userRoleAssignmentPublicSchema } from "./zod/userRoleAssignmentPublicSchema.js";
 export { userRoleAssignmentsPublicSchema } from "./zod/userRoleAssignmentsPublicSchema.js";

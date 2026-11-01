@@ -12,9 +12,10 @@ import { mutationOptions, useMutation } from "@tanstack/react-query";
 import type { RequestConfig, ResponseErrorConfig } from "../.kubb/client.js";
 import { authRegisterUser } from "../clients/authRegisterUser.js";
 import type {
-  AuthRegisterUserResponse,
-  AuthRegisterUserStatus410,
+  AuthRegisterUserOptions,
+  AuthRegisterUserStatus200,
   AuthRegisterUserStatus422,
+  AuthRegisterUserStatus429,
 } from "../models/AuthRegisterUser.js";
 
 export const authRegisterUserMutationKey = () =>
@@ -27,31 +28,31 @@ export function authRegisterUserMutationOptions<TContext = unknown>(
 ) {
   const mutationKey = authRegisterUserMutationKey();
   return mutationOptions<
-    AuthRegisterUserResponse,
-    ResponseErrorConfig<AuthRegisterUserStatus410 | AuthRegisterUserStatus422>,
-    undefined,
+    AuthRegisterUserStatus200,
+    ResponseErrorConfig<AuthRegisterUserStatus422 | AuthRegisterUserStatus429>,
+    AuthRegisterUserOptions,
     TContext
   >({
     mutationKey,
-    mutationFn: async (_) => {
-      return authRegisterUser({ ...config, throwOnError: true }).unwrap();
+    mutationFn: async ({ body }) => {
+      return authRegisterUser({ ...config, body, throwOnError: true }).unwrap();
     },
   });
 }
 
 /**
- * @description Retired (#958). Accounts are created by the emailed sign-in code: POST /auth/email-code/start, then /auth/email-code/verify. This route never creates an account, so no one can register an address with a password.
+ * @description Retired (#958). This never creates a password account. It answers as the emailed-code start does (the same reply for every address) and sends a sign-in code, which creates the account on first use. Use /auth/email-code/start and /auth/email-code/verify.
  * @summary Password sign-up (retired)
  * {@link /api/v1/auth/users/signup}
  */
 export function useAuthRegisterUser<TContext>(
   options: {
     mutation?: UseMutationOptions<
-      AuthRegisterUserResponse,
+      AuthRegisterUserStatus200,
       ResponseErrorConfig<
-        AuthRegisterUserStatus410 | AuthRegisterUserStatus422
+        AuthRegisterUserStatus422 | AuthRegisterUserStatus429
       >,
-      undefined,
+      AuthRegisterUserOptions,
       TContext
     > & { client?: QueryClient };
     client?: Partial<
@@ -67,16 +68,16 @@ export function useAuthRegisterUser<TContext>(
   const baseOptions = authRegisterUserMutationOptions(
     config
   ) as UseMutationOptions<
-    AuthRegisterUserResponse,
-    ResponseErrorConfig<AuthRegisterUserStatus410 | AuthRegisterUserStatus422>,
-    undefined,
+    AuthRegisterUserStatus200,
+    ResponseErrorConfig<AuthRegisterUserStatus422 | AuthRegisterUserStatus429>,
+    AuthRegisterUserOptions,
     TContext
   >;
 
   return useMutation<
-    AuthRegisterUserResponse,
-    ResponseErrorConfig<AuthRegisterUserStatus410 | AuthRegisterUserStatus422>,
-    undefined,
+    AuthRegisterUserStatus200,
+    ResponseErrorConfig<AuthRegisterUserStatus422 | AuthRegisterUserStatus429>,
+    AuthRegisterUserOptions,
     TContext
   >(
     {
@@ -86,9 +87,9 @@ export function useAuthRegisterUser<TContext>(
     },
     queryClient
   ) as UseMutationResult<
-    AuthRegisterUserResponse,
-    ResponseErrorConfig<AuthRegisterUserStatus410 | AuthRegisterUserStatus422>,
-    undefined,
+    AuthRegisterUserStatus200,
+    ResponseErrorConfig<AuthRegisterUserStatus422 | AuthRegisterUserStatus429>,
+    AuthRegisterUserOptions,
     TContext
   >;
 }

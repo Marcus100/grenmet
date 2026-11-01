@@ -5,20 +5,28 @@
 
 import * as z from "zod";
 import { apiErrorSchema } from "./apiErrorSchema.js";
+import { errorMessageSchema } from "./errorMessageSchema.js";
+import { messageSchema } from "./messageSchema.js";
+import { userRegisterSchema } from "./userRegisterSchema.js";
 import { validationErrorResponseSchema } from "./validationErrorResponseSchema.js";
 
-export const authRegisterUserStatus410Schema = apiErrorSchema.describe(
-  "Stable error envelope for documented API failures."
-);
+export const authRegisterUserStatus200Schema = messageSchema;
 
 export const authRegisterUserStatus422Schema =
   validationErrorResponseSchema.describe(
     "Validation error envelope returned for malformed requests."
   );
 
-export const authRegisterUserResponseSchema = z.unknown();
+export const authRegisterUserStatus429Schema = z.union([
+  apiErrorSchema,
+  errorMessageSchema,
+]);
+
+export const authRegisterUserResponseSchema = authRegisterUserStatus200Schema;
 
 export const authRegisterUserErrorSchema = z.union([
-  authRegisterUserStatus410Schema,
   authRegisterUserStatus422Schema,
+  authRegisterUserStatus429Schema,
 ]);
+
+export const authRegisterUserBodySchema = userRegisterSchema;
