@@ -2,7 +2,8 @@
 
 import json
 from collections.abc import AsyncGenerator
-from datetime import UTC, datetime, timedelta
+from datetime import UTC, date, datetime, timedelta
+from decimal import Decimal
 from pathlib import Path
 from uuid import uuid4
 
@@ -312,6 +313,16 @@ async def test_month_summary_aggregates_in_sql(register_db):
     assert result.days_elapsed == 18
     assert result.period_end == NOW
     assert result.provisional is True
+    # Climpact figures from the same daily totals (owner, 1 Nov 2026).
+    assert result.heavy_rain_days == 1  # 12 mm on the 5th
+    # Dry (< 1 mm): 1st, then 3rd-4th (the unreported 2nd breaks the run).
+    assert result.longest_dry_spell_days == 2
+    assert (result.longest_dry_spell_start, result.longest_dry_spell_end) == (
+        date(2026, 10, 3),
+        date(2026, 10, 4),
+    )
+    assert result.current_dry_spell_days == 0  # the latest total was wet
+    assert result.mean_wind_kt is None and result.max_gust_kt is None
 
     # Past month: full period, nothing from October leaks in.
     sept = await public.month_summary(s, "2026-09", NOW)
@@ -361,3 +372,58 @@ async def test_month_summary_endpoint(register_db):
             assert down.headers["cache-control"] == "no-store"
     finally:
         app.dependency_overrides.pop(get_public_session, None)
+
+
+def test_dry_spells_count_reported_days_under_one_millimetre():
+    d = date(2026, 10, 1)
+    days = [
+        (d, Decimal("0")),
+        (d + timedelta(days=1), Decimal("0.9")),
+        (d + timedelta(days=2), Decimal("4")),
+        (d + timedelta(days=3), Decimal("0")),
+        (d + timedelta(days=4), Decimal("0.2")),
+        (d + timedelta(days=5), Decimal("0")),
+        (d + timedelta(days=7), Decimal("0")),  # the 7th is missing: a new run
+    ]
+    longest, start, end, current = public.dry_spells(days)
+    assert (longest, start, end, current) == (
+        3,
+        d + timedelta(days=3),
+        d + timedelta(days=5),
+        1,
+    )
+    assert public.dry_spells([]) == (None, None, None, None)
+
+
+def test_wind_month_means_speeds_and_finds_the_prevailing_point_and_top_gust():
+    at = datetime(2026, 10, 2, 12, tzinfo=UTC)
+    rows = [
+        (at, {"wind_dir": "09", "wind_speed": "12", "wind_indicator": "4"}),
+        (
+            at + timedelta(hours=1),
+            {
+                "wind_dir": "10",
+                "wind_speed": "16",
+                "wind_indicator": "4",
+                "wind_gust": "28",
+            },
+        ),
+        (
+            at + timedelta(hours=2),
+            {"wind_dir": "00", "wind_speed": "00", "wind_indicator": "4"},
+        ),  # calm
+        (
+            at + timedelta(hours=3),
+            {
+                "wind_dir": "18",
+                "wind_speed": "08",
+                "wind_indicator": "4",
+                "wind_gust": "20",
+            },
+        ),
+    ]
+    mean, prevailing, gust_kt, gust_at = public.wind_month(rows)
+    assert mean == 9.0  # (12 + 16 + 0 + 8) / 4
+    assert prevailing == "E"
+    assert (gust_kt, gust_at) == (28, at + timedelta(hours=1))
+    assert public.wind_month([]) == (None, None, None, None)

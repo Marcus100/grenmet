@@ -6,8 +6,9 @@ decoded fields in ``PublicObservation`` leave this module.
 """
 
 import calendar
+import json
 import math
-from datetime import UTC, datetime, timedelta
+from datetime import UTC, date, datetime, timedelta
 from decimal import Decimal
 from typing import Any
 
@@ -327,6 +328,11 @@ async def latest(session: AsyncSession, now: datetime) -> PublicObservation | No
 # group (RRR, code table 3590) of the section 3 report, one per UTC date.
 RAIN_DAY_MM = Decimal("0.2")
 
+# Climpact (ETCCDI) thresholds the GMS index list uses (owner, 1 Nov 2026):
+# R10mm heavy rain days and CDD dry days (under 1 mm).
+HEAVY_RAIN_MM = Decimal(10)
+DRY_DAY_MM = Decimal(1)
+
 _MONTH_SQL = text(
     """
     WITH usable AS (
@@ -370,7 +376,7 @@ _MONTH_SQL = text(
       FROM raw
     ),
     daily AS (
-      SELECT max(rain) AS rain
+      SELECT CAST(observed_at AT TIME ZONE 'UTC' AS date) AS day, max(rain) AS rain
       FROM parsed
       WHERE rain IS NOT NULL
       GROUP BY CAST(observed_at AT TIME ZONE 'UTC' AS date)
@@ -381,6 +387,7 @@ _MONTH_SQL = text(
              least(tmin, tair) AS lo
       FROM parsed
     )
+
     SELECT
       (SELECT count(*) FROM parsed) AS observation_count,
       (SELECT max(observed_at) FROM parsed) AS last_observation_at,
@@ -389,6 +396,9 @@ _MONTH_SQL = text(
       (SELECT count(*) FROM daily) AS rain_report_days,
       (SELECT sum(rain) FROM daily) AS rainfall_mm,
       (SELECT count(*) FROM daily WHERE rain >= :rain_day) AS rain_days,
+      (SELECT count(*) FROM daily WHERE rain >= :heavy_rain) AS heavy_rain_days,
+      (SELECT json_agg(json_build_array(day, rain) ORDER BY day) FROM daily)
+        AS daily_rain,
       (SELECT max(hi) FROM extremes) AS tmax,
       (SELECT min(observed_at) FROM extremes
          WHERE hi = (SELECT max(hi) FROM extremes)) AS tmax_at,
@@ -397,6 +407,96 @@ _MONTH_SQL = text(
          WHERE lo = (SELECT min(lo) FROM extremes)) AS tmin_at
     """
 )
+
+# The workbook of every usable reading, for wind (decoded in Python with the
+# same ``wind`` and ``gust`` the latest-observation card uses).
+_WIND_SQL = text(
+    """
+    SELECT o.observed_at,
+           CASE WHEN jsonb_typeof(o.body -> 'workbook') = 'object'
+                THEN o.body -> 'workbook' ELSE o.body END AS wb
+    FROM register_observations o
+    WHERE o.kind = 'SYNOP'
+      AND o.station_id = :station
+      AND o.state NOT IN ('rejected', 'superseded')
+      AND o.observed_at >= :start AND o.observed_at < :stop
+      AND NOT EXISTS (
+        SELECT 1 FROM register_observations newer
+        WHERE newer.supersedes_id = o.id AND newer.state <> 'rejected'
+      )
+    ORDER BY o.observed_at
+    """
+)
+
+
+def dry_spells(
+    days: list[tuple[date, Decimal]],
+) -> tuple[int | None, date | None, date | None, int | None]:
+    """(longest run, its first and last day, the run up to the latest day).
+
+    A dry day has under 1 mm (Climpact CDD). A day with no 24 h total breaks
+    a run: the register cannot say it was dry. None without any daily total.
+    """
+    if not days:
+        return None, None, None, None
+    best: tuple[int, date | None, date | None] = (0, None, None)
+    run = 0
+    start: date | None = None
+    previous: date | None = None
+    for day, rain in days:
+        consecutive = previous is not None and day == previous + timedelta(days=1)
+        if rain < DRY_DAY_MM:
+            if not (run and consecutive):
+                run, start = 0, day
+            run += 1
+            if run > best[0]:
+                best = (run, start, day)
+        else:
+            run = 0
+        previous = day
+    return best[0], best[1], best[2], run
+
+
+def _workbook(value: Any) -> dict[str, Any]:
+    """The workbook JSON as a dict, whichever way the driver returns jsonb."""
+    if isinstance(value, str):
+        value = json.loads(value)
+    return value if isinstance(value, dict) else {}
+
+
+COMPASS_8 = ("N", "NE", "E", "SE", "S", "SW", "W", "NW")
+
+
+def wind_month(
+    rows: list[tuple[datetime, dict[str, Any]]],
+) -> tuple[float | None, str | None, int | None, datetime | None]:
+    """(mean wind in knots, prevailing 8-point direction, top gust, its time).
+
+    Calm readings count as 0 kn in the mean and have no direction.
+    """
+    speeds: list[int] = []
+    directions: dict[str, int] = {}
+    top_gust: tuple[int, datetime] | None = None
+    for observed_at, workbook in rows:
+        calm, direction, speed = wind(workbook)
+        if speed is not None:
+            speeds.append(speed)
+        if not calm and direction is not None:
+            point = COMPASS_8[round(direction / 45) % 8]
+            directions[point] = directions.get(point, 0) + 1
+        gust_kt, _ = gust(workbook)
+        if gust_kt is not None and (top_gust is None or gust_kt > top_gust[0]):
+            top_gust = (gust_kt, observed_at)
+    mean = round(sum(speeds) / len(speeds), 1) if speeds else None
+    prevailing = (
+        max(directions, key=lambda point: directions[point]) if directions else None
+    )
+    return (
+        mean,
+        prevailing,
+        top_gust[0] if top_gust else None,
+        top_gust[1] if top_gust else None,
+    )
 
 
 def month_bounds(month: str | None, now: datetime) -> tuple[str, datetime, datetime]:
@@ -423,18 +523,27 @@ async def month_summary(
         return None
     # A reading timed in the future is a typo (same guard as ``latest``).
     cutoff = min(stop, now + timedelta(minutes=15))
+    window = {"station": MBIA_STATION, "start": start, "stop": cutoff}
     result = await session.execute(
         _MONTH_SQL,
-        {
-            "station": MBIA_STATION,
-            "start": start,
-            "stop": cutoff,
-            "rain_day": RAIN_DAY_MM,
-        },
+        {**window, "rain_day": RAIN_DAY_MM, "heavy_rain": HEAVY_RAIN_MM},
     )
     row = result.mappings().one()
     if not row["observation_count"]:
         return None
+    raw_daily = row["daily_rain"]
+    if isinstance(raw_daily, str):
+        raw_daily = json.loads(raw_daily)
+    daily = [
+        (date.fromisoformat(str(day)), Decimal(str(rain)))
+        for day, rain in raw_daily or []
+    ]
+    longest, dry_from, dry_to, current = dry_spells(daily)
+    wind_rows = [
+        (r["observed_at"], _workbook(r["wb"]))
+        for r in (await session.execute(_WIND_SQL, window)).mappings()
+    ]
+    mean_wind, prevailing, top_gust, top_gust_at = wind_month(wind_rows)
     period_end = min(stop, now)
     rain_known = row["rain_report_days"] > 0
     return PublicMonthSummary(
@@ -450,6 +559,17 @@ async def month_summary(
         rainfall_mm=_tenths(row["rainfall_mm"]) if rain_known else None,
         rain_days=row["rain_days"] if rain_known else None,
         rain_day_threshold_mm=float(RAIN_DAY_MM),
+        heavy_rain_days=row["heavy_rain_days"] if rain_known else None,
+        heavy_rain_threshold_mm=float(HEAVY_RAIN_MM),
+        longest_dry_spell_days=longest,
+        longest_dry_spell_start=dry_from,
+        longest_dry_spell_end=dry_to,
+        current_dry_spell_days=current,
+        dry_day_threshold_mm=float(DRY_DAY_MM),
+        mean_wind_kt=mean_wind,
+        prevailing_wind_direction=prevailing,
+        max_gust_kt=top_gust,
+        max_gust_at=top_gust_at,
         max_temperature_c=_tenths(row["tmax"]),
         max_temperature_at=row["tmax_at"] if row["tmax"] is not None else None,
         min_temperature_c=_tenths(row["tmin"]),
