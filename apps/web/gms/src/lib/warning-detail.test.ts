@@ -1,5 +1,5 @@
 import type {
-  CapAlertPublic,
+  CapAlertPublicView,
   CapAreaPublic,
   CapInfoPublic,
 } from "@barrelsgd/api-client";
@@ -33,7 +33,9 @@ function info(overrides: Partial<CapInfoPublic> = {}): CapInfoPublic {
   };
 }
 
-function alert(overrides: Partial<CapAlertPublic> = {}): CapAlertPublic {
+function alert(
+  overrides: Partial<CapAlertPublicView> = {}
+): CapAlertPublicView {
   return {
     created_at: "2026-09-24T12:00:00Z",
     created_by_user_id: "00000000-0000-0000-0000-000000000009",
@@ -48,7 +50,7 @@ function alert(overrides: Partial<CapAlertPublic> = {}): CapAlertPublic {
     status: "Actual",
     updated_at: "2026-09-24T12:00:00Z",
     ...overrides,
-  } as CapAlertPublic;
+  } as CapAlertPublicView;
 }
 
 describe("formatWarningTime", () => {

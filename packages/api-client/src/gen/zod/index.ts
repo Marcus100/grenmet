@@ -1607,7 +1607,9 @@ export { capAlertCreateSchema } from "./capAlertCreateSchema.js";
 export { capAlertImportRequestPropertiesSourceEnumSchema } from "./capAlertImportRequestPropertiesSourceEnumSchema.js";
 export { capAlertImportRequestSchema } from "./capAlertImportRequestSchema.js";
 export { capAlertListPublicSchema } from "./capAlertListPublicSchema.js";
+export { capAlertListPublicViewSchema } from "./capAlertListPublicViewSchema.js";
 export { capAlertPublicSchema } from "./capAlertPublicSchema.js";
+export { capAlertPublicViewSchema } from "./capAlertPublicViewSchema.js";
 export { capAlertUpdateSchema } from "./capAlertUpdateSchema.js";
 export {
   capApproveAlertBodySchema,
@@ -1650,8 +1652,10 @@ export {
   capCancelAlertStatus422Schema,
 } from "./capCancelAlertSchema.js";
 export { capCatalogsPublicSchema } from "./capCatalogsPublicSchema.js";
+export { capCategoryLabelPublicSchema } from "./capCategoryLabelPublicSchema.js";
 export { capCategorySchema } from "./capCategorySchema.js";
 export { capCertaintySchema } from "./capCertaintySchema.js";
+export { capColourRulePublicSchema } from "./capColourRulePublicSchema.js";
 export {
   capCreateAlertBodySchema,
   capCreateAlertErrorSchema,
@@ -1774,6 +1778,17 @@ export {
   capGetActiveMapStatus422Schema,
 } from "./capGetActiveMapSchema.js";
 export {
+  capGetAlertByIdentifierErrorSchema,
+  capGetAlertByIdentifierPathIdentifierSchema,
+  capGetAlertByIdentifierPathSchema,
+  capGetAlertByIdentifierResponseSchema,
+  capGetAlertByIdentifierStatus200Schema,
+  capGetAlertByIdentifierStatus401Schema,
+  capGetAlertByIdentifierStatus403Schema,
+  capGetAlertByIdentifierStatus404Schema,
+  capGetAlertByIdentifierStatus422Schema,
+} from "./capGetAlertByIdentifierSchema.js";
+export {
   capGetAlertErrorSchema,
   capGetAlertPathAlertIdSchema,
   capGetAlertPathSchema,
@@ -1858,6 +1873,14 @@ export {
   capGetFeedsStatus422Schema,
 } from "./capGetFeedsSchema.js";
 export {
+  capGetGmsCatalogueErrorSchema,
+  capGetGmsCatalogueResponseSchema,
+  capGetGmsCatalogueStatus200Schema,
+  capGetGmsCatalogueStatus401Schema,
+  capGetGmsCatalogueStatus403Schema,
+  capGetGmsCatalogueStatus422Schema,
+} from "./capGetGmsCatalogueSchema.js";
+export {
   capGetHazardProfilesErrorSchema,
   capGetHazardProfilesResponseSchema,
   capGetHazardProfilesStatus200Schema,
@@ -1931,6 +1954,7 @@ export {
   capGetRssStatus200Schema,
   capGetRssStatus422Schema,
 } from "./capGetRssSchema.js";
+export { capHazardGroupPublicSchema } from "./capHazardGroupPublicSchema.js";
 export {
   capImportAlertBodySchema,
   capImportAlertErrorSchema,
@@ -1946,8 +1970,10 @@ export { capIntegrationStatusSchema } from "./capIntegrationStatusSchema.js";
 export { capLifecycleStateSchema } from "./capLifecycleStateSchema.js";
 export { capMessageTypeSchema } from "./capMessageTypeSchema.js";
 export { capNameValueSchema } from "./capNameValueSchema.js";
+export { capParishPublicSchema } from "./capParishPublicSchema.js";
 export { capPredefinedAreaCreateSchema } from "./capPredefinedAreaCreateSchema.js";
 export { capPredefinedAreaPublicSchema } from "./capPredefinedAreaPublicSchema.js";
+export { capProductRulePublicSchema } from "./capProductRulePublicSchema.js";
 export { capProfileCellTextPropertiesImpactEnumSchema } from "./capProfileCellTextPropertiesImpactEnumSchema.js";
 export { capProfileCellTextPropertiesLikelihoodEnumSchema } from "./capProfileCellTextPropertiesLikelihoodEnumSchema.js";
 export { capProfileCellTextSchema } from "./capProfileCellTextSchema.js";
@@ -1965,6 +1991,7 @@ export { capProfileRuleSchema } from "./capProfileRuleSchema.js";
 export { capProfileSaveSchema } from "./capProfileSaveSchema.js";
 export { capProfileSubtypeSchema } from "./capProfileSubtypeSchema.js";
 export { capProfileTemplateSchema } from "./capProfileTemplateSchema.js";
+export { capPublishActionSchema } from "./capPublishActionSchema.js";
 export {
   capPublishAlertBodySchema,
   capPublishAlertErrorSchema,
@@ -2622,6 +2649,7 @@ export {
   eregisterValidateSynopObservationStatus403Schema,
   eregisterValidateSynopObservationStatus422Schema,
 } from "./eregisterValidateSynopObservationSchema.js";
+export { eregisterValidationErrorSchema } from "./eregisterValidationErrorSchema.js";
 export { errorMessageSchema } from "./errorMessageSchema.js";
 export { eventCategoryNodePropertiesAppliesToItemsEnumSchema } from "./eventCategoryNodePropertiesAppliesToItemsEnumSchema.js";
 export { eventCategoryNodeSchema } from "./eventCategoryNodeSchema.js";
@@ -3694,6 +3722,7 @@ export { forecastSourcePropertiesKindEnumSchema } from "./forecastSourceProperti
 export { forecastSourceSchema } from "./forecastSourceSchema.js";
 export { frequencySchema } from "./frequencySchema.js";
 export { genderSchema } from "./genderSchema.js";
+export { gmsCataloguePublicSchema } from "./gmsCataloguePublicSchema.js";
 export { gmsColourSchema } from "./gmsColourSchema.js";
 export { googleChallengePublicSchema } from "./googleChallengePublicSchema.js";
 export { googleCompleteSchema } from "./googleCompleteSchema.js";
@@ -8599,6 +8628,7 @@ export { synopDecodedSchema } from "./synopDecodedSchema.js";
 export { synopticImageGroupSchema } from "./synopticImageGroupSchema.js";
 export { synopticImageGroupsSchema } from "./synopticImageGroupsSchema.js";
 export { synopticSlotsSchema } from "./synopticSlotsSchema.js";
+export { synopValidationErrorDetailSchema } from "./synopValidationErrorDetailSchema.js";
 export { synopValidationIssueSchema } from "./synopValidationIssueSchema.js";
 export { synopValidationRequestSchema } from "./synopValidationRequestSchema.js";
 export { synopValidationResponseSchema } from "./synopValidationResponseSchema.js";

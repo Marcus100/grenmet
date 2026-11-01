@@ -3,14 +3,12 @@
 import type { GmsColour } from "@barrelsgd/api-client";
 import { cn } from "@barrelsgd/ui/lib/utils";
 import { useId } from "react";
+import { useGmsCatalogue } from "@/components/cap/gms-catalogue";
 import {
-  COLOUR_LABEL,
   COLOUR_SURFACE,
-  GMS_COLOURS,
-  GMS_PRODUCTS,
+  colourLabel,
   type GmsProduct,
   needsColour,
-  PRODUCT_LABEL,
   severityForColour,
 } from "@/lib/cap-levels";
 
@@ -34,8 +32,9 @@ export function WarningLevelPicker({
   colour,
   onChange,
 }: WarningLevelPickerProps) {
+  const catalogue = useGmsCatalogue();
   const id = useId();
-  const showColour = product !== null && needsColour(product);
+  const showColour = product !== null && needsColour(catalogue, product);
 
   return (
     <div className="grid gap-4">
@@ -44,29 +43,35 @@ export function WarningLevelPicker({
           Product *
         </legend>
         <div className="grid grid-cols-2 gap-1.5 sm:grid-cols-4">
-          {GMS_PRODUCTS.map((option) => (
-            <label
-              className={cn(
-                OPTION,
-                option === product
-                  ? "border-gm-navy bg-gm-navy text-gm-text-inverse"
-                  : "text-gm-text-secondary hover:bg-gm-surface"
-              )}
-              key={option}
-            >
-              <input
-                checked={option === product}
-                className="sr-only"
-                name={`${id}-product`}
-                onChange={() =>
-                  onChange(option, needsColour(option) ? colour : null)
-                }
-                type="radio"
-                value={option}
-              />
-              {PRODUCT_LABEL[option]}
-            </label>
-          ))}
+          {catalogue.products.map((item) => {
+            const option = item.key as GmsProduct;
+            return (
+              <label
+                className={cn(
+                  OPTION,
+                  option === product
+                    ? "border-gm-navy bg-gm-navy text-gm-text-inverse"
+                    : "text-gm-text-secondary hover:bg-gm-surface"
+                )}
+                key={option}
+              >
+                <input
+                  checked={option === product}
+                  className="sr-only"
+                  name={`${id}-product`}
+                  onChange={() =>
+                    onChange(
+                      option,
+                      needsColour(catalogue, option) ? colour : null
+                    )
+                  }
+                  type="radio"
+                  value={option}
+                />
+                {item.label}
+              </label>
+            );
+          })}
         </div>
       </fieldset>
 
@@ -83,7 +88,8 @@ export function WarningLevelPicker({
             Colour *
           </legend>
           <div className="grid grid-cols-2 gap-1.5 sm:grid-cols-4">
-            {GMS_COLOURS.map((option) => {
+            {catalogue.colours.map((colourRule) => {
+              const option = colourRule.key as GmsColour;
               const selected = option === colour;
               return (
                 <label
@@ -107,14 +113,14 @@ export function WarningLevelPicker({
                     className="mr-1.5 size-2.5 shrink-0 rounded-full border border-gm-text-primary/20"
                     style={{ background: COLOUR_SURFACE[option].background }}
                   />
-                  {COLOUR_LABEL[option]}
+                  {colourLabel(catalogue, option)}
                 </label>
               );
             })}
           </div>
           <p aria-live="polite" className="text-body-sm text-gm-text-muted">
             {colour
-              ? `Sets CAP severity to ${severityForColour(colour)}.`
+              ? `Sets CAP severity to ${severityForColour(catalogue, colour)}.`
               : "Choose the impact colour from the guideline matrix."}
           </p>
         </fieldset>

@@ -105,3 +105,19 @@ Acuity.
 - **Left on Acuity on purpose:** `/book`'s own redirects (`app/book/page.tsx`)
   and `app/book/error.tsx`'s "Book on our other page" fallback, so a failed
   on-site flow always has a working route to a booking.
+
+## Vercel build
+
+- Vercel clones the monorepo fresh, so no workspace package is built there. A
+  workspace package whose `main`, `types` or `exports` point at `dist/` (today
+  `@barrelsgd/api-client`) is absent at `next build` unless the build builds it
+  first. `dist/` is gitignored and built only by that package's own `build`.
+- `vercel.json`'s `buildCommand` therefore starts with
+  `pnpm --filter '@barrelsgd/web-babydoll^...' run build` (every workspace
+  dependency, not the app), then `pnpm build`. Add any new dist-producing
+  workspace package to the closure automatically; do not hand-list it.
+- Keep the build plain pnpm: no `turbo` and no remote cache in this command, so
+  it needs no `TURBO_TOKEN`, signing key or other secret.
+- `scripts/guardrails/vercel-build-dist.test.mjs` fails when a Vercel app's
+  `buildCommand` skips this step. Run `pnpm test:guardrails` after changing
+  `package.json` dependencies or `vercel.json`.

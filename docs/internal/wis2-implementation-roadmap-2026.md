@@ -51,9 +51,10 @@ For GMS, this produces two independent operational paths:
 | Consume external data | WIS2 Global Services → WIS2Downloader → forecasting workstations | No deployment evidence in the repository; confirmation required |
 
 CAP publication is a third, separate path. The verified SURFACE observation
-publisher does not activate the grenmet CAP `publish.wis2box` job; that job still
-requires a worker implementation before CAP alerts can be described as published
-to WIS 2.0.
+publisher does not activate a grenmet CAP WIS2 job. None is queued today (the
+retired `publish.wis2box` kind is gone; the integrations view reports WIS2 as
+`not_configured`). A CAP WIS2 publisher must be built, and wis2box must be live,
+before CAP alerts can be described as published to WIS 2.0.
 
 ## September 2026 CMO evidence refinement
 

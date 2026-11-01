@@ -1,8 +1,8 @@
 import "server-only";
 import {
-  type CapAlertPublic,
-  capAlertListPublicSchema,
-  capAlertPublicSchema,
+  type CapAlertPublicView,
+  capAlertListPublicViewSchema,
+  capAlertPublicViewSchema,
 } from "@barrelsgd/api-client";
 import { cache } from "react";
 import { z } from "zod";
@@ -59,22 +59,24 @@ export type AlertFeatures = z.infer<typeof featureCollectionSchema>;
 
 /** Active public alerts (all statuses; callers split Actual from exercises). */
 export const fetchActive = cache(
-  (): Promise<FeedResult<CapAlertPublic[]>> =>
-    client.get("/api/cap/latest-active", capAlertListPublicSchema).then(mapList)
+  (): Promise<FeedResult<CapAlertPublicView[]>> =>
+    client
+      .get("/api/cap/latest-active", capAlertListPublicViewSchema)
+      .then(mapList)
 );
 
 /** Previously published alerts: expired and cancelled. */
 export const fetchPast = cache(
-  (): Promise<FeedResult<CapAlertPublic[]>> =>
-    client.get("/api/cap/past", capAlertListPublicSchema).then(mapList)
+  (): Promise<FeedResult<CapAlertPublicView[]>> =>
+    client.get("/api/cap/past", capAlertListPublicViewSchema).then(mapList)
 );
 
 /** One alert by CAP identifier. */
 export const fetchAlert = cache(
-  (identifier: string): Promise<FeedResult<CapAlertPublic>> =>
+  (identifier: string): Promise<FeedResult<CapAlertPublicView>> =>
     client.get(
       `/api/cap/alerts/${encodeURIComponent(identifier)}`,
-      capAlertPublicSchema
+      capAlertPublicViewSchema
     )
 );
 
@@ -85,8 +87,8 @@ export const fetchActiveFeatures = cache(
 );
 
 function mapList(
-  result: FeedResult<{ data: CapAlertPublic[] }>
-): FeedResult<CapAlertPublic[]> {
+  result: FeedResult<{ data: CapAlertPublicView[] }>
+): FeedResult<CapAlertPublicView[]> {
   if (result.status === "ok" || result.status === "stale") {
     return { ...result, data: result.data.data };
   }
