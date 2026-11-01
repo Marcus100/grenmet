@@ -57933,7 +57933,7 @@
           "onboarding"
         ],
         "summary": "Issue a one-use sign-in setup link",
-        "description": "Manager with `user.manage` in scope (or a superuser) and an MFA-verified session issues a 72-hour one-use link. The person opens it and chooses a password; the administrator never sees the password. Replaces earlier sign-in links. Never verifies email, grants roles or app access. Refused for the caller's own account, for owners unless the caller is a superuser, and for inactive or ended-employment accounts. Rate limited per administrator and per account.",
+        "description": "Manager with `user.manage` in scope (or a superuser) and an MFA-verified session issues a 24-hour one-use link. The person opens it and chooses a password; the administrator never sees the password. Replaces earlier sign-in links. Never verifies email, grants roles or app access. Refused for the caller's own account, for owners unless the caller is a superuser, and for inactive or ended-employment accounts. A reason (3 to 500 characters) is required unless the email is unverified or password setup is pending. A courtesy notice goes to the address on file. Only a superuser can set up privileged accounts. Rate limited per administrator and per account.",
         "operationId": "authIssueSignInSetup",
         "security": [
           {
@@ -57957,7 +57957,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/ActivationIssue"
+                "$ref": "#/components/schemas/SignInSetupIssue"
               }
             }
           }
@@ -57984,7 +57984,7 @@
             "description": "Unprocessable Content"
           },
           "400": {
-            "description": "Identity confirmation required",
+            "description": "Identity confirmation or reason required",
             "content": {
               "application/json": {
                 "schema": {
@@ -57994,7 +57994,7 @@
             }
           },
           "403": {
-            "description": "Insufficient permission, MFA session required, own account, or owner",
+            "description": "Insufficient permission, MFA session required, own account, owner, or privileged account (superuser required)",
             "content": {
               "application/json": {
                 "schema": {
@@ -99967,6 +99967,32 @@
           "trips"
         ],
         "title": "ShiftView"
+      },
+      "SignInSetupIssue": {
+        "properties": {
+          "identity_confirmed": {
+            "type": "boolean",
+            "title": "Identity Confirmed"
+          },
+          "reason": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 500,
+                "minLength": 3
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reason"
+          }
+        },
+        "type": "object",
+        "required": [
+          "identity_confirmed"
+        ],
+        "title": "SignInSetupIssue"
       },
       "SignatureInput": {
         "properties": {

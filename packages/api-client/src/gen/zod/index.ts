@@ -7891,6 +7891,7 @@ export { signatureInputSchema } from "./signatureInputSchema.js";
 export { signaturePublicSchema } from "./signaturePublicSchema.js";
 export { signedDocumentListSchema } from "./signedDocumentListSchema.js";
 export { signedDocumentPublicSchema } from "./signedDocumentPublicSchema.js";
+export { signInSetupIssueSchema } from "./signInSetupIssueSchema.js";
 export { siteSubscribeRequestSchema } from "./siteSubscribeRequestSchema.js";
 export { staffCardSchema } from "./staffCardSchema.js";
 export { staffCreateSchema } from "./staffCreateSchema.js";

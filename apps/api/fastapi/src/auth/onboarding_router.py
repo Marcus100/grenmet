@@ -11,6 +11,7 @@ from src.auth.onboarding_schemas import (
     ActivationLink,
     AdminActivation,
     OnboardingStatus,
+    SignInSetupIssue,
     SuperuserActionReason,
     VerificationResend,
 )
@@ -115,17 +116,22 @@ async def revoke(
     summary="Issue a one-use sign-in setup link",
     description=(
         "Manager with `user.manage` in scope (or a superuser) and an MFA-verified session "
-        "issues a 72-hour one-use link. The person opens it and chooses a password; the "
+        "issues a 24-hour one-use link. The person opens it and chooses a password; the "
         "administrator never sees the password. Replaces earlier sign-in links. Never "
         "verifies email, grants roles or app access. Refused for the caller's own account, "
         "for owners unless the caller is a superuser, and for inactive or ended-employment "
-        "accounts. Rate limited per administrator and per account."
+        "accounts. A reason (3 to 500 characters) is required unless the email is unverified or "
+        "password setup is pending. A courtesy notice goes to the address on file. Only a superuser "
+        "can set up privileged accounts. Rate limited per administrator and per account."
     ),
     responses={
-        400: {"model": ApiError, "description": "Identity confirmation required"},
+        400: {
+            "model": ApiError,
+            "description": "Identity confirmation or reason required",
+        },
         403: {
             "model": ApiError,
-            "description": "Insufficient permission, MFA session required, own account, or owner",
+            "description": "Insufficient permission, MFA session required, own account, owner, or privileged account (superuser required)",
         },
         404: {
             "model": ApiError,
@@ -143,11 +149,13 @@ async def issue_sign_in_setup(
     session: SessionDep,
     manager: MfaUserManager,
     user_id: uuid.UUID,
-    body: ActivationIssue,
+    body: SignInSetupIssue,
 ) -> ActivationLink:
     _ = request
     response.headers["Cache-Control"] = "no-store"
-    return await sign_in_setup.issue(session, manager, user_id, body.identity_confirmed)
+    return await sign_in_setup.issue(
+        session, manager, user_id, body.identity_confirmed, body.reason
+    )
 
 
 @router.delete(

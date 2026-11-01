@@ -7969,6 +7969,7 @@ export type { SignatureInput } from "./SignatureInput.js";
 export type { SignaturePublic } from "./SignaturePublic.js";
 export type { SignedDocumentList } from "./SignedDocumentList.js";
 export type { SignedDocumentPublic } from "./SignedDocumentPublic.js";
+export type { SignInSetupIssue } from "./SignInSetupIssue.js";
 export type { SiteSubscribeRequest } from "./SiteSubscribeRequest.js";
 export type { StaffCard } from "./StaffCard.js";
 export type { StaffCreate } from "./StaffCreate.js";

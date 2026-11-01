@@ -4,9 +4,9 @@
  */
 
 import * as z from "zod";
-import { activationIssueSchema } from "./activationIssueSchema.js";
 import { activationLinkSchema } from "./activationLinkSchema.js";
 import { apiErrorSchema } from "./apiErrorSchema.js";
+import { signInSetupIssueSchema } from "./signInSetupIssueSchema.js";
 import { validationErrorResponseSchema } from "./validationErrorResponseSchema.js";
 
 export const authIssueSignInSetupPathUserIdSchema = z.uuid();
@@ -50,7 +50,7 @@ export const authIssueSignInSetupErrorSchema = z.union([
   authIssueSignInSetupStatus429Schema,
 ]);
 
-export const authIssueSignInSetupBodySchema = activationIssueSchema;
+export const authIssueSignInSetupBodySchema = signInSetupIssueSchema;
 
 export const authIssueSignInSetupPathSchema = z.object({
   user_id: z.uuid(),

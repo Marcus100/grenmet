@@ -3,9 +3,9 @@
  * Do not edit manually.
  */
 
-import type { ActivationIssue } from "./ActivationIssue.js";
 import type { ActivationLink } from "./ActivationLink.js";
 import type { ApiError } from "./ApiError.js";
+import type { SignInSetupIssue } from "./SignInSetupIssue.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 
 export type AuthIssueSignInSetupPath = {
@@ -55,7 +55,7 @@ export type AuthIssueSignInSetupStatus422 = ValidationErrorResponse;
  */
 export type AuthIssueSignInSetupStatus429 = ApiError;
 
-export type AuthIssueSignInSetupBody = ActivationIssue;
+export type AuthIssueSignInSetupBody = SignInSetupIssue;
 
 export type AuthIssueSignInSetupOptions = {
   body: AuthIssueSignInSetupBody;
