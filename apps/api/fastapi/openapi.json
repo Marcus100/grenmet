@@ -77545,6 +77545,17 @@
             ],
             "title": "Created By User Id"
           },
+          "created_by_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Created By Name"
+          },
           "confirmed_by_user_id": {
             "anyOf": [
               {
@@ -77556,6 +77567,17 @@
               }
             ],
             "title": "Confirmed By User Id"
+          },
+          "confirmed_by_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Confirmed By Name"
           },
           "confirmed_at": {
             "anyOf": [
@@ -77721,7 +77743,9 @@
         "required": [
           "rule_state",
           "created_by_user_id",
+          "created_by_name",
           "confirmed_by_user_id",
+          "confirmed_by_name",
           "confirmed_at",
           "confirmation_note",
           "organisation_id",
@@ -104555,6 +104579,17 @@
             ],
             "title": "Created By User Id"
           },
+          "created_by_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Created By Name"
+          },
           "confirmed_by_user_id": {
             "anyOf": [
               {
@@ -104566,6 +104601,17 @@
               }
             ],
             "title": "Confirmed By User Id"
+          },
+          "confirmed_by_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Confirmed By Name"
           },
           "confirmed_at": {
             "anyOf": [
@@ -104680,7 +104726,9 @@
         "required": [
           "rule_state",
           "created_by_user_id",
+          "created_by_name",
           "confirmed_by_user_id",
+          "confirmed_by_name",
           "confirmed_at",
           "confirmation_note",
           "organisation_id",
@@ -108883,6 +108931,17 @@
             ],
             "title": "Created By User Id"
           },
+          "created_by_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Created By Name"
+          },
           "confirmed_by_user_id": {
             "anyOf": [
               {
@@ -108894,6 +108953,17 @@
               }
             ],
             "title": "Confirmed By User Id"
+          },
+          "confirmed_by_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Confirmed By Name"
           },
           "confirmed_at": {
             "anyOf": [
@@ -108987,7 +109057,9 @@
         "required": [
           "rule_state",
           "created_by_user_id",
+          "created_by_name",
           "confirmed_by_user_id",
+          "confirmed_by_name",
           "confirmed_at",
           "confirmation_note",
           "id",

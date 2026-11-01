@@ -395,11 +395,17 @@ class TaxTableCreate(BaseModel):
 
 
 class TableProvenance(BaseModel):
-    """Every table is created PROVISIONAL; someone else confirms it."""
+    """Every table is created PROVISIONAL; someone else confirms it.
+
+    The ``*_name`` fields are display names (first and last name) for the ids
+    beside them, null when there is no such user. Nothing else about a person.
+    """
 
     rule_state: TableState
     created_by_user_id: uuid.UUID | None
+    created_by_name: str | None
     confirmed_by_user_id: uuid.UUID | None
+    confirmed_by_name: str | None
     confirmed_at: UtcDateTime | None
     confirmation_note: str | None
 
