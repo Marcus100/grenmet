@@ -207,6 +207,12 @@ def downgrade() -> None:
         raise RuntimeError(
             "hr.pay_item_rate holds rates entered by staff; remove them before downgrading"
         )
+    # Only seeded rows remain after the guards above. The old CHECK does not
+    # allow the seeded BASIC_SALARY item, so remove the seeded slice 2 rows (and
+    # their seed marker, so an upgrade can seed them again) before recreating it.
+    op.execute("DELETE FROM hr.pay_item_rate WHERE created_by_user_id IS NULL")
+    op.execute("DELETE FROM hr.pay_item WHERE method = 'BASIC_SALARY'")
+    op.execute("DELETE FROM baseline_step WHERE key = 'payroll:gaa-pay-rates:v1'")
     op.drop_constraint("pay_line_basic_pay_id_fkey", "pay_line", schema="hr")
     op.drop_constraint("pay_line_pay_item_rate_id_fkey", "pay_line", schema="hr")
     for name in (
