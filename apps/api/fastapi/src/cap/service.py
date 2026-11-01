@@ -7,6 +7,7 @@ import feedparser
 import httpx
 import sqlalchemy as sa
 from fastapi.concurrency import run_in_threadpool
+from lxml import etree
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
@@ -16,6 +17,7 @@ from src.auth.policy import require_permission
 from src.cap.admin_lists import (
     create_predefined_area,
     get_catalogs,
+    get_gms_catalogue,
     get_or_create_settings,
     list_audit_events,
     list_integrations,
@@ -34,9 +36,11 @@ from src.cap.exceptions import (
     CapAlertNotFoundError,
     CapFeedNotFoundError,
     CapImportError,
+    CapNonConformingAlertError,
     CapStateError,
     CapValidationFailedError,
 )
+from src.cap.import_coerce import coerce_for_import
 from src.cap.levels import INTERNAL_PARAMETERS
 from src.cap.mapping import (
     _alert_selectinload_options,
@@ -63,7 +67,11 @@ from src.cap.models import (
     CapSnapshot,
     CapStatus,
 )
-from src.cap.notifications import notify_review_requested, notify_warning_changed
+from src.cap.notifications import (
+    notify_review_requested,
+    notify_schema_mismatch,
+    notify_warning_changed,
+)
 from src.cap.public_queries import (
     PUBLIC_HAZARD_GROUPS,
     _attach_public_replacements,
@@ -77,6 +85,7 @@ from src.cap.public_queries import (
     public_warnings,
     select_public_warnings,
 )
+from src.cap.safe_fetch import fetch_pinned
 from src.cap.schemas import (
     CapAlertAction,
     CapAlertCreate,
@@ -87,6 +96,7 @@ from src.cap.schemas import (
     CapFeedImportCreate,
     CapFeedImportUpdate,
     CapInfoCreate,
+    CapPublishAction,
     CapReferenceCreate,
     CapResourceCreate,
     CapReviewRecord,
@@ -101,11 +111,32 @@ from src.cap.validation import (
     validate_cap_alert,
     validate_import_url,
 )
-from src.cap.xml import alert_to_cap_xml, xml_to_alert_data
+from src.cap.xml import alert_to_cap_xml, ensure_well_formed, xml_to_alert_data
+from src.cap.xsd import first_schema_error, gate_cap_xml
 from src.config import settings as app_config
 from src.utils.datetime import utc_now
 
 logger = logging.getLogger(__name__)
+
+
+async def _notify_mismatch_safely(
+    *, session: AsyncSession, alert: CapAlert, problem: str, action: str
+) -> None:
+    """Tell the duty supervisor about a format problem without ever blocking the send.
+
+    The warning or cancellation has already been accepted at this point, so a failed
+    notification is logged (identifiers only, no personal data) and swallowed.
+    """
+    try:
+        await notify_schema_mismatch(
+            session=session, alert=alert, problem=problem, action=action
+        )
+    except Exception:
+        logger.exception(
+            "CAP schema-mismatch notification failed; the alert was still sent",
+            extra={"action": action, "identifier": alert.identifier},
+        )
+
 
 __all__ = [
     "PUBLIC_HAZARD_GROUPS",
@@ -125,6 +156,7 @@ __all__ = [
     "_to_public_from_loaded",
     "create_predefined_area",
     "get_catalogs",
+    "get_gms_catalogue",
     "get_or_create_settings",
     "latest_snapshot_for_identifier",
     "list_audit_events",
@@ -173,6 +205,27 @@ async def list_alerts(
     return alerts, total or 0
 
 
+async def get_alert_by_identifier(
+    *, session: AsyncSession, current_user: User, identifier: str
+) -> CapAlertPublic:
+    """One alert by its CAP identifier, with every staff field (the desk's detail page)."""
+    require_permission(current_user=current_user, permission_key="cap.alert.read")
+    row = (
+        (
+            await session.execute(
+                select(CapAlert)
+                .where(CapAlert.identifier == identifier)
+                .options(*_alert_selectinload_options())
+            )
+        )
+        .scalars()
+        .first()
+    )
+    if row is None:
+        raise CapAlertNotFoundError()
+    return await _to_public(session=session, alert=row)
+
+
 async def get_alert(
     *, session: AsyncSession, current_user: User, alert_id: uuid.UUID
 ) -> CapAlertPublic:
@@ -183,6 +236,51 @@ async def get_alert(
     )
 
 
+async def _fetch_document(
+    url: str,
+    *,
+    http_client: httpx.AsyncClient | None,
+    headers: dict[str, str] | None = None,
+    allow_http: bool = False,
+) -> tuple[int, httpx.Headers, bytes]:
+    """GET a CAP document through the SSRF guard, reading at most MAX_IMPORT_BYTES.
+
+    The host is checked on every fetch, whether or not a client was injected, and the
+    connection goes to the address that check returned (see ``src.cap.safe_fetch``).
+    """
+    address = await ensure_public_host(urlparse(url).hostname or "")
+    owns_client = http_client is None
+    client = http_client or httpx.AsyncClient(trust_env=False)
+    try:
+        fetched = await fetch_pinned(
+            client,
+            url,
+            address=address,
+            max_bytes=MAX_IMPORT_BYTES,
+            headers=headers,
+            allow_http=allow_http,
+        )
+        return fetched.status, fetched.headers, fetched.body
+    finally:
+        if owns_client:
+            await client.aclose()
+
+
+def _prepare_import(raw: bytes) -> tuple[CapAlertCreate, str | None]:
+    """The stored content for a document, and the problems to record (None when none).
+
+    Runs in a worker thread: schema validation and coercion are CPU-bound.
+    """
+    try:
+        schema_error = first_schema_error(raw)
+        coerced, changes = coerce_for_import(raw)
+    except etree.XMLSyntaxError as exc:
+        raise CapImportError(f"invalid XML: {exc.msg}") from exc
+    payload = xml_to_alert_data(coerced)
+    problems = ([schema_error] if schema_error else []) + changes
+    return payload, "; ".join(problems)[:1000] or None
+
+
 async def import_alert(
     *,
     session: AsyncSession,
@@ -190,42 +288,36 @@ async def import_alert(
     source: str,
     value: str,
     http_client: httpx.AsyncClient | None = None,
+    origin: str = "manual",
 ) -> CapAlertPublic:
-    """Import a CAP alert from a source URL or pasted XML. Reuses create_alert.
+    """Import a CAP alert from a source URL or pasted XML, and store it.
 
-    URL imports are SSRF-guarded: the scheme/host are validated, the resolved
-    host must be public (skipped when a client is injected for tests), redirects
-    are not followed, and the body size is capped. Redirecting feeds are not a
-    supported import source.
+    Only malformed XML and a DTD are refused (400). A document that breaks the CAP
+    1.2 schema, or that had to be changed to be stored, is kept with
+    ``schema_conformant`` false and every problem listed in ``schema_error``. It is
+    never published without the author's confirmation. ``origin`` records whether the
+    alert came from a feed or a manual import.
     """
     require_permission(current_user=current_user, permission_key="cap.alert.create")
     if source == "url":
         validate_import_url(value)
-        owns_client = http_client is None
-        if owns_client:
-            host = urlparse(value).hostname or ""
-            await ensure_public_host(host)
-        client = http_client or httpx.AsyncClient()
-        try:
-            response = await client.get(value, timeout=15.0, follow_redirects=False)
-            if response.is_redirect:
-                raise CapImportError("redirects are not followed for CAP imports")
-            response.raise_for_status()
-            content = response.content
-            if len(content) > MAX_IMPORT_BYTES:
-                raise CapImportError(f"import exceeds {MAX_IMPORT_BYTES} byte limit")
-            raw_xml: str | bytes = content
-        except httpx.HTTPError as exc:
-            raise CapImportError(
-                f"could not fetch source: {type(exc).__name__}"
-            ) from exc
-        finally:
-            if owns_client:
-                await client.aclose()
+        _, _, body = await _fetch_document(value, http_client=http_client)
+        raw_bytes = body
     else:
-        raw_xml = value
-
-    payload = xml_to_alert_data(raw_xml)  # raises CapImportError on bad XML
+        raw_bytes = value.encode("utf-8")
+    if len(raw_bytes) > MAX_IMPORT_BYTES:
+        raise CapImportError(f"import exceeds {MAX_IMPORT_BYTES} byte limit")
+    ensure_well_formed(raw_bytes)
+    payload, import_problem = await run_in_threadpool(_prepare_import, raw_bytes)
+    if import_problem is not None:
+        logger.warning(
+            "Imported CAP alert does not fully follow the CAP 1.2 schema",
+            extra={
+                "identifier": payload.identifier,
+                "origin": origin,
+                "schema_error": import_problem,
+            },
+        )
     if payload.identifier:
         existing = await session.execute(
             select(CapAlert).where(CapAlert.identifier == payload.identifier)
@@ -233,12 +325,21 @@ async def import_alert(
         if existing.scalars().first() is not None:
             raise CapImportError(f"alert {payload.identifier} already exists")
     return await create_alert(
-        session=session, current_user=current_user, payload=payload
+        session=session,
+        current_user=current_user,
+        payload=payload,
+        schema_error=import_problem,
+        import_source=origin,
     )
 
 
 async def create_alert(
-    *, session: AsyncSession, current_user: User, payload: CapAlertCreate
+    *,
+    session: AsyncSession,
+    current_user: User,
+    payload: CapAlertCreate,
+    schema_error: str | None = None,
+    import_source: str | None = None,
 ) -> CapAlertPublic:
     require_permission(current_user=current_user, permission_key="cap.alert.create")
     settings = await get_or_create_settings(session=session)
@@ -255,6 +356,9 @@ async def create_alert(
         addresses=payload.addresses,
         codes=payload.codes,
         note=payload.note,
+        schema_conformant=schema_error is None,
+        schema_error=schema_error,
+        import_source=import_source,
         created_by_user_id=current_user.id,
         updated_by_user_id=current_user.id,
     )
@@ -338,6 +442,11 @@ async def duplicate_alert(
 ) -> CapAlertPublic:
     require_permission(current_user=current_user, permission_key="cap.alert.create")
     original = await get_alert_or_404(session=session, alert_id=alert_id)
+    if not original.schema_conformant:
+        raise CapNonConformingAlertError(
+            "This alert was imported and does not fully follow the CAP 1.2 schema, "
+            "so it cannot be copied. Author a new alert instead."
+        )
     public = await _to_public(session=session, alert=original)
     # Database timestamps are naive UTC; use the public UTC representation when
     # constructing a new input, whose timestamps must carry explicit offsets.
@@ -569,9 +678,12 @@ async def publish_alert(
     session: AsyncSession,
     current_user: User,
     alert_id: uuid.UUID,
-    payload: CapAlertAction,
+    payload: CapPublishAction,
 ) -> tuple[CapAlertPublic, CapSnapshotPublic]:
-    """Normal publish: only an Approved alert (the author may have approved it)."""
+    """Normal publish: only an Approved alert (the author may have approved it).
+
+    Strict on the schema: a non-conforming document is refused with 422.
+    """
     require_permission(current_user=current_user, permission_key="cap.alert.publish")
     alert = await get_alert_or_404(session=session, alert_id=alert_id, for_update=True)
     if alert.lifecycle_state != CapLifecycleState.APPROVED:
@@ -581,6 +693,7 @@ async def publish_alert(
         )
     if not await _has_approval(session=session, alert=alert):
         raise CapStateError("This alert has no recorded approval.")
+    _require_imported_confirmation(alert, payload.confirm_imported)
     return await _publish(
         session=session, current_user=current_user, alert=alert, note=payload.note
     )
@@ -593,7 +706,12 @@ async def emergency_publish_alert(
     alert_id: uuid.UUID,
     payload: CapEmergencyPublish,
 ) -> tuple[CapAlertPublic, CapSnapshotPublic]:
-    """Duty-supervisor publish without approval; reason mandatory, always audited."""
+    """Duty-supervisor publish without approval; reason mandatory, always audited.
+
+    A schema mismatch never blocks it: the warning goes out, and the mismatch is
+    audited and sent to the duty supervisor. This is an audited path, not an approval
+    bypass: approval rules are unchanged.
+    """
     require_permission(
         current_user=current_user, permission_key="cap.alert.publish_emergency"
     )
@@ -609,6 +727,7 @@ async def emergency_publish_alert(
         raise CapStateError(
             "Only a draft, submitted or approved alert can be published."
         )
+    _require_imported_confirmation(alert, payload.confirm_imported)
     return await _publish(
         session=session,
         current_user=current_user,
@@ -616,6 +735,15 @@ async def emergency_publish_alert(
         note=reason,
         emergency_reason=reason,
     )
+
+
+def _require_imported_confirmation(alert: CapAlert, confirmed: bool) -> None:
+    """An imported alert is published only after its author has checked it (409 without)."""
+    if alert.import_source and not confirmed:
+        raise CapStateError(
+            "This alert was imported. Check it against the source, then publish with "
+            "confirm_imported set to true."
+        )
 
 
 async def _publish(
@@ -633,7 +761,20 @@ async def _publish(
     replaced = await _published_references_for_update(
         session=session, alert=alert, public=public
     )
-    xml = alert_to_cap_xml(public)
+    # CAP "sent" is the time the message went out, not when it was drafted. Set it
+    # here, on publish, so the XML, the snapshot and the feeds all carry it.
+    alert.sent = utc_now().replace(microsecond=0)
+    session.add(alert)
+    await session.flush()
+    public = await _to_public(session=session, alert=alert)
+    emergency = emergency_reason is not None
+    xml, mismatch = await gate_cap_xml(
+        alert_to_cap_xml(public),
+        action="emergency_publish" if emergency else "publish",
+        identifier=alert.identifier,
+        alert_id=alert.id,
+        allow_mismatch=emergency,
+    )
     snapshot = _snapshot_from_xml(alert=alert, xml=xml)
     session.add(snapshot)
     previous_state = alert.lifecycle_state.value
@@ -672,14 +813,22 @@ async def _publish(
     )
     await notify_warning_changed(session=session, alert=alert, actor=current_user)
     audit_payload: dict[str, object] = {"snapshot_id": str(snapshot.id)}
-    if emergency_reason is not None:
+    if emergency:
         audit_payload["emergency"] = True
         audit_payload["reason"] = emergency_reason
+    if mismatch is not None:
+        audit_payload["schema_mismatch"] = mismatch
+        await _notify_mismatch_safely(
+            session=session,
+            alert=alert,
+            problem=mismatch,
+            action="published",
+        )
     _record_audit(
         session=session,
         alert_id=alert.id,
         actor=current_user,
-        action="emergency_publish" if emergency_reason is not None else "publish",
+        action="emergency_publish" if emergency else "publish",
         previous_state=previous_state,
         next_state=alert.lifecycle_state.value,
         note=note,
@@ -770,9 +919,16 @@ async def cancel_alert(
     validation = validate_cap_alert(public_cancel)
     if not validation.is_valid:
         raise CapValidationFailedError(validation.errors)
-    snapshot = _snapshot_from_xml(
-        alert=cancellation, xml=alert_to_cap_xml(public_cancel)
+    # A cancellation is never blocked by a schema mismatch: a false warning must be
+    # cancellable. A mismatch is audited and sent to the duty supervisor instead.
+    cancel_xml, cancel_mismatch = await gate_cap_xml(
+        alert_to_cap_xml(public_cancel),
+        action="cancel",
+        identifier=cancellation.identifier,
+        alert_id=cancellation.id,
+        allow_mismatch=True,
     )
+    snapshot = _snapshot_from_xml(alert=cancellation, xml=cancel_xml)
     session.add(snapshot)
     previous_state = alert.lifecycle_state.value
     alert.lifecycle_state = CapLifecycleState.CANCELLED
@@ -799,11 +955,19 @@ async def cancel_alert(
         payload={
             "snapshot_id": str(snapshot.id),
             "cancellation_identifier": cancellation.identifier,
+            **({"schema_mismatch": cancel_mismatch} if cancel_mismatch else {}),
         },
     )
     await notify_warning_changed(
         session=session, alert=cancellation, actor=current_user, about=alert
     )
+    if cancel_mismatch is not None:
+        await _notify_mismatch_safely(
+            session=session,
+            alert=cancellation,
+            problem=cancel_mismatch,
+            action="cancelled",
+        )
     await session.commit()
     await session.refresh(alert)
     await invalidate(
@@ -1190,18 +1354,37 @@ async def ingest_feed(
     session: AsyncSession,
     feed: CapFeedImport,
     system_user: User,
-    http_client: httpx.AsyncClient,
+    http_client: httpx.AsyncClient | None,
 ) -> dict[str, int]:
-    """Fetch a feed, import each entry's CAP XML (dedup by identifier)."""
-    parsed = await run_in_threadpool(
-        feedparser.parse, feed.url, etag=feed.last_etag or None
-    )
-    if getattr(parsed, "status", None) == 304:
-        feed.last_checked_at = utc_now()
+    """Fetch a feed, then import each entry (dedupe by identifier).
+
+    The feed and every entry go through the same SSRF guard and size cap. A bad entry
+    is skipped and the loop carries on, so one poison entry cannot stop the feed. The
+    feed's etag and progress are saved at the end.
+    """
+    now = utc_now()
+    try:
+        validate_import_url(feed.url)
+        headers = {"If-None-Match": feed.last_etag} if feed.last_etag else None
+        status, response_headers, body = await _fetch_document(
+            feed.url,
+            http_client=http_client,
+            headers=headers,
+            allow_http=feed.url.startswith("http://"),
+        )
+    except CapImportError as exc:
+        feed.last_checked_at = now
+        feed.last_error = str(exc)[:500]
+        session.add(feed)
+        await session.commit()
+        return {"created": 0, "skipped": 0}
+    if status == 304:
+        feed.last_checked_at = now
         session.add(feed)
         await session.commit()
         return {"created": 0, "skipped": 0}
 
+    parsed = await run_in_threadpool(feedparser.parse, body)
     created = 0
     skipped = 0
     for entry in getattr(parsed, "entries", []):
@@ -1215,14 +1398,15 @@ async def ingest_feed(
                 source="url",
                 value=link,
                 http_client=http_client,
+                origin="feed",
             )
             created += 1
-        except CapImportError:  # malformed or duplicate — skip, keep going
+        except CapImportError:  # malformed, a DTD, or a duplicate: skip, keep going
             skipped += 1
 
     feed.last_checked_at = utc_now()
     feed.last_error = None
-    feed.last_etag = getattr(parsed, "etag", None) or feed.last_etag
+    feed.last_etag = response_headers.get("etag") or feed.last_etag
     session.add(feed)
     await session.commit()
     return {"created": created, "skipped": skipped}
@@ -1241,7 +1425,7 @@ async def ingest_all_active_feeds(
     )
     feeds = list(result.scalars().all())
     owns_client = http_client is None
-    client = http_client or httpx.AsyncClient()
+    client = http_client or httpx.AsyncClient(trust_env=False)
     try:
         for feed in feeds:
             try:

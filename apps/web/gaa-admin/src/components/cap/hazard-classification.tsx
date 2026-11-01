@@ -12,9 +12,10 @@ import {
   SelectValue,
 } from "@barrelsgd/ui/components/ui/select";
 import { useId, useState } from "react";
+import { useGmsCatalogue } from "@/components/cap/gms-catalogue";
 import {
-  CAP_CATEGORY_LABELS,
-  CAP_HAZARD_GROUPS,
+  categoryKeys,
+  categoryLabel,
   suggestedCategories,
 } from "@/lib/cap-hazards";
 
@@ -32,14 +33,15 @@ export function HazardClassification({
   onCategoriesChange,
   onEventChange,
 }: HazardClassificationProps) {
+  const catalogue = useGmsCatalogue();
   const [family, setFamily] = useState("");
   const id = useId();
   const groups = family
-    ? CAP_HAZARD_GROUPS.filter((group) => group.label === family)
-    : CAP_HAZARD_GROUPS;
+    ? catalogue.hazard_groups.filter((group) => group.label === family)
+    : catalogue.hazard_groups;
 
   function changeEvent(value: string) {
-    const matchingGroup = CAP_HAZARD_GROUPS.find((group) =>
+    const matchingGroup = catalogue.hazard_groups.find((group) =>
       group.events.some(
         (name) => name.toLowerCase() === value.trim().toLowerCase()
       )
@@ -47,7 +49,7 @@ export function HazardClassification({
     if (matchingGroup) {
       setFamily(matchingGroup.label);
     }
-    onEventChange(value, suggestedCategories(value));
+    onEventChange(value, suggestedCategories(catalogue, value));
   }
 
   return (
@@ -71,7 +73,7 @@ export function HazardClassification({
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="">Browse all hazard families</SelectItem>
-            {CAP_HAZARD_GROUPS.map((group) => (
+            {catalogue.hazard_groups.map((group) => (
               <SelectItem key={group.label} value={group.label}>
                 {group.label}
               </SelectItem>
@@ -106,7 +108,7 @@ export function HazardClassification({
       </div>
       <p aria-live="polite" className="text-body-sm text-gm-text-muted">
         {categories.length
-          ? `CAP mapping: ${categories.map((category) => CAP_CATEGORY_LABELS[category]).join(", ")}`
+          ? `CAP mapping: ${categories.map((category) => categoryLabel(catalogue, category)).join(", ")}`
           : "No CAP category selected. Choose a listed event or set its mapping below."}
       </p>
       <details className="space-y-3">
@@ -123,23 +125,21 @@ export function HazardClassification({
             CAP categories (select at least one)
           </legend>
           <div className="grid gap-3 sm:grid-cols-2">
-            {(Object.keys(CAP_CATEGORY_LABELS) as CapCategory[]).map(
-              (category) => (
-                <Label className="flex items-center gap-2" key={category}>
-                  <Checkbox
-                    checked={categories.includes(category)}
-                    onCheckedChange={(checked) =>
-                      onCategoriesChange(
-                        checked
-                          ? [...categories, category]
-                          : categories.filter((value) => value !== category)
-                      )
-                    }
-                  />
-                  {CAP_CATEGORY_LABELS[category]}
-                </Label>
-              )
-            )}
+            {categoryKeys(catalogue).map((category) => (
+              <Label className="flex items-center gap-2" key={category}>
+                <Checkbox
+                  checked={categories.includes(category)}
+                  onCheckedChange={(checked) =>
+                    onCategoriesChange(
+                      checked
+                        ? [...categories, category]
+                        : categories.filter((value) => value !== category)
+                    )
+                  }
+                />
+                {categoryLabel(catalogue, category)}
+              </Label>
+            ))}
           </div>
         </fieldset>
       </details>

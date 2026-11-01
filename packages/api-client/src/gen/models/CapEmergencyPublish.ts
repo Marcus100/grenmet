@@ -10,4 +10,9 @@ export type CapEmergencyPublish = {
    * @type string
    */
   reason: string;
+  /**
+   * @default false
+   * @type boolean | undefined
+   */
+  confirm_imported?: boolean;
 };

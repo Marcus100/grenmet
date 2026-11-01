@@ -3,10 +3,11 @@
  * Do not edit manually.
  */
 
-import { capAlertListPublicSchema } from "./capAlertListPublicSchema.js";
+import { capAlertListPublicViewSchema } from "./capAlertListPublicViewSchema.js";
 import { validationErrorResponseSchema } from "./validationErrorResponseSchema.js";
 
-export const capGetPublicLatestActiveStatus200Schema = capAlertListPublicSchema;
+export const capGetPublicLatestActiveStatus200Schema =
+  capAlertListPublicViewSchema;
 
 export const capGetPublicLatestActiveStatus422Schema =
   validationErrorResponseSchema.describe(

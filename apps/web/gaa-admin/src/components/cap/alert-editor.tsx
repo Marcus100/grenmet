@@ -34,9 +34,13 @@ import { ArrowLeft, Save } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import type { ComponentProps } from "react";
 import { useState } from "react";
-
 import { AreaPicker } from "@/components/cap/area-picker";
+import {
+  GmsCatalogueBoundary,
+  useGmsCatalogue,
+} from "@/components/cap/gms-catalogue";
 import { HazardClassification } from "@/components/cap/hazard-classification";
 import { LivePreview, ReadinessChecklist } from "@/components/cap/live-preview";
 import { RiskLadder } from "@/components/cap/risk-ladder";
@@ -155,13 +159,14 @@ function SettingsHint({ show }: { show: boolean }) {
   ) : null;
 }
 
-export function NewAlertEditor({
+function NewAlertEditorContent({
   catalogs,
   settings,
 }: {
   catalogs: CapCatalogsPublic;
   settings?: CapSettingsPublic | null;
 }) {
+  const catalogue = useGmsCatalogue();
   const router = useRouter();
   const [form, setForm] = useState<FormState>(() => initialForm(settings));
   const [categories, setCategories] = useState<CapCategory[]>([]);
@@ -178,7 +183,7 @@ export function NewAlertEditor({
     (item) => item.id === sourceBulletinId
   );
   const hasLevel =
-    product !== null && (!needsColour(product) || colour !== null);
+    product !== null && (!needsColour(catalogue, product) || colour !== null);
 
   /**
    * Product and colour are the GMS decisions; the colour sets CAP severity so
@@ -190,7 +195,7 @@ export function NewAlertEditor({
     setColour(nextColour);
     setForm((prev) => {
       if (nextColour) {
-        return { ...prev, severity: severityForColour(nextColour) };
+        return { ...prev, severity: severityForColour(catalogue, nextColour) };
       }
       if (nextProduct === "Outlook") {
         return {
@@ -288,7 +293,7 @@ export function NewAlertEditor({
           contact: form.contact.trim() || null,
           web: form.web.trim() || null,
           parameters: [
-            ...levelParameters(product, colour),
+            ...levelParameters(catalogue, product, colour),
             ...sectorParameters(sectors),
             ...(sourceBulletin ? sourceBulletinParameters(sourceBulletin) : []),
           ],
@@ -508,17 +513,21 @@ export function NewAlertEditor({
               />
             </div>
             <Field label="Language">
-              <Input
-                list="cap-languages"
-                onChange={(e) => update("language", e.target.value)}
-                placeholder="e.g. en"
+              <Select
+                onValueChange={(v) => update("language", v ?? "")}
                 value={form.language}
-              />
-              <datalist id="cap-languages">
-                {catalogs.languages.map((language) => (
-                  <option key={language} value={language} />
-                ))}
-              </datalist>
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {catalogs.languages.map((language) => (
+                    <SelectItem key={language} value={language}>
+                      {language}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </Field>
           </Section>
 
@@ -679,7 +688,9 @@ export function NewAlertEditor({
             headline={form.headline}
             instruction={form.instruction}
             levelHeading={
-              product ? levelHeading(form.event, product, colour) : undefined
+              product
+                ? levelHeading(catalogue, form.event, product, colour)
+                : undefined
             }
             outlook={product === "Outlook"}
             senderName={form.senderName}
@@ -715,5 +726,16 @@ export function NewAlertEditor({
         </Button>
       </div>
     </div>
+  );
+}
+
+/** Shows a message in place of this panel when the GMS catalogue cannot load. */
+export function NewAlertEditor(
+  props: ComponentProps<typeof NewAlertEditorContent>
+) {
+  return (
+    <GmsCatalogueBoundary>
+      <NewAlertEditorContent {...props} />
+    </GmsCatalogueBoundary>
   );
 }

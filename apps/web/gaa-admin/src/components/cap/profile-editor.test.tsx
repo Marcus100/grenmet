@@ -3,7 +3,7 @@ import {
   type CapProfileSave,
   configureApiClient,
 } from "@barrelsgd/api-client";
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { fireEvent, screen, waitFor } from "@testing-library/react";
 import { HttpResponse, http } from "msw";
 import { setupServer } from "msw/node";
 import {
@@ -18,6 +18,7 @@ import {
 import { floodProfile } from "@/lib/cap-profile-defaults";
 import { wmoStarterMatrix } from "@/lib/ibf-matrix";
 import { nth } from "@/test/nth";
+import { renderWithGmsCatalogue as render } from "@/test/with-gms-catalogue";
 import { ProfileEditor } from "./profile-editor";
 
 const RE_RED_RESPONSE = /^Red response/;
