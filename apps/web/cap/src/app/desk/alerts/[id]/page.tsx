@@ -13,6 +13,7 @@ import {
 } from "@/components/desk/desk-panels";
 import { DuplicateAlertButton } from "@/components/desk/duplicate-alert-button";
 import { getAlert, getAlertAudit } from "@/lib/desk/api";
+import { capXmlPath } from "@/lib/desk/cap/cap-xml-link";
 import { requireDeskGate } from "@/lib/desk/gate";
 import { reportError } from "@/lib/report-error";
 
@@ -55,6 +56,16 @@ export default async function DeskAlertPage({
           {alert.info?.[0]?.headline ?? alert.identifier}
         </h1>
         <AlertBadges alert={alert} />
+        {alert.xml_url ? (
+          <p className="text-body-sm">
+            <a
+              className="text-info underline"
+              href={capXmlPath(alert.identifier)}
+            >
+              CAP XML for this alert
+            </a>
+          </p>
+        ) : null}
       </div>
       <FormatProblemBanner problems={formatProblems(audit?.data ?? [])} />
       {audit === null ? (
