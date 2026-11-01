@@ -15,6 +15,16 @@ describe("describePayrollFailure", () => {
     expect(describePayrollFailure(error).kind).toBe("mfa");
   });
 
+  it("reads the detail from a text (CSV or PDF) error body", () => {
+    const error = Object.assign(new Error("failed"), {
+      status: 403,
+      data: JSON.stringify({
+        detail: "Sign in again with your authenticator or recovery code",
+      }),
+    });
+    expect(describePayrollFailure(error).kind).toBe("mfa");
+  });
+
   it("treats other 403s as forbidden", () => {
     expect(describePayrollFailure(apiError(403, "No")).kind).toBe("forbidden");
   });
