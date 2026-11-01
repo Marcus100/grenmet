@@ -11,14 +11,6 @@ on:
     - cron: "0 10 * * *" # 06:00 America/Grenada (UTC-4, no daylight saving)
   workflow_dispatch:
     inputs:
-      ignore_enabled_switch:
-        description: Run once even though PROMOTE_STAGING_ENABLED is not true
-        type: boolean
-        default: false
-      respect_hold:
-        description: Stop when PROMOTE_STAGING_HOLD is true
-        type: boolean
-        default: true
       dry_run:
         description: Print the PR title and body only; create nothing
         type: boolean
@@ -31,13 +23,15 @@ concurrency:
 permissions:
   contents: read
   pull-requests: write
-  issues: write
 
 jobs:
   promote:
     name: Promote dev to staging
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    # Only the default branch may run this: the environment holds the token.
+    if: github.ref_name == github.event.repository.default_branch
+    environment: staging-promotion
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.3.1
         with:
@@ -53,18 +47,12 @@ jobs:
           GH_REPO: ${{ github.repository }}
           PROMOTE_STAGING_ENABLED: ${{ vars.PROMOTE_STAGING_ENABLED }}
           PROMOTE_STAGING_HOLD: ${{ vars.PROMOTE_STAGING_HOLD }}
-          IGNORE_ENABLED_SWITCH: ${{ inputs.ignore_enabled_switch }}
-          RESPECT_HOLD: ${{ inputs.respect_hold }}
           DRY_RUN: ${{ inputs.dry_run }}
         run: |
-          if [ -z "$GH_TOKEN" ]; then
-            if [ "$PROMOTE_STAGING_ENABLED" = "true" ] || [ "$IGNORE_ENABLED_SWITCH" = "true" ]; then
-              if [ "$DRY_RUN" != "true" ]; then
-                echo "::error::Secret PROMOTE_STAGING_TOKEN is missing. Create a fine-grained token and add it; see docs/operations/staging-promotion-automation.md"
-                exit 1
-              fi
-            fi
-            export GH_TOKEN='${{ github.token }}'
+          if [ -z "$GH_TOKEN" ] && [ "$PROMOTE_STAGING_ENABLED" = "true" ] && [ "$DRY_RUN" != "true" ]; then
+            echo "::error::Secret PROMOTE_STAGING_TOKEN is missing from the staging-promotion environment. See docs/operations/staging-promotion-automation.md"
+            exit 1
           fi
+          export GH_TOKEN="${GH_TOKEN:-${{ github.token }}}"
           git config --global --add safe.directory "$GITHUB_WORKSPACE"
           node scripts/ops/promote-staging.mjs

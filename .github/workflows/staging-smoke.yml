@@ -30,7 +30,9 @@ jobs:
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.3.1
         with:
-          ref: ${{ github.event.workflow_run.head_sha }}
+          # The default branch's smoke script, never the commit under test, so a
+          # change on staging cannot read STAGING_BASIC_AUTH.
+          ref: ${{ github.event.repository.default_branch }}
           persist-credentials: false
       - name: Run smoke checks
         id: smoke
@@ -82,9 +84,10 @@ jobs:
           body="The Staging Pipeline failed for \`${SHA:0:9}\`: $RUN_URL
 
           Open the failing job there. To stop further automatic promotions until it is fixed, set the repository variable \`PROMOTE_STAGING_HOLD\` to \`true\` (this workflow never sets variables). Clear it when staging is healthy."
-          existing=$(gh issue list --search '"Staging deploy failed" in:title' --state open --json number --jq '.[0].number // empty')
+          gh label create staging-deploy-failed --color b60205 --description "Staging deploy failed" 2>/dev/null || true
+          existing=$(gh issue list --label staging-deploy-failed --state open --json number --jq '.[0].number // empty')
           if [ -n "$existing" ]; then
             gh issue comment "$existing" --body "$body"
           else
-            gh issue create --title "Staging deploy failed" --body "$body"
+            gh issue create --title "Staging deploy failed" --label staging-deploy-failed --body "$body"
           fi

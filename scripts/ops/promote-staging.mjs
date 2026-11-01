@@ -31,19 +31,45 @@ export function assertStagingOnly(base = BASE, head = HEAD) {
   }
 }
 
-/** Decides whether to run. Returns { run: boolean, reason }. */
+/** Decides whether to run. The switch and hold are always honoured. */
 export function gate(env) {
-  const bypass = env.IGNORE_ENABLED_SWITCH === "true";
-  if (env.PROMOTE_STAGING_ENABLED !== "true" && !bypass) {
+  if (env.PROMOTE_STAGING_ENABLED !== "true") {
     return {
       run: false,
       reason: "PROMOTE_STAGING_ENABLED is not 'true'; automation is off.",
     };
   }
-  if (env.PROMOTE_STAGING_HOLD === "true" && env.RESPECT_HOLD !== "false") {
+  if (env.PROMOTE_STAGING_HOLD === "true") {
     return { run: false, reason: "PROMOTE_STAGING_HOLD is 'true'; on hold." };
   }
   return { run: true, reason: "" };
+}
+
+/** The latest run of a workflow for the commit must have completed with success. */
+export function ciProblem(workflow, runs) {
+  if (runs.length === 0) {
+    return `${workflow}: no run for this commit yet`;
+  }
+  const latest = runs.reduce((a, b) => (b.databaseId > a.databaseId ? b : a));
+  if (latest.status !== "completed") {
+    return `${workflow}: latest run still running`;
+  }
+  return latest.conclusion === "success"
+    ? ""
+    : `${workflow}: latest run is ${latest.conclusion}`;
+}
+
+/** Numbers of included risk:high PRs that lack a Security review section. */
+export function missingSecurityReview(pulls) {
+  return pulls
+    .map(describePull)
+    .filter((pr) => pr.risk === "risk:high" && !pr.securitySection)
+    .map((pr) => pr.number);
+}
+
+/** Titles are untrusted text: no mentions, no issue links, no markdown. */
+export function safeTitle(title) {
+  return `\`${String(title).replaceAll("`", "'")}\``;
 }
 
 export function pullNumbers(subjects) {
@@ -84,6 +110,7 @@ export function describePull(pr) {
 }
 
 export function buildBody({ date, sha, pulls, migrations, unlistedCommits }) {
+  const missing = missingSecurityReview(pulls);
   const described = pulls.map(describePull);
   const groups = new Map();
   for (const pr of described) {
@@ -97,7 +124,7 @@ export function buildBody({ date, sha, pulls, migrations, unlistedCommits }) {
   for (const [area, prs] of [...groups].sort()) {
     lines.push("", `**${area}**`);
     for (const pr of prs) {
-      lines.push(`- #${pr.number} ${pr.title} (${pr.risk})`);
+      lines.push(`- #${pr.number} ${safeTitle(pr.title)} (${pr.risk})`);
     }
   }
   if (unlistedCommits > 0) {
@@ -123,11 +150,17 @@ export function buildBody({ date, sha, pulls, migrations, unlistedCommits }) {
       );
     }
   }
+  if (missing.length > 0) {
+    lines.push(
+      "",
+      `**Auto-merge was NOT armed.** risk:high PR(s) ${missing.map((n) => `#${n}`).join(", ")} have no Security review section. The owner decides whether to merge this PR by hand.`
+    );
+  }
   lines.push(
     "",
     "## Gates",
     `- \`dev\` CI at \`${sha.slice(0, 9)}\` was green when this was created (${REQUIRED_WORKFLOWS.join(", ")}).`,
-    "- Auto-merge is on; GitHub merges once the staging ruleset checks pass. Nothing is merged into `main` or released by this automation.",
+    "- Auto-merge is armed only when every included risk:high PR has a Security review section; GitHub then merges once the staging ruleset checks pass. Nothing is merged into `main` or released by this automation.",
     "",
     "## After merge",
     "- The Staging Pipeline deploys; the Staging smoke workflow tests it and comments here.",
@@ -169,55 +202,37 @@ function devCiGreen(sha) {
         "--commit",
         sha,
         "--json",
-        "status,conclusion",
+        "databaseId,status,conclusion",
         "--limit",
-        "10",
+        "20",
       ])
     );
-    if (runs.length === 0) {
-      problems.push(`${workflow}: no run for ${sha.slice(0, 9)} yet`);
-    } else if (runs.some((run) => run.status !== "completed")) {
-      problems.push(`${workflow}: still running`);
-    } else if (!runs.some((run) => run.conclusion === "success")) {
-      problems.push(`${workflow}: not green`);
+    const problem = ciProblem(workflow, runs);
+    if (problem) {
+      problems.push(problem);
     }
   }
   return problems;
 }
 
-function main() {
-  assertStagingOnly();
-  const decision = gate(process.env);
-  if (!decision.run) {
-    summary(`Promotion skipped: ${decision.reason}`);
-    return;
-  }
-  if (process.env.DRY_RUN !== "true" && !process.env.GH_TOKEN) {
-    throw new Error(
-      "PROMOTE_STAGING_TOKEN is missing. Add a fine-grained token as that repository secret (see docs/operations/staging-promotion-automation.md)."
-    );
-  }
+const today = () => new Date().toISOString().slice(0, 10);
+
+/** Returns { skip } or { sha, title, body, missing }. */
+function plan() {
   git(["fetch", "--quiet", "origin", BASE, HEAD]);
-  const ahead = Number(
-    git(["rev-list", "--count", `origin/${BASE}..origin/${HEAD}`])
-  );
-  if (ahead === 0) {
-    summary("Promotion skipped: dev is not ahead of staging.");
-    return;
+  const range = `origin/${BASE}..origin/${HEAD}`;
+  const total = Number(git(["rev-list", "--count", range]));
+  if (total === 0) {
+    return { skip: "dev is not ahead of staging." };
   }
   const sha = git(["rev-parse", `origin/${HEAD}`]);
   const ci = devCiGreen(sha);
   if (ci.length > 0) {
-    summary(
-      `Promotion skipped: dev CI is not green yet.\n- ${ci.join("\n- ")}`
-    );
-    return;
+    return { skip: `dev CI is not green.\n- ${ci.join("\n- ")}` };
   }
-  const subjects = lines(
-    git(["log", "--merges", "--format=%s", `origin/${BASE}..origin/${HEAD}`])
-  );
-  const numbers = pullNumbers(subjects);
-  const pulls = numbers.map((number) =>
+  const pulls = pullNumbers(
+    lines(git(["log", "--merges", "--format=%s", range]))
+  ).map((number) =>
     JSON.parse(
       gh(["pr", "view", String(number), "--json", "number,title,labels,body"])
     )
@@ -233,21 +248,42 @@ function main() {
       ])
     )
   );
-  const total = Number(
-    git(["rev-list", "--count", `origin/${BASE}..origin/${HEAD}`])
-  );
   const body = buildBody({
-    date: new Date().toISOString().slice(0, 10),
+    date: today(),
     sha,
     pulls,
     migrations,
     unlistedCommits: pulls.length === 0 ? total : 0,
   });
-  const title = `release: promote dev to staging (${new Date().toISOString().slice(0, 10)})`;
-  if (process.env.DRY_RUN === "true") {
-    summary(`${title}\n\n${body}`);
-    return;
+  return {
+    sha,
+    body,
+    title: `release: promote dev to staging (${today()})`,
+    missing: missingSecurityReview(pulls),
+  };
+}
+
+function disableAuto(number) {
+  try {
+    gh(["pr", "merge", String(number), "--disable-auto"]);
+  } catch {
+    // Auto-merge was not on; nothing to disable.
   }
+}
+
+function arm(number, sha) {
+  gh([
+    "pr",
+    "merge",
+    String(number),
+    "--auto",
+    "--merge",
+    "--match-head-commit",
+    sha,
+  ]);
+}
+
+function upsertPr(planned) {
   const open = JSON.parse(
     gh([
       "pr",
@@ -262,36 +298,95 @@ function main() {
       "number",
     ])
   );
-  let number;
   if (open.length > 0) {
-    number = open[0].number;
-    gh(["pr", "edit", String(number), "--title", title, "--body", body]);
-  } else {
-    const url = gh([
+    gh([
       "pr",
-      "create",
-      "--base",
-      BASE,
-      "--head",
-      HEAD,
+      "edit",
+      String(open[0].number),
       "--title",
-      title,
+      planned.title,
       "--body",
-      body,
+      planned.body,
     ]);
-    number = Number(url.split("/").pop());
+    return open[0].number;
+  }
+  const url = gh([
+    "pr",
+    "create",
+    "--base",
+    BASE,
+    "--head",
+    HEAD,
+    "--title",
+    planned.title,
+    "--body",
+    planned.body,
+  ]);
+  return Number(url.split("/").pop());
+}
+
+function main() {
+  assertStagingOnly();
+  const decision = gate(process.env);
+  if (!decision.run) {
+    summary(`Promotion skipped: ${decision.reason}`);
+    return;
+  }
+  if (process.env.DRY_RUN !== "true" && !process.env.GH_TOKEN) {
+    throw new Error(
+      "PROMOTE_STAGING_TOKEN is missing. Add a fine-grained token as that repository secret (see docs/operations/staging-promotion-automation.md)."
+    );
+  }
+  const first = plan();
+  if (first.skip) {
+    summary(`Promotion skipped: ${first.skip}`);
+    return;
+  }
+  if (process.env.DRY_RUN === "true") {
+    summary(`${first.title}\n\n${first.body}`);
+    return;
+  }
+  const number = upsertPr(first);
+  if (first.missing.length > 0) {
+    disableAuto(number);
+    summary(
+      `Promotion PR #${number} updated but auto-merge was NOT armed: risk:high PR(s) ${first.missing.map((n) => `#${n}`).join(", ")} lack a Security review section. The owner decides.`
+    );
+    return;
+  }
+  arm(number, first.sha);
+  // Re-check: dev may have moved or gone red while we were arming.
+  let armed = first;
+  const again = plan();
+  if (again.skip || again.missing.length > 0) {
+    disableAuto(number);
+    summary(
+      `Promotion PR #${number}: auto-merge disabled because the re-check failed (${again.skip ?? "risk:high PR without Security review"}).`
+    );
+    return;
+  }
+  if (again.sha !== first.sha) {
+    gh([
+      "pr",
+      "edit",
+      String(number),
+      "--title",
+      again.title,
+      "--body",
+      again.body,
+    ]);
+    arm(number, again.sha);
+    armed = again;
   }
   gh([
     "pr",
-    "merge",
+    "edit",
     String(number),
-    "--auto",
-    "--merge",
-    "--match-head-commit",
-    sha,
+    "--body",
+    `${armed.body}\n\nAuto-merge armed at head \`${armed.sha}\`.`,
   ]);
   summary(
-    `Promotion PR #${number} is ready with auto-merge on (head ${sha.slice(0, 9)}).`
+    `Promotion PR #${number} is ready with auto-merge armed (head ${armed.sha.slice(0, 9)}).`
   );
 }
 

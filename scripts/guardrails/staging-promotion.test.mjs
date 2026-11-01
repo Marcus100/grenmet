@@ -1,12 +1,15 @@
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
+import { readdirSync, readFileSync } from "node:fs";
 import test from "node:test";
 import {
   assertStagingOnly,
   buildBody,
+  ciProblem,
   gate,
   migrationsFromDiff,
+  missingSecurityReview,
   pullNumbers,
+  safeTitle,
 } from "../ops/promote-staging.mjs";
 import {
   authHeaders,
@@ -24,11 +27,15 @@ const ACTION_REF = /uses: ([^\s#]+)/g;
 const PINNED = /^[\w.-]+\/[\w./-]+@[0-9a-f]{40}$/;
 const WORKFLOW_PERMISSIONS =
   /permissions:\n {2}contents: read\n {2}pull-requests: write\n {2}issues: write/;
+const PROMOTE_PERMISSIONS =
+  /permissions:\n {2}contents: read\n {2}pull-requests: write\n\n/;
+const PIPELINE_TRIGGERS =
+  /on:\n {2}push:\n {4}branches: \[staging\]\n {2}workflow_dispatch:\n$/;
 const CONTENTS_WRITE = /contents: write/;
 const FORBIDDEN_COMMANDS = /gh release|git tag|git push|--admin/;
 const PROD_PIPELINES = /pipeline-prod|deploy-prod/;
 const BODY_AREA = /\*\*area:ci\*\*/;
-const BODY_PR1 = /#1 ci: a \(risk:high\)/;
+const BODY_PR1 = /#1 `ci: a` \(risk:high\)/;
 const BODY_MIGRATION = /rosterrulesets20261031/;
 const BODY_SECURITY_YES =
   /#1 risk:high, security review section in its body: yes/;
@@ -69,22 +76,22 @@ test("promotion is off by default and the hold switch stops it", () => {
     false
   );
   assert.equal(
-    gate({
-      PROMOTE_STAGING_ENABLED: "true",
-      PROMOTE_STAGING_HOLD: "true",
-      RESPECT_HOLD: "false",
-    }).run,
-    true
+    gate({ IGNORE_ENABLED_SWITCH: "true", RESPECT_HOLD: "false" }).run,
+    false
   );
-  assert.equal(gate({ IGNORE_ENABLED_SWITCH: "true" }).run, true);
-  assert.ok(promote.includes("ignore_enabled_switch"));
+  assert.equal(promote.includes("ignore_enabled_switch"), false);
+  assert.equal(promote.includes("respect_hold"), false);
+  assert.ok(promote.includes("environment: staging-promotion"));
+  assert.ok(promote.includes("default_branch"));
   assert.ok(promote.includes("vars.PROMOTE_STAGING_ENABLED"));
   assert.ok(promote.includes("concurrency:"));
   assert.ok(promote.includes('cron: "0 10 * * *"'));
 });
 
 test("workflows keep minimal permissions", () => {
-  for (const source of [promote, smoke]) {
+  assert.match(promote, PROMOTE_PERMISSIONS);
+  assert.equal(promote.includes("issues: write"), false);
+  for (const source of [smoke]) {
     assert.match(source, WORKFLOW_PERMISSIONS);
     assert.doesNotMatch(source, CONTENTS_WRITE);
   }
@@ -270,4 +277,119 @@ test("the checks file is valid, staging-only and covers the required areas", () 
     "notfound-bookings",
   ])
     assert.ok(ids.has(id), id);
+});
+
+const REQUIRED = ["ci-api.yml", "ci-web.yml", "ci-api-client.yml"];
+const RUN_OPEN = /^(\s*)(?:- )?run:/;
+
+test("CI gate needs the latest run of each workflow to be green", () => {
+  assert.equal(
+    ciProblem("w", [
+      { databaseId: 1, status: "completed", conclusion: "success" },
+    ]),
+    ""
+  );
+  assert.notEqual(ciProblem("w", []), "");
+  assert.notEqual(
+    ciProblem("w", [
+      { databaseId: 1, status: "completed", conclusion: "success" },
+      { databaseId: 2, status: "completed", conclusion: "failure" },
+    ]),
+    ""
+  );
+  assert.notEqual(
+    ciProblem("w", [
+      { databaseId: 1, status: "completed", conclusion: "failure" },
+      { databaseId: 2, status: "in_progress", conclusion: "" },
+    ]),
+    ""
+  );
+  assert.equal(
+    ciProblem("w", [
+      { databaseId: 1, status: "completed", conclusion: "failure" },
+      { databaseId: 2, status: "completed", conclusion: "success" },
+    ]),
+    ""
+  );
+  assert.equal(REQUIRED.length, 3);
+});
+
+test("a risk:high PR without a Security review section blocks auto-merge", () => {
+  const high = (number, body) => ({
+    number,
+    title: "t",
+    labels: [{ name: "risk:high" }],
+    body,
+  });
+  assert.deepEqual(
+    missingSecurityReview([high(1, "## Security review\nok"), high(2, "none")]),
+    [2]
+  );
+  assert.deepEqual(
+    missingSecurityReview([high(1, "## Security review\nok")]),
+    []
+  );
+  const body = buildBody({
+    date: "d",
+    sha: "abcdef0123",
+    migrations: [],
+    unlistedCommits: 0,
+    pulls: [high(2, "none")],
+  });
+  assert.ok(body.includes("Auto-merge was NOT armed"));
+  const clean = buildBody({
+    date: "d",
+    sha: "abcdef0123",
+    migrations: [],
+    unlistedCommits: 0,
+    pulls: [high(1, "## Security review\nok")],
+  });
+  assert.equal(clean.includes("was NOT armed"), false);
+});
+
+test("titles cannot mention people or link issues in the generated body", () => {
+  assert.equal(safeTitle("fix @owner closes #5"), "`fix @owner closes #5`");
+  assert.equal(safeTitle("a`b"), "`a'b`");
+  const body = buildBody({
+    date: "d",
+    sha: "abcdef0123",
+    migrations: [],
+    unlistedCommits: 0,
+    pulls: [{ number: 1, title: "ping @owner #9", labels: [], body: "" }],
+  });
+  assert.ok(body.includes("`ping @owner #9`"));
+});
+
+test("workflow trigger and secret hygiene", () => {
+  const pipeline = read(".github/workflows/pipeline-staging.yml");
+  const triggers = pipeline.split("\nconcurrency:")[0];
+  assert.match(triggers, PIPELINE_TRIGGERS);
+  const dir = new URL("../../.github/workflows/", import.meta.url);
+  for (const file of readdirSync(dir)) {
+    const source = readFileSync(new URL(file, dir), "utf8");
+    if (file !== "promote-staging.yml") {
+      assert.equal(source.includes("PROMOTE_STAGING_TOKEN"), false, file);
+    }
+    if (file === "promote-staging.yml" || file === "staging-smoke.yml") {
+      assert.equal(source.includes("pull_request_target"), false, file);
+      let indent = -1;
+      for (const line of source.split("\n")) {
+        const open = RUN_OPEN.exec(line);
+        if (open) indent = open[1].length;
+        else if (
+          indent >= 0 &&
+          line.trim() &&
+          line.length - line.trimStart().length <= indent
+        )
+          indent = -1;
+        if (indent >= 0)
+          assert.equal(
+            line.includes("github.event."),
+            false,
+            `${file}: ${line}`
+          );
+      }
+    }
+  }
+  assert.ok(smoke.includes("event.repository.default_branch"));
 });

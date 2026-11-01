@@ -33,6 +33,25 @@ only reviews the result on staging. This covers `staging` only. `staging` to
 Add a smoke check by appending an object to the JSON file (fields are listed in
 its `_comment`); only `staging.barrels.gd` hosts are allowed.
 
+## Where it runs
+
+GitHub fires a schedule, and a `workflow_run` trigger, only from the workflow
+files on the **default branch** (`main`). Until this change reaches `main` (the
+next staging to main release), the daily schedule and the smoke workflow do not
+fire on their own. Until then the owner starts the promotion by hand
+(`gh workflow run promote-staging.yml --ref main` once the file is on `main`,
+or dispatch it from the Actions tab) and runs the smoke script by hand:
+`node scripts/ops/staging-smoke.mjs`. The promote job also refuses to run from
+any other branch.
+
+If any included `risk:high` PR has no Security review section in its body, the
+PR is created or updated but auto-merge is **not** armed; the body and job
+summary say so and the owner decides. After arming, the script re-checks `dev`;
+if `dev` moved, it refreshes the body and re-checks the CI gate, and if the gate
+fails it runs `gh pr merge --disable-auto`. The CI gate needs the latest run of
+`ci-api.yml`, `ci-web.yml` and `ci-api-client.yml` for the exact `dev` head to
+be a success. The armed head is recorded at the end of the PR body.
+
 ## Why a token, not GITHUB_TOKEN
 
 A PR created with the default `GITHUB_TOKEN` does not trigger other workflows,
@@ -44,10 +63,14 @@ enough there.
 
 ## Owner one-time setup
 
+- [ ] Settings, Environments: create `staging-promotion`, restrict it to the
+      default branch.
 - [ ] Settings, General: enable **Allow auto-merge**.
 - [ ] Create a fine-grained personal access token for this repository only:
       Contents read, Pull requests read and write, Actions read, Metadata read.
-      Add it as the repository secret `PROMOTE_STAGING_TOKEN`. The token's user
+      Add it as the secret `PROMOTE_STAGING_TOKEN` of a GitHub Environment named
+      `staging-promotion` (Settings, Environments), with deployment branches
+      limited to the default branch, not as a repository secret. The token's user
       must be allowed to merge into `staging` under the ruleset. Do not give it
       admin rights or bypass.
 - [ ] Optional: secret `STAGING_BASIC_AUTH` as `user:password`, if staging sits
@@ -77,6 +100,22 @@ enough there.
   forward through `dev` or hold promotions.
 - **Token expired or missing:** the run fails with "PROMOTE_STAGING_TOKEN is
   missing". Create a new token and update the secret.
+
+## Secrets and production
+
+The Staging Pipeline reaches `deploy.yml` with `secrets: inherit`, and
+`deploy.yml` reads many **repository-level** secrets (database passwords,
+`SECRET_KEY`, `RESEND_API_KEY`, SSO client secrets and others) alongside
+environment-scoped ones. From the workflows alone it cannot be confirmed that
+staging credentials are separate from production: those repository secrets are
+shared names. What the workflows do guarantee is that a staging run deploys only
+from `refs/heads/staging` onto the `staging` self-hosted runner, and production
+deploys only from `refs/tags/v*` on the `production` runner and environment.
+The automation here never reads those secrets: `PROMOTE_STAGING_TOKEN` lives in
+the `staging-promotion` environment and appears only in `promote-staging.yml`,
+and `STAGING_BASIC_AUTH` is used only by the smoke workflow, which runs the
+default branch's script. A guardrail test pins these. Owner action: review which
+repository secrets should become environment secrets.
 
 ## What a person still reviews
 
