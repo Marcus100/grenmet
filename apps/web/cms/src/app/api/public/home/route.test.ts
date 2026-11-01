@@ -93,6 +93,10 @@ describe("homepage leads and Weather now", () => {
       "2",
       "1",
     ]);
+    // Seven stories: the lead plus six rows on the weather homepage.
+    expect(find).toHaveBeenCalledWith(
+      expect.objectContaining({ collection: "stories", limit: 7 })
+    );
     expect(body.questions.items.map((item: { id: string }) => item.id)).toEqual(
       ["7"]
     );

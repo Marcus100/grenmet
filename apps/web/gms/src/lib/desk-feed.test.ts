@@ -27,8 +27,6 @@ const post = (id: string, publishedAt: string): PublishedContent => ({
   linkedProduct: null,
 });
 
-const EXPIRED_NOTE = /^Expired .* · next forecast due 6:00 p\.m\.$/;
-
 // 1 Nov 2026, 1:00 p.m. in Grenada.
 const NOW = new Date("2026-11-01T17:00:00Z");
 
@@ -64,7 +62,7 @@ describe("buildDeskFeed", () => {
     expect(feed.collapsePosts).toBe(false);
   });
 
-  it("keeps an expired briefing, marked with the next forecast due", () => {
+  it("marks a product that is no longer current, should the API ever send one", () => {
     const feed = buildDeskFeed({
       level: "none",
       now: new Date("2026-11-03T17:00:00Z"),
@@ -75,7 +73,51 @@ describe("buildDeskFeed", () => {
         }),
       ],
     });
-    expect(feed.official[0]?.expiredNote).toMatch(EXPIRED_NOTE);
+    expect(feed.official[0]?.staleNote).toBe("No longer in effect");
+    expect(feed.missingBriefing).toBeNull();
+  });
+
+  it("says when no public forecast is in effect, but only when the feed answered", () => {
+    const outlookOnly = [
+      product("outlook", "2026-11-01T12:00:00Z", { systems: "A wave." }),
+    ];
+    expect(
+      buildDeskFeed({
+        level: "none",
+        now: NOW,
+        posts: [],
+        products: outlookOnly,
+      }).missingBriefing
+    ).toBe(
+      "No public forecast is in effect right now. The next forecast is due 6:00 p.m."
+    );
+    expect(
+      buildDeskFeed({
+        level: "none",
+        now: NOW,
+        posts: [],
+        products: [],
+        productsAvailable: false,
+      }).missingBriefing
+    ).toBeNull();
+  });
+
+  it("pins the forecast with the latest issue time, not the latest re-save", () => {
+    const feed = buildDeskFeed({
+      level: "none",
+      now: NOW,
+      posts: [],
+      products: [
+        // The morning forecast re-saved after midday was issued.
+        product("morning", "2026-11-01T16:30:00Z", {
+          issuedAt: "2026-11-01T07:00",
+        }),
+        product("midday", "2026-11-01T16:00:00Z", {
+          issuedAt: "2026-11-01T12:00",
+        }),
+      ],
+    });
+    expect(feed.official[0]?.title).toBe("Midday Forecast");
   });
 
   it("collapses desk posts only under a red (take action) warning", () => {
@@ -104,6 +146,10 @@ describe("nextForecastDue", () => {
   it("names the next scheduled public forecast in Grenada time", () => {
     expect(nextForecastDue(new Date("2026-11-01T10:00:00Z"))).toBe("7:00 a.m."); // 6:00 a.m.
     expect(nextForecastDue(new Date("2026-11-01T17:00:00Z"))).toBe("6:00 p.m."); // 1:00 p.m.
+    // 7:30 a.m.: the 7:00 forecast is being prepared.
+    expect(nextForecastDue(new Date("2026-11-01T11:30:00Z"))).toBe(
+      "now (the 7:00 a.m. forecast)"
+    );
     expect(nextForecastDue(new Date("2026-11-02T01:00:00Z"))).toBe(
       "7:00 a.m. tomorrow"
     ); // 9:00 p.m.
