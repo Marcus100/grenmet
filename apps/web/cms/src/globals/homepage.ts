@@ -7,7 +7,7 @@ export const HOMEPAGE_SECTIONS = [
   { label: "News", value: "stories" },
   { label: "Questions about the weather", value: "questions" },
   { label: "Discover", value: "discover" },
-  { label: "Latest reports", value: "reports" },
+  { label: "Report write-ups (in From the Desk)", value: "reports" },
   { label: "Explore today", value: "explore-today" },
   { label: "Grenada in data", value: "grenada-in-data" },
 ] as const;
