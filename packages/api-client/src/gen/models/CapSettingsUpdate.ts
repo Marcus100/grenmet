@@ -6,6 +6,9 @@
 export type CapSettingsUpdate = {
   sender?: string | null;
   sender_name?: string | null;
+  /**
+   * @description WMO OID of the form 2.49.0.1.<country>.<authority>, digits and dots only. Empty clears it.
+   */
   wmo_oid?: string | null;
   web?: string | null;
   contact?: string | null;

@@ -4,8 +4,10 @@
  */
 
 import type { ApiError } from "./ApiError.js";
+import type { EregisterValidationError } from "./EregisterValidationError.js";
 import type { QcDecisionBody } from "./QcDecisionBody.js";
 import type { RegisterObservationRead } from "./RegisterObservationRead.js";
+import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 
 export type EregisterAcceptRegisterObservationPath = {
   /**
@@ -43,7 +45,9 @@ export type EregisterAcceptRegisterObservationStatus404 = ApiError;
  */
 export type EregisterAcceptRegisterObservationStatus409 = ApiError;
 
-export type EregisterAcceptRegisterObservationStatus422 = unknown;
+export type EregisterAcceptRegisterObservationStatus422 =
+  | EregisterValidationError
+  | ValidationErrorResponse;
 
 /**
  * @description Optional QC decision. An absent body and null are both accepted.

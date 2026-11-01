@@ -48,20 +48,29 @@ def validate_import_url(url: str) -> None:
         raise CapImportError(f"host '{host}' resolves to a non-public address")
 
 
-async def ensure_public_host(host: str) -> None:
-    """Resolve ``host`` and reject it if any address is non-public (SSRF guard)."""
+async def ensure_public_host(host: str) -> str:
+    """Resolve ``host``, reject it if any address is non-public, and return the first address.
+
+    The caller connects to the returned address (see ``src.cap.safe_fetch``), so the
+    name is not resolved a second time between this check and the connection.
+    """
     try:
         infos = await run_in_threadpool(socket.getaddrinfo, host, None)
     except socket.gaierror as exc:
         raise CapImportError(f"could not resolve host '{host}': {exc}") from exc
+    addresses: list[str] = []
     for info in infos:
-        addr = info[4][0]
+        addr = str(info[4][0])
         try:
             ip = ipaddress.ip_address(addr)
         except ValueError:
             continue
         if not ip.is_global:
             raise CapImportError(f"host '{host}' resolves to a non-public address")
+        addresses.append(addr)
+    if not addresses:
+        raise CapImportError(f"could not resolve host '{host}'")
+    return addresses[0]
 
 
 def validate_cap_alert(alert: CapAlertPublic) -> CapValidationResult:

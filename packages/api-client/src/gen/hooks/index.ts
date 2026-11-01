@@ -714,6 +714,11 @@ export {
   useCapGetAlert,
 } from "./useCapGetAlert.js";
 export {
+  capGetAlertByIdentifierQueryKey,
+  capGetAlertByIdentifierQueryOptions,
+  useCapGetAlertByIdentifier,
+} from "./useCapGetAlertByIdentifier.js";
+export {
   capGetAlertsQueryKey,
   capGetAlertsQueryOptions,
   useCapGetAlerts,
@@ -753,6 +758,11 @@ export {
   capGetFeedsQueryOptions,
   useCapGetFeeds,
 } from "./useCapGetFeeds.js";
+export {
+  capGetGmsCatalogueQueryKey,
+  capGetGmsCatalogueQueryOptions,
+  useCapGetGmsCatalogue,
+} from "./useCapGetGmsCatalogue.js";
 export {
   capGetHazardProfilesQueryKey,
   capGetHazardProfilesQueryOptions,

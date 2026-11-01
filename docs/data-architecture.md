@@ -196,7 +196,7 @@ WIS 2.0 is the WMO's next-generation information system for global meteorologica
 | SURFACE → wis2box observation publisher | Verified on sandbox | Gate 2 production cutover |
 | Core observation data published to Global Cache | Gap — requires production cutover and global verification | Gate 2 |
 | WIS2Downloader operational feed | Confirmation required — no repository evidence | Gate 3 |
-| CAP alerts published to WIS2 | Gap — `publish.wis2box` job exists but its worker is not deployed | Gate 4 |
+| CAP alerts published to WIS2 | Gap — no WIS2 publish job is queued; it starts once the local wis2box is live (owner decision 2026-10-30) | Gate 4 |
 
 Capability gates, ownership, evidence requirements, and the distinction between
 observation and CAP publishing are maintained in the
