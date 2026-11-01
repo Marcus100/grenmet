@@ -2,7 +2,8 @@
 
 import Link from "next/link";
 import { startTransition, useActionState } from "react";
-import { initialNamePromptState, saveNameAction } from "@/app/actions";
+import { saveNameAction } from "@/app/actions";
+import { initialNamePromptState } from "@/app/actions-types";
 import {
   errorBoxClass,
   inputClass,

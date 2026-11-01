@@ -22,6 +22,7 @@ import {
 } from "@/lib/session";
 import type {
   ForgotPasswordState,
+  NamePromptState,
   ResetPasswordState,
   SignInState,
 } from "./actions-types";
@@ -225,16 +226,6 @@ export async function requestStaffAccessAction(): Promise<void> {
   );
   revalidatePath("/");
 }
-
-export interface NamePromptState {
-  error: string | null;
-  saved: boolean;
-}
-
-export const initialNamePromptState: NamePromptState = {
-  error: null,
-  saved: false,
-};
 
 /** Optional, after sign-in: add the name that sign-up no longer asks for. */
 export async function saveNameAction(
