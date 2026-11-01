@@ -882,3 +882,4 @@ back to each setting's default.
 | `META_PAGE_ACCESS_TOKEN` | GitHub environment **secret**; the worker only |
 | `SOCIAL_LINK_HOSTS`, `SOCIAL_IMAGE_HOSTS` | GitHub environment **variables** (staging and production); the API only |
 | `CMS_DISTRIBUTION_SECRET` | GitHub environment **secret** (staging and production); the API and the CMS |
+| `PAYSLIP_HMAC_KEYS` | GitHub environment **secret** (staging and production); the API only. Optional `keyid:secret` pairs (comma separated, current first), secrets of 32 or more letters, digits or `. _ ~ + / = -`; unset renders empty and the API then refuses to issue payslips. Never echoed by the deploy preflight. See the payslip signing keys section |
