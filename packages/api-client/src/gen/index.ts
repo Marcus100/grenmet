@@ -52,6 +52,7 @@ export { authGoogleComplete } from "./clients/authGoogleComplete.js";
 export { authGoogleFinish } from "./clients/authGoogleFinish.js";
 export { authGoogleStart } from "./clients/authGoogleStart.js";
 export { authIssueActivation } from "./clients/authIssueActivation.js";
+export { authIssueSignInSetup } from "./clients/authIssueSignInSetup.js";
 export { authJoinAccountApp } from "./clients/authJoinAccountApp.js";
 export { authLeaveAccountApp } from "./clients/authLeaveAccountApp.js";
 export { authListAccountApps } from "./clients/authListAccountApps.js";
@@ -69,6 +70,7 @@ export { authRequestStaffAccess } from "./clients/authRequestStaffAccess.js";
 export { authResetPassword } from "./clients/authResetPassword.js";
 export { authRevokeActivation } from "./clients/authRevokeActivation.js";
 export { authRevokeSecuritySession } from "./clients/authRevokeSecuritySession.js";
+export { authRevokeSignInSetup } from "./clients/authRevokeSignInSetup.js";
 export { authTwofaActivate } from "./clients/authTwofaActivate.js";
 export { authTwofaDisable } from "./clients/authTwofaDisable.js";
 export { authTwofaSetup } from "./clients/authTwofaSetup.js";
@@ -994,6 +996,11 @@ export {
   useAuthIssueActivation,
 } from "./hooks/useAuthIssueActivation.js";
 export {
+  authIssueSignInSetupMutationKey,
+  authIssueSignInSetupMutationOptions,
+  useAuthIssueSignInSetup,
+} from "./hooks/useAuthIssueSignInSetup.js";
+export {
   authJoinAccountAppMutationKey,
   authJoinAccountAppMutationOptions,
   useAuthJoinAccountApp,
@@ -1078,6 +1085,11 @@ export {
   authRevokeSecuritySessionMutationOptions,
   useAuthRevokeSecuritySession,
 } from "./hooks/useAuthRevokeSecuritySession.js";
+export {
+  authRevokeSignInSetupMutationKey,
+  authRevokeSignInSetupMutationOptions,
+  useAuthRevokeSignInSetup,
+} from "./hooks/useAuthRevokeSignInSetup.js";
 export {
   authTwofaActivateMutationKey,
   authTwofaActivateMutationOptions,
@@ -5062,6 +5074,20 @@ export type {
   AuthIssueActivationStatus422,
 } from "./models/AuthIssueActivation.js";
 export type {
+  AuthIssueSignInSetupBody,
+  AuthIssueSignInSetupOptions,
+  AuthIssueSignInSetupPath,
+  AuthIssueSignInSetupResponse,
+  AuthIssueSignInSetupResponses,
+  AuthIssueSignInSetupStatus201,
+  AuthIssueSignInSetupStatus400,
+  AuthIssueSignInSetupStatus403,
+  AuthIssueSignInSetupStatus404,
+  AuthIssueSignInSetupStatus409,
+  AuthIssueSignInSetupStatus422,
+  AuthIssueSignInSetupStatus429,
+} from "./models/AuthIssueSignInSetup.js";
+export type {
   AuthJoinAccountAppBody,
   AuthJoinAccountAppOptions,
   AuthJoinAccountAppPath,
@@ -5227,6 +5253,16 @@ export type {
   AuthRevokeSecuritySessionStatus404,
   AuthRevokeSecuritySessionStatus422,
 } from "./models/AuthRevokeSecuritySession.js";
+export type {
+  AuthRevokeSignInSetupOptions,
+  AuthRevokeSignInSetupPath,
+  AuthRevokeSignInSetupResponse,
+  AuthRevokeSignInSetupResponses,
+  AuthRevokeSignInSetupStatus204,
+  AuthRevokeSignInSetupStatus403,
+  AuthRevokeSignInSetupStatus404,
+  AuthRevokeSignInSetupStatus422,
+} from "./models/AuthRevokeSignInSetup.js";
 export type {
   AuthTwofaActivateBody,
   AuthTwofaActivateOptions,
@@ -12735,6 +12771,7 @@ export type { SignatureInput } from "./models/SignatureInput.js";
 export type { SignaturePublic } from "./models/SignaturePublic.js";
 export type { SignedDocumentList } from "./models/SignedDocumentList.js";
 export type { SignedDocumentPublic } from "./models/SignedDocumentPublic.js";
+export type { SignInSetupIssue } from "./models/SignInSetupIssue.js";
 export type { SiteSubscribeRequest } from "./models/SiteSubscribeRequest.js";
 export type { SocialInsuranceSchemeCreate } from "./models/SocialInsuranceSchemeCreate.js";
 export type { SocialInsuranceSchemePublic } from "./models/SocialInsuranceSchemePublic.js";
@@ -14776,6 +14813,20 @@ export {
   authIssueActivationStatus422Schema,
 } from "./zod/authIssueActivationSchema.js";
 export {
+  authIssueSignInSetupBodySchema,
+  authIssueSignInSetupErrorSchema,
+  authIssueSignInSetupPathSchema,
+  authIssueSignInSetupPathUserIdSchema,
+  authIssueSignInSetupResponseSchema,
+  authIssueSignInSetupStatus201Schema,
+  authIssueSignInSetupStatus400Schema,
+  authIssueSignInSetupStatus403Schema,
+  authIssueSignInSetupStatus404Schema,
+  authIssueSignInSetupStatus409Schema,
+  authIssueSignInSetupStatus422Schema,
+  authIssueSignInSetupStatus429Schema,
+} from "./zod/authIssueSignInSetupSchema.js";
+export {
   authJoinAccountAppBodySchema,
   authJoinAccountAppErrorSchema,
   authJoinAccountAppPathAppSchema,
@@ -14929,6 +14980,16 @@ export {
   authRevokeSecuritySessionStatus404Schema,
   authRevokeSecuritySessionStatus422Schema,
 } from "./zod/authRevokeSecuritySessionSchema.js";
+export {
+  authRevokeSignInSetupErrorSchema,
+  authRevokeSignInSetupPathSchema,
+  authRevokeSignInSetupPathUserIdSchema,
+  authRevokeSignInSetupResponseSchema,
+  authRevokeSignInSetupStatus204Schema,
+  authRevokeSignInSetupStatus403Schema,
+  authRevokeSignInSetupStatus404Schema,
+  authRevokeSignInSetupStatus422Schema,
+} from "./zod/authRevokeSignInSetupSchema.js";
 export {
   authTwofaActivateBodySchema,
   authTwofaActivateErrorSchema,
@@ -22384,6 +22445,7 @@ export { signatureInputSchema } from "./zod/signatureInputSchema.js";
 export { signaturePublicSchema } from "./zod/signaturePublicSchema.js";
 export { signedDocumentListSchema } from "./zod/signedDocumentListSchema.js";
 export { signedDocumentPublicSchema } from "./zod/signedDocumentPublicSchema.js";
+export { signInSetupIssueSchema } from "./zod/signInSetupIssueSchema.js";
 export { siteSubscribeRequestSchema } from "./zod/siteSubscribeRequestSchema.js";
 export { socialInsuranceSchemeCreateSchema } from "./zod/socialInsuranceSchemeCreateSchema.js";
 export { socialInsuranceSchemePublicSchema } from "./zod/socialInsuranceSchemePublicSchema.js";

@@ -60489,6 +60489,175 @@
         }
       }
     },
+    "/api/v1/auth/onboarding/{user_id}/sign-in-setup": {
+      "post": {
+        "tags": [
+          "onboarding"
+        ],
+        "summary": "Issue a one-use sign-in setup link",
+        "description": "Manager with `user.manage` in scope (or a superuser) and an MFA-verified session issues a 24-hour one-use link. The person opens it and chooses a password; the administrator never sees the password. Replaces earlier sign-in links. Never verifies email, grants roles or app access. Refused for the caller's own account, for owners unless the caller is a superuser, and for inactive or ended-employment accounts. A reason (3 to 500 characters) is required unless the email is unverified or password setup is pending. A courtesy notice goes to the address on file. Only a superuser can set up privileged accounts. Rate limited per administrator and per account.",
+        "operationId": "authIssueSignInSetup",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "user_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "User Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SignInSetupIssue"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ActivationLink"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "400": {
+            "description": "Identity confirmation or reason required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Insufficient permission, MFA session required, own account, owner, or privileged account (superuser required)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Account not found or outside your scope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Inactive account or ended employment",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too many links issued recently",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "onboarding"
+        ],
+        "summary": "Revoke a sign-in setup link",
+        "description": "Manager with `user.manage` in scope and an MFA-verified session cancels outstanding sign-in setup links for an account.",
+        "operationId": "authRevokeSignInSetup",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "user_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "User Id"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "403": {
+            "description": "Insufficient permission or MFA session required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Account not found or outside your scope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/auth/onboarding/{user_id}/admin-activate": {
       "post": {
         "tags": [
@@ -104082,6 +104251,32 @@
           "trips"
         ],
         "title": "ShiftView"
+      },
+      "SignInSetupIssue": {
+        "properties": {
+          "identity_confirmed": {
+            "type": "boolean",
+            "title": "Identity Confirmed"
+          },
+          "reason": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 500,
+                "minLength": 3
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reason"
+          }
+        },
+        "type": "object",
+        "required": [
+          "identity_confirmed"
+        ],
+        "title": "SignInSetupIssue"
       },
       "SignatureInput": {
         "properties": {

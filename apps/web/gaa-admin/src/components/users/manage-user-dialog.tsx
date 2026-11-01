@@ -37,6 +37,7 @@ import { toast } from "sonner";
 import { AccountActivation } from "./account-activation";
 import { CmsAccessControl } from "./cms-access-control";
 import { EmploymentSection } from "./employment-section";
+import { SignInSetup } from "./sign-in-setup";
 
 interface ManageUserDialogProps {
   onOpenChange?: (open: boolean) => void;
@@ -185,6 +186,7 @@ export function ManageUserDialog({
         >
           <div className="min-w-0">
             <AccountActivation open={open} user={user} />
+            <SignInSetup open={open} user={user} />
           </div>
           <div className="min-w-0">
             <CmsAccessControl open={open} user={user} />
