@@ -107,7 +107,6 @@ export async function WeatherNow() {
     <HomeSection
       {...words}
       link={{ href: "/weather/map", label: "Open interactive map" }}
-      tone="surface"
     >
       <div className="grid gap-4 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
         <WeatherNowPanel

@@ -1,21 +1,25 @@
 import { cleanup, render, screen } from "@testing-library/react";
-import { afterEach, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, expect, it, vi } from "vitest";
 import {
   avatarInitials,
   Explained,
   ForecastDesk,
-  LatestReports,
   Stories,
 } from "@/components/home/live-sections";
+import { fetchActiveAlerts } from "@/lib/cap";
 import { postedLabel } from "@/lib/clock";
 import {
   fetchHomeContent,
   type HomeContent,
   type PublishedContent,
 } from "@/lib/cms";
-import { fetchPublishedProduct } from "@/lib/products";
+import { fetchPublishedProduct, fetchPublishedProducts } from "@/lib/products";
 
-vi.mock("@/lib/products", () => ({ fetchPublishedProduct: vi.fn() }));
+vi.mock("@/lib/products", () => ({
+  fetchPublishedProduct: vi.fn(),
+  fetchPublishedProducts: vi.fn(),
+}));
+vi.mock("@/lib/cap", () => ({ fetchActiveAlerts: vi.fn() }));
 
 vi.mock("@/lib/cms", async (importOriginal) => {
   const actual = await importOriginal<typeof import("@/lib/cms")>();
@@ -28,6 +32,17 @@ vi.mock("@/lib/cms", async (importOriginal) => {
         key
       ),
   };
+});
+beforeEach(() => {
+  vi.mocked(fetchPublishedProducts).mockResolvedValue({
+    status: "ok",
+    products: [],
+  });
+  vi.mocked(fetchActiveAlerts).mockResolvedValue({
+    status: "ok",
+    groups: [],
+    activeCount: 0,
+  });
 });
 afterEach(() => {
   cleanup();
@@ -51,6 +66,8 @@ const hidden = (sections: string[]): HomeContent => ({
 });
 
 const READ_ARTICLE = /^Read the article: /;
+const ISSUED_UNAVAILABLE = /Issued forecasts cannot be retrieved right now/;
+const NO_FORECAST = /No public forecast is in effect right now/;
 
 it("labels a post Today, Yesterday or by date, in Grenada time", () => {
   const post = "2026-10-28T02:00:00Z"; // 27 Oct, 22:00 in Grenada
@@ -101,9 +118,16 @@ it("lists six stories beside the lead, three on phones", async () => {
   ).toBe(true);
 });
 
-it("hides Latest reports when editors hide it", async () => {
-  vi.mocked(fetchHomeContent).mockResolvedValue(hidden(["reports"]));
-  expect(await LatestReports()).toBeNull();
+it("leaves report write-ups out of the feed when editors hide reports", async () => {
+  vi.mocked(fetchHomeContent).mockResolvedValue({
+    ...hidden(["reports"]),
+    reportNotes: {
+      status: "ok",
+      articles: [post({ collection: "report-notes", title: "Hidden note" })],
+    },
+  });
+  render(await ForecastDesk());
+  expect(screen.queryByText("Hidden note")).not.toBeInTheDocument();
 });
 
 it("shows an empty state, not a stale list, when no questions are published", async () => {
@@ -114,7 +138,10 @@ it("shows an empty state, not a stale list, when no questions are published", as
   ).toBeInTheDocument();
 });
 
-const TWO_WAVES = /Two waves to watch/;
+type HomeAlertGroup = Extract<
+  Awaited<ReturnType<typeof fetchActiveAlerts>>,
+  { status: "ok" }
+>["groups"][number];
 
 const post = (overrides: Partial<PublishedContent>): PublishedContent => ({
   id: "1",
@@ -129,7 +156,7 @@ const post = (overrides: Partial<PublishedContent>): PublishedContent => ({
 });
 const PRODUCT_ID = "0b3c6f1e-1111-4a2b-9c3d-222233334444";
 
-it("is a blog: desk post cards that link to their articles, never the forecast itself", async () => {
+it("links each desk post card to its article; a linked product stays a label", async () => {
   vi.mocked(fetchHomeContent).mockResolvedValue({
     ...hidden([]),
     deskUpdates: {
@@ -156,27 +183,25 @@ it("is a blog: desk post cards that link to their articles, never the forecast i
   expect(screen.getAllByText("The forecasters")).toHaveLength(2);
 });
 
-it("shows only report write-ups, with an honest empty state", async () => {
+it("says so honestly when nothing is published", async () => {
   vi.mocked(fetchHomeContent).mockResolvedValue(hidden([]));
-  render(await LatestReports());
+  vi.mocked(fetchPublishedProducts).mockResolvedValue({
+    status: "unavailable",
+    products: [],
+  });
+  render(await ForecastDesk());
+  expect(screen.getByText(ISSUED_UNAVAILABLE)).toBeInTheDocument();
   expect(
-    screen.getByText("No report write-ups are published yet.")
+    screen.getByText("No forecasts or desk posts are published yet.")
   ).toBeInTheDocument();
-  expect(fetchPublishedProduct).not.toHaveBeenCalled();
 });
 
-it("leads report write-ups without a product card and links each write-up", async () => {
+it("puts report write-ups in the feed, labelled with their product, never as a product card", async () => {
   vi.mocked(fetchHomeContent).mockResolvedValue({
     ...hidden([]),
     reportNotes: {
       status: "ok",
       articles: [
-        post({
-          collection: "report-notes",
-          slug: "reports/2026/09/flood",
-          title: "Understanding the flood bulletin",
-          linkedProduct: { productId: PRODUCT_ID, kind: "flood" },
-        }),
         post({
           id: "2",
           collection: "report-notes",
@@ -187,15 +212,71 @@ it("leads report write-ups without a product card and links each write-up", asyn
       ],
     },
   });
-  render(await LatestReports());
+  render(await ForecastDesk());
   expect(
-    screen.getByRole("link", { name: "Understanding the flood bulletin" })
-  ).toHaveAttribute("href", "/explore/reports/2026/09/flood");
-  expect(screen.queryByText("Official product")).not.toBeInTheDocument();
-  expect(screen.getByRole("link", { name: TWO_WAVES })).toHaveAttribute(
-    "href",
-    "/explore/reports/2026/09/outlook"
-  );
+    screen.getByRole("link", { name: "Two waves to watch" })
+  ).toHaveAttribute("href", "/explore/reports/2026/09/outlook");
+  expect(screen.getByText("Tropical Weather Outlook")).toBeInTheDocument();
+  expect(fetchPublishedProduct).not.toHaveBeenCalled();
+});
+
+const MIDDAY = {
+  id: PRODUCT_ID,
+  revision: 1,
+  publishedAt: "2026-11-01T16:00:00Z",
+  kind: "midday" as const,
+  values: { issuedAt: "2026-11-01T12:00", summary: "Hazy, a few showers." },
+};
+
+it("pins the latest issued forecast first, as an official card", async () => {
+  vi.mocked(fetchHomeContent).mockResolvedValue({
+    ...hidden([]),
+    deskUpdates: { status: "ok", articles: [post({})] },
+  });
+  vi.mocked(fetchPublishedProducts).mockResolvedValue({
+    status: "ok",
+    products: [MIDDAY],
+  });
+  render(await ForecastDesk());
+  const cards = screen.getAllByRole("listitem");
+  expect(cards[0]).toHaveTextContent("Official briefing");
+  expect(cards[0]).toHaveTextContent("Hazy, a few showers.");
+  expect(
+    screen.getByRole("link", { name: "Read the Midday Forecast" })
+  ).toHaveAttribute("href", `/weather/issued/${PRODUCT_ID}`);
+});
+
+it("shows a placeholder briefing when no public forecast is in effect", async () => {
+  vi.mocked(fetchHomeContent).mockResolvedValue(hidden([]));
+  render(await ForecastDesk());
+  const [first] = screen.getAllByRole("listitem");
+  expect(first).toHaveTextContent(NO_FORECAST);
+  expect(first).toHaveTextContent("Official briefing");
+});
+
+it("keeps desk posts behind Earlier posts during a red warning", async () => {
+  vi.mocked(fetchHomeContent).mockResolvedValue({
+    ...hidden([]),
+    deskUpdates: { status: "ok", articles: [post({})] },
+  });
+  vi.mocked(fetchPublishedProducts).mockResolvedValue({
+    status: "ok",
+    products: [MIDDAY],
+  });
+  vi.mocked(fetchActiveAlerts).mockResolvedValue({
+    status: "ok",
+    activeCount: 1,
+    groups: [
+      {
+        alerts: [{ severity: "Extreme", status: "Actual" }],
+      } as unknown as HomeAlertGroup,
+    ],
+  });
+  render(await ForecastDesk());
+  expect(screen.getByText("Earlier posts (1)")).toBeInTheDocument();
+  expect(
+    screen.getByRole("list", { name: "Latest from the forecast desk" })
+  ).not.toHaveTextContent("Why the morning forecast changed");
 });
 
 it("signs a desk card with the author's name and initials, with their picture", async () => {
