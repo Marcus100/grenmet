@@ -22,13 +22,13 @@ Closing the panel hides the link. **Replace activation link** invalidates the ol
 Use this when a person cannot get sign-in codes by email: their work mailbox is not live yet, or the address on their account is wrong or unverified. Sign-in is passwordless by default, so they need a password for this route.
 
 1. Open **Users**, select **Manage** on the person's row, and expand **Set up sign-in for this person**. You need the `user.manage` permission over them (their department or organisation) and an authenticator on your account, verified at sign-in. Owners can be set up only by a superuser. You cannot set up your own account.
-2. Confirm the person's identity in person or through a trusted direct channel, tick the box, and select **Create setup link**.
-3. Copy the private link and send it to the person directly. Do not put it in tickets, group chats or logs. The link expires in 72 hours and works once. Creating another link replaces it; **Revoke link** cancels it.
+2. Confirm the person's identity in person or through a trusted direct channel, tick the box, enter a reason (3 to 500 characters, kept in the audit trail; required unless the person's email is unverified or their password setup is pending), and select **Create setup link**.
+3. Copy the private link and send it to the person directly. Do not put it in tickets, group chats or logs. The link expires in 24 hours and works once. Creating another link replaces it; **Revoke link** cancels it.
 4. The person opens the link, chooses their own password, and signs in normally with their email and password. You never see the password, and nothing in the record shows it.
 
 The link does not verify their email address, does not grant roles, departments or app access, and does not change staff approval or CMS access. Those steps stay as described above. The email address on the account is still the sign-in identifier, so get it right first.
 
-Issuance is limited to 20 links per administrator and 5 per person in an hour, and every issue, revoke and completion is written to the account's audit history with ids and the expiry only. Links are refused for ended employment and inactive accounts; if a person's employment has ended, reinstate or correct their employment record first. Completing the link signs out their existing sessions. For a person who should not have any access, disable the account rather than issuing a link.
+Issuance is limited to 20 links per administrator and 5 per person in an hour. Every issue, revoke and completion is written to the account's audit history with ids, the expiry and the reason. The address on the account receives a courtesy email when a link is issued and when the password is set; it never contains the link. Privileged accounts (anyone with a privileged permission, `user.manage` or a department-manager-or-above role) and anyone holding a permission you lack can be set up only by a superuser, and so can privileged accounts without an authenticator. Owners can be set up only by a superuser. Links are refused for ended employment and inactive accounts; if a person's employment has ended, reinstate or correct their employment record first. Completing the link signs out their existing sessions. For a person who should not have any access, disable the account rather than issuing a link.
 
 ## Staff workflows and current limits
 
