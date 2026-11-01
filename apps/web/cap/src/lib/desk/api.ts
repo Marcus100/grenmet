@@ -1,6 +1,7 @@
 import "server-only";
 
 import {
+  type CapAlertImportRequest,
   type CapLifecycleState,
   capAlertListPublicSchema,
   capAlertPublicSchema,
@@ -28,6 +29,29 @@ function read<T>(
 }
 
 export const BOARD_PAGE_SIZE = 50;
+
+/** A staff write with the forecaster's token. Never cached. */
+function write<T>(
+  accessToken: string,
+  path: string,
+  body: unknown,
+  parser: { parse: (value: unknown) => T }
+): Promise<T> {
+  return authApiFetch(getAuthConfig(), path, parser, {
+    accessToken,
+    body,
+    cache: "no-store",
+    method: "POST",
+  });
+}
+
+/**
+ * Imports one CAP document from pasted XML or a public https address. The
+ * API keeps the alert as a draft flagged as imported; it never publishes it.
+ */
+export function importAlert(accessToken: string, body: CapAlertImportRequest) {
+  return write(accessToken, "/cap/alerts/import", body, capAlertPublicSchema);
+}
 
 export function listAlerts(
   accessToken: string,
