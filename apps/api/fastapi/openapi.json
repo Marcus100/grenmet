@@ -35078,6 +35078,84 @@
         ]
       }
     },
+    "/api/v1/cap/alerts/by-identifier/{identifier}": {
+      "get": {
+        "tags": [
+          "cap"
+        ],
+        "summary": "Get a CAP alert by identifier",
+        "description": "Returns one CAP alert by its CAP identifier, with every staff field (schema check, imported marker). Drafts and imports are visible here.",
+        "operationId": "capGetAlertByIdentifier",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "identifier",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Identifier"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CapAlertPublic"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Resource not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/cap/alerts/{alert_id}": {
       "get": {
         "tags": [
@@ -35709,7 +35787,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/CapAlertAction"
+                "$ref": "#/components/schemas/CapPublishAction"
               }
             }
           }
@@ -36172,6 +36250,63 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/CapCatalogsPublic"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Content",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/cap/gms-catalogue": {
+      "get": {
+        "tags": [
+          "cap"
+        ],
+        "summary": "Read the GMS warning catalogue",
+        "description": "Returns the hazard list, parish geocodes, and the product and colour rules the warning desk uses. The rules are owned by GMS and change only through a reviewed code change.",
+        "operationId": "capGetGmsCatalogue",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GmsCataloguePublic"
                 }
               }
             }
@@ -36843,7 +36978,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/CapAlertListPublic"
+                  "$ref": "#/components/schemas/CapAlertListPublicView"
                 }
               }
             }
@@ -36875,7 +37010,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/CapAlertListPublic"
+                  "$ref": "#/components/schemas/CapAlertListPublicView"
                 }
               }
             }
@@ -36907,7 +37042,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/CapAlertListPublic"
+                  "$ref": "#/components/schemas/CapAlertListPublicView"
                 }
               }
             }
@@ -36950,7 +37085,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/CapAlertPublic"
+                  "$ref": "#/components/schemas/CapAlertPublicView"
                 }
               }
             }
@@ -69677,6 +69812,7 @@
           },
           "value": {
             "type": "string",
+            "maxLength": 5242880,
             "minLength": 1,
             "title": "Value"
           }
@@ -69718,6 +69854,37 @@
         ],
         "title": "CapAlertListPublic"
       },
+      "CapAlertListPublicView": {
+        "properties": {
+          "data": {
+            "items": {
+              "$ref": "#/components/schemas/CapAlertPublicView"
+            },
+            "type": "array",
+            "title": "Data"
+          },
+          "count": {
+            "type": "integer",
+            "title": "Count"
+          },
+          "page": {
+            "type": "integer",
+            "title": "Page",
+            "default": 1
+          },
+          "size": {
+            "type": "integer",
+            "title": "Size",
+            "default": 100
+          }
+        },
+        "type": "object",
+        "required": [
+          "data",
+          "count"
+        ],
+        "title": "CapAlertListPublicView"
+      },
       "CapAlertPublic": {
         "properties": {
           "id": {
@@ -69732,6 +69899,33 @@
           "sender": {
             "type": "string",
             "title": "Sender"
+          },
+          "schema_conformant": {
+            "type": "boolean",
+            "title": "Schema Conformant",
+            "default": true
+          },
+          "schema_error": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Schema Error"
+          },
+          "import_source": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Import Source"
           },
           "sent": {
             "type": "string",
@@ -69942,6 +70136,214 @@
           "updated_at"
         ],
         "title": "CapAlertPublic"
+      },
+      "CapAlertPublicView": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "identifier": {
+            "type": "string",
+            "title": "Identifier"
+          },
+          "sender": {
+            "type": "string",
+            "title": "Sender"
+          },
+          "sent": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Sent"
+          },
+          "status": {
+            "$ref": "#/components/schemas/CapStatus"
+          },
+          "msg_type": {
+            "$ref": "#/components/schemas/CapMessageType"
+          },
+          "source": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source"
+          },
+          "scope": {
+            "$ref": "#/components/schemas/CapScope"
+          },
+          "restriction": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Restriction"
+          },
+          "addresses": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Addresses"
+          },
+          "codes": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Codes"
+          },
+          "lifecycle_state": {
+            "$ref": "#/components/schemas/CapLifecycleState"
+          },
+          "submitted_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Submitted At"
+          },
+          "approved_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Approved At"
+          },
+          "published_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Published At"
+          },
+          "expired_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Expired At"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Updated At"
+          },
+          "references": {
+            "items": {
+              "$ref": "#/components/schemas/CapReferencePublic"
+            },
+            "type": "array",
+            "title": "References"
+          },
+          "incidents": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Incidents"
+          },
+          "info": {
+            "items": {
+              "$ref": "#/components/schemas/CapInfoPublic"
+            },
+            "type": "array",
+            "title": "Info"
+          },
+          "xml_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Xml Url"
+          },
+          "replaced_by_identifier": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Replaced By Identifier"
+          },
+          "cancellation_reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cancellation Reason"
+          },
+          "note": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Note"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "identifier",
+          "sender",
+          "sent",
+          "status",
+          "msg_type",
+          "scope",
+          "lifecycle_state",
+          "created_at",
+          "updated_at"
+        ],
+        "title": "CapAlertPublicView",
+        "description": "An alert as the anonymous public sees it.\n\nStaff-only fields are left out: the schema check result, the imported marker,\nand who created or last changed the alert. The note is kept on purpose: the\npublic XML publishes it as ``<note>``."
       },
       "CapAlertUpdate": {
         "properties": {
@@ -70230,7 +70632,8 @@
         "required": [
           "area_desc"
         ],
-        "title": "CapAreaCreate"
+        "title": "CapAreaCreate",
+        "description": "Save-time checks: a height and every coordinate must be a finite number."
       },
       "CapAreaKind": {
         "type": "string",
@@ -70582,6 +70985,24 @@
         ],
         "title": "CapCategory"
       },
+      "CapCategoryLabelPublic": {
+        "properties": {
+          "key": {
+            "$ref": "#/components/schemas/CapCategory"
+          },
+          "label": {
+            "type": "string",
+            "title": "Label"
+          }
+        },
+        "type": "object",
+        "required": [
+          "key",
+          "label"
+        ],
+        "title": "CapCategoryLabelPublic",
+        "description": "One CAP category and the name the desk shows for it (a closed set)."
+      },
       "CapCertainty": {
         "type": "string",
         "enum": [
@@ -70593,6 +71014,33 @@
         ],
         "title": "CapCertainty"
       },
+      "CapColourRulePublic": {
+        "properties": {
+          "key": {
+            "type": "string",
+            "title": "Key"
+          },
+          "label": {
+            "type": "string",
+            "title": "Label"
+          },
+          "awareness_code": {
+            "type": "integer",
+            "title": "Awareness Code"
+          },
+          "severity": {
+            "$ref": "#/components/schemas/CapSeverity"
+          }
+        },
+        "type": "object",
+        "required": [
+          "key",
+          "label",
+          "awareness_code",
+          "severity"
+        ],
+        "title": "CapColourRulePublic"
+      },
       "CapEmergencyPublish": {
         "properties": {
           "reason": {
@@ -70600,6 +71048,11 @@
             "maxLength": 2000,
             "minLength": 1,
             "title": "Reason"
+          },
+          "confirm_imported": {
+            "type": "boolean",
+            "title": "Confirm Imported",
+            "default": false
           }
         },
         "type": "object",
@@ -70849,6 +71302,35 @@
         "type": "object",
         "title": "CapFeedImportUpdate"
       },
+      "CapHazardGroupPublic": {
+        "properties": {
+          "label": {
+            "type": "string",
+            "title": "Label"
+          },
+          "categories": {
+            "items": {
+              "$ref": "#/components/schemas/CapCategory"
+            },
+            "type": "array",
+            "title": "Categories"
+          },
+          "events": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Events"
+          }
+        },
+        "type": "object",
+        "required": [
+          "label",
+          "categories",
+          "events"
+        ],
+        "title": "CapHazardGroupPublic"
+      },
       "CapInfoCreate": {
         "properties": {
           "language": {
@@ -71033,7 +71515,8 @@
           "headline",
           "description"
         ],
-        "title": "CapInfoCreate"
+        "title": "CapInfoCreate",
+        "description": "Save-time checks. They run on what a forecaster types, not on stored rows."
       },
       "CapInfoPublic": {
         "properties": {
@@ -71286,6 +71769,34 @@
         ],
         "title": "CapNameValue"
       },
+      "CapParishPublic": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "iso_code": {
+            "type": "string",
+            "title": "Iso Code"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "short_name": {
+            "type": "string",
+            "title": "Short Name"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "iso_code",
+          "name",
+          "short_name"
+        ],
+        "title": "CapParishPublic"
+      },
       "CapPredefinedAreaCreate": {
         "properties": {
           "name": {
@@ -71473,6 +71984,29 @@
           "updated_at"
         ],
         "title": "CapPredefinedAreaPublic"
+      },
+      "CapProductRulePublic": {
+        "properties": {
+          "key": {
+            "type": "string",
+            "title": "Key"
+          },
+          "label": {
+            "type": "string",
+            "title": "Label"
+          },
+          "needs_colour": {
+            "type": "boolean",
+            "title": "Needs Colour"
+          }
+        },
+        "type": "object",
+        "required": [
+          "key",
+          "label",
+          "needs_colour"
+        ],
+        "title": "CapProductRulePublic"
       },
       "CapProfileCellText": {
         "properties": {
@@ -71955,6 +72489,30 @@
         ],
         "title": "CapProfileTemplate"
       },
+      "CapPublishAction": {
+        "properties": {
+          "note": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 2000
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Note"
+          },
+          "confirm_imported": {
+            "type": "boolean",
+            "title": "Confirm Imported",
+            "default": false
+          }
+        },
+        "type": "object",
+        "title": "CapPublishAction",
+        "description": "Publish request. An imported alert needs ``confirm_imported`` (409 without it)."
+      },
       "CapPublishPublic": {
         "properties": {
           "alert": {
@@ -72349,7 +72907,8 @@
                 "type": "null"
               }
             ],
-            "title": "Wmo Oid"
+            "title": "Wmo Oid",
+            "description": "WMO OID of the form 2.49.0.1.<country>.<authority>, digits and dots only. Empty clears it."
           },
           "web": {
             "anyOf": [
@@ -77030,6 +77589,60 @@
           "UNSPECIFIED"
         ],
         "title": "Gender"
+      },
+      "GmsCataloguePublic": {
+        "properties": {
+          "hazard_groups": {
+            "items": {
+              "$ref": "#/components/schemas/CapHazardGroupPublic"
+            },
+            "type": "array",
+            "title": "Hazard Groups"
+          },
+          "category_labels": {
+            "items": {
+              "$ref": "#/components/schemas/CapCategoryLabelPublic"
+            },
+            "type": "array",
+            "title": "Category Labels"
+          },
+          "parishes": {
+            "items": {
+              "$ref": "#/components/schemas/CapParishPublic"
+            },
+            "type": "array",
+            "title": "Parishes"
+          },
+          "products": {
+            "items": {
+              "$ref": "#/components/schemas/CapProductRulePublic"
+            },
+            "type": "array",
+            "title": "Products"
+          },
+          "colours": {
+            "items": {
+              "$ref": "#/components/schemas/CapColourRulePublic"
+            },
+            "type": "array",
+            "title": "Colours"
+          },
+          "geocode_name": {
+            "type": "string",
+            "title": "Geocode Name"
+          }
+        },
+        "type": "object",
+        "required": [
+          "hazard_groups",
+          "category_labels",
+          "parishes",
+          "products",
+          "colours",
+          "geocode_name"
+        ],
+        "title": "GmsCataloguePublic",
+        "description": "GMS warning catalogue: hazard list, parish geocodes, product and colour rules."
       },
       "GmsColour": {
         "type": "string",

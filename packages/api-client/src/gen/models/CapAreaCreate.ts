@@ -6,6 +6,10 @@
 import type { CapAreaKind } from "./CapAreaKind.js";
 import type { CapNameValue } from "./CapNameValue.js";
 
+/**
+ * @description Save-time checks: a height and every coordinate must be a finite number.
+ * @type object
+ */
 export type CapAreaCreate = {
   /**
    * @default 'AREA'

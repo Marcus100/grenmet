@@ -1,12 +1,15 @@
 import type {
   CapAlertListPublic,
+  CapAlertListPublicView,
   CapAlertPublic,
+  CapAlertPublicView,
   CapAreaPublic,
   CapInfoPublic,
 } from "@barrelsgd/api-client";
 import {
   capAlertListPublicSchema,
-  capAlertPublicSchema,
+  capAlertListPublicViewSchema,
+  capAlertPublicViewSchema,
 } from "@barrelsgd/api-client";
 import { notFound } from "next/navigation";
 import { getAuthApiPrefix, getCapApiBaseUrl } from "@/lib/auth-config";
@@ -18,8 +21,12 @@ export type { CapLifecycleState, CapSeverity } from "@barrelsgd/api-client";
 
 export type CapArea = CapAreaPublic;
 export type CapInfo = CapInfoPublic;
+/** The staff view (GET /api/v1/cap/alerts): every field, including the schema flag. */
 export type CapAlert = CapAlertPublic;
 export type CapAlertList = CapAlertListPublic;
+/** An alert as the anonymous public feeds carry it (no staff-only fields). */
+export type CapPublicAlert = CapAlertPublicView;
+export type CapPublicAlertList = CapAlertListPublicView;
 
 export interface GeoJSONGeometry {
   coordinates?: unknown;
@@ -76,27 +83,27 @@ export function capPublicUrl(path: string): string {
   return new URL(path, getCapApiBaseUrl()).toString();
 }
 
-export function getLatestActiveAlerts(): Promise<CapFeed<CapAlertList>> {
+export function getLatestActiveAlerts(): Promise<CapFeed<CapPublicAlertList>> {
   return fetchCapJson("/api/cap/latest-active", (payload) =>
-    capAlertListPublicSchema.parse(payload)
+    capAlertListPublicViewSchema.parse(payload)
   );
 }
 
-export function getPastAlerts(): Promise<CapFeed<CapAlertList>> {
+export function getPastAlerts(): Promise<CapFeed<CapPublicAlertList>> {
   return fetchCapJson("/api/cap/past", (payload) =>
-    capAlertListPublicSchema.parse(payload)
+    capAlertListPublicViewSchema.parse(payload)
   );
 }
 
-export function getAllPublicAlerts(): Promise<CapFeed<CapAlertList>> {
+export function getAllPublicAlerts(): Promise<CapFeed<CapPublicAlertList>> {
   return fetchCapJson("/api/cap/alerts", (payload) =>
-    capAlertListPublicSchema.parse(payload)
+    capAlertListPublicViewSchema.parse(payload)
   );
 }
 
 export async function getAlertByIdentifier(
   identifier: string
-): Promise<CapAlert> {
+): Promise<CapPublicAlert> {
   const response = await fetch(
     capPublicUrl(`/api/cap/alerts/${encodeURIComponent(identifier)}`),
     {
@@ -109,7 +116,7 @@ export async function getAlertByIdentifier(
   if (!response.ok) {
     notFound();
   }
-  const parsed = capAlertPublicSchema.safeParse(await response.json());
+  const parsed = capAlertPublicViewSchema.safeParse(await response.json());
   if (!parsed.success) {
     notFound();
   }
@@ -181,6 +188,6 @@ export function formatDateTime(value: string | null): string {
   return `${formatted} AST`;
 }
 
-export function primaryInfo(alert: CapAlert): CapInfo | undefined {
+export function primaryInfo(alert: { info?: CapInfo[] }): CapInfo | undefined {
   return alert.info?.[0];
 }

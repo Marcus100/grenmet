@@ -4,7 +4,7 @@
  */
 
 import type { ApiError } from "./ApiError.js";
-import type { CapAlertAction } from "./CapAlertAction.js";
+import type { CapPublishAction } from "./CapPublishAction.js";
 import type { CapPublishPublic } from "./CapPublishPublic.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 
@@ -43,7 +43,11 @@ export type CapPublishAlertStatus404 = ApiError;
  */
 export type CapPublishAlertStatus422 = ValidationErrorResponse;
 
-export type CapPublishAlertBody = CapAlertAction;
+/**
+ * @description Publish request. An imported alert needs ``confirm_imported`` (409 without it).
+ * @type object
+ */
+export type CapPublishAlertBody = CapPublishAction;
 
 export type CapPublishAlertOptions = {
   body: CapPublishAlertBody;
