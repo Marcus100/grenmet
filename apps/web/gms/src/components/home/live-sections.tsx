@@ -123,7 +123,7 @@ function DeskPostCard({ item }: { item: PublishedContent }) {
 }
 
 /**
- * From the desk: the forecast office blogging about what it issues, newest
+ * From the Desk: the forecast office blogging about what it issues, newest
  * first as a row of post cards that scrolls sideways. Posts are
  * CMS content; any product a post attaches is read live from FastAPI, so the
  * section never shows a forecast itself.
@@ -133,7 +133,7 @@ export async function ForecastDesk() {
   const { deskUpdates: updates, settings } = await fetchHomeContent();
   const words = sectionWords(settings, "desk", {
     kicker: "GMS forecast desk",
-    title: "From the desk",
+    title: "From the Desk",
   });
   return (
     <HomeSection

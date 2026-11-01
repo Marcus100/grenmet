@@ -30,7 +30,9 @@ post would repeat it. Do not post product notices in any form.
 ## Desk posts
 
 A desk post is a short note from the forecast desk about what is happening or
-what to expect. It has a hook and a body.
+what to expect. It has a hook and a body. The section that lists desk posts on
+the site is called **From the Desk** (capital D, as in the CMS help text and the
+homepage design). Use that name wherever the section is named.
 
 **Hook (the headline)**
 

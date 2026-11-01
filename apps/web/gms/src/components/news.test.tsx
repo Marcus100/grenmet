@@ -26,7 +26,7 @@ afterEach(() => {
 
 for (const [name, component] of [
   ["Stories", News],
-  ["From the desk", GmsNews],
+  ["From the Desk", GmsNews],
 ] as const) {
   it(`${name} renders published CMS articles`, async () => {
     vi.mocked(fetchPublishedContent).mockResolvedValue({
@@ -46,7 +46,7 @@ for (const [name, component] of [
     });
     render(await component());
     expect(fetchPublishedContent).toHaveBeenCalledWith(
-      name === "From the desk" ? "desk-updates" : "stories"
+      name === "From the Desk" ? "desk-updates" : "stories"
     );
     expect(
       screen.getAllByRole("link", { name: MARINE_TITLE })[0]

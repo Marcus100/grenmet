@@ -2,7 +2,7 @@ import { contentHref, fetchPublishedContent } from "@/lib/cms";
 import type { SearchArticle } from "@/lib/search";
 
 const SECTION_LABEL: Record<string, string> = {
-  "desk-updates": "From the desk",
+  "desk-updates": "From the Desk",
   stories: "Stories",
 };
 
