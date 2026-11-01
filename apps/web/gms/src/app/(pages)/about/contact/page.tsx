@@ -1,7 +1,6 @@
 import { PageHeader } from "@/components/page-header";
 import { InfoTable } from "@/components/pages/info-table";
 import { PageSection } from "@/components/pages/page-section";
-import { PlaceholderNotice } from "@/components/pages/placeholder-notice";
 import { Prose } from "@/components/pages/prose";
 
 export const metadata = {
@@ -17,7 +16,6 @@ export default function ContactPage() {
         description="How to reach the Grenada Meteorological Service."
         title="Contact us"
       />
-      <PlaceholderNotice product="The contact details on this page" />
       <PageSection heading="Head office">
         <InfoTable
           headers={["Detail", "Value"]}
@@ -26,8 +24,9 @@ export default function ContactPage() {
               "Address",
               "Grenada Meteorological Service, Maurice Bishop International Airport, Point Salines, St. George's, Grenada",
             ],
-            ["Telephone", "To be confirmed"],
-            ["General enquiries", "To be confirmed"],
+            ["Telephone (main line)", "+1 473 444 4142"],
+            ["Forecast office", "+1 473 444 4101, extension 2059"],
+            ["General enquiries", "meteorology@gaa.gd"],
           ]}
         />
       </PageSection>
