@@ -1,3 +1,4 @@
+import type { TaxTablePublic } from "@barrelsgd/api-client";
 import { configureApiClient } from "@barrelsgd/api-client";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
@@ -45,7 +46,7 @@ const EMPTY_TABLES = {
   social_insurance: [],
   deduction_types: [],
 };
-const TAX = {
+const TAX: TaxTablePublic = {
   id: "t1",
   organisation_id: "gaa",
   code: "PAYE",
