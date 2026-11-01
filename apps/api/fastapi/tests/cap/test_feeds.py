@@ -193,7 +193,7 @@ async def test_an_unreachable_feed_records_the_error_and_stays_retryable(
         )
 
     assert result == {"created": 0, "skipped": 0}
-    assert feed.last_error and "HTTPStatusError" in feed.last_error
+    assert feed.last_error == "could not fetch"
 
 
 async def test_a_private_feed_address_is_refused_before_any_request(
@@ -214,7 +214,7 @@ async def test_a_private_feed_address_is_refused_before_any_request(
 
     assert result == {"created": 0, "skipped": 0}
     assert requested == []
-    assert feed.last_error and "non-public" in feed.last_error
+    assert feed.last_error == "host refused"
 
 
 async def test_the_host_check_runs_even_with_an_injected_client(
@@ -239,7 +239,7 @@ async def test_the_host_check_runs_even_with_an_injected_client(
 
     assert result == {"created": 0, "skipped": 0}
     assert requested == []
-    assert feed.last_error and "could not resolve" in feed.last_error
+    assert feed.last_error == "host refused"
 
 
 async def test_an_entry_from_a_private_address_is_skipped(

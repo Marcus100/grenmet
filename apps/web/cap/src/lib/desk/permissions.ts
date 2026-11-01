@@ -11,6 +11,7 @@ export interface DeskPermissions {
   feedsManage: boolean;
   /** `cap.integrations.manage`: read the integrations status page. */
   integrationsManage: boolean;
+  libraryManage: boolean;
   publish: boolean;
   read: boolean;
   /**
@@ -36,6 +37,7 @@ export function deskPermissions(access: Access): DeskPermissions {
     emergencyPublish: has("cap.alert.publish_emergency"),
     feedsManage: has("cap.feed.manage"),
     integrationsManage: has("cap.integrations.manage"),
+    libraryManage: has("cap.library.manage"),
     publish: has("cap.alert.publish"),
     read: has("cap.alert.read"),
     settingsManage: has("cap.settings.manage"),

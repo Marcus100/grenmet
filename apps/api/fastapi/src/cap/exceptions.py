@@ -28,6 +28,25 @@ class CapImportError(AppException):
         super().__init__(f"CAP import failed: {message}", 400)
 
 
+class CapHostRefusedError(CapImportError):
+    """A source URL whose scheme, credentials or host is refused by the SSRF guard.
+
+    A subclass of ``CapImportError`` so callers keep their handling. Feed ingestion
+    stores a generic ``host refused`` message and logs the detail.
+    """
+
+
+class CapFeedUrlError(AppException):
+    """A feed URL refused when it is saved (422). The message never names the host."""
+
+    def __init__(self) -> None:
+        super().__init__(
+            "Feed URL must be an https address on a public host, "
+            "with no username or password.",
+            422,
+        )
+
+
 class CapNonConformingAlertError(AppException):
     """An imported alert that does not fully follow the CAP 1.2 schema is never published or copied (422)."""
 

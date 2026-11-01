@@ -38,6 +38,7 @@ const ALL: DeskPermissions = {
   emergencyPublish: true,
   feedsManage: true,
   integrationsManage: true,
+  libraryManage: true,
   publish: true,
   read: true,
   settingsManage: true,
