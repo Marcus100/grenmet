@@ -2049,6 +2049,18 @@ of one daily total per UTC date, taken from the 24-hour rainfall group (RRR, tra
 `rain_day_threshold_mm`). Temperature extremes are the highest/lowest of the
 section 3 maximum/minimum groups and decimal air temperatures, with the time of
 each. `provisional` is true unless every contributing reading is `accepted`.
+Climpact figures (owner, 1 Nov 2026) come from the same daily totals:
+`heavy_rain_days` counts totals of at least 10 mm (R10mm,
+`heavy_rain_threshold_mm`); `longest_dry_spell_days` with its
+`longest_dry_spell_start`/`_end` dates and `current_dry_spell_days` count
+consecutive reported days under 1 mm (CDD, `dry_day_threshold_mm`), a day with no
+total breaking a run, and the current spell ending at the latest reported day (0
+when it was wet, `null` when that total is more than a day older than the period's
+last day). Wind is decoded per reading like `/public/current`:
+`mean_wind_kt` averages reported speeds with calm as 0 kn,
+`prevailing_wind_direction` is the most frequent 8-point direction of non-calm
+readings, and `max_gust_kt`/`max_gust_at` give the strongest gust. All are
+additive and `null` when not reported.
 `rain_report_days` out of `days_elapsed` shows completeness. No readings returns
 `{"summary": null}`; unreported figures are `null`, never zero.
 

@@ -6,6 +6,7 @@ import {
   socialField,
   summaryField,
 } from "../fields/common";
+import { checkMediaLink, type MediaKind } from "../lib/media-links";
 import { editorialCollection } from "./editorial";
 
 /** "From the Desk": the forecast office blogging about what it issues. */
@@ -44,8 +45,57 @@ const base = editorialCollection({
         { label: "Announcement", value: "announcement" },
       ],
     },
+    {
+      name: "format",
+      type: "select",
+      required: true,
+      defaultValue: "standard",
+      label: "Post type",
+      admin: {
+        description:
+          "Standard: words and a picture. Audio or Video: also paste a share link, played only when a reader presses play. Chart: the picture is a chart (owner, 1 Nov 2026).",
+      },
+      options: [
+        { label: "Standard", value: "standard" },
+        { label: "Audio", value: "audio" },
+        { label: "Video", value: "video" },
+        { label: "Chart", value: "chart" },
+      ],
+    },
+    {
+      name: "mediaUrl",
+      type: "text",
+      label: "Media link",
+      admin: {
+        condition: (_data, sibling) =>
+          sibling?.format === "video" || sibling?.format === "audio",
+        description:
+          "YouTube or Facebook for video, SoundCloud for audio. Paste the share link.",
+      },
+      validate: (
+        value: unknown,
+        { siblingData }: { siblingData: { format?: string } }
+      ) => {
+        const format = siblingData?.format;
+        if (format !== "video" && format !== "audio") return true;
+        if (typeof value !== "string" || !value.trim())
+          return "Add the media link.";
+        return checkMediaLink(format as MediaKind, value.trim());
+      },
+    },
+    {
+      name: "authorRole",
+      type: "text",
+      maxLength: 60,
+      label: "Your role",
+      admin: {
+        description:
+          'Shown after your name on the card, e.g. "Duty forecaster" or "Climate officer".',
+      },
+    },
     summaryField(200),
-    // A chart or map shown on the card on the homepage and at the top of the article.
+    // Every desk card shows a picture below its words, credited from the media
+    // item's Credit field (owner, 1 Nov 2026).
     ...coverFields(),
     bodyField(false),
     includeInNewsletterField(PUBLISH_KEYS["desk-updates"]),

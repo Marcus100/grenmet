@@ -94,6 +94,10 @@ import {
   down as down_20261029_150427_author_name_and_desk_cover,
   up as up_20261029_150427_author_name_and_desk_cover,
 } from "./20261029_150427_author_name_and_desk_cover";
+import {
+  down as down_20261101_172726_desk_post_types,
+  up as up_20261101_172726_desk_post_types,
+} from "./20261101_172726_desk_post_types";
 
 export const migrations = [
   {
@@ -215,5 +219,10 @@ export const migrations = [
     up: up_20261029_150427_author_name_and_desk_cover,
     down: down_20261029_150427_author_name_and_desk_cover,
     name: "20261029_150427_author_name_and_desk_cover",
+  },
+  {
+    up: up_20261101_172726_desk_post_types,
+    down: down_20261101_172726_desk_post_types,
+    name: "20261101_172726_desk_post_types",
   },
 ];

@@ -9,6 +9,7 @@ import {
   capCatalogsPublicSchema,
   capGetHazardProfilesResponseSchema,
   capGetIbfMatrixResponseSchema,
+  capProfilePublicSchema,
   capSettingsPublicSchema,
   capSuggestIbfResponseSchema,
   gmsCataloguePublicSchema,
@@ -137,4 +138,18 @@ export function suggestIbf(
 
 export function getSettings(accessToken: string) {
   return read(accessToken, "/cap/settings", capSettingsPublicSchema);
+}
+
+/**
+ * Approves one draft profile version. The API refuses the author's own
+ * version (a different reviewer must approve) and any version with
+ * `approval_errors`; the desk shows those refusals as they come back.
+ */
+export function approveHazardProfile(accessToken: string, profileId: string) {
+  return write(
+    accessToken,
+    `/cap/hazard-profiles/${encodeURIComponent(profileId)}/approve`,
+    undefined,
+    capProfilePublicSchema
+  );
 }

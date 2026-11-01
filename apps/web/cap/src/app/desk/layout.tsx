@@ -40,6 +40,9 @@ export default async function DeskLayout({
               <Link className="text-info hover:underline" href="/desk/matrix">
                 Impact matrix
               </Link>
+              <Link className="text-info hover:underline" href="/desk/profiles">
+                Hazard profiles
+              </Link>
               {gate.permissions.create ? (
                 <Link className="text-info hover:underline" href="/desk/import">
                   Import
