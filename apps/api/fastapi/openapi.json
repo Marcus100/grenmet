@@ -75479,7 +75479,8 @@
                 "type": "null"
               }
             ],
-            "title": "Web"
+            "title": "Web",
+            "description": "Public web address of the service, https only. Empty clears it."
           },
           "contact": {
             "anyOf": [
@@ -75491,7 +75492,8 @@
                 "type": "null"
               }
             ],
-            "title": "Contact"
+            "title": "Contact",
+            "description": "Plain-text contact details: no control characters or angle brackets. Empty clears it."
           },
           "feed_limit": {
             "anyOf": [

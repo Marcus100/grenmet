@@ -36,6 +36,7 @@ from src.cap.common import (
 from src.cap.exceptions import (
     CapAlertNotFoundError,
     CapFeedNotFoundError,
+    CapHostRefusedError,
     CapImportError,
     CapNonConformingAlertError,
     CapStateError,
@@ -110,6 +111,7 @@ from src.cap.validation import (
     MAX_IMPORT_BYTES,
     ensure_public_host,
     validate_cap_alert,
+    validate_feed_url,
     validate_import_url,
 )
 from src.cap.xml import alert_to_cap_xml, ensure_well_formed, xml_to_alert_data
@@ -118,6 +120,11 @@ from src.config import settings as app_config
 from src.utils.datetime import utc_now
 
 logger = logging.getLogger(__name__)
+
+# Generic last_error values for a feed. The UI shows these; the detail is logged.
+FEED_ERROR_HOST_REFUSED = "host refused"
+FEED_ERROR_FETCH = "could not fetch"
+FEED_ERROR_INGEST = "ingest failed"
 
 
 async def _notify_mismatch_safely(
@@ -1428,6 +1435,7 @@ async def create_feed(
     *, session: AsyncSession, current_user: User, payload: CapFeedImportCreate
 ) -> CapFeedImport:
     require_permission(current_user=current_user, permission_key="cap.feed.manage")
+    validate_feed_url(payload.url)
     feed = CapFeedImport(name=payload.name, url=payload.url)
     session.add(feed)
     await session.commit()
@@ -1446,6 +1454,8 @@ async def update_feed(
     feed = await session.get(CapFeedImport, feed_id)
     if feed is None:
         raise CapFeedNotFoundError()
+    if payload.url is not None:
+        validate_feed_url(payload.url)
     for field, value in payload.model_dump(exclude_unset=True).items():
         setattr(feed, field, value)
     feed.updated_at = utc_now()
@@ -1500,8 +1510,17 @@ async def ingest_feed(
             allow_http=feed.url.startswith("http://"),
         )
     except CapImportError as exc:
+        # The detail names the host and the resolver; keep it in the log only.
+        logger.warning(
+            "CAP feed refused or unreachable",
+            extra={"feed_id": str(feed.id), "detail": str(exc)},
+        )
         feed.last_checked_at = now
-        feed.last_error = str(exc)[:500]
+        feed.last_error = (
+            FEED_ERROR_HOST_REFUSED
+            if isinstance(exc, CapHostRefusedError)
+            else FEED_ERROR_FETCH
+        )
         session.add(feed)
         await session.commit()
         return {"created": 0, "skipped": 0}
@@ -1563,12 +1582,13 @@ async def ingest_all_active_feeds(
                     http_client=client,
                 )
             except Exception as exc:  # noqa: BLE001 - record + continue to next feed
-                feed.last_error = str(exc)
+                feed.last_error = FEED_ERROR_INGEST
                 feed.last_checked_at = utc_now()
                 session.add(feed)
                 await session.commit()
                 logger.warning(
-                    "CAP feed ingest failed", extra={"feed_id": str(feed.id)}
+                    "CAP feed ingest failed",
+                    extra={"feed_id": str(feed.id), "detail": repr(exc)},
                 )
     finally:
         if owns_client:
