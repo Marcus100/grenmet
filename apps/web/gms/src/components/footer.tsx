@@ -1,5 +1,6 @@
 import { Logo } from "@barrelsgd/gms/components/logo";
 import { CookieSettingsButton } from "@barrelsgd/ui/components/posthog-provider";
+import { BellIcon } from "lucide-react";
 import Link from "next/link";
 import {
   siFacebook,
@@ -14,7 +15,6 @@ const COLUMNS = [
     heading: "Weather",
     links: [
       { label: "Forecasts", href: "/weather" },
-      { label: "Radar", href: "/weather/radar" },
       { label: "Satellite", href: "/weather/satellite" },
       { label: "Tropics", href: "/weather/tropics" },
       { label: "Observations", href: "/weather/observations" },
@@ -115,6 +115,56 @@ export function Footer() {
 
   return (
     <footer className="bg-gm-navy text-body text-gm-text-inverse/80 leading-body lg:text-body-base lg:leading-body-base">
+      {/* Alerts sign-up and emergency advice open the footer (owner, 1 Nov 2026). */}
+      <div className="mx-auto grid max-w-6xl gap-3 px-4 pt-10 sm:px-6 lg:grid-cols-[3fr_2fr] xl:px-8">
+        <section
+          aria-labelledby="footer-alerts-title"
+          className="flex flex-col gap-3 rounded-gm-card bg-gm-navy-panel p-5"
+        >
+          <div className="flex items-start gap-3">
+            <BellIcon
+              aria-hidden="true"
+              className="mt-0.5 size-5 shrink-0 text-gm-lime"
+            />
+            <div>
+              <h2
+                className="font-bold text-body-base text-gm-text-inverse leading-body-base"
+                id="footer-alerts-title"
+              >
+                Get official alerts first
+              </h2>
+              <p className="text-body-sm leading-body-sm">
+                We send alerts the moment we issue them, by email or browser
+                notifications.
+              </p>
+            </div>
+          </div>
+          <Link
+            className="flex h-11 w-fit items-center justify-center rounded-md bg-gm-lime px-4 font-bold text-body text-gm-navy leading-body"
+            href="/alerts/get-alerts"
+          >
+            Get alerts
+          </Link>
+        </section>
+        <section
+          aria-labelledby="footer-emergency-title"
+          className="flex flex-col justify-center gap-1 rounded-gm-card border border-gm-text-inverse/15 p-5 text-body-sm leading-body-sm"
+        >
+          <h2
+            className="font-bold text-body-base text-gm-text-inverse leading-body-base"
+            id="footer-emergency-title"
+          >
+            In an emergency
+          </h2>
+          <p>
+            Call 911. Follow instructions from the National Disaster Management
+            Agency (NaDMA) and the police.
+          </p>
+          <p>
+            Local radio carries official warnings if power or internet is down.
+          </p>
+        </section>
+      </div>
       <div className="mx-auto grid max-w-6xl grid-cols-2 gap-x-6 gap-y-8 px-4 pt-10 pb-8 sm:px-6 lg:grid-cols-[1.4fr_repeat(4,minmax(0,1fr))] xl:px-8">
         <div className="col-span-2 flex flex-col gap-3 lg:col-span-1">
           <Link
@@ -131,6 +181,17 @@ export function Footer() {
             <br />A department of the Grenada Airports Authority. Maurice Bishop
             International Airport, St. George.
           </p>
+          <address className="flex flex-col gap-0.5 text-body-sm not-italic leading-body-sm lg:text-body lg:leading-body">
+            <a className={LINK} href="tel:+14734444142">
+              Main line +1 473 444 4142
+            </a>
+            <a className={LINK} href="tel:+14734444101,2059">
+              Forecast office +1 473 444 4101 ext. 2059
+            </a>
+            <a className={LINK} href="mailto:meteorology@gaa.gd">
+              meteorology@gaa.gd
+            </a>
+          </address>
           <ul aria-label="GMS on social media" className="flex flex-wrap gap-2">
             {SOCIAL.map((s) => (
               <li key={s.label}>
