@@ -97,7 +97,6 @@ export {
   authAccountEmailCodeStartStatus200Schema,
   authAccountEmailCodeStartStatus422Schema,
   authAccountEmailCodeStartStatus429Schema,
-  authAccountEmailCodeStartStatus503Schema,
 } from "./authAccountEmailCodeStartSchema.js";
 export {
   authAccountEmailCodeVerifyBodySchema,

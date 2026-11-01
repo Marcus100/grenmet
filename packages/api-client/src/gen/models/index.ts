@@ -103,7 +103,6 @@ export type {
   AuthAccountEmailCodeStartStatus200,
   AuthAccountEmailCodeStartStatus422,
   AuthAccountEmailCodeStartStatus429,
-  AuthAccountEmailCodeStartStatus503,
 } from "./AuthAccountEmailCodeStart.js";
 export type {
   AuthAccountEmailCodeVerifyBody,

@@ -85,13 +85,38 @@ export default async function SecurityPage() {
                   </Link>
                 )
               }
-              description="Sign in with your email and password."
+              description="Sign in with a one-time code sent to this address, or with your password."
               title="Email"
             >
               {security.email_verified ? (
                 <StatusBadge tone="on">Verified</StatusBadge>
               ) : (
                 <StatusBadge tone="off">Not verified</StatusBadge>
+              )}
+            </SettingsRow>
+            <SettingsRow
+              action={
+                security.password_changed_at ? (
+                  <Link className={outlineLink} href="/password">
+                    Change
+                  </Link>
+                ) : (
+                  <Link className={outlineLink} href="/verify-email">
+                    Add a password
+                  </Link>
+                )
+              }
+              description={
+                security.password_changed_at
+                  ? "Sign in with your email and this password."
+                  : "Not set. Add one to sign in without a code. We email a link to set it."
+              }
+              title="Password"
+            >
+              {security.password_changed_at ? (
+                <StatusBadge tone="on">Set</StatusBadge>
+              ) : (
+                <StatusBadge tone="off">Not set</StatusBadge>
               )}
             </SettingsRow>
             <SettingsRow
