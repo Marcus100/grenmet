@@ -334,6 +334,7 @@ export { hrCreateTimesheet } from "./clients/hrCreateTimesheet.js";
 export { hrCreateTrainingRecord } from "./clients/hrCreateTrainingRecord.js";
 export { hrDeleteAbsenteeReport } from "./clients/hrDeleteAbsenteeReport.js";
 export { hrDeleteDepartmentRuleSet } from "./clients/hrDeleteDepartmentRuleSet.js";
+export { hrDeleteDraftTimesheet } from "./clients/hrDeleteDraftTimesheet.js";
 export { hrDeleteLeaveRequest } from "./clients/hrDeleteLeaveRequest.js";
 export { hrDeleteMySignature } from "./clients/hrDeleteMySignature.js";
 export { hrDeletePayLine } from "./clients/hrDeletePayLine.js";
@@ -2382,6 +2383,11 @@ export {
   hrDeleteDepartmentRuleSetMutationOptions,
   useHrDeleteDepartmentRuleSet,
 } from "./hooks/useHrDeleteDepartmentRuleSet.js";
+export {
+  hrDeleteDraftTimesheetMutationKey,
+  hrDeleteDraftTimesheetMutationOptions,
+  useHrDeleteDraftTimesheet,
+} from "./hooks/useHrDeleteDraftTimesheet.js";
 export {
   hrDeleteLeaveRequestMutationKey,
   hrDeleteLeaveRequestMutationOptions,
@@ -8530,6 +8536,17 @@ export type {
   HrDeleteDepartmentRuleSetStatus403,
   HrDeleteDepartmentRuleSetStatus422,
 } from "./models/HrDeleteDepartmentRuleSet.js";
+export type {
+  HrDeleteDraftTimesheetOptions,
+  HrDeleteDraftTimesheetPath,
+  HrDeleteDraftTimesheetResponse,
+  HrDeleteDraftTimesheetResponses,
+  HrDeleteDraftTimesheetStatus204,
+  HrDeleteDraftTimesheetStatus400,
+  HrDeleteDraftTimesheetStatus403,
+  HrDeleteDraftTimesheetStatus404,
+  HrDeleteDraftTimesheetStatus422,
+} from "./models/HrDeleteDraftTimesheet.js";
 export type {
   HrDeleteLeaveRequestOptions,
   HrDeleteLeaveRequestPath,
@@ -17912,6 +17929,17 @@ export {
   hrDeleteDepartmentRuleSetStatus403Schema,
   hrDeleteDepartmentRuleSetStatus422Schema,
 } from "./zod/hrDeleteDepartmentRuleSetSchema.js";
+export {
+  hrDeleteDraftTimesheetErrorSchema,
+  hrDeleteDraftTimesheetPathSchema,
+  hrDeleteDraftTimesheetPathTimesheetIdSchema,
+  hrDeleteDraftTimesheetResponseSchema,
+  hrDeleteDraftTimesheetStatus204Schema,
+  hrDeleteDraftTimesheetStatus400Schema,
+  hrDeleteDraftTimesheetStatus403Schema,
+  hrDeleteDraftTimesheetStatus404Schema,
+  hrDeleteDraftTimesheetStatus422Schema,
+} from "./zod/hrDeleteDraftTimesheetSchema.js";
 export {
   hrDeleteLeaveRequestErrorSchema,
   hrDeleteLeaveRequestPathLeaveRequestIdSchema,
