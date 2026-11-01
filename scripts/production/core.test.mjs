@@ -97,6 +97,13 @@ case "$*" in
   *"--no-recreate --scale "*)
     touch "$state/scaled-\${args##* }"
     exit 0 ;;
+  *" config --hash "*)
+    service=\${args##* }
+    [[ "$service" != "$TEST_UNCHANGED_SERVICE" ]] || echo "$service hash-same"
+    exit 0 ;;
+  "inspect --format {{index .Config.Labels"*config-hash*)
+    if [[ "\${args##*old-}" == "$TEST_UNCHANGED_SERVICE" ]]; then echo "hash-same healthy"; else echo "hash-old healthy"; fi
+    exit 0 ;;
   "inspect --format {{if .State.Health}}"*" new-"*)
     if [[ "\${args##*new-}" == "$TEST_UNHEALTHY_SERVICE" ]]; then echo unhealthy; else echo healthy; fi
     exit 0 ;;
@@ -108,6 +115,9 @@ case "$*" in
   *"config --images"*)
     [[ "$TEST_FAILURE" != images ]] || exit 1
     echo ghcr.io/example/api@sha256:abc ;;
+  "image inspect ghcr.io/"*)
+    # Present locally only when the test says so; core.sh then skips the pull.
+    [[ -n "$TEST_IMAGES_PRESENT" ]] || exit 1 ;;
   *"image inspect"*)
     if [[ "$*" == *gd.barrels.environment* ]]; then if [[ "$TEST_FAILURE" == environment ]]; then echo wrong; else echo "$DEPLOY_ENV"; fi; elif [[ "$TEST_FAILURE" == revision ]]; then echo wrong; else echo "$GITHUB_SHA"; fi ;;
   *"run --rm --no-deps prestart"*) [[ "$TEST_FAILURE" != migration ]] || exit 1 ;;
@@ -184,6 +194,8 @@ printf '/dev/test 50000000 1000 %s 10%% /\\n' "$free"
           TEST_NO_OLD: "",
           TEST_STALE_SERVICE: "",
           TEST_UNHEALTHY_SERVICE: "",
+          TEST_UNCHANGED_SERVICE: "",
+          TEST_IMAGES_PRESENT: "",
           TEST_PINNED_SUBNET: "",
           TEST_LIVE_SUBNET: "",
           ROLLOUT_SETTLE_SECONDS: "0",
@@ -618,8 +630,8 @@ test("rolling start keeps the old container when the new one is unhealthy", () =
   assert.match(result.stderr, ROLLOUT_FAILED);
   assert.ok(calls.includes("docker rm -f new-web-auth"));
   assert.equal(calls.includes("docker stop --time 30 old-web-auth"), false);
-  // Services after the failure are not touched, and smoke never runs.
-  assert.equal(calls.includes("--scale web-admin=2"), false);
+  // Services in later batches are not touched, and smoke never runs.
+  assert.equal(calls.includes("--scale web-docs=2"), false);
   assert.equal(calls.includes("smoke"), false);
 });
 
@@ -653,4 +665,55 @@ test("an unrecognised ROLLING_DEPLOY value stops before any change", () => {
   assert.equal(result.status, 2);
   assert.match(result.stderr, ROLLING_DEPLOY_INVALID);
   assert.equal(calls.includes("docker"), false);
+});
+
+const UNCHANGED_KEPT = /\[web-docs\] Unchanged web-docs/;
+const NOTHING_TO_PULL = /Images to pull: 0 of 1/;
+
+test("rolling start keeps an unchanged, healthy service running", () => {
+  const { result, calls } = runDeploy({
+    environment: "staging",
+    extraEnv: { ROLLING_DEPLOY: "1", TEST_UNCHANGED_SERVICE: "web-docs" },
+  });
+  assert.equal(result.status, 0, result.stderr);
+  assert.match(result.stdout, UNCHANGED_KEPT);
+  assert.equal(calls.includes("--scale web-docs=2"), false);
+  assert.equal(calls.includes("docker stop --time 30 old-web-docs"), false);
+  assert.ok(calls.includes("--scale web-gms=2 web-gms\n"));
+});
+
+test("rolling start runs one service at a time with ROLLOUT_PARALLEL=1", () => {
+  const { result, calls } = runDeploy({
+    environment: "staging",
+    extraEnv: {
+      ROLLING_DEPLOY: "1",
+      ROLLOUT_PARALLEL: "1",
+      TEST_UNHEALTHY_SERVICE: "web-auth",
+    },
+  });
+  assert.notEqual(result.status, 0);
+  assert.equal(calls.includes("--scale web-gmsadmin=2"), false);
+});
+
+test("an invalid ROLLOUT_PARALLEL or PULL_PARALLEL stops before any change", () => {
+  for (const extraEnv of [{ ROLLOUT_PARALLEL: "0" }, { PULL_PARALLEL: "x" }]) {
+    const { result, calls } = runDeploy({ environment: "staging", extraEnv });
+    assert.equal(result.status, 2, JSON.stringify(extraEnv));
+    assert.equal(calls.includes("docker"), false);
+  }
+});
+
+test("deploy pulls only images missing from the host", () => {
+  const missing = runDeploy({ environment: "staging" });
+  assert.equal(missing.result.status, 0, missing.result.stderr);
+  assert.ok(
+    missing.calls.includes("docker pull --quiet ghcr.io/example/api@sha256:abc")
+  );
+  const present = runDeploy({
+    environment: "staging",
+    extraEnv: { TEST_IMAGES_PRESENT: "1" },
+  });
+  assert.equal(present.result.status, 0, present.result.stderr);
+  assert.equal(present.calls.includes("docker pull"), false);
+  assert.match(present.result.stdout, NOTHING_TO_PULL);
 });

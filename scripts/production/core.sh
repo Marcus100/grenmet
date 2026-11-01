@@ -10,6 +10,7 @@ exec 9>"${CORE_LOCK_DIR:-/var/lock}/grenmet-core-$DEPLOY_ENV.lock"
 flock -w 1800 9 || { echo "Core maintenance lock timed out" >&2; exit 1; }
 if [[ "$operation" == cleanup ]]; then
   rm -f runtime/.env.local runtime/deploy.lock.yml runtime/bootstrap-result runtime/images.txt
+  rm -rf runtime/rollout
   docker logout ghcr.io >/dev/null 2>&1 || true
   exit
 fi
@@ -25,9 +26,15 @@ case "${ROLLING_DEPLOY:-}" in
   1 | true) rolling=true ;;
   *) echo "ROLLING_DEPLOY must be 1, true, 0, false or unset; got '$ROLLING_DEPLOY'" >&2; exit 2 ;;
 esac
+# Routed services roll out in batches of this size (1 restores one at a time).
+rollout_parallel=${ROLLOUT_PARALLEL:-4}
+[[ "$rollout_parallel" =~ ^[1-9][0-9]?$ ]] || { echo "ROLLOUT_PARALLEL must be a whole number from 1 to 99; got '$rollout_parallel'" >&2; exit 2; }
+pull_parallel=${PULL_PARALLEL:-4}
+[[ "$pull_parallel" =~ ^[1-9][0-9]?$ ]] || { echo "PULL_PARALLEL must be a whole number from 1 to 99; got '$pull_parallel'" >&2; exit 2; }
 umask 077
 cleanup() {
   rm -f runtime/.env.local runtime/deploy.lock.yml runtime/bootstrap-result runtime/images.txt
+  rm -rf runtime/rollout
   docker logout ghcr.io >/dev/null 2>&1 || true
 }
 
@@ -81,10 +88,11 @@ finish() {
     end_phase ok
   else
     end_phase failed
-    if [[ -n "$rollout_new" ]]; then
-      echo "Removing unfinished rollout container $rollout_new; the previous one keeps serving."
-      docker rm -f "$rollout_new" >/dev/null 2>&1
-    fi
+    for pending in runtime/rollout/*.new; do
+      [[ -s "$pending" ]] || continue
+      echo "Removing unfinished rollout container $(<"$pending") of ${pending##*/}; the previous one keeps serving."
+      docker rm -f "$(<"$pending")" >/dev/null 2>&1
+    done
     echo "::error::Core delivery failed in phase '$current_phase' (last completed: $completed_phase) for revision $GITHUB_SHA"
     if [[ "$project_stopped" == true && "$current_phase" != start && "$current_phase" != smoke ]]; then
       echo "The whole project was stopped to recreate its network, so nothing is serving until a deploy succeeds."
@@ -131,16 +139,16 @@ wait_healthy() {
   return 1
 }
 
-# The new container of an unfinished rollout; finish() removes it if the deploy
+# Rollouts run in parallel subshells, so each records its unfinished new container
+# in runtime/rollout/<service>.new; finish() removes any left there if the deploy
 # fails or is cancelled mid-rollout, so two releases are never left serving.
-rollout_new=""
 
 # Replaces one routed service without a gap: start the new container beside the
 # old one, wait until it is healthy (Traefik only routes to healthy containers),
 # then retire the old one. If the new container never becomes healthy it is
 # removed and the old one keeps serving, and the deploy fails.
 rollout() {
-  local service=$1 old new stale
+  local service=$1 old new stale running_hash wanted_hash pending="runtime/rollout/$1.new"
   local compose=(docker compose -f runtime/deploy.lock.yml -p "$COMPOSE_PROJECT")
   # Stopped containers count towards --scale, and --no-recreate would restart one
   # on its old image instead of creating a new container. Remove them first.
@@ -153,8 +161,18 @@ rollout() {
     "${compose[@]}" up -d --no-deps --wait --wait-timeout 300 "$service"
     return
   fi
-  # Always roll, even for an unchanged image: a changed environment or label
-  # also recreates the container, and recreating stops the old one first.
+  # Unchanged service: Compose's config hash covers the digest-pinned image, the
+  # environment and the labels, so an equal hash on the one running container means
+  # recreating it would change nothing.
+  if [[ "$old" != *$'\n'* ]]; then
+    wanted_hash=$("${compose[@]}" config --hash "$service" 2>/dev/null | awk -v s="$service" '$1 == s {print $2}') || wanted_hash=""
+    running_hash=$(docker inspect --format '{{index .Config.Labels "com.docker.compose.config-hash"}} {{if .State.Health}}{{.State.Health.Status}}{{else}}{{.State.Status}}{{end}}' "$old" 2>/dev/null) || running_hash=""
+    # Only a healthy (or, without a healthcheck, running) container is kept.
+    if [[ -n "$wanted_hash" && ( "$running_hash" == "$wanted_hash healthy" || "$running_hash" == "$wanted_hash running" ) ]]; then
+      echo "Unchanged $service: keeping the running container"
+      return
+    fi
+  fi
   echo "Rolling $service"
   "${compose[@]}" up -d --no-deps --no-recreate --scale "$service=$(($(wc -l <<<"$old") + 1))" "$service"
   new=$(comm -13 <(sort <<<"$old") <("${compose[@]}" ps -q "$service" | sort))
@@ -162,21 +180,46 @@ rollout() {
     echo "::error::Rolling start of $service expected one new container, found: ${new:-none}" >&2
     return 1
   fi
-  rollout_new=$new
+  printf '%s' "$new" > "$pending"
   if ! wait_healthy "$new"; then
     echo "::error::New $service container did not become healthy; the previous one is still serving" >&2
     docker logs --tail "${DIAGNOSTIC_LOG_LINES:-200}" "$new" 2>&1 || true
     docker rm -f "$new" >/dev/null
-    rollout_new=""
+    rm -f "$pending"
     return 1
   fi
   # Give Traefik's Docker provider time to add the new backend before the old one goes.
   sleep "${ROLLOUT_SETTLE_SECONDS:-5}"
-  rollout_new=""
+  rm -f "$pending"
   # shellcheck disable=SC2086
   docker stop --time 30 $old >/dev/null
   # shellcheck disable=SC2086
   docker rm $old >/dev/null
+}
+
+# Rolls routed services out in batches of ROLLOUT_PARALLEL. Every service in a batch
+# finishes (healthy or rolled back) before the result is checked, and no later batch
+# starts after a failure. Output is prefixed with the service name.
+rollout_batches() {
+  local batch=() service failed=0
+  mkdir -p runtime/rollout
+  run_batch() {
+    local pids=() names=() i
+    for service in "${batch[@]}"; do
+      ( rollout "$service" ) > >(sed -u "s/^/[$service] /") 2> >(sed -u "s/^/[$service] /" >&2) &
+      pids+=("$!"); names+=("$service")
+    done
+    for i in "${!pids[@]}"; do
+      wait "${pids[$i]}" || { echo "::error::Rollout of ${names[$i]} failed" >&2; failed=1; }
+    done
+    batch=()
+    return "$failed"
+  }
+  for service in "$@"; do
+    batch+=("$service")
+    if (( ${#batch[@]} >= rollout_parallel )); then run_batch || return 1; fi
+  done
+  if (( ${#batch[@]} > 0 )); then run_batch || return 1; fi
 }
 
 # Fails before any change to the running stack when a disk is too full.
@@ -214,9 +257,17 @@ require_free_space "$(docker info --format '{{.DockerRootDir}}')" "${DEPLOY_MIN_
 
 phase pull-verify
 docker compose --env-file "$DEPLOY_ENV.env" --env-file runtime/.env.local -f docker-compose.deploy.yml -p "$COMPOSE_PROJECT" config --resolve-image-digests --output runtime/deploy.lock.yml
-docker compose -f runtime/deploy.lock.yml -p "$COMPOSE_PROJECT" pull
 docker compose -f runtime/deploy.lock.yml -p "$COMPOSE_PROJECT" config --images > runtime/images.txt
 [[ -s runtime/images.txt ]] || { echo "Empty image manifest" >&2; exit 1; }
+# The lock file pins every image by digest, so an image already on this host is
+# byte-for-byte the one wanted. Pull only the missing ones, PULL_PARALLEL at a time.
+missing_images=$(while IFS= read -r image; do
+  docker image inspect "$image" >/dev/null 2>&1 || printf '%s\n' "$image"
+done < runtime/images.txt)
+echo "Images to pull: $(grep -c . <<<"$missing_images" || true) of $(grep -c . runtime/images.txt)"
+if [[ -n "$missing_images" ]]; then
+  xargs -r -P "$pull_parallel" -n 1 docker pull --quiet <<<"$missing_images"
+fi
 while IFS= read -r image; do
   case "$image" in
     ghcr.io/*)
@@ -322,9 +373,8 @@ if [[ "$rolling" == true ]]; then
   # backend and every route 404s until the new one is healthy (staging run
   # 37131928180). Roll those services instead; start the rest as before.
   routed_services=$(node ../../scripts/ci/check-release-scope.mjs --print routed)
-  for service in $routed_services; do
-    rollout "$service"
-  done
+  # shellcheck disable=SC2086
+  rollout_batches $routed_services
   remaining_services=$(for service in $app_services; do
     [[ " $routed_services " == *" $service "* ]] || printf '%s ' "$service"
   done)

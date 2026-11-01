@@ -340,6 +340,13 @@ A new required secret goes in `REQUIRED_SECRETS` in
 `scripts/production/render-env.py` and in the `deploy.yml` env block; the same
 test fails if either is missing.
 
+### Image pulls
+
+The `pull-verify` phase pins every image by digest in `runtime/deploy.lock.yml`,
+then pulls only images not already on the host, `PULL_PARALLEL` (default 4) at
+a time. An image already present under that digest is byte-for-byte the one
+wanted, so unchanged services cost no download.
+
 ### Rolling starts (no gap while containers are replaced)
 
 By default the `start` phase recreates every app service, which stops each
@@ -349,7 +356,8 @@ run 37131928180).
 
 Set the GitHub environment variable `ROLLING_DEPLOY` to `1` (or `true`) to start routed
 services (`api` and every `web-*`, the `routed` role in
-`scripts/ci/release-scope.mjs`) one at a time instead:
+`scripts/ci/release-scope.mjs`) in parallel batches instead (`ROLLOUT_PARALLEL`,
+default 4; `1` restores one at a time):
 
 1. Start a second container from the new image beside the old one.
 2. Wait until it is healthy. Traefik only routes to healthy containers.
@@ -358,6 +366,11 @@ services (`api` and every `web-*`, the `routed` role in
 If the new container never becomes healthy, it is removed, the old one keeps
 serving, and the deploy fails in the `start` phase. Workers and the proxy are
 not rolled: they still start the ordinary way after the routed services.
+
+A routed service whose running container is healthy and whose Compose config
+hash (digest-pinned image, environment, labels) is unchanged is kept as it is.
+Every service in a batch finishes before the next batch starts; after a failure
+no later batch starts. Log lines are prefixed with the service name.
 
 Stopped leftover containers of a routed service are removed before each
 rolling start. If a deploy fails or is cancelled mid-rollout, the unfinished new
