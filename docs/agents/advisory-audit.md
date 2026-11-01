@@ -33,6 +33,24 @@ intermittent; it is not silently treated as healthy. A failed dependency install
 makes dependent checks unavailable. Every discovered Alembic configuration must
 report exactly one head. No migration upgrades run against live services.
 
+## Recorded oversized modules
+
+The weekly scan flags tracked source over 1500 lines. These are accepted for
+now and are not split by audit cleanup; split one only as part of a task that
+already changes it. Alembic baseline and test files are cohesive by design.
+
+| Module | Lines | Note |
+| --- | --- | --- |
+| `apps/api/fastapi/alembic/versions/2026-03-06_baseline_schema.py` | ~1740 | Squashed baseline migration; never edited |
+| `apps/api/fastapi/src/eregister/rules.py` | ~1550 | Validation rule table; candidate to split per rule family |
+| `apps/api/fastapi/src/hr/payroll/service.py` | ~1530 | Payroll calculation; candidate to split calculation from persistence |
+| `apps/api/fastapi/src/payments/service.py` | ~1860 | Candidate to split per provider flow |
+| `apps/api/fastapi/tests/events/test_org_orders_money.py` | ~1565 | Test module |
+| `apps/api/fastapi/tests/test_eregister_send.py` | ~2180 | Test module |
+
+The scan's marker count ignores the audit's own sources, which name the
+markers they search for.
+
 ## Running and installation
 
 Preview the timer schedule without running checks:

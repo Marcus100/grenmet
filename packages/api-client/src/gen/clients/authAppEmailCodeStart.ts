@@ -11,7 +11,7 @@ import type {
 } from "../models/AuthAppEmailCodeStart.js";
 
 /**
- * @description Send a 6-digit code. The reply never reveals whether the address has an account.
+ * @description Send a 6-digit code. The reply is the same for every address and never waits on mail. A request past the limits gets the same reply and sends nothing.
  * @summary Send an email sign-in code
  * {@link /api/v1/auth/apps/:app/email-code/start}
  */

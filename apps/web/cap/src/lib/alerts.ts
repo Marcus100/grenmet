@@ -1,4 +1,4 @@
-import type { CapAlertPublic } from "@barrelsgd/api-client";
+import type { CapAlertPublicView } from "@barrelsgd/api-client";
 
 // Pure mapping helpers for the public alert hub. Safe in Server and Client
 // Components; fetching and the last-known-good store live in cap-api.ts.
@@ -81,7 +81,7 @@ export interface AlertView {
  * alert carries several languages; otherwise the first block is used. Returns
  * null for an alert with no info block, which has nothing to display.
  */
-export function toAlertView(alert: CapAlertPublic): AlertView | null {
+export function toAlertView(alert: CapAlertPublicView): AlertView | null {
   const infos = alert.info ?? [];
   const info =
     infos.find((candidate) => (candidate.language ?? "en").startsWith("en")) ??
@@ -152,7 +152,10 @@ export interface ActiveSplit {
   exercise: AlertView[];
 }
 
-export function splitActive(alerts: CapAlertPublic[], now: Date): ActiveSplit {
+export function splitActive(
+  alerts: CapAlertPublicView[],
+  now: Date
+): ActiveSplit {
   const views = alerts
     .map(toAlertView)
     .filter((view): view is AlertView => view !== null)

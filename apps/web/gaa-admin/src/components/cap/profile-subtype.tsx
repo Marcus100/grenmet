@@ -1,9 +1,5 @@
 "use client";
-import type {
-  CapCategory,
-  CapProfileRule,
-  CapProfileSubtype,
-} from "@barrelsgd/api-client";
+import type { CapProfileRule, CapProfileSubtype } from "@barrelsgd/api-client";
 import { Button } from "@barrelsgd/ui/components/ui/button";
 import { Checkbox } from "@barrelsgd/ui/components/ui/checkbox";
 import { Label } from "@barrelsgd/ui/components/ui/label";
@@ -14,8 +10,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@barrelsgd/ui/components/ui/select";
-import { CAP_CATEGORY_LABELS } from "@/lib/cap-hazards";
-import { GMS_PRODUCTS, type GmsProduct } from "@/lib/cap-levels";
+import { useGmsCatalogue } from "@/components/cap/gms-catalogue";
+import { categoryKeys, categoryLabel } from "@/lib/cap-hazards";
+import type { GmsProduct } from "@/lib/cap-levels";
 import { emptyRule } from "@/lib/cap-profile-defaults";
 import { ProfileField } from "./profile-field";
 import { SubtypeImpactEditor } from "./subtype-impact-editor";
@@ -34,6 +31,7 @@ export function ProfileSubtypeEditor({
   /** False for a saved approved version with no unsaved edits. */
   isDraft?: boolean;
 }) {
+  const catalogue = useGmsCatalogue();
   const rules = subtype.rules ?? [];
   function updateRule(index: number, patch: Partial<CapProfileRule>) {
     onChange({
@@ -56,26 +54,24 @@ export function ProfileSubtypeEditor({
       <fieldset>
         <legend className="mb-2 text-sm">CAP category mappings</legend>
         <div className="flex flex-wrap gap-3">
-          {(Object.keys(CAP_CATEGORY_LABELS) as CapCategory[]).map(
-            (category) => (
-              <Label key={category}>
-                <Checkbox
-                  checked={(subtype.categories ?? []).includes(category)}
-                  onCheckedChange={(checked) =>
-                    onChange({
-                      ...subtype,
-                      categories: checked
-                        ? [...(subtype.categories ?? []), category]
-                        : (subtype.categories ?? []).filter(
-                            (c) => c !== category
-                          ),
-                    })
-                  }
-                />
-                {CAP_CATEGORY_LABELS[category]}
-              </Label>
-            )
-          )}
+          {categoryKeys(catalogue).map((category) => (
+            <Label key={category}>
+              <Checkbox
+                checked={(subtype.categories ?? []).includes(category)}
+                onCheckedChange={(checked) =>
+                  onChange({
+                    ...subtype,
+                    categories: checked
+                      ? [...(subtype.categories ?? []), category]
+                      : (subtype.categories ?? []).filter(
+                          (c) => c !== category
+                        ),
+                  })
+                }
+              />
+              {categoryLabel(catalogue, category)}
+            </Label>
+          ))}
         </div>
       </fieldset>
       <h3 className="font-medium">Assessment rules</h3>
@@ -99,9 +95,9 @@ export function ProfileSubtypeEditor({
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                {GMS_PRODUCTS.map((level) => (
-                  <SelectItem key={level} value={level}>
-                    {level}
+                {catalogue.products.map((level) => (
+                  <SelectItem key={level.key} value={level.key}>
+                    {level.key}
                   </SelectItem>
                 ))}
               </SelectContent>

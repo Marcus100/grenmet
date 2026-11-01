@@ -18,14 +18,13 @@ import {
   readSessionCookie,
   requestPasswordRecovery,
   resetPassword,
-  signUp,
   writeSessionCookie,
 } from "@/lib/session";
 import type {
   ForgotPasswordState,
+  NamePromptState,
   ResetPasswordState,
   SignInState,
-  SignUpState,
 } from "./actions-types";
 
 function readString(formData: FormData, key: string): string {
@@ -213,52 +212,6 @@ export async function resetPasswordAction(
   }
 }
 
-export async function signUpAction(
-  _previousState: SignUpState,
-  formData: FormData
-): Promise<SignUpState> {
-  const email = readString(formData, "email");
-  const username = readString(formData, "username");
-  const password = readString(formData, "password");
-  const confirmPassword = readString(formData, "confirm_password");
-  const firstName = readString(formData, "first_name");
-  const lastName = readString(formData, "last_name");
-  const middleName = readString(formData, "middle_name") || null;
-
-  if (!(email && username && password && firstName && lastName)) {
-    return {
-      email,
-      error: "All required fields must be filled in.",
-      success: false,
-    };
-  }
-
-  if (password !== confirmPassword) {
-    return { email, error: "Passwords do not match.", success: false };
-  }
-
-  try {
-    await signUp({
-      email,
-      username,
-      password,
-      firstName,
-      lastName,
-      middleName,
-    });
-    return { email, error: null, success: true };
-  } catch (error) {
-    reportError(error, "auth-sign-up");
-    return {
-      email,
-      error: isAuthApiError(error)
-        ? error.detail
-        : "Unable to reach the auth service.",
-      success: false,
-    };
-  }
-}
-
 /** "I work at GAA or GMS": put this account in the staff approval queue. */
 export async function requestStaffAccessAction(): Promise<void> {
   const sessionToken = await readSessionCookie();
@@ -272,4 +225,43 @@ export async function requestStaffAccessAction(): Promise<void> {
     { accessToken, method: "POST" }
   );
   revalidatePath("/");
+}
+
+/** Optional, after sign-in: add the name that sign-up no longer asks for. */
+export async function saveNameAction(
+  _previousState: NamePromptState,
+  formData: FormData
+): Promise<NamePromptState> {
+  const firstName = readString(formData, "first_name");
+  const lastName = readString(formData, "last_name");
+  if (!(firstName && lastName)) {
+    return {
+      error: "Enter your first and last name, or skip this.",
+      saved: false,
+    };
+  }
+  if (firstName.length > 100 || lastName.length > 100) {
+    return { error: "Names can be up to 100 characters.", saved: false };
+  }
+  const sessionToken = await readSessionCookie();
+  if (!sessionToken) redirect("/");
+  try {
+    const { access_token: accessToken } =
+      await exchangeSessionForAccessToken(sessionToken);
+    await authApiFetch(getAuthConfig(), "/auth/users/me", userPublicSchema, {
+      accessToken,
+      body: { first_name: firstName, last_name: lastName },
+      method: "PATCH",
+    });
+  } catch (error) {
+    reportError(error, "auth-save-name");
+    return {
+      error: isAuthApiError(error)
+        ? error.detail
+        : "Unable to save your name. Try again.",
+      saved: false,
+    };
+  }
+  revalidatePath("/");
+  return { error: null, saved: true };
 }

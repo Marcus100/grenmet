@@ -27,7 +27,9 @@ class LoginLockout:
         lockout_seconds: int,
         window_seconds: int,
         client: Redis | None = None,
+        prefix: str = "login",
     ) -> None:
+        self._prefix = prefix
         self._redis_url = redis_url
         self._max = max_attempts
         self._lock_ttl = lockout_seconds
@@ -43,13 +45,11 @@ class LoginLockout:
         self._client = Redis.from_url(self._redis_url, decode_responses=True)
         return self._client
 
-    @staticmethod
-    def _fail_key(identifier: str) -> str:
-        return f"login:fail:{identifier.strip().lower()}"
+    def _fail_key(self, identifier: str) -> str:
+        return f"{self._prefix}:fail:{identifier.strip().lower()}"
 
-    @staticmethod
-    def _lock_key(identifier: str) -> str:
-        return f"login:lock:{identifier.strip().lower()}"
+    def _lock_key(self, identifier: str) -> str:
+        return f"{self._prefix}:lock:{identifier.strip().lower()}"
 
     async def is_locked(self, identifier: str) -> bool:
         if not self._enabled:
@@ -79,6 +79,31 @@ class LoginLockout:
         except Exception:  # noqa: BLE001 - fail open
             logger.warning("Login lockout record failed", exc_info=True)
 
+    async def allow(self, identifier: str) -> bool:
+        """Count one attempt and say whether it is within the limit.
+
+        One INCR decides, so concurrent requests cannot all pass a check made
+        before any of them counted. Fails open like the rest of this class.
+        """
+        if not self._enabled:
+            return True
+        try:
+            client = await self._get_client()
+            if client is None:
+                return True
+            key = self._fail_key(identifier)
+            # One MULTI transaction: the key is created with its TTL (SET NX EX)
+            # and counted (INCR) together, so it can never exist without a TTL.
+            async with client.pipeline(transaction=True) as pipe:
+                pipe.set(key, 0, nx=True, ex=self._window)
+                pipe.incr(key)
+                _, count = await pipe.execute()
+            return bool(int(count) <= self._max)
+        except Exception:
+            # Fail open: a broken store must not block requests.
+            logger.warning("Rate limit check failed; allowing request", exc_info=True)
+            return True
+
     async def reset(self, identifier: str) -> None:
         if not self._enabled:
             return
@@ -97,3 +122,71 @@ login_lockout = LoginLockout(
     lockout_seconds=auth_settings.LOGIN_LOCKOUT_SECONDS,
     window_seconds=auth_settings.LOGIN_FAILURE_WINDOW_SECONDS,
 )
+
+
+def normalised_address(email: str) -> str:
+    """The key for send limits: one mailbox, one key.
+
+    Lowercase, the part after a "+" removed, and for Gmail the dots removed and
+    googlemail.com treated as gmail.com. Only the key changes; mail still goes
+    to the address the person typed.
+    """
+    local, _, domain = email.strip().lower().rpartition("@")
+    local = local.split("+", 1)[0]
+    if domain in {"gmail.com", "googlemail.com"}:
+        domain = "gmail.com"
+        local = local.replace(".", "")
+    return f"{local}@{domain}"
+
+
+# Emailed codes. Each limit fails open without Redis, like login lockout.
+# Five code requests per mailbox per hour (email bombing).
+email_code_send_limit = LoginLockout(
+    redis_url=worker_settings.REDIS_URL,
+    max_attempts=5,
+    lockout_seconds=3600,
+    window_seconds=3600,
+    prefix="codesend",
+)
+# One code per mailbox per cooldown. A request inside the cooldown is ignored
+# silently, so no one can replace a live code faster than this.
+email_code_cooldown = LoginLockout(
+    redis_url=worker_settings.REDIS_URL,
+    max_attempts=1,
+    lockout_seconds=60,
+    window_seconds=60,
+    prefix="codecool",
+)
+# Twenty code requests per client address per hour, across all mailboxes.
+email_code_ip_limit = LoginLockout(
+    redis_url=worker_settings.REDIS_URL,
+    max_attempts=20,
+    lockout_seconds=3600,
+    window_seconds=3600,
+    prefix="codeip",
+)
+# Password setup links (/auth/password/setup): the same mailbox rule as codes.
+password_setup_send_limit = LoginLockout(
+    redis_url=worker_settings.REDIS_URL,
+    max_attempts=5,
+    lockout_seconds=3600,
+    window_seconds=3600,
+    prefix="setupsend",
+)
+password_setup_ip_limit = LoginLockout(
+    redis_url=worker_settings.REDIS_URL,
+    max_attempts=20,
+    lockout_seconds=3600,
+    window_seconds=3600,
+    prefix="setupip",
+)
+
+
+def rate_limit_store_warning() -> str | None:
+    """Name the fail-open state when Redis is not configured outside local work."""
+    if worker_settings.REDIS_URL or auth_settings.ENVIRONMENT == "local":
+        return None
+    return (
+        "REDIS_URL is not set: the emailed-code send cap, code cooldown, per-IP code "
+        "limit, password-setup link limits and login lockouts are DISABLED (they fail open)."
+    )

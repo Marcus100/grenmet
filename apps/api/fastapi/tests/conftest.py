@@ -258,6 +258,8 @@ _APPEND_ONLY = (
     ("payments.ledger_entry", "ledger_entry_append_only"),
     ("events.activity", "activity_append_only"),
     ("hr.pay_line", "pay_line_locked"),
+    ("hr.pay_deduction_line", "pay_deduction_line_locked"),
+    ("hr.payslip", "payslip_append_only"),
 )
 _clear_sql: str | None = None
 

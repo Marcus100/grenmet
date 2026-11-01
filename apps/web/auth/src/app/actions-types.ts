@@ -33,18 +33,6 @@ export const initialResetPasswordState: ResetPasswordState = {
   success: false,
 };
 
-export interface SignUpState {
-  email: string;
-  error: string | null;
-  success: boolean;
-}
-
-export const initialSignUpState: SignUpState = {
-  email: "",
-  error: null,
-  success: false,
-};
-
 export interface EmailCodeState {
   email: string;
   error: string | null;
@@ -57,4 +45,14 @@ export const initialEmailCodeState: EmailCodeState = {
   email: "",
   error: null,
   step: "email",
+};
+
+export interface NamePromptState {
+  error: string | null;
+  saved: boolean;
+}
+
+export const initialNamePromptState: NamePromptState = {
+  error: null,
+  saved: false,
 };

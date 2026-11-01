@@ -249,6 +249,24 @@ async def get_current_mfa_superuser(
 MfaAdminUser = Annotated[User, Depends(get_current_mfa_superuser)]
 
 
+async def get_current_mfa_user_manager(
+    current_user: CurrentUser, session: SessionDep, token: TokenDep
+) -> User:
+    """Holder of user.manage (or a superuser) whose session passed the authenticator.
+
+    Unlike ``get_current_user`` this applies in every environment, whatever
+    ``AUTH_PRIVILEGED_MFA_MODE`` says, for account-recovery powers."""
+    from src.auth import privileged_mfa
+    from src.auth.policy import require_permission
+
+    require_permission(current_user=current_user, permission_key="user.manage")
+    await privileged_mfa.require_mfa_session(session, current_user, token=token)
+    return current_user
+
+
+MfaUserManager = Annotated[User, Depends(get_current_mfa_user_manager)]
+
+
 async def optional_account(
     request: Request, session: AsyncSession, *, app: str | None = None
 ) -> User | None:

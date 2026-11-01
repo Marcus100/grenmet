@@ -17,7 +17,7 @@ Rules run in order and a later match wins, so the three rules are:
   2. public hosts: /_next/static/ and static asset extensions may be cached, but
      only when the origin's Cache-Control says so (no header: not cached, not
      even with Cloudflare's default TTLs), with Cache Deception Armor;
-  3. bypass again for the API and staff hosts, any /api/ path, and any request
+  3. bypass again for the API and staff hosts, any /api/ path, /desk and /auth/ paths, and any request
      carrying a session cookie (every app's cookie ends in `_session`, plus the
      CMS's `payload-token`).
 Runbook: docs/operations/cloudflare-proxy.md.
@@ -45,6 +45,7 @@ base_domain, host_set, sync = _rules.base_domain, _rules.host_set, _rules.sync
 PHASE = "http_request_cache_settings"
 # Every app's session cookie is `<app>_session` (also `_session_sso` and
 # `_session_notice`, packages/auth); Payload's own admin cookie is payload-token.
+STAFF_PATHS = ("/desk", "/auth/")
 SESSION_COOKIE_MARKERS = ("_session", "payload-token")
 STATIC_EXTENSIONS = (
     "css", "js", "mjs", "woff", "woff2", "ttf", "otf", "ico",
@@ -59,6 +60,12 @@ def rules(environment):
     private = host_set(PRIVATE_HOSTS, domain)
     extensions = "{" + " ".join(f'"{ext}"' for ext in STATIC_EXTENSIONS) + "}"
     cookies = " or ".join(f'http.cookie contains "{marker}"' for marker in SESSION_COOKIE_MARKERS)
+    # Staff pages that share a public host (the CAP warning desk on cap.*): named
+    # here as well as covered by the session-cookie test, so a signed-out sign-in
+    # step can never be cached either.
+    staff_paths = " or ".join(
+        f'starts_with(http.request.uri.path, "{path}")' for path in STAFF_PATHS
+    )
     ref = f"grenmet-{environment}"
     return [
         {
@@ -91,7 +98,7 @@ def rules(environment):
             "description": f"GrenMet {environment}: never cache the API, staff hosts, /api/ paths or signed-in requests",
             "expression": (
                 f"(http.host in {private}) or (http.host in {every} and "
-                f"(starts_with(http.request.uri.path, \"/api/\") or {cookies}))"
+                f"(starts_with(http.request.uri.path, \"/api/\") or {staff_paths} or {cookies}))"
             ),
             "action": "set_cache_settings",
             "action_parameters": {"cache": False},

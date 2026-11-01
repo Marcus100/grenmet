@@ -1,5 +1,6 @@
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
+import { buildApiProxyUrl } from "@/lib/api-proxy-target";
 import { getAuthApiBaseUrl } from "@/lib/auth-config";
 import { reportError } from "@/lib/report-error";
 import {
@@ -62,6 +63,18 @@ function buildProxyResponse(upstreamResponse: Response): NextResponse {
 }
 
 async function handleProxy(request: NextRequest): Promise<NextResponse> {
+  const upstreamUrl = buildApiProxyUrl(
+    request.nextUrl.pathname,
+    request.nextUrl.search,
+    getAuthApiBaseUrl()
+  );
+  if (!upstreamUrl) {
+    return NextResponse.json(
+      { detail: "Invalid request path." },
+      { status: 400 }
+    );
+  }
+
   const sessionToken = await readSessionCookie();
   if (!sessionToken) {
     return NextResponse.json(
@@ -95,19 +108,13 @@ async function handleProxy(request: NextRequest): Promise<NextResponse> {
     );
   }
 
-  const upstreamResponse = await fetch(
-    new URL(
-      `${request.nextUrl.pathname}${request.nextUrl.search}`,
-      getAuthApiBaseUrl()
-    ),
-    {
-      body: await buildUpstreamBody(request),
-      cache: "no-store",
-      headers: buildUpstreamHeaders(request, accessToken),
-      method: request.method,
-      redirect: "manual",
-    }
-  );
+  const upstreamResponse = await fetch(upstreamUrl, {
+    body: await buildUpstreamBody(request),
+    cache: "no-store",
+    headers: buildUpstreamHeaders(request, accessToken),
+    method: request.method,
+    redirect: "manual",
+  });
 
   const response = buildProxyResponse(upstreamResponse);
 

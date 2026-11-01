@@ -30,5 +30,4 @@ export {
   refreshSession,
   requestPasswordRecovery,
   resetPassword,
-  signUp,
 } from "./session";

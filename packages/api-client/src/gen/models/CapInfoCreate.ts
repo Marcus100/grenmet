@@ -11,6 +11,10 @@ import type { CapResourceCreate } from "./CapResourceCreate.js";
 import type { CapSeverity } from "./CapSeverity.js";
 import type { CapUrgency } from "./CapUrgency.js";
 
+/**
+ * @description Save-time checks. They run on what a forecaster types, not on stored rows.
+ * @type object
+ */
 export type CapInfoCreate = {
   /**
    * @minLength 2

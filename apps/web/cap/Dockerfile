@@ -65,6 +65,7 @@ ENV NEXT_PUBLIC_SITE_URL=$NEXT_PUBLIC_SITE_URL
 
 # Explicit application sources and workspace dependency closure.
 COPY packages/api-client/ packages/api-client/
+COPY packages/auth/ packages/auth/
 COPY packages/gms/ packages/gms/
 COPY packages/tsconfig/ packages/tsconfig/
 COPY packages/theme/ packages/theme/

@@ -103,7 +103,6 @@ export type {
   AuthAccountEmailCodeStartStatus200,
   AuthAccountEmailCodeStartStatus422,
   AuthAccountEmailCodeStartStatus429,
-  AuthAccountEmailCodeStartStatus503,
 } from "./AuthAccountEmailCodeStart.js";
 export type {
   AuthAccountEmailCodeVerifyBody,
@@ -638,6 +637,20 @@ export type {
   AuthIssueActivationStatus422,
 } from "./AuthIssueActivation.js";
 export type {
+  AuthIssueSignInSetupBody,
+  AuthIssueSignInSetupOptions,
+  AuthIssueSignInSetupPath,
+  AuthIssueSignInSetupResponse,
+  AuthIssueSignInSetupResponses,
+  AuthIssueSignInSetupStatus201,
+  AuthIssueSignInSetupStatus400,
+  AuthIssueSignInSetupStatus403,
+  AuthIssueSignInSetupStatus404,
+  AuthIssueSignInSetupStatus409,
+  AuthIssueSignInSetupStatus422,
+  AuthIssueSignInSetupStatus429,
+} from "./AuthIssueSignInSetup.js";
+export type {
   AuthJoinAccountAppBody,
   AuthJoinAccountAppOptions,
   AuthJoinAccountAppPath,
@@ -753,9 +766,9 @@ export type {
   AuthRegisterUserOptions,
   AuthRegisterUserResponse,
   AuthRegisterUserResponses,
-  AuthRegisterUserStatus201,
-  AuthRegisterUserStatus400,
+  AuthRegisterUserStatus200,
   AuthRegisterUserStatus422,
+  AuthRegisterUserStatus429,
 } from "./AuthRegisterUser.js";
 export type {
   AuthReplaceRecoveryCodesBody,
@@ -803,6 +816,16 @@ export type {
   AuthRevokeSecuritySessionStatus404,
   AuthRevokeSecuritySessionStatus422,
 } from "./AuthRevokeSecuritySession.js";
+export type {
+  AuthRevokeSignInSetupOptions,
+  AuthRevokeSignInSetupPath,
+  AuthRevokeSignInSetupResponse,
+  AuthRevokeSignInSetupResponses,
+  AuthRevokeSignInSetupStatus204,
+  AuthRevokeSignInSetupStatus403,
+  AuthRevokeSignInSetupStatus404,
+  AuthRevokeSignInSetupStatus422,
+} from "./AuthRevokeSignInSetup.js";
 export type {
   AuthTwofaActivateBody,
   AuthTwofaActivateOptions,
@@ -1624,7 +1647,9 @@ export type { CapAlertImportRequest } from "./CapAlertImportRequest.js";
 export type { CapAlertImportRequestPropertiesSourceEnum } from "./CapAlertImportRequestPropertiesSourceEnum.js";
 export { capAlertImportRequestPropertiesSourceEnum } from "./CapAlertImportRequestPropertiesSourceEnum.js";
 export type { CapAlertListPublic } from "./CapAlertListPublic.js";
+export type { CapAlertListPublicView } from "./CapAlertListPublicView.js";
 export type { CapAlertPublic } from "./CapAlertPublic.js";
+export type { CapAlertPublicView } from "./CapAlertPublicView.js";
 export type { CapAlertUpdate } from "./CapAlertUpdate.js";
 export type {
   CapApproveAlertBody,
@@ -1670,8 +1695,10 @@ export type {
 export type { CapCatalogsPublic } from "./CapCatalogsPublic.js";
 export type { CapCategory } from "./CapCategory.js";
 export { capCategory } from "./CapCategory.js";
+export type { CapCategoryLabelPublic } from "./CapCategoryLabelPublic.js";
 export type { CapCertainty } from "./CapCertainty.js";
 export { capCertainty } from "./CapCertainty.js";
+export type { CapColourRulePublic } from "./CapColourRulePublic.js";
 export type {
   CapCreateAlertBody,
   CapCreateAlertOptions,
@@ -1811,6 +1838,17 @@ export type {
   CapGetAlertStatus422,
 } from "./CapGetAlert.js";
 export type {
+  CapGetAlertByIdentifierOptions,
+  CapGetAlertByIdentifierPath,
+  CapGetAlertByIdentifierResponse,
+  CapGetAlertByIdentifierResponses,
+  CapGetAlertByIdentifierStatus200,
+  CapGetAlertByIdentifierStatus401,
+  CapGetAlertByIdentifierStatus403,
+  CapGetAlertByIdentifierStatus404,
+  CapGetAlertByIdentifierStatus422,
+} from "./CapGetAlertByIdentifier.js";
+export type {
   CapGetAlertsOptions,
   CapGetAlertsQuery,
   CapGetAlertsResponse,
@@ -1883,6 +1921,15 @@ export type {
   CapGetFeedsStatus403,
   CapGetFeedsStatus422,
 } from "./CapGetFeeds.js";
+export type {
+  CapGetGmsCatalogueOptions,
+  CapGetGmsCatalogueResponse,
+  CapGetGmsCatalogueResponses,
+  CapGetGmsCatalogueStatus200,
+  CapGetGmsCatalogueStatus401,
+  CapGetGmsCatalogueStatus403,
+  CapGetGmsCatalogueStatus422,
+} from "./CapGetGmsCatalogue.js";
 export type {
   CapGetHazardProfilesOptions,
   CapGetHazardProfilesResponse,
@@ -1965,6 +2012,7 @@ export type {
   CapGetRssStatus200,
   CapGetRssStatus422,
 } from "./CapGetRss.js";
+export type { CapHazardGroupPublic } from "./CapHazardGroupPublic.js";
 export type {
   CapImportAlertBody,
   CapImportAlertOptions,
@@ -1979,13 +2027,27 @@ export type { CapInfoCreate } from "./CapInfoCreate.js";
 export type { CapInfoPublic } from "./CapInfoPublic.js";
 export type { CapIntegrationStatus } from "./CapIntegrationStatus.js";
 export { capIntegrationStatus } from "./CapIntegrationStatus.js";
+export type {
+  CapIssueAlertUpdateOptions,
+  CapIssueAlertUpdatePath,
+  CapIssueAlertUpdateResponse,
+  CapIssueAlertUpdateResponses,
+  CapIssueAlertUpdateStatus201,
+  CapIssueAlertUpdateStatus401,
+  CapIssueAlertUpdateStatus403,
+  CapIssueAlertUpdateStatus404,
+  CapIssueAlertUpdateStatus409,
+  CapIssueAlertUpdateStatus422,
+} from "./CapIssueAlertUpdate.js";
 export type { CapLifecycleState } from "./CapLifecycleState.js";
 export { capLifecycleState } from "./CapLifecycleState.js";
 export type { CapMessageType } from "./CapMessageType.js";
 export { capMessageType } from "./CapMessageType.js";
 export type { CapNameValue } from "./CapNameValue.js";
+export type { CapParishPublic } from "./CapParishPublic.js";
 export type { CapPredefinedAreaCreate } from "./CapPredefinedAreaCreate.js";
 export type { CapPredefinedAreaPublic } from "./CapPredefinedAreaPublic.js";
+export type { CapProductRulePublic } from "./CapProductRulePublic.js";
 export type { CapProfileCellText } from "./CapProfileCellText.js";
 export type { CapProfileCellTextPropertiesImpactEnum } from "./CapProfileCellTextPropertiesImpactEnum.js";
 export { capProfileCellTextPropertiesImpactEnum } from "./CapProfileCellTextPropertiesImpactEnum.js";
@@ -2009,6 +2071,7 @@ export { capProfileRulePropertiesOperatorEnum } from "./CapProfileRuleProperties
 export type { CapProfileSave } from "./CapProfileSave.js";
 export type { CapProfileSubtype } from "./CapProfileSubtype.js";
 export type { CapProfileTemplate } from "./CapProfileTemplate.js";
+export type { CapPublishAction } from "./CapPublishAction.js";
 export type {
   CapPublishAlertBody,
   CapPublishAlertOptions,
@@ -2369,6 +2432,13 @@ export { dataFormat } from "./DataFormat.js";
 export type { DataParameter } from "./DataParameter.js";
 export { dataParameter } from "./DataParameter.js";
 export type { DataRequestCreate } from "./DataRequestCreate.js";
+export type { DeductionCategory } from "./DeductionCategory.js";
+export { deductionCategory } from "./DeductionCategory.js";
+export type { DeductionKind } from "./DeductionKind.js";
+export { deductionKind } from "./DeductionKind.js";
+export type { DeductionLinePublic } from "./DeductionLinePublic.js";
+export type { DeductionTypeCreate } from "./DeductionTypeCreate.js";
+export type { DeductionTypePublic } from "./DeductionTypePublic.js";
 export type { DeliveryAdmin } from "./DeliveryAdmin.js";
 export type { DeliveryAdminList } from "./DeliveryAdminList.js";
 export type { DeliveryAdminPropertiesStatusEnum } from "./DeliveryAdminPropertiesStatusEnum.js";
@@ -2401,12 +2471,20 @@ export type { EmailConfirm } from "./EmailConfirm.js";
 export type { EmailRequest } from "./EmailRequest.js";
 export type { EmergencyContactPublic } from "./EmergencyContactPublic.js";
 export type { EmergencyContactUpdate } from "./EmergencyContactUpdate.js";
+export type { EmployeeBasicPayCreate } from "./EmployeeBasicPayCreate.js";
+export type { EmployeeBasicPayPublic } from "./EmployeeBasicPayPublic.js";
+export type { EmployeeBasicPaysPublic } from "./EmployeeBasicPaysPublic.js";
+export type { EmployeeDeductionCreate } from "./EmployeeDeductionCreate.js";
+export type { EmployeeDeductionPublic } from "./EmployeeDeductionPublic.js";
+export type { EmployeeDeductionsPublic } from "./EmployeeDeductionsPublic.js";
 export type { EmployeeDocumentListPublic } from "./EmployeeDocumentListPublic.js";
 export type { EmployeeDocumentPublic } from "./EmployeeDocumentPublic.js";
 export type { EmployeeDocumentUpdate } from "./EmployeeDocumentUpdate.js";
+export type { EmployeeGrossPublic } from "./EmployeeGrossPublic.js";
 export type { EmployeePayProfilePublic } from "./EmployeePayProfilePublic.js";
 export type { EmployeePayProfilesPublic } from "./EmployeePayProfilesPublic.js";
 export type { EmployeePayProfileUpdate } from "./EmployeePayProfileUpdate.js";
+export type { EmployeePaySummary } from "./EmployeePaySummary.js";
 export type { EmploymentAdminUpdate } from "./EmploymentAdminUpdate.js";
 export type { EmploymentCreate } from "./EmploymentCreate.js";
 export type { EmploymentPublic } from "./EmploymentPublic.js";
@@ -3703,6 +3781,7 @@ export { forecastSourcePropertiesKindEnum } from "./ForecastSourcePropertiesKind
 export type { Frequency } from "./Frequency.js";
 export type { Gender } from "./Gender.js";
 export { gender } from "./Gender.js";
+export type { GmsCataloguePublic } from "./GmsCataloguePublic.js";
 export type { GmsColour } from "./GmsColour.js";
 export { gmsColour } from "./GmsColour.js";
 export type { GoogleChallengePublic } from "./GoogleChallengePublic.js";
@@ -3798,6 +3877,19 @@ export type {
   HrApprovePayPeriodStatus409,
   HrApprovePayPeriodStatus422,
 } from "./HrApprovePayPeriod.js";
+export type {
+  HrApprovePayPeriodForIssueOptions,
+  HrApprovePayPeriodForIssuePath,
+  HrApprovePayPeriodForIssueResponse,
+  HrApprovePayPeriodForIssueResponses,
+  HrApprovePayPeriodForIssueStatus200,
+  HrApprovePayPeriodForIssueStatus400,
+  HrApprovePayPeriodForIssueStatus401,
+  HrApprovePayPeriodForIssueStatus403,
+  HrApprovePayPeriodForIssueStatus404,
+  HrApprovePayPeriodForIssueStatus409,
+  HrApprovePayPeriodForIssueStatus422,
+} from "./HrApprovePayPeriodForIssue.js";
 export type {
   HrApproveStaffRegistrationOptions,
   HrApproveStaffRegistrationPath,
@@ -3925,6 +4017,19 @@ export type {
   HrComputePayPeriodStatus422,
 } from "./HrComputePayPeriod.js";
 export type {
+  HrConfirmMyDeductionOptions,
+  HrConfirmMyDeductionPath,
+  HrConfirmMyDeductionResponse,
+  HrConfirmMyDeductionResponses,
+  HrConfirmMyDeductionStatus200,
+  HrConfirmMyDeductionStatus400,
+  HrConfirmMyDeductionStatus401,
+  HrConfirmMyDeductionStatus403,
+  HrConfirmMyDeductionStatus404,
+  HrConfirmMyDeductionStatus409,
+  HrConfirmMyDeductionStatus422,
+} from "./HrConfirmMyDeduction.js";
+export type {
   HrCreateAbsenteeReportBody,
   HrCreateAbsenteeReportOptions,
   HrCreateAbsenteeReportResponse,
@@ -3956,6 +4061,19 @@ export type {
   HrCreateClockSiteStatus422,
 } from "./HrCreateClockSite.js";
 export type {
+  HrCreateDeductionTypeBody,
+  HrCreateDeductionTypeOptions,
+  HrCreateDeductionTypeResponse,
+  HrCreateDeductionTypeResponses,
+  HrCreateDeductionTypeStatus201,
+  HrCreateDeductionTypeStatus400,
+  HrCreateDeductionTypeStatus401,
+  HrCreateDeductionTypeStatus403,
+  HrCreateDeductionTypeStatus404,
+  HrCreateDeductionTypeStatus409,
+  HrCreateDeductionTypeStatus422,
+} from "./HrCreateDeductionType.js";
+export type {
   HrCreateDepartmentBody,
   HrCreateDepartmentOptions,
   HrCreateDepartmentResponse,
@@ -3965,6 +4083,32 @@ export type {
   HrCreateDepartmentStatus403,
   HrCreateDepartmentStatus422,
 } from "./HrCreateDepartment.js";
+export type {
+  HrCreateEmployeeBasicPayBody,
+  HrCreateEmployeeBasicPayOptions,
+  HrCreateEmployeeBasicPayResponse,
+  HrCreateEmployeeBasicPayResponses,
+  HrCreateEmployeeBasicPayStatus201,
+  HrCreateEmployeeBasicPayStatus400,
+  HrCreateEmployeeBasicPayStatus401,
+  HrCreateEmployeeBasicPayStatus403,
+  HrCreateEmployeeBasicPayStatus404,
+  HrCreateEmployeeBasicPayStatus409,
+  HrCreateEmployeeBasicPayStatus422,
+} from "./HrCreateEmployeeBasicPay.js";
+export type {
+  HrCreateEmployeeDeductionBody,
+  HrCreateEmployeeDeductionOptions,
+  HrCreateEmployeeDeductionResponse,
+  HrCreateEmployeeDeductionResponses,
+  HrCreateEmployeeDeductionStatus201,
+  HrCreateEmployeeDeductionStatus400,
+  HrCreateEmployeeDeductionStatus401,
+  HrCreateEmployeeDeductionStatus403,
+  HrCreateEmployeeDeductionStatus404,
+  HrCreateEmployeeDeductionStatus409,
+  HrCreateEmployeeDeductionStatus422,
+} from "./HrCreateEmployeeDeduction.js";
 export type {
   HrCreateHolidayBody,
   HrCreateHolidayOptions,
@@ -4043,6 +4187,19 @@ export type {
   HrCreatePayCalendarStatus422,
 } from "./HrCreatePayCalendar.js";
 export type {
+  HrCreatePayItemRateBody,
+  HrCreatePayItemRateOptions,
+  HrCreatePayItemRateResponse,
+  HrCreatePayItemRateResponses,
+  HrCreatePayItemRateStatus201,
+  HrCreatePayItemRateStatus400,
+  HrCreatePayItemRateStatus401,
+  HrCreatePayItemRateStatus403,
+  HrCreatePayItemRateStatus404,
+  HrCreatePayItemRateStatus409,
+  HrCreatePayItemRateStatus422,
+} from "./HrCreatePayItemRate.js";
+export type {
   HrCreatePayLineBody,
   HrCreatePayLineOptions,
   HrCreatePayLinePath,
@@ -4100,6 +4257,19 @@ export type {
   HrCreateShiftSwapStatus422,
 } from "./HrCreateShiftSwap.js";
 export type {
+  HrCreateSocialInsuranceSchemeBody,
+  HrCreateSocialInsuranceSchemeOptions,
+  HrCreateSocialInsuranceSchemeResponse,
+  HrCreateSocialInsuranceSchemeResponses,
+  HrCreateSocialInsuranceSchemeStatus201,
+  HrCreateSocialInsuranceSchemeStatus400,
+  HrCreateSocialInsuranceSchemeStatus401,
+  HrCreateSocialInsuranceSchemeStatus403,
+  HrCreateSocialInsuranceSchemeStatus404,
+  HrCreateSocialInsuranceSchemeStatus409,
+  HrCreateSocialInsuranceSchemeStatus422,
+} from "./HrCreateSocialInsuranceScheme.js";
+export type {
   HrCreateStatusReportBody,
   HrCreateStatusReportOptions,
   HrCreateStatusReportResponse,
@@ -4109,6 +4279,19 @@ export type {
   HrCreateStatusReportStatus403,
   HrCreateStatusReportStatus422,
 } from "./HrCreateStatusReport.js";
+export type {
+  HrCreateTaxTableBody,
+  HrCreateTaxTableOptions,
+  HrCreateTaxTableResponse,
+  HrCreateTaxTableResponses,
+  HrCreateTaxTableStatus201,
+  HrCreateTaxTableStatus400,
+  HrCreateTaxTableStatus401,
+  HrCreateTaxTableStatus403,
+  HrCreateTaxTableStatus404,
+  HrCreateTaxTableStatus409,
+  HrCreateTaxTableStatus422,
+} from "./HrCreateTaxTable.js";
 export type {
   HrCreateTemplateBody,
   HrCreateTemplateOptions,
@@ -4172,6 +4355,17 @@ export type {
   HrDeleteDepartmentRuleSetStatus403,
   HrDeleteDepartmentRuleSetStatus422,
 } from "./HrDeleteDepartmentRuleSet.js";
+export type {
+  HrDeleteDraftTimesheetOptions,
+  HrDeleteDraftTimesheetPath,
+  HrDeleteDraftTimesheetResponse,
+  HrDeleteDraftTimesheetResponses,
+  HrDeleteDraftTimesheetStatus204,
+  HrDeleteDraftTimesheetStatus400,
+  HrDeleteDraftTimesheetStatus403,
+  HrDeleteDraftTimesheetStatus404,
+  HrDeleteDraftTimesheetStatus422,
+} from "./HrDeleteDraftTimesheet.js";
 export type {
   HrDeleteLeaveRequestOptions,
   HrDeleteLeaveRequestPath,
@@ -4250,6 +4444,32 @@ export type {
   HrDownloadSignedDocumentStatus404,
   HrDownloadSignedDocumentStatus422,
 } from "./HrDownloadSignedDocument.js";
+export type {
+  HrExportBankTransferCsvOptions,
+  HrExportBankTransferCsvPath,
+  HrExportBankTransferCsvResponse,
+  HrExportBankTransferCsvResponses,
+  HrExportBankTransferCsvStatus200,
+  HrExportBankTransferCsvStatus400,
+  HrExportBankTransferCsvStatus401,
+  HrExportBankTransferCsvStatus403,
+  HrExportBankTransferCsvStatus404,
+  HrExportBankTransferCsvStatus409,
+  HrExportBankTransferCsvStatus422,
+} from "./HrExportBankTransferCsv.js";
+export type {
+  HrExportGlJournalCsvOptions,
+  HrExportGlJournalCsvPath,
+  HrExportGlJournalCsvResponse,
+  HrExportGlJournalCsvResponses,
+  HrExportGlJournalCsvStatus200,
+  HrExportGlJournalCsvStatus400,
+  HrExportGlJournalCsvStatus401,
+  HrExportGlJournalCsvStatus403,
+  HrExportGlJournalCsvStatus404,
+  HrExportGlJournalCsvStatus409,
+  HrExportGlJournalCsvStatus422,
+} from "./HrExportGlJournalCsv.js";
 export type {
   HrExportPayPeriodCsvOptions,
   HrExportPayPeriodCsvPath,
@@ -4499,6 +4719,59 @@ export type {
   HrGetPayPeriodStatus409,
   HrGetPayPeriodStatus422,
 } from "./HrGetPayPeriod.js";
+export type {
+  HrGetPayPeriodAmountsOptions,
+  HrGetPayPeriodAmountsPath,
+  HrGetPayPeriodAmountsResponse,
+  HrGetPayPeriodAmountsResponses,
+  HrGetPayPeriodAmountsStatus200,
+  HrGetPayPeriodAmountsStatus400,
+  HrGetPayPeriodAmountsStatus401,
+  HrGetPayPeriodAmountsStatus403,
+  HrGetPayPeriodAmountsStatus404,
+  HrGetPayPeriodAmountsStatus409,
+  HrGetPayPeriodAmountsStatus422,
+} from "./HrGetPayPeriodAmounts.js";
+export type {
+  HrGetPayPeriodSummaryOptions,
+  HrGetPayPeriodSummaryPath,
+  HrGetPayPeriodSummaryResponse,
+  HrGetPayPeriodSummaryResponses,
+  HrGetPayPeriodSummaryStatus200,
+  HrGetPayPeriodSummaryStatus400,
+  HrGetPayPeriodSummaryStatus401,
+  HrGetPayPeriodSummaryStatus403,
+  HrGetPayPeriodSummaryStatus404,
+  HrGetPayPeriodSummaryStatus409,
+  HrGetPayPeriodSummaryStatus422,
+} from "./HrGetPayPeriodSummary.js";
+export type {
+  HrGetPayrollExportSettingsOptions,
+  HrGetPayrollExportSettingsQuery,
+  HrGetPayrollExportSettingsResponse,
+  HrGetPayrollExportSettingsResponses,
+  HrGetPayrollExportSettingsStatus200,
+  HrGetPayrollExportSettingsStatus400,
+  HrGetPayrollExportSettingsStatus401,
+  HrGetPayrollExportSettingsStatus403,
+  HrGetPayrollExportSettingsStatus404,
+  HrGetPayrollExportSettingsStatus409,
+  HrGetPayrollExportSettingsStatus422,
+} from "./HrGetPayrollExportSettings.js";
+export type {
+  HrGetPayslipPdfOptions,
+  HrGetPayslipPdfPath,
+  HrGetPayslipPdfResponse,
+  HrGetPayslipPdfResponses,
+  HrGetPayslipPdfStatus200,
+  HrGetPayslipPdfStatus400,
+  HrGetPayslipPdfStatus401,
+  HrGetPayslipPdfStatus403,
+  HrGetPayslipPdfStatus404,
+  HrGetPayslipPdfStatus409,
+  HrGetPayslipPdfStatus422,
+  HrGetPayslipPdfStatus429,
+} from "./HrGetPayslipPdf.js";
 export type {
   HrGetPeriodOptions,
   HrGetPeriodPath,
@@ -4823,6 +5096,32 @@ export type {
   HrListDepartmentsStatus422,
 } from "./HrListDepartments.js";
 export type {
+  HrListEmployeeBasicPayOptions,
+  HrListEmployeeBasicPayQuery,
+  HrListEmployeeBasicPayResponse,
+  HrListEmployeeBasicPayResponses,
+  HrListEmployeeBasicPayStatus200,
+  HrListEmployeeBasicPayStatus400,
+  HrListEmployeeBasicPayStatus401,
+  HrListEmployeeBasicPayStatus403,
+  HrListEmployeeBasicPayStatus404,
+  HrListEmployeeBasicPayStatus409,
+  HrListEmployeeBasicPayStatus422,
+} from "./HrListEmployeeBasicPay.js";
+export type {
+  HrListEmployeeDeductionsOptions,
+  HrListEmployeeDeductionsQuery,
+  HrListEmployeeDeductionsResponse,
+  HrListEmployeeDeductionsResponses,
+  HrListEmployeeDeductionsStatus200,
+  HrListEmployeeDeductionsStatus400,
+  HrListEmployeeDeductionsStatus401,
+  HrListEmployeeDeductionsStatus403,
+  HrListEmployeeDeductionsStatus404,
+  HrListEmployeeDeductionsStatus409,
+  HrListEmployeeDeductionsStatus422,
+} from "./HrListEmployeeDeductions.js";
+export type {
   HrListEmployeePayProfilesOptions,
   HrListEmployeePayProfilesQuery,
   HrListEmployeePayProfilesResponse,
@@ -4844,6 +5143,30 @@ export type {
   HrListHolidaysStatus403,
   HrListHolidaysStatus422,
 } from "./HrListHolidays.js";
+export type {
+  HrListMyDeductionsOptions,
+  HrListMyDeductionsResponse,
+  HrListMyDeductionsResponses,
+  HrListMyDeductionsStatus200,
+  HrListMyDeductionsStatus400,
+  HrListMyDeductionsStatus401,
+  HrListMyDeductionsStatus403,
+  HrListMyDeductionsStatus404,
+  HrListMyDeductionsStatus409,
+  HrListMyDeductionsStatus422,
+} from "./HrListMyDeductions.js";
+export type {
+  HrListMyPayslipsOptions,
+  HrListMyPayslipsResponse,
+  HrListMyPayslipsResponses,
+  HrListMyPayslipsStatus200,
+  HrListMyPayslipsStatus400,
+  HrListMyPayslipsStatus401,
+  HrListMyPayslipsStatus403,
+  HrListMyPayslipsStatus404,
+  HrListMyPayslipsStatus409,
+  HrListMyPayslipsStatus422,
+} from "./HrListMyPayslips.js";
 export type {
   HrListMyShiftSwapsOptions,
   HrListMyShiftSwapsQuery,
@@ -4867,6 +5190,19 @@ export type {
   HrListPayCalendarsStatus409,
   HrListPayCalendarsStatus422,
 } from "./HrListPayCalendars.js";
+export type {
+  HrListPayItemRatesOptions,
+  HrListPayItemRatesQuery,
+  HrListPayItemRatesResponse,
+  HrListPayItemRatesResponses,
+  HrListPayItemRatesStatus200,
+  HrListPayItemRatesStatus400,
+  HrListPayItemRatesStatus401,
+  HrListPayItemRatesStatus403,
+  HrListPayItemRatesStatus404,
+  HrListPayItemRatesStatus409,
+  HrListPayItemRatesStatus422,
+} from "./HrListPayItemRates.js";
 export type {
   HrListPayItemsOptions,
   HrListPayItemsQuery,
@@ -4930,6 +5266,19 @@ export type {
   HrListPendingClockPunchesStatus422,
 } from "./HrListPendingClockPunches.js";
 export type {
+  HrListPeriodPayslipsOptions,
+  HrListPeriodPayslipsPath,
+  HrListPeriodPayslipsResponse,
+  HrListPeriodPayslipsResponses,
+  HrListPeriodPayslipsStatus200,
+  HrListPeriodPayslipsStatus400,
+  HrListPeriodPayslipsStatus401,
+  HrListPeriodPayslipsStatus403,
+  HrListPeriodPayslipsStatus404,
+  HrListPeriodPayslipsStatus409,
+  HrListPeriodPayslipsStatus422,
+} from "./HrListPeriodPayslips.js";
+export type {
   HrListPeriodsOptions,
   HrListPeriodsQuery,
   HrListPeriodsResponse,
@@ -4966,6 +5315,19 @@ export type {
   HrListShiftCatalogStatus403,
   HrListShiftCatalogStatus422,
 } from "./HrListShiftCatalog.js";
+export type {
+  HrListStatutoryTablesOptions,
+  HrListStatutoryTablesQuery,
+  HrListStatutoryTablesResponse,
+  HrListStatutoryTablesResponses,
+  HrListStatutoryTablesStatus200,
+  HrListStatutoryTablesStatus400,
+  HrListStatutoryTablesStatus401,
+  HrListStatutoryTablesStatus403,
+  HrListStatutoryTablesStatus404,
+  HrListStatutoryTablesStatus409,
+  HrListStatutoryTablesStatus422,
+} from "./HrListStatutoryTables.js";
 export type {
   HrLoadProvisionalHolidaysBody,
   HrLoadProvisionalHolidaysOptions,
@@ -5143,6 +5505,19 @@ export type {
   HrPutRuleProfileStatus422,
 } from "./HrPutRuleProfile.js";
 export type {
+  HrRefreshPayPeriodTableStateOptions,
+  HrRefreshPayPeriodTableStatePath,
+  HrRefreshPayPeriodTableStateResponse,
+  HrRefreshPayPeriodTableStateResponses,
+  HrRefreshPayPeriodTableStateStatus200,
+  HrRefreshPayPeriodTableStateStatus400,
+  HrRefreshPayPeriodTableStateStatus401,
+  HrRefreshPayPeriodTableStateStatus403,
+  HrRefreshPayPeriodTableStateStatus404,
+  HrRefreshPayPeriodTableStateStatus409,
+  HrRefreshPayPeriodTableStateStatus422,
+} from "./HrRefreshPayPeriodTableState.js";
+export type {
   HrRejectClockPunchBody,
   HrRejectClockPunchOptions,
   HrRejectClockPunchPath,
@@ -5245,6 +5620,20 @@ export type {
   HrSetClockSiteActiveStatus404,
   HrSetClockSiteActiveStatus422,
 } from "./HrSetClockSiteActive.js";
+export type {
+  HrSetStatutoryTableStateBody,
+  HrSetStatutoryTableStateOptions,
+  HrSetStatutoryTableStatePath,
+  HrSetStatutoryTableStateResponse,
+  HrSetStatutoryTableStateResponses,
+  HrSetStatutoryTableStateStatus200,
+  HrSetStatutoryTableStateStatus400,
+  HrSetStatutoryTableStateStatus401,
+  HrSetStatutoryTableStateStatus403,
+  HrSetStatutoryTableStateStatus404,
+  HrSetStatutoryTableStateStatus409,
+  HrSetStatutoryTableStateStatus422,
+} from "./HrSetStatutoryTableState.js";
 export type {
   HrSubmitAbsenteeReportBody,
   HrSubmitAbsenteeReportOptions,
@@ -5478,6 +5867,19 @@ export type {
   HrUpdatePayrollDepartmentSettingStatus409,
   HrUpdatePayrollDepartmentSettingStatus422,
 } from "./HrUpdatePayrollDepartmentSetting.js";
+export type {
+  HrUpdatePayrollExportSettingsBody,
+  HrUpdatePayrollExportSettingsOptions,
+  HrUpdatePayrollExportSettingsResponse,
+  HrUpdatePayrollExportSettingsResponses,
+  HrUpdatePayrollExportSettingsStatus200,
+  HrUpdatePayrollExportSettingsStatus400,
+  HrUpdatePayrollExportSettingsStatus401,
+  HrUpdatePayrollExportSettingsStatus403,
+  HrUpdatePayrollExportSettingsStatus404,
+  HrUpdatePayrollExportSettingsStatus409,
+  HrUpdatePayrollExportSettingsStatus422,
+} from "./HrUpdatePayrollExportSettings.js";
 export type {
   HrUpdateProductPolicyBody,
   HrUpdateProductPolicyOptions,
@@ -6129,6 +6531,8 @@ export type {
 } from "./ModelsListOrganisations.js";
 export type { MovementKind } from "./MovementKind.js";
 export { movementKind } from "./MovementKind.js";
+export type { MyDeductionPublic } from "./MyDeductionPublic.js";
+export type { MyDeductionsPublic } from "./MyDeductionsPublic.js";
 export type { MyMembershipPublic } from "./MyMembershipPublic.js";
 export type { MyProfile } from "./MyProfile.js";
 export type { MyProfilePropertiesIntentsItemsEnum } from "./MyProfilePropertiesIntentsItemsEnum.js";
@@ -6861,6 +7265,8 @@ export type { ParkingPermitPublic } from "./ParkingPermitPublic.js";
 export type { ParkingPermitSubmit } from "./ParkingPermitSubmit.js";
 export type { PassportStopPublic } from "./PassportStopPublic.js";
 export type { PassportTrailPublic } from "./PassportTrailPublic.js";
+export type { PayBasis } from "./PayBasis.js";
+export { payBasis } from "./PayBasis.js";
 export type { PayCalendarCreate } from "./PayCalendarCreate.js";
 export type { PayCalendarPublic } from "./PayCalendarPublic.js";
 export type { PayCalendarsPublic } from "./PayCalendarsPublic.js";
@@ -6871,10 +7277,14 @@ export { payItemKind } from "./PayItemKind.js";
 export type { PayItemMethod } from "./PayItemMethod.js";
 export { payItemMethod } from "./PayItemMethod.js";
 export type { PayItemPublic } from "./PayItemPublic.js";
+export type { PayItemRateCreate } from "./PayItemRateCreate.js";
+export type { PayItemRatePublic } from "./PayItemRatePublic.js";
+export type { PayItemRatesPublic } from "./PayItemRatesPublic.js";
 export type { PayItemsPublic } from "./PayItemsPublic.js";
 export type { PayItemTotal } from "./PayItemTotal.js";
 export type { PayItemUnit } from "./PayItemUnit.js";
 export { payItemUnit } from "./PayItemUnit.js";
+export type { PayLineAmountPublic } from "./PayLineAmountPublic.js";
 export type { PayLineKind } from "./PayLineKind.js";
 export { payLineKind } from "./PayLineKind.js";
 export type { PayLineManualCreate } from "./PayLineManualCreate.js";
@@ -7043,6 +7453,7 @@ export type {
   PaymentsRecordManualPaymentStatus409,
   PaymentsRecordManualPaymentStatus422,
 } from "./PaymentsRecordManualPayment.js";
+export type { PayPeriodAmountsPublic } from "./PayPeriodAmountsPublic.js";
 export type { PayPeriodCreate } from "./PayPeriodCreate.js";
 export type { PayPeriodDetail } from "./PayPeriodDetail.js";
 export type { PayPeriodPublic } from "./PayPeriodPublic.js";
@@ -7056,6 +7467,11 @@ export { payRunKind } from "./PayRunKind.js";
 export type { PayrollDepartmentSettingPublic } from "./PayrollDepartmentSettingPublic.js";
 export type { PayrollDepartmentSettingsPublic } from "./PayrollDepartmentSettingsPublic.js";
 export type { PayrollDepartmentSettingUpdate } from "./PayrollDepartmentSettingUpdate.js";
+export type { PayrollExportSettingsPublic } from "./PayrollExportSettingsPublic.js";
+export type { PayrollExportSettingsUpdate } from "./PayrollExportSettingsUpdate.js";
+export type { PaySummaryPublic } from "./PaySummaryPublic.js";
+export type { PayslipPublic } from "./PayslipPublic.js";
+export type { PayslipsPublic } from "./PayslipsPublic.js";
 export type { PermissionCreate } from "./PermissionCreate.js";
 export type { PermissionPublic } from "./PermissionPublic.js";
 export type { PersonChip } from "./PersonChip.js";
@@ -7168,6 +7584,8 @@ export type {
 } from "./PushVapidPublicKey.js";
 export type { QcDecisionBody } from "./QcDecisionBody.js";
 export type { QcDecisionRequest } from "./QcDecisionRequest.js";
+export type { RateKind } from "./RateKind.js";
+export { rateKind } from "./RateKind.js";
 export type { ReadinessUnavailable } from "./ReadinessUnavailable.js";
 export type { ReceivableRowPublic } from "./ReceivableRowPublic.js";
 export type { ReceivablesPublic } from "./ReceivablesPublic.js";
@@ -7916,7 +8334,10 @@ export type { SignatureInput } from "./SignatureInput.js";
 export type { SignaturePublic } from "./SignaturePublic.js";
 export type { SignedDocumentList } from "./SignedDocumentList.js";
 export type { SignedDocumentPublic } from "./SignedDocumentPublic.js";
+export type { SignInSetupIssue } from "./SignInSetupIssue.js";
 export type { SiteSubscribeRequest } from "./SiteSubscribeRequest.js";
+export type { SocialInsuranceSchemeCreate } from "./SocialInsuranceSchemeCreate.js";
+export type { SocialInsuranceSchemePublic } from "./SocialInsuranceSchemePublic.js";
 export type { StaffCard } from "./StaffCard.js";
 export type { StaffCreate } from "./StaffCreate.js";
 export type { StaffEventRow } from "./StaffEventRow.js";
@@ -7945,6 +8366,7 @@ export type { StatusReportPublic } from "./StatusReportPublic.js";
 export type { StatusReportSubmit } from "./StatusReportSubmit.js";
 export type { StatusStaffingEntry } from "./StatusStaffingEntry.js";
 export type { StatusStaffingPublic } from "./StatusStaffingPublic.js";
+export type { StatutoryTablesPublic } from "./StatutoryTablesPublic.js";
 export type { StockLevelListPublic } from "./StockLevelListPublic.js";
 export type { StockLevelPublic } from "./StockLevelPublic.js";
 export type { StockMovementCreate } from "./StockMovementCreate.js";
@@ -8346,9 +8768,19 @@ export type { SynopValidationIssue } from "./SynopValidationIssue.js";
 export type { SynopValidationRequest } from "./SynopValidationRequest.js";
 export type { SynopValidationResponse } from "./SynopValidationResponse.js";
 export type { SynopWorkbook } from "./SynopWorkbook.js";
+export type { TableState } from "./TableState.js";
+export { tableState } from "./TableState.js";
+export type { TableStatePublic } from "./TableStatePublic.js";
+export type { TableStateUpdate } from "./TableStateUpdate.js";
 export type { TaskCreate } from "./TaskCreate.js";
 export type { TaskUpdate } from "./TaskUpdate.js";
 export type { TaskView } from "./TaskView.js";
+export type { TaxBandCreate } from "./TaxBandCreate.js";
+export type { TaxBandPublic } from "./TaxBandPublic.js";
+export type { TaxMethod } from "./TaxMethod.js";
+export { taxMethod } from "./TaxMethod.js";
+export type { TaxTableCreate } from "./TaxTableCreate.js";
+export type { TaxTablePublic } from "./TaxTablePublic.js";
 export type { TeamCapabilitiesPublic } from "./TeamCapabilitiesPublic.js";
 export type { TeamMemberGrantPublic } from "./TeamMemberGrantPublic.js";
 export type { TeamMemberListPublic } from "./TeamMemberListPublic.js";

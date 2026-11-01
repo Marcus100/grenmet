@@ -58,6 +58,37 @@ def fernet_keys(environment, name):
     return keys
 
 
+PAYSLIP_KEY_ID = re.compile(r"[A-Za-z0-9_-]{1,32}")
+# A deploy-safe subset: the value is written into a quoted env file and passed
+# through compose interpolation, so no quotes, "$", backslashes or spaces.
+PAYSLIP_KEY_SECRET = re.compile(r"[A-Za-z0-9._~+/=-]{32,}")
+
+
+def payslip_hmac_keys(environment):
+    """Optional keyid:secret pairs, comma separated, current key first.
+
+    Unset is allowed (the API then refuses to issue payslips). The error names
+    the entry position only and never echoes a key id or secret.
+    """
+    raw = (environment.get("PAYSLIP_HMAC_KEYS", "") or "").strip()
+    if not raw:
+        return ""
+    seen = set()
+    for position, item in enumerate(raw.split(","), start=1):
+        key_id, separator, secret = item.strip().partition(":")
+        if not separator or not PAYSLIP_KEY_ID.fullmatch(key_id):
+            raise ValueError(f"PAYSLIP_HMAC_KEYS entry {position} must look like keyid:secret") from None
+        if not PAYSLIP_KEY_SECRET.fullmatch(secret):
+            raise ValueError(
+                f"PAYSLIP_HMAC_KEYS entry {position} needs a secret of at least 32 "
+                "letters, digits or . _ ~ + / = -"
+            ) from None
+        if key_id in seen:
+            raise ValueError(f"PAYSLIP_HMAC_KEYS entry {position} repeats a key id") from None
+        seen.add(key_id)
+    return ",".join(item.strip() for item in raw.split(","))
+
+
 # Edge settings for CLOUDFLARE_PROXY_ENABLED (docs/operations/cloudflare-proxy.md).
 # Off is Traefik's own default (forwarded headers trusted from nobody) and the
 # existing TLS challenge, so an unset switch changes nothing. On, all four move
@@ -144,11 +175,11 @@ def render(config, environment):
     # API ignores a shorter value, which silently pools all visitors in one bucket.
     if len(values["TRUSTED_WEB_SECRET"]) < 32:
         raise ValueError("TRUSTED_WEB_SECRET must contain at least 32 characters")
-    for key in ['WXWATCH_INGEST_TOKEN', 'GOOGLE_CLIENT_ID', 'GOOGLE_CLIENT_SECRET', 'SENTRY_DSN', 'STORAGE_ENDPOINT_URL', 'STORAGE_REGION', 'STORAGE_BUCKET', 'STORAGE_ACCESS_KEY_ID', 'STORAGE_SECRET_ACCESS_KEY', 'STORAGE_PUBLIC_BASE_URL', 'BILLING_STRIPE_SECRET_KEY', 'BILLING_STRIPE_WEBHOOK_SECRET', 'BILLING_STRIPE_PRICE_ID', 'BILLING_CHECKOUT_SUCCESS_URL', 'BILLING_CHECKOUT_CANCEL_URL', 'RESEND_WEBHOOK_SECRET', 'EMAIL_RENDER_SECRET', 'NEXT_PUBLIC_POSTHOG_KEY', 'NEXT_PUBLIC_POSTHOG_HOST', 'CAP_SIGNING_CERT', 'CAP_SIGNING_KEY', 'CAP_SIGNING_KEY_REF', 'EVENTS_SSO_CLIENT_SECRET', 'WEATHER_SSO_CLIENT_SECRET', 'MBIA_SSO_CLIENT_SECRET', 'SIGNAL_SSO_CLIENT_SECRET', 'DOCS_SSO_CLIENT_SECRET', 'ELECTIONS_SSO_CLIENT_SECRET', 'MBIA_CONTACT_RECIPIENT', 'BARRELS_CONTACT_RECIPIENT', 'GMS_DATA_REQUEST_RECIPIENT', 'TURNSTILE_ENABLED', 'TURNSTILE_SECRET_KEY', 'EMAIL_HASH_PEPPER', 'EREGISTER_OBS_RECIPIENTS', 'EREGISTER_SEND_REQUIRE_ACCEPTED', 'WIS2BOX_S3_ENDPOINT_URL', 'WIS2BOX_S3_BUCKET', 'WIS2BOX_TOPIC_HIERARCHY', 'FLIGHTS_OPENSKY_ENABLED', 'WIS2BOX_S3_ACCESS_KEY_ID', 'WIS2BOX_S3_SECRET_ACCESS_KEY', 'OPENSKY_CLIENT_ID', 'OPENSKY_CLIENT_SECRET', 'COPERNICUSMARINE_SERVICE_USERNAME', 'COPERNICUSMARINE_SERVICE_PASSWORD', 'CDSAPI_URL', 'CDSAPI_KEY', 'WEBPUSH_VAPID_PUBLIC_KEY', 'WEBPUSH_VAPID_PRIVATE_KEY', 'WEBPUSH_CONTACT', 'GMSDASH_SSO_CLIENT_SECRET', 'BOOKINGS_SSO_CLIENT_SECRET', 'BARRELS_ADMIN_SSO_CLIENT_SECRET', 'PAYMENTS_STRIPE_SECRET_KEY', 'PAYMENTS_STRIPE_WEBHOOK_SECRET', 'PAYMENTS_STRIPE_SUCCESS_URL', 'PAYMENTS_STRIPE_CANCEL_URL', 'META_PAGE_ID', 'META_INSTAGRAM_ACCOUNT_ID', 'META_PAGE_ACCESS_TOKEN', 'SOCIAL_LINK_HOSTS', 'SOCIAL_IMAGE_HOSTS', 'CMS_DISTRIBUTION_SECRET']:
+    for key in ['WXWATCH_INGEST_TOKEN', 'GOOGLE_CLIENT_ID', 'GOOGLE_CLIENT_SECRET', 'SENTRY_DSN', 'STORAGE_ENDPOINT_URL', 'STORAGE_REGION', 'STORAGE_BUCKET', 'STORAGE_ACCESS_KEY_ID', 'STORAGE_SECRET_ACCESS_KEY', 'STORAGE_PUBLIC_BASE_URL', 'BILLING_STRIPE_SECRET_KEY', 'BILLING_STRIPE_WEBHOOK_SECRET', 'BILLING_STRIPE_PRICE_ID', 'BILLING_CHECKOUT_SUCCESS_URL', 'BILLING_CHECKOUT_CANCEL_URL', 'RESEND_WEBHOOK_SECRET', 'EMAIL_RENDER_SECRET', 'NEXT_PUBLIC_POSTHOG_KEY', 'NEXT_PUBLIC_POSTHOG_HOST', 'CAP_SIGNING_CERT', 'CAP_SIGNING_KEY', 'CAP_SIGNING_KEY_REF', 'EVENTS_SSO_CLIENT_SECRET', 'WEATHER_SSO_CLIENT_SECRET', 'MBIA_SSO_CLIENT_SECRET', 'SIGNAL_SSO_CLIENT_SECRET', 'DOCS_SSO_CLIENT_SECRET', 'ELECTIONS_SSO_CLIENT_SECRET', 'MBIA_CONTACT_RECIPIENT', 'BARRELS_CONTACT_RECIPIENT', 'GMS_DATA_REQUEST_RECIPIENT', 'TURNSTILE_ENABLED', 'TURNSTILE_SECRET_KEY', 'EMAIL_HASH_PEPPER', 'EREGISTER_OBS_RECIPIENTS', 'EREGISTER_SEND_REQUIRE_ACCEPTED', 'WIS2BOX_S3_ENDPOINT_URL', 'WIS2BOX_S3_BUCKET', 'WIS2BOX_TOPIC_HIERARCHY', 'FLIGHTS_OPENSKY_ENABLED', 'WIS2BOX_S3_ACCESS_KEY_ID', 'WIS2BOX_S3_SECRET_ACCESS_KEY', 'OPENSKY_CLIENT_ID', 'OPENSKY_CLIENT_SECRET', 'COPERNICUSMARINE_SERVICE_USERNAME', 'COPERNICUSMARINE_SERVICE_PASSWORD', 'CDSAPI_URL', 'CDSAPI_KEY', 'WEBPUSH_VAPID_PUBLIC_KEY', 'WEBPUSH_VAPID_PRIVATE_KEY', 'WEBPUSH_CONTACT', 'GMSDASH_SSO_CLIENT_SECRET', 'BOOKINGS_SSO_CLIENT_SECRET', 'BARRELS_ADMIN_SSO_CLIENT_SECRET', 'CAP_SSO_CLIENT_SECRET', 'PAYMENTS_STRIPE_SECRET_KEY', 'PAYMENTS_STRIPE_WEBHOOK_SECRET', 'PAYMENTS_STRIPE_SUCCESS_URL', 'PAYMENTS_STRIPE_CANCEL_URL', 'META_PAGE_ID', 'META_INSTAGRAM_ACCOUNT_ID', 'META_PAGE_ACCESS_TOKEN', 'SOCIAL_LINK_HOSTS', 'SOCIAL_IMAGE_HOSTS', 'CMS_DISTRIBUTION_SECRET']:
         values[key] = environment.get(key, "")
     # Single sign-on (ADR-0017): staff apps can't sign in without theirs;
     # Events stays off until its secret is set.
-    for key in ["GAA_ADMIN_SSO_CLIENT_SECRET", "CMS_SSO_CLIENT_SECRET", "EVENTS_SSO_CLIENT_SECRET", "WEATHER_SSO_CLIENT_SECRET", "MBIA_SSO_CLIENT_SECRET", "SIGNAL_SSO_CLIENT_SECRET", "DOCS_SSO_CLIENT_SECRET", "ELECTIONS_SSO_CLIENT_SECRET", "GMSDASH_SSO_CLIENT_SECRET", "BOOKINGS_SSO_CLIENT_SECRET", "BARRELS_ADMIN_SSO_CLIENT_SECRET"]:
+    for key in ["GAA_ADMIN_SSO_CLIENT_SECRET", "CMS_SSO_CLIENT_SECRET", "EVENTS_SSO_CLIENT_SECRET", "WEATHER_SSO_CLIENT_SECRET", "MBIA_SSO_CLIENT_SECRET", "SIGNAL_SSO_CLIENT_SECRET", "DOCS_SSO_CLIENT_SECRET", "ELECTIONS_SSO_CLIENT_SECRET", "GMSDASH_SSO_CLIENT_SECRET", "BOOKINGS_SSO_CLIENT_SECRET", "BARRELS_ADMIN_SSO_CLIENT_SECRET", "CAP_SSO_CLIENT_SECRET"]:
         if values[key] and len(values[key]) < 32:
             raise ValueError(f"{key} must contain at least 32 characters")
     # One secret per app: a leaked or shared value must not sign in to another app.
@@ -171,6 +202,8 @@ def render(config, environment):
     values["ORG_SECRET_ENCRYPTION_KEYS"] = json.dumps(
         fernet_keys(environment, "ORG_SECRET_ENCRYPTION_KEYS"), separators=(",", ":")
     )
+    # Payroll payslip signing keys (docs/env.md): a dedicated secret, API only.
+    values["PAYSLIP_HMAC_KEYS"] = payslip_hmac_keys(environment)
     # The payments core runs in Stripe TEST mode only (ADR-0027): a live key must
     # never reach a deployment until the owner approves a live rail.
     stripe_key = values["PAYMENTS_STRIPE_SECRET_KEY"]

@@ -25,6 +25,7 @@ from src.audit.router import router as audit_router
 from src.auth.app_router import account_router as account_apps_router
 from src.auth.app_router import router as app_auth_router
 from src.auth.browser import router as browser_auth_router
+from src.auth.lockout import rate_limit_store_warning
 from src.auth.modern import router as modern_auth_router
 from src.auth.onboarding_router import router as onboarding_router
 from src.auth.routers.login import router as login_router
@@ -323,6 +324,9 @@ OPENAPI_TAGS = [
 async def lifespan(_app: FastAPI) -> AsyncGenerator[None]:
     """Lifespan context manager for startup and shutdown (preferred over on_event)."""
     # Startup
+    store_warning = rate_limit_store_warning()
+    if store_warning:
+        logging.getLogger(__name__).warning(store_warning)
     try:
         yield
     finally:

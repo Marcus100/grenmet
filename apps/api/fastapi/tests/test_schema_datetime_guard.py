@@ -110,6 +110,7 @@ def test_json_routes_declare_response_models_and_metadata() -> None:
 
 MAP_TYPE_EXEMPTIONS = {
     "src.cap.schemas.CapAuditEventPublic.payload": "audit payload is versioned opaque event data",
+    "src.hr.payroll.schemas.PayrollExportSettingsPublic.gl_accounts": "GL account code per fixed journal key; keys validated against payslips.GL_KEYS",
     "src.hr.payroll.schemas.PayItemPublic.params": "pay rule parameters differ per method; validated by hr.payroll.rules.validate_params",
     "src.eregister.schemas.RegisterObservationCorrection.body": "WMO observation body is format-specific opaque data",
     "src.eregister.schemas.RegisterObservationCreate.body": "WMO observation body is format-specific opaque data",

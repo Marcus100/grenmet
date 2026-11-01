@@ -6,6 +6,7 @@ import {
   SettingsSection,
   StatusBadge,
 } from "@/components/account-layout";
+import { NamePrompt, VerifyBanner } from "@/components/account-notices";
 import { getAppDisplayName } from "@/components/app-directory";
 import { AuthHeading, AuthShell } from "@/components/auth-shell";
 import { SignInForm } from "@/components/SignInForm";
@@ -26,6 +27,7 @@ import {
   type SessionAccessTokenResponse,
   type UserPublic,
 } from "@/lib/session";
+import { loadSecurity } from "./security/actions";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -62,6 +64,17 @@ async function loadSessionState(): Promise<SessionState> {
           : "The auth service is unavailable right now. Try again in a moment.",
       sessionData: null,
     };
+  }
+}
+
+// Whether the email is confirmed. Null when security details cannot be loaded;
+// the banner is then simply not shown (it never blocks the page).
+async function loadEmailVerified(): Promise<boolean | null> {
+  try {
+    return (await loadSecurity()).email_verified;
+  } catch (error) {
+    reportError(error, "auth-account-notices");
+    return null;
   }
 }
 
@@ -194,17 +207,24 @@ export default async function Home({ searchParams }: PageProps) {
 
   if (sessionData) {
     const profile = await loadFullProfile(sessionData.access_token);
+    const emailVerified = await loadEmailVerified();
     return (
       <AccountLayout
         current="/"
         description="How you appear across GAA, GMS and Barrels apps."
         title="Profile"
       >
-        <AccountProfile
-          adminHref={getAppHrefs().admin}
-          profile={profile}
-          sessionData={sessionData}
-        />
+        <div className="space-y-8">
+          {emailVerified === false ? <VerifyBanner /> : null}
+          {profile?.registration_pending && !profile.last_name.trim() ? (
+            <NamePrompt />
+          ) : null}
+          <AccountProfile
+            adminHref={getAppHrefs().admin}
+            profile={profile}
+            sessionData={sessionData}
+          />
+        </div>
       </AccountLayout>
     );
   }

@@ -3,7 +3,7 @@
 Two scopes:
 
 - ``app`` (self-service, e.g. Events): described below.
-- ``staff`` (GAA Admin, Barrels admin): sessions come only from the auth.barrels.gd
+- ``staff`` (GAA Admin, Barrels admin, the CAP warning desk): sessions come only from the auth.barrels.gd
   handoff, require an approved staff account, and mint ordinary staff tokens
   so existing staff routes keep working. "Join" asks for staff access; an
   administrator approves it.
@@ -120,6 +120,20 @@ def _apps() -> dict[str, AppDefinition]:
         scope="staff",
         superuser_only=True,
     )
+    # CAP warning desk (apps/web/cap, pages under /desk). Staff tokens keep every
+    # /api/v1/cap/* permission check unchanged; the desk itself asks for
+    # cap.alert.read before showing anything.
+    cap_desk = AppDefinition(
+        key="cap",
+        label="CAP warning desk",
+        url=auth_settings.CAP_APP_URL.rstrip("/"),
+        self_signup=False,
+        default_role="",
+        google_redirect_uri="",
+        methods=frozenset(),
+        client_secret=auth_settings.CAP_SSO_CLIENT_SECRET,
+        scope="staff",
+    )
     sites = [
         AppDefinition(
             key=key,
@@ -176,7 +190,10 @@ def _apps() -> dict[str, AppDefinition]:
             ),
         )
     ]
-    return {app.key: app for app in (events, gaa_admin, barrels_admin, cms, *sites)}
+    return {
+        app.key: app
+        for app in (events, gaa_admin, barrels_admin, cap_desk, cms, *sites)
+    }
 
 
 def registered_apps() -> list[AppDefinition]:
