@@ -1,0 +1,154 @@
+{
+  "_comment": "Add a check by appending an object. Fields: id, name, url (staging.barrels.gd only), expectStatus, locationIncludes, headersPresent, bodyIncludes, jsonKeys, optional.",
+  "waitFor": "api-health",
+  "checks": [
+    {
+      "id": "api-health",
+      "name": "API health",
+      "url": "https://api.staging.barrels.gd/api/v1/utils/health-check/"
+    },
+    {
+      "id": "api-ready",
+      "name": "API ready",
+      "url": "https://api.staging.barrels.gd/api/v1/utils/ready/"
+    },
+    {
+      "id": "app-auth",
+      "name": "auth app responds",
+      "url": "https://auth.staging.barrels.gd/",
+      "expectStatus": [200, 301, 302, 303, 307, 308]
+    },
+    {
+      "id": "app-admin",
+      "name": "admin app responds",
+      "url": "https://admin.staging.barrels.gd/api/health",
+      "expectStatus": [200]
+    },
+    {
+      "id": "app-gms",
+      "name": "gms app responds",
+      "url": "https://gms.staging.barrels.gd/",
+      "expectStatus": [200, 301, 302, 303, 307, 308]
+    },
+    {
+      "id": "app-docs",
+      "name": "docs app responds",
+      "url": "https://docs.staging.barrels.gd/",
+      "expectStatus": [200, 301, 302, 303, 307, 308]
+    },
+    {
+      "id": "app-weather",
+      "name": "weather app responds",
+      "url": "https://weather.staging.barrels.gd/",
+      "expectStatus": [200, 301, 302, 303, 307, 308]
+    },
+    {
+      "id": "app-signal",
+      "name": "signal app responds",
+      "url": "https://signal.staging.barrels.gd/",
+      "expectStatus": [200, 301, 302, 303, 307, 308]
+    },
+    {
+      "id": "app-mbia",
+      "name": "mbia app responds",
+      "url": "https://mbia.staging.barrels.gd/",
+      "expectStatus": [200, 301, 302, 303, 307, 308]
+    },
+    {
+      "id": "app-cms",
+      "name": "cms app responds",
+      "url": "https://cms.staging.barrels.gd/admin",
+      "expectStatus": [200, 301, 302, 303, 307, 308]
+    },
+    {
+      "id": "app-events",
+      "name": "events app responds",
+      "url": "https://events.staging.barrels.gd/",
+      "expectStatus": [200, 301, 302, 303, 307, 308]
+    },
+    {
+      "id": "app-cap",
+      "name": "cap app responds",
+      "url": "https://cap.staging.barrels.gd/api/health",
+      "expectStatus": [200]
+    },
+    {
+      "id": "app-gmsdash",
+      "name": "gmsdash app responds",
+      "url": "https://gmsdash.staging.barrels.gd/api/health",
+      "expectStatus": [200]
+    },
+    {
+      "id": "app-bookings",
+      "name": "bookings app responds",
+      "url": "https://bookings.staging.barrels.gd/api/health",
+      "expectStatus": [200]
+    },
+    {
+      "id": "notfound-weather",
+      "name": "weather missing page renders Page not found",
+      "url": "https://weather.staging.barrels.gd/smoke-missing-page-does-not-exist",
+      "expectStatus": [404],
+      "bodyIncludes": ["Page not found"]
+    },
+    {
+      "id": "notfound-docs",
+      "name": "docs missing page renders Page not found",
+      "url": "https://docs.staging.barrels.gd/smoke-missing-page-does-not-exist",
+      "expectStatus": [404],
+      "bodyIncludes": ["Page not found"]
+    },
+    {
+      "id": "notfound-bookings",
+      "name": "bookings missing page renders Page not found",
+      "url": "https://bookings.staging.barrels.gd/smoke-missing-page-does-not-exist",
+      "expectStatus": [404],
+      "bodyIncludes": ["Page not found"]
+    },
+    {
+      "id": "weather-alerts",
+      "name": "Weather alerts page",
+      "url": "https://weather.staging.barrels.gd/alerts",
+      "bodyIncludes": ["lert"]
+    },
+    {
+      "id": "cms-newsletter",
+      "name": "CMS newsletter feed",
+      "url": "https://cms.staging.barrels.gd/api/public/newsletter",
+      "jsonKeys": ["items"]
+    },
+    {
+      "id": "headers-weather",
+      "name": "weather security headers",
+      "url": "https://weather.staging.barrels.gd/",
+      "headersPresent": [
+        "strict-transport-security",
+        "x-content-type-options",
+        "x-frame-options",
+        "referrer-policy"
+      ]
+    },
+    {
+      "id": "headers-docs",
+      "name": "docs security headers",
+      "url": "https://docs.staging.barrels.gd/",
+      "headersPresent": [
+        "strict-transport-security",
+        "x-content-type-options",
+        "x-frame-options",
+        "referrer-policy"
+      ]
+    },
+    {
+      "id": "headers-api",
+      "name": "api security headers",
+      "url": "https://api.staging.barrels.gd/api/v1/utils/health-check/",
+      "headersPresent": [
+        "strict-transport-security",
+        "x-content-type-options",
+        "x-frame-options",
+        "referrer-policy"
+      ]
+    }
+  ]
+}

@@ -80,14 +80,57 @@ async function checkWithRetry(url, expected, fetcher, attempts) {
   }
 }
 
+const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+// A freshly started Next app can take over 20 s to answer its first request
+// (staging deploy 2026-11-01). One unmeasured GET per host, with a generous
+// timeout, absorbs that cold start. Its outcome is ignored on purpose: the
+// checks that follow decide pass or fail.
+export async function warmUp(domain, fetcher = fetch) {
+  const hosts = [
+    "api",
+    "gms",
+    "cms",
+    "auth",
+    "docs",
+    "weather",
+    "signal",
+    "mbia",
+    "events",
+  ];
+  await Promise.all(
+    hosts.map(async (host) => {
+      try {
+        const response = await fetcher(`https://${host}.${domain}/`, {
+          redirect: "follow",
+          signal: AbortSignal.timeout(60_000),
+        });
+        await response.text();
+      } catch {
+        // Intentionally ignored; see above.
+      }
+    })
+  );
+}
+
+// One retry per check so a single slow or dropped request does not fail a
+// release that is healthy. The second failure is thrown unchanged.
+async function once(run) {
+  try {
+    return await run();
+  } catch {
+    await sleep(Number(process.env.SMOKE_RETRY_DELAY_MS ?? 15_000));
+    return run();
+  }
+}
+
 export async function checkDeployment(domain, fetcher = fetch) {
   if (!(domain && validDomain.test(domain)))
     throw new Error("A valid base domain is required");
+  await warmUp(domain, fetcher);
   // The public homepage feed GMS reads. Empty published content is valid.
-  await check(
-    `https://cms.${domain}/api/public/home`,
-    '"deskUpdates":',
-    fetcher
+  await once(() =>
+    check(`https://cms.${domain}/api/public/home`, '"deskUpdates":', fetcher)
   );
   for (const [host, path, marker] of [
     ["api", "/api/v1/utils/ready/", '"ready"'],
@@ -102,11 +145,11 @@ export async function checkDeployment(domain, fetcher = fetch) {
       `https://${host}.${domain}${path}`,
       marker,
       fetcher,
-      host === "gms" ? 4 : 1
+      host === "gms" ? 4 : 2
     );
   for (const host of ["docs", "weather", "signal", "mbia", "events"])
-    await check(`https://${host}.${domain}/`, "<main", fetcher);
-  await checkCmsSignIn(domain, fetcher);
+    await checkWithRetry(`https://${host}.${domain}/`, "<main", fetcher, 2);
+  await once(() => checkCmsSignIn(domain, fetcher));
 }
 
 // Staging web hosts sit behind Traefik basic auth. With `user:password` set, it is
