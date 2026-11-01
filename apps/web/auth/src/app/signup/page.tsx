@@ -1,12 +1,22 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { AuthHeading, AuthShell } from "@/components/auth-shell";
-import { SignUpForm } from "@/components/SignUpForm";
+import { EmailCodeForm } from "@/components/EmailCodeForm";
+import { textLinkClass } from "@/components/form-styles";
+import { getSafeReturnTo, readQueryParam } from "@/lib/return-to";
 
 export const metadata: Metadata = {
   title: "Create account — Grenmet Auth",
 };
+export const dynamic = "force-dynamic";
 
-export default function SignUpPage() {
+export default async function SignUpPage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
+  const params = await searchParams;
+  const returnTo = getSafeReturnTo(readQueryParam(params.returnTo));
   return (
     <AuthShell
       greeting="Welcome"
@@ -14,10 +24,19 @@ export default function SignUpPage() {
       subtitle="One account for every app."
     >
       <AuthHeading title="Create your account">
-        Create your account, then join the apps you need. We'll send a link to
-        verify your email.
+        Enter your email. We'll send a 6-digit code; enter it and your account
+        is ready. No password needed.
       </AuthHeading>
-      <SignUpForm />
+      <EmailCodeForm returnTo={returnTo} />
+      <p className="mt-6 text-center text-body-sm text-muted-foreground">
+        Already have an account?{" "}
+        <Link
+          className={textLinkClass}
+          href={returnTo ? `/?returnTo=${encodeURIComponent(returnTo)}` : "/"}
+        >
+          Sign in
+        </Link>
+      </p>
     </AuthShell>
   );
 }

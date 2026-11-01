@@ -14,6 +14,10 @@ export default defineConfig({
     env: {
       SKIP_ENV_VALIDATION: "true",
       CAP_API_URL: "http://localhost:8000",
+      AUTH_API_URL: "http://localhost:8000",
+      AUTH_API_V1_STR: "/api/v1",
+      AUTH_APP_URL: "http://localhost:3000",
+      CAP_SESSION_COOKIE_NAME: "cap_desk_session",
     },
     globals: true,
     setupFiles: ["./src/test/setup.ts"],

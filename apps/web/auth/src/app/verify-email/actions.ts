@@ -8,8 +8,6 @@ export async function verifyEmail(
 ) {
   const token = String(form.get("token") ?? "");
   try {
-    if (token && form.get("password") !== form.get("confirm"))
-      return { message: "Passwords must match.", done: false };
     const result = token
       ? await emailConfirm({
           token,

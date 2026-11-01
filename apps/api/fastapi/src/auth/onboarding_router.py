@@ -3,7 +3,7 @@ import uuid
 from fastapi import APIRouter, Response
 from starlette.requests import Request
 
-from src.auth import onboarding
+from src.auth import onboarding, sign_in_setup
 from src.auth.onboarding_schemas import (
     ActivationAccountCreate,
     ActivationConfirm,
@@ -11,11 +11,12 @@ from src.auth.onboarding_schemas import (
     ActivationLink,
     AdminActivation,
     OnboardingStatus,
+    SignInSetupIssue,
     SuperuserActionReason,
     VerificationResend,
 )
 from src.auth.schemas import UserPublic
-from src.dependencies import CurrentUser, MfaAdminUser, SessionDep
+from src.dependencies import CurrentUser, MfaAdminUser, MfaUserManager, SessionDep
 from src.models import ApiError, Message
 from src.rate_limit import limiter
 
@@ -105,6 +106,79 @@ async def revoke(
     *, session: SessionDep, current_user: CurrentUser, user_id: uuid.UUID
 ) -> None:
     await onboarding.revoke_activation(session, current_user, user_id)
+
+
+@router.post(
+    "/{user_id}/sign-in-setup",
+    response_model=ActivationLink,
+    status_code=201,
+    operation_id="authIssueSignInSetup",
+    summary="Issue a one-use sign-in setup link",
+    description=(
+        "Manager with `user.manage` in scope (or a superuser) and an MFA-verified session "
+        "issues a 24-hour one-use link. The person opens it and chooses a password; the "
+        "administrator never sees the password. Replaces earlier sign-in links. Never "
+        "verifies email, grants roles or app access. Refused for the caller's own account, "
+        "for owners unless the caller is a superuser, and for inactive or ended-employment "
+        "accounts. A reason (3 to 500 characters) is required unless the email is unverified or "
+        "password setup is pending. A courtesy notice goes to the address on file. Only a superuser "
+        "can set up privileged accounts. Rate limited per administrator and per account."
+    ),
+    responses={
+        400: {
+            "model": ApiError,
+            "description": "Identity confirmation or reason required",
+        },
+        403: {
+            "model": ApiError,
+            "description": "Insufficient permission, MFA session required, own account, owner, or privileged account (superuser required)",
+        },
+        404: {
+            "model": ApiError,
+            "description": "Account not found or outside your scope",
+        },
+        409: {"model": ApiError, "description": "Inactive account or ended employment"},
+        429: {"model": ApiError, "description": "Too many links issued recently"},
+    },
+)
+@limiter.limit("10/minute")
+async def issue_sign_in_setup(
+    *,
+    request: Request,
+    response: Response,
+    session: SessionDep,
+    manager: MfaUserManager,
+    user_id: uuid.UUID,
+    body: SignInSetupIssue,
+) -> ActivationLink:
+    _ = request
+    response.headers["Cache-Control"] = "no-store"
+    return await sign_in_setup.issue(
+        session, manager, user_id, body.identity_confirmed, body.reason
+    )
+
+
+@router.delete(
+    "/{user_id}/sign-in-setup",
+    status_code=204,
+    operation_id="authRevokeSignInSetup",
+    summary="Revoke a sign-in setup link",
+    description="Manager with `user.manage` in scope and an MFA-verified session cancels outstanding sign-in setup links for an account.",
+    responses={
+        403: {
+            "model": ApiError,
+            "description": "Insufficient permission or MFA session required",
+        },
+        404: {
+            "model": ApiError,
+            "description": "Account not found or outside your scope",
+        },
+    },
+)
+async def revoke_sign_in_setup(
+    *, session: SessionDep, manager: MfaUserManager, user_id: uuid.UUID
+) -> None:
+    await sign_in_setup.revoke(session, manager, user_id)
 
 
 @router.post(

@@ -8,11 +8,10 @@ vi.mock("@/lib/session", () => ({ isAuthApiError: () => false }));
 import { activateAccount } from "./actions";
 
 const initial = { message: "", done: false };
-function form(password = "long-password-123", confirmation = password) {
+function form(password = "long-password-123") {
   const data = new FormData();
   data.set("token", "a".repeat(64));
   data.set("password", password);
-  data.set("confirm", confirmation);
   return data;
 }
 beforeEach(() => {
@@ -29,11 +28,7 @@ it("proxies valid activation to the API", async () => {
     new_password: "long-password-123",
   });
 });
-it("does not send mismatched or short passwords", async () => {
-  expect(
-    (await activateAccount(initial, form("long-password-123", "different")))
-      .done
-  ).toBe(false);
+it("does not send short passwords", async () => {
   expect((await activateAccount(initial, form("short"))).done).toBe(false);
   expect(confirm).not.toHaveBeenCalled();
 });

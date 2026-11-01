@@ -22,15 +22,12 @@ export const authAccountEmailCodeStartStatus429Schema = z.union([
   errorMessageSchema,
 ]);
 
-export const authAccountEmailCodeStartStatus503Schema = z.unknown();
-
 export const authAccountEmailCodeStartResponseSchema =
   authAccountEmailCodeStartStatus200Schema;
 
 export const authAccountEmailCodeStartErrorSchema = z.union([
   authAccountEmailCodeStartStatus422Schema,
   authAccountEmailCodeStartStatus429Schema,
-  authAccountEmailCodeStartStatus503Schema,
 ]);
 
 export const authAccountEmailCodeStartBodySchema = appEmailCodeStartSchema;

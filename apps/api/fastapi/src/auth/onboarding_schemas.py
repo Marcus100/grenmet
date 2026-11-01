@@ -18,6 +18,15 @@ class ActivationIssue(BaseModel):
     identity_confirmed: bool
 
 
+class SignInSetupIssue(BaseModel):
+    identity_confirmed: bool
+    # Required unless the person's email is unverified or their password setup is pending.
+    reason: Annotated[
+        str | None,
+        StringConstraints(strip_whitespace=True, min_length=3, max_length=500),
+    ] = None
+
+
 class ActivationLink(BaseModel):
     activation_url: str
     expires_at: UtcDateTime

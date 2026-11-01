@@ -43,7 +43,7 @@ from src.auth.schemas import SessionLoginResponse
 from src.dependencies import SessionDep
 from src.models import ApiError, Message
 from src.openapi_responses import RateLimitedBody
-from src.rate_limit import limiter
+from src.rate_limit import limiter, mail_limit_address
 
 router = APIRouter(prefix="/auth/apps/{app}", tags=["auth"])
 account_router = APIRouter(prefix="/auth/account/apps", tags=["auth"])
@@ -104,15 +104,16 @@ async def get_app_sign_in_options(*, app: AppDep) -> AppPublic:
     response_model=Message,
     status_code=status.HTTP_200_OK,
     summary="Send an email sign-in code",
-    description="Send a 6-digit code. The reply never reveals whether the address has an account.",
+    description="Send a 6-digit code. The reply is the same for every address and never waits on mail. A request past the limits gets the same reply and sends nothing.",
     responses=_SIGN_IN,
 )
 @limiter.limit("5/minute")
 async def app_email_code_start(
     *, request: Request, session: SessionDep, app: AppDep, body: AppEmailCodeStart
 ) -> Message:
-    _ = request
-    return await app_service.email_code_start(session=session, app=app, body=body)
+    return await app_service.email_code_start(
+        session=session, app=app, body=body, client_ip=mail_limit_address(request)
+    )
 
 
 @router.post(
