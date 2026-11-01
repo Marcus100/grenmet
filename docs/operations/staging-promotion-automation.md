@@ -52,6 +52,12 @@ fails it runs `gh pr merge --disable-auto`. The CI gate needs the latest run of
 `ci-api.yml`, `ci-web.yml` and `ci-api-client.yml` for the exact `dev` head to
 be a success. The armed head is recorded at the end of the PR body.
 
+Auto-merge arms on the moving `dev` head: the PR head is the `dev` branch
+itself, so new merges into `dev` change what would be promoted. The script pins
+the armed commit with `--match-head-commit` and re-arms after a refresh. The
+staging ruleset's required checks are the final gate; the script's own CI check
+is an extra, not a replacement.
+
 ## Why a token, not GITHUB_TOKEN
 
 A PR created with the default `GITHUB_TOKEN` does not trigger other workflows,
@@ -115,7 +121,7 @@ The automation here never reads those secrets: `PROMOTE_STAGING_TOKEN` lives in
 the `staging-promotion` environment and appears only in `promote-staging.yml`,
 and `STAGING_BASIC_AUTH` is used only by the smoke workflow, which runs the
 default branch's script. A guardrail test pins these. Owner action: review which
-repository secrets should become environment secrets.
+repository secrets should become environment secrets (issue #970).
 
 ## What a person still reviews
 

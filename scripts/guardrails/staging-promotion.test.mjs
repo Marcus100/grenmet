@@ -5,7 +5,9 @@ import {
   assertStagingOnly,
   buildBody,
   ciProblem,
+  deps,
   gate,
+  main,
   migrationsFromDiff,
   missingSecurityReview,
   pullNumbers,
@@ -23,6 +25,11 @@ const read = (path) =>
   readFileSync(new URL(`../../${path}`, import.meta.url), "utf8");
 const promote = read(".github/workflows/promote-staging.yml");
 const smoke = read(".github/workflows/staging-smoke.yml");
+const JOB_LINE = /^ {2}[\w-]+:/;
+const KEY_LINE = /^ {4}([\w-]+):\s*(.*)$/;
+const PERM_BLOCK = /\npermissions:\n((?: {2}.*\n)+)/;
+const EDIT_FAILED = /edit failed/;
+const STILL_ARMED = /STILL armed/;
 const ACTION_REF = /uses: ([^\s#]+)/g;
 const PINNED = /^[\w.-]+\/[\w./-]+@[0-9a-f]{40}$/;
 const WORKFLOW_PERMISSIONS =
@@ -81,8 +88,12 @@ test("promotion is off by default and the hold switch stops it", () => {
   );
   assert.equal(promote.includes("ignore_enabled_switch"), false);
   assert.equal(promote.includes("respect_hold"), false);
-  assert.ok(promote.includes("environment: staging-promotion"));
-  assert.ok(promote.includes("default_branch"));
+  const job = jobKeys(promote, "promote");
+  assert.equal(job.environment, "staging-promotion");
+  assert.equal(
+    job.if,
+    "github.ref == format('refs/heads/{0}', github.event.repository.default_branch)"
+  );
   assert.ok(promote.includes("vars.PROMOTE_STAGING_ENABLED"));
   assert.ok(promote.includes("concurrency:"));
   assert.ok(promote.includes('cron: "0 10 * * *"'));
@@ -90,7 +101,7 @@ test("promotion is off by default and the hold switch stops it", () => {
 
 test("workflows keep minimal permissions", () => {
   assert.match(promote, PROMOTE_PERMISSIONS);
-  assert.equal(promote.includes("issues: write"), false);
+  assert.equal(topKeys(promote).permissions.includes("issues: write"), false);
   for (const source of [smoke]) {
     assert.match(source, WORKFLOW_PERMISSIONS);
     assert.doesNotMatch(source, CONTENTS_WRITE);
@@ -350,6 +361,7 @@ test("a risk:high PR without a Security review section blocks auto-merge", () =>
 test("titles cannot mention people or link issues in the generated body", () => {
   assert.equal(safeTitle("fix @owner closes #5"), "`fix @owner closes #5`");
   assert.equal(safeTitle("a`b"), "`a'b`");
+  assert.equal(safeTitle("line1\r\nline2\nline3"), "`line1 line2 line3`");
   const body = buildBody({
     date: "d",
     sha: "abcdef0123",
@@ -392,4 +404,143 @@ test("workflow trigger and secret hygiene", () => {
     }
   }
   assert.ok(smoke.includes("event.repository.default_branch"));
+});
+
+function jobKeys(source, job) {
+  const out = {};
+  let inside = false;
+  let inJobs = false;
+  for (const line of source.split("\n")) {
+    if (line.startsWith("jobs:")) inJobs = true;
+    else if (inJobs && JOB_LINE.test(line)) inside = line.trim() === `${job}:`;
+    else if (inside) {
+      const m = KEY_LINE.exec(line);
+      if (m) out[m[1]] = m[2];
+    }
+  }
+  return out;
+}
+
+function topKeys(source) {
+  const out = { permissions: "" };
+  const block = PERM_BLOCK.exec(source);
+  if (block) out.permissions = block[1];
+  return out;
+}
+
+test("issues use labels, not fuzzy search", () => {
+  assert.ok(smoke.includes("--label staging-smoke"));
+  assert.ok(smoke.includes("--label staging-deploy-failed"));
+  assert.equal(smoke.includes("--search"), false);
+  assert.equal(
+    jobKeys(smoke, "smoke").if,
+    "github.event.workflow_run.conclusion == 'success'"
+  );
+  assert.equal(
+    jobKeys(smoke, "deploy-failed").if,
+    "github.event.workflow_run.conclusion == 'failure'"
+  );
+});
+
+function fakeGh({
+  armed = false,
+  failEdit = false,
+  securityMissing = false,
+  redAfterArm = false,
+} = {}) {
+  const calls = [];
+  let revParse = 0;
+  let isArmed = false;
+  deps.git = (args) => {
+    if (args[0] === "rev-list") return "3";
+    if (args[0] === "rev-parse")
+      return `sha${++revParse > 1 && redAfterArm ? 2 : 1}`;
+    if (args[0] === "log") return "Merge pull request #5 from x/y";
+    return "";
+  };
+  let ciCalls = 0;
+  deps.gh = (args) => {
+    const line = args.join(" ");
+    calls.push(line);
+    if (line.startsWith("run list")) {
+      ciCalls += 1;
+      const red = redAfterArm && ciCalls > 3;
+      return JSON.stringify([
+        {
+          databaseId: 1,
+          status: "completed",
+          conclusion: red ? "failure" : "success",
+        },
+      ]);
+    }
+    if (line.startsWith("pr view 5")) {
+      return JSON.stringify({
+        number: 5,
+        title: "t",
+        labels: [{ name: "risk:high" }],
+        body: securityMissing ? "" : "## Security review\nok",
+      });
+    }
+    if (line.includes("autoMergeRequest"))
+      return JSON.stringify({
+        autoMergeRequest: isArmed || armed ? { x: 1 } : null,
+      });
+    if (line.startsWith("pr list")) return '[{"number":9}]';
+    if (line.includes("--disable-auto")) {
+      isArmed = false;
+      return "";
+    }
+    if (line.includes("--auto")) {
+      isArmed = true;
+      return "";
+    }
+    if (
+      line.startsWith("pr edit") &&
+      failEdit &&
+      line.includes("--body") &&
+      !line.includes("--title")
+    )
+      throw new Error("edit failed");
+    return "";
+  };
+  return calls;
+}
+const ENV = { PROMOTE_STAGING_ENABLED: "true", GH_TOKEN: "x" };
+function withEnv(fn) {
+  const saved = { ...process.env };
+  Object.assign(process.env, ENV);
+  delete process.env.PROMOTE_STAGING_HOLD;
+  delete process.env.DRY_RUN;
+  try {
+    return fn();
+  } finally {
+    process.env = saved;
+  }
+}
+
+test("happy path arms; missing security review never arms", () => {
+  let calls = fakeGh();
+  withEnv(() => main());
+  assert.ok(calls.some((c) => c.includes("--auto")));
+  calls = fakeGh({ securityMissing: true });
+  withEnv(() => main());
+  assert.equal(
+    calls.some((c) => c.includes("--auto")),
+    false
+  );
+  assert.ok(calls.some((c) => c.includes("--disable-auto")));
+});
+
+test("any failure after arming disables auto-merge", () => {
+  let calls = fakeGh({ failEdit: true });
+  assert.throws(() => withEnv(() => main()), EDIT_FAILED);
+  assert.ok(calls.some((c) => c.includes("--disable-auto")));
+  calls = fakeGh({ redAfterArm: true });
+  withEnv(() => main());
+  assert.ok(calls.some((c) => c.includes("--disable-auto")));
+});
+
+test("a still-armed PR after disabling fails loudly", () => {
+  fakeGh({ armed: true, securityMissing: true });
+  assert.throws(() => withEnv(() => main()), STILL_ARMED);
 });

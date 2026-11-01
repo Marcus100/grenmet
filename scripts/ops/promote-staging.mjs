@@ -69,7 +69,9 @@ export function missingSecurityReview(pulls) {
 
 /** Titles are untrusted text: no mentions, no issue links, no markdown. */
 export function safeTitle(title) {
-  return `\`${String(title).replaceAll("`", "'")}\``;
+  return `\`${String(title)
+    .replaceAll("`", "'")
+    .replaceAll(/[\r\n]+/g, " ")}\``;
 }
 
 export function pullNumbers(subjects) {
@@ -173,12 +175,15 @@ export function buildBody({ date, sha, pulls, migrations, unlistedCommits }) {
   return lines.join("\n");
 }
 
-function gh(args, options = {}) {
+function defaultGh(args, options = {}) {
   return execFileSync("gh", args, { encoding: "utf8", ...options }).trim();
 }
-function git(args) {
+function defaultGit(args) {
   return execFileSync("git", args, { encoding: "utf8" }).trim();
 }
+export const deps = { gh: defaultGh, git: defaultGit };
+const gh = (args, options) => deps.gh(args, options);
+const git = (args) => deps.git(args);
 const lines = (text) => (text ? text.split("\n") : []);
 
 function summary(text) {
@@ -267,7 +272,15 @@ function disableAuto(number) {
   try {
     gh(["pr", "merge", String(number), "--disable-auto"]);
   } catch {
-    // Auto-merge was not on; nothing to disable.
+    // It may already be off; the re-read below is the real check.
+  }
+  const state = JSON.parse(
+    gh(["pr", "view", String(number), "--json", "autoMergeRequest"])
+  );
+  if (state.autoMergeRequest) {
+    throw new Error(
+      `Auto-merge is STILL armed on PR #${number}; disable it by hand now.`
+    );
   }
 }
 
@@ -355,40 +368,54 @@ function main() {
     return;
   }
   arm(number, first.sha);
-  // Re-check: dev may have moved or gone red while we were arming.
-  let armed = first;
-  const again = plan();
-  if (again.skip || again.missing.length > 0) {
-    disableAuto(number);
-    summary(
-      `Promotion PR #${number}: auto-merge disabled because the re-check failed (${again.skip ?? "risk:high PR without Security review"}).`
-    );
-    return;
-  }
-  if (again.sha !== first.sha) {
+  try {
+    // Re-check: dev may have moved or gone red while we were arming.
+    let armed = first;
+    const again = plan();
+    if (again.skip || again.missing.length > 0) {
+      disableAuto(number);
+      summary(
+        `Promotion PR #${number}: auto-merge disabled because the re-check failed (${again.skip ?? "risk:high PR without Security review"}).`
+      );
+      return;
+    }
+    if (again.sha !== first.sha) {
+      gh([
+        "pr",
+        "edit",
+        String(number),
+        "--title",
+        again.title,
+        "--body",
+        again.body,
+      ]);
+      arm(number, again.sha);
+      armed = again;
+    }
     gh([
       "pr",
       "edit",
       String(number),
-      "--title",
-      again.title,
       "--body",
-      again.body,
+      `${armed.body}\n\nAuto-merge armed at head \`${armed.sha}\`.`,
     ]);
-    arm(number, again.sha);
-    armed = again;
+    summary(
+      `Promotion PR #${number} is ready with auto-merge armed (head ${armed.sha.slice(0, 9)}).`
+    );
+  } catch (error) {
+    try {
+      disableAuto(number);
+      summary(
+        `Promotion PR #${number}: auto-merge disabled after an error: ${error.message}`
+      );
+    } catch (disableError) {
+      summary(`Promotion PR #${number}: ${disableError.message}`);
+    }
+    throw error;
   }
-  gh([
-    "pr",
-    "edit",
-    String(number),
-    "--body",
-    `${armed.body}\n\nAuto-merge armed at head \`${armed.sha}\`.`,
-  ]);
-  summary(
-    `Promotion PR #${number} is ready with auto-merge armed (head ${armed.sha.slice(0, 9)}).`
-  );
 }
+
+export { main };
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
   try {
