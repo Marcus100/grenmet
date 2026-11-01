@@ -400,6 +400,9 @@ async def approve_for_issue(
         session, actor, period.organisation_id, access.READ_AMOUNTS
     )
     await access.require_mfa(session, actor, token)
+    from . import payslips
+
+    payslips.current_key()  # fail closed: no signing key, no issue
     if period.status not in LOCKED_VALUES:
         raise AppException("Approve the pay period's quantities first", 409)
     if period.issue_approved_at is not None:
@@ -445,6 +448,11 @@ async def approve_for_issue(
         )
     period.issue_approved_at = period.updated_at = utc_now()
     period.issue_approved_by_user_id = actor.id
+    from . import payslips
+
+    # Itemised payslips are required for every payment (Employment Act ss. 47-48,
+    # secondary source): issuing always creates them, in the same transaction.
+    await payslips.issue(session, period, actor)
     await audit_service.record_change(
         session,
         entity_type="pay_period",

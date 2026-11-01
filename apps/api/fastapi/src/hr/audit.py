@@ -52,6 +52,8 @@ from .payroll.models import (
     PayLine,
     PayPeriod,
     PayrollDepartmentSetting,
+    PayrollExportSetting,
+    Payslip,
     SocialInsuranceScheme,
     TaxTable,
 )
@@ -548,6 +550,22 @@ def register() -> None:
             label=label,
             exclude=money,
         )
+    registry.track(
+        Payslip,
+        record_type="payslip",
+        entity_type="pay_period",
+        entity_id_attr="period_id",
+        label="Payslip",
+        # B5: history keeps id, period and hash only; the snapshot holds pay.
+        exclude=("snapshot", "net_minor", "user_id", "issued_by_user_id"),
+    )
+    registry.track(
+        PayrollExportSetting,
+        record_type="payroll_export_setting",
+        entity_type="payroll_settings",
+        entity_id_attr="organisation_id",
+        label="Bank and GL export settings",
+    )
     registry.track(
         EmployeeDeduction,
         record_type="employee_deduction",
