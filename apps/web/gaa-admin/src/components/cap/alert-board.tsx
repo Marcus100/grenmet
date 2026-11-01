@@ -15,6 +15,7 @@ import { useMemo, useState } from "react";
 import type { CapAlertList } from "@/lib/cap-api";
 import { formatDateTime, primaryInfo } from "@/lib/cap-api";
 import { SEVERITY_RISK_VAR } from "@/lib/cap-severity";
+import { SchemaFlag } from "./schema-flag";
 import { SeverityBadge } from "./severity-badge";
 
 const FILTERS = ["DRAFT", "SUBMITTED", "APPROVED", "PUBLISHED"] as const;
@@ -191,6 +192,7 @@ export function AlertBoard({ alerts }: { alerts: CapAlertList }) {
                   <div className="flex min-w-0 flex-col gap-1">
                     <div className="flex items-center gap-2">
                       <SeverityBadge severity={info?.severity} />
+                      <SchemaFlag alert={alert} />
                       <Link
                         className="min-w-0 truncate text-gm-text-primary underline"
                         href={`/cap/admin/${alert.id}`}

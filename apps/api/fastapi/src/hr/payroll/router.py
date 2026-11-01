@@ -569,7 +569,7 @@ async def update_department_setting(
     response_model=PayPeriodAmountsPublic,
     status_code=status.HTTP_200_OK,
     summary="Read a pay period's gross amounts",
-    description="Amounts in minor units per line and per employee. Needs organisation-wide hr.payroll.read.amounts; department readers never receive amounts.",
+    description="Amounts in minor units per line and per employee. Needs organisation-wide hr.payroll.read.amounts; department readers never receive amounts, and no quantity route carries money.",
     operation_id="hrGetPayPeriodAmounts",
     responses=ERRORS,
 )

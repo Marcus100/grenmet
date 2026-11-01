@@ -101,6 +101,7 @@ const panel = () => screen.getByRole("region", { name: "Forecast details" });
 const card = () => screen.getByRole("region", { name: "Weather summary" });
 const LAST_OBSERVED = /^Last observed 1:00 p\.m\. · MBIA$/;
 const LAST_TAB = /Last reading/;
+const UNITS_SWITCH = /^Units:/;
 const LAST_OBSERVED_OTHER_DAY = /^Last observed 29 Sept?, 1:00 p\.m\. · MBIA$/;
 const TODAY_LINK = /^Today's forecast/;
 const terms = (region: HTMLElement) =>
@@ -193,6 +194,32 @@ describe("Now", () => {
       within(card()).getByText("Midday reading · MBIA")
     ).toBeInTheDocument();
     expect(within(nowPanel()).queryByRole("term")).not.toBeInTheDocument();
+  });
+});
+
+describe("Units switch in the home card", () => {
+  afterEach(() => {
+    document.documentElement.removeAttribute("data-units");
+    window.localStorage.clear();
+  });
+
+  it("sits in the card above the tabs, not in the header", () => {
+    render(<SkyHero now={at("2026-09-29T17:12:00Z")} weather={weather()} />);
+    const units = screen.getByRole("button", { name: UNITS_SWITCH });
+    expect(units.closest(".rounded-gm-card")).toContainElement(card());
+    expect(units.closest("header")).toBeNull();
+  });
+
+  it("still switches every figure between metric and imperial", () => {
+    render(<SkyHero now={at("2026-09-29T17:12:00Z")} weather={weather()} />);
+    const units = screen.getByRole("button", { name: UNITS_SWITCH });
+    fireEvent.click(units);
+    expect(document.documentElement.getAttribute("data-units")).toBe(
+      "imperial"
+    );
+    expect(window.localStorage.getItem("gm-units")).toBe("imperial");
+    fireEvent.click(units);
+    expect(document.documentElement.getAttribute("data-units")).toBe("metric");
   });
 });
 

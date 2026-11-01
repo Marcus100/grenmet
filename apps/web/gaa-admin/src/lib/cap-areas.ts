@@ -1,8 +1,8 @@
-import type { CapAreaCreate, CapNameValue } from "@barrelsgd/api-client";
-import { GRENADA_PARISHES } from "@/data/cap/grenada-boundaries";
-
-/** CAP's own geocode name for a parish/dependency code — mirrors how NWS uses "UGC" or "FIPS6" as the geocode value_name. */
-export const PARISH_GEOCODE_NAME = "ISO3166-2:GD";
+import type {
+  CapAreaCreate,
+  CapNameValue,
+  GmsCataloguePublic,
+} from "@barrelsgd/api-client";
 
 export interface CirclePoint {
   lat: number;
@@ -13,38 +13,45 @@ export interface CircleArea extends CirclePoint {
   radiusKm: number;
 }
 
-const PARISH_BY_ID = new Map(
-  GRENADA_PARISHES.map((parish) => [parish.id, parish])
-);
+/** The parish list and the geocode system come from the API catalogue (see cap-hazards.ts). */
+function parishById(catalogue: GmsCataloguePublic) {
+  return new Map(catalogue.parishes.map((parish) => [parish.id, parish]));
+}
 
-export function parishNames(parishIds: readonly string[]): string[] {
+export function parishNames(
+  catalogue: GmsCataloguePublic,
+  parishIds: readonly string[]
+): string[] {
+  const byId = parishById(catalogue);
   return parishIds
-    .map((id) => PARISH_BY_ID.get(id)?.name)
+    .map((id) => byId.get(id)?.name)
     .filter((name): name is string => Boolean(name));
 }
 
 /** kind: "GEOCODE" — one geocode per selected parish, human-readable areaDesc built from the same list. */
 export function buildGeocodeArea(
+  catalogue: GmsCataloguePublic,
   parishIds: readonly string[]
 ): CapAreaCreate | null {
   if (parishIds.length === 0) {
     return null;
   }
+  const byId = parishById(catalogue);
   const geocodes: CapNameValue[] = parishIds
-    .map((id) => PARISH_BY_ID.get(id))
-    .filter((parish): parish is (typeof GRENADA_PARISHES)[number] =>
+    .map((id) => byId.get(id))
+    .filter((parish): parish is GmsCataloguePublic["parishes"][number] =>
       Boolean(parish)
     )
     .map((parish) => ({
-      value_name: PARISH_GEOCODE_NAME,
-      value: parish.isoCode,
+      value_name: catalogue.geocode_name,
+      value: parish.iso_code,
     }));
   if (geocodes.length === 0) {
     return null;
   }
   return {
     kind: "GEOCODE",
-    area_desc: parishNames(parishIds).join(", "),
+    area_desc: parishNames(catalogue, parishIds).join(", "),
     geocodes,
   };
 }

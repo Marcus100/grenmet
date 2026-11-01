@@ -1,4 +1,4 @@
-import type { CapAlertPublic } from "@barrelsgd/api-client";
+import type { CapAlertPublicView } from "@barrelsgd/api-client";
 import { describe, expect, it } from "vitest";
 import {
   type AlertView,
@@ -17,7 +17,7 @@ function alert(
   identifier: string,
   info: Record<string, unknown> = {},
   top: Record<string, unknown> = {}
-): CapAlertPublic {
+): CapAlertPublicView {
   return {
     identifier,
     msg_type: "Alert",
@@ -37,7 +37,7 @@ function alert(
       },
     ],
     ...top,
-  } as unknown as CapAlertPublic;
+  } as unknown as CapAlertPublicView;
 }
 
 const NOW = new Date("2026-10-18T14:00:00Z");

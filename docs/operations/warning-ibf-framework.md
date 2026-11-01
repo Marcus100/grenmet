@@ -14,6 +14,15 @@
 
 > **Scope:** This document defines the strategic framework — warning lifecycle, severity levels, content contract, and IBF principles. For the implemented CAP lifecycle in the codebase (states, endpoints, audit trail) see [warning-operations.md](../internal/warning-operations.md). For compliance mapping see [compliance-traceability.md](../internal/compliance-traceability.md).
 
+> **Superseded in part (2026-10-30).** Sections 3 and 7 (the four-level ladder
+> Advisory, Watch, Warning, Extreme, and the likelihood × impact matrix) predate
+> the current product model. The model in use is [ADR-0051](../adr/0051-gms-product-model.md)
+> and `apps/api/fastapi/src/cap/levels.py`: products Outlook, Watch, Warning and
+> Advisory (the marine Small Craft Advisory), and colours green, yellow, orange and
+> red, which carry CAP severity Minor, Moderate, Severe and Extreme. Do not set a
+> level from sections 3 or 7. GMS must confirm a replacement matrix before any
+> use.
+
 ---
 
 ## 1. Purpose
@@ -41,7 +50,7 @@ Confidence in the forecast should always be communicated. A high-confidence warn
 
 ---
 
-## 3. Warning Severity Levels
+## 3. Warning Severity Levels (superseded in part, see the banner)
 
 GMS uses a four-level colour-coded severity framework. These levels apply across all hazard types.
 
@@ -175,7 +184,7 @@ source: "Grenada Meteorological Service"
 
 ---
 
-## 7. Impact-Based Forecasting (IBF) Framework
+## 7. Impact-Based Forecasting (IBF) Framework (superseded in part, see the banner)
 
 ### Likelihood × Impact matrix
 

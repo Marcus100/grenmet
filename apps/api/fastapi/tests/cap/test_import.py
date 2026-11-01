@@ -4,6 +4,7 @@ import httpx
 import pytest
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from src.cap import service as cap_service
 from src.cap.exceptions import CapImportError
 from src.cap.service import import_alert
 from src.exceptions import AuthorizationError
@@ -28,6 +29,16 @@ _XML = """<?xml version="1.0" encoding="UTF-8"?>
     <area><areaDesc>St. George's</areaDesc></area>
   </info>
 </alert>"""
+
+
+@pytest.fixture(autouse=True)
+def _allow_test_hosts(monkeypatch: pytest.MonkeyPatch) -> None:
+    """The DNS check is tested on its own below; these tests use example.test."""
+
+    async def allowed(_host: str) -> None:
+        return None
+
+    monkeypatch.setattr(cap_service, "ensure_public_host", allowed)
 
 
 async def _user_with_perm(db: AsyncSession):
