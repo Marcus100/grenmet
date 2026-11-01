@@ -1213,7 +1213,7 @@ attendance corrections. Without it, a change that breaks a rule fails with 409 a
 `RosterRuleWarningsErrorPublic`; that model is a superset of `ApiError` (`detail`,
 plus `code: ROSTER_RULE_WARNINGS`, `context` and `violations` for rule warnings), so
 ordinary 409s on those routes keep their shape. A reason containing NUL is a 422; other control characters, Unicode bidi controls and zero-width characters are removed.
-Shift definitions carry `break_minutes` (unpaid break, 0 to 240). Attendance week
+Shift definitions carry `break_minutes` (unpaid break, 0 to 240). `DELETE /api/v1/hr/timesheets/{id}` removes the caller's own unsubmitted draft (no approval history), so the editor can replace a draft whose submission was held for rule warnings. It needs `timesheet.submit.self` and live employment in the filing department (403 otherwise); a missing id and another user's timesheet are both 404; a submitted timesheet is 400. Entries are deleted through the ORM, so the change history records the timesheet and each entry; only a superuser can read that trail afterwards, because the record's own access check needs the deleted timesheet. Attendance week
 rows, timesheet entries and the timesheet summary carry `overtime_bands` (rate and
 hours, no pay). Details: `docs/hr/roster-rules.md`.
 

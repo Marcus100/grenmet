@@ -2,6 +2,7 @@
 
 import {
   type AttendanceShiftPublic,
+  type RosterRuleWarningsErrorPublic,
   useHrGetAttendanceWeek,
   useHrProposeAttendanceCorrection,
   useHrSaveAttendance,
@@ -14,6 +15,8 @@ import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { reportError } from "@/lib/report-error";
 import { hrApiErrorMessage } from "../api-error";
+import { ruleWarningsFrom } from "../roster/rule-codes";
+import { RuleOverrideDialog } from "../roster/rule-override-dialog";
 import { OvertimeBands } from "./overtime-bands";
 
 const GRENADA = "America/Grenada";
@@ -55,6 +58,13 @@ function AttendanceShift({
   const [notes, setNotes] = useState(shift.notes ?? "");
   const [correcting, setCorrecting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  // A submission or correction that breaks roster rules, awaiting a reason.
+  const [override, setOverride] = useState<{
+    review: boolean;
+    arrival: string;
+    departure: string;
+    warnings: RosterRuleWarningsErrorPublic;
+  } | null>(null);
   const save = useHrSaveAttendance();
   const submit = useHrSubmitAttendance();
   const correction = useHrProposeAttendanceCorrection();
@@ -65,18 +75,19 @@ function AttendanceShift({
   async function persist(
     review: boolean,
     markedArrival = arrival,
-    markedDeparture = departure
-  ) {
+    markedDeparture = departure,
+    ruleReason?: string
+  ): Promise<boolean> {
     setError(null);
     if (!markedArrival || ((review || correcting) && !markedDeparture)) {
       setError(
         "Record arrival and departure before requesting supervisor review"
       );
-      return;
+      return false;
     }
     if (correcting && !reason.trim()) {
       setError("Explain why the recorded time needs correction");
-      return;
+      return false;
     }
     const body = {
       roster_assignment_id: id,
@@ -94,6 +105,7 @@ function AttendanceShift({
             ...body,
             departed_at: body.departed_at,
             reason: reason.trim(),
+            ...(ruleReason ? { rule_override_reason: ruleReason } : {}),
           },
         });
         setCorrecting(false);
@@ -105,7 +117,10 @@ function AttendanceShift({
         if (review && saved.attendance_id) {
           await submit.mutateAsync({
             path: { attendance_id: saved.attendance_id },
-            body: { expected_revision: saved.revision ?? 1 },
+            body: {
+              expected_revision: saved.revision ?? 1,
+              ...(ruleReason ? { rule_override_reason: ruleReason } : {}),
+            },
           });
         }
         toast.success(
@@ -114,12 +129,47 @@ function AttendanceShift({
       }
       await refresh();
     } catch (caught) {
+      const warnings = ruleWarningsFrom(caught);
+      if (warnings) {
+        setOverride({
+          review,
+          arrival: markedArrival,
+          departure: markedDeparture,
+          warnings,
+        });
+        return false;
+      }
+      // Any other failure closes the dialog; the typed reason is kept.
+      setOverride(null);
       reportError(caught, "hr-attendance");
       setError(errorDetail(caught));
+      return false;
     }
+    setOverride(null);
+    return true;
   }
   return (
     <article className="space-y-4 rounded-lg border bg-card p-4">
+      <RuleOverrideDialog
+        busy={pending}
+        labels={new Map([[shift.user_id, shift.employee_name]])}
+        onCancel={() => {
+          setOverride(null);
+          // The save before the held submission raised the revision.
+          refresh();
+        }}
+        onConfirm={(ruleReason) =>
+          override
+            ? persist(
+                override.review,
+                override.arrival,
+                override.departure,
+                ruleReason
+              )
+            : false
+        }
+        warnings={override?.warnings ?? null}
+      />
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div>
           <h3 className="font-semibold text-sm">
