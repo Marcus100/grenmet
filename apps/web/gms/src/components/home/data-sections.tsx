@@ -263,11 +263,7 @@ export async function GrenadaInData() {
   });
   const month = summary ? monthStats(summary) : null;
   return (
-    <HomeSection
-      tone="surface"
-      {...words}
-      link={{ href: "/climate", label: "Climate" }}
-    >
+    <HomeSection {...words} link={{ href: "/climate", label: "Climate" }}>
       {month ? (
         <ul className="grid grid-cols-2 gap-2 sm:gap-3 lg:grid-cols-4">
           {month.stats.map((stat) => (
