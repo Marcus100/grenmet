@@ -88,6 +88,14 @@ PERMISSIONS: tuple[PermissionDef, ...] = (
         "hr.payroll.export",
         "Export approved payroll inputs as CSV; needs two-step verification",
     ),
+    PermissionDef(
+        "hr.payroll.rates.manage",
+        "Set dated pay rates and basic pay (organisation-wide); needs two-step verification",
+    ),
+    PermissionDef(
+        "hr.payroll.read.amounts",
+        "See pay amounts, rates and basic pay (organisation-wide only)",
+    ),
     # HR — leave
     PermissionDef("leave.request.create.self", "Create own leave request"),
     PermissionDef("leave.request.action", "Approve/reject leave requests"),

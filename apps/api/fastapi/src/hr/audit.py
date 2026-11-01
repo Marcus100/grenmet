@@ -41,9 +41,11 @@ from .models import (
 from .organisations import permitted_departments
 from .parking.models import ParkingPermit
 from .payroll.models import (
+    EmployeeBasicPay,
     EmployeePayProfile,
     PayCalendar,
     PayItem,
+    PayItemRate,
     PayLine,
     PayPeriod,
     PayrollDepartmentSetting,
@@ -172,7 +174,11 @@ async def _document(session: AsyncSession, actor: User, entity_id: str) -> bool:
 
 
 #: Payroll history is organisation-wide data: department visibility never reads it.
-PAYROLL_HISTORY_KEYS = ("hr.payroll.prepare", "hr.payroll.approve")
+PAYROLL_HISTORY_KEYS = (
+    "hr.payroll.prepare",
+    "hr.payroll.approve",
+    "hr.payroll.read.amounts",
+)
 
 
 async def _payroll_period(session: AsyncSession, actor: User, entity_id: str) -> bool:
@@ -192,6 +198,15 @@ async def _payroll_settings(session: AsyncSession, actor: User, entity_id: str) 
 
     return await holds_organisation_wide(
         session, actor, entity_id, PAYROLL_HISTORY_KEYS
+    )
+
+
+async def _payroll_money(session: AsyncSession, actor: User, entity_id: str) -> bool:
+    """Basic pay and rates history: organisation-wide hr.payroll.read.amounts only."""
+    from .payroll.access import holds_organisation_wide
+
+    return await holds_organisation_wide(
+        session, actor, entity_id, ("hr.payroll.read.amounts",)
     )
 
 
@@ -487,7 +502,32 @@ def register() -> None:
         entity_id_attr="period_id",
         label="Pay line",
         sensitive=("reason",),
+        # Money never enters change history: amounts are read from the period.
+        exclude=("amount_minor", "hourly_rate", "multiplier", "fixed_amount_minor"),
     )
+    registry.track(
+        EmployeeBasicPay,
+        record_type="employee_basic_pay",
+        entity_type="payroll_money",
+        entity_id_attr="organisation_id",
+        label="Basic pay",
+        sensitive=("reason",),
+        exclude=("amount_minor", "standard_monthly_hours"),
+    )
+    registry.track(
+        PayItemRate,
+        record_type="pay_item_rate",
+        entity_type="payroll_money",
+        entity_id_attr="organisation_id",
+        label="Pay item rate",
+        exclude=(
+            "amount_minor",
+            "multiplier",
+            "guaranteed_hours",
+            "guaranteed_multiplier",
+        ),
+    )
+    registry.register_entity("payroll_money", _payroll_money)
     registry.register_entity("payroll_settings", _payroll_settings)
     registry.track(
         PayCalendar,

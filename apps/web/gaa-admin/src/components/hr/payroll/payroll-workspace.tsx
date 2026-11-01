@@ -60,6 +60,7 @@ const METHOD_LABEL: Record<PayItemMethod, string> = {
   THRESHOLD_EVENT: "Count when a threshold is crossed",
   OVERTIME_BAND: "Overtime band (roster rules)",
   MANUAL: "Entered by hand",
+  BASIC_SALARY: "Basic salary for the period",
 };
 
 function suggestStart(

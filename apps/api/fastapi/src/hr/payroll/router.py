@@ -8,9 +8,12 @@ from fastapi import APIRouter, Depends, Path, Query, Response, status
 from src.dependencies import CurrentUser, SessionDep, TokenDep
 from src.models import ApiError
 
-from . import overtime, service
+from . import gross, overtime, service
 from .models import PayItem, PayPeriod
 from .schemas import (
+    EmployeeBasicPayCreate,
+    EmployeeBasicPayPublic,
+    EmployeeBasicPaysPublic,
     EmployeePayProfilePublic,
     EmployeePayProfilesPublic,
     EmployeePayProfileUpdate,
@@ -18,10 +21,14 @@ from .schemas import (
     PayCalendarPublic,
     PayCalendarsPublic,
     PayItemPublic,
+    PayItemRateCreate,
+    PayItemRatePublic,
+    PayItemRatesPublic,
     PayItemsPublic,
     PayLineManualCreate,
     PayLinePublic,
     PayLinesPublic,
+    PayPeriodAmountsPublic,
     PayPeriodCreate,
     PayPeriodDetail,
     PayPeriodPublic,
@@ -538,3 +545,117 @@ async def update_department_setting(
     return PayrollDepartmentSettingPublic(
         department_id=row[0], department_name=row[1], shift_worker_default=row[2]
     )
+
+
+# ── Slice 2: gross pay. Organisation-wide hr.payroll.read.amounts only. ───────
+
+
+@router.get(
+    "/periods/{period_id}/amounts",
+    response_model=PayPeriodAmountsPublic,
+    status_code=status.HTTP_200_OK,
+    summary="Read a pay period's gross amounts",
+    description="Amounts in minor units per line and per employee. Needs organisation-wide hr.payroll.read.amounts; department readers never receive amounts, and no quantity route carries money.",
+    operation_id="hrGetPayPeriodAmounts",
+    responses=ERRORS,
+)
+async def read_period_amounts(
+    *, session: SessionDep, current_user: CurrentUser, period_id: uuid.UUID
+) -> PayPeriodAmountsPublic:
+    data = await gross.list_amounts(session, current_user, period_id)
+    return PayPeriodAmountsPublic.model_validate(data)
+
+
+@router.get(
+    "/rates",
+    response_model=PayItemRatesPublic,
+    status_code=status.HTTP_200_OK,
+    summary="List pay item rates",
+    description="Dated multipliers and fixed amounts. Needs organisation-wide hr.payroll.read.amounts or hr.payroll.rates.manage.",
+    operation_id="hrListPayItemRates",
+    responses=ERRORS,
+)
+async def list_rates(
+    *,
+    session: SessionDep,
+    current_user: CurrentUser,
+    organisation_id: Annotated[str, Query(max_length=100)],
+) -> PayItemRatesPublic:
+    rows = await gross.list_rates(session, current_user, organisation_id)
+    return PayItemRatesPublic(
+        data=[PayItemRatePublic.model_validate(r, from_attributes=True) for r in rows]
+    )
+
+
+@router.post(
+    "/rates",
+    response_model=PayItemRatePublic,
+    status_code=status.HTTP_201_CREATED,
+    summary="Add a dated pay item rate",
+    description="Needs organisation-wide hr.payroll.rates.manage and a session verified with two-step verification. An open-ended earlier rate ends the day before.",
+    operation_id="hrCreatePayItemRate",
+    responses=ERRORS,
+)
+async def create_rate(
+    *,
+    session: SessionDep,
+    current_user: CurrentUser,
+    token: TokenDep,
+    payload: PayItemRateCreate,
+) -> PayItemRatePublic:
+    rate = await gross.create_rate(session, current_user, payload, token=token)
+    return PayItemRatePublic.model_validate(rate, from_attributes=True)
+
+
+def _basic_public(row: Any, name: str) -> EmployeeBasicPayPublic:
+    return EmployeeBasicPayPublic.model_validate(
+        {
+            **{
+                column: getattr(row, column)
+                for column in EmployeeBasicPayPublic.model_fields
+                if column != "employee_name"
+            },
+            "employee_name": name,
+        }
+    )
+
+
+@router.get(
+    "/basic-pay",
+    response_model=EmployeeBasicPaysPublic,
+    status_code=status.HTTP_200_OK,
+    summary="List dated basic pay",
+    description="Needs organisation-wide hr.payroll.read.amounts or hr.payroll.rates.manage.",
+    operation_id="hrListEmployeeBasicPay",
+    responses=ERRORS,
+)
+async def list_basic_pay(
+    *,
+    session: SessionDep,
+    current_user: CurrentUser,
+    organisation_id: Annotated[str, Query(max_length=100)],
+    user_id: uuid.UUID | None = None,
+) -> EmployeeBasicPaysPublic:
+    rows = await gross.list_basic_pay(session, current_user, organisation_id, user_id)
+    return EmployeeBasicPaysPublic(data=[_basic_public(r, n) for r, n in rows])
+
+
+@router.post(
+    "/basic-pay",
+    response_model=EmployeeBasicPayPublic,
+    status_code=status.HTTP_201_CREATED,
+    summary="Record dated basic pay",
+    description="Needs organisation-wide hr.payroll.rates.manage and a session verified with two-step verification. Nobody sets their own. An hourly-paid person on a calendar longer than fortnightly needs an override reason.",
+    operation_id="hrCreateEmployeeBasicPay",
+    responses=ERRORS,
+)
+async def create_basic_pay(
+    *,
+    session: SessionDep,
+    current_user: CurrentUser,
+    token: TokenDep,
+    payload: EmployeeBasicPayCreate,
+) -> EmployeeBasicPayPublic:
+    basic = await gross.create_basic_pay(session, current_user, payload, token=token)
+    name = await service.employee_name(session, basic.user_id)
+    return _basic_public(basic, name)

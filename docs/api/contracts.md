@@ -75,6 +75,25 @@ tax, NIS or bank field exists in any request, response or export.
   rules engine (#890); `overtime_bands_available` is true. Manual band lines are
   refused (400) where the employee's department computes bands.
 
+### Payroll gross pay (slice 2)
+
+- `GET periods/{period_id}/amounts` returns per-line `amount_minor` (XCD cents,
+  rounded half-up per line), the hourly rate and multiplier used, and per-employee
+  gross. It needs organisation-wide `hr.payroll.read.amounts`. `PayLinePublic` and
+  every quantity route never carry money fields.
+- `GET|POST rates` (dated multipliers or fixed amounts per pay item) and
+  `GET|POST basic-pay` (dated monthly salary or hourly rate). Reads need
+  `hr.payroll.read.amounts` or `hr.payroll.rates.manage`. Writes need
+  organisation-wide `hr.payroll.rates.manage` and an MFA-verified session, and
+  nobody sets their own basic pay. An hourly-paid person on a calendar longer than
+  fortnightly needs `calendar_override_reason` (409 otherwise).
+- Unpriced lines (no rate, or no basic pay on file) have `amount_minor: null`,
+  never 0.
+- No quantity route carries money; only `periods/{period_id}/amounts` does.
+- New rates are always `PROVISIONAL` (`rule_state` is not accepted on create).
+  Basic-pay and rate history (`/audit/payroll_money/{organisation_id}`) needs
+  organisation-wide `hr.payroll.read.amounts` and records no money values.
+
 ## Base URLs
 
 | Environment | API base URL |
