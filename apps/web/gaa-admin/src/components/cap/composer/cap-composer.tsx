@@ -20,11 +20,14 @@ const TABS = [
  */
 export function CapComposer({
   alerts,
+  deskUrl,
   editor,
   feeds,
   map,
 }: {
   alerts: ReactNode;
+  /** The new warning desk, offered side by side during the parallel run. */
+  deskUrl?: string;
   editor: ReactNode;
   feeds: ReactNode;
   map: ReactNode;
@@ -34,6 +37,18 @@ export function CapComposer({
   return (
     <div className="space-y-6">
       <PageHeader
+        actions={
+          deskUrl ? (
+            <a
+              className="font-medium text-info text-sm underline underline-offset-4"
+              href={deskUrl}
+              rel="noopener"
+              target="_blank"
+            >
+              Try the new desk
+            </a>
+          ) : null
+        }
         description="Common Alerting Protocol — alerts, map, public feeds and the editor in one place."
         title="CAP Composer"
       />

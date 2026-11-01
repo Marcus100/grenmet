@@ -165,6 +165,7 @@ export { capGetPublicPastAlerts } from "./clients/capGetPublicPastAlerts.js";
 export { capGetPublicWarnings } from "./clients/capGetPublicWarnings.js";
 export { capGetRss } from "./clients/capGetRss.js";
 export { capImportAlert } from "./clients/capImportAlert.js";
+export { capIssueAlertUpdate } from "./clients/capIssueAlertUpdate.js";
 export { capPublishAlert } from "./clients/capPublishAlert.js";
 export { capRecordAlertReview } from "./clients/capRecordAlertReview.js";
 export { capSaveHazardProfile } from "./clients/capSaveHazardProfile.js";
@@ -1557,6 +1558,11 @@ export {
   capImportAlertMutationOptions,
   useCapImportAlert,
 } from "./hooks/useCapImportAlert.js";
+export {
+  capIssueAlertUpdateMutationKey,
+  capIssueAlertUpdateMutationOptions,
+  useCapIssueAlertUpdate,
+} from "./hooks/useCapIssueAlertUpdate.js";
 export {
   capPublishAlertMutationKey,
   capPublishAlertMutationOptions,
@@ -6423,6 +6429,18 @@ export type { CapInfoCreate } from "./models/CapInfoCreate.js";
 export type { CapInfoPublic } from "./models/CapInfoPublic.js";
 export type { CapIntegrationStatus } from "./models/CapIntegrationStatus.js";
 export { capIntegrationStatus } from "./models/CapIntegrationStatus.js";
+export type {
+  CapIssueAlertUpdateOptions,
+  CapIssueAlertUpdatePath,
+  CapIssueAlertUpdateResponse,
+  CapIssueAlertUpdateResponses,
+  CapIssueAlertUpdateStatus201,
+  CapIssueAlertUpdateStatus401,
+  CapIssueAlertUpdateStatus403,
+  CapIssueAlertUpdateStatus404,
+  CapIssueAlertUpdateStatus409,
+  CapIssueAlertUpdateStatus422,
+} from "./models/CapIssueAlertUpdate.js";
 export type { CapLifecycleState } from "./models/CapLifecycleState.js";
 export { capLifecycleState } from "./models/CapLifecycleState.js";
 export type { CapMessageType } from "./models/CapMessageType.js";
@@ -16112,6 +16130,18 @@ export {
 export { capInfoCreateSchema } from "./zod/capInfoCreateSchema.js";
 export { capInfoPublicSchema } from "./zod/capInfoPublicSchema.js";
 export { capIntegrationStatusSchema } from "./zod/capIntegrationStatusSchema.js";
+export {
+  capIssueAlertUpdateErrorSchema,
+  capIssueAlertUpdatePathAlertIdSchema,
+  capIssueAlertUpdatePathSchema,
+  capIssueAlertUpdateResponseSchema,
+  capIssueAlertUpdateStatus201Schema,
+  capIssueAlertUpdateStatus401Schema,
+  capIssueAlertUpdateStatus403Schema,
+  capIssueAlertUpdateStatus404Schema,
+  capIssueAlertUpdateStatus409Schema,
+  capIssueAlertUpdateStatus422Schema,
+} from "./zod/capIssueAlertUpdateSchema.js";
 export { capLifecycleStateSchema } from "./zod/capLifecycleStateSchema.js";
 export { capMessageTypeSchema } from "./zod/capMessageTypeSchema.js";
 export { capNameValueSchema } from "./zod/capNameValueSchema.js";

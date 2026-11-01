@@ -37874,6 +37874,95 @@
         }
       }
     },
+    "/api/v1/cap/alerts/{alert_id}/updates": {
+      "post": {
+        "tags": [
+          "cap"
+        ],
+        "summary": "Start an Update of a published CAP alert",
+        "description": "Creates a draft Update that copies the published Alert or Update and references it (same status, sender and scope). It follows the normal approval; publishing it supersedes the original. Returns 200 with the existing draft when an Update of this alert is already being prepared. Imported alerts and alerts that do not follow the CAP 1.2 schema cannot be updated. Needs cap.alert.create.",
+        "operationId": "capIssueAlertUpdate",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "alert_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Alert Id"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CapAlertPublic"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Does not follow the CAP 1.2 schema",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Resource not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Not published, not an Alert or Update, or imported",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/cap/alerts/{alert_id}/validate": {
       "post": {
         "tags": [
@@ -75336,6 +75425,17 @@
               }
             ],
             "title": "Signing Key Ref"
+          },
+          "schema_mismatch": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Schema Mismatch"
           }
         },
         "type": "object",

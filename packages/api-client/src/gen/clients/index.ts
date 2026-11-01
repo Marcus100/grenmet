@@ -162,6 +162,7 @@ export { capGetPublicPastAlerts } from "./capGetPublicPastAlerts.js";
 export { capGetPublicWarnings } from "./capGetPublicWarnings.js";
 export { capGetRss } from "./capGetRss.js";
 export { capImportAlert } from "./capImportAlert.js";
+export { capIssueAlertUpdate } from "./capIssueAlertUpdate.js";
 export { capPublishAlert } from "./capPublishAlert.js";
 export { capRecordAlertReview } from "./capRecordAlertReview.js";
 export { capSaveHazardProfile } from "./capSaveHazardProfile.js";

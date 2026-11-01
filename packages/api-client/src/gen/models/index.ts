@@ -2004,6 +2004,18 @@ export type { CapInfoCreate } from "./CapInfoCreate.js";
 export type { CapInfoPublic } from "./CapInfoPublic.js";
 export type { CapIntegrationStatus } from "./CapIntegrationStatus.js";
 export { capIntegrationStatus } from "./CapIntegrationStatus.js";
+export type {
+  CapIssueAlertUpdateOptions,
+  CapIssueAlertUpdatePath,
+  CapIssueAlertUpdateResponse,
+  CapIssueAlertUpdateResponses,
+  CapIssueAlertUpdateStatus201,
+  CapIssueAlertUpdateStatus401,
+  CapIssueAlertUpdateStatus403,
+  CapIssueAlertUpdateStatus404,
+  CapIssueAlertUpdateStatus409,
+  CapIssueAlertUpdateStatus422,
+} from "./CapIssueAlertUpdate.js";
 export type { CapLifecycleState } from "./CapLifecycleState.js";
 export { capLifecycleState } from "./CapLifecycleState.js";
 export type { CapMessageType } from "./CapMessageType.js";
