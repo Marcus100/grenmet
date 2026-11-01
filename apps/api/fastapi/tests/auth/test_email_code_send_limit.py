@@ -5,6 +5,8 @@ endpoint answers exactly as it does for an unknown address, and no new code is
 issued.
 """
 
+import asyncio
+import time
 from types import SimpleNamespace
 
 import pytest
@@ -52,6 +54,36 @@ async def test_send_cap_stops_new_codes_and_keeps_the_reply(
     assert all(reply == replies[0] for reply in replies)
 
 
+async def _drain_code_emails() -> None:
+    if app_service._pending_code_emails:
+        await asyncio.gather(*list(app_service._pending_code_emails))
+
+
+@pytest.mark.asyncio
+async def test_reply_does_not_wait_for_the_mail_provider(
+    async_client, db_async, monkeypatch
+):
+    """A slow provider must not slow the reply, for a new address or a known one."""
+    _ = db_async
+    monkeypatch.setattr(app_service, "new_code", lambda: "123456")
+    monkeypatch.setattr(
+        app_service, "email_settings", SimpleNamespace(EMAILS_ENABLED=True)
+    )
+
+    def slow_send(**kwargs):  # noqa: ARG001
+        time.sleep(1.5)
+
+    monkeypatch.setattr(app_service, "send_email", slow_send)
+    started = time.perf_counter()
+    response = await async_client.post(
+        f"{BASE}/email-code/start", json={"email": "slow-provider@example.com"}
+    )
+    elapsed = time.perf_counter() - started
+    assert response.status_code == 200
+    assert elapsed < 1.0, f"reply waited {elapsed:.2f}s on the mail provider"
+    await _drain_code_emails()
+
+
 @pytest.mark.asyncio
 async def test_subject_line_does_not_carry_the_code(
     async_client, db_async, monkeypatch
@@ -73,6 +105,7 @@ async def test_subject_line_does_not_carry_the_code(
     await async_client.post(
         f"{BASE}/email-code/start", json={"email": "subject@example.com"}
     )
+    await _drain_code_emails()
     assert subjects == ["Your sign-in code"]
     assert "123456" not in subjects[0]
 

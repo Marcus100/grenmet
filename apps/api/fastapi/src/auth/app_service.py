@@ -377,21 +377,8 @@ async def email_code_start(
     )
     await session.commit()
     if email_settings.EMAILS_ENABLED:
-        try:
-            await run_in_threadpool(
-                send_email,
-                email_to=email,
-                subject="Your sign-in code",
-                html_content=(
-                    f"<p>Your {app.label} code is</p>"
-                    f'<p style="font-size:28px;font-weight:700;letter-spacing:4px">{code}</p>'
-                    f"<p>It expires in {CODE_TTL_MINUTES} minutes. If you didn't ask for it, ignore this email.</p>"
-                ),
-            )
-        except Exception as exc:
-            raise AppException(
-                "We couldn't send the code. Try again shortly.", 503
-            ) from exc
+        # Sent in the background so the reply never waits on the mail provider.
+        _schedule_code_email(email=email, app_label=app.label, code=code)
     elif auth_settings.ENVIRONMENT == "local":
         logger.warning("Email code for %s (%s): %s", email, app.key, code)
     return Message(message=GENERIC_SENT)
