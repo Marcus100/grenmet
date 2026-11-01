@@ -1,6 +1,9 @@
 # CAP warning desk: forecaster acceptance (staging)
 
-Owner: GMS (sign-off) · Maintained by: Barrels Grenada · Applies to: staging only
+**Status:** Draft test script for the parallel run; nothing here has been run yet  
+**Owner:** GMS (sign-off); maintained by Barrels Grenada engineering  
+**Last updated:** 2026-11-01  
+**Applies to:** staging only
 
 The new warning desk lives at `https://cap.staging.barrels.gd/desk`. The
 current desk stays at `https://gms.staging.barrels.gd/cap` and keeps working
