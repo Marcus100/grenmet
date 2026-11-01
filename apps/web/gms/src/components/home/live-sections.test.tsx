@@ -66,6 +66,8 @@ const hidden = (sections: string[]): HomeContent => ({
 });
 
 const READ_ARTICLE = /^Read the article: /;
+const DUTY_FORECASTER = /Duty forecaster ·/;
+const WATCH_ON_YOUTUBE = /^Watch on YouTube/;
 const ISSUED_UNAVAILABLE = /Issued forecasts cannot be retrieved right now/;
 const NO_FORECAST = /No public forecast is in effect right now/;
 
@@ -277,6 +279,36 @@ it("keeps desk posts behind Earlier posts during a red warning", async () => {
   expect(
     screen.getByRole("list", { name: "Latest from the forecast desk" })
   ).not.toHaveTextContent("Why the morning forecast changed");
+});
+
+it("shows the author's role, the post type, the picture credit and a click-to-open media link", async () => {
+  vi.mocked(fetchHomeContent).mockResolvedValue({
+    ...hidden([]),
+    deskUpdates: {
+      status: "ok",
+      articles: [
+        post({
+          authorName: "Kendra Mitchell",
+          authorRole: "Duty forecaster",
+          format: "video",
+          mediaUrl: "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+          imageUrl: "https://cms.example/media/still.jpg",
+          imageCredit: "Photo: GMS",
+        }),
+      ],
+    },
+  });
+  render(await ForecastDesk());
+  expect(screen.getByText("Kendra Mitchell")).toBeInTheDocument();
+  expect(screen.getByText(DUTY_FORECASTER)).toBeInTheDocument();
+  expect(screen.getByText("Watch")).toBeInTheDocument();
+  expect(screen.getByText("Photo: GMS")).toBeInTheDocument();
+  const watch = screen.getByRole("link", { name: WATCH_ON_YOUTUBE });
+  expect(watch).toHaveAttribute(
+    "href",
+    "https://www.youtube.com/watch?v=dQw4w9WgXcQ"
+  );
+  expect(document.querySelector("iframe")).toBeNull();
 });
 
 it("signs a desk card with the author's name and initials, with their picture", async () => {
