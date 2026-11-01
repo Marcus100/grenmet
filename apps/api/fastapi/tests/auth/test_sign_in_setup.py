@@ -1,4 +1,4 @@
-"""Administrator-issued sign-in setup: a one-use, 72-hour link for the person to pick a password.
+"""Administrator-issued sign-in setup: a one-use, 24-hour link for the person to pick a password.
 
 Real database and real JWTs. The link never verifies email, never grants roles or app
 access and never changes the email-verification flags.
@@ -243,7 +243,7 @@ async def test_identity_must_be_confirmed(async_client, db_async):
 
 @pytest.mark.asyncio
 @pytest.mark.usefixtures("db_async", "encryption_keys")
-async def test_link_is_hashed_72_hours_and_no_store(async_client, db_async):
+async def test_link_is_hashed_24_hours_and_no_store(async_client, db_async):
     supervisor, employee, _, _ = await make_supervised_pair(db_async, MANAGE)
     issued = await async_client.post(
         f"{BASE}/{employee.id}/sign-in-setup",
