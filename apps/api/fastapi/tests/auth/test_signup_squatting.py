@@ -234,3 +234,166 @@ async def test_password_setup_is_capped_per_address(
         assert response.status_code == 200
     await drain_setup_emails()
     assert len(sent) == 2
+
+
+@pytest.mark.asyncio
+async def test_squatter_authenticator_and_links_are_cleared_before_the_owner_signs_in(
+    async_client, db_async, monkeypatch
+):
+    """F2: a squatter's authenticator must not block the owner's code sign-in."""
+    from sqlalchemy import select as sa_select
+
+    from src.auth.models import User
+    from src.auth.modern_models import ExternalIdentity
+
+    victim = "victim.totp@example.com"
+    squatter = await make_self_signup_user(
+        db_async,
+        email=victim,
+        username="victimtotp",
+        password="squatter-password-here",
+        first_name="V",
+        last_name="T",
+    )
+    user = (
+        await db_async.execute(sa_select(User).where(User.id == squatter))
+    ).scalar_one()
+    user.totp_enabled = True
+    user.totp_secret = "JBSWY3DPEHPK3PXP"
+    user.mfa_recovery_hashes = ["deadbeef"]
+    user.known_device_keys = ["Chrome on Linux"]
+    db_async.add(
+        ExternalIdentity(subject="google-sub-1", provider="google", user_id=squatter)
+    )
+    await db_async.commit()
+
+    monkeypatch.setattr(app_service, "new_code", lambda: "123456")
+    monkeypatch.setattr(app_service, "send_email", lambda **kwargs: None)
+    await async_client.post(f"{BASE}/email-code/start", json={"email": victim})
+    owner = await async_client.post(
+        f"{BASE}/email-code/verify", json={"email": victim, "code": "123456"}
+    )
+    # Without the retirement first, the squatter's TOTP would demand a code here.
+    assert owner.status_code == 200, owner.text
+
+    await db_async.refresh(user)
+    assert user.totp_enabled is False
+    assert user.totp_secret is None
+    assert user.mfa_recovery_hashes == []
+    assert user.known_device_keys == []
+    links = (
+        (
+            await db_async.execute(
+                sa_select(ExternalIdentity).where(ExternalIdentity.user_id == squatter)
+            )
+        )
+        .scalars()
+        .all()
+    )
+    assert links == []
+
+
+@pytest.mark.asyncio
+async def test_administrator_created_password_survives_the_owners_code(
+    async_client, db_async, monkeypatch
+):
+    """F8: accounts an administrator created with a password are not retired."""
+    from src.auth.schemas import UserCreate
+    from src.auth.service import create_user
+
+    admin_made = "admin.made@example.com"
+    await create_user(
+        session=db_async,
+        user_create=UserCreate(
+            email=admin_made,
+            username="adminmade",
+            password="admin-set-password-1",
+            first_name="Admin",
+            last_name="Made",
+        ),
+    )
+    monkeypatch.setattr(app_service, "new_code", lambda: "123456")
+    monkeypatch.setattr(app_service, "send_email", lambda **kwargs: None)
+    await async_client.post(f"{BASE}/email-code/start", json={"email": admin_made})
+    await async_client.post(
+        f"{BASE}/email-code/verify", json={"email": admin_made, "code": "123456"}
+    )
+    still = await async_client.post(
+        f"{BASE}/sessions",
+        json={"email": admin_made, "password": "admin-set-password-1"},
+    )
+    assert still.status_code == 200
+
+
+@pytest.mark.asyncio
+async def test_setup_link_cap_tells_an_administrator_instead_of_succeeding(
+    db_async, monkeypatch
+):
+    """F4: a capped resend raises 429 for the admin; the public route stays silent."""
+    from starlette.requests import Request
+
+    from src.auth import modern_service
+    from src.auth.lockout import LoginLockout
+    from src.auth.modern_schemas import EmailRequest
+    from src.exceptions import AppException
+
+    monkeypatch.setattr(
+        modern_service,
+        "password_setup_send_limit",
+        LoginLockout(
+            redis_url=None,
+            max_attempts=0,
+            lockout_seconds=1,
+            window_seconds=1,
+            client=FakeAsyncRedis(decode_responses=True),
+        ),
+    )
+    request = Request(
+        {
+            "type": "http",
+            "headers": [],
+            "client": ("127.0.0.1", 1),
+            "server": ("t", 80),
+            "path": "/x",
+        }
+    )
+    with pytest.raises(AppException) as raised:
+        await modern_service.email_request(
+            request,
+            db_async,
+            EmailRequest(email="cap@example.com"),
+            await_delivery=True,
+        )
+    assert raised.value.status_code == 429
+
+
+@pytest.mark.asyncio
+async def test_delivery_failure_log_names_the_error_not_the_address(
+    async_client, db_async, monkeypatch
+):
+    """F6: the log carries the exception class only, never the recipient."""
+    await make_self_signup_user(
+        db_async,
+        email="leak.check@example.com",
+        username="leakcheck",
+        password="password-for-leak-check",
+        first_name="L",
+        last_name="C",
+    )
+
+    def boom(**kwargs):
+        raise ValueError(f"provider rejected {kwargs['email_to']}")
+
+    monkeypatch.setattr(modern_service, "send_email", boom)
+    from unittest.mock import MagicMock
+
+    log = MagicMock()
+    monkeypatch.setattr(modern_service, "logger", log)
+    await async_client.post(
+        f"{BASE}/password/setup", json={"email": "leak.check@example.com"}
+    )
+    await modern_service.drain_setup_emails()
+    logged = repr(log.warning.call_args_list)
+    assert log.warning.called
+    assert "leak.check@example.com" not in logged
+    assert "ValueError" in logged

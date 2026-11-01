@@ -47,7 +47,7 @@ from src.email_config import email_settings
 from src.models import ApiError, Message
 from src.openapi_responses import AUTHENTICATED, RateLimitedBody
 from src.pagination import PaginatedResponse, PaginationParams, get_pagination_params
-from src.rate_limit import limiter, request_ip
+from src.rate_limit import limiter, mail_limit_address
 
 router = APIRouter(prefix="/auth/users", tags=["users"])
 
@@ -262,7 +262,7 @@ async def register_user(
     return await app_service.account_email_code_start(
         session=session,
         body=AppEmailCodeStart(email=user_in.email),
-        client_ip=request_ip(request),
+        client_ip=mail_limit_address(request),
     )
 
 

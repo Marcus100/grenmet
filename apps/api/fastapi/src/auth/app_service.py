@@ -17,7 +17,7 @@ from urllib.parse import urlencode
 import httpx
 import jwt
 from fastapi.concurrency import run_in_threadpool
-from sqlalchemy import delete, select
+from sqlalchemy import delete, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 from starlette.requests import Request
 
@@ -308,28 +308,45 @@ async def _deliver_code_email(*, email: str, app_label: str, code: str) -> None:
                 f"<p>It expires in {CODE_TTL_MINUTES} minutes. If you didn't ask for it, ignore this email.</p>"
             ),
         )
-    except Exception:
-        # The reply already went out. Log without the address or the code; the
-        # person can ask for a new code.
-        logger.warning("Sign-in code email could not be sent", exc_info=True)
+    except Exception as exc:
+        # The reply already went out; the person can ask for a new code.
+        # Only the class: the message or traceback could carry the address.
+        logger.warning("Sign-in code email could not be sent (%s)", type(exc).__name__)
 
 
 async def _retire_unverified_password(session: AsyncSession, user: User) -> None:
-    """Drop a password set before the mailbox was proven.
+    """Undo whatever an unproven mailbox was given before the owner proved it.
 
     The old public sign-up let anyone register someone else's address with their
-    own password. A code sign-in proves the mailbox, so on the first verified code
-    the unverified password goes, every session is revoked and the account must
-    set a password through a verified flow. Admin-activated accounts are exempt:
-    their password came from an administrator-issued link.
+    own password, and that account could also enrol an authenticator, link a
+    Google identity, remember devices and issue API keys. On the first verified
+    code, for a self-registered account that was never verified, this clears all
+    of it, revokes every session and leaves the account needing a password through
+    a verified flow. Only self-registered accounts (registration_pending) qualify:
+    administrator-created accounts (create_user, seeds, staff onboarding) keep
+    their passwords, and admin-activated accounts are exempt.
     """
-    if user.email_verified_at is not None or user.password_setup_pending:
+    if user.email_verified_at is not None or not user.registration_pending:
         return
     if await is_admin_activated(session, user):
         return
     user.hashed_password = await get_password_hash_async(secrets.token_urlsafe(32))
     user.password_setup_pending = True
+    user.totp_enabled = False
+    user.totp_secret = None
+    user.mfa_recovery_hashes = []
+    user.known_device_keys = []
     await session.execute(delete(LoginSession).where(LoginSession.user_id == user.id))
+    await session.execute(
+        delete(ExternalIdentity).where(ExternalIdentity.user_id == user.id)
+    )
+    from src.organisations.models import ApiKey
+
+    await session.execute(
+        update(ApiKey)
+        .where(ApiKey.created_by_user_id == user.id, ApiKey.revoked_at.is_(None))
+        .values(revoked_at=utc_now())
+    )
     await record_security(session, user, "pw_retired")
 
 
@@ -408,9 +425,9 @@ async def email_code_verify(
         )
     if not user.is_active:
         raise AppException("That code is wrong or has expired. Request a new one.", 400)
+    await _retire_unverified_password(session, user)
     await _require_totp(session, user, body.totp_code)
     await session.delete(challenge)
-    await _retire_unverified_password(session, user)
     if user.email_verified_at is None:
         user.email_verified_at = utc_now()
         session.add(user)
@@ -862,9 +879,9 @@ async def account_email_code_verify(
         )
     if not user.is_active:
         raise AppException("That code is wrong or has expired. Request a new one.", 400)
+    await _retire_unverified_password(session, user)
     await _require_totp(session, user, body.totp_code)
     await session.delete(challenge)
-    await _retire_unverified_password(session, user)
     if user.email_verified_at is None:
         user.email_verified_at = utc_now()
         session.add(user)
