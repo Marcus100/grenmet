@@ -12,6 +12,10 @@ export const env = createEnv({
     // Host-only account session for auth.barrels.gd (ADR-0017): never a Domain.
     AUTH_SESSION_COOKIE_NAME: z.string().optional().default("auth_session"),
     AUTH_ALLOWED_RETURN_HOSTS: z.string().optional().default(""),
+    // Shared with the API's TRUSTED_WEB_SECRET: lets the API rate-limit mail sends per visitor.
+    TRUSTED_WEB_SECRET: z.string().optional(),
+    // Trusted proxies in front of this host (1 on Vercel, 2 behind Cloudflare and Vercel).
+    AUTH_VISITOR_PROXY_HOPS: z.coerce.number().int().min(1).max(5).default(1),
     // Shared secret that FastAPI must present when calling the /api/email/render endpoint.
     EMAIL_RENDER_SECRET: z.string().optional(),
     // App directory links on the account pages. Unset in production hides the
@@ -43,6 +47,8 @@ export const env = createEnv({
     AUTH_API_V1_STR: process.env.AUTH_API_V1_STR,
     AUTH_SESSION_COOKIE_NAME: process.env.AUTH_SESSION_COOKIE_NAME,
     AUTH_ALLOWED_RETURN_HOSTS: process.env.AUTH_ALLOWED_RETURN_HOSTS,
+    TRUSTED_WEB_SECRET: process.env.TRUSTED_WEB_SECRET,
+    AUTH_VISITOR_PROXY_HOPS: process.env.AUTH_VISITOR_PROXY_HOPS,
     EMAIL_RENDER_SECRET: process.env.EMAIL_RENDER_SECRET,
     ADMIN_APP_URL: process.env.ADMIN_APP_URL,
     BARRELS_ADMIN_APP_URL: process.env.BARRELS_ADMIN_APP_URL,

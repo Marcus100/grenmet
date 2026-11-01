@@ -753,9 +753,9 @@ export type {
   AuthRegisterUserOptions,
   AuthRegisterUserResponse,
   AuthRegisterUserResponses,
-  AuthRegisterUserStatus201,
-  AuthRegisterUserStatus400,
+  AuthRegisterUserStatus200,
   AuthRegisterUserStatus422,
+  AuthRegisterUserStatus429,
 } from "./AuthRegisterUser.js";
 export type {
   AuthReplaceRecoveryCodesBody,

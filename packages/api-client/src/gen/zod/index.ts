@@ -721,9 +721,9 @@ export {
   authRegisterUserBodySchema,
   authRegisterUserErrorSchema,
   authRegisterUserResponseSchema,
-  authRegisterUserStatus201Schema,
-  authRegisterUserStatus400Schema,
+  authRegisterUserStatus200Schema,
   authRegisterUserStatus422Schema,
+  authRegisterUserStatus429Schema,
 } from "./authRegisterUserSchema.js";
 export {
   authReplaceRecoveryCodesBodySchema,

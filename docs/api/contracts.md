@@ -543,7 +543,17 @@ route. Only these self-service routes accept unapproved accounts (`AccountUser`)
 `POST /auth/token` (machine clients) still requires staff approval.
 `POST /auth/email-code/start` and `/verify` sign in to the account with a
 6-digit emailed code (the first verified code creates the account when sign-up is
-open); they open the same account session as password and Google sign-in.
+open); they open the same account session as password and Google sign-in. This is
+the sign-up path too (#958): `/signup` in the auth app asks for an email only.
+Start replies the same for known and unknown addresses and never waits on mail.
+Limits: one code per mailbox per 60 seconds, five per mailbox per hour, twenty
+per client address per hour (mailboxes fold `+tags`, and Gmail dots, before keying).
+A code sign-in confirms the email, writes an audit entry (`code_sign_in`), and on
+an unverified account clears any earlier password and revokes its sessions
+(`pw_retired`). `POST /auth/users/signup` is retired: it never creates an account; it
+answers like `email-code/start` (the same generic reply for every address) and
+sends a sign-in code. Its success response changed from 201 UserPublic to 200
+Message (breaking change, #958).
 
 Public sites registered for single sign-on (`weather`, `mbia`, `signal`, `docs`,
 `elections`) have no sign-in routes of their own and `join_prompt=False`: the
@@ -1581,7 +1591,7 @@ HR form submission dates: leave, shift swap, absentee, daily status and parking 
 
 ### Registration approval and recovery
 
-Public signup creates an active but `registration_pending` account and sends a verification email; verification is recorded (`email_verified_at`) but never blocks sign-in, joining, app access or staff approval (16 October 2026). `ALLOW_PUBLIC_SIGNUP` defaults to true; explicitly setting it false closes registration. Pending accounts cannot obtain sessions, use bearer-authenticated endpoints, or complete Google sign-in. Existing accounts default to approved when the migration is applied. Signup accepts passwords of 12–128 characters and ignores privilege fields. Verification delivery failure preserves the pending account so verification can be requested again.
+Public sign-up no longer creates accounts from a password (#958). `POST /auth/users/signup` answers like `email-code/start` and sends a sign-in code; the first verified code creates a self-service `registration_pending` account. A code sign-in confirms the email (`email_verified_at`); verification never blocks sign-in with a password, joining, app access or staff approval (16 October 2026, updated 31 October 2026). `ALLOW_PUBLIC_SIGNUP` defaults to true; setting it false closes code sign-up. The first verified code for an unverified self-registered account clears any password, authenticator, recovery codes, remembered devices, external identities and API keys, revokes its sessions and audits `pw_retired`; administrator-created and admin-activated accounts are not affected. Pending accounts cannot obtain sessions, use bearer-authenticated endpoints, or complete Google sign-in. Existing accounts default to approved when the migration is applied.
 
 An administrator saves department/grade membership and issues the permanent staff credential, then calls `POST /api/v1/hr/setup/staff/{user_id}/approve-registration`. Approval requires active employment and a non-revoked credential, grants the existing `staff` role with self scope, and writes an audit entry. It does not infer management privileges from a grade. Missing employee number, employment type or start date does not block credential activation; `StaffCard.employment_ready` reports this separately from account approval and email verification. HR submission readiness rules still apply.
 

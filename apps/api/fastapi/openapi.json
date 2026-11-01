@@ -1007,8 +1007,8 @@
         "tags": [
           "users"
         ],
-        "summary": "Register new user",
-        "description": "Create a new user account without authentication. Public endpoint for user registration.",
+        "summary": "Password sign-up (retired)",
+        "description": "Retired (#958). This never creates a password account. It answers as the emailed-code start does (the same reply for every address) and sends a sign-in code, which creates the account on first use. Use /auth/email-code/start and /auth/email-code/verify.",
         "operationId": "authRegisterUser",
         "requestBody": {
           "content": {
@@ -1021,12 +1021,12 @@
           "required": true
         },
         "responses": {
-          "201": {
-            "description": "User registered successfully",
+          "200": {
+            "description": "Successful Response",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/UserPublic"
+                  "$ref": "#/components/schemas/Message"
                 }
               }
             }
@@ -1041,12 +1041,20 @@
               }
             }
           },
-          "400": {
-            "description": "User with this email already exists",
+          "429": {
+            "description": "Rate limit exceeded",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ApiError"
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/ApiError"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErrorMessage"
+                    }
+                  ],
+                  "title": "Response 429 Authregisteruser"
                 }
               }
             }
@@ -61111,7 +61119,7 @@
           "modern-auth"
         ],
         "summary": "Send a Barrels account sign-in code",
-        "description": "Email a 6-digit code for signing in at auth.barrels.gd. The reply never reveals whether the address has an account.",
+        "description": "Email a 6-digit code for signing in at auth.barrels.gd. The reply is the same for every address and never waits on mail. A request past the limits (one code per mailbox per minute, five per mailbox per hour, twenty per client per hour) gets the same reply and sends nothing.",
         "operationId": "authAccountEmailCodeStart",
         "requestBody": {
           "content": {
@@ -61308,7 +61316,7 @@
           "auth"
         ],
         "summary": "Send an email sign-in code",
-        "description": "Send a 6-digit code. The reply never reveals whether the address has an account.",
+        "description": "Send a 6-digit code. The reply is the same for every address and never waits on mail. A request past the limits gets the same reply and sends nothing.",
         "operationId": "authAppEmailCodeStart",
         "parameters": [
           {

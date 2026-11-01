@@ -23,7 +23,7 @@ from src.auth.schemas import SessionLoginResponse
 from src.dependencies import AccountUser, SessionDep
 from src.models import ApiError, Message
 from src.openapi_responses import RateLimitedBody
-from src.rate_limit import limiter
+from src.rate_limit import limiter, mail_limit_address
 
 router = APIRouter(prefix="/auth", tags=["modern-auth"])
 
@@ -177,7 +177,7 @@ async def revoke_security_session(
     response_model=Message,
     status_code=200,
     summary="Send a Barrels account sign-in code",
-    description="Email a 6-digit code for signing in at auth.barrels.gd. The reply never reveals whether the address has an account.",
+    description="Email a 6-digit code for signing in at auth.barrels.gd. The reply is the same for every address and never waits on mail. A request past the limits (one code per mailbox per minute, five per mailbox per hour, twenty per client per hour) gets the same reply and sends nothing.",
     responses={
         429: {"model": RateLimitedBody, "description": "Rate limit exceeded"},
         503: {"description": "Email delivery failed"},
@@ -187,8 +187,9 @@ async def revoke_security_session(
 async def account_email_code_start(
     *, request: Request, session: SessionDep, body: AppEmailCodeStart
 ) -> Message:
-    _ = request
-    return await app_service.account_email_code_start(session=session, body=body)
+    return await app_service.account_email_code_start(
+        session=session, body=body, client_ip=mail_limit_address(request)
+    )
 
 
 @router.post(

@@ -13,9 +13,9 @@ import type { RequestConfig, ResponseErrorConfig } from "../.kubb/client.js";
 import { authRegisterUser } from "../clients/authRegisterUser.js";
 import type {
   AuthRegisterUserOptions,
-  AuthRegisterUserStatus201,
-  AuthRegisterUserStatus400,
+  AuthRegisterUserStatus200,
   AuthRegisterUserStatus422,
+  AuthRegisterUserStatus429,
 } from "../models/AuthRegisterUser.js";
 
 export const authRegisterUserMutationKey = () =>
@@ -28,8 +28,8 @@ export function authRegisterUserMutationOptions<TContext = unknown>(
 ) {
   const mutationKey = authRegisterUserMutationKey();
   return mutationOptions<
-    AuthRegisterUserStatus201,
-    ResponseErrorConfig<AuthRegisterUserStatus400 | AuthRegisterUserStatus422>,
+    AuthRegisterUserStatus200,
+    ResponseErrorConfig<AuthRegisterUserStatus422 | AuthRegisterUserStatus429>,
     AuthRegisterUserOptions,
     TContext
   >({
@@ -41,16 +41,16 @@ export function authRegisterUserMutationOptions<TContext = unknown>(
 }
 
 /**
- * @description Create a new user account without authentication. Public endpoint for user registration.
- * @summary Register new user
+ * @description Retired (#958). This never creates a password account. It answers as the emailed-code start does (the same reply for every address) and sends a sign-in code, which creates the account on first use. Use /auth/email-code/start and /auth/email-code/verify.
+ * @summary Password sign-up (retired)
  * {@link /api/v1/auth/users/signup}
  */
 export function useAuthRegisterUser<TContext>(
   options: {
     mutation?: UseMutationOptions<
-      AuthRegisterUserStatus201,
+      AuthRegisterUserStatus200,
       ResponseErrorConfig<
-        AuthRegisterUserStatus400 | AuthRegisterUserStatus422
+        AuthRegisterUserStatus422 | AuthRegisterUserStatus429
       >,
       AuthRegisterUserOptions,
       TContext
@@ -68,15 +68,15 @@ export function useAuthRegisterUser<TContext>(
   const baseOptions = authRegisterUserMutationOptions(
     config
   ) as UseMutationOptions<
-    AuthRegisterUserStatus201,
-    ResponseErrorConfig<AuthRegisterUserStatus400 | AuthRegisterUserStatus422>,
+    AuthRegisterUserStatus200,
+    ResponseErrorConfig<AuthRegisterUserStatus422 | AuthRegisterUserStatus429>,
     AuthRegisterUserOptions,
     TContext
   >;
 
   return useMutation<
-    AuthRegisterUserStatus201,
-    ResponseErrorConfig<AuthRegisterUserStatus400 | AuthRegisterUserStatus422>,
+    AuthRegisterUserStatus200,
+    ResponseErrorConfig<AuthRegisterUserStatus422 | AuthRegisterUserStatus429>,
     AuthRegisterUserOptions,
     TContext
   >(
@@ -87,8 +87,8 @@ export function useAuthRegisterUser<TContext>(
     },
     queryClient
   ) as UseMutationResult<
-    AuthRegisterUserStatus201,
-    ResponseErrorConfig<AuthRegisterUserStatus400 | AuthRegisterUserStatus422>,
+    AuthRegisterUserStatus200,
+    ResponseErrorConfig<AuthRegisterUserStatus422 | AuthRegisterUserStatus429>,
     AuthRegisterUserOptions,
     TContext
   >;
