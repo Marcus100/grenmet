@@ -61,11 +61,23 @@ const COLUMNS = [
  */
 const SOCIAL: readonly { href: string; icon?: string; label: string }[] = [
   { label: "X", href: "https://x.com", icon: siX.path },
-  { label: "Facebook", href: "https://www.facebook.com/share/1E5eWWgjK8/", icon: siFacebook.path },
-  { label: "Instagram", href: "https://www.instagram.com/spiceweather473", icon: siInstagram.path },
+  {
+    label: "Facebook",
+    href: "https://www.facebook.com/share/1E5eWWgjK8/",
+    icon: siFacebook.path,
+  },
+  {
+    label: "Instagram",
+    href: "https://www.instagram.com/spiceweather473",
+    icon: siInstagram.path,
+  },
   { label: "YouTube", href: "https://youtube.com", icon: siYoutube.path },
   { label: "LinkedIn", href: "https://linkedin.com" },
-  { label: "WhatsApp", href: "https://wa.me/14735345234", icon: siWhatsapp.path },
+  {
+    label: "WhatsApp",
+    href: "https://wa.me/14735345234",
+    icon: siWhatsapp.path,
+  },
 ];
 
 /** A brand mark as inline SVG; decorative, the link's aria-label names it. */
