@@ -70,7 +70,8 @@ async def test_reply_does_not_wait_for_the_mail_provider(
         app_service, "email_settings", SimpleNamespace(EMAILS_ENABLED=True)
     )
 
-    def slow_send(**kwargs):  # noqa: ARG001
+    def slow_send(**kwargs):
+        _ = kwargs
         time.sleep(1.5)
 
     monkeypatch.setattr(app_service, "send_email", slow_send)
@@ -92,7 +93,8 @@ async def test_subject_line_does_not_carry_the_code(
     monkeypatch.setattr(app_service, "new_code", lambda: "123456")
     subjects: list[str] = []
 
-    def capture(*, email_to, subject, html_content):  # noqa: ARG001
+    def capture(*, email_to, subject, html_content):
+        _ = (email_to, html_content)
         subjects.append(subject)
 
     monkeypatch.setattr(

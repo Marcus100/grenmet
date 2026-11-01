@@ -529,8 +529,10 @@ Limits: one code per mailbox per 60 seconds, five per mailbox per hour, twenty
 per client address per hour (mailboxes fold `+tags`, and Gmail dots, before keying).
 A code sign-in confirms the email, writes an audit entry (`code_sign_in`), and on
 an unverified account clears any earlier password and revokes its sessions
-(`pw_retired`). `POST /auth/users/signup` is retired: it answers 410 Gone and
-creates nothing (breaking change, #958).
+(`pw_retired`). `POST /auth/users/signup` is retired: it never creates an account; it
+answers like `email-code/start` (the same generic reply for every address) and
+sends a sign-in code. Its success response changed from 201 UserPublic to 200
+Message (breaking change, #958).
 
 Public sites registered for single sign-on (`weather`, `mbia`, `signal`, `docs`,
 `elections`) have no sign-in routes of their own and `join_prompt=False`: the

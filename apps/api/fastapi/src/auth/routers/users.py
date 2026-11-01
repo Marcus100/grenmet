@@ -13,10 +13,11 @@ This router handles:
 import uuid
 from typing import Annotated, Any
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Request, status
 from fastapi.concurrency import run_in_threadpool
 
-from src.auth import service
+from src.auth import app_service, service
+from src.auth.app_schemas import AppEmailCodeStart
 from src.auth.constants import (
     ERROR_INSUFFICIENT_PRIVILEGES,
     ERROR_SUPERUSER_DELETE_SELF,
@@ -30,6 +31,7 @@ from src.auth.schemas import (
     UpdatePassword,
     UserCreate,
     UserPublic,
+    UserRegister,
     UserUpdate,
     UserUpdateMe,
 )
@@ -43,8 +45,9 @@ from src.dependencies import (
 from src.email import generate_new_account_email, send_email
 from src.email_config import email_settings
 from src.models import ApiError, Message
-from src.openapi_responses import AUTHENTICATED
+from src.openapi_responses import AUTHENTICATED, RateLimitedBody
 from src.pagination import PaginatedResponse, PaginationParams, get_pagination_params
+from src.rate_limit import limiter, request_ip
 
 router = APIRouter(prefix="/auth/users", tags=["users"])
 
@@ -240,28 +243,26 @@ async def delete_user_me(session: SessionDep, current_user: CurrentUser) -> Any:
 
 @router.post(
     "/signup",
-    response_model=None,
-    status_code=status.HTTP_410_GONE,
+    response_model=Message,
+    status_code=status.HTTP_200_OK,
     summary="Password sign-up (retired)",
     description=(
-        "Retired (#958). Accounts are created by the emailed sign-in code: POST "
-        "/auth/email-code/start, then /auth/email-code/verify. This route never "
-        "creates an account, so no one can register an address with a password."
+        "Retired (#958). This never creates a password account. It answers as the "
+        "emailed-code start does (the same reply for every address) and sends a "
+        "sign-in code, which creates the account on first use. Use "
+        "/auth/email-code/start and /auth/email-code/verify."
     ),
-    responses={
-        status.HTTP_410_GONE: {
-            "model": ApiError,
-            "description": "Password sign-up is retired; use the emailed code",
-        },
-    },
+    responses={429: {"model": RateLimitedBody, "description": "Rate limit exceeded"}},
 )
-async def register_user() -> Any:
-    raise HTTPException(
-        status_code=status.HTTP_410_GONE,
-        detail=(
-            "Password sign-up has been retired. Sign in or create an account with "
-            "the emailed code at /auth/email-code/start."
-        ),
+@limiter.limit("5/minute")
+async def register_user(
+    request: Request, session: SessionDep, user_in: UserRegister
+) -> Any:
+    # The submitted password, names and username are discarded on purpose.
+    return await app_service.account_email_code_start(
+        session=session,
+        body=AppEmailCodeStart(email=user_in.email),
+        client_ip=request_ip(request),
     )
 
 

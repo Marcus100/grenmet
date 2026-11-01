@@ -95,8 +95,9 @@ class LoginLockout:
             count = await client.incr(key)
             if count == 1:
                 await client.expire(key, self._window)
-            return count <= self._max
-        except Exception:  # noqa: BLE001 - fail open
+            return bool(count <= self._max)
+        except Exception:
+            # Fail open: a broken store must not block requests.
             logger.warning("Rate limit check failed; allowing request", exc_info=True)
             return True
 

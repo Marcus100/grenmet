@@ -11,12 +11,12 @@ import type {
 } from "../models/AuthRegisterUser.js";
 
 /**
- * @description Retired (#958). Accounts are created by the emailed sign-in code: POST /auth/email-code/start, then /auth/email-code/verify. This route never creates an account, so no one can register an address with a password.
+ * @description Retired (#958). This never creates a password account. It answers as the emailed-code start does (the same reply for every address) and sends a sign-in code, which creates the account on first use. Use /auth/email-code/start and /auth/email-code/verify.
  * @summary Password sign-up (retired)
  * {@link /api/v1/auth/users/signup}
  */
 export function authRegisterUser<ThrowOnError extends boolean = true>(
-  options: Options<AuthRegisterUserOptions, ThrowOnError> = {}
+  options: Options<AuthRegisterUserOptions, ThrowOnError>
 ): Unwrappable<RequestResult<AuthRegisterUserResponses, ThrowOnError>> {
   const { client: request = client, ...config } = options;
 

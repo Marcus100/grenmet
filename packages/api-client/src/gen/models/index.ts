@@ -749,11 +749,13 @@ export type {
   AuthRefreshSessionStatus422,
 } from "./AuthRefreshSession.js";
 export type {
+  AuthRegisterUserBody,
   AuthRegisterUserOptions,
   AuthRegisterUserResponse,
   AuthRegisterUserResponses,
-  AuthRegisterUserStatus410,
+  AuthRegisterUserStatus200,
   AuthRegisterUserStatus422,
+  AuthRegisterUserStatus429,
 } from "./AuthRegisterUser.js";
 export type {
   AuthReplaceRecoveryCodesBody,
@@ -8950,6 +8952,7 @@ export type { UserProfileUpdateMe } from "./UserProfileUpdateMe.js";
 export type { UserPublic } from "./UserPublic.js";
 export type { UserPublicPropertiesCmsAccessEnum } from "./UserPublicPropertiesCmsAccessEnum.js";
 export { userPublicPropertiesCmsAccessEnum } from "./UserPublicPropertiesCmsAccessEnum.js";
+export type { UserRegister } from "./UserRegister.js";
 export type { UserRoleAssignmentCreate } from "./UserRoleAssignmentCreate.js";
 export type { UserRoleAssignmentPublic } from "./UserRoleAssignmentPublic.js";
 export type { UserRoleAssignmentsPublic } from "./UserRoleAssignmentsPublic.js";

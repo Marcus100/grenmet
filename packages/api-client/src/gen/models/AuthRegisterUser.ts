@@ -4,13 +4,12 @@
  */
 
 import type { ApiError } from "./ApiError.js";
+import type { ErrorMessage } from "./ErrorMessage.js";
+import type { Message } from "./Message.js";
+import type { UserRegister } from "./UserRegister.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 
-/**
- * @description Stable error envelope for documented API failures.
- * @type object
- */
-export type AuthRegisterUserStatus410 = ApiError;
+export type AuthRegisterUserStatus200 = Message;
 
 /**
  * @description Validation error envelope returned for malformed requests.
@@ -18,21 +17,24 @@ export type AuthRegisterUserStatus410 = ApiError;
  */
 export type AuthRegisterUserStatus422 = ValidationErrorResponse;
 
+export type AuthRegisterUserStatus429 = ApiError | ErrorMessage;
+
+export type AuthRegisterUserBody = UserRegister;
+
 export type AuthRegisterUserOptions = {
-  body?: never;
+  body: AuthRegisterUserBody;
   path?: never;
   query?: never;
   headers?: never;
 };
 
 export type AuthRegisterUserResponses = {
-  "410": AuthRegisterUserStatus410;
+  "200": AuthRegisterUserStatus200;
   "422": AuthRegisterUserStatus422;
+  "429": AuthRegisterUserStatus429;
 };
 
 /**
  * @description Union of all possible responses
  */
-export type AuthRegisterUserResponse =
-  | AuthRegisterUserStatus410
-  | AuthRegisterUserStatus422;
+export type AuthRegisterUserResponse = AuthRegisterUserStatus200;
