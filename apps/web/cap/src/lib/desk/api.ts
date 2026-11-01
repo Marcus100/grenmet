@@ -6,6 +6,7 @@ import {
   capAlertPublicSchema,
   capAuditEventListPublicSchema,
   capCatalogsPublicSchema,
+  capGetIntegrationsResponseSchema,
   capSettingsPublicSchema,
   gmsCataloguePublicSchema,
 } from "@barrelsgd/api-client";
@@ -78,6 +79,15 @@ export function listAuditEvents(
     accessToken,
     `/cap/audit?${query}`,
     capAuditEventListPublicSchema
+  );
+}
+
+/** Channel configuration and recent job events. Read-only; never a delivery claim. */
+export function getIntegrations(accessToken: string) {
+  return read(
+    accessToken,
+    "/cap/integrations",
+    capGetIntegrationsResponseSchema
   );
 }
 

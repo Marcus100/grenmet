@@ -42,6 +42,14 @@ export default async function DeskLayout({
                   Audit
                 </Link>
               ) : null}
+              {gate.permissions.integrationsManage ? (
+                <Link
+                  className="text-info hover:underline"
+                  href="/desk/integrations"
+                >
+                  Integrations
+                </Link>
+              ) : null}
               {gate.permissions.settingsManage ? (
                 <Link
                   className="text-info hover:underline"
