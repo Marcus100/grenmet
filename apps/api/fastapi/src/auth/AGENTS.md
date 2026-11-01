@@ -28,6 +28,12 @@
 - Phone code delivery stays `disabled` in production until a provider is approved (cost).
 - Rate-limited endpoints use `src.rate_limit.limiter`; keep limits on any new unauthenticated route.
 
+## Sign-in setup (`sign_in_setup.py`, issue #984)
+- **Audit invariant:** the administrator's free-text reason is stored in the `sign_in_setup` audit row (`issued`, `changes.reason`) and marked `sensitive`, so `audit.list_history` returns it masked unless the reader holds `audit.view_sensitive` (superusers do). The reader of an account's history is the account holder or a superuser, so this is the default for the person being set up. Logs never carry the reason, link, password or address. No export of audit rows exists; the gaa-admin history renders values as React text (escaped), and `issued` entries show no change list.
+- **Confirm clears access, keeps the authenticator:** `confirm` revokes the account's sessions, Google (external) identities, remembered devices and API keys it created, through `app_service.revoke_access_material`, the same helper as the squatting retirement. It keeps TOTP, recovery codes, roles, memberships and email flags.
+- **Lock order:** `issue` row-locks the issuing administrator and the target in ascending id order (`_lock_in_id_order`), so two administrators issuing for each other cannot deadlock. The issuer's row stays locked to commit, which serialises the per-administrator hourly cap.
+- **Reason rule:** when the email is verified, the reason must be at least 10 characters (422 otherwise); unverified or setup-pending accounts keep the 3-character schema minimum with no reason required. Tests: `tests/auth/test_sign_in_setup.py`.
+
 ## Change checklist
 - New permission → add to `PERMISSIONS`, default role grants if needed, gate the UI in gaa-admin, and add a test.
 - Session/cookie behaviour → verify `packages/auth`, `apps/web/auth`, and every delegating app (root Blast-Radius table).

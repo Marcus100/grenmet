@@ -7,7 +7,6 @@ import * as z from "zod";
 import { activationLinkSchema } from "./activationLinkSchema.js";
 import { apiErrorSchema } from "./apiErrorSchema.js";
 import { signInSetupIssueSchema } from "./signInSetupIssueSchema.js";
-import { validationErrorResponseSchema } from "./validationErrorResponseSchema.js";
 
 export const authIssueSignInSetupPathUserIdSchema = z.uuid();
 
@@ -29,10 +28,9 @@ export const authIssueSignInSetupStatus409Schema = apiErrorSchema.describe(
   "Stable error envelope for documented API failures."
 );
 
-export const authIssueSignInSetupStatus422Schema =
-  validationErrorResponseSchema.describe(
-    "Validation error envelope returned for malformed requests."
-  );
+export const authIssueSignInSetupStatus422Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
 export const authIssueSignInSetupStatus429Schema = apiErrorSchema.describe(
   "Stable error envelope for documented API failures."

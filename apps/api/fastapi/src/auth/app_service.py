@@ -335,6 +335,18 @@ async def _retire_unverified_password(session: AsyncSession, user: User) -> None
     user.totp_enabled = False
     user.totp_secret = None
     user.mfa_recovery_hashes = []
+    await revoke_access_material(session, user)
+    await record_security(session, user, "pw_retired")
+
+
+async def revoke_access_material(session: AsyncSession, user: User) -> None:
+    """Revoke what an account can sign in with besides its password and authenticator.
+
+    Clears remembered devices, deletes every session and Google (external) identity,
+    and revokes the API keys the account created. Shared by the squatting retirement
+    and by sign-in setup confirmation (#984). Callers decide about the password,
+    the authenticator and the recovery codes; this helper leaves them alone.
+    """
     user.known_device_keys = []
     await session.execute(delete(LoginSession).where(LoginSession.user_id == user.id))
     await session.execute(
@@ -347,7 +359,6 @@ async def _retire_unverified_password(session: AsyncSession, user: User) -> None
         .where(ApiKey.created_by_user_id == user.id, ApiKey.revoked_at.is_(None))
         .values(revoked_at=utc_now())
     )
-    await record_security(session, user, "pw_retired")
 
 
 async def _code_request_allowed(client_ip: str | None, mailbox_key: str) -> bool:

@@ -11,7 +11,7 @@ import type {
 } from "../models/AuthIssueSignInSetup.js";
 
 /**
- * @description Manager with `user.manage` in scope (or a superuser) and an MFA-verified session issues a 24-hour one-use link. The person opens it and chooses a password; the administrator never sees the password. Replaces earlier sign-in links. Never verifies email, grants roles or app access. Refused for the caller's own account, for owners unless the caller is a superuser, and for inactive or ended-employment accounts. A reason (3 to 500 characters) is required unless the email is unverified or password setup is pending. A courtesy notice goes to the address on file. Only a superuser can set up privileged accounts. Rate limited per administrator and per account.
+ * @description Manager with `user.manage` in scope (or a superuser) and an MFA-verified session issues a 24-hour one-use link. The person opens it and chooses a password; the administrator never sees the password. Replaces earlier sign-in links. Never verifies email, grants roles or app access. Refused for the caller's own account, for owners unless the caller is a superuser, and for inactive or ended-employment accounts. A reason is required unless the email is unverified or password setup is pending: 3 to 500 characters, or at least 10 when the email is verified. Confirming the link also signs the account out everywhere (sessions, Google links, remembered devices, API keys) but keeps its authenticator. A courtesy notice goes to the address on file. Only a superuser can set up privileged accounts. Rate limited per administrator and per account.
  * @summary Issue a one-use sign-in setup link
  * {@link /api/v1/auth/onboarding/:user_id/sign-in-setup}
  */
