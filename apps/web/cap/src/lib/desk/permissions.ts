@@ -7,8 +7,17 @@ export interface DeskPermissions {
   create: boolean;
   edit: boolean;
   emergencyPublish: boolean;
+  /** `cap.feed.manage`: list, add, change and delete external feed sources. */
+  feedsManage: boolean;
+  /** `cap.integrations.manage`: read the integrations status page. */
+  integrationsManage: boolean;
   publish: boolean;
   read: boolean;
+  /**
+   * `cap.settings.manage`: read and change CAP sender settings, and save
+   * predefined areas (the API uses the same key for both).
+   */
+  settingsManage: boolean;
   submit: boolean;
 }
 
@@ -25,8 +34,11 @@ export function deskPermissions(access: Access): DeskPermissions {
     create: has("cap.alert.create"),
     edit: has("cap.alert.edit"),
     emergencyPublish: has("cap.alert.publish_emergency"),
+    feedsManage: has("cap.feed.manage"),
+    integrationsManage: has("cap.integrations.manage"),
     publish: has("cap.alert.publish"),
     read: has("cap.alert.read"),
+    settingsManage: has("cap.settings.manage"),
     submit: has("cap.alert.submit"),
   };
 }

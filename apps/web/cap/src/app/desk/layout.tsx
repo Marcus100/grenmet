@@ -37,6 +37,14 @@ export default async function DeskLayout({
                   New warning
                 </Link>
               ) : null}
+              {gate.permissions.settingsManage ? (
+                <Link
+                  className="text-info hover:underline"
+                  href="/desk/settings"
+                >
+                  Settings
+                </Link>
+              ) : null}
               <Link className="text-info hover:underline" href="/">
                 Public alerts
               </Link>
