@@ -92,10 +92,13 @@ class LoginLockout:
             if client is None:
                 return True
             key = self._fail_key(identifier)
-            count = await client.incr(key)
-            if count == 1:
-                await client.expire(key, self._window)
-            return bool(count <= self._max)
+            # One MULTI transaction: the key is created with its TTL (SET NX EX)
+            # and counted (INCR) together, so it can never exist without a TTL.
+            async with client.pipeline(transaction=True) as pipe:
+                pipe.set(key, 0, nx=True, ex=self._window)
+                pipe.incr(key)
+                _, count = await pipe.execute()
+            return bool(int(count) <= self._max)
         except Exception:
             # Fail open: a broken store must not block requests.
             logger.warning("Rate limit check failed; allowing request", exc_info=True)

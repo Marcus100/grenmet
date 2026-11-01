@@ -61119,7 +61119,7 @@
           "modern-auth"
         ],
         "summary": "Send a Barrels account sign-in code",
-        "description": "Email a 6-digit code for signing in at auth.barrels.gd. The reply never reveals whether the address has an account.",
+        "description": "Email a 6-digit code for signing in at auth.barrels.gd. The reply is the same for every address and never waits on mail. A request past the limits (one code per mailbox per minute, five per mailbox per hour, twenty per client per hour) gets the same reply and sends nothing.",
         "operationId": "authAccountEmailCodeStart",
         "requestBody": {
           "content": {
@@ -61313,7 +61313,7 @@
           "auth"
         ],
         "summary": "Send an email sign-in code",
-        "description": "Send a 6-digit code. The reply never reveals whether the address has an account.",
+        "description": "Send a 6-digit code. The reply is the same for every address and never waits on mail. A request past the limits gets the same reply and sends nothing.",
         "operationId": "authAppEmailCodeStart",
         "parameters": [
           {

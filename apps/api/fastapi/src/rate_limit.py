@@ -72,11 +72,15 @@ def _is_auth_path(request: Request) -> bool:
 
 def _trusted_visitor_ip(
     request: Request,
+    *,
+    allow_auth: bool = False,
 ) -> ipaddress.IPv4Address | ipaddress.IPv6Address | None:
     secret = _trusted_secret()
     presented = request.headers.get(VISITOR_SECRET_HEADER)
     claimed = request.headers.get(VISITOR_IP_HEADER)
-    if not (secret and presented and claimed) or _is_auth_path(request):
+    if not (secret and presented and claimed):
+        return None
+    if _is_auth_path(request) and not allow_auth:
         return None
     try:
         matches = hmac.compare_digest(presented.encode("utf-8"), secret)
@@ -167,3 +171,18 @@ limiter = Limiter(
     key_func=visitor_address,
     storage_uri=worker_settings.REDIS_URL,
 )
+
+
+def mail_limit_address(request: Request) -> str:
+    """The bucket for limits on requests that send mail (email codes, setup links).
+
+    The auth web app calls the API server-side, so the connecting address is the
+    web host's and shared by every visitor. A host holding the shared secret may
+    name the real visitor in ``X-Visitor-IP``, and this honours it on these mail
+    routes only: they grant no sign-in, only mail. Without a valid pair the
+    connecting address is used. Spoofed ``X-Forwarded-For`` entries are never read.
+    """
+    ip = _trusted_visitor_ip(request, allow_auth=True)
+    if ip is None:
+        return connecting_address(request)
+    return _bucket(str(ip))

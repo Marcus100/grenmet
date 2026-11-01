@@ -45,7 +45,7 @@ from src.dependencies import SessionDep
 from src.email import send_email
 from src.exceptions import AppException
 from src.models import Message
-from src.rate_limit import request_ip
+from src.rate_limit import mail_limit_address, request_ip
 from src.utils.datetime import utc_now
 
 logger = logging.getLogger(__name__)
@@ -115,10 +115,12 @@ async def _deliver_setup_email(*, email: str, url: str) -> None:
             subject="Verify your email and set your password",
             html_content=_setup_mail_html(url),
         )
-    except Exception:
+    except Exception as exc:
         # The reply already went out, so it cannot tell a delivery failure apart.
-        # Log without the address or the link.
-        logger.warning("Password setup email could not be sent", exc_info=True)
+        # Only the class: the message or traceback could carry the address.
+        logger.warning(
+            "Password setup email could not be sent (%s)", type(exc).__name__
+        )
 
 
 def _schedule_setup_email(*, email: str, url: str) -> None:
@@ -149,10 +151,17 @@ async def email_request(
     """
     # Same reply, same limits and no SMTP wait for every address, so the reply
     # reveals nothing: known, unknown, capped and failed delivery all look alike.
-    ip = request_ip(request)
-    if ip is not None and not await password_setup_ip_limit.allow(ip):
-        return Message(message=_GENERIC_LINK_REPLY)
-    if not await password_setup_send_limit.allow(normalised_address(str(body.email))):
+    ip = mail_limit_address(request)
+    limited = not await password_setup_ip_limit.allow(
+        ip
+    ) or not await password_setup_send_limit.allow(normalised_address(str(body.email)))
+    if limited:
+        if await_delivery:
+            # An administrator must learn that nothing was sent (F4).
+            raise AppException(
+                "A link was already sent to this address recently. Try again later.",
+                429,
+            )
         return Message(message=_GENERIC_LINK_REPLY)
     user = await service.get_user_by_email(session=session, email=body.email)
     if user and user.is_active:
