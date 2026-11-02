@@ -12,7 +12,8 @@ vi.mock("./report-error", () => ({ reportError: vi.fn() }));
 import { reportError } from "./report-error";
 import {
   distributeApprovedPost,
-  distributionBody,
+  distributionBodies,
+  imageSources,
   sendDistribution,
 } from "./social-distribution";
 
@@ -54,54 +55,87 @@ beforeEach(() => {
   vi.mocked(reportError).mockClear();
 });
 
-describe("distributionBody", () => {
-  it("builds the agreed payload with the site address and supported platforms only", () => {
-    const body = distributionBody({
+describe("distributionBodies", () => {
+  it("builds one body per supported platform, each with its own image", () => {
+    const bodies = distributionBodies({
       collection: "stories",
       doc: approved({
         social: {
           enabledPlatforms: ["X", "Facebook", "Instagram", "WhatsApp Channel"],
         },
       }),
-      imageUrl: "http://cms.example.test/media/a.jpg",
+      imageUrls: {
+        facebook: "http://cms.example.test/media/fb.jpg",
+        instagram: "http://cms.example.test/media/ig.jpg",
+        whatsapp: null,
+      },
       origin: "https://weather.example.test/",
     });
-    expect(body).toEqual({
-      collection: "stories",
-      slug: "stories/2026/10/heavy-rain",
-      url: "https://weather.example.test/explore/news/2026/10/heavy-rain",
-      title: "Heavy rain expected",
-      summary: "What to expect this week",
-      captions: {
-        facebook: "Rain builds tonight.",
-        instagram: null,
-        whatsapp: "Read more on the weather site.",
+    expect(bodies).toEqual([
+      {
+        collection: "stories",
+        slug: "stories/2026/10/heavy-rain",
+        url: "https://weather.example.test/explore/news/2026/10/heavy-rain",
+        title: "Heavy rain expected",
+        summary: "What to expect this week",
+        captions: {
+          facebook: "Rain builds tonight.",
+          instagram: null,
+          whatsapp: "Read more on the weather site.",
+        },
+        platforms: ["facebook"],
+        publishAt: "2026-10-30T11:00:00.000Z",
+        imageUrl: "http://cms.example.test/media/fb.jpg",
       },
-      platforms: ["facebook", "instagram", "whatsapp"],
-      publishAt: "2026-10-30T11:00:00.000Z",
-      imageUrl: "http://cms.example.test/media/a.jpg",
-    });
+      {
+        collection: "stories",
+        slug: "stories/2026/10/heavy-rain",
+        url: "https://weather.example.test/explore/news/2026/10/heavy-rain",
+        title: "Heavy rain expected",
+        summary: "What to expect this week",
+        captions: {
+          facebook: "Rain builds tonight.",
+          instagram: null,
+          whatsapp: "Read more on the weather site.",
+        },
+        platforms: ["instagram"],
+        publishAt: "2026-10-30T11:00:00.000Z",
+        imageUrl: "http://cms.example.test/media/ig.jpg",
+      },
+      expect.objectContaining({ platforms: ["whatsapp"], imageUrl: null }),
+    ]);
   });
 
   it("sends nothing when no supported platform is chosen", () => {
     expect(
-      distributionBody({
+      distributionBodies({
         collection: "stories",
         doc: approved({ social: { enabledPlatforms: ["X", "LinkedIn"] } }),
-        imageUrl: null,
+        imageUrls: {},
         origin: "https://weather.example.test",
       })
-    ).toBeNull();
+    ).toEqual([]);
+  });
+});
+
+describe("imageSources (the fallback chain)", () => {
+  it("tries the platform picture, then the general social image, then the cover", () => {
+    const doc = approved({
+      image: 12,
+      social: { image: 11, instagramImage: 13 },
+    });
+    expect(imageSources(doc, "instagram")).toEqual([13, 11, 12]);
+    expect(imageSources(doc, "facebook")).toEqual([undefined, 11, 12]);
   });
 });
 
 describe("sendDistribution", () => {
   it("posts JSON with the shared secret header to the content-distribution endpoint", async () => {
     const fetchImpl = fakeFetch(okResponse);
-    const body = distributionBody({
+    const [body] = distributionBodies({
       collection: "desk-updates",
       doc: approved({ slug: "updates/2026/10/x" }),
-      imageUrl: null,
+      imageUrls: {},
       origin: "https://weather.example.test",
     });
     if (!body) throw new Error("expected a body");
@@ -150,7 +184,7 @@ describe("sendDistribution", () => {
 });
 
 describe("distributeApprovedPost (the afterChange hook's decision)", () => {
-  it("sends an approved, published post once", async () => {
+  it("sends an approved, published post once per chosen platform", async () => {
     const fetchImpl = fakeFetch(okResponse);
     const result = await distributeApprovedPost({
       doc: approved(),
@@ -159,7 +193,34 @@ describe("distributeApprovedPost (the afterChange hook's decision)", () => {
       slug: "stories",
     });
     expect(result).toBe("sent");
-    expect(fetchImpl).toHaveBeenCalledTimes(1);
+    expect(fetchImpl).toHaveBeenCalledTimes(3);
+  });
+
+  it("sends each platform its own picture", async () => {
+    const fetchImpl = fakeFetch(okResponse);
+    await distributeApprovedPost({
+      doc: approved({
+        image: 12,
+        social: { image: 11, facebookImage: 21, whatsappImage: null },
+      }),
+      fetchImpl,
+      lookupImage: (id) =>
+        Promise.resolve(`http://cms.example.test/media/${String(id)}.jpg`),
+      slug: "stories",
+    });
+    const sent = vi
+      .mocked(fetchImpl)
+      .mock.calls.map(
+        (call) =>
+          JSON.parse(
+            String((call as unknown as [string, RequestInit])[1].body)
+          ) as { platforms: string[]; imageUrl: string }
+      );
+    const imageFor = (platform: string) =>
+      sent.find((body) => body.platforms[0] === platform)?.imageUrl;
+    expect(imageFor("facebook")).toBe("http://cms.example.test/media/21.jpg");
+    expect(imageFor("instagram")).toBe("http://cms.example.test/media/11.jpg");
+    expect(imageFor("whatsapp")).toBe("http://cms.example.test/media/11.jpg");
   });
 
   it("does nothing when the secret is unset, without reading the network", async () => {
@@ -258,8 +319,9 @@ describe("distributeApprovedPost (the afterChange hook's decision)", () => {
       .mock.calls.map(
         (call) => (call as unknown as [string, RequestInit])[1].body
       );
-    expect(bodies).toHaveLength(2);
-    expect(bodies[0]).toBe(bodies[1]);
+    // Three platforms per save: the second save repeats the first, body for body.
+    expect(bodies).toHaveLength(6);
+    expect(bodies.slice(3)).toEqual(bodies.slice(0, 3));
   });
 
   it("uses the custom social image first, then the cover image", async () => {
