@@ -81,6 +81,33 @@ describe("cmsArticleMetadata", () => {
     expect(metadata.openGraph).toMatchObject({ locale: SITE_LOCALE });
   });
 
+  it("shares the general social image, else the cover, as the page picture", async () => {
+    vi.mocked(fetchContentBySlug).mockResolvedValue({
+      status: "ok",
+      articles: [
+        article({
+          imageUrl: "https://cms.example/media/cover.jpg",
+          socialImageUrl: "https://cms.example/media/social.jpg",
+        }),
+      ],
+    });
+    expect((await cmsArticleMetadata("stories/why")).openGraph).toMatchObject({
+      images: [{ url: "https://cms.example/media/social.jpg" }],
+    });
+    vi.mocked(fetchContentBySlug).mockResolvedValue({
+      status: "ok",
+      articles: [
+        article({
+          imageUrl: "https://cms.example/media/cover.jpg",
+          socialImageUrl: null,
+        }),
+      ],
+    });
+    expect((await cmsArticleMetadata("stories/why")).openGraph).toMatchObject({
+      images: [{ url: "https://cms.example/media/cover.jpg" }],
+    });
+  });
+
   it("asks search engines not to index a page that says the article cannot be retrieved", async () => {
     vi.mocked(fetchContentBySlug).mockResolvedValue({
       status: "unavailable",

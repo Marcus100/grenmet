@@ -123,6 +123,20 @@ function DeskPostCard({ item }: { item: PublishedContent }) {
         {item.summary && (
           <p className="text-body-base leading-body-base">{item.summary}</p>
         )}
+        {item.basedOn && (
+          // The issued product the post is about, linked to its live page.
+          <p className="text-body-sm text-gm-text-secondary leading-body-sm">
+            Based on{" "}
+            <Link
+              className="text-gm-blue-ink font-semibold underline"
+              href={
+                `/weather/issued/${encodeURIComponent(item.basedOn.productId)}` as Route
+              }
+            >
+              the {item.basedOn.title ?? "issued product"}
+            </Link>
+          </p>
+        )}
         {format !== "standard" && (
           <span className="bg-gm-surface-panel text-gm-heading text-label leading-label w-fit rounded-full px-2.5 py-0.5 font-bold tracking-wider uppercase">
             {FORMAT_LABEL[format]}

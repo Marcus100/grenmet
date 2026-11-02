@@ -38,6 +38,9 @@ export async function cmsArticleMetadata(slug: string): Promise<Metadata> {
   const article = result.articles[0];
   if (!article) return { title: "GMS article" };
   const description = article.summary || SITE_DESCRIPTION;
+  // The sharing picture: the general social image, then the cover (the CMS
+  // picks the first; older feeds send only the cover).
+  const image = article.socialImageUrl ?? article.imageUrl;
   return {
     title: article.title,
     description,
@@ -49,6 +52,7 @@ export async function cmsArticleMetadata(slug: string): Promise<Metadata> {
       locale: SITE_LOCALE,
       publishedTime: article.publishedAt ?? undefined,
       modifiedTime: article.updatedAt,
+      ...(image ? { images: [{ url: image }] } : {}),
     },
   };
 }
