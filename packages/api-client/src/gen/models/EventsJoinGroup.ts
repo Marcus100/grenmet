@@ -3,6 +3,8 @@
  * Do not edit manually.
  */
 
+import type { ApiError } from "./ApiError.js";
+import type { ErrorMessage } from "./ErrorMessage.js";
 import type { Message } from "./Message.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 
@@ -16,9 +18,17 @@ export type EventsJoinGroupPath = {
 
 export type EventsJoinGroupStatus200 = Message;
 
-export type EventsJoinGroupStatus401 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type EventsJoinGroupStatus401 = ApiError;
 
-export type EventsJoinGroupStatus404 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type EventsJoinGroupStatus404 = ApiError;
 
 /**
  * @description Validation error envelope returned for malformed requests.
@@ -26,7 +36,7 @@ export type EventsJoinGroupStatus404 = unknown;
  */
 export type EventsJoinGroupStatus422 = ValidationErrorResponse;
 
-export type EventsJoinGroupStatus429 = unknown;
+export type EventsJoinGroupStatus429 = ApiError | ErrorMessage;
 
 export type EventsJoinGroupOptions = {
   body?: never;

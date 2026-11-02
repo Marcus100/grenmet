@@ -7,6 +7,7 @@ from fastapi import APIRouter, HTTPException, Response
 from fastapi.responses import FileResponse, RedirectResponse, StreamingResponse
 
 from src.auth.browser import BrowserUser
+from src.models import ApiError
 from src.openapi_responses import AUTHENTICATED, BAD_REQUEST, NOT_FOUND
 from src.storage import service
 from src.wxwatch import assets
@@ -77,7 +78,7 @@ async def weather_image(storage_path: str, _current_user: BrowserUser) -> Respon
                 "application/octet-stream": {},
             },
         },
-        404: {"description": "Asset not found"},
+        404: {"model": ApiError, "description": "Asset not found"},
         503: {"description": "No verified asset replica is available"},
     },
 )

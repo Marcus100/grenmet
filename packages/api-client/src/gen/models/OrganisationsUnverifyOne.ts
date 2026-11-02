@@ -3,6 +3,7 @@
  * Do not edit manually.
  */
 
+import type { ApiError } from "./ApiError.js";
 import type { OrganisationAdminDetail } from "./OrganisationAdminDetail.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 import type { VerificationDecision } from "./VerificationDecision.js";
@@ -13,13 +14,29 @@ export type OrganisationsUnverifyOnePath = {
 
 export type OrganisationsUnverifyOneStatus200 = OrganisationAdminDetail;
 
-export type OrganisationsUnverifyOneStatus401 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type OrganisationsUnverifyOneStatus401 = ApiError;
 
-export type OrganisationsUnverifyOneStatus403 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type OrganisationsUnverifyOneStatus403 = ApiError;
 
-export type OrganisationsUnverifyOneStatus404 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type OrganisationsUnverifyOneStatus404 = ApiError;
 
-export type OrganisationsUnverifyOneStatus409 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type OrganisationsUnverifyOneStatus409 = ApiError;
 
 /**
  * @description Validation error envelope returned for malformed requests.

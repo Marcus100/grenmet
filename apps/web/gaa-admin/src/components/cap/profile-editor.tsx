@@ -18,9 +18,14 @@ import {
   SelectValue,
 } from "@barrelsgd/ui/components/ui/select";
 import { useRouter } from "next/navigation";
+import type { ComponentProps } from "react";
 import { useState } from "react";
+import {
+  GmsCatalogueBoundary,
+  useGmsCatalogue,
+} from "@/components/cap/gms-catalogue";
 import { WarningLevelPicker } from "@/components/cap/warning-level-picker";
-import { GMS_PRODUCTS, type GmsProduct, needsColour } from "@/lib/cap-levels";
+import { type GmsProduct, needsColour } from "@/lib/cap-levels";
 import { emptySubtype, floodProfile } from "@/lib/cap-profile-defaults";
 import { ImpactMatrixEditor } from "./impact-matrix-editor";
 import { ProfileField } from "./profile-field";
@@ -33,10 +38,8 @@ const CHANNELS = [
   "GMS website",
   "Agency channels",
 ] as const;
-/** GMS products (lib/cap-levels.ts); Advisory is the Small Craft Advisory. */
-const LEVELS = GMS_PRODUCTS;
 
-export function ProfileEditor({
+function ProfileEditorContent({
   initialVersions,
   canManageLibrary = false,
 }: {
@@ -44,6 +47,11 @@ export function ProfileEditor({
   /** Holds cap.library.manage: shows the impact matrix, levels and responses. */
   canManageLibrary?: boolean;
 }) {
+  const catalogue = useGmsCatalogue();
+  /** GMS products from the catalogue; Advisory is the Small Craft Advisory. */
+  const LEVELS: GmsProduct[] = catalogue.products.map(
+    (item) => item.key as GmsProduct
+  );
   const router = useRouter();
   const [versions, setVersions] = useState(initialVersions);
   const [selected, setSelected] = useState<CapProfilePublic | null>(
@@ -64,7 +72,9 @@ export function ProfileEditor({
   const [draftColour, setDraftColour] = useState<GmsColour | null>(null);
   // Approved versions are final; only a new draft or unsaved edits are drafts.
   const isDraft = selected?.state !== "APPROVED" || dirty;
-  const draftReady = needsColour(draftLevel) ? draftColour !== null : true;
+  const draftReady = needsColour(catalogue, draftLevel)
+    ? draftColour !== null
+    : true;
 
   function edit(next: CapProfileDefinition) {
     setDefinition(next);
@@ -131,7 +141,7 @@ export function ProfileEditor({
         body: {
           subtype: draftSubtype,
           level: draftLevel,
-          colour: needsColour(draftLevel) ? draftColour : null,
+          colour: needsColour(catalogue, draftLevel) ? draftColour : null,
         },
       }).unwrap();
       router.push("/cap");
@@ -431,5 +441,16 @@ export function ProfileEditor({
         </section>
       </fieldset>
     </div>
+  );
+}
+
+/** Shows a message in place of this panel when the GMS catalogue cannot load. */
+export function ProfileEditor(
+  props: ComponentProps<typeof ProfileEditorContent>
+) {
+  return (
+    <GmsCatalogueBoundary>
+      <ProfileEditorContent {...props} />
+    </GmsCatalogueBoundary>
   );
 }

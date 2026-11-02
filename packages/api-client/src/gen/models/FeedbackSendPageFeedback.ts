@@ -3,13 +3,18 @@
  * Do not edit manually.
  */
 
+import type { ApiError } from "./ApiError.js";
 import type { PageFeedbackAccepted } from "./PageFeedbackAccepted.js";
 import type { PageFeedbackCreate } from "./PageFeedbackCreate.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 
 export type FeedbackSendPageFeedbackStatus202 = PageFeedbackAccepted;
 
-export type FeedbackSendPageFeedbackStatus400 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type FeedbackSendPageFeedbackStatus400 = ApiError;
 
 /**
  * @description Validation error envelope returned for malformed requests.

@@ -237,12 +237,30 @@ describe("loadIssuedGrants and removeMember", () => {
 
   it("removes a member under the server-resolved organisation id", async () => {
     deleteCall.mockReturnValue(ok(undefined));
-    expect((await removeMember({ membershipId: "mem_2" })).ok).toBe(true);
+    expect(await removeMember({ membershipId: "mem_2" })).toEqual({
+      ok: true,
+      data: "organisation",
+    });
     expect(deleteCall).toHaveBeenCalledWith(
       expect.objectContaining({
         path: { organisation_id: "org_1", membership_id: "mem_2" },
       })
     );
+  });
+
+  it("reports an Events-only removal from the 200 scope", async () => {
+    deleteCall.mockReturnValue(
+      ok({
+        membership_id: "mem_2",
+        scope: "events",
+        grants_revoked: 1,
+        issued_grants_revoked: 0,
+      })
+    );
+    expect(await removeMember({ membershipId: "mem_2" })).toEqual({
+      ok: true,
+      data: "events",
+    });
   });
 
   it("shows the last-owner refusal as sent", async () => {

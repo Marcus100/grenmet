@@ -4,6 +4,7 @@
  */
 
 import * as z from "zod";
+import { apiErrorSchema } from "./apiErrorSchema.js";
 import { uploadRequestSchema } from "./uploadRequestSchema.js";
 import { uploadTicketSchema } from "./uploadTicketSchema.js";
 
@@ -16,11 +17,17 @@ export const storageCreateUploadStatus201Schema = uploadTicketSchema.describe(
   "A short-lived presigned PUT. Send the file bytes with exactly these headers."
 );
 
-export const storageCreateUploadStatus401Schema = z.unknown();
+export const storageCreateUploadStatus401Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
-export const storageCreateUploadStatus403Schema = z.unknown();
+export const storageCreateUploadStatus403Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
-export const storageCreateUploadStatus404Schema = z.unknown();
+export const storageCreateUploadStatus404Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
 export const storageCreateUploadStatus422Schema = z.unknown();
 

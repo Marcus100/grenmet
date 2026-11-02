@@ -59,7 +59,7 @@ export function hrCheckPeriodRulesQueryOptions(
 }
 
 /**
- * @description Return warn-only violations of the department's rest, consecutive-day and weekly-hour limits for a roster period. Neighbouring published periods are included so runs crossing the boundary are seen. Requires roster.view.
+ * @description Return the roster rule breaches in a roster period (consecutive shifts, days off, daily and weekly hours, weekends, Monday-to-Friday pattern). Neighbouring published periods are included so runs crossing the edge are seen; staff not covered by the union agreement are not checked. Requires roster.view.
  * @summary Check a roster period against department rules
  * {@link /api/v1/hr/rosters/periods/:period_id/rule-check}
  */

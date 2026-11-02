@@ -9,6 +9,7 @@ import {
   eregisterValidateSynopObservation,
   type RegisterObservationRead,
   type StationSettings as StationSettingsRead,
+  type SynopValidationIssue,
 } from "@barrelsgd/api-client";
 import { useSessionUser } from "@barrelsgd/auth";
 import { Button } from "@barrelsgd/ui/components/ui/button";
@@ -19,6 +20,7 @@ import { REGISTER_KEYS, REGISTER_SECTIONS } from "./eregister-layout";
 import { metarFromCoded } from "./eregister-metar";
 import { observerInitials } from "./eregister-observer";
 import { QcQueue } from "./eregister-qc";
+import { isSynopRefusal } from "./eregister-refusal";
 import {
   LatestReports,
   type LiveState,
@@ -126,7 +128,7 @@ export function ERegister() {
   );
   const observedAt = observationDate.toISOString().slice(0, 16);
   const [validationIssues, setValidationIssues] = useState<
-    { field: string; message: string; severity?: "error" | "warning" }[]
+    SynopValidationIssue[]
   >([]);
   const [expectedMetar, setExpectedMetar] = useState<string | null>(null);
   const [validationState, setValidationState] = useState<
@@ -301,20 +303,8 @@ export function ERegister() {
       result = corrected;
     }
     if (result.error || !result.data) {
-      const failure = result.error as
-        | { detail?: { issues?: unknown } }
-        | undefined;
-      if (
-        result.response?.status === 422 &&
-        Array.isArray(failure?.detail?.issues)
-      ) {
-        setValidationIssues(
-          failure.detail.issues as {
-            field: string;
-            message: string;
-            severity?: "error" | "warning";
-          }[]
-        );
+      if (result.response?.status === 422 && isSynopRefusal(result.error)) {
+        setValidationIssues(result.error.detail.issues);
         setValidationState("invalid");
         setSaveState("idle");
         return null;

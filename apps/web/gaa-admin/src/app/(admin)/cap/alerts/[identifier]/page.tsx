@@ -1,13 +1,10 @@
 import { Button } from "@barrelsgd/ui/components/ui/button";
 import { FileText, MapPin } from "lucide-react";
 import type { Metadata } from "next";
+import { SchemaFlag } from "@/components/cap/schema-flag";
 import { SeverityBadge } from "@/components/cap/severity-badge";
-import {
-  capPublicUrl,
-  formatDateTime,
-  getAlertByIdentifier,
-  primaryInfo,
-} from "@/lib/cap-api";
+import { loadCapAlertByIdentifier } from "@/db/cap/queries";
+import { capPublicUrl, formatDateTime, primaryInfo } from "@/lib/cap-api";
 
 export const dynamic = "force-dynamic";
 
@@ -17,7 +14,7 @@ interface Props {
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { identifier } = await params;
-  const alert = await getAlertByIdentifier(decodeURIComponent(identifier));
+  const alert = await loadCapAlertByIdentifier(decodeURIComponent(identifier));
   const info = primaryInfo(alert);
   return {
     title: info?.headline ?? alert.identifier,
@@ -26,7 +23,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function AlertDetailPage({ params }: Props) {
   const { identifier } = await params;
-  const alert = await getAlertByIdentifier(decodeURIComponent(identifier));
+  const alert = await loadCapAlertByIdentifier(decodeURIComponent(identifier));
   const info = primaryInfo(alert);
 
   return (
@@ -35,6 +32,13 @@ export default async function AlertDetailPage({ params }: Props) {
         <div className="min-w-0">
           <div className="mb-3 flex flex-wrap items-center gap-2">
             {info ? <SeverityBadge severity={info.severity} /> : null}
+            <SchemaFlag alert={alert} />
+            {alert.import_source ? (
+              <span className="text-body-sm text-gm-text-muted">
+                Imported{" "}
+                {alert.import_source === "feed" ? "from a feed" : "by hand"}
+              </span>
+            ) : null}
             <span className="text-body-sm text-gm-text-muted leading-body-sm">
               {alert.msg_type}
             </span>

@@ -4,17 +4,24 @@
  */
 
 import * as z from "zod";
+import { apiErrorSchema } from "./apiErrorSchema.js";
 import { invoiceDetailPublicSchema } from "./invoiceDetailPublicSchema.js";
 import { invoiceDraftWriteSchema } from "./invoiceDraftWriteSchema.js";
 import { validationErrorResponseSchema } from "./validationErrorResponseSchema.js";
 
 export const billingCreateInvoiceStatus201Schema = invoiceDetailPublicSchema;
 
-export const billingCreateInvoiceStatus401Schema = z.unknown();
+export const billingCreateInvoiceStatus401Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
-export const billingCreateInvoiceStatus403Schema = z.unknown();
+export const billingCreateInvoiceStatus403Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
-export const billingCreateInvoiceStatus404Schema = z.unknown();
+export const billingCreateInvoiceStatus404Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
 export const billingCreateInvoiceStatus422Schema =
   validationErrorResponseSchema.describe(

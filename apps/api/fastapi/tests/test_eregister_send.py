@@ -38,7 +38,7 @@ from src.eregister import (
 from src.eregister.config import Wis2boxConfig
 from src.eregister.dependencies import get_session
 from src.eregister.models import ERegisterSend
-from src.eregister.schemas import SynopWorkbook
+from src.eregister.schemas import EregisterValidationError, SynopWorkbook
 from src.main import app
 from src.notifications.models import OutboundEmail
 from tests.factories import assign_role, make_role_with_permission, make_user
@@ -889,6 +889,7 @@ async def test_accept_rejects_a_workbook_that_fails_validation(
     assert response.status_code == 422
     assert "dew_point" in response.json()["detail"]["message"]
     assert any(i["field"] == "dew_point" for i in response.json()["detail"]["issues"])
+    EregisterValidationError.model_validate(response.json())
 
 
 async def test_reject_and_reopen_need_a_reason(
@@ -1016,6 +1017,7 @@ async def test_save_refuses_a_synop_with_errors_and_returns_the_issues(
     detail = response.json()["detail"]
     assert "dew_point" in detail["message"]
     assert any(i["code"] == "dew_above_air" for i in detail["issues"])
+    EregisterValidationError.model_validate(response.json())
     assert (await client.get(OBS_URL)).json()["observations"] == []
 
 

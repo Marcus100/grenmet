@@ -3,6 +3,7 @@
  * Do not edit manually.
  */
 
+import type { ApiError } from "./ApiError.js";
 import type { RewardsQrTokenPublic } from "./RewardsQrTokenPublic.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 
@@ -28,13 +29,29 @@ export type RewardsOrgGetVenueQrTokenHeaders = {
  */
 export type RewardsOrgGetVenueQrTokenStatus200 = RewardsQrTokenPublic;
 
-export type RewardsOrgGetVenueQrTokenStatus400 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type RewardsOrgGetVenueQrTokenStatus400 = ApiError;
 
-export type RewardsOrgGetVenueQrTokenStatus401 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type RewardsOrgGetVenueQrTokenStatus401 = ApiError;
 
-export type RewardsOrgGetVenueQrTokenStatus403 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type RewardsOrgGetVenueQrTokenStatus403 = ApiError;
 
-export type RewardsOrgGetVenueQrTokenStatus404 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type RewardsOrgGetVenueQrTokenStatus404 = ApiError;
 
 /**
  * @description Validation error envelope returned for malformed requests.

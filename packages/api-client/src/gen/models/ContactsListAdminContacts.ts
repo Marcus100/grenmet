@@ -3,6 +3,7 @@
  * Do not edit manually.
  */
 
+import type { ApiError } from "./ApiError.js";
 import type { ContactListPublic } from "./ContactListPublic.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 
@@ -34,11 +35,23 @@ export type ContactsListAdminContactsQuery = {
 
 export type ContactsListAdminContactsStatus200 = ContactListPublic;
 
-export type ContactsListAdminContactsStatus400 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type ContactsListAdminContactsStatus400 = ApiError;
 
-export type ContactsListAdminContactsStatus401 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type ContactsListAdminContactsStatus401 = ApiError;
 
-export type ContactsListAdminContactsStatus403 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type ContactsListAdminContactsStatus403 = ApiError;
 
 /**
  * @description Validation error envelope returned for malformed requests.

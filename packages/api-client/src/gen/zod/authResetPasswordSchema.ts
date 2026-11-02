@@ -4,6 +4,8 @@
  */
 
 import * as z from "zod";
+import { apiErrorSchema } from "./apiErrorSchema.js";
+import { errorMessageSchema } from "./errorMessageSchema.js";
 import { messageSchema } from "./messageSchema.js";
 import { newPasswordSchema } from "./newPasswordSchema.js";
 import { validationErrorResponseSchema } from "./validationErrorResponseSchema.js";
@@ -15,7 +17,10 @@ export const authResetPasswordStatus422Schema =
     "Validation error envelope returned for malformed requests."
   );
 
-export const authResetPasswordStatus429Schema = z.unknown();
+export const authResetPasswordStatus429Schema = z.union([
+  apiErrorSchema,
+  errorMessageSchema,
+]);
 
 export const authResetPasswordResponseSchema = authResetPasswordStatus200Schema;
 

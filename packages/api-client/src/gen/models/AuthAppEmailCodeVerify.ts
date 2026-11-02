@@ -3,7 +3,9 @@
  * Do not edit manually.
  */
 
+import type { ApiError } from "./ApiError.js";
 import type { AppEmailCodeVerify } from "./AppEmailCodeVerify.js";
+import type { ErrorMessage } from "./ErrorMessage.js";
 import type { SessionLoginResponse } from "./SessionLoginResponse.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 
@@ -17,11 +19,23 @@ export type AuthAppEmailCodeVerifyPath = {
 
 export type AuthAppEmailCodeVerifyStatus200 = SessionLoginResponse;
 
-export type AuthAppEmailCodeVerifyStatus400 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type AuthAppEmailCodeVerifyStatus400 = ApiError;
 
-export type AuthAppEmailCodeVerifyStatus403 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type AuthAppEmailCodeVerifyStatus403 = ApiError;
 
-export type AuthAppEmailCodeVerifyStatus404 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type AuthAppEmailCodeVerifyStatus404 = ApiError;
 
 /**
  * @description Validation error envelope returned for malformed requests.
@@ -29,7 +43,7 @@ export type AuthAppEmailCodeVerifyStatus404 = unknown;
  */
 export type AuthAppEmailCodeVerifyStatus422 = ValidationErrorResponse;
 
-export type AuthAppEmailCodeVerifyStatus429 = unknown;
+export type AuthAppEmailCodeVerifyStatus429 = ApiError | ErrorMessage;
 
 export type AuthAppEmailCodeVerifyStatus503 = unknown;
 

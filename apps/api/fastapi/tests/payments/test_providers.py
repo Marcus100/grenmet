@@ -256,6 +256,63 @@ async def test_an_unsafe_registered_address_is_not_used(
     assert stripe_env.form()["success_url"] == "https://example.test/paid"
 
 
+@pytest.mark.parametrize(
+    "host",
+    [
+        "[::1]",
+        "[0:0:0:0:0:0:0:1]",
+        "[::ffff:127.0.0.1]",
+        "[::]",
+        "[fe80::1]",
+        "0.0.0.0",
+        "127.0.0.1",
+        "127.0.0.2",
+        "127.0.0.1.",
+        "localhost",
+        "localhost.",
+        "LOCALHOST.",
+        "foo.localhost",
+        "10.0.0.1",
+        "172.16.5.4",
+        "192.168.1.1",
+        "169.254.169.254",
+        "2130706433",
+        "127.1",
+        "0x7f.0.0.1",
+        "%6Cocalhost",
+        "localhost\uff0e",
+        "127.0.0.1%2e",
+    ],
+)
+async def test_a_local_or_private_registered_address_is_refused_outside_local(
+    stripe_env: StripeStub, monkeypatch: pytest.MonkeyPatch, host: str
+) -> None:
+    """#547 and the security review: loopback, unspecified, private and link-local
+    addresses (in every spelling the parser reads, IPv4-mapped included) and
+    localhost names are refused outside the local environment."""
+    from src.config import settings
+
+    monkeypatch.setattr(settings, "ENVIRONMENT", "staging")
+    monkeypatch.setattr(return_urls, "_builders", {})
+    url = f"https://{host}/orders/o-1"
+    return_urls.register("shop.order", lambda _id: return_urls.ReturnAddress(url, url))
+    await StripeProvider().create_payment(_intent(source_type="shop.order"))
+    assert stripe_env.form()["success_url"] == "https://example.test/paid"
+
+
+async def test_a_public_registered_address_is_used_outside_local(
+    stripe_env: StripeStub, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    from src.config import settings
+
+    monkeypatch.setattr(settings, "ENVIRONMENT", "staging")
+    monkeypatch.setattr(return_urls, "_builders", {})
+    url = "https://93.184.216.34/orders/o-1"
+    return_urls.register("shop.order", lambda _id: return_urls.ReturnAddress(url, url))
+    await StripeProvider().create_payment(_intent(source_type="shop.order"))
+    assert stripe_env.form()["success_url"] == url
+
+
 def test_return_addresses_never_come_from_the_request() -> None:
     # The resolver takes only the intent's own source type and id plus settings;
     # nothing request-shaped can reach it, and PaymentIntentCreate has no URL field.

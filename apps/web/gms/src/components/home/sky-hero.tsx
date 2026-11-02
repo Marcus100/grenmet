@@ -3,6 +3,7 @@ import { DayCard, NowCard } from "@/components/home/hero-card";
 import { ByTab, HeroSelectionProvider } from "@/components/home/hero-selection";
 import { NowPanel } from "@/components/home/now-card";
 import { SkyDayStrip, type StripDay } from "@/components/home/sky-day-strip";
+import { UnitsToggle } from "@/components/units-toggle";
 import {
   isOtherGrenadaDay,
   isStale,
@@ -146,6 +147,11 @@ export function SkyHero({
 
           <div className="grid grid-cols-1 gap-2 sm:grid-cols-[minmax(0,2fr)_minmax(0,3fr)] lg:grid-cols-[25rem_minmax(0,1fr)] lg:gap-2.5">
             <div className="rounded-gm-card bg-gm-scrim px-4 py-3">
+              {/* Units switch sits in the card's top corner on every tab: it
+                  is the card header's control, not part of the day's words. */}
+              <div className="-mt-2 -mr-2 flex justify-end">
+                <UnitsToggle />
+              </div>
               <ByTab fit panels={cards} />
             </div>
             <div className="grid min-w-0 content-start gap-2 lg:gap-2.5">

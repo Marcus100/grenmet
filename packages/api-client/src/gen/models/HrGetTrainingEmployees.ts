@@ -3,6 +3,7 @@
  * Do not edit manually.
  */
 
+import type { ApiError } from "./ApiError.js";
 import type { TrainingEmployeeList } from "./TrainingEmployeeList.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 
@@ -34,7 +35,11 @@ export type HrGetTrainingEmployeesQuery = {
 
 export type HrGetTrainingEmployeesStatus200 = TrainingEmployeeList;
 
-export type HrGetTrainingEmployeesStatus403 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type HrGetTrainingEmployeesStatus403 = ApiError;
 
 /**
  * @description Validation error envelope returned for malformed requests.

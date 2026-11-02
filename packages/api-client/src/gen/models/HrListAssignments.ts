@@ -3,6 +3,7 @@
  * Do not edit manually.
  */
 
+import type { ApiError } from "./ApiError.js";
 import type { HrListAssignmentsParametersSchemaEnum } from "./HrListAssignmentsParametersSchemaEnum.js";
 import type { RosterCalendarPublic } from "./RosterCalendarPublic.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
@@ -30,11 +31,23 @@ export type HrListAssignmentsQuery = {
 
 export type HrListAssignmentsStatus200 = RosterCalendarPublic;
 
-export type HrListAssignmentsStatus400 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type HrListAssignmentsStatus400 = ApiError;
 
-export type HrListAssignmentsStatus403 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type HrListAssignmentsStatus403 = ApiError;
 
-export type HrListAssignmentsStatus404 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type HrListAssignmentsStatus404 = ApiError;
 
 /**
  * @description Validation error envelope returned for malformed requests.

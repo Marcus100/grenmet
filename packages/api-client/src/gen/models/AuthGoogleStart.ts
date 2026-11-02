@@ -3,15 +3,24 @@
  * Do not edit manually.
  */
 
+import type { ApiError } from "./ApiError.js";
 import type { GoogleStart } from "./GoogleStart.js";
 import type { GoogleStartPublic } from "./GoogleStartPublic.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 
 export type AuthGoogleStartStatus200 = GoogleStartPublic;
 
-export type AuthGoogleStartStatus400 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type AuthGoogleStartStatus400 = ApiError;
 
-export type AuthGoogleStartStatus403 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type AuthGoogleStartStatus403 = ApiError;
 
 /**
  * @description Validation error envelope returned for malformed requests.

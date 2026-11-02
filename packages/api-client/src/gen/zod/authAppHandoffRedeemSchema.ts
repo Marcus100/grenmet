@@ -4,7 +4,9 @@
  */
 
 import * as z from "zod";
+import { apiErrorSchema } from "./apiErrorSchema.js";
 import { appHandoffRedeemSchema } from "./appHandoffRedeemSchema.js";
+import { errorMessageSchema } from "./errorMessageSchema.js";
 import { sessionLoginResponseSchema } from "./sessionLoginResponseSchema.js";
 import { validationErrorResponseSchema } from "./validationErrorResponseSchema.js";
 
@@ -14,20 +16,31 @@ export const authAppHandoffRedeemPathAppSchema = z
 
 export const authAppHandoffRedeemStatus200Schema = sessionLoginResponseSchema;
 
-export const authAppHandoffRedeemStatus400Schema = z.unknown();
+export const authAppHandoffRedeemStatus400Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
-export const authAppHandoffRedeemStatus401Schema = z.unknown();
+export const authAppHandoffRedeemStatus401Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
-export const authAppHandoffRedeemStatus403Schema = z.unknown();
+export const authAppHandoffRedeemStatus403Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
-export const authAppHandoffRedeemStatus404Schema = z.unknown();
+export const authAppHandoffRedeemStatus404Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
 export const authAppHandoffRedeemStatus422Schema =
   validationErrorResponseSchema.describe(
     "Validation error envelope returned for malformed requests."
   );
 
-export const authAppHandoffRedeemStatus429Schema = z.unknown();
+export const authAppHandoffRedeemStatus429Schema = z.union([
+  apiErrorSchema,
+  errorMessageSchema,
+]);
 
 export const authAppHandoffRedeemResponseSchema =
   authAppHandoffRedeemStatus200Schema;

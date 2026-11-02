@@ -3,14 +3,23 @@
  * Do not edit manually.
  */
 
+import type { ApiError } from "./ApiError.js";
 import type { CapSettingsPublic } from "./CapSettingsPublic.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 
 export type CapGetCapSettingsStatus200 = CapSettingsPublic;
 
-export type CapGetCapSettingsStatus401 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type CapGetCapSettingsStatus401 = ApiError;
 
-export type CapGetCapSettingsStatus403 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type CapGetCapSettingsStatus403 = ApiError;
 
 /**
  * @description Validation error envelope returned for malformed requests.

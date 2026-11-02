@@ -1,3 +1,7 @@
+import {
+  BARRELS_SUPPORT_EMAIL,
+  BARRELS_SUPPORT_HREF,
+} from "@barrelsgd/ui/lib/support";
 import Link from "next/link";
 
 export default function HomePage() {
@@ -21,6 +25,16 @@ export default function HomePage() {
         <Link className="underline underline-offset-4" href="/studio">
           Open the studio
         </Link>
+      </p>
+      <p className="text-muted-foreground text-sm">
+        Questions about Barrels Bookings? Email Barrels Grenada support at{" "}
+        <a
+          className="text-foreground underline underline-offset-4"
+          href={BARRELS_SUPPORT_HREF}
+        >
+          {BARRELS_SUPPORT_EMAIL}
+        </a>
+        .
       </p>
     </main>
   );

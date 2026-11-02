@@ -4,6 +4,7 @@
  */
 
 import type { AdminActivation } from "./AdminActivation.js";
+import type { ApiError } from "./ApiError.js";
 import type { OnboardingStatus } from "./OnboardingStatus.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 
@@ -18,11 +19,23 @@ export type AuthAdminActivateAccountPath = {
 
 export type AuthAdminActivateAccountStatus200 = OnboardingStatus;
 
-export type AuthAdminActivateAccountStatus403 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type AuthAdminActivateAccountStatus403 = ApiError;
 
-export type AuthAdminActivateAccountStatus404 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type AuthAdminActivateAccountStatus404 = ApiError;
 
-export type AuthAdminActivateAccountStatus409 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type AuthAdminActivateAccountStatus409 = ApiError;
 
 /**
  * @description Validation error envelope returned for malformed requests.

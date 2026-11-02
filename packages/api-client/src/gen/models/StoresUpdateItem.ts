@@ -3,6 +3,7 @@
  * Do not edit manually.
  */
 
+import type { ApiError } from "./ApiError.js";
 import type { ItemPublic } from "./ItemPublic.js";
 import type { ItemUpdate } from "./ItemUpdate.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
@@ -18,15 +19,35 @@ export type StoresUpdateItemPath = {
 
 export type StoresUpdateItemStatus200 = ItemPublic;
 
-export type StoresUpdateItemStatus400 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type StoresUpdateItemStatus400 = ApiError;
 
-export type StoresUpdateItemStatus401 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type StoresUpdateItemStatus401 = ApiError;
 
-export type StoresUpdateItemStatus403 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type StoresUpdateItemStatus403 = ApiError;
 
-export type StoresUpdateItemStatus404 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type StoresUpdateItemStatus404 = ApiError;
 
-export type StoresUpdateItemStatus409 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type StoresUpdateItemStatus409 = ApiError;
 
 /**
  * @description Validation error envelope returned for malformed requests.

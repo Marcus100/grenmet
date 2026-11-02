@@ -11,6 +11,7 @@ seen here; call :func:`src.audit.service.record_change` for those.
 
 import enum
 import uuid
+from collections.abc import Mapping
 from datetime import date, datetime, time
 from decimal import Decimal
 from typing import Any
@@ -24,6 +25,19 @@ from . import registry
 from .models import AuditEntry
 
 ACTOR_KEY = "actor_id"
+#: ``(kind, app)`` of the actor's sign-in: ``("account", None)`` or ``("app", "events")``.
+ACTOR_SESSION_KEY = "actor_session"
+
+
+def actor_session_fields(info: Mapping[str, Any]) -> tuple[str | None, str | None]:
+    """The ``(actor_session, actor_app)`` columns for rows written in a session.
+
+    ``info`` is that session's ``info`` mapping (``session.info``)."""
+    value = info.get(ACTOR_SESSION_KEY)
+    if not value:
+        return None, None
+    kind, app = value
+    return kind, app
 
 
 def json_value(value: Any) -> Any:
@@ -95,6 +109,8 @@ def build_row(
     action: str,
     changes: list[dict[str, Any]],
     actor_id: uuid.UUID | None,
+    actor_session: str | None = None,
+    actor_app: str | None = None,
 ) -> dict[str, Any]:
     return {
         "id": uuid.uuid4(),
@@ -108,6 +124,8 @@ def build_row(
         "organisation_id": getattr(obj, "organisation_id", None),
         "action": action,
         "actor_user_id": actor_id,
+        "actor_session": actor_session,
+        "actor_app": actor_app,
         "changes": changes,
         "created_at": utc_now(),
     }
@@ -116,6 +134,7 @@ def build_row(
 @event.listens_for(Session, "after_flush")
 def _record_changes(session: Session, _flush_context: UOWTransaction) -> None:
     actor_id = session.info.get(ACTOR_KEY)
+    actor_kind, actor_app = actor_session_fields(session.info)
     rows: list[dict[str, Any]] = []
     for action, objects in (
         ("create", session.new),
@@ -135,7 +154,15 @@ def _record_changes(session: Session, _flush_context: UOWTransaction) -> None:
             else:
                 changes = _snapshot(obj, spec, created=action == "create")
             rows.append(
-                build_row(obj, spec, action=action, changes=changes, actor_id=actor_id)
+                build_row(
+                    obj,
+                    spec,
+                    action=action,
+                    changes=changes,
+                    actor_id=actor_id,
+                    actor_session=actor_kind,
+                    actor_app=actor_app,
+                )
             )
     if rows:
         session.connection().execute(insert(AuditEntry), rows)

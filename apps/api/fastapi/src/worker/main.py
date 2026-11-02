@@ -262,6 +262,47 @@ async def expire_unpaid_event_orders(ctx: dict[str, Any]) -> int:
     return result
 
 
+@monitored(schedule="40 4 * * *", checkin_margin=30, max_runtime=30)
+async def reconcile_provider_refunds(ctx: dict[str, Any]) -> int:
+    """Daily: compare captured Stripe payments' refunds with Stripe's full refund
+    list and record any a truncated webhook list missed (#869). Stripe is test mode
+    only (the adapter refuses any other key); with Stripe off the run does nothing.
+    Returns the number of payments whose refunds changed."""
+    from src.database import async_session_factory
+    from src.payments import service as payments_service
+
+    async with async_session_factory() as session:
+        try:
+            run = await payments_service.reconcile_recent_refunds(session)
+        except Exception:
+            await operational_metrics.record_job(
+                ctx.get("redis"),
+                "reconcile_provider_refunds",
+                str(ctx.get("job_id", "")),
+                False,
+            )
+            raise
+    logger.info(
+        "refund reconciliation run",
+        extra={
+            "checked": run.checked,
+            "changed": run.changed,
+            "mismatched": run.mismatched,
+            "failed": run.failed,
+            "skipped_legacy": run.skipped_legacy,
+            "partial": run.partial,
+            "provider_off": run.provider_off,
+        },
+    )
+    await operational_metrics.record_job(
+        ctx.get("redis"),
+        "reconcile_provider_refunds",
+        str(ctx.get("job_id", "")),
+        run.failed == 0,
+    )
+    return run.changed
+
+
 async def send_daily_newsletter(ctx: dict[str, Any]) -> int:
     """Daily climate newsletter at 07:30 Grenada time; queues nothing until switched on."""
     from src.database import async_session_factory
@@ -347,6 +388,37 @@ async def send_invoice_reminders(ctx: dict[str, Any]) -> int:
             raise
         await operational_metrics.record_job(
             ctx.get("redis"), "send_invoice_reminders", str(ctx.get("job_id", "")), True
+        )
+        return result
+
+
+async def end_due_employment_records(ctx: dict[str, Any]) -> int:
+    """End employment whose last day has passed; its roles end with it (#797).
+
+    Uses the Grenada calendar date. Idempotent: only ACTIVE records are ended.
+    """
+    from src.database import async_session_factory
+    from src.hr import employment_status
+    from src.utils.timezones import local_today
+
+    async with async_session_factory() as session:
+        try:
+            result = await employment_status.end_due_employments(
+                session, today=local_today()
+            )
+        except Exception:
+            await operational_metrics.record_job(
+                ctx.get("redis"),
+                "end_due_employment_records",
+                str(ctx.get("job_id", "")),
+                False,
+            )
+            raise
+        await operational_metrics.record_job(
+            ctx.get("redis"),
+            "end_due_employment_records",
+            str(ctx.get("job_id", "")),
+            True,
         )
         return result
 
@@ -610,10 +682,12 @@ class WorkerSettings:
         enqueue_booking_reminders,
         expire_unpaid_bookings,
         expire_unpaid_event_orders,
+        reconcile_provider_refunds,
         send_wis2_publications,
         run_notification_sweeps,
         run_gms_notification_sweeps,
         send_invoice_reminders,
+        end_due_employment_records,
         send_daily_newsletter,
         release_social_posts,
         purge_expired_data,
@@ -668,6 +742,8 @@ class WorkerSettings:
             run_at_startup=False,
         ),
         # eRegister observations queued for wis2box (retries live on the row).
+        # Stripe refunds beyond a webhook's ten-refund list (#869), daily 00:40 Grenada.
+        cron(reconcile_provider_refunds, hour=4, minute=40, run_at_startup=False),
         cron(send_wis2_publications, second={20, 50}, run_at_startup=False),
         # Daily reminders (expiries, overdue approvals) at 06:00 Grenada (UTC-4).
         cron(run_notification_sweeps, hour=10, minute=0, run_at_startup=False),
@@ -681,6 +757,9 @@ class WorkerSettings:
         ),
         # Invoice payment reminders at 07:00 Grenada (UTC-4); idempotent per stage.
         cron(send_invoice_reminders, hour=11, minute=0, run_at_startup=False),
+        # Employment past its last day ends (roles with it), 00:10 Grenada (UTC-4);
+        # idempotent. Access already stops on the date through the read-time gate.
+        cron(end_due_employment_records, hour=4, minute=10, run_at_startup=False),
         # Daily climate newsletter at 07:30 Grenada (UTC-4, no daylight saving);
         # no-op until NEWSLETTER_DIGEST_ENABLED is set. Idempotent per day.
         cron(send_daily_newsletter, hour=11, minute=30, run_at_startup=False),

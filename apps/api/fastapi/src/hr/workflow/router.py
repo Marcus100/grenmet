@@ -4,6 +4,8 @@ from fastapi import APIRouter, status
 
 from src.dependencies import CurrentUser, SessionDep
 from src.hr.dependencies import WorkflowInstanceDep, WorkflowTemplateDep
+from src.hr.roster.schemas import with_rule_warnings
+from src.models import ApiError
 
 from . import service
 from .schemas import (
@@ -32,7 +34,10 @@ router = APIRouter(prefix="/hr/workflows", tags=["hr-workflows"])
     description="Create a new workflow template. Requires workflow.template.manage permission.",
     responses={
         status.HTTP_200_OK: {"description": "Template created"},
-        status.HTTP_403_FORBIDDEN: {"description": "Insufficient permission"},
+        status.HTTP_403_FORBIDDEN: {
+            "model": ApiError,
+            "description": "Insufficient permission",
+        },
     },
 )
 async def create_template(
@@ -53,7 +58,10 @@ async def create_template(
     description="List workflow templates, optionally filtered by department_id. Requires workflow.template.view permission.",
     responses={
         status.HTTP_200_OK: {"description": "Templates returned"},
-        status.HTTP_403_FORBIDDEN: {"description": "Insufficient permission"},
+        status.HTTP_403_FORBIDDEN: {
+            "model": ApiError,
+            "description": "Insufficient permission",
+        },
     },
 )
 async def read_templates(
@@ -79,8 +87,14 @@ async def read_templates(
     description="Create a step template for a workflow template. Requires workflow.template.manage permission.",
     responses={
         status.HTTP_200_OK: {"description": "Step created"},
-        status.HTTP_404_NOT_FOUND: {"description": "Workflow template not found"},
-        status.HTTP_403_FORBIDDEN: {"description": "Insufficient permission"},
+        status.HTTP_404_NOT_FOUND: {
+            "model": ApiError,
+            "description": "Workflow template not found",
+        },
+        status.HTTP_403_FORBIDDEN: {
+            "model": ApiError,
+            "description": "Insufficient permission",
+        },
     },
 )
 async def create_template_step(
@@ -106,8 +120,14 @@ async def create_template_step(
     description="Create a new workflow instance from a template. Template must exist.",
     responses={
         status.HTTP_200_OK: {"description": "Instance created"},
-        status.HTTP_404_NOT_FOUND: {"description": "Workflow template not found"},
-        status.HTTP_403_FORBIDDEN: {"description": "Insufficient permission"},
+        status.HTTP_404_NOT_FOUND: {
+            "model": ApiError,
+            "description": "Workflow template not found",
+        },
+        status.HTTP_403_FORBIDDEN: {
+            "model": ApiError,
+            "description": "Insufficient permission",
+        },
     },
 )
 async def create_instance(
@@ -128,7 +148,10 @@ async def create_instance(
     description="Return workflow instances awaiting an action the current user is authorized to take (named co-approver or role-based approver). Requires workflow.instance.view permission.",
     responses={
         status.HTTP_200_OK: {"description": "Pending approvals returned"},
-        status.HTTP_403_FORBIDDEN: {"description": "Insufficient permission"},
+        status.HTTP_403_FORBIDDEN: {
+            "model": ApiError,
+            "description": "Insufficient permission",
+        },
     },
 )
 async def read_inbox(session: SessionDep, current_user: CurrentUser) -> Any:
@@ -164,8 +187,14 @@ async def read_inbox(session: SessionDep, current_user: CurrentUser) -> Any:
     description="Return a workflow instance and its step instances. Requires workflow.instance.view permission.",
     responses={
         status.HTTP_200_OK: {"description": "Instance and steps returned"},
-        status.HTTP_404_NOT_FOUND: {"description": "Workflow instance not found"},
-        status.HTTP_403_FORBIDDEN: {"description": "Insufficient permission"},
+        status.HTTP_404_NOT_FOUND: {
+            "model": ApiError,
+            "description": "Workflow instance not found",
+        },
+        status.HTTP_403_FORBIDDEN: {
+            "model": ApiError,
+            "description": "Insufficient permission",
+        },
     },
 )
 async def read_instance(
@@ -192,18 +221,23 @@ async def read_instance(
     response_model=WorkflowInstancePublic,
     summary="Perform workflow action",
     description="Submit, approve, reject, return, or cancel a workflow instance. Return requires comments (the reason shown to the author). Requires workflow.instance.action and step-level role. May return 400 if workflow state does not allow the action.",
-    responses={
-        status.HTTP_200_OK: {"description": "Action applied"},
-        status.HTTP_400_BAD_REQUEST: {
-            "description": "Workflow cannot be submitted or is not pending"
-        },
-        status.HTTP_404_NOT_FOUND: {
-            "description": "Workflow instance or step not found"
-        },
-        status.HTTP_403_FORBIDDEN: {
-            "description": "Not allowed to perform this workflow action"
-        },
-    },
+    responses=with_rule_warnings(
+        {
+            status.HTTP_200_OK: {"description": "Action applied"},
+            status.HTTP_400_BAD_REQUEST: {
+                "model": ApiError,
+                "description": "Workflow cannot be submitted or is not pending",
+            },
+            status.HTTP_404_NOT_FOUND: {
+                "model": ApiError,
+                "description": "Workflow instance or step not found",
+            },
+            status.HTTP_403_FORBIDDEN: {
+                "model": ApiError,
+                "description": "Not allowed to perform this workflow action",
+            },
+        }
+    ),
 )
 async def take_action(
     *,

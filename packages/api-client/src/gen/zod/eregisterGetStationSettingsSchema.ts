@@ -4,6 +4,7 @@
  */
 
 import * as z from "zod";
+import { apiErrorSchema } from "./apiErrorSchema.js";
 import { stationSettingsSchema } from "./stationSettingsSchema.js";
 import { validationErrorResponseSchema } from "./validationErrorResponseSchema.js";
 
@@ -14,11 +15,14 @@ export const eregisterGetStationSettingsStatus200Schema =
     "Fixed amounts (hPa) the register uses to work out the pressures.\n\nStation pressure = barometer as read + total correction; QFE = station\npressure + QFE offset; mean sea level pressure = station pressure + sea level\noffset; QNH = mean sea level pressure + QNH offset. 78958 is seeded with the\nowner-confirmed 0.0, 0.3, 1.0 and 0.1; other stations start empty."
   );
 
-export const eregisterGetStationSettingsStatus401Schema = z.unknown();
+export const eregisterGetStationSettingsStatus401Schema =
+  apiErrorSchema.describe("Stable error envelope for documented API failures.");
 
-export const eregisterGetStationSettingsStatus403Schema = z.unknown();
+export const eregisterGetStationSettingsStatus403Schema =
+  apiErrorSchema.describe("Stable error envelope for documented API failures.");
 
-export const eregisterGetStationSettingsStatus404Schema = z.unknown();
+export const eregisterGetStationSettingsStatus404Schema =
+  apiErrorSchema.describe("Stable error envelope for documented API failures.");
 
 export const eregisterGetStationSettingsStatus422Schema =
   validationErrorResponseSchema.describe(

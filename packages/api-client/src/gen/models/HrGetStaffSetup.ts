@@ -3,6 +3,7 @@
  * Do not edit manually.
  */
 
+import type { ApiError } from "./ApiError.js";
 import type { StaffSetup } from "./StaffSetup.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 
@@ -17,13 +18,29 @@ export type HrGetStaffSetupQuery = {
 
 export type HrGetStaffSetupStatus200 = StaffSetup[];
 
-export type HrGetStaffSetupStatus400 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type HrGetStaffSetupStatus400 = ApiError;
 
-export type HrGetStaffSetupStatus403 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type HrGetStaffSetupStatus403 = ApiError;
 
-export type HrGetStaffSetupStatus404 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type HrGetStaffSetupStatus404 = ApiError;
 
-export type HrGetStaffSetupStatus409 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type HrGetStaffSetupStatus409 = ApiError;
 
 /**
  * @description Validation error envelope returned for malformed requests.

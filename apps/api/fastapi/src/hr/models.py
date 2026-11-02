@@ -196,6 +196,14 @@ class EmploymentRecord(Base):
         sa.Index("ix_hr_employment_record_supervisor_id", "supervisor_id"),
         sa.Index("ix_hr_employment_record_status", "status"),
         sa.Index("ix_hr_employment_record_grade_id", "grade_id"),
+        sa.CheckConstraint(
+            "end_date IS NULL OR start_date IS NULL OR end_date >= start_date",
+            name="ck_hr_employment_end_not_before_start",
+        ),
+        sa.CheckConstraint(
+            "rule_worker_type IS NULL OR rule_worker_type IN ('SHIFT', 'NON_SHIFT')",
+            name="ck_hr_employment_rule_worker_type",
+        ),
         {"schema": "hr"},
     )
 
@@ -219,6 +227,10 @@ class EmploymentRecord(Base):
     position: Mapped[str | None] = mapped_column(String(150), nullable=True)
     employment_type: Mapped[EmploymentType | None]
     start_date: Mapped[date | None]
+    # Last day of employment (#797). Roles work through that day and end at
+    # midnight Grenada time: once this date is before today (Grenada time) the
+    # record counts as ended for access, and the daily job ends it.
+    end_date: Mapped[date | None] = mapped_column(nullable=True)
     continuous_service_date: Mapped[date | None]
     probation_end_date: Mapped[date | None]
     probation_completed_date: Mapped[date | None]
@@ -230,8 +242,28 @@ class EmploymentRecord(Base):
     )
     work_location: Mapped[str | None] = mapped_column(String(255), nullable=True)
     status: Mapped[EmploymentStatus] = mapped_column(default=EmploymentStatus.ACTIVE)
+    # Roster rules (#380). Covered staff are checked against the union roster
+    # rules; HR may turn this off (for example for management). ``rule_worker_type``
+    # (SHIFT or NON_SHIFT) overrides the department rule set's worker type; NULL
+    # means "use the department's". Edited only with roster.rules.manage.
+    union_covered: Mapped[bool] = mapped_column(default=True, server_default=sa.true())
+    rule_worker_type: Mapped[str | None] = mapped_column(String(20), nullable=True)
     created_at: Mapped[datetime] = mapped_column(default=utc_now)
     updated_at: Mapped[datetime] = mapped_column(default=utc_now)
+
+    def is_live(self, today: date) -> bool:
+        """Employed for access purposes: ACTIVE and not past its last day (#797)."""
+        return self.status == EmploymentStatus.ACTIVE and (
+            self.end_date is None or self.end_date >= today
+        )
+
+
+def live_employment_clause(today: date) -> sa.ColumnElement[bool]:
+    """SQL form of ``EmploymentRecord.is_live``: ACTIVE with no passed end date."""
+    return sa.and_(
+        EmploymentRecord.status == EmploymentStatus.ACTIVE,
+        sa.or_(EmploymentRecord.end_date.is_(None), EmploymentRecord.end_date >= today),
+    )
 
 
 class RosterPreference(Base):

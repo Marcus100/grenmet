@@ -3,6 +3,7 @@
  * Do not edit manually.
  */
 
+import type { ApiError } from "./ApiError.js";
 import type { ApiKeyCreate } from "./ApiKeyCreate.js";
 import type { ApiKeyCreated } from "./ApiKeyCreated.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
@@ -16,13 +17,29 @@ export type OrganisationsCreateApiKeyHeaders = {
 
 export type OrganisationsCreateApiKeyStatus201 = ApiKeyCreated;
 
-export type OrganisationsCreateApiKeyStatus400 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type OrganisationsCreateApiKeyStatus400 = ApiError;
 
-export type OrganisationsCreateApiKeyStatus401 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type OrganisationsCreateApiKeyStatus401 = ApiError;
 
-export type OrganisationsCreateApiKeyStatus403 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type OrganisationsCreateApiKeyStatus403 = ApiError;
 
-export type OrganisationsCreateApiKeyStatus404 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type OrganisationsCreateApiKeyStatus404 = ApiError;
 
 /**
  * @description Validation error envelope returned for malformed requests.

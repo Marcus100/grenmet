@@ -26,6 +26,7 @@ regexes = [
   '''^eyJzZWNyZXQtdG9rZW4tZm9yLXByZWZzLTE$''',
   '''^eyJjIjoic3RvcmllcyIsImkiOiI0MiJ9\.c2lnbmF0dXJl$''',
   '''^distribution-test-secret-at-least-32-chars$''',
+  '''^0123456789abcdef$''',
 ]
 
 [[allowlists]]

@@ -4,7 +4,6 @@
  */
 
 import * as z from "zod";
-import { legacyProductPreviewPropertiesKindEnumSchema } from "./legacyProductPreviewPropertiesKindEnumSchema.js";
 import { legacyProductWritePropertiesActionEnumSchema } from "./legacyProductWritePropertiesActionEnumSchema.js";
 import { productGuidanceSchema } from "./productGuidanceSchema.js";
 
@@ -16,5 +15,18 @@ export const legacyProductWriteSchema = z.strictObject({
   action: legacyProductWritePropertiesActionEnumSchema,
   changeSummary: z.string().max(1000),
   reviewed: z.boolean(),
-  kind: legacyProductPreviewPropertiesKindEnumSchema,
+  kind: z.enum([
+    "coastal",
+    "cyclone",
+    "dust",
+    "evening",
+    "flood",
+    "heat",
+    "marine",
+    "midday",
+    "morning",
+    "thunderstorm",
+    "tsunami",
+    "wind",
+  ]),
 });

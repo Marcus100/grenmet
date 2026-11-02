@@ -4,6 +4,7 @@
  */
 
 import * as z from "zod";
+import { apiErrorSchema } from "./apiErrorSchema.js";
 import { membershipGrantPublicSchema } from "./membershipGrantPublicSchema.js";
 import { validationErrorResponseSchema } from "./validationErrorResponseSchema.js";
 
@@ -20,11 +21,14 @@ export const organisationsListMemberGrantsStatus200Schema = z.array(
   membershipGrantPublicSchema
 );
 
-export const organisationsListMemberGrantsStatus401Schema = z.unknown();
+export const organisationsListMemberGrantsStatus401Schema =
+  apiErrorSchema.describe("Stable error envelope for documented API failures.");
 
-export const organisationsListMemberGrantsStatus403Schema = z.unknown();
+export const organisationsListMemberGrantsStatus403Schema =
+  apiErrorSchema.describe("Stable error envelope for documented API failures.");
 
-export const organisationsListMemberGrantsStatus404Schema = z.unknown();
+export const organisationsListMemberGrantsStatus404Schema =
+  apiErrorSchema.describe("Stable error envelope for documented API failures.");
 
 export const organisationsListMemberGrantsStatus422Schema =
   validationErrorResponseSchema.describe(

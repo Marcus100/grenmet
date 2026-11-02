@@ -10,7 +10,7 @@ applied at the time, without a live join. The snapshot is JSON in the
 import json
 import logging
 from datetime import UTC, datetime, timedelta
-from typing import Any, Literal, cast
+from typing import Any, Literal, cast, get_args
 from uuid import UUID
 
 from sqlalchemy.exc import SQLAlchemyError
@@ -22,7 +22,12 @@ from src.sectors import parse_sectors
 from src.utils.timezones import GRENADA
 
 from . import service
-from .schemas import SectorOutlook, SectorOutlookItem, values_as_dict
+from .schemas import (
+    BulletinNoticeType,
+    SectorOutlook,
+    SectorOutlookItem,
+    values_as_dict,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -40,6 +45,7 @@ BULLETIN_TITLES = {
 # Colour names follow CAP `awareness_level`; bulletins say "Amber".
 COLOURS = {"green", "yellow", "orange", "red"}
 COLOUR_RANK = {"red": 0, "orange": 1, "yellow": 2, "green": 3, "": 4}
+NOTICE_TYPES: tuple[str, ...] = get_args(BulletinNoticeType)
 # CAP certainty/severity mapped onto the IBF matrix axes. The colour a source
 # declares is authoritative; the mapping only positions the matrix mark.
 LIKELIHOOD_FROM_CERTAINTY = {
@@ -56,6 +62,18 @@ IMPACT_FROM_SEVERITY = {
 }
 TEXT_LIMIT = 400
 ITEM_LIMIT = 8
+
+
+def is_all_clear(item: dict[str, Any]) -> bool:
+    """A Green bulletin whose notice type is "All clear": information, not an
+    alert in effect (owner decision, 30 Oct 2026). At any other level it is
+    still an alert. Older snapshots may carry an unstripped notice value."""
+    notice = item.get("noticeType")
+    return (
+        item.get("colour") == "green"
+        and isinstance(notice, str)
+        and notice.strip() == "All clear"
+    )
 
 
 def _clip(text: str | None) -> str:
@@ -135,6 +153,7 @@ async def _bulletin_items(session: AsyncSession) -> list[dict[str, str]]:
                 "reference": f"GMS {title} bulletin r{product.revision}",
                 "productId": str(product.id),
                 "sectors": ",".join(parse_sectors(values.get("sectors"))),
+                "noticeType": values.get("notice", "").strip(),
             }
         )
     return items
@@ -164,11 +183,15 @@ async def snapshot(
             if session.in_transaction():
                 await session.rollback()
     items.sort(key=lambda item: COLOUR_RANK[item["colour"]])
+    # All clear bulletins are recorded as information and never take one of
+    # the advisory places.
+    in_force = [item for item in items if not is_all_clear(item)]
+    all_clear = [item for item in items if is_all_clear(item)]
     return json.dumps(
         {
             "capturedAt": datetime.now(UTC).isoformat(),
             "complete": complete,
-            "items": items[:ITEM_LIMIT],
+            "items": in_force[:ITEM_LIMIT] + all_clear[:ITEM_LIMIT],
         },
         ensure_ascii=False,
     )
@@ -268,4 +291,9 @@ def _outlook_item(item: dict[str, str]) -> SectorOutlookItem:
         product_id=UUID(product_id) if (product_id := item.get("productId")) else None,
         sectors=sectors,
         affects_everyone=not sectors,
+        notice_type=_notice_type(item.get("noticeType", "")),
     )
+
+
+def _notice_type(value: str) -> BulletinNoticeType | None:
+    return cast("BulletinNoticeType", value) if value in NOTICE_TYPES else None

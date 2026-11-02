@@ -3,6 +3,7 @@
  * Do not edit manually.
  */
 
+import type { ApiError } from "./ApiError.js";
 import type { GuidanceModel } from "./GuidanceModel.js";
 import type { MeteogramPublic } from "./MeteogramPublic.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
@@ -30,11 +31,23 @@ export type ModelsGetMeteogramHeaders = {
 
 export type ModelsGetMeteogramStatus200 = MeteogramPublic;
 
-export type ModelsGetMeteogramStatus401 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type ModelsGetMeteogramStatus401 = ApiError;
 
-export type ModelsGetMeteogramStatus403 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type ModelsGetMeteogramStatus403 = ApiError;
 
-export type ModelsGetMeteogramStatus404 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type ModelsGetMeteogramStatus404 = ApiError;
 
 /**
  * @description Validation error envelope returned for malformed requests.

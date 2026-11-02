@@ -3,7 +3,7 @@ import uuid
 from fastapi import APIRouter, Response
 from starlette.requests import Request
 
-from src.auth import onboarding
+from src.auth import onboarding, sign_in_setup
 from src.auth.onboarding_schemas import (
     ActivationAccountCreate,
     ActivationConfirm,
@@ -11,12 +11,13 @@ from src.auth.onboarding_schemas import (
     ActivationLink,
     AdminActivation,
     OnboardingStatus,
+    SignInSetupIssue,
     SuperuserActionReason,
     VerificationResend,
 )
 from src.auth.schemas import UserPublic
-from src.dependencies import CurrentUser, MfaAdminUser, SessionDep
-from src.models import Message
+from src.dependencies import CurrentUser, MfaAdminUser, MfaUserManager, SessionDep
+from src.models import ApiError, Message
 from src.rate_limit import limiter
 
 router = APIRouter(prefix="/auth/onboarding", tags=["onboarding"])
@@ -30,8 +31,8 @@ router = APIRouter(prefix="/auth/onboarding", tags=["onboarding"])
     summary="Create an account for activation",
     description="Superuser creates an account without choosing or sharing its password. Does not grant app roles.",
     responses={
-        403: {"description": "Superuser required"},
-        409: {"description": "Account exists"},
+        403: {"model": ApiError, "description": "Superuser required"},
+        409: {"model": ApiError, "description": "Account exists"},
     },
 )
 async def create_account(
@@ -49,8 +50,8 @@ async def create_account(
     summary="Explain account and app readiness",
     description="Superuser view of account activation and staff/CMS access blockers. Domain workflow readiness remains domain-owned.",
     responses={
-        403: {"description": "Superuser required"},
-        404: {"description": "Account not found"},
+        403: {"model": ApiError, "description": "Superuser required"},
+        404: {"model": ApiError, "description": "Account not found"},
     },
 )
 async def status(
@@ -67,10 +68,10 @@ async def status(
     summary="Issue a one-use activation link",
     description="Superuser confirms identity and delivers a 30-minute link directly. Replaces previous activation links. Never verifies email or grants roles.",
     responses={
-        400: {"description": "Identity confirmation required"},
-        403: {"description": "Superuser required"},
-        404: {"description": "Account not found"},
-        409: {"description": "Use account recovery instead"},
+        400: {"model": ApiError, "description": "Identity confirmation required"},
+        403: {"model": ApiError, "description": "Superuser required"},
+        404: {"model": ApiError, "description": "Account not found"},
+        409: {"model": ApiError, "description": "Use account recovery instead"},
     },
 )
 @limiter.limit("5/minute")
@@ -97,14 +98,93 @@ async def issue(
     summary="Revoke an activation link",
     description="Superuser invalidates outstanding activation links for an account.",
     responses={
-        403: {"description": "Superuser required"},
-        404: {"description": "Account not found"},
+        403: {"model": ApiError, "description": "Superuser required"},
+        404: {"model": ApiError, "description": "Account not found"},
     },
 )
 async def revoke(
     *, session: SessionDep, current_user: CurrentUser, user_id: uuid.UUID
 ) -> None:
     await onboarding.revoke_activation(session, current_user, user_id)
+
+
+@router.post(
+    "/{user_id}/sign-in-setup",
+    response_model=ActivationLink,
+    status_code=201,
+    operation_id="authIssueSignInSetup",
+    summary="Issue a one-use sign-in setup link",
+    description=(
+        "Manager with `user.manage` in scope (or a superuser) and an MFA-verified session "
+        "issues a 24-hour one-use link. The person opens it and chooses a password; the "
+        "administrator never sees the password. Replaces earlier sign-in links. Never "
+        "verifies email, grants roles or app access. Refused for the caller's own account, "
+        "for owners unless the caller is a superuser, and for inactive or ended-employment "
+        "accounts. A reason is required unless the email is unverified or password setup is pending: "
+        "3 to 500 characters, or at least 10 when the email is verified. Confirming the link also signs "
+        "the account out everywhere (sessions, Google links, remembered devices, API keys) but keeps "
+        "its authenticator. A courtesy notice goes to the address on file. Only a superuser "
+        "can set up privileged accounts. Rate limited per administrator and per account."
+    ),
+    responses={
+        400: {
+            "model": ApiError,
+            "description": "Identity confirmation required",
+        },
+        403: {
+            "model": ApiError,
+            "description": "Insufficient permission, MFA session required, own account, owner, or privileged account (superuser required)",
+        },
+        404: {
+            "model": ApiError,
+            "description": "Account not found or outside your scope",
+        },
+        409: {"model": ApiError, "description": "Inactive account or ended employment"},
+        422: {
+            "model": ApiError,
+            "description": "Reason missing or shorter than 10 characters while the email is verified",
+        },
+        429: {"model": ApiError, "description": "Too many links issued recently"},
+    },
+)
+@limiter.limit("10/minute")
+async def issue_sign_in_setup(
+    *,
+    request: Request,
+    response: Response,
+    session: SessionDep,
+    manager: MfaUserManager,
+    user_id: uuid.UUID,
+    body: SignInSetupIssue,
+) -> ActivationLink:
+    _ = request
+    response.headers["Cache-Control"] = "no-store"
+    return await sign_in_setup.issue(
+        session, manager, user_id, body.identity_confirmed, body.reason
+    )
+
+
+@router.delete(
+    "/{user_id}/sign-in-setup",
+    status_code=204,
+    operation_id="authRevokeSignInSetup",
+    summary="Revoke a sign-in setup link",
+    description="Manager with `user.manage` in scope and an MFA-verified session cancels outstanding sign-in setup links for an account.",
+    responses={
+        403: {
+            "model": ApiError,
+            "description": "Insufficient permission or MFA session required",
+        },
+        404: {
+            "model": ApiError,
+            "description": "Account not found or outside your scope",
+        },
+    },
+)
+async def revoke_sign_in_setup(
+    *, session: SessionDep, manager: MfaUserManager, user_id: uuid.UUID
+) -> None:
+    await sign_in_setup.revoke(session, manager, user_id)
 
 
 @router.post(
@@ -123,10 +203,11 @@ async def revoke(
     ),
     responses={
         403: {
-            "description": "Superuser with an authenticator required (superuser_mfa_required)"
+            "model": ApiError,
+            "description": "Superuser with an authenticator required (superuser_mfa_required)",
         },
-        404: {"description": "Account not found"},
-        409: {"description": "Inactive or superuser account"},
+        404: {"model": ApiError, "description": "Account not found"},
+        409: {"model": ApiError, "description": "Inactive or superuser account"},
     },
 )
 @limiter.limit("20/minute")
@@ -159,10 +240,11 @@ async def admin_activate(
     ),
     responses={
         403: {
-            "description": "Superuser with an authenticator required (superuser_mfa_required)"
+            "model": ApiError,
+            "description": "Superuser with an authenticator required (superuser_mfa_required)",
         },
-        404: {"description": "Account not found"},
-        409: {"description": "Inactive account"},
+        404: {"model": ApiError, "description": "Account not found"},
+        409: {"model": ApiError, "description": "Inactive account"},
     },
 )
 @limiter.limit("5/minute")
@@ -188,7 +270,9 @@ async def resend_verification(
     operation_id="authConfirmActivation",
     summary="Activate an administrator-approved account",
     description="Public endpoint requires a valid single-use activation secret and a new password. Does not establish a session or verify email.",
-    responses={400: {"description": "Invalid, expired or used activation"}},
+    responses={
+        400: {"model": ApiError, "description": "Invalid, expired or used activation"}
+    },
 )
 @limiter.limit("5/minute")
 async def confirm(

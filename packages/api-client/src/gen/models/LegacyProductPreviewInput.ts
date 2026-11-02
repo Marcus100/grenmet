@@ -3,7 +3,6 @@
  * Do not edit manually.
  */
 
-import type { LegacyProductPreviewPropertiesKindEnum } from "./LegacyProductPreviewPropertiesKindEnum.js";
 import type { ProductGuidance } from "./ProductGuidance.js";
 
 export type LegacyProductPreviewInput = {
@@ -21,5 +20,17 @@ export type LegacyProductPreviewInput = {
    * @type string
    */
   changeSummary: string;
-  kind: LegacyProductPreviewPropertiesKindEnum;
+  kind:
+    | "coastal"
+    | "cyclone"
+    | "dust"
+    | "evening"
+    | "flood"
+    | "heat"
+    | "marine"
+    | "midday"
+    | "morning"
+    | "thunderstorm"
+    | "tsunami"
+    | "wind";
 };

@@ -3,16 +3,30 @@
  * Do not edit manually.
  */
 
+import type { ApiError } from "./ApiError.js";
+import type { ErrorMessage } from "./ErrorMessage.js";
 import type { OrganiserPublic } from "./OrganiserPublic.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 
 export type EventsListPendingOrganisersStatus200 = OrganiserPublic[];
 
-export type EventsListPendingOrganisersStatus401 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type EventsListPendingOrganisersStatus401 = ApiError;
 
-export type EventsListPendingOrganisersStatus403 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type EventsListPendingOrganisersStatus403 = ApiError;
 
-export type EventsListPendingOrganisersStatus404 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type EventsListPendingOrganisersStatus404 = ApiError;
 
 /**
  * @description Validation error envelope returned for malformed requests.
@@ -20,7 +34,7 @@ export type EventsListPendingOrganisersStatus404 = unknown;
  */
 export type EventsListPendingOrganisersStatus422 = ValidationErrorResponse;
 
-export type EventsListPendingOrganisersStatus429 = unknown;
+export type EventsListPendingOrganisersStatus429 = ApiError | ErrorMessage;
 
 export type EventsListPendingOrganisersOptions = {
   body?: never;

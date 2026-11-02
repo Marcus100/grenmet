@@ -3,6 +3,7 @@
  * Do not edit manually.
  */
 
+import type { ApiError } from "./ApiError.js";
 import type { OrgManualPaymentCreate } from "./OrgManualPaymentCreate.js";
 import type { OrgOrderDetail } from "./OrgOrderDetail.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
@@ -29,15 +30,35 @@ export type EventsOrgRecordManualPaymentHeaders = {
 
 export type EventsOrgRecordManualPaymentStatus201 = OrgOrderDetail;
 
-export type EventsOrgRecordManualPaymentStatus400 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type EventsOrgRecordManualPaymentStatus400 = ApiError;
 
-export type EventsOrgRecordManualPaymentStatus401 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type EventsOrgRecordManualPaymentStatus401 = ApiError;
 
-export type EventsOrgRecordManualPaymentStatus403 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type EventsOrgRecordManualPaymentStatus403 = ApiError;
 
-export type EventsOrgRecordManualPaymentStatus404 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type EventsOrgRecordManualPaymentStatus404 = ApiError;
 
-export type EventsOrgRecordManualPaymentStatus409 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type EventsOrgRecordManualPaymentStatus409 = ApiError;
 
 /**
  * @description Validation error envelope returned for malformed requests.

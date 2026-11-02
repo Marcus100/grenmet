@@ -3,6 +3,7 @@
  * Do not edit manually.
  */
 
+import type { ApiError } from "./ApiError.js";
 import type { ApiKeyListPublic } from "./ApiKeyListPublic.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 
@@ -28,9 +29,17 @@ export type OrganisationsListAdminApiKeysQuery = {
 
 export type OrganisationsListAdminApiKeysStatus200 = ApiKeyListPublic;
 
-export type OrganisationsListAdminApiKeysStatus401 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type OrganisationsListAdminApiKeysStatus401 = ApiError;
 
-export type OrganisationsListAdminApiKeysStatus403 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type OrganisationsListAdminApiKeysStatus403 = ApiError;
 
 /**
  * @description Validation error envelope returned for malformed requests.

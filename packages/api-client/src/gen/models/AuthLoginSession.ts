@@ -3,13 +3,19 @@
  * Do not edit manually.
  */
 
+import type { ApiError } from "./ApiError.js";
+import type { ErrorMessage } from "./ErrorMessage.js";
 import type { SessionLoginRequest } from "./SessionLoginRequest.js";
 import type { SessionLoginResponse } from "./SessionLoginResponse.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 
 export type AuthLoginSessionStatus200 = SessionLoginResponse;
 
-export type AuthLoginSessionStatus400 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type AuthLoginSessionStatus400 = ApiError;
 
 /**
  * @description Validation error envelope returned for malformed requests.
@@ -17,7 +23,7 @@ export type AuthLoginSessionStatus400 = unknown;
  */
 export type AuthLoginSessionStatus422 = ValidationErrorResponse;
 
-export type AuthLoginSessionStatus429 = unknown;
+export type AuthLoginSessionStatus429 = ApiError | ErrorMessage;
 
 export type AuthLoginSessionBody = SessionLoginRequest;
 

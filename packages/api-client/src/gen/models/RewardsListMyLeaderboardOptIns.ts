@@ -3,15 +3,24 @@
  * Do not edit manually.
  */
 
+import type { ApiError } from "./ApiError.js";
 import type { RewardsLeaderboardOptInPublic } from "./RewardsLeaderboardOptInPublic.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 
 export type RewardsListMyLeaderboardOptInsStatus200 =
   RewardsLeaderboardOptInPublic[];
 
-export type RewardsListMyLeaderboardOptInsStatus401 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type RewardsListMyLeaderboardOptInsStatus401 = ApiError;
 
-export type RewardsListMyLeaderboardOptInsStatus403 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type RewardsListMyLeaderboardOptInsStatus403 = ApiError;
 
 /**
  * @description Validation error envelope returned for malformed requests.

@@ -3,6 +3,7 @@
  * Do not edit manually.
  */
 
+import type { ApiError } from "./ApiError.js";
 import type { StatusReportDetails } from "./StatusReportDetails.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 
@@ -17,9 +18,17 @@ export type HrGetStatusReportPath = {
 
 export type HrGetStatusReportStatus200 = StatusReportDetails;
 
-export type HrGetStatusReportStatus403 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type HrGetStatusReportStatus403 = ApiError;
 
-export type HrGetStatusReportStatus404 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type HrGetStatusReportStatus404 = ApiError;
 
 /**
  * @description Validation error envelope returned for malformed requests.

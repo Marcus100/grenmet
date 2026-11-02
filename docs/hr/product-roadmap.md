@@ -23,9 +23,9 @@ permits; training records; employee documents; signed Python PDFs; and the appro
 workflow engine with audit. See [end-to-end alignment](end-to-end-alignment.md) for
 slice-by-slice evidence.
 
-**Also built since 2026-10-15, all warn-only or secondary:** roster rule limits with
-a checker, settings tab, publish-time warnings and a shift-exchange check; a
-token-based phone clock-in; and a CSV import of opening leave balances.
+**Also built since 2026-10-15:** the roster rules engine (#380; a break needs a
+supervisor's recorded reason, see [roster rules](roster-rules.md)); a token-based
+phone clock-in; and a CSV import of opening leave balances.
 
 **Not found in the docs or the model list** (code not exhaustively read): skills or
 competency gating on the roster; ingestion of the existing time-clock terminal's
@@ -113,14 +113,19 @@ pay period.
 Exit: HR has signed the direction and the opening balances, and pilot users complete
 journeys unaided.
 
-### Phase 1: roster rule engine (built; limits wait on HR)
+### Phase 1: roster rule engine (built, #380)
 
-Built and warn-only: checker, department limits, settings tab, publish-time warnings
-and a shift-exchange check. Still to do: call the check from leave, absence and
-overtime changes, and add a severity (warn or block) with an audited override reason
-once HR confirms limits. Encode GAA–GTAWU terms only after HR confirms them.
+Built with the rules the owner confirmed on 2026-10-31 (Articles 5, 6 and 8), all on
+by default and editable per organisation and department: consecutive shifts and days
+off, daily and weekly hours, weekends off, 7 days' notice, overtime hours by rate
+band, and per-employee union coverage. Checked at publish, published-roster edits,
+exchange approval, leave and absence cancellation, and timesheet and attendance
+approval; a break needs a supervisor's recorded reason. See
+[roster rules](roster-rules.md), including the owner's decisions of 31 Oct 2026.
 
-Exit: seeded violations are caught on every path and HR has entered confirmed limits.
+Exit: seeded violations are caught on every path (tests). The owner settled the open
+readings on 31 Oct 2026 (unpaid M and E meal break, holiday overtime, notice exemption
+for agreed exchanges); see [roster rules](roster-rules.md).
 
 ### Phase 2: attendance from the existing terminal (replaces the old clock-in phase)
 

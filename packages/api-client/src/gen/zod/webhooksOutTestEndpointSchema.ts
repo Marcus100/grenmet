@@ -4,6 +4,7 @@
  */
 
 import * as z from "zod";
+import { apiErrorSchema } from "./apiErrorSchema.js";
 import { webhookTestResultSchema } from "./webhookTestResultSchema.js";
 
 export const webhooksOutTestEndpointPathEndpointIdSchema = z.string();
@@ -20,15 +21,25 @@ export const webhooksOutTestEndpointStatus200Schema =
     "Outcome of a synchronous ping. A failed ping does not count towards\nauto-disable."
   );
 
-export const webhooksOutTestEndpointStatus400Schema = z.unknown();
+export const webhooksOutTestEndpointStatus400Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
-export const webhooksOutTestEndpointStatus401Schema = z.unknown();
+export const webhooksOutTestEndpointStatus401Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
-export const webhooksOutTestEndpointStatus403Schema = z.unknown();
+export const webhooksOutTestEndpointStatus403Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
-export const webhooksOutTestEndpointStatus404Schema = z.unknown();
+export const webhooksOutTestEndpointStatus404Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
-export const webhooksOutTestEndpointStatus409Schema = z.unknown();
+export const webhooksOutTestEndpointStatus409Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
 export const webhooksOutTestEndpointStatus422Schema = z.unknown();
 

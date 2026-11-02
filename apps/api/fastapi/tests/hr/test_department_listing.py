@@ -13,6 +13,9 @@ from src.hr.roster.models import RosterPeriodStatus
 from src.hr.roster.schemas import RosterPeriodCreate
 from tests.utils.utils import random_email, random_lower_string
 
+# Fixture rosters are not under test for the roster rules (#380).
+FIXTURE_REASON = "Fixture roster; roster rules are not under test"
+
 
 async def _superuser(db_async: AsyncSession):
     return await create_user(
@@ -61,6 +64,7 @@ async def test_list_departments_ordered_by_name(db_async: AsyncSession) -> None:
 async def test_list_department_members_active_only_sorted(
     db_async: AsyncSession,
 ) -> None:
+
     admin = await _superuser(db_async)
     if not await db_async.get(Department, "dept_members"):
         db_async.add(
@@ -186,7 +190,10 @@ async def test_list_roster_periods_filters_by_department_and_status(
         ),
     )
     await roster_service.publish_roster_period(
-        session=db_async, current_user=admin, period_id=july.id
+        session=db_async,
+        current_user=admin,
+        period_id=july.id,
+        rule_override_reason=FIXTURE_REASON,
     )
 
     periods = await roster_service.list_roster_periods(

@@ -3,14 +3,23 @@
  * Do not edit manually.
  */
 
+import type { ApiError } from "./ApiError.js";
 import type { ApiKeyInfoPublic } from "./ApiKeyInfoPublic.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 
 export type OrganisationsKeyInfoStatus200 = ApiKeyInfoPublic;
 
-export type OrganisationsKeyInfoStatus401 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type OrganisationsKeyInfoStatus401 = ApiError;
 
-export type OrganisationsKeyInfoStatus403 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type OrganisationsKeyInfoStatus403 = ApiError;
 
 /**
  * @description Validation error envelope returned for malformed requests.

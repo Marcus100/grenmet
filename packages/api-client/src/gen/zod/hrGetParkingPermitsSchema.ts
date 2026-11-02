@@ -4,6 +4,7 @@
  */
 
 import * as z from "zod";
+import { apiErrorSchema } from "./apiErrorSchema.js";
 import { parkingPermitListPublicSchema } from "./parkingPermitListPublicSchema.js";
 import { validationErrorResponseSchema } from "./validationErrorResponseSchema.js";
 
@@ -29,7 +30,9 @@ export const hrGetParkingPermitsQuerySizeSchema = z
 
 export const hrGetParkingPermitsStatus200Schema = parkingPermitListPublicSchema;
 
-export const hrGetParkingPermitsStatus403Schema = z.unknown();
+export const hrGetParkingPermitsStatus403Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
 export const hrGetParkingPermitsStatus422Schema =
   validationErrorResponseSchema.describe(

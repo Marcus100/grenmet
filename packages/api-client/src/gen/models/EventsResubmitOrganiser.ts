@@ -3,6 +3,8 @@
  * Do not edit manually.
  */
 
+import type { ApiError } from "./ApiError.js";
+import type { ErrorMessage } from "./ErrorMessage.js";
 import type { OrganiserPublic } from "./OrganiserPublic.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 
@@ -15,13 +17,29 @@ export type EventsResubmitOrganiserQuery = {
 
 export type EventsResubmitOrganiserStatus200 = OrganiserPublic;
 
-export type EventsResubmitOrganiserStatus401 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type EventsResubmitOrganiserStatus401 = ApiError;
 
-export type EventsResubmitOrganiserStatus403 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type EventsResubmitOrganiserStatus403 = ApiError;
 
-export type EventsResubmitOrganiserStatus404 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type EventsResubmitOrganiserStatus404 = ApiError;
 
-export type EventsResubmitOrganiserStatus409 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type EventsResubmitOrganiserStatus409 = ApiError;
 
 /**
  * @description Validation error envelope returned for malformed requests.
@@ -29,7 +47,7 @@ export type EventsResubmitOrganiserStatus409 = unknown;
  */
 export type EventsResubmitOrganiserStatus422 = ValidationErrorResponse;
 
-export type EventsResubmitOrganiserStatus429 = unknown;
+export type EventsResubmitOrganiserStatus429 = ApiError | ErrorMessage;
 
 export type EventsResubmitOrganiserOptions = {
   body?: never;

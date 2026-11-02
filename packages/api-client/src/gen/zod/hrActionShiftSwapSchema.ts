@@ -4,6 +4,8 @@
  */
 
 import * as z from "zod";
+import { apiErrorSchema } from "./apiErrorSchema.js";
+import { rosterRuleWarningsErrorPublicSchema } from "./rosterRuleWarningsErrorPublicSchema.js";
 import { shiftSwapActionSchema } from "./shiftSwapActionSchema.js";
 import { shiftSwapRequestPublicSchema } from "./shiftSwapRequestPublicSchema.js";
 import { validationErrorResponseSchema } from "./validationErrorResponseSchema.js";
@@ -12,11 +14,22 @@ export const hrActionShiftSwapPathShiftSwapIdSchema = z.uuid();
 
 export const hrActionShiftSwapStatus200Schema = shiftSwapRequestPublicSchema;
 
-export const hrActionShiftSwapStatus400Schema = z.unknown();
+export const hrActionShiftSwapStatus400Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
-export const hrActionShiftSwapStatus403Schema = z.unknown();
+export const hrActionShiftSwapStatus403Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
-export const hrActionShiftSwapStatus404Schema = z.unknown();
+export const hrActionShiftSwapStatus404Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
+
+export const hrActionShiftSwapStatus409Schema =
+  rosterRuleWarningsErrorPublicSchema.describe(
+    "409 body. An ordinary conflict carries only ``detail``. Roster rule\nwarnings add ``code: ROSTER_RULE_WARNINGS``, the ``context`` and the\n``violations``; resend with ``rule_override_reason`` to save anyway."
+  );
 
 export const hrActionShiftSwapStatus422Schema =
   validationErrorResponseSchema.describe(
@@ -29,6 +42,7 @@ export const hrActionShiftSwapErrorSchema = z.union([
   hrActionShiftSwapStatus400Schema,
   hrActionShiftSwapStatus403Schema,
   hrActionShiftSwapStatus404Schema,
+  hrActionShiftSwapStatus409Schema,
   hrActionShiftSwapStatus422Schema,
 ]);
 

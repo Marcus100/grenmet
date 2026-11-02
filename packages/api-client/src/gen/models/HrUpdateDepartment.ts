@@ -3,6 +3,7 @@
  * Do not edit manually.
  */
 
+import type { ApiError } from "./ApiError.js";
 import type { DepartmentPublic } from "./DepartmentPublic.js";
 import type { DepartmentUpdate } from "./DepartmentUpdate.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
@@ -13,11 +14,23 @@ export type HrUpdateDepartmentPath = {
 
 export type HrUpdateDepartmentStatus200 = DepartmentPublic;
 
-export type HrUpdateDepartmentStatus400 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type HrUpdateDepartmentStatus400 = ApiError;
 
-export type HrUpdateDepartmentStatus403 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type HrUpdateDepartmentStatus403 = ApiError;
 
-export type HrUpdateDepartmentStatus404 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type HrUpdateDepartmentStatus404 = ApiError;
 
 /**
  * @description Validation error envelope returned for malformed requests.

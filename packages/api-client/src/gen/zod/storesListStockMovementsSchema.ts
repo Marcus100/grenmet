@@ -4,6 +4,7 @@
  */
 
 import * as z from "zod";
+import { apiErrorSchema } from "./apiErrorSchema.js";
 import { stockMovementListPublicSchema } from "./stockMovementListPublicSchema.js";
 import { validationErrorResponseSchema } from "./validationErrorResponseSchema.js";
 
@@ -38,9 +39,13 @@ export const storesListStockMovementsQuerySizeSchema = z
 export const storesListStockMovementsStatus200Schema =
   stockMovementListPublicSchema;
 
-export const storesListStockMovementsStatus401Schema = z.unknown();
+export const storesListStockMovementsStatus401Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
-export const storesListStockMovementsStatus403Schema = z.unknown();
+export const storesListStockMovementsStatus403Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
 export const storesListStockMovementsStatus422Schema =
   validationErrorResponseSchema.describe(

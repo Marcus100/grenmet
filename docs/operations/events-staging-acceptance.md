@@ -171,12 +171,19 @@ Dashboard, Developers, Webhooks, Add endpoint (test mode):
   `/public/webhooks/{provider}`, `provider` = `stripe`; not in the OpenAPI
   schema by design).
 - **Events to send** (the only types `normalise_event` acts on; anything else is
-  answered 200 and ignored):
+  answered 200 and ignored). Subscribe to every event below (the `refund.*` events are required):
   - `checkout.session.completed` (acted on only when `payment_status` is
     `paid`; marks the payment captured, issues tickets, queues the receipt)
   - `payment_intent.payment_failed` (marks the attempt failed)
   - `charge.refunded` (records money refunded at Stripe that the app did not
-    already record, for example from the dashboard)
+    already record, for example from the dashboard; it carries the refund list
+    only when Stripe expands it, so it is not enough on its own)
+  - `refund.created`, `refund.updated` and `refund.failed` (required; the refund itself,
+    with our refund id in its metadata: a pending refund is recorded and settled
+    when it succeeds, a failed one is recorded failed and its money is put back
+    on the balance). **The three `refund.*` events are required.** Without the `refund.*` events a
+    dashboard refund is missed, and the API logs `charge.refunded without a refund
+    list ... subscription may be missing` for every `charge.refunded`.
 - Copy the **signing secret** (`whsec_...`) into the GitHub secret
   `PAYMENTS_STRIPE_WEBHOOK_SECRET` and redeploy (secrets are rendered at deploy
   time, so a change needs a new deploy).

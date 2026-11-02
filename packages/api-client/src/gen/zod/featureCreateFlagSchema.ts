@@ -4,17 +4,24 @@
  */
 
 import * as z from "zod";
+import { apiErrorSchema } from "./apiErrorSchema.js";
 import { featureFlagAdminSchema } from "./featureFlagAdminSchema.js";
 import { featureFlagCreateSchema } from "./featureFlagCreateSchema.js";
 import { validationErrorResponseSchema } from "./validationErrorResponseSchema.js";
 
 export const featureCreateFlagStatus201Schema = featureFlagAdminSchema;
 
-export const featureCreateFlagStatus401Schema = z.unknown();
+export const featureCreateFlagStatus401Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
-export const featureCreateFlagStatus403Schema = z.unknown();
+export const featureCreateFlagStatus403Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
-export const featureCreateFlagStatus409Schema = z.unknown();
+export const featureCreateFlagStatus409Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
 export const featureCreateFlagStatus422Schema =
   validationErrorResponseSchema.describe(

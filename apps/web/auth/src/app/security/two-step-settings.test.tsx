@@ -34,6 +34,7 @@ describe("TwoStepSettings", () => {
     vi.mocked(beginMfa).mockResolvedValue({
       secret: "SETUP-KEY",
       provisioning_uri: "otpauth://totp/test",
+      email_code_required: false,
     });
     vi.mocked(activateMfa).mockResolvedValue({ enabled: true });
     vi.mocked(replaceRecoveryCodes).mockResolvedValue({
@@ -49,7 +50,9 @@ describe("TwoStepSettings", () => {
 
     typeInto("6-digit code", "123456");
     fireEvent.click(screen.getByRole("button", { name: "Turn on" }));
-    await waitFor(() => expect(activateMfa).toHaveBeenCalledWith("123456"));
+    await waitFor(() =>
+      expect(activateMfa).toHaveBeenCalledWith("123456", undefined)
+    );
 
     expect(
       await screen.findByText("Two-step verification is on")
@@ -67,10 +70,31 @@ describe("TwoStepSettings", () => {
     expect(screen.queryByText("SETUP-KEY")).not.toBeInTheDocument();
   });
 
+  it("asks for the emailed code too when a staff account enrols", async () => {
+    vi.mocked(beginMfa).mockResolvedValue({
+      secret: "SETUP-KEY",
+      provisioning_uri: "otpauth://totp/test",
+      email_code_required: true,
+    });
+    vi.mocked(activateMfa).mockResolvedValue({ enabled: true });
+    vi.mocked(replaceRecoveryCodes).mockResolvedValue({ codes: ["CODE-ONE"] });
+    render(<TwoStepSettings enabled={false} recoveryCodesRemaining={0} />);
+    fireEvent.click(screen.getByRole("button", { name: "Set up" }));
+    await screen.findByText("SETUP-KEY");
+
+    typeInto("6-digit code", "123456");
+    typeInto("Code we emailed you", "424242");
+    fireEvent.click(screen.getByRole("button", { name: "Turn on" }));
+    await waitFor(() =>
+      expect(activateMfa).toHaveBeenCalledWith("123456", "424242")
+    );
+  });
+
   it("keeps the scan step open when the code is rejected", async () => {
     vi.mocked(beginMfa).mockResolvedValue({
       secret: "SETUP-KEY",
       provisioning_uri: "otpauth://totp/test",
+      email_code_required: false,
     });
     vi.mocked(activateMfa).mockRejectedValue(new Error("bad"));
     render(<TwoStepSettings enabled={false} recoveryCodesRemaining={0} />);

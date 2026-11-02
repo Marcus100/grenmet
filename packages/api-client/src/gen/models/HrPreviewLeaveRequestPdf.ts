@@ -3,6 +3,7 @@
  * Do not edit manually.
  */
 
+import type { ApiError } from "./ApiError.js";
 import type { LeaveRequestCreate } from "./LeaveRequestCreate.js";
 
 export type HrPreviewLeaveRequestPdfStatus200Json = unknown;
@@ -13,9 +14,17 @@ export type HrPreviewLeaveRequestPdfStatus200 =
   | HrPreviewLeaveRequestPdfStatus200Json
   | HrPreviewLeaveRequestPdfStatus200Pdf;
 
-export type HrPreviewLeaveRequestPdfStatus400 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type HrPreviewLeaveRequestPdfStatus400 = ApiError;
 
-export type HrPreviewLeaveRequestPdfStatus403 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type HrPreviewLeaveRequestPdfStatus403 = ApiError;
 
 export type HrPreviewLeaveRequestPdfStatus422 = unknown;
 

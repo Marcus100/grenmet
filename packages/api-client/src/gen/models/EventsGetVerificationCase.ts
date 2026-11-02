@@ -3,6 +3,7 @@
  * Do not edit manually.
  */
 
+import type { ApiError } from "./ApiError.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 import type { VerificationCaseDetail } from "./VerificationCaseDetail.js";
 
@@ -16,11 +17,23 @@ export type EventsGetVerificationCasePath = {
 
 export type EventsGetVerificationCaseStatus200 = VerificationCaseDetail;
 
-export type EventsGetVerificationCaseStatus401 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type EventsGetVerificationCaseStatus401 = ApiError;
 
-export type EventsGetVerificationCaseStatus403 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type EventsGetVerificationCaseStatus403 = ApiError;
 
-export type EventsGetVerificationCaseStatus404 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type EventsGetVerificationCaseStatus404 = ApiError;
 
 /**
  * @description Validation error envelope returned for malformed requests.

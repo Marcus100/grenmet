@@ -11,7 +11,7 @@ import type {
 } from "../models/HrPublishPeriod.js";
 
 /**
- * @description Transition a draft roster period to published. Roster rule warnings are recorded on the published revision and never block publishing. Requires roster.manage permission.
+ * @description Transition a draft roster period to published. If the roster breaks a roster rule the request fails with 409 and the warnings; resend with rule_override_reason to publish anyway (recorded with the supervisor and the rules). Requires roster.manage permission.
  * @summary Publish roster period
  * {@link /api/v1/hr/rosters/periods/:period_id/publish}
  */

@@ -4,6 +4,7 @@
  */
 
 import * as z from "zod";
+import { apiErrorSchema } from "./apiErrorSchema.js";
 import { postAcceptedSchema } from "./postAcceptedSchema.js";
 import { postInSchema } from "./postInSchema.js";
 
@@ -13,7 +14,9 @@ export const contentSavePostHeaderXCmsSecretSchema = z
 
 export const contentSavePostStatus202Schema = postAcceptedSchema;
 
-export const contentSavePostStatus401Schema = z.unknown();
+export const contentSavePostStatus401Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
 export const contentSavePostStatus422Schema = z.unknown();
 

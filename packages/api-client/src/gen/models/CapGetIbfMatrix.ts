@@ -3,6 +3,7 @@
  * Do not edit manually.
  */
 
+import type { ApiError } from "./ApiError.js";
 import type { IbfMatrixPublic } from "./IbfMatrixPublic.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 
@@ -20,9 +21,17 @@ export type CapGetIbfMatrixQuery = {
  */
 export type CapGetIbfMatrixStatus200 = IbfMatrixPublic;
 
-export type CapGetIbfMatrixStatus401 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type CapGetIbfMatrixStatus401 = ApiError;
 
-export type CapGetIbfMatrixStatus403 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type CapGetIbfMatrixStatus403 = ApiError;
 
 /**
  * @description Validation error envelope returned for malformed requests.

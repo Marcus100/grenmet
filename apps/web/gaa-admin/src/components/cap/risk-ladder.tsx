@@ -43,21 +43,16 @@ export function RiskLadder<T extends string>({
 }: RiskLadderProps<T>) {
   const groupId = useId();
   return (
-    <fieldset className="grid gap-1.5 border-none p-0">
-      <div className="flex items-center justify-between">
-        <legend className="text-gm-text-muted text-micro leading-micro">
-          {label}
-        </legend>
-        <span className="text-gm-text-secondary text-micro leading-micro font-mono">
-          {value}
-        </span>
-      </div>
-      <div className="flex gap-1.5">
+    <fieldset className="grid min-w-0 gap-1.5 border-none p-0">
+      <legend className="text-gm-text-muted text-micro leading-micro">
+        {label}
+      </legend>
+      <div className="flex flex-wrap gap-1.5">
         {options.map((option) => {
           const selected = option === value;
           return (
             <label
-              className="border-gm-border text-caption leading-caption relative flex-1 cursor-pointer rounded-md border px-1 py-2 text-center font-semibold"
+              className="border-gm-border text-caption leading-caption relative min-w-24 flex-1 cursor-pointer rounded-md border px-1 py-2 text-center font-semibold"
               key={option}
             >
               <input

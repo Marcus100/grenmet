@@ -4,6 +4,7 @@
  */
 
 import * as z from "zod";
+import { apiErrorSchema } from "./apiErrorSchema.js";
 import { rewardsAchievementCreateSchema } from "./rewardsAchievementCreateSchema.js";
 import { rewardsAchievementDefinitionPublicSchema } from "./rewardsAchievementDefinitionPublicSchema.js";
 import { validationErrorResponseSchema } from "./validationErrorResponseSchema.js";
@@ -18,15 +19,20 @@ export const rewardsOrgCreateAchievementHeaderXBarrelsOrganisationSchema = z
 export const rewardsOrgCreateAchievementStatus201Schema =
   rewardsAchievementDefinitionPublicSchema;
 
-export const rewardsOrgCreateAchievementStatus400Schema = z.unknown();
+export const rewardsOrgCreateAchievementStatus400Schema =
+  apiErrorSchema.describe("Stable error envelope for documented API failures.");
 
-export const rewardsOrgCreateAchievementStatus401Schema = z.unknown();
+export const rewardsOrgCreateAchievementStatus401Schema =
+  apiErrorSchema.describe("Stable error envelope for documented API failures.");
 
-export const rewardsOrgCreateAchievementStatus403Schema = z.unknown();
+export const rewardsOrgCreateAchievementStatus403Schema =
+  apiErrorSchema.describe("Stable error envelope for documented API failures.");
 
-export const rewardsOrgCreateAchievementStatus404Schema = z.unknown();
+export const rewardsOrgCreateAchievementStatus404Schema =
+  apiErrorSchema.describe("Stable error envelope for documented API failures.");
 
-export const rewardsOrgCreateAchievementStatus409Schema = z.unknown();
+export const rewardsOrgCreateAchievementStatus409Schema =
+  apiErrorSchema.describe("Stable error envelope for documented API failures.");
 
 export const rewardsOrgCreateAchievementStatus422Schema =
   validationErrorResponseSchema.describe(

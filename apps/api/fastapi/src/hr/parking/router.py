@@ -6,6 +6,7 @@ from fastapi import APIRouter, Response, status
 from src.dependencies import CurrentUser, SessionDep
 from src.hr.filenames import preview_filename
 from src.hr.submission import submission_list, submission_public
+from src.models import ApiError
 from src.pagination import PaginationDep
 from src.utils.pdf_response import PDF_HEADERS_DOC, pdf_response
 
@@ -34,8 +35,8 @@ router = APIRouter(prefix="/hr", tags=["hr-parking"])
             "description": "Draft PDF",
             "headers": PDF_HEADERS_DOC,
         },
-        400: {"description": "Invalid application"},
-        403: {"description": "Subject outside scope"},
+        400: {"model": ApiError, "description": "Invalid application"},
+        403: {"model": ApiError, "description": "Subject outside scope"},
         422: {"description": "Invalid fields"},
     },
 )
@@ -56,9 +57,9 @@ async def preview_parking_permit(
     summary="Edit a parking application draft",
     description="Reporter-owned draft edits retain the workflow department.",
     responses={
-        400: {"description": "Application is not editable"},
-        403: {"description": "Subject outside scope"},
-        404: {"description": "Application not found"},
+        400: {"model": ApiError, "description": "Application is not editable"},
+        403: {"model": ApiError, "description": "Subject outside scope"},
+        404: {"model": ApiError, "description": "Application not found"},
     },
 )
 async def update_parking_permit(
@@ -82,9 +83,9 @@ async def update_parking_permit(
     summary="Submit a parking application draft",
     description="Submit a reporter-owned draft to the configured approval workflow, with optional fresh saved-signature consent.",
     responses={
-        400: {"description": "Invalid draft or workflow"},
-        403: {"description": "Subject outside scope"},
-        404: {"description": "Application not found"},
+        400: {"model": ApiError, "description": "Invalid draft or workflow"},
+        403: {"model": ApiError, "description": "Subject outside scope"},
+        404: {"model": ApiError, "description": "Application not found"},
     },
 )
 async def submit_parking_permit(
@@ -108,8 +109,14 @@ async def submit_parking_permit(
     description="Create an airport security parking access application. Requires parking.permit.create permission.",
     responses={
         status.HTTP_201_CREATED: {"description": "Parking permit application created"},
-        status.HTTP_400_BAD_REQUEST: {"description": "Invalid subject or workflow"},
-        status.HTTP_403_FORBIDDEN: {"description": "Insufficient permission"},
+        status.HTTP_400_BAD_REQUEST: {
+            "model": ApiError,
+            "description": "Invalid subject or workflow",
+        },
+        status.HTTP_403_FORBIDDEN: {
+            "model": ApiError,
+            "description": "Insufficient permission",
+        },
     },
 )
 async def create_parking_permit(
@@ -128,7 +135,10 @@ async def create_parking_permit(
     description="List parking permits (own or by department). Department filter requires parking.permit.read.department.",
     responses={
         status.HTTP_200_OK: {"description": "Parking permits returned"},
-        status.HTTP_403_FORBIDDEN: {"description": "Insufficient permission"},
+        status.HTTP_403_FORBIDDEN: {
+            "model": ApiError,
+            "description": "Insufficient permission",
+        },
     },
 )
 async def read_parking_permits(
@@ -160,10 +170,17 @@ async def read_parking_permits(
     responses={
         status.HTTP_200_OK: {"description": "Decal issued"},
         status.HTTP_400_BAD_REQUEST: {
-            "description": "Unapproved application or already issued decal"
+            "model": ApiError,
+            "description": "Unapproved application or already issued decal",
         },
-        status.HTTP_403_FORBIDDEN: {"description": "Insufficient permission"},
-        status.HTTP_404_NOT_FOUND: {"description": "Parking permit not found"},
+        status.HTTP_403_FORBIDDEN: {
+            "model": ApiError,
+            "description": "Insufficient permission",
+        },
+        status.HTTP_404_NOT_FOUND: {
+            "model": ApiError,
+            "description": "Parking permit not found",
+        },
     },
 )
 async def issue_parking_decal(

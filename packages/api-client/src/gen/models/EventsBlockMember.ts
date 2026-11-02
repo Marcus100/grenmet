@@ -3,6 +3,8 @@
  * Do not edit manually.
  */
 
+import type { ApiError } from "./ApiError.js";
+import type { ErrorMessage } from "./ErrorMessage.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 
 export type EventsBlockMemberPath = {
@@ -15,11 +17,23 @@ export type EventsBlockMemberPath = {
 
 export type EventsBlockMemberStatus204 = unknown;
 
-export type EventsBlockMemberStatus401 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type EventsBlockMemberStatus401 = ApiError;
 
-export type EventsBlockMemberStatus404 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type EventsBlockMemberStatus404 = ApiError;
 
-export type EventsBlockMemberStatus409 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type EventsBlockMemberStatus409 = ApiError;
 
 /**
  * @description Validation error envelope returned for malformed requests.
@@ -27,7 +41,7 @@ export type EventsBlockMemberStatus409 = unknown;
  */
 export type EventsBlockMemberStatus422 = ValidationErrorResponse;
 
-export type EventsBlockMemberStatus429 = unknown;
+export type EventsBlockMemberStatus429 = ApiError | ErrorMessage;
 
 export type EventsBlockMemberOptions = {
   body?: never;

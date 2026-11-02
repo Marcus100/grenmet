@@ -3,6 +3,7 @@
  * Do not edit manually.
  */
 
+import type { ApiError } from "./ApiError.js";
 import type { RosterPeriodPublic } from "./RosterPeriodPublic.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 
@@ -17,11 +18,23 @@ export type HrClosePeriodPath = {
 
 export type HrClosePeriodStatus200 = RosterPeriodPublic;
 
-export type HrClosePeriodStatus400 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type HrClosePeriodStatus400 = ApiError;
 
-export type HrClosePeriodStatus403 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type HrClosePeriodStatus403 = ApiError;
 
-export type HrClosePeriodStatus404 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type HrClosePeriodStatus404 = ApiError;
 
 /**
  * @description Validation error envelope returned for malformed requests.

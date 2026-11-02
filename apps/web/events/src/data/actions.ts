@@ -143,11 +143,10 @@ function failureOf(
     };
   }
   reportError(error, area);
-  return {
-    ok: false,
-    error: GENERIC_FAILURE,
-    ...(error.status >= 500 ? { freshKey: true as const } : {}),
-  };
+  // A bare 5xx keeps the key: a gateway error can follow a committed order, and
+  // the same key replays that order instead of creating a second one. Only the
+  // two server-confirmed cases above (503 payment unavailable, 409 expired) drop it.
+  return { ok: false, error: GENERIC_FAILURE };
 }
 
 export async function setGoing(slug: string, going: boolean) {

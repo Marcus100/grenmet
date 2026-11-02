@@ -4,6 +4,7 @@
  */
 
 import * as z from "zod";
+import { apiErrorSchema } from "./apiErrorSchema.js";
 import { clockSiteCreateSchema } from "./clockSiteCreateSchema.js";
 import { clockSiteIssuedSchema } from "./clockSiteIssuedSchema.js";
 import { validationErrorResponseSchema } from "./validationErrorResponseSchema.js";
@@ -12,9 +13,13 @@ export const hrCreateClockSiteStatus201Schema = clockSiteIssuedSchema.describe(
   "Returned only when a site is created or its token rotated."
 );
 
-export const hrCreateClockSiteStatus403Schema = z.unknown();
+export const hrCreateClockSiteStatus403Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
-export const hrCreateClockSiteStatus404Schema = z.unknown();
+export const hrCreateClockSiteStatus404Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
 export const hrCreateClockSiteStatus422Schema =
   validationErrorResponseSchema.describe(

@@ -3,7 +3,8 @@ import type { CapProfileMatrix, GmsColour } from "@barrelsgd/api-client";
 import { Badge } from "@barrelsgd/ui/components/ui/badge";
 import { Button } from "@barrelsgd/ui/components/ui/button";
 import { NativeSelect } from "@barrelsgd/ui/components/ui/native-select";
-import { COLOUR_LABEL, COLOUR_SURFACE } from "@/lib/cap-levels";
+import { useGmsCatalogue } from "@/components/cap/gms-catalogue";
+import { COLOUR_SURFACE, colourLabel } from "@/lib/cap-levels";
 import {
   IBF_COLOUR_MEANING,
   IBF_COLOURS,
@@ -28,6 +29,7 @@ export function ImpactMatrixEditor({
   matrix: CapProfileMatrix | null | undefined;
   onChange: (next: CapProfileMatrix | null) => void;
 }) {
+  const catalogue = useGmsCatalogue();
   const problems = matrix ? matrixProblems(matrix.cells) : [];
   function setCell(row: number, column: number, colour: GmsColour) {
     if (!matrix) return;
@@ -95,7 +97,7 @@ export function ImpactMatrixEditor({
                           >
                             {IBF_COLOURS.map((option) => (
                               <option key={option} value={option}>
-                                {COLOUR_LABEL[option]}
+                                {colourLabel(catalogue, option)}
                               </option>
                             ))}
                           </NativeSelect>
@@ -110,7 +112,9 @@ export function ImpactMatrixEditor({
           <dl className="grid gap-1 text-sm sm:grid-cols-2">
             {IBF_COLOURS.map((colour) => (
               <div className="flex gap-2" key={colour}>
-                <dt className="font-medium">{COLOUR_LABEL[colour]}</dt>
+                <dt className="font-medium">
+                  {colourLabel(catalogue, colour)}
+                </dt>
                 <dd className="text-muted-foreground">
                   {IBF_COLOUR_MEANING[colour]}
                 </dd>

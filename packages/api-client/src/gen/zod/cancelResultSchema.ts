@@ -14,4 +14,5 @@ export const cancelResultSchema = z.object({
   orders_kept: z.int().optional().default(0),
   refunds_failed: z.int().optional().default(0),
   orders_released: z.int().optional().default(0),
+  orders_pending: z.int().optional().default(0),
 });

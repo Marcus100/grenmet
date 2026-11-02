@@ -3,6 +3,7 @@
  * Do not edit manually.
  */
 
+import type { ApiError } from "./ApiError.js";
 import type { OrgOrderCancel } from "./OrgOrderCancel.js";
 import type { OrgOrderCancelResult } from "./OrgOrderCancelResult.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
@@ -25,15 +26,35 @@ export type EventsOrgCancelOrderHeaders = {
 
 export type EventsOrgCancelOrderStatus200 = OrgOrderCancelResult;
 
-export type EventsOrgCancelOrderStatus400 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type EventsOrgCancelOrderStatus400 = ApiError;
 
-export type EventsOrgCancelOrderStatus401 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type EventsOrgCancelOrderStatus401 = ApiError;
 
-export type EventsOrgCancelOrderStatus403 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type EventsOrgCancelOrderStatus403 = ApiError;
 
-export type EventsOrgCancelOrderStatus404 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type EventsOrgCancelOrderStatus404 = ApiError;
 
-export type EventsOrgCancelOrderStatus409 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type EventsOrgCancelOrderStatus409 = ApiError;
 
 /**
  * @description Validation error envelope returned for malformed requests.

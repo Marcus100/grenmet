@@ -4,6 +4,8 @@
  */
 
 import * as z from "zod";
+import { apiErrorSchema } from "./apiErrorSchema.js";
+import { errorMessageSchema } from "./errorMessageSchema.js";
 import { validationErrorResponseSchema } from "./validationErrorResponseSchema.js";
 
 export const eventsCancelListingRsvpPathSlugSchema = z
@@ -12,16 +14,23 @@ export const eventsCancelListingRsvpPathSlugSchema = z
 
 export const eventsCancelListingRsvpStatus204Schema = z.unknown();
 
-export const eventsCancelListingRsvpStatus401Schema = z.unknown();
+export const eventsCancelListingRsvpStatus401Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
-export const eventsCancelListingRsvpStatus404Schema = z.unknown();
+export const eventsCancelListingRsvpStatus404Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
 export const eventsCancelListingRsvpStatus422Schema =
   validationErrorResponseSchema.describe(
     "Validation error envelope returned for malformed requests."
   );
 
-export const eventsCancelListingRsvpStatus429Schema = z.unknown();
+export const eventsCancelListingRsvpStatus429Schema = z.union([
+  apiErrorSchema,
+  errorMessageSchema,
+]);
 
 export const eventsCancelListingRsvpResponseSchema =
   eventsCancelListingRsvpStatus204Schema;

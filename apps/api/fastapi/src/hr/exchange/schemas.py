@@ -4,7 +4,7 @@ from datetime import date
 from pydantic import Field
 
 from src.hr.models import RequestStatus
-from src.hr.roster.schemas import RosterRulesPublic, RuleViolationPublic
+from src.hr.roster.schemas import OverrideReason, RosterRulesPublic, RuleViolationPublic
 from src.hr.signatures.schemas import SignatureConsent
 from src.hr.submission import SubmittedFormPublic
 from src.models import BaseModel, UtcDateTime
@@ -37,6 +37,7 @@ class ShiftSwapSubmit(SignatureConsent):
 class ShiftSwapAction(BaseModel):
     status: RequestStatus
     comments: str | None = None
+    rule_override_reason: OverrideReason = None
 
 
 class ShiftSwapRequestPublic(SubmittedFormPublic):

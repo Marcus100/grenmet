@@ -1,0 +1,58 @@
+name: Promote Staging
+
+# Daily dev -> staging promotion, then auto-merge so the Staging Pipeline deploys
+# without a click. STAGING ONLY: the script refuses any other base, and nothing
+# here touches main, tags or production. Off until the repository variable
+# PROMOTE_STAGING_ENABLED is "true". Hold it with PROMOTE_STAGING_HOLD=true.
+# Setup and recovery: docs/operations/staging-promotion-automation.md
+
+on:
+  schedule:
+    - cron: "0 10 * * *" # 06:00 America/Grenada (UTC-4, no daylight saving)
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: Print the PR title and body only; create nothing
+        type: boolean
+        default: false
+
+concurrency:
+  group: promote-staging
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  promote:
+    name: Promote dev to staging
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    # Only the default branch may run this: the environment holds the token.
+    if: github.ref == format('refs/heads/{0}', github.event.repository.default_branch)
+    environment: staging-promotion
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.3.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      # GITHUB_TOKEN cannot do this job: a PR it creates does not trigger the
+      # CI workflows, so the staging ruleset's required checks would never run
+      # and auto-merge would wait forever. A fine-grained token or app token
+      # (contents: read, pull requests: write, actions: read) fixes that.
+      - name: Promote
+        env:
+          GH_TOKEN: ${{ secrets.PROMOTE_STAGING_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+          PROMOTE_STAGING_ENABLED: ${{ vars.PROMOTE_STAGING_ENABLED }}
+          PROMOTE_STAGING_HOLD: ${{ vars.PROMOTE_STAGING_HOLD }}
+          DRY_RUN: ${{ inputs.dry_run }}
+        run: |
+          if [ -z "$GH_TOKEN" ] && [ "$PROMOTE_STAGING_ENABLED" = "true" ] && [ "$DRY_RUN" != "true" ]; then
+            echo "::error::Secret PROMOTE_STAGING_TOKEN is missing from the staging-promotion environment. See docs/operations/staging-promotion-automation.md"
+            exit 1
+          fi
+          export GH_TOKEN="${GH_TOKEN:-${{ github.token }}}"
+          git config --global --add safe.directory "$GITHUB_WORKSPACE"
+          node scripts/ops/promote-staging.mjs

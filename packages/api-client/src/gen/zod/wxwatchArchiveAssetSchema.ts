@@ -4,6 +4,7 @@
  */
 
 import * as z from "zod";
+import { apiErrorSchema } from "./apiErrorSchema.js";
 import { validationErrorResponseSchema } from "./validationErrorResponseSchema.js";
 
 export const wxwatchArchiveAssetPathAssetIdSchema = z.uuid();
@@ -26,7 +27,9 @@ export const wxwatchArchiveAssetStatus200Schema = z.union([
   wxwatchArchiveAssetStatus200SchemaOctetStream,
 ]);
 
-export const wxwatchArchiveAssetStatus404Schema = z.unknown();
+export const wxwatchArchiveAssetStatus404Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
 export const wxwatchArchiveAssetStatus422Schema =
   validationErrorResponseSchema.describe(

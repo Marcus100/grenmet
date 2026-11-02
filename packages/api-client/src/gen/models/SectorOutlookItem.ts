@@ -4,6 +4,7 @@
  */
 
 import type { PublicWarningPropertiesColourAnyOfEnum } from "./PublicWarningPropertiesColourAnyOfEnum.js";
+import type { SectorOutlookItemPropertiesNoticeTypeAnyOfEnum } from "./SectorOutlookItemPropertiesNoticeTypeAnyOfEnum.js";
 import type { SectorOutlookItemPropertiesSourceEnum } from "./SectorOutlookItemPropertiesSourceEnum.js";
 
 /**
@@ -26,4 +27,5 @@ export type SectorOutlookItem = {
   product_id?: string | null;
   sectors: string[];
   affects_everyone: boolean;
+  notice_type?: SectorOutlookItemPropertiesNoticeTypeAnyOfEnum | null;
 };

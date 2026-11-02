@@ -13,6 +13,7 @@ from src.auth.constants import ERROR_PERMISSION_NOT_FOUND
 from src.auth.dependencies import get_current_active_superuser
 from src.auth.schemas import PermissionCreate, PermissionPublic
 from src.dependencies import SessionDep
+from src.models import ApiError
 from src.openapi_responses import AUTHENTICATED
 from src.pagination import PaginatedResponse, PaginationParams, get_pagination_params
 
@@ -58,7 +59,10 @@ async def read_permissions(
     description="Return a permission by ID (superuser only).",
     responses={
         status.HTTP_200_OK: {"description": "Permission returned"},
-        status.HTTP_404_NOT_FOUND: {"description": "Permission not found"},
+        status.HTTP_404_NOT_FOUND: {
+            "model": ApiError,
+            "description": "Permission not found",
+        },
     },
 )
 async def read_permission(session: SessionDep, permission_id: uuid.UUID) -> Any:

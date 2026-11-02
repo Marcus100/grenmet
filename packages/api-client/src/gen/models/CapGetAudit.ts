@@ -3,6 +3,7 @@
  * Do not edit manually.
  */
 
+import type { ApiError } from "./ApiError.js";
 import type { CapAuditEventListPublic } from "./CapAuditEventListPublic.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 
@@ -28,9 +29,17 @@ export type CapGetAuditQuery = {
 
 export type CapGetAuditStatus200 = CapAuditEventListPublic;
 
-export type CapGetAuditStatus401 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type CapGetAuditStatus401 = ApiError;
 
-export type CapGetAuditStatus403 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type CapGetAuditStatus403 = ApiError;
 
 /**
  * @description Validation error envelope returned for malformed requests.

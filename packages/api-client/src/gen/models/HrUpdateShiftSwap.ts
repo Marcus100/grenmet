@@ -3,6 +3,7 @@
  * Do not edit manually.
  */
 
+import type { ApiError } from "./ApiError.js";
 import type { ShiftSwapRequestCreate } from "./ShiftSwapRequestCreate.js";
 import type { ShiftSwapRequestPublic } from "./ShiftSwapRequestPublic.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
@@ -18,11 +19,23 @@ export type HrUpdateShiftSwapPath = {
 
 export type HrUpdateShiftSwapStatus200 = ShiftSwapRequestPublic;
 
-export type HrUpdateShiftSwapStatus400 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type HrUpdateShiftSwapStatus400 = ApiError;
 
-export type HrUpdateShiftSwapStatus403 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type HrUpdateShiftSwapStatus403 = ApiError;
 
-export type HrUpdateShiftSwapStatus404 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type HrUpdateShiftSwapStatus404 = ApiError;
 
 /**
  * @description Validation error envelope returned for malformed requests.

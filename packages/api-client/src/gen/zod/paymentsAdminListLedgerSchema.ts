@@ -4,6 +4,7 @@
  */
 
 import * as z from "zod";
+import { apiErrorSchema } from "./apiErrorSchema.js";
 import { ledgerKindSchema } from "./ledgerKindSchema.js";
 import { paymentLedgerListPublicSchema } from "./paymentLedgerListPublicSchema.js";
 import { validationErrorResponseSchema } from "./validationErrorResponseSchema.js";
@@ -35,9 +36,13 @@ export const paymentsAdminListLedgerQuerySizeSchema = z
 export const paymentsAdminListLedgerStatus200Schema =
   paymentLedgerListPublicSchema;
 
-export const paymentsAdminListLedgerStatus401Schema = z.unknown();
+export const paymentsAdminListLedgerStatus401Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
-export const paymentsAdminListLedgerStatus403Schema = z.unknown();
+export const paymentsAdminListLedgerStatus403Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
 export const paymentsAdminListLedgerStatus422Schema =
   validationErrorResponseSchema.describe(

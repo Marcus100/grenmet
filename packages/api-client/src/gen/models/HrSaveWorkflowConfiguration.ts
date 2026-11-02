@@ -3,6 +3,7 @@
  * Do not edit manually.
  */
 
+import type { ApiError } from "./ApiError.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 import type { WorkflowConfigurationInput } from "./WorkflowConfigurationInput.js";
 import type { WorkflowConfigurationPublic } from "./WorkflowConfigurationPublic.js";
@@ -18,11 +19,23 @@ export type HrSaveWorkflowConfigurationPath = {
 
 export type HrSaveWorkflowConfigurationStatus200 = WorkflowConfigurationPublic;
 
-export type HrSaveWorkflowConfigurationStatus401 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type HrSaveWorkflowConfigurationStatus401 = ApiError;
 
-export type HrSaveWorkflowConfigurationStatus403 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type HrSaveWorkflowConfigurationStatus403 = ApiError;
 
-export type HrSaveWorkflowConfigurationStatus409 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type HrSaveWorkflowConfigurationStatus409 = ApiError;
 
 /**
  * @description Validation error envelope returned for malformed requests.

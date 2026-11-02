@@ -4,6 +4,7 @@
  */
 
 import * as z from "zod";
+import { apiErrorSchema } from "./apiErrorSchema.js";
 import { capDownloadPublicAttachmentParametersSchemaEnumSchema } from "./capDownloadPublicAttachmentParametersSchemaEnumSchema.js";
 import { validationErrorResponseSchema } from "./validationErrorResponseSchema.js";
 
@@ -14,7 +15,8 @@ export const capDownloadPublicAttachmentPathKindSchema =
 
 export const capDownloadPublicAttachmentStatus307Schema = z.unknown();
 
-export const capDownloadPublicAttachmentStatus404Schema = z.unknown();
+export const capDownloadPublicAttachmentStatus404Schema =
+  apiErrorSchema.describe("Stable error envelope for documented API failures.");
 
 export const capDownloadPublicAttachmentStatus422Schema =
   validationErrorResponseSchema.describe(

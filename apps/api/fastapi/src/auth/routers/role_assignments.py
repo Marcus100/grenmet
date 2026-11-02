@@ -14,6 +14,7 @@ from src.auth.schemas import (
     UserRoleAssignmentUpdate,
 )
 from src.dependencies import CurrentUser, SessionDep, get_current_user_manager
+from src.models import ApiError
 from src.openapi_responses import AUTHENTICATED
 
 # Scoped user.manage holders delegate ordinary staff only; explicit authority
@@ -66,7 +67,10 @@ async def read_role_assignments(
     description="Return a role assignment by ID (within active user.manage scope).",
     responses={
         status.HTTP_200_OK: {"description": "Role assignment returned"},
-        status.HTTP_404_NOT_FOUND: {"description": "Role assignment not found"},
+        status.HTTP_404_NOT_FOUND: {
+            "model": ApiError,
+            "description": "Role assignment not found",
+        },
     },
 )
 async def read_role_assignment(
@@ -127,7 +131,10 @@ async def create_role_assignment(
     description="Update a user-role assignment (within active user.manage scope).",
     responses={
         status.HTTP_200_OK: {"description": "Role assignment updated"},
-        status.HTTP_404_NOT_FOUND: {"description": "Role assignment not found"},
+        status.HTTP_404_NOT_FOUND: {
+            "model": ApiError,
+            "description": "Role assignment not found",
+        },
     },
 )
 async def update_role_assignment(
@@ -166,7 +173,10 @@ async def update_role_assignment(
     description="Superusers revoke any assignment. Scoped managers revoke ordinary staff grants within active management scope. Revoking authority immediately disables grants issued through it.",
     responses={
         status.HTTP_204_NO_CONTENT: {"description": "Role assignment revoked"},
-        status.HTTP_404_NOT_FOUND: {"description": "Role assignment not found"},
+        status.HTTP_404_NOT_FOUND: {
+            "model": ApiError,
+            "description": "Role assignment not found",
+        },
     },
 )
 async def delete_role_assignment(

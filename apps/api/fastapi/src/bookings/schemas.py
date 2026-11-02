@@ -2,7 +2,7 @@ import uuid
 from datetime import date, time
 from typing import Annotated, Self
 
-from pydantic import EmailStr, Field, field_validator, model_validator
+from pydantic import EmailStr, Field, RootModel, field_validator, model_validator
 
 from src.models import BaseModel, UtcDateTime
 from src.organisations.models import MembershipRole
@@ -568,3 +568,7 @@ class BookingSettings(BaseModel):
             "service deposit is stored but not collected."
         )
     )
+
+
+class BookingPublicCancelBody(RootModel[BookingPublicCancel | None]):
+    """Optional cancellation request. An absent body and null are both accepted."""

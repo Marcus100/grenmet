@@ -5,7 +5,13 @@ from fastapi.responses import HTMLResponse, RedirectResponse
 
 from src.auth.policy import require_permission
 from src.dependencies import CurrentUser, SessionDep
-from src.openapi_responses import AUTHENTICATED, BAD_REQUEST, CONFLICT, NOT_FOUND
+from src.openapi_responses import (
+    AUTHENTICATED,
+    BAD_REQUEST,
+    CONFLICT,
+    NOT_FOUND,
+    html_error,
+)
 from src.organisations import sites
 from src.organisations.exceptions import PublicSiteNotFoundError
 from src.rate_limit import limiter
@@ -133,7 +139,7 @@ async def unsubscribe(*, request: Request, token: str) -> RedirectResponse:
         "offers the button that unsubscribes. Changes nothing. An invalid token "
         "gets a 400 page."
     ),
-    responses={**BAD_REQUEST},
+    responses=html_error("Invalid or expired link: an HTML page explains it"),
 )
 @limiter.limit("30/minute")
 async def unsubscribe_confirm_page(
@@ -160,7 +166,9 @@ async def unsubscribe_confirm_page(
         "an HTML page and no redirect. Repeating it is harmless. An invalid token "
         "gets a 400 page and changes nothing."
     ),
-    responses={**BAD_REQUEST},
+    responses=html_error(
+        "Invalid or expired link: an HTML page explains it and changes nothing"
+    ),
 )
 @limiter.limit("30/minute")
 async def stop_subscription(

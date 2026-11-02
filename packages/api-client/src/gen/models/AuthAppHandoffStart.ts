@@ -3,8 +3,10 @@
  * Do not edit manually.
  */
 
+import type { ApiError } from "./ApiError.js";
 import type { AppHandoffCode } from "./AppHandoffCode.js";
 import type { AppHandoffStart } from "./AppHandoffStart.js";
+import type { ErrorMessage } from "./ErrorMessage.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 
 export type AuthAppHandoffStartPath = {
@@ -17,13 +19,29 @@ export type AuthAppHandoffStartPath = {
 
 export type AuthAppHandoffStartStatus200 = AppHandoffCode;
 
-export type AuthAppHandoffStartStatus401 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type AuthAppHandoffStartStatus401 = ApiError;
 
-export type AuthAppHandoffStartStatus403 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type AuthAppHandoffStartStatus403 = ApiError;
 
-export type AuthAppHandoffStartStatus404 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type AuthAppHandoffStartStatus404 = ApiError;
 
-export type AuthAppHandoffStartStatus409 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type AuthAppHandoffStartStatus409 = ApiError;
 
 /**
  * @description Validation error envelope returned for malformed requests.
@@ -31,7 +49,7 @@ export type AuthAppHandoffStartStatus409 = unknown;
  */
 export type AuthAppHandoffStartStatus422 = ValidationErrorResponse;
 
-export type AuthAppHandoffStartStatus429 = unknown;
+export type AuthAppHandoffStartStatus429 = ApiError | ErrorMessage;
 
 export type AuthAppHandoffStartBody = AppHandoffStart;
 

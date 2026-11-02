@@ -4,6 +4,7 @@
  */
 
 import * as z from "zod";
+import { apiErrorSchema } from "./apiErrorSchema.js";
 import { calendarEventCreateSchema } from "./calendarEventCreateSchema.js";
 import { calendarEventPublicSchema } from "./calendarEventPublicSchema.js";
 import { validationErrorResponseSchema } from "./validationErrorResponseSchema.js";
@@ -13,11 +14,17 @@ export const hrCreateCalendarEventStatus201Schema =
     "A department calendar entry.\n\n`starts_at_local`/`ends_at_local` are ISO-8601 without an offset — the same\ndepartment-local wall clock the roster feed uses, so both layers of the\ncalendar read on one time base. `created_at` is a real timestamp and is UTC."
   );
 
-export const hrCreateCalendarEventStatus400Schema = z.unknown();
+export const hrCreateCalendarEventStatus400Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
-export const hrCreateCalendarEventStatus403Schema = z.unknown();
+export const hrCreateCalendarEventStatus403Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
-export const hrCreateCalendarEventStatus404Schema = z.unknown();
+export const hrCreateCalendarEventStatus404Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
 export const hrCreateCalendarEventStatus422Schema =
   validationErrorResponseSchema.describe(

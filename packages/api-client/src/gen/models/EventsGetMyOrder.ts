@@ -3,6 +3,8 @@
  * Do not edit manually.
  */
 
+import type { ApiError } from "./ApiError.js";
+import type { ErrorMessage } from "./ErrorMessage.js";
 import type { OrderPublic } from "./OrderPublic.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 
@@ -17,9 +19,17 @@ export type EventsGetMyOrderPath = {
 
 export type EventsGetMyOrderStatus200 = OrderPublic;
 
-export type EventsGetMyOrderStatus401 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type EventsGetMyOrderStatus401 = ApiError;
 
-export type EventsGetMyOrderStatus404 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type EventsGetMyOrderStatus404 = ApiError;
 
 /**
  * @description Validation error envelope returned for malformed requests.
@@ -27,7 +37,7 @@ export type EventsGetMyOrderStatus404 = unknown;
  */
 export type EventsGetMyOrderStatus422 = ValidationErrorResponse;
 
-export type EventsGetMyOrderStatus429 = unknown;
+export type EventsGetMyOrderStatus429 = ApiError | ErrorMessage;
 
 export type EventsGetMyOrderOptions = {
   body?: never;

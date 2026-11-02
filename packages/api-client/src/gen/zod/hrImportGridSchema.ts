@@ -4,17 +4,30 @@
  */
 
 import * as z from "zod";
+import { apiErrorSchema } from "./apiErrorSchema.js";
 import { rosterGridImportRequestSchema } from "./rosterGridImportRequestSchema.js";
 import { rosterGridImportResultSchema } from "./rosterGridImportResultSchema.js";
+import { rosterRuleWarningsErrorPublicSchema } from "./rosterRuleWarningsErrorPublicSchema.js";
 import { validationErrorResponseSchema } from "./validationErrorResponseSchema.js";
 
 export const hrImportGridStatus200Schema = rosterGridImportResultSchema;
 
-export const hrImportGridStatus400Schema = z.unknown();
+export const hrImportGridStatus400Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
-export const hrImportGridStatus403Schema = z.unknown();
+export const hrImportGridStatus403Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
-export const hrImportGridStatus404Schema = z.unknown();
+export const hrImportGridStatus404Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
+
+export const hrImportGridStatus409Schema =
+  rosterRuleWarningsErrorPublicSchema.describe(
+    "409 body. An ordinary conflict carries only ``detail``. Roster rule\nwarnings add ``code: ROSTER_RULE_WARNINGS``, the ``context`` and the\n``violations``; resend with ``rule_override_reason`` to save anyway."
+  );
 
 export const hrImportGridStatus422Schema =
   validationErrorResponseSchema.describe(
@@ -27,6 +40,7 @@ export const hrImportGridErrorSchema = z.union([
   hrImportGridStatus400Schema,
   hrImportGridStatus403Schema,
   hrImportGridStatus404Schema,
+  hrImportGridStatus409Schema,
   hrImportGridStatus422Schema,
 ]);
 

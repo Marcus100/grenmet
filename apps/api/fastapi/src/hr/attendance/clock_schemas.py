@@ -2,7 +2,7 @@ import uuid
 from datetime import date
 from typing import Literal
 
-from pydantic import Field
+from pydantic import Field, RootModel
 
 from src.models import BaseModel, UtcDateTime
 
@@ -88,3 +88,7 @@ class ClockResult(BaseModel):
     late_minutes: int = 0
     early_departure_minutes: int = 0
     overtime_minutes: int = 0
+
+
+class ClockPunchApproveBody(RootModel[ClockPunchApprove | None]):
+    """Optional approval note. An absent body and null are both accepted."""

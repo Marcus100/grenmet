@@ -4,6 +4,7 @@
  */
 
 import type { AccessStatusPublic } from "./AccessStatusPublic.js";
+import type { ApiError } from "./ApiError.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 
 export type ModelsGetAccessStatusHeaders = {
@@ -15,11 +16,23 @@ export type ModelsGetAccessStatusHeaders = {
 
 export type ModelsGetAccessStatusStatus200 = AccessStatusPublic;
 
-export type ModelsGetAccessStatusStatus401 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type ModelsGetAccessStatusStatus401 = ApiError;
 
-export type ModelsGetAccessStatusStatus403 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type ModelsGetAccessStatusStatus403 = ApiError;
 
-export type ModelsGetAccessStatusStatus404 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type ModelsGetAccessStatusStatus404 = ApiError;
 
 /**
  * @description Validation error envelope returned for malformed requests.

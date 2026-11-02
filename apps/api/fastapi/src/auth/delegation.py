@@ -34,7 +34,8 @@ async def valid_delegated_assignments(
     }
     if not source_ids:
         return assignments
-    from src.hr.models import EmploymentRecord, EmploymentStatus
+    from src.hr.models import EmploymentRecord
+    from src.utils.timezones import local_today
 
     now = utc_now()
     sources = list(
@@ -77,6 +78,7 @@ async def valid_delegated_assignments(
         ).all()
     }
     valid = []
+    today = local_today()
     for grant in assignments:
         if grant.authority_assignment_id is None:
             valid.append(grant)
@@ -89,8 +91,8 @@ async def valid_delegated_assignments(
         if not source or not role or not source_role or not target or not issuer:
             continue
         if (
-            issuer.status != EmploymentStatus.ACTIVE
-            or target.status != EmploymentStatus.ACTIVE
+            not issuer.is_live(today)
+            or not target.is_live(today)
             or issuer.organisation_id != source.organisation_id
         ):
             continue

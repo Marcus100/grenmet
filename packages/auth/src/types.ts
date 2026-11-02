@@ -22,6 +22,13 @@ export interface AuthConfig {
   authApiTimeoutMs?: number;
   authAppUrl: string;
   sessionCookieName: string;
+  /**
+   * Shared secret the API checks before it honours X-Visitor-IP (the real
+   * visitor, for mail-sending limits). Unset: no visitor address is forwarded.
+   */
+  trustedWebSecret?: string;
+  /** Trusted proxies in front of this web host (x-forwarded-for counted from the right). */
+  visitorProxyHops?: number;
 }
 
 export type MessageResponse = Message;

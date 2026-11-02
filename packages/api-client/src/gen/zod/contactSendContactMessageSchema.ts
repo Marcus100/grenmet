@@ -4,6 +4,7 @@
  */
 
 import * as z from "zod";
+import { apiErrorSchema } from "./apiErrorSchema.js";
 import { contactMessageAcceptedSchema } from "./contactMessageAcceptedSchema.js";
 import { contactMessageCreateSchema } from "./contactMessageCreateSchema.js";
 import { validationErrorResponseSchema } from "./validationErrorResponseSchema.js";
@@ -11,7 +12,9 @@ import { validationErrorResponseSchema } from "./validationErrorResponseSchema.j
 export const contactSendContactMessageStatus202Schema =
   contactMessageAcceptedSchema;
 
-export const contactSendContactMessageStatus400Schema = z.unknown();
+export const contactSendContactMessageStatus400Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
 export const contactSendContactMessageStatus422Schema =
   validationErrorResponseSchema.describe(

@@ -114,6 +114,7 @@ async def cancel_locked_event(
             "orders_refunded": settled.refunded,
             "orders_queued": settled.queued,
             "refunds_failed": settled.failed,
+            "orders_pending": settled.pending,
         },
     )
     await db.commit()
@@ -126,6 +127,7 @@ async def cancel_locked_event(
         orders_kept=settled.kept,
         refunds_failed=settled.failed,
         orders_released=settled.released,
+        orders_pending=settled.pending,
     )
 
 

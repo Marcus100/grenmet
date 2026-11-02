@@ -22,6 +22,9 @@ def seed_organisation(session: Session) -> None:
         session, organisation_id=GAA_ORGANISATION_ID, name=GAA_ORGANISATION_NAME
     )
     organisations_sites.ensure_default_public_sites_sync(session)
+    from src.hr.payroll.catalogue import seed_gaa_pay_items
+
+    seed_gaa_pay_items(session)
 
 
 async def seed_organisation_async(session: AsyncSession) -> None:
@@ -37,3 +40,6 @@ async def seed_organisation_async(session: AsyncSession) -> None:
         code="GAA",
     )
     await organisations_sites.ensure_default_public_sites(session)
+    from src.hr.payroll.catalogue import seed_gaa_pay_items_async
+
+    await seed_gaa_pay_items_async(session)

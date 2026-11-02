@@ -3,13 +3,22 @@
  * Do not edit manually.
  */
 
+import type { ApiError } from "./ApiError.js";
 import type { ParkingPermitCreate } from "./ParkingPermitCreate.js";
 
 export type HrPreviewParkingPermitPdfStatus200 = Blob;
 
-export type HrPreviewParkingPermitPdfStatus400 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type HrPreviewParkingPermitPdfStatus400 = ApiError;
 
-export type HrPreviewParkingPermitPdfStatus403 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type HrPreviewParkingPermitPdfStatus403 = ApiError;
 
 export type HrPreviewParkingPermitPdfStatus422 = unknown;
 

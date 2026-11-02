@@ -1,4 +1,8 @@
 import { CookieSettingsButton } from "@barrelsgd/ui/components/posthog-provider";
+import {
+  BARRELS_SUPPORT_EMAIL,
+  BARRELS_SUPPORT_HREF,
+} from "@barrelsgd/ui/lib/support";
 import Link from "next/link";
 import { FlagStripe } from "@/components/flag-stripe";
 
@@ -36,6 +40,13 @@ export function SiteFooter() {
           Elections Grenada is an independent Barrels Grenada project. It is not
           the Parliamentary Elections Office. Use PEO guidance to confirm your
           registration and polling station.
+        </p>
+        <p>
+          Questions about this site? Email Barrels Grenada support at{" "}
+          <a className="underline" href={BARRELS_SUPPORT_HREF}>
+            {BARRELS_SUPPORT_EMAIL}
+          </a>
+          .
         </p>
         <details>
           <summary className="cursor-pointer">Evidence marks</summary>

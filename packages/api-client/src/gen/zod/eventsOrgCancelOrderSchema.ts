@@ -4,6 +4,7 @@
  */
 
 import * as z from "zod";
+import { apiErrorSchema } from "./apiErrorSchema.js";
 import { orgOrderCancelResultSchema } from "./orgOrderCancelResultSchema.js";
 import { orgOrderCancelSchema } from "./orgOrderCancelSchema.js";
 import { validationErrorResponseSchema } from "./validationErrorResponseSchema.js";
@@ -19,15 +20,25 @@ export const eventsOrgCancelOrderHeaderXBarrelsOrganisationSchema = z
 
 export const eventsOrgCancelOrderStatus200Schema = orgOrderCancelResultSchema;
 
-export const eventsOrgCancelOrderStatus400Schema = z.unknown();
+export const eventsOrgCancelOrderStatus400Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
-export const eventsOrgCancelOrderStatus401Schema = z.unknown();
+export const eventsOrgCancelOrderStatus401Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
-export const eventsOrgCancelOrderStatus403Schema = z.unknown();
+export const eventsOrgCancelOrderStatus403Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
-export const eventsOrgCancelOrderStatus404Schema = z.unknown();
+export const eventsOrgCancelOrderStatus404Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
-export const eventsOrgCancelOrderStatus409Schema = z.unknown();
+export const eventsOrgCancelOrderStatus409Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
 export const eventsOrgCancelOrderStatus422Schema =
   validationErrorResponseSchema.describe(

@@ -11,8 +11,9 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
   type AlertsResult,
-  alertsLevel,
+  alertsDisplayLevel,
   alertsSummary,
+  type GreenStatus,
 } from "@/lib/cap-alerts";
 import { cn } from "@/lib/utils";
 import { WARNING_LEVEL_SURFACE } from "@/lib/warning-level";
@@ -42,13 +43,15 @@ function isCurrent(pathname: string, href: string) {
  */
 export function MobileTabBar({
   alerts,
+  green,
   onOpenMenu,
 }: {
   alerts: AlertsResult;
+  green?: GreenStatus;
   onOpenMenu: () => void;
 }) {
   const pathname = usePathname();
-  const level = alertsLevel(alerts);
+  const level = alertsDisplayLevel(alerts, green);
 
   return (
     <nav
@@ -75,7 +78,9 @@ export function MobileTabBar({
                     WARNING_LEVEL_SURFACE[level]
                   )}
                 />
-                <span className="sr-only">: {alertsSummary(alerts)}</span>
+                <span className="sr-only">
+                  : {alertsSummary(alerts, green)}
+                </span>
               </>
             )}
           </Link>

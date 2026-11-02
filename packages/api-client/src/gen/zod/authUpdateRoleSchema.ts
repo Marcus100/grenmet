@@ -4,6 +4,7 @@
  */
 
 import * as z from "zod";
+import { apiErrorSchema } from "./apiErrorSchema.js";
 import { rolePublicSchema } from "./rolePublicSchema.js";
 import { roleUpdateSchema } from "./roleUpdateSchema.js";
 import { validationErrorResponseSchema } from "./validationErrorResponseSchema.js";
@@ -12,7 +13,9 @@ export const authUpdateRolePathRoleIdSchema = z.uuid();
 
 export const authUpdateRoleStatus200Schema = rolePublicSchema;
 
-export const authUpdateRoleStatus404Schema = z.unknown();
+export const authUpdateRoleStatus404Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
 export const authUpdateRoleStatus422Schema =
   validationErrorResponseSchema.describe(

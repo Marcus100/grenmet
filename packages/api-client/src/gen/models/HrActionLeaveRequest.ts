@@ -3,8 +3,10 @@
  * Do not edit manually.
  */
 
+import type { ApiError } from "./ApiError.js";
 import type { LeaveRequestAction } from "./LeaveRequestAction.js";
 import type { LeaveRequestPublic } from "./LeaveRequestPublic.js";
+import type { RosterRuleWarningsErrorPublic } from "./RosterRuleWarningsErrorPublic.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 
 export type HrActionLeaveRequestPath = {
@@ -18,9 +20,25 @@ export type HrActionLeaveRequestPath = {
 
 export type HrActionLeaveRequestStatus200 = LeaveRequestPublic;
 
-export type HrActionLeaveRequestStatus403 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type HrActionLeaveRequestStatus403 = ApiError;
 
-export type HrActionLeaveRequestStatus404 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type HrActionLeaveRequestStatus404 = ApiError;
+
+/**
+ * @description 409 body. An ordinary conflict carries only ``detail``. Roster rule
+ * warnings add ``code: ROSTER_RULE_WARNINGS``, the ``context`` and the
+ * ``violations``; resend with ``rule_override_reason`` to save anyway.
+ * @type object
+ */
+export type HrActionLeaveRequestStatus409 = RosterRuleWarningsErrorPublic;
 
 /**
  * @description Validation error envelope returned for malformed requests.
@@ -41,6 +59,7 @@ export type HrActionLeaveRequestResponses = {
   "200": HrActionLeaveRequestStatus200;
   "403": HrActionLeaveRequestStatus403;
   "404": HrActionLeaveRequestStatus404;
+  "409": HrActionLeaveRequestStatus409;
   "422": HrActionLeaveRequestStatus422;
 };
 

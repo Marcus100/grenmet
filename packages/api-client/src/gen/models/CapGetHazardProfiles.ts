@@ -3,14 +3,23 @@
  * Do not edit manually.
  */
 
+import type { ApiError } from "./ApiError.js";
 import type { CapProfilePublic } from "./CapProfilePublic.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 
 export type CapGetHazardProfilesStatus200 = CapProfilePublic[];
 
-export type CapGetHazardProfilesStatus401 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type CapGetHazardProfilesStatus401 = ApiError;
 
-export type CapGetHazardProfilesStatus403 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type CapGetHazardProfilesStatus403 = ApiError;
 
 /**
  * @description Validation error envelope returned for malformed requests.

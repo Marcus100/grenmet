@@ -5,6 +5,7 @@ from typing import Any
 from fastapi import APIRouter, status
 
 from src.dependencies import CurrentUser, SessionDep
+from src.models import ApiError
 
 from . import service
 from .schemas import (
@@ -48,9 +49,18 @@ def _to_public(event: Any, author: Any) -> CalendarEventPublic:
     ),
     responses={
         status.HTTP_200_OK: {"description": "Calendar events returned"},
-        status.HTTP_400_BAD_REQUEST: {"description": "Invalid date range"},
-        status.HTTP_403_FORBIDDEN: {"description": "Insufficient permission"},
-        status.HTTP_404_NOT_FOUND: {"description": "Department not found"},
+        status.HTTP_400_BAD_REQUEST: {
+            "model": ApiError,
+            "description": "Invalid date range",
+        },
+        status.HTTP_403_FORBIDDEN: {
+            "model": ApiError,
+            "description": "Insufficient permission",
+        },
+        status.HTTP_404_NOT_FOUND: {
+            "model": ApiError,
+            "description": "Department not found",
+        },
     },
 )
 async def list_calendar_events(
@@ -88,9 +98,18 @@ async def list_calendar_events(
     ),
     responses={
         status.HTTP_201_CREATED: {"description": "Calendar event created"},
-        status.HTTP_400_BAD_REQUEST: {"description": "Invalid event"},
-        status.HTTP_403_FORBIDDEN: {"description": "Insufficient permission"},
-        status.HTTP_404_NOT_FOUND: {"description": "Department not found"},
+        status.HTTP_400_BAD_REQUEST: {
+            "model": ApiError,
+            "description": "Invalid event",
+        },
+        status.HTTP_403_FORBIDDEN: {
+            "model": ApiError,
+            "description": "Insufficient permission",
+        },
+        status.HTTP_404_NOT_FOUND: {
+            "model": ApiError,
+            "description": "Department not found",
+        },
     },
 )
 async def create_calendar_event(
@@ -116,9 +135,15 @@ async def create_calendar_event(
     ),
     responses={
         status.HTTP_200_OK: {"description": "Calendar event updated"},
-        status.HTTP_400_BAD_REQUEST: {"description": "Invalid event"},
-        status.HTTP_403_FORBIDDEN: {"description": "Not the author"},
-        status.HTTP_404_NOT_FOUND: {"description": "Calendar event not found"},
+        status.HTTP_400_BAD_REQUEST: {
+            "model": ApiError,
+            "description": "Invalid event",
+        },
+        status.HTTP_403_FORBIDDEN: {"model": ApiError, "description": "Not the author"},
+        status.HTTP_404_NOT_FOUND: {
+            "model": ApiError,
+            "description": "Calendar event not found",
+        },
     },
 )
 async def update_calendar_event(

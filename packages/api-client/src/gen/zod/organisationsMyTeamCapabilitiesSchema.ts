@@ -4,6 +4,7 @@
  */
 
 import * as z from "zod";
+import { apiErrorSchema } from "./apiErrorSchema.js";
 import { teamCapabilitiesPublicSchema } from "./teamCapabilitiesPublicSchema.js";
 import { validationErrorResponseSchema } from "./validationErrorResponseSchema.js";
 
@@ -19,11 +20,14 @@ export const organisationsMyTeamCapabilitiesStatus200Schema =
     "What the caller may do on the Team screen."
   );
 
-export const organisationsMyTeamCapabilitiesStatus401Schema = z.unknown();
+export const organisationsMyTeamCapabilitiesStatus401Schema =
+  apiErrorSchema.describe("Stable error envelope for documented API failures.");
 
-export const organisationsMyTeamCapabilitiesStatus403Schema = z.unknown();
+export const organisationsMyTeamCapabilitiesStatus403Schema =
+  apiErrorSchema.describe("Stable error envelope for documented API failures.");
 
-export const organisationsMyTeamCapabilitiesStatus404Schema = z.unknown();
+export const organisationsMyTeamCapabilitiesStatus404Schema =
+  apiErrorSchema.describe("Stable error envelope for documented API failures.");
 
 export const organisationsMyTeamCapabilitiesStatus422Schema =
   validationErrorResponseSchema.describe(

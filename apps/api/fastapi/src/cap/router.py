@@ -15,7 +15,9 @@ from src.cap.schemas import (
     CapAlertCreate,
     CapAlertImportRequest,
     CapAlertListPublic,
+    CapAlertListPublicView,
     CapAlertPublic,
+    CapAlertPublicView,
     CapAlertUpdate,
     CapAuditEventListPublic,
     CapCatalogsPublic,
@@ -28,14 +30,17 @@ from src.cap.schemas import (
     CapFeedImportUpdate,
     CapPredefinedAreaCreate,
     CapPredefinedAreaPublic,
+    CapPublishAction,
     CapPublishPublic,
     CapReviewRecord,
     CapSettingsPublic,
     CapSettingsUpdate,
     CapValidationResult,
+    GmsCataloguePublic,
     PublicWarnings,
 )
 from src.dependencies import CurrentUser, SessionDep
+from src.models import ApiError
 from src.openapi_responses import AUTHENTICATED, NOT_FOUND
 from src.pagination import PaginationDep
 from src.rate_limit import limiter
@@ -167,6 +172,21 @@ async def import_alert(
 
 
 @router.get(
+    "/alerts/by-identifier/{identifier}",
+    response_model=CapAlertPublic,
+    summary="Get a CAP alert by identifier",
+    description="Returns one CAP alert by its CAP identifier, with every staff field (schema check, imported marker). Drafts and imports are visible here.",
+    responses={**AUTHENTICATED, **NOT_FOUND},
+)
+async def read_alert_by_identifier(
+    *, session: SessionDep, current_user: CurrentUser, identifier: str
+) -> CapAlertPublic:
+    return await service.get_alert_by_identifier(
+        session=session, current_user=current_user, identifier=identifier
+    )
+
+
+@router.get(
     "/alerts/{alert_id}",
     response_model=CapAlertPublic,
     summary="Get a CAP alert",
@@ -219,6 +239,44 @@ async def duplicate_alert(
 
 
 @router.post(
+    "/alerts/{alert_id}/updates",
+    response_model=CapAlertPublic,
+    status_code=status.HTTP_201_CREATED,
+    summary="Start an Update of a published CAP alert",
+    description=(
+        "Creates a draft Update that copies the published Alert or Update and "
+        "references it (same status, sender and scope). It follows the normal "
+        "approval; publishing it supersedes the original. Returns 200 with the "
+        "existing draft when an Update of this alert is already being prepared. "
+        "Imported alerts and alerts that do not follow the CAP 1.2 schema cannot "
+        "be updated. Needs cap.alert.create."
+    ),
+    responses={
+        **AUTHENTICATED,
+        **NOT_FOUND,
+        409: {
+            "model": ApiError,
+            "description": "Not published, not an Alert or Update, or imported",
+        },
+        422: {"model": ApiError, "description": "Does not follow the CAP 1.2 schema"},
+    },
+)
+async def issue_alert_update(
+    *,
+    session: SessionDep,
+    current_user: CurrentUser,
+    alert_id: uuid.UUID,
+    response: Response,
+) -> CapAlertPublic:
+    draft, created = await service.issue_update(
+        session=session, current_user=current_user, alert_id=alert_id
+    )
+    if not created:
+        response.status_code = status.HTTP_200_OK
+    return draft
+
+
+@router.post(
     "/alerts/{alert_id}/validate",
     response_model=CapValidationResult,
     summary="Validate a CAP alert",
@@ -268,9 +326,10 @@ async def submit_alert(
         **AUTHENTICATED,
         **NOT_FOUND,
         403: {
-            "description": "Missing permission, or the author reviewing their own alert"
+            "model": ApiError,
+            "description": "Missing permission, or the author reviewing their own alert",
         },
-        409: {"description": "Alert is cancelled or expired"},
+        409: {"model": ApiError, "description": "Alert is cancelled or expired"},
     },
 )
 async def record_alert_review(
@@ -325,7 +384,7 @@ async def publish_alert(
     session: SessionDep,
     current_user: CurrentUser,
     alert_id: uuid.UUID,
-    payload: CapAlertAction,
+    payload: CapPublishAction,
 ) -> CapPublishPublic:
     alert, snapshot = await service.publish_alert(
         session=session,
@@ -440,6 +499,17 @@ async def update_cap_settings(
 )
 async def read_catalogs(*, current_user: CurrentUser) -> CapCatalogsPublic:
     return service.get_catalogs(current_user=current_user)
+
+
+@router.get(
+    "/gms-catalogue",
+    response_model=GmsCataloguePublic,
+    summary="Read the GMS warning catalogue",
+    description="Returns the hazard list, parish geocodes, and the product and colour rules the warning desk uses. The rules are owned by GMS and change only through a reviewed code change.",
+    responses={**AUTHENTICATED},
+)
+async def read_gms_catalogue(*, current_user: CurrentUser) -> GmsCataloguePublic:
+    return service.get_gms_catalogue(current_user=current_user)
 
 
 @router.get(
@@ -580,6 +650,11 @@ async def delete_feed(
     )
 
 
+def _public_list_view(result: CapAlertListPublic) -> CapAlertListPublicView:
+    """The anonymous view of a list: staff-only fields are left out."""
+    return CapAlertListPublicView.model_validate(result.model_dump())
+
+
 @public_router.get(
     "/warnings",
     response_model=PublicWarnings,
@@ -604,49 +679,52 @@ async def read_public_warnings(
 
 @public_router.get(
     "/latest-active",
-    response_model=CapAlertListPublic,
+    response_model=CapAlertListPublicView,
     summary="List active public CAP alerts",
     description="Returns currently active public CAP alerts. The response is briefly cached for public feed consumers.",
 )
 async def read_public_latest_active(*, session: SessionDep) -> Any:
     async def _produce() -> dict[str, Any]:
         result = await service.public_latest_active(session=session)
-        return result.model_dump(mode="json")
+        return _public_list_view(result).model_dump(mode="json")
 
     return await cache.cached_json(cache.PUBLIC_LATEST_ACTIVE, 30, _produce)
 
 
 @public_router.get(
     "/alerts",
-    response_model=CapAlertListPublic,
+    response_model=CapAlertListPublicView,
     summary="List public CAP alerts",
     description="Returns all public CAP alerts available through the public feed.",
 )
-async def read_public_alerts(*, session: SessionDep) -> CapAlertListPublic:
-    return await service.public_all_alerts(session=session)
+async def read_public_alerts(*, session: SessionDep) -> CapAlertListPublicView:
+    return _public_list_view(await service.public_all_alerts(session=session))
 
 
 @public_router.get(
     "/past",
-    response_model=CapAlertListPublic,
+    response_model=CapAlertListPublicView,
     summary="List past public CAP alerts",
     description="Returns previously published public CAP alerts from the public feed.",
 )
-async def read_public_past_alerts(*, session: SessionDep) -> CapAlertListPublic:
-    return await service.public_past_alerts(session=session)
+async def read_public_past_alerts(*, session: SessionDep) -> CapAlertListPublicView:
+    return _public_list_view(await service.public_past_alerts(session=session))
 
 
 @public_router.get(
     "/alerts/{identifier}",
-    response_model=CapAlertPublic,
+    response_model=CapAlertPublicView,
     summary="Get a public CAP alert",
     description="Returns one published public CAP alert by its CAP identifier.",
     responses={**NOT_FOUND},
 )
-async def read_public_alert(*, session: SessionDep, identifier: str) -> CapAlertPublic:
-    return await service.public_alert_by_identifier(
+async def read_public_alert(
+    *, session: SessionDep, identifier: str
+) -> CapAlertPublicView:
+    alert = await service.public_alert_by_identifier(
         session=session, identifier=identifier
     )
+    return CapAlertPublicView.model_validate(alert.model_dump())
 
 
 @public_router.get(
@@ -654,7 +732,9 @@ async def read_public_alert(*, session: SessionDep, identifier: str) -> CapAlert
     operation_id="capDownloadPublicAttachment",
     response_class=RedirectResponse,
     status_code=307,
-    responses={404: {"description": "Public attachment not available"}},
+    responses={
+        404: {"model": ApiError, "description": "Public attachment not available"}
+    },
     summary="Download a generated public CAP attachment",
     description="Checks the public alert scope and publication lifecycle, then redirects to a private-storage URL valid for 60 seconds. Actual alerts only; PDF, social image and map only.",
 )

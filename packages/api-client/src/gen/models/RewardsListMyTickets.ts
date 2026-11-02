@@ -3,14 +3,23 @@
  * Do not edit manually.
  */
 
+import type { ApiError } from "./ApiError.js";
 import type { TicketSummary } from "./TicketSummary.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 
 export type RewardsListMyTicketsStatus200 = TicketSummary[];
 
-export type RewardsListMyTicketsStatus401 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type RewardsListMyTicketsStatus401 = ApiError;
 
-export type RewardsListMyTicketsStatus403 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type RewardsListMyTicketsStatus403 = ApiError;
 
 /**
  * @description Validation error envelope returned for malformed requests.

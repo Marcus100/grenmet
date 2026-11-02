@@ -3,6 +3,7 @@
  * Do not edit manually.
  */
 
+import type { ApiError } from "./ApiError.js";
 import type { CapDownloadPublicAttachmentParametersSchemaEnum } from "./CapDownloadPublicAttachmentParametersSchemaEnum.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 
@@ -13,7 +14,11 @@ export type CapDownloadPublicAttachmentPath = {
 
 export type CapDownloadPublicAttachmentStatus307 = unknown;
 
-export type CapDownloadPublicAttachmentStatus404 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type CapDownloadPublicAttachmentStatus404 = ApiError;
 
 /**
  * @description Validation error envelope returned for malformed requests.

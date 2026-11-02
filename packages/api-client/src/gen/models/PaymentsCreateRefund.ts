@@ -3,6 +3,7 @@
  * Do not edit manually.
  */
 
+import type { ApiError } from "./ApiError.js";
 import type { PaymentRefundCreate } from "./PaymentRefundCreate.js";
 import type { PaymentRefundPublic } from "./PaymentRefundPublic.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
@@ -25,15 +26,35 @@ export type PaymentsCreateRefundHeaders = {
 
 export type PaymentsCreateRefundStatus201 = PaymentRefundPublic;
 
-export type PaymentsCreateRefundStatus400 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type PaymentsCreateRefundStatus400 = ApiError;
 
-export type PaymentsCreateRefundStatus401 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type PaymentsCreateRefundStatus401 = ApiError;
 
-export type PaymentsCreateRefundStatus403 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type PaymentsCreateRefundStatus403 = ApiError;
 
-export type PaymentsCreateRefundStatus404 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type PaymentsCreateRefundStatus404 = ApiError;
 
-export type PaymentsCreateRefundStatus409 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type PaymentsCreateRefundStatus409 = ApiError;
 
 /**
  * @description Validation error envelope returned for malformed requests.

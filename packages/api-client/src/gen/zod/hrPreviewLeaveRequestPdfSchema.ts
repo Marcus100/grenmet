@@ -4,6 +4,7 @@
  */
 
 import * as z from "zod";
+import { apiErrorSchema } from "./apiErrorSchema.js";
 import { leaveRequestCreateSchema } from "./leaveRequestCreateSchema.js";
 
 export const hrPreviewLeaveRequestPdfStatus200SchemaJson = z.unknown();
@@ -15,9 +16,13 @@ export const hrPreviewLeaveRequestPdfStatus200Schema = z.union([
   hrPreviewLeaveRequestPdfStatus200SchemaPdf,
 ]);
 
-export const hrPreviewLeaveRequestPdfStatus400Schema = z.unknown();
+export const hrPreviewLeaveRequestPdfStatus400Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
-export const hrPreviewLeaveRequestPdfStatus403Schema = z.unknown();
+export const hrPreviewLeaveRequestPdfStatus403Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
 export const hrPreviewLeaveRequestPdfStatus422Schema = z.unknown();
 

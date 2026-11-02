@@ -2,7 +2,7 @@
 
 Each topic is one platform. The outbox gives the retries (1 minute doubling to an
 hour, dead after 5 attempts); ``on_dead`` records the give-up on the delivery row
-so the editor can see it. Dry run by default: see service.publish.
+so the editor can see it. Each run decides live or dry run: see service.post_delivery.
 """
 
 from sqlalchemy.ext.asyncio import AsyncSession

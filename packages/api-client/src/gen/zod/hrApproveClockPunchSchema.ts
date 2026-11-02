@@ -4,7 +4,8 @@
  */
 
 import * as z from "zod";
-import { clockPunchApproveSchema } from "./clockPunchApproveSchema.js";
+import { apiErrorSchema } from "./apiErrorSchema.js";
+import { clockPunchApproveBodySchema } from "./clockPunchApproveBodySchema.js";
 import { clockPunchPublicSchema } from "./clockPunchPublicSchema.js";
 import { validationErrorResponseSchema } from "./validationErrorResponseSchema.js";
 
@@ -12,11 +13,17 @@ export const hrApproveClockPunchPathPunchIdSchema = z.uuid();
 
 export const hrApproveClockPunchStatus200Schema = clockPunchPublicSchema;
 
-export const hrApproveClockPunchStatus403Schema = z.unknown();
+export const hrApproveClockPunchStatus403Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
-export const hrApproveClockPunchStatus404Schema = z.unknown();
+export const hrApproveClockPunchStatus404Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
-export const hrApproveClockPunchStatus409Schema = z.unknown();
+export const hrApproveClockPunchStatus409Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
 export const hrApproveClockPunchStatus422Schema =
   validationErrorResponseSchema.describe(
@@ -33,9 +40,11 @@ export const hrApproveClockPunchErrorSchema = z.union([
   hrApproveClockPunchStatus422Schema,
 ]);
 
-export const hrApproveClockPunchBodySchema = z
-  .union([clockPunchApproveSchema, z.null()])
-  .optional();
+export const hrApproveClockPunchBodySchema = clockPunchApproveBodySchema
+  .optional()
+  .describe(
+    "Optional approval note. An absent body and null are both accepted."
+  );
 
 export const hrApproveClockPunchPathSchema = z.object({
   punch_id: z.uuid(),

@@ -4,6 +4,7 @@
  */
 
 import * as z from "zod";
+import { apiErrorSchema } from "./apiErrorSchema.js";
 import { userRoleAssignmentsPublicSchema } from "./userRoleAssignmentsPublicSchema.js";
 import { validationErrorResponseSchema } from "./validationErrorResponseSchema.js";
 
@@ -14,9 +15,13 @@ export const authGetRoleAssignmentsQueryUserIdSchema = z
 export const authGetRoleAssignmentsStatus200Schema =
   userRoleAssignmentsPublicSchema;
 
-export const authGetRoleAssignmentsStatus401Schema = z.unknown();
+export const authGetRoleAssignmentsStatus401Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
-export const authGetRoleAssignmentsStatus403Schema = z.unknown();
+export const authGetRoleAssignmentsStatus403Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
 export const authGetRoleAssignmentsStatus422Schema =
   validationErrorResponseSchema.describe(

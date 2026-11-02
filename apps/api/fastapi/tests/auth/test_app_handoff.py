@@ -27,6 +27,7 @@ async def seeded(monkeypatch, db_async):
     monkeypatch.setattr(auth_settings, "EVENTS_SSO_CLIENT_SECRET", CLIENT_SECRET)
     monkeypatch.setattr(auth_settings, "GAA_ADMIN_SSO_CLIENT_SECRET", CLIENT_SECRET)
     monkeypatch.setattr(auth_settings, "BARRELS_ADMIN_SSO_CLIENT_SECRET", CLIENT_SECRET)
+    monkeypatch.setattr(auth_settings, "CAP_SSO_CLIENT_SECRET", CLIENT_SECRET)
     monkeypatch.setattr(app_service, "new_code", lambda: "123456")
     monkeypatch.setattr(app_service, "send_email", lambda **_: None)
 
@@ -371,3 +372,59 @@ async def _list_apps(async_client, secret) -> dict:
     )
     assert response.status_code == 200, response.text
     return {row["key"]: row for row in response.json()}
+
+
+CAP_DESK = "/api/v1/auth/apps/cap"
+
+
+@pytest.mark.asyncio
+async def test_cap_desk_signs_in_approved_staff_with_staff_tokens(
+    async_client, db_async, seeded
+):
+    """The CAP desk is a staff app: no join step, ordinary staff tokens (no app claim)."""
+    _ = seeded
+    secret = await _account_session(db_async, email="forecaster@example.com")
+    state = _state()
+    started = await _start(async_client, secret, state, base=CAP_DESK)
+    assert started.status_code == 200, started.text
+    redeemed = await _redeem(async_client, started.json()["code"], state, base=CAP_DESK)
+    assert redeemed.status_code == 200, redeemed.text
+    body = redeemed.json()
+    assert body["session"]["app_name"] == "cap"
+    claims = jwt.decode(
+        body["access_token"], auth_settings.SECRET_KEY, algorithms=[ALGORITHM]
+    )
+    assert "app" not in claims
+    assert apps.get_app("cap").callback_url.endswith("/auth/callback")
+
+
+@pytest.mark.asyncio
+async def test_cap_desk_refuses_unapproved_accounts(async_client, db_async, seeded):
+    _ = seeded
+    secret = await _account_session(db_async, email="applicant2@example.com")
+    user = await service.get_user_by_email(
+        session=db_async, email="applicant2@example.com"
+    )
+    assert user is not None
+    user.registration_pending = True
+    db_async.add(user)
+    await db_async.commit()
+    response = await _start(async_client, secret, _state(), join=True, base=CAP_DESK)
+    assert response.status_code == 403
+
+
+@pytest.mark.asyncio
+async def test_cap_desk_redeem_needs_its_own_secret(async_client, db_async, seeded):
+    _ = seeded
+    secret = await _account_session(db_async, email="forecaster2@example.com")
+    state = _state()
+    started = await _start(async_client, secret, state, base=CAP_DESK)
+    assert started.status_code == 200, started.text
+    wrong = await _redeem(
+        async_client,
+        started.json()["code"],
+        state,
+        base=CAP_DESK,
+        secret="not-the-cap-desk-secret",
+    )
+    assert wrong.status_code in {401, 403}, wrong.text

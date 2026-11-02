@@ -4,6 +4,7 @@
  */
 
 import * as z from "zod";
+import { apiErrorSchema } from "./apiErrorSchema.js";
 import { shiftSwapRuleCheckPublicSchema } from "./shiftSwapRuleCheckPublicSchema.js";
 import { validationErrorResponseSchema } from "./validationErrorResponseSchema.js";
 
@@ -14,9 +15,13 @@ export const hrCheckShiftSwapRulesStatus200Schema =
     "Warn-only rule breaches the exchange would introduce, never blocking it."
   );
 
-export const hrCheckShiftSwapRulesStatus403Schema = z.unknown();
+export const hrCheckShiftSwapRulesStatus403Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
-export const hrCheckShiftSwapRulesStatus404Schema = z.unknown();
+export const hrCheckShiftSwapRulesStatus404Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
 export const hrCheckShiftSwapRulesStatus422Schema =
   validationErrorResponseSchema.describe(

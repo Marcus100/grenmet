@@ -4,6 +4,7 @@
  */
 
 import * as z from "zod";
+import { apiErrorSchema } from "./apiErrorSchema.js";
 import { superuserActionReasonSchema } from "./superuserActionReasonSchema.js";
 import { validationErrorResponseSchema } from "./validationErrorResponseSchema.js";
 import { verificationResendSchema } from "./verificationResendSchema.js";
@@ -13,11 +14,14 @@ export const authAdminResendVerificationPathUserIdSchema = z.uuid();
 export const authAdminResendVerificationStatus200Schema =
   verificationResendSchema;
 
-export const authAdminResendVerificationStatus403Schema = z.unknown();
+export const authAdminResendVerificationStatus403Schema =
+  apiErrorSchema.describe("Stable error envelope for documented API failures.");
 
-export const authAdminResendVerificationStatus404Schema = z.unknown();
+export const authAdminResendVerificationStatus404Schema =
+  apiErrorSchema.describe("Stable error envelope for documented API failures.");
 
-export const authAdminResendVerificationStatus409Schema = z.unknown();
+export const authAdminResendVerificationStatus409Schema =
+  apiErrorSchema.describe("Stable error envelope for documented API failures.");
 
 export const authAdminResendVerificationStatus422Schema =
   validationErrorResponseSchema.describe(

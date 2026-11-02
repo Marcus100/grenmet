@@ -4,7 +4,8 @@ import { listMyOrganisations } from "@/lib/api";
 import { getSession } from "@/lib/session";
 
 export const metadata: Metadata = {
-  title: "GMS Dashboard",
+  // Absolute: the layout's "%s | GMS Dashboard" template would repeat the name.
+  title: { absolute: "GMS Dashboard" },
   description:
     "Raw numerical weather model guidance for Grenada, Carriacou and Petite Martinique, from the Grenada Meteorological Service.",
 };

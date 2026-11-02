@@ -4,6 +4,7 @@
  */
 
 import * as z from "zod";
+import { apiErrorSchema } from "./apiErrorSchema.js";
 import { bookingExceptionPublicSchema } from "./bookingExceptionPublicSchema.js";
 import { validationErrorResponseSchema } from "./validationErrorResponseSchema.js";
 
@@ -28,13 +29,21 @@ export const bookingsListExceptionsStatus200Schema = z.array(
   bookingExceptionPublicSchema
 );
 
-export const bookingsListExceptionsStatus400Schema = z.unknown();
+export const bookingsListExceptionsStatus400Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
-export const bookingsListExceptionsStatus401Schema = z.unknown();
+export const bookingsListExceptionsStatus401Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
-export const bookingsListExceptionsStatus403Schema = z.unknown();
+export const bookingsListExceptionsStatus403Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
-export const bookingsListExceptionsStatus404Schema = z.unknown();
+export const bookingsListExceptionsStatus404Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
 export const bookingsListExceptionsStatus422Schema =
   validationErrorResponseSchema.describe(

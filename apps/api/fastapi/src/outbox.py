@@ -42,6 +42,13 @@ from src.utils.datetime import utc_now
 logger = logging.getLogger(__name__)
 
 MAX_ATTEMPTS = 5
+
+
+class TerminalFailure(Exception):
+    """A handler failure that no retry can fix. The row is dead-lettered at once
+    (the dead-letter signal fires) instead of after ``MAX_ATTEMPTS``."""
+
+
 BATCH_SIZE = 50
 _RETRY_BASE_SECONDS = 60
 _RETRY_MAX_SECONDS = 3600
@@ -59,6 +66,14 @@ class Outbox(Base):
         sa.UniqueConstraint("topic", "dedupe_key", name="outbox_topic_dedupe_key_key"),
         sa.CheckConstraint("status IN ('pending', 'done', 'dead')", name="status"),
         sa.Index("outbox_due_idx", "status", "next_attempt_at"),
+        # Pending rows by the order they are about (``pending_for_order``), e.g.
+        # the Events check for a refund already waiting on an order.
+        sa.Index(
+            "outbox_pending_order_idx",
+            "topic",
+            sa.text("(payload ->> 'order_id')"),
+            postgresql_where=sa.text("status = 'pending'"),
+        ),
         {"schema": "platform"},
     )
 
@@ -158,6 +173,19 @@ async def enqueue(
     return bool(getattr(result, "rowcount", 0))
 
 
+def pending_for_order(topic: str, order_id: str) -> sa.ColumnElement[bool]:
+    """Pending rows of ``topic`` whose payload names ``order_id``.
+
+    The status and the payload key are written as SQL constants, not bound
+    parameters, so the planner matches ``outbox_pending_order_idx`` (its
+    expression and partial predicate) even under a generic prepared plan."""
+    return sa.and_(
+        Outbox.topic == topic,
+        Outbox.status == sa.literal_column(f"'{OutboxStatus.PENDING.value}'"),
+        Outbox.payload.op("->>")(sa.literal_column("'order_id'")) == order_id,
+    )
+
+
 async def drain(
     session: AsyncSession,
     *,
@@ -255,7 +283,7 @@ async def _record_failure(
     # The exception type only: messages can quote the payload's personal data.
     row.last_error = type(error).__name__
     row.updated_at = moment
-    dead = row.attempts >= MAX_ATTEMPTS
+    dead = row.attempts >= MAX_ATTEMPTS or isinstance(error, TerminalFailure)
     if dead:
         row.status = OutboxStatus.DEAD.value
         await _run_dead_handler(session, message, error)

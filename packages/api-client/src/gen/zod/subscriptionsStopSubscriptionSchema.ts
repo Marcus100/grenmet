@@ -10,7 +10,7 @@ export const subscriptionsStopSubscriptionQueryTokenSchema = z.string();
 
 export const subscriptionsStopSubscriptionStatus200Schema = z.string();
 
-export const subscriptionsStopSubscriptionStatus400Schema = z.unknown();
+export const subscriptionsStopSubscriptionStatus400Schema = z.string();
 
 export const subscriptionsStopSubscriptionStatus422Schema =
   validationErrorResponseSchema.describe(

@@ -4,8 +4,11 @@
  */
 
 import * as z from "zod";
+import { apiErrorSchema } from "./apiErrorSchema.js";
+import { eregisterValidationErrorSchema } from "./eregisterValidationErrorSchema.js";
 import { registerObservationCorrectionSchema } from "./registerObservationCorrectionSchema.js";
 import { registerObservationReadSchema } from "./registerObservationReadSchema.js";
+import { validationErrorResponseSchema } from "./validationErrorResponseSchema.js";
 
 export const eregisterCorrectRegisterObservationPathObservationIdSchema =
   z.uuid();
@@ -13,15 +16,22 @@ export const eregisterCorrectRegisterObservationPathObservationIdSchema =
 export const eregisterCorrectRegisterObservationStatus201Schema =
   registerObservationReadSchema;
 
-export const eregisterCorrectRegisterObservationStatus401Schema = z.unknown();
+export const eregisterCorrectRegisterObservationStatus401Schema =
+  apiErrorSchema.describe("Stable error envelope for documented API failures.");
 
-export const eregisterCorrectRegisterObservationStatus403Schema = z.unknown();
+export const eregisterCorrectRegisterObservationStatus403Schema =
+  apiErrorSchema.describe("Stable error envelope for documented API failures.");
 
-export const eregisterCorrectRegisterObservationStatus404Schema = z.unknown();
+export const eregisterCorrectRegisterObservationStatus404Schema =
+  apiErrorSchema.describe("Stable error envelope for documented API failures.");
 
-export const eregisterCorrectRegisterObservationStatus409Schema = z.unknown();
+export const eregisterCorrectRegisterObservationStatus409Schema =
+  apiErrorSchema.describe("Stable error envelope for documented API failures.");
 
-export const eregisterCorrectRegisterObservationStatus422Schema = z.unknown();
+export const eregisterCorrectRegisterObservationStatus422Schema = z.union([
+  eregisterValidationErrorSchema,
+  validationErrorResponseSchema,
+]);
 
 export const eregisterCorrectRegisterObservationResponseSchema =
   eregisterCorrectRegisterObservationStatus201Schema;

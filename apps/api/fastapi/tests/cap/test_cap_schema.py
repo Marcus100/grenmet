@@ -1,7 +1,7 @@
 """Published CAP XML must validate against the official OASIS CAP 1.2 schema.
 
-``schemas/CAP-v1.2.xsd`` is the unmodified OASIS file (docs.oasis-open.org,
-emergency/cap/v1.2). The test catches format drift the other XML tests cannot,
+``src/cap/standards/CAP-v1.2.xsd`` is the unmodified OASIS file (docs.oasis-open.org,
+emergency/cap/v1.2; see its README). The test catches format drift the other XML tests cannot,
 such as the ``Z`` designator and fractional seconds the standard forbids.
 """
 
@@ -19,7 +19,9 @@ from src.cap.xml import _format_cap_datetime, alert_to_cap_xml
 
 from .test_validation_xml_geo import _alert
 
-SCHEMA_PATH = Path(__file__).parent / "schemas" / "CAP-v1.2.xsd"
+SCHEMA_PATH = (
+    Path(__file__).resolve().parents[2] / "src" / "cap" / "standards" / "CAP-v1.2.xsd"
+)
 CAP_DATETIME = re.compile(r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}[-+]\d{2}:\d{2}$")
 
 

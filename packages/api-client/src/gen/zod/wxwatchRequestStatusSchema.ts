@@ -4,6 +4,7 @@
  */
 
 import * as z from "zod";
+import { apiErrorSchema } from "./apiErrorSchema.js";
 import { nhcJobSchema } from "./nhcJobSchema.js";
 import { validationErrorResponseSchema } from "./validationErrorResponseSchema.js";
 
@@ -11,11 +12,17 @@ export const wxwatchRequestStatusPathJobIdSchema = z.uuid();
 
 export const wxwatchRequestStatusStatus200Schema = nhcJobSchema;
 
-export const wxwatchRequestStatusStatus401Schema = z.unknown();
+export const wxwatchRequestStatusStatus401Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
-export const wxwatchRequestStatusStatus403Schema = z.unknown();
+export const wxwatchRequestStatusStatus403Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
-export const wxwatchRequestStatusStatus404Schema = z.unknown();
+export const wxwatchRequestStatusStatus404Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
 export const wxwatchRequestStatusStatus422Schema =
   validationErrorResponseSchema.describe(

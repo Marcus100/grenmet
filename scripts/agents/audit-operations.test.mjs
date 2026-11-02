@@ -57,8 +57,11 @@ test("eRegister and WIS2 use fixed read-only aggregate SQL and write a private r
   );
 
   for (const [source, expected] of [
-    ["eregister-sends", { staging: 5, production: 5 }],
-    ["wis2-sends", { staging: 5, production: 5 }],
+    [
+      "eregister-sends",
+      { staging: { failures: 5 }, production: { failures: 5 } },
+    ],
+    ["wis2-sends", { staging: { failures: 5 }, production: { failures: 5 } }],
   ]) {
     const output = join(dir, `${source}.json`);
     const result = run(
@@ -131,6 +134,36 @@ test("worker counters refuse the existing partial-coverage metrics report", (t) 
   assert.equal(existsSync(output), false);
 });
 
+test("worker counters accept a complete previous-day report and count failures", (t) => {
+  const { config, dir } = fixture(t, {
+    staging: { telemetryRedisUrl: "redis://fake/staging" },
+    production: { telemetryRedisUrl: "redis://fake/production" },
+  });
+  const bin = join(dir, "bin");
+  mkdirSync(bin);
+  const argsLog = join(dir, "args.log");
+  makeExecutable(
+    join(bin, "uv"),
+    `#!/bin/sh\nprintf '%s\\n' "$*" >> '${argsLog}'\nprintf '%s\\n' '{"environment":"'"$TELEMETRY_ENVIRONMENT"'","days":1,"windowKind":"previous-UTC-day","completeness":"complete","jobs":{"process_cap_jobs|completed":1,"process_cap_jobs|failed":2,"ingest_cap_feeds|completed":1,"send_notification_emails|completed":1,"send_notification_emails|failed":3,"run_notification_sweeps|completed":1}}'\n`
+  );
+  for (const [source, failures] of [
+    ["worker-jobs", 5],
+    ["notification-sweeps", 0],
+  ]) {
+    const output = join(dir, `${source}.json`);
+    const result = run(
+      ["--source", source, "--config", config, "--output", output],
+      { PATH: `${bin}:${process.env.PATH}` }
+    );
+    assert.equal(result.status, 0, result.stderr);
+    assert.deepEqual(JSON.parse(readFileSync(output, "utf8")).environments, {
+      staging: { failures },
+      production: { failures },
+    });
+  }
+  assert.ok(readFileSync(argsLog, "utf8").includes("--complete-day"));
+});
+
 test("secret expiry receipt contains counts only and requires protected config", (t) => {
   const { config, dir } = fixture(t, {
     staging: {
@@ -152,7 +185,10 @@ test("secret expiry receipt contains counts only and requires protected config",
   ]);
   assert.equal(result.status, 0, result.stderr);
   const receipt = JSON.parse(readFileSync(output, "utf8"));
-  assert.deepEqual(receipt.environments, { staging: 1, production: 1 });
+  assert.deepEqual(receipt.environments, {
+    staging: { failures: 1 },
+    production: { failures: 1 },
+  });
   assert.equal(
     privateMetadataPattern.test(readFileSync(output, "utf8")),
     false
@@ -233,7 +269,7 @@ print(json.dumps({"status": status, "calls": calls}))
   const receiptText = readFileSync(join(dir, "backups.json"), "utf8");
   assert.equal(receiptText.includes("must-not-be-published"), false);
   assert.deepEqual(JSON.parse(receiptText).environments, {
-    staging: 0,
-    production: 0,
+    staging: { failures: 0 },
+    production: { failures: 0 },
   });
 });

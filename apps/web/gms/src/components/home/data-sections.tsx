@@ -1,18 +1,23 @@
 import { SECTORS, type SectorKey } from "@barrelsgd/gms/sectors";
 import {
   CarIcon,
+  DropletIcon,
   HeartPulseIcon,
+  type LucideIcon,
   PalmtreeIcon,
   PlaneIcon,
   ShipIcon,
   SproutIcon,
+  SunIcon,
+  ThermometerIcon,
+  WindIcon,
 } from "lucide-react";
 import type { Route } from "next";
 import Link from "next/link";
 import { HOME_CARD, HomeSection } from "@/components/home/home-section";
 import { StatFigure } from "@/components/home/stat-figure";
 import { fetchHomeContent, isSectionHidden, sectionWords } from "@/lib/cms";
-import { monthStats } from "@/lib/month-summary";
+import { dataMonth, type MonthGroupKey, monthStats } from "@/lib/month-summary";
 import { fetchMonthSummary, fetchSectorOutlook } from "@/lib/products";
 import {
   buildSectorTiles,
@@ -251,44 +256,74 @@ function SectorItems({ tile }: { tile: SectorTile }) {
   );
 }
 
+const GROUP_ICONS: Record<MonthGroupKey, LucideIcon> = {
+  rain: DropletIcon,
+  temperature: ThermometerIcon,
+  wind: WindIcon,
+  dry: SunIcon,
+};
+
 export async function GrenadaInData() {
   if (await isSectionHidden("grenada-in-data")) return null;
+  const shown = dataMonth();
   const [{ settings }, summary] = await Promise.all([
     fetchHomeContent(),
-    fetchMonthSummary(),
+    fetchMonthSummary(shown.month),
   ]);
   const words = sectionWords(settings, "grenada-in-data", {
-    kicker: "This month so far",
+    kicker: shown.label,
     title: "Grenada in data",
   });
-  const month = summary ? monthStats(summary) : null;
+  const month = summary ? monthStats(summary, shown.previous) : null;
   return (
     <HomeSection {...words} link={{ href: "/climate", label: "Climate" }}>
       {month ? (
         <ul className="grid grid-cols-2 gap-2 sm:gap-3 lg:grid-cols-4">
-          {month.stats.map((stat) => (
-            <li
-              className={cn(HOME_CARD, "flex flex-col gap-1 p-3 sm:p-4 lg:p-5")}
-              key={stat.label}
-            >
-              <span className="text-gm-text-secondary text-label leading-label font-bold tracking-wider uppercase">
-                {stat.label}
-              </span>
-              <span className="font-gm-display text-gm-heading text-heading-md leading-heading-md lg:text-gm-numeral font-bold tabular-nums">
-                <StatFigure stat={stat} />
-              </span>
-              <span className="text-caption text-gm-text-secondary leading-caption lg:text-body-sm lg:leading-body-sm">
-                {stat.value === null ? "Not reported yet" : stat.detail}
-              </span>
-            </li>
-          ))}
+          {month.groups.map((group) => {
+            const Icon = GROUP_ICONS[group.key];
+            return (
+              <li
+                className={cn(
+                  HOME_CARD,
+                  "flex flex-col gap-3 p-3 sm:p-4 lg:p-5"
+                )}
+                key={group.key}
+              >
+                <h3 className="text-body text-gm-heading leading-body flex items-center gap-2 font-bold">
+                  <span
+                    aria-hidden="true"
+                    className="bg-gm-navy text-gm-lime flex size-8 shrink-0 items-center justify-center rounded-lg"
+                  >
+                    <Icon className="size-4" />
+                  </span>
+                  {group.name}
+                </h3>
+                <dl className="grid gap-3 sm:grid-cols-2 lg:grid-cols-1">
+                  {group.stats.map((stat) => (
+                    <div className="flex flex-col gap-0.5" key={stat.label}>
+                      <dt className="text-gm-text-secondary text-label leading-label font-bold tracking-wider uppercase">
+                        {stat.label}
+                      </dt>
+                      <dd className="font-gm-display text-gm-heading text-heading-md leading-heading-md font-bold tabular-nums">
+                        <StatFigure stat={stat} />
+                      </dd>
+                      <dd className="text-caption text-gm-text-secondary leading-caption lg:text-body-sm lg:leading-body-sm">
+                        {stat.value === null ? "Not reported yet" : stat.detail}
+                      </dd>
+                    </div>
+                  ))}
+                </dl>
+              </li>
+            );
+          })}
         </ul>
       ) : (
         <p
           className={cn(HOME_CARD, "text-body-sm text-gm-text-secondary p-4")}
           role="status"
         >
-          Month-to-date figures are not available right now.
+          Figures for {shown.label.replace(" at MBIA", "")} are not available
+          right now.
         </p>
       )}
     </HomeSection>

@@ -20,8 +20,10 @@ from tests.organisations.support import headers_for, make_org
 from tests.payments.conftest import (
     StripeStub,
     checkout_completed,
+    provider_refund,
     signed,
 )
+from tests.payments.conftest import charge_refunded as charge_refunded_event
 
 API = "/api/v1/payments"
 pytestmark = pytest.mark.asyncio
@@ -593,22 +595,13 @@ async def test_app_refund_through_stripe_is_not_double_recorded_by_the_webhook(
     assert sent["payment_intent"] == "pi_test_1"
     assert sent["amount"] == "2000"
 
-    def charge_refunded(event_id: str, total: int) -> dict:
-        return {
-            "id": event_id,
-            "type": "charge.refunded",
-            "data": {
-                "object": {
-                    "payment_intent": "pi_test_1",
-                    "amount": 5000,
-                    "currency": "xcd",
-                    "amount_refunded": total,
-                }
-            },
-        }
+    def charge_refunded(event_id: str, total: int, listed: list[dict]) -> dict:
+        return charge_refunded_event(event_id, amount_refunded=total, refunds=listed)
 
     # Stripe tells us about the refund we made: nothing new to record.
-    body, headers = signed(charge_refunded("evt_ref_1", 2000))
+    body, headers = signed(
+        charge_refunded("evt_ref_1", 2000, [provider_refund("re_test_1", 2000)])
+    )
     assert (
         await async_client.post(
             f"{API}/public/webhooks/stripe", content=body, headers=headers
@@ -617,7 +610,11 @@ async def test_app_refund_through_stripe_is_not_double_recorded_by_the_webhook(
     assert await _ledger_count(db_async) == 2
 
     # A further 1000 refunded from Stripe's dashboard is recorded once.
-    body, headers = signed(charge_refunded("evt_ref_2", 3000))
+    listed = [
+        provider_refund("re_test_1", 2000),
+        provider_refund("re_dashboard", 1000),
+    ]
+    body, headers = signed(charge_refunded("evt_ref_2", 3000, listed))
     for _ in range(2):
         assert (
             await async_client.post(

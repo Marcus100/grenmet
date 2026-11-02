@@ -4,6 +4,7 @@
  */
 
 import * as z from "zod";
+import { apiErrorSchema } from "./apiErrorSchema.js";
 import { validationErrorResponseSchema } from "./validationErrorResponseSchema.js";
 import { workflowInstanceDetailsSchema } from "./workflowInstanceDetailsSchema.js";
 
@@ -11,9 +12,13 @@ export const hrGetInstancePathInstanceIdSchema = z.uuid();
 
 export const hrGetInstanceStatus200Schema = workflowInstanceDetailsSchema;
 
-export const hrGetInstanceStatus403Schema = z.unknown();
+export const hrGetInstanceStatus403Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
-export const hrGetInstanceStatus404Schema = z.unknown();
+export const hrGetInstanceStatus404Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
 export const hrGetInstanceStatus422Schema =
   validationErrorResponseSchema.describe(

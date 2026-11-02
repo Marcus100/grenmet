@@ -3,6 +3,7 @@
  * Do not edit manually.
  */
 
+import type { ApiError } from "./ApiError.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 
 export type BookingsGetPublicBookingIcsPath = {
@@ -17,7 +18,11 @@ export type BookingsGetPublicBookingIcsPath = {
 
 export type BookingsGetPublicBookingIcsStatus200 = string;
 
-export type BookingsGetPublicBookingIcsStatus404 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type BookingsGetPublicBookingIcsStatus404 = ApiError;
 
 /**
  * @description Validation error envelope returned for malformed requests.

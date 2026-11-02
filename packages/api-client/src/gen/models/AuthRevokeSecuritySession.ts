@@ -3,6 +3,7 @@
  * Do not edit manually.
  */
 
+import type { ApiError } from "./ApiError.js";
 import type { Message } from "./Message.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 
@@ -17,7 +18,11 @@ export type AuthRevokeSecuritySessionPath = {
 
 export type AuthRevokeSecuritySessionStatus200 = Message;
 
-export type AuthRevokeSecuritySessionStatus404 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type AuthRevokeSecuritySessionStatus404 = ApiError;
 
 /**
  * @description Validation error envelope returned for malformed requests.

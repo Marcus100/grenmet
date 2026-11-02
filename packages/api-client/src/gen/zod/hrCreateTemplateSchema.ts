@@ -4,6 +4,7 @@
  */
 
 import * as z from "zod";
+import { apiErrorSchema } from "./apiErrorSchema.js";
 import { validationErrorResponseSchema } from "./validationErrorResponseSchema.js";
 import { workflowTemplateCreateSchema } from "./workflowTemplateCreateSchema.js";
 import { workflowTemplatePublicSchema } from "./workflowTemplatePublicSchema.js";
@@ -12,7 +13,9 @@ export const hrCreateTemplateStatus200Schema = z.unknown();
 
 export const hrCreateTemplateStatus201Schema = workflowTemplatePublicSchema;
 
-export const hrCreateTemplateStatus403Schema = z.unknown();
+export const hrCreateTemplateStatus403Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
 export const hrCreateTemplateStatus422Schema =
   validationErrorResponseSchema.describe(

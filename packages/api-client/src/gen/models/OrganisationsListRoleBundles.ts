@@ -3,6 +3,7 @@
  * Do not edit manually.
  */
 
+import type { ApiError } from "./ApiError.js";
 import type { RoleBundlePublic } from "./RoleBundlePublic.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 
@@ -15,11 +16,23 @@ export type OrganisationsListRoleBundlesHeaders = {
 
 export type OrganisationsListRoleBundlesStatus200 = RoleBundlePublic[];
 
-export type OrganisationsListRoleBundlesStatus401 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type OrganisationsListRoleBundlesStatus401 = ApiError;
 
-export type OrganisationsListRoleBundlesStatus403 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type OrganisationsListRoleBundlesStatus403 = ApiError;
 
-export type OrganisationsListRoleBundlesStatus404 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type OrganisationsListRoleBundlesStatus404 = ApiError;
 
 /**
  * @description Validation error envelope returned for malformed requests.

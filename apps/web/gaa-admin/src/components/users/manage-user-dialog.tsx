@@ -4,7 +4,6 @@ import {
   authGetOnboardingStatusQueryKey,
   authGetRoleAssignmentsQueryKey,
   authGetUsersQueryKey,
-  type EmploymentStatus,
   type RoleAssignmentScope,
   type RolePublic,
   type UserPublic,
@@ -12,10 +11,8 @@ import {
   useAuthDeleteRoleAssignment,
   useAuthGetRoleAssignments,
   useAuthUpdateUser,
-  useHrCreateHrEmployment,
   useHrGetHrEmployment,
   useHrListDepartments,
-  useHrUpdateHrEmployment,
 } from "@barrelsgd/api-client";
 import { useSessionUser } from "@barrelsgd/auth";
 import { Badge } from "@barrelsgd/ui/components/ui/badge";
@@ -29,18 +26,18 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@barrelsgd/ui/components/ui/dialog";
-import { Field, FieldLabel } from "@barrelsgd/ui/components/ui/field";
 import { Input } from "@barrelsgd/ui/components/ui/input";
 import { NativeSelect } from "@barrelsgd/ui/components/ui/native-select";
 import { Separator } from "@barrelsgd/ui/components/ui/separator";
 import { useQueryClient } from "@tanstack/react-query";
 import { ShieldMinus, UserRoundCog, X } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { toast } from "sonner";
-import { invalidateAfterEmploymentChange } from "@/lib/hr-invalidation";
 
 import { AccountActivation } from "./account-activation";
 import { CmsAccessControl } from "./cms-access-control";
+import { EmploymentSection } from "./employment-section";
+import { SignInSetup } from "./sign-in-setup";
 
 interface ManageUserDialogProps {
   onOpenChange?: (open: boolean) => void;
@@ -101,50 +98,6 @@ export function ManageUserDialog({
       query: { enabled: open, retry: false },
     }
   );
-  const currentEmployment = employmentQuery.data;
-  const createEmploymentMutation = useHrCreateHrEmployment();
-  const updateEmploymentMutation = useHrUpdateHrEmployment();
-
-  const [emp, setEmp] = useState({
-    department_id: "",
-    employee_number: "",
-    position: "",
-    status: "ACTIVE" as EmploymentStatus,
-  });
-  const [empSeeded, setEmpSeeded] = useState(false);
-  const employmentBusy =
-    createEmploymentMutation.isPending || updateEmploymentMutation.isPending;
-
-  // Seed the employment form once per open, after the read + departments settle.
-  // A 404 leaves currentEmployment undefined → blank fields, "assign" (create) mode.
-  useEffect(() => {
-    if (!open) {
-      setEmpSeeded(false);
-      return;
-    }
-    if (
-      empSeeded ||
-      employmentQuery.isFetching ||
-      departmentsQuery.isFetching
-    ) {
-      return;
-    }
-    setEmp({
-      department_id:
-        currentEmployment?.department_id ?? departments[0]?.id ?? "",
-      employee_number: currentEmployment?.employee_number ?? "",
-      position: currentEmployment?.position ?? "",
-      status: currentEmployment?.status ?? "ACTIVE",
-    });
-    setEmpSeeded(true);
-  }, [
-    open,
-    empSeeded,
-    employmentQuery.isFetching,
-    departmentsQuery.isFetching,
-    currentEmployment,
-    departments,
-  ]);
 
   async function refresh() {
     await queryClient.invalidateQueries({
@@ -164,7 +117,7 @@ export function ManageUserDialog({
         body: {
           user_id: user.id,
           role_id: role.id,
-          organisation_id: currentEmployment?.organisation_id,
+          organisation_id: employmentQuery.data?.organisation_id,
           scope: isSuperuser ? roleScope : "SELF",
           department_id:
             isSuperuser && roleScope === "DEPARTMENT" ? roleDepartment : null,
@@ -205,47 +158,6 @@ export function ManageUserDialog({
     );
   }
 
-  async function saveEmployment() {
-    if (!emp.department_id) {
-      toast.error("Select a department first");
-      return;
-    }
-    const previousDepartmentId = currentEmployment?.department_id;
-    if (currentEmployment) {
-      await updateEmploymentMutation.mutateAsync({
-        path: { user_id: user.id },
-        body: {
-          employment: {
-            department_id: emp.department_id,
-            employee_number: emp.employee_number.trim() || null,
-            position: emp.position.trim() || null,
-            status: emp.status,
-          },
-        },
-      });
-    } else {
-      if (!emp.employee_number.trim()) {
-        toast.error("Employee number is required to assign a department");
-        return;
-      }
-      await createEmploymentMutation.mutateAsync({
-        path: { user_id: user.id },
-        body: {
-          employee_number: emp.employee_number.trim(),
-          department_id: emp.department_id,
-          position: emp.position.trim() || null,
-        },
-      });
-    }
-    // Refresh this user's employment, the users table, and the roster member
-    // lists for both the old and new department (moving a person shows in both).
-    await invalidateAfterEmploymentChange(queryClient, {
-      userId: user.id,
-      departmentIds: [previousDepartmentId, emp.department_id],
-    });
-    toast.success(`Updated employment for ${user.username}`);
-  }
-
   return (
     <Dialog onOpenChange={setOpen} open={open}>
       {isControlled ? null : (
@@ -256,7 +168,7 @@ export function ManageUserDialog({
           Manage
         </DialogTrigger>
       )}
-      <DialogContent className="max-h-[85dvh] max-w-md overflow-y-auto">
+      <DialogContent className="max-h-[90dvh] max-w-[calc(100vw-1rem)] overflow-y-auto sm:max-w-4xl">
         <DialogHeader>
           <DialogTitle>
             {user.first_name} {user.last_name}
@@ -266,223 +178,175 @@ export function ManageUserDialog({
           </DialogDescription>
         </DialogHeader>
 
-        <AccountActivation open={open} user={user} />
-        <CmsAccessControl open={open} user={user} />
-        <div className="flex flex-col gap-3">
-          <span className="text-sm font-medium">Roles</span>
-          {!isSuperuser && (
-            <p className="text-muted-foreground text-sm">
-              You may grant ordinary staff self-service within your active
-              department. Managers, supervisors and special duties are appointed
-              by a system administrator. Delegated access ends when your
-              authority ends.
-            </p>
-          )}
-          {assignments.length === 0 && !assignmentsQuery.isLoading ? (
-            <span className="text-muted-foreground text-sm">
-              No roles assigned.
-            </span>
-          ) : null}
-          <div className="flex flex-wrap gap-2">
-            {assignments.map((assignment) => {
-              const role = rolesById.get(assignment.role_id);
-              return (
-                <Badge key={assignment.id} variant="secondary">
-                  {role?.name ?? assignment.role_id} · {assignment.scope}
-                  {assignment.is_effective === false ? " · inactive" : ""}
-                  {assignment.authority_assignment_id ? " · delegated" : ""}
-                  {assignment.department_id
-                    ? ` / ${assignment.department_id}`
-                    : ""}
-                  {assignment.effective_to
-                    ? ` · ends ${assignment.effective_to}`
-                    : ""}
-                  <button
-                    aria-label={`Revoke ${role?.name ?? "role"}`}
-                    className="hover:text-destructive ml-1 rounded-sm"
-                    disabled={revokeMutation.isPending}
-                    onClick={() => revoke(assignment.id, role?.name ?? "role")}
-                    type="button"
-                  >
-                    <X className="size-3" />
-                  </button>
-                </Badge>
-              );
-            })}
+        {/* One column on phones; md and up, two columns in reading order
+            (account | CMS, then roles | employment), so tab order matches. */}
+        <div
+          className="grid gap-6 md:grid-cols-2 md:gap-x-8"
+          data-slot="manage-user-sections"
+        >
+          <div className="min-w-0">
+            <AccountActivation open={open} user={user} />
+            <SignInSetup open={open} user={user} />
           </div>
-          {isSuperuser && (
-            <label className="space-y-1 text-sm" htmlFor="assignment-scope">
-              Assignment scope
-              <NativeSelect
-                aria-label="Assignment scope"
-                id="assignment-scope"
-                onChange={(event) => {
-                  const value = event.target.value;
-                  if (
-                    value === "SELF" ||
-                    value === "DEPARTMENT" ||
-                    value === "ALL"
-                  )
-                    setRoleScope(value);
-                }}
-                value={roleScope}
-              >
-                <option value="SELF">Self</option>
-                <option value="DEPARTMENT">Department</option>
-                <option value="ALL">All departments</option>
-              </NativeSelect>
-            </label>
-          )}
-          {isSuperuser && roleScope === "DEPARTMENT" && (
-            <NativeSelect
-              aria-label="Assignment department"
-              onChange={(event) => setRoleDepartment(event.target.value)}
-              value={roleDepartment}
-            >
-              <option value="">Choose department</option>
-              {departments.map((department) => (
-                <option key={department.id} value={department.id}>
-                  {department.name}
-                </option>
-              ))}
-            </NativeSelect>
-          )}
-          <label className="space-y-1 text-sm" htmlFor="assignment-expiry">
-            Access expires at (UTC, optional)
-            <Input
-              aria-label="Access expiry"
-              id="assignment-expiry"
-              onChange={(event) => setRoleExpiry(event.target.value)}
-              type="datetime-local"
-              value={roleExpiry}
-            />
-          </label>
-          <div className="flex items-center gap-2">
-            <NativeSelect
-              aria-label="Role to assign"
-              className="flex-1"
-              onChange={(e) => setRoleToAdd(e.target.value)}
-              value={roleToAdd}
-            >
-              <option value="">Add a role…</option>
-              {assignableRoles.map((r) => (
-                <option key={r.id} value={r.name}>
-                  {r.name}
-                </option>
-              ))}
-            </NativeSelect>
-            <Button
-              disabled={
-                !roleToAdd ||
-                assignMutation.isPending ||
-                (roleScope === "DEPARTMENT" && !roleDepartment)
-              }
-              onClick={addRole}
-              size="sm"
-              type="button"
-              variant="outline"
-            >
-              Assign
-            </Button>
+          <div className="min-w-0">
+            <CmsAccessControl open={open} user={user} />
           </div>
-
-          <Separator />
-
-          <div className="flex flex-col gap-3">
-            <span className="text-sm font-medium">Department & employment</span>
-            {employmentQuery.isFetching && !empSeeded ? (
-              <span className="text-muted-foreground text-sm">Loading…</span>
-            ) : (
-              <>
-                <Field>
-                  <FieldLabel htmlFor="mu-dept">Department</FieldLabel>
-                  <NativeSelect
-                    id="mu-dept"
-                    onChange={(e) =>
-                      setEmp((s) => ({ ...s, department_id: e.target.value }))
-                    }
-                    value={emp.department_id}
+          <div
+            className="flex min-w-0 flex-col gap-3"
+            data-slot="manage-user-roles"
+          >
+            <span className="text-sm font-medium">Roles</span>
+            {!isSuperuser && (
+              <p className="text-muted-foreground text-sm">
+                You may grant ordinary staff self-service within your active
+                department. Managers, supervisors and special duties are
+                appointed by a system administrator. Delegated access ends when
+                your authority ends.
+              </p>
+            )}
+            {assignments.length === 0 && !assignmentsQuery.isLoading ? (
+              <span className="text-muted-foreground text-sm">
+                No roles assigned.
+              </span>
+            ) : null}
+            <div className="flex flex-wrap gap-2">
+              {assignments.map((assignment) => {
+                const role = rolesById.get(assignment.role_id);
+                return (
+                  <Badge
+                    className="h-auto max-w-full min-w-0 text-left break-words whitespace-normal"
+                    key={assignment.id}
+                    variant="secondary"
                   >
-                    <option value="">Select department…</option>
-                    {departments.map((d) => (
-                      <option key={d.id} value={d.id}>
-                        {d.name}
-                      </option>
-                    ))}
-                  </NativeSelect>
-                </Field>
-                <div className="grid grid-cols-2 gap-3">
-                  <Field>
-                    <FieldLabel htmlFor="mu-empno">Employee #</FieldLabel>
-                    <Input
-                      id="mu-empno"
-                      onChange={(e) =>
-                        setEmp((s) => ({
-                          ...s,
-                          employee_number: e.target.value,
-                        }))
+                    {role?.name ?? assignment.role_id} · {assignment.scope}
+                    {assignment.is_effective === false ? " · inactive" : ""}
+                    {assignment.authority_assignment_id ? " · delegated" : ""}
+                    {assignment.department_id
+                      ? ` / ${assignment.department_id}`
+                      : ""}
+                    {assignment.effective_to
+                      ? ` · ends ${assignment.effective_to}`
+                      : ""}
+                    <button
+                      aria-label={`Revoke ${role?.name ?? "role"}`}
+                      className="hover:text-destructive ml-1 rounded-sm"
+                      disabled={revokeMutation.isPending}
+                      onClick={() =>
+                        revoke(assignment.id, role?.name ?? "role")
                       }
-                      value={emp.employee_number}
-                    />
-                  </Field>
-                  <Field>
-                    <FieldLabel htmlFor="mu-status">Status</FieldLabel>
-                    <NativeSelect
-                      id="mu-status"
-                      onChange={(e) =>
-                        setEmp((s) => ({
-                          ...s,
-                          status: e.target.value as EmploymentStatus,
-                        }))
-                      }
-                      value={emp.status}
+                      type="button"
                     >
-                      <option value="ACTIVE">Active</option>
-                      <option value="INACTIVE">Inactive</option>
-                      <option value="TERMINATED">Terminated</option>
-                    </NativeSelect>
-                  </Field>
-                </div>
-                <Field>
-                  <FieldLabel htmlFor="mu-position">Position</FieldLabel>
-                  <Input
-                    id="mu-position"
-                    onChange={(e) =>
-                      setEmp((s) => ({ ...s, position: e.target.value }))
-                    }
-                    value={emp.position}
-                  />
-                </Field>
-                <Button
-                  disabled={employmentBusy || !emp.department_id}
-                  onClick={saveEmployment}
-                  size="sm"
-                  type="button"
-                  variant="outline"
+                      <X className="size-3" />
+                    </button>
+                  </Badge>
+                );
+              })}
+            </div>
+            {isSuperuser && (
+              <label className="space-y-1 text-sm" htmlFor="assignment-scope">
+                Assignment scope
+                <NativeSelect
+                  aria-label="Assignment scope"
+                  id="assignment-scope"
+                  onChange={(event) => {
+                    const value = event.target.value;
+                    if (
+                      value === "SELF" ||
+                      value === "DEPARTMENT" ||
+                      value === "ALL"
+                    )
+                      setRoleScope(value);
+                  }}
+                  value={roleScope}
                 >
-                  {currentEmployment
-                    ? "Save employment"
-                    : "Assign to department"}
+                  <option value="SELF">Self</option>
+                  <option value="DEPARTMENT">Department</option>
+                  <option value="ALL">All departments</option>
+                </NativeSelect>
+              </label>
+            )}
+            {isSuperuser && roleScope === "DEPARTMENT" && (
+              <NativeSelect
+                aria-label="Assignment department"
+                onChange={(event) => setRoleDepartment(event.target.value)}
+                value={roleDepartment}
+              >
+                <option value="">Choose department</option>
+                {departments.map((department) => (
+                  <option key={department.id} value={department.id}>
+                    {department.name}
+                  </option>
+                ))}
+              </NativeSelect>
+            )}
+            <label className="space-y-1 text-sm" htmlFor="assignment-expiry">
+              Access expires at (UTC, optional)
+              <Input
+                aria-label="Access expiry"
+                id="assignment-expiry"
+                onChange={(event) => setRoleExpiry(event.target.value)}
+                type="datetime-local"
+                value={roleExpiry}
+              />
+            </label>
+            <div className="flex items-center gap-2">
+              <NativeSelect
+                aria-label="Role to assign"
+                className="flex-1"
+                onChange={(e) => setRoleToAdd(e.target.value)}
+                value={roleToAdd}
+              >
+                <option value="">Add a role…</option>
+                {assignableRoles.map((r) => (
+                  <option key={r.id} value={r.name}>
+                    {r.name}
+                  </option>
+                ))}
+              </NativeSelect>
+              <Button
+                disabled={
+                  !roleToAdd ||
+                  assignMutation.isPending ||
+                  (roleScope === "DEPARTMENT" && !roleDepartment)
+                }
+                onClick={addRole}
+                size="sm"
+                type="button"
+                variant="outline"
+              >
+                Assign
+              </Button>
+            </div>
+          </div>
+
+          <div className="min-w-0">
+            <EmploymentSection
+              currentEmployment={employmentQuery.data}
+              departments={departments}
+              isFetching={
+                employmentQuery.isFetching || departmentsQuery.isFetching
+              }
+              open={open}
+              user={user}
+            />
+          </div>
+
+          <div className="md:col-span-2">
+            <Separator />
+            {isSuperuser && (
+              <DialogFooter>
+                <Button
+                  disabled={updateUserMutation.isPending}
+                  onClick={toggleActive}
+                  type="button"
+                  variant={user.is_active ? "destructive" : "default"}
+                >
+                  <ShieldMinus data-icon="inline-start" />
+                  {user.is_active ? "Deactivate account" : "Reactivate account"}
                 </Button>
-              </>
+              </DialogFooter>
             )}
           </div>
-
-          <Separator />
-
-          {isSuperuser && (
-            <DialogFooter>
-              <Button
-                disabled={updateUserMutation.isPending}
-                onClick={toggleActive}
-                type="button"
-                variant={user.is_active ? "destructive" : "default"}
-              >
-                <ShieldMinus data-icon="inline-start" />
-                {user.is_active ? "Deactivate account" : "Reactivate account"}
-              </Button>
-            </DialogFooter>
-          )}
         </div>
       </DialogContent>
     </Dialog>

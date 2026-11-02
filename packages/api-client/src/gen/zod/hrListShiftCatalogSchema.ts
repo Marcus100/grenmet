@@ -4,6 +4,7 @@
  */
 
 import * as z from "zod";
+import { apiErrorSchema } from "./apiErrorSchema.js";
 import { shiftCatalogsPublicSchema } from "./shiftCatalogsPublicSchema.js";
 import { validationErrorResponseSchema } from "./validationErrorResponseSchema.js";
 
@@ -14,7 +15,9 @@ export const hrListShiftCatalogQueryIncludeInactiveSchema = z
 
 export const hrListShiftCatalogStatus200Schema = shiftCatalogsPublicSchema;
 
-export const hrListShiftCatalogStatus403Schema = z.unknown();
+export const hrListShiftCatalogStatus403Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
 export const hrListShiftCatalogStatus422Schema =
   validationErrorResponseSchema.describe(

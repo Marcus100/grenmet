@@ -4,6 +4,7 @@
  */
 
 import * as z from "zod";
+import { apiErrorSchema } from "./apiErrorSchema.js";
 import { synopticImageGroupsSchema } from "./synopticImageGroupsSchema.js";
 import { validationErrorResponseSchema } from "./validationErrorResponseSchema.js";
 
@@ -11,9 +12,13 @@ export const wxwatchMetadataQueryDaySchema = z.iso.date();
 
 export const wxwatchMetadataStatus200Schema = synopticImageGroupsSchema;
 
-export const wxwatchMetadataStatus401Schema = z.unknown();
+export const wxwatchMetadataStatus401Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
-export const wxwatchMetadataStatus403Schema = z.unknown();
+export const wxwatchMetadataStatus403Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
 export const wxwatchMetadataStatus422Schema =
   validationErrorResponseSchema.describe(

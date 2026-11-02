@@ -3,7 +3,9 @@
  * Do not edit manually.
  */
 
+import type { ApiError } from "./ApiError.js";
 import type { EmailRequest } from "./EmailRequest.js";
+import type { ErrorMessage } from "./ErrorMessage.js";
 import type { Message } from "./Message.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 
@@ -15,7 +17,7 @@ export type AuthRecoverPasswordStatus200 = Message;
  */
 export type AuthRecoverPasswordStatus422 = ValidationErrorResponse;
 
-export type AuthRecoverPasswordStatus429 = unknown;
+export type AuthRecoverPasswordStatus429 = ApiError | ErrorMessage;
 
 export type AuthRecoverPasswordBody = EmailRequest;
 

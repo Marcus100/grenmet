@@ -3,15 +3,24 @@
  * Do not edit manually.
  */
 
+import type { ApiError } from "./ApiError.js";
 import type { SignatureInput } from "./SignatureInput.js";
 import type { SignaturePublic } from "./SignaturePublic.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 
 export type HrSaveMySignatureStatus200 = SignaturePublic;
 
-export type HrSaveMySignatureStatus400 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type HrSaveMySignatureStatus400 = ApiError;
 
-export type HrSaveMySignatureStatus401 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type HrSaveMySignatureStatus401 = ApiError;
 
 /**
  * @description Validation error envelope returned for malformed requests.

@@ -3,15 +3,24 @@
  * Do not edit manually.
  */
 
+import type { ApiError } from "./ApiError.js";
 import type { UserRoleAssignmentCreate } from "./UserRoleAssignmentCreate.js";
 import type { UserRoleAssignmentPublic } from "./UserRoleAssignmentPublic.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 
 export type AuthCreateRoleAssignmentStatus201 = UserRoleAssignmentPublic;
 
-export type AuthCreateRoleAssignmentStatus401 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type AuthCreateRoleAssignmentStatus401 = ApiError;
 
-export type AuthCreateRoleAssignmentStatus403 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type AuthCreateRoleAssignmentStatus403 = ApiError;
 
 /**
  * @description Validation error envelope returned for malformed requests.

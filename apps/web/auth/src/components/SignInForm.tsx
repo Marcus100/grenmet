@@ -144,7 +144,14 @@ export function SignInForm({ appName, returnTo }: SignInFormProps) {
 
       <p className="text-body-sm text-muted-foreground text-center">
         New here?{" "}
-        <Link className={textLinkClass} href="/signup">
+        <Link
+          className={textLinkClass}
+          href={
+            returnTo
+              ? `/signup?returnTo=${encodeURIComponent(returnTo)}`
+              : "/signup"
+          }
+        >
           Create an account
         </Link>
       </p>

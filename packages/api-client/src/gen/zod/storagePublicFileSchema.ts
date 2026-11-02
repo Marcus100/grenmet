@@ -4,13 +4,16 @@
  */
 
 import * as z from "zod";
+import { apiErrorSchema } from "./apiErrorSchema.js";
 import { validationErrorResponseSchema } from "./validationErrorResponseSchema.js";
 
 export const storagePublicFilePathFileIdSchema = z.uuid();
 
 export const storagePublicFileStatus307Schema = z.unknown();
 
-export const storagePublicFileStatus404Schema = z.unknown();
+export const storagePublicFileStatus404Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
 export const storagePublicFileStatus422Schema =
   validationErrorResponseSchema.describe(

@@ -5,10 +5,9 @@
 
 import * as z from "zod";
 import { authoringErrorSchema } from "./authoringErrorSchema.js";
-import { legacyProductPreviewInputSchema } from "./legacyProductPreviewInputSchema.js";
 import { legacyProductPreviewSchema } from "./legacyProductPreviewSchema.js";
-import { outlookProductPreviewInputSchema } from "./outlookProductPreviewInputSchema.js";
 import { outlookProductPreviewSchema } from "./outlookProductPreviewSchema.js";
+import { productPreviewBodySchema } from "./productPreviewBodySchema.js";
 
 export const wxproductsPreviewProductStatus200Schema = z.discriminatedUnion(
   "kind",
@@ -50,24 +49,7 @@ export const wxproductsPreviewProductErrorSchema = z.union([
   wxproductsPreviewProductStatus422Schema,
 ]);
 
-export const wxproductsPreviewProductBodySchema = z.discriminatedUnion("kind", [
-  outlookProductPreviewInputSchema.extend({
-    kind: z.enum(["outlook"]),
-  }),
-  legacyProductPreviewInputSchema.extend({
-    kind: z.enum([
-      "morning",
-      "midday",
-      "evening",
-      "cyclone",
-      "marine",
-      "flood",
-      "thunderstorm",
-      "wind",
-      "heat",
-      "dust",
-      "coastal",
-      "tsunami",
-    ]),
-  }),
-]);
+export const wxproductsPreviewProductBodySchema =
+  productPreviewBodySchema.describe(
+    "A draft product to validate or render as a PDF preview, discriminated by kind."
+  );

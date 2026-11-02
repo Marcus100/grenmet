@@ -3,6 +3,7 @@
  * Do not edit manually.
  */
 
+import type { ApiError } from "./ApiError.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 
 export type BillingDeleteInvoicePath = {
@@ -16,13 +17,29 @@ export type BillingDeleteInvoicePath = {
 
 export type BillingDeleteInvoiceStatus204 = unknown;
 
-export type BillingDeleteInvoiceStatus401 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type BillingDeleteInvoiceStatus401 = ApiError;
 
-export type BillingDeleteInvoiceStatus403 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type BillingDeleteInvoiceStatus403 = ApiError;
 
-export type BillingDeleteInvoiceStatus404 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type BillingDeleteInvoiceStatus404 = ApiError;
 
-export type BillingDeleteInvoiceStatus409 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type BillingDeleteInvoiceStatus409 = ApiError;
 
 /**
  * @description Validation error envelope returned for malformed requests.

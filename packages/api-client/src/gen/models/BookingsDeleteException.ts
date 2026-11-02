@@ -3,6 +3,7 @@
  * Do not edit manually.
  */
 
+import type { ApiError } from "./ApiError.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 
 export type BookingsDeleteExceptionPath = {
@@ -23,15 +24,35 @@ export type BookingsDeleteExceptionHeaders = {
 
 export type BookingsDeleteExceptionStatus204 = unknown;
 
-export type BookingsDeleteExceptionStatus400 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type BookingsDeleteExceptionStatus400 = ApiError;
 
-export type BookingsDeleteExceptionStatus401 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type BookingsDeleteExceptionStatus401 = ApiError;
 
-export type BookingsDeleteExceptionStatus403 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type BookingsDeleteExceptionStatus403 = ApiError;
 
-export type BookingsDeleteExceptionStatus404 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type BookingsDeleteExceptionStatus404 = ApiError;
 
-export type BookingsDeleteExceptionStatus409 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type BookingsDeleteExceptionStatus409 = ApiError;
 
 /**
  * @description Validation error envelope returned for malformed requests.

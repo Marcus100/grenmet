@@ -9,9 +9,17 @@ import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 
 export type TransportGetCatalogueStatus200 = TransportCatalogue;
 
-export type TransportGetCatalogueStatus401 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type TransportGetCatalogueStatus401 = ApiError;
 
-export type TransportGetCatalogueStatus403 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type TransportGetCatalogueStatus403 = ApiError;
 
 /**
  * @description Validation error envelope returned for malformed requests.

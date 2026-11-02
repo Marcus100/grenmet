@@ -42,6 +42,9 @@
           {% else %}
           <li class="none">No CAP alerts or GMS bulletins were in force at issue.</li>
           {% endfor %}
+          {% for item in all_clear %}
+          <li class="info">All clear (information): {{ item.title }} bulletin, {{ item.valid }}</li>
+          {% endfor %}
           {% if not complete %}<li class="none">Some warning sources were unavailable at issue; check weather.gd.</li>{% endif %}
         </ol>
       </section>

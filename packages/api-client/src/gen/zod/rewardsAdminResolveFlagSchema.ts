@@ -4,6 +4,7 @@
  */
 
 import * as z from "zod";
+import { apiErrorSchema } from "./apiErrorSchema.js";
 import { flagPublicSchema } from "./flagPublicSchema.js";
 import { flagResolveSchema } from "./flagResolveSchema.js";
 import { validationErrorResponseSchema } from "./validationErrorResponseSchema.js";
@@ -12,15 +13,25 @@ export const rewardsAdminResolveFlagPathFlagIdSchema = z.uuid();
 
 export const rewardsAdminResolveFlagStatus200Schema = flagPublicSchema;
 
-export const rewardsAdminResolveFlagStatus400Schema = z.unknown();
+export const rewardsAdminResolveFlagStatus400Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
-export const rewardsAdminResolveFlagStatus401Schema = z.unknown();
+export const rewardsAdminResolveFlagStatus401Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
-export const rewardsAdminResolveFlagStatus403Schema = z.unknown();
+export const rewardsAdminResolveFlagStatus403Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
-export const rewardsAdminResolveFlagStatus404Schema = z.unknown();
+export const rewardsAdminResolveFlagStatus404Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
-export const rewardsAdminResolveFlagStatus409Schema = z.unknown();
+export const rewardsAdminResolveFlagStatus409Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
 export const rewardsAdminResolveFlagStatus422Schema =
   validationErrorResponseSchema.describe(

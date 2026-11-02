@@ -8,6 +8,8 @@ reached in the same order (this module cancels tickets before settling each
 order's intent; a manual payment locks the intent before issuing tickets), but
 both are only touched while holding the order's lock, or the exclusive listing
 lock that waits for all of them, so no two paths can hold them crosswise.
+The one lock taken across that order is a queued refund's outbox row, taken NOWAIT
+(see ``order_refunds``), so it never waits for the order lock.
 
 Money: the manual rail settles inline; a provider rail is queued on the outbox
 (``order_refunds.request_refund``) and never called under these locks. Outlet cash
@@ -39,6 +41,8 @@ class Settled:
     kept: int = 0
     failed: int = 0
     released: int = 0
+    #: An order whose organiser refund is still waiting for the provider. Not failed.
+    pending: int = 0
 
 
 async def cancel_event_orders(
@@ -72,6 +76,12 @@ async def cancel_event_orders(
                 await _settle_order(
                     db, user, listing, organisation_id, order, refund, now, result
                 )
+        except order_refunds.RefundAlreadyPending:
+            logger.info(
+                "event order refund already pending on cancel",
+                extra={"order_id": str(order.id)},
+            )
+            result.pending += 1
         except AppException as error:
             logger.warning(
                 "event order refund failed on cancel",

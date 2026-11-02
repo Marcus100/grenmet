@@ -211,7 +211,9 @@ Landed on `dev` and staging with the GMS/GAA work of 26 October 2026; the owner 
 not yet marked [ADR-0051](../adr/0051-gms-product-model.md) Accepted. In force:
 
 - GMS alerts are green only (notice types Information, Advisory and All clear,
-  pending confirmation). Yellow, orange and red are CAP warnings, started from a
+  pending confirmation). A Green bulletin with notice type "All clear" is
+  information, not an alert in effect: the weather site lists it as
+  "All clear: <title>" and never counts it (owner decision, 30 Oct 2026). Yellow, orange and red are CAP warnings, started from a
   "Raise to warning" button that opens a pre-filled CAP draft (a repeat raise opens
   the existing open warning instead). The green alert stays in force until a
   forecaster withdraws it (open decision); the desk notes "Warning raised".

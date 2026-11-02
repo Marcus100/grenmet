@@ -3,6 +3,7 @@
  * Do not edit manually.
  */
 
+import type { ApiError } from "./ApiError.js";
 import type { VerificationCaseDetail } from "./VerificationCaseDetail.js";
 import type { VerificationRejection } from "./VerificationRejection.js";
 
@@ -16,13 +17,29 @@ export type EventsRejectOrganiserPath = {
 
 export type EventsRejectOrganiserStatus200 = VerificationCaseDetail;
 
-export type EventsRejectOrganiserStatus401 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type EventsRejectOrganiserStatus401 = ApiError;
 
-export type EventsRejectOrganiserStatus403 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type EventsRejectOrganiserStatus403 = ApiError;
 
-export type EventsRejectOrganiserStatus404 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type EventsRejectOrganiserStatus404 = ApiError;
 
-export type EventsRejectOrganiserStatus409 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type EventsRejectOrganiserStatus409 = ApiError;
 
 export type EventsRejectOrganiserStatus422 = unknown;
 

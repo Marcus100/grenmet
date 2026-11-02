@@ -3,6 +3,7 @@
  * Do not edit manually.
  */
 
+import type { ApiError } from "./ApiError.js";
 import type { ClockSiteActive } from "./ClockSiteActive.js";
 import type { ClockSitePublic } from "./ClockSitePublic.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
@@ -18,9 +19,17 @@ export type HrSetClockSiteActivePath = {
 
 export type HrSetClockSiteActiveStatus200 = ClockSitePublic;
 
-export type HrSetClockSiteActiveStatus403 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type HrSetClockSiteActiveStatus403 = ApiError;
 
-export type HrSetClockSiteActiveStatus404 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type HrSetClockSiteActiveStatus404 = ApiError;
 
 /**
  * @description Validation error envelope returned for malformed requests.

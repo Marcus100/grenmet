@@ -127,6 +127,7 @@ export function AlertWorkflow({ alertId }: { alertId: string }) {
   const [message, setMessage] = useState("");
   const [reviewed, setReviewed] = useState(false);
   const [cancelOpen, setCancelOpen] = useState(false);
+  const [expireOpen, setExpireOpen] = useState(false);
   const [validation, setValidation] = useState<{
     version: string;
     result: CapValidationResult;
@@ -156,6 +157,7 @@ export function AlertWorkflow({ alertId }: { alertId: string }) {
       setReviewed(false);
       setNote("");
       setCancelOpen(false);
+      setExpireOpen(false);
       setEmergencyOpen(false);
       setMessage(
         action === "reviewed" || action === "changes_requested"
@@ -168,6 +170,7 @@ export function AlertWorkflow({ alertId }: { alertId: string }) {
       setValidation(null);
       setReviewed(false);
       setCancelOpen(false);
+      setExpireOpen(false);
       setEmergencyOpen(false);
       await alertQuery.refetch();
     } finally {
@@ -230,8 +233,10 @@ export function AlertWorkflow({ alertId }: { alertId: string }) {
         <WithdrawSection
           busy={busy || alertQuery.isFetching}
           cancelOpen={cancelOpen}
+          expireOpen={expireOpen}
           note={note}
           onCancelOpenChange={setCancelOpen}
+          onExpireOpenChange={setExpireOpen}
           onNoteChange={setNote}
           run={run}
         />
@@ -419,15 +424,19 @@ function ReviewAndPublishSection({
 function WithdrawSection({
   busy,
   cancelOpen,
+  expireOpen,
   note,
   onCancelOpenChange,
+  onExpireOpenChange,
   onNoteChange,
   run,
 }: {
   busy: boolean;
   cancelOpen: boolean;
+  expireOpen: boolean;
   note: string;
   onCancelOpenChange: (open: boolean) => void;
+  onExpireOpenChange: (open: boolean) => void;
   onNoteChange: (note: string) => void;
   run: (action: WorkflowAction) => void;
 }) {
@@ -450,7 +459,11 @@ function WithdrawSection({
         >
           Cancel alert
         </Button>
-        <Button onClick={() => run("expire")} type="button" variant="outline">
+        <Button
+          onClick={() => onExpireOpenChange(true)}
+          type="button"
+          variant="outline"
+        >
           Mark expired
         </Button>
       </div>
@@ -469,6 +482,22 @@ function WithdrawSection({
             <AlertDialogCancel>Keep it published</AlertDialogCancel>
             <AlertDialogAction onClick={() => run("cancel")}>
               Confirm cancellation
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+      <AlertDialog onOpenChange={onExpireOpenChange} open={expireOpen}>
+        <AlertDialogContent>
+          <AlertDialogTitle>Mark this CAP alert expired?</AlertDialogTitle>
+          <AlertDialogDescription>
+            The alert leaves the public active feed at once. It lapses without a
+            new public CAP message, so nothing is sent to the public when you
+            confirm.
+          </AlertDialogDescription>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Keep it published</AlertDialogCancel>
+            <AlertDialogAction onClick={() => run("expire")}>
+              Confirm: mark expired
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

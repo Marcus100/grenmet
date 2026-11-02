@@ -17,6 +17,7 @@ import type {
   HrTakeActionStatus400,
   HrTakeActionStatus403,
   HrTakeActionStatus404,
+  HrTakeActionStatus409,
   HrTakeActionStatus422,
 } from "../models/HrTakeAction.js";
 
@@ -35,6 +36,7 @@ export function hrTakeActionMutationOptions<TContext = unknown>(
       | HrTakeActionStatus400
       | HrTakeActionStatus403
       | HrTakeActionStatus404
+      | HrTakeActionStatus409
       | HrTakeActionStatus422
     >,
     HrTakeActionOptions,
@@ -65,6 +67,7 @@ export function useHrTakeAction<TContext>(
         | HrTakeActionStatus400
         | HrTakeActionStatus403
         | HrTakeActionStatus404
+        | HrTakeActionStatus409
         | HrTakeActionStatus422
       >,
       HrTakeActionOptions,
@@ -85,6 +88,7 @@ export function useHrTakeAction<TContext>(
       | HrTakeActionStatus400
       | HrTakeActionStatus403
       | HrTakeActionStatus404
+      | HrTakeActionStatus409
       | HrTakeActionStatus422
     >,
     HrTakeActionOptions,
@@ -97,6 +101,7 @@ export function useHrTakeAction<TContext>(
       | HrTakeActionStatus400
       | HrTakeActionStatus403
       | HrTakeActionStatus404
+      | HrTakeActionStatus409
       | HrTakeActionStatus422
     >,
     HrTakeActionOptions,
@@ -114,6 +119,7 @@ export function useHrTakeAction<TContext>(
       | HrTakeActionStatus400
       | HrTakeActionStatus403
       | HrTakeActionStatus404
+      | HrTakeActionStatus409
       | HrTakeActionStatus422
     >,
     HrTakeActionOptions,

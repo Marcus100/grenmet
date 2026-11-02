@@ -3,6 +3,8 @@
  * Do not edit manually.
  */
 
+import type { ApiError } from "./ApiError.js";
+import type { ErrorMessage } from "./ErrorMessage.js";
 import type { RefundCreate } from "./RefundCreate.js";
 import type { RefundPublic } from "./RefundPublic.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
@@ -31,13 +33,29 @@ export type EventsRefundTicketQuery = {
 
 export type EventsRefundTicketStatus201 = RefundPublic;
 
-export type EventsRefundTicketStatus401 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type EventsRefundTicketStatus401 = ApiError;
 
-export type EventsRefundTicketStatus403 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type EventsRefundTicketStatus403 = ApiError;
 
-export type EventsRefundTicketStatus404 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type EventsRefundTicketStatus404 = ApiError;
 
-export type EventsRefundTicketStatus409 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type EventsRefundTicketStatus409 = ApiError;
 
 /**
  * @description Validation error envelope returned for malformed requests.
@@ -45,7 +63,7 @@ export type EventsRefundTicketStatus409 = unknown;
  */
 export type EventsRefundTicketStatus422 = ValidationErrorResponse;
 
-export type EventsRefundTicketStatus429 = unknown;
+export type EventsRefundTicketStatus429 = ApiError | ErrorMessage;
 
 export type EventsRefundTicketBody = RefundCreate;
 

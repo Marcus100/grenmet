@@ -4,6 +4,7 @@
  */
 
 import * as z from "zod";
+import { apiErrorSchema } from "./apiErrorSchema.js";
 import { recoveryCodesPublicSchema } from "./recoveryCodesPublicSchema.js";
 import { securityProofSchema } from "./securityProofSchema.js";
 import { validationErrorResponseSchema } from "./validationErrorResponseSchema.js";
@@ -11,7 +12,9 @@ import { validationErrorResponseSchema } from "./validationErrorResponseSchema.j
 export const authReplaceRecoveryCodesStatus200Schema =
   recoveryCodesPublicSchema;
 
-export const authReplaceRecoveryCodesStatus400Schema = z.unknown();
+export const authReplaceRecoveryCodesStatus400Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
 export const authReplaceRecoveryCodesStatus422Schema =
   validationErrorResponseSchema.describe(

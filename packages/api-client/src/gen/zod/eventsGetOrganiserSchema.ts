@@ -4,6 +4,7 @@
  */
 
 import * as z from "zod";
+import { apiErrorSchema } from "./apiErrorSchema.js";
 import { organiserPublicSchema } from "./organiserPublicSchema.js";
 import { validationErrorResponseSchema } from "./validationErrorResponseSchema.js";
 
@@ -13,7 +14,9 @@ export const eventsGetOrganiserPathSlugSchema = z
 
 export const eventsGetOrganiserStatus200Schema = organiserPublicSchema;
 
-export const eventsGetOrganiserStatus404Schema = z.unknown();
+export const eventsGetOrganiserStatus404Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
 export const eventsGetOrganiserStatus422Schema =
   validationErrorResponseSchema.describe(

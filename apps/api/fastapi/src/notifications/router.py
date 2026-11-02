@@ -4,12 +4,13 @@ from typing import Any
 from fastapi import APIRouter
 
 from src.dependencies import CurrentUser, SessionDep
+from src.models import ApiError
 from src.pagination import PaginatedResponse, PaginationDep
 
 from . import service
 from .schemas import (
     NotificationPreferencePublic,
-    NotificationPreferenceUpdate,
+    NotificationPreferenceUpdateList,
     NotificationPublic,
     NotificationSettingPublic,
     NotificationSettingsPublic,
@@ -28,7 +29,7 @@ router = APIRouter(prefix="/notifications", tags=["notifications"])
     status_code=200,
     summary="Read my notifications",
     description="The signed-in person's in-app notifications, newest first.",
-    responses={401: {"description": "Not signed in"}},
+    responses={401: {"model": ApiError, "description": "Not signed in"}},
 )
 async def read_notifications(
     *,
@@ -52,7 +53,7 @@ async def read_notifications(
     status_code=200,
     summary="Count my unread notifications",
     description="Unread in-app notifications for the header badge.",
-    responses={401: {"description": "Not signed in"}},
+    responses={401: {"model": ApiError, "description": "Not signed in"}},
 )
 async def read_unread_count(*, session: SessionDep, current_user: CurrentUser) -> Any:
     return await service.unread_count(session=session, user=current_user)
@@ -64,7 +65,7 @@ async def read_unread_count(*, session: SessionDep, current_user: CurrentUser) -
     status_code=200,
     summary="Mark a notification read",
     description="Marks one of the signed-in person's notifications as read.",
-    responses={404: {"description": "Notification not found"}},
+    responses={404: {"model": ApiError, "description": "Notification not found"}},
 )
 async def mark_notification_read(
     *, session: SessionDep, current_user: CurrentUser, notification_id: uuid.UUID
@@ -80,7 +81,7 @@ async def mark_notification_read(
     status_code=200,
     summary="Mark all notifications read",
     description="Marks every unread notification of the signed-in person as read.",
-    responses={401: {"description": "Not signed in"}},
+    responses={401: {"model": ApiError, "description": "Not signed in"}},
 )
 async def mark_all_notifications_read(
     *, session: SessionDep, current_user: CurrentUser
@@ -94,7 +95,7 @@ async def mark_all_notifications_read(
     status_code=200,
     summary="Read my bell and email preferences",
     description="Per notification: whether the signed-in person gets it in the bell and by email. Urgent notifications always appear in the bell.",
-    responses={401: {"description": "Not signed in"}},
+    responses={401: {"model": ApiError, "description": "Not signed in"}},
 )
 async def read_notification_preferences(
     *, session: SessionDep, current_user: CurrentUser
@@ -110,7 +111,8 @@ async def read_notification_preferences(
     description="Turn the bell and email on or off per notification (leave a channel out to keep it). Urgent notifications always appear in the bell; approval requests cannot be muted by email.",
     responses={
         400: {
-            "description": "Unknown notification, or an urgent or approval one that cannot be turned off"
+            "model": ApiError,
+            "description": "Unknown notification, or an urgent or approval one that cannot be turned off",
         }
     },
 )
@@ -118,10 +120,10 @@ async def update_notification_preferences(
     *,
     session: SessionDep,
     current_user: CurrentUser,
-    payload: list[NotificationPreferenceUpdate],
+    payload: NotificationPreferenceUpdateList,
 ) -> Any:
     return await service.update_preferences(
-        session=session, user=current_user, payload=payload
+        session=session, user=current_user, payload=payload.root
     )
 
 
@@ -131,7 +133,12 @@ async def update_notification_preferences(
     status_code=200,
     summary="Read organisation notification settings",
     description="Every notification with its effective settings for the organisation. Requires notifications.manage.",
-    responses={403: {"description": "Insufficient scope for this organisation"}},
+    responses={
+        403: {
+            "model": ApiError,
+            "description": "Insufficient scope for this organisation",
+        }
+    },
 )
 async def read_notification_settings(
     *,
@@ -151,9 +158,12 @@ async def read_notification_settings(
     summary="Update an organisation notification setting",
     description="Turn a notification on or off, choose extra recipient roles, edit its wording and timings. Requires notifications.manage.",
     responses={
-        400: {"description": "Invalid template, role or timing"},
-        403: {"description": "Insufficient scope for this organisation"},
-        404: {"description": "Unknown notification"},
+        400: {"model": ApiError, "description": "Invalid template, role or timing"},
+        403: {
+            "model": ApiError,
+            "description": "Insufficient scope for this organisation",
+        },
+        404: {"model": ApiError, "description": "Unknown notification"},
     },
 )
 async def update_notification_setting(
@@ -179,7 +189,12 @@ async def update_notification_setting(
     status_code=200,
     summary="List active notification snoozes",
     description="Notifications currently silenced for the organisation. Requires notifications.manage.",
-    responses={403: {"description": "Insufficient scope for this organisation"}},
+    responses={
+        403: {
+            "model": ApiError,
+            "description": "Insufficient scope for this organisation",
+        }
+    },
 )
 async def read_notification_snoozes(
     *,
@@ -199,9 +214,15 @@ async def read_notification_snoozes(
     summary="Snooze a notification",
     description="Silence a notification, or one entity of it, until a set time, e.g. during planned work. Requires notifications.manage.",
     responses={
-        400: {"description": "Snooze must end in the future, or entity is incomplete"},
-        403: {"description": "Insufficient scope for this organisation"},
-        404: {"description": "Unknown notification"},
+        400: {
+            "model": ApiError,
+            "description": "Snooze must end in the future, or entity is incomplete",
+        },
+        403: {
+            "model": ApiError,
+            "description": "Insufficient scope for this organisation",
+        },
+        404: {"model": ApiError, "description": "Unknown notification"},
     },
 )
 async def create_notification_snooze(
@@ -225,8 +246,11 @@ async def create_notification_snooze(
     summary="End a notification snooze",
     description="Removes a snooze so the notification resumes. Requires notifications.manage.",
     responses={
-        403: {"description": "Insufficient scope for this organisation"},
-        404: {"description": "Snooze not found"},
+        403: {
+            "model": ApiError,
+            "description": "Insufficient scope for this organisation",
+        },
+        404: {"model": ApiError, "description": "Snooze not found"},
     },
 )
 async def delete_notification_snooze(

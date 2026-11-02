@@ -2,7 +2,11 @@ import { CircleDashedIcon } from "lucide-react";
 import Link from "next/link";
 import { AlertsIcon, AlertsSummary } from "@/components/alerts-summary";
 import { CHECKING_ALERTS } from "@/components/with-alerts";
-import { type AlertsResult, alertsLevel } from "@/lib/cap-alerts";
+import {
+  type AlertsResult,
+  alertsDisplayLevel,
+  type GreenStatus,
+} from "@/lib/cap-alerts";
 import { cn } from "@/lib/utils";
 import { WARNING_LEVEL_SURFACE } from "@/lib/warning-level";
 
@@ -37,22 +41,24 @@ export function CheckingStatusPill({ className }: { className?: string }) {
 
 export function WarningStatusPill({
   alerts,
+  green,
   className,
 }: {
   alerts: AlertsResult;
+  green?: GreenStatus;
   className?: string;
 }) {
   return (
     <Link
       className={cn(
         PILL,
-        WARNING_LEVEL_SURFACE[alertsLevel(alerts)],
+        WARNING_LEVEL_SURFACE[alertsDisplayLevel(alerts, green)],
         className
       )}
       href="/alerts"
     >
-      <AlertsIcon alerts={alerts} className="size-4" />
-      <AlertsSummary alerts={alerts} />
+      <AlertsIcon alerts={alerts} className="size-4" green={green} />
+      <AlertsSummary alerts={alerts} green={green} />
     </Link>
   );
 }

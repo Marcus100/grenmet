@@ -3,6 +3,7 @@
  * Do not edit manually.
  */
 
+import type { ApiError } from "./ApiError.js";
 import type { SynopValidationRequest } from "./SynopValidationRequest.js";
 import type { SynopValidationResponse } from "./SynopValidationResponse.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
@@ -10,9 +11,17 @@ import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 export type EregisterValidateSynopObservationStatus200 =
   SynopValidationResponse;
 
-export type EregisterValidateSynopObservationStatus401 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type EregisterValidateSynopObservationStatus401 = ApiError;
 
-export type EregisterValidateSynopObservationStatus403 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type EregisterValidateSynopObservationStatus403 = ApiError;
 
 /**
  * @description Validation error envelope returned for malformed requests.

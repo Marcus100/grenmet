@@ -1,8 +1,8 @@
 import "server-only";
 import {
-  type CapAlertPublic,
-  capAlertListPublicSchema,
-  capAlertPublicSchema,
+  type CapAlertPublicView,
+  capAlertListPublicViewSchema,
+  capAlertPublicViewSchema,
   publicWarningsSchema,
 } from "@barrelsgd/api-client";
 import { captureException } from "@sentry/nextjs";
@@ -74,7 +74,7 @@ export const fetchActiveAlerts = cache(async (): Promise<AlertsResult> => {
 });
 
 export type PublicAlertResult =
-  | { status: "ok"; alert: CapAlertPublic }
+  | { status: "ok"; alert: CapAlertPublicView }
   | { status: "not-found" }
   | { status: "unavailable" };
 
@@ -102,7 +102,7 @@ export const fetchPublicAlert = cache(
         return { status: "unavailable" };
       }
       return {
-        alert: capAlertPublicSchema.parse(await response.json()),
+        alert: capAlertPublicViewSchema.parse(await response.json()),
         status: "ok",
       };
     } catch (error) {
@@ -117,21 +117,23 @@ export const fetchPublicAlert = cache(
  * feeds the "recently ended" all-clear, which is supplementary — the active
  * feed, not this one, decides whether the site says "unavailable".
  */
-export const fetchPastAlerts = cache(async (): Promise<CapAlertPublic[]> => {
-  try {
-    const response = await fetch(`${env.CAP_API_URL}/api/cap/past`, {
-      cache: "no-store",
-      signal: AbortSignal.timeout(WARNING_FETCH_TIMEOUT_MS),
-    });
-    if (!response.ok) {
-      reportUnavailable(
-        new Error(`CAP past alerts responded ${response.status}`)
-      );
+export const fetchPastAlerts = cache(
+  async (): Promise<CapAlertPublicView[]> => {
+    try {
+      const response = await fetch(`${env.CAP_API_URL}/api/cap/past`, {
+        cache: "no-store",
+        signal: AbortSignal.timeout(WARNING_FETCH_TIMEOUT_MS),
+      });
+      if (!response.ok) {
+        reportUnavailable(
+          new Error(`CAP past alerts responded ${response.status}`)
+        );
+        return [];
+      }
+      return capAlertListPublicViewSchema.parse(await response.json()).data;
+    } catch (error) {
+      reportUnavailable(error);
       return [];
     }
-    return capAlertListPublicSchema.parse(await response.json()).data;
-  } catch (error) {
-    reportUnavailable(error);
-    return [];
   }
-});
+);

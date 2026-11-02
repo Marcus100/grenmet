@@ -162,11 +162,13 @@ async def _order(
 
 
 async def _intent(db: AsyncSession, order_id: str) -> Intent | None:
+    """The order's own intent, never a stray one that shares its source."""
     return await db.scalar(
         select(Intent)
         .where(
             Intent.source_type == order_payments.SOURCE_TYPE,
             Intent.source_id == order_id,
+            Intent.idempotency_key == order_payments.intent_key(uuid.UUID(order_id)),
         )
         .execution_options(populate_existing=True)
     )
@@ -853,3 +855,76 @@ async def test_replaying_the_key_of_a_failed_attempt_is_not_a_successful_claim(
     again = await _order(buyer, shop, 1, key="same-key-0002")
     assert again.status_code == 201
     assert again.json()["id"] == fresh.json()["id"]
+
+
+@pytest.mark.asyncio
+async def test_the_orders_own_intent_is_the_one_read_and_cancelled_beside_a_stray(
+    db_async: AsyncSession, events_db: SessionFactory
+) -> None:
+    """#535: an intent with another key on the same order source is not the order's
+    payment. Reads and the stop-collecting cancel must pick the order's own."""
+    shop = await _shop(db_async, events_db, allocation=3)
+    buyer = await make_user(db_async)
+    response = await _order(buyer, shop, 1, key="order-key-0535")
+    assert response.status_code == 201, response.text
+    order_id = response.json()["id"]
+    own = await _intent(db_async, order_id)
+    assert own is not None
+    stray = await payments_service.create_intent(
+        db_async,
+        organisation_id=shop.organisation_id,
+        actor=None,
+        payload=payment_schemas.PaymentIntentCreate(
+            amount_minor=PRICE,
+            source_type=order_payments.SOURCE_TYPE,
+            source_id=order_id,
+            idempotency_key="stray-535",
+        ),
+    )
+    await db_async.commit()
+
+    found = await order_payments.intent_for(
+        db_async,
+        organisation_id=shop.organisation_id,
+        order_id=uuid.UUID(order_id),
+    )
+    assert found is not None and found.id == own.id
+
+    assert await order_payments.stop_collecting(
+        db_async, organisation_id=shop.organisation_id, order_id=uuid.UUID(order_id)
+    )
+    await db_async.commit()
+    db_async.expire_all()
+    own_row = await _intent(db_async, order_id)
+    assert own_row is not None
+    assert own_row.status == IntentStatus.CANCELLED.value
+    stray_row = await db_async.get(Intent, stray.intent.id)
+    assert stray_row is not None
+    assert stray_row.status == IntentStatus.REQUIRES_PAYMENT.value
+
+
+@pytest.mark.asyncio
+async def test_a_failed_replay_does_not_expire_an_order_a_twin_already_gave_a_checkout(
+    db_async: AsyncSession, events_db: SessionFactory, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """#547 (info): a replayed order request whose intent step fails must not expire
+    the order: a twin request already started its payment, and an expired order paid
+    later is refunded in full."""
+    from src.events.exceptions import EventsPaymentUnavailable
+
+    shop = await _shop(db_async, events_db, allocation=3)
+    buyer = await make_user(db_async)
+    first = await _order(buyer, shop, 1, key="order-key-0547")
+    assert first.status_code == 201, first.text
+    order_id = first.json()["id"]
+    assert (await _row(events_db, order_id)).payment_intent_id is not None
+
+    async def cannot_start(*_args: Any, **_kwargs: Any) -> None:
+        raise EventsPaymentUnavailable()
+
+    monkeypatch.setattr(order_payments, "ensure_intent", cannot_start)
+    replay = await _order(buyer, shop, 1, key="order-key-0547")
+    assert replay.status_code == 503, replay.text
+    row = await _row(events_db, order_id)
+    assert row.status == "pending_payment"
+    assert row.payment_intent_id is not None

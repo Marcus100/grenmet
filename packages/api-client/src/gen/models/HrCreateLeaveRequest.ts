@@ -3,15 +3,24 @@
  * Do not edit manually.
  */
 
+import type { ApiError } from "./ApiError.js";
 import type { LeaveRequestCreate } from "./LeaveRequestCreate.js";
 import type { LeaveRequestPublic } from "./LeaveRequestPublic.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 
 export type HrCreateLeaveRequestStatus201 = LeaveRequestPublic;
 
-export type HrCreateLeaveRequestStatus400 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type HrCreateLeaveRequestStatus400 = ApiError;
 
-export type HrCreateLeaveRequestStatus403 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type HrCreateLeaveRequestStatus403 = ApiError;
 
 /**
  * @description Validation error envelope returned for malformed requests.

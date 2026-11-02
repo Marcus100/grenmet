@@ -3,6 +3,8 @@
  * Do not edit manually.
  */
 
+import type { ApiError } from "./ApiError.js";
+import type { ErrorMessage } from "./ErrorMessage.js";
 import type { FeatureFlagEvaluation } from "./FeatureFlagEvaluation.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 
@@ -28,7 +30,7 @@ export type FeatureEvaluatePublicStatus200 = FeatureFlagEvaluation;
  */
 export type FeatureEvaluatePublicStatus422 = ValidationErrorResponse;
 
-export type FeatureEvaluatePublicStatus429 = unknown;
+export type FeatureEvaluatePublicStatus429 = ApiError | ErrorMessage;
 
 export type FeatureEvaluatePublicOptions = {
   body?: never;

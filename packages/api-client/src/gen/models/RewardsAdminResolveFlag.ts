@@ -3,6 +3,7 @@
  * Do not edit manually.
  */
 
+import type { ApiError } from "./ApiError.js";
 import type { FlagPublic } from "./FlagPublic.js";
 import type { FlagResolve } from "./FlagResolve.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
@@ -18,15 +19,35 @@ export type RewardsAdminResolveFlagPath = {
 
 export type RewardsAdminResolveFlagStatus200 = FlagPublic;
 
-export type RewardsAdminResolveFlagStatus400 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type RewardsAdminResolveFlagStatus400 = ApiError;
 
-export type RewardsAdminResolveFlagStatus401 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type RewardsAdminResolveFlagStatus401 = ApiError;
 
-export type RewardsAdminResolveFlagStatus403 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type RewardsAdminResolveFlagStatus403 = ApiError;
 
-export type RewardsAdminResolveFlagStatus404 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type RewardsAdminResolveFlagStatus404 = ApiError;
 
-export type RewardsAdminResolveFlagStatus409 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type RewardsAdminResolveFlagStatus409 = ApiError;
 
 /**
  * @description Validation error envelope returned for malformed requests.

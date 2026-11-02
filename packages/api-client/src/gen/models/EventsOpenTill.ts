@@ -3,6 +3,8 @@
  * Do not edit manually.
  */
 
+import type { ApiError } from "./ApiError.js";
+import type { ErrorMessage } from "./ErrorMessage.js";
 import type { TillOpen } from "./TillOpen.js";
 import type { TillPublic } from "./TillPublic.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
@@ -25,13 +27,29 @@ export type EventsOpenTillQuery = {
 
 export type EventsOpenTillStatus201 = TillPublic;
 
-export type EventsOpenTillStatus401 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type EventsOpenTillStatus401 = ApiError;
 
-export type EventsOpenTillStatus403 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type EventsOpenTillStatus403 = ApiError;
 
-export type EventsOpenTillStatus404 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type EventsOpenTillStatus404 = ApiError;
 
-export type EventsOpenTillStatus409 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type EventsOpenTillStatus409 = ApiError;
 
 /**
  * @description Validation error envelope returned for malformed requests.
@@ -39,7 +57,7 @@ export type EventsOpenTillStatus409 = unknown;
  */
 export type EventsOpenTillStatus422 = ValidationErrorResponse;
 
-export type EventsOpenTillStatus429 = unknown;
+export type EventsOpenTillStatus429 = ApiError | ErrorMessage;
 
 export type EventsOpenTillBody = TillOpen;
 

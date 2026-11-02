@@ -1,7 +1,7 @@
-"""Social posting, dry run only: intake from the CMS, release, handlers and staff view.
+"""Social posting: intake from the CMS, release, the dry-run handler and the staff view.
 
-No test reaches a real social network: SOCIAL_POSTING_LIVE stays false, and the
-live-mode test only checks the refusal and the retry path.
+No test here reaches a real social network: the live feature flag is off, and the
+live path is covered in test_live_posting.py with Meta mocked at the HTTP layer.
 """
 
 import uuid
@@ -24,7 +24,7 @@ from src.content_distribution.config import (
     content_distribution_settings as settings,
 )
 from src.content_distribution.models import ContentDelivery
-from src.outbox import Outbox, OutboxStatus
+from src.outbox import Outbox
 from src.utils.datetime import utc_now
 
 _URL = "/api/v1/content-distribution/internal/posts"
@@ -37,6 +37,9 @@ _FUTURE = "2099-01-01T09:00:00Z"
 @pytest.fixture
 def cms_secret(monkeypatch: pytest.MonkeyPatch) -> dict[str, str]:
     monkeypatch.setattr(settings, "CMS_DISTRIBUTION_SECRET", SecretStr(_SECRET))
+    # The approved hosts the test posts use (the GMS site for links and images).
+    monkeypatch.setattr(settings, "SOCIAL_LINK_HOSTS", "GMS.example.test")
+    monkeypatch.setattr(settings, "SOCIAL_IMAGE_HOSTS", "gms.example.test")
     return {"X-CMS-Secret": _SECRET}
 
 
@@ -193,6 +196,9 @@ async def test_resaving_a_sent_post_never_changes_or_reposts(
         ({"platforms": []}, None),
         ({"slug": "Bad Slug"}, None),
         ({"url": "http://plain.example.test/x"}, None),
+        ({"url": "https://evil.example.test/stories/x"}, "host"),
+        ({"imageUrl": "https://evil.example.test/images/x.png"}, "host"),
+        ({"url": "https://gms.example.test.evil.example/stories/x"}, "host"),
     ],
 )
 async def test_refused_posts_answer_422_with_a_reason(
@@ -213,7 +219,23 @@ async def test_refused_posts_answer_422_with_a_reason(
         assert "image" in resp.text.lower()
     if reason == "caption":
         assert "caption" in resp.text.lower()
+    if reason == "host":
+        assert "approved host" in resp.text
     assert await _rows(db_async, slug) == []
+
+
+async def test_unset_host_settings_refuse_every_post(
+    async_client: httpx.AsyncClient,
+    db_async: AsyncSession,
+    cms_secret: dict[str, str],
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    # Fail closed: until the owner lists the approved hosts, nothing is accepted.
+    monkeypatch.setattr(settings, "SOCIAL_LINK_HOSTS", "")
+    resp = await async_client.post(_URL, json=_body("no-hosts-set"), headers=cms_secret)
+    assert resp.status_code == 422
+    assert "approved host" in resp.text
+    assert await _rows(db_async, "no-hosts-set") == []
 
 
 async def test_whatsapp_is_stored_but_never_released(
@@ -328,38 +350,6 @@ async def test_drain_twice_never_posts_twice(
     assert row.status == "dry_run_sent"
 
 
-async def test_live_mode_refuses_then_dies_and_records_the_error(
-    async_client: httpx.AsyncClient,
-    db_async: AsyncSession,
-    cms_secret: dict[str, str],
-    monkeypatch: pytest.MonkeyPatch,
-) -> None:
-    monkeypatch.setattr(settings, "SOCIAL_POSTING_LIVE", True)
-    await async_client.post(
-        _URL, json=_body("live-refused", platforms=["facebook"]), headers=cms_secret
-    )
-    await _set_publish_at(db_async, "live-refused", _PAST)
-    await service.release_due(db_async, now=datetime(2026, 10, 2))
-    await db_async.commit()
-
-    now = datetime(2026, 10, 2)
-    for attempt in range(outbox.MAX_ATTEMPTS):
-        await outbox.drain(
-            db_async,
-            only_topics=["social.post.facebook"],
-            now=now + timedelta(days=attempt),
-        )
-    [row] = await _rows(db_async, "live-refused")
-    assert row.status == "dead"
-    assert row.error is not None
-    assert "not configured" in row.error.lower()
-    outbox_row = await db_async.scalar(
-        select(Outbox).where(Outbox.dedupe_key == row.dedupe_key)
-    )
-    assert outbox_row is not None
-    assert outbox_row.status == OutboxStatus.DEAD.value
-
-
 # --- Staff view ----------------------------------------------------------------
 
 
@@ -370,27 +360,18 @@ async def test_staff_list_needs_the_social_permission(
     assert resp.status_code == 403
 
 
-async def test_staff_list_shows_status_and_retrying_as_failed(
+async def test_staff_list_keeps_the_automated_flag_and_url(
     async_client: httpx.AsyncClient,
-    db_async: AsyncSession,
     cms_secret: dict[str, str],
     superuser_token_headers_async: dict[str, str],
-    monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    monkeypatch.setattr(settings, "SOCIAL_POSTING_LIVE", True)
+    # Live posting, the failed-while-retrying view and the reasons are covered in
+    # test_live_posting.py. This pins the fields that stay as they were.
     await async_client.post(
         _URL,
         json=_body("staff-view", platforms=["facebook", "whatsapp"]),
         headers=cms_secret,
     )
-    await _set_publish_at(db_async, "staff-view", _PAST)
-    await service.release_due(db_async, now=datetime(2026, 10, 2))
-    await db_async.commit()
-    # One failed attempt: the outbox keeps the row for a retry.
-    await outbox.drain(
-        db_async, only_topics=["social.post.facebook"], now=datetime(2026, 10, 2)
-    )
-
     resp = await async_client.get(
         _STAFF_URL, params={"slug": "staff-view"}, headers=superuser_token_headers_async
     )
@@ -398,8 +379,6 @@ async def test_staff_list_shows_status_and_retrying_as_failed(
     body = resp.json()
     assert body["count"] == 2
     by_platform = {item["platform"]: item for item in body["data"]}
-    assert by_platform["facebook"]["status"] == "failed"
-    assert "SocialPostingNotConfigured" in (by_platform["facebook"]["error"] or "")
     assert by_platform["whatsapp"]["status"] == "pending"
     assert by_platform["whatsapp"]["automated"] is False
     assert by_platform["facebook"]["automated"] is True
@@ -560,3 +539,77 @@ async def test_no_publish_time_means_now_so_the_post_is_due_at_once(
     await outbox.drain(db_async, only_topics=["social.post.facebook"], now=later)
     [row] = await _rows(db_async, slug)
     assert row.status == "dry_run_sent"
+
+
+@pytest.mark.parametrize(
+    ("field", "value"),
+    [
+        ("url", "https://evil.com\\x@allowed.com/p"),
+        ("imageUrl", "https://evil.com\\x@allowed.com/p"),
+        ("url", "https://user@allowed.com/p"),
+        ("imageUrl", "https://user@allowed.com/p"),
+        ("url", "https://allowed.com:8443/p"),
+        ("imageUrl", "https://allowed.com:99999/p"),
+    ],
+)
+async def test_addresses_a_parser_and_a_browser_read_differently_are_refused_at_intake(
+    async_client: httpx.AsyncClient,
+    db_async: AsyncSession,
+    cms_secret: dict[str, str],
+    monkeypatch: pytest.MonkeyPatch,
+    field: str,
+    value: str,
+) -> None:
+    # allowed.com is approved here, so only the address rule can refuse these.
+    monkeypatch.setattr(settings, "SOCIAL_LINK_HOSTS", "gms.example.test,allowed.com")
+    monkeypatch.setattr(settings, "SOCIAL_IMAGE_HOSTS", "gms.example.test,allowed.com")
+    slug = f"address-{uuid.uuid4().hex[:8]}"
+    body = _body(slug)
+    body[field] = value
+    resp = await async_client.post(_URL, json=body, headers=cms_secret)
+    assert resp.status_code == 422
+    assert "plain https address" in resp.text
+    assert await _rows(db_async, slug) == []
+
+
+async def test_an_explicit_https_port_is_accepted_at_intake(
+    async_client: httpx.AsyncClient,
+    cms_secret: dict[str, str],
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(settings, "SOCIAL_LINK_HOSTS", "allowed.com")
+    slug = f"https-port-{uuid.uuid4().hex[:8]}"
+    body = _body(slug, platforms=["facebook"], imageUrl=None)
+    body["url"] = "https://allowed.com:443/stories/x"
+    resp = await async_client.post(_URL, json=body, headers=cms_secret)
+    assert resp.status_code == 202, resp.text
+
+
+@pytest.mark.parametrize(
+    ("field", "value"),
+    [
+        ("url", "https://[::1"),
+        ("imageUrl", "https://[::1"),
+        ("url", "https://allowed.com[/"),
+        ("imageUrl", "https://[allowed.com]/"),
+        ("url", "https://allowed.com＠evil.com/x"),
+        ("imageUrl", "https://allowed.com／evil.com/x"),
+    ],
+)
+async def test_an_unparseable_address_is_a_422_not_a_server_error(
+    async_client: httpx.AsyncClient,
+    db_async: AsyncSession,
+    cms_secret: dict[str, str],
+    monkeypatch: pytest.MonkeyPatch,
+    field: str,
+    value: str,
+) -> None:
+    monkeypatch.setattr(settings, "SOCIAL_LINK_HOSTS", "gms.example.test,allowed.com")
+    monkeypatch.setattr(settings, "SOCIAL_IMAGE_HOSTS", "gms.example.test,allowed.com")
+    slug = f"unparsed-{uuid.uuid4().hex[:8]}"
+    body = _body(slug)
+    body[field] = value
+    resp = await async_client.post(_URL, json=body, headers=cms_secret)
+    assert resp.status_code == 422, resp.text
+    assert "not a valid address" in resp.text
+    assert await _rows(db_async, slug) == []

@@ -30,6 +30,17 @@ class OrganisationSuspendedError(AppException):
         super().__init__("This organisation is suspended", status.HTTP_403_FORBIDDEN)
 
 
+class EventsAccessFromRoleError(AppException):
+    """An Events-only removal cannot end access that comes from an organisation role."""
+
+    def __init__(self) -> None:
+        super().__init__(
+            "This person's Events access comes from their organisation role "
+            "(admin/owner). Change their role in organisation settings to remove it.",
+            status.HTTP_403_FORBIDDEN,
+        )
+
+
 class MembershipNotFoundError(AppException):
     def __init__(self) -> None:
         super().__init__("Member not found", status.HTTP_404_NOT_FOUND)
@@ -219,5 +230,16 @@ class GrantConflictError(AppException):
     def __init__(self) -> None:
         super().__init__(
             "Roles for this member changed at the same time; try again",
+            status.HTTP_409_CONFLICT,
+        )
+
+
+class GrantCascadeTooLargeError(AppException):
+    """The change would end more grants than the cascade may end in one action."""
+
+    def __init__(self, limit: int) -> None:
+        super().__init__(
+            f"This change would end more than {limit} roles at once. Split it into "
+            "smaller changes, or review the roles first.",
             status.HTTP_409_CONFLICT,
         )

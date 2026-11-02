@@ -1,8 +1,9 @@
 import { configureApiClient } from "@barrelsgd/api-client";
-import { render, screen } from "@testing-library/react";
+import { screen } from "@testing-library/react";
 import { HttpResponse, http } from "msw";
 import { setupServer } from "msw/node";
 import { afterAll, afterEach, beforeAll, expect, it } from "vitest";
+import { renderWithGmsCatalogue as render } from "@/test/with-gms-catalogue";
 import { ImpactMatrixPanel } from "./impact-matrix-panel";
 
 const RE_BE_AWARE_LOW_LIKELIHOOD_MINOR_ =

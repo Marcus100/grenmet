@@ -13,6 +13,7 @@ export type CapAlertImportRequest = {
   source?: CapAlertImportRequestPropertiesSourceEnum;
   /**
    * @minLength 1
+   * @maxLength 5242880
    * @type string
    */
   value: string;

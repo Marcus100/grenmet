@@ -5,6 +5,13 @@ import { dependencyObservations, trivyObservation } from "./audit-security.mjs";
 
 export const REPO = "Marcus100/grenmet";
 const CHECK_NAME = /^[a-zA-Z0-9 ()/_.:-]{1,100}$/u;
+// knip loads the Payload CMS config, which validates its env at import time;
+// without placeholders knip exits 2 and the audit records a false failure.
+const KNIP_ENV = [
+  "PAYLOAD_SECRET=knip-placeholder-secret-0123456789",
+  "DATABASE_URL=postgres://knip@localhost/knip",
+];
+const AUDIT_SOURCE = /^scripts\/agents\/audit-/u;
 const SOURCE_AREA = /^(apps|packages|scripts)\//u;
 const GENERATED_SOURCE = /(?:\/gen\/|\.json$|\.lock$)/u;
 const SOURCE_EXTENSION = /\.(?:mjs|ts|tsx|py)$/u;
@@ -472,6 +479,8 @@ export function weeklyPlan() {
     {
       id: "unused-dependencies",
       argv: [
+        "env",
+        ...KNIP_ENV,
         "pnpm",
         "exec",
         "knip",
@@ -486,6 +495,8 @@ export function weeklyPlan() {
     {
       id: "dead-files",
       argv: [
+        "env",
+        ...KNIP_ENV,
         "pnpm",
         "exec",
         "knip",
@@ -509,6 +520,8 @@ export function sourceRisks(root, files) {
       !SOURCE_EXTENSION.test(file)
     )
       continue;
+    // The audit's own sources name the markers it scans for.
+    if (AUDIT_SOURCE.test(file)) continue;
     const path = join(root, file);
     if (!statSync(path).isFile() || statSync(path).size > 2_000_000) continue;
     const text = readFileSync(path, "utf8");

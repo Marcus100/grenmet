@@ -3,6 +3,8 @@
  * Do not edit manually.
  */
 
+import type { ApiError } from "./ApiError.js";
+import type { ErrorMessage } from "./ErrorMessage.js";
 import type { SuggestionPublic } from "./SuggestionPublic.js";
 import type { SuggestionUpdate } from "./SuggestionUpdate.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
@@ -18,11 +20,23 @@ export type EventsUpdateSuggestionPath = {
 
 export type EventsUpdateSuggestionStatus200 = SuggestionPublic;
 
-export type EventsUpdateSuggestionStatus401 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type EventsUpdateSuggestionStatus401 = ApiError;
 
-export type EventsUpdateSuggestionStatus403 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type EventsUpdateSuggestionStatus403 = ApiError;
 
-export type EventsUpdateSuggestionStatus404 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type EventsUpdateSuggestionStatus404 = ApiError;
 
 /**
  * @description Validation error envelope returned for malformed requests.
@@ -30,7 +44,7 @@ export type EventsUpdateSuggestionStatus404 = unknown;
  */
 export type EventsUpdateSuggestionStatus422 = ValidationErrorResponse;
 
-export type EventsUpdateSuggestionStatus429 = unknown;
+export type EventsUpdateSuggestionStatus429 = ApiError | ErrorMessage;
 
 export type EventsUpdateSuggestionBody = SuggestionUpdate;
 

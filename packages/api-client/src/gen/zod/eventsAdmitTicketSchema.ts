@@ -6,6 +6,8 @@
 import * as z from "zod";
 import { admissionCreateSchema } from "./admissionCreateSchema.js";
 import { admissionPublicSchema } from "./admissionPublicSchema.js";
+import { apiErrorSchema } from "./apiErrorSchema.js";
+import { errorMessageSchema } from "./errorMessageSchema.js";
 import { validationErrorResponseSchema } from "./validationErrorResponseSchema.js";
 
 export const eventsAdmitTicketPathListingIdSchema = z.uuid();
@@ -17,20 +19,31 @@ export const eventsAdmitTicketQueryOrganiserSchema = z
 
 export const eventsAdmitTicketStatus200Schema = admissionPublicSchema;
 
-export const eventsAdmitTicketStatus401Schema = z.unknown();
+export const eventsAdmitTicketStatus401Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
-export const eventsAdmitTicketStatus403Schema = z.unknown();
+export const eventsAdmitTicketStatus403Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
-export const eventsAdmitTicketStatus404Schema = z.unknown();
+export const eventsAdmitTicketStatus404Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
-export const eventsAdmitTicketStatus409Schema = z.unknown();
+export const eventsAdmitTicketStatus409Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
 export const eventsAdmitTicketStatus422Schema =
   validationErrorResponseSchema.describe(
     "Validation error envelope returned for malformed requests."
   );
 
-export const eventsAdmitTicketStatus429Schema = z.unknown();
+export const eventsAdmitTicketStatus429Schema = z.union([
+  apiErrorSchema,
+  errorMessageSchema,
+]);
 
 export const eventsAdmitTicketResponseSchema = eventsAdmitTicketStatus200Schema;
 

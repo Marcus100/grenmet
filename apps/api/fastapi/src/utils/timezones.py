@@ -9,6 +9,8 @@ from datetime import UTC, date, datetime, time
 from functools import cache
 from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
+from src.utils.datetime import utc_now
+
 DEFAULT_TIMEZONE = "America/Grenada"
 
 
@@ -46,3 +48,8 @@ def local_to_utc(day: date, at: time, tz: ZoneInfo) -> datetime:
 def utc_to_local(moment: datetime, tz: ZoneInfo) -> datetime:
     """A naive-UTC datetime as an aware local datetime."""
     return moment.replace(tzinfo=UTC).astimezone(tz)
+
+
+def local_today(tz: ZoneInfo = GRENADA) -> date:
+    """Today's calendar date in Grenada (or ``tz``), never the UTC date (#797)."""
+    return utc_to_local(utc_now(), tz).date()

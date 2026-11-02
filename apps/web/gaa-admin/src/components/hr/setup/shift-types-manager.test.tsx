@@ -99,7 +99,40 @@ describe("ShiftTypesManager", () => {
       counts_as_work_hours: true,
       needs_reason: false,
       needs_approval: false,
+      break_minutes: 0,
     });
+  });
+
+  it("sends the unpaid break and refuses an invalid one", async () => {
+    const posted: Record<string, unknown>[] = [];
+    server.use(
+      http.get(`${BASE}/api/v1/hr/rosters/shifts`, () =>
+        HttpResponse.json({ data: [], count: 0 })
+      ),
+      http.post(`${BASE}/api/v1/hr/rosters/shifts`, async ({ request }) => {
+        const body = (await request.json()) as Record<string, unknown>;
+        posted.push(body);
+        return HttpResponse.json({ ...body, is_active: true }, { status: 201 });
+      })
+    );
+    renderManager();
+    fireEvent.click(
+      await screen.findByRole("button", { name: NEW_SHIFT_LABEL })
+    );
+    fireEvent.change(await screen.findByLabelText("Code"), {
+      target: { value: "M2" },
+    });
+    fireEvent.change(screen.getByLabelText("Label"), {
+      target: { value: "Morning" },
+    });
+    const breakField = screen.getByLabelText("Unpaid break (minutes)");
+    fireEvent.change(breakField, { target: { value: "-5" } });
+    expect(screen.getByRole("alert")).toHaveTextContent("0 to 240");
+    expect(screen.getByRole("button", { name: CREATE_LABEL })).toBeDisabled();
+    fireEvent.change(breakField, { target: { value: "30" } });
+    fireEvent.click(screen.getByRole("button", { name: CREATE_LABEL }));
+    await waitFor(() => expect(posted).toHaveLength(1));
+    expect(posted[0]).toMatchObject({ code: "M2", break_minutes: 30 });
   });
 });
 

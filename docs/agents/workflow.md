@@ -66,7 +66,10 @@ agent instructions. Nothing here relaxes a root rule.
 - Standing authorization: once PRs are merged into `dev`,
   create or update the `dev → staging` PR with a recap, review the promotion diff
   and verify `dev` has not advanced. The owner reviews and merges into `staging`;
-  agents do not arm auto-merge. GitHub merges only after the staging ruleset's
+  agents do not arm auto-merge. While `PROMOTE_STAGING_ENABLED` is `true`,
+  `promote-staging.yml` does this daily (see
+  `docs/operations/staging-promotion-automation.md`) and agents leave the
+  staging PR alone. GitHub merges only after the staging ruleset's
   required checks pass; `CI Success` and `Build Web Apps` aggregate every API and
   web job. If `dev` advances, update the recap and tell the owner.
 - Monitor the staging deployment and report actionable failures or readiness for

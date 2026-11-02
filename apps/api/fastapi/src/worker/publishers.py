@@ -5,9 +5,8 @@ httpx client. On any delivery failure it raises ``PublishError`` (details record
 the job; the dispatcher marks it FAILED for retry). On success it returns a JSON-able
 result dict.
 
-Only ``publish.webhooks`` is fully implemented in this step. PDF / static-map / social
-are implemented in the CAP-features step; MQTT/WIS2 are intentionally out of scope
-(handled by the separate wis2box deployment) and recorded as skipped.
+MQTT and WIS2 have no handler: they are not queued (see ``src/cap/tasks.py``
+NOT_CONFIGURED_CHANNELS).
 """
 
 from __future__ import annotations
@@ -92,15 +91,6 @@ async def publish_webhooks(
     if failures:
         raise PublishError({"delivered": delivered, "failures": failures})
     return {"delivered": delivered, "count": len(delivered)}
-
-
-async def _skipped(
-    *, session: AsyncSession, job: CapJobEvent, http_client: httpx.AsyncClient
-) -> dict[str, Any]:
-    """Placeholder handler: records the side-effect as intentionally not yet run."""
-    _ = (session, http_client)  # required by the handler protocol, unused here
-    logger.info("CAP publish side-effect not implemented yet", extra={"kind": job.kind})
-    return {"skipped": True, "reason": "handler not implemented yet", "kind": job.kind}
 
 
 async def _resolve_alert(*, session: AsyncSession, job: CapJobEvent) -> CapAlert:
@@ -235,8 +225,3 @@ async def publish_static_map(
         "image_url": attachments.public_url(alert.identifier, "map"),
         "bytes": len(png),
     }
-
-
-# MQTT / WIS2 are handled by the separate wis2box deployment — out of scope here.
-publish_mqtt = _skipped
-publish_wis2box = _skipped

@@ -3,6 +3,7 @@
  * Do not edit manually.
  */
 
+import type { ApiError } from "./ApiError.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 
 export type PaymentsAdminGetReconciliationCsvQuery = {
@@ -23,9 +24,17 @@ export type PaymentsAdminGetReconciliationCsvQuery = {
 
 export type PaymentsAdminGetReconciliationCsvStatus200 = string;
 
-export type PaymentsAdminGetReconciliationCsvStatus401 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type PaymentsAdminGetReconciliationCsvStatus401 = ApiError;
 
-export type PaymentsAdminGetReconciliationCsvStatus403 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type PaymentsAdminGetReconciliationCsvStatus403 = ApiError;
 
 /**
  * @description Validation error envelope returned for malformed requests.

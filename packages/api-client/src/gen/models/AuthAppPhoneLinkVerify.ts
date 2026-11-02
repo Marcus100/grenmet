@@ -3,7 +3,9 @@
  * Do not edit manually.
  */
 
+import type { ApiError } from "./ApiError.js";
 import type { AppPhoneCodeVerify } from "./AppPhoneCodeVerify.js";
+import type { ErrorMessage } from "./ErrorMessage.js";
 import type { Message } from "./Message.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 
@@ -17,15 +19,35 @@ export type AuthAppPhoneLinkVerifyPath = {
 
 export type AuthAppPhoneLinkVerifyStatus200 = Message;
 
-export type AuthAppPhoneLinkVerifyStatus400 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type AuthAppPhoneLinkVerifyStatus400 = ApiError;
 
-export type AuthAppPhoneLinkVerifyStatus401 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type AuthAppPhoneLinkVerifyStatus401 = ApiError;
 
-export type AuthAppPhoneLinkVerifyStatus403 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type AuthAppPhoneLinkVerifyStatus403 = ApiError;
 
-export type AuthAppPhoneLinkVerifyStatus404 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type AuthAppPhoneLinkVerifyStatus404 = ApiError;
 
-export type AuthAppPhoneLinkVerifyStatus409 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type AuthAppPhoneLinkVerifyStatus409 = ApiError;
 
 /**
  * @description Validation error envelope returned for malformed requests.
@@ -33,7 +55,7 @@ export type AuthAppPhoneLinkVerifyStatus409 = unknown;
  */
 export type AuthAppPhoneLinkVerifyStatus422 = ValidationErrorResponse;
 
-export type AuthAppPhoneLinkVerifyStatus429 = unknown;
+export type AuthAppPhoneLinkVerifyStatus429 = ApiError | ErrorMessage;
 
 export type AuthAppPhoneLinkVerifyStatus503 = unknown;
 

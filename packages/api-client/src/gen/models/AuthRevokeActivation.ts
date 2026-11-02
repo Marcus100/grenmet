@@ -3,6 +3,7 @@
  * Do not edit manually.
  */
 
+import type { ApiError } from "./ApiError.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 
 export type AuthRevokeActivationPath = {
@@ -16,9 +17,17 @@ export type AuthRevokeActivationPath = {
 
 export type AuthRevokeActivationStatus204 = unknown;
 
-export type AuthRevokeActivationStatus403 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type AuthRevokeActivationStatus403 = ApiError;
 
-export type AuthRevokeActivationStatus404 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type AuthRevokeActivationStatus404 = ApiError;
 
 /**
  * @description Validation error envelope returned for malformed requests.

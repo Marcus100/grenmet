@@ -3,6 +3,7 @@
  * Do not edit manually.
  */
 
+import type { ApiError } from "./ApiError.js";
 import type { ArchiveHistory } from "./ArchiveHistory.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 
@@ -34,11 +35,23 @@ export type WxwatchRetrievalsQuery = {
 
 export type WxwatchRetrievalsStatus200 = ArchiveHistory;
 
-export type WxwatchRetrievalsStatus401 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type WxwatchRetrievalsStatus401 = ApiError;
 
-export type WxwatchRetrievalsStatus403 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type WxwatchRetrievalsStatus403 = ApiError;
 
-export type WxwatchRetrievalsStatus404 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type WxwatchRetrievalsStatus404 = ApiError;
 
 /**
  * @description Validation error envelope returned for malformed requests.

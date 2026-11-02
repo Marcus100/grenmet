@@ -3,6 +3,7 @@
  * Do not edit manually.
  */
 
+import type { ApiError } from "./ApiError.js";
 import type { PublicHolidayPublic } from "./PublicHolidayPublic.js";
 import type { PublicHolidayUpdate } from "./PublicHolidayUpdate.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
@@ -18,11 +19,23 @@ export type HrUpdateHolidayPath = {
 
 export type HrUpdateHolidayStatus200 = PublicHolidayPublic;
 
-export type HrUpdateHolidayStatus400 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type HrUpdateHolidayStatus400 = ApiError;
 
-export type HrUpdateHolidayStatus403 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type HrUpdateHolidayStatus403 = ApiError;
 
-export type HrUpdateHolidayStatus404 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type HrUpdateHolidayStatus404 = ApiError;
 
 /**
  * @description Validation error envelope returned for malformed requests.

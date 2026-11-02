@@ -4,6 +4,8 @@
  */
 
 import * as z from "zod";
+import { apiErrorSchema } from "./apiErrorSchema.js";
+import { errorMessageSchema } from "./errorMessageSchema.js";
 import { outletSaleCreateSchema } from "./outletSaleCreateSchema.js";
 import { outletSaleSchema } from "./outletSaleSchema.js";
 import { validationErrorResponseSchema } from "./validationErrorResponseSchema.js";
@@ -17,20 +19,31 @@ export const eventsSellOutletTicketsQueryOrganiserSchema = z
 
 export const eventsSellOutletTicketsStatus201Schema = outletSaleSchema;
 
-export const eventsSellOutletTicketsStatus401Schema = z.unknown();
+export const eventsSellOutletTicketsStatus401Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
-export const eventsSellOutletTicketsStatus403Schema = z.unknown();
+export const eventsSellOutletTicketsStatus403Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
-export const eventsSellOutletTicketsStatus404Schema = z.unknown();
+export const eventsSellOutletTicketsStatus404Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
-export const eventsSellOutletTicketsStatus409Schema = z.unknown();
+export const eventsSellOutletTicketsStatus409Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
 export const eventsSellOutletTicketsStatus422Schema =
   validationErrorResponseSchema.describe(
     "Validation error envelope returned for malformed requests."
   );
 
-export const eventsSellOutletTicketsStatus429Schema = z.unknown();
+export const eventsSellOutletTicketsStatus429Schema = z.union([
+  apiErrorSchema,
+  errorMessageSchema,
+]);
 
 export const eventsSellOutletTicketsResponseSchema =
   eventsSellOutletTicketsStatus201Schema;

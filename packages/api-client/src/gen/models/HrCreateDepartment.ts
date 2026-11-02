@@ -3,15 +3,24 @@
  * Do not edit manually.
  */
 
+import type { ApiError } from "./ApiError.js";
 import type { DepartmentCreate } from "./DepartmentCreate.js";
 import type { DepartmentPublic } from "./DepartmentPublic.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 
 export type HrCreateDepartmentStatus201 = DepartmentPublic;
 
-export type HrCreateDepartmentStatus400 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type HrCreateDepartmentStatus400 = ApiError;
 
-export type HrCreateDepartmentStatus403 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type HrCreateDepartmentStatus403 = ApiError;
 
 /**
  * @description Validation error envelope returned for malformed requests.

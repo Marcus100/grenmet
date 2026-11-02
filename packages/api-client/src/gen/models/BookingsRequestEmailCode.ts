@@ -3,8 +3,10 @@
  * Do not edit manually.
  */
 
+import type { ApiError } from "./ApiError.js";
 import type { BookingEmailCodeRequest } from "./BookingEmailCodeRequest.js";
 import type { BookingEmailCodeSent } from "./BookingEmailCodeSent.js";
+import type { ErrorMessage } from "./ErrorMessage.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 
 export type BookingsRequestEmailCodePath = {
@@ -17,9 +19,17 @@ export type BookingsRequestEmailCodePath = {
 
 export type BookingsRequestEmailCodeStatus200 = BookingEmailCodeSent;
 
-export type BookingsRequestEmailCodeStatus400 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type BookingsRequestEmailCodeStatus400 = ApiError;
 
-export type BookingsRequestEmailCodeStatus404 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type BookingsRequestEmailCodeStatus404 = ApiError;
 
 /**
  * @description Validation error envelope returned for malformed requests.
@@ -27,7 +37,7 @@ export type BookingsRequestEmailCodeStatus404 = unknown;
  */
 export type BookingsRequestEmailCodeStatus422 = ValidationErrorResponse;
 
-export type BookingsRequestEmailCodeStatus429 = unknown;
+export type BookingsRequestEmailCodeStatus429 = ApiError | ErrorMessage;
 
 export type BookingsRequestEmailCodeStatus503 = unknown;
 

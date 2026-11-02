@@ -3,17 +3,31 @@
  * Do not edit manually.
  */
 
+import type { ApiError } from "./ApiError.js";
 import type { ConnectionCreate } from "./ConnectionCreate.js";
+import type { ErrorMessage } from "./ErrorMessage.js";
 import type { Message } from "./Message.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 
 export type EventsRequestConnectionStatus200 = Message;
 
-export type EventsRequestConnectionStatus401 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type EventsRequestConnectionStatus401 = ApiError;
 
-export type EventsRequestConnectionStatus404 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type EventsRequestConnectionStatus404 = ApiError;
 
-export type EventsRequestConnectionStatus409 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type EventsRequestConnectionStatus409 = ApiError;
 
 /**
  * @description Validation error envelope returned for malformed requests.
@@ -21,7 +35,7 @@ export type EventsRequestConnectionStatus409 = unknown;
  */
 export type EventsRequestConnectionStatus422 = ValidationErrorResponse;
 
-export type EventsRequestConnectionStatus429 = unknown;
+export type EventsRequestConnectionStatus429 = ApiError | ErrorMessage;
 
 export type EventsRequestConnectionBody = ConnectionCreate;
 

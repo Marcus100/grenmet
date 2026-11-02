@@ -2,6 +2,7 @@ import {
   AlertTriangle,
   BookOpen,
   Bus,
+  Calculator,
   Calendar,
   CalendarDays,
   ClipboardCheck,
@@ -103,6 +104,12 @@ export const sidebarItems: NavGroup[] = [
             title: "Team approvals",
             url: "/hr/approvals",
             icon: ClipboardCheck,
+          },
+          {
+            id: "hr-payroll",
+            title: "Payroll inputs",
+            url: "/hr/payroll",
+            icon: Calculator,
           },
           {
             id: "roster",

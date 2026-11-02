@@ -3,6 +3,7 @@
  * Do not edit manually.
  */
 
+import type { ApiError } from "./ApiError.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 
 export type FeatureDeleteFlagPath = {
@@ -16,11 +17,23 @@ export type FeatureDeleteFlagPath = {
 
 export type FeatureDeleteFlagStatus204 = unknown;
 
-export type FeatureDeleteFlagStatus401 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type FeatureDeleteFlagStatus401 = ApiError;
 
-export type FeatureDeleteFlagStatus403 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type FeatureDeleteFlagStatus403 = ApiError;
 
-export type FeatureDeleteFlagStatus404 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type FeatureDeleteFlagStatus404 = ApiError;
 
 /**
  * @description Validation error envelope returned for malformed requests.

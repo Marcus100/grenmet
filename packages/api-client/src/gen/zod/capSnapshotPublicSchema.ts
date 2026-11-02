@@ -13,4 +13,5 @@ export const capSnapshotPublicSchema = z.object({
   generated_at: z.iso.datetime(),
   signed_at: z.union([z.iso.datetime(), z.null()]).optional(),
   signing_key_ref: z.union([z.string(), z.null()]).optional(),
+  schema_mismatch: z.union([z.string(), z.null()]).optional(),
 });

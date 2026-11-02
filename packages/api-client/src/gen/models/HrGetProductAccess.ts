@@ -3,16 +3,29 @@
  * Do not edit manually.
  */
 
+import type { ApiError } from "./ApiError.js";
 import type { ProductAccessCurrent } from "./ProductAccessCurrent.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 
 export type HrGetProductAccessStatus200 = ProductAccessCurrent;
 
-export type HrGetProductAccessStatus403 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type HrGetProductAccessStatus403 = ApiError;
 
-export type HrGetProductAccessStatus404 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type HrGetProductAccessStatus404 = ApiError;
 
-export type HrGetProductAccessStatus409 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type HrGetProductAccessStatus409 = ApiError;
 
 /**
  * @description Validation error envelope returned for malformed requests.

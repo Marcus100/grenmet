@@ -3,6 +3,8 @@
  * Do not edit manually.
  */
 
+import type { ApiError } from "./ApiError.js";
+import type { RosterRuleWarningsErrorPublic } from "./RosterRuleWarningsErrorPublic.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 import type { WorkflowActionRequest } from "./WorkflowActionRequest.js";
 import type { WorkflowInstancePublic } from "./WorkflowInstancePublic.js";
@@ -18,11 +20,31 @@ export type HrTakeActionPath = {
 
 export type HrTakeActionStatus200 = WorkflowInstancePublic;
 
-export type HrTakeActionStatus400 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type HrTakeActionStatus400 = ApiError;
 
-export type HrTakeActionStatus403 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type HrTakeActionStatus403 = ApiError;
 
-export type HrTakeActionStatus404 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type HrTakeActionStatus404 = ApiError;
+
+/**
+ * @description 409 body. An ordinary conflict carries only ``detail``. Roster rule
+ * warnings add ``code: ROSTER_RULE_WARNINGS``, the ``context`` and the
+ * ``violations``; resend with ``rule_override_reason`` to save anyway.
+ * @type object
+ */
+export type HrTakeActionStatus409 = RosterRuleWarningsErrorPublic;
 
 /**
  * @description Validation error envelope returned for malformed requests.
@@ -44,6 +66,7 @@ export type HrTakeActionResponses = {
   "400": HrTakeActionStatus400;
   "403": HrTakeActionStatus403;
   "404": HrTakeActionStatus404;
+  "409": HrTakeActionStatus409;
   "422": HrTakeActionStatus422;
 };
 

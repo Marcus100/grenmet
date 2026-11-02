@@ -216,6 +216,9 @@ async def validate_service_facts(
         raise AppException(
             "Probation dates must not precede employment commencement", 400
         )
+    last_day = value("end_date")
+    if start and last_day and last_day < start:
+        raise AppException("End date must not precede employment commencement", 400)
     if completed and completed > datetime.now(GRENADA).date():
         raise AppException(
             "Probation completion must be a recorded past or current date", 400

@@ -3,6 +3,8 @@
  * Do not edit manually.
  */
 
+import type { ApiError } from "./ApiError.js";
+import type { ErrorMessage } from "./ErrorMessage.js";
 import type { GoogleStart } from "./GoogleStart.js";
 import type { GoogleStartPublic } from "./GoogleStartPublic.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
@@ -17,11 +19,23 @@ export type AuthAppGoogleStartPath = {
 
 export type AuthAppGoogleStartStatus200 = GoogleStartPublic;
 
-export type AuthAppGoogleStartStatus400 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type AuthAppGoogleStartStatus400 = ApiError;
 
-export type AuthAppGoogleStartStatus403 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type AuthAppGoogleStartStatus403 = ApiError;
 
-export type AuthAppGoogleStartStatus404 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type AuthAppGoogleStartStatus404 = ApiError;
 
 /**
  * @description Validation error envelope returned for malformed requests.
@@ -29,7 +43,7 @@ export type AuthAppGoogleStartStatus404 = unknown;
  */
 export type AuthAppGoogleStartStatus422 = ValidationErrorResponse;
 
-export type AuthAppGoogleStartStatus429 = unknown;
+export type AuthAppGoogleStartStatus429 = ApiError | ErrorMessage;
 
 export type AuthAppGoogleStartStatus503 = unknown;
 

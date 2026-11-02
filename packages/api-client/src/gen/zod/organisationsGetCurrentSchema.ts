@@ -4,6 +4,7 @@
  */
 
 import * as z from "zod";
+import { apiErrorSchema } from "./apiErrorSchema.js";
 import { currentOrganisationPublicSchema } from "./currentOrganisationPublicSchema.js";
 import { validationErrorResponseSchema } from "./validationErrorResponseSchema.js";
 
@@ -19,13 +20,21 @@ export const organisationsGetCurrentStatus200Schema =
     "The organisation resolved from ``X-Barrels-Organisation`` and the caller's role."
   );
 
-export const organisationsGetCurrentStatus400Schema = z.unknown();
+export const organisationsGetCurrentStatus400Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
-export const organisationsGetCurrentStatus401Schema = z.unknown();
+export const organisationsGetCurrentStatus401Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
-export const organisationsGetCurrentStatus403Schema = z.unknown();
+export const organisationsGetCurrentStatus403Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
-export const organisationsGetCurrentStatus404Schema = z.unknown();
+export const organisationsGetCurrentStatus404Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
 export const organisationsGetCurrentStatus422Schema =
   validationErrorResponseSchema.describe(

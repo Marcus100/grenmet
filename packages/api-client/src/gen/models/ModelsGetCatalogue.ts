@@ -3,6 +3,7 @@
  * Do not edit manually.
  */
 
+import type { ApiError } from "./ApiError.js";
 import type { GuidanceCatalogue } from "./GuidanceCatalogue.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 
@@ -15,9 +16,17 @@ export type ModelsGetCatalogueHeaders = {
 
 export type ModelsGetCatalogueStatus200 = GuidanceCatalogue;
 
-export type ModelsGetCatalogueStatus401 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type ModelsGetCatalogueStatus401 = ApiError;
 
-export type ModelsGetCatalogueStatus403 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type ModelsGetCatalogueStatus403 = ApiError;
 
 /**
  * @description Validation error envelope returned for malformed requests.

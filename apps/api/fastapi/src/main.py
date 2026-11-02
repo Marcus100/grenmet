@@ -25,6 +25,7 @@ from src.audit.router import router as audit_router
 from src.auth.app_router import account_router as account_apps_router
 from src.auth.app_router import router as app_auth_router
 from src.auth.browser import router as browser_auth_router
+from src.auth.lockout import rate_limit_store_warning
 from src.auth.modern import router as modern_auth_router
 from src.auth.onboarding_router import router as onboarding_router
 from src.auth.routers.login import router as login_router
@@ -71,6 +72,7 @@ from src.hr.documents.router import router as hr_documents_router
 from src.hr.exchange.router import router as hr_exchange_router
 from src.hr.leave.router import router as hr_leave_router
 from src.hr.parking.router import router as hr_parking_router
+from src.hr.payroll.router import router as hr_payroll_router
 from src.hr.roster.router import router as hr_roster_router
 from src.hr.routers.profile import router as hr_profile_router
 from src.hr.signatures.router import router as hr_signatures_router
@@ -322,6 +324,9 @@ OPENAPI_TAGS = [
 async def lifespan(_app: FastAPI) -> AsyncGenerator[None]:
     """Lifespan context manager for startup and shutdown (preferred over on_event)."""
     # Startup
+    store_warning = rate_limit_store_warning()
+    if store_warning:
+        logging.getLogger(__name__).warning(store_warning)
     try:
         yield
     finally:
@@ -468,6 +473,7 @@ app.include_router(hr_calendar_router, prefix=settings.API_V1_STR)
 app.include_router(hr_timesheet_router, prefix=settings.API_V1_STR)
 app.include_router(hr_clock_router, prefix=settings.API_V1_STR)
 app.include_router(hr_attendance_router, prefix=settings.API_V1_STR)
+app.include_router(hr_payroll_router, prefix=settings.API_V1_STR)
 app.include_router(hr_training_router, prefix=settings.API_V1_STR)
 app.include_router(hr_signatures_router, prefix=settings.API_V1_STR)
 app.include_router(hr_leave_router, prefix=settings.API_V1_STR)

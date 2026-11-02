@@ -3,6 +3,7 @@
  * Do not edit manually.
  */
 
+import type { ApiError } from "./ApiError.js";
 import type { ObservationSendList } from "./ObservationSendList.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 
@@ -17,9 +18,17 @@ export type EregisterListObservationSendsPath = {
 
 export type EregisterListObservationSendsStatus200 = ObservationSendList;
 
-export type EregisterListObservationSendsStatus401 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type EregisterListObservationSendsStatus401 = ApiError;
 
-export type EregisterListObservationSendsStatus403 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type EregisterListObservationSendsStatus403 = ApiError;
 
 /**
  * @description Validation error envelope returned for malformed requests.

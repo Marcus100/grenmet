@@ -3,14 +3,23 @@
  * Do not edit manually.
  */
 
+import type { ApiError } from "./ApiError.js";
 import type { PaymentBalanceListPublic } from "./PaymentBalanceListPublic.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 
 export type PaymentsAdminListBalancesStatus200 = PaymentBalanceListPublic;
 
-export type PaymentsAdminListBalancesStatus401 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type PaymentsAdminListBalancesStatus401 = ApiError;
 
-export type PaymentsAdminListBalancesStatus403 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type PaymentsAdminListBalancesStatus403 = ApiError;
 
 /**
  * @description Validation error envelope returned for malformed requests.

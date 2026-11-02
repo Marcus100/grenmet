@@ -79,6 +79,8 @@ from src.hr.roster.models import (
     RosterImportRow,
     RosterPeriod,
     RosterRevision,
+    RosterRuleOverride,
+    RosterRuleSet,
     ShiftCatalog,
 )
 from src.hr.signatures.models import SavedSignature, SignedDocument

@@ -47,6 +47,7 @@ jobs:
       web: ${{ steps.select.outputs.web }}
       weather: ${{ steps.select.outputs.weather }}
       api: ${{ steps.select.outputs.api }}
+      surface: ${{ steps.select.outputs.surface }}
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
@@ -453,6 +454,20 @@ jobs:
           docker rmi test-image:latest
           echo "SUCCESS Docker image validation completed"
 
+  # SURFACE CDMS (vendored Django app, #805): builds its deploy image and runs
+  # Django's checks and tests. Selected only when surface/ or its workflow
+  # changed (scripts/ci/select-images.mjs); CI Success accepts the skip then.
+  surface:
+    name: SURFACE
+    needs: [image-selection]
+    if: needs.image-selection.outputs.surface == 'true'
+    permissions:
+      contents: read
+    uses: ./.github/workflows/ci-surface.yml
+    secrets:
+      DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+      DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
+
   # Job 5: API Documentation Check
   # Note: no database service needed — app.openapi() reads route definitions only
   docs:
@@ -535,7 +550,7 @@ jobs:
   # Final status check
   ci-success:
     name: CI Success
-    needs: [image-selection, quality, security, test, collectors, docker, docs]
+    needs: [image-selection, quality, security, test, collectors, docker, surface, docs]
     runs-on: ubuntu-latest
     timeout-minutes: 5
     permissions:
@@ -551,6 +566,7 @@ jobs:
           echo "Tests: ${{ needs.test.result }}"
           echo "Collectors: ${{ needs.collectors.result }}"
           echo "Docker: ${{ needs.docker.result }}"
+          echo "SURFACE: ${{ needs.surface.result }} (selected: ${{ needs.image-selection.outputs.surface }})"
           echo "Docs: ${{ needs.docs.result }}"
 
           if [ "${{ needs.image-selection.result }}" != "success" ] ||
@@ -560,6 +576,8 @@ jobs:
              [ "${{ needs.collectors.result }}" != "success" ] || \
              { [ "${{ needs.docker.result }}" != "success" ] &&
                ! { [ "${{ needs.docker.result }}" = "skipped" ] && [ "${{ needs.image-selection.outputs.api }}" = "false" ]; }; } || \
+             { [ "${{ needs.surface.result }}" != "success" ] &&
+               ! { [ "${{ needs.surface.result }}" = "skipped" ] && [ "${{ needs.image-selection.outputs.surface }}" = "false" ]; }; } || \
              [ "${{ needs.docs.result }}" != "success" ]; then
             echo "ERROR One or more CI jobs failed"
             echo "🚫 CI pipeline failed - deployment blocked"

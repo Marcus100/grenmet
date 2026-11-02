@@ -3,16 +3,29 @@
  * Do not edit manually.
  */
 
+import type { ApiError } from "./ApiError.js";
 import type { StaffCard } from "./StaffCard.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 
 export type HrGetStaffCardStatus200 = StaffCard;
 
-export type HrGetStaffCardStatus403 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type HrGetStaffCardStatus403 = ApiError;
 
-export type HrGetStaffCardStatus404 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type HrGetStaffCardStatus404 = ApiError;
 
-export type HrGetStaffCardStatus409 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type HrGetStaffCardStatus409 = ApiError;
 
 /**
  * @description Validation error envelope returned for malformed requests.

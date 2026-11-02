@@ -3,6 +3,7 @@
  * Do not edit manually.
  */
 
+import type { ApiError } from "./ApiError.js";
 import type { RewardsLeaderboardOptInCreate } from "./RewardsLeaderboardOptInCreate.js";
 import type { RewardsLeaderboardOptInPublic } from "./RewardsLeaderboardOptInPublic.js";
 import type { ScopeKind } from "./ScopeKind.js";
@@ -15,15 +16,35 @@ export type RewardsOptInToLeaderboardPath = {
 
 export type RewardsOptInToLeaderboardStatus200 = RewardsLeaderboardOptInPublic;
 
-export type RewardsOptInToLeaderboardStatus400 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type RewardsOptInToLeaderboardStatus400 = ApiError;
 
-export type RewardsOptInToLeaderboardStatus401 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type RewardsOptInToLeaderboardStatus401 = ApiError;
 
-export type RewardsOptInToLeaderboardStatus403 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type RewardsOptInToLeaderboardStatus403 = ApiError;
 
-export type RewardsOptInToLeaderboardStatus404 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type RewardsOptInToLeaderboardStatus404 = ApiError;
 
-export type RewardsOptInToLeaderboardStatus409 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type RewardsOptInToLeaderboardStatus409 = ApiError;
 
 /**
  * @description Validation error envelope returned for malformed requests.

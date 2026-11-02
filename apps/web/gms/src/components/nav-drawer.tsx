@@ -16,9 +16,10 @@ import { useEffect } from "react";
 import {
   type AlertsSource,
   CHECKING_ALERTS,
-  WithAlerts,
+  type GreenSource,
+  WithStatus,
 } from "@/components/with-alerts";
-import { alertsLevel, alertsSummary } from "@/lib/cap-alerts";
+import { alertsDisplayLevel, alertsSummary } from "@/lib/cap-alerts";
 import { menuSheet } from "@/lib/motion";
 import { NAV_SECTIONS } from "@/lib/nav-sections";
 import { cn } from "@/lib/utils";
@@ -36,8 +37,12 @@ interface NavDrawerProps {
   accountLabel?: string;
   /** Live warning status, shown as a tag on the Alerts section. */
   alerts?: AlertsSource;
+  /** The GMS outlook's Green counts for that tag, read separately. */
+  green?: GreenSource;
   onClose: () => void;
   open: boolean;
+  /** Shows the "Your account" block (WEATHER_SHOW_SIGN_IN). Hidden unless on. */
+  showSignIn?: boolean;
   /** Viewport y of the header's bottom edge; the menu opens beneath it. */
   top?: number;
 }
@@ -64,8 +69,10 @@ function AlertsTag({
 export function NavDrawer({
   accountLabel,
   alerts,
+  green,
   open,
   onClose,
+  showSignIn = false,
   top = 0,
 }: NavDrawerProps) {
   useEffect(() => {
@@ -139,25 +146,28 @@ export function NavDrawer({
                             </span>
                             {/* The live warning status rides on the Alerts
                                 section instead of a row of its own. */}
-                            {section.href === "/alerts" && alerts && (
-                              <WithAlerts
+                            {section.href === "/alerts" && alerts && green && (
+                              <WithStatus
                                 alerts={alerts}
                                 fallback={
                                   <AlertsTag className="bg-gm-surface-muted text-gm-text-secondary">
                                     {CHECKING_ALERTS}
                                   </AlertsTag>
                                 }
+                                green={green}
                               >
-                                {(result) => (
+                                {(result, outlook) => (
                                   <AlertsTag
                                     className={
-                                      WARNING_LEVEL_SURFACE[alertsLevel(result)]
+                                      WARNING_LEVEL_SURFACE[
+                                        alertsDisplayLevel(result, outlook)
+                                      ]
                                     }
                                   >
-                                    {alertsSummary(result)}
+                                    {alertsSummary(result, outlook)}
                                   </AlertsTag>
                                 )}
-                              </WithAlerts>
+                              </WithStatus>
                             )}
                           </span>
                           <div className="flex size-11 items-center justify-center">
@@ -215,23 +225,25 @@ export function NavDrawer({
                   </div>
                 ))}
               </Accordion.Root>
-              <div className="border-gm-border flex flex-col gap-2 border-t px-6 pt-5">
-                <p className="text-gm-text-muted text-label leading-label font-bold tracking-wider uppercase">
-                  Your account
-                </p>
-                {accountLabel ? (
-                  <AccountButton appLabel={accountLabel} />
-                ) : (
-                  // Static placeholder until sign-in is configured for this site.
-                  <button
-                    className="border-gm-border text-body text-gm-text-primary leading-body hover:bg-gm-surface flex h-11 w-fit items-center gap-2 rounded-md border px-4 font-semibold"
-                    type="button"
-                  >
-                    <LogInIcon aria-hidden="true" className="size-4" />
-                    Sign in
-                  </button>
-                )}
-              </div>
+              {showSignIn && (
+                <div className="border-gm-border flex flex-col gap-2 border-t px-6 pt-5">
+                  <p className="text-gm-text-muted text-label leading-label font-bold tracking-wider uppercase">
+                    Your account
+                  </p>
+                  {accountLabel ? (
+                    <AccountButton appLabel={accountLabel} />
+                  ) : (
+                    // Static placeholder until sign-in is configured for this site.
+                    <button
+                      className="border-gm-border text-body text-gm-text-primary leading-body hover:bg-gm-surface flex h-11 w-fit items-center gap-2 rounded-md border px-4 font-semibold"
+                      type="button"
+                    >
+                      <LogInIcon aria-hidden="true" className="size-4" />
+                      Sign in
+                    </button>
+                  )}
+                </div>
+              )}
             </nav>
           </div>
         </motion.div>

@@ -3,6 +3,7 @@
  * Do not edit manually.
  */
 
+import type { ApiError } from "./ApiError.js";
 import type { ProgramPublic } from "./ProgramPublic.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 
@@ -24,15 +25,35 @@ export type RewardsOrgPauseProgramHeaders = {
 
 export type RewardsOrgPauseProgramStatus200 = ProgramPublic;
 
-export type RewardsOrgPauseProgramStatus400 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type RewardsOrgPauseProgramStatus400 = ApiError;
 
-export type RewardsOrgPauseProgramStatus401 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type RewardsOrgPauseProgramStatus401 = ApiError;
 
-export type RewardsOrgPauseProgramStatus403 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type RewardsOrgPauseProgramStatus403 = ApiError;
 
-export type RewardsOrgPauseProgramStatus404 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type RewardsOrgPauseProgramStatus404 = ApiError;
 
-export type RewardsOrgPauseProgramStatus409 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type RewardsOrgPauseProgramStatus409 = ApiError;
 
 /**
  * @description Validation error envelope returned for malformed requests.

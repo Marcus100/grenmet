@@ -12,6 +12,29 @@ routes `src/app/auth/{start,callback,me,logout}`, config `src/lib/auth-config.ts
 (registry key `weather`). Off until `WEATHER_SSO_CLIENT_SECRET` is set. The
 button loads the account in the browser (`/auth/me`), so pages stay static.
 
+**Button hidden by default (owner, 31 Oct 2026).** `WEATHER_SHOW_SIGN_IN`
+(`src/lib/env.ts`, boolean `true`/`false`, default `false`) gates only the
+button's visibility, read by `signInVisible()` in `src/lib/auth-config.ts` and
+passed to `Header` (`showSignIn`) and `NavDrawer` (`showSignIn`), which hide the
+button and the drawer's "Your account" block. The auth routes, callback,
+`/auth/me` and account handling are unchanged. Tests: `header.test.tsx`,
+`nav-drawer.test.tsx`, `auth-config.test.ts`. Documented in `docs/env.md`.
+
+**Not wired in deploy yet.** `infra/docker/docker-compose.deploy.yml` (the
+`web-gms` service) and `scripts/production/render-env.py` do not pass
+`WEATHER_SHOW_SIGN_IN`, so a deployed site keeps the button hidden. Those are
+owner-merge files and were left unchanged. To show the button again, add one
+line to the `web-gms` environment block, next to `WEATHER_SSO_CLIENT_SECRET`:
+
+```yaml
+      WEATHER_SHOW_SIGN_IN: ${WEATHER_SHOW_SIGN_IN:-false}
+```
+
+and add `WEATHER_SHOW_SIGN_IN` to the GMS web entries in `render-env.py` so the
+value reaches the environment. The value is read when the pages are rendered,
+and the standing pages are static, so a change shows only after a redeploy
+(rebuild if it is read at build time).
+
 ## Data sources — no database
 
 No DB access. Two backends, never gaa-admin (it only authors into FastAPI):
@@ -50,19 +73,61 @@ src/app/
     weather/[year]/[month]/[day] ← a dated forecast day
   (pages)/                       ← standing pages, breadcrumbs + max-w-6xl
     alerts/ weather/ marine/ climate/ services/ explore/ about/
-    [...planned]/                ← placeholders for nav links marked `planned`
     help/ app-guide/ sitemap/ privacy/ accessibility/ disclaimer/
+  (planned)/planned/[...planned]/ ← placeholders for nav links marked `planned` (reached by rewrites)
+  (articles)/                    ← CMS items that 404 when missing: news, updates,
+                                   reports, quiz/[slug], explained/[slug]
+                                   (outside (pages) on purpose: see 404s below)
   layout.tsx                     ← root layout: masthead, footer, tab bar
+  robots.ts, sitemap.ts          ← crawlers: all pages allowed; sitemap from lib/sitemap-paths.ts
   api/health/route.ts
 ```
 
+- **404s and streaming (30 Oct 2026):** a `loading.tsx` streams its response
+  before a page's `notFound()` runs, so that status is 200 (Next docs,
+  "Status codes"). `(pages)/loading.tsx` covers the standing pages, so the
+  planned placeholders (`(planned)/`) and the CMS items (`(articles)/`) live
+  outside it: a missing item there is a real 404. Never add a loading file above
+  a route that must 404 for an unknown URL. Trade-off: those routes have no
+  navigation skeleton (the previous page stays until the item arrives).
+  Static event pages and CAP alert ids under `(pages)` still answer 200 when
+  missing (not fixed).
+- **Unknown URLs never reach a page (30 Oct 2026):** a `notFound()` thrown
+  while a page renders on the server (every gms page is dynamic: the root
+  layout reads live alerts) makes Next 16 send an empty error document
+  (`<html id="__next_error__">`) that stays blank until JavaScript runs. So no
+  catch-all may sit at the site root: an unknown URL must match no page, and
+  Next then serves `app/not-found.tsx` rendered on the server, status 404. The
+  planned placeholders live under `/planned` and each planned link is rewritten
+  there (`lib/planned-routes.ts`, `next.config.ts`); `/planned/*` is internal
+  (`noindex`, canonical is the public address, never linked). `route-structure.test.ts`
+  guards that no catch-all sits at the root, and `planned-routes.test.ts`
+  enforces that no real route serves a planned address. The root single-segment
+  `(weather)/[location]` route has `dynamicParams = false` and calls
+  `notFound()` for other slugs: it answers unknown one-segment URLs with the
+  server-rendered 404 only while it is prerendered (today no second place is
+  enabled, so Next's router rejects every slug). If enabling a place makes it
+  render on demand, recheck `/this-page-does-not-exist` with curl. A CMS item
+  or other dynamic page that calls `notFound()` for a missing item still gets
+  the empty error document (not fixed).
+- **Masthead and /alerts status (30 Oct 2026):** the CAP warnings and the GMS
+  outlook's Green counts are separate promises. `WithStatus`
+  (`components/with-alerts.tsx`) shows a warning at once and awaits the outlook
+  only when no warning is in effect. `fetchGreenStatus` / `fetchGreenAlerts`
+  (`lib/green-status.ts`) never reject; an unread or incomplete outlook is never
+  "No active alerts". The outlook call is cached per request; a short revalidate
+  is a possible later improvement.
+- **Canonical and Open Graph:** root metadata (`lib/site-metadata.ts`) sets
+  `alternates.canonical: "./"`, which Next resolves against each page's own
+  path. Share titles for pages without their own `openGraph` use the site name.
 - **Moving a route:** add the old prefix → new home to `ROUTE_MOVES` in
   `src/lib/route-moves.ts` (it feeds `next.config.ts` redirects); never delete
   a public URL without one. `route-moves.test.ts` fails if an old route is still
   served or a destination has no page.
 - **Nav:** `NAV_SECTIONS` in `src/lib/nav-sections.ts` feeds the mega menu,
   drawer, sitemap, breadcrumbs and section index pages. A link to a page that
-  does not exist yet is marked `planned` and served by `[...planned]`;
+  does not exist yet is marked `planned` and served by `planned/[...planned]`
+  through a rewrite;
   `nav-sections.test.ts` fails if a built link has no route or a planned link is
   shadowed by one. Build the page, then drop `planned`.
 - **No invented figures (owner rule, 18 Oct 2026):** the public site never
@@ -108,7 +173,7 @@ src/app/
   hero tabs (marine lives at `/marine`). The website has no bottom tab bar;
   `MobileTabBar` is kept for the app.
 - **Units (28 Oct 2026):** every hero measurement is metric or imperial,
-  metric until a visitor chooses (owner first chose imperial, then metric) (header button, saved in `localStorage`
+  metric until a visitor chooses (owner first chose imperial, then metric) (switch in the top corner of the home hero card, above the tabs, `components/units-toggle.tsx` placed by `components/home/sky-hero.tsx`; it was in the header until 31 Oct 2026, so only the home page has the switch and other pages show the saved choice (the switch is on the home page only, in the hero card); saved in `localStorage`
   `gm-units`). The API sends WMO units (°C, knots, metres, km, hPa, mm). A figure
   is a `Measure` (`lib/units.ts`) rendered by `components/measure.tsx` in both
   systems; `globals.css` shows one by `<html data-units>`, so static pages never
@@ -171,6 +236,18 @@ src/app/
   `next.config.ts` header), never in the sitemap or nav. Set the CMS's
   `GMS_PREVIEW_URL` to this page's address. Tests: `lib/cms-preview.test.ts`
   (expired, forged, malformed, outage), `app/(pages)/preview/page.test.tsx`.
+- **Missing CMS items (30 Oct 2026):** `src/proxy.ts` runs only on the CMS
+  item addresses (`/explore/news|updates|reports/...`, `/explore/explained/<slug>`,
+  `/explore/quiz/<slug>`). On a full page load it asks the CMS's public list
+  endpoint whether the item exists (`lib/cms-item.ts` maps the address to the
+  slug, `lib/cms-item-exists.ts` asks; found items are kept 60 s, missing ones 10 s
+  so a newly published item shows within seconds, "could not tell" 5 s); a missing
+  item is rewritten to Next's `/_not-found`, rendered on the server with status
+  404. Reason: a `notFound()` thrown while a dynamic page renders makes Next 16
+  send an empty error document (`<html id="__next_error__">`) that only fills
+  in with JavaScript; moving live data into Suspense or a segment `not-found`
+  does not change that. Client navigations and a CMS that cannot answer fall
+  through to the page (which shows its "cannot be retrieved" message).
 - **Satellite:** `/weather/satellite` reads FastAPI `wxwatch/public/latest`
   (`lib/satellite.ts`) and shows images through `app/api/satellite/[id]` (a proxy;
   the API host and bucket are never exposed). No image is the "Not yet available"

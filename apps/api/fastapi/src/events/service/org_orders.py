@@ -558,7 +558,13 @@ async def cancel_order(
                     key=order_refunds.CANCEL_KEY,
                     reason_code="order_cancelled",
                 )
-                outcome = "queued" if result == "queued" else "refunded"
+                if result == "queued":
+                    outcome = "queued"
+                elif result == "refunded":
+                    outcome = "refunded"
+                else:
+                    # Nothing is left to refund: no money moves for this cancel.
+                    outcome = "not_due"
             else:
                 outcome = "kept"
     activity.record(

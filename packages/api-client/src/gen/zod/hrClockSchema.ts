@@ -4,19 +4,28 @@
  */
 
 import * as z from "zod";
+import { apiErrorSchema } from "./apiErrorSchema.js";
 import { clockRequestSchema } from "./clockRequestSchema.js";
 import { clockResultSchema } from "./clockResultSchema.js";
 import { validationErrorResponseSchema } from "./validationErrorResponseSchema.js";
 
 export const hrClockStatus200Schema = clockResultSchema;
 
-export const hrClockStatus400Schema = z.unknown();
+export const hrClockStatus400Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
-export const hrClockStatus403Schema = z.unknown();
+export const hrClockStatus403Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
-export const hrClockStatus404Schema = z.unknown();
+export const hrClockStatus404Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
-export const hrClockStatus409Schema = z.unknown();
+export const hrClockStatus409Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
 export const hrClockStatus422Schema = validationErrorResponseSchema.describe(
   "Validation error envelope returned for malformed requests."

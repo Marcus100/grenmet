@@ -3,6 +3,7 @@
  * Do not edit manually.
  */
 
+import type { ApiError } from "./ApiError.js";
 import type { BookingAvailability } from "./BookingAvailability.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 
@@ -34,9 +35,17 @@ export type BookingsGetAvailabilityQuery = {
 
 export type BookingsGetAvailabilityStatus200 = BookingAvailability;
 
-export type BookingsGetAvailabilityStatus400 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type BookingsGetAvailabilityStatus400 = ApiError;
 
-export type BookingsGetAvailabilityStatus404 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type BookingsGetAvailabilityStatus404 = ApiError;
 
 /**
  * @description Validation error envelope returned for malformed requests.

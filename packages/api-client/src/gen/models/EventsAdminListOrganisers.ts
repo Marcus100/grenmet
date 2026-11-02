@@ -3,6 +3,7 @@
  * Do not edit manually.
  */
 
+import type { ApiError } from "./ApiError.js";
 import type { PaginatedResponseStaffOrganiserRow } from "./PaginatedResponseStaffOrganiserRow.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 
@@ -29,9 +30,17 @@ export type EventsAdminListOrganisersQuery = {
 export type EventsAdminListOrganisersStatus200 =
   PaginatedResponseStaffOrganiserRow;
 
-export type EventsAdminListOrganisersStatus401 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type EventsAdminListOrganisersStatus401 = ApiError;
 
-export type EventsAdminListOrganisersStatus403 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type EventsAdminListOrganisersStatus403 = ApiError;
 
 /**
  * @description Validation error envelope returned for malformed requests.

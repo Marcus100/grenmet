@@ -37,4 +37,9 @@ export type CancelResult = {
    * @type integer | undefined
    */
   orders_released?: number;
+  /**
+   * @default 0
+   * @type integer | undefined
+   */
+  orders_pending?: number;
 };

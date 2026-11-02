@@ -20,7 +20,7 @@ import logging
 import uuid
 from collections.abc import AsyncGenerator, Awaitable, Callable, Iterator
 from contextlib import contextmanager
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from typing import Annotated
 
 import jwt
@@ -74,11 +74,15 @@ _MAX_ID_LENGTH = 100
 
 @dataclass(frozen=True)
 class OrgContext:
-    """The resolved organisation, the caller's membership in it, and the caller."""
+    """The resolved organisation, the caller's membership in it, and the caller.
+
+    ``session_app`` is the app whose session the caller signed in with (team routes
+    only, ``get_events_org_context``); ``None`` for an account session."""
 
     organisation: PlatformOrganisation
     membership: Membership
     user: User
+    session_app: str | None = None
 
     @property
     def organisation_id(self) -> str:
@@ -159,6 +163,7 @@ async def resolve_org_caller(
     user = await user_for_app(session, credentials, payload.app)
     # get_authenticated_user does this for account tokens.
     audit_service.set_actor(session, user.id)
+    audit_service.set_actor_session(session, app=payload.app)
     return user, payload.app
 
 
@@ -225,6 +230,7 @@ async def get_events_org_context(
         await service.require_app_enabled(
             session, organisation_id=context.organisation_id, app_key=token_app
         )
+    context = replace(context, session_app=token_app)
     with bound_organisation(context.organisation.id):
         yield context
 

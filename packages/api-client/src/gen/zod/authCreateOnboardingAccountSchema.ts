@@ -5,14 +5,17 @@
 
 import * as z from "zod";
 import { activationAccountCreateSchema } from "./activationAccountCreateSchema.js";
+import { apiErrorSchema } from "./apiErrorSchema.js";
 import { userPublicSchema } from "./userPublicSchema.js";
 import { validationErrorResponseSchema } from "./validationErrorResponseSchema.js";
 
 export const authCreateOnboardingAccountStatus201Schema = userPublicSchema;
 
-export const authCreateOnboardingAccountStatus403Schema = z.unknown();
+export const authCreateOnboardingAccountStatus403Schema =
+  apiErrorSchema.describe("Stable error envelope for documented API failures.");
 
-export const authCreateOnboardingAccountStatus409Schema = z.unknown();
+export const authCreateOnboardingAccountStatus409Schema =
+  apiErrorSchema.describe("Stable error envelope for documented API failures.");
 
 export const authCreateOnboardingAccountStatus422Schema =
   validationErrorResponseSchema.describe(

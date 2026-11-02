@@ -29,7 +29,7 @@ MDX is compiled outside the Turbopack pipeline via `@content-collections/next`. 
 |---|---|
 | `content-collections.ts` | Collection definition — schema, plugins, transform |
 | `src/content/**/*.mdx` | All content pages (YAML frontmatter for title/description) |
-| `src/app/[[...slug]]/page.tsx` | Catch-all route — renders any content page |
+| `src/app/[[...slug]]/page.tsx` | Catch-all route — renders any content page. `dynamicParams = false`: only content pages exist, so Next's router answers any other path with the not-found page rendered on the server (404). Rendering unknown paths on demand would call `notFound()` mid-render, and Next 16 then sends an empty error document (`<html id="__next_error__">`) |
 | `src/components/MdxContent.tsx` | MDX renderer using `MDXContent` from `@content-collections/mdx/react` |
 | `src/mdx/search.ts` | FlexSearch module — imports pre-built `src/data/sections.json` |
 

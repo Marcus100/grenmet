@@ -5,6 +5,7 @@ from fastapi import APIRouter, Query, Response
 
 from src.dependencies import CurrentUser, SessionDep
 from src.hr.filenames import signed_document_filename
+from src.models import ApiError
 from src.pagination import PaginationDep
 from src.utils.pdf_response import pdf_response
 
@@ -27,8 +28,8 @@ router = APIRouter(prefix="/hr", tags=["hr-signatures"])
     summary="Read my saved signature",
     description="Returns only the authenticated user's saved signature.",
     responses={
-        401: {"description": "Authentication required"},
-        400: {"description": "Invalid signature"},
+        401: {"model": ApiError, "description": "Authentication required"},
+        400: {"model": ApiError, "description": "Invalid signature"},
     },
 )
 async def read_my_signature(
@@ -46,8 +47,8 @@ async def read_my_signature(
     summary="Save my signature",
     description="Creates or replaces your private PNG signature. Previously signed documents remain unchanged.",
     responses={
-        401: {"description": "Authentication required"},
-        400: {"description": "Invalid signature"},
+        401: {"model": ApiError, "description": "Authentication required"},
+        400: {"model": ApiError, "description": "Invalid signature"},
     },
 )
 async def save_my_signature(
@@ -70,8 +71,8 @@ async def save_my_signature(
     summary="Delete my saved signature",
     description="Deletes the reusable signature, retaining existing signed documents.",
     responses={
-        401: {"description": "Authentication required"},
-        400: {"description": "Invalid signature"},
+        401: {"model": ApiError, "description": "Authentication required"},
+        400: {"model": ApiError, "description": "Invalid signature"},
     },
 )
 async def delete_my_signature(
@@ -87,8 +88,8 @@ async def delete_my_signature(
     summary="List my signed documents",
     description="Lists permanent signed submissions you signed or that concern you.",
     responses={
-        401: {"description": "Authentication required"},
-        400: {"description": "Invalid signature"},
+        401: {"model": ApiError, "description": "Authentication required"},
+        400: {"model": ApiError, "description": "Invalid signature"},
     },
 )
 async def read_my_signed_documents(
@@ -139,8 +140,8 @@ async def read_my_signed_documents(
                 }
             },
         },
-        403: {"description": "Not allowed"},
-        404: {"description": "Not found"},
+        403: {"model": ApiError, "description": "Not allowed"},
+        404: {"model": ApiError, "description": "Not found"},
     },
 )
 async def download_signed_document(

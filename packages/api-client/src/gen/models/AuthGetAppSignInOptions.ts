@@ -3,6 +3,7 @@
  * Do not edit manually.
  */
 
+import type { ApiError } from "./ApiError.js";
 import type { AppPublic } from "./AppPublic.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 
@@ -16,7 +17,11 @@ export type AuthGetAppSignInOptionsPath = {
 
 export type AuthGetAppSignInOptionsStatus200 = AppPublic;
 
-export type AuthGetAppSignInOptionsStatus404 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type AuthGetAppSignInOptionsStatus404 = ApiError;
 
 /**
  * @description Validation error envelope returned for malformed requests.

@@ -64,11 +64,46 @@ PERMISSIONS: tuple[PermissionDef, ...] = (
     PermissionDef("roster.view", "View rosters"),
     PermissionDef("roster.manage", "Create and manage rosters"),
     PermissionDef("roster.import", "Import rosters from CSV"),
+    PermissionDef("roster.rules.manage", "Edit roster rules and union coverage"),
     # HR — timesheet
     PermissionDef("timesheet.submit.self", "Submit own timesheet"),
     PermissionDef("timesheet.submit.proxy", "Submit a timesheet on behalf of another"),
     PermissionDef("timesheet.approve", "Approve timesheets"),
     PermissionDef("timesheet.read.department", "Read timesheets across a department"),
+    # HR — payroll inputs (quantities only; HrPlus stays the payroll of record).
+    # Granted to no default role: nobody gains access until the owner assigns them.
+    PermissionDef(
+        "hr.payroll.read.department",
+        "Read payroll input quantities for employees in assigned departments",
+    ),
+    PermissionDef(
+        "hr.payroll.prepare",
+        "Prepare pay periods: compute quantities, add manual lines, submit (organisation-wide)",
+    ),
+    PermissionDef(
+        "hr.payroll.approve",
+        "Approve or return pay periods prepared by someone else; needs two-step verification",
+    ),
+    PermissionDef(
+        "hr.payroll.export",
+        "Export approved payroll inputs as CSV; needs two-step verification",
+    ),
+    PermissionDef(
+        "hr.payroll.rates.manage",
+        "Set dated pay rates and basic pay (organisation-wide); needs two-step verification",
+    ),
+    PermissionDef(
+        "hr.payroll.tables.confirm",
+        "Confirm tax, social insurance and deduction tables someone else created; needs two-step verification",
+    ),
+    PermissionDef(
+        "hr.payroll.read.self",
+        "See and confirm your own payroll records and issued payslips",
+    ),
+    PermissionDef(
+        "hr.payroll.read.amounts",
+        "See pay amounts, rates and basic pay (organisation-wide only)",
+    ),
     # HR — leave
     PermissionDef("leave.request.create.self", "Create own leave request"),
     PermissionDef("leave.request.action", "Approve/reject leave requests"),
@@ -496,6 +531,7 @@ DEFAULT_ROLES: dict[str, tuple[str, tuple[str, ...]]] = {
             "roster.view",
             "roster.manage",
             "roster.import",
+            "roster.rules.manage",
             "timesheet.approve",
             "timesheet.read.department",
             "timesheet.submit.proxy",

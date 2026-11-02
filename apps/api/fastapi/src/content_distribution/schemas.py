@@ -10,7 +10,9 @@ from pydantic import Field, field_validator
 from src.models import BaseModel, UtcDateTime
 
 Platform = Literal["facebook", "instagram", "whatsapp"]
-DisplayStatus = Literal["pending", "scheduled", "dry_run_sent", "failed", "dead"]
+DisplayStatus = Literal[
+    "pending", "scheduled", "dry_run_sent", "posted", "skipped", "failed", "dead"
+]
 URL_PATTERN = r"^https://[^\s]{4,1990}$"
 # A post slug is `/`-separated segments such as `stories/2026/10/title`. Each
 # segment is lowercase letters, digits and hyphens, starting with a letter or
@@ -92,6 +94,9 @@ class DeliveryAdmin(BaseModel):
     automated: bool
     attempts: int
     external_id: str | None
+    # Why it was a dry run or skipped (dry_run_sent, skipped).
+    reason: str | None
+    # Why it failed (dead, and failed while the outbox retries).
     error: str | None
     publish_at: UtcDateTime
     processed_at: UtcDateTime | None

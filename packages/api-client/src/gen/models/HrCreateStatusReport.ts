@@ -3,15 +3,24 @@
  * Do not edit manually.
  */
 
+import type { ApiError } from "./ApiError.js";
 import type { StatusReportCreate } from "./StatusReportCreate.js";
 import type { StatusReportDetails } from "./StatusReportDetails.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 
 export type HrCreateStatusReportStatus201 = StatusReportDetails;
 
-export type HrCreateStatusReportStatus400 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type HrCreateStatusReportStatus400 = ApiError;
 
-export type HrCreateStatusReportStatus403 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type HrCreateStatusReportStatus403 = ApiError;
 
 /**
  * @description Validation error envelope returned for malformed requests.

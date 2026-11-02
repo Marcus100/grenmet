@@ -5,6 +5,7 @@
 
 import * as z from "zod";
 import { accountSessionRequestSchema } from "./accountSessionRequestSchema.js";
+import { apiErrorSchema } from "./apiErrorSchema.js";
 import { appJoinResultSchema } from "./appJoinResultSchema.js";
 import { validationErrorResponseSchema } from "./validationErrorResponseSchema.js";
 
@@ -14,11 +15,17 @@ export const authJoinAccountAppPathAppSchema = z
 
 export const authJoinAccountAppStatus200Schema = appJoinResultSchema;
 
-export const authJoinAccountAppStatus401Schema = z.unknown();
+export const authJoinAccountAppStatus401Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
-export const authJoinAccountAppStatus403Schema = z.unknown();
+export const authJoinAccountAppStatus403Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
-export const authJoinAccountAppStatus404Schema = z.unknown();
+export const authJoinAccountAppStatus404Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
 export const authJoinAccountAppStatus422Schema =
   validationErrorResponseSchema.describe(

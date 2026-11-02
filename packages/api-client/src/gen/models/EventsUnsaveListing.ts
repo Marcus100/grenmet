@@ -3,6 +3,8 @@
  * Do not edit manually.
  */
 
+import type { ApiError } from "./ApiError.js";
+import type { ErrorMessage } from "./ErrorMessage.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 
 export type EventsUnsaveListingPath = {
@@ -15,9 +17,17 @@ export type EventsUnsaveListingPath = {
 
 export type EventsUnsaveListingStatus204 = unknown;
 
-export type EventsUnsaveListingStatus401 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type EventsUnsaveListingStatus401 = ApiError;
 
-export type EventsUnsaveListingStatus404 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type EventsUnsaveListingStatus404 = ApiError;
 
 /**
  * @description Validation error envelope returned for malformed requests.
@@ -25,7 +35,7 @@ export type EventsUnsaveListingStatus404 = unknown;
  */
 export type EventsUnsaveListingStatus422 = ValidationErrorResponse;
 
-export type EventsUnsaveListingStatus429 = unknown;
+export type EventsUnsaveListingStatus429 = ApiError | ErrorMessage;
 
 export type EventsUnsaveListingOptions = {
   body?: never;

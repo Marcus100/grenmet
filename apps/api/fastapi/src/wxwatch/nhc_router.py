@@ -8,6 +8,7 @@ from fastapi import APIRouter, Query, Response
 
 from src.auth.browser import BrowserUser
 from src.exceptions import AuthorizationError
+from src.models import ApiError
 from src.wxproducts.dependencies import AuthorDep, ProductAuthor
 from src.wxproducts.exceptions import ProductValidationError
 
@@ -27,9 +28,9 @@ from .nhc_schemas import (
 
 router = APIRouter(prefix="/wxwatch/nhc", tags=["wxwatch-nhc"])
 ERRORS: dict[int | str, dict[str, Any]] = {
-    401: {"description": "Sign-in required"},
-    403: {"description": "Product access denied"},
-    404: {"description": "Edition or request not found"},
+    401: {"model": ApiError, "description": "Sign-in required"},
+    403: {"model": ApiError, "description": "Product access denied"},
+    404: {"model": ApiError, "description": "Edition or request not found"},
     503: {"description": "NHC archive unavailable"},
 }
 

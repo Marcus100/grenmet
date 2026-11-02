@@ -3,6 +3,7 @@
  * Do not edit manually.
  */
 
+import type { ApiError } from "./ApiError.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 
 export type StoragePublicFilePath = {
@@ -16,7 +17,11 @@ export type StoragePublicFilePath = {
 
 export type StoragePublicFileStatus307 = unknown;
 
-export type StoragePublicFileStatus404 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type StoragePublicFileStatus404 = ApiError;
 
 /**
  * @description Validation error envelope returned for malformed requests.

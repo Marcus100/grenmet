@@ -96,7 +96,8 @@ export function TicketClaim({
     setOutcome(null);
     const result = await perform(() => claimTickets(slug, chosen, keyFor()));
     if (!result.ok) {
-      // A server failure may have expired the order behind this key: start over.
+      // The server said this attempt is over (payment unavailable or expired):
+      // start over. Any other failure keeps the key, so a retry replays the order.
       if ("freshKey" in result && result.freshKey) {
         attempt.current = null;
       }

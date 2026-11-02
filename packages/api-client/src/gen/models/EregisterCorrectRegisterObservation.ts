@@ -3,8 +3,11 @@
  * Do not edit manually.
  */
 
+import type { ApiError } from "./ApiError.js";
+import type { EregisterValidationError } from "./EregisterValidationError.js";
 import type { RegisterObservationCorrection } from "./RegisterObservationCorrection.js";
 import type { RegisterObservationRead } from "./RegisterObservationRead.js";
+import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 
 export type EregisterCorrectRegisterObservationPath = {
   /**
@@ -18,15 +21,33 @@ export type EregisterCorrectRegisterObservationPath = {
 export type EregisterCorrectRegisterObservationStatus201 =
   RegisterObservationRead;
 
-export type EregisterCorrectRegisterObservationStatus401 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type EregisterCorrectRegisterObservationStatus401 = ApiError;
 
-export type EregisterCorrectRegisterObservationStatus403 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type EregisterCorrectRegisterObservationStatus403 = ApiError;
 
-export type EregisterCorrectRegisterObservationStatus404 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type EregisterCorrectRegisterObservationStatus404 = ApiError;
 
-export type EregisterCorrectRegisterObservationStatus409 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type EregisterCorrectRegisterObservationStatus409 = ApiError;
 
-export type EregisterCorrectRegisterObservationStatus422 = unknown;
+export type EregisterCorrectRegisterObservationStatus422 =
+  | EregisterValidationError
+  | ValidationErrorResponse;
 
 /**
  * @description The replacement for an observation; station, kind and time are kept.

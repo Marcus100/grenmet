@@ -13,7 +13,7 @@ from sqlalchemy import delete, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.cap.models import CapAlert, CapJobEvent, CapJobStatus
-from src.cap.tasks import PUBLISH_JOB_KINDS
+from src.cap.tasks import NOT_CONFIGURED_CHANNELS, PUBLISH_JOB_KINDS
 from src.notifications import service as notification_service
 from src.notifications.models import OutboundEmail, SuppressionReason
 from src.push import service as push_service
@@ -21,7 +21,7 @@ from src.push.config import push_settings
 from src.push.models import PushSubscription
 from src.subscriptions.models import ListSubscription, SubscriptionStatus
 from src.utils.datetime import utc_now
-from src.worker.dispatch import process_due_jobs
+from src.worker.dispatch import KIND_HANDLERS, process_due_jobs
 from tests.worker.test_dispatch import _add_published_alert
 
 _LIST = "gms-alerts"
@@ -78,6 +78,20 @@ async def _mails(db: AsyncSession, identifier: str) -> list[OutboundEmail]:
 def test_publish_enqueues_email_and_push_jobs() -> None:
     assert "publish.email" in PUBLISH_JOB_KINDS
     assert "publish.push" in PUBLISH_JOB_KINDS
+
+
+def test_mqtt_and_wis2_are_neither_queued_nor_handled() -> None:
+    """No "skipped" rows for channels that are not configured: they are not queued."""
+    for kind in ("publish.mqtt", "publish.wis2box"):
+        assert kind not in PUBLISH_JOB_KINDS
+        assert kind not in KIND_HANDLERS
+
+
+def test_unconfigured_channels_are_reported_as_not_configured() -> None:
+    assert {item["kind"]: item["status"] for item in NOT_CONFIGURED_CHANNELS} == {
+        "publish.wis2box": "not_configured",
+        "publish.mqtt": "not_configured",
+    }
 
 
 async def test_email_fans_out_to_confirmed_subscribers_only(

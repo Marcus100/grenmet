@@ -4,17 +4,24 @@
  */
 
 import * as z from "zod";
+import { apiErrorSchema } from "./apiErrorSchema.js";
 import { nhcPrefillRequestSchema } from "./nhcPrefillRequestSchema.js";
 import { nhcPrefillSchema } from "./nhcPrefillSchema.js";
 import { validationErrorResponseSchema } from "./validationErrorResponseSchema.js";
 
 export const wxwatchProposeStatus200Schema = nhcPrefillSchema;
 
-export const wxwatchProposeStatus401Schema = z.unknown();
+export const wxwatchProposeStatus401Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
-export const wxwatchProposeStatus403Schema = z.unknown();
+export const wxwatchProposeStatus403Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
-export const wxwatchProposeStatus404Schema = z.unknown();
+export const wxwatchProposeStatus404Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
 export const wxwatchProposeStatus422Schema =
   validationErrorResponseSchema.describe(

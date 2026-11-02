@@ -23,12 +23,11 @@ vi.mock("react", async (importOriginal) => {
 vi.mock("@/app/actions", () => ({
   resetPasswordAction: vi.fn(),
   signInAction: vi.fn(),
-  signUpAction: vi.fn(),
 }));
 
+import { EmailCodeForm } from "./EmailCodeForm";
 import { ResetPasswordForm } from "./ResetPasswordForm";
 import { SignInForm } from "./SignInForm";
-import { SignUpForm } from "./SignUpForm";
 
 function setState(state: Partial<SignInState> | Record<string, unknown>) {
   actionState.current = state;
@@ -78,23 +77,20 @@ describe("SignInForm", () => {
   });
 });
 
-describe("SignUpForm", () => {
+describe("EmailCodeForm (sign-up and sign-in)", () => {
   beforeEach(() => setState({}));
 
-  it("links back to sign-in rather than verification", () => {
-    render(<SignUpForm />);
-    expect(screen.getByRole("link", { name: "Sign in" })).toHaveAttribute(
-      "href",
-      "/"
-    );
+  it("offers a password sign-in link that keeps the return address", () => {
+    render(<EmailCodeForm returnTo="/apps/x" />);
+    expect(
+      screen.getByRole("link", { name: "Sign in with a password instead" })
+    ).toHaveAttribute("href", "/?returnTo=%2Fapps%2Fx");
   });
 
-  it("sends a new account back to sign-in after signup", () => {
-    setState({ success: true, email: "jane@example.com" });
-    render(<SignUpForm />);
-    expect(screen.getByText("Account created")).toBeInTheDocument();
+  it("uses the plain address when there is no return address", () => {
+    render(<EmailCodeForm returnTo={null} />);
     expect(
-      screen.getByRole("link", { name: "Back to sign in" })
+      screen.getByRole("link", { name: "Sign in with a password instead" })
     ).toHaveAttribute("href", "/");
   });
 });

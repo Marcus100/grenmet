@@ -3,6 +3,7 @@
  * Do not edit manually.
  */
 
+import type { ApiError } from "./ApiError.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 
 export type BillingDownloadInvoicePdfPath = {
@@ -16,11 +17,23 @@ export type BillingDownloadInvoicePdfPath = {
 
 export type BillingDownloadInvoicePdfStatus200 = Blob;
 
-export type BillingDownloadInvoicePdfStatus401 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type BillingDownloadInvoicePdfStatus401 = ApiError;
 
-export type BillingDownloadInvoicePdfStatus403 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type BillingDownloadInvoicePdfStatus403 = ApiError;
 
-export type BillingDownloadInvoicePdfStatus404 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type BillingDownloadInvoicePdfStatus404 = ApiError;
 
 /**
  * @description Validation error envelope returned for malformed requests.

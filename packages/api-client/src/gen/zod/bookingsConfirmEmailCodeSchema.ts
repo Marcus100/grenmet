@@ -4,24 +4,33 @@
  */
 
 import * as z from "zod";
+import { apiErrorSchema } from "./apiErrorSchema.js";
 import { bookingEmailCodeConfirmSchema } from "./bookingEmailCodeConfirmSchema.js";
 import { bookingEmailProofSchema } from "./bookingEmailProofSchema.js";
+import { errorMessageSchema } from "./errorMessageSchema.js";
 import { validationErrorResponseSchema } from "./validationErrorResponseSchema.js";
 
 export const bookingsConfirmEmailCodePathSlugSchema = z.string().max(60);
 
 export const bookingsConfirmEmailCodeStatus200Schema = bookingEmailProofSchema;
 
-export const bookingsConfirmEmailCodeStatus400Schema = z.unknown();
+export const bookingsConfirmEmailCodeStatus400Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
-export const bookingsConfirmEmailCodeStatus404Schema = z.unknown();
+export const bookingsConfirmEmailCodeStatus404Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
 export const bookingsConfirmEmailCodeStatus422Schema =
   validationErrorResponseSchema.describe(
     "Validation error envelope returned for malformed requests."
   );
 
-export const bookingsConfirmEmailCodeStatus429Schema = z.unknown();
+export const bookingsConfirmEmailCodeStatus429Schema = z.union([
+  apiErrorSchema,
+  errorMessageSchema,
+]);
 
 export const bookingsConfirmEmailCodeStatus503Schema = z.unknown();
 

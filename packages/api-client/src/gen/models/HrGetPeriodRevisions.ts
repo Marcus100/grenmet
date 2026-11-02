@@ -3,6 +3,7 @@
  * Do not edit manually.
  */
 
+import type { ApiError } from "./ApiError.js";
 import type { RosterRevisionsPublic } from "./RosterRevisionsPublic.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 
@@ -17,9 +18,17 @@ export type HrGetPeriodRevisionsPath = {
 
 export type HrGetPeriodRevisionsStatus200 = RosterRevisionsPublic;
 
-export type HrGetPeriodRevisionsStatus403 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type HrGetPeriodRevisionsStatus403 = ApiError;
 
-export type HrGetPeriodRevisionsStatus404 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type HrGetPeriodRevisionsStatus404 = ApiError;
 
 /**
  * @description Validation error envelope returned for malformed requests.

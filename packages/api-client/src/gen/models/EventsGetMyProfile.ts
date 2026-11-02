@@ -3,14 +3,24 @@
  * Do not edit manually.
  */
 
+import type { ApiError } from "./ApiError.js";
+import type { ErrorMessage } from "./ErrorMessage.js";
 import type { MyProfile } from "./MyProfile.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 
 export type EventsGetMyProfileStatus200 = MyProfile;
 
-export type EventsGetMyProfileStatus401 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type EventsGetMyProfileStatus401 = ApiError;
 
-export type EventsGetMyProfileStatus404 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type EventsGetMyProfileStatus404 = ApiError;
 
 /**
  * @description Validation error envelope returned for malformed requests.
@@ -18,7 +28,7 @@ export type EventsGetMyProfileStatus404 = unknown;
  */
 export type EventsGetMyProfileStatus422 = ValidationErrorResponse;
 
-export type EventsGetMyProfileStatus429 = unknown;
+export type EventsGetMyProfileStatus429 = ApiError | ErrorMessage;
 
 export type EventsGetMyProfileOptions = {
   body?: never;
