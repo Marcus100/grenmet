@@ -55,8 +55,8 @@ is their committed copy and `pnpm guardrails:rulesets` checks it.
 - If dev advances, review and verify the new head. Fix failures locally and
   revalidate before pushing; do not blindly retry CI.
 - The push to `staging` triggers `pipeline-staging.yml`, which promotes the
-  images `dev-images.yml` already built for the same git tree (it waits up to
-  30 minutes for that build), after checking the required checks passed on the
+  images `dev-images.yml` already built for the same git tree (it dispatches the dev build itself when it
+  never ran, and waits up to 45 minutes), after checking the required checks passed on the
   dev commit, then deploys them. It does not rebuild or re-run CI. A successful
   deploy marks those digests staging-verified for production.
 - Verify the staging deploy job succeeded: `gh run list --workflow=pipeline-staging.yml --limit 1`
@@ -171,11 +171,56 @@ files are covered, or that the dump timestamp is UTC (the nightly job names file
 with the runner's clock). A passing gate is not a replacement for step 1 above
 before a destructive migration.
 
+## Build once, promote by digest
+
+Lands with PR #1026 (stacked on PR #1020 and PR #1025; merge in that order, owner
+merges because workflows change). Until then the previous build-at-release
+pipeline described in sections 2 and 4 is what runs. Issue #1019 is the design.
+
+**Why it works.** `staging` and `main` are merge commits of `dev`, so a commit
+there has the same git tree as the dev commit it came from. Images are keyed by
+that tree: what staging proved is exactly what production runs.
+
+| Step | Workflow | What happens |
+| --- | --- | --- |
+| Push to `dev` | `dev-images.yml` | `promote-images.mjs plan` picks the images the change touches (`select-images.mjs`) plus any the previous tree lacks. Those are built, smoke-tested and scanned, then tagged `tree-<tree>`. Unchanged images get `tree-<tree>` on the previous digest. |
+| Push to `staging` | `pipeline-staging.yml` | `promote staging` finds the dev commit with the same tree, requires every required status check of the dev ruleset to have passed on it, waits up to 30 minutes for its dev images, retags the digests `staging-sha-<commit>` and `staging`, and deploys. After the deploy and smoke tests, `mark-verified` adds `staging-verified-tree-<tree>`. |
+| Publish a release | `pipeline-prod.yml` | `promote production` takes only `staging-verified-tree-<tree>` digests, tags `production-sha-<commit>` and deploys. `latest` and the release tag move after the production deploy. |
+| Deploy | `deploy.yml` / `core.sh` | The `image_digests` input becomes `DEPLOY_IMAGE_DIGESTS`; `core.sh` refuses any ghcr.io image not in the list. |
+
+**Server side (PR #1020).** `core.sh` pulls only images missing on the host
+(`PULL_PARALLEL`, default 4). With `ROLLING_DEPLOY=1` routed services (`api`,
+`web-*`) roll in batches of `ROLLOUT_PARALLEL` (default 4; `1` is one at a time).
+A healthy routed container whose Compose config hash is unchanged is kept. After
+a failed service no later batch starts. The backup gate, serial migrations,
+grants and smoke tests are unchanged.
+
+**Owner actions before the first run.** Create the GitHub environment `build`
+(no reviewers, deployment branch `dev`) with the secrets `SENTRY_AUTH_TOKEN` and
+`SENTRY_DSN_PRODUCTION`. Without them dev builds pass but skip source-map upload
+and the build-time Sentry endpoint. The first dev push after the merge builds every
+image (no earlier tree tags), and staging must deploy a tree before production can
+release it.
+
+**Runtime settings.** Web images no longer carry the environment's
+public settings; see [Public settings at run time](../env.md#public-settings-at-run-time).
+On the first staging deploy check `/runtime-env.js` on each app returns staging
+values and that Sentry and Turnstile load. The file is cached up to 60 seconds, so
+a settings change reaches browsers within a minute.
+
+**When promotion fails.**
+
+| Message or symptom | Cause | Action |
+| --- | --- | --- |
+| No dev commit with this tree | Something was pushed to `staging` or `main` that did not come from `dev` | Merge the change into `dev` first. Do not push around it. |
+| Required checks not green on the dev commit | CI failed or is still running on `dev` | Fix on `dev`, then promote again. Do not re-run blindly. |
+| Dev images missing for the tree | `dev-images.yml` failed or never ran | The pipeline dispatches **Dev Images** for that commit and waits up to 45 minutes. By hand: dispatch `dev-images.yml` with `sha` set to the dev commit, then re-run the pipeline. |
+| Production: no `staging-verified-tree` digests | Staging never deployed that tree | Deploy it to staging first. |
+
 ## Rollback / redeploy
 
-Re-deploying an existing release needs no builds: manually dispatch the
-**Deploy** workflow (`deploy.yml`) with `environment=production` and the release
-tag (its `production-sha-<commit>` images already exist).
+Rollback is a redeploy of the previous release's images. It never rebuilds and it
+never undoes database migrations.
 
 If promotion cannot run because the dev images for the tree are missing, the
 staging pipeline dispatches **Dev Images** for that dev commit itself and waits
@@ -186,11 +231,60 @@ existing release, dispatch **Deploy** with `image_tag=sha-<commit>`, the
 no digest list, `manual_redeploy`. A tree that never passed through dev has no
 fallback: merge it into dev first.
 
-Redeploying an older tag does not undo database migrations. Keep each release's
-migrations additive (new tables and nullable columns), and remove old columns or
-tables only in a later release, once no deployed version reads them. That is what
-lets the previous release keep running against the newer schema. A migration that
-cannot satisfy this needs a written recovery plan in the pull request before it merges.
+**Rollback by digest.**
+
+1. Find the last good release and its promotion run: `gh release list --limit 3`,
+   then `gh run list --workflow=pipeline-prod.yml --limit 5`. The run summary lists
+   the image digests it deployed.
+2. Dispatch **Deploy** (`deploy.yml`) with `environment=production`,
+   `image_tag=production-sha-<commit>` of the last good release (the images already
+   exist) and `image_digests` copied from that run summary. Only when no digest list
+   is available, tick `manual_redeploy`; `core.sh` then accepts the commit label or
+   a `gd.barrels.build-once=true` image. (`image_digests` and `manual_redeploy` land
+   with PR #1026; on `origin/dev` dispatch with the release tag.)
+3. Watch `gh run watch`, then run section 5, "Verify prod".
+4. Tell the owner before and after. Production deploys need the owner's go.
+
+A release made before PR #1026 has no digest list: use its release tag as on
+`origin/dev` today, and select that tag as the workflow ref when it predates the
+domain migration so its matching Compose definition is used. The `deploy-prod.yml`
+and `deploy-staging.yml` entries delegate to the same Deploy workflow.
+
+**Database.** Redeploying an older release does not undo database migrations. Keep
+each release's migrations additive (new tables and nullable or defaulted columns),
+and remove old columns or tables only in a later release, once no deployed version
+reads them. That is what lets the previous release keep running against the newer
+schema. A migration that cannot satisfy this needs a written recovery plan in the
+pull request before it merges. Do not run a migration `down` in production to roll
+back: restore from the backup named in the release notes only when data is wrong,
+with the owner (see [restore drill](restore-drill.md) and the backup gate above).
+
+**Web public settings.** A wrong site, API or Sentry value is fixed
+by correcting the GitHub environment variable and redeploying; no rebuild.
+
+### CMS migrations (Payload, database `gms_cms`)
+
+The `cms-migrate` service runs the Payload migrations in
+`apps/web/cms/src/migrations/` on every deploy that includes it. The previous CMS
+image keeps working against a newer schema when the migration only adds columns,
+tables or enum types with a default or without NOT NULL. Reverting a release
+therefore means redeploying the old image and leaving the schema as it is.
+
+| Migration | Change | Old image on new schema? | If the release is reverted |
+| --- | --- | --- | --- |
+| `20261101_172726_desk_post_types` | Adds `format` (enum, NOT NULL, default `standard`), `media_url`, `author_role` to `desk_updates`, and the matching `version_*` columns to `_desk_updates_v`, plus two enum types | Yes: old inserts omit the columns and the default applies | Leave the schema. Posts created with a non-standard format show as ordinary posts in the old image. `down` drops the columns and loses those values; use it only on staging. |
+| `20261029_150427_author_name_and_desk_cover` | Adds `author_name` (live posts) and a cover image reference (desk updates) | Yes (additive, nullable) | Leave the schema |
+| `20261029_095750_newsletter_and_social_ticks` | Adds newsletter and social tick columns | Yes (additive) | Leave the schema |
+| `20261029_023326_publication_log_and_scheduling` | Adds the `publication_log` table and `publish_at` columns | Yes (additive) | Leave the schema; scheduled posts do not publish while the old image runs |
+| `20261029_030000_duty_note_to_live_posts` | Copies duty notes into `live_posts` (data) | Yes | Copied rows stay; do not re-run |
+| `20261028_214120_gms_content_data` | Rewrites `desk_updates.kind` values (data) | Check: the old image may not recognise the new values | Restore from backup if values must go back; ask the owner |
+| `20261028_214119_gms_content_schema`, `_220706_related_links_paste`, `_223907_social_image` | Content schema, related links and social image columns | Yes (additive); `related_links_paste` also inserts rows | Leave the schema |
+
+Rows describe what each migration's SQL does; read the file before relying on a
+row for a release that changes it. Add a row to this table in the same pull
+request as every new CMS migration, including "if reverted". Never edit an applied
+migration. A destructive CMS migration needs the backup gate above and a verified
+CMS dump first (the nightly backup covers `gms_cms` only when it is provisioned).
 
 ## Dependabot pull requests
 

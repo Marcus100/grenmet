@@ -20,6 +20,8 @@ export const wxproductsPreviewProductStatus200Schema = z.discriminatedUnion(
         "morning",
         "midday",
         "evening",
+        "marine-forecast",
+        "climate-bulletin",
         "cyclone",
         "marine",
         "flood",

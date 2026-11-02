@@ -305,7 +305,7 @@ gmsdash app. Ingestion is off unless `MODELS_GUIDANCE_ENABLED`. See
 ## Public weather products
 
 `GET /api/v1/wxproducts/public/products` is anonymous. Optional `kind` filters
-morning, midday, evening, outlook, cyclone, marine, flood, thunderstorm, wind,
+morning, midday, evening, outlook, marine-forecast (daily 05:00 Marine Forecast), climate-bulletin (monthly, issued on the 15th; figures come from `eregister/public/month-summary`), cyclone, marine, flood, thunderstorm, wind,
 heat, dust, coastal, or tsunami products. An omitted or empty filter lists all kinds.
 
 Success is `{ "products": [...] }`, including an empty list when nothing is current.
@@ -339,6 +339,42 @@ Weather models use isolated metadata and never enter the main database migration
 history. Weather editor requests now use browser HTTP calls through runtime same-origin rewrites (`/_backend/weather/*`). FastAPI accepts either the existing bearer token or the opaque session cookie on private weather endpoints. An explicitly supplied invalid Authorization header never falls back to cookies.
 
 `GET /api/v1/auth/browser/session` validates the session cookie and returns `{userId, csrfToken}` with `Cache-Control: no-store`. It never returns the session secret or a bearer token. Cookie-authenticated weather mutations require `X-CSRF-Token`, bound to that session; a supplied Origin must match FastAPI's configured CORS origins. Session expiry/revocation and live account restrictions are checked on every request. Other domains remain bearer-only. Login, session rotation, logout and cross-domain SSO are unchanged in this slice. Hono is deferred.
+
+### Marine Forecast and Climate Bulletin
+
+Two product kinds were added in PR #1029 (merged). Both use the existing public
+list above, the authoring routes of `src/wxproducts` and the same
+`kind` filter, so no new route exists: `kind=marine-forecast` and
+`kind=climate-bulletin` select them. Values are strings like every other product.
+`src/baseline/product_access.py` lists both kinds for the organisation product
+access check, and the generated client enums and Zod schemas include them.
+
+**Marine Forecast** (`marine-forecast`, title "Marine Forecast"). Daily, issued at
+05:00 Grenada time. On save, FastAPI sets `area` to "Waters of Grenada, Carriacou
+and Petite Martinique", forces `issuedAt` and `validFrom` to 05:00 on the issue
+date, `validTo` to 05:00 the next day and `validity` to "05:00 today to 05:00
+tomorrow". Fields: `issuedAt`, `validFrom`, `validTo`, `validity`, `area`,
+`forecaster`, `synopsis`, wind (`windDirFrom`, `windDirTo`, `windSpeedMin`,
+`windSpeedMax`, `windGust`, `wind`), sea (`seaStateFrom`, `seaStateTo`,
+`waveHeightMin`, `waveHeightMax`, `seaState`), swell (`swellDir`, `swellPeriod`,
+`swellHeight`), `smallCraft`, `smallCraftNotes` and `outlook`. Like the land
+forecasts it may be published ahead of its issue time ("Issue time cannot be in
+the future" does not apply).
+
+**Climate Bulletin** (`climate-bulletin`, title "Climate Bulletin"). Monthly,
+issued on the 15th, reviewing the month before. `month` is `YYYY-MM`; when empty
+it defaults to the month before the issue date, and a month later than that is
+rejected ("Month reviewed: cannot be later than the month before the issue date";
+a malformed value gets "enter the month as YYYY-MM"). On save `validFrom` is the
+issue time, `validTo` is 23:59 on the day before the next 15th after issue, and
+`validity` is "Until the next monthly bulletin". Fields: `issuedAt`, `validFrom`,
+`validTo`, `validity`, `area`, `forecaster`, `month`, `summary`, `rainfallComment`,
+`temperatureComment`, `notableEvents` and `outlook`. The comments are text written
+by the forecaster; the **figures** shown beside them (rainfall, rain days,
+heavy-rain days, longest dry spell and maximum and minimum temperature) are not stored in the product: the GMS monthly climate page and
+the GAA Admin climate desk read them from `GET /api/v1/eregister/public/month-summary?month=YYYY-MM`,
+documented under "Public month summary" in the eRegister section, which also
+returns mean wind, prevailing direction and maximum gust (not shown on the climate pages yet).
 
 ## Weather authoring
 

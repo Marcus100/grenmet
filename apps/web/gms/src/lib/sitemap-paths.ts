@@ -1,3 +1,4 @@
+import { enabledLocations, locationHref } from "@/lib/locations";
 import { FOOTER_GROUP, NAV_SECTIONS, sectionLinks } from "@/lib/nav-sections";
 
 /**
@@ -23,6 +24,13 @@ export function sitemapPaths(): string[] {
   for (const link of links) {
     if (!(link.planned || NOT_INDEXED.has(link.href))) {
       paths.add(link.href);
+    }
+  }
+  // Each enabled place's own home and today pages (`/carriacou`, `/carriacou/weather`).
+  for (const place of enabledLocations()) {
+    if (!place.isDefault) {
+      paths.add(locationHref(place));
+      paths.add(locationHref(place, "/weather"));
     }
   }
   return [...paths];

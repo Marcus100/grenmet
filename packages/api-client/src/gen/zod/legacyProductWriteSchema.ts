@@ -16,6 +16,7 @@ export const legacyProductWriteSchema = z.strictObject({
   changeSummary: z.string().max(1000),
   reviewed: z.boolean(),
   kind: z.enum([
+    "climate-bulletin",
     "coastal",
     "cyclone",
     "dust",
@@ -23,6 +24,7 @@ export const legacyProductWriteSchema = z.strictObject({
     "flood",
     "heat",
     "marine",
+    "marine-forecast",
     "midday",
     "morning",
     "thunderstorm",

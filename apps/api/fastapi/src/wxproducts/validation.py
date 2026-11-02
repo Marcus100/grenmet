@@ -3,7 +3,7 @@
 import json
 import math
 import re
-from datetime import UTC, datetime, timedelta
+from datetime import UTC, date, datetime, timedelta
 from pathlib import Path
 from uuid import UUID
 
@@ -25,6 +25,13 @@ from .schemas import (
 )
 
 ISSUE_HOURS = {"morning": 7, "midday": 12, "evening": 18}
+# Scheduled products outside the land-forecast set: drafted ahead of the
+# issue time, so a future issue time may be published.
+SCHEDULED_KINDS = {*ISSUE_HOURS, "marine-forecast"}
+MARINE_FORECAST_AREA = "Waters of Grenada, Carriacou and Petite Martinique"
+MARINE_FORECAST_VALIDITY = "05:00 today to 05:00 tomorrow"
+CLIMATE_ISSUE_DAY = 15
+MONTH = re.compile(r"^\d{4}-(0[1-9]|1[0-2])$")
 
 
 class FieldRule(BaseModel):
@@ -176,6 +183,10 @@ def normalize(
         for name, text in composed.items():
             if parameter_key(prefix, name) in allowed:
                 result[parameter_key(prefix, name)] = text
+    if kind == "marine-forecast":
+        return _marine_schedule(result)
+    if kind == "climate-bulletin":
+        return _climate_schedule(result)
     if kind not in ISSUE_HOURS:
         return result
     result["area"] = FORECAST_AREA
@@ -201,6 +212,52 @@ def normalize(
     if kind == "evening":
         for day in range(1, 5):
             result[f"day{day}Date"] = (issued + timedelta(days=day)).date().isoformat()
+    return result
+
+
+def _marine_schedule(result: dict[str, str]) -> dict[str, str]:
+    """Marine Forecast: issued 05:00 Grenada, valid 05:00 to 05:00 next day."""
+    result["area"] = MARINE_FORECAST_AREA
+    try:
+        issued = local_time(f"{result.get('issuedAt', '')[:10]}T05:00")
+    except ValueError, OverflowError:
+        return result
+    result.update(
+        issuedAt=issued.strftime("%Y-%m-%dT%H:%M"),
+        validFrom=issued.strftime("%Y-%m-%dT%H:%M"),
+        validTo=(issued + timedelta(days=1)).strftime("%Y-%m-%dT%H:%M"),
+        validity=MARINE_FORECAST_VALIDITY,
+    )
+    return result
+
+
+def previous_month(day: date) -> str:
+    first = day.replace(day=1) - timedelta(days=1)
+    return first.strftime("%Y-%m")
+
+
+def next_climate_issue(day: date) -> date:
+    """The 15th after ``day`` (the following month's 15th from the 15th on)."""
+    if day.day < CLIMATE_ISSUE_DAY:
+        return day.replace(day=CLIMATE_ISSUE_DAY)
+    following = (day.replace(day=28) + timedelta(days=4)).replace(day=1)
+    return following.replace(day=CLIMATE_ISSUE_DAY)
+
+
+def _climate_schedule(result: dict[str, str]) -> dict[str, str]:
+    """Climate Bulletin: reviews the month before issue, valid until the next 15th."""
+    try:
+        issued = local_time(result.get("issuedAt", ""))
+    except ValueError, OverflowError:
+        return result
+    if not MONTH.fullmatch(result.get("month", "").strip()):
+        result["month"] = previous_month(issued.date())
+    end = next_climate_issue(issued.date() + timedelta(days=1))
+    result.update(
+        validFrom=issued.strftime("%Y-%m-%dT%H:%M"),
+        validTo=f"{end.isoformat()}T23:59",
+        validity="Until the next monthly bulletin",
+    )
     return result
 
 
@@ -319,6 +376,20 @@ def validate(body: ProductWrite, *, now: datetime | None = None) -> list[str]:
         errors.append("Validity must end after the issue time")
     if values.get("nextUpdate") and timestamp(values["nextUpdate"]) <= issue:
         errors.append("Next update must follow the issue time")
+    if (
+        kind == "climate-bulletin"
+        and values.get("month")
+        and not MONTH.fullmatch(values["month"].strip())
+    ):
+        errors.append("Month reviewed: enter the month as YYYY-MM")
+    if kind == "climate-bulletin" and MONTH.fullmatch(values.get("month", "").strip()):
+        issued_day = (
+            local_time(values["issuedAt"]).date() if math.isfinite(issue) else None
+        )
+        if issued_day and values["month"].strip() > previous_month(issued_day):
+            errors.append(
+                "Month reviewed: cannot be later than the month before the issue date"
+            )
     if kind == "evening" and publish and math.isfinite(issue):
         for day in range(1, 5):
             expected = (
@@ -349,7 +420,7 @@ def validate(body: ProductWrite, *, now: datetime | None = None) -> list[str]:
         instant = (now or datetime.now(UTC)).timestamp()
         if end <= instant:
             errors.append("An expired product cannot be published")
-        if kind not in ISSUE_HOURS and issue > instant:
+        if kind not in SCHEDULED_KINDS and issue > instant:
             errors.append("Issue time cannot be in the future")
         if body.expectedRevision > 0 and not body.changeSummary:
             errors.append("Describe this issue or revision")

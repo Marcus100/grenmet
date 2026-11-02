@@ -23,7 +23,8 @@ promotion; the user merges them and publishes the release. See the
 [release runbook](operations/release-runbook.md) for the full sequence.
 
 Images are built once, when a change lands on `dev`, and promoted by digest
-(issue #1019):
+(issue #1019; full description and recovery steps in the
+[release runbook](operations/release-runbook.md#build-once-promote-by-digest)):
 
 - A push to `dev` runs `dev-images.yml`: it builds, smoke-tests and scans only
   the images the change touches and tags every release image `tree-<git tree>`;
@@ -58,6 +59,10 @@ Images are built once, when a change lands on `dev`, and promoted by digest
   `SENTRY_DSN_PRODUCTION` and `SENTRY_DSN_STAGING`. A dev web build fails when
   the catalogue routes the app to Sentry but the DSN is empty (admin is not
   routed yet and is skipped).
+- Server deploy speed (lands with PR #1020): `core.sh` pulls only images missing
+  on the host (`PULL_PARALLEL`, default 4) and, with `ROLLING_DEPLOY=1`, rolls
+  routed services in batches (`ROLLOUT_PARALLEL`, default 4 on staging, 2 on
+  production).
 - A manual **Deploy** dispatch redeploys existing images; it does not build them.
   Supply an explicit image tag. The **Deploy to Production** entry point requires it.
 

@@ -280,11 +280,10 @@ lime `#b9ee63`). All text clears AA on every dark surface; the input border
 clears 3:1. Kit hues, navy fills, the sky gradient and hazard fills do not
 change; hazard foregrounds stay dark ink. `.gm-paper` keeps printable products
 light. Headings use `text-gm-heading` (navy on light, white on dark), never
-`text-gm-navy`, which stays for text on lime and fills. Today the theme
-follows the device (`system`) with a Light / Dark / Auto toggle
-(`@barrelsgd/theme`). Decided, not yet built (#1001, owner 1 Nov 2026): light by
-default and a two-state Light / Dark toggle that no longer follows the device;
-until then `apps/web/gms/AGENTS.md` describes the code as it is.
+`text-gm-navy`, which stays for text on lime and fills. The site opens in light
+and has a two-state Light / Dark toggle (`ThemeToggle`, `@barrelsgd/theme`); it
+does not follow the device and has no Auto choice (owner, 1 Nov 2026, #1001). A
+visitor who stored the old Auto choice moves to light.
 
 **Gradient rule:** one gradient per page, only behind the home hero; small text on it
 always sits on `bg-gm-scrim`; hazard colours never sit on the gradient (the warning
