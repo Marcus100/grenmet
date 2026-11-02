@@ -6,18 +6,13 @@ import { NAV_SECTIONS } from "@/lib/nav-sections";
 
 // The theme toggle needs the preferences provider; it has its own test.
 vi.mock("@/components/theme-toggle", () => ({ ThemeToggle: () => null }));
-// The account button fetches /auth/me; its own package tests cover that.
-vi.mock("@barrelsgd/ui/components/account-button", () => ({
-  AccountButton: ({ appLabel }: { appLabel: string }) => (
-    <button type="button">Sign in to {appLabel}</button>
-  ),
-}));
 
 const [FIRST_SECTION, SECOND_SECTION] = NAV_SECTIONS;
 if (!(FIRST_SECTION && SECOND_SECTION)) {
   throw new Error("NAV_SECTIONS needs at least two sections");
 }
 const ALERTS_WITH_STATUS = /^Alerts\s*No active alerts/;
+const SIGN_IN = /^Sign in/;
 
 describe("NavDrawer", () => {
   it("renders nothing while closed", () => {
@@ -27,34 +22,10 @@ describe("NavDrawer", () => {
     expect(container).toBeEmptyDOMElement();
   });
 
-  it("hides the whole account block by default", () => {
-    render(<NavDrawer accountLabel="Weather" onClose={() => undefined} open />);
-    expect(
-      screen.queryByRole("button", { name: "Sign in to Weather" })
-    ).not.toBeInTheDocument();
+  it("has no account block and no sign-in button", () => {
+    render(<NavDrawer onClose={() => undefined} open />);
     expect(screen.queryByText("Your account")).not.toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: "Sign in" })).toBeNull();
-  });
-
-  it("offers sign-in when the switch is on and an account is configured", () => {
-    render(
-      <NavDrawer
-        accountLabel="Weather"
-        onClose={() => undefined}
-        open
-        showSignIn
-      />
-    );
-    expect(
-      screen.getByRole("button", { name: "Sign in to Weather" })
-    ).toBeInTheDocument();
-    expect(screen.queryByText("Appearance")).not.toBeInTheDocument();
-  });
-
-  it("shows a static sign-in when the switch is on and no account is configured", () => {
-    render(<NavDrawer onClose={() => undefined} open showSignIn />);
-    expect(screen.getByRole("button", { name: "Sign in" })).toBeInTheDocument();
-    expect(screen.queryByText("Coming soon")).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: SIGN_IN })).toBeNull();
   });
 
   it("lists every top-level section", () => {

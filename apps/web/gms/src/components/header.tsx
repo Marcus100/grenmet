@@ -1,7 +1,6 @@
 "use client";
 
 import { Logo } from "@barrelsgd/gms/components/logo";
-import { AccountButton } from "@barrelsgd/ui/components/account-button";
 import { AnchorIcon, BellIcon, PlaneIcon } from "lucide-react";
 import Link from "next/link";
 import { useRef, useState } from "react";
@@ -23,14 +22,10 @@ import {
 import { cn } from "@/lib/utils";
 
 interface HeaderProps {
-  /** Shows "Sign in" with the Barrels account (ADR-0017) when configured. */
-  accountLabel?: string;
   /** The warning feed; a promise streams in without holding up the page. */
   alerts: AlertsSource;
   /** The GMS outlook's Green counts, read separately so warnings never wait on it. */
   green: GreenSource;
-  /** Shows "Sign in" (WEATHER_SHOW_SIGN_IN). Hidden unless the switch is on. */
-  showSignIn?: boolean;
 }
 
 const UTILITY_LINKS = [
@@ -43,12 +38,7 @@ const UTILITY_LINKS = [
  * Bold sky masthead: warning ribbon (only when there is something to say),
  * a navy utility bar and main bar, the mega menu, and on mobile the drawer.
  */
-export function Header({
-  accountLabel,
-  alerts,
-  green,
-  showSignIn = false,
-}: HeaderProps) {
+export function Header({ alerts, green }: HeaderProps) {
   const [navOpen, setNavOpen] = useState(false);
   const [menuTop, setMenuTop] = useState(0);
   const headerRef = useRef<HTMLElement>(null);
@@ -122,13 +112,6 @@ export function Header({
           <div className="flex shrink-0 items-center gap-1">
             <SiteSearch />
             <ThemeToggle />
-            {showSignIn && accountLabel ? (
-              // The `dark` scope gives the outline button navy-safe tokens.
-              // Phones and tablets sign in from the drawer instead.
-              <div className="dark hidden lg:block">
-                <AccountButton appLabel={accountLabel} />
-              </div>
-            ) : null}
             <WithStatus
               alerts={alerts}
               fallback={
@@ -173,12 +156,10 @@ export function Header({
       </header>
 
       <NavDrawer
-        accountLabel={accountLabel}
         alerts={alerts}
         green={green}
         onClose={() => setNavOpen(false)}
         open={navOpen}
-        showSignIn={showSignIn}
         top={menuTop}
       />
     </>

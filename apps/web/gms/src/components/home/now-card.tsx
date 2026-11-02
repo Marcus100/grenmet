@@ -42,9 +42,12 @@ function Numeral({
  */
 function sourceLine(
   weather: WeatherSnapshot,
-  station: string,
+  station: string | null,
   now?: Date
 ): string {
+  if (station === null) {
+    return "No observing station here";
+  }
   const current = weather.current;
   if (current) {
     const time = isOtherGrenadaDay(current.observedAt, now)
@@ -75,7 +78,8 @@ export function NowSummary({
   compact?: boolean;
   /** Clock for the stale-reading line; defaults to the render time. */
   now?: Date;
-  station: string;
+  /** Observing station name; null when the place has none. */
+  station: string | null;
   weather: WeatherSnapshot;
 }) {
   const current = weather.current;

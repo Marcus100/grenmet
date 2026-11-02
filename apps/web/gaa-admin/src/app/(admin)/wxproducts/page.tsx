@@ -9,7 +9,13 @@ const desks = [
     href: "/wxproducts/fcsts",
     title: "Forecasts",
     description:
-      "Prepare morning, midday and evening forecasts. Review saved revisions, publish issues and download PDFs.",
+      "Prepare morning, midday and evening forecasts and the 05:00 Marine Forecast. Review saved revisions, publish issues and download PDFs.",
+  },
+  {
+    href: "/wxproducts/climate",
+    title: "Climate Bulletin",
+    description:
+      "Write the monthly Climate Bulletin, issued on the 15th for the previous month. Figures come from the register.",
   },
   {
     href: "/wxproducts/nhc",

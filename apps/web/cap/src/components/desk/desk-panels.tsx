@@ -189,3 +189,31 @@ export function SavedAlert({ alert }: { alert: CapAlertPublic }) {
     </div>
   );
 }
+
+/** The account may use the desk but not this screen. Says so; never hides it silently. */
+export function DeskForbidden({
+  permission,
+  what,
+}: {
+  permission: string;
+  what: string;
+}) {
+  return (
+    <section className="space-y-3 py-10" role="alert">
+      <h1 className="font-semibold text-2xl">No access to {what}</h1>
+      <p className="text-muted-foreground">
+        This screen needs the {permission} permission. Ask a GMS administrator
+        for it. Nothing here has been changed.
+      </p>
+    </section>
+  );
+}
+
+/** Shown while a desk screen's server data is still arriving. */
+export function DeskLoading({ what }: { what: string }) {
+  return (
+    <p className="py-10 text-muted-foreground" role="status">
+      Loading {what}…
+    </p>
+  );
+}

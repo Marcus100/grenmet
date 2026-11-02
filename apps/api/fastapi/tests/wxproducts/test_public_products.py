@@ -51,6 +51,10 @@ def snapshot(kind: ProductKind = "marine", **values: str):
         ("evening", "2026-09-13T11:00:00Z", False),
         ("marine", "2026-09-08T09:00:00Z", True),
         ("marine", "2026-09-09T09:00:00Z", False),
+        ("marine-forecast", "2026-09-08T08:59:59Z", False),
+        ("marine-forecast", "2026-09-08T09:00:00Z", True),
+        ("marine-forecast", "2026-09-09T08:59:59Z", True),
+        ("marine-forecast", "2026-09-09T09:00:00Z", False),
     ],
 )
 def test_validity_boundaries(kind: ProductKind, instant: str, expected: bool) -> None:
@@ -268,3 +272,14 @@ async def test_one_product_unconfigured_is_unavailable(
     response = await async_client.get(f"/api/v1/wxproducts/public/products/{uuid4()}")
     assert response.status_code == 503
     assert response.headers["cache-control"] == "no-store"
+
+
+@pytest.mark.parametrize("kind", ["marine-forecast", "climate-bulletin"])
+async def test_new_kinds_are_listed_and_filterable(
+    weather_db: AsyncSession, kind: ProductKind
+) -> None:
+    product = snapshot(kind)
+    await insert_product(weather_db, product)
+    now = datetime(2026, 9, 8, 12, tzinfo=UTC)
+    assert await service.list_published_products(weather_db, kind, now=now) == [product]
+    assert product in await service.list_published_products(weather_db, None, now=now)

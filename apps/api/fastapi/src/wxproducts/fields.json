@@ -3594,6 +3594,352 @@
       "requiredOnPublish": true
     }
   ],
+  "marine-forecast": [
+    {
+      "section": "Issue details",
+      "key": "issuedAt",
+      "label": "Issue date and time (Grenada)",
+      "type": "datetime-local",
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Issue details",
+      "key": "validFrom",
+      "label": "Valid from (Grenada)",
+      "type": "datetime-local",
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Issue details",
+      "key": "validTo",
+      "label": "Valid until (Grenada)",
+      "type": "datetime-local",
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Issue details",
+      "key": "validity",
+      "label": "Validity description",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Issue details",
+      "key": "area",
+      "label": "Area covered",
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Issue details",
+      "key": "forecaster",
+      "label": "Forecaster on duty",
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Synopsis",
+      "key": "synopsis",
+      "label": "Synopsis",
+      "type": "textarea",
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Winds",
+      "key": "windDirFrom",
+      "label": "Direction from",
+      "options": [
+        "N",
+        "NNE",
+        "NE",
+        "ENE",
+        "E",
+        "ESE",
+        "SE",
+        "SSE",
+        "S",
+        "SSW",
+        "SW",
+        "WSW",
+        "W",
+        "WNW",
+        "NW",
+        "NNW",
+        "Variable"
+      ],
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Winds",
+      "key": "windDirTo",
+      "label": "Direction to",
+      "options": [
+        "N",
+        "NNE",
+        "NE",
+        "ENE",
+        "E",
+        "ESE",
+        "SE",
+        "SSE",
+        "S",
+        "SSW",
+        "SW",
+        "WSW",
+        "W",
+        "WNW",
+        "NW",
+        "NNW",
+        "Variable"
+      ],
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Winds",
+      "key": "windSpeedMin",
+      "label": "Speed from (kt)",
+      "type": "number",
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Winds",
+      "key": "windSpeedMax",
+      "label": "Speed to (kt)",
+      "type": "number",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Winds",
+      "key": "windGust",
+      "label": "Gusts (kt)",
+      "type": "number",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Winds",
+      "key": "wind",
+      "label": "Wind summary",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Seas and swell",
+      "key": "seaStateFrom",
+      "label": "Sea state from",
+      "options": [
+        "Calm (glassy)",
+        "Calm (rippled)",
+        "Smooth",
+        "Slight",
+        "Moderate",
+        "Rough",
+        "Very rough",
+        "High",
+        "Very high",
+        "Phenomenal"
+      ],
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Seas and swell",
+      "key": "seaStateTo",
+      "label": "Sea state to",
+      "options": [
+        "Calm (glassy)",
+        "Calm (rippled)",
+        "Smooth",
+        "Slight",
+        "Moderate",
+        "Rough",
+        "Very rough",
+        "High",
+        "Very high",
+        "Phenomenal"
+      ],
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Seas and swell",
+      "key": "waveHeightMin",
+      "label": "Waves from (m)",
+      "type": "number",
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Seas and swell",
+      "key": "waveHeightMax",
+      "label": "Waves to (m)",
+      "type": "number",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Seas and swell",
+      "key": "swellDir",
+      "label": "Swell direction",
+      "options": [
+        "N",
+        "NNE",
+        "NE",
+        "ENE",
+        "E",
+        "ESE",
+        "SE",
+        "SSE",
+        "S",
+        "SSW",
+        "SW",
+        "WSW",
+        "W",
+        "WNW",
+        "NW",
+        "NNW",
+        "Variable"
+      ],
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Seas and swell",
+      "key": "swellPeriod",
+      "label": "Swell period (s)",
+      "type": "number",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Seas and swell",
+      "key": "swellHeight",
+      "label": "Swell height (m)",
+      "type": "number",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Seas and swell",
+      "key": "seaState",
+      "label": "Marine summary",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Small craft",
+      "key": "smallCraft",
+      "label": "Small craft advice",
+      "options": [
+        "No advisory",
+        "Small craft caution",
+        "Small craft advisory"
+      ],
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Small craft",
+      "key": "smallCraftNotes",
+      "label": "Advice to small craft operators",
+      "type": "textarea",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Outlook",
+      "key": "outlook",
+      "label": "Outlook (next 24 hours)",
+      "type": "textarea",
+      "required": true,
+      "requiredOnPublish": true
+    }
+  ],
+  "climate-bulletin": [
+    {
+      "section": "Issue details",
+      "key": "issuedAt",
+      "label": "Issue date and time (Grenada)",
+      "type": "datetime-local",
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Issue details",
+      "key": "validFrom",
+      "label": "Valid from (Grenada)",
+      "type": "datetime-local",
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Issue details",
+      "key": "validTo",
+      "label": "Valid until (Grenada)",
+      "type": "datetime-local",
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Issue details",
+      "key": "validity",
+      "label": "Validity description",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Issue details",
+      "key": "area",
+      "label": "Area covered",
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Issue details",
+      "key": "forecaster",
+      "label": "Forecaster on duty",
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Month",
+      "key": "month",
+      "label": "Month reviewed (YYYY-MM)",
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Month in review",
+      "key": "summary",
+      "label": "Summary of the month",
+      "type": "textarea",
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Month in review",
+      "key": "rainfallComment",
+      "label": "Rainfall",
+      "type": "textarea",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Month in review",
+      "key": "temperatureComment",
+      "label": "Temperature",
+      "type": "textarea",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Month in review",
+      "key": "notableEvents",
+      "label": "Notable events",
+      "type": "textarea",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Outlook",
+      "key": "outlook",
+      "label": "Outlook for the coming months",
+      "type": "textarea",
+      "requiredOnPublish": false
+    }
+  ],
   "cyclone": [
     {
       "section": "Issue details",

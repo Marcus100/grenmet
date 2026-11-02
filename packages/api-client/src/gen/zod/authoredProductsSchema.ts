@@ -15,6 +15,7 @@ export const authoredProductsSchema = z.object({
       }),
       legacyStoredProductSchema.extend({
         kind: z.enum([
+          "climate-bulletin",
           "coastal",
           "cyclone",
           "dust",
@@ -22,6 +23,7 @@ export const authoredProductsSchema = z.object({
           "flood",
           "heat",
           "marine",
+          "marine-forecast",
           "midday",
           "morning",
           "thunderstorm",

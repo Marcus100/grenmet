@@ -8,7 +8,6 @@ import { Footer } from "@/components/footer";
 import { Header } from "@/components/header";
 import { MotionProvider } from "@/components/motion-provider";
 import { UnitsBootScript } from "@/components/units-boot-script";
-import { APP_LABEL, signInEnabled, signInVisible } from "@/lib/auth-config";
 import { fetchActiveAlerts } from "@/lib/cap";
 import { fetchGreenStatus } from "@/lib/green-status";
 import "./globals.css";
@@ -32,8 +31,8 @@ const barlowCondensed = Barlow_Condensed({
   display: "swap",
 });
 
-/** The public site follows the device theme until someone picks one. */
-const THEME_DEFAULTS = { theme_mode: "system" } as const;
+/** The public site opens in light until a visitor switches to dark (#1001). */
+const THEME_DEFAULTS = { theme_mode: "light" } as const;
 
 export const metadata = SITE_METADATA;
 
@@ -73,12 +72,7 @@ export default function RootLayout({
             themePreset={PREFERENCE_DEFAULTS.theme_preset}
           >
             <MotionProvider>
-              <Header
-                accountLabel={signInEnabled() ? APP_LABEL : undefined}
-                alerts={alerts}
-                green={green}
-                showSignIn={signInVisible()}
-              />
+              <Header alerts={alerts} green={green} />
               <main
                 className="flex-1 outline-none"
                 id={MAIN_CONTENT_ID}
