@@ -65,12 +65,12 @@ const hidden = (sections: string[]): HomeContent => ({
   },
 });
 
-const READ_ARTICLE = /^Read the article: /;
-const DUTY_FORECASTER = /Duty forecaster ·/;
-const WATCH_ON_YOUTUBE = /^Watch on YouTube/;
-const ISSUED_UNAVAILABLE = /Issued forecasts cannot be retrieved right now/;
-const NO_FORECAST = /No public forecast is in effect right now/;
-const BASED_ON = /^Based on/;
+const READ_ARTICLE = /^Read the article: /u;
+const DUTY_FORECASTER = /Duty forecaster ·/u;
+const WATCH_ON_YOUTUBE = /^Watch on YouTube/u;
+const ISSUED_UNAVAILABLE = /Issued forecasts cannot be retrieved right now/u;
+const NO_FORECAST = /No public forecast is in effect right now/u;
+const BASED_ON = /^Based on/u;
 
 it("labels a post Today, Yesterday or by date, in Grenada time", () => {
   const post = "2026-10-28T02:00:00Z"; // 27 Oct, 22:00 in Grenada

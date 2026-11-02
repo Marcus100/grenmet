@@ -26,7 +26,7 @@ const SECURITY = "https://auth.example/security";
 const MFA_DETAIL =
   "Sign in again with your authenticator or recovery code before using privileged staff tools";
 const NO_ACCESS_TEXT = "No access to tax tables and deductions";
-const MFA_TEXT = /Two-step verification is needed/;
+const MFA_TEXT = /Two-step verification is needed/u;
 const ALL: PayrollAccess = {
   canReadAmounts: true,
   canManageRates: true,
@@ -93,13 +93,13 @@ function renderView(access: PayrollAccess, view: TablesData) {
   );
 }
 
-const CREATED_BY = /Created by Synthetic Creator, not confirmed/;
-const BANDS = /Bands: 10%, 28%/;
+const CREATED_BY = /Created by Synthetic Creator, not confirmed/u;
+const BANDS = /Bands: 10%, 28%/u;
 const CREATED_AND_CONFIRMED =
-  /Created by Synthetic Creator, confirmed by Synthetic Confirmer/;
-const ANOTHER_STAFF = /Another staff member/;
-const NAME_NOT_AVAILABLE_TEXT = /Created by Name not available, not confirmed/;
-const NOT_RECORDED_TEXT = /Created by Not recorded, not confirmed/;
+  /Created by Synthetic Creator, confirmed by Synthetic Confirmer/u;
+const ANOTHER_STAFF = /Another staff member/u;
+const NAME_NOT_AVAILABLE_TEXT = /Created by Name not available, not confirmed/u;
+const NOT_RECORDED_TEXT = /Created by Not recorded, not confirmed/u;
 
 const server = setupServer();
 beforeAll(() => {

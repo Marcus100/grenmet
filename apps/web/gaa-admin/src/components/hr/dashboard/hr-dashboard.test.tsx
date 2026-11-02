@@ -6,9 +6,9 @@ import { HrDashboard } from "./hr-dashboard";
 // Home is one role-aware page: no Staff / Admin toggle, and the approvals
 // callout appears only for people who can approve. The signed-in user feeds
 // the greeting, so the hook is mocked.
-const OTHER_FORMS = /Other forms/;
-const OPEN_APPROVALS = /Open approvals/;
-const NEEDS_APPROVAL = /needs your approval/;
+const OTHER_FORMS = /Other forms/u;
+const OPEN_APPROVALS = /Open approvals/u;
+const NEEDS_APPROVAL = /needs your approval/u;
 
 const mockUser = {
   email: "aiyana@gov.gd",

@@ -55,11 +55,11 @@ function LightboxContent({ image }: { image: WeatherImage }) {
           {image.name || "Untitled"}
         </DialogTitle>
         <DialogDescription>
-          {image.spiderName?.replace(/_/g, " ") ?? "Unknown source"}
+          {image.spiderName?.replace(/_/gu, " ") ?? "Unknown source"}
         </DialogDescription>
       </DialogHeader>
 
-      <div className="relative min-h-0 flex-1 rounded-lg bg-muted">
+      <div className="bg-muted relative min-h-0 flex-1 rounded-lg">
         <Image
           alt={image.name || "Weather image"}
           className="rounded-md object-contain"

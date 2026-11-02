@@ -15,9 +15,9 @@ export const metadata: Metadata = {
 function TicketRow({ ticket }: { ticket: MyTicket }) {
   const used = ticket.admittedAt !== null;
   return (
-    <li className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-border bg-card p-4">
+    <li className="border-border bg-card flex flex-wrap items-center justify-between gap-3 rounded-2xl border p-4">
       <div className="min-w-0 space-y-1">
-        <p className="font-display font-semibold text-heading-sm">
+        <p className="font-display text-heading-sm font-semibold">
           {ticket.listingTitle}
         </p>
         <p className="text-body text-muted-foreground">
@@ -55,7 +55,7 @@ export default async function MyTicketsPage() {
   return (
     <div className="space-y-8">
       <header className="space-y-1">
-        <h1 className="font-bold font-display text-heading-base tracking-tight">
+        <h1 className="font-display text-heading-base font-bold tracking-tight">
           My tickets
         </h1>
         <p className="text-body text-muted-foreground">
@@ -75,7 +75,7 @@ export default async function MyTicketsPage() {
 
       {upcoming.length > 0 ? (
         <section className="space-y-3">
-          <h2 className="font-display font-semibold text-heading-sm">
+          <h2 className="font-display text-heading-sm font-semibold">
             Upcoming
           </h2>
           <ul className="space-y-3">
@@ -88,7 +88,7 @@ export default async function MyTicketsPage() {
 
       {past.length > 0 ? (
         <section className="space-y-3">
-          <h2 className="font-display font-semibold text-heading-sm">
+          <h2 className="font-display text-heading-sm font-semibold">
             Past and cancelled
           </h2>
           <ul className="space-y-3">

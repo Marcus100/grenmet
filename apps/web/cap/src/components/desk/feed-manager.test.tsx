@@ -25,11 +25,11 @@ const FEED: CapFeedImportPublic = {
   url: "https://partner.example.test/cap.xml",
 };
 
-const SAVE_FEED = /save feed/i;
-const DELETE_BUTTON = /delete feed/i;
+const SAVE_FEED = /save feed/iu;
+const DELETE_BUTTON = /delete feed/iu;
 const CONFIRM_DELETE = "Delete feed";
 const NO_FEEDS = "No feed sources configured.";
-const NOT_CHECKED = /Not yet reported/;
+const NOT_CHECKED = /Not yet reported/u;
 
 beforeEach(() => {
   vi.clearAllMocks();

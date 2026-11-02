@@ -51,14 +51,14 @@ const claimFiles = [
   ...authoritativeFiles,
 ];
 const prohibitedClaims = [
-  /\bGMS\s+(?:is|remains)\s+(?:a|the)\s+Barrels\s+product\b/i,
-  /\bGMS\s+(?:is|remains)\s+one\s+product\s+within\s+Barrels\b/i,
-  /\bGMS\s+product\s+itself\s+continues\b/i,
-  /\bGMS[\s\S]{0,160}\blargest\s+product\s+in\s+the\s+portfolio\b/i,
+  /\bGMS\s+(?:is|remains)\s+(?:a|the)\s+Barrels\s+product\b/iu,
+  /\bGMS\s+(?:is|remains)\s+one\s+product\s+within\s+Barrels\b/iu,
+  /\bGMS\s+product\s+itself\s+continues\b/iu,
+  /\bGMS[\s\S]{0,160}\blargest\s+product\s+in\s+the\s+portfolio\b/iu,
   // Barrels Human Resource is a Barrels product (2026-10-18); the GAA staff
   // platform remains client delivery and must not be described as that product.
-  /\bGAA\s+staff\s+(?:platform|portal)\s+(?:is|remains|becomes)\s+(?:a|the)\s+Barrels\b/i,
-  /\badmin-gms[\s\S]{0,200}\b(?:folded|renamed)[\s\S]{0,80}\bGMS\s+Dashboard\b/i,
+  /\bGAA\s+staff\s+(?:platform|portal)\s+(?:is|remains|becomes)\s+(?:a|the)\s+Barrels\b/iu,
+  /\badmin-gms[\s\S]{0,200}\b(?:folded|renamed)[\s\S]{0,80}\bGMS\s+Dashboard\b/iu,
 ];
 
 const parseArguments = (args) => {

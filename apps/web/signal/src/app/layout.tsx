@@ -54,7 +54,7 @@ export default function RootLayout({
       lang="en"
       style={{ colorScheme: "light" }}
     >
-      <body className="min-h-screen bg-background font-sans text-foreground antialiased">
+      <body className="bg-background text-foreground min-h-screen font-sans antialiased">
         <PostHogProvider app="signal" privacyHref="/privacy">
           <SkipLink />
           <SiteHeader accountLabel={signInEnabled() ? APP_LABEL : undefined} />

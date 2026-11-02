@@ -17,7 +17,7 @@ interface CodeFieldProps {
   readonly name: string;
 }
 
-const DIGITS = /^\d+$/;
+const DIGITS = /^\d+$/u;
 
 export function CodeField({
   allowRecovery = false,
@@ -66,7 +66,7 @@ export function CodeField({
       )}
       {allowRecovery ? (
         <button
-          className="font-medium text-(--auth-accent) text-body-sm underline-offset-4 hover:underline"
+          className="text-body-sm font-medium text-(--auth-accent) underline-offset-4 hover:underline"
           onClick={() => setUseRecovery((recovery) => !recovery)}
           type="button"
         >

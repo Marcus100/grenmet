@@ -17,7 +17,7 @@ vi.mock("@/components/desk/area-picker", () => ({ AreaPicker: () => null }));
 
 import { gmsCatalogueFixture } from "@/test/cap-gms-catalogue.fixture";
 
-const NO_ACCESS_TEXT = /No access to save predefined areas/;
+const NO_ACCESS_TEXT = /No access to save predefined areas/u;
 
 import Loading from "./loading";
 import AreasPage from "./page";

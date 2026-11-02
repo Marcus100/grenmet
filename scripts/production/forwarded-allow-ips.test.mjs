@@ -6,12 +6,12 @@ const read = (path) => readFileSync(new URL(path, import.meta.url), "utf8");
 const compose = read("../../infra/docker/docker-compose.deploy.yml");
 const dockerfile = read("../../apps/api/fastapi/Dockerfile.prod");
 
-const CIDR = /^\d{1,3}(?:\.\d{1,3}){3}\/\d{1,2}$/;
-const FLAG = /"--forwarded-allow-ips",\s*"([^"]+)"/;
-const NETWORK = /^ {2}grenmet:\n((?: {4}.*\n|\s*\n)+)/m;
-const API_SERVICE = /^ {2}api:\n([\s\S]*?)^ {2}\S/m;
-const GRENMET_NETWORK = /networks:\n\s+- grenmet/;
-const SUBNET = /^ {8}- subnet: (\S+)\s*$/m;
+const CIDR = /^\d{1,3}(?:\.\d{1,3}){3}\/\d{1,2}$/u;
+const FLAG = /"--forwarded-allow-ips",\s*"([^"]+)"/u;
+const NETWORK = /^ {2}grenmet:\n((?: {4}.*\n|\s*\n)+)/mu;
+const API_SERVICE = /^ {2}api:\n([\s\S]*?)^ {2}\S/mu;
+const GRENMET_NETWORK = /networks:\n\s+- grenmet/u;
+const SUBNET = /^ {8}- subnet: (\S+)\s*$/mu;
 
 function flagValue() {
   const match = dockerfile.match(FLAG);

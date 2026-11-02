@@ -46,7 +46,7 @@ interface Props {
 }
 
 type PredictionMap = Record<ConstituencyCode, UserRating>;
-const HASH = /^#map=([a-j]{15})$/;
+const HASH = /^#map=([a-j]{15})$/u;
 
 /** Fill for a rating: full party colour for Solid, lighter for Likely, tint for Lean. */
 export function ratingStyle(rating: UserRating): React.CSSProperties {
@@ -145,7 +145,7 @@ export function PredictionTool({ seats, land, inset }: Props) {
     <div className="space-y-6">
       <div className="flex flex-wrap gap-2">
         <button
-          className="rounded-md border border-el-rule-2 px-3 py-1.5 text-base hover:bg-el-paper-2"
+          className="border-el-rule-2 hover:bg-el-paper-2 rounded-md border px-3 py-1.5 text-base"
           onClick={() => update(from(() => "Toss-up"))}
           type="button"
         >
@@ -155,7 +155,7 @@ export function PredictionTool({ seats, land, inset }: Props) {
           <span className="sr-only sm:not-sr-only">Start from an election</span>
           <select
             aria-label="Start from an election"
-            className="min-h-11 rounded-md border border-el-rule-2 bg-background px-2"
+            className="border-el-rule-2 bg-background min-h-11 rounded-md border px-2"
             onChange={(e) => {
               const year = e.target.value;
               if (!year) return;
@@ -173,7 +173,7 @@ export function PredictionTool({ seats, land, inset }: Props) {
           </select>
         </label>
         <button
-          className="rounded-md bg-el-ink px-3 py-1.5 font-semibold text-base text-el-paper hover:opacity-90"
+          className="bg-el-ink text-el-paper rounded-md px-3 py-1.5 text-base font-semibold hover:opacity-90"
           onClick={async () => {
             const url = new URL(window.location.href);
             url.hash = `map=${encodeMap(codes, map)}`;
@@ -203,7 +203,7 @@ export function PredictionTool({ seats, land, inset }: Props) {
           {PARTIES.map((p) =>
             p === "DPM" && dpmSeats.size === 0 ? null : (
               <span
-                className="font-bold font-serif text-2xl tabular-nums"
+                className="font-serif text-2xl font-bold tabular-nums"
                 key={p}
                 style={{ color: partyColor(p, "ink") }}
               >
@@ -211,7 +211,7 @@ export function PredictionTool({ seats, land, inset }: Props) {
               </span>
             )
           )}
-          <span className="font-bold font-serif text-2xl text-el-muted tabular-nums">
+          <span className="text-el-muted font-serif text-2xl font-bold tabular-nums">
             Toss-up {t.tossUps}
           </span>
           <span className="text-el-ink-2">{verdict}</span>
@@ -226,9 +226,9 @@ export function PredictionTool({ seats, land, inset }: Props) {
             <button
               aria-label={`${s.name}: ${map[s.code]}`}
               className={cn(
-                "flex-1 font-bold text-sm",
+                "flex-1 text-sm font-bold",
                 selected === s.code &&
-                  "outline-2 outline-el-ink outline-offset-1"
+                  "outline-el-ink outline-2 outline-offset-1"
               )}
               key={s.code}
               onClick={() => select(s.code)}
@@ -241,11 +241,11 @@ export function PredictionTool({ seats, land, inset }: Props) {
           ))}
           <span
             aria-hidden="true"
-            className="absolute -inset-y-1.5 w-0.5 bg-el-ink"
+            className="bg-el-ink absolute -inset-y-1.5 w-0.5"
             style={{ left: `calc(${(8 / 15) * 100}% - 1px)` }}
           />
         </fieldset>
-        <p className="mt-1 text-base text-el-muted leading-relaxed">
+        <p className="text-el-muted mt-1 text-base leading-relaxed">
           Eight seats is a majority. Lean, Likely and Solid all count towards a
           party’s seats.
         </p>
@@ -255,7 +255,7 @@ export function PredictionTool({ seats, land, inset }: Props) {
           ).map((r) => (
             <li className="flex items-center gap-2" key={r}>
               <i
-                className="inline-block size-3 rounded-[2px] border border-el-rule"
+                className="border-el-rule inline-block size-3 rounded-[2px] border"
                 style={{ background: ratingFill(r) }}
               />
               {r}{" "}
@@ -314,7 +314,7 @@ export function PredictionTool({ seats, land, inset }: Props) {
             }
             unavailableReason="Your ratings apply to whole constituencies; polling-division ratings are unavailable."
           />
-          <figcaption className="text-base text-el-muted">
+          <figcaption className="text-el-muted text-base">
             Select a constituency on the map, the bar or the list to rate it.
             Boundaries are illustrative.
           </figcaption>
@@ -322,15 +322,15 @@ export function PredictionTool({ seats, land, inset }: Props) {
 
         <div
           aria-live="polite"
-          className="scroll-mt-20 border border-el-rule p-4"
+          className="border-el-rule scroll-mt-20 border p-4"
           id={pickerId}
         >
           {seat ? (
             <>
-              <p className="font-semibold text-el-muted text-sm uppercase leading-relaxed tracking-[0.07em]">
+              <p className="text-el-muted text-sm leading-relaxed font-semibold tracking-[0.07em] uppercase">
                 Constituency {seat.code}
               </p>
-              <h3 className="font-bold text-xl">
+              <h3 className="text-xl font-bold">
                 <a className="hover:underline" href={seat.href}>
                   {seat.name}
                 </a>
@@ -369,14 +369,14 @@ export function PredictionTool({ seats, land, inset }: Props) {
                 </dd>
               </dl>
               <fieldset className="mt-4">
-                <legend className="font-semibold text-base">Your rating</legend>
+                <legend className="text-base font-semibold">Your rating</legend>
                 <div className="mt-2 grid grid-cols-2 gap-1.5 sm:grid-cols-3">
                   {ratingsFor(seat.dpmStands).map((r) => (
                     <label
                       className={cn(
-                        "flex cursor-pointer items-center gap-2 rounded-md border px-2.5 py-2 text-base has-focus-visible:outline-2 has-focus-visible:outline-el-focus",
+                        "has-focus-visible:outline-el-focus flex cursor-pointer items-center gap-2 rounded-md border px-2.5 py-2 text-base has-focus-visible:outline-2",
                         map[seat.code] === r
-                          ? "border-2 border-el-ink font-semibold"
+                          ? "border-el-ink border-2 font-semibold"
                           : "border-el-rule"
                       )}
                       key={r}
@@ -390,7 +390,7 @@ export function PredictionTool({ seats, land, inset }: Props) {
                         value={r}
                       />
                       <i
-                        className="inline-block size-3.5 shrink-0 rounded-[2px] border border-el-rule"
+                        className="border-el-rule inline-block size-3.5 shrink-0 rounded-[2px] border"
                         style={{ background: ratingFill(r) }}
                       />
                       {r}
@@ -398,7 +398,7 @@ export function PredictionTool({ seats, land, inset }: Props) {
                   ))}
                 </div>
                 {!seat.dpmStands && (
-                  <p className="mt-2 text-base text-el-muted leading-relaxed">
+                  <p className="text-el-muted mt-2 text-base leading-relaxed">
                     The DPM has not named a candidate here, so DPM ratings
                     aren’t offered.
                   </p>
@@ -415,17 +415,17 @@ export function PredictionTool({ seats, land, inset }: Props) {
       </div>
 
       <section aria-label="Every constituency">
-        <h3 className="font-semibold text-el-muted text-sm uppercase tracking-[0.07em]">
+        <h3 className="text-el-muted text-sm font-semibold tracking-[0.07em] uppercase">
           Every constituency
         </h3>
-        <ul className="mt-2 divide-y divide-el-rule border-el-rule border-y">
+        <ul className="divide-el-rule border-el-rule mt-2 divide-y border-y">
           {seats.map((s) => (
             <li
               className="flex flex-wrap items-center gap-x-3 gap-y-1 py-2"
               key={s.code}
             >
               <span
-                className="grid size-7 shrink-0 place-items-center rounded-[2px] font-bold text-base"
+                className="grid size-7 shrink-0 place-items-center rounded-[2px] text-base font-bold"
                 style={ratingStyle(map[s.code])}
               >
                 {s.code}
@@ -436,7 +436,7 @@ export function PredictionTool({ seats, land, inset }: Props) {
                 type="button"
               >
                 {s.name}
-                <span className="block font-normal text-base text-el-muted">
+                <span className="text-el-muted block text-base font-normal">
                   2022: {s.result2022} · lean {s.leanLabel}
                 </span>
               </button>
@@ -444,7 +444,7 @@ export function PredictionTool({ seats, land, inset }: Props) {
                 Your rating for {s.name}
               </label>
               <select
-                className="min-h-11 rounded-md border border-el-rule-2 bg-background px-2 text-base"
+                className="border-el-rule-2 bg-background min-h-11 rounded-md border px-2 text-base"
                 id={`sel-${s.code}`}
                 onChange={(e) =>
                   update({ ...map, [s.code]: e.target.value as UserRating })

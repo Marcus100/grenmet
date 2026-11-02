@@ -15,7 +15,7 @@ import { RosterRulesManager } from "./roster-rules-manager";
 const BASE = "http://localhost";
 const ROSTERS = `${BASE}/api/v1/hr/rosters`;
 const STAFF = "11111111-1111-4111-8111-111111111111";
-const ORG_ONLY = /Only an organisation-wide HR administrator/;
+const ORG_ONLY = /Only an organisation-wide HR administrator/u;
 
 const RULE_SET = {
   organisation_id: "gaa",

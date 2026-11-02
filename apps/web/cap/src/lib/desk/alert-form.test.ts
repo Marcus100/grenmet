@@ -9,10 +9,10 @@ import {
   formFromAlert,
 } from "./alert-form";
 
-const PATTERN_1 = /Headline/;
-const PATTERN_2 = /category/;
-const PATTERN_3 = /product/;
-const PATTERN_4 = /colour/;
+const PATTERN_1 = /Headline/u;
+const PATTERN_2 = /category/u;
+const PATTERN_3 = /product/u;
+const PATTERN_4 = /colour/u;
 
 describe("formFromAlert", () => {
   it("reads the product, colour and sectors back from the saved parameters", () => {

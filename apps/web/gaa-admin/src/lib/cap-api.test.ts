@@ -27,10 +27,10 @@ vi.mock("@/lib/report-error", () => ({ reportError: vi.fn() }));
 const LATEST_URL = "http://localhost:8000/api/cap/latest-active";
 const PAST_URL = "http://localhost:8000/api/cap/past";
 const EMPTY_LIST = { count: 0, data: [] };
-const GRENADA_EVENING = /^Oct 29, 2026, 10:30\s?PM AST$/;
+const GRENADA_EVENING = /^Oct 29, 2026, 10:30\s?PM AST$/u;
 
 const ALERTS_URL = "http://localhost:8000/api/v1/cap/alerts";
-const LOAD_FAILURE = /Failed to load CAP alerts \(403\)/;
+const LOAD_FAILURE = /Failed to load CAP alerts \(403\)/u;
 
 const ALERTS = {
   count: 1,

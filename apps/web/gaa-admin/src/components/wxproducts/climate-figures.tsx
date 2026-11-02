@@ -6,7 +6,7 @@ import {
 } from "@barrelsgd/api-client";
 import { useEffect, useState } from "react";
 
-const MONTH = /^\d{4}-(0[1-9]|1[0-2])$/;
+const MONTH = /^\d{4}-(0[1-9]|1[0-2])$/u;
 
 /** One figure line: the register's value, or "Not reported" (never zero). */
 export function climateFigureRows(summary: PublicMonthSummary) {
@@ -73,7 +73,7 @@ export function ClimateFigures({
       aria-labelledby="climate-figures"
       className="space-y-2 rounded-lg border p-4"
     >
-      <h2 className="font-semibold text-heading-sm" id="climate-figures">
+      <h2 className="text-heading-sm font-semibold" id="climate-figures">
         Register figures for {MONTH.test(month) ? month : "the bulletin month"}
       </h2>
       {issuedAt && issuedAt.slice(8, 10) !== "15" ? (

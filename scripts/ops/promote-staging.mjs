@@ -18,10 +18,10 @@ export const REQUIRED_WORKFLOWS = [
   "ci-api-client.yml",
 ];
 
-const MERGE_SUBJECT = /^Merge pull request #(\d+) from /;
-const ALEMBIC_REVISION = /alembic\/versions\/[^/]+\.py$/;
-const PY_EXTENSION = /\.py$/;
-const SECURITY_SECTION = /^#{1,6}\s*security review/im;
+const MERGE_SUBJECT = /^Merge pull request #(\d+) from /u;
+const ALEMBIC_REVISION = /alembic\/versions\/[^/]+\.py$/u;
+const PY_EXTENSION = /\.py$/u;
+const SECURITY_SECTION = /^#{1,6}\s*security review/imu;
 
 export function assertStagingOnly(base = BASE, head = HEAD) {
   if (base !== "staging" || head !== "dev") {
@@ -71,7 +71,7 @@ export function missingSecurityReview(pulls) {
 export function safeTitle(title) {
   return `\`${String(title)
     .replaceAll("`", "'")
-    .replaceAll(/[\r\n]+/g, " ")}\``;
+    .replaceAll(/[\r\n]+/gu, " ")}\``;
 }
 
 export function pullNumbers(subjects) {

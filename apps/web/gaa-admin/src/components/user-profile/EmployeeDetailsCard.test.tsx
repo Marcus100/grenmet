@@ -119,6 +119,6 @@ describe("last day of employment", () => {
   });
 });
 
-const PENDING_DETAILS = /Personnel details still need verification/;
-const ENDED_NOTE = /This last day has passed/;
-const TODAY_NOTE = /Last day is today/;
+const PENDING_DETAILS = /Personnel details still need verification/u;
+const ENDED_NOTE = /This last day has passed/u;
+const TODAY_NOTE = /Last day is today/u;

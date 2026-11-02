@@ -58,11 +58,11 @@ export function StatusSubmissions() {
   }
 
   return (
-    <div className="flex flex-col gap-3 rounded-xl border bg-card p-4">
-      <h2 className="font-medium text-lg">Submitted status reports</h2>
+    <div className="bg-card flex flex-col gap-3 rounded-xl border p-4">
+      <h2 className="text-lg font-medium">Submitted status reports</h2>
       <div className="overflow-x-auto">
         <table className="w-full border-collapse text-sm">
-          <thead className="text-left text-muted-foreground">
+          <thead className="text-muted-foreground text-left">
             <tr>
               <th className="py-1.5 pr-3 font-medium">Date</th>
               <th className="py-1.5 pr-3 font-medium">Shift</th>

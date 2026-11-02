@@ -78,9 +78,9 @@ function Field({
 }) {
   return (
     <div className="flex flex-col gap-2">
-      <Label className="font-medium text-caption" htmlFor={htmlFor}>
+      <Label className="text-caption font-medium" htmlFor={htmlFor}>
         {label}
-        {required ? <span className="ml-0.5 text-destructive">*</span> : null}
+        {required ? <span className="text-destructive ml-0.5">*</span> : null}
       </Label>
       {children}
     </div>
@@ -89,8 +89,8 @@ function Field({
 
 function Section({ children, title }: { children: ReactNode; title: string }) {
   return (
-    <section className="space-y-4 rounded-lg border bg-card p-4">
-      <h2 className="font-semibold text-lg">{title}</h2>
+    <section className="bg-card space-y-4 rounded-lg border p-4">
+      <h2 className="text-lg font-semibold">{title}</h2>
       {children}
     </section>
   );
@@ -112,7 +112,7 @@ function NativeSelect({
   return (
     <Field htmlFor={id} label={label} required>
       <select
-        className="h-9 w-fit rounded-md border border-input bg-background px-2 text-body"
+        className="border-input bg-background text-body h-9 w-fit rounded-md border px-2"
         id={id}
         onChange={(event) => onChange(event.target.value)}
         value={value}
@@ -274,7 +274,7 @@ export function AlertEditor(props: AlertEditorProps) {
           <Link className="text-body-sm text-info underline" href={backHref}>
             {editing ? "Back to the alert" : "Back to the board"}
           </Link>
-          <h1 className="mt-2 font-semibold text-2xl">
+          <h1 className="mt-2 text-2xl font-semibold">
             {editing ? "Edit draft" : "New warning"}
           </h1>
           {editing ? (
@@ -295,7 +295,7 @@ export function AlertEditor(props: AlertEditorProps) {
 
       {resetsReview ? (
         <p
-          className="rounded-lg border border-warning bg-warning-soft p-3 text-body-sm text-warning-soft-foreground"
+          className="border-warning bg-warning-soft text-body-sm text-warning-soft-foreground rounded-lg border p-3"
           role="status"
         >
           This alert is {editing?.lifecycle_state.toLowerCase()}. Saving a
@@ -312,7 +312,7 @@ export function AlertEditor(props: AlertEditorProps) {
       ) : null}
       {editing?.import_source ? (
         <p
-          className="rounded-lg border border-warning bg-warning-soft p-3 text-body-sm text-warning-soft-foreground"
+          className="border-warning bg-warning-soft text-body-sm text-warning-soft-foreground rounded-lg border p-3"
           role="status"
         >
           Imported alert ({editing.import_source}). Publishing it still needs
@@ -328,7 +328,7 @@ export function AlertEditor(props: AlertEditorProps) {
 
       {problem ? (
         <p
-          className="rounded-lg border border-destructive bg-destructive/10 p-3 text-body-sm text-destructive"
+          className="border-destructive bg-destructive/10 text-body-sm text-destructive rounded-lg border p-3"
           role="alert"
         >
           {problem}
@@ -338,13 +338,13 @@ export function AlertEditor(props: AlertEditorProps) {
 
       {fields.status === "Actual" ? null : (
         <div
-          className="rounded-lg border-2 border-destructive bg-warning-soft p-3 text-warning-soft-foreground"
+          className="border-destructive bg-warning-soft text-warning-soft-foreground rounded-lg border-2 p-3"
           role="alert"
         >
-          <p className="font-bold text-body-sm uppercase tracking-wide">
+          <p className="text-body-sm font-bold tracking-wide uppercase">
             Status: {fields.status}. This is not a live warning
           </p>
-          <p className="mt-1 text-body-sm">
+          <p className="text-body-sm mt-1">
             The public site labels this message as a drill and tells readers to
             take no protective action. Set the status to Actual before issuing a
             real warning.
@@ -427,8 +427,8 @@ export function AlertEditor(props: AlertEditorProps) {
             <div className="grid min-w-0 gap-4">
               {form.colour ? (
                 <div className="grid gap-1.5">
-                  <span className="font-medium text-caption">Severity</span>
-                  <span className="rounded-md border px-3 py-2 font-semibold text-caption">
+                  <span className="text-caption font-medium">Severity</span>
+                  <span className="text-caption rounded-md border px-3 py-2 font-semibold">
                     {fields.severity} (from colour)
                   </span>
                 </div>
@@ -496,7 +496,7 @@ export function AlertEditor(props: AlertEditorProps) {
 
           <Section title="Source bulletin (optional)">
             {linked ? (
-              <div className="flex flex-wrap items-center gap-3 text-body-sm">
+              <div className="text-body-sm flex flex-wrap items-center gap-3">
                 <span>
                   Linked:{" "}
                   {BULLETIN_CATEGORIES[
@@ -534,7 +534,7 @@ export function AlertEditor(props: AlertEditorProps) {
             {bulletins.length > 0 ? (
               <select
                 aria-label="Source bulletin"
-                className="h-9 rounded-md border border-input bg-background px-2 text-body"
+                className="border-input bg-background text-body h-9 rounded-md border px-2"
                 defaultValue=""
                 onChange={(event) => chooseBulletin(event.target.value)}
               >

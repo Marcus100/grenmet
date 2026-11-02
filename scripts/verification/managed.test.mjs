@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { verifyManaged } from "./managed.mjs";
 
-const PROJECT = /^grenmet-verify-[a-f0-9]{32}$/;
+const PROJECT = /^grenmet-verify-[a-f0-9]{32}$/u;
 function harness(failAt, address = "127.0.0.1:15432") {
   const calls = [];
   const messages = [];

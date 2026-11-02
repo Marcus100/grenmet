@@ -87,7 +87,7 @@ const AIRLINES = [
 
 function Hero() {
   return (
-    <div className="relative isolate overflow-hidden bg-gaa-navy-ink">
+    <div className="bg-gaa-navy-ink relative isolate overflow-hidden">
       <Image
         alt="Aerial view of Maurice Bishop International Airport between the hills and the Caribbean Sea"
         className="absolute inset-0 size-full object-cover"
@@ -96,22 +96,22 @@ function Hero() {
         sizes="100vw"
         src="/images/hero-mbia-aerial.jpg"
       />
-      <div className="absolute inset-0 bg-linear-to-t from-gaa-navy-ink via-gaa-navy-ink/60 to-gaa-navy-ink/20" />
+      <div className="from-gaa-navy-ink via-gaa-navy-ink/60 to-gaa-navy-ink/20 absolute inset-0 bg-linear-to-t" />
       <div className="relative mx-auto flex min-h-[70vh] max-w-7xl flex-col justify-end px-4 pt-32 pb-40 lg:px-8">
-        <p className="font-semibold text-gaa-gold text-xs uppercase tracking-[0.25em] sm:text-sm">
+        <p className="text-gaa-gold text-xs font-semibold tracking-[0.25em] uppercase sm:text-sm">
           Grenada Airports Authority
         </p>
-        <h1 className="mt-4 max-w-3xl font-bold font-display text-4xl text-white leading-[1.05] sm:text-5xl lg:text-6xl">
+        <h1 className="font-display mt-4 max-w-3xl text-4xl leading-[1.05] font-bold text-white sm:text-5xl lg:text-6xl">
           Gateway to the Spice of the Caribbean
         </h1>
-        <p className="mt-5 max-w-xl text-lg text-white/80 leading-relaxed">
+        <p className="mt-5 max-w-xl text-lg leading-relaxed text-white/80">
           Connecting you to Grenada, Carriacou &amp; Petite Martinique — and the
           world beyond.
         </p>
         <div className="mt-8 flex flex-wrap items-center gap-3">
           <Button
             asChild
-            className="bg-gaa-gold font-semibold text-gaa-navy-ink hover:bg-gaa-gold-deep"
+            className="bg-gaa-gold text-gaa-navy-ink hover:bg-gaa-gold-deep font-semibold"
             size="lg"
           >
             <Link href="/flights">
@@ -140,18 +140,18 @@ function QuickTasks() {
         const Icon = QUICK_TASK_ICONS[i] ?? ArrowRight;
         return (
           <Link
-            className="group flex items-start gap-4 rounded-2xl border border-gaa-rule bg-white p-5 transition-all hover:-translate-y-0.5 hover:border-gaa-sea/40 hover:shadow-lg"
+            className="group border-gaa-rule hover:border-gaa-sea/40 flex items-start gap-4 rounded-2xl border bg-white p-5 transition-all hover:-translate-y-0.5 hover:shadow-lg"
             href={task.href as Route}
             key={task.href}
           >
-            <span className="rounded-xl bg-gaa-mist p-3 text-gaa-navy transition-colors group-hover:bg-gaa-navy group-hover:text-white">
+            <span className="bg-gaa-mist text-gaa-navy group-hover:bg-gaa-navy rounded-xl p-3 transition-colors group-hover:text-white">
               <Icon aria-hidden="true" className="size-5" />
             </span>
             <span>
-              <span className="block font-display font-semibold text-gaa-navy">
+              <span className="font-display text-gaa-navy block font-semibold">
                 {task.label}
               </span>
-              <span className="mt-1 block text-gaa-muted text-sm leading-snug">
+              <span className="text-gaa-muted mt-1 block text-sm leading-snug">
                 {task.description}
               </span>
             </span>
@@ -176,17 +176,17 @@ function SectionHeading({
   return (
     <div className="mb-8 flex flex-wrap items-end justify-between gap-4">
       <div>
-        <p className="font-semibold text-gaa-sea text-xs uppercase tracking-[0.2em]">
+        <p className="text-gaa-sea text-xs font-semibold tracking-[0.2em] uppercase">
           {eyebrow}
         </p>
-        <h2 className="mt-2 font-bold font-display text-3xl text-gaa-navy sm:text-4xl">
+        <h2 className="font-display text-gaa-navy mt-2 text-3xl font-bold sm:text-4xl">
           {title}
         </h2>
-        <div className="mt-4 h-1 w-16 rounded-full bg-gaa-gold" />
+        <div className="bg-gaa-gold mt-4 h-1 w-16 rounded-full" />
       </div>
       {href && linkLabel ? (
         <Link
-          className="flex items-center gap-1.5 font-medium text-gaa-sea text-sm hover:text-gaa-navy"
+          className="text-gaa-sea hover:text-gaa-navy flex items-center gap-1.5 text-sm font-medium"
           href={href as Route}
         >
           {linkLabel}
@@ -207,7 +207,7 @@ function Airports() {
       <div className="grid gap-6 md:grid-cols-3">
         {AIRPORT_CARDS.map((airport) => (
           <Link
-            className="group overflow-hidden rounded-2xl border border-gaa-rule bg-white transition-all hover:-translate-y-1 hover:shadow-xl"
+            className="group border-gaa-rule overflow-hidden rounded-2xl border bg-white transition-all hover:-translate-y-1 hover:shadow-xl"
             href={airport.href}
             key={airport.href}
           >
@@ -219,15 +219,15 @@ function Airports() {
                 sizes="(min-width: 768px) 33vw, 100vw"
                 src={airport.image}
               />
-              <span className="absolute top-4 left-4 rounded-full bg-gaa-navy-ink/85 px-3 py-1 font-semibold text-white text-xs backdrop-blur">
+              <span className="bg-gaa-navy-ink/85 absolute top-4 left-4 rounded-full px-3 py-1 text-xs font-semibold text-white backdrop-blur">
                 {airport.code}
               </span>
             </div>
             <div className="p-6">
-              <h3 className="font-display font-semibold text-gaa-navy text-lg leading-snug">
+              <h3 className="font-display text-gaa-navy text-lg leading-snug font-semibold">
                 {airport.name}
               </h3>
-              <p className="mt-2 text-gaa-muted text-sm leading-relaxed">
+              <p className="text-gaa-muted mt-2 text-sm leading-relaxed">
                 {airport.blurb}
               </p>
             </div>
@@ -262,9 +262,9 @@ function Experience() {
                 sizes="(min-width: 768px) 33vw, 100vw"
                 src={card.image}
               />
-              <div className="absolute inset-0 bg-linear-to-t from-gaa-navy-ink/90 via-gaa-navy-ink/30 to-transparent" />
+              <div className="from-gaa-navy-ink/90 via-gaa-navy-ink/30 absolute inset-0 bg-linear-to-t to-transparent" />
               <div className="absolute right-0 bottom-0 left-0 p-6">
-                <h3 className="font-bold font-display text-white text-xl">
+                <h3 className="font-display text-xl font-bold text-white">
                   {card.title}
                 </h3>
                 <p className="mt-1 text-sm text-white/80">{card.blurb}</p>
@@ -320,17 +320,17 @@ function LatestNews() {
         <div className="grid gap-6 md:grid-cols-3">
           {news.map((post) => (
             <Link
-              className="group flex flex-col rounded-2xl border border-gaa-rule bg-white p-6 transition-all hover:-translate-y-0.5 hover:shadow-lg"
+              className="group border-gaa-rule flex flex-col rounded-2xl border bg-white p-6 transition-all hover:-translate-y-0.5 hover:shadow-lg"
               href={`/news/${post.slug}`}
               key={post.slug}
             >
               <time className="text-gaa-muted text-xs">
                 {formatDate(post.publishedAt)}
               </time>
-              <h3 className="mt-2 flex-1 font-display font-semibold text-gaa-navy text-lg leading-snug group-hover:text-gaa-sea">
+              <h3 className="font-display text-gaa-navy group-hover:text-gaa-sea mt-2 flex-1 text-lg leading-snug font-semibold">
                 {post.title}
               </h3>
-              <p className="mt-3 line-clamp-3 text-gaa-muted text-sm leading-relaxed">
+              <p className="text-gaa-muted mt-3 line-clamp-3 text-sm leading-relaxed">
                 {post.dek}
               </p>
             </Link>
@@ -346,10 +346,10 @@ function BusinessBand() {
     <section className="bg-gaa-navy-ink">
       <div className="mx-auto flex max-w-7xl flex-col items-start justify-between gap-8 px-4 py-16 lg:flex-row lg:items-center lg:px-8">
         <div>
-          <p className="font-semibold text-gaa-gold text-xs uppercase tracking-[0.2em]">
+          <p className="text-gaa-gold text-xs font-semibold tracking-[0.2em] uppercase">
             Business &amp; Partners
           </p>
-          <h2 className="mt-3 max-w-xl font-bold font-display text-3xl text-white">
+          <h2 className="font-display mt-3 max-w-xl text-3xl font-bold text-white">
             Do business with Grenada&rsquo;s airports
           </h2>
           <p className="mt-3 max-w-xl text-white/70">
@@ -360,7 +360,7 @@ function BusinessBand() {
         <div className="flex flex-wrap gap-3">
           <Button
             asChild
-            className="bg-gaa-gold font-semibold text-gaa-navy-ink hover:bg-gaa-gold-deep"
+            className="bg-gaa-gold text-gaa-navy-ink hover:bg-gaa-gold-deep font-semibold"
             size="lg"
           >
             <Link href="/business">Business services</Link>

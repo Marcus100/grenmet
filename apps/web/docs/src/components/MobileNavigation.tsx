@@ -55,7 +55,7 @@ function MobileNavigationDialog({
       open={isOpen}
     >
       <Dialog.Portal>
-        <Dialog.Backdrop className="fixed inset-0 top-14 z-50 bg-zinc-400/20 backdrop-blur-xs transition-opacity duration-300 ease-out data-ending-style:opacity-0 data-starting-style:opacity-0 data-ending-style:duration-200 data-ending-style:ease-in lg:hidden dark:bg-black/40" />
+        <Dialog.Backdrop className="fixed inset-0 top-14 z-50 bg-zinc-400/20 backdrop-blur-xs transition-opacity duration-300 ease-out data-ending-style:opacity-0 data-ending-style:duration-200 data-ending-style:ease-in data-starting-style:opacity-0 lg:hidden dark:bg-black/40" />
 
         {/* The popup has no box of its own so the backdrop stays clickable.
             Its visibility transition keeps it mounted while the panel slides out. */}
@@ -63,10 +63,10 @@ function MobileNavigationDialog({
           aria-label="Navigation"
           className="group z-50 transition-[visibility] duration-500 data-ending-style:invisible lg:hidden"
         >
-          <Header className="duration-300 ease-out group-data-ending-style:opacity-0 group-data-starting-style:opacity-0 group-data-ending-style:duration-200 group-data-ending-style:ease-in" />
+          <Header className="duration-300 ease-out group-data-ending-style:opacity-0 group-data-ending-style:duration-200 group-data-ending-style:ease-in group-data-starting-style:opacity-0" />
 
           <motion.div
-            className="fixed top-14 bottom-0 left-0 z-50 w-full overflow-y-auto bg-white px-4 pt-6 pb-4 shadow-lg shadow-zinc-900/10 ring-1 ring-zinc-900/7.5 transition-transform duration-500 ease-in-out group-data-ending-style:-translate-x-full group-data-starting-style:-translate-x-full sm:px-6 sm:pb-10 min-[416px]:max-w-sm dark:bg-zinc-900 dark:ring-zinc-800"
+            className="fixed top-14 bottom-0 left-0 z-50 w-full overflow-y-auto bg-white px-4 pt-6 pb-4 shadow-lg ring-1 shadow-zinc-900/10 ring-zinc-900/7.5 transition-transform duration-500 ease-in-out group-data-ending-style:-translate-x-full group-data-starting-style:-translate-x-full min-[416px]:max-w-sm sm:px-6 sm:pb-10 dark:bg-zinc-900 dark:ring-zinc-800"
             layoutScroll
           >
             <Navigation />
@@ -106,7 +106,7 @@ export function MobileNavigation() {
         onClick={toggle}
         type="button"
       >
-        <span className="absolute pointer-fine:hidden size-12" />
+        <span className="absolute size-12 pointer-fine:hidden" />
         <ToggleIcon className="w-2.5 stroke-zinc-900 dark:stroke-white" />
       </button>
       {!isInsideMobileNavigation && (

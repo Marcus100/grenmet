@@ -27,7 +27,7 @@ import {
 } from "@/components/bus/test-fixtures";
 import TimetableVersionPage from "./page";
 
-const EFFECTIVE_DATE = /effective 25 Sep 2026/;
+const EFFECTIVE_DATE = /effective 25 Sep 2026/u;
 
 const load = (versionId: string) =>
   TimetableVersionPage({ params: Promise.resolve({ versionId }) });

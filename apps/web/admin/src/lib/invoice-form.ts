@@ -18,13 +18,13 @@ export const INVOICE_STATUSES = [
   "void",
 ] as const;
 
-const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-const ORGANISATION_ID = /^[A-Za-z0-9_-]{1,100}$/;
-const MONEY = /^(\d{1,12})(?:\.(\d{1,2}))?$/;
-const QUANTITY = /^\d{1,9}(?:\.\d{1,3})?$/;
-const RATE = /^\d{1,3}(?:\.\d{1,2})?$/;
-const DATE = /^\d{4}-\d{2}-\d{2}$/;
-const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/iu;
+const ORGANISATION_ID = /^[A-Za-z0-9_-]{1,100}$/u;
+const MONEY = /^(\d{1,12})(?:\.(\d{1,2}))?$/u;
+const QUANTITY = /^\d{1,9}(?:\.\d{1,3})?$/u;
+const RATE = /^\d{1,3}(?:\.\d{1,2})?$/u;
+const DATE = /^\d{4}-\d{2}-\d{2}$/u;
+const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/u;
 const MAX_DESCRIPTION = 500;
 const MAX_NOTES = 2000;
 const MAX_ADDRESS = 1000;

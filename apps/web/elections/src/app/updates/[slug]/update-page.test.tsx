@@ -5,10 +5,10 @@ import { sourceKind } from "@/data/evidence";
 import campaignJson from "@/data/source/campaign.json";
 import type { CampaignFile } from "@/data/types";
 
-const DOWNLOAD = /Download:/;
-const POLICE_POLL = /Special polling day for police officers/;
-const WATCH_LINK = /Watch the address on YouTube/;
-const GAZETTE_SOURCE = /Official record: Government Gazette/;
+const DOWNLOAD = /Download:/u;
+const POLICE_POLL = /Special polling day for police officers/u;
+const WATCH_LINK = /Watch the address on YouTube/u;
+const GAZETTE_SOURCE = /Official record: Government Gazette/u;
 
 vi.mock("server-only", () => ({}));
 

@@ -66,6 +66,6 @@ export function ReturnedReason({
     return null;
   }
   return (
-    <p className="mt-1 max-w-xs text-muted-foreground text-xs">{reason}</p>
+    <p className="text-muted-foreground mt-1 max-w-xs text-xs">{reason}</p>
   );
 }

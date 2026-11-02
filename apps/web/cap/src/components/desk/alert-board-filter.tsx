@@ -37,7 +37,7 @@ function AlertRow({ alert }: { alert: CapAlertPublic }) {
     <li className="flex flex-col gap-1 border-b py-3 last:border-b-0 sm:flex-row sm:items-center sm:justify-between">
       <div className="min-w-0">
         <Link
-          className="font-medium text-info hover:underline"
+          className="text-info font-medium hover:underline"
           href={`/desk/alerts/${alert.id}` as Route}
         >
           {info?.headline ?? alert.identifier}
@@ -120,15 +120,15 @@ export function AlertBoardFilter({
         </p>
       ) : null}
       {shown.map((section) => (
-        <section className="rounded-lg border bg-card p-4" key={section.state}>
-          <h2 className="font-semibold text-lg">
+        <section className="bg-card rounded-lg border p-4" key={section.state}>
+          <h2 className="text-lg font-semibold">
             {section.title}{" "}
-            <span className="font-normal text-muted-foreground">
+            <span className="text-muted-foreground font-normal">
               ({section.alerts.length})
             </span>
           </h2>
           {section.alerts.length === 0 ? (
-            <p className="py-2 text-body-sm text-muted-foreground">
+            <p className="text-body-sm text-muted-foreground py-2">
               {(countIn(sections, section.state) ?? 0) > 0
                 ? "No alerts in this stage match the search."
                 : section.empty}

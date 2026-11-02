@@ -18,7 +18,7 @@ vi.mock("@/app/desk/feeds/actions", () => ({
 import Loading from "./loading";
 import FeedsPage from "./page";
 
-const LAST_ERROR = /Connection refused/;
+const LAST_ERROR = /Connection refused/u;
 
 beforeEach(() => {
   vi.clearAllMocks();

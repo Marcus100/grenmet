@@ -2,7 +2,7 @@ import { render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import PlannedPage from "./page";
 
-const NOT_FOUND_STATUS = /404/;
+const NOT_FOUND_STATUS = /404/u;
 
 const params = (planned: string[]) => Promise.resolve({ planned });
 

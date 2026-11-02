@@ -40,7 +40,7 @@ export function MatrixAdvice({ kind }: { kind: string }) {
       aria-labelledby={`${formId}-title`}
       className="space-y-4 rounded-lg border p-4"
     >
-      <h2 className="font-semibold text-lg" id={`${formId}-title`}>
+      <h2 className="text-lg font-semibold" id={`${formId}-title`}>
         Advice for one likelihood and impact
       </h2>
       <form
@@ -49,7 +49,7 @@ export function MatrixAdvice({ kind }: { kind: string }) {
         onSubmit={check}
       >
         <label
-          className="flex flex-col gap-1 text-body-sm"
+          className="text-body-sm flex flex-col gap-1"
           htmlFor={`${formId}-likelihood`}
         >
           Likelihood
@@ -69,7 +69,7 @@ export function MatrixAdvice({ kind }: { kind: string }) {
           </NativeSelect>
         </label>
         <label
-          className="flex flex-col gap-1 text-body-sm"
+          className="text-body-sm flex flex-col gap-1"
           htmlFor={`${formId}-impact`}
         >
           Impact
@@ -96,7 +96,7 @@ export function MatrixAdvice({ kind }: { kind: string }) {
       <DeskErrorNotice error={error} />
 
       {advice ? (
-        <div className="space-y-2 text-body-sm" role="status">
+        <div className="text-body-sm space-y-2" role="status">
           <p>
             <strong>Advised colour: </strong>
             {colourWord(advice.colour)} ({advice.severity} severity)

@@ -14,13 +14,13 @@ export async function ThreadList({ activeId }: { activeId?: string }) {
   }
 
   return (
-    <ul className="divide-y divide-border overflow-hidden rounded-2xl border border-border bg-card">
+    <ul className="divide-border border-border bg-card divide-y overflow-hidden rounded-2xl border">
       {threads.map((thread) => (
         <li key={thread.id}>
           <Link
             aria-current={activeId === thread.id ? "page" : undefined}
             className={cn(
-              "flex items-center gap-3 p-4 hover:bg-muted",
+              "hover:bg-muted flex items-center gap-3 p-4",
               activeId === thread.id && "bg-muted"
             )}
             href={`/messages/${thread.id}`}
@@ -28,14 +28,14 @@ export async function ThreadList({ activeId }: { activeId?: string }) {
             <PersonAvatar name={thread.title} size="lg" />
             <div className="min-w-0 flex-1">
               <div className="flex items-baseline justify-between gap-2">
-                <p className="truncate font-medium text-body">{thread.title}</p>
+                <p className="text-body truncate font-medium">{thread.title}</p>
                 {thread.lastSentAt ? (
-                  <p className="shrink-0 text-caption text-muted-foreground">
+                  <p className="text-caption text-muted-foreground shrink-0">
                     {formatTime(thread.lastSentAt)}
                   </p>
                 ) : null}
               </div>
-              <p className="truncate text-caption text-muted-foreground">
+              <p className="text-caption text-muted-foreground truncate">
                 {thread.kind === "group" ? "Group · " : ""}
                 {thread.lastMessage}
               </p>

@@ -15,7 +15,7 @@ export interface PayrollFailure {
 }
 
 const MFA_DETAIL =
-  /two-step verification|sign in again with your authenticator/i;
+  /two-step verification|sign in again with your authenticator/iu;
 
 /**
  * Error bodies from text responses (CSV and PDF downloads) arrive as a string,

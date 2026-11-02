@@ -40,7 +40,7 @@ export function CapComposer({
         actions={
           deskUrl ? (
             <a
-              className="font-medium text-info text-sm underline underline-offset-4"
+              className="text-info text-sm font-medium underline underline-offset-4"
               href={deskUrl}
               rel="noopener"
               target="_blank"

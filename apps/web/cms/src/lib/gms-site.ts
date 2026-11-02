@@ -5,9 +5,9 @@
  * the site route does not show.
  */
 const SITE_ROUTES = {
-  "desk-updates": { prefix: /^updates\//, base: "/explore/updates/" },
-  stories: { prefix: /^stories\//, base: "/explore/news/" },
-  "report-notes": { prefix: /^reports\//, base: "/explore/reports/" },
+  "desk-updates": { prefix: /^updates\//u, base: "/explore/updates/" },
+  stories: { prefix: /^stories\//u, base: "/explore/news/" },
+  "report-notes": { prefix: /^reports\//u, base: "/explore/reports/" },
 } as const;
 
 export type SiteCollection = keyof typeof SITE_ROUTES;
@@ -16,7 +16,7 @@ export const isSiteCollection = (value: string): value is SiteCollection =>
   value in SITE_ROUTES;
 
 /** Trailing slashes on a configured origin. */
-const TRAILING_SLASHES = /\/+$/;
+const TRAILING_SLASHES = /\/+$/u;
 
 /** A live post has no page of its own; it shows on the weather site's home page. */
 export const LIVE_POST_PATH = "/";

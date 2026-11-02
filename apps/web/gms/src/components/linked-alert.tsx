@@ -39,14 +39,14 @@ export async function LinkedAlert({
       aria-label={`Official warning: ${detail.event}`}
       className={cn(FRAME, className)}
     >
-      <p className="flex flex-wrap items-center gap-2 font-bold text-gm-heading text-label uppercase leading-label tracking-wider">
+      <p className="text-gm-heading text-label leading-label flex flex-wrap items-center gap-2 font-bold tracking-wider uppercase">
         <ShieldAlertIcon aria-hidden="true" className="size-4" />
         Official warning
-        <span className="rounded-full bg-gm-surface-panel px-2 py-0.5 font-bold text-caption normal-case leading-caption tracking-normal">
+        <span className="bg-gm-surface-panel text-caption leading-caption rounded-full px-2 py-0.5 font-bold tracking-normal normal-case">
           {detail.ended ? "Ended" : "In effect"}
         </span>
       </p>
-      <p className="font-bold text-body-base text-gm-heading leading-body-base">
+      <p className="text-body-base text-gm-heading leading-body-base font-bold">
         {detail.headline}
       </p>
       {detail.areas.length > 0 && (
@@ -58,7 +58,7 @@ export async function LinkedAlert({
         </p>
       )}
       <Link
-        className="w-fit font-semibold text-body text-gm-blue-ink leading-body underline"
+        className="text-body text-gm-blue-ink leading-body w-fit font-semibold underline"
         href={warningHref(identifier) as never}
       >
         Read the warning

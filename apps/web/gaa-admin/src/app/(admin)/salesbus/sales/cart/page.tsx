@@ -68,10 +68,10 @@ export default function CartPage() {
       )}
     >
       <div className="mx-auto flex w-full max-w-3xl flex-1 flex-col gap-4 p-4 sm:gap-5 sm:p-5">
-        <div className="flex flex-col gap-3 rounded-xl bg-card p-4 sm:p-5">
+        <div className="bg-card flex flex-col gap-3 rounded-xl p-4 sm:p-5">
           {department ? (
             <p className="text-sm" data-testid="requisition-department">
-              <span className="font-medium text-foreground">
+              <span className="text-foreground font-medium">
                 Requesting for:{" "}
               </span>
               {department}{" "}
@@ -81,11 +81,11 @@ export default function CartPage() {
             </p>
           ) : null}
           <label className="flex flex-col gap-1 text-sm">
-            <span className="font-medium text-foreground">
+            <span className="text-foreground font-medium">
               What is it for? (optional)
             </span>
             <input
-              className="min-h-12 rounded-lg border border-input bg-background px-3 text-base"
+              className="border-input bg-background min-h-12 rounded-lg border px-3 text-base"
               maxLength={500}
               onChange={(e) => setPurpose(e.target.value)}
               placeholder="e.g. Office supplies for the October roster"
@@ -93,11 +93,11 @@ export default function CartPage() {
             />
           </label>
           <label className="flex flex-col gap-1 text-sm">
-            <span className="font-medium text-foreground">
+            <span className="text-foreground font-medium">
               Needed by (optional)
             </span>
             <input
-              className="min-h-12 rounded-lg border border-input bg-background px-3 text-base"
+              className="border-input bg-background min-h-12 rounded-lg border px-3 text-base"
               onChange={(e) => setNeededBy(e.target.value)}
               type="date"
               value={neededBy}
@@ -118,7 +118,7 @@ export default function CartPage() {
 
         {items.length === 0 && (
           <div className="flex flex-1 items-center justify-center">
-            <p className="text-base text-muted-foreground sm:text-lg">
+            <p className="text-muted-foreground text-base sm:text-lg">
               Your requisition is empty
             </p>
           </div>
@@ -142,7 +142,7 @@ export default function CartPage() {
           <span className="text-base sm:text-lg">SAVE AS DRAFT</span>
         </Button>
         <Button
-          className="flex w-full justify-between bg-gm-blue-ink hover:bg-gm-navy"
+          className="bg-gm-blue-ink hover:bg-gm-navy flex w-full justify-between"
           disabled={items.length === 0 || submit.isPending}
           onClick={() => handleDone(false)}
           size="touch"

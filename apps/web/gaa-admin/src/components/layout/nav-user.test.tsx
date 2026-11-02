@@ -4,7 +4,7 @@ import { fireEvent, render, screen } from "@testing-library/react";
 import { expect, it, vi } from "vitest";
 import { NavUser } from "./nav-user";
 
-const USER_TRIGGER = /Test Staff/;
+const USER_TRIGGER = /Test Staff/u;
 it("keeps the menu without repeated identity details and submits logout as POST", async () => {
   const submit = vi
     .spyOn(HTMLFormElement.prototype, "requestSubmit")

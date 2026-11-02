@@ -5,7 +5,7 @@
 export function CapFeedUnavailable({ feed }: { feed: string }) {
   return (
     <p
-      className="rounded-md border border-gm-risk-red bg-card p-4 text-body text-gm-text-primary"
+      className="border-gm-risk-red bg-card text-body text-gm-text-primary rounded-md border p-4"
       role="alert"
     >
       {feed} cannot be retrieved right now. This does not mean there are no

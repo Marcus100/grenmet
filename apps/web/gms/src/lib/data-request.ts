@@ -27,7 +27,7 @@ export const INTENDED_USES = [
 const values = <T extends readonly { value: string }[]>(items: T) =>
   items.map((item) => item.value) as [T[number]["value"]];
 
-const isoDate = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Enter a valid date.");
+const isoDate = z.string().regex(/^\d{4}-\d{2}-\d{2}$/u, "Enter a valid date.");
 
 export const dataRequestSchema = z
   .object({

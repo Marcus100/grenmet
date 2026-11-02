@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 import { InvoiceEditor } from "@/components/invoice-editor";
 import { InvoiceTable } from "@/components/invoice-table";
 
-const DESCRIPTION_LABEL = /^Description \d$/;
+const DESCRIPTION_LABEL = /^Description \d$/u;
 
 const rows = [
   {

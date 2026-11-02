@@ -69,14 +69,14 @@ export default async function AuditPage({
         {audit.count} events · page {query.page} of {lastPage}
       </p>
       {audit.data.length === 0 ? (
-        <p className="py-6 text-muted-foreground">
+        <p className="text-muted-foreground py-6">
           No audit events match this filter.
         </p>
       ) : (
         <ol className="space-y-3">
           {audit.data.map((event) => (
             <li
-              className="space-y-1 rounded-lg border bg-card p-4"
+              className="bg-card space-y-1 rounded-lg border p-4"
               key={event.id}
             >
               <h2 className="font-semibold">{event.action}</h2>
@@ -88,7 +88,7 @@ export default async function AuditPage({
                 {event.previous_state ?? "None"} → {event.next_state ?? "None"}
               </p>
               {event.note ? (
-                <p className="whitespace-pre-wrap text-body-sm">{event.note}</p>
+                <p className="text-body-sm whitespace-pre-wrap">{event.note}</p>
               ) : null}
               {event.alert_id ? (
                 <Link
@@ -102,7 +102,7 @@ export default async function AuditPage({
           ))}
         </ol>
       )}
-      <nav aria-label="Audit pages" className="flex gap-4 text-body-sm">
+      <nav aria-label="Audit pages" className="text-body-sm flex gap-4">
         {query.page > 1 ? (
           <Link
             className="text-info underline"
@@ -140,26 +140,26 @@ function AuditShell({
 }) {
   return (
     <div className="space-y-6">
-      <h1 className="font-semibold text-2xl">Audit history</h1>
+      <h1 className="text-2xl font-semibold">Audit history</h1>
       <form
         action="/desk/audit"
         className="flex flex-wrap items-end gap-3"
         method="get"
       >
         <label
-          className="flex flex-col gap-1 text-body-sm"
+          className="text-body-sm flex flex-col gap-1"
           htmlFor="audit-alert"
         >
           Alert ID (optional, a full UUID)
           <input
-            className="min-w-80 rounded-md border bg-background px-3 py-2 font-mono"
+            className="bg-background min-w-80 rounded-md border px-3 py-2 font-mono"
             defaultValue={alertId}
             id="audit-alert"
             name="alert_id"
           />
         </label>
         <button
-          className="rounded-md bg-primary px-3 py-2 font-medium text-body-sm text-primary-foreground"
+          className="bg-primary text-body-sm text-primary-foreground rounded-md px-3 py-2 font-medium"
           type="submit"
         >
           Filter history

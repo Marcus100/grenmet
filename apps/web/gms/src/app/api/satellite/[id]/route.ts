@@ -2,8 +2,8 @@ import { endpoint } from "@/lib/products";
 import { reportError } from "@/lib/report-error";
 import { IMAGERY_CACHE_CONTROL } from "@/lib/storm-cache";
 
-const ID = /^\d{1,12}$/;
-const IMAGE_TYPE = /^image\/(?:png|jpeg|gif|webp)$/;
+const ID = /^\d{1,12}$/u;
+const IMAGE_TYPE = /^image\/(?:png|jpeg|gif|webp)$/u;
 
 /**
  * Proxies one public GOES image from FastAPI (which answers with a file or a

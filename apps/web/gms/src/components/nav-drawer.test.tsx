@@ -11,8 +11,8 @@ const [FIRST_SECTION, SECOND_SECTION] = NAV_SECTIONS;
 if (!(FIRST_SECTION && SECOND_SECTION)) {
   throw new Error("NAV_SECTIONS needs at least two sections");
 }
-const ALERTS_WITH_STATUS = /^Alerts\s*No active alerts/;
-const SIGN_IN = /^Sign in/;
+const ALERTS_WITH_STATUS = /^Alerts\s*No active alerts/u;
+const SIGN_IN = /^Sign in/u;
 
 describe("NavDrawer", () => {
   it("renders nothing while closed", () => {
@@ -88,7 +88,7 @@ describe("NavDrawer", () => {
 
     await user.click(screen.getByText(FIRST_SECTION.label));
     const link = screen.getByRole("link", {
-      name: new RegExp(`^${FIRST_SECTION.groups[0]?.links[0]?.name}`, "i"),
+      name: new RegExp(`^${FIRST_SECTION.groups[0]?.links[0]?.name}`, "iu"),
     });
     expect(link).toHaveAttribute(
       "href",

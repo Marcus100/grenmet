@@ -10,8 +10,8 @@ vi.mock("@/app/desk/import/actions", () => action);
 import { ImportForm } from "./import-form";
 
 const ID = "11111111-2222-4333-8444-555555555555";
-const TOO_LARGE = /larger than 5 MB/;
-const NOT_FULLY_CONFORMANT = /does not fully follow CAP 1.2/;
+const TOO_LARGE = /larger than 5 MB/u;
+const NOT_FULLY_CONFORMANT = /does not fully follow CAP 1.2/u;
 
 function fillAndReview(text: string) {
   fireEvent.change(screen.getByRole("textbox"), { target: { value: text } });

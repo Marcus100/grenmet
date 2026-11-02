@@ -19,15 +19,15 @@ import {
 } from "../ci/release-scope.mjs";
 
 const ENOUGH_FREE_KB = 40 * 1024 * 1024;
-const RECLAIMED_LINE = /Total reclaimed space: 1\.2GB/;
+const RECLAIMED_LINE = /Total reclaimed space: 1\.2GB/u;
 const FREE_DISK_LINE =
-  /Free disk space on \/var\/lib\/docker: 40 GB \(need 6 GB\)/;
-const LOW_DISK_ERROR = /Not enough free disk space to pull images: 2 GB free/;
-const STACK_UNTOUCHED = /the running stack was not touched/;
-const OVERRIDE_ERROR = /10 GB free.*12 GB required/;
+  /Free disk space on \/var\/lib\/docker: 40 GB \(need 6 GB\)/u;
+const LOW_DISK_ERROR = /Not enough free disk space to pull images: 2 GB free/u;
+const STACK_UNTOUCHED = /the running stack was not touched/u;
+const OVERRIDE_ERROR = /10 GB free.*12 GB required/u;
 const SECRET_MARKER = "ci-secret-marker-must-not-leak";
 const RUNNER_DISK_ERROR =
-  /Not enough free disk space for the runner: 1 GB free/;
+  /Not enough free disk space for the runner: 1 GB free/u;
 
 /** Runs the real core.sh deploy in a temp tree with stubbed docker, python3, node and df. */
 function runDeploy({
@@ -287,20 +287,20 @@ for (const environment of ["staging", "production"]) {
   });
 }
 
-const PHASE_GROUP = /::group::\[\d{2}:\d{2}:\d{2}Z\] render-config/;
-const FAILED_START = /failed in phase 'start' \(last completed: grants\)/;
+const PHASE_GROUP = /::group::\[\d{2}:\d{2}:\d{2}Z\] render-config/u;
+const FAILED_START = /failed in phase 'start' \(last completed: grants\)/u;
 const FAILED_MIGRATIONS =
-  /failed in phase 'migrations' \(last completed: databases\)/;
-const PARTIAL_RELEASE = /a partial release may be running/;
-const UNHEALTHY_STATE = /test-nhc-worker-1 status=running health=unhealthy/;
-const HEALTH_PROBE = /exit=1 heartbeat missing/;
-const NETWORK_RECREATE = /stopping the project so Compose can recreate it/;
-const PROJECT_STOPPED = /nothing is serving until a deploy succeeds/;
-const DIAGNOSTICS_INCOMPLETE = /Diagnostics incomplete/;
+  /failed in phase 'migrations' \(last completed: databases\)/u;
+const PARTIAL_RELEASE = /a partial release may be running/u;
+const UNHEALTHY_STATE = /test-nhc-worker-1 status=running health=unhealthy/u;
+const HEALTH_PROBE = /exit=1 heartbeat missing/u;
+const NETWORK_RECREATE = /stopping the project so Compose can recreate it/u;
+const PROJECT_STOPPED = /nothing is serving until a deploy succeeds/u;
+const DIAGNOSTICS_INCOMPLETE = /Diagnostics incomplete/u;
 const SUMMARY_FAILED_START =
-  /Core delivery failed[\s\S]*\| start \| \d+s \| failed \|/;
+  /Core delivery failed[\s\S]*\| start \| \d+s \| failed \|/u;
 const SUMMARY_SUCCEEDED =
-  /Core delivery succeeded[\s\S]*\| render-config \| \d+s \| ok \|[\s\S]*\| smoke \| \d+s \| ok \|/;
+  /Core delivery succeeded[\s\S]*\| render-config \| \d+s \| ok \|[\s\S]*\| smoke \| \d+s \| ok \|/u;
 
 // Release A's staging deploy failed this way: #485 pinned the network subnet, Compose
 // had to recreate the network, but only db and redis were being started, so the web
@@ -467,19 +467,19 @@ test("delivery starts exactly the services in the release registry", () => {
   );
 });
 
-const GATE_STALE = /newest backup 40\.0h old/;
+const GATE_STALE = /newest backup 40\.0h old/u;
 const GATE_BLOCKED =
-  /Backup gate \(enforce\) blocked the deploy before migrations/;
-const GATE_HOW_TO = /backup-database\.yml.*backup_gate_override/s;
-const GATE_WARNING = /::warning::Backup gate \(warn\): backup is stale/;
-const GATE_OPEN = /could NOT verify the newest backup and is passing OPEN/;
-const GATE_OVERRIDDEN = /Backup gate OVERRIDDEN by test: 'hotfix INC-42'/;
+  /Backup gate \(enforce\) blocked the deploy before migrations/u;
+const GATE_HOW_TO = /backup-database\.yml.*backup_gate_override/su;
+const GATE_WARNING = /::warning::Backup gate \(warn\): backup is stale/u;
+const GATE_OPEN = /could NOT verify the newest backup and is passing OPEN/u;
+const GATE_OVERRIDDEN = /Backup gate OVERRIDDEN by test: 'hotfix INC-42'/u;
 const GATE_SKIPPED =
-  /Backup gate: skipped, this release has no migration services/;
-const GATE_OFF = /Backup gate: off/;
-const GATE_BAD_MODE = /not off, warn or enforce; using warn/;
-const GATE_SUMMARY_BLOCKED = /blocked this deploy/;
-const GATE_MISSING = /missing: bucket name/;
+  /Backup gate: skipped, this release has no migration services/u;
+const GATE_OFF = /Backup gate: off/u;
+const GATE_BAD_MODE = /not off, warn or enforce; using warn/u;
+const GATE_SUMMARY_BLOCKED = /blocked this deploy/u;
+const GATE_MISSING = /missing: bucket name/u;
 const MIGRATED = "run --rm --no-deps prestart";
 
 function gate(gateMode, testGate, extraEnv = {}) {
@@ -575,9 +575,9 @@ test("backup gate: calls the gate for production and never prints secrets", () =
   );
 });
 
-const ROLLING_DEPLOY_INVALID = /ROLLING_DEPLOY must be/;
+const ROLLING_DEPLOY_INVALID = /ROLLING_DEPLOY must be/u;
 const ROLLOUT_FAILED =
-  /New web-auth container did not become healthy; the previous one is still serving/;
+  /New web-auth container did not become healthy; the previous one is still serving/u;
 
 test("rolling start replaces each routed service before retiring the old container", () => {
   const { result, calls } = runDeploy({

@@ -25,11 +25,11 @@ export function WarningRibbon({ alerts }: { alerts: AlertsResult }) {
 
   return (
     <Link className={cn("block", WARNING_LEVEL_SURFACE[level])} href="/alerts">
-      <span className="mx-auto flex max-w-6xl flex-wrap items-center gap-x-3 gap-y-1 px-4 py-2.5 text-body leading-body sm:px-6 xl:px-8">
+      <span className="text-body leading-body mx-auto flex max-w-6xl flex-wrap items-center gap-x-3 gap-y-1 px-4 py-2.5 sm:px-6 xl:px-8">
         <TriangleAlertIcon aria-hidden="true" className="size-5 shrink-0" />
         <b className="font-bold">{alertsSummary(alerts)}</b>
         <span>{detail}</span>
-        <span className="ml-auto whitespace-nowrap font-bold underline">
+        <span className="ml-auto font-bold whitespace-nowrap underline">
           View alerts
         </span>
       </span>

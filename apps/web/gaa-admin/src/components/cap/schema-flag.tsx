@@ -15,7 +15,7 @@ export function SchemaFlag({ alert }: { alert: SchemaFlagFields }) {
   }
   return (
     <span
-      className="inline-flex items-center rounded-md border border-gm-risk-amber px-2 py-0.5 font-medium text-caption text-gm-text-primary leading-caption"
+      className="border-gm-risk-amber text-caption text-gm-text-primary leading-caption inline-flex items-center rounded-md border px-2 py-0.5 font-medium"
       title={alert.schema_error ?? undefined}
     >
       Does not fully follow the CAP standard

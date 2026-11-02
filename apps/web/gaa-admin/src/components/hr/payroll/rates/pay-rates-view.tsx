@@ -49,7 +49,7 @@ function endText(date: string | null): string {
 
 function BasicPayTable({ rows }: { rows: EmployeeBasicPayPublic[] }) {
   return (
-    <div className="overflow-x-auto rounded-xl border bg-card">
+    <div className="bg-card overflow-x-auto rounded-xl border">
       <Table>
         <TableHeader>
           <TableRow>
@@ -95,7 +95,7 @@ function RatesTable({
   rows: PayItemRatePublic[];
 }) {
   return (
-    <div className="overflow-x-auto rounded-xl border bg-card">
+    <div className="bg-card overflow-x-auto rounded-xl border">
       <Table>
         <TableHeader>
           <TableRow>
@@ -167,7 +167,7 @@ export function PayRatesView({
   return (
     <div className="space-y-8">
       <section aria-label="Basic pay" className="space-y-4">
-        <h2 className="font-semibold text-lg">Basic pay</h2>
+        <h2 className="text-lg font-semibold">Basic pay</h2>
         <BasicPaySection data={data} securityUrl={securityUrl} />
         {access.canManageRates && data.profiles.state === "ready" ? (
           <BasicPayForm
@@ -182,7 +182,7 @@ export function PayRatesView({
       </section>
 
       <section aria-label="Item rates" className="space-y-4">
-        <h2 className="font-semibold text-lg">Item rates</h2>
+        <h2 className="text-lg font-semibold">Item rates</h2>
         <p className="text-muted-foreground text-sm">
           Rates marked PROVISIONAL are not confirmed in writing yet. Their
           figures can be previewed but not issued.

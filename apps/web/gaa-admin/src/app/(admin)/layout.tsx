@@ -51,17 +51,17 @@ export default async function AdminLayout({
   if (mfaDetail) {
     return (
       <main className="mx-auto max-w-xl space-y-4 p-6">
-        <h1 className="font-semibold text-foreground text-xl">
+        <h1 className="text-foreground text-xl font-semibold">
           Two-step verification required
         </h1>
         <p className="text-muted-foreground">{mfaDetail}</p>
         <a
-          className="block text-primary underline"
+          className="text-primary block underline"
           href={new URL("/security", getAuthConfig().authAppUrl).toString()}
         >
           Open account security
         </a>
-        <a className="block text-primary underline" href="/signin">
+        <a className="text-primary block underline" href="/signin">
           Sign in again
         </a>
       </main>

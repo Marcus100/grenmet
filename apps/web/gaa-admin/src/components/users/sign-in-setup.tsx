@@ -12,7 +12,7 @@ import { toast } from "sonner";
 import { reportError } from "@/lib/report-error";
 import { hrApiErrorMessage } from "../hr/api-error";
 
-const TRAILING_DOT = /\.$/;
+const TRAILING_DOT = /\.$/u;
 const REASON_MIN = 3;
 const REASON_MAX = 500;
 
@@ -161,7 +161,7 @@ function SignInSetupDetails({
 
   return (
     <section aria-label="Sign-in setup" className="flex flex-col gap-3">
-      <h3 className="font-medium text-sm">Set up sign-in</h3>
+      <h3 className="text-sm font-medium">Set up sign-in</h3>
       <p className="text-muted-foreground text-sm">
         Use this when the person cannot receive sign-in codes by email, for
         example when their work mailbox is not live yet or the address is wrong.

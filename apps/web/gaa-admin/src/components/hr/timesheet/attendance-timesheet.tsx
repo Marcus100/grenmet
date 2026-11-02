@@ -149,7 +149,7 @@ function AttendanceShift({
     return true;
   }
   return (
-    <article className="space-y-4 rounded-lg border bg-card p-4">
+    <article className="bg-card space-y-4 rounded-lg border p-4">
       <RuleOverrideDialog
         busy={pending}
         labels={new Map([[shift.user_id, shift.employee_name]])}
@@ -172,7 +172,7 @@ function AttendanceShift({
       />
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div>
-          <h3 className="font-semibold text-sm">
+          <h3 className="text-sm font-semibold">
             {shift.shift_date} · {shift.shift_code} · {shift.employee_name}
           </h3>
           <p className="text-muted-foreground text-xs">
@@ -343,7 +343,7 @@ export function AttendanceTimesheet() {
     >
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
-          <h2 className="font-semibold text-lg">My shift attendance</h2>
+          <h2 className="text-lg font-semibold">My shift attendance</h2>
           <p className="text-muted-foreground text-sm">
             Record your actual arrival, departure and break duration. Each
             completed shift goes to your supervisor.

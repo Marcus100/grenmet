@@ -1,13 +1,13 @@
 import type { CollectionBeforeValidateHook, Field } from "payload";
 
-const SLUG = /^[a-z0-9]+(?:[/-][a-z0-9]+)*$/;
+const SLUG = /^[a-z0-9]+(?:[/-][a-z0-9]+)*$/u;
 
 export const slugPart = (value: unknown) =>
   String(value ?? "")
     .toLowerCase()
     .trim()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "");
+    .replace(/[^a-z0-9]+/gu, "-")
+    .replace(/^-+|-+$/gu, "");
 
 export const slugField: Field = {
   name: "slug",

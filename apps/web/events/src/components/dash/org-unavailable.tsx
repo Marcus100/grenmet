@@ -2,7 +2,7 @@
 export function OrgUnavailable() {
   return (
     <p
-      className="rounded-2xl border border-dashed bg-card px-4 py-8 text-center text-body text-muted-foreground"
+      className="bg-card text-body text-muted-foreground rounded-2xl border border-dashed px-4 py-8 text-center"
       role="status"
     >
       This organiser isn't linked to an organisation yet, so orders and
@@ -15,7 +15,7 @@ export function OrgUnavailable() {
 export function OrgForbidden({ what }: { what: string }) {
   return (
     <p
-      className="rounded-2xl border border-dashed bg-card px-4 py-8 text-center text-body text-muted-foreground"
+      className="bg-card text-body text-muted-foreground rounded-2xl border border-dashed px-4 py-8 text-center"
       role="status"
     >
       You don't have access to {what} for this organisation (your role or the

@@ -3,7 +3,7 @@ import { MDXContent } from "@content-collections/mdx/react";
 const components = {
   a: (props: React.ComponentProps<"a">) => (
     <a
-      className="text-signal-green underline underline-offset-2 hover:text-signal-green-dark"
+      className="text-signal-green hover:text-signal-green-dark underline underline-offset-2"
       {...props}
     />
   ),

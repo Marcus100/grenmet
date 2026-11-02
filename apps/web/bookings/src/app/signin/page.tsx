@@ -35,13 +35,13 @@ export default async function SignIn({ searchParams }: SignInPageProps) {
       className="mx-auto flex min-h-screen max-w-xl flex-col justify-center gap-4 p-6"
       id="main-content"
     >
-      <h1 className="font-semibold text-2xl">Sign-in did not finish</h1>
+      <h1 className="text-2xl font-semibold">Sign-in did not finish</h1>
       <p className="text-muted-foreground" role="alert">
         The sign-in link expired or was refused. Try again, or contact Barrels
         Grenada if it keeps happening.
       </p>
       <a
-        className="w-fit rounded-md border px-3 py-1.5 text-sm hover:bg-muted"
+        className="hover:bg-muted w-fit rounded-md border px-3 py-1.5 text-sm"
         href={start}
       >
         Try again

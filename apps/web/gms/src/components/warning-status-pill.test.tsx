@@ -4,7 +4,7 @@ import { WarningStatusPill } from "@/components/warning-status-pill";
 import type { AlertsResult, GreenStatus } from "@/lib/cap-alerts";
 import { WARNING_LEVEL_SURFACE } from "@/lib/warning-level";
 
-const ONE_ACTIVE = /· 1 active$/;
+const ONE_ACTIVE = /· 1 active$/u;
 
 const ACTIVE: AlertsResult = {
   activeCount: 1,

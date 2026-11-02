@@ -295,7 +295,7 @@ export function NotificationSettings({
   return (
     <div className="flex flex-col gap-6">
       <div className="flex flex-col gap-1">
-        <h2 className="font-medium text-lg">Notifications</h2>
+        <h2 className="text-lg font-medium">Notifications</h2>
         <p className="text-muted-foreground text-sm">
           What the portal tells people, and whether it also emails them.
           {domains.length > 0
@@ -330,7 +330,7 @@ export function NotificationSettings({
                     </span>
                   </div>
                 </TableCell>
-                <TableCell className="min-w-40 whitespace-normal text-sm">
+                <TableCell className="min-w-40 text-sm whitespace-normal">
                   {setting.audience}
                   {setting.recipient_roles.length > 0
                     ? ` · roles: ${setting.recipient_roles.join(", ")}`

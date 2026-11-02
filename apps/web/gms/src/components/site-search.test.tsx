@@ -6,8 +6,8 @@ import { SiteSearch } from "@/components/site-search";
 const push = vi.fn();
 vi.mock("next/navigation", () => ({ useRouter: () => ({ push }) }));
 
-const RADAR = /^Radar/;
-const SARGASSUM = /Sargassum season/;
+const RADAR = /^Radar/u;
+const SARGASSUM = /Sargassum season/u;
 
 beforeEach(() => {
   // cmdk measures and scrolls its list; jsdom has neither API.

@@ -97,31 +97,31 @@ export function DraftEditor({
     <div className="mx-auto flex w-full max-w-3xl flex-col gap-4 p-4 sm:gap-5 sm:p-5">
       <PageHeader title={`Edit draft ${requisition.reference}`} />
 
-      <div className="flex flex-col gap-3 rounded-xl bg-card p-4 sm:p-5">
+      <div className="bg-card flex flex-col gap-3 rounded-xl p-4 sm:p-5">
         <p className="text-sm" data-testid="requisition-department">
-          <span className="font-medium text-foreground">Requesting for: </span>
+          <span className="text-foreground font-medium">Requesting for: </span>
           {requisition.department_name}{" "}
           <span className="text-muted-foreground text-xs">
             (requested by {requisition.requester_name})
           </span>
         </p>
         <label className="flex flex-col gap-1 text-sm">
-          <span className="font-medium text-foreground">
+          <span className="text-foreground font-medium">
             What is it for? (optional)
           </span>
           <input
-            className="min-h-12 rounded-lg border border-input bg-background px-3 text-base"
+            className="border-input bg-background min-h-12 rounded-lg border px-3 text-base"
             maxLength={500}
             onChange={(e) => setPurpose(e.target.value)}
             value={purpose}
           />
         </label>
         <label className="flex flex-col gap-1 text-sm">
-          <span className="font-medium text-foreground">
+          <span className="text-foreground font-medium">
             Needed by (optional)
           </span>
           <input
-            className="min-h-12 rounded-lg border border-input bg-background px-3 text-base"
+            className="border-input bg-background min-h-12 rounded-lg border px-3 text-base"
             onChange={(e) => setNeededBy(e.target.value)}
             type="date"
             value={neededBy}
@@ -149,16 +149,16 @@ export function DraftEditor({
           />
         ))}
         {lines.length === 0 && (
-          <p className="py-6 text-center text-muted-foreground">
+          <p className="text-muted-foreground py-6 text-center">
             Add at least one item to keep or submit this draft
           </p>
         )}
       </div>
 
-      <div className="flex gap-3 rounded-xl bg-card p-4 sm:p-5">
+      <div className="bg-card flex gap-3 rounded-xl p-4 sm:p-5">
         <select
           aria-label="Add an item"
-          className="min-h-12 flex-1 rounded-lg border border-input bg-background px-3 text-base"
+          className="border-input bg-background min-h-12 flex-1 rounded-lg border px-3 text-base"
           onChange={(e) => setToAdd(e.target.value)}
           value={toAdd}
         >

@@ -31,13 +31,13 @@ const API = `${BASE}/api/v1/hr/payroll`;
 const SECURITY = "https://auth.example/security";
 const MFA_DETAIL =
   "Sign in again with your authenticator or recovery code before using privileged staff tools";
-const MFA_TEXT = /Two-step verification is needed/;
-const NO_SLIPS = /No payslips yet/;
-const APPROVED_ON = /Approved for issue on/;
-const NO_LINES = /No pay lines to summarise yet/;
-const WHO_FIX = /Who can fix it:/;
-const NOT_APPROVED = /not approved yet/;
-const PROVISIONAL_TABLE = /PAYE table is still provisional/;
+const MFA_TEXT = /Two-step verification is needed/u;
+const NO_SLIPS = /No payslips yet/u;
+const APPROVED_ON = /Approved for issue on/u;
+const NO_LINES = /No pay lines to summarise yet/u;
+const WHO_FIX = /Who can fix it:/u;
+const NOT_APPROVED = /not approved yet/u;
+const PROVISIONAL_TABLE = /PAYE table is still provisional/u;
 
 const TAX_LINE = {
   category: "INCOME_TAX",

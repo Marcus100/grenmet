@@ -54,7 +54,7 @@ export function ExpiryFilter({
       Expiry filter (current page)
       <select
         aria-label="Expiry filter (current page)"
-        className="block rounded-md border border-input bg-background p-2"
+        className="border-input bg-background block rounded-md border p-2"
         onChange={(event) => onChange(event.target.value)}
         value={value}
       >

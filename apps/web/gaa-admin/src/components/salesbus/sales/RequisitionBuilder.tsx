@@ -33,7 +33,7 @@ export function RequisitionBuilder({ items }: { items: ItemPublic[] }) {
           value={searchQuery}
         />
         <Link
-          className="relative flex min-h-12 touch-manipulation items-center gap-2 rounded-lg bg-gm-blue-ink px-4 font-medium text-white hover:bg-gm-navy"
+          className="bg-gm-blue-ink hover:bg-gm-navy relative flex min-h-12 touch-manipulation items-center gap-2 rounded-lg px-4 font-medium text-white"
           href={"/salesbus/sales/cart" as Route}
         >
           <ShoppingCart className="h-5 w-5" />
@@ -50,7 +50,7 @@ export function RequisitionBuilder({ items }: { items: ItemPublic[] }) {
       </div>
 
       {filtered.length === 0 && (
-        <div className="py-12 text-center text-muted-foreground">
+        <div className="text-muted-foreground py-12 text-center">
           <p className="text-base sm:text-lg">
             No items found matching &quot;{searchQuery}&quot;
           </p>

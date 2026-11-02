@@ -26,8 +26,8 @@ vi.mock("next/navigation", () => ({
 }));
 
 const BASE = "http://localhost";
-const PATTERN_0 = /No pay calendar yet/;
-const PATTERN_1 = /Quantities only/;
+const PATTERN_0 = /No pay calendar yet/u;
+const PATTERN_1 = /Quantities only/u;
 const PROFILE_CALENDAR = "Pay calendar: Synthetic Person";
 const PROFILE_REASON = "Override reason: Synthetic Person";
 const API = `${BASE}/api/v1/hr/payroll`;

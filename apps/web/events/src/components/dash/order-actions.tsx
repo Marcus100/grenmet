@@ -43,8 +43,8 @@ function Panel({
   title: string;
 }) {
   return (
-    <section className="space-y-3 rounded-2xl border border-border bg-card p-4">
-      <h3 className="font-display font-semibold text-heading-sm">{title}</h3>
+    <section className="border-border bg-card space-y-3 rounded-2xl border p-4">
+      <h3 className="font-display text-heading-sm font-semibold">{title}</h3>
       {disabledReason ? (
         <p className="text-body text-muted-foreground">{disabledReason}</p>
       ) : (
@@ -151,13 +151,13 @@ export function OrderActions({ order }: { order: OrgOrderDetail }) {
     <div className="space-y-4">
       <div aria-live="polite" className="space-y-1">
         <p
-          className="font-medium text-body text-primary empty:hidden"
+          className="text-body text-primary font-medium empty:hidden"
           role="status"
         >
           {notice}
         </p>
         <p
-          className="font-medium text-body text-destructive empty:hidden"
+          className="text-body text-destructive font-medium empty:hidden"
           role="alert"
         >
           {error}
@@ -438,8 +438,8 @@ function RefundForm({
         />
       </Field>
       {confirming && amountMinor !== null ? (
-        <div className="space-y-2 rounded-xl border border-destructive/40 p-3">
-          <p className="font-medium text-body">
+        <div className="border-destructive/40 space-y-2 rounded-xl border p-3">
+          <p className="text-body font-medium">
             Refund {code(amountMinor)} to the buyer?
           </p>
           <p className="text-caption text-muted-foreground">

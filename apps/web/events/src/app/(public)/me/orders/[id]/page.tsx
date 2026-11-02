@@ -28,7 +28,7 @@ export default async function OrderPage({ params }: { params: Params }) {
       >
         All my tickets
       </Link>
-      <h1 className="font-bold font-display text-heading-base tracking-tight">
+      <h1 className="font-display text-heading-base font-bold tracking-tight">
         Your order
       </h1>
       <OrderStatus order={order} />

@@ -45,8 +45,8 @@ export function DeskLayout({
   );
 
   return (
-    <div className="grid @4xl:grid-cols-2 items-start gap-4">
-      <div className="@4xl:block contents @4xl:min-w-0 @4xl:space-y-4">
+    <div className="grid items-start gap-4 @4xl:grid-cols-2">
+      <div className="contents @4xl:block @4xl:min-w-0 @4xl:space-y-4">
         <div
           className="order-1 min-w-0"
           data-slot="desk-editor-panel"
@@ -56,7 +56,7 @@ export function DeskLayout({
         </div>
         {belowEditor ? archiveCard : null}
       </div>
-      <div className="@4xl:block contents @4xl:min-w-0 @4xl:space-y-4">
+      <div className="contents @4xl:block @4xl:min-w-0 @4xl:space-y-4">
         <div
           className="order-2 min-w-0"
           data-slot="desk-preview-panel"

@@ -29,7 +29,7 @@ export function Flag({
   if (!entry) return null;
   return (
     <sup
-      className="ml-0.5 cursor-help text-el-muted"
+      className="text-el-muted ml-0.5 cursor-help"
       title={note ?? entry.title}
     >
       {entry.mark}

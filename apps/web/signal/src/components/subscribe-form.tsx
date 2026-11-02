@@ -80,7 +80,7 @@ export function SubscribeForm() {
 
   if (state.status === "success") {
     return (
-      <p className="font-medium text-lg" role="status">
+      <p className="text-lg font-medium" role="status">
         Check your email to confirm. We will only send the newsletter once you
         click the link.
       </p>
@@ -105,7 +105,7 @@ export function SubscribeForm() {
       </div>
       <label className="flex items-start gap-3 text-base leading-relaxed">
         <input
-          className="mt-1 size-5 shrink-0 accent-primary"
+          className="accent-primary mt-1 size-5 shrink-0"
           name="consent"
           required
           type="checkbox"
@@ -128,7 +128,7 @@ export function SubscribeForm() {
         {state.status === "submitting" ? "Sending…" : "Subscribe"}
       </Button>
       {state.status === "error" && (
-        <p className="font-medium text-base text-destructive" role="alert">
+        <p className="text-destructive text-base font-medium" role="alert">
           {state.message}
         </p>
       )}

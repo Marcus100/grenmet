@@ -11,10 +11,10 @@ const NAV = [
 
 export function SiteHeader() {
   return (
-    <header className="border-gm-border border-b bg-gm-surface-page print:hidden">
+    <header className="border-gm-border bg-gm-surface-page border-b print:hidden">
       <div className="mx-auto flex max-w-4xl flex-wrap items-center gap-x-6 gap-y-2 px-4 py-3">
         <Link
-          className="flex items-center gap-3 text-gm-heading"
+          className="text-gm-heading flex items-center gap-3"
           href="/"
           prefetch={false}
         >
@@ -23,16 +23,16 @@ export function SiteHeader() {
             className="h-9 w-auto"
             variant="monogram"
           />
-          <span className="font-semibold text-body-base leading-tight">
+          <span className="text-body-base leading-tight font-semibold">
             Grenada weather alerts
           </span>
         </Link>
         <nav aria-label="Main">
-          <ul className="flex flex-wrap gap-x-4 gap-y-1 text-body-sm">
+          <ul className="text-body-sm flex flex-wrap gap-x-4 gap-y-1">
             {NAV.map((item) => (
               <li key={item.href}>
                 <Link
-                  className="font-medium text-gm-blue-ink underline-offset-4 hover:underline"
+                  className="text-gm-blue-ink font-medium underline-offset-4 hover:underline"
                   href={item.href}
                   prefetch={false}
                 >
