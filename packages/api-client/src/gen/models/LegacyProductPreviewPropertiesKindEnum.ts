@@ -7,6 +7,8 @@ export const legacyProductPreviewPropertiesKindEnum = {
   morning: "morning",
   midday: "midday",
   evening: "evening",
+  "marine-forecast": "marine-forecast",
+  "climate-bulletin": "climate-bulletin",
   cyclone: "cyclone",
   marine: "marine",
   flood: "flood",

@@ -240,3 +240,51 @@ def test_old_alert_can_still_be_withdrawn() -> None:
         changeSummary="Raised to a CAP warning",
     )
     assert validation.validate(payload, now=NOW) == []
+
+
+def test_marine_forecast_is_fixed_to_0500_to_0500() -> None:
+    values = validation.normalize(
+        "marine-forecast",
+        {"issuedAt": "2026-11-02T06:30", "validTo": "2026-11-09T00:00"},
+    )
+    assert values["issuedAt"] == "2026-11-02T05:00"
+    assert values["validFrom"] == "2026-11-02T05:00"
+    assert values["validTo"] == "2026-11-03T05:00"
+    assert values["area"] == validation.MARINE_FORECAST_AREA
+
+
+def test_marine_forecast_may_be_published_before_its_issue_time() -> None:
+    values = complete("marine-forecast")
+    values = validation.normalize(
+        "marine-forecast", {**values, "issuedAt": "2026-09-09T05:00"}
+    )
+    errors = validation.validate(
+        body("marine-forecast", values=values, action="publish", reviewed=True),
+        now=NOW,
+    )
+    assert errors == []
+
+
+@pytest.mark.parametrize(
+    ("issued", "month", "valid_to"),
+    [
+        ("2026-11-15T10:00", "2026-10", "2026-12-15T23:59"),
+        ("2026-01-15T09:00", "2025-12", "2026-02-15T23:59"),
+        ("2026-03-10T09:00", "2026-02", "2026-03-15T23:59"),
+    ],
+)
+def test_climate_bulletin_reviews_previous_month(issued, month, valid_to) -> None:
+    values = validation.normalize("climate-bulletin", {"issuedAt": issued})
+    assert values["month"] == month
+    assert values["validFrom"] == issued
+    assert values["validTo"] == valid_to
+
+
+def test_climate_bulletin_keeps_a_chosen_month_and_rejects_bad_ones() -> None:
+    kept = validation.normalize(
+        "climate-bulletin", {"issuedAt": "2026-11-15T10:00", "month": "2026-09"}
+    )
+    assert kept["month"] == "2026-09"
+    values = {**complete("climate-bulletin"), "month": "2026-13"}
+    errors = validation.validate(body("climate-bulletin", values=values), now=NOW)
+    assert "Month reviewed: enter the month as YYYY-MM" in errors

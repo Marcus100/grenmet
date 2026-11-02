@@ -14,6 +14,7 @@ import {
   isBulletin,
   isComposedForecastField,
   isForecastKind,
+  MARINE_FORECAST_AREA,
   PRODUCT_KINDS,
   type ProductField,
   type ProductKind,
@@ -60,6 +61,7 @@ import {
 import { bulletinExample } from "@/lib/wxproducts/bulletin-examples";
 import { visibleProductFields } from "@/lib/wxproducts/visible-fields";
 import { CapForecastPicker } from "./cap-forecast-picker";
+import { ClimateFigures } from "./climate-figures";
 import { ImpactMatrixPanel } from "./impact-matrix-panel";
 import { NhcGuidanceEditor } from "./nhc-guidance-editor";
 import { ProductDiscardDialog } from "./product-discard-dialog";
@@ -97,12 +99,16 @@ const COMPUTED_FORECAST_FIELDS = [
   "advisories",
 ];
 const FORECAST_AREA = "Grenada, Carriacou and Petite Martinique";
+/** FastAPI derives a climate bulletin's validity from its issue date (until the next 15th). */
+const CLIMATE_COMPUTED_FIELDS = ["validFrom", "validTo", "validity"];
 /** Forecasts always cover the whole state and are issued by the signed-in forecaster; FastAPI enforces the same on save. */
 function withIssuer(
   kind: ProductKind,
   values: ProductValues,
   forecaster: string
 ): ProductValues {
+  if (kind === "marine-forecast")
+    return { ...values, area: MARINE_FORECAST_AREA, forecaster };
   if (!isForecastKind(kind)) return { ...values, forecaster };
   return { ...values, area: FORECAST_AREA, forecaster };
 }
@@ -140,6 +146,8 @@ const PERIOD_PREFIXES = ["", "day1", "day2", "day3", "day4"];
 function isComputedField(kind: ProductKind, key: string) {
   if (key === "forecaster") return true;
   if (isComposedForecastField(key) && composedFrom(kind, key)) return true;
+  if (kind === "marine-forecast") return COMPUTED_FORECAST_FIELDS.includes(key);
+  if (kind === "climate-bulletin") return CLIMATE_COMPUTED_FIELDS.includes(key);
   return (
     isForecastKind(kind) &&
     (COMPUTED_FORECAST_FIELDS.includes(key) || EVENING_DAY_DATE.test(key))
@@ -643,6 +651,9 @@ function ProductEditor({
                           values={values}
                         />
                       )}
+                      {kind === "climate-bulletin" ? (
+                        <ClimateFigures month={values.month ?? ""} />
+                      ) : null}
                       <ForecastPeriodFields
                         evening={kind === "evening"}
                         period={period}
