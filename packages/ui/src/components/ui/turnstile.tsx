@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 
 const SCRIPT_SRC =
   "https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit";
@@ -72,10 +72,15 @@ export function Turnstile({ onToken, resetKey = 0, siteKey }: TurnstileProps) {
   const widgetRef = useRef<string | undefined>(undefined);
   const onTokenRef = useRef(onToken);
   onTokenRef.current = onToken;
+  // The site key is read at run time (issue #1019), so a page rendered at build
+  // time may not have it. Rendering only after mount keeps the server HTML and
+  // the first browser render identical.
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
 
   useEffect(() => {
     const container = containerRef.current;
-    if (!(siteKey && container)) {
+    if (!(mounted && siteKey && container)) {
       return;
     }
     let cancelled = false;
@@ -100,7 +105,7 @@ export function Turnstile({ onToken, resetKey = 0, siteKey }: TurnstileProps) {
       }
       widgetRef.current = undefined;
     };
-  }, [siteKey]);
+  }, [mounted, siteKey]);
 
   useEffect(() => {
     if (resetKey === 0) {
@@ -112,7 +117,7 @@ export function Turnstile({ onToken, resetKey = 0, siteKey }: TurnstileProps) {
     }
   }, [resetKey]);
 
-  if (!siteKey) {
+  if (!(mounted && siteKey)) {
     return null;
   }
   return <div data-slot="turnstile" ref={containerRef} />;

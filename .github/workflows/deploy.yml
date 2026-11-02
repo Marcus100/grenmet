@@ -168,6 +168,8 @@ jobs:
           GMS_DATA_REQUEST_RECIPIENT: ${{ vars.GMS_DATA_REQUEST_RECIPIENT }}
           TURNSTILE_ENABLED: ${{ vars.TURNSTILE_ENABLED }}
           TURNSTILE_SECRET_KEY: ${{ secrets.TURNSTILE_SECRET_KEY }}
+          # Public widget key, read by the web apps at run time (issue #1019).
+          NEXT_PUBLIC_TURNSTILE_SITE_KEY: ${{ vars.NEXT_PUBLIC_TURNSTILE_SITE_KEY }}
           EMAIL_HASH_PEPPER: ${{ secrets.EMAIL_HASH_PEPPER }}
           EREGISTER_OBS_RECIPIENTS: ${{ vars.EREGISTER_OBS_RECIPIENTS }}
           EREGISTER_SEND_REQUIRE_ACCEPTED: ${{ vars.EREGISTER_SEND_REQUIRE_ACCEPTED }}

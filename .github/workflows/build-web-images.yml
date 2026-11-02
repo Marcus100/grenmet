@@ -136,15 +136,16 @@ jobs:
           target: ${{ matrix.target || 'runner' }}
           push: false
           load: true
+          # The apps read their public settings at run time (issue #1019,
+          # packages/ui/src/lib/public-env.ts). These seed only build-time
+          # output: pages prerendered at build, the next.config CSP report
+          # endpoint and source-map upload.
           build-args: |
             NEXT_PUBLIC_SITE_URL=https://${{ matrix.host || matrix.app }}.${{ steps.ctx.outputs.environment == 'staging' && 'staging.barrels.gd' || 'barrels.gd' }}
-            NEXT_PUBLIC_API_URL=${{ steps.ctx.outputs.api_url }}
-            NEXT_PUBLIC_ENVIRONMENT=${{ steps.ctx.outputs.environment }}
             NEXT_PUBLIC_SENTRY_DSN=${{ steps.telemetry.outputs.sentry_dsn }}
             NEXT_PUBLIC_SENTRY_ENVIRONMENT=${{ steps.ctx.outputs.environment }}
             SENTRY_PROJECT=${{ steps.telemetry.outputs.sentry_project }}
             NEXT_PUBLIC_RELEASE=${{ github.sha }}
-            NEXT_PUBLIC_TURNSTILE_SITE_KEY=${{ vars.NEXT_PUBLIC_TURNSTILE_SITE_KEY }}
           secrets: |
             SENTRY_AUTH_TOKEN=${{ secrets.SENTRY_AUTH_TOKEN }}
           tags: ${{ steps.meta.outputs.tags }}
@@ -181,15 +182,16 @@ jobs:
           file: ${{ matrix.path }}/Dockerfile
           target: ${{ matrix.target || 'runner' }}
           push: true
+          # The apps read their public settings at run time (issue #1019,
+          # packages/ui/src/lib/public-env.ts). These seed only build-time
+          # output: pages prerendered at build, the next.config CSP report
+          # endpoint and source-map upload.
           build-args: |
             NEXT_PUBLIC_SITE_URL=https://${{ matrix.host || matrix.app }}.${{ steps.ctx.outputs.environment == 'staging' && 'staging.barrels.gd' || 'barrels.gd' }}
-            NEXT_PUBLIC_API_URL=${{ steps.ctx.outputs.api_url }}
-            NEXT_PUBLIC_ENVIRONMENT=${{ steps.ctx.outputs.environment }}
             NEXT_PUBLIC_SENTRY_DSN=${{ steps.telemetry.outputs.sentry_dsn }}
             NEXT_PUBLIC_SENTRY_ENVIRONMENT=${{ steps.ctx.outputs.environment }}
             SENTRY_PROJECT=${{ steps.telemetry.outputs.sentry_project }}
             NEXT_PUBLIC_RELEASE=${{ github.sha }}
-            NEXT_PUBLIC_TURNSTILE_SITE_KEY=${{ vars.NEXT_PUBLIC_TURNSTILE_SITE_KEY }}
           secrets: |
             SENTRY_AUTH_TOKEN=${{ secrets.SENTRY_AUTH_TOKEN }}
           tags: ${{ steps.meta.outputs.tags }}

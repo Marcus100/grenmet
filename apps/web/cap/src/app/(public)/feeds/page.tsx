@@ -4,6 +4,9 @@ import { env } from "@/lib/env";
 
 const TRAILING_SLASH = /\/$/;
 
+// Built from this environment's site address at request time (issue #1019).
+export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = { title: "Alert feeds" };
 
 const FEEDS = [

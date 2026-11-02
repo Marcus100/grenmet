@@ -36,7 +36,8 @@ const nextConfig: NextConfig = {
 export default withContentCollections(nextConfig).then((config) =>
   withSentryConfig(config as NextConfig, {
     org: "grenmet",
-    project: process.env.SENTRY_PROJECT,
+    // Comma-separated: one build uploads source maps to every environment's project.
+    project: process.env.SENTRY_PROJECT?.split(",").filter(Boolean),
     release: { name: process.env.NEXT_PUBLIC_RELEASE },
     silent: false,
     widenClientFileUpload: true,

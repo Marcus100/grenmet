@@ -1,3 +1,5 @@
+import { onPublicEnv, readPublicEnv } from "@barrelsgd/ui/lib/public-env";
+
 // Sentry's browser SDK is ~120 KB gzip. Loading it with a static import puts it
 // in the first-load bundle of every page and delays hydration on slow mobile
 // links, so it is fetched after the page is interactive instead. Errors thrown
@@ -12,9 +14,10 @@ async function loadSentry() {
     import("@sentry/nextjs"),
   ]);
   loaded.init({
-    dsn: process.env.NEXT_PUBLIC_SENTRY_DSN,
-    environment: process.env.NEXT_PUBLIC_SENTRY_ENVIRONMENT ?? "development",
-    release: process.env.NEXT_PUBLIC_RELEASE,
+    dsn: readPublicEnv("NEXT_PUBLIC_SENTRY_DSN"),
+    environment:
+      readPublicEnv("NEXT_PUBLIC_SENTRY_ENVIRONMENT") ?? "development",
+    release: readPublicEnv("NEXT_PUBLIC_RELEASE"),
     tracesSampleRate: 0,
     dataCollection: privacy.sentryDataCollection,
     ignoreSpans: privacy.sentryIgnoredSpans,
@@ -27,11 +30,13 @@ async function loadSentry() {
 }
 
 function scheduleSentry() {
-  const start = () => {
-    loadSentry().catch(() => {
-      /* Error reporting must never affect the page. */
+  // The DSN comes from /runtime-env.js at run time (issue #1019).
+  const start = () =>
+    onPublicEnv(() => {
+      loadSentry().catch(() => {
+        /* Error reporting must never affect the page. */
+      });
     });
-  };
   if ("requestIdleCallback" in window) {
     window.requestIdleCallback(start, { timeout: 4000 });
   } else {

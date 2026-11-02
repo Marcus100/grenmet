@@ -1,4 +1,5 @@
 import "./globals.css";
+import { PublicEnvScript } from "@barrelsgd/ui/components/public-env-script";
 
 import type { Metadata, Viewport } from "next";
 import { Noto_Sans } from "next/font/google";
@@ -38,6 +39,7 @@ export default function RootLayout({
   return (
     <html className={`gm-site ${notoSans.variable}`} lang="en">
       <body className="flex min-h-screen flex-col bg-background text-foreground antialiased">
+        <PublicEnvScript />
         {children}
       </body>
     </html>
