@@ -32,9 +32,9 @@ const LESS_THAN = /</g;
 type PublicEnvWindow = Window & { [PUBLIC_ENV_GLOBAL]?: PublicEnv };
 type EnvSource = Record<string, string | undefined>;
 
+/** The process environment, looked up dynamically (also on the edge runtime). */
 function serverEnv(): EnvSource {
-  // biome-ignore lint/style/noProcessEnv: the one place public settings are read at run time
-  return process.env;
+  return (globalThis as { process?: { env: EnvSource } }).process?.env ?? {};
 }
 
 function browserEnv(): PublicEnv | undefined {

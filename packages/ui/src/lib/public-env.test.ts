@@ -1,4 +1,3 @@
-import { runInThisContext } from "node:vm";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
   onPublicEnv,
@@ -10,7 +9,7 @@ import {
 
 /** Runs the served script body, as the browser would. */
 function load(script: string) {
-  runInThisContext(script);
+  new Function(script)();
 }
 
 // A minimal browser global: the script only sets a property and dispatches an event.
