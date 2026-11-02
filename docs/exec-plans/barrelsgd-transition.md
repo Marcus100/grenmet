@@ -4,7 +4,7 @@
 **Recorded:** 2026-07-18
 **Amended:** 2026-08-16 — GAA/GMS corrected from product to client programme
 **Owner:** Repository maintainers  
-**Last updated:** 2026-10-13
+**Last updated:** 2026-10-31
 
 > **Ports and hosts throughout this document are superseded (2026-10-21)** by
 > [ADR-0043](../adr/0043-hostnames-tenancy-and-port-allocation.md) and
@@ -14,6 +14,14 @@
 This document describes the destination architecture. The execution order,
 baseline freeze, commit boundaries, and rollout sequencing live in
 [Barrels Grenada Migration Plan](barrelsgd-migration-plan.md).
+
+## Later ecosystem direction — 31 October 2026
+
+The [ecosystem amendment](../strategy/barrels-product-strategy.md#connected-ecosystem-direction--31-october-2026)
+proposes a separate personal daily home and distinct personal/work accounts.
+It is future planning, not an amendment to completed migrations, current host
+allocations or implemented authentication behaviour. Consult that amendment
+before extending older assumptions about the corporate hub or account pages.
 
 ## Goal
 

@@ -20,6 +20,14 @@ The three views must be read together. None is a replacement for the others.
 Specialist specifications, ADRs, runbooks, and catalogues remain authoritative
 inside their narrower domains.
 
+## Ecosystem direction
+
+The [31 October product amendment](../strategy/barrels-product-strategy.md#connected-ecosystem-direction--31-october-2026)
+records the daily home, account boundaries, community and business direction.
+Its [portfolio amendment](barrels-portfolio-implementation-plan.md#ecosystem-planning-amendment--31-october-2026)
+keeps discovery separate from scheduled delivery. Use these amendments when
+interpreting older assumptions about the corporate homepage and shared accounts.
+
 ## Classification rules
 
 - **Barrels product:** a market-facing product whose strategy and commercial
