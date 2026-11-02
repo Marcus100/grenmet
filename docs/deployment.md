@@ -22,11 +22,30 @@ Promotion follows `dev → staging → main → release`. Use pull requests for 
 promotion; the user merges them and publishes the release. See the
 [release runbook](operations/release-runbook.md) for the full sequence.
 
-- A push to `staging` runs `pipeline-staging.yml`: CI, applicable image builds,
-  then deployment with the `staging` image tag.
+Target pipeline: build once on `dev`, promote the same digests to staging and
+production (issue #1019). It lands with PR #1026, on top of PR #1020 (parallel
+server deploy) and PR #1025 (web settings read at run time); until those merge,
+`origin/dev` still builds in `pipeline-staging.yml` and `pipeline-prod.yml`.
+Full description and recovery steps: [release runbook](operations/release-runbook.md#build-once-promote-by-digest).
+
+- A push to `dev` runs `dev-images.yml` (lands with PR #1026). It builds,
+  smoke-tests and scans only the images the change touches and tags every image
+  `tree-<git tree>`; unchanged images reuse the previous tree's digest.
+- A push to `staging` runs `pipeline-staging.yml`. It builds nothing and does not
+  re-run CI: `scripts/ci/promote-images.mjs` finds the dev commit with the same
+  git tree, requires the required checks of `infra/github/rulesets.json` to have
+  passed on it, retags those digests `staging-sha-<commit>` and deploys them.
+  After a successful deploy they are tagged `staging-verified-tree-<tree>`.
 - Merging to `main` does not build deployment images or deploy production.
-- Publishing a release runs `pipeline-prod.yml`: builds all images at the release
-  tag, then deploys that same tag for FastAPI, web apps, and migrations.
+- Publishing a release runs `pipeline-prod.yml`: it promotes only the
+  `staging-verified-tree-<tree>` digests of the release commit's tree (it fails
+  if staging never deployed that tree), tags them `production-sha-<commit>` and
+  deploys. Production therefore runs byte-identical images to staging.
+- `core.sh` refuses any image whose digest is not in the promotion's list
+  (`DEPLOY_IMAGE_DIGESTS`, from the `image_digests` input of `deploy.yml`).
+- Server deploy speed (lands with PR #1020): `core.sh` pulls only images missing
+  on the host (`PULL_PARALLEL`, default 4) and, with `ROLLING_DEPLOY=1`, rolls
+  routed services in batches (`ROLLOUT_PARALLEL`, default 4).
 - A manual **Deploy** dispatch redeploys existing images; it does not build them.
   Supply an explicit image tag. The **Deploy to Production** entry point requires it.
 
