@@ -70,6 +70,7 @@ const DUTY_FORECASTER = /Duty forecaster ·/;
 const WATCH_ON_YOUTUBE = /^Watch on YouTube/;
 const ISSUED_UNAVAILABLE = /Issued forecasts cannot be retrieved right now/;
 const NO_FORECAST = /No public forecast is in effect right now/;
+const BASED_ON = /^Based on/;
 
 it("labels a post Today, Yesterday or by date, in Grenada time", () => {
   const post = "2026-10-28T02:00:00Z"; // 27 Oct, 22:00 in Grenada
@@ -338,4 +339,59 @@ it("makes avatar initials from a name, and falls back to GMS", () => {
   expect(avatarInitials("forecaster")).toBe("FO");
   expect(avatarInitials(null)).toBe("GMS");
   expect(avatarInitials("  ")).toBe("GMS");
+});
+
+it("says which issued product a desk post is based on, linked to its page", async () => {
+  vi.mocked(fetchHomeContent).mockResolvedValue({
+    ...hidden([]),
+    deskUpdates: {
+      status: "ok",
+      articles: [
+        post({
+          basedOn: {
+            productId: PRODUCT_ID,
+            title: "Evening Forecast · issued 2026-10-27 18:00",
+          },
+        }),
+        post({
+          id: "2",
+          title: "Community day",
+          slug: "updates/2026/09/c",
+          basedOn: null,
+        }),
+      ],
+    },
+  });
+  render(await ForecastDesk());
+  expect(
+    screen.getByRole("link", {
+      name: "the Evening Forecast · issued 2026-10-27 18:00",
+    })
+  ).toHaveAttribute("href", `/weather/issued/${PRODUCT_ID}`);
+  expect(screen.getAllByText(BASED_ON)).toHaveLength(1);
+});
+
+it("keeps a pinned desk post right after the official cards", async () => {
+  vi.mocked(fetchHomeContent).mockResolvedValue({
+    ...hidden([]),
+    deskUpdates: {
+      status: "ok",
+      articles: [
+        post({ id: "1", title: "Newest post", slug: "updates/2026/10/n" }),
+        post({
+          id: "2",
+          title: "Pinned post",
+          slug: "updates/2026/09/p",
+          pinned: true,
+        }),
+      ],
+    },
+  });
+  render(await ForecastDesk());
+  const titles = screen
+    .getAllByRole("heading", { level: 3 })
+    .map((heading) => heading.textContent);
+  expect(titles.indexOf("Pinned post")).toBeLessThan(
+    titles.indexOf("Newest post")
+  );
 });

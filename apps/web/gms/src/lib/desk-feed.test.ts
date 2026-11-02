@@ -142,6 +142,50 @@ describe("buildDeskFeed", () => {
     ).toBe(true);
   });
 
+  it("puts pinned posts after the official cards, newest pinned first", () => {
+    const pinned = (id: string, publishedAt: string) => ({
+      ...post(id, publishedAt),
+      pinned: true,
+    });
+    const feed = buildDeskFeed({
+      level: "none",
+      now: NOW,
+      posts: [
+        post("newest", "2026-11-01T12:00:00Z"),
+        pinned("older-pin", "2026-10-30T12:00:00Z"),
+        pinned("newer-pin", "2026-10-31T12:00:00Z"),
+      ],
+      products: [
+        product("morning", "2026-11-01T11:00:00Z", {
+          issuedAt: "2026-11-01T07:00",
+        }),
+      ],
+    });
+    expect(feed.official.map((card) => card.kind)).toEqual(["briefing"]);
+    expect(feed.posts.map((item) => item.id)).toEqual([
+      "newer-pin",
+      "older-pin",
+      "newest",
+    ]);
+  });
+
+  it("keeps pinned posts inside the eight shown", () => {
+    const others = Array.from({ length: 9 }, (_, i) =>
+      post(`other-${i}`, `2026-11-01T0${i % 9}:00:00Z`)
+    );
+    const feed = buildDeskFeed({
+      level: "none",
+      now: NOW,
+      posts: [
+        ...others,
+        { ...post("old-pin", "2026-10-01T12:00:00Z"), pinned: true },
+      ],
+      products: [],
+    });
+    expect(feed.posts).toHaveLength(8);
+    expect(feed.posts[0]?.id).toBe("old-pin");
+  });
+
   it("shows at most eight posts", () => {
     const posts = Array.from({ length: 10 }, (_, i) =>
       post(String(i), `2026-10-2${i % 10}T12:00:00Z`)

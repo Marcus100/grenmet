@@ -170,8 +170,8 @@ export function nextIssueLabel(issuedAt: string | undefined): string {
 /**
  * The From the Desk feed (homepage v2, owner 1 Nov 2026): the latest public
  * forecast (by issue time) pinned first and the latest Tropical Weather Outlook,
- * Marine Forecast and Climate Bulletin, then desk
- * posts and report write-ups newest first. Official cards always lead; under
+ * Marine Forecast and Climate Bulletin, then pinned desk posts, then the other
+ * desk posts and report write-ups newest first. Official cards always lead; under
  * a red ("take action") warning the desk posts wait behind "Earlier posts".
  */
 export function buildDeskFeed({
@@ -203,11 +203,13 @@ export function buildDeskFeed({
     marine && officialCard(marine, "marine", now),
     climate && officialCard(climate, "climate", now),
   ].filter((card): card is OfficialCard => Boolean(card));
+  // Pinned posts lead the desk posts (owner, 1 Nov 2026), each group newest first.
   const sorted = [...posts]
     .sort(
       (a, b) =>
+        Number(b.pinned === true) - Number(a.pinned === true) ||
         Date.parse(b.publishedAt ?? b.updatedAt) -
-        Date.parse(a.publishedAt ?? a.updatedAt)
+          Date.parse(a.publishedAt ?? a.updatedAt)
     )
     .slice(0, MAX_POSTS);
   return {
