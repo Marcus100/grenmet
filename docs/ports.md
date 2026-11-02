@@ -276,7 +276,7 @@ folder of `apps/web/bookings` (or `apps/web/hr`) is missing from the list.
 - **Environments:** staging, stg, dev, test, preview, sandbox, demo, beta.
 - **Ops:** ops, status, health, metrics, monitor, grafana, traefik, adminer, db, redis.
 - **Mail:** mail, smtp, imap, mx, autodiscover, autoconfig, send, bounce, email, notify, news.
-- **Files and static:** cdn, static, assets, media, files, uploads, images, storage, s3, runtime-env.js.
+- **Files and static:** cdn, static, assets, media, files, uploads, images, storage, s3.
 - **Help and legal:** help, support, legal, privacy, terms, security, abuse, postmaster, hostmaster, webmaster.
 - **Money:** billing, pay, payments, checkout, invoices.
 - **Machine endpoints:** webhooks, hooks, callback, ws, mcp, ai, api, developers.

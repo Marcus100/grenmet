@@ -45,7 +45,13 @@ def _top_level_route_folders(app_dir: Path) -> set[str]:
     """Static URL segments directly under the app root (route groups are looked through)."""
     found: set[str] = set()
     for entry in app_dir.iterdir():
-        if not entry.is_dir() or entry.name.startswith(("_", "@", "[")):
+        # A dotted folder (runtime-env.js) can never equal a tenant slug, which is a
+        # lowercase label without dots.
+        if (
+            not entry.is_dir()
+            or entry.name.startswith(("_", "@", "["))
+            or "." in entry.name
+        ):
             continue
         if entry.name.startswith("("):
             found |= _top_level_route_folders(entry)
