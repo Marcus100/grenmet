@@ -91,6 +91,8 @@ The draft's generated notes only list pull request titles. Before publishing, ad
 
 ## 5. Verify prod
 
+- `/runtime-env.js` on each web app carries that environment's public settings (site and API address, Sentry, Turnstile key). It is cached up to 60 seconds, including at Cloudflare, so a settings change reaches browsers within a minute.
+
 - API health: `curl -fsS https://api.barrels.gd/api/v1/utils/health-check/`
 - Spot-check app domains: `auth` / `admin` / `docs` / `weather` / `signal` / `mbia` / `events` / `hapi` `.barrels.gd`.
 
