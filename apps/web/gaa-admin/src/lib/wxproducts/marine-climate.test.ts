@@ -7,7 +7,7 @@ import {
 import { describe, expect, it } from "vitest";
 import { climateFigureRows } from "@/components/wxproducts/climate-figures";
 
-const TYPED_FIGURE = /rainfall_mm|Mm$|Temperature$/;
+const TYPED_FIGURE = /rainfall_mm|Mm$|Temperature$/u;
 
 describe("Marine Forecast", () => {
   it("is issued at 05:00 and valid until 05:00 the next day", () => {

@@ -56,7 +56,7 @@ export default async function MonthlyPage() {
       />
       {result.status === "unavailable" ? (
         <p
-          className="rounded-gm-card border border-gm-border p-4"
+          className="rounded-gm-card border-gm-border border p-4"
           role="status"
         >
           The Climate Bulletin cannot be retrieved right now.
@@ -71,13 +71,13 @@ export default async function MonthlyPage() {
       ) : null}
       {bulletin ? (
         <article className="space-y-4">
-          <h2 className="font-bold font-gm-display text-gm-heading text-heading-md leading-heading-md">
+          <h2 className="font-gm-display text-gm-heading text-heading-md leading-heading-md font-bold">
             {monthName(month)}
           </h2>
           {fields.map((field) =>
             bulletin.values[field.key] ? (
               <section className="space-y-1" key={field.key}>
-                <h3 className="font-semibold text-gm-heading">{field.label}</h3>
+                <h3 className="text-gm-heading font-semibold">{field.label}</h3>
                 <p className="whitespace-pre-line">
                   {bulletin.values[field.key]}
                 </p>
