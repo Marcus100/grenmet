@@ -31,6 +31,8 @@ and `NEXT_PUBLIC_TURNSTILE_SITE_KEY`.
   `src/app/runtime-env.js/route.ts`), loaded before hydration by
   `<PublicEnvScript />` in the root layout. A proxy that guards every path must
   let `/runtime-env.js` through.
+- Elections (Vercel) is intentionally not wired: it is not part of the shared images and keeps build-time settings. `scripts/guardrails/runtime-env.test.mjs` lists the apps that must serve the script and the one exception.
+- `/runtime-env.js` may be cached for up to 60 seconds (browser and Cloudflare), so a settings change reaches browsers within a minute of a redeploy. PostHog keys (`NEXT_PUBLIC_POSTHOG_*`) are still build-time.
 - Build-time output still uses the build arguments in `build-web-images.yml`:
   pages prerendered at build (their `metadataBase` links), the report-only CSP
   Sentry endpoint in `next.config.ts` and source-map upload.
