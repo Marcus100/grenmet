@@ -76,6 +76,7 @@ RESERVED_NAMES: frozenset[str] = frozenset(
         "images",
         "storage",
         "s3",
+        "runtime-env.js",
         # Help and legal
         "help",
         "support",
