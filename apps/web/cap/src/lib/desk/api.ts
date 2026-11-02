@@ -7,14 +7,18 @@ import {
   capAlertPublicSchema,
   capAuditEventListPublicSchema,
   capCatalogsPublicSchema,
+  capFeedImportPublicSchema,
   capGetHazardProfilesResponseSchema,
   capGetIbfMatrixResponseSchema,
+  capGetIntegrationsResponseSchema,
+  capPredefinedAreaPublicSchema,
   capProfilePublicSchema,
   capSettingsPublicSchema,
   capSuggestIbfResponseSchema,
   gmsCataloguePublicSchema,
 } from "@barrelsgd/api-client";
 import { authApiFetch } from "@barrelsgd/auth/server";
+import { z } from "zod";
 import { getAuthConfig } from "./auth-config";
 
 /**
@@ -88,6 +92,47 @@ export function getAlertAudit(accessToken: string, alertId: string) {
     accessToken,
     `/cap/audit?${query}`,
     capAuditEventListPublicSchema
+  );
+}
+
+/** The global audit trail, newest first, optionally for one alert. */
+export function listAuditEvents(
+  accessToken: string,
+  {
+    alertId,
+    page,
+    size,
+  }: { alertId: string | null; page: number; size: number }
+) {
+  const query = new URLSearchParams({ page: String(page), size: String(size) });
+  if (alertId) query.set("alert_id", alertId);
+  return read(
+    accessToken,
+    `/cap/audit?${query}`,
+    capAuditEventListPublicSchema
+  );
+}
+
+/** Saved predefined areas (any staff member may read them). */
+export function listPredefinedAreas(accessToken: string) {
+  return read(
+    accessToken,
+    "/cap/areas/predefined",
+    z.array(capPredefinedAreaPublicSchema)
+  );
+}
+
+/** Configured external CAP feed sources. */
+export function listFeeds(accessToken: string) {
+  return read(accessToken, "/cap/feeds", z.array(capFeedImportPublicSchema));
+}
+
+/** Channel configuration and recent job events. Read-only; never a delivery claim. */
+export function getIntegrations(accessToken: string) {
+  return read(
+    accessToken,
+    "/cap/integrations",
+    capGetIntegrationsResponseSchema
   );
 }
 

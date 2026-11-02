@@ -37,6 +37,37 @@ export default async function DeskLayout({
                   New warning
                 </Link>
               ) : null}
+              {gate.permissions.read ? (
+                <Link className="text-info hover:underline" href="/desk/areas">
+                  Areas
+                </Link>
+              ) : null}
+              {gate.permissions.read ? (
+                <Link className="text-info hover:underline" href="/desk/audit">
+                  Audit
+                </Link>
+              ) : null}
+              {gate.permissions.feedsManage ? (
+                <Link className="text-info hover:underline" href="/desk/feeds">
+                  Feeds
+                </Link>
+              ) : null}
+              {gate.permissions.integrationsManage ? (
+                <Link
+                  className="text-info hover:underline"
+                  href="/desk/integrations"
+                >
+                  Integrations
+                </Link>
+              ) : null}
+              {gate.permissions.settingsManage ? (
+                <Link
+                  className="text-info hover:underline"
+                  href="/desk/settings"
+                >
+                  Settings
+                </Link>
+              ) : null}
               <Link className="text-info hover:underline" href="/desk/matrix">
                 Impact matrix
               </Link>
