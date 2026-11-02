@@ -121,7 +121,7 @@ test("image builds are dev-only, use the build environment and require a Sentry 
     web.indexOf("- name: Require the build-time Sentry DSN")
   );
   assert.ok(step.startsWith("- name:"));
-  assert.ok(step.slice(0, 600).includes("exit 1"));
+  assert.ok(step.slice(0, 900).includes("exit 1"));
   assert.ok(step.includes("SENTRY_DSN_PRODUCTION"));
 });
 
@@ -264,4 +264,28 @@ test("no other router or service may use the console or portal host", () => {
       "traefik.http.routers.alias.rule": "Host(`alias.staging.barrels.gd`)",
     })
   );
+});
+
+test("every web image resolves a build-time Sentry DSN, or is deliberately unrouted", async () => {
+  const { buildConfig } = await import("../integrations/build-config.mjs");
+  const unrouted = [];
+  for (const image of webImages) {
+    const app = image.path.split("/").pop();
+    const config = buildConfig(app, "production", undefined, {
+      SENTRY_DSN_PRODUCTION: "https://key@example.ingest.sentry.io/1",
+    });
+    if (config.sentry_project === "") {
+      // The workflow gate skips apps without a Sentry project.
+      assert.equal(
+        config.sentry_dsn,
+        "",
+        `${image.image} has a DSN but no project`
+      );
+      unrouted.push(image.image);
+    } else {
+      assert.ok(config.sentry_dsn, `${image.image} would fail the DSN gate`);
+    }
+  }
+  // admin is intentionally not routed to Sentry yet (service catalogue).
+  assert.deepEqual(unrouted, ["web-admin"]);
 });

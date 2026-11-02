@@ -19,6 +19,7 @@ import { webImages } from "./release-scope.mjs";
 import { changedPaths, selectImages } from "./select-images.mjs";
 
 const TREE = /^[0-9a-f]{40}$/;
+const COMMIT = /^[0-9a-f]{40}$/;
 const DIGEST = /^sha256:[0-9a-f]{64}$/;
 const DEV_HISTORY_DEPTH = "2000";
 const WHITESPACE = /\s+/;
@@ -131,17 +132,37 @@ export function labelsOf(repo, digest, docker) {
   return config.Labels ?? {};
 }
 
-/** The image was built from this tree and commit, not merely tagged with them. */
-export function verifyLabels(repo, digest, { tree, source }, docker) {
+/**
+ * Checks where an image really came from. A reused image keeps the labels of
+ * the commit that built it, which may be an older dev commit, so equality with
+ * the promoted commit is wrong. Instead the labelled commit must (a) be the
+ * promoted source or an ancestor of it on dev, (b) have exactly the labelled
+ * tree, and (c) have passed the required checks itself. `ctx.passed` caches
+ * checks per commit.
+ */
+export function verifyLabels(repo, digest, ctx, docker) {
+  const { git, gh, repository, checks, source, passed } = ctx;
   const labels = labelsOf(repo, digest, docker);
-  if (labels["gd.barrels.tree"] !== tree)
+  const commit = labels["org.opencontainers.image.revision"];
+  const labelTree = labels["gd.barrels.tree"];
+  const where = `${repo}@${digest} was built from`;
+  if (!(COMMIT.test(commit ?? "") && TREE.test(labelTree ?? "")))
+    throw new Error(`${where} an unknown commit or tree (labels missing)`);
+  try {
+    git(["merge-base", "--is-ancestor", commit, source]);
+  } catch {
     throw new Error(
-      `${repo}@${digest} was built from tree ${labels["gd.barrels.tree"] ?? "unknown"}, expected ${tree}`
+      `${where} commit ${commit}, which is not the promoted dev commit ${source} or one of its ancestors`
     );
-  if (labels["org.opencontainers.image.revision"] !== source)
+  }
+  if (treeOf(commit, git) !== labelTree)
     throw new Error(
-      `${repo}@${digest} was built from commit ${labels["org.opencontainers.image.revision"] ?? "unknown"}, expected ${source}`
+      `${where} tree ${labelTree}, but commit ${commit} has a different tree`
     );
+  if (!passed.has(commit)) {
+    verifyChecks(commit, checks, gh, repository);
+    passed.add(commit);
+  }
 }
 
 export function digestOf(reference, docker) {
@@ -242,7 +263,9 @@ export function promote({
   const source = sourceCommit(tree, git);
   // The gate comes from the dev commit being promoted, not from the ref that
   // triggered the promotion.
-  verifyChecks(source, requiredChecks(rulesetsAt(source)), gh, repository);
+  const checks = requiredChecks(rulesetsAt(source));
+  verifyChecks(source, checks, gh, repository);
+  const passed = new Set([source]);
   const sourceTag =
     target === "staging" ? `tree-${tree}` : `staging-verified-tree-${tree}`;
   const tags =
@@ -268,9 +291,11 @@ export function promote({
       "--workflow",
       "dev-images.yml",
       "--json",
-      "headSha,status",
+      "headSha,status,displayTitle",
       "--jq",
-      `[.[] | select(.headSha == "${source}" and .status != "completed")] | length`,
+      // A push run has the commit as headSha; a dispatched run carries it in
+      // its run-name (dev-images.yml), as its own headSha is the dev head.
+      `[.[] | select((.headSha == "${source}" or (.displayTitle | contains("${source}"))) and .status != "completed")] | length`,
     ]).trim();
     if (running === "0") {
       console.log(
@@ -302,7 +327,12 @@ export function promote({
         : `Staging has not deployed and accepted tree ${tree}: ${missing.join(", ")}`
     );
   for (const { repo, digest } of digests)
-    verifyLabels(repo, digest, { tree, source }, docker);
+    verifyLabels(
+      repo,
+      digest,
+      { git, gh, repository, checks, source, passed },
+      docker
+    );
   for (const { repo, digest } of digests) retag(repo, digest, tags, docker);
   return { tree, source, digests };
 }

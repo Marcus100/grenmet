@@ -1,5 +1,8 @@
 name: Dev Images
 
+# The commit is in the run name so promotion can find a build it dispatched.
+run-name: Dev Images ${{ inputs.sha || github.sha }}
+
 # Build once (issue #1019): every change that lands on dev gets one image set,
 # tagged by git tree (`tree-<tree>`). Only images the change touches are built;
 # the rest reuse the previous tree's digests. Staging and production promote

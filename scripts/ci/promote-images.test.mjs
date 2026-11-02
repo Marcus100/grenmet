@@ -28,14 +28,26 @@ const NO_DEV_COMMIT = /No dev commit has tree/;
 const FAILED_CHECKS = /has no passing run of: Type Check/;
 const CANCELLED_CHECK = /Type Check \(cancelled, probably superseded/;
 const WRONG_APP = /Type Check \(no run by app/;
-const WRONG_LABEL = /was built from (tree|commit)/;
+const NOT_ANCESTOR = /which is not the promoted dev commit/;
+const FAILED_OLD_CHECKS = /Dev commit a{40} has no passing run/;
+const TREE_MISMATCH = /has a different tree/;
+const LABELS_MISSING = /unknown commit or tree/;
 const UNREADABLE_LABELS = /Cannot read the image labels/;
 const DEV_MISSING = /Dev images missing for tree/;
 const NOT_VERIFIED = /Staging has not deployed and accepted tree/;
 const RETAG_MISMATCH = /resolves to sha256:9+, expected/;
 
-function fakeGit({ trees = {}, devLog = `${DEV} ${TREE}\n`, diff = "" } = {}) {
+function fakeGit({
+  trees = {},
+  devLog = `${DEV} ${TREE}\n`,
+  diff = "",
+  notAncestors = [],
+} = {}) {
   return (args) => {
+    if (args[0] === "merge-base") {
+      if (notAncestors.includes(args[2])) throw new Error("not an ancestor");
+      return "";
+    }
     if (args[0] === "rev-parse")
       return `${trees[args[1].replace("^{tree}", "")] ?? TREE}\n`;
     if (args[0] === "log") return devLog;
@@ -47,7 +59,7 @@ function fakeGit({ trees = {}, devLog = `${DEV} ${TREE}\n`, diff = "" } = {}) {
 /** check-runs as GitHub returns them, plus the workflow-run commands. */
 function fakeGh(
   conclusions = {},
-  { app = APP_ID, running = "1", dispatches } = {}
+  { app = APP_ID, running = "1", dispatches, failFor = [] } = {}
 ) {
   return (args) => {
     if (args[0] === "run") return `${running}\n`;
@@ -55,8 +67,10 @@ function fakeGh(
       dispatches?.push(args.join(" "));
       return "";
     }
+    const failing = failFor.some((commit) => args[2].includes(`/${commit}/`));
     return CHECKS.map(
-      ({ name }) => `${name}\t${conclusions[name] ?? "success"}\t${app}`
+      ({ name }) =>
+        `${name}\t${failing ? "failure" : (conclusions[name] ?? "success")}\t${app}`
     ).join("\n");
   };
 }
@@ -71,10 +85,13 @@ function fakeDocker(
     calls.push(args.join(" "));
     if (args[2] === "inspect" && args.includes("{{json .Image}}")) {
       if (unreadable) throw new Error("no config");
-      const label = labels ?? {
+      const defaults = {
         "gd.barrels.tree": TREE,
         "org.opencontainers.image.revision": DEV,
       };
+      // `labels` is one set for every image, or a function of the image ref.
+      const label =
+        typeof labels === "function" ? labels(args[3]) : (labels ?? defaults);
       return JSON.stringify({ config: { Labels: label } });
     }
     if (args[2] === "inspect") {
@@ -326,7 +343,7 @@ function stage(overrides = {}) {
       promote({
         target: "staging",
         sha: STAGING,
-        git: fakeGit(),
+        git: overrides.extra?.git ?? fakeGit(),
         gh: overrides.gh ?? fakeGh(),
         docker: registry.docker,
         owner: "Marcus100",
@@ -359,30 +376,99 @@ test("the gate is read from the dev commit being promoted", () => {
   assert.deepEqual(asked, [DEV]);
 });
 
-test("images built from another tree or commit are refused before any retag", () => {
-  for (const labels of [
-    {
-      "gd.barrels.tree": "3".repeat(40),
-      "org.opencontainers.image.revision": DEV,
-    },
-    {
-      "gd.barrels.tree": TREE,
-      "org.opencontainers.image.revision": "e".repeat(40),
-    },
-    {},
-  ]) {
-    const registry = fakeDocker(allTagged(`tree-${TREE}`), { labels });
-    const { run } = stage({ registry });
-    assert.throws(run, WRONG_LABEL);
-    assert.equal(
-      registry.calls.some((call) => call.includes(" create ")),
-      false
-    );
-  }
+const OLD = "a".repeat(40);
+const OLD_TREE = "4".repeat(40);
+const SIBLING = "c".repeat(40);
+const labelSet = (commit, tree) => ({
+  "gd.barrels.tree": tree,
+  "org.opencontainers.image.revision": commit,
+});
+
+/** Promotes with per-image labels: the API image gets `apiLabels`. */
+function promoteWith({ apiLabels, otherLabels, git, gh }) {
+  const registry = fakeDocker(allTagged(`tree-${TREE}`), {
+    labels: (ref) => (ref.startsWith(repos[0].repo) ? apiLabels : otherLabels),
+  });
+  return {
+    registry,
+    run: stage({
+      registry,
+      gh,
+      extra: { git: git ?? fakeGit({ trees: { [OLD]: OLD_TREE } }) },
+    }).run,
+  };
+}
+
+test("fresh and reused images are accepted: a reused image names an older passing ancestor", () => {
+  const { run } = promoteWith({
+    apiLabels: labelSet(DEV, TREE),
+    otherLabels: labelSet(OLD, OLD_TREE),
+  });
+  assert.equal(run().digests.length, repos.length);
+});
+
+test("a reused image whose label commit is not an ancestor is refused", () => {
+  const registry = promoteWith({
+    apiLabels: labelSet(DEV, TREE),
+    otherLabels: labelSet(OLD, OLD_TREE),
+    git: fakeGit({ trees: { [OLD]: OLD_TREE }, notAncestors: [OLD] }),
+  });
+  assert.throws(registry.run, NOT_ANCESTOR);
+  assert.equal(
+    registry.registry.calls.some((call) => call.includes(" create ")),
+    false
+  );
+});
+
+test("a reused image whose label commit never passed the checks is refused", () => {
+  const { run } = promoteWith({
+    apiLabels: labelSet(DEV, TREE),
+    otherLabels: labelSet(OLD, OLD_TREE),
+    gh: fakeGh({}, { failFor: [OLD] }),
+  });
+  assert.throws(run, FAILED_OLD_CHECKS);
+});
+
+test("two dev commits with one tree: an image built by the earlier sibling is accepted", () => {
+  const { run } = promoteWith({
+    apiLabels: labelSet(SIBLING, TREE),
+    otherLabels: labelSet(DEV, TREE),
+    git: fakeGit({ trees: { [SIBLING]: TREE } }),
+  });
+  assert.equal(run().digests.length, repos.length);
+});
+
+test("a label tree that does not match its commit, or missing labels, are refused", () => {
+  const forged = promoteWith({
+    apiLabels: labelSet(DEV, "3".repeat(40)),
+    otherLabels: labelSet(DEV, TREE),
+  });
+  assert.throws(forged.run, TREE_MISMATCH);
+  const missing = promoteWith({
+    apiLabels: {},
+    otherLabels: labelSet(DEV, TREE),
+  });
+  assert.throws(missing.run, LABELS_MISSING);
   const unreadable = fakeDocker(allTagged(`tree-${TREE}`), {
     unreadable: true,
   });
   assert.throws(stage({ registry: unreadable }).run, UNREADABLE_LABELS);
+});
+
+test("check results are cached per label commit", () => {
+  let lookups = 0;
+  const gh = fakeGh();
+  const counting = (args) => {
+    if (args[0] === "api") lookups += 1;
+    return gh(args);
+  };
+  const { run } = promoteWith({
+    apiLabels: labelSet(OLD, OLD_TREE),
+    otherLabels: labelSet(OLD, OLD_TREE),
+    gh: counting,
+  });
+  run();
+  assert.equal(lookups, 2, "one lookup for the source, one for the old commit");
 });
 
 test("missing dev images start a dev build for that commit and wait for it", () => {
@@ -438,4 +524,21 @@ test("a dev plan skips images that already exist for the tree", () => {
   assert.equal(result.api, false);
   assert.deepEqual(result.web, []);
   assert.deepEqual(result.reuse, []);
+});
+
+test("the running-build check matches both push runs and runs dispatched for the sha", () => {
+  const seen = [];
+  const gh = fakeGh();
+  const { run } = stage({
+    registry: fakeDocker({}),
+    gh: (args) => {
+      if (args[0] === "run") seen.push(args.join(" "));
+      return gh(args);
+    },
+    extra: { waitSeconds: 0, now: steppingClock() },
+  });
+  assert.throws(run, DEV_MISSING);
+  assert.ok(seen[0].includes("headSha,status,displayTitle"));
+  assert.ok(seen[0].includes(`.headSha == "${DEV}"`));
+  assert.ok(seen[0].includes(`.displayTitle | contains("${DEV}")`));
 });

@@ -99,12 +99,14 @@ jobs:
         run: node scripts/integrations/build-config.mjs "${APP_PATH##*/}" "$TELEMETRY_ENVIRONMENT"
 
       # A dev image is promoted to production, so an empty DSN would ship
-      # without browser error reporting everywhere. Fail the build instead.
+      # without browser error reporting everywhere. Apps the catalogue does not
+      # route to Sentry (empty project, such as admin) are skipped on purpose.
       - name: Require the build-time Sentry DSN
         env:
           DSN: ${{ steps.telemetry.outputs.sentry_dsn }}
+          PROJECT: ${{ steps.telemetry.outputs.sentry_project }}
         run: |
-          [[ -n "$DSN" ]] || { echo "::error::No Sentry DSN for ${{ matrix.image }}. Add SENTRY_DSN_PRODUCTION (and SENTRY_AUTH_TOKEN, SENTRY_DSN_STAGING) as secrets of the 'build' GitHub environment."; exit 1; }
+          [[ -z "$PROJECT" || -n "$DSN" ]] || { echo "::error::No Sentry DSN for ${{ matrix.image }} (project $PROJECT). Add SENTRY_DSN_PRODUCTION (and SENTRY_AUTH_TOKEN, SENTRY_DSN_STAGING) as secrets of the 'build' GitHub environment."; exit 1; }
 
       - name: Docker metadata
         id: meta
@@ -141,7 +143,7 @@ jobs:
             NEXT_PUBLIC_SITE_URL=https://${{ matrix.host || matrix.app }}.barrels.gd
             NEXT_PUBLIC_SENTRY_DSN=${{ steps.telemetry.outputs.sentry_dsn }}
             NEXT_PUBLIC_SENTRY_ENVIRONMENT=${{ steps.ctx.outputs.environment }}
-            SENTRY_PROJECT=${{ steps.ctx.outputs.sentry_project }}
+            SENTRY_PROJECT=${{ steps.telemetry.outputs.sentry_project && steps.ctx.outputs.sentry_project || '' }}
             NEXT_PUBLIC_RELEASE=${{ steps.ctx.outputs.sha }}
           secrets: |
             SENTRY_AUTH_TOKEN=${{ secrets.SENTRY_AUTH_TOKEN }}
@@ -187,7 +189,7 @@ jobs:
             NEXT_PUBLIC_SITE_URL=https://${{ matrix.host || matrix.app }}.barrels.gd
             NEXT_PUBLIC_SENTRY_DSN=${{ steps.telemetry.outputs.sentry_dsn }}
             NEXT_PUBLIC_SENTRY_ENVIRONMENT=${{ steps.ctx.outputs.environment }}
-            SENTRY_PROJECT=${{ steps.ctx.outputs.sentry_project }}
+            SENTRY_PROJECT=${{ steps.telemetry.outputs.sentry_project && steps.ctx.outputs.sentry_project || '' }}
             NEXT_PUBLIC_RELEASE=${{ steps.ctx.outputs.sha }}
           secrets: |
             SENTRY_AUTH_TOKEN=${{ secrets.SENTRY_AUTH_TOKEN }}
