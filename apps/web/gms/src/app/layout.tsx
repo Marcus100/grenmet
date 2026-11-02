@@ -7,7 +7,6 @@ import { Footer } from "@/components/footer";
 import { Header } from "@/components/header";
 import { MotionProvider } from "@/components/motion-provider";
 import { UnitsBootScript } from "@/components/units-boot-script";
-import { APP_LABEL, signInEnabled, signInVisible } from "@/lib/auth-config";
 import { fetchActiveAlerts } from "@/lib/cap";
 import { fetchGreenStatus } from "@/lib/green-status";
 import "./globals.css";
@@ -71,12 +70,7 @@ export default function RootLayout({
             themePreset={PREFERENCE_DEFAULTS.theme_preset}
           >
             <MotionProvider>
-              <Header
-                accountLabel={signInEnabled() ? APP_LABEL : undefined}
-                alerts={alerts}
-                green={green}
-                showSignIn={signInVisible()}
-              />
+              <Header alerts={alerts} green={green} />
               <main
                 className="flex-1 outline-none"
                 id={MAIN_CONTENT_ID}
