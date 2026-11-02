@@ -72,7 +72,7 @@ export function BalanceImport({ organisationId }: BalanceImportProps) {
   return (
     <section aria-label="Import opening leave balances" className="space-y-4">
       <div>
-        <h2 className="font-medium text-lg">Import opening leave balances</h2>
+        <h2 className="text-lg font-medium">Import opening leave balances</h2>
         <p className="text-muted-foreground text-sm">
           Upload a CSV from the official leave records with the columns{" "}
           <code>employee_number</code>, <code>leave_type</code> and{" "}

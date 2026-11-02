@@ -71,10 +71,10 @@ export async function ExploreToday() {
   return (
     <HomeSection tone="surface" {...words}>
       {!tiles && (
-        <p className={cn(HOME_CARD, "mb-3 text-body-sm")} role="status">
+        <p className={cn(HOME_CARD, "text-body-sm mb-3")} role="status">
           Alerts for the week can&apos;t be loaded right now. See{" "}
           <Link
-            className="font-semibold text-gm-blue-ink underline"
+            className="text-gm-blue-ink font-semibold underline"
             href="/alerts"
           >
             alerts in effect
@@ -84,7 +84,7 @@ export async function ExploreToday() {
       )}
       {quiet && (
         <p
-          className="mb-3 text-body-base text-gm-text-secondary leading-body-base"
+          className="text-body-base text-gm-text-secondary leading-body-base mb-3"
           role="status"
         >
           No alerts or warnings are published for any sector this week.
@@ -104,10 +104,10 @@ export async function ExploreToday() {
                   className="flex min-w-0 items-center gap-2 hover:underline"
                   href={href as Route}
                 >
-                  <span className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-gm-navy text-gm-lime">
+                  <span className="bg-gm-navy text-gm-lime flex size-8 shrink-0 items-center justify-center rounded-lg">
                     <Icon aria-hidden="true" className="size-4" />
                   </span>
-                  <span className="line-clamp-2 font-semibold text-gm-sky-ink text-label uppercase leading-label tracking-wider">
+                  <span className="text-gm-sky-ink text-label leading-label line-clamp-2 font-semibold tracking-wider uppercase">
                     {label}
                   </span>
                 </Link>
@@ -120,12 +120,12 @@ export async function ExploreToday() {
       </ul>
       {outlook && !outlook.complete && (
         <p
-          className="mt-2 text-body-sm text-gm-text-secondary leading-body-sm"
+          className="text-body-sm text-gm-text-secondary leading-body-sm mt-2"
           role="status"
         >
           Some alerts could not be read, so these lists may be incomplete. See{" "}
           <Link
-            className="font-semibold text-gm-blue-ink underline"
+            className="text-gm-blue-ink font-semibold underline"
             href="/alerts"
           >
             alerts in effect
@@ -221,7 +221,7 @@ function SectorItems({ tile }: { tile: SectorTile }) {
       <ul className="flex flex-col gap-2">
         {tile.items.map((item) => (
           <li className="flex flex-col gap-0.5" key={item.id}>
-            <p className="flex flex-wrap items-baseline gap-x-2 font-bold text-body-sm text-gm-heading leading-body-sm">
+            <p className="text-body-sm text-gm-heading leading-body-sm flex flex-wrap items-baseline gap-x-2 font-bold">
               {item.href ? (
                 <Link className="hover:underline" href={item.href as Route}>
                   {item.title}
@@ -229,12 +229,12 @@ function SectorItems({ tile }: { tile: SectorTile }) {
               ) : (
                 item.title
               )}
-              <span className="font-normal text-caption text-gm-text-secondary leading-caption">
+              <span className="text-caption text-gm-text-secondary leading-caption font-normal">
                 {item.level} · {item.when}
               </span>
             </p>
             {item.everyone && (
-              <p className="font-semibold text-gm-sky-ink text-label uppercase leading-label tracking-wider">
+              <p className="text-gm-sky-ink text-label leading-label font-semibold tracking-wider uppercase">
                 Affects everyone
               </p>
             )}
@@ -246,7 +246,7 @@ function SectorItems({ tile }: { tile: SectorTile }) {
       </ul>
       {tile.more > 0 && (
         <Link
-          className="w-fit font-semibold text-body-sm text-gm-blue-ink leading-body-sm underline"
+          className="text-body-sm text-gm-blue-ink leading-body-sm w-fit font-semibold underline"
           href="/alerts"
         >
           {tile.more} more in alerts
@@ -289,10 +289,10 @@ export async function GrenadaInData() {
                 )}
                 key={group.key}
               >
-                <h3 className="flex items-center gap-2 font-bold text-body text-gm-heading leading-body">
+                <h3 className="text-body text-gm-heading leading-body flex items-center gap-2 font-bold">
                   <span
                     aria-hidden="true"
-                    className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-gm-navy text-gm-lime"
+                    className="bg-gm-navy text-gm-lime flex size-8 shrink-0 items-center justify-center rounded-lg"
                   >
                     <Icon className="size-4" />
                   </span>
@@ -301,10 +301,10 @@ export async function GrenadaInData() {
                 <dl className="grid gap-3 sm:grid-cols-2 lg:grid-cols-1">
                   {group.stats.map((stat) => (
                     <div className="flex flex-col gap-0.5" key={stat.label}>
-                      <dt className="font-bold text-gm-text-secondary text-label uppercase leading-label tracking-wider">
+                      <dt className="text-gm-text-secondary text-label leading-label font-bold tracking-wider uppercase">
                         {stat.label}
                       </dt>
-                      <dd className="font-bold font-gm-display text-gm-heading text-heading-md tabular-nums leading-heading-md">
+                      <dd className="font-gm-display text-gm-heading text-heading-md leading-heading-md font-bold tabular-nums">
                         <StatFigure stat={stat} />
                       </dd>
                       <dd className="text-caption text-gm-text-secondary leading-caption lg:text-body-sm lg:leading-body-sm">
@@ -319,7 +319,7 @@ export async function GrenadaInData() {
         </ul>
       ) : (
         <p
-          className={cn(HOME_CARD, "p-4 text-body-sm text-gm-text-secondary")}
+          className={cn(HOME_CARD, "text-body-sm text-gm-text-secondary p-4")}
           role="status"
         >
           Figures for {shown.label.replace(" at MBIA", "")} are not available

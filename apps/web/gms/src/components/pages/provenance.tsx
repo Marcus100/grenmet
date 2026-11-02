@@ -72,10 +72,10 @@ export function Provenance({
   return (
     <div
       className={cn(
-        "grid gap-1 text-body-sm leading-body-sm",
+        "text-body-sm leading-body-sm grid gap-1",
         tone === "inverse"
           ? "text-gm-text-inverse/85"
-          : "my-3 text-gm-text-secondary"
+          : "text-gm-text-secondary my-3"
       )}
     >
       <p>
@@ -94,7 +94,7 @@ export function Provenance({
       {stale && (
         <p
           className={cn(
-            "rounded border-gm-risk-yellow border-l-4 px-3 py-2 font-semibold",
+            "border-gm-risk-yellow rounded border-l-4 px-3 py-2 font-semibold",
             tone === "inverse"
               ? "bg-gm-scrim text-gm-text-inverse"
               : "bg-gm-surface text-gm-heading"

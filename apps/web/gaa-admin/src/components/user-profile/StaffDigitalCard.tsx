@@ -5,7 +5,7 @@ import { BadgeCheck, Copy, ShieldCheck } from "lucide-react";
 import Image from "next/image";
 import { useState } from "react";
 
-const NAME_SEPARATOR = /\s+/;
+const NAME_SEPARATOR = /\s+/u;
 
 export function DigitalStaffCard({ card }: { card: StaffCard }) {
   const [message, setMessage] = useState("");
@@ -16,16 +16,16 @@ export function DigitalStaffCard({ card }: { card: StaffCard }) {
   return (
     <section
       aria-label="GAA digital staff card"
-      className="mb-6 overflow-hidden rounded-xl border border-border bg-card text-card-foreground"
+      className="border-border bg-card text-card-foreground mb-6 overflow-hidden rounded-xl border"
     >
-      <div className="flex items-center justify-between gap-4 border-border border-b bg-muted/50 px-6 py-4">
+      <div className="border-border bg-muted/50 flex items-center justify-between gap-4 border-b px-6 py-4">
         <div>
-          <p className="text-muted-foreground text-xs uppercase tracking-widest">
+          <p className="text-muted-foreground text-xs tracking-widest uppercase">
             Grenada Airports Authority
           </p>
-          <h2 className="mt-1 font-semibold text-lg">Employee Digital ID</h2>
+          <h2 className="mt-1 text-lg font-semibold">Employee Digital ID</h2>
         </div>
-        <ShieldCheck aria-hidden="true" className="size-7 text-primary" />
+        <ShieldCheck aria-hidden="true" className="text-primary size-7" />
       </div>
       <div className="grid gap-6 p-6 lg:grid-cols-[1fr_auto]">
         <div className="flex items-center gap-5">
@@ -40,7 +40,7 @@ export function DigitalStaffCard({ card }: { card: StaffCard }) {
             />
           ) : (
             <span
-              className="flex size-24 shrink-0 items-center justify-center rounded-xl bg-muted font-semibold text-2xl"
+              className="bg-muted flex size-24 shrink-0 items-center justify-center rounded-xl text-2xl font-semibold"
               title="Staff photo not added"
             >
               {card.name
@@ -52,7 +52,7 @@ export function DigitalStaffCard({ card }: { card: StaffCard }) {
             </span>
           )}
           <div>
-            <p className="font-semibold text-2xl">{card.name}</p>
+            <p className="text-2xl font-semibold">{card.name}</p>
             <p className="mt-1">{card.grade || "Grade not assigned"}</p>
             <p className="text-muted-foreground">
               {card.department || "Department not assigned"}
@@ -78,11 +78,11 @@ export function DigitalStaffCard({ card }: { card: StaffCard }) {
           </div>
         </dl>
       </div>
-      <div className="space-y-3 border-border border-t px-6 py-4">
+      <div className="border-border space-y-3 border-t px-6 py-4">
         <div className="flex items-center justify-between gap-3">
           <div className="min-w-0">
             <p className="text-muted-foreground text-xs">Permanent staff ID</p>
-            <p className="mt-1 break-all font-mono text-sm">{card.number}</p>
+            <p className="mt-1 font-mono text-sm break-all">{card.number}</p>
           </div>
           <Button
             aria-label="Copy staff ID"

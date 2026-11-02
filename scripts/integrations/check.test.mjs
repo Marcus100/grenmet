@@ -65,7 +65,7 @@ test("network errors never leak request headers", async () => {
   assert.ok(!JSON.stringify(reports).includes("secret"));
 });
 
-const ENVIRONMENT_ERROR = /environment/;
+const ENVIRONMENT_ERROR = /environment/u;
 
 test("requires explicit environment selection", async () => {
   await assert.rejects(main([]), ENVIRONMENT_ERROR);

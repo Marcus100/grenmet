@@ -10,12 +10,12 @@ export default function DeskError({
 }) {
   return (
     <div className="space-y-3 py-10" role="alert">
-      <h1 className="font-semibold text-2xl">This desk page failed</h1>
+      <h1 className="text-2xl font-semibold">This desk page failed</h1>
       <p className="text-muted-foreground">
         Reload it. If a warning must go out now, use the CAP desk in GAA Admin.
       </p>
       {error.digest ? (
-        <p className="font-mono text-caption">Reference: {error.digest}</p>
+        <p className="text-caption font-mono">Reference: {error.digest}</p>
       ) : null}
       <button
         className="rounded-md border px-3 py-1.5"

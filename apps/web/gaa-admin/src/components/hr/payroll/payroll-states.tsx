@@ -6,7 +6,7 @@ export function PayrollNoAccess({ what }: { what: string }) {
   return (
     <section
       aria-label={what}
-      className="rounded-xl border bg-card p-4 text-sm"
+      className="bg-card rounded-xl border p-4 text-sm"
     >
       <p className="font-medium">No access to {what.toLowerCase()}</p>
       <p className="text-muted-foreground">
@@ -28,7 +28,7 @@ export function PayrollMfaRequired({
   return (
     <section
       aria-label={what}
-      className="rounded-xl border border-warning bg-card p-4 text-sm"
+      className="border-warning bg-card rounded-xl border p-4 text-sm"
       role="alert"
     >
       <p className="font-medium">Two-step verification is needed</p>
@@ -59,7 +59,7 @@ export function PayrollLoading({ what }: { what: string }) {
 
 export function PayrollEmpty({ children }: { children: ReactNode }) {
   return (
-    <p className="rounded-lg border border-dashed p-4 text-center text-muted-foreground text-sm">
+    <p className="text-muted-foreground rounded-lg border border-dashed p-4 text-center text-sm">
       {children}
     </p>
   );
@@ -75,7 +75,7 @@ export function PayrollProblem({
 }) {
   return (
     <p
-      className="rounded-lg border border-destructive p-3 text-destructive text-sm"
+      className="border-destructive text-destructive rounded-lg border p-3 text-sm"
       role="alert"
     >
       {children}

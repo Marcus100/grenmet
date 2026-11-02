@@ -16,7 +16,7 @@ const apiGate = readWorkflow("ci-api.yml")
   .split("      - name: Check all jobs")[1]
   .split("        run: |\n")[1];
 const needsExpression =
-  /\$\{\{ needs\.([a-z-]+)\.(result|outputs\.api|outputs\.surface) \}\}/g;
+  /\$\{\{ needs\.([a-z-]+)\.(result|outputs\.api|outputs\.surface) \}\}/gu;
 
 function webResults(selected = true) {
   return Object.fromEntries(
@@ -106,9 +106,9 @@ test("API gate permits only intentionally omitted Docker and SURFACE checks", ()
 });
 
 const SURFACE_DB_IMAGE =
-  /image: (timescale\/timescaledb-ha:\S+@sha256:[0-9a-f]{64})/;
-const ACTION_REF = /uses: ([^\s#]+)/g;
-const PINNED_ACTION = /^[\w.-]+\/[\w./-]+@[0-9a-f]{40}$/;
+  /image: (timescale\/timescaledb-ha:\S+@sha256:[0-9a-f]{64})/u;
+const ACTION_REF = /uses: ([^\s#]+)/gu;
+const PINNED_ACTION = /^[\w.-]+\/[\w./-]+@[0-9a-f]{40}$/u;
 
 test("SURFACE CI builds without publishing, on the deployed database image", () => {
   const source = readWorkflow("ci-surface.yml");
@@ -188,9 +188,9 @@ test("deployment waits for code checks and verified core builds without cancella
   }
 });
 
-const NEXT_JOB = /\n {2}[a-z][a-z-]*:/;
-const REGISTRY_READ = /\n {6}packages: read\n/;
-const REGISTRY_WRITE = /packages: write/;
+const NEXT_JOB = /\n {2}[a-z][a-z-]*:/u;
+const REGISTRY_READ = /\n {6}packages: read\n/u;
+const REGISTRY_WRITE = /packages: write/u;
 
 test("release callers grant registry read permission required by reusable CI", () => {
   for (const pipeline of ["pipeline-staging.yml", "pipeline-prod.yml"]) {
@@ -212,10 +212,10 @@ test("release callers grant registry read permission required by reusable CI", (
   }
 });
 
-const DOCKERHUB_USERNAME = /username: \$\{\{ secrets\.DOCKERHUB_USERNAME \}\}/;
-const DOCKERHUB_TOKEN = /password: \$\{\{ secrets\.DOCKERHUB_TOKEN \}\}/;
+const DOCKERHUB_USERNAME = /username: \$\{\{ secrets\.DOCKERHUB_USERNAME \}\}/u;
+const DOCKERHUB_TOKEN = /password: \$\{\{ secrets\.DOCKERHUB_TOKEN \}\}/u;
 const BUILDX_STEP =
-  /\n {6}- (?:name: Set up Docker Buildx\n {8}uses: |uses: )docker\/setup-buildx-action@/;
+  /\n {6}- (?:name: Set up Docker Buildx\n {8}uses: |uses: )docker\/setup-buildx-action@/u;
 
 test("every CI and release builder authenticates before pulling the BuildKit image", () => {
   for (const workflow of [

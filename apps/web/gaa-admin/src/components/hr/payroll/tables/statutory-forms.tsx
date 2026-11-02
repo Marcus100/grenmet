@@ -177,7 +177,7 @@ export function TaxTableForm({
         </Field>
       </div>
       <fieldset className="space-y-2">
-        <legend className="font-medium text-sm">Bands, lowest first</legend>
+        <legend className="text-sm font-medium">Bands, lowest first</legend>
         {bands.map((band, index) => (
           <div
             className="grid gap-2 sm:grid-cols-[1fr_1fr_auto]"

@@ -11,14 +11,16 @@ import {
   formatProblems,
   SavedAlert,
 } from "@/components/desk/desk-panels";
+import { DuplicateAlertButton } from "@/components/desk/duplicate-alert-button";
 import { getAlert, getAlertAudit } from "@/lib/desk/api";
+import { capXmlPath } from "@/lib/desk/cap/cap-xml-link";
 import { requireDeskGate } from "@/lib/desk/gate";
 import { reportError } from "@/lib/report-error";
 
 export const metadata: Metadata = { title: "Alert" };
 export const dynamic = "force-dynamic";
 
-const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/u;
 
 export default async function DeskAlertPage({
   params,
@@ -50,10 +52,20 @@ export default async function DeskAlertPage({
         Back to the board
       </Link>
       <div className="space-y-2">
-        <h1 className="font-semibold text-2xl">
+        <h1 className="text-2xl font-semibold">
           {alert.info?.[0]?.headline ?? alert.identifier}
         </h1>
         <AlertBadges alert={alert} />
+        {alert.xml_url ? (
+          <p className="text-body-sm">
+            <a
+              className="text-info underline"
+              href={capXmlPath(alert.identifier)}
+            >
+              CAP XML for this alert
+            </a>
+          </p>
+        ) : null}
       </div>
       <FormatProblemBanner problems={formatProblems(audit?.data ?? [])} />
       {audit === null ? (
@@ -64,11 +76,17 @@ export default async function DeskAlertPage({
       ) : null}
       <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_420px]">
         <SavedAlert alert={alert} />
-        <AlertActions
-          alert={alert}
-          permissions={gate.permissions}
-          userId={gate.userId}
-        />
+        <div className="space-y-6">
+          <AlertActions
+            alert={alert}
+            permissions={gate.permissions}
+            userId={gate.userId}
+          />
+          <DuplicateAlertButton
+            alertId={alert.id}
+            canCreate={gate.permissions.create}
+          />
+        </div>
       </div>
     </div>
   );

@@ -68,7 +68,7 @@ export function SessionsList({
           </button>
         </div>
       ) : null}
-      <ul className="divide-y divide-border border-border border-y">
+      <ul className="divide-border border-border divide-y border-y">
         {ordered.map((session) => {
           const device = describeDevice(session.user_agent);
           const Icon = device.mobile ? SmartphoneIcon : MonitorIcon;
@@ -84,17 +84,17 @@ export function SessionsList({
             .join(" · ");
           return (
             <li className="flex items-center gap-4 py-4" key={session.id}>
-              <span className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-muted text-muted-foreground">
+              <span className="bg-muted text-muted-foreground flex size-10 shrink-0 items-center justify-center rounded-lg">
                 <Icon aria-hidden="true" className="size-5" />
               </span>
               <div className="min-w-0 flex-1">
-                <p className="flex flex-wrap items-center gap-2 font-medium text-foreground text-sm">
+                <p className="text-foreground flex flex-wrap items-center gap-2 text-sm font-medium">
                   {device.label}
                   {isCurrent ? (
                     <StatusBadge tone="on">This device</StatusBadge>
                   ) : null}
                 </p>
-                <p className="truncate text-muted-foreground text-sm">
+                <p className="text-muted-foreground truncate text-sm">
                   {detail}
                 </p>
               </div>

@@ -49,9 +49,9 @@ export const PREFERENCES = {
 };
 
 const AREA_PATHS = [
-  ["web", /^(?:apps\/web|packages)\//],
-  ["api", /^apps\/api\//],
-  ["docs", /^docs\//],
+  ["web", /^(?:apps\/web|packages)\//u],
+  ["api", /^apps\/api\//u],
+  ["docs", /^docs\//u],
 ];
 
 // The area a benchmark task belongs to. Offline there is no solution diff, so the

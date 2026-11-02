@@ -11,8 +11,8 @@ import {
   warningHref,
 } from "@/lib/warning-detail";
 
-const LOCAL_SIX_PM = /6:00\s?pm AST$/;
-const ENDS_AST = /AST$/;
+const LOCAL_SIX_PM = /6:00\s?pm AST$/u;
+const ENDS_AST = /AST$/u;
 
 function info(overrides: Partial<CapInfoPublic> = {}): CapInfoPublic {
   return {

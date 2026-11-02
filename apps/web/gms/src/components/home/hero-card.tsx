@@ -21,14 +21,14 @@ import {
 const byLabel = (tiles: Condition[], label: RegExp) =>
   tiles.find((tile) => label.test(tile.label));
 
-const WIND = /^wind$/i;
-const GUSTS = /^gusts/i;
-const CLOUD = /^cloud$/i;
-const HIGHEST = /^highest today/i;
-const LOWEST = /^lowest today/i;
-const WIND_SPEED = /^wind speed|^wind$/i;
-const WIND_DIRECTION = /^wind direction/i;
-const WEATHER_TYPE = /^weather type/i;
+const WIND = /^wind$/iu;
+const GUSTS = /^gusts/iu;
+const CLOUD = /^cloud$/iu;
+const HIGHEST = /^highest today/iu;
+const LOWEST = /^lowest today/iu;
+const WIND_SPEED = /^wind speed|^wind$/iu;
+const WIND_DIRECTION = /^wind direction/iu;
+const WEATHER_TYPE = /^weather type/iu;
 
 /** A figure in both unit systems, or its plain text when it has no numbers. */
 function Figure({ tile }: { tile: Condition }) {
@@ -96,17 +96,17 @@ function HeroCard({
       aria-label="Weather summary"
       className="flex h-full flex-col items-center justify-center gap-0.5 text-center"
     >
-      <p className="font-bold text-body-sm text-gm-text-inverse/80 leading-body-sm">
+      <p className="text-body-sm text-gm-text-inverse/80 leading-body-sm font-bold">
         {label}
       </p>
       <div className="flex items-center gap-3.5 lg:gap-5">
-        <span className="min-w-12 text-right font-bold text-body-lg tabular-nums leading-body-lg">
+        <span className="text-body-lg leading-body-lg min-w-12 text-right font-bold tabular-nums">
           {left}
         </span>
-        <p className="font-gm-display font-semibold text-gm-numeral-hero tabular-nums">
+        <p className="font-gm-display text-gm-numeral-hero font-semibold tabular-nums">
           {temperature}
         </p>
-        <span className="min-w-12 text-left font-bold text-body-lg tabular-nums leading-body-lg">
+        <span className="text-body-lg leading-body-lg min-w-12 text-left font-bold tabular-nums">
           {right}
         </span>
       </div>
@@ -197,7 +197,7 @@ export function NowCard({
       footer={
         today && (
           <TabLink
-            className="mt-2 rounded-full bg-gm-text-inverse/12 px-3.5 py-2 font-bold text-body-sm leading-body-sm outline-none hover:bg-gm-text-inverse/20 focus-visible:ring-2 focus-visible:ring-gm-lime"
+            className="bg-gm-text-inverse/12 text-body-sm leading-body-sm hover:bg-gm-text-inverse/20 focus-visible:ring-gm-lime mt-2 rounded-full px-3.5 py-2 font-bold outline-none focus-visible:ring-2"
             currentClassName=""
             data-analytics-day="today"
             data-analytics-event="forecast_tab_selected"
@@ -287,7 +287,7 @@ export function DayCard({
     <HeroCard
       footer={
         day.summary && (
-          <p className="mt-1.5 max-w-sm text-balance font-bold text-body-base leading-body-base">
+          <p className="text-body-base leading-body-base mt-1.5 max-w-sm font-bold text-balance">
             {day.summary}
           </p>
         )

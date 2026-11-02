@@ -15,7 +15,7 @@ export default async function ConsoleLayout({
 
   return (
     <div className="flex min-h-screen flex-col">
-      <header className="border-b bg-card">
+      <header className="bg-card border-b">
         <div className="mx-auto flex max-w-6xl flex-wrap items-center gap-x-6 gap-y-2 px-4 py-3">
           <span className="font-semibold">Barrels admin</span>
           <nav aria-label="Console" className="flex gap-4 text-sm">
@@ -60,7 +60,7 @@ export default async function ConsoleLayout({
             <span className="text-muted-foreground">{gate.email}</span>
             <form action="/auth/logout" method="post">
               <button
-                className="rounded-md border px-2.5 py-1 hover:bg-muted"
+                className="hover:bg-muted rounded-md border px-2.5 py-1"
                 type="submit"
               >
                 Sign out

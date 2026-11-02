@@ -317,7 +317,7 @@ export function NhcGuidanceEditor({
         <label className="block">
           Regional forecast period
           <select
-            className="ml-3 rounded-md border bg-background p-2"
+            className="bg-background ml-3 rounded-md border p-2"
             onChange={(event) => setMarinePeriod(event.target.value)}
             value={marinePeriod}
           >
@@ -395,7 +395,7 @@ export function NhcGuidanceEditor({
               <label>
                 Connect to existing GMS system
                 <select
-                  className="ml-2 rounded-md border bg-background p-2"
+                  className="bg-background ml-2 rounded-md border p-2"
                   onChange={(event) => {
                     setLinks((items) => ({
                       ...items,
@@ -468,7 +468,7 @@ export function NhcGuidanceEditor({
             <label>
               Feature type
               <select
-                className="ml-2 rounded-md border bg-background p-2"
+                className="bg-background ml-2 rounded-md border p-2"
                 onChange={(event) =>
                   updateSystem(index, {
                     feature_type: event.target
@@ -538,7 +538,7 @@ export function NhcGuidanceEditor({
           <label className="block">
             Parent / containing system
             <select
-              className="ml-2 rounded-md border bg-background p-2"
+              className="bg-background ml-2 rounded-md border p-2"
               onChange={(event) =>
                 updateSystem(index, {
                   parent_system_id: event.target.value || null,

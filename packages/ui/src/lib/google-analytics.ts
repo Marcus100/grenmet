@@ -1,6 +1,6 @@
 import type { AnalyticsConfig } from "./analytics-policy";
 
-const GA_ID = /^G-[A-Z0-9]+$/;
+const GA_ID = /^G-[A-Z0-9]+$/u;
 
 declare global {
   interface Window {

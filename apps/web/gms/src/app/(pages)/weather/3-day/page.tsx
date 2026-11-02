@@ -29,7 +29,7 @@ export default async function ThreeDayPage() {
       {forecast ? null : <UnavailableNotice product="The 3-day forecast" />}
       {forecast && !live && (
         <p
-          className="rounded-gm-card border border-gm-border p-4 text-body-base leading-body-base"
+          className="rounded-gm-card border-gm-border text-body-base leading-body-base border p-4"
           role="status"
         >
           No forecast has been published for the next three days yet. Check back

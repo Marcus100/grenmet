@@ -37,7 +37,7 @@ export function ExportSettingsView({
     return (
       <section aria-label={WHAT} className="space-y-6 text-sm">
         <div className="space-y-2">
-          <h2 className="font-semibold text-base">Bank file columns</h2>
+          <h2 className="text-base font-semibold">Bank file columns</h2>
           <ul className="list-inside list-decimal">
             {current.bank_columns.map((key) => (
               <li key={key}>{BANK_COLUMN_LABEL[key] ?? key}</li>
@@ -46,12 +46,12 @@ export function ExportSettingsView({
           <p className="text-muted-foreground">{NOT_STORED_NOTE}</p>
         </div>
         <div className="space-y-2">
-          <h2 className="font-semibold text-base">GL account codes</h2>
+          <h2 className="text-base font-semibold">GL account codes</h2>
           <dl className="grid gap-2 sm:grid-cols-2">
             {Object.keys(GL_ACCOUNT_LABEL).map((key) => (
               <div key={key}>
                 <dt>{GL_ACCOUNT_LABEL[key]}</dt>
-                <dd className="font-mono text-muted-foreground">
+                <dd className="text-muted-foreground font-mono">
                   {current.gl_accounts[key] || "Not set"}
                 </dd>
               </div>

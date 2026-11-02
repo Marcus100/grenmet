@@ -22,19 +22,50 @@ export default async function DeskLayout({
   return (
     <>
       <DeskApiClient />
-      <header className="border-b bg-card">
+      <header className="bg-card border-b">
         <div className="mx-auto flex max-w-6xl flex-wrap items-center gap-x-6 gap-y-2 px-4 py-3">
           <Link className="font-semibold" href="/desk">
             GMS warning desk
           </Link>
           {gate.status === "staff" ? (
-            <nav aria-label="Desk" className="flex gap-4 text-body-sm">
+            <nav aria-label="Desk" className="text-body-sm flex gap-4">
               <Link className="text-info hover:underline" href="/desk">
                 Board
               </Link>
               {gate.permissions.create ? (
                 <Link className="text-info hover:underline" href="/desk/new">
                   New warning
+                </Link>
+              ) : null}
+              {gate.permissions.read ? (
+                <Link className="text-info hover:underline" href="/desk/areas">
+                  Areas
+                </Link>
+              ) : null}
+              {gate.permissions.read ? (
+                <Link className="text-info hover:underline" href="/desk/audit">
+                  Audit
+                </Link>
+              ) : null}
+              {gate.permissions.feedsManage ? (
+                <Link className="text-info hover:underline" href="/desk/feeds">
+                  Feeds
+                </Link>
+              ) : null}
+              {gate.permissions.integrationsManage ? (
+                <Link
+                  className="text-info hover:underline"
+                  href="/desk/integrations"
+                >
+                  Integrations
+                </Link>
+              ) : null}
+              {gate.permissions.settingsManage ? (
+                <Link
+                  className="text-info hover:underline"
+                  href="/desk/settings"
+                >
+                  Settings
                 </Link>
               ) : null}
               <Link className="text-info hover:underline" href="/desk/matrix">
@@ -56,7 +87,7 @@ export default async function DeskLayout({
           {gate.status === "signed-out" ? null : (
             <form
               action="/auth/logout"
-              className="ml-auto flex items-center gap-3 text-body-sm"
+              className="text-body-sm ml-auto flex items-center gap-3"
               method="post"
             >
               <span className="text-muted-foreground">

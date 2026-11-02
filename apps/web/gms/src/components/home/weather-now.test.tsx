@@ -20,9 +20,9 @@ afterEach(() => {
   vi.clearAllMocks();
 });
 
-const MORNING = /Morning briefing/;
-const POSTED_AT_1005 = /at 10:05 a\.m\./;
-const SYNOPSIS = /synopsis/i;
+const MORNING = /Morning briefing/u;
+const POSTED_AT_1005 = /at 10:05 a\.m\./u;
+const SYNOPSIS = /synopsis/iu;
 
 function home(overrides: Partial<HomeContent> = {}): HomeContent {
   const none = { status: "ok" as const, articles: [] };

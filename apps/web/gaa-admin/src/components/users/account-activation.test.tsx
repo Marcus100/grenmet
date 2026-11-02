@@ -11,9 +11,9 @@ import { HttpResponse, http } from "msw";
 import { setupServer } from "msw/node";
 import { afterAll, afterEach, beforeAll, expect, it, vi } from "vitest";
 
-const REASON_LABEL = /^Reason/;
-const NOT_VERIFY_EMAIL = /does not verify the email/;
-const READY_TO_SIGN_IN = /Ready to sign in/;
+const REASON_LABEL = /^Reason/u;
+const NOT_VERIFY_EMAIL = /does not verify the email/u;
+const READY_TO_SIGN_IN = /Ready to sign in/u;
 
 const actor = vi.hoisted(() => ({ is_superuser: true }));
 vi.mock("@barrelsgd/auth", () => ({ useSessionUser: () => actor }));

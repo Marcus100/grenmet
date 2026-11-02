@@ -17,13 +17,13 @@ export function ExerciseBanner({ result }: { result: AlertsResult }) {
 
   return (
     <div
-      className="mb-6 rounded-gm-card border-2 border-gm-risk-red bg-gm-risk-yellow p-4 lg:p-5"
+      className="rounded-gm-card border-gm-risk-red bg-gm-risk-yellow mb-6 border-2 p-4 lg:p-5"
       role="alert"
     >
-      <p className="font-bold text-gm-text-primary text-heading-sm uppercase leading-heading-sm">
+      <p className="text-gm-text-primary text-heading-sm leading-heading-sm font-bold uppercase">
         Exercise — this is a drill
       </p>
-      <p className="mt-1 text-body-base text-gm-text-primary leading-body-base">
+      <p className="text-body-base text-gm-text-primary leading-body-base mt-1">
         One or more messages below are marked{" "}
         <span className="font-bold">{statuses.join(" / ")}</span> and are part
         of a test, not a live warning. Take no protective action on the basis of

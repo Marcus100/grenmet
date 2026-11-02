@@ -35,7 +35,7 @@ export function MyDeductionsView({
   return (
     <ul className="space-y-3">
       {data.data.data.map((item) => (
-        <li className="space-y-2 rounded-xl border bg-card p-4" key={item.id}>
+        <li className="bg-card space-y-2 rounded-xl border p-4" key={item.id}>
           <p className="font-medium">{item.deduction_name}</p>
           <p className="text-muted-foreground text-sm">
             From {formatDay(item.effective_from)}

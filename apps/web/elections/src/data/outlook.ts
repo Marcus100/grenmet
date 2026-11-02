@@ -559,9 +559,9 @@ export function seatChances(
 
 /* ---------- Do candidates matter? ---------- */
 
-const NAME_TITLE = /^(Dr|Mr|Mrs|Ms|Hon|Sir|Dame)\.?\s+/i;
-const STAR = /\*/g;
-const SPACE = /\s+/;
+const NAME_TITLE = /^(Dr|Mr|Mrs|Ms|Hon|Sir|Dame)\.?\s+/iu;
+const STAR = /\*/gu;
+const SPACE = /\s+/u;
 
 /** "Dr Keith Mitchell" → "k|mitchell": first initial and surname. */
 export function personKey(name: string): string {

@@ -29,11 +29,11 @@ export function CandidateTable({
           >
             <th className="py-2 pr-3 text-left font-normal" scope="row">
               <span className={i === 0 ? "font-semibold" : ""}>{row[0]}</span>
-              <span className="block text-base text-el-muted">
+              <span className="text-el-muted block text-base">
                 {referendum ? "" : partyInfo(row[1]).name}
                 {i === 0 && (referendum ? "Ahead" : ` · ${winnerLabel}`)}
               </span>
-              <span className="mt-1 block h-1.5 bg-el-paper-2">
+              <span className="bg-el-paper-2 mt-1 block h-1.5">
                 <span
                   className="block h-full"
                   style={{
@@ -45,7 +45,7 @@ export function CandidateTable({
             </th>
             <td className="py-2 text-right tabular-nums">
               <b>{pct(row[2] / valid)}</b>
-              <span className="block text-base text-el-muted">
+              <span className="text-el-muted block text-base">
                 {fmt(row[2])}
                 <Flag status={row[3]} />
               </span>

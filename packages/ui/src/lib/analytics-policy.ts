@@ -124,7 +124,7 @@ const SECTIONS = [
   "contact",
   "other",
 ] as const;
-const URL_SUFFIX = /[?#]/;
+const URL_SUFFIX = /[?#]/u;
 export function pageSection(path: string): (typeof SECTIONS)[number] {
   const section = path.split(URL_SUFFIX)[0]?.split("/")[1] || "home";
   return (SECTIONS as readonly string[]).includes(section)

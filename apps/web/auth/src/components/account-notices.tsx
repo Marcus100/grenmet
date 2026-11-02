@@ -37,10 +37,10 @@ export function NamePrompt() {
   return (
     <section
       aria-labelledby="name-prompt-heading"
-      className="space-y-3 rounded-lg border border-border bg-muted p-4"
+      className="border-border bg-muted space-y-3 rounded-lg border p-4"
     >
       <h2
-        className="font-medium text-foreground text-sm"
+        className="text-foreground text-sm font-medium"
         id="name-prompt-heading"
       >
         Add your name (optional)
@@ -100,7 +100,7 @@ export function NamePrompt() {
 export function VerifyBanner() {
   return (
     <div
-      className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-border bg-muted px-4 py-3 text-foreground text-sm"
+      className="border-border bg-muted text-foreground flex flex-wrap items-center justify-between gap-3 rounded-lg border px-4 py-3 text-sm"
       role="status"
     >
       <span>Confirm your email address to keep your account secure.</span>

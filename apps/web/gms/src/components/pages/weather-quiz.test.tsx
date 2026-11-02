@@ -18,9 +18,9 @@ const QUESTIONS = [
   },
 ];
 
-const EAST = /^East/;
-const MAY = /^May/;
-const JUNE = /^June/;
+const EAST = /^East/u;
+const MAY = /^May/u;
+const JUNE = /^June/u;
 
 describe("WeatherQuiz", () => {
   it("marks answers in words, explains, and scores", async () => {

@@ -5,19 +5,19 @@ export function DeskErrorNotice({ error }: { error: DeskError | null }) {
   if (!error) return null;
   return (
     <div
-      className="space-y-2 rounded-lg border border-destructive bg-destructive/10 p-4 text-body-sm"
+      className="border-destructive bg-destructive/10 text-body-sm space-y-2 rounded-lg border p-4"
       role="alert"
     >
-      <p className="font-semibold text-destructive">{error.title}</p>
+      <p className="text-destructive font-semibold">{error.title}</p>
       {error.items.length > 0 ? (
-        <ul className="list-disc space-y-1 pl-5 text-foreground">
+        <ul className="text-foreground list-disc space-y-1 pl-5">
           {[...new Set(error.items)].map((item) => (
             <li key={item}>{item}</li>
           ))}
         </ul>
       ) : null}
       {error.kind === "session" ? (
-        <a className="font-medium text-info underline" href="/desk/signin">
+        <a className="text-info font-medium underline" href="/desk/signin">
           Sign in again
         </a>
       ) : null}

@@ -2,7 +2,7 @@ import { fileURLToPath } from "node:url";
 import { withSentryConfig } from "@sentry/nextjs/config";
 import type { NextConfig } from "next";
 
-const SVG_REGEX = /\.svg$/;
+const SVG_REGEX = /\.svg$/u;
 
 const nextConfig: NextConfig = {
   // Link hrefs are checked against the app's routes at build time.

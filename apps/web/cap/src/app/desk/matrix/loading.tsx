@@ -1,6 +1,6 @@
 export default function LoadingMatrix() {
   return (
-    <p className="py-10 text-muted-foreground" role="status">
+    <p className="text-muted-foreground py-10" role="status">
       Loading the impact matrix…
     </p>
   );

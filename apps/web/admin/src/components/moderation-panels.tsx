@@ -54,7 +54,7 @@ export function StatusTabs({ current }: { current: ModerationStatus }) {
       {MODERATION_STATUSES.map((status) => (
         <Link
           aria-current={status === current ? "page" : undefined}
-          className={`inline-flex min-h-11 items-center rounded-md border px-4 text-sm hover:bg-muted ${
+          className={`hover:bg-muted inline-flex min-h-11 items-center rounded-md border px-4 text-sm ${
             status === current ? "bg-muted font-medium" : ""
           }`}
           href={`/moderation?status=${status}`}
@@ -101,7 +101,7 @@ export function CaseTable({
               >
                 {row.name}
               </Link>
-              <div className="font-mono text-muted-foreground text-xs">
+              <div className="text-muted-foreground font-mono text-xs">
                 {row.organiser_slug}
               </div>
             </TableCell>
@@ -145,7 +145,7 @@ export function HistoryTimeline({ events }: { events: CaseEvent[] }) {
                 </span>
               </div>
               {event.reason ? (
-                <p className="mt-1 text-muted-foreground">{event.reason}</p>
+                <p className="text-muted-foreground mt-1">{event.reason}</p>
               ) : null}
             </li>
           ))}

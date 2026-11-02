@@ -85,12 +85,12 @@ export function IssueList({ issues }: { issues: TimetableIssue[] }) {
           {issue.severity === "error" ? (
             <CircleX
               aria-hidden="true"
-              className="mt-0.5 size-4 shrink-0 text-destructive"
+              className="text-destructive mt-0.5 size-4 shrink-0"
             />
           ) : (
             <AlertTriangle
               aria-hidden="true"
-              className="mt-0.5 size-4 shrink-0 text-warning-soft-foreground"
+              className="text-warning-soft-foreground mt-0.5 size-4 shrink-0"
             />
           )}
           <span>

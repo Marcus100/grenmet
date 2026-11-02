@@ -58,7 +58,7 @@ export function TrainingRecords({
   return (
     <section aria-label="Employee training history" className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <h2 className="font-medium text-xl">Training history</h2>
+        <h2 className="text-xl font-medium">Training history</h2>
         {query.isSuccess && query.data.can_create && (
           <Button
             disabled={adding || busy}
@@ -89,7 +89,7 @@ export function TrainingRecords({
       {adding && (
         <form
           aria-label="Add training record"
-          className="grid gap-4 rounded-lg border border-border p-4 md:grid-cols-2"
+          className="border-border grid gap-4 rounded-lg border p-4 md:grid-cols-2"
           onSubmit={async (event) => {
             event.preventDefault();
             setError("");
@@ -168,7 +168,7 @@ export function TrainingRecords({
           <label htmlFor={`${id}-result`}>
             Result
             <select
-              className="block w-full rounded-md border border-input bg-background p-2"
+              className="border-input bg-background block w-full rounded-md border p-2"
               id={`${id}-result`}
               name="result"
             >
@@ -219,7 +219,7 @@ export function TrainingRecords({
           <ul className="space-y-3">
             {query.data.data.map((record) => (
               <li
-                className="space-y-2 rounded-lg border border-border p-4"
+                className="border-border space-y-2 rounded-lg border p-4"
                 key={record.id}
               >
                 <h3 className="font-medium">{record.course_name}</h3>
@@ -289,7 +289,7 @@ export function TrainingRecords({
       {archive && (
         <form
           aria-label="Archive training record"
-          className="space-y-3 rounded-lg border border-border p-4"
+          className="border-border space-y-3 rounded-lg border p-4"
           onSubmit={async (event) => {
             event.preventDefault();
             const reason = String(

@@ -6,15 +6,15 @@ export function TeamHelp() {
   return (
     <section
       aria-labelledby="team-help-title"
-      className="space-y-2 rounded-2xl border border-border bg-card p-4"
+      className="border-border bg-card space-y-2 rounded-2xl border p-4"
     >
       <h2
-        className="font-display font-semibold text-heading-sm"
+        className="font-display text-heading-sm font-semibold"
         id="team-help-title"
       >
         How roles work
       </h2>
-      <ul className="list-disc space-y-1 pl-5 text-body text-muted-foreground">
+      <ul className="text-body text-muted-foreground list-disc space-y-1 pl-5">
         <li>
           Owners and admins already have every role of the products your
           organisation uses. Roles here are for everyone else.

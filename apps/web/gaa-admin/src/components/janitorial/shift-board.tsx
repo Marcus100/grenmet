@@ -142,15 +142,15 @@ export function ShiftBoard({
               <TableBody>
                 {activeZones.map((zone) => (
                   <TableRow key={zone.id}>
-                    <TableCell className="whitespace-normal align-top font-medium">
+                    <TableCell className="align-top font-medium whitespace-normal">
                       {zone.name}
-                      <span className="block text-muted-foreground text-xs">
+                      <span className="text-muted-foreground block text-xs">
                         {zone.areaIds.length} areas
                       </span>
                     </TableCell>
                     {days.map((day) => (
                       <TableCell
-                        className="whitespace-normal align-top"
+                        className="align-top whitespace-normal"
                         key={day}
                       >
                         <ul className="space-y-1">
@@ -162,7 +162,7 @@ export function ShiftBoard({
                           ).map((row) => (
                             <li key={row.id}>
                               <Badge
-                                className="h-auto max-w-full justify-between gap-1 whitespace-normal py-0.5 pr-0.5 text-left"
+                                className="h-auto max-w-full justify-between gap-1 py-0.5 pr-0.5 text-left whitespace-normal"
                                 title={row.note ?? undefined}
                                 variant="light-light"
                               >
@@ -170,14 +170,14 @@ export function ShiftBoard({
                                   <span className="block truncate">
                                     {staffName(row.staffId)}
                                   </span>
-                                  <span className="block text-muted-foreground">
+                                  <span className="text-muted-foreground block">
                                     {patternName(row.shiftPatternId)}
                                   </span>
                                 </span>
                                 {canManage ? (
                                   <button
                                     aria-label={`Cancel ${staffName(row.staffId)}, ${patternName(row.shiftPatternId)}, ${dayLabel(day)}`}
-                                    className="shrink-0 rounded-full p-0.5 outline-none hover:bg-background focus-visible:ring-2 focus-visible:ring-ring"
+                                    className="hover:bg-background focus-visible:ring-ring shrink-0 rounded-full p-0.5 outline-none focus-visible:ring-2"
                                     disabled={cancel.isPending}
                                     onClick={() => onCancel(row)}
                                     type="button"
@@ -217,7 +217,7 @@ export function ShiftBoard({
           {patterns.length === 0 ? (
             <PanelEmpty>No shifts yet.</PanelEmpty>
           ) : (
-            <ul className="divide-y divide-border">
+            <ul className="divide-border divide-y">
               {patterns.map((pattern) => (
                 <li
                   className="flex items-center justify-between gap-2 py-2 text-sm"
@@ -225,7 +225,7 @@ export function ShiftBoard({
                 >
                   <span className="flex items-center gap-2">
                     <span className="font-medium">{pattern.name}</span>
-                    <span className="font-mono text-muted-foreground text-xs">
+                    <span className="text-muted-foreground font-mono text-xs">
                       {pattern.startsAt}–{pattern.endsAt}
                       {pattern.endsAt < pattern.startsAt ? " (+1)" : ""}
                     </span>
@@ -265,7 +265,7 @@ export function ShiftBoard({
           {zones.length === 0 ? (
             <PanelEmpty>No zones yet.</PanelEmpty>
           ) : (
-            <ul className="divide-y divide-border">
+            <ul className="divide-border divide-y">
               {zones.map((zone) => (
                 <li
                   className="flex items-center justify-between gap-2 py-2 text-sm"
@@ -474,7 +474,7 @@ function ZoneDialog({
         />
       </Field>
       <fieldset className="space-y-2">
-        <legend className="font-medium text-sm">
+        <legend className="text-sm font-medium">
           Areas <span className="text-muted-foreground">({areaIds.size})</span>
         </legend>
         <div className="max-h-72 space-y-3 overflow-y-auto rounded-lg border p-3">
@@ -482,7 +482,7 @@ function ZoneDialog({
             .filter((building) => building.active)
             .map((building) => (
               <div className="space-y-1" key={building.id}>
-                <p className="font-medium text-muted-foreground text-xs uppercase tracking-wide">
+                <p className="text-muted-foreground text-xs font-medium tracking-wide uppercase">
                   {building.name}
                 </p>
                 {building.areas
@@ -501,7 +501,7 @@ function ZoneDialog({
                         }
                       />
                       {area.name}
-                      <span className="font-mono text-muted-foreground text-xs">
+                      <span className="text-muted-foreground font-mono text-xs">
                         {area.code}
                       </span>
                     </label>

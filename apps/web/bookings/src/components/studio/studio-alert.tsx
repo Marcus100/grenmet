@@ -13,14 +13,14 @@ export function StudioAlert({
 }) {
   return (
     <div
-      className="space-y-2 rounded-lg border border-destructive/40 bg-destructive/10 p-4"
+      className="border-destructive/40 bg-destructive/10 space-y-2 rounded-lg border p-4"
       role="alert"
     >
       <p className="font-semibold">{failure.message}</p>
       <p className="text-muted-foreground">{failure.nextStep}</p>
       {backHref ? (
         <Link
-          className="inline-flex min-h-11 items-center font-medium text-primary underline underline-offset-4"
+          className="text-primary inline-flex min-h-11 items-center font-medium underline underline-offset-4"
           href={{ pathname: backHref }}
         >
           {backLabel ?? "Go back"}

@@ -648,7 +648,7 @@ function render(change = {}) {
   }
 }
 
-const ORG_KEYS_NAME = /ORG_SECRET_ENCRYPTION_KEYS/;
+const ORG_KEYS_NAME = /ORG_SECRET_ENCRYPTION_KEYS/u;
 const GENERATED_LINE = (output, name) =>
   output.split("\n").find((line) => line.startsWith(`${name}=`));
 
@@ -774,11 +774,11 @@ test("the deploy workflow and compose file pass the new variables to the API and
   );
 });
 
-const RENDERED_SECRET = /^TRUSTED_WEB_SECRET=".{32,}"$/m;
+const RENDERED_SECRET = /^TRUSTED_WEB_SECRET=".{32,}"$/mu;
 const WORKFLOW_PASS =
-  /TRUSTED_WEB_SECRET: \$\{\{ secrets\.TRUSTED_WEB_SECRET \}\}/;
-const NAMED_SECRET = /TRUSTED_WEB_SECRET/;
-const SERVICE_START = /\n(?= {2}[a-z-]+:\n)/;
+  /TRUSTED_WEB_SECRET: \$\{\{ secrets\.TRUSTED_WEB_SECRET \}\}/u;
+const NAMED_SECRET = /TRUSTED_WEB_SECRET/u;
+const SERVICE_START = /\n(?= {2}[a-z-]+:\n)/u;
 
 function renderWith(change) {
   const directory = mkdtempSync(join(tmpdir(), "trusted-web-secret-"));
@@ -1105,9 +1105,9 @@ const PROXY_ON = {
   CLOUDFLARE_PROXY_ENABLED: "true",
   CLOUDFLARE_ORIGIN_SECRET: ORIGIN_SECRET,
 };
-const CIDR_LINE = /^[0-9a-f:.]+\/\d+$/;
+const CIDR_LINE = /^[0-9a-f:.]+\/\d+$/u;
 const SWITCH_PASS =
-  /^\s+CLOUDFLARE_PROXY_ENABLED: \$\{\{ vars\.CLOUDFLARE_PROXY_ENABLED \}\}$/m;
+  /^\s+CLOUDFLARE_PROXY_ENABLED: \$\{\{ vars\.CLOUDFLARE_PROXY_ENABLED \}\}$/mu;
 
 function edgeValues(output) {
   return Object.fromEntries(

@@ -26,24 +26,24 @@ export function Section({
       aria-labelledby={`${id}-title`}
       className="mx-auto max-w-[1240px] px-4 pt-12 sm:px-6"
     >
-      <div className="relative mb-4 flex flex-wrap items-baseline justify-between gap-x-6 gap-y-1 border-el-ink border-t-2 pt-3">
+      <div className="border-el-ink relative mb-4 flex flex-wrap items-baseline justify-between gap-x-6 gap-y-1 border-t-2 pt-3">
         <FlagStripe className="absolute -top-0.5 left-0 h-1.5 w-16" />
         <h2
-          className="scroll-mt-20 font-bold text-2xl sm:text-[1.625rem]"
+          className="scroll-mt-20 text-2xl font-bold sm:text-[1.625rem]"
           id={`${id}-title`}
         >
           {title}
         </h2>
         {more && (
           <Link
-            className="font-semibold text-base underline decoration-el-rule-2 underline-offset-4 hover:decoration-el-ink"
+            className="decoration-el-rule-2 hover:decoration-el-ink text-base font-semibold underline underline-offset-4"
             href={more.href as Route}
           >
             {more.label} →
           </Link>
         )}
         {intro && (
-          <p className="w-full max-w-prose text-el-ink-2 text-lg leading-relaxed">
+          <p className="text-el-ink-2 w-full max-w-prose text-lg leading-relaxed">
             {intro}
           </p>
         )}
@@ -91,14 +91,14 @@ export function PageHead({
     >
       <div className="min-w-0">
         {!tint && <FlagStripe className="mb-4 h-1.5 w-16" />}
-        <p className="font-semibold text-base text-el-ink-2 uppercase leading-relaxed tracking-[0.08em]">
+        <p className="text-el-ink-2 text-base leading-relaxed font-semibold tracking-[0.08em] uppercase">
           {eyebrow}
         </p>
-        <h1 className="mt-2.5 max-w-[24ch] font-bold text-[clamp(1.875rem,4.2vw,3rem)] leading-[1.08] tracking-[-0.022em]">
+        <h1 className="mt-2.5 max-w-[24ch] text-[clamp(1.875rem,4.2vw,3rem)] leading-[1.08] font-bold tracking-[-0.022em]">
           {title}
         </h1>
         {deck && (
-          <p className="mt-3.5 max-w-[62ch] font-serif text-el-ink-2 text-lg leading-normal sm:text-[1.1875rem]">
+          <p className="text-el-ink-2 mt-3.5 max-w-[62ch] font-serif text-lg leading-normal sm:text-[1.1875rem]">
             {deck}
           </p>
         )}

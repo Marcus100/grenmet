@@ -32,11 +32,11 @@ export function FeedsSection() {
       <div className="mt-6 grid gap-3">
         {FEEDS.map((feed) => (
           <article
-            className="flex flex-col gap-4 border border-gm-border bg-card p-4 shadow-card sm:flex-row sm:items-center sm:justify-between"
+            className="border-gm-border bg-card shadow-card flex flex-col gap-4 border p-4 sm:flex-row sm:items-center sm:justify-between"
             key={feed.href}
           >
             <div className="flex min-w-0 items-center gap-3">
-              <span className="flex size-10 shrink-0 items-center justify-center rounded-md bg-gm-surface-panel text-navy">
+              <span className="bg-gm-surface-panel text-navy flex size-10 shrink-0 items-center justify-center rounded-md">
                 <feed.icon aria-hidden="true" className="size-5" />
               </span>
               <div className="min-w-0">

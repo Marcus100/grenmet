@@ -25,7 +25,7 @@ const navigation = vi.hoisted(() => ({ params: "" }));
 
 const BASE = "http://localhost";
 const SUBMIT_LABEL = "Sign & submit";
-const AGREEMENT_TEXT = /The other employee must agree first/;
+const AGREEMENT_TEXT = /The other employee must agree first/u;
 
 const PROFILE = {
   id: "99999999-9999-4999-8999-999999999999",

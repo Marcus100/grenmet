@@ -7,7 +7,7 @@ const foundation = readFileSync(
   new URL("../../../packages/ui/src/styles/globals.css", directory),
   "utf8"
 );
-const tokens = foundation.match(/:root\s*\{([\s\S]*?)\n {2}\}/)?.[1];
+const tokens = foundation.match(/:root\s*\{([\s\S]*?)\n {2}\}/u)?.[1];
 if (!tokens) throw new Error("Shared UI token declarations were not found");
 const output = new URL("dist/", directory);
 mkdirSync(output, { recursive: true });
@@ -28,7 +28,7 @@ const partials = Object.fromEntries(
 );
 for (const page of PAGES) {
   const html = readFileSync(new URL(page, directory), "utf8").replace(
-    /<!-- @include ([\w-]+) -->/g,
+    /<!-- @include ([\w-]+) -->/gu,
     (_, name) => {
       if (!(name in partials)) throw new Error(`Unknown partial: ${name}`);
       return partials[name];

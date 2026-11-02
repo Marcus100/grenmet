@@ -30,7 +30,7 @@ function PostHeader({ post }: { post: Post }) {
       <div className="pointer-events-none absolute top-0 left-[max(-0.5rem,calc(50%-18.625rem))] z-50 flex h-4 items-center justify-end gap-x-2 lg:right-[calc(max(2rem,50%-38rem)+40rem)] lg:left-0 lg:min-w-lg xl:h-8">
         <a className="inline-flex" href={anchor}>
           <FormattedDate
-            className="hidden xl:pointer-events-auto xl:block xl:font-medium xl:text-2xs/4 xl:text-white/50"
+            className="xl:text-2xs/4 hidden xl:pointer-events-auto xl:block xl:font-medium xl:text-white/50"
             date={post.date}
           />
         </a>
@@ -40,12 +40,12 @@ function PostHeader({ post }: { post: Post }) {
         <div className="flex items-center gap-x-3">
           <a className="inline-flex xl:hidden" href={anchor}>
             <FormattedDate
-              className="font-medium text-2xs/4 text-gray-500 xl:hidden dark:text-white/50"
+              className="text-2xs/4 font-medium text-gray-500 xl:hidden dark:text-white/50"
               date={post.date}
             />
           </a>
           {post.release ? (
-            <span className="rounded-full bg-sky-500/10 px-2 font-medium text-2xs/5 text-sky-700 ring-1 ring-sky-500/20 ring-inset dark:text-sky-300">
+            <span className="text-2xs/5 rounded-full bg-sky-500/10 px-2 font-medium text-sky-700 ring-1 ring-sky-500/20 ring-inset dark:text-sky-300">
               v{post.release}
             </span>
           ) : null}

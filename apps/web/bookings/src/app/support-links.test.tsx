@@ -21,7 +21,7 @@ vi.mock("next/link", () => ({
 }));
 
 const SUPPORT = "support@barrels.gd";
-const BUSINESS_CONTACT = /contact the business directly/;
+const BUSINESS_CONTACT = /contact the business directly/u;
 
 describe("Barrels support address on bookings pages", () => {
   it("links the platform support mailbox from the public business layout", () => {

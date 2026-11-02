@@ -2,7 +2,7 @@ import { expect, test } from "@playwright/test";
 
 // Requires: pnpm dev:web:gms running (FastAPI from pnpm start for live data).
 
-const ANY_TITLE = /\S/;
+const ANY_TITLE = /\S/u;
 const PAGES = [
   { name: "home", path: "/" },
   { name: "alerts", path: "/alerts" },

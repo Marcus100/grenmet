@@ -32,7 +32,7 @@ describe("newsletter template", () => {
       preferencesLink: link,
     });
     expect(html).toContain("manage your subscriptions");
-    expect(html).toContain(link.replace(/&/g, "&amp;"));
+    expect(html).toContain(link.replace(/&/gu, "&amp;"));
   });
 
   it("omits the preferences sentence for mail that has no link", async () => {

@@ -18,9 +18,9 @@ export default function PrivacyPage() {
         eyebrow="Grenada Airports Authority"
         title="Privacy"
       />
-      <div className="mx-auto max-w-3xl space-y-8 px-4 py-14 text-gaa-muted leading-relaxed lg:px-8">
+      <div className="text-gaa-muted mx-auto max-w-3xl space-y-8 px-4 py-14 leading-relaxed lg:px-8">
         <section>
-          <h2 className="font-display font-semibold text-gaa-navy text-xl">
+          <h2 className="font-display text-gaa-navy text-xl font-semibold">
             Reading the site
           </h2>
           <p className="mt-2">
@@ -29,7 +29,7 @@ export default function PrivacyPage() {
           </p>
         </section>
         <section>
-          <h2 className="font-display font-semibold text-gaa-navy text-xl">
+          <h2 className="font-display text-gaa-navy text-xl font-semibold">
             Contact form
           </h2>
           <p className="mt-2">
@@ -39,7 +39,7 @@ export default function PrivacyPage() {
           </p>
         </section>
         <section>
-          <h2 className="font-display font-semibold text-gaa-navy text-xl">
+          <h2 className="font-display text-gaa-navy text-xl font-semibold">
             Page feedback
           </h2>
           <p className="mt-2">
@@ -49,7 +49,7 @@ export default function PrivacyPage() {
           </p>
         </section>
         <section>
-          <h2 className="font-display font-semibold text-gaa-navy text-xl">
+          <h2 className="font-display text-gaa-navy text-xl font-semibold">
             Spam protection
           </h2>
           <p className="mt-2">
@@ -60,7 +60,7 @@ export default function PrivacyPage() {
           </p>
         </section>
         <section>
-          <h2 className="font-display font-semibold text-gaa-navy text-xl">
+          <h2 className="font-display text-gaa-navy text-xl font-semibold">
             How long we keep it
           </h2>
           <ul className="mt-2 list-disc space-y-1 pl-5">
@@ -71,7 +71,7 @@ export default function PrivacyPage() {
           </ul>
         </section>
         <section>
-          <h2 className="font-display font-semibold text-gaa-navy text-xl">
+          <h2 className="font-display text-gaa-navy text-xl font-semibold">
             Questions or requests
           </h2>
           <p className="mt-2">

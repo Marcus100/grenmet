@@ -2,7 +2,7 @@ import type { IbfMatrixPublic } from "@barrelsgd/api-client";
 import { z } from "zod";
 
 /** The same shape as a hazard profile key (cap/ibf_router.py Kind). */
-export const KIND_PATTERN = /^[a-z][a-z0-9-]{1,39}$/;
+export const KIND_PATTERN = /^[a-z][a-z0-9-]{1,39}$/u;
 
 export const LIKELIHOODS = ["Very low", "Low", "Medium", "High"] as const;
 export const IMPACTS = ["Minimal", "Minor", "Significant", "Severe"] as const;

@@ -24,7 +24,7 @@ const UNPROCESSABLE = 422;
 const CONFLICT = 409;
 const NOT_FOUND = 404;
 const MAX_MESSAGE = 300;
-const JSON_START = /^[[{]/;
+const JSON_START = /^[[{]/u;
 
 async function staffToken(): Promise<string> {
   const gate = await requireGate("/flags");

@@ -24,9 +24,9 @@ import {
   productFieldUnit,
 } from "@/lib/wxproducts/units";
 
-const DAY_SECTION_PREFIX = /^Day (\d)/;
-const SUN_TIME_KEY = /(?:sunrise|sunset)$/i;
-const WEATHER_TYPE_KEY = /^(day\d)?[Ww]eatherType$/;
+const DAY_SECTION_PREFIX = /^Day (\d)/u;
+const SUN_TIME_KEY = /(?:sunrise|sunset)$/iu;
+const WEATHER_TYPE_KEY = /^(day\d)?[Ww]eatherType$/u;
 /** Size inputs to the data they hold; only free prose spans the card. */
 function fieldWidth(f: ProductField) {
   if (f.key === "definition") return "w-full max-w-sm";
@@ -62,8 +62,8 @@ function fieldWidth(f: ProductField) {
   return "w-full max-w-sm";
 }
 const ROW_START =
-  /^(day\d)?(maxTemperature|minTemperature|Max|Min|swellDir|SwellDir)$/;
-const ROW_FOLLOWER = /^(day\d)?(minTemperature|Min)$/;
+  /^(day\d)?(maxTemperature|minTemperature|Max|Min|swellDir|SwellDir)$/u;
+const ROW_FOLLOWER = /^(day\d)?(minTemperature|Min)$/u;
 /**
  * Fields that begin their own row in a section: the temperatures (maximum and
  * minimum together) and swell direction. A minimum right after its maximum
@@ -205,7 +205,7 @@ export function ProductFieldControl({
           <InputGroupAddon
             align="inline-start"
             aria-hidden="true"
-            className="pointer-events-none absolute top-0.5 right-2 left-2 z-10 justify-start gap-1 truncate p-0 font-normal text-xs leading-3"
+            className="pointer-events-none absolute top-0.5 right-2 left-2 z-10 justify-start gap-1 truncate p-0 text-xs leading-3 font-normal"
           >
             {productFieldCaption(f)}
             {f.required ? <span className="text-destructive">*</span> : null}
@@ -215,7 +215,7 @@ export function ProductFieldControl({
           <InputGroupAddon
             align="inline-start"
             aria-hidden="true"
-            className="pointer-events-none self-start text-destructive text-xs"
+            className="text-destructive pointer-events-none self-start text-xs"
           >
             *
           </InputGroupAddon>

@@ -29,7 +29,7 @@ export async function PeriodPayslips({
   const exportable = ["APPROVED", "EXPORTED", "CLOSED"].includes(status);
   return (
     <section aria-label="Payslips" className="space-y-6">
-      <h2 className="font-semibold text-lg">Payslips</h2>
+      <h2 className="text-lg font-semibold">Payslips</h2>
       <PeriodPayslipList payslips={payslips} securityUrl={securityUrl} />
       {access.canExport && exportable ? (
         <PeriodExports

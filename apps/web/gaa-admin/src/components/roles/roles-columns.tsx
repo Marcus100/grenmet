@@ -34,7 +34,7 @@ export const rolesColumns: LegacyColumnDef<RoleRow>[] = [
     accessorKey: "name",
     header: "Role",
     cell: ({ row }) => (
-      <span className="font-medium text-foreground text-sm">
+      <span className="text-foreground text-sm font-medium">
         {row.original.name}
       </span>
     ),

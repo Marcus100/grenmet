@@ -323,7 +323,7 @@ describe("AbsenteeEditor (wired)", () => {
     await user.click(screen.getByLabelText("Date"));
     await user.click(
       await screen.findByRole("button", {
-        name: new RegExp(format(today, "MMMM do, yyyy")),
+        name: new RegExp(format(today, "MMMM do, yyyy"), "u"),
       })
     );
 

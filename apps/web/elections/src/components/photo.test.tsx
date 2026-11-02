@@ -7,7 +7,7 @@ import { CONSTITUENCY_PHOTOS, PHOTOS } from "@/data/photos";
 import constituencies from "@/data/source/reference/constituencies.json";
 
 const CREDITS = "public/images/CREDITS.md";
-const PUBLIC_DOMAIN = /Public domain/;
+const PUBLIC_DOMAIN = /Public domain/u;
 
 describe("photos", () => {
   it("credit every photo with its creator, source and licence", () => {

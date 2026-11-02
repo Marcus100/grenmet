@@ -23,8 +23,8 @@ vi.mock("@barrelsgd/auth", () => ({
 }));
 const { FakeAuthApiError } = auth;
 
-const PATTERN_1 = /Nothing was saved/;
-const TOO_LARGE_TEXT = /larger than 5 MB/;
+const PATTERN_1 = /Nothing was saved/u;
+const TOO_LARGE_TEXT = /larger than 5 MB/u;
 
 describe("importInputSchema", () => {
   it("accepts a reviewed XML paste with surrounding space trimmed", () => {

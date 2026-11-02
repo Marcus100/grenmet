@@ -63,7 +63,7 @@ export default async function EventPage({ params }: { params: Params }) {
                 </Badge>
               ) : null}
             </div>
-            <h1 className="font-bold font-display text-heading-md tracking-tight sm:text-heading-lg">
+            <h1 className="font-display text-heading-md sm:text-heading-lg font-bold tracking-tight">
               {event.title}
             </h1>
             <p className="text-body-base text-muted-foreground">
@@ -71,12 +71,12 @@ export default async function EventPage({ params }: { params: Params }) {
             </p>
           </div>
 
-          <dl className="grid gap-4 rounded-2xl border border-border bg-card p-5 sm:grid-cols-2">
+          <dl className="border-border bg-card grid gap-4 rounded-2xl border p-5 sm:grid-cols-2">
             <div className="flex gap-3">
-              <Clock className="mt-0.5 size-5 shrink-0 text-events-hibiscus" />
+              <Clock className="text-events-hibiscus mt-0.5 size-5 shrink-0" />
               <div>
                 <dt className="sr-only">When</dt>
-                <dd className="font-medium text-body">
+                <dd className="text-body font-medium">
                   {formatEventDate(event.startsAt)}
                 </dd>
                 <dd className="text-caption text-muted-foreground">
@@ -85,10 +85,10 @@ export default async function EventPage({ params }: { params: Params }) {
               </div>
             </div>
             <div className="flex gap-3">
-              <MapPin className="mt-0.5 size-5 shrink-0 text-events-hibiscus" />
+              <MapPin className="text-events-hibiscus mt-0.5 size-5 shrink-0" />
               <div>
                 <dt className="sr-only">Where</dt>
-                <dd className="font-medium text-body">{event.venue}</dd>
+                <dd className="text-body font-medium">{event.venue}</dd>
                 <dd className="text-caption text-muted-foreground">
                   {PARISH_LABELS[event.parish]} ·{" "}
                   <a
@@ -105,22 +105,22 @@ export default async function EventPage({ params }: { params: Params }) {
           </dl>
 
           <section className="space-y-2">
-            <h2 className="font-display font-semibold text-heading-sm">
+            <h2 className="font-display text-heading-sm font-semibold">
               About
             </h2>
-            <p className="max-w-prose whitespace-pre-line text-body-base leading-relaxed">
+            <p className="text-body-base max-w-prose leading-relaxed whitespace-pre-line">
               {event.description}
             </p>
           </section>
         </div>
 
         <aside className="space-y-4 lg:sticky lg:top-20 lg:self-start">
-          <div className="space-y-4 rounded-2xl border border-border bg-card p-5">
+          <div className="border-border bg-card space-y-4 rounded-2xl border p-5">
             <div className="flex items-baseline justify-between">
-              <p className="font-bold font-display text-heading-sm">
+              <p className="font-display text-heading-sm font-bold">
                 {priceLabel(event)}
               </p>
-              <p className="flex items-center gap-1 text-caption text-muted-foreground">
+              <p className="text-caption text-muted-foreground flex items-center gap-1">
                 <Users className="size-4" />
                 {event.goingCount} going
               </p>
@@ -149,14 +149,14 @@ export default async function EventPage({ params }: { params: Params }) {
           </div>
 
           {organiser ? (
-            <div className="space-y-3 rounded-2xl border border-border bg-card p-5">
-              <p className="font-semibold text-caption text-muted-foreground uppercase tracking-wide">
+            <div className="border-border bg-card space-y-3 rounded-2xl border p-5">
+              <p className="text-caption text-muted-foreground font-semibold tracking-wide uppercase">
                 Hosted by
               </p>
               <div className="flex items-center gap-3">
                 <PersonAvatar name={organiser.name} size="lg" />
                 <div className="min-w-0">
-                  <p className="flex items-center gap-1 font-medium text-body">
+                  <p className="text-body flex items-center gap-1 font-medium">
                     <Link
                       className="truncate hover:underline"
                       href={`/o/${organiser.slug}`}
@@ -166,7 +166,7 @@ export default async function EventPage({ params }: { params: Params }) {
                     {organiser.verified ? (
                       <BadgeCheck
                         aria-label="Verified organiser"
-                        className="size-4 shrink-0 text-events-sea"
+                        className="text-events-sea size-4 shrink-0"
                       />
                     ) : null}
                   </p>
@@ -188,14 +188,14 @@ export default async function EventPage({ params }: { params: Params }) {
 
           {group ? (
             <Link
-              className="block rounded-2xl bg-events-ink p-5 text-white"
+              className="bg-events-ink block rounded-2xl p-5 text-white"
               href={`/groups/${group.slug}`}
             >
               <p className="text-caption text-events-lime">Part of a group</p>
-              <p className="mt-1 font-display font-semibold text-body-base">
+              <p className="font-display text-body-base mt-1 font-semibold">
                 {group.name}
               </p>
-              <p className="mt-1 text-body text-white/75">{group.tagline}</p>
+              <p className="text-body mt-1 text-white/75">{group.tagline}</p>
             </Link>
           ) : null}
         </aside>
@@ -203,7 +203,7 @@ export default async function EventPage({ params }: { params: Params }) {
 
       {more.length > 0 ? (
         <section className="space-y-5">
-          <h2 className="font-bold font-display text-heading-sm">
+          <h2 className="font-display text-heading-sm font-bold">
             More {CATEGORY_LABELS[event.category].toLowerCase()}
           </h2>
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">

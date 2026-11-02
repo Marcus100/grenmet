@@ -11,6 +11,8 @@ PRODUCT_TITLES = {
     "midday": "Midday Forecast",
     "evening": "Evening Forecast",
     "outlook": "Tropical Weather Outlook",
+    "marine-forecast": "Marine Forecast",
+    "climate-bulletin": "Climate Bulletin",
     "cyclone": "Tropical Cyclone Bulletin",
     "marine": "Marine Bulletin",
     "flood": "Flood Bulletin",

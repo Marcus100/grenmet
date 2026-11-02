@@ -124,7 +124,7 @@ export function NowPanel({ weather }: { weather: WeatherSnapshot }) {
   return (
     <section
       aria-label="Current conditions"
-      className="grid h-full content-start gap-3 rounded-gm-card bg-gm-scrim px-4 py-3 lg:px-5"
+      className="rounded-gm-card bg-gm-scrim grid h-full content-start gap-3 px-4 py-3 lg:px-5"
     >
       {current ? (
         <ReadingGrid
@@ -132,7 +132,7 @@ export function NowPanel({ weather }: { weather: WeatherSnapshot }) {
           readings={nowReadings(current)}
         />
       ) : (
-        <p className="font-bold text-body-base leading-body-base">
+        <p className="text-body-base leading-body-base font-bold">
           No current observation
         </p>
       )}

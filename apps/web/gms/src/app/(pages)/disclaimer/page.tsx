@@ -2,8 +2,8 @@ import Link from "next/link";
 export const metadata = { title: "About the information on this website" };
 export default function InformationPage() {
   return (
-    <article className="mx-auto max-w-3xl space-y-6 pt-3 text-body-base text-gm-text-primary leading-body-base lg:pt-4">
-      <h1 className="font-bold text-gm-heading text-heading-md leading-heading-md">
+    <article className="text-body-base text-gm-text-primary leading-body-base mx-auto max-w-3xl space-y-6 pt-3 lg:pt-4">
+      <h1 className="text-gm-heading text-heading-md leading-heading-md font-bold">
         About the information on this website
       </h1>
       <p>
@@ -11,7 +11,7 @@ export default function InformationPage() {
         details before using or sharing a forecast. A later issue may update the
         assessment.
       </p>
-      <h2 className="font-bold text-gm-heading text-heading-sm leading-heading-sm">
+      <h2 className="text-gm-heading text-heading-sm leading-heading-sm font-bold">
         Dated examples and current information
       </h2>
       <p>
@@ -19,7 +19,7 @@ export default function InformationPage() {
         figures are not a live observation feed. When a connected product
         service is unavailable, the page says so.
       </p>
-      <h2 className="font-bold text-gm-heading text-heading-sm leading-heading-sm">
+      <h2 className="text-gm-heading text-heading-sm leading-heading-sm font-bold">
         Forecasts and observations
       </h2>
       <p>
@@ -28,7 +28,7 @@ export default function InformationPage() {
         distinct, including when an older observation is the latest one
         available.
       </p>
-      <h2 className="font-bold text-gm-heading text-heading-sm leading-heading-sm">
+      <h2 className="text-gm-heading text-heading-sm leading-heading-sm font-bold">
         Questions about a product
       </h2>
       <p>

@@ -10,7 +10,7 @@ import { allHurricanepages } from "../.content-collections/generated";
 // an unescaped quote) is dropped from the collection without failing that
 // build, so its URL silently 404s; this test makes it fail instead.
 const CONTENT_DIR = path.resolve(import.meta.dirname, "content");
-const MDX_EXTENSION = /\.mdx$/;
+const MDX_EXTENSION = /\.mdx$/u;
 
 function contentFiles(): string[] {
   return readdirSync(CONTENT_DIR, { recursive: true, encoding: "utf8" })

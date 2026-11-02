@@ -2,7 +2,7 @@ import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { SignInForm } from "./sign-in-form";
 
-const CODE_LABEL = /6-digit code/;
+const CODE_LABEL = /6-digit code/u;
 const replace = vi.fn();
 vi.mock("next/navigation", () => ({
   useRouter: () => ({ refresh: vi.fn(), replace }),

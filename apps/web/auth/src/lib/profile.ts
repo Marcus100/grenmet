@@ -1,6 +1,6 @@
 // Display helpers for the signed-in profile view on the auth home page.
 
-const RE_WHITESPACE = /\s+/;
+const RE_WHITESPACE = /\s+/u;
 
 export function getInitials(fullName: string | null, email: string): string {
   const nameParts = (fullName ?? "")
