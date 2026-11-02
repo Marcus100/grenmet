@@ -1,4 +1,5 @@
 import { PostHogProvider } from "@barrelsgd/ui/components/posthog-provider";
+import { PublicEnvScript } from "@barrelsgd/ui/components/public-env-script";
 import type { Metadata } from "next";
 import { Inter, Noto_Sans } from "next/font/google";
 import localFont from "next/font/local";
@@ -55,6 +56,7 @@ export default function RootLayout({
       style={{ colorScheme: "light" }}
     >
       <body className="min-h-screen bg-background font-sans text-foreground antialiased">
+        <PublicEnvScript />
         <PostHogProvider app="signal" privacyHref="/privacy">
           <SkipLink />
           <SiteHeader accountLabel={signInEnabled() ? APP_LABEL : undefined} />

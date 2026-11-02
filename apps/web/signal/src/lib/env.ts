@@ -1,3 +1,4 @@
+import { readPublicEnv } from "@barrelsgd/ui/lib/public-env";
 import { createEnv } from "@t3-oss/env-nextjs";
 import { z } from "zod";
 
@@ -35,9 +36,13 @@ export const env = createEnv({
     AUTH_APP_URL: process.env.AUTH_APP_URL,
     SIGNAL_SESSION_COOKIE_NAME: process.env.SIGNAL_SESSION_COOKIE_NAME,
     SIGNAL_SSO_CLIENT_SECRET: process.env.SIGNAL_SSO_CLIENT_SECRET,
-    NEXT_PUBLIC_SITE_URL: process.env.NEXT_PUBLIC_SITE_URL,
-    NEXT_PUBLIC_TURNSTILE_SITE_KEY: process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY,
-    NEXT_PUBLIC_SENTRY_DSN: process.env.NEXT_PUBLIC_SENTRY_DSN,
-    NEXT_PUBLIC_SENTRY_ENVIRONMENT: process.env.NEXT_PUBLIC_SENTRY_ENVIRONMENT,
+    NEXT_PUBLIC_SITE_URL: readPublicEnv("NEXT_PUBLIC_SITE_URL"),
+    NEXT_PUBLIC_TURNSTILE_SITE_KEY: readPublicEnv(
+      "NEXT_PUBLIC_TURNSTILE_SITE_KEY"
+    ),
+    NEXT_PUBLIC_SENTRY_DSN: readPublicEnv("NEXT_PUBLIC_SENTRY_DSN"),
+    NEXT_PUBLIC_SENTRY_ENVIRONMENT: readPublicEnv(
+      "NEXT_PUBLIC_SENTRY_ENVIRONMENT"
+    ),
   },
 });

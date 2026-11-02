@@ -1,8 +1,9 @@
+import { readPublicEnv } from "@barrelsgd/ui/lib/public-env";
 import type { Instrumentation } from "next";
 
 // Sentry is only loaded when a DSN is configured — keeps the SDK out of the
 // dev compile graph entirely when running locally without Sentry.
-const SENTRY_ENABLED = Boolean(process.env.NEXT_PUBLIC_SENTRY_DSN);
+const SENTRY_ENABLED = Boolean(readPublicEnv("NEXT_PUBLIC_SENTRY_DSN"));
 
 export async function register() {
   if (!SENTRY_ENABLED) return;
