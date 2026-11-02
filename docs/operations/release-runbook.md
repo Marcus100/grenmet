@@ -184,7 +184,7 @@ that tree: what staging proved is exactly what production runs.
 | Step | Workflow | What happens |
 | --- | --- | --- |
 | Push to `dev` | `dev-images.yml` | `promote-images.mjs plan` picks the images the change touches (`select-images.mjs`) plus any the previous tree lacks. Those are built, smoke-tested and scanned, then tagged `tree-<tree>`. Unchanged images get `tree-<tree>` on the previous digest. |
-| Push to `staging` | `pipeline-staging.yml` | `promote staging` finds the dev commit with the same tree, requires every required status check of the dev ruleset to have passed on it, waits up to 30 minutes for its dev images, retags the digests `staging-sha-<commit>` and `staging`, and deploys. After the deploy and smoke tests, `mark-verified` adds `staging-verified-tree-<tree>`. |
+| Push to `staging` | `pipeline-staging.yml` | `promote staging` finds the dev commit with the same tree, requires every required status check of the dev ruleset to have passed on it, waits up to 45 minutes for its dev images (dispatching Dev Images when none ran), verifies each image's labels name a passing dev ancestor, retags the digests `staging-sha-<commit>` and `staging`, and deploys. After the deploy and smoke tests, `mark-verified` adds `staging-verified-tree-<tree>`. |
 | Publish a release | `pipeline-prod.yml` | `promote production` takes only `staging-verified-tree-<tree>` digests, tags `production-sha-<commit>` and deploys. `latest` and the release tag move after the production deploy. |
 | Deploy | `deploy.yml` / `core.sh` | The `image_digests` input becomes `DEPLOY_IMAGE_DIGESTS`; `core.sh` refuses any ghcr.io image not in the list. |
 
