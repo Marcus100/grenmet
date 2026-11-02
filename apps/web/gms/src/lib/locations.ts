@@ -5,8 +5,10 @@
  * every other enabled place gets a prefix (`/carriacou`, `/carriacou/weather`).
  *
  * To add a place: add an entry here, wire its data (station observation,
- * forecast, marine), then set `enabled: true`. Until a second place is
- * enabled the switcher stays hidden and prefixed URLs are 404s.
+ * forecast, marine), then set `enabled: true`. A place with no observing
+ * station (`station: null`) shows the national forecast, labelled as such,
+ * and never a station reading. The switcher appears once two places are
+ * enabled; a disabled place's prefixed URLs are 404s.
  */
 export interface SiteLocation {
   /** Names that mark an alert as covering this place (CAP `areas`). */
@@ -18,8 +20,8 @@ export interface SiteLocation {
   /** Short label for the switcher. */
   shortName: string;
   slug: string;
-  /** Observation station shown in the hero. */
-  station: string;
+  /** Observing station named in the hero; null when the place has none. */
+  station: string | null;
 }
 
 export const LOCATIONS: readonly SiteLocation[] = [
@@ -38,10 +40,10 @@ export const LOCATIONS: readonly SiteLocation[] = [
     icao: "TGPZ",
     name: "Carriacou & Petite Martinique",
     shortName: "Carriacou & PM",
-    station: "Lauriston, Carriacou",
+    // No observing station: the hero shows the national forecast, labelled.
+    station: null,
     alertAreas: ["Carriacou", "Petite Martinique"],
-    // No local observation or forecast yet: hidden until its data is wired.
-    enabled: false,
+    enabled: true,
     isDefault: false,
   },
 ];
