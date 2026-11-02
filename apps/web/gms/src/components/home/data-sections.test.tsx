@@ -1,7 +1,7 @@
 import type { PublicMonthSummary, SectorOutlook } from "@barrelsgd/api-client";
 import { cleanup, render, screen, within } from "@testing-library/react";
 import { afterEach, expect, it, vi } from "vitest";
-import { ExploreToday, GrenadaInData } from "@/components/home/data-sections";
+import { GrenadaInData, SectorDeskCard } from "@/components/home/data-sections";
 import { fetchHomeContent, type HomeContent } from "@/lib/cms";
 import { fetchMonthSummary, fetchSectorOutlook } from "@/lib/products";
 
@@ -112,7 +112,7 @@ const tile = (name: string) => {
 it("links each sector to its service page", async () => {
   vi.mocked(fetchHomeContent).mockResolvedValue(home({}));
   vi.mocked(fetchSectorOutlook).mockResolvedValue(outlook([]));
-  render(await ExploreToday());
+  render(await SectorDeskCard());
   for (const [sector, href] of [
     ["Tourism & outdoors", "/services/tourism"],
     ["Marine", "/marine"],
@@ -145,7 +145,7 @@ it("shows each tagged item under its sectors only, and says what is untagged", a
       }),
     ])
   );
-  render(await ExploreToday());
+  render(await SectorDeskCard());
   const farming = tile("Agriculture");
   expect(
     farming.getByRole("link", { name: "Heavy Rainfall Warning" })
@@ -183,7 +183,7 @@ it("shows an All clear on its tile as a note, with no impact level", async () =>
       }),
     ])
   );
-  render(await ExploreToday());
+  render(await SectorDeskCard());
   expect(tile("Marine").getByText("Calm seas")).toBeInTheDocument();
   expect(tile("Marine").getByText(ALL_CLEAR_NOTE)).toBeInTheDocument();
   expect(tile("Marine").queryByText(HIGHEST)).toBeNull();
@@ -193,7 +193,7 @@ it("shows an All clear on its tile as a note, with no impact level", async () =>
 it("says nothing is published for a sector, never that there is no impact", async () => {
   vi.mocked(fetchHomeContent).mockResolvedValue(home({}));
   vi.mocked(fetchSectorOutlook).mockResolvedValue(outlook([outlookItem()]));
-  render(await ExploreToday());
+  render(await SectorDeskCard());
   expect(tile("Aviation").getByText("Nothing this week")).toBeInTheDocument();
   // One sector has an alert, so there is no whole-week line.
   expect(
@@ -207,7 +207,7 @@ it("says nothing is published for a sector, never that there is no impact", asyn
 it("says once for the week when no sector has an alert or warning", async () => {
   vi.mocked(fetchHomeContent).mockResolvedValue(home({}));
   vi.mocked(fetchSectorOutlook).mockResolvedValue(outlook([]));
-  render(await ExploreToday());
+  render(await SectorDeskCard());
   expect(screen.getByRole("status")).toHaveTextContent(
     "No alerts or warnings are published for any sector this week."
   );
@@ -218,14 +218,14 @@ it("says once for the week when no sector has an alert or warning", async () => 
 it("says so when the feed is unavailable or only partly read, and shows no all-clear", async () => {
   vi.mocked(fetchHomeContent).mockResolvedValue(home({}));
   vi.mocked(fetchSectorOutlook).mockResolvedValue(null);
-  render(await ExploreToday());
+  render(await SectorDeskCard());
   expect(screen.getByRole("status")).toHaveTextContent("can't be loaded");
   expect(screen.queryByText(NO_IMPACTS)).toBeNull();
   cleanup();
   vi.mocked(fetchSectorOutlook).mockResolvedValue(
     outlook([outlookItem()], false)
   );
-  render(await ExploreToday());
+  render(await SectorDeskCard());
   expect(screen.getByRole("status")).toHaveTextContent("may be incomplete");
 });
 
@@ -242,7 +242,7 @@ it("shows three items a tile and counts the rest", async () => {
       )
     )
   );
-  render(await ExploreToday());
+  render(await SectorDeskCard());
   const health = tile("Health");
   expect(health.getAllByRole("listitem")).toHaveLength(3);
   expect(
@@ -250,7 +250,7 @@ it("shows three items a tile and counts the rest", async () => {
   ).toHaveAttribute("href", "/alerts");
 });
 
-it("uses the editors' wording and keeps the standard wording when blank", async () => {
+it("keeps its own title, whatever the editors' section copy says", async () => {
   vi.mocked(fetchHomeContent).mockResolvedValue(
     home({
       sectionCopy: {
@@ -258,12 +258,11 @@ it("uses the editors' wording and keeps the standard wording when blank", async 
       },
     })
   );
-  render(await ExploreToday());
+  render(await SectorDeskCard());
   expect(
-    screen.getByRole("heading", { name: "Your day outside" })
+    screen.getByRole("heading", { name: "What it means for you" })
   ).toBeInTheDocument();
-  expect(screen.getByText("Plan your week")).toBeInTheDocument();
-  expect(screen.getByText("Plan ahead.")).toBeInTheDocument();
+  expect(screen.queryByText("Your day outside")).not.toBeInTheDocument();
 });
 
 it("shows the live month summary with its provisional label", async () => {
@@ -298,7 +297,7 @@ it("shows an unavailable state instead of figures when the summary is missing", 
 });
 
 it.each([
-  ["explore-today", ExploreToday],
+  ["explore-today", SectorDeskCard],
   ["grenada-in-data", GrenadaInData],
 ])("hides %s on request", async (key, Section) => {
   vi.mocked(fetchHomeContent).mockResolvedValue(
@@ -323,7 +322,7 @@ it("fills the impact meter a quarter per level, in that level's colour, grey whe
       }),
     ])
   );
-  render(await ExploreToday());
+  render(await SectorDeskCard());
   const meter = (sector: string) => tile(sector).getByRole("meter");
   const blocks = (sector: string) =>
     Array.from(meter(sector).nextElementSibling?.children ?? []);

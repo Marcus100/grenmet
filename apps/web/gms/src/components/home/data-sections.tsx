@@ -14,7 +14,11 @@ import {
 } from "lucide-react";
 import type { Route } from "next";
 import Link from "next/link";
-import { HOME_CARD, HomeSection } from "@/components/home/home-section";
+import {
+  DESK_CARD_ITEM,
+  HOME_CARD,
+  HomeSection,
+} from "@/components/home/home-section";
 import { StatFigure } from "@/components/home/stat-figure";
 import { fetchHomeContent, isSectionHidden, sectionWords } from "@/lib/cms";
 import { dataMonth, type MonthGroupKey, monthStats } from "@/lib/month-summary";
@@ -48,92 +52,100 @@ const SECTOR_TILES: Record<
 };
 
 /**
- * Plan your week: for each sector, the GMS alerts and CAP warnings that apply
- * over the coming week. Everything comes from GMS admin (warnings and alerts
- * tagged by sector; an untagged one shows under every sector as "Affects
- * everyone"). Nothing is invented: an unreachable feed says so, and an empty
- * one says nothing is published, never "no impact". The six sectors are
- * `SECTORS` in `@barrelsgd/gms/sectors` (owner, 28 Oct 2026).
+ * "What it means for you", a card in the From the Desk row (homepage v2, owner
+ * 1 Nov 2026): for each sector, the GMS alerts and CAP warnings that apply over
+ * the coming week. Everything comes from GMS admin (warnings and alerts tagged
+ * by sector; an untagged one shows under every sector as "Affects everyone").
+ * Nothing is invented: an unreachable feed says so, and an empty one says
+ * nothing is published, never "no impact". The six sectors are `SECTORS` in
+ * `@barrelsgd/gms/sectors`. Editors can still hide it with the
+ * `explore-today` switch.
  */
-export async function ExploreToday() {
+export async function SectorDeskCard() {
   if (await isSectionHidden("explore-today")) return null;
-  const [{ settings }, outlook] = await Promise.all([
-    fetchHomeContent(),
-    fetchSectorOutlook(),
-  ]);
-  const words = sectionWords(settings, "explore-today", {
-    kicker: "Plan your week",
-    title: "What this week means for you",
-  });
+  const outlook = await fetchSectorOutlook();
   const tiles = outlook ? buildSectorTiles(outlook, new Date()) : null;
   // Said once for the whole week instead of six times, once per tile.
   const quiet = tiles?.every((tile) => tile.items.length === 0) ?? false;
   return (
-    <HomeSection tone="surface" {...words}>
-      {!tiles && (
-        <p className={cn(HOME_CARD, "mb-3 text-body-sm")} role="status">
-          Alerts for the week can&apos;t be loaded right now. See{" "}
-          <Link
-            className="font-semibold text-gm-blue-ink underline"
-            href="/alerts"
+    <li className={DESK_CARD_ITEM}>
+      <section
+        aria-labelledby="sector-card-title"
+        className={cn(HOME_CARD, "flex h-full flex-col gap-3")}
+      >
+        <header className="flex flex-col gap-1">
+          <span className="w-fit rounded-full bg-gm-surface-panel px-2.5 py-0.5 font-bold text-gm-heading text-label uppercase leading-label tracking-wider">
+            Plan your week
+          </span>
+          <h3
+            className="text-balance font-bold text-gm-heading text-heading-sm leading-heading-sm"
+            id="sector-card-title"
           >
-            alerts in effect
-          </Link>
-          .
-        </p>
-      )}
-      {quiet && (
-        <p
-          className="mb-3 text-body-base text-gm-text-secondary leading-body-base"
-          role="status"
-        >
-          No alerts or warnings are published for any sector this week.
-        </p>
-      )}
-      <ul className="grid grid-cols-2 gap-2 lg:grid-cols-3">
-        {SECTORS.map(({ value, label }) => {
-          const { Icon, href } = SECTOR_TILES[value];
-          const tile = tiles?.find((item) => item.sector === value);
-          return (
-            <li key={value}>
-              <section
-                aria-label={label}
-                className={cn(HOME_CARD, "flex h-full flex-col gap-1.5 p-3")}
-              >
-                <Link
-                  className="flex min-w-0 items-center gap-2 hover:underline"
-                  href={href as Route}
-                >
-                  <span className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-gm-navy text-gm-lime">
-                    <Icon aria-hidden="true" className="size-4" />
-                  </span>
-                  <span className="line-clamp-2 font-semibold text-gm-sky-ink text-label uppercase leading-label tracking-wider">
-                    {label}
-                  </span>
-                </Link>
-                {tile ? <ImpactBar peak={tile.peak} /> : null}
-                {tile ? <SectorItems tile={tile} /> : null}
-              </section>
-            </li>
-          );
-        })}
-      </ul>
-      {outlook && !outlook.complete && (
-        <p
-          className="mt-2 text-body-sm text-gm-text-secondary leading-body-sm"
-          role="status"
-        >
-          Some alerts could not be read, so these lists may be incomplete. See{" "}
-          <Link
-            className="font-semibold text-gm-blue-ink underline"
-            href="/alerts"
+            What it means for you
+          </h3>
+        </header>
+        {!tiles && (
+          <p className="text-body-sm leading-body-sm" role="status">
+            Alerts for the week can&apos;t be loaded right now. See{" "}
+            <Link
+              className="font-semibold text-gm-blue-ink underline"
+              href="/alerts"
+            >
+              alerts in effect
+            </Link>
+            .
+          </p>
+        )}
+        {quiet && (
+          <p
+            className="text-body-base text-gm-text-secondary leading-body-base"
+            role="status"
           >
-            alerts in effect
-          </Link>
-          .
-        </p>
-      )}
-    </HomeSection>
+            No alerts or warnings are published for any sector this week.
+          </p>
+        )}
+        <ul className="flex flex-col divide-y divide-gm-border">
+          {SECTORS.map(({ value, label }) => {
+            const { Icon, href } = SECTOR_TILES[value];
+            const tile = tiles?.find((item) => item.sector === value);
+            return (
+              <li className="py-2.5" key={value}>
+                <section aria-label={label} className="flex flex-col gap-1.5">
+                  <Link
+                    className="flex min-w-0 items-center gap-2 hover:underline"
+                    href={href as Route}
+                  >
+                    <span className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-gm-navy text-gm-lime">
+                      <Icon aria-hidden="true" className="size-4" />
+                    </span>
+                    <span className="font-semibold text-gm-sky-ink text-label uppercase leading-label tracking-wider">
+                      {label}
+                    </span>
+                  </Link>
+                  {tile ? <ImpactBar peak={tile.peak} /> : null}
+                  {tile ? <SectorItems tile={tile} /> : null}
+                </section>
+              </li>
+            );
+          })}
+        </ul>
+        {outlook && !outlook.complete && (
+          <p
+            className="text-body-sm text-gm-text-secondary leading-body-sm"
+            role="status"
+          >
+            Some alerts could not be read, so these lists may be incomplete. See{" "}
+            <Link
+              className="font-semibold text-gm-blue-ink underline"
+              href="/alerts"
+            >
+              alerts in effect
+            </Link>
+            .
+          </p>
+        )}
+      </section>
+    </li>
   );
 }
 
@@ -276,7 +288,11 @@ export async function GrenadaInData() {
   });
   const month = summary ? monthStats(summary, shown.previous) : null;
   return (
-    <HomeSection {...words} link={{ href: "/climate", label: "Climate" }}>
+    <HomeSection
+      tone="surface"
+      {...words}
+      link={{ href: "/climate", label: "Climate" }}
+    >
       {month ? (
         <ul className="grid grid-cols-2 gap-2 sm:gap-3 lg:grid-cols-4">
           {month.groups.map((group) => {

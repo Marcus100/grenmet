@@ -1,6 +1,6 @@
 import { cleanup, render, screen, within } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
-import { ExploreToday, GrenadaInData } from "@/components/home/data-sections";
+import { GrenadaInData, SectorDeskCard } from "@/components/home/data-sections";
 import { SkyHero } from "@/components/home/sky-hero";
 import { WarningTakeover } from "@/components/home/warning-takeover";
 import { WeatherNow } from "@/components/home/weather-now";
@@ -105,7 +105,7 @@ describe("SkyHero", () => {
 
 describe("data sections", () => {
   it.each([
-    ["Explore today", ExploreToday],
+    ["What it means for you", SectorDeskCard],
     ["Grenada in data", GrenadaInData],
   ])(
     "shows %s without a sample or placeholder notice",

@@ -1,5 +1,5 @@
 import { Suspense } from "react";
-import { ExploreToday, GrenadaInData } from "@/components/home/data-sections";
+import { GrenadaInData } from "@/components/home/data-sections";
 import { Discover } from "@/components/home/discover";
 import { HomeSection } from "@/components/home/home-section";
 import {
@@ -34,7 +34,6 @@ export function HomeSections() {
       <Suspense fallback={<Loading title="From the forecast desk" />}>
         <ForecastDesk />
       </Suspense>
-      <ExploreToday />
       <WeatherNow />
       <Suspense fallback={<Loading title="Weather news" />}>
         <Stories />

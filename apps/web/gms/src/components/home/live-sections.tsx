@@ -9,7 +9,12 @@ import {
 import type { Route } from "next";
 import Image from "next/image";
 import Link from "next/link";
-import { HOME_CARD, HomeSection } from "@/components/home/home-section";
+import { SectorDeskCard } from "@/components/home/data-sections";
+import {
+  DESK_CARD_ITEM,
+  HOME_CARD,
+  HomeSection,
+} from "@/components/home/home-section";
 import { fetchActiveAlerts } from "@/lib/cap";
 import { alertsLevel } from "@/lib/cap-alerts";
 import { postedLabel } from "@/lib/clock";
@@ -57,10 +62,6 @@ function FeedState({
   return children;
 }
 
-/** One card in the From the Desk row: most of a phone screen, fixed width above. */
-const CARD_ITEM =
-  "relative w-[85%] shrink-0 snap-start sm:w-[22rem] lg:w-[24rem]";
-
 const NAME_SEPARATORS = /[\s._-]+/;
 
 /** "Eugine Whint" gives "EW"; one word gives its first two letters; no name gives "GMS". */
@@ -94,7 +95,7 @@ function DeskPostCard({ item }: { item: PublishedContent }) {
   // `relative` keeps the link's screen-reader text inside the scrolling row;
   // without it that hidden text widens the whole page on phones.
   return (
-    <li className={CARD_ITEM}>
+    <li className={DESK_CARD_ITEM}>
       <article className={cn(HOME_CARD, "flex h-full flex-col gap-3")}>
         <header className="flex items-center gap-3">
           <span
@@ -186,7 +187,7 @@ function DeskPostCard({ item }: { item: PublishedContent }) {
 function OfficialProductCard({ card }: { card: OfficialCard }) {
   const Icon = card.kind === "briefing" ? CloudSunIcon : TornadoIcon;
   return (
-    <li className={CARD_ITEM}>
+    <li className={DESK_CARD_ITEM}>
       <article
         className={cn(HOME_CARD, "flex h-full flex-col gap-3 border-gm-navy")}
       >
@@ -275,6 +276,8 @@ export async function ForecastDesk() {
     products: products.products,
     productsAvailable: products.status === "ok",
   });
+  // Awaited here, not rendered as an async element, so tests can render the row.
+  const sectorCard = await SectorDeskCard();
   const postCards = feed.posts.map((item) => (
     <DeskPostCard item={item} key={item.id} />
   ));
@@ -310,7 +313,7 @@ export async function ForecastDesk() {
       >
         <ul aria-label="Latest from the forecast desk" className={ROW}>
           {feed.missingBriefing && (
-            <li className={CARD_ITEM}>
+            <li className={DESK_CARD_ITEM}>
               <article
                 className={cn(
                   HOME_CARD,
@@ -339,6 +342,7 @@ export async function ForecastDesk() {
           {feed.official.map((card) => (
             <OfficialProductCard card={card} key={card.id} />
           ))}
+          {sectorCard}
           {!feed.collapsePosts && postCards}
         </ul>
         {feed.collapsePosts && postCards.length > 0 && (
@@ -367,7 +371,6 @@ export async function Stories() {
   const [lead, ...rest] = result.articles.map(contentToArticle);
   return (
     <HomeSection
-      tone="surface"
       {...words}
       link={{ href: "/explore/news", label: "More stories" }}
     >
@@ -455,7 +458,6 @@ export async function Explained() {
   });
   return (
     <HomeSection
-      tone="surface"
       {...words}
       link={{ href: "/explore/explained", label: "All questions" }}
     >
