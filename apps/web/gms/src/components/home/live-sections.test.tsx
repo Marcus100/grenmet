@@ -371,6 +371,23 @@ it("says which issued product a desk post is based on, linked to its page", asyn
   expect(screen.getAllByText(BASED_ON)).toHaveLength(1);
 });
 
+it("encodes an odd issued product id in the based-on link", async () => {
+  const oddId = "odd/id?x=1 #frag";
+  vi.mocked(fetchHomeContent).mockResolvedValue({
+    ...hidden([]),
+    deskUpdates: {
+      status: "ok",
+      articles: [
+        post({ basedOn: { productId: oddId, title: "Evening Forecast" } }),
+      ],
+    },
+  });
+  render(await ForecastDesk());
+  expect(
+    screen.getByRole("link", { name: "the Evening Forecast" })
+  ).toHaveAttribute("href", `/weather/issued/${encodeURIComponent(oddId)}`);
+});
+
 it("keeps a pinned desk post right after the official cards", async () => {
   vi.mocked(fetchHomeContent).mockResolvedValue({
     ...hidden([]),

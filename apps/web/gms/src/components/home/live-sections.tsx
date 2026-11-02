@@ -129,7 +129,9 @@ function DeskPostCard({ item }: { item: PublishedContent }) {
             Based on{" "}
             <Link
               className="font-semibold text-gm-blue-ink underline"
-              href={`/weather/issued/${item.basedOn.productId}` as Route}
+              href={
+                `/weather/issued/${encodeURIComponent(item.basedOn.productId)}` as Route
+              }
             >
               the {item.basedOn.title ?? "issued product"}
             </Link>
