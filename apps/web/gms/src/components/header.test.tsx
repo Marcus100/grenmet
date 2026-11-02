@@ -10,12 +10,6 @@ vi.mock("next/navigation", () => ({
 vi.mock("@/components/desktop-nav", () => ({ DesktopNav: () => null }));
 vi.mock("@/components/site-search", () => ({ SiteSearch: () => null }));
 vi.mock("@/components/theme-toggle", () => ({ ThemeToggle: () => null }));
-// The account button fetches /auth/me; its own package tests cover that.
-vi.mock("@barrelsgd/ui/components/account-button", () => ({
-  AccountButton: ({ appLabel }: { appLabel: string }) => (
-    <button type="button">Sign in to {appLabel}</button>
-  ),
-}));
 
 const NO_GREEN: GreenStatus = {
   status: "ok",
@@ -95,15 +89,13 @@ describe("Header", () => {
   });
 });
 
-const ACCOUNT = "Grenada Meteorological Service";
 const SIGN_IN = /^Sign in/;
 const UNITS = /^Units:/;
 
-describe("Header sign-in and units", () => {
-  it("has no sign-in button by default, even when sign-in is configured", () => {
+describe("Header has no account controls", () => {
+  it("never shows a sign-in button, on any width", () => {
     render(
       <Header
-        accountLabel={ACCOUNT}
         alerts={{ activeCount: 0, groups: [], status: "ok" }}
         green={NO_GREEN}
       />
@@ -113,26 +105,11 @@ describe("Header sign-in and units", () => {
     ).not.toBeInTheDocument();
   });
 
-  it("shows sign-in when the switch is on and sign-in is configured", () => {
-    render(
-      <Header
-        accountLabel={ACCOUNT}
-        alerts={{ activeCount: 0, groups: [], status: "ok" }}
-        green={NO_GREEN}
-        showSignIn
-      />
-    );
-    expect(
-      screen.getByRole("button", { name: `Sign in to ${ACCOUNT}` })
-    ).toBeInTheDocument();
-  });
-
   it("never shows the units switch in the header; it lives in the home card", () => {
     render(
       <Header
         alerts={{ activeCount: 0, groups: [], status: "ok" }}
         green={NO_GREEN}
-        showSignIn
       />
     );
     expect(
