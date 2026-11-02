@@ -64,7 +64,7 @@ export default function PrivacyPage() {
       <PageSection heading="Error reports">
         <Prose
           paragraphs={[
-            "If something goes wrong on the site, an error report is sent to Sentry, our error-monitoring service. A report carries the type of error, where in the code it happened and, for a signed-in user, an internal account ID. Messages, request details, cookies and breadcrumbs are removed before a report is sent. Performance traces are not sent.",
+            "If something goes wrong on the site, an error report is sent to Sentry, our error-monitoring service. A report carries the type of error, where in the code it happened. Messages, request details, cookies and breadcrumbs are removed before a report is sent. Performance traces are not sent.",
           ]}
         />
       </PageSection>
