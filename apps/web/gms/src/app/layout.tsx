@@ -30,8 +30,8 @@ const barlowCondensed = Barlow_Condensed({
   display: "swap",
 });
 
-/** The public site follows the device theme until someone picks one. */
-const THEME_DEFAULTS = { theme_mode: "system" } as const;
+/** The public site opens in light until a visitor switches to dark (#1001). */
+const THEME_DEFAULTS = { theme_mode: "light" } as const;
 
 export const metadata = SITE_METADATA;
 
