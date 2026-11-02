@@ -73,7 +73,9 @@ homepage design). Use that name wherever the section is named.
 - Tick "Pin to the top of From the Desk" in the sidebar to keep a post right
   after the official forecast cards, ahead of newer posts. Several pinned posts
   show newest first. Only homepage editors can pin, because it moves the
-  homepage. Untick it when the post is no longer needed.
+  homepage. Untick it when the post is no longer needed: only the newest 3
+  pinned posts show at the top, so unpin old posts, and any extra pins sort
+  with the other posts by date.
 
 **Social images**
 
