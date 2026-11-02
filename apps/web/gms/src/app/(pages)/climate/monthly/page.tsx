@@ -64,8 +64,9 @@ export default async function MonthlyPage() {
       ) : null}
       {result.status === "ok" && !bulletin ? (
         <p className="text-body-base text-gm-text-secondary leading-body-base">
-          No Climate Bulletin has been issued yet. The next issue is due on{" "}
-          {nextClimateIssue(grenadaDate())}.
+          No Climate Bulletin is in force right now. Earlier bulletins stop
+          appearing here when the next monthly issue is due; the next issue is
+          expected on {nextClimateIssue(grenadaDate())}.
         </p>
       ) : null}
       {bulletin ? (

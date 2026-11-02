@@ -382,6 +382,14 @@ def validate(body: ProductWrite, *, now: datetime | None = None) -> list[str]:
         and not MONTH.fullmatch(values["month"].strip())
     ):
         errors.append("Month reviewed: enter the month as YYYY-MM")
+    if kind == "climate-bulletin" and MONTH.fullmatch(values.get("month", "").strip()):
+        issued_day = (
+            local_time(values["issuedAt"]).date() if math.isfinite(issue) else None
+        )
+        if issued_day and values["month"].strip() > previous_month(issued_day):
+            errors.append(
+                "Month reviewed: cannot be later than the month before the issue date"
+            )
     if kind == "evening" and publish and math.isfinite(issue):
         for day in range(1, 5):
             expected = (

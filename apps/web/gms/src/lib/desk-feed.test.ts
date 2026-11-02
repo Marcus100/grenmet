@@ -198,7 +198,9 @@ describe("Marine Forecast and Climate Bulletin cards", () => {
 
   it("names the next 15th after the issue day", () => {
     expect(nextIssueLabel("2026-12-15T10:00")).toBe("Next issue 15 January");
-    expect(nextIssueLabel("2026-11-10T10:00")).toBe("Next issue 15 November");
+    expect(nextIssueLabel("2026-11-10T10:00")).toBe(
+      "Issued outside the monthly schedule"
+    );
     expect(nextIssueLabel(undefined)).toBe("");
   });
 });

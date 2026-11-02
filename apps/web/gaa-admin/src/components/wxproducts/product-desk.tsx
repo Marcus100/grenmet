@@ -652,7 +652,10 @@ function ProductEditor({
                         />
                       )}
                       {kind === "climate-bulletin" ? (
-                        <ClimateFigures month={values.month ?? ""} />
+                        <ClimateFigures
+                          issuedAt={values.issuedAt ?? ""}
+                          month={values.month ?? ""}
+                        />
                       ) : null}
                       <ForecastPeriodFields
                         evening={kind === "evening"}

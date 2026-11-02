@@ -148,6 +148,9 @@ function cardValidity(
 /** "Next issue 15 December" for a Climate Bulletin issued on `issuedAt` (Grenada local). */
 export function nextIssueLabel(issuedAt: string | undefined): string {
   const day = (issuedAt ?? "").slice(0, 10);
+  // Only claim a next issue when this one followed the monthly schedule.
+  if (!day.endsWith("-15"))
+    return day ? "Issued outside the monthly schedule" : "";
   const next = nextClimateIssue(
     day
       ? new Date(Date.parse(`${day}T12:00:00Z`) + 86_400_000)

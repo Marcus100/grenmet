@@ -38,7 +38,13 @@ export function climateFigureRows(summary: PublicMonthSummary) {
  * Read-only figures for the bulletin month from the eRegister month summary.
  * The bulletin stores no figures: the public page reads the same summary.
  */
-export function ClimateFigures({ month }: { month: string }) {
+export function ClimateFigures({
+  month,
+  issuedAt = "",
+}: {
+  month: string;
+  issuedAt?: string;
+}) {
   const [state, setState] = useState<
     | { status: "loading" }
     | { status: "ready"; summary: PublicMonthSummary | null }
@@ -70,6 +76,13 @@ export function ClimateFigures({ month }: { month: string }) {
       <h2 className="font-semibold text-heading-sm" id="climate-figures">
         Register figures for {MONTH.test(month) ? month : "the bulletin month"}
       </h2>
+      {issuedAt && issuedAt.slice(8, 10) !== "15" ? (
+        <p className="text-sm" role="note">
+          Climate Bulletins are issued on the 15th. This issue date is not the
+          15th; you can still publish it, but the public site will not promise a
+          next issue date.
+        </p>
+      ) : null}
       <p className="text-muted-foreground text-sm">
         From the eRegister month summary for station 78958. They are not typed
         into the bulletin; the public page shows the same figures.

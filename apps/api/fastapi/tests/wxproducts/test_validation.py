@@ -288,3 +288,22 @@ def test_climate_bulletin_keeps_a_chosen_month_and_rejects_bad_ones() -> None:
     values = {**complete("climate-bulletin"), "month": "2026-13"}
     errors = validation.validate(body("climate-bulletin", values=values), now=NOW)
     assert "Month reviewed: enter the month as YYYY-MM" in errors
+
+
+def test_climate_bulletin_month_cannot_be_later_than_previous_month() -> None:
+    base = {**complete("climate-bulletin"), "issuedAt": "2026-11-15T10:00"}
+    base = validation.normalize("climate-bulletin", {**base, "month": "2026-10"})
+    ok = validation.validate(body("climate-bulletin", values=base), now=NOW)
+    assert not [e for e in ok if "Month reviewed" in e]
+    late = {**base, "month": "2026-11"}
+    errors = validation.validate(body("climate-bulletin", values=late), now=NOW)
+    assert (
+        "Month reviewed: cannot be later than the month before the issue date" in errors
+    )
+
+
+def test_climate_bulletin_month_is_required_to_publish() -> None:
+    values = {**complete("climate-bulletin")}
+    values["month"] = ""
+    errors = validation.validate(body("climate-bulletin", values=values), now=NOW)
+    assert any("Month reviewed" in e and "required" in e for e in errors)
