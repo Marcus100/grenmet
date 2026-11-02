@@ -210,9 +210,12 @@ src/app/
 - **Search:** `SiteSearch` (masthead button or `/`) ranks `NAV_SECTIONS` pages plus
   published CMS articles from `/api/search` (read-only proxy) with
   `src/lib/search.ts`. New menu pages are searchable automatically.
-- **Dark mode:** `<html class="gm-site">` scopes the GMS dark palette; the theme
-  follows the device via `@barrelsgd/theme` (`ThemeBootScript` defaults to
-  `system`, `ThemeToggle` in the main bar beside search and the alert pill). Headings use
+- **Dark mode (done, owner 1 Nov 2026, #1001):** `<html class="gm-site">` scopes the GMS dark
+  palette. The site opens in light (`ThemeBootScript` defaults to `light` in
+  `layout.tsx`) and does not follow the device. `ThemeToggle` (main bar beside search
+  and the alert pill, and the drawer) switches between light and dark only; there is
+  no Auto or system choice. A stored old `system` choice is moved to light on the
+  first load (`theme-toggle.tsx`). Shared theme state comes from `@barrelsgd/theme`. Headings use
   `text-gm-heading`, not `text-gm-navy`; printable products sit in `.gm-paper`.
 
 - **Provenance and staleness (foundations plan NFRs):** every public data block
