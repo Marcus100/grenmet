@@ -212,6 +212,7 @@ printf '/dev/test 50000000 1000 %s 10%% /\\n' "$free"
           TEST_IMAGES_PRESENT: "",
           TEST_BUILD_ONCE: "",
           DEPLOY_IMAGE_DIGESTS: "",
+          ALLOW_UNPROMOTED_DEPLOY: "true",
           TEST_PS_FAIL_SERVICE: "",
           TEST_UNCHANGED_STATE: "",
           TEST_CANCEL_SERVICE: "",
@@ -862,4 +863,17 @@ test("missing images are pulled in parallel", () => {
       .length === 2 && secondStart === 0,
     pulls
   );
+});
+
+const EMPTY_DIGESTS = /DEPLOY_IMAGE_DIGESTS is empty/;
+
+test("a promoted deploy with an empty digest list stops before any change", () => {
+  const { result, calls } = runDeploy({
+    environment: "production",
+    extraEnv: { ALLOW_UNPROMOTED_DEPLOY: "", DEPLOY_IMAGE_DIGESTS: "  " },
+  });
+  assert.notEqual(result.status, 0);
+  assert.match(result.stderr, EMPTY_DIGESTS);
+  assert.equal(calls.includes("run --rm"), false, "no migration ran");
+  assert.equal(calls.includes(" up -d"), false);
 });

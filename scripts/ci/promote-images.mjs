@@ -52,7 +52,11 @@ export function sourceCommit(tree, git, devRef = "origin/dev") {
   );
 }
 
-/** Required status checks, from the committed ruleset snapshot for dev. */
+/**
+ * Required status checks of the dev ruleset, with the GitHub App that must
+ * report each (the ruleset's integration_id), so a check-run of the same name
+ * from another app cannot satisfy the gate.
+ */
 export function requiredChecks(rulesets) {
   const list = Array.isArray(rulesets) ? rulesets : rulesets.rulesets;
   const dev = list.find((ruleset) =>
@@ -61,33 +65,82 @@ export function requiredChecks(rulesets) {
   const rule = dev?.rules.find(
     (candidate) => candidate.type === "required_status_checks"
   );
-  const names = rule?.parameters.required_status_checks.map(
-    (check) => check.context
-  );
-  if (!names?.length) throw new Error("No required checks found for dev");
-  return names;
+  const checks = rule?.parameters.required_status_checks.map((check) => ({
+    name: check.context,
+    appId: check.integration_id ?? null,
+  }));
+  if (!checks?.length) throw new Error("No required checks found for dev");
+  return checks;
 }
 
-/** Fails unless every required check has a successful run on `commit`. */
-export function verifyChecks(commit, names, gh, repository) {
+function describeProblem({ name, appId, mine, commit }) {
+  if (mine.length === 0) return `${name} (no run by app ${appId ?? "any"})`;
+  const states = [...new Set(mine.map(([, conclusion]) => conclusion))];
+  if (states.includes("cancelled"))
+    return `${name} (cancelled, probably superseded by a later dev push: re-run it on ${commit})`;
+  return `${name} (${states.join(", ")})`;
+}
+
+/** Fails closed unless every required check has a successful run by its app. */
+export function verifyChecks(commit, checks, gh, repository) {
   const runs = gh([
     "api",
     "--paginate",
     `repos/${repository}/commits/${commit}/check-runs?per_page=100`,
     "--jq",
-    '.check_runs[] | [.name, (.conclusion // "pending")] | @tsv',
-  ]);
-  const passed = new Set(
-    runs
-      .split("\n")
-      .map((line) => line.split("\t"))
-      .filter(([, conclusion]) => conclusion === "success")
-      .map(([name]) => name)
-  );
-  const missing = names.filter((name) => !passed.has(name));
-  if (missing.length)
+    ".check_runs[] | [.name, (.conclusion // .status), (.app.id | tostring)] | @tsv",
+  ])
+    .split("\n")
+    .filter(Boolean)
+    .map((line) => line.split("\t"));
+  const problems = [];
+  for (const { name, appId } of checks) {
+    const mine = runs.filter(
+      ([runName, , runApp]) =>
+        runName === name && (appId === null || runApp === String(appId))
+    );
+    if (mine.some(([, conclusion]) => conclusion === "success")) continue;
+    problems.push(describeProblem({ name, appId, mine, commit }));
+  }
+  if (problems.length)
     throw new Error(
-      `Dev commit ${commit} has no passing run of: ${missing.join(", ")}`
+      `Dev commit ${commit} has no passing run of: ${problems.join("; ")}`
+    );
+}
+
+/** Image config labels of a digest; fails closed when they cannot be read. */
+export function labelsOf(repo, digest, docker) {
+  let config;
+  try {
+    const parsed = JSON.parse(
+      docker([
+        "buildx",
+        "imagetools",
+        "inspect",
+        `${repo}@${digest}`,
+        "--format",
+        "{{json .Image}}",
+      ])
+    );
+    config = parsed.config ?? parsed["linux/amd64"]?.config;
+  } catch {
+    config = null;
+  }
+  if (!config)
+    throw new Error(`Cannot read the image labels of ${repo}@${digest}`);
+  return config.Labels ?? {};
+}
+
+/** The image was built from this tree and commit, not merely tagged with them. */
+export function verifyLabels(repo, digest, { tree, source }, docker) {
+  const labels = labelsOf(repo, digest, docker);
+  if (labels["gd.barrels.tree"] !== tree)
+    throw new Error(
+      `${repo}@${digest} was built from tree ${labels["gd.barrels.tree"] ?? "unknown"}, expected ${tree}`
+    );
+  if (labels["org.opencontainers.image.revision"] !== source)
+    throw new Error(
+      `${repo}@${digest} was built from commit ${labels["org.opencontainers.image.revision"] ?? "unknown"}, expected ${source}`
     );
 }
 
@@ -138,12 +191,23 @@ export function plan({ event, git, docker, owner, repository }) {
     selection = selectImages([], "full");
   }
   const repos = imageRepositories(owner, repository);
+  // Already built for this tree (a re-run, or a dispatch for a finished
+  // commit): nothing to do for those images.
+  const present = new Set(
+    repos
+      .filter(({ repo }) => digestOf(`${repo}:tree-${tree}`, docker))
+      .map(({ key }) => key)
+  );
   const build = new Set([
     ...(selection.api ? ["api"] : []),
     ...selection.web.map((image) => image.image),
   ]);
   const reuse = [];
   for (const { key, repo } of repos) {
+    if (present.has(key)) {
+      build.delete(key);
+      continue;
+    }
     if (build.has(key)) continue;
     const digest =
       previousTree && digestOf(`${repo}:tree-${previousTree}`, docker);
@@ -167,43 +231,78 @@ export function promote({
   docker,
   owner,
   repository,
-  rulesets,
+  rulesetsAt,
   waitSeconds = 0,
   sleep = () => undefined,
+  now = () => Date.now(),
 }) {
   if (target !== "staging" && target !== "production")
     throw new Error("Target must be staging or production");
   const tree = treeOf(sha, git);
   const source = sourceCommit(tree, git);
-  verifyChecks(source, requiredChecks(rulesets), gh, repository);
+  // The gate comes from the dev commit being promoted, not from the ref that
+  // triggered the promotion.
+  verifyChecks(source, requiredChecks(rulesetsAt(source)), gh, repository);
   const sourceTag =
     target === "staging" ? `tree-${tree}` : `staging-verified-tree-${tree}`;
   const tags =
     target === "staging"
       ? [`staging-sha-${sha}`, "staging"]
       : [`production-sha-${sha}`];
-  const deadline = Date.now() + waitSeconds * 1000;
-  let digests;
-  let missing;
-  for (;;) {
-    digests = [];
-    missing = [];
+  const resolve = () => {
+    const found = [];
+    const absent = [];
     for (const { repo } of imageRepositories(owner, repository)) {
       const digest = digestOf(`${repo}:${sourceTag}`, docker);
-      if (digest) digests.push({ repo, digest });
-      else missing.push(`${repo}:${sourceTag}`);
+      if (digest) found.push({ repo, digest });
+      else absent.push(`${repo}:${sourceTag}`);
     }
-    // Staging may start while the dev image build for the same commit runs.
-    if (!missing.length || Date.now() >= deadline) break;
-    console.log(`Waiting for ${missing.length} dev image(s) of tree ${tree}…`);
-    sleep();
+    return { found, absent };
+  };
+  let { found: digests, absent: missing } = resolve();
+  if (missing.length && target === "staging") {
+    // The dev build for this commit never ran or was dropped: start it, wait.
+    const running = gh([
+      "run",
+      "list",
+      "--workflow",
+      "dev-images.yml",
+      "--json",
+      "headSha,status",
+      "--jq",
+      `[.[] | select(.headSha == "${source}" and .status != "completed")] | length`,
+    ]).trim();
+    if (running === "0") {
+      console.log(
+        `No dev image build is running for ${source}; dispatching one.`
+      );
+      gh([
+        "workflow",
+        "run",
+        "dev-images.yml",
+        "--ref",
+        "dev",
+        "-f",
+        `sha=${source}`,
+      ]);
+    }
+    const deadline = now() + waitSeconds * 1000;
+    while (missing.length && now() < deadline) {
+      console.log(
+        `Waiting for ${missing.length} dev image(s) of tree ${tree}...`
+      );
+      sleep();
+      ({ found: digests, absent: missing } = resolve());
+    }
   }
   if (missing.length)
     throw new Error(
       target === "staging"
-        ? `Dev images missing for tree ${tree} (has the dev image build for ${source} finished?): ${missing.join(", ")}`
+        ? `Dev images missing for tree ${tree} after waiting (dev commit ${source}); check the Dev Images runs: ${missing.join(", ")}`
         : `Staging has not deployed and accepted tree ${tree}: ${missing.join(", ")}`
     );
+  for (const { repo, digest } of digests)
+    verifyLabels(repo, digest, { tree, source }, docker);
   for (const { repo, digest } of digests) retag(repo, digest, tags, docker);
   return { tree, source, digests };
 }
@@ -262,9 +361,13 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
   try {
     if (command === "plan") {
       const event = JSON.parse(readFileSync(env.GITHUB_EVENT_PATH, "utf8"));
-      if (!event.after) event.after = env.GITHUB_SHA;
+      // A manual dispatch builds the commit named in DEV_SHA (or the ref's own).
+      if (!event.after) event.after = env.DEV_SHA || env.GITHUB_SHA;
+      if (!event.before)
+        event.before = context.git(["rev-parse", `${event.after}^`]).trim();
       const result = plan({ ...context, event });
       output({
+        sha: event.after,
         tree: result.tree,
         api: String(result.api),
         web: JSON.stringify(result.web),
@@ -281,13 +384,18 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
         ...context,
         target,
         sha: env.GITHUB_SHA,
-        rulesets: JSON.parse(
-          readFileSync("infra/github/rulesets.json", "utf8")
-        ),
-        // Staging waits up to PROMOTE_WAIT_SECONDS (default 30 min) for the
-        // dev build; production never waits: staging must already have run.
+        rulesetsAt: (commit) =>
+          JSON.parse(
+            context.git(["show", `${commit}:infra/github/rulesets.json`])
+          ),
+        // Staging waits for the dev build (dispatching it if it never ran);
+        // production never waits: staging must already have run.
         waitSeconds:
-          target === "staging" ? Number(env.PROMOTE_WAIT_SECONDS ?? 1800) : 0,
+          target === "staging"
+            ? Number(
+                env.PROMOTE_WAIT_SECONDS ?? 2700
+              ) /* 45 min for a dispatched dev build */
+            : 0,
         sleep: () => execFileSync("sleep", ["30"]),
       });
       output({

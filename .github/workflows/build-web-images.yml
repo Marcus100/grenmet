@@ -1,25 +1,15 @@
 name: Build Web App Images
 
-# Phase 3c/3d cutover: no standalone triggers except manual dispatch. Staging
-# builds run as workflow_call children of pipeline-staging; release builds as
-# children of pipeline-prod (which passes the release tag).
+# Build once (issue #1019): called only by dev-images.yml. Images are built for a
+# dev commit, tagged by git tree, and promoted to staging and production by
+# digest (scripts/ci/promote-images.mjs); nothing here is environment-specific.
 on:
-  workflow_dispatch:
-    inputs:
-      tag:
-        description: "Image tag (staging or latest)"
-        required: true
-        type: choice
-        options:
-          - staging
-          - latest
-  # Callable from pipeline workflows (Phase 3 restructure). When called, the
-  # caller's event context drives tag resolution; `tag` overrides it explicitly.
   workflow_call:
     inputs:
-      tag:
-        description: "dev (build once, issue #1019), or the legacy staging or latest"
+      ref:
+        description: "Commit to build (default: the caller's commit)"
         required: false
+        default: ""
         type: string
       images:
         description: "JSON list of web images to build (default: every release image)"
@@ -49,14 +39,10 @@ jobs:
     needs: image-selection
     # Dev builds use the `build` environment: production's build-time Sentry
     # values without production's approval gate (issue #1019).
-    environment: ${{ inputs.tag == 'dev' && 'build' || ((inputs.tag == 'staging' || (inputs.tag == '' && github.ref_name == 'staging')) && github.event_name != 'release' && 'staging' || 'production') }}
+    environment: build
     name: Build ${{ matrix.image }}
     runs-on: ubuntu-latest
-    # push = called from pipeline-staging on a staging push (caller's event).
-    if: |
-      github.event_name == 'push' ||
-      github.event_name == 'workflow_dispatch' ||
-      github.event_name == 'release'
+    if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
     timeout-minutes: 30
     permissions:
       contents: read
@@ -72,7 +58,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.3.1
         with:
-          ref: ${{ github.event.workflow_run.head_sha || github.sha }}
+          ref: ${{ inputs.ref || github.sha }}
 
       - name: Log in to Docker Hub for base images
         uses: docker/login-action@81c6f93d4bc991e510b342a00b419b3bb4efc5c6 # v4.7.0
@@ -91,37 +77,17 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Resolve environment context
+      - name: Resolve build context
         id: ctx
-        env:
-          BUILD_TAG: ${{ inputs.tag }}
         run: |
           echo "owner=${GITHUB_REPOSITORY_OWNER,,}" >> "$GITHUB_OUTPUT"
-          EVENT="$GITHUB_EVENT_NAME"
-          # inputs.tag covers both workflow_dispatch and workflow_call callers.
-          if [ -n "$BUILD_TAG" ]; then
-            BRANCH="$BUILD_TAG"
-          elif [ "$EVENT" == "workflow_run" ]; then
-            BRANCH="$GITHUB_REF_NAME"
-          else
-            BRANCH="$GITHUB_REF_NAME"
-          fi
-
+          echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
           echo "tree=$(git rev-parse 'HEAD^{tree}')" >> "$GITHUB_OUTPUT"
-          if [ "$BRANCH" == "dev" ]; then
-            # One image for every environment: production's build-time values.
-            echo "environment=production" >> $GITHUB_OUTPUT
-            echo "local_tag=dev-sha-${GITHUB_SHA}" >> $GITHUB_OUTPUT
-            echo "sentry_project=grenmet-staging,grenmet-production" >> $GITHUB_OUTPUT
-          elif [ "$BRANCH" == "staging" ] && [ "$EVENT" != "release" ]; then
-            echo "environment=staging" >> $GITHUB_OUTPUT
-            echo "local_tag=staging-sha-${GITHUB_SHA}" >> $GITHUB_OUTPUT
-            echo "sentry_project=grenmet-staging" >> $GITHUB_OUTPUT
-          else
-            echo "environment=production" >> $GITHUB_OUTPUT
-            echo "local_tag=production-sha-${GITHUB_SHA}" >> $GITHUB_OUTPUT
-            echo "sentry_project=grenmet-production" >> $GITHUB_OUTPUT
-          fi
+          echo "local_tag=dev-sha-$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+          # One image for every environment: production's build-time values;
+          # source maps go to both Sentry projects.
+          echo "environment=production" >> "$GITHUB_OUTPUT"
+          echo "sentry_project=grenmet-staging,grenmet-production" >> "$GITHUB_OUTPUT"
 
       - name: Resolve app-specific telemetry
         id: telemetry
@@ -132,25 +98,31 @@ jobs:
           SENTRY_DSN_PRODUCTION: ${{ secrets.SENTRY_DSN_PRODUCTION }}
         run: node scripts/integrations/build-config.mjs "${APP_PATH##*/}" "$TELEMETRY_ENVIRONMENT"
 
+      # A dev image is promoted to production, so an empty DSN would ship
+      # without browser error reporting everywhere. Fail the build instead.
+      - name: Require the build-time Sentry DSN
+        env:
+          DSN: ${{ steps.telemetry.outputs.sentry_dsn }}
+        run: |
+          [[ -n "$DSN" ]] || { echo "::error::No Sentry DSN for ${{ matrix.image }}. Add SENTRY_DSN_PRODUCTION (and SENTRY_AUTH_TOKEN, SENTRY_DSN_STAGING) as secrets of the 'build' GitHub environment."; exit 1; }
+
       - name: Docker metadata
         id: meta
         uses: docker/metadata-action@dc802804100637a589fabce1cb79ff13a1411302 # v6.2.0
         with:
           images: |
             ghcr.io/${{ steps.ctx.outputs.owner }}/barrelsgd-${{ matrix.image }}
-          # Dev images carry no environment: staging and production promote the
-          # same digest (scripts/ci/promote-images.mjs). Legacy builds keep theirs.
+          # No environment label: staging and production promote the same digest.
+          # The revision label is set explicitly because the metadata action
+          # would otherwise use the dispatching ref's commit.
           labels: |
+            org.opencontainers.image.revision=${{ steps.ctx.outputs.sha }}
             gd.barrels.tree=${{ steps.ctx.outputs.tree }}
-            gd.barrels.build-once=${{ inputs.tag == 'dev' }}
-            ${{ inputs.tag != 'dev' && format('gd.barrels.environment={0}', steps.ctx.outputs.environment) || '' }}
+            gd.barrels.build-once=true
           tags: |
             type=raw,value=${{ steps.ctx.outputs.local_tag }}
-            type=raw,value=tree-${{ steps.ctx.outputs.tree }},enable=${{ inputs.tag == 'dev' }}
-            type=raw,value=dev,enable=${{ inputs.tag == 'dev' }}
-            type=raw,value=staging,enable=${{ inputs.tag != 'dev' && steps.ctx.outputs.environment == 'staging' }}
-            type=raw,value=latest,enable=${{ inputs.tag != 'dev' && steps.ctx.outputs.environment == 'production' }}
-            type=raw,value=${{ github.event.release.tag_name }},enable=${{ github.event_name == 'release' }}
+            type=raw,value=tree-${{ steps.ctx.outputs.tree }}
+            type=raw,value=dev
 
       - name: Build image for verification
         id: verify
@@ -166,11 +138,11 @@ jobs:
           # output: pages prerendered at build, the next.config CSP report
           # endpoint and source-map upload.
           build-args: |
-            NEXT_PUBLIC_SITE_URL=https://${{ matrix.host || matrix.app }}.${{ steps.ctx.outputs.environment == 'staging' && 'staging.barrels.gd' || 'barrels.gd' }}
+            NEXT_PUBLIC_SITE_URL=https://${{ matrix.host || matrix.app }}.barrels.gd
             NEXT_PUBLIC_SENTRY_DSN=${{ steps.telemetry.outputs.sentry_dsn }}
             NEXT_PUBLIC_SENTRY_ENVIRONMENT=${{ steps.ctx.outputs.environment }}
             SENTRY_PROJECT=${{ steps.ctx.outputs.sentry_project }}
-            NEXT_PUBLIC_RELEASE=${{ github.sha }}
+            NEXT_PUBLIC_RELEASE=${{ steps.ctx.outputs.sha }}
           secrets: |
             SENTRY_AUTH_TOKEN=${{ secrets.SENTRY_AUTH_TOKEN }}
           tags: ${{ steps.meta.outputs.tags }}
@@ -212,11 +184,11 @@ jobs:
           # output: pages prerendered at build, the next.config CSP report
           # endpoint and source-map upload.
           build-args: |
-            NEXT_PUBLIC_SITE_URL=https://${{ matrix.host || matrix.app }}.${{ steps.ctx.outputs.environment == 'staging' && 'staging.barrels.gd' || 'barrels.gd' }}
+            NEXT_PUBLIC_SITE_URL=https://${{ matrix.host || matrix.app }}.barrels.gd
             NEXT_PUBLIC_SENTRY_DSN=${{ steps.telemetry.outputs.sentry_dsn }}
             NEXT_PUBLIC_SENTRY_ENVIRONMENT=${{ steps.ctx.outputs.environment }}
             SENTRY_PROJECT=${{ steps.ctx.outputs.sentry_project }}
-            NEXT_PUBLIC_RELEASE=${{ github.sha }}
+            NEXT_PUBLIC_RELEASE=${{ steps.ctx.outputs.sha }}
           secrets: |
             SENTRY_AUTH_TOKEN=${{ secrets.SENTRY_AUTH_TOKEN }}
           tags: ${{ steps.meta.outputs.tags }}

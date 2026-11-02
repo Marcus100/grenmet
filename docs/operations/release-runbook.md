@@ -175,14 +175,14 @@ Re-deploying an existing release needs no builds: manually dispatch the
 **Deploy** workflow (`deploy.yml`) with `environment=production` and the release
 tag (its `production-sha-<commit>` images already exist).
 
-If promotion cannot run (no dev images for the tree, for example a fix pushed
-straight to `staging`), build the legacy way: dispatch **Build and Push Docker
-Images** and **Build Web App Images** with `tag` staging (or latest for
-production) on that ref, then dispatch **Deploy** with
-`image_tag=sha-<commit>`. For a release before the domain migration, select that release tag as the
-workflow ref too, so its matching Compose definition is used. The
-`deploy-prod.yml` and `deploy-staging.yml` entries delegate to the same Deploy
-workflow; they no longer use separate legacy Compose files.
+If promotion cannot run because the dev images for the tree are missing, the
+staging pipeline dispatches **Dev Images** for that dev commit itself and waits
+up to 45 minutes. To do it by hand: dispatch **Dev Images** (`dev-images.yml`)
+with `sha` set to the dev commit, then re-run the pipeline. To redeploy an
+existing release, dispatch **Deploy** with `image_tag=sha-<commit>`, the
+`image_digests` from the original promotion run summary and, only when you have
+no digest list, `manual_redeploy`. A tree that never passed through dev has no
+fallback: merge it into dev first.
 
 Redeploying an older tag does not undo database migrations. Keep each release's
 migrations additive (new tables and nullable columns), and remove old columns or

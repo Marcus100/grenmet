@@ -289,6 +289,12 @@ fi
 # DEPLOY_IMAGE_DIGESTS; every ghcr.io image must be one of them. Without the list
 # (a manual redeploy of an existing tag), an image must carry this commit's label,
 # or be a build-once image, which only verified promotion ever tags for a commit.
+# A promoted deploy must name its digests: an empty list is an error unless the
+# operator asked for a manual redeploy (ALLOW_UNPROMOTED_DEPLOY=true).
+if [[ -z "${DEPLOY_IMAGE_DIGESTS// /}" && "${ALLOW_UNPROMOTED_DEPLOY:-}" != true ]]; then
+  echo "DEPLOY_IMAGE_DIGESTS is empty: refusing to deploy images no promotion verified (dispatch Deploy with manual_redeploy to redeploy an existing tag)" >&2
+  exit 1
+fi
 expected_digests=" ${DEPLOY_IMAGE_DIGESTS:-} "
 while IFS= read -r image; do
   case "$image" in

@@ -283,3 +283,23 @@ test("database services authenticate during initialization before job steps run"
     assert.match(services, DOCKERHUB_TOKEN, workflow);
   }
 });
+
+test("promotion jobs are ref-guarded and refuse an empty digest list", () => {
+  const staging = readWorkflow("pipeline-staging.yml");
+  const prod = readWorkflow("pipeline-prod.yml");
+  const stagingPromote = staging.split("\n  promote:\n")[1].split(NEXT_JOB)[0];
+  const prodPromote = prod.split("\n  promote:\n")[1].split(NEXT_JOB)[0];
+  assert.ok(stagingPromote.includes("if: github.ref == 'refs/heads/staging'"));
+  assert.ok(prodPromote.includes("github.event_name == 'release'"));
+  assert.ok(prodPromote.includes("startsWith(github.ref, 'refs/tags/v')"));
+  for (const source of [staging, prod]) {
+    assert.ok(source.includes("Require promoted digests"));
+    assert.ok(source.includes("needs.promote.outputs.digests != ''"));
+  }
+});
+
+test("the dev image dispatch only builds commits that are on dev", () => {
+  const dev = readWorkflow("dev-images.yml");
+  assert.ok(dev.includes("git merge-base --is-ancestor"));
+  assert.ok(dev.includes("origin/dev"));
+});

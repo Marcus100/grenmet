@@ -33,10 +33,13 @@ jobs:
   promote:
     name: Promote dev images
     runs-on: ubuntu-latest
+    # A manual dispatch from another branch must never move the staging tags.
+    if: github.ref == 'refs/heads/staging'
     permissions:
       contents: read
       packages: write
       checks: read
+      actions: write # dispatches dev-images.yml when the dev images are missing
     outputs:
       tree: ${{ steps.promote.outputs.tree }}
       digests: ${{ steps.promote.outputs.digests }}
@@ -54,10 +57,16 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: node scripts/ci/promote-images.mjs promote staging
+      - name: Require promoted digests
+        env:
+          DIGESTS: ${{ steps.promote.outputs.digests }}
+        run: |
+          [[ -n "${DIGESTS//[[:space:]]/}" ]] || { echo "::error::Promotion produced no image digests"; exit 1; }
 
   deploy:
     name: Deploy
     needs: [release-scope, promote]
+    if: ${{ needs.promote.outputs.digests != '' }}
     uses: ./.github/workflows/deploy.yml
     with:
       environment: staging

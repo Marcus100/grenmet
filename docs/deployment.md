@@ -43,9 +43,18 @@ Images are built once, when a change lands on `dev`, and promoted by digest
   that tree. `latest` and the release tag move after the production deploy.
 - `core.sh` refuses any image whose digest is not in the promotion's list
   (`DEPLOY_IMAGE_DIGESTS`).
-- Fallback: the build workflows can still be dispatched with `tag` staging or
-  latest to build environment-tagged images, then **Deploy** dispatched by hand
-  (see the release runbook).
+- Promotion checks, before any retag: the required checks passed by the same
+  GitHub App the dev ruleset names (rules read from the dev commit), and every
+  image's `gd.barrels.tree` and `org.opencontainers.image.revision` labels
+  match the tree and dev commit. Only `dev-images.yml` can write `tree-*` tags.
+  Known gap: build provenance is a BuildKit attestation inside the image, not a
+  GitHub artifact attestation, so `gh attestation verify` does not apply;
+  integrity rests on registry write access, the labels and the digest list.
+- If the dev images for a tree are missing, the staging pipeline dispatches
+  `dev-images.yml` for that commit and waits (see the release runbook).
+- The `build` GitHub environment needs the secrets `SENTRY_AUTH_TOKEN`,
+  `SENTRY_DSN_PRODUCTION` and `SENTRY_DSN_STAGING`. A dev web build fails when
+  its Sentry DSN is empty.
 - A manual **Deploy** dispatch redeploys existing images; it does not build them.
   Supply an explicit image tag. The **Deploy to Production** entry point requires it.
 

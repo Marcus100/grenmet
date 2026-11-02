@@ -32,10 +32,15 @@ on:
         required: true
         type: string
       image_digests:
-        description: "Optional: space-separated repo@sha256 digests to require (empty trusts the promoted tag)"
+        description: "Space-separated repo@sha256 digests to require"
         required: false
         default: ""
         type: string
+      manual_redeploy:
+        description: "Redeploy an existing tag without a digest list (commit-label check only). Leave off to require image_digests."
+        required: false
+        default: false
+        type: boolean
       backup_gate_override:
         description: "Emergency only: reason to proceed past an enforced backup gate (DEPLOY_BACKUP_GATE=enforce); recorded in the run summary"
         required: false
@@ -228,6 +233,8 @@ jobs:
           ROLLING_DEPLOY: ${{ vars.ROLLING_DEPLOY }}
           # Exact digests the promotion verified; core.sh refuses any other image.
           DEPLOY_IMAGE_DIGESTS: ${{ inputs.image_digests }}
+          # Only an explicit manual redeploy may run without the digest list.
+          ALLOW_UNPROMOTED_DEPLOY: ${{ inputs.manual_redeploy && 'true' || '' }}
           # Optional tuning; unset uses core.sh's defaults (4 each, 1 = serial).
           ROLLOUT_PARALLEL: ${{ vars.ROLLOUT_PARALLEL }}
           PULL_PARALLEL: ${{ vars.PULL_PARALLEL }}

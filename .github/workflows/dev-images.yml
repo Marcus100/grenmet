@@ -7,7 +7,14 @@ name: Dev Images
 on:
   push:
     branches: [dev]
+  # Started by pipeline-staging when a dev commit has no images yet.
   workflow_dispatch:
+    inputs:
+      sha:
+        description: "Dev commit to build (default: the dispatched ref's head)"
+        required: false
+        default: ""
+        type: string
 
 # Queued, never cancelled: a later run reuses this run's tags.
 concurrency:
@@ -24,6 +31,7 @@ jobs:
       contents: read
       packages: read
     outputs:
+      sha: ${{ steps.plan.outputs.sha }}
       tree: ${{ steps.plan.outputs.tree }}
       api: ${{ steps.plan.outputs.api }}
       web: ${{ steps.plan.outputs.web }}
@@ -38,7 +46,21 @@ jobs:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Only dev commits are built
+        env:
+          INPUT_SHA: ${{ inputs.sha }}
+        run: |
+          # Images become staging and production releases, so a dispatch may
+          # only name a commit that is on dev.
+          if [[ -n "$INPUT_SHA" ]]; then
+            [[ "$INPUT_SHA" =~ ^[0-9a-f]{40}$ ]] || { echo "::error::sha must be a full commit SHA"; exit 1; }
+            git merge-base --is-ancestor "$INPUT_SHA" origin/dev || { echo "::error::$INPUT_SHA is not on dev"; exit 1; }
+          else
+            [[ "$GITHUB_REF" == refs/heads/dev ]] || { echo "::error::Dispatch from dev (or name a dev commit)"; exit 1; }
+          fi
       - id: plan
+        env:
+          DEV_SHA: ${{ inputs.sha }}
         run: node scripts/ci/promote-images.mjs plan
 
   build-api:
@@ -47,7 +69,7 @@ jobs:
     if: needs.plan.outputs.api == 'true'
     uses: ./.github/workflows/build-api-image.yml
     with:
-      tag: dev
+      ref: ${{ needs.plan.outputs.sha }}
     secrets: inherit
     permissions:
       contents: read
@@ -60,7 +82,7 @@ jobs:
     if: needs.plan.outputs.web != '[]'
     uses: ./.github/workflows/build-web-images.yml
     with:
-      tag: dev
+      ref: ${{ needs.plan.outputs.sha }}
       images: ${{ needs.plan.outputs.web }}
     secrets: inherit
     permissions:
