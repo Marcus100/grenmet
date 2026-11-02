@@ -27,7 +27,10 @@ case "${ROLLING_DEPLOY:-}" in
   *) echo "ROLLING_DEPLOY must be 1, true, 0, false or unset; got '$ROLLING_DEPLOY'" >&2; exit 2 ;;
 esac
 # Routed services roll out in batches of this size (1 restores one at a time).
-rollout_parallel=${ROLLOUT_PARALLEL:-4}
+# Production defaults to 2 (one host, no container memory limits); staging to 4.
+default_parallel=4
+[[ "$DEPLOY_ENV" != production ]] || default_parallel=2
+rollout_parallel=${ROLLOUT_PARALLEL:-$default_parallel}
 [[ "$rollout_parallel" =~ ^[1-9][0-9]?$ ]] || { echo "ROLLOUT_PARALLEL must be a whole number from 1 to 99; got '$rollout_parallel'" >&2; exit 2; }
 pull_parallel=${PULL_PARALLEL:-4}
 [[ "$pull_parallel" =~ ^[1-9][0-9]?$ ]] || { echo "PULL_PARALLEL must be a whole number from 1 to 99; got '$pull_parallel'" >&2; exit 2; }
@@ -88,6 +91,11 @@ finish() {
     end_phase ok
   else
     end_phase failed
+    # Stop rollouts still running in the background before cleaning up after them,
+    # so none of them retires an old container afterwards.
+    # shellcheck disable=SC2046
+    kill $(jobs -p) 2>/dev/null
+    wait 2>/dev/null
     for pending in runtime/rollout/*.new; do
       [[ -s "$pending" ]] || continue
       echo "Removing unfinished rollout container $(<"$pending") of ${pending##*/}; the previous one keeps serving."
@@ -122,6 +130,8 @@ finish() {
   exit "$status"
 }
 trap finish EXIT
+# A cancelled run exits through finish(), which stops background rollouts first.
+trap 'exit 130' INT TERM
 
 # Returns once a container is healthy (or running, when it has no healthcheck);
 # fails as soon as it is unhealthy, stopped or gone, or after ROLLOUT_TIMEOUT seconds.
@@ -148,18 +158,22 @@ wait_healthy() {
 # then retire the old one. If the new container never becomes healthy it is
 # removed and the old one keeps serving, and the deploy fails.
 rollout() {
+  # Runs in a subshell inside `run_batch || ...`, where errexit does not apply,
+  # so every step that changes or reads state checks its own result.
   local service=$1 old new stale running_hash wanted_hash pending="runtime/rollout/$1.new"
   local compose=(docker compose -f runtime/deploy.lock.yml -p "$COMPOSE_PROJECT")
   # Stopped containers count towards --scale, and --no-recreate would restart one
   # on its old image instead of creating a new container. Remove them first.
-  stale=$("${compose[@]}" ps -aq --status exited --status created --status dead "$service")
+  stale=$("${compose[@]}" ps -aq --status exited --status created --status dead "$service") || return 1
   # shellcheck disable=SC2086
-  [[ -z "$stale" ]] || docker rm $stale >/dev/null
-  old=$("${compose[@]}" ps -q "$service")
+  [[ -z "$stale" ]] || docker rm $stale >/dev/null || return 1
+  # A failed lookup must never look like "nothing running": the first-start path
+  # below would recreate the service and stop the serving container first.
+  old=$("${compose[@]}" ps -q "$service") || { echo "::error::Could not list $service containers" >&2; return 1; }
   if [[ -z "$old" ]]; then
     # First start: nothing is serving yet, so there is no gap to avoid.
-    "${compose[@]}" up -d --no-deps --wait --wait-timeout 300 "$service"
-    return
+    "${compose[@]}" up -d --no-deps --wait --wait-timeout 300 "$service" || return 1
+    return 0
   fi
   # Unchanged service: Compose's config hash covers the digest-pinned image, the
   # environment and the labels, so an equal hash on the one running container means
@@ -170,17 +184,17 @@ rollout() {
     # Only a healthy (or, without a healthcheck, running) container is kept.
     if [[ -n "$wanted_hash" && ( "$running_hash" == "$wanted_hash healthy" || "$running_hash" == "$wanted_hash running" ) ]]; then
       echo "Unchanged $service: keeping the running container"
-      return
+      return 0
     fi
   fi
   echo "Rolling $service"
-  "${compose[@]}" up -d --no-deps --no-recreate --scale "$service=$(($(wc -l <<<"$old") + 1))" "$service"
-  new=$(comm -13 <(sort <<<"$old") <("${compose[@]}" ps -q "$service" | sort))
+  "${compose[@]}" up -d --no-deps --no-recreate --scale "$service=$(($(wc -l <<<"$old") + 1))" "$service" || return 1
+  new=$(comm -13 <(sort <<<"$old") <("${compose[@]}" ps -q "$service" | sort)) || return 1
   if [[ -z "$new" || "$new" == *$'\n'* ]]; then
     echo "::error::Rolling start of $service expected one new container, found: ${new:-none}" >&2
     return 1
   fi
-  printf '%s' "$new" > "$pending"
+  printf '%s' "$new" > "$pending" || { docker rm -f "$new" >/dev/null; return 1; }
   if ! wait_healthy "$new"; then
     echo "::error::New $service container did not become healthy; the previous one is still serving" >&2
     docker logs --tail "${DIAGNOSTIC_LOG_LINES:-200}" "$new" 2>&1 || true
@@ -189,12 +203,12 @@ rollout() {
     return 1
   fi
   # Give Traefik's Docker provider time to add the new backend before the old one goes.
-  sleep "${ROLLOUT_SETTLE_SECONDS:-5}"
-  rm -f "$pending"
+  sleep "${ROLLOUT_SETTLE_SECONDS:-5}" || return 1
+  rm -f "$pending" || return 1
   # shellcheck disable=SC2086
-  docker stop --time 30 $old >/dev/null
+  docker stop --time 30 $old >/dev/null || return 1
   # shellcheck disable=SC2086
-  docker rm $old >/dev/null
+  docker rm $old >/dev/null || return 1
 }
 
 # Rolls routed services out in batches of ROLLOUT_PARALLEL. Every service in a batch
@@ -202,7 +216,6 @@ rollout() {
 # starts after a failure. Output is prefixed with the service name.
 rollout_batches() {
   local batch=() service failed=0
-  mkdir -p runtime/rollout
   run_batch() {
     local pids=() names=() i
     for service in "${batch[@]}"; do
@@ -232,6 +245,10 @@ require_free_space() {
     exit 1
   fi
 }
+
+# Never act on unfinished-rollout records left by an earlier, killed deploy.
+rm -rf runtime/rollout
+mkdir -p runtime/rollout
 
 phase render-config
 python3 ../../scripts/production/render-env.py "$DEPLOY_ENV.env" runtime/.env.local
