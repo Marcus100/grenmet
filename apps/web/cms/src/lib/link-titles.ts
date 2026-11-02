@@ -5,7 +5,13 @@ import type { EditorialLink, LinkCategory } from "./editorial-links";
 type Fetcher = typeof fetch;
 
 const TIMEOUT_MS = 3000;
-const FORECAST_KINDS = new Set(["morning", "midday", "evening", "outlook"]);
+const FORECAST_KINDS = new Set([
+  "morning",
+  "midday",
+  "evening",
+  "outlook",
+  "marine-forecast",
+]);
 /** An issued product's id: a UUID, the only form the product feed uses. */
 const PRODUCT_ID =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/iu;

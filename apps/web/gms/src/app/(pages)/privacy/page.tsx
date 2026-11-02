@@ -16,7 +16,7 @@ export default function PrivacyPage() {
   return (
     <>
       <PageHeader
-        description="You can read the public forecast and bulletin pages without signing in. Account access, where offered, uses the shared sign-in service."
+        description="You can read every page on this site without signing in. This site has no sign-in."
         title="Privacy and site controls"
       />
       <PageSection heading="Email alerts">
@@ -47,13 +47,6 @@ export default function PrivacyPage() {
           ]}
         />
       </PageSection>
-      <PageSection heading="Sign-in">
-        <Prose
-          paragraphs={[
-            "Signing in with your Barrels account uses the shared sign-in service. This site keeps a session cookie so it knows you are signed in, and the account button shows whether you are.",
-          ]}
-        />
-      </PageSection>
       <PageSection heading="Security checks and visitor addresses">
         <Prose
           paragraphs={[
@@ -71,7 +64,7 @@ export default function PrivacyPage() {
       <PageSection heading="Error reports">
         <Prose
           paragraphs={[
-            "If something goes wrong on the site, an error report is sent to Sentry, our error-monitoring service. A report carries the type of error, where in the code it happened and, for a signed-in user, an internal account ID. Messages, request details, cookies and breadcrumbs are removed before a report is sent. Performance traces are not sent.",
+            "If something goes wrong on the site, an error report is sent to Sentry, our error-monitoring service. A report carries the type of error, where in the code it happened. Messages, request details, cookies and breadcrumbs are removed before a report is sent. Performance traces are not sent.",
           ]}
         />
       </PageSection>

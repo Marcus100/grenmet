@@ -145,6 +145,12 @@ export const sidebarItems: NavGroup[] = [
         icon: CloudSun,
       },
       {
+        id: "climate-bulletin",
+        title: "Climate Bulletin",
+        url: "/wxproducts/climate",
+        icon: CalendarDays,
+      },
+      {
         id: "taf-metar",
         title: "TAF/Metar Composer",
         url: "/wxproducts/aviation",

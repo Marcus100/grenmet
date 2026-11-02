@@ -30,6 +30,7 @@ export type LegacyProductWrite = {
   changeSummary: string;
   reviewed: boolean;
   kind:
+    | "climate-bulletin"
     | "coastal"
     | "cyclone"
     | "dust"
@@ -37,6 +38,7 @@ export type LegacyProductWrite = {
     | "flood"
     | "heat"
     | "marine"
+    | "marine-forecast"
     | "midday"
     | "morning"
     | "thunderstorm"

@@ -7,7 +7,7 @@ const DRAFT_ONLY = /Operational transmission is not available/u;
 const PROTOTYPE = /prototype/iu;
 const SAMPLE_OBSERVATIONS = /sample observations/iu;
 
-it("links to the four product desks and points to the live hourly register", () => {
+it("links to the five product desks and points to the live hourly register", () => {
   render(<Page />);
   const desks = within(
     screen.getByRole("navigation", { name: "Weather product desks" })
@@ -15,6 +15,7 @@ it("links to the four product desks and points to the live hourly register", () 
   for (const [name, href] of [
     ["Forecasts", "/wxproducts/fcsts"],
     ["NHC Products", "/wxproducts/nhc"],
+    ["Climate Bulletin", "/wxproducts/climate"],
     ["Alerts", "/wxproducts/alerts"],
     ["Aviation", "/wxproducts/aviation"],
   ]) {
@@ -22,7 +23,7 @@ it("links to the four product desks and points to the live hourly register", () 
       desks.getByRole("link", { name: new RegExp(`^${name}`, "u") })
     ).toHaveAttribute("href", href);
   }
-  expect(desks.getAllByRole("link")).toHaveLength(4);
+  expect(desks.getAllByRole("link")).toHaveLength(5);
   const register = within(
     screen.getByRole("region", { name: "Hourly register (wxRegister)" })
   );

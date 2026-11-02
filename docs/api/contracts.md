@@ -305,7 +305,7 @@ gmsdash app. Ingestion is off unless `MODELS_GUIDANCE_ENABLED`. See
 ## Public weather products
 
 `GET /api/v1/wxproducts/public/products` is anonymous. Optional `kind` filters
-morning, midday, evening, outlook, cyclone, marine, flood, thunderstorm, wind,
+morning, midday, evening, outlook, marine-forecast (daily 05:00 Marine Forecast), climate-bulletin (monthly, issued on the 15th; figures come from `eregister/public/month-summary`), cyclone, marine, flood, thunderstorm, wind,
 heat, dust, coastal, or tsunami products. An omitted or empty filter lists all kinds.
 
 Success is `{ "products": [...] }`, including an empty list when nothing is current.

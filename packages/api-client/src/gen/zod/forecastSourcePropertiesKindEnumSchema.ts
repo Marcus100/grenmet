@@ -10,6 +10,8 @@ export const forecastSourcePropertiesKindEnumSchema = z.enum([
   "midday",
   "evening",
   "outlook",
+  "marine-forecast",
+  "climate-bulletin",
   "cyclone",
   "marine",
   "flood",

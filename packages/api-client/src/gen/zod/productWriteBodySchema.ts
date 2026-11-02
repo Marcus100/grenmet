@@ -14,6 +14,7 @@ export const productWriteBodySchema = z
     }),
     legacyProductWriteSchema.extend({
       kind: z.enum([
+        "climate-bulletin",
         "coastal",
         "cyclone",
         "dust",
@@ -21,6 +22,7 @@ export const productWriteBodySchema = z
         "flood",
         "heat",
         "marine",
+        "marine-forecast",
         "midday",
         "morning",
         "thunderstorm",

@@ -1,10 +1,12 @@
 import { isProductKind, productTitle } from "@barrelsgd/gms/products";
 import {
   ArrowRightIcon,
+  CalendarDaysIcon,
   ChevronRightIcon,
   CloudSunIcon,
   PlayIcon,
   TornadoIcon,
+  WavesIcon,
 } from "lucide-react";
 import type { Route } from "next";
 import Image from "next/image";
@@ -183,8 +185,15 @@ function DeskPostCard({ item }: { item: PublishedContent }) {
  * summary, an illustration below the words, issue and validity times and a
  * link to the issued product. Official cards carry no emoji.
  */
+const OFFICIAL_ICONS = {
+  briefing: CloudSunIcon,
+  outlook: TornadoIcon,
+  marine: WavesIcon,
+  climate: CalendarDaysIcon,
+} satisfies Record<OfficialCard["kind"], unknown>;
+
 function OfficialProductCard({ card }: { card: OfficialCard }) {
-  const Icon = card.kind === "briefing" ? CloudSunIcon : TornadoIcon;
+  const Icon = OFFICIAL_ICONS[card.kind];
   return (
     <li className={CARD_ITEM}>
       <article

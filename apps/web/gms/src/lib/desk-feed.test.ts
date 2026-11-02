@@ -1,9 +1,19 @@
 import { describe, expect, it } from "vitest";
 import type { PublishedContent } from "@/lib/cms";
-import { buildDeskFeed, nextForecastDue } from "@/lib/desk-feed";
+import {
+  buildDeskFeed,
+  nextForecastDue,
+  nextIssueLabel,
+} from "@/lib/desk-feed";
 
 const product = (
-  kind: "morning" | "midday" | "evening" | "outlook",
+  kind:
+    | "morning"
+    | "midday"
+    | "evening"
+    | "outlook"
+    | "marine-forecast"
+    | "climate-bulletin",
   publishedAt: string,
   values: Record<string, string>
 ) => ({
@@ -153,5 +163,44 @@ describe("nextForecastDue", () => {
     expect(nextForecastDue(new Date("2026-11-02T01:00:00Z"))).toBe(
       "7:00 a.m. tomorrow"
     ); // 9:00 p.m.
+  });
+});
+
+describe("Marine Forecast and Climate Bulletin cards", () => {
+  it("adds official cards after the forecast and outlook", () => {
+    const feed = buildDeskFeed({
+      level: "none",
+      now: NOW,
+      posts: [],
+      products: [
+        product("marine-forecast", "2026-11-01T09:00:00Z", {
+          issuedAt: "2026-11-01T05:00",
+          validFrom: "2026-11-01T05:00",
+          validTo: "2026-11-02T05:00",
+          synopsis: "Moderate trades. ",
+        }),
+        product("climate-bulletin", "2026-10-15T14:00:00Z", {
+          issuedAt: "2026-10-15T10:00",
+          validFrom: "2026-10-15T10:00",
+          validTo: "2026-11-15T23:59",
+          summary: "A wet September.",
+        }),
+      ],
+    });
+    expect(feed.official.map((card) => [card.kind, card.title])).toEqual([
+      ["marine", "Marine Forecast"],
+      ["climate", "Climate Bulletin"],
+    ]);
+    expect(feed.official[0]?.summary).toBe("Moderate trades.");
+    expect(feed.official[1]?.valid).toBe("Next issue 15 November");
+    expect(feed.official[1]?.staleNote).toBeNull();
+  });
+
+  it("names the next 15th after the issue day", () => {
+    expect(nextIssueLabel("2026-12-15T10:00")).toBe("Next issue 15 January");
+    expect(nextIssueLabel("2026-11-10T10:00")).toBe(
+      "Issued outside the monthly schedule"
+    );
+    expect(nextIssueLabel(undefined)).toBe("");
   });
 });
