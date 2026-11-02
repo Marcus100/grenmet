@@ -268,13 +268,24 @@ echo "Images to pull: $(grep -c . <<<"$missing_images" || true) of $(grep -c . r
 if [[ -n "$missing_images" ]]; then
   xargs -r -P "$pull_parallel" -n 1 docker pull --quiet <<<"$missing_images"
 fi
+# Promoted deploys (issue #1019) pass the exact digests the pipeline verified in
+# DEPLOY_IMAGE_DIGESTS; every ghcr.io image must be one of them. Without the list
+# (a manual redeploy of an existing tag), an image must carry this commit's label,
+# or be a build-once image, which only verified promotion ever tags for a commit.
+expected_digests=" ${DEPLOY_IMAGE_DIGESTS:-} "
 while IFS= read -r image; do
   case "$image" in
     ghcr.io/*)
-      revision=$(docker image inspect --format '{{index .Config.Labels "org.opencontainers.image.revision"}}' "$image")
-      [[ "$revision" == "$GITHUB_SHA" ]] || { echo "Artifact revision mismatch: $image"; exit 1; }
-      image_environment=$(docker image inspect --format '{{index .Config.Labels "gd.barrels.environment"}}' "$image")
-      [[ "$image_environment" == "$DEPLOY_ENV" ]] || { echo "Artifact environment mismatch: $image"; exit 1; }
+      if [[ -n "${DEPLOY_IMAGE_DIGESTS// /}" ]]; then
+        repository=${image%%@*}
+        repository=${repository%:*}
+        [[ "$image" == *@sha256:* && "$expected_digests" == *" $repository@${image##*@} "* ]] ||
+          { echo "Artifact digest is not the promoted one: $image"; exit 1; }
+      else
+        revision=$(docker image inspect --format '{{index .Config.Labels "org.opencontainers.image.revision"}}' "$image")
+        build_once=$(docker image inspect --format '{{index .Config.Labels "gd.barrels.build-once"}}' "$image")
+        [[ "$revision" == "$GITHUB_SHA" || "$build_once" == true ]] || { echo "Artifact revision mismatch: $image"; exit 1; }
+      fi
       ;;
   esac
 done < runtime/images.txt

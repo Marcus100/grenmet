@@ -54,8 +54,11 @@ is their committed copy and `pnpm guardrails:rulesets` checks it.
   any agent merge whose base is not `dev`.
 - If dev advances, review and verify the new head. Fix failures locally and
   revalidate before pushing; do not blindly retry CI.
-- The push to `staging` triggers `pipeline-staging.yml`,
-  which builds and smoke-tests a complete core image set alongside CI, then deploys only after every gate succeeds.
+- The push to `staging` triggers `pipeline-staging.yml`, which promotes the
+  images `dev-images.yml` already built for the same git tree (it waits up to
+  30 minutes for that build), after checking the required checks passed on the
+  dev commit, then deploys them. It does not rebuild or re-run CI. A successful
+  deploy marks those digests staging-verified for production.
 - Verify the staging deploy job succeeded: `gh run list --workflow=pipeline-staging.yml --limit 1`
 
 ## 3. Promote staging → main
@@ -75,8 +78,11 @@ is their committed copy and `pnpm guardrails:rulesets` checks it.
   it from the Releases page.
 - By hand instead: draft notes from merged changes, then **human publishes**:
   `gh release create vN.M --target main --title "vN.M" --notes "…"`
-- Publishing triggers `pipeline-prod.yml`: builds ALL images at the tag, then
-  deploys via `deploy.yml` on the self-hosted `production` runner. The runner
+- Publishing triggers `pipeline-prod.yml`: promotes the staging-verified
+  digests for the tagged commit's git tree (nothing is rebuilt; it fails if
+  staging never deployed that tree), then deploys via `deploy.yml` on the
+  self-hosted `production` runner. `main` must carry exactly what staging ran:
+  no commits on `main` or `staging` that did not come from `dev`. The runner
   must be online or the job queues silently — check with
   `gh run list --workflow=pipeline-prod.yml --limit 1`.
 
@@ -167,7 +173,13 @@ before a destructive migration.
 
 Re-deploying an existing release needs no builds: manually dispatch the
 **Deploy** workflow (`deploy.yml`) with `environment=production` and the release
-tag. For a release before the domain migration, select that release tag as the
+tag (its `production-sha-<commit>` images already exist).
+
+If promotion cannot run (no dev images for the tree, for example a fix pushed
+straight to `staging`), build the legacy way: dispatch **Build and Push Docker
+Images** and **Build Web App Images** with `tag` staging (or latest for
+production) on that ref, then dispatch **Deploy** with
+`image_tag=sha-<commit>`. For a release before the domain migration, select that release tag as the
 workflow ref too, so its matching Compose definition is used. The
 `deploy-prod.yml` and `deploy-staging.yml` entries delegate to the same Deploy
 workflow; they no longer use separate legacy Compose files.

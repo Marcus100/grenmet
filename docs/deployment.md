@@ -22,11 +22,30 @@ Promotion follows `dev → staging → main → release`. Use pull requests for 
 promotion; the user merges them and publishes the release. See the
 [release runbook](operations/release-runbook.md) for the full sequence.
 
-- A push to `staging` runs `pipeline-staging.yml`: CI, applicable image builds,
-  then deployment with the `staging` image tag.
+Images are built once, when a change lands on `dev`, and promoted by digest
+(issue #1019):
+
+- A push to `dev` runs `dev-images.yml`: it builds, smoke-tests and scans only
+  the images the change touches and tags every release image `tree-<git tree>`;
+  unchanged images reuse the previous tree's digest. Dev builds use the `build`
+  GitHub environment for production's build-time Sentry values.
+- A push to `staging` runs `pipeline-staging.yml`. Staging is a merge of dev, so
+  its commit has the same git tree as the dev commit it came from.
+  `scripts/ci/promote-images.mjs` finds that dev commit, checks the required
+  status checks passed on it (`infra/github/rulesets.json`), retags the exact
+  `tree-<tree>` digests as `staging-sha-<commit>` and deploys them. Nothing is
+  rebuilt or re-tested. After a successful deploy (smoke tests included) the
+  digests are tagged `staging-verified-tree-<tree>`.
 - Merging to `main` does not build deployment images or deploy production.
-- Publishing a release runs `pipeline-prod.yml`: builds all images at the release
-  tag, then deploys that same tag for FastAPI, web apps, and migrations.
+- Publishing a release runs `pipeline-prod.yml`: it promotes only the
+  `staging-verified-tree-<tree>` digests for the release commit's tree, so
+  production runs exactly what staging ran, and fails if staging never deployed
+  that tree. `latest` and the release tag move after the production deploy.
+- `core.sh` refuses any image whose digest is not in the promotion's list
+  (`DEPLOY_IMAGE_DIGESTS`).
+- Fallback: the build workflows can still be dispatched with `tag` staging or
+  latest to build environment-tagged images, then **Deploy** dispatched by hand
+  (see the release runbook).
 - A manual **Deploy** dispatch redeploys existing images; it does not build them.
   Supply an explicit image tag. The **Deploy to Production** entry point requires it.
 

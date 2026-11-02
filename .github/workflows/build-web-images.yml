@@ -18,8 +18,13 @@ on:
   workflow_call:
     inputs:
       tag:
-        description: "Image tag override (staging or latest)"
+        description: "dev (build once, issue #1019), or the legacy staging or latest"
         required: false
+        type: string
+      images:
+        description: "JSON list of web images to build (default: every release image)"
+        required: false
+        default: ""
         type: string
 
 jobs:
@@ -32,11 +37,19 @@ jobs:
       - id: select
         env:
           IMAGE_BUILD_MODE: full
-        run: node scripts/ci/select-images.mjs
+          IMAGES: ${{ inputs.images }}
+        run: |
+          if [[ -n "$IMAGES" ]]; then
+            printf 'web=%s\n' "$IMAGES" >> "$GITHUB_OUTPUT"
+          else
+            node scripts/ci/select-images.mjs
+          fi
 
   build:
     needs: image-selection
-    environment: ${{ (inputs.tag == 'staging' || (inputs.tag == '' && github.ref_name == 'staging')) && github.event_name != 'release' && 'staging' || 'production' }}
+    # Dev builds use the `build` environment: production's build-time Sentry
+    # values without production's approval gate (issue #1019).
+    environment: ${{ inputs.tag == 'dev' && 'build' || ((inputs.tag == 'staging' || (inputs.tag == '' && github.ref_name == 'staging')) && github.event_name != 'release' && 'staging' || 'production') }}
     name: Build ${{ matrix.image }}
     runs-on: ubuntu-latest
     # push = called from pipeline-staging on a staging push (caller's event).
@@ -94,13 +107,19 @@ jobs:
             BRANCH="$GITHUB_REF_NAME"
           fi
 
-          if [ "$BRANCH" == "staging" ] && [ "$EVENT" != "release" ]; then
+          echo "tree=$(git rev-parse 'HEAD^{tree}')" >> "$GITHUB_OUTPUT"
+          if [ "$BRANCH" == "dev" ]; then
+            # One image for every environment: production's build-time values.
+            echo "environment=production" >> $GITHUB_OUTPUT
+            echo "local_tag=dev-sha-${GITHUB_SHA}" >> $GITHUB_OUTPUT
+            echo "sentry_project=grenmet-staging,grenmet-production" >> $GITHUB_OUTPUT
+          elif [ "$BRANCH" == "staging" ] && [ "$EVENT" != "release" ]; then
             echo "environment=staging" >> $GITHUB_OUTPUT
-            echo "api_url=https://api.staging.barrels.gd" >> $GITHUB_OUTPUT
+            echo "local_tag=staging-sha-${GITHUB_SHA}" >> $GITHUB_OUTPUT
             echo "sentry_project=grenmet-staging" >> $GITHUB_OUTPUT
           else
             echo "environment=production" >> $GITHUB_OUTPUT
-            echo "api_url=https://api.barrels.gd" >> $GITHUB_OUTPUT
+            echo "local_tag=production-sha-${GITHUB_SHA}" >> $GITHUB_OUTPUT
             echo "sentry_project=grenmet-production" >> $GITHUB_OUTPUT
           fi
 
@@ -119,12 +138,18 @@ jobs:
         with:
           images: |
             ghcr.io/${{ steps.ctx.outputs.owner }}/barrelsgd-${{ matrix.image }}
+          # Dev images carry no environment: staging and production promote the
+          # same digest (scripts/ci/promote-images.mjs). Legacy builds keep theirs.
           labels: |
-            gd.barrels.environment=${{ steps.ctx.outputs.environment }}
+            gd.barrels.tree=${{ steps.ctx.outputs.tree }}
+            gd.barrels.build-once=${{ inputs.tag == 'dev' }}
+            ${{ inputs.tag != 'dev' && format('gd.barrels.environment={0}', steps.ctx.outputs.environment) || '' }}
           tags: |
-            type=raw,value=${{ steps.ctx.outputs.environment }}-sha-${{ github.sha }}
-            type=raw,value=staging,enable=${{ steps.ctx.outputs.environment == 'staging' }}
-            type=raw,value=latest,enable=${{ steps.ctx.outputs.environment == 'production' }}
+            type=raw,value=${{ steps.ctx.outputs.local_tag }}
+            type=raw,value=tree-${{ steps.ctx.outputs.tree }},enable=${{ inputs.tag == 'dev' }}
+            type=raw,value=dev,enable=${{ inputs.tag == 'dev' }}
+            type=raw,value=staging,enable=${{ inputs.tag != 'dev' && steps.ctx.outputs.environment == 'staging' }}
+            type=raw,value=latest,enable=${{ inputs.tag != 'dev' && steps.ctx.outputs.environment == 'production' }}
             type=raw,value=${{ github.event.release.tag_name }},enable=${{ github.event_name == 'release' }}
 
       - name: Build image for verification
@@ -144,7 +169,7 @@ jobs:
             NEXT_PUBLIC_SITE_URL=https://${{ matrix.host || matrix.app }}.${{ steps.ctx.outputs.environment == 'staging' && 'staging.barrels.gd' || 'barrels.gd' }}
             NEXT_PUBLIC_SENTRY_DSN=${{ steps.telemetry.outputs.sentry_dsn }}
             NEXT_PUBLIC_SENTRY_ENVIRONMENT=${{ steps.ctx.outputs.environment }}
-            SENTRY_PROJECT=${{ steps.telemetry.outputs.sentry_project }}
+            SENTRY_PROJECT=${{ steps.ctx.outputs.sentry_project }}
             NEXT_PUBLIC_RELEASE=${{ github.sha }}
           secrets: |
             SENTRY_AUTH_TOKEN=${{ secrets.SENTRY_AUTH_TOKEN }}
@@ -160,7 +185,7 @@ jobs:
 
       - name: Smoke-test image before publishing
         env:
-          IMAGE: ghcr.io/${{ steps.ctx.outputs.owner }}/barrelsgd-${{ matrix.image }}:${{ steps.ctx.outputs.environment }}-sha-${{ github.sha }}
+          IMAGE: ghcr.io/${{ steps.ctx.outputs.owner }}/barrelsgd-${{ matrix.image }}:${{ steps.ctx.outputs.local_tag }}
           KIND: ${{ matrix.image == 'web-cms-migrate' && 'cms-migrate' || matrix.image == 'web-auth' && 'auth' || 'web' }}
           PORT: ${{ matrix.port }}
           HEALTH: /api/health
@@ -170,7 +195,7 @@ jobs:
       - name: Enforce image vulnerability policy before publishing
         uses: ./.github/actions/scan-image
         with:
-          image: ghcr.io/${{ steps.ctx.outputs.owner }}/barrelsgd-${{ matrix.image }}:${{ steps.ctx.outputs.environment }}-sha-${{ github.sha }}
+          image: ghcr.io/${{ steps.ctx.outputs.owner }}/barrelsgd-${{ matrix.image }}:${{ steps.ctx.outputs.local_tag }}
           scope: ${{ matrix.path }}/Dockerfile#${{ matrix.target || 'runner' }}
           name: ${{ matrix.image }}
 
@@ -190,7 +215,7 @@ jobs:
             NEXT_PUBLIC_SITE_URL=https://${{ matrix.host || matrix.app }}.${{ steps.ctx.outputs.environment == 'staging' && 'staging.barrels.gd' || 'barrels.gd' }}
             NEXT_PUBLIC_SENTRY_DSN=${{ steps.telemetry.outputs.sentry_dsn }}
             NEXT_PUBLIC_SENTRY_ENVIRONMENT=${{ steps.ctx.outputs.environment }}
-            SENTRY_PROJECT=${{ steps.telemetry.outputs.sentry_project }}
+            SENTRY_PROJECT=${{ steps.ctx.outputs.sentry_project }}
             NEXT_PUBLIC_RELEASE=${{ github.sha }}
           secrets: |
             SENTRY_AUTH_TOKEN=${{ secrets.SENTRY_AUTH_TOKEN }}

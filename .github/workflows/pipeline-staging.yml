@@ -1,6 +1,12 @@
 name: Staging Pipeline
 
-# Every staging commit builds a complete matching application/migration image set.
+# Build once, promote by digest (issue #1019). Nothing is built or re-tested
+# here: the images were built when the change landed on dev (dev-images.yml),
+# and the required checks already ran on that dev commit and on the
+# dev → staging pull request. This pipeline finds the dev commit with the same
+# git tree, verifies its required checks passed, retags those exact digests for
+# staging, deploys them, and after a successful deploy records them as the
+# digests production may promote.
 on:
   push:
     branches: [staging]
@@ -24,76 +30,62 @@ jobs:
           WEATHER_PRODUCTION_ENABLED: ${{ vars.WEATHER_PRODUCTION_ENABLED }}
         run: node scripts/ci/check-release-scope.mjs
 
-  ci-api:
-    name: CI (API)
-    uses: ./.github/workflows/ci-api.yml
-    with:
-      deployment-builds: true
-    secrets: inherit
-    permissions:
-      packages: read
-      contents: read
-      security-events: write
-
-  ci-web:
-    name: CI (Web)
-    uses: ./.github/workflows/ci-web.yml
-    with:
-      deployment-builds: true
-    secrets: inherit
-    permissions:
-      packages: read
-      contents: read
-      id-token: write # lets ci-web request the short-lived cache token (ADR-0053)
-
-  api-client:
-    name: API client drift
-    uses: ./.github/workflows/ci-api-client.yml
-    secrets: inherit
-    permissions:
-      contents: read
-
-  build-api:
-    name: Build API image
-    uses: ./.github/workflows/build-api-image.yml
-    with:
-      tag: staging
-    secrets: inherit
+  promote:
+    name: Promote dev images
+    runs-on: ubuntu-latest
     permissions:
       contents: read
       packages: write
-      security-events: write
-
-  build-web:
-    name: Build web images
-    uses: ./.github/workflows/build-web-images.yml
-    with:
-      tag: staging
-    secrets: inherit
-    permissions:
-      contents: read
-      packages: write
-      security-events: write
+      checks: read
+    outputs:
+      tree: ${{ steps.promote.outputs.tree }}
+      digests: ${{ steps.promote.outputs.digests }}
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.3.1
+        with:
+          fetch-depth: 0
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@81c6f93d4bc991e510b342a00b419b3bb4efc5c6 # v4.7.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - id: promote
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: node scripts/ci/promote-images.mjs promote staging
 
   deploy:
     name: Deploy
-    needs: [release-scope, ci-api, ci-web, api-client, build-api, build-web]
-    # CI and every matching artifact must succeed.
-    if: >-
-      ${{
-        !cancelled() &&
-        needs.release-scope.result == 'success' &&
-        needs.ci-api.result == 'success' &&
-        needs.ci-web.result == 'success' &&
-        needs.api-client.result == 'success' &&
-        needs.build-api.result == 'success' &&
-        needs.build-web.result == 'success'
-      }}
+    needs: [release-scope, promote]
     uses: ./.github/workflows/deploy.yml
     with:
       environment: staging
       image_tag: sha-${{ github.sha }}
+      image_digests: ${{ needs.promote.outputs.digests }}
     secrets: inherit
     permissions:
       contents: read
       packages: read
+
+  # Only digests that staging deployed and accepted (smoke tests included) can
+  # reach production.
+  mark-verified:
+    name: Record staging-verified images
+    needs: [promote, deploy]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.3.1
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@81c6f93d4bc991e510b342a00b419b3bb4efc5c6 # v4.7.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - env:
+          TREE: ${{ needs.promote.outputs.tree }}
+          DEPLOY_IMAGE_DIGESTS: ${{ needs.promote.outputs.digests }}
+        run: node scripts/ci/promote-images.mjs verified

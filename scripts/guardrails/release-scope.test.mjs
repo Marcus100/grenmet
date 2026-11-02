@@ -40,11 +40,7 @@ test("promotion pipelines require scope validation and cannot invoke deferred de
       new URL(`../../.github/workflows/${file}`, import.meta.url),
       "utf8"
     );
-    assert.ok(
-      yaml.includes(
-        "needs: [release-scope, ci-api, ci-web, api-client, build-api, build-web]"
-      )
-    );
+    assert.ok(yaml.includes("needs: [release-scope, promote]"));
     assert.ok(yaml.includes("node scripts/ci/check-release-scope.mjs"));
     assert.equal(yaml.includes("build-weather-images.yml"), false);
     assert.equal(yaml.includes("deploy-weather.yml"), false);
@@ -113,6 +109,7 @@ test("build environment and Sentry selection keep staging isolated when its key 
   );
   assert.equal(sentryExpressions.length, 2);
   for (const [tag, ref, event, expected] of [
+    ["dev", "dev", "push", "build"],
     ["staging", "dev", "workflow_dispatch", "staging"],
     ["", "staging", "push", "staging"],
     ["latest", "main", "workflow_dispatch", "production"],

@@ -119,7 +119,7 @@ case "$*" in
     # Present locally only when the test says so; core.sh then skips the pull.
     [[ -n "$TEST_IMAGES_PRESENT" ]] || exit 1 ;;
   *"image inspect"*)
-    if [[ "$*" == *gd.barrels.environment* ]]; then if [[ "$TEST_FAILURE" == environment ]]; then echo wrong; else echo "$DEPLOY_ENV"; fi; elif [[ "$TEST_FAILURE" == revision ]]; then echo wrong; else echo "$GITHUB_SHA"; fi ;;
+    if [[ "$*" == *gd.barrels.build-once* ]]; then echo "\${TEST_BUILD_ONCE:-false}"; elif [[ "$TEST_FAILURE" == revision ]]; then echo wrong; else echo "$GITHUB_SHA"; fi ;;
   *"run --rm --no-deps prestart"*) [[ "$TEST_FAILURE" != migration ]] || exit 1 ;;
   *"up -d --no-deps --remove-orphans --wait"*) [[ "$TEST_FAILURE" != readiness ]] || exit 1 ;;
   # Only the network check reads the lock file as JSON; the release-scope check pipes
@@ -196,6 +196,8 @@ printf '/dev/test 50000000 1000 %s 10%% /\\n' "$free"
           TEST_UNHEALTHY_SERVICE: "",
           TEST_UNCHANGED_SERVICE: "",
           TEST_IMAGES_PRESENT: "",
+          TEST_BUILD_ONCE: "",
+          DEPLOY_IMAGE_DIGESTS: "",
           TEST_PINNED_SUBNET: "",
           TEST_LIVE_SUBNET: "",
           ROLLOUT_SETTLE_SECONDS: "0",
@@ -222,7 +224,6 @@ for (const environment of ["staging", "production"]) {
     "images",
     "backup",
     "revision",
-    "environment",
     "readiness",
     "none",
   ]) {
@@ -716,4 +717,33 @@ test("deploy pulls only images missing from the host", () => {
   assert.equal(present.result.status, 0, present.result.stderr);
   assert.equal(present.calls.includes("docker pull"), false);
   assert.match(present.result.stdout, NOTHING_TO_PULL);
+});
+
+const DIGEST_MISMATCH = /Artifact digest is not the promoted one/;
+
+test("a promoted deploy accepts only the digests the pipeline verified", () => {
+  // The digest list replaces the commit label check: build-once images keep
+  // the commit that built them.
+  const promoted = runDeploy({
+    environment: "production",
+    failure: "revision",
+    extraEnv: { DEPLOY_IMAGE_DIGESTS: "ghcr.io/example/api@sha256:abc" },
+  });
+  assert.equal(promoted.result.status, 0, promoted.result.stderr);
+  const other = runDeploy({
+    environment: "production",
+    extraEnv: { DEPLOY_IMAGE_DIGESTS: "ghcr.io/example/api@sha256:def" },
+  });
+  assert.notEqual(other.result.status, 0);
+  assert.match(other.result.stdout, DIGEST_MISMATCH);
+  assert.equal(other.calls.includes("run --rm"), false, "no migration ran");
+});
+
+test("a manual redeploy accepts a build-once image without its commit label", () => {
+  const { result } = runDeploy({
+    environment: "staging",
+    failure: "revision",
+    extraEnv: { TEST_BUILD_ONCE: "true" },
+  });
+  assert.equal(result.status, 0, result.stderr);
 });

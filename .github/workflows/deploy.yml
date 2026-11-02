@@ -11,6 +11,11 @@ on:
         required: false
         default: ""
         type: string
+      image_digests:
+        description: "Space-separated repo@sha256 digests a promotion verified (issue #1019)"
+        required: false
+        default: ""
+        type: string
       backup_gate_override:
         description: "Emergency only: reason to proceed past an enforced backup gate; recorded in the run summary"
         required: false
@@ -25,6 +30,11 @@ on:
       image_tag:
         description: "sha-<full commit SHA> matching the selected branch or release tag"
         required: true
+        type: string
+      image_digests:
+        description: "Optional: space-separated repo@sha256 digests to require (empty trusts the promoted tag)"
+        required: false
+        default: ""
         type: string
       backup_gate_override:
         description: "Emergency only: reason to proceed past an enforced backup gate (DEPLOY_BACKUP_GATE=enforce); recorded in the run summary"
@@ -216,6 +226,8 @@ jobs:
           BACKUP_GATE_SECRET_ACCESS_KEY: ${{ secrets.DO_SPACES_READ_SECRET_ACCESS_KEY }}
           # Set to 1 on a GitHub environment to replace routed services without a gap.
           ROLLING_DEPLOY: ${{ vars.ROLLING_DEPLOY }}
+          # Exact digests the promotion verified; core.sh refuses any other image.
+          DEPLOY_IMAGE_DIGESTS: ${{ inputs.image_digests }}
           # Optional tuning; unset uses core.sh's defaults (4 each, 1 = serial).
           ROLLOUT_PARALLEL: ${{ vars.ROLLOUT_PARALLEL }}
           PULL_PARALLEL: ${{ vars.PULL_PARALLEL }}
