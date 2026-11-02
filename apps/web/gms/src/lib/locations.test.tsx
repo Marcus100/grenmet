@@ -23,10 +23,10 @@ const ONLY_GRENADA: SiteLocation[] = LOCATIONS.map((location) => ({
 }));
 const GRENADA = defaultLocation(LOCATIONS);
 const CARRIACOU = LOCATIONS.find((l) => l.slug === "carriacou") as SiteLocation;
-const STATION_NAME = /Lauriston/;
-const MBIA_NAME = /MBIA/;
-const NATIONAL_LABEL = /^National forecast for Grenada, Carriacou/;
-const GRENADA_STATION_LINE = /^Now · MBIA$|^Midday reading · MBIA$/;
+const STATION_NAME = /Lauriston/u;
+const MBIA_NAME = /MBIA/u;
+const NATIONAL_LABEL = /^National forecast for Grenada, Carriacou/u;
+const GRENADA_STATION_LINE = /^Now · MBIA$|^Midday reading · MBIA$/u;
 
 function alert(areas: string[], identifier: string): PublicAlert {
   return {
