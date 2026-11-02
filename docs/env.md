@@ -292,33 +292,19 @@ site's secret is set; the same value must be set for the API. Elections
 
 | Site | Registry key | Secret | Cookie (default) |
 |---|---|---|---|
-| gms (weather) | `weather` | `WEATHER_SSO_CLIENT_SECRET` | `weather_session` |
 | docs | `docs` | `DOCS_SSO_CLIENT_SECRET` | `docs_session` |
 | signal | `signal` | `SIGNAL_SSO_CLIENT_SECRET` | `signal_session` |
 | mbia | `mbia` | `MBIA_SSO_CLIENT_SECRET` | `mbia_session` |
 | gmsdash | `gmsdash` | `GMSDASH_SSO_CLIENT_SECRET` | `gmsdash_session` |
 | bookings | `bookings` | `BOOKINGS_SSO_CLIENT_SECRET` | `bookings_session` |
 
-The weather site (gms) also hides its "Sign in" button unless
-`WEATHER_SHOW_SIGN_IN=true` (owner, 31 Oct 2026; `false` by default, the same
-for the header and the nav drawer). The switch only hides the button: the
-`/auth` routes, the callback and the account handling stay live, and the
-`WEATHER_SSO_CLIENT_SECRET` check still decides whether sign-in works at all.
-
-**Not wired in deploy yet.** `infra/docker/docker-compose.deploy.yml` (the
-`web-gms` service) and `scripts/production/render-env.py` do not pass
-`WEATHER_SHOW_SIGN_IN`, so a deployed site keeps the button hidden. Those are
-owner-merge files and were left unchanged. To show the button again, add one
-line to the `web-gms` environment block, next to `WEATHER_SSO_CLIENT_SECRET`:
-
-```yaml
-      WEATHER_SHOW_SIGN_IN: ${WEATHER_SHOW_SIGN_IN:-false}
-```
-
-and add `WEATHER_SHOW_SIGN_IN` to the GMS web entries in `render-env.py` so the
-value reaches the environment. The value is read when the pages are rendered,
-and the standing pages are static, so a change shows only after a redeploy
-(rebuild if it is read at build time).
+The weather site (gms) has no sign-in (owner, 1 Nov 2026), so it has no entry in
+this table and no `WEATHER_SSO_CLIENT_SECRET` or `WEATHER_SHOW_SIGN_IN`
+variables. Its removed variables were `WEATHER_SSO_CLIENT_SECRET`,
+`WEATHER_SHOW_SIGN_IN`, `WEATHER_SESSION_COOKIE_NAME`, `AUTH_APP_URL` and
+`AUTH_ALLOWED_RETURN_HOSTS`. The compose and `render-env.py` entries that still
+pass `WEATHER_SSO_CLIENT_SECRET` to `web-gms` are owner-merge files and are harmless
+until they are removed there.
 
 The units switch is on the home page only (it lives in the home hero card, not
 the header), so other pages show the saved choice without a control.
@@ -339,7 +325,6 @@ Secrets are optional GitHub environment secrets (32+ characters).
 | `AUTH_API_URL` | FastAPI base URL |
 | `AUTH_API_V1_STR` | API version prefix |
 | `AUTH_ALLOWED_RETURN_HOSTS` | Safe redirect hosts used by shared auth helpers |
-| `WEATHER_SHOW_SIGN_IN` | **gms only.** `true` shows the "Sign in" button in the header and the nav drawer; `false` (default) hides it. Only the button is affected; the sign-in routes keep working. Accepts exactly `true` or `false`. |
 | `CAP_API_URL` | **gms only.** FastAPI base URL for the unauthenticated public CAP endpoints (`/api/cap/*`) that render the current-warnings panel. Separate from `AUTH_API_URL` because these endpoints need no session |
 | `NEXT_PUBLIC_SENTRY_DSN` / `NEXT_PUBLIC_SENTRY_ENVIRONMENT` | Optional browser error reporting |
 | `NEXT_PUBLIC_POSTHOG_KEY` / `NEXT_PUBLIC_POSTHOG_HOST` | Optional browser analytics |
@@ -635,7 +620,7 @@ credentials into staging.
   `BILLING_CHECKOUT_CANCEL_URL`. Supply the complete bundle together.
 - Google: `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`.
 - Single sign-on (ADR-0017): `GAA_ADMIN_SSO_CLIENT_SECRET`, `CMS_SSO_CLIENT_SECRET`
-  (required); `EVENTS_SSO_CLIENT_SECRET`, `WEATHER_SSO_CLIENT_SECRET`,
+  (required); `EVENTS_SSO_CLIENT_SECRET`,
   `DOCS_SSO_CLIENT_SECRET`, `SIGNAL_SSO_CLIENT_SECRET`, `MBIA_SSO_CLIENT_SECRET`
   (optional; each switches on "Sign in" there). Elections has no sign-in.
 - CAP signing: `CAP_SIGNING_CERT`, `CAP_SIGNING_KEY` (PEM contents).

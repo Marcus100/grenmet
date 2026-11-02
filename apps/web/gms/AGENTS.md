@@ -6,34 +6,12 @@ Port **3003**. Public weather dashboard for Spice Island (Grenada) — daily for
 
 ## Auth pattern
 
-"Sign in" with the Barrels account (ADR-0017): `AccountButton` in the main bar
-on desktop and in the nav drawer on phones and tablets,
-routes `src/app/auth/{start,callback,me,logout}`, config `src/lib/auth-config.ts`
-(registry key `weather`). Off until `WEATHER_SSO_CLIENT_SECRET` is set. The
-button loads the account in the browser (`/auth/me`), so pages stay static.
-
-**Button hidden by default (owner, 31 Oct 2026).** `WEATHER_SHOW_SIGN_IN`
-(`src/lib/env.ts`, boolean `true`/`false`, default `false`) gates only the
-button's visibility, read by `signInVisible()` in `src/lib/auth-config.ts` and
-passed to `Header` (`showSignIn`) and `NavDrawer` (`showSignIn`), which hide the
-button and the drawer's "Your account" block. The auth routes, callback,
-`/auth/me` and account handling are unchanged. Tests: `header.test.tsx`,
-`nav-drawer.test.tsx`, `auth-config.test.ts`. Documented in `docs/env.md`.
-
-**Not wired in deploy yet.** `infra/docker/docker-compose.deploy.yml` (the
-`web-gms` service) and `scripts/production/render-env.py` do not pass
-`WEATHER_SHOW_SIGN_IN`, so a deployed site keeps the button hidden. Those are
-owner-merge files and were left unchanged. To show the button again, add one
-line to the `web-gms` environment block, next to `WEATHER_SSO_CLIENT_SECRET`:
-
-```yaml
-      WEATHER_SHOW_SIGN_IN: ${WEATHER_SHOW_SIGN_IN:-false}
-```
-
-and add `WEATHER_SHOW_SIGN_IN` to the GMS web entries in `render-env.py` so the
-value reaches the environment. The value is read when the pages are rendered,
-and the standing pages are static, so a change shows only after a redeploy
-(rebuild if it is read at build time).
+**No sign-in (owner decision, 1 Nov 2026).** The weather site has no public
+sign-in at all. There is no account button in the header or the nav drawer, no
+"Your account" block, and no `/auth/*` routes or `src/lib/auth-config.ts`. Every
+page is readable without an account. Do not add a sign-in entry point here
+without a new owner decision. The `weather` registry key (ADR-0017) is not
+used by this app. Issue #1006.
 
 ## Data sources — no database
 
