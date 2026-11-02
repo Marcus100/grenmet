@@ -166,7 +166,8 @@ export function NowCard({
   now?: Date;
   /** The midday product's temperature when there is no register reading. */
   fallbackTemperature: number | null;
-  station: string;
+  /** Observing station name; null when the place has none (no reading then). */
+  station: string | null;
   today?: TodayLink;
 }) {
   const tiles = current ? [...current.primary, ...current.extra] : [];
@@ -180,7 +181,11 @@ export function NowCard({
   // A fresh reading just says Now; an old one says when it was taken, never
   // passing for current (90-minute rule, `isStale`).
   let label = `Now · ${station}`;
-  if (current && isStale(current.observedAt, now)) {
+  if (station === null) {
+    // A place without a station never shows a reading; the national forecast
+    // in the day tabs is its only weather.
+    label = "No observing station here";
+  } else if (current && isStale(current.observedAt, now)) {
     const time = clock12(localTime(current.observedAt));
     const when = isOtherGrenadaDay(current.observedAt, now)
       ? `${localDay(current.observedAt)}, ${time}`

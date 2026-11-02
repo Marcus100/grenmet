@@ -10,6 +10,15 @@ const paths = sitemapPaths();
 const routes = [...routesOnDisk(APP_DIR), "/"];
 
 describe("sitemapPaths", () => {
+  it("lists each enabled place's home and weather page, and no others", () => {
+    expect(paths).toContain("/carriacou");
+    expect(paths).toContain("/carriacou/weather");
+    expect(paths.filter((path) => path.startsWith("/carriacou"))).toEqual([
+      "/carriacou",
+      "/carriacou/weather",
+    ]);
+  });
+
   it("lists the home page, every section root and every built link once", () => {
     expect(paths).toContain("/");
     for (const section of NAV_SECTIONS) {
