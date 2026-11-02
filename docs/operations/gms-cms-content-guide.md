@@ -61,6 +61,35 @@ homepage design). Use that name wherever the section is named.
   not add a personal email address, phone number, home place, or any other
   personal data to the byline or the body.
 
+**Based on an issued product**
+
+- Paste the issued product's address under Related links and tick Main link.
+  The card then says "Based on the <product name, issue time>" and links to
+  the live product page. Only the first product link is used; the product's
+  figures are never typed into the post.
+
+**Pinning**
+
+- Tick "Pin to the top of From the Desk" in the sidebar to keep a post right
+  after the official forecast cards, ahead of newer posts. Several pinned posts
+  show newest first. Only homepage editors can pin, because it moves the
+  homepage. Untick it when the post is no longer needed.
+
+**Social images**
+
+- Every social post needs one picture per platform, or none:
+  - Facebook: 1200 x 630 pixels (landscape).
+  - Instagram: 1080 x 1080 or 1080 x 1350 pixels (square or portrait).
+  - WhatsApp Channel: 1200 x 630 pixels (landscape).
+- Fill "Social image (all platforms)" for a picture that works everywhere. A
+  platform with its own picture uses that one instead.
+- Any platform left empty uses the social image, then the post's cover image.
+- The same social image is used as the page's sharing picture when someone
+  shares the link. The cover is the fallback.
+- The sizes are the ones the owner set (1 Nov 2026). Check them against each
+  platform's current help pages before a large campaign; this was not
+  re-checked against the platforms' documentation.
+
 ## Stories and explainers
 
 - Headline in sentence case, under about 70 characters.
