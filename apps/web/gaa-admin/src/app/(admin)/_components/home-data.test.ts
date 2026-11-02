@@ -48,17 +48,19 @@ describe("summarizeProducts", () => {
         published("midday", "2026-09-09T11:00"),
         published("evening", "2026-09-08T17:00"),
         published("marine", "2026-09-09T06:00"),
+        published("marine-forecast", "2026-09-09T05:00"),
       ],
       "2026-09-09"
     );
 
-    expect(summary.issued).toBe(2);
-    expect(summary.expected).toBe(4);
+    expect(summary.issued).toBe(3);
+    expect(summary.expected).toBe(5);
     expect(summary.schedule.map((item) => item.status)).toEqual([
       "issued",
       "issued",
       "pending",
       "pending",
+      "issued",
     ]);
     expect(summary.schedule[0]?.issuedAt).toBe("2026-09-09T05:30");
     expect(summary.bulletins.map((item) => item.kind)).toEqual(["marine"]);

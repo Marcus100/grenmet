@@ -17,6 +17,8 @@ export type WxproductsPreviewProductStatus200 =
         | "morning"
         | "midday"
         | "evening"
+        | "marine-forecast"
+        | "climate-bulletin"
         | "cyclone"
         | "marine"
         | "flood"

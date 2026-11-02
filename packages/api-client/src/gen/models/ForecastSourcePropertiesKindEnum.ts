@@ -8,6 +8,8 @@ export const forecastSourcePropertiesKindEnum = {
   midday: "midday",
   evening: "evening",
   outlook: "outlook",
+  "marine-forecast": "marine-forecast",
+  "climate-bulletin": "climate-bulletin",
   cyclone: "cyclone",
   marine: "marine",
   flood: "flood",

@@ -6,10 +6,10 @@ export default function MarineForecastPage() {
   return (
     <div className="space-y-6">
       <PageHeader
-        description="Current marine bulletins issued by the Grenada Meteorological Service."
+        description="The daily Marine Forecast (05:00 to 05:00) and current marine bulletins from the Grenada Meteorological Service."
         title="Marine forecast"
       />
-      <PublishedProducts kinds={["marine"]} />
+      <PublishedProducts kinds={["marine-forecast", "marine"]} />
     </div>
   );
 }

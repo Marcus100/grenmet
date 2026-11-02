@@ -31,6 +31,8 @@ PRODUCT_KINDS = (
     "midday",
     "evening",
     "outlook",
+    "marine-forecast",
+    "climate-bulletin",
     "cyclone",
     "marine",
     "flood",
