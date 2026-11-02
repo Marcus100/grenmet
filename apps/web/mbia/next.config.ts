@@ -36,7 +36,9 @@ export default withContentCollections(nextConfig).then((config) =>
   withSentryConfig(config as NextConfig, {
     org: "grenmet",
     // Comma-separated: one build uploads source maps to every environment's project.
-    project: process.env.SENTRY_PROJECT?.split(",").filter(Boolean),
+    project: process.env.SENTRY_PROJECT
+      ? process.env.SENTRY_PROJECT.split(",")
+      : undefined,
     release: { name: process.env.NEXT_PUBLIC_RELEASE },
     silent: false,
     widenClientFileUpload: true,

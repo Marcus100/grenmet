@@ -68,3 +68,15 @@ test("elections is the only documented exception", () => {
     );
   }
 });
+
+const EMPTY_PROJECT_LIST = /SENTRY_PROJECT\?\.split/;
+
+test("an unset SENTRY_PROJECT stays undefined, never an empty project list", () => {
+  // Sentry's build plugin fails on `project: []` (broke every image build).
+  for (const app of APPS) {
+    const config = read(`apps/web/${app}/next.config.ts`);
+    assert.doesNotMatch(config, EMPTY_PROJECT_LIST, app);
+    if (config.includes("SENTRY_PROJECT.split"))
+      assert.ok(config.includes(": undefined"), app);
+  }
+});
