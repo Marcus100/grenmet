@@ -83,9 +83,9 @@ src/app/
   enforces that no real route serves a planned address. The root single-segment
   `(weather)/[location]` route has `dynamicParams = false` and calls
   `notFound()` for other slugs: it answers unknown one-segment URLs with the
-  server-rendered 404 only while it is prerendered (today no second place is
-  enabled, so Next's router rejects every slug). If enabling a place makes it
-  render on demand, recheck `/this-page-does-not-exist` with curl. A CMS item
+  server-rendered 404 only while it is prerendered (the enabled places are
+  generated; Next's router rejects every other slug). Since Carriacou was
+  enabled (2 Nov 2026), recheck `/this-page-does-not-exist` with curl after a build. A CMS item
   or other dynamic page that calls `notFound()` for a missing item still gets
   the empty error document (not fixed).
 - **Masthead and /alerts status (30 Oct 2026):** the CAP warnings and the GMS
@@ -181,10 +181,14 @@ src/app/
 - **Locations:** places live in `src/lib/locations.ts`, keyed internally by airport
   locator (TGPY, TGPZ) with readable slugs. The default place (Grenada) uses the
   unprefixed URLs; others get `/<slug>` routes (`(weather)/[location]`,
-  `dynamicParams = false`). To add a place: wire its data in
+  `dynamicParams = false`). Enabled today: Grenada (MBIA station) and Carriacou
+  & Petite Martinique (`station: null`, no observing station). A place with no
+  station shows the national forecast, labelled "National forecast for Grenada,
+  Carriacou and Petite Martinique", and its Now card says "No observing station
+  here": never a reading, never a station name. To add a place: wire its data in
   `src/lib/location-data.ts`, then set `enabled: true`. The switcher appears only
-  when two or more places are enabled. Never show another station's reading for
-  a place.
+  when two or more places are enabled. The sitemap lists each enabled place's
+  home and `/weather` page. Never show another station's reading for a place.
 - **Search:** `SiteSearch` (masthead button or `/`) ranks `NAV_SECTIONS` pages plus
   published CMS articles from `/api/search` (read-only proxy) with
   `src/lib/search.ts`. New menu pages are searchable automatically.
