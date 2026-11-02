@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { DeskUpdates } from "../collections/desk-updates";
-import { optionLabel, toLivePost } from "./public-feed";
+import type { EditorialLink } from "./editorial-links";
+import { optionLabel, toArticle, toBasedOn, toLivePost } from "./public-feed";
 
 describe("optionLabel", () => {
   it("reads labels from the schema", () => {
@@ -31,5 +32,91 @@ describe("live post media", () => {
     expect(post("audio").mediaUrl).toBe("https://youtu.be/abc123");
     for (const kind of ["update", "satellite", "radar", "wind", "seas"])
       expect(post(kind).mediaUrl).toBeNull();
+  });
+});
+
+describe("desk post sharing and placement (owner, 1 Nov 2026)", () => {
+  const link = (overrides: Partial<EditorialLink>): EditorialLink => ({
+    url: "https://weather.barrels.gd/weather/issued/x",
+    type: "product",
+    ref: "00000000-0000-4000-8000-000000000001",
+    title: "Evening Forecast · issued 2026-10-27 18:00",
+    category: "forecast",
+    isMain: false,
+    ...overrides,
+  });
+
+  it("is based on the main product link, else the first product link", () => {
+    const main = link({
+      isMain: true,
+      ref: "11111111-1111-4111-8111-111111111111",
+    });
+    expect(toBasedOn([link({}), main])?.productId).toBe(
+      "11111111-1111-4111-8111-111111111111"
+    );
+    expect(toBasedOn([link({})])?.productId).toBe(
+      "00000000-0000-4000-8000-000000000001"
+    );
+  });
+
+  it("is not based on an outside link or on nothing", () => {
+    expect(
+      toBasedOn([
+        {
+          url: "https://example.com/story",
+          type: "link",
+          ref: null,
+          title: "A story",
+          category: "source",
+          isMain: false,
+        },
+      ])
+    ).toBeNull();
+    expect(toBasedOn([])).toBeNull();
+  });
+
+  it("shares the general social image first, then the cover", () => {
+    const base = {
+      id: 1,
+      slug: "updates/2026/11/a",
+      title: "A",
+      summary: "s",
+      body: null,
+      updatedAt: "2026-11-01T12:00:00Z",
+      relatedLinks: [],
+      kind: "announcement",
+      format: "standard",
+    };
+    const cover = { url: "/api/media/file/cover.jpg", alt: "c" };
+    const social = { url: "/api/media/file/social.jpg", alt: "s" };
+    expect(
+      toArticle("desk-updates", {
+        ...base,
+        image: cover,
+        social: { image: social },
+      }).socialImageUrl
+    ).toBe("/api/media/file/social.jpg");
+    expect(
+      toArticle("desk-updates", { ...base, image: cover, social: {} })
+        .socialImageUrl
+    ).toBe("/api/media/file/cover.jpg");
+  });
+
+  it("exposes pinned only as true; other posts are not pinned", () => {
+    const base = {
+      id: 1,
+      slug: "updates/2026/11/a",
+      title: "A",
+      summary: "s",
+      body: null,
+      updatedAt: "2026-11-01T12:00:00Z",
+      relatedLinks: [],
+      kind: "announcement",
+      format: "standard",
+    };
+    expect(toArticle("desk-updates", { ...base, pinned: true }).pinned).toBe(
+      true
+    );
+    expect(toArticle("desk-updates", base).pinned).toBe(false);
   });
 });
