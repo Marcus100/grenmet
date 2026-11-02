@@ -310,8 +310,7 @@ function runCheck(check, dir, base) {
     timeout: CHECK_TIMEOUT_MS,
   });
   const matched =
-    check.must_not_match &&
-    new RegExp(check.must_not_match, "u").test(result.output);
+    check.must_not_match && result.output.includes(check.must_not_match);
   const ok = result.status === 0 && !matched && !result.timedOut;
   return { name: check.name, ok, output: ok ? "" : tail(result.output) };
 }
