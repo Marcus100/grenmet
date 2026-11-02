@@ -22,7 +22,7 @@ function Loading({ title }: { title: string }) {
 /**
  * The sections under the hero (homepage v2, owner 1 Nov 2026): the
  * forecasters' words and the issued products first (one feed), then the
- * week ahead (folds into the feed in #1000), live imagery, stories, the climate record and
+ * live imagery, stories, the climate record and
  * explore. The alerts sign-up lives at the top of the footer.
  * Backgrounds alternate white / surface in this order. Shared by the home page
  * and the dated forecast days, so picking a day in the strip swaps only the

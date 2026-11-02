@@ -258,7 +258,18 @@ const ROW =
  * warning the desk posts wait behind "Earlier posts" so the official words lead.
  */
 export async function ForecastDesk() {
-  if (await isSectionHidden("desk")) return null;
+  if (await isSectionHidden("desk")) {
+    // Hiding the desk never hides the week's warnings: the sector card stays.
+    const only = await SectorDeskCard();
+    if (!only) return null;
+    return (
+      <HomeSection kicker="Plan your week" title="What it means for you">
+        <ul aria-label="What it means for you" className={ROW}>
+          {only}
+        </ul>
+      </HomeSection>
+    );
+  }
   const [content, products, alerts] = await Promise.all([
     fetchHomeContent(),
     fetchPublishedProducts(),
@@ -278,6 +289,8 @@ export async function ForecastDesk() {
   });
   // Awaited here, not rendered as an async element, so tests can render the row.
   const sectorCard = await SectorDeskCard();
+  const deskUnavailable =
+    updates.status === "unavailable" && feed.official.length === 0;
   const postCards = feed.posts.map((item) => (
     <DeskPostCard item={item} key={item.id} />
   ));
@@ -298,16 +311,22 @@ export async function ForecastDesk() {
           .
         </p>
       )}
+      {deskUnavailable && sectorCard && (
+        <p className={cn(NOTICE, "mb-3")} role="status">
+          Desk updates cannot be retrieved right now.
+        </p>
+      )}
       <FeedState
         count={
           feed.official.length +
           feed.posts.length +
-          (feed.missingBriefing ? 1 : 0)
+          (feed.missingBriefing ? 1 : 0) +
+          (sectorCard ? 1 : 0)
         }
         empty="No forecasts or desk posts are published yet."
         unavailable={
-          updates.status === "unavailable" &&
-          feed.official.length === 0 &&
+          deskUnavailable &&
+          !sectorCard &&
           "Desk updates cannot be retrieved right now."
         }
       >

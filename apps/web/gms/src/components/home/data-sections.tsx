@@ -69,7 +69,8 @@ export async function SectorDeskCard() {
   const quiet = tiles?.every((tile) => tile.items.length === 0) ?? false;
   return (
     <li className={DESK_CARD_ITEM}>
-      <section
+      {/* The heading id is fixed: this card renders once per page. */}
+      <article
         aria-labelledby="sector-card-title"
         className={cn(HOME_CARD, "flex h-full flex-col gap-3")}
       >
@@ -144,7 +145,7 @@ export async function SectorDeskCard() {
             .
           </p>
         )}
-      </section>
+      </article>
     </li>
   );
 }
