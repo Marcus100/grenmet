@@ -169,6 +169,34 @@ describe("buildDeskFeed", () => {
     ]);
   });
 
+  it("leads with at most three pinned posts; extra pins sort by date", () => {
+    const pinned = (id: string, publishedAt: string) => ({
+      ...post(id, publishedAt),
+      pinned: true,
+    });
+    const feed = buildDeskFeed({
+      level: "none",
+      now: NOW,
+      posts: [
+        post("u1", "2026-11-05T12:00:00Z"),
+        pinned("p1", "2026-11-04T12:00:00Z"),
+        pinned("p2", "2026-11-03T12:00:00Z"),
+        pinned("p3", "2026-11-02T12:00:00Z"),
+        pinned("p4", "2026-11-01T12:00:00Z"),
+        post("u2", "2026-10-31T12:00:00Z"),
+      ],
+      products: [],
+    });
+    expect(feed.posts.map((item) => item.id)).toEqual([
+      "p1",
+      "p2",
+      "p3",
+      "u1",
+      "p4",
+      "u2",
+    ]);
+  });
+
   it("keeps pinned posts inside the eight shown", () => {
     const others = Array.from({ length: 9 }, (_, i) =>
       post(`other-${i}`, `2026-11-01T0${i % 9}:00:00Z`)
