@@ -113,7 +113,11 @@ export function ProductPdfPreview({
       ) : null}
     </>
   );
-  let narrativeKey = isForecastKind(content.kind) ? "summary" : "synopsis";
+  // The Marine Forecast opens with a synopsis; the land forecasts with a summary.
+  let narrativeKey =
+    isForecastKind(content.kind) && content.kind !== "marine-forecast"
+      ? "summary"
+      : "synopsis";
   if (content.kind === "outlook") narrativeKey = "systems";
   const basicFields = [
     ["Issued (Grenada time)", content.values.issuedAt?.replace("T", " ")],

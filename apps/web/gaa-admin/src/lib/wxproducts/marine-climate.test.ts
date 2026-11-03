@@ -1,8 +1,14 @@
 import {
+  capInsertTargets,
+  displayProductFields,
   emptyProduct,
+  forecastSchedule,
+  isForecastKind,
+  isHiddenForecastField,
   nextClimateIssue,
   previousMonth,
   productFields,
+  withForecastSchedule,
 } from "@barrelsgd/gms/products";
 import { describe, expect, it } from "vitest";
 import { climateFigureRows } from "@/components/wxproducts/climate-figures";
@@ -17,17 +23,50 @@ describe("Marine Forecast", () => {
     expect(values.validTo).toBe("2026-12-01T05:00");
   });
 
-  it("asks for synopsis, winds, seas, small-craft advice and outlook", () => {
+  it("asks for synopsis, winds, seas and outlook", () => {
     const keys = productFields("marine-forecast").map((f) => f.key);
     for (const key of [
       "synopsis",
       "windDirFrom",
       "seaStateFrom",
       "swellDir",
-      "smallCraft",
       "outlook",
     ])
       expect(keys).toContain(key);
+  });
+
+  it("is a forecast whose small craft line comes from imported advisories", () => {
+    expect(isForecastKind("marine-forecast")).toBe(true);
+    const keys = productFields("marine-forecast").map((f) => f.key);
+    expect(keys).not.toContain("smallCraft");
+    expect(keys).not.toContain("smallCraftNotes");
+    expect(keys).toContain("advisories");
+    expect(
+      displayProductFields("marine-forecast").map((f) => f.key)
+    ).not.toContain("smallCraft");
+    expect(
+      productFields("marine-forecast").some((f) =>
+        isHiddenForecastField("marine-forecast", f)
+      )
+    ).toBe(false);
+  });
+
+  it("keeps its own 05:00 to 05:00 schedule under the forecast rules", () => {
+    const schedule = forecastSchedule("marine-forecast", "2026-11-30");
+    expect(schedule?.validFrom).toBe("2026-11-30T05:00");
+    expect(schedule?.validTo).toBe("2026-12-01T05:00");
+    const values = withForecastSchedule("marine-forecast", {
+      issuedAt: "2026-11-30T09:15",
+    });
+    expect(values.issuedAt).toBe("2026-11-30T05:00");
+    expect(values.validTo).toBe("2026-12-01T05:00");
+    expect(values.validity).toBe("05:00 today to 05:00 tomorrow");
+  });
+
+  it("offers only the synopsis for CAP text", () => {
+    expect(capInsertTargets("marine-forecast")).toEqual([
+      { label: "Synopsis", value: "synopsis" },
+    ]);
   });
 });
 

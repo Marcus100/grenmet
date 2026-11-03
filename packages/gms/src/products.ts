@@ -24,8 +24,18 @@ export const PRODUCT_KINDS = {
   ...BULLETIN_CATEGORIES,
 } as const;
 export type ProductKind = keyof typeof PRODUCT_KINDS;
+/**
+ * Forecasts: the three land forecasts and the 05:00 Marine Forecast. They share
+ * the forecaster stamp, the fixed area and the imported alerts and warnings in
+ * force (no typed impact or alert text).
+ */
 export function isForecastKind(kind: ProductKind) {
-  return kind === "morning" || kind === "midday" || kind === "evening";
+  return (
+    kind === "morning" ||
+    kind === "midday" ||
+    kind === "evening" ||
+    kind === "marine-forecast"
+  );
 }
 export type ProductValues = Record<string, string>;
 export interface ProductField {
@@ -82,6 +92,9 @@ export interface CapInsertTarget {
  * own narrative fields. Empty for a kind with no sensible insertion point.
  */
 export function capInsertTargets(kind: ProductKind): CapInsertTarget[] {
+  if (kind === "marine-forecast") {
+    return [{ label: "Synopsis", value: "synopsis" }];
+  }
   if (isForecastKind(kind)) {
     const targets: CapInsertTarget[] = [
       { label: "Forecast summary", value: "summary" },
@@ -100,12 +113,6 @@ export function capInsertTargets(kind: ProductKind): CapInsertTarget[] {
     return [
       { label: "Tropical waves and systems", value: "systems" },
       { label: "Cyclone formation outlook", value: "formation" },
-    ];
-  }
-  if (kind === "marine-forecast") {
-    return [
-      { label: "Synopsis", value: "synopsis" },
-      { label: "Small craft advice", value: "smallCraftNotes" },
     ];
   }
   if (isBulletin(kind)) {
@@ -667,11 +674,6 @@ export function productFields(kind: ProductKind): ProductField[] {
     }),
   ];
 }
-export const SMALL_CRAFT_ADVICE = [
-  "No advisory",
-  "Small craft caution",
-  "Small craft advisory",
-] as const;
 function marineForecastFields(): ProductField[] {
   return [
     ...issueFields,
@@ -681,13 +683,9 @@ function marineForecastFields(): ProductField[] {
     }),
     ...windFields("Winds", ""),
     ...marineFields("Seas and swell", ""),
-    field("Small craft", "smallCraft", "Small craft advice", {
-      options: SMALL_CRAFT_ADVICE,
-      required: true,
-    }),
-    field("Small craft", "smallCraftNotes", "Advice to small craft operators", {
-      type: "textarea",
-    }),
+    // Small craft and other warnings come from the alerts and CAP warnings in
+    // force, captured by FastAPI on save; nobody types them.
+    field("Issue details", "advisories", "Alerts and advisories in force"),
     field("Outlook", "outlook", "Outlook (next 24 hours)", {
       type: "textarea",
       required: true,
@@ -759,13 +757,15 @@ export function forecastSchedule(kind: ProductKind, date: string) {
   )
     return null;
   const issuedAt = `${date}T${ISSUE_TIMES[kind]?.[0]}`;
+  // The land forecasts end at 07:00; the Marine Forecast runs 05:00 to 05:00.
+  const endTime = kind === "marine-forecast" ? "05:00" : "07:00";
   const periods = [
     {
       date,
       prefix: "",
       label: kind === "evening" ? "Tonight" : productTitle(kind),
       validFrom: issuedAt,
-      validTo: `${followingDate(date, 1)}T07:00`,
+      validTo: `${followingDate(date, 1)}T${endTime}`,
     },
   ];
   if (kind === "evening") {
@@ -782,12 +782,13 @@ export function forecastSchedule(kind: ProductKind, date: string) {
   return {
     issuedAt,
     validFrom: issuedAt,
-    validTo: periods.at(-1)?.validTo ?? `${followingDate(date, 1)}T07:00`,
+    validTo: periods.at(-1)?.validTo ?? `${followingDate(date, 1)}T${endTime}`,
     periods,
   };
 }
 
 function forecastValidity(kind: ProductKind) {
+  if (kind === "marine-forecast") return MARINE_FORECAST_VALIDITY;
   if (kind === "evening") {
     return "Tonight (18:00–07:00) and four following days (07:00–07:00)";
   }
@@ -878,11 +879,7 @@ export function emptyProduct(
     values.issuedAt = `${date}T${issueTime}`;
     values.validFrom = values.issuedAt;
   }
-  if (kind === "marine-forecast") {
-    values.validTo = `${followingDate(date, 1)}T05:00`;
-    values.validity = MARINE_FORECAST_VALIDITY;
-    values.area = MARINE_FORECAST_AREA;
-  }
+  if (kind === "marine-forecast") values.area = MARINE_FORECAST_AREA;
   if (kind === "climate-bulletin") {
     values.month = previousMonth(date);
     values.validFrom = values.issuedAt || `${date}T10:00`;

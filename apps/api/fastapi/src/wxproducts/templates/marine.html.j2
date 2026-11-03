@@ -1,0 +1,62 @@
+{% extends "base.html.j2" %}
+{% block content %}
+    <section class="card headline">
+      {{ icon("waves", "headline-icon", "sky-ink") }}
+      <div>
+        <p class="eyebrow sky">Synopsis · {{ area }}</p>
+        <p class="summary">{{ synopsis or "—" }}</p>
+      </div>
+    </section>
+
+    <div class="row">
+      <section class="card conditions">
+        <h2 class="eyebrow">Winds</h2>
+        <ul class="tiles">
+          {% for tile in wind_tiles %}
+          <li>
+            {{ icon(tile.icon, "tile-icon") }}
+            <div><strong>{{ tile.value }}</strong><span>{{ tile.label }}</span></div>
+          </li>
+          {% else %}
+          <li class="empty">No winds supplied.</li>
+          {% endfor %}
+        </ul>
+      </section>
+
+      <section class="card conditions">
+        <h2 class="eyebrow">Seas and swell</h2>
+        <ul class="tiles">
+          {% for tile in sea_tiles %}
+          <li>
+            {{ icon(tile.icon, "tile-icon") }}
+            <div><strong>{{ tile.value }}</strong><span>{{ tile.label }}</span></div>
+          </li>
+          {% else %}
+          <li class="empty">No sea conditions supplied.</li>
+          {% endfor %}
+        </ul>
+      </section>
+    </div>
+
+    {% if advisories %}
+    {% include "_advisories.html.j2" %}
+    {% else %}
+    <section class="advisories">
+      <h2 class="eyebrow">Alerts and advisories in force</h2>
+      <p class="muted">No CAP alerts or GMS bulletins were in force at issue.</p>
+    </section>
+    {% endif %}
+    {% if all_clear or not complete %}
+    <ul class="note-list">
+      {% for item in all_clear %}
+      <li class="note">All clear (information): {{ item.title }} bulletin, {{ item.valid }}</li>
+      {% endfor %}
+      {% if not complete %}<li class="note">Some warning sources were unavailable at issue; check weather.gd.</li>{% endif %}
+    </ul>
+    {% endif %}
+
+    <section class="card">
+      <h2 class="eyebrow">Outlook · next 24 hours</h2>
+      <p>{{ outlook or "—" }}</p>
+    </section>
+{% endblock %}

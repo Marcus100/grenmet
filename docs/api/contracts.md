@@ -357,9 +357,18 @@ tomorrow". Fields: `issuedAt`, `validFrom`, `validTo`, `validity`, `area`,
 `forecaster`, `synopsis`, wind (`windDirFrom`, `windDirTo`, `windSpeedMin`,
 `windSpeedMax`, `windGust`, `wind`), sea (`seaStateFrom`, `seaStateTo`,
 `waveHeightMin`, `waveHeightMax`, `seaState`), swell (`swellDir`, `swellPeriod`,
-`swellHeight`), `smallCraft`, `smallCraftNotes` and `outlook`. Like the land
-forecasts it may be published ahead of its issue time ("Issue time cannot be in
-the future" does not apply).
+`swellHeight`), `advisories` and `outlook`. Like the land forecasts it may be
+published ahead of its issue time ("Issue time cannot be in the future" does not
+apply), and it imports the CAP alerts and GMS bulletins in force: on save and
+preview FastAPI stores them as a JSON snapshot in `advisories` (the same path as
+the morning, midday and evening forecasts), so forecasters do not type impact,
+alert or small craft text. The earlier `smallCraft` and `smallCraftNotes` fields
+were removed (a write that sends them gets "Unknown product field"); revisions
+saved with them still render as PDFs, which ignore them. Entry and display use
+mph for wind and feet for waves and swell; storage stays in knots and metres.
+The PDF (`GET /wxproducts/products/{id}/revisions/{revision}/pdf`, and the draft
+preview) has a marine sheet: synopsis, winds, seas, alerts and advisories in
+force, and outlook.
 
 **Climate Bulletin** (`climate-bulletin`, title "Climate Bulletin"). Monthly,
 issued on the 15th, reviewing the month before. `month` is `YYYY-MM`; when empty

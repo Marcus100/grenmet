@@ -83,6 +83,7 @@ import { WarningRaisedNote } from "./warning-raised-note";
 const DAY_KEY_PREFIX = /^(day[1-4])/u;
 
 function productTabLabel(kind: ProductKind) {
+  if (kind === "marine-forecast") return "Marine";
   if (isForecastKind(kind)) return kind.charAt(0).toUpperCase() + kind.slice(1);
   if (kind === "tsunami") return "Tsunami / Earthquake";
   return PRODUCT_KINDS[kind];
@@ -107,10 +108,10 @@ function withIssuer(
   values: ProductValues,
   forecaster: string
 ): ProductValues {
-  if (kind === "marine-forecast")
-    return { ...values, area: MARINE_FORECAST_AREA, forecaster };
   if (!isForecastKind(kind)) return { ...values, forecaster };
-  return { ...values, area: FORECAST_AREA, forecaster };
+  const area =
+    kind === "marine-forecast" ? MARINE_FORECAST_AREA : FORECAST_AREA;
+  return { ...values, area, forecaster };
 }
 const DAY_SECTION = /^Day (\d)$/u;
 const LEGACY_BY_GROUP: Record<string, string[]> = {
@@ -146,7 +147,6 @@ const PERIOD_PREFIXES = ["", "day1", "day2", "day3", "day4"];
 function isComputedField(kind: ProductKind, key: string) {
   if (key === "forecaster") return true;
   if (isComposedForecastField(key) && composedFrom(kind, key)) return true;
-  if (kind === "marine-forecast") return COMPUTED_FORECAST_FIELDS.includes(key);
   if (kind === "climate-bulletin") return CLIMATE_COMPUTED_FIELDS.includes(key);
   return (
     isForecastKind(kind) &&

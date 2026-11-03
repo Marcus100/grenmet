@@ -255,7 +255,7 @@ async def save_product(
         body.guidance = await guidance.validate(body.guidance)
     snapshot = (
         await advisories.snapshot(cap_session, session)
-        if body.kind in validation.ISSUE_HOURS and body.action != "withdraw"
+        if body.kind in validation.ADVISORY_KINDS and body.action != "withdraw"
         else None
     )
     try:
@@ -509,7 +509,7 @@ async def preview_product(
     response.headers.update(NO_STORE)
     snapshot = (
         await advisories.snapshot(cap_session, weather_session)
-        if body.kind in validation.ISSUE_HOURS
+        if body.kind in validation.ADVISORY_KINDS
         else None
     )
     return validation.preview(
@@ -524,7 +524,7 @@ async def preview_product(
     response_class=Response,
     status_code=200,
     summary="Render a draft product PDF preview",
-    description="Renders unsaved forecast, bulletin or outlook content with the issued PDF layout, watermarked as a draft preview. Nothing is saved or published.",
+    description="Renders unsaved forecast (including the Marine Forecast), bulletin, outlook or Climate Bulletin content with the issued PDF layout, watermarked as a draft preview. Nothing is saved or published.",
     tags=["wxproducts"],
     responses={
         200: {
@@ -551,7 +551,7 @@ async def preview_product_pdf(
         raise ProductValidationError(["PDF preview is not available for this product"])
     snapshot = (
         await advisories.snapshot(cap_session, weather_session)
-        if body.kind in validation.ISSUE_HOURS
+        if body.kind in validation.ADVISORY_KINDS
         else None
     )
     values = validation.normalize(
@@ -579,7 +579,7 @@ async def preview_product_pdf(
     response_class=Response,
     status_code=200,
     summary="Download a saved weather revision PDF",
-    description="Staff-only saved revision export; drafts and historical publications are explicitly labelled. Does not publish or change records. The download file name is human and dated, for example 'GMS Morning Forecast 2026-10-23 0700 (rev 3).pdf'.",
+    description="Staff-only saved revision export; drafts and historical publications are explicitly labelled. Does not publish or change records. Every authored kind has a sheet, including the Marine Forecast and Climate Bulletin; a kind with no layout returns 422. The download file name is human and dated, for example 'GMS Morning Forecast 2026-10-23 0700 (rev 3).pdf'.",
     tags=["wxproducts"],
     responses={
         200: {
