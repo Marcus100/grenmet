@@ -1,5 +1,6 @@
 import { type ProductKind, productTitle } from "@barrelsgd/gms/products";
 import Link from "next/link";
+import { ImportedWatch } from "@/components/pages/imported-watch";
 import { fetchPublishedProducts } from "@/lib/products";
 export async function PublishedProducts({ kinds }: { kinds: ProductKind[] }) {
   const result = await fetchPublishedProducts(
@@ -47,6 +48,9 @@ export async function PublishedProducts({ kinds }: { kinds: ProductKind[] }) {
                       {(product.values.validTo ?? "").replace("T", " ")}{" "}
                       (Grenada time) · Revision {product.revision}
                     </p>
+                    {product.kind === "marine-forecast" ? (
+                      <ImportedWatch advisories={product.values.advisories} />
+                    ) : null}
                     {product.values.notice ? (
                       <p>
                         {product.values.notice} · {product.values.level}
