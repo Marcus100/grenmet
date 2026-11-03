@@ -2,6 +2,9 @@ import { render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import { FeedSecurityFlag } from "@/components/cap/feed-security-flag";
 
+const SWITCH_BY = /switch to https by 2026-11-17/u;
+const NO_LONGER_FETCHED = /no longer fetched since 2026-10-15/u;
+
 describe("FeedSecurityFlag", () => {
   it("tells staff when a plain-http feed will stop being fetched", () => {
     render(
@@ -13,7 +16,7 @@ describe("FeedSecurityFlag", () => {
         }}
       />
     );
-    expect(screen.getByText(/switch to https by 2026-11-17/)).toBeVisible();
+    expect(screen.getByText(SWITCH_BY)).toBeVisible();
   });
 
   it("says plainly that an expired feed is no longer fetched", () => {
@@ -26,15 +29,17 @@ describe("FeedSecurityFlag", () => {
         }}
       />
     );
-    expect(
-      screen.getByText(/no longer fetched since 2026-10-15/)
-    ).toBeVisible();
+    expect(screen.getByText(NO_LONGER_FETCHED)).toBeVisible();
   });
 
   it("shows nothing for an https feed", () => {
     const { container } = render(
       <FeedSecurityFlag
-        feed={{ insecure_since: null, grace_ends_at: null, grace_expired: false }}
+        feed={{
+          insecure_since: null,
+          grace_ends_at: null,
+          grace_expired: false,
+        }}
       />
     );
     expect(container).toBeEmptyDOMElement();
