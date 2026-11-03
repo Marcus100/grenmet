@@ -654,7 +654,7 @@ class ApiUnderTest:
             try:
                 item = json.loads(line)
                 statuses[str(item["path"])] = int(item["status"])
-            except ValueError, KeyError, TypeError:
+            except (ValueError, KeyError, TypeError):
                 continue
         return statuses
 
