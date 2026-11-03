@@ -47,6 +47,10 @@ GOOD_FEED = "https://feeds.test/cap.rss"
 
 BAD_FEED_URLS = [
     "http://feeds.test/cap.rss",  # not https
+    "http://feeds.test:443/cap.rss",  # http on 443 is still http
+    "https://feeds.test:8443/cap.rss",  # not port 443
+    "https://feeds.test:80/cap.rss",
+    "https://feeds.test:99999/cap.rss",  # invalid port
     "javascript:alert(1)",
     "file:///etc/passwd",
     "ftp://feeds.test/cap.rss",
@@ -80,7 +84,7 @@ async def test_a_bad_feed_url_is_refused_at_create_with_a_generic_422(
     assert info.value.status_code == 422
     message = str(info.value)
     assert message == (
-        "Feed URL must be an https address on a public host, "
+        "Feed URL must be an https address on port 443 on a public host, "
         "with no username or password."
     )
     for leaked in ("127.0.0.1", "10.0.0.5", "localhost", "internal", "secret"):
@@ -106,6 +110,10 @@ async def test_a_bad_feed_url_is_refused_at_update_and_the_row_is_unchanged(
         )
     await db_async.refresh(feed)
     assert feed.url == GOOD_FEED
+
+
+async def test_an_explicit_port_443_is_accepted() -> None:
+    validation.validate_feed_url("https://feeds.test:443/cap.rss")
 
 
 async def test_a_good_feed_url_is_accepted_at_create_and_update(
