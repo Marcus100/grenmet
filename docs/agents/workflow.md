@@ -24,7 +24,8 @@ agent instructions. Nothing here relaxes a root rule.
 - **Local API test selection:** `pnpm verify:changed` runs only the pytest folders
   of the API domains the diff touches (`src/<domain>` maps to `tests/<domain>`).
   `src/auth` and `src/main.py` (shared by every request) run the full suite, and a
-  domain with no tests of its own does too. CI runs the full suite on every push.
+  domain with no tests of its own does too. CI runs the full API suite for any code
+  change and skips it only for docs-only diffs (see Job scope in `docs/testing.md`).
   Use `pnpm verify:changed --full` before a risky merge. The rules are in
   `scripts/verification/README.md`.
 - If a worktree shows ` T .agents/skills`, that worktree was created by a tool that

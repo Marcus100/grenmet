@@ -16,7 +16,7 @@ const apiGate = readWorkflow("ci-api.yml")
   .split("      - name: Check all jobs")[1]
   .split("        run: |\n")[1];
 const needsExpression =
-  /\$\{\{ needs\.([a-z-]+)\.(result|outputs\.api|outputs\.surface) \}\}/gu;
+  /\$\{\{ needs\.([a-z-]+)\.(result|outputs\.api|outputs\.surface|outputs\.python|outputs\.collectors) \}\}/gu;
 
 function webResults(selected = true) {
   return Object.fromEntries(
@@ -39,6 +39,8 @@ function webResults(selected = true) {
         outputs: {
           web: selected ? '[{"app":"auth"}]' : "[]",
           weather: selected ? '[{"name":"surface"}]' : "[]",
+          webtests: selected ? "true" : "false",
+          storage: selected ? "true" : "false",
         },
       },
     ])
@@ -56,7 +58,12 @@ test("web gate accepts intentional empty selection, rejects unexpected skips and
   const omitted = webResults(false);
   omitted["container-smoke"].result = "skipped";
   omitted["weather-images"].result = "skipped";
+  for (const name of ["tests", "gaa-admin-tests", "storage-integration"])
+    omitted[name].result = "skipped";
   assert.equal(runWeb(omitted), 0);
+  const failedUnselected = structuredClone(omitted);
+  failedUnselected.tests.result = "failure";
+  assert.notEqual(runWeb(failedUnselected), 0);
   for (const name of Object.keys(webResults())) {
     for (const result of ["failure", "cancelled", "skipped"]) {
       const jobs = webResults();
@@ -68,11 +75,18 @@ test("web gate accepts intentional empty selection, rejects unexpected skips and
   assert.notEqual(runWeb(omitted), 0);
 });
 
-test("API gate permits only intentionally omitted Docker and SURFACE checks", () => {
-  const run = (overrides = {}, selected = "true", surface = selected) => {
+test("API gate permits only intentionally omitted checks", () => {
+  const run = (
+    overrides = {},
+    selected = "true",
+    surface = selected,
+    suites = {}
+  ) => {
     const script = apiGate.replace(needsExpression, (_match, name, field) => {
       if (field === "outputs.api") return selected;
       if (field === "outputs.surface") return surface;
+      if (field === "outputs.python") return suites.python ?? "true";
+      if (field === "outputs.collectors") return suites.collectors ?? "true";
       return overrides[name] ?? "success";
     });
     return spawnSync("bash", ["-e"], { input: script }).status;
@@ -103,6 +117,27 @@ test("API gate permits only intentionally omitted Docker and SURFACE checks", ()
           0,
           `${job}: ${result}`
         );
+  // Unselected suites may be skipped, but a failure still blocks.
+  const python = ["quality", "security", "docs"];
+  const unselected = { python: "false", collectors: "false" };
+  const skipped = Object.fromEntries(
+    [...python, "collectors"].map((job) => [job, "skipped"])
+  );
+  assert.equal(run(skipped, "true", "true", unselected), 0);
+  for (const job of [...python, "collectors"])
+    assert.notEqual(
+      run({ ...skipped, [job]: "failure" }, "true", "true", unselected),
+      0,
+      job
+    );
+  assert.notEqual(
+    run({ quality: "skipped" }, "true", "true", { collectors: "false" }),
+    0
+  );
+  assert.notEqual(
+    run({ collectors: "skipped" }, "true", "true", { python: "false" }),
+    0
+  );
 });
 
 const SURFACE_DB_IMAGE =
