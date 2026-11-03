@@ -4,6 +4,7 @@ import { PreferencesStoreProvider } from "@barrelsgd/theme/components/preference
 import { ThemeBootScript } from "@barrelsgd/theme/components/theme-boot";
 import { PREFERENCE_DEFAULTS } from "@barrelsgd/theme/lib/preferences-config";
 import { PostHogProvider } from "@barrelsgd/ui/components/posthog-provider";
+import { PublicEnvScript } from "@barrelsgd/ui/components/public-env-script";
 import type { Metadata } from "next";
 import { ApiProvider } from "@/components/providers/ApiProvider";
 import { MotionProvider } from "@/components/providers/motion-provider";
@@ -57,6 +58,7 @@ export default function RootLayout({
       suppressHydrationWarning
     >
       <head>
+        <PublicEnvScript />
         {/* Applies theme/layout prefs before hydration to avoid flicker (see @barrelsgd/theme). */}
         <ThemeBootScript />
       </head>

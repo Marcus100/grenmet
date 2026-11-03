@@ -1,3 +1,4 @@
+import { readPublicEnv } from "@barrelsgd/ui/lib/public-env";
 import { createEnv } from "@t3-oss/env-nextjs";
 import { z } from "zod";
 
@@ -29,7 +30,7 @@ export const env = createEnv({
       .default("http://localhost:3009"),
   },
   runtimeEnv: {
-    NEXT_PUBLIC_SITE_URL: process.env.NEXT_PUBLIC_SITE_URL,
+    NEXT_PUBLIC_SITE_URL: readPublicEnv("NEXT_PUBLIC_SITE_URL"),
     AUTH_API_URL: process.env.AUTH_API_URL,
     AUTH_API_V1_STR: process.env.AUTH_API_V1_STR,
     AUTH_APP_URL: process.env.AUTH_APP_URL,

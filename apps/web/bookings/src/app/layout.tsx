@@ -1,4 +1,5 @@
 import "./globals.css";
+import { PublicEnvScript } from "@barrelsgd/ui/components/public-env-script";
 
 import { SkipLink } from "@barrelsgd/ui/components/ui/skip-link";
 import type { Metadata } from "next";
@@ -27,6 +28,7 @@ export default function RootLayout({
   return (
     <html className={inter.variable} lang="en">
       <body className="bg-background text-foreground min-h-screen font-sans antialiased">
+        <PublicEnvScript />
         <SkipLink />
         {children}
       </body>

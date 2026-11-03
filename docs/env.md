@@ -16,11 +16,9 @@ and provider setup steps, see [Integration readiness](operations/integration-rea
 
 ## Public settings at run time
 
-**Lands with PR #1025.** On `origin/dev` today `NEXT_PUBLIC_*` values are still
-compiled into each web image and a change needs a rebuild. After PR #1025 the web
-images are the same for staging and production (build once, promote by digest;
-see [release runbook](operations/release-runbook.md#build-once-promote-by-digest))
-and seven public settings are read when the app runs: `NEXT_PUBLIC_SITE_URL`,
+The web images are the same for staging and production (build once, promote by
+digest; see [release runbook](operations/release-runbook.md#build-once-promote-by-digest)),
+and seven public settings are read when the app runs, not when the image is built: `NEXT_PUBLIC_SITE_URL`,
 `NEXT_PUBLIC_API_URL`, `NEXT_PUBLIC_ENVIRONMENT`, `NEXT_PUBLIC_SENTRY_DSN`,
 `NEXT_PUBLIC_SENTRY_ENVIRONMENT`, `NEXT_PUBLIC_RELEASE` and
 `NEXT_PUBLIC_TURNSTILE_SITE_KEY`.
@@ -225,7 +223,7 @@ the API image and the local source mount contain the same migration assets.
 | `TURNSTILE_ENABLED` | GitHub environment **variable** (staging and production); API container only |
 | `TURNSTILE_SECRET_KEY` | GitHub environment **secret** (staging and production); API container only |
 | `EMAIL_HASH_PEPPER` | GitHub environment **secret** (staging and production); API, worker and prestart containers. Must be set before deploying the release that hashes email addresses |
-| `NEXT_PUBLIC_TURNSTILE_SITE_KEY` (mbia, signal, docs, gms) | GitHub environment **variable**. Public by design. On `origin/dev` `build-web-images.yml` passes it as a Docker build arg and a change needs an image rebuild; from PR #1025 `deploy.yml` passes it to the web containers, which read it at run time (see "Public settings at run time"), so a change needs a redeploy only |
+| `NEXT_PUBLIC_TURNSTILE_SITE_KEY` (mbia, signal, docs, gms) | GitHub environment **variable**; `deploy.yml` passes it to the web containers, which read it at run time (see "Public settings at run time" below). Public by design. Changing it needs a redeploy, not a rebuild |
 | `NEXT_PUBLIC_TURNSTILE_SITE_KEY` (barrels.gd) | Vercel project environment variable; `apps/web/barrels/vercel.json` passes it to `build.mjs` as an argument, which writes `dist/turnstile-config.mjs` |
 | `SUBSCRIPTIONS_SITE_URLS` | JSON object of mailing-list key to public site origin, e.g. `{"signal":"https://signal.barrels.gd","barrels":"https://barrels.gd"}` (local default `{"signal":"http://localhost:3004","barrels":"http://localhost:4173"}`; the Barrels entry is the static site's local preview origin). Confirm and unsubscribe links redirect only to these origins |
 | `SUBSCRIPTIONS_SITE_URLS` | JSON object of mailing-list key to public site origin, e.g. `{"signal":"https://signal.barrels.gd","barrels":"https://barrels.gd","gms-alerts":"https://weather.barrels.gd"}` (local default `{"signal":"http://localhost:3004","barrels":"http://localhost:4173","gms-alerts":"http://localhost:3003"}`; the Barrels entry is the static site's local preview origin). Confirm and unsubscribe links redirect only to these origins |
@@ -372,7 +370,7 @@ Secrets are optional GitHub environment secrets (32+ characters).
 | `CAP_API_URL` | **gms only.** FastAPI base URL for the unauthenticated public CAP endpoints (`/api/cap/*`) that render the current-warnings panel. Separate from `AUTH_API_URL` because these endpoints need no session |
 | `NEXT_PUBLIC_SENTRY_DSN` / `NEXT_PUBLIC_SENTRY_ENVIRONMENT` | Optional browser error reporting |
 | `NEXT_PUBLIC_POSTHOG_KEY` / `NEXT_PUBLIC_POSTHOG_HOST` | Optional browser analytics |
-| `NEXT_PUBLIC_SITE_URL` | Canonical public address, used as `metadataBase` so share previews get absolute links. On `origin/dev` it is set at **build** time: CI passes `https://<host>.barrels.gd` (gms uses `weather`, from `scripts/ci/release-scope.mjs`); from PR #1025 the container supplies it at run time. Elections sets it in Vercel. Defaults to the local port. gms, docs, events, elections, signal and mbia read it. |
+| `NEXT_PUBLIC_SITE_URL` | Canonical public address, used as `metadataBase` so share previews get absolute links. Read at run time from the container (`docker-compose.deploy.yml` sets `https://<host>.${BASE_DOMAIN}`); the image build passes an address only for pages prerendered at build. Elections sets it in Vercel. Defaults to the local port. gms, docs, events, elections, signal and mbia read it. |
 
 ### gaa-admin (`apps/web/gaa-admin/.env.local`)
 
@@ -419,7 +417,7 @@ The public CAP alert hub plus the staff warning desk under `/desk`. No database.
 | `AUTH_APP_URL` / `AUTH_API_URL` / `AUTH_API_V1_STR` | Desk only: the auth app (default `http://localhost:3000`), FastAPI (default `http://localhost:8000`) and its prefix (default `/api/v1`) |
 | `CAP_SESSION_COOKIE_NAME` | Desk only: host-only session cookie (default `cap_desk_session`) |
 | `CAP_SSO_CLIENT_SECRET` | Desk only: same value as the API's; without it desk sign-in says it is switched off and `/auth/callback` returns 503 |
-| `NEXT_PUBLIC_SITE_URL` | Canonical address for absolute links (build-time on `origin/dev`, run time from PR #1025; default `http://localhost:3010`) |
+| `NEXT_PUBLIC_SITE_URL` | Canonical address for absolute links (run time; default `http://localhost:3010`) |
 | `NEXT_PUBLIC_SENTRY_DSN` / `NEXT_PUBLIC_SENTRY_ENVIRONMENT` / `NEXT_PUBLIC_RELEASE` | Optional server-side error reporting. No client SDK and no analytics, to keep pages light |
 
 ### gmsdash (`apps/web/gmsdash/.env.local`)
@@ -440,7 +438,7 @@ Barrels Bookings. Only `/studio` needs sign-in; the public booking pages (`/[slu
 | Variable | Purpose |
 |---|---|
 | `AUTH_API_URL` / `AUTH_API_V1_STR` / `AUTH_APP_URL` | FastAPI base URL (`http://api:8000` in deployment), API prefix and the Barrels sign-in app |
-| `NEXT_PUBLIC_TURNSTILE_SITE_KEY` | Optional public Turnstile key for the booking form. Unset: no widget and no token. Inlined at build time on `origin/dev`; read at run time from PR #1025 |
+| `NEXT_PUBLIC_TURNSTILE_SITE_KEY` | Optional public Turnstile key for the booking form. Unset: no widget and no token. Read at run time by the web container |
 | `BOOKINGS_SESSION_COOKIE_NAME` | Host-only session cookie (default `bookings_session`) |
 | `BOOKINGS_SSO_CLIENT_SECRET` | Same value as the API's registration for `bookings`; without it `/auth/callback` returns 503 and nobody can sign in. Optional in deployment (empty keeps sign-in off) |
 | `NEXT_PUBLIC_SENTRY_DSN` / `NEXT_PUBLIC_SENTRY_ENVIRONMENT` / `NEXT_PUBLIC_RELEASE` | Optional error reporting |
@@ -628,7 +626,7 @@ configuration, not provider-side connectivity or successful delivery.
 `NEXT_PUBLIC_*` variables are public: Next.js compiles most of them into browser
 bundles, so configure them in the build's GitHub environment and rebuild the image
 after changes. The exception is the seven settings listed in "Public settings at
-run time" (lands with PR #1025): the container supplies those, and a redeploy is
+run time": the container supplies those, and a redeploy is
 enough. PostHog keys stay build-time. Never put Stripe secret keys, webhook secrets,
 Sentry upload tokens, or storage credentials in public variables.
 
@@ -803,7 +801,7 @@ optional, secret or public, configured, and verified. A configured value is not
 proof of connectivity: verify OAuth callbacks, email delivery, storage upload
 and download, Stripe webhook signatures, analytics events, and Sentry events
 separately. Browser `NEXT_PUBLIC_*` values require a new web image build after
-they change, except the run-time settings above (from PR #1025).
+they change, except the run-time settings above.
 
 
 ### WxWatch read migration

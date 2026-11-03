@@ -96,6 +96,8 @@ The draft's generated notes only list pull request titles. Before publishing, ad
 
 ## 5. Verify prod
 
+- `/runtime-env.js` on each web app carries that environment's public settings (site and API address, Sentry, Turnstile key). It is cached up to 60 seconds, including at Cloudflare, so a settings change reaches browsers within a minute.
+
 - API health: `curl -fsS https://api.barrels.gd/api/v1/utils/health-check/`
 - Spot-check app domains: `auth` / `admin` / `docs` / `weather` / `signal` / `mbia` / `events` / `hapi` `.barrels.gd`.
 
@@ -199,7 +201,7 @@ and the build-time Sentry endpoint. The first dev push after the merge builds ev
 image (no earlier tree tags), and staging must deploy a tree before production can
 release it.
 
-**Runtime settings (PR #1025).** Web images no longer carry the environment's
+**Runtime settings.** Web images no longer carry the environment's
 public settings; see [Public settings at run time](../env.md#public-settings-at-run-time).
 On the first staging deploy check `/runtime-env.js` on each app returns staging
 values and that Sentry and Turnstile load. The file is cached up to 60 seconds, so
@@ -247,7 +249,7 @@ pull request before it merges. Do not run a migration `down` in production to ro
 back: restore from the backup named in the release notes only when data is wrong,
 with the owner (see [restore drill](restore-drill.md) and the backup gate above).
 
-**Web public settings.** After PR #1025 a wrong site, API or Sentry value is fixed
+**Web public settings.** A wrong site, API or Sentry value is fixed
 by correcting the GitHub environment variable and redeploying; no rebuild.
 
 ### CMS migrations (Payload, database `gms_cms`)

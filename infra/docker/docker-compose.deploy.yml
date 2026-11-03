@@ -449,6 +449,13 @@ services:
     image: ghcr.io/${GHCR_OWNER}/barrelsgd-web-cms-migrate:${WEB_TAG}
     restart: "no"
     environment: &cms-environment
+      # Public settings read at run time (issue #1019): one image serves every environment.
+      # Shared with web-cms through the cms-environment anchor.
+      NEXT_PUBLIC_SITE_URL: https://cms.${BASE_DOMAIN}
+      NEXT_PUBLIC_API_URL: https://api.${BASE_DOMAIN}
+      NEXT_PUBLIC_ENVIRONMENT: ${ENVIRONMENT}
+      NEXT_PUBLIC_RELEASE: ${SENTRY_RELEASE:-}
+      NEXT_PUBLIC_TURNSTILE_SITE_KEY: ${NEXT_PUBLIC_TURNSTILE_SITE_KEY:-}
       DATABASE_URL: ${CMS_DATABASE_URL:?CMS_DATABASE_URL required}
       CMS_DB_NAME: ${CMS_DB_NAME}
       PAYLOAD_SECRET: ${PAYLOAD_SECRET:?PAYLOAD_SECRET required}
@@ -511,6 +518,12 @@ services:
       retries: 3
       start_period: 20s
     environment:
+      # Public settings read at run time (issue #1019): one image serves every environment.
+      NEXT_PUBLIC_SITE_URL: https://auth.${BASE_DOMAIN}
+      NEXT_PUBLIC_API_URL: https://api.${BASE_DOMAIN}
+      NEXT_PUBLIC_ENVIRONMENT: ${ENVIRONMENT}
+      NEXT_PUBLIC_RELEASE: ${SENTRY_RELEASE:-}
+      NEXT_PUBLIC_TURNSTILE_SITE_KEY: ${NEXT_PUBLIC_TURNSTILE_SITE_KEY:-}
       NEXT_PUBLIC_SENTRY_DSN: ${SENTRY_DSN_AUTH:-}
       NEXT_PUBLIC_SENTRY_ENVIRONMENT: ${ENVIRONMENT}
       EMAIL_RENDER_SECRET: ${EMAIL_RENDER_SECRET:-}
@@ -557,6 +570,12 @@ services:
       retries: 3
       start_period: 30s
     environment:
+      # Public settings read at run time (issue #1019): one image serves every environment.
+      NEXT_PUBLIC_SITE_URL: https://admin.${BASE_DOMAIN}
+      NEXT_PUBLIC_API_URL: https://api.${BASE_DOMAIN}
+      NEXT_PUBLIC_ENVIRONMENT: ${ENVIRONMENT}
+      NEXT_PUBLIC_RELEASE: ${SENTRY_RELEASE:-}
+      NEXT_PUBLIC_TURNSTILE_SITE_KEY: ${NEXT_PUBLIC_TURNSTILE_SITE_KEY:-}
       NEXT_PUBLIC_SENTRY_ENVIRONMENT: ${ENVIRONMENT}
       AUTH_APP_URL: https://auth.${BASE_DOMAIN}
       AUTH_API_URL: http://api:8000
@@ -588,6 +607,11 @@ services:
       # services. Give migrations and API startup time to complete before probing.
       start_period: 120s
     environment:
+      # Public settings read at run time (issue #1019): one image serves every environment.
+      NEXT_PUBLIC_SITE_URL: https://gms.${BASE_DOMAIN}
+      NEXT_PUBLIC_ENVIRONMENT: ${ENVIRONMENT}
+      NEXT_PUBLIC_RELEASE: ${SENTRY_RELEASE:-}
+      NEXT_PUBLIC_TURNSTILE_SITE_KEY: ${NEXT_PUBLIC_TURNSTILE_SITE_KEY:-}
       NEXT_PUBLIC_SENTRY_DSN: ${SENTRY_DSN_GAA_ADMIN:-}
       NEXT_PUBLIC_SENTRY_ENVIRONMENT: ${ENVIRONMENT}
       AUTH_APP_URL: https://auth.${BASE_DOMAIN}
@@ -629,6 +653,12 @@ services:
       retries: 3
       start_period: 20s
     environment:
+      # Public settings read at run time (issue #1019): one image serves every environment.
+      NEXT_PUBLIC_SITE_URL: https://docs.${BASE_DOMAIN}
+      NEXT_PUBLIC_API_URL: https://api.${BASE_DOMAIN}
+      NEXT_PUBLIC_ENVIRONMENT: ${ENVIRONMENT}
+      NEXT_PUBLIC_RELEASE: ${SENTRY_RELEASE:-}
+      NEXT_PUBLIC_TURNSTILE_SITE_KEY: ${NEXT_PUBLIC_TURNSTILE_SITE_KEY:-}
       NEXT_PUBLIC_SENTRY_DSN: ${SENTRY_DSN_DOCS:-}
       AUTH_APP_URL: https://auth.${BASE_DOMAIN}
       DOCS_SSO_CLIENT_SECRET: ${DOCS_SSO_CLIENT_SECRET:-}
@@ -657,6 +687,12 @@ services:
       retries: 3
       start_period: 20s
     environment:
+      # Public settings read at run time (issue #1019): one image serves every environment.
+      NEXT_PUBLIC_SITE_URL: https://weather.${BASE_DOMAIN}
+      NEXT_PUBLIC_API_URL: https://api.${BASE_DOMAIN}
+      NEXT_PUBLIC_ENVIRONMENT: ${ENVIRONMENT}
+      NEXT_PUBLIC_RELEASE: ${SENTRY_RELEASE:-}
+      NEXT_PUBLIC_TURNSTILE_SITE_KEY: ${NEXT_PUBLIC_TURNSTILE_SITE_KEY:-}
       NEXT_PUBLIC_SENTRY_DSN: ${SENTRY_DSN_GMS:-}
       AUTH_APP_URL: https://auth.${BASE_DOMAIN}
       WEATHER_SSO_CLIENT_SECRET: ${WEATHER_SSO_CLIENT_SECRET:-}
@@ -693,6 +729,12 @@ services:
       retries: 3
       start_period: 20s
     environment:
+      # Public settings read at run time (issue #1019): one image serves every environment.
+      NEXT_PUBLIC_SITE_URL: https://signal.${BASE_DOMAIN}
+      NEXT_PUBLIC_API_URL: https://api.${BASE_DOMAIN}
+      NEXT_PUBLIC_ENVIRONMENT: ${ENVIRONMENT}
+      NEXT_PUBLIC_RELEASE: ${SENTRY_RELEASE:-}
+      NEXT_PUBLIC_TURNSTILE_SITE_KEY: ${NEXT_PUBLIC_TURNSTILE_SITE_KEY:-}
       NEXT_PUBLIC_SENTRY_DSN: ${SENTRY_DSN_SIGNAL:-}
       AUTH_API_URL: http://api:8000
       AUTH_API_V1_STR: /api/v1
@@ -720,6 +762,12 @@ services:
       retries: 3
       start_period: 20s
     environment:
+      # Public settings read at run time (issue #1019): one image serves every environment.
+      NEXT_PUBLIC_SITE_URL: https://mbia.${BASE_DOMAIN}
+      NEXT_PUBLIC_API_URL: https://api.${BASE_DOMAIN}
+      NEXT_PUBLIC_ENVIRONMENT: ${ENVIRONMENT}
+      NEXT_PUBLIC_RELEASE: ${SENTRY_RELEASE:-}
+      NEXT_PUBLIC_TURNSTILE_SITE_KEY: ${NEXT_PUBLIC_TURNSTILE_SITE_KEY:-}
       NEXT_PUBLIC_SENTRY_DSN: ${SENTRY_DSN_MBIA:-}
       AUTH_API_URL: http://api:8000
       AUTH_API_V1_STR: /api/v1
@@ -747,6 +795,12 @@ services:
       retries: 3
       start_period: 20s
     environment:
+      # Public settings read at run time (issue #1019): one image serves every environment.
+      NEXT_PUBLIC_SITE_URL: https://events.${BASE_DOMAIN}
+      NEXT_PUBLIC_API_URL: https://api.${BASE_DOMAIN}
+      NEXT_PUBLIC_ENVIRONMENT: ${ENVIRONMENT}
+      NEXT_PUBLIC_RELEASE: ${SENTRY_RELEASE:-}
+      NEXT_PUBLIC_TURNSTILE_SITE_KEY: ${NEXT_PUBLIC_TURNSTILE_SITE_KEY:-}
       AUTH_API_URL: http://api:8000
       AUTH_API_V1_STR: /api/v1
       AUTH_APP_URL: https://auth.${BASE_DOMAIN}
@@ -779,6 +833,12 @@ services:
       retries: 3
       start_period: 20s
     environment:
+      # Public settings read at run time (issue #1019): one image serves every environment.
+      NEXT_PUBLIC_SITE_URL: https://cap.${BASE_DOMAIN}
+      NEXT_PUBLIC_API_URL: https://api.${BASE_DOMAIN}
+      NEXT_PUBLIC_ENVIRONMENT: ${ENVIRONMENT}
+      NEXT_PUBLIC_RELEASE: ${SENTRY_RELEASE:-}
+      NEXT_PUBLIC_TURNSTILE_SITE_KEY: ${NEXT_PUBLIC_TURNSTILE_SITE_KEY:-}
       # Public alert hub: server-side fetches of the unauthenticated CAP feeds.
       # The staff warning desk under /desk signs in through auth (ADR-0017) with
       # its own host-only cookie; an empty secret keeps the desk's sign-in off.
@@ -813,6 +873,12 @@ services:
       retries: 3
       start_period: 20s
     environment:
+      # Public settings read at run time (issue #1019): one image serves every environment.
+      NEXT_PUBLIC_SITE_URL: https://gmsdash.${BASE_DOMAIN}
+      NEXT_PUBLIC_API_URL: https://api.${BASE_DOMAIN}
+      NEXT_PUBLIC_ENVIRONMENT: ${ENVIRONMENT}
+      NEXT_PUBLIC_RELEASE: ${SENTRY_RELEASE:-}
+      NEXT_PUBLIC_TURNSTILE_SITE_KEY: ${NEXT_PUBLIC_TURNSTILE_SITE_KEY:-}
       AUTH_API_URL: http://api:8000
       AUTH_API_V1_STR: /api/v1
       AUTH_APP_URL: https://auth.${BASE_DOMAIN}
@@ -843,6 +909,12 @@ services:
       retries: 3
       start_period: 20s
     environment:
+      # Public settings read at run time (issue #1019): one image serves every environment.
+      NEXT_PUBLIC_SITE_URL: https://bookings.${BASE_DOMAIN}
+      NEXT_PUBLIC_API_URL: https://api.${BASE_DOMAIN}
+      NEXT_PUBLIC_ENVIRONMENT: ${ENVIRONMENT}
+      NEXT_PUBLIC_RELEASE: ${SENTRY_RELEASE:-}
+      NEXT_PUBLIC_TURNSTILE_SITE_KEY: ${NEXT_PUBLIC_TURNSTILE_SITE_KEY:-}
       AUTH_API_URL: http://api:8000
       AUTH_API_V1_STR: /api/v1
       AUTH_APP_URL: https://auth.${BASE_DOMAIN}

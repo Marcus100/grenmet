@@ -2,6 +2,7 @@ import { PreferencesStoreProvider } from "@barrelsgd/theme/components/preference
 import { ThemeBootScript } from "@barrelsgd/theme/components/theme-boot";
 import { PREFERENCE_DEFAULTS } from "@barrelsgd/theme/lib/preferences-config";
 import { PostHogProvider } from "@barrelsgd/ui/components/posthog-provider";
+import { PublicEnvScript } from "@barrelsgd/ui/components/public-env-script";
 import { Barlow_Condensed, Noto_Sans } from "next/font/google";
 import { Footer } from "@/components/footer";
 import { Header } from "@/components/header";
@@ -56,6 +57,7 @@ export default function RootLayout({
       suppressHydrationWarning
     >
       <head>
+        <PublicEnvScript />
         <ThemeBootScript defaults={THEME_DEFAULTS} />
         <UnitsBootScript />
       </head>

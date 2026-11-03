@@ -34,7 +34,8 @@ const nextConfig: NextConfig = {
       // Public pages only: static assets keep their immutable headers, health
       // and the feed proxies set their own, and the staff desk and its sign-in
       // routes must never be stored by the edge or the browser (below).
-      source: "/((?!_next/|api/|feeds/|desk|auth/).*)",
+      // /runtime-env.js sets its own short cache and must never go stale.
+      source: "/((?!_next/|api/|feeds/|desk|auth/|runtime-env\\.js).*)",
       headers: [{ key: "Cache-Control", value: EDGE_CACHE }],
     },
     ...STAFF_PATHS.map((source) => ({

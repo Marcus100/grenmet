@@ -1,3 +1,4 @@
+import { PublicEnvScript } from "@barrelsgd/ui/components/public-env-script";
 import config from "@payload-config";
 import "@payloadcms/next/css";
 import { handleServerFunctions, RootLayout } from "@payloadcms/next/layouts";
@@ -16,6 +17,7 @@ export default function Layout({ children }: { children: ReactNode }) {
       importMap={importMap}
       serverFunction={serverFunction}
     >
+      <PublicEnvScript />
       {children}
     </RootLayout>
   );

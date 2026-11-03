@@ -73,5 +73,5 @@ export async function proxy(request: NextRequest) {
 
 /** Skip static assets so JS/CSS chunks are not redirected to /signin. */
 export const config = {
-  matcher: ["/((?!_next/static|_next/image|favicon\\.ico).*)"],
+  matcher: ["/((?!_next/static|_next/image|favicon\\.ico|runtime-env\\.js).*)"],
 };
