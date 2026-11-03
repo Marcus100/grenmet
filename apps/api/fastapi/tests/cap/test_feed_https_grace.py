@@ -6,7 +6,7 @@ migration), keeps working for 14 days, and is then skipped, never deleted.
 """
 
 import logging
-from datetime import timedelta
+from datetime import datetime, timedelta
 
 import httpx
 import pytest
@@ -35,9 +35,15 @@ def _allow_test_hosts(monkeypatch: pytest.MonkeyPatch) -> None:
 
 
 async def _feed(
-    db: AsyncSession, url: str = HTTP_FEED, **kwargs: object
+    db: AsyncSession,
+    url: str = HTTP_FEED,
+    *,
+    insecure_since: datetime | None = None,
+    last_error: str | None = None,
 ) -> CapFeedImport:
-    row = CapFeedImport(name="legacy", url=url, **kwargs)  # type: ignore[arg-type]
+    row = CapFeedImport(
+        name="legacy", url=url, insecure_since=insecure_since, last_error=last_error
+    )
     db.add(row)
     await db.commit()
     await db.refresh(row)
