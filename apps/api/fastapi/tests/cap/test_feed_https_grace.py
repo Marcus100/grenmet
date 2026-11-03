@@ -21,7 +21,9 @@ from tests.factories import make_user
 
 HTTP_FEED = "http://legacy.example.org/cap.rss"
 HTTPS_FEED = "https://legacy.example.org/cap.rss"
-RSS = b'<?xml version="1.0"?><rss version="2.0"><channel><title>p</title></channel></rss>'
+RSS = (
+    b'<?xml version="1.0"?><rss version="2.0"><channel><title>p</title></channel></rss>'
+)
 
 
 @pytest.fixture(autouse=True)
@@ -32,7 +34,9 @@ def _allow_test_hosts(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr(cap_service, "ensure_public_host", allowed)
 
 
-async def _feed(db: AsyncSession, url: str = HTTP_FEED, **kwargs: object) -> CapFeedImport:
+async def _feed(
+    db: AsyncSession, url: str = HTTP_FEED, **kwargs: object
+) -> CapFeedImport:
     row = CapFeedImport(name="legacy", url=url, **kwargs)  # type: ignore[arg-type]
     db.add(row)
     await db.commit()
@@ -87,7 +91,9 @@ async def test_a_feed_inside_the_grace_period_is_fetched_on_day_13(
     db_async: AsyncSession,
 ) -> None:
     su = await make_user(db_async, superuser=True)
-    feed = await _feed(db_async, insecure_since=utc_now() - timedelta(days=13, hours=23))
+    feed = await _feed(
+        db_async, insecure_since=utc_now() - timedelta(days=13, hours=23)
+    )
     requested: list[str] = []
     async with _client(requested) as client:
         await cap_service.ingest_feed(
@@ -100,7 +106,9 @@ async def test_a_feed_after_the_grace_period_is_skipped_logged_and_kept(
     db_async: AsyncSession, caplog: pytest.LogCaptureFixture
 ) -> None:
     su = await make_user(db_async, superuser=True)
-    feed = await _feed(db_async, insecure_since=utc_now() - timedelta(days=14, minutes=1))
+    feed = await _feed(
+        db_async, insecure_since=utc_now() - timedelta(days=14, minutes=1)
+    )
     requested: list[str] = []
     cap_service.logger.disabled = False
     with caplog.at_level(logging.WARNING, logger=cap_service.logger.name):
@@ -132,7 +140,9 @@ async def test_update_to_a_non_https_url_is_refused_and_https_clears_the_flag(
     db_async: AsyncSession,
 ) -> None:
     su = await make_user(db_async, superuser=True)
-    feed = await _feed(db_async, insecure_since=utc_now(), last_error="plain http no longer allowed")
+    feed = await _feed(
+        db_async, insecure_since=utc_now(), last_error="plain http no longer allowed"
+    )
     with pytest.raises(CapFeedUrlError):
         await cap_service.update_feed(
             session=db_async,
