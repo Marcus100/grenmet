@@ -9,17 +9,21 @@ from sqlalchemy.orm import selectinload
 from src.cap.exceptions import (
     CapAlertNotFoundError,
 )
+from src.utils.datetime import utc_now
+from src.cap.common import feed_grace_ends_at, feed_grace_expired
 from src.cap.levels import INTERNAL_PARAMETERS
 from src.cap.models import (
     CapAlert,
     CapArea,
     CapCategory,
+    CapFeedImport,
     CapInfo,
     CapPredefinedArea,
 )
 from src.cap.schemas import (
     CapAlertPublic,
     CapAreaPublic,
+    CapFeedImportPublic,
     CapInfoPublic,
     CapNameValue,
     CapPredefinedAreaPublic,
@@ -184,3 +188,11 @@ def _predefined_area_to_public(area: CapPredefinedArea) -> CapPredefinedAreaPubl
         created_at=area.created_at,
         updated_at=area.updated_at,
     )
+
+
+def feed_to_public(feed: CapFeedImport) -> CapFeedImportPublic:
+    """A feed row with its plain-http grace state worked out at read time."""
+    public = CapFeedImportPublic.model_validate(feed, from_attributes=True)
+    public.grace_ends_at = feed_grace_ends_at(feed.insecure_since)
+    public.grace_expired = feed_grace_expired(feed.insecure_since, utc_now())
+    return public

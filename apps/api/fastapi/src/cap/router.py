@@ -5,7 +5,7 @@ from xml.etree import ElementTree as ET
 from fastapi import APIRouter, Query, Request, Response, status
 from fastapi.responses import RedirectResponse
 
-from src.cap import attachments, cache, escalation, service
+from src.cap import attachments, cache, escalation, mapping, service
 from src.cap.geo import alerts_to_feature_collection
 from src.cap.ibf_router import router as ibf_router
 from src.cap.models import CapLifecycleState, CapMessageType, CapStatus
@@ -595,7 +595,7 @@ async def read_feeds(
     *, session: SessionDep, current_user: CurrentUser
 ) -> list[CapFeedImportPublic]:
     feeds = await service.list_feeds(session=session, current_user=current_user)
-    return [CapFeedImportPublic.model_validate(f, from_attributes=True) for f in feeds]
+    return [mapping.feed_to_public(f) for f in feeds]
 
 
 @router.post(
@@ -612,7 +612,7 @@ async def create_feed(
     feed = await service.create_feed(
         session=session, current_user=current_user, payload=payload
     )
-    return CapFeedImportPublic.model_validate(feed, from_attributes=True)
+    return mapping.feed_to_public(feed)
 
 
 @router.patch(
@@ -632,7 +632,7 @@ async def update_feed(
     feed = await service.update_feed(
         session=session, current_user=current_user, feed_id=feed_id, payload=payload
     )
-    return CapFeedImportPublic.model_validate(feed, from_attributes=True)
+    return mapping.feed_to_public(feed)
 
 
 @router.delete(

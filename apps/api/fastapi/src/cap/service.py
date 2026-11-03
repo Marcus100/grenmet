@@ -32,6 +32,8 @@ from src.cap.common import (
     _db_datetime,
     _new_identifier,
     _record_audit,
+    feed_grace_expired,
+    is_plain_http,
 )
 from src.cap.exceptions import (
     CapAlertNotFoundError,
@@ -125,6 +127,7 @@ logger = logging.getLogger(__name__)
 FEED_ERROR_HOST_REFUSED = "host refused"
 FEED_ERROR_FETCH = "could not fetch"
 FEED_ERROR_INGEST = "ingest failed"
+FEED_ERROR_INSECURE = "plain http no longer allowed"
 
 
 async def _notify_mismatch_safely(
@@ -1454,10 +1457,19 @@ async def update_feed(
     feed = await session.get(CapFeedImport, feed_id)
     if feed is None:
         raise CapFeedNotFoundError()
-    if payload.url is not None:
+    # A changed URL must be https on port 443. Re-sending the stored URL is not a
+    # change, so a legacy http feed can still be renamed or paused during its grace.
+    url_changed = payload.url is not None and payload.url != feed.url
+    if url_changed and payload.url is not None:
         validate_feed_url(payload.url)
     for field, value in payload.model_dump(exclude_unset=True).items():
         setattr(feed, field, value)
+    if url_changed:
+        # The new URL passed the https check: the old flag no longer applies.
+        feed.insecure_since = None
+        feed.last_etag = None
+        if feed.last_error == FEED_ERROR_INSECURE:
+            feed.last_error = None
     feed.updated_at = utc_now()
     session.add(feed)
     await session.commit()
@@ -1500,6 +1512,27 @@ async def ingest_feed(
     feed's etag and progress are saved at the end.
     """
     now = utc_now()
+    plain_http = is_plain_http(feed.url)
+    if plain_http and feed.insecure_since is None:
+        # First time this feed is seen on plain http: start its 14-day grace. Set
+        # once and never reset by later polls.
+        feed.insecure_since = now
+        session.add(feed)
+        await session.commit()
+        logger.warning(
+            "CAP feed flagged: plain http, grace period started",
+            extra={"feed_id": str(feed.id)},
+        )
+    if plain_http and feed_grace_expired(feed.insecure_since, now):
+        logger.warning(
+            "CAP feed skipped: plain http and the grace period has ended",
+            extra={"feed_id": str(feed.id)},
+        )
+        if feed.last_error != FEED_ERROR_INSECURE:
+            feed.last_error = FEED_ERROR_INSECURE
+            session.add(feed)
+            await session.commit()
+        return {"created": 0, "skipped": 0}
     try:
         validate_import_url(feed.url)
         headers = {"If-None-Match": feed.last_etag} if feed.last_etag else None
@@ -1507,7 +1540,7 @@ async def ingest_feed(
             feed.url,
             http_client=http_client,
             headers=headers,
-            allow_http=feed.url.startswith("http://"),
+            allow_http=plain_http,
         )
     except CapImportError as exc:
         # The detail names the host and the resolver; keep it in the log only.
