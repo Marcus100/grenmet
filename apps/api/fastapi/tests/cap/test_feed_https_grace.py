@@ -391,3 +391,58 @@ async def test_a_stale_flag_on_an_https_feed_is_cleared_at_the_next_poll(
     await db_async.refresh(feed)
     assert feed.insecure_since is None
     assert len(requested) == 1  # fetched normally, not skipped as expired
+
+
+# --- what counts as plain http is what the fetch would read -------------------
+
+ODD_HTTP_URLS = [
+    "\thttp://legacy.example.org/cap.rss",
+    "\n http://legacy.example.org/cap.rss",
+    "\x1fhttp://legacy.example.org/cap.rss",
+    "HTTP://legacy.example.org/cap.rss",
+    "hTtP://legacy.example.org/cap.rss",
+]
+
+
+@pytest.mark.parametrize("url", ODD_HTTP_URLS)
+async def test_odd_spellings_of_http_are_flagged_once(
+    db_async: AsyncSession, url: str
+) -> None:
+    feed = await _feed(db_async, url=url)
+    first = utc_now() - timedelta(days=1)
+    assert await cap_service.flag_insecure_feed(session=db_async, feed=feed, now=first)
+    assert feed.insecure_since == first
+    assert not await cap_service.flag_insecure_feed(
+        session=db_async, feed=feed, now=utc_now()
+    )
+    assert feed.insecure_since == first
+
+
+@pytest.mark.parametrize("url", ODD_HTTP_URLS)
+async def test_odd_spellings_of_http_expire_like_any_other_http_feed(
+    db_async: AsyncSession, url: str
+) -> None:
+    su = await make_user(db_async, superuser=True)
+    feed = await _feed(db_async, url=url, insecure_since=utc_now() - timedelta(days=15))
+    requested: list[str] = []
+    async with _client(requested) as client:
+        result = await cap_service.ingest_feed(
+            session=db_async, feed=feed, system_user=su, http_client=client
+        )
+    assert result == {"created": 0, "skipped": 0}
+    assert requested == []
+    assert feed.last_error == "plain http no longer allowed"
+    assert feed.insecure_since is not None  # the flag is kept
+
+
+@pytest.mark.parametrize("url", ODD_HTTP_URLS)
+async def test_an_odd_http_spelling_is_flagged_by_the_first_poll(
+    db_async: AsyncSession, url: str
+) -> None:
+    su = await make_user(db_async, superuser=True)
+    feed = await _feed(db_async, url=url)
+    async with _client([]) as client:
+        await cap_service.ingest_feed(
+            session=db_async, feed=feed, system_user=su, http_client=client
+        )
+    assert feed.insecure_since is not None

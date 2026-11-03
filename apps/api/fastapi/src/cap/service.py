@@ -1503,17 +1503,20 @@ async def flag_insecure_feed(
 ) -> bool:
     """Start the 14-day grace of a plain-http feed, once. Returns whether this call set it.
 
-    The write is guarded in SQL: it only touches a row that is still unflagged and still
-    plain http. A staff change to https between the worker's read and this write
-    therefore cannot leave a flag on an https feed. The feed is reloaded afterwards so
-    the caller sees the stored URL and flag.
+    The write is a compare-and-set on what the worker read: it only touches a row that is
+    still unflagged and still has exactly the URL the worker judged to be plain http. A
+    staff change to https between the read and this write therefore cannot leave a flag
+    on an https feed. The feed is reloaded afterwards so the caller sees the stored URL
+    and flag.
     """
+    if not is_plain_http(feed.url):
+        return False
     result = await session.execute(
         sa.update(CapFeedImport)
         .where(
             CapFeedImport.id == feed.id,
             CapFeedImport.insecure_since.is_(None),
-            sa.func.lower(sa.func.btrim(CapFeedImport.url)).like("http://%"),
+            CapFeedImport.url == feed.url,
         )
         .values(insecure_since=now)
         .returning(CapFeedImport.id)

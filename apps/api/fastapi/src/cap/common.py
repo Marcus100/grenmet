@@ -2,6 +2,7 @@
 
 import uuid
 from datetime import UTC, datetime, timedelta
+from urllib.parse import urlsplit
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -17,7 +18,16 @@ INSECURE_FEED_GRACE = timedelta(days=14)
 
 
 def is_plain_http(url: str) -> bool:
-    return url.strip().lower().startswith("http://")
+    """Whether the fetch would use plain http for this stored URL.
+
+    Uses the same parser as the fetch (``urlsplit`` drops leading control characters
+    and spaces and any tab or newline, and lower-cases the scheme), so a URL the worker
+    fetches over http is never missed here.
+    """
+    try:
+        return urlsplit(url).scheme == "http"
+    except ValueError:
+        return False
 
 
 def feed_grace_ends_at(insecure_since: datetime | None) -> datetime | None:

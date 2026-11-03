@@ -56,13 +56,25 @@ def test_upgrade_adds_the_column_flags_http_feeds_and_downgrade_drops_it(
 ):
     connection, migration = before_migration
     assert not _has_column(connection)
-    connection.execute(
-        text(
-            "INSERT INTO cap.feed_import (id, name, url, status, created_at, updated_at) "
-            "VALUES (gen_random_uuid(), 'a', 'http://a.example.org/x', 'ACTIVE', now(), now()), "
-            "(gen_random_uuid(), 'b', 'https://b.example.org/x', 'ACTIVE', now(), now())"
+    urls = {
+        "a": "http://a.example.org/x",
+        "b": "https://b.example.org/x",
+        "tab": "\thttp://t.example.org/x",
+        "newline": "\n http://n.example.org/x",
+        "ctrl": "\x1fhttp://c.example.org/x",
+        "upper": "HTTP://u.example.org/x",
+        "mixed": "hTtP://m.example.org/x",
+        "inner": "ht\ttp://i.example.org/x",
+        "secure_upper": "HTTPS://s.example.org/x",
+    }
+    for name, url in urls.items():
+        connection.execute(
+            text(
+                "INSERT INTO cap.feed_import (id, name, url, status, created_at, updated_at) "
+                "VALUES (gen_random_uuid(), :name, :url, 'ACTIVE', now(), now())"
+            ),
+            {"name": name, "url": url},
         )
-    )
     migration.upgrade()
     assert _has_column(connection)
     rows = dict(
@@ -70,7 +82,17 @@ def test_upgrade_adds_the_column_flags_http_feeds_and_downgrade_drops_it(
             text("SELECT name, insecure_since IS NOT NULL FROM cap.feed_import")
         ).all()
     )
-    assert rows == {"a": True, "b": False}
+    assert rows == {
+        "a": True,
+        "b": False,
+        "tab": True,
+        "newline": True,
+        "ctrl": True,
+        "upper": True,
+        "mixed": True,
+        "inner": True,
+        "secure_upper": False,
+    }
     migration.downgrade()
     assert not _has_column(connection)
 

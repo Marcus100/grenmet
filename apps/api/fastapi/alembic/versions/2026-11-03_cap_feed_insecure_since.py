@@ -28,9 +28,12 @@ def upgrade() -> None:
         sa.Column("insecure_since", sa.DateTime(), nullable=True),
         schema="cap",
     )
+    # Same reading as the fetch (Python urlsplit): leading control characters and
+    # spaces are ignored, tabs and newlines inside the URL are dropped, and the scheme
+    # is case-insensitive.
     op.execute(
-        "UPDATE cap.feed_import SET insecure_since = (now() AT TIME ZONE 'utc') "
-        "WHERE lower(btrim(url)) LIKE 'http://%'"
+        r"""UPDATE cap.feed_import SET insecure_since = (now() AT TIME ZONE 'utc')
+        WHERE regexp_replace(url, '[\t\r\n]', '', 'g') ~* '^[\x01-\x20]*http://'"""
     )
 
 
