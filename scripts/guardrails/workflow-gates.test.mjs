@@ -339,13 +339,16 @@ test("the dev image dispatch only builds commits that are on dev", () => {
   assert.ok(dev.includes("origin/dev"));
 });
 
+const RELEASE_REF = /ref: \$\{\{ needs\.heads\.outputs\.ref \}\}/u;
+const DISPATCHED_SHA = /ref: \$\{\{ github\.sha \}\}/u;
+
 test("the restore drill runs its script from the dispatched ref, not the release tag", () => {
   const drill = readWorkflow("restore-drill.yml");
   // The release checkout stays: its commit selects the API image to test.
-  assert.ok(drill.includes("ref: ${{ needs.heads.outputs.ref }}"));
+  assert.match(drill, RELEASE_REF);
   // The tooling comes from the commit the workflow was dispatched on, so a fix to the
   // drill can be tried before the next release.
-  assert.ok(drill.includes("ref: ${{ github.sha }}"));
+  assert.match(drill, DISPATCHED_SHA);
   assert.ok(drill.includes("path: drill-tooling"));
   assert.ok(
     drill.includes("python3 drill-tooling/scripts/production/restore-drill.py")
