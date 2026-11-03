@@ -214,6 +214,9 @@ jobs:
           BACKUP_GATE_SECRET_ACCESS_KEY: ${{ secrets.DO_SPACES_READ_SECRET_ACCESS_KEY }}
           # Set to 1 on a GitHub environment to replace routed services without a gap.
           ROLLING_DEPLOY: ${{ vars.ROLLING_DEPLOY }}
+          # Optional tuning; unset uses core.sh's defaults (4 each, 1 = serial).
+          ROLLOUT_PARALLEL: ${{ vars.ROLLOUT_PARALLEL }}
+          PULL_PARALLEL: ${{ vars.PULL_PARALLEL }}
         run: bash ../../scripts/production/core.sh deploy
       - name: Install declared monitoring after application acceptance
         if: vars.MONITORING_DEPLOY_ENABLED == 'true'
