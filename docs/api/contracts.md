@@ -1442,7 +1442,7 @@ unsaved view (`attendance_id` null) until the punch is approved. Terminal punche
 
 | Endpoint | Permission | Purpose |
 | --- | --- | --- |
-| `GET /api/v1/hr/rosters/public-holidays` | `roster.view` | List holidays, optionally by `year` |
+| `GET /api/v1/hr/rosters/public-holidays` | `roster.view` | List holidays, optionally by `year` (2000-2100; outside that range returns 422) |
 | `POST /api/v1/hr/rosters/public-holidays` | global `roster.manage` | Add a holiday (optional `source`, `needs_verification`) |
 | `PUT /api/v1/hr/rosters/public-holidays/{holiday_id}` | global `roster.manage` | Edit name, date, source or verification flag; a date already in use returns 400 |
 | `POST /api/v1/hr/rosters/public-holidays/provisional` | global `roster.manage` | Add the provisional Grenada calendar for `year` (2000-2100), skipping dates already present; rows carry `source` "provisional - verify with GAA HR" |

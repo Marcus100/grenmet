@@ -11,6 +11,8 @@ from src.auth.service import create_user
 from src.exceptions import AuthorizationError
 from src.hr.exceptions import HRValidationError
 from src.hr.roster.holidays import (
+    MAX_YEAR,
+    MIN_YEAR,
     PROVISIONAL_SOURCE,
     easter_sunday,
     provisional_holidays,
@@ -134,3 +136,27 @@ async def test_load_provisional_requires_admin_and_sane_year(db_async):
     admin = await _superuser(db_async)
     with pytest.raises(HRValidationError):
         await load_provisional_holidays(session=db_async, current_user=admin, year=1850)
+
+
+@pytest.mark.parametrize("year", [MIN_YEAR - 1, MAX_YEAR + 1, 2**63])
+async def test_list_route_rejects_out_of_range_year(
+    async_client, superuser_token_headers_async, year
+):
+    # An unbounded year once reached Postgres and failed as a 500 (fuzz test).
+    response = await async_client.get(
+        "/api/v1/hr/rosters/public-holidays",
+        headers=superuser_token_headers_async,
+        params={"year": year},
+    )
+    assert response.status_code == 422
+
+
+async def test_list_route_accepts_year_in_range(
+    async_client, superuser_token_headers_async
+):
+    response = await async_client.get(
+        "/api/v1/hr/rosters/public-holidays",
+        headers=superuser_token_headers_async,
+        params={"year": MAX_YEAR},
+    )
+    assert response.status_code == 200
