@@ -171,6 +171,10 @@ the API image and the local source mount contain the same migration assets.
 | `POSTGRES_DB` | FastAPI database name (matches `APP_DB_NAME` in infra file) |
 | `POSTGRES_USER` | FastAPI DB user (matches `APP_DB_USER` in infra file) |
 | `POSTGRES_PASSWORD` | FastAPI DB password (matches `APP_DB_PASSWORD` in infra file) |
+| `DB_POOL_SIZE` / `DB_MAX_OVERFLOW` | Main async connection pool per API or worker process (defaults `5` / `10`). Keep (size + overflow) × processes, plus the five domain engines, under Postgres `max_connections` (default 100). |
+| `DB_POOL_TIMEOUT` | Seconds a request waits for a free pooled connection before failing (default `10`) |
+| `DB_POOL_RECYCLE` | Seconds before a pooled connection is replaced (default `1800`); pre-ping is always on outside tests |
+| `WEB_CONCURRENCY` | Uvicorn worker processes for the API container (read by uvicorn; default `1`). Rate limits and request metrics live in Redis, so more workers are safe; each worker opens its own pools. |
 | `WXPRODUCTS_DATABASE_URL` | PostgreSQL URL for the separate existing weather-products database; required to serve the public product feed. Use a hostname reachable from FastAPI (`grenmet-postgres` in local Compose, `host.docker.internal` from the devcontainer). The API role needs read/write access to authored products, revisions and their identity sequence; the migration runner needs schema ownership. Weather migrations are owned by FastAPI. Missing configuration returns 503, not an empty feed. |
 | `EVENTS_ORDER_HOLD_MINUTES` | How long an unpaid paid-tier order holds its tickets before the `expire_unpaid_event_orders` job cancels it and releases the stock (default `30`). The Stripe rail is test mode only (`PAYMENTS_STRIPE_*`). |
 | `EVENTS_REFUND_CUTOFF_HOURS` | Refund policy for an organiser cancelling one paid order with `refund: follow_policy`: refunded when the event starts at least this many hours away, kept inside the window (default `48`). An event the organiser cancels is refunded in full. |

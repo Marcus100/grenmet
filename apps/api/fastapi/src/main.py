@@ -20,6 +20,7 @@ from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.middleware.cors import CORSMiddleware
 from starlette.requests import Request
 
+from src import database as main_database
 from src import operational_metrics
 from src.audit.router import router as audit_router
 from src.auth.app_router import account_router as account_apps_router
@@ -335,6 +336,8 @@ async def lifespan(_app: FastAPI) -> AsyncGenerator[None]:
         await wxwatch_database.close_engine()
         await janitorial_database.close_engine()
         await transport_database.close_engine()
+        # Return pooled connections to Postgres cleanly on shutdown or redeploy.
+        await main_database.async_engine.dispose()
 
 
 if settings.SENTRY_DSN and settings.ENVIRONMENT != "local":
