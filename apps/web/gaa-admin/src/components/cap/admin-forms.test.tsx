@@ -73,6 +73,7 @@ const feed = {
   created_at: "2026-09-23T00:00:00Z",
   updated_at: "2026-09-23T00:00:00Z",
 };
+const PLAIN_HTTP_SWITCH = /Plain http: switch to https/u;
 beforeEach(() => vi.resetAllMocks());
 
 it("saves sender settings and reports success only after the API succeeds", async () => {
@@ -132,7 +133,7 @@ it("flags a plain-http feed in the list and not an https feed", () => {
       ]}
     />
   );
-  expect(screen.getAllByText(/Plain http: switch to https/)).toHaveLength(1);
+  expect(screen.getAllByText(PLAIN_HTTP_SWITCH)).toHaveLength(1);
 });
 
 it("creates a feed from the form without issuing an update", async () => {
