@@ -68,3 +68,7 @@ export function HomeSection({
 /** The rounded, bordered card every home section is built from. */
 export const HOME_CARD =
   "rounded-gm-card border border-gm-border bg-background p-4 lg:p-5";
+
+/** One card in the From the Desk row: most of a phone screen, fixed width above. */
+export const DESK_CARD_ITEM =
+  "relative w-[85%] shrink-0 snap-start sm:w-[22rem] lg:w-[24rem]";

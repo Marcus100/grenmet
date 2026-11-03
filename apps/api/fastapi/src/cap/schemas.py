@@ -307,6 +307,11 @@ class CapFeedImportPublic(BaseModel):
     status: CapIntegrationStatus
     last_checked_at: UtcDateTime | None = None
     last_error: str | None = None
+    # Plain-http feeds only. `insecure_since` is when the feed was first flagged;
+    # the feed keeps working until `grace_ends_at`, then it is no longer fetched.
+    insecure_since: UtcDateTime | None = None
+    grace_ends_at: UtcDateTime | None = None
+    grace_expired: bool = False
     created_at: UtcDateTime
     updated_at: UtcDateTime
 

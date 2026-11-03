@@ -8,6 +8,7 @@ import { HolidaysManager } from "./holidays-manager";
 
 const BASE = "http://localhost";
 const LOAD_LABEL = /Load provisional \d{4} holidays/u;
+const PARTIAL_YEAR_LOAD_LABEL = /Load provisional \d+ holidays/u;
 const SAVE_LABEL = /Save changes/u;
 const MANAGED_BY_ADMINS = /managed by global roster administrators/u;
 
@@ -104,6 +105,38 @@ describe("HolidaysManager", () => {
     fireEvent.click(screen.getByRole("button", { name: LOAD_LABEL }));
 
     await waitFor(() => expect(posts).toEqual([{ year: 2027 }]));
+  });
+
+  it("does not ask the API for a year outside 2000-2100", async () => {
+    const requestedYears: (string | null)[] = [];
+    server.use(
+      http.get(`${BASE}/api/v1/hr/rosters/public-holidays`, ({ request }) => {
+        const year = new URL(request.url).searchParams.get("year");
+        requestedYears.push(year);
+        // The API answers 422 for a year it does not accept.
+        if (Number(year) < 2000 || Number(year) > 2100) {
+          return HttpResponse.json({ detail: "invalid year" }, { status: 422 });
+        }
+        return HttpResponse.json({ data: [HOLIDAY], count: 1 });
+      })
+    );
+    renderManager();
+    await screen.findByText("Independence Day");
+
+    fireEvent.change(screen.getByLabelText("Year"), {
+      target: { value: "202" },
+    });
+
+    expect(
+      await screen.findByText("No holidays recorded for 202.")
+    ).toBeTruthy();
+    expect(screen.queryByRole("alert")).toBeNull();
+    expect(requestedYears).not.toContain("202");
+    expect(
+      screen
+        .getByRole("button", { name: PARTIAL_YEAR_LOAD_LABEL })
+        .hasAttribute("disabled")
+    ).toBe(true);
   });
 
   it("hides editing controls without roster management", async () => {

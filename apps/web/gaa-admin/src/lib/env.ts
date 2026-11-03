@@ -1,3 +1,4 @@
+import { readPublicEnv } from "@barrelsgd/ui/lib/public-env";
 import { createEnv } from "@t3-oss/env-nextjs";
 import { z } from "zod";
 
@@ -52,9 +53,11 @@ export const env = createEnv({
     JANITOR_APP_URL: process.env.JANITOR_APP_URL,
     NEXT_PUBLIC_WXWATCH_OBJECT_STORAGE:
       process.env.NEXT_PUBLIC_WXWATCH_OBJECT_STORAGE,
-    NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL ?? "",
-    NEXT_PUBLIC_SENTRY_DSN: process.env.NEXT_PUBLIC_SENTRY_DSN,
-    NEXT_PUBLIC_SENTRY_ENVIRONMENT: process.env.NEXT_PUBLIC_SENTRY_ENVIRONMENT,
+    NEXT_PUBLIC_API_URL: readPublicEnv("NEXT_PUBLIC_API_URL") ?? "",
+    NEXT_PUBLIC_SENTRY_DSN: readPublicEnv("NEXT_PUBLIC_SENTRY_DSN"),
+    NEXT_PUBLIC_SENTRY_ENVIRONMENT: readPublicEnv(
+      "NEXT_PUBLIC_SENTRY_ENVIRONMENT"
+    ),
     NEXT_PUBLIC_POSTHOG_KEY: process.env.NEXT_PUBLIC_POSTHOG_KEY,
     NEXT_PUBLIC_POSTHOG_HOST: process.env.NEXT_PUBLIC_POSTHOG_HOST,
   },

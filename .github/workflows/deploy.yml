@@ -11,6 +11,11 @@ on:
         required: false
         default: ""
         type: string
+      image_digests:
+        description: "Space-separated repo@sha256 digests a promotion verified (issue #1019)"
+        required: false
+        default: ""
+        type: string
       backup_gate_override:
         description: "Emergency only: reason to proceed past an enforced backup gate; recorded in the run summary"
         required: false
@@ -26,6 +31,16 @@ on:
         description: "sha-<full commit SHA> matching the selected branch or release tag"
         required: true
         type: string
+      image_digests:
+        description: "Space-separated repo@sha256 digests to require"
+        required: false
+        default: ""
+        type: string
+      manual_redeploy:
+        description: "Redeploy an existing tag without a digest list (commit-label check only). Leave off to require image_digests."
+        required: false
+        default: false
+        type: boolean
       backup_gate_override:
         description: "Emergency only: reason to proceed past an enforced backup gate (DEPLOY_BACKUP_GATE=enforce); recorded in the run summary"
         required: false
@@ -168,6 +183,8 @@ jobs:
           GMS_DATA_REQUEST_RECIPIENT: ${{ vars.GMS_DATA_REQUEST_RECIPIENT }}
           TURNSTILE_ENABLED: ${{ vars.TURNSTILE_ENABLED }}
           TURNSTILE_SECRET_KEY: ${{ secrets.TURNSTILE_SECRET_KEY }}
+          # Public widget key, read by the web apps at run time (issue #1019).
+          NEXT_PUBLIC_TURNSTILE_SITE_KEY: ${{ vars.NEXT_PUBLIC_TURNSTILE_SITE_KEY }}
           EMAIL_HASH_PEPPER: ${{ secrets.EMAIL_HASH_PEPPER }}
           EREGISTER_OBS_RECIPIENTS: ${{ vars.EREGISTER_OBS_RECIPIENTS }}
           EREGISTER_SEND_REQUIRE_ACCEPTED: ${{ vars.EREGISTER_SEND_REQUIRE_ACCEPTED }}
@@ -214,6 +231,13 @@ jobs:
           BACKUP_GATE_SECRET_ACCESS_KEY: ${{ secrets.DO_SPACES_READ_SECRET_ACCESS_KEY }}
           # Set to 1 on a GitHub environment to replace routed services without a gap.
           ROLLING_DEPLOY: ${{ vars.ROLLING_DEPLOY }}
+          # Exact digests the promotion verified; core.sh refuses any other image.
+          DEPLOY_IMAGE_DIGESTS: ${{ inputs.image_digests }}
+          # Only an explicit manual redeploy may run without the digest list.
+          ALLOW_UNPROMOTED_DEPLOY: ${{ inputs.manual_redeploy && 'true' || '' }}
+          # Optional tuning; unset uses core.sh's defaults (4 each, 1 = serial).
+          ROLLOUT_PARALLEL: ${{ vars.ROLLOUT_PARALLEL }}
+          PULL_PARALLEL: ${{ vars.PULL_PARALLEL }}
         run: bash ../../scripts/production/core.sh deploy
       - name: Install declared monitoring after application acceptance
         if: vars.MONITORING_DEPLOY_ENABLED == 'true'

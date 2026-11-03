@@ -195,7 +195,7 @@ async def list_admin_sites(
     *,
     session: SessionDep,
     _admin: AdminUser,
-    organisation_id: str | None = Query(default=None, max_length=100),
+    organisation_id: Annotated[str | None, Query(max_length=100)] = None,
 ) -> Any:
     rows = await sites.list_sites(session, organisation_id=organisation_id)
     return PublicSiteListPublic(data=[sites.to_admin(r) for r in rows], count=len(rows))
@@ -528,7 +528,7 @@ async def list_admin_api_keys(
     session: SessionDep,
     _admin: AdminUser,
     pagination: PaginationDep,
-    organisation_id: str | None = Query(default=None, max_length=100),
+    organisation_id: Annotated[str | None, Query(max_length=100)] = None,
 ) -> Any:
     rows, total = await api_keys.list_keys(
         session,
@@ -616,7 +616,7 @@ async def list_all(
     session: SessionDep,
     _admin: AdminUser,
     pagination: PaginationDep,
-    q: str | None = Query(default=None, max_length=100),
+    q: Annotated[str | None, Query(max_length=100)] = None,
     status: OrganisationStatus | None = None,
     kind: OrganisationKind | None = None,
 ) -> Any:

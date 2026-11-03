@@ -38,6 +38,10 @@ interface HolidayForm {
   source: string;
 }
 
+// Matches the API's accepted range for the holiday year.
+const MIN_YEAR = 2000;
+const MAX_YEAR = 2100;
+
 const EMPTY_FORM: HolidayForm = {
   holidayDate: "",
   name: "",
@@ -58,7 +62,12 @@ export function HolidaysManager({ canManage }: HolidaysManagerProps) {
   const [editingId, setEditingId] = useState<string>();
   const [form, setForm] = useState<HolidayForm>(EMPTY_FORM);
   const queryClient = useQueryClient();
-  const holidaysQuery = useHrListHolidays({ query: { year } });
+  // The API accepts 2000-2100 only; skip the request while a partial year is being typed.
+  const yearInRange = year >= MIN_YEAR && year <= MAX_YEAR;
+  const holidaysQuery = useHrListHolidays(
+    { query: { year } },
+    { query: { enabled: yearInRange } }
+  );
   const createMutation = useHrCreateHoliday();
   const updateMutation = useHrUpdateHoliday();
   const removeMutation = useHrRemoveHoliday();
@@ -147,8 +156,8 @@ export function HolidaysManager({ canManage }: HolidaysManagerProps) {
           <FieldLabel htmlFor="holiday-year">Year</FieldLabel>
           <Input
             id="holiday-year"
-            max={2100}
-            min={2000}
+            max={MAX_YEAR}
+            min={MIN_YEAR}
             onChange={(event) => setYear(Number(event.target.value))}
             type="number"
             value={year}
@@ -156,7 +165,7 @@ export function HolidaysManager({ canManage }: HolidaysManagerProps) {
         </Field>
         {canManage && (
           <Button
-            disabled={loadMutation.isPending || year < 2000 || year > 2100}
+            disabled={loadMutation.isPending || !yearInRange}
             onClick={loadProvisional}
             type="button"
             variant="outline"
@@ -179,13 +188,14 @@ export function HolidaysManager({ canManage }: HolidaysManagerProps) {
           </TableRow>
         </TableHeader>
         <TableBody>
-          {holidays.length === 0 && !holidaysQuery.isPending && (
-            <TableRow>
-              <TableCell colSpan={5}>
-                No holidays recorded for {year}.
-              </TableCell>
-            </TableRow>
-          )}
+          {holidays.length === 0 &&
+            !(yearInRange && holidaysQuery.isPending) && (
+              <TableRow>
+                <TableCell colSpan={5}>
+                  No holidays recorded for {year}.
+                </TableCell>
+              </TableRow>
+            )}
           {holidays.map((holiday) => (
             <TableRow key={holiday.id}>
               <TableCell>{holiday.holiday_date}</TableCell>

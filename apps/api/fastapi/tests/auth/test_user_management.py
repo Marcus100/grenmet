@@ -1,7 +1,6 @@
 """Tests for delegated user management (user.manage) and role lifecycle."""
 
 import pytest
-from fastapi import HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.auth import service as auth_service
@@ -14,6 +13,7 @@ from src.auth.schemas import (
 )
 from src.auth.service import create_user
 from src.dependencies import get_current_user_manager, is_user_manager
+from src.exceptions import AppException
 from src.utils.datetime import utc_now
 from tests.utils.utils import random_email, random_lower_string
 
@@ -71,7 +71,7 @@ async def test_user_manager_dependency_rejects_plain_user(
     plain = await _user(db_async)
     await db_async.refresh(plain, attribute_names=["roles"])
     assert is_user_manager(plain) is False
-    with pytest.raises(HTTPException) as exc_info:
+    with pytest.raises(AppException) as exc_info:
         await get_current_user_manager(plain)
     assert exc_info.value.status_code == 403
 

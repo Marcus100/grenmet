@@ -8,3 +8,10 @@ class JanitorialConflict(AppException):
 
     def __init__(self, message: str):
         super().__init__(message, status.HTTP_409_CONFLICT)
+
+
+class CatalogueUnavailableError(AppException):
+    def __init__(self) -> None:
+        super().__init__(
+            "Janitorial catalogue is unavailable", status.HTTP_503_SERVICE_UNAVAILABLE
+        )

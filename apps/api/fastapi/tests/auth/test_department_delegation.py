@@ -3,7 +3,6 @@
 from datetime import timedelta
 
 import pytest
-from fastapi import HTTPException
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
@@ -200,7 +199,7 @@ async def test_users_counts_and_id_mutations_are_scoped(
         (target, {"is_superuser": True}),
         (actor, {"first_name": "Self"}),
     ):
-        with pytest.raises(HTTPException):
+        with pytest.raises(AppException):
             await users.update_user(
                 session=db_async,
                 user_id=subject.id,

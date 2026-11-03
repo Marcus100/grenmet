@@ -23,6 +23,11 @@ async function headersFor(path: string) {
 }
 
 describe("cache headers on the shared cap host", () => {
+  it("leaves /runtime-env.js to its own short cache", async () => {
+    const headers = await headersFor("/runtime-env.js");
+    expect(headers.has("Cache-Control")).toBe(false);
+  });
+
   it.each(["/", "/map", "/history", "/alerts/abc", "/feeds", "/about"])(
     "public page %s keeps the edge cache",
     async (path) => {

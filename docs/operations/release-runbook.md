@@ -54,11 +54,11 @@ is their committed copy and `pnpm guardrails:rulesets` checks it.
   any agent merge whose base is not `dev`.
 - If dev advances, review and verify the new head. Fix failures locally and
   revalidate before pushing; do not blindly retry CI.
-- The push to `staging` triggers `pipeline-staging.yml`. On `origin/dev` today it
-  builds and smoke-tests a complete core image set alongside CI, then deploys only
-  after every gate succeeds. From PR #1026 it builds nothing: it promotes the images
-  `dev-images.yml` already built for the same git tree (see
-  [Build once, promote by digest](#build-once-promote-by-digest)).
+- The push to `staging` triggers `pipeline-staging.yml`, which promotes the
+  images `dev-images.yml` already built for the same git tree (it dispatches the dev build itself when it
+  never ran, and waits up to 45 minutes), after checking the required checks passed on the
+  dev commit, then deploys them. It does not rebuild or re-run CI. A successful
+  deploy marks those digests staging-verified for production.
 - Verify the staging deploy job succeeded: `gh run list --workflow=pipeline-staging.yml --limit 1`
 
 ## 3. Promote staging → main
@@ -78,10 +78,11 @@ is their committed copy and `pnpm guardrails:rulesets` checks it.
   it from the Releases page.
 - By hand instead: draft notes from merged changes, then **human publishes**:
   `gh release create vN.M --target main --title "vN.M" --notes "…"`
-- Publishing triggers `pipeline-prod.yml`, which deploys via `deploy.yml` on the
-  self-hosted `production` runner. Today it builds all images at the tag; from PR
-  #1026 it promotes the staging-verified digests instead and fails if staging never
-  deployed that tree. The runner
+- Publishing triggers `pipeline-prod.yml`: promotes the staging-verified
+  digests for the tagged commit's git tree (nothing is rebuilt; it fails if
+  staging never deployed that tree), then deploys via `deploy.yml` on the
+  self-hosted `production` runner. `main` must carry exactly what staging ran:
+  no commits on `main` or `staging` that did not come from `dev`. The runner
   must be online or the job queues silently — check with
   `gh run list --workflow=pipeline-prod.yml --limit 1`.
 
@@ -95,6 +96,8 @@ The draft's generated notes only list pull request titles. Before publishing, ad
 - **Rollback note:** whether the previous release still runs against the new schema.
 
 ## 5. Verify prod
+
+- `/runtime-env.js` on each web app carries that environment's public settings (site and API address, Sentry, Turnstile key). It is cached up to 60 seconds, including at Cloudflare, so a settings change reaches browsers within a minute.
 
 - API health: `curl -fsS https://api.barrels.gd/api/v1/utils/health-check/`
 - Spot-check app domains: `auth` / `admin` / `docs` / `weather` / `signal` / `mbia` / `events` / `hapi` `.barrels.gd`.
@@ -181,7 +184,7 @@ that tree: what staging proved is exactly what production runs.
 | Step | Workflow | What happens |
 | --- | --- | --- |
 | Push to `dev` | `dev-images.yml` | `promote-images.mjs plan` picks the images the change touches (`select-images.mjs`) plus any the previous tree lacks. Those are built, smoke-tested and scanned, then tagged `tree-<tree>`. Unchanged images get `tree-<tree>` on the previous digest. |
-| Push to `staging` | `pipeline-staging.yml` | `promote staging` finds the dev commit with the same tree, requires every required status check of the dev ruleset to have passed on it, waits up to 30 minutes for its dev images, retags the digests `staging-sha-<commit>` and `staging`, and deploys. After the deploy and smoke tests, `mark-verified` adds `staging-verified-tree-<tree>`. |
+| Push to `staging` | `pipeline-staging.yml` | `promote staging` finds the dev commit with the same tree, requires every required status check of the dev ruleset to have passed on it, waits up to 45 minutes for its dev images (dispatching Dev Images when none ran), verifies each image's labels name a passing dev ancestor, retags the digests `staging-sha-<commit>` and `staging`, and deploys. After the deploy and smoke tests, `mark-verified` adds `staging-verified-tree-<tree>`. |
 | Publish a release | `pipeline-prod.yml` | `promote production` takes only `staging-verified-tree-<tree>` digests, tags `production-sha-<commit>` and deploys. `latest` and the release tag move after the production deploy. |
 | Deploy | `deploy.yml` / `core.sh` | The `image_digests` input becomes `DEPLOY_IMAGE_DIGESTS`; `core.sh` refuses any ghcr.io image not in the list. |
 
@@ -199,7 +202,7 @@ and the build-time Sentry endpoint. The first dev push after the merge builds ev
 image (no earlier tree tags), and staging must deploy a tree before production can
 release it.
 
-**Runtime settings (PR #1025).** Web images no longer carry the environment's
+**Runtime settings.** Web images no longer carry the environment's
 public settings; see [Public settings at run time](../env.md#public-settings-at-run-time).
 On the first staging deploy check `/runtime-env.js` on each app returns staging
 values and that Sentry and Turnstile load. The file is cached up to 60 seconds, so
@@ -218,6 +221,15 @@ a settings change reaches browsers within a minute.
 
 Rollback is a redeploy of the previous release's images. It never rebuilds and it
 never undoes database migrations.
+
+If promotion cannot run because the dev images for the tree are missing, the
+staging pipeline dispatches **Dev Images** for that dev commit itself and waits
+up to 45 minutes. To do it by hand: dispatch **Dev Images** (`dev-images.yml`)
+with `sha` set to the dev commit, then re-run the pipeline. To redeploy an
+existing release, dispatch **Deploy** with `image_tag=sha-<commit>`, the
+`image_digests` from the original promotion run summary and, only when you have
+no digest list, `manual_redeploy`. A tree that never passed through dev has no
+fallback: merge it into dev first.
 
 **Rollback by digest.**
 
@@ -247,7 +259,7 @@ pull request before it merges. Do not run a migration `down` in production to ro
 back: restore from the backup named in the release notes only when data is wrong,
 with the owner (see [restore drill](restore-drill.md) and the backup gate above).
 
-**Web public settings.** After PR #1025 a wrong site, API or Sentry value is fixed
+**Web public settings.** A wrong site, API or Sentry value is fixed
 by correcting the GitHub environment variable and redeploying; no rebuild.
 
 ### CMS migrations (Payload, database `gms_cms`)

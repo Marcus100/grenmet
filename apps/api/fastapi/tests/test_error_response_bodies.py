@@ -8,11 +8,14 @@ application lockout, so its documented model is the union of both.
 """
 
 import uuid
+from typing import cast
 
 import httpx
 import pytest
+from fastapi import Request
 
 from src.config import settings
+from src.exceptions import AppException, AuthenticationError, app_exception_handler
 from src.rate_limit import limiter
 
 
@@ -30,6 +33,7 @@ async def test_missing_token_returns_detail_string(
     response = await async_client.get(f"{settings.API_V1_STR}/auth/users/me")
     assert response.status_code == 401
     _detail_body(response)
+    assert response.headers["www-authenticate"] == "Bearer"
 
 
 @pytest.mark.asyncio
@@ -154,3 +158,22 @@ async def test_account_lockout_429_returns_detail_string(
     assert response.json() == {
         "detail": "Account temporarily locked due to repeated failed logins"
     }
+
+
+async def test_app_exception_handler_passes_headers_through() -> None:
+    # Typed errors that carry protocol headers (WWW-Authenticate, Retry-After,
+    # Location) must send them exactly as HTTPException did.
+    exc = AuthenticationError("Sign in again", headers={"WWW-Authenticate": "Bearer"})
+    response = await app_exception_handler(cast(Request, None), exc)
+    assert response.status_code == 401
+    assert response.headers["www-authenticate"] == "Bearer"
+    assert bytes(response.body) == b'{"detail":"Sign in again"}'
+
+
+async def test_app_exception_without_headers_adds_none() -> None:
+    exc = AppException("Busy", 503)
+    assert exc.headers is None
+    response = await app_exception_handler(cast(Request, None), exc)
+    assert response.status_code == 503
+    assert "www-authenticate" not in response.headers
+    assert bytes(response.body) == b'{"detail":"Busy"}'

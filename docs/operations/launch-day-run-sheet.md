@@ -50,7 +50,7 @@ different people when possible.
 
 - API health: `curl -fsS https://api.barrels.gd/api/v1/utils/health-check/`
 - Spot-check `auth`, `admin`, `docs`, `weather`, `signal`, `mbia`, `events` and `hapi` on `.barrels.gd`.
-- After PR #1025: `/runtime-env.js` on each web app returns production values; Sentry and Turnstile load.
+- `/runtime-env.js` on each web app returns production values; Sentry and Turnstile load.
 - Weather products list: `GET /api/v1/wxproducts/public/products` returns `{ "products": [...] }`; the public weather site shows current forecasts and warnings.
 - CAP feed is reachable and valid (see [CAP desk acceptance](cap-desk-acceptance.md)).
 - No new Sentry issues in the first 30 minutes.

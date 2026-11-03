@@ -1,3 +1,4 @@
+import { PublicEnvScript } from "@barrelsgd/ui/components/public-env-script";
 import type { Metadata } from "next";
 import "./globals.css";
 import { Bricolage_Grotesque, Inter, Noto_Sans } from "next/font/google";
@@ -41,6 +42,7 @@ export default function RootLayout({
       lang="en"
     >
       <body className="bg-background text-foreground min-h-screen font-sans antialiased">
+        <PublicEnvScript />
         {children}
       </body>
     </html>

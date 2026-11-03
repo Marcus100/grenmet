@@ -484,3 +484,15 @@ assert "| health | pass | ok |" in text and "expected 200, got 500" in text
 assert "Not yet verified" not in text and not passed
 `);
 });
+
+test("the throwaway data mount follows the PostgreSQL major version", () => {
+  python(`
+old = "/var/lib/postgresql/data"
+new = "/var/lib/postgresql"
+assert drill.postgres_data_mount("postgres:17") == old
+assert drill.postgres_data_mount("postgis/postgis:17-3.5@sha256:" + "a" * 64) == old
+assert drill.postgres_data_mount("postgres:18") == new
+assert drill.postgres_data_mount("postgis/postgis:18-3.6") == new
+assert drill.postgres_data_mount("postgres@sha256:" + "a" * 64) == old
+`);
+});
