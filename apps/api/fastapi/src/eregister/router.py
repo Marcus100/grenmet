@@ -108,12 +108,14 @@ async def list_register_observations(
     app_session: SessionDep,
     response: Response,
     station_id: Annotated[str | None, Query(max_length=64)] = None,
-    kind: str | None = Query(default=None, pattern="^(SYNOP|METAR|SPECI)$"),
-    state: str | None = Query(
-        default=None,
-        pattern=STATE_PATTERN,
-        description="Only observations in these QC states, comma separated. Awaiting acceptance: draft,qc_pending.",
-    ),
+    kind: Annotated[str | None, Query(pattern="^(SYNOP|METAR|SPECI)$")] = None,
+    state: Annotated[
+        str | None,
+        Query(
+            pattern=STATE_PATTERN,
+            description="Only observations in these QC states, comma separated. Awaiting acceptance: draft,qc_pending.",
+        ),
+    ] = None,
     reviewed: Annotated[
         bool | None,
         Query(
