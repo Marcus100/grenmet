@@ -716,6 +716,7 @@ test("the sign-in visitor address fix with a response change still requires comp
 
 const STARTUP_BEFORE = `from src import operational_metrics
 from src.audit.router import router as audit_router
+@asynccontextmanager
 async def lifespan(_app):
     try:
         yield
@@ -834,4 +835,69 @@ test("declared contract: staged mode still requires companions", (t) => {
   write(repository, ROUTER, ROUTER_AFTER);
   git(repository, "add", ROUTER);
   assert.equal(check(repository, ["--staged"]).status, 1);
+});
+
+for (const [name, mutate] of [
+  [
+    "repointing a router alias",
+    (source) =>
+      source.replace(
+        "from src.audit.router import router as audit_router",
+        "from src.audit.router import public_router as audit_router"
+      ),
+  ],
+  [
+    "adding a route decorator to an exempt function",
+    (source) =>
+      source.replace(
+        "class RequestLoggingMiddleware:",
+        '@app.get("/x")\nclass RequestLoggingMiddleware:'
+      ),
+  ],
+  [
+    "an exempt function also used as a route dependency",
+    (source) =>
+      source.replace(
+        'app.include_router(audit_router, prefix="/api/v1")',
+        'app.include_router(audit_router, prefix="/api/v1", dependencies=[Depends(RequestLoggingMiddleware)])'
+      ),
+  ],
+]) {
+  test(`runtime-only startup cannot hide ${name}`, (t) => {
+    const file = "apps/api/fastapi/src/main.py";
+    const { base, repository } = createRepository(t, {
+      [file]: STARTUP_BEFORE,
+    });
+    write(repository, file, mutate(STARTUP_AFTER));
+    const head = commit(repository);
+    assert.equal(check(repository, ["--base", base, "--head", head]).status, 1);
+  });
+}
+
+test("declared contract: every commit touching routes needs the trailer", (t) => {
+  const { base, repository } = createRepository(t, {
+    [ROUTER]: ROUTER_BEFORE,
+    "apps/api/fastapi/openapi.json": '{"openapi":"3.1.0"}\n',
+  });
+  write(repository, ROUTER, ROUTER_AFTER);
+  commit(repository, "refactor\n\nAPI-Contract: unchanged\n");
+  write(
+    repository,
+    ROUTER,
+    `${ROUTER_AFTER}@router.get("/new")\nasync def new():\n    return []\n`
+  );
+  const head = commit(repository, "feat: add a route");
+  assert.equal(check(repository, ["--base", base, "--head", head]).status, 1);
+});
+
+test("declared contract: a trailer on an unrelated commit does not count", (t) => {
+  const { base, repository } = createRepository(t, {
+    [ROUTER]: ROUTER_BEFORE,
+    "apps/api/fastapi/openapi.json": '{"openapi":"3.1.0"}\n',
+  });
+  write(repository, ROUTER, ROUTER_AFTER);
+  commit(repository, "refactor");
+  write(repository, "README.md", "notes\n");
+  const head = commit(repository, "docs\n\nAPI-Contract: unchanged\n");
+  assert.equal(check(repository, ["--base", base, "--head", head]).status, 1);
 });

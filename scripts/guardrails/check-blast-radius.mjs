@@ -529,31 +529,82 @@ def is_app_call(node, method):
         and isinstance(node.func.value, ast.Name)
         and node.func.value.id == "app"
     )
-def runtime_names(tree):
-    names = {"lifespan"}
-    for node in ast.walk(tree):
-        if is_app_call(node, "add_middleware") and node.args and isinstance(node.args[0], ast.Name):
-            names.add(node.args[0].id)
-            names.update(k.value.id for k in node.keywords if k.arg == "dispatch" and isinstance(k.value, ast.Name))
-        if is_app_call(node, "add_exception_handler") and len(node.args) > 1 and isinstance(node.args[1], ast.Name):
-            names.add(node.args[1].id)
-    return names
-def contract(tree, names):
+def registration_refs(tree):
+    # Names handed to the app only as middleware, exception handlers or the
+    # lifespan, from top-level statements (nested blocks never widen the set).
+    refs = set()
+    for node in tree.body:
+        call = node.value if isinstance(node, (ast.Expr, ast.Assign)) else None
+        if not isinstance(call, ast.Call):
+            continue
+        if is_app_call(call, "add_middleware") and call.args and isinstance(call.args[0], ast.Name):
+            refs.add(call.args[0])
+            refs.update(k.value for k in call.keywords if k.arg == "dispatch" and isinstance(k.value, ast.Name))
+        if is_app_call(call, "add_exception_handler") and len(call.args) > 1 and isinstance(call.args[1], ast.Name):
+            refs.add(call.args[1])
+        refs.update(k.value for k in call.keywords if k.arg == "lifespan" and isinstance(k.value, ast.Name))
+    return refs
+def plain_wrapper(decorator):
+    # A lifespan is written with @asynccontextmanager; no other decorator (a
+    # route, an OpenAPI hook) may ride along on an exempt definition.
+    if isinstance(decorator, ast.Name):
+        return decorator.id in ("asynccontextmanager", "contextmanager")
+    return (
+        isinstance(decorator, ast.Attribute)
+        and decorator.attr in ("asynccontextmanager", "contextmanager")
+        and isinstance(decorator.value, ast.Name)
+        and decorator.value.id == "contextlib"
+    )
+def exempt_names(tree):
+    refs = registration_refs(tree)
+    names = {ref.id for ref in refs}
+    ref_ids = {id(ref) for ref in refs}
+    defs = {node.name: node for node in tree.body if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef))}
+    exempt = set()
+    for name in names:
+        node = defs.get(name)
+        if node is None or not all(plain_wrapper(d) for d in node.decorator_list):
+            continue
+        # Any other use (a route dependency, an OpenAPI hook) keeps it in the gate.
+        others = [
+            n for stmt in tree.body if stmt is not node
+            for n in ast.walk(stmt)
+            if isinstance(n, ast.Name) and n.id == name and id(n) not in ref_ids
+        ]
+        if not others:
+            exempt.add(name)
+    return exempt
+def contract(tree, exempt):
     kept = []
+    imports = []
     for node in tree.body:
         if isinstance(node, (ast.Import, ast.ImportFrom)):
+            imports.append(node)
             continue
-        if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)) and node.name in names:
+        if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)) and node.name in exempt:
             continue
         if isinstance(node, ast.Expr) and is_app_call(node.value, "add_middleware"):
             continue
         kept.append(node)
+    used = {n.id for stmt in kept for n in ast.walk(stmt) if isinstance(n, ast.Name)}
+    # Imports count only for names the compared statements use, keyed by what
+    # they bind, so repointing an alias such as a router is still a change.
+    bound = sorted(
+        (alias.asname or alias.name.split(".")[0], getattr(node, "module", None) or "", alias.name, getattr(node, "level", 0))
+        for node in imports for alias in node.names
+        if (alias.asname or alias.name.split(".")[0]) in used
+    )
     tree.body = kept
-    return ast.dump(tree)
+    return json.dumps(bound) + ast.dump(tree)
 before, after = json.load(sys.stdin)
 trees = [ast.parse(before), ast.parse(after)]
-names = runtime_names(trees[0]) | runtime_names(trees[1])
-sys.exit(0 if before != after and contract(trees[0], names) == contract(trees[1], names) else 1)
+names_before, names_after = exempt_names(trees[0]), exempt_names(trees[1])
+# A name exempt on one side only must not be a def on the other side.
+exempt = (names_before | names_after) - {
+    n.name for t, own in ((trees[0], names_before), (trees[1], names_after))
+    for n in t.body if isinstance(n, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)) and n.name not in own
+}
+sys.exit(0 if before != after and contract(trees[0], exempt) == contract(trees[1], exempt) else 1)
 `,
     ],
     {
@@ -565,21 +616,36 @@ sys.exit(0 if before != after and contract(trees[0], names) == contract(trees[1]
 };
 
 // A pure refactor of routes (same paths, schemas and responses) has nothing to
-// regenerate. A commit in the range may declare that with the trailer
-// "API-Contract: unchanged"; CI's OpenAPI regeneration check (ci-api.yml, which
-// fails on any diff in openapi.json) still proves the declaration. Range mode
-// only: a staged commit has no message yet. A range that edits openapi.json
-// gets no exemption.
+// regenerate. Every non-merge commit in the range that touches a triggering
+// file must declare that with the trailer "API-Contract: unchanged"; CI's
+// OpenAPI regeneration check (ci-api.yml, which fails on any diff in
+// openapi.json) still proves it. Range mode only: a staged commit has no
+// message yet. A range that edits openapi.json gets no exemption. The trailer
+// covers the OpenAPI contract only: behaviour documented in
+// docs/api/contracts.md (permissions, status meanings) needs that file updated.
 const contractUnchangedTrailer = /^API-Contract: unchanged$/mu;
-const declaredContractUnchanged = (comparison) => {
-  if (comparison.mode !== "range") return false;
+const declaredContractUnchanged = (comparison, triggers) => {
+  if (comparison.mode !== "range" || triggers.length === 0) return false;
   const log = spawnSync(
     "git",
-    ["log", "--format=%B", `${comparison.base}..${comparison.head}`],
+    [
+      "log",
+      "--no-merges",
+      "--format=%B%x1e",
+      `${comparison.base}..${comparison.head}`,
+      "--",
+      ...triggers,
+    ],
     { encoding: "utf8" }
   );
+  if (log.error || log.status !== 0) return false;
+  const messages = log.stdout
+    .split("\x1e")
+    .map((message) => message.trim())
+    .filter(Boolean);
   return (
-    !log.error && log.status === 0 && contractUnchangedTrailer.test(log.stdout)
+    messages.length > 0 &&
+    messages.every((message) => contractUnchangedTrailer.test(message))
   );
 };
 
@@ -609,7 +675,7 @@ const evaluateChanges = (changes, comparison) => {
   if (
     triggers.length > 0 &&
     !files.has("apps/api/fastapi/openapi.json") &&
-    declaredContractUnchanged(comparison)
+    declaredContractUnchanged(comparison, triggers)
   ) {
     triggers.length = 0;
   }
