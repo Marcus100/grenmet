@@ -75,9 +75,11 @@ def test_upgrade_adds_the_column_flags_http_feeds_and_downgrade_drops_it(
     assert not _has_column(connection)
 
 
-def test_the_migration_continues_the_dev_head():
+def test_the_migration_continues_the_payroll_chain():
     scripts = ScriptDirectory.from_config(Config("alembic.ini"))
     revision = scripts.get_revision(REVISION)
     assert revision is not None
     assert revision.down_revision == "payrollpayslips20261031"
-    assert scripts.get_heads() == [REVISION]
+    # Later migrations may land after this one: it only has to stay in the head's history.
+    history = [item.revision for item in scripts.walk_revisions()]
+    assert REVISION in history
