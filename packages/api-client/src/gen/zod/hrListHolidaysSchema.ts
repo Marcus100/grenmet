@@ -9,7 +9,7 @@ import { publicHolidaysPublicSchema } from "./publicHolidaysPublicSchema.js";
 import { validationErrorResponseSchema } from "./validationErrorResponseSchema.js";
 
 export const hrListHolidaysQueryYearSchema = z
-  .union([z.int(), z.null()])
+  .union([z.int().min(2000).max(2100), z.null()])
   .optional();
 
 export const hrListHolidaysStatus200Schema = publicHolidaysPublicSchema;
@@ -31,5 +31,5 @@ export const hrListHolidaysErrorSchema = z.union([
 ]);
 
 export const hrListHolidaysQuerySchema = z.object({
-  year: z.union([z.int(), z.null()]).optional(),
+  year: z.union([z.int().min(2000).max(2100), z.null()]).optional(),
 });
