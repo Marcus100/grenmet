@@ -1,5 +1,6 @@
 {% extends "base.html.j2" %}
 {% block content %}
+<div class="typed">
     <section class="card headline">
       {{ icon("waves", "headline-icon", "sky-ink") }}
       <div>
@@ -43,20 +44,32 @@
     {% else %}
     <section class="advisories">
       <h2 class="eyebrow">Alerts and advisories in force</h2>
+      {% if not captured %}
+      <p class="muted">Alerts were not captured for this revision.</p>
+      {% elif complete %}
       <p class="muted">No CAP alerts or GMS bulletins were in force at issue.</p>
+      {% endif %}
     </section>
     {% endif %}
-    {% if all_clear or not complete %}
+    {% if all_clear or (captured and not complete) %}
     <ul class="note-list">
       {% for item in all_clear %}
       <li class="note">All clear (information): {{ item.title }} bulletin, {{ item.valid }}</li>
       {% endfor %}
-      {% if not complete %}<li class="note">Some warning sources were unavailable at issue; check weather.gd.</li>{% endif %}
+      {% if captured and not complete %}<li class="note">Some warning sources were unavailable at issue; check weather.gd.</li>{% endif %}
     </ul>
+    {% endif %}
+
+    {% if small_craft_recorded %}
+    <section class="card">
+      <h2 class="eyebrow">Small craft (as recorded)</h2>
+      {% for text in small_craft_recorded %}<p>{{ text }}</p>{% endfor %}
+    </section>
     {% endif %}
 
     <section class="card">
       <h2 class="eyebrow">Outlook · next 24 hours</h2>
       <p>{{ outlook or "—" }}</p>
     </section>
+</div>
 {% endblock %}

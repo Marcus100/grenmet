@@ -1,6 +1,6 @@
 """Two-factor authentication (TOTP) enrollment endpoints."""
 
-from fastapi import APIRouter, HTTPException, status
+from fastapi import APIRouter, status
 
 from src.auth import service, totp
 from src.auth.account_security import verify_factor
@@ -12,6 +12,7 @@ from src.auth.schemas import (
     TwoFactorStatusPublic,
 )
 from src.dependencies import AccountUser, SessionDep, TokenDep
+from src.exceptions import AppException
 from src.models import ApiError
 from src.openapi_responses import AUTHENTICATED
 
@@ -82,10 +83,7 @@ async def twofa_activate(
         email_code=payload.email_code,
     )
     if not ok:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Invalid or expired 2FA code",
-        )
+        raise AppException("Invalid or expired 2FA code", status.HTTP_400_BAD_REQUEST)
     return TwoFactorStatusPublic(enabled=True)
 
 
@@ -108,13 +106,9 @@ async def twofa_disable(
         session=session, email=current_user.email, password=payload.password
     )
     if not verified:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST, detail="Incorrect password"
-        )
+        raise AppException("Incorrect password", status.HTTP_400_BAD_REQUEST)
     if not await verify_factor(session, current_user, payload.code):
-        raise HTTPException(
-            status_code=400, detail="Authenticator or recovery code was not accepted"
-        )
+        raise AppException("Authenticator or recovery code was not accepted", 400)
     current_user.mfa_recovery_hashes = []
     await service.disable_totp(session=session, user=current_user)
     return TwoFactorStatusPublic(enabled=False)

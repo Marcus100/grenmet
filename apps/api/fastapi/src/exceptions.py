@@ -13,9 +13,17 @@ from src.models import ApiError, ValidationErrorItem, ValidationErrorResponse
 class AppException(Exception):
     """Base application exception."""
 
-    def __init__(self, message: str, status_code: int = 500):
+    def __init__(
+        self,
+        message: str,
+        status_code: int = 500,
+        headers: dict[str, str] | None = None,
+    ):
         self.message = message
         self.status_code = status_code
+        #: Protocol headers sent with the error (for example ``WWW-Authenticate``
+        #: on a 401, ``Retry-After`` on a 429); None for ordinary errors.
+        self.headers = headers
         #: Extra documented fields merged into the error body next to ``detail``
         #: (for example roster rule warnings); empty for ordinary errors.
         self.extra: dict[str, object] = {}
@@ -33,14 +41,18 @@ class AppValidationError(AppException):
     """Application validation error exception."""
 
     def __init__(self, message: str = "Validation error"):
-        super().__init__(message, status.HTTP_422_UNPROCESSABLE_ENTITY)
+        super().__init__(message, status.HTTP_422_UNPROCESSABLE_CONTENT)
 
 
 class AuthenticationError(AppException):
     """Authentication error exception."""
 
-    def __init__(self, message: str = "Authentication failed"):
-        super().__init__(message, status.HTTP_401_UNAUTHORIZED)
+    def __init__(
+        self,
+        message: str = "Authentication failed",
+        headers: dict[str, str] | None = None,
+    ):
+        super().__init__(message, status.HTTP_401_UNAUTHORIZED, headers=headers)
 
 
 class AuthorizationError(AppException):
@@ -60,7 +72,9 @@ async def app_exception_handler(
         **exc.extra,
         **ApiError(detail=exc.message).model_dump(),
     }
-    return JSONResponse(status_code=exc.status_code, content=content)
+    return JSONResponse(
+        status_code=exc.status_code, content=content, headers=exc.headers
+    )
 
 
 async def validation_exception_handler(
@@ -69,7 +83,7 @@ async def validation_exception_handler(
 ) -> JSONResponse:
     """Handle Pydantic validation errors."""
     return JSONResponse(
-        status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+        status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
         content=ValidationErrorResponse(
             errors=[
                 ValidationErrorItem(

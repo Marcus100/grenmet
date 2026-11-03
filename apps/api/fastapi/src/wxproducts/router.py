@@ -203,8 +203,8 @@ async def load_products(
     response: Response,
     kind: ProductKind | None = None,
     issue_date: date | None = None,
-    limit: int = Query(default=100, ge=1, le=100),
-    offset: int = Query(default=0, ge=0, le=100000),
+    limit: Annotated[int, Query(ge=1, le=100)] = 100,
+    offset: Annotated[int, Query(ge=0, le=100000)] = 0,
 ) -> AuthoredProducts:
     response.headers.update(NO_STORE)
     if kind is not None:
@@ -596,6 +596,7 @@ async def preview_product_pdf(
         401: {"model": AuthoringError},
         403: {"model": AuthoringError},
         404: {"model": AuthoringError},
+        422: {"model": AuthoringError},
         503: {"model": AuthoringError},
     },
 )

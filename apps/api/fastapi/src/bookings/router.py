@@ -447,7 +447,7 @@ async def get_agenda(
     org: BookingsOrgRead,
     from_date: date,
     to_date: date,
-    provider_id: uuid.UUID | None = Query(default=None),
+    provider_id: Annotated[uuid.UUID | None, Query()] = None,
     status_filter: Annotated[list[BookingStatus] | None, Query(alias="status")] = None,
     limit: Annotated[int, Query(ge=1, le=500)] = 200,
     offset: Annotated[int, Query(ge=0, le=100_000)] = 0,
@@ -737,7 +737,7 @@ async def get_availability(
     service_id: uuid.UUID,
     first_day: date,
     last_day: date,
-    provider_id: uuid.UUID | None = Query(default=None),
+    provider_id: Annotated[uuid.UUID | None, Query()] = None,
 ) -> Any:
     _ = request
     profile = await service.get_public_profile(session, slug)

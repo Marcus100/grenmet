@@ -252,7 +252,7 @@ const PARAGRAPH_BREAK = /\r?\n\s*\r?\n/u;
  * longer type impacts; alerts and CAP are the source. `null` when the
  * forecast predates the snapshot or it cannot be read.
  */
-function importedWatch(raw: string | undefined): string[] | null {
+export function importedWatch(raw: string | undefined): string[] | null {
   if (!raw?.trim()) return null;
   let parsed: unknown;
   try {

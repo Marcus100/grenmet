@@ -16,14 +16,14 @@ from collections.abc import AsyncGenerator
 from dataclasses import dataclass
 from typing import Annotated
 
-from fastapi import Depends, Header, status
-from fastapi.exceptions import HTTPException
+from fastapi import Depends, Header
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.auth import policy
 from src.auth.app_dependencies import OptionalBearer
 from src.auth.models import User
 from src.dependencies import CurrentUser, SessionDep
+from src.exceptions import AuthenticationError
 from src.organisations.dependencies import (
     ORGANISATION_HEADER,
     OrgContext,
@@ -47,11 +47,9 @@ class GuidanceCaller:
     org: OrgContext | None
 
 
-def _wrong_app() -> HTTPException:
-    return HTTPException(
-        status.HTTP_401_UNAUTHORIZED,
-        "Sign in to this app to continue",
-        headers={"WWW-Authenticate": "Bearer"},
+def _wrong_app() -> AuthenticationError:
+    return AuthenticationError(
+        "Sign in to this app to continue", headers={"WWW-Authenticate": "Bearer"}
     )
 
 

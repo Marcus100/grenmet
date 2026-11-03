@@ -1,6 +1,6 @@
 {% extends "base.html.j2" %}
 {% block content %}
-<div class="climate">
+<div class="climate typed">
     <section class="card cb-intro">
       <h2 class="eyebrow">{{ issue_month }}{% if subtitle %} · {{ subtitle }}{% endif %}</h2>
       <p>This Bulletin provides climate monitoring information for {{ monitoring_label or "the month reviewed" }}, as well as climate forecast information for {{ season_label or "the coming three months" }} for Grenada. Most historical observations were recorded at MBIA, Point Salines, St. George, with additional rainfall data throughout the State recorded by the NAWASA and Ministry of Agriculture. The forecast information is drawn from the Caribbean Climate Outlook Forum (CariCOF) climate outlooks (http://rcc.cimh.edu.bb/climate-outlooks/). Other inputs were made by the Land Use Division of the Ministry of Agriculture.{% if contacts %} For more information, contact: {{ contacts | join(", ") }}.{% endif %}</p>

@@ -24,6 +24,7 @@ from .presentation import conditions as _conditions
 from .validation import (
     FIELDS,
     GRENADA,
+    LEGACY_MARINE_FIELDS,
     MARINE_FORECAST_AREA,
     optional_number,
     period_values,
@@ -303,6 +304,9 @@ def _advisory_context(values: dict[str, str]) -> dict[str, Any]:
     in_force = [item for item in items if not advisories.is_all_clear(item)]
     all_clear = [item for item in items if advisories.is_all_clear(item)]
     return {
+        # False for a revision saved before alerts were captured (or one whose
+        # snapshot cannot be read): the sheet must not say "none in force".
+        "captured": bool(snapshot),
         "advisories": in_force[: advisories.ITEM_LIMIT],
         "all_clear": all_clear[: advisories.ITEM_LIMIT],
         "complete": bool(snapshot.get("complete", True)),
@@ -361,6 +365,13 @@ def marine_forecast_context(
         "wind_tiles": [t for t in tiles if t["icon"] in WIND_ICONS],
         "sea_tiles": [t for t in tiles if t["icon"] not in WIND_ICONS],
         "outlook": values.get("outlook", ""),
+        # Typed small-craft advice from revisions saved before it was replaced
+        # by the imported advisories; shown read-only, as recorded.
+        "small_craft_recorded": [
+            text
+            for key in LEGACY_MARINE_FIELDS
+            if (text := values.get(key, "").strip())
+        ],
         "forecaster": values.get("forecaster", ""),
         "product_code": "GMS-MWF-MARINE",
         "next_update": "05:00 AST",

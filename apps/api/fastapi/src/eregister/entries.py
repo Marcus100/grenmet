@@ -21,6 +21,8 @@ from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.auth.models import User
+from src.eregister.exceptions import ObservationNotFoundError
+from src.exceptions import AppException
 
 from . import derive, encode, rules, stations
 from .models import STATUS_QUEUED, STATUS_SENT, ERegisterSend
@@ -131,6 +133,8 @@ def require_valid_synop(
     if errors:
         summary = "; ".join(f"{i.field}: {i.message}" for i in errors[:ISSUE_PREVIEW])
         # Shaped by the documented EregisterValidationError so the two cannot drift.
+        # Deliberately HTTPException: the body's detail is an object, and an AppException
+        # message is always a string, so the wire body could not stay identical.
         raise HTTPException(
             422,
             detail=SynopValidationErrorDetail(
@@ -257,11 +261,11 @@ async def create(
             await register.commit()
             return saved, False
         await register.rollback()
-        raise HTTPException(
-            409,
+        raise AppException(
             "An observation for this station and time already exists "
             f"({existing['id']}, {existing['state']}). Correct it instead of "
             "saving a second one.",
+            409,
         )
     try:
         result = await register.execute(
@@ -277,8 +281,8 @@ async def create(
         await register.commit()
     except IntegrityError as exc:
         await register.rollback()
-        raise HTTPException(
-            409, "An observation for this station and time already exists"
+        raise AppException(
+            "An observation for this station and time already exists", 409
         ) from exc
     return saved, True
 
@@ -297,11 +301,11 @@ async def correct(
     )
     found = result.mappings().first()
     if found is None:
-        raise HTTPException(404, "Observation not found")
+        raise ObservationNotFoundError()
     old = dict(found)
     if old["state"] in ("rejected", "superseded"):
         await register.rollback()
-        raise HTTPException(409, f"A {old['state']} observation cannot be corrected")
+        raise AppException(f"A {old['state']} observation cannot be corrected", 409)
     station = await stations.pressure_for(register, old["station_id"])
     if old["kind"] == "SYNOP":
         history = await history_for(register, old["station_id"], old["observed_at"])

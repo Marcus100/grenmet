@@ -1,6 +1,7 @@
 import { ProductContentView } from "@barrelsgd/gms/components/product-content";
 import { notFound } from "next/navigation";
 import { ClimateFigures } from "@/components/pages/climate-figures";
+import { ImportedWatch } from "@/components/pages/imported-watch";
 import { Provenance } from "@/components/pages/provenance";
 import { fetchPublishedProduct } from "@/lib/products";
 export const metadata = { title: "Issued product" };
@@ -49,6 +50,9 @@ export default async function IssuedProductPage({
       <div className="gm-paper rounded-gm-card">
         <ProductContentView content={product} />
       </div>
+      {product.kind === "marine-forecast" ? (
+        <ImportedWatch advisories={product.values.advisories} />
+      ) : null}
       {product.kind === "climate-bulletin" ? (
         <ClimateFigures month={product.values.month ?? ""} />
       ) : null}
