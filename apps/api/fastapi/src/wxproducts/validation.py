@@ -25,6 +25,11 @@ from .schemas import (
 )
 
 ISSUE_HOURS = {"morning": 7, "midday": 12, "evening": 18}
+# Forecasts that import the CAP alerts and GMS bulletins in force when saved or
+# previewed (`advisories.snapshot`). Marine Forecast is a forecast too, but it
+# keeps its own 05:00 schedule (`_marine_schedule`), so it is not in ISSUE_HOURS
+# (land-forecast selection, expiry and overdue sweeps read that).
+ADVISORY_KINDS = frozenset({*ISSUE_HOURS, "marine-forecast"})
 # Scheduled products outside the land-forecast set: drafted ahead of the
 # issue time, so a future issue time may be published.
 SCHEDULED_KINDS = {*ISSUE_HOURS, "marine-forecast"}
@@ -184,6 +189,8 @@ def normalize(
             if parameter_key(prefix, name) in allowed:
                 result[parameter_key(prefix, name)] = text
     if kind == "marine-forecast":
+        if advisories is not None:
+            result["advisories"] = advisories
         return _marine_schedule(result)
     if kind == "climate-bulletin":
         return _climate_schedule(result)

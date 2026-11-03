@@ -3824,22 +3824,9 @@
       "requiredOnPublish": false
     },
     {
-      "section": "Small craft",
-      "key": "smallCraft",
-      "label": "Small craft advice",
-      "options": [
-        "No advisory",
-        "Small craft caution",
-        "Small craft advisory"
-      ],
-      "required": true,
-      "requiredOnPublish": true
-    },
-    {
-      "section": "Small craft",
-      "key": "smallCraftNotes",
-      "label": "Advice to small craft operators",
-      "type": "textarea",
+      "section": "Issue details",
+      "key": "advisories",
+      "label": "Alerts and advisories in force",
       "requiredOnPublish": false
     },
     {

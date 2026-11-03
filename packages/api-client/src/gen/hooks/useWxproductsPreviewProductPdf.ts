@@ -50,7 +50,7 @@ export function wxproductsPreviewProductPdfMutationOptions<TContext = unknown>(
 }
 
 /**
- * @description Renders unsaved forecast, bulletin or outlook content with the issued PDF layout, watermarked as a draft preview. Nothing is saved or published.
+ * @description Renders unsaved forecast (including the Marine Forecast), bulletin, outlook or Climate Bulletin content with the issued PDF layout, watermarked as a draft preview. Nothing is saved or published.
  * @summary Render a draft product PDF preview
  * {@link /api/v1/wxproducts/products/preview/pdf}
  */
