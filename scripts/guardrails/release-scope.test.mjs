@@ -40,11 +40,7 @@ test("promotion pipelines require scope validation and cannot invoke deferred de
       new URL(`../../.github/workflows/${file}`, import.meta.url),
       "utf8"
     );
-    assert.ok(
-      yaml.includes(
-        "needs: [release-scope, ci-api, ci-web, api-client, build-api, build-web]"
-      )
-    );
+    assert.ok(yaml.includes("needs: [release-scope, promote]"));
     assert.ok(yaml.includes("node scripts/ci/check-release-scope.mjs"));
     assert.equal(yaml.includes("build-weather-images.yml"), false);
     assert.equal(yaml.includes("deploy-weather.yml"), false);
@@ -99,56 +95,43 @@ test("service roles partition the core services and drive the CLI", () => {
   );
 });
 
-const ENVIRONMENT_EXPRESSION = /^ {4}environment: \$\{\{ (.+) \}\}$/mu;
-const SENTRY_EXPRESSION = /NEXT_PUBLIC_SENTRY_DSN=\$\{\{ (.+) \}\}/gu;
-test("build environment and Sentry selection keep staging isolated when its key is missing", () => {
-  const workflow = readFileSync(
+const LEGACY_ENV_LABEL = /gd\.barrels\.environment/u;
+const BUILD_ENVIRONMENT = /^ {4}environment: build$/mu;
+const WORKFLOW_DISPATCH = /^ {2}workflow_dispatch:/mu;
+const LEGACY_TAGS = /options:\n\s+- staging|build-once=\$\{\{ inputs\.tag/u;
+test("image builds are dev-only, use the build environment and require a Sentry DSN", () => {
+  const web = readFileSync(
     new URL("../../.github/workflows/build-web-images.yml", import.meta.url),
     "utf8"
   );
-  const environmentExpression = workflow.match(ENVIRONMENT_EXPRESSION)?.[1];
-  assert.ok(environmentExpression);
-  const sentryExpressions = [...workflow.matchAll(SENTRY_EXPRESSION)].map(
-    (match) => match[1]
+  const api = readFileSync(
+    new URL("../../.github/workflows/build-api-image.yml", import.meta.url),
+    "utf8"
   );
-  assert.equal(sentryExpressions.length, 2);
-  for (const [tag, ref, event, expected] of [
-    ["staging", "dev", "workflow_dispatch", "staging"],
-    ["", "staging", "push", "staging"],
-    ["latest", "main", "workflow_dispatch", "production"],
-    ["", "main", "release", "production"],
-  ]) {
-    const environment = runInNewContext(environmentExpression, {
-      inputs: { tag },
-      github: { ref_name: ref, event_name: event },
-    });
-    assert.equal(environment, expected);
-    for (const expression of sentryExpressions) {
-      const context = {
-        steps: {
-          ctx: { outputs: { environment } },
-          telemetry: { outputs: { sentry_dsn: "" } },
-        },
-        secrets: {
-          SENTRY_DSN_STAGING: "",
-          SENTRY_DSN_PRODUCTION: "production-only",
-        },
-      };
-      assert.equal(runInNewContext(expression, context), "");
-      context.steps.telemetry.outputs.sentry_dsn = `${environment}-app-only`;
-      assert.equal(
-        runInNewContext(expression, context),
-        `${environment}-app-only`
-      );
-    }
+  assert.match(web, BUILD_ENVIRONMENT);
+  for (const workflow of [web, api]) {
+    // Only dev-images.yml starts builds; no staging/latest dispatch remains.
+    assert.doesNotMatch(workflow, WORKFLOW_DISPATCH);
+    assert.doesNotMatch(workflow, LEGACY_TAGS);
+    assert.doesNotMatch(workflow, LEGACY_ENV_LABEL);
+    assert.ok(workflow.includes("gd.barrels.tree="));
+    assert.ok(workflow.includes("org.opencontainers.image.revision="));
   }
+  const step = web.slice(
+    web.indexOf("- name: Require the build-time Sentry DSN")
+  );
+  assert.ok(step.startsWith("- name:"));
+  assert.ok(step.slice(0, 900).includes("exit 1"));
+  assert.ok(step.includes("SENTRY_DSN_PRODUCTION"));
 });
 
 const SITE_URL_ARG = /NEXT_PUBLIC_SITE_URL=(.+)$/gmu;
 const DOMAIN_ROW =
   /^\| [^|]+ \| (\d{4}) \| (https:\/\/[a-z.]+)[^|]*\| (https:\/\/[a-z.]+)?/gmu;
 
-test("each web image is built with the public address in docs/deployment.md", () => {
+// Staging's address is supplied at run time (docker-compose.deploy.yml); the
+// image build only seeds the production address.
+test("each web image is built with the production address in docs/deployment.md", () => {
   const workflow = readFileSync(
     new URL("../../.github/workflows/build-web-images.yml", import.meta.url),
     "utf8"
@@ -172,7 +155,7 @@ test("each web image is built with the public address in docs/deployment.md", ()
   for (const image of webImages) {
     const expected = documented.get(image.port);
     if (!expected) continue;
-    for (const environment of ["production", "staging"]) {
+    for (const environment of ["production"]) {
       if (!expected[environment]) continue;
       const url = templates[0].replace(/\$\{\{(.+?)\}\}/gu, (_, expression) =>
         runInNewContext(expression, {
@@ -184,7 +167,7 @@ test("each web image is built with the public address in docs/deployment.md", ()
       checked += 1;
     }
   }
-  assert.ok(checked >= 10, `only ${checked} addresses checked`);
+  assert.ok(checked >= 5, `only ${checked} addresses checked`);
 });
 
 test("routed services can run twice during a rolling start", () => {
@@ -281,4 +264,28 @@ test("no other router or service may use the console or portal host", () => {
       "traefik.http.routers.alias.rule": "Host(`alias.staging.barrels.gd`)",
     })
   );
+});
+
+test("every web image resolves a build-time Sentry DSN, or is deliberately unrouted", async () => {
+  const { buildConfig } = await import("../integrations/build-config.mjs");
+  const unrouted = [];
+  for (const image of webImages) {
+    const app = image.path.split("/").pop();
+    const config = buildConfig(app, "production", undefined, {
+      SENTRY_DSN_PRODUCTION: "https://key@example.ingest.sentry.io/1",
+    });
+    if (config.sentry_project === "") {
+      // The workflow gate skips apps without a Sentry project.
+      assert.equal(
+        config.sentry_dsn,
+        "",
+        `${image.image} has a DSN but no project`
+      );
+      unrouted.push(image.image);
+    } else {
+      assert.ok(config.sentry_dsn, `${image.image} would fail the DSN gate`);
+    }
+  }
+  // admin is intentionally not routed to Sentry yet (service catalogue).
+  assert.deepEqual(unrouted, ["web-admin"]);
 });
