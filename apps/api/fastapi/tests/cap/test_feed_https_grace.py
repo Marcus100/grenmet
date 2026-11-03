@@ -10,11 +10,12 @@ from datetime import datetime, timedelta
 
 import httpx
 import pytest
+import sqlalchemy as sa
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.cap import service as cap_service
 from src.cap.exceptions import CapFeedUrlError
-from src.cap.models import CapFeedImport
+from src.cap.models import CapFeedImport, CapIntegrationStatus
 from src.cap.schemas import CapFeedImportCreate, CapFeedImportUpdate
 from src.utils.datetime import utc_now
 from tests.factories import make_user
@@ -239,3 +240,154 @@ async def test_the_api_shows_the_flag_and_the_end_of_the_grace(
         json={"name": "x", "url": "https://feeds.example.org:8443/cap.rss"},
     )
     assert rejected.status_code == 422
+
+
+# --- stale flags, URL variants and the guarded write -------------------------
+
+
+@pytest.mark.parametrize(
+    "variant",
+    [
+        "HTTP://legacy.example.org/cap.rss",  # scheme case
+        "http://legacy.example.org/cap.rss ",  # trailing space
+        "http://legacy.example.org/cap.rss/",  # trailing slash
+    ],
+)
+async def test_http_url_variants_count_as_a_change_and_are_refused(
+    db_async: AsyncSession, variant: str
+) -> None:
+    su = await make_user(db_async, superuser=True)
+    flagged = utc_now() - timedelta(days=1)
+    feed = await _feed(db_async, insecure_since=flagged)
+    with pytest.raises(CapFeedUrlError):
+        await cap_service.update_feed(
+            session=db_async,
+            current_user=su,
+            feed_id=feed.id,
+            payload=CapFeedImportUpdate(url=variant),
+        )
+    await db_async.refresh(feed)
+    assert feed.url == HTTP_FEED
+    assert feed.insecure_since == flagged
+
+
+@pytest.mark.parametrize(
+    "variant",
+    [
+        "HTTPS://legacy.example.org/cap.rss",
+        "https://legacy.example.org/cap.rss/",
+        " https://legacy.example.org/cap.rss",
+    ],
+)
+async def test_https_url_variants_are_validated_as_a_change(
+    db_async: AsyncSession, variant: str
+) -> None:
+    """Case and slash variants are accepted (and clear the flag); a space is refused."""
+    su = await make_user(db_async, superuser=True)
+    feed = await _feed(db_async, insecure_since=utc_now())
+    if variant.startswith(" "):
+        with pytest.raises(CapFeedUrlError):
+            await cap_service.update_feed(
+                session=db_async,
+                current_user=su,
+                feed_id=feed.id,
+                payload=CapFeedImportUpdate(url=variant),
+            )
+        return
+    updated = await cap_service.update_feed(
+        session=db_async,
+        current_user=su,
+        feed_id=feed.id,
+        payload=CapFeedImportUpdate(url=variant),
+    )
+    assert updated.insecure_since is None
+
+
+async def test_a_status_toggle_and_a_rename_leave_the_flag_alone(
+    db_async: AsyncSession,
+) -> None:
+    su = await make_user(db_async, superuser=True)
+    flagged = utc_now() - timedelta(days=4)
+    feed = await _feed(db_async, insecure_since=flagged)
+    toggled = await cap_service.update_feed(
+        session=db_async,
+        current_user=su,
+        feed_id=feed.id,
+        payload=CapFeedImportUpdate(status=CapIntegrationStatus.INACTIVE),
+    )
+    assert toggled.insecure_since == flagged
+    renamed = await cap_service.update_feed(
+        session=db_async,
+        current_user=su,
+        feed_id=feed.id,
+        payload=CapFeedImportUpdate(name="renamed"),
+    )
+    assert renamed.insecure_since == flagged
+    assert renamed.url == HTTP_FEED
+
+
+async def test_an_https_feed_with_a_stale_flag_is_reported_without_grace_fields(
+    async_client: httpx.AsyncClient,
+    superuser_token_headers_async: dict[str, str],
+    db_async: AsyncSession,
+) -> None:
+    await _feed(db_async, url=HTTPS_FEED, insecure_since=utc_now() - timedelta(days=20))
+    response = await async_client.get(
+        "/api/v1/cap/feeds", headers=superuser_token_headers_async
+    )
+    assert response.status_code == 200
+    row = next(r for r in response.json() if r["url"] == HTTPS_FEED)
+    assert row["insecure_since"] is None
+    assert row["grace_ends_at"] is None
+    assert row["grace_expired"] is False
+
+
+async def test_the_guarded_write_cannot_flag_a_feed_changed_to_https(
+    db_async: AsyncSession,
+) -> None:
+    """The worker read the feed as http; staff then saved https; the late write is a no-op."""
+    feed = await _feed(db_async)  # the worker's view: http, not flagged
+    stale_url = feed.url
+    await db_async.execute(
+        sa.update(CapFeedImport)
+        .where(CapFeedImport.id == feed.id)
+        .values(url=HTTPS_FEED)
+    )
+    await db_async.commit()
+    assert stale_url == HTTP_FEED
+    flagged = await cap_service.flag_insecure_feed(
+        session=db_async, feed=feed, now=utc_now()
+    )
+    assert flagged is False
+    assert feed.url == HTTPS_FEED
+    assert feed.insecure_since is None
+
+
+async def test_the_guarded_write_flags_an_http_feed_once(
+    db_async: AsyncSession,
+) -> None:
+    feed = await _feed(db_async)
+    first = utc_now() - timedelta(days=1)
+    assert await cap_service.flag_insecure_feed(session=db_async, feed=feed, now=first)
+    assert feed.insecure_since == first
+    assert not await cap_service.flag_insecure_feed(
+        session=db_async, feed=feed, now=utc_now()
+    )
+    assert feed.insecure_since == first
+
+
+async def test_a_stale_flag_on_an_https_feed_is_cleared_at_the_next_poll(
+    db_async: AsyncSession,
+) -> None:
+    su = await make_user(db_async, superuser=True)
+    feed = await _feed(
+        db_async, url=HTTPS_FEED, insecure_since=utc_now() - timedelta(days=20)
+    )
+    requested: list[str] = []
+    async with _client(requested) as client:
+        await cap_service.ingest_feed(
+            session=db_async, feed=feed, system_user=su, http_client=client
+        )
+    await db_async.refresh(feed)
+    assert feed.insecure_since is None
+    assert len(requested) == 1  # fetched normally, not skipped as expired
