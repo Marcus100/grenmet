@@ -100,10 +100,12 @@ test("base and solution commits exist and the subject and hidden tests match", (
       task.solution
     ).stdout.trim();
     assert.equal(subject, task.solution_subject, `${task.id} subject`);
+    // ls-tree reads trees only. `cat-file -e <commit>:<path>` needs the blob, and in
+    // CI's blobless checkout (filter: blob:none) each one is a separate network fetch.
     for (const path of task.hidden_tests)
       assert.equal(
-        git("cat-file", "-e", `${task.solution}:${path}`).status,
-        0,
+        git("ls-tree", "--name-only", task.solution, "--", path).stdout.trim(),
+        path,
         `${task.id}: ${path} missing from the solution commit`
       );
   }
