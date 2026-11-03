@@ -20,10 +20,10 @@ export function OperationsHub({
       <div className="grid gap-5 md:grid-cols-2">
         {sections.map((section) => (
           <section
-            className="space-y-4 rounded-xl border bg-card p-5"
+            className="bg-card space-y-4 rounded-xl border p-5"
             key={section.title}
           >
-            <h2 className="font-semibold text-lg">{section.title}</h2>
+            <h2 className="text-lg font-semibold">{section.title}</h2>
             <p>{section.body}</p>
             <ul className="space-y-2">
               {section.links.map((link) => (

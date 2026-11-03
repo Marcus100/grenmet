@@ -23,7 +23,7 @@ vi.mock("@/lib/cms", async (importOriginal) => {
   };
 });
 
-const NOT_FOUND = /404/;
+const NOT_FOUND = /404/u;
 const ARTICLE: PublishedContent = {
   id: "11111111-1111-4111-8111-111111111111",
   collection: "stories",

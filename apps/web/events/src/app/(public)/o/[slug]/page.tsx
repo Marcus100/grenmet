@@ -35,23 +35,23 @@ export default async function OrganiserPage({ params }: { params: Params }) {
 
   return (
     <div className="space-y-10">
-      <header className="flex flex-col gap-6 rounded-3xl bg-events-ink p-6 text-white sm:flex-row sm:items-center sm:p-10">
+      <header className="bg-events-ink flex flex-col gap-6 rounded-3xl p-6 text-white sm:flex-row sm:items-center sm:p-10">
         <PersonAvatar
           className="size-20 ring-4 ring-white/10"
           imageFileId={organiser.logoFileId}
           name={organiser.name}
         />
         <div className="flex-1 space-y-2">
-          <h1 className="flex items-center gap-2 font-bold font-display text-heading-md tracking-tight">
+          <h1 className="font-display text-heading-md flex items-center gap-2 font-bold tracking-tight">
             {organiser.name}
             {organiser.verified ? (
               <BadgeCheck
                 aria-label="Verified organiser"
-                className="size-6 text-events-lime"
+                className="text-events-lime size-6"
               />
             ) : null}
           </h1>
-          <p className="max-w-xl text-body-base text-white/80">
+          <p className="text-body-base max-w-xl text-white/80">
             {organiser.bio}
           </p>
           <p className="text-caption text-white/60">
@@ -69,7 +69,7 @@ export default async function OrganiserPage({ params }: { params: Params }) {
       </header>
 
       <section className="space-y-5">
-        <h2 className="font-bold font-display text-heading-sm">Upcoming</h2>
+        <h2 className="font-display text-heading-sm font-bold">Upcoming</h2>
         {upcoming.length > 0 ? (
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {upcoming.map((event) => (
@@ -85,7 +85,7 @@ export default async function OrganiserPage({ params }: { params: Params }) {
 
       {past.length > 0 ? (
         <section className="space-y-5">
-          <h2 className="font-bold font-display text-heading-sm">
+          <h2 className="font-display text-heading-sm font-bold">
             Past events
           </h2>
           <div className="grid gap-6 opacity-80 sm:grid-cols-2 lg:grid-cols-3">

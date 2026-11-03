@@ -15,7 +15,7 @@ export default async function ImportWarningPage() {
   return (
     <section className="space-y-6">
       <header className="space-y-1">
-        <h1 className="font-semibold text-2xl">Import a warning</h1>
+        <h1 className="text-2xl font-semibold">Import a warning</h1>
         <p className="text-body-sm text-muted-foreground">
           Bring in one CAP 1.2 document from a partner feed. The import becomes
           a draft that you must check before it can be published.

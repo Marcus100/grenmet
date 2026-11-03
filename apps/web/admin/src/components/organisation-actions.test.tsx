@@ -6,10 +6,10 @@ import {
 } from "@/components/organisation-actions";
 import { HistoryPanel, MembersPanel } from "@/components/organisation-panels";
 
-const REFUSED_TEXT = /refused until it is reactivated/;
-const ACTOR_TEXT = /Sam Staff, 2026-10-18 12:30 UTC/;
-const CHANGE_TEXT = /none -> Papers checked/;
-const HIDDEN_TEXT = /hidden/;
+const REFUSED_TEXT = /refused until it is reactivated/u;
+const ACTOR_TEXT = /Sam Staff, 2026-10-18 12:30 UTC/u;
+const CHANGE_TEXT = /none -> Papers checked/u;
+const HIDDEN_TEXT = /hidden/u;
 
 vi.mock("@/app/(console)/organisations/actions", () => {
   const action = () => Promise.resolve(undefined as never);

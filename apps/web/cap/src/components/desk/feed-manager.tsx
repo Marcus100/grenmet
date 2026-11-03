@@ -83,7 +83,7 @@ function FeedForm({ feed }: { feed?: CapFeedImportPublic }) {
   }
 
   return (
-    <section className="space-y-3 rounded-lg border bg-card p-4">
+    <section className="bg-card space-y-3 rounded-lg border p-4">
       <form
         className="space-y-3"
         onSubmit={(event) => {

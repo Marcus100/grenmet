@@ -37,7 +37,7 @@ function PaperBody({ node }: { node: ReactNode }) {
       ref={bodyRef}
     >
       {node === undefined ? (
-        <div className="absolute inset-0 grid place-items-center text-muted-foreground text-sm">
+        <div className="text-muted-foreground absolute inset-0 grid place-items-center text-sm">
           No preview yet
         </div>
       ) : (
@@ -160,10 +160,10 @@ export function DocumentPreview({
   return (
     <>
       <PrintDocument>{printContent ?? children}</PrintDocument>
-      <div className="flex flex-col rounded-xl border bg-card">
+      <div className="bg-card flex flex-col rounded-xl border">
         <div className="flex flex-wrap items-center justify-between gap-2 px-4 py-4">
           <div className="min-w-0">
-            <h2 className="font-medium text-lg">{title}</h2>
+            <h2 className="text-lg font-medium">{title}</h2>
             <p aria-live="polite" className="text-muted-foreground text-xs">
               {status}
             </p>

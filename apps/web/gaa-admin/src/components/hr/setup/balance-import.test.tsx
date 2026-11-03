@@ -10,8 +10,8 @@ const BASE = "http://localhost";
 const URL = `${BASE}/api/v1/hr/setup/staff/balances/import`;
 const CHECK = { name: "Check file" };
 const POST = { name: "Post balances" };
-const POSTED = /Posted\./;
-const UNKNOWN_TYPE = /Unknown leave type/;
+const POSTED = /Posted\./u;
+const UNKNOWN_TYPE = /Unknown leave type/u;
 
 const ok = (applied: boolean) => ({
   applied,

@@ -27,12 +27,12 @@ export function MapLevelView({
         aria-describedby={divisionMap ? undefined : noteId}
         className="mb-3"
       >
-        <legend className="mb-1 font-semibold text-base">Map detail</legend>
+        <legend className="mb-1 text-base font-semibold">Map detail</legend>
         <div className="flex flex-wrap gap-1">
           {(["cons", "div"] as const).map((option) => (
             <button
               aria-pressed={level === option}
-              className={`min-h-11 touch-manipulation select-none rounded-md border px-3 py-2 text-base focus-visible:outline-2 focus-visible:outline-offset-2 disabled:cursor-not-allowed disabled:opacity-60 ${level === option ? "border-el-ink bg-el-ink text-el-paper" : "border-el-rule bg-el-paper text-el-ink hover:bg-el-paper-2"}`}
+              className={`min-h-11 touch-manipulation rounded-md border px-3 py-2 text-base select-none focus-visible:outline-2 focus-visible:outline-offset-2 disabled:cursor-not-allowed disabled:opacity-60 ${level === option ? "border-el-ink bg-el-ink text-el-paper" : "border-el-rule bg-el-paper text-el-ink hover:bg-el-paper-2"}`}
               disabled={option === "div" && !divisionMap}
               key={option}
               onClick={() => setRequested(option)}
@@ -44,13 +44,13 @@ export function MapLevelView({
         </div>
       </fieldset>
       {!divisionMap && (
-        <p className="mb-3 text-base text-el-muted" id={noteId}>
+        <p className="text-el-muted mb-3 text-base" id={noteId}>
           {unavailableReason} Showing constituencies.
         </p>
       )}
       {level === "div" ? divisionMap : constituencyMap}
       {level === "div" && omitted.length > 0 && (
-        <p className="mt-2 text-base text-el-muted" role="status">
+        <p className="text-el-muted mt-2 text-base" role="status">
           Boundary unavailable for {omitted.join(", ")}. These divisions are not
           drawn; their figures remain in the accompanying results or tables.
         </p>

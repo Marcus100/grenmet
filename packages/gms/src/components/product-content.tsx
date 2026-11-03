@@ -4,13 +4,13 @@ import {
   productTitle,
 } from "../products";
 
-const DATE_SEPARATOR = /^(\d{4}-\d{2}-\d{2})T/;
+const DATE_SEPARATOR = /^(\d{4}-\d{2}-\d{2})T/u;
 export function ProductContentView({ content }: { content: ProductContent }) {
   const fields = presentationFields(content.kind);
   const sections = [...new Set(fields.map((f) => f.section))];
   return (
     <article className="space-y-6">
-      <h2 className="font-semibold text-xl">{productTitle(content.kind)}</h2>
+      <h2 className="text-xl font-semibold">{productTitle(content.kind)}</h2>
       {sections.map((section) => {
         const populated = fields.filter(
           (f) => f.section === section && content.values[f.key]?.trim()
@@ -28,7 +28,7 @@ export function ProductContentView({ content }: { content: ProductContent }) {
                   key={f.key}
                 >
                   <dt className="text-muted-foreground text-sm">{f.label}</dt>
-                  <dd className="whitespace-pre-wrap break-words">
+                  <dd className="break-words whitespace-pre-wrap">
                     {(content.values[f.key] ?? "").replace(
                       DATE_SEPARATOR,
                       "$1 "

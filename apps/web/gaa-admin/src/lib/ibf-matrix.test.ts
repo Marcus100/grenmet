@@ -19,7 +19,7 @@ function backendSource(): string {
 }
 
 function quoted(text: string): string[] {
-  return [...text.matchAll(/"([^"]+)"/g)].map((m) => m[1] ?? "");
+  return [...text.matchAll(/"([^"]+)"/gu)].map((m) => m[1] ?? "");
 }
 
 describe("starter grid matches the backend standard", () => {
@@ -42,7 +42,7 @@ describe("starter grid matches the backend standard", () => {
       [
         ...(
           source.split("COLOUR_MEANING = {")[1]?.split("}")[0] ?? ""
-        ).matchAll(/"(\w+)": "([^"]+)"/g),
+        ).matchAll(/"(\w+)": "([^"]+)"/gu),
       ].map((m) => [m[1], m[2]])
     );
     expect(IBF_COLOUR_MEANING).toEqual(meanings);

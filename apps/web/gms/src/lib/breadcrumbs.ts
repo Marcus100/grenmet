@@ -41,7 +41,7 @@ const NAV_ENTRIES: NavEntry[] = [
     : []),
 ];
 
-const TRAILING_SLASHES = /\/+$/;
+const TRAILING_SLASHES = /\/+$/u;
 
 function isWithin(pathname: string, href: string): boolean {
   return pathname === href || pathname.startsWith(`${href}/`);

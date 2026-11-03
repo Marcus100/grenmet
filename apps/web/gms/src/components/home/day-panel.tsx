@@ -19,7 +19,7 @@ export function DayPanel({
   return (
     <section
       aria-label="Forecast details"
-      className="grid h-full content-start gap-3 rounded-gm-card bg-gm-scrim px-4 py-3 lg:px-5"
+      className="rounded-gm-card bg-gm-scrim grid h-full content-start gap-3 px-4 py-3 lg:px-5"
     >
       {isIssued(day) ? (
         <ReadingGrid className="border-t-0 pt-0" readings={dayReadings(day)} />

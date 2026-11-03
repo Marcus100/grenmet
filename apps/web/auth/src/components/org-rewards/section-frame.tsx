@@ -13,14 +13,14 @@ export function SectionSkeleton({ title }: { readonly title: string }) {
   return (
     <output aria-live="polite" className="block space-y-3 py-2">
       <span className="sr-only">Loading {title}…</span>
-      <div className="h-4 w-1/4 animate-pulse rounded bg-muted" />
-      <div className="h-16 animate-pulse rounded bg-muted" />
+      <div className="bg-muted h-4 w-1/4 animate-pulse rounded" />
+      <div className="bg-muted h-16 animate-pulse rounded" />
     </output>
   );
 }
 
 export function EmptyNote({ children }: { readonly children: ReactNode }) {
-  return <p className="py-5 text-muted-foreground text-sm">{children}</p>;
+  return <p className="text-muted-foreground py-5 text-sm">{children}</p>;
 }
 
 /** A form with its own heading, set apart from the list above it. */
@@ -34,8 +34,8 @@ export function FormPanel({
   readonly title: string;
 }) {
   return (
-    <div className="space-y-3 rounded-xl border border-border p-4 sm:p-5">
-      <h3 className="font-medium text-foreground text-sm">{title}</h3>
+    <div className="border-border space-y-3 rounded-xl border p-4 sm:p-5">
+      <h3 className="text-foreground text-sm font-medium">{title}</h3>
       {intro ? <p className="text-muted-foreground text-sm">{intro}</p> : null}
       {children}
     </div>
@@ -71,7 +71,7 @@ export function SectionFailure({
   return (
     <p
       className={
-        informative ? "py-5 text-foreground text-sm" : `${errorBoxClass} my-5`
+        informative ? "text-foreground py-5 text-sm" : `${errorBoxClass} my-5`
       }
       role={informative ? "status" : "alert"}
     >

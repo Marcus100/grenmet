@@ -23,8 +23,8 @@ vi.mock("@/components/desk/matrix-advice", () => ({
 import LoadingMatrix from "./loading";
 import MatrixPage from "./page";
 
-const NOT_OFFERED = /There is no hazard profile called “tsunami”/;
-const STANDARD_GRID = /Standard World Meteorological/;
+const NOT_OFFERED = /There is no hazard profile called “tsunami”/u;
+const STANDARD_GRID = /Standard World Meteorological/u;
 const STAFF = {
   accessToken: "t",
   email: "f@example.org",

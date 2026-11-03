@@ -84,7 +84,7 @@ export function ExportSettingsForm({
   return (
     <form className="space-y-8" onSubmit={onSubmit}>
       <fieldset className="space-y-3">
-        <legend className="font-semibold text-base">Bank file columns</legend>
+        <legend className="text-base font-semibold">Bank file columns</legend>
         <p className="text-muted-foreground text-sm">
           Columns appear in the order the file lists them. {NOT_STORED_NOTE}
         </p>
@@ -107,7 +107,7 @@ export function ExportSettingsForm({
       </fieldset>
 
       <fieldset className="space-y-3">
-        <legend className="font-semibold text-base">GL account codes</legend>
+        <legend className="text-base font-semibold">GL account codes</legend>
         <p className="text-muted-foreground text-sm">
           Leave a code empty if the journal does not need it yet.
         </p>

@@ -8,14 +8,14 @@
 import { spawnSync } from "node:child_process";
 import { pathToFileURL } from "node:url";
 
-const markdown = /\.(md|mdx)$/i;
+const markdown = /\.(md|mdx)$/iu;
 
 // Obsidian wikilink such as [[note]] or [[note|alias]]. Next.js optional
 // catch-all segments ([[...slug]]) start with dots and are not matched.
-const wikilink = /\[\[[A-Za-z0-9][^\][\n]*\]\]/;
-const vaultFrontmatter = /^(?:domain: 0[1-9]-[a-z]|type: source-summary\b)/m;
+const wikilink = /\[\[[A-Za-z0-9][^\][\n]*\]\]/u;
+const vaultFrontmatter = /^(?:domain: 0[1-9]-[a-z]|type: source-summary\b)/mu;
 // Bishop folder taxonomy, e.g. wiki/98-sources/... or raw/02-atmosphere-aviation/...
-const vaultPath = /(?:^|\/)(?:wiki|raw)\/(?:0[0-9]|9[89])-[a-z]/;
+const vaultPath = /(?:^|\/)(?:wiki|raw)\/(?:0[0-9]|9[89])-[a-z]/u;
 
 export const findPrivateContent = (files) => {
   const findings = [];

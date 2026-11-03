@@ -26,14 +26,15 @@ const user: UserPublic = {
   is_superuser: false,
 };
 
-const OPEN_LINK_STEP = /they open the link and choose their own password/i;
-const NEVER_SEE_PASSWORD = /you never see the password/i;
-const TWENTY_FOUR_HOURS = /24 hours/;
-const OUTSIDE_SCOPE = /outside your management scope/i;
-const COPY_FAILED_TEXT = /Copying did not work in this browser/;
-const REASON_LABEL = /Reason/;
-const TWO_STEP_TEXT = /two-step verification/i;
-const TEN_CHARACTER_HINT = /at least 10 characters when the email is verified/i;
+const OPEN_LINK_STEP = /they open the link and choose their own password/iu;
+const NEVER_SEE_PASSWORD = /you never see the password/iu;
+const TWENTY_FOUR_HOURS = /24 hours/u;
+const OUTSIDE_SCOPE = /outside your management scope/iu;
+const COPY_FAILED_TEXT = /Copying did not work in this browser/u;
+const REASON_LABEL = /Reason/u;
+const TWO_STEP_TEXT = /two-step verification/iu;
+const TEN_CHARACTER_HINT =
+  /at least 10 characters when the email is verified/iu;
 const LINK = "https://auth.example/activate#token=private-link-token";
 const SETUP_URL =
   "http://localhost/api/v1/auth/onboarding/target-user/sign-in-setup";

@@ -7,8 +7,8 @@ import { afterAll, afterEach, beforeAll, expect, it } from "vitest";
 import { SignatureSettings } from "./signature-settings";
 
 const BASE = "http://localhost";
-const REVISION_ONE = /Revision 1/;
-const REVISION_TWO = /Revision 2/;
+const REVISION_ONE = /Revision 1/u;
+const REVISION_TWO = /Revision 2/u;
 const server = setupServer(
   http.get(`${BASE}/api/v1/hr/signature/me`, () => HttpResponse.json(null)),
   http.get(`${BASE}/api/v1/hr/signed-documents/me`, () =>

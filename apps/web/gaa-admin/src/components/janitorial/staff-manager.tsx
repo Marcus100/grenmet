@@ -113,7 +113,7 @@ export function StaffManager({
         {contractors.length === 0 ? (
           <PanelEmpty>No contractor registered yet.</PanelEmpty>
         ) : (
-          <ul className="divide-y divide-border">
+          <ul className="divide-border divide-y">
             {contractors.map((contractor) => (
               <li
                 className="flex items-center justify-between gap-2 py-2 text-sm"
@@ -196,7 +196,7 @@ export function StaffManager({
                     <span className="block font-medium">
                       {member.name ?? "Unknown account"}
                     </span>
-                    <span className="block text-muted-foreground text-xs">
+                    <span className="text-muted-foreground block text-xs">
                       {member.email}
                     </span>
                   </TableCell>
@@ -292,7 +292,7 @@ function GrantsPanel({
       {grants.length === 0 ? (
         <PanelEmpty>No building grants yet.</PanelEmpty>
       ) : (
-        <ul className="divide-y divide-border">
+        <ul className="divide-border divide-y">
           {groupGrants(grants).map((holder) => (
             <li className="space-y-2 py-3" key={holder.userId}>
               <p className="text-sm">
@@ -310,7 +310,7 @@ function GrantsPanel({
                       {buildingName(grant.buildingId)}
                       <button
                         aria-label={`Remove ${buildingName(grant.buildingId)} from ${holder.name ?? holder.email}`}
-                        className="rounded-full p-0.5 outline-none hover:bg-background focus-visible:ring-2 focus-visible:ring-ring"
+                        className="hover:bg-background focus-visible:ring-ring rounded-full p-0.5 outline-none focus-visible:ring-2"
                         disabled={revoke.isPending}
                         onClick={() => onRevoke(grant)}
                         type="button"
@@ -532,7 +532,7 @@ function GrantDialog({
         />
       </Field>
       <fieldset className="space-y-2">
-        <legend className="font-medium text-sm">Buildings</legend>
+        <legend className="text-sm font-medium">Buildings</legend>
         <div className="grid max-h-64 gap-2 overflow-y-auto rounded-lg border p-3 sm:grid-cols-2">
           {buildings
             .filter((building) => building.active)

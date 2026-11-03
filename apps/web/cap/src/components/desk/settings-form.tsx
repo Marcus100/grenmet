@@ -91,7 +91,7 @@ export function SettingsForm({ initial }: { initial: CapSettingsPublic }) {
 
   return (
     <form
-      className="space-y-6 rounded-lg border bg-card p-4"
+      className="bg-card space-y-6 rounded-lg border p-4"
       onSubmit={(event) => {
         event.preventDefault();
         setError(null);

@@ -41,7 +41,7 @@ import { hrApiErrorMessage } from "../api-error";
 
 const PAGE_SIZE = 50;
 const EXPECTED_REVIEW_STATUSES = [403, 404, 409];
-const TRAILING_DOT = /\.$/;
+const TRAILING_DOT = /\.$/u;
 
 function errorStatus(error: unknown): number | undefined {
   if (error && typeof error === "object" && "status" in error)
@@ -97,7 +97,7 @@ function PunchCard({
 }) {
   const arrival = punch.kind === clockPunchKind.ARRIVE;
   return (
-    <li className="flex flex-col gap-3 rounded-xl border bg-card p-4 sm:flex-row sm:items-center sm:justify-between">
+    <li className="bg-card flex flex-col gap-3 rounded-xl border p-4 sm:flex-row sm:items-center sm:justify-between">
       <div className="space-y-1 text-sm">
         <p className="flex flex-wrap items-center gap-2 font-medium">
           {punch.employee_name}
@@ -288,14 +288,14 @@ export function PunchApprovals() {
   let content: ReactNode;
   if (accessKnown && !canReview) {
     content = (
-      <p className="rounded-xl border bg-card p-4 text-muted-foreground text-sm">
+      <p className="bg-card text-muted-foreground rounded-xl border p-4 text-sm">
         You do not review phone punches. Ask a supervisor with timesheet
         approval to review them.
       </p>
     );
   } else if (!accessKnown || listQuery.isLoading) {
     content = (
-      <div className="flex items-center gap-2 rounded-xl border bg-card p-6 text-muted-foreground text-sm">
+      <div className="bg-card text-muted-foreground flex items-center gap-2 rounded-xl border p-6 text-sm">
         <Spinner className="size-4" /> Loading phone punches…
       </div>
     );
@@ -309,7 +309,7 @@ export function PunchApprovals() {
     );
   } else if (punches.length === 0) {
     content = (
-      <Empty className="rounded-xl border bg-card">
+      <Empty className="bg-card rounded-xl border">
         <EmptyHeader>
           <EmptyTitle>No phone punches waiting</EmptyTitle>
           <EmptyDescription>
@@ -339,7 +339,7 @@ export function PunchApprovals() {
     <section aria-labelledby="phone-punches-heading" className="space-y-3">
       <div>
         <h2
-          className="font-semibold text-lg tracking-tight outline-none"
+          className="text-lg font-semibold tracking-tight outline-none"
           id="phone-punches-heading"
           ref={headingRef}
           tabIndex={-1}

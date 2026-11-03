@@ -7,9 +7,9 @@ import {
 } from "node:fs";
 import { join, sep } from "node:path";
 
-const RUN_NAME = /^\d{4}-\d\d-\d\dT\d\d-\d\d-\d\d\.\d{3}Z-[a-f0-9-]{36}$/;
+const RUN_NAME = /^\d{4}-\d\d-\d\dT\d\d-\d\d-\d\d\.\d{3}Z-[a-f0-9-]{36}$/u;
 const OUTPUT =
-  /^(?:owned-run\.json|observations\.json|source-risks\.json|checkout-retained\.txt|[a-zA-Z0-9_.-]+\.log(?:\.\d+)?|(?:sentry|eregister-sends|wis2-sends|worker-jobs|notification-sweeps|secrets|backups)\.json)$/;
+  /^(?:owned-run\.json|observations\.json|source-risks\.json|checkout-retained\.txt|[a-zA-Z0-9_.-]+\.log(?:\.\d+)?|(?:sentry|eregister-sends|wis2-sends|worker-jobs|notification-sweeps|secrets|backups)\.json)$/u;
 export function pruneEvidence(directory, now = Date.now()) {
   const root = realpathSync(directory);
   const runs = [];

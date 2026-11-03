@@ -217,7 +217,7 @@ function LeaveBalanceHint({
 }) {
   const unverified = carryOver?.VACATION;
   return (
-    <div className="space-y-1 rounded-lg border bg-muted p-3 text-xs">
+    <div className="bg-muted space-y-1 rounded-lg border p-3 text-xs">
       <p>
         Vacation balance:{" "}
         <span className="font-medium">
@@ -557,10 +557,10 @@ export function LeaveApplicationEditor() {
       {(values) => (
         <HrFormDesk
           editor={
-            <div className="flex flex-col gap-4 rounded-xl border bg-card p-4">
+            <div className="bg-card flex flex-col gap-4 rounded-xl border p-4">
               {profileQuery.data?.employment.details_complete === false && (
                 <div
-                  className="rounded-lg border border-border bg-muted p-4 text-sm"
+                  className="border-border bg-muted rounded-lg border p-4 text-sm"
                   role="status"
                 >
                   Before submitting leave, an administrator must verify your

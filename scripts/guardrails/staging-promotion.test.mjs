@@ -25,33 +25,33 @@ const read = (path) =>
   readFileSync(new URL(`../../${path}`, import.meta.url), "utf8");
 const promote = read(".github/workflows/promote-staging.yml");
 const smoke = read(".github/workflows/staging-smoke.yml");
-const JOB_LINE = /^ {2}[\w-]+:/;
-const KEY_LINE = /^ {4}([\w-]+):\s*(.*)$/;
-const PERM_BLOCK = /\npermissions:\n((?: {2}.*\n)+)/;
-const EDIT_FAILED = /edit failed/;
-const STILL_ARMED = /STILL armed/;
-const ACTION_REF = /uses: ([^\s#]+)/g;
-const PINNED = /^[\w.-]+\/[\w./-]+@[0-9a-f]{40}$/;
+const JOB_LINE = /^ {2}[\w-]+:/u;
+const KEY_LINE = /^ {4}([\w-]+):\s*(.*)$/u;
+const PERM_BLOCK = /\npermissions:\n((?: {2}.*\n)+)/u;
+const EDIT_FAILED = /edit failed/u;
+const STILL_ARMED = /STILL armed/u;
+const ACTION_REF = /uses: ([^\s#]+)/gu;
+const PINNED = /^[\w.-]+\/[\w./-]+@[0-9a-f]{40}$/u;
 const WORKFLOW_PERMISSIONS =
-  /permissions:\n {2}contents: read\n {2}pull-requests: write\n {2}issues: write/;
+  /permissions:\n {2}contents: read\n {2}pull-requests: write\n {2}issues: write/u;
 const PROMOTE_PERMISSIONS =
-  /permissions:\n {2}contents: read\n {2}pull-requests: write\n\n/;
+  /permissions:\n {2}contents: read\n {2}pull-requests: write\n\n/u;
 const PIPELINE_TRIGGERS =
-  /on:\n {2}push:\n {4}branches: \[staging\]\n {2}workflow_dispatch:\n$/;
-const CONTENTS_WRITE = /contents: write/;
-const FORBIDDEN_COMMANDS = /gh release|git tag|git push|--admin/;
-const PROD_PIPELINES = /pipeline-prod|deploy-prod/;
-const BODY_AREA = /\*\*area:ci\*\*/;
-const BODY_PR1 = /#1 `ci: a` \(risk:high\)/;
-const BODY_MIGRATION = /rosterrulesets20261031/;
+  /on:\n {2}push:\n {4}branches: \[staging\]\n {2}workflow_dispatch:\n$/u;
+const CONTENTS_WRITE = /contents: write/u;
+const FORBIDDEN_COMMANDS = /gh release|git tag|git push|--admin/u;
+const PROD_PIPELINES = /pipeline-prod|deploy-prod/u;
+const BODY_AREA = /\*\*area:ci\*\*/u;
+const BODY_PR1 = /#1 `ci: a` \(risk:high\)/u;
+const BODY_MIGRATION = /rosterrulesets20261031/u;
 const BODY_SECURITY_YES =
-  /#1 risk:high, security review section in its body: yes/;
+  /#1 risk:high, security review section in its body: yes/u;
 const BODY_SECURITY_NO =
-  /#3 risk:high, security review section in its body: NO/;
-const BODY_AFTER_MERGE = /## After merge/;
-const SMOKE_FAILED = /FAILED/;
-const STAGING_URL = /^https:\/\/[a-z0-9-]+\.staging\.barrels\.gd\//;
-const MERGE_TARGET = /--base\s+(main|production)|--head\s+staging/;
+  /#3 risk:high, security review section in its body: NO/u;
+const BODY_AFTER_MERGE = /## After merge/u;
+const SMOKE_FAILED = /FAILED/u;
+const STAGING_URL = /^https:\/\/[a-z0-9-]+\.staging\.barrels\.gd\//u;
+const MERGE_TARGET = /--base\s+(main|production)|--head\s+staging/u;
 
 test("promotion and smoke workflows pin every action by full SHA", () => {
   for (const source of [promote, smoke])
@@ -291,7 +291,7 @@ test("the checks file is valid, staging-only and covers the required areas", () 
 });
 
 const REQUIRED = ["ci-api.yml", "ci-web.yml", "ci-api-client.yml"];
-const RUN_OPEN = /^(\s*)(?:- )?run:/;
+const RUN_OPEN = /^(\s*)(?:- )?run:/u;
 
 test("CI gate needs the latest run of each workflow to be green", () => {
   assert.equal(

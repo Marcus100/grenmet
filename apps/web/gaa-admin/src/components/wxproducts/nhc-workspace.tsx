@@ -18,7 +18,7 @@ import { reportError } from "@/lib/report-error";
 import { NHC_FAMILIES, nhcRequest } from "@/lib/wxproducts/nhc-api";
 import { NhcContentView, RecordTable } from "./nhc-content";
 
-const UTC_SUFFIX = /(?:Z|\+00:00)$/;
+const UTC_SUFFIX = /(?:Z|\+00:00)$/u;
 function utc(value: string | null | undefined) {
   return value
     ? `${value.replace("T", " ").replace(UTC_SUFFIX, "")} UTC`
@@ -200,7 +200,7 @@ export function NhcWorkspace({
         <label>
           View
           <select
-            className="block rounded-md border bg-background p-2"
+            className="bg-background block rounded-md border p-2"
             defaultValue={params.get("latest") ?? "true"}
             name="latest"
           >
@@ -211,7 +211,7 @@ export function NhcWorkspace({
         <label>
           Family
           <select
-            className="block rounded-md border bg-background p-2"
+            className="bg-background block rounded-md border p-2"
             defaultValue={params.get("family") ?? ""}
             name="family"
           >
@@ -370,7 +370,7 @@ export function NhcWorkspace({
             className="space-y-3 rounded-lg border p-4"
             key={content.edition.id}
           >
-            <h2 className="font-semibold text-lg">{content.edition.title}</h2>
+            <h2 className="text-lg font-semibold">{content.edition.title}</h2>
             <dl className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-1 text-sm">
               {Object.entries({
                 "Source issue": content.edition.issued_at,

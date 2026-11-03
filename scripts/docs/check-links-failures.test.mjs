@@ -7,11 +7,11 @@ import test from "node:test";
 import { fileURLToPath } from "node:url";
 
 const cliPath = fileURLToPath(new URL("./check-links.mjs", import.meta.url));
-const escapedRootPattern = /target escapes repository root/;
-const failurePattern = /Documentation link check failed/;
-const missingFilePattern = /missing\.md/;
-const missingTargetPattern = /target file does not exist/;
-const sourceLinePattern = /docs\/index\.md:5/;
+const escapedRootPattern = /target escapes repository root/u;
+const failurePattern = /Documentation link check failed/u;
+const missingFilePattern = /missing\.md/u;
+const missingTargetPattern = /target file does not exist/u;
+const sourceLinePattern = /docs\/index\.md:5/u;
 
 const write = (root, file, contents) => {
   const destination = join(root, file);

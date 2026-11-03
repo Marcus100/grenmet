@@ -48,7 +48,7 @@ export function ProductList({
     <section aria-label="Saved products" className="space-y-2">
       <div className="flex items-center justify-between gap-2">
         <div>
-          <h2 className="font-medium text-sm">Saved products</h2>
+          <h2 className="text-sm font-medium">Saved products</h2>
           <p className="text-muted-foreground text-xs">
             All dates and product types you can access · newest updates first
           </p>

@@ -75,7 +75,7 @@ export default function PrivacyPage() {
           ]}
         />
         <p className="mt-3">
-          <CookieSettingsButton className="font-semibold text-body-base text-gm-blue-ink leading-body-base underline">
+          <CookieSettingsButton className="text-body-base text-gm-blue-ink leading-body-base font-semibold underline">
             Cookie settings
           </CookieSettingsButton>
         </p>
@@ -101,7 +101,7 @@ export default function PrivacyPage() {
           ]}
         />
         <Link
-          className="mt-3 inline-block font-semibold text-body-base text-gm-blue-ink leading-body-base underline"
+          className="text-body-base text-gm-blue-ink leading-body-base mt-3 inline-block font-semibold underline"
           href="/about/contact"
         >
           Contact GMS

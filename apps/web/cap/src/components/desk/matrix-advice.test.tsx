@@ -6,9 +6,9 @@ vi.mock("@/app/desk/matrix/actions", () => action);
 
 import { MatrixAdvice } from "./matrix-advice";
 
-const NO_WORDING = /No approved wording exists for this hazard yet/;
-const CHECK = /Check advice/;
-const ADVICE_NOTE = /Advice only/;
+const NO_WORDING = /No approved wording exists for this hazard yet/u;
+const CHECK = /Check advice/u;
+const ADVICE_NOTE = /Advice only/u;
 
 function choose(likelihood: string, impact: string) {
   fireEvent.change(screen.getByLabelText("Likelihood"), {

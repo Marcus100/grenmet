@@ -16,7 +16,7 @@ export default function LearnPage() {
         </p>
       </PageIntro>
       {guides.length ? (
-        <div className="grid gap-10 border-signal-rule border-t pt-8 md:grid-cols-2 lg:grid-cols-3">
+        <div className="border-signal-rule grid gap-10 border-t pt-8 md:grid-cols-2 lg:grid-cols-3">
           {guides.map((article) => (
             <StoryCard article={article} key={article.slug} />
           ))}

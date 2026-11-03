@@ -6,7 +6,7 @@ import {
   readSessionCookie,
 } from "@/lib/server-session";
 
-const API_PREFIX = /\/api\/v1(?=\/|$)/;
+const API_PREFIX = /\/api\/v1(?=\/|$)/u;
 
 export async function loadDashboard() {
   const sessionToken = await readSessionCookie();

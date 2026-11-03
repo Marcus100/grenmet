@@ -48,7 +48,7 @@ export function OrganisationTable({ rows }: { rows: OrganisationRow[] }) {
               >
                 {row.name}
               </Link>
-              <div className="font-mono text-muted-foreground text-xs">
+              <div className="text-muted-foreground font-mono text-xs">
                 {row.slug}
               </div>
             </TableCell>

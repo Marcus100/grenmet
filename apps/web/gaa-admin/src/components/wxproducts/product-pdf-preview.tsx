@@ -17,7 +17,7 @@ import {
 import { productPdfFilename } from "@/lib/pdf-filename";
 import { productFieldLabel, productFieldValue } from "@/lib/wxproducts/units";
 
-const DAY_SUBSECTION = /^Day [1-4] · /;
+const DAY_SUBSECTION = /^Day [1-4] · /u;
 
 /**
  * Document preview for every weather product: FastAPI renders the draft with the
@@ -160,10 +160,10 @@ export function ProductPdfPreview({
   return (
     <section
       aria-label="Product summary"
-      className="space-y-4 rounded-xl border bg-card p-4"
+      className="bg-card space-y-4 rounded-xl border p-4"
     >
       <div className="space-y-2">
-        <h2 className="font-semibold text-lg leading-6">
+        <h2 className="text-lg leading-6 font-semibold">
           {productTitle(content.kind)}
         </h2>
         <p className="text-muted-foreground text-xs">
@@ -177,10 +177,10 @@ export function ProductPdfPreview({
       <dl className="grid gap-3 sm:grid-cols-2">
         {basicFields.map(([label, value]) => (
           <div key={label}>
-            <dt className="font-medium text-muted-foreground text-xs">
+            <dt className="text-muted-foreground text-xs font-medium">
               {label}
             </dt>
-            <dd className="break-words text-sm tabular-nums leading-5">
+            <dd className="text-sm leading-5 break-words tabular-nums">
               {value?.trim() || "Not entered"}
             </dd>
           </div>
@@ -193,10 +193,10 @@ export function ProductPdfPreview({
               className="space-y-2 border-t pt-3"
               key={system.id}
             >
-              <h3 className="font-medium text-sm">
+              <h3 className="text-sm font-medium">
                 {system.name || "Unnamed system"}
               </h3>
-              <p className="whitespace-pre-wrap break-words text-sm">
+              <p className="text-sm break-words whitespace-pre-wrap">
                 {system.narrative || "Not entered"}
               </p>
               <dl className="grid gap-3 sm:grid-cols-2">
@@ -219,7 +219,7 @@ export function ProductPdfPreview({
                   ))}
               </dl>
               {system.local_assessment ? (
-                <p className="whitespace-pre-wrap break-words text-sm">
+                <p className="text-sm break-words whitespace-pre-wrap">
                   {system.local_assessment}
                 </p>
               ) : null}
@@ -227,13 +227,13 @@ export function ProductPdfPreview({
           ))
         : null}
       {content.guidance?.local_assessment ? (
-        <p className="whitespace-pre-wrap break-words text-sm">
+        <p className="text-sm break-words whitespace-pre-wrap">
           {content.guidance.local_assessment}
         </p>
       ) : null}
       <div>
         <h3 className="text-muted-foreground text-xs">Summary</h3>
-        <p className="whitespace-pre-wrap break-words text-sm">
+        <p className="text-sm break-words whitespace-pre-wrap">
           {content.values[narrativeKey]?.trim() || "Not entered"}
         </p>
       </div>
@@ -243,7 +243,7 @@ export function ProductPdfPreview({
           className="space-y-3 border-t pt-3"
           key={section}
         >
-          <h3 className="font-semibold text-sm leading-5">
+          <h3 className="text-sm leading-5 font-semibold">
             {section.replace(DAY_SUBSECTION, "")}
           </h3>
           <dl className="grid gap-3 sm:grid-cols-2">
@@ -256,10 +256,10 @@ export function ProductPdfPreview({
                   }
                   key={field.key}
                 >
-                  <dt className="font-medium text-muted-foreground text-xs">
+                  <dt className="text-muted-foreground text-xs font-medium">
                     {productFieldLabel(field)}
                   </dt>
-                  <dd className="whitespace-pre-wrap break-words text-sm tabular-nums leading-5">
+                  <dd className="text-sm leading-5 break-words whitespace-pre-wrap tabular-nums">
                     {field.type === "datetime-local"
                       ? content.values[field.key]?.replace("T", " ")
                       : productFieldValue(field, content.values[field.key])}

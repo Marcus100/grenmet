@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 import { unavailableWeather, weatherFromForecast } from "./forecast-selection";
 
 // en-GB abbreviates September as "Sept" on current ICU; match either.
-const EVENING_TITLE = /^From the 13 Sept? evening forecast$/;
+const EVENING_TITLE = /^From the 13 Sept? evening forecast$/u;
 
 function selection(): PublicForecast {
   return {

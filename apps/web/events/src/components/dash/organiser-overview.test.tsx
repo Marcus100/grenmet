@@ -15,9 +15,9 @@ vi.mock("@/data/actions", () => ({
   switchOrganiser: () => undefined,
 }));
 
-const AVAILABLE_LABEL = /Available when ticketing launches/;
-const SAMPLE_LABEL = /sample data/i;
-const NEW_EVENT_LABEL = /New event/;
+const AVAILABLE_LABEL = /Available when ticketing launches/u;
+const SAMPLE_LABEL = /sample data/iu;
+const NEW_EVENT_LABEL = /New event/u;
 
 const NOW = new Date("2026-10-17T12:00:00Z");
 

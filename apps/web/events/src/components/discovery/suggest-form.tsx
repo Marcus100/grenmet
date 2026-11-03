@@ -34,12 +34,12 @@ export function SuggestForm() {
   if (submitted) {
     return (
       <div
-        className="flex gap-3 rounded-2xl bg-events-lime p-5 text-events-ink"
+        className="bg-events-lime text-events-ink flex gap-3 rounded-2xl p-5"
         role="status"
       >
         <CircleCheck className="size-6 shrink-0" />
         <div>
-          <p className="font-semibold text-body-base">Thanks for the tip</p>
+          <p className="text-body-base font-semibold">Thanks for the tip</p>
           <p className="text-body">
             Our team reviews each suggestion before it appears on the calendar.
           </p>
@@ -50,7 +50,7 @@ export function SuggestForm() {
 
   return (
     <form
-      className="rounded-2xl border border-border bg-card p-5"
+      className="border-border bg-card rounded-2xl border p-5"
       onSubmit={async (event) => {
         event.preventDefault();
         const form = new FormData(event.currentTarget);

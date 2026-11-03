@@ -33,7 +33,7 @@ export default async function SettingsPage() {
   }
   return (
     <div className="space-y-6">
-      <h1 className="font-semibold text-2xl">CAP settings</h1>
+      <h1 className="text-2xl font-semibold">CAP settings</h1>
       <SettingsForm initial={settings} key={settings.updated_at} />
     </div>
   );

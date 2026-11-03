@@ -20,13 +20,13 @@ export const TURNSTILE_MODES = [
   "enforce",
 ] as const satisfies readonly TurnstileMode[];
 
-export const SITE_KEY = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
+export const SITE_KEY = /^[a-z0-9]+(?:-[a-z0-9]+)*$/u;
 export const MAX_SITE_KEY = 40;
 const MAX_NAME = 255;
-const SITE_ID = /^[A-Za-z0-9_-]{1,100}$/;
-const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const SITE_ID = /^[A-Za-z0-9_-]{1,100}$/u;
+const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/u;
 const MAX_FIELD = 500;
-const TRAILING_SLASHES = /\/+$/;
+const TRAILING_SLASHES = /\/+$/u;
 
 type SiteSettings = Pick<
   PublicSiteCreate,

@@ -103,7 +103,7 @@ function DivisionSwing({ from, to }: { from: string; to: string }) {
           geo={geo}
           label={`Two-party swing, ${from} to ${to}`}
         />
-        <figcaption className="mt-2 text-base text-el-muted">
+        <figcaption className="text-el-muted mt-2 text-base">
           Gold: toward the NDC. Green: toward the NNP. Grey: no comparable
           result. Boundaries are illustrative.
         </figcaption>
@@ -112,24 +112,24 @@ function DivisionSwing({ from, to }: { from: string; to: string }) {
         <dl className="grid grid-cols-3 gap-3">
           <div>
             <dt className={LABEL}>Divisions compared</dt>
-            <dd className="font-semibold text-xl tabular-nums">
+            <dd className="text-xl font-semibold tabular-nums">
               {rows.length}
             </dd>
           </div>
           <div>
             <dt className={LABEL}>Toward the NDC</dt>
-            <dd className="font-semibold text-xl tabular-nums">{toNdc}</dd>
-            <dd className="text-base text-el-muted">
+            <dd className="text-xl font-semibold tabular-nums">{toNdc}</dd>
+            <dd className="text-el-muted text-base">
               {rows.length - toNdc} toward the NNP
             </dd>
           </div>
           <div>
             <dt className={LABEL}>Median swing</dt>
-            <dd className="font-semibold text-xl tabular-nums">
+            <dd className="text-xl font-semibold tabular-nums">
               {median >= 0 ? "+" : ""}
               {median.toFixed(1)}
             </dd>
-            <dd className="text-base text-el-muted">
+            <dd className="text-el-muted text-base">
               points toward the {median >= 0 ? "NDC" : "NNP"}
             </dd>
           </div>
@@ -176,7 +176,7 @@ function DivisionSwing({ from, to }: { from: string; to: string }) {
             ))}
           </svg>
         </ChartViewport>
-        <p className="text-base text-el-muted leading-relaxed">
+        <p className="text-el-muted text-base leading-relaxed">
           Change in the NDC’s share of the two-party vote, in points. Values
           beyond ±30 sit at the edge.
         </p>
@@ -344,12 +344,12 @@ export default function HowClosePage() {
         intro="Compare matched polling-division records in the archive. The change is in the NDC’s share of NDC plus NNP votes, not its share of all valid votes. The illustrative boundaries do not establish current polling arrangements."
         title="2 · Where the votes moved"
       >
-        <h3 className="mb-3 font-bold text-lg">2018 → 2022</h3>
+        <h3 className="mb-3 text-lg font-bold">2018 → 2022</h3>
         <DivisionSwing from="2018" to="2022" />
-        <h3 className="mt-10 mb-3 font-bold text-lg">2013 → 2018</h3>
+        <h3 className="mt-10 mb-3 text-lg font-bold">2013 → 2018</h3>
         <DivisionSwing from="2013" to="2018" />
         <h3 className={`${LABEL} mt-10`}>Knife-edge divisions</h3>
-        <p className="text-base text-el-muted leading-relaxed">
+        <p className="text-el-muted text-base leading-relaxed">
           The closest NDC–NNP contests in any polling division, 2013–2022
         </p>
         <div className="mt-2 overflow-x-auto">
@@ -383,7 +383,7 @@ export default function HowClosePage() {
                   </td>
                   <td className="py-1.5 pr-3">
                     <b>{r.d.division}</b> {r.d.places[0]}
-                    <span className="block text-base text-el-muted">
+                    <span className="text-el-muted block text-base">
                       {constituencyName(results, r.d.code)}
                     </span>
                   </td>
@@ -489,7 +489,7 @@ export default function HowClosePage() {
                 })}
               </svg>
             </ChartViewport>
-            <figcaption className="text-base text-el-muted">
+            <figcaption className="text-el-muted text-base">
               Hollow dot: vote share. Filled dot: seat share. These are
               calculations from the archive; 1976 votes are secondary and 1990
               vote inputs mix official and secondary records. See the election
@@ -498,7 +498,7 @@ export default function HowClosePage() {
           </figure>
           <div>
             <h3 className={LABEL}>How unequal the result was</h3>
-            <p className="text-base text-el-muted leading-relaxed">
+            <p className="text-el-muted text-base leading-relaxed">
               Gallagher disproportionality index (0 means seats exactly match
               votes). Higher values mean a larger gap between parties’ vote
               shares and seat shares. This is a calculation from the displayed
@@ -508,9 +508,9 @@ export default function HowClosePage() {
               {votesSeats.map((r) => (
                 <li className="flex items-center gap-2" key={r.id}>
                   <span className="w-10 tabular-nums">{r.year}</span>
-                  <span className="h-3 flex-1 bg-el-paper-2">
+                  <span className="bg-el-paper-2 h-3 flex-1">
                     <span
-                      className="block h-full bg-el-ink-2"
+                      className="bg-el-ink-2 block h-full"
                       style={{
                         width: `${Math.min(100, (r.gallagher / 50) * 100)}%`,
                       }}
@@ -541,7 +541,7 @@ export default function HowClosePage() {
               H - 24 - Math.max(0, Math.min(1, (t - 0.4) / 0.6)) * (H - 40);
             return (
               <figure key={id}>
-                <figcaption className="font-semibold text-base">
+                <figcaption className="text-base font-semibold">
                   {id}
                 </figcaption>
                 <ChartViewport>
@@ -591,7 +591,7 @@ export default function HowClosePage() {
             );
           })}
         </div>
-        <p className="mt-1 text-base text-el-muted leading-relaxed">
+        <p className="text-el-muted mt-1 text-base leading-relaxed">
           Across: winning margin in points. Up: turnout. Colour: the division’s
           winner.
         </p>
@@ -610,7 +610,7 @@ export default function HowClosePage() {
             const y = (v: number) => H - 24 - v * (H - 40);
             return (
               <figure key={p.ref}>
-                <figcaption className="font-semibold text-base">
+                <figcaption className="text-base font-semibold">
                   {p.label}
                 </figcaption>
                 <ChartViewport>
@@ -668,7 +668,7 @@ export default function HowClosePage() {
             );
           })}
         </div>
-        <p className="mt-1 text-base text-el-muted leading-relaxed">
+        <p className="text-el-muted mt-1 text-base leading-relaxed">
           The 2018 referendum has divisions only for the 10 constituencies
           readable in the Gazette. The 2016 Yes share combines responses to
           seven questions, so it does not describe one proposition or count
@@ -770,7 +770,7 @@ export default function HowClosePage() {
           {(Object.keys(QUALITY) as ResultQuality[]).map((q) => (
             <li className="flex items-center gap-1.5" key={q}>
               <i
-                className="inline-block size-3 rounded-[2px] border border-el-rule"
+                className="border-el-rule inline-block size-3 rounded-[2px] border"
                 style={{ background: QUALITY[q].bg }}
               />
               {QUALITY[q].label}

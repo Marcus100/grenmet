@@ -13,7 +13,7 @@
  * Returns null when the path is not acceptable. The caller answers 400 and
  * sends no request upstream.
  */
-const SEGMENT = /^[A-Za-z0-9._~-]+$/;
+const SEGMENT = /^[A-Za-z0-9._~-]+$/u;
 
 export function buildApiProxyUrl(
   pathname: string,

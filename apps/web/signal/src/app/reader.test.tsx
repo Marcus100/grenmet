@@ -15,9 +15,9 @@ import HomePage from "./page";
 import SearchPage from "./search/page";
 import TopicsPage from "./topics/page";
 
-const SAMPLE_NOTICE = /Human editorial review pending/;
-const NOT_AVAILABLE = /subscriptions are not available/i;
-const SAMPLE_CAUTION = /Do not rely on it/;
+const SAMPLE_NOTICE = /Human editorial review pending/u;
+const NOT_AVAILABLE = /subscriptions are not available/iu;
+const SAMPLE_CAUTION = /Do not rely on it/u;
 vi.mock("@/lib/content", () => {
   const articles = [
     {

@@ -48,7 +48,7 @@ export function isParish(value: unknown): value is Parish {
   return typeof value === "string" && value in PARISH_LABELS;
 }
 
-const WHITESPACE = /\s+/;
+const WHITESPACE = /\s+/u;
 
 /** "AC" from "Alex Charles". */
 export function initials(name: string): string {

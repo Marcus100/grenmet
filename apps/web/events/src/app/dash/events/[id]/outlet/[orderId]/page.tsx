@@ -41,16 +41,16 @@ export default async function OutletSlipPage({
       </div>
       {sale.tickets.map((ticket) => (
         <article
-          className="break-inside-avoid space-y-3 rounded-2xl border border-border bg-card p-6 text-center"
+          className="border-border bg-card break-inside-avoid space-y-3 rounded-2xl border p-6 text-center"
           key={ticket.id}
         >
-          <h1 className="font-bold font-display text-heading-base tracking-tight">
+          <h1 className="font-display text-heading-base font-bold tracking-tight">
             {sale.listingTitle}
           </h1>
           <p className="text-body text-muted-foreground">
             {formatEventDate(sale.startsAt)} · {sale.venue}
           </p>
-          <p className="font-medium text-body">
+          <p className="text-body font-medium">
             {ticket.tierName} ·{" "}
             {formatMoney(money(ticket.priceMinor, sale.currency))}
           </p>
@@ -61,13 +61,13 @@ export default async function OutletSlipPage({
                 label={`QR code for ticket ${ticket.code}`}
                 value={ticket.qrToken}
               />
-              <p className="font-mono text-heading-sm tracking-widest">
+              <p className="text-heading-sm font-mono tracking-widest">
                 <span className="sr-only">Ticket code </span>
                 {ticket.code}
               </p>
             </>
           ) : (
-            <p className="font-semibold text-destructive">
+            <p className="text-destructive font-semibold">
               This ticket is {ticket.status} and will not be admitted.
             </p>
           )}

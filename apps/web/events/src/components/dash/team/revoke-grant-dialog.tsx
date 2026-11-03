@@ -77,7 +77,7 @@ export function RevokeGrantDialog({
           </AlertDialogDescription>
         </AlertDialogHeader>
         <p
-          className="font-medium text-body text-destructive empty:hidden"
+          className="text-body text-destructive font-medium empty:hidden"
           role="alert"
         >
           {error}

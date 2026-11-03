@@ -22,8 +22,8 @@ vi.mock("@/lib/report-error", () => ({ reportError: vi.fn() }));
 vi.mock("next/navigation", () => ({ useRouter: () => ({ refresh: vi.fn() }) }));
 
 const BASE = "http://localhost";
-const MFA_TEXT = /Two-step verification is needed for this/;
-const AMOUNT_TEXT = /2,500\.00/;
+const MFA_TEXT = /Two-step verification is needed for this/u;
+const AMOUNT_TEXT = /2,500\.00/u;
 const API = `${BASE}/api/v1/hr/payroll`;
 const SECURITY = "https://auth.example/security";
 const MFA_DETAIL =

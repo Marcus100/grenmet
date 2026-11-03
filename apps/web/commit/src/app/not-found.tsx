@@ -19,11 +19,11 @@ export default function NotFound() {
       </svg>
       <StarField className="sm:-mt-16" />
 
-      <p className="font-display font-light text-4xl/tight text-white">404</p>
-      <h1 className="mt-4 font-display font-semibold text-white text-xl/8">
+      <p className="font-display text-4xl/tight font-light text-white">404</p>
+      <h1 className="font-display mt-4 text-xl/8 font-semibold text-white">
         Page not found
       </h1>
-      <p className="mt-2 text-gray-300 text-sm/6">
+      <p className="mt-2 text-sm/6 text-gray-300">
         Sorry, we couldn’t find the page you’re looking for.
       </p>
       <IconLink className="mt-4" href="/">

@@ -19,7 +19,7 @@ export const PROVISIONAL_BANNER = "Provisional figures: cannot be issued";
 function ProvisionalBanner({ codes }: { codes: string[] }) {
   return (
     <div
-      className="space-y-1 rounded-xl border border-warning p-4"
+      className="border-warning space-y-1 rounded-xl border p-4"
       role="alert"
     >
       <p className="font-semibold">{PROVISIONAL_BANNER}</p>
@@ -37,11 +37,11 @@ function BlockerList({ blockers }: { blockers: IssueBlocker[] }) {
   }
   return (
     <section aria-label="Why this cannot be issued" className="space-y-2">
-      <h3 className="font-semibold text-base">Why this cannot be issued yet</h3>
+      <h3 className="text-base font-semibold">Why this cannot be issued yet</h3>
       <ul className="space-y-2">
         {blockers.map((blocker) => (
           <li
-            className="rounded-lg border bg-card p-3 text-sm"
+            className="bg-card rounded-lg border p-3 text-sm"
             key={blocker.message}
           >
             <p className="font-medium">{blocker.message}</p>
@@ -83,7 +83,7 @@ export function PayPeriodIssueView({
   const issued = summary.issue_approved_at !== null;
   return (
     <section aria-label="Pay summary and issue" className="space-y-6">
-      <h2 className="font-semibold text-lg">Pay summary and issue</h2>
+      <h2 className="text-lg font-semibold">Pay summary and issue</h2>
       {summary.provisional_figures ? (
         <ProvisionalBanner codes={summary.blocking_tables} />
       ) : null}
@@ -97,7 +97,7 @@ export function PayPeriodIssueView({
           No pay lines to summarise yet. Recompute the period first.
         </PayrollEmpty>
       ) : (
-        <div className="overflow-x-auto rounded-xl border bg-card">
+        <div className="bg-card overflow-x-auto rounded-xl border">
           <Table>
             <TableHeader>
               <TableRow>

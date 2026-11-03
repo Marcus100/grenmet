@@ -3,7 +3,7 @@ import { spawnSync } from "node:child_process";
 import test from "node:test";
 import { fileURLToPath } from "node:url";
 
-const INVALID_MODE = /Expected backend, storage or release/;
+const INVALID_MODE = /Expected backend, storage or release/u;
 const cwd = fileURLToPath(new URL("../../", import.meta.url));
 for (const [script, missing] of [
   ["backend", "POSTGRES_SERVER"],
@@ -18,7 +18,7 @@ for (const [script, missing] of [
       encoding: "utf8",
     });
     assert.notEqual(result.status, 0);
-    assert.match(result.stderr, new RegExp(missing));
+    assert.match(result.stderr, new RegExp(missing, "u"));
   });
 }
 test("managed verifier rejects unknown operations before provisioning", () => {

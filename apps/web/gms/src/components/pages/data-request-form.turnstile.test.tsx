@@ -3,7 +3,7 @@ import userEvent from "@testing-library/user-event";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { DataRequestForm } from "@/components/pages/data-request-form";
 
-const CONSENT_LABEL = /I agree to the conditions/;
+const CONSENT_LABEL = /I agree to the conditions/u;
 
 vi.mock("@/lib/report-error", () => ({ reportError: vi.fn() }));
 vi.mock("@/lib/env", () => ({

@@ -45,13 +45,13 @@ function observation(
   } as RegisterObservationRead;
 }
 
-const REASON_LABEL = /Reason \(required\)/;
-const NOTE_LABEL = /Note \(optional\)/;
-const RECORDED_BY = /Recorded by Pat Observer/;
-const STANDARD_HOURS = /standard hours/;
-const ERROR_NOT_LISTED = /error is not listed/;
-const CHANGED_MESSAGE = /saved or decided since you opened it/;
-const OWN_HINT = /another person reviews it/;
+const REASON_LABEL = /Reason \(required\)/u;
+const NOTE_LABEL = /Note \(optional\)/u;
+const RECORDED_BY = /Recorded by Pat Observer/u;
+const STANDARD_HOURS = /standard hours/u;
+const ERROR_NOT_LISTED = /error is not listed/u;
+const CHANGED_MESSAGE = /saved or decided since you opened it/u;
+const OWN_HINT = /another person reviews it/u;
 
 /** Answer each queue by the filter the panel sends. */
 function serve(queues: {

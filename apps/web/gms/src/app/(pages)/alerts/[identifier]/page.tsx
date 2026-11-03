@@ -48,7 +48,7 @@ export default async function WarningPage({ params, searchParams }: Props) {
     return (
       <>
         <PageHeader title="Warning" />
-        <p className="rounded border border-gm-risk-amber bg-gm-surface p-4 text-body text-gm-text-secondary leading-body lg:p-5">
+        <p className="border-gm-risk-amber bg-gm-surface text-body text-gm-text-secondary leading-body rounded border p-4 lg:p-5">
           This warning cannot be retrieved right now. This does not mean it has
           ended — check{" "}
           <Link className="text-gm-blue-ink underline" href="/alerts">
@@ -86,7 +86,7 @@ export default async function WarningPage({ params, searchParams }: Props) {
       <PageHeader description={detail.headline} title={detail.event} />
 
       {previousDetail && (
-        <p className="mb-6 rounded border border-gm-border bg-gm-surface p-4 text-body text-gm-text-secondary leading-body lg:p-5">
+        <p className="border-gm-border bg-gm-surface text-body text-gm-text-secondary leading-body mb-6 rounded border p-4 lg:p-5">
           Updated from {previousDetail.event}
           {previousDetail.issued ? `, issued ${previousDetail.issued}` : ""}.
         </p>
@@ -94,7 +94,7 @@ export default async function WarningPage({ params, searchParams }: Props) {
 
       {detail.status !== "Actual" && (
         <p
-          className="mb-6 rounded border-2 border-gm-risk-red bg-gm-risk-yellow p-4 font-bold text-body-base text-gm-text-primary leading-body-base lg:p-5"
+          className="border-gm-risk-red bg-gm-risk-yellow text-body-base text-gm-text-primary leading-body-base mb-6 rounded border-2 p-4 font-bold lg:p-5"
           role="alert"
         >
           Exercise — this message is marked {detail.status} and is part of a
@@ -108,7 +108,7 @@ export default async function WarningPage({ params, searchParams }: Props) {
           WARNING_LEVEL_SURFACE[level]
         )}
       >
-        <span className="flex items-center gap-2.5 font-bold text-body-base leading-body-base">
+        <span className="text-body-base leading-body-base flex items-center gap-2.5 font-bold">
           <TriangleAlertIcon aria-hidden="true" className="size-5 shrink-0" />
           {detail.ended
             ? `${detail.ended === "cancelled" ? "Cancelled" : "Ended"} — no longer in effect`
@@ -122,7 +122,7 @@ export default async function WarningPage({ params, searchParams }: Props) {
       </div>
 
       {detail.cancellationReason && (
-        <p className="mb-6 rounded border border-gm-border bg-gm-surface p-4 text-body-base text-gm-text-primary leading-body-base lg:p-5">
+        <p className="border-gm-border bg-gm-surface text-body-base text-gm-text-primary leading-body-base mb-6 rounded border p-4 lg:p-5">
           Reason: {detail.cancellationReason}
         </p>
       )}
@@ -130,12 +130,12 @@ export default async function WarningPage({ params, searchParams }: Props) {
       <div className="grid gap-8 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)] lg:gap-12">
         <div>
           <PageSection heading="What to expect">
-            <p className="max-w-prose whitespace-pre-line text-pretty text-body-base text-gm-text-primary leading-body-base">
+            <p className="text-body-base text-gm-text-primary leading-body-base max-w-prose text-pretty whitespace-pre-line">
               {detail.whatToExpect}
             </p>
           </PageSection>
           <PageSection heading="What to do">
-            <p className="max-w-prose whitespace-pre-line text-pretty text-body-base text-gm-text-primary leading-body-base">
+            <p className="text-body-base text-gm-text-primary leading-body-base max-w-prose text-pretty whitespace-pre-line">
               {detail.instruction ??
                 "No specific actions were issued with this warning. Follow updates from the Grenada Meteorological Service and advice from NaDMA."}
             </p>
@@ -143,7 +143,7 @@ export default async function WarningPage({ params, searchParams }: Props) {
         </div>
 
         <aside>
-          <dl className="grid gap-4 rounded border border-gm-border bg-gm-surface p-4 lg:p-5">
+          <dl className="border-gm-border bg-gm-surface grid gap-4 rounded border p-4 lg:p-5">
             {[
               [
                 "Where",
@@ -159,7 +159,7 @@ export default async function WarningPage({ params, searchParams }: Props) {
             ].map(([term, value]) =>
               value ? (
                 <div key={term}>
-                  <dt className="font-bold text-gm-text-secondary text-label uppercase leading-label tracking-wide">
+                  <dt className="text-gm-text-secondary text-label leading-label font-bold tracking-wide uppercase">
                     {term}
                   </dt>
                   <dd className="text-body-base text-gm-text-primary leading-body-base">
@@ -169,7 +169,7 @@ export default async function WarningPage({ params, searchParams }: Props) {
               ) : null
             )}
           </dl>
-          <ul className="mt-4 flex flex-col gap-2 text-body text-gm-blue-ink leading-body">
+          <ul className="text-body text-gm-blue-ink leading-body mt-4 flex flex-col gap-2">
             <li>
               <Link className="underline" href="/alerts">
                 All warnings in effect

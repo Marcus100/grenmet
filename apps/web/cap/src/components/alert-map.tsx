@@ -36,7 +36,7 @@ export function AlertMap({ features }: { features: AlertFeature[] }) {
     <div className="space-y-4">
       <svg
         aria-labelledby="alert-map-title"
-        className="h-auto w-full rounded-gm-card border border-gm-border bg-gm-surface"
+        className="rounded-gm-card border-gm-border bg-gm-surface h-auto w-full border"
         role="img"
         viewBox={`0 0 ${MAP_WIDTH} ${projection.height}`}
       >
@@ -77,7 +77,7 @@ export function AlertMap({ features }: { features: AlertFeature[] }) {
             ) : null}
             {shape.label ? (
               <text
-                className="fill-gm-text-primary font-bold text-body"
+                className="fill-gm-text-primary text-body font-bold"
                 textAnchor="middle"
                 x={shape.label[0]}
                 y={shape.label[1] + 5}
@@ -94,7 +94,7 @@ export function AlertMap({ features }: { features: AlertFeature[] }) {
       <ol className="space-y-2">
         {shapes.map(({ feature, number, shape }) => (
           <li
-            className="rounded-gm-card border border-gm-border p-3 text-body-sm"
+            className="rounded-gm-card border-gm-border text-body-sm border p-3"
             key={`${feature.properties.identifier}-${number}`}
           >
             <span className="font-bold">{number}. </span>

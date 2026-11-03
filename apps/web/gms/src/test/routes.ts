@@ -7,7 +7,7 @@ import { PLANNED_ROUTE_PREFIX } from "@/lib/planned-routes";
 export const APP_DIR = path.resolve(import.meta.dirname, "../app");
 
 /** A folder serves a URL when it holds a page or a route handler. */
-const ROUTE_FILE = /^(page\.(tsx|ts|jsx|js)|route\.(ts|js))$/;
+const ROUTE_FILE = /^(page\.(tsx|ts|jsx|js)|route\.(ts|js))$/u;
 
 /**
  * Every route the app actually serves, as a URL path: pages and route
@@ -32,10 +32,10 @@ export function routesOnDisk(dir: string, segments: string[] = []): string[] {
 }
 
 /** `[id]`, `[...slug]` and the optional catch-all `[[...slug]]`. */
-export const DYNAMIC_SEGMENT = /^\[\[?(\.\.\.)?[^\]]+\]\]?$/;
+export const DYNAMIC_SEGMENT = /^\[\[?(\.\.\.)?[^\]]+\]\]?$/u;
 /** `[...slug]` or `[[...slug]]`. */
-export const CATCH_ALL = /^\[\[?\.\.\./;
-const OPTIONAL_CATCH_ALL = /^\[\[\.\.\./;
+export const CATCH_ALL = /^\[\[?\.\.\./u;
+const OPTIONAL_CATCH_ALL = /^\[\[\.\.\./u;
 /** `[location]` has dynamicParams = false: only enabled place slugs exist. */
 const LOCATION_SLUGS = new Set(
   prefixedLocationParams().map((params) => params.location)

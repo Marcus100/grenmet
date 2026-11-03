@@ -13,7 +13,7 @@ import {
 import { readSessionCookie } from "@/lib/server-session";
 
 type Filters = Record<string, string | string[] | undefined>;
-const DATE_TIME = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(?::\d{2})?$/;
+const DATE_TIME = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(?::\d{2})?$/u;
 
 export function observationFilters(filters: Filters): URLSearchParams {
   const params = new URLSearchParams();
@@ -97,7 +97,7 @@ function FilterForm({ filters }: { filters: Filters }) {
       <div className="space-y-2">
         <Label htmlFor="observation-kind">Report kind</Label>
         <select
-          className="w-full rounded-md border bg-background p-2"
+          className="bg-background w-full rounded-md border p-2"
           defaultValue={value("kind", "SYNOP")}
           id="observation-kind"
           name="kind"
@@ -178,7 +178,7 @@ export async function ImportedObservations({ filters }: { filters: Filters }) {
       ) : null}
       {result?.observations.map((record) => (
         <article
-          className="space-y-3 rounded-lg border bg-card p-4"
+          className="bg-card space-y-3 rounded-lg border p-4"
           key={record.id}
         >
           <h2 className="font-semibold">
@@ -193,7 +193,7 @@ export async function ImportedObservations({ filters }: { filters: Filters }) {
             {record.provenance.time_basis} · Publication:{" "}
             {record.provenance.publication_state}
           </p>
-          <pre className="whitespace-pre-wrap break-words text-sm">
+          <pre className="text-sm break-words whitespace-pre-wrap">
             {record.provenance.raw_tac ?? "No source TAC supplied."}
           </pre>
           {record.provenance.quality_flags?.length ? (
@@ -201,7 +201,7 @@ export async function ImportedObservations({ filters }: { filters: Filters }) {
           ) : null}
           <details>
             <summary>Source payload and provenance</summary>
-            <pre className="overflow-auto whitespace-pre-wrap break-words text-xs">
+            <pre className="overflow-auto text-xs break-words whitespace-pre-wrap">
               {JSON.stringify(record, null, 2)}
             </pre>
           </details>

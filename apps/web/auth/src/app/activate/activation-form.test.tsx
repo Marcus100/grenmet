@@ -7,8 +7,8 @@ vi.mock("./actions", () => ({ activateAccount: vi.fn() }));
 
 import { ActivationForm } from "./activation-form";
 
-const EXPIRES_TEXT = /expires within 24 hours/;
-const STAFF_TEXT = /administrator has confirmed your identity/;
+const EXPIRES_TEXT = /expires within 24 hours/u;
+const STAFF_TEXT = /administrator has confirmed your identity/u;
 afterEach(cleanup);
 it("reads the fragment without sending the secret in the page URL and removes it from history", async () => {
   window.history.replaceState(

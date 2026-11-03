@@ -22,7 +22,7 @@ import {
 } from "@/lib/janitorial/test-fixtures";
 import JanitorSetupPage from "./page";
 
-const ATB = /Air Terminal Building \(ATB\)/;
+const ATB = /Air Terminal Building \(ATB\)/u;
 
 async function renderPage(access = managerAccess, site = "GND") {
   queries.getJanitorialAccess.mockResolvedValue(access);

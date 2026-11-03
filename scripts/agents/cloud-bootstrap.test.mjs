@@ -21,17 +21,18 @@ const source = readFileSync(SCRIPT, "utf8");
 const pkg = JSON.parse(readFileSync(`${ROOT}package.json`, "utf8"));
 const pythonVersion = readFileSync(`${ROOT}.python-version`, "utf8").trim();
 
-const FIRST_NUMBER = /\d+/;
-const PNPM_PREFIX = /^pnpm@/;
-const INSTALL_STEP = /pnpm install --frozen-lockfile/;
-const BOTH_PACKAGES = /--package fast-back --package gms-ingest/;
-const REDIS_OUTSIDE_REPO = /redis-server --daemonize yes --dir \/tmp --save ""/;
-const PNPM_SWITCHING_OFF = /npm_config_manage_package_manager_versions=false/;
-const NO_REPO_GIT_WRITES = /git (checkout|reset|add|commit)/;
-const NO_ENV_FILE_WRITES = />\s*"?\$ROOT\/\.env/;
-const ENDS_WITH_EXIT_ZERO = /exit 0$/;
-const REMOTE_GUARD = /CLAUDE_CODE_REMOTE/;
-const DUMP_IGNORED = /^dump\.rdb$/m;
+const FIRST_NUMBER = /\d+/u;
+const PNPM_PREFIX = /^pnpm@/u;
+const INSTALL_STEP = /pnpm install --frozen-lockfile/u;
+const BOTH_PACKAGES = /--package fast-back --package gms-ingest/u;
+const REDIS_OUTSIDE_REPO =
+  /redis-server --daemonize yes --dir \/tmp --save ""/u;
+const PNPM_SWITCHING_OFF = /npm_config_manage_package_manager_versions=false/u;
+const NO_REPO_GIT_WRITES = /git (checkout|reset|add|commit)/u;
+const NO_ENV_FILE_WRITES = />\s*"?\$ROOT\/\.env/u;
+const ENDS_WITH_EXIT_ZERO = /exit 0$/u;
+const REMOTE_GUARD = /CLAUDE_CODE_REMOTE/u;
+const DUMP_IGNORED = /^dump\.rdb$/mu;
 
 // The environment a test runs the scripts with: the caller's, minus the knobs
 // a developer may have exported that would change what the scripts do.
@@ -106,14 +107,14 @@ test("the SessionStart hook runs it for cloud sessions only", () => {
 
 const SETUP = fileURLToPath(new URL("./cloud-setup.sh", import.meta.url));
 const setupSource = readFileSync(SETUP, "utf8");
-const BUDGET_DEFAULT = /GRENMET_SETUP_SECONDS:-(\d+)/;
-const CLONE_HAS_TIMEOUT = /timeout "\$CLONE_SECONDS" git clone/;
-const CLONE_WARNING = /WARN could not clone/;
-const WARMED = /ok caches warmed/;
-const STORE_KEPT = /ok pnpm store kept/;
-const STOPPED_EARLY = /WARN bootstrap stopped after/;
-const SEEDED = /ok pnpm store seeded/;
-const ALREADY_SEEDED = /skip pnpm store: checkout already has one/;
+const BUDGET_DEFAULT = /GRENMET_SETUP_SECONDS:-(\d+)/u;
+const CLONE_HAS_TIMEOUT = /timeout "\$CLONE_SECONDS" git clone/u;
+const CLONE_WARNING = /WARN could not clone/u;
+const WARMED = /ok caches warmed/u;
+const STORE_KEPT = /ok pnpm store kept/u;
+const STOPPED_EARLY = /WARN bootstrap stopped after/u;
+const SEEDED = /ok pnpm store seeded/u;
+const ALREADY_SEEDED = /skip pnpm store: checkout already has one/u;
 
 // A throwaway local repo whose bootstrap is `body`, on a "dev" branch.
 function fixture(body) {

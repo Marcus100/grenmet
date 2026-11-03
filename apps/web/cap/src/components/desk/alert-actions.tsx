@@ -196,10 +196,10 @@ export function AlertActions({
     <div className="space-y-4">
       {formatProblem ? (
         <div
-          className="space-y-1 rounded-lg border-2 border-destructive bg-destructive/10 p-4"
+          className="border-destructive bg-destructive/10 space-y-1 rounded-lg border-2 p-4"
           role="alert"
         >
-          <p className="font-semibold text-destructive">
+          <p className="text-destructive font-semibold">
             Published with a CAP format problem
           </p>
           <p className="text-body-sm">
@@ -214,7 +214,7 @@ export function AlertActions({
       ) : null}
       {message ? (
         <p
-          className="rounded-lg border bg-muted p-3 text-body-sm"
+          className="bg-muted text-body-sm rounded-lg border p-3"
           role="status"
         >
           {message}
@@ -224,7 +224,7 @@ export function AlertActions({
 
       {imported && (draftLike || published) ? (
         <div
-          className="space-y-2 rounded-lg border border-warning bg-warning-soft p-4 text-warning-soft-foreground"
+          className="border-warning bg-warning-soft text-warning-soft-foreground space-y-2 rounded-lg border p-4"
           role="note"
         >
           <p className="font-semibold">
@@ -237,7 +237,7 @@ export function AlertActions({
             </p>
           )}
           {draftLike ? (
-            <label className="flex items-start gap-2 text-body-sm">
+            <label className="text-body-sm flex items-start gap-2">
               <input
                 checked={importConfirmed}
                 onChange={(event) => setImportConfirmed(event.target.checked)}
@@ -269,7 +269,7 @@ export function AlertActions({
             </Button>
           </div>
           {validation?.version === version ? (
-            <div className="space-y-1 text-body-sm" role="status">
+            <div className="text-body-sm space-y-1" role="status">
               <p className="font-semibold">
                 {validation.result.is_valid
                   ? "Validation passed."
@@ -287,7 +287,7 @@ export function AlertActions({
               </ul>
             </div>
           ) : null}
-          <label className="flex items-start gap-2 text-body-sm">
+          <label className="text-body-sm flex items-start gap-2">
             <input
               checked={ready}
               disabled={!valid}

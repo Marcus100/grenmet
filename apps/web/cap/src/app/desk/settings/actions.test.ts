@@ -10,7 +10,7 @@ vi.mock("@barrelsgd/auth", () => ({ isAuthApiError: () => false }));
 
 import { saveCapSettings } from "./actions";
 
-const FEED_LIMIT = /feed_limit/;
+const FEED_LIMIT = /feed_limit/u;
 
 const VALID = {
   contact: "gms@example.test",

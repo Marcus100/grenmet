@@ -8,8 +8,8 @@ vi.mock("next/navigation", () => ({
   useRouter: () => ({ push: vi.fn() }),
 }));
 
-const POLLING_DAY = /Thursday 5 November/;
-const POLICE_POLL = /Police special poll/;
+const POLLING_DAY = /Thursday 5 November/u;
+const POLICE_POLL = /Police special poll/u;
 
 describe("front page", () => {
   it("leads with the announced polling day and lists the police poll", () => {

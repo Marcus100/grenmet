@@ -81,10 +81,10 @@ export function ManualLineForm({
   return (
     <section
       aria-label="Add a line by hand"
-      className="space-y-3 rounded-xl border bg-card p-4"
+      className="bg-card space-y-3 rounded-xl border p-4"
     >
       <div>
-        <h3 className="font-semibold text-base">Add a line by hand</h3>
+        <h3 className="text-base font-semibold">Add a line by hand</h3>
         <p className="text-muted-foreground text-sm">
           For call-outs, and overtime until it is calculated from the roster
           rules. Every line needs a reason.

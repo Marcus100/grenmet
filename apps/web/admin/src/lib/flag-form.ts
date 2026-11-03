@@ -19,14 +19,14 @@ export const FLAG_ENVIRONMENTS = [
   "production",
 ] as const satisfies readonly Environment[];
 
-export const FLAG_KEY = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
+export const FLAG_KEY = /^[a-z0-9]+(?:-[a-z0-9]+)*$/u;
 export const MAX_FLAG_KEY = 80;
-const FLAG_ID = /^[A-Za-z0-9_-]{1,100}$/;
-const ORG_ID = /^[A-Za-z0-9_-]{1,100}$/;
-const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-const DATE = /^\d{4}-\d{2}-\d{2}$/;
-const PERCENT = /^\d{1,3}$/;
-const SPLIT = /[\s,]+/;
+const FLAG_ID = /^[A-Za-z0-9_-]{1,100}$/u;
+const ORG_ID = /^[A-Za-z0-9_-]{1,100}$/u;
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/iu;
+const DATE = /^\d{4}-\d{2}-\d{2}$/u;
+const PERCENT = /^\d{1,3}$/u;
+const SPLIT = /[\s,]+/u;
 const MAX_DESCRIPTION = 2000;
 const MAX_METRIC = 4000;
 const MAX_OWNER = 255;

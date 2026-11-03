@@ -49,7 +49,7 @@ export default async function SettlementPage({
             >
               ← {report.title}
             </Link>
-            <h1 className="mt-1 font-display font-semibold text-heading-base">
+            <h1 className="font-display text-heading-base mt-1 font-semibold">
               Settlement
             </h1>
             <p className="text-body text-muted-foreground">

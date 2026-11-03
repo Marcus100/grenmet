@@ -9,7 +9,7 @@ import { partyInfo } from "@/data/parties";
 export function ConstituencyCard({ seat }: { seat: SeatOutlook }) {
   return (
     <Link
-      className="group flex h-full gap-3 bg-background p-4 hover:bg-el-paper-2"
+      className="group bg-background hover:bg-el-paper-2 flex h-full gap-3 p-4"
       href={seat.href as Route}
     >
       <SeatSquare
@@ -19,17 +19,17 @@ export function ConstituencyCard({ seat }: { seat: SeatOutlook }) {
         party={seat.sitting.party}
       />
       <span className="min-w-0 flex-1">
-        <b className="block font-bold font-serif text-lg leading-tight group-hover:underline">
+        <b className="block font-serif text-lg leading-tight font-bold group-hover:underline">
           {seat.name}
         </b>
-        <span className="mt-1 block text-base text-el-ink-2">
+        <span className="text-el-ink-2 mt-1 block text-base">
           <PartyDot party={seat.sitting.party} />
           {seat.sitting.name}
           {seat.sitting.was && (
             <span className="text-el-muted"> (elected {seat.sitting.was})</span>
           )}
         </span>
-        <span className="mt-1 block text-base text-el-muted tabular-nums">
+        <span className="text-el-muted mt-1 block text-base tabular-nums">
           2022: {seat.winner2022.party} by {(seat.margin2022 * 100).toFixed(1)}{" "}
           pts
           {seat.lean != null && ` · leans ${leanLabel(seat.lean)}`}
@@ -43,7 +43,7 @@ export function ConstituencyCard({ seat }: { seat: SeatOutlook }) {
 /** All 15 constituencies as compact cards. */
 export function ConstituencyGrid({ seats }: { seats: SeatOutlook[] }) {
   return (
-    <ul className="grid gap-px border border-el-rule bg-el-rule sm:grid-cols-2 lg:grid-cols-3">
+    <ul className="border-el-rule bg-el-rule grid gap-px border sm:grid-cols-2 lg:grid-cols-3">
       {seats.map((seat) => (
         <li key={seat.code}>
           <ConstituencyCard seat={seat} />

@@ -252,7 +252,7 @@ export interface PollScore {
   estimate: number;
 }
 
-const YEAR = /^\d{4}$/;
+const YEAR = /^\d{4}$/u;
 
 /** A published poll against the election it preceded, or null if it can't be scored. */
 export function pollScore(
@@ -360,8 +360,8 @@ export function slugify(name: string): string {
     .toLowerCase()
     .replaceAll("&", " and ")
     .replaceAll(".", "")
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-|-$/g, "");
+    .replace(/[^a-z0-9]+/gu, "-")
+    .replace(/^-|-$/gu, "");
 }
 
 /** The page for a constituency, addressed by its name. */

@@ -49,10 +49,10 @@ function CatalogueUnavailable({ error }: FallbackProps) {
   }, [error]);
   return (
     <div
-      className="rounded-md border border-gm-border bg-gm-surface p-4 text-body-sm text-gm-text-secondary"
+      className="border-gm-border bg-gm-surface text-body-sm text-gm-text-secondary rounded-md border p-4"
       role="alert"
     >
-      <p className="font-medium text-gm-text-primary">
+      <p className="text-gm-text-primary font-medium">
         The warning rules could not be loaded.
       </p>
       <p>

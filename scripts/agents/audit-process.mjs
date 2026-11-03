@@ -112,5 +112,5 @@ export function privateDirectory(path) {
   return path;
 }
 export function evidencePath(directory, id, attempt) {
-  return join(directory, `${id.replace(/[^a-z0-9_-]/gi, "_")}-${attempt}.log`);
+  return join(directory, `${id.replace(/[^a-z0-9_-]/giu, "_")}-${attempt}.log`);
 }

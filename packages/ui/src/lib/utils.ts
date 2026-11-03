@@ -1,6 +1,6 @@
 export { cn } from "cn";
 
-const WHITESPACE_RE = /\s+/;
+const WHITESPACE_RE = /\s+/u;
 
 /** Derive initials from a name, falling back to "?". */
 export function getInitials(str: string): string {

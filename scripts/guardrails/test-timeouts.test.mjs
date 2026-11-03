@@ -9,12 +9,12 @@ import test from "node:test";
 
 const DEFAULT_MS = 30_000;
 const WEB = "apps/web";
-const CONFIG_TIMEOUT = /testTimeout:\s*([\d_]+)/g;
+const CONFIG_TIMEOUT = /testTimeout:\s*([\d_]+)/gu;
 // `}, 20_000);` after a test body, or `{ timeout: 20_000 }` test options.
 // Four or more digits: smaller values are waitFor polling windows, not test limits.
-const OVERRIDE = /\},\s*(\d[\d_]{3,})\s*\);|\btimeout:\s*(\d[\d_]{3,})/g;
+const OVERRIDE = /\},\s*(\d[\d_]{3,})\s*\);|\btimeout:\s*(\d[\d_]{3,})/gu;
 // Vitest suites only; `.test.mjs` files run under node:test with their own limits.
-const TEST_FILE = /\.test\.tsx?$/;
+const TEST_FILE = /\.test\.tsx?$/u;
 const SKIP = new Set(["node_modules", ".next", "dist", "coverage"]);
 const ms = (literal) => Number(literal.replaceAll("_", ""));
 

@@ -98,6 +98,10 @@ import {
   down as down_20261101_172726_desk_post_types,
   up as up_20261101_172726_desk_post_types,
 } from "./20261101_172726_desk_post_types";
+import {
+  down as down_20261102_101957_desk_pin_and_platform_images,
+  up as up_20261102_101957_desk_pin_and_platform_images,
+} from "./20261102_101957_desk_pin_and_platform_images";
 
 export const migrations = [
   {
@@ -224,5 +228,10 @@ export const migrations = [
     up: up_20261101_172726_desk_post_types,
     down: down_20261101_172726_desk_post_types,
     name: "20261101_172726_desk_post_types",
+  },
+  {
+    up: up_20261102_101957_desk_pin_and_platform_images,
+    down: down_20261102_101957_desk_pin_and_platform_images,
+    name: "20261102_101957_desk_pin_and_platform_images",
   },
 ];

@@ -19,12 +19,12 @@ export default async function QuestionsPage() {
         title="Questions about the weather"
       />
       {result.status === "unavailable" && (
-        <p className="py-4 text-body-base leading-body-base" role="status">
+        <p className="text-body-base leading-body-base py-4" role="status">
           Questions cannot be retrieved right now. Please try again later.
         </p>
       )}
       {result.status === "ok" && result.questions.length === 0 && (
-        <p className="py-4 text-body-base leading-body-base">
+        <p className="text-body-base leading-body-base py-4">
           No questions are published yet.
         </p>
       )}

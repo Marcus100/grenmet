@@ -19,7 +19,7 @@ import {
 import { type PayrollAccess, payrollAccess } from "./payroll-access";
 import { isMfaRequired } from "./payroll-failure";
 
-const API_PREFIX = /\/api\/v1(?=\/|$)/;
+const API_PREFIX = /\/api\/v1(?=\/|$)/u;
 
 /** A server read: ready with data, or a state the screen shows plainly. */
 export type PayrollLoad<T> =

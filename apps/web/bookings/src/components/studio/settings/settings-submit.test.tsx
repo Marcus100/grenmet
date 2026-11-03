@@ -20,14 +20,14 @@ const refused = (message: string) => ({
   message,
   nextStep: "Fix it.",
 });
-const ADDRESS = /Booking address/;
-const NAME = /Service name/;
+const ADDRESS = /Booking address/u;
+const NAME = /Service name/u;
 const PRICE = "Price (XCD)";
-const PROVIDER_NAME = /^Name$/;
-const MONDAY_START = /Monday opens, period 1/;
-const MONDAY_END = /Monday closes, period 1/;
-const ZONE_WARNING = /keeps saved hours as clock times/;
-const CURRENCY_WARNING = /Prices are not converted/;
+const PROVIDER_NAME = /^Name$/u;
+const MONDAY_START = /Monday opens, period 1/u;
+const MONDAY_END = /Monday closes, period 1/u;
+const ZONE_WARNING = /keeps saved hours as clock times/u;
+const CURRENCY_WARNING = /Prices are not converted/u;
 const TIMEZONE = "Timezone";
 const CURRENCY = "Currency";
 

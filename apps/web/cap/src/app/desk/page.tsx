@@ -48,10 +48,10 @@ export default async function DeskBoard() {
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <h1 className="font-semibold text-2xl">Warning board</h1>
+        <h1 className="text-2xl font-semibold">Warning board</h1>
         {gate.permissions.create ? (
           <Link
-            className="rounded-md bg-primary px-3 py-2 font-medium text-body-sm text-primary-foreground"
+            className="bg-primary text-body-sm text-primary-foreground rounded-md px-3 py-2 font-medium"
             href="/desk/new"
           >
             New warning

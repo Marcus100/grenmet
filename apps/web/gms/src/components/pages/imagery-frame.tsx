@@ -12,8 +12,8 @@ export function ImageryFrame({
 }) {
   return (
     <figure className="flex flex-col gap-2">
-      <div className="flex aspect-[4/3] items-center justify-center rounded-gm-card border border-gm-border bg-gm-surface">
-        <p className="px-6 text-center text-body-sm text-gm-text-muted leading-body-sm">
+      <div className="rounded-gm-card border-gm-border bg-gm-surface flex aspect-[4/3] items-center justify-center border">
+        <p className="text-body-sm text-gm-text-muted leading-body-sm px-6 text-center">
           {label}
         </p>
       </div>

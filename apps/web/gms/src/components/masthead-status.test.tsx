@@ -8,8 +8,8 @@ import type { AlertsResult } from "@/lib/cap-alerts";
 const route = vi.hoisted(() => ({ pathname: "/alerts" }));
 vi.mock("next/navigation", () => ({ usePathname: () => route.pathname }));
 
-const NOT_ALL_CLEAR = /does not mean there are no alerts/i;
-const WARNINGS_TAB = /Alerts/;
+const NOT_ALL_CLEAR = /does not mean there are no alerts/iu;
+const WARNINGS_TAB = /Alerts/u;
 
 const NONE: AlertsResult = { activeCount: 0, groups: [], status: "ok" };
 const SEVERE: AlertsResult = {
