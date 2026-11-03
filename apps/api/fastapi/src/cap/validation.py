@@ -57,7 +57,7 @@ def validate_import_url(url: str) -> None:
 
 
 def validate_feed_url(url: str) -> None:
-    """Save-time check for a registered feed URL: https, public literal host, no credentials.
+    """Save-time check for a registered feed URL: https on port 443, public literal host, no credentials.
 
     Runs the same pure checks as ``validate_import_url`` and adds the https-only rule.
     It does no DNS lookup: the ingest path resolves the host with ``ensure_public_host``
@@ -70,9 +70,12 @@ def validate_feed_url(url: str) -> None:
         )
         raise CapFeedUrlError()
     try:
-        scheme = urlsplit(url).scheme.lower()
+        parts = urlsplit(url)
+        scheme = parts.scheme.lower()
         if scheme != "https":
             raise CapHostRefusedError(f"scheme '{scheme}' is not https")
+        if parts.port not in (None, 443):  # .port raises ValueError when invalid
+            raise CapHostRefusedError(f"port {parts.port} is not 443")
         validate_import_url(url)
     except (CapImportError, ValueError) as exc:
         logger.info("CAP feed URL refused at save", extra={"reason": str(exc)})
