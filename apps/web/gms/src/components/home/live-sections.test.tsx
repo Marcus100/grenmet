@@ -13,11 +13,16 @@ import {
   type HomeContent,
   type PublishedContent,
 } from "@/lib/cms";
-import { fetchPublishedProduct, fetchPublishedProducts } from "@/lib/products";
+import {
+  fetchPublishedProduct,
+  fetchPublishedProducts,
+  fetchSectorOutlook,
+} from "@/lib/products";
 
 vi.mock("@/lib/products", () => ({
   fetchPublishedProduct: vi.fn(),
   fetchPublishedProducts: vi.fn(),
+  fetchSectorOutlook: vi.fn(),
 }));
 vi.mock("@/lib/cap", () => ({ fetchActiveAlerts: vi.fn() }));
 
@@ -34,6 +39,7 @@ vi.mock("@/lib/cms", async (importOriginal) => {
   };
 });
 beforeEach(() => {
+  vi.mocked(fetchSectorOutlook).mockResolvedValue(null);
   vi.mocked(fetchPublishedProducts).mockResolvedValue({
     status: "ok",
     products: [],
@@ -186,8 +192,8 @@ it("links each desk post card to its article; a linked product stays a label", a
   expect(screen.getAllByText("The forecasters")).toHaveLength(2);
 });
 
-it("says so honestly when nothing is published", async () => {
-  vi.mocked(fetchHomeContent).mockResolvedValue(hidden([]));
+it("says so honestly when nothing is published and the sector card is hidden", async () => {
+  vi.mocked(fetchHomeContent).mockResolvedValue(hidden(["explore-today"]));
   vi.mocked(fetchPublishedProducts).mockResolvedValue({
     status: "unavailable",
     products: [],
@@ -255,6 +261,69 @@ it("shows a placeholder briefing when no public forecast is in effect", async ()
   const [first] = screen.getAllByRole("listitem");
   expect(first).toHaveTextContent(NO_FORECAST);
   expect(first).toHaveTextContent("Official briefing");
+});
+
+it("puts the sector card in the row, after the official cards and before the posts", async () => {
+  vi.mocked(fetchHomeContent).mockResolvedValue({
+    ...hidden([]),
+    deskUpdates: { status: "ok", articles: [post({})] },
+  });
+  vi.mocked(fetchPublishedProducts).mockResolvedValue({
+    status: "ok",
+    products: [MIDDAY],
+  });
+  render(await ForecastDesk());
+  const cards = screen
+    .getAllByRole("listitem")
+    .filter((card) => card.classList.contains("snap-start"));
+  expect(cards[0]).toHaveTextContent("Official briefing");
+  expect(cards[1]).toHaveTextContent("What it means for you");
+  expect(cards[2]).toHaveTextContent("Why the morning forecast changed");
+});
+
+it("still shows the week's sector card when nothing else is published", async () => {
+  vi.mocked(fetchHomeContent).mockResolvedValue(hidden([]));
+  render(await ForecastDesk());
+  expect(
+    screen.getByRole("heading", { name: "What it means for you" })
+  ).toBeInTheDocument();
+  expect(
+    screen.queryByText("No forecasts or desk posts are published yet.")
+  ).not.toBeInTheDocument();
+});
+
+it("shows both the unavailable notice and the sector card when desk updates cannot be read", async () => {
+  vi.mocked(fetchHomeContent).mockResolvedValue({
+    ...hidden([]),
+    deskUpdates: { status: "unavailable", articles: [] },
+  });
+  vi.mocked(fetchPublishedProducts).mockResolvedValue({
+    status: "ok",
+    products: [],
+  });
+  render(await ForecastDesk());
+  expect(
+    screen.getAllByText("Desk updates cannot be retrieved right now.")
+  ).not.toHaveLength(0);
+  expect(
+    screen.getByRole("heading", { name: "What it means for you" })
+  ).toBeInTheDocument();
+});
+
+it("keeps the week's sector card when editors hide the desk", async () => {
+  vi.mocked(fetchHomeContent).mockResolvedValue(hidden(["desk"]));
+  render(await ForecastDesk());
+  expect(
+    screen.getByRole("heading", { name: "What it means for you", level: 3 })
+  ).toBeInTheDocument();
+  expect(screen.queryByText("From the Desk")).not.toBeInTheDocument();
+});
+
+it("leaves nothing behind when editors hide both the desk and the sector card", async () => {
+  vi.mocked(fetchHomeContent).mockResolvedValue(
+    hidden(["desk", "explore-today"])
+  );
+  expect(await ForecastDesk()).toBeNull();
 });
 
 it("keeps desk posts behind Earlier posts during a red warning", async () => {

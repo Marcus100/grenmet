@@ -1,5 +1,5 @@
 import { Suspense } from "react";
-import { ExploreToday, GrenadaInData } from "@/components/home/data-sections";
+import { GrenadaInData } from "@/components/home/data-sections";
 import { Discover } from "@/components/home/discover";
 import { HomeSection } from "@/components/home/home-section";
 import {
@@ -22,7 +22,7 @@ function Loading({ title }: { title: string }) {
 /**
  * The sections under the hero (homepage v2, owner 1 Nov 2026): the
  * forecasters' words and the issued products first (one feed), then the
- * week ahead (folds into the feed in #1000), live imagery, stories, the climate record and
+ * live imagery, stories, the climate record and
  * explore. The alerts sign-up lives at the top of the footer.
  * Backgrounds alternate white / surface in this order. Shared by the home page
  * and the dated forecast days, so picking a day in the strip swaps only the
@@ -34,7 +34,6 @@ export function HomeSections() {
       <Suspense fallback={<Loading title="From the forecast desk" />}>
         <ForecastDesk />
       </Suspense>
-      <ExploreToday />
       <WeatherNow />
       <Suspense fallback={<Loading title="Weather news" />}>
         <Stories />
