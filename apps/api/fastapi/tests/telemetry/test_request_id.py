@@ -1,6 +1,7 @@
 """Request IDs tie a response, its log lines and its Sentry events together."""
 
 import logging
+from collections.abc import AsyncIterator
 
 import httpx
 import pytest
@@ -142,7 +143,7 @@ async def test_streamed_responses_carry_the_id_and_are_not_buffered() -> None:
     probe = FastAPI()
     seen_ids: list[str | None] = []
 
-    async def chunks():  # type: ignore[no-untyped-def]
+    async def chunks() -> AsyncIterator[bytes]:
         # The bound ID is visible inside the streaming body, too.
         seen_ids.append(current_request_id())
         yield b"a"
