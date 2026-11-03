@@ -2,7 +2,7 @@
 
 ## Status
 
-Proposed — 2026-11-03. Partly supersedes ADR-0018 (the sentences quoted below)
+Proposed — 2026-11-03 (owner answered four design questions the same day; see below). Partly supersedes ADR-0018 (the sentences quoted below)
 and the matching lines in three operations and HR documents. Owner direction of
 3 November 2026. Nothing here is built; the sentences below stay in force until
 the owner accepts this record.
@@ -225,6 +225,23 @@ Choose B. Suggestions are worked out when they are read, not stored.
 - Forbidden: granting from a grade without confirmation; organisation-wide
   scope in templates; anyone confirming their own roles; reading free-text
   titles for access.
+
+## Owner answers (3 November 2026)
+
+The owner answered questions 1, 2, 5 and 6 below with the proposed defaults:
+
+- **1. Who confirms:** superusers only for now. HR administrators may see
+  suggestions but not confirm them. Opening this up later is a separate step
+  with its own permission and review.
+- **2. Demotion:** extra roles stay until a person confirms the removal, with a
+  warning shown. Product issuing follows the new grade straight away.
+- **5. Products:** issuing keeps following the grade directly. The "Who may
+  issue" screen lets a superuser change which grades may issue each product.
+- **6. Grade changer and confirmer:** one person may do both. Nobody can ever
+  confirm their own roles.
+
+Questions 3, 4, 7 and 8 are still open. Question 3 has the default "yes".
+Slice 1 below needs none of the open answers.
 
 ## Open questions for the owner
 
