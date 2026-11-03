@@ -2,7 +2,7 @@ from datetime import UTC, datetime
 from typing import Annotated, Any
 from uuid import UUID
 
-from fastapi import APIRouter, HTTPException, Query, Request, Response
+from fastapi import APIRouter, Query, Request, Response
 from fastapi.responses import JSONResponse
 from sqlalchemy import text
 from sqlalchemy.exc import SQLAlchemyError
@@ -11,6 +11,7 @@ from src.auth.browser import BrowserUser
 from src.auth.models import User
 from src.auth.policy import has_permission, require_permission
 from src.dependencies import SessionDep
+from src.eregister.registry import StationNotFoundError
 from src.models import ApiError, ValidationErrorResponse
 from src.openapi_responses import AUTHENTICATED, RateLimitedBody, ResponseMap
 from src.rate_limit import limiter
@@ -724,7 +725,7 @@ async def get_station_settings(
     response.headers["Cache-Control"] = "private, no-store"
     found = await stations.get(session, station_id.strip())
     if found is None:
-        raise HTTPException(404, "Unknown station")
+        raise StationNotFoundError()
     return found
 
 
@@ -756,7 +757,7 @@ async def put_station_settings(
     station = station_id.strip()
     before, saved = await stations.update(session, station, body, actor=str(user.id))
     if before is None or saved is None:
-        raise HTTPException(404, "Unknown station")
+        raise StationNotFoundError()
     await stations.record_change(
         app_session, user=user, station_id=station, before=before, after=saved
     )

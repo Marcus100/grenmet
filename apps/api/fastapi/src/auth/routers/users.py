@@ -13,7 +13,7 @@ This router handles:
 import uuid
 from typing import Annotated, Any
 
-from fastapi import APIRouter, Depends, HTTPException, Request, status
+from fastapi import APIRouter, Depends, Request, status
 from fastapi.concurrency import run_in_threadpool
 
 from src.auth import app_service, service
@@ -44,6 +44,7 @@ from src.dependencies import (
 )
 from src.email import generate_new_account_email, send_email
 from src.email_config import email_settings
+from src.exceptions import AppException, AuthorizationError, NotFoundError
 from src.models import ApiError, Message
 from src.openapi_responses import AUTHENTICATED, RateLimitedBody
 from src.pagination import PaginatedResponse, PaginationParams, get_pagination_params
@@ -110,13 +111,10 @@ async def create_user(
     Create new user.
     """
     if not current_user.is_superuser:
-        raise HTTPException(status_code=403, detail=ERROR_INSUFFICIENT_PRIVILEGES)
+        raise AuthorizationError(ERROR_INSUFFICIENT_PRIVILEGES)
     user = await service.get_user_by_email(session=session, email=user_in.email)
     if user:
-        raise HTTPException(
-            status_code=400,
-            detail=ERROR_USER_EXISTS,
-        )
+        raise AppException(ERROR_USER_EXISTS, 400)
     user = await service.create_user(session=session, user_create=user_in)
     if email_settings.EMAILS_ENABLED and user_in.email:
         email_data = await generate_new_account_email(
@@ -236,7 +234,7 @@ async def request_staff_access(
 )
 async def delete_user_me(session: SessionDep, current_user: CurrentUser) -> Any:
     if current_user.is_superuser:
-        raise HTTPException(status_code=403, detail=ERROR_SUPERUSER_DELETE_SELF)
+        raise AuthorizationError(ERROR_SUPERUSER_DELETE_SELF)
     await service.delete_user(session=session, user=current_user)
     return Message(message=SUCCESS_USER_DELETED)
 
@@ -287,14 +285,11 @@ async def read_user_by_id(
     """
     user = await session.get(User, user_id)
     if not user:
-        raise HTTPException(status_code=404, detail=ERROR_USER_NOT_FOUND)
+        raise NotFoundError(ERROR_USER_NOT_FOUND)
     if user.id == current_user.id:
         return user
     if not is_user_manager(current_user):
-        raise HTTPException(
-            status_code=403,
-            detail=ERROR_INSUFFICIENT_PRIVILEGES,
-        )
+        raise AuthorizationError(ERROR_INSUFFICIENT_PRIVILEGES)
     await service.require_user_management(session, current_user, user)
     return user
 
@@ -330,7 +325,7 @@ async def update_user(
 
     db_user = await session.get(User, user_id)
     if not db_user:
-        raise HTTPException(status_code=404, detail=ERROR_USER_NOT_FOUND)
+        raise NotFoundError(ERROR_USER_NOT_FOUND)
     await service.require_user_management(session, current_user, db_user)
     if not current_user.is_superuser and (
         db_user.is_superuser
@@ -342,13 +337,13 @@ async def update_user(
         or "is_superuser" in user_in.model_fields_set
         or "cms_access" in user_in.model_fields_set
     ):
-        raise HTTPException(status_code=403, detail=ERROR_INSUFFICIENT_PRIVILEGES)
+        raise AuthorizationError(ERROR_INSUFFICIENT_PRIVILEGES)
     if user_in.email:
         existing_user = await service.get_user_by_email(
             session=session, email=user_in.email
         )
         if existing_user and existing_user.id != user_id:
-            raise HTTPException(status_code=409, detail=ERROR_USER_EXISTS)
+            raise AppException(ERROR_USER_EXISTS, 409)
     return await service.update_user(session=session, db_user=db_user, user_in=user_in)
 
 
@@ -372,15 +367,13 @@ async def delete_user(
 ) -> Message:
     user = await session.get(User, user_id)
     if not user:
-        raise HTTPException(status_code=404, detail=ERROR_USER_NOT_FOUND)
+        raise NotFoundError(ERROR_USER_NOT_FOUND)
     await service.require_user_management(session, current_user, user)
     if not current_user.is_superuser:
-        raise HTTPException(
-            status_code=403, detail="Global account deletion requires a superuser"
-        )
+        raise AuthorizationError("Global account deletion requires a superuser")
     if user.id == current_user.id:
-        raise HTTPException(status_code=403, detail=ERROR_SUPERUSER_DELETE_SELF)
+        raise AuthorizationError(ERROR_SUPERUSER_DELETE_SELF)
     if user.is_superuser and not current_user.is_superuser:
-        raise HTTPException(status_code=403, detail=ERROR_INSUFFICIENT_PRIVILEGES)
+        raise AuthorizationError(ERROR_INSUFFICIENT_PRIVILEGES)
     await service.delete_user(session=session, user=user)
     return Message(message=SUCCESS_USER_DELETED)

@@ -25,7 +25,7 @@ from typing import Annotated, Any, cast
 
 import jwt
 import sentry_sdk
-from fastapi import Depends, HTTPException, Request, status
+from fastapi import Depends, Request
 from fastapi.security import OAuth2PasswordBearer
 from jwt.exceptions import InvalidTokenError
 from pydantic import ValidationError
@@ -44,6 +44,7 @@ from src.auth.models import Role, User
 from src.auth.utils import ALGORITHM
 from src.config import Settings, get_settings
 from src.database import async_session_factory
+from src.exceptions import AuthenticationError, AuthorizationError
 from src.models import TokenPayload
 
 # OAuth2 scheme for token extraction
@@ -53,12 +54,8 @@ reusable_oauth2 = OAuth2PasswordBearer(
 )
 
 
-def _unauthorized(detail: str) -> HTTPException:
-    return HTTPException(
-        status_code=status.HTTP_401_UNAUTHORIZED,
-        detail=detail,
-        headers={"WWW-Authenticate": "Bearer"},
-    )
+def _unauthorized(detail: str) -> AuthenticationError:
+    return AuthenticationError(detail, headers={"WWW-Authenticate": "Bearer"})
 
 
 async def get_db() -> AsyncGenerator[AsyncSession]:
@@ -114,7 +111,7 @@ async def get_current_user(session: SessionDep, token: TokenDep) -> User:
     2. TokenDep - for JWT token validation
 
     Returns the authenticated user if the token is valid.
-    Raises HTTPException if token is invalid or user not found.
+    Raises AuthenticationError if token is invalid or user not found.
 
     This dependency is cached, so you can use it multiple times in
     chained dependencies without additional database queries."""
@@ -167,14 +164,9 @@ async def get_authenticated_user(
     if not user.is_active:
         raise _unauthorized(ERROR_INACTIVE_USER)
     if user.registration_pending and not allow_unapproved:
-        raise HTTPException(
-            status_code=403,
-            detail="Your registration is awaiting administrator approval",
-        )
+        raise AuthorizationError("Your registration is awaiting administrator approval")
     if user.password_setup_pending and user.email_verified_at is None:
-        raise HTTPException(
-            status_code=403, detail="Finish account activation before continuing"
-        )
+        raise AuthorizationError("Finish account activation before continuing")
     from sqlalchemy.orm.attributes import set_committed_value
 
     from src.auth.access import effective_roles
@@ -199,10 +191,7 @@ SettingsDep = Annotated[Settings, Depends(get_settings)]
 async def get_current_active_superuser(current_user: CurrentUser) -> User:
     """Shared superuser dependency (canonical in src.dependencies)."""
     if not current_user.is_superuser:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail=ERROR_INSUFFICIENT_PRIVILEGES,
-        )
+        raise AuthorizationError(ERROR_INSUFFICIENT_PRIVILEGES)
     return current_user
 
 
@@ -223,10 +212,7 @@ async def get_current_user_manager(current_user: CurrentUser) -> User:
     role/permission definitions stays superuser-only via in-route guards.
     """
     if not is_user_manager(current_user):
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail=ERROR_INSUFFICIENT_PRIVILEGES,
-        )
+        raise AuthorizationError(ERROR_INSUFFICIENT_PRIVILEGES)
     return current_user
 
 
@@ -302,5 +288,5 @@ async def optional_account(
                 clear_actor_session(session)
                 return None
         return user
-    except HTTPException:
+    except AuthenticationError, AuthorizationError:
         return None

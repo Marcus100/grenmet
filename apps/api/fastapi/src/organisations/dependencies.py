@@ -24,7 +24,7 @@ from dataclasses import dataclass, replace
 from typing import Annotated
 
 import jwt
-from fastapi import Depends, Header, HTTPException, status
+from fastapi import Depends, Header, status
 from fastapi.concurrency import run_in_threadpool
 from fastapi.security import HTTPAuthorizationCredentials
 from jwt.exceptions import InvalidTokenError
@@ -47,6 +47,7 @@ from src.dependencies import (
     TokenDep,
     get_authenticated_user,
 )
+from src.exceptions import AppException
 from src.models import TokenPayload
 from src.organisations import entitlements, grants, role_bundles, service
 from src.organisations.capacity import ACTOR_CAPACITY_KEY, Capacity
@@ -415,8 +416,8 @@ async def _within_staff_limit(limit: str, bucket: str, user_id: uuid.UUID) -> No
             "Staff write rate limit hit",
             extra={"user_id": str(user_id), "permission_key": bucket},
         )
-        raise HTTPException(
-            status.HTTP_429_TOO_MANY_REQUESTS, "Too many requests; slow down"
+        raise AppException(
+            "Too many requests; slow down", status.HTTP_429_TOO_MANY_REQUESTS
         )
 
 

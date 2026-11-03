@@ -3,7 +3,7 @@
 import uuid
 from typing import Any
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, status
 
 from src.auth import service
 from src.auth.constants import ERROR_ROLE_ASSIGNMENT_NOT_FOUND
@@ -14,6 +14,7 @@ from src.auth.schemas import (
     UserRoleAssignmentUpdate,
 )
 from src.dependencies import CurrentUser, SessionDep, get_current_user_manager
+from src.exceptions import NotFoundError
 from src.models import ApiError
 from src.openapi_responses import AUTHENTICATED
 
@@ -80,7 +81,7 @@ async def read_role_assignment(
         session=session, assignment_id=assignment_id
     )
     if not assignment:
-        raise HTTPException(status_code=404, detail=ERROR_ROLE_ASSIGNMENT_NOT_FOUND)
+        raise NotFoundError(ERROR_ROLE_ASSIGNMENT_NOT_FOUND)
     await service.require_assignment_management(session, current_user, assignment)
     from src.auth.policy import _active_assignments
 
@@ -148,7 +149,7 @@ async def update_role_assignment(
         session=session, assignment_id=assignment_id
     )
     if not db_assignment:
-        raise HTTPException(status_code=404, detail=ERROR_ROLE_ASSIGNMENT_NOT_FOUND)
+        raise NotFoundError(ERROR_ROLE_ASSIGNMENT_NOT_FOUND)
     assignment = await service.update_user_role_assignment(
         session=session,
         db_assignment=db_assignment,
@@ -186,7 +187,7 @@ async def delete_role_assignment(
         session=session, assignment_id=assignment_id
     )
     if not db_assignment:
-        raise HTTPException(status_code=404, detail=ERROR_ROLE_ASSIGNMENT_NOT_FOUND)
+        raise NotFoundError(ERROR_ROLE_ASSIGNMENT_NOT_FOUND)
     await service.require_assignment_management(session, current_user, db_assignment)
     await service.delete_user_role_assignment(
         session=session, db_assignment=db_assignment
