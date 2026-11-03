@@ -6,11 +6,10 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
+from src.cap.common import feed_grace_ends_at, feed_grace_expired
 from src.cap.exceptions import (
     CapAlertNotFoundError,
 )
-from src.utils.datetime import utc_now
-from src.cap.common import feed_grace_ends_at, feed_grace_expired
 from src.cap.levels import INTERNAL_PARAMETERS
 from src.cap.models import (
     CapAlert,
@@ -30,6 +29,7 @@ from src.cap.schemas import (
     CapReferencePublic,
     CapResourcePublic,
 )
+from src.utils.datetime import utc_now
 
 
 def _as_categories(values: list[str]) -> list[CapCategory]:
