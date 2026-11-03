@@ -1516,10 +1516,11 @@ async def flag_insecure_feed(
             sa.func.lower(sa.func.btrim(CapFeedImport.url)).like("http://%"),
         )
         .values(insecure_since=now)
+        .returning(CapFeedImport.id)
     )
+    flagged = result.scalar_one_or_none() is not None
     await session.commit()
     await session.refresh(feed)
-    flagged = result.rowcount == 1
     if flagged:
         logger.warning(
             "CAP feed flagged: plain http, grace period started",
