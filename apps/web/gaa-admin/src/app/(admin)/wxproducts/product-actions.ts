@@ -236,7 +236,12 @@ export async function previewProductPdfAction(
       )
     )
       throw new ProductApiError("Preview unavailable", response.status);
-    return { ok: true as const, blob: await response.blob() };
+    return {
+      ok: true as const,
+      blob: await response.blob(),
+      // Set when a sheet runs past its designed page count (Climate Bulletin).
+      warning: response.headers.get("x-sheet-warning") ?? "",
+    };
   } catch (error) {
     if (signal?.aborted) return { ok: false as const, aborted: true as const };
     reportError(error, "wxproducts");

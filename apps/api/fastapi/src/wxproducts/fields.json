@@ -4132,8 +4132,8 @@
       "key": "extremeSpellsMax",
       "label": "Historical number of extreme 3-day wet spells (leave 'from' empty or 0 for 'up to'), to",
       "type": "number",
-      "required": false,
-      "requiredOnPublish": false
+      "required": true,
+      "requiredOnPublish": true
     },
     {
       "section": "Extreme 3-day wet spells (1% wettest)",

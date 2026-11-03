@@ -524,13 +524,23 @@ async def preview_product(
     response_class=Response,
     status_code=200,
     summary="Render a draft product PDF preview",
-    description="Renders unsaved forecast (including the Marine Forecast), bulletin, outlook or Climate Bulletin content with the issued PDF layout, watermarked as a draft preview. Nothing is saved or published.",
+    description="Renders unsaved forecast (including the Marine Forecast), bulletin, outlook or Climate Bulletin content with the issued PDF layout, watermarked as a draft preview. Nothing is saved or published. A sheet designed for a fixed page count (the two-page Climate Bulletin) that runs longer is still rendered; `X-Sheet-Warning` says so in plain words.",
     tags=["wxproducts"],
     responses={
         200: {
+            "headers": {
+                "X-Sheet-Pages": {
+                    "description": "Number of pages the sheet rendered to.",
+                    "schema": {"type": "integer"},
+                },
+                "X-Sheet-Warning": {
+                    "description": "Present only when the sheet runs past its designed page count; plain-language advice to shorten the longest text.",
+                    "schema": {"type": "string"},
+                },
+            },
             "content": {
                 "application/pdf": {"schema": {"type": "string", "format": "binary"}}
-            }
+            },
         },
         401: {"model": AuthoringError},
         403: {"model": AuthoringError},
@@ -560,8 +570,8 @@ async def preview_product_pdf(
         forecaster=author.user.full_name or author.user.email,
         advisories=snapshot,
     )
-    content = await run_in_threadpool(
-        forecast_pdf.render_sheet_pdf,
+    sheet = await run_in_threadpool(
+        forecast_pdf.render_sheet,
         body.kind,
         values,
         status="DRAFT PREVIEW — NOT FOR ISSUE",
@@ -569,9 +579,13 @@ async def preview_product_pdf(
         guidance=body.guidance,
         graphic_images=await guidance.images(body.guidance),
     )
-    return pdf_response(
-        content, product_pdf_filename(body.kind, values, recorded_at=None)
+    response = pdf_response(
+        sheet.content, product_pdf_filename(body.kind, values, recorded_at=None)
     )
+    response.headers["X-Sheet-Pages"] = str(sheet.pages)
+    if warning := forecast_pdf.sheet_warning(body.kind, sheet.pages):
+        response.headers["X-Sheet-Warning"] = warning
+    return response
 
 
 @router.get(

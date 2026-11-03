@@ -739,20 +739,21 @@ export const CLIMATE_VERIFICATION_ROWS = [
   { prefix: "verifyTmax", label: "Tmax (°C)" },
   { prefix: "verifyTmin", label: "Tmin (°C)" },
 ] as const;
+/** `from` and `to` number fields. `minOptional` leaves "from" empty for "up to" ranges. */
 function rangeFields(
   section: string,
   prefix: string,
   label: string,
-  extra: Partial<ProductField> = { required: true }
+  minOptional = false
 ): ProductField[] {
   return [
     field(section, `${prefix}Min`, `${label}, from`, {
       type: "number",
-      ...extra,
+      required: !minOptional,
     }),
     field(section, `${prefix}Max`, `${label}, to`, {
       type: "number",
-      ...extra,
+      required: true,
     }),
   ];
 }
@@ -762,20 +763,28 @@ function outlookRow(
   outlookLabel: string,
   rangeLabel: string,
   implication: string,
-  rangeExtra: Partial<ProductField> = { required: true }
+  minOptional = false
 ): ProductField[] {
   return [
     field(section, `${prefix}Outlook`, outlookLabel, {
       type: "textarea",
       required: true,
     }),
-    ...rangeFields(section, prefix, rangeLabel, rangeExtra),
+    ...rangeFields(section, prefix, rangeLabel, minOptional),
     field(section, `${prefix}Implication`, implication, {
       type: "textarea",
       required: true,
     }),
   ];
 }
+/** Fields of the first Climate Bulletin version; saved revisions may still carry them. */
+export const LEGACY_CLIMATE_FIELDS = [
+  { key: "summary", label: "Summary of the month" },
+  { key: "rainfallComment", label: "Rainfall" },
+  { key: "temperatureComment", label: "Temperature" },
+  { key: "notableEvents", label: "Notable events" },
+  { key: "outlook", label: "Outlook for the coming months" },
+] as const;
 /**
  * The Grenada National Climate Bulletin (owner examples, issues 08 to 10).
  * Period labels (SPI windows, the season, "looking back") are derived from the
@@ -861,7 +870,7 @@ function climateBulletinFields(): ProductField[] {
       "Extreme 3-day wet spells outlook",
       "Historical number of extreme 3-day wet spells (leave 'from' empty or 0 for 'up to')",
       "Implication",
-      { required: false }
+      true
     ),
     field(temperature, "tempMeanOutlook", "Mean temperature outlook", {
       type: "textarea",

@@ -94,6 +94,13 @@ def season(issued: date) -> tuple[str, str]:
     return code, label
 
 
+def season_year(issued: date) -> str:
+    """The year of the outlook season: "2026", or "2026-27" across a year boundary."""
+    first = _shift(issued.year, issued.month, 0)[0]
+    last = _shift(issued.year, issued.month, 2)[0]
+    return str(first) if first == last else f"{first}-{str(last)[-2:]}"
+
+
 def verification_label(value: str) -> str:
     """The three months ending in `value`, as "July 2026 – September 2026"."""
     end = parse_month(value)

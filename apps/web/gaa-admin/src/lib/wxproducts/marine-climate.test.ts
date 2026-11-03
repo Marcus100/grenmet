@@ -115,6 +115,15 @@ describe("Climate Bulletin", () => {
     expect(spi?.options).toEqual(SPI_CATEGORIES);
   });
 
+  it("makes only the 'from' end of the extreme-spell range optional", () => {
+    const fields = productFields("climate-bulletin");
+    const byKey = (key: string) => fields.find((f) => f.key === key);
+    expect(byKey("extremeSpellsMin")?.required).toBeFalsy();
+    expect(byKey("extremeSpellsMax")?.required).toBe(true);
+    expect(byKey("wetDaysMin")?.required).toBe(true);
+    expect(byKey("wetDaysMax")?.required).toBe(true);
+  });
+
   it("keeps the layout-specific parts optional", () => {
     const fields = productFields("climate-bulletin");
     for (const key of ["heatStress", "extremeHeat", "generalImplications"])

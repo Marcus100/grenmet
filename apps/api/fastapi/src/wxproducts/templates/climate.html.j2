@@ -86,7 +86,7 @@
       <p><b>Mean temperature outlook:</b> {{ temp_mean or "—" }}</p>
       {% if temperature_table %}
       <table>
-        <thead><tr><th>Climate variable</th><th>{{ season_code }}{% if issue_month %} {{ issue_month[-4:] }}{% endif %} outlook</th><th>Normal range</th></tr></thead>
+        <thead><tr><th>Climate variable</th><th>{% if season_code %}{{ season_code }} {{ season_year }} outlook{% else %}Outlook{% endif %}</th><th>Normal range</th></tr></thead>
         <tbody>
           {% for label, text, range in temperature_rows %}
           <tr><td>{{ label }}</td><td>{{ text or "—" }}</td><td class="num">{{ range }}</td></tr>

@@ -6,11 +6,12 @@ forecaster reviews is what is published. The layout is HTML/CSS
 WeasyPrint; this module prepares the data and the design tokens.
 """
 
+import logging
 import re
 from datetime import date, datetime
 from functools import cache
 from pathlib import Path
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, NamedTuple
 
 from jinja2 import Environment, FileSystemLoader, select_autoescape
 from markupsafe import Markup
@@ -35,6 +36,8 @@ if TYPE_CHECKING:
     # the API starts fast enough for its deploy healthcheck.
     from weasyprint import CSS, Document
     from weasyprint.text.fonts import FontConfiguration
+
+logger = logging.getLogger(__name__)
 
 BASE = Path(__file__).parent
 ASSETS = BASE / "assets"
@@ -479,6 +482,7 @@ def climate_bulletin_context(
         "revision": revision,
         "monitoring_label": climate.window_label(month, 1),
         "season_code": code,
+        "season_year": climate.season_year(issued) if issued else "",
         "season_label": season_label,
         "contacts": [
             line.strip()
@@ -768,7 +772,28 @@ def render_document(
     )
 
 
-def render_sheet_pdf(
+class RenderedSheet(NamedTuple):
+    content: bytes
+    pages: int
+
+
+# Sheets designed to fit a fixed number of pages. A longer one still renders,
+# but the author is told (preview header) and the render is logged.
+EXPECTED_PAGES = {"climate-bulletin": 2}
+
+
+def sheet_warning(kind: str, pages: int) -> str:
+    """Plain-language warning when a sheet runs past its designed page count."""
+    expected = EXPECTED_PAGES.get(kind)
+    if expected is None or pages == expected:
+        return ""
+    return (
+        f"This sheet runs to {pages} pages; it is designed for {expected}. "
+        "Shorten the longest text."
+    )
+
+
+def render_sheet(
     kind: str,
     values: dict[str, str],
     *,
@@ -777,7 +802,7 @@ def render_sheet_pdf(
     archival: bool = False,
     guidance: ProductGuidance | None = None,
     graphic_images: dict[str, str] | None = None,
-) -> bytes:
+) -> RenderedSheet:
     """Render a sheet; saved revisions are official records, so they are PDF/A-3b."""
     document = render_document(
         kind,
@@ -790,7 +815,33 @@ def render_sheet_pdf(
     pdf = document.write_pdf(pdf_variant="pdf/a-3b" if archival else None)
     if not isinstance(pdf, bytes):
         raise TypeError("WeasyPrint returned no PDF bytes")
-    return pdf
+    pages = len(document.pages)
+    if sheet_warning(kind, pages):
+        logger.warning(
+            "wxproducts sheet page count", extra={"kind": kind, "pages": pages}
+        )
+    return RenderedSheet(pdf, pages)
+
+
+def render_sheet_pdf(
+    kind: str,
+    values: dict[str, str],
+    *,
+    status: str,
+    revision: str,
+    archival: bool = False,
+    guidance: ProductGuidance | None = None,
+    graphic_images: dict[str, str] | None = None,
+) -> bytes:
+    return render_sheet(
+        kind,
+        values,
+        status=status,
+        revision=revision,
+        archival=archival,
+        guidance=guidance,
+        graphic_images=graphic_images,
+    ).content
 
 
 SHEET_KINDS = (

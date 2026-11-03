@@ -403,9 +403,20 @@ sector table or free text (publishing needs at least one); `triviaAnswer` and
 period labels, the three-month outlook season (issued October: OND) and the
 looking-back period are derived from `month` and the issue date and are not
 stored. The intro, disclaimer and closing statement are fixed template text.
-The first version of the kind (`summary`, `rainfallComment`, `temperatureComment`,
-`notableEvents`, `outlook`) is gone; revisions saved with those fields still render,
-under "Earlier format". The PDF is two pages. The precipitation and mean temperature
+Typed numbers are bounds-checked (evapotranspiration 0 to 20 mm/day, demand/supply
+ratio 0 to 100, counts and rainfall 0 to 10000, temperatures 10 to 45 degC; a
+non-number gets "enter a number"). The first version of the kind (`summary`,
+`rainfallComment`, `temperatureComment`, `notableEvents`, `outlook`) is gone: a
+write that still carries those keys has them ignored (as for the Marine
+Forecast), and revisions already saved with them still render, under "Earlier
+format" on the PDF and the public pages. `contacts` is an ordinary public field
+like the others: whatever is typed there (the printed bulletin lists staff
+emails) appears on the public issued page and in the public products API. The
+placeholder-wording check ("example") skips the long free-text fields and the
+advisories snapshot. The PDF is two pages; the draft preview
+(`POST /wxproducts/products/preview/pdf`) answers with `X-Sheet-Pages` and, when
+the sheet runs past two pages, `X-Sheet-Warning`, which the editor shows beside
+the preview. The precipitation and mean temperature
 maps are not stored (no image attachment exists for these products yet), so the
 sheet shows a labelled placeholder where each belongs.
 
