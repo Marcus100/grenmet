@@ -420,6 +420,15 @@ class ThrowawayPostgres:
             if ready.returncode == 0:
                 return
             time.sleep(1)
+        # The server log names the cause (bad data directory, out of memory);
+        # it never contains the generated password.
+        logs = subprocess.run(
+            ["docker", "logs", "--tail", "20", self.name],
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        print(logs.stdout + logs.stderr, file=sys.stderr)
         raise RuntimeError("Throwaway PostgreSQL did not become ready")
 
     def psql(self, database, sql):
