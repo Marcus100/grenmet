@@ -6,13 +6,14 @@ All endpoints require superuser privileges.
 import uuid
 from typing import Annotated, Any
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, status
 
 from src.auth import service
 from src.auth.constants import ERROR_PERMISSION_NOT_FOUND
 from src.auth.dependencies import get_current_active_superuser
 from src.auth.schemas import PermissionCreate, PermissionPublic
 from src.dependencies import SessionDep
+from src.exceptions import NotFoundError
 from src.models import ApiError
 from src.openapi_responses import AUTHENTICATED
 from src.pagination import PaginatedResponse, PaginationParams, get_pagination_params
@@ -70,7 +71,7 @@ async def read_permission(session: SessionDep, permission_id: uuid.UUID) -> Any:
         session=session, permission_id=permission_id
     )
     if not permission:
-        raise HTTPException(status_code=404, detail=ERROR_PERMISSION_NOT_FOUND)
+        raise NotFoundError(ERROR_PERMISSION_NOT_FOUND)
     return permission
 
 

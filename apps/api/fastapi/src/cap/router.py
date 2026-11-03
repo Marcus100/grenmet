@@ -1,5 +1,5 @@
 import uuid
-from typing import Any
+from typing import Annotated, Any
 from xml.etree import ElementTree as ET
 
 from fastapi import APIRouter, Query, Request, Response, status
@@ -64,7 +64,7 @@ async def read_alerts(
     session: SessionDep,
     current_user: CurrentUser,
     pagination: PaginationDep,
-    lifecycle_state: CapLifecycleState | None = Query(default=None),
+    lifecycle_state: Annotated[CapLifecycleState | None, Query()] = None,
 ) -> CapAlertListPublic:
     alerts, total = await service.list_alerts(
         session=session,
@@ -570,7 +570,7 @@ async def read_audit(
     session: SessionDep,
     current_user: CurrentUser,
     pagination: PaginationDep,
-    alert_id: uuid.UUID | None = Query(default=None),
+    alert_id: Annotated[uuid.UUID | None, Query()] = None,
 ) -> CapAuditEventListPublic:
     events, total = await service.list_audit_events(
         session=session,
