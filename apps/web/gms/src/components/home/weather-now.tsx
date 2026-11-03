@@ -105,6 +105,7 @@ export async function WeatherNow() {
 
   return (
     <HomeSection
+      tone="surface"
       {...words}
       link={{ href: "/weather/map", label: "Open interactive map" }}
     >

@@ -11,7 +11,12 @@ import {
 import type { Route } from "next";
 import Image from "next/image";
 import Link from "next/link";
-import { HOME_CARD, HomeSection } from "@/components/home/home-section";
+import { SectorDeskCard } from "@/components/home/data-sections";
+import {
+  DESK_CARD_ITEM,
+  HOME_CARD,
+  HomeSection,
+} from "@/components/home/home-section";
 import { fetchActiveAlerts } from "@/lib/cap";
 import { alertsLevel } from "@/lib/cap-alerts";
 import { postedLabel } from "@/lib/clock";
@@ -59,10 +64,6 @@ function FeedState({
   return children;
 }
 
-/** One card in the From the Desk row: most of a phone screen, fixed width above. */
-const CARD_ITEM =
-  "relative w-[85%] shrink-0 snap-start sm:w-[22rem] lg:w-[24rem]";
-
 const NAME_SEPARATORS = /[\s._-]+/u;
 
 /** "Eugine Whint" gives "EW"; one word gives its first two letters; no name gives "GMS". */
@@ -96,7 +97,7 @@ function DeskPostCard({ item }: { item: PublishedContent }) {
   // `relative` keeps the link's screen-reader text inside the scrolling row;
   // without it that hidden text widens the whole page on phones.
   return (
-    <li className={CARD_ITEM}>
+    <li className={DESK_CARD_ITEM}>
       <article className={cn(HOME_CARD, "flex h-full flex-col gap-3")}>
         <header className="flex items-center gap-3">
           <span
@@ -209,7 +210,7 @@ const OFFICIAL_ICONS = {
 function OfficialProductCard({ card }: { card: OfficialCard }) {
   const Icon = OFFICIAL_ICONS[card.kind];
   return (
-    <li className={CARD_ITEM}>
+    <li className={DESK_CARD_ITEM}>
       <article
         className={cn(HOME_CARD, "border-gm-navy flex h-full flex-col gap-3")}
       >
@@ -280,7 +281,18 @@ const ROW =
  * warning the desk posts wait behind "Earlier posts" so the official words lead.
  */
 export async function ForecastDesk() {
-  if (await isSectionHidden("desk")) return null;
+  if (await isSectionHidden("desk")) {
+    // Hiding the desk never hides the week's warnings: the sector card stays.
+    const only = await SectorDeskCard();
+    if (!only) return null;
+    return (
+      <HomeSection kicker="Plan your week" title="What it means for you">
+        <ul aria-label="What it means for you" className={ROW}>
+          {only}
+        </ul>
+      </HomeSection>
+    );
+  }
   const [content, products, alerts] = await Promise.all([
     fetchHomeContent(),
     fetchPublishedProducts(),
@@ -298,6 +310,10 @@ export async function ForecastDesk() {
     products: products.products,
     productsAvailable: products.status === "ok",
   });
+  // Awaited here, not rendered as an async element, so tests can render the row.
+  const sectorCard = await SectorDeskCard();
+  const deskUnavailable =
+    updates.status === "unavailable" && feed.official.length === 0;
   const postCards = feed.posts.map((item) => (
     <DeskPostCard item={item} key={item.id} />
   ));
@@ -318,22 +334,28 @@ export async function ForecastDesk() {
           .
         </p>
       )}
+      {deskUnavailable && sectorCard && (
+        <p className={cn(NOTICE, "mb-3")} role="status">
+          Desk updates cannot be retrieved right now.
+        </p>
+      )}
       <FeedState
         count={
           feed.official.length +
           feed.posts.length +
-          (feed.missingBriefing ? 1 : 0)
+          (feed.missingBriefing ? 1 : 0) +
+          (sectorCard ? 1 : 0)
         }
         empty="No forecasts or desk posts are published yet."
         unavailable={
-          updates.status === "unavailable" &&
-          feed.official.length === 0 &&
+          deskUnavailable &&
+          !sectorCard &&
           "Desk updates cannot be retrieved right now."
         }
       >
         <ul aria-label="Latest from the forecast desk" className={ROW}>
           {feed.missingBriefing && (
-            <li className={CARD_ITEM}>
+            <li className={DESK_CARD_ITEM}>
               <article
                 className={cn(
                   HOME_CARD,
@@ -362,6 +384,7 @@ export async function ForecastDesk() {
           {feed.official.map((card) => (
             <OfficialProductCard card={card} key={card.id} />
           ))}
+          {sectorCard}
           {!feed.collapsePosts && postCards}
         </ul>
         {feed.collapsePosts && postCards.length > 0 && (
@@ -390,7 +413,6 @@ export async function Stories() {
   const [lead, ...rest] = result.articles.map(contentToArticle);
   return (
     <HomeSection
-      tone="surface"
       {...words}
       link={{ href: "/explore/news", label: "More stories" }}
     >
@@ -478,7 +500,6 @@ export async function Explained() {
   });
   return (
     <HomeSection
-      tone="surface"
       {...words}
       link={{ href: "/explore/explained", label: "All questions" }}
     >
