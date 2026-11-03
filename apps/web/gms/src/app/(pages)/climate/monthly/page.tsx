@@ -15,12 +15,14 @@ export const metadata = {
 };
 export const dynamic = "force-dynamic";
 
+/** The bulletin's headline narrative; the full tables are on the issued bulletin page. */
 const NARRATIVE = new Set([
-  "summary",
-  "rainfallComment",
-  "temperatureComment",
-  "notableEvents",
-  "outlook",
+  "enso",
+  "sst",
+  "precipOutlook",
+  "tempMeanOutlook",
+  "droughtOutlook",
+  "generalImplications",
 ]);
 
 function monthName(month: string) {

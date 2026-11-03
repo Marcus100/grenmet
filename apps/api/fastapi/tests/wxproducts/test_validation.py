@@ -22,6 +22,9 @@ def complete(kind: ProductKind) -> dict[str, str]:
                 if field.type == "number"
                 else "Forecast detail"
             )
+    if kind == "climate-bulletin":
+        # Publishing needs the sector table or general implications (either layout).
+        values["generalImplications"] = "Forecast detail"
     values.update(
         issuedAt="2026-09-08T05:00",
         validFrom="2026-09-08T05:00",

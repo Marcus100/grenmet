@@ -323,6 +323,51 @@ def parameter_errors(values: dict[str, str]) -> list[str]:
 
 _ABOVE_GREEN_NOTICES = ("Watch", "Warning")
 
+# Climate Bulletin ranges: (key prefix, label). `<prefix>Min` must not exceed `<prefix>Max`.
+CLIMATE_RANGES = (
+    ("precipRange", "Normal range for the season"),
+    ("wetDays", "Usual number of wet days"),
+    ("wetSpells", "Historical number of 7-day wet spells"),
+    ("extremeSpells", "Historical number of extreme 3-day wet spells"),
+    ("tempMaxRange", "Normal maximum temperature"),
+    ("tempMinRange", "Normal minimum temperature"),
+    ("verifyRainfallRange", "Rainfall, normal range"),
+    ("verifyWetDaysRange", "Wet days, normal range"),
+    ("verifyWetSpellRange", "7-day wet spell, normal range"),
+    ("verifyTmaxRange", "Tmax, normal range"),
+    ("verifyTminRange", "Tmin, normal range"),
+)
+CLIMATE_SECTOR_KEYS = (
+    "impactAgriculture",
+    "impactWater",
+    "impactHealth",
+    "impactTourism",
+    "impactDrm",
+    "impactEnergy",
+    "impactFisheries",
+    "impactInfrastructure",
+)
+
+
+def _climate_errors(values: dict[str, str], *, publish: bool) -> list[str]:
+    errors = []
+    for prefix, label in CLIMATE_RANGES:
+        if _exceeds(
+            [
+                optional_number(values, f"{prefix}Min"),
+                optional_number(values, f"{prefix}Max"),
+            ]
+        ):
+            errors.append(f"{label}: 'from' exceeds 'to'")
+    if publish and not (
+        values.get("generalImplications", "").strip()
+        or any(values.get(key, "").strip() for key in CLIMATE_SECTOR_KEYS)
+    ):
+        errors.append(
+            "Implications: fill in the sector table or the general implications"
+        )
+    return errors
+
 
 def validate(body: ProductWrite, *, now: datetime | None = None) -> list[str]:
     values, kind = values_as_dict(body.values), body.kind
@@ -397,6 +442,8 @@ def validate(body: ProductWrite, *, now: datetime | None = None) -> list[str]:
             errors.append(
                 "Month reviewed: cannot be later than the month before the issue date"
             )
+    if kind == "climate-bulletin":
+        errors.extend(_climate_errors(values, publish=publish))
     if kind == "evening" and publish and math.isfinite(issue):
         for day in range(1, 5):
             expected = (
