@@ -56,6 +56,17 @@ class Settings(BaseSettings):
     POSTGRES_USER: str
     POSTGRES_PASSWORD: str = ""
     POSTGRES_DB: str = ""
+    # Main async pool, per API or worker process. Five other engines (wxproducts,
+    # eregister, wxwatch, janitorial, transport) keep SQLAlchemy's 5+10 default,
+    # so keep (size + overflow) x processes well under Postgres max_connections.
+    DB_POOL_SIZE: int = 5
+    DB_MAX_OVERFLOW: int = 10
+    # Fail a request after this many seconds waiting for a free connection
+    # instead of hanging for SQLAlchemy's default 30.
+    DB_POOL_TIMEOUT: int = 10
+    # Replace connections older than this, so proxies and Postgres restarts never
+    # hand a request a dead socket (pre-ping covers the rest).
+    DB_POOL_RECYCLE: int = 1800
 
     @computed_field  # type: ignore[prop-decorator]
     @property

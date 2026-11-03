@@ -2,7 +2,7 @@ import json
 import logging
 import re
 import time
-from collections.abc import AsyncGenerator
+from collections.abc import AsyncGenerator, Awaitable, Callable
 from contextlib import asynccontextmanager
 from typing import Any, cast
 
@@ -20,6 +20,7 @@ from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.middleware.cors import CORSMiddleware
 from starlette.requests import Request
 
+from src import database as main_database
 from src import operational_metrics
 from src.audit.router import router as audit_router
 from src.auth.app_router import account_router as account_apps_router
@@ -330,11 +331,23 @@ async def lifespan(_app: FastAPI) -> AsyncGenerator[None]:
     try:
         yield
     finally:
-        await wxproducts_database.close_engine()
-        await eregister_database.close_engine()
-        await wxwatch_database.close_engine()
-        await janitorial_database.close_engine()
-        await transport_database.close_engine()
+        # Return every pooled connection to Postgres on shutdown or redeploy;
+        # one engine failing to close is logged and never stops the others.
+        closers: list[tuple[str, Callable[[], Awaitable[None]]]] = [
+            ("wxproducts", wxproducts_database.close_engine),
+            ("eregister", eregister_database.close_engine),
+            ("wxwatch", wxwatch_database.close_engine),
+            ("janitorial", janitorial_database.close_engine),
+            ("transport", transport_database.close_engine),
+            ("main", main_database.async_engine.dispose),
+        ]
+        for name, close in closers:
+            try:
+                await close()
+            except Exception:
+                logging.getLogger(__name__).exception(
+                    "database engine %s failed to close", name
+                )
 
 
 if settings.SENTRY_DSN and settings.ENVIRONMENT != "local":
