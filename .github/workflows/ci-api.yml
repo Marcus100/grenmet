@@ -43,6 +43,7 @@ jobs:
   image-selection:
     name: Select image checks
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     outputs:
       web: ${{ steps.select.outputs.web }}
       weather: ${{ steps.select.outputs.weather }}
@@ -210,7 +211,7 @@ jobs:
             libpango-1.0-0 libpangoft2-1.0-0 libharfbuzz0b libfontconfig1
 
       - name: Install dependencies
-        # Lockfile freshness is enforced by the lint job; --frozen keeps this
+        # Lockfile freshness is enforced by the quality job; --frozen keeps this
         # job on that exact resolution.
         run: uv sync --frozen --package fast-back
 
@@ -507,7 +508,7 @@ jobs:
           cache-local-path: ~/.cache/uv
 
       - name: Install dependencies
-        # Lockfile freshness is enforced by the lint job; --frozen keeps this
+        # Lockfile freshness is enforced by the quality job; --frozen keeps this
         # job on that exact resolution.
         run: uv sync --frozen --package fast-back
 
