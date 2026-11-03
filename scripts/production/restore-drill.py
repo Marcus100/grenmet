@@ -339,6 +339,16 @@ class Source:
         )
 
 
+# PostgreSQL 18+ images keep data under /var/lib/postgresql/<major>/docker and
+# refuse to start with a mount at the old /var/lib/postgresql/data path.
+def postgres_data_mount(image):
+    tag = image.split("@", 1)[0].rpartition(":")[2]
+    major = re.match(r"(\d+)", tag)
+    if major and int(major.group(1)) >= 18:
+        return "/var/lib/postgresql"
+    return "/var/lib/postgresql/data"
+
+
 class ThrowawayPostgres:
     def __init__(self, image, tmpfs_size):
         self.name = f"restore-drill-{secrets.token_hex(4)}"
@@ -360,7 +370,7 @@ class ThrowawayPostgres:
                 "-e",
                 "POSTGRES_PASSWORD",
                 "--tmpfs",
-                f"/var/lib/postgresql/data:rw,size={self.tmpfs_size}",
+                f"{postgres_data_mount(self.image)}:rw,size={self.tmpfs_size}",
                 self.image,
             ],
             stdout=subprocess.DEVNULL,
@@ -375,6 +385,15 @@ class ThrowawayPostgres:
             if ready.returncode == 0:
                 return
             time.sleep(1)
+        # The server log names the cause (bad data directory, out of memory);
+        # it never contains the generated password.
+        logs = subprocess.run(
+            ["docker", "logs", "--tail", "20", self.name],
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        print(logs.stdout + logs.stderr, file=sys.stderr)
         raise RuntimeError("Throwaway PostgreSQL did not become ready")
 
     def psql(self, database, sql):
@@ -635,7 +654,7 @@ class ApiUnderTest:
             try:
                 item = json.loads(line)
                 statuses[str(item["path"])] = int(item["status"])
-            except (ValueError, KeyError, TypeError):
+            except ValueError, KeyError, TypeError:
                 continue
         return statuses
 
