@@ -16,7 +16,7 @@ const RULESETS_PATH = fileURLToPath(
 );
 const REVIEW_LABEL = "factory-review";
 const DEV = "dev";
-const OWNER_MERGE = /OWNER-MERGE/;
+const OWNER_MERGE = /OWNER-MERGE/u;
 const FACTORY_CODE = "Factory review";
 const FACTORY_SECURITY = "Factory security review";
 const FACTORY = new Set([FACTORY_CODE, FACTORY_SECURITY]);

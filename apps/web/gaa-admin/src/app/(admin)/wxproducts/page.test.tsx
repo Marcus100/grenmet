@@ -2,10 +2,10 @@ import { render, screen, within } from "@testing-library/react";
 import { expect, it } from "vitest";
 import Page from "./page";
 
-const LIVE_REGISTER = /live hourly observation register for station 78958/;
-const DRAFT_ONLY = /Operational transmission is not available/;
-const PROTOTYPE = /prototype/i;
-const SAMPLE_OBSERVATIONS = /sample observations/i;
+const LIVE_REGISTER = /live hourly observation register for station 78958/u;
+const DRAFT_ONLY = /Operational transmission is not available/u;
+const PROTOTYPE = /prototype/iu;
+const SAMPLE_OBSERVATIONS = /sample observations/iu;
 
 it("links to the five product desks and points to the live hourly register", () => {
   render(<Page />);
@@ -20,7 +20,7 @@ it("links to the five product desks and points to the live hourly register", () 
     ["Aviation", "/wxproducts/aviation"],
   ]) {
     expect(
-      desks.getByRole("link", { name: new RegExp(`^${name}`) })
+      desks.getByRole("link", { name: new RegExp(`^${name}`, "u") })
     ).toHaveAttribute("href", href);
   }
   expect(desks.getAllByRole("link")).toHaveLength(5);

@@ -195,7 +195,7 @@ export function ManageUserDialog({
             className="flex min-w-0 flex-col gap-3"
             data-slot="manage-user-roles"
           >
-            <span className="font-medium text-sm">Roles</span>
+            <span className="text-sm font-medium">Roles</span>
             {!isSuperuser && (
               <p className="text-muted-foreground text-sm">
                 You may grant ordinary staff self-service within your active
@@ -214,7 +214,7 @@ export function ManageUserDialog({
                 const role = rolesById.get(assignment.role_id);
                 return (
                   <Badge
-                    className="h-auto min-w-0 max-w-full whitespace-normal break-words text-left"
+                    className="h-auto max-w-full min-w-0 text-left break-words whitespace-normal"
                     key={assignment.id}
                     variant="secondary"
                   >
@@ -229,7 +229,7 @@ export function ManageUserDialog({
                       : ""}
                     <button
                       aria-label={`Revoke ${role?.name ?? "role"}`}
-                      className="ml-1 rounded-sm hover:text-destructive"
+                      className="hover:text-destructive ml-1 rounded-sm"
                       disabled={revokeMutation.isPending}
                       onClick={() =>
                         revoke(assignment.id, role?.name ?? "role")

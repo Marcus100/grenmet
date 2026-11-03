@@ -42,8 +42,8 @@ import type { FormState } from "./state";
  * are returned as text for the form; nothing is put in a URL.
  */
 
-const WHOLE_NUMBER = /^\d{1,7}$/;
-const DATE = /^\d{4}-\d{2}-\d{2}$/;
+const WHOLE_NUMBER = /^\d{1,7}$/u;
+const DATE = /^\d{4}-\d{2}-\d{2}$/u;
 /** Grenada has no daylight saving: always UTC-4. */
 const GRENADA_OFFSET = "-04:00";
 

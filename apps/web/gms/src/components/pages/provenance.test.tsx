@@ -10,9 +10,9 @@ import {
 } from "@/lib/current-conditions";
 
 const NOW = new Date("2026-10-18T16:00:00Z");
-const OBSERVED_LABEL = /Last observed:/;
-const STATUS_LABEL = /Status:/;
-const OLD_READING = /more than 90 minutes old/;
+const OBSERVED_LABEL = /Last observed:/u;
+const STATUS_LABEL = /Status:/u;
+const OLD_READING = /more than 90 minutes old/u;
 const minutesAgo = (m: number) =>
   new Date(NOW.getTime() - m * 60_000).toISOString();
 

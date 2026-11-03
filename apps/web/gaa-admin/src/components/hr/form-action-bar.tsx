@@ -44,7 +44,7 @@ export function FormActionBar({
 
   return (
     <div className="flex flex-wrap items-center justify-between gap-3">
-      <p className="min-h-5 text-muted-foreground text-xs">{statusHint}</p>
+      <p className="text-muted-foreground min-h-5 text-xs">{statusHint}</p>
 
       <div className="flex flex-wrap items-center gap-2">
         <Button

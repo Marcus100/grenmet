@@ -14,7 +14,7 @@ try {
   // Confirm the TypeScript runtime used by migration tooling is packaged.
   assert.match(
     typescriptVersion,
-    /^\d+\.\d+\.\d+/,
+    /^\d+\.\d+\.\d+/u,
     "TypeScript runtime must be available"
   );
   const { generateDrizzleJson, generateMigration } =

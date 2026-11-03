@@ -37,7 +37,7 @@ export default function ElectionsPage() {
         </Link>
       </PageHead>
       <Section id="list" title="All votes, newest first">
-        <ol className="divide-y divide-el-rule border-el-rule border-y">
+        <ol className="divide-el-rule border-el-rule divide-y border-y">
           {events.map((e) => {
             const n = eventNational(data, e.id);
             const order = Object.entries(n.seats).sort((a, b) => b[1] - a[1]);
@@ -46,16 +46,16 @@ export default function ElectionsPage() {
             return (
               <li key={e.id}>
                 <Link
-                  className="grid gap-x-6 gap-y-1 py-4 hover:bg-el-paper-2 sm:grid-cols-[7rem_minmax(0,1fr)_auto]"
+                  className="hover:bg-el-paper-2 grid gap-x-6 gap-y-1 py-4 sm:grid-cols-[7rem_minmax(0,1fr)_auto]"
                   href={`/elections/${eventSlug(e.id)}`}
                 >
-                  <span className="font-bold font-serif text-2xl tabular-nums">
+                  <span className="font-serif text-2xl font-bold tabular-nums">
                     {e.year}
                     {e.sub && (
                       <span
                         className={
                           e.kind === "ref"
-                            ? "block font-sans font-semibold text-base text-el-muted uppercase tracking-[0.07em]"
+                            ? "text-el-muted block font-sans text-base font-semibold tracking-[0.07em] uppercase"
                             : ""
                         }
                       >
@@ -64,16 +64,16 @@ export default function ElectionsPage() {
                     )}
                   </span>
                   <span>
-                    <span className="block text-base text-el-muted">
+                    <span className="text-el-muted block text-base">
                       {e.date}
                     </span>
                     <b className="font-semibold">{headline}</b>
                     {!isOfficial(e.id) && (
-                      <span className="ml-2 inline-block rounded-[2px] border border-el-rule-2 px-1 font-semibold text-el-ink-2 text-sm uppercase tracking-[0.06em]">
+                      <span className="border-el-rule-2 text-el-ink-2 ml-2 inline-block rounded-[2px] border px-1 text-sm font-semibold tracking-[0.06em] uppercase">
                         Secondary source
                       </span>
                     )}
-                    <span className="block text-base text-el-muted">
+                    <span className="text-el-muted block text-base">
                       {e.kind === "general"
                         ? `${seatsTotal} seats${e.map ? "" : " on earlier boundaries"} · winner ${partyInfo(order[0]?.[0] ?? "").name}`
                         : `Turnout ${pct(n.turnout)}`}

@@ -43,7 +43,7 @@ const dayRowCommonClasses: CalendarOptions = {
   listItemEventTitleClass: (info) =>
     cn(
       info.isNarrow ? "px-px" : "px-0.5",
-      "shrink-100 overflow-hidden whitespace-nowrap font-medium",
+      "shrink-100 overflow-hidden font-medium whitespace-nowrap",
       info.timeText && "text-ellipsis"
     ),
 
@@ -64,8 +64,8 @@ const dayRowCommonClasses: CalendarOptions = {
     cn(
       "mb-px rounded-sm border",
       info.isNarrow
-        ? "mx-0.5 border-primary hover:bg-foreground/5"
-        : "mx-1 self-start border-transparent bg-foreground/5 hover:bg-foreground/10"
+        ? "border-primary hover:bg-foreground/5 mx-0.5"
+        : "bg-foreground/5 hover:bg-foreground/10 mx-1 self-start border-transparent"
     ),
   rowMoreLinkInnerClass: (info) =>
     cn(info.isNarrow ? `p-px ${xxsTextClass}` : "p-0.5 text-xs"),
@@ -131,7 +131,7 @@ export function EventCalendarViews({
 
       columnEventClass={(info) =>
         cn(
-          "border-x ring ring-background",
+          "ring-background border-x ring",
           info.isStart && [
             "rounded-t-lg border-t",
             info.isNarrow ? "mt-px" : "mt-0.5",
@@ -180,7 +180,7 @@ export function EventCalendarViews({
                   "whitespace-pre",
                   textPart.type === "day" && info.isToday
                     ? [
-                        "flex flex-row items-center justify-center rounded-full bg-chart-1/50 font-semibold",
+                        "bg-chart-1/50 flex flex-row items-center justify-center rounded-full font-semibold",
                         info.hasNavLink &&
                           "outline-ring/50 group-hover:bg-chart-1/60 group-focus-visible:outline-3",
                         info.isNarrow
@@ -206,7 +206,7 @@ export function EventCalendarViews({
           info.isToday
             ? ["group outline-none", info.isNarrow ? "mx-px" : "mx-2"]
             : [
-                "whitespace-nowrap rounded-s-sm",
+                "rounded-s-sm whitespace-nowrap",
                 !info.isOther && "font-semibold",
                 info.isNarrow ? "px-1" : "px-2",
                 !info.monthText && "text-muted-foreground",
@@ -221,8 +221,8 @@ export function EventCalendarViews({
         cn(
           "justify-center",
           info.inPopover
-            ? "border-b bg-foreground/5"
-            : info.isMajor && "border border-foreground/20"
+            ? "bg-foreground/5 border-b"
+            : info.isMajor && "border-foreground/20 border"
         )
       }
       dayHeaderContent={(info) =>
@@ -236,7 +236,7 @@ export function EventCalendarViews({
                   "whitespace-pre",
                   textPart.type === "day" && info.isToday
                     ? [
-                        "flex size-7 flex-row items-center justify-center rounded-full bg-chart-1/50 font-semibold first:-ms-1 last:-me-1",
+                        "bg-chart-1/50 flex size-7 flex-row items-center justify-center rounded-full font-semibold first:-ms-1 last:-me-1",
                         info.hasNavLink &&
                           "outline-ring/50 group-hover:bg-chart-1/60 group-focus-visible:outline-3",
                       ]
@@ -263,11 +263,11 @@ export function EventCalendarViews({
               ? info.isToday
                 ? "group mx-2 my-2 h-7 outline-none"
                 : [
-                    "mx-2 my-2.5 h-6 rounded-sm px-1.5 text-muted-foreground",
+                    "text-muted-foreground mx-2 my-2.5 h-6 rounded-sm px-1.5",
                     info.hasNavLink && "hover:bg-foreground/5",
                   ]
               : [
-                  "mx-0.5 my-1.5 rounded-sm px-1.5 py-0.5 text-muted-foreground",
+                  "text-muted-foreground mx-0.5 my-1.5 rounded-sm px-1.5 py-0.5",
                   info.hasNavLink && "hover:bg-foreground/5",
                 ]
         )
@@ -307,7 +307,7 @@ export function EventCalendarViews({
       highlightClass="bg-chart-1/20"
       inlineWeekNumberClass={(info) =>
         cn(
-          "absolute start-0 whitespace-nowrap rounded-e-sm text-muted-foreground",
+          "text-muted-foreground absolute start-0 rounded-e-sm whitespace-nowrap",
           info.isNarrow
             ? `top-0.5 my-px p-0.5 ${xxsTextClass}`
             : "top-1 p-1 text-xs",
@@ -401,13 +401,13 @@ export function EventCalendarViews({
       }
       singleMonthHeaderClass={(info) =>
         cn(
-          info.multiMonthColumns > 1 ? "pb-2" : "border-b bg-background py-1",
+          info.multiMonthColumns > 1 ? "pb-2" : "bg-background border-b py-1",
           "items-center"
         )
       }
       singleMonthHeaderInnerClass={(info) =>
         cn(
-          "rounded-sm px-1.5 py-0.5 font-semibold text-base",
+          "rounded-sm px-1.5 py-0.5 text-base font-semibold",
           info.hasNavLink && "hover:bg-foreground/5"
         )
       }
@@ -466,7 +466,7 @@ export function EventCalendarViews({
           weekNumberHeaderClass: "items-center justify-end",
           weekNumberHeaderInnerClass: (info) =>
             cn(
-              "mx-0.5 flex h-6 flex-row items-center rounded-sm px-1.5 text-muted-foreground",
+              "text-muted-foreground mx-0.5 flex h-6 flex-row items-center rounded-sm px-1.5",
               info.isNarrow ? "text-xs" : "text-sm",
               info.hasNavLink && "hover:bg-foreground/5"
             ),
@@ -477,7 +477,7 @@ export function EventCalendarViews({
           allDayHeaderClass: "items-center",
           allDayHeaderInnerClass: (info) =>
             cn(
-              "m-2 text-muted-foreground",
+              "text-muted-foreground m-2",
               info.isNarrow ? xxsTextClass : "text-xs"
             ),
           allDayDividerClass:
@@ -503,9 +503,9 @@ export function EventCalendarViews({
 
           listItemEventClass: (info) =>
             cn(
-              "group rounded-sm py-1 hover:bg-muted/50",
+              "group hover:bg-muted/50 rounded-sm py-1",
               info.isInteractive &&
-                "-outline-offset-3 focus-visible:bg-muted/50"
+                "focus-visible:bg-muted/50 -outline-offset-3"
             ),
           listItemEventBeforeClass: "w-1.5 bg-(--fc-event-color) rounded-full",
           listItemEventInnerClass: "[display:contents]",
@@ -513,7 +513,7 @@ export function EventCalendarViews({
             "-order-1 shrink-0 w-1/2 max-w-60 px-4 py-2 whitespace-nowrap overflow-hidden text-ellipsis text-sm",
           listItemEventTitleClass: (info) =>
             cn(
-              "min-w-0 grow overflow-hidden whitespace-nowrap px-4 py-2 text-sm",
+              "min-w-0 grow overflow-hidden px-4 py-2 text-sm whitespace-nowrap",
               info.event.url && "group-hover:underline"
             ),
 

@@ -2,10 +2,10 @@ import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import { WeatherReference } from "./weather-reference";
 
-const NSC_PATTERN = /NSC Nil Significant Cloud/;
-const MISSING_PATTERN = /Missing value/;
-const SUBSET_PATTERN = /does not mean the descriptor is invalid/;
-const IWXXM_PATTERN = /does not convert or validate IWXXM/;
+const NSC_PATTERN = /NSC Nil Significant Cloud/u;
+const MISSING_PATTERN = /Missing value/u;
+const SUBSET_PATTERN = /does not mean the descriptor is invalid/u;
+const IWXXM_PATTERN = /does not convert or validate IWXXM/u;
 
 describe("WeatherReference", () => {
   it("lets staff search a field and inspect the source code meanings", () => {

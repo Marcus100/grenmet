@@ -1,7 +1,7 @@
 import { existsSync, realpathSync } from "node:fs";
 import { delimiter, dirname, isAbsolute, join, resolve } from "node:path";
 
-const UNSAFE_PATH = /[\s:]/;
+const UNSAFE_PATH = /[\s:]/u;
 function propertyPath(path) {
   if (!isAbsolute(path) || path === "/" || UNSAFE_PATH.test(path))
     throw new Error("Unsupported sandbox mount path");

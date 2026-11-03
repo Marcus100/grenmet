@@ -17,12 +17,12 @@ import {
   webImages,
 } from "../ci/release-scope.mjs";
 
-const ROLLING_REPLACEMENT = /rolling replacement/;
+const ROLLING_REPLACEMENT = /rolling replacement/u;
 const CHECK_SCRIPT = fileURLToPath(
   new URL("../ci/check-release-scope.mjs", import.meta.url)
 );
 
-const MORE_THAN_ONE_SERVICE = /more than one service/;
+const MORE_THAN_ONE_SERVICE = /more than one service/u;
 
 test("release includes thirteen core images and rejects contradictory weather configuration", () => {
   assert.equal(releaseScope.web.length, 13);
@@ -95,10 +95,10 @@ test("service roles partition the core services and drive the CLI", () => {
   );
 });
 
-const LEGACY_ENV_LABEL = /gd\.barrels\.environment/;
-const BUILD_ENVIRONMENT = /^ {4}environment: build$/m;
-const WORKFLOW_DISPATCH = /^ {2}workflow_dispatch:/m;
-const LEGACY_TAGS = /options:\n\s+- staging|build-once=\$\{\{ inputs\.tag/;
+const LEGACY_ENV_LABEL = /gd\.barrels\.environment/u;
+const BUILD_ENVIRONMENT = /^ {4}environment: build$/mu;
+const WORKFLOW_DISPATCH = /^ {2}workflow_dispatch:/mu;
+const LEGACY_TAGS = /options:\n\s+- staging|build-once=\$\{\{ inputs\.tag/u;
 test("image builds are dev-only, use the build environment and require a Sentry DSN", () => {
   const web = readFileSync(
     new URL("../../.github/workflows/build-web-images.yml", import.meta.url),
@@ -125,9 +125,9 @@ test("image builds are dev-only, use the build environment and require a Sentry 
   assert.ok(step.includes("SENTRY_DSN_PRODUCTION"));
 });
 
-const SITE_URL_ARG = /NEXT_PUBLIC_SITE_URL=(.+)$/gm;
+const SITE_URL_ARG = /NEXT_PUBLIC_SITE_URL=(.+)$/gmu;
 const DOMAIN_ROW =
-  /^\| [^|]+ \| (\d{4}) \| (https:\/\/[a-z.]+)[^|]*\| (https:\/\/[a-z.]+)?/gm;
+  /^\| [^|]+ \| (\d{4}) \| (https:\/\/[a-z.]+)[^|]*\| (https:\/\/[a-z.]+)?/gmu;
 
 // Staging's address is supplied at run time (docker-compose.deploy.yml); the
 // image build only seeds the production address.
@@ -157,7 +157,7 @@ test("each web image is built with the production address in docs/deployment.md"
     if (!expected) continue;
     for (const environment of ["production"]) {
       if (!expected[environment]) continue;
-      const url = templates[0].replace(/\$\{\{(.+?)\}\}/g, (_, expression) =>
+      const url = templates[0].replace(/\$\{\{(.+?)\}\}/gu, (_, expression) =>
         runInNewContext(expression, {
           matrix: image,
           steps: { ctx: { outputs: { environment } } },

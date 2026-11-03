@@ -23,7 +23,7 @@ export function DesktopNav() {
   const pathname = usePathname();
 
   return (
-    <NavigationMenu aria-label="Main" className="@min-7xl/masthead:flex hidden">
+    <NavigationMenu aria-label="Main" className="hidden @min-7xl/masthead:flex">
       <NavigationMenuList>
         {NAV.map((item) => {
           if (!isGroup(item)) {
@@ -34,7 +34,7 @@ export function DesktopNav() {
                   aria-current={current ? "page" : undefined}
                   className={cn(
                     TRIGGER,
-                    "flex items-center hover:bg-transparent hover:text-el-ink",
+                    "hover:text-el-ink flex items-center hover:bg-transparent",
                     current && ACTIVE
                   )}
                   render={<Link href={item.href as Route} />}

@@ -7,7 +7,7 @@ import {
   suggestInputSchema,
 } from "./ibf";
 
-const STANDARD_GRID = /Standard World Meteorological/;
+const STANDARD_GRID = /Standard World Meteorological/u;
 const WMO = {
   cells: [
     ["green", "green", "yellow", "orange"],

@@ -54,7 +54,7 @@ export default async function OverviewPage() {
   return (
     <>
       <div className="space-y-1">
-        <h1 className="font-semibold text-2xl">Overview</h1>
+        <h1 className="text-2xl font-semibold">Overview</h1>
         <p className="text-muted-foreground">
           Platform health, read from the API. Nothing here changes anything.
         </p>

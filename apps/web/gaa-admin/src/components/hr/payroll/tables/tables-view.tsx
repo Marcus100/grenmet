@@ -57,7 +57,7 @@ function Provenance({
   };
 }) {
   return (
-    <span className="block text-muted-foreground text-xs">
+    <span className="text-muted-foreground block text-xs">
       Created by {who(row.created_by_name, row.created_by_user_id)}
       {row.confirmed_by_user_id
         ? `, confirmed by ${who(row.confirmed_by_name, row.confirmed_by_user_id)} on ${formatDay(row.confirmed_at)}`
@@ -96,7 +96,7 @@ function TableList<T extends TableRowBase>({
   return (
     <ul className="space-y-3">
       {rows.map((row) => (
-        <li className="space-y-2 rounded-xl border bg-card p-4" key={row.id}>
+        <li className="bg-card space-y-2 rounded-xl border p-4" key={row.id}>
           <div className="flex flex-wrap items-center gap-2">
             <span className="font-medium">{row.name}</span>
             <RuleStateBadge state={row.rule_state} />
@@ -116,7 +116,7 @@ function TableList<T extends TableRowBase>({
   );
 }
 
-const TRAILING_ZEROS = /\.?0+$/;
+const TRAILING_ZEROS = /\.?0+$/u;
 
 function trimPercent(rate: string): string {
   return (Number(rate) * 100).toFixed(2).replace(TRAILING_ZEROS, "");
@@ -176,7 +176,7 @@ export function TablesView({
   return (
     <div className="space-y-10">
       <section aria-label="Income tax tables" className="space-y-4">
-        <h2 className="font-semibold text-lg">Income tax tables</h2>
+        <h2 className="text-lg font-semibold">Income tax tables</h2>
         <TableList
           canConfirm={access.canConfirmTables}
           describe={taxSummary}
@@ -193,7 +193,7 @@ export function TablesView({
       </section>
 
       <section aria-label="Social insurance" className="space-y-4">
-        <h2 className="font-semibold text-lg">Social insurance</h2>
+        <h2 className="text-lg font-semibold">Social insurance</h2>
         <TableList
           canConfirm={access.canConfirmTables}
           describe={schemeSummary}
@@ -210,7 +210,7 @@ export function TablesView({
       </section>
 
       <section aria-label="Deduction types" className="space-y-4">
-        <h2 className="font-semibold text-lg">Deduction types</h2>
+        <h2 className="text-lg font-semibold">Deduction types</h2>
         <TableList
           canConfirm={access.canConfirmTables}
           describe={typeSummary}
@@ -227,7 +227,7 @@ export function TablesView({
       </section>
 
       <section aria-label="Enrolments" className="space-y-4">
-        <h2 className="font-semibold text-lg">Employee deductions</h2>
+        <h2 className="text-lg font-semibold">Employee deductions</h2>
         <EnrolmentSection
           data={data}
           securityUrl={securityUrl}
@@ -294,7 +294,7 @@ function EnrolmentTable({
     );
   }
   return (
-    <div className="overflow-x-auto rounded-xl border bg-card">
+    <div className="bg-card overflow-x-auto rounded-xl border">
       <Table>
         <TableHeader>
           <TableRow>

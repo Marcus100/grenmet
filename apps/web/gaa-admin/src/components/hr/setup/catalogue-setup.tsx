@@ -63,7 +63,7 @@ export function CatalogueSetup({
       )}
       <label htmlFor={id}>Department</label>
       <select
-        className="block w-full rounded border bg-background p-2"
+        className="bg-background block w-full rounded border p-2"
         disabled={busy}
         id={id}
         onChange={(event) => {

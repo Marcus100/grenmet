@@ -22,14 +22,14 @@ export function HouseStrip({ seats }: { seats: SeatOutlook[] }) {
 
   return (
     <figure className="m-0">
-      <figcaption className="mb-1.5 flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1 font-semibold text-el-muted text-sm uppercase tracking-[0.07em]">
+      <figcaption className="text-el-muted mb-1.5 flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1 text-sm font-semibold tracking-[0.07em] uppercase">
         <span>The House at dissolution · {SEATS} seats</span>
         <span className="whitespace-nowrap">{MAJORITY} for a majority</span>
       </figcaption>
       <div className="relative grid grid-cols-15 gap-[3px]">
         {sorted.map((seat) => (
           <Link
-            className="rounded-[2px] focus-visible:outline-2 focus-visible:outline-el-focus focus-visible:outline-offset-1"
+            className="focus-visible:outline-el-focus rounded-[2px] focus-visible:outline-2 focus-visible:outline-offset-1"
             href={seat.href as Route}
             key={seat.code}
           >
@@ -42,7 +42,7 @@ export function HouseStrip({ seats }: { seats: SeatOutlook[] }) {
         ))}
         <span
           aria-hidden="true"
-          className="absolute -inset-y-1.5 w-0.5 bg-el-ink"
+          className="bg-el-ink absolute -inset-y-1.5 w-0.5"
           style={{ left: `calc(${(MAJORITY / SEATS) * 100}% - 2px)` }}
         />
       </div>
@@ -56,7 +56,7 @@ export function HouseStrip({ seats }: { seats: SeatOutlook[] }) {
         ))}
       </p>
       <details className="mt-2 text-base">
-        <summary className="cursor-pointer font-semibold text-el-ink-2 hover:text-el-ink">
+        <summary className="text-el-ink-2 hover:text-el-ink cursor-pointer font-semibold">
           Which constituency is each letter?
         </summary>
         <ul className="mt-2 space-y-2">

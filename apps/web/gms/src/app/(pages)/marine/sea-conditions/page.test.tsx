@@ -4,7 +4,9 @@ import SeaConditionsPage from "./page";
 
 /** The wave-height cell of a sea-state row, as the table shows it in both systems. */
 function heightCell(description: string) {
-  const row = screen.getByRole("row", { name: new RegExp(`^${description}`) });
+  const row = screen.getByRole("row", {
+    name: new RegExp(`^${description}`, "u"),
+  });
   return within(row).getAllByRole("cell")[1];
 }
 

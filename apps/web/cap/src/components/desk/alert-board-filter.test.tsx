@@ -50,8 +50,8 @@ function board(
   ];
 }
 
-const SHOW_ALL = /Show every stage/;
-const SEARCH = /Search headline or identifier/;
+const SHOW_ALL = /Show every stage/u;
+const SEARCH = /Search headline or identifier/u;
 
 describe("AlertBoardFilter", () => {
   it("shows every stage, empty ones too, under All", () => {

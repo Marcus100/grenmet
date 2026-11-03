@@ -29,17 +29,17 @@ export function RefundChoiceGroup({
 }) {
   return (
     <fieldset className="space-y-2">
-      <legend className="font-medium text-body">{legend}</legend>
+      <legend className="text-body font-medium">{legend}</legend>
       {options.map((option) => {
         const disabled = disabledValues.includes(option.value);
         return (
           <label
-            className="flex min-h-11 items-start gap-3 rounded-xl border bg-card px-3 py-2 has-[:checked]:border-primary has-[:disabled]:opacity-60"
+            className="bg-card has-[:checked]:border-primary flex min-h-11 items-start gap-3 rounded-xl border px-3 py-2 has-[:disabled]:opacity-60"
             key={option.value}
           >
             <input
               checked={value === option.value}
-              className="mt-1 size-5 accent-primary"
+              className="accent-primary mt-1 size-5"
               disabled={disabled}
               name={name}
               onChange={() => onChange(option.value)}
@@ -47,10 +47,10 @@ export function RefundChoiceGroup({
               value={option.value}
             />
             <span>
-              <span className="block font-medium text-body">
+              <span className="text-body block font-medium">
                 {option.label}
               </span>
-              <span className="block text-caption text-muted-foreground">
+              <span className="text-caption text-muted-foreground block">
                 {option.description}
               </span>
             </span>

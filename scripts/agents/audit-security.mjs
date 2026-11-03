@@ -1,22 +1,22 @@
 import { createHash } from "node:crypto";
 
-const NORMALIZE_PACKAGE = /[-_.]+/g;
-const VERSION_CLAUSE = /^(>=|<=|>|<|==|=|!=)\s*(\d+(?:\.\d+)*)$/;
-const UV_NAME = /^name = "([^"]+)"$/m;
-const UV_VERSION = /^version = "([^"]+)"$/m;
-const REQUIREMENTS_FILE = /requirements[^/]*\.txt$/;
-const REQUIREMENT_PIN = /^\s*([\w.-]+)(?:\[[^\]]+\])?==([^\s;\\]+)/;
-const PNPM_KEY = /^ {2}'?(.+)@([^:'()]+)(?:\([^']*\))?'?:\s*$/;
-const TRIVY_PACKAGE = /^Package: ([\w.+-]+)$/m;
-const TRIVY_SEVERITY = /^Severity: (CRITICAL|HIGH|MEDIUM|LOW|UNKNOWN)$/m;
-const TRIVY_FIXED = /^Fixed Version:([^\r\n]*)/m;
-const CVE_ID = /^CVE-\d{4}-\d+$/;
-const FIXED_VERSION = /^[\w.+:~,-]+$/;
+const NORMALIZE_PACKAGE = /[-_.]+/gu;
+const VERSION_CLAUSE = /^(>=|<=|>|<|==|=|!=)\s*(\d+(?:\.\d+)*)$/u;
+const UV_NAME = /^name = "([^"]+)"$/mu;
+const UV_VERSION = /^version = "([^"]+)"$/mu;
+const REQUIREMENTS_FILE = /requirements[^/]*\.txt$/u;
+const REQUIREMENT_PIN = /^\s*([\w.-]+)(?:\[[^\]]+\])?==([^\s;\\]+)/u;
+const PNPM_KEY = /^ {2}'?(.+)@([^:'()]+)(?:\([^']*\))?'?:\s*$/u;
+const TRIVY_PACKAGE = /^Package: ([\w.+-]+)$/mu;
+const TRIVY_SEVERITY = /^Severity: (CRITICAL|HIGH|MEDIUM|LOW|UNKNOWN)$/mu;
+const TRIVY_FIXED = /^Fixed Version:([^\r\n]*)/mu;
+const CVE_ID = /^CVE-\d{4}-\d+$/u;
+const FIXED_VERSION = /^[\w.+:~,-]+$/u;
 
 const normalize = (name) => name.toLowerCase().replace(NORMALIZE_PACKAGE, "-");
-const numericVersion = /^\d+(?:\.\d+)*$/;
-const packageName = /^[a-zA-Z0-9@/_.+-]+$/;
-const manifestPath = /^[a-zA-Z0-9/_.-]+$/;
+const numericVersion = /^\d+(?:\.\d+)*$/u;
+const packageName = /^[a-zA-Z0-9@/_.+-]+$/u;
+const manifestPath = /^[a-zA-Z0-9/_.-]+$/u;
 const rank = { low: 0, moderate: 1, medium: 1, high: 2, critical: 3 };
 export const groupKey = (name, manifest) =>
   `security:dependabot:group:${createHash("sha256")

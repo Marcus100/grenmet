@@ -49,7 +49,7 @@ function ReportPanel({
 
   if (state === "loading") {
     return (
-      <p className="px-4 py-3 text-muted-foreground text-sm" role="status">
+      <p className="text-muted-foreground px-4 py-3 text-sm" role="status">
         Loading {kind} reports…
       </p>
     );
@@ -65,7 +65,7 @@ function ReportPanel({
 
   if (state === "forbidden") {
     return (
-      <p className="px-4 py-3 text-muted-foreground text-sm" role="status">
+      <p className="text-muted-foreground px-4 py-3 text-sm" role="status">
         {kind} reports are shown to register staff only.
       </p>
     );
@@ -73,7 +73,7 @@ function ReportPanel({
 
   if (!latest) {
     return (
-      <p className="px-4 py-3 text-muted-foreground text-sm" role="status">
+      <p className="text-muted-foreground px-4 py-3 text-sm" role="status">
         No {kind} reports recorded.
       </p>
     );
@@ -81,7 +81,7 @@ function ReportPanel({
 
   return (
     <div className="space-y-3 px-4 py-3">
-      <div className="flex flex-wrap items-center gap-2 text-muted-foreground text-xs">
+      <div className="text-muted-foreground flex flex-wrap items-center gap-2 text-xs">
         <span>Latest · {latest.observed} UTC</span>
         {latest.state ? (
           <QcBadge state={latest.state} />
@@ -91,7 +91,7 @@ function ReportPanel({
       </div>
       <code
         className={cn(
-          "block overflow-x-auto whitespace-nowrap rounded-lg bg-muted px-3 py-2.5 font-mono text-sm tabular-nums",
+          "bg-muted block overflow-x-auto rounded-lg px-3 py-2.5 font-mono text-sm whitespace-nowrap tabular-nums",
           latest.state === "superseded" && "text-muted-foreground line-through"
         )}
       >
@@ -129,7 +129,7 @@ function ReportPanel({
                   </TableCell>
                   <TableCell
                     className={cn(
-                      "px-3.5 font-mono text-muted-foreground text-xs tabular-nums",
+                      "text-muted-foreground px-3.5 font-mono text-xs tabular-nums",
                       row.state === "superseded" && "line-through"
                     )}
                   >

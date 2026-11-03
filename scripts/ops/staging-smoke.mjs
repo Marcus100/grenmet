@@ -12,7 +12,7 @@
 import { readFileSync, writeFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 
-const STAGING_HOST = /^https:\/\/[a-z0-9-]+\.staging\.barrels\.gd(\/|$)/;
+const STAGING_HOST = /^https:\/\/[a-z0-9-]+\.staging\.barrels\.gd(\/|$)/u;
 const REQUEST_TIMEOUT_MS = 20_000;
 
 export function authHeaders(basicAuth) {

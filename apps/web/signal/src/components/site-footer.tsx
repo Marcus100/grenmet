@@ -3,10 +3,10 @@ import Link from "next/link";
 import { NAV_LINKS } from "@/lib/nav";
 export function SiteFooter() {
   return (
-    <footer className="mt-12 border-signal-ink border-t bg-secondary">
+    <footer className="border-signal-ink bg-secondary mt-12 border-t">
       <div className="mx-auto grid max-w-7xl gap-8 px-4 py-10 sm:px-8 md:grid-cols-2">
         <div>
-          <Link className="font-semibold font-serif text-3xl" href="/">
+          <Link className="font-serif text-3xl font-semibold" href="/">
             Grenada <span className="text-signal-green">Signal.</span>
           </Link>
           <p className="mt-4 max-w-md text-base leading-relaxed">

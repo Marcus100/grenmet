@@ -63,7 +63,7 @@ export default function Election2026Page() {
           )}
         />
         <div className="flex flex-col gap-5 px-4 sm:px-6">
-          <p className="text-base text-el-muted">
+          <p className="text-el-muted text-base">
             Register snapshot: {formatIsoDate(roll.date)}. These extracted
             records are not a verified final election-day denominator;{" "}
             <Link className="underline" href="/register">
@@ -71,7 +71,7 @@ export default function Election2026Page() {
             </Link>
             .
           </p>
-          <dl className="grid grid-cols-2 gap-3 border-el-rule border-t pt-3 sm:grid-cols-4">
+          <dl className="border-el-rule grid grid-cols-2 gap-3 border-t pt-3 sm:grid-cols-4">
             {[
               {
                 label: "Non-police snapshot",
@@ -89,10 +89,10 @@ export default function Election2026Page() {
               },
             ].map((kpi) => (
               <div key={kpi.label} title={kpi.note}>
-                <dt className="font-semibold text-el-muted text-sm uppercase tracking-[0.07em]">
+                <dt className="text-el-muted text-sm font-semibold tracking-[0.07em] uppercase">
                   {kpi.label}
                 </dt>
-                <dd className="mt-0.5 font-semibold text-xl tabular-nums">
+                <dd className="mt-0.5 text-xl font-semibold tabular-nums">
                   {kpi.value}
                 </dd>
               </div>
@@ -111,7 +111,7 @@ export default function Election2026Page() {
         title="Latest"
       >
         {COVERAGE.length === 0 ? (
-          <p className="border-el-rule border-y py-6 text-el-ink-2 leading-relaxed">
+          <p className="border-el-rule text-el-ink-2 border-y py-6 leading-relaxed">
             Election-night results will be added only when verified returns are
             available.
           </p>
@@ -139,14 +139,14 @@ export default function Election2026Page() {
 
       <section className="mx-auto max-w-[1240px] px-4 pt-12 sm:px-6">
         <Link
-          className="flex flex-wrap items-center justify-between gap-3 border border-el-rule bg-el-paper-2 p-5 hover:border-el-ink"
+          className="border-el-rule bg-el-paper-2 hover:border-el-ink flex flex-wrap items-center justify-between gap-3 border p-5"
           href="/make-your-map"
         >
           <span>
-            <b className="block font-bold font-serif text-xl">
+            <b className="block font-serif text-xl font-bold">
               Make your map →
             </b>
-            <span className="text-base text-el-ink-2">
+            <span className="text-el-ink-2 text-base">
               Rate all 15 constituencies, from Solid NDC to Solid NNP (and DPM
               where it stands), and share your prediction.
             </span>
@@ -168,14 +168,14 @@ export default function Election2026Page() {
         more={{ href: "/forecast", label: "The forecast and every poll" }}
         title="Polls"
       >
-        <ul className="divide-y divide-el-rule border-el-rule border-y">
+        <ul className="divide-el-rule border-el-rule divide-y border-y">
           {polls.map((poll) => (
             <li className="py-4" key={poll.id}>
-              <p className="font-semibold leading-relaxed">
+              <p className="leading-relaxed font-semibold">
                 {poll.pollster}
                 <Flag note={poll.note} status={poll.flag} />
               </p>
-              <p className="text-base text-el-muted leading-relaxed">
+              <p className="text-el-muted text-base leading-relaxed">
                 Fieldwork {poll.field}
                 {poll.n ? ` · ${fmt(poll.n)} people` : ""}
                 {poll.seats
@@ -184,7 +184,7 @@ export default function Election2026Page() {
                       .join(", ")}`
                   : ""}
               </p>
-              <p className="mt-1 text-base text-el-muted leading-relaxed">
+              <p className="text-el-muted mt-1 text-base leading-relaxed">
                 <SourceLink id={poll.src} sources={campaign.sources} />
               </p>
             </li>

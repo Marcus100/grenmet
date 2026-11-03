@@ -17,10 +17,10 @@ const NO_GREEN: GreenStatus = {
   other: 0,
   complete: true,
 };
-const FLEX_CLASS = /(^|\s)flex(\s|$)/;
-const HIDDEN_CLASS = /(^|\s)hidden(\s|$)/;
-const ONE_ACTIVE = /Take action now · 1 active/;
-const OUTAGE = /We cannot load alerts right now/;
+const FLEX_CLASS = /(^|\s)flex(\s|$)/u;
+const HIDDEN_CLASS = /(^|\s)hidden(\s|$)/u;
+const ONE_ACTIVE = /Take action now · 1 active/u;
+const OUTAGE = /We cannot load alerts right now/u;
 
 const ACTIVE: AlertsResult = {
   activeCount: 1,
@@ -89,8 +89,8 @@ describe("Header", () => {
   });
 });
 
-const SIGN_IN = /^Sign in/;
-const UNITS = /^Units:/;
+const SIGN_IN = /^Sign in/u;
+const UNITS = /^Units:/u;
 
 describe("Header has no account controls", () => {
   it("never shows a sign-in button, on any width", () => {

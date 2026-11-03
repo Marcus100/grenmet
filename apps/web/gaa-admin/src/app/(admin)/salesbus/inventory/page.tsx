@@ -43,7 +43,7 @@ export default async function InventoryPage() {
         ))}
       </div>
       {categories.length === 0 && (
-        <p className="py-12 text-center text-base text-muted-foreground sm:text-lg">
+        <p className="text-muted-foreground py-12 text-center text-base sm:text-lg">
           The catalogue is empty.
         </p>
       )}

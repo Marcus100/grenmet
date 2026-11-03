@@ -13,7 +13,7 @@ import { visit } from "unist-util-visit";
 // A leading YAML frontmatter block. Left in place, markdown reads its closing
 // "---" as a setext underline, turning the last frontmatter line into a
 // depth-2 heading that lands in the search index as a section title.
-const FRONTMATTER = /^---\r?\n[\s\S]*?\r?\n---[ \t]*(?:\r?\n|$)/;
+const FRONTMATTER = /^---\r?\n[\s\S]*?\r?\n---[ \t]*(?:\r?\n|$)/u;
 
 const processor = remark().use(remarkMdx).use(mdxAnnotations.remark);
 

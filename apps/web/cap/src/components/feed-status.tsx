@@ -27,7 +27,7 @@ export function FeedStatus({
   if (result.status === "stale" || stale) {
     return (
       <p
-        className="rounded-gm-card border border-gm-warning-amber-border bg-gm-warning-amber-bg p-3 text-body-sm text-gm-warning-amber-fg"
+        className="rounded-gm-card border-gm-warning-amber-border bg-gm-warning-amber-bg text-body-sm text-gm-warning-amber-fg border p-3"
         role="status"
       >
         <strong>Live updates are not reachable right now.</strong> This is the
@@ -57,13 +57,13 @@ export function FeedStatus({
 export function Unreachable() {
   return (
     <div
-      className="rounded-gm-card border border-gm-warning-grey-border bg-gm-warning-grey-bg p-4 text-gm-warning-grey-fg"
+      className="rounded-gm-card border-gm-warning-grey-border bg-gm-warning-grey-bg text-gm-warning-grey-fg border p-4"
       role="alert"
     >
-      <h2 className="font-semibold text-heading-sm">
+      <h2 className="text-heading-sm font-semibold">
         Alert service temporarily unreachable
       </h2>
-      <p className="mt-1 text-body">
+      <p className="text-body mt-1">
         We cannot confirm whether any weather alerts are in effect. This is not
         an all-clear. Check GMS radio and TV announcements, and follow guidance
         from local authorities.

@@ -8,8 +8,8 @@ import path from "node:path";
 import { describe, expect, it } from "vitest";
 import { APP_DIR, CATCH_ALL, matches, routesOnDisk } from "@/test/routes";
 
-const PAGE_FILE = /^page\.(tsx|ts|jsx|js)$/;
-const LOADING = /^loading\.(tsx|ts|jsx|js)$/;
+const PAGE_FILE = /^page\.(tsx|ts|jsx|js)$/u;
+const LOADING = /^loading\.(tsx|ts|jsx|js)$/u;
 const NOT_FOUND_ROUTE_GROUPS = ["(articles)", "(planned)"];
 
 /** Every folder under `dir` that holds a page, recursively. */

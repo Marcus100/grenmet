@@ -40,8 +40,8 @@ export function SectionCard({
 }) {
   return (
     <Card className={cn("gap-0 py-0", className)}>
-      <CardHeader className="flex flex-row items-center justify-between gap-2 border-b bg-muted/30 px-3 py-2">
-        <CardTitle className="font-semibold text-xs uppercase tracking-wide">
+      <CardHeader className="bg-muted/30 flex flex-row items-center justify-between gap-2 border-b px-3 py-2">
+        <CardTitle className="text-xs font-semibold tracking-wide uppercase">
           {title}
         </CardTitle>
         {action}
@@ -79,9 +79,9 @@ function VerticalName({
     <div className="flex flex-1 items-end justify-center pt-1 pb-1">
       <span
         className={cn(
-          "block rotate-180 whitespace-normal text-center text-label leading-tight [writing-mode:vertical-rl]",
+          "text-label block rotate-180 text-center leading-tight whitespace-normal [writing-mode:vertical-rl]",
           half ? "max-h-14" : "max-h-24",
-          muted ? "text-muted-foreground" : "font-semibold text-foreground"
+          muted ? "text-muted-foreground" : "text-foreground font-semibold"
         )}
       >
         {children}
@@ -124,19 +124,19 @@ export function RegisterTable({
           <TableHeader>
             <TableRow className="bg-muted/30 hover:bg-muted/30">
               <TableHead
-                className="h-8 border-border border-b px-3 font-semibold text-xs uppercase tracking-wide"
+                className="border-border h-8 border-b px-3 text-xs font-semibold tracking-wide uppercase"
                 colSpan={section.columns.length}
               >
                 {section.title}
               </TableHead>
             </TableRow>
             {/* Column names, written upwards; two-layer columns name both layers. */}
-            <TableRow className="bg-muted/40 align-bottom hover:bg-muted/40">
+            <TableRow className="bg-muted/40 hover:bg-muted/40 align-bottom">
               {section.columns.map((column) =>
                 column.kind === "fixed" ? (
                   <TableHead
                     className={cn(
-                      "h-auto border-border border-r p-0 align-bottom",
+                      "border-border h-auto border-r p-0 align-bottom",
                       columnWidth(column)
                     )}
                     key={column.id}
@@ -148,7 +148,7 @@ export function RegisterTable({
                 ) : (
                   <TableHead
                     className={cn(
-                      "h-auto border-border border-r p-0 align-bottom",
+                      "border-border h-auto border-r p-0 align-bottom",
                       columnWidth(column)
                     )}
                     key={column.id}
@@ -156,7 +156,7 @@ export function RegisterTable({
                     <div className="flex h-full flex-col">
                       {column.upperLabel ? (
                         <>
-                          <div className="flex flex-1 flex-col border-border border-b">
+                          <div className="border-border flex flex-1 flex-col border-b">
                             <VerticalName half>
                               {column.upperLabel}
                             </VerticalName>
@@ -176,12 +176,12 @@ export function RegisterTable({
               {section.columns.map((column) =>
                 column.kind === "fixed" ? (
                   <TableHead
-                    className="h-9 border-border border-t border-r p-0"
+                    className="border-border h-9 border-t border-r p-0"
                     key={column.id}
                   />
                 ) : (
                   <TableHead
-                    className="h-9 whitespace-normal break-all border-border border-t border-r px-0.5 text-center font-mono font-normal text-[10px] text-muted-foreground leading-tight"
+                    className="border-border text-muted-foreground h-9 border-t border-r px-0.5 text-center font-mono text-[10px] leading-tight font-normal break-all whitespace-normal"
                     key={column.id}
                   >
                     {column.code}
@@ -193,7 +193,7 @@ export function RegisterTable({
             <TableRow className="bg-muted/40 hover:bg-muted/40">
               {section.columns.map((column) => (
                 <TableHead
-                  className="h-6 border-border border-t border-r p-0 text-center font-mono font-normal text-[10px] text-muted-foreground"
+                  className="border-border text-muted-foreground h-6 border-t border-r p-0 text-center font-mono text-[10px] font-normal"
                   key={column.kind === "fixed" ? column.id : column.id}
                 >
                   {column.no ?? ""}
@@ -209,7 +209,7 @@ export function RegisterTable({
                   // Indicator digits sit in the lower layer only.
                   return (
                     <TableCell
-                      className="h-6 border-border border-r p-0"
+                      className="border-border h-6 border-r p-0"
                       key={column.id}
                     />
                   );
@@ -242,7 +242,7 @@ export function RegisterTable({
                 const text = reading ? reading(values, context) : "";
                 return (
                   <TableCell
-                    className="h-6 border-border border-r border-b bg-muted/30 px-0.5 text-center font-mono text-caption text-muted-foreground tabular-nums"
+                    className="border-border bg-muted/30 text-caption text-muted-foreground h-6 border-r border-b px-0.5 text-center font-mono tabular-nums"
                     key={column.id}
                     title={text === null ? "Not a valid code" : undefined}
                   >
@@ -257,7 +257,7 @@ export function RegisterTable({
                 if (column.kind === "fixed") {
                   return (
                     <TableCell
-                      className="h-9 border-border border-r bg-muted px-0 text-center font-mono font-semibold text-body-sm text-muted-foreground"
+                      className="border-border bg-muted text-body-sm text-muted-foreground h-9 border-r px-0 text-center font-mono font-semibold"
                       key={column.id}
                     >
                       {column.text}
@@ -299,9 +299,9 @@ export function SummaryHead({
 }) {
   return (
     <span className="inline-flex items-center gap-1.5">
-      <Icon className="size-3.5 text-muted-foreground" />
+      <Icon className="text-muted-foreground size-3.5" />
       <span>{label}</span>
-      <span className="font-normal text-muted-foreground text-xs">{unit}</span>
+      <span className="text-muted-foreground text-xs font-normal">{unit}</span>
     </span>
   );
 }
@@ -320,7 +320,7 @@ export function TimeMarks({
         {TIME_MARKS.map((mark) => (
           <div className="flex flex-col gap-1" key={mark.key}>
             <dt className="text-muted-foreground text-xs">{mark.label}</dt>
-            <dd className="font-medium font-mono tabular-nums">
+            <dd className="font-mono font-medium tabular-nums">
               {renderInput
                 ? renderInput(mark.key, mark.label)
                 : values[mark.key] || "—"}
@@ -355,7 +355,7 @@ export function PendingSettingsNote({
   );
   return (
     <p
-      className="rounded-md border border-border border-l-4 border-l-warning bg-card px-3 py-2 text-muted-foreground text-xs"
+      className="border-border border-l-warning bg-card text-muted-foreground rounded-md border border-l-4 px-3 py-2 text-xs"
       data-testid="pending-settings-note"
     >
       Station pressure, sea level pressure, QFE and QNH are worked out from the

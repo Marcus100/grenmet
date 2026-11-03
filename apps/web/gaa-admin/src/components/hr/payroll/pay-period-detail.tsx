@@ -83,8 +83,8 @@ function TotalsTable({
   const rows = totals.filter((total) => total.run_kind === run);
   return (
     <section aria-label={RUN_LABEL[run]} className="space-y-2">
-      <h3 className="font-semibold text-base">{RUN_LABEL[run]}</h3>
-      <div className="overflow-x-auto rounded-xl border bg-card">
+      <h3 className="text-base font-semibold">{RUN_LABEL[run]}</h3>
+      <div className="bg-card overflow-x-auto rounded-xl border">
         <Table>
           <TableHeader>
             <TableRow>
@@ -98,7 +98,7 @@ function TotalsTable({
             {rows.length === 0 ? (
               <TableRow>
                 <TableCell
-                  className="text-center text-muted-foreground"
+                  className="text-muted-foreground text-center"
                   colSpan={4}
                 >
                   {run === "REGULAR"
@@ -111,7 +111,7 @@ function TotalsTable({
                 <TableRow key={`${total.run_kind}-${total.pay_item_id}`}>
                   <TableCell>
                     <span className="font-medium">{total.name}</span>{" "}
-                    <span className="font-mono text-muted-foreground text-xs">
+                    <span className="text-muted-foreground font-mono text-xs">
                       {total.code}
                     </span>
                   </TableCell>
@@ -148,7 +148,7 @@ function LinesTable({
   onRemove: (line: PayLinePublic) => void;
 }) {
   return (
-    <div className="overflow-x-auto rounded-xl border bg-card">
+    <div className="bg-card overflow-x-auto rounded-xl border">
       <Table>
         <TableHeader>
           <TableRow>
@@ -165,7 +165,7 @@ function LinesTable({
           {lines.length === 0 ? (
             <TableRow>
               <TableCell
-                className="text-center text-muted-foreground"
+                className="text-muted-foreground text-center"
                 colSpan={7}
               >
                 No pay lines in the departments you can see.
@@ -176,7 +176,7 @@ function LinesTable({
               <TableRow key={line.id}>
                 <TableCell>
                   <span className="font-medium">{line.employee_name}</span>
-                  <span className="block font-mono text-muted-foreground text-xs">
+                  <span className="text-muted-foreground block font-mono text-xs">
                     {line.employee_number ?? "No employee number"}
                   </span>
                 </TableCell>
@@ -188,7 +188,7 @@ function LinesTable({
                 <TableCell>
                   {LINE_KIND_LABEL[line.line_kind]}
                   {line.run_kind === "ADJUSTMENT" && (
-                    <span className="block text-muted-foreground text-xs">
+                    <span className="text-muted-foreground block text-xs">
                       Corrects an earlier period
                     </span>
                   )}
@@ -365,14 +365,14 @@ export function PayPeriodDetail({ periodId }: { periodId: string }) {
 
   if (detailQuery.isPending) {
     return (
-      <div className="flex items-center gap-2 rounded-xl border bg-card p-6 text-muted-foreground text-sm">
+      <div className="bg-card text-muted-foreground flex items-center gap-2 rounded-xl border p-6 text-sm">
         <Spinner className="size-4" /> Loading pay period…
       </div>
     );
   }
   if (detailQuery.isError || !detail) {
     return (
-      <p className="rounded-xl border bg-card p-6 text-sm" role="alert">
+      <p className="bg-card rounded-xl border p-6 text-sm" role="alert">
         This pay period was not found, or you do not have payroll access to it.{" "}
         <Link className="text-info underline" href="/hr/payroll">
           Back to payroll inputs
@@ -388,10 +388,10 @@ export function PayPeriodDetail({ periodId }: { periodId: string }) {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-wrap items-start justify-between gap-4 rounded-xl border bg-card p-4">
+      <div className="bg-card flex flex-wrap items-start justify-between gap-4 rounded-xl border p-4">
         <div className="space-y-1">
           <div className="flex items-center gap-2">
-            <h2 className="font-semibold text-lg">{periodLabel(period)}</h2>
+            <h2 className="text-lg font-semibold">{periodLabel(period)}</h2>
             <Badge variant={status.variant}>{status.label}</Badge>
           </div>
           <p className="text-muted-foreground text-sm">
@@ -412,7 +412,7 @@ export function PayPeriodDetail({ periodId }: { periodId: string }) {
 
       {problem && (
         <p
-          className="rounded-lg border border-destructive p-3 text-destructive text-sm"
+          className="border-destructive text-destructive rounded-lg border p-3 text-sm"
           role="alert"
         >
           {problem}
@@ -420,7 +420,7 @@ export function PayPeriodDetail({ periodId }: { periodId: string }) {
       )}
 
       {!detail.overtime_bands_available && (
-        <p className="rounded-lg border bg-muted p-3 text-sm">
+        <p className="bg-muted rounded-lg border p-3 text-sm">
           Overtime bands are not computed yet: the roster rules that decide them
           are still being built. Enter approved overtime hours by hand against
           the overtime pay items, with a reason.
@@ -441,7 +441,7 @@ export function PayPeriodDetail({ periodId }: { periodId: string }) {
       )}
 
       <section aria-label="Pay lines" className="space-y-2">
-        <h3 className="font-semibold text-base">Pay lines</h3>
+        <h3 className="text-base font-semibold">Pay lines</h3>
         {linesQuery.isPending ? (
           <p className="text-muted-foreground text-sm" role="status">
             Loading pay lines…

@@ -5,8 +5,8 @@ import type { BookingFlowActions } from "../lib/booking-types";
 
 export const CODE_LENGTH = 6;
 const RESEND_COOLDOWN_SECONDS = 30;
-const SIX_DIGITS = /^\d{6}$/;
-const NON_DIGITS = /\D/g;
+const SIX_DIGITS = /^\d{6}$/u;
+const NON_DIGITS = /\D/gu;
 
 const CODE_NETWORK_MESSAGE =
   "We couldn't reach the booking service, so nothing was sent. Please try again in a moment.";

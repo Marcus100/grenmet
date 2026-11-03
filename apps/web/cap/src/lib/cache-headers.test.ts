@@ -15,7 +15,7 @@ async function headersFor(path: string) {
     // The rules use path-to-regexp syntax; these sources are plain regex plus
     // `:path*`, so translate only the latter.
     const pattern = rule.source.replace("/:path*", "(?:/.*)?");
-    if (new RegExp(`^${pattern}$`).test(path)) {
+    if (new RegExp(`^${pattern}$`, "u").test(path)) {
       for (const { key, value } of rule.headers) found.set(key, value);
     }
   }

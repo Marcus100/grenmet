@@ -44,25 +44,25 @@ export function ItemDetailModal({
     <Modal isOpen={isOpen} onClose={onClose}>
       <div className="flex flex-col gap-5 sm:gap-6">
         <div className="flex gap-4 sm:gap-5">
-          <div className="flex h-24 w-24 flex-shrink-0 items-center justify-center rounded-lg bg-muted text-muted-foreground sm:h-28 sm:w-28">
+          <div className="bg-muted text-muted-foreground flex h-24 w-24 flex-shrink-0 items-center justify-center rounded-lg sm:h-28 sm:w-28">
             <Package className="h-10 w-10" />
           </div>
 
           <div className="flex-1">
-            <h2 className="font-bold text-foreground text-xl tracking-wide sm:text-2xl">
+            <h2 className="text-foreground text-xl font-bold tracking-wide sm:text-2xl">
               {item.name}
             </h2>
-            <p className="mt-1 text-muted-foreground text-sm sm:text-base">
+            <p className="text-muted-foreground mt-1 text-sm sm:text-base">
               {item.sku} • {item.category}
             </p>
-            <p className="mt-1 text-muted-foreground text-sm sm:text-base">
+            <p className="text-muted-foreground mt-1 text-sm sm:text-base">
               {item.on_hand} {item.unit} in stock
             </p>
           </div>
         </div>
 
         <div className="flex items-center justify-between">
-          <span className="font-semibold text-base text-foreground sm:text-lg">
+          <span className="text-foreground text-base font-semibold sm:text-lg">
             Quantity ({item.unit})
           </span>
           <QuantitySelector
@@ -73,7 +73,7 @@ export function ItemDetailModal({
         </div>
 
         <Button
-          className="w-full bg-gm-blue-ink hover:bg-gm-navy"
+          className="bg-gm-blue-ink hover:bg-gm-navy w-full"
           onClick={handleAddToRequisition}
           size="touch"
         >

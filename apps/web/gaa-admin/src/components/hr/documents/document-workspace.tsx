@@ -44,7 +44,7 @@ export function DocumentWorkspace() {
         <div className="space-y-2">
           <Label htmlFor={`${id}-organisation`}>Organisation</Label>
           <select
-            className="rounded-md border border-input bg-background p-2 text-sm"
+            className="border-input bg-background rounded-md border p-2 text-sm"
             id={`${id}-organisation`}
             onChange={(event) => {
               setSelectedOrganisation(event.target.value);
@@ -144,7 +144,7 @@ export function DocumentWorkspace() {
       )}
       {selected && (
         <div className="space-y-4">
-          <h2 className="font-medium text-xl">{selected.name}</h2>
+          <h2 className="text-xl font-medium">{selected.name}</h2>
           <EmployeeDocuments
             key={`${organisationId}-${selected.id}`}
             organisationId={organisationId}

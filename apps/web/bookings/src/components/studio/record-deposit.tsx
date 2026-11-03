@@ -113,7 +113,7 @@ export function RecordDeposit({
 
   return (
     <section aria-labelledby="deposit-title" className="space-y-3">
-      <h2 className="font-semibold text-lg" id="deposit-title">
+      <h2 className="text-lg font-semibold" id="deposit-title">
         Deposit
       </h2>
       {canRecord ? (
@@ -148,7 +148,7 @@ export function RecordDeposit({
       ) : null}
       {notice.status === "done" ? (
         <p
-          className="rounded-lg border border-border bg-muted p-3 font-medium"
+          className="border-border bg-muted rounded-lg border p-3 font-medium"
           ref={noticeRef}
           role="status"
           tabIndex={-1}
@@ -158,7 +158,7 @@ export function RecordDeposit({
       ) : null}
       {notice.status === "error" ? (
         <div
-          className="space-y-1 rounded-lg border border-destructive/40 bg-destructive/10 p-3"
+          className="border-destructive/40 bg-destructive/10 space-y-1 rounded-lg border p-3"
           ref={noticeRef}
           role="alert"
           tabIndex={-1}
@@ -215,7 +215,7 @@ function DepositForm({
           for it. It cannot be undone here.
         </AlertDialogDescription>
       </AlertDialogHeader>
-      <p className="rounded-lg border border-border bg-muted p-3 font-semibold">
+      <p className="border-border bg-muted rounded-lg border p-3 font-semibold">
         Deposit received: {amountLabel}
       </p>
       <div className="space-y-1 text-left">
@@ -254,7 +254,7 @@ function DepositForm({
       </div>
       {state.status === "error" ? (
         <div
-          className="space-y-1 rounded-lg border border-destructive/40 bg-destructive/10 p-3"
+          className="border-destructive/40 bg-destructive/10 space-y-1 rounded-lg border p-3"
           ref={errorRef}
           role="alert"
           tabIndex={-1}

@@ -121,16 +121,16 @@ export function Footer() {
       <div className="mx-auto grid max-w-6xl gap-3 px-4 pt-10 sm:px-6 lg:grid-cols-[3fr_2fr] xl:px-8">
         <section
           aria-labelledby="footer-alerts-title"
-          className="flex flex-col gap-3 rounded-gm-card bg-gm-navy-panel p-5"
+          className="rounded-gm-card bg-gm-navy-panel flex flex-col gap-3 p-5"
         >
           <div className="flex items-start gap-3">
             <BellIcon
               aria-hidden="true"
-              className="mt-0.5 size-5 shrink-0 text-gm-lime"
+              className="text-gm-lime mt-0.5 size-5 shrink-0"
             />
             <div>
               <h2
-                className="font-bold text-body-base text-gm-text-inverse leading-body-base"
+                className="text-body-base text-gm-text-inverse leading-body-base font-bold"
                 id="footer-alerts-title"
               >
                 Get official alerts first
@@ -142,7 +142,7 @@ export function Footer() {
             </div>
           </div>
           <Link
-            className="flex h-11 w-fit items-center justify-center rounded-md bg-gm-lime px-4 font-bold text-body text-gm-navy leading-body"
+            className="bg-gm-lime text-body text-gm-navy leading-body flex h-11 w-fit items-center justify-center rounded-md px-4 font-bold"
             href="/alerts/get-alerts"
           >
             Get alerts
@@ -150,10 +150,10 @@ export function Footer() {
         </section>
         <section
           aria-labelledby="footer-emergency-title"
-          className="flex flex-col justify-center gap-1 rounded-gm-card border border-gm-text-inverse/15 p-5 text-body-sm leading-body-sm"
+          className="rounded-gm-card border-gm-text-inverse/15 text-body-sm leading-body-sm flex flex-col justify-center gap-1 border p-5"
         >
           <h2
-            className="font-bold text-body-base text-gm-text-inverse leading-body-base"
+            className="text-body-base text-gm-text-inverse leading-body-base font-bold"
             id="footer-emergency-title"
           >
             In an emergency
@@ -176,14 +176,14 @@ export function Footer() {
           >
             <Logo className="h-10 w-auto" variant="primary" />
           </Link>
-          <p className="max-w-sm text-body-sm leading-body-sm lg:text-body lg:leading-body">
+          <p className="text-body-sm leading-body-sm lg:text-body lg:leading-body max-w-sm">
             <b className="text-gm-text-inverse">
               Grenada Meteorological Service
             </b>
             <br />A department of the Grenada Airports Authority. Maurice Bishop
             International Airport, St. George.
           </p>
-          <address className="flex flex-col gap-0.5 text-body-sm not-italic leading-body-sm lg:text-body lg:leading-body">
+          <address className="text-body-sm leading-body-sm lg:text-body lg:leading-body flex flex-col gap-0.5 not-italic">
             <a className={LINK} href={`tel:${GMS_CONTACTS.mainLine.tel}`}>
               Main line {GMS_CONTACTS.mainLine.label}
             </a>
@@ -199,7 +199,7 @@ export function Footer() {
               <li key={s.label}>
                 <a
                   aria-label={`GMS on ${s.label}`}
-                  className="flex h-9 min-w-9 items-center justify-center gap-2 rounded-full border border-gm-border px-2.5 font-semibold text-caption leading-caption hover:bg-gm-text-inverse/10"
+                  className="border-gm-border text-caption leading-caption hover:bg-gm-text-inverse/10 flex h-9 min-w-9 items-center justify-center gap-2 rounded-full border px-2.5 font-semibold"
                   href={s.href}
                   rel="noopener noreferrer"
                   target="_blank"
@@ -213,7 +213,7 @@ export function Footer() {
 
         {COLUMNS.map((column) => (
           <nav aria-label={column.heading} key={column.heading}>
-            <h2 className="mb-3 font-bold text-gm-text-inverse text-label uppercase leading-label tracking-wider lg:text-caption lg:leading-caption">
+            <h2 className="text-gm-text-inverse text-label leading-label lg:text-caption lg:leading-caption mb-3 font-bold tracking-wider uppercase">
               {column.heading}
             </h2>
             <ul className="flex flex-col gap-2">
@@ -230,7 +230,7 @@ export function Footer() {
       </div>
 
       <div className="border-gm-text-inverse/15 border-t">
-        <div className="mx-auto flex max-w-6xl flex-wrap items-center gap-x-5 gap-y-2 px-4 py-4 text-body-sm leading-body-sm sm:px-6 lg:text-body lg:leading-body xl:px-8">
+        <div className="text-body-sm leading-body-sm lg:text-body lg:leading-body mx-auto flex max-w-6xl flex-wrap items-center gap-x-5 gap-y-2 px-4 py-4 sm:px-6 xl:px-8">
           <p className="text-body-sm leading-body-sm lg:text-body lg:leading-body">
             {copyright}
           </p>

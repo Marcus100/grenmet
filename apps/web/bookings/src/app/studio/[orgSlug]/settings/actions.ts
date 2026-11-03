@@ -32,13 +32,13 @@ import {
 } from "@/lib/studio-errors";
 import { canManageBookings, isUuid } from "@/lib/studio-view";
 
-const SLUG = /^[a-z0-9][a-z0-9-]{0,62}$/;
-const BOOKING_ADDRESS = /^[a-z0-9](?:[a-z0-9-]{1,58}[a-z0-9])$/;
-const CURRENCY = /^[A-Z]{3}$/;
-const MANAGE_URL = /^https:\/\/[^\s]+\{token\}[^\s]*$/;
+const SLUG = /^[a-z0-9][a-z0-9-]{0,62}$/u;
+const BOOKING_ADDRESS = /^[a-z0-9](?:[a-z0-9-]{1,58}[a-z0-9])$/u;
+const CURRENCY = /^[A-Z]{3}$/u;
+const MANAGE_URL = /^https:\/\/[^\s]+\{token\}[^\s]*$/u;
 /** The API caps money at 100,000,000 minor units (1,000,000.00). */
 const MAX_MINOR = 100_000_000;
-const WHOLE = /^\d+$/;
+const WHOLE = /^\d+$/u;
 
 const NOT_FOUND: StudioFailure = {
   kind: "not_found",

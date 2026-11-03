@@ -114,7 +114,7 @@ export function ImportForm() {
           <Label htmlFor={`${formId}-value`}>{valueLabel}</Label>
           <Textarea
             aria-describedby={hintId}
-            className="min-h-40 font-mono text-body-sm"
+            className="text-body-sm min-h-40 font-mono"
             disabled={pending}
             id={`${formId}-value`}
             onChange={(event) => {
@@ -154,11 +154,11 @@ export function ImportForm() {
       {saved ? (
         <section
           aria-labelledby={`${formId}-saved`}
-          className="space-y-3 rounded-lg border border-warning bg-warning-soft p-4 text-body-sm"
+          className="border-warning bg-warning-soft text-body-sm space-y-3 rounded-lg border p-4"
           role="status"
         >
           <h2
-            className="font-semibold text-warning-soft-foreground"
+            className="text-warning-soft-foreground font-semibold"
             id={`${formId}-saved`}
           >
             Imported, but the document does not fully follow CAP 1.2
@@ -172,7 +172,7 @@ export function ImportForm() {
             The draft is saved. Check each problem in it before you publish.
           </p>
           <Link
-            className="font-medium text-info underline"
+            className="text-info font-medium underline"
             href={`/desk/alerts/${encodeURIComponent(saved.alertId)}`}
           >
             Open the imported draft

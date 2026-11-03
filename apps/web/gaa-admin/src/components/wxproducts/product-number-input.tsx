@@ -35,7 +35,7 @@ export function ProductNumberInput({
     <InputGroupInput
       aria-label={`${productFieldLabel(field)}${field.required ? " *" : ""}`}
       className={cn(
-        "tabular-nums [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none",
+        "[appearance:textfield] tabular-nums [&::-webkit-inner-spin-button]:appearance-none",
         value.trim() && "pt-3 pb-0 leading-4"
       )}
       id={id}

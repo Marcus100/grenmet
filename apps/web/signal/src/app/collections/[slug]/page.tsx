@@ -25,7 +25,7 @@ export default async function CollectionPage({ params }: Props) {
         <p>{collection.description}</p>
       </PageIntro>
       {articles.length ? (
-        <div className="grid gap-10 border-signal-rule border-t pt-8 md:grid-cols-2">
+        <div className="border-signal-rule grid gap-10 border-t pt-8 md:grid-cols-2">
           {articles.map((article) => (
             <StoryCard article={article} key={article.slug} wideImage />
           ))}

@@ -1,6 +1,6 @@
-const FORBIDDEN = /403/;
-const TOKEN_REQUIRED = /ACCESS_TOKEN/;
-const LOCAL_API = /local FastAPI/;
+const FORBIDDEN = /403/u;
+const TOKEN_REQUIRED = /ACCESS_TOKEN/u;
+const LOCAL_API = /local FastAPI/u;
 
 import assert from "node:assert/strict";
 import test from "node:test";

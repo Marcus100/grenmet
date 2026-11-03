@@ -17,7 +17,7 @@ export const dynamic = "force-dynamic";
 
 function StateBadge({ profile }: { profile: CapProfilePublic }) {
   return (
-    <span className="rounded-full border px-2 py-0.5 font-medium text-caption">
+    <span className="text-caption rounded-full border px-2 py-0.5 font-medium">
       Version {profile.version}:{" "}
       {profile.state === "APPROVED" ? "approved" : "draft, not approved"}
     </span>
@@ -26,7 +26,7 @@ function StateBadge({ profile }: { profile: CapProfilePublic }) {
 
 function VersionLine({ profile }: { profile: CapProfilePublic }) {
   return (
-    <li className="space-y-1 text-body-sm">
+    <li className="text-body-sm space-y-1">
       <span className="font-medium">Version {profile.version}</span> ·{" "}
       {profile.state === "APPROVED" ? "approved" : "draft"} · saved{" "}
       {grenadaTime(profile.created_at)}
@@ -57,14 +57,14 @@ function ProfileCard({
       className="space-y-3 rounded-lg border p-4"
     >
       <header className="flex flex-wrap items-center gap-2">
-        <h2 className="font-semibold text-lg" id={`profile-${group.key}`}>
+        <h2 className="text-lg font-semibold" id={`profile-${group.key}`}>
           {group.name}
         </h2>
         <code className="text-caption text-muted-foreground">{group.key}</code>
         <StateBadge profile={latest} />
       </header>
       {latest.approval_errors.length > 0 && latest.state === "DRAFT" ? (
-        <div className="rounded-md border border-warning bg-warning-soft p-3 text-body-sm">
+        <div className="border-warning bg-warning-soft text-body-sm rounded-md border p-3">
           <p className="font-medium">Not ready to approve:</p>
           <ul className="list-disc pl-5">
             {latest.approval_errors.map((item) => (
@@ -81,7 +81,7 @@ function ProfileCard({
         />
       ) : null}
       <details>
-        <summary className="cursor-pointer text-info underline">
+        <summary className="text-info cursor-pointer underline">
           Version history ({group.versions.length})
         </summary>
         <ul className="mt-2 space-y-2">
@@ -113,7 +113,7 @@ export default async function HazardProfilesPage() {
   return (
     <section className="space-y-6">
       <header className="space-y-1">
-        <h1 className="font-semibold text-2xl">Hazard profiles</h1>
+        <h1 className="text-2xl font-semibold">Hazard profiles</h1>
         <p className="text-body-sm text-muted-foreground">
           A profile sets the wording, impacts and the impact-based matrix for
           one hazard. Approved profiles drive the severity and wording of new
@@ -121,7 +121,7 @@ export default async function HazardProfilesPage() {
         </p>
       </header>
       {groups.length === 0 ? (
-        <p className="rounded-lg border p-6 text-muted-foreground">
+        <p className="text-muted-foreground rounded-lg border p-6">
           No hazard profiles have been saved yet.
         </p>
       ) : (

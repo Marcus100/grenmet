@@ -11,7 +11,7 @@ import { readdirSync, readFileSync } from "node:fs";
 import { dirname, join, relative, resolve, sep } from "node:path";
 import { fileURLToPath } from "node:url";
 
-const SOURCE = /\.(?:[cm]?[jt]sx?)$/;
+const SOURCE = /\.(?:[cm]?[jt]sx?)$/u;
 // Skipped at any depth.
 const SKIP_DIRS = new Set([
   "node_modules",
@@ -26,10 +26,10 @@ const SKIP_WORKSPACE_DIRS = new Set(["dist", "build"]);
 const GENERATED = "packages/api-client/src/gen";
 // from "x" | import "x" | import("x") | require("x")
 const SPECIFIER =
-  /(?:\bfrom\s*|\bimport\s*\(?\s*|\brequire\s*\(\s*)["']([^"'\n]+)["']/g;
+  /(?:\bfrom\s*|\bimport\s*\(?\s*|\brequire\s*\(\s*)["']([^"'\n]+)["']/gu;
 const DATABASE_CLIENT =
-  /^(?:pg|pg-pool|postgres|mysql2?|kysely|ioredis|redis|@prisma\/client|drizzle-orm(?:\/.*)?|@vercel\/postgres|@neondatabase\/serverless)$/;
-const ROUTE_HANDLER = /(?:^|\/)route\.[cm]?[jt]sx?$/;
+  /^(?:pg|pg-pool|postgres|mysql2?|kysely|ioredis|redis|@prisma\/client|drizzle-orm(?:\/.*)?|@vercel\/postgres|@neondatabase\/serverless)$/u;
+const ROUTE_HANDLER = /(?:^|\/)route\.[cm]?[jt]sx?$/u;
 
 function posix(root, path) {
   return relative(root, path).split(sep).join("/");
@@ -52,8 +52,8 @@ function isOwnPackage(specifier, own) {
 // `//` preceded by `:` is left alone so URLs in strings survive.
 function stripComments(source) {
   return source
-    .replace(/\/\*[\s\S]*?\*\//g, (comment) => comment.replace(/[^\n]/g, " "))
-    .replace(/(^|[^:])\/\/[^\n]*/g, (_, before) => before);
+    .replace(/\/\*[\s\S]*?\*\//gu, (comment) => comment.replace(/[^\n]/gu, " "))
+    .replace(/(^|[^:])\/\/[^\n]*/gu, (_, before) => before);
 }
 
 export const rules = [

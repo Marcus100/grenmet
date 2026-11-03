@@ -15,7 +15,7 @@ import { fileURLToPath } from "node:url";
 const bootstrap = fileURLToPath(
   new URL("../../.github/actions/setup-node/bootstrap-pnpm.sh", import.meta.url)
 );
-const WARNING = /failed or timed out/g;
+const WARNING = /failed or timed out/gu;
 
 function fixture(t, failures, manager = "pnpm@12.3.4") {
   const root = mkdtempSync(join(tmpdir(), "pnpm-bootstrap-"));

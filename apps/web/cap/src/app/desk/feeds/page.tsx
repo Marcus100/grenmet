@@ -27,7 +27,7 @@ export default async function FeedsPage() {
   }
   return (
     <div className="space-y-6">
-      <h1 className="font-semibold text-2xl">External CAP feeds</h1>
+      <h1 className="text-2xl font-semibold">External CAP feeds</h1>
       <FeedManager feeds={feeds} />
     </div>
   );

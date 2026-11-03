@@ -40,7 +40,7 @@ export function OrganiserVerificationNotice({ name }: { name: string }) {
   return (
     <section
       aria-label="Organiser verification"
-      className="space-y-2 bg-muted px-4 py-3 text-center text-body text-muted-foreground"
+      className="bg-muted text-body text-muted-foreground space-y-2 px-4 py-3 text-center"
     >
       <p role="status">{name} is awaiting verification by the Barrels team.</p>
       <p>

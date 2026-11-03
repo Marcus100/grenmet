@@ -11,9 +11,9 @@ import { DuplicateAlertButton } from "./duplicate-alert-button";
 
 const ALERT = "11111111-2222-4333-8444-555555555555";
 const COPY = "99999999-2222-4333-8444-555555555555";
-const BUTTON = /duplicate as draft/i;
-const NO_ACCESS = /No access to duplicate alerts/;
-const NOT_UPDATE = /is not an Update of this warning/;
+const BUTTON = /duplicate as draft/iu;
+const NO_ACCESS = /No access to duplicate alerts/u;
+const NOT_UPDATE = /is not an Update of this warning/u;
 
 beforeEach(() => {
   vi.clearAllMocks();

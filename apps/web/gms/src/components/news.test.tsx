@@ -10,10 +10,10 @@ import { GmsNews } from "@/components/gms-news";
 import { News } from "@/components/news";
 import { fetchPublishedContent } from "@/lib/cms";
 
-const CANNOT_RETRIEVE = /cannot be retrieved/;
+const CANNOT_RETRIEVE = /cannot be retrieved/u;
 const EMPTY =
-  /^No (published articles are available|stories are published yet)\.$/;
-const MARINE_TITLE = /Marine Bulletin/;
+  /^No (published articles are available|stories are published yet)\.$/u;
+const MARINE_TITLE = /Marine Bulletin/u;
 
 vi.mock("@/lib/cms", async (importOriginal) => ({
   ...(await importOriginal<typeof import("@/lib/cms")>()),

@@ -17,8 +17,8 @@ import {
 } from "@/data/site";
 import { bookingLink } from "@/lib/book-link";
 
-const APPOINTMENT = /appointment/i;
-const OLD_LISTING = /True Blue|Fresha/;
+const APPOINTMENT = /appointment/iu;
+const OLD_LISTING = /True Blue|Fresha/u;
 
 vi.mock("next/navigation", () => ({ usePathname: () => "/services" }));
 

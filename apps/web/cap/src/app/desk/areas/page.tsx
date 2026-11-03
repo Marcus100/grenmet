@@ -31,7 +31,7 @@ export default async function AreasPage() {
   return (
     <GmsCatalogueProvider catalogue={catalogue}>
       <div className="space-y-6">
-        <h1 className="font-semibold text-2xl">Predefined CAP areas</h1>
+        <h1 className="text-2xl font-semibold">Predefined CAP areas</h1>
         <p className="text-body-sm text-muted-foreground">
           Reusable geographic areas for future warnings. Existing areas cannot
           be edited or removed yet.

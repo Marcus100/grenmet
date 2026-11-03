@@ -24,7 +24,7 @@ vi.mock("@/components/cap/alert-map-preview", () => ({
 
 const EMPTY: CapAlertList = { count: 0, data: [] };
 const NONE = "There are no active CAP alerts.";
-const UNAVAILABLE = /cannot be retrieved right now/;
+const UNAVAILABLE = /cannot be retrieved right now/u;
 const FEED_OK = { status: "ok" as const, value: EMPTY };
 const FEED_DOWN = { status: "unavailable" as const };
 const EMPTY_MAP = {

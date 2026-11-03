@@ -355,7 +355,7 @@ export function PayoutForm() {
   return (
     <section aria-labelledby="payout-heading" className="space-y-2">
       <PaymentsHeading id="payout-heading" title="Record a payout" />
-      <p className="max-w-3xl text-muted-foreground text-sm">
+      <p className="text-muted-foreground max-w-3xl text-sm">
         Record a payout after Barrels has paid the organisation outside this
         console. It reduces the balance owed, cannot exceed it, and the ledger
         cannot be edited afterwards. You will confirm on the next step.

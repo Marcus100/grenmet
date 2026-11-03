@@ -1,7 +1,7 @@
 import type { PublicMonthSummary } from "@barrelsgd/api-client";
 import { fetchMonthSummary } from "@/lib/products";
 
-const MONTH = /^\d{4}-(0[1-9]|1[0-2])$/;
+const MONTH = /^\d{4}-(0[1-9]|1[0-2])$/u;
 
 /** Register figures as label/value rows; an unreported figure is never shown as zero. */
 export function climateFigureRows(summary: PublicMonthSummary) {
@@ -35,17 +35,17 @@ export async function ClimateFigures({ month }: { month: string }) {
   return (
     <section
       aria-labelledby="climate-figures"
-      className="space-y-3 rounded-gm-card border border-gm-border p-4"
+      className="rounded-gm-card border-gm-border space-y-3 border p-4"
     >
       <h2
-        className="font-bold font-gm-display text-gm-heading text-heading-sm leading-heading-sm"
+        className="font-gm-display text-gm-heading text-heading-sm leading-heading-sm font-bold"
         id="climate-figures"
       >
         The month in figures
       </h2>
       {summary ? (
         <>
-          <dl className="grid gap-x-6 gap-y-2 text-body leading-body sm:grid-cols-2">
+          <dl className="text-body leading-body grid gap-x-6 gap-y-2 sm:grid-cols-2">
             {climateFigureRows(summary).map((row) => (
               <div className="flex justify-between gap-4" key={row.label}>
                 <dt className="text-gm-text-secondary">{row.label}</dt>

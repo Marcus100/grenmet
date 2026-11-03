@@ -25,14 +25,14 @@ export default async function ResetPasswordPage({ searchParams }: PageProps) {
       ) : (
         <div className="space-y-5">
           <div
-            className="rounded-lg border border-destructive/30 bg-destructive/10 px-4 py-3 text-destructive text-sm"
+            className="border-destructive/30 bg-destructive/10 text-destructive rounded-lg border px-4 py-3 text-sm"
             role="alert"
           >
             This reset link is missing its token. It may have expired or been
             used already.
           </div>
           <Link
-            className="block text-center font-medium text-(--auth-accent) text-sm underline-offset-4 hover:underline"
+            className="block text-center text-sm font-medium text-(--auth-accent) underline-offset-4 hover:underline"
             href="/forgot-password"
           >
             Request a new link

@@ -20,7 +20,7 @@ import { reportError } from "@/lib/report-error";
 export const metadata: Metadata = { title: "Alert" };
 export const dynamic = "force-dynamic";
 
-const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/u;
 
 export default async function DeskAlertPage({
   params,
@@ -52,7 +52,7 @@ export default async function DeskAlertPage({
         Back to the board
       </Link>
       <div className="space-y-2">
-        <h1 className="font-semibold text-2xl">
+        <h1 className="text-2xl font-semibold">
           {alert.info?.[0]?.headline ?? alert.identifier}
         </h1>
         <AlertBadges alert={alert} />

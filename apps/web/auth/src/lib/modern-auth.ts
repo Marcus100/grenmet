@@ -81,7 +81,7 @@ export const emailConfirm = (body: EmailConfirm) =>
     client: transport,
   }).unwrap();
 
-const API_PREFIX = /^\/api\/v1/;
+const API_PREFIX = /^\/api\/v1/u;
 
 export const confirmActivation = (body: ActivationConfirm) =>
   authConfirmActivation({ body, client: transport }).unwrap();

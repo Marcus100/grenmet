@@ -19,9 +19,9 @@ vi.mock("sonner", () => ({ toast: { error: vi.fn(), success: vi.fn() } }));
 
 const BASE = "http://localhost";
 const HOUR_MS = 3_600_000;
-const OPEN_DIALOG = /Snooze a notification/;
-const NO_SNOOZES = /No active snoozes/;
-const BOTH_OR_NEITHER = /both the item type and the item id/;
+const OPEN_DIALOG = /Snooze a notification/u;
+const NO_SNOOZES = /No active snoozes/u;
+const BOTH_OR_NEITHER = /both the item type and the item id/u;
 
 const setting = (event_key: string, label: string) => ({
   event_key,

@@ -67,7 +67,7 @@ export default async function ModerationCasePage({
         </Link>
       </p>
       <div className="flex flex-wrap items-center gap-3">
-        <h1 className="font-semibold text-2xl">{verification.name}</h1>
+        <h1 className="text-2xl font-semibold">{verification.name}</h1>
         <StatusBadge status={verification.verification_status} />
       </div>
 
@@ -107,7 +107,7 @@ export default async function ModerationCasePage({
         <h2 className="font-medium" id="about-heading">
           About the organiser
         </h2>
-        <p className="whitespace-pre-line text-sm">
+        <p className="text-sm whitespace-pre-line">
           {verification.bio || "No description given."}
         </p>
       </section>

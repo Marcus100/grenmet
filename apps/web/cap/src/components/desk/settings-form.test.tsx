@@ -10,7 +10,7 @@ vi.mock("@/app/desk/settings/actions", () => actions);
 
 import { SettingsForm } from "./settings-form";
 
-const REVIEW_BUTTON = /review and save/i;
+const REVIEW_BUTTON = /review and save/iu;
 
 beforeEach(() => {
   vi.clearAllMocks();

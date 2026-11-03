@@ -9,7 +9,7 @@ export default function NotFound() {
         </p>
       </PageIntro>
       <Link
-        className="inline-flex min-h-11 items-center text-signal-green underline"
+        className="text-signal-green inline-flex min-h-11 items-center underline"
         href="/search"
       >
         Search Signal →

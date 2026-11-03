@@ -187,8 +187,8 @@ export const RULE_GROUPS: Group[] = [
 ];
 
 const FIELDS = RULE_GROUPS.flatMap((group) => group.fields);
-const TIME = /^([01]\d|2[0-3]):[0-5]\d$/;
-const DECIMAL = /^\d+\.\d+$/;
+const TIME = /^([01]\d|2[0-3]):[0-5]\d$/u;
+const DECIMAL = /^\d+\.\d+$/u;
 
 export interface RuleSetValues {
   overtime_bands_enabled: boolean;

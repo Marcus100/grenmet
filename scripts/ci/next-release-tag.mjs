@@ -3,7 +3,7 @@ import { fileURLToPath } from "node:url";
 
 // Release tags follow `vN.M` and only ever increase (v0.9, v0.10, v0.23, ...).
 // Anything else in the list (for example a stray `v.03`) is ignored.
-const RELEASE_TAG = /^v(\d+)\.(\d+)$/;
+const RELEASE_TAG = /^v(\d+)\.(\d+)$/u;
 
 /** The highest `vN.M` tag, compared numerically, or null when there is none. */
 export function latestReleaseTag(tags) {

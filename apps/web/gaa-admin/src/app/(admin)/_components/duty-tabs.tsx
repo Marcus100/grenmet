@@ -30,11 +30,11 @@ function PeopleList({
     <ul className="space-y-1">
       {people.map((person) => (
         <li className="flex items-center gap-3 py-1.5" key={person.id}>
-          <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-primary/10 font-medium text-[11px] text-primary">
+          <span className="bg-primary/10 text-primary flex size-7 shrink-0 items-center justify-center rounded-full text-[11px] font-medium">
             {initials(person.name)}
           </span>
           <span className="min-w-0 flex-1 truncate text-sm">{person.name}</span>
-          <span className="shrink-0 text-muted-foreground text-xs">
+          <span className="text-muted-foreground shrink-0 text-xs">
             {person.shift}
           </span>
         </li>

@@ -40,7 +40,7 @@ export default async function DeskSignIn({ searchParams }: SignInPageProps) {
   if (!env.CAP_SSO_CLIENT_SECRET) {
     return (
       <section className="mx-auto max-w-xl space-y-3 py-10">
-        <h1 className="font-semibold text-2xl">Desk sign-in is switched off</h1>
+        <h1 className="text-2xl font-semibold">Desk sign-in is switched off</h1>
         <p className="text-muted-foreground" role="alert">
           This server has no single sign-on secret for the warning desk. Use the
           CAP desk in GAA Admin until it is set.
@@ -52,13 +52,13 @@ export default async function DeskSignIn({ searchParams }: SignInPageProps) {
 
   return (
     <section className="mx-auto max-w-xl space-y-4 py-10">
-      <h1 className="font-semibold text-2xl">Sign-in did not finish</h1>
+      <h1 className="text-2xl font-semibold">Sign-in did not finish</h1>
       <p className="text-muted-foreground" role="alert">
         The sign-in link expired or was refused. The warning desk is for
         approved GMS staff with access to CAP warnings.
       </p>
       <a
-        className="inline-block rounded-md border px-3 py-1.5 text-sm hover:bg-muted"
+        className="hover:bg-muted inline-block rounded-md border px-3 py-1.5 text-sm"
         href={start}
       >
         Try again

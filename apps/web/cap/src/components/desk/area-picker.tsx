@@ -151,10 +151,10 @@ export function AreaPicker({
   if (kept) {
     return (
       <div className="space-y-3 rounded-lg border p-4">
-        <p className="font-medium text-body-sm">
+        <p className="text-body-sm font-medium">
           Kept as saved ({kept.length} area{kept.length === 1 ? "" : "s"})
         </p>
-        <ul className="list-disc space-y-1 pl-5 text-body-sm">
+        <ul className="text-body-sm list-disc space-y-1 pl-5">
           {kept.map((area) => (
             <li key={JSON.stringify(area)}>
               {area.area_desc}{" "}
@@ -182,18 +182,18 @@ export function AreaPicker({
 
   return (
     <div className="space-y-4">
-      <div className="flex w-fit gap-1 rounded-lg bg-gm-surface-muted p-1">
+      <div className="bg-gm-surface-muted flex w-fit gap-1 rounded-lg p-1">
         {MODES.map((item) => (
           <button
             aria-pressed={mode === item.value}
-            className="relative rounded-md px-3.5 py-1.5 font-semibold text-body-sm leading-body-sm"
+            className="text-body-sm leading-body-sm relative rounded-md px-3.5 py-1.5 font-semibold"
             key={item.value}
             onClick={() => switchMode(item.value)}
             type="button"
           >
             {mode === item.value ? (
               <motion.span
-                className="absolute inset-0 rounded-md bg-card shadow-card"
+                className="bg-card shadow-card absolute inset-0 rounded-md"
                 layoutId="area-mode-fill"
                 transition={{ type: "spring", stiffness: 500, damping: 34 }}
               />
@@ -223,7 +223,7 @@ export function AreaPicker({
                   return (
                     <button
                       aria-pressed={selected}
-                      className="flex items-center justify-between gap-2 rounded-md border px-2.5 py-2 text-left text-body-sm leading-body-sm"
+                      className="text-body-sm leading-body-sm flex items-center justify-between gap-2 rounded-md border px-2.5 py-2 text-left"
                       key={parish.id}
                       onClick={() => toggleParish(parish.id)}
                       style={{
@@ -276,7 +276,7 @@ export function AreaPicker({
                       type="range"
                       value={circle.radiusKm}
                     />
-                    <p className="font-mono text-gm-text-muted text-micro leading-micro">
+                    <p className="text-gm-text-muted text-micro leading-micro font-mono">
                       circle: {circle.lat.toFixed(4)},{circle.lon.toFixed(4)}{" "}
                       {circle.radiusKm}
                     </p>
@@ -296,7 +296,7 @@ export function AreaPicker({
                 <p className="text-body-sm text-gm-text-muted leading-body-sm">
                   Click the map to add vertices; a shape needs at least 3.
                 </p>
-                <p className="font-mono text-gm-text-secondary text-micro leading-micro">
+                <p className="text-gm-text-secondary text-micro leading-micro font-mono">
                   {polygonPoints.length} point
                   {polygonPoints.length === 1 ? "" : "s"}
                 </p>
@@ -339,7 +339,7 @@ export function AreaPicker({
             parishIds={parishIds}
             polygonPoints={polygonPoints}
           />
-          <div className="rounded-md bg-gm-surface-panel px-3 py-2">
+          <div className="bg-gm-surface-panel rounded-md px-3 py-2">
             <Label
               className="text-gm-text-muted text-micro"
               htmlFor={`${inputId}-desc`}
@@ -347,7 +347,7 @@ export function AreaPicker({
               areaDesc
             </Label>
             <Input
-              className="mt-1 border-none bg-transparent p-0 text-body-sm shadow-none focus-visible:ring-0"
+              className="text-body-sm mt-1 border-none bg-transparent p-0 shadow-none focus-visible:ring-0"
               id={`${inputId}-desc`}
               onChange={(event) => setAreaDescEdited(event.target.value)}
               placeholder="Describe the area…"
@@ -425,7 +425,7 @@ function AreaMap({
     mode === "CIRCLE" && circle ? circleToRingCoordinates(circle) : null;
 
   return (
-    <div className="overflow-hidden rounded-lg border border-gm-border">
+    <div className="border-gm-border overflow-hidden rounded-lg border">
       <CapMap
         cursor={mode === "GEOCODE" ? "pointer" : "crosshair"}
         height={320}
