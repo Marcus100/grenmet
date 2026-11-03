@@ -5,10 +5,10 @@ import logging
 import httpx
 import pytest
 from fastapi import FastAPI
-from starlette.middleware.base import BaseHTTPMiddleware
+from fastapi.responses import StreamingResponse
 
 from src.config import settings
-from src.main import app, request_logging_middleware, unhandled_exception_handler
+from src.main import RequestLoggingMiddleware, app, unhandled_exception_handler
 from src.request_context import (
     REQUEST_ID_HEADER,
     RequestIdFilter,
@@ -118,7 +118,7 @@ async def test_unhandled_server_errors_carry_the_id() -> None:
     async def boom() -> None:
         raise RuntimeError("secret detail")
 
-    probe.add_middleware(BaseHTTPMiddleware, dispatch=request_logging_middleware)
+    probe.add_middleware(RequestLoggingMiddleware)
     async with httpx.AsyncClient(
         transport=httpx.ASGITransport(app=probe, raise_app_exceptions=False),
         base_url="http://test",
@@ -127,3 +127,38 @@ async def test_unhandled_server_errors_carry_the_id() -> None:
     assert response.status_code == 500
     assert response.headers[REQUEST_ID_HEADER] == "web-4f9a2c71"
     assert "secret detail" not in response.text
+
+
+async def test_the_log_line_records_the_real_status(
+    client: httpx.AsyncClient, caplog: pytest.LogCaptureFixture
+) -> None:
+    logging.getLogger("src.request").disabled = False
+    with caplog.at_level(logging.INFO, logger="src.request"):
+        await client.get(f"{settings.API_V1_STR}/no-such-route")
+    assert any("status=404" in line for line in caplog.messages)
+
+
+async def test_streamed_responses_carry_the_id_and_are_not_buffered() -> None:
+    probe = FastAPI()
+    seen_ids: list[str | None] = []
+
+    async def chunks():  # type: ignore[no-untyped-def]
+        # The bound ID is visible inside the streaming body, too.
+        seen_ids.append(current_request_id())
+        yield b"a"
+        yield b"b"
+
+    @probe.get("/stream")
+    async def stream() -> StreamingResponse:
+        return StreamingResponse(chunks())
+
+    probe.add_middleware(RequestLoggingMiddleware)
+    async with httpx.AsyncClient(
+        transport=httpx.ASGITransport(app=probe), base_url="http://test"
+    ) as http:
+        response = await http.get(
+            "/stream", headers={REQUEST_ID_HEADER: "web-4f9a2c71"}
+        )
+    assert response.text == "ab"
+    assert response.headers[REQUEST_ID_HEADER] == "web-4f9a2c71"
+    assert seen_ids == ["web-4f9a2c71"]
