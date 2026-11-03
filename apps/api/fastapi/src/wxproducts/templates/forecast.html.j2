@@ -40,7 +40,7 @@
           {% for item in advisories %}
           <li><b>{{ loop.index }}</b> {{ item.title }} ({{ item.product | lower }}): {{ (item.likelihood or "unassessed") | lower }} likelihood, {{ (item.impact or "unassessed") | lower }} impacts</li>
           {% else %}
-          <li class="none">No CAP alerts or GMS bulletins were in force at issue.</li>
+          <li class="none">{% if captured %}No CAP alerts or GMS bulletins were in force at issue.{% else %}Alerts were not captured for this revision.{% endif %}</li>
           {% endfor %}
           {% for item in all_clear %}
           <li class="info">All clear (information): {{ item.title }} bulletin, {{ item.valid }}</li>

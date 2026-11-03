@@ -5,7 +5,6 @@
 
 import * as z from "zod";
 import { authoringErrorSchema } from "./authoringErrorSchema.js";
-import { validationErrorResponseSchema } from "./validationErrorResponseSchema.js";
 
 export const wxproductsProductRevisionPdfPathProductIdSchema = z.uuid();
 
@@ -19,10 +18,7 @@ export const wxproductsProductRevisionPdfStatus403Schema = authoringErrorSchema;
 
 export const wxproductsProductRevisionPdfStatus404Schema = authoringErrorSchema;
 
-export const wxproductsProductRevisionPdfStatus422Schema =
-  validationErrorResponseSchema.describe(
-    "Validation error envelope returned for malformed requests."
-  );
+export const wxproductsProductRevisionPdfStatus422Schema = authoringErrorSchema;
 
 export const wxproductsProductRevisionPdfStatus503Schema = authoringErrorSchema;
 

@@ -363,8 +363,12 @@ apply), and it imports the CAP alerts and GMS bulletins in force: on save and
 preview FastAPI stores them as a JSON snapshot in `advisories` (the same path as
 the morning, midday and evening forecasts), so forecasters do not type impact,
 alert or small craft text. The earlier `smallCraft` and `smallCraftNotes` fields
-were removed (a write that sends them gets "Unknown product field"); revisions
-saved with them still render as PDFs, which ignore them. Entry and display use
+were removed. A write that still carries them (the desk posts stored values back)
+has them ignored, not rejected: the new revision never stores them, while
+revisions already saved keep them and print them read-only as "Small craft (as
+recorded)". Any other unknown key is still refused ("Unknown product field"). A
+saved revision that never captured advisories prints "Alerts were not captured for
+this revision" instead of "No CAP alerts or GMS bulletins were in force". Entry and display use
 mph for wind and feet for waves and swell; storage stays in knots and metres.
 The PDF (`GET /wxproducts/products/{id}/revisions/{revision}/pdf`, and the draft
 preview) has a marine sheet: synopsis, winds, seas, alerts and advisories in

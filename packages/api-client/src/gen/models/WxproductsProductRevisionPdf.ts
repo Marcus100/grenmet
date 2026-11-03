@@ -4,7 +4,6 @@
  */
 
 import type { AuthoringError } from "./AuthoringError.js";
-import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 
 export type WxproductsProductRevisionPdfPath = {
   /**
@@ -29,11 +28,7 @@ export type WxproductsProductRevisionPdfStatus403 = AuthoringError;
 
 export type WxproductsProductRevisionPdfStatus404 = AuthoringError;
 
-/**
- * @description Validation error envelope returned for malformed requests.
- * @type object
- */
-export type WxproductsProductRevisionPdfStatus422 = ValidationErrorResponse;
+export type WxproductsProductRevisionPdfStatus422 = AuthoringError;
 
 export type WxproductsProductRevisionPdfStatus503 = AuthoringError;
 

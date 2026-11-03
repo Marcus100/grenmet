@@ -8,11 +8,12 @@ import pytest
 
 from src.exceptions import AppException
 from src.main import app
-from src.wxproducts import advisories, forecast_pdf, pdf, validation
+from src.wxproducts import advisories, forecast_pdf, pdf, service, validation
 from src.wxproducts.dependencies import ProductAuthor, get_author
 from src.wxproducts.exceptions import UnsupportedSheetKind
 from src.wxproducts.schemas import ProductPdfSourceAdapter
 from tests.wxproducts.test_authoring import actor as actor
+from tests.wxproducts.test_authoring import weather_sessions as weather_sessions
 from tests.wxproducts.test_forecast_pdf import ITEM
 from tests.wxproducts.test_preview import payload
 from tests.wxproducts.test_validation import NOW, body, complete
@@ -59,16 +60,16 @@ def test_typed_small_craft_choice_is_gone_and_not_required():
         now=NOW,
     )
     assert errors == []
-    typed = validation.validate(
+    forged = validation.validate(
         body(
             "marine-forecast",
-            values=values | {"smallCraft": "Small craft advisory"},
+            values=values | {"forged": "yes"},
             action="publish",
             reviewed=True,
         ),
         now=NOW,
     )
-    assert typed == ["Unknown product field"]
+    assert forged == ["Unknown product field"]
 
 
 def test_preview_carries_the_advisories_snapshot():
@@ -224,3 +225,164 @@ async def test_preview_pdf_endpoint_for_marine_forecast_and_climate(
         assert len(seen) == 2
     finally:
         app.dependency_overrides.pop(get_author, None)
+
+
+LEGACY = {"smallCraft": "Small craft advisory", "smallCraftNotes": "Stay in port."}
+
+
+def current_marine(**changes):
+    """A marine forecast issued today (Grenada) that is valid now."""
+    today = datetime.now(validation.GRENADA).date().isoformat()
+    values = complete("marine-forecast") | MARINE | {"issuedAt": f"{today}T05:00"}
+    return body("marine-forecast", values=values, **changes)
+
+
+def test_normalize_drops_only_the_legacy_small_craft_keys():
+    values = validation.normalize(
+        "marine-forecast", complete("marine-forecast") | LEGACY
+    )
+    assert not set(LEGACY) & set(values)
+    # Any other unknown key still reaches the unknown-field check.
+    other = validation.normalize(
+        "marine-forecast", complete("marine-forecast") | {"x": "1"}
+    )
+    assert other["x"] == "1"
+    # Other kinds are untouched.
+    assert (
+        validation.normalize("morning", {"smallCraft": "kept"})["smallCraft"] == "kept"
+    )
+
+
+@pytest.mark.parametrize("action", ["draft", "publish"])
+async def test_legacy_revision_values_can_be_saved_and_published(
+    weather_sessions, actor, action
+):
+    payload = current_marine(action=action, changeSummary="")
+    payload.values.update(LEGACY)
+    async with weather_sessions() as session:
+        saved = await service.write_product(session, payload, actor)
+        assert saved.revision == 1
+        assert not set(LEGACY) & set(saved.draft["values"])
+
+
+async def test_published_legacy_revision_can_be_withdrawn(weather_sessions, actor):
+    from sqlalchemy import update
+
+    from src.wxproducts.models import AuthoredProduct
+
+    payload = current_marine(action="publish")
+    async with weather_sessions() as session:
+        await service.write_product(session, payload, actor)
+    # Give the stored revision the keys an older issue carried.
+    async with weather_sessions() as session, session.begin():
+        row = await session.get(AuthoredProduct, payload.id)
+        assert row is not None
+        draft = {**row.draft, "values": {**row.draft["values"], **LEGACY}}
+        published = {**row.published, "values": {**row.published["values"], **LEGACY}}
+        await session.execute(
+            update(AuthoredProduct)
+            .where(AuthoredProduct.id == payload.id)
+            .values(draft=draft, published=published)
+        )
+    # The desk posts the stored values back, hidden legacy keys included.
+    withdraw = payload.model_copy(
+        update={
+            "action": "withdraw",
+            "expectedRevision": 1,
+            "changeSummary": "Withdraw old issue",
+            "values": payload.values | LEGACY,
+        }
+    )
+    async with weather_sessions() as session:
+        withdrawn = await service.write_product(session, withdraw, actor)
+        assert withdrawn.published is None
+        assert withdrawn.draft["values"]["smallCraft"] == LEGACY["smallCraft"]
+
+
+def _marine_html(values):
+    context = forecast_pdf.marine_forecast_context(values, status="", revision="r1")
+    return forecast_pdf._environment().get_template("marine.html.j2").render(**context)
+
+
+def test_marine_sheet_never_claims_none_in_force_without_a_snapshot():
+    base = complete("marine-forecast") | MARINE
+    # Revision saved before alerts were captured.
+    html = _marine_html(base | {"advisories": ""})
+    assert "Alerts were not captured for this revision." in html
+    assert "were in force at issue" not in html
+    # Snapshot taken, nothing in force.
+    html = _marine_html(
+        base | {"advisories": json.dumps({"complete": True, "items": []})}
+    )
+    assert "No CAP alerts or GMS bulletins were in force at issue." in html
+    assert "not captured" not in html
+    # Snapshot taken but a source was unreadable: no "none in force" claim.
+    html = _marine_html(
+        base | {"advisories": json.dumps({"complete": False, "items": []})}
+    )
+    assert "were in force at issue" not in html
+    assert "Some warning sources were unavailable at issue" in html
+    # Normal snapshot with an item.
+    html = _marine_html(base | {"advisories": SNAPSHOT})
+    assert ITEM["title"] in html
+    assert "not captured" not in html
+
+
+def test_marine_sheet_shows_legacy_small_craft_as_recorded():
+    html = _marine_html(complete("marine-forecast") | MARINE | LEGACY)
+    assert "Small craft (as recorded)" in html
+    assert "Small craft advisory" in html
+    assert "Stay in port." in html
+    assert "Small craft (as recorded)" not in _marine_html(
+        complete("marine-forecast") | MARINE
+    )
+
+
+def test_land_sheet_without_a_snapshot_is_not_a_false_negative():
+    def html(values):
+        context = forecast_pdf.forecast_context(
+            "morning", values, status="", revision="r1"
+        )
+        return (
+            forecast_pdf._environment()
+            .get_template("forecast.html.j2")
+            .render(**context)
+        )
+
+    assert "Alerts were not captured for this revision." in html({})
+    captured = html({"advisories": json.dumps({"complete": True, "items": []})})
+    assert "No CAP alerts or GMS bulletins were in force at issue." in captured
+
+
+def test_a_cap_text_containing_example_does_not_block_publishing():
+    values = validation.normalize(
+        "marine-forecast",
+        complete("marine-forecast"),
+        advisories=json.dumps(
+            {"complete": True, "items": [ITEM | {"impacts": "See example.org"}]}
+        ),
+    )
+    errors = validation.validate(
+        body("marine-forecast", values=values, action="publish", reviewed=True), now=NOW
+    )
+    assert "Replace example draft wording before publishing" not in errors
+
+
+async def test_revision_pdf_route_returns_422_for_a_kind_without_a_layout(
+    async_client, weather_sessions, actor, monkeypatch
+):
+    payload = current_marine(action="publish")
+    async with weather_sessions() as session:
+        await service.write_product(session, payload, actor)
+    monkeypatch.setattr(forecast_pdf, "SHEET_KINDS", frozenset())
+    app.dependency_overrides[get_author] = lambda: ProductAuthor(
+        actor, ["marine-forecast"]
+    )
+    try:
+        response = await async_client.get(
+            f"/api/v1/wxproducts/products/{payload.id}/revisions/1/pdf"
+        )
+    finally:
+        app.dependency_overrides.pop(get_author, None)
+    assert response.status_code == 422, response.text
+    assert "No PDF layout exists" in response.json()["detail"]

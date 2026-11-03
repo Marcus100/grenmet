@@ -1,5 +1,6 @@
 {% extends "base.html.j2" %}
 {% block content %}
+<div class="typed">
     <section class="card headline">
       {{ icon("thermometer-sun", "headline-icon", "sky-ink") }}
       <div>
@@ -16,4 +17,5 @@
     {% else %}
     <section class="card"><p class="muted">No narrative supplied.</p></section>
     {% endfor %}
+</div>
 {% endblock %}

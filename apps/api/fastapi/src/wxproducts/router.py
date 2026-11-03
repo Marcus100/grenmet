@@ -596,6 +596,7 @@ async def preview_product_pdf(
         401: {"model": AuthoringError},
         403: {"model": AuthoringError},
         404: {"model": AuthoringError},
+        422: {"model": AuthoringError},
         503: {"model": AuthoringError},
     },
 )
