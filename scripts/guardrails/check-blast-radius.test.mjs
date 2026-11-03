@@ -713,3 +713,125 @@ test("the sign-in visitor address fix with a response change still requires comp
   assert.equal(staged.status, 1);
   assert.match(staged.stderr, /FastAPI contract companions/u);
 });
+
+const STARTUP_BEFORE = `from src import operational_metrics
+from src.audit.router import router as audit_router
+async def lifespan(_app):
+    try:
+        yield
+    finally:
+        await close_engine()
+async def request_logging_middleware(request, call_next):
+    return await call_next(request)
+app = FastAPI(lifespan=lifespan)
+app.add_middleware(BaseHTTPMiddleware, dispatch=request_logging_middleware)
+app.include_router(audit_router, prefix="/api/v1")
+def custom_openapi():
+    return get_openapi(title="API", routes=app.routes)
+app.openapi = custom_openapi
+`;
+const STARTUP_AFTER = STARTUP_BEFORE.replace(
+  "from src import operational_metrics\n",
+  "from src import database as main_database\nfrom src import operational_metrics\n"
+)
+  .replace(
+    "        await close_engine()\n",
+    "        await close_engine()\n        await main_database.async_engine.dispose()\n"
+  )
+  .replace(
+    "async def request_logging_middleware(request, call_next):\n    return await call_next(request)\n",
+    "class RequestLoggingMiddleware:\n    def __init__(self, app):\n        self.app = app\n    async def __call__(self, scope, receive, send):\n        await self.app(scope, receive, send)\n"
+  )
+  .replace(
+    "app.add_middleware(BaseHTTPMiddleware, dispatch=request_logging_middleware)\n",
+    "app.add_middleware(RequestLoggingMiddleware)\n"
+  );
+for (const [name, extra, expected] of [
+  ["a lifespan and middleware rewrite passes", (source) => source, 0],
+  [
+    "a runtime edit plus a new router still requires companions",
+    (source) => `${source}app.include_router(new_router)\n`,
+    1,
+  ],
+  [
+    "a runtime edit cannot hide an OpenAPI customisation",
+    (source) => source.replace('title="API"', 'title="API v2"'),
+    1,
+  ],
+  [
+    "a runtime edit cannot hide a router prefix change",
+    (source) => source.replace('prefix="/api/v1"', 'prefix="/api/v2"'),
+    1,
+  ],
+]) {
+  test(`runtime-only startup: ${name}`, (t) => {
+    const file = "apps/api/fastapi/src/main.py";
+    const { base, repository } = createRepository(t, {
+      [file]: STARTUP_BEFORE,
+    });
+    write(repository, file, extra(STARTUP_AFTER));
+    git(repository, "add", file);
+    assert.equal(check(repository, ["--staged"]).status, expected);
+    const head = commit(repository);
+    assert.equal(
+      check(repository, ["--base", base, "--head", head]).status,
+      expected
+    );
+  });
+}
+
+const ROUTER = "apps/api/fastapi/src/cap/router.py";
+const ROUTER_BEFORE = `from fastapi import APIRouter, Query
+router = APIRouter()
+@router.get("/alerts")
+async def read_alerts(state: str | None = Query(default=None)):
+    return []
+`;
+const ROUTER_AFTER = ROUTER_BEFORE.replace(
+  "state: str | None = Query(default=None)",
+  "state: Annotated[str | None, Query()] = None"
+);
+for (const [name, message, files, expected] of [
+  [
+    "a declared unchanged contract passes the range check",
+    "refactor: annotated params\n\nAPI-Contract: unchanged\n",
+    {},
+    0,
+  ],
+  ["without the trailer the companions are still required", "refactor", {}, 1],
+  [
+    "the trailer is ignored when openapi.json itself changes",
+    "refactor\n\nAPI-Contract: unchanged\n",
+    { "apps/api/fastapi/openapi.json": '{"openapi":"3.1.0","paths":{}}\n' },
+    1,
+  ],
+  [
+    "the trailer must be a whole line",
+    "refactor\n\nNot API-Contract: unchanged really\n",
+    {},
+    1,
+  ],
+]) {
+  test(`declared contract: ${name}`, (t) => {
+    const { base, repository } = createRepository(t, {
+      [ROUTER]: ROUTER_BEFORE,
+      "apps/api/fastapi/openapi.json": '{"openapi":"3.1.0"}\n',
+    });
+    write(repository, ROUTER, ROUTER_AFTER);
+    for (const [file, contents] of Object.entries(files)) {
+      write(repository, file, contents);
+    }
+    const head = commit(repository, message);
+    assert.equal(
+      check(repository, ["--base", base, "--head", head]).status,
+      expected
+    );
+  });
+}
+
+test("declared contract: staged mode still requires companions", (t) => {
+  const { repository } = createRepository(t, { [ROUTER]: ROUTER_BEFORE });
+  write(repository, ROUTER, ROUTER_AFTER);
+  git(repository, "add", ROUTER);
+  assert.equal(check(repository, ["--staged"]).status, 1);
+});

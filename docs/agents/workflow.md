@@ -110,6 +110,14 @@ the symbols you touched and verify each affected layer. The script covers one
 case, not the general one. The gate finds impact; it does not override explicit
 file limits or authorize unrelated work.
 
+Two FastAPI changes need no companions. Startup plumbing in `src/main.py`
+(imports, `lifespan`, middleware and exception-handler definitions,
+`app.add_middleware` lines) is exempt automatically. A route refactor whose
+regenerated `openapi.json` has no diff is declared with the commit trailer
+`API-Contract: unchanged` on any commit in the PR. That works in the CI range
+check only, and CI's OpenAPI regeneration check still fails the PR if the
+declaration is wrong.
+
 | If you change… | Also verify… |
 | --- | --- |
 | A FastAPI route or schema | regen `openapi.json` → `pnpm generate:api-client` → `pnpm check:drift`; `docs/api/contracts.md`; every web consumer of the generated hook or type |

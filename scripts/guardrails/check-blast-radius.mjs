@@ -498,6 +498,91 @@ sys.exit(0 if before != after and contract(before) == contract(after) else 1)
   return !result.error && result.status === 0;
 };
 
+// Startup plumbing in main.py never reaches the OpenAPI document, which is
+// generated from routes without running the lifespan or any middleware. Permit
+// edits confined to imports, the `lifespan` function, middleware and exception
+// handler definitions (named by `app.add_middleware` / `app.add_exception_handler`)
+// and top-level `app.add_middleware(...)` lines. Every other statement, including
+// router registration, app metadata and OpenAPI customisation, keeps the gate.
+const runtimeOnlyStartupChange = (comparison) => {
+  const file = "apps/api/fastapi/src/main.py";
+  const refs =
+    comparison.mode === "staged"
+      ? [`HEAD:${file}`, `:${file}`]
+      : [`${comparison.base}:${file}`, `${comparison.head}:${file}`];
+  const versions = refs.map((ref) =>
+    spawnSync("git", ["show", ref], { encoding: "utf8" })
+  );
+  if (versions.some((result) => result.error || result.status !== 0))
+    return false;
+  const result = spawnSync(
+    "python3",
+    [
+      "-c",
+      `
+import ast, json, sys
+def is_app_call(node, method):
+    return (
+        isinstance(node, ast.Call)
+        and isinstance(node.func, ast.Attribute)
+        and node.func.attr == method
+        and isinstance(node.func.value, ast.Name)
+        and node.func.value.id == "app"
+    )
+def runtime_names(tree):
+    names = {"lifespan"}
+    for node in ast.walk(tree):
+        if is_app_call(node, "add_middleware") and node.args and isinstance(node.args[0], ast.Name):
+            names.add(node.args[0].id)
+            names.update(k.value.id for k in node.keywords if k.arg == "dispatch" and isinstance(k.value, ast.Name))
+        if is_app_call(node, "add_exception_handler") and len(node.args) > 1 and isinstance(node.args[1], ast.Name):
+            names.add(node.args[1].id)
+    return names
+def contract(tree, names):
+    kept = []
+    for node in tree.body:
+        if isinstance(node, (ast.Import, ast.ImportFrom)):
+            continue
+        if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)) and node.name in names:
+            continue
+        if isinstance(node, ast.Expr) and is_app_call(node.value, "add_middleware"):
+            continue
+        kept.append(node)
+    tree.body = kept
+    return ast.dump(tree)
+before, after = json.load(sys.stdin)
+trees = [ast.parse(before), ast.parse(after)]
+names = runtime_names(trees[0]) | runtime_names(trees[1])
+sys.exit(0 if before != after and contract(trees[0], names) == contract(trees[1], names) else 1)
+`,
+    ],
+    {
+      input: JSON.stringify(versions.map((version) => version.stdout)),
+      encoding: "utf8",
+    }
+  );
+  return !result.error && result.status === 0;
+};
+
+// A pure refactor of routes (same paths, schemas and responses) has nothing to
+// regenerate. A commit in the range may declare that with the trailer
+// "API-Contract: unchanged"; CI's OpenAPI regeneration check (ci-api.yml, which
+// fails on any diff in openapi.json) still proves the declaration. Range mode
+// only: a staged commit has no message yet. A range that edits openapi.json
+// gets no exemption.
+const contractUnchangedTrailer = /^API-Contract: unchanged$/mu;
+const declaredContractUnchanged = (comparison) => {
+  if (comparison.mode !== "range") return false;
+  const log = spawnSync(
+    "git",
+    ["log", "--format=%B", `${comparison.base}..${comparison.head}`],
+    { encoding: "utf8" }
+  );
+  return (
+    !log.error && log.status === 0 && contractUnchangedTrailer.test(log.stdout)
+  );
+};
+
 const evaluateChanges = (changes, comparison) => {
   const files = new Set(changes.flatMap((change) => change.paths));
   const triggers = [...files]
@@ -508,7 +593,8 @@ const evaluateChanges = (changes, comparison) => {
           (file === "apps/api/fastapi/src/main.py" &&
             (telemetryOnlyStartupChange(comparison) ||
               apiDescriptionOnlyStartupChange(comparison) ||
-              requestIdMiddlewareChange(comparison))) ||
+              requestIdMiddlewareChange(comparison) ||
+              runtimeOnlyStartupChange(comparison))) ||
           (file === "apps/api/fastapi/src/janitorial/router.py" &&
             janitorialUnsectionedAreaChange(comparison)) ||
           (file === "apps/api/fastapi/src/wxproducts/router.py" &&
@@ -520,6 +606,13 @@ const evaluateChanges = (changes, comparison) => {
         )
     )
     .sort();
+  if (
+    triggers.length > 0 &&
+    !files.has("apps/api/fastapi/openapi.json") &&
+    declaredContractUnchanged(comparison)
+  ) {
+    triggers.length = 0;
+  }
   const violations = [];
   const generatedClientChanged = [...files].some((file) =>
     file.startsWith("packages/api-client/src/gen/")
