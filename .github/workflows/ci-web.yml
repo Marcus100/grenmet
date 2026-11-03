@@ -33,6 +33,7 @@ jobs:
   image-selection:
     name: Select image checks
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     outputs:
       web: ${{ steps.select.outputs.web }}
       weather: ${{ steps.select.outputs.weather }}
