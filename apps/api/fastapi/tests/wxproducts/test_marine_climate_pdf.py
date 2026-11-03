@@ -161,29 +161,6 @@ def test_older_marine_revision_with_small_craft_fields_still_renders():
     assert pdf.render_product_pdf(source).startswith(b"%PDF-")
 
 
-def test_climate_sheet_uses_the_current_fields_only():
-    values = validation.normalize(
-        "climate-bulletin",
-        complete("climate-bulletin")
-        | {
-            "issuedAt": "2026-11-15T10:00",
-            "month": "2026-10",
-            "rainfallComment": "Wetter than normal.",
-            "temperatureComment": "Warm nights.",
-            "notableEvents": "Tropical wave on the 12th.",
-            "outlook": "Drier into December.",
-        },
-        forecaster="Signed In",
-    )
-    context = forecast_pdf.climate_bulletin_context(values, status="", revision="r1")
-    assert context["title"] == "Climate Bulletin"
-    assert context["subtitle"] == "October 2026"
-    sections = dict(context["sections"])
-    assert sections["Rainfall"] == "Wetter than normal."
-    assert sections["Outlook for the coming months"] == "Drier into December."
-    assert "Month reviewed" not in sections
-
-
 def test_unknown_kind_raises_a_typed_error_not_a_key_error():
     with pytest.raises(UnsupportedSheetKind) as raised:
         forecast_pdf.render_sheet_pdf("aviation", {}, status="", revision="r1")

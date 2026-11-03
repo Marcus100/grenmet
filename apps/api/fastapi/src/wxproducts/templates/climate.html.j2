@@ -1,19 +1,129 @@
 {% extends "base.html.j2" %}
 {% block content %}
-    <section class="card headline">
-      {{ icon("thermometer-sun", "headline-icon", "sky-ink") }}
-      <div>
-        <p class="eyebrow sky">Month reviewed</p>
-        <p class="summary">{{ subtitle or "—" }}{% if area %} · {{ area }}{% endif %}</p>
-      </div>
+<div class="climate">
+    <section class="card cb-intro">
+      <h2 class="eyebrow">{{ issue_month }}{% if subtitle %} · {{ subtitle }}{% endif %}</h2>
+      <p>This Bulletin provides climate monitoring information for {{ monitoring_label or "the month reviewed" }}, as well as climate forecast information for {{ season_label or "the coming three months" }} for Grenada. Most historical observations were recorded at MBIA, Point Salines, St. George, with additional rainfall data throughout the State recorded by the NAWASA and Ministry of Agriculture. The forecast information is drawn from the Caribbean Climate Outlook Forum (CariCOF) climate outlooks (http://rcc.cimh.edu.bb/climate-outlooks/). Other inputs were made by the Land Use Division of the Ministry of Agriculture.{% if contacts %} For more information, contact: {{ contacts | join(", ") }}.{% endif %}</p>
     </section>
 
-    {% for label, text in sections %}
-    <section class="card">
-      <h2 class="eyebrow">{{ label }}</h2>
-      <p>{{ text }}</p>
+    {% if enso or sst %}
+    <section class="card cb-block">
+      {% if enso %}<p><b>El Niño-Southern Oscillation (ENSO):</b> {{ enso }}</p>{% endif %}
+      {% if sst %}<p><b>Sea Surface Temperatures (SSTs):</b> {{ sst }}</p>{% endif %}
     </section>
-    {% else %}
-    <section class="card"><p class="muted">No narrative supplied.</p></section>
-    {% endfor %}
+    {% endif %}
+
+    <div class="row cb-row">
+      <section class="card cb-spi">
+        <h2 class="eyebrow">Standardized Precipitation Index (SPI)</h2>
+        <p class="muted">A measure of rainfall excess or deficit</p>
+        <table>
+          <tbody>
+            {% for row in spi %}
+            <tr><td>{{ row.period or "—" }}</td><td class="num"><b>{{ row.category }}</b></td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </section>
+      <section class="card cb-pet">
+        <h2 class="eyebrow">Potential evapotranspiration</h2>
+        <p class="cb-figure">{{ pet or "—" }} <span>mm/day</span></p>
+        <p>Atmospheric water demand was roughly {{ pet_ratio or "—" }} times the supply.</p>
+      </section>
+    </div>
+
+    <section class="card cb-block">
+      <h2 class="eyebrow">Precipitation outlook{% if season_code %} ({{ season_code }}){% endif %}</h2>
+      <p>{{ precip_outlook or "—" }}</p>
+      <p class="cb-map">Precipitation outlook map (CariCOF): to be added</p>
+      <p><b>Normal range for precipitation{% if season_code %} ({{ season_code }}){% endif %}:</b> {{ precip_range }}</p>
+    </section>
+
+    <section class="card cb-block">
+      <h2 class="eyebrow">Looking back: {{ verification_label }} climate outlook verification at Point Salines</h2>
+      {# Observations are typed for now; issue #991 will fill them from the eRegister. #}
+      <table>
+        <thead><tr><th></th><th>Outlook</th><th>Normal range</th><th>Observation</th></tr></thead>
+        <tbody>
+          {% for row in verification %}
+          <tr><td>{{ row.label }}</td><td>{{ row.outlook or "—" }}</td><td class="num">{{ row.range }}</td><td class="num"><b>{{ row.observed }}</b></td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </section>
+
+    {% if trivia_answer or trivia_question %}
+    <section class="card cb-block">
+      <h2 class="eyebrow">Trivia</h2>
+      {% if trivia_answer %}<p>{{ trivia_answer }}</p>{% endif %}
+      {% if trivia_question %}<p><b>{{ trivia_question }}</b></p>{% endif %}
+    </section>
+    {% endif %}
+
+    {% if legacy %}
+    <section class="card cb-block">
+      <h2 class="eyebrow">Earlier format</h2>
+      {% for label, text in legacy %}<p><b>{{ label }}:</b> {{ text }}</p>{% endfor %}
+    </section>
+    {% endif %}
+
+    <p class="note">Disclaimer: The Meteorological Office at the Maurice Bishop International Airport makes no warranties, either expressed or implied, concerning the accuracy, completeness, reliability, or suitability of the information contained in this Bulletin, and will not be liable for any actions taken in reliance thereon.</p>
+
+    <div class="cb-page-two"></div>
+
+    <section class="card cb-block">
+      {% for spell in spells %}
+      <div class="cb-spell">
+        <h3>{{ spell.title }}</h3>
+        <p>{{ spell.outlook or "—" }} <b>{{ spell.range_label }}:</b> {{ spell.range }}.</p>
+        <p><b>Implication:</b> {{ spell.implication or "—" }}</p>
+      </div>
+      {% endfor %}
+    </section>
+
+    <section class="card cb-block">
+      <h2 class="eyebrow">Temperature</h2>
+      <p><b>Mean temperature outlook:</b> {{ temp_mean or "—" }}</p>
+      {% if temperature_table %}
+      <table>
+        <thead><tr><th>Climate variable</th><th>{{ season_code }}{% if issue_month %} {{ issue_month[-4:] }}{% endif %} outlook</th><th>Normal range</th></tr></thead>
+        <tbody>
+          {% for label, text, range in temperature_rows %}
+          <tr><td>{{ label }}</td><td>{{ text or "—" }}</td><td class="num">{{ range }}</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      {% else %}
+      <p><b>Minimum temperature outlook:</b> {{ temp_min or "—" }} <b>Normal range for minimum temperature{% if season_code %} ({{ season_code }}){% endif %}:</b> {{ temp_min_range }}</p>
+      <p><b>Maximum temperature outlook:</b> {{ temp_max or "—" }} <b>Normal range for maximum temperature{% if season_code %} ({{ season_code }}){% endif %}:</b> {{ temp_max_range }}</p>
+      {% endif %}
+      <p class="cb-map">Mean temperature outlook map: to be added</p>
+    </section>
+
+    <section class="card cb-block">
+      <p><b>Drought outlook:</b> {{ drought or "—" }}</p>
+    </section>
+
+    {% if sectors or general %}
+    <section class="card cb-block">
+      <h2 class="eyebrow">{{ "Implications" if sectors else "General implications" }}</h2>
+      {% if sectors %}
+      <table>
+        <thead><tr><th>Sector</th><th>Potential climate implications</th></tr></thead>
+        <tbody>
+          {% for label, text in sectors %}
+          <tr><td>{{ label }}</td><td>{{ text }}</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      {% endif %}
+      {% if general %}
+      {% if sectors %}<h3>General implications</h3>{% endif %}
+      <p>{{ general }}</p>
+      {% endif %}
+    </section>
+    {% endif %}
+
+    <p class="cb-closing">REGARDLESS OF THE OUTLOOKS PRESENTED IN THE BULLETIN, THERE CAN BE SIGNIFICANT VARIATIONS IN THE DAY–TO–DAY WEATHER THAT CAN ONLY BE STATED IN THE WEATHER REPORTS.</p>
+</div>
 {% endblock %}
