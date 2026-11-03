@@ -30,6 +30,9 @@ const DELETE_BUTTON = /delete feed/iu;
 const CONFIRM_DELETE = "Delete feed";
 const NO_FEEDS = "No feed sources configured.";
 const NOT_CHECKED = /Not yet reported/u;
+const SWITCH_BY = /switch this feed to https by 17 Nov 2026/u;
+const NO_LONGER_FETCHED = /no longer fetched \(since 15 Oct 2026/u;
+const PLAIN_HTTP = /Plain http/u;
 
 beforeEach(() => {
   vi.clearAllMocks();
@@ -44,6 +47,45 @@ describe("FeedManager", () => {
   it("shows an unchecked feed as not yet reported, not as healthy", () => {
     render(<FeedManager feeds={[FEED]} />);
     expect(screen.getByText(NOT_CHECKED)).toBeInTheDocument();
+  });
+
+  it("flags a plain-http feed with the day it stops being fetched", () => {
+    render(
+      <FeedManager
+        feeds={[
+          {
+            ...FEED,
+            grace_ends_at: "2026-11-17T08:00:00Z",
+            grace_expired: false,
+            insecure_since: "2026-11-03T08:00:00Z",
+            url: "http://partner.example.test/cap.xml",
+          },
+        ]}
+      />
+    );
+    expect(screen.getByRole("status")).toHaveTextContent(SWITCH_BY);
+  });
+
+  it("says an expired plain-http feed is no longer fetched", () => {
+    render(
+      <FeedManager
+        feeds={[
+          {
+            ...FEED,
+            grace_ends_at: "2026-10-15T08:00:00Z",
+            grace_expired: true,
+            insecure_since: "2026-10-01T08:00:00Z",
+            url: "http://partner.example.test/cap.xml",
+          },
+        ]}
+      />
+    );
+    expect(screen.getByRole("alert")).toHaveTextContent(NO_LONGER_FETCHED);
+  });
+
+  it("shows no flag for an https feed", () => {
+    render(<FeedManager feeds={[FEED]} />);
+    expect(screen.queryByText(PLAIN_HTTP)).not.toBeInTheDocument();
   });
 
   it("asks before deleting and keeps the feed when the user declines", () => {
