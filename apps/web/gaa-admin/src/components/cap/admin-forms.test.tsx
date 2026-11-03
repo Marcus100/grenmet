@@ -115,6 +115,26 @@ it("requires explicit confirmation before deleting a feed", async () => {
   );
 });
 
+it("flags a plain-http feed in the list and not an https feed", () => {
+  render(
+    <CapFeedManager
+      feeds={[
+        {
+          ...feed,
+          id: "old",
+          name: "Legacy",
+          url: "http://example.org/cap",
+          insecure_since: "2026-11-03T08:00:00Z",
+          grace_ends_at: "2026-11-17T08:00:00Z",
+          grace_expired: false,
+        },
+        feed,
+      ]}
+    />
+  );
+  expect(screen.getAllByText(/Plain http: switch to https/)).toHaveLength(1);
+});
+
 it("creates a feed from the form without issuing an update", async () => {
   mocks.createFeed.mockResolvedValue(feed);
   render(<CapFeedManager feeds={[]} />);
