@@ -6,7 +6,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
-from src.cap.common import feed_grace_ends_at, feed_grace_expired
+from src.cap.common import feed_grace_ends_at, feed_grace_expired, is_plain_http
 from src.cap.exceptions import (
     CapAlertNotFoundError,
 )
@@ -193,6 +193,12 @@ def _predefined_area_to_public(area: CapPredefinedArea) -> CapPredefinedAreaPubl
 def feed_to_public(feed: CapFeedImport) -> CapFeedImportPublic:
     """A feed row with its plain-http grace state worked out at read time."""
     public = CapFeedImportPublic.model_validate(feed, from_attributes=True)
+    if not is_plain_http(feed.url):
+        # A stale flag on a feed that is now https is not shown.
+        public.insecure_since = None
+        public.grace_ends_at = None
+        public.grace_expired = False
+        return public
     public.grace_ends_at = feed_grace_ends_at(feed.insecure_since)
     public.grace_expired = feed_grace_expired(feed.insecure_since, utc_now())
     return public

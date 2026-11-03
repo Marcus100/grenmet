@@ -1,7 +1,7 @@
 import hashlib
 import logging
 import uuid
-from datetime import UTC
+from datetime import UTC, datetime
 from urllib.parse import urlparse
 
 import feedparser
@@ -1498,6 +1498,36 @@ async def _system_user(*, session: AsyncSession) -> User | None:
     return result.scalars().first()
 
 
+async def flag_insecure_feed(
+    *, session: AsyncSession, feed: CapFeedImport, now: datetime
+) -> bool:
+    """Start the 14-day grace of a plain-http feed, once. Returns whether this call set it.
+
+    The write is guarded in SQL: it only touches a row that is still unflagged and still
+    plain http. A staff change to https between the worker's read and this write
+    therefore cannot leave a flag on an https feed. The feed is reloaded afterwards so
+    the caller sees the stored URL and flag.
+    """
+    result = await session.execute(
+        sa.update(CapFeedImport)
+        .where(
+            CapFeedImport.id == feed.id,
+            CapFeedImport.insecure_since.is_(None),
+            sa.func.lower(sa.func.btrim(CapFeedImport.url)).like("http://%"),
+        )
+        .values(insecure_since=now)
+    )
+    await session.commit()
+    await session.refresh(feed)
+    flagged = result.rowcount == 1
+    if flagged:
+        logger.warning(
+            "CAP feed flagged: plain http, grace period started",
+            extra={"feed_id": str(feed.id)},
+        )
+    return flagged
+
+
 async def ingest_feed(
     *,
     session: AsyncSession,
@@ -1512,17 +1542,14 @@ async def ingest_feed(
     feed's etag and progress are saved at the end.
     """
     now = utc_now()
+    if is_plain_http(feed.url) and feed.insecure_since is None:
+        await flag_insecure_feed(session=session, feed=feed, now=now)
     plain_http = is_plain_http(feed.url)
-    if plain_http and feed.insecure_since is None:
-        # First time this feed is seen on plain http: start its 14-day grace. Set
-        # once and never reset by later polls.
-        feed.insecure_since = now
+    if not plain_http and feed.insecure_since is not None:
+        # The feed moved to https (the flag is stale): the grace no longer applies.
+        feed.insecure_since = None
         session.add(feed)
         await session.commit()
-        logger.warning(
-            "CAP feed flagged: plain http, grace period started",
-            extra={"feed_id": str(feed.id)},
-        )
     if plain_http and feed_grace_expired(feed.insecure_since, now):
         logger.warning(
             "CAP feed skipped: plain http and the grace period has ended",
