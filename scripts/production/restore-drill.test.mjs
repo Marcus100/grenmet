@@ -310,7 +310,11 @@ test("the throwaway database mounts tmpfs at the parent directory, which postgre
   if (!mount.startsWith("/var/lib/postgresql:")) {
     fail(`tmpfs must be at /var/lib/postgresql, got ${mount}`);
   }
-  if (start.some((x) => x.includes("/var/lib/postgresql/data") || x.startsWith("PGDATA"))) {
+  if (
+    start.some(
+      (x) => x.includes("/var/lib/postgresql/data") || x.startsWith("PGDATA")
+    )
+  ) {
     fail("the old data path or a PGDATA override came back");
   }
 });
