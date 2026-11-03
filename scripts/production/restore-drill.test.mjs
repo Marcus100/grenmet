@@ -149,7 +149,7 @@ for i, a in enumerate(args):
         record("env", {args[i + 1]: os.environ.get(args[i + 1], "")})
 head = args[0]
 joined = " ".join(args)
-if head == "run" and "/var/lib/postgresql/data" in joined:
+if head == "run" and "/var/lib/postgresql:" in joined:
     print("pgid")
 elif head == "run":
     if os.environ.get("FAKE_RUN_FAILS"):
@@ -292,6 +292,26 @@ test("without --api-check the drill never touches an API container", () => {
   }
   if ("api_checks" in run.result || "health" in run.result.timings) {
     fail("result file changed");
+  }
+});
+
+test("the throwaway database mounts tmpfs at the parent directory, which postgres 18 requires", () => {
+  const run = drillRun();
+  if (run.code !== 0) {
+    fail(run.stdout + run.stderr);
+  }
+  const start = run.argv.find(
+    (a) => a[0] === "run" && a.includes("POSTGRES_PASSWORD")
+  );
+  if (!start) {
+    fail("the throwaway database was never started");
+  }
+  const mount = start[start.indexOf("--tmpfs") + 1];
+  if (!mount.startsWith("/var/lib/postgresql:")) {
+    fail(`tmpfs must be at /var/lib/postgresql, got ${mount}`);
+  }
+  if (start.some((x) => x.includes("/var/lib/postgresql/data") || x.startsWith("PGDATA"))) {
+    fail("the old data path or a PGDATA override came back");
   }
 });
 

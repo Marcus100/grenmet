@@ -360,7 +360,11 @@ class ThrowawayPostgres:
                 "-e",
                 "POSTGRES_PASSWORD",
                 "--tmpfs",
-                f"/var/lib/postgresql/data:rw,size={self.tmpfs_size}",
+                # Mount the parent, not .../data: the postgres:18 image keeps its data in
+                # a versioned folder below /var/lib/postgresql and refuses to start when
+                # a volume sits at the old .../data path. Every version's default PGDATA
+                # (17 -> data, 18 -> 18/docker) lives inside this mount.
+                f"/var/lib/postgresql:rw,size={self.tmpfs_size}",
                 self.image,
             ],
             stdout=subprocess.DEVNULL,

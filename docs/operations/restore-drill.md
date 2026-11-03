@@ -18,7 +18,9 @@ workflow is `.github/workflows/restore-drill.yml`; the logic is
    `eregister`) needs a dump under 24 hours old; extra ones such as the CMS
    are restored too.
 2. Restores each into a throwaway PostgreSQL container whose data lives in tmpfs, so
-   nothing is written to disk. It never connects to a live database.
+   nothing is written to disk. The tmpfs is mounted at `/var/lib/postgresql` (not
+   `.../data`) because `postgres:18` and later refuse to start with a mount at the old
+   path; the same mount works for 17. It never connects to a live database.
 3. Compares each database's Alembic revision with the head in the code of the latest
    release, and checks that every database restored with data and meets the row floors.
 4. Records time per phase and fails if the total exceeds 2 hours.
