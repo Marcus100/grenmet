@@ -13,6 +13,9 @@ export const capFeedImportPublicSchema = z.object({
   status: capIntegrationStatusSchema,
   last_checked_at: z.union([z.iso.datetime(), z.null()]).optional(),
   last_error: z.union([z.string(), z.null()]).optional(),
+  insecure_since: z.union([z.iso.datetime(), z.null()]).optional(),
+  grace_ends_at: z.union([z.iso.datetime(), z.null()]).optional(),
+  grace_expired: z.boolean().optional().default(false),
   created_at: z.iso.datetime(),
   updated_at: z.iso.datetime(),
 });

@@ -41,7 +41,7 @@ class CapFeedUrlError(AppException):
 
     def __init__(self) -> None:
         super().__init__(
-            "Feed URL must be an https address on a public host, "
+            "Feed URL must be an https address on port 443 on a public host, "
             "with no username or password.",
             422,
         )

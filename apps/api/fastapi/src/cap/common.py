@@ -1,7 +1,8 @@
 """Small helpers shared by the alert services."""
 
 import uuid
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
+from urllib.parse import urlsplit
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -10,6 +11,32 @@ from src.cap.models import (
     CapAuditEvent,
     CapSettings,
 )
+
+# A plain-http feed saved before the https-only rule keeps working for this long
+# after it is first flagged, then it is no longer fetched.
+INSECURE_FEED_GRACE = timedelta(days=14)
+
+
+def is_plain_http(url: str) -> bool:
+    """Whether the fetch would use plain http for this stored URL.
+
+    Uses the same parser as the fetch (``urlsplit`` drops leading control characters
+    and spaces and any tab or newline, and lower-cases the scheme), so a URL the worker
+    fetches over http is never missed here.
+    """
+    try:
+        return urlsplit(url).scheme == "http"
+    except ValueError:
+        return False
+
+
+def feed_grace_ends_at(insecure_since: datetime | None) -> datetime | None:
+    return None if insecure_since is None else insecure_since + INSECURE_FEED_GRACE
+
+
+def feed_grace_expired(insecure_since: datetime | None, now: datetime) -> bool:
+    ends = feed_grace_ends_at(insecure_since)
+    return ends is not None and now >= ends
 
 
 def _record_audit(
