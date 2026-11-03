@@ -27,7 +27,7 @@ export type PublicEnv = Partial<Record<PublicEnvKey, string>>;
 export const PUBLIC_ENV_PATH = "/runtime-env.js";
 export const PUBLIC_ENV_READY_EVENT = "barrels:public-env";
 const PUBLIC_ENV_GLOBAL = "__BARRELS_PUBLIC_ENV__";
-const LESS_THAN = /</g;
+const LESS_THAN = /</gu;
 
 type PublicEnvWindow = Window & { [PUBLIC_ENV_GLOBAL]?: PublicEnv };
 type EnvSource = Record<string, string | undefined>;
