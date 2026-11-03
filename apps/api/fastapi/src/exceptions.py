@@ -41,7 +41,7 @@ class AppValidationError(AppException):
     """Application validation error exception."""
 
     def __init__(self, message: str = "Validation error"):
-        super().__init__(message, status.HTTP_422_UNPROCESSABLE_ENTITY)
+        super().__init__(message, status.HTTP_422_UNPROCESSABLE_CONTENT)
 
 
 class AuthenticationError(AppException):
@@ -83,7 +83,7 @@ async def validation_exception_handler(
 ) -> JSONResponse:
     """Handle Pydantic validation errors."""
     return JSONResponse(
-        status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+        status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
         content=ValidationErrorResponse(
             errors=[
                 ValidationErrorItem(

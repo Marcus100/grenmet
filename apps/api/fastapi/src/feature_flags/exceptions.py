@@ -19,7 +19,7 @@ class SuccessMetricRequiredError(AppException):
     def __init__(self) -> None:
         super().__init__(
             "A success metric is required to enable a flag outside local",
-            status.HTTP_422_UNPROCESSABLE_ENTITY,
+            status.HTTP_422_UNPROCESSABLE_CONTENT,
         )
 
 

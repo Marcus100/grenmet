@@ -95,6 +95,10 @@ module = [
 ]
 ignore_missing_imports = true
 
+[tool.fastapi]
+# `fastapi dev` / `fastapi run` find the app without a path argument.
+entrypoint = "src.main:app"
+
 [tool.ruff]
 target-version = "py314"
 exclude = ["alembic"]
