@@ -114,9 +114,11 @@ Two FastAPI changes need no companions. Startup plumbing in `src/main.py`
 (imports, `lifespan`, middleware and exception-handler definitions,
 `app.add_middleware` lines) is exempt automatically. A route refactor whose
 regenerated `openapi.json` has no diff is declared with the commit trailer
-`API-Contract: unchanged` on any commit in the PR. That works in the CI range
-check only, and CI's OpenAPI regeneration check still fails the PR if the
-declaration is wrong.
+`API-Contract: unchanged` on every commit that touches a route or schema file.
+That works in the CI range check only, and CI's OpenAPI regeneration check
+still fails the PR if the declaration is wrong. The trailer covers the OpenAPI
+contract only: a change in documented behaviour (permissions, status meanings)
+still updates `docs/api/contracts.md`.
 
 | If you change… | Also verify… |
 | --- | --- |
