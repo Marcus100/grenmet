@@ -1,22 +1,22 @@
 // Enough to recognise your own devices in the sessions list; not a full parser.
 const BROWSERS: ReadonlyArray<readonly [RegExp, string]> = [
-  [/Edg\//, "Edge"],
-  [/OPR\/|Opera/, "Opera"],
-  [/Firefox\//, "Firefox"],
-  [/Chrome\/|CriOS\//, "Chrome"],
-  [/Safari\//, "Safari"],
+  [/Edg\//u, "Edge"],
+  [/OPR\/|Opera/u, "Opera"],
+  [/Firefox\//u, "Firefox"],
+  [/Chrome\/|CriOS\//u, "Chrome"],
+  [/Safari\//u, "Safari"],
 ];
 
 const SYSTEMS: ReadonlyArray<readonly [RegExp, string]> = [
-  [/iPhone|iPad|iPod/, "iOS"],
-  [/Android/, "Android"],
-  [/Windows/, "Windows"],
-  [/Mac OS X|Macintosh/, "macOS"],
-  [/CrOS/, "ChromeOS"],
-  [/Linux/, "Linux"],
+  [/iPhone|iPad|iPod/u, "iOS"],
+  [/Android/u, "Android"],
+  [/Windows/u, "Windows"],
+  [/Mac OS X|Macintosh/u, "macOS"],
+  [/CrOS/u, "ChromeOS"],
+  [/Linux/u, "Linux"],
 ];
 
-const MOBILE = /Mobi|iPhone|Android/;
+const MOBILE = /Mobi|iPhone|Android/u;
 
 function match(
   table: ReadonlyArray<readonly [RegExp, string]>,

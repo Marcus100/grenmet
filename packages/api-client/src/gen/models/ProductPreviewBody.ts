@@ -15,6 +15,7 @@ export type ProductPreviewBody =
     })
   | (LegacyProductPreviewInput & {
       kind:
+        | "climate-bulletin"
         | "coastal"
         | "cyclone"
         | "dust"
@@ -22,6 +23,7 @@ export type ProductPreviewBody =
         | "flood"
         | "heat"
         | "marine"
+        | "marine-forecast"
         | "midday"
         | "morning"
         | "thunderstorm"

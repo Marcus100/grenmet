@@ -10,7 +10,7 @@ export function LocationsButton() {
   return (
     <>
       <Button
-        className="flex items-center gap-2 whitespace-nowrap bg-gm-blue-ink hover:bg-gm-navy"
+        className="bg-gm-blue-ink hover:bg-gm-navy flex items-center gap-2 whitespace-nowrap"
         onClick={() => setOpen(true)}
       >
         <Plus className="h-5 w-5" />

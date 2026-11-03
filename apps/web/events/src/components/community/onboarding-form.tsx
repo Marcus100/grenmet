@@ -52,10 +52,10 @@ export function OnboardingForm({
   if (done) {
     return (
       <div
-        className="space-y-4 rounded-2xl bg-events-lime p-6 text-events-ink"
+        className="bg-events-lime text-events-ink space-y-4 rounded-2xl p-6"
         role="status"
       >
-        <p className="flex items-center gap-2 font-display font-semibold text-heading-sm">
+        <p className="font-display text-heading-sm flex items-center gap-2 font-semibold">
           <CircleCheck className="size-6" />
           You're all set
         </p>
@@ -83,7 +83,7 @@ export function OnboardingForm({
       }}
     >
       <fieldset className="space-y-3">
-        <legend className="font-display font-semibold text-heading-sm">
+        <legend className="font-display text-heading-sm font-semibold">
           What are you into?
         </legend>
         <p className="text-body text-muted-foreground">Pick at least one.</p>
@@ -102,7 +102,7 @@ export function OnboardingForm({
       </fieldset>
 
       <fieldset className="space-y-3">
-        <legend className="font-display font-semibold text-heading-sm">
+        <legend className="font-display text-heading-sm font-semibold">
           Where are you based?
         </legend>
         <label className="sr-only" htmlFor="welcome-parish">
@@ -127,7 +127,7 @@ export function OnboardingForm({
       </fieldset>
 
       <fieldset className="space-y-3">
-        <legend className="font-display font-semibold text-heading-sm">
+        <legend className="font-display text-heading-sm font-semibold">
           What are you open to?
         </legend>
         <p className="text-body text-muted-foreground">
@@ -175,7 +175,7 @@ function Chip({
     <button
       aria-pressed={selected}
       className={cn(
-        "flex min-h-11 items-center gap-1.5 rounded-full border px-4 font-medium text-body transition-colors",
+        "text-body flex min-h-11 items-center gap-1.5 rounded-full border px-4 font-medium transition-colors",
         selected
           ? "border-events-ink bg-events-ink text-white"
           : "border-border bg-card hover:border-foreground"

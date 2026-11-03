@@ -42,7 +42,7 @@ export function rosterLabel(member: NamedMember): string {
   return last || displayName(member);
 }
 
-const WHITESPACE = /\s+/;
+const WHITESPACE = /\s+/u;
 
 /** Avatar fallback: "JC" from the personnel name. */
 export function initials(member: NamedMember): string {

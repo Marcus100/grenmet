@@ -218,10 +218,48 @@ export const includeInNewsletterField = (
 });
 
 /**
+ * A picture for one social platform. Sizes are the suggested ones from the
+ * owner's brief (1 Nov 2026); the platforms' own documentation was not
+ * re-checked when this was written.
+ */
+export const PLATFORM_IMAGES = [
+  {
+    name: "facebookImage",
+    label: "Facebook image",
+    size: "1200 x 630 pixels (landscape)",
+  },
+  {
+    name: "instagramImage",
+    label: "Instagram image",
+    size: "1080 x 1080 or 1080 x 1350 pixels (square or portrait)",
+  },
+  {
+    name: "whatsappImage",
+    label: "WhatsApp Channel image",
+    size: "1200 x 630 pixels (landscape)",
+  },
+] as const;
+
+const platformImageFields = (): Field[] =>
+  PLATFORM_IMAGES.map((platform) => ({
+    name: platform.name,
+    type: "upload",
+    relationTo: "media",
+    label: platform.label,
+    admin: {
+      description: `Optional. ${platform.size}. Leave empty to use the social image above, then the cover.`,
+    },
+  }));
+
+/**
  * Social sharing for one section. "Approve for social" is ticked by a
  * publisher of that section; nothing is sent to a social platform without it.
+ * `platformImages` adds one picture per platform (desk posts, owner 1 Nov 2026).
  */
-export const socialField = (publishKey: string): Field => ({
+export const socialField = (
+  publishKey: string,
+  { platformImages = false }: { platformImages?: boolean } = {}
+): Field => ({
   name: "social",
   type: "group",
   label: "Social media sharing",
@@ -257,12 +295,14 @@ export const socialField = (publishKey: string): Field => ({
       name: "image",
       type: "upload",
       relationTo: "media",
-      label: "Custom image",
+      label: platformImages ? "Social image (all platforms)" : "Custom image",
       admin: {
-        description:
-          "Optional. Replaces the warning's social image when the post is shared.",
+        description: platformImages
+          ? "Optional. Used for any platform without its own picture below, then the cover."
+          : "Optional. Replaces the warning's social image when the post is shared.",
       },
     },
+    ...(platformImages ? platformImageFields() : []),
     { name: "caption", type: "textarea", label: "Shared starting caption" },
     {
       name: "enabledPlatforms",

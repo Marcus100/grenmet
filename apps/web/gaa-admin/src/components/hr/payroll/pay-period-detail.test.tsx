@@ -19,9 +19,9 @@ vi.mock("sonner", () => ({ toast: { success: vi.fn(), error: vi.fn() } }));
 vi.mock("@/lib/report-error", () => ({ reportError: vi.fn() }));
 
 const BASE = "http://localhost";
-const PATTERN_0 = /Overtime bands are not computed yet/;
-const PATTERN_1 = /someone else must approve it/;
-const CALL_OUT_OPTION = /Call-out/;
+const PATTERN_0 = /Overtime bands are not computed yet/u;
+const PATTERN_1 = /someone else must approve it/u;
+const CALL_OUT_OPTION = /Call-out/u;
 const API = `${BASE}/api/v1/hr/payroll`;
 const PERIOD_ID = "p1";
 

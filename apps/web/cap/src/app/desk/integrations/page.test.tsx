@@ -12,7 +12,7 @@ vi.mock("@/lib/report-error", () => report);
 import Loading from "./loading";
 import IntegrationsPage from "./page";
 
-const NOT_CONFIGURED = /Not configured/;
+const NOT_CONFIGURED = /Not configured/u;
 const EMPTY_WEBHOOKS = "Not configured: no webhook endpoint is set up.";
 const EMPTY_MQTT = "Not configured: no MQTT broker is set up.";
 

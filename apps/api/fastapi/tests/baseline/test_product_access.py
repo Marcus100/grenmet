@@ -119,3 +119,16 @@ async def test_policy_api_is_admin_only_and_rejects_unknown_products_and_grades(
         "/api/v1/hr/product-access/me", headers=normal_user_token_headers_async
     )
     assert response.json() == {"allowed_kinds": []}
+
+
+@pytest.mark.asyncio
+async def test_new_kinds_default_to_the_three_senior_grades(db_async):
+    saved = {p.kind: p.grade_ids for p in await product_access.policies(db_async)}
+    for kind in ("marine-forecast", "climate-bulletin"):
+        assert kind in product_access.PRODUCT_KINDS
+        assert saved[kind] == list(product_access.DEFAULT_GRADES)
+    assert product_access.DEFAULT_GRADES == (
+        "GMS_MANAGER",
+        "GMS_ASSISTANT_MANAGER",
+        "GMS_SENIOR_TECH",
+    )

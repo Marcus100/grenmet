@@ -139,7 +139,7 @@ function StatusField({
   if (!editable) {
     return (
       <div className="flex flex-col gap-1">
-        <span className="font-medium text-sm">Status</span>
+        <span className="text-sm font-medium">Status</span>
         <p className="text-muted-foreground text-sm">
           Active. A new record always starts Active.
         </p>
@@ -448,7 +448,7 @@ export function EmploymentSection({
   if (isFetching && !empSeeded) {
     return (
       <div className="flex flex-col gap-3">
-        <span className="font-medium text-sm">Department & employment</span>
+        <span className="text-sm font-medium">Department & employment</span>
         <span className="text-muted-foreground text-sm">Loading…</span>
       </div>
     );
@@ -456,7 +456,7 @@ export function EmploymentSection({
 
   return (
     <div className="flex flex-col gap-3">
-      <span className="font-medium text-sm">Department & employment</span>
+      <span className="text-sm font-medium">Department & employment</span>
       <Field>
         <FieldLabel htmlFor="mu-dept">Department</FieldLabel>
         <NativeSelect

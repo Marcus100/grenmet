@@ -47,14 +47,14 @@ const SUMMARY: PublicMonthSummary = {
   provisional: true,
 };
 
-const OLD_READING = /90 minutes/;
-const MONTH_TO_DATE = /Month to date/;
-const ORANGE_LEVEL = /Orange level/;
-const GREEN_LEVEL = /Green level/;
-const MINIMAL_OR_NONE = /minimal|no impact/i;
-const NO_IMPACTS = /Nothing this week|for any sector this week/;
-const ALL_CLEAR_NOTE = /All clear · /;
-const HIGHEST = /Highest this week/;
+const OLD_READING = /90 minutes/u;
+const MONTH_TO_DATE = /Month to date/u;
+const ORANGE_LEVEL = /Orange level/u;
+const GREEN_LEVEL = /Green level/u;
+const MINIMAL_OR_NONE = /minimal|no impact/iu;
+const NO_IMPACTS = /Nothing this week|for any sector this week/u;
+const ALL_CLEAR_NOTE = /All clear · /u;
+const HIGHEST = /Highest this week/u;
 
 const home = (settings: Partial<HomeContent["settings"]>): HomeContent => ({
   deskUpdates: { status: "ok", articles: [] },

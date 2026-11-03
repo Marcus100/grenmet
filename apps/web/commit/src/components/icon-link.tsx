@@ -19,7 +19,7 @@ export function IconLink({
     <a
       className={cn(
         className,
-        "group relative isolate flex items-center rounded-lg px-2 py-0.5 font-medium text-[0.8125rem]/6 text-white/30 transition-colors hover:text-sky-300 focus-visible:outline-2 focus-visible:outline-sky-300",
+        "group relative isolate flex items-center rounded-lg px-2 py-0.5 text-[0.8125rem]/6 font-medium text-white/30 transition-colors hover:text-sky-300 focus-visible:outline-2 focus-visible:outline-sky-300",
         compact ? "gap-x-2" : "gap-x-3"
       )}
       href={href}

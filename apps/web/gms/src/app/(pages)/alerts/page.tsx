@@ -47,7 +47,7 @@ export default async function WarningsPage() {
       <Suspense
         fallback={
           <p
-            className="mb-6 rounded-gm-card border border-gm-border p-5"
+            className="rounded-gm-card border-gm-border mb-6 border p-5"
             role="status"
           >
             {CHECKING}
@@ -66,7 +66,7 @@ export default async function WarningsPage() {
             className="flex flex-col gap-3"
           >
             <h2
-              className="font-bold text-gm-heading text-heading-sm leading-heading-sm"
+              className="text-gm-heading text-heading-sm leading-heading-sm font-bold"
               id="green-alerts-heading"
             >
               Green alerts
@@ -76,14 +76,14 @@ export default async function WarningsPage() {
             </Suspense>
           </section>
           {alertsLevel(alerts) === "none" && (
-            <div className="flex flex-col gap-1 rounded-gm-card border border-gm-border border-dashed p-4 text-body leading-body">
+            <div className="rounded-gm-card border-gm-border text-body leading-body flex flex-col gap-1 border border-dashed p-4">
               <b className="text-gm-heading">What we are watching</b>
               <span>
                 The tropical weather outlook covers systems that could affect us
                 over the next seven days.
               </span>
               <Link
-                className="flex w-fit items-center gap-1 font-semibold text-gm-blue-ink hover:underline"
+                className="text-gm-blue-ink flex w-fit items-center gap-1 font-semibold hover:underline"
                 href="/weather/tropics"
               >
                 Tropical weather outlook

@@ -52,7 +52,7 @@ export function RiskLadder<T extends string>({
           const selected = option === value;
           return (
             <label
-              className="relative min-w-24 flex-1 cursor-pointer rounded-md border border-gm-border px-1 py-2 text-center font-semibold text-caption leading-caption"
+              className="border-gm-border text-caption leading-caption relative min-w-24 flex-1 cursor-pointer rounded-md border px-1 py-2 text-center font-semibold"
               key={option}
             >
               <input

@@ -23,7 +23,7 @@ function FlagRow({ flag, stale }: { flag: FeatureFlagAdmin; stale: boolean }) {
   return (
     <li className="space-y-3 rounded-md border p-3 text-sm">
       <div className="flex flex-wrap items-center gap-2">
-        <span className="font-medium font-mono">{flag.key}</span>
+        <span className="font-mono font-medium">{flag.key}</span>
         <Badge variant={flag.enabled ? "light-success" : "outline"}>
           {flag.enabled ? "Enabled" : "Disabled"}
         </Badge>
@@ -94,7 +94,7 @@ export function FlagsPanel({
 export function NewFlag() {
   return (
     <details className="max-w-3xl rounded-md border p-3">
-      <summary className="cursor-pointer font-medium text-sm">
+      <summary className="cursor-pointer text-sm font-medium">
         Create a flag
       </summary>
       <FlagForm />

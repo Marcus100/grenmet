@@ -8,7 +8,7 @@
  * template, never from the browser's raw path or query string.
  */
 const UUID = "[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}";
-const UUID_STRICT = new RegExp(`^${UUID}$`);
+const UUID_STRICT = new RegExp(`^${UUID}$`, "u");
 const ACTIONS = [
   "validate",
   "submit",
@@ -22,7 +22,7 @@ const ACTIONS = [
 ] as const;
 
 /** Placeholder in a template; each one takes the next validated id. */
-const ID_SLOT = /\{id\}/g;
+const ID_SLOT = /\{id\}/gu;
 
 interface Rule {
   readonly method: string;
@@ -34,36 +34,36 @@ interface Rule {
 
 const ALERT_ACTION_RULES: readonly Rule[] = ACTIONS.map((action) => ({
   method: "POST",
-  path: new RegExp(`^/api/v1/cap/alerts/(${UUID})/${action}$`),
+  path: new RegExp(`^/api/v1/cap/alerts/(${UUID})/${action}$`, "u"),
   template: `/api/v1/cap/alerts/{id}/${action}`,
 }));
 
 const RULES: readonly Rule[] = [
   {
     method: "POST",
-    path: /^\/api\/v1\/cap\/alerts$/,
+    path: /^\/api\/v1\/cap\/alerts$/u,
     template: "/api/v1/cap/alerts",
   },
   {
     method: "GET",
-    path: new RegExp(`^/api/v1/cap/alerts/(${UUID})$`),
+    path: new RegExp(`^/api/v1/cap/alerts/(${UUID})$`, "u"),
     template: "/api/v1/cap/alerts/{id}",
   },
   {
     method: "PATCH",
-    path: new RegExp(`^/api/v1/cap/alerts/(${UUID})$`),
+    path: new RegExp(`^/api/v1/cap/alerts/(${UUID})$`, "u"),
     template: "/api/v1/cap/alerts/{id}",
   },
   ...ALERT_ACTION_RULES,
   {
     method: "GET",
-    path: /^\/api\/v1\/cap\/areas\/predefined$/,
+    path: /^\/api\/v1\/cap\/areas\/predefined$/u,
     template: "/api/v1/cap/areas/predefined",
   },
   // Source bulletin picker: the public list of published GMS products.
   {
     method: "GET",
-    path: /^\/api\/v1\/wxproducts\/public\/products$/,
+    path: /^\/api\/v1\/wxproducts\/public\/products$/u,
     template: "/api/v1/wxproducts/public/products",
   },
 ];

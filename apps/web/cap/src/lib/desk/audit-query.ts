@@ -2,8 +2,8 @@
 export const AUDIT_PAGE_SIZE = 25;
 
 /** Whole numbers only: no sign, no decimals, no exponent, no spaces. */
-const WHOLE_NUMBER = /^\d{1,7}$/;
-const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
+const WHOLE_NUMBER = /^\d{1,7}$/u;
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/u;
 
 export type AuditQuery =
   | { alertId: string | null; ok: true; page: number }

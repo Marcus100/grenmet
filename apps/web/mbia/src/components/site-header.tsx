@@ -10,7 +10,7 @@ import { NAV_GROUPS } from "@/lib/nav";
 
 function UtilityBar() {
   return (
-    <div className="hidden bg-gaa-navy-deep text-white/85 md:block">
+    <div className="bg-gaa-navy-deep hidden text-white/85 md:block">
       <div className="mx-auto flex h-9 max-w-7xl items-center justify-between px-4 text-xs lg:px-8">
         <div className="flex items-center gap-5">
           <a
@@ -61,24 +61,24 @@ function DesktopNav() {
         {NAV_GROUPS.map((group) => (
           <li className="relative" key={group.label}>
             <details className="group" data-site-nav="" name="site-nav">
-              <summary className="inline-flex h-9 w-max cursor-pointer list-none items-center justify-center rounded-lg px-2.5 py-1.5 font-medium text-sm outline-none transition-all hover:bg-muted focus-visible:ring-3 focus-visible:ring-ring/50 group-open:bg-muted/50 [&::-webkit-details-marker]:hidden">
+              <summary className="hover:bg-muted focus-visible:ring-ring/50 group-open:bg-muted/50 inline-flex h-9 w-max cursor-pointer list-none items-center justify-center rounded-lg px-2.5 py-1.5 text-sm font-medium transition-all outline-none focus-visible:ring-3 [&::-webkit-details-marker]:hidden">
                 {group.label}
                 <ChevronDownIcon
                   aria-hidden="true"
                   className="relative top-px ml-1 size-3 transition duration-300 group-open:rotate-180"
                 />
               </summary>
-              <div className="absolute top-full left-0 z-50 mt-2 rounded-lg bg-popover text-popover-foreground shadow ring-1 ring-foreground/10">
+              <div className="bg-popover text-popover-foreground ring-foreground/10 absolute top-full left-0 z-50 mt-2 rounded-lg shadow ring-1">
                 <div className="grid w-[420px] grid-cols-2 gap-1 p-3">
                   <Link
-                    className="col-span-2 rounded-lg bg-gaa-mist p-3 font-display font-semibold text-gaa-navy text-sm hover:bg-gaa-rule"
+                    className="bg-gaa-mist font-display text-gaa-navy hover:bg-gaa-rule col-span-2 rounded-lg p-3 text-sm font-semibold"
                     href={group.href as Route}
                   >
                     {group.label} overview →
                   </Link>
                   {group.links.map((link) => (
                     <Link
-                      className="rounded-lg p-2.5 text-gaa-ink text-sm hover:bg-gaa-mist hover:text-gaa-navy"
+                      className="text-gaa-ink hover:bg-gaa-mist hover:text-gaa-navy rounded-lg p-2.5 text-sm"
                       href={link.href as Route}
                       key={link.href}
                     >
@@ -99,7 +99,7 @@ function DesktopNav() {
 /** `accountLabel` shows "Sign in" with the Barrels account (ADR-0017). */
 export function SiteHeader({ accountLabel }: { accountLabel?: string }) {
   return (
-    <header className="sticky top-0 z-50 border-gaa-rule border-b bg-white/95 backdrop-blur">
+    <header className="border-gaa-rule sticky top-0 z-50 border-b bg-white/95 backdrop-blur">
       <UtilityBar />
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between gap-4 px-4 lg:px-8">
         <Link className="flex shrink-0 items-center" href="/">
@@ -118,7 +118,7 @@ export function SiteHeader({ accountLabel }: { accountLabel?: string }) {
           {accountLabel ? <AccountSlot appLabel={accountLabel} /> : null}
           <Button
             asChild
-            className="hidden bg-gaa-gold font-semibold text-gaa-navy-ink hover:bg-gaa-gold-deep sm:inline-flex"
+            className="bg-gaa-gold text-gaa-navy-ink hover:bg-gaa-gold-deep hidden font-semibold sm:inline-flex"
           >
             <Link href="/flights">
               <PlaneTakeoff aria-hidden="true" className="size-4" />

@@ -18,7 +18,7 @@ function KindPicker({ keys, kind }: { keys: string[]; kind: string }) {
       className="flex flex-wrap items-end gap-3"
       method="get"
     >
-      <label className="flex flex-col gap-1 text-body-sm" htmlFor="matrix-kind">
+      <label className="text-body-sm flex flex-col gap-1" htmlFor="matrix-kind">
         Hazard
         <NativeSelect defaultValue={kind} id="matrix-kind" name="kind">
           <option value="">Choose a hazard</option>
@@ -30,7 +30,7 @@ function KindPicker({ keys, kind }: { keys: string[]; kind: string }) {
         </NativeSelect>
       </label>
       <button
-        className="rounded-md border px-3 py-2 text-body-sm"
+        className="text-body-sm rounded-md border px-3 py-2"
         type="submit"
       >
         Show matrix
@@ -42,8 +42,8 @@ function KindPicker({ keys, kind }: { keys: string[]; kind: string }) {
 function Grid({ view }: { view: MatrixView }) {
   return (
     <div className="overflow-x-auto">
-      <table className="w-full border-collapse text-body-sm">
-        <caption className="mb-2 text-left text-muted-foreground">
+      <table className="text-body-sm w-full border-collapse">
+        <caption className="text-muted-foreground mb-2 text-left">
           Likelihood down the side, impact across the top. Each cell is the
           colour a forecaster is shown for that pair.
         </caption>
@@ -114,7 +114,7 @@ export default async function MatrixPage({
 
   const header = (
     <header className="space-y-1">
-      <h1 className="font-semibold text-2xl">Impact matrix</h1>
+      <h1 className="text-2xl font-semibold">Impact matrix</h1>
       <p className="text-body-sm text-muted-foreground">
         Read only. The matrix sets the colour for each likelihood and impact.
         Advice below never changes a warning until you choose the colour.
@@ -127,7 +127,7 @@ export default async function MatrixPage({
       <section className="space-y-6">
         {header}
         <KindPicker keys={keys} kind="" />
-        <p className="rounded-lg border p-6 text-muted-foreground">
+        <p className="text-muted-foreground rounded-lg border p-6">
           Choose a hazard to see its impact matrix.
         </p>
       </section>
@@ -140,7 +140,7 @@ export default async function MatrixPage({
         {header}
         <KindPicker keys={keys} kind="" />
         <p
-          className="rounded-lg border border-destructive p-4 text-destructive"
+          className="border-destructive text-destructive rounded-lg border p-4"
           role="alert"
         >
           There is no hazard profile called “{kind}”. Choose one from the list.

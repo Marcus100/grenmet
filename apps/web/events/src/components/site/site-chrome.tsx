@@ -11,10 +11,10 @@ import { BottomNav, HeaderNav, MobileNav } from "./nav-link";
 export function Wordmark() {
   return (
     <Link className="flex items-center gap-2" href="/">
-      <span className="flex size-9 items-center justify-center rounded-xl bg-events-ink text-events-lime">
+      <span className="bg-events-ink text-events-lime flex size-9 items-center justify-center rounded-xl">
         <Ticket className="size-5" />
       </span>
-      <span className="font-bold font-display text-body-base leading-none tracking-tight">
+      <span className="font-display text-body-base leading-none font-bold tracking-tight">
         Barrels <span className="text-events-hibiscus">Events</span>
       </span>
     </Link>
@@ -23,7 +23,7 @@ export function Wordmark() {
 
 export function SiteHeader({ viewer }: { viewer: Profile }) {
   return (
-    <header className="sticky top-0 z-40 border-border border-b bg-background/90 backdrop-blur">
+    <header className="border-border bg-background/90 sticky top-0 z-40 border-b backdrop-blur">
       <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-4 px-4 sm:px-6">
         <Wordmark />
         <HeaderNav />
@@ -60,17 +60,17 @@ export function SiteBottomNav() {
 
 export function SiteFooter() {
   return (
-    <footer className="mt-16 border-border border-t bg-events-ink text-white max-md:standalone:pb-24">
+    <footer className="border-border bg-events-ink max-md:standalone:pb-24 mt-16 border-t text-white">
       <div className="mx-auto grid max-w-6xl gap-8 px-4 py-10 sm:grid-cols-3 sm:px-6">
         <div className="space-y-2">
-          <p className="font-bold font-display text-body-base">
+          <p className="font-display text-body-base font-bold">
             Barrels <span className="text-events-lime">Events</span>
           </p>
           <p className="text-body text-white/70">
             What's on across Grenada, Carriacou and Petite Martinique.
           </p>
         </div>
-        <nav aria-label="Footer" className="grid gap-2 text-body text-white/80">
+        <nav aria-label="Footer" className="text-body grid gap-2 text-white/80">
           <Link className="hover:text-white" href="/events">
             Calendar
           </Link>

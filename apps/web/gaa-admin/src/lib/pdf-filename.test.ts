@@ -7,9 +7,9 @@ import {
   signedDocumentFilename,
 } from "./pdf-filename";
 
-const UUID_START = /[0-9a-f]{8}-[0-9a-f]{4}/;
-const PREVIEW_NAME = /^Leave Application Preview - \d{4}-\d{2}-\d{2}\.pdf$/;
-const SIGNED_NAME = /^Leave Application - \d{4}-\d{2}-\d{2}\.pdf$/;
+const UUID_START = /[0-9a-f]{8}-[0-9a-f]{4}/u;
+const PREVIEW_NAME = /^Leave Application Preview - \d{4}-\d{2}-\d{2}\.pdf$/u;
+const SIGNED_NAME = /^Leave Application - \d{4}-\d{2}-\d{2}\.pdf$/u;
 
 describe("pdf filenames", () => {
   it("cleans parts and joins them", () => {

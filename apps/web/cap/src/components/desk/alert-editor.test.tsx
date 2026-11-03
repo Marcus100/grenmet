@@ -26,12 +26,12 @@ vi.mock("@barrelsgd/api-client", () => api);
 
 import { AlertEditor } from "./alert-editor";
 
-const PATTERN_1 = /Headline/;
-const PATTERN_2 = /^Description/;
-const PATTERN_3 = /^Status/;
-const PATTERN_4 = /Saving a change sends it back to Draft/;
-const PATTERN_5 = /replaces urn:original when published/;
-const PATTERN_6 = /no longer in a state that allows this/;
+const PATTERN_1 = /Headline/u;
+const PATTERN_2 = /^Description/u;
+const PATTERN_3 = /^Status/u;
+const PATTERN_4 = /Saving a change sends it back to Draft/u;
+const PATTERN_5 = /replaces urn:original when published/u;
+const PATTERN_6 = /no longer in a state that allows this/u;
 
 function clickSave() {
   const [button] = screen.getAllByRole("button", { name: "Save draft" });

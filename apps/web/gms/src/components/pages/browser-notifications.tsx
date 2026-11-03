@@ -176,7 +176,7 @@ export function BrowserNotifications() {
           </Button>
           {state.status === "error" && (
             <p
-              className="font-medium text-body-base text-destructive"
+              className="text-body-base text-destructive font-medium"
               role="alert"
             >
               {state.message}

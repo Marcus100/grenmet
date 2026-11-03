@@ -13,10 +13,10 @@ import { dirname, join } from "node:path";
 import test from "node:test";
 import { checkDrift } from "./check-api-drift.mjs";
 
-const missingPattern = /ENOENT/;
-const emptyPattern = /empty/;
-const failurePattern = /generator failed/;
-const noOutputPattern = /no client files/;
+const missingPattern = /ENOENT/u;
+const emptyPattern = /empty/u;
+const failurePattern = /generator failed/u;
+const noOutputPattern = /no client files/u;
 
 function put(root, path, content) {
   mkdirSync(dirname(join(root, path)), { recursive: true });

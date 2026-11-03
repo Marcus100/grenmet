@@ -24,7 +24,7 @@ import {
 } from "@/components/bus/test-fixtures";
 import BusTimetablePage from "./page";
 
-const IN_FORCE_SUMMARY = /in force since 25 Sep 2026 · 2 trips/;
+const IN_FORCE_SUMMARY = /in force since 25 Sep 2026 · 2 trips/u;
 
 function renderPage(page: ReactNode) {
   return render(

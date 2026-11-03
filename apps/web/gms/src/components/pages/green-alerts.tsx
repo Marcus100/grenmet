@@ -13,7 +13,7 @@ import { WARNING_LEVEL_SWATCH } from "@/lib/warning-level";
 export function GreenAlertList({ green }: { green: GreenAlerts }) {
   if (green.status === "unavailable") {
     return (
-      <div className="rounded-gm-card border border-gm-risk-amber bg-gm-surface p-4 lg:p-5">
+      <div className="rounded-gm-card border-gm-risk-amber bg-gm-surface border p-4 lg:p-5">
         <p
           className="text-body text-gm-text-secondary leading-body"
           role="status"
@@ -45,16 +45,16 @@ export function GreenAlertList({ green }: { green: GreenAlerts }) {
   const information =
     green.information.length > 0 ? (
       <div className="flex flex-col gap-2">
-        <p className="font-bold text-gm-text-secondary text-label uppercase leading-label tracking-wider">
+        <p className="text-gm-text-secondary text-label leading-label font-bold tracking-wider uppercase">
           Information
         </p>
         <ul className="flex flex-col gap-2">
           {green.information.map((item) => (
             <li
-              className="flex flex-col gap-1 rounded-gm-card border border-gm-border bg-background p-4 lg:p-5"
+              className="rounded-gm-card border-gm-border bg-background flex flex-col gap-1 border p-4 lg:p-5"
               key={item.id}
             >
-              <p className="font-bold text-body text-gm-heading leading-body">
+              <p className="text-body text-gm-heading leading-body font-bold">
                 All clear: {item.title}
               </p>
               <p className="text-body-sm text-gm-text-secondary leading-body-sm">
@@ -62,7 +62,7 @@ export function GreenAlertList({ green }: { green: GreenAlerts }) {
               </p>
               {item.href && (
                 <Link
-                  className="flex w-fit items-center gap-1 font-semibold text-body text-gm-blue-ink leading-body hover:underline"
+                  className="text-body text-gm-blue-ink leading-body flex w-fit items-center gap-1 font-semibold hover:underline"
                   href={item.href as Route}
                 >
                   Read the full item
@@ -76,7 +76,7 @@ export function GreenAlertList({ green }: { green: GreenAlerts }) {
     ) : null;
   if (green.items.length === 0) {
     return (
-      <div className="flex flex-col gap-2 rounded-gm-card border border-gm-border bg-background p-4 lg:p-5">
+      <div className="rounded-gm-card border-gm-border bg-background flex flex-col gap-2 border p-4 lg:p-5">
         <p className="text-body text-gm-text-secondary leading-body">
           No Green alerts are in effect.
         </p>
@@ -91,15 +91,15 @@ export function GreenAlertList({ green }: { green: GreenAlerts }) {
       <ul className="flex flex-col gap-3">
         {green.items.map((item) => (
           <li
-            className="grid grid-cols-[6px_minmax(0,1fr)] overflow-hidden rounded-gm-card border border-gm-border bg-background"
+            className="rounded-gm-card border-gm-border bg-background grid grid-cols-[6px_minmax(0,1fr)] overflow-hidden border"
             key={item.id}
           >
             <span aria-hidden="true" className={WARNING_LEVEL_SWATCH.none} />
             <div className="flex min-w-0 flex-col gap-2 p-4 lg:p-5">
-              <p className="font-bold text-gm-text-secondary text-label uppercase leading-label tracking-wider">
+              <p className="text-gm-text-secondary text-label leading-label font-bold tracking-wider uppercase">
                 Green level · {item.when}
               </p>
-              <p className="font-bold text-gm-heading text-heading-sm leading-heading-sm">
+              <p className="text-gm-heading text-heading-sm leading-heading-sm font-bold">
                 {item.title}
               </p>
               {item.summary && (
@@ -109,7 +109,7 @@ export function GreenAlertList({ green }: { green: GreenAlerts }) {
               )}
               {item.href && (
                 <Link
-                  className="flex w-fit items-center gap-1 font-semibold text-body text-gm-blue-ink leading-body hover:underline"
+                  className="text-body text-gm-blue-ink leading-body flex w-fit items-center gap-1 font-semibold hover:underline"
                   href={item.href as Route}
                 >
                   Read the full item

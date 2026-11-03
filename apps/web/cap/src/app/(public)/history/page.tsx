@@ -37,7 +37,7 @@ export default async function HistoryPage({
 
   return (
     <div className="space-y-5">
-      <h1 className="font-semibold text-gm-heading text-heading-lg">
+      <h1 className="text-gm-heading text-heading-lg font-semibold">
         Past alerts
       </h1>
       <FeedStatus now={now} result={result} />
@@ -48,11 +48,11 @@ export default async function HistoryPage({
       ) : null}
       {views.length > 0 ? (
         <>
-          <ul className="divide-y divide-gm-border rounded-gm-card border border-gm-border">
+          <ul className="divide-gm-border rounded-gm-card border-gm-border divide-y border">
             {paging.items.map((view) => (
               <li className="space-y-1 p-3" key={view.identifier}>
                 <Link
-                  className="font-semibold text-gm-blue-ink underline"
+                  className="text-gm-blue-ink font-semibold underline"
                   href={`/alerts/${encodeURIComponent(view.identifier)}`}
                   prefetch={false}
                 >
@@ -71,7 +71,7 @@ export default async function HistoryPage({
           </ul>
           <nav
             aria-label="Pages of past alerts"
-            className="flex items-center justify-between text-body-sm"
+            className="text-body-sm flex items-center justify-between"
           >
             {paging.page > 1 ? (
               <Link

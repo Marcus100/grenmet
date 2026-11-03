@@ -2,8 +2,8 @@ import { expect, test } from "@playwright/test";
 
 // Requires: pnpm start (Docker/FastAPI) + pnpm dev:web:auth running.
 
-const RE_WRONG_CREDENTIALS = /incorrect email or password/i;
-const RE_DASHBOARD_PATH = /\/dashboard/;
+const RE_WRONG_CREDENTIALS = /incorrect email or password/iu;
+const RE_DASHBOARD_PATH = /\/dashboard/u;
 
 test.describe("Sign-in page", () => {
   test("happy path — signs in and redirects to /", async ({ page }) => {

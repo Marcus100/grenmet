@@ -2,7 +2,7 @@ import { render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import { TicketCancellation } from "./ticket-cancellation";
 
-const REFUND_NOTE = /ask the organiser for a refund/;
+const REFUND_NOTE = /ask the organiser for a refund/u;
 
 vi.mock("@/data/actions", () => ({ cancelTicket: vi.fn() }));
 vi.mock("next/navigation", () => ({

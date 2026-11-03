@@ -91,7 +91,7 @@ export function RuleOverrideDialog({
     >
       <AlertDialogContent>
         <AlertDialogTitle className="flex items-center gap-2">
-          <TriangleAlert className="size-4 text-gm-risk-amber" />
+          <TriangleAlert className="text-gm-risk-amber size-4" />
           {warningCountText(violations.length)}
         </AlertDialogTitle>
         <AlertDialogDescription>
@@ -101,7 +101,7 @@ export function RuleOverrideDialog({
         </AlertDialogDescription>
         <ul
           aria-label="Rule warnings"
-          className="max-h-56 space-y-1 overflow-y-auto rounded-lg border border-gm-risk-amber/40 bg-gm-risk-amber/10 px-3 py-2 text-xs"
+          className="border-gm-risk-amber/40 bg-gm-risk-amber/10 max-h-56 space-y-1 overflow-y-auto rounded-lg border px-3 py-2 text-xs"
         >
           {violations.map((v) => (
             <li key={`${v.code}-${v.user_id}-${v.start_date}-${v.end_date}`}>

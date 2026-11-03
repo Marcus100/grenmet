@@ -121,7 +121,7 @@ function RoleCell({
   return (
     <div className="flex flex-wrap items-center gap-1.5">
       {primary ? (
-        <span className="whitespace-nowrap text-sm">{primary}</span>
+        <span className="text-sm whitespace-nowrap">{primary}</span>
       ) : (
         <span className="text-muted-foreground text-sm">—</span>
       )}
@@ -193,10 +193,10 @@ export const usersColumns: LegacyColumnDef<UserRow>[] = [
           name={row.original.name}
         />
         <div className="min-w-0">
-          <div className="truncate font-medium text-foreground text-sm">
+          <div className="text-foreground truncate text-sm font-medium">
             {row.original.name}
           </div>
-          <div className="truncate text-muted-foreground text-sm">
+          <div className="text-muted-foreground truncate text-sm">
             {row.original.email}
           </div>
         </div>

@@ -39,15 +39,15 @@ function SavedAreas({ areas }: { areas: CapPredefinedAreaPublic[] }) {
     );
   }
   return areas.map((area) => (
-    <article className="space-y-2 rounded-lg border bg-card p-4" key={area.id}>
+    <article className="bg-card space-y-2 rounded-lg border p-4" key={area.id}>
       <h3 className="font-semibold">{area.name}</h3>
       <p className="text-body-sm">{area.area_desc}</p>
       <p className="text-body-sm">{area.is_active ? "Active" : "Inactive"}</p>
       <details>
-        <summary className="cursor-pointer text-body-sm">
+        <summary className="text-body-sm cursor-pointer">
           Geographic definition
         </summary>
-        <pre className="overflow-auto whitespace-pre-wrap text-xs">
+        <pre className="overflow-auto text-xs whitespace-pre-wrap">
           {JSON.stringify(
             {
               circles: area.circles,
@@ -79,20 +79,20 @@ export function PredefinedAreaManager({
   return (
     <div className="space-y-8">
       <section className="space-y-4">
-        <h2 className="font-semibold text-lg">Save a new predefined area</h2>
+        <h2 className="text-lg font-semibold">Save a new predefined area</h2>
         {canCreate ? (
           <CreateArea />
         ) : (
-          <p className="rounded-lg border p-4 text-body-sm" role="status">
+          <p className="text-body-sm rounded-lg border p-4" role="status">
             No access to save predefined areas. This needs the
             cap.settings.manage permission.
           </p>
         )}
       </section>
       <section className="space-y-4">
-        <h2 className="font-semibold text-lg">
+        <h2 className="text-lg font-semibold">
           Saved areas{" "}
-          <span className="font-normal text-muted-foreground">
+          <span className="text-muted-foreground font-normal">
             ({areas.length})
           </span>
         </h2>

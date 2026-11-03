@@ -52,7 +52,7 @@ export function Tag({
   return (
     <span
       className={cn(
-        "font-mono font-semibold text-[0.625rem]/6",
+        "font-mono text-[0.625rem]/6 font-semibold",
         variantStyles[variant],
         colorStyles[color][variant]
       )}

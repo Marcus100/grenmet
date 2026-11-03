@@ -20,7 +20,7 @@ import {
 } from "@/lib/locations";
 
 /** "Maurice Bishop International (MBIA)" → "MBIA". */
-const STATION_CODE = /^.*\((.+)\)$/;
+const STATION_CODE = /^.*\((.+)\)$/u;
 
 /**
  * Bold sky hero. One card on top for the selected tab (Now: what is measured
@@ -85,7 +85,7 @@ export function SkyHero({
   const wanted = selected === "today" ? days[0]?.slug : selected;
   const index = days.findIndex((day) => day.slug === wanted);
   const tab = days[index]?.slug ?? "now";
-  const station = location.station.replace(STATION_CODE, "$1");
+  const station = location.station?.replace(STATION_CODE, "$1") ?? null;
   const nowHref = locationHref(location, "/");
   const current = weather.current;
   const today = days[0];
@@ -135,11 +135,13 @@ export function SkyHero({
         <div className="mx-auto grid max-w-6xl grid-cols-1 gap-2 px-4 pt-2 pb-4 sm:px-6 lg:gap-2.5 lg:pt-3 lg:pb-6 xl:px-8">
           {/* The place is shown in the card; the heading is for screen readers. */}
           <h1 className="sr-only" id="sky-hero-title">
-            {location.name} weather, {station}
+            {station
+              ? `${location.name} weather, ${station}`
+              : `${location.name} weather`}
           </h1>
           <div className="flex min-h-11 flex-wrap items-center justify-between gap-x-3 gap-y-1">
             {/* Brand line: large bold type, readable on the gradient. */}
-            <p className="font-bold font-gm-display text-heading-md uppercase leading-heading-md tracking-wide">
+            <p className="font-gm-display text-heading-md leading-heading-md font-bold tracking-wide uppercase">
               Your spice weather
             </p>
             {switcher}

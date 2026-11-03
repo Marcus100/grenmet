@@ -15,6 +15,7 @@ export type ProductWriteBody =
     })
   | (LegacyProductWrite & {
       kind:
+        | "climate-bulletin"
         | "coastal"
         | "cyclone"
         | "dust"
@@ -22,6 +23,7 @@ export type ProductWriteBody =
         | "flood"
         | "heat"
         | "marine"
+        | "marine-forecast"
         | "midday"
         | "morning"
         | "thunderstorm"

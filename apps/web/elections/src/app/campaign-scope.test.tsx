@@ -11,9 +11,9 @@ vi.mock("@/components/make-your-map/prediction-tool", () => ({
   PredictionTool: () => null,
 }));
 
-const CONFIGURATION = /10-constituency DPM configuration/;
+const CONFIGURATION = /10-constituency DPM configuration/u;
 const CONFLICT =
-  /nine DPM (nominees|constituencies), which differs from this directory/;
+  /nine DPM (nominees|constituencies), which differs from this directory/u;
 
 describe("scenario scope", () => {
   it.each([ForecastPage, YourPredictionPage])(

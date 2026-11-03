@@ -52,7 +52,7 @@ export function AppSidebar({ user, ...props }: AppSidebarProps) {
       {/* A thin, quiet scrollbar that stays visible (touch and keyboard users
           still see there is more menu); the shared `no-scrollbar` class is
           not defined, so Windows drew a full-width bar. */}
-      <SidebarContent className="[scrollbar-color:var(--border)_transparent] [scrollbar-width:thin]">
+      <SidebarContent className="[scrollbar-width:thin] [scrollbar-color:var(--border)_transparent]">
         <NavMain items={sidebarItems} />
       </SidebarContent>
       <SidebarFooter>

@@ -6,9 +6,9 @@
 
 const LOCALE = "en-GB";
 const DEFAULT_CURRENCY = "XCD";
-const CURRENCY_PREFIX = /^(EC|XCD)?\$?\s*/i;
-const PERCENT_SUFFIX = /%$/;
-const PERCENT_NUMBER = /^\d+(\.\d{1,2})?$/;
+const CURRENCY_PREFIX = /^(EC|XCD)?\$?\s*/iu;
+const PERCENT_SUFFIX = /%$/u;
+const PERCENT_NUMBER = /^\d+(\.\d{1,2})?$/u;
 
 export function minorUnitDigits(currency: string = DEFAULT_CURRENCY): number {
   return (
@@ -46,7 +46,7 @@ export function parseMoneyToMinor(
 ): number | null {
   const digits = minorUnitDigits(currency);
   const cleaned = input.trim().replace(CURRENCY_PREFIX, "").replaceAll(",", "");
-  if (!new RegExp(`^\\d+(\\.\\d{1,${digits}})?$`).test(cleaned)) {
+  if (!new RegExp(`^\\d+(\\.\\d{1,${digits}})?$`, "u").test(cleaned)) {
     return null;
   }
   const [whole = "0", fraction = ""] = cleaned.split(".");

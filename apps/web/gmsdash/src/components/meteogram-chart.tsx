@@ -57,7 +57,7 @@ export function MeteogramPanel({
   if (!axis || first === undefined || last === undefined) {
     return (
       <figure className="space-y-1">
-        <figcaption className="font-medium text-sm">{title}</figcaption>
+        <figcaption className="text-sm font-medium">{title}</figcaption>
         <p className="text-muted-foreground text-sm">
           This model has no values for this parameter.
         </p>
@@ -77,9 +77,9 @@ export function MeteogramPanel({
 
   return (
     <figure className="space-y-1">
-      <figcaption className="flex flex-wrap items-baseline gap-x-3 font-medium text-sm">
+      <figcaption className="flex flex-wrap items-baseline gap-x-3 text-sm font-medium">
         {title}
-        <span className="font-normal text-muted-foreground text-xs">
+        <span className="text-muted-foreground text-xs font-normal">
           {unit}
           {series.length > 1
             ? ` | ${series.map((s) => s.label).join(", ")}`

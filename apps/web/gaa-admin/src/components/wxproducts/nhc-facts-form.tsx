@@ -149,7 +149,7 @@ export function FactsForm({
                 <td className="p-2">
                   <select
                     aria-label={`${fact.key} record type ${index}`}
-                    className="rounded-md border bg-background p-2"
+                    className="bg-background rounded-md border p-2"
                     onChange={(event) =>
                       update(index, {
                         record_type: event.target
@@ -227,7 +227,7 @@ export function FactsForm({
                   />
                   <select
                     aria-label={`${fact.key} evidence source ${index}`}
-                    className="rounded-md border bg-background p-2"
+                    className="bg-background rounded-md border p-2"
                     onChange={(event) =>
                       update(index, {
                         source_edition_id: event.target.value || null,

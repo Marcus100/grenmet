@@ -1,10 +1,12 @@
 import { isProductKind, productTitle } from "@barrelsgd/gms/products";
 import {
   ArrowRightIcon,
+  CalendarDaysIcon,
   ChevronRightIcon,
   CloudSunIcon,
   PlayIcon,
   TornadoIcon,
+  WavesIcon,
 } from "lucide-react";
 import type { Route } from "next";
 import Image from "next/image";
@@ -34,7 +36,7 @@ import { fetchPublishedProducts } from "@/lib/products";
 import { cn } from "@/lib/utils";
 
 /** The same bordered notice as "Grenada in data": one line, aligned to the heading. */
-const NOTICE = cn(HOME_CARD, "p-4 text-body-sm text-gm-text-secondary");
+const NOTICE = cn(HOME_CARD, "text-body-sm text-gm-text-secondary p-4");
 
 /** Unavailable, empty or content — the three states every CMS feed has. */
 function FeedState({
@@ -62,7 +64,7 @@ function FeedState({
   return children;
 }
 
-const NAME_SEPARATORS = /[\s._-]+/;
+const NAME_SEPARATORS = /[\s._-]+/u;
 
 /** "Eugine Whint" gives "EW"; one word gives its first two letters; no name gives "GMS". */
 export function avatarInitials(name: string | null | undefined): string {
@@ -100,12 +102,12 @@ function DeskPostCard({ item }: { item: PublishedContent }) {
         <header className="flex items-center gap-3">
           <span
             aria-hidden="true"
-            className="flex size-10 shrink-0 items-center justify-center rounded-full bg-gm-sky-ink font-bold text-body-sm text-gm-text-inverse leading-body-sm"
+            className="bg-gm-sky-ink text-body-sm text-gm-text-inverse leading-body-sm flex size-10 shrink-0 items-center justify-center rounded-full font-bold"
           >
             {avatarInitials(item.authorName)}
           </span>
           <span className="flex min-w-0 flex-col">
-            <span className="font-bold text-body text-gm-heading leading-body">
+            <span className="text-body text-gm-heading leading-body font-bold">
               {item.authorName ?? "The forecasters"}
             </span>
             <span className="text-body-sm text-gm-text-secondary leading-body-sm">
@@ -114,7 +116,7 @@ function DeskPostCard({ item }: { item: PublishedContent }) {
             </span>
           </span>
         </header>
-        <h3 className="text-balance font-bold text-gm-heading text-heading-sm leading-heading-sm">
+        <h3 className="text-gm-heading text-heading-sm leading-heading-sm font-bold text-balance">
           <Link className="hover:underline" href={contentHref(item) as Route}>
             {item.title}
           </Link>
@@ -122,13 +124,27 @@ function DeskPostCard({ item }: { item: PublishedContent }) {
         {item.summary && (
           <p className="text-body-base leading-body-base">{item.summary}</p>
         )}
+        {item.basedOn && (
+          // The issued product the post is about, linked to its live page.
+          <p className="text-body-sm text-gm-text-secondary leading-body-sm">
+            Based on{" "}
+            <Link
+              className="text-gm-blue-ink font-semibold underline"
+              href={
+                `/weather/issued/${encodeURIComponent(item.basedOn.productId)}` as Route
+              }
+            >
+              the {item.basedOn.title ?? "issued product"}
+            </Link>
+          </p>
+        )}
         {format !== "standard" && (
-          <span className="w-fit rounded-full bg-gm-surface-panel px-2.5 py-0.5 font-bold text-gm-heading text-label uppercase leading-label tracking-wider">
+          <span className="bg-gm-surface-panel text-gm-heading text-label leading-label w-fit rounded-full px-2.5 py-0.5 font-bold tracking-wider uppercase">
             {FORMAT_LABEL[format]}
           </span>
         )}
         {item.linkedProduct && (
-          <span className="w-fit rounded-full bg-gm-surface-panel px-2.5 py-0.5 font-bold text-gm-heading text-label uppercase leading-label tracking-wider">
+          <span className="bg-gm-surface-panel text-gm-heading text-label leading-label w-fit rounded-full px-2.5 py-0.5 font-bold tracking-wider uppercase">
             {item.linkedProduct.kind && isProductKind(item.linkedProduct.kind)
               ? productTitle(item.linkedProduct.kind)
               : item.linkedProduct.title}
@@ -136,7 +152,7 @@ function DeskPostCard({ item }: { item: PublishedContent }) {
         )}
         {item.imageUrl && (
           <figure className="flex flex-col gap-1">
-            <span className="relative aspect-[4/3] overflow-hidden rounded-lg bg-gm-surface-panel">
+            <span className="bg-gm-surface-panel relative aspect-[4/3] overflow-hidden rounded-lg">
               <Image
                 alt={item.imageAlt ?? ""}
                 className="object-cover"
@@ -156,7 +172,7 @@ function DeskPostCard({ item }: { item: PublishedContent }) {
         {media && (
           // Nothing loads from the provider until the reader follows the link.
           <a
-            className="flex w-fit items-center gap-2 rounded-full bg-gm-surface-panel px-3 py-1.5 font-semibold text-body-sm text-gm-heading leading-body-sm hover:underline"
+            className="bg-gm-surface-panel text-body-sm text-gm-heading leading-body-sm flex w-fit items-center gap-2 rounded-full px-3 py-1.5 font-semibold hover:underline"
             href={media.href}
             rel="noopener noreferrer"
             target="_blank"
@@ -167,7 +183,7 @@ function DeskPostCard({ item }: { item: PublishedContent }) {
           </a>
         )}
         <Link
-          className="mt-auto flex w-fit items-center gap-1 font-semibold text-body text-gm-blue-ink leading-body hover:underline"
+          className="text-body text-gm-blue-ink leading-body mt-auto flex w-fit items-center gap-1 font-semibold hover:underline"
           href={contentHref(item) as Route}
         >
           Read the article
@@ -184,22 +200,29 @@ function DeskPostCard({ item }: { item: PublishedContent }) {
  * summary, an illustration below the words, issue and validity times and a
  * link to the issued product. Official cards carry no emoji.
  */
+const OFFICIAL_ICONS = {
+  briefing: CloudSunIcon,
+  outlook: TornadoIcon,
+  marine: WavesIcon,
+  climate: CalendarDaysIcon,
+} satisfies Record<OfficialCard["kind"], unknown>;
+
 function OfficialProductCard({ card }: { card: OfficialCard }) {
-  const Icon = card.kind === "briefing" ? CloudSunIcon : TornadoIcon;
+  const Icon = OFFICIAL_ICONS[card.kind];
   return (
     <li className={DESK_CARD_ITEM}>
       <article
-        className={cn(HOME_CARD, "flex h-full flex-col gap-3 border-gm-navy")}
+        className={cn(HOME_CARD, "border-gm-navy flex h-full flex-col gap-3")}
       >
         <header className="flex items-center gap-3">
           <span
             aria-hidden="true"
-            className="flex size-10 shrink-0 items-center justify-center rounded-full bg-gm-navy font-bold text-body-sm text-gm-text-inverse leading-body-sm"
+            className="bg-gm-navy text-body-sm text-gm-text-inverse leading-body-sm flex size-10 shrink-0 items-center justify-center rounded-full font-bold"
           >
             GMS
           </span>
           <span className="flex min-w-0 flex-col">
-            <span className="font-bold text-body text-gm-heading leading-body">
+            <span className="text-body text-gm-heading leading-body font-bold">
               GMS forecast office
             </span>
             <span className="text-body-sm text-gm-text-secondary leading-body-sm">
@@ -207,36 +230,36 @@ function OfficialProductCard({ card }: { card: OfficialCard }) {
             </span>
           </span>
         </header>
-        <span className="w-fit rounded-full bg-gm-navy px-2.5 py-0.5 font-bold text-gm-text-inverse text-label uppercase leading-label tracking-wider dark:text-gm-navy">
+        <span className="bg-gm-navy text-gm-text-inverse text-label leading-label dark:text-gm-navy w-fit rounded-full px-2.5 py-0.5 font-bold tracking-wider uppercase">
           {card.kind === "briefing" ? "Official briefing" : "Official"}
         </span>
-        <h3 className="text-balance font-bold text-gm-heading text-heading-sm leading-heading-sm">
+        <h3 className="text-gm-heading text-heading-sm leading-heading-sm font-bold text-balance">
           <Link className="hover:underline" href={card.href as Route}>
             {card.title}
           </Link>
         </h3>
         {card.summary && (
-          <p className="line-clamp-5 text-body-base leading-body-base">
+          <p className="text-body-base leading-body-base line-clamp-5">
             {card.summary}
           </p>
         )}
         <span
           aria-hidden="true"
-          className="flex aspect-[16/9] items-center justify-center rounded-lg bg-gm-surface-panel text-gm-sky-ink"
+          className="bg-gm-surface-panel text-gm-sky-ink flex aspect-[16/9] items-center justify-center rounded-lg"
         >
           <Icon className="size-12" strokeWidth={1.5} />
         </span>
-        <p className="rounded-lg bg-gm-surface px-3 py-2 text-body-sm text-gm-text-secondary tabular-nums leading-body-sm">
+        <p className="bg-gm-surface text-body-sm text-gm-text-secondary leading-body-sm rounded-lg px-3 py-2 tabular-nums">
           {card.issued}
           {card.valid && <> · {card.valid}</>}
         </p>
         {card.staleNote && (
-          <p className="font-semibold text-body-sm text-gm-heading leading-body-sm">
+          <p className="text-body-sm text-gm-heading leading-body-sm font-semibold">
             {card.staleNote}
           </p>
         )}
         <Link
-          className="mt-auto flex w-fit items-center gap-1 font-semibold text-body text-gm-blue-ink leading-body hover:underline"
+          className="text-body text-gm-blue-ink leading-body mt-auto flex w-fit items-center gap-1 font-semibold hover:underline"
           href={card.href as Route}
         >
           Read the {card.title}
@@ -303,7 +326,7 @@ export async function ForecastDesk() {
         <p className={cn(NOTICE, "mb-3")} role="status">
           Issued forecasts cannot be retrieved right now. See{" "}
           <Link
-            className="font-semibold text-gm-blue-ink underline"
+            className="text-gm-blue-ink font-semibold underline"
             href="/weather/issued"
           >
             all issued products
@@ -336,20 +359,20 @@ export async function ForecastDesk() {
               <article
                 className={cn(
                   HOME_CARD,
-                  "flex h-full flex-col gap-3 border-gm-navy"
+                  "border-gm-navy flex h-full flex-col gap-3"
                 )}
               >
-                <span className="w-fit rounded-full bg-gm-navy px-2.5 py-0.5 font-bold text-gm-text-inverse text-label uppercase leading-label tracking-wider dark:text-gm-navy">
+                <span className="bg-gm-navy text-gm-text-inverse text-label leading-label dark:text-gm-navy w-fit rounded-full px-2.5 py-0.5 font-bold tracking-wider uppercase">
                   Official briefing
                 </span>
-                <h3 className="font-bold text-gm-heading text-heading-sm leading-heading-sm">
+                <h3 className="text-gm-heading text-heading-sm leading-heading-sm font-bold">
                   Public Weather Forecast
                 </h3>
                 <p className="text-body-base leading-body-base">
                   {feed.missingBriefing}
                 </p>
                 <Link
-                  className="mt-auto flex w-fit items-center gap-1 font-semibold text-body text-gm-blue-ink leading-body hover:underline"
+                  className="text-body text-gm-blue-ink leading-body mt-auto flex w-fit items-center gap-1 font-semibold hover:underline"
                   href={"/weather/issued" as Route}
                 >
                   All issued products
@@ -366,7 +389,7 @@ export async function ForecastDesk() {
         </ul>
         {feed.collapsePosts && postCards.length > 0 && (
           <details className="mt-3">
-            <summary className="cursor-pointer font-semibold text-body text-gm-blue-ink leading-body">
+            <summary className="text-body text-gm-blue-ink leading-body cursor-pointer font-semibold">
               Earlier posts ({postCards.length})
             </summary>
             <ul aria-label="Earlier desk posts" className={cn(ROW, "mt-3")}>
@@ -407,7 +430,7 @@ export async function Stories() {
               className="group flex flex-col gap-2"
               href={lead.href as Route}
             >
-              <span className="relative aspect-video overflow-hidden rounded-gm-card bg-gm-surface-panel">
+              <span className="rounded-gm-card bg-gm-surface-panel relative aspect-video overflow-hidden">
                 <Image
                   alt=""
                   className="object-cover"
@@ -417,7 +440,7 @@ export async function Stories() {
                   unoptimized={!isOptimizableImage(lead.imageUrl)}
                 />
               </span>
-              <span className="text-balance font-bold text-gm-heading text-heading-base leading-heading-base group-hover:underline">
+              <span className="text-gm-heading text-heading-base leading-heading-base font-bold text-balance group-hover:underline">
                 {lead.title}
               </span>
               <span className="text-body-base text-gm-text-secondary leading-body-base">
@@ -438,7 +461,7 @@ export async function Stories() {
                     className="group grid grid-cols-[7.5rem_minmax(0,1fr)] gap-3"
                     href={story.href as Route}
                   >
-                    <span className="relative aspect-video overflow-hidden rounded-lg bg-gm-surface-panel">
+                    <span className="bg-gm-surface-panel relative aspect-video overflow-hidden rounded-lg">
                       <Image
                         alt=""
                         className="object-cover"
@@ -449,7 +472,7 @@ export async function Stories() {
                       />
                     </span>
                     <span className="flex flex-col gap-1">
-                      <span className="font-bold text-body-base text-gm-heading leading-body-base group-hover:underline">
+                      <span className="text-body-base text-gm-heading leading-body-base font-bold group-hover:underline">
                         {story.title}
                       </span>
                       <span className="text-body-sm text-gm-text-muted leading-body-sm">
@@ -482,20 +505,20 @@ export async function Explained() {
     >
       <div className="grid gap-5 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)]">
         <Link
-          className="group flex flex-col justify-end gap-2 rounded-gm-card bg-gm-navy p-6 text-gm-text-inverse"
+          className="group rounded-gm-card bg-gm-navy text-gm-text-inverse flex flex-col justify-end gap-2 p-6"
           href="/explore/explained"
         >
-          <span className="font-bold text-gm-lime text-label uppercase leading-label tracking-wider">
+          <span className="text-gm-lime text-label leading-label font-bold tracking-wider uppercase">
             Grenada weather
           </span>
-          <span className="text-balance font-bold font-gm-display text-gm-display uppercase tracking-wide">
+          <span className="font-gm-display text-gm-display font-bold tracking-wide text-balance uppercase">
             Grenada's weather and climate, explained
           </span>
-          <span className="max-w-prose text-body-base text-gm-text-inverse/85 leading-body-base">
+          <span className="text-body-base text-gm-text-inverse/85 leading-body-base max-w-prose">
             Plain-language explainers from the forecast desk: trade winds,
             tropical waves, rain shadows and what a forecast really says.
           </span>
-          <span className="flex items-center gap-1 font-semibold text-body text-gm-lime leading-body group-hover:underline">
+          <span className="text-body text-gm-lime leading-body flex items-center gap-1 font-semibold group-hover:underline">
             Read the explainers
             <ArrowRightIcon aria-hidden="true" className="size-4" />
           </span>
@@ -513,7 +536,7 @@ export async function Explained() {
               {questions.questions.map((item) => (
                 <li className="border-gm-border border-b" key={item.id}>
                   <Link
-                    className="flex items-center justify-between gap-3 py-3.5 font-semibold text-body-base text-gm-heading leading-body-base hover:underline"
+                    className="text-body-base text-gm-heading leading-body-base flex items-center justify-between gap-3 py-3.5 font-semibold hover:underline"
                     href={questionHref(item.slug) as Route}
                   >
                     {item.question}
@@ -527,7 +550,7 @@ export async function Explained() {
             </ul>
           </FeedState>
           <Link
-            className="mt-4 flex items-center justify-between gap-3 rounded-gm-card bg-gm-surface-panel p-4 font-semibold text-body-base text-gm-heading leading-body-base hover:underline"
+            className="rounded-gm-card bg-gm-surface-panel text-body-base text-gm-heading leading-body-base mt-4 flex items-center justify-between gap-3 p-4 font-semibold hover:underline"
             href="/explore/ask"
           >
             Have a question? Ask a meteorologist

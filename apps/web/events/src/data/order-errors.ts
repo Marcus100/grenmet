@@ -1,8 +1,8 @@
-const SOLD_OUT = /sold out/i;
-const NO_ONLINE_PAYMENT = /online payment isn't available/i;
-const KEY_REUSED = /Idempotency-Key/i;
-const JUST_TAKEN = /just taken|just placed/i;
-const PAID_ONLINE = /paid online|ask the organiser for a refund/i;
+const SOLD_OUT = /sold out/iu;
+const NO_ONLINE_PAYMENT = /online payment isn't available/iu;
+const KEY_REUSED = /Idempotency-Key/iu;
+const JUST_TAKEN = /just taken|just placed/iu;
+const PAID_ONLINE = /paid online|ask the organiser for a refund/iu;
 
 /**
  * Turns the API's 409 text for ordering and cancelling into guidance a buyer

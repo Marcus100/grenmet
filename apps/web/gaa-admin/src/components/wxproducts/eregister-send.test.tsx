@@ -17,11 +17,11 @@ vi.mock("@barrelsgd/api-client", () => ({
 import { describeSends, useObservationSends } from "./eregister-send";
 import { ERegisterWorkbook } from "./eregister-workbook";
 
-const EMAIL_BUTTON = /Email observation/;
-const WIS2_BUTTON = /Send last obs/;
-const EMAIL_PROMPT = /Email this observation/;
-const WIS2_PROMPT = /through wis2box/;
-const REPEAT_PROMPT = /already sent to this target/;
+const EMAIL_BUTTON = /Email observation/u;
+const WIS2_BUTTON = /Send last obs/u;
+const EMAIL_PROMPT = /Email this observation/u;
+const WIS2_PROMPT = /through wis2box/u;
+const REPEAT_PROMPT = /already sent to this target/u;
 const OBSERVATION = "11111111-1111-4111-8111-111111111111";
 
 function send(overrides: Partial<ObservationSend>): ObservationSend {

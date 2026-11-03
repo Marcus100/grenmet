@@ -24,8 +24,8 @@ type Reading = (values: Values, context?: ReadingContext) => string | null;
 /** Shown where a calculated value waits for a station setting. */
 export const PENDING_DASH = "—";
 
-const DIGITS = /^\d+$/;
-const TENTHS_GROUP = /^\d{3,4}$/;
+const DIGITS = /^\d+$/u;
+const TENTHS_GROUP = /^\d{3,4}$/u;
 const KM_90_99 = [
   "<0.05",
   "0.05",

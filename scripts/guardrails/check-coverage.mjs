@@ -19,9 +19,9 @@ const METRICS = ["lines", "branches"];
 const NOISE_MARGIN = 0.5;
 const PERCENT = 100;
 const ROUND = 10;
-const WEB_PREFIX = /^web\//;
-const ROOT_ATTRIBUTES = /<coverage\b[^>]*>/;
-const RATE = (name) => new RegExp(`\\b${name}="([0-9.]+)"`);
+const WEB_PREFIX = /^web\//u;
+const ROOT_ATTRIBUTES = /<coverage\b[^>]*>/u;
+const RATE = (name) => new RegExp(`\\b${name}="([0-9.]+)"`, "u");
 const LINE_RATE = RATE("line-rate");
 const BRANCH_RATE = RATE("branch-rate");
 

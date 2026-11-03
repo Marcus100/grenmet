@@ -40,11 +40,11 @@ function workspaceDependencies(name, seen = new Set()) {
   return seen;
 }
 
-const DIST_ENTRY = /"\.\/dist\//;
+const DIST_ENTRY = /"\.\/dist\//u;
 // First `&&` step: pnpm --filter '<name>^...' run build (group 2 is the name).
 // `^...` selects every workspace dependency of <name> and not <name> itself.
 const DEPENDENCY_BUILD_STEP =
-  /^\s*pnpm\s+--filter\s+(['"])(.+)\^\.\.\.\1\s+run\s+build\s*$/;
+  /^\s*pnpm\s+--filter\s+(['"])(.+)\^\.\.\.\1\s+run\s+build\s*$/u;
 
 function resolvesToDist(manifest) {
   return DIST_ENTRY.test(

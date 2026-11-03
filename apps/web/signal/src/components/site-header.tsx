@@ -6,7 +6,7 @@ import { NAV_LINKS } from "@/lib/nav";
 export function SiteHeader({ accountLabel }: { accountLabel?: string }) {
   return (
     <header className="mx-auto max-w-7xl px-4 sm:px-8">
-      <div className="flex flex-wrap justify-between gap-x-6 gap-y-2 border-signal-rule border-b py-3 text-sm">
+      <div className="border-signal-rule flex flex-wrap justify-between gap-x-6 gap-y-2 border-b py-3 text-sm">
         <p>Grenada, Carriacou & Petite Martinique</p>
         <div className="flex items-center gap-4">
           <Link className="text-signal-green hover:underline" href="/about">
@@ -18,7 +18,7 @@ export function SiteHeader({ accountLabel }: { accountLabel?: string }) {
       <div className="py-8 text-center sm:py-10">
         <Link
           aria-label="Grenada Signal — home"
-          className="inline-block font-semibold font-serif text-4xl leading-none tracking-tight sm:text-6xl lg:text-7xl"
+          className="inline-block font-serif text-4xl leading-none font-semibold tracking-tight sm:text-6xl lg:text-7xl"
           href="/"
         >
           Grenada{" "}
@@ -32,11 +32,11 @@ export function SiteHeader({ accountLabel }: { accountLabel?: string }) {
       </div>
       <nav
         aria-label="Main navigation"
-        className="flex flex-wrap justify-center gap-x-6 border-signal-ink border-y py-1"
+        className="border-signal-ink flex flex-wrap justify-center gap-x-6 border-y py-1"
       >
         {NAV_LINKS.map((link) => (
           <Link
-            className="inline-flex min-h-11 items-center py-2 font-medium text-base hover:text-signal-green hover:underline"
+            className="hover:text-signal-green inline-flex min-h-11 items-center py-2 text-base font-medium hover:underline"
             href={link.href}
             key={link.href}
           >

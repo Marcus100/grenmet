@@ -6,8 +6,8 @@ import resultsJson from "@/data/derived/results";
 import type { ElectionCalendar } from "@/data/election-2026";
 import type { ResultsFile } from "@/data/types";
 
-const DAYS_TO_GO = /33 days to go/;
-const SEAT_COUNT = / (\d+)/g;
+const DAYS_TO_GO = /33 days to go/u;
+const SEAT_COUNT = / (\d+)/gu;
 const calendar: ElectionCalendar = {
   announcement: "2026-10-04",
   deadline: "2027-01-02",

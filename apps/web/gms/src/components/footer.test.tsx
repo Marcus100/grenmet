@@ -2,9 +2,9 @@ import { render, screen, within } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import { Footer } from "@/components/footer";
 
-const PATH_START = /^M/;
-const EMAIL_OR_BROWSER = /email or browser notifications/;
-const NO_APP = /the app/;
+const PATH_START = /^M/u;
+const EMAIL_OR_BROWSER = /email or browser notifications/u;
+const NO_APP = /the app/u;
 
 describe("Footer", () => {
   it("opens with the alerts sign-up and emergency advice", () => {

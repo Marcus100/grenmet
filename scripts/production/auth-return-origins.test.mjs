@@ -19,19 +19,19 @@ const read = (path) => readFileSync(`${root}${path}`, "utf8");
 const compose = read("infra/docker/docker-compose.deploy.yml");
 const returnTo = read("apps/web/auth/src/lib/return-to.ts");
 
-const SERVICE_START = /^ {2}\S/;
-const APP_URL_LINE = /^\s+([A-Z][A-Z_]*_APP_URL): (https:\/\/\S+)\s*$/gm;
-const CONFIGURED_LIST = /const configured = \[([\s\S]*?)\];/;
-const ENV_NAME = /env\.([A-Z][A-Z_]*_APP_URL)/g;
-const RETURN_HOSTS = /^\s+AUTH_ALLOWED_RETURN_HOSTS: (.+)$/m;
-const EXTRA_HOSTS = /\$\{EXTRA_RETURN_HOSTS:-\}/;
-const HTTPS_ORIGIN = /^https:\/\//;
+const SERVICE_START = /^ {2}\S/u;
+const APP_URL_LINE = /^\s+([A-Z][A-Z_]*_APP_URL): (https:\/\/\S+)\s*$/gmu;
+const CONFIGURED_LIST = /const configured = \[([\s\S]*?)\];/u;
+const ENV_NAME = /env\.([A-Z][A-Z_]*_APP_URL)/gu;
+const RETURN_HOSTS = /^\s+AUTH_ALLOWED_RETURN_HOSTS: (.+)$/mu;
+const EXTRA_HOSTS = /\$\{EXTRA_RETURN_HOSTS:-\}/u;
+const HTTPS_ORIGIN = /^https:\/\//u;
 // One label under the base domain: no port, path, query or other host.
-const NAMED_ORIGIN = /^https:\/\/[a-z0-9-]+\.\$\{BASE_DOMAIN\}$/;
-const BASE_DOMAIN_REF = /\$\{BASE_DOMAIN\}/g;
+const NAMED_ORIGIN = /^https:\/\/[a-z0-9-]+\.\$\{BASE_DOMAIN\}$/u;
+const BASE_DOMAIN_REF = /\$\{BASE_DOMAIN\}/gu;
 const STAGING_DOMAIN = "staging.barrels.gd";
 // The hand-written staging configuration in the auth app's unit test.
-const FIXTURE_HOSTS = /const STAGING = \{[\s\S]*?hosts:\s*"([^"]+)"/;
+const FIXTURE_HOSTS = /const STAGING = \{[\s\S]*?hosts:\s*"([^"]+)"/u;
 const UNIT_TEST = "apps/web/auth/src/test/return-to.test.ts";
 
 /** The text of one top-level service (two-space indent), up to the next one. */

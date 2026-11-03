@@ -85,8 +85,8 @@ const resources: Resource[] = [
 
 function ResourceIcon({ icon: Icon }: { icon: Resource["icon"] }) {
   return (
-    <div className="flex h-7 w-7 items-center justify-center rounded-full bg-zinc-900/5 ring-1 ring-zinc-900/25 backdrop-blur-[2px] transition duration-300 group-hover:bg-white/50 group-hover:ring-zinc-900/25 dark:bg-white/7.5 dark:ring-white/15 dark:group-hover:bg-gm-sky/10 dark:group-hover:ring-gm-blue">
-      <Icon className="h-5 w-5 fill-zinc-700/10 stroke-zinc-700 transition-colors duration-300 group-hover:stroke-zinc-900 dark:fill-white/10 dark:stroke-zinc-400 dark:group-hover:fill-gm-sky/10 dark:group-hover:stroke-gm-sky" />
+    <div className="dark:group-hover:bg-gm-sky/10 dark:group-hover:ring-gm-blue flex h-7 w-7 items-center justify-center rounded-full bg-zinc-900/5 ring-1 ring-zinc-900/25 backdrop-blur-[2px] transition duration-300 group-hover:bg-white/50 group-hover:ring-zinc-900/25 dark:bg-white/7.5 dark:ring-white/15">
+      <Icon className="dark:group-hover:fill-gm-sky/10 dark:group-hover:stroke-gm-sky h-5 w-5 fill-zinc-700/10 stroke-zinc-700 transition-colors duration-300 group-hover:stroke-zinc-900 dark:fill-white/10 dark:stroke-zinc-400" />
     </div>
   );
 }
@@ -104,7 +104,7 @@ function ResourcePattern({
 
   return (
     <div className="pointer-events-none">
-      <div className="mask-[linear-gradient(white,transparent)] absolute inset-0 rounded-2xl transition duration-300 group-hover:opacity-50">
+      <div className="absolute inset-0 rounded-2xl mask-[linear-gradient(white,transparent)] transition duration-300 group-hover:opacity-50">
         <GridPattern
           className="absolute inset-x-0 inset-y-[-30%] h-[160%] w-full skew-y-[-18deg] fill-black/2 stroke-black/5 dark:fill-white/1 dark:stroke-white/2.5"
           height={56}
@@ -114,7 +114,7 @@ function ResourcePattern({
         />
       </div>
       <motion.div
-        className="absolute inset-0 rounded-2xl bg-linear-to-r from-gm-surface-secondary to-gm-surface-muted opacity-0 transition duration-300 group-hover:opacity-100 dark:from-gm-navy-raised dark:to-gm-navy-panel"
+        className="from-gm-surface-secondary to-gm-surface-muted dark:from-gm-navy-raised dark:to-gm-navy-panel absolute inset-0 rounded-2xl bg-linear-to-r opacity-0 transition duration-300 group-hover:opacity-100"
         style={style}
       />
       <motion.div
@@ -146,7 +146,7 @@ function Resource({ resource }: { resource: Resource }) {
       <div className="absolute inset-0 rounded-2xl ring-1 ring-zinc-900/7.5 ring-inset group-hover:ring-zinc-900/10 dark:ring-white/10 dark:group-hover:ring-white/20" />
       <div className="relative rounded-2xl px-4 pt-16 pb-4">
         <ResourceIcon icon={resource.icon} />
-        <h3 className="mt-4 font-semibold text-sm/7 text-zinc-900 dark:text-white">
+        <h3 className="mt-4 text-sm/7 font-semibold text-zinc-900 dark:text-white">
           <Link href={resource.href as Route}>
             <span className="absolute inset-0 rounded-2xl" />
             {resource.name}
@@ -166,7 +166,7 @@ export function Resources() {
       <Heading id="operational-phases" level={2}>
         Operational phases
       </Heading>
-      <div className="not-prose mt-4 grid grid-cols-1 gap-8 border-zinc-900/5 border-t pt-10 sm:grid-cols-2 xl:grid-cols-4 dark:border-white/5">
+      <div className="not-prose mt-4 grid grid-cols-1 gap-8 border-t border-zinc-900/5 pt-10 sm:grid-cols-2 xl:grid-cols-4 dark:border-white/5">
         {resources.map((resource) => (
           <Resource key={resource.href} resource={resource} />
         ))}

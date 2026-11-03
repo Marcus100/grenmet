@@ -9,7 +9,7 @@ import userEvent from "@testing-library/user-event";
 import { afterEach, describe, expect, it } from "vitest";
 import { ThemeToggle } from "@/components/theme-toggle";
 
-const TOGGLE_NAME = /^Current theme/;
+const TOGGLE_NAME = /^Current theme/u;
 const LIGHT_NOW = "Current theme: light. Click to switch to dark";
 const DARK_NOW = "Current theme: dark. Click to switch to light";
 

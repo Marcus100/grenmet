@@ -16,10 +16,10 @@ const SITE_HOSTS = new Set([
   "www.weather.gd",
   "localhost:3003",
 ]);
-const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-const ISSUED = /^\/weather\/issued\/([^/]+)$/;
-const ALERT = /^\/alerts\/([^/]+)$/;
-const QUERY_OR_HASH = /[?#]/;
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/iu;
+const ISSUED = /^\/weather\/issued\/([^/]+)$/u;
+const ALERT = /^\/alerts\/([^/]+)$/u;
+const QUERY_OR_HASH = /[?#]/u;
 
 /** Drops trailing slashes with a loop, not a backtracking pattern. */
 function trimTrailingSlashes(path: string): string {

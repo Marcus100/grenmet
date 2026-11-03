@@ -45,7 +45,7 @@ const PERMISSION_COPY: Readonly<Record<string, string>> = {
 };
 
 function humanise(key: string): string {
-  const words = key.replace(/[-_.]+/g, " ").trim();
+  const words = key.replace(/[-_.]+/gu, " ").trim();
   return words.charAt(0).toUpperCase() + words.slice(1);
 }
 
@@ -67,10 +67,10 @@ export function allowedActions(permissions: readonly string[]): string[] {
   return permissions.map(permissionLabel);
 }
 
-const ROLE_KEY = /^[a-z][a-z0-9-]{0,59}$/;
+const ROLE_KEY = /^[a-z][a-z0-9-]{0,59}$/u;
 /** Membership and grant ids are opaque strings; only their shape is checked. */
-const OPAQUE_ID = /^[A-Za-z0-9_-]{1,100}$/;
-const DATE_ONLY = /^(\d{4})-(\d{2})-(\d{2})$/;
+const OPAQUE_ID = /^[A-Za-z0-9_-]{1,100}$/u;
+const DATE_ONLY = /^(\d{4})-(\d{2})-(\d{2})$/u;
 
 export const isRoleKey = (value: string): boolean => ROLE_KEY.test(value);
 export const isOpaqueId = (value: string): boolean => OPAQUE_ID.test(value);

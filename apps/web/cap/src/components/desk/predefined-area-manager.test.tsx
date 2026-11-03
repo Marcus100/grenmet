@@ -55,7 +55,7 @@ const SAVED = {
   updated_at: "2026-10-01T00:00:00Z",
 };
 
-const SAVE_BUTTON = /save predefined area/i;
+const SAVE_BUTTON = /save predefined area/iu;
 const NO_ACCESS = "No access to save predefined areas";
 const NONE_SAVED = "No predefined areas are saved yet.";
 

@@ -145,7 +145,7 @@ export function detailText(data: unknown): string {
 
 const RULES: ReadonlyArray<{ match: RegExp; failure: StudioFailure }> = [
   {
-    match: /already in use/i,
+    match: /already in use/iu,
     failure: {
       kind: "conflict",
       message: "That booking address is already in use.",
@@ -153,7 +153,7 @@ const RULES: ReadonlyArray<{ match: RegExp; failure: StudioFailure }> = [
     },
   },
   {
-    match: /reserved/i,
+    match: /reserved/iu,
     failure: {
       kind: "invalid",
       message: "That booking address is reserved by the platform.",
@@ -161,7 +161,7 @@ const RULES: ReadonlyArray<{ match: RegExp; failure: StudioFailure }> = [
     },
   },
   {
-    match: /deposit cannot exceed/i,
+    match: /deposit cannot exceed/iu,
     failure: {
       kind: "invalid",
       message: "The deposit cannot exceed the price.",
@@ -169,7 +169,7 @@ const RULES: ReadonlyArray<{ match: RegExp; failure: StudioFailure }> = [
     },
   },
   {
-    match: /unknown iana timezone/i,
+    match: /unknown iana timezone/iu,
     failure: {
       kind: "invalid",
       message: "That timezone is not recognised.",
@@ -177,7 +177,7 @@ const RULES: ReadonlyArray<{ match: RegExp; failure: StudioFailure }> = [
     },
   },
   {
-    match: /overlap/i,
+    match: /overlap/iu,
     failure: {
       kind: "invalid",
       message: "Two working periods on the same day overlap.",

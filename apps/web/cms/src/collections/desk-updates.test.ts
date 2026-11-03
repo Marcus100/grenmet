@@ -56,4 +56,36 @@ describe("desk post types (owner, 1 Nov 2026)", () => {
       (field("authorRole") as unknown as { maxLength: number }).maxLength
     ).toBe(60);
   });
+
+  it("offers a pin switch for homepage editors, in the sidebar", () => {
+    const pinned = field("pinned") as unknown as {
+      type: string;
+      defaultValue: boolean;
+      label: string;
+      admin: { position: string };
+    };
+    expect(pinned.type).toBe("checkbox");
+    expect(pinned.defaultValue).toBe(false);
+    expect(pinned.label).toBe("Pin to the top of From the Desk");
+    expect(pinned.admin.position).toBe("sidebar");
+  });
+
+  it("gives each platform its own picture, with its suggested size", () => {
+    const social = field("social") as unknown as {
+      fields: {
+        name: string;
+        label?: string;
+        admin?: { description?: string };
+      }[];
+    };
+    const byName = (name: string) =>
+      social.fields.find((item) => item.name === name);
+    expect(byName("facebookImage")?.label).toBe("Facebook image");
+    expect(byName("facebookImage")?.admin?.description).toContain("1200 x 630");
+    expect(byName("instagramImage")?.admin?.description).toContain(
+      "1080 x 1080 or 1080 x 1350"
+    );
+    expect(byName("whatsappImage")?.label).toBe("WhatsApp Channel image");
+    expect(byName("image")?.label).toBe("Social image (all platforms)");
+  });
 });

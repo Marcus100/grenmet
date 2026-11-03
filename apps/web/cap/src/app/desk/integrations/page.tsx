@@ -42,7 +42,7 @@ export default async function IntegrationsPage() {
   }
   return (
     <div className="space-y-6">
-      <h1 className="font-semibold text-2xl">CAP integrations</h1>
+      <h1 className="text-2xl font-semibold">CAP integrations</h1>
       <p className="text-body-sm text-muted-foreground">
         This page is read-only. Configuration and queued jobs are not proof that
         a warning was delivered to anyone. &ldquo;Not configured&rdquo; means
@@ -52,9 +52,9 @@ export default async function IntegrationsPage() {
         const records = groupRecords(response, group.key);
         return (
           <section className="space-y-3" key={group.key}>
-            <h2 className="font-semibold text-lg">
+            <h2 className="text-lg font-semibold">
               {group.title}{" "}
-              <span className="font-normal text-muted-foreground">
+              <span className="text-muted-foreground font-normal">
                 ({records.length})
               </span>
             </h2>
@@ -86,7 +86,7 @@ function IntegrationCard({
   record: IntegrationRecord;
 }) {
   return (
-    <dl className="grid gap-2 rounded-lg border bg-card p-4 sm:grid-cols-2">
+    <dl className="bg-card grid gap-2 rounded-lg border p-4 sm:grid-cols-2">
       {fields.map((field) => (
         <div key={field}>
           <dt className="text-body-sm text-muted-foreground">

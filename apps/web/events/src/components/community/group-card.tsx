@@ -16,7 +16,7 @@ export function GroupCard({
 
   return (
     <Link
-      className="group flex h-full flex-col gap-4 rounded-2xl border border-border bg-card p-5 transition-colors hover:border-foreground"
+      className="group border-border bg-card hover:border-foreground flex h-full flex-col gap-4 rounded-2xl border p-5 transition-colors"
       href={`/groups/${group.slug}`}
     >
       <div className="flex items-start gap-3">
@@ -29,10 +29,10 @@ export function GroupCard({
           <Icon className="size-6" />
         </span>
         <div className="min-w-0">
-          <h2 className="font-display font-semibold text-body-base group-hover:underline">
+          <h2 className="font-display text-body-base font-semibold group-hover:underline">
             {group.name}
           </h2>
-          <p className="flex items-center gap-1 text-caption text-muted-foreground">
+          <p className="text-caption text-muted-foreground flex items-center gap-1">
             {group.memberCount} members · {PARISH_LABELS[group.parish]}
             {group.joinPolicy === "approval" ? (
               <Lock aria-label="Membership reviewed" className="size-3.5" />
@@ -40,8 +40,8 @@ export function GroupCard({
           </p>
         </div>
       </div>
-      <p className="flex-1 text-body text-muted-foreground">{group.tagline}</p>
-      <p className="font-medium text-caption text-events-hibiscus-deep">
+      <p className="text-body text-muted-foreground flex-1">{group.tagline}</p>
+      <p className="text-caption text-events-hibiscus-deep font-medium">
         {nextMeetup ? `Next: ${nextMeetup}` : "No meetup scheduled"}
       </p>
     </Link>

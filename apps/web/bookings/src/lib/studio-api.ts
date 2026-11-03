@@ -52,7 +52,7 @@ import { getAuthConfig } from "@/lib/auth-config";
 import { redactRequest } from "@/lib/redact-request";
 import { DEFAULT_TIMEZONE } from "@/lib/studio-view";
 
-const API_PREFIX = /\/api\/v1(?=\/|$)/;
+const API_PREFIX = /\/api\/v1(?=\/|$)/u;
 const TIMEOUT_MS = 10_000;
 
 function studioClient(accessToken: string, organisationId?: string) {

@@ -21,15 +21,15 @@ export function AccountTabs({ current }: { current: AccountTab }) {
       aria-label="Account"
       className="-mx-4 overflow-x-auto px-4 sm:mx-0 sm:px-0"
     >
-      <div className="flex min-w-max gap-6 border-border border-b">
+      <div className="border-border flex min-w-max gap-6 border-b">
         {ACCOUNT_TABS.map((tab) => (
           <Link
             aria-current={tab.href === current ? "page" : undefined}
             className={cn(
-              "-mb-px border-b-2 pb-3 font-medium text-sm transition",
+              "-mb-px border-b-2 pb-3 text-sm font-medium transition",
               tab.href === current
-                ? "border-(--auth-accent) text-foreground"
-                : "border-transparent text-muted-foreground hover:text-foreground"
+                ? "text-foreground border-(--auth-accent)"
+                : "text-muted-foreground hover:text-foreground border-transparent"
             )}
             href={tab.href}
             key={tab.href}

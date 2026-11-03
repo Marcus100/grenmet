@@ -133,10 +133,10 @@ function CardBody({ card }: { card: Card }) {
         <Icon aria-hidden="true" className="size-12" strokeWidth={1.4} />
       </span>
       <span className="flex flex-col gap-1 p-4">
-        <span className="font-bold text-gm-sky-ink text-label uppercase leading-label tracking-wider">
+        <span className="text-gm-sky-ink text-label leading-label font-bold tracking-wider uppercase">
           {card.kicker}
         </span>
-        <span className="font-bold text-body-base text-gm-heading leading-body-base">
+        <span className="text-body-base text-gm-heading leading-body-base font-bold">
           {card.title}
         </span>
         <span className="text-body-sm text-gm-text-secondary leading-body-sm">

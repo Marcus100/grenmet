@@ -13,8 +13,8 @@ import { ProfileApproval } from "./profile-approval";
 const AUTHOR = "aaaaaaaa-0000-4000-8000-000000000001";
 const REVIEWER = "bbbbbbbb-0000-4000-8000-000000000002";
 const ALL = { approve: true, libraryManage: true };
-const APPROVE_BUTTON = /Approve version/;
-const CONFIRM_TEXT = /Your name is recorded as the approver/;
+const APPROVE_BUTTON = /Approve version/u;
+const CONFIRM_TEXT = /Your name is recorded as the approver/u;
 const AUTHOR_NOTE =
   "You wrote this version. A different reviewer must approve it.";
 

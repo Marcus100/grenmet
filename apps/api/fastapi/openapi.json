@@ -43888,6 +43888,8 @@
                       "morning": "#/components/schemas/LegacyStoredProduct",
                       "midday": "#/components/schemas/LegacyStoredProduct",
                       "evening": "#/components/schemas/LegacyStoredProduct",
+                      "marine-forecast": "#/components/schemas/LegacyStoredProduct",
+                      "climate-bulletin": "#/components/schemas/LegacyStoredProduct",
                       "cyclone": "#/components/schemas/LegacyStoredProduct",
                       "marine": "#/components/schemas/LegacyStoredProduct",
                       "flood": "#/components/schemas/LegacyStoredProduct",
@@ -44457,6 +44459,8 @@
                       "morning": "#/components/schemas/LegacyProductPreview",
                       "midday": "#/components/schemas/LegacyProductPreview",
                       "evening": "#/components/schemas/LegacyProductPreview",
+                      "marine-forecast": "#/components/schemas/LegacyProductPreview",
+                      "climate-bulletin": "#/components/schemas/LegacyProductPreview",
                       "cyclone": "#/components/schemas/LegacyProductPreview",
                       "marine": "#/components/schemas/LegacyProductPreview",
                       "flood": "#/components/schemas/LegacyProductPreview",
@@ -68631,6 +68635,7 @@
               "discriminator": {
                 "propertyName": "kind",
                 "mapping": {
+                  "climate-bulletin": "#/components/schemas/LegacyStoredProduct",
                   "coastal": "#/components/schemas/LegacyStoredProduct",
                   "cyclone": "#/components/schemas/LegacyStoredProduct",
                   "dust": "#/components/schemas/LegacyStoredProduct",
@@ -68638,6 +68643,7 @@
                   "flood": "#/components/schemas/LegacyStoredProduct",
                   "heat": "#/components/schemas/LegacyStoredProduct",
                   "marine": "#/components/schemas/LegacyStoredProduct",
+                  "marine-forecast": "#/components/schemas/LegacyStoredProduct",
                   "midday": "#/components/schemas/LegacyStoredProduct",
                   "morning": "#/components/schemas/LegacyStoredProduct",
                   "outlook": "#/components/schemas/OutlookStoredProduct",
@@ -94886,6 +94892,7 @@
         "discriminator": {
           "propertyName": "kind",
           "mapping": {
+            "climate-bulletin": "#/components/schemas/LegacyProductPreviewInput",
             "coastal": "#/components/schemas/LegacyProductPreviewInput",
             "cyclone": "#/components/schemas/LegacyProductPreviewInput",
             "dust": "#/components/schemas/LegacyProductPreviewInput",
@@ -94893,6 +94900,7 @@
             "flood": "#/components/schemas/LegacyProductPreviewInput",
             "heat": "#/components/schemas/LegacyProductPreviewInput",
             "marine": "#/components/schemas/LegacyProductPreviewInput",
+            "marine-forecast": "#/components/schemas/LegacyProductPreviewInput",
             "midday": "#/components/schemas/LegacyProductPreviewInput",
             "morning": "#/components/schemas/LegacyProductPreviewInput",
             "outlook": "#/components/schemas/OutlookProductPreviewInput",
@@ -94916,6 +94924,7 @@
         "discriminator": {
           "propertyName": "kind",
           "mapping": {
+            "climate-bulletin": "#/components/schemas/LegacyProductWrite",
             "coastal": "#/components/schemas/LegacyProductWrite",
             "cyclone": "#/components/schemas/LegacyProductWrite",
             "dust": "#/components/schemas/LegacyProductWrite",
@@ -94923,6 +94932,7 @@
             "flood": "#/components/schemas/LegacyProductWrite",
             "heat": "#/components/schemas/LegacyProductWrite",
             "marine": "#/components/schemas/LegacyProductWrite",
+            "marine-forecast": "#/components/schemas/LegacyProductWrite",
             "midday": "#/components/schemas/LegacyProductWrite",
             "morning": "#/components/schemas/LegacyProductWrite",
             "outlook": "#/components/schemas/OutlookProductWrite",
@@ -115988,6 +115998,8 @@
           "midday",
           "evening",
           "outlook",
+          "marine-forecast",
+          "climate-bulletin",
           "cyclone",
           "marine",
           "flood",
@@ -116146,6 +116158,8 @@
           "morning",
           "midday",
           "evening",
+          "marine-forecast",
+          "climate-bulletin",
           "cyclone",
           "marine",
           "flood",

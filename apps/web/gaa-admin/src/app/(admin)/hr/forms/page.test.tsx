@@ -8,7 +8,7 @@ it("links to every HR form, split into requests and records", () => {
 
   for (const item of newRequestItems) {
     expect(
-      screen.getByRole("link", { name: new RegExp(item.title, "i") })
+      screen.getByRole("link", { name: new RegExp(item.title, "iu") })
     ).toHaveAttribute("href", item.href);
   }
 

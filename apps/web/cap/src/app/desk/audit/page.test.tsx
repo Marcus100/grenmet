@@ -13,8 +13,8 @@ import Loading from "./loading";
 import AuditPage from "./page";
 
 const ALERT = "11111111-2222-4333-8444-555555555555";
-const STATE_CHANGE = /APPROVED → PUBLISHED/;
-const ACTOR = /Actor: 33333333/;
+const STATE_CHANGE = /APPROVED → PUBLISHED/u;
+const ACTOR = /Actor: 33333333/u;
 
 function event(overrides: Record<string, unknown> = {}) {
   return {

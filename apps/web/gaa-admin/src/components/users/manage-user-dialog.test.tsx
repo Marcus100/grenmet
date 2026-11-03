@@ -40,10 +40,11 @@ vi.mock("./account-activation", () => ({ AccountActivation: () => null }));
 vi.mock("@/lib/report-error", () => ({ reportError: vi.fn() }));
 
 const BASE = "http://localhost";
-const DELEGATION_EXPLANATION = /Delegated access ends when your authority ends/;
-const CLASS_SEPARATOR = /\s+/;
+const DELEGATION_EXPLANATION =
+  /Delegated access ends when your authority ends/u;
+const CLASS_SEPARATOR = /\s+/u;
 /** A grid-cols-2 that applies below md (no responsive prefix). */
-const BARE_GRID_COLS_TWO = /(^|\s)grid-cols-2(\s|$)/;
+const BARE_GRID_COLS_TWO = /(^|\s)grid-cols-2(\s|$)/u;
 
 const ROLES: RolePublic[] = [
   {

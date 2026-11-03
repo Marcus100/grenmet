@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { describeDeskError } from "./errors";
 
-const PATTERN_1 = /Not published/;
-const PATTERN_2 = /may or may not have gone through/;
+const PATTERN_1 = /Not published/u;
+const PATTERN_2 = /may or may not have gone through/u;
 
 function failure(status: number, detail: unknown) {
   return Object.assign(new Error("failed"), {

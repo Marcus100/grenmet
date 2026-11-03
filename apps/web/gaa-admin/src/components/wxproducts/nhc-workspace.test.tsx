@@ -57,8 +57,8 @@ const archive: NhcPage = {
 };
 const firstEdition = archive.items[0];
 if (!firstEdition) throw new Error("Missing edition fixture");
-const AUTHORING_LINK = /editor|prepare/i;
-const EMPTY_ARCHIVE = /does not establish that no weather systems exist/;
+const AUTHORING_LINK = /editor|prepare/iu;
+const EMPTY_ARCHIVE = /does not establish that no weather systems exist/u;
 const content: NhcContent = {
   edition: firstEdition,
   text: "Preserved source text",

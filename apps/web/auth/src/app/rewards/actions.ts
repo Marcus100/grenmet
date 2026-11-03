@@ -9,7 +9,7 @@ import {
   readSessionCookie,
 } from "@/lib/session";
 
-const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/iu;
 
 /**
  * Hold a card's stamps behind a one-time code for staff to confirm. Outcomes

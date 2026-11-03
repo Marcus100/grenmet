@@ -25,7 +25,7 @@ export function DuplicateAlertButton({
   const [error, setError] = useState<DeskError | null>(null);
 
   return (
-    <section className="space-y-2 rounded-lg border bg-card p-4 text-body-sm">
+    <section className="bg-card text-body-sm space-y-2 rounded-lg border p-4">
       <h2 className="font-semibold">Use this as a starting point</h2>
       <p className="text-muted-foreground" id={noteId}>
         A copy is a new draft with its own identifier. It is not an Update of
