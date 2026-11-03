@@ -61,6 +61,10 @@ def severity_for(colour: GmsColour) -> CapSeverity:
     return _AWARENESS[colour][1]
 
 
+def awareness_code(colour: GmsColour) -> int:
+    return _AWARENESS[colour][0]
+
+
 def awareness_value(colour: GmsColour) -> str:
     code, severity = _AWARENESS[colour]
     return f"{code}; {colour.value}; {severity.value}"

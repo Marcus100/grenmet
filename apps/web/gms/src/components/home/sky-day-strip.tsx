@@ -140,7 +140,7 @@ export function SkyDayStrip({
 
   return (
     <nav aria-label="Forecast days">
-      <ul className="grid grid-cols-6 overflow-hidden rounded-gm-card bg-gm-scrim">
+      <ul className="rounded-gm-card bg-gm-scrim grid grid-cols-6 overflow-hidden">
         <li className="min-w-0">
           <TabLink
             className={TAB}
@@ -151,7 +151,7 @@ export function SkyDayStrip({
             idleClassName={IDLE}
             slug="now"
           >
-            <span className="font-bold text-body-base tabular-nums leading-body-base">
+            <span className="text-body-base leading-body-base font-bold tabular-nums">
               <Temperature value={now.temperature} />
             </span>
             <IconRow
@@ -169,7 +169,7 @@ export function SkyDayStrip({
             <span aria-hidden="true" className={small}>
               {"\u00a0"}
             </span>
-            <span className="mt-1 font-bold text-body-base leading-body-base">
+            <span className="text-body-base leading-body-base mt-1 font-bold">
               {now.label ?? "Now"}
               {now.label === "Last" && (
                 <span className="sr-only"> reading</span>
@@ -185,7 +185,7 @@ export function SkyDayStrip({
           const column = index + 1;
           return (
             <li
-              className="min-w-0 border-gm-text-inverse/10 border-l"
+              className="border-gm-text-inverse/10 min-w-0 border-l"
               key={day.slug}
             >
               <TabLink
@@ -197,7 +197,7 @@ export function SkyDayStrip({
                 idleClassName={IDLE}
                 slug={day.slug}
               >
-                <span className="font-bold text-body-base tabular-nums leading-body-base">
+                <span className="text-body-base leading-body-base font-bold tabular-nums">
                   <Temperature value={day.high} />
                   {day.high !== null && (
                     <span className="sr-only"> maximum</span>
@@ -214,7 +214,7 @@ export function SkyDayStrip({
                   <span
                     className={cn(
                       small,
-                      "max-w-full overflow-hidden text-clip whitespace-nowrap text-gm-sky tracking-tight"
+                      "text-gm-sky max-w-full overflow-hidden tracking-tight text-clip whitespace-nowrap"
                     )}
                   >
                     {day.rainWord ?? "\u00a0"}
@@ -238,7 +238,7 @@ export function SkyDayStrip({
                     </>
                   )}
                 </span>
-                <span className="mt-1 font-bold text-body-base leading-body-base">
+                <span className="text-body-base leading-body-base mt-1 font-bold">
                   {day.dayName}
                 </span>
                 <span className={cn(small, "text-gm-text-inverse/85")}>

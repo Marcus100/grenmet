@@ -4,22 +4,9 @@ import { z } from "zod";
 export const env = createEnv({
   server: {
     CMS_API_URL: z.string().url().optional(),
-    // Auth-delegating — redirects to web-auth for login
+    // Weather data is read from FastAPI (no sign-in on this site, owner 1 Nov 2026).
     AUTH_API_URL: z.string().url().optional().default("http://localhost:8000"),
     AUTH_API_V1_STR: z.string().optional().default("/api/v1"),
-    // Sign in with the Barrels account (ADR-0017): host-only cookie, and the
-    // secret that redeems single sign-on codes (unset hides "Sign in").
-    AUTH_APP_URL: z.string().url().optional().default("http://localhost:3000"),
-    WEATHER_SESSION_COOKIE_NAME: z
-      .string()
-      .optional()
-      .default("weather_session"),
-    // Deployment passes "" when the secret isn't set: treat that as off.
-    WEATHER_SSO_CLIENT_SECRET: z.preprocess(
-      (value) => value || undefined,
-      z.string().min(32).optional()
-    ),
-    AUTH_ALLOWED_RETURN_HOSTS: z.string().optional().default(""),
     // Shared with the API's TRUSTED_WEB_SECRET so sign-up rate limits key on the
     // visitor's own address. Unset or "": every visitor shares this server's bucket.
     TRUSTED_WEB_SECRET: z.preprocess(
@@ -44,7 +31,7 @@ export const env = createEnv({
       .default("http://localhost:3003"),
     NEXT_PUBLIC_GA_MEASUREMENT_ID: z
       .string()
-      .regex(/^(G-[A-Z0-9]+)?$/)
+      .regex(/^(G-[A-Z0-9]+)?$/u)
       .optional()
       .default(""),
     // Cloudflare Turnstile public site key. Unset: no widget, no token sent.
@@ -66,10 +53,6 @@ export const env = createEnv({
     CMS_API_URL: process.env.CMS_API_URL,
     AUTH_API_URL: process.env.AUTH_API_URL,
     AUTH_API_V1_STR: process.env.AUTH_API_V1_STR,
-    AUTH_APP_URL: process.env.AUTH_APP_URL,
-    WEATHER_SESSION_COOKIE_NAME: process.env.WEATHER_SESSION_COOKIE_NAME,
-    WEATHER_SSO_CLIENT_SECRET: process.env.WEATHER_SSO_CLIENT_SECRET,
-    AUTH_ALLOWED_RETURN_HOSTS: process.env.AUTH_ALLOWED_RETURN_HOSTS,
     TRUSTED_WEB_SECRET: process.env.TRUSTED_WEB_SECRET,
     VISITOR_IP_PROXY_HOPS: process.env.VISITOR_IP_PROXY_HOPS,
     CAP_API_URL: process.env.CAP_API_URL,

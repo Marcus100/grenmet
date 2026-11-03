@@ -51,9 +51,9 @@ const parseChanges = (output) => {
 };
 
 const fastApiContractFilePattern =
-  /^apps\/api\/fastapi\/src\/(?:.+\/)?(?:router|routes|schemas?)\.py$/;
+  /^apps\/api\/fastapi\/src\/(?:.+\/)?(?:router|routes|schemas?)\.py$/u;
 const fastApiContractDirectoryFilePattern =
-  /^apps\/api\/fastapi\/src\/(?:.+\/)?(?:routers|schemas?)\/.*\.py$/;
+  /^apps\/api\/fastapi\/src\/(?:.+\/)?(?:routers|schemas?)\/.*\.py$/u;
 
 const isFastApiContractFile = (file) =>
   file === "apps/api/fastapi/src/main.py" ||
@@ -498,6 +498,157 @@ sys.exit(0 if before != after and contract(before) == contract(after) else 1)
   return !result.error && result.status === 0;
 };
 
+// Startup plumbing in main.py never reaches the OpenAPI document, which is
+// generated from routes without running the lifespan or any middleware. Permit
+// edits confined to imports, the `lifespan` function, middleware and exception
+// handler definitions (named by `app.add_middleware` / `app.add_exception_handler`)
+// and top-level `app.add_middleware(...)` lines. Every other statement, including
+// router registration, app metadata and OpenAPI customisation, keeps the gate.
+const runtimeOnlyStartupChange = (comparison) => {
+  const file = "apps/api/fastapi/src/main.py";
+  const refs =
+    comparison.mode === "staged"
+      ? [`HEAD:${file}`, `:${file}`]
+      : [`${comparison.base}:${file}`, `${comparison.head}:${file}`];
+  const versions = refs.map((ref) =>
+    spawnSync("git", ["show", ref], { encoding: "utf8" })
+  );
+  if (versions.some((result) => result.error || result.status !== 0))
+    return false;
+  const result = spawnSync(
+    "python3",
+    [
+      "-c",
+      `
+import ast, json, sys
+def is_app_call(node, method):
+    return (
+        isinstance(node, ast.Call)
+        and isinstance(node.func, ast.Attribute)
+        and node.func.attr == method
+        and isinstance(node.func.value, ast.Name)
+        and node.func.value.id == "app"
+    )
+def registration_refs(tree):
+    # Names handed to the app only as middleware, exception handlers or the
+    # lifespan, from top-level statements (nested blocks never widen the set).
+    refs = set()
+    for node in tree.body:
+        call = node.value if isinstance(node, (ast.Expr, ast.Assign)) else None
+        if not isinstance(call, ast.Call):
+            continue
+        if is_app_call(call, "add_middleware") and call.args and isinstance(call.args[0], ast.Name):
+            refs.add(call.args[0])
+            refs.update(k.value for k in call.keywords if k.arg == "dispatch" and isinstance(k.value, ast.Name))
+        if is_app_call(call, "add_exception_handler") and len(call.args) > 1 and isinstance(call.args[1], ast.Name):
+            refs.add(call.args[1])
+        refs.update(k.value for k in call.keywords if k.arg == "lifespan" and isinstance(k.value, ast.Name))
+    return refs
+def plain_wrapper(decorator):
+    # A lifespan is written with @asynccontextmanager; no other decorator (a
+    # route, an OpenAPI hook) may ride along on an exempt definition.
+    if isinstance(decorator, ast.Name):
+        return decorator.id in ("asynccontextmanager", "contextmanager")
+    return (
+        isinstance(decorator, ast.Attribute)
+        and decorator.attr in ("asynccontextmanager", "contextmanager")
+        and isinstance(decorator.value, ast.Name)
+        and decorator.value.id == "contextlib"
+    )
+def exempt_names(tree):
+    refs = registration_refs(tree)
+    names = {ref.id for ref in refs}
+    ref_ids = {id(ref) for ref in refs}
+    defs = {node.name: node for node in tree.body if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef))}
+    exempt = set()
+    for name in names:
+        node = defs.get(name)
+        if node is None or not all(plain_wrapper(d) for d in node.decorator_list):
+            continue
+        # Any other use (a route dependency, an OpenAPI hook) keeps it in the gate.
+        others = [
+            n for stmt in tree.body if stmt is not node
+            for n in ast.walk(stmt)
+            if isinstance(n, ast.Name) and n.id == name and id(n) not in ref_ids
+        ]
+        if not others:
+            exempt.add(name)
+    return exempt
+def contract(tree, exempt):
+    kept = []
+    imports = []
+    for node in tree.body:
+        if isinstance(node, (ast.Import, ast.ImportFrom)):
+            imports.append(node)
+            continue
+        if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)) and node.name in exempt:
+            continue
+        if isinstance(node, ast.Expr) and is_app_call(node.value, "add_middleware"):
+            continue
+        kept.append(node)
+    used = {n.id for stmt in kept for n in ast.walk(stmt) if isinstance(n, ast.Name)}
+    # Imports count only for names the compared statements use, keyed by what
+    # they bind, so repointing an alias such as a router is still a change.
+    bound = sorted(
+        (alias.asname or alias.name.split(".")[0], getattr(node, "module", None) or "", alias.name, getattr(node, "level", 0))
+        for node in imports for alias in node.names
+        if (alias.asname or alias.name.split(".")[0]) in used
+    )
+    tree.body = kept
+    return json.dumps(bound) + ast.dump(tree)
+before, after = json.load(sys.stdin)
+trees = [ast.parse(before), ast.parse(after)]
+names_before, names_after = exempt_names(trees[0]), exempt_names(trees[1])
+# A name exempt on one side only must not be a def on the other side.
+exempt = (names_before | names_after) - {
+    n.name for t, own in ((trees[0], names_before), (trees[1], names_after))
+    for n in t.body if isinstance(n, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)) and n.name not in own
+}
+sys.exit(0 if before != after and contract(trees[0], exempt) == contract(trees[1], exempt) else 1)
+`,
+    ],
+    {
+      input: JSON.stringify(versions.map((version) => version.stdout)),
+      encoding: "utf8",
+    }
+  );
+  return !result.error && result.status === 0;
+};
+
+// A pure refactor of routes (same paths, schemas and responses) has nothing to
+// regenerate. Every non-merge commit in the range that touches a triggering
+// file must declare that with the trailer "API-Contract: unchanged"; CI's
+// OpenAPI regeneration check (ci-api.yml, which fails on any diff in
+// openapi.json) still proves it. Range mode only: a staged commit has no
+// message yet. A range that edits openapi.json gets no exemption. The trailer
+// covers the OpenAPI contract only: behaviour documented in
+// docs/api/contracts.md (permissions, status meanings) needs that file updated.
+const contractUnchangedTrailer = /^API-Contract: unchanged$/mu;
+const declaredContractUnchanged = (comparison, triggers) => {
+  if (comparison.mode !== "range" || triggers.length === 0) return false;
+  const log = spawnSync(
+    "git",
+    [
+      "log",
+      "--no-merges",
+      "--format=%B%x1e",
+      `${comparison.base}..${comparison.head}`,
+      "--",
+      ...triggers,
+    ],
+    { encoding: "utf8" }
+  );
+  if (log.error || log.status !== 0) return false;
+  const messages = log.stdout
+    .split("\x1e")
+    .map((message) => message.trim())
+    .filter(Boolean);
+  return (
+    messages.length > 0 &&
+    messages.every((message) => contractUnchangedTrailer.test(message))
+  );
+};
+
 const evaluateChanges = (changes, comparison) => {
   const files = new Set(changes.flatMap((change) => change.paths));
   const triggers = [...files]
@@ -508,7 +659,8 @@ const evaluateChanges = (changes, comparison) => {
           (file === "apps/api/fastapi/src/main.py" &&
             (telemetryOnlyStartupChange(comparison) ||
               apiDescriptionOnlyStartupChange(comparison) ||
-              requestIdMiddlewareChange(comparison))) ||
+              requestIdMiddlewareChange(comparison) ||
+              runtimeOnlyStartupChange(comparison))) ||
           (file === "apps/api/fastapi/src/janitorial/router.py" &&
             janitorialUnsectionedAreaChange(comparison)) ||
           (file === "apps/api/fastapi/src/wxproducts/router.py" &&
@@ -520,6 +672,13 @@ const evaluateChanges = (changes, comparison) => {
         )
     )
     .sort();
+  if (
+    triggers.length > 0 &&
+    !files.has("apps/api/fastapi/openapi.json") &&
+    declaredContractUnchanged(comparison, triggers)
+  ) {
+    triggers.length = 0;
+  }
   const violations = [];
   const generatedClientChanged = [...files].some((file) =>
     file.startsWith("packages/api-client/src/gen/")

@@ -22,7 +22,7 @@ const SHARED_SENTRY_APPS = new Set([
   "api",
   "worker",
 ]);
-const GA_ID = /^G-[A-Z0-9]+$/;
+const GA_ID = /^G-[A-Z0-9]+$/u;
 // biome-ignore lint/complexity/noExcessiveCognitiveComplexity: flat catalogue validation keeps all deployment invariants together.
 export function validateCatalogue(catalogue) {
   const failures = [];

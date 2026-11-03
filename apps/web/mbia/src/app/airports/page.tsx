@@ -52,7 +52,7 @@ export default function AirportsPage() {
         {AIRPORTS_LIST.map((airport, i) => (
           <Link
             className={cn(
-              "group grid items-center gap-8 overflow-hidden rounded-3xl border border-gaa-rule bg-white transition-shadow hover:shadow-xl md:grid-cols-2",
+              "group border-gaa-rule grid items-center gap-8 overflow-hidden rounded-3xl border bg-white transition-shadow hover:shadow-xl md:grid-cols-2",
               i % 2 === 1 && "md:[&>*:first-child]:order-2"
             )}
             href={airport.href}
@@ -68,16 +68,16 @@ export default function AirportsPage() {
               />
             </div>
             <div className="p-8 lg:p-12">
-              <p className="font-semibold text-gaa-sea text-xs uppercase tracking-[0.2em]">
+              <p className="text-gaa-sea text-xs font-semibold tracking-[0.2em] uppercase">
                 {airport.code}
               </p>
-              <h2 className="mt-3 font-bold font-display text-2xl text-gaa-navy sm:text-3xl">
+              <h2 className="font-display text-gaa-navy mt-3 text-2xl font-bold sm:text-3xl">
                 {airport.name}
               </h2>
-              <p className="mt-4 text-gaa-muted leading-relaxed">
+              <p className="text-gaa-muted mt-4 leading-relaxed">
                 {airport.blurb}
               </p>
-              <span className="mt-6 inline-block font-medium text-gaa-sea text-sm group-hover:text-gaa-navy">
+              <span className="text-gaa-sea group-hover:text-gaa-navy mt-6 inline-block text-sm font-medium">
                 Explore →
               </span>
             </div>

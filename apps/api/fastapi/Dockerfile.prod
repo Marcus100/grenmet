@@ -137,4 +137,7 @@ HEALTHCHECK --interval=30s --timeout=15s --start-period=60s --retries=5 \
 # Trust X-Forwarded-* only from the compose `grenmet` network. The subnet is
 # pinned in infra/docker/docker-compose.deploy.yml; scripts/production/
 # forwarded-allow-ips.test.mjs fails if the two drift apart.
-CMD ["uvicorn", "src.main:app", "--host", "0.0.0.0", "--port", "8000", "--proxy-headers", "--forwarded-allow-ips", "172.31.250.0/24"]
+# Worker processes come from WEB_CONCURRENCY (uvicorn reads it; default 1). In-flight
+# requests get 15 s to finish on shutdown; the deploy compose stop_grace_period (25 s)
+# leaves room for the lifespan to close the database engines afterwards.
+CMD ["uvicorn", "src.main:app", "--host", "0.0.0.0", "--port", "8000", "--proxy-headers", "--forwarded-allow-ips", "172.31.250.0/24", "--timeout-graceful-shutdown", "15", "--no-server-header"]

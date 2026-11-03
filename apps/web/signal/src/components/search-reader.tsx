@@ -7,12 +7,12 @@ export function SearchReader({ entries }: { entries: SearchEntry[] }) {
   const results = searchEntries(entries, query);
   return (
     <section>
-      <label className="block font-semibold text-base" htmlFor="story-search">
+      <label className="block text-base font-semibold" htmlFor="story-search">
         Search stories and editions
       </label>
       <input
         autoComplete="off"
-        className="mt-3 min-h-12 w-full border border-signal-ink bg-background px-4 py-3 text-lg"
+        className="border-signal-ink bg-background mt-3 min-h-12 w-full border px-4 py-3 text-lg"
         id="story-search"
         onChange={(event) => setQuery(event.target.value)}
         placeholder="Try weather, scholarships or fact check"
@@ -36,11 +36,11 @@ export function SearchReader({ entries }: { entries: SearchEntry[] }) {
           .
         </p>
       ) : null}
-      <ul className="divide-y divide-signal-rule">
+      <ul className="divide-signal-rule divide-y">
         {results.map((entry) => (
           <li className="py-6" key={entry.href}>
             <p className="text-signal-green text-sm">{entry.label} · Demo</p>
-            <h2 className="mt-2 font-semibold font-serif text-2xl">
+            <h2 className="mt-2 font-serif text-2xl font-semibold">
               <Link
                 className="hover:text-signal-green hover:underline"
                 href={entry.href}

@@ -40,6 +40,23 @@ from .models import (
 )
 from .organisations import permitted_departments
 from .parking.models import ParkingPermit
+from .payroll.models import (
+    DeductionType,
+    EmployeeBasicPay,
+    EmployeeDeduction,
+    EmployeePayProfile,
+    PayCalendar,
+    PayDeductionLine,
+    PayItem,
+    PayItemRate,
+    PayLine,
+    PayPeriod,
+    PayrollDepartmentSetting,
+    PayrollExportSetting,
+    Payslip,
+    SocialInsuranceScheme,
+    TaxTable,
+)
 from .roster.models import PublicHoliday, RosterPeriod, RosterRuleSet
 from .timesheet.models import DepartmentPolicy, Timesheet, TimesheetEntry
 from .training.models import TrainingRecord
@@ -161,6 +178,43 @@ async def _document(session: AsyncSession, actor: User, entity_id: str) -> bool:
     except AppException:
         return False
     return True
+
+
+#: Payroll history is organisation-wide data: department visibility never reads it.
+PAYROLL_HISTORY_KEYS = (
+    "hr.payroll.prepare",
+    "hr.payroll.approve",
+    "hr.payroll.read.amounts",
+)
+
+
+async def _payroll_period(session: AsyncSession, actor: User, entity_id: str) -> bool:
+    from .payroll.access import holds_organisation_wide
+
+    period_id = parse_uuid(entity_id)
+    period = await session.get(PayPeriod, period_id) if period_id else None
+    if period is None:
+        return False
+    return await holds_organisation_wide(
+        session, actor, period.organisation_id, PAYROLL_HISTORY_KEYS
+    )
+
+
+async def _payroll_settings(session: AsyncSession, actor: User, entity_id: str) -> bool:
+    from .payroll.access import holds_organisation_wide
+
+    return await holds_organisation_wide(
+        session, actor, entity_id, PAYROLL_HISTORY_KEYS
+    )
+
+
+async def _payroll_money(session: AsyncSession, actor: User, entity_id: str) -> bool:
+    """Basic pay and rates history: organisation-wide hr.payroll.read.amounts only."""
+    from .payroll.access import holds_organisation_wide
+
+    return await holds_organisation_wide(
+        session, actor, entity_id, ("hr.payroll.read.amounts",)
+    )
 
 
 async def _organisation_admin(
@@ -440,4 +494,135 @@ def register() -> None:
         record_type="clock_punch",
         label="Phone clock punch",
         sensitive=("review_note",),
+    )
+
+    # Payroll inputs: periods (status, approval, export count) and lines entered
+    # by hand under the period; calendars, the catalogue, pay profiles and
+    # department defaults under the organisation. Computed lines are bulk
+    # writes summarised by one "compute" entry per computation.
+    registry.register_entity("pay_period", _payroll_period)
+    registry.track(PayPeriod, record_type="pay_period", label="Pay period")
+    registry.track(
+        PayLine,
+        record_type="pay_line",
+        entity_type="pay_period",
+        entity_id_attr="period_id",
+        label="Pay line",
+        sensitive=("reason",),
+        # Money never enters change history: amounts are read from the period.
+        exclude=("amount_minor", "hourly_rate", "multiplier", "fixed_amount_minor"),
+    )
+    registry.track(
+        EmployeeBasicPay,
+        record_type="employee_basic_pay",
+        entity_type="payroll_money",
+        entity_id_attr="organisation_id",
+        label="Basic pay",
+        sensitive=("reason",),
+        exclude=("amount_minor", "standard_monthly_hours"),
+    )
+    # Statutory tables and enrolments: organisation-wide read.amounts only, and
+    # no money values in history (they are read from the tables themselves).
+    for model, record_type, label, money in (
+        (TaxTable, "tax_table", "Income tax table", ("annual_allowance_minor",)),
+        (
+            SocialInsuranceScheme,
+            "social_insurance_scheme",
+            "Social insurance scheme",
+            (
+                "monthly_ceiling_minor",
+                "weekly_ceiling_minor",
+                "fortnightly_ceiling_minor",
+            ),
+        ),
+        (
+            DeductionType,
+            "deduction_type",
+            "Deduction type",
+            ("employee_amount_minor", "employer_amount_minor", "premium_minor"),
+        ),
+    ):
+        registry.track(
+            model,
+            record_type=record_type,
+            entity_type="payroll_money",
+            entity_id_attr="organisation_id",
+            label=label,
+            exclude=money,
+        )
+    registry.track(
+        Payslip,
+        record_type="payslip",
+        entity_type="pay_period",
+        entity_id_attr="period_id",
+        label="Payslip",
+        # B5: history keeps id, period and hash only; the snapshot holds pay.
+        exclude=("snapshot", "net_minor", "user_id", "issued_by_user_id"),
+    )
+    registry.track(
+        PayrollExportSetting,
+        record_type="payroll_export_setting",
+        entity_type="payroll_settings",
+        entity_id_attr="organisation_id",
+        label="Bank and GL export settings",
+    )
+    registry.track(
+        EmployeeDeduction,
+        record_type="employee_deduction",
+        entity_type="payroll_money",
+        entity_id_attr="organisation_id",
+        label="Employee deduction",
+        sensitive=("authorisation_reference",),
+        exclude=("employee_amount_minor",),
+    )
+    registry.track(
+        PayDeductionLine,
+        record_type="pay_deduction_line",
+        entity_type="pay_period",
+        entity_id_attr="period_id",
+        label="Deduction line",
+        exclude=("base_minor", "employee_minor", "employer_minor"),
+    )
+    registry.track(
+        PayItemRate,
+        record_type="pay_item_rate",
+        entity_type="payroll_money",
+        entity_id_attr="organisation_id",
+        label="Pay item rate",
+        exclude=(
+            "amount_minor",
+            "multiplier",
+            "guaranteed_hours",
+            "guaranteed_multiplier",
+        ),
+    )
+    registry.register_entity("payroll_money", _payroll_money)
+    registry.register_entity("payroll_settings", _payroll_settings)
+    registry.track(
+        PayCalendar,
+        record_type="pay_calendar",
+        entity_type="payroll_settings",
+        entity_id_attr="organisation_id",
+        label="Pay calendar",
+    )
+    registry.track(
+        PayItem,
+        record_type="pay_item",
+        entity_type="payroll_settings",
+        entity_id_attr="organisation_id",
+        label="Pay item",
+    )
+    registry.track(
+        EmployeePayProfile,
+        record_type="employee_pay_profile",
+        entity_type="payroll_settings",
+        entity_id_attr="organisation_id",
+        label="Employee pay profile",
+    )
+    registry.track(
+        PayrollDepartmentSetting,
+        record_type="payroll_department_setting",
+        entity_type="payroll_settings",
+        entity_id_attr="organisation_id",
+        label="Payroll department default",
     )

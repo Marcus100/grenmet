@@ -8,9 +8,9 @@ export const STATUSES = ["active", "suspended"] as const;
 export type Kind = (typeof KINDS)[number];
 export type Status = (typeof STATUSES)[number];
 
-const SLUG = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
-const APP_KEY = /^[a-z][a-z0-9-]{1,59}$/;
-const ORGANISATION_ID = /^[A-Za-z0-9_-]{1,100}$/;
+const SLUG = /^[a-z0-9]+(?:-[a-z0-9]+)*$/u;
+const APP_KEY = /^[a-z][a-z0-9-]{1,59}$/u;
+const ORGANISATION_ID = /^[A-Za-z0-9_-]{1,100}$/u;
 const MIN_REASON = 3;
 const MAX_REASON = 500;
 const MAX_NAME = 255;

@@ -35,19 +35,19 @@ export default async function TicketPage({ params }: { params: Params }) {
       >
         All my tickets
       </Link>
-      <div className="space-y-4 rounded-2xl border border-border bg-card p-6 text-center">
+      <div className="border-border bg-card space-y-4 rounded-2xl border p-6 text-center">
         <div className="space-y-1">
-          <h1 className="font-bold font-display text-heading-base tracking-tight">
+          <h1 className="font-display text-heading-base font-bold tracking-tight">
             {ticket.listingTitle}
           </h1>
           <p className="text-body text-muted-foreground">
             {formatEventDate(ticket.startsAt)}
           </p>
           <p className="text-body text-muted-foreground">{ticket.venue}</p>
-          <p className="font-medium text-body">{ticket.tierName}</p>
+          <p className="text-body font-medium">{ticket.tierName}</p>
         </div>
         {cancelled ? (
-          <p className="font-semibold text-destructive">
+          <p className="text-destructive font-semibold">
             This ticket was cancelled.
           </p>
         ) : (
@@ -57,7 +57,7 @@ export default async function TicketPage({ params }: { params: Params }) {
               label={`QR code for ${ticket.listingTitle}`}
               value={ticket.qrToken}
             />
-            <p className="font-mono text-heading-sm tracking-widest">
+            <p className="text-heading-sm font-mono tracking-widest">
               <span className="sr-only">Ticket code </span>
               {ticket.code}
             </p>

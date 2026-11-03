@@ -6,8 +6,7 @@ import { PlaceholderNotice } from "@/components/pages/placeholder-notice";
 
 export const metadata = {
   title: "Sea conditions",
-  description:
-    "Observed sea state around Grenada, Carriacou and Petite Martinique.",
+  description: "Sea state around Grenada, Carriacou and Petite Martinique.",
 };
 
 /**
@@ -20,10 +19,10 @@ export default function SeaConditionsPage() {
   return (
     <>
       <PageHeader
-        description="Observed sea state around the tri-island state."
+        description="Sea state around the tri-island state."
         title="Sea conditions"
       />
-      <PlaceholderNotice product="Observed sea state" />
+      <PlaceholderNotice product="Sea state" />
       <PageSection heading="Sea state scale">
         <InfoTable
           headers={[

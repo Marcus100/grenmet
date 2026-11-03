@@ -66,7 +66,7 @@ export default function PartiesPage() {
                       <PartyDot party={r.code} />
                       {partyInfo(r.code).name}
                     </Link>
-                    <span className="ml-1 text-base text-el-muted">
+                    <span className="text-el-muted ml-1 text-base">
                       {r.code}
                     </span>
                   </td>
@@ -85,7 +85,7 @@ export default function PartiesPage() {
             </tbody>
           </table>
         </div>
-        <p className="mt-3 text-base text-el-muted leading-relaxed">
+        <p className="text-el-muted mt-3 text-base leading-relaxed">
           Some historical vote totals use secondary sources, including 1990; see
           each election’s page for its source.
         </p>

@@ -8,7 +8,7 @@ export async function PublishedProducts({ kinds }: { kinds: ProductKind[] }) {
   if (result.status === "unavailable")
     return (
       <p
-        className="rounded-gm-card border border-gm-border p-4 text-body-base leading-body-base"
+        className="rounded-gm-card border-gm-border text-body-base leading-body-base border p-4"
         role="status"
       >
         Published product information cannot be retrieved right now. Check with
@@ -24,25 +24,25 @@ export async function PublishedProducts({ kinds }: { kinds: ProductKind[] }) {
         const issues = products.filter((product) => product.kind === kind);
         return (
           <section className="space-y-3" key={kind}>
-            <h2 className="font-bold font-gm-display text-gm-heading text-heading-md leading-heading-md">
+            <h2 className="font-gm-display text-gm-heading text-heading-md leading-heading-md font-bold">
               {productTitle(kind)}
             </h2>
             {issues.length ? (
               <ul className="space-y-3">
                 {issues.map((product) => (
                   <li
-                    className="flex flex-col gap-1 rounded-gm-card border border-gm-border bg-background p-4 text-body leading-body lg:p-5"
+                    className="rounded-gm-card border-gm-border bg-background text-body leading-body flex flex-col gap-1 border p-4 lg:p-5"
                     key={product.id}
                   >
                     <Link
-                      className="font-bold text-body-base text-gm-heading leading-body-base underline underline-offset-4 hover:text-gm-blue-ink"
+                      className="text-body-base text-gm-heading leading-body-base hover:text-gm-blue-ink font-bold underline underline-offset-4"
                       href={`/weather/issued/${product.id}`}
                     >
                       {productTitle(kind)} ·{" "}
                       {(product.values.issuedAt ?? "").replace("T", " ")}
                     </Link>
                     <p>{product.values.area}</p>
-                    <p className="font-mono text-body-sm text-gm-text-secondary leading-body-sm">
+                    <p className="text-body-sm text-gm-text-secondary leading-body-sm font-mono">
                       Valid until{" "}
                       {(product.values.validTo ?? "").replace("T", " ")}{" "}
                       (Grenada time) · Revision {product.revision}

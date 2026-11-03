@@ -13,6 +13,7 @@ from src.contacts import service as contacts_service
 from src.contacts.models import ConsentPurpose, Contact
 from src.organisations import service as org_service
 from src.organisations.models import MembershipRole
+from tests.bookings.booking_day import MONDAY, utc_iso
 from tests.bookings.test_public_bookings import (
     API,
     DAY,
@@ -150,8 +151,9 @@ async def test_staff_may_book_outside_hours_lead_time_and_horizon(
 ) -> None:
     studio = await _studio(db_async, async_client, horizon_days=1)
     # A Sunday evening far past the horizon, when the diary is closed.
-    assert "2027-01-03T22:00:00Z" not in await _slots(async_client, studio)
-    response = await _create(async_client, studio, "2027-01-03T22:00:00Z")
+    sunday_evening = utc_iso(18, day=MONDAY - timedelta(days=1))
+    assert sunday_evening not in await _slots(async_client, studio)
+    response = await _create(async_client, studio, sunday_evening)
     assert response.status_code == 201, response.text
     # A walk-in starting an hour from now is inside any lead time.
     soon = (datetime.now(UTC) + timedelta(hours=1)).replace(microsecond=0)

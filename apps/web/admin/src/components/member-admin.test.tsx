@@ -12,7 +12,7 @@ vi.mock("@/app/(console)/organisations/member-actions", () => {
   };
 });
 
-const REASON_LABEL = /^Reason/;
+const REASON_LABEL = /^Reason/u;
 
 const row = {
   email: "ann@example.gd",

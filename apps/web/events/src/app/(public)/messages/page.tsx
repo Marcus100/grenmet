@@ -8,7 +8,7 @@ export default async function MessagesPage() {
   await requireViewer("/messages");
   return (
     <div className="mx-auto max-w-3xl space-y-6">
-      <h1 className="font-bold font-display text-heading-base tracking-tight sm:text-heading-md">
+      <h1 className="font-display text-heading-base sm:text-heading-md font-bold tracking-tight">
         Messages
       </h1>
       <ThreadList />

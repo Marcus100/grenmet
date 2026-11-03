@@ -45,7 +45,7 @@ export function RoutesManager({
   return (
     <section aria-labelledby="routes-heading" className="space-y-3">
       <div className="flex items-center justify-between gap-2">
-        <h2 className="font-semibold text-lg" id="routes-heading">
+        <h2 className="text-lg font-semibold" id="routes-heading">
           Routes
         </h2>
         {canManage ? (
@@ -77,7 +77,7 @@ export function RoutesManager({
             <TableRow key={route.id}>
               <TableCell className="tabular-nums">{route.number}</TableCell>
               <TableCell>{route.name}</TableCell>
-              <TableCell className="hidden text-muted-foreground md:table-cell">
+              <TableCell className="text-muted-foreground hidden md:table-cell">
                 {route.description}
               </TableCell>
               <TableCell>

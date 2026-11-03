@@ -22,11 +22,30 @@ Promotion follows `dev → staging → main → release`. Use pull requests for 
 promotion; the user merges them and publishes the release. See the
 [release runbook](operations/release-runbook.md) for the full sequence.
 
-- A push to `staging` runs `pipeline-staging.yml`: CI, applicable image builds,
-  then deployment with the `staging` image tag.
+Target pipeline: build once on `dev`, promote the same digests to staging and
+production (issue #1019). It lands with PR #1026, on top of PR #1020 (parallel
+server deploy) and PR #1025 (web settings read at run time); until those merge,
+`origin/dev` still builds in `pipeline-staging.yml` and `pipeline-prod.yml`.
+Full description and recovery steps: [release runbook](operations/release-runbook.md#build-once-promote-by-digest).
+
+- A push to `dev` runs `dev-images.yml` (lands with PR #1026). It builds,
+  smoke-tests and scans only the images the change touches and tags every image
+  `tree-<git tree>`; unchanged images reuse the previous tree's digest.
+- A push to `staging` runs `pipeline-staging.yml`. It builds nothing and does not
+  re-run CI: `scripts/ci/promote-images.mjs` finds the dev commit with the same
+  git tree, requires the required checks of `infra/github/rulesets.json` to have
+  passed on it, retags those digests `staging-sha-<commit>` and deploys them.
+  After a successful deploy they are tagged `staging-verified-tree-<tree>`.
 - Merging to `main` does not build deployment images or deploy production.
-- Publishing a release runs `pipeline-prod.yml`: builds all images at the release
-  tag, then deploys that same tag for FastAPI, web apps, and migrations.
+- Publishing a release runs `pipeline-prod.yml`: it promotes only the
+  `staging-verified-tree-<tree>` digests of the release commit's tree (it fails
+  if staging never deployed that tree), tags them `production-sha-<commit>` and
+  deploys. Production therefore runs byte-identical images to staging.
+- `core.sh` refuses any image whose digest is not in the promotion's list
+  (`DEPLOY_IMAGE_DIGESTS`, from the `image_digests` input of `deploy.yml`).
+- Server deploy speed (lands with PR #1020): `core.sh` pulls only images missing
+  on the host (`PULL_PARALLEL`, default 4) and, with `ROLLING_DEPLOY=1`, rolls
+  routed services in batches (`ROLLOUT_PARALLEL`, default 4).
 - A manual **Deploy** dispatch redeploys existing images; it does not build them.
   Supply an explicit image tag. The **Deploy to Production** entry point requires it.
 
@@ -103,6 +122,7 @@ Go into each environment and add the following secrets. Staging and production u
 | `JANITORIAL_DB_PASSWORD` | Janitorial database password | Generate a separate random value |
 | `TRANSPORT_DB_PASSWORD` | Transport database password | Generate a separate random value |
 | `GAA_ADMIN_SSO_CLIENT_SECRET` | GAA Admin single sign-on secret    | `openssl rand -base64 32` (different per environment and per app)   |
+| `CAP_SSO_CLIENT_SECRET` | CAP warning desk single sign-on secret (`cap.${BASE_DOMAIN}/desk`; empty keeps its sign-in off, public alert pages unaffected) | `openssl rand -base64 32` (different per environment and per app) |
 | `BARRELS_ADMIN_SSO_CLIENT_SECRET` | Barrels staff console single sign-on secret (empty keeps its sign-in off; superusers only) | `openssl rand -base64 32` (different per environment and per app) |
 | `CMS_SSO_CLIENT_SECRET`    | CMS single sign-on secret             | `openssl rand -base64 32` (different per environment and per app)   |
 | `GMSDASH_SSO_CLIENT_SECRET` | GMS Dashboard single sign-on secret (optional; empty keeps sign-in off) | `openssl rand -base64 32` (different per environment and per app) |
@@ -339,6 +359,13 @@ A new required secret goes in `REQUIRED_SECRETS` in
 `scripts/production/render-env.py` and in the `deploy.yml` env block; the same
 test fails if either is missing.
 
+### Image pulls
+
+The `pull-verify` phase pins every image by digest in `runtime/deploy.lock.yml`,
+then pulls only images not already on the host, `PULL_PARALLEL` (default 4) at
+a time. An image already present under that digest is byte-for-byte the one
+wanted, so unchanged services cost no download.
+
 ### Rolling starts (no gap while containers are replaced)
 
 By default the `start` phase recreates every app service, which stops each
@@ -348,7 +375,8 @@ run 37131928180).
 
 Set the GitHub environment variable `ROLLING_DEPLOY` to `1` (or `true`) to start routed
 services (`api` and every `web-*`, the `routed` role in
-`scripts/ci/release-scope.mjs`) one at a time instead:
+`scripts/ci/release-scope.mjs`) in parallel batches instead (`ROLLOUT_PARALLEL`,
+default 4; `1` restores one at a time):
 
 1. Start a second container from the new image beside the old one.
 2. Wait until it is healthy. Traefik only routes to healthy containers.
@@ -357,6 +385,11 @@ services (`api` and every `web-*`, the `routed` role in
 If the new container never becomes healthy, it is removed, the old one keeps
 serving, and the deploy fails in the `start` phase. Workers and the proxy are
 not rolled: they still start the ordinary way after the routed services.
+
+A routed service whose running container is healthy and whose Compose config
+hash (digest-pinned image, environment, labels) is unchanged is kept as it is.
+Every service in a batch finishes before the next batch starts; after a failure
+no later batch starts. Log lines are prefixed with the service name.
 
 Stopped leftover containers of a routed service are removed before each
 rolling start. If a deploy fails or is cancelled mid-rollout, the unfinished new

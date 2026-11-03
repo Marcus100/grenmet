@@ -7,7 +7,7 @@ import test from "node:test";
 import { fileURLToPath } from "node:url";
 
 const cliPath = fileURLToPath(new URL("./check-links.mjs", import.meta.url));
-const missingFilePattern = /missing\.md/;
+const missingFilePattern = /missing\.md/u;
 
 const write = (root, file, contents) => {
   const destination = join(root, file);

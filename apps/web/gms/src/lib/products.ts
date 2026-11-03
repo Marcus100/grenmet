@@ -62,7 +62,7 @@ export type ProductResult =
   | { status: "not-found" }
   | { status: "unavailable" };
 
-const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/iu;
 
 /**
  * One published product by id, for pages and editorial links. Stays readable
@@ -161,25 +161,24 @@ export const fetchCurrentConditions = cache(
 );
 
 /** MBIA month-to-date summary; null when there are no readings or on any failure. */
-export const fetchMonthSummary = cache(
-  async function fetchMonthSummary(): Promise<PublicMonthSummary | null> {
-    try {
-      const response = await fetch(
-        endpoint("month-summary", "eregister"),
-        requestOptions()
-      );
-      if (!response.ok) return null;
-      const parsed = publicMonthSummaryResponseSchema.safeParse(
-        await response.json()
-      );
-      if (!parsed.success) {
-        reportError(parsed.error, "gms-month-summary-contract");
-        return null;
-      }
-      return parsed.data.summary ?? null;
-    } catch (error) {
-      reportError(error, "gms-month-summary");
+export const fetchMonthSummary = cache(async function fetchMonthSummary(
+  month?: string
+): Promise<PublicMonthSummary | null> {
+  try {
+    const url = endpoint("month-summary", "eregister");
+    if (month) url.searchParams.set("month", month);
+    const response = await fetch(url, requestOptions());
+    if (!response.ok) return null;
+    const parsed = publicMonthSummaryResponseSchema.safeParse(
+      await response.json()
+    );
+    if (!parsed.success) {
+      reportError(parsed.error, "gms-month-summary-contract");
       return null;
     }
+    return parsed.data.summary ?? null;
+  } catch (error) {
+    reportError(error, "gms-month-summary");
+    return null;
   }
-);
+});

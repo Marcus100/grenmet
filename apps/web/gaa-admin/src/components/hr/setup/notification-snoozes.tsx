@@ -147,7 +147,7 @@ function SnoozeDialog({
               />
             </Field>
             <details className="text-sm">
-              <summary className="cursor-pointer text-muted-foreground">
+              <summary className="text-muted-foreground cursor-pointer">
                 Only one item (advanced)
               </summary>
               <div className="mt-3 flex flex-col gap-3">
@@ -247,7 +247,7 @@ export function NotificationSnoozes({
     <section className="flex flex-col gap-3">
       <div className="flex flex-wrap items-start justify-between gap-2">
         <div className="flex flex-col gap-1">
-          <h3 className="font-medium text-lg">Snoozes</h3>
+          <h3 className="text-lg font-medium">Snoozes</h3>
           <p className="text-muted-foreground text-sm">
             Silence a notification for a while, for example during planned
             maintenance. Snoozed notifications are not sent to anyone.
@@ -290,10 +290,10 @@ export function NotificationSnoozes({
                 const label = labels.get(snooze.event_key) ?? snooze.event_key;
                 return (
                   <TableRow key={snooze.id}>
-                    <TableCell className="whitespace-normal font-medium">
+                    <TableCell className="font-medium whitespace-normal">
                       {label}
                     </TableCell>
-                    <TableCell className="whitespace-normal text-sm">
+                    <TableCell className="text-sm whitespace-normal">
                       {snooze.entity_id
                         ? `${snooze.entity_type}: ${snooze.entity_id}`
                         : "Whole notification"}
@@ -301,7 +301,7 @@ export function NotificationSnoozes({
                     <TableCell className="text-sm">
                       {new Date(snooze.until).toLocaleString()}
                     </TableCell>
-                    <TableCell className="whitespace-normal text-sm">
+                    <TableCell className="text-sm whitespace-normal">
                       {snooze.reason || "—"}
                     </TableCell>
                     <TableCell className="text-right">

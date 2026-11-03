@@ -83,6 +83,13 @@ services:
     command: ./startup.sh
     env_file:
       - ${SURFACE_ENV_FILE:-api/.env.local}
+    environment:
+      # This stack serves plain HTTP (http://localhost:8081), where browsers
+      # discard Secure cookies and sign-in fails (#904). Local profile only:
+      # the production stack (infra/weather/docker-compose.surface.yml) does
+      # not set it, so production keeps Secure cookies. Behind HTTPS, start
+      # this stack with SURFACE_SECURE_COOKIES=True in the shell or compose .env.
+      SURFACE_SECURE_COOKIES: ${SURFACE_SECURE_COOKIES:-False}
     restart: unless-stopped
     volumes:
       - ./api:/surface

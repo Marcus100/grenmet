@@ -55,6 +55,12 @@ export const contentSchema = z.object({
   summary: z.string().nullable(),
   /** Who created the post (their sign-in name); older feeds and posts have none. */
   authorName: z.string().nullable().optional(),
+  /** The author's role for the byline, e.g. "Duty forecaster" (desk posts). */
+  authorRole: z.string().nullable().optional(),
+  /** A desk post's type; older feeds send none, read as standard. */
+  format: z.enum(["standard", "audio", "video", "chart"]).nullable().optional(),
+  /** The audio or video share link of a desk post; played only on request. */
+  mediaUrl: z.string().nullable().optional(),
   category: z.string().nullable().optional(),
   body: z.string(),
   imageUrl: z.string().nullable(),
@@ -65,6 +71,18 @@ export const contentSchema = z.object({
   publishedAt: z.string().nullable().optional(),
   updatedAt: z.string(),
   relatedLinks: z.array(relatedLinkSchema).max(20).optional(),
+  /** A desk post pinned right after the official cards (owner, 1 Nov 2026). Older feeds send none. */
+  pinned: z.boolean().optional(),
+  /** The issued product a desk post is based on ("Based on the ..."); older feeds send none. */
+  basedOn: z
+    .object({
+      productId: z.string(),
+      title: z.string().nullable(),
+    })
+    .nullable()
+    .optional(),
+  /** The page's sharing image: the general social image, then the cover. */
+  socialImageUrl: z.string().nullable().optional(),
   /** A FastAPI product whose live figures show beside the post. */
   linkedProduct: z
     .object({
@@ -166,7 +184,7 @@ export type QuestionsResult =
   | { status: "ok"; questions: PublishedQuestion[] }
   | { status: "unavailable"; questions: [] };
 
-const QUESTION_PREFIX = /^questions\//;
+const QUESTION_PREFIX = /^questions\//u;
 
 /** `questions/why-…` is served at `/explore/explained/why-…`. */
 export const questionHref = (slug: string) =>
@@ -277,7 +295,7 @@ const quizSchema = z.object({
 });
 export type PublishedQuiz = z.infer<typeof quizSchema>;
 
-const QUIZ_PREFIX = /^discover\//;
+const QUIZ_PREFIX = /^discover\//u;
 /** `discover/can-you-…` is played at `/explore/quiz/can-you-…`. */
 export const quizHref = (slug: string) =>
   `/explore/quiz/${slug.replace(QUIZ_PREFIX, "")}`;

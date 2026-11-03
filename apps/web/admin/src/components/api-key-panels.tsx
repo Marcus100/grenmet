@@ -44,7 +44,7 @@ function KeyRow({
     <TableRow>
       <TableCell>
         <div className="font-medium">{row.name}</div>
-        <div className="font-mono text-muted-foreground text-xs">
+        <div className="text-muted-foreground font-mono text-xs">
           {row.key_prefix}
         </div>
       </TableCell>
@@ -105,7 +105,7 @@ export function ApiKeysPanel({
       <h2 className="font-medium" id="api-keys-heading">
         API keys ({count})
       </h2>
-      <p className="max-w-3xl text-muted-foreground text-sm">
+      <p className="text-muted-foreground max-w-3xl text-sm">
         Organisation admins create and rotate keys themselves; secrets are shown
         once to them and never here. Staff can revoke.
       </p>

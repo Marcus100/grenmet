@@ -18,22 +18,23 @@ const GIT_ENV = {
   GIT_COMMITTER_NAME: "t",
   GIT_COMMITTER_EMAIL: "t@example.com",
 };
-const HEADER = /^Read-only review\. Write nothing, including SESSION_LOG\.md\./;
-const PUSHED_YES = /Pushed: yes/;
-const PUSHED_NO = /Pushed: NO\. Push the branch first/;
-const PUSHED_UNVERIFIED = /Pushed: UNVERIFIED/;
-const BASE_ADVANCED = /has since advanced to c{40}\. Merge it/;
-const BASE_UNVERIFIED = /has advanced is UNVERIFIED/;
-const BASE_CURRENT = /current on the remote/;
-const BASE_MISSING = /not available locally/;
-const TREE_CLEAN = /Working tree: clean/;
-const TREE_DIRTY = /2 uncommitted change\(s\)/;
-const FILES_ONE = /Changed files \(1\):\n- docs\/a\.md/;
-const FILES_NONE = /no commits beyond the base/;
+const HEADER =
+  /^Read-only review\. Write nothing, including SESSION_LOG\.md\./u;
+const PUSHED_YES = /Pushed: yes/u;
+const PUSHED_NO = /Pushed: NO\. Push the branch first/u;
+const PUSHED_UNVERIFIED = /Pushed: UNVERIFIED/u;
+const BASE_ADVANCED = /has since advanced to c{40}\. Merge it/u;
+const BASE_UNVERIFIED = /has advanced is UNVERIFIED/u;
+const BASE_CURRENT = /current on the remote/u;
+const BASE_MISSING = /not available locally/u;
+const TREE_CLEAN = /Working tree: clean/u;
+const TREE_DIRTY = /2 uncommitted change\(s\)/u;
+const FILES_ONE = /Changed files \(1\):\n- docs\/a\.md/u;
+const FILES_NONE = /no commits beyond the base/u;
 const CHECKS_PASS =
-  /Checks: pnpm verify:changed PASS at 2026-10-20T00:00:00\.000Z \(doc links\)/;
-const CHECKS_DIRTY = /NOT VERIFIED for the committed head/;
-const TASK_PLACEHOLDER = /Task: <fill in>/;
+  /Checks: pnpm verify:changed PASS at 2026-10-20T00:00:00\.000Z \(doc links\)/u;
+const CHECKS_DIRTY = /NOT VERIFIED for the committed head/u;
+const TASK_PLACEHOLDER = /Task: <fill in>/u;
 
 function git(cwd, ...args) {
   const result = spawnSync("git", args, {

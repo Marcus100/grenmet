@@ -12,7 +12,7 @@ const FOOTER_GROUPS = NAV_GROUPS.filter((g) =>
 export function SiteFooter() {
   return (
     <footer className="bg-gaa-navy-ink text-white">
-      <div className="h-1 bg-gaa-gold" />
+      <div className="bg-gaa-gold h-1" />
       <div className="mx-auto grid max-w-7xl gap-10 px-4 py-14 md:grid-cols-2 lg:grid-cols-6 lg:px-8">
         <div className="lg:col-span-2">
           <Image
@@ -22,7 +22,7 @@ export function SiteFooter() {
             src="/images/gaa-logo-white.png"
             width={110}
           />
-          <p className="mt-4 max-w-xs text-sm text-white/70 leading-relaxed">
+          <p className="mt-4 max-w-xs text-sm leading-relaxed text-white/70">
             Gateway to the Spice of the Caribbean — connecting you to Grenada,
             Carriacou &amp; Petite Martinique and beyond.
           </p>
@@ -54,7 +54,7 @@ export function SiteFooter() {
         {FOOTER_GROUPS.map((group) => (
           <nav aria-label={group.label} key={group.label}>
             <Link
-              className="font-bold font-display text-sm text-white uppercase tracking-wider hover:text-gaa-gold"
+              className="font-display hover:text-gaa-gold text-sm font-bold tracking-wider text-white uppercase"
               href={group.href as Route}
             >
               {group.label}
@@ -74,8 +74,8 @@ export function SiteFooter() {
           </nav>
         ))}
       </div>
-      <div className="border-white/10 border-t">
-        <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-3 px-4 py-5 text-white/60 text-xs sm:flex-row lg:px-8">
+      <div className="border-t border-white/10">
+        <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-3 px-4 py-5 text-xs text-white/60 sm:flex-row lg:px-8">
           <p>
             © {new Date().getFullYear()} Grenada Airports Authority. All rights
             reserved.

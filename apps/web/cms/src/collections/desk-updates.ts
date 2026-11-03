@@ -1,4 +1,4 @@
-import { PUBLISH_KEYS } from "../access";
+import { HOMEPAGE_KEY, hasPermission, PUBLISH_KEYS } from "../access";
 import {
   bodyField,
   coverFields,
@@ -6,6 +6,7 @@ import {
   socialField,
   summaryField,
 } from "../fields/common";
+import { checkMediaLink, type MediaKind } from "../lib/media-links";
 import { editorialCollection } from "./editorial";
 
 /** "From the Desk": the forecast office blogging about what it issues. */
@@ -17,7 +18,7 @@ const base = editorialCollection({
   admin: {
     group: "GMS Content",
     description:
-      "From the Desk: the forecast office writing about what it issues, plus service notices. Paste the product under Related links and tick Main link to show its live details; never type forecast figures or warnings here.",
+      'From the Desk: the forecast office writing about what it issues, plus service notices. Paste the product under Related links and tick Main link to show its live details; never type forecast figures or warnings here. A pasted issued product also shows a "Based on" line on the card. Pin keeps a post right after the official cards.',
   },
   fields: [
     { name: "title", type: "text", required: true, maxLength: 120 },
@@ -44,12 +45,77 @@ const base = editorialCollection({
         { label: "Announcement", value: "announcement" },
       ],
     },
+    {
+      name: "format",
+      type: "select",
+      required: true,
+      defaultValue: "standard",
+      label: "Post type",
+      admin: {
+        description:
+          "Standard: words and a picture. Audio or Video: also paste a share link, played only when a reader presses play. Chart: the picture is a chart (owner, 1 Nov 2026).",
+      },
+      options: [
+        { label: "Standard", value: "standard" },
+        { label: "Audio", value: "audio" },
+        { label: "Video", value: "video" },
+        { label: "Chart", value: "chart" },
+      ],
+    },
+    {
+      name: "mediaUrl",
+      type: "text",
+      label: "Media link",
+      admin: {
+        condition: (_data, sibling) =>
+          sibling?.format === "video" || sibling?.format === "audio",
+        description:
+          "YouTube or Facebook for video, SoundCloud for audio. Paste the share link.",
+      },
+      validate: (
+        value: unknown,
+        { siblingData }: { siblingData: { format?: string } }
+      ) => {
+        const format = siblingData?.format;
+        if (format !== "video" && format !== "audio") return true;
+        if (typeof value !== "string" || !value.trim())
+          return "Add the media link.";
+        return checkMediaLink(format as MediaKind, value.trim());
+      },
+    },
+    {
+      name: "authorRole",
+      type: "text",
+      maxLength: 60,
+      label: "Your role",
+      admin: {
+        description:
+          'Shown after your name on the card, e.g. "Duty forecaster" or "Climate officer".',
+      },
+    },
+    {
+      name: "pinned",
+      type: "checkbox",
+      label: "Pin to the top of From the Desk",
+      defaultValue: false,
+      // Pinning moves the homepage, so only homepage editors can change it.
+      access: {
+        create: ({ req }) => hasPermission(req.user, HOMEPAGE_KEY),
+        update: ({ req }) => hasPermission(req.user, HOMEPAGE_KEY),
+      },
+      admin: {
+        position: "sidebar",
+        description:
+          "Shows this post right after the official forecast cards, ahead of newer posts. Several pinned posts show newest first. Only homepage editors can pin.",
+      },
+    },
     summaryField(200),
-    // A chart or map shown on the card on the homepage and at the top of the article.
+    // Every desk card shows a picture below its words, credited from the media
+    // item's Credit field (owner, 1 Nov 2026).
     ...coverFields(),
     bodyField(false),
     includeInNewsletterField(PUBLISH_KEYS["desk-updates"]),
-    socialField(PUBLISH_KEYS["desk-updates"]),
+    socialField(PUBLISH_KEYS["desk-updates"], { platformImages: true }),
   ],
 });
 

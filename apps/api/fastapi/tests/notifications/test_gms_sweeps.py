@@ -20,7 +20,7 @@ from src.auth.models import RoleAssignmentScope, User
 from src.baseline import product_access
 from src.baseline.models import ApprovalPolicy
 from src.cap.models import CapAlert, CapLifecycleState
-from src.cap.schemas import CapAlertAction, CapAlertCreate
+from src.cap.schemas import CapAlertCreate, CapPublishAction
 from src.cap.service import approve_alert, create_alert, publish_alert, submit_alert
 from src.eregister.models import ERegisterSend
 from src.hr.roster.models import (
@@ -231,7 +231,7 @@ async def _published_warning(db: AsyncSession, author: User, expires: datetime):
             session=db,
             current_user=author,
             alert_id=alert.id,
-            payload=CapAlertAction(),
+            payload=CapPublishAction(),
         )
     return alert
 

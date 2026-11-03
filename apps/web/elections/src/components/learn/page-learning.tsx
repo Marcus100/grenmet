@@ -30,11 +30,11 @@ export function PageLearning({ topic }: { topic: PageLearningTopic }) {
   return (
     <aside
       aria-label="Reading guide"
-      className="mt-4 space-y-3 text-base text-el-muted"
+      className="text-el-muted mt-4 space-y-3 text-base"
     >
       <details>
         <summary className="cursor-pointer">{lesson.question}</summary>
-        <div className="mt-2 max-w-prose space-y-2 border-el-rule border-l-2 pl-3 leading-relaxed">
+        <div className="border-el-rule mt-2 max-w-prose space-y-2 border-l-2 pl-3 leading-relaxed">
           <p>{lesson.answer}</p>
           <p>{lesson.caution}</p>
           <Link

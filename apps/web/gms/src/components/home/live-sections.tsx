@@ -1,9 +1,24 @@
 import { isProductKind, productTitle } from "@barrelsgd/gms/products";
-import { ArrowRightIcon, BellIcon, ChevronRightIcon } from "lucide-react";
+import {
+  ArrowRightIcon,
+  CalendarDaysIcon,
+  ChevronRightIcon,
+  CloudSunIcon,
+  PlayIcon,
+  TornadoIcon,
+  WavesIcon,
+} from "lucide-react";
 import type { Route } from "next";
 import Image from "next/image";
 import Link from "next/link";
-import { HOME_CARD, HomeSection } from "@/components/home/home-section";
+import { SectorDeskCard } from "@/components/home/data-sections";
+import {
+  DESK_CARD_ITEM,
+  HOME_CARD,
+  HomeSection,
+} from "@/components/home/home-section";
+import { fetchActiveAlerts } from "@/lib/cap";
+import { alertsLevel } from "@/lib/cap-alerts";
 import { postedLabel } from "@/lib/clock";
 import {
   contentHref,
@@ -14,11 +29,14 @@ import {
   questionHref,
   sectionWords,
 } from "@/lib/cms";
+import { buildDeskFeed, type OfficialCard } from "@/lib/desk-feed";
 import { contentToArticle } from "@/lib/editorial";
+import { mediaEmbed } from "@/lib/media-embed";
+import { fetchPublishedProducts } from "@/lib/products";
 import { cn } from "@/lib/utils";
 
 /** The same bordered notice as "Grenada in data": one line, aligned to the heading. */
-const NOTICE = cn(HOME_CARD, "p-4 text-body-sm text-gm-text-secondary");
+const NOTICE = cn(HOME_CARD, "text-body-sm text-gm-text-secondary p-4");
 
 /** Unavailable, empty or content — the three states every CMS feed has. */
 function FeedState({
@@ -46,7 +64,7 @@ function FeedState({
   return children;
 }
 
-const NAME_SEPARATORS = /[\s._-]+/;
+const NAME_SEPARATORS = /[\s._-]+/u;
 
 /** "Eugine Whint" gives "EW"; one word gives its first two letters; no name gives "GMS". */
 export function avatarInitials(name: string | null | undefined): string {
@@ -63,33 +81,42 @@ export function avatarInitials(name: string | null | undefined): string {
  * One desk post as a card: who posted it and when, the words, its picture (a
  * chart or map) and a link to the article, which carries any linked product.
  */
+const FORMAT_LABEL = {
+  audio: "Listen",
+  video: "Watch",
+  chart: "Chart",
+} as const;
+
 function DeskPostCard({ item }: { item: PublishedContent }) {
   const posted = item.publishedAt ?? item.updatedAt;
+  const format = item.format ?? "standard";
+  const media =
+    format === "audio" || format === "video"
+      ? mediaEmbed(format, item.mediaUrl ?? null)
+      : null;
   // `relative` keeps the link's screen-reader text inside the scrolling row;
   // without it that hidden text widens the whole page on phones.
   return (
-    <li className="relative w-[85%] shrink-0 snap-start sm:w-[22rem] lg:w-[24rem]">
+    <li className={DESK_CARD_ITEM}>
       <article className={cn(HOME_CARD, "flex h-full flex-col gap-3")}>
         <header className="flex items-center gap-3">
           <span
             aria-hidden="true"
-            className="flex size-10 shrink-0 items-center justify-center rounded-full bg-gm-sky-ink font-bold text-body-sm text-gm-text-inverse leading-body-sm"
+            className="bg-gm-sky-ink text-body-sm text-gm-text-inverse leading-body-sm flex size-10 shrink-0 items-center justify-center rounded-full font-bold"
           >
             {avatarInitials(item.authorName)}
           </span>
           <span className="flex min-w-0 flex-col">
-            <span className="font-bold text-body text-gm-heading leading-body">
+            <span className="text-body text-gm-heading leading-body font-bold">
               {item.authorName ?? "The forecasters"}
             </span>
-            <time
-              className="text-body-sm text-gm-text-secondary leading-body-sm"
-              dateTime={posted}
-            >
-              {postedLabel(posted)}
-            </time>
+            <span className="text-body-sm text-gm-text-secondary leading-body-sm">
+              {item.authorRole && <>{item.authorRole} · </>}
+              <time dateTime={posted}>{postedLabel(posted)}</time>
+            </span>
           </span>
         </header>
-        <h3 className="text-balance font-bold text-gm-heading text-heading-sm leading-heading-sm">
+        <h3 className="text-gm-heading text-heading-sm leading-heading-sm font-bold text-balance">
           <Link className="hover:underline" href={contentHref(item) as Route}>
             {item.title}
           </Link>
@@ -97,20 +124,66 @@ function DeskPostCard({ item }: { item: PublishedContent }) {
         {item.summary && (
           <p className="text-body-base leading-body-base">{item.summary}</p>
         )}
-        {item.imageUrl && (
-          <span className="relative aspect-[4/3] overflow-hidden rounded-lg bg-gm-surface-panel">
-            <Image
-              alt={item.imageAlt ?? ""}
-              className="object-cover"
-              fill
-              sizes="(min-width: 640px) 24rem, 85vw"
-              src={item.imageUrl}
-              unoptimized={!isOptimizableImage(item.imageUrl)}
-            />
+        {item.basedOn && (
+          // The issued product the post is about, linked to its live page.
+          <p className="text-body-sm text-gm-text-secondary leading-body-sm">
+            Based on{" "}
+            <Link
+              className="text-gm-blue-ink font-semibold underline"
+              href={
+                `/weather/issued/${encodeURIComponent(item.basedOn.productId)}` as Route
+              }
+            >
+              the {item.basedOn.title ?? "issued product"}
+            </Link>
+          </p>
+        )}
+        {format !== "standard" && (
+          <span className="bg-gm-surface-panel text-gm-heading text-label leading-label w-fit rounded-full px-2.5 py-0.5 font-bold tracking-wider uppercase">
+            {FORMAT_LABEL[format]}
           </span>
         )}
+        {item.linkedProduct && (
+          <span className="bg-gm-surface-panel text-gm-heading text-label leading-label w-fit rounded-full px-2.5 py-0.5 font-bold tracking-wider uppercase">
+            {item.linkedProduct.kind && isProductKind(item.linkedProduct.kind)
+              ? productTitle(item.linkedProduct.kind)
+              : item.linkedProduct.title}
+          </span>
+        )}
+        {item.imageUrl && (
+          <figure className="flex flex-col gap-1">
+            <span className="bg-gm-surface-panel relative aspect-[4/3] overflow-hidden rounded-lg">
+              <Image
+                alt={item.imageAlt ?? ""}
+                className="object-cover"
+                fill
+                sizes="(min-width: 640px) 24rem, 85vw"
+                src={item.imageUrl}
+                unoptimized={!isOptimizableImage(item.imageUrl)}
+              />
+            </span>
+            {item.imageCredit && (
+              <figcaption className="text-caption text-gm-text-muted leading-caption">
+                {item.imageCredit}
+              </figcaption>
+            )}
+          </figure>
+        )}
+        {media && (
+          // Nothing loads from the provider until the reader follows the link.
+          <a
+            className="bg-gm-surface-panel text-body-sm text-gm-heading leading-body-sm flex w-fit items-center gap-2 rounded-full px-3 py-1.5 font-semibold hover:underline"
+            href={media.href}
+            rel="noopener noreferrer"
+            target="_blank"
+          >
+            <PlayIcon aria-hidden="true" className="size-4" />
+            {format === "audio" ? "Listen" : "Watch"} on {media.provider}
+            <span className="sr-only"> (opens in a new tab)</span>
+          </a>
+        )}
         <Link
-          className="mt-auto flex w-fit items-center gap-1 font-semibold text-body text-gm-blue-ink leading-body hover:underline"
+          className="text-body text-gm-blue-ink leading-body mt-auto flex w-fit items-center gap-1 font-semibold hover:underline"
           href={contentHref(item) as Route}
         >
           Read the article
@@ -123,39 +196,207 @@ function DeskPostCard({ item }: { item: PublishedContent }) {
 }
 
 /**
- * From the Desk: the forecast office blogging about what it issues, newest
- * first as a row of post cards that scrolls sideways. Posts are
- * CMS content; any product a post attaches is read live from FastAPI, so the
- * section never shows a forecast itself.
+ * An issued product as an official card: navy label, the product's own
+ * summary, an illustration below the words, issue and validity times and a
+ * link to the issued product. Official cards carry no emoji.
+ */
+const OFFICIAL_ICONS = {
+  briefing: CloudSunIcon,
+  outlook: TornadoIcon,
+  marine: WavesIcon,
+  climate: CalendarDaysIcon,
+} satisfies Record<OfficialCard["kind"], unknown>;
+
+function OfficialProductCard({ card }: { card: OfficialCard }) {
+  const Icon = OFFICIAL_ICONS[card.kind];
+  return (
+    <li className={DESK_CARD_ITEM}>
+      <article
+        className={cn(HOME_CARD, "border-gm-navy flex h-full flex-col gap-3")}
+      >
+        <header className="flex items-center gap-3">
+          <span
+            aria-hidden="true"
+            className="bg-gm-navy text-body-sm text-gm-text-inverse leading-body-sm flex size-10 shrink-0 items-center justify-center rounded-full font-bold"
+          >
+            GMS
+          </span>
+          <span className="flex min-w-0 flex-col">
+            <span className="text-body text-gm-heading leading-body font-bold">
+              GMS forecast office
+            </span>
+            <span className="text-body-sm text-gm-text-secondary leading-body-sm">
+              Official product
+            </span>
+          </span>
+        </header>
+        <span className="bg-gm-navy text-gm-text-inverse text-label leading-label dark:text-gm-navy w-fit rounded-full px-2.5 py-0.5 font-bold tracking-wider uppercase">
+          {card.kind === "briefing" ? "Official briefing" : "Official"}
+        </span>
+        <h3 className="text-gm-heading text-heading-sm leading-heading-sm font-bold text-balance">
+          <Link className="hover:underline" href={card.href as Route}>
+            {card.title}
+          </Link>
+        </h3>
+        {card.summary && (
+          <p className="text-body-base leading-body-base line-clamp-5">
+            {card.summary}
+          </p>
+        )}
+        <span
+          aria-hidden="true"
+          className="bg-gm-surface-panel text-gm-sky-ink flex aspect-[16/9] items-center justify-center rounded-lg"
+        >
+          <Icon className="size-12" strokeWidth={1.5} />
+        </span>
+        <p className="bg-gm-surface text-body-sm text-gm-text-secondary leading-body-sm rounded-lg px-3 py-2 tabular-nums">
+          {card.issued}
+          {card.valid && <> · {card.valid}</>}
+        </p>
+        {card.staleNote && (
+          <p className="text-body-sm text-gm-heading leading-body-sm font-semibold">
+            {card.staleNote}
+          </p>
+        )}
+        <Link
+          className="text-body text-gm-blue-ink leading-body mt-auto flex w-fit items-center gap-1 font-semibold hover:underline"
+          href={card.href as Route}
+        >
+          Read the {card.title}
+          <ArrowRightIcon aria-hidden="true" className="size-4" />
+        </Link>
+      </article>
+    </li>
+  );
+}
+
+const ROW =
+  "-mx-4 flex snap-x snap-mandatory scroll-px-4 gap-4 overflow-x-auto px-4 pb-2 sm:-mx-6 sm:scroll-px-6 sm:px-6 xl:-mx-8 xl:scroll-px-8 xl:px-8 max-lg:[scrollbar-width:none] max-lg:[&::-webkit-scrollbar]:hidden";
+
+/**
+ * From the Desk (homepage v2, owner 1 Nov 2026): one row of cards that
+ * scrolls sideways. The latest public forecast is pinned first and the latest
+ * Tropical Weather Outlook follows, both read live from FastAPI; then the
+ * desk posts and report write-ups from the CMS, newest first. Under a red
+ * warning the desk posts wait behind "Earlier posts" so the official words lead.
  */
 export async function ForecastDesk() {
-  if (await isSectionHidden("desk")) return null;
-  const { deskUpdates: updates, settings } = await fetchHomeContent();
+  if (await isSectionHidden("desk")) {
+    // Hiding the desk never hides the week's warnings: the sector card stays.
+    const only = await SectorDeskCard();
+    if (!only) return null;
+    return (
+      <HomeSection kicker="Plan your week" title="What it means for you">
+        <ul aria-label="What it means for you" className={ROW}>
+          {only}
+        </ul>
+      </HomeSection>
+    );
+  }
+  const [content, products, alerts] = await Promise.all([
+    fetchHomeContent(),
+    fetchPublishedProducts(),
+    fetchActiveAlerts(),
+  ]);
+  const { deskUpdates: updates, reportNotes: notes, settings } = content;
   const words = sectionWords(settings, "desk", {
-    kicker: "GMS forecast desk",
+    kicker: "Latest from the forecasters",
     title: "From the Desk",
   });
+  const showNotes = !settings.hiddenSections.includes("reports");
+  const feed = buildDeskFeed({
+    level: alertsLevel(alerts),
+    posts: [...updates.articles, ...(showNotes ? notes.articles : [])],
+    products: products.products,
+    productsAvailable: products.status === "ok",
+  });
+  // Awaited here, not rendered as an async element, so tests can render the row.
+  const sectorCard = await SectorDeskCard();
+  const deskUnavailable =
+    updates.status === "unavailable" && feed.official.length === 0;
+  const postCards = feed.posts.map((item) => (
+    <DeskPostCard item={item} key={item.id} />
+  ));
   return (
     <HomeSection
       {...words}
-      link={{ href: "/explore/updates", label: "See more" }}
+      link={{ href: "/explore/updates", label: "All desk posts" }}
     >
+      {products.status === "unavailable" && (
+        <p className={cn(NOTICE, "mb-3")} role="status">
+          Issued forecasts cannot be retrieved right now. See{" "}
+          <Link
+            className="text-gm-blue-ink font-semibold underline"
+            href="/weather/issued"
+          >
+            all issued products
+          </Link>
+          .
+        </p>
+      )}
+      {deskUnavailable && sectorCard && (
+        <p className={cn(NOTICE, "mb-3")} role="status">
+          Desk updates cannot be retrieved right now.
+        </p>
+      )}
       <FeedState
-        count={updates.articles.length}
-        empty="No desk updates are published yet."
+        count={
+          feed.official.length +
+          feed.posts.length +
+          (feed.missingBriefing ? 1 : 0) +
+          (sectorCard ? 1 : 0)
+        }
+        empty="No forecasts or desk posts are published yet."
         unavailable={
-          updates.status === "unavailable" &&
+          deskUnavailable &&
+          !sectorCard &&
           "Desk updates cannot be retrieved right now."
         }
       >
-        <ul
-          aria-label="Latest desk posts"
-          className="-mx-4 flex snap-x snap-mandatory scroll-px-4 gap-4 overflow-x-auto px-4 pb-2 sm:-mx-6 sm:scroll-px-6 sm:px-6 xl:-mx-8 xl:scroll-px-8 xl:px-8 max-lg:[scrollbar-width:none] max-lg:[&::-webkit-scrollbar]:hidden"
-        >
-          {updates.articles.slice(0, 8).map((item) => (
-            <DeskPostCard item={item} key={item.id} />
+        <ul aria-label="Latest from the forecast desk" className={ROW}>
+          {feed.missingBriefing && (
+            <li className={DESK_CARD_ITEM}>
+              <article
+                className={cn(
+                  HOME_CARD,
+                  "border-gm-navy flex h-full flex-col gap-3"
+                )}
+              >
+                <span className="bg-gm-navy text-gm-text-inverse text-label leading-label dark:text-gm-navy w-fit rounded-full px-2.5 py-0.5 font-bold tracking-wider uppercase">
+                  Official briefing
+                </span>
+                <h3 className="text-gm-heading text-heading-sm leading-heading-sm font-bold">
+                  Public Weather Forecast
+                </h3>
+                <p className="text-body-base leading-body-base">
+                  {feed.missingBriefing}
+                </p>
+                <Link
+                  className="text-body text-gm-blue-ink leading-body mt-auto flex w-fit items-center gap-1 font-semibold hover:underline"
+                  href={"/weather/issued" as Route}
+                >
+                  All issued products
+                  <ArrowRightIcon aria-hidden="true" className="size-4" />
+                </Link>
+              </article>
+            </li>
+          )}
+          {feed.official.map((card) => (
+            <OfficialProductCard card={card} key={card.id} />
           ))}
+          {sectorCard}
+          {!feed.collapsePosts && postCards}
         </ul>
+        {feed.collapsePosts && postCards.length > 0 && (
+          <details className="mt-3">
+            <summary className="text-body text-gm-blue-ink leading-body cursor-pointer font-semibold">
+              Earlier posts ({postCards.length})
+            </summary>
+            <ul aria-label="Earlier desk posts" className={cn(ROW, "mt-3")}>
+              {postCards}
+            </ul>
+          </details>
+        )}
       </FeedState>
     </HomeSection>
   );
@@ -172,7 +413,6 @@ export async function Stories() {
   const [lead, ...rest] = result.articles.map(contentToArticle);
   return (
     <HomeSection
-      tone="surface"
       {...words}
       link={{ href: "/explore/news", label: "More stories" }}
     >
@@ -190,7 +430,7 @@ export async function Stories() {
               className="group flex flex-col gap-2"
               href={lead.href as Route}
             >
-              <span className="relative aspect-video overflow-hidden rounded-gm-card bg-gm-surface-panel">
+              <span className="rounded-gm-card bg-gm-surface-panel relative aspect-video overflow-hidden">
                 <Image
                   alt=""
                   className="object-cover"
@@ -200,7 +440,7 @@ export async function Stories() {
                   unoptimized={!isOptimizableImage(lead.imageUrl)}
                 />
               </span>
-              <span className="text-balance font-bold text-gm-heading text-heading-base leading-heading-base group-hover:underline">
+              <span className="text-gm-heading text-heading-base leading-heading-base font-bold text-balance group-hover:underline">
                 {lead.title}
               </span>
               <span className="text-body-base text-gm-text-secondary leading-body-base">
@@ -211,13 +451,17 @@ export async function Stories() {
               </span>
             </Link>
             <ul className="flex flex-col gap-4">
-              {rest.slice(0, 4).map((story) => (
-                <li key={story.id}>
+              {/* Six rows; phones show three (owner, 1 Nov 2026). */}
+              {rest.slice(0, 6).map((story, index) => (
+                <li
+                  className={cn(index >= 3 && "hidden sm:block")}
+                  key={story.id}
+                >
                   <Link
                     className="group grid grid-cols-[7.5rem_minmax(0,1fr)] gap-3"
                     href={story.href as Route}
                   >
-                    <span className="relative aspect-video overflow-hidden rounded-lg bg-gm-surface-panel">
+                    <span className="bg-gm-surface-panel relative aspect-video overflow-hidden rounded-lg">
                       <Image
                         alt=""
                         className="object-cover"
@@ -228,7 +472,7 @@ export async function Stories() {
                       />
                     </span>
                     <span className="flex flex-col gap-1">
-                      <span className="font-bold text-body-base text-gm-heading leading-body-base group-hover:underline">
+                      <span className="text-body-base text-gm-heading leading-body-base font-bold group-hover:underline">
                         {story.title}
                       </span>
                       <span className="text-body-sm text-gm-text-muted leading-body-sm">
@@ -261,20 +505,20 @@ export async function Explained() {
     >
       <div className="grid gap-5 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)]">
         <Link
-          className="group flex flex-col justify-end gap-2 rounded-gm-card bg-gm-navy p-6 text-gm-text-inverse"
+          className="group rounded-gm-card bg-gm-navy text-gm-text-inverse flex flex-col justify-end gap-2 p-6"
           href="/explore/explained"
         >
-          <span className="font-bold text-gm-lime text-label uppercase leading-label tracking-wider">
+          <span className="text-gm-lime text-label leading-label font-bold tracking-wider uppercase">
             Grenada weather
           </span>
-          <span className="text-balance font-bold font-gm-display text-gm-display uppercase tracking-wide">
+          <span className="font-gm-display text-gm-display font-bold tracking-wide text-balance uppercase">
             Grenada's weather and climate, explained
           </span>
-          <span className="max-w-prose text-body-base text-gm-text-inverse/85 leading-body-base">
+          <span className="text-body-base text-gm-text-inverse/85 leading-body-base max-w-prose">
             Plain-language explainers from the forecast desk: trade winds,
             tropical waves, rain shadows and what a forecast really says.
           </span>
-          <span className="flex items-center gap-1 font-semibold text-body text-gm-lime leading-body group-hover:underline">
+          <span className="text-body text-gm-lime leading-body flex items-center gap-1 font-semibold group-hover:underline">
             Read the explainers
             <ArrowRightIcon aria-hidden="true" className="size-4" />
           </span>
@@ -292,7 +536,7 @@ export async function Explained() {
               {questions.questions.map((item) => (
                 <li className="border-gm-border border-b" key={item.id}>
                   <Link
-                    className="flex items-center justify-between gap-3 py-3.5 font-semibold text-body-base text-gm-heading leading-body-base hover:underline"
+                    className="text-body-base text-gm-heading leading-body-base flex items-center justify-between gap-3 py-3.5 font-semibold hover:underline"
                     href={questionHref(item.slug) as Route}
                   >
                     {item.question}
@@ -306,7 +550,7 @@ export async function Explained() {
             </ul>
           </FeedState>
           <Link
-            className="mt-4 flex items-center justify-between gap-3 rounded-gm-card bg-gm-surface-panel p-4 font-semibold text-body-base text-gm-heading leading-body-base hover:underline"
+            className="rounded-gm-card bg-gm-surface-panel text-body-base text-gm-heading leading-body-base mt-4 flex items-center justify-between gap-3 p-4 font-semibold hover:underline"
             href="/explore/ask"
           >
             Have a question? Ask a meteorologist
@@ -315,123 +559,5 @@ export async function Explained() {
         </div>
       </div>
     </HomeSection>
-  );
-}
-
-/**
- * Latest reports: CMS write-ups, each about one issued report whose live
- * summary comes from FastAPI. Only written-up reports appear here; every issued
- * product stays in "All issued products". Then the "get official alerts" band.
- */
-export async function LatestReports() {
-  if (await isSectionHidden("reports")) return null;
-  const { reportNotes: notes, settings } = await fetchHomeContent();
-  const words = sectionWords(settings, "reports", {
-    kicker: "Official GMS products, explained",
-    title: "Latest reports",
-  });
-  const [lead, ...rest] = notes.articles;
-  return (
-    <HomeSection
-      {...words}
-      link={{ href: "/weather/issued", label: "All issued products" }}
-    >
-      <FeedState
-        count={notes.articles.length}
-        empty="No report write-ups are published yet."
-        unavailable={
-          notes.status === "unavailable" &&
-          "Report write-ups cannot be retrieved right now."
-        }
-      >
-        {lead && (
-          <div className="grid gap-4 lg:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)]">
-            <article className={`${HOME_CARD} flex flex-col gap-3`}>
-              <h3 className="text-balance font-bold text-gm-heading text-heading-sm leading-heading-sm">
-                <Link
-                  className="hover:underline"
-                  href={contentHref(lead) as Route}
-                >
-                  {lead.title}
-                </Link>
-              </h3>
-              {lead.summary && (
-                <p className="max-w-prose text-body-base leading-body-base">
-                  {lead.summary}
-                </p>
-              )}
-            </article>
-            {rest.length > 0 && (
-              <ul className="flex flex-col gap-3">
-                {rest.slice(0, 5).map((note) => (
-                  <li key={note.id}>
-                    <Link
-                      className={`${HOME_CARD} flex flex-col gap-1 hover:border-gm-blue-ink`}
-                      href={contentHref(note) as Route}
-                    >
-                      {note.linkedProduct && (
-                        <span className="font-bold text-gm-sky-ink text-label uppercase leading-label tracking-wider">
-                          {note.linkedProduct.kind &&
-                          isProductKind(note.linkedProduct.kind)
-                            ? productTitle(note.linkedProduct.kind)
-                            : note.linkedProduct.title}
-                        </span>
-                      )}
-                      <span className="font-bold text-body text-gm-heading leading-body">
-                        {note.title}
-                      </span>
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </div>
-        )}
-      </FeedState>
-    </HomeSection>
-  );
-}
-
-/**
- * A slim navy strip under the sky hero: subscribe to warnings before they are
- * needed. Live alerts themselves sit above it (header pill, hero takeover).
- */
-export function GetAlertsStrip() {
-  return (
-    <section
-      aria-labelledby="get-alerts-title"
-      className="bg-background pt-3 pb-4 lg:pt-4 lg:pb-6"
-    >
-      <div className="mx-auto max-w-6xl px-4 sm:px-6 xl:px-8">
-        <div className="flex flex-col gap-3 rounded-gm-card border border-gm-border bg-gm-navy px-4 py-4 text-gm-text-inverse sm:flex-row sm:flex-wrap sm:items-center sm:gap-x-4 sm:gap-y-2 sm:py-3">
-          <div className="flex min-w-0 flex-1 items-center justify-center gap-3 sm:justify-start sm:gap-4">
-            <BellIcon
-              aria-hidden="true"
-              className="size-5 shrink-0 text-gm-lime"
-            />
-            <div className="min-w-0 sm:flex-1">
-              <h2
-                className="font-bold text-body-base leading-body-base"
-                id="get-alerts-title"
-              >
-                Get official alerts first
-              </h2>
-              <p className="hidden text-body-sm text-gm-text-inverse/85 leading-body-sm sm:block">
-                We send alerts the moment we issue them, by email or browser
-                notifications.
-              </p>
-            </div>
-          </div>
-          <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center">
-            <Link
-              className="flex h-11 items-center justify-center gap-2 rounded-md bg-gm-lime px-4 font-bold text-body text-gm-navy leading-body"
-              href="/alerts/get-alerts"
-            >
-              Get alerts
-            </Link>
-          </div>
-        </div>
-      </div>
-    </section>
   );
 }

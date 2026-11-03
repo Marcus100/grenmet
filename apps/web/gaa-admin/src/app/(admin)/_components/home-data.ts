@@ -16,6 +16,7 @@ export const DAILY_SCHEDULE: ProductKind[] = [
   "midday",
   "evening",
   "outlook",
+  "marine-forecast",
 ];
 
 export interface ScheduledProduct {
@@ -38,6 +39,8 @@ const PRODUCT_HREF: Partial<Record<ProductKind, string>> = {
   midday: "/wxproducts/fcsts",
   evening: "/wxproducts/fcsts",
   outlook: "/wxproducts/nhc",
+  "marine-forecast": "/wxproducts/fcsts",
+  "climate-bulletin": "/wxproducts/climate",
 };
 
 /** `issuedAt` is a local `YYYY-MM-DDTHH:mm` string authored on the desk, so the

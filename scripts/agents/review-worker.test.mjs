@@ -57,15 +57,15 @@ const PR = {
   labels: [],
 };
 const CI = ["CI Success", "Build Web Apps"];
-const ADVISORY_MERGE_CONFLICT = /cannot be combined/;
-const BASE_QUERY = /base=([^&]+)/;
-const PIN_REVIEW_CONTEXTS = /pin both review status contexts/;
-const ONE_REVIEW_APP = /one GitHub App/;
-const STATUS_APP_MISMATCH = /does not match the Protect dev ruleset/;
-const INCOMPLETE_FILE_LIST = /complete pull request file list/;
-const FILE_LIST_HEAD_MISMATCH = /file list does not match the pinned head/;
+const ADVISORY_MERGE_CONFLICT = /cannot be combined/u;
+const BASE_QUERY = /base=([^&]+)/u;
+const PIN_REVIEW_CONTEXTS = /pin both review status contexts/u;
+const ONE_REVIEW_APP = /one GitHub App/u;
+const STATUS_APP_MISMATCH = /does not match the Protect dev ruleset/u;
+const INCOMPLETE_FILE_LIST = /complete pull request file list/u;
+const FILE_LIST_HEAD_MISMATCH = /file list does not match the pinned head/u;
 const APP_IDENTITY_UNAVAILABLE =
-  /Could not establish the configured GitHub App identity/;
+  /Could not establish the configured GitHub App identity/u;
 const CHECKS = CI.map((name) => ({
   name,
   status: "COMPLETED",

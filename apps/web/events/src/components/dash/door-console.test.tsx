@@ -5,8 +5,8 @@ import type { DoorManifest } from "@/domain/types";
 import { DoorConsole } from "./door-console";
 
 const refresh = vi.fn();
-const ADMITTED_TEXT = /Ben Tester · Free/;
-const SCAN_BUTTON = /Scan with camera/;
+const ADMITTED_TEXT = /Ben Tester · Free/u;
+const SCAN_BUTTON = /Scan with camera/u;
 
 vi.mock("@/data/actions", () => ({ admitTicket: vi.fn() }));
 vi.mock("next/navigation", () => ({

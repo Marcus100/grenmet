@@ -26,4 +26,5 @@ export type CapSnapshotPublic = {
   generated_at: string;
   signed_at?: string | null;
   signing_key_ref?: string | null;
+  schema_mismatch?: string | null;
 };

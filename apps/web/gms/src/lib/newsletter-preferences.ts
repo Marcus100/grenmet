@@ -11,7 +11,7 @@ const listKeySchema = z
   .string()
   .min(1)
   .max(40)
-  .regex(/^[a-z0-9-]+$/);
+  .regex(/^[a-z0-9-]+$/u);
 
 export const preferencesUnsubscribeSchema = z.object({
   token: z.string().min(1).max(2048),

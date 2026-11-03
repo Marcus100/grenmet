@@ -99,7 +99,7 @@ export function SiteSearch({ className }: { className?: string }) {
         aria-keyshortcuts="/"
         aria-label="Search the site"
         className={cn(
-          "flex size-11 items-center justify-center rounded-md hover:bg-gm-text-inverse/10",
+          "hover:bg-gm-text-inverse/10 flex size-11 items-center justify-center rounded-md",
           className
         )}
         onClick={() => setOpen(true)}
@@ -123,7 +123,7 @@ export function SiteSearch({ className }: { className?: string }) {
             value={query}
           />
           <CommandList className="max-h-96">
-            <CommandEmpty className="py-6 text-center text-body leading-body">
+            <CommandEmpty className="text-body leading-body py-6 text-center">
               No pages match “{query}”.
             </CommandEmpty>
             {shown.length > 0 && (
@@ -138,11 +138,11 @@ export function SiteSearch({ className }: { className?: string }) {
                     {entry.kind === "article" && (
                       <FileTextIcon
                         aria-hidden="true"
-                        className="mt-0.5 size-4 text-gm-sky-ink"
+                        className="text-gm-sky-ink mt-0.5 size-4"
                       />
                     )}
                     <span className="flex min-w-0 flex-col">
-                      <span className="font-semibold text-body text-gm-heading leading-body">
+                      <span className="text-body text-gm-heading leading-body font-semibold">
                         {entry.title}
                       </span>
                       <span className="text-body-sm text-gm-text-secondary leading-body-sm">

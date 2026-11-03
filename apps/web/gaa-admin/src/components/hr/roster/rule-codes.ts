@@ -16,6 +16,11 @@ export const RULE_TITLE: Record<string, string> = {
   MIN_REST: "Short rest between shifts",
 };
 
+/** "1 roster rule warning" / "3 roster rule warnings". */
+export function warningCountText(count: number): string {
+  return `${count} roster rule ${count === 1 ? "warning" : "warnings"}`;
+}
+
 export function ruleTitle(code: string): string {
   return RULE_TITLE[code] ?? code;
 }

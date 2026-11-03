@@ -77,7 +77,7 @@ export function SetupManager({
       </div>
 
       {buildings.length === 0 ? (
-        <Card className="px-4 py-8 text-center text-muted-foreground text-sm">
+        <Card className="text-muted-foreground px-4 py-8 text-center text-sm">
           No buildings yet.
           {canAddBuildings
             ? " Add the first building to start this site's spec."
@@ -141,7 +141,7 @@ export function SetupManager({
             </div>
           </div>
           {building.sections.length > 0 ? (
-            <ul className="divide-y divide-border rounded-lg border">
+            <ul className="divide-border divide-y rounded-lg border">
               {building.sections.map((section) => (
                 <li
                   className="flex items-center justify-between gap-2 px-3 py-2 text-sm"
@@ -153,7 +153,7 @@ export function SetupManager({
                       <InactiveBadge active={section.active} />
                     </span>
                     {section.note ? (
-                      <span className="block text-muted-foreground text-xs">
+                      <span className="text-muted-foreground block text-xs">
                         {section.note}
                       </span>
                     ) : null}

@@ -4,8 +4,8 @@ import type { ProductField } from "@barrelsgd/gms/products";
 const MPH_PER_KNOT = 1852 / 1609.344;
 const KMH_PER_KNOT = 1.852;
 const FEET_PER_METRE = 1 / 0.3048;
-const UNIT_SUFFIX = /\s*\((mph|ft|°C|%|s|km|hPa)\)$/;
-const TIDE_CAPTION = /^Tide \d (time|height)$/;
+const UNIT_SUFFIX = /\s*\((mph|ft|°C|%|s|km|hPa)\)$/u;
+const TIDE_CAPTION = /^Tide \d (time|height)$/u;
 const FIELD_CAPTIONS: Record<string, string> = {
   "Weather summary": "Summary",
   "Maximum temperature": "Max temp",

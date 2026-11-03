@@ -6,11 +6,12 @@ Port **3003**. Public weather dashboard for Spice Island (Grenada) — daily for
 
 ## Auth pattern
 
-"Sign in" with the Barrels account (ADR-0017): `AccountButton` in the main bar
-on desktop and in the nav drawer on phones and tablets,
-routes `src/app/auth/{start,callback,me,logout}`, config `src/lib/auth-config.ts`
-(registry key `weather`). Off until `WEATHER_SSO_CLIENT_SECRET` is set. The
-button loads the account in the browser (`/auth/me`), so pages stay static.
+**No sign-in (owner decision, 1 Nov 2026).** The weather site has no public
+sign-in at all. There is no account button in the header or the nav drawer, no
+"Your account" block, and no `/auth/*` routes or `src/lib/auth-config.ts`. Every
+page is readable without an account. Do not add a sign-in entry point here
+without a new owner decision. The `weather` registry key (ADR-0017) is not
+used by this app. Issue #1006.
 
 ## Data sources — no database
 
@@ -82,9 +83,9 @@ src/app/
   enforces that no real route serves a planned address. The root single-segment
   `(weather)/[location]` route has `dynamicParams = false` and calls
   `notFound()` for other slugs: it answers unknown one-segment URLs with the
-  server-rendered 404 only while it is prerendered (today no second place is
-  enabled, so Next's router rejects every slug). If enabling a place makes it
-  render on demand, recheck `/this-page-does-not-exist` with curl. A CMS item
+  server-rendered 404 only while it is prerendered (the enabled places are
+  generated; Next's router rejects every other slug). Since Carriacou was
+  enabled (2 Nov 2026), recheck `/this-page-does-not-exist` with curl after a build. A CMS item
   or other dynamic page that calls `notFound()` for a missing item still gets
   the empty error document (not fixed).
 - **Masthead and /alerts status (30 Oct 2026):** the CAP warnings and the GMS
@@ -117,7 +118,8 @@ src/app/
   numbers, tables or stat tiles beside it. The sky hero shows real register
   and issued-forecast values only, sun times computed by `src/lib/sky.ts`, and
   "Not available yet" for fields no feed carries (UV, AQI, tides, swell, rain
-  chance, gusts, rainfall). Plan your week (Explore today) shows,
+  chance, gusts, rainfall). "What it means for you" (a card in the From the Desk row after the
+  official cards, `SectorDeskCard`; hidden with the `explore-today` switch) shows,
   per sector, the GMS alerts and CAP warnings that apply over the next seven
   days from FastAPI `GET /wxproducts/public/sector-outlook` (`fetchSectorOutlook`,
   tiles built by `lib/sector-outlook.ts`; the six sectors are `SECTORS` in
@@ -150,7 +152,7 @@ src/app/
   hero tabs (marine lives at `/marine`). The website has no bottom tab bar;
   `MobileTabBar` is kept for the app.
 - **Units (28 Oct 2026):** every hero measurement is metric or imperial,
-  metric until a visitor chooses (owner first chose imperial, then metric) (header button, saved in `localStorage`
+  metric until a visitor chooses (owner first chose imperial, then metric) (switch in the top corner of the home hero card, above the tabs, `components/units-toggle.tsx` placed by `components/home/sky-hero.tsx`; it was in the header until 31 Oct 2026, so only the home page has the switch and other pages show the saved choice (the switch is on the home page only, in the hero card); saved in `localStorage`
   `gm-units`). The API sends WMO units (°C, knots, metres, km, hPa, mm). A figure
   is a `Measure` (`lib/units.ts`) rendered by `components/measure.tsx` in both
   systems; `globals.css` shows one by `<html data-units>`, so static pages never
@@ -180,16 +182,23 @@ src/app/
 - **Locations:** places live in `src/lib/locations.ts`, keyed internally by airport
   locator (TGPY, TGPZ) with readable slugs. The default place (Grenada) uses the
   unprefixed URLs; others get `/<slug>` routes (`(weather)/[location]`,
-  `dynamicParams = false`). To add a place: wire its data in
+  `dynamicParams = false`). Enabled today: Grenada (MBIA station) and Carriacou
+  & Petite Martinique (`station: null`, no observing station). A place with no
+  station shows the national forecast, labelled "National forecast for Grenada,
+  Carriacou and Petite Martinique", and its Now card says "No observing station
+  here": never a reading, never a station name. To add a place: wire its data in
   `src/lib/location-data.ts`, then set `enabled: true`. The switcher appears only
-  when two or more places are enabled. Never show another station's reading for
-  a place.
+  when two or more places are enabled. The sitemap lists each enabled place's
+  home and `/weather` page. Never show another station's reading for a place.
 - **Search:** `SiteSearch` (masthead button or `/`) ranks `NAV_SECTIONS` pages plus
   published CMS articles from `/api/search` (read-only proxy) with
   `src/lib/search.ts`. New menu pages are searchable automatically.
-- **Dark mode:** `<html class="gm-site">` scopes the GMS dark palette; the theme
-  follows the device via `@barrelsgd/theme` (`ThemeBootScript` defaults to
-  `system`, `ThemeToggle` in the main bar beside search and the alert pill). Headings use
+- **Dark mode (done, owner 1 Nov 2026, #1001):** `<html class="gm-site">` scopes the GMS dark
+  palette. The site opens in light (`ThemeBootScript` defaults to `light` in
+  `layout.tsx`) and does not follow the device. `ThemeToggle` (main bar beside search
+  and the alert pill, and the drawer) switches between light and dark only; there is
+  no Auto or system choice. A stored old `system` choice is moved to light on the
+  first load (`theme-toggle.tsx`). Shared theme state comes from `@barrelsgd/theme`. Headings use
   `text-gm-heading`, not `text-gm-navy`; printable products sit in `.gm-paper`.
 
 - **Provenance and staleness (foundations plan NFRs):** every public data block

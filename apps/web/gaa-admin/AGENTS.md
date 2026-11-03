@@ -61,7 +61,7 @@ path-prefixed, auth-gated routes under `(admin)/`. All are gated by
 | Prefix | Source app | Data | Notes |
 |---|---|---|---|
 | `/hr` | hr | FastAPI `/api/v1/hr/*` via `@barrelsgd/api-client` | Editors, submissions tables, approvals inbox, duty roster and HR Setup are all wired. The `/hr` dashboard reads `/api/v1/hr/dashboard` on the server; figures come from the leave ledger, personal requests, published roster and scoped approvals. `*-document.tsx` print components stay pure presentation. Components in `components/hr/` |
-| `/cap` | cap | FastAPI `/api/cap/*` (server-side direct) | `CAP_API_URL` env + `getCapApiBaseUrl()`; components in `components/cap/` |
+| `/cap` | cap | FastAPI `/api/cap/*` (server-side direct) | `CAP_API_URL` env + `getCapApiBaseUrl()`; components in `components/cap/`. Parallel run with the new desk in `apps/web/cap` (`/desk`, ADR-0054): the page header links "Try the new desk" (`CAP_DESK_URL`); keep this desk fully working until cutover |
 | `/salesbus` | salesbus | FastAPI `/api/v1/stores/*` — the Stores module (internal requisition, inventory, deliveries); server reads in `src/db/stores/queries.ts`, mutations in `components/salesbus/api.ts` | `CartProvider` scoped via `(admin)/salesbus/layout.tsx`; keeps own `AppShell`; PWA dropped |
 | `/wxwatch` | wxwatch | FastAPI `/api/v1/wxwatch/*` | generated metadata contracts; authenticated image downloads through `/_backend/wxwatch/` |
 | `/wxproducts` | wxproducts | FastAPI `/api/v1/wxproducts/*`, separate wxproducts Postgres | Kubb-generated contracts; saved-revision PDFs via FastAPI `/products/{id}/revisions/{revision}/pdf` |

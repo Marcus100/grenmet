@@ -1,4 +1,4 @@
-const CLOCK = /^(\d{1,2})[:.](\d{2})\s*([ap])?\.?\s*m?\.?$/i;
+const CLOCK = /^(\d{1,2})[:.](\d{2})\s*([ap])?\.?\s*m?\.?$/iu;
 
 /**
  * "17:42" or "5:42" as "5:42 p.m." for the homepage, which uses a.m./p.m.

@@ -66,7 +66,10 @@ agent instructions. Nothing here relaxes a root rule.
 - Standing authorization: once PRs are merged into `dev`,
   create or update the `dev → staging` PR with a recap, review the promotion diff
   and verify `dev` has not advanced. The owner reviews and merges into `staging`;
-  agents do not arm auto-merge. GitHub merges only after the staging ruleset's
+  agents do not arm auto-merge. While `PROMOTE_STAGING_ENABLED` is `true`,
+  `promote-staging.yml` does this daily (see
+  `docs/operations/staging-promotion-automation.md`) and agents leave the
+  staging PR alone. GitHub merges only after the staging ruleset's
   required checks pass; `CI Success` and `Build Web Apps` aggregate every API and
   web job. If `dev` advances, update the recap and tell the owner.
 - Monitor the staging deployment and report actionable failures or readiness for
@@ -106,6 +109,16 @@ Run `pnpm guardrails:staged` (FastAPI route or schema changes must be paired wit
 the symbols you touched and verify each affected layer. The script covers one
 case, not the general one. The gate finds impact; it does not override explicit
 file limits or authorize unrelated work.
+
+Two FastAPI changes need no companions. Startup plumbing in `src/main.py`
+(imports, `lifespan`, middleware and exception-handler definitions,
+`app.add_middleware` lines) is exempt automatically. A route refactor whose
+regenerated `openapi.json` has no diff is declared with the commit trailer
+`API-Contract: unchanged` on every commit that touches a route or schema file.
+That works in the CI range check only, and CI's OpenAPI regeneration check
+still fails the PR if the declaration is wrong. The trailer covers the OpenAPI
+contract only: a change in documented behaviour (permissions, status meanings)
+still updates `docs/api/contracts.md`.
 
 | If you change… | Also verify… |
 | --- | --- |

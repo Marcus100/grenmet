@@ -79,7 +79,7 @@ export default async function OrganisationPage({
         </p>
       ) : null}
       <div className="space-y-2">
-        <h1 className="font-semibold text-2xl">{organisation.name}</h1>
+        <h1 className="text-2xl font-semibold">{organisation.name}</h1>
         <div className="flex flex-wrap items-center gap-2">
           <Badge
             variant={

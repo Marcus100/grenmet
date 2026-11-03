@@ -6,8 +6,8 @@ import { fileURLToPath } from "node:url";
 import { APPS, planE2e, portIsOpen } from "./e2e-if-up.mjs";
 
 const SCRIPT = fileURLToPath(new URL("./e2e-if-up.mjs", import.meta.url));
-const SKIP_LINE = /SKIP gms e2e: nothing is listening on :3003/;
-const REQUIRE_MESSAGE = /--require was given/;
+const SKIP_LINE = /SKIP gms e2e: nothing is listening on :3003/u;
+const REQUIRE_MESSAGE = /--require was given/u;
 
 test("only apps whose server is up are run; the rest are skipped", () => {
   const plan = planE2e(APPS, { 3001: false, 3003: true });

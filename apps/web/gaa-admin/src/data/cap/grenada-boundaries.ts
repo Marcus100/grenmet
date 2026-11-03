@@ -2,6 +2,9 @@
  * Grenada's six parishes plus the Carriacou & Petite Martinique dependency —
  * ISO 3166-2:GD administrative subdivisions (GD-01..GD-06, GD-10).
  *
+ * Map geometry only. The parish names, ISO codes and short names are served by
+ * the API catalogue (GET /api/v1/cap/gms-catalogue), not kept here.
+ *
  * Boundary geometry: geoBoundaries (https://www.geoboundaries.org), the
  * "simplified" GRD ADM1 release, sourced from OpenStreetMap contributors,
  * CC-BY 4.0 / OSM ODbL. Simplified for the CAP area picker and map — not a
@@ -587,63 +590,6 @@ export const GRENADA_PARISH_BOUNDARIES: FeatureCollection<
     },
   ],
 } as FeatureCollection<Polygon | MultiPolygon, GrenadaParishProperties>;
-
-export interface GrenadaParish {
-  id: string;
-  isoCode: string;
-  name: string;
-  shortName: string;
-}
-
-/** Ordered GD-01 -> GD-06, then the GD-10 dependency. */
-export const GRENADA_PARISHES: readonly GrenadaParish[] = [
-  {
-    id: "andrew",
-    isoCode: "GD-01",
-    name: "Saint Andrew",
-    shortName: "St. Andrew",
-  },
-  {
-    id: "david",
-    isoCode: "GD-02",
-    name: "Saint David",
-    shortName: "St. David",
-  },
-  {
-    id: "george",
-    isoCode: "GD-03",
-    name: "Saint George",
-    shortName: "St. George",
-  },
-  {
-    id: "john",
-    isoCode: "GD-04",
-    name: "Saint John",
-    shortName: "St. John",
-  },
-  {
-    id: "mark",
-    isoCode: "GD-05",
-    name: "Saint Mark",
-    shortName: "St. Mark",
-  },
-  {
-    id: "patrick",
-    isoCode: "GD-06",
-    name: "Saint Patrick",
-    shortName: "St. Patrick",
-  },
-  {
-    id: "carriacou-pm",
-    isoCode: "GD-10",
-    name: "Carriacou and Petite Martinique",
-    shortName: "Carriacou & Petite Martinique",
-  },
-];
-
-export const GRENADA_PARISH_IDS: readonly string[] = GRENADA_PARISHES.map(
-  (parish) => parish.id
-);
 
 export function findParishFeature(
   id: string

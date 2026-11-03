@@ -34,7 +34,7 @@ export function LocationSwitcher({
               <Link
                 aria-current={active ? "page" : undefined}
                 className={cn(
-                  "flex min-h-9 items-center gap-1 rounded-full border px-3 font-semibold text-body-sm leading-body-sm outline-none focus-visible:ring-2 focus-visible:ring-gm-lime",
+                  "text-body-sm leading-body-sm focus-visible:ring-gm-lime flex min-h-9 items-center gap-1 rounded-full border px-3 font-semibold outline-none focus-visible:ring-2",
                   active
                     ? "border-gm-text-inverse bg-gm-text-inverse text-gm-navy"
                     : "border-gm-text-inverse/60 bg-gm-scrim"

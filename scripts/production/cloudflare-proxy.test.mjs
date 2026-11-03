@@ -17,14 +17,14 @@ import test from "node:test";
 const RANGES = "infra/cloudflare/ip-ranges.txt";
 const FIREWALL = "scripts/production/cloudflare-origin-firewall.py";
 const CACHE = "scripts/production/cloudflare-cache-rules.py";
-const CIDR_LINE = /^[0-9a-f:.]+\/\d+$/;
+const CIDR_LINE = /^[0-9a-f:.]+\/\d+$/u;
 const SOURCES_LINE =
   "# Sources: https://www.cloudflare.com/ips-v4 and https://www.cloudflare.com/ips-v6";
-const OVERSIZED = /^refused .*more than 16384 bytes/;
-const FETCHED_LINE = /^# Fetched: \d{4}-\d{2}-\d{2}$/m;
-const UNTOUCHED_PORT = /ports:(22|5432)\b/;
-const ROUTER_HOST = /Host\(`([a-z0-9-]+)\.\$\{BASE_DOMAIN\}`\)/g;
-const COOKIE_DEFAULT = /_SESSION_COOKIE_NAME:[\s\S]*?\.default\(\s*"([^"]+)"/g;
+const OVERSIZED = /^refused .*more than 16384 bytes/u;
+const FETCHED_LINE = /^# Fetched: \d{4}-\d{2}-\d{2}$/mu;
+const UNTOUCHED_PORT = /ports:(22|5432)\b/u;
+const ROUTER_HOST = /Host\(`([a-z0-9-]+)\.\$\{BASE_DOMAIN\}`\)/gu;
+const COOKIE_DEFAULT = /_SESSION_COOKIE_NAME:[\s\S]*?\.default\(\s*"([^"]+)"/gu;
 
 function python(args, options = {}) {
   return spawnSync("python3", args, { encoding: "utf8", ...options });
@@ -399,6 +399,13 @@ test("cache rules: default no-cache, then static assets on public hosts, then th
     assert.ok(
       bypass.expression.includes('starts_with(http.request.uri.path, "/api/")')
     );
+    // The CAP warning desk shares cap.* with the public pages (ADR-0054).
+    for (const path of ["/desk", "/auth/"])
+      assert.ok(
+        bypass.expression.includes(
+          `starts_with(http.request.uri.path, "${path}")`
+        )
+      );
     // Rules stay inside their own environment's hostnames.
     if (environment === "production")
       for (const rule of rules)

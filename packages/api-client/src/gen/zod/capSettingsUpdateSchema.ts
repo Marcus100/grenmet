@@ -8,9 +8,24 @@ import * as z from "zod";
 export const capSettingsUpdateSchema = z.object({
   sender: z.union([z.string().min(1).max(255), z.null()]).optional(),
   sender_name: z.union([z.string().min(1).max(255), z.null()]).optional(),
-  wmo_oid: z.union([z.string().max(120), z.null()]).optional(),
-  web: z.union([z.string().max(500), z.null()]).optional(),
-  contact: z.union([z.string().max(500), z.null()]).optional(),
+  wmo_oid: z
+    .union([z.string().max(120), z.null()])
+    .optional()
+    .describe(
+      "WMO OID of the form 2.49.0.1.<country>.<authority>, digits and dots only. Empty clears it."
+    ),
+  web: z
+    .union([z.string().max(500), z.null()])
+    .optional()
+    .describe(
+      "Public web address of the service, https only. Empty clears it."
+    ),
+  contact: z
+    .union([z.string().max(500), z.null()])
+    .optional()
+    .describe(
+      "Plain-text contact details: no control characters or angle brackets. Empty clears it."
+    ),
   feed_limit: z.union([z.int().min(1).max(500), z.null()]).optional(),
   signing_enabled: z.union([z.boolean(), z.null()]).optional(),
   signing_certificate_ref: z.union([z.string().max(255), z.null()]).optional(),

@@ -3,8 +3,8 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { CANCEL_FORBIDDEN, COULDNT_CONFIRM } from "@/lib/org-orders";
 import { makeOrderDetail } from "@/test/org-factories";
 
-const RE_1 = /permission/;
-const RE_2 = /already waiting/;
+const RE_1 = /permission/u;
+const RE_2 = /already waiting/u;
 
 const resolveOrgContext = vi.fn();
 const getSession = vi.fn();

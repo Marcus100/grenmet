@@ -53,7 +53,13 @@ function ConfirmIdentityFields() {
 }
 
 type SetupStep =
-  | { kind: "scan"; secret: string; uri: string }
+  | {
+      kind: "scan";
+      secret: string;
+      uri: string;
+      /** A privileged account also confirms with a code emailed to it. */
+      emailCodeRequired: boolean;
+    }
   | { kind: "codes" }
   | { kind: "done"; codes: string[] };
 
@@ -93,11 +99,14 @@ function SetupDialog({
             onSubmit={(event) => {
               event.preventDefault();
               const code = readForm(event.currentTarget, "code");
+              const emailCode = step.emailCodeRequired
+                ? readForm(event.currentTarget, "email_code")
+                : undefined;
               run(async () => {
-                await activateMfa(code);
+                await activateMfa(code, emailCode);
                 onEnabled(0);
                 setStep({ kind: "codes" });
-              }, "That code was not accepted. Try the current code from your app.");
+              }, "That code was not accepted. Try the current code from your app. After five wrong codes, set up two-step verification again.");
             }}
           >
             <DialogHeader>
@@ -113,7 +122,7 @@ function SetupDialog({
             <details className="text-muted-foreground text-sm">
               <summary className="cursor-pointer">Can't scan it?</summary>
               <p className="mt-2">Enter this key in your app instead:</p>
-              <code className="mt-1 block break-all rounded-lg border border-border bg-muted p-3 text-foreground">
+              <code className="border-border bg-muted text-foreground mt-1 block rounded-lg border p-3 break-all">
                 {step.secret}
               </code>
             </details>
@@ -121,6 +130,19 @@ function SetupDialog({
               <div className={errorBoxClass} role="alert">
                 {error}
               </div>
+            )}
+            {step.emailCodeRequired && (
+              <>
+                <p className="text-muted-foreground text-sm">
+                  Because this is a staff account, we also emailed a 6-digit
+                  code to your account address. Enter it too.
+                </p>
+                <CodeField
+                  id="setup_email_code"
+                  label="Code we emailed you"
+                  name="email_code"
+                />
+              </>
             )}
             <CodeField id="setup_code" label="6-digit code" name="code" />
             <button
@@ -268,7 +290,7 @@ function ConfirmDialog({
             <button
               className={
                 destructive
-                  ? "w-full rounded-lg bg-destructive px-5 py-3 font-medium text-sm text-white transition hover:bg-destructive/90 disabled:opacity-60"
+                  ? "bg-destructive hover:bg-destructive/90 w-full rounded-lg px-5 py-3 text-sm font-medium text-white transition disabled:opacity-60"
                   : primaryButtonClass
               }
               disabled={busy}
@@ -335,9 +357,12 @@ export function TwoStepSettings({
                     kind: "scan",
                     secret: result.secret,
                     uri: result.provisioning_uri,
+                    emailCodeRequired: result.email_code_required === true,
                   });
                 } catch {
-                  toast.error("Unable to start authenticator setup.");
+                  toast.error(
+                    "Unable to start authenticator setup. If you have tried several times, wait 30 minutes or try again tomorrow."
+                  );
                 } finally {
                   setStarting(false);
                 }

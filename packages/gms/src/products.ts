@@ -17,6 +17,10 @@ export const PRODUCT_KINDS = {
   midday: "Midday Forecast",
   evening: "Evening Forecast",
   outlook: "Tropical Weather Outlook",
+  /** Daily 05:00 marine forecast, valid 05:00–05:00 (distinct from the Small Craft bulletin `marine`). */
+  "marine-forecast": "Marine Forecast",
+  /** Monthly climate bulletin issued on the 15th for the previous month. */
+  "climate-bulletin": "Climate Bulletin",
   ...BULLETIN_CATEGORIES,
 } as const;
 export type ProductKind = keyof typeof PRODUCT_KINDS;
@@ -96,6 +100,12 @@ export function capInsertTargets(kind: ProductKind): CapInsertTarget[] {
     return [
       { label: "Tropical waves and systems", value: "systems" },
       { label: "Cyclone formation outlook", value: "formation" },
+    ];
+  }
+  if (kind === "marine-forecast") {
+    return [
+      { label: "Synopsis", value: "synopsis" },
+      { label: "Small craft advice", value: "smallCraftNotes" },
     ];
   }
   if (isBulletin(kind)) {
@@ -196,7 +206,7 @@ export const RAIN_CHANCE_BANDS: Record<
 const WEATHER_TYPE_LABELS = WEATHER_TYPES.map((t) => t.label);
 export const TIDE_SLOTS = [1, 2, 3, 4] as const;
 const likelihoods = ["Very low", "Low", "Medium", "High"];
-const DAY_ALERT_FIELD = /^day[1-4](Alerts|Impact|Response)$/;
+const DAY_ALERT_FIELD = /^day[1-4](Alerts|Impact|Response)$/u;
 function field(
   section: string,
   key: string,
@@ -309,7 +319,7 @@ function tideFields(section: string, prefix: string): ProductField[] {
   ];
 }
 const COMPOSED_KEY =
-  /^(wind|seaState|swell|visibility|highTides|lowTides|day[1-4](Wind|SeaState|HighTides|LowTides))$/;
+  /^(wind|seaState|swell|visibility|highTides|lowTides|day[1-4](Wind|SeaState|HighTides|LowTides))$/u;
 /** Legacy free-text keys FastAPI composes from structured values (forecasts, evening days, marine/wind/coastal bulletins). */
 export function isComposedForecastField(key: string) {
   return COMPOSED_KEY.test(key);
@@ -611,6 +621,8 @@ export function productFields(kind: ProductKind): ProductField[] {
     ];
   if (kind === "morning" || kind === "midday" || kind === "evening")
     return [...issueFields, ...forecastFields(kind)];
+  if (kind === "marine-forecast") return marineForecastFields();
+  if (kind === "climate-bulletin") return climateBulletinFields();
   return [
     ...issueFields,
     field("Bulletin", "bulletinNumber", "Bulletin number"),
@@ -655,12 +667,81 @@ export function productFields(kind: ProductKind): ProductField[] {
     }),
   ];
 }
+export const SMALL_CRAFT_ADVICE = [
+  "No advisory",
+  "Small craft caution",
+  "Small craft advisory",
+] as const;
+function marineForecastFields(): ProductField[] {
+  return [
+    ...issueFields,
+    field("Synopsis", "synopsis", "Synopsis", {
+      type: "textarea",
+      required: true,
+    }),
+    ...windFields("Winds", ""),
+    ...marineFields("Seas and swell", ""),
+    field("Small craft", "smallCraft", "Small craft advice", {
+      options: SMALL_CRAFT_ADVICE,
+      required: true,
+    }),
+    field("Small craft", "smallCraftNotes", "Advice to small craft operators", {
+      type: "textarea",
+    }),
+    field("Outlook", "outlook", "Outlook (next 24 hours)", {
+      type: "textarea",
+      required: true,
+    }),
+  ];
+}
+/**
+ * The climate bulletin carries narrative only. Its figures (rainfall, rain
+ * days, temperature extremes, wind) come from the eRegister month summary for
+ * `month`, so nobody retypes what the register computes.
+ */
+function climateBulletinFields(): ProductField[] {
+  return [
+    ...issueFields,
+    field("Month", "month", "Month reviewed (YYYY-MM)", { required: true }),
+    field("Month in review", "summary", "Summary of the month", {
+      type: "textarea",
+      required: true,
+    }),
+    field("Month in review", "rainfallComment", "Rainfall", {
+      type: "textarea",
+    }),
+    field("Month in review", "temperatureComment", "Temperature", {
+      type: "textarea",
+    }),
+    field("Month in review", "notableEvents", "Notable events", {
+      type: "textarea",
+    }),
+    field("Outlook", "outlook", "Outlook for the coming months", {
+      type: "textarea",
+    }),
+  ];
+}
+/** `YYYY-MM` of the month before `date` (`YYYY-MM-DD`). */
+export function previousMonth(date: string) {
+  const [year, month] = date.split("-").map(Number);
+  if (!(year && month)) return "";
+  const d = new Date(Date.UTC(year, month - 2, 1));
+  return d.toISOString().slice(0, 7);
+}
+/** Climate bulletins are issued on the 15th; the next issue after `date`. */
+export function nextClimateIssue(date: string) {
+  const [year, month, day] = date.split("-").map(Number);
+  if (!(year && month && day)) return "";
+  const d = new Date(Date.UTC(year, day < 15 ? month - 1 : month, 15));
+  return d.toISOString().slice(0, 10);
+}
 export const ISSUE_TIMES: Partial<Record<ProductKind, readonly string[]>> = {
   morning: ["07:00"],
   midday: ["12:00"],
   evening: ["18:00"],
   outlook: ["02:00", "08:00", "14:00", "20:00"],
   marine: ["05:00"],
+  "marine-forecast": ["05:00"],
 };
 export function grenadaDate(now = Date.now()) {
   return new Date(now - 4 * 60 * 60 * 1000).toISOString().slice(0, 10);
@@ -759,7 +840,7 @@ export function displayProductFields(kind: ProductKind) {
   return productFields(kind).filter((f) => !isHiddenForecastField(kind, f));
 }
 const STRUCTURED_SOURCE_KEY =
-  /^(day[1-4])?([Vv]isibility(Min|Max)|[Ww]indDir(From|To)|[Ww]indSpeed(Min|Max)|[Ww]indGust|[Ss]eaState(From|To)|[Ww]aveHeight(Min|Max)|[Ss]well(Dir|Period|Height)|[Tt]ide[1-4](Type|Time|Height))$/;
+  /^(day[1-4])?([Vv]isibility(Min|Max)|[Ww]indDir(From|To)|[Ww]indSpeed(Min|Max)|[Ww]indGust|[Ss]eaState(From|To)|[Ww]aveHeight(Min|Max)|[Ss]well(Dir|Period|Height)|[Tt]ide[1-4](Type|Time|Height))$/u;
 /**
  * Fields for reading an issued product (public site, review step): structured
  * wind/sea/tide inputs are shown through the text FastAPI composes from them,
@@ -797,6 +878,18 @@ export function emptyProduct(
     values.issuedAt = `${date}T${issueTime}`;
     values.validFrom = values.issuedAt;
   }
+  if (kind === "marine-forecast") {
+    values.validTo = `${followingDate(date, 1)}T05:00`;
+    values.validity = MARINE_FORECAST_VALIDITY;
+    values.area = MARINE_FORECAST_AREA;
+  }
+  if (kind === "climate-bulletin") {
+    values.month = previousMonth(date);
+    values.validFrom = values.issuedAt || `${date}T10:00`;
+    values.issuedAt = values.validFrom;
+    values.validTo = `${nextClimateIssue(followingDate(date, 1))}T23:59`;
+    values.validity = "Until the next monthly bulletin";
+  }
   if (kind === "evening") {
     for (let day = 1; day <= 4; day++)
       values[`day${day}Date`] = followingDate(date, day);
@@ -804,7 +897,10 @@ export function emptyProduct(
   }
   return withForecastSchedule(kind, values);
 }
-const LOCAL_DATE_TIME = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/;
+export const MARINE_FORECAST_VALIDITY = "05:00 today to 05:00 tomorrow";
+export const MARINE_FORECAST_AREA =
+  "Waters of Grenada, Carriacou and Petite Martinique";
+const LOCAL_DATE_TIME = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/u;
 /** Grenada uses UTC−04:00 year round. Reject malformed calendar values. */
 export function localDateTime(value: string): number {
   if (!LOCAL_DATE_TIME.test(value)) return Number.NaN;

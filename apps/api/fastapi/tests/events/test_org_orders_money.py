@@ -1537,8 +1537,10 @@ async def test_the_waiting_refund_lookup_can_use_the_pending_order_index(
     """#517: the check for a refund already waiting on an order is served by
     ``outbox_pending_order_idx``, also under a generic prepared plan (bound topic and
     order id): its expression and partial predicate are SQL constants in the query.
-    Sequential scans are switched off to ask the planner whether the index applies;
-    the table is tiny in tests."""
+    The planner's pick between several usable indexes depends on table statistics,
+    which differ run to run (#948), so the test removes the choice: sequential scans
+    are off and the other outbox indexes are dropped inside this transaction (DDL
+    rolls back), leaving the planner to use ``outbox_pending_order_idx`` or nothing."""
     statement = select(outbox.Outbox.id).where(
         outbox.pending_for_order(order_refunds.REQUESTED_TOPIC, str(uuid.uuid4()))
     )
@@ -1546,6 +1548,13 @@ async def test_the_waiting_refund_lookup_can_use_the_pending_order_index(
     assert "'pending'" in sql and "'order_id'" in sql
     await db_async.execute(sa_text("SET LOCAL plan_cache_mode = force_generic_plan"))
     await db_async.execute(sa_text("SET LOCAL enable_seqscan = off"))
+    await db_async.execute(sa_text("SET LOCAL enable_bitmapscan = off"))
+    await db_async.execute(sa_text("DROP INDEX platform.outbox_due_idx"))
+    await db_async.execute(
+        sa_text(
+            "ALTER TABLE platform.outbox DROP CONSTRAINT outbox_topic_dedupe_key_key"
+        )
+    )
     await db_async.execute(
         sa_text(f"PREPARE waiting_refund (varchar, varchar) AS {sql}")
     )

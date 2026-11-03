@@ -6,6 +6,7 @@
 import type { ApiError } from "./ApiError.js";
 import type { ObservationSend } from "./ObservationSend.js";
 import type { SendObservationBody } from "./SendObservationBody.js";
+import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 
 export type EregisterEmailRegisterObservationPath = {
   /**
@@ -46,7 +47,9 @@ export type EregisterEmailRegisterObservationStatus404 = ApiError;
  */
 export type EregisterEmailRegisterObservationStatus409 = ApiError;
 
-export type EregisterEmailRegisterObservationStatus422 = unknown;
+export type EregisterEmailRegisterObservationStatus422 =
+  | ApiError
+  | ValidationErrorResponse;
 
 /**
  * @description Optional send options. An absent body and null are both accepted.

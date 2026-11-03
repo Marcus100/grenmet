@@ -1,23 +1,28 @@
 import ipaddress
+import logging
 import re
 import socket
 from datetime import UTC, datetime
 from typing import Any
-from urllib.parse import urlparse
+from urllib.parse import urlparse, urlsplit
 from uuid import UUID
 
 from fastapi.concurrency import run_in_threadpool
 from shapely.geometry import shape
 from shapely.validation import explain_validity
 
-from src.cap.exceptions import CapImportError
+from src.cap.exceptions import CapFeedUrlError, CapHostRefusedError, CapImportError
 from src.cap.levels import validate_level, validate_sectors
 from src.cap.models import CapMessageType, CapScope
 from src.cap.schemas import CapAlertPublic, CapNameValue, CapValidationResult
 from src.utils.datetime import utc_now
 
+logger = logging.getLogger(__name__)
+
 # Cap the response body pulled from an external CAP source (memory-DoS guard).
 MAX_IMPORT_BYTES = 5 * 1024 * 1024
+
+_URL_CONTROL_OR_SPACE = re.compile(r"[\s\x00-\x1f\x7f]")
 
 
 def validate_import_url(url: str) -> None:
@@ -27,41 +32,76 @@ def validate_import_url(url: str) -> None:
     literal private/loopback/link-local/reserved IPs and local hostnames.
     Host resolution is checked separately by ``ensure_public_host``.
     """
-    parsed = urlparse(url)
+    try:
+        parsed = urlparse(url)
+    except ValueError as exc:  # e.g. a malformed IPv6 literal
+        raise CapHostRefusedError("malformed URL") from exc
     if parsed.scheme not in ("http", "https"):
-        raise CapImportError(f"unsupported URL scheme '{parsed.scheme or ''}'")
+        raise CapHostRefusedError(f"unsupported URL scheme '{parsed.scheme or ''}'")
     if parsed.username or parsed.password:
-        raise CapImportError("credentials in import URL are not allowed")
+        raise CapHostRefusedError("credentials in import URL are not allowed")
     host = parsed.hostname
     if not host:
-        raise CapImportError("import URL has no host")
+        raise CapHostRefusedError("import URL has no host")
     lowered = host.lower()
     if lowered == "localhost" or lowered.endswith(
         (".local", ".internal", ".localhost")
     ):
-        raise CapImportError(f"host '{host}' is not permitted")
+        raise CapHostRefusedError(f"host '{host}' is not permitted")
     try:
         ip = ipaddress.ip_address(host)
     except ValueError:
         return  # a hostname — DNS-resolved addresses are checked in ensure_public_host
     if not ip.is_global:
-        raise CapImportError(f"host '{host}' resolves to a non-public address")
+        raise CapHostRefusedError(f"host '{host}' resolves to a non-public address")
 
 
-async def ensure_public_host(host: str) -> None:
-    """Resolve ``host`` and reject it if any address is non-public (SSRF guard)."""
+def validate_feed_url(url: str) -> None:
+    """Save-time check for a registered feed URL: https, public literal host, no credentials.
+
+    Runs the same pure checks as ``validate_import_url`` and adds the https-only rule.
+    It does no DNS lookup: the ingest path resolves the host with ``ensure_public_host``
+    before every fetch. Any refusal raises ``CapFeedUrlError`` with a fixed message; the
+    reason is logged, not returned.
+    """
+    if _URL_CONTROL_OR_SPACE.search(url):
+        logger.info(
+            "CAP feed URL refused at save", extra={"reason": "control or space"}
+        )
+        raise CapFeedUrlError()
+    try:
+        scheme = urlsplit(url).scheme.lower()
+        if scheme != "https":
+            raise CapHostRefusedError(f"scheme '{scheme}' is not https")
+        validate_import_url(url)
+    except (CapImportError, ValueError) as exc:
+        logger.info("CAP feed URL refused at save", extra={"reason": str(exc)})
+        raise CapFeedUrlError() from exc
+
+
+async def ensure_public_host(host: str) -> str:
+    """Resolve ``host``, reject it if any address is non-public, and return the first address.
+
+    The caller connects to the returned address (see ``src.cap.safe_fetch``), so the
+    name is not resolved a second time between this check and the connection.
+    """
     try:
         infos = await run_in_threadpool(socket.getaddrinfo, host, None)
     except socket.gaierror as exc:
-        raise CapImportError(f"could not resolve host '{host}': {exc}") from exc
+        raise CapHostRefusedError(f"could not resolve host '{host}': {exc}") from exc
+    addresses: list[str] = []
     for info in infos:
-        addr = info[4][0]
+        addr = str(info[4][0])
         try:
             ip = ipaddress.ip_address(addr)
         except ValueError:
             continue
         if not ip.is_global:
-            raise CapImportError(f"host '{host}' resolves to a non-public address")
+            raise CapHostRefusedError(f"host '{host}' resolves to a non-public address")
+        addresses.append(addr)
+    if not addresses:
+        raise CapHostRefusedError(f"could not resolve host '{host}'")
+    return addresses[0]
 
 
 def validate_cap_alert(alert: CapAlertPublic) -> CapValidationResult:

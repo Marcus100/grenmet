@@ -27,7 +27,8 @@ function item(overrides: Partial<SectorOutlookItem> = {}): SectorOutlookItem {
     impacts: "Routine conditions.",
     response: "",
     valid_from: "2026-10-29T12:00:00Z",
-    valid_to: "2026-12-31T12:00:00Z",
+    // In effect is judged against the real clock (green-status.ts), so stay ahead of it.
+    valid_to: new Date(Date.now() + 7 * 86_400_000).toISOString(),
     reference: "ref",
     identifier: null,
     product_id: null,

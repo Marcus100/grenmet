@@ -7,7 +7,7 @@ import type { ReactNode } from "react";
 export function ChartViewport({ children }: { children: ReactNode }) {
   return (
     <div>
-      <p className="mb-2 text-el-muted text-sm leading-normal">
+      <p className="text-el-muted mb-2 text-sm leading-normal">
         If the chart extends beyond the screen, scroll sideways to explore it.
       </p>
       <section

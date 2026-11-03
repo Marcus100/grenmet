@@ -1,7 +1,9 @@
 """Verified email and Google OIDC, sharing the existing persisted sessions."""
 
+import asyncio
 import base64
 import hashlib
+import logging
 import secrets
 import uuid
 from datetime import timedelta
@@ -19,6 +21,11 @@ from src.auth import service
 from src.auth.account_security import verify_factor
 from src.auth.config import auth_settings
 from src.auth.devices import remember_device, schedule_new_sign_in_alert
+from src.auth.lockout import (
+    normalised_address,
+    password_setup_ip_limit,
+    password_setup_send_limit,
+)
 from src.auth.models import User
 from src.auth.modern_models import AuthChallenge, ExternalIdentity
 from src.auth.modern_schemas import (
@@ -38,8 +45,10 @@ from src.dependencies import SessionDep
 from src.email import send_email
 from src.exceptions import AppException
 from src.models import Message
-from src.rate_limit import request_ip
+from src.rate_limit import mail_limit_address, request_ip
 from src.utils.datetime import utc_now
+
+logger = logging.getLogger(__name__)
 
 
 def digest(value: str) -> str:
@@ -89,10 +98,71 @@ class VerificationDeliveryError(RuntimeError):
     """The verification provider could not deliver the requested message."""
 
 
+_GENERIC_LINK_REPLY = "If your account is ready, a verification link has been sent."
+# Password-setup mail in flight. Held so the tasks are not garbage collected.
+_pending_setup_emails: set[asyncio.Task[None]] = set()
+
+
+def _setup_mail_html(url: str) -> str:
+    return f'<p>Finish setting up your account. This link expires in 15 minutes.</p><p><a href="{url}">Verify email and set password</a></p>'
+
+
+async def _deliver_setup_email(*, email: str, url: str) -> None:
+    try:
+        await run_in_threadpool(
+            send_email,
+            email_to=email,
+            subject="Verify your email and set your password",
+            html_content=_setup_mail_html(url),
+        )
+    except Exception as exc:
+        # The reply already went out, so it cannot tell a delivery failure apart.
+        # Only the class: the message or traceback could carry the address.
+        logger.warning(
+            "Password setup email could not be sent (%s)", type(exc).__name__
+        )
+
+
+def _schedule_setup_email(*, email: str, url: str) -> None:
+    task = asyncio.get_running_loop().create_task(
+        _deliver_setup_email(email=email, url=url)
+    )
+    _pending_setup_emails.add(task)
+    task.add_done_callback(_pending_setup_emails.discard)
+
+
+async def drain_setup_emails() -> None:
+    """Wait for queued setup mail (tests and shutdown)."""
+    if _pending_setup_emails:
+        await asyncio.gather(*list(_pending_setup_emails), return_exceptions=True)
+
+
 async def email_request(
-    request: Request, session: SessionDep, body: EmailRequest
+    request: Request,
+    session: SessionDep,
+    body: EmailRequest,
+    *,
+    await_delivery: bool = False,
 ) -> Message:
-    _ = request
+    """Request a verification link. The public route never waits on mail.
+
+    ``await_delivery=True`` is for an administrator's resend, which must report
+    a failed delivery; it sends first and raises VerificationDeliveryError.
+    """
+    # Same reply, same limits and no SMTP wait for every address, so the reply
+    # reveals nothing: known, unknown, capped and failed delivery all look alike.
+    ip = mail_limit_address(request)
+    limited = not await password_setup_ip_limit.allow(
+        ip
+    ) or not await password_setup_send_limit.allow(normalised_address(str(body.email)))
+    if limited:
+        if await_delivery:
+            # An administrator must learn that nothing was sent (F4).
+            raise AppException(
+                "A link was already sent to this address recently. Try again later.",
+                429,
+            )
+        return Message(message=_GENERIC_LINK_REPLY)
     user = await service.get_user_by_email(session=session, email=body.email)
     if user and user.is_active:
         await session.execute(
@@ -105,21 +175,23 @@ async def email_request(
             session, "email", user_id=user.id, data={"email": user.email}
         )
         url = f"{auth_settings.AUTH_FRONTEND_URL.rstrip('/')}/verify-email?{urlencode({'token': token})}"
-        try:
-            await run_in_threadpool(
-                send_email,
-                email_to=user.email,
-                subject="Verify your email and set your password",
-                html_content=f'<p>Finish setting up your account. This link expires in 15 minutes.</p><p><a href="{url}">Verify email and set password</a></p>',
-            )
-        except Exception as exc:
-            raise VerificationDeliveryError(
-                "Verification delivery unavailable"
-            ) from exc
-        await session.commit()
-    return Message(
-        message="If your account is ready, a verification link has been sent."
-    )
+        if await_delivery:
+            try:
+                await run_in_threadpool(
+                    send_email,
+                    email_to=user.email,
+                    subject="Verify your email and set your password",
+                    html_content=_setup_mail_html(url),
+                )
+            except Exception as exc:
+                raise VerificationDeliveryError(
+                    "Verification delivery unavailable"
+                ) from exc
+            await session.commit()
+        else:
+            await session.commit()
+            _schedule_setup_email(email=user.email, url=url)
+    return Message(message=_GENERIC_LINK_REPLY)
 
 
 async def email_confirm(

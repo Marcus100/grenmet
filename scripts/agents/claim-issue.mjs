@@ -27,8 +27,8 @@ const HOUR_MS = 3_600_000;
 const EXIT_CLAIMED_BY_OTHER = 3;
 const EXIT_ERROR = 2;
 const LABEL = "agent-claimed";
-const WHITESPACE = /\s+/;
-const DIGITS = /^\d+$/;
+const WHITESPACE = /\s+/u;
+const DIGITS = /^\d+$/u;
 
 function git(args, { cwd, env, input } = {}) {
   const result = spawnSync("git", args, {

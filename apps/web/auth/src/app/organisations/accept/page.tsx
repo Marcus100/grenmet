@@ -58,7 +58,7 @@ export default async function AcceptInvitationPage({
         <form action={acceptInvitation} className="space-y-4">
           <input name="token" type="hidden" value={token} />
           <button
-            className="rounded-lg bg-(--auth-accent) px-4 py-2 font-medium text-sm text-white transition hover:opacity-90"
+            className="rounded-lg bg-(--auth-accent) px-4 py-2 text-sm font-medium text-white transition hover:opacity-90"
             type="submit"
           >
             Accept invitation

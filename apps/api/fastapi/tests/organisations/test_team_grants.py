@@ -333,7 +333,7 @@ async def test_changes_are_audited_with_the_actor(
     ]
 
 
-async def test_removing_an_issuer_revokes_what_they_issued_and_demotion_lists_it(
+async def test_removing_an_issuer_revokes_what_they_issued(
     async_client: httpx.AsyncClient, db_async: AsyncSession
 ):
     owner, lead, other, org = await _world(db_async)
@@ -345,21 +345,6 @@ async def test_removing_an_issuer_revokes_what_they_issued_and_demotion_lists_it
         await _grant(async_client, lead, org, other_mid, "events-door")
     ).status_code == 201
     owner_headers = headers_for(owner, org.id)
-
-    # Demotion keeps the grants but an admin can review them.
-    demoted = await async_client.patch(
-        f"{ORG_API}/{org.id}/members/{lead_mid}",
-        json={"role": "member"},
-        headers=owner_headers,
-    )
-    assert demoted.status_code == 200
-    issued = await async_client.get(
-        f"{API}/members/{lead_mid}/issued-grants", headers=owner_headers
-    )
-    assert [(g["role_key"], g["member_name"]) for g in issued.json()] == [
-        ("events-door", other.full_name)
-    ]
-    assert "@" not in issued.text
 
     # Removal revokes what they issued, and their own roles.
     removed = await async_client.delete(

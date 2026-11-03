@@ -11,9 +11,9 @@ import {
   withoutHiddenBypassActors,
 } from "./github-rulesets.mjs";
 
-const MISSING_SECOND_CHECK = /^missing .*\[1\]\.context = "Type Check"/;
-const MENTIONS_CHECKS = /required_status_checks/;
-const ADDED_BYPASS_ACTOR = /^added .*bypass_actors\[0\]/;
+const MISSING_SECOND_CHECK = /^missing .*\[1\]\.context = "Type Check"/u;
+const MENTIONS_CHECKS = /required_status_checks/u;
+const ADDED_BYPASS_ACTOR = /^added .*bypass_actors\[0\]/u;
 
 const live = (overrides = {}) => ({
   id: 15_329_335,

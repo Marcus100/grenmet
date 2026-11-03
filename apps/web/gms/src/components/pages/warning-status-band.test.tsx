@@ -4,11 +4,11 @@ import { WarningStatusBand } from "@/components/pages/warning-status-band";
 import type { AlertsResult, GreenStatus } from "@/lib/cap-alerts";
 import { WARNING_LEVEL_SURFACE } from "@/lib/warning-level";
 
-const INCOMPLETE_LIST = /this list may be incomplete/;
+const INCOMPLETE_LIST = /this list may be incomplete/u;
 const CHECKED = new Date("2026-10-23T12:00:00Z");
-const NOT_ALL_CLEAR = /This is not an all-clear/;
-const GREEN_OK = /Green alerts OK/;
-const GREEN_NOT_RESPONDING = /Green alerts not responding/;
+const NOT_ALL_CLEAR = /This is not an all-clear/u;
+const GREEN_OK = /Green alerts OK/u;
+const GREEN_NOT_RESPONDING = /Green alerts not responding/u;
 const ALL_CLEAR: AlertsResult = { status: "ok", groups: [], activeCount: 0 };
 const UNAVAILABLE: AlertsResult = { status: "unavailable" };
 

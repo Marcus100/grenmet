@@ -81,15 +81,18 @@ describe("grenadaToday", () => {
 
 describe("DraftEditor", () => {
   it("publishes with the chosen effective date", async () => {
+    // Relative to today: the input's min is today in Grenada, and a date
+    // below it keeps the form from submitting.
+    const nextWeek = grenadaToday(new Date(Date.now() + 7 * 86_400_000));
     renderEditor();
     fireEvent.click(screen.getByRole("button", { name: "Publish…" }));
     fireEvent.change(screen.getByLabelText("Effective from"), {
-      target: { value: "2026-11-01" },
+      target: { value: nextWeek },
     });
     fireEvent.click(screen.getByRole("button", { name: "Publish" }));
 
     await waitFor(() => expect(router.refresh).toHaveBeenCalled());
-    expect(published).toEqual({ effectiveDate: "2026-11-01" });
+    expect(published).toEqual({ effectiveDate: nextWeek });
   });
 
   it("blocks publishing while there are blocking issues", () => {

@@ -17,16 +17,16 @@ import {
   summarizeScores,
 } from "./score-sessions.mjs";
 
-const PASS_RE = /\*\*Pass\*\*/;
-const FAIL_RE = /\*\*Fail\*\*/;
-const PASS_FIRST_RE = /^\*\*Pass\*\*/;
-const MISSING_FRONTMATTER_RE = /missing frontmatter/;
-const SAMPLE_MUST_BE_RE = /sample must be/;
-const NO_VERDICT_RE = /no verdict/;
-const RUBRIC_DEMO_RE = /# Rubric: demo/;
-const FIRST_PROMPT_RE = /1\. hi/;
-const JUDGE_MUST_BE_RE = /--judge must be/;
-const DEMO_SUMMARY_RE = /demo\s+1\s+1\s+1\s+50%\s+W43 50%/;
+const PASS_RE = /\*\*Pass\*\*/u;
+const FAIL_RE = /\*\*Fail\*\*/u;
+const PASS_FIRST_RE = /^\*\*Pass\*\*/u;
+const MISSING_FRONTMATTER_RE = /missing frontmatter/u;
+const SAMPLE_MUST_BE_RE = /sample must be/u;
+const NO_VERDICT_RE = /no verdict/u;
+const RUBRIC_DEMO_RE = /# Rubric: demo/u;
+const FIRST_PROMPT_RE = /1\. hi/u;
+const JUDGE_MUST_BE_RE = /--judge must be/u;
+const DEMO_SUMMARY_RE = /demo\s+1\s+1\s+1\s+50%\s+W43 50%/u;
 
 const SCORER = `---
 name: demo

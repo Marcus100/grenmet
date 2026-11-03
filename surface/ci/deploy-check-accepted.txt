@@ -5,7 +5,6 @@
 # problem) and when a listed ID no longer appears (it was fixed, so delete the
 # line). Keep each reason current; link the issue that will remove the entry.
 
-security.W004  No SECURE_HSTS_SECONDS and no HSTS header from the surface Traefik router; fix tracked in #904
+security.W005  No SECURE_HSTS_INCLUDE_SUBDOMAINS: by design, SURFACE is one host and HSTS must not cover sibling or child hosts it does not control (#904)
 security.W008  No SECURE_SSL_REDIRECT: by design, infra/weather/docker-compose.proxy.yml redirects the web entrypoint to websecure
-security.W012  SESSION_COOKIE_SECURE is not True; fix tracked in #904
-security.W016  CSRF_COOKIE_SECURE is not True; fix tracked in #904
+security.W021  No SECURE_HSTS_PRELOAD: by design, preload is a near-permanent commitment for the whole domain, not for one SURFACE host (#904)

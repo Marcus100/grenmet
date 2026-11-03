@@ -15,6 +15,7 @@ import {
   Source,
 } from "react-map-gl/maplibre";
 import { GRENADA_PARISH_BOUNDARIES } from "@/data/cap/grenada-boundaries";
+import { buildParishFillPaint } from "@/lib/cap-parish-fill-paint";
 
 /** Grenada + Carriacou/Petite Martinique, with a little sea margin. */
 export const GRENADA_BOUNDS: [[number, number], [number, number]] = [
@@ -25,11 +26,14 @@ export const GRENADA_BOUNDS: [[number, number], [number, number]] = [
 export const PARISH_FILL_LAYER_ID = "cap-parish-fill";
 export const PARISH_LINE_LAYER_ID = "cap-parish-line";
 
-const LAND_LIGHT = "#ede6d6";
-const LAND_LINE_LIGHT = "#c8bfa4";
+// Land must stand clearly off the sea in both themes: a darker sand fill on
+// the light sea, and a lighter khaki fill on the dark sea, each with an
+// outline that reads as a boundary rather than a faint seam.
+const LAND_LIGHT = "#d9cdaf";
+const LAND_LINE_LIGHT = "#6f5f3a";
 const SEA_LIGHT = "#e7f3fb";
-const LAND_DARK = "#3a3122";
-const LAND_LINE_DARK = "#5b4d35";
+const LAND_DARK = "#4d4129";
+const LAND_LINE_DARK = "#c2aa72";
 const SEA_DARK = "#0d1e30";
 
 /**
@@ -65,18 +69,9 @@ export interface CapMapProps {
   mapRef?: React.Ref<MapRef>;
   onClick?: (event: MapLayerMouseEvent) => void;
   onMouseMove?: (event: MapLayerMouseEvent) => void;
-  /** Data-driven fill paint for the parish layer — defaults to a flat land tone. Pass a ["match", ["get","id"], ...] expression to colour selected parishes. */
-  parishFillPaint?: MaplibreExpression;
+  /** Parishes to paint in `selectedColour`; everything else keeps the flat land tone. */
+  parishHighlight?: { ids: readonly string[]; colour: string };
 }
-
-/**
- * A MapLibre paint value: a literal colour, or a style-spec expression array.
- * The real type (`DataDrivenPropertyValueSpecification`) lives in
- * `@maplibre/maplibre-gl-style-spec`, a transitive dependency we don't
- * declare directly — this local alias avoids importing an undeclared
- * package just for a type.
- */
-export type MaplibreExpression = string | readonly unknown[];
 
 /**
  * MapLibre's style JSON can't consume CSS custom properties or React
@@ -106,7 +101,7 @@ export function CapMap({
   children,
   cursor,
   height = 340,
-  parishFillPaint,
+  parishHighlight,
   interactiveLayerIds,
   mapRef,
   onClick,
@@ -146,7 +141,11 @@ export function CapMap({
           id={PARISH_FILL_LAYER_ID}
           paint={
             {
-              "fill-color": parishFillPaint ?? (dark ? LAND_DARK : LAND_LIGHT),
+              "fill-color": buildParishFillPaint({
+                landColour: dark ? LAND_DARK : LAND_LIGHT,
+                selectedIds: parishHighlight?.ids ?? [],
+                selectedColour: parishHighlight?.colour ?? "",
+              }),
               "fill-opacity": 1,
               // MapLibre's real paint type (DataDrivenPropertyValueSpecification)
               // lives in an undeclared transitive package — narrow the cast
@@ -161,7 +160,7 @@ export function CapMap({
           id={PARISH_LINE_LAYER_ID}
           paint={{
             "line-color": dark ? LAND_LINE_DARK : LAND_LINE_LIGHT,
-            "line-width": 1.2,
+            "line-width": 1.4,
           }}
           type="line"
         />

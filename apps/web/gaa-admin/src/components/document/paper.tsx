@@ -24,7 +24,7 @@ export function Paper({
   return (
     <div
       className={cn(
-        "bg-white font-document text-zinc-900 shadow-sm",
+        "font-document bg-white text-zinc-900 shadow-sm",
         className
       )}
       data-print-paper

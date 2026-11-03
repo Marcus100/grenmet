@@ -1,0 +1,278 @@
+import { describe, expect, it } from "vitest";
+import type { PublishedContent } from "@/lib/cms";
+import {
+  buildDeskFeed,
+  nextForecastDue,
+  nextIssueLabel,
+} from "@/lib/desk-feed";
+
+const product = (
+  kind:
+    | "morning"
+    | "midday"
+    | "evening"
+    | "outlook"
+    | "marine-forecast"
+    | "climate-bulletin",
+  publishedAt: string,
+  values: Record<string, string>
+) => ({
+  id: `00000000-0000-4000-8000-0000000000${kind.length}${publishedAt.slice(11, 13)}`,
+  revision: 1,
+  publishedAt,
+  kind,
+  values,
+});
+
+const post = (id: string, publishedAt: string): PublishedContent => ({
+  id,
+  collection: "desk-updates",
+  title: `Post ${id}`,
+  slug: `updates/${id}`,
+  summary: null,
+  body: "",
+  imageUrl: null,
+  updatedAt: publishedAt,
+  publishedAt,
+  linkedProduct: null,
+});
+
+// 1 Nov 2026, 1:00 p.m. in Grenada.
+const NOW = new Date("2026-11-01T17:00:00Z");
+
+describe("buildDeskFeed", () => {
+  it("pins the newest public forecast, then the outlook, then posts newest first", () => {
+    const feed = buildDeskFeed({
+      level: "none",
+      now: NOW,
+      posts: [
+        post("a", "2026-10-30T12:00:00Z"),
+        post("b", "2026-11-01T12:00:00Z"),
+      ],
+      products: [
+        product("morning", "2026-11-01T11:00:00Z", {
+          issuedAt: "2026-11-01T07:00",
+        }),
+        product("midday", "2026-11-01T16:00:00Z", {
+          issuedAt: "2026-11-01T12:00",
+          summary: " Hazy. ",
+        }),
+        product("outlook", "2026-11-01T12:00:00Z", {
+          systems: "A wave near 55W.",
+        }),
+      ],
+    });
+    expect(feed.official.map((card) => [card.kind, card.title])).toEqual([
+      ["briefing", "Midday Forecast"],
+      ["outlook", "Tropical Weather Outlook"],
+    ]);
+    expect(feed.official[0]?.summary).toBe("Hazy.");
+    expect(feed.official[1]?.summary).toBe("A wave near 55W.");
+    expect(feed.posts.map((item) => item.id)).toEqual(["b", "a"]);
+    expect(feed.collapsePosts).toBe(false);
+  });
+
+  it("marks a product that is no longer current, should the API ever send one", () => {
+    const feed = buildDeskFeed({
+      level: "none",
+      now: new Date("2026-11-03T17:00:00Z"),
+      posts: [],
+      products: [
+        product("midday", "2026-11-01T16:00:00Z", {
+          issuedAt: "2026-11-01T12:00",
+        }),
+      ],
+    });
+    expect(feed.official[0]?.staleNote).toBe("No longer in effect");
+    expect(feed.missingBriefing).toBeNull();
+  });
+
+  it("says when no public forecast is in effect, but only when the feed answered", () => {
+    const outlookOnly = [
+      product("outlook", "2026-11-01T12:00:00Z", { systems: "A wave." }),
+    ];
+    expect(
+      buildDeskFeed({
+        level: "none",
+        now: NOW,
+        posts: [],
+        products: outlookOnly,
+      }).missingBriefing
+    ).toBe(
+      "No public forecast is in effect right now. The next forecast is due 6:00 p.m."
+    );
+    expect(
+      buildDeskFeed({
+        level: "none",
+        now: NOW,
+        posts: [],
+        products: [],
+        productsAvailable: false,
+      }).missingBriefing
+    ).toBeNull();
+  });
+
+  it("pins the forecast with the latest issue time, not the latest re-save", () => {
+    const feed = buildDeskFeed({
+      level: "none",
+      now: NOW,
+      posts: [],
+      products: [
+        // The morning forecast re-saved after midday was issued.
+        product("morning", "2026-11-01T16:30:00Z", {
+          issuedAt: "2026-11-01T07:00",
+        }),
+        product("midday", "2026-11-01T16:00:00Z", {
+          issuedAt: "2026-11-01T12:00",
+        }),
+      ],
+    });
+    expect(feed.official[0]?.title).toBe("Midday Forecast");
+  });
+
+  it("collapses desk posts only under a red (take action) warning", () => {
+    const posts = [post("a", "2026-11-01T12:00:00Z")];
+    expect(
+      buildDeskFeed({ level: "be-prepared", now: NOW, posts, products: [] })
+        .collapsePosts
+    ).toBe(false);
+    expect(
+      buildDeskFeed({ level: "take-action", now: NOW, posts, products: [] })
+        .collapsePosts
+    ).toBe(true);
+  });
+
+  it("puts pinned posts after the official cards, newest pinned first", () => {
+    const pinned = (id: string, publishedAt: string) => ({
+      ...post(id, publishedAt),
+      pinned: true,
+    });
+    const feed = buildDeskFeed({
+      level: "none",
+      now: NOW,
+      posts: [
+        post("newest", "2026-11-01T12:00:00Z"),
+        pinned("older-pin", "2026-10-30T12:00:00Z"),
+        pinned("newer-pin", "2026-10-31T12:00:00Z"),
+      ],
+      products: [
+        product("morning", "2026-11-01T11:00:00Z", {
+          issuedAt: "2026-11-01T07:00",
+        }),
+      ],
+    });
+    expect(feed.official.map((card) => card.kind)).toEqual(["briefing"]);
+    expect(feed.posts.map((item) => item.id)).toEqual([
+      "newer-pin",
+      "older-pin",
+      "newest",
+    ]);
+  });
+
+  it("leads with at most three pinned posts; extra pins sort by date", () => {
+    const pinned = (id: string, publishedAt: string) => ({
+      ...post(id, publishedAt),
+      pinned: true,
+    });
+    const feed = buildDeskFeed({
+      level: "none",
+      now: NOW,
+      posts: [
+        post("u1", "2026-11-05T12:00:00Z"),
+        pinned("p1", "2026-11-04T12:00:00Z"),
+        pinned("p2", "2026-11-03T12:00:00Z"),
+        pinned("p3", "2026-11-02T12:00:00Z"),
+        pinned("p4", "2026-11-01T12:00:00Z"),
+        post("u2", "2026-10-31T12:00:00Z"),
+      ],
+      products: [],
+    });
+    expect(feed.posts.map((item) => item.id)).toEqual([
+      "p1",
+      "p2",
+      "p3",
+      "u1",
+      "p4",
+      "u2",
+    ]);
+  });
+
+  it("keeps pinned posts inside the eight shown", () => {
+    const others = Array.from({ length: 9 }, (_, i) =>
+      post(`other-${i}`, `2026-11-01T0${i % 9}:00:00Z`)
+    );
+    const feed = buildDeskFeed({
+      level: "none",
+      now: NOW,
+      posts: [
+        ...others,
+        { ...post("old-pin", "2026-10-01T12:00:00Z"), pinned: true },
+      ],
+      products: [],
+    });
+    expect(feed.posts).toHaveLength(8);
+    expect(feed.posts[0]?.id).toBe("old-pin");
+  });
+
+  it("shows at most eight posts", () => {
+    const posts = Array.from({ length: 10 }, (_, i) =>
+      post(String(i), `2026-10-2${i % 10}T12:00:00Z`)
+    );
+    expect(
+      buildDeskFeed({ level: "none", now: NOW, posts, products: [] }).posts
+    ).toHaveLength(8);
+  });
+});
+
+describe("nextForecastDue", () => {
+  it("names the next scheduled public forecast in Grenada time", () => {
+    expect(nextForecastDue(new Date("2026-11-01T10:00:00Z"))).toBe("7:00 a.m."); // 6:00 a.m.
+    expect(nextForecastDue(new Date("2026-11-01T17:00:00Z"))).toBe("6:00 p.m."); // 1:00 p.m.
+    // 7:30 a.m.: the 7:00 forecast is being prepared.
+    expect(nextForecastDue(new Date("2026-11-01T11:30:00Z"))).toBe(
+      "now (the 7:00 a.m. forecast)"
+    );
+    expect(nextForecastDue(new Date("2026-11-02T01:00:00Z"))).toBe(
+      "7:00 a.m. tomorrow"
+    ); // 9:00 p.m.
+  });
+});
+
+describe("Marine Forecast and Climate Bulletin cards", () => {
+  it("adds official cards after the forecast and outlook", () => {
+    const feed = buildDeskFeed({
+      level: "none",
+      now: NOW,
+      posts: [],
+      products: [
+        product("marine-forecast", "2026-11-01T09:00:00Z", {
+          issuedAt: "2026-11-01T05:00",
+          validFrom: "2026-11-01T05:00",
+          validTo: "2026-11-02T05:00",
+          synopsis: "Moderate trades. ",
+        }),
+        product("climate-bulletin", "2026-10-15T14:00:00Z", {
+          issuedAt: "2026-10-15T10:00",
+          validFrom: "2026-10-15T10:00",
+          validTo: "2026-11-15T23:59",
+          summary: "A wet September.",
+        }),
+      ],
+    });
+    expect(feed.official.map((card) => [card.kind, card.title])).toEqual([
+      ["marine", "Marine Forecast"],
+      ["climate", "Climate Bulletin"],
+    ]);
+    expect(feed.official[0]?.summary).toBe("Moderate trades.");
+    expect(feed.official[1]?.valid).toBe("Next issue 15 November");
+    expect(feed.official[1]?.staleNote).toBeNull();
+  });
+
+  it("names the next 15th after the issue day", () => {
+    expect(nextIssueLabel("2026-12-15T10:00")).toBe("Next issue 15 January");
+    expect(nextIssueLabel("2026-11-10T10:00")).toBe(
+      "Issued outside the monthly schedule"
+    );
+    expect(nextIssueLabel(undefined)).toBe("");
+  });
+});

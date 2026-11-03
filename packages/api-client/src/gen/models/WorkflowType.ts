@@ -10,6 +10,7 @@ export const workflowType = {
   STATUS_REPORT: "STATUS_REPORT",
   TIMESHEET: "TIMESHEET",
   PARKING_PERMIT: "PARKING_PERMIT",
+  PAYROLL_RUN: "PAYROLL_RUN",
 } as const;
 
 export type WorkflowType = (typeof workflowType)[keyof typeof workflowType];

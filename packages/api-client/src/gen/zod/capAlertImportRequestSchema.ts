@@ -10,5 +10,5 @@ export const capAlertImportRequestSchema = z.object({
   source: capAlertImportRequestPropertiesSourceEnumSchema
     .optional()
     .default("xml"),
-  value: z.string().min(1),
+  value: z.string().min(1).max(5242880),
 });

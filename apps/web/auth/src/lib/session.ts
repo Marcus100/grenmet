@@ -13,7 +13,6 @@ import type {
   SessionAccessTokenResponse,
   SessionLoginResponse,
   Token,
-  UserPublic,
 } from "@barrelsgd/auth";
 import {
   clearSessionCookie as _clearSessionCookie,
@@ -26,7 +25,6 @@ import {
   refreshSession as _refreshSession,
   requestPasswordRecovery as _requestPasswordRecovery,
   resetPassword as _resetPassword,
-  signUp as _signUp,
   writeSessionCookie as _writeSessionCookie,
 } from "@barrelsgd/auth/server";
 import { getAuthConfig } from "./auth-config";
@@ -99,22 +97,6 @@ export function resetPassword(input: {
   newPassword: string;
 }): Promise<MessageResponse> {
   return _resetPassword(getAuthConfig(), input);
-}
-
-// ---------------------------------------------------------------------------
-// Self-registration
-// ---------------------------------------------------------------------------
-
-export function signUp(input: {
-  email: string;
-  username: string;
-  password: string;
-  totpCode?: string;
-  firstName: string;
-  lastName: string;
-  middleName?: string | null;
-}): Promise<UserPublic> {
-  return _signUp(getAuthConfig(), input);
 }
 
 // ---------------------------------------------------------------------------

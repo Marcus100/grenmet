@@ -3,8 +3,8 @@ import { describe, expect, it } from "vitest";
 import type { Settlement } from "@/domain/types";
 import { SettlementReport } from "./settlement-report";
 
-const DANA_TILL = /Dana's till counted/;
-const NOTHING_TO_RECONCILE = /Nothing to reconcile/;
+const DANA_TILL = /Dana's till counted/u;
+const NOTHING_TO_RECONCILE = /Nothing to reconcile/u;
 
 const counts = {
   issued: 4,

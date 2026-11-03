@@ -12,6 +12,7 @@ export const legacyProductPreviewInputSchema = z.strictObject({
   expectedRevision: z.int().min(0),
   changeSummary: z.string().max(1000),
   kind: z.enum([
+    "climate-bulletin",
     "coastal",
     "cyclone",
     "dust",
@@ -19,6 +20,7 @@ export const legacyProductPreviewInputSchema = z.strictObject({
     "flood",
     "heat",
     "marine",
+    "marine-forecast",
     "midday",
     "morning",
     "thunderstorm",

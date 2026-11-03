@@ -53,7 +53,7 @@ export function HeaderNav() {
           <Link
             aria-current={active ? "page" : undefined}
             className={cn(
-              "rounded-full px-3.5 py-2 font-medium text-body transition-colors",
+              "text-body rounded-full px-3.5 py-2 font-medium transition-colors",
               active
                 ? "bg-events-ink text-white"
                 : "text-muted-foreground hover:bg-muted hover:text-foreground"
@@ -78,7 +78,7 @@ export function MobileNav() {
     <Sheet onOpenChange={setOpen} open={open}>
       <SheetTrigger
         aria-label="Open menu"
-        className="inline-flex standalone:hidden size-9 items-center justify-center rounded-md hover:bg-muted md:hidden"
+        className="standalone:hidden hover:bg-muted inline-flex size-9 items-center justify-center rounded-md md:hidden"
       >
         <Menu className="size-5" />
       </SheetTrigger>
@@ -94,7 +94,7 @@ export function MobileNav() {
               <Link
                 aria-current={active ? "page" : undefined}
                 className={cn(
-                  "flex items-center gap-3 rounded-lg px-3 py-2.5 font-medium text-body",
+                  "text-body flex items-center gap-3 rounded-lg px-3 py-2.5 font-medium",
                   active
                     ? "bg-events-ink text-white"
                     : "text-muted-foreground hover:bg-muted hover:text-foreground"
@@ -121,7 +121,7 @@ export function BottomNav() {
   return (
     <nav
       aria-label="Main"
-      className="fixed inset-x-0 bottom-0 z-40 hidden border-border border-t bg-card/95 pb-[env(safe-area-inset-bottom)] backdrop-blur max-md:standalone:block"
+      className="border-border bg-card/95 max-md:standalone:block fixed inset-x-0 bottom-0 z-40 hidden border-t pb-[env(safe-area-inset-bottom)] backdrop-blur"
     >
       <ul className="grid grid-cols-5">
         {NAV_ITEMS.map((item) => {
@@ -132,9 +132,9 @@ export function BottomNav() {
               <Link
                 aria-current={active ? "page" : undefined}
                 className={cn(
-                  "flex min-h-14 flex-col items-center justify-center gap-0.5 text-micro",
+                  "text-micro flex min-h-14 flex-col items-center justify-center gap-0.5",
                   active
-                    ? "font-semibold text-events-hibiscus-deep"
+                    ? "text-events-hibiscus-deep font-semibold"
                     : "text-muted-foreground"
                 )}
                 href={item.href}

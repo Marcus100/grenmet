@@ -10,9 +10,9 @@ import type { AlertsResult, GreenStatus } from "@/lib/cap-alerts";
 import type { GreenAlerts } from "@/lib/green-alerts";
 
 /** An outlook that never answers: the warnings must still show. */
-const OTHER_TWO = /2 other GMS alerts are in effect/;
-const GREEN_LEVEL = /Green level/;
-const CANNOT_RETRIEVE = /Green alerts cannot be retrieved right now/;
+const OTHER_TWO = /2 other GMS alerts are in effect/u;
+const GREEN_LEVEL = /Green level/u;
+const CANNOT_RETRIEVE = /Green alerts cannot be retrieved right now/u;
 const NEVER = new Promise<GreenAlerts>(() => undefined);
 const CHECKED = new Date("2026-10-30T14:00:00Z");
 const NO_WARNINGS: AlertsResult = { status: "ok", activeCount: 0, groups: [] };

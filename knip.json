@@ -28,5 +28,10 @@
       "entry": ["keys.ts", "kubb.config.ts"]
     }
   },
-  "ignore": ["packages/api-client/src/gen/**", "surface/**"]
+  "ignore": [
+    "packages/api-client/src/gen/**",
+    "surface/**",
+    "apps/web/gms/public/sw.js",
+    "apps/web/gmsdash/src/lib/report-error.ts"
+  ]
 }

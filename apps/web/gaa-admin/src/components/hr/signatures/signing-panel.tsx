@@ -46,7 +46,7 @@ export function SigningPanel({
   }
   return (
     <div className="flex flex-col gap-2 rounded-lg border p-3">
-      <p className="font-medium text-sm">Your signature</p>
+      <p className="text-sm font-medium">Your signature</p>
       <Image
         alt="Your saved signature"
         className="rounded-md bg-white object-contain"

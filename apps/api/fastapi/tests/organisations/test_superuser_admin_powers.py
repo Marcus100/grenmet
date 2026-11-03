@@ -11,7 +11,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.audit.models import AuditEntry
-from src.auth import service, totp
+from src.auth import app_service, service, totp
 from src.auth.assignments import create_user_role_assignment
 from src.auth.config import auth_settings
 from src.auth.email_verification import (
@@ -37,6 +37,12 @@ ORGS = "/api/v1/organisations"
 ONBOARDING = "/api/v1/auth/onboarding"
 REASON = {"reason": "Owner asked for support access (ticket 42)"}
 SERVICES = "/api/v1/bookings/org/services"
+
+
+@pytest.fixture(autouse=True)
+def fixed_enrolment_code(monkeypatch):
+    """The one-time enrolment code emailed to privileged accounts (issue #625)."""
+    monkeypatch.setattr(app_service, "new_code", lambda: "424242")
 
 
 @pytest.fixture(autouse=True)
@@ -595,7 +601,7 @@ async def test_enrolling_an_authenticator_ends_other_sessions_of_privileged_user
     done = await async_client.post(
         "/api/v1/auth/users/me/security/2fa/activate",
         headers=current,
-        json={"code": code},
+        json={"code": code, "email_code": "424242"},
     )
     assert done.status_code == 200, done.text
     db_async.expire_all()

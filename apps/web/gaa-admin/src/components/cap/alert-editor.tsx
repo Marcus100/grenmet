@@ -34,9 +34,13 @@ import { ArrowLeft, Save } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import type { ComponentProps } from "react";
 import { useState } from "react";
-
 import { AreaPicker } from "@/components/cap/area-picker";
+import {
+  GmsCatalogueBoundary,
+  useGmsCatalogue,
+} from "@/components/cap/gms-catalogue";
 import { HazardClassification } from "@/components/cap/hazard-classification";
 import { LivePreview, ReadinessChecklist } from "@/components/cap/live-preview";
 import { RiskLadder } from "@/components/cap/risk-ladder";
@@ -100,9 +104,9 @@ function Field({
 }) {
   return (
     <div className="flex flex-col gap-1.5">
-      <Label className="text-gm-text-primary text-label uppercase leading-label">
+      <Label className="text-gm-text-primary text-label leading-label uppercase">
         {label}
-        {required && <span className="ml-0.5 text-gm-risk-red">*</span>}
+        {required && <span className="text-gm-risk-red ml-0.5">*</span>}
       </Label>
       {children}
     </div>
@@ -119,7 +123,7 @@ function Section({
   return (
     <motion.section
       animate={{ opacity: 1, y: 0 }}
-      className="space-y-4 border border-gm-border bg-card p-6 shadow-card"
+      className="border-gm-border bg-card shadow-card space-y-4 border p-6"
       initial={{ opacity: 0, y: 8 }}
       transition={{ duration: 0.2 }}
     >
@@ -155,13 +159,14 @@ function SettingsHint({ show }: { show: boolean }) {
   ) : null;
 }
 
-export function NewAlertEditor({
+function NewAlertEditorContent({
   catalogs,
   settings,
 }: {
   catalogs: CapCatalogsPublic;
   settings?: CapSettingsPublic | null;
 }) {
+  const catalogue = useGmsCatalogue();
   const router = useRouter();
   const [form, setForm] = useState<FormState>(() => initialForm(settings));
   const [categories, setCategories] = useState<CapCategory[]>([]);
@@ -178,7 +183,7 @@ export function NewAlertEditor({
     (item) => item.id === sourceBulletinId
   );
   const hasLevel =
-    product !== null && (!needsColour(product) || colour !== null);
+    product !== null && (!needsColour(catalogue, product) || colour !== null);
 
   /**
    * Product and colour are the GMS decisions; the colour sets CAP severity so
@@ -190,7 +195,7 @@ export function NewAlertEditor({
     setColour(nextColour);
     setForm((prev) => {
       if (nextColour) {
-        return { ...prev, severity: severityForColour(nextColour) };
+        return { ...prev, severity: severityForColour(catalogue, nextColour) };
       }
       if (nextProduct === "Outlook") {
         return {
@@ -288,7 +293,7 @@ export function NewAlertEditor({
           contact: form.contact.trim() || null,
           web: form.web.trim() || null,
           parameters: [
-            ...levelParameters(product, colour),
+            ...levelParameters(catalogue, product, colour),
             ...sectorParameters(sectors),
             ...(sourceBulletin ? sourceBulletinParameters(sourceBulletin) : []),
           ],
@@ -319,13 +324,13 @@ export function NewAlertEditor({
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div>
           <Link
-            className="inline-flex items-center gap-1.5 text-body-sm text-navy leading-body-sm hover:underline"
+            className="text-body-sm text-navy leading-body-sm inline-flex items-center gap-1.5 hover:underline"
             href="/cap"
           >
             <ArrowLeft aria-hidden="true" className="size-3.5" />
             Alert Dashboard
           </Link>
-          <h1 className="mt-2 text-gm-text-primary text-heading-md leading-heading-md">
+          <h1 className="text-gm-text-primary text-heading-md leading-heading-md mt-2">
             New National CAP Alert
           </h1>
         </div>
@@ -342,7 +347,7 @@ export function NewAlertEditor({
 
       {error ? (
         <div
-          className="mt-4 border border-gm-risk-red/40 bg-gm-risk-red/[0.06] px-4 py-3 text-body-sm text-gm-risk-red leading-body-sm"
+          className="border-gm-risk-red/40 bg-gm-risk-red/[0.06] text-body-sm text-gm-risk-red leading-body-sm mt-4 border px-4 py-3"
           role="alert"
         >
           {error}
@@ -356,16 +361,16 @@ export function NewAlertEditor({
         {form.status === "Actual" ? null : (
           <motion.div
             animate={{ opacity: 1, height: "auto", marginTop: 16 }}
-            className="overflow-hidden border-2 border-gm-risk-red bg-gm-risk-yellow px-4 py-3"
+            className="border-gm-risk-red bg-gm-risk-yellow overflow-hidden border-2 px-4 py-3"
             exit={{ opacity: 0, height: 0, marginTop: 0 }}
             initial={{ opacity: 0, height: 0, marginTop: 0 }}
             role="alert"
             transition={{ duration: 0.18 }}
           >
-            <p className="font-bold text-body-sm text-gm-text-primary uppercase leading-body-sm">
+            <p className="text-body-sm text-gm-text-primary leading-body-sm font-bold uppercase">
               Status: {form.status} — this is not a live warning
             </p>
-            <p className="mt-1 text-body-sm text-gm-text-primary leading-body-sm">
+            <p className="text-body-sm text-gm-text-primary leading-body-sm mt-1">
               The public site will label this message as a drill and tell
               readers to take no protective action. Set the status to Actual
               before issuing a real warning.
@@ -473,7 +478,7 @@ export function NewAlertEditor({
               product={product}
             />
             <SectorCheckboxes onChange={setSectors} value={sectors} />
-            <div className="grid gap-4 sm:grid-cols-3">
+            <div className="grid min-w-0 gap-4">
               {/* A colour fixes CAP severity; only an Outlook (or a message
                   before a product is chosen) assesses it directly. */}
               {colour ? (
@@ -481,7 +486,7 @@ export function NewAlertEditor({
                   <span className="text-gm-text-muted text-micro leading-micro">
                     Severity
                   </span>
-                  <span className="rounded-md border border-gm-border px-3 py-2 font-semibold text-caption text-gm-text-primary leading-caption">
+                  <span className="border-gm-border text-caption text-gm-text-primary leading-caption rounded-md border px-3 py-2 font-semibold">
                     {form.severity} (from colour)
                   </span>
                 </div>
@@ -508,17 +513,21 @@ export function NewAlertEditor({
               />
             </div>
             <Field label="Language">
-              <Input
-                list="cap-languages"
-                onChange={(e) => update("language", e.target.value)}
-                placeholder="e.g. en"
+              <Select
+                onValueChange={(v) => update("language", v ?? "")}
                 value={form.language}
-              />
-              <datalist id="cap-languages">
-                {catalogs.languages.map((language) => (
-                  <option key={language} value={language} />
-                ))}
-              </datalist>
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {catalogs.languages.map((language) => (
+                    <SelectItem key={language} value={language}>
+                      {language}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </Field>
           </Section>
 
@@ -679,7 +688,9 @@ export function NewAlertEditor({
             headline={form.headline}
             instruction={form.instruction}
             levelHeading={
-              product ? levelHeading(form.event, product, colour) : undefined
+              product
+                ? levelHeading(catalogue, form.event, product, colour)
+                : undefined
             }
             outlook={product === "Outlook"}
             senderName={form.senderName}
@@ -705,7 +716,7 @@ export function NewAlertEditor({
       </div>
 
       {/* Bottom actions */}
-      <div className="mt-6 flex justify-end gap-2 border-gm-border border-t pt-6">
+      <div className="border-gm-border mt-6 flex justify-end gap-2 border-t pt-6">
         <Button asChild variant="outline">
           <Link href="/cap">Cancel</Link>
         </Button>
@@ -715,5 +726,16 @@ export function NewAlertEditor({
         </Button>
       </div>
     </div>
+  );
+}
+
+/** Shows a message in place of this panel when the GMS catalogue cannot load. */
+export function NewAlertEditor(
+  props: ComponentProps<typeof NewAlertEditorContent>
+) {
+  return (
+    <GmsCatalogueBoundary>
+      <NewAlertEditorContent {...props} />
+    </GmsCatalogueBoundary>
   );
 }

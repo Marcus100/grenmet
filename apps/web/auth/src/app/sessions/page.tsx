@@ -32,7 +32,7 @@ export default async function SessionsPage() {
       <SettingsSection title="Danger zone">
         <div className="flex flex-col gap-3 py-5 sm:flex-row sm:items-center sm:justify-between">
           <div className="space-y-1">
-            <h3 className="font-medium text-foreground text-sm">
+            <h3 className="text-foreground text-sm font-medium">
               Sign out everywhere
             </h3>
             <p className="text-muted-foreground text-sm">
@@ -41,7 +41,7 @@ export default async function SessionsPage() {
           </div>
           <form action={signOutEverywhereAction}>
             <button
-              className="rounded-lg border border-destructive/30 px-3 py-1.5 font-medium text-destructive text-sm transition hover:bg-destructive/10"
+              className="border-destructive/30 text-destructive hover:bg-destructive/10 rounded-lg border px-3 py-1.5 text-sm font-medium transition"
               type="submit"
             >
               Sign out everywhere

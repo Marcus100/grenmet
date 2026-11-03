@@ -4,6 +4,7 @@ import { CapComposer } from "@/components/cap/composer/cap-composer";
 import { EditorSection } from "@/components/cap/composer/editor-section";
 import { FeedsSection } from "@/components/cap/composer/feeds-section";
 import { MapSection } from "@/components/cap/composer/map-section";
+import { env } from "@/lib/env";
 
 export const dynamic = "force-dynamic";
 
@@ -17,6 +18,7 @@ export default function CapPage() {
   return (
     <CapComposer
       alerts={<AlertsSection />}
+      deskUrl={env.CAP_DESK_URL}
       editor={<EditorSection />}
       feeds={<FeedsSection />}
       map={<MapSection />}

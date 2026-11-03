@@ -204,7 +204,7 @@ function drillRun({ flags = [], env = {} } = {}) {
     const day = now.toISOString().slice(0, 10).replaceAll("-", "/");
     const stamp = now
       .toISOString()
-      .replace(/[-:]/g, "")
+      .replace(/[-:]/gu, "")
       .replace("T", "_")
       .slice(0, 15);
     const bucket = join(work, "bucket", "production", day);

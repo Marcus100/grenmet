@@ -11,7 +11,7 @@ from src.auth.models import RoleAssignmentScope, User
 from src.baseline.models import ApprovalPolicy
 from src.cap.models import CapAlert, CapLifecycleState, CapMessageType, CapScope
 from src.cap.notifications import notify_warning_changed
-from src.cap.schemas import CapAlertAction, CapAlertCreate
+from src.cap.schemas import CapAlertAction, CapAlertCreate, CapPublishAction
 from src.cap.service import (
     approve_alert,
     cancel_alert,
@@ -64,13 +64,13 @@ async def _inbox(db: AsyncSession, user: User, key: str) -> list[Notification]:
 
 async def _publish(db: AsyncSession, author: User, alert_id) -> None:
     await submit_alert(
-        session=db, current_user=author, alert_id=alert_id, payload=CapAlertAction()
+        session=db, current_user=author, alert_id=alert_id, payload=CapPublishAction()
     )
     await approve_alert(
-        session=db, current_user=author, alert_id=alert_id, payload=CapAlertAction()
+        session=db, current_user=author, alert_id=alert_id, payload=CapPublishAction()
     )
     await publish_alert(
-        session=db, current_user=author, alert_id=alert_id, payload=CapAlertAction()
+        session=db, current_user=author, alert_id=alert_id, payload=CapPublishAction()
     )
 
 
@@ -134,7 +134,7 @@ async def test_submitting_asks_approvers_other_than_the_author_to_review(
         session=db_async,
         current_user=author,
         alert_id=alert.id,
-        payload=CapAlertAction(),
+        payload=CapPublishAction(),
     )
 
     (asked,) = await _inbox(db_async, approver, gms.REVIEW_REQUESTED)

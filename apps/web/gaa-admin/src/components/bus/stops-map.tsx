@@ -45,7 +45,7 @@ export function StopsMap({
   pins: StopPin[];
 }) {
   return (
-    <div className="overflow-hidden rounded-lg border border-border">
+    <div className="border-border overflow-hidden rounded-lg border">
       <CapMap
         cursor={onPick ? "crosshair" : undefined}
         height={height}
@@ -70,8 +70,8 @@ export function StopsMap({
           >
             <span
               className={cn(
-                "block size-3 rounded-full border-2 border-background bg-primary shadow",
-                pin.id === highlightId && "size-4 bg-destructive"
+                "border-background bg-primary block size-3 rounded-full border-2 shadow",
+                pin.id === highlightId && "bg-destructive size-4"
               )}
               title={pin.name}
             />

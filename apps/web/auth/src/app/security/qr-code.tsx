@@ -31,7 +31,7 @@ export function QrCode({
     return (
       <div
         aria-hidden="true"
-        className="size-48 animate-pulse rounded-lg bg-muted"
+        className="bg-muted size-48 animate-pulse rounded-lg"
       />
     );
   }
@@ -39,7 +39,7 @@ export function QrCode({
     // Scanners need a light field in both themes, hence the page-surface token.
     <Image
       alt={label}
-      className="size-48 rounded-lg border border-border bg-gm-surface-page p-2"
+      className="border-border bg-gm-surface-page size-48 rounded-lg border p-2"
       height={192}
       src={src}
       unoptimized

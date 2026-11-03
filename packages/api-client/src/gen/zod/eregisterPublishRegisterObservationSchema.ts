@@ -7,6 +7,7 @@ import * as z from "zod";
 import { apiErrorSchema } from "./apiErrorSchema.js";
 import { observationSendSchema } from "./observationSendSchema.js";
 import { sendObservationBodySchema } from "./sendObservationBodySchema.js";
+import { validationErrorResponseSchema } from "./validationErrorResponseSchema.js";
 
 export const eregisterPublishRegisterObservationPathObservationIdSchema =
   z.uuid();
@@ -28,7 +29,10 @@ export const eregisterPublishRegisterObservationStatus404Schema =
 export const eregisterPublishRegisterObservationStatus409Schema =
   apiErrorSchema.describe("Stable error envelope for documented API failures.");
 
-export const eregisterPublishRegisterObservationStatus422Schema = z.unknown();
+export const eregisterPublishRegisterObservationStatus422Schema = z.union([
+  apiErrorSchema,
+  validationErrorResponseSchema,
+]);
 
 export const eregisterPublishRegisterObservationResponseSchema =
   eregisterPublishRegisterObservationStatus202Schema;

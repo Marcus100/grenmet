@@ -5,8 +5,10 @@
 
 import * as z from "zod";
 import { apiErrorSchema } from "./apiErrorSchema.js";
+import { eregisterValidationErrorSchema } from "./eregisterValidationErrorSchema.js";
 import { registerObservationCorrectionSchema } from "./registerObservationCorrectionSchema.js";
 import { registerObservationReadSchema } from "./registerObservationReadSchema.js";
+import { validationErrorResponseSchema } from "./validationErrorResponseSchema.js";
 
 export const eregisterCorrectRegisterObservationPathObservationIdSchema =
   z.uuid();
@@ -26,7 +28,10 @@ export const eregisterCorrectRegisterObservationStatus404Schema =
 export const eregisterCorrectRegisterObservationStatus409Schema =
   apiErrorSchema.describe("Stable error envelope for documented API failures.");
 
-export const eregisterCorrectRegisterObservationStatus422Schema = z.unknown();
+export const eregisterCorrectRegisterObservationStatus422Schema = z.union([
+  eregisterValidationErrorSchema,
+  validationErrorResponseSchema,
+]);
 
 export const eregisterCorrectRegisterObservationResponseSchema =
   eregisterCorrectRegisterObservationStatus201Schema;

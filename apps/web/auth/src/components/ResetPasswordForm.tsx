@@ -22,11 +22,11 @@ export function ResetPasswordForm({ token }: ResetPasswordFormProps) {
     return (
       <div className="space-y-5">
         <div
-          className="rounded-lg border border-border bg-muted px-5 py-4 text-sm leading-6"
+          className="border-border bg-muted rounded-lg border px-5 py-4 text-sm leading-6"
           role="status"
         >
-          <p className="font-medium text-foreground">Password updated</p>
-          <p className="mt-1 text-muted-foreground">
+          <p className="text-foreground font-medium">Password updated</p>
+          <p className="text-muted-foreground mt-1">
             Sign in with your new password.
           </p>
         </div>

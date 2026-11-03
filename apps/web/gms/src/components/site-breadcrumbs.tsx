@@ -32,12 +32,12 @@ export function SiteBreadcrumbs() {
                 {index > 0 && <BreadcrumbSeparator />}
                 <BreadcrumbItem>
                   {crumb.current ? (
-                    <BreadcrumbPage className="font-semibold text-gm-heading">
+                    <BreadcrumbPage className="text-gm-heading font-semibold">
                       {crumb.label}
                     </BreadcrumbPage>
                   ) : (
                     <BreadcrumbLink
-                      className="underline-offset-4 hover:text-gm-blue-ink hover:underline"
+                      className="hover:text-gm-blue-ink underline-offset-4 hover:underline"
                       render={<Link href={crumb.href as Route} />}
                     >
                       {crumb.label}

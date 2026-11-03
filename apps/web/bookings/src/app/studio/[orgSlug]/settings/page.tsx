@@ -75,7 +75,7 @@ export default async function SettingsPage({ params }: SettingsPageProps) {
     <div className="space-y-8">
       <header className="space-y-1">
         <p className="text-muted-foreground text-sm">{org.value.name}</p>
-        <h1 className="font-semibold text-2xl">Settings</h1>
+        <h1 className="text-2xl font-semibold">Settings</h1>
         <p className="text-muted-foreground">
           {editable
             ? "How customers book: your page, services, people and hours."
@@ -84,7 +84,7 @@ export default async function SettingsPage({ params }: SettingsPageProps) {
       </header>
 
       <section aria-labelledby="profile-heading" className={SECTION}>
-        <h2 className="font-semibold text-lg" id="profile-heading">
+        <h2 className="text-lg font-semibold" id="profile-heading">
           Business profile
         </h2>
         <p className="text-muted-foreground text-sm">
@@ -103,11 +103,11 @@ export default async function SettingsPage({ params }: SettingsPageProps) {
       </section>
 
       <section aria-labelledby="services-heading" className={SECTION}>
-        <h2 className="font-semibold text-lg" id="services-heading">
+        <h2 className="text-lg font-semibold" id="services-heading">
           Services and deposits
         </h2>
         {data.services.length === 0 ? (
-          <Empty className="border border-border">
+          <Empty className="border-border border">
             <EmptyHeader>
               <EmptyTitle>No services yet</EmptyTitle>
               <EmptyDescription>
@@ -120,7 +120,7 @@ export default async function SettingsPage({ params }: SettingsPageProps) {
         ) : (
           <ul className="space-y-3">
             {data.services.map((item) => (
-              <li className="rounded-lg border border-border p-3" key={item.id}>
+              <li className="border-border rounded-lg border p-3" key={item.id}>
                 <details>
                   <summary className={SUMMARY}>
                     <span>{item.name}</span>
@@ -148,7 +148,7 @@ export default async function SettingsPage({ params }: SettingsPageProps) {
           </ul>
         )}
         {editable ? (
-          <div className="space-y-3 border-border border-t pt-4">
+          <div className="border-border space-y-3 border-t pt-4">
             <h3 className="font-medium">Add a service</h3>
             <ServiceForm
               currency={currency}
@@ -160,11 +160,11 @@ export default async function SettingsPage({ params }: SettingsPageProps) {
       </section>
 
       <section aria-labelledby="providers-heading" className={SECTION}>
-        <h2 className="font-semibold text-lg" id="providers-heading">
+        <h2 className="text-lg font-semibold" id="providers-heading">
           Providers and weekly hours
         </h2>
         {data.providers.length === 0 ? (
-          <Empty className="border border-border">
+          <Empty className="border-border border">
             <EmptyHeader>
               <EmptyTitle>No providers yet</EmptyTitle>
               <EmptyDescription>
@@ -177,7 +177,7 @@ export default async function SettingsPage({ params }: SettingsPageProps) {
         ) : (
           <ul className="space-y-3">
             {data.providers.map((item) => (
-              <li className="rounded-lg border border-border p-3" key={item.id}>
+              <li className="border-border rounded-lg border p-3" key={item.id}>
                 <ProviderCard
                   editable={editable}
                   orgSlug={orgSlug}
@@ -190,7 +190,7 @@ export default async function SettingsPage({ params }: SettingsPageProps) {
           </ul>
         )}
         {editable ? (
-          <div className="space-y-3 border-border border-t pt-4">
+          <div className="border-border space-y-3 border-t pt-4">
             <h3 className="font-medium">Add a provider</h3>
             <ProviderForm orgSlug={orgSlug} services={data.services} />
           </div>
@@ -198,10 +198,10 @@ export default async function SettingsPage({ params }: SettingsPageProps) {
       </section>
 
       <section aria-labelledby="more-heading" className={SECTION}>
-        <h2 className="font-semibold text-lg" id="more-heading">
+        <h2 className="text-lg font-semibold" id="more-heading">
           Not available yet
         </h2>
-        <Empty className="border border-border">
+        <Empty className="border-border border">
           <EmptyHeader>
             <EmptyTitle>Time off, extra hours and menu order</EmptyTitle>
             <EmptyDescription>
@@ -233,7 +233,7 @@ function serviceLine(item: BookingServicePublic, currency: string): string {
 function ProfileSummary({ profile }: { profile: BookingSettings["profile"] }) {
   if (!profile) {
     return (
-      <Empty className="border border-border">
+      <Empty className="border-border border">
         <EmptyHeader>
           <EmptyTitle>No booking profile yet</EmptyTitle>
           <EmptyDescription>
@@ -308,7 +308,7 @@ function ProviderCard({
               provider={provider}
               services={services}
             />
-            <div className="space-y-3 border-border border-t pt-4">
+            <div className="border-border space-y-3 border-t pt-4">
               <h3 className="font-medium">Weekly hours</h3>
               <HoursForm
                 hours={provider.working_hours}
@@ -351,7 +351,7 @@ function HoursList({
         <dl className="grid gap-1">
           {WEEKDAYS.map((weekday, day) => (
             <div className="flex gap-3" key={weekday}>
-              <dt className="w-28 text-muted-foreground">{weekday}</dt>
+              <dt className="text-muted-foreground w-28">{weekday}</dt>
               <dd>
                 {(days[day] ?? [])
                   .map((p) => `${hhmm(p.start_time)} to ${hhmm(p.end_time)}`)

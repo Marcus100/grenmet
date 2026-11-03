@@ -48,6 +48,36 @@ async def headline(session: AsyncSession, alert: CapAlert) -> str:
     return found or alert.identifier
 
 
+async def notify_schema_mismatch(
+    *,
+    session: AsyncSession,
+    alert: CapAlert,
+    problem: str,
+    action: str,
+) -> int:
+    """A warning went out with a CAP format problem: tell the duty supervisor.
+
+    The person who published is not excluded: an emergency publish is usually made
+    by the duty supervisor, and they must still hear that the XML did not conform.
+    """
+    recipients = await gms.duty_or_holders(session, gms.CAP_DUTY_PERMISSIONS)
+    return await gms.tell(
+        session,
+        gms.CAP_FORMAT_PROBLEM,
+        recipients,
+        {
+            "action": action,
+            "headline": await headline(session, alert),
+            "identifier": alert.identifier,
+            "problem": problem[:300],
+        },
+        link_path=gms.alert_link(alert.identifier, alert.id, public=is_public(alert)),
+        entity_type="cap_alert",
+        entity_id=str(alert.id),
+        dedupe_key=f"cap-format-problem:{alert.id}:{action}",
+    )
+
+
 async def notify_warning_changed(
     *,
     session: AsyncSession,

@@ -19,15 +19,15 @@ import {
 } from "../ci/release-scope.mjs";
 
 const ENOUGH_FREE_KB = 40 * 1024 * 1024;
-const RECLAIMED_LINE = /Total reclaimed space: 1\.2GB/;
+const RECLAIMED_LINE = /Total reclaimed space: 1\.2GB/u;
 const FREE_DISK_LINE =
-  /Free disk space on \/var\/lib\/docker: 40 GB \(need 6 GB\)/;
-const LOW_DISK_ERROR = /Not enough free disk space to pull images: 2 GB free/;
-const STACK_UNTOUCHED = /the running stack was not touched/;
-const OVERRIDE_ERROR = /10 GB free.*12 GB required/;
+  /Free disk space on \/var\/lib\/docker: 40 GB \(need 6 GB\)/u;
+const LOW_DISK_ERROR = /Not enough free disk space to pull images: 2 GB free/u;
+const STACK_UNTOUCHED = /the running stack was not touched/u;
+const OVERRIDE_ERROR = /10 GB free.*12 GB required/u;
 const SECRET_MARKER = "ci-secret-marker-must-not-leak";
 const RUNNER_DISK_ERROR =
-  /Not enough free disk space for the runner: 1 GB free/;
+  /Not enough free disk space for the runner: 1 GB free/u;
 
 /** Runs the real core.sh deploy in a temp tree with stubbed docker, python3, node and df. */
 function runDeploy({
@@ -91,13 +91,28 @@ case "$*" in
     exit 0 ;;
   *" ps -q "*)
     service=\${args##* }
+    [[ "$service" != "$TEST_PS_FAIL_SERVICE" ]] || exit 1
     [[ -n "$TEST_NO_OLD" ]] || echo "old-$service"
     [[ ! -e "$state/scaled-$service" ]] || echo "new-$service"
     exit 0 ;;
   *"--no-recreate --scale "*)
     touch "$state/scaled-\${args##* }"
     exit 0 ;;
+  *" config --hash "*)
+    service=\${args##* }
+    [[ "$service" != "$TEST_UNCHANGED_SERVICE" ]] || echo "$service hash-same"
+    exit 0 ;;
+  "inspect --format {{index .Config.Labels"*config-hash*)
+    if [[ "\${args##*old-}" == "$TEST_UNCHANGED_SERVICE" ]]; then echo "hash-same \${TEST_UNCHANGED_STATE:-healthy}"; else echo "hash-old healthy"; fi
+    exit 0 ;;
   "inspect --format {{if .State.Health}}"*" new-"*)
+    # Simulates a cancelled run: SIGTERM to core.sh while this rollout waits.
+    if [[ "\${args##*new-}" == "$TEST_CANCEL_SERVICE" ]]; then
+      pkill -TERM -of "$TEST_ROOT/scripts/production/core.sh" || true
+      sleep 3
+      echo starting
+      exit 0
+    fi
     if [[ "\${args##*new-}" == "$TEST_UNHEALTHY_SERVICE" ]]; then echo unhealthy; else echo healthy; fi
     exit 0 ;;
 esac
@@ -107,7 +122,16 @@ case "$*" in
   *"image prune"*) echo "Total reclaimed space: 1.2GB" ;;
   *"config --images"*)
     [[ "$TEST_FAILURE" != images ]] || exit 1
-    echo ghcr.io/example/api@sha256:abc ;;
+    echo ghcr.io/example/api@sha256:abc
+    [[ -z "$TEST_EXTRA_IMAGE" ]] || echo ghcr.io/example/web@sha256:def ;;
+  "pull --quiet "*)
+    printf 'start %s %s\n' "\${args##* }" "$(date +%s%N)" >> "$state/pulls"
+    [[ -z "$TEST_EXTRA_IMAGE" ]] || sleep 1
+    printf 'end %s %s\n' "\${args##* }" "$(date +%s%N)" >> "$state/pulls"
+    exit 0 ;;
+  "image inspect ghcr.io/"*)
+    # Present locally only when the test says so; core.sh then skips the pull.
+    [[ -n "$TEST_IMAGES_PRESENT" ]] || exit 1 ;;
   *"image inspect"*)
     if [[ "$*" == *gd.barrels.environment* ]]; then if [[ "$TEST_FAILURE" == environment ]]; then echo wrong; else echo "$DEPLOY_ENV"; fi; elif [[ "$TEST_FAILURE" == revision ]]; then echo wrong; else echo "$GITHUB_SHA"; fi ;;
   *"run --rm --no-deps prestart"*) [[ "$TEST_FAILURE" != migration ]] || exit 1 ;;
@@ -184,6 +208,13 @@ printf '/dev/test 50000000 1000 %s 10%% /\\n' "$free"
           TEST_NO_OLD: "",
           TEST_STALE_SERVICE: "",
           TEST_UNHEALTHY_SERVICE: "",
+          TEST_UNCHANGED_SERVICE: "",
+          TEST_IMAGES_PRESENT: "",
+          TEST_PS_FAIL_SERVICE: "",
+          TEST_UNCHANGED_STATE: "",
+          TEST_CANCEL_SERVICE: "",
+          TEST_EXTRA_IMAGE: "",
+          TEST_ROOT: root,
           TEST_PINNED_SUBNET: "",
           TEST_LIVE_SUBNET: "",
           ROLLOUT_SETTLE_SECONDS: "0",
@@ -194,8 +225,15 @@ printf '/dev/test 50000000 1000 %s 10%% /\\n' "$free"
         timeout: 30_000,
       }
     );
+    let pulls = "";
+    try {
+      pulls = readFileSync(join(root, "pulls"), "utf8");
+    } catch {
+      // No image was pulled.
+    }
     return {
       result,
+      pulls,
       calls: readFileSync(join(root, "calls"), "utf8"),
       summary: readFileSync(join(root, "summary"), "utf8"),
     };
@@ -287,20 +325,20 @@ for (const environment of ["staging", "production"]) {
   });
 }
 
-const PHASE_GROUP = /::group::\[\d{2}:\d{2}:\d{2}Z\] render-config/;
-const FAILED_START = /failed in phase 'start' \(last completed: grants\)/;
+const PHASE_GROUP = /::group::\[\d{2}:\d{2}:\d{2}Z\] render-config/u;
+const FAILED_START = /failed in phase 'start' \(last completed: grants\)/u;
 const FAILED_MIGRATIONS =
-  /failed in phase 'migrations' \(last completed: databases\)/;
-const PARTIAL_RELEASE = /a partial release may be running/;
-const UNHEALTHY_STATE = /test-nhc-worker-1 status=running health=unhealthy/;
-const HEALTH_PROBE = /exit=1 heartbeat missing/;
-const NETWORK_RECREATE = /stopping the project so Compose can recreate it/;
-const PROJECT_STOPPED = /nothing is serving until a deploy succeeds/;
-const DIAGNOSTICS_INCOMPLETE = /Diagnostics incomplete/;
+  /failed in phase 'migrations' \(last completed: databases\)/u;
+const PARTIAL_RELEASE = /a partial release may be running/u;
+const UNHEALTHY_STATE = /test-nhc-worker-1 status=running health=unhealthy/u;
+const HEALTH_PROBE = /exit=1 heartbeat missing/u;
+const NETWORK_RECREATE = /stopping the project so Compose can recreate it/u;
+const PROJECT_STOPPED = /nothing is serving until a deploy succeeds/u;
+const DIAGNOSTICS_INCOMPLETE = /Diagnostics incomplete/u;
 const SUMMARY_FAILED_START =
-  /Core delivery failed[\s\S]*\| start \| \d+s \| failed \|/;
+  /Core delivery failed[\s\S]*\| start \| \d+s \| failed \|/u;
 const SUMMARY_SUCCEEDED =
-  /Core delivery succeeded[\s\S]*\| render-config \| \d+s \| ok \|[\s\S]*\| smoke \| \d+s \| ok \|/;
+  /Core delivery succeeded[\s\S]*\| render-config \| \d+s \| ok \|[\s\S]*\| smoke \| \d+s \| ok \|/u;
 
 // Release A's staging deploy failed this way: #485 pinned the network subnet, Compose
 // had to recreate the network, but only db and redis were being started, so the web
@@ -467,19 +505,19 @@ test("delivery starts exactly the services in the release registry", () => {
   );
 });
 
-const GATE_STALE = /newest backup 40\.0h old/;
+const GATE_STALE = /newest backup 40\.0h old/u;
 const GATE_BLOCKED =
-  /Backup gate \(enforce\) blocked the deploy before migrations/;
-const GATE_HOW_TO = /backup-database\.yml.*backup_gate_override/s;
-const GATE_WARNING = /::warning::Backup gate \(warn\): backup is stale/;
-const GATE_OPEN = /could NOT verify the newest backup and is passing OPEN/;
-const GATE_OVERRIDDEN = /Backup gate OVERRIDDEN by test: 'hotfix INC-42'/;
+  /Backup gate \(enforce\) blocked the deploy before migrations/u;
+const GATE_HOW_TO = /backup-database\.yml.*backup_gate_override/su;
+const GATE_WARNING = /::warning::Backup gate \(warn\): backup is stale/u;
+const GATE_OPEN = /could NOT verify the newest backup and is passing OPEN/u;
+const GATE_OVERRIDDEN = /Backup gate OVERRIDDEN by test: 'hotfix INC-42'/u;
 const GATE_SKIPPED =
-  /Backup gate: skipped, this release has no migration services/;
-const GATE_OFF = /Backup gate: off/;
-const GATE_BAD_MODE = /not off, warn or enforce; using warn/;
-const GATE_SUMMARY_BLOCKED = /blocked this deploy/;
-const GATE_MISSING = /missing: bucket name/;
+  /Backup gate: skipped, this release has no migration services/u;
+const GATE_OFF = /Backup gate: off/u;
+const GATE_BAD_MODE = /not off, warn or enforce; using warn/u;
+const GATE_SUMMARY_BLOCKED = /blocked this deploy/u;
+const GATE_MISSING = /missing: bucket name/u;
 const MIGRATED = "run --rm --no-deps prestart";
 
 function gate(gateMode, testGate, extraEnv = {}) {
@@ -575,9 +613,9 @@ test("backup gate: calls the gate for production and never prints secrets", () =
   );
 });
 
-const ROLLING_DEPLOY_INVALID = /ROLLING_DEPLOY must be/;
+const ROLLING_DEPLOY_INVALID = /ROLLING_DEPLOY must be/u;
 const ROLLOUT_FAILED =
-  /New web-auth container did not become healthy; the previous one is still serving/;
+  /New web-auth container did not become healthy; the previous one is still serving/u;
 
 test("rolling start replaces each routed service before retiring the old container", () => {
   const { result, calls } = runDeploy({
@@ -618,8 +656,9 @@ test("rolling start keeps the old container when the new one is unhealthy", () =
   assert.match(result.stderr, ROLLOUT_FAILED);
   assert.ok(calls.includes("docker rm -f new-web-auth"));
   assert.equal(calls.includes("docker stop --time 30 old-web-auth"), false);
-  // Services after the failure are not touched, and smoke never runs.
-  assert.equal(calls.includes("--scale web-admin=2"), false);
+  // Services in later batches (4 per batch on staging) are not touched.
+  for (const service of routedServices.slice(4))
+    assert.equal(calls.includes(`--scale ${service}=2`), false, service);
   assert.equal(calls.includes("smoke"), false);
 });
 
@@ -653,4 +692,144 @@ test("an unrecognised ROLLING_DEPLOY value stops before any change", () => {
   assert.equal(result.status, 2);
   assert.match(result.stderr, ROLLING_DEPLOY_INVALID);
   assert.equal(calls.includes("docker"), false);
+});
+
+const UNCHANGED_KEPT = /\[web-docs\] Unchanged web-docs/;
+const NOTHING_TO_PULL = /Images to pull: 0 of 1/;
+
+test("rolling start keeps an unchanged, healthy service running", () => {
+  const { result, calls } = runDeploy({
+    environment: "staging",
+    extraEnv: { ROLLING_DEPLOY: "1", TEST_UNCHANGED_SERVICE: "web-docs" },
+  });
+  assert.equal(result.status, 0, result.stderr);
+  assert.match(result.stdout, UNCHANGED_KEPT);
+  assert.equal(calls.includes("--scale web-docs=2"), false);
+  assert.equal(calls.includes("docker stop --time 30 old-web-docs"), false);
+  assert.ok(calls.includes("--scale web-gms=2 web-gms\n"));
+});
+
+test("rolling start runs one service at a time with ROLLOUT_PARALLEL=1", () => {
+  const { result, calls } = runDeploy({
+    environment: "staging",
+    extraEnv: {
+      ROLLING_DEPLOY: "1",
+      ROLLOUT_PARALLEL: "1",
+      TEST_UNHEALTHY_SERVICE: "web-auth",
+    },
+  });
+  assert.notEqual(result.status, 0);
+  assert.equal(calls.includes("--scale web-gmsadmin=2"), false);
+});
+
+test("an invalid ROLLOUT_PARALLEL or PULL_PARALLEL stops before any change", () => {
+  for (const extraEnv of [{ ROLLOUT_PARALLEL: "0" }, { PULL_PARALLEL: "x" }]) {
+    const { result, calls } = runDeploy({ environment: "staging", extraEnv });
+    assert.equal(result.status, 2, JSON.stringify(extraEnv));
+    assert.equal(calls.includes("docker"), false);
+  }
+});
+
+test("deploy pulls only images missing from the host", () => {
+  const missing = runDeploy({ environment: "staging" });
+  assert.equal(missing.result.status, 0, missing.result.stderr);
+  assert.ok(
+    missing.calls.includes("docker pull --quiet ghcr.io/example/api@sha256:abc")
+  );
+  const present = runDeploy({
+    environment: "staging",
+    extraEnv: { TEST_IMAGES_PRESENT: "1" },
+  });
+  assert.equal(present.result.status, 0, present.result.stderr);
+  assert.equal(present.calls.includes("docker pull"), false);
+  assert.match(present.result.stdout, NOTHING_TO_PULL);
+});
+
+const PS_FAILED = /Could not list web-gms containers/;
+
+test("a failed container lookup never takes the first-start path", () => {
+  const { result, calls } = runDeploy({
+    environment: "staging",
+    extraEnv: { ROLLING_DEPLOY: "1", TEST_PS_FAIL_SERVICE: "web-gms" },
+  });
+  assert.notEqual(result.status, 0);
+  assert.match(result.stderr, PS_FAILED);
+  assert.equal(calls.includes("--wait-timeout 300 web-gms\n"), false);
+  assert.equal(calls.includes("--scale web-gms=2"), false);
+  assert.equal(calls.includes("smoke"), false);
+});
+
+test("in a mixed batch the healthy service completes and the failed one keeps its old container", () => {
+  // web-admin is the fourth job of the first batch: a failure there propagates.
+  const { result, calls } = runDeploy({
+    environment: "staging",
+    extraEnv: { ROLLING_DEPLOY: "1", TEST_UNHEALTHY_SERVICE: "web-admin" },
+  });
+  assert.notEqual(result.status, 0);
+  assert.ok(calls.includes("docker stop --time 30 old-web-auth\n"));
+  assert.ok(calls.includes("docker rm -f new-web-admin"));
+  assert.equal(calls.includes("docker stop --time 30 old-web-admin"), false);
+  assert.equal(calls.includes("smoke"), false);
+});
+
+test("a changed config hash rolls, and an unhealthy container with the same hash rolls", () => {
+  const changed = runDeploy({
+    environment: "staging",
+    extraEnv: { ROLLING_DEPLOY: "1" },
+  });
+  assert.ok(changed.calls.includes("--scale web-docs=2 web-docs\n"));
+  const unhealthy = runDeploy({
+    environment: "staging",
+    extraEnv: {
+      ROLLING_DEPLOY: "1",
+      TEST_UNCHANGED_SERVICE: "web-docs",
+      TEST_UNCHANGED_STATE: "unhealthy",
+    },
+  });
+  assert.equal(unhealthy.result.status, 0, unhealthy.result.stderr);
+  assert.ok(unhealthy.calls.includes("--scale web-docs=2 web-docs\n"));
+});
+
+test("a cancelled deploy removes the pending container and retires no old one", () => {
+  const { result, calls } = runDeploy({
+    environment: "staging",
+    extraEnv: {
+      ROLLING_DEPLOY: "1",
+      ROLLOUT_PARALLEL: "1",
+      TEST_CANCEL_SERVICE: "web-auth",
+    },
+  });
+  assert.notEqual(result.status, 0);
+  assert.ok(calls.includes("docker rm -f new-web-auth"), calls);
+  assert.equal(calls.includes("docker stop --time 30 old-web-auth"), false);
+  assert.equal(calls.includes("--scale web-gmsadmin=2"), false);
+  assert.equal(calls.includes("smoke"), false);
+});
+
+test("production rolls two services at a time by default", () => {
+  const { result, calls } = runDeploy({
+    environment: "production",
+    extraEnv: { ROLLING_DEPLOY: "1", TEST_UNHEALTHY_SERVICE: "api" },
+  });
+  assert.notEqual(result.status, 0);
+  assert.ok(calls.includes("--scale web-auth=2 web-auth\n"));
+  assert.equal(calls.includes("--scale web-gmsadmin=2"), false);
+});
+
+test("missing images are pulled in parallel", () => {
+  const { result, pulls } = runDeploy({
+    environment: "staging",
+    extraEnv: { TEST_EXTRA_IMAGE: "1" },
+  });
+  assert.equal(result.status, 0, result.stderr);
+  const events = pulls.trim().split("\n");
+  const secondStart = events.findIndex((line) => line.startsWith("start"));
+  const firstEnd = events.findIndex((line) => line.startsWith("end"));
+  assert.equal(events.filter((line) => line.startsWith("start")).length, 2);
+  // Both pulls start before either finishes.
+  assert.ok(
+    events.slice(0, firstEnd).filter((line) => line.startsWith("start"))
+      .length === 2 && secondStart === 0,
+    pulls
+  );
 });

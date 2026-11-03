@@ -92,7 +92,7 @@ export function ConstituencySearch({
       <SearchIcon
         aria-hidden="true"
         className={cn(
-          "pointer-events-none absolute top-1/2 -translate-y-1/2 text-el-muted",
+          "text-el-muted pointer-events-none absolute top-1/2 -translate-y-1/2",
           large ? "left-3.5 size-5" : "left-2.5 size-4"
         )}
       />
@@ -107,7 +107,7 @@ export function ConstituencySearch({
         autoComplete="off"
         autoFocus={autoFocus}
         className={cn(
-          "w-full rounded-md border border-el-rule-2 bg-background text-el-ink placeholder:text-el-muted",
+          "border-el-rule-2 bg-background text-el-ink placeholder:text-el-muted w-full rounded-md border",
           large ? "h-12 pr-4 pl-11 text-base" : "min-h-11 pr-3 pl-8 text-base"
         )}
         onBlur={() => setTimeout(() => setOpen(false), 120)}
@@ -135,17 +135,17 @@ export function ConstituencySearch({
       {showList && (
         <div
           aria-label="Matching constituencies"
-          className="absolute inset-x-0 top-[calc(100%+4px)] z-50 max-h-80 overflow-auto rounded-md border border-el-rule-2 bg-background p-1 shadow-[0_12px_32px_rgb(0_0_0/0.14)]"
+          className="border-el-rule-2 bg-background absolute inset-x-0 top-[calc(100%+4px)] z-50 max-h-80 overflow-auto rounded-md border p-1 shadow-[0_12px_32px_rgb(0_0_0/0.14)]"
           id={listId}
           role="listbox"
         >
           {index === null && (
-            <p className="px-3 py-2 text-base text-el-muted leading-relaxed">
+            <p className="text-el-muted px-3 py-2 text-base leading-relaxed">
               Loading…
             </p>
           )}
           {index !== null && matches.length === 0 && (
-            <p className="px-3 py-2 text-base text-el-muted leading-relaxed">
+            <p className="text-el-muted px-3 py-2 text-base leading-relaxed">
               No constituency matches “{query.trim()}”.
             </p>
           )}
@@ -166,13 +166,13 @@ export function ConstituencySearch({
               role="option"
               tabIndex={-1}
             >
-              <span className="text-base text-el-ink">
+              <span className="text-el-ink text-base">
                 {entry.label}
-                <span className="ml-2 font-semibold text-el-muted text-sm uppercase tracking-[0.07em]">
+                <span className="text-el-muted ml-2 text-sm font-semibold tracking-[0.07em] uppercase">
                   {KIND_LABEL[entry.kind]}
                 </span>
               </span>
-              <span className="text-base text-el-muted">{entry.note}</span>
+              <span className="text-el-muted text-base">{entry.note}</span>
             </div>
           ))}
         </div>

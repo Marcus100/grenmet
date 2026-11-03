@@ -21,7 +21,7 @@ export function SkyGlyph({
   return (
     <svg
       aria-hidden="true"
-      className={cn("shrink-0 text-gm-text-inverse", className)}
+      className={cn("text-gm-text-inverse shrink-0", className)}
       viewBox="0 0 24 24"
     >
       {sky === "cloudy" && (

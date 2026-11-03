@@ -28,13 +28,13 @@ export function SatelliteImages({
         <figure className="flex flex-col gap-2" key={image.id}>
           <Image
             alt={`Satellite view: ${image.title}`}
-            className="h-auto w-full rounded-gm-card border border-gm-border"
+            className="rounded-gm-card border-gm-border h-auto w-full border"
             height={image.height ?? 600}
             src={`/api/satellite/${image.id}`}
             unoptimized
             width={image.width ?? 800}
           />
-          <figcaption className="font-semibold text-body-sm text-gm-heading leading-body-sm">
+          <figcaption className="text-body-sm text-gm-heading leading-body-sm font-semibold">
             {image.title}
           </figcaption>
           <Provenance

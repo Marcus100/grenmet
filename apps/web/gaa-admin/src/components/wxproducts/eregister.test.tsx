@@ -32,13 +32,13 @@ vi.mock("@barrelsgd/auth", () => ({
 
 import { ERegister } from "./eregister";
 
-const UNAVAILABLE_NOTE = /The eRegister service is unavailable/;
-const NO_ACCESS_NOTE = /Ask an administrator for the eRegister observer role/;
-const ISO_START = /^\d{4}-\d{2}-\d{2}T/;
-const DAILY_NOTE = /Daily summaries are not connected/;
+const UNAVAILABLE_NOTE = /The eRegister service is unavailable/u;
+const NO_ACCESS_NOTE = /Ask an administrator for the eRegister observer role/u;
+const ISO_START = /^\d{4}-\d{2}-\d{2}T/u;
+const DAILY_NOTE = /Daily summaries are not connected/u;
 
 // Sample rows the page used to show as if they were recorded.
-const SAMPLE_TEXT = /AAXX 07234|AAXX 07224|Sample data|Recorded/;
+const SAMPLE_TEXT = /AAXX 07234|AAXX 07224|Sample data|Recorded/u;
 
 beforeEach(() => {
   mocks.list.mockReset();

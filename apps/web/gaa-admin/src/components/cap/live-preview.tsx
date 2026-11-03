@@ -1,8 +1,14 @@
 "use client";
 
-import type { CapSeverity, CapUrgency, GmsColour } from "@barrelsgd/api-client";
+import type {
+  CapSeverity,
+  CapUrgency,
+  GmsCataloguePublic,
+  GmsColour,
+} from "@barrelsgd/api-client";
 import { cn } from "@barrelsgd/ui/lib/utils";
 import { motion } from "motion/react";
+import { useGmsCatalogue } from "@/components/cap/gms-catalogue";
 import { severityForColour } from "@/lib/cap-levels";
 import { SEVERITY_HEX } from "@/lib/cap-severity";
 
@@ -36,6 +42,7 @@ const DARK_TEXT_SEVERITIES = new Set<CapSeverity>([
 ]);
 
 function bandStyle(
+  catalogue: GmsCataloguePublic,
   severity: CapSeverity,
   colour: GmsColour | null | undefined,
   outlook: boolean | undefined
@@ -45,7 +52,7 @@ function bandStyle(
   if (outlook) {
     return { background: OUTLOOK_HEX, color: "var(--gm-text-inverse)" };
   }
-  const shown = colour ? severityForColour(colour) : severity;
+  const shown = colour ? severityForColour(catalogue, colour) : severity;
   return {
     background: SEVERITY_HEX[shown],
     color: DARK_TEXT_SEVERITIES.has(shown)
@@ -75,15 +82,16 @@ export function LivePreview({
   levelHeading,
   outlook,
 }: LivePreviewProps) {
-  const band = bandStyle(severity, colour, outlook);
+  const catalogue = useGmsCatalogue();
+  const band = bandStyle(catalogue, severity, colour, outlook);
 
   return (
-    <div className="overflow-hidden rounded-xl border border-gm-border bg-card shadow-card">
-      <div className="flex items-center justify-between border-gm-border border-b bg-gm-surface px-4 py-2.5">
+    <div className="border-gm-border bg-card shadow-card overflow-hidden rounded-xl border">
+      <div className="border-gm-border bg-gm-surface flex items-center justify-between border-b px-4 py-2.5">
         <span className="text-gm-text-muted text-label leading-label">
           Public preview
         </span>
-        <span className="font-mono text-gm-text-muted text-micro leading-micro">
+        <span className="text-gm-text-muted text-micro leading-micro font-mono">
           weather.gaa.gd
         </span>
       </div>
@@ -98,7 +106,7 @@ export function LivePreview({
             ? levelHeading.toUpperCase()
             : `${severity.toUpperCase()} · ${urgency.toUpperCase()}`}
         </span>
-        <h3 className="mt-1 text-body-base leading-body-base">
+        <h3 className="text-body-base leading-body-base mt-1">
           {headline || "Untitled alert"}
         </h3>
       </motion.div>
@@ -112,15 +120,15 @@ export function LivePreview({
           </p>
         ) : null}
         {instruction ? (
-          <div className="rounded-md bg-gm-surface-panel px-3 py-2.5">
+          <div className="bg-gm-surface-panel rounded-md px-3 py-2.5">
             <p className="text-gm-sky-ink text-label leading-label">
               What to do
             </p>
-            <p className="mt-0.5 text-body-sm leading-body-sm">{instruction}</p>
+            <p className="text-body-sm leading-body-sm mt-0.5">{instruction}</p>
           </div>
         ) : null}
       </div>
-      <div className="border-gm-border border-t px-5 py-3 text-gm-text-muted text-micro leading-micro">
+      <div className="border-gm-border text-gm-text-muted text-micro leading-micro border-t px-5 py-3">
         Issued by <span className="font-semibold">{senderName}</span> ·{" "}
         {contact}
       </div>
@@ -138,13 +146,13 @@ function PreviewRow({
   value: string;
 }) {
   return (
-    <div className="flex gap-2 text-body-sm leading-body-sm">
-      <span className="w-16 flex-shrink-0 font-semibold text-gm-text-primary">
+    <div className="text-body-sm leading-body-sm flex gap-2">
+      <span className="text-gm-text-primary w-16 flex-shrink-0 font-semibold">
         {label}
       </span>
       <span
         className={
-          mono ? "font-mono text-gm-text-secondary" : "text-gm-text-secondary"
+          mono ? "text-gm-text-secondary font-mono" : "text-gm-text-secondary"
         }
       >
         {value || "Not set"}
@@ -177,14 +185,14 @@ export function ReadinessChecklist({
     { ok: isActualStatus, text: "Status is Actual (not a drill)" },
   ];
   return (
-    <div className="rounded-xl border border-gm-border bg-card p-4 shadow-card">
+    <div className="border-gm-border bg-card shadow-card rounded-xl border p-4">
       <span className="text-gm-text-muted text-label leading-label">
         Ready to submit
       </span>
       <ul className="mt-2.5 space-y-1.5">
         {items.map((item) => (
           <li
-            className="flex items-center gap-2 text-body-sm leading-body-sm"
+            className="text-body-sm leading-body-sm flex items-center gap-2"
             key={item.text}
             style={{
               color: item.ok

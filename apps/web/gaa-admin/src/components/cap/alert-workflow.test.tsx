@@ -1,6 +1,6 @@
 import { type CapAlertPublic, configureApiClient } from "@barrelsgd/api-client";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { fireEvent, screen, waitFor } from "@testing-library/react";
 import { HttpResponse, http } from "msw";
 import { setupServer } from "msw/node";
 import {
@@ -12,13 +12,14 @@ import {
   it,
   vi,
 } from "vitest";
+import { renderWithGmsCatalogue as render } from "@/test/with-gms-catalogue";
 import { AlertWorkflow } from "./alert-workflow";
 
 vi.mock("next/navigation", () => ({ useRouter: () => ({ refresh: vi.fn() }) }));
 const ID = "11111111-1111-4111-8111-111111111111";
 const URL = `http://localhost/api/v1/cap/alerts/${ID}`;
-const DRAFT_HINT = /Draft: request review\. Publishing needs an approval/;
-const REVIEW = /I have reviewed this saved alert/;
+const DRAFT_HINT = /Draft: request review\. Publishing needs an approval/u;
+const REVIEW = /I have reviewed this saved alert/u;
 const initial: CapAlertPublic = {
   id: ID,
   identifier: "GD-warning-1",

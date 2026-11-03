@@ -123,7 +123,7 @@ test("an unrelated Git range passes", (t) => {
   const result = check(repository, ["--base", base, "--head", head]);
 
   assert.equal(result.status, 0, result.stderr);
-  assert.match(result.stdout, /Blast-radius check passed/);
+  assert.match(result.stdout, /Blast-radius check passed/u);
 });
 
 test("a FastAPI contract change requires the committed OpenAPI document", (t) => {
@@ -136,10 +136,10 @@ test("a FastAPI contract change requires the committed OpenAPI document", (t) =>
   const result = check(repository, ["--base", base, "--head", head]);
 
   assert.equal(result.status, 1);
-  assert.match(result.stderr, /FastAPI contract companions/);
-  assert.match(result.stderr, /apps\/api\/fastapi\/src\/weather\/router\.py/);
-  assert.match(result.stderr, /apps\/api\/fastapi\/openapi\.json/);
-  assert.match(result.stderr, /Regenerate the committed OpenAPI document/);
+  assert.match(result.stderr, /FastAPI contract companions/u);
+  assert.match(result.stderr, /apps\/api\/fastapi\/src\/weather\/router\.py/u);
+  assert.match(result.stderr, /apps\/api\/fastapi\/openapi\.json/u);
+  assert.match(result.stderr, /Regenerate the committed OpenAPI document/u);
 });
 
 test("a FastAPI contract change requires generated API-client files", (t) => {
@@ -152,13 +152,13 @@ test("a FastAPI contract change requires generated API-client files", (t) => {
   const result = check(repository, ["--base", base, "--head", head]);
 
   assert.equal(result.status, 1);
-  assert.match(result.stderr, /FastAPI contract companions/);
+  assert.match(result.stderr, /FastAPI contract companions/u);
   assert.match(
     result.stderr,
-    /apps\/api\/fastapi\/src\/weather\/schemas\/request\.py/
+    /apps\/api\/fastapi\/src\/weather\/schemas\/request\.py/u
   );
-  assert.match(result.stderr, /packages\/api-client\/src\/gen\//);
-  assert.match(result.stderr, /pnpm generate:api-client/);
+  assert.match(result.stderr, /packages\/api-client\/src\/gen\//u);
+  assert.match(result.stderr, /pnpm generate:api-client/u);
 });
 
 test("a FastAPI contract change requires API contract documentation", (t) => {
@@ -171,10 +171,10 @@ test("a FastAPI contract change requires API contract documentation", (t) => {
   const result = check(repository, ["--base", base, "--head", head]);
 
   assert.equal(result.status, 1);
-  assert.match(result.stderr, /FastAPI contract companions/);
-  assert.match(result.stderr, /apps\/api\/fastapi\/src\/main\.py/);
-  assert.match(result.stderr, /docs\/api\/contracts\.md/);
-  assert.match(result.stderr, /update the API contract documentation/);
+  assert.match(result.stderr, /FastAPI contract companions/u);
+  assert.match(result.stderr, /apps\/api\/fastapi\/src\/main\.py/u);
+  assert.match(result.stderr, /docs\/api\/contracts\.md/u);
+  assert.match(result.stderr, /update the API contract documentation/u);
 });
 
 test("a complete FastAPI contract change passes", (t) => {
@@ -188,7 +188,7 @@ test("a complete FastAPI contract change passes", (t) => {
   const result = check(repository, ["--base", base, "--head", head]);
 
   assert.equal(result.status, 0, result.stderr);
-  assert.match(result.stdout, /Blast-radius check passed/);
+  assert.match(result.stdout, /Blast-radius check passed/u);
 });
 
 test("a committed OpenAPI change requires generated API-client files", (t) => {
@@ -199,10 +199,10 @@ test("a committed OpenAPI change requires generated API-client files", (t) => {
   const result = check(repository, ["--base", base, "--head", head]);
 
   assert.equal(result.status, 1);
-  assert.match(result.stderr, /OpenAPI-to-client sync/);
-  assert.match(result.stderr, /apps\/api\/fastapi\/openapi\.json/);
-  assert.match(result.stderr, /packages\/api-client\/src\/gen\//);
-  assert.match(result.stderr, /pnpm generate:api-client/);
+  assert.match(result.stderr, /OpenAPI-to-client sync/u);
+  assert.match(result.stderr, /apps\/api\/fastapi\/openapi\.json/u);
+  assert.match(result.stderr, /packages\/api-client\/src\/gen\//u);
+  assert.match(result.stderr, /pnpm generate:api-client/u);
 });
 
 test("an OpenAPI title-only correction passes staged and range checks", (t) => {
@@ -390,7 +390,7 @@ test("a description edit cannot hide a router or schema change", (t) => {
   const head = commit(repository);
   const result = check(repository, ["--base", base, "--head", head]);
   assert.equal(result.status, 1);
-  assert.match(result.stderr, /FastAPI contract companions/);
+  assert.match(result.stderr, /FastAPI contract companions/u);
 });
 
 test("description metadata must stay a plain literal", (t) => {
@@ -441,7 +441,7 @@ test("telemetry plus a route edit still requires contract companions", (t) => {
   const head = commit(repository);
   const result = check(repository, ["--base", base, "--head", head]);
   assert.equal(result.status, 1);
-  assert.match(result.stderr, /FastAPI contract companions/);
+  assert.match(result.stderr, /FastAPI contract companions/u);
 });
 
 test("telemetry does not exempt other router files", (t) => {
@@ -456,7 +456,7 @@ test("telemetry does not exempt other router files", (t) => {
   const head = commit(repository);
   const result = check(repository, ["--base", base, "--head", head]);
   assert.equal(result.status, 1);
-  assert.match(result.stderr, /FastAPI contract companions/);
+  assert.match(result.stderr, /FastAPI contract companions/u);
 });
 
 const WXPRODUCTS_ROUTER = `from src.dependencies import SessionDep
@@ -515,7 +515,7 @@ test("an advisory session fix with a response change still requires companions",
   const head = commit(repository);
   const range = check(repository, ["--base", base, "--head", head]);
   assert.equal(range.status, 1);
-  assert.match(range.stderr, /FastAPI contract companions/);
+  assert.match(range.stderr, /FastAPI contract companions/u);
 });
 
 test("the advisory session fix does not exempt other router files", (t) => {
@@ -532,7 +532,7 @@ test("the advisory session fix does not exempt other router files", (t) => {
   const head = commit(repository);
   const result = check(repository, ["--base", base, "--head", head]);
   assert.equal(result.status, 1);
-  assert.match(result.stderr, /src\/weather\/router\.py/);
+  assert.match(result.stderr, /src\/weather\/router\.py/u);
 });
 
 const JANITORIAL_ROUTER =
@@ -577,7 +577,7 @@ test("another janitorial route edit still requires contract companions", (t) => 
   const head = commit(repository);
   const result = check(repository, ["--base", base, "--head", head]);
   assert.equal(result.status, 1);
-  assert.match(result.stderr, /FastAPI contract companions/);
+  assert.match(result.stderr, /FastAPI contract companions/u);
 });
 
 const REQUEST_LOGGING_BEFORE = `from src.audit.router import router as audit_router
@@ -711,5 +711,193 @@ test("the sign-in visitor address fix with a response change still requires comp
   git(repository, "add", file);
   const staged = check(repository, ["--staged"]);
   assert.equal(staged.status, 1);
-  assert.match(staged.stderr, /FastAPI contract companions/);
+  assert.match(staged.stderr, /FastAPI contract companions/u);
+});
+
+const STARTUP_BEFORE = `from src import operational_metrics
+from src.audit.router import router as audit_router
+@asynccontextmanager
+async def lifespan(_app):
+    try:
+        yield
+    finally:
+        await close_engine()
+async def request_logging_middleware(request, call_next):
+    return await call_next(request)
+app = FastAPI(lifespan=lifespan)
+app.add_middleware(BaseHTTPMiddleware, dispatch=request_logging_middleware)
+app.include_router(audit_router, prefix="/api/v1")
+def custom_openapi():
+    return get_openapi(title="API", routes=app.routes)
+app.openapi = custom_openapi
+`;
+const STARTUP_AFTER = STARTUP_BEFORE.replace(
+  "from src import operational_metrics\n",
+  "from src import database as main_database\nfrom src import operational_metrics\n"
+)
+  .replace(
+    "        await close_engine()\n",
+    "        await close_engine()\n        await main_database.async_engine.dispose()\n"
+  )
+  .replace(
+    "async def request_logging_middleware(request, call_next):\n    return await call_next(request)\n",
+    "class RequestLoggingMiddleware:\n    def __init__(self, app):\n        self.app = app\n    async def __call__(self, scope, receive, send):\n        await self.app(scope, receive, send)\n"
+  )
+  .replace(
+    "app.add_middleware(BaseHTTPMiddleware, dispatch=request_logging_middleware)\n",
+    "app.add_middleware(RequestLoggingMiddleware)\n"
+  );
+for (const [name, extra, expected] of [
+  ["a lifespan and middleware rewrite passes", (source) => source, 0],
+  [
+    "a runtime edit plus a new router still requires companions",
+    (source) => `${source}app.include_router(new_router)\n`,
+    1,
+  ],
+  [
+    "a runtime edit cannot hide an OpenAPI customisation",
+    (source) => source.replace('title="API"', 'title="API v2"'),
+    1,
+  ],
+  [
+    "a runtime edit cannot hide a router prefix change",
+    (source) => source.replace('prefix="/api/v1"', 'prefix="/api/v2"'),
+    1,
+  ],
+]) {
+  test(`runtime-only startup: ${name}`, (t) => {
+    const file = "apps/api/fastapi/src/main.py";
+    const { base, repository } = createRepository(t, {
+      [file]: STARTUP_BEFORE,
+    });
+    write(repository, file, extra(STARTUP_AFTER));
+    git(repository, "add", file);
+    assert.equal(check(repository, ["--staged"]).status, expected);
+    const head = commit(repository);
+    assert.equal(
+      check(repository, ["--base", base, "--head", head]).status,
+      expected
+    );
+  });
+}
+
+const ROUTER = "apps/api/fastapi/src/cap/router.py";
+const ROUTER_BEFORE = `from fastapi import APIRouter, Query
+router = APIRouter()
+@router.get("/alerts")
+async def read_alerts(state: str | None = Query(default=None)):
+    return []
+`;
+const ROUTER_AFTER = ROUTER_BEFORE.replace(
+  "state: str | None = Query(default=None)",
+  "state: Annotated[str | None, Query()] = None"
+);
+for (const [name, message, files, expected] of [
+  [
+    "a declared unchanged contract passes the range check",
+    "refactor: annotated params\n\nAPI-Contract: unchanged\n",
+    {},
+    0,
+  ],
+  ["without the trailer the companions are still required", "refactor", {}, 1],
+  [
+    "the trailer is ignored when openapi.json itself changes",
+    "refactor\n\nAPI-Contract: unchanged\n",
+    { "apps/api/fastapi/openapi.json": '{"openapi":"3.1.0","paths":{}}\n' },
+    1,
+  ],
+  [
+    "the trailer must be a whole line",
+    "refactor\n\nNot API-Contract: unchanged really\n",
+    {},
+    1,
+  ],
+]) {
+  test(`declared contract: ${name}`, (t) => {
+    const { base, repository } = createRepository(t, {
+      [ROUTER]: ROUTER_BEFORE,
+      "apps/api/fastapi/openapi.json": '{"openapi":"3.1.0"}\n',
+    });
+    write(repository, ROUTER, ROUTER_AFTER);
+    for (const [file, contents] of Object.entries(files)) {
+      write(repository, file, contents);
+    }
+    const head = commit(repository, message);
+    assert.equal(
+      check(repository, ["--base", base, "--head", head]).status,
+      expected
+    );
+  });
+}
+
+test("declared contract: staged mode still requires companions", (t) => {
+  const { repository } = createRepository(t, { [ROUTER]: ROUTER_BEFORE });
+  write(repository, ROUTER, ROUTER_AFTER);
+  git(repository, "add", ROUTER);
+  assert.equal(check(repository, ["--staged"]).status, 1);
+});
+
+for (const [name, mutate] of [
+  [
+    "repointing a router alias",
+    (source) =>
+      source.replace(
+        "from src.audit.router import router as audit_router",
+        "from src.audit.router import public_router as audit_router"
+      ),
+  ],
+  [
+    "adding a route decorator to an exempt function",
+    (source) =>
+      source.replace(
+        "class RequestLoggingMiddleware:",
+        '@app.get("/x")\nclass RequestLoggingMiddleware:'
+      ),
+  ],
+  [
+    "an exempt function also used as a route dependency",
+    (source) =>
+      source.replace(
+        'app.include_router(audit_router, prefix="/api/v1")',
+        'app.include_router(audit_router, prefix="/api/v1", dependencies=[Depends(RequestLoggingMiddleware)])'
+      ),
+  ],
+]) {
+  test(`runtime-only startup cannot hide ${name}`, (t) => {
+    const file = "apps/api/fastapi/src/main.py";
+    const { base, repository } = createRepository(t, {
+      [file]: STARTUP_BEFORE,
+    });
+    write(repository, file, mutate(STARTUP_AFTER));
+    const head = commit(repository);
+    assert.equal(check(repository, ["--base", base, "--head", head]).status, 1);
+  });
+}
+
+test("declared contract: every commit touching routes needs the trailer", (t) => {
+  const { base, repository } = createRepository(t, {
+    [ROUTER]: ROUTER_BEFORE,
+    "apps/api/fastapi/openapi.json": '{"openapi":"3.1.0"}\n',
+  });
+  write(repository, ROUTER, ROUTER_AFTER);
+  commit(repository, "refactor\n\nAPI-Contract: unchanged\n");
+  write(
+    repository,
+    ROUTER,
+    `${ROUTER_AFTER}@router.get("/new")\nasync def new():\n    return []\n`
+  );
+  const head = commit(repository, "feat: add a route");
+  assert.equal(check(repository, ["--base", base, "--head", head]).status, 1);
+});
+
+test("declared contract: a trailer on an unrelated commit does not count", (t) => {
+  const { base, repository } = createRepository(t, {
+    [ROUTER]: ROUTER_BEFORE,
+    "apps/api/fastapi/openapi.json": '{"openapi":"3.1.0"}\n',
+  });
+  write(repository, ROUTER, ROUTER_AFTER);
+  commit(repository, "refactor");
+  write(repository, "README.md", "notes\n");
+  const head = commit(repository, "docs\n\nAPI-Contract: unchanged\n");
+  assert.equal(check(repository, ["--base", base, "--head", head]).status, 1);
 });

@@ -11,8 +11,8 @@ import type {
 } from "../models/AuthRegisterUser.js";
 
 /**
- * @description Create a new user account without authentication. Public endpoint for user registration.
- * @summary Register new user
+ * @description Retired (#958). This never creates a password account. It answers as the emailed-code start does (the same reply for every address) and sends a sign-in code, which creates the account on first use. Use /auth/email-code/start and /auth/email-code/verify.
+ * @summary Password sign-up (retired)
  * {@link /api/v1/auth/users/signup}
  */
 export function authRegisterUser<ThrowOnError extends boolean = true>(

@@ -232,3 +232,14 @@ class GrantConflictError(AppException):
             "Roles for this member changed at the same time; try again",
             status.HTTP_409_CONFLICT,
         )
+
+
+class GrantCascadeTooLargeError(AppException):
+    """The change would end more grants than the cascade may end in one action."""
+
+    def __init__(self, limit: int) -> None:
+        super().__init__(
+            f"This change would end more than {limit} roles at once. Split it into "
+            "smaller changes, or review the roles first.",
+            status.HTTP_409_CONFLICT,
+        )

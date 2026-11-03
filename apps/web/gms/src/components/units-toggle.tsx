@@ -47,9 +47,9 @@ export function UnitsToggle({
   return (
     <Button
       className={cn(
-        "min-w-11 px-2 font-semibold text-body-sm leading-body-sm",
+        "text-body-sm leading-body-sm min-w-11 px-2 font-semibold",
         tone === "masthead"
-          ? "h-11 text-gm-text-inverse hover:bg-gm-text-inverse/10 hover:text-gm-text-inverse focus-visible:ring-gm-lime"
+          ? "text-gm-text-inverse hover:bg-gm-text-inverse/10 hover:text-gm-text-inverse focus-visible:ring-gm-lime h-11"
           : "focus-visible:ring-gm-blue"
       )}
       onClick={toggle}

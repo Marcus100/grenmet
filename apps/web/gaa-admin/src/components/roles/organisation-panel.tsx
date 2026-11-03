@@ -39,7 +39,7 @@ export function OrganisationPanel() {
     data.missing_positions.length;
   return (
     <section className="space-y-4">
-      <h2 className="font-semibold text-xl">GAA organisation</h2>
+      <h2 className="text-xl font-semibold">GAA organisation</h2>
       <p>
         May 2026 establishment: {data.catalogue.units.length} units and{" "}
         {data.catalogue.positions.length} position types. GMS staff and roster
@@ -83,7 +83,7 @@ export function OrganisationPanel() {
       {data.catalogue.units.map((unit) => (
         <details className="rounded-lg border p-4" key={unit.id}>
           <summary className="cursor-pointer font-medium">{unit.name}</summary>
-          <p className="py-2 text-muted-foreground text-sm">
+          <p className="text-muted-foreground py-2 text-sm">
             Reports within:{" "}
             {data.catalogue.units.find((parent) => parent.id === unit.parent_id)
               ?.name ?? "Board of Directors"}
@@ -112,7 +112,7 @@ export function OrganisationPanel() {
                             parent.id === position.reports_to_position_id
                         )?.title ?? "Board of Directors"}
                         {position.additional_connection_id && (
-                          <span className="block text-muted-foreground">
+                          <span className="text-muted-foreground block">
                             Additional connection:{" "}
                             {
                               data.catalogue.positions.find(

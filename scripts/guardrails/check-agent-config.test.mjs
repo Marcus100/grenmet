@@ -23,10 +23,10 @@ const read = (relativePath) =>
   readFileSync(join(repoRoot, relativePath), "utf8");
 const resolve = (relativePath) => join(repoRoot, relativePath);
 
-const NEXT_HEADING = /\n## /;
-const TABLE_SEPARATOR_ROW = /^\|[\s-]+\|/;
-const BACKTICK_CELL = /`([^`]+)`/;
-const CODEX_BUDGET = /^project_doc_max_bytes\s*=\s*(\d+)/m;
+const NEXT_HEADING = /\n## /u;
+const TABLE_SEPARATOR_ROW = /^\|[\s-]+\|/u;
+const BACKTICK_CELL = /`([^`]+)`/u;
+const CODEX_BUDGET = /^project_doc_max_bytes\s*=\s*(\d+)/mu;
 
 /**
  * Extract `path` cells from the markdown table under `heading`, up to the
@@ -162,7 +162,7 @@ test("Codex instruction chain stays within the configured byte budget", () => {
  * lines, since we only need the substring, not full parsing).
  */
 function hookScriptReferences(source) {
-  const matches = source.matchAll(/\.claude\/hooks\/[\w.-]+/g);
+  const matches = source.matchAll(/\.claude\/hooks\/[\w.-]+/gu);
   return [...new Set([...matches].map((m) => m[0]))];
 }
 

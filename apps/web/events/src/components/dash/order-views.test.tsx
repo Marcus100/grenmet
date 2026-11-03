@@ -10,13 +10,13 @@ import { AttendeeList } from "./attendee-list";
 import { OrderDetail } from "./order-detail";
 import { OrderList } from "./order-list";
 
-const RE_1 = /Ana Tester/;
-const RE_2 = /Page 1 of 1/;
-const RE_3 = /2 × General/;
-const RE_4 = /No account email to show/;
-const RE_5 = /No tickets issued yet/;
-const RE_6 = /Not admitted yet/;
-const RE_7 = /Admitted /;
+const RE_1 = /Ana Tester/u;
+const RE_2 = /Page 1 of 1/u;
+const RE_3 = /2 × General/u;
+const RE_4 = /No account email to show/u;
+const RE_5 = /No tickets issued yet/u;
+const RE_6 = /Not admitted yet/u;
+const RE_7 = /Admitted /u;
 
 describe("OrderList", () => {
   it("lists orders with status words and links to the detail", () => {

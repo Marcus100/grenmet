@@ -18,7 +18,7 @@ import {
 import { Textarea } from "@barrelsgd/ui/components/ui/textarea";
 import { TriangleAlert } from "lucide-react";
 import { useState } from "react";
-import { ruleTitle, violationDates } from "./rule-codes";
+import { ruleTitle, violationDates, warningCountText } from "./rule-codes";
 
 const MIN_REASON = 3;
 
@@ -34,11 +34,15 @@ const ACTION_LABEL: Record<string, string> = {
 
 interface RuleOverrideDialogProps {
   busy?: boolean;
-  /** Display names keyed by user id; unknown ids show "Staff member". */
+  defaultLabel?: string;
+  /** Display names keyed by user id; unknown ids show ``defaultLabel``. */
   labels?: ReadonlyMap<string, string>;
   onCancel: () => void;
-  /** Resend the change with this reason. */
-  onConfirm: (reason: string) => void;
+  /**
+   * Resend the change with this reason. Return (or resolve to) false when the
+   * resend failed, so the typed reason is kept; anything else clears it.
+   */
+  onConfirm: (reason: string) => unknown;
   /** The 409 body; the dialog is open while this is set. */
   warnings: RosterRuleWarningsErrorPublic | null;
 }
@@ -50,6 +54,7 @@ interface RuleOverrideDialogProps {
 export function RuleOverrideDialog({
   warnings,
   labels,
+  defaultLabel = "Staff member",
   busy = false,
   onCancel,
   onConfirm,
@@ -64,15 +69,17 @@ export function RuleOverrideDialog({
     onCancel();
   }
 
-  function confirm() {
+  async function confirm() {
     const trimmed = reason.trim();
     if (trimmed.length < MIN_REASON) {
       setProblem("Give a reason of at least 3 characters.");
       return;
     }
-    onConfirm(trimmed);
-    setReason("");
-    setProblem(undefined);
+    const succeeded = await onConfirm(trimmed);
+    if (succeeded !== false) {
+      setReason("");
+      setProblem(undefined);
+    }
   }
 
   return (
@@ -84,9 +91,8 @@ export function RuleOverrideDialog({
     >
       <AlertDialogContent>
         <AlertDialogTitle className="flex items-center gap-2">
-          <TriangleAlert className="size-4 text-gm-risk-amber" />
-          {violations.length} roster rule{" "}
-          {violations.length === 1 ? "warning" : "warnings"}
+          <TriangleAlert className="text-gm-risk-amber size-4" />
+          {warningCountText(violations.length)}
         </AlertDialogTitle>
         <AlertDialogDescription>
           This change breaks the roster rules below. You can still save it, but
@@ -95,12 +101,12 @@ export function RuleOverrideDialog({
         </AlertDialogDescription>
         <ul
           aria-label="Rule warnings"
-          className="max-h-56 space-y-1 overflow-y-auto rounded-lg border border-gm-risk-amber/40 bg-gm-risk-amber/10 px-3 py-2 text-xs"
+          className="border-gm-risk-amber/40 bg-gm-risk-amber/10 max-h-56 space-y-1 overflow-y-auto rounded-lg border px-3 py-2 text-xs"
         >
           {violations.map((v) => (
             <li key={`${v.code}-${v.user_id}-${v.start_date}-${v.end_date}`}>
               <span className="font-medium">
-                {labels?.get(v.user_id) ?? "Staff member"}
+                {labels?.get(v.user_id) ?? defaultLabel}
               </span>{" "}
               · {ruleTitle(v.code)} · {violationDates(v)} ·{" "}
               <span className="text-muted-foreground">{v.detail}</span>

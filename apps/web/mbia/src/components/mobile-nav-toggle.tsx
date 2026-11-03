@@ -23,7 +23,7 @@ export function MobileNavToggle() {
         aria-expanded={open}
         aria-haspopup="dialog"
         aria-label="Open menu"
-        className="inline-flex size-9 items-center justify-center rounded-md text-gaa-navy hover:bg-secondary lg:hidden"
+        className="text-gaa-navy hover:bg-secondary inline-flex size-9 items-center justify-center rounded-md lg:hidden"
         onClick={() => {
           setMounted(true);
           setOpen(true);
