@@ -7,8 +7,10 @@ on:
   # No paths filter anywhere. Flow is dev → (PR) → staging → (PR) → main. Both
   # promotion PRs are integration gates, so a partial (path-filtered) run would
   # let backend contract/format drift through, and a required check that gets
-  # path-skipped deadlocks the PR. Running the full suite on every push and PR
-  # to a long-lived branch keeps the gates honest and safe to mark "required".
+  # path-skipped deadlocks the PR. Instead every job starts, and on dev PRs and
+  # dev pushes the image-selection job skips the suites for docs-only diffs
+  # and collectors for non-collector diffs; the gate jobs accept only those intended skips.
+  # Promotion PRs and main pushes always run everything.
   # No staging push trigger: pipeline-staging calls this workflow on staging
   # pushes (Phase 3c cutover), so a standalone run would be a duplicate.
   push:
@@ -48,6 +50,8 @@ jobs:
       weather: ${{ steps.select.outputs.weather }}
       api: ${{ steps.select.outputs.api }}
       surface: ${{ steps.select.outputs.surface }}
+      python: ${{ steps.select.outputs.python }}
+      collectors: ${{ steps.select.outputs.collectors }}
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
@@ -62,6 +66,8 @@ jobs:
 
   # Job 1: Code Quality Checks
   quality:
+    needs: [image-selection]
+    if: needs.image-selection.outputs.python == 'true'
     name: Code Quality
     runs-on: ubuntu-latest
     timeout-minutes: 10
@@ -106,6 +112,8 @@ jobs:
 
   # Job 2: Security Checks
   security:
+    needs: [image-selection]
+    if: needs.image-selection.outputs.python == 'true'
     name: Security Scan
     runs-on: ubuntu-latest
     timeout-minutes: 15
@@ -136,9 +144,12 @@ jobs:
   # Job 3: Tests, sharded across parallel jobs. Three file-aligned slices of the
   # suite (tests/sharding.py) and the Schemathesis fuzz suite (-m fuzz, deselected
   # by default in pyproject) each run on their own runner with their own Postgres
-  # service. Every test still runs on every push; only the wall time shrinks.
+  # service. Every test runs whenever the diff touches Python or an unknown path
+  # (scripts/ci/select-images.mjs selectJobs); sharding only shrinks wall time.
   # Each entry writes a coverage data file; `coverage` below combines them.
   test-shard:
+    needs: [image-selection]
+    if: needs.image-selection.outputs.python == 'true'
     name: API Tests (${{ matrix.name }})
     runs-on: ubuntu-latest
     timeout-minutes: 20
@@ -324,7 +335,7 @@ jobs:
   # kept so branch protection and ci-success keep resolving after the split.
   test:
     name: Run Tests
-    needs: [test-shard, coverage]
+    needs: [image-selection, test-shard, coverage]
     if: always()
     runs-on: ubuntu-latest
     timeout-minutes: 5
@@ -333,6 +344,17 @@ jobs:
         run: |
           echo "Test shards (incl. fuzz): ${{ needs.test-shard.result }}"
           echo "Coverage floor: ${{ needs.coverage.result }}"
+          echo "Python suites selected: ${{ needs.image-selection.outputs.python }}"
+          if [ "${{ needs.image-selection.result }}" != "success" ]; then
+            echo "ERROR Job selection failed"
+            exit 1
+          fi
+          if [ "${{ needs.image-selection.outputs.python }}" = "false" ] &&
+             [ "${{ needs.test-shard.result }}" = "skipped" ] &&
+             [ "${{ needs.coverage.result }}" = "skipped" ]; then
+            echo "SKIPPED No API or Python change in this diff"
+            exit 0
+          fi
           if [ "${{ needs.test-shard.result }}" != "success" ] ||
              [ "${{ needs.coverage.result }}" != "success" ]; then
             echo "ERROR A test shard, the fuzz suite or the coverage floor did not pass"
@@ -340,6 +362,8 @@ jobs:
           fi
 
   collectors:
+    needs: [image-selection]
+    if: needs.image-selection.outputs.collectors == 'true'
     name: Operational Collector Tests
     runs-on: ubuntu-latest
     timeout-minutes: 15
@@ -471,6 +495,8 @@ jobs:
   # Job 5: API Documentation Check
   # Note: no database service needed — app.openapi() reads route definitions only
   docs:
+    needs: [image-selection]
+    if: needs.image-selection.outputs.python == 'true'
     name: API Documentation
     runs-on: ubuntu-latest
     timeout-minutes: 10
@@ -568,17 +594,22 @@ jobs:
           echo "Docker: ${{ needs.docker.result }}"
           echo "SURFACE: ${{ needs.surface.result }} (selected: ${{ needs.image-selection.outputs.surface }})"
           echo "Docs: ${{ needs.docs.result }}"
+          echo "Selected: python=${{ needs.image-selection.outputs.python }} collectors=${{ needs.image-selection.outputs.collectors }}"
 
           if [ "${{ needs.image-selection.result }}" != "success" ] ||
-             [ "${{ needs.quality.result }}" != "success" ] || \
-             [ "${{ needs.security.result }}" != "success" ] || \
+             { [ "${{ needs.quality.result }}" != "success" ] &&
+               ! { [ "${{ needs.quality.result }}" = "skipped" ] && [ "${{ needs.image-selection.outputs.python }}" = "false" ]; }; } || \
+             { [ "${{ needs.security.result }}" != "success" ] &&
+               ! { [ "${{ needs.security.result }}" = "skipped" ] && [ "${{ needs.image-selection.outputs.python }}" = "false" ]; }; } || \
              [ "${{ needs.test.result }}" != "success" ] || \
-             [ "${{ needs.collectors.result }}" != "success" ] || \
+             { [ "${{ needs.collectors.result }}" != "success" ] &&
+               ! { [ "${{ needs.collectors.result }}" = "skipped" ] && [ "${{ needs.image-selection.outputs.collectors }}" = "false" ]; }; } || \
              { [ "${{ needs.docker.result }}" != "success" ] &&
                ! { [ "${{ needs.docker.result }}" = "skipped" ] && [ "${{ needs.image-selection.outputs.api }}" = "false" ]; }; } || \
              { [ "${{ needs.surface.result }}" != "success" ] &&
                ! { [ "${{ needs.surface.result }}" = "skipped" ] && [ "${{ needs.image-selection.outputs.surface }}" = "false" ]; }; } || \
-             [ "${{ needs.docs.result }}" != "success" ]; then
+             { [ "${{ needs.docs.result }}" != "success" ] &&
+               ! { [ "${{ needs.docs.result }}" = "skipped" ] && [ "${{ needs.image-selection.outputs.python }}" = "false" ]; }; }; then
             echo "ERROR One or more CI jobs failed"
             echo "🚫 CI pipeline failed - deployment blocked"
             exit 1
