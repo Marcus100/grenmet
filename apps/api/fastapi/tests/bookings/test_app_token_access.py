@@ -9,7 +9,6 @@ from datetime import UTC, datetime, timedelta
 import httpx
 import jwt
 import pytest
-from fastapi import HTTPException
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -18,6 +17,7 @@ from src.auth.config import auth_settings
 from src.auth.models import User
 from src.auth.utils import create_access_token
 from src.dependencies import get_current_user
+from src.exceptions import AppException
 from src.organisations import service as org_service
 from src.organisations.models import (
     Membership,
@@ -209,7 +209,7 @@ async def test_get_current_user_still_refuses_bookings_token(
     db_async: AsyncSession,
 ) -> None:
     user, _org = await _studio(db_async, MembershipRole.ADMIN)
-    with pytest.raises(HTTPException) as caught:
+    with pytest.raises(AppException) as caught:
         await get_current_user(db_async, _token(user, "bookings"))
     assert caught.value.status_code == 401
 

@@ -29,13 +29,13 @@ runs:
   steps:
     # Corepack comes with Node 24. Bootstrap pnpm before enabling setup-node's
     # pnpm cache, which needs the executable to determine the store location.
-    - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+    - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
       with:
         node-version: ${{ inputs.node-version }}
     - name: Bootstrap pinned pnpm with bounded retries
       shell: bash
       run: bash "${{ github.action_path }}/bootstrap-pnpm.sh"
-    - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+    - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
       with:
         node-version: ${{ inputs.node-version }}
         cache: pnpm

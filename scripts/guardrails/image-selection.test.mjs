@@ -17,6 +17,7 @@ import {
   changedPaths,
   selectCoverage,
   selectImages,
+  selectJobs,
   selectSurface,
   webImages,
 } from "../ci/select-images.mjs";
@@ -179,6 +180,7 @@ test("CLI selects all images when comparison history or event data is missing", 
       assert.deepEqual(outputs, {
         ...selectImages([], "full"),
         surface: true,
+        ...selectJobs([], "full"),
         coverage: selectCoverage([], "full").map(({ app, path }) => ({
           app,
           path,
@@ -295,4 +297,60 @@ test("CLI selects SURFACE from the diff in full mode and never for deployments",
   } finally {
     rmSync(dir, { recursive: true, force: true });
   }
+});
+
+const allJobs = {
+  python: true,
+  collectors: true,
+  webtests: true,
+  storage: true,
+};
+const noJobs = {
+  python: false,
+  collectors: false,
+  webtests: false,
+  storage: false,
+};
+test("documentation and agent-only changes skip every test suite", () => {
+  assert.deepEqual(
+    selectJobs([
+      "docs/deployment.md",
+      "README.md",
+      ".claude/skills/x/SKILL.md",
+    ]),
+    noJobs
+  );
+  assert.deepEqual(selectJobs(["surface/api/wx/models.py"]), noJobs);
+});
+test("docs read by tests and nested markdown still run the suites", () => {
+  assert.deepEqual(selectJobs(["docs/ports.md"]), allJobs);
+  assert.equal(selectJobs(["apps/api/fastapi/AGENTS.md"]).python, true);
+  assert.equal(
+    selectJobs(["apps/web/commit/content/posts/a.md"]).webtests,
+    true
+  );
+});
+test("API and web changes run both suites because their tests cross-read", () => {
+  for (const path of [
+    "packages/gms/src/sectors.ts",
+    "apps/web/bookings/src/app/x/page.tsx",
+    "apps/api/fastapi/src/cap/ibf.py",
+    "apps/api/fastapi/src/wxproducts/fields.json",
+  ]) {
+    const jobs = selectJobs([path]);
+    assert.equal(jobs.python && jobs.webtests && jobs.storage, true, path);
+    assert.equal(jobs.collectors, false, path);
+  }
+});
+test("collector, manifest and unknown paths run every suite", () => {
+  for (const path of [
+    "scripts/gms-ingest/ingest.py",
+    "uv.lock",
+    ".github/workflows/ci-api.yml",
+    "scripts/ci/select-images.mjs",
+    "package.json",
+  ])
+    assert.deepEqual(selectJobs([path]), allJobs, path);
+  assert.deepEqual(selectJobs(["docs/x.md"], "full"), allJobs);
+  assert.deepEqual(selectJobs(["docs/x.md"], "deployment"), allJobs);
 });

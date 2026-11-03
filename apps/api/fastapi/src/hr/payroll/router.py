@@ -3,10 +3,11 @@
 import uuid
 from typing import Annotated, Any
 
-from fastapi import APIRouter, Depends, HTTPException, Path, Query, Response, status
+from fastapi import APIRouter, Depends, Path, Query, Response, status
 from fastapi.concurrency import run_in_threadpool
 
 from src.dependencies import CurrentUser, SessionDep, TokenDep
+from src.exceptions import AppException
 from src.models import ApiError
 from src.utils.pdf_response import pdf_response
 
@@ -1027,8 +1028,8 @@ async def download_payslip_pdf(
     payslip_id: uuid.UUID,
 ) -> Response:
     if not await payslips.within_pdf_limit(current_user.id):
-        raise HTTPException(
-            status.HTTP_429_TOO_MANY_REQUESTS, "Too many payslip downloads; slow down"
+        raise AppException(
+            "Too many payslip downloads; slow down", status.HTTP_429_TOO_MANY_REQUESTS
         )
     slip = await payslips.readable_payslip(
         session, current_user, payslip_id, token=token

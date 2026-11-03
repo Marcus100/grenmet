@@ -5,11 +5,13 @@ import hmac
 from typing import Annotated
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException, Request, Response
+from fastapi import APIRouter, Depends, Request, Response
 from fastapi.security import APIKeyCookie, HTTPAuthorizationCredentials, HTTPBearer
 
+from src.auth.exceptions import SignInAgainError
 from src.config import settings
 from src.dependencies import SessionDep, get_authenticated_user, get_current_user
+from src.exceptions import AuthenticationError, AuthorizationError
 from src.models import BaseModel
 from src.openapi_responses import UNAUTHENTICATED
 
@@ -40,21 +42,21 @@ async def get_cookie_user(
     request: Request, session: SessionDep, secret: CookieSecret
 ) -> User:
     if not secret:
-        raise HTTPException(401, "Sign in again")
+        raise SignInAgainError()
     stored = await service.get_active_session_by_secret(
         session=session, session_secret=secret
     )
     # App-scoped sessions (ADR-0016) only work on their own app's routes,
     # mirroring get_current_user's refusal of app-claim tokens.
     if stored is None or apps.is_app_scoped(stored.app_name):
-        raise HTTPException(401, "Sign in again")
+        raise SignInAgainError()
     if request.method not in {"GET", "HEAD", "OPTIONS"}:
         supplied = request.headers.get("x-csrf-token", "")
         if not hmac.compare_digest(supplied.encode(), csrf_token(secret).encode()):
-            raise HTTPException(403, "Invalid CSRF token")
+            raise AuthorizationError("Invalid CSRF token")
         origin = request.headers.get("origin")
         if origin is not None and origin not in settings.all_cors_origins:
-            raise HTTPException(403, "Untrusted request origin")
+            raise AuthorizationError("Untrusted request origin")
     user = await get_authenticated_user(session, stored.user_id)
     from src.auth.privileged_mfa import require_privileged_mfa
 
@@ -71,7 +73,7 @@ async def get_browser_or_token_user(
     # Never downgrade a supplied invalid Authorization header to cookie credentials.
     if "authorization" in request.headers:
         if bearer is None:
-            raise HTTPException(401, "Invalid authorization header")
+            raise AuthenticationError("Invalid authorization header")
         return await get_current_user(session, bearer.credentials)
     return await get_cookie_user(request, session, secret)
 

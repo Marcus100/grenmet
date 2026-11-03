@@ -10,7 +10,7 @@ from collections.abc import Awaitable, Callable
 from typing import Annotated
 
 import jwt
-from fastapi import Depends, HTTPException, status
+from fastapi import Depends
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from jwt.exceptions import InvalidTokenError
 from pydantic import ValidationError
@@ -22,18 +22,15 @@ from src.auth.config import auth_settings
 from src.auth.models import User
 from src.auth.utils import ALGORITHM
 from src.dependencies import SessionDep
+from src.exceptions import AuthenticationError
 from src.models import TokenPayload
 
 _bearer = HTTPBearer(auto_error=False)
 OptionalBearer = Annotated[HTTPAuthorizationCredentials | None, Depends(_bearer)]
 
 
-def _unauthorized(detail: str = "Sign in again") -> HTTPException:
-    return HTTPException(
-        status_code=status.HTTP_401_UNAUTHORIZED,
-        detail=detail,
-        headers={"WWW-Authenticate": "Bearer"},
-    )
+def _unauthorized(detail: str = "Sign in again") -> AuthenticationError:
+    return AuthenticationError(detail, headers={"WWW-Authenticate": "Bearer"})
 
 
 async def user_for_app(
@@ -72,7 +69,7 @@ async def user_for_app(
     return user
 
 
-def unauthorized(detail: str = "Sign in again") -> HTTPException:
+def unauthorized(detail: str = "Sign in again") -> AuthenticationError:
     return _unauthorized(detail)
 
 

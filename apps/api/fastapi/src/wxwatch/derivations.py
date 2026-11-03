@@ -3,11 +3,11 @@
 import json
 from uuid import UUID
 
-from fastapi import HTTPException
 from pydantic import Field, JsonValue, model_validator
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from src.exceptions import AppException, AppValidationError
 from src.models import BaseModel, UtcDateTime
 
 from .catalogue import identifier
@@ -52,7 +52,7 @@ async def register(session: AsyncSession, body: DerivationInput) -> DerivationRe
             WHERE a.id=:id AND r.state='verified' AND r.verified_sha256=a.sha256 LIMIT 1"""),
             {"id": asset},
         ):
-            raise HTTPException(422, "Every asset must have a verified replica")
+            raise AppValidationError("Every asset must have a verified replica")
     cycle = await session.scalar(
         text("""WITH RECURSIVE descendants(id) AS (
         SELECT CAST(:output AS uuid) UNION
@@ -63,7 +63,7 @@ async def register(session: AsyncSession, body: DerivationInput) -> DerivationRe
         {"output": body.output_asset_id, "inputs": body.input_asset_ids},
     )
     if cycle:
-        raise HTTPException(409, "Derivation would create a lineage cycle")
+        raise AppException("Derivation would create a lineage cycle", 409)
     existing = (
         await session.execute(
             text("SELECT generated_at FROM archive_derivations WHERE id=:id"),
@@ -71,8 +71,8 @@ async def register(session: AsyncSession, body: DerivationInput) -> DerivationRe
         )
     ).first()
     if existing and existing.generated_at != body.generated_at:
-        raise HTTPException(
-            409, "Generation evidence conflicts with the registered derivation"
+        raise AppException(
+            "Generation evidence conflicts with the registered derivation", 409
         )
     await session.execute(
         text("""INSERT INTO archive_derivations
