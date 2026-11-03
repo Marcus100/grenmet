@@ -22,30 +22,47 @@ Promotion follows `dev → staging → main → release`. Use pull requests for 
 promotion; the user merges them and publishes the release. See the
 [release runbook](operations/release-runbook.md) for the full sequence.
 
-Target pipeline: build once on `dev`, promote the same digests to staging and
-production (issue #1019). It lands with PR #1026, on top of PR #1020 (parallel
-server deploy) and PR #1025 (web settings read at run time); until those merge,
-`origin/dev` still builds in `pipeline-staging.yml` and `pipeline-prod.yml`.
-Full description and recovery steps: [release runbook](operations/release-runbook.md#build-once-promote-by-digest).
+Images are built once, when a change lands on `dev`, and promoted by digest
+(issue #1019; full description and recovery steps in the
+[release runbook](operations/release-runbook.md#build-once-promote-by-digest)):
 
-- A push to `dev` runs `dev-images.yml` (lands with PR #1026). It builds,
-  smoke-tests and scans only the images the change touches and tags every image
-  `tree-<git tree>`; unchanged images reuse the previous tree's digest.
-- A push to `staging` runs `pipeline-staging.yml`. It builds nothing and does not
-  re-run CI: `scripts/ci/promote-images.mjs` finds the dev commit with the same
-  git tree, requires the required checks of `infra/github/rulesets.json` to have
-  passed on it, retags those digests `staging-sha-<commit>` and deploys them.
-  After a successful deploy they are tagged `staging-verified-tree-<tree>`.
+- A push to `dev` runs `dev-images.yml`: it builds, smoke-tests and scans only
+  the images the change touches and tags every release image `tree-<git tree>`;
+  unchanged images reuse the previous tree's digest. Dev builds use the `build`
+  GitHub environment for production's build-time Sentry values.
+- A push to `staging` runs `pipeline-staging.yml`. Staging is a merge of dev, so
+  its commit has the same git tree as the dev commit it came from.
+  `scripts/ci/promote-images.mjs` finds that dev commit, checks the required
+  status checks passed on it (`infra/github/rulesets.json`), retags the exact
+  `tree-<tree>` digests as `staging-sha-<commit>` and deploys them. Nothing is
+  rebuilt or re-tested. After a successful deploy (smoke tests included) the
+  digests are tagged `staging-verified-tree-<tree>`.
 - Merging to `main` does not build deployment images or deploy production.
 - Publishing a release runs `pipeline-prod.yml`: it promotes only the
-  `staging-verified-tree-<tree>` digests of the release commit's tree (it fails
-  if staging never deployed that tree), tags them `production-sha-<commit>` and
-  deploys. Production therefore runs byte-identical images to staging.
+  `staging-verified-tree-<tree>` digests for the release commit's tree, so
+  production runs exactly what staging ran, and fails if staging never deployed
+  that tree. `latest` and the release tag move after the production deploy.
 - `core.sh` refuses any image whose digest is not in the promotion's list
-  (`DEPLOY_IMAGE_DIGESTS`, from the `image_digests` input of `deploy.yml`).
+  (`DEPLOY_IMAGE_DIGESTS`).
+- Promotion checks, before any retag: the required checks passed by the same
+  GitHub App the dev ruleset names (rules read from the dev commit), and every
+  image's `org.opencontainers.image.revision` label names the promoted dev
+  commit or an ancestor of it that itself passed the required checks, and its
+  `gd.barrels.tree` label is that commit's tree (a reused image keeps the labels
+  of the commit that built it). Only `dev-images.yml` can write `tree-*` tags.
+  Known gap: build provenance is a BuildKit attestation inside the image, not a
+  GitHub artifact attestation, so `gh attestation verify` does not apply;
+  integrity rests on registry write access, the labels and the digest list.
+- If the dev images for a tree are missing, the staging pipeline dispatches
+  `dev-images.yml` for that commit and waits (see the release runbook).
+- The `build` GitHub environment needs the secrets `SENTRY_AUTH_TOKEN`,
+  `SENTRY_DSN_PRODUCTION` and `SENTRY_DSN_STAGING`. A dev web build fails when
+  the catalogue routes the app to Sentry but the DSN is empty (admin is not
+  routed yet and is skipped).
 - Server deploy speed (lands with PR #1020): `core.sh` pulls only images missing
   on the host (`PULL_PARALLEL`, default 4) and, with `ROLLING_DEPLOY=1`, rolls
-  routed services in batches (`ROLLOUT_PARALLEL`, default 4).
+  routed services in batches (`ROLLOUT_PARALLEL`, default 4 on staging, 2 on
+  production).
 - A manual **Deploy** dispatch redeploys existing images; it does not build them.
   Supply an explicit image tag. The **Deploy to Production** entry point requires it.
 

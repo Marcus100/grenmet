@@ -1,14 +1,15 @@
 name: Production Pipeline
 
-# Phase 3d: publishing a vN.M release builds ALL images at that tag and then
-# deploys production — one `needs:` chain, no GHCR manifest-polling (the old
-# deploy-prod race guard), no workflow_run indirection. Release events execute
-# the workflow file from the TAGGED commit, so this behaves like the staging
-# pipeline: what you tagged is what runs.
+# Build once, promote by digest (issue #1019). Publishing a vN.M release deploys
+# the exact image digests staging deployed and accepted for the same git tree
+# (`staging-verified-tree-<tree>`, set by pipeline-staging.yml). Nothing is
+# rebuilt or re-tested: the required checks already ran on the dev commit
+# (verified again here) and on the staging → main pull request. Release events
+# execute the workflow file from the TAGGED commit.
 #
-# Re-deploying an EXISTING release (rollback or retry) does not need builds:
-# use the "Deploy" workflow's manual dispatch with environment=production and
-# the release tag instead.
+# Re-deploying an EXISTING release (rollback or retry) does not need this
+# pipeline: use the "Deploy" workflow's manual dispatch with environment=production
+# and the release tag instead (docs/operations/release-runbook.md).
 
 on:
   release:
@@ -32,60 +33,68 @@ jobs:
           WEATHER_PRODUCTION_ENABLED: ${{ vars.WEATHER_PRODUCTION_ENABLED }}
         run: node scripts/ci/check-release-scope.mjs
 
-  ci-api:
-    uses: ./.github/workflows/ci-api.yml
-    with:
-      deployment-builds: true
-    secrets: inherit
-    permissions:
-      packages: read
-      contents: read
-      security-events: write
-  ci-web:
-    uses: ./.github/workflows/ci-web.yml
-    with:
-      deployment-builds: true
-    secrets: inherit
-    permissions:
-      contents: read
-      packages: read
-      id-token: write # lets ci-web request the short-lived cache token (ADR-0053)
-
-  api-client:
-    uses: ./.github/workflows/ci-api-client.yml
-    secrets: inherit
-
-  build-api:
-    name: Build API image
-    uses: ./.github/workflows/build-api-image.yml
-    with:
-      tag: ${{ github.event.release.tag_name }}
-    secrets: inherit
+  promote:
+    name: Promote staging-verified images
+    runs-on: ubuntu-latest
+    # Only a published release on a vN.M tag can move production tags.
+    if: github.event_name == 'release' && startsWith(github.ref, 'refs/tags/v')
     permissions:
       contents: read
       packages: write
-      security-events: write
-
-  build-web:
-    name: Build web images
-    uses: ./.github/workflows/build-web-images.yml
-    with:
-      tag: ${{ github.event.release.tag_name }}
-    secrets: inherit
-    permissions:
-      contents: read
-      packages: write
-      security-events: write
+      checks: read
+    outputs:
+      digests: ${{ steps.promote.outputs.digests }}
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.3.1
+        with:
+          fetch-depth: 0
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@81c6f93d4bc991e510b342a00b419b3bb4efc5c6 # v4.7.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - id: promote
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: node scripts/ci/promote-images.mjs promote production
+      - name: Require promoted digests
+        env:
+          DIGESTS: ${{ steps.promote.outputs.digests }}
+        run: |
+          [[ -n "${DIGESTS//[[:space:]]/}" ]] || { echo "::error::Promotion produced no image digests"; exit 1; }
 
   deploy:
     name: Deploy
-    # Checks and smoke-tested artifacts must all succeed before deployment.
-    needs: [release-scope, ci-api, ci-web, api-client, build-api, build-web]
+    needs: [release-scope, promote]
+    if: ${{ needs.promote.outputs.digests != '' }}
     uses: ./.github/workflows/deploy.yml
     with:
       environment: production
       image_tag: sha-${{ github.sha }}
+      image_digests: ${{ needs.promote.outputs.digests }}
     secrets: inherit
     permissions:
       contents: read
       packages: read
+
+  # `latest` and the release tag move only after production accepted the release.
+  publish-tags:
+    name: Tag released images
+    needs: [promote, deploy]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.3.1
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@81c6f93d4bc991e510b342a00b419b3bb4efc5c6 # v4.7.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - env:
+          RELEASE_TAG: ${{ github.event.release.tag_name }}
+          DEPLOY_IMAGE_DIGESTS: ${{ needs.promote.outputs.digests }}
+        run: node scripts/ci/promote-images.mjs publish-release

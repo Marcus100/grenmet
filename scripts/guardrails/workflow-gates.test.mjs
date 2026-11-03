@@ -206,44 +206,57 @@ test("publishing follows successful smoke verification on the same builder", () 
   }
 });
 
-test("deployment waits for code checks and verified core builds without cancellation", () => {
+test("deployment promotes verified dev images without rebuilding or cancellation", () => {
   for (const workflow of ["pipeline-staging.yml", "pipeline-prod.yml"]) {
     const source = readWorkflow(workflow);
-    const deploy = source
-      .split("\n  deploy:\n")[1]
-      .split("\n  deploy-weather:")[0];
+    const deploy = source.split("\n  deploy:\n")[1].split(NEXT_JOB)[0];
+    assert.ok(deploy.includes("needs: [release-scope, promote]"), workflow);
     assert.ok(
-      deploy.includes(
-        "needs: [release-scope, ci-api, ci-web, api-client, build-api, build-web]"
-      )
+      deploy.includes("image_digests:") &&
+        deploy.includes("needs.promote.outputs.digests"),
+      workflow
     );
     assert.ok(source.includes("cancel-in-progress: false"));
-    assert.equal(source.includes("build-weather-images.yml"), false);
-    assert.equal(source.includes("deploy-weather.yml"), false);
+    // Build once (issue #1019): promotion never builds or re-runs CI.
+    for (const forbidden of [
+      "build-api-image.yml",
+      "build-web-images.yml",
+      "ci-api.yml",
+      "ci-web.yml",
+      "build-weather-images.yml",
+      "deploy-weather.yml",
+    ])
+      assert.equal(
+        source.includes(forbidden),
+        false,
+        `${workflow}: ${forbidden}`
+      );
+    assert.ok(
+      source.includes("node scripts/ci/promote-images.mjs promote "),
+      workflow
+    );
   }
+  const dev = readWorkflow("dev-images.yml");
+  assert.ok(dev.includes("uses: ./.github/workflows/build-api-image.yml"));
+  assert.ok(dev.includes("uses: ./.github/workflows/build-web-images.yml"));
+  assert.ok(dev.includes("cancel-in-progress: false"));
 });
 
 const NEXT_JOB = /\n {2}[a-z][a-z-]*:/u;
 const REGISTRY_READ = /\n {6}packages: read\n/u;
 const REGISTRY_WRITE = /packages: write/u;
 
-test("release callers grant registry read permission required by reusable CI", () => {
+test("only promotion jobs can write to the registry, and deploy only reads", () => {
   for (const pipeline of ["pipeline-staging.yml", "pipeline-prod.yml"]) {
     const source = readWorkflow(pipeline);
-    for (const job of ["ci-api", "ci-web"]) {
-      const block = source.split(`  ${job}:\n`)[1]?.split(NEXT_JOB)[0];
-      assert.ok(block, `${pipeline}: missing ${job}`);
-      assert.match(
-        block,
-        REGISTRY_READ,
-        `${pipeline}: ${job} must allow registry reads`
-      );
-      assert.doesNotMatch(
-        block,
-        REGISTRY_WRITE,
-        `${pipeline}: CI must not publish`
-      );
-    }
+    const deploy = source.split("\n  deploy:\n")[1]?.split(NEXT_JOB)[0];
+    assert.ok(deploy, `${pipeline}: missing deploy`);
+    assert.match(deploy, REGISTRY_READ, `${pipeline}: deploy reads images`);
+    assert.doesNotMatch(
+      deploy,
+      REGISTRY_WRITE,
+      `${pipeline}: deploy must not publish`
+    );
   }
 });
 
@@ -304,4 +317,24 @@ test("database services authenticate during initialization before job steps run"
     assert.match(services, DOCKERHUB_USERNAME, workflow);
     assert.match(services, DOCKERHUB_TOKEN, workflow);
   }
+});
+
+test("promotion jobs are ref-guarded and refuse an empty digest list", () => {
+  const staging = readWorkflow("pipeline-staging.yml");
+  const prod = readWorkflow("pipeline-prod.yml");
+  const stagingPromote = staging.split("\n  promote:\n")[1].split(NEXT_JOB)[0];
+  const prodPromote = prod.split("\n  promote:\n")[1].split(NEXT_JOB)[0];
+  assert.ok(stagingPromote.includes("if: github.ref == 'refs/heads/staging'"));
+  assert.ok(prodPromote.includes("github.event_name == 'release'"));
+  assert.ok(prodPromote.includes("startsWith(github.ref, 'refs/tags/v')"));
+  for (const source of [staging, prod]) {
+    assert.ok(source.includes("Require promoted digests"));
+    assert.ok(source.includes("needs.promote.outputs.digests != ''"));
+  }
+});
+
+test("the dev image dispatch only builds commits that are on dev", () => {
+  const dev = readWorkflow("dev-images.yml");
+  assert.ok(dev.includes("git merge-base --is-ancestor"));
+  assert.ok(dev.includes("origin/dev"));
 });
