@@ -106,9 +106,20 @@ jobs:
           : "${AWS_ACCESS_KEY_ID:?Add DO_SPACES_READ_ACCESS_KEY_ID to the production-backup environment}"
           : "${AWS_SECRET_ACCESS_KEY:?Add DO_SPACES_READ_SECRET_ACCESS_KEY to the production-backup environment}"
 
+      # The release under test: its commit selects the API image for the optional API
+      # check. The drill tooling does not come from here (see the next step).
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.3.1
         with:
           ref: ${{ needs.heads.outputs.ref }}
+
+      # The drill script and its floors come from the ref this workflow was dispatched
+      # on, not from the release tag. Otherwise a fix to the drill (for example the
+      # PostgreSQL 18 start) could not be tried until the next release, and the drill
+      # would keep running the old script.
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.3.1
+        with:
+          ref: ${{ github.sha }}
+          path: drill-tooling
 
       - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
@@ -151,9 +162,9 @@ jobs:
           if [[ "$DRILL_API_CHECK" == true ]]; then
             api_flags=(--api-check --api-image "$DRILL_API_IMAGE")
           fi
-          python3 scripts/production/restore-drill.py "$DRILL_ENVIRONMENT" \
+          python3 drill-tooling/scripts/production/restore-drill.py "$DRILL_ENVIRONMENT" \
             --heads heads.json \
-            --floors docs/operations/restore-drill-floors.json \
+            --floors drill-tooling/docs/operations/restore-drill-floors.json \
             --image "$DRILL_IMAGE" \
             --result-file restore-drill-result.json \
             "${api_flags[@]}"
