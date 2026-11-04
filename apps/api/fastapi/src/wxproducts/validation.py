@@ -28,8 +28,13 @@ ISSUE_HOURS = {"morning": 7, "midday": 12, "evening": 18}
 # Forecasts that import the CAP alerts and GMS bulletins in force when saved or
 # previewed (`advisories.snapshot`). Marine Forecast is a forecast too, but it
 # keeps its own 05:00 schedule (`_marine_schedule`), so it is not in ISSUE_HOURS
-# (land-forecast selection, expiry and overdue sweeps read that).
+# (land-forecast selection and expiry read that; the overdue sweep reads
+# DAILY_ISSUE_HOURS, which adds marine at 05:00).
 ADVISORY_KINDS = frozenset({*ISSUE_HOURS, "marine-forecast"})
+MARINE_ISSUE_HOUR = 5
+# Every forecast issued once a day, with its Grenada issue hour. The overdue
+# sweep reads this; ISSUE_HOURS stays land-only (selection, expiry, file names).
+DAILY_ISSUE_HOURS = {**ISSUE_HOURS, "marine-forecast": MARINE_ISSUE_HOUR}
 # Scheduled products outside the land-forecast set: drafted ahead of the
 # issue time, so a future issue time may be published.
 SCHEDULED_KINDS = {*ISSUE_HOURS, "marine-forecast"}
@@ -232,7 +237,9 @@ def _marine_schedule(result: dict[str, str]) -> dict[str, str]:
     """Marine Forecast: issued 05:00 Grenada, valid 05:00 to 05:00 next day."""
     result["area"] = MARINE_FORECAST_AREA
     try:
-        issued = local_time(f"{result.get('issuedAt', '')[:10]}T05:00")
+        issued = local_time(
+            f"{result.get('issuedAt', '')[:10]}T{MARINE_ISSUE_HOUR:02}:00"
+        )
     except ValueError, OverflowError:
         return result
     result.update(
