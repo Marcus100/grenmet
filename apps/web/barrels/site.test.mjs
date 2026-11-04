@@ -20,6 +20,8 @@ const PACKAGE_HEADING = /<h2 id="package-[\w-]+">([^<]+)<\/h2>/gu;
 const H1_TAG = /<h1>/gu;
 const CSS_VARIABLE = /var\((--[\w-]+)\)/gu;
 const NEWSLETTER_LABEL = /<label for="newsletter-email">/u;
+const GOOGLE_TAG_MANAGER = /googletagmanager/iu;
+const CLOUDFLARE_CHALLENGES = /challenges\.cloudflare\.com/iu;
 const PAGES = [
   "index.html",
   "services/index.html",
@@ -38,12 +40,16 @@ const hostsIn = (text) =>
     .filter((candidate) => URL.canParse(candidate, "https://base.invalid"))
     .map((candidate) => new URL(candidate, "https://base.invalid").hostname);
 
-// Source tokens of one CSP directive, e.g. connect-src -> ["https://a.example", ...].
+// Whether any URL in a text has exactly this host.
+const mentionsHost = (text, host) =>
+  hostsIn(text).some((found) => found === host);
+
+// Source tokens of one CSP directive (name in lower case), e.g. connect-src -> ["https://a.example", ...].
 const directiveSources = (csp, name) => {
   const part = csp
     .split(";")
     .map((entry) => entry.trim())
-    .find((entry) => entry.split(WHITESPACE)[0] === name);
+    .find((entry) => entry.split(WHITESPACE)[0].toLowerCase() === name);
   return part ? part.split(WHITESPACE).slice(1) : [];
 };
 // Whether a CSP source list allows exactly this origin (scheme, host and port).
@@ -59,12 +65,20 @@ test("holding page ships accessible content and only local analytics wiring", ()
   assert.ok(html.includes('href="https://eugine.me/"'));
   assert.ok(html.includes("Built by Eugine Whint"));
   assert.ok(html.includes('src="/analytics.mjs"'));
+  // Positive control: the URL parser must still find the links it should.
   assert.ok(
-    !hostsIn(html).some((host) =>
-      ["googletagmanager.com", "www.googletagmanager.com"].includes(host)
+    mentionsHost(html, "eugine.me"),
+    "URL parser finds the byline link"
+  );
+  assert.ok(
+    !(
+      mentionsHost(html, "googletagmanager.com") ||
+      mentionsHost(html, "www.googletagmanager.com")
     ),
     "holding page never loads Google Tag Manager directly"
   );
+  // Loose guard: no mention of the name at all, however it is written.
+  assert.doesNotMatch(html, GOOGLE_TAG_MANAGER);
   // Privacy popup starts hidden; analytics.mjs reveals it only where
   // optional analytics is configured.
   assert.ok(html.includes('aria-label="Privacy settings"'));
@@ -232,11 +246,9 @@ test("CSP allows Cloudflare Turnstile for scripts, frames and connections only",
       ),
       `${name} allows Turnstile`
     );
-  assert.ok(
-    !directiveSources(csp, "style-src").some((source) =>
-      source.includes("cloudflare")
-    )
-  );
+  const styleSources = directiveSources(csp, "style-src");
+  assert.ok(styleSources.length > 0, "style-src directive is present");
+  assert.ok(!styleSources.some((source) => source.includes("cloudflare")));
   assert.ok(csp.includes("default-src 'none'"));
 });
 
@@ -247,8 +259,11 @@ test("forms send a Turnstile token only when a site key is configured", () => {
   assert.ok(forms.includes("challenges.cloudflare.com/turnstile/v0/api.js"));
   assert.ok(forms.includes("render=explicit"));
   // The script is loaded from forms.mjs, never from a page.
-  for (const page of PAGES)
-    assert.ok(!hostsIn(read(page)).includes("challenges.cloudflare.com"), page);
+  for (const page of PAGES) {
+    const html = read(page);
+    assert.ok(!mentionsHost(html, "challenges.cloudflare.com"), page);
+    assert.doesNotMatch(html, CLOUDFLARE_CHALLENGES, page);
+  }
 });
 
 test("the site key is written at build time and defaults to none", () => {
