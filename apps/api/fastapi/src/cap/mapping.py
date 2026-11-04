@@ -6,6 +6,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
+from src.cap.common import feed_grace_ends_at, feed_grace_expired, is_plain_http
 from src.cap.exceptions import (
     CapAlertNotFoundError,
 )
@@ -14,18 +15,21 @@ from src.cap.models import (
     CapAlert,
     CapArea,
     CapCategory,
+    CapFeedImport,
     CapInfo,
     CapPredefinedArea,
 )
 from src.cap.schemas import (
     CapAlertPublic,
     CapAreaPublic,
+    CapFeedImportPublic,
     CapInfoPublic,
     CapNameValue,
     CapPredefinedAreaPublic,
     CapReferencePublic,
     CapResourcePublic,
 )
+from src.utils.datetime import utc_now
 
 
 def _as_categories(values: list[str]) -> list[CapCategory]:
@@ -184,3 +188,17 @@ def _predefined_area_to_public(area: CapPredefinedArea) -> CapPredefinedAreaPubl
         created_at=area.created_at,
         updated_at=area.updated_at,
     )
+
+
+def feed_to_public(feed: CapFeedImport) -> CapFeedImportPublic:
+    """A feed row with its plain-http grace state worked out at read time."""
+    public = CapFeedImportPublic.model_validate(feed, from_attributes=True)
+    if not is_plain_http(feed.url):
+        # A stale flag on a feed that is now https is not shown.
+        public.insecure_since = None
+        public.grace_ends_at = None
+        public.grace_expired = False
+        return public
+    public.grace_ends_at = feed_grace_ends_at(feed.insecure_since)
+    public.grace_expired = feed_grace_expired(feed.insecure_since, utc_now())
+    return public

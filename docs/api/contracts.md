@@ -367,12 +367,14 @@ were removed. A write that still carries them (the desk posts stored values back
 has them ignored, not rejected: the new revision never stores them, while
 revisions already saved keep them and print them read-only as "Small craft (as
 recorded)". Any other unknown key is still refused ("Unknown product field"). A
-saved revision that never captured advisories prints "Alerts were not captured for
-this revision" instead of "No CAP alerts or GMS bulletins were in force". Entry and display use
-mph for wind and feet for waves and swell; storage stays in knots and metres.
-The PDF (`GET /wxproducts/products/{id}/revisions/{revision}/pdf`, and the draft
-preview) has a marine sheet: synopsis, winds, seas, alerts and advisories in
-force, and outlook.
+saved revision that never captured advisories prints "Alerts were not captured
+for this revision" instead of "No CAP alerts or GMS bulletins were in force".
+Entry and display use mph for wind and feet for waves and swell; storage stays
+in knots and metres. The PDF (`GET /wxproducts/products/{id}/revisions/{revision}/pdf`,
+and the draft preview) has a marine sheet: synopsis, winds, seas, alerts and
+advisories in force, and outlook. A kind with no sheet layout answers 422 with
+the detail "No PDF layout exists for product kind ..."; the route's documented
+422 stays the generic validation-error shape (no separate schema is declared).
 
 **Climate Bulletin** (`climate-bulletin`, title "Grenada National Climate Bulletin" on the
 PDF). Monthly, issued on the 15th, reviewing the month before. `month` is
@@ -1492,7 +1494,7 @@ unsaved view (`attendance_id` null) until the punch is approved. Terminal punche
 
 | Endpoint | Permission | Purpose |
 | --- | --- | --- |
-| `GET /api/v1/hr/rosters/public-holidays` | `roster.view` | List holidays, optionally by `year` |
+| `GET /api/v1/hr/rosters/public-holidays` | `roster.view` | List holidays, optionally by `year` (2000-2100; outside that range returns 422) |
 | `POST /api/v1/hr/rosters/public-holidays` | global `roster.manage` | Add a holiday (optional `source`, `needs_verification`) |
 | `PUT /api/v1/hr/rosters/public-holidays/{holiday_id}` | global `roster.manage` | Edit name, date, source or verification flag; a date already in use returns 400 |
 | `POST /api/v1/hr/rosters/public-holidays/provisional` | global `roster.manage` | Add the provisional Grenada calendar for `year` (2000-2100), skipping dates already present; rows carry `source` "provisional - verify with GAA HR" |
@@ -1600,7 +1602,7 @@ A normal publish checks the generated XML against the official OASIS CAP 1.2 sch
 
 `POST /api/v1/cap/alerts/{id}/updates` (permission `cap.alert.create`) starts an Update of a published Alert or Update: a Draft with `msg_type: Update` that copies the content, keeps the status, sender and scope, and references the original (its stored `sent`, exactly). It goes through the normal approval; publishing it supersedes the original. 201 for a new draft, 200 with the existing one when an Update of that alert is already being prepared (draft, submitted or approved). 409 when the alert is not published, is not an Alert or Update, or was imported; 422 when it does not follow the CAP 1.2 schema. The original's audit trail records `update_started`.
 
-CAP feed sources (`POST /api/v1/cap/feeds`, `PATCH /api/v1/cap/feeds/{id}`, permission `cap.feed.manage`) accept only an https URL with a host and no credentials, and no literal private or local host. The check runs at save and does no DNS lookup. A refused URL is a 422 with one generic message that does not name the host. A feed's `last_error` is a generic class message (`host refused`, `could not fetch` or `ingest failed`); the detail is in the server log.
+CAP feed sources (`POST /api/v1/cap/feeds`, `PATCH /api/v1/cap/feeds/{id}`, permission `cap.feed.manage`) accept only an https URL on port 443 (an explicit `:443` is fine) with a host and no credentials, and no literal private or local host. `PATCH` checks the URL only when it changes. A feed saved on plain http earlier is flagged (`insecure_since`, `grace_ends_at`, `grace_expired` on `CapFeedImportPublic`), keeps being fetched for 14 days from the flag, then is skipped (`last_error` `plain http no longer allowed`) and not deleted. The check runs at save and does no DNS lookup. A refused URL is a 422 with one generic message that does not name the host. A feed's `last_error` is a generic class message (`host refused`, `could not fetch` or `ingest failed`); the detail is in the server log.
 `PATCH /api/v1/cap/settings` accepts `web` only as one https address and `contact` only as plain text (no control characters, line breaks or angle brackets); other values are a 422. Settings changes are recorded in the CAP audit trail as changed field names with old and new values, except `signing_certificate_ref`, which is masked.
 
 An import (`POST /api/v1/cap/alerts/import`, feeds too) is refused only when it is malformed XML or contains a DTD (400). Any other problem is stored: `schema_conformant: false`, with every problem in `schema_error`. An import changed to be storable is flagged the same way and lists each change. `import_source` is `feed` or `manual`. Publishing an imported alert, normally or in an emergency, needs `confirm_imported: true` in the request body (409 without it). Save-time checks (422, naming the value): a `responseType` outside the nine CAP values, a `language` that is not an xs:language tag, a `web` address with spaces, quotes or angle brackets, a character XML cannot carry (vertical tab and form feed become newlines), and a non-finite altitude, ceiling or coordinate. The import body is capped at 5 MB.

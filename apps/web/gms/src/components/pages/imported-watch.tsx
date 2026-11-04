@@ -7,7 +7,8 @@ import { importedWatch } from "@/lib/weather-pages";
  * has nothing in force.
  */
 export function ImportedWatch({ advisories }: { advisories?: string }) {
-  const lines = importedWatch(advisories) ?? [];
+  // Two alerts can produce the same line; list it once (as the land forecasts do).
+  const lines = [...new Set(importedWatch(advisories) ?? [])];
   if (lines.length === 0) return null;
   return (
     <section aria-label="What to watch" className="space-y-1">

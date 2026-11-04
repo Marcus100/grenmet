@@ -11,6 +11,7 @@ import { Input } from "@barrelsgd/ui/components/ui/input";
 import { Label } from "@barrelsgd/ui/components/ui/label";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { FeedSecurityFlag } from "@/components/cap/feed-security-flag";
 
 function FeedForm({ feed }: { feed?: CapFeedImportPublic }) {
   const router = useRouter();
@@ -85,6 +86,7 @@ function FeedForm({ feed }: { feed?: CapFeedImportPublic }) {
           required
           type="url"
         />
+        {feed ? <FeedSecurityFlag feed={feed} /> : null}
         {feed ? (
           <p>
             Status: {feed.status} · Last checked:{" "}
