@@ -11,7 +11,10 @@ import {
 import type { Route } from "next";
 import Image from "next/image";
 import Link from "next/link";
-import { SectorDeskCard } from "@/components/home/data-sections";
+import {
+  SECTOR_CARD_WORDS,
+  SectorDeskCard,
+} from "@/components/home/data-sections";
 import {
   DESK_CARD_ITEM,
   HOME_CARD,
@@ -283,20 +286,27 @@ const ROW =
 export async function ForecastDesk() {
   if (await isSectionHidden("desk")) {
     // Hiding the desk never hides the week's warnings: the sector card stays.
-    const only = await SectorDeskCard();
+    // The section heading names it, so the card drops its own header.
+    const only = await SectorDeskCard({ header: false });
     if (!only) return null;
     return (
-      <HomeSection kicker="Plan your week" title="What it means for you">
-        <ul aria-label="What it means for you" className={ROW}>
+      <HomeSection
+        kicker={SECTOR_CARD_WORDS.kicker}
+        title={SECTOR_CARD_WORDS.title}
+      >
+        <ul aria-label={SECTOR_CARD_WORDS.title} className={ROW}>
           {only}
         </ul>
       </HomeSection>
     );
   }
-  const [content, products, alerts] = await Promise.all([
+  // The sector card is awaited here, not rendered as an async element, so tests
+  // can render the row; started with the rest so a slow outlook delays nothing else.
+  const [content, products, alerts, sectorCard] = await Promise.all([
     fetchHomeContent(),
     fetchPublishedProducts(),
     fetchActiveAlerts(),
+    SectorDeskCard(),
   ]);
   const { deskUpdates: updates, reportNotes: notes, settings } = content;
   const words = sectionWords(settings, "desk", {
@@ -310,8 +320,6 @@ export async function ForecastDesk() {
     products: products.products,
     productsAvailable: products.status === "ok",
   });
-  // Awaited here, not rendered as an async element, so tests can render the row.
-  const sectorCard = await SectorDeskCard();
   const deskUnavailable =
     updates.status === "unavailable" && feed.official.length === 0;
   const postCards = feed.posts.map((item) => (
