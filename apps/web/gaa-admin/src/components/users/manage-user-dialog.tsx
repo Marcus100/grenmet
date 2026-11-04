@@ -18,6 +18,7 @@ import { useSessionUser } from "@barrelsgd/auth";
 import { Alert, AlertDescription } from "@barrelsgd/ui/components/ui/alert";
 import { Badge } from "@barrelsgd/ui/components/ui/badge";
 import { Button } from "@barrelsgd/ui/components/ui/button";
+import { Checkbox } from "@barrelsgd/ui/components/ui/checkbox";
 import {
   Dialog,
   DialogContent,
@@ -32,7 +33,7 @@ import { NativeSelect } from "@barrelsgd/ui/components/ui/native-select";
 import { Separator } from "@barrelsgd/ui/components/ui/separator";
 import { useQueryClient } from "@tanstack/react-query";
 import { ShieldMinus, UserRoundCog, X } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { hrApiErrorMessage } from "@/components/hr/api-error";
 import { reportError } from "@/lib/report-error";
@@ -67,17 +68,17 @@ function assignHintFor({
   hasNoEmployment,
   roleDepartment,
   roleScope,
-  roleToAdd,
+  roleCount,
 }: {
   hasNoEmployment: boolean;
   roleDepartment: string;
   roleScope: RoleAssignmentScope;
-  roleToAdd: string;
+  roleCount: number;
 }): string | null {
   if (hasNoEmployment) {
     return "Add a department record first, then assign a role.";
   }
-  if (!roleToAdd) return "Choose a role to enable Assign.";
+  if (roleCount === 0) return "Choose a role to enable Assign.";
   if (roleScope === "DEPARTMENT" && !roleDepartment) {
     return "Choose a department for the Department scope.";
   }
@@ -123,6 +124,63 @@ function assignFailure(
   };
 }
 
+/** What happened to one role in a batch: assigned, or refused with a message. */
+type RoleOutcome =
+  | { roleId: string; roleName: string; assigned: true }
+  | { roleId: string; roleName: string; assigned: false; message: string };
+
+/**
+ * Per-role result of a batch. Successes and refusals are shown together, so a
+ * refusal never hides the roles that were assigned.
+ */
+function RoleResults({ results }: { results: RoleOutcome[] }) {
+  const assigned = results.filter((result) => result.assigned);
+  const refused = results.filter((result) => !result.assigned);
+  return (
+    <div className="flex flex-col gap-2" data-slot="role-assign-results">
+      {assigned.length > 0 ? (
+        <Alert role="status" variant="info">
+          <AlertDescription>
+            Assigned: {assigned.map((result) => result.roleName).join(", ")}.
+          </AlertDescription>
+        </Alert>
+      ) : null}
+      {refused.length > 0 ? (
+        <Alert variant="destructive">
+          <AlertDescription>
+            <ul className="list-disc space-y-1 pl-4">
+              {refused.map((result) => (
+                <li key={result.roleId}>
+                  {result.assigned ? null : result.message}
+                </li>
+              ))}
+            </ul>
+          </AlertDescription>
+        </Alert>
+      ) : null}
+    </div>
+  );
+}
+
+/**
+ * The dialog session is this user with the dialog open (null when closed).
+ * When it changes, `reset` runs once during render, the React pattern for
+ * state that follows a prop. The returned ref holds a new token per session,
+ * so a batch that started earlier can tell it is stale.
+ */
+function useDialogSession(sessionKey: string | null, reset: () => void) {
+  const [key, setKey] = useState(sessionKey);
+  if (key !== sessionKey) {
+    setKey(sessionKey);
+    reset();
+  }
+  const ref = useRef<{ key: string | null }>({ key: null });
+  useEffect(() => {
+    ref.current = { key: sessionKey };
+  }, [sessionKey]);
+  return ref;
+}
+
 interface ManageUserDialogProps {
   onOpenChange?: (open: boolean) => void;
   /** Controlled open state. When provided, the built-in trigger is hidden. */
@@ -141,19 +199,27 @@ export function ManageUserDialog({
   const isSuperuser = actor?.is_superuser === true;
   const queryClient = useQueryClient();
   const [internalOpen, setInternalOpen] = useState(false);
-  const [roleToAdd, setRoleToAdd] = useState("");
+  const [selectedRoleIds, setSelectedRoleIds] = useState<string[]>([]);
   const [roleScope, setRoleScope] = useState<RoleAssignmentScope>("SELF");
   const [roleDepartment, setRoleDepartment] = useState("");
   const [roleExpiry, setRoleExpiry] = useState("");
-  const [assignError, setAssignError] = useState<string | null>(null);
+  const [roleResults, setRoleResults] = useState<RoleOutcome[] | null>(null);
+  const [assigning, setAssigning] = useState(false);
 
   const isControlled = controlledOpen !== undefined;
   const open = isControlled ? controlledOpen : internalOpen;
   const setOpen = (next: boolean) => {
-    if (!next) setAssignError(null);
     if (!isControlled) setInternalOpen(next);
     onOpenChange?.(next);
   };
+
+  // A batch belongs to the session it started in: this user, with the dialog
+  // open. Closing the dialog or changing user clears the selection, and a batch
+  // that finishes after that must not change the screen.
+  const sessionRef = useDialogSession(open ? user.id : null, () => {
+    setSelectedRoleIds([]);
+    setRoleResults(null);
+  });
 
   const assignmentsQuery = useAuthGetRoleAssignments(
     { query: { user_id: user.id } },
@@ -165,6 +231,10 @@ export function ManageUserDialog({
     assignments.filter((a) => a.is_effective !== false).map((a) => a.role_id)
   );
   const assignableRoles = roles.filter((r) => !heldRoleIds.has(r.id));
+  // Only roles the admin can still see and tick are ever sent.
+  const selectedRoles = assignableRoles.filter((r) =>
+    selectedRoleIds.includes(r.id)
+  );
 
   const assignMutation = useAuthCreateRoleAssignment();
   const revokeMutation = useAuthDeleteRoleAssignment();
@@ -193,7 +263,7 @@ export function ManageUserDialog({
     hasNoEmployment,
     roleDepartment,
     roleScope,
-    roleToAdd,
+    roleCount: selectedRoles.length,
   });
 
   async function refresh() {
@@ -206,10 +276,16 @@ export function ManageUserDialog({
     });
   }
 
-  async function addRole() {
-    const role = roles.find((r) => r.name === roleToAdd);
-    if (!role) return;
-    setAssignError(null);
+  function toggleRole(roleId: string, checked: boolean) {
+    setRoleResults(null);
+    setSelectedRoleIds((current) => {
+      if (!checked) return current.filter((id) => id !== roleId);
+      return current.includes(roleId) ? current : [...current, roleId];
+    });
+  }
+
+  /** Assigns one role with the current scope fields and returns its outcome. */
+  async function assignOne(role: RolePublic): Promise<RoleOutcome> {
     try {
       await assignMutation.mutateAsync({
         body: {
@@ -224,14 +300,63 @@ export function ManageUserDialog({
             : null,
         },
       });
-      await refresh();
-      setRoleToAdd("");
-      toast.success(`Assigned ${role.name} to ${user.username}`);
+      return { roleId: role.id, roleName: role.name, assigned: true };
     } catch (error) {
-      // Shown once, inline (an alert); a toast as well would announce it twice.
       const failure = assignFailure(error, role.name);
       if (failure.unexpected) reportError(error, "hr-role-assign");
-      setAssignError(failure.message);
+      return {
+        roleId: role.id,
+        roleName: role.name,
+        assigned: false,
+        message: failure.message,
+      };
+    }
+  }
+
+  /**
+   * Assigns each selected role with the same scope fields, one call at a time.
+   * A refusal on one role does not stop the others; every outcome is shown.
+   * Roles that were assigned leave the selection; refused ones stay ticked so
+   * the admin can retry or untick them.
+   */
+  async function addRoles() {
+    const batch = selectedRoles;
+    if (batch.length === 0) return;
+    const session = sessionRef.current;
+    setRoleResults(null);
+    setAssigning(true);
+    try {
+      const outcomes: RoleOutcome[] = [];
+      for (const role of batch) {
+        outcomes.push(await assignOne(role));
+      }
+      const assignedIds = outcomes
+        .filter((outcome) => outcome.assigned)
+        .map((outcome) => outcome.roleId);
+      // The requests are already sent; a stale batch only skips the screen.
+      if (session === sessionRef.current) {
+        setSelectedRoleIds((current) =>
+          current.filter((id) => !assignedIds.includes(id))
+        );
+        if (assignedIds.length === outcomes.length) {
+          // Full success: one toast, no inline copy.
+          toast.success(
+            `Assigned ${batch.map((r) => r.name).join(", ")} to ${user.username}`
+          );
+        } else {
+          // Partial failure: the successes stay visible beside the refusals.
+          setRoleResults(outcomes);
+        }
+      }
+      if (assignedIds.length > 0) {
+        try {
+          await refresh();
+        } catch (error) {
+          reportError(error, "hr-role-assign-refresh");
+        }
+      }
+    } finally {
+      setAssigning(false);
     }
   }
 
@@ -373,7 +498,7 @@ export function ManageUserDialog({
                       value === "ALL"
                     ) {
                       setRoleScope(value);
-                      setAssignError(null);
+                      setRoleResults(null);
                     }
                   }}
                   value={roleScope}
@@ -389,7 +514,7 @@ export function ManageUserDialog({
                 aria-label="Assignment department"
                 onChange={(event) => {
                   setRoleDepartment(event.target.value);
-                  setAssignError(null);
+                  setRoleResults(null);
                 }}
                 value={roleDepartment}
               >
@@ -411,32 +536,33 @@ export function ManageUserDialog({
                 value={roleExpiry}
               />
             </label>
-            <RoleNotice
-              message={assignError}
-              role="alert"
-              variant="destructive"
-            />
-            <div className="flex items-center gap-2">
-              <NativeSelect
-                aria-label="Role to assign"
-                className="flex-1"
-                onChange={(e) => {
-                  setRoleToAdd(e.target.value);
-                  setAssignError(null);
-                }}
-                value={roleToAdd}
-              >
-                <option value="">Add a role…</option>
-                {assignableRoles.map((r) => (
-                  <option key={r.id} value={r.name}>
-                    {r.name}
-                  </option>
-                ))}
-              </NativeSelect>
+            {roleResults ? <RoleResults results={roleResults} /> : null}
+            <fieldset
+              className="flex flex-col gap-2"
+              data-slot="role-checkboxes"
+            >
+              <legend className="text-sm font-medium">Roles to add</legend>
+              {assignableRoles.length === 0 ? (
+                <span className="text-muted-foreground text-sm">
+                  No roles left to add.
+                </span>
+              ) : null}
+              {assignableRoles.map((r) => (
+                <label className="flex items-center gap-2 text-sm" key={r.id}>
+                  <Checkbox
+                    checked={selectedRoleIds.includes(r.id)}
+                    disabled={assigning}
+                    onCheckedChange={(checked) => toggleRole(r.id, checked)}
+                  />
+                  {r.name}
+                </label>
+              ))}
+            </fieldset>
+            <div className="flex items-center justify-end gap-2">
               <Button
                 aria-describedby={assignHint ? "assign-hint" : undefined}
-                disabled={assignHint !== null || assignMutation.isPending}
-                onClick={addRole}
+                disabled={assignHint !== null || assigning}
+                onClick={addRoles}
                 size="sm"
                 type="button"
                 variant="outline"
