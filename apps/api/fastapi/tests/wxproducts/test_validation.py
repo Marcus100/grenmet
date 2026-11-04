@@ -11,6 +11,14 @@ from src.wxproducts.schemas import ProductKind, ProductWrite, ProductWriteAdapte
 NOW = datetime(2026, 9, 8, 23, tzinfo=UTC)
 
 
+def _plausible_number(kind: str, key: str) -> str:
+    """A number inside the Climate Bulletin's plausibility bounds, else the usual 25."""
+    if kind == "climate-bulletin" and key in validation.CLIMATE_BOUNDS:
+        low, high = validation.CLIMATE_BOUNDS[key]
+        return str(int((low + high) / 2))
+    return "25"
+
+
 def complete(kind: ProductKind) -> dict[str, str]:
     values = {}
     for field in validation.FIELDS[kind]:
@@ -18,10 +26,13 @@ def complete(kind: ProductKind) -> dict[str, str]:
             values[field.key] = (
                 field.options[0]
                 if field.options
-                else "25"
+                else _plausible_number(kind, field.key)
                 if field.type == "number"
                 else "Forecast detail"
             )
+    if kind == "climate-bulletin":
+        # Publishing needs the sector table or general implications (either layout).
+        values["generalImplications"] = "Forecast detail"
     values.update(
         issuedAt="2026-09-08T05:00",
         validFrom="2026-09-08T05:00",

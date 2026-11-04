@@ -34,6 +34,7 @@ export function ForecastPdfFrame({
   const current = useRef<string | null>(null);
   const [rendering, setRendering] = useState(false);
   const [error, setError] = useState("");
+  const [warning, setWarning] = useState("");
 
   useEffect(() => {
     if (!request) return;
@@ -42,6 +43,7 @@ export function ForecastPdfFrame({
       if (!request) return;
       setRendering(true);
       setError("");
+      setWarning("");
       try {
         const result = await previewProductPdfAction(
           {
@@ -61,6 +63,7 @@ export function ForecastPdfFrame({
         const next = URL.createObjectURL(result.blob);
         if (current.current) URL.revokeObjectURL(current.current);
         current.current = next;
+        setWarning(result.warning);
         setDisplayed({ url: next, content: request.content });
       } catch (caught) {
         if (!controller.signal.aborted) {
@@ -106,6 +109,11 @@ export function ForecastPdfFrame({
           {stale ? "Changes pending" : null}
         </p>
       </div>
+      {warning ? (
+        <p className="text-sm" role="status">
+          {warning}
+        </p>
+      ) : null}
       {error ? (
         <div className="space-y-2">
           <p className="text-destructive text-sm" role="alert">

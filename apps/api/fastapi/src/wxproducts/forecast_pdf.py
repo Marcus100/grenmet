@@ -6,11 +6,12 @@ forecaster reviews is what is published. The layout is HTML/CSS
 WeasyPrint; this module prepares the data and the design tokens.
 """
 
+import logging
 import re
 from datetime import date, datetime
 from functools import cache
 from pathlib import Path
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, NamedTuple
 
 from jinja2 import Environment, FileSystemLoader, select_autoescape
 from markupsafe import Markup
@@ -18,12 +19,14 @@ from markupsafe import Markup
 from src.cap.ibf import IMPACTS, LIKELIHOODS, WMO_MATRIX
 from src.wxwatch.nhc_schemas import ProductGuidance
 
-from . import advisories, units
+from . import advisories, climate, units
 from .exceptions import UnsupportedSheetKind
 from .presentation import conditions as _conditions
 from .validation import (
+    CLIMATE_SECTORS,
     FIELDS,
     GRENADA,
+    LEGACY_CLIMATE_FIELDS,
     LEGACY_MARINE_FIELDS,
     MARINE_FORECAST_AREA,
     optional_number,
@@ -35,6 +38,8 @@ if TYPE_CHECKING:
     # the API starts fast enough for its deploy healthcheck.
     from weasyprint import CSS, Document
     from weasyprint.text.fonts import FontConfiguration
+
+logger = logging.getLogger(__name__)
 
 BASE = Path(__file__).parent
 ASSETS = BASE / "assets"
@@ -379,44 +384,146 @@ def marine_forecast_context(
     }
 
 
-# Climate Bulletin fields printed in the banner or footer rather than as text.
-CLIMATE_CORE = {
-    "issuedAt",
-    "validFrom",
-    "validTo",
-    "validity",
-    "area",
-    "forecaster",
-    "month",
-}
+CLIMATE_VERIFICATION = (
+    ("verifyRainfall", "Rainfall (mm)"),
+    ("verifyWetDays", "Wet days"),
+    ("verifyWetSpell", "7-day wet spell"),
+    ("verifyTmax", "Tmax (°C)"),
+    ("verifyTmin", "Tmin (°C)"),
+)
 
 
-def _month_label(value: str) -> str:
+def _issue_date(values: dict[str, str]) -> date | None:
     try:
-        return f"{datetime.strptime(value, '%Y-%m'):%B %Y}"
+        return date.fromisoformat(values.get("issuedAt", "")[:10])
     except ValueError:
-        return value
+        return None
+
+
+def _text(values: dict[str, str], key: str) -> str:
+    return values.get(key, "").strip()
 
 
 def climate_bulletin_context(
     values: dict[str, str], *, status: str, revision: str
 ) -> dict[str, Any]:
-    """Climate Bulletin sheet from the current fields only (layout pending GMS examples)."""
-    sections = [
-        (rule.label, values[rule.key].strip())
-        for rule in FIELDS["climate-bulletin"]
-        if rule.key not in CLIMATE_CORE and values.get(rule.key, "").strip()
+    """Grenada National Climate Bulletin: two pages from the owner's examples.
+
+    Period labels come from the month reviewed and the issue date
+    (`climate.py`); the intro, disclaimer and closing statement are fixed
+    template text. Optional parts (temperature table, sector table, general
+    implications, trivia) print only when filled in. The precipitation and mean
+    temperature maps are not stored yet, so the sheet marks where they go.
+    """
+    month = _text(values, "month")
+    issued = _issue_date(values)
+    code, season_label = climate.season(issued) if issued else ("", "")
+    v = {key: _text(values, key) for key in values}
+
+    def pair(key: str, unit: str = "", *, up_to: bool = False) -> str:
+        return climate.range_text(
+            v.get(f"{key}Min", ""), v.get(f"{key}Max", ""), unit, up_to_when_zero=up_to
+        )
+
+    rows = [
+        ("Wet days", "wetDays", "Usually there are", False),
+        ("7-day wet spells (20% wettest)", "wetSpells", "Historically", False),
+        (
+            "Extreme 3-day wet spells (1% wettest)",
+            "extremeSpells",
+            "Historically",
+            True,
+        ),
     ]
+    spells = [
+        {
+            "title": title,
+            "outlook": v.get(f"{key}Outlook", ""),
+            "range_label": label,
+            "range": pair(key, up_to=up_to),
+            "implication": v.get(f"{key}Implication", ""),
+        }
+        for title, key, label, up_to in rows
+    ]
+    temperature_table = bool(v.get("heatStress") or v.get("extremeHeat"))
+    day_range = pair("tempMaxRange", "°C")
+    night_range = pair("tempMinRange", "°C")
     return {
-        "title": "Climate Bulletin",
-        "subtitle": _month_label(values.get("month", "")),
+        "title": "Grenada National Climate Bulletin",
+        "subtitle": " / ".join(
+            part
+            for part in (
+                f"Vol {v['volume']}" if v.get("volume") else "",
+                f"Issue {v['issue']}" if v.get("issue") else "",
+            )
+            if part
+        ),
+        "issue_month": f"{issued:%B %Y}" if issued else "",
         "issued": _when(values.get("issuedAt", "")),
         "valid": _span_text(values.get("validFrom", ""), values.get("validTo", "")),
         "status": "" if status == "PUBLISHED ISSUE" else status,
         "revision": revision,
-        "area": values.get("area", ""),
-        "sections": sections,
-        "forecaster": values.get("forecaster", ""),
+        "monitoring_label": climate.window_label(month, 1),
+        "season_code": code,
+        "season_year": climate.season_year(issued) if issued else "",
+        "season_label": season_label,
+        "contacts": [
+            line.strip()
+            for line in values.get("contacts", "").splitlines()
+            if line.strip()
+        ],
+        "enso": v.get("enso", ""),
+        "sst": v.get("sst", ""),
+        "spi": [
+            {
+                "period": climate.window_label(month, months),
+                "category": v.get(key) or "—",
+            }
+            for months, key in climate.SPI_WINDOWS
+        ],
+        "pet": v.get("pet", ""),
+        "pet_ratio": v.get("petRatio", ""),
+        "precip_outlook": v.get("precipOutlook", ""),
+        "precip_range": pair("precipRange", "mm"),
+        "spells": spells,
+        "temp_mean": v.get("tempMeanOutlook", ""),
+        "temperature_table": temperature_table,
+        "temperature_rows": [
+            ("Daytime temperatures", v.get("tempMaxOutlook", ""), day_range),
+            ("Night-time temperatures", v.get("tempMinOutlook", ""), night_range),
+            *(
+                (label, text, "")
+                for label, text in (
+                    ("Potential heat stress", v.get("heatStress", "")),
+                    ("Extreme heat", v.get("extremeHeat", "")),
+                )
+                if text
+            ),
+        ],
+        "temp_max": v.get("tempMaxOutlook", ""),
+        "temp_max_range": day_range,
+        "temp_min": v.get("tempMinOutlook", ""),
+        "temp_min_range": night_range,
+        "drought": v.get("droughtOutlook", ""),
+        "sectors": [(label, v[key]) for key, label in CLIMATE_SECTORS if v.get(key)],
+        "general": v.get("generalImplications", ""),
+        "verification_label": climate.verification_label(month),
+        "verification": [
+            {
+                "label": label,
+                "outlook": v.get(f"{key}Outlook", ""),
+                "range": pair(f"{key}Range"),
+                "observed": v.get(f"{key}Observed", "") or "—",
+            }
+            for key, label in CLIMATE_VERIFICATION
+        ],
+        "trivia_answer": v.get("triviaAnswer", ""),
+        "trivia_question": v.get("triviaQuestion", ""),
+        "legacy": [
+            (label, v[key]) for key, label in LEGACY_CLIMATE_FIELDS if v.get(key)
+        ],
+        "area": v.get("area", ""),
+        "forecaster": v.get("forecaster", ""),
         "product_code": "GMS-CLB",
         "next_update": "15th of next month",
         "contact": CONTACT,
@@ -648,7 +755,28 @@ def render_document(
     )
 
 
-def render_sheet_pdf(
+class RenderedSheet(NamedTuple):
+    content: bytes
+    pages: int
+
+
+# Sheets designed to fit a fixed number of pages. A longer one still renders,
+# but the author is told (preview header) and the render is logged.
+EXPECTED_PAGES = {"climate-bulletin": 2}
+
+
+def sheet_warning(kind: str, pages: int) -> str:
+    """Plain-language warning when a sheet runs past its designed page count."""
+    expected = EXPECTED_PAGES.get(kind)
+    if expected is None or pages == expected:
+        return ""
+    return (
+        f"This sheet runs to {pages} pages; it is designed for {expected}. "
+        "Shorten the longest text."
+    )
+
+
+def render_sheet(
     kind: str,
     values: dict[str, str],
     *,
@@ -657,7 +785,7 @@ def render_sheet_pdf(
     archival: bool = False,
     guidance: ProductGuidance | None = None,
     graphic_images: dict[str, str] | None = None,
-) -> bytes:
+) -> RenderedSheet:
     """Render a sheet; saved revisions are official records, so they are PDF/A-3b."""
     document = render_document(
         kind,
@@ -670,7 +798,33 @@ def render_sheet_pdf(
     pdf = document.write_pdf(pdf_variant="pdf/a-3b" if archival else None)
     if not isinstance(pdf, bytes):
         raise TypeError("WeasyPrint returned no PDF bytes")
-    return pdf
+    pages = len(document.pages)
+    if sheet_warning(kind, pages):
+        logger.warning(
+            "wxproducts sheet page count", extra={"kind": kind, "pages": pages}
+        )
+    return RenderedSheet(pdf, pages)
+
+
+def render_sheet_pdf(
+    kind: str,
+    values: dict[str, str],
+    *,
+    status: str,
+    revision: str,
+    archival: bool = False,
+    guidance: ProductGuidance | None = None,
+    graphic_images: dict[str, str] | None = None,
+) -> bytes:
+    return render_sheet(
+        kind,
+        values,
+        status=status,
+        revision=revision,
+        archival=archival,
+        guidance=guidance,
+        graphic_images=graphic_images,
+    ).content
 
 
 SHEET_KINDS = (

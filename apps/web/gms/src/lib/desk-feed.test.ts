@@ -255,7 +255,8 @@ describe("Marine Forecast and Climate Bulletin cards", () => {
           issuedAt: "2026-10-15T10:00",
           validFrom: "2026-10-15T10:00",
           validTo: "2026-11-15T23:59",
-          summary: "A wet September.",
+          precipOutlook: "Rainfall totals for the next quarter are uncertain.",
+          droughtOutlook: "A drought watch is in effect.",
         }),
       ],
     });
@@ -264,6 +265,9 @@ describe("Marine Forecast and Climate Bulletin cards", () => {
       ["climate", "Climate Bulletin"],
     ]);
     expect(feed.official[0]?.summary).toBe("Moderate trades.");
+    expect(feed.official[1]?.summary).toBe(
+      "Rainfall totals for the next quarter are uncertain."
+    );
     expect(feed.official[1]?.valid).toBe("Next issue 15 November");
     expect(feed.official[1]?.staleNote).toBeNull();
   });

@@ -693,28 +693,260 @@ function marineForecastFields(): ProductField[] {
   ];
 }
 /**
- * The climate bulletin carries narrative only. Its figures (rainfall, rain
- * days, temperature extremes, wind) come from the eRegister month summary for
- * `month`, so nobody retypes what the register computes.
+ * Standardized Precipitation Index categories, driest to wettest (US Drought
+ * Monitor / CariCOF wording). Mirrored in `wxproducts/climate.py`.
  */
-function climateBulletinFields(): ProductField[] {
+export const SPI_CATEGORIES = [
+  "Exceptionally Dry",
+  "Extremely Dry",
+  "Severely Dry",
+  "Moderately Dry",
+  "Abnormally Dry",
+  "Normal",
+  "Abnormally Wet",
+  "Moderately Wet",
+  "Severely Wet",
+  "Extremely Wet",
+  "Exceptionally Wet",
+] as const;
+/** The four SPI rows: windows of 1, 3, 6 and 12 months ending in the month reviewed. */
+export const SPI_WINDOWS = [
+  { key: "spi1", months: 1 },
+  { key: "spi3", months: 3 },
+  { key: "spi6", months: 6 },
+  { key: "spi12", months: 12 },
+] as const;
+/** Sector rows of the implications table, in print order. */
+export const CLIMATE_SECTOR_IMPACTS = [
+  { key: "impactAgriculture", label: "Agriculture" },
+  { key: "impactWater", label: "Water" },
+  { key: "impactHealth", label: "Health" },
+  { key: "impactTourism", label: "Tourism" },
+  { key: "impactDrm", label: "Disaster Risk Management" },
+  { key: "impactEnergy", label: "Energy" },
+  { key: "impactFisheries", label: "Fisheries" },
+  { key: "impactInfrastructure", label: "Infrastructure" },
+] as const;
+/**
+ * Looking-back rows: the previous season's outlook against what Point Salines
+ * recorded. Observations are typed for now; issue #991 will fill them from the
+ * eRegister (as `ClimateFigures` already does for the monitoring month).
+ */
+export const CLIMATE_VERIFICATION_ROWS = [
+  { prefix: "verifyRainfall", label: "Rainfall (mm)" },
+  { prefix: "verifyWetDays", label: "Wet days" },
+  { prefix: "verifyWetSpell", label: "7-day wet spell" },
+  { prefix: "verifyTmax", label: "Tmax (°C)" },
+  { prefix: "verifyTmin", label: "Tmin (°C)" },
+] as const;
+/** `from` and `to` number fields. `minOptional` leaves "from" empty for "up to" ranges. */
+function rangeFields(
+  section: string,
+  prefix: string,
+  label: string,
+  minOptional = false
+): ProductField[] {
   return [
-    ...issueFields,
-    field("Month", "month", "Month reviewed (YYYY-MM)", { required: true }),
-    field("Month in review", "summary", "Summary of the month", {
+    field(section, `${prefix}Min`, `${label}, from`, {
+      type: "number",
+      required: !minOptional,
+    }),
+    field(section, `${prefix}Max`, `${label}, to`, {
+      type: "number",
+      required: true,
+    }),
+  ];
+}
+function outlookRow(
+  section: string,
+  prefix: string,
+  outlookLabel: string,
+  rangeLabel: string,
+  implication: string,
+  minOptional = false
+): ProductField[] {
+  return [
+    field(section, `${prefix}Outlook`, outlookLabel, {
       type: "textarea",
       required: true,
     }),
-    field("Month in review", "rainfallComment", "Rainfall", {
+    ...rangeFields(section, prefix, rangeLabel, minOptional),
+    field(section, `${prefix}Implication`, implication, {
+      type: "textarea",
+      required: true,
+    }),
+  ];
+}
+/** Fields of the first Climate Bulletin version; saved revisions may still carry them. */
+export const LEGACY_CLIMATE_FIELDS = [
+  { key: "summary", label: "Summary of the month" },
+  { key: "rainfallComment", label: "Rainfall" },
+  { key: "temperatureComment", label: "Temperature" },
+  { key: "notableEvents", label: "Notable events" },
+  { key: "outlook", label: "Outlook for the coming months" },
+] as const;
+/**
+ * The Grenada National Climate Bulletin (owner examples, issues 08 to 10).
+ * Period labels (SPI windows, the season, "looking back") are derived from the
+ * month reviewed and the issue date, never typed. Two optional parts cover the
+ * layouts that differ between issues: heat stress and extreme heat make the
+ * temperature block a table; sector rows or general implications fill the
+ * implications block. Empty optional parts stay visible in the editor and are
+ * left off the PDF.
+ */
+function climateBulletinFields(): ProductField[] {
+  const spi = "Standardized Precipitation Index";
+  const temperature = "Temperature";
+  return [
+    ...issueFields,
+    field("Bulletin", "volume", "Volume", { required: true }),
+    field("Bulletin", "issue", "Issue number", { required: true }),
+    field("Bulletin", "month", "Month reviewed (YYYY-MM)", { required: true }),
+    field(
+      "Bulletin",
+      "contacts",
+      "Contacts for more information (one per line)",
+      {
+        type: "textarea",
+      }
+    ),
+    field("Climate drivers", "enso", "El Niño-Southern Oscillation (ENSO)", {
+      type: "textarea",
+      required: true,
+    }),
+    field("Climate drivers", "sst", "Sea surface temperatures (SSTs)", {
+      type: "textarea",
+      required: true,
+    }),
+    ...SPI_WINDOWS.map(({ key, months }) =>
+      field(
+        spi,
+        key,
+        months === 1 ? "SPI, month reviewed" : `SPI, ${months} months`,
+        { options: SPI_CATEGORIES, required: true }
+      )
+    ),
+    field(
+      "Potential evapotranspiration",
+      "pet",
+      "Potential evapotranspiration (mm/day)",
+      {
+        type: "number",
+        required: true,
+      }
+    ),
+    field(
+      "Potential evapotranspiration",
+      "petRatio",
+      "Atmospheric water demand compared with supply (times)",
+      { type: "number", required: true }
+    ),
+    field("Precipitation outlook", "precipOutlook", "Precipitation outlook", {
+      type: "textarea",
+      required: true,
+    }),
+    ...rangeFields(
+      "Precipitation outlook",
+      "precipRange",
+      "Normal range for the season (mm)"
+    ),
+    ...outlookRow(
+      "Wet days",
+      "wetDays",
+      "Wet days outlook",
+      "Usual number of wet days",
+      "Implication"
+    ),
+    ...outlookRow(
+      "7-day wet spells (20% wettest)",
+      "wetSpells",
+      "7-day wet spells outlook",
+      "Historical number of 7-day wet spells",
+      "Implication"
+    ),
+    ...outlookRow(
+      "Extreme 3-day wet spells (1% wettest)",
+      "extremeSpells",
+      "Extreme 3-day wet spells outlook",
+      "Historical number of extreme 3-day wet spells (leave 'from' empty or 0 for 'up to')",
+      "Implication",
+      true
+    ),
+    field(temperature, "tempMeanOutlook", "Mean temperature outlook", {
+      type: "textarea",
+      required: true,
+    }),
+    field(
+      temperature,
+      "tempMaxOutlook",
+      "Maximum (daytime) temperature outlook",
+      {
+        type: "textarea",
+        required: true,
+      }
+    ),
+    ...rangeFields(
+      temperature,
+      "tempMaxRange",
+      "Normal maximum temperature (°C)"
+    ),
+    field(
+      temperature,
+      "tempMinOutlook",
+      "Minimum (night-time) temperature outlook",
+      {
+        type: "textarea",
+        required: true,
+      }
+    ),
+    ...rangeFields(
+      temperature,
+      "tempMinRange",
+      "Normal minimum temperature (°C)"
+    ),
+    field(
+      temperature,
+      "heatStress",
+      "Potential heat stress (optional; adds the table)"
+    ),
+    field(
+      temperature,
+      "extremeHeat",
+      "Extreme heat (optional; adds the table)"
+    ),
+    field("Drought outlook", "droughtOutlook", "Drought outlook", {
+      type: "textarea",
+      required: true,
+    }),
+    ...CLIMATE_SECTOR_IMPACTS.map(({ key, label }) =>
+      field("Implications by sector", key, label, { type: "textarea" })
+    ),
+    field(
+      "General implications",
+      "generalImplications",
+      "General implications",
+      {
+        type: "textarea",
+      }
+    ),
+    ...CLIMATE_VERIFICATION_ROWS.flatMap(({ prefix, label }) => [
+      field("Looking back", `${prefix}Outlook`, `${label}, outlook`, {
+        required: true,
+      }),
+      ...rangeFields(
+        "Looking back",
+        `${prefix}Range`,
+        `${label}, normal range`
+      ),
+      field("Looking back", `${prefix}Observed`, `${label}, observed`, {
+        type: "number",
+        required: true,
+      }),
+    ]),
+    field("Trivia", "triviaAnswer", "Last month's question and its answer", {
       type: "textarea",
     }),
-    field("Month in review", "temperatureComment", "Temperature", {
-      type: "textarea",
-    }),
-    field("Month in review", "notableEvents", "Notable events", {
-      type: "textarea",
-    }),
-    field("Outlook", "outlook", "Outlook for the coming months", {
+    field("Trivia", "triviaQuestion", "This month's question, with options", {
       type: "textarea",
     }),
   ];

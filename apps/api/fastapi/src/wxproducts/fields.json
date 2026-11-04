@@ -3884,45 +3884,570 @@
       "requiredOnPublish": true
     },
     {
-      "section": "Month",
+      "section": "Bulletin",
+      "key": "volume",
+      "label": "Volume",
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Bulletin",
+      "key": "issue",
+      "label": "Issue number",
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Bulletin",
       "key": "month",
       "label": "Month reviewed (YYYY-MM)",
       "required": true,
       "requiredOnPublish": true
     },
     {
-      "section": "Month in review",
-      "key": "summary",
-      "label": "Summary of the month",
+      "section": "Bulletin",
+      "key": "contacts",
+      "label": "Contacts for more information (one per line)",
+      "type": "textarea",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Climate drivers",
+      "key": "enso",
+      "label": "El Niño-Southern Oscillation (ENSO)",
       "type": "textarea",
       "required": true,
       "requiredOnPublish": true
     },
     {
-      "section": "Month in review",
-      "key": "rainfallComment",
-      "label": "Rainfall",
+      "section": "Climate drivers",
+      "key": "sst",
+      "label": "Sea surface temperatures (SSTs)",
+      "type": "textarea",
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Standardized Precipitation Index",
+      "key": "spi1",
+      "label": "SPI, month reviewed",
+      "options": [
+        "Exceptionally Dry",
+        "Extremely Dry",
+        "Severely Dry",
+        "Moderately Dry",
+        "Abnormally Dry",
+        "Normal",
+        "Abnormally Wet",
+        "Moderately Wet",
+        "Severely Wet",
+        "Extremely Wet",
+        "Exceptionally Wet"
+      ],
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Standardized Precipitation Index",
+      "key": "spi3",
+      "label": "SPI, 3 months",
+      "options": [
+        "Exceptionally Dry",
+        "Extremely Dry",
+        "Severely Dry",
+        "Moderately Dry",
+        "Abnormally Dry",
+        "Normal",
+        "Abnormally Wet",
+        "Moderately Wet",
+        "Severely Wet",
+        "Extremely Wet",
+        "Exceptionally Wet"
+      ],
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Standardized Precipitation Index",
+      "key": "spi6",
+      "label": "SPI, 6 months",
+      "options": [
+        "Exceptionally Dry",
+        "Extremely Dry",
+        "Severely Dry",
+        "Moderately Dry",
+        "Abnormally Dry",
+        "Normal",
+        "Abnormally Wet",
+        "Moderately Wet",
+        "Severely Wet",
+        "Extremely Wet",
+        "Exceptionally Wet"
+      ],
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Standardized Precipitation Index",
+      "key": "spi12",
+      "label": "SPI, 12 months",
+      "options": [
+        "Exceptionally Dry",
+        "Extremely Dry",
+        "Severely Dry",
+        "Moderately Dry",
+        "Abnormally Dry",
+        "Normal",
+        "Abnormally Wet",
+        "Moderately Wet",
+        "Severely Wet",
+        "Extremely Wet",
+        "Exceptionally Wet"
+      ],
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Potential evapotranspiration",
+      "key": "pet",
+      "label": "Potential evapotranspiration (mm/day)",
+      "type": "number",
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Potential evapotranspiration",
+      "key": "petRatio",
+      "label": "Atmospheric water demand compared with supply (times)",
+      "type": "number",
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Precipitation outlook",
+      "key": "precipOutlook",
+      "label": "Precipitation outlook",
+      "type": "textarea",
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Precipitation outlook",
+      "key": "precipRangeMin",
+      "label": "Normal range for the season (mm), from",
+      "type": "number",
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Precipitation outlook",
+      "key": "precipRangeMax",
+      "label": "Normal range for the season (mm), to",
+      "type": "number",
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Wet days",
+      "key": "wetDaysOutlook",
+      "label": "Wet days outlook",
+      "type": "textarea",
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Wet days",
+      "key": "wetDaysMin",
+      "label": "Usual number of wet days, from",
+      "type": "number",
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Wet days",
+      "key": "wetDaysMax",
+      "label": "Usual number of wet days, to",
+      "type": "number",
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Wet days",
+      "key": "wetDaysImplication",
+      "label": "Implication",
+      "type": "textarea",
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "7-day wet spells (20% wettest)",
+      "key": "wetSpellsOutlook",
+      "label": "7-day wet spells outlook",
+      "type": "textarea",
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "7-day wet spells (20% wettest)",
+      "key": "wetSpellsMin",
+      "label": "Historical number of 7-day wet spells, from",
+      "type": "number",
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "7-day wet spells (20% wettest)",
+      "key": "wetSpellsMax",
+      "label": "Historical number of 7-day wet spells, to",
+      "type": "number",
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "7-day wet spells (20% wettest)",
+      "key": "wetSpellsImplication",
+      "label": "Implication",
+      "type": "textarea",
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Extreme 3-day wet spells (1% wettest)",
+      "key": "extremeSpellsOutlook",
+      "label": "Extreme 3-day wet spells outlook",
+      "type": "textarea",
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Extreme 3-day wet spells (1% wettest)",
+      "key": "extremeSpellsMin",
+      "label": "Historical number of extreme 3-day wet spells (leave 'from' empty or 0 for 'up to'), from",
+      "type": "number",
+      "required": false,
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Extreme 3-day wet spells (1% wettest)",
+      "key": "extremeSpellsMax",
+      "label": "Historical number of extreme 3-day wet spells (leave 'from' empty or 0 for 'up to'), to",
+      "type": "number",
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Extreme 3-day wet spells (1% wettest)",
+      "key": "extremeSpellsImplication",
+      "label": "Implication",
+      "type": "textarea",
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Temperature",
+      "key": "tempMeanOutlook",
+      "label": "Mean temperature outlook",
+      "type": "textarea",
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Temperature",
+      "key": "tempMaxOutlook",
+      "label": "Maximum (daytime) temperature outlook",
+      "type": "textarea",
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Temperature",
+      "key": "tempMaxRangeMin",
+      "label": "Normal maximum temperature (°C), from",
+      "type": "number",
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Temperature",
+      "key": "tempMaxRangeMax",
+      "label": "Normal maximum temperature (°C), to",
+      "type": "number",
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Temperature",
+      "key": "tempMinOutlook",
+      "label": "Minimum (night-time) temperature outlook",
+      "type": "textarea",
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Temperature",
+      "key": "tempMinRangeMin",
+      "label": "Normal minimum temperature (°C), from",
+      "type": "number",
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Temperature",
+      "key": "tempMinRangeMax",
+      "label": "Normal minimum temperature (°C), to",
+      "type": "number",
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Temperature",
+      "key": "heatStress",
+      "label": "Potential heat stress (optional; adds the table)",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Temperature",
+      "key": "extremeHeat",
+      "label": "Extreme heat (optional; adds the table)",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Drought outlook",
+      "key": "droughtOutlook",
+      "label": "Drought outlook",
+      "type": "textarea",
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Implications by sector",
+      "key": "impactAgriculture",
+      "label": "Agriculture",
       "type": "textarea",
       "requiredOnPublish": false
     },
     {
-      "section": "Month in review",
-      "key": "temperatureComment",
-      "label": "Temperature",
+      "section": "Implications by sector",
+      "key": "impactWater",
+      "label": "Water",
       "type": "textarea",
       "requiredOnPublish": false
     },
     {
-      "section": "Month in review",
-      "key": "notableEvents",
-      "label": "Notable events",
+      "section": "Implications by sector",
+      "key": "impactHealth",
+      "label": "Health",
       "type": "textarea",
       "requiredOnPublish": false
     },
     {
-      "section": "Outlook",
-      "key": "outlook",
-      "label": "Outlook for the coming months",
+      "section": "Implications by sector",
+      "key": "impactTourism",
+      "label": "Tourism",
+      "type": "textarea",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Implications by sector",
+      "key": "impactDrm",
+      "label": "Disaster Risk Management",
+      "type": "textarea",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Implications by sector",
+      "key": "impactEnergy",
+      "label": "Energy",
+      "type": "textarea",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Implications by sector",
+      "key": "impactFisheries",
+      "label": "Fisheries",
+      "type": "textarea",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Implications by sector",
+      "key": "impactInfrastructure",
+      "label": "Infrastructure",
+      "type": "textarea",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "General implications",
+      "key": "generalImplications",
+      "label": "General implications",
+      "type": "textarea",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Looking back",
+      "key": "verifyRainfallOutlook",
+      "label": "Rainfall (mm), outlook",
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Looking back",
+      "key": "verifyRainfallRangeMin",
+      "label": "Rainfall (mm), normal range, from",
+      "type": "number",
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Looking back",
+      "key": "verifyRainfallRangeMax",
+      "label": "Rainfall (mm), normal range, to",
+      "type": "number",
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Looking back",
+      "key": "verifyRainfallObserved",
+      "label": "Rainfall (mm), observed",
+      "type": "number",
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Looking back",
+      "key": "verifyWetDaysOutlook",
+      "label": "Wet days, outlook",
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Looking back",
+      "key": "verifyWetDaysRangeMin",
+      "label": "Wet days, normal range, from",
+      "type": "number",
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Looking back",
+      "key": "verifyWetDaysRangeMax",
+      "label": "Wet days, normal range, to",
+      "type": "number",
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Looking back",
+      "key": "verifyWetDaysObserved",
+      "label": "Wet days, observed",
+      "type": "number",
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Looking back",
+      "key": "verifyWetSpellOutlook",
+      "label": "7-day wet spell, outlook",
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Looking back",
+      "key": "verifyWetSpellRangeMin",
+      "label": "7-day wet spell, normal range, from",
+      "type": "number",
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Looking back",
+      "key": "verifyWetSpellRangeMax",
+      "label": "7-day wet spell, normal range, to",
+      "type": "number",
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Looking back",
+      "key": "verifyWetSpellObserved",
+      "label": "7-day wet spell, observed",
+      "type": "number",
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Looking back",
+      "key": "verifyTmaxOutlook",
+      "label": "Tmax (°C), outlook",
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Looking back",
+      "key": "verifyTmaxRangeMin",
+      "label": "Tmax (°C), normal range, from",
+      "type": "number",
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Looking back",
+      "key": "verifyTmaxRangeMax",
+      "label": "Tmax (°C), normal range, to",
+      "type": "number",
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Looking back",
+      "key": "verifyTmaxObserved",
+      "label": "Tmax (°C), observed",
+      "type": "number",
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Looking back",
+      "key": "verifyTminOutlook",
+      "label": "Tmin (°C), outlook",
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Looking back",
+      "key": "verifyTminRangeMin",
+      "label": "Tmin (°C), normal range, from",
+      "type": "number",
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Looking back",
+      "key": "verifyTminRangeMax",
+      "label": "Tmin (°C), normal range, to",
+      "type": "number",
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Looking back",
+      "key": "verifyTminObserved",
+      "label": "Tmin (°C), observed",
+      "type": "number",
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Trivia",
+      "key": "triviaAnswer",
+      "label": "Last month's question and its answer",
+      "type": "textarea",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Trivia",
+      "key": "triviaQuestion",
+      "label": "This month's question, with options",
       "type": "textarea",
       "requiredOnPublish": false
     }
