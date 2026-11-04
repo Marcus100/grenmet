@@ -31,7 +31,7 @@ import {
 } from "@/lib/employment-end";
 import { reportError } from "@/lib/report-error";
 import { CHANGED_ELSEWHERE_NOTICE } from "./employment-section";
-import { ManageUserDialog } from "./manage-user-dialog";
+import { ManageUserDialog, NO_EMPLOYMENT_NOTICE } from "./manage-user-dialog";
 
 const actor = vi.hoisted(() => ({ is_superuser: true }));
 vi.mock("@barrelsgd/auth", () => ({ useSessionUser: () => actor }));
@@ -926,11 +926,12 @@ describe("ManageUserDialog — width and layout", () => {
     expect(grid?.className).not.toMatch(BARE_GRID_COLS_TWO);
 
     const cells = Array.from(grid?.children ?? []);
-    // Account setup, CMS access, roles, employment, then the footer row.
+    // Account setup, CMS access, employment, roles, then the footer row.
+    // Employment comes before roles: a role needs a department record first.
     expect(cells).toHaveLength(5);
-    expect(cells[2]).toHaveAttribute("data-slot", "manage-user-roles");
-    expect(cells[2]).toHaveTextContent("Roles");
-    expect(cells[3]).toHaveTextContent("Department & employment");
+    expect(cells[2]).toHaveTextContent("Department & employment");
+    expect(cells[3]).toHaveAttribute("data-slot", "manage-user-roles");
+    expect(cells[3]).toHaveTextContent("Roles");
     expect(cells[4]?.className).toContain("md:col-span-2");
   });
 
@@ -939,5 +940,131 @@ describe("ManageUserDialog — width and layout", () => {
     await screen.findByText("Department & employment");
     expect(await screen.findByText("No roles assigned.")).toBeInTheDocument();
     expect(screen.getByText("Roles")).toBeInTheDocument();
+  });
+});
+
+describe("ManageUserDialog — assigning roles", () => {
+  beforeEach(() => {
+    vi.mocked(reportError).mockClear();
+  });
+
+  it("says a department is needed first, and why Assign is greyed out, when there is no employment record", async () => {
+    server.use(noRecord());
+    renderDialog();
+    expect(await screen.findByText(NO_EMPLOYMENT_NOTICE)).toBeInTheDocument();
+    const assign = screen.getByRole("button", { name: "Assign" });
+    expect(assign).toBeDisabled();
+    expect(assign).toHaveAccessibleDescription(
+      "Add a department record first, then assign a role."
+    );
+  });
+
+  it("explains that a role must be chosen before Assign works", async () => {
+    server.use(
+      http.get(`${BASE}/api/v1/hr/employment/u-1`, () =>
+        HttpResponse.json({
+          id: "e-1",
+          user_id: "u-1",
+          organisation_id: "gaa",
+          employee_number: "MET-9",
+          department_id: "dept_met",
+          status: "ACTIVE",
+        })
+      )
+    );
+    renderDialog();
+    expect(
+      await screen.findByText("Choose a role to enable Assign.")
+    ).toBeInTheDocument();
+    expect(screen.queryByText(NO_EMPLOYMENT_NOTICE)).not.toBeInTheDocument();
+    fireEvent.change(screen.getByLabelText("Role to assign"), {
+      target: { value: "staff" },
+    });
+    expect(screen.getByRole("button", { name: "Assign" })).toBeEnabled();
+    expect(
+      screen.queryByText("Choose a role to enable Assign.")
+    ).not.toBeInTheDocument();
+  });
+
+  const withEmployment = () =>
+    http.get(`${BASE}/api/v1/hr/employment/u-1`, () =>
+      HttpResponse.json({
+        id: "e-1",
+        user_id: "u-1",
+        organisation_id: "gaa",
+        employee_number: "MET-9",
+        department_id: "dept_met",
+        status: "ACTIVE",
+      })
+    );
+
+  async function assignStaff() {
+    await screen.findByText("Choose a role to enable Assign.");
+    fireEvent.change(screen.getByLabelText("Role to assign"), {
+      target: { value: "staff" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Assign" }));
+  }
+
+  it("keeps the API's reason on screen, once, when the assignment is refused", async () => {
+    const errorToast = vi.spyOn(toast, "error");
+    server.use(
+      withEmployment(),
+      http.post(`${BASE}/api/v1/auth/role-assignments`, () =>
+        HttpResponse.json(
+          {
+            detail:
+              "Place the target in this employer before assigning HR access",
+          },
+          { status: 400 }
+        )
+      )
+    );
+    renderDialog();
+    await assignStaff();
+
+    expect(await screen.findByRole("alert")).toHaveTextContent(
+      "staff was not assigned: Place the target in this employer before assigning HR access"
+    );
+    // The inline alert is the only announcement; a toast would repeat it.
+    expect(errorToast).not.toHaveBeenCalled();
+    expect(reportError).not.toHaveBeenCalled();
+    errorToast.mockRestore();
+  });
+
+  it("reports an unexpected failure and shows a plain message", async () => {
+    server.use(
+      withEmployment(),
+      http.post(
+        `${BASE}/api/v1/auth/role-assignments`,
+        () => new HttpResponse(null, { status: 500 })
+      )
+    );
+    renderDialog();
+    await assignStaff();
+
+    expect(await screen.findByRole("alert")).toHaveTextContent(
+      "staff was not assigned. Something went wrong; try again shortly."
+    );
+    expect(reportError).toHaveBeenCalledWith(
+      expect.anything(),
+      "hr-role-assign"
+    );
+  });
+
+  it("clears the refusal when another role is chosen", async () => {
+    server.use(
+      withEmployment(),
+      http.post(`${BASE}/api/v1/auth/role-assignments`, () =>
+        HttpResponse.json({ detail: "Nope" }, { status: 400 })
+      )
+    );
+    renderDialog();
+    await assignStaff();
+    await screen.findByRole("alert");
+    fireEvent.change(screen.getByLabelText("Role to assign"), {
+      target: { value: "" },
+    });
+    expect(screen.queryByRole("alert")).not.toBeInTheDocument();
   });
 });
