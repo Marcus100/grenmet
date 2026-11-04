@@ -1,5 +1,6 @@
 """Request IDs tie a response, its log lines and its Sentry events together."""
 
+import asyncio
 import logging
 from collections.abc import AsyncIterator
 
@@ -163,3 +164,49 @@ async def test_streamed_responses_carry_the_id_and_are_not_buffered() -> None:
     assert response.text == "ab"
     assert response.headers[REQUEST_ID_HEADER] == "web-4f9a2c71"
     assert seen_ids == ["web-4f9a2c71"]
+
+
+def _http_scope() -> dict[str, object]:
+    return {"type": "http", "method": "GET", "path": "/raw", "headers": []}
+
+
+async def _no_body() -> dict[str, object]:
+    return {"type": "http.request", "body": b"", "more_body": False}
+
+
+async def test_the_start_message_is_sent_before_the_body_finishes() -> None:
+    started = asyncio.Event()
+    sent: list[dict[str, object]] = []
+
+    async def slow_app(_scope, _receive, send) -> None:  # noqa: ANN001
+        await send({"type": "http.response.start", "status": 200, "headers": []})
+        # A buffering middleware would hold the start message, so this times out.
+        await asyncio.wait_for(started.wait(), timeout=2)
+        await send({"type": "http.response.body", "body": b"done"})
+
+    async def record(message: dict[str, object]) -> None:
+        sent.append(message)
+        if message["type"] == "http.response.start":
+            started.set()
+
+    await RequestLoggingMiddleware(slow_app)(_http_scope(), _no_body, record)
+    assert [message["type"] for message in sent] == [
+        "http.response.start",
+        "http.response.body",
+    ]
+
+
+async def test_a_start_message_without_headers_still_gets_the_id() -> None:
+    sent: list[dict[str, object]] = []
+
+    async def bare_app(_scope, _receive, send) -> None:  # noqa: ANN001
+        # ASGI allows a start message with no "headers" key.
+        await send({"type": "http.response.start", "status": 204})
+        await send({"type": "http.response.body", "body": b""})
+
+    async def record(message: dict[str, object]) -> None:
+        sent.append(message)
+
+    await RequestLoggingMiddleware(bare_app)(_http_scope(), _no_body, record)
+    names = [name for name, _value in sent[0]["headers"]]
+    assert REQUEST_ID_HEADER.lower().encode() in names
