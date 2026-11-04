@@ -8,6 +8,7 @@ import httpx
 import pytest
 from fastapi import FastAPI
 from fastapi.responses import StreamingResponse
+from starlette.types import Message, Receive, Scope, Send
 
 from src.config import settings
 from src.main import RequestLoggingMiddleware, app, unhandled_exception_handler
@@ -166,25 +167,25 @@ async def test_streamed_responses_carry_the_id_and_are_not_buffered() -> None:
     assert seen_ids == ["web-4f9a2c71"]
 
 
-def _http_scope() -> dict[str, object]:
+def _http_scope() -> Scope:
     return {"type": "http", "method": "GET", "path": "/raw", "headers": []}
 
 
-async def _no_body() -> dict[str, object]:
+async def _no_body() -> Message:
     return {"type": "http.request", "body": b"", "more_body": False}
 
 
 async def test_the_start_message_is_sent_before_the_body_finishes() -> None:
     started = asyncio.Event()
-    sent: list[dict[str, object]] = []
+    sent: list[Message] = []
 
-    async def slow_app(_scope, _receive, send) -> None:  # noqa: ANN001
+    async def slow_app(_scope: Scope, _receive: Receive, send: Send) -> None:
         await send({"type": "http.response.start", "status": 200, "headers": []})
         # A buffering middleware would hold the start message, so this times out.
         await asyncio.wait_for(started.wait(), timeout=2)
         await send({"type": "http.response.body", "body": b"done"})
 
-    async def record(message: dict[str, object]) -> None:
+    async def record(message: Message) -> None:
         sent.append(message)
         if message["type"] == "http.response.start":
             started.set()
@@ -197,14 +198,14 @@ async def test_the_start_message_is_sent_before_the_body_finishes() -> None:
 
 
 async def test_a_start_message_without_headers_still_gets_the_id() -> None:
-    sent: list[dict[str, object]] = []
+    sent: list[Message] = []
 
-    async def bare_app(_scope, _receive, send) -> None:  # noqa: ANN001
+    async def bare_app(_scope: Scope, _receive: Receive, send: Send) -> None:
         # ASGI allows a start message with no "headers" key.
         await send({"type": "http.response.start", "status": 204})
         await send({"type": "http.response.body", "body": b""})
 
-    async def record(message: dict[str, object]) -> None:
+    async def record(message: Message) -> None:
         sent.append(message)
 
     await RequestLoggingMiddleware(bare_app)(_http_scope(), _no_body, record)
