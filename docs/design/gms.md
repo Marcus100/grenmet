@@ -230,8 +230,8 @@ never sensational; *calm and reassuring* — urgency without panic: what is happ
 what it means, what to do next; *helpful and public-focused* — explain how the
 weather affects people's lives, not just the reading.
 
-**Imagery** (same kit): real meteorological subject matter — satellite and radar
-loops, instruments, stations, clouds over Grenada. No generic stock weather or
+**Imagery** (same kit): real meteorological subject matter — satellite
+imagery, instruments, stations, clouds over Grenada. No generic stock weather or
 illustration-kit art.
 
 ## Colors
@@ -391,7 +391,7 @@ Each: **Role** · **Specs** · **Context**.
 - **Footer** (`apps/web/gms/src/components/footer.tsx`) · Top: "Get official alerts first" (app, WhatsApp, email, alerts feed) beside "In an emergency" (911, NaDMA, local radio); then the full logo, published contacts, social links and link columns; then the legal row · No staff sign-in link.
 - **Site search** (`…/site-search.tsx`) · Find any page or article · masthead button and `/`; `CommandDialog` with local ranking · Planned pages show "coming soon".
 - **Breadcrumbs** (`apps/web/gms/src/components/site-breadcrumbs.tsx`) · Where am I · Home › section (sitemap anchor or section page) › URL ancestors; current page omitted (the `h1` names it); `text-body-sm` secondary, blue-ink hover · Automatic on every standing page; logic in `src/lib/breadcrumbs.ts`.
-- **Logo** (`@barrelsgd/gms/components/logo`) · Brand mark · variants `primary | submark | wordmark` (raster pairs) and `monogram | icon` (inline vector, `currentColor`); size via `className` only (`h-9 w-auto` header, `size-7` icon); dark mode handled automatically. Placement: the `monogram` (the kit's secondary "GMS" logo, the owner's preferred mark) in headers and other tight bars; the `primary` lockup where the full name earns its space (footer, sign-in brand panel, official documents); `icon` below ~32px; `submark` (badge) only at 180px and above.
+- **Logo** (`@barrelsgd/gms/components/logo`) · Brand mark · variants `primary | submark | wordmark` (raster pairs) and `monogram | icon` (inline vector, `currentColor`); size via `className` only (`h-9 w-auto` header, `size-7` icon); dark mode handled automatically. Placement: the `monogram` (the kit's secondary "GMS" logo, the owner's preferred mark) in headers and other tight bars; the `primary` lockup where the full name earns its space (footer, official documents); `icon` below ~32px; `submark` (badge) only at 180px and above.
 - **Badge / Alert / Dialog / Tabs** (`@barrelsgd/ui`) · Already branded by the GMS brand layer — don't restyle per app.
 
 ### States every surface must design
