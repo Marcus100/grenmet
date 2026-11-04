@@ -128,7 +128,8 @@ deploys only from `refs/tags/v*` on the `production` runner and environment.
 The automation here never reads those secrets: `PROMOTE_STAGING_TOKEN` lives in
 the `staging-promotion` environment and appears only in `promote-staging.yml`,
 and `STAGING_BASIC_AUTH` is used only by the smoke workflow, which runs the
-default branch's script. A guardrail test pins these. Issue #970 tracked the move to environment secrets.
+default branch's script. A guardrail test pins these. Issue #970 tracks the remaining owner settings
+(environment branch rules and missing environment secrets).
 
 ## What a person still reviews
 

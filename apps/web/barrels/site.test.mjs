@@ -256,10 +256,15 @@ test("forms send a Turnstile token only when a site key is configured", () => {
   const forms = read("forms.mjs");
   assert.ok(forms.includes('from "./turnstile-config.mjs"'));
   assert.ok(forms.includes("turnstile_token"));
-  assert.ok(
-    hostsIn(forms).includes("challenges.cloudflare.com") &&
-      forms.includes("/turnstile/v0/api.js")
-  );
+  const turnstileScripts = (forms.match(URL_IN_TEXT) ?? [])
+    .filter((candidate) => URL.canParse(candidate))
+    .map((candidate) => new URL(candidate))
+    .filter((url) => url.pathname === "/turnstile/v0/api.js");
+  assert.ok(turnstileScripts.length > 0, "Turnstile script URL is present");
+  for (const url of turnstileScripts) {
+    assert.equal(url.protocol, "https:");
+    assert.equal(url.hostname, "challenges.cloudflare.com");
+  }
   assert.ok(forms.includes("render=explicit"));
   // The script is loaded from forms.mjs, never from a page.
   for (const page of PAGES) {
