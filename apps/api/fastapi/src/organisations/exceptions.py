@@ -17,6 +17,17 @@ class OrganisationNotFoundError(AppException):
         super().__init__("Organisation not found", status.HTTP_404_NOT_FOUND)
 
 
+class OrganisationNotRejectedError(AppException):
+    """Only a rejected organisation can ask for another review (409)."""
+
+    def __init__(self) -> None:
+        super().__init__(
+            "Only a rejected request can be resubmitted", status.HTTP_409_CONFLICT
+        )
+        #: Clients match on this code, not on the wording of the message.
+        self.extra["code"] = "ORGANISATION_NOT_REJECTED"
+
+
 class OrganisationRoleError(AppException):
     def __init__(self) -> None:
         super().__init__(

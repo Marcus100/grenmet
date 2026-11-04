@@ -22,6 +22,7 @@ from src.organisations import entitlements
 from src.organisations.exceptions import (
     OrganisationAppNotEntitledError,
     OrganisationNotFoundError,
+    OrganisationNotRejectedError,
     OrganisationRoleError,
     OrganisationSuspendedError,
 )
@@ -626,7 +627,7 @@ async def resubmit_verification(
     rejection reason stays on the row until the next decision."""
     organisation = await _load(session, organisation_id)
     if organisation.verification_status != VerificationStatus.REJECTED.value:
-        raise AppException("Only a rejected request can be resubmitted", 409)
+        raise OrganisationNotRejectedError()
     audit_service.set_actor(session, actor.id)
     organisation.verification_status = VerificationStatus.PENDING.value
     await audit_service.record_change(

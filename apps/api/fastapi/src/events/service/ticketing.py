@@ -276,7 +276,9 @@ async def _existing_order(
         raise EventsConflict("This Idempotency-Key was already used for another order")
     if order.status == "expired":
         # Never hand back a dead order as a successful claim; the client starts over.
-        raise EventsConflict("That attempt expired. Start a new one.")
+        raise EventsConflict(
+            "That attempt expired. Start a new one.", code="ATTEMPT_EXPIRED"
+        )
     return order
 
 
