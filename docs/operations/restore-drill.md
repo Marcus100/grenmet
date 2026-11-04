@@ -1,8 +1,8 @@
 # Restore drill
 
-**Status:** Built, not yet run against real backups  
+**Status:** Run once against the production backup and passed; a supervised staging-target run is still open ([#926](https://github.com/Marcus100/grenmet/issues/926)). Run 41789991594 (2026-11-04) succeeded: the restore step took about 1.5 minutes and the whole run 1 minute 57 seconds.  
 **Owner:** Barrels Grenada engineering  
-**Last updated:** 2026-10-15
+**Last updated:** 2026-11-04
 
 Proves that the latest off-host backups rebuild every core database and match the
 code. Decision and rationale: [ADR-0021](../adr/0021-timed-recovery-drill.md). The
