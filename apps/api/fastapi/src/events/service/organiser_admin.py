@@ -112,7 +112,10 @@ async def _my_organiser(
         if slug is not None:
             linked.append(Organiser.slug == slug)
         if org_ids and await db.scalar(select(exists().where(*linked))):
-            raise EventsForbidden("Barrels Events isn't enabled for this organisation")
+            raise EventsForbidden(
+                "Barrels Events isn't enabled for this organisation",
+                code="EVENTS_NOT_ENABLED",
+            )
         raise EventsForbidden("You're not a member of an organiser yet")
     return organiser
 

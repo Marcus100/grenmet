@@ -167,7 +167,10 @@ async def test_unconfigured_storage_is_503(
         UPLOADS, json=_body(), headers=headers_for(user, org.id)
     )
     assert response.status_code == 503
-    assert response.json() == {"detail": "Uploads are not configured"}
+    assert response.json() == {
+        "detail": "Uploads are not configured",
+        "code": "UPLOADS_NOT_CONFIGURED",
+    }
 
 
 async def test_presign_needs_sign_in_header_and_membership(

@@ -168,7 +168,10 @@ describe("image uploads", () => {
 
   it("shows the API's message when uploads are not configured, unreported", async () => {
     createUpload.mockImplementation(() => {
-      throw responseError(503, { detail: "Uploads are not configured" });
+      throw responseError(503, {
+        detail: "Uploads are not configured",
+        code: "UPLOADS_NOT_CONFIGURED",
+      });
     });
     expect(
       await startUpload("org_1", {
@@ -236,6 +239,7 @@ describe("claimTickets failures", () => {
       responseError(503, {
         detail:
           "Online payment is temporarily unavailable. Please try again shortly.",
+        code: "CARD_PAYMENT_UNAVAILABLE",
       })
     );
     expect(await claimTickets("fete", [], "key")).toEqual({
@@ -248,7 +252,10 @@ describe("claimTickets failures", () => {
 
   it("drops the key after an expired attempt", async () => {
     fails(
-      responseError(409, { detail: "That attempt expired. Start a new one." })
+      responseError(409, {
+        detail: "That attempt expired. Start a new one.",
+        code: "ATTEMPT_EXPIRED",
+      })
     );
     expect(await claimTickets("fete", [], "key")).toMatchObject({
       ok: false,
@@ -366,11 +373,24 @@ describe("resubmitOrganiser", () => {
         Promise.reject(
           responseError(409, {
             detail: "Only a rejected request can be resubmitted",
+            code: "ORGANISATION_NOT_REJECTED",
           })
         ),
     });
     expect(await resubmitOrganiser()).toEqual({ ok: true, data: "unchanged" });
     expect(reportError).not.toHaveBeenCalled();
+  });
+
+  it("does not treat a 409 without the code as unchanged", async () => {
+    resubmit.mockReturnValue({
+      unwrap: async () =>
+        Promise.reject(
+          responseError(409, {
+            detail: "Only a rejected request can be resubmitted",
+          })
+        ),
+    });
+    expect(await resubmitOrganiser()).toMatchObject({ ok: false });
   });
 
   it("shows other refusals and reports server faults without detail", async () => {

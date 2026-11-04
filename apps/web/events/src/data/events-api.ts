@@ -71,6 +71,7 @@ import {
   toThread,
   toThreadSummary,
 } from "./api-mappers";
+import { ERROR_CODES, errorCodeOf } from "./error-code";
 import { chosenOrganiser } from "./organiser-choice";
 
 /**
@@ -192,9 +193,6 @@ export interface ManagedWorkspace {
   organisers: OrganiserOption[];
 }
 
-/** What the API answers (403) when the organiser's organisation has Events switched off. */
-const EVENTS_DISABLED_DETAIL = "Barrels Events isn't enabled";
-
 export type ManagedAccess =
   | { readonly kind: "ok"; readonly workspace: ManagedWorkspace }
   /** The member is not part of any organiser yet. */
@@ -205,12 +203,7 @@ export type ManagedAccess =
 function forbiddenKind(
   error: ResponseError
 ): "events-disabled" | "no-organiser" {
-  const data: unknown = error.data;
-  const detail =
-    typeof data === "object" && data !== null && "detail" in data
-      ? data.detail
-      : null;
-  return typeof detail === "string" && detail.startsWith(EVENTS_DISABLED_DETAIL)
+  return errorCodeOf(error.data) === ERROR_CODES.eventsNotEnabled
     ? "events-disabled"
     : "no-organiser";
 }
@@ -218,7 +211,7 @@ function forbiddenKind(
 /**
  * The organiser's own listings, drafts included, for the organiser picked in
  * the switcher (cookie) or the first one. A 403 is told apart by the API's
- * message: Events switched off for the organisation, or no organiser at all.
+ * `code`: Events switched off for the organisation, or no organiser at all.
  */
 export const getManagedAccess = cache(async (): Promise<ManagedAccess> => {
   const chosen = await chosenOrganiser();

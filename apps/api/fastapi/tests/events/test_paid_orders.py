@@ -823,6 +823,7 @@ async def test_a_stripe_failure_fails_the_claim_instead_of_using_the_manual_rail
     failed = await _order(buyer, shop, 1, key="down-key-00001")
     assert failed.status_code == 503
     assert "Please try again" in failed.json()["detail"]
+    assert failed.json()["code"] == "CARD_PAYMENT_UNAVAILABLE"
     # No intent of any rail, and the hold is given back.
     assert await _intent_count(db_async, shop) == 0
     assert await _remaining(events_db, shop) == 3
@@ -848,6 +849,7 @@ async def test_replaying_the_key_of_a_failed_attempt_is_not_a_successful_claim(
     replay = await _order(buyer, shop, 1, key="same-key-0001")
     assert replay.status_code == 409
     assert replay.json()["detail"] == "That attempt expired. Start a new one."
+    assert replay.json()["code"] == "ATTEMPT_EXPIRED"
     assert await _remaining(events_db, shop) == 3
     # A fresh key works; a legitimate replay of a pending order still converges.
     fresh = await _order(buyer, shop, 1, key="same-key-0002")

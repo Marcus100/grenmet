@@ -274,7 +274,10 @@ async def test_rejected_organiser_resubmits_and_is_reviewed_again(
 
     # Not rejected yet.
     async with client_with_real_roles(owner) as client:
-        assert (await client.post(resubmit)).status_code == 409
+        not_rejected = await client.post(resubmit)
+        assert not_rejected.status_code == 409
+        # Clients match on the code, not on the wording of the message.
+        assert not_rejected.json()["code"] == "ORGANISATION_NOT_REJECTED"
     await async_client.post(
         f"{ADMIN}/{org_id}/reject", headers=headers, json={"reason": "Missing bio"}
     )
