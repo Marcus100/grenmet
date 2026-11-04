@@ -53,7 +53,7 @@ async def list_verification_cases(
     case_status: Annotated[
         VerificationStatus, Query(alias="status")
     ] = VerificationStatus.PENDING,
-    page: Annotated[int, Query(ge=1)] = 1,
+    page: Annotated[int, Query(ge=1, le=100_000)] = 1,
     size: Annotated[int, Query(ge=1, le=100)] = 25,
 ) -> schemas.VerificationCaseList:
     return await organiser_verification.list_cases(

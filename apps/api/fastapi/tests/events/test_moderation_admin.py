@@ -94,6 +94,21 @@ async def test_only_staff_with_the_right_role_reach_the_queue(
         assert plain.status_code == 403, (method, url, plain.text)
 
 
+async def test_the_queue_refuses_a_page_too_large_for_the_database(
+    async_client: httpx.AsyncClient, events_db: SessionFactory, db_async: AsyncSession
+) -> None:
+    # An unbounded page once became an OFFSET beyond int64 and failed as a 500 (fuzz).
+    _ = events_db
+    moderator = await user_with_role(db_async, "events-moderator")
+    headers = headers_for(moderator)
+    for page in (0, 100_001, 2**63):
+        response = await async_client.get(ADMIN, headers=headers, params={"page": page})
+        assert response.status_code == 422, (page, response.text)
+    last = await async_client.get(ADMIN, headers=headers, params={"page": 100_000})
+    assert last.status_code == 200
+    assert last.json()["data"] == []
+
+
 async def test_moderator_reads_but_cannot_decide(
     async_client: httpx.AsyncClient, events_db: SessionFactory, db_async: AsyncSession
 ) -> None:

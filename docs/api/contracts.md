@@ -777,7 +777,7 @@ address or a second pending request); moderators verify it through
 listing and approving an organiser also write `outbox` rows (same Events transaction)
 that the worker turns into notifications; no endpoint is involved.
 Admin moderation (zone `admin`, staff session): `GET /admin/moderation/organisers`
-(`?status=pending|approved|rejected`, paginated) and `GET /admin/moderation/organisers/{organisation_id}`
+(`?status=pending|approved|rejected`, paginated; `page` is 1 to 100000, otherwise 422) and `GET /admin/moderation/organisers/{organisation_id}`
 (case with owners, listing counts and verification history) are open to superusers and
 `events.moderate` holders; `POST .../approve` and `POST .../reject` (reason required)
 need an MFA superuser and go through `organisations.service.admin_set_verified`
