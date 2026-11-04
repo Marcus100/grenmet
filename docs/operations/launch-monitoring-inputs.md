@@ -381,3 +381,10 @@ recovery email is not yet evidenced).
 - Which backup kinds are genuinely in production use (`weather`, `objects`, `sutron`).
 - The Sentry plan limits for cron monitors and retained events.
 - Whether the Sentry organisation uses the default or a regional API address.
+
+## Features with no separate monitor
+
+The month summary, the Marine Forecast, the Climate Bulletin and the CAP feed
+validation have no uptime monitor of their own. Where a failure of each one shows
+is listed in `docs/operations/analytics-monitoring.md` (table "Where a failure
+shows"). Read it before launch so the operator knows what to look for.

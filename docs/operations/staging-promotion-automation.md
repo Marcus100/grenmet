@@ -2,7 +2,7 @@
 
 **Status:** Built, off by default  
 **Owner:** Barrels Grenada engineering  
-**Last updated:** 2026-10-31
+**Last updated:** 2026-11-04
 
 The daily `dev` to `staging` promotion needs no human click. A person or agent
 only reviews the result on staging. This covers `staging` only. `staging` to
@@ -72,8 +72,16 @@ enough there.
 - [ ] Settings, Environments: create `staging-promotion`, restrict it to the
       default branch.
 - [ ] Settings, General: enable **Allow auto-merge**.
-- [ ] Create a fine-grained personal access token for this repository only:
-      Contents read, Pull requests read and write, Actions read, Metadata read.
+- [ ] Create a fine-grained personal access token for this repository only.
+      Minimum permissions, from what `scripts/ops/promote-staging.mjs` does
+      (it lists workflow runs, lists, creates and edits pull requests, and
+      turns auto-merge on or off): Pull requests read and write, Actions read,
+      Metadata read (always on). Issue #1011 also lists Contents read and
+      write; the script never writes repository contents itself, but turning
+      on auto-merge may need Contents write, so keep it until a real run
+      proves Contents read is enough. The workflow's own `permissions` block
+      (contents read, pull requests write) only limits the default token, not
+      this one.
       Add it as the secret `PROMOTE_STAGING_TOKEN` of a GitHub Environment named
       `staging-promotion` (Settings, Environments), with deployment branches
       limited to the default branch, not as a repository secret. The token's user
@@ -110,18 +118,17 @@ enough there.
 ## Secrets and production
 
 The Staging Pipeline reaches `deploy.yml` with `secrets: inherit`, and
-`deploy.yml` reads many **repository-level** secrets (database passwords,
-`SECRET_KEY`, `RESEND_API_KEY`, SSO client secrets and others) alongside
-environment-scoped ones. From the workflows alone it cannot be confirmed that
-staging credentials are separate from production: those repository secrets are
-shared names. What the workflows do guarantee is that a staging run deploys only
+`deploy.yml` reads its deploy credentials (database passwords, `SECRET_KEY`,
+`RESEND_API_KEY`, SSO client secrets and others) from **environment** secrets,
+so staging and production hold separate values. The only repository-level
+secrets left are `ANTHROPIC_API_KEY`, the `DOCKERHUB_*` pair and
+`TURBO_REMOTE_CACHE_SIGNATURE_KEY`. What the workflows do guarantee is that a staging run deploys only
 from `refs/heads/staging` onto the `staging` self-hosted runner, and production
 deploys only from `refs/tags/v*` on the `production` runner and environment.
 The automation here never reads those secrets: `PROMOTE_STAGING_TOKEN` lives in
 the `staging-promotion` environment and appears only in `promote-staging.yml`,
 and `STAGING_BASIC_AUTH` is used only by the smoke workflow, which runs the
-default branch's script. A guardrail test pins these. Owner action: review which
-repository secrets should become environment secrets (issue #970).
+default branch's script. A guardrail test pins these. Issue #970 tracked the move to environment secrets.
 
 ## What a person still reviews
 

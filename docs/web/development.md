@@ -121,6 +121,9 @@ rather than from this page. At the time of writing:
 | Ultracite | `ultracite: "8.1.0"` | Exact. `biome.jsonc` extends `ultracite/biome/core`, `/react` and `/next`, so a new Ultracite version changes the rule set. Ultracite 8.1 needs Biome 2.6.2 or newer. |
 | Kubb (API client generator) | `kubb`, `@kubb/adapter-oas`, `@kubb/parser-ts` at 5.14.3; `@kubb/plugin-fetch` 5.9.2, `@kubb/plugin-react-query` 5.6.2, `@kubb/plugin-ts` 5.2.0, `@kubb/plugin-zod` 5.7.2 | Exact, so `packages/api-client/src/gen/` only changes when a version is bumped on purpose. The plugins version independently of Kubb core, so each keeps its own number. |
 
+Biome must stay at 2.6 or newer: `biome.jsonc` has a top-level `yaml` key (YAML
+formatting is switched off), which older Biome versions reject.
+
 To upgrade Biome or Ultracite:
 
 1. Change the catalog entry (catalog mode is strict, so no version goes in a package's
