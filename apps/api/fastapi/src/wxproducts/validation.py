@@ -34,12 +34,15 @@ ADVISORY_KINDS = frozenset({*ISSUE_HOURS, "marine-forecast"})
 # issue time, so a future issue time may be published.
 SCHEDULED_KINDS = {*ISSUE_HOURS, "marine-forecast"}
 LEGACY_MARINE_FIELDS = ("smallCraft", "smallCraftNotes")
+# Fields of the first climate sheet (before the owner's bulletin examples).
+# Older revisions keep them: writes drop them, the PDF prints them under
+# "Earlier format". One source for both.
 LEGACY_CLIMATE_FIELDS = (
-    "summary",
-    "rainfallComment",
-    "temperatureComment",
-    "notableEvents",
-    "outlook",
+    ("summary", "Summary of the month"),
+    ("rainfallComment", "Rainfall"),
+    ("temperatureComment", "Temperature"),
+    ("notableEvents", "Notable events"),
+    ("outlook", "Outlook for the coming months"),
 )
 MARINE_FORECAST_AREA = "Waters of Grenada, Carriacou and Petite Martinique"
 MARINE_FORECAST_VALIDITY = "05:00 today to 05:00 tomorrow"
@@ -208,7 +211,7 @@ def normalize(
     if kind == "climate-bulletin":
         # First-version text fields: stored revisions keep them (and still
         # render), but the desk posts stored values back, so writes drop them.
-        for key in LEGACY_CLIMATE_FIELDS:
+        for key, _label in LEGACY_CLIMATE_FIELDS:
             result.pop(key, None)
         return _climate_schedule(result)
     if kind not in ISSUE_HOURS:
@@ -354,16 +357,18 @@ CLIMATE_RANGES = (
     ("verifyTmaxRange", "Tmax, normal range"),
     ("verifyTminRange", "Tmin, normal range"),
 )
-CLIMATE_SECTOR_KEYS = (
-    "impactAgriculture",
-    "impactWater",
-    "impactHealth",
-    "impactTourism",
-    "impactDrm",
-    "impactEnergy",
-    "impactFisheries",
-    "impactInfrastructure",
+# The implications table's sector rows, in print order (key, row label).
+CLIMATE_SECTORS = (
+    ("impactAgriculture", "Agriculture"),
+    ("impactWater", "Water"),
+    ("impactHealth", "Health"),
+    ("impactTourism", "Tourism"),
+    ("impactDrm", "Disaster Risk Management"),
+    ("impactEnergy", "Energy"),
+    ("impactFisheries", "Fisheries"),
+    ("impactInfrastructure", "Infrastructure"),
 )
+CLIMATE_SECTOR_KEYS = tuple(key for key, _label in CLIMATE_SECTORS)
 
 
 def _climate_bounds() -> dict[str, tuple[float, float]]:

@@ -23,8 +23,10 @@ from . import advisories, climate, units
 from .exceptions import UnsupportedSheetKind
 from .presentation import conditions as _conditions
 from .validation import (
+    CLIMATE_SECTORS,
     FIELDS,
     GRENADA,
+    LEGACY_CLIMATE_FIELDS,
     LEGACY_MARINE_FIELDS,
     MARINE_FORECAST_AREA,
     optional_number,
@@ -382,25 +384,6 @@ def marine_forecast_context(
     }
 
 
-# Fields of the first climate sheet (before the owner's bulletin examples).
-# Older revisions keep them; they print under "Earlier format".
-LEGACY_CLIMATE_FIELDS = (
-    ("summary", "Summary of the month"),
-    ("rainfallComment", "Rainfall"),
-    ("temperatureComment", "Temperature"),
-    ("notableEvents", "Notable events"),
-    ("outlook", "Outlook for the coming months"),
-)
-CLIMATE_SECTORS = (
-    ("impactAgriculture", "Agriculture"),
-    ("impactWater", "Water"),
-    ("impactHealth", "Health"),
-    ("impactTourism", "Tourism"),
-    ("impactDrm", "Disaster Risk Management"),
-    ("impactEnergy", "Energy"),
-    ("impactFisheries", "Fisheries"),
-    ("impactInfrastructure", "Infrastructure"),
-)
 CLIMATE_VERIFICATION = (
     ("verifyRainfall", "Rainfall (mm)"),
     ("verifyWetDays", "Wet days"),

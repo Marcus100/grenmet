@@ -112,7 +112,7 @@ def verification_label(value: str) -> str:
 def range_text(
     low: str, high: str, unit: str = "", *, up_to_when_zero: bool = False
 ) -> str:
-    """ "373 – 428 mm". With `up_to_when_zero`, an empty or zero bottom reads "Up to 2"."""
+    """ "120 – 180 mm". With `up_to_when_zero`, an empty or zero bottom reads "Up to 2"."""
     low, high = low.strip(), high.strip()
     suffix = f" {unit}" if unit else ""
     if up_to_when_zero and high and low in {"", "0", "0.0"}:

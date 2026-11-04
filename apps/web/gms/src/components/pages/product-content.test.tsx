@@ -81,4 +81,16 @@ describe("ProductContentView range rows", () => {
     expect(screen.getByText("up to 3")).toBeTruthy();
     expect(screen.getByText("0 to 5")).toBeTruthy();
   });
+
+  it("keeps a unit in a range label", () => {
+    view({
+      precipRangeMin: "120",
+      precipRangeMax: "180",
+      tempMaxRangeMin: "30.1",
+      tempMaxRangeMax: "30.7",
+    });
+    expect(screen.getByText("Normal range for the season (mm)")).toBeTruthy();
+    expect(screen.getByText("Normal maximum temperature (°C)")).toBeTruthy();
+    expect(screen.getByText("120 to 180")).toBeTruthy();
+  });
 });

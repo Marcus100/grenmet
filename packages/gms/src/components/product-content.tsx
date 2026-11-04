@@ -8,8 +8,9 @@ import {
 
 const DATE_SEPARATOR = /^(\d{4}-\d{2}-\d{2})T/u;
 const RANGE_FROM = /^(.*), from$/u;
-// Editor hints live in a label's parentheses; they are not for the public page.
-const EDITOR_HINT = /\s*\([^)]*\)/gu;
+// Editor hints ("(leave ...)", "(optional ...)") are not for the public page;
+// other parentheses are units and stay.
+const EDITOR_HINT = /\s*\((?:leave|optional)[^)]*\)/giu;
 const UP_TO_HINT = /'up to'/u;
 const ZERO = /^0(\.0+)?$/u;
 interface Row {
