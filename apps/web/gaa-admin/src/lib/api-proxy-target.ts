@@ -10,10 +10,27 @@
  * assembled from a fixed base origin plus those validated segments, so the
  * browser can change the path under the API base and nothing else.
  *
+ * One narrow exception allows `:` (baseline policy keys such as `hr:gms:LEAVE`).
+ * It applies only to the key segment of the policy route
+ * `/api/v1/hr/setup/policies/{key}`, matched on the decoded literal segments
+ * before it. The generated client percent-encodes the key, so the colon arrives
+ * as `%3A` and is accepted after decoding. The key is the last segment and is
+ * never the first, so it cannot start an authority, and the fixed base origin
+ * still applies. Everywhere else `:` is refused.
+ *
  * Returns null when the path is not acceptable. The caller answers 400 and
  * sends no request upstream.
  */
 const SEGMENT = /^[A-Za-z0-9._~-]+$/u;
+const POLICY_KEY_SEGMENT = /^[A-Za-z0-9._~:-]+$/u;
+const POLICY_ROUTE = ["api", "v1", "hr", "setup", "policies"] as const;
+
+function isPolicyRoute(decoded: readonly string[]): boolean {
+  return (
+    decoded.length === POLICY_ROUTE.length + 1 &&
+    POLICY_ROUTE.every((literal, index) => decoded[index] === literal)
+  );
+}
 
 export function buildApiProxyUrl(
   pathname: string,
@@ -25,18 +42,24 @@ export function buildApiProxyUrl(
   const trailingSlash = pathname.endsWith("/");
   const body = trailingSlash ? pathname.slice(0, -1) : pathname;
 
-  const segments: string[] = [];
+  const decoded: string[] = [];
   for (const raw of body.slice(1).split("/")) {
-    let decoded: string;
     try {
-      decoded = decodeURIComponent(raw);
+      decoded.push(decodeURIComponent(raw));
     } catch {
       return null;
     }
-    if (decoded === "." || decoded === ".." || !SEGMENT.test(decoded)) {
+  }
+
+  const policyKeyIndex = isPolicyRoute(decoded) ? decoded.length - 1 : -1;
+
+  const segments: string[] = [];
+  for (const [index, segment] of decoded.entries()) {
+    const pattern = index === policyKeyIndex ? POLICY_KEY_SEGMENT : SEGMENT;
+    if (segment === "." || segment === ".." || !pattern.test(segment)) {
       return null;
     }
-    segments.push(decoded);
+    segments.push(segment);
   }
 
   const base = new URL(apiBaseUrl);
