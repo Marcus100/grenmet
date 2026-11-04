@@ -15,6 +15,7 @@ import {
   useHrListDepartments,
 } from "@barrelsgd/api-client";
 import { useSessionUser } from "@barrelsgd/auth";
+import { Alert, AlertDescription } from "@barrelsgd/ui/components/ui/alert";
 import { Badge } from "@barrelsgd/ui/components/ui/badge";
 import { Button } from "@barrelsgd/ui/components/ui/button";
 import {
@@ -33,11 +34,75 @@ import { useQueryClient } from "@tanstack/react-query";
 import { ShieldMinus, UserRoundCog, X } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
+import { hrApiErrorMessage } from "../hr/api-error";
 
 import { AccountActivation } from "./account-activation";
 import { CmsAccessControl } from "./cms-access-control";
 import { EmploymentSection } from "./employment-section";
 import { SignInSetup } from "./sign-in-setup";
+
+/** How long a refused role assignment stays on screen as a toast (ms). */
+const ASSIGN_ERROR_TOAST_MS = 10_000;
+
+/** Shown while the person has no department record: roles cannot be assigned yet. */
+export const NO_EMPLOYMENT_NOTICE =
+  "Put this person in a department first (Department & employment). Roles can only be assigned once they belong to an employer.";
+
+function statusOf(error: unknown): number | undefined {
+  if (error && typeof error === "object" && "status" in error) {
+    return typeof error.status === "number" ? error.status : undefined;
+  }
+  return undefined;
+}
+
+/** True once the employment lookup has settled on "no record yet" (a 404). */
+function isMissingEmployment(query: {
+  error: unknown;
+  isError: boolean;
+  isFetching: boolean;
+}): boolean {
+  return !query.isFetching && query.isError && statusOf(query.error) === 404;
+}
+
+/** Why Assign is greyed out, or null when it is ready. */
+function assignHintFor({
+  hasNoEmployment,
+  roleDepartment,
+  roleScope,
+  roleToAdd,
+}: {
+  hasNoEmployment: boolean;
+  roleDepartment: string;
+  roleScope: RoleAssignmentScope;
+  roleToAdd: string;
+}): string | null {
+  if (hasNoEmployment) {
+    return "Add a department record first, then assign a role.";
+  }
+  if (!roleToAdd) return "Choose a role to enable Assign.";
+  if (roleScope === "DEPARTMENT" && !roleDepartment) {
+    return "Choose a department for the Department scope.";
+  }
+  return null;
+}
+
+/** A message in the Roles section; nothing when there is none. */
+function RoleNotice({
+  message,
+  role,
+  variant,
+}: {
+  message: string | null;
+  role?: "alert";
+  variant: "destructive" | "warning";
+}) {
+  if (!message) return null;
+  return (
+    <Alert role={role} variant={variant}>
+      <AlertDescription>{message}</AlertDescription>
+    </Alert>
+  );
+}
 
 interface ManageUserDialogProps {
   onOpenChange?: (open: boolean) => void;
@@ -61,6 +126,7 @@ export function ManageUserDialog({
   const [roleScope, setRoleScope] = useState<RoleAssignmentScope>("SELF");
   const [roleDepartment, setRoleDepartment] = useState("");
   const [roleExpiry, setRoleExpiry] = useState("");
+  const [assignError, setAssignError] = useState<string | null>(null);
 
   const isControlled = controlledOpen !== undefined;
   const open = isControlled ? controlledOpen : internalOpen;
@@ -99,6 +165,17 @@ export function ManageUserDialog({
     }
   );
 
+  // A 404 means "no employment record yet" (expected); other failures are not
+  // treated as a missing record, so a network blip does not block assigning.
+  const hasNoEmployment = isMissingEmployment(employmentQuery);
+
+  const assignHint = assignHintFor({
+    hasNoEmployment,
+    roleDepartment,
+    roleScope,
+    roleToAdd,
+  });
+
   async function refresh() {
     await queryClient.invalidateQueries({
       queryKey: authGetRoleAssignmentsQueryKey({
@@ -112,6 +189,7 @@ export function ManageUserDialog({
   async function addRole() {
     const role = roles.find((r) => r.name === roleToAdd);
     if (!role) return;
+    setAssignError(null);
     try {
       await assignMutation.mutateAsync({
         body: {
@@ -129,10 +207,11 @@ export function ManageUserDialog({
       await refresh();
       setRoleToAdd("");
       toast.success(`Assigned ${role.name} to ${user.username}`);
-    } catch {
-      toast.error(
-        "Unable to assign role. Check the scope, department and expiry."
-      );
+    } catch (error) {
+      const reason = hrApiErrorMessage(error);
+      const message = `${role.name} was not assigned: ${reason}`;
+      setAssignError(message);
+      toast.error(message, { duration: ASSIGN_ERROR_TOAST_MS });
     }
   }
 
@@ -179,7 +258,9 @@ export function ManageUserDialog({
         </DialogHeader>
 
         {/* One column on phones; md and up, two columns in reading order
-            (account | CMS, then roles | employment), so tab order matches. */}
+            (account | CMS, then employment | roles), so tab order matches.
+            Employment comes first because a role can only be assigned to a
+            person who already belongs to a department. */}
         <div
           className="grid gap-6 md:grid-cols-2 md:gap-x-8"
           data-slot="manage-user-sections"
@@ -191,11 +272,27 @@ export function ManageUserDialog({
           <div className="min-w-0">
             <CmsAccessControl open={open} user={user} />
           </div>
+          <div className="min-w-0">
+            <EmploymentSection
+              currentEmployment={employmentQuery.data}
+              departments={departments}
+              isFetching={
+                employmentQuery.isFetching || departmentsQuery.isFetching
+              }
+              open={open}
+              user={user}
+            />
+          </div>
+
           <div
             className="flex min-w-0 flex-col gap-3"
             data-slot="manage-user-roles"
           >
             <span className="text-sm font-medium">Roles</span>
+            <RoleNotice
+              message={hasNoEmployment ? NO_EMPLOYMENT_NOTICE : null}
+              variant="warning"
+            />
             {!isSuperuser && (
               <p className="text-muted-foreground text-sm">
                 You may grant ordinary staff self-service within your active
@@ -289,6 +386,11 @@ export function ManageUserDialog({
                 value={roleExpiry}
               />
             </label>
+            <RoleNotice
+              message={assignError}
+              role="alert"
+              variant="destructive"
+            />
             <div className="flex items-center gap-2">
               <NativeSelect
                 aria-label="Role to assign"
@@ -304,11 +406,8 @@ export function ManageUserDialog({
                 ))}
               </NativeSelect>
               <Button
-                disabled={
-                  !roleToAdd ||
-                  assignMutation.isPending ||
-                  (roleScope === "DEPARTMENT" && !roleDepartment)
-                }
+                aria-describedby={assignHint ? "assign-hint" : undefined}
+                disabled={assignHint !== null || assignMutation.isPending}
                 onClick={addRole}
                 size="sm"
                 type="button"
@@ -317,18 +416,11 @@ export function ManageUserDialog({
                 Assign
               </Button>
             </div>
-          </div>
-
-          <div className="min-w-0">
-            <EmploymentSection
-              currentEmployment={employmentQuery.data}
-              departments={departments}
-              isFetching={
-                employmentQuery.isFetching || departmentsQuery.isFetching
-              }
-              open={open}
-              user={user}
-            />
+            {assignHint ? (
+              <p className="text-muted-foreground text-sm" id="assign-hint">
+                {assignHint}
+              </p>
+            ) : null}
           </div>
 
           <div className="md:col-span-2">
