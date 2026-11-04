@@ -17,6 +17,7 @@ from src.auth.models import User
 from src.events.models import Activity, Organiser
 from src.notifications.models import Notification
 from src.organisations.models import PlatformOrganisation
+from src.pagination import MAX_PAGE
 from src.utils.datetime import utc_now
 from tests.events.roles import user_with_role
 from tests.events.support import (
@@ -101,10 +102,10 @@ async def test_the_queue_refuses_a_page_too_large_for_the_database(
     _ = events_db
     moderator = await user_with_role(db_async, "events-moderator")
     headers = headers_for(moderator)
-    for page in (0, 100_001, 2**63):
+    for page in (0, MAX_PAGE + 1, 2**63):
         response = await async_client.get(ADMIN, headers=headers, params={"page": page})
         assert response.status_code == 422, (page, response.text)
-    last = await async_client.get(ADMIN, headers=headers, params={"page": 100_000})
+    last = await async_client.get(ADMIN, headers=headers, params={"page": MAX_PAGE})
     assert last.status_code == 200
     assert last.json()["data"] == []
 

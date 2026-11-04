@@ -58664,7 +58664,7 @@
             "required": false,
             "schema": {
               "type": "integer",
-              "maximum": 100000,
+              "maximum": 1000000,
               "minimum": 1,
               "default": 1,
               "title": "Page"

@@ -12,6 +12,7 @@ from fastapi import APIRouter, Path, Query, status
 from src.dependencies import MfaAdminUser
 from src.models import ApiError
 from src.organisations.models import VerificationStatus
+from src.pagination import MAX_PAGE
 
 from . import schemas
 from .dependencies import EventsSession, ModerationReader
@@ -53,7 +54,7 @@ async def list_verification_cases(
     case_status: Annotated[
         VerificationStatus, Query(alias="status")
     ] = VerificationStatus.PENDING,
-    page: Annotated[int, Query(ge=1, le=100_000)] = 1,
+    page: Annotated[int, Query(ge=1, le=MAX_PAGE)] = 1,
     size: Annotated[int, Query(ge=1, le=100)] = 25,
 ) -> schemas.VerificationCaseList:
     return await organiser_verification.list_cases(
