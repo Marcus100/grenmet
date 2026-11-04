@@ -44651,7 +44651,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/AuthoringError"
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
                 }
               }
             },

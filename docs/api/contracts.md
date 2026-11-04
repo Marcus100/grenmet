@@ -367,12 +367,14 @@ were removed. A write that still carries them (the desk posts stored values back
 has them ignored, not rejected: the new revision never stores them, while
 revisions already saved keep them and print them read-only as "Small craft (as
 recorded)". Any other unknown key is still refused ("Unknown product field"). A
-saved revision that never captured advisories prints "Alerts were not captured for
-this revision" instead of "No CAP alerts or GMS bulletins were in force". Entry and display use
-mph for wind and feet for waves and swell; storage stays in knots and metres.
-The PDF (`GET /wxproducts/products/{id}/revisions/{revision}/pdf`, and the draft
-preview) has a marine sheet: synopsis, winds, seas, alerts and advisories in
-force, and outlook.
+saved revision that never captured advisories prints "Alerts were not captured
+for this revision" instead of "No CAP alerts or GMS bulletins were in force".
+Entry and display use mph for wind and feet for waves and swell; storage stays
+in knots and metres. The PDF (`GET /wxproducts/products/{id}/revisions/{revision}/pdf`,
+and the draft preview) has a marine sheet: synopsis, winds, seas, alerts and
+advisories in force, and outlook. A kind with no sheet layout answers 422 with
+the detail "No PDF layout exists for product kind ..."; the route's documented
+422 stays the generic validation-error shape (no separate schema is declared).
 
 **Climate Bulletin** (`climate-bulletin`, title "Climate Bulletin"). Monthly,
 issued on the 15th, reviewing the month before. `month` is `YYYY-MM`; when empty
