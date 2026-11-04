@@ -50,8 +50,6 @@ class AuthConfig(BaseSettings):
     SIGNAL_SSO_CLIENT_SECRET: str = ""
     DOCS_APP_URL: str = "http://localhost:3002"
     DOCS_SSO_CLIENT_SECRET: str = ""
-    ELECTIONS_APP_URL: str = "http://localhost:3007"
-    ELECTIONS_SSO_CLIENT_SECRET: str = ""
     GMSDASH_APP_URL: str = "http://localhost:3013"
     GMSDASH_SSO_CLIENT_SECRET: str = ""
     BOOKINGS_APP_URL: str = "http://localhost:3015"

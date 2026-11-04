@@ -171,12 +171,6 @@ def _apps() -> dict[str, AppDefinition]:
                 auth_settings.DOCS_SSO_CLIENT_SECRET,
             ),
             (
-                "elections",
-                "Elections Grenada",
-                auth_settings.ELECTIONS_APP_URL,
-                auth_settings.ELECTIONS_SSO_CLIENT_SECRET,
-            ),
-            (
                 "gmsdash",
                 "GMS Dashboard",
                 auth_settings.GMSDASH_APP_URL,

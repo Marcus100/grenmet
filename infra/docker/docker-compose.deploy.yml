@@ -213,9 +213,6 @@ services:
       SIGNAL_SSO_CLIENT_SECRET: ${SIGNAL_SSO_CLIENT_SECRET:-}
       DOCS_APP_URL: https://docs.${BASE_DOMAIN}
       DOCS_SSO_CLIENT_SECRET: ${DOCS_SSO_CLIENT_SECRET:-}
-      # Elections is hosted on Vercel; its secret is set there and here.
-      ELECTIONS_APP_URL: https://elections.${BASE_DOMAIN}
-      ELECTIONS_SSO_CLIENT_SECRET: ${ELECTIONS_SSO_CLIENT_SECRET:-}
       RESEND_API_KEY: ${RESEND_API_KEY}
       # Optional integrations (2026-10-18); empty values fall back to defaults.
       MBIA_CONTACT_RECIPIENT: ${MBIA_CONTACT_RECIPIENT:-}
@@ -543,7 +540,7 @@ services:
       # lands back in it instead of on this app's home page. Each one must match its
       # entry in the api service. scripts/production/auth-return-origins.test.mjs
       # checks the two lists agree. EXTRA_RETURN_HOSTS, if set, must start with a comma.
-      AUTH_ALLOWED_RETURN_HOSTS: https://admin.${BASE_DOMAIN},https://bookings.${BASE_DOMAIN},https://cap.${BASE_DOMAIN},https://cms.${BASE_DOMAIN},https://elections.${BASE_DOMAIN},https://gmsdash.${BASE_DOMAIN}${EXTRA_RETURN_HOSTS:-}
+      AUTH_ALLOWED_RETURN_HOSTS: https://admin.${BASE_DOMAIN},https://bookings.${BASE_DOMAIN},https://cap.${BASE_DOMAIN},https://cms.${BASE_DOMAIN},https://gmsdash.${BASE_DOMAIN}${EXTRA_RETURN_HOSTS:-}
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.web-auth${ROUTER_SUFFIX}.rule=Host(`auth.${BASE_DOMAIN}`)"

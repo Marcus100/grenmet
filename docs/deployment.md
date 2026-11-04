@@ -658,7 +658,7 @@ checks below before promoting.
    no values). Before the first deploy, and again before promoting to production,
    confirm every secret that is set is unique per app and per environment:
    `GAA_ADMIN`, `BARRELS_ADMIN`, `CMS`, `EVENTS`, `WEATHER`, `MBIA`, `SIGNAL`,
-   `DOCS`, `ELECTIONS`, `GMSDASH` and `BOOKINGS` `_SSO_CLIENT_SECRET`. Regenerate
+   `DOCS`, `GMSDASH` and `BOOKINGS` `_SSO_CLIENT_SECRET`. Regenerate
    any duplicates with `openssl rand -base64 32` (and update the matching app and
    API value together).
 1. DNS: `*.staging.barrels.gd` already resolves everything to the staging VM, so

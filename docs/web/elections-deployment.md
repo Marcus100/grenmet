@@ -38,8 +38,9 @@ Vercel publishing is independent of the Docker release workflow.
 
 Elections has no Barrels sign-in (removed 2026-10-27, owner decision). It sets
 no cookies and keeps no server-side session, so no authentication variables
-(`AUTH_*`, `ELECTIONS_SSO_CLIENT_SECRET`, `ELECTIONS_SESSION_COOKIE_NAME`) are
-needed in Vercel. Remove any left over in the Vercel project settings.
+(`AUTH_*`, `ELECTIONS_SESSION_COOKIE_NAME`) are needed in Vercel. Remove any
+left over in the Vercel project settings, including the retired single sign-on
+secret.
 
 ## Data and services
 
