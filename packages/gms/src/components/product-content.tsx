@@ -8,15 +8,19 @@ import {
 
 const DATE_SEPARATOR = /^(\d{4}-\d{2}-\d{2})T/u;
 const RANGE_FROM = /^(.*), from$/u;
+// Editor hints live in a label's parentheses; they are not for the public page.
+const EDITOR_HINT = /\s*\([^)]*\)/gu;
+const UP_TO_HINT = /'up to'/u;
+const ZERO = /^0(\.0+)?$/u;
 interface Row {
   key: string;
   label: string;
   type?: ProductField["type"];
   value: string;
 }
-function rangeValue(low: string, high: string) {
-  if (low && high) return `${low} to ${high}`;
-  return high ? `up to ${high}` : low;
+function rangeValue(low: string, high: string, upTo: boolean) {
+  if (high && (!low || (upTo && ZERO.test(low)))) return `up to ${high}`;
+  return low && high ? `${low} to ${high}` : low;
 }
 /**
  * One row per field, except a "..., from" / "..., to" pair of numbers, which
@@ -33,13 +37,13 @@ function rowsOf(fields: ProductField[], values: Record<string, string>) {
       ? fields.find((g) => g.label === `${base}, to` && g.section === f.section)
       : undefined;
     const value = max
-      ? rangeValue(textOf(f.key), textOf(max.key))
+      ? rangeValue(textOf(f.key), textOf(max.key), UP_TO_HINT.test(f.label))
       : textOf(f.key);
     if (max) merged.add(max.key);
     if (value) {
       rows.push({
         key: f.key,
-        label: max && base ? base : f.label,
+        label: max && base ? base.replace(EDITOR_HINT, "") : f.label,
         type: f.type,
         value,
       });

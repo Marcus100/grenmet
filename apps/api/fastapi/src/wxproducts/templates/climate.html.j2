@@ -52,13 +52,6 @@
       </table>
     </section>
 
-    {% if trivia_answer or trivia_question %}
-    <section class="card cb-block">
-      <h2 class="eyebrow">Trivia</h2>
-      {% if trivia_answer %}<p>{{ trivia_answer }}</p>{% endif %}
-      {% if trivia_question %}<p><b>{{ trivia_question }}</b></p>{% endif %}
-    </section>
-    {% endif %}
 
     {% if legacy %}
     <section class="card cb-block">
@@ -70,6 +63,16 @@
     <p class="note">Disclaimer: The Meteorological Office at the Maurice Bishop International Airport makes no warranties, either expressed or implied, concerning the accuracy, completeness, reliability, or suitability of the information contained in this Bulletin, and will not be liable for any actions taken in reliance thereon.</p>
 
     <div class="cb-page-two"></div>
+
+    {% if trivia_answer or trivia_question %}
+    <section class="card cb-block">
+      <h2 class="eyebrow">Trivia</h2>
+      <div class="cb-trivia">
+        {% if trivia_answer %}<div><p>{{ trivia_answer }}</p></div>{% endif %}
+        {% if trivia_question %}<div><p><b>{{ trivia_question }}</b></p></div>{% endif %}
+      </div>
+    </section>
+    {% endif %}
 
     <section class="card cb-block">
       {% for spell in spells %}

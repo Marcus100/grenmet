@@ -60,11 +60,11 @@ def bulletin(scale: float = 1.0, **changes: str) -> dict[str, str]:
         "wetDaysMin": "31",
         "wetDaysMax": "44",
         "wetDaysImplication": prose(int(120 * scale)),
-        "wetSpellsOutlook": "Seven-day wet spells are expected near the usual number.",
+        "wetSpellsOutlook": "Counts of week-long spells should look ordinary.",
         "wetSpellsMin": "2",
         "wetSpellsMax": "6",
         "wetSpellsImplication": prose(int(120 * scale)),
-        "extremeSpellsOutlook": "Extreme three-day wet spells are expected near the usual number.",
+        "extremeSpellsOutlook": "Counts of short heavy spells should look ordinary.",
         "extremeSpellsMin": "",
         "extremeSpellsMax": "3",
         "extremeSpellsImplication": prose(int(120 * scale)),
@@ -436,15 +436,54 @@ def test_a_sheet_past_its_designed_page_count_is_flagged():
     assert forecast_pdf.sheet_warning("morning", 5) == ""
 
 
-def test_page_one_text_20_percent_longer_gives_two_pages_or_a_warning():
+FOUR_LINE_TRIVIA = "This month's invented question?\na) 27\nb) 28\nc) 29"
+
+
+@pytest.mark.parametrize("layout", [TABLE_LAYOUT, TEXT_LAYOUT], ids=["table", "text"])
+def test_a_four_line_trivia_question_still_fits_two_pages(layout):
     values = validation.normalize(
-        "climate-bulletin", bulletin(scale=1.2, **TEXT_LAYOUT)
+        "climate-bulletin",
+        bulletin(**layout) | {"triviaQuestion": FOUR_LINE_TRIVIA},
     )
     sheet = forecast_pdf.render_sheet(
         "climate-bulletin", values, status="", revision="r1"
     )
-    assert sheet.pages == 2 or forecast_pdf.sheet_warning(
-        "climate-bulletin", sheet.pages
+    assert sheet.pages == 2
+    context = forecast_pdf.climate_bulletin_context(values, status="", revision="r1")
+    html = forecast_pdf._environment().get_template("climate.html.j2").render(**context)
+    # The trivia card follows the page break, so page one's slack is not its to use.
+    assert html.index("cb-page-two") < html.index("Trivia")
+
+
+@pytest.mark.parametrize("layout", [TABLE_LAYOUT, TEXT_LAYOUT], ids=["table", "text"])
+def test_text_20_percent_longer_on_either_page_still_gives_two_pages(layout):
+    longer = layout | (
+        {
+            "generalImplications": prose(1800),
+            "tempMaxOutlook": prose(300),
+            "tempMinOutlook": prose(300),
+        }
+        if "generalImplications" in layout
+        else {key: prose(170) for key in SECTORS}
+    )
+    values = validation.normalize(
+        "climate-bulletin",
+        bulletin(scale=1.2, **longer) | {"triviaQuestion": FOUR_LINE_TRIVIA},
+    )
+    sheet = forecast_pdf.render_sheet(
+        "climate-bulletin", values, status="", revision="r1"
+    )
+    assert sheet.pages == 2
+
+
+def test_a_sheet_that_overflows_reports_the_warning_text():
+    values = validation.normalize("climate-bulletin", bulletin(scale=4, **TEXT_LAYOUT))
+    sheet = forecast_pdf.render_sheet(
+        "climate-bulletin", values, status="", revision="r1"
+    )
+    assert sheet.pages > 2
+    assert f"runs to {sheet.pages} pages; it is designed for 2" in (
+        forecast_pdf.sheet_warning("climate-bulletin", sheet.pages)
     )
 
 
