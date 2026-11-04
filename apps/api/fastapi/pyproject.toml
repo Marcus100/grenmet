@@ -149,6 +149,9 @@ keep-runtime-typing = true
 [tool.coverage.run]
 source = ["src"]
 branch = true
+# netcdf4 >= 1.7.5 ships Cython line-trace data for _netCDF4.pyx with no source on
+# disk; keep it out of measurement so `coverage combine` and reports do not fail.
+omit = ["*/netCDF4/*"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
