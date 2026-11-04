@@ -1,3 +1,5 @@
+from datetime import timedelta
+
 import pytest
 from fastapi.concurrency import run_in_threadpool
 from sqlalchemy import select
@@ -8,6 +10,7 @@ from src.baseline import product_access, service
 from src.baseline.models import BaselineAudit, StaffCredential
 from src.baseline.schemas import ProductAccessInput
 from src.hr.models import EmploymentStatus, Grade
+from src.utils import timezones
 from src.utils.datetime import utc_now
 from tests.baseline.test_baseline import seed
 
@@ -132,3 +135,50 @@ async def test_new_kinds_default_to_the_three_senior_grades(db_async):
         "GMS_ASSISTANT_MANAGER",
         "GMS_SENIOR_TECH",
     )
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize(
+    ("days_from_today", "may_author"),
+    [
+        (-1, False),  # last day was yesterday: no access, even before the nightly job
+        (0, True),  # the last day itself is still worked
+        (30, True),  # a future end date keeps access until then
+        (None, True),  # no end date
+    ],
+)
+async def test_authoring_follows_the_employment_end_date(
+    db_async, days_from_today, may_author
+):
+    """#1056: a passed end date ends authoring at once, without the nightly job."""
+    await seed_permissions_and_roles_async(db_async)
+    await run_in_threadpool(seed, True)
+    staff = (
+        (
+            await db_async.execute(
+                select(User).where(
+                    User.username != "admin", User.is_superuser.is_(False)
+                )
+            )
+        )
+        .scalars()
+        .first()
+    )
+    staff.is_active = True
+    employment = await service.employment_for(db_async, staff.id)
+    employment.grade_id = "GMS_MANAGER"
+    employment.status = EmploymentStatus.ACTIVE
+    employment.end_date = (
+        None
+        if days_from_today is None
+        else timezones.local_today() + timedelta(days=days_from_today)
+    )
+    db_async.add(employment)
+    await db_async.flush()
+
+    kinds = await product_access.allowed_kinds(db_async, staff)
+    assert bool(kinds) == may_author
+    assert ("morning" in kinds) == may_author
+    assert await product_access.users_who_may_author(
+        db_async, "morning", [staff.id]
+    ) == ({staff.id} if may_author else set())
