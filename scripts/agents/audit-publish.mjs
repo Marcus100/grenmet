@@ -9,8 +9,13 @@ import { publishObservations } from "./audit-report.mjs";
 // Keep the cause visible in publication.log without leaking credentials.
 export function cleanError(error) {
   const text = String(error instanceof Error ? error.message : error)
-    .replace(/\b(?:gh[pousr]_|github_pat_)[A-Za-z0-9_]+/gu, "[redacted]")
-    .replace(/\b(?:Bearer|token)\s+\S+/giu, "[redacted]")
+    .replace(
+      /(?<![A-Za-z0-9])(?:gh[pousr]_|github_pat_)[A-Za-z0-9_]+/gu,
+      "[redacted]"
+    )
+    .replace(/(?<![A-Za-z0-9])(?:Bearer|token)\s+\S+/giu, "[redacted]")
+    .replace(/(?:TOKEN|SECRET|PASSWORD|KEY)[=:]\S+/giu, "[redacted]")
+    .replace(/\/\/[^/@\s]+@/gu, "//[redacted]@")
     .replace(/[^\x20-\x7e]+/gu, " ")
     .trim();
   return text.slice(0, 300) || "unknown error";
@@ -33,7 +38,10 @@ export async function publishReport(path, publish) {
         timeout: 120_000,
         captureLimit: 16_000_000,
       });
-      if (result.code !== 0) throw new Error("Issue publication unavailable");
+      if (result.code !== 0)
+        throw new Error(
+          `Issue publication unavailable: ${cleanError(result.stderr)}`
+        );
       return result.stdout.trim();
     },
   });

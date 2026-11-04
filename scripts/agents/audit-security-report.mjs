@@ -41,7 +41,14 @@ export function validateSecurityMetadata(item) {
 // A closed tracker must not block other publication: its groups fall back to
 // per-group issues and the gap is recorded as a visible coverage blocker.
 function recordClosedTracker(result, number) {
-  result?.blockers.push({
+  console.warn(
+    [
+      "Tracking issue",
+      number,
+      "is not open; reporting its groups separately",
+    ].join(" ")
+  );
+  result.blockers.push({
     command: "audit tracker",
     issueNumber: number,
     key: ["coverage:tracker", number].join(":"),
@@ -76,7 +83,7 @@ export async function updateTrackers({
     if (!(items.length || complete)) continue;
     const issue = parse(await runGh(["api", `repos/${repo}/issues/${number}`]));
     if (issue.state !== "open" || issue.pull_request) {
-      if (items.length) recordClosedTracker(result, number);
+      recordClosedTracker(result, number);
       continue;
     }
     for (const item of items) targets.set(item.key, number);
