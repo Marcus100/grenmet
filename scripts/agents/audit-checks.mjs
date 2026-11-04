@@ -306,6 +306,17 @@ export async function hourly({
   return observations;
 }
 
+/** Wall-clock limit for one web app's test script, in milliseconds. */
+const WEB_TEST_TIMEOUT = 900_000;
+/**
+ * gaa-admin has about 200 jsdom test files. The tests themselves take about two
+ * minutes; the rest is loading each file's component graph. Measured on a busy
+ * machine with one worker the run took 22 minutes (6 with the normal worker
+ * count), so the 15 minute default killed it (exit status 124) while every test
+ * passed (#833).
+ */
+const WEB_TEST_TIMEOUTS = { "gaa-admin": 2_400_000 };
+
 export function sixHourlyPlan(root) {
   const commands = [
     {
@@ -388,7 +399,7 @@ export function sixHourlyPlan(root) {
       commands.push({
         id: `tests:${app}`,
         argv: ["pnpm", "--dir", `apps/web/${app}`, "test"],
-        timeout: 900_000,
+        timeout: WEB_TEST_TIMEOUTS[app] ?? WEB_TEST_TIMEOUT,
       });
   }
   const walk = (directory) => {

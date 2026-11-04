@@ -103,6 +103,38 @@ test("six-hour plan discovers every app test script and all six migration config
   assert.ok(migrations.every((item) => item.oneHead));
 });
 
+test("six-hour plan gives the large gaa-admin test suite more time than the other apps", (t) => {
+  const root = tempDirectory(t, "audit-timeout-");
+  for (const app of ["gaa-admin", "small"]) {
+    const directory = join(root, "apps", "web", app);
+    mkdirSync(directory, { recursive: true });
+    writeFileSync(
+      join(directory, "package.json"),
+      JSON.stringify({ scripts: { test: "vitest run" } })
+    );
+  }
+  const api = join(root, "apps", "api", "fastapi");
+  for (const config of [
+    "alembic.ini",
+    "domains/auth/alembic.ini",
+    "domains/wx/alembic.ini",
+    "domains/hr/alembic.ini",
+    "domains/cap/alembic.ini",
+    "domains/audit/alembic.ini",
+  ]) {
+    const path = join(api, config);
+    mkdirSync(join(path, ".."), { recursive: true });
+    writeFileSync(path, "[alembic]\n");
+  }
+  const timeouts = Object.fromEntries(
+    sixHourlyPlan(root)
+      .filter((item) => item.id.startsWith("tests:"))
+      .map((item) => [item.id, item.timeout])
+  );
+  assert.equal(timeouts["tests:small"], 900_000);
+  assert.ok(timeouts["tests:gaa-admin"] > 1_800_000);
+});
+
 test("dependency setup failure makes subsequent planned checks unknown and unrun", async () => {
   const calls = [];
   const results = await executePlan(
