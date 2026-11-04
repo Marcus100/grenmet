@@ -124,7 +124,13 @@ function officialCard(
       briefing: values.summary,
       outlook: values.systems ?? values.formation,
       marine: values.synopsis,
-      climate: values.summary,
+      // The first of these that the issue has reads as the card's paragraph;
+      // `summary` is the first-version field of older Climate Bulletins.
+      climate:
+        values.precipOutlook ||
+        values.droughtOutlook ||
+        values.generalImplications ||
+        values.summary,
     }[kind] ?? "";
   return {
     staleNote: current ? null : "No longer in effect",

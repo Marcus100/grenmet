@@ -357,21 +357,73 @@ tomorrow". Fields: `issuedAt`, `validFrom`, `validTo`, `validity`, `area`,
 `forecaster`, `synopsis`, wind (`windDirFrom`, `windDirTo`, `windSpeedMin`,
 `windSpeedMax`, `windGust`, `wind`), sea (`seaStateFrom`, `seaStateTo`,
 `waveHeightMin`, `waveHeightMax`, `seaState`), swell (`swellDir`, `swellPeriod`,
-`swellHeight`), `smallCraft`, `smallCraftNotes` and `outlook`. Like the land
-forecasts it may be published ahead of its issue time ("Issue time cannot be in
-the future" does not apply).
+`swellHeight`), `advisories` and `outlook`. Like the land forecasts it may be
+published ahead of its issue time ("Issue time cannot be in the future" does not
+apply), and it imports the CAP alerts and GMS bulletins in force: on save and
+preview FastAPI stores them as a JSON snapshot in `advisories` (the same path as
+the morning, midday and evening forecasts), so forecasters do not type impact,
+alert or small craft text. The earlier `smallCraft` and `smallCraftNotes` fields
+were removed. A write that still carries them (the desk posts stored values back)
+has them ignored, not rejected: the new revision never stores them, while
+revisions already saved keep them and print them read-only as "Small craft (as
+recorded)". Any other unknown key is still refused ("Unknown product field"). A
+saved revision that never captured advisories prints "Alerts were not captured
+for this revision" instead of "No CAP alerts or GMS bulletins were in force".
+Entry and display use mph for wind and feet for waves and swell; storage stays
+in knots and metres. The PDF (`GET /wxproducts/products/{id}/revisions/{revision}/pdf`,
+and the draft preview) has a marine sheet: synopsis, winds, seas, alerts and
+advisories in force, and outlook. A kind with no sheet layout answers 422 with
+the detail "No PDF layout exists for product kind ..."; the route's documented
+422 stays the generic validation-error shape (no separate schema is declared).
 
-**Climate Bulletin** (`climate-bulletin`, title "Climate Bulletin"). Monthly,
-issued on the 15th, reviewing the month before. `month` is `YYYY-MM`; when empty
-it defaults to the month before the issue date, and a month later than that is
-rejected ("Month reviewed: cannot be later than the month before the issue date";
-a malformed value gets "enter the month as YYYY-MM"). On save `validFrom` is the
-issue time, `validTo` is 23:59 on the day before the next 15th after issue, and
-`validity` is "Until the next monthly bulletin". Fields: `issuedAt`, `validFrom`,
-`validTo`, `validity`, `area`, `forecaster`, `month`, `summary`, `rainfallComment`,
-`temperatureComment`, `notableEvents` and `outlook`. The comments are text written
-by the forecaster; the **figures** shown beside them (rainfall, rain days,
-heavy-rain days, longest dry spell and maximum and minimum temperature) are not stored in the product: the GMS monthly climate page and
+**Climate Bulletin** (`climate-bulletin`, title "Grenada National Climate Bulletin" on the
+PDF). Monthly, issued on the 15th, reviewing the month before. `month` is
+`YYYY-MM`; when empty it defaults to the month before the issue date, and a month
+later than that is rejected ("Month reviewed: cannot be later than the month before
+the issue date"; a malformed value gets "enter the month as YYYY-MM"). On save
+`validFrom` is the issue time, `validTo` is 23:59 on the day before the next 15th
+after issue, and `validity` is "Until the next monthly bulletin".
+
+Fields follow the owner's example bulletins (issues 08 to 10, 2026). Header:
+`volume`, `issue`, `month` (month reviewed), `contacts` (one per line). Text:
+`enso`, `sst`, `precipOutlook`, `tempMeanOutlook`, `droughtOutlook`. SPI rows
+`spi1`, `spi3`, `spi6`, `spi12` take one of the eleven categories from
+"Exceptionally Dry" to "Exceptionally Wet". Numbers: `pet` (mm/day) and
+`petRatio`; ranges as `<name>Min` and `<name>Max` for `precipRange`, `wetDays`,
+`wetSpells`, `extremeSpells` (an empty or zero minimum prints "Up to"),
+`tempMaxRange` and `tempMinRange`; each of `wetDays`, `wetSpells` and
+`extremeSpells` also has `<name>Outlook` and `<name>Implication` text, and
+`tempMaxOutlook` and `tempMinOutlook` carry the daytime and night-time outlook.
+Looking back at Point Salines: for each of `verifyRainfall`, `verifyWetDays`,
+`verifyWetSpell`, `verifyTmax` and `verifyTmin`, `<row>Outlook`, `<row>RangeMin`,
+`<row>RangeMax` and `<row>Observed` (typed for now; observations will come from the
+eRegister, issue #991). Optional parts: `heatStress` and `extremeHeat` turn the
+temperature block into a table (the earlier issues printed two paragraphs
+instead); the eight `impact*` sector rows and `generalImplications` give the
+sector table or free text (publishing needs at least one); `triviaAnswer` and
+`triviaQuestion`. A range whose "from" exceeds its "to" is refused. The SPI
+period labels, the three-month outlook season (issued October: OND) and the
+looking-back period are derived from `month` and the issue date and are not
+stored. The intro, disclaimer and closing statement are fixed template text.
+Typed numbers are bounds-checked (evapotranspiration 0 to 20 mm/day, demand/supply
+ratio 0 to 100, counts and rainfall 0 to 10000, temperatures 10 to 45 degC; a
+non-number gets "enter a number"). The first version of the kind (`summary`,
+`rainfallComment`, `temperatureComment`, `notableEvents`, `outlook`) is gone: a
+write that still carries those keys has them ignored (as for the Marine
+Forecast), and revisions already saved with them still render, under "Earlier
+format" on the PDF and the public pages. `contacts` is an ordinary public field
+like the others: whatever is typed there (the printed bulletin lists staff
+emails) appears on the public issued page and in the public products API. The
+placeholder-wording check ("example") skips the long free-text fields and the
+advisories snapshot. The PDF is two pages; the draft preview
+(`POST /wxproducts/products/preview/pdf`) answers with `X-Sheet-Pages` and, when
+the sheet runs past two pages, `X-Sheet-Warning`, which the editor shows beside
+the preview. The precipitation and mean temperature
+maps are not stored (no image attachment exists for these products yet), so the
+sheet shows a labelled placeholder where each belongs.
+
+The **figures** for the month reviewed (rainfall, rain days, heavy-rain days,
+longest dry spell and maximum and minimum temperature) are not stored in the product: the GMS monthly climate page and
 the GAA Admin climate desk read them from `GET /api/v1/eregister/public/month-summary?month=YYYY-MM`,
 documented under "Public month summary" in the eRegister section, which also
 returns mean wind, prevailing direction and maximum gust (not shown on the climate pages yet).
@@ -777,7 +829,7 @@ address or a second pending request); moderators verify it through
 listing and approving an organiser also write `outbox` rows (same Events transaction)
 that the worker turns into notifications; no endpoint is involved.
 Admin moderation (zone `admin`, staff session): `GET /admin/moderation/organisers`
-(`?status=pending|approved|rejected`, paginated) and `GET /admin/moderation/organisers/{organisation_id}`
+(`?status=pending|approved|rejected`, paginated; `page` is 1 to 1000000 like the shared pagination, otherwise 422) and `GET /admin/moderation/organisers/{organisation_id}`
 (case with owners, listing counts and verification history) are open to superusers and
 `events.moderate` holders; `POST .../approve` and `POST .../reject` (reason required)
 need an MFA superuser and go through `organisations.service.admin_set_verified`

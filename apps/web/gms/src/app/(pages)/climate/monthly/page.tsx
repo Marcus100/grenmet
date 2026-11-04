@@ -1,5 +1,6 @@
 import {
   grenadaDate,
+  LEGACY_CLIMATE_FIELDS,
   nextClimateIssue,
   presentationFields,
 } from "@barrelsgd/gms/products";
@@ -15,12 +16,14 @@ export const metadata = {
 };
 export const dynamic = "force-dynamic";
 
+/** The bulletin's headline narrative; the full tables are on the issued bulletin page. */
 const NARRATIVE = new Set([
-  "summary",
-  "rainfallComment",
-  "temperatureComment",
-  "notableEvents",
-  "outlook",
+  "enso",
+  "sst",
+  "precipOutlook",
+  "tempMeanOutlook",
+  "droughtOutlook",
+  "generalImplications",
 ]);
 
 function monthName(month: string) {
@@ -45,9 +48,14 @@ export default async function MonthlyPage() {
           )[0]
       : undefined;
   const month = bulletin?.values.month ?? "";
-  const fields = presentationFields("climate-bulletin").filter((field) =>
-    NARRATIVE.has(field.key)
-  );
+  // Revisions saved before the owner's bulletin layout carry the first-version
+  // text fields; show them too so such an issue is not an empty page.
+  const fields = [
+    ...presentationFields("climate-bulletin").filter((field) =>
+      NARRATIVE.has(field.key)
+    ),
+    ...LEGACY_CLIMATE_FIELDS,
+  ];
   return (
     <div className="space-y-6">
       <PageHeader

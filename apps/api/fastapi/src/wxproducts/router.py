@@ -255,7 +255,7 @@ async def save_product(
         body.guidance = await guidance.validate(body.guidance)
     snapshot = (
         await advisories.snapshot(cap_session, session)
-        if body.kind in validation.ISSUE_HOURS and body.action != "withdraw"
+        if body.kind in validation.ADVISORY_KINDS and body.action != "withdraw"
         else None
     )
     try:
@@ -509,7 +509,7 @@ async def preview_product(
     response.headers.update(NO_STORE)
     snapshot = (
         await advisories.snapshot(cap_session, weather_session)
-        if body.kind in validation.ISSUE_HOURS
+        if body.kind in validation.ADVISORY_KINDS
         else None
     )
     return validation.preview(
@@ -524,13 +524,23 @@ async def preview_product(
     response_class=Response,
     status_code=200,
     summary="Render a draft product PDF preview",
-    description="Renders unsaved forecast, bulletin or outlook content with the issued PDF layout, watermarked as a draft preview. Nothing is saved or published.",
+    description="Renders unsaved forecast (including the Marine Forecast), bulletin, outlook or Climate Bulletin content with the issued PDF layout, watermarked as a draft preview. Nothing is saved or published. A sheet designed for a fixed page count (the two-page Climate Bulletin) that runs longer is still rendered; `X-Sheet-Warning` says so in plain words.",
     tags=["wxproducts"],
     responses={
         200: {
+            "headers": {
+                "X-Sheet-Pages": {
+                    "description": "Number of pages the sheet rendered to.",
+                    "schema": {"type": "integer"},
+                },
+                "X-Sheet-Warning": {
+                    "description": "Present only when the sheet runs past its designed page count; plain-language advice to shorten the longest text.",
+                    "schema": {"type": "string"},
+                },
+            },
             "content": {
                 "application/pdf": {"schema": {"type": "string", "format": "binary"}}
-            }
+            },
         },
         401: {"model": AuthoringError},
         403: {"model": AuthoringError},
@@ -551,7 +561,7 @@ async def preview_product_pdf(
         raise ProductValidationError(["PDF preview is not available for this product"])
     snapshot = (
         await advisories.snapshot(cap_session, weather_session)
-        if body.kind in validation.ISSUE_HOURS
+        if body.kind in validation.ADVISORY_KINDS
         else None
     )
     values = validation.normalize(
@@ -560,8 +570,8 @@ async def preview_product_pdf(
         forecaster=author.user.full_name or author.user.email,
         advisories=snapshot,
     )
-    content = await run_in_threadpool(
-        forecast_pdf.render_sheet_pdf,
+    sheet = await run_in_threadpool(
+        forecast_pdf.render_sheet,
         body.kind,
         values,
         status="DRAFT PREVIEW — NOT FOR ISSUE",
@@ -569,9 +579,13 @@ async def preview_product_pdf(
         guidance=body.guidance,
         graphic_images=await guidance.images(body.guidance),
     )
-    return pdf_response(
-        content, product_pdf_filename(body.kind, values, recorded_at=None)
+    response = pdf_response(
+        sheet.content, product_pdf_filename(body.kind, values, recorded_at=None)
     )
+    response.headers["X-Sheet-Pages"] = str(sheet.pages)
+    if warning := forecast_pdf.sheet_warning(body.kind, sheet.pages):
+        response.headers["X-Sheet-Warning"] = warning
+    return response
 
 
 @router.get(
@@ -579,7 +593,7 @@ async def preview_product_pdf(
     response_class=Response,
     status_code=200,
     summary="Download a saved weather revision PDF",
-    description="Staff-only saved revision export; drafts and historical publications are explicitly labelled. Does not publish or change records. The download file name is human and dated, for example 'GMS Morning Forecast 2026-10-23 0700 (rev 3).pdf'.",
+    description="Staff-only saved revision export; drafts and historical publications are explicitly labelled. Does not publish or change records. Every authored kind has a sheet, including the Marine Forecast and Climate Bulletin; a kind with no layout returns 422. The download file name is human and dated, for example 'GMS Morning Forecast 2026-10-23 0700 (rev 3).pdf'.",
     tags=["wxproducts"],
     responses={
         200: {
