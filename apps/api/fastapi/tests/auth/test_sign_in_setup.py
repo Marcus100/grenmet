@@ -637,6 +637,51 @@ async def test_reason_required_when_the_person_email_works(async_client, db_asyn
 
 @pytest.mark.asyncio
 @pytest.mark.usefixtures("db_async", "encryption_keys")
+async def test_invisible_characters_never_count_toward_the_reason(
+    async_client, db_async
+):
+    """#994 (2): zero-width and bidi characters are removed before the 10-character rule,
+    and NUL is refused. The stored reason is the cleaned text."""
+    supervisor, employee, _, _ = await make_supervised_pair(db_async, MANAGE)
+    employee_id = employee.id
+    headers = await mfa_headers(db_async, supervisor)
+    padded_nine = await issue_status(
+        async_client,
+        headers,
+        employee_id,
+        {"identity_confirmed": True, "reason": "nine char\u200b\u202e\u2066"},
+    )
+    assert padded_nine.status_code == 422
+    assert "at least 10 characters" in padded_nine.text
+    with_nul = await issue_status(
+        async_client,
+        headers,
+        employee_id,
+        {"identity_confirmed": True, "reason": "ten chars!\x00"},
+    )
+    assert with_nul.status_code == 422
+    accepted = await issue_status(
+        async_client,
+        headers,
+        employee_id,
+        {"identity_confirmed": True, "reason": "\ufefften chars!\u200b"},
+    )
+    assert accepted.status_code == 201, accepted.text
+    stored = (
+        await db_async.scalars(
+            select(AuditEntry).where(
+                AuditEntry.record_type == "sign_in_setup",
+                AuditEntry.action == "issued",
+                AuditEntry.entity_id == str(employee_id),
+            )
+        )
+    ).one()
+    reason_change = next(c for c in stored.changes if c["field"] == "reason")
+    assert reason_change["new"] == "ten chars!"
+
+
+@pytest.mark.asyncio
+@pytest.mark.usefixtures("db_async", "encryption_keys")
 async def test_no_reason_needed_when_email_is_unverified_or_setup_pending(
     async_client, db_async
 ):

@@ -2,9 +2,10 @@ import uuid
 from enum import Enum
 from typing import Annotated
 
-from pydantic import EmailStr, Field, StringConstraints
+from pydantic import EmailStr, Field, StringConstraints, field_validator
 
 from src.models import BaseModel, UtcDateTime
+from src.utils.text import clean_reason
 
 
 class ActivationAccountCreate(BaseModel):
@@ -22,10 +23,20 @@ class SignInSetupIssue(BaseModel):
     identity_confirmed: bool
     # Required unless the person's email is unverified or their password setup is pending.
     # When the email is verified the service requires at least 10 characters (422).
+    # Control, bidi and zero-width characters are removed before the length rules run,
+    # so they never count toward the minimum; NUL is refused. The cleaning is a
+    # before-validator rather than an Annotated step, so the OpenAPI shape is unchanged.
     reason: Annotated[
         str | None,
         StringConstraints(strip_whitespace=True, min_length=3, max_length=500),
     ] = None
+
+    @field_validator("reason", mode="before")
+    @classmethod
+    def _clean_reason(cls, value: object) -> object:
+        if value is None or isinstance(value, str):
+            return clean_reason(value)
+        return value
 
 
 class ActivationLink(BaseModel):
