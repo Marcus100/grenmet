@@ -28,7 +28,8 @@ ISSUE_HOURS = {"morning": 7, "midday": 12, "evening": 18}
 # Forecasts that import the CAP alerts and GMS bulletins in force when saved or
 # previewed (`advisories.snapshot`). Marine Forecast is a forecast too, but it
 # keeps its own 05:00 schedule (`_marine_schedule`), so it is not in ISSUE_HOURS
-# (land-forecast selection, expiry and overdue sweeps read that).
+# (land-forecast selection and expiry read that; the overdue sweep reads
+# DAILY_ISSUE_HOURS, which adds marine at 05:00).
 ADVISORY_KINDS = frozenset({*ISSUE_HOURS, "marine-forecast"})
 MARINE_ISSUE_HOUR = 5
 # Every forecast issued once a day, with its Grenada issue hour. The overdue

@@ -293,6 +293,45 @@ async def test_a_land_forecast_does_not_clear_the_marine_forecast(
     assert await gms_sweeps.forecast_overdue(sources, sources, MARINE_LATE) == 1
 
 
+async def test_only_people_allowed_to_author_marine_are_paged_for_it(
+    sources: AsyncSession, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    morning_only = await _staff(sources)
+    marine_author = await _staff(sources)
+    asked: list[str] = []
+
+    async def kind_sensitive(
+        _session: object, kind: str, user_ids: Collection[uuid.UUID]
+    ) -> set[uuid.UUID]:
+        asked.append(kind)
+        allowed = {marine_author.id} if kind == "marine-forecast" else set(user_ids)
+        return allowed & set(user_ids)
+
+    monkeypatch.setattr(product_access, "users_who_may_author", kind_sensitive)
+
+    assert await gms_sweeps.forecast_overdue(sources, sources, MARINE_LATE) == 1
+
+    assert "marine-forecast" in asked  # duty_forecasters asked about the marine kind
+    assert await _told(sources, morning_only, gms.FORECAST_OVERDUE) == []
+    assert len(await _told(sources, marine_author, gms.FORECAST_OVERDUE)) == 1
+
+
+async def test_duty_forecasters_is_asked_about_the_marine_kind(
+    sources: AsyncSession, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    await _staff(sources)
+    kinds: list[str] = []
+    real = gms.duty_forecasters
+
+    async def spy(session: AsyncSession, kind: str, **kwargs: object) -> set[uuid.UUID]:
+        kinds.append(kind)
+        return await real(session, kind, **kwargs)  # type: ignore[arg-type]
+
+    monkeypatch.setattr(gms, "duty_forecasters", spy)
+    await gms_sweeps.forecast_overdue(sources, sources, MARINE_LATE)
+    assert kinds == ["marine-forecast"]
+
+
 async def test_land_forecasts_are_overdue_exactly_as_before(
     sources: AsyncSession,
 ) -> None:

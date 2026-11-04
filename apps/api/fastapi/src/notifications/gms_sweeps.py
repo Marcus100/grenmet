@@ -32,8 +32,9 @@ from . import gms
 
 logger = logging.getLogger(__name__)
 
-# Forecasts due at the local hours in wxproducts.validation.DAILY_ISSUE_HOURS:
-# the land forecasts and the 05:00 Marine Forecast.
+# The forecasts due each day are in wxproducts.validation.DAILY_ISSUE_HOURS (the
+# land forecasts and the 05:00 Marine Forecast); this is how a notification
+# names the ones whose kind is not a plain word.
 PRODUCT_LABELS = {"marine-forecast": "Marine"}
 FORECAST_GRACE = timedelta(minutes=15)
 FORECAST_GIVE_UP = timedelta(hours=6)
