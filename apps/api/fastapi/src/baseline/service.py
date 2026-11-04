@@ -6,6 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 from sqlalchemy.sql.elements import ColumnElement
 
+from src.auth import assignments as auth_assignments
 from src.auth import service as auth_service
 from src.auth.models import Permission, Role, User, UserImage, UserRoleAssignment
 from src.auth.models import Session as LoginSession
@@ -321,6 +322,21 @@ async def save_staff(
         }
     }
     await validate_service_facts(personnel_updates, employment)
+    # A department move re-assigns everything: the person's live roles in the
+    # organisation end (the baseline SELF-scope staff role stays) and an
+    # administrator re-grants at the destination. Same rule as the HR route
+    # (#797); only a superuser reaches here, so organisation-wide roles end too (#1055).
+    moved_department = (
+        employment.department_id is not None
+        and employment.department_id != body.department_id
+    )
+    if moved_department:
+        await auth_assignments.end_assignments_for_employment(
+            session=session,
+            user_id=user_id,
+            organisation_id=employment.organisation_id,
+            organisation_wide=True,
+        )
     employment.department_id = body.department_id
     employment.grade_id = body.grade_id
     employment.position = grade.label

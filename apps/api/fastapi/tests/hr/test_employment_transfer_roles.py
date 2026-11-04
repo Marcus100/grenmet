@@ -16,9 +16,17 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from src.audit.models import AuditEntry
 from src.auth.models import Role, RoleAssignmentScope, User, UserRoleAssignment
 from src.auth.policy import STAFF_ROLE, _active_assignments
+from src.baseline import service as baseline_service
+from src.baseline.schemas import StaffInput
 from src.exceptions import AuthorizationError
 from src.hr import service
-from src.hr.models import Department, EmploymentRecord, EmploymentStatus, Organisation
+from src.hr.models import (
+    Department,
+    EmploymentRecord,
+    EmploymentStatus,
+    Grade,
+    Organisation,
+)
 from src.hr.schemas import EmploymentUpdate
 from src.utils.datetime import utc_now
 from tests.factories import (
@@ -353,3 +361,108 @@ async def test_department_admin_transfer_with_no_roles_only_moves_the_record(
     assert profile.employment.department is not None
     assert profile.employment.department.id == destination.id
     assert await _live_ids(db_async, user.id) == set()
+
+
+async def _grade_in(db: AsyncSession, department: Department) -> Grade:
+    grade = Grade(
+        id=f"{department.id}_staff",
+        department_id=department.id,
+        code="STAFF",
+        label="Staff",
+        rank=1,
+    )
+    db.add(grade)
+    await db.commit()
+    return grade
+
+
+async def test_hr_setup_department_move_ends_roles_and_keeps_staff(
+    db_async: AsyncSession,
+) -> None:
+    """#1055: moving someone in HR Setup > Staff ends their roles like the HR route."""
+    origin, destination = await _two_departments(db_async, "setup_move")
+    grade = await _grade_in(db_async, destination)
+    superuser = await make_user(db_async, superuser=True)
+    user = await make_user(db_async)
+    await make_employee(db_async, user=user, department_id=origin.id)
+    role, _ = await make_role_with_permission(db_async, "cap.alert.approve")
+    wide = await assign_role(
+        db_async, user=user, role=role, scope=RoleAssignmentScope.ALL
+    )
+    local = await assign_role(
+        db_async,
+        user=user,
+        role=role,
+        scope=RoleAssignmentScope.DEPARTMENT,
+        department_id=origin.id,
+    )
+    own = await assign_role(db_async, user=user, role=role)
+    baseline = await assign_role(db_async, user=user, role=await _staff_role(db_async))
+
+    await baseline_service.save_staff(
+        db_async,
+        superuser,
+        user.id,
+        StaffInput(department_id=destination.id, grade_id=grade.id),
+    )
+
+    live = await _live_ids(db_async, user.id)
+    assert {wide.id, local.id, own.id}.isdisjoint(live)
+    assert baseline.id in live
+    for grant in (wide, local, own):
+        await db_async.refresh(grant)
+        assert grant.effective_to is not None
+    record = await db_async.scalar(
+        select(EmploymentRecord).where(EmploymentRecord.user_id == user.id)
+    )
+    assert record is not None
+    assert record.department_id == destination.id
+
+
+async def test_hr_setup_save_in_the_same_department_ends_nothing(
+    db_async: AsyncSession,
+) -> None:
+    origin, _ = await _two_departments(db_async, "setup_same")
+    grade = await _grade_in(db_async, origin)
+    superuser = await make_user(db_async, superuser=True)
+    user = await make_user(db_async)
+    await make_employee(db_async, user=user, department_id=origin.id)
+    role, _ = await make_role_with_permission(db_async, "cap.alert.approve")
+    local = await assign_role(
+        db_async,
+        user=user,
+        role=role,
+        scope=RoleAssignmentScope.DEPARTMENT,
+        department_id=origin.id,
+    )
+    own = await assign_role(db_async, user=user, role=role)
+
+    await baseline_service.save_staff(
+        db_async,
+        superuser,
+        user.id,
+        StaffInput(department_id=origin.id, grade_id=grade.id),
+    )
+
+    live = await _live_ids(db_async, user.id)
+    assert local.id in live
+    assert own.id in live
+
+
+async def test_hr_setup_first_placement_ends_nothing(db_async: AsyncSession) -> None:
+    """A person with no employment record yet is placed, not transferred."""
+    origin, _ = await _two_departments(db_async, "setup_first")
+    grade = await _grade_in(db_async, origin)
+    superuser = await make_user(db_async, superuser=True)
+    user = await make_user(db_async)
+    role, _ = await make_role_with_permission(db_async, "cap.alert.approve")
+    own = await assign_role(db_async, user=user, role=role)
+
+    await baseline_service.save_staff(
+        db_async,
+        superuser,
+        user.id,
+        StaffInput(department_id=origin.id, grade_id=grade.id),
+    )
+
+    assert own.id in await _live_ids(db_async, user.id)
