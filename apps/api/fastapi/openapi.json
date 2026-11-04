@@ -16063,7 +16063,9 @@
             "schema": {
               "anyOf": [
                 {
-                  "type": "integer"
+                  "type": "integer",
+                  "maximum": 2100,
+                  "minimum": 2000
                 },
                 {
                   "type": "null"
@@ -73802,6 +73804,35 @@
               }
             ],
             "title": "Last Error"
+          },
+          "insecure_since": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Insecure Since"
+          },
+          "grace_ends_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Grace Ends At"
+          },
+          "grace_expired": {
+            "type": "boolean",
+            "title": "Grace Expired",
+            "default": false
           },
           "created_at": {
             "type": "string",

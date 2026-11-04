@@ -17,6 +17,13 @@ export type CapFeedImportPublic = {
   status: CapIntegrationStatus;
   last_checked_at?: string | null;
   last_error?: string | null;
+  insecure_since?: string | null;
+  grace_ends_at?: string | null;
+  /**
+   * @default false
+   * @type boolean | undefined
+   */
+  grace_expired?: boolean;
   /**
    * @description
    * Format: `date-time`
