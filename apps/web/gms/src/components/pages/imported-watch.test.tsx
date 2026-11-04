@@ -25,6 +25,16 @@ describe("ImportedWatch", () => {
     ).toBeTruthy();
   });
 
+  it("lists a repeated line once", () => {
+    const item = {
+      colour: "yellow",
+      impacts: "Rough seas.",
+      title: "Advisory",
+    };
+    render(<ImportedWatch advisories={snapshot([item, item])} />);
+    expect(screen.getAllByText("Advisory: Rough seas.")).toHaveLength(1);
+  });
+
   it("says a source was unavailable instead of implying nothing is in force", () => {
     render(<ImportedWatch advisories={snapshot([], false)} />);
     expect(screen.getByText(UNCONFIRMED)).toBeTruthy();
