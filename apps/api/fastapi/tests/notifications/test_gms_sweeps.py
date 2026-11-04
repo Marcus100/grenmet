@@ -323,9 +323,11 @@ async def test_duty_forecasters_is_asked_about_the_marine_kind(
     kinds: list[str] = []
     real = gms.duty_forecasters
 
-    async def spy(session: AsyncSession, kind: str, **kwargs: object) -> set[uuid.UUID]:
+    async def spy(
+        session: AsyncSession, kind: str, *, now: datetime | None = None
+    ) -> set[uuid.UUID]:
         kinds.append(kind)
-        return await real(session, kind, **kwargs)  # type: ignore[arg-type]
+        return await real(session, kind, now=now)
 
     monkeypatch.setattr(gms, "duty_forecasters", spy)
     await gms_sweeps.forecast_overdue(sources, sources, MARINE_LATE)
