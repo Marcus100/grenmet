@@ -6,6 +6,16 @@ import { parseArgs } from "node:util";
 import { command } from "./audit-process.mjs";
 import { publishObservations } from "./audit-report.mjs";
 
+// Keep the cause visible in publication.log without leaking credentials.
+export function cleanError(error) {
+  const text = String(error instanceof Error ? error.message : error)
+    .replace(/\b(?:gh[pousr]_|github_pat_)[A-Za-z0-9_]+/gu, "[redacted]")
+    .replace(/\b(?:Bearer|token)\s+\S+/giu, "[redacted]")
+    .replace(/[^\x20-\x7e]+/gu, " ")
+    .trim();
+  return text.slice(0, 300) || "unknown error";
+}
+
 export async function publishReport(path, publish) {
   const stat = statSync(path);
   if (!stat.isFile() || stat.size > 4_000_000 || stat.mode % 64)
@@ -37,7 +47,8 @@ if (
   });
   publishReport(values.input, values.publish)
     .then((result) => console.log(JSON.stringify(result)))
-    .catch(() => {
+    .catch((error) => {
+      console.error(`Cause: ${cleanError(error)}`);
       console.error(
         "Audit issue publication unavailable; private evidence retained."
       );

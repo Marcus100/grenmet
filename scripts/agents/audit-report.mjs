@@ -539,6 +539,7 @@ export async function publishObservations(options) {
     observedAt,
     dryRun,
     safeText,
+    result,
   });
   const planned = limitNewIssues(
     planObservations(
