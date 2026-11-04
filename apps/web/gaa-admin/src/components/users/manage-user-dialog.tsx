@@ -33,7 +33,7 @@ import { NativeSelect } from "@barrelsgd/ui/components/ui/native-select";
 import { Separator } from "@barrelsgd/ui/components/ui/separator";
 import { useQueryClient } from "@tanstack/react-query";
 import { ShieldMinus, UserRoundCog, X } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { hrApiErrorMessage } from "@/components/hr/api-error";
 import { reportError } from "@/lib/report-error";
@@ -162,6 +162,25 @@ function RoleResults({ results }: { results: RoleOutcome[] }) {
   );
 }
 
+/**
+ * The dialog session is this user with the dialog open (null when closed).
+ * When it changes, `reset` runs once during render, the React pattern for
+ * state that follows a prop. The returned ref holds a new token per session,
+ * so a batch that started earlier can tell it is stale.
+ */
+function useDialogSession(sessionKey: string | null, reset: () => void) {
+  const [key, setKey] = useState(sessionKey);
+  if (key !== sessionKey) {
+    setKey(sessionKey);
+    reset();
+  }
+  const ref = useRef<{ key: string | null }>({ key: null });
+  useEffect(() => {
+    ref.current = { key: sessionKey };
+  }, [sessionKey]);
+  return ref;
+}
+
 interface ManageUserDialogProps {
   onOpenChange?: (open: boolean) => void;
   /** Controlled open state. When provided, the built-in trigger is hidden. */
@@ -190,10 +209,17 @@ export function ManageUserDialog({
   const isControlled = controlledOpen !== undefined;
   const open = isControlled ? controlledOpen : internalOpen;
   const setOpen = (next: boolean) => {
-    if (!next) setRoleResults(null);
     if (!isControlled) setInternalOpen(next);
     onOpenChange?.(next);
   };
+
+  // A batch belongs to the session it started in: this user, with the dialog
+  // open. Closing the dialog or changing user clears the selection, and a batch
+  // that finishes after that must not change the screen.
+  const sessionRef = useDialogSession(open ? user.id : null, () => {
+    setSelectedRoleIds([]);
+    setRoleResults(null);
+  });
 
   const assignmentsQuery = useAuthGetRoleAssignments(
     { query: { user_id: user.id } },
@@ -205,6 +231,10 @@ export function ManageUserDialog({
     assignments.filter((a) => a.is_effective !== false).map((a) => a.role_id)
   );
   const assignableRoles = roles.filter((r) => !heldRoleIds.has(r.id));
+  // Only roles the admin can still see and tick are ever sent.
+  const selectedRoles = assignableRoles.filter((r) =>
+    selectedRoleIds.includes(r.id)
+  );
 
   const assignMutation = useAuthCreateRoleAssignment();
   const revokeMutation = useAuthDeleteRoleAssignment();
@@ -233,7 +263,7 @@ export function ManageUserDialog({
     hasNoEmployment,
     roleDepartment,
     roleScope,
-    roleCount: selectedRoleIds.length,
+    roleCount: selectedRoles.length,
   });
 
   async function refresh() {
@@ -290,27 +320,40 @@ export function ManageUserDialog({
    * the admin can retry or untick them.
    */
   async function addRoles() {
-    const chosen = roles.filter((r) => selectedRoleIds.includes(r.id));
-    if (chosen.length === 0) return;
+    const batch = selectedRoles;
+    if (batch.length === 0) return;
+    const session = sessionRef.current;
     setRoleResults(null);
     setAssigning(true);
     try {
       const outcomes: RoleOutcome[] = [];
-      for (const role of chosen) {
+      for (const role of batch) {
         outcomes.push(await assignOne(role));
       }
       const assignedIds = outcomes
         .filter((outcome) => outcome.assigned)
         .map((outcome) => outcome.roleId);
-      if (assignedIds.length > 0) await refresh();
-      setSelectedRoleIds((current) =>
-        current.filter((id) => !assignedIds.includes(id))
-      );
-      setRoleResults(outcomes);
-      if (assignedIds.length === outcomes.length) {
-        toast.success(
-          `Assigned ${chosen.map((r) => r.name).join(", ")} to ${user.username}`
+      // The requests are already sent; a stale batch only skips the screen.
+      if (session === sessionRef.current) {
+        setSelectedRoleIds((current) =>
+          current.filter((id) => !assignedIds.includes(id))
         );
+        if (assignedIds.length === outcomes.length) {
+          // Full success: one toast, no inline copy.
+          toast.success(
+            `Assigned ${batch.map((r) => r.name).join(", ")} to ${user.username}`
+          );
+        } else {
+          // Partial failure: the successes stay visible beside the refusals.
+          setRoleResults(outcomes);
+        }
+      }
+      if (assignedIds.length > 0) {
+        try {
+          await refresh();
+        } catch (error) {
+          reportError(error, "hr-role-assign-refresh");
+        }
       }
     } finally {
       setAssigning(false);

@@ -1114,8 +1114,9 @@ describe("ManageUserDialog — assigning several roles at once", () => {
     expect(assign).toBeDisabled();
   });
 
-  it("assigns every ticked role, one request each, and reports each as assigned", async () => {
+  it("assigns every ticked role, one request each, and reports the full success once as a toast", async () => {
     const posted: unknown[] = [];
+    const successToast = vi.spyOn(toast, "success");
     server.use(
       withEmployment(),
       http.post(ASSIGN_URL, async ({ request }) => {
@@ -1128,10 +1129,14 @@ describe("ManageUserDialog — assigning several roles at once", () => {
     fireEvent.click(screen.getByRole("checkbox", { name: "manager" }));
     fireEvent.click(screen.getByRole("button", { name: "Assign" }));
 
-    expect(await screen.findByRole("status")).toHaveTextContent(
-      "Assigned: staff, manager."
+    await waitFor(() => expect(successToast).toHaveBeenCalledTimes(1));
+    expect(successToast).toHaveBeenCalledWith(
+      "Assigned staff, manager to jcharles"
     );
+    // No inline copy on full success: the toast is the single result.
+    expect(screen.queryByRole("status")).not.toBeInTheDocument();
     expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+    successToast.mockRestore();
     expect(posted).toHaveLength(2);
     expect(posted).toEqual(
       expect.arrayContaining([
@@ -1188,8 +1193,7 @@ describe("ManageUserDialog — assigning several roles at once", () => {
     fireEvent.click(await screen.findByRole("checkbox", { name: "staff" }));
     fireEvent.click(screen.getByRole("checkbox", { name: "guide" }));
     fireEvent.click(screen.getByRole("button", { name: "Assign" }));
-    expect(await screen.findByRole("status")).toBeInTheDocument();
-    expect(posted).toHaveLength(2);
+    await waitFor(() => expect(posted).toHaveLength(2));
     for (const body of posted) {
       expect(body).toEqual(
         expect.objectContaining({
@@ -1200,5 +1204,142 @@ describe("ManageUserDialog — assigning several roles at once", () => {
         })
       );
     }
+  });
+
+  it("shows the results before the list refresh finishes, and keeps them if the refresh fails", async () => {
+    server.use(
+      withEmployment(),
+      http.post(ASSIGN_URL, async ({ request }) => {
+        const body = (await request.json()) as { role_id: string };
+        if (body.role_id === "r-manager") {
+          return HttpResponse.json({ detail: "Nope" }, { status: 403 });
+        }
+        return HttpResponse.json({}, { status: 201 });
+      })
+    );
+    const { queryClient } = renderDialog(MANY_ROLES);
+    const refresh = vi
+      .spyOn(queryClient, "invalidateQueries")
+      .mockReturnValue(new Promise<void>(() => undefined));
+    fireEvent.click(await screen.findByRole("checkbox", { name: "staff" }));
+    fireEvent.click(screen.getByRole("checkbox", { name: "manager" }));
+    fireEvent.click(screen.getByRole("button", { name: "Assign" }));
+
+    // The refresh never resolves, yet the outcome is already on screen and
+    // the assigned role has left the selection.
+    expect(await screen.findByRole("status")).toHaveTextContent(
+      "Assigned: staff."
+    );
+    expect(screen.getByRole("alert")).toHaveTextContent(
+      "manager was not assigned: Nope"
+    );
+    expect(screen.getByRole("checkbox", { name: "staff" })).not.toBeChecked();
+    expect(refresh).toHaveBeenCalled();
+    refresh.mockRestore();
+  });
+
+  it("reports a failed list refresh and still shows the per-role results", async () => {
+    server.use(
+      withEmployment(),
+      http.post(ASSIGN_URL, async ({ request }) => {
+        const body = (await request.json()) as { role_id: string };
+        if (body.role_id === "r-manager") {
+          return HttpResponse.json({ detail: "Nope" }, { status: 403 });
+        }
+        return HttpResponse.json({}, { status: 201 });
+      })
+    );
+    const { queryClient } = renderDialog(MANY_ROLES);
+    vi.spyOn(queryClient, "invalidateQueries").mockRejectedValue(
+      new Error("refresh failed")
+    );
+    fireEvent.click(await screen.findByRole("checkbox", { name: "staff" }));
+    fireEvent.click(screen.getByRole("checkbox", { name: "manager" }));
+    fireEvent.click(screen.getByRole("button", { name: "Assign" }));
+
+    await waitFor(() =>
+      expect(reportError).toHaveBeenCalledWith(
+        expect.anything(),
+        "hr-role-assign-refresh"
+      )
+    );
+    expect(screen.getByRole("status")).toHaveTextContent("Assigned: staff.");
+    expect(screen.getByRole("alert")).toHaveTextContent(
+      "manager was not assigned: Nope"
+    );
+  });
+
+  it("clears the selection when the dialog closes or the user changes", async () => {
+    server.use(
+      http.get(`${BASE}/api/v1/hr/employment/:userId`, () =>
+        HttpResponse.json({
+          id: "e-1",
+          user_id: "u-1",
+          organisation_id: "gaa",
+          employee_number: "MET-9",
+          department_id: "dept_met",
+          status: "ACTIVE",
+        })
+      )
+    );
+    const client = new QueryClient({
+      defaultOptions: { queries: { retry: false } },
+    });
+    const tree = (open: boolean, person: UserPublic) => (
+      <QueryClientProvider client={client}>
+        <ManageUserDialog open={open} roles={MANY_ROLES} user={person} />
+      </QueryClientProvider>
+    );
+    const view = render(tree(true, USER));
+    fireEvent.click(await screen.findByRole("checkbox", { name: "staff" }));
+    expect(screen.getByRole("checkbox", { name: "staff" })).toBeChecked();
+
+    const other = { ...USER, id: "u-2", username: "other" };
+    view.rerender(tree(true, other));
+    expect(
+      await screen.findByRole("checkbox", { name: "staff" })
+    ).not.toBeChecked();
+    expect(screen.getByRole("button", { name: "Assign" })).toBeDisabled();
+
+    fireEvent.click(screen.getByRole("checkbox", { name: "staff" }));
+    view.rerender(tree(false, other));
+    view.rerender(tree(true, other));
+    expect(
+      await screen.findByRole("checkbox", { name: "staff" })
+    ).not.toBeChecked();
+    expect(screen.getByRole("button", { name: "Assign" })).toBeDisabled();
+  });
+
+  it("does not offer or send a role the person already holds", async () => {
+    server.use(
+      withEmployment(),
+      http.get(`${BASE}/api/v1/auth/role-assignments`, () =>
+        HttpResponse.json({
+          data: [
+            {
+              id: "a-1",
+              user_id: "u-1",
+              role_id: "r-staff",
+              scope: "SELF",
+              is_effective: true,
+            },
+          ],
+          count: 1,
+          page: 1,
+          size: 100,
+        })
+      )
+    );
+    renderDialog(MANY_ROLES);
+    expect(
+      await screen.findByRole("checkbox", { name: "manager" })
+    ).toBeInTheDocument();
+    // Wait for the assignments response: until then staff is still listed.
+    await waitFor(() =>
+      expect(
+        screen.queryByRole("checkbox", { name: "staff" })
+      ).not.toBeInTheDocument()
+    );
+    expect(screen.getByRole("button", { name: "Assign" })).toBeDisabled();
   });
 });
