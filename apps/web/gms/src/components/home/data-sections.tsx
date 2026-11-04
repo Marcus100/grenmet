@@ -25,6 +25,7 @@ import { dataMonth, type MonthGroupKey, monthStats } from "@/lib/month-summary";
 import { fetchMonthSummary, fetchSectorOutlook } from "@/lib/products";
 import {
   buildSectorTiles,
+  formatOutlookAsOf,
   LEVELS,
   type Level,
   type SectorTile,
@@ -33,8 +34,8 @@ import { cn } from "@/lib/utils";
 
 /*
  * Owner rule (18 Oct 2026): the public site never shows invented or sample
- * figures. Plan your week shows only GMS alerts and CAP warnings from GMS
- * admin; Grenada in data is live from the MBIA register month summary. Either
+ * figures. The sector card ("Plan your week") shows only GMS alerts and CAP
+ * warnings from GMS admin; Grenada in data is live from the MBIA register month summary. Either
  * says so when its feed is unavailable, never a sample or an all-clear.
  */
 
@@ -51,6 +52,12 @@ const SECTOR_TILES: Record<
   "roads-transport": { Icon: CarIcon, href: "/services/roads-transport" },
 };
 
+/** The sector card's kicker and title; the page repeats them when the desk is hidden. */
+export const SECTOR_CARD_WORDS = {
+  kicker: "Plan your week",
+  title: "What it means for you",
+} as const;
+
 /**
  * "What it means for you", a card in the From the Desk row (homepage v2, owner
  * 1 Nov 2026): for each sector, the GMS alerts and CAP warnings that apply over
@@ -59,9 +66,15 @@ const SECTOR_TILES: Record<
  * Nothing is invented: an unreachable feed says so, and an empty one says
  * nothing is published, never "no impact". The six sectors are `SECTORS` in
  * `@barrelsgd/gms/sectors`. Editors can still hide it with the
- * `explore-today` switch.
+ * `explore-today` switch. With `header: false` the card drops its own kicker
+ * and title (the page already shows them as its section heading) and keeps an
+ * accessible name instead.
  */
-export async function SectorDeskCard() {
+export async function SectorDeskCard({
+  header = true,
+}: {
+  header?: boolean;
+} = {}) {
   if (await isSectionHidden("explore-today")) return null;
   const outlook = await fetchSectorOutlook();
   const tiles = outlook ? buildSectorTiles(outlook, new Date()) : null;
@@ -71,39 +84,57 @@ export async function SectorDeskCard() {
     <li className={DESK_CARD_ITEM}>
       {/* The heading id is fixed: this card renders once per page. */}
       <article
-        aria-labelledby="sector-card-title"
+        aria-label={header ? undefined : SECTOR_CARD_WORDS.title}
+        aria-labelledby={header ? "sector-card-title" : undefined}
         className={cn(HOME_CARD, "flex h-full flex-col gap-3")}
       >
-        <header className="flex flex-col gap-1">
-          <span className="bg-gm-surface-panel text-gm-heading text-label leading-label w-fit rounded-full px-2.5 py-0.5 font-bold tracking-wider uppercase">
-            Plan your week
-          </span>
-          <h3
-            className="text-gm-heading text-heading-sm leading-heading-sm font-bold text-balance"
-            id="sector-card-title"
-          >
-            What it means for you
-          </h3>
-        </header>
-        {!tiles && (
-          <p className="text-body-sm leading-body-sm" role="status">
-            Alerts for the week can&apos;t be loaded right now. See{" "}
-            <Link
-              className="text-gm-blue-ink font-semibold underline"
-              href="/alerts"
+        {header && (
+          <header className="flex flex-col gap-1">
+            <span className="bg-gm-surface-panel text-gm-heading text-label leading-label w-fit rounded-full px-2.5 py-0.5 font-bold tracking-wider uppercase">
+              {SECTOR_CARD_WORDS.kicker}
+            </span>
+            <h3
+              className="text-gm-heading text-heading-sm leading-heading-sm font-bold text-balance"
+              id="sector-card-title"
             >
-              alerts in effect
-            </Link>
-            .
-          </p>
+              {SECTOR_CARD_WORDS.title}
+            </h3>
+          </header>
         )}
-        {quiet && (
-          <p
-            className="text-body-base text-gm-text-secondary leading-body-base"
-            role="status"
-          >
-            No alerts or warnings are published for any sector this week.
-          </p>
+        {/* The card's notices sit together in one status region. */}
+        {(!tiles || quiet || (outlook && !outlook.complete)) && (
+          <div className="flex flex-col gap-2" role="status">
+            {!tiles && (
+              <p className="text-body-sm leading-body-sm">
+                Alerts for the week can&apos;t be loaded right now. See{" "}
+                <Link
+                  className="text-gm-blue-ink font-semibold underline"
+                  href="/alerts"
+                >
+                  alerts in effect
+                </Link>
+                .
+              </p>
+            )}
+            {quiet && (
+              <p className="text-body-base text-gm-text-secondary leading-body-base">
+                No alerts or warnings are published for any sector this week.
+              </p>
+            )}
+            {outlook && !outlook.complete && (
+              <p className="text-body-sm text-gm-text-secondary leading-body-sm">
+                Some alerts could not be read, so these lists may be incomplete.
+                See{" "}
+                <Link
+                  className="text-gm-blue-ink font-semibold underline"
+                  href="/alerts"
+                >
+                  alerts in effect
+                </Link>
+                .
+              </p>
+            )}
+          </div>
         )}
         <ul className="divide-gm-border flex flex-col divide-y">
           {SECTORS.map(({ value, label }) => {
@@ -130,19 +161,9 @@ export async function SectorDeskCard() {
             );
           })}
         </ul>
-        {outlook && !outlook.complete && (
-          <p
-            className="text-body-sm text-gm-text-secondary leading-body-sm"
-            role="status"
-          >
-            Some alerts could not be read, so these lists may be incomplete. See{" "}
-            <Link
-              className="text-gm-blue-ink font-semibold underline"
-              href="/alerts"
-            >
-              alerts in effect
-            </Link>
-            .
+        {outlook && (
+          <p className="text-body-sm text-gm-text-secondary leading-body-sm mt-auto">
+            Updated {formatOutlookAsOf(outlook.as_of)}
           </p>
         )}
       </article>

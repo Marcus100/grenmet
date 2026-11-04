@@ -45,6 +45,15 @@ const DAY = new Intl.DateTimeFormat("en-GB", {
   day: "numeric",
   month: "short",
 });
+const AS_OF = new Intl.DateTimeFormat("en-GB", {
+  timeZone: "America/Grenada",
+  weekday: "short",
+  day: "numeric",
+  month: "short",
+  hour: "2-digit",
+  minute: "2-digit",
+  hour12: false,
+});
 const DAY_KEY = new Intl.DateTimeFormat("en-CA", {
   timeZone: "America/Grenada",
 });
@@ -52,6 +61,11 @@ const SENTENCE_END = /^(.+?[.!?])(\s|$)/u;
 const SUMMARY_LIMIT = 140;
 
 const dayKey = (date: Date) => DAY_KEY.format(date);
+
+/** When the outlook was read, in Grenada time ("Wed 28 Oct, 11:00 AST"), so a stale feed does not read as current. */
+export function formatOutlookAsOf(iso: string): string {
+  return `${AS_OF.format(new Date(iso))} AST`;
+}
 
 /** The first sentence, clipped, so a tile stays short. */
 export function firstSentence(text: string): string {

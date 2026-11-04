@@ -313,10 +313,26 @@ it("shows both the unavailable notice and the sector card when desk updates cann
 it("keeps the week's sector card when editors hide the desk", async () => {
   vi.mocked(fetchHomeContent).mockResolvedValue(hidden(["desk"]));
   render(await ForecastDesk());
+  // The section heading names it once; the card does not repeat title or kicker.
   expect(
-    screen.getByRole("heading", { name: "What it means for you", level: 3 })
-  ).toBeInTheDocument();
+    screen.getAllByRole("heading", { name: "What it means for you" })
+  ).toHaveLength(1);
+  expect(screen.getAllByText("Plan your week")).toHaveLength(1);
+  expect(screen.getByRole("article")).toHaveAccessibleName(
+    "What it means for you"
+  );
   expect(screen.queryByText("From the Desk")).not.toBeInTheDocument();
+});
+
+it("asks for the sector outlook without waiting for the products", async () => {
+  vi.mocked(fetchHomeContent).mockResolvedValue(hidden([]));
+  vi.mocked(fetchPublishedProducts).mockReturnValue(
+    new Promise(() => undefined)
+  );
+  vi.mocked(fetchSectorOutlook).mockClear();
+  // The products never settle, so the outlook was requested alongside them.
+  ForecastDesk();
+  await vi.waitFor(() => expect(fetchSectorOutlook).toHaveBeenCalled());
 });
 
 it("leaves nothing behind when editors hide both the desk and the sector card", async () => {

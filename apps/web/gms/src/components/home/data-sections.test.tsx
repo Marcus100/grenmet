@@ -104,6 +104,9 @@ const outlook = (
   complete,
   items,
 });
+/** The card is a list item, so it is rendered inside the row's list. */
+const renderCard = async (options?: { header?: boolean }) =>
+  render(<ul>{await SectorDeskCard(options)}</ul>);
 const tile = (name: string) => {
   const section = screen.getByRole("region", { name });
   return within(section);
@@ -112,7 +115,7 @@ const tile = (name: string) => {
 it("links each sector to its service page", async () => {
   vi.mocked(fetchHomeContent).mockResolvedValue(home({}));
   vi.mocked(fetchSectorOutlook).mockResolvedValue(outlook([]));
-  render(await SectorDeskCard());
+  await renderCard();
   for (const [sector, href] of [
     ["Tourism & outdoors", "/services/tourism"],
     ["Marine", "/marine"],
@@ -145,7 +148,7 @@ it("shows each tagged item under its sectors only, and says what is untagged", a
       }),
     ])
   );
-  render(await SectorDeskCard());
+  await renderCard();
   const farming = tile("Agriculture");
   expect(
     farming.getByRole("link", { name: "Heavy Rainfall Warning" })
@@ -183,7 +186,7 @@ it("shows an All clear on its tile as a note, with no impact level", async () =>
       }),
     ])
   );
-  render(await SectorDeskCard());
+  await renderCard();
   expect(tile("Marine").getByText("Calm seas")).toBeInTheDocument();
   expect(tile("Marine").getByText(ALL_CLEAR_NOTE)).toBeInTheDocument();
   expect(tile("Marine").queryByText(HIGHEST)).toBeNull();
@@ -193,7 +196,7 @@ it("shows an All clear on its tile as a note, with no impact level", async () =>
 it("says nothing is published for a sector, never that there is no impact", async () => {
   vi.mocked(fetchHomeContent).mockResolvedValue(home({}));
   vi.mocked(fetchSectorOutlook).mockResolvedValue(outlook([outlookItem()]));
-  render(await SectorDeskCard());
+  await renderCard();
   expect(tile("Aviation").getByText("Nothing this week")).toBeInTheDocument();
   // One sector has an alert, so there is no whole-week line.
   expect(
@@ -207,7 +210,7 @@ it("says nothing is published for a sector, never that there is no impact", asyn
 it("says once for the week when no sector has an alert or warning", async () => {
   vi.mocked(fetchHomeContent).mockResolvedValue(home({}));
   vi.mocked(fetchSectorOutlook).mockResolvedValue(outlook([]));
-  render(await SectorDeskCard());
+  await renderCard();
   expect(screen.getByRole("status")).toHaveTextContent(
     "No alerts or warnings are published for any sector this week."
   );
@@ -218,14 +221,14 @@ it("says once for the week when no sector has an alert or warning", async () => 
 it("says so when the feed is unavailable or only partly read, and shows no all-clear", async () => {
   vi.mocked(fetchHomeContent).mockResolvedValue(home({}));
   vi.mocked(fetchSectorOutlook).mockResolvedValue(null);
-  render(await SectorDeskCard());
+  await renderCard();
   expect(screen.getByRole("status")).toHaveTextContent("can't be loaded");
   expect(screen.queryByText(NO_IMPACTS)).toBeNull();
   cleanup();
   vi.mocked(fetchSectorOutlook).mockResolvedValue(
     outlook([outlookItem()], false)
   );
-  render(await SectorDeskCard());
+  await renderCard();
   expect(screen.getByRole("status")).toHaveTextContent("may be incomplete");
 });
 
@@ -242,7 +245,7 @@ it("shows three items a tile and counts the rest", async () => {
       )
     )
   );
-  render(await SectorDeskCard());
+  await renderCard();
   const health = tile("Health");
   expect(health.getAllByRole("listitem")).toHaveLength(3);
   expect(
@@ -258,7 +261,7 @@ it("keeps its own title, whatever the editors' section copy says", async () => {
       },
     })
   );
-  render(await SectorDeskCard());
+  await renderCard();
   expect(
     screen.getByRole("heading", { name: "What it means for you" })
   ).toBeInTheDocument();
@@ -322,7 +325,7 @@ it("fills the impact meter a quarter per level, in that level's colour, grey whe
       }),
     ])
   );
-  render(await SectorDeskCard());
+  await renderCard();
   const meter = (sector: string) => tile(sector).getByRole("meter");
   const blocks = (sector: string) =>
     Array.from(meter(sector).nextElementSibling?.children ?? []);
@@ -340,4 +343,45 @@ it("fills the impact meter a quarter per level, in that level's colour, grey whe
   expect(meter("Aviation")).toHaveAttribute("value", "0");
   expect(filled("Aviation")).toBe(0);
   expect(blocks("Aviation")).toHaveLength(16);
+});
+
+it("names the article by its own heading", async () => {
+  vi.mocked(fetchHomeContent).mockResolvedValue(home({}));
+  vi.mocked(fetchSectorOutlook).mockResolvedValue(outlook([]));
+  await renderCard();
+  const heading = screen.getByRole("heading", {
+    name: "What it means for you",
+  });
+  const article = screen.getByRole("article");
+  expect(article.getAttribute("aria-labelledby")).toBe(heading.id);
+  expect(article).toHaveAccessibleName("What it means for you");
+});
+
+it("drops its own header but keeps its name when the page already shows the heading", async () => {
+  vi.mocked(fetchHomeContent).mockResolvedValue(home({}));
+  vi.mocked(fetchSectorOutlook).mockResolvedValue(outlook([]));
+  await renderCard({ header: false });
+  expect(
+    screen.queryByRole("heading", { name: "What it means for you" })
+  ).toBeNull();
+  expect(screen.queryByText("Plan your week")).toBeNull();
+  expect(screen.getByRole("article")).toHaveAccessibleName(
+    "What it means for you"
+  );
+});
+
+it("says when the outlook was read, in Grenada time", async () => {
+  vi.mocked(fetchHomeContent).mockResolvedValue(home({}));
+  vi.mocked(fetchSectorOutlook).mockResolvedValue(outlook([]));
+  await renderCard();
+  expect(screen.getByText("Updated Wed 28 Oct, 11:00 AST")).toBeInTheDocument();
+});
+
+it("groups the notices in one status region when several apply", async () => {
+  vi.mocked(fetchHomeContent).mockResolvedValue(home({}));
+  vi.mocked(fetchSectorOutlook).mockResolvedValue(outlook([], false));
+  await renderCard();
+  const status = screen.getByRole("status");
+  expect(status).toHaveTextContent("No alerts or warnings are published");
+  expect(status).toHaveTextContent("may be incomplete");
 });

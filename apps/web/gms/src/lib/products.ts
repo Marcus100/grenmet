@@ -109,7 +109,7 @@ export const fetchPublicForecast = cache(
   }
 );
 
-/** How many days ahead Plan your week looks. */
+/** How many days ahead the sector card ("What it means for you") looks. */
 export const SECTOR_OUTLOOK_DAYS = 7;
 
 /**
