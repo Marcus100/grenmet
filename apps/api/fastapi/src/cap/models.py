@@ -459,6 +459,9 @@ class CapFeedImport(Base):
     last_checked_at: Mapped[datetime | None] = column(default=None)
     last_error: Mapped[str | None] = column(default=None, max_length=2000)
     last_etag: Mapped[str | None] = column(default=None, max_length=255)
+    # When a plain-http feed was first flagged. Starts the 14-day grace period
+    # (common.INSECURE_FEED_GRACE); NULL for an https feed.
+    insecure_since: Mapped[datetime | None] = column(default=None)
     created_at: Mapped[datetime] = column(default_factory=utc_now)
     updated_at: Mapped[datetime] = column(default_factory=utc_now)
 

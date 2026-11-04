@@ -18,6 +18,7 @@ import { useId, useState, useTransition } from "react";
 import { createFeed, deleteFeed, updateFeed } from "@/app/desk/feeds/actions";
 import { grenadaTime } from "@/components/desk/desk-panels";
 import { DeskErrorNotice } from "@/components/desk/error-notice";
+import { FeedSecurityFlag } from "@/components/desk/feed-security-flag";
 import type { DeskError } from "@/lib/desk/errors";
 
 interface FeedValues {
@@ -117,6 +118,7 @@ function FeedForm({ feed }: { feed?: CapFeedImportPublic }) {
               type="url"
             />
           </div>
+          {feed ? <FeedSecurityFlag feed={feed} /> : null}
           {feed ? (
             <p className="text-body-sm text-muted-foreground">
               Status: {feed.status} · Last checked:{" "}
