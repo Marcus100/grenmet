@@ -13,7 +13,9 @@ change of every ``sign_in_setup`` row as sensitive, as new rows are. Readers wit
 Nothing is deleted and no value is changed: only the ``sensitive`` key of the
 ``reason`` element is set to true, and the other elements keep their order. Rows
 that are already sensitive, or have no ``reason`` element, are not touched, so a
-re-run changes nothing (idempotent).
+re-run changes nothing (idempotent). A row whose changes contain a NUL escape is
+skipped, because PostgreSQL cannot convert it to text and that would abort the
+deploy; before the NUL refusal in the reason schema, such a row could be written.
 
 Downgrade is a no-op on purpose. Clearing the flag again would expose the reasons
 to account holders, which is the harm this migration removes.
@@ -43,6 +45,10 @@ def upgrade() -> None:
             FROM json_array_elements(a.changes) WITH ORDINALITY AS c(item, ord)
         )
         WHERE a.record_type = 'sign_in_setup'
+          -- A NUL escape (backslash u0000) is valid in a json column but cannot be
+          -- read as text or jsonb, which would abort the whole migration. Such a
+          -- row (written before NUL was refused) is left for a manual fix.
+          AND position(chr(92) || 'u0000' IN a.changes::text) = 0
           AND CASE
                 WHEN json_typeof(a.changes) = 'array' THEN EXISTS (
                     SELECT 1

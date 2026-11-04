@@ -121,6 +121,26 @@ def test_flags_only_unflagged_reasons_on_sign_in_setup_rows(rehearsal):
     assert after[rows["other_record"]] == before[rows["other_record"]]
 
 
+def test_a_row_with_a_nul_escape_is_skipped_and_does_not_abort_the_migration(
+    rehearsal,
+):
+    connection, migration = rehearsal
+    nul = _insert(
+        connection,
+        "nul",
+        "sign_in_setup",
+        [EXPIRY, {**REASON_UNFLAGGED, "new": "ten chars\x00 here"}],
+    )
+    plain = _insert(connection, "plain", "sign_in_setup", [REASON_UNFLAGGED])
+    before = _snapshot(connection)
+
+    migration.upgrade()
+
+    after = _snapshot(connection)
+    assert after[nul] == before[nul], "the NUL row is left for a manual fix"
+    assert after[plain] == [{**REASON_UNFLAGGED, "sensitive": True}]
+
+
 def test_a_second_run_changes_nothing(rehearsal):
     connection, migration = rehearsal
     _insert(connection, "again", "sign_in_setup", [EXPIRY, REASON_UNFLAGGED])
