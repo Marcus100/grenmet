@@ -149,7 +149,11 @@ for i, a in enumerate(args):
         record("env", {args[i + 1]: os.environ.get(args[i + 1], "")})
 head = args[0]
 joined = " ".join(args)
-if head == "run" and "/var/lib/postgresql/data" in joined:
+if head == "image" and "inspect" in args:
+    print(os.environ.get("FAKE_IMAGE_VOLUMES", '{"/var/lib/postgresql/data":{}}'))
+elif head == "inspect" and ".Mounts" in joined:
+    print(os.environ.get("FAKE_MOUNTS", "[]"))
+elif head == "run" and any(a.startswith("/var/lib/postgresql") for a in args):
     print("pgid")
 elif head == "run":
     if os.environ.get("FAKE_RUN_FAILS"):
@@ -292,6 +296,68 @@ test("without --api-check the drill never touches an API container", () => {
   }
   if ("api_checks" in run.result || "health" in run.result.timings) {
     fail("result file changed");
+  }
+});
+
+const databaseRun = (run) =>
+  run.argv.find((a) => a[0] === "run" && a.includes("POSTGRES_PASSWORD"));
+const tmpfsTargets = (command) =>
+  command
+    .map((value, index) => (command[index - 1] === "--tmpfs" ? value : null))
+    .filter(Boolean)
+    .map((value) => value.split(":")[0]);
+
+test("the throwaway database gets tmpfs at every path its image declares as a volume", () => {
+  // postgres:17 declares .../data and postgres:18 declares the parent. A fixed path is
+  // wrong for one of them: 17 would keep restored data in a disk-backed anonymous volume
+  // and 18 refuses to start with a volume at the old path.
+  for (const volumes of [
+    '{"/var/lib/postgresql/data":{}}',
+    '{"/var/lib/postgresql":{}}',
+  ]) {
+    const run = drillRun({ env: { FAKE_IMAGE_VOLUMES: volumes } });
+    if (run.code !== 0) {
+      fail(run.stdout + run.stderr);
+    }
+    const start = databaseRun(run);
+    if (!start) {
+      fail("the throwaway database was never started");
+    }
+    const wanted = Object.keys(JSON.parse(volumes));
+    if (JSON.stringify(tmpfsTargets(start)) !== JSON.stringify(wanted)) {
+      fail(`expected tmpfs at ${wanted}, got ${tmpfsTargets(start)}`);
+    }
+    if (start.some((x) => x.startsWith("PGDATA"))) {
+      fail("a PGDATA override came back");
+    }
+  }
+});
+
+test("a disk-backed mount on the throwaway database fails the drill and is removed with its volume", () => {
+  const run = drillRun({
+    env: {
+      FAKE_MOUNTS:
+        '[{"Type":"volume","Destination":"/var/lib/postgresql/data"}]',
+    },
+  });
+  if (run.code === 0) {
+    fail("a disk-backed mount passed");
+  }
+  if (!`${run.stdout}${run.stderr}`.includes("disk-backed storage")) {
+    fail("the failure did not say why");
+  }
+  const removed = run.argv.find(
+    (a) => a[0] === "rm" && a.includes("-f") && a.includes("-v")
+  );
+  if (!removed) {
+    fail("the container was not removed together with its volumes");
+  }
+});
+
+test("an image that declares no data volume fails the drill", () => {
+  const run = drillRun({ env: { FAKE_IMAGE_VOLUMES: "null" } });
+  if (run.code === 0) {
+    fail("an image with no data volume passed");
   }
 });
 
@@ -482,17 +548,5 @@ checks = [{"name": "health", "status": "pass", "detail": "ok"},
 text, passed = drill.render_summary("production", {}, {"api_start": 1.0}, 7200, ["p"], checks)
 assert "| health | pass | ok |" in text and "expected 200, got 500" in text
 assert "Not yet verified" not in text and not passed
-`);
-});
-
-test("the throwaway data mount follows the PostgreSQL major version", () => {
-  python(`
-old = "/var/lib/postgresql/data"
-new = "/var/lib/postgresql"
-assert drill.postgres_data_mount("postgres:17") == old
-assert drill.postgres_data_mount("postgis/postgis:17-3.5@sha256:" + "a" * 64) == old
-assert drill.postgres_data_mount("postgres:18") == new
-assert drill.postgres_data_mount("postgis/postgis:18-3.6") == new
-assert drill.postgres_data_mount("postgres@sha256:" + "a" * 64) == old
 `);
 });
