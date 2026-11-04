@@ -34,15 +34,13 @@ import { useQueryClient } from "@tanstack/react-query";
 import { ShieldMinus, UserRoundCog, X } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
-import { hrApiErrorMessage } from "../hr/api-error";
+import { hrApiErrorMessage } from "@/components/hr/api-error";
+import { reportError } from "@/lib/report-error";
 
 import { AccountActivation } from "./account-activation";
 import { CmsAccessControl } from "./cms-access-control";
 import { EmploymentSection } from "./employment-section";
 import { SignInSetup } from "./sign-in-setup";
-
-/** How long a refused role assignment stays on screen as a toast (ms). */
-const ASSIGN_ERROR_TOAST_MS = 10_000;
 
 /** Shown while the person has no department record: roles cannot be assigned yet. */
 export const NO_EMPLOYMENT_NOTICE =
@@ -104,6 +102,27 @@ function RoleNotice({
   );
 }
 
+/**
+ * What to tell the person when a role assignment fails. A 4xx is a refusal with
+ * a reason from the API; anything else is unexpected and is reported.
+ */
+function assignFailure(
+  error: unknown,
+  roleName: string
+): { message: string; unexpected: boolean } {
+  const status = statusOf(error);
+  if (status !== undefined && status >= 400 && status < 500) {
+    return {
+      message: `${roleName} was not assigned: ${hrApiErrorMessage(error)}`,
+      unexpected: false,
+    };
+  }
+  return {
+    message: `${roleName} was not assigned. Something went wrong; try again shortly.`,
+    unexpected: true,
+  };
+}
+
 interface ManageUserDialogProps {
   onOpenChange?: (open: boolean) => void;
   /** Controlled open state. When provided, the built-in trigger is hidden. */
@@ -131,6 +150,7 @@ export function ManageUserDialog({
   const isControlled = controlledOpen !== undefined;
   const open = isControlled ? controlledOpen : internalOpen;
   const setOpen = (next: boolean) => {
+    if (!next) setAssignError(null);
     if (!isControlled) setInternalOpen(next);
     onOpenChange?.(next);
   };
@@ -208,10 +228,10 @@ export function ManageUserDialog({
       setRoleToAdd("");
       toast.success(`Assigned ${role.name} to ${user.username}`);
     } catch (error) {
-      const reason = hrApiErrorMessage(error);
-      const message = `${role.name} was not assigned: ${reason}`;
-      setAssignError(message);
-      toast.error(message, { duration: ASSIGN_ERROR_TOAST_MS });
+      // Shown once, inline (an alert); a toast as well would announce it twice.
+      const failure = assignFailure(error, role.name);
+      if (failure.unexpected) reportError(error, "hr-role-assign");
+      setAssignError(failure.message);
     }
   }
 
@@ -351,8 +371,10 @@ export function ManageUserDialog({
                       value === "SELF" ||
                       value === "DEPARTMENT" ||
                       value === "ALL"
-                    )
+                    ) {
                       setRoleScope(value);
+                      setAssignError(null);
+                    }
                   }}
                   value={roleScope}
                 >
@@ -365,7 +387,10 @@ export function ManageUserDialog({
             {isSuperuser && roleScope === "DEPARTMENT" && (
               <NativeSelect
                 aria-label="Assignment department"
-                onChange={(event) => setRoleDepartment(event.target.value)}
+                onChange={(event) => {
+                  setRoleDepartment(event.target.value);
+                  setAssignError(null);
+                }}
                 value={roleDepartment}
               >
                 <option value="">Choose department</option>
@@ -395,7 +420,10 @@ export function ManageUserDialog({
               <NativeSelect
                 aria-label="Role to assign"
                 className="flex-1"
-                onChange={(e) => setRoleToAdd(e.target.value)}
+                onChange={(e) => {
+                  setRoleToAdd(e.target.value);
+                  setAssignError(null);
+                }}
                 value={roleToAdd}
               >
                 <option value="">Add a role…</option>
