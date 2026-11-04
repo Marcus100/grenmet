@@ -622,6 +622,19 @@ Implemented examples:
 | Account lockout after failed sign-ins | `{"detail": ...}` (429) |
 | Public weather product feed (`/wxproducts/public/*`) | `{"error": "..."}` (400, 404, 503) |
 
+An `AppException` body may also carry an optional `code` next to `detail`: a stable
+machine-readable reason that clients match on instead of the wording of `detail`
+(the roster rule warnings use `ROSTER_RULE_WARNINGS` the same way). It is additive;
+`detail` is unchanged, and the code is not part of the OpenAPI schema. Codes today:
+
+| Code | Status | Route |
+| --- | --- | --- |
+| `ATTEMPT_EXPIRED` | 409 | `POST /events/listings/{slug}/orders` (a replayed `Idempotency-Key` found an expired order) |
+| `CARD_PAYMENT_UNAVAILABLE` | 503 | `POST /events/listings/{slug}/orders` (card checkout could not start) |
+| `EVENTS_NOT_ENABLED` | 403 | the Events organiser gate, for example `GET /events/manage` (the organiser's organisation has Events switched off) |
+| `ORGANISATION_NOT_REJECTED` | 409 | `POST /events/manage/organiser/resubmit` |
+| `UPLOADS_NOT_CONFIGURED` | 503 | `POST /storage/uploads` and `POST /storage/uploads/{upload_id}/complete` |
+
 The generated FastAPI `ValidationError` schema includes optional `input` and
 `ctx` fields alongside required `loc`, `msg` and `type`. Clients must tolerate
 those optional fields; they do not change application route definitions.
