@@ -607,8 +607,8 @@ async def update_setup_policy(
     policy = await session.get(ApprovalPolicy, key)
     if policy is None:
         raise AppException("Policy not found", 404)
-    for key, value in body.model_dump().items():
-        setattr(policy, key, value)
+    for field, value in body.model_dump().items():
+        setattr(policy, field, value)
     session.add(policy)
     session.add(
         BaselineAudit(

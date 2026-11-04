@@ -19,7 +19,14 @@ from src.auth.models import (
 from src.auth.permissions import seed_permissions_and_roles_async
 from src.auth.schemas import UserRoleAssignmentCreate
 from src.baseline import organisation
-from src.baseline.models import AccessReview, ApprovalPolicy, OrganisationPosition
+from src.baseline import service as baseline_service
+from src.baseline.models import (
+    AccessReview,
+    ApprovalPolicy,
+    BaselineAudit,
+    OrganisationPosition,
+)
+from src.baseline.schemas import PolicyInput
 from src.exceptions import AppException
 from src.hr.models import Department
 from src.hr.workflow import configuration, service
@@ -309,6 +316,36 @@ def test_catalogue_keeps_all_primary_and_secondary_reporting_lines():
             assert current.id not in seen
             seen.add(current.id)
             current = positions[current.reports_to_position_id]
+
+
+@pytest.mark.asyncio
+async def test_policy_update_audits_the_policy_key(db_async):
+    admin, _staff = await people(db_async)
+    db_async.add(
+        ApprovalPolicy(
+            key="hr:gms:LEAVE_REQUEST",
+            allow_self_approval=False,
+            require_distinct_approvers=True,
+        )
+    )
+    await db_async.commit()
+
+    policy = await baseline_service.update_setup_policy(
+        session=db_async,
+        current_user=admin,
+        key="hr:gms:LEAVE_REQUEST",
+        body=PolicyInput(allow_self_approval=True, require_distinct_approvers=False),
+    )
+
+    assert policy.allow_self_approval is True
+    assert policy.require_distinct_approvers is False
+    audit = (
+        await db_async.execute(
+            select(BaselineAudit).where(BaselineAudit.action == "approval.policy")
+        )
+    ).scalar_one()
+    assert audit.details["key"] == "hr:gms:LEAVE_REQUEST"
+    assert audit.details["allow_self_approval"] is True
 
 
 @pytest.mark.asyncio
