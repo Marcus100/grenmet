@@ -10,6 +10,7 @@ import {
 import { useSessionUser } from "@barrelsgd/auth";
 import { Button } from "@barrelsgd/ui/components/ui/button";
 import { Input } from "@barrelsgd/ui/components/ui/input";
+import Link from "next/link";
 import { useId, useState } from "react";
 import { reportError } from "@/lib/report-error";
 import { AdminAccountActions } from "./admin-account-actions";
@@ -115,6 +116,18 @@ function ActivationDetails({
                   {reasons[reason]}
                 </p>
               ))}
+              {app.blockers.includes("staff_approval") ? (
+                <p className="text-sm">
+                  Next step: in HR Setup, open the Staff baseline tab for their
+                  organisation and approve them as staff.{" "}
+                  <Link
+                    className="text-primary underline underline-offset-3"
+                    href="/hr-setup"
+                  >
+                    Open HR Setup
+                  </Link>
+                </p>
+              ) : null}
             </div>
           ))}
           {status.data.can_issue_activation ? (

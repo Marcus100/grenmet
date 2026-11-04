@@ -96,13 +96,13 @@ afterEach(() => {
 });
 afterAll(() => server.close());
 
-function renderDialog() {
+function renderDialog(roles: RolePublic[] = ROLES) {
   const queryClient = new QueryClient({
     defaultOptions: { queries: { retry: false } },
   });
   const view = render(
     <QueryClientProvider client={queryClient}>
-      <ManageUserDialog open={true} roles={ROLES} user={USER} />
+      <ManageUserDialog open={true} roles={roles} user={USER} />
     </QueryClientProvider>
   );
   return { ...view, queryClient };
@@ -977,9 +977,7 @@ describe("ManageUserDialog — assigning roles", () => {
       await screen.findByText("Choose a role to enable Assign.")
     ).toBeInTheDocument();
     expect(screen.queryByText(NO_EMPLOYMENT_NOTICE)).not.toBeInTheDocument();
-    fireEvent.change(screen.getByLabelText("Role to assign"), {
-      target: { value: "staff" },
-    });
+    fireEvent.click(screen.getByRole("checkbox", { name: "staff" }));
     expect(screen.getByRole("button", { name: "Assign" })).toBeEnabled();
     expect(
       screen.queryByText("Choose a role to enable Assign.")
@@ -1000,9 +998,7 @@ describe("ManageUserDialog — assigning roles", () => {
 
   async function assignStaff() {
     await screen.findByText("Choose a role to enable Assign.");
-    fireEvent.change(screen.getByLabelText("Role to assign"), {
-      target: { value: "staff" },
-    });
+    fireEvent.click(screen.getByRole("checkbox", { name: "staff" }));
     fireEvent.click(screen.getByRole("button", { name: "Assign" }));
   }
 
@@ -1052,7 +1048,7 @@ describe("ManageUserDialog — assigning roles", () => {
     );
   });
 
-  it("clears the refusal when another role is chosen", async () => {
+  it("clears the refusal when the selection changes", async () => {
     server.use(
       withEmployment(),
       http.post(`${BASE}/api/v1/auth/role-assignments`, () =>
@@ -1062,9 +1058,147 @@ describe("ManageUserDialog — assigning roles", () => {
     renderDialog();
     await assignStaff();
     await screen.findByRole("alert");
-    fireEvent.change(screen.getByLabelText("Role to assign"), {
-      target: { value: "" },
-    });
+    fireEvent.click(screen.getByRole("checkbox", { name: "staff" }));
     expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+  });
+});
+
+describe("ManageUserDialog — assigning several roles at once", () => {
+  const MANY_ROLES: RolePublic[] = [
+    ...ROLES,
+    {
+      id: "r-manager",
+      name: "manager",
+      description: "",
+      created_at: "2026-01-01T00:00:00+0000",
+      updated_at: "2026-01-01T00:00:00+0000",
+    },
+    {
+      id: "r-guide",
+      name: "guide",
+      description: "",
+      created_at: "2026-01-01T00:00:00+0000",
+      updated_at: "2026-01-01T00:00:00+0000",
+    },
+  ];
+  const ASSIGN_URL = `${BASE}/api/v1/auth/role-assignments`;
+  const withEmployment = () =>
+    http.get(`${BASE}/api/v1/hr/employment/u-1`, () =>
+      HttpResponse.json({
+        id: "e-1",
+        user_id: "u-1",
+        organisation_id: "gaa",
+        employee_number: "MET-9",
+        department_id: "dept_met",
+        status: "ACTIVE",
+      })
+    );
+
+  beforeEach(() => {
+    vi.mocked(reportError).mockClear();
+  });
+
+  it("keeps Assign disabled until at least one role is ticked", async () => {
+    server.use(withEmployment());
+    renderDialog(MANY_ROLES);
+    const assign = await screen.findByRole("button", { name: "Assign" });
+    expect(assign).toBeDisabled();
+    expect(
+      screen.getByText("Choose a role to enable Assign.")
+    ).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("checkbox", { name: "staff" }));
+    fireEvent.click(screen.getByRole("checkbox", { name: "guide" }));
+    expect(assign).toBeEnabled();
+    fireEvent.click(screen.getByRole("checkbox", { name: "staff" }));
+    fireEvent.click(screen.getByRole("checkbox", { name: "guide" }));
+    expect(assign).toBeDisabled();
+  });
+
+  it("assigns every ticked role, one request each, and reports each as assigned", async () => {
+    const posted: unknown[] = [];
+    server.use(
+      withEmployment(),
+      http.post(ASSIGN_URL, async ({ request }) => {
+        posted.push(await request.json());
+        return HttpResponse.json({}, { status: 201 });
+      })
+    );
+    renderDialog(MANY_ROLES);
+    fireEvent.click(await screen.findByRole("checkbox", { name: "staff" }));
+    fireEvent.click(screen.getByRole("checkbox", { name: "manager" }));
+    fireEvent.click(screen.getByRole("button", { name: "Assign" }));
+
+    expect(await screen.findByRole("status")).toHaveTextContent(
+      "Assigned: staff, manager."
+    );
+    expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+    expect(posted).toHaveLength(2);
+    expect(posted).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ user_id: "u-1", role_id: "r-staff" }),
+        expect.objectContaining({ user_id: "u-1", role_id: "r-manager" }),
+      ])
+    );
+    // Assigned roles leave the selection, so Assign is greyed out again.
+    expect(screen.getByRole("button", { name: "Assign" })).toBeDisabled();
+  });
+
+  it("shows the refusal and the successes together, and keeps only the refused role ticked", async () => {
+    server.use(
+      withEmployment(),
+      http.post(ASSIGN_URL, async ({ request }) => {
+        const body = (await request.json()) as { role_id: string };
+        if (body.role_id === "r-manager") {
+          return HttpResponse.json(
+            { detail: "Only a system administrator can appoint managers" },
+            { status: 403 }
+          );
+        }
+        return HttpResponse.json({}, { status: 201 });
+      })
+    );
+    renderDialog(MANY_ROLES);
+    fireEvent.click(await screen.findByRole("checkbox", { name: "staff" }));
+    fireEvent.click(screen.getByRole("checkbox", { name: "manager" }));
+    fireEvent.click(screen.getByRole("checkbox", { name: "guide" }));
+    fireEvent.click(screen.getByRole("button", { name: "Assign" }));
+
+    expect(await screen.findByRole("alert")).toHaveTextContent(
+      "manager was not assigned: Only a system administrator can appoint managers"
+    );
+    expect(screen.getByRole("status")).toHaveTextContent(
+      "Assigned: staff, guide."
+    );
+    expect(screen.getByRole("checkbox", { name: "manager" })).toBeChecked();
+    expect(screen.getByRole("checkbox", { name: "staff" })).not.toBeChecked();
+    expect(screen.getByRole("checkbox", { name: "guide" })).not.toBeChecked();
+    expect(reportError).not.toHaveBeenCalled();
+  });
+
+  it("sends the same scope fields with every role in the batch", async () => {
+    const posted: unknown[] = [];
+    server.use(
+      withEmployment(),
+      http.post(ASSIGN_URL, async ({ request }) => {
+        posted.push(await request.json());
+        return HttpResponse.json({}, { status: 201 });
+      })
+    );
+    renderDialog(MANY_ROLES);
+    fireEvent.click(await screen.findByRole("checkbox", { name: "staff" }));
+    fireEvent.click(screen.getByRole("checkbox", { name: "guide" }));
+    fireEvent.click(screen.getByRole("button", { name: "Assign" }));
+    expect(await screen.findByRole("status")).toBeInTheDocument();
+    expect(posted).toHaveLength(2);
+    for (const body of posted) {
+      expect(body).toEqual(
+        expect.objectContaining({
+          organisation_id: "gaa",
+          scope: "SELF",
+          department_id: null,
+          effective_to: null,
+        })
+      );
+    }
   });
 });
