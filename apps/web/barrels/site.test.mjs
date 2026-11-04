@@ -30,6 +30,28 @@ const PAGES = [
 const read = (path) =>
   readFileSync(new URL(`./dist/${path}`, import.meta.url), "utf8");
 
+// Hosts of every absolute or protocol-relative URL in a text, parsed with
+// `new URL` so a host is compared exactly instead of matched as a substring.
+const URL_IN_TEXT = /(?:https?:)?\/\/[^\s"'<>()]+/gu;
+const hostsIn = (text) =>
+  (text.match(URL_IN_TEXT) ?? [])
+    .filter((candidate) => URL.canParse(candidate, "https://base.invalid"))
+    .map((candidate) => new URL(candidate, "https://base.invalid").hostname);
+
+// Source tokens of one CSP directive, e.g. connect-src -> ["https://a.example", ...].
+const directiveSources = (csp, name) => {
+  const part = csp
+    .split(";")
+    .map((entry) => entry.trim())
+    .find((entry) => entry.split(WHITESPACE)[0] === name);
+  return part ? part.split(WHITESPACE).slice(1) : [];
+};
+// Whether a CSP source list allows exactly this origin (scheme, host and port).
+const allowsOrigin = (sources, origin) =>
+  sources.some(
+    (source) => URL.canParse(source) && new URL(source).origin === origin
+  );
+
 test("holding page ships accessible content and only local analytics wiring", () => {
   const html = read("index.html");
   assert.ok(html.includes('<html lang="en">'));
@@ -37,7 +59,12 @@ test("holding page ships accessible content and only local analytics wiring", ()
   assert.ok(html.includes('href="https://eugine.me/"'));
   assert.ok(html.includes("Built by Eugine Whint"));
   assert.ok(html.includes('src="/analytics.mjs"'));
-  assert.ok(!html.includes("googletagmanager.com"));
+  assert.ok(
+    !hostsIn(html).some((host) =>
+      ["googletagmanager.com", "www.googletagmanager.com"].includes(host)
+    ),
+    "holding page never loads Google Tag Manager directly"
+  );
   // Privacy popup starts hidden; analytics.mjs reveals it only where
   // optional analytics is configured.
   assert.ok(html.includes('aria-label="Privacy settings"'));
@@ -180,7 +207,11 @@ test("static modules share the reader policy and CSP permits only the required e
   ).value;
   assert.ok(csp.includes("script-src 'self' https://www.googletagmanager.com"));
   assert.ok(
-    csp.includes("connect-src") && csp.includes("https://api.barrels.gd")
+    allowsOrigin(
+      directiveSources(csp, "connect-src"),
+      "https://api.barrels.gd"
+    ),
+    "connect-src allows the Barrels API origin"
   );
   assert.ok(csp.includes("form-action 'none'"));
   assert.ok(!csp.includes("unsafe-inline"));
@@ -193,14 +224,19 @@ test("CSP allows Cloudflare Turnstile for scripts, frames and connections only",
   const csp = config.headers[0].headers.find(
     (header) => header.key === "Content-Security-Policy"
   ).value;
-  const directive = (name) =>
-    csp.split(";").find((part) => part.trim().startsWith(`${name} `)) ?? "";
   for (const name of ["script-src", "frame-src", "connect-src"])
     assert.ok(
-      directive(name).includes("https://challenges.cloudflare.com"),
+      allowsOrigin(
+        directiveSources(csp, name),
+        "https://challenges.cloudflare.com"
+      ),
       `${name} allows Turnstile`
     );
-  assert.ok(!directive("style-src").includes("cloudflare"));
+  assert.ok(
+    !directiveSources(csp, "style-src").some((source) =>
+      source.includes("cloudflare")
+    )
+  );
   assert.ok(csp.includes("default-src 'none'"));
 });
 
@@ -212,7 +248,7 @@ test("forms send a Turnstile token only when a site key is configured", () => {
   assert.ok(forms.includes("render=explicit"));
   // The script is loaded from forms.mjs, never from a page.
   for (const page of PAGES)
-    assert.ok(!read(page).includes("challenges.cloudflare.com"), page);
+    assert.ok(!hostsIn(read(page)).includes("challenges.cloudflare.com"), page);
 });
 
 test("the site key is written at build time and defaults to none", () => {
