@@ -2,7 +2,11 @@
 Global exception handlers and custom exceptions.
 """
 
+from collections.abc import Iterable, Mapping
+from typing import Any, cast
+
 from fastapi import Request, status
+from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 from pydantic import ValidationError as PydanticValidationError
 from sqlalchemy.exc import IntegrityError
@@ -77,11 +81,13 @@ async def app_exception_handler(
     )
 
 
-async def validation_exception_handler(
-    request: Request,  # noqa: ARG001
-    exc: PydanticValidationError,
-) -> JSONResponse:
-    """Handle Pydantic validation errors."""
+def _validation_response(errors: Iterable[Mapping[str, Any]]) -> JSONResponse:
+    """Answer 422 with the documented ``ValidationErrorResponse`` envelope.
+
+    Only ``type``, ``loc`` and ``msg`` are copied. FastAPI's ``input`` (the
+    submitted value) and ``ctx`` are dropped on purpose: a malformed sign-in
+    setup request must not echo what was typed back to the caller.
+    """
     return JSONResponse(
         status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
         content=ValidationErrorResponse(
@@ -94,10 +100,30 @@ async def validation_exception_handler(
                     ],
                     msg=str(error.get("msg", "Validation error")),
                 )
-                for error in exc.errors()
+                for error in errors
             ]
         ).model_dump(),
     )
+
+
+async def validation_exception_handler(
+    request: Request,  # noqa: ARG001
+    exc: PydanticValidationError,
+) -> JSONResponse:
+    """Handle Pydantic validation errors."""
+    return _validation_response(exc.errors())
+
+
+async def request_validation_exception_handler(
+    _request: Request,
+    exc: Exception,
+) -> JSONResponse:
+    """Handle malformed requests (FastAPI's own 422) in the documented shape.
+
+    Registered only for ``RequestValidationError``, so the narrowing is safe.
+    Typed as ``Exception`` to match Starlette's handler signature.
+    """
+    return _validation_response(cast(RequestValidationError, exc).errors())
 
 
 async def integrity_error_handler(

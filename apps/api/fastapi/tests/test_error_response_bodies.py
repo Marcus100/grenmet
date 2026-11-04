@@ -160,6 +160,38 @@ async def test_account_lockout_429_returns_detail_string(
     }
 
 
+@pytest.mark.asyncio
+@pytest.mark.usefixtures("db_async")
+async def test_malformed_body_returns_documented_validation_shape(
+    async_client: httpx.AsyncClient,
+) -> None:
+    """A request-validation 422 is ``ValidationErrorResponse``, never FastAPI's list.
+
+    The submitted value is not echoed back: FastAPI's default ``input`` field
+    would return it, and sign-in setup reasons are sensitive.
+    """
+    submitted = "private-reason-that-must-not-echo"
+    response = await async_client.post(
+        f"{settings.API_V1_STR}/contact/messages",
+        json={
+            "name": "Ada",
+            "email": submitted,
+            "subject": "Hello",
+            "message": "A message long enough to pass its own rules.",
+        },
+    )
+    assert response.status_code == 422
+    body = response.json()
+    assert set(body) == {"detail", "errors"}, body
+    assert body["detail"] == "Validation error"
+    assert body["errors"], body
+    for item in body["errors"]:
+        assert set(item) == {"type", "loc", "msg"}, item
+    assert any("email" in item["loc"] for item in body["errors"]), body
+    assert "input" not in response.text
+    assert submitted not in response.text
+
+
 async def test_app_exception_handler_passes_headers_through() -> None:
     # Typed errors that carry protocol headers (WWW-Authenticate, Retry-After,
     # Location) must send them exactly as HTTPException did.
