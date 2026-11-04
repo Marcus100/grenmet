@@ -153,3 +153,79 @@ describe("buildApiProxyUrl: host switch attempts", () => {
     expect(url?.origin).toBe("http://fastapi.test");
   });
 });
+
+describe("buildApiProxyUrl: baseline policy key (colon allowed)", () => {
+  it.each([
+    [
+      "/api/v1/hr/setup/policies/hr:ops:leave",
+      "http://fastapi.test/api/v1/hr/setup/policies/hr:ops:leave",
+    ],
+    [
+      "/api/v1/hr/setup/policies/hr:gms:LEAVE",
+      "http://fastapi.test/api/v1/hr/setup/policies/hr:gms:LEAVE",
+    ],
+    [
+      // The generated client percent-encodes the key, so the colon arrives as %3A.
+      "/api/v1/hr/setup/policies/hr%3Agms%3ALEAVE",
+      "http://fastapi.test/api/v1/hr/setup/policies/hr:gms:LEAVE",
+    ],
+    [
+      "/api/v1/hr/setup/policies/hr:gms:LEAVE/",
+      "http://fastapi.test/api/v1/hr/setup/policies/hr:gms:LEAVE/",
+    ],
+  ])("allows the policy key in %s", (pathname, expected) => {
+    expect(target(pathname)).toBe(expected);
+  });
+
+  it("keeps the base origin for a key that looks like a scheme", () => {
+    const url = buildApiProxyUrl("/api/v1/hr/setup/policies/http:", "", BASE);
+    expect(url?.href).toBe(
+      "http://fastapi.test/api/v1/hr/setup/policies/http:"
+    );
+    expect(url?.origin).toBe("http://fastapi.test");
+  });
+
+  it.each([
+    // Encoded slashes, dots and separators in the key stay refused.
+    "/api/v1/hr/setup/policies/http%3A%2F%2Fevil.example",
+    "/api/v1/hr/setup/policies/hr:%2F%2Fevil.example",
+    "/api/v1/hr/setup/policies/hr:gms%2FLEAVE",
+    "/api/v1/hr/setup/policies/%2e%2e",
+    "/api/v1/hr/setup/policies/..",
+    "/api/v1/hr/setup/policies/hr:gms:LEAVE%3F",
+    "/api/v1/hr/setup/policies/hr:gms:LEAVE%23x",
+    "/api/v1/hr/setup/policies/hr:gms:LEAVE%40evil.example",
+    "/api/v1/hr/setup/policies/hr:gms:LEAVE%5Cx",
+    // A double-encoded colon decodes to %3A, which still contains %.
+    "/api/v1/hr/setup/policies/hr%253Agms",
+    // Empty segments around the key.
+    "/api/v1/hr/setup/policies//hr:gms:LEAVE",
+    "/api/v1/hr/setup/policies/hr:gms:LEAVE//",
+    "/api/v1/hr/setup/policies/hr:gms:LEAVE//x",
+  ])("still refuses %s", (pathname) => {
+    expect(target(pathname)).toBeNull();
+  });
+
+  it.each([
+    // A colon must not be allowed past the policy key or into another route.
+    "/api/v1/hr/setup/policies/hr:gms:LEAVE/extra",
+    "/api/v1/hr/setup/policies/hr:gms:LEAVE/hr:gms:LEAVE",
+    "/api/v1/hr/setup/policy/hr:gms:LEAVE",
+    "/api/v1/hr/setup/hr:gms:LEAVE",
+    "/api/v1/hr/leave/requests/hr:gms:LEAVE",
+    "/api/v1/hr/leave/requests/hr%3Agms%3ALEAVE",
+    "/api/v1/hr:x/setup/policies/hr:gms:LEAVE",
+    "/api/v1/hr%3Ax/setup/policies/hr:gms:LEAVE",
+    "/api/v1/HR/setup/policies/hr:gms:LEAVE",
+    "/api/v2/hr/setup/policies/hr:gms:LEAVE",
+    "/api/v1%3A/hr/setup/policies/hr:gms:LEAVE",
+    "/api/http:/v1/hr/setup/policies/hr:gms:LEAVE",
+    "/api/evil.example:443/v1/hr/setup/policies/hr:gms:LEAVE",
+    "/api:x/v1/hr/setup/policies/hr:gms:LEAVE",
+    "/api%3Ax/v1/hr/setup/policies/hr:gms:LEAVE",
+    "/api/v1/x%3Ay",
+    "/api/%3A%2F%2Fevil.example",
+  ])("refuses a colon outside the policy key in %s", (pathname) => {
+    expect(target(pathname)).toBeNull();
+  });
+});
