@@ -19,8 +19,16 @@ from src.cap.ibf import IMPACTS, LIKELIHOODS, WMO_MATRIX
 from src.wxwatch.nhc_schemas import ProductGuidance
 
 from . import advisories, units
+from .exceptions import UnsupportedSheetKind
 from .presentation import conditions as _conditions
-from .validation import FIELDS, GRENADA, optional_number, period_values
+from .validation import (
+    FIELDS,
+    GRENADA,
+    LEGACY_MARINE_FIELDS,
+    MARINE_FORECAST_AREA,
+    optional_number,
+    period_values,
+)
 
 if TYPE_CHECKING:
     # WeasyPrint loads Pango/Cairo (seconds); import it only when rendering, so
@@ -283,9 +291,8 @@ def _outlook(values: dict[str, str]) -> list[dict[str, Any]]:
     return days
 
 
-def forecast_context(
-    kind: str, values: dict[str, str], *, status: str, revision: str
-) -> dict[str, Any]:
+def _advisory_context(values: dict[str, str]) -> dict[str, Any]:
+    """The imported alerts and warnings in force, as the sheets print them."""
     snapshot = advisories.parse(values.get("advisories", ""))
     items = [
         item | {"valid": _advisory_valid(item)}
@@ -297,6 +304,21 @@ def forecast_context(
     in_force = [item for item in items if not advisories.is_all_clear(item)]
     all_clear = [item for item in items if advisories.is_all_clear(item)]
     return {
+        # False for a revision saved before alerts were captured (or one whose
+        # snapshot cannot be read): the sheet must not say "none in force".
+        "captured": bool(snapshot),
+        "advisories": in_force[: advisories.ITEM_LIMIT],
+        "all_clear": all_clear[: advisories.ITEM_LIMIT],
+        "complete": bool(snapshot.get("complete", True)),
+        "colour_names": COLOUR_NAMES,
+    }
+
+
+def forecast_context(
+    kind: str, values: dict[str, str], *, status: str, revision: str
+) -> dict[str, Any]:
+    imported = _advisory_context(values)
+    return imported | {
         "title": TITLES[kind],
         "issued": _when(values.get("issuedAt", "")),
         "valid": _span_text(values.get("validFrom", ""), values.get("validTo", "")),
@@ -306,17 +328,97 @@ def forecast_context(
         "summary": values.get("summary", ""),
         "condition_icon": CONDITION_ICONS.get(values.get("condition", ""), "cloud-sun"),
         "tiles": _headline_tiles(kind, values),
-        "matrix": _matrix(in_force[: advisories.ITEM_LIMIT]),
-        "advisories": in_force[: advisories.ITEM_LIMIT],
-        "all_clear": all_clear[: advisories.ITEM_LIMIT],
-        "complete": bool(snapshot.get("complete", True)),
-        "colour_names": COLOUR_NAMES,
+        "matrix": _matrix(imported["advisories"]),
         "outlook": _outlook(values) if kind == "evening" else [],
         "word": values.get("word", "") if values.get("definition") else "",
         "definition": values.get("definition", ""),
         "forecaster": values.get("forecaster", ""),
         "product_code": PRODUCT_CODES[kind],
         "next_update": f"{NEXT_ISSUE[kind]} AST",
+        "contact": CONTACT,
+    }
+
+
+WIND_ICONS = {"wind", "compass"}
+
+
+def marine_forecast_context(
+    values: dict[str, str], *, status: str, revision: str
+) -> dict[str, Any]:
+    """Marine Forecast: synopsis, winds, seas and swell, advisories, outlook.
+
+    Wind in mph and heights in feet (`presentation.conditions`); storage stays
+    knots and metres. Small craft and other warnings are the imported
+    advisories, never typed text.
+    """
+    tiles = [
+        {"icon": i, "value": v, "label": label} for i, v, label in _conditions(values)
+    ]
+    return _advisory_context(values) | {
+        "title": "Marine Forecast",
+        "issued": _when(values.get("issuedAt", "")),
+        "valid": _span_text(values.get("validFrom", ""), values.get("validTo", "")),
+        "status": "" if status == "PUBLISHED ISSUE" else status,
+        "revision": revision,
+        "area": values.get("area") or MARINE_FORECAST_AREA,
+        "synopsis": values.get("synopsis", ""),
+        "wind_tiles": [t for t in tiles if t["icon"] in WIND_ICONS],
+        "sea_tiles": [t for t in tiles if t["icon"] not in WIND_ICONS],
+        "outlook": values.get("outlook", ""),
+        # Typed small-craft advice from revisions saved before it was replaced
+        # by the imported advisories; shown read-only, as recorded.
+        "small_craft_recorded": [
+            text
+            for key in LEGACY_MARINE_FIELDS
+            if (text := values.get(key, "").strip())
+        ],
+        "forecaster": values.get("forecaster", ""),
+        "product_code": "GMS-MWF-MARINE",
+        "next_update": "05:00 AST",
+        "contact": CONTACT,
+    }
+
+
+# Climate Bulletin fields printed in the banner or footer rather than as text.
+CLIMATE_CORE = {
+    "issuedAt",
+    "validFrom",
+    "validTo",
+    "validity",
+    "area",
+    "forecaster",
+    "month",
+}
+
+
+def _month_label(value: str) -> str:
+    try:
+        return f"{datetime.strptime(value, '%Y-%m'):%B %Y}"
+    except ValueError:
+        return value
+
+
+def climate_bulletin_context(
+    values: dict[str, str], *, status: str, revision: str
+) -> dict[str, Any]:
+    """Climate Bulletin sheet from the current fields only (layout pending GMS examples)."""
+    sections = [
+        (rule.label, values[rule.key].strip())
+        for rule in FIELDS["climate-bulletin"]
+        if rule.key not in CLIMATE_CORE and values.get(rule.key, "").strip()
+    ]
+    return {
+        "title": "Climate Bulletin",
+        "subtitle": _month_label(values.get("month", "")),
+        "issued": _when(values.get("issuedAt", "")),
+        "valid": _span_text(values.get("validFrom", ""), values.get("validTo", "")),
+        "status": "" if status == "PUBLISHED ISSUE" else status,
+        "revision": revision,
+        "area": values.get("area", ""),
+        "sections": sections,
+        "forecaster": values.get("forecaster", ""),
+        "product_code": "GMS-CLB",
+        "next_update": "15th of next month",
         "contact": CONTACT,
     }
 
@@ -506,8 +608,20 @@ def render_document(
     guidance: ProductGuidance | None = None,
     graphic_images: dict[str, str] | None = None,
 ) -> Document:
-    """Forecast, bulletin or outlook sheet."""
-    if kind == "outlook":
+    """Forecast, bulletin, outlook, marine or climate sheet."""
+    if kind not in SHEET_KINDS:
+        raise UnsupportedSheetKind(kind)
+    if kind == "marine-forecast":
+        template, context = (
+            "marine.html.j2",
+            marine_forecast_context(values, status=status, revision=revision),
+        )
+    elif kind == "climate-bulletin":
+        template, context = (
+            "climate.html.j2",
+            climate_bulletin_context(values, status=status, revision=revision),
+        )
+    elif kind == "outlook":
         template, context = (
             "outlook.html.j2",
             outlook_context(values, status=status, revision=revision),
@@ -559,4 +673,8 @@ def render_sheet_pdf(
     return pdf
 
 
-SHEET_KINDS = frozenset(TITLES) | frozenset(BULLETIN_NAMES) | {"outlook"}
+SHEET_KINDS = (
+    frozenset(TITLES)
+    | frozenset(BULLETIN_NAMES)
+    | {"outlook", "marine-forecast", "climate-bulletin"}
+)

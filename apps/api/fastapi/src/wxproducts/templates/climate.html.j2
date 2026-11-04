@@ -1,0 +1,21 @@
+{% extends "base.html.j2" %}
+{% block content %}
+<div class="typed">
+    <section class="card headline">
+      {{ icon("thermometer-sun", "headline-icon", "sky-ink") }}
+      <div>
+        <p class="eyebrow sky">Month reviewed</p>
+        <p class="summary">{{ subtitle or "—" }}{% if area %} · {{ area }}{% endif %}</p>
+      </div>
+    </section>
+
+    {% for label, text in sections %}
+    <section class="card">
+      <h2 class="eyebrow">{{ label }}</h2>
+      <p>{{ text }}</p>
+    </section>
+    {% else %}
+    <section class="card"><p class="muted">No narrative supplied.</p></section>
+    {% endfor %}
+</div>
+{% endblock %}

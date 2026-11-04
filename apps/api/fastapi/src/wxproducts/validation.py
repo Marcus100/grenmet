@@ -25,9 +25,15 @@ from .schemas import (
 )
 
 ISSUE_HOURS = {"morning": 7, "midday": 12, "evening": 18}
+# Forecasts that import the CAP alerts and GMS bulletins in force when saved or
+# previewed (`advisories.snapshot`). Marine Forecast is a forecast too, but it
+# keeps its own 05:00 schedule (`_marine_schedule`), so it is not in ISSUE_HOURS
+# (land-forecast selection, expiry and overdue sweeps read that).
+ADVISORY_KINDS = frozenset({*ISSUE_HOURS, "marine-forecast"})
 # Scheduled products outside the land-forecast set: drafted ahead of the
 # issue time, so a future issue time may be published.
 SCHEDULED_KINDS = {*ISSUE_HOURS, "marine-forecast"}
+LEGACY_MARINE_FIELDS = ("smallCraft", "smallCraftNotes")
 MARINE_FORECAST_AREA = "Waters of Grenada, Carriacou and Petite Martinique"
 MARINE_FORECAST_VALIDITY = "05:00 today to 05:00 tomorrow"
 CLIMATE_ISSUE_DAY = 15
@@ -184,6 +190,13 @@ def normalize(
             if parameter_key(prefix, name) in allowed:
                 result[parameter_key(prefix, name)] = text
     if kind == "marine-forecast":
+        # The typed small-craft fields were removed; older revisions carry them
+        # and the desk posts stored values back, so new writes drop them
+        # (stored revisions keep them). Any other unknown key is still refused.
+        for key in LEGACY_MARINE_FIELDS:
+            result.pop(key, None)
+        if advisories is not None:
+            result["advisories"] = advisories
         return _marine_schedule(result)
     if kind == "climate-bulletin":
         return _climate_schedule(result)
@@ -413,7 +426,12 @@ def validate(body: ProductWrite, *, now: datetime | None = None) -> list[str]:
             not system.name.strip() for system in body.guidance.systems
         ):
             errors.append("Name every meteorological system before publishing")
-        if any("example" in value.lower() for value in values.values()):
+        # The advisories snapshot is captured from CAP and bulletins, not typed.
+        if any(
+            "example" in value.lower()
+            for key, value in values.items()
+            if key != "advisories"
+        ):
             errors.append("Replace example draft wording before publishing")
         if not body.reviewed:
             errors.append("Review the preview before publishing")

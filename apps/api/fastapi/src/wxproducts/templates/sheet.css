@@ -145,3 +145,10 @@ td.num { white-space: nowrap; }
 .tiles.compact { row-gap: 2mm; }
 .tiles.compact .tile-icon { width: 5.5mm; height: 5.5mm; }
 .tiles.compact strong { font-size: 9pt; }
+
+/* Typed text keeps its paragraph breaks; long text may break across pages. */
+.typed p, .typed li, .typed td { white-space: pre-line; }
+.typed .headline, .typed .card { break-inside: auto; }
+/* A flex box does not split across pages: let long typed text flow around the icon. */
+.typed .headline { display: block; }
+.typed .headline-icon { float: left; margin: 0 5mm 1mm 0; }
