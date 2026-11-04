@@ -25,6 +25,7 @@ Uses `@barrelsgd/auth/server` directly — not a redirect-delegating app.
 - Session management: `src/lib/server-session.ts`
 - Auth helpers: `src/lib/auth.ts`, `src/lib/auth-config.ts`, `src/lib/auth-redirect.ts`
 - API proxy: `src/app/api/[...path]/route.ts` + `src/proxy.ts`
+  - The proxy forwards only an allow-list of request headers (accept, accept-language, content-type, conditional and range headers, x-request-id) plus the bearer token; add a header to `FORWARDED_REQUEST_HEADERS` if a module needs one. Writes (not GET, HEAD, OPTIONS) must carry an `Origin` equal to this host (`src/lib/request-guards.ts`), else 403 (#987).
 - Logout routes: `src/app/auth/logout/route.ts`, `src/app/auth/logout-all/route.ts`
 - Auth-related env vars: `AUTH_APP_URL`, `AUTH_API_URL`, `AUTH_API_V1_STR`, `ADMIN_SESSION_COOKIE_NAME`, `GAA_ADMIN_SSO_CLIENT_SECRET`, `NEXT_PUBLIC_API_URL`, `RESEND_API_KEY`. Sign-in is single sign-on through auth.barrels.gd (`/signin` → `/auth/start` → `/auth/callback`, ADR-0017)
 
