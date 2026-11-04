@@ -101,7 +101,7 @@ export async function SectorDeskCard({
             </h3>
           </header>
         )}
-        {/* One live region for every notice, so a screen reader announces them once. */}
+        {/* The card's notices sit together in one status region. */}
         {(!tiles || quiet || (outlook && !outlook.complete)) && (
           <div className="flex flex-col gap-2" role="status">
             {!tiles && (

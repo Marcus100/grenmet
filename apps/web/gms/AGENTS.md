@@ -118,17 +118,18 @@ src/app/
   numbers, tables or stat tiles beside it. The sky hero shows real register
   and issued-forecast values only, sun times computed by `src/lib/sky.ts`, and
   "Not available yet" for fields no feed carries (UV, AQI, tides, swell, rain
-  chance, gusts, rainfall). "What it means for you" (a card in the From the Desk row after
-  the official cards, `SectorDeskCard`; hidden with the `explore-today` switch; with the
-  desk hidden it stands alone under that heading without its own header) shows,
-  per sector, the GMS alerts and CAP warnings that apply over the next seven
-  days from FastAPI `GET /wxproducts/public/sector-outlook` (`fetchSectorOutlook`,
+  chance, gusts, rainfall). "What it means for you" (a card in the From the
+  Desk row after the official cards, `SectorDeskCard`; hidden with the `explore-today` switch; with the desk
+  hidden it stands alone under that heading without its own header) shows, per
+  sector, the GMS alerts and CAP warnings that apply over the next seven days
+  from FastAPI `GET /wxproducts/public/sector-outlook` (`fetchSectorOutlook`,
   tiles built by `lib/sector-outlook.ts`; the six sectors are `SECTORS` in
   `@barrelsgd/gms/sectors`). An untagged item shows under every sector as
   "Affects everyone"; an unreachable feed says so and a partial one says the
-  lists may be incomplete (all notices share one live region); the card ends with
-  "Updated" and the outlook's `as_of` in Grenada time; an empty sector says "No alert or warning impacts
-  published for this sector", never "minimal". Nothing is typed in the CMS.
+  lists may be incomplete (the notices sit together in one status region); the
+  card ends with "Updated" and the outlook's `as_of` in Grenada time; an empty
+  sector says "No alert or warning impacts published for this sector", never
+  "minimal". Nothing is typed in the CMS.
   Tests: `placeholder-notice.test.tsx`, the "hero readings" block in
   `sky-hero-panels.test.tsx` and `data-sections.test.tsx` guard this.
 - **Home hero (owner design, 29 Oct 2026):** a card for the selected tab

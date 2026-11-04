@@ -330,10 +330,9 @@ it("asks for the sector outlook without waiting for the products", async () => {
     new Promise(() => undefined)
   );
   vi.mocked(fetchSectorOutlook).mockClear();
-  // Never settles, so only a call made alongside the products can be seen.
-  const pending = ForecastDesk();
+  // The products never settle, so the outlook was requested alongside them.
+  ForecastDesk();
   await vi.waitFor(() => expect(fetchSectorOutlook).toHaveBeenCalled());
-  expect(pending).toBeInstanceOf(Promise);
 });
 
 it("leaves nothing behind when editors hide both the desk and the sector card", async () => {

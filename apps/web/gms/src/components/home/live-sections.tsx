@@ -301,7 +301,8 @@ export async function ForecastDesk() {
     );
   }
   // The sector card is awaited here, not rendered as an async element, so tests
-  // can render the row; started with the rest so a slow outlook delays nothing else.
+  // can render the row. It starts with the other reads, so a slow outlook
+  // delays nothing else.
   const [content, products, alerts, sectorCard] = await Promise.all([
     fetchHomeContent(),
     fetchPublishedProducts(),

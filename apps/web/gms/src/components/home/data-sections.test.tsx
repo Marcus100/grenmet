@@ -377,7 +377,7 @@ it("says when the outlook was read, in Grenada time", async () => {
   expect(screen.getByText("Updated Wed 28 Oct, 11:00 AST")).toBeInTheDocument();
 });
 
-it("shows one live region when several notices apply", async () => {
+it("groups the notices in one status region when several apply", async () => {
   vi.mocked(fetchHomeContent).mockResolvedValue(home({}));
   vi.mocked(fetchSectorOutlook).mockResolvedValue(outlook([], false));
   await renderCard();
