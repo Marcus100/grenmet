@@ -139,6 +139,32 @@ describe("HolidaysManager", () => {
     ).toBe(true);
   });
 
+  it("does not ask the API for a decimal year", async () => {
+    const requestedYears: (string | null)[] = [];
+    server.use(
+      http.get(`${BASE}/api/v1/hr/rosters/public-holidays`, ({ request }) => {
+        const year = new URL(request.url).searchParams.get("year");
+        requestedYears.push(year);
+        if (!Number.isInteger(Number(year))) {
+          return HttpResponse.json({ detail: "invalid year" }, { status: 422 });
+        }
+        return HttpResponse.json({ data: [HOLIDAY], count: 1 });
+      })
+    );
+    renderManager();
+    await screen.findByText("Independence Day");
+
+    fireEvent.change(screen.getByLabelText("Year"), {
+      target: { value: "2026.5" },
+    });
+
+    expect(
+      await screen.findByText("No holidays recorded for 2026.5.")
+    ).toBeTruthy();
+    expect(screen.queryByRole("alert")).toBeNull();
+    expect(requestedYears).not.toContain("2026.5");
+  });
+
   it("hides editing controls without roster management", async () => {
     renderManager(false);
     await screen.findByText("Independence Day");

@@ -440,23 +440,27 @@ class RequestLoggingMiddleware:
             nonlocal status
             if message["type"] == "http.response.start":
                 status = message["status"]
+                # ASGI makes "headers" optional on the start message.
+                message.setdefault("headers", [])
                 MutableHeaders(scope=message)[REQUEST_ID_HEADER] = request_id
             await send(message)
 
         try:
             await self.app(scope, receive, send_with_request_id)
         finally:
-            duration_s = time.perf_counter() - start
-            route = getattr(scope.get("route"), "path", "unmatched")
-            logger.info(
-                "request route=%s status=%s duration=%.3fs request_id=%s",
-                route,
-                status,
-                duration_s,
-                request_id,
-            )
-            await operational_metrics.record_request(route, status, duration_s)
-            reset_request_id(token)
+            try:
+                duration_s = time.perf_counter() - start
+                route = getattr(scope.get("route"), "path", "unmatched")
+                logger.info(
+                    "request route=%s status=%s duration=%.3fs request_id=%s",
+                    route,
+                    status,
+                    duration_s,
+                    request_id,
+                )
+                await operational_metrics.record_request(route, status, duration_s)
+            finally:
+                reset_request_id(token)
 
 
 async def unhandled_exception_handler(request: Request, _exc: Exception) -> Response:

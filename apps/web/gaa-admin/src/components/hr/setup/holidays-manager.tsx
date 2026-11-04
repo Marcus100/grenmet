@@ -63,7 +63,8 @@ export function HolidaysManager({ canManage }: HolidaysManagerProps) {
   const [form, setForm] = useState<HolidayForm>(EMPTY_FORM);
   const queryClient = useQueryClient();
   // The API accepts 2000-2100 only; skip the request while a partial year is being typed.
-  const yearInRange = year >= MIN_YEAR && year <= MAX_YEAR;
+  const yearInRange =
+    Number.isInteger(year) && year >= MIN_YEAR && year <= MAX_YEAR;
   const holidaysQuery = useHrListHolidays(
     { query: { year } },
     { query: { enabled: yearInRange } }
