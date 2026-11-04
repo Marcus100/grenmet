@@ -158,7 +158,10 @@ describe("HolidaysManager", () => {
       target: { value: "2026.5" },
     });
 
-    await waitFor(() => expect(screen.queryByRole("alert")).toBeNull());
+    expect(
+      await screen.findByText("No holidays recorded for 2026.5.")
+    ).toBeTruthy();
+    expect(screen.queryByRole("alert")).toBeNull();
     expect(requestedYears).not.toContain("2026.5");
   });
 
