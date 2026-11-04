@@ -644,3 +644,27 @@ test("rejects invalid repository, commit, and observation values before GitHub a
   );
   assert.equal(calls.length, 0);
 });
+
+test("a closed tracker falls back to per-group issues and records a coverage blocker", async () => {
+  const { issues, runGh } = githubMock();
+  const closedTracker = (args) =>
+    args[0] === "api" && String(args[1]).endsWith("/issues/721")
+      ? { state: "closed" }
+      : runGh(args);
+  const result = await publishObservations({
+    observations: [
+      observation({
+        key: "security:dependabot:group:pillow:uv.lock",
+        trackingIssue: 721,
+        alertNumbers: [1],
+        openAlertNumbers: [1],
+      }),
+    ],
+    repo: "Marcus100/grenmet",
+    commit,
+    runGh: closedTracker,
+  });
+  assert.equal(result.created.length, 1);
+  assert.equal(issues.length, 1);
+  assert.ok(result.blockers.some((b) => b.key === "coverage:tracker:721"));
+});
