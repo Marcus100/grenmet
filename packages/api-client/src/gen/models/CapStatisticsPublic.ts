@@ -8,9 +8,12 @@ import type { CapStatisticsBucket } from "./CapStatisticsBucket.js";
 /**
  * @description Counts of published warnings by hazard, colour, parish and month.
  *
- * A warning counts once in a row however many information blocks or areas it
- * has. A warning that covers several parishes (or, rarely, several hazards)
- * counts in each of them, so those tables can add up to more than ``total``.
+ * A warning counts once in ``total`` and once in ``by_colour``, at its highest
+ * colour across its information blocks (red, orange, yellow, green, then
+ * unassigned), so the colour table adds up to ``total``. ``by_hazard`` counts a
+ * warning once for each CAP event one of its information blocks has, and
+ * ``by_parish`` once for each parish it covers, so those tables can add up to
+ * more than ``total``.
  * @type object
  */
 export type CapStatisticsPublic = {

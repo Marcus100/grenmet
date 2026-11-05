@@ -1,5 +1,9 @@
 /** Longest hazard text FastAPI accepts (`max_length` on the `hazard` parameter). */
 export const HAZARD_MAX_LENGTH = 255;
+/** Longest period FastAPI accepts, in days from `start` to `end` (about ten years). */
+export const PERIOD_MAX_DAYS = 3660;
+export const PERIOD_TOO_LONG = "Choose a period of about ten years or less.";
+const MILLISECONDS_PER_DAY = 86_400_000;
 
 const ISO_DAY = /^(\d{4})-(\d{2})-(\d{2})$/u;
 // biome-ignore lint/suspicious/noControlCharactersInRegex: refusing control characters is the point.
@@ -43,6 +47,18 @@ export function isCalendarDay(value: string): boolean {
   );
 }
 
+/** Whole days since 1970-01-01 for a `YYYY-MM-DD` day (UTC, no time zone shift). */
+function dayNumber(value: string): number {
+  const [year, month, day] = value.split("-").map(Number) as [
+    number,
+    number,
+    number,
+  ];
+  const date = new Date(0);
+  date.setUTCFullYear(year, month - 1, day);
+  return Math.round(date.getTime() / MILLISECONDS_PER_DAY);
+}
+
 function readDay(
   params: Params,
   name: "end" | "start",
@@ -73,6 +89,12 @@ export function parseStatisticsQuery(params: Params): StatisticsQuery {
   const end = readDay(params, "end", "end", problems);
   if (start && end && start > end) {
     problems.push("The start date must not be after the end date.");
+  } else if (
+    start &&
+    end &&
+    dayNumber(end) - dayNumber(start) > PERIOD_MAX_DAYS
+  ) {
+    problems.push(PERIOD_TOO_LONG);
   }
   const rawHazard = single(params.hazard);
   let hazard: string | null = null;
@@ -92,6 +114,23 @@ export function parseStatisticsQuery(params: Params): StatisticsQuery {
   }
   if (problems.length > 0) return { ok: false, problems };
   return { end, hazard, ok: true, start };
+}
+
+/**
+ * The filter exactly as typed, for the form to show again when the URL is
+ * refused. Nothing is checked here and nothing is sent anywhere; a repeated
+ * parameter shows its first value.
+ */
+export function rawStatisticsFilter(params: Params): StatisticsFilter {
+  const first = (value: string | string[] | undefined): string | null => {
+    const single = Array.isArray(value) ? value[0] : value;
+    return single ?? null;
+  };
+  return {
+    end: first(params.end),
+    hazard: first(params.hazard),
+    start: first(params.start),
+  };
 }
 
 /** `?start=…&end=…&hazard=…` with only the filters that are set (empty string if none). */

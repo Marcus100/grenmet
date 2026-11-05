@@ -2,14 +2,14 @@
 
 import csv
 import io
-from datetime import UTC, datetime
+from datetime import UTC, date, datetime, timedelta
 from typing import Any
 
 import httpx
 import pytest
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.cap import levels
+from src.cap import levels, warning_statistics
 from src.cap.models import (
     CapAlert,
     CapArea,
@@ -22,6 +22,7 @@ from src.cap.models import (
     CapStatus,
     CapUrgency,
 )
+from src.utils.timezones import GRENADA
 from tests.factories import make_user
 
 pytestmark = pytest.mark.asyncio
@@ -35,6 +36,20 @@ def _parish(iso_code: str) -> dict[str, str]:
     return {"value_name": "ISO3166-2:GD", "value": iso_code}
 
 
+Block = tuple[str, list[dict[str, str]]]
+
+
+def _awareness_parameters(colour: levels.GmsColour | None) -> list[dict[str, str]]:
+    if colour is None:
+        return []
+    return [
+        {
+            "value_name": levels.AWARENESS_PARAMETER,
+            "value": levels.awareness_value(colour),
+        }
+    ]
+
+
 async def _add_alert(
     db: AsyncSession,
     *,
@@ -43,12 +58,19 @@ async def _add_alert(
     published_at: datetime | None,
     event: str = "Heavy Rainfall Warning",
     colour: levels.GmsColour | None = levels.GmsColour.ORANGE,
+    blocks: list[Block] | None = None,
     parishes: tuple[str, ...] = (),
     status: CapStatus = CapStatus.ACTUAL,
     msg_type: CapMessageType = CapMessageType.ALERT,
     lifecycle_state: CapLifecycleState = CapLifecycleState.PUBLISHED,
     info_blocks: int = 1,
 ) -> None:
+    """An alert with one information block per ``blocks`` entry (event, parameters).
+
+    Without ``blocks`` every block is ``event`` with the ``colour`` parameter.
+    """
+    if blocks is None:
+        blocks = [(event, _awareness_parameters(colour))] * info_blocks
     alert = CapAlert(
         identifier=identifier,
         sender="cap@example.com",
@@ -60,26 +82,17 @@ async def _add_alert(
     )
     db.add(alert)
     await db.flush()
-    for sequence in range(info_blocks):
+    for sequence, (block_event, parameters) in enumerate(blocks):
         info = CapInfo(
             alert_id=alert.id,
             sequence=sequence,
-            event=event,
+            event=block_event,
             urgency=CapUrgency.EXPECTED,
             severity=CapSeverity.SEVERE,
             certainty=CapCertainty.LIKELY,
             headline="Headline",
             description="Description",
-            parameters=(
-                []
-                if colour is None
-                else [
-                    {
-                        "value_name": levels.AWARENESS_PARAMETER,
-                        "value": levels.awareness_value(colour),
-                    }
-                ]
-            ),
+            parameters=parameters,
         )
         db.add(info)
         await db.flush()
@@ -393,3 +406,356 @@ async def test_csv_export_defuses_spreadsheet_formulas(
             "1",
         ]
     ]
+
+
+def _grenada_today() -> date:
+    return datetime.now(GRENADA).date()
+
+
+@pytest.mark.parametrize(
+    "params",
+    [
+        {"start": "9999-01-01", "end": "9999-12-31"},
+        {"start": "2026-01-01", "end": "9999-12-31"},
+        {"end": (_grenada_today() + timedelta(days=400)).isoformat()},
+    ],
+)
+async def test_end_far_in_the_future_is_refused(
+    async_client: httpx.AsyncClient,
+    db_async: AsyncSession,
+    superuser_token_headers_async: dict[str, str],
+    params: dict[str, str],
+) -> None:
+    """No 500 near year 9999: the end is capped at a year after today."""
+    _ = db_async
+    response = await async_client.get(
+        STATISTICS, params=params, headers=superuser_token_headers_async
+    )
+    assert response.status_code == 422
+    assert response.json()["detail"] == ("The end date must be within a year of today.")
+
+
+async def test_end_one_year_after_today_is_accepted(
+    async_client: httpx.AsyncClient,
+    db_async: AsyncSession,
+    superuser_token_headers_async: dict[str, str],
+) -> None:
+    _ = db_async
+    latest = warning_statistics.latest_end(_grenada_today())
+    response = await async_client.get(
+        STATISTICS,
+        params={"start": "2026-01-01", "end": latest.isoformat()},
+        headers=superuser_token_headers_async,
+    )
+    assert response.status_code == 200, response.text
+    beyond = await async_client.get(
+        STATISTICS,
+        params={"start": "2026-01-01", "end": (latest + timedelta(days=1)).isoformat()},
+        headers=superuser_token_headers_async,
+    )
+    assert beyond.status_code == 422
+
+
+@pytest.mark.parametrize(
+    "start",
+    ["1999-12-31", "0001-01-01", "1900-06-01"],
+)
+async def test_start_before_2000_is_refused(
+    async_client: httpx.AsyncClient,
+    db_async: AsyncSession,
+    superuser_token_headers_async: dict[str, str],
+    start: str,
+) -> None:
+    _ = db_async
+    response = await async_client.get(
+        STATISTICS,
+        params={"start": start, "end": "2026-01-01"},
+        headers=superuser_token_headers_async,
+    )
+    assert response.status_code == 422
+    assert response.json()["detail"] == (
+        "The start date must not be before 2000-01-01."
+    )
+
+
+async def test_start_on_2000_01_01_is_accepted(
+    async_client: httpx.AsyncClient,
+    db_async: AsyncSession,
+    superuser_token_headers_async: dict[str, str],
+) -> None:
+    _ = db_async
+    response = await async_client.get(
+        STATISTICS,
+        params={"start": "2000-01-01", "end": "2000-01-31"},
+        headers=superuser_token_headers_async,
+    )
+    assert response.status_code == 200, response.text
+
+
+async def test_default_end_with_far_past_start_is_refused(
+    async_client: httpx.AsyncClient,
+    db_async: AsyncSession,
+    superuser_token_headers_async: dict[str, str],
+) -> None:
+    _ = db_async
+    response = await async_client.get(
+        STATISTICS,
+        params={"start": "0001-01-01"},
+        headers=superuser_token_headers_async,
+    )
+    assert response.status_code == 422
+
+
+async def test_period_limit_is_exactly_3660_days(
+    async_client: httpx.AsyncClient,
+    db_async: AsyncSession,
+    superuser_token_headers_async: dict[str, str],
+) -> None:
+    _ = db_async
+    start = date(2017, 1, 1)
+    accepted = await async_client.get(
+        STATISTICS,
+        params={
+            "start": start.isoformat(),
+            "end": (start + timedelta(days=3660)).isoformat(),
+        },
+        headers=superuser_token_headers_async,
+    )
+    assert accepted.status_code == 200, accepted.text
+    refused = await async_client.get(
+        STATISTICS,
+        params={
+            "start": start.isoformat(),
+            "end": (start + timedelta(days=3661)).isoformat(),
+        },
+        headers=superuser_token_headers_async,
+    )
+    assert refused.status_code == 422
+    assert refused.json()["detail"] == ("Choose a period of about ten years or less.")
+
+
+async def test_grenada_day_boundaries(
+    async_client: httpx.AsyncClient,
+    db_async: AsyncSession,
+    superuser_token_headers_async: dict[str, str],
+) -> None:
+    """A Grenada day runs from 04:00 UTC to 04:00 UTC the next day (UTC-4)."""
+    creator = await make_user(db_async, superuser=True)
+    cases = {
+        "before-start": datetime(2026, 3, 1, 3, 59),
+        "at-start": datetime(2026, 3, 1, 4, 0),
+        "last-minute-of-end": datetime(2026, 4, 1, 3, 59),
+        "after-end": datetime(2026, 4, 1, 4, 0),
+    }
+    for identifier, published in cases.items():
+        await _add_alert(
+            db_async,
+            creator_id=creator.id,
+            identifier=identifier,
+            published_at=published,
+        )
+    response = await async_client.get(
+        STATISTICS,
+        params={"start": "2026-03-01", "end": "2026-03-31"},
+        headers=superuser_token_headers_async,
+    )
+    body = response.json()
+    assert body["total"] == 2
+    assert _counts(body["by_month"])["2026-03"] == 2
+
+
+async def test_cancel_test_and_draft_are_not_counted(
+    async_client: httpx.AsyncClient,
+    db_async: AsyncSession,
+    superuser_token_headers_async: dict[str, str],
+) -> None:
+    creator = await make_user(db_async, superuser=True)
+    published = datetime(2026, 5, 5, 12, 0)
+    await _add_alert(
+        db_async,
+        creator_id=creator.id,
+        identifier="real",
+        published_at=published,
+    )
+    await _add_alert(
+        db_async,
+        creator_id=creator.id,
+        identifier="cancel-message",
+        published_at=published,
+        msg_type=CapMessageType.CANCEL,
+    )
+    await _add_alert(
+        db_async,
+        creator_id=creator.id,
+        identifier="test-status",
+        published_at=published,
+        status=CapStatus.TEST,
+    )
+    await _add_alert(
+        db_async,
+        creator_id=creator.id,
+        identifier="draft-status",
+        published_at=published,
+        status=CapStatus.DRAFT,
+    )
+    response = await async_client.get(
+        STATISTICS, params=PERIOD, headers=superuser_token_headers_async
+    )
+    body = response.json()
+    assert body["total"] == 1
+    assert _counts(body["by_hazard"]) == {"Heavy Rainfall Warning": 1}
+
+
+async def test_one_alert_with_two_hazards_counts_in_each(
+    async_client: httpx.AsyncClient,
+    db_async: AsyncSession,
+    superuser_token_headers_async: dict[str, str],
+) -> None:
+    creator = await make_user(db_async, superuser=True)
+    await _add_alert(
+        db_async,
+        creator_id=creator.id,
+        identifier="two-hazards",
+        published_at=datetime(2026, 6, 1, 12, 0),
+        blocks=[
+            ("Heavy Rainfall Warning", _awareness_parameters(levels.GmsColour.ORANGE)),
+            ("High Wind Warning", _awareness_parameters(levels.GmsColour.ORANGE)),
+        ],
+    )
+    response = await async_client.get(
+        STATISTICS, params=PERIOD, headers=superuser_token_headers_async
+    )
+    body = response.json()
+    assert body["total"] == 1
+    assert _counts(body["by_hazard"]) == {
+        "Heavy Rainfall Warning": 1,
+        "High Wind Warning": 1,
+    }
+    assert _counts(body["by_colour"])["orange"] == 1
+
+
+async def test_colour_counts_each_alert_once_at_its_highest_colour(
+    async_client: httpx.AsyncClient,
+    db_async: AsyncSession,
+    superuser_token_headers_async: dict[str, str],
+) -> None:
+    """Red > orange > yellow > green > unassigned; the colour table adds up to total."""
+    creator = await make_user(db_async, superuser=True)
+    await _add_alert(
+        db_async,
+        creator_id=creator.id,
+        identifier="yellow-then-orange",
+        published_at=datetime(2026, 6, 1, 12, 0),
+        blocks=[
+            ("Heavy Rainfall Warning", _awareness_parameters(levels.GmsColour.YELLOW)),
+            ("High Wind Warning", _awareness_parameters(levels.GmsColour.ORANGE)),
+        ],
+    )
+    await _add_alert(
+        db_async,
+        creator_id=creator.id,
+        identifier="green-and-unassigned",
+        published_at=datetime(2026, 6, 2, 12, 0),
+        blocks=[
+            ("Heavy Rainfall Warning", _awareness_parameters(levels.GmsColour.GREEN)),
+            ("Heavy Rainfall Warning", []),
+        ],
+    )
+    await _add_alert(
+        db_async,
+        creator_id=creator.id,
+        identifier="unassigned-only",
+        published_at=datetime(2026, 6, 3, 12, 0),
+        blocks=[("Heavy Rainfall Warning", [])],
+    )
+    response = await async_client.get(
+        STATISTICS, params=PERIOD, headers=superuser_token_headers_async
+    )
+    body = response.json()
+    assert body["total"] == 3
+    colours = _counts(body["by_colour"])
+    assert colours == {
+        "green": 1,
+        "yellow": 0,
+        "orange": 1,
+        "red": 0,
+        "unassigned": 1,
+    }
+    assert sum(colours.values()) == body["total"]
+    # Hazards still count the alert once per hazard it has blocks for.
+    assert _counts(body["by_hazard"]) == {
+        "Heavy Rainfall Warning": 3,
+        "High Wind Warning": 1,
+    }
+
+
+# Spellings of the awareness_level value: the SQL colour must agree with
+# levels.parse_awareness for each one (whitespace and colour case tolerated;
+# code and severity exact).
+AWARENESS_VARIANTS = [
+    "3; orange; Severe",
+    " 3 ;  ORANGE ; Severe ",
+    "3;\torange\n;Severe",
+    "4; Red; Extreme",
+    "1; GREEN; Minor",
+    "2;yellow;Moderate",
+    "3;orange;severe",
+    "03; orange; Severe",
+    "3; orange; Severe; extra",
+    "3; orange",
+    "orange",
+    "",
+]
+
+
+async def test_colour_spelling_matches_parse_awareness(
+    async_client: httpx.AsyncClient,
+    db_async: AsyncSession,
+    superuser_token_headers_async: dict[str, str],
+) -> None:
+    creator = await make_user(db_async, superuser=True)
+    expected = {colour.value: 0 for colour in levels.GmsColour}
+    expected["unassigned"] = 0
+    for index, variant in enumerate(AWARENESS_VARIANTS):
+        parsed = levels.parse_awareness(variant)
+        expected[parsed.value if parsed else "unassigned"] += 1
+        await _add_alert(
+            db_async,
+            creator_id=creator.id,
+            identifier=f"spelling-{index}",
+            published_at=datetime(2026, 6, 1, 12, 0),
+            blocks=[
+                (
+                    "Heavy Rainfall Warning",
+                    [{"value_name": levels.AWARENESS_PARAMETER, "value": variant}],
+                )
+            ],
+        )
+    response = await async_client.get(
+        STATISTICS, params=PERIOD, headers=superuser_token_headers_async
+    )
+    assert _counts(response.json()["by_colour"]) == expected
+    # The variants really do cover each colour and the unassigned case.
+    assert all(expected.values())
+
+
+@pytest.mark.parametrize("event", ["=1+1", "+CMD", "-2+3", "@SUM(A1)"])
+async def test_csv_label_column_is_defused(
+    async_client: httpx.AsyncClient,
+    db_async: AsyncSession,
+    superuser_token_headers_async: dict[str, str],
+    event: str,
+) -> None:
+    creator = await make_user(db_async, superuser=True)
+    await _add_alert(
+        db_async,
+        creator_id=creator.id,
+        identifier=f"label-{event}",
+        published_at=datetime(2026, 5, 5, 12, 0),
+        event=event,
+    )
+    response = await async_client.get(
+        EXPORT, params=PERIOD, headers=superuser_token_headers_async
+    )
+    rows = [row for row in csv.reader(io.StringIO(response.text)) if row[0] == "hazard"]
+    assert [row[2] for row in rows] == [f"'{event}"]

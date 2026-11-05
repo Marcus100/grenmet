@@ -35,11 +35,22 @@ from src.cap.schemas import CapStatisticsBucket, CapStatisticsPublic
 from src.exceptions import AppValidationError
 from src.utils.timezones import GRENADA, local_to_utc, local_today
 
-#: Longest period one request may cover, so the month table stays small.
+#: Longest period one request may cover ("about ten years"), so the month table stays small.
 MAX_PERIOD_DAYS = 3660
+PERIOD_TOO_LONG = "Choose a period of about ten years or less."
+#: Earliest day a request may name (the warning archive starts in 2000).
+EARLIEST_DAY = date(2000, 1, 1)
 #: Months shown when the caller gives no start date (this month and 11 before).
 DEFAULT_MONTHS = 12
 UNASSIGNED_COLOUR = "unassigned"
+#: How strongly each colour counts when one warning has several: red wins.
+COLOUR_RANK: dict[levels.GmsColour, int] = {
+    levels.GmsColour.GREEN: 1,
+    levels.GmsColour.YELLOW: 2,
+    levels.GmsColour.ORANGE: 3,
+    levels.GmsColour.RED: 4,
+}
+UNASSIGNED_RANK = 0
 NO_PARISH = "no-parish"
 CSV_COLUMNS = ("table", "key", "label", "count")
 
@@ -50,14 +61,33 @@ def default_start(end: date) -> date:
     return date(months // 12, months % 12 + 1, 1)
 
 
+def latest_end(today: date) -> date:
+    """The latest end day accepted: the same date a year after ``today``."""
+    try:
+        return today.replace(year=today.year + 1)
+    except ValueError:  # 29 February has no counterpart in the next year.
+        return today.replace(year=today.year + 1, day=28)
+
+
 def resolve_period(start: date | None, end: date | None) -> tuple[date, date]:
-    """Fill in a missing end (today in Grenada) and start (twelve months), then check."""
-    resolved_end = end or local_today()
+    """Fill in a missing end (today in Grenada) and start (twelve months), then check.
+
+    The bounds keep the date arithmetic inside the calendar: an end no later than
+    a year after today and a start no earlier than 2000-01-01 (422 otherwise).
+    """
+    today = local_today()
+    resolved_end = end or today
+    if resolved_end < EARLIEST_DAY:
+        raise AppValidationError("The end date must not be before 2000-01-01.")
+    if resolved_end > latest_end(today):
+        raise AppValidationError("The end date must be within a year of today.")
     resolved_start = start or default_start(resolved_end)
     if resolved_start > resolved_end:
         raise AppValidationError("The start date must not be after the end date.")
+    if resolved_start < EARLIEST_DAY:
+        raise AppValidationError("The start date must not be before 2000-01-01.")
     if (resolved_end - resolved_start).days > MAX_PERIOD_DAYS:
-        raise AppValidationError("Choose a period of ten years or less.")
+        raise AppValidationError(PERIOD_TOO_LONG)
     return resolved_start, resolved_end
 
 
@@ -85,22 +115,34 @@ def _contains(
     return sa.cast(column, JSONB).contains([item])
 
 
-def _colour_expression() -> sa.ColumnElement[str]:
-    """The impact colour an info block declares in its ``awareness_level`` parameter."""
-    whens = [
-        (
-            _contains(
-                CapInfo.parameters,
-                {
-                    "value_name": levels.AWARENESS_PARAMETER,
-                    "value": levels.awareness_value(colour),
-                },
-            ),
-            colour.value,
-        )
-        for colour in levels.GmsColour
-    ]
-    return sa.case(*whens, else_=UNASSIGNED_COLOUR)
+def _block_colour_rank() -> sa.ScalarSelect[int]:
+    """The highest colour rank among one info block's ``awareness_level`` values.
+
+    Each value is matched with ``levels.awareness_pattern``, the SQL form of
+    ``levels.parse_awareness``, so the spelling rules agree. 0 when none parses.
+    """
+    parameter = (
+        sa.func.jsonb_array_elements(sa.cast(CapInfo.parameters, JSONB))
+        .table_valued(sa.column("value", JSONB))
+        .render_derived()
+    )
+    value = parameter.c.value
+    rank = sa.case(
+        *[
+            (
+                value["value"].astext.op("~")(levels.awareness_pattern(colour)),
+                COLOUR_RANK[colour],
+            )
+            for colour in levels.GmsColour
+        ],
+        else_=UNASSIGNED_RANK,
+    )
+    return (
+        sa.select(sa.func.coalesce(sa.func.max(rank), UNASSIGNED_RANK))
+        .select_from(parameter)
+        .where(value["value_name"].astext == levels.AWARENESS_PARAMETER)
+        .scalar_subquery()
+    )
 
 
 def _conditions(
@@ -156,16 +198,27 @@ async def read_statistics(
         for event, count in hazard_rows
     ]
 
-    colour = _colour_expression()
-    colour_rows = await session.execute(
-        select(colour, _alerts()).select_from(joined).where(*where).group_by(colour)
+    # Each warning once, at its highest colour across its info blocks, so the
+    # colour table adds up to the total.
+    per_alert = (
+        select(
+            CapAlert.id.label("alert_id"),
+            sa.func.max(_block_colour_rank()).label("rank"),
+        )
+        .select_from(joined)
+        .where(*where)
+        .group_by(CapAlert.id)
+        .subquery()
     )
-    colour_counts = dict(colour_rows.tuples().all())
+    rank_rows = await session.execute(
+        select(per_alert.c.rank, sa.func.count()).group_by(per_alert.c.rank)
+    )
+    rank_counts = dict(rank_rows.tuples().all())
     by_colour = [
         CapStatisticsBucket(
             key=item.value,
             label=item.value.title(),
-            count=colour_counts.get(item.value, 0),
+            count=rank_counts.get(COLOUR_RANK[item], 0),
         )
         for item in levels.GmsColour
     ]
@@ -173,7 +226,7 @@ async def read_statistics(
         CapStatisticsBucket(
             key=UNASSIGNED_COLOUR,
             label="No colour assigned",
-            count=colour_counts.get(UNASSIGNED_COLOUR, 0),
+            count=rank_counts.get(UNASSIGNED_RANK, 0),
         )
     )
 

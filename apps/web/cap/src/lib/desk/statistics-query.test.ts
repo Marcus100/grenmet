@@ -2,9 +2,19 @@ import { describe, expect, it } from "vitest";
 import {
   HAZARD_MAX_LENGTH,
   isCalendarDay,
+  PERIOD_MAX_DAYS,
+  PERIOD_TOO_LONG,
   parseStatisticsQuery,
+  rawStatisticsFilter,
   statisticsQueryString,
 } from "./statistics-query";
+
+/** The day `days` after `start` (both `YYYY-MM-DD`), in UTC. */
+function dayAfter(start: string, days: number): string {
+  const date = new Date(`${start}T00:00:00Z`);
+  date.setUTCDate(date.getUTCDate() + days);
+  return date.toISOString().slice(0, 10);
+}
 
 describe("parseStatisticsQuery", () => {
   it("accepts no filters at all, leaving the period to the API", () => {
@@ -99,5 +109,54 @@ describe("statisticsQueryString", () => {
         start: "2026-01-01",
       })
     ).toBe("?start=2026-01-01&hazard=Heavy+Rainfall+%26+Flood");
+  });
+});
+
+describe("the period limit", () => {
+  it("accepts a period exactly PERIOD_MAX_DAYS long and refuses one day more", () => {
+    const start = "2017-01-01";
+    expect(PERIOD_MAX_DAYS).toBe(3660);
+    expect(
+      parseStatisticsQuery({
+        end: dayAfter(start, PERIOD_MAX_DAYS),
+        start,
+      }).ok
+    ).toBe(true);
+    expect(
+      parseStatisticsQuery({
+        end: dayAfter(start, PERIOD_MAX_DAYS + 1),
+        start,
+      })
+    ).toEqual({ ok: false, problems: [PERIOD_TOO_LONG] });
+  });
+
+  it("says about ten years, as the API does", () => {
+    expect(PERIOD_TOO_LONG).toBe("Choose a period of about ten years or less.");
+  });
+});
+
+describe("rawStatisticsFilter", () => {
+  it("keeps the values as typed, malformed or not", () => {
+    expect(
+      rawStatisticsFilter({
+        end: "2026-02-31",
+        hazard: "  Wind ",
+        start: "tomorrow",
+      })
+    ).toEqual({ end: "2026-02-31", hazard: "  Wind ", start: "tomorrow" });
+  });
+
+  it("uses null for parameters that are absent", () => {
+    expect(rawStatisticsFilter({})).toEqual({
+      end: null,
+      hazard: null,
+      start: null,
+    });
+  });
+
+  it("shows the first value of a repeated parameter", () => {
+    expect(
+      rawStatisticsFilter({ start: ["2026-01-01", "2026-02-01"] })
+    ).toEqual({ end: null, hazard: null, start: "2026-01-01" });
   });
 });

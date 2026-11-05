@@ -57,7 +57,7 @@ export function capGetStatisticsQueryOptions(
 }
 
 /**
- * @description Counts published Actual alerts (expired and cancelled ones included; updates, cancellations, exercises and tests excluded) whose publish time falls in the period, by CAP event, GMS colour, parish and month. Every colour, parish and month is listed, with zero when it has none. A warning covering several parishes counts in each. Needs cap.alert.read.
+ * @description Counts published Actual alerts (expired and cancelled ones included; updates, cancellations, exercises and tests excluded) whose publish time falls in the period, by CAP event, GMS colour, parish and month. Every colour, parish and month is listed, with zero when it has none. A warning counts once in the colour table, at its highest colour; a warning with several hazards or parishes counts in each. Periods start no earlier than 2000-01-01 and end no later than a year after today. Needs cap.alert.read.
  * @summary Count published warnings by hazard, colour, parish and month
  * {@link /api/v1/cap/statistics}
  */

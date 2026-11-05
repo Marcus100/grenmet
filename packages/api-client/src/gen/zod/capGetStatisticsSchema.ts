@@ -24,7 +24,7 @@ export const capGetStatisticsQueryHazardSchema = z
 
 export const capGetStatisticsStatus200Schema =
   capStatisticsPublicSchema.describe(
-    "Counts of published warnings by hazard, colour, parish and month.\n\nA warning counts once in a row however many information blocks or areas it\nhas. A warning that covers several parishes (or, rarely, several hazards)\ncounts in each of them, so those tables can add up to more than ``total``."
+    "Counts of published warnings by hazard, colour, parish and month.\n\nA warning counts once in ``total`` and once in ``by_colour``, at its highest\ncolour across its information blocks (red, orange, yellow, green, then\nunassigned), so the colour table adds up to ``total``. ``by_hazard`` counts a\nwarning once for each CAP event one of its information blocks has, and\n``by_parish`` once for each parish it covers, so those tables can add up to\nmore than ``total``."
   );
 
 export const capGetStatisticsStatus401Schema = apiErrorSchema.describe(

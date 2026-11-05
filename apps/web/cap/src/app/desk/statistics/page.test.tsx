@@ -1,5 +1,7 @@
+import { AuthApiError } from "@barrelsgd/auth";
 import { render, screen, within } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { PERIOD_TOO_LONG } from "@/lib/desk/statistics-query";
 import { staffGate } from "@/test/desk-gate.fixture";
 
 const gate = vi.hoisted(() => ({ requireDeskGate: vi.fn() }));
@@ -13,6 +15,8 @@ import Loading from "./loading";
 import StatisticsPage from "./page";
 
 const SAINT_ANDREW_ROW = /Saint Andrew/u;
+const COULD_NOT_BE_LOADED = /could not be loaded/u;
+const HAZARD_LABEL = /Hazard/u;
 
 const COLOURS = ["green", "yellow", "orange", "red"].map((key) => ({
   count: 0,
@@ -179,5 +183,48 @@ describe("/desk/statistics", () => {
       boom,
       "cap-desk-statistics-page"
     );
+  });
+
+  it("shows the API's period message in the alert and does not report it", async () => {
+    api.getStatistics.mockRejectedValue(
+      new AuthApiError(422, "The end date must be within a year of today.")
+    );
+    render(await page({ end: "2026-01-01", start: "2026-01-01" }));
+    expect(screen.getByRole("alert")).toHaveTextContent(
+      "The end date must be within a year of today."
+    );
+    expect(
+      screen.queryByRole("heading", { name: COULD_NOT_BE_LOADED })
+    ).not.toBeInTheDocument();
+    expect(report.reportError).not.toHaveBeenCalled();
+    expect(
+      screen.queryByRole("link", { name: "Download CSV" })
+    ).not.toBeInTheDocument();
+  });
+
+  it("refuses a period over about ten years before calling the API", async () => {
+    render(await page({ end: "2026-01-01", start: "2010-01-01" }));
+    expect(screen.getByRole("alert")).toHaveTextContent(PERIOD_TOO_LONG);
+    expect(api.getStatistics).not.toHaveBeenCalled();
+  });
+
+  it("keeps a malformed filter as the user typed it", async () => {
+    render(await page({ hazard: "High Wind", start: "2026-02-30" }));
+    expect(screen.getByRole("alert")).toHaveTextContent(
+      "The start date must be a real day"
+    );
+    expect(screen.getByLabelText("From")).toHaveValue("2026-02-30");
+    expect(screen.getByLabelText(HAZARD_LABEL)).toHaveValue("High Wind");
+    expect(api.getStatistics).not.toHaveBeenCalled();
+    expect(
+      screen.queryByRole("link", { name: "Download CSV" })
+    ).not.toBeInTheDocument();
+  });
+
+  it("leaves the CSV link without a download attribute, so the server names the file", async () => {
+    render(await page());
+    expect(
+      screen.getByRole("link", { name: "Download CSV" })
+    ).not.toHaveAttribute("download");
   });
 });

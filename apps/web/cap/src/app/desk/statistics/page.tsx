@@ -1,4 +1,5 @@
 import type { CapStatisticsBucket } from "@barrelsgd/api-client";
+import { isAuthApiError } from "@barrelsgd/auth";
 import type { Metadata, Route } from "next";
 import Link from "next/link";
 import type { ReactNode } from "react";
@@ -10,7 +11,9 @@ import {
 import { getStatistics } from "@/lib/desk/api";
 import { requireDeskGate } from "@/lib/desk/gate";
 import {
+  isCalendarDay,
   parseStatisticsQuery,
+  rawStatisticsFilter,
   type StatisticsFilter,
   statisticsQueryString,
 } from "@/lib/desk/statistics-query";
@@ -20,8 +23,6 @@ export const metadata: Metadata = { title: "Statistics" };
 export const dynamic = "force-dynamic";
 
 type SearchParams = Record<string, string | string[] | undefined>;
-
-const NO_FILTER: StatisticsFilter = { end: null, hazard: null, start: null };
 
 /**
  * How many warnings GMS published, by hazard, colour, parish and month. Read
@@ -44,17 +45,16 @@ export default async function StatisticsPage({
       />
     );
   }
-  const query = parseStatisticsQuery(await searchParams);
+  const params = await searchParams;
+  const query = parseStatisticsQuery(params);
   if (!query.ok) {
+    // Keep what was typed so the form can be corrected, not reset.
     return (
-      <StatisticsShell filter={NO_FILTER}>
-        <div className="space-y-2" role="alert">
-          {query.problems.map((problem) => (
-            <p className="text-destructive" key={problem}>
-              {problem}
-            </p>
-          ))}
-        </div>
+      <StatisticsShell
+        downloadable={false}
+        filter={rawStatisticsFilter(params)}
+      >
+        <Problems messages={query.problems} />
       </StatisticsShell>
     );
   }
@@ -67,9 +67,17 @@ export default async function StatisticsPage({
   try {
     statistics = await getStatistics(gate.accessToken, requested);
   } catch (error) {
+    // A period the API refuses (422) is the user's to change, not a fault.
+    if (isAuthApiError(error) && error.status === 422) {
+      return (
+        <StatisticsShell downloadable={false} filter={requested}>
+          <Problems messages={[error.message]} />
+        </StatisticsShell>
+      );
+    }
     reportError(error, "cap-desk-statistics-page");
     return (
-      <StatisticsShell filter={requested}>
+      <StatisticsShell downloadable={false} filter={requested}>
         <DeskUnavailable what="The warning statistics" />
       </StatisticsShell>
     );
@@ -81,7 +89,7 @@ export default async function StatisticsPage({
     start: statistics.start,
   };
   return (
-    <StatisticsShell filter={used}>
+    <StatisticsShell downloadable filter={used}>
       <p className="text-body-sm" role="status">
         <strong>{statistics.total}</strong>{" "}
         {statistics.total === 1 ? "warning" : "warnings"} published from{" "}
@@ -110,6 +118,24 @@ export default async function StatisticsPage({
       </div>
     </StatisticsShell>
   );
+}
+
+/** The refusal reasons, in the one alert block the page uses for them. */
+function Problems({ messages }: { messages: string[] }) {
+  return (
+    <div className="space-y-2" role="alert">
+      {messages.map((message) => (
+        <p className="text-destructive" key={message}>
+          {message}
+        </p>
+      ))}
+    </div>
+  );
+}
+
+/** Browsers cannot show a date that is not a real day, so such a value uses a text box. */
+function dateInputType(value: string | null): "date" | "text" {
+  return !value || isCalendarDay(value) ? "date" : "text";
 }
 
 function hazardHref(filter: StatisticsFilter, hazard: string | null): Route {
@@ -176,12 +202,17 @@ function CountTable({
   );
 }
 
-/** The filter form and CSV link; they keep the period and hazard in view. */
+/**
+ * The filter form and CSV link; they keep the period and hazard in view. The
+ * CSV link is offered only when the page could load its counts.
+ */
 function StatisticsShell({
   children,
+  downloadable,
   filter,
 }: {
   children: ReactNode;
+  downloadable: boolean;
   filter: StatisticsFilter;
 }) {
   return (
@@ -207,7 +238,8 @@ function StatisticsShell({
             defaultValue={filter.start ?? ""}
             id="statistics-start"
             name="start"
-            type="date"
+            placeholder="YYYY-MM-DD"
+            type={dateInputType(filter.start)}
           />
         </label>
         <label
@@ -220,7 +252,8 @@ function StatisticsShell({
             defaultValue={filter.end ?? ""}
             id="statistics-end"
             name="end"
-            type="date"
+            placeholder="YYYY-MM-DD"
+            type={dateInputType(filter.end)}
           />
         </label>
         <label
@@ -242,15 +275,16 @@ function StatisticsShell({
         >
           Show statistics
         </button>
-        <a
-          className="text-body-sm text-info py-2 underline"
-          download
-          href={
-            `/desk/statistics/export${statisticsQueryString(filter)}` as Route
-          }
-        >
-          Download CSV
-        </a>
+        {downloadable ? (
+          <a
+            className="text-body-sm text-info py-2 underline"
+            href={
+              `/desk/statistics/export${statisticsQueryString(filter)}` as Route
+            }
+          >
+            Download CSV
+          </a>
+        ) : null}
       </form>
       {children}
     </div>
