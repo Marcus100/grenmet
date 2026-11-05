@@ -14,7 +14,8 @@ export const CONTACT_SITE_KEY = "mbia";
 
 // Field limits come from the generated API schema, so they cannot drift from
 // the API. The form adds the mbia subject list and its camelCase token name.
-export const contactSchema = contactMessageBodySchema
+// Not exported: it does not trim. Use parseContact, which trims first.
+const contactSchema = contactMessageBodySchema
   .omit({ turnstile_token: true })
   .extend({
     subject: z.enum(CONTACT_SUBJECTS),
@@ -24,11 +25,18 @@ export const contactSchema = contactMessageBodySchema
 
 export type ContactInput = z.infer<typeof contactSchema>;
 
-const FIELD_MESSAGES: Record<string, string> = {
-  name: "Please enter your name",
-  email: "Please enter a valid email address",
-  subject: "Please choose a subject",
-  message: "Please tell us a little more",
+const LABELS: Record<string, string> = {
+  name: "Name",
+  email: "Email",
+  subject: "Subject",
+  message: "Message",
+};
+
+const FIELD_PROBLEMS: Record<string, string> = {
+  name: "Name: please enter at least 2 characters.",
+  email: "Email: please enter a valid email address.",
+  subject: "Subject: please choose one of the options.",
+  message: "Message: please write at least 10 characters.",
 };
 
 function trimStrings(input: unknown): unknown {
@@ -48,14 +56,15 @@ export function parseContact(input: unknown) {
   return contactSchema.safeParse(trimStrings(input));
 }
 
-/** The first problem, worded for the visitor. */
+/** The first problem, naming the field the visitor must fix. */
 export function firstContactError(error: z.ZodError): string {
   const issue = error.issues[0];
   if (!issue) {
-    return "Please check the form";
+    return "Please check the form.";
   }
+  const field = String(issue.path[0]);
   if (issue.code === "too_big") {
-    return "That is too long. Please shorten it.";
+    return `${LABELS[field] ?? "This field"} is too long. Please shorten it.`;
   }
-  return FIELD_MESSAGES[String(issue.path[0])] ?? "Please check the form";
+  return FIELD_PROBLEMS[field] ?? "Please check the form.";
 }

@@ -60,7 +60,7 @@ describe("ContactForm Turnstile", () => {
     );
     await user.click(screen.getByRole("button", { name: "Send message" }));
     expect(await screen.findByRole("alert")).toHaveTextContent(
-      "Please enter your name"
+      "Name: please enter at least 2 characters."
     );
     expect(fetchMock).not.toHaveBeenCalled();
   });

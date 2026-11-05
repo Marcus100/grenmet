@@ -1,5 +1,6 @@
 import {
   contactSendSiteContactMessage,
+  createClient,
   ResponseError,
 } from "@barrelsgd/api-client";
 import { NextResponse } from "next/server";
@@ -10,6 +11,7 @@ import {
 } from "@/lib/contact";
 import { env } from "@/lib/env";
 import { reportError } from "@/lib/report-error";
+import { visitorHeaders } from "@/lib/visitor-headers";
 
 /**
  * Contact form proxy. Validates the body and forwards it to the per-site
@@ -35,10 +37,18 @@ export async function POST(request: Request) {
     );
   }
 
+  // The API rate-limits and checks Turnstile per visitor; this server would
+  // otherwise be the only address it sees. The headers are sent only with the
+  // shared secret (src/rate_limit.py).
+  const visitor = visitorHeaders(
+    request.headers,
+    env.TRUSTED_WEB_SECRET,
+    env.VISITOR_IP_PROXY_HOPS
+  );
   const { name, email, subject, message, turnstileToken } = parsed.data;
   try {
     await contactSendSiteContactMessage({
-      baseURL: env.AUTH_API_URL,
+      client: createClient({ baseURL: env.AUTH_API_URL, headers: visitor }),
       path: { site_key: CONTACT_SITE_KEY },
       body: {
         name,
@@ -54,6 +64,17 @@ export async function POST(request: Request) {
       if (error.status === 400) {
         return NextResponse.json(
           { ok: false, error: "Verification failed. Please try again." },
+          { status: 400 }
+        );
+      }
+      // The API read the form as invalid although the schema accepted it.
+      // A visitor-side problem, so no report.
+      if (error.status === 422) {
+        return NextResponse.json(
+          {
+            ok: false,
+            error: "Please check your details and try again.",
+          },
           { status: 400 }
         );
       }
@@ -74,6 +95,8 @@ export async function POST(request: Request) {
         );
       }
     }
+    // Anything else (5xx, including Turnstile misconfiguration as 503, or a
+    // network failure) is a fault: report it and tell the visitor.
     reportError(error, "mbia-contact-route");
     return NextResponse.json(
       {

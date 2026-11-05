@@ -75,6 +75,16 @@ admin, not an env var; the old `MBIA_CONTACT_RECIPIENT` is only a fallback).
 Field limits come from the generated `contactMessageBodySchema`; the form adds
 the subject list in `src/lib/contact.ts`.
 
+The `mbia` public site must exist, be active and accept contact
+(`accepts_contact`) in the API. Otherwise the route answers 404 "Contact
+messages are not available right now."
+
+The route forwards the visitor's address (`X-Visitor-IP`, with
+`X-Visitor-Secret`) through `src/lib/visitor-headers.ts`, so the API's per-site
+rate limit and Turnstile see the visitor, not this server. It needs the same
+`TRUSTED_WEB_SECRET` as the API and `VISITOR_IP_PROXY_HOPS` (1, or 2 behind
+Cloudflare). Without the secret the headers are not sent.
+
 Turnstile: the form renders the widget when `NEXT_PUBLIC_TURNSTILE_SITE_KEY` is
 set and sends the token as `turnstileToken`; the route forwards it as
 `turnstile_token`. FastAPI verifies it (`src.turnstile.require_turnstile`)

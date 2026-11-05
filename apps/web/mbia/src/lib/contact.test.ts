@@ -1,7 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
   CONTACT_SITE_KEY,
-  contactSchema,
   firstContactError,
   parseContact,
 } from "@/lib/contact";
@@ -13,27 +12,31 @@ const valid = {
   message: "When does the Executive Lounge open on Sundays?",
 };
 
-describe("contactSchema", () => {
+function errorFor(input: unknown): string {
+  const parsed = parseContact(input);
+  if (parsed.success) {
+    throw new Error("expected the input to be rejected");
+  }
+  return firstContactError(parsed.error);
+}
+
+describe("parseContact", () => {
   it("accepts a valid submission", () => {
-    expect(contactSchema.safeParse(valid).success).toBe(true);
+    expect(parseContact(valid).success).toBe(true);
   });
 
   it("rejects an invalid email", () => {
-    expect(
-      contactSchema.safeParse({ ...valid, email: "not-an-email" }).success
-    ).toBe(false);
+    expect(parseContact({ ...valid, email: "not-an-email" }).success).toBe(
+      false
+    );
   });
 
   it("rejects an unknown subject", () => {
-    expect(
-      contactSchema.safeParse({ ...valid, subject: "Hacking" }).success
-    ).toBe(false);
+    expect(parseContact({ ...valid, subject: "Hacking" }).success).toBe(false);
   });
 
   it("rejects a too-short message", () => {
-    expect(contactSchema.safeParse({ ...valid, message: "hi" }).success).toBe(
-      false
-    );
+    expect(parseContact({ ...valid, message: "hi" }).success).toBe(false);
   });
 
   it("trims whitespace before validating", () => {
@@ -42,10 +45,8 @@ describe("contactSchema", () => {
   });
 
   it("treats a whitespace-only name as too short", () => {
-    const parsed = parseContact({ ...valid, name: "   " });
-    expect(parsed.success).toBe(false);
-    expect(parsed.success || firstContactError(parsed.error)).toBe(
-      "Please enter your name"
+    expect(errorFor({ ...valid, name: "   " })).toBe(
+      "Name: please enter at least 2 characters."
     );
   });
 
@@ -57,19 +58,27 @@ describe("contactSchema", () => {
   it("targets the mbia site key", () => {
     expect(CONTACT_SITE_KEY).toBe("mbia");
   });
+});
 
-  it("explains the first failing field", () => {
-    const parsed = parseContact({ ...valid, email: "nope" });
-    expect(parsed.success).toBe(false);
-    expect(parsed.success || firstContactError(parsed.error)).toBe(
-      "Please enter a valid email address"
+describe("firstContactError", () => {
+  it("names the field that is wrong", () => {
+    expect(errorFor({ ...valid, email: "nope" })).toBe(
+      "Email: please enter a valid email address."
+    );
+    expect(errorFor({ ...valid, message: "short" })).toBe(
+      "Message: please write at least 10 characters."
+    );
+    expect(errorFor({ ...valid, subject: "Hacking" })).toBe(
+      "Subject: please choose one of the options."
     );
   });
 
-  it("asks for a shorter message when it is too long", () => {
-    const parsed = parseContact({ ...valid, message: "x".repeat(4001) });
-    expect(parsed.success || firstContactError(parsed.error)).toBe(
-      "That is too long. Please shorten it."
+  it("names the field that is too long", () => {
+    expect(errorFor({ ...valid, message: "x".repeat(4001) })).toBe(
+      "Message is too long. Please shorten it."
+    );
+    expect(errorFor({ ...valid, name: "x".repeat(121) })).toBe(
+      "Name is too long. Please shorten it."
     );
   });
 });
