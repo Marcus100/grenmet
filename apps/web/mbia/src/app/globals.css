@@ -59,7 +59,9 @@
     --destructive: var(--gaa-status-cancelled);
     --destructive-foreground: #ffffff;
     --border: var(--gaa-rule);
-    --input: var(--gaa-rule);
+    /* Control outlines (inputs, textareas, selects) need 3:1 (WCAG 1.4.11).
+       --gaa-rule is 1.22:1 on white, so inputs use the muted ink (6.17:1). */
+    --input: var(--gaa-muted);
     --ring: var(--gaa-sea);
     --radius: 0.75rem;
 
