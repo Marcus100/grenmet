@@ -21,6 +21,7 @@ afterEach(() => {
 });
 
 const SUN_TIMES = /Sunrise \d:\d\d a\.m\. · sunset \d:\d\d p\.m\./u;
+const MOON_PHASE_WORDS = /\blit\b|Waxing|Waning|Full Moon|New Moon|Quarter/u;
 const CLOUD_QUIZ = /Can you name these five clouds/u;
 const RAINBOWS = /Where rainbows are/u;
 const NOW = new Date("2026-09-29T15:00:00Z");
@@ -116,6 +117,30 @@ it("keeps the sky card when the CMS is down, and hides on request", async () => 
     })
   );
   expect(await Discover({ now: NOW })).toBeNull();
+});
+
+it("shows no calculated moon phase; the tile says it is coming and keeps the sun times", () => {
+  const card = skyCard(NOW, null);
+  expect(card.title).toBe("Moon and tides coming soon");
+  expect(card.title).not.toMatch(MOON_PHASE_WORDS);
+  expect(card.detail).toMatch(SUN_TIMES);
+});
+
+it("keeps the Discover section with the moon tile alone when no CMS card is published", async () => {
+  vi.mocked(fetchHomeContent).mockResolvedValue(
+    home({
+      discover: null,
+      settings: {
+        discoverCards: ["sky", "on-this-day", "quiz", "fact"],
+        hiddenSections: [],
+        sectionCopy: {},
+        exploreReading: {},
+      },
+    })
+  );
+  render(await Discover({ now: NOW }));
+  expect(screen.getByText("Moon and tides coming soon")).toBeInTheDocument();
+  expect(screen.getAllByRole("listitem")).toHaveLength(1);
 });
 
 it("lets an editor's sky note lead the sky card", () => {
