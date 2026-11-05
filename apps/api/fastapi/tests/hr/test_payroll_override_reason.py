@@ -304,6 +304,20 @@ async def test_rows_written_before_the_field_was_sensitive_stay_masked(
     assert masked.status_code == 200, masked.text
     assert "Legacy old text" not in masked.text
     assert "Legacy new text" not in masked.text
+    # The shape the history UI relies on: a masked change carries no values.
+    (legacy,) = [
+        change
+        for entry in masked.json()["data"]
+        if entry["record_type"] == "employee_pay_profile"
+        for change in entry["changes"]
+        if change["field"] == "calendar_override_reason"
+    ]
+    assert legacy == {
+        "field": "calendar_override_reason",
+        "old": None,
+        "new": None,
+        "masked": True,
+    }
     sensitive = await payroll_user(
         db_async,
         "hr.payroll.prepare",

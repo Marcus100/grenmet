@@ -133,9 +133,16 @@ def _is_outlook() -> sa.ColumnElement[bool]:
     """The block's last ``GMS:product`` is Outlook, the product ``levels.read_level`` reads.
 
     An Outlook has no colour, so its ``awareness_level`` is ignored (``read_level``
-    forces the colour to None). A block with no product is not an Outlook.
+    forces the colour to None). A block with no product is not an Outlook. ``strict``
+    reads only the top-level objects of the parameters array, as the schema does, so a
+    nested array is never read as a product. A product element with no ``value`` is
+    skipped inside the filter (``exists(@.value)``): in strict mode a missing key read
+    outside the filter raises and would fail the whole statistics query.
     """
-    path = f'$[*] ? (@.value_name == "{levels.PRODUCT_PARAMETER}").value'
+    path = (
+        f'strict $[*] ? (@.value_name == "{levels.PRODUCT_PARAMETER}" '
+        "&& exists(@.value)).value"
+    )
     products = sa.func.jsonb_path_query_array(
         _parameters_array(), sa.cast(sa.literal(path), JSONPATH)
     )
