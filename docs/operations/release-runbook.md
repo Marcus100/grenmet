@@ -171,6 +171,63 @@ files are covered, or that the dump timestamp is UTC (the nightly job names file
 with the runner's clock). A passing gate is not a replacement for step 1 above
 before a destructive migration.
 
+## Migration lock timeouts
+
+Issue 1097 (production v1.0.3): `ALTER TABLE hr.employment_record ADD
+COLUMN` waited 19 minutes for a read lock held by a session that had been idle in
+a transaction for five days. Every app query on that table queued behind the
+`ALTER`. Two guards now stop that from happening silently:
+
+- **Migrations fail fast.** `alembic/env.py` sets `lock_timeout` on the migration
+  transaction (`MIGRATION_LOCK_TIMEOUT`, default `10s`; `0` disables). The value is
+  transaction-local and set before the advisory lock and the DDL. A statement that
+  waits longer fails with `canceling statement due to lock timeout`. No
+  `statement_timeout` is set: it would abort a long data backfill, and Alembic runs
+  the whole upgrade in one transaction. `lock_timeout` limits only the wait for a
+  lock, not how long a statement runs.
+- **The deploy retries that failure only.** In the `migrations` phase, `core.sh`
+  reruns a migration service up to `MIGRATION_LOCK_RETRY_ATTEMPTS` times (default
+  3), pausing `MIGRATION_LOCK_RETRY_PAUSE_SECONDS` (default 30) between tries. Any
+  other failure stops the deploy at once. A rerun is safe: Alembic applies its
+  upgrade in one transaction, and Payload records each applied migration. The
+  previous release keeps serving until the deploy passes `migrations`.
+- **Idle transactions end.** The main async engine sets
+  `idle_in_transaction_session_timeout` on every connection
+  (`DB_IDLE_IN_TRANSACTION_TIMEOUT`, default `300` seconds; `0` disables). A request
+  holds its transaction only while it runs, and ARQ jobs stop at 300 seconds, so a
+  connection idle in a transaction for five minutes is almost certainly leaked. A
+  job that does non-database work mid-transaction for that long would be ended too;
+  watch for `terminating connection due to idle-in-transaction timeout` in the
+  logs. The separate weather, eRegister, janitorial and transport engines do not set
+  it. The limit can also be set on the application role in the database instead.
+
+If the deploy still stops at `migrations` with a lock timeout, find the blocked
+statement and the session holding the lock (run as a superuser on the database
+named in the error):
+
+```sql
+SELECT blocked.pid AS blocked_pid, left(blocked.query, 80) AS blocked_query,
+       blocker.pid AS blocker_pid, blocker.state, blocker.application_name,
+       blocker.client_addr, now() - blocker.xact_start AS transaction_age,
+       left(blocker.query, 80) AS blocker_query
+FROM pg_stat_activity AS blocked
+JOIN LATERAL unnest(pg_blocking_pids(blocked.pid)) AS b(pid) ON true
+JOIN pg_stat_activity AS blocker ON blocker.pid = b.pid
+WHERE blocked.datname = current_database();
+```
+
+Before ending a blocker, confirm that it is a leaked read: `state` is
+`idle in transaction` and `blocker_query` is a `SELECT` (or it is an old app
+process that no longer serves traffic). Then end only that session:
+
+```sql
+SELECT pg_terminate_backend(<blocker_pid>);
+```
+
+Do not end a session that is running a write, a migration or a backup. Then rerun
+the deploy. Record the blocker's `application_name` and `client_addr` in the
+release notes so the leaking code path can be fixed.
+
 ## Build once, promote by digest
 
 Lands with PR #1026 (stacked on PR #1020 and PR #1025; merge in that order, owner

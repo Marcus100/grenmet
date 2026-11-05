@@ -134,7 +134,17 @@ case "$*" in
     [[ -n "$TEST_IMAGES_PRESENT" ]] || exit 1 ;;
   *"image inspect"*)
     if [[ "$*" == *gd.barrels.build-once* ]]; then echo "\${TEST_BUILD_ONCE:-false}"; elif [[ "$TEST_FAILURE" == revision ]]; then echo wrong; else echo "$GITHUB_SHA"; fi ;;
-  *"run --rm --no-deps prestart"*) [[ "$TEST_FAILURE" != migration ]] || exit 1 ;;
+  *"run --rm --no-deps prestart"*)
+    if [[ "$TEST_FAILURE" == lock ]]; then
+      attempts=$(cat "$state/lock-attempts" 2>/dev/null || echo 0)
+      attempts=$((attempts + 1))
+      echo "$attempts" > "$state/lock-attempts"
+      if (( attempts <= \${TEST_LOCK_FAILURES:-1} )); then
+        echo "sqlalchemy.exc.DBAPIError: canceling statement due to lock timeout" >&2
+        exit 1
+      fi
+    fi
+    [[ "$TEST_FAILURE" != migration ]] || exit 1 ;;
   *"up -d --no-deps --remove-orphans --wait"*) [[ "$TEST_FAILURE" != readiness ]] || exit 1 ;;
   # Only the network check reads the lock file as JSON; the release-scope check pipes
   # docker-compose.deploy.yml into a node stub that closes stdin, so printing there
@@ -449,6 +459,65 @@ test("a failed migration names the migrations phase", () => {
   });
   assert.notEqual(result.status, 0);
   assert.match(result.stdout, FAILED_MIGRATIONS);
+});
+
+// A lock timeout rolls the whole Alembic upgrade back, so re-running the service is
+// safe; any other failure is a real error and must not be retried.
+const LOCK_RETRY = /hit the lock timeout \(attempt 1 of 3\)/u;
+
+function prestartRuns(calls) {
+  return calls.split("\n").filter((line) => line.includes(MIGRATED)).length;
+}
+
+test("a migration that only waits on a lock is retried until it finishes", () => {
+  const { result, calls } = runDeploy({
+    environment: "production",
+    failure: "lock",
+    extraEnv: {
+      TEST_LOCK_FAILURES: "2",
+      MIGRATION_LOCK_RETRY_PAUSE_SECONDS: "0",
+    },
+  });
+  assert.equal(result.status, 0, result.stderr);
+  assert.equal(prestartRuns(calls), 3);
+  assert.match(result.stdout, LOCK_RETRY);
+  assert.ok(
+    calls.includes("--wait --wait-timeout 300"),
+    "the deploy continued past migrations"
+  );
+});
+
+test("a migration still blocked on its last attempt fails the deploy", () => {
+  const { result, calls } = runDeploy({
+    environment: "production",
+    failure: "lock",
+    extraEnv: {
+      TEST_LOCK_FAILURES: "99",
+      MIGRATION_LOCK_RETRY_ATTEMPTS: "2",
+      MIGRATION_LOCK_RETRY_PAUSE_SECONDS: "0",
+    },
+  });
+  assert.notEqual(result.status, 0);
+  assert.equal(prestartRuns(calls), 2);
+  assert.match(result.stdout, FAILED_MIGRATIONS);
+});
+
+test("a migration failure that is not a lock timeout is not retried", () => {
+  const { result, calls } = runDeploy({
+    environment: "production",
+    failure: "migration",
+  });
+  assert.notEqual(result.status, 0);
+  assert.equal(prestartRuns(calls), 1);
+});
+
+test("a malformed lock retry setting stops before any migration runs", () => {
+  const { result, calls } = runDeploy({
+    environment: "production",
+    extraEnv: { MIGRATION_LOCK_RETRY_ATTEMPTS: "three" },
+  });
+  assert.notEqual(result.status, 0);
+  assert.equal(prestartRuns(calls), 0);
 });
 
 test("a hanging diagnostic keeps the original exit status and still cleans up", () => {
