@@ -939,7 +939,14 @@ async def test_malformed_parameter_elements_are_not_read(
     """Scalars, nulls and nested arrays are not parameters: they neither break the
     counts nor make a nested Outlook the block's product."""
     creator = await make_user(db_async, superuser=True)
-    malformed: Any = ["junk", 3, None, [_OUTLOOK], *_ORANGE]
+    malformed: Any = [
+        "junk",
+        3,
+        None,
+        [_OUTLOOK],
+        {"value_name": "GMS:product"},  # a product element with no value
+        *_ORANGE,
+    ]
     await _add_alert(
         db_async,
         creator_id=creator.id,
