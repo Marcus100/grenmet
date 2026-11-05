@@ -172,6 +172,38 @@ describe("grantRole", () => {
     }
   );
 
+  it("shows the validation message from the documented 422 errors list", async () => {
+    grantCall.mockReturnValue(
+      failing(
+        new ResponseError({
+          data: {
+            detail: "Validation error",
+            errors: [
+              {
+                loc: ["body", "expires_on"],
+                msg: "This grant cannot outlast your own access to the role",
+                type: "value_error",
+              },
+            ],
+          },
+          status: 422,
+          statusText: "",
+          request: new Request("http://api.test"),
+          response: new Response(),
+        })
+      )
+    );
+    const result = await grantRole({
+      membershipId: "mem_1",
+      roleKey: "events-door",
+      expiresOn: "",
+    });
+    expect(result.ok === false && result.error).toContain("outlast");
+    expect(result.ok === false && result.error).not.toContain(
+      "Validation error"
+    );
+  });
+
   it("reports an unexpected failure with an area tag and shows a generic line", async () => {
     const boom = new Error("db down");
     grantCall.mockReturnValue(failing(boom));

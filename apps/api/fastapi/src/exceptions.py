@@ -85,8 +85,9 @@ def _validation_response(errors: Iterable[Mapping[str, Any]]) -> JSONResponse:
     """Answer 422 with the documented ``ValidationErrorResponse`` envelope.
 
     Only ``type``, ``loc`` and ``msg`` are copied. FastAPI's ``input`` (the
-    submitted value) and ``ctx`` are dropped on purpose: a malformed sign-in
-    setup request must not echo what was typed back to the caller.
+    submitted value) and ``ctx`` fields are never returned, so sign-in setup
+    reasons are not sent back as fields. A ``msg`` can still quote a fragment
+    of the value, as pydantic writes it.
     """
     return JSONResponse(
         status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,

@@ -21,6 +21,7 @@ import {
 } from "@/lib/team-roles";
 import { type ActionResult, SIGN_IN_REQUIRED } from "./action-result";
 import { type OrgContext, resolveOrgContext } from "./org-context";
+import { detailOfData } from "./validation-detail";
 
 /**
  * Team and roles actions. Each one re-checks the session and resolves the
@@ -41,12 +42,7 @@ function refuse(error: string): { error: string; ok: false } {
 }
 
 function detailOf(error: ResponseError): string | null {
-  const data: unknown = error.data;
-  if (typeof data !== "object" || data === null || !("detail" in data)) {
-    return null;
-  }
-  const { detail } = data;
-  return typeof detail === "string" ? detail : null;
+  return detailOfData(error.data);
 }
 
 function failureOf(error: unknown): { error: string; ok: false } {

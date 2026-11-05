@@ -73,6 +73,14 @@ describe("flag actions", () => {
     expect(state.values?.enabled).toBe("on");
   });
 
+  it("replaces the bare validation fallback with the generic line", async () => {
+    api.createFlag.mockRejectedValue(new AuthApiError(422, "Validation error"));
+    const state = await saveFlagAction({}, form({ key: "new-checkout" }));
+    expect(state.message).toBe(
+      "The API did not accept those values. Check the fields and try again."
+    );
+  });
+
   it("does not echo structured validation errors", async () => {
     api.createFlag.mockRejectedValue(
       new AuthApiError(422, '[{"loc":["body","key"],"msg":"bad"}]')
