@@ -60,6 +60,7 @@ class UploadsNotConfiguredError(AppException):
         super().__init__(
             "Uploads are not configured", status.HTTP_503_SERVICE_UNAVAILABLE
         )
+        self.extra["code"] = "UPLOADS_NOT_CONFIGURED"
 
 
 class UploadRejectedError(AppException):

@@ -3,6 +3,7 @@
  * Do not edit manually.
  */
 
+import type { ApiError } from "./ApiError.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 
 export type NotificationsDeleteNotificationSnoozePath = {
@@ -20,9 +21,17 @@ export type NotificationsDeleteNotificationSnoozeQuery = {
 
 export type NotificationsDeleteNotificationSnoozeStatus204 = unknown;
 
-export type NotificationsDeleteNotificationSnoozeStatus403 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type NotificationsDeleteNotificationSnoozeStatus403 = ApiError;
 
-export type NotificationsDeleteNotificationSnoozeStatus404 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type NotificationsDeleteNotificationSnoozeStatus404 = ApiError;
 
 /**
  * @description Validation error envelope returned for malformed requests.

@@ -6,6 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 from sqlalchemy.sql.elements import ColumnElement
 
+from src.auth import assignments as auth_assignments
 from src.auth import service as auth_service
 from src.auth.models import Permission, Role, User, UserImage, UserRoleAssignment
 from src.auth.models import Session as LoginSession
@@ -22,6 +23,7 @@ from src.baseline.schemas import (
     StaffSetup,
 )
 from src.exceptions import AppException
+from src.hr import employment_status as hr_employment_status
 from src.hr.leave import ledger
 from src.hr.leave.models import UNTRACKED_LEAVE_TYPES
 from src.hr.models import (
@@ -320,6 +322,21 @@ async def save_staff(
         }
     }
     await validate_service_facts(personnel_updates, employment)
+    # A department move re-assigns everything: the person's live roles in the
+    # organisation end (the baseline SELF-scope staff role stays) and an
+    # administrator re-grants at the destination. Same rule as the HR route
+    # (#797); only a superuser reaches here, so organisation-wide roles end too (#1055).
+    moved_department = (
+        employment.department_id is not None
+        and employment.department_id != body.department_id
+    )
+    if moved_department:
+        await auth_assignments.end_assignments_for_employment(
+            session=session,
+            user_id=user_id,
+            organisation_id=employment.organisation_id,
+            organisation_wide=True,
+        )
     employment.department_id = body.department_id
     employment.grade_id = body.grade_id
     employment.position = grade.label
@@ -439,8 +456,14 @@ async def offboard(session: AsyncSession, actor: User, user_id: uuid.UUID) -> No
     credential.revoked_at = utc_now()
     employment = await employment_for(session, user_id)
     if employment:
-        employment.status = EmploymentStatus.TERMINATED
-        session.add(employment)
+        # Ends the person's roles in that organisation with audit entries, the
+        # same as the HR route and the daily job (#797). The rows are deleted below.
+        await hr_employment_status.set_employment_status(
+            session=session,
+            employment=employment,
+            status=EmploymentStatus.TERMINATED,
+            organisation_wide=True,
+        )
     await session.execute(delete(LoginSession).where(LoginSession.user_id == user_id))
     await session.execute(
         delete(UserRoleAssignment).where(UserRoleAssignment.user_id == user_id)
@@ -584,8 +607,8 @@ async def update_setup_policy(
     policy = await session.get(ApprovalPolicy, key)
     if policy is None:
         raise AppException("Policy not found", 404)
-    for key, value in body.model_dump().items():
-        setattr(policy, key, value)
+    for field, value in body.model_dump().items():
+        setattr(policy, field, value)
     session.add(policy)
     session.add(
         BaselineAudit(

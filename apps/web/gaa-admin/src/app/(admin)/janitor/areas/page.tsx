@@ -188,7 +188,7 @@ export default async function JanitorAreasPage({
         ) : null}
       </form>
 
-      <div className="rounded-xl border bg-card">
+      <div className="bg-card rounded-xl border">
         <Table>
           <TableHeader>
             <TableRow>
@@ -209,7 +209,7 @@ export default async function JanitorAreasPage({
             {rows.length === 0 ? (
               <TableRow>
                 <TableCell
-                  className="py-8 text-center text-muted-foreground"
+                  className="text-muted-foreground py-8 text-center"
                   colSpan={9}
                 >
                   No areas match these filters.
@@ -235,13 +235,13 @@ export default async function JanitorAreasPage({
                     <InactiveBadge active={row.active} />
                   </span>
                   {row.bundleNames.length > 0 ? (
-                    <span className="block text-muted-foreground text-xs">
+                    <span className="text-muted-foreground block text-xs">
                       + {row.bundleNames.join(", ")}
                     </span>
                   ) : null}
                 </TableCell>
                 <TableCell>{row.buildingName}</TableCell>
-                <TableCell className="hidden text-muted-foreground xl:table-cell">
+                <TableCell className="text-muted-foreground hidden xl:table-cell">
                   {row.sectionName ?? "—"}
                 </TableCell>
                 <TableCell>
@@ -253,7 +253,7 @@ export default async function JanitorAreasPage({
                 <TableCell className="text-right font-mono tabular-nums">
                   {formatPerDay(row.perDay)}
                 </TableCell>
-                <TableCell className="hidden font-mono text-muted-foreground text-xs lg:table-cell">
+                <TableCell className="text-muted-foreground hidden font-mono text-xs lg:table-cell">
                   {row.fastest ? formatFrequency(row.fastest) : "—"}
                 </TableCell>
                 <TableCell>

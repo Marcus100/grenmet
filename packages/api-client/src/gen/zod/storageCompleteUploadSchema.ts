@@ -4,6 +4,7 @@
  */
 
 import * as z from "zod";
+import { apiErrorSchema } from "./apiErrorSchema.js";
 import { storedFileSchema } from "./storedFileSchema.js";
 
 export const storageCompleteUploadPathUploadIdSchema = z.uuid();
@@ -15,13 +16,21 @@ export const storageCompleteUploadHeaderXBarrelsOrganisationSchema = z
 
 export const storageCompleteUploadStatus200Schema = storedFileSchema;
 
-export const storageCompleteUploadStatus401Schema = z.unknown();
+export const storageCompleteUploadStatus401Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
-export const storageCompleteUploadStatus403Schema = z.unknown();
+export const storageCompleteUploadStatus403Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
-export const storageCompleteUploadStatus404Schema = z.unknown();
+export const storageCompleteUploadStatus404Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
-export const storageCompleteUploadStatus409Schema = z.unknown();
+export const storageCompleteUploadStatus409Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
 export const storageCompleteUploadStatus422Schema = z.unknown();
 

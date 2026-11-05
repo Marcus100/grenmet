@@ -7221,23 +7221,6 @@ def get_maintenance_report_view(request, id, source): # Maintenance report view
     return HttpResponse(template.render(context, request))
 
 
-def get_ckeditor_config():
-    ckeditor_config = {
-        'toolbar': [
-                ['Bold', 'Italic', 'Font'],
-                ['Format', 'Styles', 'TextColor', 'BGColor', 'RemoveFormat'],
-                ['JustifyLeft','JustifyCenter','JustifyRight','JustifyBlock', 'Indent', 'Outdent'],
-                ['HorizontalRule', 'BulletedList'],
-                ['Blockquote', 'Source', 'Link', 'Unlink', 'Image', 'Table', 'Print']
-            ],
-        'removeButtons': 'Image',
-        'extraAllowedContent' : 'img(*){*}[*]',              
-        'editorplaceholder': 'Description of station upon arribal:',
-        'language': 'en',            
-    }
-    return ckeditor_config
-
-
 def get_maintenance_report_obj(maintenance_report):
     station = Station.objects.get(id=maintenance_report.station_id)
     station_profile = StationProfile.objects.get(id=station.profile_id)
@@ -7279,8 +7262,7 @@ def get_maintenance_report_equipment_data(maintenance_report, equipment_type, eq
         'new_equipment_id': None,
         'new_equipment_name': None,
         'condition': equipment_type.report_template,
-        'classification': "F",
-        'ckeditor_config': get_ckeditor_config()
+        'classification': "F"
     }
 
     try:

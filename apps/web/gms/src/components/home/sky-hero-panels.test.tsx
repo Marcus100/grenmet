@@ -16,10 +16,10 @@ import {
   skyFromWords,
 } from "@/lib/hero-readings";
 
-const CLOCK = /^\d{1,2}:\d{2} [ap]\.m\.$/;
+const CLOCK = /^\d{1,2}:\d{2} [ap]\.m\.$/u;
 // en-GB abbreviates September as "Sept" on current ICU; match either.
-const SAMPLE_REFERENCE = /hero-samples|SAMPLE_/;
-const FEELS_LIKE = /^Feels like/;
+const SAMPLE_REFERENCE = /hero-samples|SAMPLE_/u;
+const FEELS_LIKE = /^Feels like/u;
 const OBSERVED_AT = "2026-09-29T17:00:00Z"; // 13:00 AST
 const reading: PublicObservation = {
   station_id: "78958",
@@ -99,10 +99,11 @@ const nowPanel = () =>
 const panel = () => screen.getByRole("region", { name: "Forecast details" });
 /** The visible summary card above the tabs. */
 const card = () => screen.getByRole("region", { name: "Weather summary" });
-const LAST_OBSERVED = /^Last observed 1:00 p\.m\. · MBIA$/;
-const LAST_TAB = /Last reading/;
-const LAST_OBSERVED_OTHER_DAY = /^Last observed 29 Sept?, 1:00 p\.m\. · MBIA$/;
-const TODAY_LINK = /^Today's forecast/;
+const LAST_OBSERVED = /^Last observed 1:00 p\.m\. · MBIA$/u;
+const LAST_TAB = /Last reading/u;
+const UNITS_SWITCH = /^Units:/u;
+const LAST_OBSERVED_OTHER_DAY = /^Last observed 29 Sept?, 1:00 p\.m\. · MBIA$/u;
+const TODAY_LINK = /^Today's forecast/u;
 const terms = (region: HTMLElement) =>
   within(region)
     .getAllByRole("term")
@@ -193,6 +194,32 @@ describe("Now", () => {
       within(card()).getByText("Midday reading · MBIA")
     ).toBeInTheDocument();
     expect(within(nowPanel()).queryByRole("term")).not.toBeInTheDocument();
+  });
+});
+
+describe("Units switch in the home card", () => {
+  afterEach(() => {
+    document.documentElement.removeAttribute("data-units");
+    window.localStorage.clear();
+  });
+
+  it("sits in the card above the tabs, not in the header", () => {
+    render(<SkyHero now={at("2026-09-29T17:12:00Z")} weather={weather()} />);
+    const units = screen.getByRole("button", { name: UNITS_SWITCH });
+    expect(units.closest(".rounded-gm-card")).toContainElement(card());
+    expect(units.closest("header")).toBeNull();
+  });
+
+  it("still switches every figure between metric and imperial", () => {
+    render(<SkyHero now={at("2026-09-29T17:12:00Z")} weather={weather()} />);
+    const units = screen.getByRole("button", { name: UNITS_SWITCH });
+    fireEvent.click(units);
+    expect(document.documentElement.getAttribute("data-units")).toBe(
+      "imperial"
+    );
+    expect(window.localStorage.getItem("gm-units")).toBe("imperial");
+    fireEvent.click(units);
+    expect(document.documentElement.getAttribute("data-units")).toBe("metric");
   });
 });
 

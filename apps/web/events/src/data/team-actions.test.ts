@@ -19,7 +19,10 @@ vi.mock("./org-context", () => ({
 vi.mock("@/lib/report-error", () => ({
   reportError: (...args: unknown[]) => reportError(...args),
 }));
-vi.mock("@/lib/api", () => ({ apiOptions: () => ({}) }));
+// apiOptions is async and carries the client: a missing `await` before a spread drops it silently.
+vi.mock("@/lib/api", () => ({
+  apiOptions: async () => ({ client: "test-client" }),
+}));
 vi.mock("@barrelsgd/api-client", async (importOriginal) => ({
   ...(await importOriginal<typeof import("@barrelsgd/api-client")>()),
   organisationsGrantMemberRole: (...a: unknown[]) => grantCall(...a),
@@ -76,6 +79,7 @@ describe("grantRole", () => {
     expect(result).toEqual({ ok: true, data: { id: "g1" } });
     expect(grantCall).toHaveBeenCalledWith(
       expect.objectContaining({
+        client: "test-client",
         headers: { "X-Barrels-Organisation": "org_1" },
         path: { membership_id: "mem_1" },
         body: {
@@ -224,18 +228,39 @@ describe("loadIssuedGrants and removeMember", () => {
       data: [{ id: "g9" }],
     });
     expect(issuedCall).toHaveBeenCalledWith(
-      expect.objectContaining({ path: { membership_id: "mem_2" } })
+      expect.objectContaining({
+        client: "test-client",
+        path: { membership_id: "mem_2" },
+      })
     );
   });
 
   it("removes a member under the server-resolved organisation id", async () => {
     deleteCall.mockReturnValue(ok(undefined));
-    expect((await removeMember({ membershipId: "mem_2" })).ok).toBe(true);
+    expect(await removeMember({ membershipId: "mem_2" })).toEqual({
+      ok: true,
+      data: "organisation",
+    });
     expect(deleteCall).toHaveBeenCalledWith(
       expect.objectContaining({
         path: { organisation_id: "org_1", membership_id: "mem_2" },
       })
     );
+  });
+
+  it("reports an Events-only removal from the 200 scope", async () => {
+    deleteCall.mockReturnValue(
+      ok({
+        membership_id: "mem_2",
+        scope: "events",
+        grants_revoked: 1,
+        issued_grants_revoked: 0,
+      })
+    );
+    expect(await removeMember({ membershipId: "mem_2" })).toEqual({
+      ok: true,
+      data: "events",
+    });
   });
 
   it("shows the last-owner refusal as sent", async () => {

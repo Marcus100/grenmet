@@ -3,6 +3,7 @@
  * Do not edit manually.
  */
 
+import type { ApiError } from "./ApiError.js";
 import type { DocumentEmployeeListPublic } from "./DocumentEmployeeListPublic.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 
@@ -34,9 +35,17 @@ export type HrGetDocumentEmployeesQuery = {
 
 export type HrGetDocumentEmployeesStatus200 = DocumentEmployeeListPublic;
 
-export type HrGetDocumentEmployeesStatus401 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type HrGetDocumentEmployeesStatus401 = ApiError;
 
-export type HrGetDocumentEmployeesStatus403 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type HrGetDocumentEmployeesStatus403 = ApiError;
 
 /**
  * @description Validation error envelope returned for malformed requests.

@@ -14,6 +14,7 @@ import {
   isBulletin,
   isComposedForecastField,
   isForecastKind,
+  MARINE_FORECAST_AREA,
   PRODUCT_KINDS,
   type ProductField,
   type ProductKind,
@@ -60,6 +61,7 @@ import {
 import { bulletinExample } from "@/lib/wxproducts/bulletin-examples";
 import { visibleProductFields } from "@/lib/wxproducts/visible-fields";
 import { CapForecastPicker } from "./cap-forecast-picker";
+import { ClimateFigures } from "./climate-figures";
 import { ImpactMatrixPanel } from "./impact-matrix-panel";
 import { NhcGuidanceEditor } from "./nhc-guidance-editor";
 import { ProductDiscardDialog } from "./product-discard-dialog";
@@ -78,15 +80,16 @@ import {
 import { SectionHints } from "./section-hints";
 import { WarningRaisedNote } from "./warning-raised-note";
 
-const DAY_KEY_PREFIX = /^(day[1-4])/;
+const DAY_KEY_PREFIX = /^(day[1-4])/u;
 
 function productTabLabel(kind: ProductKind) {
+  if (kind === "marine-forecast") return "Marine";
   if (isForecastKind(kind)) return kind.charAt(0).toUpperCase() + kind.slice(1);
   if (kind === "tsunami") return "Tsunami / Earthquake";
   return PRODUCT_KINDS[kind];
 }
 
-const EVENING_DAY_DATE = /^day[1-4]Date$/;
+const EVENING_DAY_DATE = /^day[1-4]Date$/u;
 const COMPUTED_FORECAST_FIELDS = [
   "issuedAt",
   "validFrom",
@@ -97,6 +100,8 @@ const COMPUTED_FORECAST_FIELDS = [
   "advisories",
 ];
 const FORECAST_AREA = "Grenada, Carriacou and Petite Martinique";
+/** FastAPI derives a climate bulletin's validity from its issue date (until the next 15th). */
+const CLIMATE_COMPUTED_FIELDS = ["validFrom", "validTo", "validity"];
 /** Forecasts always cover the whole state and are issued by the signed-in forecaster; FastAPI enforces the same on save. */
 function withIssuer(
   kind: ProductKind,
@@ -104,9 +109,11 @@ function withIssuer(
   forecaster: string
 ): ProductValues {
   if (!isForecastKind(kind)) return { ...values, forecaster };
-  return { ...values, area: FORECAST_AREA, forecaster };
+  const area =
+    kind === "marine-forecast" ? MARINE_FORECAST_AREA : FORECAST_AREA;
+  return { ...values, area, forecaster };
 }
-const DAY_SECTION = /^Day (\d)$/;
+const DAY_SECTION = /^Day (\d)$/u;
 const LEGACY_BY_GROUP: Record<string, string[]> = {
   Wind: ["wind"],
   Marine: ["seaState"],
@@ -140,6 +147,7 @@ const PERIOD_PREFIXES = ["", "day1", "day2", "day3", "day4"];
 function isComputedField(kind: ProductKind, key: string) {
   if (key === "forecaster") return true;
   if (isComposedForecastField(key) && composedFrom(kind, key)) return true;
+  if (kind === "climate-bulletin") return CLIMATE_COMPUTED_FIELDS.includes(key);
   return (
     isForecastKind(kind) &&
     (COMPUTED_FORECAST_FIELDS.includes(key) || EVENING_DAY_DATE.test(key))
@@ -608,7 +616,7 @@ function ProductEditor({
                   ) : null}
                   {isAboveGreen(kind, values.level) ? (
                     <p
-                      className="rounded-lg border border-destructive p-3 text-sm"
+                      className="border-destructive rounded-lg border p-3 text-sm"
                       role="alert"
                     >
                       {ABOVE_GREEN_MESSAGE}
@@ -643,6 +651,12 @@ function ProductEditor({
                           values={values}
                         />
                       )}
+                      {kind === "climate-bulletin" ? (
+                        <ClimateFigures
+                          issuedAt={values.issuedAt ?? ""}
+                          month={values.month ?? ""}
+                        />
+                      ) : null}
                       <ForecastPeriodFields
                         evening={kind === "evening"}
                         period={period}
@@ -676,17 +690,17 @@ function ProductEditor({
                                 className="@container space-y-3 border-t pt-4 first:border-t-0 first:pt-0"
                                 key={section}
                               >
-                                <h2 className="font-semibold text-sm leading-5">
+                                <h2 className="text-sm leading-5 font-semibold">
                                   {heading}
                                   {group === "Wind" ? (
-                                    <span className="font-normal text-muted-foreground text-xs">
+                                    <span className="text-muted-foreground text-xs font-normal">
                                       {" "}
                                       · mph
                                     </span>
                                   ) : null}
                                   {DAY_SECTION.test(section) &&
                                   values[`day${section.slice(4)}Date`] ? (
-                                    <span className="font-normal text-muted-foreground">
+                                    <span className="text-muted-foreground font-normal">
                                       {" · "}
                                       {formatComputedValue(
                                         values[`day${section.slice(4)}Date`] ??
@@ -772,7 +786,7 @@ function ProductEditor({
                             );
                           })}
                       </ForecastPeriodFields>
-                      <div className="space-y-2 text-muted-foreground text-xs">
+                      <div className="text-muted-foreground space-y-2 text-xs">
                         <p>
                           * Required to publish. Times: Grenada (UTC−04:00).
                         </p>
@@ -807,7 +821,7 @@ function ProductEditor({
                               <InputGroupAddon
                                 align="inline-start"
                                 aria-hidden="true"
-                                className="pointer-events-none self-start text-destructive text-xs"
+                                className="text-destructive pointer-events-none self-start text-xs"
                               >
                                 *
                               </InputGroupAddon>
@@ -844,7 +858,7 @@ function ProductEditor({
                       ) : null}
                       {message ? (
                         <p
-                          className="whitespace-pre-wrap rounded-lg border p-3 text-sm"
+                          className="rounded-lg border p-3 text-sm whitespace-pre-wrap"
                           role="status"
                         >
                           {message}
@@ -907,7 +921,7 @@ function ProductEditor({
                       aria-label="Publication preview"
                       className="space-y-4 rounded-lg border p-4"
                     >
-                      <p className="font-semibold text-sm">
+                      <p className="text-sm font-semibold">
                         Review before publication
                       </p>
                       <ProductContentView content={{ kind, values: preview }} />
@@ -1109,16 +1123,16 @@ export function ProductDesk({
               <TabsList
                 aria-label="Product type"
                 className={cn(
-                  "h-8 w-full justify-start overflow-x-auto rounded-lg bg-muted p-1 sm:justify-center",
+                  "bg-muted h-8 w-full justify-start overflow-x-auto rounded-lg p-1 sm:justify-center",
                   hasAlertTabs &&
-                    "grid h-auto @2xl:grid-cols-5 @sm:grid-cols-3 grid-cols-2 gap-1 overflow-visible group-data-[orientation=horizontal]/tabs:h-auto"
+                    "grid h-auto grid-cols-2 gap-1 overflow-visible group-data-[orientation=horizontal]/tabs:h-auto @sm:grid-cols-3 @2xl:grid-cols-5"
                 )}
               >
                 {deskKinds.map((value) => (
                   <TabsTrigger
                     className={cn(
                       hasAlertTabs &&
-                        "h-auto min-h-10 whitespace-normal text-balance px-2 py-1 text-center leading-4"
+                        "h-auto min-h-10 px-2 py-1 text-center leading-4 text-balance whitespace-normal"
                     )}
                     key={value}
                     value={value}

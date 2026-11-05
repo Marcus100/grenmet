@@ -12,8 +12,8 @@ const FILE_SUFFIX: Record<AttachmentKind, string> = {
 };
 const TIMEOUT_MS = 15_000;
 const MAX_IDENTIFIER = 200;
-const UNSAFE_FILENAME = /[^A-Za-z0-9._-]+/g;
-const EDGE_PUNCTUATION = /^[-.]+|[-.]+$/g;
+const UNSAFE_FILENAME = /[^A-Za-z0-9._-]+/gu;
+const EDGE_PUNCTUATION = /^[-.]+|[-.]+$/gu;
 
 const isKind = (value: string | null): value is AttachmentKind =>
   ATTACHMENT_KINDS.some((kind) => kind === value);

@@ -5,15 +5,22 @@
 
 import * as z from "zod";
 import { accessReviewDataSchema } from "./accessReviewDataSchema.js";
+import { apiErrorSchema } from "./apiErrorSchema.js";
 import { validationErrorResponseSchema } from "./validationErrorResponseSchema.js";
 
 export const authGetAccessReviewsStatus200Schema = accessReviewDataSchema;
 
-export const authGetAccessReviewsStatus401Schema = z.unknown();
+export const authGetAccessReviewsStatus401Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
-export const authGetAccessReviewsStatus403Schema = z.unknown();
+export const authGetAccessReviewsStatus403Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
-export const authGetAccessReviewsStatus409Schema = z.unknown();
+export const authGetAccessReviewsStatus409Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
 export const authGetAccessReviewsStatus422Schema =
   validationErrorResponseSchema.describe(

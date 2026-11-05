@@ -3,21 +3,42 @@
  * Do not edit manually.
  */
 
+import type { ApiError } from "./ApiError.js";
 import type { StockMovementCreate } from "./StockMovementCreate.js";
 import type { StockMovementPublic } from "./StockMovementPublic.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 
 export type StoresCreateStockMovementStatus201 = StockMovementPublic;
 
-export type StoresCreateStockMovementStatus400 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type StoresCreateStockMovementStatus400 = ApiError;
 
-export type StoresCreateStockMovementStatus401 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type StoresCreateStockMovementStatus401 = ApiError;
 
-export type StoresCreateStockMovementStatus403 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type StoresCreateStockMovementStatus403 = ApiError;
 
-export type StoresCreateStockMovementStatus404 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type StoresCreateStockMovementStatus404 = ApiError;
 
-export type StoresCreateStockMovementStatus409 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type StoresCreateStockMovementStatus409 = ApiError;
 
 /**
  * @description Validation error envelope returned for malformed requests.

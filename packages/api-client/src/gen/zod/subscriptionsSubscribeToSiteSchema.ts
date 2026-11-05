@@ -4,6 +4,7 @@
  */
 
 import * as z from "zod";
+import { apiErrorSchema } from "./apiErrorSchema.js";
 import { siteSubscribeRequestSchema } from "./siteSubscribeRequestSchema.js";
 import { subscribeAcceptedSchema } from "./subscribeAcceptedSchema.js";
 import { validationErrorResponseSchema } from "./validationErrorResponseSchema.js";
@@ -13,9 +14,11 @@ export const subscriptionsSubscribeToSitePathSiteKeySchema = z.string().max(40);
 export const subscriptionsSubscribeToSiteStatus202Schema =
   subscribeAcceptedSchema;
 
-export const subscriptionsSubscribeToSiteStatus400Schema = z.unknown();
+export const subscriptionsSubscribeToSiteStatus400Schema =
+  apiErrorSchema.describe("Stable error envelope for documented API failures.");
 
-export const subscriptionsSubscribeToSiteStatus404Schema = z.unknown();
+export const subscriptionsSubscribeToSiteStatus404Schema =
+  apiErrorSchema.describe("Stable error envelope for documented API failures.");
 
 export const subscriptionsSubscribeToSiteStatus422Schema =
   validationErrorResponseSchema.describe(

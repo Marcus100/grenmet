@@ -4,6 +4,7 @@
  */
 
 import * as z from "zod";
+import { apiErrorSchema } from "./apiErrorSchema.js";
 import { bookingAgendaSchema } from "./bookingAgendaSchema.js";
 import { bookingStatusSchema } from "./bookingStatusSchema.js";
 import { validationErrorResponseSchema } from "./validationErrorResponseSchema.js";
@@ -45,13 +46,21 @@ export const bookingsGetAgendaStatus200Schema = bookingAgendaSchema.describe(
   "Bookings grouped by local day. `total` counts every match so a client\ncan page with `limit` and `offset`; days arrive in order and only days with\nbookings are listed."
 );
 
-export const bookingsGetAgendaStatus400Schema = z.unknown();
+export const bookingsGetAgendaStatus400Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
-export const bookingsGetAgendaStatus401Schema = z.unknown();
+export const bookingsGetAgendaStatus401Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
-export const bookingsGetAgendaStatus403Schema = z.unknown();
+export const bookingsGetAgendaStatus403Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
-export const bookingsGetAgendaStatus404Schema = z.unknown();
+export const bookingsGetAgendaStatus404Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
 export const bookingsGetAgendaStatus422Schema =
   validationErrorResponseSchema.describe(

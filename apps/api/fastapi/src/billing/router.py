@@ -3,6 +3,7 @@ from typing import Any
 from fastapi import APIRouter, Request, status
 
 from src.dependencies import CurrentUser
+from src.models import ApiError
 
 from . import service
 from .dependencies import StripeGatewayDep
@@ -20,7 +21,10 @@ router = APIRouter(prefix="/billing")
     tags=["billing"],
     responses={
         status.HTTP_201_CREATED: {"description": "Checkout Session created"},
-        status.HTTP_401_UNAUTHORIZED: {"description": "Authentication required"},
+        status.HTTP_401_UNAUTHORIZED: {
+            "model": ApiError,
+            "description": "Authentication required",
+        },
         status.HTTP_502_BAD_GATEWAY: {"description": "Stripe request failed"},
         status.HTTP_503_SERVICE_UNAVAILABLE: {
             "description": "Billing is not configured"
@@ -45,7 +49,10 @@ def create_subscription_checkout(
     tags=["billing"],
     responses={
         status.HTTP_200_OK: {"description": "Webhook received"},
-        status.HTTP_400_BAD_REQUEST: {"description": "Invalid webhook"},
+        status.HTTP_400_BAD_REQUEST: {
+            "model": ApiError,
+            "description": "Invalid webhook",
+        },
         status.HTTP_503_SERVICE_UNAVAILABLE: {
             "description": "Billing is not configured"
         },

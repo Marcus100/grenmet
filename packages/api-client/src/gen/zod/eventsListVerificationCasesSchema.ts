@@ -4,6 +4,7 @@
  */
 
 import * as z from "zod";
+import { apiErrorSchema } from "./apiErrorSchema.js";
 import { validationErrorResponseSchema } from "./validationErrorResponseSchema.js";
 import { verificationCaseListSchema } from "./verificationCaseListSchema.js";
 import { verificationStatusSchema } from "./verificationStatusSchema.js";
@@ -14,6 +15,7 @@ export const eventsListVerificationCasesQueryStatusSchema =
 export const eventsListVerificationCasesQueryPageSchema = z
   .int()
   .min(1)
+  .max(1000000)
   .optional()
   .default(1);
 
@@ -27,11 +29,14 @@ export const eventsListVerificationCasesQuerySizeSchema = z
 export const eventsListVerificationCasesStatus200Schema =
   verificationCaseListSchema;
 
-export const eventsListVerificationCasesStatus401Schema = z.unknown();
+export const eventsListVerificationCasesStatus401Schema =
+  apiErrorSchema.describe("Stable error envelope for documented API failures.");
 
-export const eventsListVerificationCasesStatus403Schema = z.unknown();
+export const eventsListVerificationCasesStatus403Schema =
+  apiErrorSchema.describe("Stable error envelope for documented API failures.");
 
-export const eventsListVerificationCasesStatus404Schema = z.unknown();
+export const eventsListVerificationCasesStatus404Schema =
+  apiErrorSchema.describe("Stable error envelope for documented API failures.");
 
 export const eventsListVerificationCasesStatus422Schema =
   validationErrorResponseSchema.describe(
@@ -50,6 +55,6 @@ export const eventsListVerificationCasesErrorSchema = z.union([
 
 export const eventsListVerificationCasesQuerySchema = z.object({
   status: verificationStatusSchema.optional().default("pending"),
-  page: z.int().min(1).optional().default(1),
+  page: z.int().min(1).max(1000000).optional().default(1),
   size: z.int().min(1).max(100).optional().default(25),
 });

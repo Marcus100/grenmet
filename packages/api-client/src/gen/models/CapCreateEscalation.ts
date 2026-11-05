@@ -3,17 +3,30 @@
  * Do not edit manually.
  */
 
+import type { ApiError } from "./ApiError.js";
 import type { CapEscalationCreate } from "./CapEscalationCreate.js";
 import type { CapEscalationPublic } from "./CapEscalationPublic.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 
 export type CapCreateEscalationStatus201 = CapEscalationPublic;
 
-export type CapCreateEscalationStatus401 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type CapCreateEscalationStatus401 = ApiError;
 
-export type CapCreateEscalationStatus403 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type CapCreateEscalationStatus403 = ApiError;
 
-export type CapCreateEscalationStatus404 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type CapCreateEscalationStatus404 = ApiError;
 
 /**
  * @description Validation error envelope returned for malformed requests.

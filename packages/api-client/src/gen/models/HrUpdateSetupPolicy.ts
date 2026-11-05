@@ -3,6 +3,7 @@
  * Do not edit manually.
  */
 
+import type { ApiError } from "./ApiError.js";
 import type { PolicyInput } from "./PolicyInput.js";
 import type { PolicyPublic } from "./PolicyPublic.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
@@ -13,11 +14,23 @@ export type HrUpdateSetupPolicyPath = {
 
 export type HrUpdateSetupPolicyStatus200 = PolicyPublic;
 
-export type HrUpdateSetupPolicyStatus403 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type HrUpdateSetupPolicyStatus403 = ApiError;
 
-export type HrUpdateSetupPolicyStatus404 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type HrUpdateSetupPolicyStatus404 = ApiError;
 
-export type HrUpdateSetupPolicyStatus409 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type HrUpdateSetupPolicyStatus409 = ApiError;
 
 /**
  * @description Validation error envelope returned for malformed requests.

@@ -3,6 +3,7 @@
  * Do not edit manually.
  */
 
+import type { ApiError } from "./ApiError.js";
 import type { NotificationSettingPublic } from "./NotificationSettingPublic.js";
 import type { NotificationSettingUpdate } from "./NotificationSettingUpdate.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
@@ -18,11 +19,23 @@ export type NotificationsUpdateNotificationSettingQuery = {
 export type NotificationsUpdateNotificationSettingStatus200 =
   NotificationSettingPublic;
 
-export type NotificationsUpdateNotificationSettingStatus400 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type NotificationsUpdateNotificationSettingStatus400 = ApiError;
 
-export type NotificationsUpdateNotificationSettingStatus403 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type NotificationsUpdateNotificationSettingStatus403 = ApiError;
 
-export type NotificationsUpdateNotificationSettingStatus404 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type NotificationsUpdateNotificationSettingStatus404 = ApiError;
 
 /**
  * @description Validation error envelope returned for malformed requests.

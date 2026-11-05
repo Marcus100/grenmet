@@ -4,6 +4,8 @@
  */
 
 import * as z from "zod";
+import { apiErrorSchema } from "./apiErrorSchema.js";
+import { errorMessageSchema } from "./errorMessageSchema.js";
 import { publicMonthSummaryResponseSchema } from "./publicMonthSummaryResponseSchema.js";
 import { validationErrorResponseSchema } from "./validationErrorResponseSchema.js";
 
@@ -20,7 +22,10 @@ export const eregisterPublicMonthSummaryStatus422Schema =
     "Validation error envelope returned for malformed requests."
   );
 
-export const eregisterPublicMonthSummaryStatus429Schema = z.unknown();
+export const eregisterPublicMonthSummaryStatus429Schema = z.union([
+  apiErrorSchema,
+  errorMessageSchema,
+]);
 
 export const eregisterPublicMonthSummaryStatus503Schema = z.unknown();
 

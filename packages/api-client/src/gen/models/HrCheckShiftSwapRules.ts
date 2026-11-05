@@ -3,6 +3,7 @@
  * Do not edit manually.
  */
 
+import type { ApiError } from "./ApiError.js";
 import type { ShiftSwapRuleCheckPublic } from "./ShiftSwapRuleCheckPublic.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 
@@ -21,9 +22,17 @@ export type HrCheckShiftSwapRulesPath = {
  */
 export type HrCheckShiftSwapRulesStatus200 = ShiftSwapRuleCheckPublic;
 
-export type HrCheckShiftSwapRulesStatus403 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type HrCheckShiftSwapRulesStatus403 = ApiError;
 
-export type HrCheckShiftSwapRulesStatus404 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type HrCheckShiftSwapRulesStatus404 = ApiError;
 
 /**
  * @description Validation error envelope returned for malformed requests.

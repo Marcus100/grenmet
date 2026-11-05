@@ -6,14 +6,14 @@ import { RemoveMemberDialog } from "./remove-member-dialog";
 import { RevokeGrantDialog } from "./revoke-grant-dialog";
 import { TeamFeedbackProvider } from "./team-feedback";
 
-const RE_T1 = /Door staff/;
-const RE_T2 = /Refunds/;
-const RE_T3 = /23:59 UTC/;
-const RE_T4 = /no roles to give yet/;
-const RE_T5 = /Roles they gave to other people stay/;
-const RE_T6 = /Box office for Bo Till/;
-const RE_T7 = /takes away nothing else/;
-const RE_OWNER_ONLY = /Only an owner can remove an owner/;
+const RE_T1 = /Door staff/u;
+const RE_T2 = /Refunds/u;
+const RE_T3 = /23:59 UTC/u;
+const RE_T4 = /no roles to give yet/u;
+const RE_T5 = /Roles they gave to other people stay/u;
+const RE_T6 = /Box office for Bo Till/u;
+const RE_T7 = /takes away nothing else/u;
+const RE_OWNER_ONLY = /Only an owner can remove an owner/u;
 
 const refresh = vi.fn();
 const grantRole = vi.fn();
@@ -33,11 +33,11 @@ vi.mock("next/navigation", () => ({
   useRouter: () => ({ push: vi.fn(), refresh }),
 }));
 
-const RE_REVIEW = /Review/;
-const RE_NOT_HELD = /you don't hold it yourself/;
-const RE_ALREADY = /already have this role/;
-const RE_ENDS = /23:59 UTC on 2999-01-01/;
-const RE_SCAN = /Scan and admit tickets at the door/;
+const RE_REVIEW = /Review/u;
+const RE_NOT_HELD = /you don't hold it yourself/u;
+const RE_ALREADY = /already have this role/u;
+const RE_ENDS = /23:59 UTC on 2999-01-01/u;
+const RE_SCAN = /Scan and admit tickets at the door/u;
 
 const bundles = [
   makeBundle(),
@@ -247,16 +247,16 @@ describe("RemoveMemberDialog", () => {
     );
     fireEvent.click(
       screen.getByRole("button", {
-        name: "Remove Lena Lead from the organisation",
+        name: "Remove Lena Lead from Events in this organisation",
       })
     );
     expect(await screen.findByText(RE_T6)).toBeInTheDocument();
     expect(loadIssuedGrants).toHaveBeenCalledWith({ membershipId: "mem_2" });
   });
 
-  it("says nothing else is revoked when they issued nothing, then removes", async () => {
+  it("says the Events access in this organisation was removed", async () => {
     loadIssuedGrants.mockResolvedValue({ ok: true, data: [] });
-    removeMember.mockResolvedValue({ ok: true, data: undefined });
+    removeMember.mockResolvedValue({ ok: true, data: "events" });
     render(
       <TeamFeedbackProvider>
         <RemoveMemberDialog
@@ -268,7 +268,59 @@ describe("RemoveMemberDialog", () => {
     );
     fireEvent.click(
       screen.getByRole("button", {
-        name: "Remove Lena Lead from the organisation",
+        name: "Remove Lena Lead from Events in this organisation",
+      })
+    );
+    expect(await screen.findByText(RE_T7)).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Remove member" }));
+    await waitFor(() =>
+      expect(screen.getByRole("status")).toHaveTextContent(
+        "Lena Lead was removed from Events in this organisation."
+      )
+    );
+  });
+
+  it("says a full removal left the organisation", async () => {
+    loadIssuedGrants.mockResolvedValue({ ok: true, data: [] });
+    removeMember.mockResolvedValue({ ok: true, data: "organisation" });
+    render(
+      <TeamFeedbackProvider>
+        <RemoveMemberDialog
+          memberName="Lena Lead"
+          membershipId="mem_2"
+          targetRole="member"
+        />
+      </TeamFeedbackProvider>
+    );
+    fireEvent.click(
+      screen.getByRole("button", {
+        name: "Remove Lena Lead from Events in this organisation",
+      })
+    );
+    expect(await screen.findByText(RE_T7)).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Remove member" }));
+    await waitFor(() =>
+      expect(screen.getByRole("status")).toHaveTextContent(
+        "Lena Lead was removed from the organisation."
+      )
+    );
+  });
+
+  it("says nothing else is revoked when they issued nothing, then removes", async () => {
+    loadIssuedGrants.mockResolvedValue({ ok: true, data: [] });
+    removeMember.mockResolvedValue({ ok: true, data: "events" });
+    render(
+      <TeamFeedbackProvider>
+        <RemoveMemberDialog
+          memberName="Lena Lead"
+          membershipId="mem_2"
+          targetRole="member"
+        />
+      </TeamFeedbackProvider>
+    );
+    fireEvent.click(
+      screen.getByRole("button", {
+        name: "Remove Lena Lead from Events in this organisation",
       })
     );
     expect(await screen.findByText(RE_T7)).toBeInTheDocument();
@@ -278,7 +330,7 @@ describe("RemoveMemberDialog", () => {
     );
     await waitFor(() =>
       expect(screen.getByRole("status")).toHaveTextContent(
-        "Lena Lead was removed from the organisation."
+        "Lena Lead was removed from Events in this organisation."
       )
     );
     expect(refresh).toHaveBeenCalled();
@@ -297,7 +349,7 @@ describe("RemoveMemberDialog", () => {
     );
     fireEvent.click(
       screen.getByRole("button", {
-        name: "Remove Lena Lead from the organisation",
+        name: "Remove Lena Lead from Events in this organisation",
       })
     );
     expect(await screen.findByText("Not for you")).toBeInTheDocument();
@@ -316,7 +368,7 @@ describe("RemoveMemberDialog", () => {
     );
     fireEvent.click(
       screen.getByRole("button", {
-        name: "Remove Lena Lead from the organisation",
+        name: "Remove Lena Lead from Events in this organisation",
       })
     );
     const button = await screen.findByRole("button", { name: "Remove member" });
@@ -336,7 +388,7 @@ describe("RemoveMemberDialog", () => {
     );
     fireEvent.click(
       screen.getByRole("button", {
-        name: "Remove Lena Lead from the organisation",
+        name: "Remove Lena Lead from Events in this organisation",
       })
     );
     await screen.findByText("Not for you");
@@ -366,12 +418,37 @@ describe("RemoveMemberDialog", () => {
     );
     fireEvent.click(
       screen.getByRole("button", {
-        name: "Remove Olu Owner from the organisation",
+        name: "Remove Olu Owner from Events in this organisation",
       })
     );
     await screen.findByText(RE_T7);
     fireEvent.click(screen.getByRole("button", { name: "Remove member" }));
     expect(await screen.findByText(RE_OWNER_ONLY)).toBeInTheDocument();
+  });
+
+  it("shows the API's refusal when the person's Events access comes from an admin or owner role", async () => {
+    const message =
+      "This person's Events access comes from their organisation role (admin/owner). Change their role in organisation settings to remove it.";
+    loadIssuedGrants.mockResolvedValue({ ok: true, data: [] });
+    removeMember.mockResolvedValue({ ok: false, error: message });
+    render(
+      <TeamFeedbackProvider>
+        <RemoveMemberDialog
+          memberName="Ada Admin"
+          membershipId="mem_4"
+          targetRole="admin"
+        />
+      </TeamFeedbackProvider>
+    );
+    fireEvent.click(
+      screen.getByRole("button", {
+        name: "Remove Ada Admin from Events in this organisation",
+      })
+    );
+    await screen.findByText(RE_T7);
+    fireEvent.click(screen.getByRole("button", { name: "Remove member" }));
+    expect(await screen.findByText(message)).toBeInTheDocument();
+    expect(refresh).not.toHaveBeenCalled();
   });
 });
 

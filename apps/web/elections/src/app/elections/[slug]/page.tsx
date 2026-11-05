@@ -107,27 +107,27 @@ export default async function EventPage({ params }: Props) {
         {e.kind === "general" && (
           <SeatBar className="mt-5 max-w-md" seats={n.seats} />
         )}
-        <dl className="mt-5 grid grid-cols-2 gap-4 border-el-rule border-t pt-4 sm:grid-cols-3 lg:grid-cols-6">
+        <dl className="border-el-rule mt-5 grid grid-cols-2 gap-4 border-t pt-4 sm:grid-cols-3 lg:grid-cols-6">
           {shares.map(([p, v]) => (
             <div key={p}>
               <dt className={LABEL}>{label(p)}</dt>
               <dd
-                className="mt-0.5 font-semibold text-xl tabular-nums"
+                className="mt-0.5 text-xl font-semibold tabular-nums"
                 style={{ color: partyColor(p, "ink") }}
               >
                 {pct(v / n.total)}
               </dd>
-              <dd className="text-base text-el-muted tabular-nums">
+              <dd className="text-el-muted text-base tabular-nums">
                 {fmt(v)} votes
               </dd>
             </div>
           ))}
           <div>
             <dt className={LABEL}>Turnout</dt>
-            <dd className="mt-0.5 font-semibold text-xl tabular-nums">
+            <dd className="mt-0.5 text-xl font-semibold tabular-nums">
               {pct(n.turnout)}
             </dd>
-            <dd className="text-base text-el-muted tabular-nums">
+            <dd className="text-el-muted text-base tabular-nums">
               {fmt(n.registered)} registered
             </dd>
           </div>
@@ -142,7 +142,7 @@ export default async function EventPage({ params }: Props) {
                   <summary className="cursor-pointer">
                     {metric}: {evidence.label}
                   </summary>
-                  <p className="mt-2 text-el-ink-2 leading-relaxed">
+                  <p className="text-el-ink-2 mt-2 leading-relaxed">
                     {evidence.formula} {evidence.note}
                   </p>
                 </details>
@@ -215,7 +215,7 @@ export default async function EventPage({ params }: Props) {
               </li>
             ))}
           </ul>
-          <p className="mt-3 text-base text-el-muted leading-relaxed">
+          <p className="text-el-muted mt-3 text-base leading-relaxed">
             {data.referendum["2016"].note}{" "}
             {data.referendum["2016"].totalsSource}.
           </p>
@@ -224,7 +224,7 @@ export default async function EventPage({ params }: Props) {
 
       {e.id === "2018r" && (
         <Section id="damaged" title="What the Gazette shows">
-          <p className="max-w-[70ch] text-el-ink-2 leading-relaxed">
+          <p className="text-el-ink-2 max-w-[70ch] leading-relaxed">
             {data.referendum["2018"].note} Yes{" "}
             {fmt(data.referendum["2018"].yes)}, No{" "}
             {fmt(data.referendum["2018"].no)}, invalid{" "}
@@ -263,7 +263,7 @@ export default async function EventPage({ params }: Props) {
             label={`${e.label} result`}
             unavailableReason="A complete set of mapped polling-division results is unavailable for this event. See the recorded returns below."
           />
-          <p className="mt-3 max-w-prose text-base text-el-muted leading-relaxed">
+          <p className="text-el-muted mt-3 max-w-prose text-base leading-relaxed">
             This map shows the selected historical event. Boundaries are
             illustrative; they do not confirm current voting arrangements or
             which party a representative belongs to today.
@@ -273,7 +273,7 @@ export default async function EventPage({ params }: Props) {
 
       {!e.map && (
         <Section id="boundaries" title="Different boundaries">
-          <p className="max-w-[70ch] text-el-ink-2 leading-relaxed">
+          <p className="text-el-ink-2 max-w-[70ch] leading-relaxed">
             Before 1972 Grenada had {blocks.length} constituencies with
             different boundaries, so these results aren’t drawn on today’s map.
             {source.partial &&
@@ -290,7 +290,7 @@ export default async function EventPage({ params }: Props) {
             : "Every constituency (earlier boundaries)"
         }
       >
-        <div className="grid gap-px border border-el-rule bg-el-rule md:grid-cols-2">
+        <div className="border-el-rule bg-el-rule grid gap-px border md:grid-cols-2">
           {blocks.map(({ code, name, r }) => {
             const s = contestStats(r);
             const prov = code ? eventSource(data, e.id, code) : null;
@@ -311,7 +311,7 @@ export default async function EventPage({ params }: Props) {
                     />
                   )}
                   <div className="min-w-0">
-                    <h3 className="font-bold text-lg leading-tight">
+                    <h3 className="text-lg leading-tight font-bold">
                       {code ? (
                         <Link
                           className="hover:underline"
@@ -323,7 +323,7 @@ export default async function EventPage({ params }: Props) {
                         name
                       )}
                     </h3>
-                    <p className="text-base text-el-muted tabular-nums leading-relaxed">
+                    <p className="text-el-muted text-base leading-relaxed tabular-nums">
                       {e.kind === "ref" ? "Lead" : "Majority"} {fmt(s.majority)}{" "}
                       · Turnout {pct(s.turnout)} · Registered {fmt(r.reg)}
                       {r.derived && " · derived total"}
@@ -335,20 +335,20 @@ export default async function EventPage({ params }: Props) {
                 </div>
                 {resultNotes(r, e.year).map((t) => (
                   <p
-                    className="mt-2 text-base text-el-ink-2 leading-relaxed"
+                    className="text-el-ink-2 mt-2 text-base leading-relaxed"
                     key={t}
                   >
                     <b>Note:</b> {t}
                   </p>
                 ))}
                 {prov?.text.includes("p.") && (
-                  <p className="mt-1 text-base text-el-muted leading-relaxed">
+                  <p className="text-el-muted mt-1 text-base leading-relaxed">
                     {prov.text}.
                   </p>
                 )}
                 {gazette && (
-                  <details className="mt-3 border-el-rule border-t pt-2">
-                    <summary className="cursor-pointer font-semibold text-base">
+                  <details className="border-el-rule mt-3 border-t pt-2">
+                    <summary className="cursor-pointer text-base font-semibold">
                       {gazette.rows.length} polling divisions, 1972
                     </summary>
                     <table className="mt-2 w-full text-base">

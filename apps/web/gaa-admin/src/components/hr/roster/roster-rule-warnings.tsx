@@ -1,13 +1,8 @@
 "use client";
 
 import { useHrCheckPeriodRules } from "@barrelsgd/api-client";
-import { TriangleAlert } from "lucide-react";
-
-const RULE_TITLE: Record<string, string> = {
-  MIN_REST: "Short rest between shifts",
-  MAX_CONSECUTIVE_DAYS: "Too many consecutive days",
-  MAX_WEEKLY_HOURS: "Weekly hours over limit",
-};
+import { CircleCheck, TriangleAlert } from "lucide-react";
+import { ruleTitle, violationDates } from "./rule-codes";
 
 interface RosterRuleWarningsProps {
   /** Display names keyed by user id, from the department member list. */
@@ -16,9 +11,9 @@ interface RosterRuleWarningsProps {
 }
 
 /**
- * Warn-only: lists breaches of the department's rest, consecutive-day and
- * weekly-hour limits. It never blocks saving or publishing, and renders nothing
- * when no limits are configured or nothing is breached.
+ * Roster rule breaches in this month (#380). Publishing or changing a published
+ * roster with breaches needs a supervisor's reason. Always shown, including when
+ * nothing is breached, so reviewers can see the check ran.
  */
 export function RosterRuleWarnings({
   periodId,
@@ -26,27 +21,57 @@ export function RosterRuleWarnings({
 }: RosterRuleWarningsProps) {
   const check = useHrCheckPeriodRules({ path: { period_id: periodId } });
   const violations = check.data?.violations ?? [];
-  if (violations.length === 0) return null;
+
+  if (check.isPending) {
+    return (
+      <p
+        className="text-muted-foreground rounded-xl border px-4 py-3 text-sm"
+        role="status"
+      >
+        Checking roster rules…
+      </p>
+    );
+  }
+  if (check.isError) {
+    return (
+      <p className="rounded-xl border px-4 py-3 text-sm" role="alert">
+        Roster rules could not be checked. Refresh to retry.
+      </p>
+    );
+  }
+  if (violations.length === 0) {
+    return (
+      <section
+        aria-label="Roster rule warnings"
+        className="text-muted-foreground flex items-center gap-2 rounded-xl border px-4 py-3 text-sm"
+      >
+        <CircleCheck className="text-gm-risk-green size-4" />
+        No roster rule warnings this month. Staff not covered by the union
+        agreement are not checked.
+      </section>
+    );
+  }
 
   return (
     <section
       aria-label="Roster rule warnings"
-      className="rounded-xl border border-gm-risk-amber/40 bg-gm-risk-amber/10 px-4 py-3 text-sm"
+      className="border-gm-risk-amber/40 bg-gm-risk-amber/10 rounded-xl border px-4 py-3 text-sm"
     >
       <h2 className="flex items-center gap-2 font-medium">
         <TriangleAlert className="size-4" />
         {violations.length} roster rule{" "}
         {violations.length === 1 ? "warning" : "warnings"}
       </h2>
-      <ul className="mt-2 flex flex-col gap-1 text-muted-foreground text-xs">
+      <p className="text-muted-foreground mt-1 text-xs">
+        Publishing needs a reason while these remain. The reason is recorded.
+      </p>
+      <ul className="text-muted-foreground mt-2 flex flex-col gap-1 text-xs">
         {violations.map((v) => (
-          <li key={`${v.code}-${v.user_id}-${v.start_date}`}>
-            <span className="font-medium text-foreground">
+          <li key={`${v.code}-${v.user_id}-${v.start_date}-${v.end_date}`}>
+            <span className="text-foreground font-medium">
               {labels.get(v.user_id) ?? "Unknown staff"}
             </span>{" "}
-            · {RULE_TITLE[v.code] ?? v.code} · {v.start_date}
-            {v.end_date === v.start_date ? "" : ` to ${v.end_date}`} ·{" "}
-            {v.detail}
+            · {ruleTitle(v.code)} · {violationDates(v)} · {v.detail}
           </li>
         ))}
       </ul>

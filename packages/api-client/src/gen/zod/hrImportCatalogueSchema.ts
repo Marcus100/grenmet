@@ -4,17 +4,24 @@
  */
 
 import * as z from "zod";
+import { apiErrorSchema } from "./apiErrorSchema.js";
 import { catalogueApplySchema } from "./catalogueApplySchema.js";
 import { cataloguePreviewSchema } from "./cataloguePreviewSchema.js";
 import { validationErrorResponseSchema } from "./validationErrorResponseSchema.js";
 
 export const hrImportCatalogueStatus200Schema = cataloguePreviewSchema;
 
-export const hrImportCatalogueStatus403Schema = z.unknown();
+export const hrImportCatalogueStatus403Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
-export const hrImportCatalogueStatus404Schema = z.unknown();
+export const hrImportCatalogueStatus404Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
-export const hrImportCatalogueStatus409Schema = z.unknown();
+export const hrImportCatalogueStatus409Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
 export const hrImportCatalogueStatus422Schema =
   validationErrorResponseSchema.describe(

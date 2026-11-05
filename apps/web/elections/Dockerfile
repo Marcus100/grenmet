@@ -43,8 +43,6 @@ COPY packages/tsconfig/package.json packages/tsconfig/
 COPY packages/ui/package.json packages/ui/
 RUN HUSKY=0 pnpm install --frozen-lockfile
 
-ARG NEXT_PUBLIC_API_URL=""
-ARG NEXT_PUBLIC_ENVIRONMENT=""
 ARG SENTRY_PROJECT=""
 ARG NEXT_PUBLIC_POSTHOG_KEY=""
 ARG NEXT_PUBLIC_POSTHOG_HOST="https://us.i.posthog.com"
@@ -52,8 +50,6 @@ ARG NEXT_PUBLIC_RELEASE=""
 ENV NEXT_PUBLIC_RELEASE=$NEXT_PUBLIC_RELEASE
 ARG NEXT_PUBLIC_SENTRY_DSN=""
 ARG NEXT_PUBLIC_SENTRY_ENVIRONMENT="production"
-ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
-ENV NEXT_PUBLIC_ENVIRONMENT=$NEXT_PUBLIC_ENVIRONMENT
 ENV SENTRY_PROJECT=$SENTRY_PROJECT
 ENV NEXT_PUBLIC_POSTHOG_KEY=$NEXT_PUBLIC_POSTHOG_KEY
 ENV NEXT_PUBLIC_POSTHOG_HOST=$NEXT_PUBLIC_POSTHOG_HOST
@@ -63,7 +59,6 @@ ENV NEXT_TELEMETRY_DISABLED=1
 
 # Explicit application sources and workspace dependency closure.
 COPY packages/api-client/ packages/api-client/
-COPY packages/auth/ packages/auth/
 COPY packages/tsconfig/ packages/tsconfig/
 COPY packages/theme/ packages/theme/
 COPY packages/ui/ packages/ui/

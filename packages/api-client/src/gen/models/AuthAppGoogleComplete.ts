@@ -3,6 +3,8 @@
  * Do not edit manually.
  */
 
+import type { ApiError } from "./ApiError.js";
+import type { ErrorMessage } from "./ErrorMessage.js";
 import type { GoogleChallengePublic } from "./GoogleChallengePublic.js";
 import type { GoogleComplete } from "./GoogleComplete.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
@@ -17,11 +19,23 @@ export type AuthAppGoogleCompletePath = {
 
 export type AuthAppGoogleCompleteStatus200 = GoogleChallengePublic;
 
-export type AuthAppGoogleCompleteStatus400 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type AuthAppGoogleCompleteStatus400 = ApiError;
 
-export type AuthAppGoogleCompleteStatus403 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type AuthAppGoogleCompleteStatus403 = ApiError;
 
-export type AuthAppGoogleCompleteStatus404 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type AuthAppGoogleCompleteStatus404 = ApiError;
 
 /**
  * @description Validation error envelope returned for malformed requests.
@@ -29,7 +43,7 @@ export type AuthAppGoogleCompleteStatus404 = unknown;
  */
 export type AuthAppGoogleCompleteStatus422 = ValidationErrorResponse;
 
-export type AuthAppGoogleCompleteStatus429 = unknown;
+export type AuthAppGoogleCompleteStatus429 = ApiError | ErrorMessage;
 
 export type AuthAppGoogleCompleteStatus503 = unknown;
 

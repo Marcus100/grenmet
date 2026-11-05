@@ -3,6 +3,8 @@
  * Do not edit manually.
  */
 
+import type { ApiError } from "./ApiError.js";
+import type { ErrorMessage } from "./ErrorMessage.js";
 import type { MessageCreate } from "./MessageCreate.js";
 import type { MessagePublic } from "./MessagePublic.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
@@ -18,11 +20,23 @@ export type EventsSendMessagePath = {
 
 export type EventsSendMessageStatus201 = MessagePublic;
 
-export type EventsSendMessageStatus401 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type EventsSendMessageStatus401 = ApiError;
 
-export type EventsSendMessageStatus403 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type EventsSendMessageStatus403 = ApiError;
 
-export type EventsSendMessageStatus404 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type EventsSendMessageStatus404 = ApiError;
 
 /**
  * @description Validation error envelope returned for malformed requests.
@@ -30,7 +44,7 @@ export type EventsSendMessageStatus404 = unknown;
  */
 export type EventsSendMessageStatus422 = ValidationErrorResponse;
 
-export type EventsSendMessageStatus429 = unknown;
+export type EventsSendMessageStatus429 = ApiError | ErrorMessage;
 
 export type EventsSendMessageBody = MessageCreate;
 

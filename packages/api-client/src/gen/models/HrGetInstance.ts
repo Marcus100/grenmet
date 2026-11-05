@@ -3,6 +3,7 @@
  * Do not edit manually.
  */
 
+import type { ApiError } from "./ApiError.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 import type { WorkflowInstanceDetails } from "./WorkflowInstanceDetails.js";
 
@@ -17,9 +18,17 @@ export type HrGetInstancePath = {
 
 export type HrGetInstanceStatus200 = WorkflowInstanceDetails;
 
-export type HrGetInstanceStatus403 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type HrGetInstanceStatus403 = ApiError;
 
-export type HrGetInstanceStatus404 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type HrGetInstanceStatus404 = ApiError;
 
 /**
  * @description Validation error envelope returned for malformed requests.

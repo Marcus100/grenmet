@@ -3,16 +3,29 @@
  * Do not edit manually.
  */
 
+import type { ApiError } from "./ApiError.js";
 import type { EffectiveAccess } from "./EffectiveAccess.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 
 export type AuthGetEffectiveAccessStatus200 = EffectiveAccess;
 
-export type AuthGetEffectiveAccessStatus401 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type AuthGetEffectiveAccessStatus401 = ApiError;
 
-export type AuthGetEffectiveAccessStatus403 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type AuthGetEffectiveAccessStatus403 = ApiError;
 
-export type AuthGetEffectiveAccessStatus409 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type AuthGetEffectiveAccessStatus409 = ApiError;
 
 /**
  * @description Validation error envelope returned for malformed requests.

@@ -3,6 +3,7 @@
  * Do not edit manually.
  */
 
+import type { ApiError } from "./ApiError.js";
 import type { BookingWorkingPeriodPublic } from "./BookingWorkingPeriodPublic.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 
@@ -24,13 +25,29 @@ export type BookingsGetWorkingHoursHeaders = {
 
 export type BookingsGetWorkingHoursStatus200 = BookingWorkingPeriodPublic[];
 
-export type BookingsGetWorkingHoursStatus400 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type BookingsGetWorkingHoursStatus400 = ApiError;
 
-export type BookingsGetWorkingHoursStatus401 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type BookingsGetWorkingHoursStatus401 = ApiError;
 
-export type BookingsGetWorkingHoursStatus403 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type BookingsGetWorkingHoursStatus403 = ApiError;
 
-export type BookingsGetWorkingHoursStatus404 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type BookingsGetWorkingHoursStatus404 = ApiError;
 
 /**
  * @description Validation error envelope returned for malformed requests.

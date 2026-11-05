@@ -4,7 +4,9 @@
  */
 
 import * as z from "zod";
+import { apiErrorSchema } from "./apiErrorSchema.js";
 import { appPhoneCodeStartSchema } from "./appPhoneCodeStartSchema.js";
+import { errorMessageSchema } from "./errorMessageSchema.js";
 import { messageSchema } from "./messageSchema.js";
 import { validationErrorResponseSchema } from "./validationErrorResponseSchema.js";
 
@@ -14,18 +16,27 @@ export const authAppPhoneCodeStartPathAppSchema = z
 
 export const authAppPhoneCodeStartStatus200Schema = messageSchema;
 
-export const authAppPhoneCodeStartStatus400Schema = z.unknown();
+export const authAppPhoneCodeStartStatus400Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
-export const authAppPhoneCodeStartStatus403Schema = z.unknown();
+export const authAppPhoneCodeStartStatus403Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
-export const authAppPhoneCodeStartStatus404Schema = z.unknown();
+export const authAppPhoneCodeStartStatus404Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
 export const authAppPhoneCodeStartStatus422Schema =
   validationErrorResponseSchema.describe(
     "Validation error envelope returned for malformed requests."
   );
 
-export const authAppPhoneCodeStartStatus429Schema = z.unknown();
+export const authAppPhoneCodeStartStatus429Schema = z.union([
+  apiErrorSchema,
+  errorMessageSchema,
+]);
 
 export const authAppPhoneCodeStartStatus503Schema = z.unknown();
 

@@ -11,7 +11,7 @@ import type {
 } from "../models/AuthTwofaSetup.js";
 
 /**
- * @description Generate a new TOTP secret and provisioning URI. 2FA is not active until a code is confirmed via /auth/users/me/security/2fa/activate.
+ * @description Generate a new TOTP secret and provisioning URI. 2FA is not active until a code is confirmed via /auth/users/me/security/2fa/activate. For a privileged account a one-time code is emailed to the account, and activation needs it as email_code (email_code_required is true).
  * @summary Begin 2FA enrollment
  * {@link /api/v1/auth/users/me/security/2fa/setup}
  */

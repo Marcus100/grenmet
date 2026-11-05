@@ -3,7 +3,8 @@
  * Do not edit manually.
  */
 
-import type { CapAlertAction } from "./CapAlertAction.js";
+import type { ApiError } from "./ApiError.js";
+import type { CapPublishAction } from "./CapPublishAction.js";
 import type { CapPublishPublic } from "./CapPublishPublic.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 
@@ -18,11 +19,23 @@ export type CapPublishAlertPath = {
 
 export type CapPublishAlertStatus200 = CapPublishPublic;
 
-export type CapPublishAlertStatus401 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type CapPublishAlertStatus401 = ApiError;
 
-export type CapPublishAlertStatus403 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type CapPublishAlertStatus403 = ApiError;
 
-export type CapPublishAlertStatus404 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type CapPublishAlertStatus404 = ApiError;
 
 /**
  * @description Validation error envelope returned for malformed requests.
@@ -30,7 +43,11 @@ export type CapPublishAlertStatus404 = unknown;
  */
 export type CapPublishAlertStatus422 = ValidationErrorResponse;
 
-export type CapPublishAlertBody = CapAlertAction;
+/**
+ * @description Publish request. An imported alert needs ``confirm_imported`` (409 without it).
+ * @type object
+ */
+export type CapPublishAlertBody = CapPublishAction;
 
 export type CapPublishAlertOptions = {
   body: CapPublishAlertBody;

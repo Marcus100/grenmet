@@ -1,7 +1,9 @@
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
+import { buildApiProxyUrl } from "@/lib/api-proxy-target";
 import { getAuthApiBaseUrl } from "@/lib/auth-config";
 import { reportError } from "@/lib/report-error";
+import { isSameOrigin, isWriteMethod } from "@/lib/request-guards";
 import {
   clearSessionCookieOnResponse,
   exchangeSessionForAccessToken,
@@ -21,16 +23,36 @@ const HOP_BY_HOP_RESPONSE_HEADERS = new Set([
   "upgrade",
 ]);
 
+/**
+ * Request headers passed to FastAPI. Everything else is dropped: the browser
+ * cookie (the session is exchanged for the bearer token), x-forwarded-* (the API
+ * reads its own proxy's), and any header a caller adds to steer the upstream.
+ */
+const FORWARDED_REQUEST_HEADERS = [
+  "accept",
+  "accept-language",
+  "content-type",
+  "if-match",
+  "if-modified-since",
+  "if-none-match",
+  "if-unmodified-since",
+  "range",
+  "x-request-id",
+] as const;
+
 function buildUpstreamHeaders(
   request: NextRequest,
   accessToken: string
 ): Headers {
-  const upstreamHeaders = new Headers(request.headers);
+  const upstreamHeaders = new Headers();
 
+  for (const name of FORWARDED_REQUEST_HEADERS) {
+    const value = request.headers.get(name);
+    if (value !== null) {
+      upstreamHeaders.set(name, value);
+    }
+  }
   upstreamHeaders.set("authorization", `Bearer ${accessToken}`);
-  upstreamHeaders.delete("connection");
-  upstreamHeaders.delete("content-length");
-  upstreamHeaders.delete("host");
 
   return upstreamHeaders;
 }
@@ -62,6 +84,25 @@ function buildProxyResponse(upstreamResponse: Response): NextResponse {
 }
 
 async function handleProxy(request: NextRequest): Promise<NextResponse> {
+  const upstreamUrl = buildApiProxyUrl(
+    request.nextUrl.pathname,
+    request.nextUrl.search,
+    getAuthApiBaseUrl()
+  );
+  if (!upstreamUrl) {
+    return NextResponse.json(
+      { detail: "Invalid request path." },
+      { status: 400 }
+    );
+  }
+
+  if (isWriteMethod(request.method) && !isSameOrigin(request.headers)) {
+    return NextResponse.json(
+      { detail: "Request origin not allowed." },
+      { status: 403 }
+    );
+  }
+
   const sessionToken = await readSessionCookie();
   if (!sessionToken) {
     return NextResponse.json(
@@ -95,19 +136,13 @@ async function handleProxy(request: NextRequest): Promise<NextResponse> {
     );
   }
 
-  const upstreamResponse = await fetch(
-    new URL(
-      `${request.nextUrl.pathname}${request.nextUrl.search}`,
-      getAuthApiBaseUrl()
-    ),
-    {
-      body: await buildUpstreamBody(request),
-      cache: "no-store",
-      headers: buildUpstreamHeaders(request, accessToken),
-      method: request.method,
-      redirect: "manual",
-    }
-  );
+  const upstreamResponse = await fetch(upstreamUrl, {
+    body: await buildUpstreamBody(request),
+    cache: "no-store",
+    headers: buildUpstreamHeaders(request, accessToken),
+    method: request.method,
+    redirect: "manual",
+  });
 
   const response = buildProxyResponse(upstreamResponse);
 

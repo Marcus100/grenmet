@@ -24,16 +24,19 @@ import { useTeamFeedback } from "./team-feedback";
 export function RevokeGrantDialog({
   grant,
   memberName,
+  roleTitle,
 }: {
   grant: Pick<MembershipGrantPublic, "id" | "role_key">;
   memberName: string;
+  /** The role's name from the API bundle; falls back to the local wording. */
+  roleTitle?: string;
 }) {
   const router = useRouter();
   const feedback = useTeamFeedback();
   const { pending, perform } = useMemberAction(COULDNT_CONFIRM_TEAM);
   const [open, setOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const title = bundleCopy(grant.role_key).title;
+  const title = roleTitle ?? bundleCopy(grant.role_key).title;
 
   async function confirm() {
     setError(null);
@@ -74,7 +77,7 @@ export function RevokeGrantDialog({
           </AlertDialogDescription>
         </AlertDialogHeader>
         <p
-          className="font-medium text-body text-destructive empty:hidden"
+          className="text-body text-destructive font-medium empty:hidden"
           role="alert"
         >
           {error}

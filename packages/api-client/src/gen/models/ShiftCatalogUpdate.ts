@@ -11,6 +11,7 @@ export type ShiftCatalogUpdate = {
   start_time?: string | null;
   end_time?: string | null;
   ends_next_day?: boolean | null;
+  break_minutes?: number | null;
   counts_as_work_hours?: boolean | null;
   needs_reason?: boolean | null;
   needs_approval?: boolean | null;

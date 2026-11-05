@@ -71,12 +71,12 @@ export default async function AttendeesPage({
       <main className="mx-auto max-w-5xl space-y-6 px-4 py-6 sm:px-6 lg:px-8">
         <div>
           <Link
-            className="inline-flex min-h-11 items-center text-caption text-muted-foreground hover:underline"
+            className="text-caption text-muted-foreground inline-flex min-h-11 items-center hover:underline"
             href={`/dash/events/${id}`}
           >
             ← {event.title}
           </Link>
-          <h1 className="font-display font-semibold text-heading-base">
+          <h1 className="font-display text-heading-base font-semibold">
             Attendees
           </h1>
         </div>

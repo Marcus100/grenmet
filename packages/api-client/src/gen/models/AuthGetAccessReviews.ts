@@ -4,15 +4,28 @@
  */
 
 import type { AccessReviewData } from "./AccessReviewData.js";
+import type { ApiError } from "./ApiError.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 
 export type AuthGetAccessReviewsStatus200 = AccessReviewData;
 
-export type AuthGetAccessReviewsStatus401 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type AuthGetAccessReviewsStatus401 = ApiError;
 
-export type AuthGetAccessReviewsStatus403 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type AuthGetAccessReviewsStatus403 = ApiError;
 
-export type AuthGetAccessReviewsStatus409 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type AuthGetAccessReviewsStatus409 = ApiError;
 
 /**
  * @description Validation error envelope returned for malformed requests.

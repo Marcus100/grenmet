@@ -293,7 +293,7 @@ export function WorkflowPanel() {
     );
   return (
     <section className="space-y-3">
-      <h2 className="font-semibold text-xl">Workflow configuration</h2>
+      <h2 className="text-xl font-semibold">Workflow configuration</h2>
       <p>
         Configure each department and request type. Seniority and job titles
         never grant approval automatically.

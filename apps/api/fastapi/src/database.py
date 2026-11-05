@@ -130,10 +130,24 @@ _async_url = str(settings.SQLALCHEMY_DATABASE_URI).replace(
 )
 _async_engine_kwargs: dict[str, Any] = {"echo": False}
 
+
+def async_pool_options() -> dict[str, Any]:
+    """Pool settings for the main async engine outside tests (see Settings.DB_POOL_*)."""
+    return {
+        "pool_pre_ping": True,
+        "pool_size": settings.DB_POOL_SIZE,
+        "max_overflow": settings.DB_MAX_OVERFLOW,
+        "pool_timeout": settings.DB_POOL_TIMEOUT,
+        "pool_recycle": settings.DB_POOL_RECYCLE,
+    }
+
+
 # pytest creates fresh event loops across tests; disabling async pooling there avoids
 # cross-loop asyncpg connection reuse while preserving pooled behavior in the app.
 if "pytest" in sys.modules:
     _async_engine_kwargs["poolclass"] = NullPool
+else:
+    _async_engine_kwargs.update(async_pool_options())
 
 async_engine = create_async_engine(
     _async_url,

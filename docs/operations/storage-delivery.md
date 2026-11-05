@@ -20,7 +20,7 @@ Local commands use each workspace's `.env.local`. No developer secret file is wr
 | Janitorial | `janitorial` / `janitorial_staging` / `janitorial` | FastAPI `JANITORIAL_DATABASE_URL`, `JANITORIAL_DB_*` | FastAPI Alembic; create-once `janitorial-v1` seed | core `pgdata` | API ready; pg_dump |
 | Payload CMS | `gms_cms` / `gms_cms_staging` / `gms_cms` | workspace `DATABASE_URL`; deploy `CMS_DATABASE_URL`, `CMS_DB_*`, stable `PAYLOAD_SECRET` | Payload committed migrations; explicit schema adoption | core `pgdata` | CMS ready + public content API; pg_dump |
 | Core Redis / CAP queue | per environment | `REDIS_URL` | no schema migrations | preserve `REDIS_VOLUME`; AOF every second | PING; reconcile queue work with authoritative CAP outbox |
-| SURFACE / GMS observations | existing `POSTGRES_DB`; inventory before rollout | SURFACE database config | Django migrations; explicit GMS reference catalogue | existing `surface/data/postgresql`; Timescale/PostGIS PG13 initially | Django checks + pg_dump with matching engine/extensions |
+| SURFACE / GMS observations | existing `POSTGRES_DB`; inventory before rollout | SURFACE database config | Django migrations; explicit GMS reference catalogue | `surface/data/postgresql`; TimescaleDB/PostGIS on PostgreSQL 17 (`timescaledb-ha`, uid 1000) | Django checks + pg_dump with matching engine/extensions |
 | SURFACE Redis / Celery | per weather host | SURFACE Redis config | none | verify queue durability on live host | PING; reconstruct tasks from authoritative state |
 | SURFACE Memcached | per weather host | SURFACE cache config | none | disposable | cache reachability; no backup |
 | wis2box Elasticsearch | separate weather project | wis2box configuration | supported upstream tooling | existing `es-data` | API/index checks; Elasticsearch snapshots, never copy live index files |
@@ -62,7 +62,7 @@ Target RPO 24 hours, RTO within the next day, retention 30 days. The optional `b
 
 Download backups onto an isolated restore host. Start a compatible PostgreSQL container with a `grenmet-restore-` name and `grenmet.restore=true` label, then use `RESTORE_CONTAINER=... bash scripts/production/restore-core.sh <dump paths>`. It creates new isolated databases, restores with fatal errors, and leaves them for schema/record checks and migration-upgrade testing. Never label a production container as a restore container. Verify representative records, constraints, uploaded files and application behavior, then record timings and evidence.
 
-Do not change the deployed PostgreSQL image to PostGIS until restored copies pass extension, migration and application checks against the selected pinned PostgreSQL 17/PostGIS image. SURFACE retains Timescale/PostGIS PG13; its engine upgrade is separate work.
+Do not change the deployed PostgreSQL image to PostGIS until restored copies pass extension, migration and application checks against the selected pinned PostgreSQL 17/PostGIS image. SURFACE runs its own TimescaleDB/PostGIS PostgreSQL 17 image (`timescaledb-ha`); see `VENDORED.md`.
 
 ## Release evidence still required
 

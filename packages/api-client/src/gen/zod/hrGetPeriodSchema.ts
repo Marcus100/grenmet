@@ -4,6 +4,7 @@
  */
 
 import * as z from "zod";
+import { apiErrorSchema } from "./apiErrorSchema.js";
 import { rosterPeriodDetailsSchema } from "./rosterPeriodDetailsSchema.js";
 import { validationErrorResponseSchema } from "./validationErrorResponseSchema.js";
 
@@ -11,9 +12,13 @@ export const hrGetPeriodPathPeriodIdSchema = z.uuid();
 
 export const hrGetPeriodStatus200Schema = rosterPeriodDetailsSchema;
 
-export const hrGetPeriodStatus403Schema = z.unknown();
+export const hrGetPeriodStatus403Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
-export const hrGetPeriodStatus404Schema = z.unknown();
+export const hrGetPeriodStatus404Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
 export const hrGetPeriodStatus422Schema =
   validationErrorResponseSchema.describe(

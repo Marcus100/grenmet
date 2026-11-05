@@ -4,6 +4,7 @@
  */
 
 import * as z from "zod";
+import { apiErrorSchema } from "./apiErrorSchema.js";
 import { leaveTypeSchema } from "./leaveTypeSchema.js";
 import { validationErrorResponseSchema } from "./validationErrorResponseSchema.js";
 import { workingDaysPublicSchema } from "./workingDaysPublicSchema.js";
@@ -23,11 +24,17 @@ export const hrGetWorkingDaysQueryLeaveTypeSchema = z
 
 export const hrGetWorkingDaysStatus200Schema = workingDaysPublicSchema;
 
-export const hrGetWorkingDaysStatus400Schema = z.unknown();
+export const hrGetWorkingDaysStatus400Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
-export const hrGetWorkingDaysStatus401Schema = z.unknown();
+export const hrGetWorkingDaysStatus401Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
-export const hrGetWorkingDaysStatus403Schema = z.unknown();
+export const hrGetWorkingDaysStatus403Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
 export const hrGetWorkingDaysStatus422Schema =
   validationErrorResponseSchema.describe(

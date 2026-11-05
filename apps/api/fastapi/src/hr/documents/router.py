@@ -2,12 +2,14 @@ import uuid
 from datetime import date
 from typing import Annotated, Any
 
-from fastapi import APIRouter, File, Form, HTTPException, Query, UploadFile, status
+from fastapi import APIRouter, File, Form, Query, UploadFile, status
 from fastapi.responses import RedirectResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.auth.models import User
 from src.dependencies import CurrentUser, SessionDep
+from src.exceptions import AppException
+from src.models import ApiError
 from src.openapi_responses import AUTHENTICATED
 from src.pagination import PaginationDep
 from src.storage.service import StorageNotConfiguredError
@@ -52,8 +54,14 @@ async def _document_public(
     ),
     responses={
         status.HTTP_201_CREATED: {"description": "Document stored"},
-        status.HTTP_400_BAD_REQUEST: {"description": "Rejected file or date range"},
-        status.HTTP_403_FORBIDDEN: {"description": "Insufficient permission"},
+        status.HTTP_400_BAD_REQUEST: {
+            "model": ApiError,
+            "description": "Rejected file or date range",
+        },
+        status.HTTP_403_FORBIDDEN: {
+            "model": ApiError,
+            "description": "Insufficient permission",
+        },
         status.HTTP_503_SERVICE_UNAVAILABLE: {"description": "Storage not configured"},
     },
 )
@@ -101,9 +109,8 @@ async def upload_document(
         )
         return await _document_public(session, current_user, document)
     except StorageNotConfiguredError:
-        raise HTTPException(
-            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-            detail=_STORAGE_UNAVAILABLE,
+        raise AppException(
+            _STORAGE_UNAVAILABLE, status.HTTP_503_SERVICE_UNAVAILABLE
         ) from None
 
 
@@ -118,7 +125,10 @@ async def upload_document(
     ),
     responses={
         status.HTTP_200_OK: {"description": "Documents returned"},
-        status.HTTP_403_FORBIDDEN: {"description": "Insufficient permission"},
+        status.HTTP_403_FORBIDDEN: {
+            "model": ApiError,
+            "description": "Insufficient permission",
+        },
     },
 )
 async def read_documents(
@@ -208,8 +218,14 @@ async def read_document_employees(
     description="Return a launch-category document within the same scope as document lists.",
     responses={
         status.HTTP_200_OK: {"description": "Document returned"},
-        status.HTTP_403_FORBIDDEN: {"description": "Insufficient permission"},
-        status.HTTP_404_NOT_FOUND: {"description": "Document not found"},
+        status.HTTP_403_FORBIDDEN: {
+            "model": ApiError,
+            "description": "Insufficient permission",
+        },
+        status.HTTP_404_NOT_FOUND: {
+            "model": ApiError,
+            "description": "Document not found",
+        },
     },
 )
 async def read_document(
@@ -232,8 +248,14 @@ async def read_document(
     ),
     responses={
         status.HTTP_307_TEMPORARY_REDIRECT: {"description": "Redirect to storage"},
-        status.HTTP_403_FORBIDDEN: {"description": "Insufficient permission"},
-        status.HTTP_404_NOT_FOUND: {"description": "Document not found"},
+        status.HTTP_403_FORBIDDEN: {
+            "model": ApiError,
+            "description": "Insufficient permission",
+        },
+        status.HTTP_404_NOT_FOUND: {
+            "model": ApiError,
+            "description": "Document not found",
+        },
         status.HTTP_503_SERVICE_UNAVAILABLE: {"description": "Storage not configured"},
     },
 )
@@ -245,9 +267,8 @@ async def download_document(
             session=session, current_user=current_user, document_id=document_id
         )
     except StorageNotConfiguredError:
-        raise HTTPException(
-            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-            detail=_STORAGE_UNAVAILABLE,
+        raise AppException(
+            _STORAGE_UNAVAILABLE, status.HTTP_503_SERVICE_UNAVAILABLE
         ) from None
     return RedirectResponse(
         url,
@@ -266,9 +287,18 @@ async def download_document(
     ),
     responses={
         status.HTTP_200_OK: {"description": "Document updated"},
-        status.HTTP_400_BAD_REQUEST: {"description": "Invalid date range"},
-        status.HTTP_403_FORBIDDEN: {"description": "Insufficient permission"},
-        status.HTTP_404_NOT_FOUND: {"description": "Document not found"},
+        status.HTTP_400_BAD_REQUEST: {
+            "model": ApiError,
+            "description": "Invalid date range",
+        },
+        status.HTTP_403_FORBIDDEN: {
+            "model": ApiError,
+            "description": "Insufficient permission",
+        },
+        status.HTTP_404_NOT_FOUND: {
+            "model": ApiError,
+            "description": "Document not found",
+        },
     },
 )
 async def patch_document(
@@ -297,8 +327,14 @@ async def patch_document(
     ),
     responses={
         status.HTTP_200_OK: {"description": "Document archived"},
-        status.HTTP_403_FORBIDDEN: {"description": "Insufficient permission"},
-        status.HTTP_404_NOT_FOUND: {"description": "Document not found"},
+        status.HTTP_403_FORBIDDEN: {
+            "model": ApiError,
+            "description": "Insufficient permission",
+        },
+        status.HTTP_404_NOT_FOUND: {
+            "model": ApiError,
+            "description": "Document not found",
+        },
     },
 )
 async def archive_document(

@@ -32,7 +32,8 @@ type Issued =
   | { readonly kind: "ok"; readonly grants: readonly MembershipGrantPublic[] };
 
 /**
- * Removes a member from the organisation (owners and admins). Opening it asks
+ * Removes a member's access (owners and admins). From the Events app that is
+ * their Events access in this organisation only; the toast says so. Opening it asks
  * the API which roles this person gave to others, because removal takes those
  * away too; the list is shown before the admin confirms.
  */
@@ -89,7 +90,11 @@ export function RemoveMemberDialog({
     const result = await perform(() => removeMember({ membershipId }));
     if (result.ok) {
       setOpen(false);
-      feedback.notice(`${memberName} was removed from the organisation.`);
+      feedback.notice(
+        result.data === "events"
+          ? `${memberName} was removed from Events in this organisation.`
+          : `${memberName} was removed from the organisation.`
+      );
       router.refresh();
       return;
     }
@@ -107,7 +112,7 @@ export function RemoveMemberDialog({
       <AlertDialogTrigger
         render={
           <Button
-            aria-label={`Remove ${memberName} from the organisation`}
+            aria-label={`Remove ${memberName} from Events in this organisation`}
             className="min-h-11"
             type="button"
             variant="outline"
@@ -120,14 +125,15 @@ export function RemoveMemberDialog({
         <AlertDialogHeader>
           <AlertDialogTitle>Remove {memberName}?</AlertDialogTitle>
           <AlertDialogDescription>
-            They lose access to this organisation and every role they hold. Any
-            role they gave to other people is taken away too. Roles those people
-            passed on again stay until you take them away.
+            They lose their Events access in this organisation and the Events
+            roles they hold here. Any Events role they gave to other people in
+            this organisation is taken away too. Roles those people passed on
+            again stay until you take them away.
           </AlertDialogDescription>
         </AlertDialogHeader>
 
         <section aria-labelledby={issuedTitleId} className="space-y-2">
-          <h3 className="font-medium text-body" id={issuedTitleId}>
+          <h3 className="text-body font-medium" id={issuedTitleId}>
             Roles {memberName} gave to others
           </h3>
           {issued.kind === "loading" ? (
@@ -157,7 +163,7 @@ export function RemoveMemberDialog({
             </p>
           ) : null}
           {issued.kind === "ok" && issued.grants.length > 0 ? (
-            <ul className="space-y-1 text-body">
+            <ul className="text-body space-y-1">
               {issued.grants.map((grant) => (
                 <li key={grant.id}>
                   {bundleCopy(grant.role_key).title} for {grant.member_name}
@@ -171,7 +177,7 @@ export function RemoveMemberDialog({
         </section>
 
         <p
-          className="font-medium text-body text-destructive empty:hidden"
+          className="text-body text-destructive font-medium empty:hidden"
           role="alert"
         >
           {error}

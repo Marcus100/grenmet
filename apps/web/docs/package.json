@@ -12,7 +12,7 @@
     "check": "biome check .",
     "check:fix": "biome check --write .",
     "check:ci": "biome ci .",
-    "test": "vitest run",
+    "test": "content-collections build && vitest run",
     "type-check": "rm -f next-env.d.ts && rm -rf .next/dev/types && next typegen && content-collections build && tsc --noEmit"
   },
   "type": "module",

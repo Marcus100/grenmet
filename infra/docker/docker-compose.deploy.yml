@@ -111,6 +111,9 @@ services:
     logging: *bounded-logging
     image: ${REGISTRY}/${IMAGE_NAME}:${TAG}
     restart: always
+    # uvicorn drains in-flight requests for 15 s (Dockerfile.prod), then the
+    # lifespan closes six database engines; leave room for both before SIGKILL.
+    stop_grace_period: 25s
     healthcheck:
       test: ["CMD", "curl", "--fail", "--silent", "--show-error", "http://127.0.0.1:8000/api/v1/utils/ready/"]
       interval: 30s
@@ -140,6 +143,13 @@ services:
       POSTGRES_DB: ${POSTGRES_DB}
       POSTGRES_USER: ${FASTAPI_DB_USER:?FASTAPI_DB_USER required}
       POSTGRES_PASSWORD: ${FASTAPI_DB_PASSWORD:?FASTAPI_DB_PASSWORD required}
+      # Worker processes and main pool per process (docs/env.md: keep the total
+      # connection budget under Postgres max_connections before raising them).
+      WEB_CONCURRENCY: ${WEB_CONCURRENCY:-1}
+      DB_POOL_SIZE: ${DB_POOL_SIZE:-5}
+      DB_MAX_OVERFLOW: ${DB_MAX_OVERFLOW:-10}
+      DB_POOL_TIMEOUT: ${DB_POOL_TIMEOUT:-10}
+      DB_POOL_RECYCLE: ${DB_POOL_RECYCLE:-1800}
       SECRET_KEY: ${SECRET_KEY}
       AUTH_PRIVILEGED_MFA_MODE: ${AUTH_PRIVILEGED_MFA_MODE:-disabled}
       AUTH_TOTP_ENCRYPTION_KEYS: ${AUTH_TOTP_ENCRYPTION_KEYS:-[]}
@@ -168,6 +178,14 @@ services:
       BACKEND_CORS_ORIGINS: ${BACKEND_CORS_ORIGINS}
       # Single sign-on (ADR-0017): each app's URL and the secret its server
       # presents to redeem codes. Events is optional; staff apps are required.
+      # Shared with the web hosts that forward the visitor address (web-events,
+      # web-gms, web-bookings),
+      # so rate limits key on the visitor, not the web container (src/rate_limit.py).
+      TRUSTED_WEB_SECRET: ${TRUSTED_WEB_SECRET:?TRUSTED_WEB_SECRET required}
+      # Browser calls straight to api.*: proxies appending to X-Forwarded-For in
+      # front of the API (1: Traefik; 2: Cloudflare then Traefik). Set by
+      # render-env.py from CLOUDFLARE_PROXY_ENABLED.
+      VISITOR_IP_PROXY_HOPS: ${VISITOR_IP_PROXY_HOPS:-1}
       EVENTS_APP_URL: https://events.${BASE_DOMAIN}
       EVENTS_SSO_CLIENT_SECRET: ${EVENTS_SSO_CLIENT_SECRET:-}
       GMSDASH_APP_URL: https://gmsdash.${BASE_DOMAIN}
@@ -180,6 +198,10 @@ services:
       # superusers only). Empty secret keeps its sign-in off.
       BARRELS_ADMIN_APP_URL: https://admin.${BASE_DOMAIN}
       BARRELS_ADMIN_SSO_CLIENT_SECRET: ${BARRELS_ADMIN_SSO_CLIENT_SECRET:-}
+      # CAP warning desk (apps/web/cap at /desk, registry key cap, staff scope).
+      # Empty secret keeps its sign-in off; the public alert pages are unaffected.
+      CAP_APP_URL: https://cap.${BASE_DOMAIN}
+      CAP_SSO_CLIENT_SECRET: ${CAP_SSO_CLIENT_SECRET:-}
       CMS_APP_URL: https://cms.${BASE_DOMAIN}
       CMS_SSO_CLIENT_SECRET: ${CMS_SSO_CLIENT_SECRET:?CMS_SSO_CLIENT_SECRET required}
       # Public sites with "Sign in" (optional; empty keeps it off per site).
@@ -191,9 +213,6 @@ services:
       SIGNAL_SSO_CLIENT_SECRET: ${SIGNAL_SSO_CLIENT_SECRET:-}
       DOCS_APP_URL: https://docs.${BASE_DOMAIN}
       DOCS_SSO_CLIENT_SECRET: ${DOCS_SSO_CLIENT_SECRET:-}
-      # Elections is hosted on Vercel; its secret is set there and here.
-      ELECTIONS_APP_URL: https://elections.${BASE_DOMAIN}
-      ELECTIONS_SSO_CLIENT_SECRET: ${ELECTIONS_SSO_CLIENT_SECRET:-}
       RESEND_API_KEY: ${RESEND_API_KEY}
       # Optional integrations (2026-10-18); empty values fall back to defaults.
       MBIA_CONTACT_RECIPIENT: ${MBIA_CONTACT_RECIPIENT:-}
@@ -223,6 +242,10 @@ services:
       PAYMENTS_STRIPE_WEBHOOK_SECRET: ${PAYMENTS_STRIPE_WEBHOOK_SECRET:-}
       PAYMENTS_STRIPE_SUCCESS_URL: ${PAYMENTS_STRIPE_SUCCESS_URL:-}
       PAYMENTS_STRIPE_CANCEL_URL: ${PAYMENTS_STRIPE_CANCEL_URL:-}
+      SOCIAL_LINK_HOSTS: ${SOCIAL_LINK_HOSTS:-}
+      SOCIAL_IMAGE_HOSTS: ${SOCIAL_IMAGE_HOSTS:-}
+      CMS_DISTRIBUTION_SECRET: ${CMS_DISTRIBUTION_SECRET:-}
+      PAYSLIP_HMAC_KEYS: ${PAYSLIP_HMAC_KEYS:-}
       SUBSCRIPTIONS_SITE_URLS: ${SUBSCRIPTIONS_SITE_URLS:-}
       GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
       GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-}
@@ -297,6 +320,11 @@ services:
       POSTGRES_DB: ${POSTGRES_DB}
       POSTGRES_USER: ${FASTAPI_DB_USER:?FASTAPI_DB_USER required}
       POSTGRES_PASSWORD: ${FASTAPI_DB_PASSWORD:?FASTAPI_DB_PASSWORD required}
+      # Main pool per worker process (docs/env.md connection budget).
+      DB_POOL_SIZE: ${DB_POOL_SIZE:-5}
+      DB_MAX_OVERFLOW: ${DB_MAX_OVERFLOW:-10}
+      DB_POOL_TIMEOUT: ${DB_POOL_TIMEOUT:-10}
+      DB_POOL_RECYCLE: ${DB_POOL_RECYCLE:-1800}
       SECRET_KEY: ${SECRET_KEY}
       AUTH_PRIVILEGED_MFA_MODE: ${AUTH_PRIVILEGED_MFA_MODE:-disabled}
       AUTH_TOTP_ENCRYPTION_KEYS: ${AUTH_TOTP_ENCRYPTION_KEYS:-[]}
@@ -339,6 +367,9 @@ services:
       PAYMENTS_STRIPE_WEBHOOK_SECRET: ${PAYMENTS_STRIPE_WEBHOOK_SECRET:-}
       PAYMENTS_STRIPE_SUCCESS_URL: ${PAYMENTS_STRIPE_SUCCESS_URL:-}
       PAYMENTS_STRIPE_CANCEL_URL: ${PAYMENTS_STRIPE_CANCEL_URL:-}
+      META_PAGE_ID: ${META_PAGE_ID:-}
+      META_INSTAGRAM_ACCOUNT_ID: ${META_INSTAGRAM_ACCOUNT_ID:-}
+      META_PAGE_ACCESS_TOKEN: ${META_PAGE_ACCESS_TOKEN:-}
       SUBSCRIPTIONS_SITE_URLS: ${SUBSCRIPTIONS_SITE_URLS:-}
       EMAILS_FROM_EMAIL: ${EMAILS_FROM_EMAIL}
       EMAIL_RENDER_URL: ${EMAIL_RENDER_URL:-}
@@ -415,6 +446,13 @@ services:
     image: ghcr.io/${GHCR_OWNER}/barrelsgd-web-cms-migrate:${WEB_TAG}
     restart: "no"
     environment: &cms-environment
+      # Public settings read at run time (issue #1019): one image serves every environment.
+      # Shared with web-cms through the cms-environment anchor.
+      NEXT_PUBLIC_SITE_URL: https://cms.${BASE_DOMAIN}
+      NEXT_PUBLIC_API_URL: https://api.${BASE_DOMAIN}
+      NEXT_PUBLIC_ENVIRONMENT: ${ENVIRONMENT}
+      NEXT_PUBLIC_RELEASE: ${SENTRY_RELEASE:-}
+      NEXT_PUBLIC_TURNSTILE_SITE_KEY: ${NEXT_PUBLIC_TURNSTILE_SITE_KEY:-}
       DATABASE_URL: ${CMS_DATABASE_URL:?CMS_DATABASE_URL required}
       CMS_DB_NAME: ${CMS_DB_NAME}
       PAYLOAD_SECRET: ${PAYLOAD_SECRET:?PAYLOAD_SECRET required}
@@ -426,6 +464,11 @@ services:
       AUTH_API_URL: http://api:8000
       AUTH_APP_URL: https://auth.${BASE_DOMAIN}
       CMS_SSO_CLIENT_SECRET: ${CMS_SSO_CLIENT_SECRET:?CMS_SSO_CLIENT_SECRET required}
+      # Sent to the API as X-CMS-Secret when an editor approves a post for social.
+      CMS_DISTRIBUTION_SECRET: ${CMS_DISTRIBUTION_SECRET:-}
+      # The weather site's public origin, the same value web-cap uses. Builds post
+      # addresses for the public newsletter feed and the social send.
+      GMS_SITE_URL: https://weather.${BASE_DOMAIN}
       NEXT_PUBLIC_SENTRY_DSN: ${SENTRY_DSN_CMS:-}
       NEXT_PUBLIC_SENTRY_ENVIRONMENT: ${ENVIRONMENT}
     depends_on:
@@ -472,6 +515,12 @@ services:
       retries: 3
       start_period: 20s
     environment:
+      # Public settings read at run time (issue #1019): one image serves every environment.
+      NEXT_PUBLIC_SITE_URL: https://auth.${BASE_DOMAIN}
+      NEXT_PUBLIC_API_URL: https://api.${BASE_DOMAIN}
+      NEXT_PUBLIC_ENVIRONMENT: ${ENVIRONMENT}
+      NEXT_PUBLIC_RELEASE: ${SENTRY_RELEASE:-}
+      NEXT_PUBLIC_TURNSTILE_SITE_KEY: ${NEXT_PUBLIC_TURNSTILE_SITE_KEY:-}
       NEXT_PUBLIC_SENTRY_DSN: ${SENTRY_DSN_AUTH:-}
       NEXT_PUBLIC_SENTRY_ENVIRONMENT: ${ENVIRONMENT}
       EMAIL_RENDER_SECRET: ${EMAIL_RENDER_SECRET:-}
@@ -491,7 +540,7 @@ services:
       # lands back in it instead of on this app's home page. Each one must match its
       # entry in the api service. scripts/production/auth-return-origins.test.mjs
       # checks the two lists agree. EXTRA_RETURN_HOSTS, if set, must start with a comma.
-      AUTH_ALLOWED_RETURN_HOSTS: https://admin.${BASE_DOMAIN},https://bookings.${BASE_DOMAIN},https://cms.${BASE_DOMAIN},https://elections.${BASE_DOMAIN},https://gmsdash.${BASE_DOMAIN}${EXTRA_RETURN_HOSTS:-}
+      AUTH_ALLOWED_RETURN_HOSTS: https://admin.${BASE_DOMAIN},https://bookings.${BASE_DOMAIN},https://cap.${BASE_DOMAIN},https://cms.${BASE_DOMAIN},https://gmsdash.${BASE_DOMAIN}${EXTRA_RETURN_HOSTS:-}
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.web-auth${ROUTER_SUFFIX}.rule=Host(`auth.${BASE_DOMAIN}`)"
@@ -518,6 +567,12 @@ services:
       retries: 3
       start_period: 30s
     environment:
+      # Public settings read at run time (issue #1019): one image serves every environment.
+      NEXT_PUBLIC_SITE_URL: https://admin.${BASE_DOMAIN}
+      NEXT_PUBLIC_API_URL: https://api.${BASE_DOMAIN}
+      NEXT_PUBLIC_ENVIRONMENT: ${ENVIRONMENT}
+      NEXT_PUBLIC_RELEASE: ${SENTRY_RELEASE:-}
+      NEXT_PUBLIC_TURNSTILE_SITE_KEY: ${NEXT_PUBLIC_TURNSTILE_SITE_KEY:-}
       NEXT_PUBLIC_SENTRY_ENVIRONMENT: ${ENVIRONMENT}
       AUTH_APP_URL: https://auth.${BASE_DOMAIN}
       AUTH_API_URL: http://api:8000
@@ -549,6 +604,11 @@ services:
       # services. Give migrations and API startup time to complete before probing.
       start_period: 120s
     environment:
+      # Public settings read at run time (issue #1019): one image serves every environment.
+      NEXT_PUBLIC_SITE_URL: https://gms.${BASE_DOMAIN}
+      NEXT_PUBLIC_ENVIRONMENT: ${ENVIRONMENT}
+      NEXT_PUBLIC_RELEASE: ${SENTRY_RELEASE:-}
+      NEXT_PUBLIC_TURNSTILE_SITE_KEY: ${NEXT_PUBLIC_TURNSTILE_SITE_KEY:-}
       NEXT_PUBLIC_SENTRY_DSN: ${SENTRY_DSN_GAA_ADMIN:-}
       NEXT_PUBLIC_SENTRY_ENVIRONMENT: ${ENVIRONMENT}
       AUTH_APP_URL: https://auth.${BASE_DOMAIN}
@@ -563,6 +623,8 @@ services:
       ENVIRONMENT: ${ENVIRONMENT}
       WXPRODUCTS_DB_NAME: ${WXPRODUCTS_DB_NAME}
       CAP_API_URL: http://api:8000
+      # "Try the new desk" link on /cap during the parallel run (apps/web/cap).
+      CAP_DESK_URL: https://cap.${BASE_DOMAIN}/desk
     labels:
       - "traefik.enable=true"
       # Hostname gms.* is the Met office portal; the public weather site is the
@@ -588,6 +650,12 @@ services:
       retries: 3
       start_period: 20s
     environment:
+      # Public settings read at run time (issue #1019): one image serves every environment.
+      NEXT_PUBLIC_SITE_URL: https://docs.${BASE_DOMAIN}
+      NEXT_PUBLIC_API_URL: https://api.${BASE_DOMAIN}
+      NEXT_PUBLIC_ENVIRONMENT: ${ENVIRONMENT}
+      NEXT_PUBLIC_RELEASE: ${SENTRY_RELEASE:-}
+      NEXT_PUBLIC_TURNSTILE_SITE_KEY: ${NEXT_PUBLIC_TURNSTILE_SITE_KEY:-}
       NEXT_PUBLIC_SENTRY_DSN: ${SENTRY_DSN_DOCS:-}
       AUTH_APP_URL: https://auth.${BASE_DOMAIN}
       DOCS_SSO_CLIENT_SECRET: ${DOCS_SSO_CLIENT_SECRET:-}
@@ -616,6 +684,12 @@ services:
       retries: 3
       start_period: 20s
     environment:
+      # Public settings read at run time (issue #1019): one image serves every environment.
+      NEXT_PUBLIC_SITE_URL: https://weather.${BASE_DOMAIN}
+      NEXT_PUBLIC_API_URL: https://api.${BASE_DOMAIN}
+      NEXT_PUBLIC_ENVIRONMENT: ${ENVIRONMENT}
+      NEXT_PUBLIC_RELEASE: ${SENTRY_RELEASE:-}
+      NEXT_PUBLIC_TURNSTILE_SITE_KEY: ${NEXT_PUBLIC_TURNSTILE_SITE_KEY:-}
       NEXT_PUBLIC_SENTRY_DSN: ${SENTRY_DSN_GMS:-}
       AUTH_APP_URL: https://auth.${BASE_DOMAIN}
       WEATHER_SSO_CLIENT_SECRET: ${WEATHER_SSO_CLIENT_SECRET:-}
@@ -625,6 +699,12 @@ services:
       AUTH_API_URL: http://api:8000
       AUTH_API_V1_STR: /api/v1
       AUTH_ALLOWED_RETURN_HOSTS: .${BASE_DOMAIN}${EXTRA_RETURN_HOSTS:-}
+      # Alert sign-ups (src/lib/visitor-client.ts).
+      # Same value as the API: forwards each visitor's address (X-Visitor-IP).
+      # Hops: proxies in front of this container that append to x-forwarded-for
+      # (Traefik alone: 1; behind Cloudflare with trustedIPs: 2; render-env.py).
+      TRUSTED_WEB_SECRET: ${TRUSTED_WEB_SECRET:?TRUSTED_WEB_SECRET required}
+      VISITOR_IP_PROXY_HOPS: ${VISITOR_IP_PROXY_HOPS:-1}
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.web-gms${ROUTER_SUFFIX}.rule=Host(`weather.${BASE_DOMAIN}`)"
@@ -646,6 +726,12 @@ services:
       retries: 3
       start_period: 20s
     environment:
+      # Public settings read at run time (issue #1019): one image serves every environment.
+      NEXT_PUBLIC_SITE_URL: https://signal.${BASE_DOMAIN}
+      NEXT_PUBLIC_API_URL: https://api.${BASE_DOMAIN}
+      NEXT_PUBLIC_ENVIRONMENT: ${ENVIRONMENT}
+      NEXT_PUBLIC_RELEASE: ${SENTRY_RELEASE:-}
+      NEXT_PUBLIC_TURNSTILE_SITE_KEY: ${NEXT_PUBLIC_TURNSTILE_SITE_KEY:-}
       NEXT_PUBLIC_SENTRY_DSN: ${SENTRY_DSN_SIGNAL:-}
       AUTH_API_URL: http://api:8000
       AUTH_API_V1_STR: /api/v1
@@ -673,6 +759,12 @@ services:
       retries: 3
       start_period: 20s
     environment:
+      # Public settings read at run time (issue #1019): one image serves every environment.
+      NEXT_PUBLIC_SITE_URL: https://mbia.${BASE_DOMAIN}
+      NEXT_PUBLIC_API_URL: https://api.${BASE_DOMAIN}
+      NEXT_PUBLIC_ENVIRONMENT: ${ENVIRONMENT}
+      NEXT_PUBLIC_RELEASE: ${SENTRY_RELEASE:-}
+      NEXT_PUBLIC_TURNSTILE_SITE_KEY: ${NEXT_PUBLIC_TURNSTILE_SITE_KEY:-}
       NEXT_PUBLIC_SENTRY_DSN: ${SENTRY_DSN_MBIA:-}
       AUTH_API_URL: http://api:8000
       AUTH_API_V1_STR: /api/v1
@@ -700,10 +792,21 @@ services:
       retries: 3
       start_period: 20s
     environment:
+      # Public settings read at run time (issue #1019): one image serves every environment.
+      NEXT_PUBLIC_SITE_URL: https://events.${BASE_DOMAIN}
+      NEXT_PUBLIC_API_URL: https://api.${BASE_DOMAIN}
+      NEXT_PUBLIC_ENVIRONMENT: ${ENVIRONMENT}
+      NEXT_PUBLIC_RELEASE: ${SENTRY_RELEASE:-}
+      NEXT_PUBLIC_TURNSTILE_SITE_KEY: ${NEXT_PUBLIC_TURNSTILE_SITE_KEY:-}
       AUTH_API_URL: http://api:8000
       AUTH_API_V1_STR: /api/v1
       AUTH_APP_URL: https://auth.${BASE_DOMAIN}
       EVENTS_SSO_CLIENT_SECRET: ${EVENTS_SSO_CLIENT_SECRET:-}
+      # Same value as the API: forwards each visitor's address (X-Visitor-IP).
+      # Hops: proxies in front of this container that append to x-forwarded-for
+      # (Traefik alone: 1; behind Cloudflare with trustedIPs: 2; render-env.py).
+      TRUSTED_WEB_SECRET: ${TRUSTED_WEB_SECRET:?TRUSTED_WEB_SECRET required}
+      VISITOR_IP_PROXY_HOPS: ${VISITOR_IP_PROXY_HOPS:-1}
       NEXT_PUBLIC_SENTRY_DSN: ${SENTRY_DSN_EVENTS:-}
       NEXT_PUBLIC_SENTRY_ENVIRONMENT: ${ENVIRONMENT}
     labels:
@@ -727,9 +830,20 @@ services:
       retries: 3
       start_period: 20s
     environment:
-      # Public alert hub: server-side fetches of the unauthenticated CAP feeds
-      # only, so there is no sign-in, cookie or CORS configuration here.
+      # Public settings read at run time (issue #1019): one image serves every environment.
+      NEXT_PUBLIC_SITE_URL: https://cap.${BASE_DOMAIN}
+      NEXT_PUBLIC_API_URL: https://api.${BASE_DOMAIN}
+      NEXT_PUBLIC_ENVIRONMENT: ${ENVIRONMENT}
+      NEXT_PUBLIC_RELEASE: ${SENTRY_RELEASE:-}
+      NEXT_PUBLIC_TURNSTILE_SITE_KEY: ${NEXT_PUBLIC_TURNSTILE_SITE_KEY:-}
+      # Public alert hub: server-side fetches of the unauthenticated CAP feeds.
+      # The staff warning desk under /desk signs in through auth (ADR-0017) with
+      # its own host-only cookie; an empty secret keeps the desk's sign-in off.
       CAP_API_URL: http://api:8000
+      AUTH_API_URL: http://api:8000
+      AUTH_API_V1_STR: /api/v1
+      AUTH_APP_URL: https://auth.${BASE_DOMAIN}
+      CAP_SSO_CLIENT_SECRET: ${CAP_SSO_CLIENT_SECRET:-}
       GMS_SITE_URL: https://weather.${BASE_DOMAIN}
       NEXT_PUBLIC_SENTRY_DSN: ${SENTRY_DSN_CAP:-}
       NEXT_PUBLIC_SENTRY_ENVIRONMENT: ${ENVIRONMENT}
@@ -756,6 +870,12 @@ services:
       retries: 3
       start_period: 20s
     environment:
+      # Public settings read at run time (issue #1019): one image serves every environment.
+      NEXT_PUBLIC_SITE_URL: https://gmsdash.${BASE_DOMAIN}
+      NEXT_PUBLIC_API_URL: https://api.${BASE_DOMAIN}
+      NEXT_PUBLIC_ENVIRONMENT: ${ENVIRONMENT}
+      NEXT_PUBLIC_RELEASE: ${SENTRY_RELEASE:-}
+      NEXT_PUBLIC_TURNSTILE_SITE_KEY: ${NEXT_PUBLIC_TURNSTILE_SITE_KEY:-}
       AUTH_API_URL: http://api:8000
       AUTH_API_V1_STR: /api/v1
       AUTH_APP_URL: https://auth.${BASE_DOMAIN}
@@ -786,11 +906,23 @@ services:
       retries: 3
       start_period: 20s
     environment:
+      # Public settings read at run time (issue #1019): one image serves every environment.
+      NEXT_PUBLIC_SITE_URL: https://bookings.${BASE_DOMAIN}
+      NEXT_PUBLIC_API_URL: https://api.${BASE_DOMAIN}
+      NEXT_PUBLIC_ENVIRONMENT: ${ENVIRONMENT}
+      NEXT_PUBLIC_RELEASE: ${SENTRY_RELEASE:-}
+      NEXT_PUBLIC_TURNSTILE_SITE_KEY: ${NEXT_PUBLIC_TURNSTILE_SITE_KEY:-}
       AUTH_API_URL: http://api:8000
       AUTH_API_V1_STR: /api/v1
       AUTH_APP_URL: https://auth.${BASE_DOMAIN}
       # Optional: empty keeps sign-in off (single sign-on, ADR-0017).
       BOOKINGS_SSO_CLIENT_SECRET: ${BOOKINGS_SSO_CLIENT_SECRET:-}
+      # Booking and code requests (src/lib/booking-api.ts).
+      # Same value as the API: forwards each visitor's address (X-Visitor-IP).
+      # Hops: proxies in front of this container that append to x-forwarded-for
+      # (Traefik alone: 1; behind Cloudflare with trustedIPs: 2; render-env.py).
+      TRUSTED_WEB_SECRET: ${TRUSTED_WEB_SECRET:?TRUSTED_WEB_SECRET required}
+      VISITOR_IP_PROXY_HOPS: ${VISITOR_IP_PROXY_HOPS:-1}
       NEXT_PUBLIC_SENTRY_DSN: ${SENTRY_DSN_BOOKINGS:-}
       NEXT_PUBLIC_SENTRY_ENVIRONMENT: ${ENVIRONMENT}
     labels:
@@ -860,7 +992,7 @@ services:
   # ── Reverse proxy ────────────────────────────────────────────────────────────
   proxy:
     logging: *bounded-logging
-    image: traefik:v3.7@sha256:9c3b91d5fb7770853ca5c1124a23c34bf2d9b47ffaebeab2614cbaf410dcb2ac
+    image: traefik:v3.7@sha256:1336e85aaed293bd63d005086e0dd013b04078b26aaeb1c18b26a2f928af7e65
     restart: always
     depends_on:
       - traefik-socket-proxy
@@ -897,18 +1029,27 @@ services:
       - --entrypoints.web.http.redirections.entrypoint.scheme=https
       - --entrypoints.web.http.redirections.entrypoint.permanent=true
       - --entrypoints.websecure.address=:443
+      # Forwarded headers (X-Forwarded-For and friends): trusted from nobody
+      # (Traefik's default, spelled out) unless CLOUDFLARE_PROXY_ENABLED, when
+      # render-env.py sets `trustedIPs=<Cloudflare ranges>` from
+      # infra/cloudflare/ip-ranges.txt. docs/operations/cloudflare-proxy.md.
+      - --entrypoints.websecure.forwardedHeaders.${TRAEFIK_FORWARDED_HEADERS:-insecure=false}
       # Read 60s = Traefik's default (a 25 MiB HR upload at ~3.5 Mbit/s); write
       # 120s covers upload + synchronous PDF rendering + buffered response; idle
       # 180s = Traefik's default keep-alive.
       - --entrypoints.websecure.transport.respondingtimeouts.readtimeout=60s
       - --entrypoints.websecure.transport.respondingtimeouts.writetimeout=120s
       - --entrypoints.websecure.transport.respondingtimeouts.idletimeout=180s
-      # Security headers and the per-client concurrency cap on every HTTPS
-      # request (middlewares defined in labels below).
-      - --entrypoints.websecure.http.middlewares=secure-headers${ROUTER_SUFFIX}@docker,inflight-per-ip${ROUTER_SUFFIX}@docker
+      # Security headers, the per-client concurrency cap and removal of the
+      # Cloudflare origin secret on every HTTPS request (middlewares defined in
+      # labels below).
+      - --entrypoints.websecure.http.middlewares=secure-headers${ROUTER_SUFFIX}@docker,inflight-per-ip${ROUTER_SUFFIX}@docker,strip-origin-secret${ROUTER_SUFFIX}@docker
       - --certificatesresolvers.letsencrypt.acme.email=${EMAIL}
       - --certificatesresolvers.letsencrypt.acme.storage=/certificates/acme.json
-      - --certificatesresolvers.letsencrypt.acme.tlschallenge=true
+      # TLS-ALPN challenge by default. Behind Cloudflare's proxy Cloudflare ends
+      # TLS, so render-env.py switches to the HTTP challenge on :80
+      # (`httpchallenge.entrypoint=web`); it wins over the entrypoint redirect.
+      - --certificatesresolvers.letsencrypt.acme.${TRAEFIK_ACME_CHALLENGE:-tlschallenge=true}
       # JSON to stdout; request headers and query strings (tokens, emails) dropped.
       - --accesslog
       - --accesslog.format=json
@@ -946,11 +1087,28 @@ services:
       - "traefik.http.middlewares.secure-headers${ROUTER_SUFFIX}.headers.referrerPolicy=strict-origin-when-cross-origin"
       - "traefik.http.middlewares.secure-headers${ROUTER_SUFFIX}.headers.permissionsPolicy=camera=(), microphone=(), geolocation=(), payment=(), usb=()"
       - "traefik.http.middlewares.secure-headers${ROUTER_SUFFIX}.headers.customResponseHeaders.Cross-Origin-Opener-Policy=same-origin-allow-popups"
-      # At most 100 concurrent requests per client IP (DNS-only Cloudflare, so
-      # the remote address is the client). Without ipStrategy Traefik would group
-      # by Host header instead.
+      # At most 100 concurrent requests per client IP. Depth 0 (DNS-only
+      # Cloudflare): the remote address is the client. Depth 1 (Cloudflare
+      # proxy, render-env.py): the right-most X-Forwarded-For entry, which
+      # Cloudflare wrote, because the remote address is a Cloudflare edge.
+      # Without ipStrategy Traefik would group by Host header instead.
       - "traefik.http.middlewares.inflight-per-ip${ROUTER_SUFFIX}.inflightreq.amount=100"
-      - "traefik.http.middlewares.inflight-per-ip${ROUTER_SUFFIX}.inflightreq.sourceCriterion.ipStrategy.depth=0"
+      - "traefik.http.middlewares.inflight-per-ip${ROUTER_SUFFIX}.inflightreq.sourceCriterion.ipStrategy.depth=${TRAEFIK_CLIENT_IP_DEPTH:-0}"
+      # Origin gate (docs/operations/cloudflare-proxy.md). With
+      # CLOUDFLARE_PROXY_ENABLED, render-env.py sets the rule: a connection from a
+      # Cloudflare address WITHOUT the zone's secret X-Barrels-Origin header (added
+      # by a Cloudflare Transform Rule) gets 403 before any other router, so
+      # another Cloudflare customer's Worker cannot reach the apps or pick its own
+      # X-Forwarded-For. Off, the rule matches nothing (no TCP client has the
+      # broadcast address). The header is removed before any app sees it.
+      - "traefik.http.routers.origin-gate${ROUTER_SUFFIX}.rule=${TRAEFIK_ORIGIN_GATE_RULE:-ClientIP(`255.255.255.255/32`)}"
+      - "traefik.http.routers.origin-gate${ROUTER_SUFFIX}.entrypoints=websecure"
+      - "traefik.http.routers.origin-gate${ROUTER_SUFFIX}.priority=1000000"
+      - "traefik.http.routers.origin-gate${ROUTER_SUFFIX}.tls=true"
+      - "traefik.http.routers.origin-gate${ROUTER_SUFFIX}.middlewares=origin-deny${ROUTER_SUFFIX}"
+      - "traefik.http.routers.origin-gate${ROUTER_SUFFIX}.service=noop@internal"
+      - "traefik.http.middlewares.origin-deny${ROUTER_SUFFIX}.ipallowlist.sourcerange=127.0.0.1/32"
+      - "traefik.http.middlewares.strip-origin-secret${ROUTER_SUFFIX}.headers.customrequestheaders.X-Barrels-Origin="
       # Request body limit for the routers that accept uploads (API, CMS, Adminer;
       # 413 above it). Largest API upload: an HR document (25 MiB,
       # src/hr/documents/service.py); event images go straight to object storage

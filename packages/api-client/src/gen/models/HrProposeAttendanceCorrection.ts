@@ -3,8 +3,10 @@
  * Do not edit manually.
  */
 
+import type { ApiError } from "./ApiError.js";
 import type { AttendanceCorrectionCreate } from "./AttendanceCorrectionCreate.js";
 import type { AttendanceCorrectionPublic } from "./AttendanceCorrectionPublic.js";
+import type { RosterRuleWarningsErrorPublic } from "./RosterRuleWarningsErrorPublic.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 
 export type HrProposeAttendanceCorrectionPath = {
@@ -18,13 +20,32 @@ export type HrProposeAttendanceCorrectionPath = {
 
 export type HrProposeAttendanceCorrectionStatus201 = AttendanceCorrectionPublic;
 
-export type HrProposeAttendanceCorrectionStatus400 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type HrProposeAttendanceCorrectionStatus400 = ApiError;
 
-export type HrProposeAttendanceCorrectionStatus403 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type HrProposeAttendanceCorrectionStatus403 = ApiError;
 
-export type HrProposeAttendanceCorrectionStatus404 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type HrProposeAttendanceCorrectionStatus404 = ApiError;
 
-export type HrProposeAttendanceCorrectionStatus409 = unknown;
+/**
+ * @description 409 body. An ordinary conflict carries only ``detail``. Roster rule
+ * warnings add ``code: ROSTER_RULE_WARNINGS``, the ``context`` and the
+ * ``violations``; resend with ``rule_override_reason`` to save anyway.
+ * @type object
+ */
+export type HrProposeAttendanceCorrectionStatus409 =
+  RosterRuleWarningsErrorPublic;
 
 /**
  * @description Validation error envelope returned for malformed requests.

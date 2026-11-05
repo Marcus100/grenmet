@@ -211,7 +211,9 @@ Landed on `dev` and staging with the GMS/GAA work of 26 October 2026; the owner 
 not yet marked [ADR-0051](../adr/0051-gms-product-model.md) Accepted. In force:
 
 - GMS alerts are green only (notice types Information, Advisory and All clear,
-  pending confirmation). Yellow, orange and red are CAP warnings, started from a
+  pending confirmation). A Green bulletin with notice type "All clear" is
+  information, not an alert in effect: the weather site lists it as
+  "All clear: <title>" and never counts it (owner decision, 30 Oct 2026). Yellow, orange and red are CAP warnings, started from a
   "Raise to warning" button that opens a pre-filled CAP draft (a repeat raise opens
   the existing open warning instead). The green alert stays in force until a
   forecaster withdraws it (open decision); the desk notes "Warning raised".
@@ -219,7 +221,16 @@ not yet marked [ADR-0051](../adr/0051-gms-product-model.md) Accepted. In force:
   is downloaded by hand; scheduled NHC pulls (every few hours 15 May to 30 November,
   every 6 hours off season) are off by default per environment.
 
+Built since (2 to 4 November 2026, PRs #1029 and #1053):
+
+- The 05:00 Marine Forecast is a forecast (kind `marine-forecast`), valid 05:00 to 05:00
+  the next day for Grenada, Carriacou and Petite Martinique waters. It imports the green
+  alerts and CAP warnings in force, has no typed small-craft field, has its own
+  printable sheet, and is covered by the overdue-forecast reminder at 05:00.
+  The older Small Craft bulletin (kind `marine`) remains a separate bulletin kind.
+
 Not built yet:
 
-- The marine bulletin becomes a 05:00 marine forecast (05:00 to 05:00 next day for
-  Grenada, Carriacou and Petite Martinique waters), with separate green marine alerts.
+- A separate `marine-alert` product kind (ADR-0051 proposed one). There is no such kind
+  in the code; marine hazards use the existing "Marine / Small Craft" and "Coastal Hazard"
+  bulletin categories and CAP.

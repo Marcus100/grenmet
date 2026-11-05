@@ -2,6 +2,9 @@
 # Compares the PR's apps/api/fastapi/openapi.json with the base branch and fails
 # on changes that break existing clients. Label the PR `breaking-change` to
 # accept them (every consumer must then be updated in the same PR).
+# Two checks run: the hand-written check-api-breaking.mjs, then oasdiff's full
+# rule set (enum, required/optional, parameter location, security, bounds),
+# tuned by scripts/api/oasdiff.yaml. The label lets both pass; findings still print.
 # Not path-filtered on purpose: the script exits fast when the spec is unchanged,
 # and a path-skipped check cannot be marked required without deadlocking PRs.
 
@@ -24,7 +27,7 @@ jobs:
   breaking:
     name: API breaking changes
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.3.1
         with:
@@ -38,3 +41,22 @@ jobs:
           flags=()
           if [ "$ALLOW_BREAKING" = "true" ]; then flags+=(--allow-breaking); fi
           node scripts/api/check-api-breaking.mjs --base "origin/${BASE_REF}" "${flags[@]}"
+      - name: Write the base branch openapi.json for oasdiff
+        if: ${{ !cancelled() }}
+        env:
+          BASE_REF: ${{ github.base_ref }}
+        run: git show "origin/${BASE_REF}:apps/api/fastapi/openapi.json" > .oasdiff-base-openapi.json
+      # Docker action: paths are relative to the workspace. review/github-token
+      # are off so no spec is uploaded to oasdiff.com and no PR comment is posted.
+      - name: Check openapi.json with oasdiff
+        if: ${{ !cancelled() }}
+        continue-on-error: ${{ contains(github.event.pull_request.labels.*.name, 'breaking-change') }}
+        uses: oasdiff/oasdiff-action/breaking@b9325c9e0a27ab65b0da3b766522cedec6be81dc # v0.1.18
+        env:
+          OASDIFF_CONFIG: scripts/api/oasdiff.yaml
+        with:
+          base: .oasdiff-base-openapi.json
+          revision: apps/api/fastapi/openapi.json
+          fail-on: ERR
+          review: "false"
+          github-token: ""

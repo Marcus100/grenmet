@@ -15,7 +15,7 @@ import { formatIsoDate } from "@/lib/format";
 const DEFAULT_BYLINE = "Eugine Whint";
 
 const DATE_IN_TEXT =
-  /(\d{1,2}(?:st|nd|rd|th) [A-Z][a-z]+,? \d{4}|[A-Z][a-z]+ \d{1,2}(?:st|nd|rd|th),? \d{4})/;
+  /(\d{1,2}(?:st|nd|rd|th) [A-Z][a-z]+,? \d{4}|[A-Z][a-z]+ \d{1,2}(?:st|nd|rd|th),? \d{4})/u;
 
 /** Wraps each spoken date in a highlight so readers can find it. */
 function highlightDates(text: string) {
@@ -52,10 +52,10 @@ export default async function UpdatePage({ params }: Props) {
   return (
     <>
       <PageHead deck={post.dek} eyebrow="Election 2026" title={post.title}>
-        <p className="mt-4 font-semibold text-base uppercase tracking-[0.07em]">
+        <p className="mt-4 text-base font-semibold tracking-[0.07em] uppercase">
           By {post.byline ?? DEFAULT_BYLINE}
         </p>
-        <p className="mt-1 text-base text-el-muted">
+        <p className="text-el-muted mt-1 text-base">
           <time className="tabular-nums" dateTime={post.at}>
             {formatIsoDate(date)}
           </time>
@@ -63,14 +63,14 @@ export default async function UpdatePage({ params }: Props) {
       </PageHead>
       <article className="mx-auto max-w-[1240px] px-4 pt-8 sm:px-6">
         {post.graphic === "election-timeline" && (
-          <figure className="m-0 mb-8 max-w-2xl border-el-ink border-y-2 py-4">
+          <figure className="border-el-ink m-0 mb-8 max-w-2xl border-y-2 py-4">
             <div className="overflow-x-auto">
               <ElectionTimeline
                 calendar={calendarFrom(campaign)}
                 now={new Date()}
               />
             </div>
-            <figcaption className="mt-2 text-el-muted text-sm leading-relaxed">
+            <figcaption className="text-el-muted mt-2 text-sm leading-relaxed">
               Dates from the Notice of Issuance of Writs, Government Gazette No.
               47, the Prime Minister’s address of 4 October (the police poll),
               and the Constitution, s. 53(1).
@@ -88,7 +88,7 @@ export default async function UpdatePage({ params }: Props) {
         )}
         <div className="max-w-prose space-y-4 text-lg leading-relaxed">
           {post.editorNote && (
-            <p className="border-el-ink border-l-4 bg-el-paper-2 px-4 py-3 text-base">
+            <p className="border-el-ink bg-el-paper-2 border-l-4 px-4 py-3 text-base">
               {post.editorNote}
             </p>
           )}
@@ -99,27 +99,27 @@ export default async function UpdatePage({ params }: Props) {
         {post.keyDates && (
           <aside
             aria-labelledby="key-dates"
-            className="mt-8 max-w-prose border-el-ink border-y-2 bg-el-flag-gold-tint p-5"
+            className="border-el-ink bg-el-flag-gold-tint mt-8 max-w-prose border-y-2 p-5"
           >
             <h2
-              className="font-semibold text-el-muted text-sm uppercase tracking-[0.07em]"
+              className="text-el-muted text-sm font-semibold tracking-[0.07em] uppercase"
               id="key-dates"
             >
               Dates to know
             </h2>
-            <dl className="mt-3 divide-y divide-el-rule">
+            <dl className="divide-el-rule mt-3 divide-y">
               {post.keyDates.map((d) => (
                 <div
                   className="grid gap-x-4 py-3 sm:grid-cols-[11rem_1fr]"
                   key={d.date}
                 >
-                  <dt className="font-bold font-serif text-xl tabular-nums">
+                  <dt className="font-serif text-xl font-bold tabular-nums">
                     <time dateTime={d.date}>{formatIsoDate(d.date)}</time>
                   </dt>
                   <dd className="text-base">
                     <span className="font-semibold">{d.label}</span>
                     {d.note && (
-                      <span className="block text-el-muted">{d.note}</span>
+                      <span className="text-el-muted block">{d.note}</span>
                     )}
                   </dd>
                 </div>
@@ -129,7 +129,7 @@ export default async function UpdatePage({ params }: Props) {
         )}
         {post.sections?.map((section) => (
           <section className="mt-8 max-w-prose" key={section.heading}>
-            <h2 className="font-bold font-serif text-2xl">{section.heading}</h2>
+            <h2 className="font-serif text-2xl font-bold">{section.heading}</h2>
             <div className="mt-3 space-y-4 text-lg leading-relaxed">
               {section.paragraphs.map((paragraph) => (
                 <p key={paragraph}>{paragraph}</p>
@@ -142,7 +142,7 @@ export default async function UpdatePage({ params }: Props) {
             {post.attachments.map((file) => (
               <li key={file.href}>
                 <a
-                  className="flex min-h-11 items-start gap-3 border border-el-rule-2 bg-el-flag-gold-tint p-4 hover:border-el-ink"
+                  className="border-el-rule-2 bg-el-flag-gold-tint hover:border-el-ink flex min-h-11 items-start gap-3 border p-4"
                   download
                   href={file.href}
                 >
@@ -154,7 +154,7 @@ export default async function UpdatePage({ params }: Props) {
                     <span className="block font-semibold underline underline-offset-4">
                       Download: {file.label}
                     </span>
-                    <span className="text-base text-el-muted">{file.size}</span>
+                    <span className="text-el-muted text-base">{file.size}</span>
                   </span>
                 </a>
               </li>
@@ -164,21 +164,21 @@ export default async function UpdatePage({ params }: Props) {
       </article>
       {post.transcript && (
         <Section id="transcript" title={post.transcript.title}>
-          <p className="max-w-prose text-base text-el-muted">
+          <p className="text-el-muted max-w-prose text-base">
             {post.transcript.note}
           </p>
-          <div className="mt-5 max-w-prose border-el-ink border-t-2 border-b pt-4 pb-2">
-            <p className="font-semibold text-el-muted text-sm uppercase tracking-[0.07em]">
+          <div className="border-el-ink mt-5 max-w-prose border-t-2 border-b pt-4 pb-2">
+            <p className="text-el-muted text-sm font-semibold tracking-[0.07em] uppercase">
               {post.transcript.speaker}
             </p>
-            <div className="mt-3 space-y-4 border-el-rule-2 border-l-4 pl-4 font-serif text-lg leading-relaxed">
+            <div className="border-el-rule-2 mt-3 space-y-4 border-l-4 pl-4 font-serif text-lg leading-relaxed">
               {post.transcript.paragraphs.map((paragraph) => (
                 <p key={paragraph}>{highlightDates(paragraph)}</p>
               ))}
             </div>
           </div>
           <a
-            className="mt-6 inline-block font-semibold text-base underline underline-offset-4"
+            className="mt-6 inline-block text-base font-semibold underline underline-offset-4"
             href={post.transcript.sourceUrl}
             rel="noopener"
             target="_blank"
@@ -191,7 +191,7 @@ export default async function UpdatePage({ params }: Props) {
         <Section id="table" title="Returning offices">
           <div className="overflow-x-auto">
             <table className="w-full min-w-[40rem] border-collapse text-left text-base">
-              <caption className="mb-3 text-left text-el-muted">
+              <caption className="text-el-muted mb-3 text-left">
                 {post.table.caption}
               </caption>
               <thead>
@@ -207,7 +207,7 @@ export default async function UpdatePage({ params }: Props) {
                   ))}
                 </tr>
               </thead>
-              <tbody className="divide-y divide-el-rule">
+              <tbody className="divide-el-rule divide-y">
                 {post.table.rows.map((row) => (
                   <tr key={row.join("|")}>
                     {row.map((cell, i) =>
@@ -256,7 +256,7 @@ export default async function UpdatePage({ params }: Props) {
           ))}
         </ul>
         <Link
-          className="mt-6 inline-block font-semibold text-base underline underline-offset-4"
+          className="mt-6 inline-block text-base font-semibold underline underline-offset-4"
           href="/2026#latest"
         >
           More election coverage →

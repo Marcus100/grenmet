@@ -4,13 +4,16 @@
  */
 
 import * as z from "zod";
+import { apiErrorSchema } from "./apiErrorSchema.js";
 import { pushAcceptedSchema } from "./pushAcceptedSchema.js";
 import { pushSubscribeRequestSchema } from "./pushSubscribeRequestSchema.js";
 import { validationErrorResponseSchema } from "./validationErrorResponseSchema.js";
 
 export const pushSubscribeStatus201Schema = pushAcceptedSchema;
 
-export const pushSubscribeStatus400Schema = z.unknown();
+export const pushSubscribeStatus400Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
 export const pushSubscribeStatus422Schema =
   validationErrorResponseSchema.describe(

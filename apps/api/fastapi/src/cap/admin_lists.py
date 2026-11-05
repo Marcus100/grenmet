@@ -1,13 +1,15 @@
 """Settings, catalogues, predefined areas, audit events and integrations."""
 
 import uuid
+from typing import Any
 
 import sqlalchemy as sa
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.auth.models import User
-from src.auth.policy import require_permission
+from src.auth.policy import require_any_permission, require_permission
+from src.cap import catalogue
 from src.cap.common import _record_audit
 from src.cap.mapping import _predefined_area_to_public
 from src.cap.models import (
@@ -29,11 +31,18 @@ from src.cap.models import (
 from src.cap.schemas import (
     CapAuditEventPublic,
     CapCatalogsPublic,
+    CapCategoryLabelPublic,
+    CapColourRulePublic,
+    CapHazardGroupPublic,
+    CapParishPublic,
     CapPredefinedAreaCreate,
     CapPredefinedAreaPublic,
+    CapProductRulePublic,
     CapSettingsPublic,
     CapSettingsUpdate,
+    GmsCataloguePublic,
 )
+from src.cap.tasks import NOT_CONFIGURED_CHANNELS
 from src.utils.datetime import utc_now
 
 
@@ -58,12 +67,32 @@ async def read_settings(
     return CapSettingsPublic.model_validate(settings, from_attributes=True)
 
 
+# Settings fields whose values are masked in the audit trail. The value is a reference
+# to the signing material, and the audit trail is read by every CAP desk user.
+SENSITIVE_SETTINGS_FIELDS = frozenset({"signing_certificate_ref"})
+
+
+def _settings_change(*, field: str, old: object, new: object) -> dict[str, Any]:
+    """One audit change, shaped like ``src.audit.listener`` rows (field, old, new, sensitive).
+
+    A sensitive field keeps its name and a ``masked`` flag, but not its values.
+    """
+    if field in SENSITIVE_SETTINGS_FIELDS:
+        return {"field": field, "sensitive": True, "masked": True}
+    return {"field": field, "old": old, "new": new, "sensitive": False}
+
+
 async def update_settings(
     *, session: AsyncSession, current_user: User, payload: CapSettingsUpdate
 ) -> CapSettingsPublic:
     require_permission(current_user=current_user, permission_key="cap.settings.manage")
     settings = await get_or_create_settings(session=session)
+    changes: list[dict[str, Any]] = []
     for key, value in payload.model_dump(exclude_unset=True).items():
+        old = getattr(settings, key)
+        if old == value:
+            continue
+        changes.append(_settings_change(field=key, old=old, new=value))
         setattr(settings, key, value)
     settings.updated_at = utc_now()
     session.add(settings)
@@ -74,6 +103,7 @@ async def update_settings(
         action="settings.update",
         previous_state=None,
         next_state=None,
+        payload={"changes": changes},
     )
     await session.commit()
     await session.refresh(settings)
@@ -92,6 +122,49 @@ def get_catalogs(*, current_user: User) -> CapCatalogsPublic:
         message_types=[item.value for item in CapMessageType],
         scopes=[item.value for item in CapScope],
         languages=["en"],
+    )
+
+
+def get_gms_catalogue(*, current_user: User) -> GmsCataloguePublic:
+    # Reference data, not sensitive: anyone who can open the CAP desk or the
+    # wxproducts desk (app.weather.access) reads the hazard list and colour rules.
+    require_any_permission(
+        current_user=current_user,
+        permission_keys=("cap.alert.read", "app.weather.access"),
+    )
+    return GmsCataloguePublic(
+        hazard_groups=[
+            CapHazardGroupPublic(
+                label=group.label,
+                categories=list(group.categories),
+                events=list(group.events),
+            )
+            for group in catalogue.HAZARD_GROUPS
+        ],
+        category_labels=[
+            CapCategoryLabelPublic(key=category, label=label)
+            for category, label in catalogue.CATEGORY_LABELS.items()
+        ],
+        parishes=[
+            CapParishPublic(
+                id=parish.id,
+                iso_code=parish.iso_code,
+                name=parish.name,
+                short_name=parish.short_name,
+            )
+            for parish in catalogue.PARISHES
+        ],
+        products=[
+            CapProductRulePublic(key=product.value, label=label, needs_colour=needs)
+            for product, label, needs in catalogue.product_rules()
+        ],
+        colours=[
+            CapColourRulePublic(
+                key=colour.value, label=label, awareness_code=code, severity=severity
+            )
+            for colour, label, code, severity in catalogue.colour_rules()
+        ],
+        geocode_name=catalogue.GEOCODE_NAME,
     )
 
 
@@ -186,9 +259,12 @@ async def list_integrations(
                 "port": item.port,
                 "topic": item.topic,
                 "status": item.status.value,
+                # No MQTT publisher exists yet, so no broker delivers anything.
+                "delivery": "not_configured",
             }
             for item in mqtt_brokers
         ],
+        "publish_channels": [dict(channel) for channel in NOT_CONFIGURED_CHANNELS],
         "job_events": [
             {
                 "id": str(item.id),

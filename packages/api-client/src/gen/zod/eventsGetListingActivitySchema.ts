@@ -5,6 +5,8 @@
 
 import * as z from "zod";
 import { activityEntrySchema } from "./activityEntrySchema.js";
+import { apiErrorSchema } from "./apiErrorSchema.js";
+import { errorMessageSchema } from "./errorMessageSchema.js";
 import { validationErrorResponseSchema } from "./validationErrorResponseSchema.js";
 
 export const eventsGetListingActivityPathListingIdSchema = z.uuid();
@@ -24,20 +26,31 @@ export const eventsGetListingActivityQueryLimitSchema = z
 export const eventsGetListingActivityStatus200Schema =
   z.array(activityEntrySchema);
 
-export const eventsGetListingActivityStatus401Schema = z.unknown();
+export const eventsGetListingActivityStatus401Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
-export const eventsGetListingActivityStatus403Schema = z.unknown();
+export const eventsGetListingActivityStatus403Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
-export const eventsGetListingActivityStatus404Schema = z.unknown();
+export const eventsGetListingActivityStatus404Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
-export const eventsGetListingActivityStatus409Schema = z.unknown();
+export const eventsGetListingActivityStatus409Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
 export const eventsGetListingActivityStatus422Schema =
   validationErrorResponseSchema.describe(
     "Validation error envelope returned for malformed requests."
   );
 
-export const eventsGetListingActivityStatus429Schema = z.unknown();
+export const eventsGetListingActivityStatus429Schema = z.union([
+  apiErrorSchema,
+  errorMessageSchema,
+]);
 
 export const eventsGetListingActivityResponseSchema =
   eventsGetListingActivityStatus200Schema;

@@ -87,14 +87,14 @@ export default function UserAddressCard({
     }
   };
   return (
-    <div className="rounded-xl border border-border p-5 lg:p-6">
+    <div className="border-border rounded-xl border p-5 lg:p-6">
       {isOpen ? (
         <div className="w-full">
           <div className="px-2 pr-14">
-            <h4 className="mb-2 font-semibold text-2xl text-foreground">
+            <h4 className="text-foreground mb-2 text-2xl font-semibold">
               Edit Address
             </h4>
-            <p className="mb-6 text-muted-foreground text-sm lg:mb-7">
+            <p className="text-muted-foreground mb-6 text-sm lg:mb-7">
               Update your details to keep your profile up-to-date.
             </p>
           </div>
@@ -106,7 +106,7 @@ export default function UserAddressCard({
             }}
           >
             <p
-              className="mb-4 text-destructive text-sm"
+              className="text-destructive mb-4 text-sm"
               hidden={!error}
               role="alert"
             >
@@ -231,43 +231,43 @@ export default function UserAddressCard({
         <div>
           <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
             <div>
-              <h4 className="font-semibold text-foreground text-lg lg:mb-6">
+              <h4 className="text-foreground text-lg font-semibold lg:mb-6">
                 Address
               </h4>
 
               <div className="grid grid-cols-1 gap-4 lg:grid-cols-2 lg:gap-7 2xl:gap-x-32">
                 <div>
-                  <p className="mb-2 text-muted-foreground text-xs leading-normal">
+                  <p className="text-muted-foreground mb-2 text-xs leading-normal">
                     Address Line 1
                   </p>
-                  <p className="font-medium text-foreground text-sm">
+                  <p className="text-foreground text-sm font-medium">
                     {profile.address.line_1 || "-"}
                   </p>
                 </div>
 
                 <div>
-                  <p className="mb-2 text-muted-foreground text-xs leading-normal">
+                  <p className="text-muted-foreground mb-2 text-xs leading-normal">
                     Address Line 2
                   </p>
-                  <p className="font-medium text-foreground text-sm">
+                  <p className="text-foreground text-sm font-medium">
                     {profile.address.line_2 || "-"}
                   </p>
                 </div>
 
                 <div>
-                  <p className="mb-2 text-muted-foreground text-xs leading-normal">
+                  <p className="text-muted-foreground mb-2 text-xs leading-normal">
                     City
                   </p>
-                  <p className="font-medium text-foreground text-sm">
+                  <p className="text-foreground text-sm font-medium">
                     {profile.address.city || "-"}
                   </p>
                 </div>
 
                 <div>
-                  <p className="mb-2 text-muted-foreground text-xs leading-normal">
+                  <p className="text-muted-foreground mb-2 text-xs leading-normal">
                     Parish
                   </p>
-                  <p className="font-medium text-foreground text-sm">
+                  <p className="text-foreground text-sm font-medium">
                     {PARISH_OPTIONS.find(
                       (option) => option.value === profile.address.parish
                     )?.label || "-"}
@@ -275,19 +275,19 @@ export default function UserAddressCard({
                 </div>
 
                 <div>
-                  <p className="mb-2 text-muted-foreground text-xs leading-normal">
+                  <p className="text-muted-foreground mb-2 text-xs leading-normal">
                     Postal Code
                   </p>
-                  <p className="font-medium text-foreground text-sm">
+                  <p className="text-foreground text-sm font-medium">
                     {profile.address.postal_code || "-"}
                   </p>
                 </div>
 
                 <div>
-                  <p className="mb-2 text-muted-foreground text-xs leading-normal">
+                  <p className="text-muted-foreground mb-2 text-xs leading-normal">
                     Country
                   </p>
-                  <p className="font-medium text-foreground text-sm">
+                  <p className="text-foreground text-sm font-medium">
                     {profile.address.country || "-"}
                   </p>
                 </div>
@@ -295,7 +295,7 @@ export default function UserAddressCard({
             </div>
 
             <button
-              className="flex w-full items-center justify-center gap-2 rounded-full border border-border bg-background px-4 py-3 font-medium text-foreground text-sm shadow-card hover:bg-muted hover:text-foreground lg:inline-flex lg:w-auto"
+              className="border-border bg-background text-foreground shadow-card hover:bg-muted hover:text-foreground flex w-full items-center justify-center gap-2 rounded-full border px-4 py-3 text-sm font-medium lg:inline-flex lg:w-auto"
               onClick={handleOpen}
               type="button"
             >

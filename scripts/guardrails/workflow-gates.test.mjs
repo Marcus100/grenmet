@@ -15,7 +15,8 @@ const webGate = webSource
 const apiGate = readWorkflow("ci-api.yml")
   .split("      - name: Check all jobs")[1]
   .split("        run: |\n")[1];
-const needsExpression = /\$\{\{ needs\.([a-z-]+)\.(result|outputs\.api) \}\}/g;
+const needsExpression =
+  /\$\{\{ needs\.([a-z-]+)\.(result|outputs\.api|outputs\.surface|outputs\.python|outputs\.collectors) \}\}/gu;
 
 function webResults(selected = true) {
   return Object.fromEntries(
@@ -38,6 +39,8 @@ function webResults(selected = true) {
         outputs: {
           web: selected ? '[{"app":"auth"}]' : "[]",
           weather: selected ? '[{"name":"surface"}]' : "[]",
+          webtests: selected ? "true" : "false",
+          storage: selected ? "true" : "false",
         },
       },
     ])
@@ -55,7 +58,12 @@ test("web gate accepts intentional empty selection, rejects unexpected skips and
   const omitted = webResults(false);
   omitted["container-smoke"].result = "skipped";
   omitted["weather-images"].result = "skipped";
+  for (const name of ["tests", "gaa-admin-tests", "storage-integration"])
+    omitted[name].result = "skipped";
   assert.equal(runWeb(omitted), 0);
+  const failedUnselected = structuredClone(omitted);
+  failedUnselected.tests.result = "failure";
+  assert.notEqual(runWeb(failedUnselected), 0);
   for (const name of Object.keys(webResults())) {
     for (const result of ["failure", "cancelled", "skipped"]) {
       const jobs = webResults();
@@ -67,16 +75,31 @@ test("web gate accepts intentional empty selection, rejects unexpected skips and
   assert.notEqual(runWeb(omitted), 0);
 });
 
-test("API gate permits only intentionally omitted Docker checks", () => {
-  const run = (overrides = {}, selected = "true") => {
-    const script = apiGate.replace(needsExpression, (_match, name, field) =>
-      field === "outputs.api" ? selected : (overrides[name] ?? "success")
-    );
+test("API gate permits only intentionally omitted checks", () => {
+  const run = (
+    overrides = {},
+    selected = "true",
+    surface = selected,
+    suites = {}
+  ) => {
+    const script = apiGate.replace(needsExpression, (_match, name, field) => {
+      if (field === "outputs.api") return selected;
+      if (field === "outputs.surface") return surface;
+      if (field === "outputs.python") return suites.python ?? "true";
+      if (field === "outputs.collectors") return suites.collectors ?? "true";
+      return overrides[name] ?? "success";
+    });
     return spawnSync("bash", ["-e"], { input: script }).status;
   };
+  const optional = new Set(["docker", "surface"]);
   assert.equal(run(), 0);
-  assert.equal(run({ docker: "skipped" }, "false"), 0);
+  assert.equal(run({ docker: "skipped" }, "false", "true"), 0);
   assert.notEqual(run({ docker: "skipped" }), 0);
+  assert.equal(run({ surface: "skipped" }, "true", "false"), 0);
+  assert.notEqual(run({ surface: "skipped" }), 0);
+  // A selected SURFACE run must pass even when the API image is not selected.
+  for (const result of ["failure", "cancelled", "skipped"])
+    assert.notEqual(run({ surface: result }, "false", "true"), 0, result);
   for (const job of [
     "image-selection",
     "quality",
@@ -84,15 +107,82 @@ test("API gate permits only intentionally omitted Docker checks", () => {
     "test",
     "collectors",
     "docker",
+    "surface",
     "docs",
   ])
     for (const result of ["failure", "cancelled", "skipped"])
-      if (job !== "docker" || result !== "skipped")
+      if (!optional.has(job) || result !== "skipped")
         assert.notEqual(
           run({ [job]: result }, "false"),
           0,
           `${job}: ${result}`
         );
+  // Unselected suites may be skipped, but a failure still blocks.
+  const python = ["quality", "security", "docs"];
+  const unselected = { python: "false", collectors: "false" };
+  const skipped = Object.fromEntries(
+    [...python, "collectors"].map((job) => [job, "skipped"])
+  );
+  assert.equal(run(skipped, "true", "true", unselected), 0);
+  for (const job of [...python, "collectors"])
+    assert.notEqual(
+      run({ ...skipped, [job]: "failure" }, "true", "true", unselected),
+      0,
+      job
+    );
+  assert.notEqual(
+    run({ quality: "skipped" }, "true", "true", { collectors: "false" }),
+    0
+  );
+  assert.notEqual(
+    run({ collectors: "skipped" }, "true", "true", { python: "false" }),
+    0
+  );
+});
+
+const SURFACE_DB_IMAGE =
+  /image: (timescale\/timescaledb-ha:\S+@sha256:[0-9a-f]{64})/u;
+const ACTION_REF = /uses: ([^\s#]+)/gu;
+const PINNED_ACTION = /^[\w.-]+\/[\w./-]+@[0-9a-f]{40}$/u;
+
+test("SURFACE CI builds without publishing, on the deployed database image", () => {
+  const source = readWorkflow("ci-surface.yml");
+  const compose = readFileSync(
+    new URL("../../surface/docker-compose.yml", import.meta.url),
+    "utf8"
+  );
+  assert.equal(
+    source.match(SURFACE_DB_IMAGE)?.[1],
+    compose.match(SURFACE_DB_IMAGE)?.[1],
+    "ci-surface.yml must test against surface/docker-compose.yml's database image"
+  );
+  for (const [, ref] of source.matchAll(ACTION_REF))
+    assert.match(ref, PINNED_ACTION, `pin ${ref} by full commit SHA`);
+  const login = source.indexOf("- name: Log in to Docker Hub for base images");
+  const build = source.indexOf("docker build ");
+  assert.ok(login > 0 && login < build, "authenticate before pulling bases");
+  assert.ok(
+    source
+      .slice(login, build)
+      .includes(
+        "github.event.pull_request.head.repo.full_name == github.repository"
+      )
+  );
+  for (const forbidden of ["push: true", "docker push", "packages: write"])
+    assert.ok(!source.includes(forbidden), forbidden);
+  for (const command of [
+    "manage.py check --fail-level WARNING",
+    "manage.py check --deploy",
+    "manage.py makemigrations --check --dry-run",
+    "manage.py test --noinput",
+  ])
+    assert.ok(source.includes(command), command);
+  const caller = readWorkflow("ci-api.yml").split("\n  surface:\n")[1];
+  assert.ok(caller, "ci-api.yml must call the SURFACE workflow");
+  assert.ok(
+    caller.includes("if: needs.image-selection.outputs.surface == 'true'")
+  );
+  assert.ok(caller.includes("uses: ./.github/workflows/ci-surface.yml"));
 });
 
 test("publishing follows successful smoke verification on the same builder", () => {
@@ -116,51 +206,64 @@ test("publishing follows successful smoke verification on the same builder", () 
   }
 });
 
-test("deployment waits for code checks and verified core builds without cancellation", () => {
+test("deployment promotes verified dev images without rebuilding or cancellation", () => {
   for (const workflow of ["pipeline-staging.yml", "pipeline-prod.yml"]) {
     const source = readWorkflow(workflow);
-    const deploy = source
-      .split("\n  deploy:\n")[1]
-      .split("\n  deploy-weather:")[0];
+    const deploy = source.split("\n  deploy:\n")[1].split(NEXT_JOB)[0];
+    assert.ok(deploy.includes("needs: [release-scope, promote]"), workflow);
     assert.ok(
-      deploy.includes(
-        "needs: [release-scope, ci-api, ci-web, api-client, build-api, build-web]"
-      )
+      deploy.includes("image_digests:") &&
+        deploy.includes("needs.promote.outputs.digests"),
+      workflow
     );
     assert.ok(source.includes("cancel-in-progress: false"));
-    assert.equal(source.includes("build-weather-images.yml"), false);
-    assert.equal(source.includes("deploy-weather.yml"), false);
+    // Build once (issue #1019): promotion never builds or re-runs CI.
+    for (const forbidden of [
+      "build-api-image.yml",
+      "build-web-images.yml",
+      "ci-api.yml",
+      "ci-web.yml",
+      "build-weather-images.yml",
+      "deploy-weather.yml",
+    ])
+      assert.equal(
+        source.includes(forbidden),
+        false,
+        `${workflow}: ${forbidden}`
+      );
+    assert.ok(
+      source.includes("node scripts/ci/promote-images.mjs promote "),
+      workflow
+    );
   }
+  const dev = readWorkflow("dev-images.yml");
+  assert.ok(dev.includes("uses: ./.github/workflows/build-api-image.yml"));
+  assert.ok(dev.includes("uses: ./.github/workflows/build-web-images.yml"));
+  assert.ok(dev.includes("cancel-in-progress: false"));
 });
 
-const NEXT_JOB = /\n {2}[a-z][a-z-]*:/;
-const REGISTRY_READ = /\n {6}packages: read\n/;
-const REGISTRY_WRITE = /packages: write/;
+const NEXT_JOB = /\n {2}[a-z][a-z-]*:/u;
+const REGISTRY_READ = /\n {6}packages: read\n/u;
+const REGISTRY_WRITE = /packages: write/u;
 
-test("release callers grant registry read permission required by reusable CI", () => {
+test("only promotion jobs can write to the registry, and deploy only reads", () => {
   for (const pipeline of ["pipeline-staging.yml", "pipeline-prod.yml"]) {
     const source = readWorkflow(pipeline);
-    for (const job of ["ci-api", "ci-web"]) {
-      const block = source.split(`  ${job}:\n`)[1]?.split(NEXT_JOB)[0];
-      assert.ok(block, `${pipeline}: missing ${job}`);
-      assert.match(
-        block,
-        REGISTRY_READ,
-        `${pipeline}: ${job} must allow registry reads`
-      );
-      assert.doesNotMatch(
-        block,
-        REGISTRY_WRITE,
-        `${pipeline}: CI must not publish`
-      );
-    }
+    const deploy = source.split("\n  deploy:\n")[1]?.split(NEXT_JOB)[0];
+    assert.ok(deploy, `${pipeline}: missing deploy`);
+    assert.match(deploy, REGISTRY_READ, `${pipeline}: deploy reads images`);
+    assert.doesNotMatch(
+      deploy,
+      REGISTRY_WRITE,
+      `${pipeline}: deploy must not publish`
+    );
   }
 });
 
-const DOCKERHUB_USERNAME = /username: \$\{\{ secrets\.DOCKERHUB_USERNAME \}\}/;
-const DOCKERHUB_TOKEN = /password: \$\{\{ secrets\.DOCKERHUB_TOKEN \}\}/;
+const DOCKERHUB_USERNAME = /username: \$\{\{ secrets\.DOCKERHUB_USERNAME \}\}/u;
+const DOCKERHUB_TOKEN = /password: \$\{\{ secrets\.DOCKERHUB_TOKEN \}\}/u;
 const BUILDX_STEP =
-  /\n {6}- (?:name: Set up Docker Buildx\n {8}uses: |uses: )docker\/setup-buildx-action@/;
+  /\n {6}- (?:name: Set up Docker Buildx\n {8}uses: |uses: )docker\/setup-buildx-action@/u;
 
 test("every CI and release builder authenticates before pulling the BuildKit image", () => {
   for (const workflow of [
@@ -214,4 +317,41 @@ test("database services authenticate during initialization before job steps run"
     assert.match(services, DOCKERHUB_USERNAME, workflow);
     assert.match(services, DOCKERHUB_TOKEN, workflow);
   }
+});
+
+test("promotion jobs are ref-guarded and refuse an empty digest list", () => {
+  const staging = readWorkflow("pipeline-staging.yml");
+  const prod = readWorkflow("pipeline-prod.yml");
+  const stagingPromote = staging.split("\n  promote:\n")[1].split(NEXT_JOB)[0];
+  const prodPromote = prod.split("\n  promote:\n")[1].split(NEXT_JOB)[0];
+  assert.ok(stagingPromote.includes("if: github.ref == 'refs/heads/staging'"));
+  assert.ok(prodPromote.includes("github.event_name == 'release'"));
+  assert.ok(prodPromote.includes("startsWith(github.ref, 'refs/tags/v')"));
+  for (const source of [staging, prod]) {
+    assert.ok(source.includes("Require promoted digests"));
+    assert.ok(source.includes("needs.promote.outputs.digests != ''"));
+  }
+});
+
+test("the dev image dispatch only builds commits that are on dev", () => {
+  const dev = readWorkflow("dev-images.yml");
+  assert.ok(dev.includes("git merge-base --is-ancestor"));
+  assert.ok(dev.includes("origin/dev"));
+});
+
+const RELEASE_REF = /ref: \$\{\{ needs\.heads\.outputs\.ref \}\}/u;
+const DISPATCHED_SHA = /ref: \$\{\{ github\.sha \}\}/u;
+
+test("the restore drill runs its script from the dispatched ref, not the release tag", () => {
+  const drill = readWorkflow("restore-drill.yml");
+  // The release checkout stays: its commit selects the API image to test.
+  assert.match(drill, RELEASE_REF);
+  // The tooling comes from the commit the workflow was dispatched on, so a fix to the
+  // drill can be tried before the next release.
+  assert.match(drill, DISPATCHED_SHA);
+  assert.ok(drill.includes("path: drill-tooling"));
+  assert.ok(
+    drill.includes("python3 drill-tooling/scripts/production/restore-drill.py")
+  );
+  assert.ok(!drill.includes("python3 scripts/production/restore-drill.py"));
 });

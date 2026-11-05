@@ -11,8 +11,10 @@ https://docs.djangoproject.com/en/1.11/ref/settings/
 """
 
 import os
+import warnings
 from datetime import timedelta
 from cryptography.fernet import Fernet
+from django.core.exceptions import ImproperlyConfigured
 
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
@@ -47,6 +49,20 @@ ALLOWED_HOSTS = ['*']
 
 USE_X_FORWARDED_HOST = True
 
+# Both nginx configs (surface/nginx/nginx.conf and infra/weather/surface-nginx.conf)
+# pass X-Forwarded-Proto; the weather one carries Traefik's value, so Django
+# sees https and Django 4's Origin check accepts the public https origin.
+SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+
+# Extra origins Django should trust for unsafe requests, comma separated and
+# with the scheme, for example
+# SURFACE_CSRF_TRUSTED_ORIGINS=https://surface.example.org
+CSRF_TRUSTED_ORIGINS = [
+    origin.strip()
+    for origin in os.getenv('SURFACE_CSRF_TRUSTED_ORIGINS', '').split(',')
+    if origin.strip()
+]
+
 # Application definition
 
 INSTALLED_APPS = [
@@ -59,7 +75,6 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'django.contrib.gis',
     'django_celery_beat',
-    'ckeditor',
     'wx',
     'rest_framework',
     'corsheaders',
@@ -68,21 +83,6 @@ INSTALLED_APPS = [
     'import_export',
     'simple_history',
 ]
-
-CKEDITOR_CONFIGS = {
-   'default': {
-       'toolbar_Full': [
-            ['Bold', 'Italic', 'Font'],
-            ['Format', 'Styles', 'TextColor', 'BGColor', 'RemoveFormat'],
-            ['JustifyLeft','JustifyCenter','JustifyRight','JustifyBlock', 'Indent', 'Outdent'],
-            ['HorizontalRule', 'BulletedList', '-'],
-            ['Blockquote', 'Source', 'Link', 'Unlink', 'Table', '-', 'Print']
-        ],
-        'removeButtons': 'Image',
-        'extraAllowedContent' : 'img(*){*}[*]', 
-        'extraPlugins': 'justify,liststyle,indent',
-   },
-}
 
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
@@ -123,7 +123,65 @@ WSGI_APPLICATION = 'tempestas_api.wsgi.application'
 
 SECURE_REFERRER_POLICY = "strict-origin-when-cross-origin"
 
-CORS_ORIGIN_ALLOW_ALL = True
+
+_FALSE_VALUES = ("0", "false", "no", "off")
+_TRUE_VALUES = ("1", "true", "yes", "on")
+
+
+def _secure_cookies_from_env(value):
+    """Secure cookies are on unless the value is an explicit false (0, false,
+    no, off, any case). Unset is on. Empty or unrecognised values (a typo such
+    as "ture") also stay on, with a warning, so a mistake never weakens it."""
+    if value is None:
+        return True
+    text = value.strip().lower()
+    if text in _FALSE_VALUES:
+        return False
+    if text not in _TRUE_VALUES:
+        warnings.warn(
+            "SURFACE_SECURE_COOKIES=%r is not a recognised value; keeping "
+            "Secure cookies on. Use 0, false, no or off to turn them off, or "
+            "1, true, yes or on." % value,
+            RuntimeWarning,
+        )
+    return True
+
+
+def _hsts_seconds_from_env(value):
+    """HSTS max-age in seconds: a whole number, zero or more. Anything else
+    stops startup so a bad value is never silently ignored."""
+    try:
+        seconds = int(value)
+    except (TypeError, ValueError):
+        seconds = -1
+    if seconds < 0:
+        raise ImproperlyConfigured(
+            "SURFACE_HSTS_SECONDS must be a whole number of seconds, zero or "
+            "more (got %r)." % (value,)
+        )
+    return seconds
+
+
+# HTTPS hardening (#904). Production serves SURFACE only over HTTPS behind
+# Traefik, which sets X-Forwarded-Proto (see SECURE_PROXY_SSL_HEADER above).
+# Secure cookies are the default and only an explicit false turns them off. The
+# local surface/docker-compose.yml serves plain HTTP (http://localhost:8081)
+# and sets SURFACE_SECURE_COOKIES=False for its api service; without that,
+# browsers drop the session and CSRF cookies and sign-in fails.
+SESSION_COOKIE_SECURE = _secure_cookies_from_env(os.getenv('SURFACE_SECURE_COOKIES'))
+CSRF_COOKIE_SECURE = SESSION_COOKIE_SECURE
+
+# HSTS is sent only on HTTPS responses, so plain-HTTP stacks are unaffected.
+# Ramp the max-age up once SURFACE has run cleanly on HTTPS: 3600 (1 hour,
+# the default) -> 604800 (1 week) -> 2592000 (30 days) -> 31536000 (1 year).
+# Browsers remember the value, so lowering it later only takes effect after
+# the old max-age expires. includeSubDomains and preload stay off: SURFACE is
+# one host and must not commit its parent domain.
+SECURE_HSTS_SECONDS = _hsts_seconds_from_env(os.getenv('SURFACE_HSTS_SECONDS', '3600'))
+SECURE_HSTS_INCLUDE_SUBDOMAINS = False
+SECURE_HSTS_PRELOAD = False
+
+CORS_ALLOW_ALL_ORIGINS = True
 CORS_ALLOW_CREDENTIALS = True
 
 DATABASES = {
@@ -174,7 +232,6 @@ TIME_ZONE = 'UTC'
 
 USE_I18N = True
 
-USE_L10N = True
 
 USE_TZ = True
 
@@ -361,7 +418,7 @@ LOGGING = {
 
 CACHES = {
     'default': {
-        'BACKEND': 'django.core.cache.backends.memcached.MemcachedCache',
+        'BACKEND': 'django.core.cache.backends.memcached.PyMemcacheCache',
         'LOCATION': 'cache:11211',
     }
 }

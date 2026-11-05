@@ -4,10 +4,9 @@
  */
 
 import type { AuthoringError } from "./AuthoringError.js";
-import type { LegacyProductWrite } from "./LegacyProductWrite.js";
 import type { LegacyStoredProduct } from "./LegacyStoredProduct.js";
-import type { OutlookProductWrite } from "./OutlookProductWrite.js";
 import type { OutlookStoredProduct } from "./OutlookStoredProduct.js";
+import type { ProductWriteBody } from "./ProductWriteBody.js";
 
 export type WxproductsSaveProductStatus200 =
   | (OutlookStoredProduct & {
@@ -18,6 +17,8 @@ export type WxproductsSaveProductStatus200 =
         | "morning"
         | "midday"
         | "evening"
+        | "marine-forecast"
+        | "climate-bulletin"
         | "cyclone"
         | "marine"
         | "flood"
@@ -39,25 +40,10 @@ export type WxproductsSaveProductStatus422 = AuthoringError;
 
 export type WxproductsSaveProductStatus503 = AuthoringError;
 
-export type WxproductsSaveProductBody =
-  | (OutlookProductWrite & {
-      kind: "outlook";
-    })
-  | (LegacyProductWrite & {
-      kind:
-        | "morning"
-        | "midday"
-        | "evening"
-        | "cyclone"
-        | "marine"
-        | "flood"
-        | "thunderstorm"
-        | "wind"
-        | "heat"
-        | "dust"
-        | "coastal"
-        | "tsunami";
-    });
+/**
+ * @description A product save: a forecast, bulletin or outlook, discriminated by kind.
+ */
+export type WxproductsSaveProductBody = ProductWriteBody;
 
 export type WxproductsSaveProductOptions = {
   body: WxproductsSaveProductBody;

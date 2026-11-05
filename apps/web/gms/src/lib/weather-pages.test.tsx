@@ -272,6 +272,84 @@ describe("latest synopsis", () => {
     ]);
   });
 
+  it("lists an All clear as information after the alerts in force, not as one of them", () => {
+    const advisories = JSON.stringify({
+      complete: true,
+      items: [
+        {
+          source: "Bulletin",
+          title: "Marine",
+          colour: "green",
+          noticeType: "All clear",
+          impacts: "Seas have returned to normal.",
+        },
+        {
+          source: "Bulletin",
+          title: "Heat",
+          colour: "green",
+          noticeType: "Advisory",
+          impacts: "Hot afternoons.",
+        },
+      ],
+    });
+    const result = latestSynopsis([
+      product("morning", "2026-09-14T10:00:00Z", {
+        summary: "Fair.",
+        advisories,
+      }),
+    ]);
+    expect(result?.watch).toEqual([
+      "Heat: Hot afternoons.",
+      "All clear: Marine",
+    ]);
+  });
+
+  it("recognises an older snapshot's All clear with surrounding spaces", () => {
+    const advisories = JSON.stringify({
+      complete: true,
+      items: [
+        {
+          title: "Marine",
+          colour: "green",
+          noticeType: " All clear ",
+          impacts: "Seas have returned to normal.",
+        },
+      ],
+    });
+    const result = latestSynopsis([
+      product("morning", "2026-09-14T10:00:00Z", {
+        summary: "Fair.",
+        advisories,
+      }),
+    ]);
+    expect(result?.watch).toEqual(["All clear: Marine"]);
+  });
+
+  it("keeps an All clear above Green as an alert in force", () => {
+    // Only Green qualifies: an All clear at another level keeps its level.
+    const advisories = JSON.stringify({
+      complete: false,
+      items: [
+        {
+          title: "Marine",
+          colour: "yellow",
+          noticeType: "All clear",
+          impacts: "Choppy seas.",
+        },
+      ],
+    });
+    const result = latestSynopsis([
+      product("morning", "2026-09-14T10:00:00Z", {
+        summary: "Fair.",
+        advisories,
+      }),
+    ]);
+    expect(result?.watch).toEqual([
+      "Marine: Choppy seas.",
+      "Weather alerts could not be fully confirmed when this forecast was issued.",
+    ]);
+  });
+
   it("shows nothing to watch when no alerts were in force", () => {
     const result = latestSynopsis([
       product("evening", "2026-09-14T22:00:00Z", {

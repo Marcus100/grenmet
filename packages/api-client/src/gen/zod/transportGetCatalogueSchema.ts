@@ -10,9 +10,13 @@ import { validationErrorResponseSchema } from "./validationErrorResponseSchema.j
 
 export const transportGetCatalogueStatus200Schema = transportCatalogueSchema;
 
-export const transportGetCatalogueStatus401Schema = z.unknown();
+export const transportGetCatalogueStatus401Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
-export const transportGetCatalogueStatus403Schema = z.unknown();
+export const transportGetCatalogueStatus403Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
 export const transportGetCatalogueStatus422Schema =
   validationErrorResponseSchema.describe(

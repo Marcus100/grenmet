@@ -1,3 +1,4 @@
+import { readPublicEnv } from "@barrelsgd/ui/lib/public-env";
 import { createEnv } from "@t3-oss/env-nextjs";
 import { z } from "zod";
 
@@ -48,10 +49,14 @@ export const env = createEnv({
     BOOKINGS_SSO_CLIENT_SECRET: process.env.BOOKINGS_SSO_CLIENT_SECRET,
     VISITOR_IP_PROXY_HOPS: process.env.VISITOR_IP_PROXY_HOPS,
     TRUSTED_WEB_SECRET: process.env.TRUSTED_WEB_SECRET,
-    NEXT_PUBLIC_TURNSTILE_SITE_KEY: process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY,
-    NEXT_PUBLIC_SENTRY_DSN: process.env.NEXT_PUBLIC_SENTRY_DSN,
-    NEXT_PUBLIC_SENTRY_ENVIRONMENT: process.env.NEXT_PUBLIC_SENTRY_ENVIRONMENT,
-    NEXT_PUBLIC_RELEASE: process.env.NEXT_PUBLIC_RELEASE,
+    NEXT_PUBLIC_TURNSTILE_SITE_KEY: readPublicEnv(
+      "NEXT_PUBLIC_TURNSTILE_SITE_KEY"
+    ),
+    NEXT_PUBLIC_SENTRY_DSN: readPublicEnv("NEXT_PUBLIC_SENTRY_DSN"),
+    NEXT_PUBLIC_SENTRY_ENVIRONMENT: readPublicEnv(
+      "NEXT_PUBLIC_SENTRY_ENVIRONMENT"
+    ),
+    NEXT_PUBLIC_RELEASE: readPublicEnv("NEXT_PUBLIC_RELEASE"),
   },
   emptyStringAsUndefined: true,
   skipValidation: process.env.SKIP_ENV_VALIDATION === "true",

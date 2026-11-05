@@ -20,9 +20,9 @@ const DAY_MS = 86_400_000;
 const DEFAULT_DAYS = 7;
 const MAX_ATTEMPTS = 3;
 // An entry starts on a line that begins with a date, with or without a "- ".
-const MD_SUFFIX = /\.md$/;
-const TRAILING_NEWLINES = /\n*$/;
-const ENTRY_START = /^(?:- )?(\d{4})-(\d{2})-(\d{2})[T ]/;
+const MD_SUFFIX = /\.md$/u;
+const TRAILING_NEWLINES = /\n*$/u;
+const ENTRY_START = /^(?:- )?(\d{4})-(\d{2})-(\d{2})[T ]/u;
 
 // Splits the log into a preamble (text before the first entry, kept as is) and
 // entries. Continuation lines belong to the entry above them.

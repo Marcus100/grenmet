@@ -4,6 +4,7 @@
  */
 
 import * as z from "zod";
+import { overtimeBandPublicSchema } from "./overtimeBandPublicSchema.js";
 import { rosterAvailabilitySchema } from "./rosterAvailabilitySchema.js";
 
 export const timesheetEntryPublicSchema = z.object({
@@ -21,4 +22,8 @@ export const timesheetEntryPublicSchema = z.object({
   medical_certificate_attached: z.boolean(),
   comments: z.union([z.string(), z.null()]).optional(),
   availability: rosterAvailabilitySchema.optional().default("SCHEDULED"),
+  overtime_bands: z
+    .array(overtimeBandPublicSchema)
+    .optional()
+    .describe("Overtime hours by rate multiplier (hours only, no pay)."),
 });

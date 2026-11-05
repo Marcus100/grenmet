@@ -3,6 +3,7 @@
  * Do not edit manually.
  */
 
+import type { ApiError } from "./ApiError.js";
 import type { NotificationPublic } from "./NotificationPublic.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 
@@ -17,7 +18,11 @@ export type NotificationsMarkNotificationReadPath = {
 
 export type NotificationsMarkNotificationReadStatus200 = NotificationPublic;
 
-export type NotificationsMarkNotificationReadStatus404 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type NotificationsMarkNotificationReadStatus404 = ApiError;
 
 /**
  * @description Validation error envelope returned for malformed requests.

@@ -50,7 +50,7 @@ export function OrderList({
       />
       {rows.length === 0 ? (
         <p
-          className="rounded-2xl border border-dashed bg-card px-4 py-8 text-center text-body text-muted-foreground"
+          className="bg-card text-body text-muted-foreground rounded-2xl border border-dashed px-4 py-8 text-center"
           role="status"
         >
           {status
@@ -58,18 +58,18 @@ export function OrderList({
             : "No orders on this event yet. Orders appear here as people buy tickets."}
         </p>
       ) : (
-        <ul className="divide-y rounded-2xl border bg-card">
+        <ul className="bg-card divide-y rounded-2xl border">
           {rows.map((order) => (
             <li key={order.id}>
               <Link
-                className="grid min-h-11 gap-1 px-4 py-3 hover:bg-muted sm:grid-cols-[1fr_auto] sm:items-center"
+                className="hover:bg-muted grid min-h-11 gap-1 px-4 py-3 sm:grid-cols-[1fr_auto] sm:items-center"
                 href={`/dash/events/${listingId}/orders/${order.id}`}
               >
                 <span>
-                  <span className="block font-medium text-body">
+                  <span className="text-body block font-medium">
                     {order.buyer_name ?? "Buyer without a name"}
                   </span>
-                  <span className="block text-caption text-muted-foreground">
+                  <span className="text-caption text-muted-foreground block">
                     {formatEventDate(order.created_at)} ·{" "}
                     {PAYMENT_METHOD_LABEL[order.payment_method]} ·{" "}
                     {order.active_ticket_count} of {order.ticket_count} tickets

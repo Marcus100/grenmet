@@ -25,6 +25,8 @@ Uses `@barrelsgd/auth/server` directly — not a redirect-delegating app.
 - Session management: `src/lib/server-session.ts`
 - Auth helpers: `src/lib/auth.ts`, `src/lib/auth-config.ts`, `src/lib/auth-redirect.ts`
 - API proxy: `src/app/api/[...path]/route.ts` + `src/proxy.ts`
+  - The proxy (`src/lib/api-proxy-target.ts`) accepts only plain path segments. The one exception is `:` in the baseline policy key segment of `/api/v1/hr/setup/policies/{key}` (keys like `hr:gms:LEAVE`); a colon anywhere else is refused (#987).
+  - The proxy forwards only an allow-list of request headers (accept, accept-language, content-type, conditional and range headers, x-request-id) plus the bearer token; add a header to `FORWARDED_REQUEST_HEADERS` if a module needs one. Writes (not GET, HEAD, OPTIONS) must carry an `Origin` equal to this host (`src/lib/request-guards.ts`), else 403 (#987).
 - Logout routes: `src/app/auth/logout/route.ts`, `src/app/auth/logout-all/route.ts`
 - Auth-related env vars: `AUTH_APP_URL`, `AUTH_API_URL`, `AUTH_API_V1_STR`, `ADMIN_SESSION_COOKIE_NAME`, `GAA_ADMIN_SSO_CLIENT_SECRET`, `NEXT_PUBLIC_API_URL`, `RESEND_API_KEY`. Sign-in is single sign-on through auth.barrels.gd (`/signin` → `/auth/start` → `/auth/callback`, ADR-0017)
 
@@ -61,7 +63,7 @@ path-prefixed, auth-gated routes under `(admin)/`. All are gated by
 | Prefix | Source app | Data | Notes |
 |---|---|---|---|
 | `/hr` | hr | FastAPI `/api/v1/hr/*` via `@barrelsgd/api-client` | Editors, submissions tables, approvals inbox, duty roster and HR Setup are all wired. The `/hr` dashboard reads `/api/v1/hr/dashboard` on the server; figures come from the leave ledger, personal requests, published roster and scoped approvals. `*-document.tsx` print components stay pure presentation. Components in `components/hr/` |
-| `/cap` | cap | FastAPI `/api/cap/*` (server-side direct) | `CAP_API_URL` env + `getCapApiBaseUrl()`; components in `components/cap/` |
+| `/cap` | cap | FastAPI `/api/cap/*` (server-side direct) | `CAP_API_URL` env + `getCapApiBaseUrl()`; components in `components/cap/`. Parallel run with the new desk in `apps/web/cap` (`/desk`, ADR-0054): the page header links "Try the new desk" (`CAP_DESK_URL`); keep this desk fully working until cutover |
 | `/salesbus` | salesbus | FastAPI `/api/v1/stores/*` — the Stores module (internal requisition, inventory, deliveries); server reads in `src/db/stores/queries.ts`, mutations in `components/salesbus/api.ts` | `CartProvider` scoped via `(admin)/salesbus/layout.tsx`; keeps own `AppShell`; PWA dropped |
 | `/wxwatch` | wxwatch | FastAPI `/api/v1/wxwatch/*` | generated metadata contracts; authenticated image downloads through `/_backend/wxwatch/` |
 | `/wxproducts` | wxproducts | FastAPI `/api/v1/wxproducts/*`, separate wxproducts Postgres | Kubb-generated contracts; saved-revision PDFs via FastAPI `/products/{id}/revisions/{revision}/pdf` |

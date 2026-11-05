@@ -1165,7 +1165,11 @@
 
             <!-- logout -->
             <li class="">
-              <a class="collapsible-item" href="{% url 'logout' %}" style="padding: 0px 16px;" onclick="mainOverlayLoader()"><i class="material-icons">directions</i><span class="custom-navbar-text">LOGOUT</span></a>
+              <!-- Django 5 LogoutView accepts POST only -->
+              <form method="post" action="{% url 'logout' %}" style="margin: 0;">
+                {% csrf_token %}
+                <a class="collapsible-item" href="#" style="padding: 0px 16px;" onclick="event.preventDefault(); mainOverlayLoader(); this.closest('form').submit();"><i class="material-icons">directions</i><span class="custom-navbar-text">LOGOUT</span></a>
+              </form>
             </li>
           </ul>
 

@@ -1,4 +1,8 @@
 import { Logo } from "@barrelsgd/gms/components/logo";
+import {
+  BARRELS_SUPPORT_EMAIL,
+  BARRELS_SUPPORT_HREF,
+} from "@barrelsgd/ui/lib/support";
 import { cn } from "@barrelsgd/ui/lib/utils";
 import type { ReactNode } from "react";
 import { AppDirectory, type AppId } from "@/components/app-directory";
@@ -35,18 +39,18 @@ export function AuthShell({
     >
       {/* `dark` scopes the white logo asset and dark tokens to the navy panel. */}
       <aside
-        className="dark hidden bg-gm-navy lg:flex lg:w-1/3 lg:flex-col lg:justify-between lg:gap-10 lg:p-10 xl:p-12"
+        className="dark bg-gm-navy hidden lg:flex lg:w-1/3 lg:flex-col lg:justify-between lg:gap-10 lg:p-10 xl:p-12"
         data-testid="brand-panel"
       >
         <Logo className="h-8 w-auto self-start" priority />
         <div className="space-y-2">
-          <p className="font-light text-5xl text-gm-text-inverse">{greeting}</p>
+          <p className="text-gm-text-inverse text-5xl font-light">{greeting}</p>
           <p className="text-gm-surface-muted text-xl">{subtitle}</p>
         </div>
         <AppDirectory hrefs={hrefs} requestedApp={requestedApp} />
       </aside>
 
-      <main className="relative flex w-full items-center justify-center bg-background px-4 py-16 sm:px-8 lg:w-2/3">
+      <main className="bg-background relative flex w-full items-center justify-center px-4 py-16 sm:px-8 lg:w-2/3">
         <div className="absolute top-4 right-4">
           <ThemeToggle />
         </div>
@@ -55,6 +59,17 @@ export function AuthShell({
         >
           <Logo className="h-8 w-auto lg:hidden" variant="monogram" />
           {children}
+          <p className="text-muted-foreground text-center text-sm">
+            Need help with your Barrels account? Email Barrels Grenada support
+            at{" "}
+            <a
+              className="text-foreground underline underline-offset-4"
+              href={BARRELS_SUPPORT_HREF}
+            >
+              {BARRELS_SUPPORT_EMAIL}
+            </a>
+            .
+          </p>
         </div>
       </main>
     </div>
@@ -69,7 +84,7 @@ interface AuthHeadingProps {
 export function AuthHeading({ children, title }: AuthHeadingProps) {
   return (
     <div className="space-y-2">
-      <h1 className="font-semibold text-2xl text-foreground">{title}</h1>
+      <h1 className="text-foreground text-2xl font-semibold">{title}</h1>
       {children ? (
         <p className="text-muted-foreground text-sm leading-6">{children}</p>
       ) : null}

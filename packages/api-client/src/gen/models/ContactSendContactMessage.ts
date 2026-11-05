@@ -3,13 +3,18 @@
  * Do not edit manually.
  */
 
+import type { ApiError } from "./ApiError.js";
 import type { ContactMessageAccepted } from "./ContactMessageAccepted.js";
 import type { ContactMessageCreate } from "./ContactMessageCreate.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 
 export type ContactSendContactMessageStatus202 = ContactMessageAccepted;
 
-export type ContactSendContactMessageStatus400 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type ContactSendContactMessageStatus400 = ApiError;
 
 /**
  * @description Validation error envelope returned for malformed requests.

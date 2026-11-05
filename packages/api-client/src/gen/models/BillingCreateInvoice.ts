@@ -3,17 +3,30 @@
  * Do not edit manually.
  */
 
+import type { ApiError } from "./ApiError.js";
 import type { InvoiceDetailPublic } from "./InvoiceDetailPublic.js";
 import type { InvoiceDraftWrite } from "./InvoiceDraftWrite.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 
 export type BillingCreateInvoiceStatus201 = InvoiceDetailPublic;
 
-export type BillingCreateInvoiceStatus401 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type BillingCreateInvoiceStatus401 = ApiError;
 
-export type BillingCreateInvoiceStatus403 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type BillingCreateInvoiceStatus403 = ApiError;
 
-export type BillingCreateInvoiceStatus404 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type BillingCreateInvoiceStatus404 = ApiError;
 
 /**
  * @description Validation error envelope returned for malformed requests.

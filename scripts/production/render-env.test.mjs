@@ -36,6 +36,7 @@ function fixture(directory) {
     "FIRST_SUPERUSER_PASSWORD",
     "GAA_ADMIN_SSO_CLIENT_SECRET",
     "CMS_SSO_CLIENT_SECRET",
+    "TRUSTED_WEB_SECRET",
     "RESEND_API_KEY",
     "EMAIL",
     "USERNAME",
@@ -647,7 +648,7 @@ function render(change = {}) {
   }
 }
 
-const ORG_KEYS_NAME = /ORG_SECRET_ENCRYPTION_KEYS/;
+const ORG_KEYS_NAME = /ORG_SECRET_ENCRYPTION_KEYS/u;
 const GENERATED_LINE = (output, name) =>
   output.split("\n").find((line) => line.startsWith(`${name}=`));
 
@@ -773,6 +774,30 @@ test("the deploy workflow and compose file pass the new variables to the API and
   );
 });
 
+const RENDERED_SECRET = /^TRUSTED_WEB_SECRET=".{32,}"$/mu;
+const WORKFLOW_PASS =
+  /TRUSTED_WEB_SECRET: \$\{\{ secrets\.TRUSTED_WEB_SECRET \}\}/u;
+const NAMED_SECRET = /TRUSTED_WEB_SECRET/u;
+const SERVICE_START = /\n(?= {2}[a-z-]+:\n)/u;
+
+function renderWith(change) {
+  const directory = mkdtempSync(join(tmpdir(), "trusted-web-secret-"));
+  try {
+    const { env, config, destination } = fixture(directory);
+    const result = spawnSync(
+      "python3",
+      ["scripts/production/render-env.py", config, destination],
+      { env: { ...env, ...change }, encoding: "utf8" }
+    );
+    return {
+      result,
+      rendered: result.status === 0 ? readFileSync(destination, "utf8") : "",
+    };
+  } finally {
+    rmSync(directory, { recursive: true, force: true });
+  }
+}
+
 function renderFor(environment, change = {}) {
   const directory = mkdtempSync(join(tmpdir(), "delivery-edge-auth-"));
   try {
@@ -846,4 +871,417 @@ test("production never receives the staging basic-auth user lists", () => {
     ADMINER_BASIC_AUTH_USERS: "",
   });
   assert.equal(unset.result.status, 0, unset.result.stderr);
+});
+
+test("TRUSTED_WEB_SECRET is required, at least 32 characters and distinct, without echoing it", () => {
+  const ok = renderWith({});
+  assert.equal(ok.result.status, 0, ok.result.stderr);
+  assert.match(ok.rendered, RENDERED_SECRET);
+  for (const change of [
+    { TRUSTED_WEB_SECRET: "" },
+    { TRUSTED_WEB_SECRET: "short-DO_NOT_ECHO" },
+    {
+      TRUSTED_WEB_SECRET:
+        "test-only-configuration-value-32-characters-SECRET_KEY",
+    },
+    {
+      TRUSTED_WEB_SECRET:
+        "test-only-configuration-value-32-characters-CMS_SSO_CLIENT_SECRET",
+    },
+  ]) {
+    const { result } = renderWith(change);
+    assert.notEqual(result.status, 0);
+    assert.match(result.stderr, NAMED_SECRET);
+    assert.equal(result.stderr.includes("DO_NOT_ECHO"), false);
+    assert.equal(result.stderr.includes("test-only-configuration"), false);
+  }
+});
+
+test("TRUSTED_WEB_SECRET reaches the API and the visitor-forwarding web hosts only, from deploy.yml", () => {
+  const workflow = readFileSync(".github/workflows/deploy.yml", "utf8");
+  const compose = readFileSync(
+    "infra/docker/docker-compose.deploy.yml",
+    "utf8"
+  );
+  assert.ok(WORKFLOW_PASS.test(workflow));
+  const services = compose.split(SERVICE_START);
+  const holders = services
+    .filter((block) =>
+      block.includes("TRUSTED_WEB_SECRET: ${TRUSTED_WEB_SECRET")
+    )
+    .map((block) => block.trim().split(":")[0]);
+  assert.deepEqual(holders, ["api", "web-gms", "web-events", "web-bookings"]);
+});
+
+test("the Meta page settings render empty by default and must be numbers", () => {
+  const unset = render();
+  assert.equal(unset.result.status, 0, unset.result.stderr);
+  assert.equal(
+    GENERATED_LINE(unset.output, "META_PAGE_ACCESS_TOKEN"),
+    'META_PAGE_ACCESS_TOKEN=""'
+  );
+
+  const set = render({
+    META_PAGE_ID: "1234567890",
+    META_INSTAGRAM_ACCOUNT_ID: "17841400000001",
+    META_PAGE_ACCESS_TOKEN: "EAAB-DO-NOT-ECHO-fixture",
+  });
+  assert.equal(set.result.status, 0, set.result.stderr);
+  assert.equal(
+    GENERATED_LINE(set.output, "META_PAGE_ID"),
+    'META_PAGE_ID="1234567890"'
+  );
+  assert.equal(
+    GENERATED_LINE(set.output, "META_INSTAGRAM_ACCOUNT_ID"),
+    'META_INSTAGRAM_ACCOUNT_ID="17841400000001"'
+  );
+
+  for (const bad of [
+    { META_PAGE_ID: "page-one" },
+    { META_INSTAGRAM_ACCOUNT_ID: "1234 5678" },
+  ]) {
+    const refused = render(bad);
+    assert.notEqual(refused.result.status, 0, JSON.stringify(bad));
+    assert.ok(refused.result.stderr.includes("numbers only"));
+    assert.equal(refused.result.stderr.includes("DO-NOT-ECHO"), false);
+  }
+});
+
+test("the deploy workflow and compose pass the Meta settings to the worker only", () => {
+  const workflow = readFileSync(".github/workflows/deploy.yml", "utf8");
+  const compose = readFileSync(
+    "infra/docker/docker-compose.deploy.yml",
+    "utf8"
+  );
+  // GitHub and Compose placeholders start with a dollar sign. Built from a constant
+  // so the linter does not read the test strings as template placeholders.
+  const DOLLAR = "$";
+  assert.ok(
+    workflow.includes(
+      `META_PAGE_ACCESS_TOKEN: ${DOLLAR}{{ secrets.META_PAGE_ACCESS_TOKEN }}`
+    )
+  );
+  assert.ok(
+    workflow.includes(`META_PAGE_ID: ${DOLLAR}{{ vars.META_PAGE_ID }}`)
+  );
+  assert.ok(
+    workflow.includes(
+      `META_INSTAGRAM_ACCOUNT_ID: ${DOLLAR}{{ vars.META_INSTAGRAM_ACCOUNT_ID }}`
+    )
+  );
+  // Only the worker posts. The token is in one service's environment, not two.
+  assert.equal(
+    compose
+      .split("\n")
+      .filter((line) => line.includes("META_PAGE_ACCESS_TOKEN:")).length,
+    1
+  );
+  assert.ok(
+    compose.includes(
+      `META_PAGE_ACCESS_TOKEN: ${DOLLAR}{META_PAGE_ACCESS_TOKEN:-}`
+    )
+  );
+});
+
+test("the approved social hosts render empty by default and reach the API only", () => {
+  const unset = render();
+  assert.equal(unset.result.status, 0, unset.result.stderr);
+  assert.equal(
+    GENERATED_LINE(unset.output, "SOCIAL_LINK_HOSTS"),
+    'SOCIAL_LINK_HOSTS=""'
+  );
+  const set = render({
+    SOCIAL_LINK_HOSTS: "gms.example.org",
+    SOCIAL_IMAGE_HOSTS: "media.example.org",
+  });
+  assert.equal(set.result.status, 0, set.result.stderr);
+  assert.equal(
+    GENERATED_LINK_LINE(set.output),
+    'SOCIAL_LINK_HOSTS="gms.example.org"'
+  );
+
+  const workflow = readFileSync(".github/workflows/deploy.yml", "utf8");
+  const compose = readFileSync(
+    "infra/docker/docker-compose.deploy.yml",
+    "utf8"
+  );
+  const DOLLAR = "$";
+  assert.ok(
+    workflow.includes(
+      `SOCIAL_LINK_HOSTS: ${DOLLAR}{{ vars.SOCIAL_LINK_HOSTS }}`
+    )
+  );
+  // The hosts are read by the API only: one service's environment, not the worker.
+  assert.equal(
+    compose.split("\n").filter((line) => line.includes("SOCIAL_LINK_HOSTS:"))
+      .length,
+    1
+  );
+});
+
+const GENERATED_LINK_LINE = (output) =>
+  GENERATED_LINE(output, "SOCIAL_LINK_HOSTS");
+
+test("CMS_DISTRIBUTION_SECRET renders empty by default, needs 32 characters, and comes from a secret", () => {
+  const unset = render();
+  assert.equal(unset.result.status, 0, unset.result.stderr);
+  assert.equal(
+    GENERATED_LINE(unset.output, "CMS_DISTRIBUTION_SECRET"),
+    'CMS_DISTRIBUTION_SECRET=""'
+  );
+
+  const value = `distribution-fixture-${"x".repeat(20)}`;
+  const set = render({ CMS_DISTRIBUTION_SECRET: value });
+  assert.equal(set.result.status, 0, set.result.stderr);
+  assert.equal(
+    GENERATED_LINE(set.output, "CMS_DISTRIBUTION_SECRET"),
+    `CMS_DISTRIBUTION_SECRET="${value}"`
+  );
+
+  const short = render({ CMS_DISTRIBUTION_SECRET: "short-DO-NOT-ECHO" });
+  assert.notEqual(short.result.status, 0);
+  assert.ok(short.result.stderr.includes("at least 32 characters"));
+  assert.equal(short.result.stderr.includes("DO-NOT-ECHO"), false);
+
+  const workflow = readFileSync(".github/workflows/deploy.yml", "utf8");
+  const compose = readFileSync(
+    "infra/docker/docker-compose.deploy.yml",
+    "utf8"
+  );
+  const DOLLAR = "$";
+  // A GitHub environment secret, never a variable.
+  assert.ok(
+    workflow.includes(
+      `CMS_DISTRIBUTION_SECRET: ${DOLLAR}{{ secrets.CMS_DISTRIBUTION_SECRET }}`
+    )
+  );
+  assert.equal(workflow.includes("vars.CMS_DISTRIBUTION_SECRET"), false);
+  // The API service and the CMS environment anchor (shared by cms-migrate and web-cms).
+  assert.equal(
+    compose
+      .split("\n")
+      .filter((line) =>
+        line.includes(
+          `CMS_DISTRIBUTION_SECRET: ${DOLLAR}{CMS_DISTRIBUTION_SECRET:-}`
+        )
+      ).length,
+    2
+  );
+});
+
+test("the CMS gets the weather site origin from BASE_DOMAIN, the same value web-cap uses", () => {
+  const compose = readFileSync(
+    "infra/docker/docker-compose.deploy.yml",
+    "utf8"
+  );
+  const workflow = readFileSync(".github/workflows/deploy.yml", "utf8");
+  const DOLLAR = "$";
+  const line = `      GMS_SITE_URL: https://weather.${DOLLAR}{BASE_DOMAIN}`;
+  // The CMS environment anchor (shared by cms-migrate and web-cms) carries the line...
+  const anchorStart = compose.indexOf("  cms-migrate:");
+  const anchorEnd = compose.indexOf("  web-cms:");
+  assert.ok(anchorStart > 0 && anchorEnd > anchorStart);
+  assert.ok(compose.slice(anchorStart, anchorEnd).includes(line));
+  // ...and it is exactly the value web-cap already uses: one line in each service.
+  assert.equal(compose.split("\n").filter((text) => text === line).length, 2);
+  // Built from BASE_DOMAIN, so staging and production each get their own weather site.
+  // It is not a new GitHub variable or secret.
+  assert.equal(workflow.includes("GMS_SITE_URL"), false);
+});
+
+// Cloudflare proxy switch (docs/operations/cloudflare-proxy.md): one variable
+// moves Traefik's trusted ranges, the per-client cap, the visitor hops and the
+// certificate challenge together; unset is Traefik's default.
+const EDGE_NAMES = [
+  "CLOUDFLARE_PROXY_ENABLED",
+  "VISITOR_IP_PROXY_HOPS",
+  "TRAEFIK_FORWARDED_HEADERS",
+  "TRAEFIK_CLIENT_IP_DEPTH",
+  "TRAEFIK_ACME_CHALLENGE",
+  "TRAEFIK_ORIGIN_GATE_RULE",
+];
+const ORIGIN_SECRET = "a1b2c3d4".repeat(8);
+const PROXY_ON = {
+  CLOUDFLARE_PROXY_ENABLED: "true",
+  CLOUDFLARE_ORIGIN_SECRET: ORIGIN_SECRET,
+};
+const CIDR_LINE = /^[0-9a-f:.]+\/\d+$/u;
+const SWITCH_PASS =
+  /^\s+CLOUDFLARE_PROXY_ENABLED: \$\{\{ vars\.CLOUDFLARE_PROXY_ENABLED \}\}$/mu;
+
+function edgeValues(output) {
+  return Object.fromEntries(
+    EDGE_NAMES.map((name) => [
+      name,
+      JSON.parse(GENERATED_LINE(output, name).slice(name.length + 1)),
+    ])
+  );
+}
+
+function vendoredRanges() {
+  return readFileSync("infra/cloudflare/ip-ranges.txt", "utf8")
+    .split("\n")
+    .filter((line) => CIDR_LINE.test(line));
+}
+
+test("the Cloudflare switch is off by default and leaves Traefik at its defaults", () => {
+  for (const value of [undefined, "", "false"]) {
+    const { result, output } = render({ CLOUDFLARE_PROXY_ENABLED: value });
+    assert.equal(result.status, 0, result.stderr);
+    assert.deepEqual(edgeValues(output), {
+      CLOUDFLARE_PROXY_ENABLED: "false",
+      VISITOR_IP_PROXY_HOPS: "1",
+      TRAEFIK_FORWARDED_HEADERS: "insecure=false",
+      TRAEFIK_CLIENT_IP_DEPTH: "0",
+      TRAEFIK_ACME_CHALLENGE: "tlschallenge=true",
+      TRAEFIK_ORIGIN_GATE_RULE: "ClientIP(`255.255.255.255/32`)",
+    });
+  }
+});
+
+test("the Cloudflare switch trusts exactly the vendored ranges and moves hops, depth and challenge", () => {
+  const { result, output } = render(PROXY_ON);
+  assert.equal(result.status, 0, result.stderr);
+  const values = edgeValues(output);
+  assert.equal(values.CLOUDFLARE_PROXY_ENABLED, "true");
+  assert.equal(values.VISITOR_IP_PROXY_HOPS, "2");
+  assert.equal(values.TRAEFIK_CLIENT_IP_DEPTH, "1");
+  assert.equal(values.TRAEFIK_ACME_CHALLENGE, "httpchallenge.entrypoint=web");
+  const [key, list] = values.TRAEFIK_FORWARDED_HEADERS.split("=");
+  assert.equal(key, "trustedIPs");
+  const trusted = list.split(",");
+  assert.deepEqual([...trusted].sort(), [...vendoredRanges()].sort());
+  assert.ok(
+    trusted.some((range) => range.includes(":")),
+    "IPv6 ranges"
+  );
+  for (const everything of ["0.0.0.0/0", "::/0"])
+    assert.equal(trusted.includes(everything), false);
+});
+
+test("the Cloudflare switch refuses anything but true or false", () => {
+  for (const value of ["yes", "1", "TRUE", "on"]) {
+    const { result } = render({ CLOUDFLARE_PROXY_ENABLED: value });
+    assert.notEqual(result.status, 0, value);
+    assert.ok(result.stderr.includes("CLOUDFLARE_PROXY_ENABLED"));
+  }
+});
+
+test("deploy.yml passes the Cloudflare switch from the GitHub environment", () => {
+  const workflow = readFileSync(".github/workflows/deploy.yml", "utf8");
+  assert.match(workflow, SWITCH_PASS);
+});
+
+test("the origin gate refuses Cloudflare addresses without the secret, and accepts a previous one", () => {
+  const { result, output } = render({
+    ...PROXY_ON,
+    CLOUDFLARE_ORIGIN_SECRET_PREVIOUS: "f0e1d2c3".repeat(8),
+  });
+  assert.equal(result.status, 0, result.stderr);
+  const rule = edgeValues(output).TRAEFIK_ORIGIN_GATE_RULE;
+  const sources = vendoredRanges().map((range) => `ClientIP(\`${range}\`)`);
+  assert.equal(
+    rule,
+    `(${sources.join(" || ")}) && !Header(\`X-Barrels-Origin\`, \`${ORIGIN_SECRET}\`) && !Header(\`X-Barrels-Origin\`, \`${"f0e1d2c3".repeat(8)}\`)`
+  );
+  // The secret appears only inside the gate rule, never as its own variable.
+  assert.equal(
+    output.split("\n").filter((line) => line.includes(ORIGIN_SECRET)).length,
+    1
+  );
+});
+
+test("the origin secret is required when the switch is on, well formed and unique, never echoed", () => {
+  const shared =
+    "test-only-configuration-value-32-characters-TRUSTED_WEB_SECRET";
+  for (const [change, reason] of [
+    [{ CLOUDFLARE_ORIGIN_SECRET: "" }, "is required"],
+    [{ CLOUDFLARE_ORIGIN_SECRET: "short-DO-NOT-ECHO" }, "32 to 128"],
+    [
+      { CLOUDFLARE_ORIGIN_SECRET: `${"x".repeat(40)}\`DO-NOT-ECHO` },
+      "32 to 128",
+    ],
+    [
+      { CLOUDFLARE_ORIGIN_SECRET_PREVIOUS: "bad value DO-NOT-ECHO" },
+      "PREVIOUS",
+    ],
+    [{ CLOUDFLARE_ORIGIN_SECRET: shared }, "differ"],
+  ]) {
+    const { result } = render({ ...PROXY_ON, ...change });
+    assert.notEqual(result.status, 0, JSON.stringify(change));
+    assert.ok(result.stderr.includes(reason), `${reason}: ${result.stderr}`);
+    for (const secret of ["DO-NOT-ECHO", ORIGIN_SECRET, shared])
+      assert.equal(result.stderr.includes(secret), false);
+  }
+  // Off, the secret is not needed and not used.
+  const off = render({ CLOUDFLARE_ORIGIN_SECRET: "" });
+  assert.equal(off.result.status, 0, off.result.stderr);
+});
+
+test("deploy.yml passes the origin secrets from the GitHub environment", () => {
+  const workflow = readFileSync(".github/workflows/deploy.yml", "utf8");
+  for (const name of [
+    "CLOUDFLARE_ORIGIN_SECRET",
+    "CLOUDFLARE_ORIGIN_SECRET_PREVIOUS",
+  ])
+    assert.ok(
+      workflow.includes(`          ${name}: \${{ secrets.${name} }}`),
+      `${name} is not passed`
+    );
+});
+
+test("PAYSLIP_HMAC_KEYS renders empty by default, validates keyid:secret pairs without echoing them, and reaches only the API", () => {
+  const unset = render();
+  assert.equal(unset.result.status, 0, unset.result.stderr);
+  assert.equal(
+    GENERATED_LINE(unset.output, "PAYSLIP_HMAC_KEYS"),
+    'PAYSLIP_HMAC_KEYS=""'
+  );
+
+  const current = `k2:${"a".repeat(40)}`;
+  const retained = `k1:${"b".repeat(32)}`;
+  const set = render({ PAYSLIP_HMAC_KEYS: `${current}, ${retained}` });
+  assert.equal(set.result.status, 0, set.result.stderr);
+  assert.equal(
+    GENERATED_LINE(set.output, "PAYSLIP_HMAC_KEYS"),
+    `PAYSLIP_HMAC_KEYS="${current},${retained}"`
+  );
+
+  for (const bad of [
+    "no-separator",
+    `bad id:${"c".repeat(40)}`,
+    "k1:short-DO-NOT-ECHO",
+    `k1:${"d".repeat(31)}`,
+    `k1:${"e".repeat(40)},k1:${"f".repeat(40)}`,
+    `k1:${"g".repeat(20)}$${"g".repeat(20)}`,
+  ]) {
+    const { result } = render({ PAYSLIP_HMAC_KEYS: bad });
+    assert.notEqual(result.status, 0, bad);
+    assert.ok(result.stderr.includes("PAYSLIP_HMAC_KEYS"));
+    assert.equal(result.stderr.includes("DO-NOT-ECHO"), false);
+    assert.equal(result.stderr.includes("g".repeat(20)), false);
+    assert.equal(result.stderr.includes("e".repeat(40)), false);
+  }
+
+  const workflow = readFileSync(".github/workflows/deploy.yml", "utf8");
+  const compose = readFileSync(
+    "infra/docker/docker-compose.deploy.yml",
+    "utf8"
+  );
+  const DOLLAR = "$";
+  assert.ok(
+    workflow.includes(
+      `PAYSLIP_HMAC_KEYS: ${DOLLAR}{{ secrets.PAYSLIP_HMAC_KEYS }}`
+    )
+  );
+  assert.equal(workflow.includes("vars.PAYSLIP_HMAC_KEYS"), false);
+  const line = `PAYSLIP_HMAC_KEYS: ${DOLLAR}{PAYSLIP_HMAC_KEYS:-}`;
+  const lines = compose.split("\n").filter((entry) => entry.includes(line));
+  assert.equal(lines.length, 1);
+  // Inside the api service only: after "  api:" and before "  redis:".
+  const api = compose.slice(
+    compose.indexOf("\n  api:\n"),
+    compose.indexOf("\n  redis:\n")
+  );
+  assert.ok(api.includes(line));
 });

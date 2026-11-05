@@ -3,6 +3,7 @@
  * Do not edit manually.
  */
 
+import type { ApiError } from "./ApiError.js";
 import type { InvoiceDetailPublic } from "./InvoiceDetailPublic.js";
 import type { PaymentCreate } from "./PaymentCreate.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
@@ -18,13 +19,29 @@ export type BillingRecordPaymentPath = {
 
 export type BillingRecordPaymentStatus201 = InvoiceDetailPublic;
 
-export type BillingRecordPaymentStatus401 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type BillingRecordPaymentStatus401 = ApiError;
 
-export type BillingRecordPaymentStatus403 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type BillingRecordPaymentStatus403 = ApiError;
 
-export type BillingRecordPaymentStatus404 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type BillingRecordPaymentStatus404 = ApiError;
 
-export type BillingRecordPaymentStatus409 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type BillingRecordPaymentStatus409 = ApiError;
 
 /**
  * @description Validation error envelope returned for malformed requests.

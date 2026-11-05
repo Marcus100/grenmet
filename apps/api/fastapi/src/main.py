@@ -2,7 +2,7 @@ import json
 import logging
 import re
 import time
-from collections.abc import AsyncGenerator
+from collections.abc import AsyncGenerator, Awaitable, Callable
 from contextlib import asynccontextmanager
 from typing import Any, cast
 
@@ -16,15 +16,18 @@ from scalar_fastapi import get_scalar_api_reference
 from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 from sqlalchemy.exc import IntegrityError
-from starlette.middleware.base import BaseHTTPMiddleware
+from starlette.datastructures import Headers, MutableHeaders
 from starlette.middleware.cors import CORSMiddleware
 from starlette.requests import Request
+from starlette.types import ASGIApp, Message, Receive, Scope, Send
 
+from src import database as main_database
 from src import operational_metrics
 from src.audit.router import router as audit_router
 from src.auth.app_router import account_router as account_apps_router
 from src.auth.app_router import router as app_auth_router
 from src.auth.browser import router as browser_auth_router
+from src.auth.lockout import rate_limit_store_warning
 from src.auth.modern import router as modern_auth_router
 from src.auth.onboarding_router import router as onboarding_router
 from src.auth.routers.login import router as login_router
@@ -71,6 +74,7 @@ from src.hr.documents.router import router as hr_documents_router
 from src.hr.exchange.router import router as hr_exchange_router
 from src.hr.leave.router import router as hr_leave_router
 from src.hr.parking.router import router as hr_parking_router
+from src.hr.payroll.router import router as hr_payroll_router
 from src.hr.roster.router import router as hr_roster_router
 from src.hr.routers.profile import router as hr_profile_router
 from src.hr.signatures.router import router as hr_signatures_router
@@ -322,14 +326,29 @@ OPENAPI_TAGS = [
 async def lifespan(_app: FastAPI) -> AsyncGenerator[None]:
     """Lifespan context manager for startup and shutdown (preferred over on_event)."""
     # Startup
+    store_warning = rate_limit_store_warning()
+    if store_warning:
+        logging.getLogger(__name__).warning(store_warning)
     try:
         yield
     finally:
-        await wxproducts_database.close_engine()
-        await eregister_database.close_engine()
-        await wxwatch_database.close_engine()
-        await janitorial_database.close_engine()
-        await transport_database.close_engine()
+        # Return every pooled connection to Postgres on shutdown or redeploy;
+        # one engine failing to close is logged and never stops the others.
+        closers: list[tuple[str, Callable[[], Awaitable[None]]]] = [
+            ("wxproducts", wxproducts_database.close_engine),
+            ("eregister", eregister_database.close_engine),
+            ("wxwatch", wxwatch_database.close_engine),
+            ("janitorial", janitorial_database.close_engine),
+            ("transport", transport_database.close_engine),
+            ("main", main_database.async_engine.dispose),
+        ]
+        for name, close in closers:
+            try:
+                await close()
+            except Exception:
+                logging.getLogger(__name__).exception(
+                    "database engine %s failed to close", name
+                )
 
 
 if settings.SENTRY_DSN and settings.ENVIRONMENT != "local":
@@ -395,30 +414,53 @@ app.add_exception_handler(RateLimitExceeded, cast(Any, _rate_limit_exceeded_hand
 logger = logging.getLogger("src.request")
 
 
-async def request_logging_middleware(request: Request, call_next: Any) -> Any:
-    start = time.perf_counter()
-    status = 500
-    request_id = resolve_request_id(request.headers.get(REQUEST_ID_HEADER))
-    request.state.request_id = request_id
-    token = bind_request_id(request_id)
-    sentry_sdk.set_tag("request_id", request_id)
-    try:
-        response = await call_next(request)
-        status = response.status_code
-        response.headers[REQUEST_ID_HEADER] = request_id
-    finally:
-        duration_s = time.perf_counter() - start
-        route = getattr(request.scope.get("route"), "path", "unmatched")
-        logger.info(
-            "request route=%s status=%s duration=%.3fs request_id=%s",
-            route,
-            status,
-            duration_s,
-            request_id,
-        )
-        await operational_metrics.record_request(route, status, duration_s)
-        reset_request_id(token)
-    return response
+class RequestLoggingMiddleware:
+    """Pure ASGI request logging: request ID, one log line and request metrics.
+
+    Plain ASGI instead of ``BaseHTTPMiddleware`` keeps streamed responses
+    unbuffered and runs the endpoint in the same context as the bound ID.
+    """
+
+    def __init__(self, app: ASGIApp) -> None:
+        self.app = app
+
+    async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
+        if scope["type"] != "http":
+            await self.app(scope, receive, send)
+            return
+        start = time.perf_counter()
+        status = 500
+        request_id = resolve_request_id(Headers(scope=scope).get(REQUEST_ID_HEADER))
+        # Request.state reads scope["state"]; the 500 handler looks the ID up there.
+        scope.setdefault("state", {})["request_id"] = request_id
+        token = bind_request_id(request_id)
+        sentry_sdk.set_tag("request_id", request_id)
+
+        async def send_with_request_id(message: Message) -> None:
+            nonlocal status
+            if message["type"] == "http.response.start":
+                status = message["status"]
+                # ASGI makes "headers" optional on the start message.
+                message.setdefault("headers", [])
+                MutableHeaders(scope=message)[REQUEST_ID_HEADER] = request_id
+            await send(message)
+
+        try:
+            await self.app(scope, receive, send_with_request_id)
+        finally:
+            try:
+                duration_s = time.perf_counter() - start
+                route = getattr(scope.get("route"), "path", "unmatched")
+                logger.info(
+                    "request route=%s status=%s duration=%.3fs request_id=%s",
+                    route,
+                    status,
+                    duration_s,
+                    request_id,
+                )
+                await operational_metrics.record_request(route, status, duration_s)
+            finally:
+                reset_request_id(token)
 
 
 async def unhandled_exception_handler(request: Request, _exc: Exception) -> Response:
@@ -445,7 +487,7 @@ if settings.all_cors_origins:
         allow_headers=["Authorization", "Content-Type", ORGANISATION_HEADER],
         expose_headers=[REQUEST_ID_HEADER],
     )
-app.add_middleware(BaseHTTPMiddleware, dispatch=request_logging_middleware)
+app.add_middleware(RequestLoggingMiddleware)
 # Include routers
 # app.include_router(shipments_router, prefix=settings.API_V1_STR)
 # Auth-related routers (split for better organization)
@@ -468,6 +510,7 @@ app.include_router(hr_calendar_router, prefix=settings.API_V1_STR)
 app.include_router(hr_timesheet_router, prefix=settings.API_V1_STR)
 app.include_router(hr_clock_router, prefix=settings.API_V1_STR)
 app.include_router(hr_attendance_router, prefix=settings.API_V1_STR)
+app.include_router(hr_payroll_router, prefix=settings.API_V1_STR)
 app.include_router(hr_training_router, prefix=settings.API_V1_STR)
 app.include_router(hr_signatures_router, prefix=settings.API_V1_STR)
 app.include_router(hr_leave_router, prefix=settings.API_V1_STR)

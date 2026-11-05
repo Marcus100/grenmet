@@ -1,11 +1,4 @@
 {% extends "base.html" %} {% block content %} 
-<script src="https://cdn.ckeditor.com/4.22.1/full/ckeditor.js"></script>
-<script src="/static/js/ckeditor-vue.js"></script>
-
-<style>
-  .cke_notifications_area { display: none; }
-</style>
-
 <div class="srf-container">
   <div id="app" v-cloak> 
     <v-app>    
@@ -185,12 +178,7 @@
 
             <v-stepper-content step="1">
               <v-card color="white" flat>
-                <ckeditor
-                  style="color: white; background-color:#BBB;"
-                  v-model="maintenance_report.station_on_arrival_conditions"
-                  :config="ckeditor_configs.station_on_arrival_conditions"
-                  class="ml-0 mr-0 mb-8 pa-5"
-                ></ckeditor>
+                <v-textarea v-model="maintenance_report.station_on_arrival_conditions" outlined auto-grow rows="6" label="Description of station upon arrival" class="ml-0 mr-0 mb-4"></v-textarea>
               </v-card>  
               <v-btn mt-3 color="primary" @click="nextStep(1); updateMaintenanceReportConditions(maintenance_report)">
                 Save and Continue
@@ -237,12 +225,7 @@
                                     <v-radio label="Partially Functional" value="P"></v-radio>
                                     <v-radio label="Not Functional" value="N"></v-radio>
                                   </v-radio-group>
-                                  <ckeditor
-                                    v-model="equipment_type.primary_equipment.condition"
-                                    style="color: white; background-color:#BBB;"
-                                    :config="equipment_type.primary_equipment.ckeditor_config"
-                                    class="ml-0 mr-0 mb-8 pa-5"
-                                  ></ckeditor>                                
+                                  <v-textarea v-model="equipment_type.primary_equipment.condition" outlined auto-grow rows="6" class="ml-0 mr-0 mb-4"></v-textarea>                                
                                 </v-layout>
                               </v-card-text>
                               <v-card-actions>
@@ -261,12 +244,7 @@
                                     <v-radio label="Partially Functional" value="P"></v-radio>
                                     <v-radio label="Not Functional" value="N"></v-radio>
                                   </v-radio-group>
-                                  <ckeditor
-                                    v-model="equipment_type.primary_equipment.condition"
-                                    style="color: white; background-color:#BBB;"
-                                    :config="equipment_type.primary_equipment.ckeditor_config"
-                                    class="ml-0 mr-0 mb-8 pa-5"
-                                  ></ckeditor>
+                                  <v-textarea v-model="equipment_type.primary_equipment.condition" outlined auto-grow rows="6" class="ml-0 mr-0 mb-4"></v-textarea>
                                 </v-layout>
                               </v-card-text>
                               <v-card-actions>
@@ -310,12 +288,7 @@
                                     <v-radio label="Partially Functional" value="P"></v-radio>
                                     <v-radio label="Not Functional" value="N"></v-radio>
                                   </v-radio-group>
-                                  <ckeditor
-                                    v-model="equipment_type.primary_equipment.condition"
-                                    style="color: white; background-color:#BBB;"
-                                    :config="equipment_type.primary_equipment.ckeditor_config"
-                                    class="ml-0 mr-0 mb-8 pa-5"
-                                  ></ckeditor>                                
+                                  <v-textarea v-model="equipment_type.primary_equipment.condition" outlined auto-grow rows="6" class="ml-0 mr-0 mb-4"></v-textarea>                                
                                 </v-layout>
                               </v-card-text>
                               <v-card-actions>
@@ -386,12 +359,7 @@
                                     <v-radio label="Partially Functional" value="P"></v-radio>
                                     <v-radio label="Not Functional" value="N"></v-radio>
                                   </v-radio-group>
-                                  <ckeditor
-                                    v-model="equipment_type.secondary_equipment.condition"
-                                    style="color: white; background-color:#BBB;"
-                                    :config="equipment_type.secondary_equipment.ckeditor_config"
-                                    class="ml-0 mr-0 mb-8 pa-5"
-                                  ></ckeditor>                                
+                                  <v-textarea v-model="equipment_type.secondary_equipment.condition" outlined auto-grow rows="6" class="ml-0 mr-0 mb-4"></v-textarea>                                
                                 </v-layout>
                               </v-card-text>
                               <v-card-actions>
@@ -410,12 +378,7 @@
                                     <v-radio label="Partially Functional" value="P"></v-radio>
                                     <v-radio label="Not Functional" value="N"></v-radio>
                                   </v-radio-group>
-                                  <ckeditor
-                                    v-model="equipment_type.secondary_equipment.condition"
-                                    style="color: white; background-color:#BBB;"
-                                    :config="equipment_type.secondary_equipment.ckeditor_config"
-                                    class="ml-0 mr-0 mb-8 pa-5"
-                                  ></ckeditor>                                
+                                  <v-textarea v-model="equipment_type.secondary_equipment.condition" outlined auto-grow rows="6" class="ml-0 mr-0 mb-4"></v-textarea>                                
                                 </v-layout>
                               </v-card-text>
                               <v-card-actions>
@@ -459,12 +422,7 @@
                                     <v-radio label="Partially Functional" value="P"></v-radio>
                                     <v-radio label="Not Functional" value="N"></v-radio>
                                   </v-radio-group>
-                                  <ckeditor
-                                    v-model="equipment_type.secondary_equipment.condition"
-                                    style="color: white; background-color:#BBB;"
-                                    :config="equipment_type.secondary_equipment.ckeditor_config"
-                                    class="ml-0 mr-0 mb-8 pa-5"
-                                  ></ckeditor>                                
+                                  <v-textarea v-model="equipment_type.secondary_equipment.condition" outlined auto-grow rows="6" class="ml-0 mr-0 mb-4"></v-textarea>                                
                                 </v-layout>
                               </v-card-text>
                               <v-card-actions>
@@ -513,12 +471,7 @@
 
             <v-stepper-content :step="steps+2">
               <v-card color="white" flat>
-                <ckeditor
-                  v-model="maintenance_report.contacts"
-                  style="color: white; background-color:#BBB;"
-                  :config="ckeditor_configs.contacts"
-                  class="ml-0 mr-0 mb-8 pa-5"
-                ></ckeditor>              
+                <v-textarea v-model="maintenance_report.contacts" outlined auto-grow rows="6" class="ml-0 mr-0 mb-4"></v-textarea>              
               </v-card>  
               <v-btn
                 mt-3 color="primary"
@@ -559,12 +512,7 @@
                     ></v-autocomplete>                           
                   </v-flex>
 
-                  <ckeditor
-                    v-model="maintenance_report.current_visit_summary"
-                    style="color: white; background-color:#BBB;"
-                    :config="ckeditor_configs.current_visit_summary"
-                    class="pa-3"
-                  ></ckeditor>                
+                  <v-textarea v-model="maintenance_report.current_visit_summary" outlined auto-grow rows="6" label="Summary of work done" class="ml-0 mr-0 mb-4"></v-textarea>                
                 </v-layout>                     
                 <v-layout ml-3>
                   <v-flex lg4>
@@ -610,12 +558,7 @@
                       <v-time-picker v-model="maintenance_report.end_time"></v-time-picker>
                     </v-menu>
                   </v-flex>
-                  <ckeditor
-                      v-model="maintenance_report.next_visit_summary"
-                      style="color: white; background-color:#BBB;"
-                      :config="ckeditor_configs.next_visit_summary"
-                      class="pa-3"
-                  ></ckeditor>                  
+                  <v-textarea v-model="maintenance_report.next_visit_summary" outlined auto-grow rows="6" label="Work to be done on next visit" class="ml-0 mr-0 mb-4"></v-textarea>                  
                 </v-layout>
                 <v-layout ml-3 mr-3>
                   <v-flex ml-1>
@@ -677,7 +620,6 @@
 
   {% endblock %} {% block localjavascript %}
   <script>
-    Vue.use( CKEditor );
     Vue.use(window.vuelidate.default);
     const { required, minLength } = window.validators;
     new Vue({
@@ -693,51 +635,7 @@
         },
       },      
       data (){
-        let ckeditor_toolbar = [
-            ['Bold', 'Italic', 'Font'],
-            ['Format', 'Styles', 'TextColor', 'BGColor', 'RemoveFormat'],
-            ['JustifyLeft','JustifyCenter','JustifyRight','JustifyBlock', 'Indent', 'Outdent'],
-            ['HorizontalRule', 'BulletedList'],
-            ['Blockquote', 'Source', 'Link', 'Unlink', 'Image', 'Table', 'Print']
-        ];        
         return {
-          ckeditor_configs: {
-            station_on_arrival_conditions: {
-              toolbar: ckeditor_toolbar,
-              removeButtons: 'Image',
-              extraAllowedContent : 'img(*){*}[*]',              
-              editorplaceholder: 'Description of station upon arribal:',
-              language: 'en',
-            },
-            current_visit_summary: {
-              toolbar: ckeditor_toolbar,
-              removeButtons: 'Image',
-              extraAllowedContent : 'img(*){*}[*]',              
-              height: '75%',
-              editorplaceholder: 'Summary of work done:',
-              language: 'en',
-            },                  
-            next_visit_summary: {
-              toolbar: ckeditor_toolbar,
-              removeButtons: 'Image',
-              extraAllowedContent : 'img(*){*}[*]',              
-              height: '75%',
-              editorplaceholder: 'Work to be done on next visit:',
-              language: 'en',
-            },
-            contacts: {
-              toolbar: ckeditor_toolbar,
-              removeButtons: 'Image',
-              extraAllowedContent : 'img(*){*}[*]',              
-              language: 'en',
-            },               
-            default: {
-              toolbar: ckeditor_toolbar,
-              removeButtons: 'Image',
-              extraAllowedContent : 'img(*){*}[*]',              
-              language: 'en',
-            },
-          },
           e1: 1,
           e2: 1,
           steps: 1,
@@ -752,15 +650,13 @@
               new_equipment_id: null,
               old_equipment_id: null,
               condition: "",
-              classification: null,
-              ckeditor_config: null
+              classification: null
             },
             secondary_equipment: {
               new_equipment_id: null,
               old_equipment_id: null,
               condition: "",
-              classification: null,
-              ckeditor_config: null
+              classification: null
             },
           },
           maintenance_report: {

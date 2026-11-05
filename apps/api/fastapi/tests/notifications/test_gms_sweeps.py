@@ -20,7 +20,7 @@ from src.auth.models import RoleAssignmentScope, User
 from src.baseline import product_access
 from src.baseline.models import ApprovalPolicy
 from src.cap.models import CapAlert, CapLifecycleState
-from src.cap.schemas import CapAlertAction, CapAlertCreate
+from src.cap.schemas import CapAlertCreate, CapPublishAction
 from src.cap.service import approve_alert, create_alert, publish_alert, submit_alert
 from src.eregister.models import ERegisterSend
 from src.hr.roster.models import (
@@ -94,6 +94,12 @@ _REAL_AUTHOR_CHECK = product_access.users_who_may_author
 
 
 @pytest.fixture(autouse=True)
+async def _marine_issued_for_the_land_tests(sources: AsyncSession) -> None:
+    """Today's 05:00 Marine Forecast is out, so the land-forecast tests see only land."""
+    await _publish(sources, "marine-forecast", "2026-10-23T05:00")
+
+
+@pytest.fixture(autouse=True)
 def _staff_may_author(monkeypatch: pytest.MonkeyPatch) -> None:
     """Grades are tested in baseline; here every GMS employee may author a kind."""
 
@@ -103,6 +109,16 @@ def _staff_may_author(monkeypatch: pytest.MonkeyPatch) -> None:
         return set(user_ids)
 
     monkeypatch.setattr(product_access, "users_who_may_author", everyone)
+
+
+async def _publish(db: AsyncSession, kind: str, issued_at: str) -> None:
+    await db.execute(
+        text(
+            "INSERT INTO authored_products (kind, published) VALUES (:kind, CAST(:p AS jsonb))"
+        ),
+        {"kind": kind, "p": json.dumps({"values": {"issuedAt": issued_at}})},
+    )
+    await db.commit()
 
 
 async def _holder(db: AsyncSession, *permissions: str) -> User:
@@ -214,6 +230,124 @@ async def test_without_a_roster_every_forecaster_is_told(
     assert len(await _told(sources, second, gms.FORECAST_OVERDUE)) == 1
 
 
+# ── Marine Forecast overdue ──────────────────────────────────────────────────
+
+# 09:20 UTC on the 24th is 05:20 in Grenada: the 05:00 Marine Forecast is 20 minutes late.
+MARINE_LATE = datetime(2026, 10, 24, 9, 20, tzinfo=UTC)
+
+
+async def test_marine_forecast_is_overdue_after_the_grace_time_and_told_once(
+    sources: AsyncSession,
+) -> None:
+    staff = await _staff(sources)
+
+    assert await gms_sweeps.forecast_overdue(sources, sources, MARINE_LATE) == 1
+    await sources.commit()
+    # The next sweep, and a restart, do not tell anyone twice.
+    assert await gms_sweeps.forecast_overdue(sources, sources, MARINE_LATE) == 0
+    later = MARINE_LATE + timedelta(minutes=5)
+    assert await gms_sweeps.forecast_overdue(sources, sources, later) == 0
+
+    (told,) = await _told(sources, staff, gms.FORECAST_OVERDUE)
+    assert told.title == "Marine forecast is overdue"
+    assert told.body == "The Marine forecast was due at 05:00 and has not been issued."
+    assert told.in_bell
+
+
+async def test_marine_forecast_is_not_overdue_inside_the_grace_time(
+    sources: AsyncSession,
+) -> None:
+    staff = await _staff(sources)
+    early = MARINE_LATE.replace(minute=10)  # 05:10
+    assert await gms_sweeps.forecast_overdue(sources, sources, early) == 0
+    assert await _told(sources, staff, gms.FORECAST_OVERDUE) == []
+
+
+async def test_an_issued_marine_forecast_is_not_overdue(sources: AsyncSession) -> None:
+    staff = await _staff(sources)
+    await _publish(sources, "marine-forecast", "2026-10-24T05:00")
+
+    assert await gms_sweeps.forecast_overdue(sources, sources, MARINE_LATE) == 0
+    assert await _told(sources, staff, gms.FORECAST_OVERDUE) == []
+
+
+async def test_marine_forecast_is_not_overdue_after_it_has_been_given_up_on(
+    sources: AsyncSession,
+) -> None:
+    await _staff(sources)
+    await _publish(sources, "morning", "2026-10-24T07:00")  # keep land out of it
+    # 11:20 Grenada: six hours after the issue time.
+    assert (
+        await gms_sweeps.forecast_overdue(
+            sources, sources, datetime(2026, 10, 24, 15, 20, tzinfo=UTC)
+        )
+        == 0
+    )
+
+
+async def test_a_land_forecast_does_not_clear_the_marine_forecast(
+    sources: AsyncSession,
+) -> None:
+    await _staff(sources)
+    await _publish(sources, "morning", "2026-10-24T07:00")
+    assert await gms_sweeps.forecast_overdue(sources, sources, MARINE_LATE) == 1
+
+
+async def test_only_people_allowed_to_author_marine_are_paged_for_it(
+    sources: AsyncSession, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    morning_only = await _staff(sources)
+    marine_author = await _staff(sources)
+    asked: list[str] = []
+
+    async def kind_sensitive(
+        _session: object, kind: str, user_ids: Collection[uuid.UUID]
+    ) -> set[uuid.UUID]:
+        asked.append(kind)
+        allowed = {marine_author.id} if kind == "marine-forecast" else set(user_ids)
+        return allowed & set(user_ids)
+
+    monkeypatch.setattr(product_access, "users_who_may_author", kind_sensitive)
+
+    assert await gms_sweeps.forecast_overdue(sources, sources, MARINE_LATE) == 1
+
+    assert "marine-forecast" in asked  # duty_forecasters asked about the marine kind
+    assert await _told(sources, morning_only, gms.FORECAST_OVERDUE) == []
+    assert len(await _told(sources, marine_author, gms.FORECAST_OVERDUE)) == 1
+
+
+async def test_duty_forecasters_is_asked_about_the_marine_kind(
+    sources: AsyncSession, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    await _staff(sources)
+    kinds: list[str] = []
+    real = gms.duty_forecasters
+
+    async def spy(
+        session: AsyncSession, kind: str, *, now: datetime | None = None
+    ) -> set[uuid.UUID]:
+        kinds.append(kind)
+        return await real(session, kind, now=now)
+
+    monkeypatch.setattr(gms, "duty_forecasters", spy)
+    await gms_sweeps.forecast_overdue(sources, sources, MARINE_LATE)
+    assert kinds == ["marine-forecast"]
+
+
+async def test_land_forecasts_are_overdue_exactly_as_before(
+    sources: AsyncSession,
+) -> None:
+    staff = await _staff(sources)
+    # 07:20 on the 23rd: only the morning forecast is late (marine is already out).
+    assert await gms_sweeps.forecast_overdue(sources, sources, LATE_MORNING) == 1
+    await sources.commit()
+    # 12:20: midday is late too; morning is not told again.
+    midday = datetime(2026, 10, 23, 16, 20, tzinfo=UTC)
+    assert await gms_sweeps.forecast_overdue(sources, sources, midday) == 1
+    titles = sorted(n.title for n in await _told(sources, staff, gms.FORECAST_OVERDUE))
+    assert titles == ["Midday forecast is overdue", "Morning forecast is overdue"]
+
+
 # ── Warning expiring ─────────────────────────────────────────────────────────
 
 
@@ -231,7 +365,7 @@ async def _published_warning(db: AsyncSession, author: User, expires: datetime):
             session=db,
             current_user=author,
             alert_id=alert.id,
-            payload=CapAlertAction(),
+            payload=CapPublishAction(),
         )
     return alert
 

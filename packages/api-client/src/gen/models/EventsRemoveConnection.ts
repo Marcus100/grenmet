@@ -3,6 +3,8 @@
  * Do not edit manually.
  */
 
+import type { ApiError } from "./ApiError.js";
+import type { ErrorMessage } from "./ErrorMessage.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 
 export type EventsRemoveConnectionPath = {
@@ -16,9 +18,17 @@ export type EventsRemoveConnectionPath = {
 
 export type EventsRemoveConnectionStatus204 = unknown;
 
-export type EventsRemoveConnectionStatus401 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type EventsRemoveConnectionStatus401 = ApiError;
 
-export type EventsRemoveConnectionStatus404 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type EventsRemoveConnectionStatus404 = ApiError;
 
 /**
  * @description Validation error envelope returned for malformed requests.
@@ -26,7 +36,7 @@ export type EventsRemoveConnectionStatus404 = unknown;
  */
 export type EventsRemoveConnectionStatus422 = ValidationErrorResponse;
 
-export type EventsRemoveConnectionStatus429 = unknown;
+export type EventsRemoveConnectionStatus429 = ApiError | ErrorMessage;
 
 export type EventsRemoveConnectionOptions = {
   body?: never;

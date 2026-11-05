@@ -17,6 +17,7 @@ import type {
   HrApproveTimesheetStatus400,
   HrApproveTimesheetStatus403,
   HrApproveTimesheetStatus404,
+  HrApproveTimesheetStatus409,
   HrApproveTimesheetStatus422,
 } from "../models/HrApproveTimesheet.js";
 
@@ -35,16 +36,18 @@ export function hrApproveTimesheetMutationOptions<TContext = unknown>(
       | HrApproveTimesheetStatus400
       | HrApproveTimesheetStatus403
       | HrApproveTimesheetStatus404
+      | HrApproveTimesheetStatus409
       | HrApproveTimesheetStatus422
     >,
     HrApproveTimesheetOptions,
     TContext
   >({
     mutationKey,
-    mutationFn: async ({ path }) => {
+    mutationFn: async ({ path, body }) => {
       return hrApproveTimesheet({
         ...config,
         path,
+        body,
         throwOnError: true,
       }).unwrap();
     },
@@ -64,6 +67,7 @@ export function useHrApproveTimesheet<TContext>(
         | HrApproveTimesheetStatus400
         | HrApproveTimesheetStatus403
         | HrApproveTimesheetStatus404
+        | HrApproveTimesheetStatus409
         | HrApproveTimesheetStatus422
       >,
       HrApproveTimesheetOptions,
@@ -87,6 +91,7 @@ export function useHrApproveTimesheet<TContext>(
       | HrApproveTimesheetStatus400
       | HrApproveTimesheetStatus403
       | HrApproveTimesheetStatus404
+      | HrApproveTimesheetStatus409
       | HrApproveTimesheetStatus422
     >,
     HrApproveTimesheetOptions,
@@ -99,6 +104,7 @@ export function useHrApproveTimesheet<TContext>(
       | HrApproveTimesheetStatus400
       | HrApproveTimesheetStatus403
       | HrApproveTimesheetStatus404
+      | HrApproveTimesheetStatus409
       | HrApproveTimesheetStatus422
     >,
     HrApproveTimesheetOptions,
@@ -116,6 +122,7 @@ export function useHrApproveTimesheet<TContext>(
       | HrApproveTimesheetStatus400
       | HrApproveTimesheetStatus403
       | HrApproveTimesheetStatus404
+      | HrApproveTimesheetStatus409
       | HrApproveTimesheetStatus422
     >,
     HrApproveTimesheetOptions,

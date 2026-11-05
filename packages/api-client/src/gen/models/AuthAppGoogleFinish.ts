@@ -3,6 +3,8 @@
  * Do not edit manually.
  */
 
+import type { ApiError } from "./ApiError.js";
+import type { ErrorMessage } from "./ErrorMessage.js";
 import type { GoogleFinish } from "./GoogleFinish.js";
 import type { SessionLoginResponse } from "./SessionLoginResponse.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
@@ -17,11 +19,23 @@ export type AuthAppGoogleFinishPath = {
 
 export type AuthAppGoogleFinishStatus200 = SessionLoginResponse;
 
-export type AuthAppGoogleFinishStatus400 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type AuthAppGoogleFinishStatus400 = ApiError;
 
-export type AuthAppGoogleFinishStatus403 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type AuthAppGoogleFinishStatus403 = ApiError;
 
-export type AuthAppGoogleFinishStatus404 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type AuthAppGoogleFinishStatus404 = ApiError;
 
 /**
  * @description Validation error envelope returned for malformed requests.
@@ -29,7 +43,7 @@ export type AuthAppGoogleFinishStatus404 = unknown;
  */
 export type AuthAppGoogleFinishStatus422 = ValidationErrorResponse;
 
-export type AuthAppGoogleFinishStatus429 = unknown;
+export type AuthAppGoogleFinishStatus429 = ApiError | ErrorMessage;
 
 export type AuthAppGoogleFinishStatus503 = unknown;
 

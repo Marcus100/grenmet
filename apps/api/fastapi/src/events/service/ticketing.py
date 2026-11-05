@@ -276,7 +276,9 @@ async def _existing_order(
         raise EventsConflict("This Idempotency-Key was already used for another order")
     if order.status == "expired":
         # Never hand back a dead order as a successful claim; the client starts over.
-        raise EventsConflict("That attempt expired. Start a new one.")
+        raise EventsConflict(
+            "That attempt expired. Start a new one.", code="ATTEMPT_EXPIRED"
+        )
     return order
 
 
@@ -320,8 +322,16 @@ async def _payment_link(
         await db.commit()
     except AppException:
         await db.rollback()
+        # Only an order that is still waiting and has no intent is given back. A
+        # twin request may have started the payment meanwhile: its order must stay.
         await db.execute(
-            update(Order).where(Order.id == order_id).values(status="expired")
+            update(Order)
+            .where(
+                Order.id == order_id,
+                Order.status == holds.PENDING,
+                Order.payment_intent_id.is_(None),
+            )
+            .values(status="expired")
         )
         await db.commit()
         raise

@@ -38,7 +38,7 @@ const VV_90_99_M = [
   "9999",
   "9999",
 ];
-const DIGITS = /^\d+$/;
+const DIGITS = /^\d+$/u;
 
 function digits(value: string | undefined, length: number): number | null {
   const text = (value ?? "").trim();

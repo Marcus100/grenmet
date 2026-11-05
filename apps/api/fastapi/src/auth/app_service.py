@@ -4,6 +4,7 @@ Every flow ends in ``_session_response``, which creates a session bound to one
 app and mints an access token carrying that app's claim (ADR-0016).
 """
 
+import asyncio
 import base64
 import hashlib
 import logging
@@ -16,12 +17,12 @@ from urllib.parse import urlencode
 import httpx
 import jwt
 from fastapi.concurrency import run_in_threadpool
-from sqlalchemy import delete, select
+from sqlalchemy import delete, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 from starlette.requests import Request
 
 from src.auth import modern_service, otp, service
-from src.auth.account_security import verify_factor
+from src.auth.account_security import record_security, verify_factor
 from src.auth.app_schemas import (
     AccountAppPublic,
     AppEmailCodeStart,
@@ -38,7 +39,14 @@ from src.auth.app_schemas import (
 from src.auth.apps import AppDefinition, is_registered, registered_apps, require_method
 from src.auth.config import auth_settings
 from src.auth.devices import remember_device, schedule_new_sign_in_alert
-from src.auth.lockout import login_lockout
+from src.auth.email_verification import is_admin_activated
+from src.auth.lockout import (
+    email_code_cooldown,
+    email_code_ip_limit,
+    email_code_send_limit,
+    login_lockout,
+    normalised_address,
+)
 from src.auth.models import Role, User, UserRoleLink
 from src.auth.models import Session as LoginSession
 from src.auth.modern_models import AuthChallenge, ExternalIdentity
@@ -56,6 +64,7 @@ from src.email import send_email
 from src.email_config import email_settings
 from src.exceptions import AppException
 from src.models import Message
+from src.rate_limit import request_ip
 from src.utils.datetime import utc_now
 
 logger = logging.getLogger(__name__)
@@ -210,7 +219,7 @@ async def _session_response(
     if not eligible:
         raise AppException("This account can't sign in to this app.", 403)
     user_agent = request.headers.get("user-agent")
-    ip_address = request.client.host if request.client else None
+    ip_address = request_ip(request)
     new_device = remember_device(user, user_agent)
     db_session, session_token = await service.create_session(
         session=session,
@@ -275,12 +284,110 @@ async def _require_totp(
 # --- Email one-time code (passwordless sign-in and sign-up) --------------------
 
 
+# Code emails in flight. Held here so the tasks are not garbage collected.
+_pending_code_emails: set[asyncio.Task[None]] = set()
+
+
+def _schedule_code_email(*, email: str, app_label: str, code: str) -> None:
+    task = asyncio.get_running_loop().create_task(
+        _deliver_code_email(email=email, app_label=app_label, code=code)
+    )
+    _pending_code_emails.add(task)
+    task.add_done_callback(_pending_code_emails.discard)
+
+
+async def _deliver_code_email(*, email: str, app_label: str, code: str) -> None:
+    try:
+        await run_in_threadpool(
+            send_email,
+            email_to=email,
+            subject="Your sign-in code",
+            html_content=(
+                f"<p>Your {app_label} code is</p>"
+                f'<p style="font-size:28px;font-weight:700;letter-spacing:4px">{code}</p>'
+                f"<p>It expires in {CODE_TTL_MINUTES} minutes. If you didn't ask for it, ignore this email.</p>"
+            ),
+        )
+    except Exception as exc:
+        # The reply already went out; the person can ask for a new code.
+        # Only the class: the message or traceback could carry the address.
+        logger.warning("Sign-in code email could not be sent (%s)", type(exc).__name__)
+
+
+async def _retire_unverified_password(session: AsyncSession, user: User) -> None:
+    """Undo whatever an unproven mailbox was given before the owner proved it.
+
+    The old public sign-up let anyone register someone else's address with their
+    own password, and that account could also enrol an authenticator, link a
+    Google identity, remember devices and issue API keys. On the first verified
+    code, for a self-registered account that was never verified, this clears all
+    of it, revokes every session and leaves the account needing a password through
+    a verified flow. Only self-registered accounts (registration_pending) qualify:
+    administrator-created accounts (create_user, seeds, staff onboarding) keep
+    their passwords, and admin-activated accounts are exempt.
+    """
+    if user.email_verified_at is not None or not user.registration_pending:
+        return
+    if await is_admin_activated(session, user):
+        return
+    user.hashed_password = await get_password_hash_async(secrets.token_urlsafe(32))
+    user.password_setup_pending = True
+    user.totp_enabled = False
+    user.totp_secret = None
+    user.mfa_recovery_hashes = []
+    await revoke_access_material(session, user)
+    await record_security(session, user, "pw_retired")
+
+
+async def revoke_access_material(session: AsyncSession, user: User) -> None:
+    """Revoke what an account can sign in with besides its password and authenticator.
+
+    Clears remembered devices, deletes every session and Google (external) identity,
+    and revokes the API keys the account created. Shared by the squatting retirement
+    and by sign-in setup confirmation (#984). Callers decide about the password,
+    the authenticator and the recovery codes; this helper leaves them alone.
+    """
+    user.known_device_keys = []
+    await session.execute(delete(LoginSession).where(LoginSession.user_id == user.id))
+    await session.execute(
+        delete(ExternalIdentity).where(ExternalIdentity.user_id == user.id)
+    )
+    from src.organisations.models import ApiKey
+
+    await session.execute(
+        update(ApiKey)
+        .where(ApiKey.created_by_user_id == user.id, ApiKey.revoked_at.is_(None))
+        .values(revoked_at=utc_now())
+    )
+
+
+async def _code_request_allowed(client_ip: str | None, mailbox_key: str) -> bool:
+    """Limits for a code request, in the order that keeps them honest.
+
+    The per-mailbox cooldown runs first, so requests it ignores do not use up
+    the hourly cap. Each check counts with one atomic INCR.
+    """
+    if client_ip is not None and not await email_code_ip_limit.allow(client_ip):
+        return False
+    if not await email_code_cooldown.allow(mailbox_key):
+        return False
+    return await email_code_send_limit.allow(mailbox_key)
+
+
 async def email_code_start(
-    *, session: AsyncSession, app: AppDefinition, body: AppEmailCodeStart
+    *,
+    session: AsyncSession,
+    app: AppDefinition,
+    body: AppEmailCodeStart,
+    client_ip: str | None = None,
 ) -> Message:
     """Send a code. New addresses get an account only after verifying it."""
     require_method(app, "email_code")
     email = str(body.email).lower()
+    # Past any limit the reply is the same generic one as for an unknown address,
+    # and nothing is issued or sent, so the reply never reveals anything.
+    if not await _code_request_allowed(client_ip, normalised_address(email)):
+        return Message(message=GENERIC_SENT)
     user = await service.get_user_by_email(session=session, email=email)
     if user is None and not app.self_signup:
         return Message(message=GENERIC_SENT)
@@ -298,21 +405,8 @@ async def email_code_start(
     )
     await session.commit()
     if email_settings.EMAILS_ENABLED:
-        try:
-            await run_in_threadpool(
-                send_email,
-                email_to=email,
-                subject=f"Your {app.label} sign-in code: {code}",
-                html_content=(
-                    f"<p>Your {app.label} code is</p>"
-                    f'<p style="font-size:28px;font-weight:700;letter-spacing:4px">{code}</p>'
-                    f"<p>It expires in {CODE_TTL_MINUTES} minutes. If you didn't ask for it, ignore this email.</p>"
-                ),
-            )
-        except Exception as exc:
-            raise AppException(
-                "We couldn't send the code. Try again shortly.", 503
-            ) from exc
+        # Sent in the background so the reply never waits on the mail provider.
+        _schedule_code_email(email=email, app_label=app.label, code=code)
     elif auth_settings.ENVIRONMENT == "local":
         logger.warning("Email code for %s (%s): %s", email, app.key, code)
     return Message(message=GENERIC_SENT)
@@ -342,11 +436,13 @@ async def email_code_verify(
         )
     if not user.is_active:
         raise AppException("That code is wrong or has expired. Request a new one.", 400)
+    await _retire_unverified_password(session, user)
     await _require_totp(session, user, body.totp_code)
     await session.delete(challenge)
     if user.email_verified_at is None:
         user.email_verified_at = utc_now()
         session.add(user)
+    await record_security(session, user, "code_sign_in")
     await session.commit()
     await ensure_member(session, user, app)
     return await _session_response(
@@ -762,9 +858,11 @@ def _account() -> AppDefinition:
 
 
 async def account_email_code_start(
-    *, session: AsyncSession, body: AppEmailCodeStart
+    *, session: AsyncSession, body: AppEmailCodeStart, client_ip: str | None = None
 ) -> Message:
-    return await email_code_start(session=session, app=_account(), body=body)
+    return await email_code_start(
+        session=session, app=_account(), body=body, client_ip=client_ip
+    )
 
 
 async def account_email_code_verify(
@@ -792,15 +890,17 @@ async def account_email_code_verify(
         )
     if not user.is_active:
         raise AppException("That code is wrong or has expired. Request a new one.", 400)
+    await _retire_unverified_password(session, user)
     await _require_totp(session, user, body.totp_code)
     await session.delete(challenge)
     if user.email_verified_at is None:
         user.email_verified_at = utc_now()
         session.add(user)
+    await record_security(session, user, "code_sign_in")
     await session.commit()
 
     user_agent = request.headers.get("user-agent")
-    ip_address = request.client.host if request.client else None
+    ip_address = request_ip(request)
     new_device = remember_device(user, user_agent)
     db_session, session_token = await service.create_session(
         session=session,

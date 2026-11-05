@@ -3,6 +3,7 @@
  * Do not edit manually.
  */
 
+import type { ApiError } from "./ApiError.js";
 import type { StationRecordList } from "./StationRecordList.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 
@@ -16,9 +17,17 @@ export type EregisterListRegistryStationsQuery = {
 
 export type EregisterListRegistryStationsStatus200 = StationRecordList;
 
-export type EregisterListRegistryStationsStatus401 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type EregisterListRegistryStationsStatus401 = ApiError;
 
-export type EregisterListRegistryStationsStatus403 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type EregisterListRegistryStationsStatus403 = ApiError;
 
 /**
  * @description Validation error envelope returned for malformed requests.

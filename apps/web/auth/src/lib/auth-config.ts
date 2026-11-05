@@ -16,6 +16,12 @@ export function getAuthConfig(): AuthConfig {
     authApiBaseUrl,
     authApiPrefix,
     authAppUrl: "/",
+    // Only a secret of the API's minimum length is forwarded; shorter is ignored.
+    trustedWebSecret:
+      env.TRUSTED_WEB_SECRET && env.TRUSTED_WEB_SECRET.length >= 32
+        ? env.TRUSTED_WEB_SECRET
+        : undefined,
+    visitorProxyHops: env.AUTH_VISITOR_PROXY_HOPS,
     sessionCookieName: env.AUTH_SESSION_COOKIE_NAME.trim(),
   };
 }

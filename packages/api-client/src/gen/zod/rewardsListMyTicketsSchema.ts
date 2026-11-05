@@ -4,14 +4,19 @@
  */
 
 import * as z from "zod";
+import { apiErrorSchema } from "./apiErrorSchema.js";
 import { ticketSummarySchema } from "./ticketSummarySchema.js";
 import { validationErrorResponseSchema } from "./validationErrorResponseSchema.js";
 
 export const rewardsListMyTicketsStatus200Schema = z.array(ticketSummarySchema);
 
-export const rewardsListMyTicketsStatus401Schema = z.unknown();
+export const rewardsListMyTicketsStatus401Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
-export const rewardsListMyTicketsStatus403Schema = z.unknown();
+export const rewardsListMyTicketsStatus403Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
 export const rewardsListMyTicketsStatus422Schema =
   validationErrorResponseSchema.describe(

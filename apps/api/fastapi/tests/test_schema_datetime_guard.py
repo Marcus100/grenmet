@@ -110,6 +110,8 @@ def test_json_routes_declare_response_models_and_metadata() -> None:
 
 MAP_TYPE_EXEMPTIONS = {
     "src.cap.schemas.CapAuditEventPublic.payload": "audit payload is versioned opaque event data",
+    "src.hr.payroll.schemas.PayrollExportSettingsPublic.gl_accounts": "GL account code per fixed journal key; keys validated against payslips.GL_KEYS",
+    "src.hr.payroll.schemas.PayItemPublic.params": "pay rule parameters differ per method; validated by hr.payroll.rules.validate_params",
     "src.eregister.schemas.RegisterObservationCorrection.body": "WMO observation body is format-specific opaque data",
     "src.eregister.schemas.RegisterObservationCreate.body": "WMO observation body is format-specific opaque data",
     "src.eregister.schemas.RegisterObservationRead.body": "WMO observation body is format-specific opaque data",
@@ -150,10 +152,14 @@ def test_open_map_types_are_explicitly_exempted() -> None:
 
 
 def test_wxproducts_typed_contract_has_discriminator() -> None:
-    save = app.openapi()["paths"]["/api/v1/wxproducts/products"]["post"]
-    preview = app.openapi()["paths"]["/api/v1/wxproducts/products/preview"]["post"]
+    document = app.openapi()
+    save = document["paths"]["/api/v1/wxproducts/products"]["post"]
+    preview = document["paths"]["/api/v1/wxproducts/products/preview"]["post"]
     for operation in (save, preview):
-        schema = operation["requestBody"]["content"]["application/json"]["schema"]
+        # Request bodies are named $ref components; the discriminator lives there.
+        reference = operation["requestBody"]["content"]["application/json"]["schema"]
+        name = reference["$ref"].rsplit("/", 1)[-1]
+        schema = document["components"]["schemas"][name]
         assert schema["discriminator"]["propertyName"] == "kind"
         assert len(schema["oneOf"]) == 2
 

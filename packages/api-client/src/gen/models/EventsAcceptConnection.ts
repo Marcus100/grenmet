@@ -3,6 +3,8 @@
  * Do not edit manually.
  */
 
+import type { ApiError } from "./ApiError.js";
+import type { ErrorMessage } from "./ErrorMessage.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 
 export type EventsAcceptConnectionPath = {
@@ -16,9 +18,17 @@ export type EventsAcceptConnectionPath = {
 
 export type EventsAcceptConnectionStatus204 = unknown;
 
-export type EventsAcceptConnectionStatus401 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type EventsAcceptConnectionStatus401 = ApiError;
 
-export type EventsAcceptConnectionStatus404 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type EventsAcceptConnectionStatus404 = ApiError;
 
 /**
  * @description Validation error envelope returned for malformed requests.
@@ -26,7 +36,7 @@ export type EventsAcceptConnectionStatus404 = unknown;
  */
 export type EventsAcceptConnectionStatus422 = ValidationErrorResponse;
 
-export type EventsAcceptConnectionStatus429 = unknown;
+export type EventsAcceptConnectionStatus429 = ApiError | ErrorMessage;
 
 export type EventsAcceptConnectionOptions = {
   body?: never;

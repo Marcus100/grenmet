@@ -5,7 +5,7 @@ service functions flush.
 """
 
 import uuid
-from typing import Any
+from typing import Annotated, Any
 
 from fastapi import APIRouter, Query, Response, status
 
@@ -24,7 +24,7 @@ from .schemas import (
     CustomerUpdate,
     InvoiceDetailPublic,
     InvoiceDraftWrite,
-    InvoiceIssue,
+    InvoiceIssueBody,
     InvoiceListPublic,
     InvoiceVoid,
     PaymentCreate,
@@ -48,7 +48,7 @@ async def list_customers(
     session: SessionDep,
     _manager: BillingManager,
     pagination: PaginationDep,
-    q: str | None = Query(default=None, max_length=100),
+    q: Annotated[str | None, Query(max_length=100)] = None,
 ) -> Any:
     rows, total = await customers.list_customers(
         session, skip=pagination.skip, limit=pagination.limit, query=q
@@ -121,9 +121,9 @@ async def list_invoices(
     session: SessionDep,
     _manager: BillingManager,
     pagination: PaginationDep,
-    status_filter: InvoiceStatus | None = Query(default=None, alias="status"),
+    status_filter: Annotated[InvoiceStatus | None, Query(alias="status")] = None,
     customer_id: uuid.UUID | None = None,
-    q: str | None = Query(default=None, max_length=100),
+    q: Annotated[str | None, Query(max_length=100)] = None,
     overdue: bool = False,
 ) -> Any:
     rows, total = await invoices.list_invoices(
@@ -223,13 +223,13 @@ async def issue_invoice(
     session: SessionDep,
     manager: BillingManager,
     invoice_id: uuid.UUID,
-    payload: InvoiceIssue | None = None,
+    payload: InvoiceIssueBody = InvoiceIssueBody(None),
 ) -> Any:
     result = await invoices.issue(
         session,
         manager,
         invoice_id,
-        issue_date=payload.issue_date if payload else None,
+        issue_date=payload.root.issue_date if payload.root else None,
     )
     await session.commit()
     return result

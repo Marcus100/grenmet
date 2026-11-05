@@ -1,16 +1,11 @@
 import { SessionUserProvider } from "@barrelsgd/auth";
 import type { ProductKind, ProductValues } from "@barrelsgd/gms/products";
-import {
-  fireEvent,
-  render,
-  screen,
-  waitFor,
-  within,
-} from "@testing-library/react";
+import { fireEvent, screen, waitFor, within } from "@testing-library/react";
 import { beforeEach, expect, it, vi } from "vitest";
+import { renderWithGmsCatalogue as render } from "@/test/with-gms-catalogue";
 import { ProductDesk } from "./product-desk";
 
-const WEATHER_SUMMARY_LABEL = /Weather forecast/;
+const WEATHER_SUMMARY_LABEL = /Weather forecast/u;
 
 const actions = vi.hoisted(() => ({
   loadProductsAction: vi.fn(),

@@ -3,7 +3,9 @@
  * Do not edit manually.
  */
 
+import type { ApiError } from "./ApiError.js";
 import type { AppHandoffRedeem } from "./AppHandoffRedeem.js";
+import type { ErrorMessage } from "./ErrorMessage.js";
 import type { SessionLoginResponse } from "./SessionLoginResponse.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 
@@ -17,13 +19,29 @@ export type AuthAppHandoffRedeemPath = {
 
 export type AuthAppHandoffRedeemStatus200 = SessionLoginResponse;
 
-export type AuthAppHandoffRedeemStatus400 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type AuthAppHandoffRedeemStatus400 = ApiError;
 
-export type AuthAppHandoffRedeemStatus401 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type AuthAppHandoffRedeemStatus401 = ApiError;
 
-export type AuthAppHandoffRedeemStatus403 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type AuthAppHandoffRedeemStatus403 = ApiError;
 
-export type AuthAppHandoffRedeemStatus404 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type AuthAppHandoffRedeemStatus404 = ApiError;
 
 /**
  * @description Validation error envelope returned for malformed requests.
@@ -31,7 +49,7 @@ export type AuthAppHandoffRedeemStatus404 = unknown;
  */
 export type AuthAppHandoffRedeemStatus422 = ValidationErrorResponse;
 
-export type AuthAppHandoffRedeemStatus429 = unknown;
+export type AuthAppHandoffRedeemStatus429 = ApiError | ErrorMessage;
 
 export type AuthAppHandoffRedeemBody = AppHandoffRedeem;
 

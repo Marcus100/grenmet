@@ -4,6 +4,7 @@
  */
 
 import * as z from "zod";
+import { apiErrorSchema } from "./apiErrorSchema.js";
 import { calendarEventsPublicSchema } from "./calendarEventsPublicSchema.js";
 import { validationErrorResponseSchema } from "./validationErrorResponseSchema.js";
 
@@ -22,11 +23,17 @@ export const hrListCalendarEventsQueryIncludeCancelledSchema = z
 
 export const hrListCalendarEventsStatus200Schema = calendarEventsPublicSchema;
 
-export const hrListCalendarEventsStatus400Schema = z.unknown();
+export const hrListCalendarEventsStatus400Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
-export const hrListCalendarEventsStatus403Schema = z.unknown();
+export const hrListCalendarEventsStatus403Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
-export const hrListCalendarEventsStatus404Schema = z.unknown();
+export const hrListCalendarEventsStatus404Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
 export const hrListCalendarEventsStatus422Schema =
   validationErrorResponseSchema.describe(

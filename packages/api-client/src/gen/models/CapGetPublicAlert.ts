@@ -3,16 +3,29 @@
  * Do not edit manually.
  */
 
-import type { CapAlertPublic } from "./CapAlertPublic.js";
+import type { ApiError } from "./ApiError.js";
+import type { CapAlertPublicView } from "./CapAlertPublicView.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 
 export type CapGetPublicAlertPath = {
   identifier: string;
 };
 
-export type CapGetPublicAlertStatus200 = CapAlertPublic;
+/**
+ * @description An alert as the anonymous public sees it.
+ *
+ * Staff-only fields are left out: the schema check result, the imported marker,
+ * and who created or last changed the alert. The note is kept on purpose: the
+ * public XML publishes it as ``<note>``.
+ * @type object
+ */
+export type CapGetPublicAlertStatus200 = CapAlertPublicView;
 
-export type CapGetPublicAlertStatus404 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type CapGetPublicAlertStatus404 = ApiError;
 
 /**
  * @description Validation error envelope returned for malformed requests.

@@ -12,6 +12,7 @@ import {
 import type { Condition, ForecastDayData } from "@/lib/forecast-data";
 import { UNAVAILABLE_SOURCE } from "@/lib/forecast-selection";
 import { reportError } from "@/lib/report-error";
+import { isAllClear } from "@/lib/sector-outlook";
 import { bothUnits } from "@/lib/units";
 
 /** Placeholder for a value the source did not supply. */
@@ -19,9 +20,9 @@ export const NOT_SUPPLIED = "Not supplied";
 
 const DAY_NAMES = ["Today", "Tomorrow"];
 
-const WIND_SPEED_TILE = /^wind speed|^wind$/i;
-const WIND_DIRECTION_TILE = /^wind direction/i;
-const CHANCE_OF_RAIN_TILE = /^chance of rain/i;
+const WIND_SPEED_TILE = /^wind speed|^wind$/iu;
+const WIND_DIRECTION_TILE = /^wind direction/iu;
+const CHANCE_OF_RAIN_TILE = /^chance of rain/iu;
 
 /** A whole-degree forecast temperature in the visitor's unit system. */
 function degrees(value: number | null): ReactNode {
@@ -243,7 +244,7 @@ const LEGACY_WATCH_KEYS = [
 const ALERTS_UNCONFIRMED =
   "Weather alerts could not be fully confirmed when this forecast was issued.";
 
-const PARAGRAPH_BREAK = /\r?\n\s*\r?\n/;
+const PARAGRAPH_BREAK = /\r?\n\s*\r?\n/u;
 
 /**
  * GMS alerts and CAP warnings in force when the forecast was issued (the
@@ -251,7 +252,7 @@ const PARAGRAPH_BREAK = /\r?\n\s*\r?\n/;
  * longer type impacts; alerts and CAP are the source. `null` when the
  * forecast predates the snapshot or it cannot be read.
  */
-function importedWatch(raw: string | undefined): string[] | null {
+export function importedWatch(raw: string | undefined): string[] | null {
   if (!raw?.trim()) return null;
   let parsed: unknown;
   try {
@@ -269,16 +270,37 @@ function importedWatch(raw: string | undefined): string[] | null {
     !!parsed &&
     typeof parsed === "object" &&
     (parsed as { complete?: unknown }).complete !== false;
-  const listed = items.flatMap((item) => {
-    if (!item || typeof item !== "object") return [];
-    const { title, impacts } = item as { title?: unknown; impacts?: unknown };
-    const name = typeof title === "string" ? title.trim() : "";
-    const detail = typeof impacts === "string" ? impacts.trim() : "";
-    if (!name) return detail ? [detail] : [];
-    return [detail ? `${name}: ${detail}` : name];
-  });
+  const entries = items.flatMap(watchEntry);
+  // An All clear is information, not an alert in force (owner decision, 30 Oct
+  // 2026): it follows the alerts as "All clear: <title>", as on the alerts page.
+  const listed = [
+    ...entries.filter((entry) => !entry.allClear),
+    ...entries.filter((entry) => entry.allClear),
+  ].map((entry) => entry.line);
   // A source that could not be read is not "nothing in force": say so.
   return complete ? listed : [...listed, ALERTS_UNCONFIRMED];
+}
+
+const text = (value: unknown) =>
+  typeof value === "string" ? value.trim() : "";
+
+/** One snapshot item as a "What to watch" line, or nothing when it has no words. */
+function watchEntry(item: unknown): { allClear: boolean; line: string }[] {
+  if (!item || typeof item !== "object") return [];
+  const { colour, impacts, noticeType, title } = item as Record<
+    string,
+    unknown
+  >;
+  const name = text(title);
+  const detail = text(impacts);
+  if (
+    name &&
+    isAllClear({ colour: text(colour), notice_type: text(noticeType) })
+  ) {
+    return [{ allClear: true, line: `All clear: ${name}` }];
+  }
+  if (!name) return detail ? [{ allClear: false, line: detail }] : [];
+  return [{ allClear: false, line: detail ? `${name}: ${detail}` : name }];
 }
 
 function paragraphsOf(text: string | undefined) {

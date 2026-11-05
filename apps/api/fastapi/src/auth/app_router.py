@@ -41,8 +41,9 @@ from src.auth.modern_schemas import (
 )
 from src.auth.schemas import SessionLoginResponse
 from src.dependencies import SessionDep
-from src.models import Message
-from src.rate_limit import limiter
+from src.models import ApiError, Message
+from src.openapi_responses import RateLimitedBody
+from src.rate_limit import limiter, mail_limit_address
 
 router = APIRouter(prefix="/auth/apps/{app}", tags=["auth"])
 account_router = APIRouter(prefix="/auth/account/apps", tags=["auth"])
@@ -67,13 +68,16 @@ async def _member(
 AppMember = Annotated[User, Depends(_member)]
 
 _PUBLIC: dict[int | str, dict[str, Any]] = {
-    404: {"description": "Unknown app"},
-    429: {"description": "Rate limit exceeded"},
+    404: {"model": ApiError, "description": "Unknown app"},
+    429: {"model": RateLimitedBody, "description": "Rate limit exceeded"},
 }
 _SIGN_IN: dict[int | str, dict[str, Any]] = {
     **_PUBLIC,
-    400: {"description": "Wrong or expired code, or bad credentials"},
-    403: {"description": "Account cannot use this app"},
+    400: {
+        "model": ApiError,
+        "description": "Wrong or expired code, or bad credentials",
+    },
+    403: {"model": ApiError, "description": "Account cannot use this app"},
     503: {"description": "Sign-in method not available"},
 }
 
@@ -84,7 +88,7 @@ _SIGN_IN: dict[int | str, dict[str, Any]] = {
     status_code=status.HTTP_200_OK,
     summary="Describe an app's sign-in options",
     description="Public: which sign-in methods the app offers and whether anyone may sign up.",
-    responses={404: {"description": "Unknown app"}},
+    responses={404: {"model": ApiError, "description": "Unknown app"}},
 )
 async def get_app_sign_in_options(*, app: AppDep) -> AppPublic:
     return AppPublic(
@@ -100,15 +104,16 @@ async def get_app_sign_in_options(*, app: AppDep) -> AppPublic:
     response_model=Message,
     status_code=status.HTTP_200_OK,
     summary="Send an email sign-in code",
-    description="Send a 6-digit code. The reply never reveals whether the address has an account.",
+    description="Send a 6-digit code. The reply is the same for every address and never waits on mail. A request past the limits gets the same reply and sends nothing.",
     responses=_SIGN_IN,
 )
 @limiter.limit("5/minute")
 async def app_email_code_start(
     *, request: Request, session: SessionDep, app: AppDep, body: AppEmailCodeStart
 ) -> Message:
-    _ = request
-    return await app_service.email_code_start(session=session, app=app, body=body)
+    return await app_service.email_code_start(
+        session=session, app=app, body=body, client_ip=mail_limit_address(request)
+    )
 
 
 @router.post(
@@ -233,7 +238,10 @@ async def app_phone_code_verify(
     status_code=status.HTTP_200_OK,
     summary="Send a code to link a phone number",
     description="Signed-in members link a phone number for code sign-in.",
-    responses={**_SIGN_IN, 401: {"description": "Not signed in to this app"}},
+    responses={
+        **_SIGN_IN,
+        401: {"model": ApiError, "description": "Not signed in to this app"},
+    },
 )
 @limiter.limit("3/minute")
 async def app_phone_link_start(
@@ -258,8 +266,8 @@ async def app_phone_link_start(
     description="Verify the code and attach the phone number to the signed-in account.",
     responses={
         **_SIGN_IN,
-        401: {"description": "Not signed in to this app"},
-        409: {"description": "Number linked elsewhere"},
+        401: {"model": ApiError, "description": "Not signed in to this app"},
+        409: {"model": ApiError, "description": "Number linked elsewhere"},
     },
 )
 @limiter.limit("10/minute")
@@ -287,10 +295,14 @@ async def app_phone_link_verify(
     description="Exchange the auth.barrels.gd account session for a one-use, 60-second code bound to this app and the caller's state (ADR-0017).",
     responses={
         **_PUBLIC,
-        401: {"description": "Account session missing, expired or app-scoped"},
-        403: {"description": "Account cannot use this app"},
+        401: {
+            "model": ApiError,
+            "description": "Account session missing, expired or app-scoped",
+        },
+        403: {"model": ApiError, "description": "Account cannot use this app"},
         409: {
-            "description": "Join required: retry with join=true after the user agrees"
+            "model": ApiError,
+            "description": "Join required: retry with join=true after the user agrees",
         },
     },
 )
@@ -310,9 +322,12 @@ async def app_handoff_start(
     description="Exchange a handoff code and its state for a new session in this app only.",
     responses={
         **_PUBLIC,
-        400: {"description": "Code expired, already used, or for another app or state"},
-        401: {"description": "Wrong app client secret"},
-        403: {"description": "Account cannot use this app"},
+        400: {
+            "model": ApiError,
+            "description": "Code expired, already used, or for another app or state",
+        },
+        401: {"model": ApiError, "description": "Wrong app client secret"},
+        403: {"model": ApiError, "description": "Account cannot use this app"},
     },
 )
 @limiter.limit("60/minute")
@@ -330,7 +345,9 @@ async def app_handoff_redeem(
     status_code=status.HTTP_200_OK,
     summary="Read app-scoped identity",
     description="Read live identity and CMS editorial permissions using this app's bearer token.",
-    responses={401: {"description": "Invalid token or app access revoked"}},
+    responses={
+        401: {"model": ApiError, "description": "Invalid token or app access revoked"}
+    },
 )
 async def get_app_identity(*, app: AppDep, user: AppMember) -> AppIdentityPublic:
     return AppIdentityPublic(
@@ -343,9 +360,12 @@ async def get_app_identity(*, app: AppDep, user: AppMember) -> AppIdentityPublic
 
 
 _ACCOUNT: dict[int | str, dict[str, Any]] = {
-    401: {"description": "Not signed in to the Barrels account"},
-    403: {"description": "This app cannot be joined or left from here"},
-    404: {"description": "Unknown app"},
+    401: {"model": ApiError, "description": "Not signed in to the Barrels account"},
+    403: {
+        "model": ApiError,
+        "description": "This app cannot be joined or left from here",
+    },
+    404: {"model": ApiError, "description": "Unknown app"},
 }
 
 

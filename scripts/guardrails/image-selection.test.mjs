@@ -1,8 +1,14 @@
-const missingBase = /comparison base/;
+const missingBase = /comparison base/u;
 
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
-import { mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import {
+  mkdirSync,
+  mkdtempSync,
+  readFileSync,
+  rmSync,
+  writeFileSync,
+} from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import test from "node:test";
@@ -11,6 +17,8 @@ import {
   changedPaths,
   selectCoverage,
   selectImages,
+  selectJobs,
+  selectSurface,
   webImages,
 } from "../ci/select-images.mjs";
 
@@ -49,6 +57,8 @@ test("Elections source deploys independently while mixed changes retain core che
     "apps/web/barrels/build.mjs",
     "apps/web/babydoll/src/app/page.tsx",
     "apps/web/babydoll/vercel.json",
+    "apps/web/commit/src/app/page.tsx",
+    "apps/web/commit/content/posts/v1-0-0.mdx",
   ])
     assert.deepEqual(selectImages([path]), {
       web: [],
@@ -169,6 +179,8 @@ test("CLI selects all images when comparison history or event data is missing", 
       );
       assert.deepEqual(outputs, {
         ...selectImages([], "full"),
+        surface: true,
+        ...selectJobs([], "full"),
         coverage: selectCoverage([], "full").map(({ app, path }) => ({
           app,
           path,
@@ -205,4 +217,140 @@ test("coverage runs only the floor-tracked apps and follows the image scope", ()
     ["signal"]
   );
   assert.deepEqual(selectCoverage(["pnpm-lock.yaml"], "deployment"), []);
+});
+
+test("SURFACE CI runs only for SURFACE source and its own workflow", () => {
+  for (const path of [
+    "surface/api/wx/models.py",
+    "surface/api/requirements.txt",
+    "surface/Dockerfile.deploy",
+    "surface/ci/deploy-check-accepted.txt",
+    ".github/workflows/ci-surface.yml",
+  ]) {
+    assert.equal(selectSurface([path]), true, path);
+    // Promotion PRs and main pushes use the diff too.
+    assert.equal(selectSurface([path], "full"), true, path);
+    assert.equal(selectSurface([path], "deployment"), false, path);
+  }
+  for (const path of [
+    ".github/workflows/ci-api.yml",
+    "pnpm-lock.yaml",
+    "uv.lock",
+    "apps/api/fastapi/src/main.py",
+    "infra/weather/docker-compose.surface.yml",
+    "docs/surface.md",
+    "wis2box/wis2box.env.example",
+  ])
+    assert.equal(selectSurface([path]), false, path);
+  assert.equal(selectSurface([], "full"), false);
+});
+
+test("CLI selects SURFACE from the diff in full mode and never for deployments", () => {
+  const dir = mkdtempSync(join(tmpdir(), "surface-selection-"));
+  try {
+    const git = (args) =>
+      spawnSync("git", args, { cwd: dir, encoding: "utf8" }).stdout.trim();
+    git(["init", "-q"]);
+    git(["config", "user.email", "ci@example.invalid"]);
+    git(["config", "user.name", "CI"]);
+    writeFileSync(join(dir, "README.md"), "x\n");
+    git(["add", "."]);
+    git(["commit", "-qm", "base"]);
+    const base = git(["rev-parse", "HEAD"]);
+    writeFileSync(join(dir, "README.md"), "y\n");
+    git(["commit", "-qam", "docs only"]);
+    const docsHead = git(["rev-parse", "HEAD"]);
+    mkdirSync(join(dir, "surface/api"), { recursive: true });
+    writeFileSync(join(dir, "surface/api/manage.py"), "\n");
+    git(["add", "."]);
+    git(["commit", "-qm", "surface"]);
+    const surfaceHead = git(["rev-parse", "HEAD"]);
+    const event = join(dir, "event.json");
+    const output = join(dir, "output");
+    const surfaceFor = (head, mode) => {
+      writeFileSync(event, JSON.stringify({ before: base, after: head }));
+      writeFileSync(output, "");
+      const result = spawnSync(
+        process.execPath,
+        [fileURLToPath(new URL("../ci/select-images.mjs", import.meta.url))],
+        {
+          cwd: dir,
+          env: {
+            ...process.env,
+            IMAGE_BUILD_MODE: mode,
+            GITHUB_EVENT_PATH: event,
+            GITHUB_OUTPUT: output,
+          },
+        }
+      );
+      assert.equal(result.status, 0);
+      const line = readFileSync(output, "utf8")
+        .split("\n")
+        .find((entry) => entry.startsWith("surface="));
+      return JSON.parse(line.slice("surface=".length));
+    };
+    assert.equal(surfaceFor(docsHead, "full"), false);
+    assert.equal(surfaceFor(surfaceHead, "full"), true);
+    assert.equal(surfaceFor(docsHead, "affected"), false);
+    assert.equal(surfaceFor(surfaceHead, "affected"), true);
+    assert.equal(surfaceFor(surfaceHead, "deployment"), false);
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+const allJobs = {
+  python: true,
+  collectors: true,
+  webtests: true,
+  storage: true,
+};
+const noJobs = {
+  python: false,
+  collectors: false,
+  webtests: false,
+  storage: false,
+};
+test("documentation and agent-only changes skip every test suite", () => {
+  assert.deepEqual(
+    selectJobs([
+      "docs/deployment.md",
+      "README.md",
+      ".claude/skills/x/SKILL.md",
+    ]),
+    noJobs
+  );
+  assert.deepEqual(selectJobs(["surface/api/wx/models.py"]), noJobs);
+});
+test("docs read by tests and nested markdown still run the suites", () => {
+  assert.deepEqual(selectJobs(["docs/ports.md"]), allJobs);
+  assert.equal(selectJobs(["apps/api/fastapi/AGENTS.md"]).python, true);
+  assert.equal(
+    selectJobs(["apps/web/commit/content/posts/a.md"]).webtests,
+    true
+  );
+});
+test("API and web changes run both suites because their tests cross-read", () => {
+  for (const path of [
+    "packages/gms/src/sectors.ts",
+    "apps/web/bookings/src/app/x/page.tsx",
+    "apps/api/fastapi/src/cap/ibf.py",
+    "apps/api/fastapi/src/wxproducts/fields.json",
+  ]) {
+    const jobs = selectJobs([path]);
+    assert.equal(jobs.python && jobs.webtests && jobs.storage, true, path);
+    assert.equal(jobs.collectors, false, path);
+  }
+});
+test("collector, manifest and unknown paths run every suite", () => {
+  for (const path of [
+    "scripts/gms-ingest/ingest.py",
+    "uv.lock",
+    ".github/workflows/ci-api.yml",
+    "scripts/ci/select-images.mjs",
+    "package.json",
+  ])
+    assert.deepEqual(selectJobs([path]), allJobs, path);
+  assert.deepEqual(selectJobs(["docs/x.md"], "full"), allJobs);
+  assert.deepEqual(selectJobs(["docs/x.md"], "deployment"), allJobs);
 });

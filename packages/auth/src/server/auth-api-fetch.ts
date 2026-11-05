@@ -4,6 +4,7 @@ import { cookies, headers } from "next/headers";
 import type { NextResponse } from "next/server";
 import type { AuthConfig } from "../types";
 import { AuthApiError } from "../types";
+import { visitorAddressFromForwardedFor } from "./visitor-forward";
 
 interface AuthApiErrorPayload {
   detail?: unknown;
@@ -119,11 +120,23 @@ export async function clearSessionCookie(config: AuthConfig): Promise<void> {
   });
 }
 
-async function getForwardHeaders(): Promise<Headers> {
+async function getForwardHeaders(config: AuthConfig): Promise<Headers> {
   const incomingHeaders = await headers();
   const forwardedHeaders = new Headers({
     accept: "application/json",
   });
+  // The API rate-limits mail-sending routes on the visitor, not on this host,
+  // but only when the shared secret is presented alongside the address.
+  if (config.trustedWebSecret) {
+    const visitor = visitorAddressFromForwardedFor(
+      incomingHeaders.get("x-forwarded-for"),
+      config.visitorProxyHops ?? 1
+    );
+    if (visitor) {
+      forwardedHeaders.set("x-visitor-ip", visitor);
+      forwardedHeaders.set("x-visitor-secret", config.trustedWebSecret);
+    }
+  }
 
   for (const headerName of [
     "user-agent",
@@ -185,7 +198,7 @@ export async function authApiFormFetch<T>(
   parser: ResponseParser<T>,
   init: Omit<RequestInit, "body" | "headers" | "method"> = {}
 ): Promise<T> {
-  const requestHeaders = await getForwardHeaders();
+  const requestHeaders = await getForwardHeaders(config);
   requestHeaders.set("content-type", "application/x-www-form-urlencoded");
 
   const response = await fetchAuthApi(
@@ -216,7 +229,7 @@ export async function authApiFetchResponse(
     accessToken?: string;
   } = {}
 ): Promise<Response> {
-  const requestHeaders = await getForwardHeaders();
+  const requestHeaders = await getForwardHeaders(config);
   const { accessToken, ...requestInit } = init;
   if (accessToken) requestHeaders.set("authorization", `Bearer ${accessToken}`);
   const hasBody = init.body !== undefined;

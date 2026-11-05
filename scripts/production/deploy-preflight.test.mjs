@@ -19,7 +19,7 @@ const root = fileURLToPath(new URL("../../", import.meta.url));
 const dockerDir = join(root, "infra/docker");
 const renderScript = join(root, "scripts/production/render-env.py");
 const PLACEHOLDER = "ci-placeholder-";
-const IMAGE_TAG = /:(staging|production)-sha-[0-9a-f]{40}$/;
+const IMAGE_TAG = /:(staging|production)-sha-[0-9a-f]{40}$/u;
 const SHARED_API_SERVICES = ["api", "worker", "nhc-worker", "prestart"];
 
 // Keys whose format render-env.py validates need a well-formed synthetic value.
@@ -67,14 +67,14 @@ function syntheticSecrets(omit) {
   return secrets;
 }
 
-function render(environment, directory, omit) {
+function render(environment, directory, omit, extra = {}) {
   const destination = join(directory, `${environment}.env.local`);
   const result = spawnSync(
     "python3",
     [renderScript, `${environment}.env`, destination],
     {
       cwd: dockerDir,
-      env: { ...baseEnvironment, ...syntheticSecrets(omit) },
+      env: { ...baseEnvironment, ...syntheticSecrets(omit), ...extra },
       encoding: "utf8",
     }
   );
@@ -175,6 +175,88 @@ for (const environment of ["staging", "production"]) {
   });
 }
 
+// The Cloudflare switch as Compose really renders it (docs/operations/cloudflare-proxy.md).
+const VENDORED_RANGES = readFileSync(
+  join(root, "infra/cloudflare/ip-ranges.txt"),
+  "utf8"
+)
+  .split("\n")
+  .filter((line) => line && !line.startsWith("#"));
+const VISITOR_HOSTS = ["api", "web-gms", "web-events", "web-bookings"];
+const ORIGIN_SECRET = "0123456789abcdef".repeat(4);
+const GATE_RULE_LABEL = (environment) =>
+  `traefik.http.routers.origin-gate${environment === "staging" ? "-staging" : ""}.rule`;
+const DEPTH_LABEL = (environment) =>
+  `traefik.http.middlewares.inflight-per-ip${environment === "staging" ? "-staging" : ""}.inflightreq.sourceCriterion.ipStrategy.depth`;
+
+for (const environment of ["staging", "production"]) {
+  for (const [switchValue, expected] of [
+    [
+      "",
+      {
+        forwarded: "--entrypoints.websecure.forwardedHeaders.insecure=false",
+        acme: "--certificatesresolvers.letsencrypt.acme.tlschallenge=true",
+        depth: "0",
+        hops: "1",
+        gate: "ClientIP(`255.255.255.255/32`)",
+      },
+    ],
+    [
+      "true",
+      {
+        forwarded: `--entrypoints.websecure.forwardedHeaders.trustedIPs=${VENDORED_RANGES.join(",")}`,
+        acme: "--certificatesresolvers.letsencrypt.acme.httpchallenge.entrypoint=web",
+        depth: "1",
+        hops: "2",
+        gate: `(${VENDORED_RANGES.map((range) => `ClientIP(\`${range}\`)`).join(" || ")}) && !Header(\`X-Barrels-Origin\`, \`${ORIGIN_SECRET}\`)`,
+      },
+    ],
+  ]) {
+    test(`${environment} Cloudflare switch "${switchValue || "unset"}" renders Traefik and every visitor host together`, {
+      skip,
+    }, () => {
+      withDirectory((directory) => {
+        const { result, destination } = render(environment, directory, null, {
+          CLOUDFLARE_PROXY_ENABLED: switchValue,
+          CLOUDFLARE_ORIGIN_SECRET: ORIGIN_SECRET,
+        });
+        assert.equal(result.status, 0, result.stderr);
+        const { services } = composeModel(environment, destination);
+        const command = services.proxy.command;
+        const forwarded = command.filter((flag) =>
+          flag.startsWith("--entrypoints.websecure.forwardedHeaders.")
+        );
+        assert.deepEqual(forwarded, [expected.forwarded]);
+        const challenges = command.filter(
+          (flag) =>
+            flag.startsWith("--certificatesresolvers.letsencrypt.acme.") &&
+            flag.includes("challenge")
+        );
+        assert.deepEqual(challenges, [expected.acme]);
+        assert.equal(
+          services.proxy.labels[DEPTH_LABEL(environment)],
+          expected.depth
+        );
+        assert.equal(
+          services.proxy.labels[GATE_RULE_LABEL(environment)],
+          expected.gate
+        );
+        for (const name of VISITOR_HOSTS) {
+          assert.equal(
+            services[name].environment.VISITOR_IP_PROXY_HOPS,
+            expected.hops,
+            `${name} hops`
+          );
+          assert.ok(
+            services[name].environment.TRUSTED_WEB_SECRET,
+            `${name} secret`
+          );
+        }
+      });
+    });
+  }
+}
+
 test("a missing required secret is rejected by name, without printing any value", () => {
   withDirectory((directory) => {
     for (const name of secretNames) {
@@ -196,7 +278,10 @@ test("every required secret is passed to the delivery step", () => {
     "utf8"
   );
   for (const name of secretNames) {
-    const passed = new RegExp(`^\\s+${name}: \\$\\{\\{ (secrets|vars)\\.`, "m");
+    const passed = new RegExp(
+      `^\\s+${name}: \\$\\{\\{ (secrets|vars)\\.`,
+      "mu"
+    );
     assert.match(workflow, passed, `${name} is not passed in deploy.yml`);
   }
 });

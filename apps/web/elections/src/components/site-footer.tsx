@@ -1,4 +1,8 @@
 import { CookieSettingsButton } from "@barrelsgd/ui/components/posthog-provider";
+import {
+  BARRELS_SUPPORT_EMAIL,
+  BARRELS_SUPPORT_HREF,
+} from "@barrelsgd/ui/lib/support";
 import Link from "next/link";
 import { FlagStripe } from "@/components/flag-stripe";
 
@@ -16,7 +20,7 @@ export function SiteFooter() {
   return (
     <footer className="mt-16">
       <FlagStripe />
-      <div className="mx-auto max-w-[1240px] space-y-4 px-4 py-8 text-base text-el-muted leading-relaxed sm:px-6">
+      <div className="text-el-muted mx-auto max-w-[1240px] space-y-4 px-4 py-8 text-base leading-relaxed sm:px-6">
         <nav
           aria-label="Learning and evidence"
           className="flex flex-wrap gap-4"
@@ -37,12 +41,19 @@ export function SiteFooter() {
           the Parliamentary Elections Office. Use PEO guidance to confirm your
           registration and polling station.
         </p>
+        <p>
+          Questions about this site? Email Barrels Grenada support at{" "}
+          <a className="underline" href={BARRELS_SUPPORT_HREF}>
+            {BARRELS_SUPPORT_EMAIL}
+          </a>
+          .
+        </p>
         <details>
           <summary className="cursor-pointer">Evidence marks</summary>
           <dl className="mt-2 space-y-1">
             {MARKS.map(([mark, meaning]) => (
               <div className="flex gap-3" key={mark}>
-                <dt className="w-6 shrink-0 font-bold text-el-ink">{mark}</dt>
+                <dt className="text-el-ink w-6 shrink-0 font-bold">{mark}</dt>
                 <dd>{meaning}</dd>
               </div>
             ))}

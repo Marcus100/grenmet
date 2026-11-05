@@ -37,16 +37,16 @@ export function FilterBar({
     <search>
       <form
         action="/events"
-        className="grid gap-3 rounded-2xl border border-border bg-card p-3 sm:grid-cols-2 lg:grid-cols-[1.4fr_repeat(4,1fr)_auto]"
+        className="border-border bg-card grid gap-3 rounded-2xl border p-3 sm:grid-cols-2 lg:grid-cols-[1.4fr_repeat(4,1fr)_auto]"
       >
         <input name="view" type="hidden" value={view} />
         <div className="relative sm:col-span-2 lg:col-span-1">
           <label className="sr-only" htmlFor="filter-q">
             Search
           </label>
-          <Search className="absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
+          <Search className="text-muted-foreground absolute top-1/2 left-3 size-4 -translate-y-1/2" />
           <input
-            className="h-10 w-full rounded-lg border border-input bg-background pr-3 pl-9 text-body outline-none focus-visible:ring-3 focus-visible:ring-ring/40"
+            className="border-input bg-background text-body focus-visible:ring-ring/40 h-10 w-full rounded-lg border pr-3 pl-9 outline-none focus-visible:ring-3"
             defaultValue={filters.query ?? ""}
             id="filter-q"
             name="q"

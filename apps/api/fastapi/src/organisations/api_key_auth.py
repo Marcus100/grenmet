@@ -20,7 +20,7 @@ from collections.abc import AsyncGenerator, Awaitable, Callable
 from dataclasses import dataclass
 from typing import Annotated
 
-from fastapi import Depends, Header, HTTPException, Request, status
+from fastapi import Depends, Header, Request
 from fastapi.concurrency import run_in_threadpool
 from fastapi.security import (
     HTTPAuthorizationCredentials,
@@ -34,7 +34,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from src.auth.config import auth_settings
 from src.auth.models import User
 from src.dependencies import SessionDep, get_account_user
-from src.rate_limit import limiter
+from src.exceptions import AuthenticationError
+from src.rate_limit import connecting_address, limiter
 from src.request_context import bind_organisation_id, reset_organisation_id
 
 from . import api_key_scopes, api_keys, service
@@ -80,7 +81,9 @@ class ApiKeyContext:
 async def _within_limit(request: Request, key_id: str | None) -> bool:
     if not limiter.enabled:
         return True
-    host = request.client.host if request.client else "unknown"
+    # Behind Cloudflare's proxy request.client is a Cloudflare edge; one
+    # caller's bad keys must not lock out everyone arriving through it.
+    host = connecting_address(request) if request.client else "unknown"
     if key_id is None:
         return await run_in_threadpool(
             limiter.limiter.hit, _PER_ADDRESS, "api-key-address", host
@@ -242,10 +245,8 @@ def org_or_key(
             access = OrgAccess(organisation=context.organisation, key=context.key)
         else:
             if secret is None:
-                raise HTTPException(
-                    status_code=status.HTTP_401_UNAUTHORIZED,
-                    detail="Not authenticated",
-                    headers={"WWW-Authenticate": "Bearer"},
+                raise AuthenticationError(
+                    "Not authenticated", headers={"WWW-Authenticate": "Bearer"}
                 )
             if session_app is None:
                 user = await get_account_user(session, secret)

@@ -3,6 +3,7 @@
  * Do not edit manually.
  */
 
+import type { ApiError } from "./ApiError.js";
 import type { FeatureFlagEvaluation } from "./FeatureFlagEvaluation.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 
@@ -12,9 +13,17 @@ import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
  */
 export type FeatureEvaluateForMeStatus200 = FeatureFlagEvaluation;
 
-export type FeatureEvaluateForMeStatus401 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type FeatureEvaluateForMeStatus401 = ApiError;
 
-export type FeatureEvaluateForMeStatus403 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type FeatureEvaluateForMeStatus403 = ApiError;
 
 /**
  * @description Validation error envelope returned for malformed requests.

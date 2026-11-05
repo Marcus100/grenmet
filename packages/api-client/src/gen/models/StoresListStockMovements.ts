@@ -3,6 +3,7 @@
  * Do not edit manually.
  */
 
+import type { ApiError } from "./ApiError.js";
 import type { StockMovementListPublic } from "./StockMovementListPublic.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 
@@ -30,9 +31,17 @@ export type StoresListStockMovementsQuery = {
 
 export type StoresListStockMovementsStatus200 = StockMovementListPublic;
 
-export type StoresListStockMovementsStatus401 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type StoresListStockMovementsStatus401 = ApiError;
 
-export type StoresListStockMovementsStatus403 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type StoresListStockMovementsStatus403 = ApiError;
 
 /**
  * @description Validation error envelope returned for malformed requests.

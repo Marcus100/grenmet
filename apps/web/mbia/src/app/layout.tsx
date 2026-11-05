@@ -1,4 +1,5 @@
 import { PostHogProvider } from "@barrelsgd/ui/components/posthog-provider";
+import { PublicEnvScript } from "@barrelsgd/ui/components/public-env-script";
 import type { Metadata } from "next";
 import { Inter, Manrope } from "next/font/google";
 import { SiteFooter } from "@/components/site-footer";
@@ -45,7 +46,8 @@ export default function RootLayout({
       lang="en"
       style={{ colorScheme: "light" }}
     >
-      <body className="min-h-screen bg-background font-sans text-foreground antialiased">
+      <body className="bg-background text-foreground min-h-screen font-sans antialiased">
+        <PublicEnvScript />
         <PostHogProvider app="mbia" privacyHref="/privacy">
           <SkipLink />
           <SiteHeader accountLabel={signInEnabled() ? APP_LABEL : undefined} />

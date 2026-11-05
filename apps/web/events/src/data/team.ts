@@ -20,6 +20,8 @@ export interface TeamMember {
   readonly fullName: string;
   /** Live roles for the products the caller manages, from the roster. */
   readonly grants: readonly TeamMemberGrantPublic[];
+  /** The signed-in viewer's own row: the API refuses changes to it. */
+  readonly isSelf: boolean;
   readonly membershipId: string;
   readonly role: MembershipRole;
 }
@@ -43,9 +45,9 @@ export type TeamRead =
       readonly viewer: TeamViewer;
     };
 
-function request(context: Ready) {
+async function request(context: Ready) {
   return {
-    ...apiOptions(context.accessToken),
+    ...(await apiOptions(context.accessToken)),
     headers: { "X-Barrels-Organisation": context.organisationId },
   };
 }
@@ -65,7 +67,7 @@ export async function getTeam(
   viewer: { page: number }
 ): Promise<TeamRead> {
   try {
-    const options = request(context);
+    const options = await request(context);
     const [allBundles, capabilities, roster] = await Promise.all([
       organisationsListRoleBundles(options).unwrap(),
       organisationsMyTeamCapabilities(options).unwrap(),
@@ -87,6 +89,7 @@ export async function getTeam(
         (member): TeamMember => ({
           membershipId: member.membership_id,
           fullName: member.name.trim() || "Member",
+          isSelf: member.is_self,
           role: member.role,
           grants: member.grants.filter((grant) =>
             eventsRoles.has(grant.role_key)

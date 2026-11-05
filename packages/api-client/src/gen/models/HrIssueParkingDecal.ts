@@ -3,6 +3,7 @@
  * Do not edit manually.
  */
 
+import type { ApiError } from "./ApiError.js";
 import type { ParkingPermitIssue } from "./ParkingPermitIssue.js";
 import type { ParkingPermitPublic } from "./ParkingPermitPublic.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
@@ -18,11 +19,23 @@ export type HrIssueParkingDecalPath = {
 
 export type HrIssueParkingDecalStatus200 = ParkingPermitPublic;
 
-export type HrIssueParkingDecalStatus400 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type HrIssueParkingDecalStatus400 = ApiError;
 
-export type HrIssueParkingDecalStatus403 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type HrIssueParkingDecalStatus403 = ApiError;
 
-export type HrIssueParkingDecalStatus404 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type HrIssueParkingDecalStatus404 = ApiError;
 
 /**
  * @description Validation error envelope returned for malformed requests.

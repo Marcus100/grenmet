@@ -70,6 +70,12 @@ updates:
       - dependency-name: redis
         update-types:
           - version-update:semver-major
+      # aiobotocore (pulled in by s3fs) pins botocore to a narrow window that trails
+      # the newest boto3/botocore, so a bot bump of either cannot resolve (#486).
+      # Let s3fs/aiobotocore drive the AWS stack; remove these two entries once
+      # aiobotocore supports the current botocore.
+      - dependency-name: boto3
+      - dependency-name: botocore
 
   # Docker (API)
   - package-ecosystem: docker

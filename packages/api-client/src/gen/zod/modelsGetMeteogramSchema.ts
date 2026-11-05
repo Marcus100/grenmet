@@ -4,6 +4,7 @@
  */
 
 import * as z from "zod";
+import { apiErrorSchema } from "./apiErrorSchema.js";
 import { guidanceModelSchema } from "./guidanceModelSchema.js";
 import { meteogramPublicSchema } from "./meteogramPublicSchema.js";
 import { validationErrorResponseSchema } from "./validationErrorResponseSchema.js";
@@ -25,11 +26,17 @@ export const modelsGetMeteogramHeaderXBarrelsOrganisationSchema = z
 
 export const modelsGetMeteogramStatus200Schema = meteogramPublicSchema;
 
-export const modelsGetMeteogramStatus401Schema = z.unknown();
+export const modelsGetMeteogramStatus401Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
-export const modelsGetMeteogramStatus403Schema = z.unknown();
+export const modelsGetMeteogramStatus403Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
-export const modelsGetMeteogramStatus404Schema = z.unknown();
+export const modelsGetMeteogramStatus404Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
 export const modelsGetMeteogramStatus422Schema =
   validationErrorResponseSchema.describe(

@@ -4,6 +4,7 @@
  */
 
 import * as z from "zod";
+import { apiErrorSchema } from "./apiErrorSchema.js";
 import { contactCreateSchema } from "./contactCreateSchema.js";
 import { contactDetailPublicSchema } from "./contactDetailPublicSchema.js";
 import { validationErrorResponseSchema } from "./validationErrorResponseSchema.js";
@@ -18,15 +19,25 @@ export const contactsUpsertOrgContactHeaderXBarrelsOrganisationSchema = z
 export const contactsUpsertOrgContactStatus200Schema =
   contactDetailPublicSchema;
 
-export const contactsUpsertOrgContactStatus400Schema = z.unknown();
+export const contactsUpsertOrgContactStatus400Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
-export const contactsUpsertOrgContactStatus401Schema = z.unknown();
+export const contactsUpsertOrgContactStatus401Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
-export const contactsUpsertOrgContactStatus403Schema = z.unknown();
+export const contactsUpsertOrgContactStatus403Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
-export const contactsUpsertOrgContactStatus404Schema = z.unknown();
+export const contactsUpsertOrgContactStatus404Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
-export const contactsUpsertOrgContactStatus409Schema = z.unknown();
+export const contactsUpsertOrgContactStatus409Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
 export const contactsUpsertOrgContactStatus422Schema =
   validationErrorResponseSchema.describe(

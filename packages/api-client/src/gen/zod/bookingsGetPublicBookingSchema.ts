@@ -4,6 +4,7 @@
  */
 
 import * as z from "zod";
+import { apiErrorSchema } from "./apiErrorSchema.js";
 import { bookingPublicDetailSchema } from "./bookingPublicDetailSchema.js";
 import { validationErrorResponseSchema } from "./validationErrorResponseSchema.js";
 
@@ -16,7 +17,9 @@ export const bookingsGetPublicBookingPathTokenSchema = z
 export const bookingsGetPublicBookingStatus200Schema =
   bookingPublicDetailSchema.describe("A booking as its customer sees it.");
 
-export const bookingsGetPublicBookingStatus404Schema = z.unknown();
+export const bookingsGetPublicBookingStatus404Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
 export const bookingsGetPublicBookingStatus422Schema =
   validationErrorResponseSchema.describe(

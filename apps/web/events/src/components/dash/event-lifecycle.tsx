@@ -34,8 +34,8 @@ function plural(count: number, one: string, many: string): string {
 export function CancelSummary({ counts }: { counts: CancelCounts }) {
   return (
     <div className="space-y-1" role="status">
-      <p className="font-medium text-body text-primary">Event cancelled.</p>
-      <ul className="list-disc pl-5 text-body">
+      <p className="text-body text-primary font-medium">Event cancelled.</p>
+      <ul className="text-body list-disc pl-5">
         <li>
           {plural(counts.ticketsCancelled, "ticket", "tickets")} cancelled
         </li>
@@ -129,10 +129,10 @@ export function EventLifecycle({
   return (
     <section
       aria-labelledby="lifecycle-heading"
-      className="space-y-4 rounded-2xl border border-border bg-card p-4"
+      className="border-border bg-card space-y-4 rounded-2xl border p-4"
     >
       <h2
-        className="font-display font-semibold text-heading-sm"
+        className="font-display text-heading-sm font-semibold"
         id="lifecycle-heading"
       >
         Postpone or cancel
@@ -215,7 +215,7 @@ export function EventLifecycle({
               value={refund}
             />
           ) : (
-            <p className="rounded-xl border border-destructive/40 p-3 font-medium text-body">
+            <p className="border-destructive/40 text-body rounded-xl border p-3 font-medium">
               This cancel moves no money. Orders and refunds aren't available
               for this organiser until a Barrels admin links it to an
               organisation.

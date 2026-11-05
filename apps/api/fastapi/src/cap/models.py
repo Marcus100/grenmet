@@ -187,6 +187,12 @@ class CapAlert(Base):
         default=CapLifecycleState.DRAFT, index=True
     )
     allow_self_approval: Mapped[bool] = column(default=True)
+    # An imported alert that does not fully follow the CAP 1.2 schema is kept for
+    # review with the first schema error. We never publish it.
+    schema_conformant: Mapped[bool] = column(default=True)
+    schema_error: Mapped[str | None] = column(default=None, max_length=1000)
+    # "feed" or "manual" for an imported alert; None for one authored here.
+    import_source: Mapped[str | None] = column(default=None, max_length=16)
     created_by_user_id: Mapped[uuid.UUID] = column(foreign_key="user.id", index=True)
     updated_by_user_id: Mapped[uuid.UUID | None] = column(
         default=None, foreign_key="user.id"
@@ -453,6 +459,9 @@ class CapFeedImport(Base):
     last_checked_at: Mapped[datetime | None] = column(default=None)
     last_error: Mapped[str | None] = column(default=None, max_length=2000)
     last_etag: Mapped[str | None] = column(default=None, max_length=255)
+    # When a plain-http feed was first flagged. Starts the 14-day grace period
+    # (common.INSECURE_FEED_GRACE); NULL for an https feed.
+    insecure_since: Mapped[datetime | None] = column(default=None)
     created_at: Mapped[datetime] = column(default_factory=utc_now)
     updated_at: Mapped[datetime] = column(default_factory=utc_now)
 

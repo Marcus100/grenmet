@@ -4,8 +4,10 @@
  */
 
 import * as z from "zod";
-import { qcDecisionRequestSchema } from "./qcDecisionRequestSchema.js";
+import { apiErrorSchema } from "./apiErrorSchema.js";
+import { qcDecisionBodySchema } from "./qcDecisionBodySchema.js";
 import { registerObservationReadSchema } from "./registerObservationReadSchema.js";
+import { validationErrorResponseSchema } from "./validationErrorResponseSchema.js";
 
 export const eregisterRejectRegisterObservationPathObservationIdSchema =
   z.uuid();
@@ -13,15 +15,22 @@ export const eregisterRejectRegisterObservationPathObservationIdSchema =
 export const eregisterRejectRegisterObservationStatus200Schema =
   registerObservationReadSchema;
 
-export const eregisterRejectRegisterObservationStatus401Schema = z.unknown();
+export const eregisterRejectRegisterObservationStatus401Schema =
+  apiErrorSchema.describe("Stable error envelope for documented API failures.");
 
-export const eregisterRejectRegisterObservationStatus403Schema = z.unknown();
+export const eregisterRejectRegisterObservationStatus403Schema =
+  apiErrorSchema.describe("Stable error envelope for documented API failures.");
 
-export const eregisterRejectRegisterObservationStatus404Schema = z.unknown();
+export const eregisterRejectRegisterObservationStatus404Schema =
+  apiErrorSchema.describe("Stable error envelope for documented API failures.");
 
-export const eregisterRejectRegisterObservationStatus409Schema = z.unknown();
+export const eregisterRejectRegisterObservationStatus409Schema =
+  apiErrorSchema.describe("Stable error envelope for documented API failures.");
 
-export const eregisterRejectRegisterObservationStatus422Schema = z.unknown();
+export const eregisterRejectRegisterObservationStatus422Schema = z.union([
+  apiErrorSchema,
+  validationErrorResponseSchema,
+]);
 
 export const eregisterRejectRegisterObservationResponseSchema =
   eregisterRejectRegisterObservationStatus200Schema;
@@ -34,9 +43,9 @@ export const eregisterRejectRegisterObservationErrorSchema = z.union([
   eregisterRejectRegisterObservationStatus422Schema,
 ]);
 
-export const eregisterRejectRegisterObservationBodySchema = z
-  .union([qcDecisionRequestSchema, z.null()])
-  .optional();
+export const eregisterRejectRegisterObservationBodySchema = qcDecisionBodySchema
+  .optional()
+  .describe("Optional QC decision. An absent body and null are both accepted.");
 
 export const eregisterRejectRegisterObservationPathSchema = z.object({
   observation_id: z.uuid(),

@@ -2,6 +2,7 @@ import {
   AlertTriangle,
   BookOpen,
   Bus,
+  Calculator,
   Calendar,
   CalendarDays,
   ClipboardCheck,
@@ -105,6 +106,12 @@ export const sidebarItems: NavGroup[] = [
             icon: ClipboardCheck,
           },
           {
+            id: "hr-payroll",
+            title: "Payroll inputs",
+            url: "/hr/payroll",
+            icon: Calculator,
+          },
+          {
             id: "roster",
             title: "Duty Roster",
             url: "/roster",
@@ -136,6 +143,12 @@ export const sidebarItems: NavGroup[] = [
         title: "Forecasts",
         url: "/wxproducts/fcsts",
         icon: CloudSun,
+      },
+      {
+        id: "climate-bulletin",
+        title: "Climate Bulletin",
+        url: "/wxproducts/climate",
+        icon: CalendarDays,
       },
       {
         id: "taf-metar",

@@ -17,6 +17,17 @@ class OrganisationNotFoundError(AppException):
         super().__init__("Organisation not found", status.HTTP_404_NOT_FOUND)
 
 
+class OrganisationNotRejectedError(AppException):
+    """Only a rejected organisation can ask for another review (409)."""
+
+    def __init__(self) -> None:
+        super().__init__(
+            "Only a rejected request can be resubmitted", status.HTTP_409_CONFLICT
+        )
+        #: Clients match on this code, not on the wording of the message.
+        self.extra["code"] = "ORGANISATION_NOT_REJECTED"
+
+
 class OrganisationRoleError(AppException):
     def __init__(self) -> None:
         super().__init__(
@@ -28,6 +39,17 @@ class OrganisationRoleError(AppException):
 class OrganisationSuspendedError(AppException):
     def __init__(self) -> None:
         super().__init__("This organisation is suspended", status.HTTP_403_FORBIDDEN)
+
+
+class EventsAccessFromRoleError(AppException):
+    """An Events-only removal cannot end access that comes from an organisation role."""
+
+    def __init__(self) -> None:
+        super().__init__(
+            "This person's Events access comes from their organisation role "
+            "(admin/owner). Change their role in organisation settings to remove it.",
+            status.HTTP_403_FORBIDDEN,
+        )
 
 
 class MembershipNotFoundError(AppException):
@@ -219,5 +241,16 @@ class GrantConflictError(AppException):
     def __init__(self) -> None:
         super().__init__(
             "Roles for this member changed at the same time; try again",
+            status.HTTP_409_CONFLICT,
+        )
+
+
+class GrantCascadeTooLargeError(AppException):
+    """The change would end more grants than the cascade may end in one action."""
+
+    def __init__(self, limit: int) -> None:
+        super().__init__(
+            f"This change would end more than {limit} roles at once. Split it into "
+            "smaller changes, or review the roles first.",
             status.HTTP_409_CONFLICT,
         )

@@ -3,6 +3,7 @@
  * Do not edit manually.
  */
 
+import type { ApiError } from "./ApiError.js";
 import type { OrganisationPublic } from "./OrganisationPublic.js";
 import type { OrganisationUpdate } from "./OrganisationUpdate.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
@@ -13,9 +14,17 @@ export type HrRenameOrganisationPath = {
 
 export type HrRenameOrganisationStatus200 = OrganisationPublic;
 
-export type HrRenameOrganisationStatus403 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type HrRenameOrganisationStatus403 = ApiError;
 
-export type HrRenameOrganisationStatus404 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type HrRenameOrganisationStatus404 = ApiError;
 
 /**
  * @description Validation error envelope returned for malformed requests.

@@ -4,8 +4,10 @@
  */
 
 import * as z from "zod";
+import { apiErrorSchema } from "./apiErrorSchema.js";
 import { attendanceCorrectionCreateSchema } from "./attendanceCorrectionCreateSchema.js";
 import { attendanceCorrectionPublicSchema } from "./attendanceCorrectionPublicSchema.js";
+import { rosterRuleWarningsErrorPublicSchema } from "./rosterRuleWarningsErrorPublicSchema.js";
 import { validationErrorResponseSchema } from "./validationErrorResponseSchema.js";
 
 export const hrProposeAttendanceCorrectionPathAttendanceIdSchema = z.uuid();
@@ -13,13 +15,19 @@ export const hrProposeAttendanceCorrectionPathAttendanceIdSchema = z.uuid();
 export const hrProposeAttendanceCorrectionStatus201Schema =
   attendanceCorrectionPublicSchema;
 
-export const hrProposeAttendanceCorrectionStatus400Schema = z.unknown();
+export const hrProposeAttendanceCorrectionStatus400Schema =
+  apiErrorSchema.describe("Stable error envelope for documented API failures.");
 
-export const hrProposeAttendanceCorrectionStatus403Schema = z.unknown();
+export const hrProposeAttendanceCorrectionStatus403Schema =
+  apiErrorSchema.describe("Stable error envelope for documented API failures.");
 
-export const hrProposeAttendanceCorrectionStatus404Schema = z.unknown();
+export const hrProposeAttendanceCorrectionStatus404Schema =
+  apiErrorSchema.describe("Stable error envelope for documented API failures.");
 
-export const hrProposeAttendanceCorrectionStatus409Schema = z.unknown();
+export const hrProposeAttendanceCorrectionStatus409Schema =
+  rosterRuleWarningsErrorPublicSchema.describe(
+    "409 body. An ordinary conflict carries only ``detail``. Roster rule\nwarnings add ``code: ROSTER_RULE_WARNINGS``, the ``context`` and the\n``violations``; resend with ``rule_override_reason`` to save anyway."
+  );
 
 export const hrProposeAttendanceCorrectionStatus422Schema =
   validationErrorResponseSchema.describe(

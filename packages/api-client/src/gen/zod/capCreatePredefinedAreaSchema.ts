@@ -4,6 +4,7 @@
  */
 
 import * as z from "zod";
+import { apiErrorSchema } from "./apiErrorSchema.js";
 import { capPredefinedAreaCreateSchema } from "./capPredefinedAreaCreateSchema.js";
 import { capPredefinedAreaPublicSchema } from "./capPredefinedAreaPublicSchema.js";
 import { validationErrorResponseSchema } from "./validationErrorResponseSchema.js";
@@ -11,9 +12,13 @@ import { validationErrorResponseSchema } from "./validationErrorResponseSchema.j
 export const capCreatePredefinedAreaStatus201Schema =
   capPredefinedAreaPublicSchema;
 
-export const capCreatePredefinedAreaStatus401Schema = z.unknown();
+export const capCreatePredefinedAreaStatus401Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
-export const capCreatePredefinedAreaStatus403Schema = z.unknown();
+export const capCreatePredefinedAreaStatus403Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
 export const capCreatePredefinedAreaStatus422Schema =
   validationErrorResponseSchema.describe(

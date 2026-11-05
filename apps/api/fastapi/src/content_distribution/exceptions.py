@@ -22,7 +22,27 @@ class SocialWarningNotAllowed(AppException):
             "Official warnings are never sent through social media. Remove the "
             "warning collection or warning link; warnings stay on the site and "
             "in CAP.",
-            status.HTTP_422_UNPROCESSABLE_ENTITY,
+            status.HTTP_422_UNPROCESSABLE_CONTENT,
+        )
+
+
+class SocialAddressNotPlain(AppException):
+    def __init__(self, what: str, problem: str) -> None:
+        super().__init__(
+            f"The {what} address {problem}. Use a plain https address with no user "
+            "information, no backslash and no port other than 443.",
+            status.HTTP_422_UNPROCESSABLE_CONTENT,
+        )
+
+
+class SocialHostNotAllowed(AppException):
+    def __init__(self, what: str, host: str | None) -> None:
+        shown = host if host else "an address with no host name"
+        super().__init__(
+            f"The {what} is on {shown}, which is not an approved host for social "
+            "posts. The owner adds approved hosts to SOCIAL_LINK_HOSTS (links) or "
+            "SOCIAL_IMAGE_HOSTS (images) on the server.",
+            status.HTTP_422_UNPROCESSABLE_CONTENT,
         )
 
 
@@ -30,7 +50,7 @@ class SocialImageRequired(AppException):
     def __init__(self, platform: str) -> None:
         super().__init__(
             f"{platform} posts need an image URL (imageUrl)",
-            status.HTTP_422_UNPROCESSABLE_ENTITY,
+            status.HTTP_422_UNPROCESSABLE_CONTENT,
         )
 
 
@@ -38,15 +58,5 @@ class SocialCaptionMissing(AppException):
     def __init__(self, platform: str) -> None:
         super().__init__(
             f"Add a caption for {platform}",
-            status.HTTP_422_UNPROCESSABLE_ENTITY,
-        )
-
-
-class SocialPostingNotConfigured(AppException):
-    """Raised by a handler in live mode, which is not built yet. Retried, then dead."""
-
-    def __init__(self) -> None:
-        super().__init__(
-            "Live social posting is not configured yet; the post stays a dry run",
-            status.HTTP_503_SERVICE_UNAVAILABLE,
+            status.HTTP_422_UNPROCESSABLE_CONTENT,
         )

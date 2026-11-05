@@ -4,15 +4,20 @@
  */
 
 import * as z from "zod";
+import { apiErrorSchema } from "./apiErrorSchema.js";
 import { validationErrorResponseSchema } from "./validationErrorResponseSchema.js";
 
 export const hrRemoveHolidayPathHolidayIdSchema = z.uuid();
 
 export const hrRemoveHolidayStatus204Schema = z.unknown();
 
-export const hrRemoveHolidayStatus403Schema = z.unknown();
+export const hrRemoveHolidayStatus403Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
-export const hrRemoveHolidayStatus404Schema = z.unknown();
+export const hrRemoveHolidayStatus404Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
 export const hrRemoveHolidayStatus422Schema =
   validationErrorResponseSchema.describe(

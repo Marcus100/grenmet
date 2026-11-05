@@ -4,6 +4,8 @@
  */
 
 import * as z from "zod";
+import { apiErrorSchema } from "./apiErrorSchema.js";
+import { errorMessageSchema } from "./errorMessageSchema.js";
 import { listingUpsertSchema } from "./listingUpsertSchema.js";
 import { managedListingSchema } from "./managedListingSchema.js";
 import { validationErrorResponseSchema } from "./validationErrorResponseSchema.js";
@@ -17,20 +19,27 @@ export const eventsUpdateManagedListingQueryOrganiserSchema = z
 
 export const eventsUpdateManagedListingStatus200Schema = managedListingSchema;
 
-export const eventsUpdateManagedListingStatus401Schema = z.unknown();
+export const eventsUpdateManagedListingStatus401Schema =
+  apiErrorSchema.describe("Stable error envelope for documented API failures.");
 
-export const eventsUpdateManagedListingStatus403Schema = z.unknown();
+export const eventsUpdateManagedListingStatus403Schema =
+  apiErrorSchema.describe("Stable error envelope for documented API failures.");
 
-export const eventsUpdateManagedListingStatus404Schema = z.unknown();
+export const eventsUpdateManagedListingStatus404Schema =
+  apiErrorSchema.describe("Stable error envelope for documented API failures.");
 
-export const eventsUpdateManagedListingStatus409Schema = z.unknown();
+export const eventsUpdateManagedListingStatus409Schema =
+  apiErrorSchema.describe("Stable error envelope for documented API failures.");
 
 export const eventsUpdateManagedListingStatus422Schema =
   validationErrorResponseSchema.describe(
     "Validation error envelope returned for malformed requests."
   );
 
-export const eventsUpdateManagedListingStatus429Schema = z.unknown();
+export const eventsUpdateManagedListingStatus429Schema = z.union([
+  apiErrorSchema,
+  errorMessageSchema,
+]);
 
 export const eventsUpdateManagedListingResponseSchema =
   eventsUpdateManagedListingStatus200Schema;

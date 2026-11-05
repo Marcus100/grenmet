@@ -1,7 +1,7 @@
 """Bookings B1/B2: studio configuration, tenancy, the overlap guard and public pages."""
 
 import uuid
-from datetime import date, datetime, timedelta
+from datetime import datetime, timedelta
 
 import httpx
 import pytest
@@ -13,13 +13,11 @@ from src.bookings import service
 from src.bookings.models import Booking, BookingStatus, Customer
 from src.contacts import service as contacts_service
 from src.organisations.models import MembershipRole
+from tests.bookings.booking_day import MONDAY, utc_at, utc_iso
 from tests.factories import make_user
 from tests.organisations.support import headers_for, make_org
 
 API = "/api/v1/bookings"
-NEXT_YEAR_MONDAY = date(
-    2027, 1, 4
-)  # far enough ahead of lead time, inside no horizon check
 
 
 async def _studio(db: AsyncSession) -> tuple[User, User, str]:
@@ -327,16 +325,16 @@ async def test_public_storefront_and_availability(
 
     params = {
         "service_id": service_id,
-        "first_day": NEXT_YEAR_MONDAY.isoformat(),
-        "last_day": NEXT_YEAR_MONDAY.isoformat(),
+        "first_day": MONDAY.isoformat(),
+        "last_day": MONDAY.isoformat(),
     }
     open_before = (
         await async_client.get(f"{API}/public/{slug}/availability", params=params)
     ).json()
     starts = [s["starts_at"] for s in open_before["slots"]]
     # 120-minute service, 30-minute step, 09:30-12:30 and 13:30-17:30 Grenada (UTC-4).
-    assert starts[0] == "2027-01-04T13:30:00Z"
-    assert "2027-01-04T15:30:00Z" not in starts  # would run into the lunch break
+    assert starts[0] == utc_iso(9, 30)
+    assert utc_iso(11, 30) not in starts  # would run into the lunch break
     assert open_before["timezone"] == "America/Grenada"
 
     # A confirmed 10:00 local booking (14:00 UTC, blocks to 16:15) removes overlapping slots.
@@ -345,14 +343,14 @@ async def test_public_storefront_and_availability(
         org_id=org_id,
         service_id=service_id,
         provider_id=provider_id,
-        starts_at=datetime(2027, 1, 4, 14, 0),
+        starts_at=utc_at(10),
     )
     open_after = (
         await async_client.get(f"{API}/public/{slug}/availability", params=params)
     ).json()
     after = [s["starts_at"] for s in open_after["slots"]]
-    assert "2027-01-04T13:30:00Z" not in after
-    assert "2027-01-04T17:30:00Z" in after
+    assert utc_iso(9, 30) not in after
+    assert utc_iso(13, 30) in after
     assert all(s["provider_ids"] == [provider_id] for s in open_after["slots"])
 
 
@@ -383,8 +381,8 @@ async def test_availability_range_is_limited(
         f"{API}/public/{slug}/availability",
         params={
             "service_id": service_id,
-            "first_day": NEXT_YEAR_MONDAY.isoformat(),
-            "last_day": (NEXT_YEAR_MONDAY + timedelta(days=30)).isoformat(),
+            "first_day": MONDAY.isoformat(),
+            "last_day": (MONDAY + timedelta(days=30)).isoformat(),
         },
     )
     assert response.status_code == 422

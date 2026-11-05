@@ -13,6 +13,7 @@ from typing import Annotated
 
 from fastapi import Depends, Header
 
+from src.audit import service as audit_service
 from src.auth.app_dependencies import OptionalBearer, unauthorized, user_for_app
 from src.auth.models import User
 from src.dependencies import SessionDep, get_authenticated_user
@@ -46,7 +47,11 @@ async def resolve_caller(
     if payload.app is None:
         user = await get_authenticated_user(session, user_id, allow_unapproved=True)
         return user, None
-    return await user_for_app(session, credentials, payload.app), payload.app
+    user = await user_for_app(session, credentials, payload.app)
+    # Same as organisations.dependencies.resolve_org_caller: audited writes in
+    # this request name the user (get_authenticated_user does it on the account path).
+    audit_service.set_actor(session, user.id)
+    return user, payload.app
 
 
 async def get_upload_context(

@@ -10,6 +10,7 @@ import { Label } from "@barrelsgd/ui/components/ui/label";
 import { useActionState, useEffect, useRef } from "react";
 import { saveProviderAction } from "@/app/studio/[orgSlug]/settings/actions";
 import { IDLE } from "@/lib/studio-action-state";
+import { useHydrated } from "@/lib/use-hydrated";
 import {
   INPUT,
   keepTyped,
@@ -42,6 +43,9 @@ export function ProviderForm({
     }
   }, [state, provider]);
 
+  // Save waits for hydration: before it, a native submit would send the form
+  // to a GET URL with the typed values in it.
+  const hydrated = useHydrated();
   return (
     <form className="space-y-5" onSubmit={keepTyped(formAction)} ref={formRef}>
       <input name="providerId" type="hidden" value={provider?.id ?? ""} />
@@ -67,7 +71,7 @@ export function ProviderForm({
           services.map((item) => (
             <Label className="min-h-11 items-center gap-3" key={item.id}>
               <input
-                className="size-5 accent-primary"
+                className="accent-primary size-5"
                 defaultChecked={provider?.service_ids.includes(item.id)}
                 name="serviceIds"
                 type="checkbox"
@@ -87,7 +91,7 @@ export function ProviderForm({
       <SettingsResult pending={pending} state={state} />
       <Button
         className="min-h-11 w-full sm:w-auto"
-        disabled={pending}
+        disabled={pending || !hydrated}
         size="touch"
         type="submit"
       >

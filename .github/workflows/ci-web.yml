@@ -33,11 +33,14 @@ jobs:
   image-selection:
     name: Select image checks
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     outputs:
       web: ${{ steps.select.outputs.web }}
       weather: ${{ steps.select.outputs.weather }}
       api: ${{ steps.select.outputs.api }}
       coverage: ${{ steps.select.outputs.coverage }}
+      webtests: ${{ steps.select.outputs.webtests }}
+      storage: ${{ steps.select.outputs.storage }}
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
@@ -69,6 +72,13 @@ jobs:
     name: Type Check
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    permissions:
+      contents: read
+      id-token: write # short-lived cache token (ADR-0053); only used off pull requests
+    env:
+      # Signed remote cache on trusted events only; pull requests keep the local cache.
+      TURBO_CACHE: ${{ github.event_name != 'pull_request' && 'local:rw,remote:rw' || 'local:rw' }}
+      TURBO_REMOTE_CACHE_SIGNATURE_KEY: ${{ github.event_name != 'pull_request' && secrets.TURBO_REMOTE_CACHE_SIGNATURE_KEY || '' }}
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.3.1
         with:
@@ -78,6 +88,9 @@ jobs:
 
       - name: Setup Node.js with pnpm
         uses: ./.github/actions/setup-node
+        with:
+          turbo-remote-cache: "true"
+          turbo-team: ${{ vars.TURBO_TEAM }}
 
       - name: Type-check all web apps
         # --affected only on dev PRs; promotion PRs and pushes stay full, like image selection.
@@ -103,7 +116,7 @@ jobs:
   guardrails:
     name: Repository Guardrails
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.3.1
         with:
@@ -178,9 +191,18 @@ jobs:
 
   # Job 6: TypeScript unit tests across every workspace package
   tests:
+    needs: [image-selection]
+    if: needs.image-selection.outputs.webtests == 'true'
     name: TypeScript Tests
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    permissions:
+      contents: read
+      id-token: write # short-lived cache token (ADR-0053); only used off pull requests
+    env:
+      # Signed remote cache on trusted events only; pull requests keep the local cache.
+      TURBO_CACHE: ${{ github.event_name != 'pull_request' && 'local:rw,remote:rw' || 'local:rw' }}
+      TURBO_REMOTE_CACHE_SIGNATURE_KEY: ${{ github.event_name != 'pull_request' && secrets.TURBO_REMOTE_CACHE_SIGNATURE_KEY || '' }}
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.3.1
         with:
@@ -190,6 +212,9 @@ jobs:
 
       - name: Setup Node.js with pnpm
         uses: ./.github/actions/setup-node
+        with:
+          turbo-remote-cache: "true"
+          turbo-team: ${{ vars.TURBO_TEAM }}
 
       - name: Run all TypeScript unit tests
         # gaa-admin is the slowest suite and runs sharded in `gaa-admin-tests`
@@ -203,6 +228,8 @@ jobs:
   # dev PRs as the job above. Coverage for gaa-admin is not enforced in CI (see
   # coverageApps in scripts/ci/select-images.mjs), so there is nothing to merge.
   gaa-admin-tests:
+    needs: [image-selection]
+    if: needs.image-selection.outputs.webtests == 'true'
     name: gaa-admin Tests (shard ${{ matrix.shard }}/3)
     runs-on: ubuntu-latest
     timeout-minutes: 15
@@ -210,6 +237,13 @@ jobs:
       fail-fast: false
       matrix:
         shard: [1, 2, 3]
+    permissions:
+      contents: read
+      id-token: write # short-lived cache token (ADR-0053); only used off pull requests
+    env:
+      # Signed remote cache on trusted events only; pull requests keep the local cache.
+      TURBO_CACHE: ${{ github.event_name != 'pull_request' && 'local:rw,remote:rw' || 'local:rw' }}
+      TURBO_REMOTE_CACHE_SIGNATURE_KEY: ${{ github.event_name != 'pull_request' && secrets.TURBO_REMOTE_CACHE_SIGNATURE_KEY || '' }}
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.3.1
         with:
@@ -219,6 +253,9 @@ jobs:
 
       - name: Setup Node.js with pnpm
         uses: ./.github/actions/setup-node
+        with:
+          turbo-remote-cache: "true"
+          turbo-team: ${{ vars.TURBO_TEAM }}
 
       - name: Run gaa-admin tests (shard ${{ matrix.shard }}/3)
         env:
@@ -283,8 +320,9 @@ jobs:
           const results = JSON.parse(process.env.RESULTS);
           const selection = results['image-selection'];
           for (const [name, job] of Object.entries(results)) {
-            const key = name === 'container-smoke' ? 'web' : name === 'weather-images' ? 'weather' : name === 'web-coverage' ? 'coverage' : null;
-            const omitted = key && selection.result === 'success' && selection.outputs[key] === '[]';
+            const key = { 'container-smoke': 'web', 'weather-images': 'weather', 'web-coverage': 'coverage', tests: 'webtests', 'gaa-admin-tests': 'webtests', 'storage-integration': 'storage' }[name];
+            const unselected = ['[]', 'false'];
+            const omitted = key && selection.result === 'success' && unselected.includes(selection.outputs[key]);
             if (job.result !== 'success' && !(omitted && job.result === 'skipped')) {
               console.error(`${name}: ${job.result}`);
               process.exitCode = 1;
@@ -357,6 +395,8 @@ jobs:
 
 
   storage-integration:
+    needs: [image-selection]
+    if: needs.image-selection.outputs.storage == 'true'
     name: Core storage integration
     runs-on: ubuntu-latest
     timeout-minutes: 15

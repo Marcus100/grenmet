@@ -3,8 +3,8 @@ import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 import { SectorCheckboxes } from "./sector-checkboxes";
 
-const AFFECTS_EVERYONE = /Affects everyone/;
-const ONLY_TICKED = /only under the ticked sectors/;
+const AFFECTS_EVERYONE = /Affects everyone/u;
+const ONLY_TICKED = /only under the ticked sectors/u;
 const SIX = [
   "Tourism & outdoors",
   "Marine",

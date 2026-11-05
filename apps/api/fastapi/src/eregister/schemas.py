@@ -1,7 +1,8 @@
+from datetime import date
 from typing import Annotated, Any, Literal
 from uuid import UUID, uuid4
 
-from pydantic import AwareDatetime, ConfigDict, Field, StringConstraints
+from pydantic import AwareDatetime, ConfigDict, Field, RootModel, StringConstraints
 
 from src.models import BaseModel, UtcDateTime
 
@@ -109,6 +110,23 @@ class SynopValidationIssue(BaseModel):
     code: str
     message: str
     severity: Literal["error", "warning"] = "error"
+
+
+class SynopValidationErrorDetail(BaseModel):
+    """Why a SYNOP was refused: a summary and every issue, warnings included."""
+
+    message: str = Field(
+        description="Summary naming the first few errors, for a banner or toast."
+    )
+    issues: list[SynopValidationIssue] = Field(
+        description="Every issue found; at least one has severity `error`."
+    )
+
+
+class EregisterValidationError(BaseModel):
+    """422 body when a SYNOP workbook fails validation on save, correct or accept."""
+
+    detail: SynopValidationErrorDetail
 
 
 class SynopDecoded(BaseModel):
@@ -424,6 +442,30 @@ class PublicMonthSummary(BaseModel):
     max_temperature_at: UtcDateTime | None = None
     min_temperature_c: float | None = None
     min_temperature_at: UtcDateTime | None = None
+    heavy_rain_days: int | None = Field(
+        default=None, description="Days with a 24 h total of 10 mm or more (R10mm)."
+    )
+    heavy_rain_threshold_mm: float = 10.0
+    longest_dry_spell_days: int | None = Field(
+        default=None,
+        description="Longest run of reported days under 1 mm (CDD); a day without a total breaks it.",
+    )
+    longest_dry_spell_start: date | None = None
+    longest_dry_spell_end: date | None = None
+    current_dry_spell_days: int | None = Field(
+        default=None,
+        description="Dry days in a row up to the latest reported day; 0 if it rained; null when the latest total is more than a day old.",
+    )
+    dry_day_threshold_mm: float = 1.0
+    mean_wind_kt: float | None = Field(
+        default=None, description="Mean of the reported wind speeds, calm as 0 kn."
+    )
+    prevailing_wind_direction: str | None = Field(
+        default=None,
+        description="Most frequent 8-point direction of non-calm readings.",
+    )
+    max_gust_kt: int | None = None
+    max_gust_at: UtcDateTime | None = None
     provisional: bool
 
 
@@ -459,3 +501,11 @@ class ObservationSend(BaseModel):
 
 class ObservationSendList(BaseModel):
     sends: list[ObservationSend]
+
+
+class SendObservationBody(RootModel[SendObservationRequest | None]):
+    """Optional send options. An absent body and null are both accepted."""
+
+
+class QcDecisionBody(RootModel[QcDecisionRequest | None]):
+    """Optional QC decision. An absent body and null are both accepted."""

@@ -14,5 +14,6 @@ export type TeamMemberPublic = {
   membership_id: string;
   name: string;
   role: MembershipRole;
+  is_self: boolean;
   grants: TeamMemberGrantPublic[];
 };

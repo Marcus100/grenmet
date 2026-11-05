@@ -6,6 +6,7 @@ import {
   SettingsSection,
   StatusBadge,
 } from "@/components/account-layout";
+import { NamePrompt, VerifyBanner } from "@/components/account-notices";
 import { getAppDisplayName } from "@/components/app-directory";
 import { AuthHeading, AuthShell } from "@/components/auth-shell";
 import { SignInForm } from "@/components/SignInForm";
@@ -26,6 +27,7 @@ import {
   type SessionAccessTokenResponse,
   type UserPublic,
 } from "@/lib/session";
+import { loadSecurity } from "./security/actions";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -62,6 +64,17 @@ async function loadSessionState(): Promise<SessionState> {
           : "The auth service is unavailable right now. Try again in a moment.",
       sessionData: null,
     };
+  }
+}
+
+// Whether the email is confirmed. Null when security details cannot be loaded;
+// the banner is then simply not shown (it never blocks the page).
+async function loadEmailVerified(): Promise<boolean | null> {
+  try {
+    return (await loadSecurity()).email_verified;
+  } catch (error) {
+    reportError(error, "auth-account-notices");
+    return null;
   }
 }
 
@@ -106,7 +119,7 @@ function AccountProfile({
   const editLink =
     adminHref && isStaff ? (
       <a
-        className="rounded-lg border border-border px-3 py-1.5 font-medium text-foreground text-sm transition hover:bg-muted"
+        className="border-border text-foreground hover:bg-muted rounded-lg border px-3 py-1.5 text-sm font-medium transition"
         href={`${adminHref}/profile`}
       >
         Edit in GAA Admin
@@ -116,11 +129,11 @@ function AccountProfile({
   return (
     <div className="space-y-8">
       <div className="flex items-center gap-4">
-        <div className="flex size-16 shrink-0 items-center justify-center rounded-full bg-(--auth-accent) font-semibold text-white text-xl">
+        <div className="flex size-16 shrink-0 items-center justify-center rounded-full bg-(--auth-accent) text-xl font-semibold text-white">
           {getInitials(displayName, user.email)}
         </div>
         <div className="min-w-0 space-y-1.5">
-          <p className="truncate font-semibold text-foreground text-xl">
+          <p className="text-foreground truncate text-xl font-semibold">
             {displayName}
           </p>
           <div className="flex flex-wrap gap-2">
@@ -194,17 +207,24 @@ export default async function Home({ searchParams }: PageProps) {
 
   if (sessionData) {
     const profile = await loadFullProfile(sessionData.access_token);
+    const emailVerified = await loadEmailVerified();
     return (
       <AccountLayout
         current="/"
         description="How you appear across GAA, GMS and Barrels apps."
         title="Profile"
       >
-        <AccountProfile
-          adminHref={getAppHrefs().admin}
-          profile={profile}
-          sessionData={sessionData}
-        />
+        <div className="space-y-8">
+          {emailVerified === false ? <VerifyBanner /> : null}
+          {profile?.registration_pending && !profile.last_name.trim() ? (
+            <NamePrompt />
+          ) : null}
+          <AccountProfile
+            adminHref={getAppHrefs().admin}
+            profile={profile}
+            sessionData={sessionData}
+          />
+        </div>
       </AccountLayout>
     );
   }
@@ -226,7 +246,7 @@ export default async function Home({ searchParams }: PageProps) {
 
       {notice ? (
         <div
-          className="rounded-lg border border-border bg-muted px-4 py-3 text-foreground text-sm"
+          className="border-border bg-muted text-foreground rounded-lg border px-4 py-3 text-sm"
           role="status"
         >
           {notice}

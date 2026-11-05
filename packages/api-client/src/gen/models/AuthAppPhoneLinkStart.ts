@@ -3,7 +3,9 @@
  * Do not edit manually.
  */
 
+import type { ApiError } from "./ApiError.js";
 import type { AppPhoneCodeStart } from "./AppPhoneCodeStart.js";
+import type { ErrorMessage } from "./ErrorMessage.js";
 import type { Message } from "./Message.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 
@@ -17,13 +19,29 @@ export type AuthAppPhoneLinkStartPath = {
 
 export type AuthAppPhoneLinkStartStatus200 = Message;
 
-export type AuthAppPhoneLinkStartStatus400 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type AuthAppPhoneLinkStartStatus400 = ApiError;
 
-export type AuthAppPhoneLinkStartStatus401 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type AuthAppPhoneLinkStartStatus401 = ApiError;
 
-export type AuthAppPhoneLinkStartStatus403 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type AuthAppPhoneLinkStartStatus403 = ApiError;
 
-export type AuthAppPhoneLinkStartStatus404 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type AuthAppPhoneLinkStartStatus404 = ApiError;
 
 /**
  * @description Validation error envelope returned for malformed requests.
@@ -31,7 +49,7 @@ export type AuthAppPhoneLinkStartStatus404 = unknown;
  */
 export type AuthAppPhoneLinkStartStatus422 = ValidationErrorResponse;
 
-export type AuthAppPhoneLinkStartStatus429 = unknown;
+export type AuthAppPhoneLinkStartStatus429 = ApiError | ErrorMessage;
 
 export type AuthAppPhoneLinkStartStatus503 = unknown;
 

@@ -13,12 +13,14 @@ x-surface: &surface
 
 services:
   postgres:
-    image: timescale/timescaledb-postgis:2.3.0-pg13@sha256:7a742a575416eafd8479dcac205846797583bc1bd53c18ffaf707f40bbe9b03e
+    # PostgreSQL 17 + TimescaleDB + PostGIS (Django 5.2 needs PostgreSQL 14+).
+    # Runs as uid 1000; the data directory must be owned by 1000:1000.
+    image: timescale/timescaledb-ha:pg17.11-ts2.31.0@sha256:3f0b3f6bdf4912878444a36e6113a18346309583c4d1a61d81a0c511342a1afd
     env_file: ["${SURFACE_ENV_FILE:?}"]
     restart: unless-stopped
     shm_size: 4g
     volumes:
-      - ${SURFACE_DATA_ROOT:?}/postgresql:/var/lib/postgresql/data
+      - ${SURFACE_DATA_ROOT:?}/postgresql:/home/postgres/pgdata/data
       - ${SURFACE_PG_HBA:?}:/etc/postgresql/pg_hba.custom.conf:ro
     command: ["postgres", "-c", "max_locks_per_transaction=1024", "-c", "hba_file=/etc/postgresql/pg_hba.custom.conf"]
     healthcheck:

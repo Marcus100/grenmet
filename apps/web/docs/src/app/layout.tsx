@@ -1,4 +1,5 @@
 import { PostHogProvider } from "@barrelsgd/ui/components/posthog-provider";
+import { PublicEnvScript } from "@barrelsgd/ui/components/public-env-script";
 import { allHurricanepages } from "content-collections";
 import type { Metadata } from "next";
 import { Noto_Sans } from "next/font/google";
@@ -54,6 +55,7 @@ export default function RootLayout({
       suppressHydrationWarning
     >
       <body className="flex min-h-full bg-white antialiased">
+        <PublicEnvScript />
         <PostHogProvider app="docs">
           <Providers>
             <div className="w-full">

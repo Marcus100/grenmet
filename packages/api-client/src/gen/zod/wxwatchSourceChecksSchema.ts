@@ -4,6 +4,7 @@
  */
 
 import * as z from "zod";
+import { apiErrorSchema } from "./apiErrorSchema.js";
 import { nhcSourceCheckSchema } from "./nhcSourceCheckSchema.js";
 import { validationErrorResponseSchema } from "./validationErrorResponseSchema.js";
 
@@ -14,11 +15,17 @@ export const wxwatchSourceChecksQueryEditionIdsSchema = z
 
 export const wxwatchSourceChecksStatus200Schema = z.array(nhcSourceCheckSchema);
 
-export const wxwatchSourceChecksStatus401Schema = z.unknown();
+export const wxwatchSourceChecksStatus401Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
-export const wxwatchSourceChecksStatus403Schema = z.unknown();
+export const wxwatchSourceChecksStatus403Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
-export const wxwatchSourceChecksStatus404Schema = z.unknown();
+export const wxwatchSourceChecksStatus404Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
 export const wxwatchSourceChecksStatus422Schema =
   validationErrorResponseSchema.describe(

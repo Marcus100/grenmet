@@ -5,6 +5,7 @@ from pydantic import (
     AnyUrl,
     BeforeValidator,
     EmailStr,
+    Field,
     HttpUrl,
     PostgresDsn,
     computed_field,
@@ -55,6 +56,17 @@ class Settings(BaseSettings):
     POSTGRES_USER: str
     POSTGRES_PASSWORD: str = ""
     POSTGRES_DB: str = ""
+    # Main async pool, per API or worker process. Five other engines (wxproducts,
+    # eregister, wxwatch, janitorial, transport) keep SQLAlchemy's 5+10 default,
+    # so keep (size + overflow) x processes well under Postgres max_connections.
+    DB_POOL_SIZE: int = 5
+    DB_MAX_OVERFLOW: int = 10
+    # Fail a request after this many seconds waiting for a free connection
+    # instead of hanging for SQLAlchemy's default 30.
+    DB_POOL_TIMEOUT: int = 10
+    # Replace connections older than this, so proxies and Postgres restarts never
+    # hand a request a dead socket (pre-ping covers the rest).
+    DB_POOL_RECYCLE: int = 1800
 
     @computed_field  # type: ignore[prop-decorator]
     @property
@@ -76,6 +88,12 @@ class Settings(BaseSettings):
     # limits key on the real visitor (src/rate_limit.py). Empty (the default)
     # ignores the header and keys on the connecting address.
     TRUSTED_WEB_SECRET: str = ""
+
+    # Proxies in front of the API that append to X-Forwarded-For: 1 is Traefik
+    # alone (the default; uvicorn's address is used as is), 2 is Cloudflare's
+    # proxy then Traefik (docs/operations/cloudflare-proxy.md). Rate limits on
+    # direct browser calls then key on the visitor, not a Cloudflare edge.
+    VISITOR_IP_PROXY_HOPS: int = Field(default=1, ge=1, le=5)
 
     FIRST_SUPERUSER: EmailStr
     FIRST_SUPERUSER_PASSWORD: str

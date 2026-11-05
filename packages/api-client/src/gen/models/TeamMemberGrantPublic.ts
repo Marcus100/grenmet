@@ -10,6 +10,7 @@
 export type TeamMemberGrantPublic = {
   id: string;
   role_key: string;
+  granted_by_name?: string | null;
   /**
    * @description
    * Format: `date-time`

@@ -1,12 +1,16 @@
 """Contract-level invariants for FastAPI, Kubb, and AI consumers."""
 
+import json
 import re
 from collections.abc import Iterator
+from datetime import UTC, datetime
 from typing import Any
 
-from fastapi import APIRouter, FastAPI
+from fastapi import APIRouter, FastAPI, HTTPException
 from fastapi.routing import APIRoute, iter_route_contexts
 
+from src.eregister import entries
+from src.eregister.schemas import EregisterValidationError
 from src.main import app
 
 
@@ -110,6 +114,117 @@ def test_operations_document_error_responses() -> None:
     )
 
 
+def test_documented_error_responses_have_a_body_schema() -> None:
+    # Every documented 4xx names its body model (ApiError, ErrorMessage or a
+    # domain error model). 422 is excluded: it already documents
+    # HTTPValidationError. Constants live in src/openapi_responses.py.
+    offenders = []
+    for path, method, operation in _operations():
+        for status, response in operation.get("responses", {}).items():
+            if not status.startswith("4") or status == "422":
+                continue
+            schemas = [
+                media.get("schema") for media in response.get("content", {}).values()
+            ]
+            if not any(schemas):
+                offenders.append(f"{method.upper()} {path} {status}")
+    assert not offenders, "4xx responses without a body schema: " + ", ".join(offenders)
+
+
+# Operations whose 422 can carry the structured SYNOP refusal
+# (``entries.require_valid_synop``), and those whose 422 is a plain string.
+SYNOP_REFUSAL_OPERATIONS = {
+    "eregisterCreateRegisterObservation",
+    "eregisterCorrectRegisterObservation",
+    "eregisterAcceptRegisterObservation",
+}
+PLAIN_422_OPERATIONS = {
+    "eregisterReviewRegisterObservation",
+    "eregisterRejectRegisterObservation",
+    "eregisterReopenRegisterObservation",
+    "eregisterEmailRegisterObservation",
+    "eregisterPublishRegisterObservation",
+}
+
+
+def _422_refs(operation: dict[str, Any]) -> set[str]:
+    schema = operation["responses"]["422"]["content"]["application/json"]["schema"]
+    return {
+        option["$ref"].rsplit("/", 1)[-1] for option in schema.get("anyOf", [schema])
+    }
+
+
+def test_eregister_observation_422s_name_their_bodies() -> None:
+    # The SYNOP refusal is {"detail": {"message", "issues"}}, not a string; a
+    # malformed request on the same route answers the request validation 422.
+    seen = {}
+    for _path, _method, operation in _operations():
+        if operation["operationId"] in SYNOP_REFUSAL_OPERATIONS | PLAIN_422_OPERATIONS:
+            seen[operation["operationId"]] = _422_refs(operation)
+    expected_refusal = {"EregisterValidationError", "ValidationErrorResponse"}
+    expected_plain = {"ApiError", "ValidationErrorResponse"}
+    assert seen == {
+        **dict.fromkeys(SYNOP_REFUSAL_OPERATIONS, expected_refusal),
+        **dict.fromkeys(PLAIN_422_OPERATIONS, expected_plain),
+    }
+    components = app.openapi()["components"]["schemas"]
+    detail = components["SynopValidationErrorDetail"]
+    assert detail["required"] == ["message", "issues"]
+    assert detail["properties"]["issues"]["items"] == {
+        "$ref": "#/components/schemas/SynopValidationIssue"
+    }
+
+
+def test_the_synop_refusal_body_matches_its_documented_model() -> None:
+    # The runtime body is built from the model; this pins that it validates.
+    observed = datetime(2026, 7, 7, 12, tzinfo=UTC)
+    try:
+        entries.require_valid_synop({"day": "123"}, observed)
+    except HTTPException as exc:
+        assert exc.status_code == 422
+        body = EregisterValidationError.model_validate({"detail": exc.detail})
+    else:
+        raise AssertionError("an invalid workbook must be refused")
+    assert body.detail.message.startswith("Observation does not pass validation")
+    assert [(i.field, i.code) for i in body.detail.issues] == [("day", "invalid_value")]
+
+
+JSON_ERROR_REF = re.compile(r'"#/components/schemas/(ApiError|ErrorMessage)"')
+
+
+def test_json_error_models_are_declared_as_application_json() -> None:
+    # ApiError and ErrorMessage are JSON envelopes. On an HTML or other non-JSON
+    # route FastAPI files a response model under the route's own media type, so
+    # a JSON error model under text/html is wrong. Such routes declare their
+    # error body as text/html, or name application/json explicitly.
+    offenders = []
+    for path, method, operation in _operations():
+        for status, response in operation.get("responses", {}).items():
+            if not status.startswith("4"):
+                continue
+            for media_type, media in response.get("content", {}).items():
+                if media_type == "application/json":
+                    continue
+                if JSON_ERROR_REF.search(json.dumps(media.get("schema", {}))):
+                    offenders.append(f"{method.upper()} {path} {status} ({media_type})")
+    assert not offenders, "JSON error models under a non-JSON media type: " + ", ".join(
+        offenders
+    )
+
+
+def test_request_bodies_are_named_component_references() -> None:
+    # An anonymous request schema (inline object, array or union) gives the
+    # generated client an unnamed type. Each body must $ref a named component.
+    offenders = []
+    for path, method, operation in _operations():
+        request_body = operation.get("requestBody") or {}
+        for media_type, media in request_body.get("content", {}).items():
+            reference = media.get("schema", {}).get("$ref", "")
+            if not reference.startswith("#/components/schemas/"):
+                offenders.append(f"{method.upper()} {path} ({media_type})")
+    assert not offenders, "Anonymous request bodies: " + ", ".join(offenders)
+
+
 def test_openapi_has_no_anonymous_enums() -> None:
     offenders = list(
         _inline_enums(
@@ -157,6 +272,12 @@ def _missing_response_models(application: FastAPI) -> list[str]:
         "get_settlement_csv",
         # Payments reconciliation export is a CSV download.
         "admin_get_reconciliation_csv",
+        # Payroll inputs export is a CSV download (quantities only).
+        "export_pay_period_csv",
+        # Payslip PDF and payroll bank and GL files.
+        "download_payslip_pdf",
+        "export_bank_csv",
+        "export_gl_csv",
         # A booking's iCalendar file (text/calendar).
         "get_public_booking_ics",
     }

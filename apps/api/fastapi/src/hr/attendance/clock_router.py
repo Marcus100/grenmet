@@ -4,10 +4,11 @@ from typing import Annotated, Any
 from fastapi import APIRouter, Query, status
 
 from src.dependencies import CurrentUser, SessionDep
+from src.models import ApiError
 
 from . import clock_service, punch_service
 from .clock_schemas import (
-    ClockPunchApprove,
+    ClockPunchApproveBody,
     ClockPunchesPublic,
     ClockPunchPendingPublic,
     ClockPunchPublic,
@@ -24,8 +25,11 @@ from .router import public_record
 
 router = APIRouter(prefix="/hr/attendance", tags=["hr-attendance"])
 SITE_ERRORS: dict[int | str, dict[str, Any]] = {
-    403: {"description": "Insufficient permission or department outside your scope"},
-    404: {"description": "Clock site not found"},
+    403: {
+        "model": ApiError,
+        "description": "Insufficient permission or department outside your scope",
+    },
+    404: {"model": ApiError, "description": "Clock site not found"},
 }
 
 
@@ -43,10 +47,16 @@ SITE_ERRORS: dict[int | str, dict[str, Any]] = {
     ),
     operation_id="hrClock",
     responses={
-        400: {"description": "Invalid attendance for this shift"},
-        403: {"description": "Clock point belongs to another department"},
-        404: {"description": "Clock-in code is not valid"},
-        409: {"description": "No rostered shift to clock in to at this time"},
+        400: {"model": ApiError, "description": "Invalid attendance for this shift"},
+        403: {
+            "model": ApiError,
+            "description": "Clock point belongs to another department",
+        },
+        404: {"model": ApiError, "description": "Clock-in code is not valid"},
+        409: {
+            "model": ApiError,
+            "description": "No rostered shift to clock in to at this time",
+        },
     },
 )
 async def clock(
@@ -157,10 +167,14 @@ async def set_clock_site_active(
 
 PUNCH_ERRORS: dict[int | str, dict[str, Any]] = {
     403: {
-        "description": "Not an allowed reviewer of this punch, or reviewing your own punch"
+        "model": ApiError,
+        "description": "Not an allowed reviewer of this punch, or reviewing your own punch",
     },
-    404: {"description": "Clock punch not found"},
-    409: {"description": "Punch already decided, or its arrival is not approved"},
+    404: {"model": ApiError, "description": "Clock punch not found"},
+    409: {
+        "model": ApiError,
+        "description": "Punch already decided, or its arrival is not approved",
+    },
 }
 
 
@@ -170,7 +184,7 @@ PUNCH_ERRORS: dict[int | str, dict[str, Any]] = {
     summary="List phone clock punches awaiting approval",
     description="Pending phone punches the caller may decide. Callers holding timesheet.approve with organisation-wide scope, with department scope for the punch's department or the employee's current department, or who are the employee's named supervisor and hold a live timesheet.approve assignment in the punch's organisation. Never the employee. Approve and reject use the same rule.",
     operation_id="hrListPendingClockPunches",
-    responses={403: {"description": "Requires timesheet.approve"}},
+    responses={403: {"model": ApiError, "description": "Requires timesheet.approve"}},
 )
 async def list_pending_clock_punches(
     *,
@@ -212,13 +226,13 @@ async def approve_clock_punch(
     session: SessionDep,
     current_user: CurrentUser,
     punch_id: uuid.UUID,
-    payload: ClockPunchApprove | None = None,
+    payload: ClockPunchApproveBody = ClockPunchApproveBody(None),
 ) -> Any:
     return await punch_service.approve_punch(
         session=session,
         current_user=current_user,
         punch_id=punch_id,
-        note=payload.note if payload else None,
+        note=payload.root.note if payload.root else None,
     )
 
 

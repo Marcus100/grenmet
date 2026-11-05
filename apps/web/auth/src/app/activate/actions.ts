@@ -7,8 +7,6 @@ export async function activateAccount(
   _state: { message: string; done: boolean },
   form: FormData
 ) {
-  if (form.get("password") !== form.get("confirm"))
-    return { message: "Passwords must match.", done: false };
   const token = String(form.get("token") ?? "");
   const password = String(form.get("password") ?? "");
   if (!token || password.length < 12 || password.length > 128)

@@ -50,6 +50,12 @@ class ApiError(BaseModel):
     detail: str
 
 
+class ErrorMessage(BaseModel):
+    """Error envelope keyed ``error`` rather than ``detail``; the rate limiter answers 429 with it."""
+
+    error: str
+
+
 class ValidationErrorItem(BaseModel):
     """A single request validation failure."""
 

@@ -4,6 +4,7 @@
  */
 
 import * as z from "zod";
+import { apiErrorSchema } from "./apiErrorSchema.js";
 import { signaturePublicSchema } from "./signaturePublicSchema.js";
 import { validationErrorResponseSchema } from "./validationErrorResponseSchema.js";
 
@@ -12,9 +13,13 @@ export const hrGetMySignatureStatus200Schema = z.union([
   z.null(),
 ]);
 
-export const hrGetMySignatureStatus400Schema = z.unknown();
+export const hrGetMySignatureStatus400Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
-export const hrGetMySignatureStatus401Schema = z.unknown();
+export const hrGetMySignatureStatus401Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
 export const hrGetMySignatureStatus422Schema =
   validationErrorResponseSchema.describe(

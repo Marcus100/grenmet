@@ -3,6 +3,7 @@
  * Do not edit manually.
  */
 
+import type { ApiError } from "./ApiError.js";
 import type { StationSettings } from "./StationSettings.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 
@@ -21,11 +22,23 @@ export type EregisterGetStationSettingsPath = {
  */
 export type EregisterGetStationSettingsStatus200 = StationSettings;
 
-export type EregisterGetStationSettingsStatus401 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type EregisterGetStationSettingsStatus401 = ApiError;
 
-export type EregisterGetStationSettingsStatus403 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type EregisterGetStationSettingsStatus403 = ApiError;
 
-export type EregisterGetStationSettingsStatus404 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type EregisterGetStationSettingsStatus404 = ApiError;
 
 /**
  * @description Validation error envelope returned for malformed requests.

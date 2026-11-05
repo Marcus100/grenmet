@@ -40,7 +40,7 @@ export default function AppGuidePage() {
       <PageSection heading="Availability">
         <Prose
           paragraphs={[
-            "The app follows the public website rather than preceding it. Until it is released, warnings are available on this site, through the WhatsApp channel, on radio and in the CAP feed.",
+            "The app follows the public website rather than preceding it. Until it is released, warnings are available on this site, by email and browser notifications, on radio and in the CAP feed.",
           ]}
         />
       </PageSection>

@@ -3,6 +3,7 @@
  * Do not edit manually.
  */
 
+import type { ApiError } from "./ApiError.js";
 import type { ContactConsentPublic } from "./ContactConsentPublic.js";
 import type { ContactConsentSet } from "./ContactConsentSet.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
@@ -20,15 +21,35 @@ export type ContactsSetOrgContactConsentHeaders = {
 
 export type ContactsSetOrgContactConsentStatus201 = ContactConsentPublic;
 
-export type ContactsSetOrgContactConsentStatus400 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type ContactsSetOrgContactConsentStatus400 = ApiError;
 
-export type ContactsSetOrgContactConsentStatus401 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type ContactsSetOrgContactConsentStatus401 = ApiError;
 
-export type ContactsSetOrgContactConsentStatus403 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type ContactsSetOrgContactConsentStatus403 = ApiError;
 
-export type ContactsSetOrgContactConsentStatus404 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type ContactsSetOrgContactConsentStatus404 = ApiError;
 
-export type ContactsSetOrgContactConsentStatus409 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type ContactsSetOrgContactConsentStatus409 = ApiError;
 
 /**
  * @description Validation error envelope returned for malformed requests.

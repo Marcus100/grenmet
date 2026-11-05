@@ -368,6 +368,14 @@ async def test_bad_links_are_422_not_500(
     assert response.status_code == 422
 
 
+def test_organiser_upsert_schema_does_not_declare_the_ticket_link():
+    # The link is staff-only (ADR-0048) and has no curation route yet, so the
+    # organiser contract must not advertise it. The 422 guard stays in place.
+    from src.events.schemas import ListingUpsert
+
+    assert "external_ticket_url" not in ListingUpsert.model_json_schema()["properties"]
+
+
 def test_link_normalisation_and_vendor_host():
     assert normalise_https_url("HTTPS://Tickets.Example.COM:8443/a?b=1#c") == (
         "https://tickets.example.com:8443/a?b=1#c"

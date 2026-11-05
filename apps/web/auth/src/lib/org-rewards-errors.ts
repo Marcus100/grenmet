@@ -17,7 +17,7 @@ export function errorStatus(error: unknown): number | undefined {
   if (isRecord(error) && typeof error.status === "number") return error.status;
 }
 
-const VALUE_ERROR_PREFIX = /^Value error, /;
+const VALUE_ERROR_PREFIX = /^Value error, /u;
 const MAX_DETAIL = 300;
 
 function clean(text: string): string {

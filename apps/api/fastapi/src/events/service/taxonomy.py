@@ -264,14 +264,13 @@ async def apply_classification(
         raise EventsConflict("Service listings aren't available yet")
     mode = _mode_for(listing, body, body.admission)
 
+    # Organisers never set the link (the schema refuses it); a staff-set link is
+    # kept while the listing stays in external booking.
     url: str | None = None
     if mode == "external":
-        previous = listing.external_ticket_url if body.booking_mode is None else None
-        url = body.external_ticket_url or previous
+        url = listing.external_ticket_url
         if not url:
             raise EventsConflict("External booking needs an https ticket link")
-    elif body.external_ticket_url is not None:
-        raise EventsConflict("A ticket link is only allowed with external booking")
 
     category_id, sub_id = await _resolve_categories(db, listing, body, listing_type)
     access = body.access_type or listing.access_type or "public"

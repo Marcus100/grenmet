@@ -3,6 +3,7 @@
  * Do not edit manually.
  */
 
+import type { ApiError } from "./ApiError.js";
 import type { GroupDetail } from "./GroupDetail.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 
@@ -16,7 +17,11 @@ export type EventsGetGroupPath = {
 
 export type EventsGetGroupStatus200 = GroupDetail;
 
-export type EventsGetGroupStatus404 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type EventsGetGroupStatus404 = ApiError;
 
 /**
  * @description Validation error envelope returned for malformed requests.

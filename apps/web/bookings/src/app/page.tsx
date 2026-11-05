@@ -1,3 +1,7 @@
+import {
+  BARRELS_SUPPORT_EMAIL,
+  BARRELS_SUPPORT_HREF,
+} from "@barrelsgd/ui/lib/support";
 import Link from "next/link";
 
 export default function HomePage() {
@@ -6,10 +10,10 @@ export default function HomePage() {
       className="mx-auto flex min-h-screen max-w-2xl flex-col justify-center gap-4 p-6"
       id="main-content"
     >
-      <p className="font-medium text-muted-foreground text-sm">
+      <p className="text-muted-foreground text-sm font-medium">
         Barrels Bookings
       </p>
-      <h1 className="font-semibold text-3xl tracking-tight">
+      <h1 className="text-3xl font-semibold tracking-tight">
         Online appointments for Grenada businesses
       </h1>
       <p className="text-muted-foreground">
@@ -21,6 +25,16 @@ export default function HomePage() {
         <Link className="underline underline-offset-4" href="/studio">
           Open the studio
         </Link>
+      </p>
+      <p className="text-muted-foreground text-sm">
+        Questions about Barrels Bookings? Email Barrels Grenada support at{" "}
+        <a
+          className="text-foreground underline underline-offset-4"
+          href={BARRELS_SUPPORT_HREF}
+        >
+          {BARRELS_SUPPORT_EMAIL}
+        </a>
+        .
       </p>
     </main>
   );

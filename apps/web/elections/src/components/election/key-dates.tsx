@@ -81,20 +81,20 @@ export function KeyDates({ calendar }: { calendar: ElectionCalendar }) {
   return (
     <dl
       className={cn(
-        "grid gap-px border border-el-rule bg-el-rule sm:grid-cols-2",
+        "border-el-rule bg-el-rule grid gap-px border sm:grid-cols-2",
         largeColumns(dates.length)
       )}
     >
       {dates.map((d) => (
         <div className="bg-background p-4" key={d.label}>
-          <dt className="font-semibold text-el-muted text-sm uppercase tracking-[0.07em]">
+          <dt className="text-el-muted text-sm font-semibold tracking-[0.07em] uppercase">
             {d.label}
           </dt>
-          <dd className="mt-1 font-bold font-serif text-xl">
+          <dd className="mt-1 font-serif text-xl font-bold">
             {d.value}
             {d.unverified && <Flag note={d.unverified} status="unverified" />}
           </dd>
-          {d.note && <dd className="mt-1 text-base text-el-muted">{d.note}</dd>}
+          {d.note && <dd className="text-el-muted mt-1 text-base">{d.note}</dd>}
         </div>
       ))}
     </dl>

@@ -4,7 +4,8 @@
  */
 
 import * as z from "zod";
-import { capAlertActionSchema } from "./capAlertActionSchema.js";
+import { apiErrorSchema } from "./apiErrorSchema.js";
+import { capPublishActionSchema } from "./capPublishActionSchema.js";
 import { capPublishPublicSchema } from "./capPublishPublicSchema.js";
 import { validationErrorResponseSchema } from "./validationErrorResponseSchema.js";
 
@@ -12,11 +13,17 @@ export const capPublishAlertPathAlertIdSchema = z.uuid();
 
 export const capPublishAlertStatus200Schema = capPublishPublicSchema;
 
-export const capPublishAlertStatus401Schema = z.unknown();
+export const capPublishAlertStatus401Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
-export const capPublishAlertStatus403Schema = z.unknown();
+export const capPublishAlertStatus403Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
-export const capPublishAlertStatus404Schema = z.unknown();
+export const capPublishAlertStatus404Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
 export const capPublishAlertStatus422Schema =
   validationErrorResponseSchema.describe(
@@ -32,7 +39,9 @@ export const capPublishAlertErrorSchema = z.union([
   capPublishAlertStatus422Schema,
 ]);
 
-export const capPublishAlertBodySchema = capAlertActionSchema;
+export const capPublishAlertBodySchema = capPublishActionSchema.describe(
+  "Publish request. An imported alert needs ``confirm_imported`` (409 without it)."
+);
 
 export const capPublishAlertPathSchema = z.object({
   alert_id: z.uuid(),

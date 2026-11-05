@@ -1,14 +1,18 @@
+import {
+  BARRELS_SUPPORT_EMAIL,
+  BARRELS_SUPPORT_HREF,
+} from "@barrelsgd/ui/lib/support";
 import Link from "next/link";
 import { env } from "@/lib/env";
 
 export function SiteFooter() {
   return (
-    <footer className="border-gm-border border-t bg-gm-surface text-body-sm text-gm-text-secondary print:border-0">
+    <footer className="border-gm-border bg-gm-surface text-body-sm text-gm-text-secondary border-t print:border-0">
       <div className="mx-auto max-w-4xl space-y-2 px-4 py-6">
         <p>
           Official source: the{" "}
           <a
-            className="font-medium text-gm-blue-ink underline"
+            className="text-gm-blue-ink font-medium underline"
             href={env.GMS_SITE_URL}
           >
             Grenada Meteorological Service
@@ -24,6 +28,16 @@ export function SiteFooter() {
           <Link className="underline" href="/feeds">
             Alert feeds
           </Link>
+        </p>
+        <p className="print:hidden">
+          Problems with this website: Barrels Grenada at{" "}
+          <a
+            className="text-gm-blue-ink font-medium underline"
+            href={BARRELS_SUPPORT_HREF}
+          >
+            {BARRELS_SUPPORT_EMAIL}
+          </a>
+          .
         </p>
       </div>
     </footer>

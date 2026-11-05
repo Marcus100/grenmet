@@ -3,16 +3,30 @@
  * Do not edit manually.
  */
 
+import type { ApiError } from "./ApiError.js";
+import type { ErrorMessage } from "./ErrorMessage.js";
 import type { ReportPublic } from "./ReportPublic.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 
 export type EventsListReportsStatus200 = ReportPublic[];
 
-export type EventsListReportsStatus401 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type EventsListReportsStatus401 = ApiError;
 
-export type EventsListReportsStatus403 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type EventsListReportsStatus403 = ApiError;
 
-export type EventsListReportsStatus404 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type EventsListReportsStatus404 = ApiError;
 
 /**
  * @description Validation error envelope returned for malformed requests.
@@ -20,7 +34,7 @@ export type EventsListReportsStatus404 = unknown;
  */
 export type EventsListReportsStatus422 = ValidationErrorResponse;
 
-export type EventsListReportsStatus429 = unknown;
+export type EventsListReportsStatus429 = ApiError | ErrorMessage;
 
 export type EventsListReportsOptions = {
   body?: never;

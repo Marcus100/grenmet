@@ -3,7 +3,6 @@
  * Do not edit manually.
  */
 
-import type { LegacyProductPreviewPropertiesKindEnum } from "./LegacyProductPreviewPropertiesKindEnum.js";
 import type { LegacyProductWritePropertiesActionEnum } from "./LegacyProductWritePropertiesActionEnum.js";
 import type { ProductGuidance } from "./ProductGuidance.js";
 
@@ -30,5 +29,19 @@ export type LegacyProductWrite = {
    */
   changeSummary: string;
   reviewed: boolean;
-  kind: LegacyProductPreviewPropertiesKindEnum;
+  kind:
+    | "climate-bulletin"
+    | "coastal"
+    | "cyclone"
+    | "dust"
+    | "evening"
+    | "flood"
+    | "heat"
+    | "marine"
+    | "marine-forecast"
+    | "midday"
+    | "morning"
+    | "thunderstorm"
+    | "tsunami"
+    | "wind";
 };

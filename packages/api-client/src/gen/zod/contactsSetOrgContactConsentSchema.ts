@@ -4,6 +4,7 @@
  */
 
 import * as z from "zod";
+import { apiErrorSchema } from "./apiErrorSchema.js";
 import { contactConsentPublicSchema } from "./contactConsentPublicSchema.js";
 import { contactConsentSetSchema } from "./contactConsentSetSchema.js";
 import { validationErrorResponseSchema } from "./validationErrorResponseSchema.js";
@@ -20,15 +21,20 @@ export const contactsSetOrgContactConsentHeaderXBarrelsOrganisationSchema = z
 export const contactsSetOrgContactConsentStatus201Schema =
   contactConsentPublicSchema;
 
-export const contactsSetOrgContactConsentStatus400Schema = z.unknown();
+export const contactsSetOrgContactConsentStatus400Schema =
+  apiErrorSchema.describe("Stable error envelope for documented API failures.");
 
-export const contactsSetOrgContactConsentStatus401Schema = z.unknown();
+export const contactsSetOrgContactConsentStatus401Schema =
+  apiErrorSchema.describe("Stable error envelope for documented API failures.");
 
-export const contactsSetOrgContactConsentStatus403Schema = z.unknown();
+export const contactsSetOrgContactConsentStatus403Schema =
+  apiErrorSchema.describe("Stable error envelope for documented API failures.");
 
-export const contactsSetOrgContactConsentStatus404Schema = z.unknown();
+export const contactsSetOrgContactConsentStatus404Schema =
+  apiErrorSchema.describe("Stable error envelope for documented API failures.");
 
-export const contactsSetOrgContactConsentStatus409Schema = z.unknown();
+export const contactsSetOrgContactConsentStatus409Schema =
+  apiErrorSchema.describe("Stable error envelope for documented API failures.");
 
 export const contactsSetOrgContactConsentStatus422Schema =
   validationErrorResponseSchema.describe(

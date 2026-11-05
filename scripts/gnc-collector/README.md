@@ -67,6 +67,27 @@ uv run --isolated --frozen --package gnc-collector gnc-collector collect \
 coastline render downloads Natural Earth 10 m coastlines into cartopy's data
 folder; pass `--no-coastlines` on a machine without internet.
 
+## Stall check
+
+```bash
+gnc-collector check --input-dir <fazzt-folder> --max-age-minutes 45
+```
+
+Prints the newest full-disk file per band (by arrival at the receiver, and by
+scan time) and exits 1 when a band has no file, none that arrived within the
+limit, or a newest file dated in the future (a clock fault that would hide a
+stall). Full disks arrive every ten minutes, so 45 minutes means the receiver
+has stalled. Staleness is judged by **arrival** (the file's modification time),
+not scan time, so after an outage a backlog of old scans counts as fresh until
+it has also stopped arriving. This assumes FAZZT stamps files when it writes
+them; the survey script shows file time beside scan time so that can be checked.
+`deploy/gnc-collector-check.*` runs it every 15 minutes under systemd.
+
+## Surveying a receiver
+
+`deploy/survey-receiver.sh` is a read-only report to run once on the receiver
+PC before installing anything; see the runbook.
+
 ## Tests
 
 ```bash

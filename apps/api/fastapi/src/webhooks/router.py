@@ -22,13 +22,14 @@ import time
 from email.utils import parseaddr
 from typing import Any
 
-from fastapi import APIRouter, HTTPException, Request, status
+from fastapi import APIRouter, Request, status
 from fastapi.responses import JSONResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.config import settings
 from src.dependencies import SessionDep
 from src.email_config import email_settings
+from src.exceptions import AppException, AuthenticationError
 from src.notifications import service as notification_service
 from src.notifications.models import SuppressionReason
 
@@ -140,10 +141,7 @@ async def resend_webhook(request: Request, session: SessionDep) -> JSONResponse:
         svix_signature = request.headers.get("svix-signature", "")
 
         if not all([svix_id, svix_timestamp, svix_signature]):
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Missing Svix signature headers",
-            )
+            raise AuthenticationError("Missing Svix signature headers")
 
         if not _verify_svix_signature(
             raw_body,
@@ -152,10 +150,7 @@ async def resend_webhook(request: Request, session: SessionDep) -> JSONResponse:
             svix_signature,
             email_settings.RESEND_WEBHOOK_SECRET,
         ):
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Invalid webhook signature",
-            )
+            raise AuthenticationError("Invalid webhook signature")
     elif settings.ENVIRONMENT == "local":
         logger.warning(
             "RESEND_WEBHOOK_SECRET not set — accepting webhook without verification "
@@ -168,33 +163,24 @@ async def resend_webhook(request: Request, session: SessionDep) -> JSONResponse:
             "RESEND_WEBHOOK_SECRET not set — rejecting webhook in %s",
             settings.ENVIRONMENT,
         )
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Webhook verification is not configured",
-        )
+        raise AuthenticationError("Webhook verification is not configured")
 
     # ── Parse event ────────────────────────────────────────────────────────
     try:
         event: dict[str, Any] = json.loads(raw_body)
     except json.JSONDecodeError, UnicodeDecodeError:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid JSON"
-        )
+        raise AppException("Invalid JSON", status.HTTP_400_BAD_REQUEST)
 
     if (
         not isinstance(event, dict)
         or not isinstance(event.get("type"), str)
         or not isinstance(event.get("data"), dict)
     ):
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid event envelope"
-        )
+        raise AppException("Invalid event envelope", status.HTTP_400_BAD_REQUEST)
     event_type: str = event["type"]
     data: dict[str, Any] = event["data"]
     if "bounce" in data and not isinstance(data["bounce"], dict):
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid bounce details"
-        )
+        raise AppException("Invalid bounce details", status.HTTP_400_BAD_REQUEST)
     email_id: str = data.get("email_id", "")
     to_address: str | list[str] = data.get("to", "")
     recipients = _recipients(to_address)

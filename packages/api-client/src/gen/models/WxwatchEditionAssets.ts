@@ -3,6 +3,7 @@
  * Do not edit manually.
  */
 
+import type { ApiError } from "./ApiError.js";
 import type { EditionAsset } from "./EditionAsset.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 
@@ -17,11 +18,23 @@ export type WxwatchEditionAssetsPath = {
 
 export type WxwatchEditionAssetsStatus200 = EditionAsset[];
 
-export type WxwatchEditionAssetsStatus401 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type WxwatchEditionAssetsStatus401 = ApiError;
 
-export type WxwatchEditionAssetsStatus403 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type WxwatchEditionAssetsStatus403 = ApiError;
 
-export type WxwatchEditionAssetsStatus404 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type WxwatchEditionAssetsStatus404 = ApiError;
 
 /**
  * @description Validation error envelope returned for malformed requests.

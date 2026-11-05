@@ -3,14 +3,23 @@
  * Do not edit manually.
  */
 
+import type { ApiError } from "./ApiError.js";
 import type { RouteView } from "./RouteView.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 
 export type TransportSpecStatus200 = RouteView[];
 
-export type TransportSpecStatus401 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type TransportSpecStatus401 = ApiError;
 
-export type TransportSpecStatus403 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type TransportSpecStatus403 = ApiError;
 
 /**
  * @description Validation error envelope returned for malformed requests.

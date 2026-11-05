@@ -218,7 +218,7 @@ export default function ForecastPage() {
         learning="forecast"
         title="Explore what could change the result"
       >
-        <dl className="mt-6 grid grid-cols-2 gap-4 border-el-rule border-t pt-4 lg:grid-cols-4">
+        <dl className="border-el-rule mt-6 grid grid-cols-2 gap-4 border-t pt-4 lg:grid-cols-4">
           {[
             [
               "NDC two-party share, 2022",
@@ -243,10 +243,10 @@ export default function ForecastPage() {
           ].map(([label, value, note]) => (
             <div key={label}>
               <dt className={LABEL}>{label}</dt>
-              <dd className="mt-0.5 font-semibold text-xl tabular-nums">
+              <dd className="mt-0.5 text-xl font-semibold tabular-nums">
                 {value}
               </dd>
-              <dd className="text-base text-el-muted">{note}</dd>
+              <dd className="text-el-muted text-base">{note}</dd>
             </div>
           ))}
         </dl>
@@ -294,14 +294,14 @@ export default function ForecastPage() {
                   {leanLabel(x)}
                 </span>
               ))}
-              <span className="w-full text-el-muted">
+              <span className="text-el-muted w-full">
                 Boundaries are illustrative.
               </span>
             </figcaption>
           </figure>
           <div>
             <h3 className={LABEL}>Constituencies in order of lean</h3>
-            <p className="mt-1 text-base text-el-muted leading-relaxed">
+            <p className="text-el-muted mt-1 text-base leading-relaxed">
               The rule above the eighth marks the median seat: a party that wins
               it and every seat on its side has a majority. Squares show the
               2022 winner.
@@ -333,7 +333,7 @@ export default function ForecastPage() {
                         {constituencyName(results, code)}
                       </span>
                     </Link>
-                    <span className="relative h-2 flex-1 bg-el-paper-2">
+                    <span className="bg-el-paper-2 relative h-2 flex-1">
                       <span
                         className="absolute inset-y-0"
                         style={{
@@ -342,7 +342,7 @@ export default function ForecastPage() {
                           background: leanFill(lean[code] * 2),
                         }}
                       />
-                      <span className="absolute inset-y-[-3px] left-1/2 w-px bg-el-ink" />
+                      <span className="bg-el-ink absolute inset-y-[-3px] left-1/2 w-px" />
                     </span>
                     <span className="w-16 shrink-0 text-right font-semibold tabular-nums">
                       {leanLabel(lean[code])}
@@ -374,7 +374,7 @@ export default function ForecastPage() {
               geo={geo}
               label="Grenada Lean Index"
             />
-            <figcaption className="mt-2 text-base text-el-muted">
+            <figcaption className="text-el-muted mt-2 text-base">
               Lean at the selected map level, using 2022 and 2018. Divisions
               without a 2018 result use 2022 only. Boundaries are illustrative.
             </figcaption>
@@ -407,7 +407,7 @@ export default function ForecastPage() {
                     <td className="py-1.5 text-right tabular-nums">
                       {leanLabel(d.lean)}
                       {d.only2022 && (
-                        <span className="text-base text-el-muted"> 2022</span>
+                        <span className="text-el-muted text-base"> 2022</span>
                       )}
                     </td>
                   </tr>
@@ -457,10 +457,10 @@ export default function ForecastPage() {
           ].map(([label, value, note]) => (
             <div key={label}>
               <dt className={LABEL}>{label}</dt>
-              <dd className="mt-0.5 font-semibold text-xl tabular-nums">
+              <dd className="mt-0.5 text-xl font-semibold tabular-nums">
                 {value}
               </dd>
-              <dd className="text-base text-el-muted">{note}</dd>
+              <dd className="text-el-muted text-base">{note}</dd>
             </div>
           ))}
         </dl>
@@ -532,7 +532,7 @@ export default function ForecastPage() {
                 })}
               </svg>
             </ChartViewport>
-            <figcaption className="text-base text-el-muted">
+            <figcaption className="text-el-muted text-base">
               NDC seats, by who led between the NDC and the NNP (in 1995 the
               GULP also won 2 seats). Each prediction uses swing sizes from the
               other elections only.
@@ -540,7 +540,7 @@ export default function ForecastPage() {
           </figure>
           <div>
             <h3 className={LABEL}>Are the seat chances honest?</h3>
-            <p className="mt-1 text-base text-el-muted leading-relaxed">
+            <p className="text-el-muted mt-1 text-base leading-relaxed">
               If well calibrated, seats given about 70% should go NDC about 70%
               of the time.
             </p>
@@ -600,14 +600,14 @@ export default function ForecastPage() {
 
       <Section id="your-map" title="4 · Make your own map">
         <Link
-          className="flex flex-wrap items-center justify-between gap-4 border border-el-rule bg-el-paper-2 p-5 hover:border-el-ink"
+          className="border-el-rule bg-el-paper-2 hover:border-el-ink flex flex-wrap items-center justify-between gap-4 border p-5"
           href="/make-your-map"
         >
           <span>
-            <b className="block font-bold font-serif text-xl">
+            <b className="block font-serif text-xl font-bold">
               Make your map →
             </b>
-            <span className="text-base text-el-ink-2">
+            <span className="text-el-ink-2 text-base">
               Rate every constituency from Solid NDC to Solid NNP (and DPM where
               it stands), starting from these ratings, and share your map.
             </span>
@@ -643,7 +643,7 @@ export default function ForecastPage() {
         <div className="grid gap-8 lg:grid-cols-[minmax(0,1.3fr)_minmax(0,1fr)]">
           <figure>
             <h3 className={LABEL}>How the polls did</h3>
-            <p className="mt-1 text-base text-el-muted leading-relaxed">
+            <p className="text-el-muted mt-1 text-base leading-relaxed">
               Open dot: the poll’s NDC share of the NDC–NNP vote. Filled dot:
               the result.
             </p>
@@ -732,7 +732,7 @@ export default function ForecastPage() {
                 })}
               </svg>
             </ChartViewport>
-            <p className="mt-2 font-serif text-el-ink-2 text-lg leading-normal">
+            <p className="text-el-ink-2 mt-2 font-serif text-lg leading-normal">
               All {scored.length} polls we can check <b>understated the NDC</b>,
               by {Math.abs(meanError * 100).toFixed(1)} points on average. Only
               two pollsters and two elections are involved, so this is a
@@ -796,7 +796,7 @@ export default function ForecastPage() {
                       <Flag note={p.note} status={p.flag} />
                     </td>
                     <td className="py-2 pr-3">{p.field}</td>
-                    <td className="whitespace-nowrap py-2 pr-3">
+                    <td className="py-2 pr-3 whitespace-nowrap">
                       {p.pub ? formatIsoDate(p.pub) : "–"}
                     </td>
                     <td className="py-2 pr-3 text-right tabular-nums">
@@ -808,7 +808,7 @@ export default function ForecastPage() {
                     <td className="py-2 pr-3 text-right tabular-nums">
                       {share("NDC")}
                     </td>
-                    <td className="py-2 pr-3 text-el-ink-2">{p.note}</td>
+                    <td className="text-el-ink-2 py-2 pr-3">{p.note}</td>
                     <td className="py-2 pr-3 text-base">
                       <SourceLink id={p.src} sources={campaign.sources} />
                     </td>
@@ -851,13 +851,13 @@ export default function ForecastPage() {
             ],
           ].map(([label, value, note]) => (
             <div key={label}>
-              <dt className="font-semibold text-el-muted text-sm uppercase tracking-[0.07em]">
+              <dt className="text-el-muted text-sm font-semibold tracking-[0.07em] uppercase">
                 {label}
               </dt>
-              <dd className="mt-0.5 font-semibold text-xl tabular-nums">
+              <dd className="mt-0.5 text-xl font-semibold tabular-nums">
                 {value}
               </dd>
-              <dd className="text-base text-el-muted">{note}</dd>
+              <dd className="text-el-muted text-base">{note}</dd>
             </div>
           ))}
         </dl>
@@ -870,13 +870,13 @@ export default function ForecastPage() {
             { title: "Ran furthest behind", list: ranked.slice(-8).reverse() },
           ].map(({ title, list }) => (
             <div key={title}>
-              <h3 className="font-semibold text-el-muted text-sm uppercase tracking-[0.07em]">
+              <h3 className="text-el-muted text-sm font-semibold tracking-[0.07em] uppercase">
                 {title}
               </h3>
-              <p className="text-base text-el-muted leading-relaxed">
+              <p className="text-el-muted text-base leading-relaxed">
                 Average over at least two races in the same constituency
               </p>
-              <ul className="mt-2 divide-y divide-el-rule text-base">
+              <ul className="divide-el-rule mt-2 divide-y text-base">
                 {list.map((p) => {
                   const record = recordFor(p.name, p.code);
                   return (
@@ -895,7 +895,7 @@ export default function ForecastPage() {
                         ) : (
                           <b className="font-semibold">{p.name}</b>
                         )}
-                        <span className="block text-base text-el-muted">
+                        <span className="text-el-muted block text-base">
                           {constituencyShortName(results, p.code)} ·{" "}
                           {[...new Set(p.races.map((r) => r.party))].join(", ")}{" "}
                           · {p.races.map((r) => r.year).join(", ")}
@@ -912,7 +912,7 @@ export default function ForecastPage() {
             </div>
           ))}
         </div>
-        <h3 className="mt-8 font-bold text-lg">
+        <h3 className="mt-8 text-lg font-bold">
           Town of St. George: one MP, two parties
         </h3>
         <ChartViewport>
@@ -983,7 +983,7 @@ export default function ForecastPage() {
                     {leanLabel(t.lean)}
                   </text>
                   <text
-                    className="fill-(--el-ink) font-semibold text-[14px]"
+                    className="fill-(--el-ink) text-[14px] font-semibold"
                     textAnchor="middle"
                     x={x}
                     y={208}
@@ -1005,7 +1005,7 @@ export default function ForecastPage() {
             })}
           </svg>
         </ChartViewport>
-        <p className="mt-2 max-w-[70ch] text-base text-el-ink-2 leading-relaxed">
+        <p className="text-el-ink-2 mt-2 max-w-[70ch] text-base leading-relaxed">
           Dot colour shows the winning party; outlined dots are Peter David. The
           seat leaned{" "}
           {leanLabel(town.find((t) => t.year === "2008")?.lean ?? 0)} with him
@@ -1019,7 +1019,7 @@ export default function ForecastPage() {
       </Section>
 
       <Section id="log" title="Changes to the model">
-        <ol className="divide-y divide-el-rule border-el-rule border-y text-base">
+        <ol className="divide-el-rule border-el-rule divide-y border-y text-base">
           {CHANGE_LOG.map((c) => (
             <li
               className="grid gap-1 py-3 sm:grid-cols-[10rem_14rem_1fr]"

@@ -1,12 +1,15 @@
 "use client";
 
 import {
+  type ApiError,
+  type EregisterValidationError,
   eregisterAcceptRegisterObservation,
   eregisterListRegisterObservations,
   eregisterRejectRegisterObservation,
   eregisterReopenRegisterObservation,
   eregisterReviewRegisterObservation,
   type RegisterObservationRead,
+  type ValidationErrorResponse,
 } from "@barrelsgd/api-client";
 import { Badge } from "@barrelsgd/ui/components/ui/badge";
 import { Button } from "@barrelsgd/ui/components/ui/button";
@@ -20,6 +23,7 @@ import {
 } from "@barrelsgd/ui/components/ui/dialog";
 import { Textarea } from "@barrelsgd/ui/components/ui/textarea";
 import { useCallback, useEffect, useState } from "react";
+import { isSynopRefusal } from "./eregister-refusal";
 import { SectionCard } from "./eregister-ui";
 
 export type QcState = RegisterObservationRead["state"];
@@ -93,11 +97,8 @@ export function decisionError(
   if (error && typeof error === "object" && "detail" in error) {
     const { detail } = error as { detail: unknown };
     if (typeof detail === "string") return detail;
-    if (detail && typeof detail === "object" && "message" in detail) {
-      const { message } = detail as { message: unknown };
-      if (typeof message === "string") return message;
-    }
   }
+  if (isSynopRefusal(error)) return error.detail.message;
   if (status === 403) {
     return "You need an eRegister permission, and cannot review your own observation.";
   }
@@ -109,13 +110,20 @@ function utcLabel(iso: string): string {
   return new Date(stamp).toISOString().slice(0, 16).replace("T", " ");
 }
 
+/** The four decision calls answer the same shapes; one type lets them share a caller. */
+interface DecisionResult {
+  data?: RegisterObservationRead;
+  error?: ApiError | EregisterValidationError | ValidationErrorResponse;
+  response?: Response;
+}
+
 function decide(
   action: QcAction,
   id: string,
   reason: string,
   outcome: ReviewOutcome,
   seenUpdatedAt: string
-) {
+): Promise<DecisionResult> {
   const path = { observation_id: id };
   const text = reason.trim() || null;
   if (action === "review") {
@@ -246,12 +254,12 @@ function ObservationLine({
         </span>
       </div>
       {observation.coded ? (
-        <code className="block overflow-x-auto whitespace-nowrap rounded bg-muted px-2 py-1 font-mono text-xs tabular-nums">
+        <code className="bg-muted block overflow-x-auto rounded px-2 py-1 font-mono text-xs whitespace-nowrap tabular-nums">
           {observation.coded}
         </code>
       ) : null}
       {warnings.length > 0 ? (
-        <ul className="list-disc pl-5 text-warning text-xs">
+        <ul className="text-warning list-disc pl-5 text-xs">
           {warnings.map((issue) => (
             <li key={`${issue.field}-${issue.code}`}>{issue.message}</li>
           ))}
@@ -393,16 +401,16 @@ function QueueSection({
   );
   return (
     <section aria-label={heading}>
-      <p className="border-b px-4 py-2 font-medium text-muted-foreground text-xs uppercase tracking-wide">
+      <p className="text-muted-foreground border-b px-4 py-2 text-xs font-medium tracking-wide uppercase">
         {heading} ({status === "ready" ? total : "…"})
       </p>
       {status === "error" ? (
-        <p className="px-4 py-3 text-destructive text-sm" role="alert">
+        <p className="text-destructive px-4 py-3 text-sm" role="alert">
           This list could not be loaded.
         </p>
       ) : null}
       {status === "ready" && items.length === 0 ? (
-        <p className="px-4 py-3 text-muted-foreground text-sm" role="status">
+        <p className="text-muted-foreground px-4 py-3 text-sm" role="status">
           {empty}
         </p>
       ) : null}

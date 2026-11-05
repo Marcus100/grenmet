@@ -6,13 +6,16 @@
 import * as z from "zod";
 import { accountAppPublicSchema } from "./accountAppPublicSchema.js";
 import { accountSessionRequestSchema } from "./accountSessionRequestSchema.js";
+import { apiErrorSchema } from "./apiErrorSchema.js";
 import { validationErrorResponseSchema } from "./validationErrorResponseSchema.js";
 
 export const authListAccountAppsStatus200Schema = z.array(
   accountAppPublicSchema
 );
 
-export const authListAccountAppsStatus401Schema = z.unknown();
+export const authListAccountAppsStatus401Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
 export const authListAccountAppsStatus422Schema =
   validationErrorResponseSchema.describe(

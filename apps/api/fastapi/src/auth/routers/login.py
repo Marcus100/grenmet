@@ -10,7 +10,7 @@ This router handles all authentication-related operations including:
 from datetime import datetime
 from typing import Annotated, Any, overload
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, status
 from fastapi.concurrency import run_in_threadpool
 from fastapi.responses import HTMLResponse
 from fastapi.security import OAuth2PasswordRequestForm
@@ -33,6 +33,7 @@ from src.auth.constants import (
 )
 from src.auth.dependencies import get_current_active_superuser
 from src.auth.devices import remember_device, schedule_new_sign_in_alert
+from src.auth.exceptions import AccountLockedError, PasswordSetupPendingError
 from src.auth.lockout import login_lockout
 from src.auth.models import User
 from src.auth.modern_models import AuthChallenge
@@ -54,9 +55,15 @@ from src.email import (
     send_email,
 )
 from src.email_config import email_settings
-from src.models import Message, Token
-from src.openapi_responses import AUTHENTICATED, NOT_FOUND
-from src.rate_limit import limiter
+from src.exceptions import AppException, AuthenticationError, NotFoundError
+from src.models import ApiError, Message, Token
+from src.openapi_responses import (
+    AUTHENTICATED,
+    NOT_FOUND,
+    RateLimitedBody,
+    as_json,
+)
+from src.rate_limit import limiter, request_ip
 from src.utils.datetime import utc_now
 
 from ..utils import create_access_token
@@ -66,7 +73,7 @@ router = APIRouter(prefix="/auth", tags=["login"])
 
 def _request_metadata(request: Request) -> tuple[str | None, str | None]:
     user_agent = request.headers.get("user-agent")
-    ip_address = request.client.host if request.client else None
+    ip_address = request_ip(request)
     return user_agent, ip_address
 
 
@@ -125,9 +132,11 @@ def _session_auth_response(
             "model": Token,
         },
         status.HTTP_400_BAD_REQUEST: {
+            "model": ApiError,
             "description": "Incorrect email/password or inactive user",
         },
         status.HTTP_429_TOO_MANY_REQUESTS: {
+            "model": RateLimitedBody,
             "description": "Rate limit exceeded",
         },
     },
@@ -146,28 +155,22 @@ async def login_access_token(
     """
     _ = request
     if await login_lockout.is_locked(form_data.username):
-        raise HTTPException(
-            status_code=status.HTTP_429_TOO_MANY_REQUESTS,
-            detail="Account temporarily locked due to repeated failed logins",
-        )
+        raise AccountLockedError()
     user = await service.authenticate(
         session=session, email=form_data.username, password=form_data.password
     )
     if not user:
         await login_lockout.record_failure(form_data.username)
-        raise HTTPException(status_code=400, detail=ERROR_INCORRECT_CREDENTIALS)
+        raise AppException(ERROR_INCORRECT_CREDENTIALS, 400)
     elif not user.is_active:
-        raise HTTPException(status_code=400, detail=ERROR_INACTIVE_USER)
+        raise AppException(ERROR_INACTIVE_USER, 400)
     service.require_approved_account(user)
     if user.password_setup_pending:
-        raise HTTPException(
-            status_code=403,
-            detail="Finish setting your password before signing in",
-        )
+        raise PasswordSetupPendingError()
     if user.totp_enabled:
-        raise HTTPException(
-            status_code=400,
-            detail="This account uses two-factor authentication; sign in via /auth/sessions",
+        raise AppException(
+            "This account uses two-factor authentication; sign in via /auth/sessions",
+            400,
         )
     await login_lockout.reset(form_data.username)
     access_token_expires = service.get_legacy_access_token_expires_delta()
@@ -185,9 +188,11 @@ async def login_access_token(
     responses={
         status.HTTP_200_OK: {"description": "Session created successfully"},
         status.HTTP_400_BAD_REQUEST: {
+            "model": ApiError,
             "description": "Incorrect email/password or inactive user",
         },
         status.HTTP_429_TOO_MANY_REQUESTS: {
+            "model": RateLimitedBody,
             "description": "Rate limit exceeded",
         },
     },
@@ -200,10 +205,7 @@ async def login_session(
 ) -> SessionLoginResponse:
     """Create a long-lived session plus a short-lived access token for web clients."""
     if await login_lockout.is_locked(body.email):
-        raise HTTPException(
-            status_code=status.HTTP_429_TOO_MANY_REQUESTS,
-            detail="Account temporarily locked due to repeated failed logins",
-        )
+        raise AccountLockedError()
     user = await service.authenticate(
         session=session,
         email=body.email,
@@ -211,24 +213,19 @@ async def login_session(
     )
     if not user:
         await login_lockout.record_failure(body.email)
-        raise HTTPException(status_code=400, detail=ERROR_INCORRECT_CREDENTIALS)
+        raise AppException(ERROR_INCORRECT_CREDENTIALS, 400)
     if not user.is_active:
-        raise HTTPException(status_code=400, detail=ERROR_INACTIVE_USER)
+        raise AppException(ERROR_INACTIVE_USER, 400)
     # Any account may hold an account session (ADR-0017); staff approval is
     # checked by staff routes and the staff-app handoff, not at sign-in.
     if user.password_setup_pending:
-        raise HTTPException(
-            status_code=403,
-            detail="Finish setting your password before signing in",
-        )
+        raise PasswordSetupPendingError()
     if user.totp_enabled and not await verify_factor(
         session, user, body.totp_code or ""
     ):
         if body.totp_code:
             await login_lockout.record_failure(body.email)
-        raise HTTPException(
-            status_code=400, detail="Two-factor authentication code required or invalid"
-        )
+        raise AppException("Two-factor authentication code required or invalid", 400)
     await login_lockout.reset(body.email)
 
     user_agent, ip_address = _request_metadata(request)
@@ -286,10 +283,8 @@ async def exchange_session_for_access_token(
         ip_address=ip_address,
     )
     if not exchange:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail=ERROR_INVALID_SESSION,
-            headers={"WWW-Authenticate": "Bearer"},
+        raise AuthenticationError(
+            ERROR_INVALID_SESSION, headers={"WWW-Authenticate": "Bearer"}
         )
 
     db_session, user, access_token, access_token_expires_at = exchange
@@ -319,10 +314,8 @@ async def refresh_session(
         session=session, session_secret=body.session_token
     )
     if not db_session:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail=ERROR_INVALID_SESSION,
-            headers={"WWW-Authenticate": "Bearer"},
+        raise AuthenticationError(
+            ERROR_INVALID_SESSION, headers={"WWW-Authenticate": "Bearer"}
         )
 
     user = await service.get_user_by_id(session=session, user_id=db_session.user_id)
@@ -339,10 +332,8 @@ async def refresh_session(
             )
         )
     ):
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail=ERROR_INVALID_CREDENTIALS,
-            headers={"WWW-Authenticate": "Bearer"},
+        raise AuthenticationError(
+            ERROR_INVALID_CREDENTIALS, headers={"WWW-Authenticate": "Bearer"}
         )
 
     user_agent, ip_address = _request_metadata(request)
@@ -400,10 +391,8 @@ async def logout_all_sessions(
         session=session, session_secret=body.session_token
     )
     if not db_session:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail=ERROR_INVALID_SESSION,
-            headers={"WWW-Authenticate": "Bearer"},
+        raise AuthenticationError(
+            ERROR_INVALID_SESSION, headers={"WWW-Authenticate": "Bearer"}
         )
     await service.revoke_user_sessions(session=session, user_id=db_session.user_id)
     return Message(message=SUCCESS_LOGGED_OUT_ALL)
@@ -426,7 +415,10 @@ async def read_staff_me(current_user: CurrentUser) -> Any:
 @router.post(
     "/password/recovery",
     responses={
-        status.HTTP_429_TOO_MANY_REQUESTS: {"description": "Rate limit exceeded"},
+        status.HTTP_429_TOO_MANY_REQUESTS: {
+            "model": RateLimitedBody,
+            "description": "Rate limit exceeded",
+        },
     },
 )
 @limiter.limit("5/minute")
@@ -469,7 +461,10 @@ async def recover_password(
 @router.post(
     "/password/reset",
     responses={
-        status.HTTP_429_TOO_MANY_REQUESTS: {"description": "Rate limit exceeded"},
+        status.HTTP_429_TOO_MANY_REQUESTS: {
+            "model": RateLimitedBody,
+            "description": "Rate limit exceeded",
+        },
     },
 )
 @limiter.limit("5/minute")
@@ -483,7 +478,7 @@ async def reset_password(
     challenge = await modern_service.consume(session, body.token, "password-reset")
     user = await session.get(User, challenge.user_id)
     if not user or not user.is_active or user.email != challenge.data.get("email"):
-        raise HTTPException(status_code=400, detail=ERROR_INVALID_TOKEN)
+        raise AppException(ERROR_INVALID_TOKEN, 400)
     await service.set_password(
         session=session, user=user, new_password=body.new_password
     )
@@ -494,7 +489,7 @@ async def reset_password(
     "/password/recovery/preview",
     dependencies=[Depends(get_current_active_superuser)],
     response_class=HTMLResponse,
-    responses={**AUTHENTICATED, **NOT_FOUND},
+    responses=as_json({**AUTHENTICATED, **NOT_FOUND}),
 )
 async def recover_password_html_content(body: EmailRequest, session: SessionDep) -> Any:
     """
@@ -504,7 +499,7 @@ async def recover_password_html_content(body: EmailRequest, session: SessionDep)
     user = await service.get_user_by_email(session=session, email=email)
 
     if not user:
-        raise HTTPException(status_code=404, detail=ERROR_USER_NOT_FOUND)
+        raise NotFoundError(ERROR_USER_NOT_FOUND)
     password_reset_token = generate_password_reset_token(email=email)
     email_data = await generate_reset_password_email(
         email_to=user.email, email=email, token=password_reset_token

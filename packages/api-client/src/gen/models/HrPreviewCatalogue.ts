@@ -3,6 +3,7 @@
  * Do not edit manually.
  */
 
+import type { ApiError } from "./ApiError.js";
 import type { CataloguePreview } from "./CataloguePreview.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 
@@ -12,11 +13,23 @@ export type HrPreviewCatalogueQuery = {
 
 export type HrPreviewCatalogueStatus200 = CataloguePreview;
 
-export type HrPreviewCatalogueStatus403 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type HrPreviewCatalogueStatus403 = ApiError;
 
-export type HrPreviewCatalogueStatus404 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type HrPreviewCatalogueStatus404 = ApiError;
 
-export type HrPreviewCatalogueStatus409 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type HrPreviewCatalogueStatus409 = ApiError;
 
 /**
  * @description Validation error envelope returned for malformed requests.

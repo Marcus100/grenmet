@@ -973,8 +973,8 @@ export function plannedPaths(): string[] {
   );
 }
 
-const NON_SLUG_CHARS = /[^a-z0-9]+/g;
-const EDGE_DASHES = /^-|-$/g;
+const NON_SLUG_CHARS = /[^a-z0-9]+/gu;
+const EDGE_DASHES = /^-|-$/gu;
 
 const toSlug = (text: string) =>
   text.toLowerCase().replace(NON_SLUG_CHARS, "-").replace(EDGE_DASHES, "");

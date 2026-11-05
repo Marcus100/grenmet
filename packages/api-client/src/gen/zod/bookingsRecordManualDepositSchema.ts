@@ -4,6 +4,7 @@
  */
 
 import * as z from "zod";
+import { apiErrorSchema } from "./apiErrorSchema.js";
 import { bookingManualDepositCreateSchema } from "./bookingManualDepositCreateSchema.js";
 import { bookingStudioDetailSchema } from "./bookingStudioDetailSchema.js";
 import { validationErrorResponseSchema } from "./validationErrorResponseSchema.js";
@@ -31,15 +32,20 @@ export const bookingsRecordManualDepositStatus200Schema =
     "A booking as the business sees it, with the customer's contact details."
   );
 
-export const bookingsRecordManualDepositStatus400Schema = z.unknown();
+export const bookingsRecordManualDepositStatus400Schema =
+  apiErrorSchema.describe("Stable error envelope for documented API failures.");
 
-export const bookingsRecordManualDepositStatus401Schema = z.unknown();
+export const bookingsRecordManualDepositStatus401Schema =
+  apiErrorSchema.describe("Stable error envelope for documented API failures.");
 
-export const bookingsRecordManualDepositStatus403Schema = z.unknown();
+export const bookingsRecordManualDepositStatus403Schema =
+  apiErrorSchema.describe("Stable error envelope for documented API failures.");
 
-export const bookingsRecordManualDepositStatus404Schema = z.unknown();
+export const bookingsRecordManualDepositStatus404Schema =
+  apiErrorSchema.describe("Stable error envelope for documented API failures.");
 
-export const bookingsRecordManualDepositStatus409Schema = z.unknown();
+export const bookingsRecordManualDepositStatus409Schema =
+  apiErrorSchema.describe("Stable error envelope for documented API failures.");
 
 export const bookingsRecordManualDepositStatus422Schema =
   validationErrorResponseSchema.describe(

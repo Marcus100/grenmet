@@ -7,6 +7,7 @@ import { useActionState, useState } from "react";
 import { saveProfileAction } from "@/app/studio/[orgSlug]/settings/actions";
 import { TIMEZONE_SUGGESTIONS } from "@/lib/settings-view";
 import { IDLE } from "@/lib/studio-action-state";
+import { useHydrated } from "@/lib/use-hydrated";
 import {
   INPUT,
   keepTyped,
@@ -36,6 +37,9 @@ export function ProfileForm({
   const currencyChanged =
     profile?.currency !== undefined &&
     currency.trim().toUpperCase() !== profile.currency;
+  // Save waits for hydration: before it, a native submit would send the form
+  // to a GET URL with the typed values in it.
+  const hydrated = useHydrated();
   return (
     <form className="space-y-5" onSubmit={keepTyped(formAction)}>
       <div className="grid gap-5 lg:grid-cols-2">
@@ -239,7 +243,7 @@ export function ProfileForm({
       <SettingsResult pending={pending} state={state} />
       <Button
         className="min-h-11 w-full sm:w-auto"
-        disabled={pending}
+        disabled={pending || !hydrated}
         size="touch"
         type="submit"
       >

@@ -6,7 +6,10 @@ const capabilitiesCall = vi.fn();
 const rosterCall = vi.fn();
 
 vi.mock("server-only", () => ({}));
-vi.mock("@/lib/api", () => ({ apiOptions: () => ({}) }));
+// apiOptions is async and carries the client: a missing `await` before a spread drops it silently.
+vi.mock("@/lib/api", () => ({
+  apiOptions: async () => ({ client: "test-client" }),
+}));
 vi.mock("@barrelsgd/api-client", async (importOriginal) => ({
   ...(await importOriginal<typeof import("@barrelsgd/api-client")>()),
   organisationsListRoleBundles: (...a: unknown[]) => bundlesCall(...a),
@@ -35,10 +38,16 @@ const failing = (status: number) => ({
       })
     ),
 });
-const rosterMember = (id: string, role = "member", grants: unknown[] = []) => ({
+const rosterMember = (
+  id: string,
+  role = "member",
+  grants: unknown[] = [],
+  isSelf = false
+) => ({
   membership_id: id,
   name: ` ${id} `,
   role,
+  is_self: isSelf,
   grants,
 });
 
@@ -75,6 +84,7 @@ describe("getTeam", () => {
     expect(rosterCall).toHaveBeenCalledTimes(1);
     expect(rosterCall).toHaveBeenCalledWith(
       expect.objectContaining({
+        client: "test-client",
         headers: { "X-Barrels-Organisation": "org_1" },
         query: { page: 1, size: 25 },
       })
@@ -89,6 +99,25 @@ describe("getTeam", () => {
     expect(team.members[0]).not.toHaveProperty("email");
     expect(team.bundles).toHaveLength(1);
     expect(team.totalPages).toBe(1);
+  });
+
+  it("carries the API's own-row flag onto each member", async () => {
+    rosterCall.mockReturnValue(
+      ok({
+        data: [rosterMember("m1", "member", [], true), rosterMember("m2")],
+        count: 2,
+        page: 1,
+        size: 25,
+      })
+    );
+    const team = await getTeam(context, viewer);
+    if (team.kind !== "ok") {
+      throw new Error("expected ok");
+    }
+    expect(team.members.map((m) => [m.fullName, m.isSelf])).toEqual([
+      ["m1", true],
+      ["m2", false],
+    ]);
   });
 
   it("takes removal and owner status from the capabilities, not from a refusal", async () => {

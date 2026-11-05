@@ -3,14 +3,23 @@
  * Do not edit manually.
  */
 
+import type { ApiError } from "./ApiError.js";
 import type { BookingMyOrganisation } from "./BookingMyOrganisation.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 
 export type BookingsListMyOrganisationsStatus200 = BookingMyOrganisation[];
 
-export type BookingsListMyOrganisationsStatus401 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type BookingsListMyOrganisationsStatus401 = ApiError;
 
-export type BookingsListMyOrganisationsStatus403 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type BookingsListMyOrganisationsStatus403 = ApiError;
 
 /**
  * @description Validation error envelope returned for malformed requests.

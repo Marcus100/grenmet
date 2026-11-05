@@ -17,18 +17,18 @@ const targetPaths = [
 ].map((path) => join(rootDir, path));
 
 const blockPattern =
-  /\/\* BEGIN BARRELS DESIGN SYSTEM V1 \*\/[\s\S]*?\/\* END BARRELS DESIGN SYSTEM V1 \*\//g;
+  /\/\* BEGIN BARRELS DESIGN SYSTEM V1 \*\/[\s\S]*?\/\* END BARRELS DESIGN SYSTEM V1 \*\//gu;
 const darkVariantPattern =
-  /^\s*@custom-variant\s+dark\s+\([^;]+;\s*(?:\r?\n)?/gm;
-const gmDeclarationPattern = /^\s*--gm-[a-z0-9-]+\s*:/im;
+  /^\s*@custom-variant\s+dark\s+\([^;]+;\s*(?:\r?\n)?/gmu;
+const gmDeclarationPattern = /^\s*--gm-[a-z0-9-]+\s*:/imu;
 
 // Hoisted regex literal (useTopLevelRegex). `@source` is included so the
 // generated block is inserted AFTER all top-of-file at-rules (e.g. gaa-admin
 // has theme-preset @import rules + an @source past the first bare @import).
-const tailwindAtRulePattern = /^@(charset|import|plugin|config|source)\b/;
+const tailwindAtRulePattern = /^@(charset|import|plugin|config|source)\b/u;
 
 function normalize(text) {
-  return text.replace(/\r\n/g, "\n").trim();
+  return text.replace(/\r\n/gu, "\n").trim();
 }
 
 async function readFoundationBlock() {
@@ -44,13 +44,13 @@ async function readFoundationBlock() {
     );
   }
 
-  return match[0].replace(/\r\n/g, "\n");
+  return match[0].replace(/\r\n/gu, "\n");
 }
 
 function stripGeneratedBlock(text) {
   return text
     .replace(blockPattern, "")
-    .replace(/\n{3,}/g, "\n\n")
+    .replace(/\n{3,}/gu, "\n\n")
     .trimStart();
 }
 
@@ -63,7 +63,7 @@ function stripLocalDarkVariant(text) {
 }
 
 function insertAfterTailwindDirectives(text, block) {
-  const lines = text.replace(/\r\n/g, "\n").split("\n");
+  const lines = text.replace(/\r\n/gu, "\n").split("\n");
   let index = 0;
   // Split point: the last line index belonging to the leading at-rule region
   // (@import / @plugin / @config / @charset / @source and the comments that
@@ -143,7 +143,7 @@ async function run() {
     if (mode === "write") {
       const next = syncContent(original, block);
 
-      if (next !== original.replace(/\r\n/g, "\n")) {
+      if (next !== original.replace(/\r\n/gu, "\n")) {
         await writeFile(targetPath, next, "utf8");
         changed.push(relativePath);
       }

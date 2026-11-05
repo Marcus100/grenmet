@@ -3,6 +3,7 @@
  * Do not edit manually.
  */
 
+import type { ApiError } from "./ApiError.js";
 import type { WebhookEndpointCreated } from "./WebhookEndpointCreated.js";
 
 export type WebhooksOutRotateSecretPath = {
@@ -22,15 +23,35 @@ export type WebhooksOutRotateSecretHeaders = {
  */
 export type WebhooksOutRotateSecretStatus200 = WebhookEndpointCreated;
 
-export type WebhooksOutRotateSecretStatus400 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type WebhooksOutRotateSecretStatus400 = ApiError;
 
-export type WebhooksOutRotateSecretStatus401 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type WebhooksOutRotateSecretStatus401 = ApiError;
 
-export type WebhooksOutRotateSecretStatus403 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type WebhooksOutRotateSecretStatus403 = ApiError;
 
-export type WebhooksOutRotateSecretStatus404 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type WebhooksOutRotateSecretStatus404 = ApiError;
 
-export type WebhooksOutRotateSecretStatus409 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type WebhooksOutRotateSecretStatus409 = ApiError;
 
 export type WebhooksOutRotateSecretStatus422 = unknown;
 

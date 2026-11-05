@@ -59,6 +59,9 @@ from tests.hr.test_phone_punch_approval import (
     _world,
 )
 
+# Fixture rosters are not under test for the roster rules (#380).
+FIXTURE_REASON = "Fixture roster; roster rules are not under test"
+
 # --- phone punches attach only to a shift of the scanned site's department ---
 
 
@@ -115,7 +118,10 @@ async def _two_department_world(
             ),
         )
         await publish_roster_period(
-            session=db, current_user=manager, period_id=period.id
+            session=db,
+            current_user=manager,
+            period_id=period.id,
+            rule_override_reason=FIXTURE_REASON,
         )
     await _transfer(db, employee, employed_in)
     tokens: dict[str, str] = {}

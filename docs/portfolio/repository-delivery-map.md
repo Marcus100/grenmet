@@ -3,7 +3,7 @@
 **Status:** Authoritative repository coverage map  
 **Effective:** 2026-08-16  
 **Owner:** Barrels Grenada engineering  
-**Last updated:** 2026-10-18
+**Last updated:** 2026-10-31
 
 ## Purpose
 
@@ -22,6 +22,20 @@ and vendored code keeps its upstream licence. See the
 Lifecycle terms are **active**, **prototype**, **planned**, **independent**,
 **reference**, **generated**, and **historical**. They do not imply production
 acceptance.
+
+## Future ecosystem surfaces — 31 October 2026
+
+The [ecosystem direction](../strategy/barrels-product-strategy.md#connected-ecosystem-direction--31-october-2026)
+proposes a personal daily home (candidate `dash.barrels.gd`) and an eventual
+X-like community app. Neither is an implemented repository surface. No package,
+port or deployment allocation is made here. Barrels owns product acceptance;
+the portfolio amendment records discovery dependencies.
+
+The auth application currently includes account management and rewards. Moving
+those experiences into the daily home is future work, gated on identity and
+migration design. The target separate personal and per-business work accounts
+must not be presented as existing enforcement. Client sites and standalone apps
+retain their own purpose; the Barrels admin control plane remains distinct.
 
 ## Applications and APIs
 
@@ -107,6 +121,7 @@ GMS or GAA.
 | `scripts/wxregister` | GMS data migration/extraction utility | Reference utility | Retain until migration need is resolved; promote or retire explicitly |
 | `scripts/docs` | Barrels engineering documentation guardrails | Active | Enforce links, portfolio coverage, and document-system integrity |
 | `scripts/design-system` | Barrels engineering design-system automation | Active | Separate brand-neutral enforcement from GMS-specific contracts |
+| `scripts/ops` | Barrels engineering staging promotion automation and post-deploy staging smoke test | Active | Owner enables the promotion workflow and token; failures stay loud and the dev to staging PR is never merged by the script itself |
 | `scripts/ci` | Barrels engineering CI image selection | Active | Select affected images conservatively and retain full verification on promotion PRs |
 | `scripts/guardrails` | Barrels engineering change-safety automation | Active | Preserve blast-radius checks across all products and programmes |
 | `scripts/agents` | Barrels engineering agent-factory tooling: atomic issue claims, run records and reports, session-log archiving and benchmark checks | Active | Keep claims atomic, records validated and reports reproducible; never store secrets, client data or issue text in a record |
@@ -121,6 +136,7 @@ GMS or GAA.
 | `infra/docker` | Barrels platform infrastructure | Active; legacy naming remains during transition | Shared app/API databases and local/staging/production composition |
 | `infra/weather` | GMS weather delivery operated by Barrels | Active development | Separate SURFACE/WIS2 lifecycles, collector schedules, durable storage and recovery; GeoNetCast remains local |
 | `infra/postgres` | Barrels database bootstrap and compatibility assets | Active | Keep roles/extensions aligned with application migrations and independently managed stacks |
+| `infra/cloudflare` | Barrels edge configuration: vendored Cloudflare edge address ranges | Active; used only when `CLOUDFLARE_PROXY_ENABLED` is on | Refresh with `scripts/production/cloudflare_ranges.py --check` / `--update` (quarterly); trusted by Traefik and the origin firewall ([runbook](../operations/cloudflare-proxy.md)) |
 | `infra/github` | Barrels repository governance: committed snapshot of GitHub branch rulesets | Active | Regenerate with `scripts/guardrails/github-rulesets.mjs --snapshot` after a ruleset change; `rulesets-drift.yml` fails when GitHub differs from it |
 | `.github/workflows` | Barrels engineering delivery automation | Active | CI, images, deployment orchestration, backups, and database preparation |
 | `.github/security` | Barrels engineering security policy | Active | Versioned, reviewed vulnerability exceptions with bounded expiry |

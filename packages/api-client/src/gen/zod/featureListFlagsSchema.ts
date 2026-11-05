@@ -4,6 +4,7 @@
  */
 
 import * as z from "zod";
+import { apiErrorSchema } from "./apiErrorSchema.js";
 import { featureFlagAdminListSchema } from "./featureFlagAdminListSchema.js";
 import { validationErrorResponseSchema } from "./validationErrorResponseSchema.js";
 
@@ -25,9 +26,13 @@ export const featureListFlagsQuerySizeSchema = z
 
 export const featureListFlagsStatus200Schema = featureFlagAdminListSchema;
 
-export const featureListFlagsStatus401Schema = z.unknown();
+export const featureListFlagsStatus401Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
-export const featureListFlagsStatus403Schema = z.unknown();
+export const featureListFlagsStatus403Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
 export const featureListFlagsStatus422Schema =
   validationErrorResponseSchema.describe(

@@ -4,6 +4,7 @@
  */
 
 import * as z from "zod";
+import { apiErrorSchema } from "./apiErrorSchema.js";
 import { rosterRulesPublicSchema } from "./rosterRulesPublicSchema.js";
 import { rosterRulesUpdateSchema } from "./rosterRulesUpdateSchema.js";
 import { validationErrorResponseSchema } from "./validationErrorResponseSchema.js";
@@ -12,7 +13,9 @@ export const hrPutDepartmentRulesPathDepartmentIdSchema = z.string();
 
 export const hrPutDepartmentRulesStatus200Schema = rosterRulesPublicSchema;
 
-export const hrPutDepartmentRulesStatus403Schema = z.unknown();
+export const hrPutDepartmentRulesStatus403Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
 export const hrPutDepartmentRulesStatus422Schema =
   validationErrorResponseSchema.describe(

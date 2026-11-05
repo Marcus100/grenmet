@@ -3,6 +3,7 @@
  * Do not edit manually.
  */
 
+import type { ApiError } from "./ApiError.js";
 import type { IntentStatus } from "./IntentStatus.js";
 import type { PaymentIntentListPublic } from "./PaymentIntentListPublic.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
@@ -30,9 +31,17 @@ export type PaymentsAdminListIntentsQuery = {
 
 export type PaymentsAdminListIntentsStatus200 = PaymentIntentListPublic;
 
-export type PaymentsAdminListIntentsStatus401 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type PaymentsAdminListIntentsStatus401 = ApiError;
 
-export type PaymentsAdminListIntentsStatus403 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type PaymentsAdminListIntentsStatus403 = ApiError;
 
 /**
  * @description Validation error envelope returned for malformed requests.

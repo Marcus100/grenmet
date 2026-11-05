@@ -3,6 +3,7 @@
  * Do not edit manually.
  */
 
+import type { ApiError } from "./ApiError.js";
 import type { DeliveryAdminList } from "./DeliveryAdminList.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 
@@ -29,9 +30,17 @@ export type ContentListPostsQuery = {
 
 export type ContentListPostsStatus200 = DeliveryAdminList;
 
-export type ContentListPostsStatus401 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type ContentListPostsStatus401 = ApiError;
 
-export type ContentListPostsStatus403 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type ContentListPostsStatus403 = ApiError;
 
 /**
  * @description Validation error envelope returned for malformed requests.

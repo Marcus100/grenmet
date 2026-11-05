@@ -4,6 +4,7 @@
  */
 
 import * as z from "zod";
+import { apiErrorSchema } from "./apiErrorSchema.js";
 import { clockPunchPublicSchema } from "./clockPunchPublicSchema.js";
 import { clockPunchRejectSchema } from "./clockPunchRejectSchema.js";
 import { validationErrorResponseSchema } from "./validationErrorResponseSchema.js";
@@ -12,11 +13,17 @@ export const hrRejectClockPunchPathPunchIdSchema = z.uuid();
 
 export const hrRejectClockPunchStatus200Schema = clockPunchPublicSchema;
 
-export const hrRejectClockPunchStatus403Schema = z.unknown();
+export const hrRejectClockPunchStatus403Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
-export const hrRejectClockPunchStatus404Schema = z.unknown();
+export const hrRejectClockPunchStatus404Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
-export const hrRejectClockPunchStatus409Schema = z.unknown();
+export const hrRejectClockPunchStatus409Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
 export const hrRejectClockPunchStatus422Schema =
   validationErrorResponseSchema.describe(

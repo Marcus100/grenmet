@@ -10,12 +10,14 @@ import type { RefObject } from "react";
 import {
   type AlertsSource,
   CHECKING_ALERTS,
-  WithAlerts,
+  type GreenSource,
+  WithStatus,
 } from "@/components/with-alerts";
 import {
   type AlertsResult,
-  alertsLevel,
+  alertsDisplayLevel,
   alertsSummary,
+  type GreenStatus,
 } from "@/lib/cap-alerts";
 import {
   NAV_SECTIONS,
@@ -29,6 +31,7 @@ interface DesktopNavProps {
   alerts: AlertsSource;
   /** The masthead; the open menu spans its full width, directly below it. */
   anchor: RefObject<HTMLElement | null>;
+  green: GreenSource;
 }
 
 // On navy: white labels, a 3px lime rule for hover/open, white for the
@@ -40,22 +43,47 @@ const TRIGGER =
 const MENU_LINK =
   "block py-1 text-body text-gm-text-inverse/90 leading-body outline-none hover:text-gm-text-inverse hover:underline focus-visible:underline";
 
-function AlertsStatusNow({ alerts }: { alerts: AlertsResult }) {
-  const level = alertsLevel(alerts);
+/** Says why the status is grey. It is never an all-clear. */
+function statusDetail(
+  alerts: AlertsResult,
+  green: GreenStatus | undefined,
+  level: string
+): string {
+  if (level !== "unknown") {
+    return "Live status for Grenada, Carriacou and Petite Martinique.";
+  }
+  if (alerts.status === "unavailable") {
+    return "Warning information cannot be retrieved right now. This is not an all-clear.";
+  }
+  if (green?.status === "unavailable") {
+    return "Green alerts cannot be retrieved right now. This is not an all-clear.";
+  }
+  if (green?.status === "ok" && green.other > 0) {
+    return "GMS alerts are in effect that are not yet listed as warnings. Check the Grenada Meteorological Service.";
+  }
+  return "Some alerts could not be read. This is not an all-clear.";
+}
+
+function AlertsStatusNow({
+  alerts,
+  green,
+}: {
+  alerts: AlertsResult;
+  green: GreenStatus | undefined;
+}) {
+  const level = alertsDisplayLevel(alerts, green);
   return (
     <>
       <span
         className={cn(
-          "w-fit rounded-md px-2.5 py-1 font-bold text-body leading-body",
+          "text-body leading-body w-fit rounded-md px-2.5 py-1 font-bold",
           WARNING_LEVEL_SURFACE[level]
         )}
       >
-        {alertsSummary(alerts)}
+        {alertsSummary(alerts, green)}
       </span>
       <span className="text-body-sm text-gm-text-inverse/80 leading-body-sm">
-        {level === "unknown"
-          ? "Warning information cannot be retrieved right now. This is not an all-clear."
-          : "Live status for Grenada, Carriacou and Petite Martinique."}
+        {statusDetail(alerts, green, level)}
       </span>
     </>
   );
@@ -63,9 +91,11 @@ function AlertsStatusNow({ alerts }: { alerts: AlertsResult }) {
 
 function Featured({
   alerts,
+  green,
   feature,
 }: {
   alerts: AlertsSource;
+  green: GreenSource;
   feature: NavFeature;
 }) {
   const card =
@@ -79,16 +109,19 @@ function Featured({
     return (
       <div className={card}>
         <span className={eyebrow}>Status now</span>
-        <WithAlerts
+        <WithStatus
           alerts={alerts}
           fallback={
-            <span className="w-fit rounded-md bg-gm-text-inverse/10 px-2.5 py-1 font-bold text-body text-gm-text-inverse leading-body">
+            <span className="bg-gm-text-inverse/10 text-body text-gm-text-inverse leading-body w-fit rounded-md px-2.5 py-1 font-bold">
               {CHECKING_ALERTS}
             </span>
           }
+          green={green}
         >
-          {(result) => <AlertsStatusNow alerts={result} />}
-        </WithAlerts>
+          {(result, outlook) => (
+            <AlertsStatusNow alerts={result} green={outlook} />
+          )}
+        </WithStatus>
         <NavigationMenuPrimitive.Link
           className={cta}
           render={<Link href="/alerts" />}
@@ -128,9 +161,11 @@ function Featured({
 
 function Panel({
   alerts,
+  green,
   section,
 }: {
   alerts: AlertsSource;
+  green: GreenSource;
   section: NavSection;
 }) {
   // Groups flow into four columns, left to right, like the mockup.
@@ -139,15 +174,15 @@ function Panel({
   );
   return (
     <div className="mx-auto grid max-w-6xl grid-cols-[repeat(4,minmax(0,1fr))_16rem] gap-x-7 gap-y-5 px-6 pt-6 pb-7 xl:px-8">
-      <div className="col-span-full flex items-baseline gap-4 border-gm-text-inverse/15 border-b pb-3">
-        <h2 className="font-bold font-gm-display text-gm-display text-gm-text-inverse uppercase tracking-wide">
+      <div className="border-gm-text-inverse/15 col-span-full flex items-baseline gap-4 border-b pb-3">
+        <h2 className="font-gm-display text-gm-display text-gm-text-inverse font-bold tracking-wide uppercase">
           {section.label}
         </h2>
         <p className="text-body text-gm-text-inverse/80 leading-body">
           {section.blurb}
         </p>
         <NavigationMenuPrimitive.Link
-          className="ml-auto flex items-center gap-1 whitespace-nowrap font-semibold text-body text-gm-lime leading-body hover:underline"
+          className="text-body text-gm-lime leading-body ml-auto flex items-center gap-1 font-semibold whitespace-nowrap hover:underline"
           render={<Link href={section.href as Route} />}
         >
           All {section.label.toLowerCase()}
@@ -159,7 +194,7 @@ function Panel({
         <div className="flex flex-col gap-4" key={c}>
           {groups.map((group) => (
             <div key={group.heading}>
-              <h3 className="mb-1.5 font-bold text-gm-text-inverse/70 text-label uppercase leading-label tracking-wider">
+              <h3 className="text-gm-text-inverse/70 text-label leading-label mb-1.5 font-bold tracking-wider uppercase">
                 {group.heading}
               </h3>
               <ul>
@@ -178,12 +213,12 @@ function Panel({
           ))}
         </div>
       ))}
-      <Featured alerts={alerts} feature={section.featured} />
+      <Featured alerts={alerts} feature={section.featured} green={green} />
     </div>
   );
 }
 
-export function DesktopNav({ alerts, anchor }: DesktopNavProps) {
+export function DesktopNav({ alerts, anchor, green }: DesktopNavProps) {
   const pathname = usePathname();
   return (
     <NavigationMenuPrimitive.Root aria-label="Main" className="hidden lg:block">
@@ -203,7 +238,7 @@ export function DesktopNav({ alerts, anchor }: DesktopNavProps) {
                 {section.label}
               </NavigationMenuPrimitive.Trigger>
               <NavigationMenuPrimitive.Content className="w-full">
-                <Panel alerts={alerts} section={section} />
+                <Panel alerts={alerts} green={green} section={section} />
               </NavigationMenuPrimitive.Content>
             </NavigationMenuItem>
           );
@@ -217,7 +252,7 @@ export function DesktopNav({ alerts, anchor }: DesktopNavProps) {
           side="bottom"
           sideOffset={0}
         >
-          <NavigationMenuPrimitive.Popup className="h-(--popup-height) w-(--popup-width) bg-gm-navy-raised shadow-card transition-[opacity,height] duration-200 data-ending-style:opacity-0 data-starting-style:opacity-0">
+          <NavigationMenuPrimitive.Popup className="bg-gm-navy-raised shadow-card h-(--popup-height) w-(--popup-width) transition-[opacity,height] duration-200 data-ending-style:opacity-0 data-starting-style:opacity-0">
             <NavigationMenuPrimitive.Viewport className="relative size-full overflow-hidden" />
           </NavigationMenuPrimitive.Popup>
         </NavigationMenuPrimitive.Positioner>

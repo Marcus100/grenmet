@@ -5,11 +5,12 @@ import json
 from typing import Annotated, Literal
 from uuid import UUID, uuid4
 
-from fastapi import APIRouter, Depends, Header, HTTPException
+from fastapi import APIRouter, Depends, Header
 from pydantic import Field, JsonValue, field_validator
 from sqlalchemy import text
 from starlette.concurrency import run_in_threadpool
 
+from src.exceptions import AppException, AppValidationError, AuthenticationError
 from src.models import BaseModel, UtcDateTime
 from src.openapi_responses import CONFLICT, UNAUTHENTICATED
 
@@ -21,10 +22,10 @@ from .dependencies import ImageSession
 def authenticate_worker(authorization: Annotated[str | None, Header()] = None) -> None:
     token = wxwatch_settings.INGEST_TOKEN
     if token is None or len(token.get_secret_value()) < 32:
-        raise HTTPException(503, "Archive ingestion is not configured")
+        raise AppException("Archive ingestion is not configured", 503)
     expected = f"Bearer {token.get_secret_value()}".encode()
     if not authorization or not hmac.compare_digest(authorization.encode(), expected):
-        raise HTTPException(401, "Invalid collector credentials")
+        raise AuthenticationError("Invalid collector credentials")
 
 
 router = APIRouter(
@@ -113,7 +114,7 @@ async def start_run(body: RunInput, session: ImageSession) -> RunResult:
         {"source": body.source},
     )
     if active:
-        raise HTTPException(409, "This source already has an active collection run")
+        raise AppException("This source already has an active collection run", 409)
     identifier = uuid4()
     await session.execute(
         text("INSERT INTO collection_runs(id,source) VALUES (:id,:source)"),
@@ -138,7 +139,7 @@ async def finish_run(run_id: UUID, body: RunFinish, session: ImageSession) -> No
         {"id": run_id, "status": body.status},
     )
     if result.scalar_one_or_none() is None:
-        raise HTTPException(409, "Run is not active")
+        raise AppException("Run is not active", 409)
     await session.commit()
 
 
@@ -156,9 +157,9 @@ async def ingest(body: ImageInput, session: ImageSession) -> ImageResult:
         {"id": body.run_id},
     )
     if source is None:
-        raise HTTPException(409, "Collection lease expired or closed")
+        raise AppException("Collection lease expired or closed", 409)
     if not body.storage_path.startswith(source + "/"):
-        raise HTTPException(422, "Archive path does not match collection source")
+        raise AppValidationError("Archive path does not match collection source")
     values = body.model_dump()
     values.update(
         spider_name=source,
@@ -174,7 +175,7 @@ async def ingest(body: ImageInput, session: ImageSession) -> ImageResult:
             body.checksum,
         )
         if verification["status"] != "verified":
-            raise HTTPException(422, "Archive file could not be verified")
+            raise AppValidationError("Archive file could not be verified")
     # Coordinate with the operator backfill until legacy reads are retired.
     await session.execute(text("SELECT pg_advisory_xact_lock(73190507)"))
     await session.execute(
@@ -231,8 +232,8 @@ async def ingest(body: ImageInput, session: ImageSession) -> ImageResult:
             )
         )
     except ValueError as exc:
-        raise HTTPException(
-            409, "Archive path already identifies different file bytes"
+        raise AppException(
+            "Archive path already identifies different file bytes", 409
         ) from exc
     await session.commit()
     return ImageResult(id=identifier, created=existing is None)

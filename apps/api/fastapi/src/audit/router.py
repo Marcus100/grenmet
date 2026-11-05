@@ -3,6 +3,7 @@ from typing import Any
 from fastapi import APIRouter
 
 from src.dependencies import CurrentUser, SessionDep
+from src.models import ApiError
 from src.pagination import PaginatedResponse, PaginationDep
 
 from . import service
@@ -21,8 +22,11 @@ router = APIRouter(prefix="/audit", tags=["audit"])
         "holds audit.view_sensitive."
     ),
     responses={
-        403: {"description": "Not allowed to read this record"},
-        404: {"description": "No history is kept for this kind of record"},
+        403: {"model": ApiError, "description": "Not allowed to read this record"},
+        404: {
+            "model": ApiError,
+            "description": "No history is kept for this kind of record",
+        },
     },
 )
 async def read_history(

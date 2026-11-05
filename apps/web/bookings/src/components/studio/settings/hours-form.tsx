@@ -7,6 +7,7 @@ import { useActionState } from "react";
 import { saveHoursAction } from "@/app/studio/[orgSlug]/settings/actions";
 import { hhmm, periodsByDay, rowsForDay, WEEKDAYS } from "@/lib/settings-view";
 import { IDLE } from "@/lib/studio-action-state";
+import { useHydrated } from "@/lib/use-hydrated";
 import { INPUT, keepTyped, SettingsResult } from "./settings-ui";
 
 /**
@@ -29,6 +30,9 @@ export function HoursForm({
     IDLE
   );
   const days = periodsByDay(hours);
+  // Save waits for hydration: before it, a native submit would send the form
+  // to a GET URL with the typed values in it.
+  const hydrated = useHydrated();
   return (
     <form className="space-y-4" onSubmit={keepTyped(formAction)}>
       <input name="providerId" type="hidden" value={providerId} />
@@ -82,7 +86,7 @@ export function HoursForm({
       <SettingsResult pending={pending} state={state} />
       <Button
         className="min-h-11 w-full sm:w-auto"
-        disabled={pending}
+        disabled={pending || !hydrated}
         size="touch"
         type="submit"
       >

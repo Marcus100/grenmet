@@ -4,6 +4,8 @@
  */
 
 import * as z from "zod";
+import { apiErrorSchema } from "./apiErrorSchema.js";
+import { errorMessageSchema } from "./errorMessageSchema.js";
 import { googleStartPublicSchema } from "./googleStartPublicSchema.js";
 import { googleStartSchema } from "./googleStartSchema.js";
 import { validationErrorResponseSchema } from "./validationErrorResponseSchema.js";
@@ -14,18 +16,27 @@ export const authAppGoogleStartPathAppSchema = z
 
 export const authAppGoogleStartStatus200Schema = googleStartPublicSchema;
 
-export const authAppGoogleStartStatus400Schema = z.unknown();
+export const authAppGoogleStartStatus400Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
-export const authAppGoogleStartStatus403Schema = z.unknown();
+export const authAppGoogleStartStatus403Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
-export const authAppGoogleStartStatus404Schema = z.unknown();
+export const authAppGoogleStartStatus404Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
 export const authAppGoogleStartStatus422Schema =
   validationErrorResponseSchema.describe(
     "Validation error envelope returned for malformed requests."
   );
 
-export const authAppGoogleStartStatus429Schema = z.unknown();
+export const authAppGoogleStartStatus429Schema = z.union([
+  apiErrorSchema,
+  errorMessageSchema,
+]);
 
 export const authAppGoogleStartStatus503Schema = z.unknown();
 

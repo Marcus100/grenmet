@@ -3,6 +3,7 @@
  * Do not edit manually.
  */
 
+import type { ApiError } from "./ApiError.js";
 import type { SubscriptionPreferences } from "./SubscriptionPreferences.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 
@@ -12,7 +13,11 @@ export type SubscriptionsGetPreferencesQuery = {
 
 export type SubscriptionsGetPreferencesStatus200 = SubscriptionPreferences;
 
-export type SubscriptionsGetPreferencesStatus400 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type SubscriptionsGetPreferencesStatus400 = ApiError;
 
 /**
  * @description Validation error envelope returned for malformed requests.

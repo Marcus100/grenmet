@@ -3,15 +3,24 @@
  * Do not edit manually.
  */
 
+import type { ApiError } from "./ApiError.js";
 import type { ParkingPermitCreate } from "./ParkingPermitCreate.js";
 import type { ParkingPermitPublic } from "./ParkingPermitPublic.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 
 export type HrCreateParkingPermitStatus201 = ParkingPermitPublic;
 
-export type HrCreateParkingPermitStatus400 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type HrCreateParkingPermitStatus400 = ApiError;
 
-export type HrCreateParkingPermitStatus403 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type HrCreateParkingPermitStatus403 = ApiError;
 
 /**
  * @description Validation error envelope returned for malformed requests.

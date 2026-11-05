@@ -3,13 +3,18 @@
  * Do not edit manually.
  */
 
+import type { ApiError } from "./ApiError.js";
 import type { Message } from "./Message.js";
 import type { UpdatePassword } from "./UpdatePassword.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 
 export type AuthUpdatePasswordMeStatus200 = Message;
 
-export type AuthUpdatePasswordMeStatus400 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type AuthUpdatePasswordMeStatus400 = ApiError;
 
 /**
  * @description Validation error envelope returned for malformed requests.

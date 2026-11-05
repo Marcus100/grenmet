@@ -10,7 +10,9 @@ from typing import Annotated, Any
 from fastapi import APIRouter, Path, Query, status
 
 from src.dependencies import MfaAdminUser
+from src.models import ApiError
 from src.organisations.models import VerificationStatus
+from src.pagination import MAX_PAGE
 
 from . import schemas
 from .dependencies import EventsSession, ModerationReader
@@ -21,13 +23,16 @@ router = APIRouter(prefix="/admin/moderation", tags=["events-moderation"])
 OrganisationId = Annotated[str, Path(max_length=100)]
 
 _READ: dict[int | str, dict[str, Any]] = {
-    401: {"description": "Not signed in"},
-    403: {"description": "Moderator access required"},
-    404: {"description": "Verification case not found"},
+    401: {"model": ApiError, "description": "Not signed in"},
+    403: {"model": ApiError, "description": "Moderator access required"},
+    404: {"model": ApiError, "description": "Verification case not found"},
 }
 _DECIDE: dict[int | str, dict[str, Any]] = {
     **_READ,
-    409: {"description": "Decision already made or not allowed from this state"},
+    409: {
+        "model": ApiError,
+        "description": "Decision already made or not allowed from this state",
+    },
     422: {"description": "A reason is required"},
 }
 
@@ -49,7 +54,7 @@ async def list_verification_cases(
     case_status: Annotated[
         VerificationStatus, Query(alias="status")
     ] = VerificationStatus.PENDING,
-    page: Annotated[int, Query(ge=1)] = 1,
+    page: Annotated[int, Query(ge=1, le=MAX_PAGE)] = 1,
     size: Annotated[int, Query(ge=1, le=100)] = 25,
 ) -> schemas.VerificationCaseList:
     return await organiser_verification.list_cases(

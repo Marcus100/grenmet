@@ -1,6 +1,6 @@
 import uuid
 
-from pydantic import Field
+from pydantic import Field, RootModel
 
 from src.models import BaseModel, UtcDateTime
 
@@ -117,3 +117,7 @@ class NotificationSnoozePublic(BaseModel):
     until: UtcDateTime
     reason: str
     created_at: UtcDateTime
+
+
+class NotificationPreferenceUpdateList(RootModel[list[NotificationPreferenceUpdate]]):
+    """The bare JSON array of preference changes (the wire format is unchanged)."""

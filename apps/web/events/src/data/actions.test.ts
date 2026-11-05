@@ -10,22 +10,33 @@ const completeUpload = vi.fn();
 const setLogo = vi.fn();
 const claim = vi.fn();
 const resubmit = vi.fn();
+const getManaged = vi.fn();
+const chosen = vi.fn();
 
 vi.mock("next/cache", () => ({ revalidatePath: vi.fn() }));
 vi.mock("@/lib/session", () => ({ getSession: () => getSession() }));
 vi.mock("@/lib/report-error", () => ({
   reportError: (...args: unknown[]) => reportError(...args),
 }));
+vi.mock("server-only", () => ({}));
+vi.mock("react", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("react")>()),
+  cache: <T>(fn: T) => fn,
+}));
 vi.mock("./organiser-choice", () => ({
-  chosenOrganiser: async () => undefined,
+  chosenOrganiser: () => chosen(),
   rememberOrganiser: vi.fn(),
 }));
-vi.mock("@/lib/api", () => ({ apiOptions: () => ({}) }));
+// apiOptions is async and carries the client: a missing `await` before a spread drops it silently.
+vi.mock("@/lib/api", () => ({
+  apiOptions: async () => ({ client: "test-client" }),
+}));
 vi.mock("@barrelsgd/api-client", async (importOriginal) => ({
   ...(await importOriginal<typeof import("@barrelsgd/api-client")>()),
   eventsRsvpListing: (...args: unknown[]) => rsvp(...args),
   eventsCancelListingRsvp: (...args: unknown[]) => cancelRsvp(...args),
   eventsResubmitOrganiser: (...args: unknown[]) => resubmit(...args),
+  eventsGetManagedOrganiser: (...args: unknown[]) => getManaged(...args),
   eventsClaimTickets: (...args: unknown[]) => claim(...args),
   eventsSetOrganiserLogo: (...args: unknown[]) => setLogo(...args),
   storageCompleteUpload: (...args: unknown[]) => completeUpload(...args),
@@ -157,7 +168,10 @@ describe("image uploads", () => {
 
   it("shows the API's message when uploads are not configured, unreported", async () => {
     createUpload.mockImplementation(() => {
-      throw responseError(503, { detail: "Uploads are not configured" });
+      throw responseError(503, {
+        detail: "Uploads are not configured",
+        code: "UPLOADS_NOT_CONFIGURED",
+      });
     });
     expect(
       await startUpload("org_1", {
@@ -225,6 +239,7 @@ describe("claimTickets failures", () => {
       responseError(503, {
         detail:
           "Online payment is temporarily unavailable. Please try again shortly.",
+        code: "CARD_PAYMENT_UNAVAILABLE",
       })
     );
     expect(await claimTickets("fete", [], "key")).toEqual({
@@ -235,20 +250,32 @@ describe("claimTickets failures", () => {
     });
   });
 
-  it("drops the key after an expired attempt and after any 5xx", async () => {
+  it("drops the key after an expired attempt", async () => {
     fails(
-      responseError(409, { detail: "That attempt expired. Start a new one." })
+      responseError(409, {
+        detail: "That attempt expired. Start a new one.",
+        code: "ATTEMPT_EXPIRED",
+      })
     );
     expect(await claimTickets("fete", [], "key")).toMatchObject({
       ok: false,
       freshKey: true,
     });
-    fails(responseError(500, {}));
-    expect(await claimTickets("fete", [], "key")).toMatchObject({
-      ok: false,
-      freshKey: true,
-    });
   });
+
+  it.each([500, 502, 503, 504])(
+    "keeps the key after a bare %i, which may follow a committed order",
+    async (status) => {
+      fails(responseError(status, {}));
+      const result = await claimTickets("fete", [], "key");
+      expect(result).toMatchObject({
+        ok: false,
+        error: "Something went wrong. Try again shortly.",
+      });
+      expect("freshKey" in result).toBe(false);
+      expect(reportError).toHaveBeenCalled();
+    }
+  );
 
   it("keeps the key for a refusal the buyer can fix", async () => {
     fails(responseError(409, { detail: "Only 1 VIP tickets are left" }));
@@ -258,12 +285,67 @@ describe("claimTickets failures", () => {
   });
 });
 
+/** The managed-organiser answer for a member who runs `slugs`, first one by default. */
+function managedFor(slugs: string[]) {
+  const organisers = slugs.map((slug) => ({
+    slug,
+    name: slug,
+    organisation_id: null,
+  }));
+  const first = organisers[0];
+  return {
+    unwrap: async () => ({
+      id: `id-${first?.slug ?? "none"}`,
+      slug: first?.slug ?? "none",
+      name: first?.name ?? "none",
+      bio: "",
+      verified: false,
+      organisation_id: null,
+      logo_file_id: null,
+      follower_count: 0,
+      viewer_following: null,
+      organisers,
+      listings: [],
+    }),
+  };
+}
+
 describe("resubmitOrganiser", () => {
   beforeEach(() => {
-    for (const mock of [getSession, reportError, resubmit]) {
+    for (const mock of [
+      getSession,
+      reportError,
+      resubmit,
+      getManaged,
+      chosen,
+    ]) {
       mock.mockReset();
     }
     getSession.mockResolvedValue({ accessToken: "tok" });
+    chosen.mockResolvedValue(undefined);
+    getManaged.mockReturnValue(managedFor(["crew-a"]));
+    resubmit.mockReturnValue({ unwrap: async () => ({}) });
+  });
+
+  it("sends the organiser the dashboard shows when no cookie is set and the member runs two", async () => {
+    getManaged.mockReturnValue(managedFor(["crew-a", "crew-b"]));
+    expect(await resubmitOrganiser()).toEqual({
+      ok: true,
+      data: "resubmitted",
+    });
+    expect(resubmit.mock.calls[0]?.[0]).toHaveProperty("query", {
+      organiser: "crew-a",
+    });
+    expect(resubmit.mock.calls[0]?.[0]).toHaveProperty("client", "test-client");
+  });
+
+  it("sends the switcher's organiser when the cookie names one", async () => {
+    chosen.mockResolvedValue("crew-b");
+    getManaged.mockReturnValue(managedFor(["crew-b"]));
+    expect((await resubmitOrganiser()).ok).toBe(true);
+    expect(resubmit.mock.calls[0]?.[0]).toHaveProperty("query", {
+      organiser: "crew-b",
+    });
   });
 
   it("asks visitors to sign in without calling the API", async () => {
@@ -291,11 +373,24 @@ describe("resubmitOrganiser", () => {
         Promise.reject(
           responseError(409, {
             detail: "Only a rejected request can be resubmitted",
+            code: "ORGANISATION_NOT_REJECTED",
           })
         ),
     });
     expect(await resubmitOrganiser()).toEqual({ ok: true, data: "unchanged" });
     expect(reportError).not.toHaveBeenCalled();
+  });
+
+  it("does not treat a 409 without the code as unchanged", async () => {
+    resubmit.mockReturnValue({
+      unwrap: async () =>
+        Promise.reject(
+          responseError(409, {
+            detail: "Only a rejected request can be resubmitted",
+          })
+        ),
+    });
+    expect(await resubmitOrganiser()).toMatchObject({ ok: false });
   });
 
   it("shows other refusals and reports server faults without detail", async () => {

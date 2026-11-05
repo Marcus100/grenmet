@@ -47,3 +47,13 @@ async def test_identifier_is_case_insensitive() -> None:
     lo = _lockout(FakeAsyncRedis(decode_responses=True), max_attempts=1)
     await lo.record_failure("User@X.com")
     assert await lo.is_locked("  user@x.com ") is True
+
+
+async def test_allow_counts_atomically_under_concurrency() -> None:
+    """Concurrent requests cannot all pass a check made before any of them counted."""
+    import asyncio
+
+    lo = _lockout(FakeAsyncRedis(decode_responses=True), max_attempts=3)
+    results = await asyncio.gather(*(lo.allow("race@x.com") for _ in range(10)))
+    assert results.count(True) == 3
+    assert results.count(False) == 7

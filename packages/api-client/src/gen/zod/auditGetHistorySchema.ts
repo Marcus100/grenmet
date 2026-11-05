@@ -4,6 +4,7 @@
  */
 
 import * as z from "zod";
+import { apiErrorSchema } from "./apiErrorSchema.js";
 import { paginatedResponseAuditEntryPublicSchema } from "./paginatedResponseAuditEntryPublicSchema.js";
 import { validationErrorResponseSchema } from "./validationErrorResponseSchema.js";
 
@@ -30,9 +31,13 @@ export const auditGetHistoryQuerySizeSchema = z
 export const auditGetHistoryStatus200Schema =
   paginatedResponseAuditEntryPublicSchema;
 
-export const auditGetHistoryStatus403Schema = z.unknown();
+export const auditGetHistoryStatus403Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
-export const auditGetHistoryStatus404Schema = z.unknown();
+export const auditGetHistoryStatus404Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
 export const auditGetHistoryStatus422Schema =
   validationErrorResponseSchema.describe(

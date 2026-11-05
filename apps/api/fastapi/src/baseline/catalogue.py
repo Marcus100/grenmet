@@ -13,7 +13,12 @@ from src.baseline.models import ApprovalPolicy, BaselineAudit
 from src.baseline.schemas import CataloguePreview
 from src.exceptions import AppException
 from src.hr.models import Department, Grade
-from src.hr.workflow.models import WorkflowStepTemplate, WorkflowTemplate, WorkflowType
+from src.hr.workflow.models import (
+    DEPARTMENT_WORKFLOW_TYPES,
+    WorkflowStepTemplate,
+    WorkflowTemplate,
+    WorkflowType,
+)
 
 GRADE_SPECS = json.loads(Path(__file__).with_name("gms-grades.json").read_text())
 
@@ -66,7 +71,7 @@ async def preview(
             result.conflicts.append(
                 f"{grade_id} is inactive; review activation separately"
             )
-    for kind in WorkflowType:
+    for kind in DEPARTMENT_WORKFLOW_TYPES:
         key = f"hr:{department_id}:{kind.value}"
         if not await session.get(ApprovalPolicy, key):
             result.missing_policy_keys.append(key)

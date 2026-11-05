@@ -1,7 +1,7 @@
 import type { PublicMonthSummary, SectorOutlook } from "@barrelsgd/api-client";
 import { cleanup, render, screen, within } from "@testing-library/react";
 import { afterEach, expect, it, vi } from "vitest";
-import { ExploreToday, GrenadaInData } from "@/components/home/data-sections";
+import { GrenadaInData, SectorDeskCard } from "@/components/home/data-sections";
 import { fetchHomeContent, type HomeContent } from "@/lib/cms";
 import { fetchMonthSummary, fetchSectorOutlook } from "@/lib/products";
 
@@ -47,12 +47,14 @@ const SUMMARY: PublicMonthSummary = {
   provisional: true,
 };
 
-const OLD_READING = /90 minutes/;
-const MONTH_TO_DATE = /Month to date/;
-const ORANGE_LEVEL = /Orange level/;
-const GREEN_LEVEL = /Green level/;
-const MINIMAL_OR_NONE = /minimal|no impact/i;
-const NO_IMPACTS = /Nothing this week|for any sector this week/;
+const OLD_READING = /90 minutes/u;
+const MONTH_TO_DATE = /Month to date/u;
+const ORANGE_LEVEL = /Orange level/u;
+const GREEN_LEVEL = /Green level/u;
+const MINIMAL_OR_NONE = /minimal|no impact/iu;
+const NO_IMPACTS = /Nothing this week|for any sector this week/u;
+const ALL_CLEAR_NOTE = /All clear · /u;
+const HIGHEST = /Highest this week/u;
 
 const home = (settings: Partial<HomeContent["settings"]>): HomeContent => ({
   deskUpdates: { status: "ok", articles: [] },
@@ -102,6 +104,9 @@ const outlook = (
   complete,
   items,
 });
+/** The card is a list item, so it is rendered inside the row's list. */
+const renderCard = async (options?: { header?: boolean }) =>
+  render(<ul>{await SectorDeskCard(options)}</ul>);
 const tile = (name: string) => {
   const section = screen.getByRole("region", { name });
   return within(section);
@@ -110,7 +115,7 @@ const tile = (name: string) => {
 it("links each sector to its service page", async () => {
   vi.mocked(fetchHomeContent).mockResolvedValue(home({}));
   vi.mocked(fetchSectorOutlook).mockResolvedValue(outlook([]));
-  render(await ExploreToday());
+  await renderCard();
   for (const [sector, href] of [
     ["Tourism & outdoors", "/services/tourism"],
     ["Marine", "/marine"],
@@ -143,7 +148,7 @@ it("shows each tagged item under its sectors only, and says what is untagged", a
       }),
     ])
   );
-  render(await ExploreToday());
+  await renderCard();
   const farming = tile("Agriculture");
   expect(
     farming.getByRole("link", { name: "Heavy Rainfall Warning" })
@@ -166,10 +171,32 @@ it("shows each tagged item under its sectors only, and says what is untagged", a
   expect(tile("Marine").getByText(GREEN_LEVEL)).toBeInTheDocument();
 });
 
+it("shows an All clear on its tile as a note, with no impact level", async () => {
+  vi.mocked(fetchHomeContent).mockResolvedValue(home({}));
+  vi.mocked(fetchSectorOutlook).mockResolvedValue(
+    outlook([
+      outlookItem({
+        title: "Calm seas",
+        colour: "green",
+        notice_type: "All clear",
+        impacts: "No hazards are expected at sea.",
+        sectors: ["marine"],
+        affects_everyone: false,
+        identifier: "AC",
+      }),
+    ])
+  );
+  await renderCard();
+  expect(tile("Marine").getByText("Calm seas")).toBeInTheDocument();
+  expect(tile("Marine").getByText(ALL_CLEAR_NOTE)).toBeInTheDocument();
+  expect(tile("Marine").queryByText(HIGHEST)).toBeNull();
+  expect(tile("Marine").queryByText(GREEN_LEVEL)).toBeNull();
+});
+
 it("says nothing is published for a sector, never that there is no impact", async () => {
   vi.mocked(fetchHomeContent).mockResolvedValue(home({}));
   vi.mocked(fetchSectorOutlook).mockResolvedValue(outlook([outlookItem()]));
-  render(await ExploreToday());
+  await renderCard();
   expect(tile("Aviation").getByText("Nothing this week")).toBeInTheDocument();
   // One sector has an alert, so there is no whole-week line.
   expect(
@@ -183,7 +210,7 @@ it("says nothing is published for a sector, never that there is no impact", asyn
 it("says once for the week when no sector has an alert or warning", async () => {
   vi.mocked(fetchHomeContent).mockResolvedValue(home({}));
   vi.mocked(fetchSectorOutlook).mockResolvedValue(outlook([]));
-  render(await ExploreToday());
+  await renderCard();
   expect(screen.getByRole("status")).toHaveTextContent(
     "No alerts or warnings are published for any sector this week."
   );
@@ -194,14 +221,14 @@ it("says once for the week when no sector has an alert or warning", async () => 
 it("says so when the feed is unavailable or only partly read, and shows no all-clear", async () => {
   vi.mocked(fetchHomeContent).mockResolvedValue(home({}));
   vi.mocked(fetchSectorOutlook).mockResolvedValue(null);
-  render(await ExploreToday());
+  await renderCard();
   expect(screen.getByRole("status")).toHaveTextContent("can't be loaded");
   expect(screen.queryByText(NO_IMPACTS)).toBeNull();
   cleanup();
   vi.mocked(fetchSectorOutlook).mockResolvedValue(
     outlook([outlookItem()], false)
   );
-  render(await ExploreToday());
+  await renderCard();
   expect(screen.getByRole("status")).toHaveTextContent("may be incomplete");
 });
 
@@ -218,7 +245,7 @@ it("shows three items a tile and counts the rest", async () => {
       )
     )
   );
-  render(await ExploreToday());
+  await renderCard();
   const health = tile("Health");
   expect(health.getAllByRole("listitem")).toHaveLength(3);
   expect(
@@ -226,7 +253,7 @@ it("shows three items a tile and counts the rest", async () => {
   ).toHaveAttribute("href", "/alerts");
 });
 
-it("uses the editors' wording and keeps the standard wording when blank", async () => {
+it("keeps its own title, whatever the editors' section copy says", async () => {
   vi.mocked(fetchHomeContent).mockResolvedValue(
     home({
       sectionCopy: {
@@ -234,12 +261,11 @@ it("uses the editors' wording and keeps the standard wording when blank", async 
       },
     })
   );
-  render(await ExploreToday());
+  await renderCard();
   expect(
-    screen.getByRole("heading", { name: "Your day outside" })
+    screen.getByRole("heading", { name: "What it means for you" })
   ).toBeInTheDocument();
-  expect(screen.getByText("Plan your week")).toBeInTheDocument();
-  expect(screen.getByText("Plan ahead.")).toBeInTheDocument();
+  expect(screen.queryByText("Your day outside")).not.toBeInTheDocument();
 });
 
 it("shows the live month summary with its provisional label", async () => {
@@ -274,7 +300,7 @@ it("shows an unavailable state instead of figures when the summary is missing", 
 });
 
 it.each([
-  ["explore-today", ExploreToday],
+  ["explore-today", SectorDeskCard],
   ["grenada-in-data", GrenadaInData],
 ])("hides %s on request", async (key, Section) => {
   vi.mocked(fetchHomeContent).mockResolvedValue(
@@ -299,7 +325,7 @@ it("fills the impact meter a quarter per level, in that level's colour, grey whe
       }),
     ])
   );
-  render(await ExploreToday());
+  await renderCard();
   const meter = (sector: string) => tile(sector).getByRole("meter");
   const blocks = (sector: string) =>
     Array.from(meter(sector).nextElementSibling?.children ?? []);
@@ -317,4 +343,45 @@ it("fills the impact meter a quarter per level, in that level's colour, grey whe
   expect(meter("Aviation")).toHaveAttribute("value", "0");
   expect(filled("Aviation")).toBe(0);
   expect(blocks("Aviation")).toHaveLength(16);
+});
+
+it("names the article by its own heading", async () => {
+  vi.mocked(fetchHomeContent).mockResolvedValue(home({}));
+  vi.mocked(fetchSectorOutlook).mockResolvedValue(outlook([]));
+  await renderCard();
+  const heading = screen.getByRole("heading", {
+    name: "What it means for you",
+  });
+  const article = screen.getByRole("article");
+  expect(article.getAttribute("aria-labelledby")).toBe(heading.id);
+  expect(article).toHaveAccessibleName("What it means for you");
+});
+
+it("drops its own header but keeps its name when the page already shows the heading", async () => {
+  vi.mocked(fetchHomeContent).mockResolvedValue(home({}));
+  vi.mocked(fetchSectorOutlook).mockResolvedValue(outlook([]));
+  await renderCard({ header: false });
+  expect(
+    screen.queryByRole("heading", { name: "What it means for you" })
+  ).toBeNull();
+  expect(screen.queryByText("Plan your week")).toBeNull();
+  expect(screen.getByRole("article")).toHaveAccessibleName(
+    "What it means for you"
+  );
+});
+
+it("says when the outlook was read, in Grenada time", async () => {
+  vi.mocked(fetchHomeContent).mockResolvedValue(home({}));
+  vi.mocked(fetchSectorOutlook).mockResolvedValue(outlook([]));
+  await renderCard();
+  expect(screen.getByText("Updated Wed 28 Oct, 11:00 AST")).toBeInTheDocument();
+});
+
+it("groups the notices in one status region when several apply", async () => {
+  vi.mocked(fetchHomeContent).mockResolvedValue(home({}));
+  vi.mocked(fetchSectorOutlook).mockResolvedValue(outlook([], false));
+  await renderCard();
+  const status = screen.getByRole("status");
+  expect(status).toHaveTextContent("No alerts or warnings are published");
+  expect(status).toHaveTextContent("may be incomplete");
 });

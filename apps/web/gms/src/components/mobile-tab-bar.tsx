@@ -11,8 +11,9 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
   type AlertsResult,
-  alertsLevel,
+  alertsDisplayLevel,
   alertsSummary,
+  type GreenStatus,
 } from "@/lib/cap-alerts";
 import { cn } from "@/lib/utils";
 import { WARNING_LEVEL_SURFACE } from "@/lib/warning-level";
@@ -42,18 +43,20 @@ function isCurrent(pathname: string, href: string) {
  */
 export function MobileTabBar({
   alerts,
+  green,
   onOpenMenu,
 }: {
   alerts: AlertsResult;
+  green?: GreenStatus;
   onOpenMenu: () => void;
 }) {
   const pathname = usePathname();
-  const level = alertsLevel(alerts);
+  const level = alertsDisplayLevel(alerts, green);
 
   return (
     <nav
       aria-label="Quick links"
-      className="fixed inset-x-0 bottom-0 z-40 hidden grid-cols-5 bg-gm-navy pb-[env(safe-area-inset-bottom)] text-gm-text-inverse/80 max-lg:standalone:grid"
+      className="bg-gm-navy text-gm-text-inverse/80 max-lg:standalone:grid fixed inset-x-0 bottom-0 z-40 hidden grid-cols-5 pb-[env(safe-area-inset-bottom)]"
     >
       {TABS.map(({ href, label, Icon }) => {
         const current = isCurrent(pathname, href);
@@ -71,11 +74,13 @@ export function MobileTabBar({
                 <span
                   aria-hidden="true"
                   className={cn(
-                    "absolute top-2 left-[calc(50%+6px)] size-2.5 rounded-full ring-2 ring-gm-navy",
+                    "ring-gm-navy absolute top-2 left-[calc(50%+6px)] size-2.5 rounded-full ring-2",
                     WARNING_LEVEL_SURFACE[level]
                   )}
                 />
-                <span className="sr-only">: {alertsSummary(alerts)}</span>
+                <span className="sr-only">
+                  : {alertsSummary(alerts, green)}
+                </span>
               </>
             )}
           </Link>

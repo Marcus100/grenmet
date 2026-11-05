@@ -3,6 +3,7 @@
  * Do not edit manually.
  */
 
+import type { ApiError } from "./ApiError.js";
 import type { MembershipGrantPublic } from "./MembershipGrantPublic.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 
@@ -19,11 +20,23 @@ export type OrganisationsListMemberGrantsHeaders = {
 
 export type OrganisationsListMemberGrantsStatus200 = MembershipGrantPublic[];
 
-export type OrganisationsListMemberGrantsStatus401 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type OrganisationsListMemberGrantsStatus401 = ApiError;
 
-export type OrganisationsListMemberGrantsStatus403 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type OrganisationsListMemberGrantsStatus403 = ApiError;
 
-export type OrganisationsListMemberGrantsStatus404 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type OrganisationsListMemberGrantsStatus404 = ApiError;
 
 /**
  * @description Validation error envelope returned for malformed requests.

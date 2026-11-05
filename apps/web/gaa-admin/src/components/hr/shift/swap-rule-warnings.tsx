@@ -2,41 +2,46 @@
 
 import { useHrCheckShiftSwapRules } from "@barrelsgd/api-client";
 import { TriangleAlert } from "lucide-react";
-
-const RULE_TITLE: Record<string, string> = {
-  MIN_REST: "Short rest between shifts",
-  MAX_CONSECUTIVE_DAYS: "Too many consecutive days",
-  MAX_WEEKLY_HOURS: "Weekly hours over limit",
-};
+import { ruleTitle } from "../roster/rule-codes";
 
 interface SwapRuleWarningsProps {
   swapId: string;
 }
 
 /**
- * Warn-only: rule breaches this exchange would introduce for the two employees.
- * Renders nothing when no limits are set, nothing is breached, or the viewer is
- * not allowed to see the check; it never blocks approval.
+ * Roster rule breaches this exchange would introduce for the two employees,
+ * including short notice (#380). Approving with breaches needs a reason. Shows a
+ * plain line when nothing is breached; shows nothing to viewers who may not see
+ * the check.
  */
 export function SwapRuleWarnings({ swapId }: SwapRuleWarningsProps) {
   const check = useHrCheckShiftSwapRules({ path: { shift_swap_id: swapId } });
+  if (check.isError) return null;
   const violations = check.data?.violations ?? [];
-  if (violations.length === 0) return null;
+  if (check.isPending || violations.length === 0) {
+    return (
+      <p className="text-muted-foreground mt-2 text-xs font-normal">
+        {check.isPending
+          ? "Checking roster rules…"
+          : "No roster rule breaches from this exchange."}
+      </p>
+    );
+  }
 
   return (
     <section
       aria-label="Exchange rule warnings"
-      className="mt-2 rounded-lg border border-gm-risk-amber/40 bg-gm-risk-amber/10 px-3 py-2 font-normal text-xs"
+      className="border-gm-risk-amber/40 bg-gm-risk-amber/10 mt-2 rounded-lg border px-3 py-2 text-xs font-normal"
     >
       <p className="flex items-center gap-1.5 font-medium">
         <TriangleAlert className="size-3.5" />
         This exchange would breach {violations.length} roster{" "}
         {violations.length === 1 ? "rule" : "rules"}
       </p>
-      <ul className="mt-1 text-muted-foreground">
+      <ul className="text-muted-foreground mt-1">
         {violations.map((v) => (
           <li key={`${v.code}-${v.user_id}-${v.start_date}`}>
-            {RULE_TITLE[v.code] ?? v.code} · {v.start_date} · {v.detail}
+            {ruleTitle(v.code)} · {v.start_date} · {v.detail}
           </li>
         ))}
       </ul>

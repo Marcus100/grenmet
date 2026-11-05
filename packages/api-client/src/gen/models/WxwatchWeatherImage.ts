@@ -3,6 +3,7 @@
  * Do not edit manually.
  */
 
+import type { ApiError } from "./ApiError.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 
 export type WxwatchWeatherImagePath = {
@@ -11,13 +12,29 @@ export type WxwatchWeatherImagePath = {
 
 export type WxwatchWeatherImageStatus307 = unknown;
 
-export type WxwatchWeatherImageStatus400 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type WxwatchWeatherImageStatus400 = ApiError;
 
-export type WxwatchWeatherImageStatus401 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type WxwatchWeatherImageStatus401 = ApiError;
 
-export type WxwatchWeatherImageStatus403 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type WxwatchWeatherImageStatus403 = ApiError;
 
-export type WxwatchWeatherImageStatus404 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type WxwatchWeatherImageStatus404 = ApiError;
 
 /**
  * @description Validation error envelope returned for malformed requests.

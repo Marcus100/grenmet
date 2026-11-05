@@ -3,8 +3,9 @@
  * Do not edit manually.
  */
 
+import type { ApiError } from "./ApiError.js";
 import type { InvoiceDetailPublic } from "./InvoiceDetailPublic.js";
-import type { InvoiceIssue } from "./InvoiceIssue.js";
+import type { InvoiceIssueBody } from "./InvoiceIssueBody.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 
 export type BillingIssueInvoicePath = {
@@ -18,13 +19,29 @@ export type BillingIssueInvoicePath = {
 
 export type BillingIssueInvoiceStatus200 = InvoiceDetailPublic;
 
-export type BillingIssueInvoiceStatus401 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type BillingIssueInvoiceStatus401 = ApiError;
 
-export type BillingIssueInvoiceStatus403 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type BillingIssueInvoiceStatus403 = ApiError;
 
-export type BillingIssueInvoiceStatus404 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type BillingIssueInvoiceStatus404 = ApiError;
 
-export type BillingIssueInvoiceStatus409 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type BillingIssueInvoiceStatus409 = ApiError;
 
 /**
  * @description Validation error envelope returned for malformed requests.
@@ -32,7 +49,10 @@ export type BillingIssueInvoiceStatus409 = unknown;
  */
 export type BillingIssueInvoiceStatus422 = ValidationErrorResponse;
 
-export type BillingIssueInvoiceBody = (InvoiceIssue | null) | undefined;
+/**
+ * @description Optional issue request. An absent body and null are both accepted.
+ */
+export type BillingIssueInvoiceBody = InvoiceIssueBody | undefined;
 
 export type BillingIssueInvoiceOptions = {
   body: BillingIssueInvoiceBody;

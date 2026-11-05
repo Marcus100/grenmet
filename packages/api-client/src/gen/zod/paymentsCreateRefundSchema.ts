@@ -4,6 +4,7 @@
  */
 
 import * as z from "zod";
+import { apiErrorSchema } from "./apiErrorSchema.js";
 import { paymentRefundCreateSchema } from "./paymentRefundCreateSchema.js";
 import { paymentRefundPublicSchema } from "./paymentRefundPublicSchema.js";
 import { validationErrorResponseSchema } from "./validationErrorResponseSchema.js";
@@ -19,15 +20,25 @@ export const paymentsCreateRefundHeaderXBarrelsOrganisationSchema = z
 
 export const paymentsCreateRefundStatus201Schema = paymentRefundPublicSchema;
 
-export const paymentsCreateRefundStatus400Schema = z.unknown();
+export const paymentsCreateRefundStatus400Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
-export const paymentsCreateRefundStatus401Schema = z.unknown();
+export const paymentsCreateRefundStatus401Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
-export const paymentsCreateRefundStatus403Schema = z.unknown();
+export const paymentsCreateRefundStatus403Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
-export const paymentsCreateRefundStatus404Schema = z.unknown();
+export const paymentsCreateRefundStatus404Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
-export const paymentsCreateRefundStatus409Schema = z.unknown();
+export const paymentsCreateRefundStatus409Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
 export const paymentsCreateRefundStatus422Schema =
   validationErrorResponseSchema.describe(

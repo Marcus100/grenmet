@@ -22,9 +22,9 @@ export interface AgendaRange {
   view: AgendaView;
 }
 
-const DAY_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
+const DAY_PATTERN = /^\d{4}-\d{2}-\d{2}$/u;
 const UUID_PATTERN =
-  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/iu;
 
 export function isDay(value: string | undefined): value is string {
   if (!(value && DAY_PATTERN.test(value))) {
@@ -63,7 +63,7 @@ export function todayIn(
   return localDay(now, timeZone);
 }
 
-const TIME_PATTERN = /^([01]\d|2[0-3]):([0-5]\d)$/;
+const TIME_PATTERN = /^([01]\d|2[0-3]):([0-5]\d)$/u;
 
 export function isTime(value: string | undefined): value is string {
   return value !== undefined && TIME_PATTERN.test(value);

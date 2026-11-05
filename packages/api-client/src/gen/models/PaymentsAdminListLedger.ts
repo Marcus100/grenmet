@@ -3,6 +3,7 @@
  * Do not edit manually.
  */
 
+import type { ApiError } from "./ApiError.js";
 import type { LedgerKind } from "./LedgerKind.js";
 import type { PaymentLedgerListPublic } from "./PaymentLedgerListPublic.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
@@ -30,9 +31,17 @@ export type PaymentsAdminListLedgerQuery = {
 
 export type PaymentsAdminListLedgerStatus200 = PaymentLedgerListPublic;
 
-export type PaymentsAdminListLedgerStatus401 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type PaymentsAdminListLedgerStatus401 = ApiError;
 
-export type PaymentsAdminListLedgerStatus403 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type PaymentsAdminListLedgerStatus403 = ApiError;
 
 /**
  * @description Validation error envelope returned for malformed requests.

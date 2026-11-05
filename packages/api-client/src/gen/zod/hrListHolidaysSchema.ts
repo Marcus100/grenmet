@@ -4,16 +4,19 @@
  */
 
 import * as z from "zod";
+import { apiErrorSchema } from "./apiErrorSchema.js";
 import { publicHolidaysPublicSchema } from "./publicHolidaysPublicSchema.js";
 import { validationErrorResponseSchema } from "./validationErrorResponseSchema.js";
 
 export const hrListHolidaysQueryYearSchema = z
-  .union([z.int(), z.null()])
+  .union([z.int().min(2000).max(2100), z.null()])
   .optional();
 
 export const hrListHolidaysStatus200Schema = publicHolidaysPublicSchema;
 
-export const hrListHolidaysStatus403Schema = z.unknown();
+export const hrListHolidaysStatus403Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
 export const hrListHolidaysStatus422Schema =
   validationErrorResponseSchema.describe(
@@ -28,5 +31,5 @@ export const hrListHolidaysErrorSchema = z.union([
 ]);
 
 export const hrListHolidaysQuerySchema = z.object({
-  year: z.union([z.int(), z.null()]).optional(),
+  year: z.union([z.int().min(2000).max(2100), z.null()]).optional(),
 });

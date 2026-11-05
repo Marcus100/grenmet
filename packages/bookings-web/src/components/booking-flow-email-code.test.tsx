@@ -29,15 +29,15 @@ const WED = "2027-01-06T13:30:00Z";
 const EMAIL = "ada@example.com";
 const SEND = "Email me a verification code";
 const BOOK = "Request my booking";
-const STILL_LOADING = /Verification is still loading/;
-const SENT_TO = /We emailed a 6-digit code to/;
-const VERIFIED = /Your email is verified/;
-const NO_CODE = /No email code is needed/;
-const RESEND_IN = /Resend code in \d+s/;
-const RESEND_NOW = /^Resend code$/;
-const NEW_CODE = /We sent you a new code/;
-const CONFIRM_AGAIN = /confirm your email again/;
-const FREE_BROWS = /Free brows/;
+const STILL_LOADING = /Verification is still loading/u;
+const SENT_TO = /We emailed a 6-digit code to/u;
+const VERIFIED = /Your email is verified/u;
+const NO_CODE = /No email code is needed/u;
+const RESEND_IN = /Resend code in \d+s/u;
+const RESEND_NOW = /^Resend code$/u;
+const NEW_CODE = /We sent you a new code/u;
+const CONFIRM_AGAIN = /confirm your email again/u;
+const FREE_BROWS = /Free brows/u;
 
 const storefront: BookingStorefront = {
   slug: "test-studio",
@@ -135,7 +135,9 @@ function clock() {
 }
 
 async function fill(user: User, service = "Deposit lashes") {
-  await user.click(screen.getByRole("radio", { name: new RegExp(service) }));
+  await user.click(
+    screen.getByRole("radio", { name: new RegExp(service, "u") })
+  );
   await user.click(await screen.findByRole("radio", { name: "9:30 am" }));
   await user.type(screen.getByLabelText("Name"), "Ada Lovelace");
   await user.type(screen.getByLabelText("Email"), EMAIL);

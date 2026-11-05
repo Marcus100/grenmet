@@ -20,8 +20,8 @@ const KINDS = [
 ];
 const SOURCES = ["history", "open-issue", "adversarial", "rules"];
 const TIERS = ["low", "standard", "high"];
-const ID = /^bm-\d{2}$/;
-const SHA = /^[0-9a-f]{8}$/;
+const ID = /^bm-\d{2}$/u;
+const SHA = /^[0-9a-f]{8}$/u;
 const TASK_COUNT = 25;
 const MIN_ADVERSARIAL = 3;
 
@@ -100,10 +100,12 @@ test("base and solution commits exist and the subject and hidden tests match", (
       task.solution
     ).stdout.trim();
     assert.equal(subject, task.solution_subject, `${task.id} subject`);
+    // ls-tree reads trees only. `cat-file -e <commit>:<path>` needs the blob, and in
+    // CI's blobless checkout (filter: blob:none) each one is a separate network fetch.
     for (const path of task.hidden_tests)
       assert.equal(
-        git("cat-file", "-e", `${task.solution}:${path}`).status,
-        0,
+        git("ls-tree", "--name-only", task.solution, "--", path).stdout.trim(),
+        path,
         `${task.id}: ${path} missing from the solution commit`
       );
   }

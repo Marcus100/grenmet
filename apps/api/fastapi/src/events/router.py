@@ -12,8 +12,8 @@ from fastapi import APIRouter, Path, Query, Request, Response, status
 
 from src import idempotency
 from src.dependencies import MfaAdminUser
-from src.models import Message
-from src.openapi_responses import UNAUTHENTICATED
+from src.models import ApiError, Message
+from src.openapi_responses import UNAUTHENTICATED, RateLimitedBody
 from src.rate_limit import limiter
 
 from . import schemas, service
@@ -39,20 +39,22 @@ _ManagedSlug = Annotated[
     ),
 ]
 
-_NOT_FOUND: dict[int | str, dict[str, Any]] = {404: {"description": "Not found"}}
+_NOT_FOUND: dict[int | str, dict[str, Any]] = {
+    404: {"model": ApiError, "description": "Not found"}
+}
 _MEMBER: dict[int | str, dict[str, Any]] = {
-    401: {"description": "Sign in to Barrels Events"},
-    404: {"description": "Not found"},
-    429: {"description": "Rate limit exceeded"},
+    401: {"model": ApiError, "description": "Sign in to Barrels Events"},
+    404: {"model": ApiError, "description": "Not found"},
+    429: {"model": RateLimitedBody, "description": "Rate limit exceeded"},
 }
 _ORGANISER: dict[int | str, dict[str, Any]] = {
     **_MEMBER,
-    403: {"description": "Organiser access required"},
-    409: {"description": "Invalid listing"},
+    403: {"model": ApiError, "description": "Organiser access required"},
+    409: {"model": ApiError, "description": "Invalid listing"},
 }
 _MODERATOR: dict[int | str, dict[str, Any]] = {
     **_MEMBER,
-    403: {"description": "Moderator access required"},
+    403: {"model": ApiError, "description": "Moderator access required"},
 }
 
 
@@ -206,7 +208,7 @@ async def get_person(
     status_code=status.HTTP_201_CREATED,
     summary="Suggest a missing event",
     description="Anyone may suggest an event; suggestions are reviewed before anything is published.",
-    responses={429: {"description": "Rate limit exceeded"}},
+    responses={429: {"model": RateLimitedBody, "description": "Rate limit exceeded"}},
 )
 @limiter.limit("5/minute")
 async def create_suggestion(
@@ -244,7 +246,7 @@ async def get_my_profile(
     status_code=status.HTTP_200_OK,
     summary="Update my profile",
     description="Change handle, name, headline, bio, parish, interests, intents or visibility.",
-    responses={**_MEMBER, 409: {"description": "Handle taken"}},
+    responses={**_MEMBER, 409: {"model": ApiError, "description": "Handle taken"}},
 )
 async def update_my_profile(
     *, session: EventsSession, user: EventsMember, body: schemas.ProfileUpdate
@@ -407,7 +409,7 @@ async def get_my_network(
     status_code=status.HTTP_200_OK,
     summary="Request a connection",
     description="Send a connection request; accepts theirs if they already asked you.",
-    responses={**_MEMBER, 409: {"description": "Not allowed"}},
+    responses={**_MEMBER, 409: {"model": ApiError, "description": "Not allowed"}},
 )
 @limiter.limit("20/minute")
 async def request_connection(
@@ -455,7 +457,7 @@ async def remove_connection(
     status_code=status.HTTP_204_NO_CONTENT,
     summary="Block a member",
     description="Hide each of you from the other and end any connection. Idempotent.",
-    responses={**_MEMBER, 409: {"description": "Not allowed"}},
+    responses={**_MEMBER, 409: {"model": ApiError, "description": "Not allowed"}},
 )
 async def block_member(
     *, session: EventsSession, user: EventsMember, handle: Handle
@@ -519,7 +521,10 @@ async def list_threads(
     status_code=status.HTTP_200_OK,
     summary="Open a direct conversation",
     description="Open (or reuse) a direct thread. Allowed only between connections or members of a shared group.",
-    responses={**_MEMBER, 403: {"description": "Messaging not allowed"}},
+    responses={
+        **_MEMBER,
+        403: {"model": ApiError, "description": "Messaging not allowed"},
+    },
 )
 @limiter.limit("20/minute")
 async def open_thread(
@@ -562,7 +567,10 @@ async def get_thread(
     status_code=status.HTTP_201_CREATED,
     summary="Send a message",
     description="Post to a conversation. The messaging rule is re-checked on every send.",
-    responses={**_MEMBER, 403: {"description": "Messaging not allowed"}},
+    responses={
+        **_MEMBER,
+        403: {"model": ApiError, "description": "Messaging not allowed"},
+    },
 )
 @limiter.limit("30/minute")
 async def send_message(
@@ -609,7 +617,10 @@ async def get_managed_organiser(
     ),
     responses={
         **_MEMBER,
-        409: {"description": "Name taken or request already pending"},
+        409: {
+            "model": ApiError,
+            "description": "Name taken or request already pending",
+        },
     },
 )
 @limiter.limit("5/hour")
@@ -718,7 +729,10 @@ async def get_listing_activity(
     description="Scan a ticket's QR token or enter its code. A ticket is admitted once; a second scan is refused with who admitted it and when, unless it repeats the same idempotency key.",
     responses={
         **_ORGANISER,
-        409: {"description": "Already admitted, cancelled or for another event"},
+        409: {
+            "model": ApiError,
+            "description": "Already admitted, cancelled or for another event",
+        },
     },
 )
 async def admit_ticket(
@@ -824,7 +838,10 @@ async def get_settlement_csv(
     status_code=status.HTTP_200_OK,
     summary="Cancel an event",
     description="Cancel a published event: every valid ticket is cancelled and going, saved and ticket-holding members are notified. `refund` decides what happens to money already paid online: `full`, `none` (default; no money moves) or `follow_policy` (an organiser-cancelled event is refunded in full). Outlet cash tickets are then refunded by hand.",
-    responses={**_ORGANISER, 409: {"description": "Not a published event"}},
+    responses={
+        **_ORGANISER,
+        409: {"model": ApiError, "description": "Not a published event"},
+    },
 )
 async def cancel_event(
     *,
@@ -847,7 +864,10 @@ async def cancel_event(
     status_code=status.HTTP_200_OK,
     summary="Postpone an event",
     description="Move a published event to new times. Tickets stay valid and holders are notified.",
-    responses={**_ORGANISER, 409: {"description": "Invalid times or not published"}},
+    responses={
+        **_ORGANISER,
+        409: {"model": ApiError, "description": "Invalid times or not published"},
+    },
 )
 async def postpone_event(
     *,
@@ -871,7 +891,10 @@ async def postpone_event(
     description="Record cash or bank money handed back for an outlet cash ticket. The ticket becomes refunded and can no longer be admitted. Online tickets are free and cannot be refunded.",
     responses={
         **_ORGANISER,
-        409: {"description": "Not refundable, already refunded or amount too high"},
+        409: {
+            "model": ApiError,
+            "description": "Not refundable, already refunded or amount too high",
+        },
     },
 )
 async def refund_ticket(
@@ -891,7 +914,10 @@ async def refund_ticket(
 
 _OUTLET: dict[int | str, dict[str, Any]] = {
     **_ORGANISER,
-    409: {"description": "Sold out, wrong amount, till not open or event ended"},
+    409: {
+        "model": ApiError,
+        "description": "Sold out, wrong amount, till not open or event ended",
+    },
 }
 
 
@@ -1021,7 +1047,10 @@ async def update_managed_listing(
 
 _CLAIM: dict[int | str, dict[str, Any]] = {
     **_MEMBER,
-    409: {"description": "Sold out, over the per-account limit, not payable or ended"},
+    409: {
+        "model": ApiError,
+        "description": "Sold out, over the per-account limit, not payable or ended",
+    },
 }
 
 
@@ -1100,7 +1129,10 @@ async def get_my_ticket(
     status_code=status.HTTP_200_OK,
     summary="Cancel my ticket",
     description="Cancel an unused ticket before the event starts; the seat goes back on sale.",
-    responses={**_MEMBER, 409: {"description": "Already cancelled or event started"}},
+    responses={
+        **_MEMBER,
+        409: {"model": ApiError, "description": "Already cancelled or event started"},
+    },
 )
 async def cancel_my_ticket(
     *, session: EventsSession, user: EventsMember, ticket_id: uuid.UUID
@@ -1213,7 +1245,10 @@ async def list_pending_organisers(
     ),
     responses={
         **_MODERATOR,
-        409: {"description": "Organiser was rejected and must be resubmitted"},
+        409: {
+            "model": ApiError,
+            "description": "Organiser was rejected and must be resubmitted",
+        },
     },
 )
 async def review_organiser(

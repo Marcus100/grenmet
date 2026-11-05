@@ -28,7 +28,7 @@ const highlighter = createHighlighter({
   langs: Object.keys(bundledLanguages),
 });
 
-const LANGUAGE_RE = /^language-/;
+const LANGUAGE_RE = /^language-/u;
 
 function rehypeParseCodeBlocks() {
   return (tree: AstNode) => {

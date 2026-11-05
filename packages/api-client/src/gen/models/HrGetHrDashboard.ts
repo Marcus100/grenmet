@@ -3,14 +3,23 @@
  * Do not edit manually.
  */
 
+import type { ApiError } from "./ApiError.js";
 import type { HrDashboardPublic } from "./HrDashboardPublic.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 
 export type HrGetHrDashboardStatus200 = HrDashboardPublic;
 
-export type HrGetHrDashboardStatus401 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type HrGetHrDashboardStatus401 = ApiError;
 
-export type HrGetHrDashboardStatus403 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type HrGetHrDashboardStatus403 = ApiError;
 
 /**
  * @description Validation error envelope returned for malformed requests.

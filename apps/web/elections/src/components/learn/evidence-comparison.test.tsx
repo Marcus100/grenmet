@@ -5,7 +5,7 @@ import {
   type EvidenceComparisonRow,
 } from "@/components/learn/evidence-comparison";
 
-const YEAR = /1990/;
+const YEAR = /1990/u;
 const base = {
   label: "Mixed sources",
   formula: "Complete denominator",

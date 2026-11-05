@@ -3,6 +3,7 @@
  * Do not edit manually.
  */
 
+import type { ApiError } from "./ApiError.js";
 import type { PaymentBalanceListPublic } from "./PaymentBalanceListPublic.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 
@@ -15,9 +16,17 @@ export type PaymentsGetBalanceHeaders = {
 
 export type PaymentsGetBalanceStatus200 = PaymentBalanceListPublic;
 
-export type PaymentsGetBalanceStatus401 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type PaymentsGetBalanceStatus401 = ApiError;
 
-export type PaymentsGetBalanceStatus403 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type PaymentsGetBalanceStatus403 = ApiError;
 
 /**
  * @description Validation error envelope returned for malformed requests.

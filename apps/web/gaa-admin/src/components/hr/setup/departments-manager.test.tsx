@@ -7,8 +7,8 @@ import { afterAll, afterEach, beforeAll, describe, expect, it } from "vitest";
 import { DepartmentsManager } from "./departments-manager";
 
 const BASE = "http://localhost";
-const NEW_DEPT_LABEL = /New department/;
-const CREATE_LABEL = /^Create$/;
+const NEW_DEPT_LABEL = /New department/u;
+const CREATE_LABEL = /^Create$/u;
 
 const DEPARTMENTS = {
   data: [{ id: "dept_met", name: "Meteorological Department" }],

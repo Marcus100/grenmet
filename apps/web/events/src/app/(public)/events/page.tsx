@@ -55,15 +55,15 @@ export default async function CalendarPage({
     <div className="space-y-6">
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
-          <h1 className="font-bold font-display text-heading-base tracking-tight sm:text-heading-md">
+          <h1 className="font-display text-heading-base sm:text-heading-md font-bold tracking-tight">
             What's on
           </h1>
-          <p className="mt-1 text-body text-muted-foreground">
+          <p className="text-body text-muted-foreground mt-1">
             {events.length} {events.length === 1 ? "event" : "events"} match
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <nav aria-label="View" className="flex rounded-full bg-muted p-1">
+          <nav aria-label="View" className="bg-muted flex rounded-full p-1">
             {(
               [
                 ["list", "List", List],
@@ -73,7 +73,7 @@ export default async function CalendarPage({
               <Link
                 aria-current={view === value ? "page" : undefined}
                 className={cn(
-                  "flex items-center gap-1.5 rounded-full px-3 py-1.5 font-medium text-caption",
+                  "text-caption flex items-center gap-1.5 rounded-full px-3 py-1.5 font-medium",
                   view === value
                     ? "bg-card text-foreground shadow-sm"
                     : "text-muted-foreground"
@@ -87,7 +87,7 @@ export default async function CalendarPage({
             ))}
           </nav>
           <Link
-            className="flex items-center gap-1.5 rounded-full border border-border px-3 py-1.5 font-medium text-caption hover:border-foreground"
+            className="border-border text-caption hover:border-foreground flex items-center gap-1.5 rounded-full border px-3 py-1.5 font-medium"
             href="/events/suggest"
           >
             <Plus className="size-4" />
@@ -124,7 +124,7 @@ function Results({
 }) {
   if (events.length === 0) {
     return (
-      <Empty className="rounded-2xl border border-border border-dashed">
+      <Empty className="border-border rounded-2xl border border-dashed">
         <EmptyHeader>
           <EmptyTitle>No events match those filters</EmptyTitle>
           <EmptyDescription>
@@ -150,7 +150,7 @@ function Results({
           key={day.key}
         >
           <h2
-            className="font-display font-semibold text-body-base md:sticky md:top-20 md:self-start"
+            className="font-display text-body-base font-semibold md:sticky md:top-20 md:self-start"
             id={`day-${day.key}`}
           >
             {day.key === today ? "Today" : formatDayKey(day.key)}

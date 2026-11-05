@@ -3,6 +3,7 @@
  * Do not edit manually.
  */
 
+import type { ApiError } from "./ApiError.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 
 export type RewardsReverseGiftPath = {
@@ -16,15 +17,35 @@ export type RewardsReverseGiftPath = {
 
 export type RewardsReverseGiftStatus204 = unknown;
 
-export type RewardsReverseGiftStatus400 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type RewardsReverseGiftStatus400 = ApiError;
 
-export type RewardsReverseGiftStatus401 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type RewardsReverseGiftStatus401 = ApiError;
 
-export type RewardsReverseGiftStatus403 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type RewardsReverseGiftStatus403 = ApiError;
 
-export type RewardsReverseGiftStatus404 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type RewardsReverseGiftStatus404 = ApiError;
 
-export type RewardsReverseGiftStatus409 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type RewardsReverseGiftStatus409 = ApiError;
 
 /**
  * @description Validation error envelope returned for malformed requests.

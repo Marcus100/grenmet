@@ -120,7 +120,7 @@ export const EVIDENCE = {
 export type EvidenceId = keyof typeof EVIDENCE;
 
 /** Legacy campaign tuples remain readable; unknown publishers never become official by default. */
-const WWW_PREFIX = /^www\./;
+const WWW_PREFIX = /^www\./u;
 export function sourceKind([label, url]: SourceRef): EvidenceKind {
   if (!url) return "supplied";
   // Our own copy of an official document, served from this site.

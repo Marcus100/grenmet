@@ -159,6 +159,10 @@ Internal commands (no public telemetry endpoint or database migration):
 TELEMETRY_ENABLED=true TELEMETRY_ENVIRONMENT=development \
   TELEMETRY_REDIS_URL=redis://host.docker.internal:6379/0 \
   uv run --frozen --package fast-back python -m src.metrics_report --days 1
+# --days is a rolling window and never "complete". --complete-day reads only the
+# previous full UTC day of job counters; it is "complete" when all four tracked
+# jobs ran. The daily monitoring receipts (#646) use that rule; see
+# docs/operations/launch-monitoring-inputs.md.
 
 # From the repository root; outputs are new governed datasets:
 python3 scripts/monitoring/probe.py --environment staging \
@@ -301,6 +305,19 @@ The probe runner retains its new journal for 14 days and sanitized monthly
 sample totals for at most 24 calendar months in the same atomic journal. No cleanup applies to old datasets. The owner installed the probe
 service through SSH; CI/CD adoption is prepared below. Worker settings and scheduled
 backup hooks are not yet live.
+
+## Version 1.0.0 additions to watch
+
+These features have no separate uptime monitor: the Better Stack probes cover the
+`/api/health` and readiness addresses listed in `scripts/monitoring/betterstack.json`
+only. This is where a failure shows instead. Nothing here adds a new monitor.
+
+| Feature | Where a failure shows |
+| --- | --- |
+| Month summary (`GET /api/v1/eregister/public/month-summary`, feeds the "Grenada in data" cards and the Climate Bulletin figures) | The route answers 503 with `{"error": "Month summary is unavailable"}` and `Cache-Control: no-store` when the eRegister database cannot be read. Otherwise it is cached for 300 seconds. Anonymous, limited to 60 requests a minute per IP. |
+| Marine Forecast (kind `marine-forecast`, due 05:00 Grenada time) | The five-minute overdue sweep (`notifications/gms_sweeps.py`) tells the staff allowed to author it when no issue dated today is published 15 minutes after 05:00, and stops after 6 hours. Each notification is sent once per product per day. |
+| Climate Bulletin (kind `climate-bulletin`, monthly, issued on the 15th) | No overdue sweep covers it. Check the issued product on the 15th; its figures come from the month summary above. |
+| CAP feed validation (`apps/api/fastapi/src/cap`) | A feed URL that is not `https` on port 443 is refused with a generic 422 when saved. A feed saved on plain `http` before that rule is fetched for 14 days, then skipped; the feed's `last_error` reads `plain http no longer allowed` and the API reports `grace_expired`. Other feed problems show as `host refused`, `could not fetch` or `ingest failed` (details are in the API log, not in the response). |
 
 ## Remaining promotion gates and owner steps
 

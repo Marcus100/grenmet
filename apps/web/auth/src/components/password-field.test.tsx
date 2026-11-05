@@ -3,7 +3,7 @@ import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import { PasswordField } from "./password-field";
 
-const STRENGTH = /Strength/;
+const STRENGTH = /Strength/u;
 
 describe("PasswordField", () => {
   it("shows and hides the password", () => {
@@ -17,10 +17,15 @@ describe("PasswordField", () => {
     );
     const input = screen.getByLabelText("Password");
     expect(input).toHaveAttribute("type", "password");
-    fireEvent.click(screen.getByRole("button", { name: "Show password" }));
+    // One button with a constant name and aria-pressed for its state.
+    const toggle = screen.getByRole("button", { name: "Show password" });
+    expect(toggle).toHaveAttribute("aria-pressed", "false");
+    fireEvent.click(toggle);
     expect(input).toHaveAttribute("type", "text");
-    fireEvent.click(screen.getByRole("button", { name: "Hide password" }));
+    expect(toggle).toHaveAttribute("aria-pressed", "true");
+    fireEvent.click(toggle);
     expect(input).toHaveAttribute("type", "password");
+    expect(toggle).toHaveAttribute("aria-pressed", "false");
   });
 
   it("reports strength for a new password once typing starts", () => {

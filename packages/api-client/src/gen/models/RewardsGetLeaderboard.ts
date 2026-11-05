@@ -3,6 +3,7 @@
  * Do not edit manually.
  */
 
+import type { ApiError } from "./ApiError.js";
 import type { ChallengeMetric } from "./ChallengeMetric.js";
 import type { RewardsLeaderboardPublic } from "./RewardsLeaderboardPublic.js";
 import type { ScopeKind } from "./ScopeKind.js";
@@ -32,15 +33,35 @@ export type RewardsGetLeaderboardQuery = {
 
 export type RewardsGetLeaderboardStatus200 = RewardsLeaderboardPublic;
 
-export type RewardsGetLeaderboardStatus400 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type RewardsGetLeaderboardStatus400 = ApiError;
 
-export type RewardsGetLeaderboardStatus401 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type RewardsGetLeaderboardStatus401 = ApiError;
 
-export type RewardsGetLeaderboardStatus403 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type RewardsGetLeaderboardStatus403 = ApiError;
 
-export type RewardsGetLeaderboardStatus404 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type RewardsGetLeaderboardStatus404 = ApiError;
 
-export type RewardsGetLeaderboardStatus409 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type RewardsGetLeaderboardStatus409 = ApiError;
 
 /**
  * @description Validation error envelope returned for malformed requests.

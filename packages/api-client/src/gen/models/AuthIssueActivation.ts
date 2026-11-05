@@ -5,6 +5,7 @@
 
 import type { ActivationIssue } from "./ActivationIssue.js";
 import type { ActivationLink } from "./ActivationLink.js";
+import type { ApiError } from "./ApiError.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 
 export type AuthIssueActivationPath = {
@@ -18,13 +19,29 @@ export type AuthIssueActivationPath = {
 
 export type AuthIssueActivationStatus201 = ActivationLink;
 
-export type AuthIssueActivationStatus400 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type AuthIssueActivationStatus400 = ApiError;
 
-export type AuthIssueActivationStatus403 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type AuthIssueActivationStatus403 = ApiError;
 
-export type AuthIssueActivationStatus404 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type AuthIssueActivationStatus404 = ApiError;
 
-export type AuthIssueActivationStatus409 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type AuthIssueActivationStatus409 = ApiError;
 
 /**
  * @description Validation error envelope returned for malformed requests.

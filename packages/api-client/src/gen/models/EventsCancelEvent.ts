@@ -3,8 +3,10 @@
  * Do not edit manually.
  */
 
+import type { ApiError } from "./ApiError.js";
 import type { CancelEvent } from "./CancelEvent.js";
 import type { CancelResult } from "./CancelResult.js";
+import type { ErrorMessage } from "./ErrorMessage.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 
 export type EventsCancelEventPath = {
@@ -25,13 +27,29 @@ export type EventsCancelEventQuery = {
 
 export type EventsCancelEventStatus200 = CancelResult;
 
-export type EventsCancelEventStatus401 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type EventsCancelEventStatus401 = ApiError;
 
-export type EventsCancelEventStatus403 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type EventsCancelEventStatus403 = ApiError;
 
-export type EventsCancelEventStatus404 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type EventsCancelEventStatus404 = ApiError;
 
-export type EventsCancelEventStatus409 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type EventsCancelEventStatus409 = ApiError;
 
 /**
  * @description Validation error envelope returned for malformed requests.
@@ -39,7 +57,7 @@ export type EventsCancelEventStatus409 = unknown;
  */
 export type EventsCancelEventStatus422 = ValidationErrorResponse;
 
-export type EventsCancelEventStatus429 = unknown;
+export type EventsCancelEventStatus429 = ApiError | ErrorMessage;
 
 export type EventsCancelEventBody = CancelEvent;
 

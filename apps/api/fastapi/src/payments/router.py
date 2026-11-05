@@ -15,6 +15,7 @@ from typing import Annotated, Any
 from fastapi import APIRouter, Depends, Query, Request, Response, status
 
 from src.dependencies import AdminUser, SessionDep
+from src.models import ApiError
 from src.openapi_responses import (
     AUTHENTICATED,
     BAD_REQUEST,
@@ -203,8 +204,8 @@ async def create_refund(
     ),
     operation_id="paymentsReceiveWebhook",
     responses={
-        400: {"description": "Invalid or stale signature"},
-        404: {"description": "Unknown provider"},
+        400: {"model": ApiError, "description": "Invalid or stale signature"},
+        404: {"model": ApiError, "description": "Unknown provider"},
         503: {"description": "The provider is not configured or is unsafe"},
     },
     include_in_schema=False,

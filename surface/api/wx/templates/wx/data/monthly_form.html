@@ -301,7 +301,7 @@
                         {% for item in ag_grid_config %}
                             {% if item.var_type == 'numeric' %}
                                 <v-tab key="{{ item.id }}">
-                                    {{ item.name }}
+                                    <span v-pre>{{ item.name }}</span>
                                 </v-tab>
                             {% endif %}
                         {% endfor %}

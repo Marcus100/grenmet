@@ -8,8 +8,8 @@ export function DenominatorLab() {
   const [votes, setVotes] = useState(390);
   const valid = cast - rejected;
   return (
-    <div className="max-w-prose space-y-5 bg-el-paper-2 p-6">
-      <p className="font-semibold leading-relaxed">
+    <div className="bg-el-paper-2 max-w-prose space-y-5 p-6">
+      <p className="leading-relaxed font-semibold">
         Try it: the same votes, different denominators
       </p>
       <p className="text-base leading-relaxed">
@@ -66,12 +66,12 @@ export function DenominatorLab() {
       <dl aria-live="polite" className="grid gap-4 sm:grid-cols-3">
         <div>
           <dt className="text-base">Turnout</dt>
-          <dd className="font-bold text-xl">{pct(cast / 1000)}</dd>
+          <dd className="text-xl font-bold">{pct(cast / 1000)}</dd>
           <dd className="text-base">{cast} ÷ 1,000 registered</dd>
         </div>
         <div>
           <dt className="text-base">Candidate’s valid-vote share</dt>
-          <dd className="font-bold text-xl">
+          <dd className="text-xl font-bold">
             {valid ? pct(votes / valid) : "Undefined"}
           </dd>
           <dd className="text-base">
@@ -80,7 +80,7 @@ export function DenominatorLab() {
         </div>
         <div>
           <dt className="text-base">Share of registered electors</dt>
-          <dd className="font-bold text-xl">{pct(votes / 1000)}</dd>
+          <dd className="text-xl font-bold">{pct(votes / 1000)}</dd>
           <dd className="text-base">{votes} ÷ 1,000 registered</dd>
         </div>
       </dl>
@@ -89,7 +89,7 @@ export function DenominatorLab() {
         Changing the denominator changes what a percentage means.
       </p>
       <button
-        className="rounded-md border border-el-ink px-4 py-2 text-base"
+        className="border-el-ink rounded-md border px-4 py-2 text-base"
         onClick={() => {
           setCast(800);
           setRejected(20);

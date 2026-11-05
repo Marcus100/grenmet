@@ -4,6 +4,7 @@
  */
 
 import * as z from "zod";
+import { apiErrorSchema } from "./apiErrorSchema.js";
 import { timesheetListPublicSchema } from "./timesheetListPublicSchema.js";
 import { validationErrorResponseSchema } from "./validationErrorResponseSchema.js";
 
@@ -28,9 +29,13 @@ export const hrGetDepartmentTimesheetsQuerySizeSchema = z
 export const hrGetDepartmentTimesheetsStatus200Schema =
   timesheetListPublicSchema;
 
-export const hrGetDepartmentTimesheetsStatus400Schema = z.unknown();
+export const hrGetDepartmentTimesheetsStatus400Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
-export const hrGetDepartmentTimesheetsStatus403Schema = z.unknown();
+export const hrGetDepartmentTimesheetsStatus403Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
 export const hrGetDepartmentTimesheetsStatus422Schema =
   validationErrorResponseSchema.describe(

@@ -2,21 +2,20 @@ import { PreferencesStoreProvider } from "@barrelsgd/theme/components/preference
 import { ThemeBootScript } from "@barrelsgd/theme/components/theme-boot";
 import { PREFERENCE_DEFAULTS } from "@barrelsgd/theme/lib/preferences-config";
 import { PostHogProvider } from "@barrelsgd/ui/components/posthog-provider";
-import type { Metadata } from "next";
+import { PublicEnvScript } from "@barrelsgd/ui/components/public-env-script";
 import { Barlow_Condensed, Noto_Sans } from "next/font/google";
 import { Footer } from "@/components/footer";
 import { Header } from "@/components/header";
 import { MotionProvider } from "@/components/motion-provider";
 import { UnitsBootScript } from "@/components/units-boot-script";
-import { APP_LABEL, signInEnabled } from "@/lib/auth-config";
 import { fetchActiveAlerts } from "@/lib/cap";
+import { fetchGreenStatus } from "@/lib/green-status";
 import "./globals.css";
 import {
   MAIN_CONTENT_ID,
   SkipLink,
 } from "@barrelsgd/ui/components/ui/skip-link";
-import { env } from "@/lib/env";
-import { SITE_NAME } from "@/lib/site-name";
+import { SITE_METADATA } from "@/lib/site-metadata";
 
 const notoSans = Noto_Sans({
   subsets: ["latin"],
@@ -32,27 +31,10 @@ const barlowCondensed = Barlow_Condensed({
   display: "swap",
 });
 
-/** The public site follows the device theme until someone picks one. */
-const THEME_DEFAULTS = { theme_mode: "system" } as const;
+/** The public site opens in light until a visitor switches to dark (#1001). */
+const THEME_DEFAULTS = { theme_mode: "light" } as const;
 
-export const metadata: Metadata = {
-  // Absolute base for share-preview links; set per environment at build time.
-  metadataBase: new URL(env.NEXT_PUBLIC_SITE_URL),
-  // Every route's own `title` fills the template: "<Page> | Grenada Meteorological Service".
-  title: {
-    default: SITE_NAME,
-    template: `%s | ${SITE_NAME}`,
-  },
-  description:
-    "Official weather forecasts, alerts, and bulletins for Grenada, Carriacou & Petite Martinique.",
-  icons: {
-    icon: [
-      { url: "/favicon-32x32.png", sizes: "32x32", type: "image/png" },
-      { url: "/favicon-16x16.png", sizes: "16x16", type: "image/png" },
-    ],
-    shortcut: "/favicon.ico",
-  },
-};
+export const metadata = SITE_METADATA;
 
 export default function RootLayout({
   children,
@@ -60,7 +42,10 @@ export default function RootLayout({
   // Not awaited: the page renders at once and the masthead's warning status
   // streams in when the feed answers. React cache in lib/cap shares this
   // request with the weather surface.
+  // Warnings and the outlook's Green counts are separate promises: a slow
+  // outlook never holds back the warnings, which show as soon as they arrive.
   const alerts = fetchActiveAlerts();
+  const green = fetchGreenStatus();
 
   return (
     // gm-site scopes the GMS dark palette (packages/gms foundation) to this
@@ -72,10 +57,11 @@ export default function RootLayout({
       suppressHydrationWarning
     >
       <head>
+        <PublicEnvScript />
         <ThemeBootScript defaults={THEME_DEFAULTS} />
         <UnitsBootScript />
       </head>
-      <body className="flex min-h-screen flex-col bg-background font-sans text-foreground">
+      <body className="bg-background text-foreground flex min-h-screen flex-col font-sans">
         <SkipLink />
         <PostHogProvider app="gms" privacyHref="/privacy">
           <PreferencesStoreProvider
@@ -86,10 +72,7 @@ export default function RootLayout({
             themePreset={PREFERENCE_DEFAULTS.theme_preset}
           >
             <MotionProvider>
-              <Header
-                accountLabel={signInEnabled() ? APP_LABEL : undefined}
-                alerts={alerts}
-              />
+              <Header alerts={alerts} green={green} />
               <main
                 className="flex-1 outline-none"
                 id={MAIN_CONTENT_ID}

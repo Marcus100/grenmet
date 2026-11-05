@@ -1,3 +1,4 @@
+import { readPublicEnv } from "@barrelsgd/ui/lib/public-env";
 import { createEnv } from "@t3-oss/env-nextjs";
 import { z } from "zod";
 
@@ -14,6 +15,12 @@ export const env = createEnv({
     GAA_ADMIN_SSO_CLIENT_SECRET: z.string().min(32).optional(),
     // CAP alert API base URL (falls back to AUTH_API_URL when unset).
     CAP_API_URL: z.string().url().optional(),
+    // The new CAP warning desk (apps/web/cap /desk), linked during the parallel run.
+    CAP_DESK_URL: z
+      .string()
+      .url()
+      .optional()
+      .default("http://localhost:3010/desk"),
     // Janitor PWA origin; area QR labels link to `${JANITOR_APP_URL}/a/<code>`.
     // When unset, labels encode the bare area code.
     JANITOR_APP_URL: z.string().url().optional(),
@@ -42,12 +49,15 @@ export const env = createEnv({
     ADMIN_SESSION_COOKIE_NAME: process.env.ADMIN_SESSION_COOKIE_NAME,
     GAA_ADMIN_SSO_CLIENT_SECRET: process.env.GAA_ADMIN_SSO_CLIENT_SECRET,
     CAP_API_URL: process.env.CAP_API_URL,
+    CAP_DESK_URL: process.env.CAP_DESK_URL,
     JANITOR_APP_URL: process.env.JANITOR_APP_URL,
     NEXT_PUBLIC_WXWATCH_OBJECT_STORAGE:
       process.env.NEXT_PUBLIC_WXWATCH_OBJECT_STORAGE,
-    NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL ?? "",
-    NEXT_PUBLIC_SENTRY_DSN: process.env.NEXT_PUBLIC_SENTRY_DSN,
-    NEXT_PUBLIC_SENTRY_ENVIRONMENT: process.env.NEXT_PUBLIC_SENTRY_ENVIRONMENT,
+    NEXT_PUBLIC_API_URL: readPublicEnv("NEXT_PUBLIC_API_URL") ?? "",
+    NEXT_PUBLIC_SENTRY_DSN: readPublicEnv("NEXT_PUBLIC_SENTRY_DSN"),
+    NEXT_PUBLIC_SENTRY_ENVIRONMENT: readPublicEnv(
+      "NEXT_PUBLIC_SENTRY_ENVIRONMENT"
+    ),
     NEXT_PUBLIC_POSTHOG_KEY: process.env.NEXT_PUBLIC_POSTHOG_KEY,
     NEXT_PUBLIC_POSTHOG_HOST: process.env.NEXT_PUBLIC_POSTHOG_HOST,
   },

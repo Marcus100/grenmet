@@ -11,7 +11,7 @@ export type SubscriptionsStopSubscriptionQuery = {
 
 export type SubscriptionsStopSubscriptionStatus200 = string;
 
-export type SubscriptionsStopSubscriptionStatus400 = unknown;
+export type SubscriptionsStopSubscriptionStatus400 = string;
 
 /**
  * @description Validation error envelope returned for malformed requests.

@@ -10,6 +10,7 @@ import {
 import { useSessionUser } from "@barrelsgd/auth";
 import { Button } from "@barrelsgd/ui/components/ui/button";
 import { Input } from "@barrelsgd/ui/components/ui/input";
+import Link from "next/link";
 import { useId, useState } from "react";
 import { reportError } from "@/lib/report-error";
 import { AdminAccountActions } from "./admin-account-actions";
@@ -77,7 +78,7 @@ function ActivationDetails({
   }
   return (
     <section aria-label="Account setup" className="flex flex-col gap-3">
-      <h3 className="font-medium text-sm">Account setup & access</h3>
+      <h3 className="text-sm font-medium">Account setup & access</h3>
       {status.isPending ? <p>Checking access…</p> : null}
       {status.isError ? (
         <p role="alert">
@@ -100,7 +101,7 @@ function ActivationDetails({
           <AdminAccountActions status={status.data} user={user} />
           {status.data.apps.map((app) => (
             <div key={app.app}>
-              <p className="font-medium text-sm">
+              <p className="text-sm font-medium">
                 {app.label}:{" "}
                 {app.available ? "Ready to sign in" : "Setup needed"}
               </p>
@@ -115,6 +116,18 @@ function ActivationDetails({
                   {reasons[reason]}
                 </p>
               ))}
+              {app.blockers.includes("staff_approval") ? (
+                <p className="text-sm">
+                  Next step: in HR Setup, open the Staff baseline tab for their
+                  organisation and approve them as staff.{" "}
+                  <Link
+                    className="text-primary underline underline-offset-3"
+                    href="/hr-setup"
+                  >
+                    Open HR Setup
+                  </Link>
+                </p>
+              ) : null}
             </div>
           ))}
           {status.data.can_issue_activation ? (

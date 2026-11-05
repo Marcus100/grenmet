@@ -27,7 +27,7 @@ function FeedbackButton(
 ) {
   return (
     <button
-      className="px-3 font-medium text-sm text-zinc-600 transition hover:bg-zinc-900/2.5 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-white/5 dark:hover:text-white"
+      className="px-3 text-sm font-medium text-zinc-600 transition hover:bg-zinc-900/2.5 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-white/5 dark:hover:text-white"
       type="submit"
       {...props}
     />
@@ -73,8 +73,8 @@ const FeedbackThanks = forwardRef<
       )}
       ref={ref}
     >
-      <div className="flex items-center gap-3 rounded-full bg-gm-blue/5 py-1 pr-3 pl-1.5 text-gm-navy text-sm ring-1 ring-gm-blue/20 ring-inset dark:bg-gm-blue-ink/5 dark:text-gm-sky dark:ring-gm-sky/30">
-        <CheckIcon className="h-5 w-5 flex-none fill-gm-blue stroke-white dark:fill-gm-sky/20 dark:stroke-gm-sky" />
+      <div className="bg-gm-blue/5 text-gm-navy ring-gm-blue/20 dark:bg-gm-blue-ink/5 dark:text-gm-sky dark:ring-gm-sky/30 flex items-center gap-3 rounded-full py-1 pr-3 pl-1.5 text-sm ring-1 ring-inset">
+        <CheckIcon className="fill-gm-blue dark:fill-gm-sky/20 dark:stroke-gm-sky h-5 w-5 flex-none stroke-white" />
         Thanks for your feedback!
       </div>
     </div>
@@ -131,7 +131,7 @@ export function Feedback() {
       />
       {failed && (
         <p
-          className="absolute inset-x-0 top-9 text-center text-red-700 text-sm md:text-left dark:text-red-400"
+          className="absolute inset-x-0 top-9 text-center text-sm text-red-700 md:text-left dark:text-red-400"
           role="alert"
         >
           We could not save your feedback. Please try again.
@@ -143,7 +143,7 @@ export function Feedback() {
         siteKey={env.NEXT_PUBLIC_TURNSTILE_SITE_KEY}
       />
       {submitted && (
-        <FeedbackThanks className="starting:opacity-0 transition-opacity delay-150 duration-300" />
+        <FeedbackThanks className="transition-opacity delay-150 duration-300 starting:opacity-0" />
       )}
     </div>
   );

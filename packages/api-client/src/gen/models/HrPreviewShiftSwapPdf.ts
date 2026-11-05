@@ -3,14 +3,23 @@
  * Do not edit manually.
  */
 
+import type { ApiError } from "./ApiError.js";
 import type { ShiftSwapRequestCreate } from "./ShiftSwapRequestCreate.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 
 export type HrPreviewShiftSwapPdfStatus200 = Blob;
 
-export type HrPreviewShiftSwapPdfStatus400 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type HrPreviewShiftSwapPdfStatus400 = ApiError;
 
-export type HrPreviewShiftSwapPdfStatus403 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type HrPreviewShiftSwapPdfStatus403 = ApiError;
 
 /**
  * @description Validation error envelope returned for malformed requests.

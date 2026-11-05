@@ -14,8 +14,8 @@ const repoRoot = join(dirname(fileURLToPath(import.meta.url)), "..", "..");
 const read = (relativePath) =>
   readFileSync(join(repoRoot, relativePath), "utf8");
 
-const SKILL_MENTION = /`\/([a-z][a-z0-9-]+)`/g;
-const SKILL_CONTEXT = /\b(skill|skills|command|playbook|run|invoke)\b/i;
+const SKILL_MENTION = /`\/([a-z][a-z0-9-]+)`/gu;
+const SKILL_CONTEXT = /\b(skill|skills|command|playbook|run|invoke)\b/iu;
 // Built-in Claude Code and Codex commands (`/code-review`, Codex `/review`), `/tmp`, and an upstream fallback that the root
 // AGENTS.md makes unnecessary (it already supplies the tracker and labels).
 const KNOWN_EXTERNAL = new Set([
@@ -27,12 +27,12 @@ const KNOWN_EXTERNAL = new Set([
   "tmp",
   "setup-matt-pocock-skills",
 ]);
-const PNPM_SCRIPT = /`pnpm ([a-z][\w:-]*)/g;
+const PNPM_SCRIPT = /`pnpm ([a-z][\w:-]*)/gu;
 const ROOT_PATH =
-  /`((?:apps|packages|docs|scripts|\.claude|\.codex|\.github)\/[^`\s<>*{}]+)`/g;
-const URL_FRAGMENT = /#.*$/;
-const TRAILING_PUNCTUATION = /[.,;:]$/;
-const NO_E2E_CLAIM = /no e2e|e2e exists only/i;
+  /`((?:apps|packages|docs|scripts|\.claude|\.codex|\.github)\/[^`\s<>*{}]+)`/gu;
+const URL_FRAGMENT = /#.*$/u;
+const TRAILING_PUNCTUATION = /[.,;:]$/u;
+const NO_E2E_CLAIM = /no e2e|e2e exists only/iu;
 const PNPM_BUILTINS = new Set([
   "add",
   "dlx",

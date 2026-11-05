@@ -4,6 +4,7 @@
  */
 
 import * as z from "zod";
+import { apiErrorSchema } from "./apiErrorSchema.js";
 import { featureFlagEvaluationSchema } from "./featureFlagEvaluationSchema.js";
 import { validationErrorResponseSchema } from "./validationErrorResponseSchema.js";
 
@@ -12,9 +13,13 @@ export const featureEvaluateForMeStatus200Schema =
     "Flag key to on/off for the caller. Only flags marked exposed appear."
   );
 
-export const featureEvaluateForMeStatus401Schema = z.unknown();
+export const featureEvaluateForMeStatus401Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
-export const featureEvaluateForMeStatus403Schema = z.unknown();
+export const featureEvaluateForMeStatus403Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
 export const featureEvaluateForMeStatus422Schema =
   validationErrorResponseSchema.describe(

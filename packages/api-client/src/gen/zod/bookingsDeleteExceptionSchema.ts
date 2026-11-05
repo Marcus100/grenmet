@@ -4,6 +4,7 @@
  */
 
 import * as z from "zod";
+import { apiErrorSchema } from "./apiErrorSchema.js";
 import { validationErrorResponseSchema } from "./validationErrorResponseSchema.js";
 
 export const bookingsDeleteExceptionPathExceptionIdSchema = z.uuid();
@@ -17,15 +18,25 @@ export const bookingsDeleteExceptionHeaderXBarrelsOrganisationSchema = z
 
 export const bookingsDeleteExceptionStatus204Schema = z.unknown();
 
-export const bookingsDeleteExceptionStatus400Schema = z.unknown();
+export const bookingsDeleteExceptionStatus400Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
-export const bookingsDeleteExceptionStatus401Schema = z.unknown();
+export const bookingsDeleteExceptionStatus401Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
-export const bookingsDeleteExceptionStatus403Schema = z.unknown();
+export const bookingsDeleteExceptionStatus403Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
-export const bookingsDeleteExceptionStatus404Schema = z.unknown();
+export const bookingsDeleteExceptionStatus404Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
-export const bookingsDeleteExceptionStatus409Schema = z.unknown();
+export const bookingsDeleteExceptionStatus409Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
 export const bookingsDeleteExceptionStatus422Schema =
   validationErrorResponseSchema.describe(

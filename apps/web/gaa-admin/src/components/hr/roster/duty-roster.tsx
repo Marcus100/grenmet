@@ -5,6 +5,7 @@ import {
   hrGetPeriodQueryKey,
   hrListPeriodsQueryKey,
   type RosterAssignmentInput,
+  type RosterRuleWarningsErrorPublic,
   useHrBulkAssignments,
   useHrCreatePeriod,
   useHrGetPeriod,
@@ -41,6 +42,8 @@ import {
 import { Fragment, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { rosterLabel } from "@/lib/people";
+import { reportError } from "@/lib/report-error";
+import { hrApiErrorMessage } from "../api-error";
 import { RosterRuleWarnings } from "./roster-rule-warnings";
 import {
   buildAssignmentMap,
@@ -55,6 +58,8 @@ import {
   nextCode,
   workShiftCodes,
 } from "./roster-utils";
+import { ruleWarningsFrom } from "./rule-codes";
+import { RuleOverrideDialog } from "./rule-override-dialog";
 
 const WEEKDAY = ["S", "M", "T", "W", "T", "F", "S"];
 
@@ -139,6 +144,11 @@ export function DutyRoster() {
   const createPeriodMutation = useHrCreatePeriod();
   const bulkMutation = useHrBulkAssignments();
   const publishMutation = useHrPublishPeriod();
+  // Rule warnings from a save or publish, waiting for a supervisor's reason.
+  const [override, setOverride] = useState<{
+    action: "save" | "publish";
+    warnings: RosterRuleWarningsErrorPublic;
+  } | null>(null);
 
   const year = monthDate.getFullYear();
   const month = monthDate.getMonth();
@@ -208,7 +218,21 @@ export function DutyRoster() {
     toast.success(`Roster period created for ${monthLabel}`);
   }
 
-  async function save() {
+  function handleFailure(
+    error: unknown,
+    action: "save" | "publish",
+    area: string
+  ): void {
+    const warnings = ruleWarningsFrom(error);
+    if (warnings) {
+      setOverride({ action, warnings });
+      return;
+    }
+    reportError(error, area);
+    toast.error(hrApiErrorMessage(error));
+  }
+
+  async function save(reason?: string) {
     if (!period || pendingCount === 0) return;
     const assignments: RosterAssignmentInput[] = Object.entries(
       pendingEdits
@@ -220,9 +244,19 @@ export function DutyRoster() {
         shift_code: shiftCode,
       };
     });
-    await bulkMutation.mutateAsync({
-      body: { roster_period_id: period.id, assignments },
-    });
+    try {
+      await bulkMutation.mutateAsync({
+        body: {
+          roster_period_id: period.id,
+          assignments,
+          ...(reason ? { rule_override_reason: reason } : {}),
+        },
+      });
+    } catch (error) {
+      handleFailure(error, "save", "roster-save");
+      return;
+    }
+    setOverride(null);
     await Promise.all([
       queryClient.invalidateQueries({
         queryKey: hrGetPeriodQueryKey({
@@ -239,9 +273,18 @@ export function DutyRoster() {
     toast.success(`Saved ${assignments.length} assignment(s)`);
   }
 
-  async function publish() {
+  async function publish(reason?: string) {
     if (!period) return;
-    await publishMutation.mutateAsync({ path: { period_id: period.id } });
+    try {
+      await publishMutation.mutateAsync({
+        path: { period_id: period.id },
+        body: reason ? { rule_override_reason: reason } : undefined,
+      });
+    } catch (error) {
+      handleFailure(error, "publish", "roster-publish");
+      return;
+    }
+    setOverride(null);
     await Promise.all([
       queryClient.invalidateQueries({
         queryKey: hrListPeriodsQueryKey({
@@ -270,7 +313,7 @@ export function DutyRoster() {
           >
             <ChevronLeft className="size-4" />
           </Button>
-          <span className="min-w-40 text-center font-medium text-lg">
+          <span className="min-w-40 text-center text-lg font-medium">
             {monthLabel}
           </span>
           <Button
@@ -312,7 +355,7 @@ export function DutyRoster() {
           </Button>
           <Button
             disabled={!period || pendingCount === 0 || bulkMutation.isPending}
-            onClick={save}
+            onClick={() => save()}
             size="sm"
             type="button"
           >
@@ -347,7 +390,7 @@ export function DutyRoster() {
                   <DialogClose render={<Button variant="outline" />}>
                     Cancel
                   </DialogClose>
-                  <DialogClose render={<Button onClick={publish} />}>
+                  <DialogClose render={<Button onClick={() => publish()} />}>
                     Publish
                   </DialogClose>
                 </DialogFooter>
@@ -366,7 +409,7 @@ export function DutyRoster() {
         </div>
       </div>
 
-      <div className="flex flex-wrap gap-x-4 gap-y-1 text-muted-foreground text-xs">
+      <div className="text-muted-foreground flex flex-wrap gap-x-4 gap-y-1 text-xs">
         <span>
           * Approved absence or leave; the scheduled shift remains shown.
         </span>
@@ -374,7 +417,7 @@ export function DutyRoster() {
           <span className="flex items-center gap-1.5" key={shift.code}>
             <span
               className={cn(
-                "inline-flex size-4 items-center justify-center rounded-sm font-medium text-[10px]",
+                "inline-flex size-4 items-center justify-center rounded-sm text-[10px] font-medium",
                 CODE_STYLE[shift.code] ?? "bg-muted text-muted-foreground"
               )}
             >
@@ -393,6 +436,16 @@ export function DutyRoster() {
       {period ? (
         <RosterRuleWarnings labels={memberLabels} periodId={period.id} />
       ) : null}
+
+      <RuleOverrideDialog
+        busy={bulkMutation.isPending || publishMutation.isPending}
+        labels={memberLabels}
+        onCancel={() => setOverride(null)}
+        onConfirm={(reason) =>
+          override?.action === "publish" ? publish(reason) : save(reason)
+        }
+        warnings={override?.warnings ?? null}
+      />
 
       {period ? null : (
         <div className="flex items-center justify-between rounded-xl border border-dashed px-4 py-3 text-sm">
@@ -418,7 +471,7 @@ export function DutyRoster() {
           <thead className="bg-muted/50">
             <tr>
               <th
-                className="sticky left-0 z-10 w-40 border-border border-r bg-muted/50 px-2 py-1.5 text-left font-semibold"
+                className="border-border bg-muted/50 sticky left-0 z-10 w-40 border-r px-2 py-1.5 text-left font-semibold"
                 rowSpan={2}
               >
                 Name
@@ -426,11 +479,11 @@ export function DutyRoster() {
               {days.map((d, i) => (
                 <Fragment key={`wk-${d.day}`}>
                   {d.isSunday && i > 0 ? (
-                    <td aria-hidden="true" className="w-2 bg-background" />
+                    <td aria-hidden="true" className="bg-background w-2" />
                   ) : null}
                   <th
                     className={cn(
-                      "w-7 border-border border-l py-0.5 font-medium",
+                      "border-border w-7 border-l py-0.5 font-medium",
                       d.isSunday && "text-destructive"
                     )}
                   >
@@ -443,7 +496,7 @@ export function DutyRoster() {
               {days.map((d, i) => (
                 <Fragment key={`day-${d.day}`}>
                   {d.isSunday && i > 0 ? (
-                    <td aria-hidden="true" className="w-2 bg-background" />
+                    <td aria-hidden="true" className="bg-background w-2" />
                   ) : null}
                   <th
                     className={cn(
@@ -463,7 +516,7 @@ export function DutyRoster() {
                 {group.label ? (
                   <tr className="border-border border-t">
                     <th
-                      className="sticky left-0 z-10 bg-muted/40 px-2 py-1 text-left font-semibold text-[11px] text-muted-foreground uppercase tracking-wide"
+                      className="bg-muted/40 text-muted-foreground sticky left-0 z-10 px-2 py-1 text-left text-[11px] font-semibold tracking-wide uppercase"
                       colSpan={totalColumns}
                       scope="colgroup"
                     >
@@ -481,7 +534,7 @@ export function DutyRoster() {
                   const runMarks = markShiftRuns(rowCodes, workCodes);
                   return (
                     <tr className="border-border border-t" key={member.user_id}>
-                      <td className="sticky left-0 z-10 border-border border-r bg-background px-2 py-1 text-left font-medium">
+                      <td className="border-border bg-background sticky left-0 z-10 border-r px-2 py-1 text-left font-medium">
                         {rosterLabel(member)}
                       </td>
                       {days.map((d, i) => {
@@ -514,10 +567,10 @@ export function DutyRoster() {
                                     : undefined
                                 }
                                 className={cn(
-                                  "h-6 w-full font-medium text-[11px] leading-none outline-none transition-colors hover:bg-muted focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset",
+                                  "hover:bg-muted focus-visible:ring-ring h-6 w-full text-[11px] leading-none font-medium transition-colors outline-none focus-visible:ring-2 focus-visible:ring-inset",
                                   code && CODE_STYLE[code],
-                                  runMarks[i] && "border-current border-b-2",
-                                  isPending && "ring-1 ring-ring ring-inset",
+                                  runMarks[i] && "border-b-2 border-current",
+                                  isPending && "ring-ring ring-1 ring-inset",
                                   !editable && "cursor-default",
                                   exception && "text-destructive"
                                 )}
@@ -545,7 +598,7 @@ export function DutyRoster() {
             {members.length === 0 && !membersQuery.isLoading ? (
               <tr>
                 <td
-                  className="px-2 py-6 text-muted-foreground"
+                  className="text-muted-foreground px-2 py-6"
                   colSpan={totalColumns}
                 >
                   No active members in this department.

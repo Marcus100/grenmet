@@ -4,6 +4,7 @@
  */
 
 import * as z from "zod";
+import { apiErrorSchema } from "./apiErrorSchema.js";
 import { stationRecordSchema } from "./stationRecordSchema.js";
 import { validationErrorResponseSchema } from "./validationErrorResponseSchema.js";
 
@@ -14,11 +15,14 @@ export const eregisterGetRegistryStationStatus200Schema =
     "One station in the observation station registry (ADR-0032)."
   );
 
-export const eregisterGetRegistryStationStatus401Schema = z.unknown();
+export const eregisterGetRegistryStationStatus401Schema =
+  apiErrorSchema.describe("Stable error envelope for documented API failures.");
 
-export const eregisterGetRegistryStationStatus403Schema = z.unknown();
+export const eregisterGetRegistryStationStatus403Schema =
+  apiErrorSchema.describe("Stable error envelope for documented API failures.");
 
-export const eregisterGetRegistryStationStatus404Schema = z.unknown();
+export const eregisterGetRegistryStationStatus404Schema =
+  apiErrorSchema.describe("Stable error envelope for documented API failures.");
 
 export const eregisterGetRegistryStationStatus422Schema =
   validationErrorResponseSchema.describe(

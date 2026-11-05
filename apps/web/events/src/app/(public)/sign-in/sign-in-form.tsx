@@ -71,7 +71,7 @@ export function SignInForm({ returnTo }: { returnTo: string }) {
 
   return (
     <form className="space-y-4" onSubmit={submit}>
-      <label className="block space-y-1 text-body" htmlFor="sign-in-email">
+      <label className="text-body block space-y-1" htmlFor="sign-in-email">
         Email
         <Input
           autoComplete="email"
@@ -84,7 +84,7 @@ export function SignInForm({ returnTo }: { returnTo: string }) {
         />
       </label>
       {step === "code" ? (
-        <label className="block space-y-1 text-body" htmlFor="sign-in-code">
+        <label className="text-body block space-y-1" htmlFor="sign-in-code">
           6-digit code we emailed you
           <Input
             autoComplete="one-time-code"
@@ -99,7 +99,7 @@ export function SignInForm({ returnTo }: { returnTo: string }) {
         </label>
       ) : null}
       {factorRequired ? (
-        <label className="block space-y-1 text-body" htmlFor="sign-in-factor">
+        <label className="text-body block space-y-1" htmlFor="sign-in-factor">
           Authenticator or recovery code
           <Input
             autoComplete="one-time-code"

@@ -3,6 +3,7 @@
  * Do not edit manually.
  */
 
+import type { ApiError } from "./ApiError.js";
 import type { SiteSubscribeRequest } from "./SiteSubscribeRequest.js";
 import type { SubscribeAccepted } from "./SubscribeAccepted.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
@@ -17,9 +18,17 @@ export type SubscriptionsSubscribeToSitePath = {
 
 export type SubscriptionsSubscribeToSiteStatus202 = SubscribeAccepted;
 
-export type SubscriptionsSubscribeToSiteStatus400 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type SubscriptionsSubscribeToSiteStatus400 = ApiError;
 
-export type SubscriptionsSubscribeToSiteStatus404 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type SubscriptionsSubscribeToSiteStatus404 = ApiError;
 
 /**
  * @description Validation error envelope returned for malformed requests.

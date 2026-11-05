@@ -4,6 +4,7 @@
  */
 
 import * as z from "zod";
+import { apiErrorSchema } from "./apiErrorSchema.js";
 import { pageFeedbackAcceptedSchema } from "./pageFeedbackAcceptedSchema.js";
 import { pageFeedbackCreateSchema } from "./pageFeedbackCreateSchema.js";
 import { validationErrorResponseSchema } from "./validationErrorResponseSchema.js";
@@ -11,7 +12,9 @@ import { validationErrorResponseSchema } from "./validationErrorResponseSchema.j
 export const feedbackSendPageFeedbackStatus202Schema =
   pageFeedbackAcceptedSchema;
 
-export const feedbackSendPageFeedbackStatus400Schema = z.unknown();
+export const feedbackSendPageFeedbackStatus400Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
 export const feedbackSendPageFeedbackStatus422Schema =
   validationErrorResponseSchema.describe(

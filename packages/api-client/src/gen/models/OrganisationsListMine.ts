@@ -3,14 +3,23 @@
  * Do not edit manually.
  */
 
+import type { ApiError } from "./ApiError.js";
 import type { MyMembershipPublic } from "./MyMembershipPublic.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 
 export type OrganisationsListMineStatus200 = MyMembershipPublic[];
 
-export type OrganisationsListMineStatus401 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type OrganisationsListMineStatus401 = ApiError;
 
-export type OrganisationsListMineStatus403 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type OrganisationsListMineStatus403 = ApiError;
 
 /**
  * @description Validation error envelope returned for malformed requests.

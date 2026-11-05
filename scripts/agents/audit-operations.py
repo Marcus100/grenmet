@@ -136,6 +136,11 @@ def read_send_counts(
         env=env,
         timeout=COMMAND_TIMEOUT_SECONDS,
     )
+    return parse_send_counts(result)
+
+
+def parse_send_counts(result: subprocess.CompletedProcess[str]) -> int:
+    """Failed plus overdue sends from the fixed aggregate query's one CSV row."""
     if result.returncode != 0:
         raise Unavailable("database aggregate unavailable")
     lines = [line.strip() for line in result.stdout.splitlines() if line.strip()]
@@ -181,8 +186,7 @@ def collect_metric_counts(
                 "python",
                 "-m",
                 "src.metrics_report",
-                "--days",
-                "1",
+                "--complete-day",
             ],
             env=env,
             cwd=ROOT / "apps" / "api" / "fastapi",
@@ -198,36 +202,35 @@ def collect_metric_counts(
             not isinstance(report, dict)
             or report.get("environment") != name
             or report.get("days") != 1
-            # The current metrics_report only emits partial/unknown coverage.
-            # Refuse to turn that into a complete daily receipt.
+            # Only the previous, fully elapsed UTC day can be complete: a
+            # rolling "today" window has not yet seen the daily sweep run.
+            or report.get("windowKind") != "previous-UTC-day"
             or report.get("completeness") != "complete"
             or not isinstance(report.get("jobs"), dict)
         ):
             raise Unavailable("telemetry report incomplete")
-        jobs = report["jobs"]
-        parsed: dict[str, dict[str, int]] = {}
-        for field, count in jobs.items():
-            if not isinstance(field, str) or "|" not in field:
-                raise Unavailable("telemetry labels invalid")
-            job, outcome = field.rsplit("|", 1)
-            if job not in TRACKED_JOBS or outcome not in {"completed", "failed"}:
-                raise Unavailable("telemetry labels incomplete")
-            if isinstance(count, bool) or not isinstance(count, int) or count < 0:
-                raise Unavailable("telemetry counts invalid")
-            parsed.setdefault(job, {})[outcome] = count
-        expected = (
-            {"run_notification_sweeps"}
-            if source == "notification-sweeps"
-            else TRACKED_JOBS
-        )
-        if not expected.issubset(parsed) or any(
-            not ("completed" in parsed[job] or "failed" in parsed[job])
-            for job in expected
-        ):
-            raise Unavailable("telemetry job coverage incomplete")
-        selected = expected
-        values[name] = sum(parsed[job].get("failed", 0) for job in selected)
+        values[name] = job_failures(source, report["jobs"])
     return values
+
+
+def job_failures(source: str, jobs: dict[str, Any]) -> int:
+    """Failed runs of the source's tracked jobs; every tracked job must have run."""
+    parsed: dict[str, dict[str, int]] = {}
+    for field, count in jobs.items():
+        if not isinstance(field, str) or "|" not in field:
+            raise Unavailable("telemetry labels invalid")
+        job, outcome = field.rsplit("|", 1)
+        if job not in TRACKED_JOBS or outcome not in {"completed", "failed"}:
+            raise Unavailable("telemetry labels incomplete")
+        if isinstance(count, bool) or not isinstance(count, int) or count < 0:
+            raise Unavailable("telemetry counts invalid")
+        parsed.setdefault(job, {})[outcome] = count
+    expected = (
+        {"run_notification_sweeps"} if source == "notification-sweeps" else TRACKED_JOBS
+    )
+    if not expected.issubset(parsed):
+        raise Unavailable("telemetry job coverage incomplete")
+    return sum(parsed[job].get("failed", 0) for job in expected)
 
 
 def collect_backup_counts(
@@ -266,24 +269,31 @@ def collect_secret_counts(config: dict[str, Any], now: datetime) -> dict[str, in
         secrets = environment_config(config, name).get("secrets")
         if not isinstance(secrets, list) or not secrets:
             raise Unavailable("secret expiry metadata unavailable")
-        failures = 0
         for item in secrets:
             if not isinstance(item, dict) or set(item) != {"expiresAt"}:
                 raise Unavailable("secret expiry metadata invalid")
-            expires_at = item["expiresAt"]
-            if not isinstance(expires_at, str):
-                raise Unavailable("secret expiry metadata invalid")
-            try:
-                expiry = datetime.fromisoformat(expires_at)
-            except ValueError as exc:
-                raise Unavailable("secret expiry metadata invalid") from exc
-            if expiry.tzinfo is None:
-                raise Unavailable("secret expiry timezone missing")
-            deadline = now + timedelta(days=SECRET_EXPIRY_WINDOW_DAYS)
-            if expiry.astimezone(UTC) <= deadline:
-                failures += 1
-        values[name] = failures
+        values[name] = expiring_count([item["expiresAt"] for item in secrets], now)
     return values
+
+
+def expiring_count(dates: list[Any], now: datetime) -> int:
+    """How many timezone-aware ISO expiry dates fall within the warning window."""
+    if not dates:
+        raise Unavailable("secret expiry metadata unavailable")
+    deadline = now + timedelta(days=SECRET_EXPIRY_WINDOW_DAYS)
+    failures = 0
+    for expires_at in dates:
+        if not isinstance(expires_at, str):
+            raise Unavailable("secret expiry metadata invalid")
+        try:
+            expiry = datetime.fromisoformat(expires_at)
+        except ValueError as exc:
+            raise Unavailable("secret expiry metadata invalid") from exc
+        if expiry.tzinfo is None:
+            raise Unavailable("secret expiry timezone missing")
+        if expiry.astimezone(UTC) <= deadline:
+            failures += 1
+    return failures
 
 
 def collect(
@@ -340,7 +350,10 @@ def main(argv: list[str] | None = None, runner: Runner = run_command) -> int:
             "source": args.source,
             "observedAt": datetime.now(UTC).isoformat(),
             "complete": True,
-            "environments": environments,
+            # audit-daily.mjs reads environments.<name>.failures.
+            "environments": {
+                name: {"failures": value} for name, value in environments.items()
+            },
         }
         write_private_json(args.output, receipt)
         sys.stdout.write("Audit aggregate receipt written.\n")

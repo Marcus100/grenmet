@@ -1,5 +1,6 @@
 "use client";
 import { CookieSettingsButton } from "@barrelsgd/ui/components/posthog-provider";
+import { BARRELS_SUPPORT_HREF } from "@barrelsgd/ui/lib/support";
 import type { Route } from "next";
 
 import Link from "next/link";
@@ -33,7 +34,7 @@ function PageLink({
       </Button>
       <Link
         aria-hidden="true"
-        className="font-semibold text-base text-zinc-900 transition hover:text-zinc-600 dark:text-white dark:hover:text-zinc-300"
+        className="text-base font-semibold text-zinc-900 transition hover:text-zinc-600 dark:text-white dark:hover:text-zinc-300"
         href={page.href as Route}
         tabIndex={-1}
       >
@@ -82,11 +83,11 @@ function PageNavigation() {
 
 function SmallPrint() {
   return (
-    <div className="flex flex-col items-center justify-between gap-5 border-zinc-900/5 border-t pt-8 sm:flex-row dark:border-white/5">
+    <div className="flex flex-col items-center justify-between gap-5 border-t border-zinc-900/5 pt-8 sm:flex-row dark:border-white/5">
       <p className="text-xs text-zinc-600 dark:text-zinc-400">
         &copy; Copyright {new Date().getFullYear()}. All rights reserved.
       </p>
-      <div className="flex gap-4">
+      <div className="flex flex-wrap gap-4">
         <Link className="text-sm underline" href="/errors">
           Help
         </Link>
@@ -96,6 +97,9 @@ function SmallPrint() {
         <Link className="text-sm underline" href="/quickstart">
           Staff guide
         </Link>
+        <a className="text-sm underline" href={BARRELS_SUPPORT_HREF}>
+          Contact support
+        </a>
         <CookieSettingsButton className="cursor-pointer text-sm underline" />
       </div>
     </div>

@@ -4,6 +4,7 @@
  */
 
 import * as z from "zod";
+import { apiErrorSchema } from "./apiErrorSchema.js";
 import { validationErrorResponseSchema } from "./validationErrorResponseSchema.js";
 
 export const capGetIntegrationsStatus200Schema = z.record(
@@ -11,9 +12,13 @@ export const capGetIntegrationsStatus200Schema = z.record(
   z.array(z.looseObject({}))
 );
 
-export const capGetIntegrationsStatus401Schema = z.unknown();
+export const capGetIntegrationsStatus401Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
-export const capGetIntegrationsStatus403Schema = z.unknown();
+export const capGetIntegrationsStatus403Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
 export const capGetIntegrationsStatus422Schema =
   validationErrorResponseSchema.describe(

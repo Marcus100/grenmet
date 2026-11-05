@@ -18,32 +18,32 @@ const API = "apps/api/fastapi/";
 const API_SYNC = "uv sync --frozen --package fast-back --package gms-ingest";
 const UV_RUN = "uv run --no-sync --package fast-back";
 // Files Biome formats; everything else is ignored by `ultracite check`.
-const BIOME = /\.(?:[cm]?[jt]sx?|json|jsonc|css|graphql)$/;
+const BIOME = /\.(?:[cm]?[jt]sx?|json|jsonc|css|graphql)$/u;
 const CONTRACT =
-  /^apps\/api\/fastapi\/(?:openapi\.json|src\/main\.py|src\/(?:.+\/)?(?:router|routes|schemas?)\.py|src\/(?:.+\/)?(?:routers|schemas?)\/.*\.py)$/;
+  /^apps\/api\/fastapi\/(?:openapi\.json|src\/main\.py|src\/(?:.+\/)?(?:router|routes|schemas?)\.py|src\/(?:.+\/)?(?:routers|schemas?)\/.*\.py)$/u;
 
 // Portfolio coverage fails when a directory under these parents is not listed in
 // docs/portfolio/repository-delivery-map.md, so any change there can break it.
 // Root documents such as SECURITY.md are governed surfaces too.
 const PORTFOLIO_SURFACE =
-  /^(?:(?:scripts|packages|infra|docs\/portfolio|\.github|\.claude|\.agents)\/|[A-Z][A-Z_]*\.md$)/;
+  /^(?:(?:scripts|packages|infra|docs\/portfolio|\.github|\.claude|\.agents)\/|[A-Z][A-Z_]*\.md$)/u;
 // Smoke tests exist for these apps; they skip themselves when no dev server is up.
 const WEB_UI =
-  /^apps\/web\/(?:gms|gaa-admin)\/(?:src|e2e|playwright\.config\.ts)/;
-const WEB = /^(?:apps\/web|packages)\//;
-const API_DOMAIN = /^src\/([^/]+)\//;
-const API_SHARED = /^src\/[^/]+\.py$/;
-const API_TEST = /^tests\/.+\.py$/;
+  /^apps\/web\/(?:gms|gaa-admin)\/(?:src|e2e|playwright\.config\.ts)/u;
+const WEB = /^(?:apps\/web|packages)\//u;
+const API_DOMAIN = /^src\/([^/]+)\//u;
+const API_SHARED = /^src\/[^/]+\.py$/u;
+const API_TEST = /^tests\/.+\.py$/u;
 // Test infrastructure every domain imports.
 const API_TEST_INFRA =
-  /^tests\/(?:conftest|factories|database_target|__init__)\.py$/;
+  /^tests\/(?:conftest|factories|database_target|__init__)\.py$/u;
 const AGENT_CONFIG =
-  /^(?:\.claude|\.codex|\.agents|scripts\/(?:guardrails|agents)|\.github)\//;
-const VERIFICATION = /^scripts\/(?:verification|integrations|perf)\//;
-const DELIVERY = /^scripts\/(?:ci|production)\//;
+  /^(?:\.claude|\.codex|\.agents|scripts\/(?:guardrails|agents)|\.github)\//u;
+const VERIFICATION = /^scripts\/(?:verification|integrations|perf)\//u;
+const DELIVERY = /^scripts\/(?:ci|production)\//u;
 // The suppression ratchet in the guardrail tests counts lint and type suppressions
 // in every first-party source file, so any added or edited source file can fail it.
-const SUPPRESSIBLE = /\.(?:py|[cm]?[jt]sx?)$/;
+const SUPPRESSIBLE = /\.(?:py|[cm]?[jt]sx?)$/u;
 
 // Local API test workers: CPUs minus two (min 1) so the machine stays usable,
 // dropping to two when the 1-minute load average already exceeds the CPU count.
@@ -132,7 +132,7 @@ const API_DEPENDENCIES = new Set([
 const SHARED_DOMAINS = new Set(["auth"]);
 const API_ENTRYPOINT = "src/main.py";
 // tests/<dir>/... runs that directory; tests/test_x.py runs itself.
-const API_TEST_DIR = /^tests\/([^/]+)\/.+$/;
+const API_TEST_DIR = /^tests\/([^/]+)\/.+$/u;
 
 // Pytest targets for one changed API file: "full" for the whole suite, else a list.
 // A domain with no test folder or flat test file of its own also runs the whole

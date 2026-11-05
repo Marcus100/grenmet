@@ -3,14 +3,23 @@
  * Do not edit manually.
  */
 
+import type { ApiError } from "./ApiError.js";
 import type { LocationListPublic } from "./LocationListPublic.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 
 export type StoresListLocationsStatus200 = LocationListPublic;
 
-export type StoresListLocationsStatus401 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type StoresListLocationsStatus401 = ApiError;
 
-export type StoresListLocationsStatus403 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type StoresListLocationsStatus403 = ApiError;
 
 /**
  * @description Validation error envelope returned for malformed requests.

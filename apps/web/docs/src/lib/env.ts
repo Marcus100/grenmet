@@ -1,3 +1,4 @@
+import { readPublicEnv } from "@barrelsgd/ui/lib/public-env";
 import { createEnv } from "@t3-oss/env-nextjs";
 import { z } from "zod";
 
@@ -38,16 +39,20 @@ export const env = createEnv({
       .default("https://us.i.posthog.com"),
   },
   runtimeEnv: {
-    NEXT_PUBLIC_SITE_URL: process.env.NEXT_PUBLIC_SITE_URL,
+    NEXT_PUBLIC_SITE_URL: readPublicEnv("NEXT_PUBLIC_SITE_URL"),
     AUTH_APP_URL: process.env.AUTH_APP_URL,
     DOCS_SESSION_COOKIE_NAME: process.env.DOCS_SESSION_COOKIE_NAME,
     DOCS_SSO_CLIENT_SECRET: process.env.DOCS_SSO_CLIENT_SECRET,
     AUTH_API_URL: process.env.AUTH_API_URL,
     AUTH_API_V1_STR: process.env.AUTH_API_V1_STR,
     AUTH_ALLOWED_RETURN_HOSTS: process.env.AUTH_ALLOWED_RETURN_HOSTS,
-    NEXT_PUBLIC_TURNSTILE_SITE_KEY: process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY,
-    NEXT_PUBLIC_SENTRY_DSN: process.env.NEXT_PUBLIC_SENTRY_DSN,
-    NEXT_PUBLIC_SENTRY_ENVIRONMENT: process.env.NEXT_PUBLIC_SENTRY_ENVIRONMENT,
+    NEXT_PUBLIC_TURNSTILE_SITE_KEY: readPublicEnv(
+      "NEXT_PUBLIC_TURNSTILE_SITE_KEY"
+    ),
+    NEXT_PUBLIC_SENTRY_DSN: readPublicEnv("NEXT_PUBLIC_SENTRY_DSN"),
+    NEXT_PUBLIC_SENTRY_ENVIRONMENT: readPublicEnv(
+      "NEXT_PUBLIC_SENTRY_ENVIRONMENT"
+    ),
     NEXT_PUBLIC_POSTHOG_KEY: process.env.NEXT_PUBLIC_POSTHOG_KEY,
     NEXT_PUBLIC_POSTHOG_HOST: process.env.NEXT_PUBLIC_POSTHOG_HOST,
   },

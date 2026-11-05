@@ -3,7 +3,7 @@ import { expect, it } from "vitest";
 import { StaffOnly } from "@/components/staff-only";
 import { StatusCard } from "@/components/status-card";
 
-const EMAIL_TEXT = /resident@example\.com/;
+const EMAIL_TEXT = /resident@example\.com/u;
 
 it("refuses non-staff clearly and offers only sign-out", () => {
   render(<StaffOnly email="resident@example.com" />);

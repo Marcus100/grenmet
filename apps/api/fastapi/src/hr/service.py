@@ -9,7 +9,11 @@ from sqlalchemy.orm.attributes import set_committed_value
 
 from src.auth import access as auth_access
 from src.auth import policy as auth_policy
-from src.auth.assignments import end_assignments_for_employment
+from src.auth.assignments import (
+    end_assignments_for_employment,
+    has_organisation_wide_hr_authority,
+    holds_live_organisation_wide_assignment,
+)
 from src.auth.models import (
     Role,
     RoleAssignmentScope,
@@ -17,6 +21,7 @@ from src.auth.models import (
     UserImage,
 )
 from src.auth.policy import can_act_on_user, require_permission
+from src.hr.employment_status import set_employment_status
 from src.hr.leave import ledger
 from src.hr.organisations import (
     department_for,
@@ -27,6 +32,7 @@ from src.hr.organisations import (
     validate_supervisor,
 )
 from src.utils.datetime import utc_now
+from src.utils.timezones import local_today
 
 from . import constants as hr_constants
 from .exceptions import (
@@ -400,11 +406,12 @@ async def _get_or_create_approval_authority(
 
 
 async def _get_employment_record(
-    session: AsyncSession, user_id: uuid.UUID
+    session: AsyncSession, user_id: uuid.UUID, *, for_update: bool = False
 ) -> EmploymentRecord | None:
-    result = await session.execute(
-        select(EmploymentRecord).where(EmploymentRecord.user_id == user_id)
-    )
+    stmt = select(EmploymentRecord).where(EmploymentRecord.user_id == user_id)
+    if for_update:
+        stmt = stmt.with_for_update()
+    result = await session.execute(stmt)
     return result.scalars().first()
 
 
@@ -488,6 +495,7 @@ async def _build_profile_response(
             employment_record.employment_type if employment_record else None
         ),
         start_date=employment_record.start_date if employment_record else None,
+        end_date=employment_record.end_date if employment_record else None,
         continuous_service_date=employment_record.continuous_service_date
         if employment_record
         else None,
@@ -793,22 +801,51 @@ async def update_employment_for_user(
             hr_constants.ERROR_SUPERVISOR_CAN_ONLY_MANAGE_DEPARTMENT
         )
 
-    employment = await _get_employment_record(session=session, user_id=target_user_id)
+    # Row lock: two concurrent status edits must not both read the old status.
+    employment = await _get_employment_record(
+        session=session, user_id=target_user_id, for_update=True
+    )
     if not employment:
         raise EmploymentNotFoundError()
 
-    ended_employment = False
     if employment_update:
+        if (
+            "status" in employment_update.model_fields_set
+            and employment_update.status is None
+        ):
+            raise HRValidationError("Employment status cannot be empty")
         if (
             target_user_id == current_user.id
             and employment_update.status is not None
             and employment_update.status != employment.status
         ):
             raise HRValidationError("You cannot change your own employment status")
-        ended_employment = (
-            employment.status == EmploymentStatus.ACTIVE
-            and employment_update.status not in (None, EmploymentStatus.ACTIVE)
+        # Any change of status ends the person's roles there, INACTIVE to
+        # TERMINATED included (#796), via set_employment_status below.
+        status_changed = (
+            employment_update.status is not None
+            and employment_update.status != employment.status
         )
+        # Reinstating must not revive anything left paused (organisation-wide
+        # roles a department admin could not end), so those end now: ended
+        # roles stay ended, an admin re-grants what is needed.
+        reinstated_employment = (
+            employment.status != EmploymentStatus.ACTIVE
+            and employment_update.status == EmploymentStatus.ACTIVE
+        )
+        # A reinstated record whose last day has passed would be ended again by
+        # the next daily run, so the end date must be cleared or moved first (#797).
+        resulting_end_date = (
+            employment_update.end_date
+            if "end_date" in employment_update.model_fields_set
+            else employment.end_date
+        )
+        if (
+            reinstated_employment
+            and resulting_end_date is not None
+            and resulting_end_date < local_today()
+        ):
+            raise HRValidationError(hr_constants.ERROR_REINSTATE_PAST_END_DATE)
         await validate_service_facts(
             employment_update.model_dump(exclude_unset=True), employment
         )
@@ -819,6 +856,12 @@ async def update_employment_for_user(
             employment_update.supervisor_id,
             employment.organisation_id,
             target_user_id,
+        )
+        # A transfer re-assigns everything: the person's live roles in this
+        # organisation end and an administrator re-grants at the destination (#797).
+        transfer = (
+            employment_update.department_id is not None
+            and employment_update.department_id != employment.department_id
         )
         if employment_update.department_id:
             destination = await department_for(session, employment_update.department_id)
@@ -833,13 +876,60 @@ async def update_employment_for_user(
                 "hr.employment.manage",
                 destination.id,
             )
+        # Ending organisation-wide (ALL-scope) roles needs organisation-wide HR
+        # authority (#794). Decided before anything changes, so a refusal leaves
+        # the record and its roles exactly as they were.
+        organisation_wide = current_user.is_superuser or (
+            await has_organisation_wide_hr_authority(
+                session, current_user, employment.organisation_id
+            )
+        )
+        if (
+            transfer
+            and not organisation_wide
+            and await holds_live_organisation_wide_assignment(
+                session,
+                user_id=target_user_id,
+                organisation_id=employment.organisation_id,
+            )
+        ):
+            raise HRPermissionDeniedError(
+                hr_constants.ERROR_TRANSFER_NEEDS_ORGANISATION_AUTHORITY
+            )
+        # Setting, moving or clearing an end date changes when the person's roles
+        # end, so it needs the same authority as a transfer when they hold
+        # organisation-wide roles (#794, #797). Clearing one is covered too.
+        end_date_changed = (
+            "end_date" in employment_update.model_fields_set
+            and employment_update.end_date != employment.end_date
+        )
+        if (
+            end_date_changed
+            and not organisation_wide
+            and await holds_live_organisation_wide_assignment(
+                session,
+                user_id=target_user_id,
+                organisation_id=employment.organisation_id,
+            )
+        ):
+            raise HRPermissionDeniedError(
+                hr_constants.ERROR_END_DATE_NEEDS_ORGANISATION_AUTHORITY
+            )
+        if status_changed and employment_update.status is not None:
+            await set_employment_status(
+                session=session,
+                employment=employment,
+                status=employment_update.status,
+                organisation_wide=reinstated_employment or organisation_wide,
+            )
         _apply_employment_update(employment, employment_update)
         session.add(employment)
-        if ended_employment:
+        if transfer:
             await end_assignments_for_employment(
                 session=session,
                 user_id=target_user_id,
                 organisation_id=employment.organisation_id,
+                organisation_wide=organisation_wide,
             )
 
     if approval_update:

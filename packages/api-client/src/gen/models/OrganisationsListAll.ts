@@ -3,6 +3,7 @@
  * Do not edit manually.
  */
 
+import type { ApiError } from "./ApiError.js";
 import type { OrganisationAdminListPublic } from "./OrganisationAdminListPublic.js";
 import type { OrganisationKind } from "./OrganisationKind.js";
 import type { OrganisationStatus } from "./OrganisationStatus.js";
@@ -32,9 +33,17 @@ export type OrganisationsListAllQuery = {
 
 export type OrganisationsListAllStatus200 = OrganisationAdminListPublic;
 
-export type OrganisationsListAllStatus401 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type OrganisationsListAllStatus401 = ApiError;
 
-export type OrganisationsListAllStatus403 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type OrganisationsListAllStatus403 = ApiError;
 
 /**
  * @description Validation error envelope returned for malformed requests.

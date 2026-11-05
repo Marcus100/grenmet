@@ -3,12 +3,17 @@
  * Do not edit manually.
  */
 
+import type { ApiError } from "./ApiError.js";
 import type { BrowserSession } from "./BrowserSession.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 
 export type AuthBrowserSessionStatus200 = BrowserSession;
 
-export type AuthBrowserSessionStatus401 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type AuthBrowserSessionStatus401 = ApiError;
 
 /**
  * @description Validation error envelope returned for malformed requests.

@@ -3,6 +3,7 @@
  * Do not edit manually.
  */
 
+import type { ApiError } from "./ApiError.js";
 import type { PaymentIntentDetailPublic } from "./PaymentIntentDetailPublic.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 
@@ -24,11 +25,23 @@ export type PaymentsGetIntentHeaders = {
 
 export type PaymentsGetIntentStatus200 = PaymentIntentDetailPublic;
 
-export type PaymentsGetIntentStatus401 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type PaymentsGetIntentStatus401 = ApiError;
 
-export type PaymentsGetIntentStatus403 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type PaymentsGetIntentStatus403 = ApiError;
 
-export type PaymentsGetIntentStatus404 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type PaymentsGetIntentStatus404 = ApiError;
 
 /**
  * @description Validation error envelope returned for malformed requests.

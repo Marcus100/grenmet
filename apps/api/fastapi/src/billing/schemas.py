@@ -3,7 +3,7 @@ from datetime import date
 from decimal import Decimal
 from enum import Enum
 
-from pydantic import EmailStr, Field, HttpUrl, field_validator
+from pydantic import EmailStr, Field, HttpUrl, RootModel, field_validator
 
 from src.models import BaseModel, UtcDateTime
 
@@ -194,3 +194,7 @@ class ReceivablesPublic(BaseModel):
     count: int
     page: int
     size: int
+
+
+class InvoiceIssueBody(RootModel[InvoiceIssue | None]):
+    """Optional issue request. An absent body and null are both accepted."""

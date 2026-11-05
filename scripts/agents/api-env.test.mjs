@@ -15,8 +15,8 @@ import test from "node:test";
 import { fileURLToPath } from "node:url";
 
 const SCRIPT = fileURLToPath(new URL("./api-env.sh", import.meta.url));
-const USAGE = /usage: scripts\/agents\/api-env\.sh/;
-const WRONG_IMPORT = /outside the current worktree/;
+const USAGE = /usage: scripts\/agents\/api-env\.sh/u;
+const WRONG_IMPORT = /outside the current worktree/u;
 
 function importFixture(t) {
   const root = mkdtempSync(join(tmpdir(), "api-import-isolation-"));

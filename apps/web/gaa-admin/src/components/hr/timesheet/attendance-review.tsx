@@ -5,6 +5,7 @@ import { Button } from "@barrelsgd/ui/components/ui/button";
 import { useEffect, useState } from "react";
 import { reportError } from "@/lib/report-error";
 import { localDateTime } from "./attendance-timesheet";
+import { OvertimeBands } from "./overtime-bands";
 
 export function AttendanceReview({
   entityId,
@@ -56,6 +57,9 @@ export function AttendanceReview({
             Elapsed {current.elapsed_hours ?? "—"} h; break{" "}
             {current.break_minutes} min; recorded work{" "}
             {current.actual_hours ?? "—"} h
+          </p>
+          <p>
+            <OvertimeBands bands={current.overtime_bands} />
           </p>
           {review.data?.corrections.map((proposal) => (
             <div className="rounded border p-2" key={proposal.id}>

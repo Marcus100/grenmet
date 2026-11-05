@@ -4,6 +4,8 @@
  */
 
 import * as z from "zod";
+import { apiErrorSchema } from "./apiErrorSchema.js";
+import { errorMessageSchema } from "./errorMessageSchema.js";
 import { tillCloseSchema } from "./tillCloseSchema.js";
 import { tillPublicSchema } from "./tillPublicSchema.js";
 import { validationErrorResponseSchema } from "./validationErrorResponseSchema.js";
@@ -17,20 +19,31 @@ export const eventsCloseTillQueryOrganiserSchema = z
 
 export const eventsCloseTillStatus200Schema = tillPublicSchema;
 
-export const eventsCloseTillStatus401Schema = z.unknown();
+export const eventsCloseTillStatus401Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
-export const eventsCloseTillStatus403Schema = z.unknown();
+export const eventsCloseTillStatus403Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
-export const eventsCloseTillStatus404Schema = z.unknown();
+export const eventsCloseTillStatus404Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
-export const eventsCloseTillStatus409Schema = z.unknown();
+export const eventsCloseTillStatus409Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
 export const eventsCloseTillStatus422Schema =
   validationErrorResponseSchema.describe(
     "Validation error envelope returned for malformed requests."
   );
 
-export const eventsCloseTillStatus429Schema = z.unknown();
+export const eventsCloseTillStatus429Schema = z.union([
+  apiErrorSchema,
+  errorMessageSchema,
+]);
 
 export const eventsCloseTillResponseSchema = eventsCloseTillStatus200Schema;
 

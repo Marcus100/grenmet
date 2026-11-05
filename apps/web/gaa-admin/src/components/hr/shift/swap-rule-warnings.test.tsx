@@ -40,13 +40,13 @@ describe("SwapRuleWarnings", () => {
           count: 1,
           violations: [
             {
-              code: "MIN_REST",
+              code: "SHORT_NOTICE",
               user_id: "u1",
               start_date: "2026-07-07",
               end_date: "2026-07-07",
-              observed: "7.00",
-              limit: "11.00",
-              detail: "7.00 h rest between shifts; minimum is 11.00 h",
+              observed: "2",
+              limit: "7",
+              detail: "Published roster changed with 2 days notice; 7 required",
             },
           ],
         })
@@ -55,10 +55,10 @@ describe("SwapRuleWarnings", () => {
     renderWarnings();
     const region = await screen.findByRole("region", REGION);
     expect(region).toHaveTextContent("would breach 1 roster rule");
-    expect(region).toHaveTextContent("Short rest between shifts");
+    expect(region).toHaveTextContent("Less than the required notice");
   });
 
-  it("renders nothing when there are no breaches", async () => {
+  it("says so when there are no breaches", async () => {
     let called = false;
     server.use(
       http.get(URL, () => {
@@ -74,6 +74,9 @@ describe("SwapRuleWarnings", () => {
     renderWarnings();
     await waitFor(() => expect(called).toBe(true));
     expect(screen.queryByRole("region", REGION)).not.toBeInTheDocument();
+    expect(
+      await screen.findByText("No roster rule breaches from this exchange.")
+    ).toBeInTheDocument();
   });
 
   it("renders nothing when the viewer may not see the check", async () => {

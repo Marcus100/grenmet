@@ -3,7 +3,7 @@
 import json
 import math
 import re
-from datetime import UTC, datetime, timedelta
+from datetime import UTC, date, datetime, timedelta
 from pathlib import Path
 from uuid import UUID
 
@@ -25,6 +25,34 @@ from .schemas import (
 )
 
 ISSUE_HOURS = {"morning": 7, "midday": 12, "evening": 18}
+# Forecasts that import the CAP alerts and GMS bulletins in force when saved or
+# previewed (`advisories.snapshot`). Marine Forecast is a forecast too, but it
+# keeps its own 05:00 schedule (`_marine_schedule`), so it is not in ISSUE_HOURS
+# (land-forecast selection and expiry read that; the overdue sweep reads
+# DAILY_ISSUE_HOURS, which adds marine at 05:00).
+ADVISORY_KINDS = frozenset({*ISSUE_HOURS, "marine-forecast"})
+MARINE_ISSUE_HOUR = 5
+# Every forecast issued once a day, with its Grenada issue hour. The overdue
+# sweep reads this; ISSUE_HOURS stays land-only (selection, expiry, file names).
+DAILY_ISSUE_HOURS = {**ISSUE_HOURS, "marine-forecast": MARINE_ISSUE_HOUR}
+# Scheduled products outside the land-forecast set: drafted ahead of the
+# issue time, so a future issue time may be published.
+SCHEDULED_KINDS = {*ISSUE_HOURS, "marine-forecast"}
+LEGACY_MARINE_FIELDS = ("smallCraft", "smallCraftNotes")
+# Fields of the first climate sheet (before the owner's bulletin examples).
+# Older revisions keep them: writes drop them, the PDF prints them under
+# "Earlier format". One source for both.
+LEGACY_CLIMATE_FIELDS = (
+    ("summary", "Summary of the month"),
+    ("rainfallComment", "Rainfall"),
+    ("temperatureComment", "Temperature"),
+    ("notableEvents", "Notable events"),
+    ("outlook", "Outlook for the coming months"),
+)
+MARINE_FORECAST_AREA = "Waters of Grenada, Carriacou and Petite Martinique"
+MARINE_FORECAST_VALIDITY = "05:00 today to 05:00 tomorrow"
+CLIMATE_ISSUE_DAY = 15
+MONTH = re.compile(r"^\d{4}-(0[1-9]|1[0-2])$")
 
 
 class FieldRule(BaseModel):
@@ -176,6 +204,21 @@ def normalize(
         for name, text in composed.items():
             if parameter_key(prefix, name) in allowed:
                 result[parameter_key(prefix, name)] = text
+    if kind == "marine-forecast":
+        # The typed small-craft fields were removed; older revisions carry them
+        # and the desk posts stored values back, so new writes drop them
+        # (stored revisions keep them). Any other unknown key is still refused.
+        for key in LEGACY_MARINE_FIELDS:
+            result.pop(key, None)
+        if advisories is not None:
+            result["advisories"] = advisories
+        return _marine_schedule(result)
+    if kind == "climate-bulletin":
+        # First-version text fields: stored revisions keep them (and still
+        # render), but the desk posts stored values back, so writes drop them.
+        for key, _label in LEGACY_CLIMATE_FIELDS:
+            result.pop(key, None)
+        return _climate_schedule(result)
     if kind not in ISSUE_HOURS:
         return result
     result["area"] = FORECAST_AREA
@@ -201,6 +244,54 @@ def normalize(
     if kind == "evening":
         for day in range(1, 5):
             result[f"day{day}Date"] = (issued + timedelta(days=day)).date().isoformat()
+    return result
+
+
+def _marine_schedule(result: dict[str, str]) -> dict[str, str]:
+    """Marine Forecast: issued 05:00 Grenada, valid 05:00 to 05:00 next day."""
+    result["area"] = MARINE_FORECAST_AREA
+    try:
+        issued = local_time(
+            f"{result.get('issuedAt', '')[:10]}T{MARINE_ISSUE_HOUR:02}:00"
+        )
+    except ValueError, OverflowError:
+        return result
+    result.update(
+        issuedAt=issued.strftime("%Y-%m-%dT%H:%M"),
+        validFrom=issued.strftime("%Y-%m-%dT%H:%M"),
+        validTo=(issued + timedelta(days=1)).strftime("%Y-%m-%dT%H:%M"),
+        validity=MARINE_FORECAST_VALIDITY,
+    )
+    return result
+
+
+def previous_month(day: date) -> str:
+    first = day.replace(day=1) - timedelta(days=1)
+    return first.strftime("%Y-%m")
+
+
+def next_climate_issue(day: date) -> date:
+    """The 15th after ``day`` (the following month's 15th from the 15th on)."""
+    if day.day < CLIMATE_ISSUE_DAY:
+        return day.replace(day=CLIMATE_ISSUE_DAY)
+    following = (day.replace(day=28) + timedelta(days=4)).replace(day=1)
+    return following.replace(day=CLIMATE_ISSUE_DAY)
+
+
+def _climate_schedule(result: dict[str, str]) -> dict[str, str]:
+    """Climate Bulletin: reviews the month before issue, valid until the next 15th."""
+    try:
+        issued = local_time(result.get("issuedAt", ""))
+    except ValueError, OverflowError:
+        return result
+    if not MONTH.fullmatch(result.get("month", "").strip()):
+        result["month"] = previous_month(issued.date())
+    end = next_climate_issue(issued.date() + timedelta(days=1))
+    result.update(
+        validFrom=issued.strftime("%Y-%m-%dT%H:%M"),
+        validTo=f"{end.isoformat()}T23:59",
+        validity="Until the next monthly bulletin",
+    )
     return result
 
 
@@ -258,6 +349,85 @@ def parameter_errors(values: dict[str, str]) -> list[str]:
 
 
 _ABOVE_GREEN_NOTICES = ("Watch", "Warning")
+
+# Climate Bulletin ranges: (key prefix, label). `<prefix>Min` must not exceed `<prefix>Max`.
+CLIMATE_RANGES = (
+    ("precipRange", "Normal range for the season"),
+    ("wetDays", "Usual number of wet days"),
+    ("wetSpells", "Historical number of 7-day wet spells"),
+    ("extremeSpells", "Historical number of extreme 3-day wet spells"),
+    ("tempMaxRange", "Normal maximum temperature"),
+    ("tempMinRange", "Normal minimum temperature"),
+    ("verifyRainfallRange", "Rainfall, normal range"),
+    ("verifyWetDaysRange", "Wet days, normal range"),
+    ("verifyWetSpellRange", "7-day wet spell, normal range"),
+    ("verifyTmaxRange", "Tmax, normal range"),
+    ("verifyTminRange", "Tmin, normal range"),
+)
+# The implications table's sector rows, in print order (key, row label).
+CLIMATE_SECTORS = (
+    ("impactAgriculture", "Agriculture"),
+    ("impactWater", "Water"),
+    ("impactHealth", "Health"),
+    ("impactTourism", "Tourism"),
+    ("impactDrm", "Disaster Risk Management"),
+    ("impactEnergy", "Energy"),
+    ("impactFisheries", "Fisheries"),
+    ("impactInfrastructure", "Infrastructure"),
+)
+CLIMATE_SECTOR_KEYS = tuple(key for key, _label in CLIMATE_SECTORS)
+
+
+def _climate_bounds() -> dict[str, tuple[float, float]]:
+    """Plausible limits for the typed climate numbers (mm, counts, degrees Celsius)."""
+    bounds: dict[str, tuple[float, float]] = {
+        "pet": (0, 20),  # mm/day
+        "petRatio": (0, 100),  # demand over supply
+    }
+    degrees = (10.0, 45.0)
+    counts = (0.0, 10_000.0)
+    temperatures = {
+        "tempMaxRange",
+        "tempMinRange",
+        "verifyTmaxRange",
+        "verifyTminRange",
+    }
+    for prefix, _ in CLIMATE_RANGES:
+        limit = degrees if prefix in temperatures else counts
+        bounds[f"{prefix}Min"] = bounds[f"{prefix}Max"] = limit
+    for prefix in ("verifyRainfall", "verifyWetDays", "verifyWetSpell"):
+        bounds[f"{prefix}Observed"] = counts
+    for prefix in ("verifyTmax", "verifyTmin"):
+        bounds[f"{prefix}Observed"] = degrees
+    return bounds
+
+
+CLIMATE_BOUNDS = _climate_bounds()
+
+
+def _climate_errors(values: dict[str, str], *, publish: bool) -> list[str]:
+    errors = []
+    labels = {rule.key: rule.label for rule in FIELDS["climate-bulletin"]}
+    for key, (low, high) in CLIMATE_BOUNDS.items():
+        found = optional_number(values, key)
+        if found is not None and not low <= found <= high:
+            errors.append(f"{labels[key]}: enter a value from {low:g} to {high:g}")
+    for prefix, label in CLIMATE_RANGES:
+        if _exceeds(
+            [
+                optional_number(values, f"{prefix}Min"),
+                optional_number(values, f"{prefix}Max"),
+            ]
+        ):
+            errors.append(f"{label}: 'from' exceeds 'to'")
+    if publish and not (
+        values.get("generalImplications", "").strip()
+        or any(values.get(key, "").strip() for key in CLIMATE_SECTOR_KEYS)
+    ):
+        errors.append(
+            "Implications: fill in the sector table or the general implications"
+        )
+    return errors
 
 
 def validate(body: ProductWrite, *, now: datetime | None = None) -> list[str]:
@@ -319,6 +489,22 @@ def validate(body: ProductWrite, *, now: datetime | None = None) -> list[str]:
         errors.append("Validity must end after the issue time")
     if values.get("nextUpdate") and timestamp(values["nextUpdate"]) <= issue:
         errors.append("Next update must follow the issue time")
+    if (
+        kind == "climate-bulletin"
+        and values.get("month")
+        and not MONTH.fullmatch(values["month"].strip())
+    ):
+        errors.append("Month reviewed: enter the month as YYYY-MM")
+    if kind == "climate-bulletin" and MONTH.fullmatch(values.get("month", "").strip()):
+        issued_day = (
+            local_time(values["issuedAt"]).date() if math.isfinite(issue) else None
+        )
+        if issued_day and values["month"].strip() > previous_month(issued_day):
+            errors.append(
+                "Month reviewed: cannot be later than the month before the issue date"
+            )
+    if kind == "climate-bulletin":
+        errors.extend(_climate_errors(values, publish=publish))
     if kind == "evening" and publish and math.isfinite(issue):
         for day in range(1, 5):
             expected = (
@@ -342,14 +528,26 @@ def validate(body: ProductWrite, *, now: datetime | None = None) -> list[str]:
             not system.name.strip() for system in body.guidance.systems
         ):
             errors.append("Name every meteorological system before publishing")
-        if any("example" in value.lower() for value in values.values()):
+        # Placeholder wording is looked for in short typed fields only: not in
+        # the captured advisories snapshot, and (Climate Bulletin) not in its
+        # long free-text fields, where "for example" is ordinary prose.
+        long_text = (
+            {r.key for r in rules if r.type == "textarea"}
+            if kind == "climate-bulletin"
+            else set()
+        )
+        if any(
+            "example" in value.lower()
+            for key, value in values.items()
+            if key != "advisories" and key not in long_text
+        ):
             errors.append("Replace example draft wording before publishing")
         if not body.reviewed:
             errors.append("Review the preview before publishing")
         instant = (now or datetime.now(UTC)).timestamp()
         if end <= instant:
             errors.append("An expired product cannot be published")
-        if kind not in ISSUE_HOURS and issue > instant:
+        if kind not in SCHEDULED_KINDS and issue > instant:
             errors.append("Issue time cannot be in the future")
         if body.expectedRevision > 0 and not body.changeSummary:
             errors.append("Describe this issue or revision")

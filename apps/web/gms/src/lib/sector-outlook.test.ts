@@ -3,12 +3,34 @@ import { describe, expect, it } from "vitest";
 import {
   buildSectorTiles,
   firstSentence,
+  isAllClear,
   whenLabel,
 } from "@/lib/sector-outlook";
 
 // 28 Oct 2026, 11:00 in Grenada (UTC-4).
 const NOW = new Date("2026-10-28T15:00:00Z");
 const at = (iso: string) => new Date(iso);
+
+describe("isAllClear", () => {
+  it("is a Green item whose notice is All clear, compared trimmed", () => {
+    expect(isAllClear({ colour: "green", notice_type: "All clear" })).toBe(
+      true
+    );
+    expect(isAllClear({ colour: "green", notice_type: " All clear " })).toBe(
+      true
+    );
+  });
+
+  it("is not an All clear above Green, or any other notice", () => {
+    expect(isAllClear({ colour: "yellow", notice_type: "All clear" })).toBe(
+      false
+    );
+    expect(isAllClear({ colour: "green", notice_type: "Advisory" })).toBe(
+      false
+    );
+    expect(isAllClear({ colour: "green", notice_type: null })).toBe(false);
+  });
+});
 
 describe("whenLabel", () => {
   it("says in effect for something already running", () => {
@@ -166,6 +188,86 @@ describe("buildSectorTiles", () => {
       ["Yellow level", "/weather/issued/11111111-1111-4111-8111-111111111111"],
     ]);
   });
+  it("gives a tile with only an All clear no alert level, and says All clear", () => {
+    const tiles = buildSectorTiles(
+      outlook([
+        item({
+          title: "Calm seas",
+          colour: "green",
+          notice_type: "All clear",
+          sectors: ["marine"],
+          affects_everyone: false,
+          identifier: "AC",
+        }),
+      ]),
+      NOW
+    );
+    const marine = tiles.find((tile) => tile.sector === "marine");
+    expect(marine?.peak).toBeNull();
+    expect(marine?.items).toEqual([
+      expect.objectContaining({
+        title: "Calm seas",
+        allClear: true,
+        colour: null,
+        level: "All clear",
+      }),
+    ]);
+  });
+
+  it("keeps the Green level on a sector with a Green alert and an All clear", () => {
+    const tiles = buildSectorTiles(
+      outlook([
+        item({
+          title: "Calm seas",
+          colour: "green",
+          notice_type: "All clear",
+          sectors: ["marine"],
+          affects_everyone: false,
+          identifier: "AC",
+        }),
+        item({
+          title: "Light swell",
+          colour: "green",
+          notice_type: "Advisory",
+          sectors: ["marine"],
+          affects_everyone: false,
+          identifier: "G",
+        }),
+      ]),
+      NOW
+    );
+    const marine = tiles.find((tile) => tile.sector === "marine");
+    expect(marine?.peak).toBe("green");
+    expect(marine?.items.map((entry) => [entry.title, entry.level])).toEqual([
+      ["Calm seas", "All clear"],
+      ["Light swell", "Green level"],
+    ]);
+  });
+
+  it("does not let an All clear hide a higher level on the same sector", () => {
+    const tiles = buildSectorTiles(
+      outlook([
+        item({
+          title: "Calm seas",
+          colour: "green",
+          notice_type: "All clear",
+          sectors: ["marine"],
+          affects_everyone: false,
+          identifier: "AC",
+        }),
+        item({
+          title: "Gale",
+          colour: "yellow",
+          sectors: ["marine"],
+          affects_everyone: false,
+          identifier: "Y",
+        }),
+      ]),
+      NOW
+    );
+    expect(tiles.find((tile) => tile.sector === "marine")?.peak).toBe("yellow");
+  });
+
   it("limits a tile and counts the rest", () => {
     const many = Array.from({ length: 5 }, (_, index) =>
       item({ identifier: `I${index}` })

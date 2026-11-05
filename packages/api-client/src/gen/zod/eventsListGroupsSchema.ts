@@ -4,12 +4,15 @@
  */
 
 import * as z from "zod";
+import { apiErrorSchema } from "./apiErrorSchema.js";
 import { groupSummarySchema } from "./groupSummarySchema.js";
 import { validationErrorResponseSchema } from "./validationErrorResponseSchema.js";
 
 export const eventsListGroupsStatus200Schema = z.array(groupSummarySchema);
 
-export const eventsListGroupsStatus401Schema = z.unknown();
+export const eventsListGroupsStatus401Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
 export const eventsListGroupsStatus422Schema =
   validationErrorResponseSchema.describe(

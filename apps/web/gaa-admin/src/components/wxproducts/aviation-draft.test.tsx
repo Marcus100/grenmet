@@ -2,11 +2,11 @@ import { fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, expect, it, vi } from "vitest";
 import { AviationDraft } from "./aviation-draft";
 
-const CONFLICT = /Reload it before saving/;
-const SAVED = /Revision 1 saved to FastAPI/;
-const NORTH = /North is 360, not 000/;
-const RULE_LINE = /wind_north · WMO-No. 306 FM 15/;
-const IMPORTED = /Browser draft loaded as a new unsaved draft/;
+const CONFLICT = /Reload it before saving/u;
+const SAVED = /Revision 1 saved to FastAPI/u;
+const NORTH = /North is 360, not 000/u;
+const RULE_LINE = /wind_north · WMO-No. 306 FM 15/u;
+const IMPORTED = /Browser draft loaded as a new unsaved draft/u;
 const ID = "11111111-1111-4111-8111-111111111111";
 const saved = {
   id: ID,
@@ -134,6 +134,13 @@ it("keeps seconds when loading an existing draft and prompts before replacing ed
     "Unsaved"
   );
   fireEvent.click(screen.getByText("Discard unsaved changes"));
+  // Asked first: the edit stays until the discard is confirmed.
+  fireEvent.click(await screen.findByText("Keep editing"));
+  expect(screen.getByLabelText("Coded message (UTC time groups)")).toHaveValue(
+    "Unsaved"
+  );
+  fireEvent.click(screen.getByText("Discard unsaved changes"));
+  fireEvent.click(await screen.findByText("Discard changes"));
   expect(screen.getByLabelText("Coded message (UTC time groups)")).toHaveValue(
     saved.message
   );

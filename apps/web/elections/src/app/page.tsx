@@ -142,43 +142,43 @@ export default function FrontPage() {
       <section className="mx-auto grid max-w-[1240px] items-start gap-x-14 gap-y-6 px-4 pt-8 sm:px-6 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)]">
         <div>
           <FlagStripe className="mb-4 h-1.5 w-16" />
-          <p className="font-semibold text-base text-el-ink-2 uppercase leading-relaxed tracking-[0.08em]">
+          <p className="text-el-ink-2 text-base leading-relaxed font-semibold tracking-[0.08em] uppercase">
             Grenada general election 2026
             {calendar.pollingDay && ` · ${weekdayDate(calendar.pollingDay)}`}
           </p>
-          <h1 className="mt-2.5 font-bold text-[clamp(2rem,4.6vw,3.25rem)] leading-[1.05] tracking-[-0.022em]">
+          <h1 className="mt-2.5 text-[clamp(2rem,4.6vw,3.25rem)] leading-[1.05] font-bold tracking-[-0.022em]">
             {status}
           </h1>
-          <p className="mt-3 max-w-[56ch] font-serif text-el-ink-2 text-lg leading-normal">
+          <p className="text-el-ink-2 mt-3 max-w-[56ch] font-serif text-lg leading-normal">
             Fifteen constituencies choose the next House of Representatives.
             Follow the campaign, explore your constituency, and compare the
             election with Grenada’s history.
           </p>
           <div className="mt-5 grid gap-3 sm:flex sm:flex-wrap">
             <Link
-              className="inline-flex h-11 items-center justify-center rounded-md bg-el-ink px-5 font-semibold text-el-paper hover:opacity-90"
+              className="bg-el-ink text-el-paper inline-flex h-11 items-center justify-center rounded-md px-5 font-semibold hover:opacity-90"
               href="/make-your-map"
             >
               Make your own map →
             </Link>
             <Link
-              className="inline-flex h-11 items-center justify-center rounded-md border border-el-ink px-5 font-semibold hover:bg-el-paper-2"
+              className="border-el-ink hover:bg-el-paper-2 inline-flex h-11 items-center justify-center rounded-md border px-5 font-semibold"
               href="/learn"
             >
               Understand the election
             </Link>
           </div>
-          <dl className="mt-8 max-w-md border-el-ink border-t-2">
+          <dl className="border-el-ink mt-8 max-w-md border-t-2">
             {dates.map((d) => (
               <div
                 className={cn(
-                  "flex flex-wrap items-baseline justify-between gap-x-6 border-el-rule border-b py-3",
+                  "border-el-rule flex flex-wrap items-baseline justify-between gap-x-6 border-b py-3",
                   d.strong && "bg-el-flag-gold-tint px-3"
                 )}
                 key={d.label}
               >
                 <dt className={LABEL}>{d.label}</dt>
-                <dd className="font-bold font-serif text-lg leading-tight">
+                <dd className="font-serif text-lg leading-tight font-bold">
                   {d.value}
                 </dd>
               </div>
@@ -192,7 +192,7 @@ export default function FrontPage() {
             ratio="aspect-[3/2]"
             sizes="(max-width: 1024px) 100vw, 560px"
           />
-          <div className="mt-5 bg-el-flag-gold-tint">
+          <div className="bg-el-flag-gold-tint mt-5">
             <FlagStripe />
             <div className="px-5 py-5">
               <HouseStrip seats={seats} />
@@ -243,12 +243,12 @@ export default function FrontPage() {
         <div className="grid gap-6 md:grid-cols-3">
           {GUIDES.slice(0, 3).map((guide) => (
             <article className="border-el-rule border-t pt-4" key={guide.slug}>
-              <h3 className="font-bold font-serif text-xl">
+              <h3 className="font-serif text-xl font-bold">
                 <Link className="hover:underline" href={`/learn/${guide.slug}`}>
                   {guide.question}
                 </Link>
               </h3>
-              <p className="mt-2 text-base text-el-ink-2 leading-relaxed">
+              <p className="text-el-ink-2 mt-2 text-base leading-relaxed">
                 {guide.answer}
               </p>
             </article>
@@ -273,16 +273,16 @@ export default function FrontPage() {
             {crossed.length > 0 && (
               <div>
                 <h3 className={LABEL}>Changed hands since 2022</h3>
-                <ul className="mt-2 divide-y divide-el-rule border-el-rule border-y text-base">
+                <ul className="divide-el-rule border-el-rule mt-2 divide-y border-y text-base">
                   {crossed.map((s) => (
                     <li className="py-2.5" key={s.code}>
                       <Link
-                        className="font-semibold font-serif hover:underline"
+                        className="font-serif font-semibold hover:underline"
                         href={s.href as Route}
                       >
                         {s.name}
                       </Link>
-                      <span className="block text-base text-el-muted">
+                      <span className="text-el-muted block text-base">
                         <PartyDot party={s.sitting.party} />
                         {s.sitting.name}: elected {s.sitting.was} in 2022, now{" "}
                         {s.sitting.party}
@@ -313,7 +313,7 @@ export default function FrontPage() {
         }}
         title="Test an idea, understand the uncertainty"
       >
-        <p className="max-w-prose text-el-ink-2 leading-relaxed">
+        <p className="text-el-ink-2 max-w-prose leading-relaxed">
           What changes when support moves between parties? Explore a scenario,
           inspect the assumptions, and compare it with recorded results. A
           model’s output is not an official prediction.
@@ -333,16 +333,16 @@ export default function FrontPage() {
 
       <Section id="vote" title="Your vote">
         <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
-          <div className="border border-el-rule bg-el-paper-2 p-4 sm:p-6">
-            <h3 className="font-bold text-xl">Find your constituency</h3>
-            <p className="mt-1 text-base text-el-ink-2 leading-relaxed">
+          <div className="border-el-rule bg-el-paper-2 border p-4 sm:p-6">
+            <h3 className="text-xl font-bold">Find your constituency</h3>
+            <p className="text-el-ink-2 mt-1 text-base leading-relaxed">
               Type your village, a polling station, your constituency or your
               MP’s name.
             </p>
             <ConstituencySearch className="mt-3" size="large" />
           </div>
           <div>
-            <h3 className="font-bold text-xl">How to register</h3>
+            <h3 className="text-xl font-bold">How to register</h3>
             <div className="mt-2">
               <HowToVote />
             </div>
@@ -356,18 +356,18 @@ export default function FrontPage() {
         </div>
         <nav
           aria-label="Election history"
-          className="grid gap-px border border-el-rule bg-el-rule sm:grid-cols-2 lg:grid-cols-4"
+          className="border-el-rule bg-el-rule grid gap-px border sm:grid-cols-2 lg:grid-cols-4"
         >
           {HISTORY.map((item) => (
             <Link
-              className="block bg-background p-4 hover:bg-el-paper-2"
+              className="bg-background hover:bg-el-paper-2 block p-4"
               href={item.href}
               key={item.href}
             >
-              <b className="block font-semibold font-serif text-lg">
+              <b className="block font-serif text-lg font-semibold">
                 {item.title}
               </b>
-              <span className="text-base text-el-ink-2">{item.body}</span>
+              <span className="text-el-ink-2 text-base">{item.body}</span>
             </Link>
           ))}
         </nav>

@@ -4,6 +4,7 @@
  */
 
 import * as z from "zod";
+import { apiErrorSchema } from "./apiErrorSchema.js";
 import { bookingProfilePublicSchema } from "./bookingProfilePublicSchema.js";
 import { validationErrorResponseSchema } from "./validationErrorResponseSchema.js";
 
@@ -16,13 +17,21 @@ export const bookingsGetProfileHeaderXBarrelsOrganisationSchema = z
 
 export const bookingsGetProfileStatus200Schema = bookingProfilePublicSchema;
 
-export const bookingsGetProfileStatus400Schema = z.unknown();
+export const bookingsGetProfileStatus400Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
-export const bookingsGetProfileStatus401Schema = z.unknown();
+export const bookingsGetProfileStatus401Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
-export const bookingsGetProfileStatus403Schema = z.unknown();
+export const bookingsGetProfileStatus403Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
-export const bookingsGetProfileStatus404Schema = z.unknown();
+export const bookingsGetProfileStatus404Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
 export const bookingsGetProfileStatus422Schema =
   validationErrorResponseSchema.describe(

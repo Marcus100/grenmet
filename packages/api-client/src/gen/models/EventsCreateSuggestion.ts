@@ -3,6 +3,8 @@
  * Do not edit manually.
  */
 
+import type { ApiError } from "./ApiError.js";
+import type { ErrorMessage } from "./ErrorMessage.js";
 import type { Message } from "./Message.js";
 import type { SuggestionCreate } from "./SuggestionCreate.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
@@ -15,7 +17,7 @@ export type EventsCreateSuggestionStatus201 = Message;
  */
 export type EventsCreateSuggestionStatus422 = ValidationErrorResponse;
 
-export type EventsCreateSuggestionStatus429 = unknown;
+export type EventsCreateSuggestionStatus429 = ApiError | ErrorMessage;
 
 export type EventsCreateSuggestionBody = SuggestionCreate;
 

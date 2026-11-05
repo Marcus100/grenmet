@@ -2,12 +2,14 @@ from typing import Annotated, Any
 
 from fastapi import APIRouter, Path, Query, Response
 from fastapi import status as http_status
+from fastapi.responses import JSONResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 from starlette.requests import Request
 
 from src.auth.models import User
 from src.dependencies import AccountUser, AdminUser, MfaAdminUser, SessionDep
 from src.events.service import organiser_verification as events_verification
+from src.models import ApiError
 from src.openapi_responses import AUTHENTICATED, BAD_REQUEST, CONFLICT, NOT_FOUND
 from src.organisations.dependencies import (
     EventsOrgAdmin,
@@ -51,9 +53,11 @@ from .schemas import (
     AppEntitlementUpdate,
     AppOptionPublic,
     CurrentOrganisationPublic,
+    GrantRevokePublic,
     InvitationAccept,
     InvitationCreate,
     InvitationPublic,
+    MemberEventsAccessRevokedPublic,
     MemberListPublic,
     MemberPublic,
     MemberRoleUpdate,
@@ -191,7 +195,7 @@ async def list_admin_sites(
     *,
     session: SessionDep,
     _admin: AdminUser,
-    organisation_id: str | None = Query(default=None, max_length=100),
+    organisation_id: Annotated[str | None, Query(max_length=100)] = None,
 ) -> Any:
     rows = await sites.list_sites(session, organisation_id=organisation_id)
     return PublicSiteListPublic(data=[sites.to_admin(r) for r in rows], count=len(rows))
@@ -360,13 +364,26 @@ async def grant_member_role(
 
 @router.post(
     "/org/grants/{grant_id}/revoke",
-    response_model=MembershipGrantPublic,
+    response_model=GrantRevokePublic,
     summary="Revoke a role grant",
     description=(
         "Needs the bundle's permissions and its product's team-manage permission. "
-        "Revoking an already revoked grant returns it unchanged."
+        "Nobody can revoke their own grant (403). Revoking an already revoked grant "
+        "returns it unchanged. Grants that depended on it, through the members it was "
+        "granted to, are revoked too; ``cascaded_revocations`` counts them. Revoking a "
+        "team grant can end the grants its holder issued. 409 when the cascade would end "
+        "more than 200 roles."
     ),
-    responses={**GRANT_ERRORS},
+    responses={
+        **GRANT_ERRORS,
+        403: {
+            "model": ApiError,
+            "description": (
+                "Lacks the bundle's permissions or the product's team-manage "
+                "permission, or the grant is the caller's own"
+            ),
+        },
+    },
 )
 async def revoke_member_grant(
     *, session: SessionDep, context: EventsOrgTeamManager, grant_id: str
@@ -511,7 +528,7 @@ async def list_admin_api_keys(
     session: SessionDep,
     _admin: AdminUser,
     pagination: PaginationDep,
-    organisation_id: str | None = Query(default=None, max_length=100),
+    organisation_id: Annotated[str | None, Query(max_length=100)] = None,
 ) -> Any:
     rows, total = await api_keys.list_keys(
         session,
@@ -599,7 +616,7 @@ async def list_all(
     session: SessionDep,
     _admin: AdminUser,
     pagination: PaginationDep,
-    q: str | None = Query(default=None, max_length=100),
+    q: Annotated[str | None, Query(max_length=100)] = None,
     status: OrganisationStatus | None = None,
     kind: OrganisationKind | None = None,
 ) -> Any:
@@ -830,9 +847,10 @@ MFA_ERRORS = {
     **NOT_FOUND,
     **CONFLICT,
     403: {
+        "model": ApiError,
         "description": "Superuser with an enrolled authenticator required "
         "(superuser_mfa_required), or the target lacks a verified or "
-        "administrator-activated email for an owner/admin role"
+        "administrator-activated email for an owner/admin role",
     },
 }
 
@@ -1018,12 +1036,22 @@ async def update_member(
 @router.delete(
     "/{organisation_id}/members/{membership_id}",
     status_code=204,
-    summary="Remove a member",
+    summary="Remove a member, or end their Events access",
     description=(
-        "Ends the person's membership. Only owners remove owners; 409 when it "
-        "would leave the organisation without an owner."
+        "An account session ends the person's membership in the whole organisation "
+        "(204). An Events app session ends only their Events access in this "
+        "organisation: live events-* roles here and grants they issued for Events "
+        "here. The membership, other products, other organisations and their Events "
+        "sign-in stay, and the answer is 200 with `scope` `events`. Only owners "
+        "remove owners; 409 when it would leave the organisation without an owner."
     ),
-    responses=MANAGE_ERRORS,
+    responses={
+        **MANAGE_ERRORS,
+        http_status.HTTP_200_OK: {
+            "model": MemberEventsAccessRevokedPublic,
+            "description": "Events access ended from an Events app session.",
+        },
+    },
 )
 async def delete_member(
     *,
@@ -1031,10 +1059,20 @@ async def delete_member(
     context: EventsOrgAdmin,
     organisation_id: str,
     membership_id: str,
-) -> None:
+) -> Response:
     _require_path_match(context, organisation_id)
-    await team.run_and_commit(
+    revoked = await team.run_and_commit(
         session, members.remove_member(session, context, membership_id)
+    )
+    if revoked is None:
+        return Response(status_code=http_status.HTTP_204_NO_CONTENT)
+    body = MemberEventsAccessRevokedPublic(
+        membership_id=revoked.membership_id,
+        grants_revoked=revoked.grants_revoked,
+        issued_grants_revoked=revoked.issued_grants_revoked,
+    )
+    return JSONResponse(
+        status_code=http_status.HTTP_200_OK, content=body.model_dump(mode="json")
     )
 
 

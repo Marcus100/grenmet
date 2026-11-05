@@ -2,10 +2,12 @@ import { render, screen, within } from "@testing-library/react";
 import { expect, it } from "vitest";
 import Page from "./page";
 
-const SAMPLE_REGISTER = /not a live observation register/;
-const DRAFT_ONLY = /Operational transmission is not available/;
+const LIVE_REGISTER = /live hourly observation register for station 78958/u;
+const DRAFT_ONLY = /Operational transmission is not available/u;
+const PROTOTYPE = /prototype/iu;
+const SAMPLE_OBSERVATIONS = /sample observations/iu;
 
-it("links to the four product desks and distinguishes the sample register", () => {
+it("links to the five product desks and points to the live hourly register", () => {
   render(<Page />);
   const desks = within(
     screen.getByRole("navigation", { name: "Weather product desks" })
@@ -13,20 +15,27 @@ it("links to the four product desks and distinguishes the sample register", () =
   for (const [name, href] of [
     ["Forecasts", "/wxproducts/fcsts"],
     ["NHC Products", "/wxproducts/nhc"],
+    ["Climate Bulletin", "/wxproducts/climate"],
     ["Alerts", "/wxproducts/alerts"],
     ["Aviation", "/wxproducts/aviation"],
   ]) {
     expect(
-      desks.getByRole("link", { name: new RegExp(`^${name}`) })
+      desks.getByRole("link", { name: new RegExp(`^${name}`, "u") })
     ).toHaveAttribute("href", href);
   }
-  expect(desks.getAllByRole("link")).toHaveLength(4);
-  const prototype = within(
-    screen.getByRole("region", { name: "Hourly register — prototype" })
+  expect(desks.getAllByRole("link")).toHaveLength(5);
+  const register = within(
+    screen.getByRole("region", { name: "Hourly register (wxRegister)" })
   );
-  expect(prototype.getByText(SAMPLE_REGISTER)).toBeInTheDocument();
+  expect(register.getByText(LIVE_REGISTER)).toBeInTheDocument();
   expect(
-    prototype.getByRole("link", { name: "View hourly register prototype" })
+    register.getByRole("link", { name: "Open the hourly register" })
   ).toHaveAttribute("href", "/wxproducts/hourly");
   expect(screen.getByText(DRAFT_ONLY)).toBeInTheDocument();
+});
+
+it("no longer calls the hourly register a prototype or sample", () => {
+  const { container } = render(<Page />);
+  expect(container).not.toHaveTextContent(PROTOTYPE);
+  expect(container).not.toHaveTextContent(SAMPLE_OBSERVATIONS);
 });

@@ -21,7 +21,7 @@ export function SourceLink({
     );
   return (
     <a
-      className="underline decoration-el-rule-2 underline-offset-2 hover:decoration-el-ink"
+      className="decoration-el-rule-2 hover:decoration-el-ink underline underline-offset-2"
       href={ref[1]}
       rel="noopener"
       target="_blank"

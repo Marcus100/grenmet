@@ -1,5 +1,5 @@
 import type {
-  CapAlertPublic,
+  CapAlertPublicView,
   CapCertainty,
   CapInfoPublic,
 } from "@barrelsgd/api-client";
@@ -43,7 +43,7 @@ export function warningHref(identifier: string): string {
 }
 
 /** The info block the public reads: English first, then authored order. */
-export function primaryInfo(alert: CapAlertPublic): CapInfoPublic | null {
+export function primaryInfo(alert: CapAlertPublicView): CapInfoPublic | null {
   const infos = [...(alert.info ?? [])].sort(
     (a, b) =>
       Number(!(a.language ?? "en").toLowerCase().startsWith("en")) -
@@ -72,11 +72,11 @@ export interface WarningDetail {
   sender: string;
   severity: NonNullable<CapInfoPublic["severity"]>;
   starts: string | null;
-  status: CapAlertPublic["status"];
+  status: CapAlertPublicView["status"];
   whatToExpect: string;
 }
 
-function naturalEndAt(alert: CapAlertPublic, now: Date): string | null {
+function naturalEndAt(alert: CapAlertPublicView, now: Date): string | null {
   if (alert.lifecycle_state !== "PUBLISHED" || alert.replaced_by_identifier) {
     return null;
   }
@@ -91,7 +91,10 @@ function naturalEndAt(alert: CapAlertPublic, now: Date): string | null {
   return new Date(Math.max(...times)).toISOString();
 }
 
-function endedHow(alert: CapAlertPublic, now: Date): WarningDetail["ended"] {
+function endedHow(
+  alert: CapAlertPublicView,
+  now: Date
+): WarningDetail["ended"] {
   if (alert.replaced_by_identifier) {
     return null;
   }
@@ -105,7 +108,7 @@ function endedHow(alert: CapAlertPublic, now: Date): WarningDetail["ended"] {
 }
 
 export function toWarningDetail(
-  alert: CapAlertPublic,
+  alert: CapAlertPublicView,
   now = new Date()
 ): WarningDetail | null {
   const info = primaryInfo(alert);
@@ -149,7 +152,7 @@ export const RECENTLY_ENDED_WINDOW_MS = 24 * 60 * 60 * 1000;
  * grey for a day rather than silently disappearing.
  */
 export function recentlyEnded(
-  alerts: CapAlertPublic[],
+  alerts: CapAlertPublicView[],
   now: Date
 ): EndedWarning[] {
   const cutoff = now.getTime() - RECENTLY_ENDED_WINDOW_MS;

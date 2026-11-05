@@ -18,6 +18,14 @@ class WorkflowType(str, Enum):
     STATUS_REPORT = "STATUS_REPORT"
     TIMESHEET = "TIMESHEET"
     PARKING_PERMIT = "PARKING_PERMIT"
+    PAYROLL_RUN = "PAYROLL_RUN"
+
+
+#: Types every department gets in its baseline set-up. Payroll approval is set
+#: up only on the department a pay calendar names as approver.
+DEPARTMENT_WORKFLOW_TYPES: tuple[WorkflowType, ...] = tuple(
+    kind for kind in WorkflowType if kind != WorkflowType.PAYROLL_RUN
+)
 
 
 class WorkflowStatus(str, Enum):

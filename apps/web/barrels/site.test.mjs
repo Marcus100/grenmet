@@ -4,22 +4,24 @@ import { existsSync, readFileSync } from "node:fs";
 import test from "node:test";
 import "./build.mjs";
 
-const HIDDEN_PRIVACY_CARD = /<section[^>]*hidden[^>]*id="analytics-settings"/s;
-const PRIVACY_DIALOG = /<section[^>]*role="dialog"/s;
-const OVERCLAIM = /certified|ISO\s?\d|Microsoft Partner|Google Partner/i;
-const ELEMENT_ID = /\sid="([\w-]+)"/g;
-const WHITESPACE = /\s+/;
-const LOCAL_SRC = /src="\/[^"]+"/;
-const DESCRIBED_BY = /aria-describedby="([^"]+)"/g;
-const SCRIPT_OPEN = /<script\b([^>]*)>/g;
-const SCRIPT_SRC = /<script[^>]*src="([^"]+)"/g;
-const STYLE_BLOCK = /<style\b/;
-const STYLE_ATTRIBUTE = /\sstyle="/;
-const EVENT_ATTRIBUTE = /\son[a-z]+="/i;
-const PACKAGE_HEADING = /<h2 id="package-[\w-]+">([^<]+)<\/h2>/g;
-const H1_TAG = /<h1>/g;
-const CSS_VARIABLE = /var\((--[\w-]+)\)/g;
-const NEWSLETTER_LABEL = /<label for="newsletter-email">/;
+const HIDDEN_PRIVACY_CARD = /<section[^>]*hidden[^>]*id="analytics-settings"/su;
+const PRIVACY_DIALOG = /<section[^>]*role="dialog"/su;
+const OVERCLAIM = /certified|ISO\s?\d|Microsoft Partner|Google Partner/iu;
+const ELEMENT_ID = /\sid="([\w-]+)"/gu;
+const WHITESPACE = /\s+/u;
+const LOCAL_SRC = /src="\/[^"]+"/u;
+const DESCRIBED_BY = /aria-describedby="([^"]+)"/gu;
+const SCRIPT_OPEN = /<script\b([^>]*)>/giu;
+const SCRIPT_SRC = /<script[^>]*src="([^"]+)"/giu;
+const STYLE_BLOCK = /<style\b/u;
+const STYLE_ATTRIBUTE = /\sstyle="/u;
+const EVENT_ATTRIBUTE = /\son[a-z]+="/iu;
+const PACKAGE_HEADING = /<h2 id="package-[\w-]+">([^<]+)<\/h2>/gu;
+const H1_TAG = /<h1>/gu;
+const CSS_VARIABLE = /var\((--[\w-]+)\)/gu;
+const NEWSLETTER_LABEL = /<label for="newsletter-email">/u;
+const GOOGLE_TAG_MANAGER = /googletagmanager/iu;
+const CLOUDFLARE_CHALLENGES = /challenges\.cloudflare\.com/iu;
 const PAGES = [
   "index.html",
   "services/index.html",
@@ -30,6 +32,32 @@ const PAGES = [
 const read = (path) =>
   readFileSync(new URL(`./dist/${path}`, import.meta.url), "utf8");
 
+// Hosts of every absolute or protocol-relative URL in a text, parsed with
+// `new URL` so a host is compared exactly instead of matched as a substring.
+const URL_IN_TEXT = /(?:https?:)?\/\/[^\s"'<>()]+/gu;
+const hostsIn = (text) =>
+  (text.match(URL_IN_TEXT) ?? [])
+    .filter((candidate) => URL.canParse(candidate, "https://base.invalid"))
+    .map((candidate) => new URL(candidate, "https://base.invalid").hostname);
+
+// Whether any URL in a text has exactly this host.
+const mentionsHost = (text, host) =>
+  hostsIn(text).some((found) => found === host);
+
+// Source tokens of one CSP directive (name in lower case), e.g. connect-src -> ["https://a.example", ...].
+const directiveSources = (csp, name) => {
+  const part = csp
+    .split(";")
+    .map((entry) => entry.trim())
+    .find((entry) => entry.split(WHITESPACE)[0].toLowerCase() === name);
+  return part ? part.split(WHITESPACE).slice(1) : [];
+};
+// Whether a CSP source list allows exactly this origin (scheme, host and port).
+const allowsOrigin = (sources, origin) =>
+  sources.some(
+    (source) => URL.canParse(source) && new URL(source).origin === origin
+  );
+
 test("holding page ships accessible content and only local analytics wiring", () => {
   const html = read("index.html");
   assert.ok(html.includes('<html lang="en">'));
@@ -37,7 +65,20 @@ test("holding page ships accessible content and only local analytics wiring", ()
   assert.ok(html.includes('href="https://eugine.me/"'));
   assert.ok(html.includes("Built by Eugine Whint"));
   assert.ok(html.includes('src="/analytics.mjs"'));
-  assert.ok(!html.includes("googletagmanager.com"));
+  // Positive control: the URL parser must still find the links it should.
+  assert.ok(
+    mentionsHost(html, "eugine.me"),
+    "URL parser finds the byline link"
+  );
+  assert.ok(
+    !(
+      mentionsHost(html, "googletagmanager.com") ||
+      mentionsHost(html, "www.googletagmanager.com")
+    ),
+    "holding page never loads Google Tag Manager directly"
+  );
+  // Loose guard: no mention of the name at all, however it is written.
+  assert.doesNotMatch(html, GOOGLE_TAG_MANAGER);
   // Privacy popup starts hidden; analytics.mjs reveals it only where
   // optional analytics is configured.
   assert.ok(html.includes('aria-label="Privacy settings"'));
@@ -180,7 +221,11 @@ test("static modules share the reader policy and CSP permits only the required e
   ).value;
   assert.ok(csp.includes("script-src 'self' https://www.googletagmanager.com"));
   assert.ok(
-    csp.includes("connect-src") && csp.includes("https://api.barrels.gd")
+    allowsOrigin(
+      directiveSources(csp, "connect-src"),
+      "https://api.barrels.gd"
+    ),
+    "connect-src allows the Barrels API origin"
   );
   assert.ok(csp.includes("form-action 'none'"));
   assert.ok(!csp.includes("unsafe-inline"));
@@ -193,14 +238,17 @@ test("CSP allows Cloudflare Turnstile for scripts, frames and connections only",
   const csp = config.headers[0].headers.find(
     (header) => header.key === "Content-Security-Policy"
   ).value;
-  const directive = (name) =>
-    csp.split(";").find((part) => part.trim().startsWith(`${name} `)) ?? "";
   for (const name of ["script-src", "frame-src", "connect-src"])
     assert.ok(
-      directive(name).includes("https://challenges.cloudflare.com"),
+      allowsOrigin(
+        directiveSources(csp, name),
+        "https://challenges.cloudflare.com"
+      ),
       `${name} allows Turnstile`
     );
-  assert.ok(!directive("style-src").includes("cloudflare"));
+  const styleSources = directiveSources(csp, "style-src");
+  assert.ok(styleSources.length > 0, "style-src directive is present");
+  assert.ok(!styleSources.some((source) => source.includes("cloudflare")));
   assert.ok(csp.includes("default-src 'none'"));
 });
 
@@ -208,11 +256,22 @@ test("forms send a Turnstile token only when a site key is configured", () => {
   const forms = read("forms.mjs");
   assert.ok(forms.includes('from "./turnstile-config.mjs"'));
   assert.ok(forms.includes("turnstile_token"));
-  assert.ok(forms.includes("challenges.cloudflare.com/turnstile/v0/api.js"));
+  const turnstileScripts = (forms.match(URL_IN_TEXT) ?? [])
+    .filter((candidate) => URL.canParse(candidate))
+    .map((candidate) => new URL(candidate))
+    .filter((url) => url.pathname === "/turnstile/v0/api.js");
+  assert.ok(turnstileScripts.length > 0, "Turnstile script URL is present");
+  for (const url of turnstileScripts) {
+    assert.equal(url.protocol, "https:");
+    assert.equal(url.hostname, "challenges.cloudflare.com");
+  }
   assert.ok(forms.includes("render=explicit"));
   // The script is loaded from forms.mjs, never from a page.
-  for (const page of PAGES)
-    assert.ok(!read(page).includes("challenges.cloudflare.com"), page);
+  for (const page of PAGES) {
+    const html = read(page);
+    assert.ok(!mentionsHost(html, "challenges.cloudflare.com"), page);
+    assert.doesNotMatch(html, CLOUDFLARE_CHALLENGES, page);
+  }
 });
 
 test("the site key is written at build time and defaults to none", () => {

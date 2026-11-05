@@ -3,6 +3,7 @@
  * Do not edit manually.
  */
 
+import type { ApiError } from "./ApiError.js";
 import type { SynopticImageGroups } from "./SynopticImageGroups.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 
@@ -17,9 +18,17 @@ export type WxwatchMetadataQuery = {
 
 export type WxwatchMetadataStatus200 = SynopticImageGroups;
 
-export type WxwatchMetadataStatus401 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type WxwatchMetadataStatus401 = ApiError;
 
-export type WxwatchMetadataStatus403 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type WxwatchMetadataStatus403 = ApiError;
 
 /**
  * @description Validation error envelope returned for malformed requests.

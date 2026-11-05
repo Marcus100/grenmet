@@ -104,6 +104,9 @@ class Intent(Base):
     created_by_user_id: Mapped[uuid.UUID | None] = mapped_column(
         ForeignKey("user.id", ondelete="SET NULL")
     )
+    #: When the refund reconciliation job last compared this payment's refunds with
+    #: the provider; the job takes the oldest (never checked first).
+    refunds_checked_at: Mapped[datetime | None] = mapped_column(default=None)
     created_at: Mapped[datetime] = mapped_column(default=utc_now)
     updated_at: Mapped[datetime] = mapped_column(default=utc_now, onupdate=utc_now)
 

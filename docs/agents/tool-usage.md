@@ -76,6 +76,26 @@ The SessionStart hooks read recent log entries; they do not create the handoff
 or share hidden chat history. Claude also reloads the log after compaction and
 forking. Runtime hook trust and client permissions remain separate checks.
 
+## Heavy commands on the shared WSL machine
+
+Several agents share one WSL machine with limited memory, and parallel test runs or
+builds have restarted it before. Two small scripts in `~/.local/bin` (outside the
+repository, set up per machine) guard against that:
+
+- `heavy <command>` runs the command only when a slot is free and memory is
+  available, otherwise it waits. Use it for tests, builds and `pnpm verify:changed`:
+  `HEAVY_SLOTS=2 heavy pnpm verify:changed`. At most `HEAVY_SLOTS` (default 2) heavy
+  commands run at once, and it waits while available memory is below `HEAVY_MIN_MB`
+  (default 3000). Locks live in `HEAVY_LOCK_DIR` (default `/tmp/heavy-slots`).
+- `memwatch` is an emergency brake that runs in the background. When available memory
+  falls under about 1200 MB it pauses the largest test or build process (vitest,
+  pytest, next build, tsc, biome, turbo) for 20 seconds and logs it to
+  `/tmp/memwatch.log`.
+
+Run one heavy command at a time per session, set `PYTEST_WORKERS=1` for FastAPI tests,
+and pass `--maxWorkers=1` to vitest. If `heavy` is not on the machine, the repository
+does not depend on it; the rules above are the same, just not enforced.
+
 ## Worktree sessions
 
 A Claude Code session started in a git worktree refuses some shell forms it cannot

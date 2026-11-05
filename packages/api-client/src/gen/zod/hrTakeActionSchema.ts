@@ -4,6 +4,8 @@
  */
 
 import * as z from "zod";
+import { apiErrorSchema } from "./apiErrorSchema.js";
+import { rosterRuleWarningsErrorPublicSchema } from "./rosterRuleWarningsErrorPublicSchema.js";
 import { validationErrorResponseSchema } from "./validationErrorResponseSchema.js";
 import { workflowActionRequestSchema } from "./workflowActionRequestSchema.js";
 import { workflowInstancePublicSchema } from "./workflowInstancePublicSchema.js";
@@ -12,11 +14,22 @@ export const hrTakeActionPathInstanceIdSchema = z.uuid();
 
 export const hrTakeActionStatus200Schema = workflowInstancePublicSchema;
 
-export const hrTakeActionStatus400Schema = z.unknown();
+export const hrTakeActionStatus400Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
-export const hrTakeActionStatus403Schema = z.unknown();
+export const hrTakeActionStatus403Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
-export const hrTakeActionStatus404Schema = z.unknown();
+export const hrTakeActionStatus404Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
+
+export const hrTakeActionStatus409Schema =
+  rosterRuleWarningsErrorPublicSchema.describe(
+    "409 body. An ordinary conflict carries only ``detail``. Roster rule\nwarnings add ``code: ROSTER_RULE_WARNINGS``, the ``context`` and the\n``violations``; resend with ``rule_override_reason`` to save anyway."
+  );
 
 export const hrTakeActionStatus422Schema =
   validationErrorResponseSchema.describe(
@@ -29,6 +42,7 @@ export const hrTakeActionErrorSchema = z.union([
   hrTakeActionStatus400Schema,
   hrTakeActionStatus403Schema,
   hrTakeActionStatus404Schema,
+  hrTakeActionStatus409Schema,
   hrTakeActionStatus422Schema,
 ]);
 

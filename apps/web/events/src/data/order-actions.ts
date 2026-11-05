@@ -93,7 +93,7 @@ function failureOf(
 
 async function run<T>(
   call: (
-    options: ReturnType<typeof apiOptions> & {
+    options: Awaited<ReturnType<typeof apiOptions>> & {
       headers: { "X-Barrels-Organisation": string };
     }
   ) => Promise<T>,
@@ -109,7 +109,7 @@ async function run<T>(
   }
   try {
     const data = await call({
-      ...apiOptions(context.accessToken),
+      ...(await apiOptions(context.accessToken)),
       headers: { "X-Barrels-Organisation": context.organisationId },
     });
     for (const path of paths) {
@@ -133,7 +133,7 @@ const paymentInput = z.object({
 /** Display only: the ISO code used to word an amount in an error message. */
 const currencyCode = z
   .string()
-  .regex(/^[A-Z]{3}$/)
+  .regex(/^[A-Z]{3}$/u)
   .optional();
 
 /** Staff received cash or a bank transfer for a waiting order; tickets issue now. */
@@ -260,7 +260,7 @@ export async function cancelEventWithRefund(
     try {
       const organiser = await chosenOrganiser();
       const result = await eventsCancelEvent({
-        ...apiOptions(session.accessToken),
+        ...(await apiOptions(session.accessToken)),
         path: { listing_id: id },
         query: organiser ? { organiser } : {},
         body: { confirm: true, refund: choice },

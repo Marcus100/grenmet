@@ -51,7 +51,7 @@ export function SettingsCheck({
   return (
     <Label className="min-h-11 items-center gap-3">
       <input
-        className="size-5 accent-primary"
+        className="accent-primary size-5"
         defaultChecked={defaultChecked}
         name={name}
         type="checkbox"
@@ -78,7 +78,7 @@ export function SettingsResult({
   if (state.status === "error") {
     return (
       <div
-        className="space-y-1 rounded-lg border border-destructive/40 bg-destructive/10 p-3"
+        className="border-destructive/40 bg-destructive/10 space-y-1 rounded-lg border p-3"
         ref={ref}
         role="alert"
         tabIndex={-1}
@@ -92,7 +92,7 @@ export function SettingsResult({
     <div ref={ref} role="status" tabIndex={-1}>
       {pending ? <span className="sr-only">Saving</span> : null}
       {state.status === "done" ? (
-        <p className="rounded-lg border border-border bg-muted p-3 font-medium">
+        <p className="border-border bg-muted rounded-lg border p-3 font-medium">
           {state.message}
         </p>
       ) : null}

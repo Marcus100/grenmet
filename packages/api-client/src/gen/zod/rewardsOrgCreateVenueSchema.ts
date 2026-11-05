@@ -4,6 +4,7 @@
  */
 
 import * as z from "zod";
+import { apiErrorSchema } from "./apiErrorSchema.js";
 import { rewardsVenueCreateSchema } from "./rewardsVenueCreateSchema.js";
 import { rewardsVenuePublicSchema } from "./rewardsVenuePublicSchema.js";
 import { validationErrorResponseSchema } from "./validationErrorResponseSchema.js";
@@ -20,15 +21,25 @@ export const rewardsOrgCreateVenueStatus201Schema =
     "A venue. The signing secret is never returned."
   );
 
-export const rewardsOrgCreateVenueStatus400Schema = z.unknown();
+export const rewardsOrgCreateVenueStatus400Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
-export const rewardsOrgCreateVenueStatus401Schema = z.unknown();
+export const rewardsOrgCreateVenueStatus401Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
-export const rewardsOrgCreateVenueStatus403Schema = z.unknown();
+export const rewardsOrgCreateVenueStatus403Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
-export const rewardsOrgCreateVenueStatus404Schema = z.unknown();
+export const rewardsOrgCreateVenueStatus404Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
-export const rewardsOrgCreateVenueStatus409Schema = z.unknown();
+export const rewardsOrgCreateVenueStatus409Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
 export const rewardsOrgCreateVenueStatus422Schema =
   validationErrorResponseSchema.describe(

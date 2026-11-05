@@ -16,6 +16,26 @@ For infrastructure commands (Postgres, FastAPI, Docker): see the
 
 Run `pnpm start` and `pnpm dev:web:*` on the host, not in the devcontainer.
 
+## Shared task cache
+
+Turborepo results (type-check, lint, tests, builds) are shared between CI and local
+runs through a signed remote cache (ADR-0053; CI uses short-lived tokens on trusted
+branches, never on pull requests), so a check that already passed on `dev` is
+replayed locally instead of rerun. To use it on a machine, once:
+
+1. `pnpm exec turbo login`, then `pnpm exec turbo link` in the main checkout
+   (choose the team that owns the repository's Vercel projects).
+2. Export the team for worktrees, which have no link file:
+   `export TURBO_TEAM=<team slug>` in your shell profile.
+3. Export the signing key from a private file outside the repository:
+   `export TURBO_REMOTE_CACHE_SIGNATURE_KEY="$(cat ~/.config/grenmet/turbo-signature-key)"`.
+   Without the key, runs still work; they just cannot trust remote results.
+4. Make local runs read-only: `export TURBO_CACHE=local:rw,remote:r`. Only CI
+   publishes to the remote cache, so a result from unreviewed local code is never
+   replayed in CI. The `turbo login` token is a user token; keep it to this machine.
+
+The token and key are the owner's; never commit them or put them in an env file.
+
 ## Apps at a glance
 
 | App | Command | Port | Needs FastAPI? | Notes |
@@ -89,6 +109,40 @@ browser is missing, run `pnpm exec playwright install chromium` once from an app
 directory; it downloads into `~/.cache/ms-playwright`, outside the repository. The
 `auth` app's older suite needs real sign-in credentials and is not part of
 `pnpm e2e`.
+
+## Pinned lint and client-generator versions
+
+The versions live in the `catalog:` block of `pnpm-workspace.yaml`; read them there
+rather than from this page. At the time of writing:
+
+| Tool | Catalog entry | Why it is pinned this way |
+| --- | --- | --- |
+| Biome | `"@biomejs/biome": "~2.6.4"` | `~` allows patch updates only; a minor release can add rules. |
+| Ultracite | `ultracite: "8.1.0"` | Exact. `biome.jsonc` extends `ultracite/biome/core`, `/react` and `/next`, so a new Ultracite version changes the rule set. Ultracite 8.1 needs Biome 2.6.2 or newer. |
+| Kubb (API client generator) | `kubb`, `@kubb/adapter-oas`, `@kubb/parser-ts` at 5.14.3; `@kubb/plugin-fetch` 5.9.2, `@kubb/plugin-react-query` 5.6.2, `@kubb/plugin-ts` 5.2.0, `@kubb/plugin-zod` 5.7.2 | Exact, so `packages/api-client/src/gen/` only changes when a version is bumped on purpose. The plugins version independently of Kubb core, so each keeps its own number. |
+
+Biome must stay at 2.6 or newer: `biome.jsonc` has a top-level `yaml` key (YAML
+formatting is switched off), which older Biome versions reject.
+
+To upgrade Biome or Ultracite:
+
+1. Change the catalog entry (catalog mode is strict, so no version goes in a package's
+   own `package.json`) and run `pnpm install`. If the new version is younger than the
+   release-age policy, `minimumReleaseAgeExclude` in `pnpm-workspace.yaml` needs an
+   entry for that exact version.
+2. Run `pnpm exec ultracite fix` and read the diff. Apply only the safe fixes it
+   makes; turn a new rule off in `biome.jsonc` (with a note) only when it needs a
+   per-site judgement that does not belong in the upgrade commit.
+3. Run `pnpm check:ci` and `pnpm type-check`.
+4. Commit the lockfile, the catalog change and the fixes together, as `chore(lint): ...`.
+
+To upgrade Kubb or one of its plugins:
+
+1. Change the catalog entries together in `pnpm-workspace.yaml` and run `pnpm install`.
+2. Run `pnpm generate:api-client`, then `pnpm check:drift`. A pure pin with no
+   output change should leave `packages/api-client/src/gen/` unchanged; if the output
+   does change, review the diff as a contract change (`pnpm check:api-breaking`).
+3. Never hand-edit `packages/api-client/src/gen/`.
 
 ## Special app notes
 

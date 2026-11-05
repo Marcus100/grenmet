@@ -1,0 +1,26 @@
+    {% if advisories %}
+    <section class="advisories">
+      <h2 class="eyebrow">Alerts and advisories in force</h2>
+      <div class="alert-grid">
+        {% for item in advisories %}
+        <article class="alert">
+          <div class="alert-head risk-{{ item.colour or 'grey' }}">
+            {{ icon("triangle-alert", "alert-icon", tone_for(item.colour)) }}
+            <div>
+              <strong>{{ (colour_names.get(item.colour, "") ~ " " ~ item.product) | trim | upper }}</strong>
+              <span>{{ item.title }}</span>
+            </div>
+          </div>
+          <div class="alert-body">
+            <h3>Impact</h3>
+            <p>{{ item.impacts or "—" }}</p>
+            <h3>Response</h3>
+            <p>{{ item.response or "—" }}</p>
+          </div>
+          <div class="alert-foot"><b>Valid</b> {{ item.valid }}<span>{{ item.reference }}</span></div>
+        </article>
+        {% endfor %}
+      </div>
+      <p class="note">Summary only. CAP alerts and GMS hazard bulletins are the authoritative warnings; see weather.gd for current details.</p>
+    </section>
+    {% endif %}

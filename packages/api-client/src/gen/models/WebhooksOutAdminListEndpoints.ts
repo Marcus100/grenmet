@@ -3,6 +3,7 @@
  * Do not edit manually.
  */
 
+import type { ApiError } from "./ApiError.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 import type { WebhookEndpointList } from "./WebhookEndpointList.js";
 
@@ -28,13 +29,29 @@ export type WebhooksOutAdminListEndpointsQuery = {
 
 export type WebhooksOutAdminListEndpointsStatus200 = WebhookEndpointList;
 
-export type WebhooksOutAdminListEndpointsStatus400 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type WebhooksOutAdminListEndpointsStatus400 = ApiError;
 
-export type WebhooksOutAdminListEndpointsStatus401 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type WebhooksOutAdminListEndpointsStatus401 = ApiError;
 
-export type WebhooksOutAdminListEndpointsStatus403 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type WebhooksOutAdminListEndpointsStatus403 = ApiError;
 
-export type WebhooksOutAdminListEndpointsStatus404 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type WebhooksOutAdminListEndpointsStatus404 = ApiError;
 
 /**
  * @description Validation error envelope returned for malformed requests.

@@ -6,8 +6,8 @@ import type { Outlet, Till } from "@/domain/types";
 import { OutletConsole } from "./outlet-console";
 
 const push = vi.fn();
-const GENERAL = /General/;
-const CASH_RECEIVED = /Cash received/;
+const GENERAL = /General/u;
+const CASH_RECEIVED = /Cash received/u;
 
 vi.mock("@/data/actions", () => ({
   closeTill: vi.fn(),

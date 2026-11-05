@@ -2,8 +2,8 @@ import { render, screen } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { LISTING_ID, makeOrderRow } from "@/test/org-factories";
 
-const RE_1 = /No orders/;
-const RE_2 = /isn't linked/;
+const RE_1 = /No orders/u;
+const RE_2 = /isn't linked/u;
 
 const getManagedOrganiser = vi.fn();
 const resolveOrgContext = vi.fn();

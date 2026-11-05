@@ -4,6 +4,7 @@
  */
 
 import * as z from "zod";
+import { apiErrorSchema } from "./apiErrorSchema.js";
 import { publicHolidayCreateSchema } from "./publicHolidayCreateSchema.js";
 import { publicHolidayPublicSchema } from "./publicHolidayPublicSchema.js";
 import { validationErrorResponseSchema } from "./validationErrorResponseSchema.js";
@@ -12,9 +13,13 @@ export const hrCreateHolidayStatus200Schema = z.unknown();
 
 export const hrCreateHolidayStatus201Schema = publicHolidayPublicSchema;
 
-export const hrCreateHolidayStatus400Schema = z.unknown();
+export const hrCreateHolidayStatus400Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
-export const hrCreateHolidayStatus403Schema = z.unknown();
+export const hrCreateHolidayStatus403Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
 export const hrCreateHolidayStatus422Schema =
   validationErrorResponseSchema.describe(

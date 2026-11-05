@@ -4,6 +4,7 @@
  */
 
 import * as z from "zod";
+import { apiErrorSchema } from "./apiErrorSchema.js";
 import { notificationPublicSchema } from "./notificationPublicSchema.js";
 import { validationErrorResponseSchema } from "./validationErrorResponseSchema.js";
 
@@ -13,7 +14,8 @@ export const notificationsMarkNotificationReadPathNotificationIdSchema =
 export const notificationsMarkNotificationReadStatus200Schema =
   notificationPublicSchema;
 
-export const notificationsMarkNotificationReadStatus404Schema = z.unknown();
+export const notificationsMarkNotificationReadStatus404Schema =
+  apiErrorSchema.describe("Stable error envelope for documented API failures.");
 
 export const notificationsMarkNotificationReadStatus422Schema =
   validationErrorResponseSchema.describe(

@@ -3,13 +3,19 @@
  * Do not edit manually.
  */
 
+import type { ApiError } from "./ApiError.js";
 import type { BodyAuthLoginAccessToken } from "./BodyAuthLoginAccessToken.js";
+import type { ErrorMessage } from "./ErrorMessage.js";
 import type { Token } from "./Token.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 
 export type AuthLoginAccessTokenStatus200 = Token;
 
-export type AuthLoginAccessTokenStatus400 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type AuthLoginAccessTokenStatus400 = ApiError;
 
 /**
  * @description Validation error envelope returned for malformed requests.
@@ -17,7 +23,7 @@ export type AuthLoginAccessTokenStatus400 = unknown;
  */
 export type AuthLoginAccessTokenStatus422 = ValidationErrorResponse;
 
-export type AuthLoginAccessTokenStatus429 = unknown;
+export type AuthLoginAccessTokenStatus429 = ApiError | ErrorMessage;
 
 export type AuthLoginAccessTokenBody = BodyAuthLoginAccessToken;
 

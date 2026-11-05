@@ -5,12 +5,15 @@
 
 import * as z from "zod";
 import { activationConfirmSchema } from "./activationConfirmSchema.js";
+import { apiErrorSchema } from "./apiErrorSchema.js";
 import { messageSchema } from "./messageSchema.js";
 import { validationErrorResponseSchema } from "./validationErrorResponseSchema.js";
 
 export const authConfirmActivationStatus200Schema = messageSchema;
 
-export const authConfirmActivationStatus400Schema = z.unknown();
+export const authConfirmActivationStatus400Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
 export const authConfirmActivationStatus422Schema =
   validationErrorResponseSchema.describe(

@@ -11,9 +11,9 @@ export function FlagStripe({ className }: { className?: string }) {
       className={cn("flex h-1 w-full", className)}
       data-testid="flag-stripe"
     >
-      <span className="flex-1 bg-el-flag-red" />
-      <span className="flex-1 bg-el-flag-gold" />
-      <span className="flex-1 bg-el-flag-green" />
+      <span className="bg-el-flag-red flex-1" />
+      <span className="bg-el-flag-gold flex-1" />
+      <span className="bg-el-flag-green flex-1" />
     </div>
   );
 }

@@ -4,6 +4,7 @@
  */
 
 import * as z from "zod";
+import { apiErrorSchema } from "./apiErrorSchema.js";
 import { paymentCheckoutPublicSchema } from "./paymentCheckoutPublicSchema.js";
 import { paymentIntentCreateSchema } from "./paymentIntentCreateSchema.js";
 import { validationErrorResponseSchema } from "./validationErrorResponseSchema.js";
@@ -20,15 +21,25 @@ export const paymentsCreateIntentStatus201Schema =
     "A new intent and, for an online rail, where to send the payer."
   );
 
-export const paymentsCreateIntentStatus400Schema = z.unknown();
+export const paymentsCreateIntentStatus400Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
-export const paymentsCreateIntentStatus401Schema = z.unknown();
+export const paymentsCreateIntentStatus401Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
-export const paymentsCreateIntentStatus403Schema = z.unknown();
+export const paymentsCreateIntentStatus403Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
-export const paymentsCreateIntentStatus404Schema = z.unknown();
+export const paymentsCreateIntentStatus404Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
-export const paymentsCreateIntentStatus409Schema = z.unknown();
+export const paymentsCreateIntentStatus409Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
 export const paymentsCreateIntentStatus422Schema =
   validationErrorResponseSchema.describe(

@@ -4,6 +4,7 @@
  */
 
 import * as z from "zod";
+import { apiErrorSchema } from "./apiErrorSchema.js";
 import { attendanceReviewPublicSchema } from "./attendanceReviewPublicSchema.js";
 import { validationErrorResponseSchema } from "./validationErrorResponseSchema.js";
 
@@ -18,13 +19,21 @@ export const hrGetAttendanceReviewQueryCorrectionIdSchema = z
 export const hrGetAttendanceReviewStatus200Schema =
   attendanceReviewPublicSchema;
 
-export const hrGetAttendanceReviewStatus400Schema = z.unknown();
+export const hrGetAttendanceReviewStatus400Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
-export const hrGetAttendanceReviewStatus403Schema = z.unknown();
+export const hrGetAttendanceReviewStatus403Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
-export const hrGetAttendanceReviewStatus404Schema = z.unknown();
+export const hrGetAttendanceReviewStatus404Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
-export const hrGetAttendanceReviewStatus409Schema = z.unknown();
+export const hrGetAttendanceReviewStatus409Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
 export const hrGetAttendanceReviewStatus422Schema =
   validationErrorResponseSchema.describe(

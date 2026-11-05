@@ -36,8 +36,83 @@ reconciling an upstream release.
 | `fsspec` | 2025.12.0 | 2026.6.0 | Dependabot #391 | Transitive via `pyiceberg` |
 | `multidict` | 6.7.0 | 6.9.1 | Dependabot #393 | Transitive via `yarl` |
 
-The transitive pins are edited in place in the pip-compiled `requirements.txt`.
-If you re-run `pip-compile`, keep these versions as lower bounds.
+The transitive pins were first edited in place in the pip-compiled
+`requirements.txt`. The lock was then re-resolved with `pip-compile` for #722
+step 1, and those versions held (they are all still at or above the values
+above). If you re-run `pip-compile`, keep these versions as lower bounds.
+
+### Upgrade pins (#722)
+
+Step 1 moved SURFACE from Django 3.2.13 to Django 4.2. Step 2 moved it to
+Django 5.2 LTS (`>=5.2.8,<5.3`, resolved 5.2.18; supported to April 2028) and
+the database to PostgreSQL 17, because Django 5.2 needs PostgreSQL 14 or newer.
+
+| Package | Upstream | Ours | Note |
+| --- | --- | --- | --- |
+| `Django` | 3.2.13 | 5.2.18 | LTS |
+| Database image | `timescaledb-postgis:2.3.0-pg13` | `timescaledb-ha:pg17.11-ts2.31.0` (digest-pinned) | PostgreSQL 17.11, TimescaleDB 2.31.0, PostGIS 3.6.4. The old image line stopped at pg13. Runs as uid 1000 with data under `/home/postgres/pgdata/data`; `PGDATA` in the SURFACE env file must sit inside that mount |
+| `djangorestframework`, `djangorestframework-simplejwt`, `django-celery-beat`, `django-cors-headers`, `django-import-export` (4.x), `django-simple-history`, `celery`, `kombu`, `amqp`, `redis`, `requests`, `gunicorn`, `psycopg2-binary` | older | see `requirements.in` | Raised to versions that support Django 5.2 or carry security fixes |
+| `Pillow`, `anyio`, `lxml`, `soupsieve`, `sqlparse`, `urllib3`, `cryptography`, `geopandas` | older | see `requirements.in` | Security floors from Dependabot advisories |
+| `pymemcache` | `python-memcached` | 4.0.0 | Replaces `python-memcached`; Django 4.1 removed `MemcachedCache` (settings use `PyMemcacheCache`) |
+| `django-colorfield` | 0.4.5 | 0.14.x | `ColorField` max_length 18 to 25; migration `wx/0078` widens the two columns |
+| `django-material` | 1.10.0 | 1.12.0 | Unmaintained (merged into django-viewflow); works on 5.2 in the smoke run below, replace when SURFACE's UI is reworked |
+| `django-timescaledb` | 0.2.12 | 0.2.13 | Last release 2023; works on 5.2 and TimescaleDB 2.31 in the smoke run below |
+| `django-ckeditor` | 6.7.1 | removed | Bundled CKEditor 4 was end of life (#803). The six rich-text fields are plain `TextField`s with plain text boxes; migration `wx/0079` converts stored HTML to plain text once. It is not reversible: take a database dump (`pg_dump`, or a copy of the `data/postgresql` volume) before running `migrate`, and old migrations reference `models.TextField` |
+
+HTTPS hardening (#904): session and CSRF cookies are Secure and HSTS is sent, in
+`tempestas_api/settings.py`. Only an explicit `SURFACE_SECURE_COOKIES` of `0`,
+`false`, `no` or `off` (any case) turns Secure cookies off; unset, empty or a typo
+such as `ture` keeps them on (the last two log a warning). `SURFACE_HSTS_SECONDS`
+defaults to 3600 and must be a whole number, zero or more, or startup stops; ramp
+it to one year as `api/production.env.example` describes. No includeSubDomains or
+preload. The local `docker-compose.yml` serves plain HTTP, so its `api` service
+sets `SURFACE_SECURE_COOKIES=False` (override with `SURFACE_SECURE_COOKIES=True`
+in the shell or the compose `.env` when fronting it with HTTPS); the production
+stack (`infra/weather/docker-compose.surface.yml`) does not set it. Any other
+plain-HTTP deployment must set it itself or sign-in fails with a CSRF error.
+
+Django 5 code changes: sign-out in `templates/base.html` is a POST form
+(`LogoutView` no longer accepts GET), and the unused `USE_L10N` setting is gone.
+
+Step 2 verification (host, Docker): built `Dockerfile.deploy`; `manage.py check`
+clean (the CKEditor warning was removed with the editor in #803); `makemigrations --check` clean; all `wx`
+migrations applied to an empty PostgreSQL 17 database and the `raw_data`
+hypertable was created; `wx.tests` pass (7); a CSRF-enforced client signed in,
+loaded the station map, admin, station admin, variable export and API root, got
+405 from GET logout and signed out with POST. The `backup_postgres` task's
+`pg_basebackup` call (same arguments, as `dba` on the `172.25.0.0/16` network
+that `pg_hba.custom.conf` allows) produced a PostgreSQL 17 base backup;
+`Dockerfile.deploy` installs the PostgreSQL 17 client for this because the base
+image's Debian client is 15. `surface/docker-compose.yml` now builds its app
+services from `Dockerfile.deploy` too, so the dev stack runs the locked pins
+instead of the old base image. An existing pg13 data directory
+does not start on the new image: dump and restore it (no live SURFACE host
+existed when this changed).
+
+`Dockerfile.deploy` now installs `api/requirements.txt` on top of the upstream
+`surface-base` image; before that the pins never reached a running container.
+
+CKEditor removal (#803) verification (host, Docker): built `Dockerfile.deploy`
+(which now also uninstalls `django-ckeditor` and `django-js-asset`, because the
+upstream base image still ships them); `manage.py check` has no warnings and
+`makemigrations --check` finds no changes; `migrate` applied `wx/0079` on a
+PostgreSQL 17 database; the six columns are still `text`; `wx.tests` pass (18);
+a CSRF-enforced client signed in and loaded the station map, admin, the
+maintenance report list, the new-report form and a report whose text fields held
+`<script>` and `<img onerror>` strings, which rendered escaped.
+
+**CI gate (#805).** `.github/workflows/ci-surface.yml`, called from `ci-api.yml`,
+builds `Dockerfile.deploy` (not pushed) and runs, inside that image against the
+`timescaledb-ha` image from `docker-compose.yml`: `manage.py check --fail-level
+WARNING`, `check --deploy`, `makemigrations --check --dry-run` and `manage.py
+test` (which applies every migration to a fresh database). `CI Success` requires it
+only when `scripts/ci/select-images.mjs` selects SURFACE: a change under
+`surface/` or to that workflow, including on promotion PRs. `check --deploy`
+warnings that are accepted by design (W005, W008, W021) are listed with their reasons in
+`surface/ci/deploy-check-accepted.txt`; the job fails on an unlisted warning and on a
+listed one that no longer appears. No tests are skipped. Host verification with
+`docker-compose.yml` is still the check for the running stack (sign-in, pages,
+Celery).
 
 ## wis2box/
 

@@ -4,6 +4,7 @@
  */
 
 import * as z from "zod";
+import { apiErrorSchema } from "./apiErrorSchema.js";
 import { paymentBalanceListPublicSchema } from "./paymentBalanceListPublicSchema.js";
 import { validationErrorResponseSchema } from "./validationErrorResponseSchema.js";
 
@@ -16,9 +17,13 @@ export const paymentsGetBalanceHeaderXBarrelsOrganisationSchema = z
 
 export const paymentsGetBalanceStatus200Schema = paymentBalanceListPublicSchema;
 
-export const paymentsGetBalanceStatus401Schema = z.unknown();
+export const paymentsGetBalanceStatus401Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
-export const paymentsGetBalanceStatus403Schema = z.unknown();
+export const paymentsGetBalanceStatus403Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
 export const paymentsGetBalanceStatus422Schema =
   validationErrorResponseSchema.describe(

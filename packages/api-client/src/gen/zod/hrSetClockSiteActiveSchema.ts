@@ -4,6 +4,7 @@
  */
 
 import * as z from "zod";
+import { apiErrorSchema } from "./apiErrorSchema.js";
 import { clockSiteActiveSchema } from "./clockSiteActiveSchema.js";
 import { clockSitePublicSchema } from "./clockSitePublicSchema.js";
 import { validationErrorResponseSchema } from "./validationErrorResponseSchema.js";
@@ -12,9 +13,13 @@ export const hrSetClockSiteActivePathSiteIdSchema = z.uuid();
 
 export const hrSetClockSiteActiveStatus200Schema = clockSitePublicSchema;
 
-export const hrSetClockSiteActiveStatus403Schema = z.unknown();
+export const hrSetClockSiteActiveStatus403Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
-export const hrSetClockSiteActiveStatus404Schema = z.unknown();
+export const hrSetClockSiteActiveStatus404Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
 export const hrSetClockSiteActiveStatus422Schema =
   validationErrorResponseSchema.describe(

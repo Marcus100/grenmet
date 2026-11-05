@@ -17,6 +17,7 @@ import type {
   HrPublishPeriodStatus400,
   HrPublishPeriodStatus403,
   HrPublishPeriodStatus404,
+  HrPublishPeriodStatus409,
   HrPublishPeriodStatus422,
 } from "../models/HrPublishPeriod.js";
 
@@ -35,20 +36,26 @@ export function hrPublishPeriodMutationOptions<TContext = unknown>(
       | HrPublishPeriodStatus400
       | HrPublishPeriodStatus403
       | HrPublishPeriodStatus404
+      | HrPublishPeriodStatus409
       | HrPublishPeriodStatus422
     >,
     HrPublishPeriodOptions,
     TContext
   >({
     mutationKey,
-    mutationFn: async ({ path }) => {
-      return hrPublishPeriod({ ...config, path, throwOnError: true }).unwrap();
+    mutationFn: async ({ path, body }) => {
+      return hrPublishPeriod({
+        ...config,
+        path,
+        body,
+        throwOnError: true,
+      }).unwrap();
     },
   });
 }
 
 /**
- * @description Transition a draft roster period to published. Roster rule warnings are recorded on the published revision and never block publishing. Requires roster.manage permission.
+ * @description Transition a draft roster period to published. If the roster breaks a roster rule the request fails with 409 and the warnings; resend with rule_override_reason to publish anyway (recorded with the supervisor and the rules). Requires roster.manage permission.
  * @summary Publish roster period
  * {@link /api/v1/hr/rosters/periods/:period_id/publish}
  */
@@ -60,6 +67,7 @@ export function useHrPublishPeriod<TContext>(
         | HrPublishPeriodStatus400
         | HrPublishPeriodStatus403
         | HrPublishPeriodStatus404
+        | HrPublishPeriodStatus409
         | HrPublishPeriodStatus422
       >,
       HrPublishPeriodOptions,
@@ -83,6 +91,7 @@ export function useHrPublishPeriod<TContext>(
       | HrPublishPeriodStatus400
       | HrPublishPeriodStatus403
       | HrPublishPeriodStatus404
+      | HrPublishPeriodStatus409
       | HrPublishPeriodStatus422
     >,
     HrPublishPeriodOptions,
@@ -95,6 +104,7 @@ export function useHrPublishPeriod<TContext>(
       | HrPublishPeriodStatus400
       | HrPublishPeriodStatus403
       | HrPublishPeriodStatus404
+      | HrPublishPeriodStatus409
       | HrPublishPeriodStatus422
     >,
     HrPublishPeriodOptions,
@@ -112,6 +122,7 @@ export function useHrPublishPeriod<TContext>(
       | HrPublishPeriodStatus400
       | HrPublishPeriodStatus403
       | HrPublishPeriodStatus404
+      | HrPublishPeriodStatus409
       | HrPublishPeriodStatus422
     >,
     HrPublishPeriodOptions,

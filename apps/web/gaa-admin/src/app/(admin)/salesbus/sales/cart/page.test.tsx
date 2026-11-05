@@ -23,8 +23,8 @@ import { CartProvider, useCart } from "@/lib/salesbus/cart-store";
 import CartPage from "./page";
 
 const BASE = "http://localhost";
-const SAVE_AS_DRAFT = /SAVE AS DRAFT/;
-const SUBMIT_FOR_APPROVAL = /SUBMIT FOR APPROVAL/;
+const SAVE_AS_DRAFT = /SAVE AS DRAFT/u;
+const SUBMIT_FOR_APPROVAL = /SUBMIT FOR APPROVAL/u;
 const PEN = "22222222-2222-4222-8222-222222222222";
 
 let received: unknown;

@@ -67,7 +67,7 @@ export default async function SectionPage({
           ))}
         </div>
         {pages.length === 0 && (
-          <p className="py-16 text-center text-gaa-muted">
+          <p className="text-gaa-muted py-16 text-center">
             Content for this section is on its way.
           </p>
         )}

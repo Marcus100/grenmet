@@ -34,7 +34,7 @@ export function StoryImage({
           src={image.src}
         />
       </div>
-      <figcaption className="mt-2 text-signal-muted text-xs leading-relaxed">
+      <figcaption className="text-signal-muted mt-2 text-xs leading-relaxed">
         {image.caption}{" "}
         <a className="underline underline-offset-2" href={image.source}>
           {image.credit}

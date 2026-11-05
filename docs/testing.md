@@ -31,7 +31,7 @@ current behavior as correct. Track unknown requirements explicitly.
 | Payload CMS | Access rules, real database editorial workflows, migrations, public content and media behavior |
 | Configuration-only packages | Consumer type checks, configuration validation and runtime image checks; no artificial unit suite required |
 | Collectors | Existing pytest/unittest suites with recorded or synthetic weather input, temporary output and simulated network/hardware failures |
-| SURFACE | Its Django test suite and dedicated PostGIS integration checks for maintained custom behavior |
+| SURFACE | Its Django test suite and dedicated PostGIS integration checks for maintained custom behavior; CI runs them in the built deploy image when SURFACE changes (`.github/workflows/ci-surface.yml`, see `VENDORED.md`) |
 | wis2box | Configuration and supported runtime ingestion/publication/recovery checks; software runs from upstream images |
 | geonetcast and notebooks | Representative input/output and scientific invariants for operational transformations; classify exploratory notebooks separately |
 | Repository scripts | Existing Node/Python tests for guardrails, environment rendering, migration orchestration, backups and verification lifecycle |
@@ -136,8 +136,18 @@ Where each floor is enforced:
 
 ## CI test sharding
 
-CI splits the two slowest suites into parallel jobs on free runners. Every test
-still runs on every push; only wall time changes.
+CI splits the two slowest suites into parallel jobs on free runners; sharding
+only changes wall time.
+
+**Job scope.** On dev PRs and dev pushes, `selectJobs` in
+`scripts/ci/select-images.mjs` skips the test suites only when a diff touches
+nothing but documentation, root markdown, agent or editor configuration, or
+SURFACE (which has its own job). Code changes run both the API and web suites,
+because each side's tests read the other's files. Collector tests run only for
+collector sources, Python manifests or unrecognised paths. Promotion PRs, main
+pushes and deployment runs always run every suite. The gate jobs (`CI Success`,
+`Run Tests`, `Build Web Apps`) accept a skip only when the selection says the
+suite was not needed.
 
 - **API (`ci-api.yml`).** `test-shard` is a matrix of four jobs, each with its own
   Postgres service: `shard 1/3`, `2/3`, `3/3` and `fuzz`. Shards use

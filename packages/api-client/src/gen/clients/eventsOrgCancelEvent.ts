@@ -11,7 +11,7 @@ import type {
 } from "../models/EventsOrgCancelEvent.js";
 
 /**
- * @description Cancels a published event: every valid ticket is cancelled and members are notified. `refund` decides the money already paid online: `full`, `none` or `follow_policy` (default; an organiser-cancelled event is refunded in full). A refund that fails is counted in `refunds_failed` and can be retried from the order; it never undoes the cancel.
+ * @description Cancels a published event: every valid ticket is cancelled and members are notified. `refund` decides the money already paid online: `full`, `none` or `follow_policy` (default; an organiser-cancelled event is refunded in full). A refund that fails is counted in `refunds_failed` and can be retried from the order; it never undoes the cancel. An order whose earlier refund is still waiting for the payment provider is counted in `orders_pending`.
  * @summary Cancel an event
  * {@link /api/v1/events/org/events/:listing_id/cancel}
  */

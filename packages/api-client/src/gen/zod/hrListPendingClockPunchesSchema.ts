@@ -4,6 +4,7 @@
  */
 
 import * as z from "zod";
+import { apiErrorSchema } from "./apiErrorSchema.js";
 import { clockPunchesPublicSchema } from "./clockPunchesPublicSchema.js";
 import { validationErrorResponseSchema } from "./validationErrorResponseSchema.js";
 
@@ -24,7 +25,9 @@ export const hrListPendingClockPunchesQueryOffsetSchema = z
 export const hrListPendingClockPunchesStatus200Schema =
   clockPunchesPublicSchema;
 
-export const hrListPendingClockPunchesStatus403Schema = z.unknown();
+export const hrListPendingClockPunchesStatus403Schema = apiErrorSchema.describe(
+  "Stable error envelope for documented API failures."
+);
 
 export const hrListPendingClockPunchesStatus422Schema =
   validationErrorResponseSchema.describe(

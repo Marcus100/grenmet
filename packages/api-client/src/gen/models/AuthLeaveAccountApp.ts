@@ -4,6 +4,7 @@
  */
 
 import type { AccountSessionRequest } from "./AccountSessionRequest.js";
+import type { ApiError } from "./ApiError.js";
 import type { AppLeaveResult } from "./AppLeaveResult.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 
@@ -17,11 +18,23 @@ export type AuthLeaveAccountAppPath = {
 
 export type AuthLeaveAccountAppStatus200 = AppLeaveResult;
 
-export type AuthLeaveAccountAppStatus401 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type AuthLeaveAccountAppStatus401 = ApiError;
 
-export type AuthLeaveAccountAppStatus403 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type AuthLeaveAccountAppStatus403 = ApiError;
 
-export type AuthLeaveAccountAppStatus404 = unknown;
+/**
+ * @description Stable error envelope for documented API failures.
+ * @type object
+ */
+export type AuthLeaveAccountAppStatus404 = ApiError;
 
 /**
  * @description Validation error envelope returned for malformed requests.

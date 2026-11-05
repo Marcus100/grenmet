@@ -19,9 +19,9 @@ vi.mock("@barrelsgd/api-client", async (importOriginal) => ({
 
 const { getManagedAccess, getManagedOrganiser } = await import("./events-api");
 
-function forbidden(detail: string) {
+function forbidden(detail: string, code?: string) {
   return new ResponseError({
-    data: { detail },
+    data: code ? { detail, code } : { detail },
     status: 403,
     statusText: "",
     request: new Request("http://api.test"),
@@ -40,15 +40,27 @@ describe("getManagedAccess", () => {
     chosen.mockResolvedValue(undefined);
   });
 
-  it("tells 'Events switched off' apart from 'no organiser' by the API's real strings", async () => {
+  it("tells 'Events switched off' apart from 'no organiser' by the API's code", async () => {
     getManaged.mockReturnValue(
-      reject(forbidden("Barrels Events isn't enabled for this organisation"))
+      reject(
+        forbidden(
+          "Barrels Events isn't enabled for this organisation",
+          "EVENTS_NOT_ENABLED"
+        )
+      )
     );
     expect(await getManagedAccess()).toEqual({ kind: "events-disabled" });
     expect(await getManagedOrganiser()).toBeNull();
 
     getManaged.mockReturnValue(
       reject(forbidden("You're not a member of an organiser yet"))
+    );
+    expect(await getManagedAccess()).toEqual({ kind: "no-organiser" });
+  });
+
+  it("does not trust the wording of a 403 that carries no code", async () => {
+    getManaged.mockReturnValue(
+      reject(forbidden("Barrels Events isn't enabled for this organisation"))
     );
     expect(await getManagedAccess()).toEqual({ kind: "no-organiser" });
   });
@@ -65,7 +77,12 @@ describe("getManagedAccess", () => {
         reject(forbidden("You're not a member of an organiser yet"))
       )
       .mockReturnValueOnce(
-        reject(forbidden("Barrels Events isn't enabled for this organisation"))
+        reject(
+          forbidden(
+            "Barrels Events isn't enabled for this organisation",
+            "EVENTS_NOT_ENABLED"
+          )
+        )
       );
     expect(await getManagedAccess()).toEqual({ kind: "events-disabled" });
     expect(getManaged).toHaveBeenCalledTimes(2);
