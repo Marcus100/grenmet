@@ -4,13 +4,14 @@ import {
   CalendarDaysIcon,
   ChevronRightIcon,
   CloudSunIcon,
-  PlayIcon,
   TornadoIcon,
   WavesIcon,
 } from "lucide-react";
 import type { Route } from "next";
 import Image from "next/image";
 import Link from "next/link";
+import { CardPictureArea } from "@/components/home/card-picture";
+import { ClickToLoadMedia } from "@/components/home/click-to-load-media";
 import {
   SECTOR_CARD_WORDS,
   SectorDeskCard,
@@ -35,7 +36,9 @@ import {
 import { buildDeskFeed, type OfficialCard } from "@/lib/desk-feed";
 import { contentToArticle } from "@/lib/editorial";
 import { mediaEmbed } from "@/lib/media-embed";
+import { photoCredit } from "@/lib/photo-credit";
 import { fetchPublishedProducts } from "@/lib/products";
+import { redWarningIssuedAt } from "@/lib/red-warning";
 import { cn } from "@/lib/utils";
 
 /** The same bordered notice as "Grenada in data": one line, aligned to the heading. */
@@ -165,25 +168,30 @@ function DeskPostCard({ item }: { item: PublishedContent }) {
                 unoptimized={!isOptimizableImage(item.imageUrl)}
               />
             </span>
-            {item.imageCredit && (
-              <figcaption className="text-caption text-gm-text-muted leading-caption">
-                {item.imageCredit}
-              </figcaption>
-            )}
+            {/* Every picture carries its credit; a missing one reads "Photo: GMS". */}
+            <figcaption className="text-caption text-gm-text-muted leading-caption">
+              {photoCredit(item.imageCredit)}
+            </figcaption>
           </figure>
         )}
         {media && (
-          // Nothing loads from the provider until the reader follows the link.
-          <a
-            className="bg-gm-surface-panel text-body-sm text-gm-heading leading-body-sm flex w-fit items-center gap-2 rounded-full px-3 py-1.5 font-semibold hover:underline"
-            href={media.href}
-            rel="noopener noreferrer"
-            target="_blank"
-          >
-            <PlayIcon aria-hidden="true" className="size-4" />
-            {format === "audio" ? "Listen" : "Watch"} on {media.provider}
-            <span className="sr-only"> (opens in a new tab)</span>
-          </a>
+          <>
+            {/* Nothing loads from the provider until the reader presses play. */}
+            <ClickToLoadMedia
+              embed={media}
+              kind={format === "audio" ? "audio" : "video"}
+              title={item.title}
+            />
+            <a
+              className="text-body-sm text-gm-heading leading-body-sm w-fit font-semibold hover:underline"
+              href={media.href}
+              rel="noopener noreferrer"
+              target="_blank"
+            >
+              {format === "audio" ? "Listen" : "Watch"} on {media.provider}
+              <span className="sr-only"> (opens in a new tab)</span>
+            </a>
+          </>
         )}
         <Link
           className="text-body text-gm-blue-ink leading-body mt-auto flex w-fit items-center gap-1 font-semibold hover:underline"
@@ -200,8 +208,9 @@ function DeskPostCard({ item }: { item: PublishedContent }) {
 
 /**
  * An issued product as an official card: navy label, the product's own
- * summary, an illustration below the words, issue and validity times and a
- * link to the issued product. Official cards carry no emoji.
+ * summary, a picture below the words (the pinned desk post based on the
+ * product, else "No picture yet"), issue and validity times and a link to the
+ * issued product. Official cards carry no emoji.
  */
 const OFFICIAL_ICONS = {
   briefing: CloudSunIcon,
@@ -246,12 +255,7 @@ function OfficialProductCard({ card }: { card: OfficialCard }) {
             {card.summary}
           </p>
         )}
-        <span
-          aria-hidden="true"
-          className="bg-gm-surface-panel text-gm-sky-ink flex aspect-[16/9] items-center justify-center rounded-lg"
-        >
-          <Icon className="size-12" strokeWidth={1.5} />
-        </span>
+        <CardPictureArea icon={Icon} picture={card.picture} />
         <p className="bg-gm-surface text-body-sm text-gm-text-secondary leading-body-sm rounded-lg px-3 py-2 tabular-nums">
           {card.issued}
           {card.valid && <> · {card.valid}</>}
@@ -281,7 +285,8 @@ const ROW =
  * scrolls sideways. The latest public forecast is pinned first and the latest
  * Tropical Weather Outlook follows, both read live from FastAPI; then the
  * desk posts and report write-ups from the CMS, newest first. Under a red
- * warning the desk posts wait behind "Earlier posts" so the official words lead.
+ * warning, desk posts older than the warning wait behind "Earlier posts" so the
+ * official words lead; newer posts stay in the row.
  */
 export async function ForecastDesk() {
   if (await isSectionHidden("desk")) {
@@ -315,15 +320,23 @@ export async function ForecastDesk() {
     title: "From the Desk",
   });
   const showNotes = !settings.hiddenSections.includes("reports");
+  const level = alertsLevel(alerts);
+  // Only a red warning splits the posts, and only by its issue time (CAP `sent`).
+  const warningIssuedAt =
+    level === "take-action" ? await redWarningIssuedAt(alerts) : null;
   const feed = buildDeskFeed({
-    level: alertsLevel(alerts),
+    level,
     posts: [...updates.articles, ...(showNotes ? notes.articles : [])],
     products: products.products,
     productsAvailable: products.status === "ok",
+    warningIssuedAt,
   });
   const deskUnavailable =
     updates.status === "unavailable" && feed.official.length === 0;
   const postCards = feed.posts.map((item) => (
+    <DeskPostCard item={item} key={item.id} />
+  ));
+  const earlierCards = feed.earlierPosts.map((item) => (
     <DeskPostCard item={item} key={item.id} />
   ));
   return (
@@ -352,6 +365,7 @@ export async function ForecastDesk() {
         count={
           feed.official.length +
           feed.posts.length +
+          feed.earlierPosts.length +
           (feed.missingBriefing ? 1 : 0) +
           (sectorCard ? 1 : 0)
         }
@@ -394,15 +408,15 @@ export async function ForecastDesk() {
             <OfficialProductCard card={card} key={card.id} />
           ))}
           {sectorCard}
-          {!feed.collapsePosts && postCards}
+          {postCards}
         </ul>
-        {feed.collapsePosts && postCards.length > 0 && (
+        {earlierCards.length > 0 && (
           <details className="mt-3">
             <summary className="text-body text-gm-blue-ink leading-body cursor-pointer font-semibold">
-              Earlier posts ({postCards.length})
+              Earlier posts ({earlierCards.length})
             </summary>
             <ul aria-label="Earlier desk posts" className={cn(ROW, "mt-3")}>
-              {postCards}
+              {earlierCards}
             </ul>
           </details>
         )}
@@ -449,6 +463,9 @@ export async function Stories() {
                   unoptimized={!isOptimizableImage(lead.imageUrl)}
                 />
               </span>
+              <span className="text-caption text-gm-text-muted leading-caption">
+                {lead.imageCredit}
+              </span>
               <span className="text-gm-heading text-heading-base leading-heading-base font-bold text-balance group-hover:underline">
                 {lead.title}
               </span>
@@ -470,15 +487,20 @@ export async function Stories() {
                     className="group grid grid-cols-[7.5rem_minmax(0,1fr)] gap-3"
                     href={story.href as Route}
                   >
-                    <span className="bg-gm-surface-panel relative aspect-video overflow-hidden rounded-lg">
-                      <Image
-                        alt=""
-                        className="object-cover"
-                        fill
-                        sizes="120px"
-                        src={story.imageUrl}
-                        unoptimized={!isOptimizableImage(story.imageUrl)}
-                      />
+                    <span className="flex flex-col gap-1">
+                      <span className="bg-gm-surface-panel relative aspect-video overflow-hidden rounded-lg">
+                        <Image
+                          alt=""
+                          className="object-cover"
+                          fill
+                          sizes="120px"
+                          src={story.imageUrl}
+                          unoptimized={!isOptimizableImage(story.imageUrl)}
+                        />
+                      </span>
+                      <span className="text-caption text-gm-text-muted leading-caption">
+                        {story.imageCredit}
+                      </span>
                     </span>
                     <span className="flex flex-col gap-1">
                       <span className="text-body-base text-gm-heading leading-body-base font-bold group-hover:underline">

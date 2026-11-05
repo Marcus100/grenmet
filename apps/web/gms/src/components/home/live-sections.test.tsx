@@ -1,4 +1,4 @@
-import { cleanup, render, screen } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
 import {
   avatarInitials,
@@ -6,7 +6,7 @@ import {
   ForecastDesk,
   Stories,
 } from "@/components/home/live-sections";
-import { fetchActiveAlerts } from "@/lib/cap";
+import { fetchActiveAlerts, fetchPublicAlert } from "@/lib/cap";
 import { postedLabel } from "@/lib/clock";
 import {
   fetchHomeContent,
@@ -24,7 +24,10 @@ vi.mock("@/lib/products", () => ({
   fetchPublishedProducts: vi.fn(),
   fetchSectorOutlook: vi.fn(),
 }));
-vi.mock("@/lib/cap", () => ({ fetchActiveAlerts: vi.fn() }));
+vi.mock("@/lib/cap", () => ({
+  fetchActiveAlerts: vi.fn(),
+  fetchPublicAlert: vi.fn(),
+}));
 
 vi.mock("@/lib/cms", async (importOriginal) => {
   const actual = await importOriginal<typeof import("@/lib/cms")>();
@@ -342,7 +345,32 @@ it("leaves nothing behind when editors hide both the desk and the sector card", 
   expect(await ForecastDesk()).toBeNull();
 });
 
-it("keeps desk posts behind Earlier posts during a red warning", async () => {
+const RED_WARNING_ISSUED = "2026-10-31T12:00:00Z";
+
+/** A red (Extreme) warning in effect, with its CAP detail's issue time. */
+function redWarning(sent: string = RED_WARNING_ISSUED) {
+  vi.mocked(fetchActiveAlerts).mockResolvedValue({
+    status: "ok",
+    activeCount: 1,
+    groups: [
+      {
+        alerts: [
+          {
+            identifier: "red-1",
+            severity: "Extreme",
+            status: "Actual",
+          },
+        ],
+      } as unknown as HomeAlertGroup,
+    ],
+  });
+  vi.mocked(fetchPublicAlert).mockResolvedValue({
+    status: "ok",
+    alert: { identifier: "red-1", sent },
+  } as unknown as Awaited<ReturnType<typeof fetchPublicAlert>>);
+}
+
+it("keeps desk posts older than a red warning behind Earlier posts", async () => {
   vi.mocked(fetchHomeContent).mockResolvedValue({
     ...hidden([]),
     deskUpdates: { status: "ok", articles: [post({})] },
@@ -351,20 +379,64 @@ it("keeps desk posts behind Earlier posts during a red warning", async () => {
     status: "ok",
     products: [MIDDAY],
   });
-  vi.mocked(fetchActiveAlerts).mockResolvedValue({
-    status: "ok",
-    activeCount: 1,
-    groups: [
-      {
-        alerts: [{ severity: "Extreme", status: "Actual" }],
-      } as unknown as HomeAlertGroup,
-    ],
-  });
+  redWarning();
   render(await ForecastDesk());
   expect(screen.getByText("Earlier posts (1)")).toBeInTheDocument();
   expect(
     screen.getByRole("list", { name: "Latest from the forecast desk" })
   ).not.toHaveTextContent("Why the morning forecast changed");
+});
+
+it("keeps desk posts newer than a red warning visible under it", async () => {
+  vi.mocked(fetchHomeContent).mockResolvedValue({
+    ...hidden([]),
+    deskUpdates: {
+      status: "ok",
+      articles: [
+        post({
+          id: "new",
+          title: "Newer post",
+          slug: "updates/2026/11/new",
+          publishedAt: "2026-11-01T09:00:00Z",
+        }),
+        post({
+          id: "old",
+          title: "Older post",
+          slug: "updates/2026/10/old",
+          publishedAt: "2026-10-30T09:00:00Z",
+        }),
+      ],
+    },
+  });
+  redWarning();
+  render(await ForecastDesk());
+  expect(screen.getByText("Earlier posts (1)")).toBeInTheDocument();
+  const row = screen.getByRole("list", {
+    name: "Latest from the forecast desk",
+  });
+  expect(row).toHaveTextContent("Newer post");
+  expect(row).not.toHaveTextContent("Older post");
+  expect(
+    screen.getByRole("list", { name: "Earlier desk posts" })
+  ).toHaveTextContent("Older post");
+});
+
+it("puts every desk post behind Earlier posts when the red warning's time is unknown", async () => {
+  vi.mocked(fetchHomeContent).mockResolvedValue({
+    ...hidden([]),
+    deskUpdates: {
+      status: "ok",
+      articles: [
+        post({
+          publishedAt: "2026-11-01T09:00:00Z",
+        }),
+      ],
+    },
+  });
+  redWarning();
+  vi.mocked(fetchPublicAlert).mockResolvedValue({ status: "unavailable" });
+  render(await ForecastDesk());
+  expect(screen.getByText("Earlier posts (1)")).toBeInTheDocument();
 });
 
 it("shows the author's role, the post type, the picture credit and a click-to-open media link", async () => {
@@ -496,4 +568,124 @@ it("keeps a pinned desk post right after the official cards", async () => {
   expect(titles.indexOf("Pinned post")).toBeLessThan(
     titles.indexOf("Newest post")
   );
+});
+
+it("puts the picture of the pinned desk post based on a product on its official card", async () => {
+  vi.mocked(fetchHomeContent).mockResolvedValue({
+    ...hidden([]),
+    deskUpdates: {
+      status: "ok",
+      articles: [
+        post({
+          pinned: true,
+          basedOn: { productId: PRODUCT_ID, title: "Midday Forecast" },
+          imageUrl: "https://cms.example/media/rain-map.png",
+          imageAlt: "Rain map for the afternoon",
+          imageCredit: "Photo: Kendra Mitchell",
+        }),
+      ],
+    },
+  });
+  vi.mocked(fetchPublishedProducts).mockResolvedValue({
+    status: "ok",
+    products: [MIDDAY],
+  });
+  render(await ForecastDesk());
+  // The official card and the pinned desk post in the row both show it.
+  expect(screen.getAllByAltText("Rain map for the afternoon")).toHaveLength(2);
+  expect(screen.getAllByText("Photo: Kendra Mitchell")).toHaveLength(2);
+  // Only the sector card is left without a picture.
+  expect(screen.getAllByText("No picture yet")).toHaveLength(1);
+});
+
+it("says No picture yet on an official card and the sector card when no desk post is based on it", async () => {
+  vi.mocked(fetchHomeContent).mockResolvedValue({
+    ...hidden([]),
+    deskUpdates: { status: "ok", articles: [post({})] },
+  });
+  vi.mocked(fetchPublishedProducts).mockResolvedValue({
+    status: "ok",
+    products: [MIDDAY],
+  });
+  render(await ForecastDesk());
+  // The official card and the sector card each keep their picture area.
+  expect(screen.getAllByText("No picture yet")).toHaveLength(2);
+});
+
+it("credits every desk post picture, defaulting to Photo: GMS", async () => {
+  vi.mocked(fetchHomeContent).mockResolvedValue({
+    ...hidden([]),
+    deskUpdates: {
+      status: "ok",
+      articles: [
+        post({
+          imageUrl: "https://cms.example/media/rain.png",
+          imageAlt: "Rain",
+          imageCredit: null,
+        }),
+      ],
+    },
+  });
+  render(await ForecastDesk());
+  expect(screen.getByText("Photo: GMS")).toBeInTheDocument();
+});
+
+it("loads a desk post's video only when the reader presses play", async () => {
+  vi.mocked(fetchHomeContent).mockResolvedValue({
+    ...hidden([]),
+    deskUpdates: {
+      status: "ok",
+      articles: [
+        post({
+          format: "video",
+          mediaUrl: "https://youtu.be/dQw4w9WgXcQ",
+          title: "Rain briefing",
+        }),
+      ],
+    },
+  });
+  render(await ForecastDesk());
+  expect(document.querySelector("iframe")).toBeNull();
+  fireEvent.click(
+    screen.getByRole("button", { name: "Play video from YouTube" })
+  );
+  const frame = screen.getByTitle("Rain briefing");
+  expect(frame.tagName).toBe("IFRAME");
+  expect(frame).toHaveAttribute(
+    "src",
+    "https://www.youtube-nocookie.com/embed/dQw4w9WgXcQ"
+  );
+  expect(
+    screen.getByRole("link", { name: WATCH_ON_YOUTUBE })
+  ).toBeInTheDocument();
+});
+
+it("credits every story picture, and says Unsplash for the stock fallback", async () => {
+  const articles: PublishedContent[] = [
+    {
+      ...post({ id: "lead", slug: "stories/lead", title: "Lead story" }),
+      collection: "stories",
+      imageUrl: "https://cms.example/media/lead.jpg",
+      imageCredit: "Photo: Kendra Mitchell",
+    },
+    {
+      ...post({ id: "thumb", slug: "stories/thumb", title: "Thumb story" }),
+      collection: "stories",
+      imageUrl: "https://cms.example/media/thumb.jpg",
+      imageCredit: null,
+    },
+    {
+      ...post({ id: "stock", slug: "stories/stock", title: "Stock story" }),
+      collection: "stories",
+      imageUrl: null,
+    },
+  ];
+  vi.mocked(fetchHomeContent).mockResolvedValue({
+    ...hidden([]),
+    stories: { status: "ok", articles },
+  });
+  render(await Stories());
+  expect(screen.getByText("Photo: Kendra Mitchell")).toBeInTheDocument();
+  expect(screen.getByText("Photo: GMS")).toBeInTheDocument();
+  expect(screen.getByText("Photo: Unsplash")).toBeInTheDocument();
 });

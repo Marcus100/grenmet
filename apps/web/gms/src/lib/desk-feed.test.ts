@@ -39,6 +39,7 @@ const post = (id: string, publishedAt: string): PublishedContent => ({
 
 // 1 Nov 2026, 1:00 p.m. in Grenada.
 const NOW = new Date("2026-11-01T17:00:00Z");
+const EXPIRED_BRIEFING_NOTE = /^Expired .+ · next forecast due 6:00 p\.m\.$/u;
 
 describe("buildDeskFeed", () => {
   it("pins the newest public forecast, then the outlook, then posts newest first", () => {
@@ -69,10 +70,10 @@ describe("buildDeskFeed", () => {
     expect(feed.official[0]?.summary).toBe("Hazy.");
     expect(feed.official[1]?.summary).toBe("A wave near 55W.");
     expect(feed.posts.map((item) => item.id)).toEqual(["b", "a"]);
-    expect(feed.collapsePosts).toBe(false);
+    expect(feed.earlierPosts).toEqual([]);
   });
 
-  it("marks a product that is no longer current, should the API ever send one", () => {
+  it("says an expired briefing expired and when the next forecast is due", () => {
     const feed = buildDeskFeed({
       level: "none",
       now: new Date("2026-11-03T17:00:00Z"),
@@ -83,8 +84,27 @@ describe("buildDeskFeed", () => {
         }),
       ],
     });
-    expect(feed.official[0]?.staleNote).toBe("No longer in effect");
+    expect(feed.official[0]?.title).toBe("Midday Forecast");
+    expect(feed.official[0]?.staleNote).toMatch(EXPIRED_BRIEFING_NOTE);
+    expect(feed.official[0]?.staleNote).not.toContain("No longer in effect");
+    // The card stays, so the missing-forecast note does not repeat it.
     expect(feed.missingBriefing).toBeNull();
+  });
+
+  it("keeps the not-current note for the other products, should the API send one", () => {
+    const stale = buildDeskFeed({
+      level: "none",
+      now: new Date("2026-11-03T17:00:00Z"),
+      posts: [],
+      products: [
+        product("marine-forecast", "2026-11-01T09:00:00Z", {
+          issuedAt: "2026-11-01T05:00",
+          validFrom: "2026-11-01T05:00",
+          validTo: "2026-11-02T05:00",
+        }),
+      ],
+    });
+    expect(stale.official[0]?.staleNote).toBe("No longer in effect");
   });
 
   it("says when no public forecast is in effect, but only when the feed answered", () => {
@@ -128,18 +148,6 @@ describe("buildDeskFeed", () => {
       ],
     });
     expect(feed.official[0]?.title).toBe("Midday Forecast");
-  });
-
-  it("collapses desk posts only under a red (take action) warning", () => {
-    const posts = [post("a", "2026-11-01T12:00:00Z")];
-    expect(
-      buildDeskFeed({ level: "be-prepared", now: NOW, posts, products: [] })
-        .collapsePosts
-    ).toBe(false);
-    expect(
-      buildDeskFeed({ level: "take-action", now: NOW, posts, products: [] })
-        .collapsePosts
-    ).toBe(true);
   });
 
   it("puts pinned posts after the official cards, newest pinned first", () => {
@@ -224,6 +232,151 @@ describe("buildDeskFeed", () => {
   });
 });
 
+describe("red warning split of desk posts", () => {
+  // The red warning was issued at 1 Nov 2026, 8:00 a.m. in Grenada.
+  const WARNING_ISSUED = Date.parse("2026-11-01T12:00:00Z");
+  const older = post("older", "2026-11-01T06:00:00Z");
+  const newer = post("newer", "2026-11-01T14:00:00Z");
+
+  it("keeps posts older than the red warning behind Earlier posts, newer ones visible", () => {
+    const feed = buildDeskFeed({
+      level: "take-action",
+      now: NOW,
+      posts: [older, newer],
+      products: [],
+      warningIssuedAt: WARNING_ISSUED,
+    });
+    expect(feed.posts.map((item) => item.id)).toEqual(["newer"]);
+    expect(feed.earlierPosts.map((item) => item.id)).toEqual(["older"]);
+  });
+
+  it("puts every post behind Earlier posts when the warning's issue time is unknown", () => {
+    const feed = buildDeskFeed({
+      level: "take-action",
+      now: NOW,
+      posts: [older, newer],
+      products: [],
+      warningIssuedAt: null,
+    });
+    expect(feed.posts).toEqual([]);
+    expect(feed.earlierPosts.map((item) => item.id)).toEqual([
+      "newer",
+      "older",
+    ]);
+  });
+
+  it("splits nothing under a lesser warning, even with an issue time", () => {
+    for (const level of ["be-prepared", "be-aware", "none"] as const) {
+      const feed = buildDeskFeed({
+        level,
+        now: NOW,
+        posts: [older, newer],
+        products: [],
+        warningIssuedAt: WARNING_ISSUED,
+      });
+      expect(feed.earlierPosts).toEqual([]);
+      expect(feed.posts).toHaveLength(2);
+    }
+  });
+
+  it("treats a post published at the warning's issue time as newer, so it stays visible", () => {
+    const same = post("same", "2026-11-01T12:00:00Z");
+    const feed = buildDeskFeed({
+      level: "take-action",
+      now: NOW,
+      posts: [same],
+      products: [],
+      warningIssuedAt: WARNING_ISSUED,
+    });
+    expect(feed.posts.map((item) => item.id)).toEqual(["same"]);
+    expect(feed.earlierPosts).toEqual([]);
+  });
+
+  it("still lists the official cards first under a red warning", () => {
+    const feed = buildDeskFeed({
+      level: "take-action",
+      now: NOW,
+      posts: [newer],
+      products: [
+        product("morning", "2026-11-01T11:00:00Z", {
+          issuedAt: "2026-11-01T07:00",
+        }),
+      ],
+      warningIssuedAt: WARNING_ISSUED,
+    });
+    expect(feed.official.map((card) => card.kind)).toEqual(["briefing"]);
+    expect(feed.posts.map((item) => item.id)).toEqual(["newer"]);
+  });
+});
+
+describe("official card pictures", () => {
+  const midday = product("midday", "2026-11-01T16:00:00Z", {
+    issuedAt: "2026-11-01T12:00",
+  });
+  const basedOnMidday = {
+    productId: midday.id,
+    title: "Midday Forecast",
+  };
+  const pinnedPicture: PublishedContent = {
+    ...post("pic", "2026-11-01T13:00:00Z"),
+    pinned: true,
+    basedOn: basedOnMidday,
+    imageUrl: "https://cms.example/media/rain-map.png",
+    imageAlt: "Rain map for the afternoon",
+    imageCredit: "Photo: Kendra Mitchell",
+  };
+  const briefingPicture = (posts: PublishedContent[]) =>
+    buildDeskFeed({
+      level: "none",
+      now: NOW,
+      posts,
+      products: [midday],
+    }).official[0]?.picture;
+
+  it("takes the picture of the pinned desk post based on the product", () => {
+    expect(briefingPicture([pinnedPicture])).toEqual({
+      src: "https://cms.example/media/rain-map.png",
+      alt: "Rain map for the afternoon",
+      credit: "Photo: Kendra Mitchell",
+    });
+  });
+
+  it("credits a picture with no credit to GMS", () => {
+    expect(
+      briefingPicture([{ ...pinnedPicture, imageCredit: null }])?.credit
+    ).toBe("Photo: GMS");
+  });
+
+  it("leaves the picture empty when no pinned desk post is based on the product", () => {
+    expect(briefingPicture([{ ...pinnedPicture, pinned: false }])).toBeNull();
+    expect(briefingPicture([{ ...pinnedPicture, basedOn: null }])).toBeNull();
+    expect(
+      briefingPicture([
+        { ...pinnedPicture, basedOn: { productId: "other", title: null } },
+      ])
+    ).toBeNull();
+    expect(briefingPicture([{ ...pinnedPicture, imageUrl: null }])).toBeNull();
+  });
+
+  it("uses desk posts only, not report write-ups", () => {
+    expect(
+      briefingPicture([{ ...pinnedPicture, collection: "report-notes" }])
+    ).toBeNull();
+  });
+
+  it("uses the newest matching pinned post", () => {
+    const older = {
+      ...pinnedPicture,
+      id: "older",
+      publishedAt: "2026-11-01T09:00:00Z",
+      imageUrl: "https://cms.example/media/older.png",
+    };
+    expect(briefingPicture([older, pinnedPicture])?.src).toBe(
+      "https://cms.example/media/rain-map.png"
+    );
+  });
+});
+
 describe("nextForecastDue", () => {
   it("names the next scheduled public forecast in Grenada time", () => {
     expect(nextForecastDue(new Date("2026-11-01T10:00:00Z"))).toBe("7:00 a.m."); // 6:00 a.m.
@@ -239,26 +392,48 @@ describe("nextForecastDue", () => {
 });
 
 describe("Marine Forecast and Climate Bulletin cards", () => {
-  it("adds official cards after the forecast and outlook", () => {
+  const marine = product("marine-forecast", "2026-11-01T09:00:00Z", {
+    issuedAt: "2026-11-01T05:00",
+    validFrom: "2026-11-01T05:00",
+    validTo: "2026-11-02T05:00",
+    synopsis: "Moderate trades. ",
+  });
+  const climate = product("climate-bulletin", "2026-10-15T14:00:00Z", {
+    issuedAt: "2026-10-15T10:00",
+    validFrom: "2026-10-15T10:00",
+    validTo: "2026-11-15T23:59",
+    precipOutlook: "Rainfall totals for the next quarter are uncertain.",
+    droughtOutlook: "A drought watch is in effect.",
+  });
+
+  it("lists the Marine Forecast after the briefing, then the outlook, then the climate bulletin", () => {
     const feed = buildDeskFeed({
       level: "none",
       now: NOW,
       posts: [],
       products: [
-        product("marine-forecast", "2026-11-01T09:00:00Z", {
-          issuedAt: "2026-11-01T05:00",
-          validFrom: "2026-11-01T05:00",
-          validTo: "2026-11-02T05:00",
-          synopsis: "Moderate trades. ",
-        }),
-        product("climate-bulletin", "2026-10-15T14:00:00Z", {
-          issuedAt: "2026-10-15T10:00",
-          validFrom: "2026-10-15T10:00",
-          validTo: "2026-11-15T23:59",
-          precipOutlook: "Rainfall totals for the next quarter are uncertain.",
-          droughtOutlook: "A drought watch is in effect.",
+        climate,
+        product("outlook", "2026-11-01T12:00:00Z", { systems: "A wave." }),
+        marine,
+        product("morning", "2026-11-01T11:00:00Z", {
+          issuedAt: "2026-11-01T07:00",
         }),
       ],
+    });
+    expect(feed.official.map((card) => [card.kind, card.title])).toEqual([
+      ["briefing", "Morning Forecast"],
+      ["marine", "Marine Forecast"],
+      ["outlook", "Tropical Weather Outlook"],
+      ["climate", "Climate Bulletin"],
+    ]);
+  });
+
+  it("adds the Marine Forecast and Climate Bulletin cards with their own wording", () => {
+    const feed = buildDeskFeed({
+      level: "none",
+      now: NOW,
+      posts: [],
+      products: [marine, climate],
     });
     expect(feed.official.map((card) => [card.kind, card.title])).toEqual([
       ["marine", "Marine Forecast"],
