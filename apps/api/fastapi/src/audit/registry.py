@@ -27,6 +27,9 @@ class TrackedModel:
 _models: dict[type, TrackedModel] = {}
 _read_checks: dict[str, ReadCheck] = {}
 _labels: dict[str, str] = {}
+# record_type -> union of the sensitive fields of every model tracked under it.
+# Rebuilt by track(); read once per change when history is listed.
+_sensitive_by_record_type: dict[str, frozenset[str]] = {}
 
 
 def track(
@@ -54,6 +57,17 @@ def track(
         label=label or record_type.replace("_", " ").capitalize(),
     )
     _labels[record_type] = label or record_type.replace("_", " ").capitalize()
+    _rebuild_sensitive_index()
+
+
+def _rebuild_sensitive_index() -> None:
+    """Recompute the index from ``_models``, so a re-tracked model leaves its old type."""
+    _sensitive_by_record_type.clear()
+    for tracked_model in _models.values():
+        _sensitive_by_record_type[tracked_model.record_type] = (
+            _sensitive_by_record_type.get(tracked_model.record_type, frozenset())
+            | tracked_model.sensitive
+        )
 
 
 def register_entity(entity_type: str, read_check: ReadCheck) -> None:
@@ -88,11 +102,7 @@ def sensitive_fields(record_type: str) -> frozenset[str]:
     Read at read time, so a field marked sensitive later also masks rows written
     before the mark (the stored ``sensitive`` flag is only what was true at write).
     """
-    fields: set[str] = set()
-    for tracked_model in _models.values():
-        if tracked_model.record_type == record_type:
-            fields |= tracked_model.sensitive
-    return frozenset(fields)
+    return _sensitive_by_record_type.get(record_type, frozenset())
 
 
 def parse_uuid(value: str) -> uuid.UUID | None:

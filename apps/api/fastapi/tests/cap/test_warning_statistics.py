@@ -25,6 +25,7 @@ from src.cap.models import (
     CapStatus,
     CapUrgency,
 )
+from src.cap.schemas import CapNameValue
 from src.utils.timezones import GRENADA
 from tests.factories import make_user
 
@@ -728,6 +729,9 @@ AWARENESS_VARIANTS = [
     "3; orange; Severe ",  # no-break space
     "　3　;　orange　;Severe　",  # ideographic space
     "3;orange;\u0085Severe\u0085",  # next line (NEL)
+    "\x1c3\x1c;\x1corange\x1c;\x1cSevere\x1c",  # file, group, record, unit separators
+    "3; orange ;Severe",  # line and paragraph separators
+    "3;orange;Severe ",  # line separator at the end
 ]
 
 
@@ -866,6 +870,132 @@ async def test_outlook_block_is_not_counted_as_a_colour(
     assert colours["orange"] == 1
     assert colours["red"] == 0
     assert sum(colours.values()) == body["total"]
+
+
+_OUTLOOK = {"value_name": levels.PRODUCT_PARAMETER, "value": "Outlook"}
+_WARNING = {"value_name": levels.PRODUCT_PARAMETER, "value": "Warning"}
+_BOGUS_PRODUCT = {"value_name": levels.PRODUCT_PARAMETER, "value": "Bogus"}
+_ORANGE = _awareness_parameters(levels.GmsColour.ORANGE)
+_YELLOW = _awareness_parameters(levels.GmsColour.YELLOW)
+
+
+@pytest.mark.parametrize(
+    ("parameters", "colour"),
+    [
+        # The block's last GMS:product decides whether it is an Outlook.
+        pytest.param(
+            [_OUTLOOK, _WARNING, *_ORANGE], "orange", id="outlook-then-warning"
+        ),
+        pytest.param(
+            [_WARNING, _OUTLOOK, *_ORANGE], "unassigned", id="warning-then-outlook"
+        ),
+        # No product at all: the colour still counts, as read_level reads it.
+        pytest.param(list(_ORANGE), "orange", id="colour-without-product"),
+        # An invalid product is no product; the colour still counts.
+        pytest.param([_BOGUS_PRODUCT, *_ORANGE], "orange", id="invalid-product"),
+        # An invalid product after an Outlook replaces it, so the block is not an Outlook.
+        pytest.param(
+            [_OUTLOOK, _BOGUS_PRODUCT, *_ORANGE], "orange", id="outlook-then-invalid"
+        ),
+    ],
+)
+async def test_block_colour_follows_the_product_rules_of_read_level(
+    async_client: httpx.AsyncClient,
+    db_async: AsyncSession,
+    superuser_token_headers_async: dict[str, str],
+    parameters: list[dict[str, str]],
+    colour: str,
+) -> None:
+    creator = await make_user(db_async, superuser=True)
+    await _add_alert(
+        db_async,
+        creator_id=creator.id,
+        identifier="block-product-rules",
+        published_at=datetime(2026, 6, 1, 12, 0),
+        blocks=[("Heavy Rainfall Warning", parameters)],
+    )
+    # The same rule the public feed applies to one block.
+    level = levels.read_level(
+        [CapNameValue(value_name=p["value_name"], value=p["value"]) for p in parameters]
+    )
+    assert (level[1].value if level[1] is not None else "unassigned") == colour
+    response = await async_client.get(
+        STATISTICS, params=PERIOD, headers=superuser_token_headers_async
+    )
+    assert response.status_code == 200, response.text
+    body = response.json()
+    assert body["total"] == 1
+    expected = {item.value: 0 for item in levels.GmsColour}
+    expected["unassigned"] = 0
+    expected[colour] = 1
+    assert _counts(body["by_colour"]) == expected
+
+
+async def test_malformed_parameter_elements_are_not_read(
+    async_client: httpx.AsyncClient,
+    db_async: AsyncSession,
+    superuser_token_headers_async: dict[str, str],
+) -> None:
+    """Scalars, nulls and nested arrays are not parameters: they neither break the
+    counts nor make a nested Outlook the block's product."""
+    creator = await make_user(db_async, superuser=True)
+    malformed: Any = ["junk", 3, None, [_OUTLOOK], *_ORANGE]
+    await _add_alert(
+        db_async,
+        creator_id=creator.id,
+        identifier="malformed-elements",
+        published_at=datetime(2026, 6, 1, 12, 0),
+        blocks=[("Heavy Rainfall Warning", malformed)],
+    )
+    response = await async_client.get(
+        STATISTICS, params=PERIOD, headers=superuser_token_headers_async
+    )
+    assert response.status_code == 200, response.text
+    body = response.json()
+    assert body["total"] == 1
+    colours = _counts(body["by_colour"])
+    assert colours["orange"] == 1
+    assert colours["unassigned"] == 0
+
+
+async def test_highest_awareness_value_in_one_block_wins(
+    async_client: httpx.AsyncClient,
+    db_async: AsyncSession,
+    superuser_token_headers_async: dict[str, str],
+) -> None:
+    """Statistics take the highest awareness_level in a block; read_level takes the last.
+
+    Authored data holds one value per block, so the two agree; a feed that repeats
+    the parameter can make them differ, and the docs say so.
+    """
+    creator = await make_user(db_async, superuser=True)
+    await _add_alert(
+        db_async,
+        creator_id=creator.id,
+        identifier="orange-then-yellow",
+        published_at=datetime(2026, 6, 1, 12, 0),
+        blocks=[("Heavy Rainfall Warning", [*_ORANGE, *_YELLOW])],
+    )
+    await _add_alert(
+        db_async,
+        creator_id=creator.id,
+        identifier="yellow-then-orange",
+        published_at=datetime(2026, 6, 2, 12, 0),
+        blocks=[("Heavy Rainfall Warning", [*_YELLOW, *_ORANGE])],
+    )
+    orange_then_yellow = [
+        CapNameValue(value_name=p["value_name"], value=p["value"])
+        for p in [*_ORANGE, *_YELLOW]
+    ]
+    assert levels.read_level(orange_then_yellow)[1] == levels.GmsColour.YELLOW
+    response = await async_client.get(
+        STATISTICS, params=PERIOD, headers=superuser_token_headers_async
+    )
+    body = response.json()
+    assert body["total"] == 2
+    colours = _counts(body["by_colour"])
+    assert colours["orange"] == 2
+    assert colours["yellow"] == 0
 
 
 @pytest.mark.parametrize("event", ["=1+1", "+CMD", "-2+3", "@SUM(A1)"])
