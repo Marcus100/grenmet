@@ -444,19 +444,33 @@ function shiftChoice(value: boolean | null | undefined): string {
   return "default";
 }
 
+/** The saved reason, or why it is not shown to this reader. */
+function savedReasonText(
+  reason: string | null,
+  reasonVisible: boolean
+): string {
+  if (!reasonVisible) return "Visible to organisation-wide payroll staff only";
+  return reason ?? "None saved";
+}
+
 function ProfileRow({
   calendars,
   organisationId,
   profile,
+  reasonVisible,
 }: {
   calendars: PayCalendarPublic[];
   organisationId: string;
   profile: EmployeePayProfilePublic;
+  reasonVisible: boolean;
 }) {
   const refresh = useRefreshPayroll();
   const update = useHrUpdateEmployeePayProfile();
   const [calendarId, setCalendarId] = useState(profile.calendar_id ?? "");
-  const [overrideReason, setOverrideReason] = useState("");
+  // Prefilled from the saved reason, so saving again without retyping keeps it.
+  const [overrideReason, setOverrideReason] = useState(
+    profile.calendar_override_reason ?? ""
+  );
   const [shift, setShift] = useState(shiftChoice(profile.shift_worker));
   const [reference, setReference] = useState(profile.payroll_reference ?? "");
   const chosen = calendars.find((calendar) => calendar.id === calendarId);
@@ -505,6 +519,10 @@ function ProfileRow({
             </option>
           ))}
         </NativeSelect>
+        <p className="text-muted-foreground mt-2 text-xs">
+          <span className="font-medium">Saved reason:</span>{" "}
+          {savedReasonText(profile.calendar_override_reason, reasonVisible)}
+        </p>
         {needsReason ? (
           <Input
             aria-label={`Override reason: ${profile.employee_name}`}
@@ -571,6 +589,8 @@ function ProfilesPanel({ organisationId }: { organisationId: string }) {
     return <NoAccess />;
   }
   const profiles = profilesQuery.data?.data ?? [];
+  const reasonVisible =
+    profilesQuery.data?.calendar_override_reason_visible ?? false;
   const departments = departmentsQuery.data?.data ?? [];
 
   async function toggle(departmentId: string, value: boolean) {
@@ -665,6 +685,7 @@ function ProfilesPanel({ organisationId }: { organisationId: string }) {
                     key={profile.user_id}
                     organisationId={organisationId}
                     profile={profile}
+                    reasonVisible={reasonVisible}
                   />
                 ))
               )}

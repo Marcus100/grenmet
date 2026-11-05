@@ -8,4 +8,5 @@ import type { EmployeePayProfilePublic } from "./EmployeePayProfilePublic.js";
 export type EmployeePayProfilesPublic = {
   data: EmployeePayProfilePublic[];
   count: number;
+  calendar_override_reason_visible: boolean;
 };

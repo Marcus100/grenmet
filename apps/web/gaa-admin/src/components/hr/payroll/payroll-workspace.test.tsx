@@ -117,6 +117,7 @@ const PROFILE = {
   shift_worker: null,
   effective_shift_worker: false,
   payroll_reference: null,
+  calendar_override_reason: null,
 };
 const CALENDARS = [
   {
@@ -148,7 +149,11 @@ describe("PayrollWorkspace pay profiles", () => {
     search = "tab=profiles";
     server.use(
       http.get(`${API}/profiles`, () =>
-        HttpResponse.json({ data: [PROFILE], count: 1 })
+        HttpResponse.json({
+          data: [PROFILE],
+          count: 1,
+          calendar_override_reason_visible: true,
+        })
       ),
       http.get(`${API}/calendars`, () => HttpResponse.json({ data: CALENDARS }))
     );
@@ -173,7 +178,11 @@ describe("PayrollWorkspace pay profiles", () => {
     let sent: Record<string, unknown> | null = null;
     server.use(
       http.get(`${API}/profiles`, () =>
-        HttpResponse.json({ data: [PROFILE], count: 1 })
+        HttpResponse.json({
+          data: [PROFILE],
+          count: 1,
+          calendar_override_reason_visible: true,
+        })
       ),
       http.get(`${API}/calendars`, () =>
         HttpResponse.json({ data: CALENDARS })
@@ -198,5 +207,80 @@ describe("PayrollWorkspace pay profiles", () => {
       calendar_id: "c-month",
       calendar_override_reason: "Agreed in writing",
     });
+  });
+
+  it("shows the saved override reason read-only and prefills the field", async () => {
+    search = "tab=profiles";
+    server.use(
+      http.get(`${API}/profiles`, () =>
+        HttpResponse.json({
+          data: [
+            {
+              ...PROFILE,
+              calendar_id: "c-month",
+              calendar_override_reason: "Agreed in writing",
+            },
+          ],
+          count: 1,
+          calendar_override_reason_visible: true,
+        })
+      ),
+      http.get(`${API}/calendars`, () => HttpResponse.json({ data: CALENDARS }))
+    );
+    renderWorkspace();
+    expect(
+      await screen.findByText("Agreed in writing", { exact: false })
+    ).toBeVisible();
+    expect(
+      screen.getByText("Saved reason:", { exact: false })
+    ).toBeInTheDocument();
+    expect(screen.getByRole("textbox", { name: PROFILE_REASON })).toHaveValue(
+      "Agreed in writing"
+    );
+  });
+
+  it("says the reason is for organisation-wide staff when this reader may not see it", async () => {
+    search = "tab=profiles";
+    server.use(
+      http.get(`${API}/profiles`, () =>
+        HttpResponse.json({
+          data: [{ ...PROFILE, calendar_id: "c-month" }],
+          count: 1,
+          calendar_override_reason_visible: false,
+        })
+      ),
+      http.get(`${API}/calendars`, () => HttpResponse.json({ data: CALENDARS }))
+    );
+    renderWorkspace();
+    expect(
+      await screen.findByText(
+        "Visible to organisation-wide payroll staff only",
+        { exact: false }
+      )
+    ).toBeVisible();
+    expect(screen.queryByText("None saved", { exact: false })).toBeNull();
+    expect(screen.getByRole("textbox", { name: PROFILE_REASON })).toHaveValue(
+      ""
+    );
+  });
+
+  it("keeps the saved reason row with an empty state when no reason is saved", async () => {
+    search = "tab=profiles";
+    server.use(
+      http.get(`${API}/profiles`, () =>
+        HttpResponse.json({
+          data: [PROFILE],
+          count: 1,
+          calendar_override_reason_visible: true,
+        })
+      ),
+      http.get(`${API}/calendars`, () => HttpResponse.json({ data: CALENDARS }))
+    );
+    renderWorkspace();
+    expect(
+      await screen.findByRole("combobox", { name: PROFILE_CALENDAR })
+    ).toBeVisible();
+    expect(screen.getByText("None saved", { exact: false })).toBeVisible();
+    expect(screen.getByRole("button", { name: "Save" })).toBeVisible();
   });
 });

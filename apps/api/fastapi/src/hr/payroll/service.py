@@ -13,7 +13,7 @@ import calendar as calendar_module
 import logging
 import uuid
 from collections.abc import Iterable
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from datetime import date, timedelta
 from decimal import Decimal
 from typing import Any
@@ -217,6 +217,7 @@ class ProfileRow:
     shift_worker: bool | None
     effective_shift_worker: bool
     payroll_reference: str | None
+    calendar_override_reason: str | None
 
 
 async def employee_name(session: AsyncSession, user_id: uuid.UUID) -> str:
@@ -228,6 +229,24 @@ def _employee_name() -> ColumnElement[str]:
     return func.concat(User.first_name, " ", User.last_name)
 
 
+@dataclass(frozen=True)
+class ProfilePage:
+    rows: list[ProfileRow]
+    count: int
+    #: Whether the caller may see calendar override reasons (organisation-wide
+    #: hr.payroll.read.amounts). Free text stays with those staff, as pay-line
+    #: reasons do; everyone else gets None.
+    reason_visible: bool
+
+
+async def reason_visible(
+    session: AsyncSession, actor: User, organisation_id: str
+) -> bool:
+    return await access.holds_organisation_wide(
+        session, actor, organisation_id, (access.READ_AMOUNTS,)
+    )
+
+
 async def list_profiles(
     session: AsyncSession,
     actor: User,
@@ -235,8 +254,9 @@ async def list_profiles(
     *,
     skip: int,
     limit: int,
-) -> tuple[list[ProfileRow], int]:
+) -> ProfilePage:
     organisation_id, visible = await organisation_for(session, actor, organisation_id)
+    can_see_reason = await reason_visible(session, actor, organisation_id)
     where = (
         EmploymentRecord.organisation_id == organisation_id,
         EmploymentRecord.department_id.in_(visible),
@@ -259,6 +279,7 @@ async def list_profiles(
                     False,
                 ),
                 EmployeePayProfile.payroll_reference,
+                EmployeePayProfile.calendar_override_reason,
             )
             .join(User, User.id == EmploymentRecord.user_id)
             .outerjoin(
@@ -276,7 +297,10 @@ async def list_profiles(
             .limit(limit)
         )
     ).all()
-    return [ProfileRow(*row) for row in rows], count or 0
+    found = [ProfileRow(*row) for row in rows]
+    if not can_see_reason:
+        found = [replace(row, calendar_override_reason=None) for row in found]
+    return ProfilePage(rows=found, count=count or 0, reason_visible=can_see_reason)
 
 
 async def update_profile(
@@ -291,6 +315,12 @@ async def update_profile(
     )
     if user_id == actor.id:
         raise AppException("You cannot change your own pay profile", 403)
+    existing = await session.get(EmployeePayProfile, user_id)
+    # A preparer who cannot see the reason cannot clear it by omitting it: an
+    # empty value keeps the stored reason. Those who can see it replace it.
+    reason = payload.calendar_override_reason
+    if reason is None and not await reason_visible(session, actor, organisation_id):
+        reason = existing.calendar_override_reason if existing else None
     employment = await session.scalar(
         select(EmploymentRecord).where(
             EmploymentRecord.user_id == user_id,
@@ -307,20 +337,20 @@ async def update_profile(
             calendar.frequency not in gross.WAGE_PERIOD_OK
             and await gross.current_basis(session, user_id, local_today())
             == PayBasis.HOURLY
-            and not payload.calendar_override_reason
+            and not reason
         ):
             raise PayrollConflictError(
                 "Hourly-paid staff must be paid at least fortnightly; choose a "
                 "fortnightly calendar or give an override reason"
             )
-    profile = await session.get(EmployeePayProfile, user_id)
+    profile = existing
     if profile is None:
         profile = EmployeePayProfile(user_id=user_id, organisation_id=organisation_id)
         session.add(profile)
     profile.calendar_id = payload.calendar_id
     profile.shift_worker = payload.shift_worker
     profile.payroll_reference = payload.payroll_reference
-    profile.calendar_override_reason = payload.calendar_override_reason
+    profile.calendar_override_reason = reason
     profile.updated_by_user_id = actor.id
     profile.updated_at = utc_now()
     try:
@@ -330,8 +360,8 @@ async def update_profile(
         raise PayrollConflictError(
             "Another employee already has this payroll reference"
         ) from exc
-    rows, _ = await list_profiles(session, actor, organisation_id, skip=0, limit=10_000)
-    return next(row for row in rows if row.user_id == user_id)
+    page = await list_profiles(session, actor, organisation_id, skip=0, limit=10_000)
+    return next(row for row in page.rows if row.user_id == user_id)
 
 
 async def list_department_settings(

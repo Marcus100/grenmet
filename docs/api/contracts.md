@@ -48,6 +48,12 @@ tax, NIS or bank field exists in any request, response or export.
   `PUT profiles/{user_id}`, `GET department-settings`,
   `PUT department-settings/{department_id}`. A new organisation's `items` list is
   empty; GAA's items are seeded `PROVISIONAL` with a `source_reference`.
+  Each pay profile returns `calendar_override_reason` only to organisation-wide
+  `hr.payroll.read.amounts` holders (free text stays with them, as pay-line
+  reasons do); for anyone else it is `null`. The list response's
+  `calendar_override_reason_visible` says which case the caller is in. A
+  preparer without that key who re-saves a profile cannot clear the stored
+  reason by omitting it.
 - Calendars are `MONTHLY` or `FORTNIGHTLY` (`anchor_date` required; periods
   start a whole number of fortnights from it and run 14 days). Without a
   `frequency`, GAA calendars are fortnightly and others monthly.
