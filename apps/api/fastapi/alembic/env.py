@@ -15,6 +15,8 @@ from alembic import context
 # Add the project root to Python path
 sys.path.append(str(Path(__file__).parent.parent))
 
+from src import db_timeouts
+
 # Import all models to ensure they're registered with SQLAlchemy metadata.
 from src.audit.models import AuditEntry
 from src.auth.models import User
@@ -210,6 +212,11 @@ def do_run_migrations(connection: Connection) -> None:
     )
 
     with context.begin_transaction():
+        # Before the advisory lock and the DDL: a statement that waits on a leaked
+        # session fails after MIGRATION_LOCK_TIMEOUT instead of stalling the deploy.
+        db_timeouts.set_migration_lock_timeout(
+            connection, settings.MIGRATION_LOCK_TIMEOUT
+        )
         connection.exec_driver_sql("SELECT pg_advisory_xact_lock(73190506)")
         context.run_migrations()
 

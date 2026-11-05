@@ -67,6 +67,14 @@ class Settings(BaseSettings):
     # Replace connections older than this, so proxies and Postgres restarts never
     # hand a request a dead socket (pre-ping covers the rest).
     DB_POOL_RECYCLE: int = 1800
+    # Alembic (main database) waits this long for a lock before it fails. A migration
+    # queued behind a leaked session then fails fast and the deploy stops, instead of
+    # queueing every app query behind it. Postgres interval: 10s, 500ms, 1min; 0 disables.
+    MIGRATION_LOCK_TIMEOUT: str = "10s"
+    # Seconds a main-database connection may stay inside an open transaction with no
+    # statement running before Postgres ends it. A request holds its transaction only
+    # while it runs, so this mainly ends leaked sessions. 0 disables.
+    DB_IDLE_IN_TRANSACTION_TIMEOUT: int = 300
 
     @computed_field  # type: ignore[prop-decorator]
     @property
