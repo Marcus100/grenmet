@@ -12,9 +12,11 @@ import pytest
 from cryptography.fernet import Fernet
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from src.audit.models import AuditEntry
 from src.auth.config import auth_settings
 from src.auth.models import RoleAssignmentScope
 from src.hr.models import Organisation
+from src.utils.datetime import utc_now
 from tests.factories import (
     assign_role,
     make_department,
@@ -236,10 +238,10 @@ async def test_preparer_without_amounts_may_overwrite_a_stored_reason(
             "calendar_override_reason": REASON,
         },
     )
-    preparer = await headers_for(
-        db_async,
-        await payroll_user(db_async, "hr.payroll.prepare", department_id=ops.id),
+    preparer_user = await payroll_user(
+        db_async, "hr.payroll.prepare", department_id=ops.id
     )
+    preparer = await headers_for(db_async, preparer_user)
     overwritten = await async_client.put(
         f"{API}/profiles/{employee.id}",
         headers=preparer,
@@ -256,6 +258,98 @@ async def test_preparer_without_amounts_may_overwrite_a_stored_reason(
     assert (
         _row(listed.json(), str(employee.id))["calendar_override_reason"]
         == "Revised with HR"
+    )
+    # Both the old and the new text are in history, and neither reaches a
+    # reader without audit.view_sensitive.
+    history = await async_client.get(
+        AUDIT_PAYROLL_SETTINGS, headers=await headers_for(db_async, preparer_user)
+    )
+    assert history.status_code == 200, history.text
+    assert "employee_pay_profile" in history.text
+    assert REASON not in history.text
+    assert "Revised with HR" not in history.text
+
+
+@pytest.mark.usefixtures("totp_keys")
+async def test_rows_written_before_the_field_was_sensitive_stay_masked(
+    async_client: httpx.AsyncClient, db_async: AsyncSession
+) -> None:
+    """A row stored with sensitive false (written before the mark) is masked on read."""
+    ops, _, _ = await departments(db_async)
+    employee = await employee_in(db_async, ops)
+    db_async.add(
+        AuditEntry(
+            entity_type="payroll_settings",
+            entity_id="gaa",
+            record_type="employee_pay_profile",
+            record_id=str(employee.id),
+            organisation_id="gaa",
+            action="updated",
+            changes=[
+                {
+                    "field": "calendar_override_reason",
+                    "old": "Legacy old text",
+                    "new": "Legacy new text",
+                    "sensitive": False,
+                }
+            ],
+            created_at=utc_now(),
+        )
+    )
+    await db_async.commit()
+    preparer = await payroll_user(db_async, "hr.payroll.prepare", department_id=ops.id)
+    masked = await async_client.get(
+        AUDIT_PAYROLL_SETTINGS, headers=await headers_for(db_async, preparer)
+    )
+    assert masked.status_code == 200, masked.text
+    assert "Legacy old text" not in masked.text
+    assert "Legacy new text" not in masked.text
+    sensitive = await payroll_user(
+        db_async,
+        "hr.payroll.prepare",
+        "audit.view_sensitive",
+        department_id=ops.id,
+    )
+    shown = await async_client.get(
+        AUDIT_PAYROLL_SETTINGS, headers=await headers_for(db_async, sensitive)
+    )
+    assert "Legacy new text" in shown.text
+
+
+@pytest.mark.usefixtures("totp_keys")
+async def test_reason_in_request_satisfies_the_hourly_rule_for_a_preparer(
+    async_client: httpx.AsyncClient, db_async: AsyncSession
+) -> None:
+    """N1 positive: a preparer who supplies a reason may move an hourly person."""
+    ops, _, accounts = await departments(db_async)
+    employee = await employee_in(db_async, ops)
+    admin = await headers_for(
+        db_async, await make_user(db_async, superuser=True), mfa=True
+    )
+    calendar_id, _ = await calendar_and_period(
+        async_client, admin, accounts.id, SEPTEMBER
+    )
+    await _make_hourly(async_client, admin, str(employee.id))
+    preparer = await headers_for(
+        db_async,
+        await payroll_user(db_async, "hr.payroll.prepare", department_id=ops.id),
+    )
+    moved = await async_client.put(
+        f"{API}/profiles/{employee.id}",
+        headers=preparer,
+        json={
+            "organisation_id": "gaa",
+            "calendar_id": calendar_id,
+            "calendar_override_reason": "Agreed with HR",
+        },
+    )
+    assert moved.status_code == 200, moved.text
+    listed = await async_client.get(
+        f"{API}/profiles?organisation_id=gaa", headers=admin
+    )
+    assert (
+        _row(listed.json(), str(employee.id))["calendar_override_reason"]
+        == "Agreed with HR"
     )
 
 
