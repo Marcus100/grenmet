@@ -77,17 +77,43 @@ def _case_insensitive(text: str) -> str:
     )
 
 
+# Every character ``str.isspace()`` is true for: what ``str.strip()`` removes in
+# ``parse_awareness``. Listed explicitly so the SQL class does not depend on the
+# database locale (``\s`` may leave out U+00A0 and others). ``test_levels``
+# checks this set against Python's own ``isspace``.
+_SPACE_CODE_POINTS = (
+    # tab, line feed, vertical tab, form feed, carriage return
+    *range(0x09, 0x0E),
+    # file, group, record and unit separators
+    *range(0x1C, 0x20),
+    0x20,  # space
+    0x85,  # next line
+    0xA0,  # no-break space
+    0x1680,  # ogham space mark
+    # en quad through hair space
+    *range(0x2000, 0x200B),
+    0x2028,  # line separator
+    0x2029,  # paragraph separator
+    0x202F,  # narrow no-break space
+    0x205F,  # medium mathematical space
+    0x3000,  # ideographic space
+)
+AWARENESS_SPACE = "".join(map(chr, _SPACE_CODE_POINTS))
+
+
 def awareness_pattern(colour: GmsColour) -> str:
     """A POSIX regular expression (SQL ``~``) matching what ``parse_awareness`` reads as ``colour``.
 
-    Whitespace around each part is allowed and the colour word is case-insensitive;
-    the code and the severity are exact, as in ``parse_awareness``. The statistics
-    tests compare the SQL result with ``parse_awareness``; change both together.
+    Whitespace around each part is any character ``str.strip()`` removes (the same
+    set in both places), and the colour word is case-insensitive; the code and the
+    severity are exact, as in ``parse_awareness``. The statistics tests compare the
+    SQL result with ``parse_awareness``; change both together.
     """
     code, severity = _AWARENESS[colour]
+    space = f"[{AWARENESS_SPACE}]*"
     return (
-        rf"^\s*{code}\s*;\s*{_case_insensitive(colour.value)}\s*;"
-        rf"\s*{severity.value}\s*$"
+        rf"^{space}{code}{space};{space}{_case_insensitive(colour.value)}{space};"
+        rf"{space}{severity.value}{space}$"
     )
 
 

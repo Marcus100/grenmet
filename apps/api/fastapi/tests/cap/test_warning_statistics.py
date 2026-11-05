@@ -7,6 +7,9 @@ from typing import Any
 
 import httpx
 import pytest
+import sqlalchemy as sa
+from sqlalchemy import select
+from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.cap import levels, warning_statistics
@@ -492,6 +495,23 @@ async def test_start_on_2000_01_01_is_accepted(
     assert response.status_code == 200, response.text
 
 
+async def test_end_without_start_is_accepted_from_the_archive_start(
+    async_client: httpx.AsyncClient,
+    db_async: AsyncSession,
+    superuser_token_headers_async: dict[str, str],
+) -> None:
+    """Only an end was given: the default start is clamped to 2000-01-01, not refused."""
+    _ = db_async
+    response = await async_client.get(
+        STATISTICS,
+        params={"end": "2000-06-30"},
+        headers=superuser_token_headers_async,
+    )
+    assert response.status_code == 200, response.text
+    assert response.json()["start"] == "2000-01-01"
+    assert response.json()["end"] == "2000-06-30"
+
+
 async def test_default_end_with_far_past_start_is_refused(
     async_client: httpx.AsyncClient,
     db_async: AsyncSession,
@@ -691,7 +711,7 @@ async def test_colour_counts_each_alert_once_at_its_highest_colour(
 
 # Spellings of the awareness_level value: the SQL colour must agree with
 # levels.parse_awareness for each one (whitespace and colour case tolerated;
-# code and severity exact).
+# code and severity exact). The Unicode spaces are the ones str.strip removes.
 AWARENESS_VARIANTS = [
     "3; orange; Severe",
     " 3 ;  ORANGE ; Severe ",
@@ -705,6 +725,9 @@ AWARENESS_VARIANTS = [
     "3; orange",
     "orange",
     "",
+    "3; orange; Severe ",  # no-break space
+    "　3　;　orange　;Severe　",  # ideographic space
+    "3;orange;\u0085Severe\u0085",  # next line (NEL)
 ]
 
 
@@ -737,6 +760,112 @@ async def test_colour_spelling_matches_parse_awareness(
     assert _counts(response.json()["by_colour"]) == expected
     # The variants really do cover each colour and the unassigned case.
     assert all(expected.values())
+
+
+@pytest.mark.parametrize(
+    ("parameters", "json_type"),
+    [
+        (None, "null"),
+        ({"value_name": "GMS:product", "value": "Warning"}, "object"),
+        ("orange", "string"),
+        (3, "number"),
+    ],
+    ids=["null", "object", "string", "number"],
+)
+async def test_non_array_parameters_do_not_break_the_counts(
+    async_client: httpx.AsyncClient,
+    db_async: AsyncSession,
+    superuser_token_headers_async: dict[str, str],
+    parameters: Any,
+    json_type: str,
+) -> None:
+    """A stored JSON null, object or scalar in ``parameters`` counts as no colour."""
+    creator = await make_user(db_async, superuser=True)
+    await _add_alert(
+        db_async,
+        creator_id=creator.id,
+        identifier="odd-parameters",
+        published_at=datetime(2026, 6, 1, 12, 0),
+        blocks=[("Heavy Rainfall Warning", parameters)],
+    )
+    await _add_alert(
+        db_async,
+        creator_id=creator.id,
+        identifier="orange-warning",
+        published_at=datetime(2026, 6, 2, 12, 0),
+        colour=levels.GmsColour.ORANGE,
+    )
+    stored = await db_async.scalar(
+        select(sa.func.jsonb_typeof(sa.cast(CapInfo.parameters, JSONB)))
+        .select_from(CapInfo)
+        .join(CapAlert, CapInfo.alert_id == CapAlert.id)
+        .where(CapAlert.identifier == "odd-parameters")
+    )
+    assert stored == json_type  # the seeded row really holds the odd shape
+
+    response = await async_client.get(
+        STATISTICS, params=PERIOD, headers=superuser_token_headers_async
+    )
+    assert response.status_code == 200, response.text
+    body = response.json()
+    assert body["total"] == 2
+    assert _counts(body["by_colour"]) == {
+        "green": 0,
+        "yellow": 0,
+        "orange": 1,
+        "red": 0,
+        "unassigned": 1,
+    }
+
+
+async def test_outlook_block_is_not_counted_as_a_colour(
+    async_client: httpx.AsyncClient,
+    db_async: AsyncSession,
+    superuser_token_headers_async: dict[str, str],
+) -> None:
+    """An Outlook has no colour yet, so a stored awareness_level is ignored (read_level)."""
+    creator = await make_user(db_async, superuser=True)
+    outlook = {"value_name": levels.PRODUCT_PARAMETER, "value": "Outlook"}
+    warning = {"value_name": levels.PRODUCT_PARAMETER, "value": "Warning"}
+    await _add_alert(
+        db_async,
+        creator_id=creator.id,
+        identifier="legacy-outlook-with-colour",
+        published_at=datetime(2026, 6, 1, 12, 0),
+        blocks=[
+            (
+                "Heavy Rainfall Warning",
+                [outlook, *_awareness_parameters(levels.GmsColour.ORANGE)],
+            )
+        ],
+    )
+    await _add_alert(
+        db_async,
+        creator_id=creator.id,
+        identifier="outlook-then-warning",
+        published_at=datetime(2026, 6, 2, 12, 0),
+        blocks=[
+            (
+                "Heavy Rainfall Warning",
+                [outlook, *_awareness_parameters(levels.GmsColour.RED)],
+            ),
+            (
+                "High Wind Warning",
+                [warning, *_awareness_parameters(levels.GmsColour.ORANGE)],
+            ),
+        ],
+    )
+    response = await async_client.get(
+        STATISTICS, params=PERIOD, headers=superuser_token_headers_async
+    )
+    body = response.json()
+    assert body["total"] == 2
+    colours = _counts(body["by_colour"])
+    # The Outlook-only alert is unassigned; the other one is orange from its Warning block.
+    assert colours["unassigned"] == 1
+    assert colours["orange"] == 1
+    assert colours["red"] == 0
+    assert sum(colours.values()) == body["total"]
 
 
 @pytest.mark.parametrize("event", ["=1+1", "+CMD", "-2+3", "@SUM(A1)"])

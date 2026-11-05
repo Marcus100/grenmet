@@ -104,6 +104,47 @@ describe("authApiFetch timeout", () => {
   });
 });
 
+describe("authApiFetch error detail", () => {
+  it("joins the messages of a validation error list into a sentence", async () => {
+    vi.spyOn(globalThis, "fetch").mockResolvedValue(
+      jsonResponse(
+        {
+          detail: [
+            { type: "missing", loc: ["body", "email"], msg: "Field required" },
+            {
+              type: "string_too_short",
+              loc: ["body", "password"],
+              msg: "String should have at least 8 characters.",
+            },
+          ],
+        },
+        422
+      )
+    );
+
+    const error = await authApiFetch(config, "/ping", pingParser).catch(
+      (e: unknown) => e
+    );
+
+    expect(error).toBeInstanceOf(AuthApiError);
+    expect((error as AuthApiError).status).toBe(422);
+    expect((error as AuthApiError).detail).toBe(
+      "Field required. String should have at least 8 characters."
+    );
+  });
+
+  it("keeps the raw body when detail is an object with no messages", async () => {
+    const body = { detail: { code: "rate_limited" } };
+    vi.spyOn(globalThis, "fetch").mockResolvedValue(jsonResponse(body, 429));
+
+    const error = await authApiFetch(config, "/ping", pingParser).catch(
+      (e: unknown) => e
+    );
+
+    expect((error as AuthApiError).detail).toBe(JSON.stringify(body));
+  });
+});
+
 it("sends a live access token in the header without caching or leaking it into fetch options", async () => {
   const fetchMock = vi
     .spyOn(globalThis, "fetch")
