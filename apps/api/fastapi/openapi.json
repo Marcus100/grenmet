@@ -39208,6 +39208,224 @@
         }
       }
     },
+    "/api/v1/cap/statistics": {
+      "get": {
+        "tags": [
+          "cap"
+        ],
+        "summary": "Count published warnings by hazard, colour, parish and month",
+        "description": "Counts published Actual alerts (expired and cancelled ones included; updates, cancellations, exercises and tests excluded) whose publish time falls in the period, by CAP event, GMS colour, parish and month. Every colour, parish and month is listed, with zero when it has none. A warning counts once in the colour table, at its highest colour; a warning with several hazards or parishes counts in each. Periods start no earlier than 2000-01-01 and end no later than a year after today. Needs cap.alert.read.",
+        "operationId": "capGetStatistics",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "start",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "date"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "First day (Grenada time). Defaults to twelve months back.",
+              "title": "Start"
+            },
+            "description": "First day (Grenada time). Defaults to twelve months back."
+          },
+          {
+            "name": "end",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "date"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Last day (Grenada time). Defaults to today.",
+              "title": "End"
+            },
+            "description": "Last day (Grenada time). Defaults to today."
+          },
+          {
+            "name": "hazard",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 255
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Only warnings whose CAP event is exactly this text.",
+              "title": "Hazard"
+            },
+            "description": "Only warnings whose CAP event is exactly this text."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CapStatisticsPublic"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Invalid period"
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/cap/statistics/export.csv": {
+      "get": {
+        "tags": [
+          "cap"
+        ],
+        "summary": "Export the warning statistics as CSV",
+        "description": "The same counts as the statistics endpoint, as a spreadsheet-ready download (text/csv, UTF-8, columns table, key, label, count; the first data row is the total). Needs cap.alert.read.",
+        "operationId": "capExportStatisticsCsv",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "start",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "date"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "First day (Grenada time). Defaults to twelve months back.",
+              "title": "Start"
+            },
+            "description": "First day (Grenada time). Defaults to twelve months back."
+          },
+          {
+            "name": "end",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "date"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Last day (Grenada time). Defaults to today.",
+              "title": "End"
+            },
+            "description": "Last day (Grenada time). Defaults to today."
+          },
+          {
+            "name": "hazard",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 255
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Only warnings whose CAP event is exactly this text.",
+              "title": "Hazard"
+            },
+            "description": "Only warnings whose CAP event is exactly this text."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "text/csv": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Invalid period"
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/cap/feeds": {
       "get": {
         "tags": [
@@ -75667,6 +75885,101 @@
           "generated_at"
         ],
         "title": "CapSnapshotPublic"
+      },
+      "CapStatisticsBucket": {
+        "properties": {
+          "key": {
+            "type": "string",
+            "title": "Key"
+          },
+          "label": {
+            "type": "string",
+            "title": "Label"
+          },
+          "count": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Count"
+          }
+        },
+        "type": "object",
+        "required": [
+          "key",
+          "label",
+          "count"
+        ],
+        "title": "CapStatisticsBucket",
+        "description": "One row of a warning statistics table: a stable key, a label and a count."
+      },
+      "CapStatisticsPublic": {
+        "properties": {
+          "start": {
+            "type": "string",
+            "format": "date",
+            "title": "Start"
+          },
+          "end": {
+            "type": "string",
+            "format": "date",
+            "title": "End"
+          },
+          "hazard": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Hazard"
+          },
+          "total": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Total"
+          },
+          "by_hazard": {
+            "items": {
+              "$ref": "#/components/schemas/CapStatisticsBucket"
+            },
+            "type": "array",
+            "title": "By Hazard"
+          },
+          "by_colour": {
+            "items": {
+              "$ref": "#/components/schemas/CapStatisticsBucket"
+            },
+            "type": "array",
+            "title": "By Colour"
+          },
+          "by_parish": {
+            "items": {
+              "$ref": "#/components/schemas/CapStatisticsBucket"
+            },
+            "type": "array",
+            "title": "By Parish"
+          },
+          "by_month": {
+            "items": {
+              "$ref": "#/components/schemas/CapStatisticsBucket"
+            },
+            "type": "array",
+            "title": "By Month"
+          }
+        },
+        "type": "object",
+        "required": [
+          "start",
+          "end",
+          "total",
+          "by_hazard",
+          "by_colour",
+          "by_parish",
+          "by_month"
+        ],
+        "title": "CapStatisticsPublic",
+        "description": "Counts of published warnings by hazard, colour, parish and month.\n\nA warning counts once in ``total`` and once in ``by_colour``, at its highest\ncolour across its information blocks (red, orange, yellow, green, then\nunassigned), so the colour table adds up to ``total``. ``by_hazard`` counts a\nwarning once for each CAP event one of its information blocks has, and\n``by_parish`` once for each parish it covers, so those tables can add up to\nmore than ``total``."
       },
       "CapStatus": {
         "type": "string",

@@ -80,6 +80,7 @@ the whole past list, paged here, 20 per page), `/feeds`, `/about`,
 `/feeds/rss.xml`, `/feeds/alerts.geojson`, `/feeds/latest-active.json`,
 `/feeds/alerts/<identifier>.xml` (proxies of the API feeds), `/api/health`.
 Staff: `/desk`, `/desk/new`, `/desk/alerts/[id]`, `/desk/alerts/[id]/edit`,
+`/desk/statistics` (counts by hazard, colour, parish and month) and its CSV download `/desk/statistics/export` (a route handler: validates the filters and streams FastAPI's `/cap/statistics/export.csv` with the staff token),
 `/desk/signin`, `/desk/api/...` (proxy), `/auth/start|callback|logout`.
 E2E smoke: `pnpm --filter @barrelsgd/web-cap test:e2e` (needs the dev server).
 

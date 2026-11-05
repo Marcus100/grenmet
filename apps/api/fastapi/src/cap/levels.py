@@ -70,6 +70,27 @@ def awareness_value(colour: GmsColour) -> str:
     return f"{code}; {colour.value}; {severity.value}"
 
 
+def _case_insensitive(text: str) -> str:
+    """``text`` with each letter as a ``[oO]`` class (POSIX regex has no inline ``(?i:)``)."""
+    return "".join(
+        f"[{char.lower()}{char.upper()}]" if char.isalpha() else char for char in text
+    )
+
+
+def awareness_pattern(colour: GmsColour) -> str:
+    """A POSIX regular expression (SQL ``~``) matching what ``parse_awareness`` reads as ``colour``.
+
+    Whitespace around each part is allowed and the colour word is case-insensitive;
+    the code and the severity are exact, as in ``parse_awareness``. The statistics
+    tests compare the SQL result with ``parse_awareness``; change both together.
+    """
+    code, severity = _AWARENESS[colour]
+    return (
+        rf"^\s*{code}\s*;\s*{_case_insensitive(colour.value)}\s*;"
+        rf"\s*{severity.value}\s*$"
+    )
+
+
 def parse_awareness(value: str) -> GmsColour | None:
     """``"3; orange; Severe"`` → ORANGE; anything malformed → None."""
     parts = [part.strip() for part in value.split(";")]
