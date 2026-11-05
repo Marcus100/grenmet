@@ -17,7 +17,7 @@ from typing import Any
 
 import sqlalchemy as sa
 from sqlalchemy import select
-from sqlalchemy.dialects.postgresql import JSONB
+from sqlalchemy.dialects.postgresql import JSONB, JSONPATH
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import InstrumentedAttribute
 
@@ -81,7 +81,9 @@ def resolve_period(start: date | None, end: date | None) -> tuple[date, date]:
         raise AppValidationError("The end date must not be before 2000-01-01.")
     if resolved_end > latest_end(today):
         raise AppValidationError("The end date must be within a year of today.")
-    resolved_start = start or default_start(resolved_end)
+    # A missing start is the default, but never before the archive starts: a
+    # caller who gave only an end must not be refused for a start they did not send.
+    resolved_start = start or max(default_start(resolved_end), EARLIEST_DAY)
     if resolved_start > resolved_end:
         raise AppValidationError("The start date must not be after the end date.")
     if resolved_start < EARLIEST_DAY:
@@ -115,14 +117,44 @@ def _contains(
     return sa.cast(column, JSONB).contains([item])
 
 
+def _parameters_array() -> sa.ColumnElement[Any]:
+    """An info block's parameters as a JSON array; a stored null, object or scalar is ``[]``.
+
+    ``jsonb_array_elements`` fails on anything but an array, which would fail the whole query.
+    """
+    as_jsonb = sa.cast(CapInfo.parameters, JSONB)
+    return sa.case(
+        (sa.func.jsonb_typeof(as_jsonb) == "array", as_jsonb),
+        else_=sa.cast(sa.literal("[]"), JSONB),
+    )
+
+
+def _is_outlook() -> sa.ColumnElement[bool]:
+    """The block's last ``GMS:product`` is Outlook, the product ``levels.read_level`` reads.
+
+    An Outlook has no colour, so its ``awareness_level`` is ignored (``read_level``
+    forces the colour to None). A block with no product is not an Outlook.
+    """
+    path = f'$[*] ? (@.value_name == "{levels.PRODUCT_PARAMETER}").value'
+    products = sa.func.jsonb_path_query_array(
+        _parameters_array(), sa.cast(sa.literal(path), JSONPATH)
+    )
+    return sa.func.coalesce(
+        products.op("->>")(sa.literal(-1, sa.Integer))
+        == levels.GmsProduct.OUTLOOK.value,
+        False,
+    )
+
+
 def _block_colour_rank() -> sa.ScalarSelect[int]:
     """The highest colour rank among one info block's ``awareness_level`` values.
 
     Each value is matched with ``levels.awareness_pattern``, the SQL form of
-    ``levels.parse_awareness``, so the spelling rules agree. 0 when none parses.
+    ``levels.parse_awareness``, so the spelling rules agree. Outlook blocks are
+    left out, as ``levels.read_level`` leaves their colour out. 0 when none parses.
     """
     parameter = (
-        sa.func.jsonb_array_elements(sa.cast(CapInfo.parameters, JSONB))
+        sa.func.jsonb_array_elements(_parameters_array())
         .table_valued(sa.column("value", JSONB))
         .render_derived()
     )
@@ -140,7 +172,10 @@ def _block_colour_rank() -> sa.ScalarSelect[int]:
     return (
         sa.select(sa.func.coalesce(sa.func.max(rank), UNASSIGNED_RANK))
         .select_from(parameter)
-        .where(value["value_name"].astext == levels.AWARENESS_PARAMETER)
+        .where(
+            value["value_name"].astext == levels.AWARENESS_PARAMETER,
+            sa.not_(_is_outlook()),
+        )
         .scalar_subquery()
     )
 
