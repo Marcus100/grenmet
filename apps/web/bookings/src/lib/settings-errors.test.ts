@@ -28,10 +28,34 @@ describe("settings failures", () => {
     expect(
       settingsFailure(
         apiError(422, {
-          errors: [{ msg: "Value error, Unknown IANA timezone" }],
+          detail: "Validation error",
+          errors: [
+            {
+              loc: ["body", "timezone"],
+              msg: "Value error, Unknown IANA timezone",
+              type: "value_error",
+            },
+          ],
         })
       )
     ).toMatchObject({ message: expect.stringContaining("timezone") });
+    expect(
+      settingsFailure(
+        apiError(422, {
+          detail: "Validation error",
+          errors: [
+            {
+              loc: ["body", "slug"],
+              msg: "Value error, That booking address is reserved",
+              type: "value_error",
+            },
+          ],
+        })
+      )
+    ).toMatchObject({
+      kind: "invalid",
+      message: expect.stringContaining("reserved"),
+    });
     expect(
       settingsFailure(
         apiError(422, { detail: "Working periods on the same day overlap" })

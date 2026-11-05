@@ -18,6 +18,8 @@ export function errorStatus(error: unknown): number | undefined {
 }
 
 const VALUE_ERROR_PREFIX = /^Value error, /u;
+/** The fixed `detail` of the documented request-validation 422. */
+const VALIDATION_FALLBACK = "Validation error";
 const MAX_DETAIL = 300;
 
 function clean(text: string): string {
@@ -28,13 +30,18 @@ function clean(text: string): string {
 export function errorDetail(error: unknown): string | undefined {
   if (!(isRecord(error) && isRecord(error.data))) return;
   const { detail, errors } = error.data;
-  if (typeof detail === "string" && detail.length > 0) return clean(detail);
-  if (Array.isArray(errors)) {
-    const messages = errors
-      .map((item) => (isRecord(item) ? item.msg : undefined))
-      .filter((msg): msg is string => typeof msg === "string");
+  const messages = Array.isArray(errors)
+    ? errors
+        .map((item) => (isRecord(item) ? item.msg : undefined))
+        .filter((msg): msg is string => typeof msg === "string")
+    : [];
+  // The documented validation 422 carries a fixed detail; its messages say why.
+  if (detail === VALIDATION_FALLBACK) {
     if (messages.length > 0) return clean(messages.map(clean).join(" "));
+    return;
   }
+  if (typeof detail === "string" && detail.length > 0) return clean(detail);
+  if (messages.length > 0) return clean(messages.map(clean).join(" "));
 }
 
 export function classifyFailure(error: unknown): FailureKind {

@@ -11,7 +11,18 @@ import {
 } from "@barrelsgd/gms/products";
 import { postedLabel } from "@/lib/clock";
 import type { PublishedContent } from "@/lib/cms";
+import { photoCredit } from "@/lib/photo-credit";
 import type { WarningLevel } from "@/lib/warning-level";
+
+/**
+ * A picture on an official card: the image of the pinned desk post that is
+ * based on that product (owner, 5 Nov 2026). Absent when no such post has one.
+ */
+export interface CardPicture {
+  alt: string;
+  credit: string;
+  src: string;
+}
 
 /** An issued GMS product shown as an official card in From the Desk. */
 export interface OfficialCard {
@@ -19,7 +30,11 @@ export interface OfficialCard {
   id: string;
   issued: string;
   kind: "briefing" | "outlook" | "marine" | "climate";
-  /** Set only when the product is no longer current (the API normally omits those). */
+  picture: CardPicture | null;
+  /**
+   * Set only when the product is no longer current (the API normally omits
+   * those). An expired briefing reads "Expired <time> · next forecast due <time>".
+   */
   staleNote: string | null;
   summary: string;
   title: string;
@@ -27,14 +42,18 @@ export interface OfficialCard {
 }
 
 export interface DeskFeed {
-  /** Under a red warning desk posts wait behind "Earlier posts" (owner, 1 Nov 2026). */
-  collapsePosts: boolean;
+  /**
+   * Desk posts behind "Earlier posts": under a red (take action) warning, the
+   * ones older than the warning's issue time (owner, 5 Nov 2026).
+   */
+  earlierPosts: PublishedContent[];
   /**
    * When the products feed answered but no public forecast is in effect (the
    * API leaves out expired ones): "The next forecast is due at 12:00 p.m."
    */
   missingBriefing: string | null;
   official: OfficialCard[];
+  /** Desk posts shown in the row, newest first (pinned posts lead). */
   posts: PublishedContent[];
 }
 
@@ -88,6 +107,12 @@ function noForecastNote(now: Date): string {
   return `No public forecast is in effect right now. The next forecast is due ${due}${due.endsWith(".") ? "" : "."}`;
 }
 
+/** An expired briefing's note: when it expired and when the next one is due. */
+function expiredBriefingNote(expiredAt: string | null, now: Date): string {
+  const expired = expiredAt ? `Expired ${expiredAt}` : "Expired";
+  return `${expired} · next forecast due ${nextForecastDue(now)}`;
+}
+
 /** A product's issue time (Grenada local), falling back to its publish time. */
 function issuedTime(product: PublicPublishedProduct): number {
   const issued = product.values.issuedAt;
@@ -101,10 +126,42 @@ function newest(products: PublicPublishedProduct[], kinds: readonly string[]) {
     .sort((a, b) => issuedTime(b) - issuedTime(a))[0];
 }
 
+/** A desk post's time (publish, else last update), for ordering and the red-warning split. */
+function postTime(post: PublishedContent): number {
+  return Date.parse(post.publishedAt ?? post.updatedAt);
+}
+
+/**
+ * The picture for a product's official card: the newest pinned desk post based
+ * on that product that has an image. Only desk updates count, not report
+ * write-ups.
+ */
+function pictureFor(
+  productId: string,
+  posts: PublishedContent[]
+): CardPicture | null {
+  const post = posts
+    .filter(
+      (item) =>
+        item.collection === "desk-updates" &&
+        item.pinned === true &&
+        item.basedOn?.productId === productId &&
+        item.imageUrl
+    )
+    .sort((a, b) => postTime(b) - postTime(a))[0];
+  if (!post?.imageUrl) return null;
+  return {
+    alt: post.imageAlt ?? "",
+    credit: photoCredit(post.imageCredit),
+    src: post.imageUrl,
+  };
+}
+
 function officialCard(
   product: PublicPublishedProduct,
   kind: OfficialCard["kind"],
-  now: Date
+  now: Date,
+  picture: CardPicture | null
 ): OfficialCard | null {
   if (!isProductKind(product.kind)) return null;
   const values = withForecastSchedule(product.kind, product.values);
@@ -132,12 +189,20 @@ function officialCard(
         values.generalImplications ||
         values.summary,
     }[kind] ?? "";
+  let staleNote: string | null = null;
+  if (!current) {
+    staleNote =
+      kind === "briefing"
+        ? expiredBriefingNote(validTo, now)
+        : "No longer in effect";
+  }
   return {
-    staleNote: current ? null : "No longer in effect",
+    staleNote,
     href: `/weather/issued/${product.id}`,
     id: product.id,
     issued: `Issued ${localLabel(values.issuedAt, now) ?? postedLabel(product.publishedAt, now)}`,
     kind,
+    picture,
     summary: summary.trim(),
     title: productTitle(product.kind),
     valid: cardValidity(kind, values, validTo),
@@ -177,10 +242,12 @@ export function nextIssueLabel(issuedAt: string | undefined): string {
 
 /**
  * The From the Desk feed (homepage v2, owner 1 Nov 2026): the latest public
- * forecast (by issue time) pinned first and the latest Tropical Weather Outlook,
- * Marine Forecast and Climate Bulletin, then up to three pinned desk posts, then the other
- * desk posts and report write-ups newest first. Official cards always lead; under
- * a red ("take action") warning the desk posts wait behind "Earlier posts".
+ * forecast (by issue time) pinned first, then the latest Marine Forecast,
+ * Tropical Weather Outlook and Climate Bulletin (owner, 5 Nov 2026), then up to
+ * three pinned desk posts, then the other desk posts and report write-ups newest
+ * first. Official cards always lead. Under a red ("take action") warning, desk
+ * posts older than the warning's issue time wait behind "Earlier posts"; newer
+ * ones stay in the row. With the issue time unknown, every desk post waits.
  */
 export function buildDeskFeed({
   level,
@@ -188,6 +255,7 @@ export function buildDeskFeed({
   posts,
   products,
   productsAvailable = true,
+  warningIssuedAt = null,
 }: {
   level: WarningLevel;
   now?: Date;
@@ -195,6 +263,11 @@ export function buildDeskFeed({
   products: PublicPublishedProduct[];
   /** False when the products feed failed; then nothing is said about forecasts here. */
   productsAvailable?: boolean;
+  /**
+   * When the earliest take-action warning in effect was issued (epoch ms), or
+   * null when it is unknown. Only read under a take-action level.
+   */
+  warningIssuedAt?: number | null;
 }): DeskFeed {
   const briefing = newest(
     products.filter((product) =>
@@ -202,22 +275,21 @@ export function buildDeskFeed({
     ),
     FORECAST_KINDS
   );
-  const outlook = newest(products, ["outlook"]);
   const marine = newest(products, ["marine-forecast"]);
+  const outlook = newest(products, ["outlook"]);
   const climate = newest(products, ["climate-bulletin"]);
   const official = [
-    briefing && officialCard(briefing, "briefing", now),
-    outlook && officialCard(outlook, "outlook", now),
-    marine && officialCard(marine, "marine", now),
-    climate && officialCard(climate, "climate", now),
+    briefing &&
+      officialCard(briefing, "briefing", now, pictureFor(briefing.id, posts)),
+    marine && officialCard(marine, "marine", now, pictureFor(marine.id, posts)),
+    outlook &&
+      officialCard(outlook, "outlook", now, pictureFor(outlook.id, posts)),
+    climate &&
+      officialCard(climate, "climate", now, pictureFor(climate.id, posts)),
   ].filter((card): card is OfficialCard => Boolean(card));
   // Up to three pinned posts lead the desk posts (owner, 1 Nov 2026), newest
   // first; any further pinned posts sort with the rest by date.
-  const newestFirst = [...posts].sort(
-    (a, b) =>
-      Date.parse(b.publishedAt ?? b.updatedAt) -
-      Date.parse(a.publishedAt ?? a.updatedAt)
-  );
+  const newestFirst = [...posts].sort((a, b) => postTime(b) - postTime(a));
   const leading = newestFirst
     .filter((post) => post.pinned === true)
     .slice(0, MAX_PINNED_POSTS);
@@ -225,11 +297,14 @@ export function buildDeskFeed({
     ...leading,
     ...newestFirst.filter((post) => !leading.includes(post)),
   ].slice(0, MAX_POSTS);
+  const behindWarning = (post: PublishedContent) =>
+    level === "take-action" &&
+    (warningIssuedAt === null || postTime(post) < warningIssuedAt);
   return {
-    collapsePosts: level === "take-action",
+    earlierPosts: sorted.filter(behindWarning),
     missingBriefing:
       productsAvailable && !briefing ? noForecastNote(now) : null,
     official,
-    posts: sorted,
+    posts: sorted.filter((post) => !behindWarning(post)),
   };
 }

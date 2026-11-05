@@ -8,6 +8,7 @@ from typing import Any, cast
 
 import sentry_sdk
 from fastapi import FastAPI
+from fastapi.exceptions import RequestValidationError
 from fastapi.openapi.utils import get_openapi
 from fastapi.responses import JSONResponse, Response
 from fastapi.routing import APIRoute
@@ -59,6 +60,7 @@ from src.exceptions import (
     AppException,
     app_exception_handler,
     integrity_error_handler,
+    request_validation_exception_handler,
     validation_exception_handler,
 )
 from src.feature_flags.router import router as feature_flags_router
@@ -559,6 +561,7 @@ app.include_router(events_staff_router, prefix=settings.API_V1_STR)
 # Register exception handlers
 app.add_exception_handler(AppException, app_exception_handler)  # type: ignore[arg-type]
 app.add_exception_handler(ValidationError, validation_exception_handler)  # type: ignore[arg-type]
+app.add_exception_handler(RequestValidationError, request_validation_exception_handler)
 app.add_exception_handler(IntegrityError, integrity_error_handler)  # type: ignore[arg-type]
 
 # Include private router for local development

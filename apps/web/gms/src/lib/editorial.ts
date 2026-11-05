@@ -1,4 +1,5 @@
 import { contentHref, type PublishedContent } from "@/lib/cms";
+import { photoCredit } from "@/lib/photo-credit";
 
 /** A product update as the desk feed shows it: a headline, its paragraphs and picture. */
 export interface ProductPost {
@@ -16,6 +17,7 @@ export interface WeatherArticle {
   body?: string;
   href: string;
   id: number | string;
+  imageCredit: string;
   imageUrl: string;
   published: string;
   sections?: { heading: string; paragraphs: string[] }[];
@@ -30,6 +32,11 @@ export interface WeatherArticle {
  */
 const FALLBACK_ARTICLE_IMAGE =
   "https://images.unsplash.com/photo-1504370805625-d32c54b16100?auto=format&fit=crop&w=1000&q=80";
+/**
+ * The stock picture is not GMS's photograph, so it is credited to its source
+ * rather than to "Photo: GMS" (owner rule, 5 Nov 2026: flagged for review).
+ */
+export const FALLBACK_ARTICLE_CREDIT = "Photo: Unsplash";
 
 /** A CMS post in the shape the article and feed components read. */
 export function contentToArticle(content: PublishedContent): WeatherArticle {
@@ -38,6 +45,9 @@ export function contentToArticle(content: PublishedContent): WeatherArticle {
     slug: content.slug,
     title: content.title,
     summary: content.summary ?? "",
+    imageCredit: content.imageUrl
+      ? photoCredit(content.imageCredit)
+      : FALLBACK_ARTICLE_CREDIT,
     imageUrl: content.imageUrl ?? FALLBACK_ARTICLE_IMAGE,
     // Grenada time, whatever time zone the server runs in.
     published: new Date(
