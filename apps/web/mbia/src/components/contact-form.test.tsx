@@ -46,4 +46,76 @@ describe("ContactForm Turnstile", () => {
       turnstileToken: "tok-1",
     });
   });
+
+  it("explains a validation problem without sending the form", async () => {
+    const fetchMock = vi.fn();
+    vi.stubGlobal("fetch", fetchMock);
+    const user = userEvent.setup();
+    render(<ContactForm />);
+    await user.type(screen.getByLabelText("Name"), "J");
+    await user.type(screen.getByLabelText("Email"), "jane@example.test");
+    await user.type(
+      screen.getByLabelText("Message"),
+      "I would like to ask about parking."
+    );
+    await user.click(screen.getByRole("button", { name: "Send message" }));
+    expect(await screen.findByRole("alert")).toHaveTextContent(
+      "Please enter your name"
+    );
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it("shows the refusal message and keeps what the visitor typed", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue(
+        new Response(
+          JSON.stringify({
+            ok: false,
+            error: "Verification failed. Please try again.",
+          }),
+          { status: 400, headers: { "Content-Type": "application/json" } }
+        )
+      )
+    );
+    const user = userEvent.setup();
+    render(<ContactForm />);
+    await user.type(screen.getByLabelText("Name"), "Jane Reader");
+    await user.type(screen.getByLabelText("Email"), "jane@example.test");
+    await user.type(
+      screen.getByLabelText("Message"),
+      "I would like to ask about parking."
+    );
+    await user.click(screen.getByRole("button", { name: "Solve check" }));
+    await user.click(screen.getByRole("button", { name: "Send message" }));
+    expect(await screen.findByRole("alert")).toHaveTextContent(
+      "Verification failed. Please try again."
+    );
+    expect(screen.getByLabelText("Name")).toHaveValue("Jane Reader");
+  });
+
+  it("confirms receipt and clears the form after a successful send", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue(
+        new Response(JSON.stringify({ ok: true }), {
+          status: 200,
+          headers: { "Content-Type": "application/json" },
+        })
+      )
+    );
+    const user = userEvent.setup();
+    render(<ContactForm />);
+    await user.type(screen.getByLabelText("Name"), "Jane Reader");
+    await user.type(screen.getByLabelText("Email"), "jane@example.test");
+    await user.type(
+      screen.getByLabelText("Message"),
+      "I would like to ask about parking."
+    );
+    await user.click(screen.getByRole("button", { name: "Send message" }));
+    expect(await screen.findByRole("status")).toHaveTextContent(
+      "Thank you — your message has been received."
+    );
+    expect(screen.getByLabelText("Name")).toHaveValue("");
+  });
 });

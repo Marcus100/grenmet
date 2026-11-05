@@ -2,12 +2,12 @@
 import { ResponseError } from "@barrelsgd/api-client";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-const contactSendContactMessage = vi.hoisted(() => vi.fn());
+const contactSendSiteContactMessage = vi.hoisted(() => vi.fn());
 const reportError = vi.hoisted(() => vi.fn());
 
 vi.mock("@barrelsgd/api-client", async (importOriginal) => ({
   ...(await importOriginal<typeof import("@barrelsgd/api-client")>()),
-  contactSendContactMessage,
+  contactSendSiteContactMessage,
 }));
 vi.mock("@/lib/report-error", () => ({ reportError }));
 
@@ -38,14 +38,20 @@ function responseError(status: number) {
   });
 }
 
+function apiFails(error: unknown) {
+  contactSendSiteContactMessage.mockReturnValue({
+    unwrap: () => Promise.reject(error),
+  });
+}
+
 beforeEach(() => {
-  contactSendContactMessage.mockReset();
+  contactSendSiteContactMessage.mockReset();
   reportError.mockReset();
 });
 
 describe("POST /api/contact", () => {
-  it("forwards a valid message to FastAPI with the mbia site key", async () => {
-    contactSendContactMessage.mockReturnValue({
+  it("forwards a valid message to the mbia per-site route", async () => {
+    contactSendSiteContactMessage.mockReturnValue({
       unwrap: () => Promise.resolve({ ok: true }),
     });
     const response = await POST(
@@ -53,47 +59,80 @@ describe("POST /api/contact", () => {
     );
     expect(response.status).toBe(200);
     expect(await response.json()).toEqual({ ok: true });
-    expect(contactSendContactMessage).toHaveBeenCalledWith(
+    expect(contactSendSiteContactMessage).toHaveBeenCalledWith(
       expect.objectContaining({
-        body: { site: "mbia", ...valid, turnstile_token: "token-1" },
+        path: { site_key: "mbia" },
+        body: { ...valid, turnstile_token: "token-1" },
       })
     );
   });
 
+  it("sends no Turnstile token when the visitor did not solve the check", async () => {
+    contactSendSiteContactMessage.mockReturnValue({
+      unwrap: () => Promise.resolve({ ok: true }),
+    });
+    const response = await POST(request(valid));
+    expect(response.status).toBe(200);
+    const [options] = contactSendSiteContactMessage.mock.calls[0] as [
+      { body: Record<string, unknown> },
+    ];
+    expect(options.body.turnstile_token).toBeUndefined();
+    // The deprecated body field must not reach the per-site route.
+    expect(options.body).not.toHaveProperty("site");
+  });
+
   it("rejects invalid input without calling FastAPI", async () => {
-    for (const body of ["not json", { ...valid, email: "nope" }, {}]) {
+    for (const body of [
+      "not json",
+      { ...valid, email: "nope" },
+      { ...valid, subject: "Hacking" },
+      {},
+    ]) {
       const response = await POST(request(body));
       expect(response.status).toBe(400);
     }
-    expect(contactSendContactMessage).not.toHaveBeenCalled();
+    expect(contactSendSiteContactMessage).not.toHaveBeenCalled();
   });
 
   it("passes rate limiting through as 429", async () => {
-    contactSendContactMessage.mockReturnValue({
-      unwrap: () => Promise.reject(responseError(429)),
-    });
+    apiFails(responseError(429));
     const response = await POST(request(valid));
     expect(response.status).toBe(429);
+    expect(reportError).not.toHaveBeenCalled();
   });
 
   it("reports upstream failure and tells the visitor it was not sent", async () => {
-    contactSendContactMessage.mockReturnValue({
-      unwrap: () => Promise.reject(responseError(500)),
-    });
+    apiFails(responseError(500));
+    const response = await POST(request(valid));
+    expect(response.status).toBe(502);
+    expect(reportError).toHaveBeenCalledOnce();
+  });
+
+  it("reports a network failure and answers 502", async () => {
+    apiFails(new TypeError("fetch failed"));
     const response = await POST(request(valid));
     expect(response.status).toBe(502);
     expect(reportError).toHaveBeenCalledOnce();
   });
 
   it("answers 400 when FastAPI rejects the Turnstile check", async () => {
-    contactSendContactMessage.mockReturnValue({
-      unwrap: () => Promise.reject(responseError(400)),
-    });
+    apiFails(responseError(400));
     const response = await POST(request({ ...valid, turnstileToken: "bad" }));
     expect(response.status).toBe(400);
     expect(await response.json()).toEqual({
       ok: false,
       error: "Verification failed. Please try again.",
+    });
+    expect(reportError).not.toHaveBeenCalled();
+  });
+
+  it("tells the visitor when the site refuses contact (404) without reporting it", async () => {
+    apiFails(responseError(404));
+    const response = await POST(request(valid));
+    expect(response.status).toBe(404);
+    expect(await response.json()).toEqual({
+      ok: false,
+      error: "Contact messages are not available right now.",
     });
     expect(reportError).not.toHaveBeenCalled();
   });
