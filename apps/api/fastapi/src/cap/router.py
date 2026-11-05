@@ -1,11 +1,19 @@
 import uuid
+from datetime import date
 from typing import Annotated, Any
 from xml.etree import ElementTree as ET
 
 from fastapi import APIRouter, Query, Request, Response, status
 from fastapi.responses import RedirectResponse
 
-from src.cap import attachments, cache, escalation, mapping, service
+from src.cap import (
+    attachments,
+    cache,
+    escalation,
+    mapping,
+    service,
+    warning_statistics,
+)
 from src.cap.geo import alerts_to_feature_collection
 from src.cap.ibf_router import router as ibf_router
 from src.cap.models import CapLifecycleState, CapMessageType, CapStatus
@@ -35,6 +43,7 @@ from src.cap.schemas import (
     CapReviewRecord,
     CapSettingsPublic,
     CapSettingsUpdate,
+    CapStatisticsPublic,
     CapValidationResult,
     GmsCataloguePublic,
     PublicWarnings,
@@ -581,6 +590,95 @@ async def read_audit(
     )
     return CapAuditEventListPublic(
         data=events, count=total, page=pagination.page, size=pagination.size
+    )
+
+
+StatisticsStart = Annotated[
+    date | None,
+    Query(description="First day (Grenada time). Defaults to twelve months back."),
+]
+StatisticsEnd = Annotated[
+    date | None, Query(description="Last day (Grenada time). Defaults to today.")
+]
+StatisticsHazard = Annotated[
+    str | None,
+    Query(
+        max_length=255,
+        description="Only warnings whose CAP event is exactly this text.",
+    ),
+]
+
+
+@router.get(
+    "/statistics",
+    response_model=CapStatisticsPublic,
+    summary="Count published warnings by hazard, colour, parish and month",
+    description=(
+        "Counts published Actual alerts (expired and cancelled ones included; "
+        "updates, cancellations, exercises and tests excluded) whose publish time "
+        "falls in the period, by CAP event, GMS colour, parish and month. Every "
+        "colour, parish and month is listed, with zero when it has none. A warning "
+        "covering several parishes counts in each. Needs cap.alert.read."
+    ),
+    responses={**AUTHENTICATED, 422: {"description": "Invalid period"}},
+)
+async def read_statistics(
+    *,
+    session: SessionDep,
+    current_user: CurrentUser,
+    start: StatisticsStart = None,
+    end: StatisticsEnd = None,
+    hazard: StatisticsHazard = None,
+) -> CapStatisticsPublic:
+    return await warning_statistics.read_statistics(
+        session=session,
+        current_user=current_user,
+        start=start,
+        end=end,
+        hazard=hazard,
+    )
+
+
+@router.get(
+    "/statistics/export.csv",
+    response_class=Response,
+    status_code=status.HTTP_200_OK,
+    summary="Export the warning statistics as CSV",
+    description=(
+        "The same counts as the statistics endpoint, as a spreadsheet-ready "
+        "download (text/csv, UTF-8, columns table, key, label, count; the first "
+        "data row is the total). Needs cap.alert.read."
+    ),
+    responses={
+        **AUTHENTICATED,
+        200: {"content": {"text/csv": {"schema": {"type": "string"}}}},
+        422: {"description": "Invalid period"},
+    },
+)
+async def export_statistics_csv(
+    *,
+    session: SessionDep,
+    current_user: CurrentUser,
+    start: StatisticsStart = None,
+    end: StatisticsEnd = None,
+    hazard: StatisticsHazard = None,
+) -> Response:
+    statistics = await warning_statistics.read_statistics(
+        session=session,
+        current_user=current_user,
+        start=start,
+        end=end,
+        hazard=hazard,
+    )
+    return Response(
+        content=warning_statistics.statistics_csv(statistics),
+        media_type="text/csv; charset=utf-8",
+        headers={
+            "Content-Disposition": (
+                "attachment; "
+                f'filename="cap-warning-statistics-{statistics.start}-{statistics.end}.csv"'
+            )
+        },
     )
 
 

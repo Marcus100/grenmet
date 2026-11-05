@@ -144,6 +144,7 @@ export { capDraftFromHazardProfile } from "./clients/capDraftFromHazardProfile.j
 export { capDuplicateAlert } from "./clients/capDuplicateAlert.js";
 export { capEmergencyPublishAlert } from "./clients/capEmergencyPublishAlert.js";
 export { capExpireAlert } from "./clients/capExpireAlert.js";
+export { capExportStatisticsCsv } from "./clients/capExportStatisticsCsv.js";
 export { capGetActiveMap } from "./clients/capGetActiveMap.js";
 export { capGetAlert } from "./clients/capGetAlert.js";
 export { capGetAlertByIdentifier } from "./clients/capGetAlertByIdentifier.js";
@@ -166,6 +167,7 @@ export { capGetPublicLatestActive } from "./clients/capGetPublicLatestActive.js"
 export { capGetPublicPastAlerts } from "./clients/capGetPublicPastAlerts.js";
 export { capGetPublicWarnings } from "./clients/capGetPublicWarnings.js";
 export { capGetRss } from "./clients/capGetRss.js";
+export { capGetStatistics } from "./clients/capGetStatistics.js";
 export { capImportAlert } from "./clients/capImportAlert.js";
 export { capIssueAlertUpdate } from "./clients/capIssueAlertUpdate.js";
 export { capPublishAlert } from "./clients/capPublishAlert.js";
@@ -1456,6 +1458,11 @@ export {
   useCapExpireAlert,
 } from "./hooks/useCapExpireAlert.js";
 export {
+  capExportStatisticsCsvQueryKey,
+  capExportStatisticsCsvQueryOptions,
+  useCapExportStatisticsCsv,
+} from "./hooks/useCapExportStatisticsCsv.js";
+export {
   capGetActiveMapQueryKey,
   capGetActiveMapQueryOptions,
   useCapGetActiveMap,
@@ -1565,6 +1572,11 @@ export {
   capGetRssQueryOptions,
   useCapGetRss,
 } from "./hooks/useCapGetRss.js";
+export {
+  capGetStatisticsQueryKey,
+  capGetStatisticsQueryOptions,
+  useCapGetStatistics,
+} from "./hooks/useCapGetStatistics.js";
 export {
   capImportAlertMutationKey,
   capImportAlertMutationOptions,
@@ -6253,6 +6265,16 @@ export type {
   CapExpireAlertStatus404,
   CapExpireAlertStatus422,
 } from "./models/CapExpireAlert.js";
+export type {
+  CapExportStatisticsCsvOptions,
+  CapExportStatisticsCsvQuery,
+  CapExportStatisticsCsvResponse,
+  CapExportStatisticsCsvResponses,
+  CapExportStatisticsCsvStatus200,
+  CapExportStatisticsCsvStatus401,
+  CapExportStatisticsCsvStatus403,
+  CapExportStatisticsCsvStatus422,
+} from "./models/CapExportStatisticsCsv.js";
 export type { CapFeedImportCreate } from "./models/CapFeedImportCreate.js";
 export type { CapFeedImportPublic } from "./models/CapFeedImportPublic.js";
 export type { CapFeedImportUpdate } from "./models/CapFeedImportUpdate.js";
@@ -6449,6 +6471,16 @@ export type {
   CapGetRssStatus200,
   CapGetRssStatus422,
 } from "./models/CapGetRss.js";
+export type {
+  CapGetStatisticsOptions,
+  CapGetStatisticsQuery,
+  CapGetStatisticsResponse,
+  CapGetStatisticsResponses,
+  CapGetStatisticsStatus200,
+  CapGetStatisticsStatus401,
+  CapGetStatisticsStatus403,
+  CapGetStatisticsStatus422,
+} from "./models/CapGetStatistics.js";
 export type { CapHazardGroupPublic } from "./models/CapHazardGroupPublic.js";
 export type {
   CapImportAlertBody,
@@ -6560,6 +6592,8 @@ export type { CapSettingsUpdate } from "./models/CapSettingsUpdate.js";
 export type { CapSeverity } from "./models/CapSeverity.js";
 export { capSeverity } from "./models/CapSeverity.js";
 export type { CapSnapshotPublic } from "./models/CapSnapshotPublic.js";
+export type { CapStatisticsBucket } from "./models/CapStatisticsBucket.js";
+export type { CapStatisticsPublic } from "./models/CapStatisticsPublic.js";
 export type { CapStatus } from "./models/CapStatus.js";
 export { capStatus } from "./models/CapStatus.js";
 export type {
@@ -15990,6 +16024,18 @@ export {
   capExpireAlertStatus404Schema,
   capExpireAlertStatus422Schema,
 } from "./zod/capExpireAlertSchema.js";
+export {
+  capExportStatisticsCsvErrorSchema,
+  capExportStatisticsCsvQueryEndSchema,
+  capExportStatisticsCsvQueryHazardSchema,
+  capExportStatisticsCsvQuerySchema,
+  capExportStatisticsCsvQueryStartSchema,
+  capExportStatisticsCsvResponseSchema,
+  capExportStatisticsCsvStatus200Schema,
+  capExportStatisticsCsvStatus401Schema,
+  capExportStatisticsCsvStatus403Schema,
+  capExportStatisticsCsvStatus422Schema,
+} from "./zod/capExportStatisticsCsvSchema.js";
 export { capFeedImportCreateSchema } from "./zod/capFeedImportCreateSchema.js";
 export { capFeedImportPublicSchema } from "./zod/capFeedImportPublicSchema.js";
 export { capFeedImportUpdateSchema } from "./zod/capFeedImportUpdateSchema.js";
@@ -16176,6 +16222,18 @@ export {
   capGetRssStatus200Schema,
   capGetRssStatus422Schema,
 } from "./zod/capGetRssSchema.js";
+export {
+  capGetStatisticsErrorSchema,
+  capGetStatisticsQueryEndSchema,
+  capGetStatisticsQueryHazardSchema,
+  capGetStatisticsQuerySchema,
+  capGetStatisticsQueryStartSchema,
+  capGetStatisticsResponseSchema,
+  capGetStatisticsStatus200Schema,
+  capGetStatisticsStatus401Schema,
+  capGetStatisticsStatus403Schema,
+  capGetStatisticsStatus422Schema,
+} from "./zod/capGetStatisticsSchema.js";
 export { capHazardGroupPublicSchema } from "./zod/capHazardGroupPublicSchema.js";
 export {
   capImportAlertBodySchema,
@@ -16274,6 +16332,8 @@ export { capSettingsPublicSchema } from "./zod/capSettingsPublicSchema.js";
 export { capSettingsUpdateSchema } from "./zod/capSettingsUpdateSchema.js";
 export { capSeveritySchema } from "./zod/capSeveritySchema.js";
 export { capSnapshotPublicSchema } from "./zod/capSnapshotPublicSchema.js";
+export { capStatisticsBucketSchema } from "./zod/capStatisticsBucketSchema.js";
+export { capStatisticsPublicSchema } from "./zod/capStatisticsPublicSchema.js";
 export { capStatusSchema } from "./zod/capStatusSchema.js";
 export {
   capSubmitAlertBodySchema,

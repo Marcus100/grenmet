@@ -1,6 +1,7 @@
 import math
 import re
 import uuid
+from datetime import date
 from enum import Enum
 from typing import Annotated, Any, Literal
 from urllib.parse import urlsplit
@@ -704,3 +705,29 @@ class CapEscalationPublic(BaseModel):
     alert_id: uuid.UUID
     created: bool
     source: CapEscalationSource
+
+
+class CapStatisticsBucket(BaseModel):
+    """One row of a warning statistics table: a stable key, a label and a count."""
+
+    key: str
+    label: str
+    count: int = Field(ge=0)
+
+
+class CapStatisticsPublic(BaseModel):
+    """Counts of published warnings by hazard, colour, parish and month.
+
+    A warning counts once in a row however many information blocks or areas it
+    has. A warning that covers several parishes (or, rarely, several hazards)
+    counts in each of them, so those tables can add up to more than ``total``.
+    """
+
+    start: date
+    end: date
+    hazard: str | None = None
+    total: int = Field(ge=0)
+    by_hazard: list[CapStatisticsBucket]
+    by_colour: list[CapStatisticsBucket]
+    by_parish: list[CapStatisticsBucket]
+    by_month: list[CapStatisticsBucket]
