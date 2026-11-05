@@ -82,6 +82,19 @@ def record_label(record_type: str) -> str:
     return _labels.get(record_type, record_type)
 
 
+def sensitive_fields(record_type: str) -> frozenset[str]:
+    """Fields the registry marks sensitive for ``record_type`` today.
+
+    Read at read time, so a field marked sensitive later also masks rows written
+    before the mark (the stored ``sensitive`` flag is only what was true at write).
+    """
+    fields: set[str] = set()
+    for tracked_model in _models.values():
+        if tracked_model.record_type == record_type:
+            fields |= tracked_model.sensitive
+    return frozenset(fields)
+
+
 def parse_uuid(value: str) -> uuid.UUID | None:
     try:
         return uuid.UUID(value)

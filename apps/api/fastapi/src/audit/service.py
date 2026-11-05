@@ -128,6 +128,8 @@ async def list_history(
     see_sensitive = has_permission(
         current_user=actor, permission_key=SENSITIVE_PERMISSION
     )
+    # A change is masked when it was stored as sensitive OR the registry marks the
+    # field sensitive now: rows written before a field was marked still mask.
     data = [
         AuditEntryPublic(
             id=entry.id,
@@ -145,7 +147,11 @@ async def list_history(
             actor_app=entry.actor_app,
             changes=[
                 AuditChangePublic(field=change["field"], masked=True)
-                if change.get("sensitive") and not see_sensitive
+                if not see_sensitive
+                and (
+                    change.get("sensitive")
+                    or change["field"] in registry.sensitive_fields(entry.record_type)
+                )
                 else AuditChangePublic(
                     field=change["field"],
                     old=_display(change.get("old")),

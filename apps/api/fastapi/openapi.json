@@ -20901,7 +20901,7 @@
           "hr-payroll"
         ],
         "summary": "List employee pay profiles",
-        "description": "Shift-worker flag (own or department default), calendar and payroll reference for employees in the departments the caller may read.",
+        "description": "Shift-worker flag (own or department default), calendar and payroll reference for employees in the departments the caller may read. The calendar override reason is returned only to organisation-wide hr.payroll.read.amounts holders; calendar_override_reason_visible says whether this caller gets it.",
         "operationId": "hrListEmployeePayProfiles",
         "security": [
           {
@@ -79650,6 +79650,17 @@
               }
             ],
             "title": "Payroll Reference"
+          },
+          "calendar_override_reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Calendar Override Reason"
           }
         },
         "type": "object",
@@ -79661,7 +79672,8 @@
           "calendar_id",
           "shift_worker",
           "effective_shift_worker",
-          "payroll_reference"
+          "payroll_reference",
+          "calendar_override_reason"
         ],
         "title": "EmployeePayProfilePublic"
       },
@@ -79741,12 +79753,17 @@
           "count": {
             "type": "integer",
             "title": "Count"
+          },
+          "calendar_override_reason_visible": {
+            "type": "boolean",
+            "title": "Calendar Override Reason Visible"
           }
         },
         "type": "object",
         "required": [
           "data",
-          "count"
+          "count",
+          "calendar_override_reason_visible"
         ],
         "title": "EmployeePayProfilesPublic"
       },

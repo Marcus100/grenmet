@@ -48,6 +48,22 @@ tax, NIS or bank field exists in any request, response or export.
   `PUT profiles/{user_id}`, `GET department-settings`,
   `PUT department-settings/{department_id}`. A new organisation's `items` list is
   empty; GAA's items are seeded `PROVISIONAL` with a `source_reference`.
+  Each pay profile returns `calendar_override_reason` only to organisation-wide
+  `hr.payroll.read.amounts` holders (free text stays with them, as pay-line
+  reasons do); for anyone else it is `null`. The list response's
+  `calendar_override_reason_visible` says which case the caller is in.
+  Gate (N3): organisation-wide `hr.payroll.read.amounts` only, stricter than the
+  gate for pay-line reasons, which is organisation-wide prepare, approve or
+  export. Holding it in one department, or in another organisation, is not
+  enough (tests: `tests/hr/test_payroll_override_reason.py`).
+  Saving (`PUT profiles/{user_id}`): a caller without that key who omits the
+  reason keeps the stored one (they cannot clear it). A caller without that key
+  who sends a new reason replaces the stored one (N2). That change is audited and
+  its value masked in `/audit/payroll_settings/{organisation_id}` unless the
+  reader holds `audit.view_sensitive`. The Employment Act rule for an hourly-paid
+  person on a calendar longer than fortnightly counts only a reason sent in that
+  request: a stored reason never satisfies it, so such a caller gets 409 without
+  one of their own (tests cover both stored and absent).
 - Calendars are `MONTHLY` or `FORTNIGHTLY` (`anchor_date` required; periods
   start a whole number of fortnights from it and run 14 days). Without a
   `frequency`, GAA calendars are fortnightly and others monthly.
@@ -1261,7 +1277,7 @@ worker jobs) and to how they signed in: `actor_session` (`account` or `app`) and
 
 | Endpoint | Access and purpose |
 | --- | --- |
-| `GET /api/v1/audit/{entity_type}/{entity_id}` | Paginated history, newest first. Readable by anyone who may read the record (module read check). Sensitive field values return `masked: true` with `old`/`new` null unless the reader holds `audit.view_sensitive`. Unknown `entity_type` → 404 |
+| `GET /api/v1/audit/{entity_type}/{entity_id}` | Paginated history, newest first. Readable by anyone who may read the record (module read check). Sensitive field values return `masked: true` with `old`/`new` null unless the reader holds `audit.view_sensitive`. Masking is decided at read time: a change is masked if the row stored it as sensitive or the module marks that field sensitive today, so rows written before a field was marked (stored `sensitive: false`) are still masked. Stored rows are never rewritten. Unknown `entity_type` → 404 |
 
 HR `entity_type` values: `employee` (user id; profile, address, employment, approval
 authority), `leave_request`, `absentee_report`, `shift_swap`, `status_report`,

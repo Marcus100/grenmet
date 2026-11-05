@@ -372,6 +372,157 @@ async def test_hourly_staff_on_a_monthly_calendar_need_an_override(
     assert overridden.json()["reason"].startswith("Calendar override:")
 
 
+@pytest.mark.usefixtures("totp_keys")
+async def test_saved_calendar_override_reason_is_read_back_on_the_profile(
+    async_client: httpx.AsyncClient, db_async: AsyncSession
+) -> None:
+    ops, _, accounts = await departments(db_async)
+    employee = await employee_in(db_async, ops)
+    admin = await headers_for(
+        db_async, await make_user(db_async, superuser=True), mfa=True
+    )
+    calendar_id, _ = await calendar_and_period(
+        async_client, admin, accounts.id, SEPTEMBER
+    )  # monthly
+    basic = await _basic(
+        async_client, admin, employee.id, basis="HOURLY", amount_minor=2000
+    )
+    assert basic.status_code == 409  # the calendar needs a reason first
+    overridden = await async_client.post(
+        f"{API}/basic-pay",
+        headers=admin,
+        json={
+            "organisation_id": "gaa",
+            "user_id": str(employee.id),
+            "pay_basis": "HOURLY",
+            "amount_minor": 2000,
+            "standard_monthly_hours": "173.33",
+            "effective_from": "2026-01-01",
+            "calendar_override_reason": "Agreed in writing",
+        },
+    )
+    assert overridden.status_code == 201, overridden.text
+
+    saved = await async_client.put(
+        f"{API}/profiles/{employee.id}",
+        headers=admin,
+        json={
+            "organisation_id": "gaa",
+            "calendar_id": calendar_id,
+            "calendar_override_reason": "Agreed in writing",
+        },
+    )
+    assert saved.status_code == 200, saved.text
+    assert saved.json()["calendar_override_reason"] == "Agreed in writing"
+
+    listed = await async_client.get(
+        f"{API}/profiles?organisation_id=gaa", headers=admin
+    )
+    assert listed.status_code == 200, listed.text
+    row = next(r for r in listed.json()["data"] if r["user_id"] == str(employee.id))
+    assert row["calendar_override_reason"] == "Agreed in writing"
+
+    cleared = await async_client.put(
+        f"{API}/profiles/{employee.id}",
+        headers=admin,
+        json={"organisation_id": "gaa", "calendar_id": None},
+    )
+    assert cleared.status_code == 200, cleared.text
+    assert cleared.json()["calendar_override_reason"] is None
+    listed = await async_client.get(
+        f"{API}/profiles?organisation_id=gaa", headers=admin
+    )
+    row = next(r for r in listed.json()["data"] if r["user_id"] == str(employee.id))
+    assert row["calendar_override_reason"] is None
+
+
+@pytest.mark.usefixtures("totp_keys")
+async def test_override_reason_is_withheld_from_readers_without_amounts(
+    async_client: httpx.AsyncClient, db_async: AsyncSession
+) -> None:
+    ops, _, accounts = await departments(db_async)
+    employee = await employee_in(db_async, ops)
+    admin = await headers_for(
+        db_async, await make_user(db_async, superuser=True), mfa=True
+    )
+    calendar_id, _ = await calendar_and_period(
+        async_client, admin, accounts.id, SEPTEMBER
+    )  # monthly
+    overridden = await async_client.post(
+        f"{API}/basic-pay",
+        headers=admin,
+        json={
+            "organisation_id": "gaa",
+            "user_id": str(employee.id),
+            "pay_basis": "HOURLY",
+            "amount_minor": 2000,
+            "standard_monthly_hours": "173.33",
+            "effective_from": "2026-01-01",
+            "calendar_override_reason": "Agreed in writing",
+        },
+    )
+    assert overridden.status_code == 201, overridden.text
+    saved = await async_client.put(
+        f"{API}/profiles/{employee.id}",
+        headers=admin,
+        json={
+            "organisation_id": "gaa",
+            "calendar_id": calendar_id,
+            "calendar_override_reason": "Agreed in writing",
+        },
+    )
+    assert saved.status_code == 200, saved.text
+
+    def row_for(body: dict[str, Any]) -> dict[str, Any]:
+        return next(r for r in body["data"] if r["user_id"] == str(employee.id))
+
+    # Organisation-wide amounts reader: the reason comes back.
+    reader = await payroll_user(
+        db_async,
+        "hr.payroll.read.department",
+        "hr.payroll.read.amounts",
+        department_id=ops.id,
+    )
+    full = await async_client.get(
+        f"{API}/profiles?organisation_id=gaa",
+        headers=await headers_for(db_async, reader),
+    )
+    assert full.status_code == 200, full.text
+    assert full.json()["calendar_override_reason_visible"] is True
+    assert row_for(full.json())["calendar_override_reason"] == "Agreed in writing"
+
+    # Department reader without amounts: the row stays, the reason does not.
+    scoped = await payroll_user(
+        db_async,
+        "hr.payroll.read.department",
+        department_id=ops.id,
+        scope=RoleAssignmentScope.DEPARTMENT,
+        scoped_department=ops.id,
+    )
+    limited = await async_client.get(
+        f"{API}/profiles?organisation_id=gaa",
+        headers=await headers_for(db_async, scoped),
+    )
+    assert limited.status_code == 200, limited.text
+    assert limited.json()["calendar_override_reason_visible"] is False
+    limited_row = row_for(limited.json())
+    assert limited_row["calendar_override_reason"] is None
+    assert limited_row["calendar_id"] == calendar_id
+
+    # A preparer without amounts re-saves the profile without a reason: the
+    # stored reason is kept, and their response does not show it.
+    preparer = await payroll_user(db_async, "hr.payroll.prepare", department_id=ops.id)
+    resaved = await async_client.put(
+        f"{API}/profiles/{employee.id}",
+        headers=await headers_for(db_async, preparer),
+        json={"organisation_id": "gaa", "calendar_id": None},
+    )
+    assert resaved.status_code == 200, resaved.text
+    assert resaved.json()["calendar_override_reason"] is None
+    after = await async_client.get(f"{API}/profiles?organisation_id=gaa", headers=admin)
+    assert row_for(after.json())["calendar_override_reason"] == "Agreed in writing"
+
+
 def test_fortnightly_basic_is_twelve_twenty_sixths_of_a_month() -> None:
     basic = pricing.BasicPayFacts(
         id=1,
