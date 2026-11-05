@@ -3,6 +3,8 @@ import "server-only";
 import {
   type CapAlertImportRequest,
   type CapLifecycleState,
+  type CapProfileDraftRequest,
+  type CapProfileSave,
   capAlertListPublicSchema,
   capAlertPublicSchema,
   capAuditEventListPublicSchema,
@@ -201,6 +203,42 @@ export function approveHazardProfile(accessToken: string, profileId: string) {
     `/cap/hazard-profiles/${encodeURIComponent(profileId)}/approve`,
     undefined,
     capProfilePublicSchema
+  );
+}
+
+/**
+ * Saves a new draft version of one hazard profile key. `baseVersion` is the
+ * version the editor started from (0 for a new key); the API refuses the save
+ * if someone else has saved a newer version in the meantime. Approved versions
+ * are never changed: the result is always a draft that needs approval.
+ */
+export function saveHazardProfileVersion(
+  accessToken: string,
+  key: string,
+  body: CapProfileSave
+) {
+  return write(
+    accessToken,
+    `/cap/hazard-profiles/${encodeURIComponent(key)}/versions`,
+    body,
+    capProfilePublicSchema
+  );
+}
+
+/**
+ * Starts a warning draft from an approved profile version. Creates an alert
+ * draft only: nothing is submitted, approved, published or sent.
+ */
+export function draftAlertFromHazardProfile(
+  accessToken: string,
+  profileId: string,
+  body: CapProfileDraftRequest
+) {
+  return write(
+    accessToken,
+    `/cap/hazard-profiles/${encodeURIComponent(profileId)}/draft`,
+    body,
+    capAlertPublicSchema
   );
 }
 
