@@ -21,7 +21,7 @@ import { nth } from "@/test/nth";
 import { renderWithGmsCatalogue as render } from "@/test/with-gms-catalogue";
 import { ProfileEditor } from "./profile-editor";
 
-const RE_RED_RESPONSE = /^Red response/;
+const RE_RED_RESPONSE = /^Red response/u;
 
 vi.mock("next/navigation", () => ({
   useRouter: () => ({ push: vi.fn(), refresh: vi.fn() }),

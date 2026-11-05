@@ -15,7 +15,7 @@ export const MODERATION_PAGE_SIZE = 25;
 export const MIN_REASON = 3;
 export const MAX_REASON = 500;
 
-const ORGANISER_PREFIX = /^organiser\./;
+const ORGANISER_PREFIX = /^organiser\./u;
 
 export function parseModerationStatus(
   value: string | undefined

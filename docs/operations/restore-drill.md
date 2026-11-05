@@ -1,8 +1,8 @@
 # Restore drill
 
-**Status:** Built, not yet run against real backups  
+**Status:** Run once against the production backup and passed; a supervised staging-target run is still open ([#926](https://github.com/Marcus100/grenmet/issues/926)). Run 41789991594 (2026-11-04) succeeded: the restore step took about 1.5 minutes and the whole run 1 minute 57 seconds.  
 **Owner:** Barrels Grenada engineering  
-**Last updated:** 2026-10-15
+**Last updated:** 2026-11-04
 
 Proves that the latest off-host backups rebuild every core database and match the
 code. Decision and rationale: [ADR-0021](../adr/0021-timed-recovery-drill.md). The
@@ -18,7 +18,11 @@ workflow is `.github/workflows/restore-drill.yml`; the logic is
    `eregister`) needs a dump under 24 hours old; extra ones such as the CMS
    are restored too.
 2. Restores each into a throwaway PostgreSQL container whose data lives in tmpfs, so
-   nothing is written to disk. It never connects to a live database.
+   nothing is written to disk. The drill mounts a tmpfs at every path the image declares
+   as a volume (`/var/lib/postgresql/data` for 17, `/var/lib/postgresql` for 18) and
+   fails if any mount of the container is backed by disk, because Docker would
+   otherwise create an anonymous on-disk volume there. It never connects to a live
+   database.
 3. Compares each database's Alembic revision with the head in the code of the latest
    release, and checks that every database restored with data and meets the row floors.
 4. Records time per phase and fails if the total exceeds 2 hours.

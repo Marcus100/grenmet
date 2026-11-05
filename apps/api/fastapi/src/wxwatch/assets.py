@@ -6,13 +6,14 @@ from pathlib import Path
 from tempfile import SpooledTemporaryFile
 from uuid import UUID
 
-from fastapi import HTTPException
 from fastapi.responses import StreamingResponse
 from PIL import Image, UnidentifiedImageError
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
 from starlette.background import BackgroundTask
 from starlette.concurrency import run_in_threadpool
+
+from src.exceptions import AppException, NotFoundError
 
 from .config import wxwatch_settings
 
@@ -91,7 +92,7 @@ async def deliver(session: AsyncSession, asset_id: UUID) -> StreamingResponse:
         .first()
     )
     if asset is None:
-        raise HTTPException(404, "Asset not found")
+        raise NotFoundError("Asset not found")
     replicas = (
         (
             await session.execute(
@@ -134,4 +135,4 @@ async def deliver(session: AsyncSession, asset_id: UUID) -> StreamingResponse:
                 "Content-Disposition": f'{disposition}; filename="{asset_id}"',
             },
         )
-    raise HTTPException(503, "No verified asset replica is currently available")
+    raise AppException("No verified asset replica is currently available", 503)

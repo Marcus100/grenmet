@@ -13,7 +13,7 @@ const SECTIONS = [
 ] as const;
 
 // `_meta.path` uses the OS separator (backslashes on Windows).
-const PATH_SEP = /[/\\]/;
+const PATH_SEP = /[/\\]/u;
 
 const pages = defineCollection({
   name: "pages",

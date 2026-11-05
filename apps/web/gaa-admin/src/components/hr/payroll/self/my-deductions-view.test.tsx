@@ -9,8 +9,8 @@ vi.mock("sonner", () => ({ toast: { success: vi.fn(), error: vi.fn() } }));
 vi.mock("@/lib/report-error", () => ({ reportError: vi.fn() }));
 vi.mock("next/navigation", () => ({ useRouter: () => ({ refresh: vi.fn() }) }));
 
-const CONFIRMED_ON = /You confirmed this on/;
-const AMOUNT_OR_CURRENCY = /XCD|EC\$/;
+const CONFIRMED_ON = /You confirmed this on/u;
+const AMOUNT_OR_CURRENCY = /XCD|EC\$/u;
 
 const server = setupServer();
 beforeAll(() => {

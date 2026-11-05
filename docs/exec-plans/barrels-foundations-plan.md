@@ -2,7 +2,28 @@
 
 **Status:** Active plan — owner decisions recorded 2026-10-18, 2026-10-19 and 2026-10-20  
 **Owner:** Barrels Grenada  
-**Last updated:** 2026-10-20 (platform foundations, PF-series; PF1-PF10 built, PF11 API built)
+**Last updated:** 2026-10-31 (platform foundations, PF-series; PF1-PF10 built, PF11 API built)
+
+## Ecosystem follow-on planning — 31 October 2026
+
+The [ecosystem amendment](../strategy/barrels-product-strategy.md#connected-ecosystem-direction--31-october-2026)
+adds future requirements; it does not reopen completed slices or schedule new
+ones. The candidate daily home is `dash.barrels.gd`. Existing account, apps,
+organisations and rewards pages in `apps/web/auth` are migration candidates;
+they remain implemented there today. Authentication, recovery and SSO should
+remain responsibilities of auth; the exact account/security page boundary and
+redirect compatibility need a separate implementation design.
+
+Before moving pages, reconcile the target personal/work account separation with
+ADR-0016, ADR-0017 and ADR-0050, inventory existing accounts and memberships,
+and design invitations, owner onboarding, recovery and account transitions.
+Keep app-scoped sessions and permission checks. No account migration, domain
+allocation or API change is approved by this planning amendment.
+
+Reuse existing rewards, notifications, organisation and transactional capabilities
+for a chosen journey. A new engagement subsystem, AI feature, personal-home
+scope and delivery sequence require product discovery before new slice IDs or
+implementation estimates are assigned.
 
 ## Purpose
 

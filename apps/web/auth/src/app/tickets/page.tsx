@@ -33,7 +33,7 @@ export default async function TicketsPage() {
     >
       <SettingsSection title="Your tickets">
         {tickets.length === 0 ? (
-          <p className="py-5 text-muted-foreground text-sm">
+          <p className="text-muted-foreground py-5 text-sm">
             You have no tickets yet.
             {eventsHref ? (
               <>

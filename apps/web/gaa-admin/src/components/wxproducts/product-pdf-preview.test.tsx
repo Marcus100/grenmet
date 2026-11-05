@@ -10,7 +10,7 @@ import type { ReactNode } from "react";
 import { beforeEach, expect, it, vi } from "vitest";
 import { ProductPdfPreview } from "./product-pdf-preview";
 
-const SAVE_TO_DOWNLOAD_HINT = /Save draft to download these changes\./;
+const SAVE_TO_DOWNLOAD_HINT = /Save draft to download these changes\./u;
 
 const download = vi.hoisted(() => vi.fn());
 const previewControls = {

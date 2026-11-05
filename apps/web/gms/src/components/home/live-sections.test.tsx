@@ -13,11 +13,16 @@ import {
   type HomeContent,
   type PublishedContent,
 } from "@/lib/cms";
-import { fetchPublishedProduct, fetchPublishedProducts } from "@/lib/products";
+import {
+  fetchPublishedProduct,
+  fetchPublishedProducts,
+  fetchSectorOutlook,
+} from "@/lib/products";
 
 vi.mock("@/lib/products", () => ({
   fetchPublishedProduct: vi.fn(),
   fetchPublishedProducts: vi.fn(),
+  fetchSectorOutlook: vi.fn(),
 }));
 vi.mock("@/lib/cap", () => ({ fetchActiveAlerts: vi.fn() }));
 
@@ -34,6 +39,7 @@ vi.mock("@/lib/cms", async (importOriginal) => {
   };
 });
 beforeEach(() => {
+  vi.mocked(fetchSectorOutlook).mockResolvedValue(null);
   vi.mocked(fetchPublishedProducts).mockResolvedValue({
     status: "ok",
     products: [],
@@ -65,11 +71,12 @@ const hidden = (sections: string[]): HomeContent => ({
   },
 });
 
-const READ_ARTICLE = /^Read the article: /;
-const DUTY_FORECASTER = /Duty forecaster ·/;
-const WATCH_ON_YOUTUBE = /^Watch on YouTube/;
-const ISSUED_UNAVAILABLE = /Issued forecasts cannot be retrieved right now/;
-const NO_FORECAST = /No public forecast is in effect right now/;
+const READ_ARTICLE = /^Read the article: /u;
+const DUTY_FORECASTER = /Duty forecaster ·/u;
+const WATCH_ON_YOUTUBE = /^Watch on YouTube/u;
+const ISSUED_UNAVAILABLE = /Issued forecasts cannot be retrieved right now/u;
+const NO_FORECAST = /No public forecast is in effect right now/u;
+const BASED_ON = /^Based on/u;
 
 it("labels a post Today, Yesterday or by date, in Grenada time", () => {
   const post = "2026-10-28T02:00:00Z"; // 27 Oct, 22:00 in Grenada
@@ -185,8 +192,8 @@ it("links each desk post card to its article; a linked product stays a label", a
   expect(screen.getAllByText("The forecasters")).toHaveLength(2);
 });
 
-it("says so honestly when nothing is published", async () => {
-  vi.mocked(fetchHomeContent).mockResolvedValue(hidden([]));
+it("says so honestly when nothing is published and the sector card is hidden", async () => {
+  vi.mocked(fetchHomeContent).mockResolvedValue(hidden(["explore-today"]));
   vi.mocked(fetchPublishedProducts).mockResolvedValue({
     status: "unavailable",
     products: [],
@@ -254,6 +261,85 @@ it("shows a placeholder briefing when no public forecast is in effect", async ()
   const [first] = screen.getAllByRole("listitem");
   expect(first).toHaveTextContent(NO_FORECAST);
   expect(first).toHaveTextContent("Official briefing");
+});
+
+it("puts the sector card in the row, after the official cards and before the posts", async () => {
+  vi.mocked(fetchHomeContent).mockResolvedValue({
+    ...hidden([]),
+    deskUpdates: { status: "ok", articles: [post({})] },
+  });
+  vi.mocked(fetchPublishedProducts).mockResolvedValue({
+    status: "ok",
+    products: [MIDDAY],
+  });
+  render(await ForecastDesk());
+  const cards = screen
+    .getAllByRole("listitem")
+    .filter((card) => card.classList.contains("snap-start"));
+  expect(cards[0]).toHaveTextContent("Official briefing");
+  expect(cards[1]).toHaveTextContent("What it means for you");
+  expect(cards[2]).toHaveTextContent("Why the morning forecast changed");
+});
+
+it("still shows the week's sector card when nothing else is published", async () => {
+  vi.mocked(fetchHomeContent).mockResolvedValue(hidden([]));
+  render(await ForecastDesk());
+  expect(
+    screen.getByRole("heading", { name: "What it means for you" })
+  ).toBeInTheDocument();
+  expect(
+    screen.queryByText("No forecasts or desk posts are published yet.")
+  ).not.toBeInTheDocument();
+});
+
+it("shows both the unavailable notice and the sector card when desk updates cannot be read", async () => {
+  vi.mocked(fetchHomeContent).mockResolvedValue({
+    ...hidden([]),
+    deskUpdates: { status: "unavailable", articles: [] },
+  });
+  vi.mocked(fetchPublishedProducts).mockResolvedValue({
+    status: "ok",
+    products: [],
+  });
+  render(await ForecastDesk());
+  expect(
+    screen.getAllByText("Desk updates cannot be retrieved right now.")
+  ).not.toHaveLength(0);
+  expect(
+    screen.getByRole("heading", { name: "What it means for you" })
+  ).toBeInTheDocument();
+});
+
+it("keeps the week's sector card when editors hide the desk", async () => {
+  vi.mocked(fetchHomeContent).mockResolvedValue(hidden(["desk"]));
+  render(await ForecastDesk());
+  // The section heading names it once; the card does not repeat title or kicker.
+  expect(
+    screen.getAllByRole("heading", { name: "What it means for you" })
+  ).toHaveLength(1);
+  expect(screen.getAllByText("Plan your week")).toHaveLength(1);
+  expect(screen.getByRole("article")).toHaveAccessibleName(
+    "What it means for you"
+  );
+  expect(screen.queryByText("From the Desk")).not.toBeInTheDocument();
+});
+
+it("asks for the sector outlook without waiting for the products", async () => {
+  vi.mocked(fetchHomeContent).mockResolvedValue(hidden([]));
+  vi.mocked(fetchPublishedProducts).mockReturnValue(
+    new Promise(() => undefined)
+  );
+  vi.mocked(fetchSectorOutlook).mockClear();
+  // The products never settle, so the outlook was requested alongside them.
+  ForecastDesk();
+  await vi.waitFor(() => expect(fetchSectorOutlook).toHaveBeenCalled());
+});
+
+it("leaves nothing behind when editors hide both the desk and the sector card", async () => {
+  vi.mocked(fetchHomeContent).mockResolvedValue(
+    hidden(["desk", "explore-today"])
+  );
+  expect(await ForecastDesk()).toBeNull();
 });
 
 it("keeps desk posts behind Earlier posts during a red warning", async () => {
@@ -338,4 +424,76 @@ it("makes avatar initials from a name, and falls back to GMS", () => {
   expect(avatarInitials("forecaster")).toBe("FO");
   expect(avatarInitials(null)).toBe("GMS");
   expect(avatarInitials("  ")).toBe("GMS");
+});
+
+it("says which issued product a desk post is based on, linked to its page", async () => {
+  vi.mocked(fetchHomeContent).mockResolvedValue({
+    ...hidden([]),
+    deskUpdates: {
+      status: "ok",
+      articles: [
+        post({
+          basedOn: {
+            productId: PRODUCT_ID,
+            title: "Evening Forecast · issued 2026-10-27 18:00",
+          },
+        }),
+        post({
+          id: "2",
+          title: "Community day",
+          slug: "updates/2026/09/c",
+          basedOn: null,
+        }),
+      ],
+    },
+  });
+  render(await ForecastDesk());
+  expect(
+    screen.getByRole("link", {
+      name: "the Evening Forecast · issued 2026-10-27 18:00",
+    })
+  ).toHaveAttribute("href", `/weather/issued/${PRODUCT_ID}`);
+  expect(screen.getAllByText(BASED_ON)).toHaveLength(1);
+});
+
+it("encodes an odd issued product id in the based-on link", async () => {
+  const oddId = "odd/id?x=1 #frag";
+  vi.mocked(fetchHomeContent).mockResolvedValue({
+    ...hidden([]),
+    deskUpdates: {
+      status: "ok",
+      articles: [
+        post({ basedOn: { productId: oddId, title: "Evening Forecast" } }),
+      ],
+    },
+  });
+  render(await ForecastDesk());
+  expect(
+    screen.getByRole("link", { name: "the Evening Forecast" })
+  ).toHaveAttribute("href", `/weather/issued/${encodeURIComponent(oddId)}`);
+});
+
+it("keeps a pinned desk post right after the official cards", async () => {
+  vi.mocked(fetchHomeContent).mockResolvedValue({
+    ...hidden([]),
+    deskUpdates: {
+      status: "ok",
+      articles: [
+        post({ id: "1", title: "Newest post", slug: "updates/2026/10/n" }),
+        post({
+          id: "2",
+          title: "Pinned post",
+          slug: "updates/2026/09/p",
+          pinned: true,
+        }),
+      ],
+    },
+  });
+  render(await ForecastDesk());
+  const titles = screen
+    .getAllByRole("heading", { level: 3 })
+    .map((heading) => heading.textContent);
+  expect(titles.indexOf("Pinned post")).toBeLessThan(
+    titles.indexOf("Newest post")
+  );
 });

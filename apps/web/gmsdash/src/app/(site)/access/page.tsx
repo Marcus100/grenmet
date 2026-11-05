@@ -40,8 +40,8 @@ export default async function AccessPage({ searchParams }: PageProps) {
   if (!organisation) {
     return (
       <section className="space-y-2">
-        <h1 className="font-semibold text-2xl">Access</h1>
-        <p className="max-w-2xl text-muted-foreground">
+        <h1 className="text-2xl font-semibold">Access</h1>
+        <p className="text-muted-foreground max-w-2xl">
           You are not a member of an organisation yet. Ask an organisation owner
           to invite you; access is requested per organisation.
         </p>
@@ -56,10 +56,10 @@ export default async function AccessPage({ searchParams }: PageProps) {
 
   return (
     <section className="space-y-4">
-      <h1 className="font-semibold text-2xl">Access</h1>
+      <h1 className="text-2xl font-semibold">Access</h1>
       {notice ? (
         <p
-          className="rounded-md border bg-muted px-3 py-2 text-sm"
+          className="bg-muted rounded-md border px-3 py-2 text-sm"
           role="status"
         >
           {notice}
@@ -72,7 +72,7 @@ export default async function AccessPage({ searchParams }: PageProps) {
             <li key={o.id}>
               <Link
                 aria-current={o.id === organisation.id ? "page" : undefined}
-                className={`rounded-md border px-2.5 py-1 hover:bg-muted ${
+                className={`hover:bg-muted rounded-md border px-2.5 py-1 ${
                   o.id === organisation.id ? "bg-muted font-medium" : ""
                 }`}
                 href={`/access?org=${encodeURIComponent(o.id)}`}
@@ -125,14 +125,14 @@ export default async function AccessPage({ searchParams }: PageProps) {
           <label className="block space-y-1 text-sm">
             <span className="block">What will you use it for? (optional)</span>
             <textarea
-              className="w-full rounded-md border bg-background px-2 py-1.5"
+              className="bg-background w-full rounded-md border px-2 py-1.5"
               maxLength={500}
               name="note"
               rows={3}
             />
           </label>
           <button
-            className="rounded-md bg-primary px-3 py-1.5 text-primary-foreground text-sm"
+            className="bg-primary text-primary-foreground rounded-md px-3 py-1.5 text-sm"
             type="submit"
           >
             Request access

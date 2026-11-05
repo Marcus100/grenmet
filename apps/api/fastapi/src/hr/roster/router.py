@@ -11,6 +11,7 @@ from src.hr.roster.schemas import with_rule_warnings
 from src.models import ApiError
 
 from . import rule_service, service
+from .holidays import MAX_YEAR, MIN_YEAR
 from .models import (
     RosterAvailability,
     RosterPeriodStatus,
@@ -680,7 +681,9 @@ async def create_holiday(
     },
 )
 async def list_holidays(
-    session: SessionDep, current_user: CurrentUser, year: int | None = None
+    session: SessionDep,
+    current_user: CurrentUser,
+    year: Annotated[int | None, Query(ge=MIN_YEAR, le=MAX_YEAR)] = None,
 ) -> Any:
     holidays = await service.list_public_holidays(
         session=session, current_user=current_user, year=year

@@ -32,7 +32,7 @@ import {
 } from "@/lib/studio-errors";
 import { canManageBookings, isUuid } from "@/lib/studio-view";
 
-const SLUG = /^[a-z0-9][a-z0-9-]{0,62}$/;
+const SLUG = /^[a-z0-9][a-z0-9-]{0,62}$/u;
 
 const reasonSchema = z.object({
   reason: z
@@ -234,9 +234,9 @@ const depositSchema = z.object({
   idempotencyKey: z.string().refine(isUuid, "Reload the page and try again."),
 });
 
-const IDEMPOTENCY_409 = /idempotency|still being processed/i;
-const IN_PROGRESS_409 = /still being processed/i;
-const ENTITLEMENT_403 = /entitle/i;
+const IDEMPOTENCY_409 = /idempotency|still being processed/iu;
+const IN_PROGRESS_409 = /still being processed/iu;
+const ENTITLEMENT_403 = /entitle/iu;
 
 function detailText(data: unknown): string {
   try {
@@ -248,33 +248,33 @@ function detailText(data: unknown): string {
 
 const DEPOSIT_409: { match: RegExp; message: string; nextStep: string }[] = [
   {
-    match: /different request/i,
+    match: /different request/iu,
     message: "That save is out of step with an earlier attempt.",
     nextStep: "Press Record deposit again.",
   },
   {
-    match: /no deposit/i,
+    match: /no deposit/iu,
     message: "This booking has no deposit to record.",
     nextStep: "Check the booking's price and deposit.",
   },
   {
-    match: /closed booking/i,
+    match: /closed booking/iu,
     message: "This booking is closed, so it cannot take a deposit.",
     nextStep: "Check the booking's status.",
   },
   {
-    match: /already been paid/i,
+    match: /already been paid/iu,
     message: "The deposit has already been paid.",
     nextStep: "The page has refreshed; it shows the payment.",
   },
   {
-    match: /failed or expired/i,
+    match: /failed or expired/iu,
     message: "The customer's card payment failed or expired.",
     nextStep:
       "It cannot be recorded by hand. The customer needs to book again.",
   },
   {
-    match: /paid online|expire or fail/i,
+    match: /paid online|expire or fail/iu,
     message: "The customer's card payment is still open.",
     nextStep:
       "Wait for it to expire or fail (up to 30 minutes), then record the deposit by hand.",

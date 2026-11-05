@@ -41,7 +41,7 @@ export function AlertMapPreview({
   );
 
   return (
-    <div className="relative overflow-hidden border border-gm-border">
+    <div className="border-gm-border relative overflow-hidden border">
       <CapMap height={420}>
         {bySeverity.map(([severity, collection]) => (
           <Source
@@ -66,7 +66,7 @@ export function AlertMapPreview({
           </Source>
         ))}
       </CapMap>
-      <div className="pointer-events-none absolute right-4 bottom-4 left-4 flex flex-wrap items-center justify-between gap-2 bg-card/90 px-3 py-2 text-body-sm text-gm-text-secondary shadow-card backdrop-blur">
+      <div className="bg-card/90 text-body-sm text-gm-text-secondary shadow-card pointer-events-none absolute right-4 bottom-4 left-4 flex flex-wrap items-center justify-between gap-2 px-3 py-2 backdrop-blur">
         <span>{featureCollection.features.length} active map features</span>
         <span>GeoJSON / CAP 1.2</span>
       </div>

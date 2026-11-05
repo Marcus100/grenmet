@@ -3,7 +3,7 @@ import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import { PasswordField } from "./password-field";
 
-const STRENGTH = /Strength/;
+const STRENGTH = /Strength/u;
 
 describe("PasswordField", () => {
   it("shows and hides the password", () => {

@@ -11,7 +11,7 @@ export function Checklist({
   const className = "flex flex-col gap-2";
   const content = items.map((item) => (
     <li
-      className="flex gap-2 text-body-base text-gm-text-secondary leading-body-base"
+      className="text-body-base text-gm-text-secondary leading-body-base flex gap-2"
       key={item}
     >
       <span aria-hidden="true" className="text-gm-blue-ink">

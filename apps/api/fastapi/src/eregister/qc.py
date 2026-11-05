@@ -28,6 +28,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.audit import service as audit_service
 from src.auth.models import User
+from src.eregister.exceptions import HourHeldError, ObservationNotFoundError
+from src.exceptions import AppException, AppValidationError, AuthorizationError
 from src.utils.datetime import utc_now
 
 from . import entries, gate, sends
@@ -52,7 +54,7 @@ REVIEWABLE_STATES = (*PENDING_STATES, "accepted")
 def _reason(action: QcAction, reason: str | None) -> str | None:
     clean = (reason or "").strip() or None
     if action in REASON_REQUIRED and (clean is None or len(clean) < MIN_REASON):
-        raise HTTPException(422, f"A reason is required to {action} an observation")
+        raise AppValidationError(f"A reason is required to {action} an observation")
     return clean
 
 
@@ -79,7 +81,7 @@ async def _lock(register: AsyncSession, observation_id: UUID) -> dict[str, Any]:
     found = result.mappings().first()
     if found is None:
         await register.rollback()
-        raise HTTPException(404, "Observation not found")
+        raise ObservationNotFoundError()
     return dict(found)
 
 
@@ -119,18 +121,18 @@ async def transition(
     previous = str(row["state"])
     try:
         if previous not in allowed:
-            raise HTTPException(
-                409, f"Cannot {action} an observation that is {previous}"
+            raise AppException(
+                f"Cannot {action} an observation that is {previous}", 409
             )
         if action == "accept":
             if row["kind"] != "SYNOP":
-                raise HTTPException(409, "Only SYNOP observations go through QC")
+                raise AppException("Only SYNOP observations go through QC", 409)
             entries.require_valid_synop(
                 row["body"] or {}, row["observed_at"], stored=True
             )
         elif await _already_sent_to_wis2(app_session, observation_id):
-            raise HTTPException(
-                409, "Already queued or sent to WIS2; correct it with a new observation"
+            raise AppException(
+                "Already queued or sent to WIS2; correct it with a new observation", 409
             )
         elif action == "reopen" and previous == "rejected":
             # A rejected row left the live set, so the hour may have been keyed again.
@@ -142,11 +144,9 @@ async def transition(
             if await entries.live_row(
                 register, str(row["station_id"]), row["observed_at"], str(row["kind"])
             ):
-                raise HTTPException(
-                    409,
-                    "Another observation now holds this hour; correct that one instead",
-                )
-    except HTTPException:
+                raise HourHeldError()
+    except AppException, HTTPException:
+        # HTTPException: the SYNOP refusal from entries.require_valid_synop.
         await register.rollback()
         raise
     restored: Restored | None = None
@@ -171,8 +171,8 @@ async def transition(
         await register.rollback()
         if action not in ("reopen", "reject"):
             raise
-        raise HTTPException(
-            409, "Another observation now holds this hour; correct that one instead"
+        raise AppException(
+            "Another observation now holds this hour; correct that one instead", 409
         ) from exc
     await register.commit()
     if restored is not None:
@@ -367,25 +367,25 @@ async def review(
     """
     clean = (note or "").strip() or None
     if outcome == "query" and (clean is None or len(clean) < MIN_REASON):
-        raise HTTPException(422, "A note is required to raise a query")
+        raise AppValidationError("A note is required to raise a query")
     row = await _lock(register, observation_id)
     try:
         if str(row["actor_id"]) == str(user.id):
-            raise HTTPException(
-                403, "A different person from the observer records the review"
+            raise AuthorizationError(
+                "A different person from the observer records the review"
             )
         if seen_updated_at is not None and _whole_seconds(
             row["updated_at"]
         ) != _whole_seconds(seen_updated_at):
-            raise HTTPException(
-                409,
+            raise AppException(
                 "The observation was saved or decided since you opened it; open it again",
+                409,
             )
         if row["state"] not in REVIEWABLE_STATES:
-            raise HTTPException(
-                409, f"Cannot review an observation that is {row['state']}"
+            raise AppException(
+                f"Cannot review an observation that is {row['state']}", 409
             )
-    except HTTPException:
+    except AppException:
         await register.rollback()
         raise
     updated = await register.execute(

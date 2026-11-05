@@ -25,7 +25,7 @@ function FeaturedStory({
       className={cn(
         "min-w-0",
         lead &&
-          "overflow-hidden rounded-lg border border-signal-rule bg-secondary"
+          "border-signal-rule bg-secondary overflow-hidden rounded-lg border"
       )}
     >
       {lead ? (
@@ -36,12 +36,12 @@ function FeaturedStory({
         />
       ) : null}
       <div className={lead ? "p-6 sm:p-8" : undefined}>
-        <p className="mb-3 font-semibold text-signal-green text-sm uppercase tracking-wide">
+        <p className="text-signal-green mb-3 text-sm font-semibold tracking-wide uppercase">
           {getSection(article.section)?.label ?? article.section}
         </p>
         <h3
           className={cn(
-            "font-bold leading-tight tracking-tight",
+            "leading-tight font-bold tracking-tight",
             lead
               ? "font-serif text-3xl sm:text-4xl"
               : "font-sans text-xl lg:text-2xl"
@@ -71,7 +71,7 @@ export function LeadStories({ articles }: { articles: LeadArticle[] }) {
     >
       <header className="mb-6 flex flex-wrap items-baseline justify-between gap-4">
         <h2
-          className="font-semibold font-serif text-heading-base"
+          className="text-heading-base font-serif font-semibold"
           id="stories-title"
         >
           The stories to know
@@ -98,18 +98,18 @@ export function LeadStories({ articles }: { articles: LeadArticle[] }) {
         )}
         {supporting.length > 0 ? (
           <div className="min-w-0">
-            <div className="flex flex-wrap items-baseline justify-between gap-4 border-signal-rule border-b pb-5">
-              <h2 className="font-bold font-sans text-3xl tracking-tight">
+            <div className="border-signal-rule flex flex-wrap items-baseline justify-between gap-4 border-b pb-5">
+              <h2 className="font-sans text-3xl font-bold tracking-tight">
                 The Latest
               </h2>
               <Link
-                className="inline-flex min-h-11 items-center font-semibold text-signal-green text-sm uppercase tracking-wide hover:underline"
+                className="text-signal-green inline-flex min-h-11 items-center text-sm font-semibold tracking-wide uppercase hover:underline"
                 href="/archive"
               >
                 All stories →
               </Link>
             </div>
-            <div className="divide-y divide-signal-rule">
+            <div className="divide-signal-rule divide-y">
               {supporting.slice(0, 5).map((article) => (
                 <div
                   className="py-6"
@@ -124,9 +124,9 @@ export function LeadStories({ articles }: { articles: LeadArticle[] }) {
       </div>
       <nav
         aria-label="More from Signal"
-        className="mt-8 border-signal-ink border-t pt-6"
+        className="border-signal-ink mt-8 border-t pt-6"
       >
-        <p className="mb-4 font-semibold text-signal-muted text-sm">
+        <p className="text-signal-muted mb-4 text-sm font-semibold">
           More from Signal
         </p>
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
@@ -135,12 +135,12 @@ export function LeadStories({ articles }: { articles: LeadArticle[] }) {
             return (
               <div key={series.label}>
                 <Link
-                  className="inline-flex min-h-11 items-center gap-2 font-semibold font-serif text-xl hover:underline"
+                  className="inline-flex min-h-11 items-center gap-2 font-serif text-xl font-semibold hover:underline"
                   href={series.href}
                 >
                   <Icon
                     aria-hidden="true"
-                    className="size-5 shrink-0 text-signal-green"
+                    className="text-signal-green size-5 shrink-0"
                     strokeWidth={1.5}
                   />
                   {series.label}

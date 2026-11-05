@@ -7,8 +7,8 @@ vi.mock("@/lib/report-error", () => ({ reportError: vi.fn() }));
 vi.mock("next/navigation", () => ({ useRouter: () => ({ refresh: vi.fn() }) }));
 
 const SECURITY = "https://auth.example/security";
-const SIGN_IN = /Two-step verification is needed/;
-const EMPTY = /No payslips have been issued to you yet/;
+const SIGN_IN = /Two-step verification is needed/u;
+const EMPTY = /No payslips have been issued to you yet/u;
 const SLIP = {
   id: "s1",
   period_id: "p1",

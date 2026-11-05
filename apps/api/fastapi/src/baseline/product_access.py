@@ -13,7 +13,8 @@ from src.baseline.department import GMS_DEPARTMENT_IDS, is_gms_department
 from src.baseline.models import BaselineAudit, ProductAccessPolicy, StaffCredential
 from src.baseline.schemas import ProductAccessInput, ProductAccessPublic
 from src.exceptions import AppException
-from src.hr.models import EmploymentRecord, EmploymentStatus, Grade
+from src.hr.models import EmploymentRecord, Grade, live_employment_clause
+from src.utils import timezones
 
 logger = logging.getLogger(__name__)
 
@@ -31,6 +32,8 @@ PRODUCT_KINDS = (
     "midday",
     "evening",
     "outlook",
+    "marine-forecast",
+    "climate-bulletin",
     "cyclone",
     "marine",
     "flood",
@@ -63,8 +66,8 @@ async def users_who_may_author(
 ) -> set[uuid.UUID]:
     """Which of ``user_ids`` may author ``kind``, in two queries however many there are.
 
-    Same rule as ``allowed_kinds`` (active user, live credential, active GMS
-    employment, active grade of that department listed in the kind's policy),
+    Same rule as ``allowed_kinds`` (active user, live credential, live GMS
+    employment (ACTIVE and not past its end date, #1056), active grade of that department listed in the kind's policy),
     answered in SQL for a whole group.
     """
     if kind not in PRODUCT_KINDS or not user_ids:
@@ -76,7 +79,7 @@ async def users_who_may_author(
         .outerjoin(
             EmploymentRecord,
             (EmploymentRecord.user_id == User.id)
-            & (EmploymentRecord.status == EmploymentStatus.ACTIVE)
+            & live_employment_clause(timezones.local_today())
             & EmploymentRecord.department_id.in_(GMS_DEPARTMENT_IDS),
         )
         .outerjoin(
@@ -146,7 +149,7 @@ async def allowed_kinds(session: AsyncSession, user: User) -> list[str]:
         credential is None
         or credential.revoked_at is not None
         or employment is None
-        or employment.status != EmploymentStatus.ACTIVE
+        or not employment.is_live(timezones.local_today())
         or not is_gms_department(employment.department_id)
         or not employment.grade_id
     ):

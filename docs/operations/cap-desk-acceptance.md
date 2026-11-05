@@ -51,6 +51,8 @@ difference is written down and accepted.
 | 17 | Cancel | Cancel alert | Cancellation reason → **Cancel alert** → confirm | Needs a reason. A public CAP Cancel message is issued; the alert leaves the active list. |
 | 18 | Mark expired | Mark expired | **Mark expired** → confirm | The alert leaves the active list; no public message. |
 | 19 | Errors | — | Let the session expire (or log out in another tab), then press any action | "Your desk session has ended. Sign in again" with a link. A refused action names the reason. |
+| 20 | Plain http feed (still checked in GAA Admin) | GAA Admin, Feeds | — | Open a feed saved on plain `http` before the https rule. It shows `insecure_since` and a grace end date (`grace_ends_at`), 14 days after `insecure_since`, and is still fetched until then. Saving an https address clears the date. Once the date has passed it shows `grace_expired` and is skipped, without being deleted, with the message "plain http no longer allowed". Agree a test feed with Barrels; do not move a real partner's date. |
+| 21 | Impact matrix picks the colour (still checked in GAA Admin) | GAA Admin, GMS alerts and hazard profiles | — | For one hazard, pick a likelihood and impact on the matrix: the suggested colour (green, yellow, orange or red) matches the grid. A hazard with an approved profile (key `ibf-<hazard>`) uses its own grid; otherwise the standard WMO grid applies. On Raise to warning, choosing a colour that differs from the suggestion asks for a reason of at least 10 characters. |
 
 ## Caching (check once)
 

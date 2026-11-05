@@ -1,5 +1,7 @@
 import { ProductContentView } from "@barrelsgd/gms/components/product-content";
 import { notFound } from "next/navigation";
+import { ClimateFigures } from "@/components/pages/climate-figures";
+import { ImportedWatch } from "@/components/pages/imported-watch";
 import { Provenance } from "@/components/pages/provenance";
 import { fetchPublishedProduct } from "@/lib/products";
 export const metadata = { title: "Issued product" };
@@ -13,7 +15,7 @@ export default async function IssuedProductPage({
   const result = await fetchPublishedProduct(id);
   if (result.status === "unavailable")
     return (
-      <p className="py-6 text-body-base leading-body-base" role="status">
+      <p className="text-body-base leading-body-base py-6" role="status">
         This product cannot be retrieved right now. Please check with GMS for
         the latest information.
       </p>
@@ -24,14 +26,14 @@ export default async function IssuedProductPage({
     <div className="space-y-6 pt-3 lg:pt-4">
       {!product.current && (
         <p
-          className="rounded-gm-card border border-gm-border bg-gm-surface p-3 font-semibold text-body text-gm-heading leading-body"
+          className="rounded-gm-card border-gm-border bg-gm-surface text-body text-gm-heading leading-body border p-3 font-semibold"
           role="note"
         >
           This product is no longer in force. It is kept for reference; see the
           latest issued products for current information.
         </p>
       )}
-      <p className="font-mono text-body-sm text-gm-text-secondary leading-body-sm">
+      <p className="text-body-sm text-gm-text-secondary leading-body-sm font-mono">
         Grenada Meteorological Service · Published {product.publishedAt} ·
         Revision {product.revision}
       </p>
@@ -48,6 +50,12 @@ export default async function IssuedProductPage({
       <div className="gm-paper rounded-gm-card">
         <ProductContentView content={product} />
       </div>
+      {product.kind === "marine-forecast" ? (
+        <ImportedWatch advisories={product.values.advisories} />
+      ) : null}
+      {product.kind === "climate-bulletin" ? (
+        <ClimateFigures month={product.values.month ?? ""} />
+      ) : null}
     </div>
   );
 }

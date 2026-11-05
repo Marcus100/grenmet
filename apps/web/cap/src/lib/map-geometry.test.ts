@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import type { AlertFeature } from "@/lib/cap-api";
 import { boundsFor, projectionFor, toShape } from "@/lib/map-geometry";
 
-const PATH = /^M.*Z$/;
+const PATH = /^M.*Z$/u;
 const props = { identifier: "a", severity: "Severe" };
 
 describe("map geometry", () => {

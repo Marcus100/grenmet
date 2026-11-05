@@ -73,7 +73,7 @@ function initialsOf(name: string): string {
 
 function Initials({ name }: { name: string }) {
   return (
-    <div className="flex size-8 shrink-0 items-center justify-center rounded-full bg-primary/10 font-medium text-primary text-xs">
+    <div className="bg-primary/10 text-primary flex size-8 shrink-0 items-center justify-center rounded-full text-xs font-medium">
       {initialsOf(name)}
     </div>
   );
@@ -109,7 +109,7 @@ function GlanceCard({
   return (
     <Card className="gap-3 py-5">
       <CardHeader className="py-0">
-        <CardTitle className="font-medium text-muted-foreground text-sm">
+        <CardTitle className="text-muted-foreground text-sm font-medium">
           {title}
         </CardTitle>
       </CardHeader>
@@ -121,7 +121,7 @@ function GlanceCard({
 function GlanceLink({ href, children }: { href: string; children: string }) {
   return (
     <Link
-      className="font-medium text-primary text-sm hover:underline"
+      className="text-primary text-sm font-medium hover:underline"
       href={href as Route}
     >
       {children}
@@ -139,7 +139,7 @@ function AtAGlance({ data }: { data: HrDashboardPublic }) {
     >
       <GlanceCard title="Vacation leave">
         <p className="flex items-baseline gap-1.5">
-          <span className="font-semibold text-4xl tabular-nums tracking-tight">
+          <span className="text-4xl font-semibold tracking-tight tabular-nums">
             {hasBalance ? balance : "Not recorded"}
           </span>
           {hasBalance ? (
@@ -153,13 +153,13 @@ function AtAGlance({ data }: { data: HrDashboardPublic }) {
         </p>
       </GlanceCard>
       <GlanceCard title="Your next shift">
-        <p className="font-semibold text-xl">
+        <p className="text-xl font-semibold">
           {data.next_shift ?? "Not scheduled"}
         </p>
         <GlanceLink href="/roster">View roster</GlanceLink>
       </GlanceCard>
       <GlanceCard title="Timesheet">
-        <p className="font-semibold text-xl">Pay period hours</p>
+        <p className="text-xl font-semibold">Pay period hours</p>
         <GlanceLink href="/hr/timesheet">Review hours</GlanceLink>
       </GlanceCard>
     </section>
@@ -188,13 +188,13 @@ function Progress({ step }: { step: MyRequest["step"] }) {
 function MyRequestsList({ requests }: { requests: MyRequest[] }) {
   if (requests.length === 0) {
     return (
-      <p className="p-4 text-muted-foreground text-sm">
+      <p className="text-muted-foreground p-4 text-sm">
         You have no requests yet.
       </p>
     );
   }
   return (
-    <ul className="divide-y divide-border">
+    <ul className="divide-border divide-y">
       {requests.map((request) => {
         const state = requestState[request.state];
         return (
@@ -203,10 +203,10 @@ function MyRequestsList({ requests }: { requests: MyRequest[] }) {
             key={request.id}
           >
             <div className="min-w-48 flex-1">
-              <div className="truncate font-medium text-sm">
+              <div className="truncate text-sm font-medium">
                 {request.title}
               </div>
-              <div className="truncate text-muted-foreground text-xs">
+              <div className="text-muted-foreground truncate text-xs">
                 {request.meta}
               </div>
             </div>
@@ -253,7 +253,7 @@ function TeamToday({
           <button
             aria-pressed={side === id}
             className={cn(
-              "rounded-full px-3 py-1 font-medium text-xs transition-colors",
+              "rounded-full px-3 py-1 text-xs font-medium transition-colors",
               side === id
                 ? "bg-muted text-foreground"
                 : "text-muted-foreground hover:text-foreground"
@@ -267,7 +267,7 @@ function TeamToday({
         ))}
       </fieldset>
       {rows.length === 0 ? (
-        <p className="p-4 text-muted-foreground text-sm">
+        <p className="text-muted-foreground p-4 text-sm">
           {side === "in"
             ? "No published work shifts for today."
             : "No published time away for today."}
@@ -289,14 +289,14 @@ function TeamToday({
 
 function ApprovalsCallout({ count }: { count: number }) {
   return (
-    <section className="flex flex-col gap-2 rounded-xl bg-primary-soft p-5">
-      <h2 className="font-semibold text-base">
+    <section className="bg-primary-soft flex flex-col gap-2 rounded-xl p-5">
+      <h2 className="text-base font-semibold">
         {count === 0
           ? "Nothing needs your approval"
           : `${count} ${count === 1 ? "request needs" : "requests need"} your approval`}
       </h2>
       <Link
-        className="font-semibold text-primary text-sm hover:underline"
+        className="text-primary text-sm font-semibold hover:underline"
         href="/hr/approvals"
       >
         Open approvals →
@@ -312,11 +312,11 @@ function OtherFormsItem({ item }: { item: NewRequestItem }) {
       className="items-start gap-3 px-2 py-2"
       render={<Link href={item.href as Route} />}
     >
-      <span className="flex size-8 shrink-0 items-center justify-center rounded-md bg-primary/10 text-primary">
+      <span className="bg-primary/10 text-primary flex size-8 shrink-0 items-center justify-center rounded-md">
         <Icon className="size-4" />
       </span>
       <span className="flex flex-col gap-0.5">
-        <span className="font-medium text-sm leading-none">{item.title}</span>
+        <span className="text-sm leading-none font-medium">{item.title}</span>
         <span className="text-muted-foreground text-xs">
           {item.description}
         </span>
@@ -375,7 +375,7 @@ export function HrDashboard({ data }: { data: HrDashboardPublic }) {
           <p className="text-muted-foreground text-sm">
             {format(parseISO(data.date), "EEEE, d MMMM")}
           </p>
-          <h1 className="mt-1 font-semibold text-2xl tracking-tight">
+          <h1 className="mt-1 text-2xl font-semibold tracking-tight">
             {firstName ? `Welcome back, ${firstName}` : "Welcome back"}
           </h1>
         </div>

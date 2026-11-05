@@ -51,7 +51,7 @@ export function EmailCodeForm({ returnTo }: { returnTo: string | null }) {
           <input name="email" type="hidden" value={state.email} />
           <p className="text-muted-foreground text-sm" role="status">
             If{" "}
-            <span className="font-medium text-foreground">{state.email}</span>{" "}
+            <span className="text-foreground font-medium">{state.email}</span>{" "}
             can sign in, we've sent it a 6-digit code. It expires in 10 minutes.
           </p>
           <CodeField autoFocus id="code" label="Email code" name="code" />
@@ -94,7 +94,7 @@ export function EmailCodeForm({ returnTo }: { returnTo: string | null }) {
         {!pending && (sent ? "Sign in" : "Email me a code")}
       </button>
 
-      <p className="text-center text-body-sm text-muted-foreground">
+      <p className="text-body-sm text-muted-foreground text-center">
         New here? The same code creates your account.{" "}
         <Link
           className={textLinkClass}

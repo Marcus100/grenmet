@@ -14,6 +14,8 @@ const legacyKindSchema = z.enum([
   "morning",
   "midday",
   "evening",
+  "marine-forecast",
+  "climate-bulletin",
   "cyclone",
   "marine",
   "flood",

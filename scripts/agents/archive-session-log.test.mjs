@@ -42,7 +42,7 @@ test("archives entries older than the window by calendar day, grouped by month",
   const result = splitLog(LOG, { days: 7, now: NOW });
   assert.equal(result.archived, 2);
   assert.deepEqual([...result.archive.keys()], ["2026-09", "2026-10"]);
-  assert.match(result.archive.get("2026-09"), /continuation of the old entry/);
+  assert.match(result.archive.get("2026-09"), /continuation of the old entry/u);
   assert.ok(!result.kept.includes("older nodash entry"));
   assert.ok(result.kept.includes("boundary day"));
   assert.equal(result.keptCount, 3);
@@ -81,7 +81,7 @@ test("dry run changes nothing; --write archives and is idempotent", (t) => {
 
   const dry = run(log);
   assert.equal(dry.status, 0, dry.stderr);
-  assert.match(dry.stdout, /would archive 1 entry/);
+  assert.match(dry.stdout, /would archive 1 entry/u);
   assert.equal(readFileSync(log, "utf8"), `${old}\n${fresh}\n`);
   assert.ok(!existsSync(archive));
 
@@ -91,7 +91,7 @@ test("dry run changes nothing; --write archives and is idempotent", (t) => {
   assert.equal(readFileSync(join(archive, "2020-01.md"), "utf8"), `${old}\n`);
 
   const second = run(log, "--write");
-  assert.match(second.stdout, /archived 0 entries/);
+  assert.match(second.stdout, /archived 0 entries/u);
   assert.equal(readFileSync(join(archive, "2020-01.md"), "utf8"), `${old}\n`);
 });
 

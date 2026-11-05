@@ -346,6 +346,51 @@ class ThrowawayPostgres:
         self.tmpfs_size = tmpfs_size
         self.password = secrets.token_urlsafe(24)
 
+    def data_mounts(self):
+        """tmpfs mount for every path the image declares as a VOLUME.
+
+        Docker puts an anonymous, disk-backed volume at each declared path unless
+        something is already mounted at exactly that path. postgres:17 declares
+        /var/lib/postgresql/data and postgres:18 declares /var/lib/postgresql (its data
+        is in 18/docker below it), so one fixed path is wrong for one of them: restored
+        production data would land on the runner's disk, or 18 would refuse to start.
+        """
+        inspected = subprocess.run(
+            ["docker", "image", "inspect", "--format", "{{json .Config.Volumes}}", self.image],
+            capture_output=True,
+            check=False,
+            text=True,
+        )
+        if inspected.returncode != 0:
+            run(["docker", "pull", "--quiet", self.image], stdout=subprocess.DEVNULL)
+            inspected = run(
+                ["docker", "image", "inspect", "--format", "{{json .Config.Volumes}}", self.image],
+                capture_output=True,
+                text=True,
+            )
+        declared = json.loads(inspected.stdout.strip() or "null") or {}
+        if not declared:
+            raise RuntimeError("The PostgreSQL image declares no data volume")
+        mounts = []
+        for path in sorted(declared):
+            mounts += ["--tmpfs", f"{path}:rw,size={self.tmpfs_size}"]
+        return mounts
+
+    def assert_memory_only(self):
+        """Fail the drill if any mount of the container is backed by disk."""
+        inspected = run(
+            ["docker", "inspect", "--format", "{{json .Mounts}}", self.name],
+            capture_output=True,
+            text=True,
+        )
+        mounts = json.loads(inspected.stdout.strip() or "[]") or []
+        on_disk = [m.get("Destination", "?") for m in mounts if m.get("Type") != "tmpfs"]
+        if on_disk:
+            raise RuntimeError(
+                "The throwaway PostgreSQL has disk-backed storage at "
+                + ", ".join(on_disk)
+            )
+
     def start(self):
         run(
             [
@@ -359,13 +404,13 @@ class ThrowawayPostgres:
                 # any CalledProcessError message.
                 "-e",
                 "POSTGRES_PASSWORD",
-                "--tmpfs",
-                f"/var/lib/postgresql/data:rw,size={self.tmpfs_size}",
+                *self.data_mounts(),
                 self.image,
             ],
             stdout=subprocess.DEVNULL,
             env={**os.environ, "POSTGRES_PASSWORD": self.password},
         )
+        self.assert_memory_only()
         for _ in range(90):
             ready = subprocess.run(
                 ["docker", "exec", self.name, "pg_isready", "-U", "postgres"],
@@ -375,6 +420,15 @@ class ThrowawayPostgres:
             if ready.returncode == 0:
                 return
             time.sleep(1)
+        # The server log names the cause (bad data directory, out of memory);
+        # it never contains the generated password.
+        logs = subprocess.run(
+            ["docker", "logs", "--tail", "20", self.name],
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        print(logs.stdout + logs.stderr, file=sys.stderr)
         raise RuntimeError("Throwaway PostgreSQL did not become ready")
 
     def psql(self, database, sql):
@@ -456,8 +510,9 @@ class ThrowawayPostgres:
         return counts, version_table, revision
 
     def stop(self):
+        # -v also removes an anonymous volume, so no restored data is left on the runner.
         subprocess.run(
-            ["docker", "rm", "-f", self.name], capture_output=True, check=False
+            ["docker", "rm", "-f", "-v", self.name], capture_output=True, check=False
         )
 
 

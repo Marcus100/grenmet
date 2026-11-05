@@ -40,14 +40,14 @@ export async function ProductsPanel({ className }: { className?: string }) {
         {summary.schedule.map((item) => (
           <li key={item.kind}>
             <Link
-              className="-mx-2 flex items-center gap-3 rounded-lg px-2 py-2 outline-none transition-colors hover:bg-muted focus-visible:ring-2 focus-visible:ring-ring"
+              className="hover:bg-muted focus-visible:ring-ring -mx-2 flex items-center gap-3 rounded-lg px-2 py-2 transition-colors outline-none focus-visible:ring-2"
               href={item.href as Route}
             >
               <div
                 className={
                   item.status === "issued"
-                    ? "flex size-7 items-center justify-center rounded-lg bg-success/15 text-success"
-                    : "flex size-7 items-center justify-center rounded-lg bg-muted text-muted-foreground"
+                    ? "bg-success/15 text-success flex size-7 items-center justify-center rounded-lg"
+                    : "bg-muted text-muted-foreground flex size-7 items-center justify-center rounded-lg"
                 }
               >
                 {item.status === "issued" ? (

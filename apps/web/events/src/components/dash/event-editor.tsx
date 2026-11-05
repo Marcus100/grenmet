@@ -317,7 +317,7 @@ export function EventEditor({
               </div>
               {draft.admission === "ticketed" ? (
                 <fieldset className="space-y-3">
-                  <legend className="font-medium text-body">
+                  <legend className="text-body font-medium">
                     Ticket tiers (EC$)
                   </legend>
                   {draft.tiers.map((tier, index) => (
@@ -476,15 +476,15 @@ export function EventEditor({
           </CardHeader>
           <CardContent className="space-y-4">
             {issues.length === 0 ? (
-              <p className="flex items-center gap-2 text-body text-success">
+              <p className="text-body text-success flex items-center gap-2">
                 <CircleCheck className="size-4" />
                 Everything required is in place.
               </p>
             ) : (
               <ul className="space-y-2">
                 {issues.map((issue) => (
-                  <li className="flex gap-2 text-body" key={issue}>
-                    <TriangleAlert className="mt-0.5 size-4 shrink-0 text-warning" />
+                  <li className="text-body flex gap-2" key={issue}>
+                    <TriangleAlert className="text-warning mt-0.5 size-4 shrink-0" />
                     {issue}
                   </li>
                 ))}

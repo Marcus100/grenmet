@@ -11,8 +11,8 @@ vi.mock("next/navigation", () => ({
   useRouter: () => ({ push: vi.fn(), refresh }),
 }));
 
-const SENT_BACK = /Sent back for review/;
-const NOTHING_TO_RESUBMIT = /Nothing to resubmit/;
+const SENT_BACK = /Sent back for review/u;
+const NOTHING_TO_RESUBMIT = /Nothing to resubmit/u;
 
 describe("OrganiserVerificationNotice", () => {
   beforeEach(() => {

@@ -36,9 +36,9 @@ import { isBusinessSlug } from "@/lib/slug";
 // is still untrusted input (a client can call the action with any value) and
 // is checked here.
 
-const DAY = /^\d{4}-\d{2}-\d{2}$/;
-const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-const KEY = /^[A-Za-z0-9-]{16,100}$/;
+const DAY = /^\d{4}-\d{2}-\d{2}$/u;
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/iu;
+const KEY = /^[A-Za-z0-9-]{16,100}$/u;
 
 const invalid: Failure = {
   ok: false,

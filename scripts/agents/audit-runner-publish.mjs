@@ -31,7 +31,7 @@ import { publishObservations } from "./audit-report.mjs";
 export const REPO = "Marcus100/grenmet";
 export const BOT_LOGIN = "github-actions[bot]";
 const ENVIRONMENTS = ["staging", "production"];
-const RECEIPT_FILE = /^daily-receipt-(staging|production)\.json$/;
+const RECEIPT_FILE = /^daily-receipt-(staging|production)\.json$/u;
 const MAX_BYTES = 65_536;
 const MAX_AGE_MS = 26 * 3_600_000;
 

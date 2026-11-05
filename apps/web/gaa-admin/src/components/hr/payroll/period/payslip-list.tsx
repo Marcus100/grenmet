@@ -20,7 +20,7 @@ export function PayslipTable({
     <ul className="space-y-2">
       {rows.map((slip) => (
         <li
-          className="flex flex-wrap items-center justify-between gap-3 rounded-xl border bg-card p-4"
+          className="bg-card flex flex-wrap items-center justify-between gap-3 rounded-xl border p-4"
           key={slip.id}
         >
           <div>

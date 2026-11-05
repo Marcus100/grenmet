@@ -13,13 +13,13 @@ export default async function WelcomePage() {
   return (
     <div className="mx-auto max-w-2xl space-y-8">
       <div>
-        <p className="font-medium text-caption text-events-hibiscus-deep">
+        <p className="text-caption text-events-hibiscus-deep font-medium">
           Welcome, {viewer.name.split(" ")[0]}
         </p>
-        <h1 className="mt-1 font-bold font-display text-heading-base tracking-tight sm:text-heading-md">
+        <h1 className="font-display text-heading-base sm:text-heading-md mt-1 font-bold tracking-tight">
           Make it yours
         </h1>
-        <p className="mt-2 text-body-base text-muted-foreground">
+        <p className="text-body-base text-muted-foreground mt-2">
           Three quick questions so we can show you the right fetes, meetups and
           people.
         </p>

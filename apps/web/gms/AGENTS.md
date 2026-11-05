@@ -6,34 +6,12 @@ Port **3003**. Public weather dashboard for Spice Island (Grenada) — daily for
 
 ## Auth pattern
 
-"Sign in" with the Barrels account (ADR-0017): `AccountButton` in the main bar
-on desktop and in the nav drawer on phones and tablets,
-routes `src/app/auth/{start,callback,me,logout}`, config `src/lib/auth-config.ts`
-(registry key `weather`). Off until `WEATHER_SSO_CLIENT_SECRET` is set. The
-button loads the account in the browser (`/auth/me`), so pages stay static.
-
-**Button hidden by default (owner, 31 Oct 2026).** `WEATHER_SHOW_SIGN_IN`
-(`src/lib/env.ts`, boolean `true`/`false`, default `false`) gates only the
-button's visibility, read by `signInVisible()` in `src/lib/auth-config.ts` and
-passed to `Header` (`showSignIn`) and `NavDrawer` (`showSignIn`), which hide the
-button and the drawer's "Your account" block. The auth routes, callback,
-`/auth/me` and account handling are unchanged. Tests: `header.test.tsx`,
-`nav-drawer.test.tsx`, `auth-config.test.ts`. Documented in `docs/env.md`.
-
-**Not wired in deploy yet.** `infra/docker/docker-compose.deploy.yml` (the
-`web-gms` service) and `scripts/production/render-env.py` do not pass
-`WEATHER_SHOW_SIGN_IN`, so a deployed site keeps the button hidden. Those are
-owner-merge files and were left unchanged. To show the button again, add one
-line to the `web-gms` environment block, next to `WEATHER_SSO_CLIENT_SECRET`:
-
-```yaml
-      WEATHER_SHOW_SIGN_IN: ${WEATHER_SHOW_SIGN_IN:-false}
-```
-
-and add `WEATHER_SHOW_SIGN_IN` to the GMS web entries in `render-env.py` so the
-value reaches the environment. The value is read when the pages are rendered,
-and the standing pages are static, so a change shows only after a redeploy
-(rebuild if it is read at build time).
+**No sign-in (owner decision, 1 Nov 2026).** The weather site has no public
+sign-in at all. There is no account button in the header or the nav drawer, no
+"Your account" block, and no `/auth/*` routes or `src/lib/auth-config.ts`. Every
+page is readable without an account. Do not add a sign-in entry point here
+without a new owner decision. The `weather` registry key (ADR-0017) is not
+used by this app. Issue #1006.
 
 ## Data sources — no database
 
@@ -105,9 +83,9 @@ src/app/
   enforces that no real route serves a planned address. The root single-segment
   `(weather)/[location]` route has `dynamicParams = false` and calls
   `notFound()` for other slugs: it answers unknown one-segment URLs with the
-  server-rendered 404 only while it is prerendered (today no second place is
-  enabled, so Next's router rejects every slug). If enabling a place makes it
-  render on demand, recheck `/this-page-does-not-exist` with curl. A CMS item
+  server-rendered 404 only while it is prerendered (the enabled places are
+  generated; Next's router rejects every other slug). Since Carriacou was
+  enabled (2 Nov 2026), recheck `/this-page-does-not-exist` with curl after a build. A CMS item
   or other dynamic page that calls `notFound()` for a missing item still gets
   the empty error document (not fixed).
 - **Masthead and /alerts status (30 Oct 2026):** the CAP warnings and the GMS
@@ -140,14 +118,18 @@ src/app/
   numbers, tables or stat tiles beside it. The sky hero shows real register
   and issued-forecast values only, sun times computed by `src/lib/sky.ts`, and
   "Not available yet" for fields no feed carries (UV, AQI, tides, swell, rain
-  chance, gusts, rainfall). Plan your week (Explore today) shows,
-  per sector, the GMS alerts and CAP warnings that apply over the next seven
-  days from FastAPI `GET /wxproducts/public/sector-outlook` (`fetchSectorOutlook`,
+  chance, gusts, rainfall). "What it means for you" (a card in the From the
+  Desk row after the official cards, `SectorDeskCard`; hidden with the `explore-today` switch; with the desk
+  hidden it stands alone under that heading without its own header) shows, per
+  sector, the GMS alerts and CAP warnings that apply over the next seven days
+  from FastAPI `GET /wxproducts/public/sector-outlook` (`fetchSectorOutlook`,
   tiles built by `lib/sector-outlook.ts`; the six sectors are `SECTORS` in
   `@barrelsgd/gms/sectors`). An untagged item shows under every sector as
   "Affects everyone"; an unreachable feed says so and a partial one says the
-  lists may be incomplete; an empty sector says "No alert or warning impacts
-  published for this sector", never "minimal". Nothing is typed in the CMS.
+  lists may be incomplete (the notices sit together in one status region); the
+  card ends with "Updated" and the outlook's `as_of` in Grenada time; an empty
+  sector says "No alert or warning impacts published for this sector", never
+  "minimal". Nothing is typed in the CMS.
   Tests: `placeholder-notice.test.tsx`, the "hero readings" block in
   `sky-hero-panels.test.tsx` and `data-sections.test.tsx` guard this.
 - **Home hero (owner design, 29 Oct 2026):** a card for the selected tab
@@ -203,16 +185,23 @@ src/app/
 - **Locations:** places live in `src/lib/locations.ts`, keyed internally by airport
   locator (TGPY, TGPZ) with readable slugs. The default place (Grenada) uses the
   unprefixed URLs; others get `/<slug>` routes (`(weather)/[location]`,
-  `dynamicParams = false`). To add a place: wire its data in
+  `dynamicParams = false`). Enabled today: Grenada (MBIA station) and Carriacou
+  & Petite Martinique (`station: null`, no observing station). A place with no
+  station shows the national forecast, labelled "National forecast for Grenada,
+  Carriacou and Petite Martinique", and its Now card says "No observing station
+  here": never a reading, never a station name. To add a place: wire its data in
   `src/lib/location-data.ts`, then set `enabled: true`. The switcher appears only
-  when two or more places are enabled. Never show another station's reading for
-  a place.
+  when two or more places are enabled. The sitemap lists each enabled place's
+  home and `/weather` page. Never show another station's reading for a place.
 - **Search:** `SiteSearch` (masthead button or `/`) ranks `NAV_SECTIONS` pages plus
   published CMS articles from `/api/search` (read-only proxy) with
   `src/lib/search.ts`. New menu pages are searchable automatically.
-- **Dark mode:** `<html class="gm-site">` scopes the GMS dark palette; the theme
-  follows the device via `@barrelsgd/theme` (`ThemeBootScript` defaults to
-  `system`, `ThemeToggle` in the main bar beside search and the alert pill). Headings use
+- **Dark mode (done, owner 1 Nov 2026, #1001):** `<html class="gm-site">` scopes the GMS dark
+  palette. The site opens in light (`ThemeBootScript` defaults to `light` in
+  `layout.tsx`) and does not follow the device. `ThemeToggle` (main bar beside search
+  and the alert pill, and the drawer) switches between light and dark only; there is
+  no Auto or system choice. A stored old `system` choice is moved to light on the
+  first load (`theme-toggle.tsx`). Shared theme state comes from `@barrelsgd/theme`. Headings use
   `text-gm-heading`, not `text-gm-navy`; printable products sit in `.gm-paper`.
 
 - **Provenance and staleness (foundations plan NFRs):** every public data block

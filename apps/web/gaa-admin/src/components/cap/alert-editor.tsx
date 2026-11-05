@@ -104,9 +104,9 @@ function Field({
 }) {
   return (
     <div className="flex flex-col gap-1.5">
-      <Label className="text-gm-text-primary text-label uppercase leading-label">
+      <Label className="text-gm-text-primary text-label leading-label uppercase">
         {label}
-        {required && <span className="ml-0.5 text-gm-risk-red">*</span>}
+        {required && <span className="text-gm-risk-red ml-0.5">*</span>}
       </Label>
       {children}
     </div>
@@ -123,7 +123,7 @@ function Section({
   return (
     <motion.section
       animate={{ opacity: 1, y: 0 }}
-      className="space-y-4 border border-gm-border bg-card p-6 shadow-card"
+      className="border-gm-border bg-card shadow-card space-y-4 border p-6"
       initial={{ opacity: 0, y: 8 }}
       transition={{ duration: 0.2 }}
     >
@@ -324,13 +324,13 @@ function NewAlertEditorContent({
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div>
           <Link
-            className="inline-flex items-center gap-1.5 text-body-sm text-navy leading-body-sm hover:underline"
+            className="text-body-sm text-navy leading-body-sm inline-flex items-center gap-1.5 hover:underline"
             href="/cap"
           >
             <ArrowLeft aria-hidden="true" className="size-3.5" />
             Alert Dashboard
           </Link>
-          <h1 className="mt-2 text-gm-text-primary text-heading-md leading-heading-md">
+          <h1 className="text-gm-text-primary text-heading-md leading-heading-md mt-2">
             New National CAP Alert
           </h1>
         </div>
@@ -347,7 +347,7 @@ function NewAlertEditorContent({
 
       {error ? (
         <div
-          className="mt-4 border border-gm-risk-red/40 bg-gm-risk-red/[0.06] px-4 py-3 text-body-sm text-gm-risk-red leading-body-sm"
+          className="border-gm-risk-red/40 bg-gm-risk-red/[0.06] text-body-sm text-gm-risk-red leading-body-sm mt-4 border px-4 py-3"
           role="alert"
         >
           {error}
@@ -361,16 +361,16 @@ function NewAlertEditorContent({
         {form.status === "Actual" ? null : (
           <motion.div
             animate={{ opacity: 1, height: "auto", marginTop: 16 }}
-            className="overflow-hidden border-2 border-gm-risk-red bg-gm-risk-yellow px-4 py-3"
+            className="border-gm-risk-red bg-gm-risk-yellow overflow-hidden border-2 px-4 py-3"
             exit={{ opacity: 0, height: 0, marginTop: 0 }}
             initial={{ opacity: 0, height: 0, marginTop: 0 }}
             role="alert"
             transition={{ duration: 0.18 }}
           >
-            <p className="font-bold text-body-sm text-gm-text-primary uppercase leading-body-sm">
+            <p className="text-body-sm text-gm-text-primary leading-body-sm font-bold uppercase">
               Status: {form.status} — this is not a live warning
             </p>
-            <p className="mt-1 text-body-sm text-gm-text-primary leading-body-sm">
+            <p className="text-body-sm text-gm-text-primary leading-body-sm mt-1">
               The public site will label this message as a drill and tell
               readers to take no protective action. Set the status to Actual
               before issuing a real warning.
@@ -486,7 +486,7 @@ function NewAlertEditorContent({
                   <span className="text-gm-text-muted text-micro leading-micro">
                     Severity
                   </span>
-                  <span className="rounded-md border border-gm-border px-3 py-2 font-semibold text-caption text-gm-text-primary leading-caption">
+                  <span className="border-gm-border text-caption text-gm-text-primary leading-caption rounded-md border px-3 py-2 font-semibold">
                     {form.severity} (from colour)
                   </span>
                 </div>
@@ -716,7 +716,7 @@ function NewAlertEditorContent({
       </div>
 
       {/* Bottom actions */}
-      <div className="mt-6 flex justify-end gap-2 border-gm-border border-t pt-6">
+      <div className="border-gm-border mt-6 flex justify-end gap-2 border-t pt-6">
         <Button asChild variant="outline">
           <Link href="/cap">Cancel</Link>
         </Button>

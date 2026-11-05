@@ -22,23 +22,26 @@ vi.mock("@barrelsgd/api-client", () => api);
 
 import { AlertActions } from "./alert-actions";
 
-const IMPORTED_NOTICE = /This alert was imported/;
-const PATTERN_1 = /I have reviewed/;
-const PATTERN_2 = /Not published: the CAP XML does not follow/;
-const PATTERN_3 = /Note \(needed/;
-const PATTERN_4 = /not a valid date/;
-const PATTERN_5 = /severity Critical is not a CAP value/;
-const PATTERN_6 = /checked this imported alert/;
-const PATTERN_7 = /A public CAP Cancel message was issued/;
+const IMPORTED_NOTICE = /This alert was imported/u;
+const PATTERN_1 = /I have reviewed/u;
+const PATTERN_2 = /Not published: the CAP XML does not follow/u;
+const PATTERN_3 = /Note \(needed/u;
+const PATTERN_4 = /not a valid date/u;
+const PATTERN_5 = /severity Critical is not a CAP value/u;
+const PATTERN_6 = /checked this imported alert/u;
+const PATTERN_7 = /A public CAP Cancel message was issued/u;
 
 const ALL: DeskPermissions = {
   approve: true,
   create: true,
   edit: true,
   emergencyPublish: true,
+  feedsManage: true,
+  integrationsManage: true,
   libraryManage: true,
   publish: true,
   read: true,
+  settingsManage: true,
   submit: true,
 };
 

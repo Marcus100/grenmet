@@ -3,7 +3,7 @@ import { readFileSync } from "node:fs";
 import test from "node:test";
 import { analyticsStatus } from "./analytics-status.mjs";
 
-const GA4_ID = /^G-[A-Z0-9]+$/;
+const GA4_ID = /^G-[A-Z0-9]+$/u;
 
 test("accounts for every public Next.js reader and keeps operational consoles excluded", () => {
   const rows = analyticsStatus();

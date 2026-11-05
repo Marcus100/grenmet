@@ -42,7 +42,7 @@ function Problem({ code }: { code: ModerationFormState["code"] }) {
   if (!code) return null;
   return (
     <p
-      className="rounded-md border border-destructive px-3 py-2 text-sm outline-none"
+      className="border-destructive rounded-md border px-3 py-2 text-sm outline-none"
       ref={ref}
       role="alert"
       tabIndex={-1}

@@ -10,7 +10,7 @@ import { homedir, tmpdir } from "node:os";
 import { join } from "node:path";
 import test from "node:test";
 
-const OWN_CHECKOUT = /own checkout/;
+const OWN_CHECKOUT = /own checkout/u;
 
 import { testExecutor } from "./audit-executor.mjs";
 import { pruneEvidence } from "./audit-retention.mjs";

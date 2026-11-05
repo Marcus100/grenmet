@@ -121,11 +121,11 @@ export function RolesTable({ table }: { table: LegacyReactTable<RoleRow> }) {
                       colSpan={columnCount}
                     >
                       <div className="flex items-center gap-2">
-                        <span className="font-medium text-muted-foreground text-xs">
+                        <span className="text-muted-foreground text-xs font-medium">
                           {GROUP_LABELS[group.type]}
                         </span>
                         <Badge
-                          className="rounded-sm px-1.5 font-normal text-[10px] tabular-nums"
+                          className="rounded-sm px-1.5 text-[10px] font-normal tabular-nums"
                           variant="outline"
                         >
                           {group.rows.length}
@@ -171,7 +171,7 @@ export function RolesTable({ table }: { table: LegacyReactTable<RoleRow> }) {
       <Separator />
 
       <div className="flex items-center justify-between px-4">
-        <div className="flex items-center gap-4 text-muted-foreground text-sm">
+        <div className="text-muted-foreground flex items-center gap-4 text-sm">
           <div className="flex items-center gap-2">
             <span>Rows per page</span>
             <Select

@@ -11,9 +11,10 @@ import { HttpResponse, http } from "msw";
 import { setupServer } from "msw/node";
 import { afterAll, afterEach, beforeAll, expect, it, vi } from "vitest";
 
-const REASON_LABEL = /^Reason/;
-const NOT_VERIFY_EMAIL = /does not verify the email/;
-const READY_TO_SIGN_IN = /Ready to sign in/;
+const REASON_LABEL = /^Reason/u;
+const NOT_VERIFY_EMAIL = /does not verify the email/u;
+const READY_TO_SIGN_IN = /Ready to sign in/u;
+const STAFF_BASELINE_STEP = /open the Staff baseline tab/u;
 
 const actor = vi.hoisted(() => ({ is_superuser: true }));
 vi.mock("@barrelsgd/auth", () => ({ useSessionUser: () => actor }));
@@ -347,6 +348,48 @@ it("does not offer activation for a superuser account", async () => {
   ).toBeInTheDocument();
   expect(
     screen.queryByRole("button", { name: "Activate account" })
+  ).not.toBeInTheDocument();
+});
+
+it("gives a next step with a link to HR Setup when staff approval is needed", async () => {
+  server.use(
+    http.get("http://localhost/api/v1/auth/onboarding/test-user", () =>
+      HttpResponse.json({
+        user_id: user.id,
+        email_verified: true,
+        password_setup_pending: false,
+        activation_pending: false,
+        can_issue_activation: false,
+        apps: [
+          {
+            app: "gaa-admin",
+            label: "GAA Admin",
+            available: false,
+            blockers: ["staff_approval"],
+          },
+        ],
+      })
+    )
+  );
+  mount();
+  expect(
+    await screen.findByText("GAA Admin: Setup needed")
+  ).toBeInTheDocument();
+  expect(
+    screen.getByText("Staff approval is still required.")
+  ).toBeInTheDocument();
+  expect(screen.getByRole("link", { name: "Open HR Setup" })).toHaveAttribute(
+    "href",
+    "/hr-setup"
+  );
+  expect(screen.getByText(STAFF_BASELINE_STEP)).toBeInTheDocument();
+});
+
+it("shows no HR Setup link when the blocker is not staff approval", async () => {
+  mount();
+  await screen.findByRole("button", { name: "Create activation link" });
+  expect(
+    screen.queryByRole("link", { name: "Open HR Setup" })
   ).not.toBeInTheDocument();
 });
 

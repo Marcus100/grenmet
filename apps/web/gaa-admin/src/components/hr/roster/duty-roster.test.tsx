@@ -14,8 +14,8 @@ import { nth } from "@/test/nth";
 import { DutyRoster } from "./duty-roster";
 
 const BASE = "http://localhost";
-const SAVE_ONE_LABEL = /Save \(1\)/;
-const APPROVED_ABSENCE_LABEL = /scheduled E, Approved absence/;
+const SAVE_ONE_LABEL = /Save \(1\)/u;
+const APPROVED_ABSENCE_LABEL = /scheduled E, Approved absence/u;
 
 const CATALOG = {
   data: [

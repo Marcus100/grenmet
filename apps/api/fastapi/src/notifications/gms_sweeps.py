@@ -32,7 +32,10 @@ from . import gms
 
 logger = logging.getLogger(__name__)
 
-# Forecasts due at these local hours; mirrors wxproducts.validation.ISSUE_HOURS.
+# The forecasts due each day are in wxproducts.validation.DAILY_ISSUE_HOURS (the
+# land forecasts and the 05:00 Marine Forecast); this is how a notification
+# names the ones whose kind is not a plain word.
+PRODUCT_LABELS = {"marine-forecast": "Marine"}
 FORECAST_GRACE = timedelta(minutes=15)
 FORECAST_GIVE_UP = timedelta(hours=6)
 WARNING_LEAD = timedelta(hours=1)
@@ -61,14 +64,19 @@ def _hour_text(moment: datetime) -> str:
 async def forecast_overdue(
     session: AsyncSession, weather: AsyncSession, now: datetime | None = None
 ) -> int:
-    """Tell the duty forecasters when a scheduled forecast is 15 minutes late."""
-    from src.wxproducts.validation import ISSUE_HOURS
+    """Tell the duty forecasters when a scheduled forecast is 15 minutes late.
+
+    The Marine Forecast is due at 05:00 like the others are at their hours; its
+    validity (05:00 to 05:00) does not matter here, only whether an issue dated
+    today is published.
+    """
+    from src.wxproducts.validation import DAILY_ISSUE_HOURS
 
     moment = _utc(now)
     local = moment.astimezone(GRENADA)
     day = local.date().isoformat()
     told = 0
-    for kind, hour in ISSUE_HOURS.items():
+    for kind, hour in DAILY_ISSUE_HOURS.items():
         scheduled = datetime.combine(local.date(), time(hour), tzinfo=GRENADA)
         late_from = scheduled + FORECAST_GRACE
         if not late_from <= local < scheduled + FORECAST_GIVE_UP:
@@ -87,7 +95,10 @@ async def forecast_overdue(
             session,
             gms.FORECAST_OVERDUE,
             await gms.duty_forecasters(session, kind, now=moment),
-            {"product": kind.capitalize(), "due": f"{hour:02}:00"},
+            {
+                "product": PRODUCT_LABELS.get(kind, kind.capitalize()),
+                "due": f"{hour:02}:00",
+            },
             link_path="/wxproducts/fcsts",
             entity_type="forecast",
             entity_id=f"{kind}:{day}",

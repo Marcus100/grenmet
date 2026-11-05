@@ -28,7 +28,7 @@ function Slot({
     return (
       <span className="text-el-ink-2">
         {seat.sitting.name}{" "}
-        <span className="text-base text-el-muted">(MP, not confirmed)</span>
+        <span className="text-el-muted text-base">(MP, not confirmed)</span>
       </span>
     );
   if (party === "DPM") return null;
@@ -43,11 +43,11 @@ function Slot({
 /** Who is standing in each constituency, as small cards rather than a wide table. */
 export function BallotGrid({ seats }: { seats: SeatOutlook[] }) {
   return (
-    <ul className="grid gap-px border border-el-rule bg-el-rule sm:grid-cols-2 lg:grid-cols-3">
+    <ul className="border-el-rule bg-el-rule grid gap-px border sm:grid-cols-2 lg:grid-cols-3">
       {seats.map((seat) => (
         <li className="bg-background p-4" key={seat.code}>
           <Link
-            className="font-bold font-serif text-lg leading-tight hover:underline"
+            className="font-serif text-lg leading-tight font-bold hover:underline"
             href={seat.href as Route}
           >
             {seat.name}
@@ -62,7 +62,7 @@ export function BallotGrid({ seats }: { seats: SeatOutlook[] }) {
                 return null;
               return (
                 <li className="flex gap-2" key={party}>
-                  <span className="w-12 shrink-0 font-semibold text-el-muted">
+                  <span className="text-el-muted w-12 shrink-0 font-semibold">
                     <PartyDot party={party} />
                     {party}
                   </span>

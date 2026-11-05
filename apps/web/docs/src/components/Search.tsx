@@ -1,7 +1,7 @@
 "use client";
 import type { Route } from "next";
 
-const APPLE_DEVICE_REGEX = /(Mac|iPhone|iPod|iPad)/i;
+const APPLE_DEVICE_REGEX = /(Mac|iPhone|iPod|iPad)/iu;
 
 import {
   type AutocompleteApi,
@@ -182,7 +182,7 @@ function SearchResult({
       aria-labelledby={`${id}-hierarchy ${id}-title`}
       className={cn(
         "group block cursor-default px-4 py-3 aria-selected:bg-zinc-50 dark:aria-selected:bg-zinc-800/50",
-        resultIndex > 0 && "border-zinc-100 border-t dark:border-zinc-800"
+        resultIndex > 0 && "border-t border-zinc-100 dark:border-zinc-800"
       )}
       {...autocomplete.getItemProps({
         item: result,
@@ -191,7 +191,7 @@ function SearchResult({
     >
       <div
         aria-hidden="true"
-        className="font-medium text-sm text-zinc-900 group-aria-selected:text-gm-blue-ink dark:text-white"
+        className="group-aria-selected:text-gm-blue-ink text-sm font-medium text-zinc-900 dark:text-white"
         id={`${id}-title`}
       >
         <HighlightQuery query={query} text={result.title} />
@@ -199,7 +199,7 @@ function SearchResult({
       {hierarchy.length > 0 && (
         <div
           aria-hidden="true"
-          className="mt-1 truncate whitespace-nowrap text-2xs text-zinc-500"
+          className="text-2xs mt-1 truncate whitespace-nowrap text-zinc-500"
           id={`${id}-hierarchy`}
         >
           {hierarchy.map((item, itemIndex, items) => (
@@ -237,7 +237,7 @@ function SearchResults({
         <NoResultsIcon className="mx-auto h-5 w-5 stroke-zinc-900 dark:stroke-zinc-600" />
         <p className="mt-2 text-xs text-zinc-700 dark:text-zinc-400">
           Nothing found for{" "}
-          <strong className="wrap-break-word font-semibold text-zinc-900 dark:text-white">
+          <strong className="font-semibold wrap-break-word text-zinc-900 dark:text-white">
             &lsquo;{query}&rsquo;
           </strong>
           . Please try again.
@@ -303,7 +303,7 @@ const SearchInput = forwardRef<
       />
       {autocompleteState.status === "stalled" && (
         <div className="absolute inset-y-0 right-3 flex items-center">
-          <LoadingIcon className="h-5 w-5 animate-spin stroke-zinc-200 text-zinc-900 dark:stroke-zinc-800 dark:text-gm-sky" />
+          <LoadingIcon className="dark:text-gm-sky h-5 w-5 animate-spin stroke-zinc-200 text-zinc-900 dark:stroke-zinc-800" />
         </div>
       )}
     </div>
@@ -369,7 +369,7 @@ function SearchDialog({
       <Dialog.Portal>
         <Dialog.Backdrop
           className={cn(
-            "fixed inset-0 z-50 bg-zinc-400/25 backdrop-blur-xs transition-opacity duration-300 ease-out data-ending-style:opacity-0 data-starting-style:opacity-0 data-ending-style:duration-200 data-ending-style:ease-in dark:bg-black/40",
+            "fixed inset-0 z-50 bg-zinc-400/25 backdrop-blur-xs transition-opacity duration-300 ease-out data-ending-style:opacity-0 data-ending-style:duration-200 data-ending-style:ease-in data-starting-style:opacity-0 dark:bg-black/40",
             className
           )}
         />
@@ -382,7 +382,7 @@ function SearchDialog({
         >
           <Dialog.Popup
             aria-label="Search"
-            className="mx-auto transform-gpu overflow-hidden rounded-lg bg-zinc-50 shadow-xl ring-1 ring-zinc-900/7.5 transition duration-300 ease-out data-ending-style:scale-95 data-starting-style:scale-95 data-ending-style:opacity-0 data-starting-style:opacity-0 data-ending-style:duration-200 data-ending-style:ease-in sm:max-w-xl dark:bg-zinc-900 dark:ring-zinc-800"
+            className="mx-auto transform-gpu overflow-hidden rounded-lg bg-zinc-50 shadow-xl ring-1 ring-zinc-900/7.5 transition duration-300 ease-out data-ending-style:scale-95 data-ending-style:opacity-0 data-ending-style:duration-200 data-ending-style:ease-in data-starting-style:scale-95 data-starting-style:opacity-0 sm:max-w-xl dark:bg-zinc-900 dark:ring-zinc-800"
           >
             <div {...autocomplete.getRootProps({})}>
               <form
@@ -398,7 +398,7 @@ function SearchDialog({
                   ref={inputRef}
                 />
                 <div
-                  className="border-zinc-200 border-t bg-white empty:hidden dark:border-zinc-100/5 dark:bg-white/2.5"
+                  className="border-t border-zinc-200 bg-white empty:hidden dark:border-zinc-100/5 dark:bg-white/2.5"
                   ref={panelRef}
                   {...autocomplete.getPanelProps({})}
                 >
@@ -460,7 +460,7 @@ export function Search() {
       >
         <SearchIcon className="h-5 w-5 stroke-current" />
         Find something...
-        <kbd className="ml-auto text-2xs text-zinc-400 dark:text-zinc-500">
+        <kbd className="text-2xs ml-auto text-zinc-400 dark:text-zinc-500">
           <kbd className="font-sans">{modifierKey}</kbd>
           <kbd className="font-sans">K</kbd>
         </kbd>
@@ -484,7 +484,7 @@ export function MobileSearch() {
         type="button"
         {...buttonProps}
       >
-        <span className="absolute pointer-fine:hidden size-12" />
+        <span className="absolute size-12 pointer-fine:hidden" />
         <SearchIcon className="h-5 w-5 stroke-zinc-900 dark:stroke-white" />
       </button>
       <Suspense fallback={null}>

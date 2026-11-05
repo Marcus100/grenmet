@@ -14,6 +14,44 @@ and provider setup steps, see [Integration readiness](operations/integration-rea
 
 ---
 
+## Public settings at run time
+
+The web images are the same for staging and production (build once, promote by
+digest; see [release runbook](operations/release-runbook.md#build-once-promote-by-digest)),
+and seven public settings are read when the app runs, not when the image is built: `NEXT_PUBLIC_SITE_URL`,
+`NEXT_PUBLIC_API_URL`, `NEXT_PUBLIC_ENVIRONMENT`, `NEXT_PUBLIC_SENTRY_DSN`,
+`NEXT_PUBLIC_SENTRY_ENVIRONMENT`, `NEXT_PUBLIC_RELEASE` and
+`NEXT_PUBLIC_TURNSTILE_SITE_KEY`.
+
+- **Server code** reads them with `readPublicEnv(key)` from
+  `@barrelsgd/ui/lib/public-env` (each app's `env.ts`, `instrumentation*.ts` and
+  `sentry.*.config.ts` do). It looks the key up dynamically in the process
+  environment, so Next.js cannot inline it. Never write
+  `process.env.NEXT_PUBLIC_<name>` for these keys in app code.
+- **The browser** gets them from `/runtime-env.js`, served by each app's
+  `src/app/runtime-env.js/route.ts` (dynamic, allow-listed keys only, escaped) and
+  loaded before hydration by `<PublicEnvScript />` in the root layout. In the
+  browser `readPublicEnv` reads that file's values; `onPublicEnv(callback)` waits
+  for them (browser Sentry initialisation does).
+- **Where the values come from.** `infra/docker/docker-compose.deploy.yml` passes
+  them to every web container; `deploy.yml` and `render-env.py` supply the
+  Turnstile key from the GitHub environment variable
+  `NEXT_PUBLIC_TURNSTILE_SITE_KEY`. Changing a setting needs a redeploy, not a rebuild.
+- **Caching.** `/runtime-env.js` may be cached for up to 60 seconds (browser and
+  Cloudflare; the CAP app excludes it from the public-page edge cache rule), so a
+  change reaches browsers within a minute of the redeploy.
+- **Proxies.** An app whose proxy guards every path (admin, bookings, gmsdash,
+  gaa-admin) must let `/runtime-env.js` through.
+- **Exceptions.** Elections (Vercel) is not part of the shared images and keeps
+  build-time settings. PostHog keys (`NEXT_PUBLIC_POSTHOG_*`) are still build-time.
+  `scripts/guardrails/runtime-env.test.mjs` lists the apps that must serve the
+  script and the one exception.
+- **Still build-time.** Pages prerendered at build keep the build's site address in
+  their `metadataBase` links; the report-only CSP Sentry endpoint in `next.config.ts`
+  and source-map upload also use build arguments in `build-web-images.yml`.
+- **Check after a deploy.** `/runtime-env.js` on each app shows that environment's
+  site, API, environment, Sentry and Turnstile values.
+
 ## Local dev setup (one-time)
 
 Two env files are required by `pnpm start`: one for shared infrastructure
@@ -131,6 +169,10 @@ the API image and the local source mount contain the same migration assets.
 | `POSTGRES_DB` | FastAPI database name (matches `APP_DB_NAME` in infra file) |
 | `POSTGRES_USER` | FastAPI DB user (matches `APP_DB_USER` in infra file) |
 | `POSTGRES_PASSWORD` | FastAPI DB password (matches `APP_DB_PASSWORD` in infra file) |
+| `DB_POOL_SIZE` / `DB_MAX_OVERFLOW` | Main async connection pool per API or worker process (defaults `5` / `10`). Keep (size + overflow) × processes, plus the five domain engines, under Postgres `max_connections` (default 100). |
+| `DB_POOL_TIMEOUT` | Seconds a request waits for a free pooled connection before failing (default `10`) |
+| `DB_POOL_RECYCLE` | Seconds before a pooled connection is replaced (default `1800`); pre-ping is always on outside tests |
+| `WEB_CONCURRENCY` | Uvicorn worker processes for the API container (read by uvicorn; default `1`). Rate limits and request metrics live in Redis, so more workers are safe; each worker opens its own pools. |
 | `WXPRODUCTS_DATABASE_URL` | PostgreSQL URL for the separate existing weather-products database; required to serve the public product feed. Use a hostname reachable from FastAPI (`grenmet-postgres` in local Compose, `host.docker.internal` from the devcontainer). The API role needs read/write access to authored products, revisions and their identity sequence; the migration runner needs schema ownership. Weather migrations are owned by FastAPI. Missing configuration returns 503, not an empty feed. |
 | `EVENTS_ORDER_HOLD_MINUTES` | How long an unpaid paid-tier order holds its tickets before the `expire_unpaid_event_orders` job cancels it and releases the stock (default `30`). The Stripe rail is test mode only (`PAYMENTS_STRIPE_*`). |
 | `EVENTS_REFUND_CUTOFF_HOURS` | Refund policy for an organiser cancelling one paid order with `refund: follow_policy`: refunded when the event starts at least this many hours away, kept inside the window (default `48`). An event the organiser cancels is refunded in full. |
@@ -181,7 +223,7 @@ the API image and the local source mount contain the same migration assets.
 | `TURNSTILE_ENABLED` | GitHub environment **variable** (staging and production); API container only |
 | `TURNSTILE_SECRET_KEY` | GitHub environment **secret** (staging and production); API container only |
 | `EMAIL_HASH_PEPPER` | GitHub environment **secret** (staging and production); API, worker and prestart containers. Must be set before deploying the release that hashes email addresses |
-| `NEXT_PUBLIC_TURNSTILE_SITE_KEY` (mbia, signal, docs, gms) | GitHub environment **variable**; `build-web-images.yml` passes it as a Docker build arg because Next.js inlines `NEXT_PUBLIC_*` at build time. Public by design. Changing it needs an image rebuild |
+| `NEXT_PUBLIC_TURNSTILE_SITE_KEY` (mbia, signal, docs, gms) | GitHub environment **variable**; `deploy.yml` passes it to the web containers, which read it at run time (see "Public settings at run time" below). Public by design. Changing it needs a redeploy, not a rebuild |
 | `NEXT_PUBLIC_TURNSTILE_SITE_KEY` (barrels.gd) | Vercel project environment variable; `apps/web/barrels/vercel.json` passes it to `build.mjs` as an argument, which writes `dist/turnstile-config.mjs` |
 | `SUBSCRIPTIONS_SITE_URLS` | JSON object of mailing-list key to public site origin, e.g. `{"signal":"https://signal.barrels.gd","barrels":"https://barrels.gd"}` (local default `{"signal":"http://localhost:3004","barrels":"http://localhost:4173"}`; the Barrels entry is the static site's local preview origin). Confirm and unsubscribe links redirect only to these origins |
 | `SUBSCRIPTIONS_SITE_URLS` | JSON object of mailing-list key to public site origin, e.g. `{"signal":"https://signal.barrels.gd","barrels":"https://barrels.gd","gms-alerts":"https://weather.barrels.gd"}` (local default `{"signal":"http://localhost:3004","barrels":"http://localhost:4173","gms-alerts":"http://localhost:3003"}`; the Barrels entry is the static site's local preview origin). Confirm and unsubscribe links redirect only to these origins |
@@ -292,33 +334,19 @@ site's secret is set; the same value must be set for the API. Elections
 
 | Site | Registry key | Secret | Cookie (default) |
 |---|---|---|---|
-| gms (weather) | `weather` | `WEATHER_SSO_CLIENT_SECRET` | `weather_session` |
 | docs | `docs` | `DOCS_SSO_CLIENT_SECRET` | `docs_session` |
 | signal | `signal` | `SIGNAL_SSO_CLIENT_SECRET` | `signal_session` |
 | mbia | `mbia` | `MBIA_SSO_CLIENT_SECRET` | `mbia_session` |
 | gmsdash | `gmsdash` | `GMSDASH_SSO_CLIENT_SECRET` | `gmsdash_session` |
 | bookings | `bookings` | `BOOKINGS_SSO_CLIENT_SECRET` | `bookings_session` |
 
-The weather site (gms) also hides its "Sign in" button unless
-`WEATHER_SHOW_SIGN_IN=true` (owner, 31 Oct 2026; `false` by default, the same
-for the header and the nav drawer). The switch only hides the button: the
-`/auth` routes, the callback and the account handling stay live, and the
-`WEATHER_SSO_CLIENT_SECRET` check still decides whether sign-in works at all.
-
-**Not wired in deploy yet.** `infra/docker/docker-compose.deploy.yml` (the
-`web-gms` service) and `scripts/production/render-env.py` do not pass
-`WEATHER_SHOW_SIGN_IN`, so a deployed site keeps the button hidden. Those are
-owner-merge files and were left unchanged. To show the button again, add one
-line to the `web-gms` environment block, next to `WEATHER_SSO_CLIENT_SECRET`:
-
-```yaml
-      WEATHER_SHOW_SIGN_IN: ${WEATHER_SHOW_SIGN_IN:-false}
-```
-
-and add `WEATHER_SHOW_SIGN_IN` to the GMS web entries in `render-env.py` so the
-value reaches the environment. The value is read when the pages are rendered,
-and the standing pages are static, so a change shows only after a redeploy
-(rebuild if it is read at build time).
+The weather site (gms) has no sign-in (owner, 1 Nov 2026), so it has no entry in
+this table and no `WEATHER_SSO_CLIENT_SECRET` or `WEATHER_SHOW_SIGN_IN`
+variables. Its removed variables were `WEATHER_SSO_CLIENT_SECRET`,
+`WEATHER_SHOW_SIGN_IN`, `WEATHER_SESSION_COOKIE_NAME`, `AUTH_APP_URL` and
+`AUTH_ALLOWED_RETURN_HOSTS`. The compose and `render-env.py` entries that still
+pass `WEATHER_SSO_CLIENT_SECRET` to `web-gms` are owner-merge files and are harmless
+until they are removed there.
 
 The units switch is on the home page only (it lives in the home hero card, not
 the header), so other pages show the saved choice without a control.
@@ -339,11 +367,10 @@ Secrets are optional GitHub environment secrets (32+ characters).
 | `AUTH_API_URL` | FastAPI base URL |
 | `AUTH_API_V1_STR` | API version prefix |
 | `AUTH_ALLOWED_RETURN_HOSTS` | Safe redirect hosts used by shared auth helpers |
-| `WEATHER_SHOW_SIGN_IN` | **gms only.** `true` shows the "Sign in" button in the header and the nav drawer; `false` (default) hides it. Only the button is affected; the sign-in routes keep working. Accepts exactly `true` or `false`. |
 | `CAP_API_URL` | **gms only.** FastAPI base URL for the unauthenticated public CAP endpoints (`/api/cap/*`) that render the current-warnings panel. Separate from `AUTH_API_URL` because these endpoints need no session |
 | `NEXT_PUBLIC_SENTRY_DSN` / `NEXT_PUBLIC_SENTRY_ENVIRONMENT` | Optional browser error reporting |
 | `NEXT_PUBLIC_POSTHOG_KEY` / `NEXT_PUBLIC_POSTHOG_HOST` | Optional browser analytics |
-| `NEXT_PUBLIC_SITE_URL` | Canonical public address, used as `metadataBase` so share previews get absolute links. Set at **build** time: CI passes `https://<host>.barrels.gd` (gms uses `weather`, from `scripts/ci/release-scope.mjs`); Elections sets it in Vercel. Defaults to the local port. gms, docs, events, elections, signal and mbia read it. |
+| `NEXT_PUBLIC_SITE_URL` | Canonical public address, used as `metadataBase` so share previews get absolute links. Read at run time from the container (`docker-compose.deploy.yml` sets `https://<host>.${BASE_DOMAIN}`); the image build passes an address only for pages prerendered at build. Elections sets it in Vercel. Defaults to the local port. gms, docs, events, elections, signal and mbia read it. |
 
 ### gaa-admin (`apps/web/gaa-admin/.env.local`)
 
@@ -390,7 +417,7 @@ The public CAP alert hub plus the staff warning desk under `/desk`. No database.
 | `AUTH_APP_URL` / `AUTH_API_URL` / `AUTH_API_V1_STR` | Desk only: the auth app (default `http://localhost:3000`), FastAPI (default `http://localhost:8000`) and its prefix (default `/api/v1`) |
 | `CAP_SESSION_COOKIE_NAME` | Desk only: host-only session cookie (default `cap_desk_session`) |
 | `CAP_SSO_CLIENT_SECRET` | Desk only: same value as the API's; without it desk sign-in says it is switched off and `/auth/callback` returns 503 |
-| `NEXT_PUBLIC_SITE_URL` | Canonical address for absolute links (build-time; default `http://localhost:3010`) |
+| `NEXT_PUBLIC_SITE_URL` | Canonical address for absolute links (run time; default `http://localhost:3010`) |
 | `NEXT_PUBLIC_SENTRY_DSN` / `NEXT_PUBLIC_SENTRY_ENVIRONMENT` / `NEXT_PUBLIC_RELEASE` | Optional server-side error reporting. No client SDK and no analytics, to keep pages light |
 
 ### gmsdash (`apps/web/gmsdash/.env.local`)
@@ -411,7 +438,7 @@ Barrels Bookings. Only `/studio` needs sign-in; the public booking pages (`/[slu
 | Variable | Purpose |
 |---|---|
 | `AUTH_API_URL` / `AUTH_API_V1_STR` / `AUTH_APP_URL` | FastAPI base URL (`http://api:8000` in deployment), API prefix and the Barrels sign-in app |
-| `NEXT_PUBLIC_TURNSTILE_SITE_KEY` | Optional public Turnstile key for the booking form. Unset: no widget and no token. Inlined at build time |
+| `NEXT_PUBLIC_TURNSTILE_SITE_KEY` | Optional public Turnstile key for the booking form. Unset: no widget and no token. Read at run time by the web container |
 | `BOOKINGS_SESSION_COOKIE_NAME` | Host-only session cookie (default `bookings_session`) |
 | `BOOKINGS_SSO_CLIENT_SECRET` | Same value as the API's registration for `bookings`; without it `/auth/callback` returns 503 and nobody can sign in. Optional in deployment (empty keeps sign-in off) |
 | `NEXT_PUBLIC_SENTRY_DSN` / `NEXT_PUBLIC_SENTRY_ENVIRONMENT` / `NEXT_PUBLIC_RELEASE` | Optional error reporting |
@@ -596,10 +623,11 @@ the deployment mode. Provider endpoints must use HTTPS. CAP signing is optional;
 configure both certificate and key to enable it. These checks establish valid
 configuration, not provider-side connectivity or successful delivery.
 
-`NEXT_PUBLIC_*` variables are compiled into browser bundles. Configure Sentry,
-PostHog, public API origins and site origins in the build's GitHub environment,
-then rebuild the image after changes. Runtime-only changes cannot repair an
-already compiled browser value. Never put Stripe secret keys, webhook secrets,
+`NEXT_PUBLIC_*` variables are public: Next.js compiles most of them into browser
+bundles, so configure them in the build's GitHub environment and rebuild the image
+after changes. The exception is the seven settings listed in "Public settings at
+run time": the container supplies those, and a redeploy is
+enough. PostHog keys stay build-time. Never put Stripe secret keys, webhook secrets,
 Sentry upload tokens, or storage credentials in public variables.
 
 The September 2026 release audit found Sentry and Resend secret names in both
@@ -635,7 +663,7 @@ credentials into staging.
   `BILLING_CHECKOUT_CANCEL_URL`. Supply the complete bundle together.
 - Google: `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`.
 - Single sign-on (ADR-0017): `GAA_ADMIN_SSO_CLIENT_SECRET`, `CMS_SSO_CLIENT_SECRET`
-  (required); `EVENTS_SSO_CLIENT_SECRET`, `WEATHER_SSO_CLIENT_SECRET`,
+  (required); `EVENTS_SSO_CLIENT_SECRET`,
   `DOCS_SSO_CLIENT_SECRET`, `SIGNAL_SSO_CLIENT_SECRET`, `MBIA_SSO_CLIENT_SECRET`
   (optional; each switches on "Sign in" there). Elections has no sign-in.
 - CAP signing: `CAP_SIGNING_CERT`, `CAP_SIGNING_KEY` (PEM contents).
@@ -773,7 +801,7 @@ optional, secret or public, configured, and verified. A configured value is not
 proof of connectivity: verify OAuth callbacks, email delivery, storage upload
 and download, Stripe webhook signatures, analytics events, and Sentry events
 separately. Browser `NEXT_PUBLIC_*` values require a new web image build after
-they change.
+they change, except the run-time settings above.
 
 
 ### WxWatch read migration

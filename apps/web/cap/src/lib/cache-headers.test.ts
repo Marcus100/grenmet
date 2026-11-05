@@ -15,7 +15,7 @@ async function headersFor(path: string) {
     // The rules use path-to-regexp syntax; these sources are plain regex plus
     // `:path*`, so translate only the latter.
     const pattern = rule.source.replace("/:path*", "(?:/.*)?");
-    if (new RegExp(`^${pattern}$`).test(path)) {
+    if (new RegExp(`^${pattern}$`, "u").test(path)) {
       for (const { key, value } of rule.headers) found.set(key, value);
     }
   }
@@ -23,6 +23,11 @@ async function headersFor(path: string) {
 }
 
 describe("cache headers on the shared cap host", () => {
+  it("leaves /runtime-env.js to its own short cache", async () => {
+    const headers = await headersFor("/runtime-env.js");
+    expect(headers.has("Cache-Control")).toBe(false);
+  });
+
   it.each(["/", "/map", "/history", "/alerts/abc", "/feeds", "/about"])(
     "public page %s keeps the edge cache",
     async (path) => {

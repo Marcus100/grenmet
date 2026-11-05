@@ -86,7 +86,7 @@ export function AccessReviewsPanel() {
     );
   return (
     <section className="space-y-3">
-      <h2 className="font-semibold text-xl">Access reviews</h2>
+      <h2 className="text-xl font-semibold">Access reviews</h2>
       <p>
         Review the person, permission bundle, scope and expiry. Changes require
         a reason and are recorded.

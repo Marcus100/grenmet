@@ -81,7 +81,7 @@ function Slider({
 }) {
   return (
     <div>
-      <label className="block font-semibold text-base" htmlFor={id}>
+      <label className="block text-base font-semibold" htmlFor={id}>
         {label}
       </label>
       <input
@@ -94,7 +94,7 @@ function Slider({
         type="range"
         value={value}
       />
-      <div className="flex justify-between text-base text-el-muted">
+      <div className="text-el-muted flex justify-between text-base">
         <span>{ends[0]}</span>
         <span>{ends[1]}</span>
       </div>
@@ -182,7 +182,7 @@ export function Forecast({ seats, inputs, sN, sL, df }: Props) {
 
   return (
     <div className="space-y-10">
-      <fieldset className="border border-el-rule p-4 sm:p-5">
+      <fieldset className="border-el-rule border p-4 sm:p-5">
         <legend className={cn(LABEL, "px-1")}>
           Model settings · these drive the ratings and the range of outcomes
         </legend>
@@ -224,7 +224,7 @@ export function Forecast({ seats, inputs, sN, sL, df }: Props) {
                 ] as const
               ).map(([label, value]) => (
                 <button
-                  className="rounded-md border border-el-rule-2 px-2.5 py-1 text-base hover:bg-el-paper-2"
+                  className="border-el-rule-2 hover:bg-el-paper-2 rounded-md border px-2.5 py-1 text-base"
                   key={label}
                   onClick={() => set({ national: value })}
                   type="button"
@@ -306,9 +306,9 @@ export function Forecast({ seats, inputs, sN, sL, df }: Props) {
             />
           </div>
         </div>
-        <div className="mt-4 flex flex-wrap items-center gap-3 text-base text-el-muted">
+        <div className="text-el-muted mt-4 flex flex-wrap items-center gap-3 text-base">
           <button
-            className="rounded-md border border-el-rule-2 px-2.5 py-1 text-el-ink hover:bg-el-paper-2"
+            className="border-el-rule-2 text-el-ink hover:bg-el-paper-2 rounded-md border px-2.5 py-1"
             onClick={() => setSettings(defaults)}
             type="button"
           >
@@ -324,12 +324,12 @@ export function Forecast({ seats, inputs, sN, sL, df }: Props) {
       </fieldset>
 
       <section aria-labelledby="ratings-title">
-        <h3 className="font-bold text-xl" id="ratings-title">
+        <h3 className="text-xl font-bold" id="ratings-title">
           Seat ratings
         </h3>
         <p
           aria-live="polite"
-          className="mt-1 max-w-[70ch] text-base text-el-ink-2 leading-relaxed"
+          className="text-el-ink-2 mt-1 max-w-[70ch] text-base leading-relaxed"
         >
           With these settings, <b>{count("NDC")}</b> seats lean or better to the
           NDC, <b>{count("NNP")}</b> to the NNP, and <b>{tossUps.length}</b>{" "}
@@ -339,7 +339,7 @@ export function Forecast({ seats, inputs, sN, sL, df }: Props) {
           {expected("NNP").toFixed(1)}
           {expected("DPM") >= 0.05 && `, DPM ${expected("DPM").toFixed(1)}`}.
         </p>
-        <div className="mt-4 grid gap-px border border-el-rule bg-el-rule sm:grid-cols-4 lg:grid-cols-7">
+        <div className="border-el-rule bg-el-rule mt-4 grid gap-px border sm:grid-cols-4 lg:grid-cols-7">
           {RATING_COLUMNS.map((column) => {
             const inColumn = seats
               .filter((s) => ratings[s.code] === column)
@@ -377,7 +377,7 @@ export function Forecast({ seats, inputs, sN, sL, df }: Props) {
             );
           })}
         </div>
-        <p className="mt-2 text-base text-el-muted leading-relaxed">
+        <p className="text-el-muted mt-2 text-base leading-relaxed">
           The percentage is the chance the seat goes to that column’s party,
           allowing a typical local deviation of ±{(sL * 100).toFixed(1)} points
           from the national swing, as in the three elections since 2008. Safe:
@@ -389,12 +389,12 @@ export function Forecast({ seats, inputs, sN, sL, df }: Props) {
 
       <section aria-labelledby="range-title">
         <div className="flex flex-wrap items-baseline justify-between gap-3">
-          <h3 className="font-bold text-xl" id="range-title">
+          <h3 className="text-xl font-bold" id="range-title">
             The range of outcomes
           </h3>
           <fieldset
             aria-label="National swing"
-            className="inline-flex rounded-md border border-el-rule-2 p-0.5"
+            className="border-el-rule-2 inline-flex rounded-md border p-0.5"
           >
             {(
               [
@@ -404,7 +404,7 @@ export function Forecast({ seats, inputs, sN, sL, df }: Props) {
             ).map(([v, label]) => (
               <button
                 aria-pressed={volatility === v}
-                className="rounded px-2.5 py-1 text-base aria-pressed:bg-el-ink aria-pressed:text-el-paper"
+                className="aria-pressed:bg-el-ink aria-pressed:text-el-paper rounded px-2.5 py-1 text-base"
                 key={v}
                 onClick={() => setVolatility(v)}
                 type="button"
@@ -414,7 +414,7 @@ export function Forecast({ seats, inputs, sN, sL, df }: Props) {
             ))}
           </fieldset>
         </div>
-        <p className="mt-1 max-w-[70ch] text-base text-el-ink-2 leading-relaxed">
+        <p className="text-el-ink-2 mt-1 max-w-[70ch] text-base leading-relaxed">
           10,000 simulated elections. Each draws a national swing like those
           Grenada has seen (±{(sN * volatility * 100).toFixed(1)} points, with
           fat tails, since there have been only seven), then gives every seat
@@ -468,7 +468,7 @@ export function Forecast({ seats, inputs, sN, sL, df }: Props) {
                   y2={224}
                 />
                 <text
-                  className="fill-(--el-ink) font-semibold text-[14px]"
+                  className="fill-(--el-ink) text-[14px] font-semibold"
                   x={40 + 8 * ((560 - 46) / 16)}
                   y={16}
                 >
@@ -476,7 +476,7 @@ export function Forecast({ seats, inputs, sN, sL, df }: Props) {
                 </text>
               </svg>
             </ChartViewport>
-            <figcaption className="text-base text-el-muted">
+            <figcaption className="text-el-muted text-base">
               NDC seats across 10,000 simulated elections. The NNP and DPM hold
               the rest. Eight seats is a majority.
             </figcaption>
@@ -484,7 +484,7 @@ export function Forecast({ seats, inputs, sN, sL, df }: Props) {
           <div>
             <p
               aria-live="polite"
-              className="font-serif text-el-ink-2 text-lg leading-normal"
+              className="text-el-ink-2 font-serif text-lg leading-normal"
             >
               In 8 of 10 simulations the NDC won between{" "}
               <b>
@@ -496,7 +496,7 @@ export function Forecast({ seats, inputs, sN, sL, df }: Props) {
               <b>{per100(n - (sim.dpmSeats[0] ?? 0))}</b>.
             </p>
             <h4 className={cn(LABEL, "mt-5")}>Which seat decides it</h4>
-            <p className="text-base text-el-muted leading-relaxed">
+            <p className="text-el-muted text-base leading-relaxed">
               The tipping-point seat gives the winner its eighth seat.
             </p>
             <ul className="mt-2 space-y-1.5 text-base">
@@ -505,7 +505,7 @@ export function Forecast({ seats, inputs, sN, sL, df }: Props) {
                   <span className="w-36 shrink-0 truncate">
                     {code} · {byCode[code]?.short}
                   </span>
-                  <span className="h-3 flex-1 bg-el-paper-2">
+                  <span className="bg-el-paper-2 h-3 flex-1">
                     <span
                       className="block h-full"
                       style={{

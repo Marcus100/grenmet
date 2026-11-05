@@ -12,7 +12,7 @@ import { reportError } from "@/lib/report-error";
 export const metadata: Metadata = { title: "Edit draft" };
 export const dynamic = "force-dynamic";
 
-const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/u;
 const EDITABLE = new Set(["DRAFT", "SUBMITTED", "APPROVED"]);
 
 export default async function EditDraftPage({
@@ -46,7 +46,7 @@ export default async function EditDraftPage({
   if (!EDITABLE.has(alert.lifecycle_state)) {
     return (
       <section className="space-y-3 py-6" role="alert">
-        <h1 className="font-semibold text-2xl">This alert is not a draft</h1>
+        <h1 className="text-2xl font-semibold">This alert is not a draft</h1>
         <p className="text-muted-foreground">
           It is {alert.lifecycle_state.toLowerCase()} and can no longer be
           edited. To change a published alert, issue an update from its page.

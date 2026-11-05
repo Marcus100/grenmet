@@ -155,6 +155,7 @@ async def test_entitlement_off_refuses_and_on_is_unchanged(
         off = await route.call(client, shop)
     assert off.status_code == 403, off.text
     assert off.json()["detail"] == REFUSED
+    assert off.json()["code"] == "EVENTS_NOT_ENABLED"
 
     await _set_events(db_async, shop, enabled=True)
     async with client_with_real_roles(shop.owner) as client:

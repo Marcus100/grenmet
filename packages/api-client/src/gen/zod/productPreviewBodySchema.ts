@@ -14,6 +14,7 @@ export const productPreviewBodySchema = z
     }),
     legacyProductPreviewInputSchema.extend({
       kind: z.enum([
+        "climate-bulletin",
         "coastal",
         "cyclone",
         "dust",
@@ -21,6 +22,7 @@ export const productPreviewBodySchema = z
         "flood",
         "heat",
         "marine",
+        "marine-forecast",
         "midday",
         "morning",
         "thunderstorm",

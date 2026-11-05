@@ -6,11 +6,12 @@ forecaster reviews is what is published. The layout is HTML/CSS
 WeasyPrint; this module prepares the data and the design tokens.
 """
 
+import logging
 import re
 from datetime import date, datetime
 from functools import cache
 from pathlib import Path
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, NamedTuple
 
 from jinja2 import Environment, FileSystemLoader, select_autoescape
 from markupsafe import Markup
@@ -18,15 +19,27 @@ from markupsafe import Markup
 from src.cap.ibf import IMPACTS, LIKELIHOODS, WMO_MATRIX
 from src.wxwatch.nhc_schemas import ProductGuidance
 
-from . import advisories, units
+from . import advisories, climate, units
+from .exceptions import UnsupportedSheetKind
 from .presentation import conditions as _conditions
-from .validation import FIELDS, GRENADA, optional_number, period_values
+from .validation import (
+    CLIMATE_SECTORS,
+    FIELDS,
+    GRENADA,
+    LEGACY_CLIMATE_FIELDS,
+    LEGACY_MARINE_FIELDS,
+    MARINE_FORECAST_AREA,
+    optional_number,
+    period_values,
+)
 
 if TYPE_CHECKING:
     # WeasyPrint loads Pango/Cairo (seconds); import it only when rendering, so
     # the API starts fast enough for its deploy healthcheck.
     from weasyprint import CSS, Document
     from weasyprint.text.fonts import FontConfiguration
+
+logger = logging.getLogger(__name__)
 
 BASE = Path(__file__).parent
 ASSETS = BASE / "assets"
@@ -283,9 +296,8 @@ def _outlook(values: dict[str, str]) -> list[dict[str, Any]]:
     return days
 
 
-def forecast_context(
-    kind: str, values: dict[str, str], *, status: str, revision: str
-) -> dict[str, Any]:
+def _advisory_context(values: dict[str, str]) -> dict[str, Any]:
+    """The imported alerts and warnings in force, as the sheets print them."""
     snapshot = advisories.parse(values.get("advisories", ""))
     items = [
         item | {"valid": _advisory_valid(item)}
@@ -297,6 +309,21 @@ def forecast_context(
     in_force = [item for item in items if not advisories.is_all_clear(item)]
     all_clear = [item for item in items if advisories.is_all_clear(item)]
     return {
+        # False for a revision saved before alerts were captured (or one whose
+        # snapshot cannot be read): the sheet must not say "none in force".
+        "captured": bool(snapshot),
+        "advisories": in_force[: advisories.ITEM_LIMIT],
+        "all_clear": all_clear[: advisories.ITEM_LIMIT],
+        "complete": bool(snapshot.get("complete", True)),
+        "colour_names": COLOUR_NAMES,
+    }
+
+
+def forecast_context(
+    kind: str, values: dict[str, str], *, status: str, revision: str
+) -> dict[str, Any]:
+    imported = _advisory_context(values)
+    return imported | {
         "title": TITLES[kind],
         "issued": _when(values.get("issuedAt", "")),
         "valid": _span_text(values.get("validFrom", ""), values.get("validTo", "")),
@@ -306,17 +333,199 @@ def forecast_context(
         "summary": values.get("summary", ""),
         "condition_icon": CONDITION_ICONS.get(values.get("condition", ""), "cloud-sun"),
         "tiles": _headline_tiles(kind, values),
-        "matrix": _matrix(in_force[: advisories.ITEM_LIMIT]),
-        "advisories": in_force[: advisories.ITEM_LIMIT],
-        "all_clear": all_clear[: advisories.ITEM_LIMIT],
-        "complete": bool(snapshot.get("complete", True)),
-        "colour_names": COLOUR_NAMES,
+        "matrix": _matrix(imported["advisories"]),
         "outlook": _outlook(values) if kind == "evening" else [],
         "word": values.get("word", "") if values.get("definition") else "",
         "definition": values.get("definition", ""),
         "forecaster": values.get("forecaster", ""),
         "product_code": PRODUCT_CODES[kind],
         "next_update": f"{NEXT_ISSUE[kind]} AST",
+        "contact": CONTACT,
+    }
+
+
+WIND_ICONS = {"wind", "compass"}
+
+
+def marine_forecast_context(
+    values: dict[str, str], *, status: str, revision: str
+) -> dict[str, Any]:
+    """Marine Forecast: synopsis, winds, seas and swell, advisories, outlook.
+
+    Wind in mph and heights in feet (`presentation.conditions`); storage stays
+    knots and metres. Small craft and other warnings are the imported
+    advisories, never typed text.
+    """
+    tiles = [
+        {"icon": i, "value": v, "label": label} for i, v, label in _conditions(values)
+    ]
+    return _advisory_context(values) | {
+        "title": "Marine Forecast",
+        "issued": _when(values.get("issuedAt", "")),
+        "valid": _span_text(values.get("validFrom", ""), values.get("validTo", "")),
+        "status": "" if status == "PUBLISHED ISSUE" else status,
+        "revision": revision,
+        "area": values.get("area") or MARINE_FORECAST_AREA,
+        "synopsis": values.get("synopsis", ""),
+        "wind_tiles": [t for t in tiles if t["icon"] in WIND_ICONS],
+        "sea_tiles": [t for t in tiles if t["icon"] not in WIND_ICONS],
+        "outlook": values.get("outlook", ""),
+        # Typed small-craft advice from revisions saved before it was replaced
+        # by the imported advisories; shown read-only, as recorded.
+        "small_craft_recorded": [
+            text
+            for key in LEGACY_MARINE_FIELDS
+            if (text := values.get(key, "").strip())
+        ],
+        "forecaster": values.get("forecaster", ""),
+        "product_code": "GMS-MWF-MARINE",
+        "next_update": "05:00 AST",
+        "contact": CONTACT,
+    }
+
+
+CLIMATE_VERIFICATION = (
+    ("verifyRainfall", "Rainfall (mm)"),
+    ("verifyWetDays", "Wet days"),
+    ("verifyWetSpell", "7-day wet spell"),
+    ("verifyTmax", "Tmax (°C)"),
+    ("verifyTmin", "Tmin (°C)"),
+)
+
+
+def _issue_date(values: dict[str, str]) -> date | None:
+    try:
+        return date.fromisoformat(values.get("issuedAt", "")[:10])
+    except ValueError:
+        return None
+
+
+def _text(values: dict[str, str], key: str) -> str:
+    return values.get(key, "").strip()
+
+
+def climate_bulletin_context(
+    values: dict[str, str], *, status: str, revision: str
+) -> dict[str, Any]:
+    """Grenada National Climate Bulletin: two pages from the owner's examples.
+
+    Period labels come from the month reviewed and the issue date
+    (`climate.py`); the intro, disclaimer and closing statement are fixed
+    template text. Optional parts (temperature table, sector table, general
+    implications, trivia) print only when filled in. The precipitation and mean
+    temperature maps are not stored yet, so the sheet marks where they go.
+    """
+    month = _text(values, "month")
+    issued = _issue_date(values)
+    code, season_label = climate.season(issued) if issued else ("", "")
+    v = {key: _text(values, key) for key in values}
+
+    def pair(key: str, unit: str = "", *, up_to: bool = False) -> str:
+        return climate.range_text(
+            v.get(f"{key}Min", ""), v.get(f"{key}Max", ""), unit, up_to_when_zero=up_to
+        )
+
+    rows = [
+        ("Wet days", "wetDays", "Usually there are", False),
+        ("7-day wet spells (20% wettest)", "wetSpells", "Historically", False),
+        (
+            "Extreme 3-day wet spells (1% wettest)",
+            "extremeSpells",
+            "Historically",
+            True,
+        ),
+    ]
+    spells = [
+        {
+            "title": title,
+            "outlook": v.get(f"{key}Outlook", ""),
+            "range_label": label,
+            "range": pair(key, up_to=up_to),
+            "implication": v.get(f"{key}Implication", ""),
+        }
+        for title, key, label, up_to in rows
+    ]
+    temperature_table = bool(v.get("heatStress") or v.get("extremeHeat"))
+    day_range = pair("tempMaxRange", "°C")
+    night_range = pair("tempMinRange", "°C")
+    return {
+        "title": "Grenada National Climate Bulletin",
+        "subtitle": " / ".join(
+            part
+            for part in (
+                f"Vol {v['volume']}" if v.get("volume") else "",
+                f"Issue {v['issue']}" if v.get("issue") else "",
+            )
+            if part
+        ),
+        "issue_month": f"{issued:%B %Y}" if issued else "",
+        "issued": _when(values.get("issuedAt", "")),
+        "valid": _span_text(values.get("validFrom", ""), values.get("validTo", "")),
+        "status": "" if status == "PUBLISHED ISSUE" else status,
+        "revision": revision,
+        "monitoring_label": climate.window_label(month, 1),
+        "season_code": code,
+        "season_year": climate.season_year(issued) if issued else "",
+        "season_label": season_label,
+        "contacts": [
+            line.strip()
+            for line in values.get("contacts", "").splitlines()
+            if line.strip()
+        ],
+        "enso": v.get("enso", ""),
+        "sst": v.get("sst", ""),
+        "spi": [
+            {
+                "period": climate.window_label(month, months),
+                "category": v.get(key) or "—",
+            }
+            for months, key in climate.SPI_WINDOWS
+        ],
+        "pet": v.get("pet", ""),
+        "pet_ratio": v.get("petRatio", ""),
+        "precip_outlook": v.get("precipOutlook", ""),
+        "precip_range": pair("precipRange", "mm"),
+        "spells": spells,
+        "temp_mean": v.get("tempMeanOutlook", ""),
+        "temperature_table": temperature_table,
+        "temperature_rows": [
+            ("Daytime temperatures", v.get("tempMaxOutlook", ""), day_range),
+            ("Night-time temperatures", v.get("tempMinOutlook", ""), night_range),
+            *(
+                (label, text, "")
+                for label, text in (
+                    ("Potential heat stress", v.get("heatStress", "")),
+                    ("Extreme heat", v.get("extremeHeat", "")),
+                )
+                if text
+            ),
+        ],
+        "temp_max": v.get("tempMaxOutlook", ""),
+        "temp_max_range": day_range,
+        "temp_min": v.get("tempMinOutlook", ""),
+        "temp_min_range": night_range,
+        "drought": v.get("droughtOutlook", ""),
+        "sectors": [(label, v[key]) for key, label in CLIMATE_SECTORS if v.get(key)],
+        "general": v.get("generalImplications", ""),
+        "verification_label": climate.verification_label(month),
+        "verification": [
+            {
+                "label": label,
+                "outlook": v.get(f"{key}Outlook", ""),
+                "range": pair(f"{key}Range"),
+                "observed": v.get(f"{key}Observed", "") or "—",
+            }
+            for key, label in CLIMATE_VERIFICATION
+        ],
+        "trivia_answer": v.get("triviaAnswer", ""),
+        "trivia_question": v.get("triviaQuestion", ""),
+        "legacy": [
+            (label, v[key]) for key, label in LEGACY_CLIMATE_FIELDS if v.get(key)
+        ],
+        "area": v.get("area", ""),
+        "forecaster": v.get("forecaster", ""),
+        "product_code": "GMS-CLB",
+        "next_update": "15th of next month",
         "contact": CONTACT,
     }
 
@@ -506,8 +715,20 @@ def render_document(
     guidance: ProductGuidance | None = None,
     graphic_images: dict[str, str] | None = None,
 ) -> Document:
-    """Forecast, bulletin or outlook sheet."""
-    if kind == "outlook":
+    """Forecast, bulletin, outlook, marine or climate sheet."""
+    if kind not in SHEET_KINDS:
+        raise UnsupportedSheetKind(kind)
+    if kind == "marine-forecast":
+        template, context = (
+            "marine.html.j2",
+            marine_forecast_context(values, status=status, revision=revision),
+        )
+    elif kind == "climate-bulletin":
+        template, context = (
+            "climate.html.j2",
+            climate_bulletin_context(values, status=status, revision=revision),
+        )
+    elif kind == "outlook":
         template, context = (
             "outlook.html.j2",
             outlook_context(values, status=status, revision=revision),
@@ -534,7 +755,28 @@ def render_document(
     )
 
 
-def render_sheet_pdf(
+class RenderedSheet(NamedTuple):
+    content: bytes
+    pages: int
+
+
+# Sheets designed to fit a fixed number of pages. A longer one still renders,
+# but the author is told (preview header) and the render is logged.
+EXPECTED_PAGES = {"climate-bulletin": 2}
+
+
+def sheet_warning(kind: str, pages: int) -> str:
+    """Plain-language warning when a sheet runs past its designed page count."""
+    expected = EXPECTED_PAGES.get(kind)
+    if expected is None or pages == expected:
+        return ""
+    return (
+        f"This sheet runs to {pages} pages; it is designed for {expected}. "
+        "Shorten the longest text."
+    )
+
+
+def render_sheet(
     kind: str,
     values: dict[str, str],
     *,
@@ -543,7 +785,7 @@ def render_sheet_pdf(
     archival: bool = False,
     guidance: ProductGuidance | None = None,
     graphic_images: dict[str, str] | None = None,
-) -> bytes:
+) -> RenderedSheet:
     """Render a sheet; saved revisions are official records, so they are PDF/A-3b."""
     document = render_document(
         kind,
@@ -556,7 +798,37 @@ def render_sheet_pdf(
     pdf = document.write_pdf(pdf_variant="pdf/a-3b" if archival else None)
     if not isinstance(pdf, bytes):
         raise TypeError("WeasyPrint returned no PDF bytes")
-    return pdf
+    pages = len(document.pages)
+    if sheet_warning(kind, pages):
+        logger.warning(
+            "wxproducts sheet page count", extra={"kind": kind, "pages": pages}
+        )
+    return RenderedSheet(pdf, pages)
 
 
-SHEET_KINDS = frozenset(TITLES) | frozenset(BULLETIN_NAMES) | {"outlook"}
+def render_sheet_pdf(
+    kind: str,
+    values: dict[str, str],
+    *,
+    status: str,
+    revision: str,
+    archival: bool = False,
+    guidance: ProductGuidance | None = None,
+    graphic_images: dict[str, str] | None = None,
+) -> bytes:
+    return render_sheet(
+        kind,
+        values,
+        status=status,
+        revision=revision,
+        archival=archival,
+        guidance=guidance,
+        graphic_images=graphic_images,
+    ).content
+
+
+SHEET_KINDS = (
+    frozenset(TITLES)
+    | frozenset(BULLETIN_NAMES)
+    | {"outlook", "marine-forecast", "climate-bulletin"}
+)

@@ -21,7 +21,7 @@ export function grenadaTime(iso: string | null | undefined): string {
 export function DeskRefused({ email }: { email: string }) {
   return (
     <section className="space-y-3 py-10" role="alert">
-      <h1 className="font-semibold text-2xl">No access to CAP warnings</h1>
+      <h1 className="text-2xl font-semibold">No access to CAP warnings</h1>
       <p className="text-muted-foreground">
         {email} is signed in but does not hold CAP warning access. Ask a GMS
         administrator to give you a CAP role.
@@ -33,7 +33,7 @@ export function DeskRefused({ email }: { email: string }) {
 export function DeskUnavailable({ what }: { what: string }) {
   return (
     <section className="space-y-3 py-10" role="alert">
-      <h1 className="font-semibold text-2xl">{what} could not be loaded</h1>
+      <h1 className="text-2xl font-semibold">{what} could not be loaded</h1>
       <p className="text-muted-foreground">
         The warning service did not answer. Reload the page. If a warning must
         go out now, use the CAP desk in GAA Admin.
@@ -45,23 +45,23 @@ export function DeskUnavailable({ what }: { what: string }) {
 /** Lifecycle, CAP status and import flags in words; colour is only extra. */
 export function AlertBadges({ alert }: { alert: CapAlertPublic }) {
   return (
-    <span className="inline-flex flex-wrap gap-1.5 text-caption">
+    <span className="text-caption inline-flex flex-wrap gap-1.5">
       <span className="rounded-full border px-2 py-0.5 font-medium">
         {alert.lifecycle_state}
       </span>
       <span className="rounded-full border px-2 py-0.5">{alert.msg_type}</span>
       {alert.status === "Actual" ? null : (
-        <span className="rounded-full border border-destructive px-2 py-0.5 font-semibold text-destructive">
+        <span className="border-destructive text-destructive rounded-full border px-2 py-0.5 font-semibold">
           {alert.status}: not a live warning
         </span>
       )}
       {alert.import_source ? (
-        <span className="rounded-full bg-warning-soft px-2 py-0.5 font-semibold text-warning-soft-foreground">
+        <span className="bg-warning-soft text-warning-soft-foreground rounded-full px-2 py-0.5 font-semibold">
           Imported ({alert.import_source})
         </span>
       ) : null}
       {alert.schema_conformant ? null : (
-        <span className="rounded-full bg-destructive/10 px-2 py-0.5 font-semibold text-destructive">
+        <span className="bg-destructive/10 text-destructive rounded-full px-2 py-0.5 font-semibold">
           Does not follow CAP 1.2
         </span>
       )}
@@ -89,13 +89,13 @@ export function FormatProblemBanner({
   if (problems.length === 0) return null;
   return (
     <div
-      className="space-y-2 rounded-lg border-2 border-destructive bg-destructive/10 p-4"
+      className="border-destructive bg-destructive/10 space-y-2 rounded-lg border-2 p-4"
       role="alert"
     >
-      <p className="font-semibold text-destructive">
+      <p className="text-destructive font-semibold">
         This alert went out with a CAP format problem
       </p>
-      <ul className="list-disc space-y-1 pl-5 text-body-sm">
+      <ul className="text-body-sm list-disc space-y-1 pl-5">
         {problems.map((item) => (
           <li key={`${item.at}-${item.action}`}>
             {item.action === "cancel" ? "Cancellation" : "Emergency publish"} at{" "}
@@ -113,19 +113,19 @@ export function FormatProblemBanner({
 export function SavedAlert({ alert }: { alert: CapAlertPublic }) {
   return (
     <div className="space-y-4">
-      <dl className="grid gap-x-6 gap-y-2 text-body-sm sm:grid-cols-2">
+      <dl className="text-body-sm grid gap-x-6 gap-y-2 sm:grid-cols-2">
         <div>
-          <dt className="font-medium text-muted-foreground">Identifier</dt>
-          <dd className="break-all font-mono">{alert.identifier}</dd>
+          <dt className="text-muted-foreground font-medium">Identifier</dt>
+          <dd className="font-mono break-all">{alert.identifier}</dd>
         </div>
         <div>
-          <dt className="font-medium text-muted-foreground">Sender · sent</dt>
+          <dt className="text-muted-foreground font-medium">Sender · sent</dt>
           <dd>
             {alert.sender} · {grenadaTime(alert.sent)}
           </dd>
         </div>
         <div>
-          <dt className="font-medium text-muted-foreground">
+          <dt className="text-muted-foreground font-medium">
             Status · type · scope
           </dt>
           <dd>
@@ -134,15 +134,15 @@ export function SavedAlert({ alert }: { alert: CapAlertPublic }) {
         </div>
         {(alert.references ?? []).length > 0 ? (
           <div>
-            <dt className="font-medium text-muted-foreground">Replaces</dt>
-            <dd className="break-all font-mono">
+            <dt className="text-muted-foreground font-medium">Replaces</dt>
+            <dd className="font-mono break-all">
               {(alert.references ?? []).map((ref) => ref.identifier).join(", ")}
             </dd>
           </div>
         ) : null}
         {alert.note ? (
           <div className="sm:col-span-2">
-            <dt className="font-medium text-muted-foreground">Staff note</dt>
+            <dt className="text-muted-foreground font-medium">Staff note</dt>
             <dd className="whitespace-pre-wrap">{alert.note}</dd>
           </div>
         ) : null}
@@ -151,10 +151,10 @@ export function SavedAlert({ alert }: { alert: CapAlertPublic }) {
         const source = readSourceBulletinLink(info.parameters);
         return (
           <section
-            className="space-y-2 rounded-lg border bg-card p-4 text-body-sm"
+            className="bg-card text-body-sm space-y-2 rounded-lg border p-4"
             key={info.id}
           >
-            <h2 className="font-semibold text-lg">
+            <h2 className="text-lg font-semibold">
               {info.headline} ({info.language})
             </h2>
             <p>
@@ -187,5 +187,33 @@ export function SavedAlert({ alert }: { alert: CapAlertPublic }) {
         );
       })}
     </div>
+  );
+}
+
+/** The account may use the desk but not this screen. Says so; never hides it silently. */
+export function DeskForbidden({
+  permission,
+  what,
+}: {
+  permission: string;
+  what: string;
+}) {
+  return (
+    <section className="space-y-3 py-10" role="alert">
+      <h1 className="text-2xl font-semibold">No access to {what}</h1>
+      <p className="text-muted-foreground">
+        This screen needs the {permission} permission. Ask a GMS administrator
+        for it. Nothing here has been changed.
+      </p>
+    </section>
+  );
+}
+
+/** Shown while a desk screen's server data is still arriving. */
+export function DeskLoading({ what }: { what: string }) {
+  return (
+    <p className="text-muted-foreground py-10" role="status">
+      Loading {what}…
+    </p>
   );
 }

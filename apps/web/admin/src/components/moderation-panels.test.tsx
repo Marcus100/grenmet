@@ -25,16 +25,16 @@ const row = {
   decided_at: null,
 };
 
-const RE_WAITING = /waiting for review/;
-const RE_0 = /rejected/;
-const RE_1 = /Staff, 2026-10-18 12:30 UTC/;
-const RE_2 = /Organiser owner/;
-const RE_3 = /can publish/;
-const RE_4 = /Note/;
-const RE_5 = /Reason sent/;
-const RE_6 = /emails the organiser/;
-const RE_7 = /two-step verification/;
-const RE_8 = /Reload the page/;
+const RE_WAITING = /waiting for review/u;
+const RE_0 = /rejected/u;
+const RE_1 = /Staff, 2026-10-18 12:30 UTC/u;
+const RE_2 = /Organiser owner/u;
+const RE_3 = /can publish/u;
+const RE_4 = /Note/u;
+const RE_5 = /Reason sent/u;
+const RE_6 = /emails the organiser/u;
+const RE_7 = /two-step verification/u;
+const RE_8 = /Reload the page/u;
 
 describe("queue", () => {
   it("shows an empty state per status", () => {

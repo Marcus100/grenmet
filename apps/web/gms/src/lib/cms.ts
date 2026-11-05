@@ -71,6 +71,18 @@ export const contentSchema = z.object({
   publishedAt: z.string().nullable().optional(),
   updatedAt: z.string(),
   relatedLinks: z.array(relatedLinkSchema).max(20).optional(),
+  /** A desk post pinned right after the official cards (owner, 1 Nov 2026). Older feeds send none. */
+  pinned: z.boolean().optional(),
+  /** The issued product a desk post is based on ("Based on the ..."); older feeds send none. */
+  basedOn: z
+    .object({
+      productId: z.string(),
+      title: z.string().nullable(),
+    })
+    .nullable()
+    .optional(),
+  /** The page's sharing image: the general social image, then the cover. */
+  socialImageUrl: z.string().nullable().optional(),
   /** A FastAPI product whose live figures show beside the post. */
   linkedProduct: z
     .object({
@@ -172,7 +184,7 @@ export type QuestionsResult =
   | { status: "ok"; questions: PublishedQuestion[] }
   | { status: "unavailable"; questions: [] };
 
-const QUESTION_PREFIX = /^questions\//;
+const QUESTION_PREFIX = /^questions\//u;
 
 /** `questions/why-…` is served at `/explore/explained/why-…`. */
 export const questionHref = (slug: string) =>
@@ -283,7 +295,7 @@ const quizSchema = z.object({
 });
 export type PublishedQuiz = z.infer<typeof quizSchema>;
 
-const QUIZ_PREFIX = /^discover\//;
+const QUIZ_PREFIX = /^discover\//u;
 /** `discover/can-you-…` is played at `/explore/quiz/can-you-…`. */
 export const quizHref = (slug: string) =>
   `/explore/quiz/${slug.replace(QUIZ_PREFIX, "")}`;

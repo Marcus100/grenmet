@@ -18,7 +18,7 @@ export default function ArchivePage() {
         {getBriefs().map((brief) => (
           <p className="mt-4" key={brief.date}>
             <Link
-              className="inline-flex min-h-11 flex-wrap gap-x-3 text-lg text-signal-green underline underline-offset-4"
+              className="text-signal-green inline-flex min-h-11 flex-wrap gap-x-3 text-lg underline underline-offset-4"
               href={`/today/${brief.date}`}
             >
               <time dateTime={brief.date}>{formatLongDate(brief.date)}</time>

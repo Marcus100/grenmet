@@ -28,7 +28,7 @@ export default async function SignUpPage({
         is ready. No password needed.
       </AuthHeading>
       <EmailCodeForm returnTo={returnTo} />
-      <p className="mt-6 text-center text-body-sm text-muted-foreground">
+      <p className="text-body-sm text-muted-foreground mt-6 text-center">
         Already have an account?{" "}
         <Link
           className={textLinkClass}

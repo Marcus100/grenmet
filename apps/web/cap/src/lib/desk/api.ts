@@ -7,12 +7,18 @@ import {
   capAlertPublicSchema,
   capAuditEventListPublicSchema,
   capCatalogsPublicSchema,
+  capFeedImportPublicSchema,
   capGetHazardProfilesResponseSchema,
+  capGetIbfMatrixResponseSchema,
+  capGetIntegrationsResponseSchema,
+  capPredefinedAreaPublicSchema,
   capProfilePublicSchema,
   capSettingsPublicSchema,
+  capSuggestIbfResponseSchema,
   gmsCataloguePublicSchema,
 } from "@barrelsgd/api-client";
 import { authApiFetch } from "@barrelsgd/auth/server";
+import { z } from "zod";
 import { getAuthConfig } from "./auth-config";
 
 /**
@@ -89,6 +95,47 @@ export function getAlertAudit(accessToken: string, alertId: string) {
   );
 }
 
+/** The global audit trail, newest first, optionally for one alert. */
+export function listAuditEvents(
+  accessToken: string,
+  {
+    alertId,
+    page,
+    size,
+  }: { alertId: string | null; page: number; size: number }
+) {
+  const query = new URLSearchParams({ page: String(page), size: String(size) });
+  if (alertId) query.set("alert_id", alertId);
+  return read(
+    accessToken,
+    `/cap/audit?${query}`,
+    capAuditEventListPublicSchema
+  );
+}
+
+/** Saved predefined areas (any staff member may read them). */
+export function listPredefinedAreas(accessToken: string) {
+  return read(
+    accessToken,
+    "/cap/areas/predefined",
+    z.array(capPredefinedAreaPublicSchema)
+  );
+}
+
+/** Configured external CAP feed sources. */
+export function listFeeds(accessToken: string) {
+  return read(accessToken, "/cap/feeds", z.array(capFeedImportPublicSchema));
+}
+
+/** Channel configuration and recent job events. Read-only; never a delivery claim. */
+export function getIntegrations(accessToken: string) {
+  return read(
+    accessToken,
+    "/cap/integrations",
+    capGetIntegrationsResponseSchema
+  );
+}
+
 export function getGmsCatalogue(accessToken: string) {
   return read(accessToken, "/cap/gms-catalogue", gmsCataloguePublicSchema);
 }
@@ -97,17 +144,45 @@ export function getCatalogs(accessToken: string) {
   return read(accessToken, "/cap/catalogs", capCatalogsPublicSchema);
 }
 
-export function getSettings(accessToken: string) {
-  return read(accessToken, "/cap/settings", capSettingsPublicSchema);
-}
-
-/** Every saved version of every hazard profile, newest first per key. */
+/** Every saved hazard profile version; used here for the hazard picker. */
 export function listHazardProfiles(accessToken: string) {
   return read(
     accessToken,
     "/cap/hazard-profiles",
     capGetHazardProfilesResponseSchema
   );
+}
+
+/** The impact matrix a hazard kind uses: its own approved grid, or WMO's. */
+export function getIbfMatrix(accessToken: string, kind: string) {
+  const query = new URLSearchParams({ kind });
+  return read(
+    accessToken,
+    `/cap/ibf/matrix?${query}`,
+    capGetIbfMatrixResponseSchema
+  );
+}
+
+/** Advice only: the colour and starting wording for one likelihood and impact. */
+export function suggestIbf(
+  accessToken: string,
+  params: { impact: string; kind: string; likelihood: string; subtype?: string }
+) {
+  const query = new URLSearchParams({
+    impact: params.impact,
+    kind: params.kind,
+    likelihood: params.likelihood,
+  });
+  if (params.subtype) query.set("subtype", params.subtype);
+  return read(
+    accessToken,
+    `/cap/ibf/suggest?${query}`,
+    capSuggestIbfResponseSchema
+  );
+}
+
+export function getSettings(accessToken: string) {
+  return read(accessToken, "/cap/settings", capSettingsPublicSchema);
 }
 
 /**

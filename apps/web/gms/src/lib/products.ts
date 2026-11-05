@@ -62,7 +62,7 @@ export type ProductResult =
   | { status: "not-found" }
   | { status: "unavailable" };
 
-const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/iu;
 
 /**
  * One published product by id, for pages and editorial links. Stays readable
@@ -109,7 +109,7 @@ export const fetchPublicForecast = cache(
   }
 );
 
-/** How many days ahead Plan your week looks. */
+/** How many days ahead the sector card ("What it means for you") looks. */
 export const SECTOR_OUTLOOK_DAYS = 7;
 
 /**

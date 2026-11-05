@@ -14,8 +14,8 @@ export const END_DATE_EXPLANATION =
 export const DEPARTMENT_TRANSFER_WARNING =
   "Warning: all of this person's roles in the organisation end and must be granted again in the new department.";
 
-const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/;
-const TRAILING_DOT = /\.$/;
+const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/u;
+const TRAILING_DOT = /\.$/u;
 
 const LAST_DAY_FORMAT = new Intl.DateTimeFormat("en-GB", {
   day: "numeric",

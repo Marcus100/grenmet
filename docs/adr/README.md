@@ -59,6 +59,7 @@ This directory records durable architecture decisions for Barrels Grenada. ADRs 
 | [0052](0052-daily-climate-newsletter.md) | Daily climate newsletter by email (supersedes the newsletter deferral): double opt-in list, one-click unsubscribe that is never a GET, 07:30 Grenada digest off by default, staff test send | Proposed |
 | [0053](0053-shared-turbo-remote-cache.md) | Shared, signed Turborepo remote cache for local runs and CI, with short-lived OIDC tokens on trusted branches and none for pull requests; amends the CI cache bullet of ADR-0019 | Accepted |
 | [0054](0054-cap-warning-desk-on-the-cap-host.md) | CAP warning desk at cap.barrels.gd/desk behind staff single sign-on, never cached, with an allow-listed proxy; Issue Update and emergency format-problem notice; parallel run with GAA Admin | Proposed |
+| [0055](0055-department-grades-suggest-roles.md) | A department grade suggests a role bundle from an approved template and a person confirms it; a job title or grade never grants access by itself; partly supersedes ADR-0018 lines 17 and 40 | Proposed |
 
 ## Template
 

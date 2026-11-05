@@ -20,9 +20,9 @@ export const NOT_SUPPLIED = "Not supplied";
 
 const DAY_NAMES = ["Today", "Tomorrow"];
 
-const WIND_SPEED_TILE = /^wind speed|^wind$/i;
-const WIND_DIRECTION_TILE = /^wind direction/i;
-const CHANCE_OF_RAIN_TILE = /^chance of rain/i;
+const WIND_SPEED_TILE = /^wind speed|^wind$/iu;
+const WIND_DIRECTION_TILE = /^wind direction/iu;
+const CHANCE_OF_RAIN_TILE = /^chance of rain/iu;
 
 /** A whole-degree forecast temperature in the visitor's unit system. */
 function degrees(value: number | null): ReactNode {
@@ -244,7 +244,7 @@ const LEGACY_WATCH_KEYS = [
 const ALERTS_UNCONFIRMED =
   "Weather alerts could not be fully confirmed when this forecast was issued.";
 
-const PARAGRAPH_BREAK = /\r?\n\s*\r?\n/;
+const PARAGRAPH_BREAK = /\r?\n\s*\r?\n/u;
 
 /**
  * GMS alerts and CAP warnings in force when the forecast was issued (the
@@ -252,7 +252,7 @@ const PARAGRAPH_BREAK = /\r?\n\s*\r?\n/;
  * longer type impacts; alerts and CAP are the source. `null` when the
  * forecast predates the snapshot or it cannot be read.
  */
-function importedWatch(raw: string | undefined): string[] | null {
+export function importedWatch(raw: string | undefined): string[] | null {
   if (!raw?.trim()) return null;
   let parsed: unknown;
   try {

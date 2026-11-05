@@ -8,13 +8,18 @@ Bytes are never served from a raw bucket URL: a local archive file, or a
 import re
 from typing import Annotated, Any
 
-from fastapi import APIRouter, HTTPException, Query, Response
+from fastapi import APIRouter, Query, Response
 from fastapi.responses import FileResponse, RedirectResponse
 from sqlalchemy import text
 
 from src.config import settings
 from src.openapi_responses import BAD_REQUEST, NOT_FOUND
 from src.storage import service as storage
+from src.storage.exceptions import (
+    InvalidImagePathError,
+    ObjectStorageNotConfiguredError,
+)
+from src.wxwatch.exceptions import ImageNotFoundError
 
 from .config import wxwatch_settings
 from .dependencies import ImageSession
@@ -133,16 +138,16 @@ async def image(image_id: int, session: ImageSession) -> Response:
         {"id": image_id, "source": SOURCE},
     )
     if not path:
-        raise HTTPException(404, "Image not found")
+        raise ImageNotFoundError()
     if not _SAFE_PATH.fullmatch(path) or any(
         part in {"", ".", ".."} for part in path.split("/")
     ):
-        raise HTTPException(400, "Invalid image path")
+        raise InvalidImagePathError()
     if wxwatch_settings.LOCAL_IMAGES_DIR is not None:
         root = wxwatch_settings.LOCAL_IMAGES_DIR.resolve()
         file = (root / path).resolve()
         if not file.is_relative_to(root) or not file.is_file():
-            raise HTTPException(404, "Image not found")
+            raise ImageNotFoundError()
         return FileResponse(
             file, media_type=_media_type(path), headers={"Cache-Control": IMAGE_CACHE}
         )
@@ -151,7 +156,7 @@ async def image(image_id: int, session: ImageSession) -> Response:
             f"wxwatch/{path}", expires_in=60
         )
     except storage.StorageNotConfiguredError:
-        raise HTTPException(503, "Weather object storage is not configured") from None
+        raise ObjectStorageNotConfiguredError() from None
     # The signed link lives 60 s, so the redirect itself is cached only briefly.
     return RedirectResponse(
         url, status_code=307, headers={"Cache-Control": "public, max-age=30"}

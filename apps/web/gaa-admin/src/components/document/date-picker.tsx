@@ -35,7 +35,7 @@ export function DatePicker({
       <PopoverTrigger
         render={
           <Button
-            className="w-full justify-between text-left font-normal data-[empty=true]:text-muted-foreground"
+            className="data-[empty=true]:text-muted-foreground w-full justify-between text-left font-normal"
             data-empty={!date}
             id={id}
             variant="outline"

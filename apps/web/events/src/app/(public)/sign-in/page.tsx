@@ -23,7 +23,7 @@ export default async function SignInPage({
   return (
     <section className="mx-auto max-w-sm space-y-6 py-10">
       <div className="space-y-2">
-        <h1 className="font-bold font-display text-heading-2">
+        <h1 className="font-display text-heading-2 font-bold">
           Sign in to Barrels Events
         </h1>
         <p className="text-body text-muted-foreground">

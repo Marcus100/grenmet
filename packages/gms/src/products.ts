@@ -17,11 +17,25 @@ export const PRODUCT_KINDS = {
   midday: "Midday Forecast",
   evening: "Evening Forecast",
   outlook: "Tropical Weather Outlook",
+  /** Daily 05:00 marine forecast, valid 05:00–05:00 (distinct from the Small Craft bulletin `marine`). */
+  "marine-forecast": "Marine Forecast",
+  /** Monthly climate bulletin issued on the 15th for the previous month. */
+  "climate-bulletin": "Climate Bulletin",
   ...BULLETIN_CATEGORIES,
 } as const;
 export type ProductKind = keyof typeof PRODUCT_KINDS;
+/**
+ * Forecasts: the three land forecasts and the 05:00 Marine Forecast. They share
+ * the forecaster stamp, the fixed area and the imported alerts and warnings in
+ * force (no typed impact or alert text).
+ */
 export function isForecastKind(kind: ProductKind) {
-  return kind === "morning" || kind === "midday" || kind === "evening";
+  return (
+    kind === "morning" ||
+    kind === "midday" ||
+    kind === "evening" ||
+    kind === "marine-forecast"
+  );
 }
 export type ProductValues = Record<string, string>;
 export interface ProductField {
@@ -78,6 +92,9 @@ export interface CapInsertTarget {
  * own narrative fields. Empty for a kind with no sensible insertion point.
  */
 export function capInsertTargets(kind: ProductKind): CapInsertTarget[] {
+  if (kind === "marine-forecast") {
+    return [{ label: "Synopsis", value: "synopsis" }];
+  }
   if (isForecastKind(kind)) {
     const targets: CapInsertTarget[] = [
       { label: "Forecast summary", value: "summary" },
@@ -196,7 +213,7 @@ export const RAIN_CHANCE_BANDS: Record<
 const WEATHER_TYPE_LABELS = WEATHER_TYPES.map((t) => t.label);
 export const TIDE_SLOTS = [1, 2, 3, 4] as const;
 const likelihoods = ["Very low", "Low", "Medium", "High"];
-const DAY_ALERT_FIELD = /^day[1-4](Alerts|Impact|Response)$/;
+const DAY_ALERT_FIELD = /^day[1-4](Alerts|Impact|Response)$/u;
 function field(
   section: string,
   key: string,
@@ -309,7 +326,7 @@ function tideFields(section: string, prefix: string): ProductField[] {
   ];
 }
 const COMPOSED_KEY =
-  /^(wind|seaState|swell|visibility|highTides|lowTides|day[1-4](Wind|SeaState|HighTides|LowTides))$/;
+  /^(wind|seaState|swell|visibility|highTides|lowTides|day[1-4](Wind|SeaState|HighTides|LowTides))$/u;
 /** Legacy free-text keys FastAPI composes from structured values (forecasts, evening days, marine/wind/coastal bulletins). */
 export function isComposedForecastField(key: string) {
   return COMPOSED_KEY.test(key);
@@ -611,6 +628,8 @@ export function productFields(kind: ProductKind): ProductField[] {
     ];
   if (kind === "morning" || kind === "midday" || kind === "evening")
     return [...issueFields, ...forecastFields(kind)];
+  if (kind === "marine-forecast") return marineForecastFields();
+  if (kind === "climate-bulletin") return climateBulletinFields();
   return [
     ...issueFields,
     field("Bulletin", "bulletinNumber", "Bulletin number"),
@@ -655,12 +674,304 @@ export function productFields(kind: ProductKind): ProductField[] {
     }),
   ];
 }
+function marineForecastFields(): ProductField[] {
+  return [
+    ...issueFields,
+    field("Synopsis", "synopsis", "Synopsis", {
+      type: "textarea",
+      required: true,
+    }),
+    ...windFields("Winds", ""),
+    ...marineFields("Seas and swell", ""),
+    // Small craft and other warnings come from the alerts and CAP warnings in
+    // force, captured by FastAPI on save; nobody types them.
+    field("Issue details", "advisories", "Alerts and advisories in force"),
+    field("Outlook", "outlook", "Outlook (next 24 hours)", {
+      type: "textarea",
+      required: true,
+    }),
+  ];
+}
+/**
+ * Standardized Precipitation Index categories, driest to wettest (US Drought
+ * Monitor / CariCOF wording). Mirrored in `wxproducts/climate.py`.
+ */
+export const SPI_CATEGORIES = [
+  "Exceptionally Dry",
+  "Extremely Dry",
+  "Severely Dry",
+  "Moderately Dry",
+  "Abnormally Dry",
+  "Normal",
+  "Abnormally Wet",
+  "Moderately Wet",
+  "Severely Wet",
+  "Extremely Wet",
+  "Exceptionally Wet",
+] as const;
+/** The four SPI rows: windows of 1, 3, 6 and 12 months ending in the month reviewed. */
+export const SPI_WINDOWS = [
+  { key: "spi1", months: 1 },
+  { key: "spi3", months: 3 },
+  { key: "spi6", months: 6 },
+  { key: "spi12", months: 12 },
+] as const;
+/** Sector rows of the implications table, in print order. */
+export const CLIMATE_SECTOR_IMPACTS = [
+  { key: "impactAgriculture", label: "Agriculture" },
+  { key: "impactWater", label: "Water" },
+  { key: "impactHealth", label: "Health" },
+  { key: "impactTourism", label: "Tourism" },
+  { key: "impactDrm", label: "Disaster Risk Management" },
+  { key: "impactEnergy", label: "Energy" },
+  { key: "impactFisheries", label: "Fisheries" },
+  { key: "impactInfrastructure", label: "Infrastructure" },
+] as const;
+/**
+ * Looking-back rows: the previous season's outlook against what Point Salines
+ * recorded. Observations are typed for now; issue #991 will fill them from the
+ * eRegister (as `ClimateFigures` already does for the monitoring month).
+ */
+export const CLIMATE_VERIFICATION_ROWS = [
+  { prefix: "verifyRainfall", label: "Rainfall (mm)" },
+  { prefix: "verifyWetDays", label: "Wet days" },
+  { prefix: "verifyWetSpell", label: "7-day wet spell" },
+  { prefix: "verifyTmax", label: "Tmax (°C)" },
+  { prefix: "verifyTmin", label: "Tmin (°C)" },
+] as const;
+/** `from` and `to` number fields. `minOptional` leaves "from" empty for "up to" ranges. */
+function rangeFields(
+  section: string,
+  prefix: string,
+  label: string,
+  minOptional = false
+): ProductField[] {
+  return [
+    field(section, `${prefix}Min`, `${label}, from`, {
+      type: "number",
+      required: !minOptional,
+    }),
+    field(section, `${prefix}Max`, `${label}, to`, {
+      type: "number",
+      required: true,
+    }),
+  ];
+}
+function outlookRow(
+  section: string,
+  prefix: string,
+  outlookLabel: string,
+  rangeLabel: string,
+  implication: string,
+  minOptional = false
+): ProductField[] {
+  return [
+    field(section, `${prefix}Outlook`, outlookLabel, {
+      type: "textarea",
+      required: true,
+    }),
+    ...rangeFields(section, prefix, rangeLabel, minOptional),
+    field(section, `${prefix}Implication`, implication, {
+      type: "textarea",
+      required: true,
+    }),
+  ];
+}
+/** Fields of the first Climate Bulletin version; saved revisions may still carry them. */
+export const LEGACY_CLIMATE_FIELDS = [
+  { key: "summary", label: "Summary of the month" },
+  { key: "rainfallComment", label: "Rainfall" },
+  { key: "temperatureComment", label: "Temperature" },
+  { key: "notableEvents", label: "Notable events" },
+  { key: "outlook", label: "Outlook for the coming months" },
+] as const;
+/**
+ * The Grenada National Climate Bulletin (owner examples, issues 08 to 10).
+ * Period labels (SPI windows, the season, "looking back") are derived from the
+ * month reviewed and the issue date, never typed. Two optional parts cover the
+ * layouts that differ between issues: heat stress and extreme heat make the
+ * temperature block a table; sector rows or general implications fill the
+ * implications block. Empty optional parts stay visible in the editor and are
+ * left off the PDF.
+ */
+function climateBulletinFields(): ProductField[] {
+  const spi = "Standardized Precipitation Index";
+  const temperature = "Temperature";
+  return [
+    ...issueFields,
+    field("Bulletin", "volume", "Volume", { required: true }),
+    field("Bulletin", "issue", "Issue number", { required: true }),
+    field("Bulletin", "month", "Month reviewed (YYYY-MM)", { required: true }),
+    field(
+      "Bulletin",
+      "contacts",
+      "Contacts for more information (one per line)",
+      {
+        type: "textarea",
+      }
+    ),
+    field("Climate drivers", "enso", "El Niño-Southern Oscillation (ENSO)", {
+      type: "textarea",
+      required: true,
+    }),
+    field("Climate drivers", "sst", "Sea surface temperatures (SSTs)", {
+      type: "textarea",
+      required: true,
+    }),
+    ...SPI_WINDOWS.map(({ key, months }) =>
+      field(
+        spi,
+        key,
+        months === 1 ? "SPI, month reviewed" : `SPI, ${months} months`,
+        { options: SPI_CATEGORIES, required: true }
+      )
+    ),
+    field(
+      "Potential evapotranspiration",
+      "pet",
+      "Potential evapotranspiration (mm/day)",
+      {
+        type: "number",
+        required: true,
+      }
+    ),
+    field(
+      "Potential evapotranspiration",
+      "petRatio",
+      "Atmospheric water demand compared with supply (times)",
+      { type: "number", required: true }
+    ),
+    field("Precipitation outlook", "precipOutlook", "Precipitation outlook", {
+      type: "textarea",
+      required: true,
+    }),
+    ...rangeFields(
+      "Precipitation outlook",
+      "precipRange",
+      "Normal range for the season (mm)"
+    ),
+    ...outlookRow(
+      "Wet days",
+      "wetDays",
+      "Wet days outlook",
+      "Usual number of wet days",
+      "Implication"
+    ),
+    ...outlookRow(
+      "7-day wet spells (20% wettest)",
+      "wetSpells",
+      "7-day wet spells outlook",
+      "Historical number of 7-day wet spells",
+      "Implication"
+    ),
+    ...outlookRow(
+      "Extreme 3-day wet spells (1% wettest)",
+      "extremeSpells",
+      "Extreme 3-day wet spells outlook",
+      "Historical number of extreme 3-day wet spells (leave 'from' empty or 0 for 'up to')",
+      "Implication",
+      true
+    ),
+    field(temperature, "tempMeanOutlook", "Mean temperature outlook", {
+      type: "textarea",
+      required: true,
+    }),
+    field(
+      temperature,
+      "tempMaxOutlook",
+      "Maximum (daytime) temperature outlook",
+      {
+        type: "textarea",
+        required: true,
+      }
+    ),
+    ...rangeFields(
+      temperature,
+      "tempMaxRange",
+      "Normal maximum temperature (°C)"
+    ),
+    field(
+      temperature,
+      "tempMinOutlook",
+      "Minimum (night-time) temperature outlook",
+      {
+        type: "textarea",
+        required: true,
+      }
+    ),
+    ...rangeFields(
+      temperature,
+      "tempMinRange",
+      "Normal minimum temperature (°C)"
+    ),
+    field(
+      temperature,
+      "heatStress",
+      "Potential heat stress (optional; adds the table)"
+    ),
+    field(
+      temperature,
+      "extremeHeat",
+      "Extreme heat (optional; adds the table)"
+    ),
+    field("Drought outlook", "droughtOutlook", "Drought outlook", {
+      type: "textarea",
+      required: true,
+    }),
+    ...CLIMATE_SECTOR_IMPACTS.map(({ key, label }) =>
+      field("Implications by sector", key, label, { type: "textarea" })
+    ),
+    field(
+      "General implications",
+      "generalImplications",
+      "General implications",
+      {
+        type: "textarea",
+      }
+    ),
+    ...CLIMATE_VERIFICATION_ROWS.flatMap(({ prefix, label }) => [
+      field("Looking back", `${prefix}Outlook`, `${label}, outlook`, {
+        required: true,
+      }),
+      ...rangeFields(
+        "Looking back",
+        `${prefix}Range`,
+        `${label}, normal range`
+      ),
+      field("Looking back", `${prefix}Observed`, `${label}, observed`, {
+        type: "number",
+        required: true,
+      }),
+    ]),
+    field("Trivia", "triviaAnswer", "Last month's question and its answer", {
+      type: "textarea",
+    }),
+    field("Trivia", "triviaQuestion", "This month's question, with options", {
+      type: "textarea",
+    }),
+  ];
+}
+/** `YYYY-MM` of the month before `date` (`YYYY-MM-DD`). */
+export function previousMonth(date: string) {
+  const [year, month] = date.split("-").map(Number);
+  if (!(year && month)) return "";
+  const d = new Date(Date.UTC(year, month - 2, 1));
+  return d.toISOString().slice(0, 7);
+}
+/** Climate bulletins are issued on the 15th; the next issue after `date`. */
+export function nextClimateIssue(date: string) {
+  const [year, month, day] = date.split("-").map(Number);
+  if (!(year && month && day)) return "";
+  const d = new Date(Date.UTC(year, day < 15 ? month - 1 : month, 15));
+  return d.toISOString().slice(0, 10);
+}
 export const ISSUE_TIMES: Partial<Record<ProductKind, readonly string[]>> = {
   morning: ["07:00"],
   midday: ["12:00"],
   evening: ["18:00"],
   outlook: ["02:00", "08:00", "14:00", "20:00"],
   marine: ["05:00"],
+  "marine-forecast": ["05:00"],
 };
 export function grenadaDate(now = Date.now()) {
   return new Date(now - 4 * 60 * 60 * 1000).toISOString().slice(0, 10);
@@ -678,13 +989,15 @@ export function forecastSchedule(kind: ProductKind, date: string) {
   )
     return null;
   const issuedAt = `${date}T${ISSUE_TIMES[kind]?.[0]}`;
+  // The land forecasts end at 07:00; the Marine Forecast runs 05:00 to 05:00.
+  const endTime = kind === "marine-forecast" ? "05:00" : "07:00";
   const periods = [
     {
       date,
       prefix: "",
       label: kind === "evening" ? "Tonight" : productTitle(kind),
       validFrom: issuedAt,
-      validTo: `${followingDate(date, 1)}T07:00`,
+      validTo: `${followingDate(date, 1)}T${endTime}`,
     },
   ];
   if (kind === "evening") {
@@ -701,12 +1014,13 @@ export function forecastSchedule(kind: ProductKind, date: string) {
   return {
     issuedAt,
     validFrom: issuedAt,
-    validTo: periods.at(-1)?.validTo ?? `${followingDate(date, 1)}T07:00`,
+    validTo: periods.at(-1)?.validTo ?? `${followingDate(date, 1)}T${endTime}`,
     periods,
   };
 }
 
 function forecastValidity(kind: ProductKind) {
+  if (kind === "marine-forecast") return MARINE_FORECAST_VALIDITY;
   if (kind === "evening") {
     return "Tonight (18:00–07:00) and four following days (07:00–07:00)";
   }
@@ -759,7 +1073,7 @@ export function displayProductFields(kind: ProductKind) {
   return productFields(kind).filter((f) => !isHiddenForecastField(kind, f));
 }
 const STRUCTURED_SOURCE_KEY =
-  /^(day[1-4])?([Vv]isibility(Min|Max)|[Ww]indDir(From|To)|[Ww]indSpeed(Min|Max)|[Ww]indGust|[Ss]eaState(From|To)|[Ww]aveHeight(Min|Max)|[Ss]well(Dir|Period|Height)|[Tt]ide[1-4](Type|Time|Height))$/;
+  /^(day[1-4])?([Vv]isibility(Min|Max)|[Ww]indDir(From|To)|[Ww]indSpeed(Min|Max)|[Ww]indGust|[Ss]eaState(From|To)|[Ww]aveHeight(Min|Max)|[Ss]well(Dir|Period|Height)|[Tt]ide[1-4](Type|Time|Height))$/u;
 /**
  * Fields for reading an issued product (public site, review step): structured
  * wind/sea/tide inputs are shown through the text FastAPI composes from them,
@@ -797,6 +1111,14 @@ export function emptyProduct(
     values.issuedAt = `${date}T${issueTime}`;
     values.validFrom = values.issuedAt;
   }
+  if (kind === "marine-forecast") values.area = MARINE_FORECAST_AREA;
+  if (kind === "climate-bulletin") {
+    values.month = previousMonth(date);
+    values.validFrom = values.issuedAt || `${date}T10:00`;
+    values.issuedAt = values.validFrom;
+    values.validTo = `${nextClimateIssue(followingDate(date, 1))}T23:59`;
+    values.validity = "Until the next monthly bulletin";
+  }
   if (kind === "evening") {
     for (let day = 1; day <= 4; day++)
       values[`day${day}Date`] = followingDate(date, day);
@@ -804,7 +1126,10 @@ export function emptyProduct(
   }
   return withForecastSchedule(kind, values);
 }
-const LOCAL_DATE_TIME = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/;
+export const MARINE_FORECAST_VALIDITY = "05:00 today to 05:00 tomorrow";
+export const MARINE_FORECAST_AREA =
+  "Waters of Grenada, Carriacou and Petite Martinique";
+const LOCAL_DATE_TIME = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/u;
 /** Grenada uses UTC−04:00 year round. Reject malformed calendar values. */
 export function localDateTime(value: string): number {
   if (!LOCAL_DATE_TIME.test(value)) return Number.NaN;

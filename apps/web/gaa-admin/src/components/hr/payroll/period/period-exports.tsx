@@ -53,7 +53,7 @@ export function PeriodExports({
 
   return (
     <section aria-label="Bank and GL files" className="space-y-3">
-      <h3 className="font-semibold text-base">Bank and GL files</h3>
+      <h3 className="text-base font-semibold">Bank and GL files</h3>
       <p className="text-muted-foreground text-sm">
         Bank account numbers are not stored, so the bank file shows NOT STORED
         in its account column.

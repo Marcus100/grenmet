@@ -133,10 +133,10 @@ function CardBody({ card }: { card: Card }) {
         <Icon aria-hidden="true" className="size-12" strokeWidth={1.4} />
       </span>
       <span className="flex flex-col gap-1 p-4">
-        <span className="font-bold text-gm-sky-ink text-label uppercase leading-label tracking-wider">
+        <span className="text-gm-sky-ink text-label leading-label font-bold tracking-wider uppercase">
           {card.kicker}
         </span>
-        <span className="font-bold text-body-base text-gm-heading leading-body-base">
+        <span className="text-body-base text-gm-heading leading-body-base font-bold">
           {card.title}
         </span>
         <span className="text-body-sm text-gm-text-secondary leading-body-sm">
@@ -191,7 +191,7 @@ export async function Discover({ now = new Date() }: { now?: Date } = {}) {
     title: "Discover",
   });
   return (
-    <HomeSection {...words}>
+    <HomeSection tone="surface" {...words}>
       <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         {cards.map((card) => (
           <li key={card.key}>

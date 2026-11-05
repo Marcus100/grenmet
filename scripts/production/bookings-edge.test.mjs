@@ -18,29 +18,29 @@ const catalogue = JSON.parse(
 );
 
 const IMAGE =
-  /image: ghcr\.io\/\$\{GHCR_OWNER\}\/barrelsgd-web-bookings:\$\{WEB_TAG\}/;
-const RESTART = /restart: always/;
-const LOGGING = /logging: \*bounded-logging/;
-const HEALTHCHECK = /fetch\('http:\/\/127\.0\.0\.1:3015\/api\/health'\)/;
+  /image: ghcr\.io\/\$\{GHCR_OWNER\}\/barrelsgd-web-bookings:\$\{WEB_TAG\}/u;
+const RESTART = /restart: always/u;
+const LOGGING = /logging: \*bounded-logging/u;
+const HEALTHCHECK = /fetch\('http:\/\/127\.0\.0\.1:3015\/api\/health'\)/u;
 const ROUTER_RULE =
-  /traefik\.http\.routers\.web-bookings\$\{ROUTER_SUFFIX\}\.rule=Host\(`bookings\.\$\{BASE_DOMAIN\}`\)/;
+  /traefik\.http\.routers\.web-bookings\$\{ROUTER_SUFFIX\}\.rule=Host\(`bookings\.\$\{BASE_DOMAIN\}`\)/u;
 const ROUTER_ENTRY =
-  /traefik\.http\.routers\.web-bookings\$\{ROUTER_SUFFIX\}\.entrypoints=websecure/;
+  /traefik\.http\.routers\.web-bookings\$\{ROUTER_SUFFIX\}\.entrypoints=websecure/u;
 const ROUTER_TLS =
-  /traefik\.http\.routers\.web-bookings\$\{ROUTER_SUFFIX\}\.tls\.certresolver=letsencrypt/;
+  /traefik\.http\.routers\.web-bookings\$\{ROUTER_SUFFIX\}\.tls\.certresolver=letsencrypt/u;
 const SERVICE_PORT =
-  /traefik\.http\.services\.web-bookings\$\{ROUTER_SUFFIX\}\.loadbalancer\.server\.port=3015/;
-const PORTS_KEY = /^\s{4}ports:/m;
-const CONTAINER_NAME = /^\s{4}container_name:/m;
-const NETWORKS = /^ {4}networks:\n {6}- grenmet$/m;
-const BOOKINGS_HOST = /Host\(`bookings\./g;
+  /traefik\.http\.services\.web-bookings\$\{ROUTER_SUFFIX\}\.loadbalancer\.server\.port=3015/u;
+const PORTS_KEY = /^\s{4}ports:/mu;
+const CONTAINER_NAME = /^\s{4}container_name:/mu;
+const NETWORKS = /^ {4}networks:\n {6}- grenmet$/mu;
+const BOOKINGS_HOST = /Host\(`bookings\./gu;
 const SSO_SECRET =
-  /BOOKINGS_SSO_CLIENT_SECRET: \$\{BOOKINGS_SSO_CLIENT_SECRET:-\}/;
-const SENTRY_DSN = /NEXT_PUBLIC_SENTRY_DSN: \$\{SENTRY_DSN_BOOKINGS:-\}/;
+  /BOOKINGS_SSO_CLIENT_SECRET: \$\{BOOKINGS_SSO_CLIENT_SECRET:-\}/u;
+const SENTRY_DSN = /NEXT_PUBLIC_SENTRY_DSN: \$\{SENTRY_DSN_BOOKINGS:-\}/u;
 const API_BOOKINGS_URL =
-  /BOOKINGS_APP_URL: https:\/\/bookings\.\$\{BASE_DOMAIN\}/;
-const AUTH_URL = /AUTH_API_URL: http:\/\/api:8000/;
-const SERVICE_START = /^ {2}\S/;
+  /BOOKINGS_APP_URL: https:\/\/bookings\.\$\{BASE_DOMAIN\}/u;
+const AUTH_URL = /AUTH_API_URL: http:\/\/api:8000/u;
+const SERVICE_START = /^ {2}\S/u;
 
 /** The text of one top-level service (two-space indent), up to the next one. */
 function serviceBlock(name) {

@@ -67,7 +67,7 @@ export function ArchiveBrowser({
         <label className="space-y-1 text-sm">
           Source
           <select
-            className="block w-full rounded-md border bg-background p-2"
+            className="bg-background block w-full rounded-md border p-2"
             defaultValue={params.get("source") ?? ""}
             name="source"
           >
@@ -215,7 +215,7 @@ export function ArchiveBrowser({
           className="space-y-3 rounded-lg border p-4"
         >
           <h2 className="font-semibold">Retrieval history</h2>
-          <p className="break-all text-muted-foreground text-sm">
+          <p className="text-muted-foreground text-sm break-all">
             Edition {edition}
           </p>
           {history.items.length === 0 ? (
@@ -238,7 +238,7 @@ export function ArchiveBrowser({
                     {item.is_imported ? "Imported" : "Recorded"}:{" "}
                     {utc(item.recorded_at)}
                   </p>
-                  <p className="break-all text-muted-foreground text-sm">
+                  <p className="text-muted-foreground text-sm break-all">
                     {item.image_url}
                   </p>
                 </li>
@@ -337,7 +337,7 @@ function ArchiveImage({ item }: { item: ArchiveEdition }) {
       >
         Open full-size image
       </a>
-      <div className="relative h-96 bg-muted">
+      <div className="bg-muted relative h-96">
         <Image
           alt={item.title}
           className="object-contain"
@@ -382,7 +382,7 @@ function BulletinText({ edition }: { edition: string }) {
   }
   if (body !== null)
     return (
-      <pre className="max-h-96 overflow-y-auto whitespace-pre-wrap break-words rounded-md bg-muted p-4 text-sm">
+      <pre className="bg-muted max-h-96 overflow-y-auto rounded-md p-4 text-sm break-words whitespace-pre-wrap">
         {body}
       </pre>
     );

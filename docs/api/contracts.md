@@ -305,7 +305,7 @@ gmsdash app. Ingestion is off unless `MODELS_GUIDANCE_ENABLED`. See
 ## Public weather products
 
 `GET /api/v1/wxproducts/public/products` is anonymous. Optional `kind` filters
-morning, midday, evening, outlook, cyclone, marine, flood, thunderstorm, wind,
+morning, midday, evening, outlook, marine-forecast (daily 05:00 Marine Forecast), climate-bulletin (monthly, issued on the 15th; figures come from `eregister/public/month-summary`), cyclone, marine, flood, thunderstorm, wind,
 heat, dust, coastal, or tsunami products. An omitted or empty filter lists all kinds.
 
 Success is `{ "products": [...] }`, including an empty list when nothing is current.
@@ -339,6 +339,94 @@ Weather models use isolated metadata and never enter the main database migration
 history. Weather editor requests now use browser HTTP calls through runtime same-origin rewrites (`/_backend/weather/*`). FastAPI accepts either the existing bearer token or the opaque session cookie on private weather endpoints. An explicitly supplied invalid Authorization header never falls back to cookies.
 
 `GET /api/v1/auth/browser/session` validates the session cookie and returns `{userId, csrfToken}` with `Cache-Control: no-store`. It never returns the session secret or a bearer token. Cookie-authenticated weather mutations require `X-CSRF-Token`, bound to that session; a supplied Origin must match FastAPI's configured CORS origins. Session expiry/revocation and live account restrictions are checked on every request. Other domains remain bearer-only. Login, session rotation, logout and cross-domain SSO are unchanged in this slice. Hono is deferred.
+
+### Marine Forecast and Climate Bulletin
+
+Two product kinds were added in PR #1029 (merged). Both use the existing public
+list above, the authoring routes of `src/wxproducts` and the same
+`kind` filter, so no new route exists: `kind=marine-forecast` and
+`kind=climate-bulletin` select them. Values are strings like every other product.
+`src/baseline/product_access.py` lists both kinds for the organisation product
+access check, and the generated client enums and Zod schemas include them.
+
+**Marine Forecast** (`marine-forecast`, title "Marine Forecast"). Daily, issued at
+05:00 Grenada time. On save, FastAPI sets `area` to "Waters of Grenada, Carriacou
+and Petite Martinique", forces `issuedAt` and `validFrom` to 05:00 on the issue
+date, `validTo` to 05:00 the next day and `validity` to "05:00 today to 05:00
+tomorrow". Fields: `issuedAt`, `validFrom`, `validTo`, `validity`, `area`,
+`forecaster`, `synopsis`, wind (`windDirFrom`, `windDirTo`, `windSpeedMin`,
+`windSpeedMax`, `windGust`, `wind`), sea (`seaStateFrom`, `seaStateTo`,
+`waveHeightMin`, `waveHeightMax`, `seaState`), swell (`swellDir`, `swellPeriod`,
+`swellHeight`), `advisories` and `outlook`. Like the land forecasts it may be
+published ahead of its issue time ("Issue time cannot be in the future" does not
+apply), and it imports the CAP alerts and GMS bulletins in force: on save and
+preview FastAPI stores them as a JSON snapshot in `advisories` (the same path as
+the morning, midday and evening forecasts), so forecasters do not type impact,
+alert or small craft text. The earlier `smallCraft` and `smallCraftNotes` fields
+were removed. A write that still carries them (the desk posts stored values back)
+has them ignored, not rejected: the new revision never stores them, while
+revisions already saved keep them and print them read-only as "Small craft (as
+recorded)". Any other unknown key is still refused ("Unknown product field"). A
+saved revision that never captured advisories prints "Alerts were not captured
+for this revision" instead of "No CAP alerts or GMS bulletins were in force".
+Entry and display use mph for wind and feet for waves and swell; storage stays
+in knots and metres. The PDF (`GET /wxproducts/products/{id}/revisions/{revision}/pdf`,
+and the draft preview) has a marine sheet: synopsis, winds, seas, alerts and
+advisories in force, and outlook. A kind with no sheet layout answers 422 with
+the detail "No PDF layout exists for product kind ..."; the route's documented
+422 stays the generic validation-error shape (no separate schema is declared).
+
+**Climate Bulletin** (`climate-bulletin`, title "Grenada National Climate Bulletin" on the
+PDF). Monthly, issued on the 15th, reviewing the month before. `month` is
+`YYYY-MM`; when empty it defaults to the month before the issue date, and a month
+later than that is rejected ("Month reviewed: cannot be later than the month before
+the issue date"; a malformed value gets "enter the month as YYYY-MM"). On save
+`validFrom` is the issue time, `validTo` is 23:59 on the day before the next 15th
+after issue, and `validity` is "Until the next monthly bulletin".
+
+Fields follow the owner's example bulletins (issues 08 to 10, 2026). Header:
+`volume`, `issue`, `month` (month reviewed), `contacts` (one per line). Text:
+`enso`, `sst`, `precipOutlook`, `tempMeanOutlook`, `droughtOutlook`. SPI rows
+`spi1`, `spi3`, `spi6`, `spi12` take one of the eleven categories from
+"Exceptionally Dry" to "Exceptionally Wet". Numbers: `pet` (mm/day) and
+`petRatio`; ranges as `<name>Min` and `<name>Max` for `precipRange`, `wetDays`,
+`wetSpells`, `extremeSpells` (an empty or zero minimum prints "Up to"),
+`tempMaxRange` and `tempMinRange`; each of `wetDays`, `wetSpells` and
+`extremeSpells` also has `<name>Outlook` and `<name>Implication` text, and
+`tempMaxOutlook` and `tempMinOutlook` carry the daytime and night-time outlook.
+Looking back at Point Salines: for each of `verifyRainfall`, `verifyWetDays`,
+`verifyWetSpell`, `verifyTmax` and `verifyTmin`, `<row>Outlook`, `<row>RangeMin`,
+`<row>RangeMax` and `<row>Observed` (typed for now; observations will come from the
+eRegister, issue #991). Optional parts: `heatStress` and `extremeHeat` turn the
+temperature block into a table (the earlier issues printed two paragraphs
+instead); the eight `impact*` sector rows and `generalImplications` give the
+sector table or free text (publishing needs at least one); `triviaAnswer` and
+`triviaQuestion`. A range whose "from" exceeds its "to" is refused. The SPI
+period labels, the three-month outlook season (issued October: OND) and the
+looking-back period are derived from `month` and the issue date and are not
+stored. The intro, disclaimer and closing statement are fixed template text.
+Typed numbers are bounds-checked (evapotranspiration 0 to 20 mm/day, demand/supply
+ratio 0 to 100, counts and rainfall 0 to 10000, temperatures 10 to 45 degC; a
+non-number gets "enter a number"). The first version of the kind (`summary`,
+`rainfallComment`, `temperatureComment`, `notableEvents`, `outlook`) is gone: a
+write that still carries those keys has them ignored (as for the Marine
+Forecast), and revisions already saved with them still render, under "Earlier
+format" on the PDF and the public pages. `contacts` is an ordinary public field
+like the others: whatever is typed there (the printed bulletin lists staff
+emails) appears on the public issued page and in the public products API. The
+placeholder-wording check ("example") skips the long free-text fields and the
+advisories snapshot. The PDF is two pages; the draft preview
+(`POST /wxproducts/products/preview/pdf`) answers with `X-Sheet-Pages` and, when
+the sheet runs past two pages, `X-Sheet-Warning`, which the editor shows beside
+the preview. The precipitation and mean temperature
+maps are not stored (no image attachment exists for these products yet), so the
+sheet shows a labelled placeholder where each belongs.
+
+The **figures** for the month reviewed (rainfall, rain days, heavy-rain days,
+longest dry spell and maximum and minimum temperature) are not stored in the product: the GMS monthly climate page and
+the GAA Admin climate desk read them from `GET /api/v1/eregister/public/month-summary?month=YYYY-MM`,
+documented under "Public month summary" in the eRegister section, which also
+returns mean wind, prevailing direction and maximum gust (not shown on the climate pages yet).
 
 ## Weather authoring
 
@@ -586,6 +674,19 @@ Implemented examples:
 | Account lockout after failed sign-ins | `{"detail": ...}` (429) |
 | Public weather product feed (`/wxproducts/public/*`) | `{"error": "..."}` (400, 404, 503) |
 
+An `AppException` body may also carry an optional `code` next to `detail`: a stable
+machine-readable reason that clients match on instead of the wording of `detail`
+(the roster rule warnings use `ROSTER_RULE_WARNINGS` the same way). It is additive;
+`detail` is unchanged, and the code is not part of the OpenAPI schema. Codes today:
+
+| Code | Status | Route |
+| --- | --- | --- |
+| `ATTEMPT_EXPIRED` | 409 | `POST /events/listings/{slug}/orders` (a replayed `Idempotency-Key` found an expired order) |
+| `CARD_PAYMENT_UNAVAILABLE` | 503 | `POST /events/listings/{slug}/orders` (card checkout could not start) |
+| `EVENTS_NOT_ENABLED` | 403 | the Events organiser gate, for example `GET /events/manage` (the organiser's organisation has Events switched off) |
+| `ORGANISATION_NOT_REJECTED` | 409 | `POST /events/manage/organiser/resubmit` |
+| `UPLOADS_NOT_CONFIGURED` | 503 | `POST /storage/uploads` and `POST /storage/uploads/{upload_id}/complete` |
+
 The generated FastAPI `ValidationError` schema includes optional `input` and
 `ctx` fields alongside required `loc`, `msg` and `type`. Clients must tolerate
 those optional fields; they do not change application route definitions.
@@ -741,7 +842,7 @@ address or a second pending request); moderators verify it through
 listing and approving an organiser also write `outbox` rows (same Events transaction)
 that the worker turns into notifications; no endpoint is involved.
 Admin moderation (zone `admin`, staff session): `GET /admin/moderation/organisers`
-(`?status=pending|approved|rejected`, paginated) and `GET /admin/moderation/organisers/{organisation_id}`
+(`?status=pending|approved|rejected`, paginated; `page` is 1 to 1000000 like the shared pagination, otherwise 422) and `GET /admin/moderation/organisers/{organisation_id}`
 (case with owners, listing counts and verification history) are open to superusers and
 `events.moderate` holders; `POST .../approve` and `POST .../reject` (reason required)
 need an MFA superuser and go through `organisations.service.admin_set_verified`
@@ -1406,7 +1507,7 @@ unsaved view (`attendance_id` null) until the punch is approved. Terminal punche
 
 | Endpoint | Permission | Purpose |
 | --- | --- | --- |
-| `GET /api/v1/hr/rosters/public-holidays` | `roster.view` | List holidays, optionally by `year` |
+| `GET /api/v1/hr/rosters/public-holidays` | `roster.view` | List holidays, optionally by `year` (2000-2100; outside that range returns 422) |
 | `POST /api/v1/hr/rosters/public-holidays` | global `roster.manage` | Add a holiday (optional `source`, `needs_verification`) |
 | `PUT /api/v1/hr/rosters/public-holidays/{holiday_id}` | global `roster.manage` | Edit name, date, source or verification flag; a date already in use returns 400 |
 | `POST /api/v1/hr/rosters/public-holidays/provisional` | global `roster.manage` | Add the provisional Grenada calendar for `year` (2000-2100), skipping dates already present; rows carry `source` "provisional - verify with GAA HR" |
@@ -1514,7 +1615,7 @@ A normal publish checks the generated XML against the official OASIS CAP 1.2 sch
 
 `POST /api/v1/cap/alerts/{id}/updates` (permission `cap.alert.create`) starts an Update of a published Alert or Update: a Draft with `msg_type: Update` that copies the content, keeps the status, sender and scope, and references the original (its stored `sent`, exactly). It goes through the normal approval; publishing it supersedes the original. 201 for a new draft, 200 with the existing one when an Update of that alert is already being prepared (draft, submitted or approved). 409 when the alert is not published, is not an Alert or Update, or was imported; 422 when it does not follow the CAP 1.2 schema. The original's audit trail records `update_started`.
 
-CAP feed sources (`POST /api/v1/cap/feeds`, `PATCH /api/v1/cap/feeds/{id}`, permission `cap.feed.manage`) accept only an https URL with a host and no credentials, and no literal private or local host. The check runs at save and does no DNS lookup. A refused URL is a 422 with one generic message that does not name the host. A feed's `last_error` is a generic class message (`host refused`, `could not fetch` or `ingest failed`); the detail is in the server log.
+CAP feed sources (`POST /api/v1/cap/feeds`, `PATCH /api/v1/cap/feeds/{id}`, permission `cap.feed.manage`) accept only an https URL on port 443 (an explicit `:443` is fine) with a host and no credentials, and no literal private or local host. `PATCH` checks the URL only when it changes. A feed saved on plain http earlier is flagged (`insecure_since`, `grace_ends_at`, `grace_expired` on `CapFeedImportPublic`), keeps being fetched for 14 days from the flag, then is skipped (`last_error` `plain http no longer allowed`) and not deleted. The check runs at save and does no DNS lookup. A refused URL is a 422 with one generic message that does not name the host. A feed's `last_error` is a generic class message (`host refused`, `could not fetch` or `ingest failed`); the detail is in the server log.
 `PATCH /api/v1/cap/settings` accepts `web` only as one https address and `contact` only as plain text (no control characters, line breaks or angle brackets); other values are a 422. Settings changes are recorded in the CAP audit trail as changed field names with old and new values, except `signing_certificate_ref`, which is masked.
 
 An import (`POST /api/v1/cap/alerts/import`, feeds too) is refused only when it is malformed XML or contains a DTD (400). Any other problem is stored: `schema_conformant: false`, with every problem in `schema_error`. An import changed to be storable is flagged the same way and lists each change. `import_source` is `feed` or `manual`. Publishing an imported alert, normally or in an emergency, needs `confirm_imported: true` in the request body (409 without it). Save-time checks (422, naming the value): a `responseType` outside the nine CAP values, a `language` that is not an xs:language tag, a `web` address with spaces, quotes or angle brackets, a character XML cannot carry (vertical tab and form feed become newlines), and a non-finite altitude, ceiling or coordinate. The import body is capped at 5 MB.

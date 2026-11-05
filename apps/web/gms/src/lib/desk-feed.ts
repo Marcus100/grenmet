@@ -4,6 +4,7 @@ import {
   isCurrentProduct,
   isForecastKind,
   isProductKind,
+  nextClimateIssue,
   type ProductKind,
   productTitle,
   withForecastSchedule,
@@ -17,7 +18,7 @@ export interface OfficialCard {
   href: string;
   id: string;
   issued: string;
-  kind: "briefing" | "outlook";
+  kind: "briefing" | "outlook" | "marine" | "climate";
   /** Set only when the product is no longer current (the API normally omits those). */
   staleNote: string | null;
   summary: string;
@@ -38,6 +39,8 @@ export interface DeskFeed {
 }
 
 const MAX_POSTS = 8;
+/** Only the newest three pinned posts lead; any further pins sort by date. */
+const MAX_PINNED_POSTS = 3;
 const FORECAST_KINDS: readonly ProductKind[] = ["morning", "midday", "evening"];
 
 /** A product's local "YYYY-MM-DDTHH:mm" (Grenada) as a posted-style label. */
@@ -117,9 +120,18 @@ function officialCard(
   );
   const validTo = localLabel(values.validTo, now);
   const summary =
-    (kind === "briefing"
-      ? values.summary
-      : (values.systems ?? values.formation)) ?? "";
+    {
+      briefing: values.summary,
+      outlook: values.systems ?? values.formation,
+      marine: values.synopsis,
+      // The first of these that the issue has reads as the card's paragraph;
+      // `summary` is the first-version field of older Climate Bulletins.
+      climate:
+        values.precipOutlook ||
+        values.droughtOutlook ||
+        values.generalImplications ||
+        values.summary,
+    }[kind] ?? "";
   return {
     staleNote: current ? null : "No longer in effect",
     href: `/weather/issued/${product.id}`,
@@ -128,14 +140,46 @@ function officialCard(
     kind,
     summary: summary.trim(),
     title: productTitle(product.kind),
-    valid: validTo ? `Valid until ${validTo}` : (values.validity ?? ""),
+    valid: cardValidity(kind, values, validTo),
   };
+}
+
+function cardValidity(
+  kind: OfficialCard["kind"],
+  values: Record<string, string>,
+  validTo: string | null
+) {
+  if (kind === "climate") return nextIssueLabel(values.issuedAt);
+  return validTo ? `Valid until ${validTo}` : (values.validity ?? "");
+}
+
+/** "Next issue 15 December" for a Climate Bulletin issued on `issuedAt` (Grenada local). */
+export function nextIssueLabel(issuedAt: string | undefined): string {
+  const day = (issuedAt ?? "").slice(0, 10);
+  // Only claim a next issue when this one followed the monthly schedule.
+  if (!day.endsWith("-15"))
+    return day ? "Issued outside the monthly schedule" : "";
+  const next = nextClimateIssue(
+    day
+      ? new Date(Date.parse(`${day}T12:00:00Z`) + 86_400_000)
+          .toISOString()
+          .slice(0, 10)
+      : ""
+  );
+  if (!next) return "";
+  const label = new Intl.DateTimeFormat("en-GB", {
+    day: "numeric",
+    month: "long",
+    timeZone: "UTC",
+  }).format(Date.parse(`${next}T12:00:00Z`));
+  return `Next issue ${label}`;
 }
 
 /**
  * The From the Desk feed (homepage v2, owner 1 Nov 2026): the latest public
- * forecast (by issue time) pinned first and the latest Tropical Weather Outlook, then desk
- * posts and report write-ups newest first. Official cards always lead; under
+ * forecast (by issue time) pinned first and the latest Tropical Weather Outlook,
+ * Marine Forecast and Climate Bulletin, then up to three pinned desk posts, then the other
+ * desk posts and report write-ups newest first. Official cards always lead; under
  * a red ("take action") warning the desk posts wait behind "Earlier posts".
  */
 export function buildDeskFeed({
@@ -159,17 +203,28 @@ export function buildDeskFeed({
     FORECAST_KINDS
   );
   const outlook = newest(products, ["outlook"]);
+  const marine = newest(products, ["marine-forecast"]);
+  const climate = newest(products, ["climate-bulletin"]);
   const official = [
     briefing && officialCard(briefing, "briefing", now),
     outlook && officialCard(outlook, "outlook", now),
+    marine && officialCard(marine, "marine", now),
+    climate && officialCard(climate, "climate", now),
   ].filter((card): card is OfficialCard => Boolean(card));
-  const sorted = [...posts]
-    .sort(
-      (a, b) =>
-        Date.parse(b.publishedAt ?? b.updatedAt) -
-        Date.parse(a.publishedAt ?? a.updatedAt)
-    )
-    .slice(0, MAX_POSTS);
+  // Up to three pinned posts lead the desk posts (owner, 1 Nov 2026), newest
+  // first; any further pinned posts sort with the rest by date.
+  const newestFirst = [...posts].sort(
+    (a, b) =>
+      Date.parse(b.publishedAt ?? b.updatedAt) -
+      Date.parse(a.publishedAt ?? a.updatedAt)
+  );
+  const leading = newestFirst
+    .filter((post) => post.pinned === true)
+    .slice(0, MAX_PINNED_POSTS);
+  const sorted = [
+    ...leading,
+    ...newestFirst.filter((post) => !leading.includes(post)),
+  ].slice(0, MAX_POSTS);
   return {
     collapsePosts: level === "take-action",
     missingBriefing:

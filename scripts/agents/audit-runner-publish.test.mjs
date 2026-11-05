@@ -19,8 +19,8 @@ import {
   runnerObservations,
 } from "./audit-runner-publish.mjs";
 
-const CLOSED_FIRST_LIVE_ISSUE = /closed: #644/;
-const NO_COLLECTOR_PATTERN = /No collector reported/;
+const CLOSED_FIRST_LIVE_ISSUE = /closed: #644/u;
+const NO_COLLECTOR_PATTERN = /No collector reported/u;
 const NOW = Date.parse("2026-10-31T04:55:00Z");
 const OBSERVED = "2026-10-31T04:50:00+00:00";
 const COMMIT = "0123456789abcdef0123456789abcdef01234567";

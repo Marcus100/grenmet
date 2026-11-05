@@ -26,8 +26,8 @@ const SECURITY = "https://auth.example/security";
 const MFA_DETAIL =
   "Sign in again with your authenticator or recovery code before using privileged staff tools";
 const NO_ACCESS_TEXT = "No access to bank and gl export settings";
-const MFA_TEXT = /Two-step verification is needed/;
-const NOT_SET_TEXT = /Not set/;
+const MFA_TEXT = /Two-step verification is needed/u;
+const NOT_SET_TEXT = /Not set/u;
 const EMPTY_GL = {
   GROSS_PAY_EXPENSE: "",
   EMPLOYER_CONTRIBUTION_EXPENSE: "",

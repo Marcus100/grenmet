@@ -1,9 +1,19 @@
 import { describe, expect, it } from "vitest";
 import type { PublishedContent } from "@/lib/cms";
-import { buildDeskFeed, nextForecastDue } from "@/lib/desk-feed";
+import {
+  buildDeskFeed,
+  nextForecastDue,
+  nextIssueLabel,
+} from "@/lib/desk-feed";
 
 const product = (
-  kind: "morning" | "midday" | "evening" | "outlook",
+  kind:
+    | "morning"
+    | "midday"
+    | "evening"
+    | "outlook"
+    | "marine-forecast"
+    | "climate-bulletin",
   publishedAt: string,
   values: Record<string, string>
 ) => ({
@@ -132,6 +142,78 @@ describe("buildDeskFeed", () => {
     ).toBe(true);
   });
 
+  it("puts pinned posts after the official cards, newest pinned first", () => {
+    const pinned = (id: string, publishedAt: string) => ({
+      ...post(id, publishedAt),
+      pinned: true,
+    });
+    const feed = buildDeskFeed({
+      level: "none",
+      now: NOW,
+      posts: [
+        post("newest", "2026-11-01T12:00:00Z"),
+        pinned("older-pin", "2026-10-30T12:00:00Z"),
+        pinned("newer-pin", "2026-10-31T12:00:00Z"),
+      ],
+      products: [
+        product("morning", "2026-11-01T11:00:00Z", {
+          issuedAt: "2026-11-01T07:00",
+        }),
+      ],
+    });
+    expect(feed.official.map((card) => card.kind)).toEqual(["briefing"]);
+    expect(feed.posts.map((item) => item.id)).toEqual([
+      "newer-pin",
+      "older-pin",
+      "newest",
+    ]);
+  });
+
+  it("leads with at most three pinned posts; extra pins sort by date", () => {
+    const pinned = (id: string, publishedAt: string) => ({
+      ...post(id, publishedAt),
+      pinned: true,
+    });
+    const feed = buildDeskFeed({
+      level: "none",
+      now: NOW,
+      posts: [
+        post("u1", "2026-11-05T12:00:00Z"),
+        pinned("p1", "2026-11-04T12:00:00Z"),
+        pinned("p2", "2026-11-03T12:00:00Z"),
+        pinned("p3", "2026-11-02T12:00:00Z"),
+        pinned("p4", "2026-11-01T12:00:00Z"),
+        post("u2", "2026-10-31T12:00:00Z"),
+      ],
+      products: [],
+    });
+    expect(feed.posts.map((item) => item.id)).toEqual([
+      "p1",
+      "p2",
+      "p3",
+      "u1",
+      "p4",
+      "u2",
+    ]);
+  });
+
+  it("keeps pinned posts inside the eight shown", () => {
+    const others = Array.from({ length: 9 }, (_, i) =>
+      post(`other-${i}`, `2026-11-01T0${i % 9}:00:00Z`)
+    );
+    const feed = buildDeskFeed({
+      level: "none",
+      now: NOW,
+      posts: [
+        ...others,
+        { ...post("old-pin", "2026-10-01T12:00:00Z"), pinned: true },
+      ],
+      products: [],
+    });
+    expect(feed.posts).toHaveLength(8);
+    expect(feed.posts[0]?.id).toBe("old-pin");
+  });
+
   it("shows at most eight posts", () => {
     const posts = Array.from({ length: 10 }, (_, i) =>
       post(String(i), `2026-10-2${i % 10}T12:00:00Z`)
@@ -153,5 +235,48 @@ describe("nextForecastDue", () => {
     expect(nextForecastDue(new Date("2026-11-02T01:00:00Z"))).toBe(
       "7:00 a.m. tomorrow"
     ); // 9:00 p.m.
+  });
+});
+
+describe("Marine Forecast and Climate Bulletin cards", () => {
+  it("adds official cards after the forecast and outlook", () => {
+    const feed = buildDeskFeed({
+      level: "none",
+      now: NOW,
+      posts: [],
+      products: [
+        product("marine-forecast", "2026-11-01T09:00:00Z", {
+          issuedAt: "2026-11-01T05:00",
+          validFrom: "2026-11-01T05:00",
+          validTo: "2026-11-02T05:00",
+          synopsis: "Moderate trades. ",
+        }),
+        product("climate-bulletin", "2026-10-15T14:00:00Z", {
+          issuedAt: "2026-10-15T10:00",
+          validFrom: "2026-10-15T10:00",
+          validTo: "2026-11-15T23:59",
+          precipOutlook: "Rainfall totals for the next quarter are uncertain.",
+          droughtOutlook: "A drought watch is in effect.",
+        }),
+      ],
+    });
+    expect(feed.official.map((card) => [card.kind, card.title])).toEqual([
+      ["marine", "Marine Forecast"],
+      ["climate", "Climate Bulletin"],
+    ]);
+    expect(feed.official[0]?.summary).toBe("Moderate trades.");
+    expect(feed.official[1]?.summary).toBe(
+      "Rainfall totals for the next quarter are uncertain."
+    );
+    expect(feed.official[1]?.valid).toBe("Next issue 15 November");
+    expect(feed.official[1]?.staleNote).toBeNull();
+  });
+
+  it("names the next 15th after the issue day", () => {
+    expect(nextIssueLabel("2026-12-15T10:00")).toBe("Next issue 15 January");
+    expect(nextIssueLabel("2026-11-10T10:00")).toBe(
+      "Issued outside the monthly schedule"
+    );
+    expect(nextIssueLabel(undefined)).toBe("");
   });
 });

@@ -45,10 +45,10 @@ const PRESSURE_GROUP_DIGITS = 4;
 const FEET_PER_METRE = 3.280_84;
 const FEET_PER_HUNDRED = 100;
 
-const DIGITS_ONLY = /^\d+$/;
-const FOUR_DIGITS = /^\d{4}$/;
-const KM_PATTERN = /^\d+(\.\d+)?$/;
-const BAROMETER_PATTERN = /^\d{3,4}(\.\d)?$/;
+const DIGITS_ONLY = /^\d+$/u;
+const FOUR_DIGITS = /^\d{4}$/u;
+const KM_PATTERN = /^\d+(\.\d+)?$/u;
+const BAROMETER_PATTERN = /^\d{3,4}(\.\d)?$/u;
 const FINE_MAX_KM = 5;
 const FINE_MAX_CODE = 50;
 const WHOLE_KM_MAX = 30;

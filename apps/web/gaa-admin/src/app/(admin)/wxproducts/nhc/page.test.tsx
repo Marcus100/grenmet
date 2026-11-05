@@ -1,7 +1,7 @@
 import { cleanup, render, screen } from "@testing-library/react";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
 
-const EDITOR_LINK = /editor|Alerts/i;
+const EDITOR_LINK = /editor|Alerts/iu;
 const mocks = vi.hoisted(() => ({
   editions: vi.fn(),
   redirect: vi.fn(),

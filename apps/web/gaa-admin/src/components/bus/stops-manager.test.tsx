@@ -31,7 +31,7 @@ vi.mock("react-map-gl/maplibre", () => ({
 import { StopsManager, toStopInput } from "./stops-manager";
 import { catalogue } from "./test-fixtures";
 
-const MAP_COVERAGE = /1 of 2 stops are on the map/;
+const MAP_COVERAGE = /1 of 2 stops are on the map/u;
 
 const BASE = "http://localhost";
 let received: unknown;

@@ -24,7 +24,7 @@ import {
 } from "../verification/receipt.mjs";
 
 const REMOTE = "origin";
-const REMOTE_PREFIX = /^origin\//;
+const REMOTE_PREFIX = /^origin\//u;
 
 function git(root, args) {
   const result = spawnSync("git", args, { cwd: root, encoding: "utf8" });

@@ -11,13 +11,13 @@ import { nationalResult } from "@/data/model";
 import campaignJson from "@/data/source/campaign.json";
 import type { CampaignFile, ResultsFile } from "@/data/types";
 
-const CAMPAIGN_SOURCES = /Campaign sources/;
-const FIRST_SOURCE = /First source/;
+const CAMPAIGN_SOURCES = /Campaign sources/u;
+const FIRST_SOURCE = /First source/u;
 
-const UNCERTAIN_COUNT = /named candidates still need public/;
-const GBN_SOURCE = /GBN/;
-const OWNER_SOURCE = /site owner/;
-const OWNER_CONFIRMATION = /Owner confirmation/;
+const UNCERTAIN_COUNT = /named candidates still need public/u;
+const GBN_SOURCE = /GBN/u;
+const OWNER_SOURCE = /site owner/u;
+const OWNER_CONFIRMATION = /Owner confirmation/u;
 
 const campaign = campaignJson as unknown as CampaignFile;
 const results = resultsJson as unknown as ResultsFile;
@@ -237,7 +237,9 @@ describe("flag stripe", () => {
     const stripe = screen.getByTestId("flag-stripe");
     expect(stripe).toHaveAttribute("aria-hidden", "true");
     expect(
-      Array.from(stripe.children, (c) => c.className.split(" ").at(-1))
+      Array.from(stripe.children, (c) =>
+        c.className.split(" ").find((name) => name.startsWith("bg-el-flag-"))
+      )
     ).toEqual(["bg-el-flag-red", "bg-el-flag-gold", "bg-el-flag-green"]);
   });
 });

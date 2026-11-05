@@ -13,6 +13,7 @@ export type AuthoredProducts = {
       })
     | (LegacyStoredProduct & {
         kind:
+          | "climate-bulletin"
           | "coastal"
           | "cyclone"
           | "dust"
@@ -20,6 +21,7 @@ export type AuthoredProducts = {
           | "flood"
           | "heat"
           | "marine"
+          | "marine-forecast"
           | "midday"
           | "morning"
           | "thunderstorm"

@@ -24,7 +24,8 @@ agent instructions. Nothing here relaxes a root rule.
 - **Local API test selection:** `pnpm verify:changed` runs only the pytest folders
   of the API domains the diff touches (`src/<domain>` maps to `tests/<domain>`).
   `src/auth` and `src/main.py` (shared by every request) run the full suite, and a
-  domain with no tests of its own does too. CI runs the full suite on every push.
+  domain with no tests of its own does too. CI runs the full API suite for any code
+  change and skips it only for docs-only diffs (see Job scope in `docs/testing.md`).
   Use `pnpm verify:changed --full` before a risky merge. The rules are in
   `scripts/verification/README.md`.
 - If a worktree shows ` T .agents/skills`, that worktree was created by a tool that
@@ -109,6 +110,16 @@ Run `pnpm guardrails:staged` (FastAPI route or schema changes must be paired wit
 the symbols you touched and verify each affected layer. The script covers one
 case, not the general one. The gate finds impact; it does not override explicit
 file limits or authorize unrelated work.
+
+Two FastAPI changes need no companions. Startup plumbing in `src/main.py`
+(imports, `lifespan`, middleware and exception-handler definitions,
+`app.add_middleware` lines) is exempt automatically. A route refactor whose
+regenerated `openapi.json` has no diff is declared with the commit trailer
+`API-Contract: unchanged` on every commit that touches a route or schema file.
+That works in the CI range check only, and CI's OpenAPI regeneration check
+still fails the PR if the declaration is wrong. The trailer covers the OpenAPI
+contract only: a change in documented behaviour (permissions, status meanings)
+still updates `docs/api/contracts.md`.
 
 | If you change… | Also verify… |
 | --- | --- |

@@ -1,4 +1,4 @@
-import { PUBLISH_KEYS } from "../access";
+import { HOMEPAGE_KEY, hasPermission, PUBLISH_KEYS } from "../access";
 import {
   bodyField,
   coverFields,
@@ -18,7 +18,7 @@ const base = editorialCollection({
   admin: {
     group: "GMS Content",
     description:
-      "From the Desk: the forecast office writing about what it issues, plus service notices. Paste the product under Related links and tick Main link to show its live details; never type forecast figures or warnings here.",
+      'From the Desk: the forecast office writing about what it issues, plus service notices. Paste the product under Related links and tick Main link to show its live details; never type forecast figures or warnings here. A pasted issued product also shows a "Based on" line on the card. Pin keeps a post right after the official cards.',
   },
   fields: [
     { name: "title", type: "text", required: true, maxLength: 120 },
@@ -93,13 +93,29 @@ const base = editorialCollection({
           'Shown after your name on the card, e.g. "Duty forecaster" or "Climate officer".',
       },
     },
+    {
+      name: "pinned",
+      type: "checkbox",
+      label: "Pin to the top of From the Desk",
+      defaultValue: false,
+      // Pinning moves the homepage, so only homepage editors can change it.
+      access: {
+        create: ({ req }) => hasPermission(req.user, HOMEPAGE_KEY),
+        update: ({ req }) => hasPermission(req.user, HOMEPAGE_KEY),
+      },
+      admin: {
+        position: "sidebar",
+        description:
+          "Shows this post right after the official forecast cards, ahead of newer posts. Several pinned posts show newest first. Only homepage editors can pin.",
+      },
+    },
     summaryField(200),
     // Every desk card shows a picture below its words, credited from the media
     // item's Credit field (owner, 1 Nov 2026).
     ...coverFields(),
     bodyField(false),
     includeInNewsletterField(PUBLISH_KEYS["desk-updates"]),
-    socialField(PUBLISH_KEYS["desk-updates"]),
+    socialField(PUBLISH_KEYS["desk-updates"], { platformImages: true }),
   ],
 });
 

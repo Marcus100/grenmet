@@ -26,7 +26,7 @@ export default async function NewInvoicePage({
       <Link className="text-sm underline" href="/invoices">
         All invoices
       </Link>
-      <h1 className="font-semibold text-2xl">New invoice</h1>
+      <h1 className="text-2xl font-semibold">New invoice</h1>
       {notice ? (
         <p className="rounded-md border px-3 py-2 text-sm" role="alert">
           Problem: {notice.text}

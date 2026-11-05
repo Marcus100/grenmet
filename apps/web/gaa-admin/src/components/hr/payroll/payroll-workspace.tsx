@@ -85,7 +85,7 @@ function useRefreshPayroll() {
 
 function NoAccess() {
   return (
-    <p className="rounded-xl border bg-card p-6 text-sm" role="alert">
+    <p className="bg-card rounded-xl border p-6 text-sm" role="alert">
       You do not have payroll access in this organisation. Ask the owner to
       assign a payroll permission.
     </p>
@@ -185,7 +185,7 @@ function CalendarForm({ organisationId }: { organisationId: string }) {
         Create calendar
       </Button>
       {problem && (
-        <p className="w-full text-destructive text-sm" role="alert">
+        <p className="text-destructive w-full text-sm" role="alert">
           {problem}
         </p>
       )}
@@ -241,9 +241,9 @@ function PeriodsPanel({ organisationId }: { organisationId: string }) {
     <div className="space-y-4">
       <section
         aria-label="Pay calendars"
-        className="space-y-3 rounded-xl border bg-card p-4"
+        className="bg-card space-y-3 rounded-xl border p-4"
       >
-        <h3 className="font-semibold text-base">Pay calendars</h3>
+        <h3 className="text-base font-semibold">Pay calendars</h3>
         {calendars.length === 0 ? (
           <>
             <p className="text-muted-foreground text-sm">
@@ -271,7 +271,7 @@ function PeriodsPanel({ organisationId }: { organisationId: string }) {
 
       {calendars.length > 0 && (
         <form
-          className="flex flex-wrap items-end gap-4 rounded-xl border bg-card p-4"
+          className="bg-card flex flex-wrap items-end gap-4 rounded-xl border p-4"
           onSubmit={onOpen}
         >
           <Field>
@@ -307,14 +307,14 @@ function PeriodsPanel({ organisationId }: { organisationId: string }) {
               : "The period runs to the end of that month."}
           </p>
           {problem && (
-            <p className="w-full text-destructive text-sm" role="alert">
+            <p className="text-destructive w-full text-sm" role="alert">
               {problem}
             </p>
           )}
         </form>
       )}
 
-      <div className="overflow-x-auto rounded-xl border bg-card">
+      <div className="bg-card overflow-x-auto rounded-xl border">
         <Table>
           <TableHeader>
             <TableRow>
@@ -329,7 +329,7 @@ function PeriodsPanel({ organisationId }: { organisationId: string }) {
             {periods.length === 0 ? (
               <TableRow>
                 <TableCell
-                  className="text-center text-muted-foreground"
+                  className="text-muted-foreground text-center"
                   colSpan={5}
                 >
                   {periodsQuery.isPending
@@ -344,7 +344,7 @@ function PeriodsPanel({ organisationId }: { organisationId: string }) {
                   <TableRow key={period.id}>
                     <TableCell>
                       <Link
-                        className="font-medium text-info underline-offset-4 hover:underline"
+                        className="text-info font-medium underline-offset-4 hover:underline"
                         href={`/hr/payroll/${period.id}`}
                       >
                         {periodLabel(period)}
@@ -382,7 +382,7 @@ function CataloguePanel({ organisationId }: { organisationId: string }) {
         here. Items marked Provisional are not yet confirmed by the
         organisation.
       </p>
-      <div className="overflow-x-auto rounded-xl border bg-card">
+      <div className="bg-card overflow-x-auto rounded-xl border">
         <Table>
           <TableHeader>
             <TableRow>
@@ -397,7 +397,7 @@ function CataloguePanel({ organisationId }: { organisationId: string }) {
             {items.length === 0 ? (
               <TableRow>
                 <TableCell
-                  className="text-center text-muted-foreground"
+                  className="text-muted-foreground text-center"
                   colSpan={5}
                 >
                   {itemsQuery.isPending
@@ -410,7 +410,7 @@ function CataloguePanel({ organisationId }: { organisationId: string }) {
                 <TableRow key={item.id}>
                   <TableCell>
                     <span className="font-medium">{item.name}</span>{" "}
-                    <span className="font-mono text-muted-foreground text-xs">
+                    <span className="text-muted-foreground font-mono text-xs">
                       {item.code}
                     </span>
                   </TableCell>
@@ -425,7 +425,7 @@ function CataloguePanel({ organisationId }: { organisationId: string }) {
                       <Badge variant="outline">Confirmed</Badge>
                     )}
                   </TableCell>
-                  <TableCell className="max-w-md text-muted-foreground text-xs">
+                  <TableCell className="text-muted-foreground max-w-md text-xs">
                     {item.source_reference ?? "—"}
                   </TableCell>
                 </TableRow>
@@ -488,7 +488,7 @@ function ProfileRow({
     <TableRow>
       <TableCell>
         <span className="font-medium">{profile.employee_name}</span>
-        <span className="block font-mono text-muted-foreground text-xs">
+        <span className="text-muted-foreground block font-mono text-xs">
           {profile.employee_number ?? "No employee number"}
         </span>
       </TableCell>
@@ -588,12 +588,12 @@ function ProfilesPanel({ organisationId }: { organisationId: string }) {
   return (
     <div className="space-y-4">
       <section aria-label="Department defaults" className="space-y-2">
-        <h3 className="font-semibold text-base">Department defaults</h3>
+        <h3 className="text-base font-semibold">Department defaults</h3>
         <p className="text-muted-foreground text-sm">
           Shift workers get a meal allowance after more than 2 hours past their
           8-hour shift; others when they leave after 18:30 (provisional rules).
         </p>
-        <div className="overflow-x-auto rounded-xl border bg-card">
+        <div className="bg-card overflow-x-auto rounded-xl border">
           <Table>
             <TableHeader>
               <TableRow>
@@ -605,7 +605,7 @@ function ProfilesPanel({ organisationId }: { organisationId: string }) {
               {departments.length === 0 ? (
                 <TableRow>
                   <TableCell
-                    className="text-center text-muted-foreground"
+                    className="text-muted-foreground text-center"
                     colSpan={2}
                   >
                     No departments you can see.
@@ -619,7 +619,7 @@ function ProfilesPanel({ organisationId }: { organisationId: string }) {
                       <input
                         aria-label={`${row.department_name} staff are shift workers`}
                         checked={row.shift_worker_default}
-                        className="size-4 accent-primary"
+                        className="accent-primary size-4"
                         onChange={(event) =>
                           toggle(row.department_id, event.target.checked)
                         }
@@ -634,8 +634,8 @@ function ProfilesPanel({ organisationId }: { organisationId: string }) {
         </div>
       </section>
       <section aria-label="Employees" className="space-y-2">
-        <h3 className="font-semibold text-base">Employees</h3>
-        <div className="overflow-x-auto rounded-xl border bg-card">
+        <h3 className="text-base font-semibold">Employees</h3>
+        <div className="bg-card overflow-x-auto rounded-xl border">
           <Table>
             <TableHeader>
               <TableRow>
@@ -650,7 +650,7 @@ function ProfilesPanel({ organisationId }: { organisationId: string }) {
               {profiles.length === 0 ? (
                 <TableRow>
                   <TableCell
-                    className="text-center text-muted-foreground"
+                    className="text-muted-foreground text-center"
                     colSpan={5}
                   >
                     {profilesQuery.isPending
@@ -712,7 +712,7 @@ export function PayrollWorkspace() {
 
   return (
     <div className="space-y-4">
-      <p className="rounded-lg border bg-muted p-3 text-sm">
+      <p className="bg-muted rounded-lg border p-3 text-sm">
         Quantities only: hours and counts for the payroll system of record
         (HrPlus). Nothing here calculates pay, tax or deductions.
       </p>

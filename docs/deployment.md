@@ -22,11 +22,47 @@ Promotion follows `dev → staging → main → release`. Use pull requests for 
 promotion; the user merges them and publishes the release. See the
 [release runbook](operations/release-runbook.md) for the full sequence.
 
-- A push to `staging` runs `pipeline-staging.yml`: CI, applicable image builds,
-  then deployment with the `staging` image tag.
+Images are built once, when a change lands on `dev`, and promoted by digest
+(issue #1019; full description and recovery steps in the
+[release runbook](operations/release-runbook.md#build-once-promote-by-digest)):
+
+- A push to `dev` runs `dev-images.yml`: it builds, smoke-tests and scans only
+  the images the change touches and tags every release image `tree-<git tree>`;
+  unchanged images reuse the previous tree's digest. Dev builds use the `build`
+  GitHub environment for production's build-time Sentry values.
+- A push to `staging` runs `pipeline-staging.yml`. Staging is a merge of dev, so
+  its commit has the same git tree as the dev commit it came from.
+  `scripts/ci/promote-images.mjs` finds that dev commit, checks the required
+  status checks passed on it (`infra/github/rulesets.json`), retags the exact
+  `tree-<tree>` digests as `staging-sha-<commit>` and deploys them. Nothing is
+  rebuilt or re-tested. After a successful deploy (smoke tests included) the
+  digests are tagged `staging-verified-tree-<tree>`.
 - Merging to `main` does not build deployment images or deploy production.
-- Publishing a release runs `pipeline-prod.yml`: builds all images at the release
-  tag, then deploys that same tag for FastAPI, web apps, and migrations.
+- Publishing a release runs `pipeline-prod.yml`: it promotes only the
+  `staging-verified-tree-<tree>` digests for the release commit's tree, so
+  production runs exactly what staging ran, and fails if staging never deployed
+  that tree. `latest` and the release tag move after the production deploy.
+- `core.sh` refuses any image whose digest is not in the promotion's list
+  (`DEPLOY_IMAGE_DIGESTS`).
+- Promotion checks, before any retag: the required checks passed by the same
+  GitHub App the dev ruleset names (rules read from the dev commit), and every
+  image's `org.opencontainers.image.revision` label names the promoted dev
+  commit or an ancestor of it that itself passed the required checks, and its
+  `gd.barrels.tree` label is that commit's tree (a reused image keeps the labels
+  of the commit that built it). Only `dev-images.yml` can write `tree-*` tags.
+  Known gap: build provenance is a BuildKit attestation inside the image, not a
+  GitHub artifact attestation, so `gh attestation verify` does not apply;
+  integrity rests on registry write access, the labels and the digest list.
+- If the dev images for a tree are missing, the staging pipeline dispatches
+  `dev-images.yml` for that commit and waits (see the release runbook).
+- The `build` GitHub environment needs the secrets `SENTRY_AUTH_TOKEN`,
+  `SENTRY_DSN_PRODUCTION` and `SENTRY_DSN_STAGING`. A dev web build fails when
+  the catalogue routes the app to Sentry but the DSN is empty (admin is not
+  routed yet and is skipped).
+- Server deploy speed (lands with PR #1020): `core.sh` pulls only images missing
+  on the host (`PULL_PARALLEL`, default 4) and, with `ROLLING_DEPLOY=1`, rolls
+  routed services in batches (`ROLLOUT_PARALLEL`, default 4 on staging, 2 on
+  production).
 - A manual **Deploy** dispatch redeploys existing images; it does not build them.
   Supply an explicit image tag. The **Deploy to Production** entry point requires it.
 
@@ -340,6 +376,13 @@ A new required secret goes in `REQUIRED_SECRETS` in
 `scripts/production/render-env.py` and in the `deploy.yml` env block; the same
 test fails if either is missing.
 
+### Image pulls
+
+The `pull-verify` phase pins every image by digest in `runtime/deploy.lock.yml`,
+then pulls only images not already on the host, `PULL_PARALLEL` (default 4) at
+a time. An image already present under that digest is byte-for-byte the one
+wanted, so unchanged services cost no download.
+
 ### Rolling starts (no gap while containers are replaced)
 
 By default the `start` phase recreates every app service, which stops each
@@ -349,7 +392,8 @@ run 37131928180).
 
 Set the GitHub environment variable `ROLLING_DEPLOY` to `1` (or `true`) to start routed
 services (`api` and every `web-*`, the `routed` role in
-`scripts/ci/release-scope.mjs`) one at a time instead:
+`scripts/ci/release-scope.mjs`) in parallel batches instead (`ROLLOUT_PARALLEL`,
+default 4; `1` restores one at a time):
 
 1. Start a second container from the new image beside the old one.
 2. Wait until it is healthy. Traefik only routes to healthy containers.
@@ -358,6 +402,11 @@ services (`api` and every `web-*`, the `routed` role in
 If the new container never becomes healthy, it is removed, the old one keeps
 serving, and the deploy fails in the `start` phase. Workers and the proxy are
 not rolled: they still start the ordinary way after the routed services.
+
+A routed service whose running container is healthy and whose Compose config
+hash (digest-pinned image, environment, labels) is unchanged is kept as it is.
+Every service in a batch finishes before the next batch starts; after a failure
+no later batch starts. Log lines are prefixed with the service name.
 
 Stopped leftover containers of a routed service are removed before each
 rolling start. If a deploy fails or is cancelled mid-rollout, the unfinished new
@@ -609,7 +658,7 @@ checks below before promoting.
    no values). Before the first deploy, and again before promoting to production,
    confirm every secret that is set is unique per app and per environment:
    `GAA_ADMIN`, `BARRELS_ADMIN`, `CMS`, `EVENTS`, `WEATHER`, `MBIA`, `SIGNAL`,
-   `DOCS`, `ELECTIONS`, `GMSDASH` and `BOOKINGS` `_SSO_CLIENT_SECRET`. Regenerate
+   `DOCS`, `GMSDASH` and `BOOKINGS` `_SSO_CLIENT_SECRET`. Regenerate
    any duplicates with `openssl rand -base64 32` (and update the matching app and
    API value together).
 1. DNS: `*.staging.barrels.gd` already resolves everything to the staging VM, so

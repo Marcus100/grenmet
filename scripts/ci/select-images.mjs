@@ -1,9 +1,9 @@
-const deferredPath = /^(surface|wis2box|geonetcast|wxwatch|gms-ingest)\//;
-const zeroSha = /^0+$/;
-const workspaceManifest = /^(apps\/[^/]+\/[^/]+\/package\.json)$/;
-const rootMarkdown = /^[^/]+\.md$/;
+const deferredPath = /^(surface|wis2box|geonetcast|wxwatch|gms-ingest)\//u;
+const zeroSha = /^0+$/u;
+const workspaceManifest = /^(apps\/[^/]+\/[^/]+\/package\.json)$/u;
+const rootMarkdown = /^[^/]+\.md$/u;
 const nonImagePath =
-  /^(docs\/|\.devcontainer\/|\.vscode\/|\.agents\/|\.claude\/|\.codex\/)/;
+  /^(docs\/|\.devcontainer\/|\.vscode\/|\.agents\/|\.claude\/|\.codex\/)/u;
 
 import { execFileSync } from "node:child_process";
 import { appendFileSync, readFileSync } from "node:fs";
@@ -60,7 +60,7 @@ export function selectImages(paths, mode = "affected") {
 // only, so only SURFACE paths and that workflow can change the result. Unlike
 // the image checks, promotion ("full") runs use the diff too: nothing outside
 // these paths enters the SURFACE image.
-const surfacePath = /^(surface\/|\.github\/workflows\/ci-surface\.yml$)/;
+const surfacePath = /^(surface\/|\.github\/workflows\/ci-surface\.yml$)/u;
 export function selectSurface(paths, mode = "affected") {
   if (mode === "deployment") return false;
   return paths.some((path) => surfacePath.test(path));
@@ -77,6 +77,48 @@ export function selectCoverage(paths, mode = "affected") {
   return selectImages(paths, mode).web.filter((image) =>
     coverageApps.includes(image.app)
   );
+}
+
+// Job scope: which test suites a diff needs, beside the image checks above.
+// Only documentation and agent/editor configuration skip suites. The API and
+// web suites read each other's files (API tests read packages/gms and web
+// route folders; gaa-admin tests read CAP and wxproducts sources), so a code
+// change runs both. Promotion ("full") and deployment runs keep every suite.
+// tests/test_reserved_names.py reads docs/ports.md, so it is code here.
+const testedDocs = new Set(["docs/ports.md"]);
+const nonCodePath = (path) =>
+  !testedDocs.has(path) && (nonImagePath.test(path) || rootMarkdown.test(path));
+const surfaceOnlyPath = (path) => path.startsWith("surface/");
+const apiPythonPath = (path) =>
+  path.startsWith("apps/api/fastapi/") &&
+  path !== "apps/api/fastapi/openapi.json";
+const webPath = (path) =>
+  path.startsWith("apps/web/") ||
+  path.startsWith("packages/") ||
+  path === "pnpm-lock.yaml" ||
+  path === "pnpm-workspace.yaml";
+const collectorPath =
+  /^(scripts\/(scrapy-wxwatch|sutron-collector|gnc-collector|gms-ingest)\/|scripts\/verification\/collectors\.sh$|(.*\/)?pyproject\.toml$|uv\.lock$)/u;
+
+export function selectJobs(paths, mode = "affected") {
+  const all = { python: true, collectors: true, webtests: true, storage: true };
+  if (mode !== "affected") return all;
+  const code = paths.some(
+    (path) => !(nonCodePath(path) || surfaceOnlyPath(path))
+  );
+  // Collector packages are standalone uv projects: only their own sources,
+  // the shared Python manifests or an unrecognised path select them.
+  const collectors = paths.some(
+    (path) =>
+      collectorPath.test(path) ||
+      !(
+        nonCodePath(path) ||
+        surfaceOnlyPath(path) ||
+        apiPythonPath(path) ||
+        webPath(path)
+      )
+  );
+  return { python: code, collectors, webtests: code, storage: code };
 }
 
 export function changedPaths(
@@ -104,6 +146,7 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
   let selection;
   let coverage;
   let surface;
+  let jobs;
   try {
     // Deployment builds own their checks; every other mode needs the diff,
     // at least for the SURFACE selection.
@@ -114,15 +157,19 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
     selection = selectImages(paths, mode);
     coverage = selectCoverage(paths, mode);
     surface = selectSurface(paths, mode);
+    jobs = selectJobs(paths, mode);
   } catch {
     console.error("Image comparison unavailable; checking every image.");
     selection = selectImages([], "full");
     coverage = selectCoverage([], "full");
     surface = true;
+    jobs = selectJobs([], "full");
   }
   for (const [key, value] of Object.entries(selection))
     appendFileSync(output, `${key}=${JSON.stringify(value)}\n`);
   appendFileSync(output, `surface=${JSON.stringify(surface)}\n`);
+  for (const [key, value] of Object.entries(jobs))
+    appendFileSync(output, `${key}=${JSON.stringify(value)}\n`);
   // Matrix entries for the web coverage job: app name and package directory.
   const coverageMatrix = coverage.map(({ app, path }) => ({ app, path }));
   appendFileSync(output, `coverage=${JSON.stringify(coverageMatrix)}\n`);

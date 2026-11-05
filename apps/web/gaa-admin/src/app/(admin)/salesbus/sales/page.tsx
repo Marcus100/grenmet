@@ -48,7 +48,7 @@ export default async function SalesPage() {
 
       {toApprove.length > 0 ? (
         <section className="flex flex-col gap-3">
-          <h2 className="font-semibold text-foreground text-lg">
+          <h2 className="text-foreground text-lg font-semibold">
             Awaiting your approval
           </h2>
           <TransactionList locations={locations} requisitions={toApprove} />
@@ -57,13 +57,13 @@ export default async function SalesPage() {
 
       {drafts.length > 0 ? (
         <section className="flex flex-col gap-3">
-          <h2 className="font-semibold text-foreground text-lg">Your drafts</h2>
+          <h2 className="text-foreground text-lg font-semibold">Your drafts</h2>
           <TransactionList locations={locations} requisitions={drafts} />
         </section>
       ) : null}
 
       <section className="flex flex-col gap-3">
-        <h2 className="font-semibold text-foreground text-lg">
+        <h2 className="text-foreground text-lg font-semibold">
           Your requisitions
         </h2>
         <TransactionList

@@ -197,3 +197,15 @@ it("renders selected guidance from the snapshot and marks guidance edits stale",
   expect(screen.getByText("Changes pending")).toBeInTheDocument();
   expect(preview).toHaveBeenCalledTimes(1);
 });
+
+it("shows the page-count warning the preview returns", async () => {
+  preview.mockResolvedValue({
+    ok: true,
+    blob: new Blob(["%PDF"]),
+    warning: "This sheet runs to 3 pages; it is designed for 2.",
+  });
+  render(frame(content(), request()));
+  expect(await screen.findByRole("status")).toHaveTextContent(
+    "runs to 3 pages"
+  );
+});

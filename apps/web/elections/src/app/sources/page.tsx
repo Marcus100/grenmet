@@ -162,7 +162,7 @@ export default function SourcesPage() {
         learning="evidence"
         title="Where every number comes from"
       >
-        <dl className="mt-6 grid grid-cols-2 gap-4 border-el-rule border-t pt-4 lg:grid-cols-4">
+        <dl className="border-el-rule mt-6 grid grid-cols-2 gap-4 border-t pt-4 lg:grid-cols-4">
           {[
             ["Checks passed", fmt(v.summary.pass), ""],
             ["Failed", fmt(v.summary.fail), ""],
@@ -179,10 +179,10 @@ export default function SourcesPage() {
           ].map(([label, value, note]) => (
             <div key={label}>
               <dt className={LABEL}>{label}</dt>
-              <dd className="mt-0.5 font-semibold text-xl tabular-nums">
+              <dd className="mt-0.5 text-xl font-semibold tabular-nums">
                 {value}
               </dd>
-              {note && <dd className="text-base text-el-muted">{note}</dd>}
+              {note && <dd className="text-el-muted text-base">{note}</dd>}
             </div>
           ))}
         </dl>
@@ -220,7 +220,7 @@ export default function SourcesPage() {
           ].map(([term, meaning]) => (
             <div key={term}>
               <dt className="font-semibold">{term}</dt>
-              <dd className="mt-1 text-el-ink-2">{meaning}</dd>
+              <dd className="text-el-ink-2 mt-1">{meaning}</dd>
             </div>
           ))}
         </dl>
@@ -286,7 +286,7 @@ export default function SourcesPage() {
                   status = s.partial ? "Partly official" : "Secondary";
                 return (
                   <tr className="border-el-rule border-b align-top" key={e.id}>
-                    <td className="whitespace-nowrap py-2 pr-3">
+                    <td className="py-2 pr-3 whitespace-nowrap">
                       <Link
                         className="font-semibold hover:underline"
                         href={`/elections/${eventSlug(e.id)}`}
@@ -294,7 +294,7 @@ export default function SourcesPage() {
                         {e.year} {e.sub ? e.sub.toLowerCase() : "election"}
                       </Link>
                     </td>
-                    <td className="py-2 pr-3 text-el-ink-2">{s.text}</td>
+                    <td className="text-el-ink-2 py-2 pr-3">{s.text}</td>
                     <td className="py-2 pr-3">
                       {e.id === "2018r"
                         ? "Polling station (10 of 15 constituencies)"
@@ -310,7 +310,7 @@ export default function SourcesPage() {
       </Section>
 
       <Section id="checks" title="Checks run">
-        <ul className="divide-y divide-el-rule border-el-rule border-y text-base">
+        <ul className="divide-el-rule border-el-rule divide-y border-y text-base">
           {CHECKS_RUN.map(([check, result]) => (
             <li
               className="grid gap-1 py-2.5 sm:grid-cols-2 sm:gap-6"
@@ -322,13 +322,13 @@ export default function SourcesPage() {
           ))}
         </ul>
         <h3 className={`${LABEL} mt-8`}>Automated checks</h3>
-        <p className="mt-1 max-w-[70ch] text-base text-el-muted leading-relaxed">
+        <p className="text-el-muted mt-1 max-w-[70ch] text-base leading-relaxed">
           These run every time the dataset is rebuilt from the source documents.
           “Known” means the problem is in a source document and is listed in the
           register below.
         </p>
         <details className="mt-2">
-          <summary className="cursor-pointer font-semibold text-base">
+          <summary className="cursor-pointer text-base font-semibold">
             All {v.checks.length} checks
           </summary>
           <div className="mt-2 overflow-x-auto">
@@ -339,13 +339,13 @@ export default function SourcesPage() {
                     className="border-el-rule border-b align-top"
                     key={`${c.area}${c.check}`}
                   >
-                    <td className="whitespace-nowrap py-1.5 pr-3 text-el-muted">
+                    <td className="text-el-muted py-1.5 pr-3 whitespace-nowrap">
                       {c.area}
                     </td>
                     <td className="py-1.5 pr-3">
                       {c.check}
                       {c.detail && c.status !== "pass" && (
-                        <span className="block text-base text-el-muted">
+                        <span className="text-el-muted block text-base">
                           {c.detail}
                         </span>
                       )}
@@ -368,21 +368,21 @@ export default function SourcesPage() {
         intro="The full dataset as plain CSV tables. Every row carries its source document, page and verification status."
         title="The master list"
       >
-        <ul className="grid gap-px border border-el-rule bg-el-rule md:grid-cols-2">
+        <ul className="border-el-rule bg-el-rule grid gap-px border md:grid-cols-2">
           {FILES.map(([file, title, about]) => (
             <li className="bg-background p-4" key={file}>
               <a
-                className="font-bold font-serif text-lg underline-offset-4 hover:underline"
+                className="font-serif text-lg font-bold underline-offset-4 hover:underline"
                 data-analytics-event="csv_download_clicked"
                 download
                 href={`/data/${file}`}
               >
                 {title} (CSV)
               </a>
-              <p className="mt-1 text-base text-el-ink-2 leading-relaxed">
+              <p className="text-el-ink-2 mt-1 text-base leading-relaxed">
                 {about}
               </p>
-              <code className="text-base text-el-muted">{file}</code>
+              <code className="text-el-muted text-base">{file}</code>
             </li>
           ))}
         </ul>
@@ -399,7 +399,7 @@ export default function SourcesPage() {
           · <b>{items.filter((d) => d.impact === "data").length}</b> affect
           figures
         </p>
-        <ol className="divide-y divide-el-rule border-el-rule border-y">
+        <ol className="divide-el-rule border-el-rule divide-y border-y">
           {items.map((d) => (
             <li
               className="grid scroll-mt-20 gap-x-6 gap-y-1 py-3 text-base lg:grid-cols-[5rem_12rem_minmax(0,1fr)_minmax(0,1fr)_6rem]"
@@ -409,7 +409,7 @@ export default function SourcesPage() {
               <b className="font-semibold">{d.id}</b>
               <span>
                 {d.area}
-                <span className="block text-base text-el-muted">
+                <span className="text-el-muted block text-base">
                   {IMPACT[d.impact]}
                 </span>
               </span>
@@ -417,17 +417,17 @@ export default function SourcesPage() {
                 {d.what}
                 {d.detail && d.detail.length > 0 && (
                   <details className="mt-1 text-base">
-                    <summary className="cursor-pointer text-el-muted">
+                    <summary className="text-el-muted cursor-pointer">
                       {d.detail.length} detail{d.detail.length === 1 ? "" : "s"}
                     </summary>
-                    <ul className="mt-1 list-disc pl-4 text-el-ink-2">
+                    <ul className="text-el-ink-2 mt-1 list-disc pl-4">
                       {d.detail.map((line) => (
                         <li key={detailText(line)}>{detailText(line)}</li>
                       ))}
                     </ul>
                   </details>
                 )}
-                <span className="block text-base text-el-muted">
+                <span className="text-el-muted block text-base">
                   Sources: {d.sources.join("; ")}
                 </span>
               </span>

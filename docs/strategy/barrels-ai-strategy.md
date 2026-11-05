@@ -4,7 +4,7 @@
 **Recorded:** 2026-09-23  
 **Horizon:** Five years, with a 2035 national-ambition reference  
 **Owner:** Barrels Grenada  
-**Last updated:** 2026-10-03
+**Last updated:** 2026-10-31
 
 ## Purpose
 
@@ -24,6 +24,27 @@ in the [IP boundary](barrels-ip-boundary.md).
 
 This document does not authorize implementation, infrastructure purchases,
 schema changes, new dependencies, or client commitments.
+
+## Ecosystem AI direction — 31 October 2026
+
+AI is intended to support the connected consumer and business ecosystem in the
+[product strategy](barrels-product-strategy.md#connected-ecosystem-direction--31-october-2026).
+Candidate capabilities include natural-language discovery, a shared assistant,
+content creation, business operations, community summaries and controllable
+personalisation. The first use case and delivery order remain undecided.
+Normal navigation and task completion should remain available without AI.
+
+NISabot is a candidate reference for a later discovery exercise; its design and
+reuse suitability have not been reviewed for this plan. Select a first feature
+using user value, reliable source data, measurable evaluation and operating cost.
+Build on the existing FastAPI and worker architecture and introduce shared
+capabilities only when that approved feature requires them.
+
+A shared identity does not grant the assistant access to another app,
+organisation or work account. Showing a customer their own activity is distinct
+from using it for recommendations. Define authorised data use, retention,
+evaluation and confirmation of consequential actions in the feature design.
+Existing domain services remain authoritative for transactions and rewards.
 
 ## National context
 
