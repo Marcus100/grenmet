@@ -515,7 +515,7 @@ async def test_override_reason_is_withheld_from_readers_without_amounts(
     resaved = await async_client.put(
         f"{API}/profiles/{employee.id}",
         headers=await headers_for(db_async, preparer),
-        json={"organisation_id": "gaa", "calendar_id": calendar_id},
+        json={"organisation_id": "gaa", "calendar_id": None},
     )
     assert resaved.status_code == 200, resaved.text
     assert resaved.json()["calendar_override_reason"] is None

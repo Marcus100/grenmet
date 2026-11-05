@@ -333,11 +333,13 @@ async def update_profile(
         calendar = await session.get(PayCalendar, payload.calendar_id)
         if calendar is None or calendar.organisation_id != organisation_id:
             raise PayrollValidationError("Pay calendar not found in this organisation")
+        # Only a reason supplied in this request satisfies the rule; a stored
+        # reason is kept on save but never counts as this change's justification.
         if (
             calendar.frequency not in gross.WAGE_PERIOD_OK
             and await gross.current_basis(session, user_id, local_today())
             == PayBasis.HOURLY
-            and not reason
+            and not payload.calendar_override_reason
         ):
             raise PayrollConflictError(
                 "Hourly-paid staff must be paid at least fortnightly; choose a "

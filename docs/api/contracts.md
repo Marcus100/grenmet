@@ -51,9 +51,19 @@ tax, NIS or bank field exists in any request, response or export.
   Each pay profile returns `calendar_override_reason` only to organisation-wide
   `hr.payroll.read.amounts` holders (free text stays with them, as pay-line
   reasons do); for anyone else it is `null`. The list response's
-  `calendar_override_reason_visible` says which case the caller is in. A
-  preparer without that key who re-saves a profile cannot clear the stored
-  reason by omitting it.
+  `calendar_override_reason_visible` says which case the caller is in.
+  Gate (N3): organisation-wide `hr.payroll.read.amounts` only, stricter than the
+  gate for pay-line reasons, which is organisation-wide prepare, approve or
+  export. Holding it in one department, or in another organisation, is not
+  enough (tests: `tests/hr/test_payroll_override_reason.py`).
+  Saving (`PUT profiles/{user_id}`): a caller without that key who omits the
+  reason keeps the stored one (they cannot clear it). A caller without that key
+  who sends a new reason replaces the stored one (N2). That change is audited and
+  its value masked in `/audit/payroll_settings/{organisation_id}` unless the
+  reader holds `audit.view_sensitive`. The Employment Act rule for an hourly-paid
+  person on a calendar longer than fortnightly counts only a reason sent in that
+  request: a stored reason never satisfies it, so such a caller gets 409 without
+  one of their own (tests cover both stored and absent).
 - Calendars are `MONTHLY` or `FORTNIGHTLY` (`anchor_date` required; periods
   start a whole number of fortnights from it and run 14 days). Without a
   `frequency`, GAA calendars are fortnightly and others monthly.

@@ -612,12 +612,16 @@ def register() -> None:
         entity_id_attr="organisation_id",
         label="Pay item",
     )
+    # The override reason is free text about pay: stored, but masked on read
+    # unless the reader holds audit.view_sensitive (N3: the gate for the value
+    # itself stays organisation-wide hr.payroll.read.amounts).
     registry.track(
         EmployeePayProfile,
         record_type="employee_pay_profile",
         entity_type="payroll_settings",
         entity_id_attr="organisation_id",
         label="Employee pay profile",
+        sensitive=("calendar_override_reason",),
     )
     registry.track(
         PayrollDepartmentSetting,
