@@ -17,6 +17,9 @@ interface ResponseParser<T> {
 /** Default cap on how long an auth-API request may block before aborting. */
 const DEFAULT_AUTH_API_TIMEOUT_MS = 10_000;
 
+/** A trailing full stop, dropped before joining validation messages. */
+const TRAILING_FULL_STOP = /\.$/u;
+
 /**
  * `AbortSignal.timeout` aborts with a DOMException whose `name` is
  * "TimeoutError". Detected structurally so this stays independent of the
@@ -165,6 +168,23 @@ function buildRequestHeaders(
   });
 }
 
+/**
+ * A FastAPI validation error (422) has `detail` as a list of `{ msg }` items.
+ * Join their messages into one sentence; null when there is no message to use.
+ */
+function sentenceFromValidationErrors(detail: unknown): string | null {
+  if (!Array.isArray(detail)) return null;
+  const messages = detail.flatMap((item: unknown) => {
+    if (typeof item !== "object" || item === null || !("msg" in item)) {
+      return [];
+    }
+    const { msg } = item;
+    if (typeof msg !== "string" || !msg.trim()) return [];
+    return [msg.trim().replace(TRAILING_FULL_STOP, "")];
+  });
+  return messages.length > 0 ? `${messages.join(". ")}.` : null;
+}
+
 async function readErrorDetail(
   response: Response,
   fallbackMessage: string
@@ -178,6 +198,8 @@ async function readErrorDetail(
       if (typeof payload.detail === "string" && payload.detail.trim()) {
         return payload.detail;
       }
+      const sentence = sentenceFromValidationErrors(payload.detail);
+      if (sentence) return sentence;
     } catch {
       // Fall back to raw text below.
     }

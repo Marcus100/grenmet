@@ -65,7 +65,7 @@ export function hrListEmployeePayProfilesQueryOptions(
 }
 
 /**
- * @description Shift-worker flag (own or department default), calendar and payroll reference for employees in the departments the caller may read.
+ * @description Shift-worker flag (own or department default), calendar and payroll reference for employees in the departments the caller may read. The calendar override reason is returned only to organisation-wide hr.payroll.read.amounts holders; calendar_override_reason_visible says whether this caller gets it.
  * @summary List employee pay profiles
  * {@link /api/v1/hr/payroll/profiles}
  */

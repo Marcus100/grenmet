@@ -12,6 +12,7 @@
 - Never re-derive access or masking client-side; the API is authoritative.
 - Don't write audit rows in a separate transaction — history must commit or roll back with the change.
 - Register sensitive fields explicitly when tracking a model.
+- Masking is a **read-time** rule (`service.list_history`): a change is masked when its stored `sensitive` flag is true **or** `registry.sensitive_fields(record_type)` lists the field now. Marking a field sensitive later therefore masks history already written, with no data migration. Never rely on the stored flag alone to hide a value.
 
 ## Tests
 `tests/audit/test_audit.py`.

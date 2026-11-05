@@ -17,4 +17,5 @@ export type EmployeePayProfilePublic = {
   shift_worker: boolean | null;
   effective_shift_worker: boolean;
   payroll_reference: string | null;
+  calendar_override_reason: string | null;
 };

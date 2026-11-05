@@ -48,6 +48,22 @@ tax, NIS or bank field exists in any request, response or export.
   `PUT profiles/{user_id}`, `GET department-settings`,
   `PUT department-settings/{department_id}`. A new organisation's `items` list is
   empty; GAA's items are seeded `PROVISIONAL` with a `source_reference`.
+  Each pay profile returns `calendar_override_reason` only to organisation-wide
+  `hr.payroll.read.amounts` holders (free text stays with them, as pay-line
+  reasons do); for anyone else it is `null`. The list response's
+  `calendar_override_reason_visible` says which case the caller is in.
+  Gate (N3): organisation-wide `hr.payroll.read.amounts` only, stricter than the
+  gate for pay-line reasons, which is organisation-wide prepare, approve or
+  export. Holding it in one department, or in another organisation, is not
+  enough (tests: `tests/hr/test_payroll_override_reason.py`).
+  Saving (`PUT profiles/{user_id}`): a caller without that key who omits the
+  reason keeps the stored one (they cannot clear it). A caller without that key
+  who sends a new reason replaces the stored one (N2). That change is audited and
+  its value masked in `/audit/payroll_settings/{organisation_id}` unless the
+  reader holds `audit.view_sensitive`. The Employment Act rule for an hourly-paid
+  person on a calendar longer than fortnightly counts only a reason sent in that
+  request: a stored reason never satisfies it, so such a caller gets 409 without
+  one of their own (tests cover both stored and absent).
 - Calendars are `MONTHLY` or `FORTNIGHTLY` (`anchor_date` required; periods
   start a whole number of fortnights from it and run 14 days). Without a
   `frequency`, GAA calendars are fortnightly and others monthly.
@@ -1261,7 +1277,7 @@ worker jobs) and to how they signed in: `actor_session` (`account` or `app`) and
 
 | Endpoint | Access and purpose |
 | --- | --- |
-| `GET /api/v1/audit/{entity_type}/{entity_id}` | Paginated history, newest first. Readable by anyone who may read the record (module read check). Sensitive field values return `masked: true` with `old`/`new` null unless the reader holds `audit.view_sensitive`. Unknown `entity_type` → 404 |
+| `GET /api/v1/audit/{entity_type}/{entity_id}` | Paginated history, newest first. Readable by anyone who may read the record (module read check). Sensitive field values return `masked: true` with `old`/`new` null unless the reader holds `audit.view_sensitive`. Masking is decided at read time: a change is masked if the row stored it as sensitive or the module marks that field sensitive today, so rows written before a field was marked (stored `sensitive: false`) are still masked. Stored rows are never rewritten. Unknown `entity_type` → 404 |
 
 HR `entity_type` values: `employee` (user id; profile, address, employment, approval
 authority), `leave_request`, `absentee_report`, `shift_swap`, `status_report`,
@@ -1627,6 +1643,8 @@ The public routes (`/api/cap/alerts`, `/alerts/{identifier}`, `/past`, `/latest-
 Feeds and URL imports are fetched only over https (plain http only for a registered feed that uses it), through a helper that connects to the address the host check validated, rebuilds the URL from parsed components, does not follow redirects, and caps the body at 5 MB.
 
 Save-time checks (422, naming the value): `responseType` must be one of the nine CAP values, `language` must be an xs:language tag, and `web` must be one address with no spaces, quotes or angle brackets.
+
+`GET /api/v1/cap/statistics?start=&end=&hazard=` (permission `cap.alert.read`) counts published warnings (`published_at` set, so expired and cancelled ones count; status `Actual`, message type `Alert`; updates, cancellations, exercises and tests are left out) by CAP event (`by_hazard`, only events that occur), GMS colour (`by_colour`: green, yellow, orange, red and `unassigned`, always all five; a warning counts once, at its highest colour across its information blocks, so the colour table adds up to `total`; the `awareness_level` value is read with the spellings `levels.parse_awareness` accepts, so surrounding whitespace (any Unicode space, including no-break and ideographic spaces) and the case of the colour word do not matter; an Outlook block (its last `GMS:product` is `Outlook`) has no colour, so its `awareness_level` is not counted, as the public feed reads it; a block whose stored parameters are not a JSON array, such as null, has no colour; within one block the highest `awareness_level` value counts, whereas the public feed's `levels.read_level` takes the last, so the two differ only when a block repeats the parameter), parish (`by_parish`: the seven catalogue parishes and `no-parish`, always all eight) and month (`by_month`, every month in the period, keys `YYYY-MM`). `start` and `end` are Grenada-time days, inclusive; they default to twelve months back and today (a default start is never before 2000-01-01, so `end` alone works for an early end date), and the response echoes the period used. `hazard` is an exact CAP event. A warning counts once in `total` and `by_colour` however many information blocks or areas it has; a warning with several hazards (one per information block) counts once in each hazard, and one covering several parishes counts in each. 422 when `start` is after `end`, when `start` is before 2000-01-01, when `end` is more than a year after today, or when the period is longer than 3660 days (about ten years), where the length is `end` minus `start` in days. `GET /api/v1/cap/statistics/export.csv` takes the same parameters and returns the same counts as `text/csv; charset=utf-8` with an attachment filename, columns `table,key,label,count` (first data row is the total); text starting with `=`, `+`, `-` or `@` is prefixed with `'` so a spreadsheet does not run it. The warning desk downloads it through `/desk/statistics/export`.
 
 The integrations response (`GET /api/v1/cap/integrations`) lists `publish_channels`: MQTT and WIS2 report `not_configured`, and no job is queued for them. Each MQTT broker row carries `delivery: not_configured`.
 

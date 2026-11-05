@@ -476,7 +476,7 @@ def _profile(row: service.ProfileRow) -> EmployeePayProfilePublic:
     response_model=EmployeePayProfilesPublic,
     status_code=status.HTTP_200_OK,
     summary="List employee pay profiles",
-    description="Shift-worker flag (own or department default), calendar and payroll reference for employees in the departments the caller may read.",
+    description="Shift-worker flag (own or department default), calendar and payroll reference for employees in the departments the caller may read. The calendar override reason is returned only to organisation-wide hr.payroll.read.amounts holders; calendar_override_reason_visible says whether this caller gets it.",
     operation_id="hrListEmployeePayProfiles",
     responses=ERRORS,
 )
@@ -488,10 +488,14 @@ async def list_profiles(
     skip: Skip = 0,
     limit: Limit = 200,
 ) -> EmployeePayProfilesPublic:
-    rows, count = await service.list_profiles(
+    page = await service.list_profiles(
         session, current_user, organisation_id, skip=skip, limit=limit
     )
-    return EmployeePayProfilesPublic(data=[_profile(row) for row in rows], count=count)
+    return EmployeePayProfilesPublic(
+        data=[_profile(row) for row in page.rows],
+        count=page.count,
+        calendar_override_reason_visible=page.reason_visible,
+    )
 
 
 @router.put(

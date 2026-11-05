@@ -47,6 +47,14 @@ export default async function DeskLayout({
                   Audit
                 </Link>
               ) : null}
+              {gate.permissions.read ? (
+                <Link
+                  className="text-info hover:underline"
+                  href="/desk/statistics"
+                >
+                  Statistics
+                </Link>
+              ) : null}
               {gate.permissions.feedsManage ? (
                 <Link className="text-info hover:underline" href="/desk/feeds">
                   Feeds

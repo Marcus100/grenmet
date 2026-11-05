@@ -1,0 +1,64 @@
+---
+title: The warning desk, payroll, passwordless sign-up and a safer release pipeline
+summary: Version 1.0.3 adds the CAP staff warning desk, the Marine Forecast and Climate Bulletin, HR roster rules and payroll, passwordless sign-up, and builds each image once and promotes it from dev to staging to production.
+date: 2026-11-05
+release: 1.0.3
+---
+
+Version 1.0.3 is a large release: 145 pull requests since v1.0.2. Everything in it
+ran on staging before it reached production.
+
+### Weather service
+
+- **Marine Forecast:** a regular 05:00 forecast with a working PDF, covered by the
+  overdue-forecast reminder. The **Climate Bulletin** gained its fields and a
+  two-page PDF.
+- **Homepage v2:** a From the Desk feed with official product cards and desk post
+  types (media links, pinned posts, per-platform social images, the author's
+  role), plus a Grenada in data row, contact details, a Light and Dark toggle and
+  Carriacou as a place.
+- **Public site:** the Sign in link is hidden and the units switch moved into the
+  home card. All clear bulletins show as information, not as alerts in effect.
+
+### CAP warnings
+
+- A staff warning desk: edit drafts, issue updates, import partner feeds, browse
+  hazard profiles with their history and read the impact matrix.
+- A CAP 1.2 schema check, and feeds must use https (plain http gets a 14-day
+  grace, then is skipped).
+
+### HR, roster and payroll
+
+- A union roster rules engine with audited overrides, and an override dialog on
+  submit, correction and import.
+- Payroll in four slices: pay inputs, gross pay, deductions with a gate for
+  provisional figures, and payslips with bank and GL files, plus the GMS Admin
+  payroll screens.
+- A last day of employment ends roles on that date, department transfers are
+  confirmed, and several roles can be assigned at once.
+
+### Sign-in and security
+
+- Passwordless sign-up with an emailed code. Emailed codes are capped and audited,
+  and a privileged account gets a code before its first authenticator.
+- An administrator can issue a sign-in setup link for someone who cannot receive
+  email codes. Reasons are cleaned of hidden characters, and older audit records
+  were marked sensitive by a one-off data migration.
+- The GAA Admin proxy forwards only an allow-list of headers and checks the origin
+  on writes. The Elections sign-in wiring was removed.
+
+### Platform
+
+- **Release pipeline:** images are built once on dev and promoted by digest through
+  staging to production, so production runs exactly what staging ran.
+- Web apps read public settings at run time instead of at build time, and the API
+  has a configurable database pool with a graceful shutdown.
+- A Cloudflare proxy edge, off by default, and live Facebook and Instagram posting
+  behind a feature flag, off.
+
+### What the release taught us
+
+The production database change stalled for 19 minutes: a connection from the
+previous version had sat idle inside a transaction for more than five days and held
+a lock the new column needed. We ended that session by hand and filed work to give
+migrations a lock time limit and to end idle transactions automatically.
