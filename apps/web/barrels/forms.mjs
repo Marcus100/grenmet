@@ -11,7 +11,9 @@ const API_ORIGIN =
   location.hostname === "localhost" || location.hostname === "127.0.0.1"
     ? "http://localhost:8000"
     : "https://api.barrels.gd";
-const CONTACT_URL = `${API_ORIGIN}/api/v1/contact/messages`;
+// The site key names the barrels public site (organisation-owned, accepts contact).
+// The site comes from the path, so the body carries no site field.
+const CONTACT_URL = `${API_ORIGIN}/api/v1/contact/public/barrels/messages`;
 const SUBSCRIBE_URL = `${API_ORIGIN}/api/v1/subscriptions`;
 
 const TURNSTILE_SCRIPT =
@@ -211,7 +213,6 @@ if (contactForm)
     url: CONTACT_URL,
     success: CONTACT_SUCCESS,
     body: (form) => ({
-      site: "barrels",
       name: value(form, "name"),
       email: value(form, "email"),
       subject: value(form, "subject"),

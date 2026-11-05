@@ -171,11 +171,51 @@ test("pages keep to the CSP: no inline script, style or event handlers", () => {
   }
 });
 
-test("forms post JSON to FastAPI with the barrels site and list, never a native submit", () => {
+// The CONTACT_URL template literal: `${API_ORIGIN}<path>`.
+const CONTACT_URL_TEMPLATE = /const CONTACT_URL = `\$\{API_ORIGIN\}([^`]*)`;/u;
+const DEPRECATED_CONTACT_PATH = "/api/v1/contact/messages";
+const CONTACT_SITE_PATH = "/api/v1/contact/public/barrels/messages";
+
+test("contact form targets the per-site barrels route, not the deprecated one", () => {
   const forms = read("forms.mjs");
-  assert.ok(forms.includes("/api/v1/contact/messages"));
+  const match = forms.match(CONTACT_URL_TEMPLATE);
+  assert.ok(match, "CONTACT_URL is API_ORIGIN plus a constant path");
+  const path = match[1];
+  assert.ok(!path.includes("${"), "contact path has no interpolated values");
+  // Parse the path (never substring-match it), with a placeholder origin.
+  const contact = new URL(path, "https://api.invalid");
+  assert.equal(
+    contact.origin,
+    "https://api.invalid",
+    "path stays on the API origin"
+  );
+  assert.equal(contact.search, "", "no query string carries visitor data");
+  assert.equal(contact.hash, "", "no fragment carries visitor data");
+  assert.equal(contact.pathname, CONTACT_SITE_PATH);
+  assert.notEqual(contact.pathname, DEPRECATED_CONTACT_PATH);
+  // Positive control: the deprecated path is still a valid URL path to parse.
+  assert.equal(
+    new URL(DEPRECATED_CONTACT_PATH, "https://api.invalid").pathname,
+    DEPRECATED_CONTACT_PATH
+  );
+  // The body no longer names the site; the path does.
+  assert.ok(
+    !forms.includes('site: "barrels"'),
+    "contact body has no site field"
+  );
+  // Production API origin is parsed exactly.
+  const origins = [...forms.matchAll(/"(https?:\/\/[^"]+)"/gu)].map(
+    ([, candidate]) => new URL(candidate)
+  );
+  assert.ok(
+    origins.some((url) => url.origin === "https://api.barrels.gd"),
+    "production API origin is present"
+  );
+});
+
+test("forms post JSON to FastAPI with the barrels list, never a native submit", () => {
+  const forms = read("forms.mjs");
   assert.ok(forms.includes("/api/v1/subscriptions"));
-  assert.ok(forms.includes('site: "barrels"'));
   assert.ok(forms.includes('list_key: "barrels"'));
   assert.ok(forms.includes("event.preventDefault()"));
   assert.ok(forms.includes('"Content-Type": "application/json"'));
