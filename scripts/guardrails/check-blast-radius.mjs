@@ -502,8 +502,10 @@ sys.exit(0 if before != after and contract(before) == contract(after) else 1)
 // generated from routes without running the lifespan or any middleware. Permit
 // edits confined to imports, the `lifespan` function, middleware and exception
 // handler definitions (named by `app.add_middleware` / `app.add_exception_handler`)
-// and top-level `app.add_middleware(...)` lines. Every other statement, including
-// router registration, app metadata and OpenAPI customisation, keeps the gate.
+// and top-level `app.add_middleware(...)` lines. Exception handler registrations
+// (`app.add_exception_handler(name, name)`, plain names only) are covered too.
+// Every other statement, including router registration, app metadata and OpenAPI
+// customisation, keeps the gate.
 const runtimeOnlyStartupChange = (comparison) => {
   const file = "apps/api/fastapi/src/main.py";
   const refs =
@@ -574,6 +576,15 @@ def exempt_names(tree):
         if not others:
             exempt.add(name)
     return exempt
+def is_plain_handler_registration(node):
+    # Both arguments must be plain names or attributes: a lambda or a call
+    # (for example cast(...)) could hide a change, so it keeps the gate.
+    return (
+        is_app_call(node, "add_exception_handler")
+        and len(node.args) == 2
+        and not node.keywords
+        and all(isinstance(arg, (ast.Name, ast.Attribute)) for arg in node.args)
+    )
 def contract(tree, exempt):
     kept = []
     imports = []
@@ -584,6 +595,8 @@ def contract(tree, exempt):
         if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)) and node.name in exempt:
             continue
         if isinstance(node, ast.Expr) and is_app_call(node.value, "add_middleware"):
+            continue
+        if isinstance(node, ast.Expr) and is_plain_handler_registration(node.value):
             continue
         kept.append(node)
     used = {n.id for stmt in kept for n in ast.walk(stmt) if isinstance(n, ast.Name)}

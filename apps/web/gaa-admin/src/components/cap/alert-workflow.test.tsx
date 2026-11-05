@@ -235,6 +235,32 @@ it("shows a backend approval refusal without advancing state", async () => {
   ).toBeInTheDocument();
 });
 
+it("shows the messages of a documented validation 422, not its fixed detail", async () => {
+  alert.lifecycle_state = "SUBMITTED";
+  server.use(
+    http.post(`${URL}/approve`, () =>
+      HttpResponse.json(
+        {
+          detail: "Validation error",
+          errors: [
+            {
+              loc: ["body", "note"],
+              msg: "Value error, A review note is required",
+              type: "value_error",
+            },
+          ],
+        },
+        { status: 422 }
+      )
+    )
+  );
+  show();
+  await review();
+  fireEvent.click(screen.getByRole("button", { name: "Record approval" }));
+  await screen.findByText("Value error, A review note is required");
+  expect(screen.queryByText("Validation error")).not.toBeInTheDocument();
+});
+
 it("hides review actions from users without the approve permission", async () => {
   alert.lifecycle_state = "SUBMITTED";
   show();

@@ -25,6 +25,7 @@ const CONFLICT = 409;
 const NOT_FOUND = 404;
 const MAX_MESSAGE = 300;
 const JSON_START = /^[[{]/u;
+const VALIDATION_FALLBACK = "Validation error";
 
 async function staffToken(): Promise<string> {
   const gate = await requireGate("/flags");
@@ -44,7 +45,11 @@ function rejection(error: { detail: string; status: number }): string {
   }
   if (error.status === UNPROCESSABLE) {
     const detail = error.detail.trim();
-    return detail && !JSON_START.test(detail) && detail.length <= MAX_MESSAGE
+    // The documented validation 422 says only "Validation error": not a reason.
+    return detail &&
+      detail !== VALIDATION_FALLBACK &&
+      !JSON_START.test(detail) &&
+      detail.length <= MAX_MESSAGE
       ? detail
       : "The API did not accept those values. Check the fields and try again.";
   }

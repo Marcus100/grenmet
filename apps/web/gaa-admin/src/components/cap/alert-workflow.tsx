@@ -33,11 +33,36 @@ import { useState } from "react";
 import { PageHeader } from "@/components/layout/page-header";
 import { readSourceBulletinLink } from "@/lib/cap-bulletin-link";
 
+/** The fixed `detail` of the documented request-validation 422. */
+const VALIDATION_FALLBACK = "Validation error";
+
+/** The `msg` of each item in a validation `errors` list, joined; else undefined. */
+function validationMessages(data: object): string | undefined {
+  if (!("errors" in data && Array.isArray(data.errors))) return undefined;
+  const messages: string[] = [];
+  for (const item of data.errors as unknown[]) {
+    if (
+      typeof item === "object" &&
+      item !== null &&
+      "msg" in item &&
+      typeof item.msg === "string"
+    ) {
+      messages.push(item.msg);
+    }
+  }
+  return messages.length > 0 ? messages.join("; ") : undefined;
+}
+
 function errorText(error: unknown): string {
   if (error && typeof error === "object" && "data" in error) {
     const data = error.data;
     if (data && typeof data === "object" && "detail" in data) {
-      if (typeof data.detail === "string") return data.detail;
+      if (typeof data.detail === "string") {
+        if (data.detail === VALIDATION_FALLBACK) {
+          return validationMessages(data) ?? data.detail;
+        }
+        return data.detail;
+      }
       return JSON.stringify(data.detail);
     }
   }

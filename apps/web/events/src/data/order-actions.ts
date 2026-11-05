@@ -26,6 +26,7 @@ import { getSession } from "@/lib/session";
 import { SIGN_IN_REQUIRED } from "./action-result";
 import { type OrgContext, resolveOrgContext } from "./org-context";
 import { chosenOrganiser } from "./organiser-choice";
+import { detailOfData } from "./validation-detail";
 
 /**
  * Organiser money actions. Each one re-checks the session and resolves the
@@ -52,12 +53,7 @@ function refuse(error: string, keepKey = false): OrderActionResult<never> {
 }
 
 function detailOf(error: ResponseError): string | null {
-  const data: unknown = error.data;
-  if (typeof data !== "object" || data === null || !("detail" in data)) {
-    return null;
-  }
-  const { detail } = data;
-  return typeof detail === "string" ? detail : null;
+  return detailOfData(error.data);
 }
 
 /** Turns a thrown error into the refusal the form shows. */

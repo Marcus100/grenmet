@@ -874,6 +874,48 @@ for (const [name, mutate] of [
   });
 }
 
+const HANDLER_LINE =
+  "app.add_exception_handler(RequestValidationError, request_validation_exception_handler)\n";
+for (const [name, extra, expected] of [
+  [
+    "a plain exception handler registration passes",
+    (source) => `${source}${HANDLER_LINE}`,
+    0,
+  ],
+  [
+    "an exception handler registration cannot hide a new router",
+    (source) => `${source}${HANDLER_LINE}app.include_router(new_router)\n`,
+    1,
+  ],
+  [
+    "an exception handler with a lambda argument keeps the gate",
+    (source) =>
+      `${source}app.add_exception_handler(RequestValidationError, lambda request, exc: None)\n`,
+    1,
+  ],
+  [
+    "an exception handler wrapped in a call keeps the gate",
+    (source) =>
+      `${source}app.add_exception_handler(RequestValidationError, cast(Any, handler))\n`,
+    1,
+  ],
+]) {
+  test(`runtime-only startup: ${name}`, (t) => {
+    const file = "apps/api/fastapi/src/main.py";
+    const { base, repository } = createRepository(t, {
+      [file]: STARTUP_BEFORE,
+    });
+    write(repository, file, extra(STARTUP_AFTER));
+    git(repository, "add", file);
+    assert.equal(check(repository, ["--staged"]).status, expected);
+    const head = commit(repository);
+    assert.equal(
+      check(repository, ["--base", base, "--head", head]).status,
+      expected
+    );
+  });
+}
+
 test("declared contract: every commit touching routes needs the trailer", (t) => {
   const { base, repository } = createRepository(t, {
     [ROUTER]: ROUTER_BEFORE,
