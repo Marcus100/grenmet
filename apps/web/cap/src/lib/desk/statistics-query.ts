@@ -6,8 +6,17 @@ export const PERIOD_TOO_LONG = "Choose a period of about ten years or less.";
 const MILLISECONDS_PER_DAY = 86_400_000;
 
 const ISO_DAY = /^(\d{4})-(\d{2})-(\d{2})$/u;
-// biome-ignore lint/suspicious/noControlCharactersInRegex: refusing control characters is the point.
-const CONTROL_CHARACTERS = /[\u0000-\u001f\u007f]/u;
+const LAST_C0_CONTROL = 0x1f;
+const DELETE_CONTROL = 0x7f;
+
+/** Whether the text holds a C0 control character or DEL (checked by code point, no regex). */
+function hasControlCharacter(text: string): boolean {
+  for (const character of text) {
+    const code = character.codePointAt(0) ?? 0;
+    if (code <= LAST_C0_CONTROL || code === DELETE_CONTROL) return true;
+  }
+  return false;
+}
 
 export interface StatisticsFilter {
   /** Last day, `YYYY-MM-DD`; null lets the API choose today. */
@@ -103,7 +112,7 @@ export function parseStatisticsQuery(params: Params): StatisticsQuery {
   } else if (rawHazard !== "") {
     if (
       rawHazard.length > HAZARD_MAX_LENGTH ||
-      CONTROL_CHARACTERS.test(rawHazard)
+      hasControlCharacter(rawHazard)
     ) {
       problems.push(
         `The hazard must be plain text of ${HAZARD_MAX_LENGTH} characters or fewer.`
