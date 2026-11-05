@@ -1,7 +1,13 @@
 import type { CapProfilePublic } from "@barrelsgd/api-client";
 import { describe, expect, it } from "vitest";
 import type { DeskPermissions } from "./permissions";
-import { approvalCheck, groupProfiles } from "./profiles";
+import {
+  alertStartCheck,
+  alertStartPermissionCheck,
+  approvalCheck,
+  groupProfiles,
+  versionDraftCheck,
+} from "./profiles";
 
 const AUTHOR = "aaaaaaaa-0000-4000-8000-000000000001";
 const REVIEWER = "bbbbbbbb-0000-4000-8000-000000000002";
@@ -94,5 +100,59 @@ describe("approvalCheck", () => {
       REVIEWER
     );
     expect(result.allowed).toBe(false);
+  });
+});
+
+describe("versionDraftCheck (cap.library.manage)", () => {
+  it("allows a holder of hazard library access", () => {
+    expect(versionDraftCheck({ libraryManage: true })).toEqual({
+      allowed: true,
+    });
+  });
+
+  it("refuses without library access and says what to ask for", () => {
+    expect(versionDraftCheck({ libraryManage: false })).toEqual({
+      allowed: false,
+      reason:
+        "You need hazard library access to draft a profile version. Ask a GMS administrator.",
+    });
+  });
+});
+
+describe("alertStartCheck (cap.alert.create on an approved version)", () => {
+  it("allows an approved version for a holder of warning creation", () => {
+    expect(
+      alertStartCheck(profile({ key: "a", version: 1, state: "APPROVED" }), {
+        create: true,
+      })
+    ).toEqual({ allowed: true });
+  });
+
+  it("says a draft must be approved first, even for an allowed user", () => {
+    expect(
+      alertStartCheck(profile({ key: "a", version: 1 }), { create: true })
+    ).toEqual({
+      allowed: false,
+      reason: "Approve this version before starting a warning from it.",
+    });
+  });
+
+  it("refuses an approved version without warning creation", () => {
+    const result = alertStartCheck(
+      profile({ key: "a", version: 1, state: "APPROVED" }),
+      { create: false }
+    );
+    expect(result.allowed).toBe(false);
+  });
+});
+
+describe("alertStartPermissionCheck", () => {
+  it("is the permission half of alertStartCheck", () => {
+    expect(alertStartPermissionCheck({ create: true })).toEqual({
+      allowed: true,
+    });
+    expect(alertStartPermissionCheck({ create: false })).toMatchObject({
+      allowed: false,
+    });
   });
 });
