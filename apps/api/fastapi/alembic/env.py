@@ -214,6 +214,7 @@ def do_run_migrations(connection: Connection) -> None:
     with context.begin_transaction():
         # Before the advisory lock and the DDL: a statement that waits on a leaked
         # session fails after MIGRATION_LOCK_TIMEOUT instead of stalling the deploy.
+        # Session-level, so it survives autocommit_block commits (see db_timeouts).
         db_timeouts.set_migration_lock_timeout(
             connection, settings.MIGRATION_LOCK_TIMEOUT
         )

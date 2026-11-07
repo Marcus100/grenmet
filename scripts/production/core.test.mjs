@@ -4,6 +4,7 @@ import {
   copyFileSync,
   mkdirSync,
   mkdtempSync,
+  readdirSync,
   readFileSync,
   rmSync,
   writeFileSync,
@@ -143,6 +144,12 @@ case "$*" in
         echo "sqlalchemy.exc.DBAPIError: canceling statement due to lock timeout" >&2
         exit 1
       fi
+    fi
+    if [[ "$TEST_FAILURE" == cancel-migration ]]; then
+      # Simulates SIGTERM to core.sh while the migration runs, like the rollout cancel below.
+      pkill -TERM -of "$TEST_ROOT/scripts/production/core.sh" || true
+      sleep 3
+      exit 1
     fi
     [[ "$TEST_FAILURE" != migration ]] || exit 1 ;;
   *"up -d --no-deps --remove-orphans --wait"*) [[ "$TEST_FAILURE" != readiness ]] || exit 1 ;;
@@ -509,6 +516,58 @@ test("a migration failure that is not a lock timeout is not retried", () => {
   });
   assert.notEqual(result.status, 0);
   assert.equal(prestartRuns(calls), 1);
+});
+
+test("a cancelled migration removes its temporary log", () => {
+  const tmp = mkdtempSync(join(tmpdir(), "core-migration-tmp-"));
+  try {
+    const { result } = runDeploy({
+      environment: "production",
+      failure: "cancel-migration",
+      extraEnv: { TMPDIR: tmp, MIGRATION_LOCK_RETRY_PAUSE_SECONDS: "0" },
+    });
+    assert.notEqual(result.status, 0);
+    assert.deepEqual(readdirSync(tmp), [], "no mktemp log left behind");
+  } finally {
+    rmSync(tmp, { recursive: true, force: true });
+  }
+});
+
+// The migration and idle-transaction limits are read by the containers that run
+// migrations or hold pooled connections; without forwarding, Settings silently falls back.
+const DEPLOY_COMPOSE = new URL(
+  "../../infra/docker/docker-compose.deploy.yml",
+  import.meta.url
+);
+
+const TOP_LEVEL_SERVICE_KEY = /^ {2}[a-z][\w-]*:$/u;
+const MIGRATION_LOCK_LINE =
+  /MIGRATION_LOCK_TIMEOUT: \$\{MIGRATION_LOCK_TIMEOUT:-10s\}/u;
+const IDLE_TRANSACTION_LINE =
+  /DB_IDLE_IN_TRANSACTION_TIMEOUT: \$\{DB_IDLE_IN_TRANSACTION_TIMEOUT:-300\}/u;
+
+function serviceBlock(text, name) {
+  const lines = text.split("\n");
+  const start = lines.indexOf(`  ${name}:`);
+  if (start < 0) return "";
+  let end = lines.length;
+  for (let index = start + 1; index < lines.length; index += 1) {
+    if (TOP_LEVEL_SERVICE_KEY.test(lines[index])) {
+      end = index;
+      break;
+    }
+  }
+  return lines.slice(start, end).join("\n");
+}
+
+test("deploy compose forwards the migration and idle-transaction limits to prestart, api and worker", () => {
+  const text = readFileSync(DEPLOY_COMPOSE, "utf8");
+  for (const service of ["prestart", "api", "worker"]) {
+    const block = serviceBlock(text, service);
+    assert.notEqual(block, "", `${service} service exists`);
+    assert.match(block, MIGRATION_LOCK_LINE, service);
+    assert.match(block, IDLE_TRANSACTION_LINE, service);
+  }
 });
 
 test("a malformed lock retry setting stops before any migration runs", () => {

@@ -2,9 +2,15 @@
 
 import ast
 import time
+import uuid
 from pathlib import Path
 
 import pytest
+from alembic.operations import Operations
+from alembic.runtime.migration import MigrationContext
+from pydantic import ValidationError
+from sqlalchemy import Column, Integer, MetaData, Table, func, select
+from sqlalchemy.engine import Connection
 from sqlalchemy.exc import DBAPIError
 
 from src import database, db_timeouts
@@ -36,14 +42,74 @@ def test_idle_in_transaction_args_follow_seconds() -> None:
 
 
 @pytest.mark.usefixtures("db_async")
-async def test_lock_timeout_applies_to_the_current_transaction_only() -> None:
+async def test_lock_timeout_is_set_on_the_session_and_survives_commit() -> None:
+    """Session-level, so a commit mid-migration (Alembic autocommit_block) keeps it."""
     async with database.async_engine.connect() as conn:
         await conn.run_sync(db_timeouts.set_migration_lock_timeout, "10s")
-        shown = await conn.exec_driver_sql("SHOW lock_timeout")
-        assert shown.scalar_one() == "10s"
+        assert (await conn.exec_driver_sql("SHOW lock_timeout")).scalar_one() == "10s"
         await conn.commit()
-        after = await conn.exec_driver_sql("SHOW lock_timeout")
-        assert after.scalar_one() == "0"
+        assert (await conn.exec_driver_sql("SHOW lock_timeout")).scalar_one() == "10s"
+
+
+def _probe_table(name: str) -> Table:
+    return Table(name, MetaData(), Column("id", Integer), schema="public")
+
+
+def _commit_mid_run_then_ddl(
+    connection: Connection, name: str, seen: list[str]
+) -> None:
+    """Shape of an Alembic upgrade with autocommit_block (three HR/CAP revisions use it)."""
+    context = MigrationContext.configure(connection)
+    operations = Operations(context)
+    with context.begin_transaction():
+        db_timeouts.set_migration_lock_timeout(connection, "200ms")
+        with context.autocommit_block():
+            connection.exec_driver_sql("SELECT 1")
+        seen.append(connection.exec_driver_sql("SHOW lock_timeout").scalar_one())
+        operations.add_column(name, Column("extra", Integer), schema="public")
+
+
+@pytest.mark.usefixtures("db_async")
+async def test_ddl_after_an_autocommit_block_still_fails_fast_behind_a_leaked_lock() -> (
+    None
+):
+    name = f"lock_probe_{uuid.uuid4().hex[:8]}"
+    async with database.async_engine.begin() as conn:
+        await conn.run_sync(_probe_table(name).create)
+    leaked = await database.async_engine.connect()
+    try:
+        await leaked.execute(select(func.count()).select_from(_probe_table(name)))
+        async with database.async_engine.connect() as migration:
+            # Backstop: if the lock timeout were lost, the ALTER would hit this instead of hanging.
+            await migration.exec_driver_sql("SET statement_timeout = '5s'")
+            await migration.commit()
+            seen: list[str] = []
+            started = time.monotonic()
+            with pytest.raises(DBAPIError, match="lock timeout"):
+                await migration.run_sync(_commit_mid_run_then_ddl, name, seen)
+            assert seen == ["200ms"]
+            assert time.monotonic() - started < 5
+    finally:
+        await leaked.rollback()
+        await leaked.close()
+        async with database.async_engine.begin() as conn:
+            await conn.run_sync(_probe_table(name).drop, checkfirst=True)
+
+
+def test_settings_reject_a_bad_lock_timeout_at_startup(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setenv("MIGRATION_LOCK_TIMEOUT", "10 seconds")
+    # Settings reads the environment; ** keeps mypy from demanding the required fields.
+    with pytest.raises(ValidationError, match="MIGRATION_LOCK_TIMEOUT"):
+        Settings(**{})
+
+
+def test_settings_accept_the_default_lock_timeout(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.delenv("MIGRATION_LOCK_TIMEOUT", raising=False)
+    assert Settings(**{}).MIGRATION_LOCK_TIMEOUT == "10s"
 
 
 @pytest.mark.usefixtures("db_async")

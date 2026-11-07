@@ -9,10 +9,13 @@ from pydantic import (
     HttpUrl,
     PostgresDsn,
     computed_field,
+    field_validator,
     model_validator,
 )
 from pydantic_core import MultiHostUrl
 from pydantic_settings import BaseSettings, SettingsConfigDict
+
+from src import db_timeouts
 
 
 def parse_cors(v: Any) -> list[str] | str:
@@ -75,6 +78,11 @@ class Settings(BaseSettings):
     # statement running before Postgres ends it. A request holds its transaction only
     # while it runs, so this mainly ends leaked sessions. 0 disables.
     DB_IDLE_IN_TRANSACTION_TIMEOUT: int = 300
+
+    @field_validator("MIGRATION_LOCK_TIMEOUT")
+    @classmethod
+    def _check_migration_lock_timeout(cls, value: str) -> str:
+        return db_timeouts.parse_lock_timeout(value)
 
     @computed_field  # type: ignore[prop-decorator]
     @property

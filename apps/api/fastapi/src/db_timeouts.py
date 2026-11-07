@@ -26,10 +26,16 @@ def parse_lock_timeout(value: str) -> str:
 
 
 def set_migration_lock_timeout(connection: Connection, interval: str) -> None:
-    """Apply lock_timeout to the current transaction only, so it cannot leak into later work."""
+    """Set lock_timeout on the migration connection's session.
+
+    Session-level, not transaction-local: Alembic's autocommit_block commits mid-run,
+    and a transaction-local value would be lost there. The migration connection comes
+    from a NullPool and is closed afterwards, so the value cannot reach app sessions.
+    Run it inside the migration transaction so a failed upgrade rolls it back too.
+    """
     value = parse_lock_timeout(interval)
     connection.execute(
-        text("SELECT set_config('lock_timeout', :value, true)"), {"value": value}
+        text("SELECT set_config('lock_timeout', :value, false)"), {"value": value}
     )
 
 
