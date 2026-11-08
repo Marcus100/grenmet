@@ -95,6 +95,16 @@ it("switches the panel between tabs, each linking to its full page", async () =>
   ).toHaveAttribute("href", "/weather/satellite");
   // No Radar tab until a radar feed exists (owner, 1 Nov 2026).
   expect(screen.queryByRole("tab", { name: "Radar" })).not.toBeInTheDocument();
+  // One equal column per tab, so five tabs fill the row with no empty slot,
+  // centred from `sm` up (owner, 8 Nov 2026).
+  const tablist = screen.getByRole("tablist", { name: "Weather now" });
+  expect(screen.getAllByRole("tab")).toHaveLength(5);
+  expect(tablist).toHaveClass(
+    "grid-flow-col",
+    "auto-cols-fr",
+    "sm:justify-center"
+  );
+  expect(tablist).not.toHaveClass("grid-cols-6");
   fireEvent.click(screen.getByRole("tab", { name: "Wind" }));
   expect(
     screen.getByRole("link", { name: "Open the full wind page" })
@@ -171,6 +181,10 @@ it("keeps quick updates under the note and plays video in the panel on request",
     "src",
     "https://www.youtube-nocookie.com/embed/dQw4w9WgXcQ"
   );
+  // The player opens the item on YouTube itself; no separate provider link.
+  expect(
+    screen.queryByRole("link", { name: "Open on YouTube" })
+  ).not.toBeInTheDocument();
   fireEvent.click(screen.getByRole("button", { name: MORNING }));
   expect(screen.getByTitle("Morning briefing")).toBeInTheDocument();
   expect(screen.queryByText("Bad link")).not.toBeInTheDocument();
