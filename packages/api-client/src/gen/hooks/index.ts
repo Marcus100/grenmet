@@ -714,6 +714,11 @@ export {
   useCapExpireAlert,
 } from "./useCapExpireAlert.js";
 export {
+  capExportStatisticsCsvQueryKey,
+  capExportStatisticsCsvQueryOptions,
+  useCapExportStatisticsCsv,
+} from "./useCapExportStatisticsCsv.js";
+export {
   capGetActiveMapQueryKey,
   capGetActiveMapQueryOptions,
   useCapGetActiveMap,
@@ -823,6 +828,11 @@ export {
   capGetRssQueryOptions,
   useCapGetRss,
 } from "./useCapGetRss.js";
+export {
+  capGetStatisticsQueryKey,
+  capGetStatisticsQueryOptions,
+  useCapGetStatistics,
+} from "./useCapGetStatistics.js";
 export {
   capImportAlertMutationKey,
   capImportAlertMutationOptions,

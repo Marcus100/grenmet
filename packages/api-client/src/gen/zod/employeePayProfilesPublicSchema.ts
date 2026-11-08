@@ -9,4 +9,5 @@ import { employeePayProfilePublicSchema } from "./employeePayProfilePublicSchema
 export const employeePayProfilesPublicSchema = z.object({
   data: z.array(employeePayProfilePublicSchema),
   count: z.int(),
+  calendar_override_reason_visible: z.boolean(),
 });

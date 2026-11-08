@@ -208,11 +208,16 @@ class EmployeePayProfilePublic(BaseModel):
     #: The flag payroll uses: the person's own, else the department default.
     effective_shift_worker: bool
     payroll_reference: str | None
+    #: Why an hourly-paid person is on a calendar longer than fortnightly.
+    calendar_override_reason: str | None
 
 
 class EmployeePayProfilesPublic(BaseModel):
     data: list[EmployeePayProfilePublic]
     count: int
+    #: False means calendar_override_reason is withheld for this caller (only
+    #: organisation-wide hr.payroll.read.amounts holders see it), not that none is saved.
+    calendar_override_reason_visible: bool
 
 
 class EmployeePayProfileUpdate(BaseModel):

@@ -44,7 +44,7 @@ dependencies = [
 [dependency-groups]
 dev = [
     "pytest>=7.4.3",
-    "pytest-asyncio>=1.4.1",
+    "pytest-asyncio>=1.4.1.post1",
     "pytest-cov>=6.0.0",
     "pytest-xdist>=3.6.0",
     "mypy>=1.8.0",
@@ -53,7 +53,7 @@ dev = [
     "coverage>=7.4.3",
     "fakeredis>=2.37.0",
     "types-defusedxml>=0.7.0.20260504",
-    "schemathesis>=4",
+    "schemathesis>=4.33.0",
     # Independent decoders used only to cross-check eregister.encode (SYNOP TAC, BUFR CSV).
     "pymetdecoder>=0.2.2",
     "csv2bufr>=0.8.8",

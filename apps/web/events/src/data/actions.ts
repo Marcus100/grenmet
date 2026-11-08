@@ -58,6 +58,7 @@ import { ERROR_CODES, errorCodeOf } from "./error-code";
 import { getManagedAccess } from "./events-api";
 import { friendlyConflict } from "./order-errors";
 import { chosenOrganiser, rememberOrganiser } from "./organiser-choice";
+import { detailOfData } from "./validation-detail";
 
 /**
  * Every Events write goes through here: the member's token is read from the
@@ -76,12 +77,7 @@ const ATTEMPT_EXPIRED = "That attempt expired. Start a new one.";
 const GENERIC_FAILURE = "Something went wrong. Try again shortly.";
 
 function detailOf(error: ResponseError): string | null {
-  const data: unknown = error.data;
-  if (typeof data !== "object" || data === null || !("detail" in data)) {
-    return null;
-  }
-  const { detail } = data;
-  return typeof detail === "string" ? detail : null;
+  return detailOfData(error.data);
 }
 
 async function run<T>(

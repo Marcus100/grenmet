@@ -17,7 +17,10 @@ import {
   quizHref,
   sectionWords,
 } from "@/lib/cms";
-import { moonPhase, sunTimes } from "@/lib/sky";
+import { sunTimes } from "@/lib/sky";
+
+/** Shown in place of the moon phase until the almanac data exists (owner, 5 Nov 2026). */
+export const MOON_COMING_SOON = "Moon and tides coming soon";
 
 const TIME = new Intl.DateTimeFormat("en-GB", {
   timeZone: "America/Grenada",
@@ -55,17 +58,18 @@ interface Card {
   tone: string;
 }
 
-/** Tonight's sun and moon, calculated; an editor's sky note leads if set. */
+/**
+ * Tonight's sun, calculated; an editor's sky note leads if set. The moon's phase
+ * is not shown until the almanac database holds its figures (owner, 5 Nov
+ * 2026), so the tile says "Moon and tides coming soon" and keeps the sun times.
+ */
 export function skyCard(now: Date, note: DiscoverContent["skyNote"]): Card {
   const today = GRENADA_DAY.format(now);
   const { sunrise, sunset } = sunTimes(today);
-  // The moon as it will look this evening, 20:00 AST.
-  const moon = moonPhase(new Date(`${today}T20:00:00-04:00`));
-  const lit = `${Math.round(moon.illumination * 100)}% lit`;
   return {
     key: "sky",
     kicker: "Tonight",
-    title: note?.title ?? `${moon.name}, ${lit}`,
+    title: note?.title ?? MOON_COMING_SOON,
     detail:
       note?.note ??
       `Sunrise ${clock12(TIME.format(sunrise))} · sunset ${clock12(TIME.format(sunset))}`,

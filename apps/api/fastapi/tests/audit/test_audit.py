@@ -7,6 +7,7 @@ import pytest
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from src.audit import registry
 from src.audit import service as audit_service
 from src.audit.models import AuditEntry
 from src.auth.models import RoleAssignmentScope
@@ -302,3 +303,45 @@ async def test_authenticated_request_session_carries_actor(
     entries = await _entries(db_async, dept.id)
     assert entries[-1].action == "update"
     assert entries[-1].actor_user_id == user.id
+
+
+class _FirstModel:
+    """Stand-ins for ORM classes; the registry only uses them as dict keys."""
+
+
+class _SecondModel:
+    pass
+
+
+class _ThirdModel:
+    pass
+
+
+@pytest.fixture
+def empty_registry(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Give a test its own registry state; monkeypatch restores the real one."""
+    monkeypatch.setattr(registry, "_models", {})
+    monkeypatch.setattr(registry, "_labels", {})
+    monkeypatch.setattr(registry, "_sensitive_by_record_type", {})
+
+
+def test_sensitive_fields_unknown_record_type_is_empty() -> None:
+    assert registry.sensitive_fields("no_such_record_type") == frozenset()
+
+
+@pytest.mark.usefixtures("empty_registry")
+def test_sensitive_fields_unions_models_sharing_a_record_type() -> None:
+    registry.track(_FirstModel, record_type="shared", sensitive=("notes",))
+    registry.track(_SecondModel, record_type="shared", sensitive=("reason", "notes"))
+    registry.track(_ThirdModel, record_type="other", sensitive=("secret",))
+    assert registry.sensitive_fields("shared") == frozenset({"notes", "reason"})
+    assert registry.sensitive_fields("other") == frozenset({"secret"})
+
+
+@pytest.mark.usefixtures("empty_registry")
+def test_sensitive_fields_follow_a_model_moved_to_another_record_type() -> None:
+    """Re-tracking a model replaces its earlier record type, as a live scan would."""
+    registry.track(_FirstModel, record_type="before", sensitive=("notes",))
+    registry.track(_FirstModel, record_type="after", sensitive=("reason",))
+    assert registry.sensitive_fields("before") == frozenset()
+    assert registry.sensitive_fields("after") == frozenset({"reason"})

@@ -272,6 +272,8 @@ def _missing_response_models(application: FastAPI) -> list[str]:
         "get_settlement_csv",
         # Payments reconciliation export is a CSV download.
         "admin_get_reconciliation_csv",
+        # CAP warning statistics export is a CSV download.
+        "export_statistics_csv",
         # Payroll inputs export is a CSV download (quantities only).
         "export_pay_period_csv",
         # Payslip PDF and payroll bank and GL files.

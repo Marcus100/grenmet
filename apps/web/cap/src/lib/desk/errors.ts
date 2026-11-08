@@ -1,7 +1,8 @@
 /**
  * Turns a failed desk request into words a forecaster can act on. FastAPI
- * returns `{detail: string}` for its own refusals and `{detail: [{loc, msg}]}`
- * for request validation; both 422s are listed item by item.
+ * returns `{detail: string}` for its own refusals and, for a malformed request,
+ * `{detail: "Validation error", errors: [{loc, msg}]}`; both 422s are listed
+ * item by item.
  */
 export interface DeskError {
   /** Each problem on its own line (schema errors, validation failures). */
@@ -34,6 +35,11 @@ function readStatus(error: unknown): number | null {
 function readDetail(error: unknown): unknown {
   if (error && typeof error === "object" && "data" in error) {
     const { data } = error as { data: unknown };
+    // Request validation answers {detail: "Validation error", errors: [...]}.
+    if (data && typeof data === "object" && "errors" in data) {
+      const { errors } = data as { errors: unknown };
+      if (Array.isArray(errors)) return errors;
+    }
     if (data && typeof data === "object" && "detail" in data) {
       return (data as { detail: unknown }).detail;
     }

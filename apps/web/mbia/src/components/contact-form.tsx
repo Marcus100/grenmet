@@ -10,7 +10,11 @@ import {
 import { Textarea } from "@barrelsgd/ui/components/ui/textarea";
 import { Turnstile } from "@barrelsgd/ui/components/ui/turnstile";
 import { useState } from "react";
-import { CONTACT_SUBJECTS, contactSchema } from "@/lib/contact";
+import {
+  CONTACT_SUBJECTS,
+  firstContactError,
+  parseContact,
+} from "@/lib/contact";
 import { env } from "@/lib/env";
 import { reportError } from "@/lib/report-error";
 
@@ -29,11 +33,11 @@ export function ContactForm() {
     event.preventDefault();
     const form = event.currentTarget;
     const data = Object.fromEntries(new FormData(form));
-    const parsed = contactSchema.safeParse(data);
+    const parsed = parseContact(data);
     if (!parsed.success) {
       setState({
         status: "error",
-        message: parsed.error.issues[0]?.message ?? "Please check the form",
+        message: firstContactError(parsed.error),
       });
       return;
     }

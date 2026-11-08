@@ -14,4 +14,5 @@ export const employeePayProfilePublicSchema = z.object({
   shift_worker: z.union([z.boolean(), z.null()]),
   effective_shift_worker: z.boolean(),
   payroll_reference: z.union([z.string(), z.null()]),
+  calendar_override_reason: z.union([z.string(), z.null()]),
 });

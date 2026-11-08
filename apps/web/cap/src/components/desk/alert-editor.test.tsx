@@ -56,6 +56,16 @@ function ok<T>(value: T) {
   return { unwrap: () => Promise.resolve(value) };
 }
 
+/** The documented request-validation 422: a fixed detail and the errors list. */
+function refusedValidation(errors: unknown[]) {
+  const error = Object.assign(new Error("failed"), {
+    data: { detail: "Validation error", errors },
+    name: "ResponseError",
+    status: 422,
+  });
+  return { unwrap: () => Promise.reject(error) };
+}
+
 function refused(status: number, detail: unknown) {
   const error = Object.assign(new Error("failed"), {
     data: { detail },
@@ -190,10 +200,11 @@ describe("editing a saved draft", () => {
 
   it("lists each field the API refused with 422", async () => {
     api.capUpdateAlert.mockReturnValue(
-      refused(422, [
+      refusedValidation([
         {
           loc: ["body", "info", 0, "web"],
           msg: "Value error, web must be a single address",
+          type: "value_error",
         },
       ])
     );

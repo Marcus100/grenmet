@@ -8,7 +8,7 @@ application lockout, so its documented model is the union of both.
 """
 
 import uuid
-from typing import cast
+from typing import Any, cast
 
 import httpx
 import pytest
@@ -158,6 +158,79 @@ async def test_account_lockout_429_returns_detail_string(
     assert response.json() == {
         "detail": "Account temporarily locked due to repeated failed logins"
     }
+
+
+SUBMITTED_SECRET = "private-reason-that-must-not-echo"
+
+
+@pytest.mark.asyncio
+@pytest.mark.usefixtures("db_async")
+@pytest.mark.parametrize(
+    ("method", "path", "request_kwargs"),
+    [
+        pytest.param(
+            "POST",
+            "/contact/messages",
+            {
+                "content": b'{"name": "Ada", "email": ',
+                "headers": {"content-type": "application/json"},
+            },
+            id="json-decode-error",
+        ),
+        pytest.param(
+            "GET",
+            "/auth/users",
+            {"params": {"page": "not-a-number"}},
+            id="bad-query-parameter",
+        ),
+        pytest.param(
+            "GET",
+            "/auth/users/not-a-uuid",
+            {},
+            id="bad-path-parameter",
+        ),
+        pytest.param(
+            "POST",
+            "/contact/messages",
+            {
+                "json": {
+                    "name": "Ada",
+                    "email": SUBMITTED_SECRET,
+                    "subject": "Hello",
+                    "message": "A message long enough to pass its own rules.",
+                }
+            },
+            id="validator-value-error",
+        ),
+    ],
+)
+async def test_malformed_request_returns_documented_validation_shape(
+    async_client: httpx.AsyncClient,
+    superuser_token_headers_async: dict[str, str],
+    method: str,
+    path: str,
+    request_kwargs: dict[str, Any],
+) -> None:
+    """A request-validation 422 is ``ValidationErrorResponse``, never FastAPI's list.
+
+    The ``input`` and ``ctx`` fields are never returned, so the submitted value
+    is not sent back as a field. A ``msg`` may still quote a fragment of it.
+    """
+    extra_headers = request_kwargs.pop("headers", {})
+    response = await async_client.request(
+        method,
+        f"{settings.API_V1_STR}{path}",
+        headers={**superuser_token_headers_async, **extra_headers},
+        **request_kwargs,
+    )
+    assert response.status_code == 422, response.text
+    body = response.json()
+    assert set(body) == {"detail", "errors"}, body
+    assert body["detail"] == "Validation error"
+    assert body["errors"], body
+    for item in body["errors"]:
+        assert set(item) == {"type", "loc", "msg"}, item
+    assert SUBMITTED_SECRET not in response.text
 
 
 async def test_app_exception_handler_passes_headers_through() -> None:

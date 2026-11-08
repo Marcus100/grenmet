@@ -1816,6 +1816,16 @@ export type {
   CapExpireAlertStatus404,
   CapExpireAlertStatus422,
 } from "./CapExpireAlert.js";
+export type {
+  CapExportStatisticsCsvOptions,
+  CapExportStatisticsCsvQuery,
+  CapExportStatisticsCsvResponse,
+  CapExportStatisticsCsvResponses,
+  CapExportStatisticsCsvStatus200,
+  CapExportStatisticsCsvStatus401,
+  CapExportStatisticsCsvStatus403,
+  CapExportStatisticsCsvStatus422,
+} from "./CapExportStatisticsCsv.js";
 export type { CapFeedImportCreate } from "./CapFeedImportCreate.js";
 export type { CapFeedImportPublic } from "./CapFeedImportPublic.js";
 export type { CapFeedImportUpdate } from "./CapFeedImportUpdate.js";
@@ -2012,6 +2022,16 @@ export type {
   CapGetRssStatus200,
   CapGetRssStatus422,
 } from "./CapGetRss.js";
+export type {
+  CapGetStatisticsOptions,
+  CapGetStatisticsQuery,
+  CapGetStatisticsResponse,
+  CapGetStatisticsResponses,
+  CapGetStatisticsStatus200,
+  CapGetStatisticsStatus401,
+  CapGetStatisticsStatus403,
+  CapGetStatisticsStatus422,
+} from "./CapGetStatistics.js";
 export type { CapHazardGroupPublic } from "./CapHazardGroupPublic.js";
 export type {
   CapImportAlertBody,
@@ -2123,6 +2143,8 @@ export type { CapSettingsUpdate } from "./CapSettingsUpdate.js";
 export type { CapSeverity } from "./CapSeverity.js";
 export { capSeverity } from "./CapSeverity.js";
 export type { CapSnapshotPublic } from "./CapSnapshotPublic.js";
+export type { CapStatisticsBucket } from "./CapStatisticsBucket.js";
+export type { CapStatisticsPublic } from "./CapStatisticsPublic.js";
 export type { CapStatus } from "./CapStatus.js";
 export { capStatus } from "./CapStatus.js";
 export type {

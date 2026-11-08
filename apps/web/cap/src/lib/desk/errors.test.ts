@@ -42,6 +42,29 @@ describe("describeDeskError", () => {
     expect(result.items).toEqual(["info › 0 › web: web must be one address"]);
   });
 
+  it("names the field from the documented errors list of a 422", () => {
+    // The API's ValidationErrorResponse: a fixed detail and the errors list.
+    const result = describeDeskError(
+      Object.assign(new Error("failed"), {
+        data: {
+          detail: "Validation error",
+          errors: [
+            {
+              loc: ["body", "info", 0, "web"],
+              msg: "web must be one address",
+              type: "value_error",
+            },
+          ],
+        },
+        name: "ResponseError",
+        status: 422,
+      })
+    );
+    expect(result.kind).toBe("validation");
+    expect(result.title).toBe("Some values could not be saved.");
+    expect(result.items).toEqual(["info › 0 › web: web must be one address"]);
+  });
+
   it("explains the imported-alert confirmation", () => {
     const result = describeDeskError(
       failure(409, "This alert was imported. ... confirm_imported set to true.")

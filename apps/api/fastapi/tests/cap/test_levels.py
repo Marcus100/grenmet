@@ -2,9 +2,11 @@ import pytest
 
 from src.cap.levels import (
     AWARENESS_PARAMETER,
+    AWARENESS_SPACE,
     PRODUCT_PARAMETER,
     GmsColour,
     GmsProduct,
+    awareness_pattern,
     awareness_value,
     level_parameters,
     parse_awareness,
@@ -14,6 +16,16 @@ from src.cap.levels import (
 )
 from src.cap.models import CapSeverity
 from src.cap.schemas import CapNameValue
+
+
+def test_sql_space_class_is_every_code_point_str_strip_removes() -> None:
+    """parse_awareness strips str.isspace() characters; the SQL pattern must too."""
+    python_spaces = {char for char in map(chr, range(0x110000)) if char.isspace()}
+    assert set(AWARENESS_SPACE) == python_spaces
+    for colour in GmsColour:
+        pattern = awareness_pattern(colour)
+        assert "\\s" not in pattern  # the locale-dependent class is not used
+        assert AWARENESS_SPACE in pattern
 
 
 @pytest.mark.parametrize(

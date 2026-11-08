@@ -14,12 +14,17 @@ import {
   capPredefinedAreaPublicSchema,
   capProfilePublicSchema,
   capSettingsPublicSchema,
+  capStatisticsPublicSchema,
   capSuggestIbfResponseSchema,
   gmsCataloguePublicSchema,
 } from "@barrelsgd/api-client";
-import { authApiFetch } from "@barrelsgd/auth/server";
+import { authApiFetch, authApiFetchResponse } from "@barrelsgd/auth/server";
 import { z } from "zod";
 import { getAuthConfig } from "./auth-config";
+import {
+  type StatisticsFilter,
+  statisticsQueryString,
+} from "./statistics-query";
 
 /**
  * Server-side reads for the warning desk with the signed-in forecaster's
@@ -196,5 +201,26 @@ export function approveHazardProfile(accessToken: string, profileId: string) {
     `/cap/hazard-profiles/${encodeURIComponent(profileId)}/approve`,
     undefined,
     capProfilePublicSchema
+  );
+}
+
+/** Published-warning counts by hazard, colour, parish and month. */
+export function getStatistics(accessToken: string, filter: StatisticsFilter) {
+  return read(
+    accessToken,
+    `/cap/statistics${statisticsQueryString(filter)}`,
+    capStatisticsPublicSchema
+  );
+}
+
+/** The same counts as a CSV download. The caller streams the body on. */
+export function exportStatisticsCsv(
+  accessToken: string,
+  filter: StatisticsFilter
+) {
+  return authApiFetchResponse(
+    getAuthConfig(),
+    `/cap/statistics/export.csv${statisticsQueryString(filter)}`,
+    { accessToken, cache: "no-store" }
   );
 }

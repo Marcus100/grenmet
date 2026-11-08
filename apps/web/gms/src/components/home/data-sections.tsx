@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import type { Route } from "next";
 import Link from "next/link";
+import { CardPictureArea } from "@/components/home/card-picture";
 import {
   DESK_CARD_ITEM,
   HOME_CARD,
@@ -101,6 +102,8 @@ export async function SectorDeskCard({
             </h3>
           </header>
         )}
+        {/* No product sits behind the week, so the picture area says so; it never disappears. */}
+        <CardPictureArea picture={null} />
         {/* The card's notices sit together in one status region. */}
         {(!tiles || quiet || (outlook && !outlook.complete)) && (
           <div className="flex flex-col gap-2" role="status">

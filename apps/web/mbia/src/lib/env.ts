@@ -10,6 +10,15 @@ export const env = createEnv({
     // secret that redeems single sign-on codes (unset hides "Sign in").
     AUTH_APP_URL: z.string().url().optional().default("http://localhost:3000"),
     MBIA_SESSION_COOKIE_NAME: z.string().optional().default("mbia_session"),
+    // Reverse proxies in front of this server that append to x-forwarded-for
+    // (1, or 2 behind Cloudflare). See src/lib/visitor-headers.ts.
+    VISITOR_IP_PROXY_HOPS: z.coerce.number().int().min(1).max(5).default(1),
+    // Shared with the API TRUSTED_WEB_SECRET so the contact rate limit keys on
+    // the visitor. Unset: every visitor shares one API bucket.
+    TRUSTED_WEB_SECRET: z.preprocess(
+      (value) => value || undefined,
+      z.string().min(32).optional()
+    ),
     // Deployment passes "" when the secret isn't set: treat that as off.
     MBIA_SSO_CLIENT_SECRET: z.preprocess(
       (value) => value || undefined,
@@ -35,6 +44,8 @@ export const env = createEnv({
     AUTH_API_V1_STR: process.env.AUTH_API_V1_STR,
     AUTH_APP_URL: process.env.AUTH_APP_URL,
     MBIA_SESSION_COOKIE_NAME: process.env.MBIA_SESSION_COOKIE_NAME,
+    VISITOR_IP_PROXY_HOPS: process.env.VISITOR_IP_PROXY_HOPS,
+    TRUSTED_WEB_SECRET: process.env.TRUSTED_WEB_SECRET,
     MBIA_SSO_CLIENT_SECRET: process.env.MBIA_SSO_CLIENT_SECRET,
     NEXT_PUBLIC_SITE_URL: readPublicEnv("NEXT_PUBLIC_SITE_URL"),
     NEXT_PUBLIC_TURNSTILE_SITE_KEY: readPublicEnv(
