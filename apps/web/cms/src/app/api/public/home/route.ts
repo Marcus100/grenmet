@@ -72,10 +72,10 @@ export async function GET() {
     reportNotes,
     livePosts,
   ] = await Promise.all([
-    // The GMS row shows eight desk posts, up to three pinned ones leading, and
-    // an official card takes its picture from a pinned post about it. Pinned
-    // posts are fetched on their own so an older pin never drops off behind
-    // newer unpinned posts.
+    // The GMS row shows eight desk posts with the three newest pinned ones
+    // leading, and an official card takes its picture from a pinned post about
+    // it. Pinned posts (up to six) are fetched on their own so they always reach
+    // the site, however old; the site decides which of them it shows.
     part("desk-updates", async () =>
       withPins(
         await findArticles(payload, "desk-updates", {
