@@ -62,8 +62,12 @@ production release it counts the pull requests merged into `dev` since the
 previous release tag and reports how long they took from merge to live on
 production (the `pipeline-prod.yml` finish time), plus publish → live, releases
 per week, failed or cancelled production deploys, and follow-up releases within
-a day (a rough sign of a fix-up). Promotion merges from `dev`, `staging` or
-`main` are not changes. It reads `gh release list`, `gh run list` and git tags.
+a day (a rough sign of a fix-up; planned back-to-back releases count too).
+A change is any pull request merge between two release tags, so a hotfix merged
+straight into `staging` or `main` counts too; promotion merges from `dev`,
+`staging` or `main` do not. A re-run deploy uses the latest run's finish time.
+It reads `gh release list`, `gh run list` and git tags, and runs
+`git fetch --tags` first.
 
 ## Scorers
 

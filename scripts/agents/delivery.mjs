@@ -97,6 +97,9 @@ export function computeDelivery({ releases, deploys, changesFor, days, now }) {
       (row) => !["success", "none"].includes(row.deploy)
     ).length,
     followUps: rows.filter((row) => row.followUp).length,
+    // A release with no production run found (never ran, or older than the
+    // runs `gh run list` returned) is not a success either; say so.
+    noDeployFound: rows.filter((row) => row.deploy === "none").length,
   };
 }
 
@@ -113,7 +116,7 @@ export function formatDelivery(result, { days }) {
   const lines = [
     `Last ${days} days: ${result.releases.length} production releases (${result.releasesPerWeek.toFixed(1)} per week)`,
     `Merge into dev → live on production: median ${formatDuration(result.medianLeadMs)}, slowest 10% ${formatDuration(result.p90LeadMs)}`,
-    `Failed or cancelled production deploys: ${result.failedDeploys}; follow-up release within a day: ${result.followUps}`,
+    `Failed or cancelled production deploys: ${result.failedDeploys}; no deploy run found: ${result.noDeployFound}; follow-up release within a day: ${result.followUps}`,
     "",
     "Release   changes  merge→live median  slowest   publish→live  deploy",
   ];
@@ -196,6 +199,10 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
   const daysIndex = process.argv.indexOf("--days");
   const days =
     daysIndex > 0 ? Number(process.argv[daysIndex + 1]) : DEFAULT_DAYS;
+  if (!(Number.isFinite(days) && days > 0)) {
+    console.error("--days needs a positive number");
+    process.exit(1);
+  }
   const result = computeDelivery({ ...load(), days, now: Date.now() });
   console.log(
     process.argv.includes("--json")
