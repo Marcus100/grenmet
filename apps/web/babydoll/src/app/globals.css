@@ -17,7 +17,6 @@
   --blush-deep: #2a1218;
   --blush-ink: #8a3c4f;
   --rule: #496e77;
-  --logo-filter: none;
 
   --step--1: 0.8125rem;
   --step-0: 1rem;
@@ -27,20 +26,7 @@
   --step-4: clamp(2.6rem, 8vw, 5.5rem);
   --gutter: clamp(16px, 4vw, 48px);
   --bar-h: 0px;
-  color-scheme: light dark;
-}
-@media (prefers-color-scheme: dark) {
-  :root {
-    --paper: #121011;
-    --paper-2: #1d1a1b;
-    --line: #352f30;
-    --ink: #f4eee8;
-    --ink-soft: #b8aea8;
-    --blush: #f3c3cf;
-    --blush-ink: #f3c3cf;
-    --rule: #a3b9bf;
-    --logo-filter: invert(1);
-  }
+  color-scheme: light;
 }
 
 * {
@@ -209,7 +195,6 @@ p {
 .brand img {
   width: 42px;
   height: 42px;
-  filter: var(--logo-filter);
   clip-path: circle(48%);
 }
 .brand span {
@@ -398,7 +383,6 @@ section.block.flush-top {
   width: 100%;
   height: auto;
   aspect-ratio: 1;
-  filter: var(--logo-filter);
   clip-path: circle(48%);
 }
 .rating {
