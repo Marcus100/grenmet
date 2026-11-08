@@ -129,8 +129,9 @@ export async function findArticles(
   {
     limit = 20,
     now = new Date(),
+    pinnedOnly = false,
     slug,
-  }: { limit?: number; now?: Date; slug?: string } = {}
+  }: { limit?: number; now?: Date; pinnedOnly?: boolean; slug?: string } = {}
 ): Promise<PublicArticle[]> {
   const result = await payload.find({
     collection,
@@ -138,7 +139,11 @@ export async function findArticles(
     depth: 1,
     limit: slug ? 1 : limit,
     sort: "-publishedAt",
-    where: liveWhere(now, ...(slug ? [{ slug: { equals: slug } }] : [])),
+    where: liveWhere(
+      now,
+      ...(slug ? [{ slug: { equals: slug } }] : []),
+      ...(pinnedOnly ? [{ pinned: { equals: true } }] : [])
+    ),
   });
   return result.docs.map((doc) => toArticle(collection, doc as unknown as Doc));
 }
