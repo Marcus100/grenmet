@@ -11,6 +11,8 @@ const asLevel = (colour: string | null | undefined): Level | null =>
 
 /** One alert or warning as a sector tile shows it. */
 export interface SectorItem {
+  /** "What to do": the first sentence of the alert's response text, or "" when it has none. */
+  advice: string;
   /**
    * A Green "All clear" bulletin: information, not an alert. It has no level
    * and never raises the tile's impact bar.
@@ -139,6 +141,7 @@ export function buildSectorTiles(
             now
           ),
           summary: firstSentence(item.impacts),
+          advice: item.response ? firstSentence(item.response) : "",
           href: hrefFor(item),
           everyone: item.affects_everyone,
           allClear,
@@ -157,4 +160,53 @@ export function buildSectorTiles(
       more: Math.max(0, all.length - perTile),
     };
   });
+}
+
+const LEVEL_NAME: Record<Level, string> = {
+  green: "Green",
+  yellow: "Yellow",
+  orange: "Orange",
+  red: "Red",
+};
+
+/** "Marine", "Marine and Health", "Marine, Health and Aviation". */
+function joinLabels(labels: string[]): string {
+  if (labels.length <= 1) {
+    return labels[0] ?? "";
+  }
+  return `${labels.slice(0, -1).join(", ")} and ${labels.at(-1)}`;
+}
+
+/**
+ * The compact card's bold line and short text, written from the week's
+ * published alerts and warnings only (owner, 8 Nov 2026): the highest level and
+ * the sectors at it, then the first item there and when it applies. With
+ * nothing published it says so; it never invents an all-clear.
+ */
+export function weekSummary(tiles: SectorTile[]): {
+  headline: string;
+  text: string;
+} {
+  const withItems = tiles.filter((tile) => tile.items.length > 0);
+  if (withItems.length === 0) {
+    return {
+      headline: "No alerts or warnings this week",
+      text: "Nothing is published for any sector right now.",
+    };
+  }
+  const label = (tile: SectorTile) =>
+    SECTORS.find(({ value }) => value === tile.sector)?.label ?? tile.sector;
+  const peakIndex = Math.max(
+    -1,
+    ...withItems.map((tile) => (tile.peak ? LEVELS.indexOf(tile.peak) : -1))
+  );
+  const peak = peakIndex >= 0 ? LEVELS[peakIndex] : undefined;
+  const top = peak ? withItems.filter((tile) => tile.peak === peak) : withItems;
+  const first = top[0]?.items[0];
+  return {
+    headline: peak
+      ? `${LEVEL_NAME[peak]} level for ${joinLabels(top.map(label))}`
+      : `Outlooks for ${joinLabels(top.map(label))}`,
+    text: first ? `${first.title} · ${first.when}` : "",
+  };
 }
