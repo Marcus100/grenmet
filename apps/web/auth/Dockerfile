@@ -1,6 +1,9 @@
 # syntax=docker/dockerfile:1
 FROM node:24-alpine@sha256:e67514e5d0f6c46656005e1b693b2ec9d52e80b641307de684d4a015ba7a4eaf AS base
-RUN apk upgrade --no-cache
+# Bump this date when Alpine publishes a fix: BuildKit would otherwise reuse the cached
+# `apk upgrade` layer and keep shipping the old packages (musl 1.2.6-r2, 2026-11-07).
+ARG ALPINE_PATCH_DATE=2026-11-07
+RUN echo "Alpine patch date ${ALPINE_PATCH_DATE}" && apk upgrade --no-cache
 
 # Applications and migrations run directly with Node; keep package managers in builders.
 FROM base AS runtime-base
