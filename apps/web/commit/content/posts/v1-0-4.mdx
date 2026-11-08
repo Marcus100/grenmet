@@ -31,9 +31,10 @@ Everything in it ran on staging before it reached production.
 ### Forms and sites
 
 - **Contact forms:** the mbia and barrels contact forms post to a per-site API
-  route instead of the old shared one. mbia checks the visitor with Turnstile,
-  forwards the visitor's address and names the field that failed. Form inputs on
-  mbia now meet 3:1 contrast against their background.
+  route instead of the old shared one. The mbia form can show a Turnstile check
+  once a site key is configured, can forward the visitor's address when a shared
+  secret is configured, and names the field that failed. Form inputs on mbia now
+  meet 3:1 contrast against their background.
 
 ### Platform
 
