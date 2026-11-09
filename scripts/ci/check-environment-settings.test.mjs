@@ -1,14 +1,30 @@
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
+import { spawnSync } from "node:child_process";
+import {
+  chmodSync,
+  mkdtempSync,
+  readFileSync,
+  rmSync,
+  writeFileSync,
+} from "node:fs";
+import { tmpdir } from "node:os";
+import { delimiter, join } from "node:path";
 import { describe, it } from "node:test";
+import { fileURLToPath } from "node:url";
 
 import {
+  AccessError,
   compareEnvironment,
   formatReport,
   run,
   validateManifest,
 } from "./check-environment-settings.mjs";
 
+const SCRIPT = fileURLToPath(
+  new URL("./check-environment-settings.mjs", import.meta.url)
+);
+const COULD_NOT_LIST = /Could not list staging secrets with gh/u;
+const HTTP_403 = /HTTP 403/u;
 const MISSING_LINE = /MISSING {4}secret SECRET_KEY/u;
 const PENDING_LINE = /pending {4}variable X \(absent\): why/u;
 const STAGING_PENDING = /staging:\n {2}pending/u;
@@ -63,6 +79,18 @@ describe("validateManifest", () => {
     assert.ok(
       errors.includes("staging variables: lower-case is not a valid name")
     );
+  });
+
+  it("requires plain objects, not arrays, for only and pending", () => {
+    const manifest = structuredClone(MANIFEST);
+    manifest.only = [];
+    manifest.pending.staging = ["X"];
+    manifest.pending.production.secrets = ["STORAGE_BUCKET"];
+    assert.deepEqual(validateManifest(manifest), [
+      "only must be an object",
+      "pending.staging must be an object",
+      "pending.production.secrets must be an object of name: reason",
+    ]);
   });
 });
 
@@ -192,6 +220,19 @@ describe("run", () => {
     assert.match(lines[0], INVALID);
   });
 
+  it("lets a listing failure propagate instead of reporting drift", () => {
+    assert.throws(
+      () =>
+        run(["--manifest", "custom.json"], {
+          ...options([]),
+          names: () => {
+            throw new AccessError("Could not list staging secrets with gh");
+          },
+        }),
+      AccessError
+    );
+  });
+
   it("rejects a malformed repository before calling the API", () => {
     assert.throws(
       () =>
@@ -200,5 +241,67 @@ describe("run", () => {
         }),
       { message: "Invalid repository: not a repo" }
     );
+  });
+});
+
+describe("process exit codes", () => {
+  const SMALL = {
+    environments: ["staging"],
+    shared: { secrets: ["SECRET_KEY"], variables: [] },
+  };
+
+  function fixture(t, ghBody) {
+    const directory = mkdtempSync(join(tmpdir(), "env-settings-"));
+    t.after(() => rmSync(directory, { recursive: true, force: true }));
+    const gh = join(directory, "gh");
+    writeFileSync(gh, `#!/bin/sh\n${ghBody}\n`);
+    chmodSync(gh, 0o755);
+    const manifest = join(directory, "manifest.json");
+    writeFileSync(manifest, JSON.stringify(SMALL));
+    return {
+      args: [SCRIPT, "--manifest", manifest],
+      env: {
+        ...process.env,
+        PATH: `${directory}${delimiter}${process.env.PATH}`,
+      },
+    };
+  }
+
+  function exec({ args, env }) {
+    return spawnSync(process.execPath, args, { env, encoding: "utf8" });
+  }
+
+  it("exits 0 when gh lists exactly the manifest names", (t) => {
+    const result = exec(
+      fixture(t, 'case "$*" in *secrets*) echo SECRET_KEY;; esac')
+    );
+    assert.equal(result.status, 0, result.stdout + result.stderr);
+  });
+
+  it("exits 1 for drift", (t) => {
+    const result = exec(
+      fixture(
+        t,
+        'case "$*" in *secrets*) printf "SECRET_KEY\\nSURPRISE\\n";; esac'
+      )
+    );
+    assert.equal(result.status, 1);
+    assert.match(result.stdout, SURPRISE);
+  });
+
+  it("exits 2 when gh fails, with the reason on stderr and nothing on stdout", (t) => {
+    const result = exec(
+      fixture(t, "echo 'HTTP 403: Resource not accessible' >&2; exit 1")
+    );
+    assert.equal(result.status, 2);
+    assert.match(result.stderr, COULD_NOT_LIST);
+    assert.match(result.stderr, HTTP_403);
+    assert.equal(result.stdout, "");
+  });
+
+  it("exits 2 for a malformed repository argument", (t) => {
+    const { args, env } = fixture(t, "exit 0");
+    const result = exec({ args: [...args, "--repo", "not a repo"], env });
+    assert.equal(result.status, 2);
   });
 });
