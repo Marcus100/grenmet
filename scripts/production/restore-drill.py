@@ -55,7 +55,7 @@ API_DATABASE_VARIABLES = {
 # Each asks for one row.
 API_READ_PATHS = (
     "/api/v1/auth/users/me",
-    "/api/v1/events/listings?limit=1",
+    "/api/v1/events/admin/events?size=1",
     "/api/v1/eregister/observations?limit=1",
     "/api/v1/wxwatch/archive?limit=1",
 )

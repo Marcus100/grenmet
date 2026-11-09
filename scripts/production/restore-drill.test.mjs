@@ -472,7 +472,7 @@ test("a non-200 read fails and names only the path and code", () => {
   });
   if (
     run.code === 0 ||
-    !run.stdout.includes("GET /api/v1/events/listings?limit=1") ||
+    !run.stdout.includes("GET /api/v1/events/admin/events?size=1") ||
     !run.stdout.includes("expected 200, got 500")
   ) {
     fail(run.stdout);
