@@ -24,6 +24,7 @@ from src.hr.dependencies import get_roster_period_or_404
 from src.hr.exceptions import HRPermissionDeniedError, HRValidationError
 from src.hr.models import Department, EmploymentRecord, RequestStatus
 from src.utils.datetime import utc_now
+from src.utils.text import clean_reason
 from src.utils.timezones import local_today
 
 from .models import (
@@ -54,7 +55,6 @@ from .schemas import (
     RosterRuleSetUpdate,
     RosterRulesUpdate,
     RuleSetSource,
-    clean_reason,
 )
 from .service import require_roster_manage_scope, require_roster_read_scope
 
