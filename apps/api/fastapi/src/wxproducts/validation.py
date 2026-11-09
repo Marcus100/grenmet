@@ -13,7 +13,7 @@ from src.models import BaseModel
 from src.sectors import unknown_sectors
 from src.utils.timezones import GRENADA as GRENADA
 
-from . import units
+from . import synop_codes, units
 from .schemas import (
     ProductKind,
     ProductPreview,
@@ -67,6 +67,14 @@ class FieldRule(BaseModel):
 FIELDS = TypeAdapter(dict[str, list[FieldRule]]).validate_python(
     json.loads(Path(__file__).with_name("fields.json").read_text())
 )
+# Hazard bulletins (GMS alerts): the kinds with a bulletin purpose (`notice`).
+BULLETIN_KINDS = frozenset(
+    kind for kind, rules in FIELDS.items() if any(r.key == "notice" for r in rules)
+)
+# Marine products give wind in knots and heights in metres with feet in
+# brackets (owner, 9 Nov 2026); land forecasts stay mph and feet.
+MARINE_KINDS = frozenset({"marine", "marine-forecast"})
+SUPERSEDED = "superseded by the next issue"
 
 
 def local_time(value: str) -> datetime:
@@ -131,8 +139,13 @@ def period_values(values: dict[str, str], prefix: str) -> dict[str, str]:
     }
 
 
-def compose_legacy_text(values: dict[str, str]) -> dict[str, str]:
-    """Derive the free-text keys older consumers read from structured values."""
+def compose_legacy_text(
+    values: dict[str, str], *, marine: bool = False
+) -> dict[str, str]:
+    """Derive the free-text keys older consumers read from structured values.
+
+    Marine products say knots and metres (feet in brackets); others mph and feet.
+    """
     composed: dict[str, str] = {}
     wind_keys = ("windDirFrom", "windDirTo", "windSpeedMin", "windSpeedMax", "windGust")
     if any(values.get(key) for key in wind_keys):
@@ -142,11 +155,13 @@ def compose_legacy_text(values: dict[str, str]) -> dict[str, str]:
             optional_number(values, "windSpeedMin"),
             optional_number(values, "windSpeedMax"),
             optional_number(values, "windGust"),
+            unit=units.MARINE_WIND_UNIT if marine else units.PUBLIC_WIND_UNIT,
         )
     sea = units.sea_state_text(
         values.get("seaStateFrom", ""), values.get("seaStateTo", "")
     )
-    waves = units.height_text(
+    heights = units.marine_height_text if marine else units.height_text
+    waves = heights(
         optional_number(values, "waveHeightMin"),
         optional_number(values, "waveHeightMax"),
     )
@@ -154,12 +169,17 @@ def compose_legacy_text(values: dict[str, str]) -> dict[str, str]:
         values.get("swellDir", ""),
         optional_number(values, "swellPeriod"),
         optional_number(values, "swellHeight"),
+        marine=marine,
     )
     if swell:
         composed["swell"] = swell
-    marine = [sea, f"waves {waves}" if waves else "", f"swell {swell}" if swell else ""]
-    if any(marine):
-        composed["seaState"] = "; ".join(part for part in marine if part)
+    sea_parts = [
+        sea,
+        f"waves {waves}" if waves else "",
+        f"swell {swell}" if swell else "",
+    ]
+    if any(sea_parts):
+        composed["seaState"] = "; ".join(part for part in sea_parts if part)
     visibility = units.visibility_text(
         optional_number(values, "visibilityMin"),
         optional_number(values, "visibilityMax"),
@@ -200,10 +220,15 @@ def normalize(
     if forecaster and "forecaster" in allowed:
         result["forecaster"] = forecaster
     for prefix, _ in forecast_periods(kind):
-        composed = compose_legacy_text(period_values(values, prefix))
+        composed = compose_legacy_text(
+            period_values(values, prefix), marine=kind in MARINE_KINDS
+        )
         for name, text in composed.items():
             if parameter_key(prefix, name) in allowed:
                 result[parameter_key(prefix, name)] = text
+    _normalize_weather(kind, result)
+    if kind in BULLETIN_KINDS:
+        return _bulletin_details(result)
     if kind == "marine-forecast":
         # The typed small-craft fields were removed; older revisions carry them
         # and the desk posts stored values back, so new writes drop them
@@ -244,6 +269,51 @@ def normalize(
     if kind == "evening":
         for day in range(1, 5):
             result[f"day{day}Date"] = (issued + timedelta(days=day)).date().isoformat()
+    return result
+
+
+def _normalize_weather(kind: ProductKind, result: dict[str, str]) -> None:
+    """Weather types: legacy single labels become items, and the public
+    sentence (`<key>Text`) is generated when the forecaster left it empty."""
+    for rule in FIELDS[kind]:
+        if rule.type != "weather" or not result.get(rule.key, "").strip():
+            continue
+        items = synop_codes.parse_weather(result[rule.key])
+        text_key = f"{rule.key}Text"
+        legacy = result[rule.key].strip()
+        if legacy in synop_codes.LEGACY_WEATHER_TYPES:
+            # Several old labels map onto a broader item ("Severe
+            # thunderstorms" -> thunderstorms), so the official wording keeps
+            # the label as issued; the generated sentence never replaces it.
+            if not result.get(text_key, "").strip():
+                result[text_key] = legacy
+            result[rule.key] = synop_codes.format_weather(items)
+        if not result.get(text_key, "").strip():
+            result[text_key] = synop_codes.weather_sentence(result[rule.key])
+
+
+def _local_label(value: str) -> str:
+    try:
+        return f"{local_time(value):%H:%M %a %-d %b}"
+    except ValueError, OverflowError:
+        return ""
+
+
+def bulletin_validity(valid_from: str, valid_to: str) -> str:
+    """Fixed validity sentence for an alert (owner decision 4, #1197)."""
+    start, end = _local_label(valid_from), _local_label(valid_to)
+    if not (start and end):
+        return ""
+    return f"Valid from {start} to {end}, or until {SUPERSEDED}."
+
+
+def _bulletin_details(result: dict[str, str]) -> dict[str, str]:
+    """Alerts are green only, and their validity reads from the machine fields."""
+    if not result.get("level", "").strip():
+        result["level"] = "Green"
+    validity = bulletin_validity(result.get("validFrom", ""), result.get("validTo", ""))
+    if validity:
+        result["validity"] = validity
     return result
 
 
@@ -467,6 +537,8 @@ def validate(body: ProductWrite, *, now: datetime | None = None) -> list[str]:
             errors.append(f"{rule.label}: enter a time as HH:MM")
         if value and rule.type == "sectors" and unknown_sectors(value):
             errors.append(f"{rule.label}: choose from the listed sectors")
+        if value and rule.type == "weather" and not synop_codes.is_valid_weather(value):
+            errors.append(f"{rule.label}: choose from the listed weather types")
     # Structured parameters appear in forecasts and several bulletins.
     for prefix, label in forecast_periods(kind):
         errors.extend(

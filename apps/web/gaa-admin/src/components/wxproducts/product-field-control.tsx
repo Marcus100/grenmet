@@ -18,6 +18,7 @@ import { cn } from "@barrelsgd/ui/lib/utils";
 import type { ReactNode } from "react";
 import { SectorCheckboxes } from "@/components/sectors/sector-checkboxes";
 import { ProductNumberInput } from "@/components/wxproducts/product-number-input";
+import { ProductWeatherControl } from "@/components/wxproducts/product-weather-control";
 import {
   productFieldCaption,
   productFieldLabel,
@@ -25,13 +26,20 @@ import {
 } from "@/lib/wxproducts/units";
 
 const DAY_SECTION_PREFIX = /^Day (\d)/u;
-const SUN_TIME_KEY = /(?:sunrise|sunset)$/iu;
-const WEATHER_TYPE_KEY = /^(day\d)?[Ww]eatherType$/u;
+const SUN_TIME_KEY = /(?:sunrise|sunset)(?:Today|Tomorrow)?$/iu;
+const WEATHER_TEXT_KEY = /^(day\d)?[Ww]eatherTypeText$/u;
+/** Help under a field whose label alone does not say how to choose. */
+const FIELD_HELP: Record<string, string> = {
+  notice:
+    "Information: awareness only, no action needed. Advisory: take precautions. All clear: the hazard has ended and this event closes.",
+  bulletinNumber:
+    "Proposed from the last issue of this alert: the next number while the event continues, 1 after an all clear or once it expired.",
+};
 /** Size inputs to the data they hold; only free prose spans the card. */
 function fieldWidth(f: ProductField) {
   if (f.key === "definition") return "w-full max-w-sm";
-  // "Moderate or heavy showers" is the longest weather type.
-  if (WEATHER_TYPE_KEY.test(f.key)) return "w-60";
+  // The generated weather sentence is prose.
+  if (WEATHER_TEXT_KEY.test(f.key)) return "col-span-full basis-full max-w-xl";
   if (f.type === "textarea") return "col-span-full basis-full";
   if (sectionParts(f.section).group === "Tides") {
     if (f.options) return "w-32";
@@ -115,6 +123,16 @@ export function ProductFieldControl({
       {error}
     </p>
   ) : null;
+  if (f.type === "weather")
+    return (
+      <ProductWeatherControl
+        error={error}
+        id={inputId}
+        label={productFieldLabel(f, kind)}
+        onChange={onChange}
+        value={value ?? ""}
+      />
+    );
   if (f.type === "sectors")
     return (
       <>
@@ -133,7 +151,7 @@ export function ProductFieldControl({
         ) : null}
       </>
     );
-  const accessibleLabel = `${productFieldLabel(f)}${f.required ? " *" : ""}`;
+  const accessibleLabel = `${productFieldLabel(f, kind)}${f.required ? " *" : ""}`;
   const showCaption =
     Boolean(value?.trim()) ||
     ["date", "time", "datetime-local"].includes(f.type ?? "");
@@ -156,9 +174,9 @@ export function ProductFieldControl({
           )}
           data-slot="input-group-control"
           id={inputId}
-          title={productFieldLabel(f)}
+          title={productFieldLabel(f, kind)}
         >
-          <SelectValue placeholder={productFieldCaption(f)} />
+          <SelectValue placeholder={productFieldCaption(f, kind)} />
         </SelectTrigger>
         <SelectContent>
           {f.required ? null : (
@@ -182,9 +200,9 @@ export function ProductFieldControl({
         id={inputId}
         maxLength={12_000}
         onChange={(e) => onChange(e.target.value)}
-        placeholder={productFieldCaption(f)}
+        placeholder={productFieldCaption(f, kind)}
         rows={2}
-        title={productFieldLabel(f)}
+        title={productFieldLabel(f, kind)}
         value={value ?? ""}
       />
     );
@@ -195,6 +213,7 @@ export function ProductFieldControl({
         field={f}
         id={inputId}
         invalid={invalid}
+        kind={kind}
         onChange={onChange}
         value={value ?? ""}
       />
@@ -209,8 +228,8 @@ export function ProductFieldControl({
         id={inputId}
         maxLength={12_000}
         onChange={(e) => onChange(e.target.value)}
-        placeholder={productFieldCaption(f)}
-        title={productFieldLabel(f)}
+        placeholder={productFieldCaption(f, kind)}
+        title={productFieldLabel(f, kind)}
         type={f.type ?? "text"}
         value={value ?? ""}
       />
@@ -226,7 +245,7 @@ export function ProductFieldControl({
       orientation="horizontal"
     >
       <FieldLabel className="sr-only" htmlFor={inputId}>
-        {productFieldLabel(f)}
+        {productFieldLabel(f, kind)}
         {f.required ? " *" : ""}
       </FieldLabel>
       <div className="flex min-w-0 flex-1 flex-col gap-1">
@@ -237,7 +256,7 @@ export function ProductFieldControl({
               aria-hidden="true"
               className="pointer-events-none absolute top-0.5 right-2 left-2 z-10 justify-start gap-1 truncate p-0 text-xs leading-3 font-normal"
             >
-              {productFieldCaption(f)}
+              {productFieldCaption(f, kind)}
               {f.required ? <span className="text-destructive">*</span> : null}
             </InputGroupAddon>
           ) : null}
@@ -251,17 +270,23 @@ export function ProductFieldControl({
             </InputGroupAddon>
           ) : null}
           {control}
-          {productFieldUnit(f) && sectionParts(f.section).group !== "Wind" ? (
+          {productFieldUnit(f, kind) &&
+          sectionParts(f.section).group !== "Wind" ? (
             <InputGroupAddon
               align="inline-end"
               aria-hidden="true"
               className="shrink-0 text-xs"
             >
-              {productFieldUnit(f)}
+              {productFieldUnit(f, kind)}
             </InputGroupAddon>
           ) : null}
         </InputGroup>
         {errorText}
+        {FIELD_HELP[f.key] ? (
+          <p className="text-muted-foreground max-w-sm text-xs leading-4">
+            {FIELD_HELP[f.key]}
+          </p>
+        ) : null}
       </div>
     </Field>
   );

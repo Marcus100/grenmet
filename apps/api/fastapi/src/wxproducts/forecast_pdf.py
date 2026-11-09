@@ -22,6 +22,7 @@ from src.wxwatch.nhc_schemas import ProductGuidance
 from . import advisories, climate, units
 from .exceptions import UnsupportedSheetKind
 from .presentation import conditions as _conditions
+from .presentation import weather_text
 from .validation import (
     CLIMATE_SECTORS,
     FIELDS,
@@ -29,6 +30,7 @@ from .validation import (
     LEGACY_CLIMATE_FIELDS,
     LEGACY_MARINE_FIELDS,
     MARINE_FORECAST_AREA,
+    SUPERSEDED,
     optional_number,
     period_values,
 )
@@ -250,6 +252,7 @@ DAY_CARD_ICONS = {
     "cloud-rain",
     "haze",
     "cloud",
+    "sun",
     "thermometer-sun",
     "thermometer-snowflake",
     "wind",
@@ -345,21 +348,66 @@ def forecast_context(
 
 
 WIND_ICONS = {"wind", "compass"}
+SEA_ICONS = {"waves"}
+SWELL_ICONS = {"ship"}
+TIDE_ICONS = {"arrow-up-to-line", "arrow-down-to-line"}
+ASTRONOMY = (
+    ("sunrise", "Sunrise"),
+    ("sunset", "Sunset"),
+    ("moonrise", "Moonrise"),
+    ("moonset", "Moonset"),
+)
+SMALL_CRAFT_TITLES = ("marine", "small craft")
+
+
+def small_craft_statement(imported: dict[str, Any]) -> str:
+    """The small-craft line, composed from the alerts in force (never typed)."""
+    if not imported["captured"]:
+        return "Small craft: check the alerts in force at weather.gd."
+    in_force = [
+        item
+        for item in imported["advisories"]
+        if any(
+            word in str(item.get("title", "")).lower() for word in SMALL_CRAFT_TITLES
+        )
+    ]
+    if in_force:
+        return (
+            "Small craft operators should exercise caution: a marine alert is in "
+            "force (see alerts and advisories above)."
+        )
+    if not imported["complete"]:
+        return "Small craft: some warning sources were unavailable; check weather.gd."
+    return "No small craft advisory is in force."
+
+
+def _astronomy(values: dict[str, str]) -> list[tuple[str, str]]:
+    rows = [(label, values[key]) for key, label in ASTRONOMY if values.get(key)]
+    phase = values.get("moonPhase", "").strip()
+    if phase:
+        day = values.get("moonPhaseDate", "")
+        rows.append(("Moon phase", f"{phase}, {_day_label(day)}" if day else phase))
+    return rows
 
 
 def marine_forecast_context(
     values: dict[str, str], *, status: str, revision: str
 ) -> dict[str, Any]:
-    """Marine Forecast: synopsis, winds, seas and swell, advisories, outlook.
+    """Marine Forecast in the order of owner decision 3 (#1197).
 
-    Wind in mph and heights in feet (`presentation.conditions`); storage stays
-    knots and metres. Small craft and other warnings are the imported
-    advisories, never typed text.
+    Validity, advisories in force, synopsis, wind, sea state and significant
+    wave height, swell, weather, visibility, small-craft statement, outlook,
+    then tides and astronomy. Wind in knots, heights in metres with feet in
+    brackets (`presentation.conditions(marine=True)`); storage stays knots and
+    metres. Small craft and other warnings are the imported advisories, never
+    typed text.
     """
     tiles = [
-        {"icon": i, "value": v, "label": label} for i, v, label in _conditions(values)
+        {"icon": i, "value": v, "label": label}
+        for i, v, label in _conditions(values, marine=True)
     ]
-    return _advisory_context(values) | {
+    imported = _advisory_context(values)
+    return imported | {
         "title": "Marine Forecast",
         "issued": _when(values.get("issuedAt", "")),
         "valid": _span_text(values.get("validFrom", ""), values.get("validTo", "")),
@@ -368,7 +416,13 @@ def marine_forecast_context(
         "area": values.get("area") or MARINE_FORECAST_AREA,
         "synopsis": values.get("synopsis", ""),
         "wind_tiles": [t for t in tiles if t["icon"] in WIND_ICONS],
-        "sea_tiles": [t for t in tiles if t["icon"] not in WIND_ICONS],
+        "sea_tiles": [t for t in tiles if t["icon"] in SEA_ICONS],
+        "swell_tiles": [t for t in tiles if t["icon"] in SWELL_ICONS],
+        "tide_tiles": [t for t in tiles if t["icon"] in TIDE_ICONS],
+        "weather": weather_text(values),
+        "visibility": values.get("visibility", ""),
+        "small_craft": small_craft_statement(imported),
+        "astronomy": _astronomy(values),
         "outlook": values.get("outlook", ""),
         # Typed small-craft advice from revisions saved before it was replaced
         # by the imported advisories; shown read-only, as recorded.
@@ -591,6 +645,7 @@ BULLETIN_CORE = {
     "seaState",
     "highTides",
     "lowTides",
+    "reference",
 }
 STRUCTURED_KEY = re.compile(
     r"^(visibility(Min|Max)|windDir(From|To)|windSpeed(Min|Max)|windGust|seaState(From|To)"
@@ -617,7 +672,8 @@ def bulletin_context(
     level = values.get("level", "")
     name = BULLETIN_NAMES[kind]
     tiles = [
-        {"icon": i, "value": v, "label": label} for i, v, label in _conditions(values)
+        {"icon": i, "value": v, "label": label}
+        for i, v, label in _conditions(values, marine=kind == "marine")
     ]
     if values.get("visibility"):
         tiles.append(
@@ -629,7 +685,9 @@ def bulletin_context(
         "title": f"{name} Bulletin",
         "subtitle": f"Bulletin No. {number}" if number else "",
         "issued": _when(values.get("issuedAt", "")),
-        "valid": _span_text(values.get("validFrom", ""), values.get("validTo", "")),
+        # Machine fields only, plus the fixed rule (owner decision 4, #1197).
+        "valid": f"{_span_text(values.get('validFrom', ''), values.get('validTo', ''))}"
+        f", or until {SUPERSEDED}",
         "status": "" if status == "PUBLISHED ISSUE" else status,
         "revision": revision,
         "level_colour": LEVEL_COLOURS.get(level, ""),

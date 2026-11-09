@@ -24,6 +24,7 @@ const ISSUE_DATE_LABEL = /Issue date and time/u;
 const FORECASTER_LABEL = /Forecaster on duty/u;
 const AREA_LABEL = /Area covered/u;
 const SPEED_FROM_LABEL = /Speed from \(mph\)/u;
+const KNOTS_FROM_LABEL = /Speed from \(kt\)/u;
 const WEATHER_SUMMARY_LABEL = /^Weather forecast \*$/u;
 const SPEED_TO_LABEL = /Speed to \(mph\)/u;
 const WAVES_FROM_LABEL = /Waves from \(ft\)/u;
@@ -366,7 +367,9 @@ it("preserves publication review when switching evening periods and invalidates 
   );
   fireEvent.click(screen.getByRole("button", { name: "Validate and preview" }));
   await screen.findByRole("region", { name: "Publication preview" });
-  fireEvent.click(screen.getByRole("checkbox"));
+  fireEvent.click(
+    screen.getByRole("checkbox", { name: PUBLICATION_CONFIRMATION })
+  );
   fireEvent.click(screen.getByRole("tab", { name: "Day 2" }));
   expect(screen.getByRole("button", { name: "Publish to GMS" })).toBeEnabled();
   fireEvent.change(
@@ -626,8 +629,8 @@ it("uses compact wind and astronomy rows with preferred units and canonical save
   );
   expect(wind).not.toHaveClass("rounded-lg", "p-4");
   const astronomy = screen.getByRole("region", { name: "Astronomy fields" });
-  const sunrise = within(astronomy).getByLabelText("Sunrise");
-  const sunset = within(astronomy).getByLabelText("Sunset");
+  const sunrise = within(astronomy).getByLabelText("Sunrise tomorrow");
+  const sunset = within(astronomy).getByLabelText("Sunset today");
   expect(sunrise.closest("[data-slot=field]")?.parentElement).toHaveClass(
     "grid-cols-2"
   );
@@ -667,7 +670,7 @@ it("uses compact wind and astronomy rows with preferred units and canonical save
     ?.querySelector("label > span[aria-hidden]");
   expect(visibleLabel).toBeNull();
   expect(min.closest("[data-slot=input-group]")).toHaveTextContent("Min temp");
-  expect(sunrise).toHaveAttribute("placeholder", "Sunrise");
+  expect(sunrise).toHaveAttribute("placeholder", "Sunrise tomorrow");
   expect(screen.getByLabelText("Term")).toHaveAttribute("placeholder", "Term");
   expect(screen.getByLabelText("Meaning")).toHaveAttribute(
     "placeholder",
@@ -722,7 +725,8 @@ it("gives marine bulletins structured wind while cyclones keep free text", async
       screen.getByRole("button", { name: "Validate and preview" })
     ).toBeEnabled()
   );
-  expect(screen.getByLabelText(SPEED_FROM_LABEL)).toBeInTheDocument();
+  // Marine alerts take wind in knots (owner, 9 Nov 2026).
+  expect(screen.getByLabelText(KNOTS_FROM_LABEL)).toBeInTheDocument();
   expect(screen.queryByLabelText(WIND_SUMMARY_LABEL)).toBeNull();
   expect(screen.queryByLabelText(FORECASTER_LABEL)).toBeNull();
   expect(screen.getByText("Signed In Forecaster")).toBeInTheDocument();
