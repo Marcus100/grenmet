@@ -20,10 +20,22 @@ export function Measure({ measure }: { measure: MeasureValue }) {
 /**
  * A whole-degree temperature such as "31°": the figure with a bare degree sign,
  * and the unit named for screen readers only ("Fahrenheit" or "Celsius").
- * Null shows a dash.
+ * With `showUnit` the unit is visible too ("31°C" or "88°F"), for the main
+ * readings; compact strips keep the bare degree. Null shows a dash.
  */
-export function Temperature({ value }: { value: number | null }) {
+export function Temperature({
+  showUnit = false,
+  value,
+}: {
+  showUnit?: boolean;
+  value: number | null;
+}) {
   if (value === null) return <>—</>;
+  if (showUnit) {
+    return (
+      <Measure measure={{ low: value, places: 0, quantity: "temperature" }} />
+    );
+  }
   return (
     <>
       <Measure
