@@ -30,6 +30,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useId, useState } from "react";
 import { DeskErrorNotice } from "@/components/desk/error-notice";
+import { can, canAny, isEditable } from "@/lib/desk/allowed-actions";
 import { type DeskError, describeDeskError } from "@/lib/desk/errors";
 import type { DeskPermissions } from "@/lib/desk/permissions";
 
@@ -45,8 +46,6 @@ type Action =
   | "update";
 
 type Dialog = "cancel" | "emergency" | "expire" | "publish" | null;
-
-const DRAFT_LIKE = new Set(["DRAFT", "SUBMITTED", "APPROVED"]);
 
 const STATE_TEXT: Record<string, string> = {
   DRAFT:
@@ -183,10 +182,21 @@ export function AlertActions({
     }
   }
 
-  const draftLike = DRAFT_LIKE.has(alert.lifecycle_state);
-  const published = alert.lifecycle_state === "PUBLISHED";
+  // The review and publish stage: the API offers a step here.
+  const inReview = canAny(alert, [
+    "submit",
+    "approve",
+    "publish",
+    "emergency_publish",
+  ]);
+  // A colleague's review is allowed once the alert is submitted or approved.
+  const awaitingReview = can(alert, "approve") || can(alert, "publish");
+  const withdrawable = can(alert, "cancel") || can(alert, "expire");
+  const emergencyOffered =
+    permissions.emergencyPublish && can(alert, "emergency_publish");
+  // Issue update has no entry in allowed_actions yet, so it stays on the state.
   const updatable =
-    published &&
+    alert.lifecycle_state === "PUBLISHED" &&
     (alert.msg_type === "Alert" || alert.msg_type === "Update") &&
     !imported &&
     alert.schema_conformant &&
@@ -222,7 +232,7 @@ export function AlertActions({
       ) : null}
       <DeskErrorNotice error={error} />
 
-      {imported && (draftLike || published) ? (
+      {imported && (inReview || withdrawable) ? (
         <div
           className="border-warning bg-warning-soft text-warning-soft-foreground space-y-2 rounded-lg border p-4"
           role="note"
@@ -236,7 +246,7 @@ export function AlertActions({
               {alert.schema_error ?? "no details recorded"}.
             </p>
           )}
-          {draftLike ? (
+          {inReview ? (
             <label className="text-body-sm flex items-start gap-2">
               <input
                 checked={importConfirmed}
@@ -250,14 +260,14 @@ export function AlertActions({
         </div>
       ) : null}
 
-      {draftLike ? (
+      {inReview ? (
         <fieldset className="space-y-4 rounded-lg border p-4" disabled={busy}>
           <legend className="px-1 font-semibold">Review and publish</legend>
           <p className="text-body-sm text-muted-foreground">
             {STATE_TEXT[alert.lifecycle_state]}
           </p>
           <div className="flex flex-wrap gap-2">
-            {permissions.edit ? (
+            {permissions.edit && isEditable(alert) ? (
               <Button asChild variant="outline">
                 <Link href={`/desk/alerts/${alert.id}/edit` as Route}>
                   Edit draft
@@ -308,7 +318,7 @@ export function AlertActions({
             />
           </div>
           <div className="flex flex-wrap gap-2">
-            {alert.lifecycle_state === "DRAFT" && permissions.submit ? (
+            {can(alert, "submit") && permissions.submit ? (
               <Button
                 disabled={!ready}
                 onClick={() => run("submit")}
@@ -318,7 +328,7 @@ export function AlertActions({
                 Request review
               </Button>
             ) : null}
-            {alert.lifecycle_state === "SUBMITTED" && permissions.approve ? (
+            {can(alert, "approve") && permissions.approve ? (
               <Button
                 disabled={!ready}
                 onClick={() => run("approve")}
@@ -328,9 +338,7 @@ export function AlertActions({
                 Approve
               </Button>
             ) : null}
-            {permissions.approve &&
-            !isAuthor &&
-            alert.lifecycle_state !== "DRAFT" ? (
+            {permissions.approve && !isAuthor && awaitingReview ? (
               <>
                 <Button
                   onClick={() => run("reviewed")}
@@ -351,16 +359,14 @@ export function AlertActions({
             ) : null}
             {permissions.publish ? (
               <Button
-                disabled={
-                  !(ready && importOk && alert.lifecycle_state === "APPROVED")
-                }
+                disabled={!(ready && importOk && can(alert, "publish"))}
                 onClick={() => setDialog("publish")}
                 type="button"
               >
                 Publish
               </Button>
             ) : null}
-            {permissions.emergencyPublish ? (
+            {emergencyOffered ? (
               <Button
                 disabled={!(ready && importOk && reason)}
                 onClick={() => setDialog("emergency")}
@@ -371,7 +377,7 @@ export function AlertActions({
               </Button>
             ) : null}
           </div>
-          {permissions.emergencyPublish ? (
+          {emergencyOffered ? (
             <p className="text-body-sm text-muted-foreground">
               Emergency publish skips approval. Write the reason in the note; it
               is recorded in the audit history and the duty supervisor sees it.
@@ -380,7 +386,7 @@ export function AlertActions({
         </fieldset>
       ) : null}
 
-      {published ? (
+      {withdrawable || updatable ? (
         <fieldset className="space-y-4 rounded-lg border p-4" disabled={busy}>
           <legend className="px-1 font-semibold">Change or withdraw</legend>
           {updatable ? (
@@ -412,21 +418,25 @@ export function AlertActions({
                 />
               </div>
               <div className="flex flex-wrap gap-2">
-                <Button
-                  disabled={!reason}
-                  onClick={() => setDialog("cancel")}
-                  type="button"
-                  variant="destructive"
-                >
-                  Cancel alert
-                </Button>
-                <Button
-                  onClick={() => setDialog("expire")}
-                  type="button"
-                  variant="outline"
-                >
-                  Mark expired
-                </Button>
+                {can(alert, "cancel") ? (
+                  <Button
+                    disabled={!reason}
+                    onClick={() => setDialog("cancel")}
+                    type="button"
+                    variant="destructive"
+                  >
+                    Cancel alert
+                  </Button>
+                ) : null}
+                {can(alert, "expire") ? (
+                  <Button
+                    onClick={() => setDialog("expire")}
+                    type="button"
+                    variant="outline"
+                  >
+                    Mark expired
+                  </Button>
+                ) : null}
               </div>
               <p className="text-body-sm text-muted-foreground">
                 Cancel issues a public CAP Cancel message retracting this alert.
