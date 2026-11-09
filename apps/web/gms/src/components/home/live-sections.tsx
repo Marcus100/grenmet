@@ -308,12 +308,20 @@ export async function ForecastDesk() {
   // The sector card is awaited here, not rendered as an async element, so tests
   // can render the row. It starts with the other reads, so a slow outlook
   // delays nothing else.
-  const [content, products, alerts, sectorCard] = await Promise.all([
-    fetchHomeContent(),
-    fetchPublishedProducts(),
-    fetchActiveAlerts(),
-    SectorDeskCard(),
-  ]);
+  const alertsRead = fetchActiveAlerts();
+  // Only a red warning splits the posts, and only by its issue time (CAP `sent`).
+  // The detail reads start as soon as the alert list is in, alongside the rest.
+  const warningIssuedAtRead = alertsRead.then((alerts) =>
+    alertsLevel(alerts) === "take-action" ? redWarningIssuedAt(alerts) : null
+  );
+  const [content, products, alerts, warningIssuedAt, sectorCard] =
+    await Promise.all([
+      fetchHomeContent(),
+      fetchPublishedProducts(),
+      alertsRead,
+      warningIssuedAtRead,
+      SectorDeskCard(),
+    ]);
   const { deskUpdates: updates, reportNotes: notes, settings } = content;
   const words = sectionWords(settings, "desk", {
     kicker: "Latest from the forecasters",
@@ -321,9 +329,6 @@ export async function ForecastDesk() {
   });
   const showNotes = !settings.hiddenSections.includes("reports");
   const level = alertsLevel(alerts);
-  // Only a red warning splits the posts, and only by its issue time (CAP `sent`).
-  const warningIssuedAt =
-    level === "take-action" ? await redWarningIssuedAt(alerts) : null;
   const feed = buildDeskFeed({
     level,
     posts: [...updates.articles, ...(showNotes ? notes.articles : [])],

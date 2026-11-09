@@ -27,7 +27,10 @@ export function ClickToLoadMedia({
     return (
       <iframe
         allow="encrypted-media; picture-in-picture; fullscreen"
-        className={`rounded-gm-card bg-gm-navy ${SIZE[kind]}`}
+        className={`rounded-gm-card bg-gm-navy focus-visible:ring-gm-lime outline-none focus-visible:ring-2 ${SIZE[kind]}`}
+        // The play button is replaced by the frame, so focus would fall to the
+        // body. Move it to the player so keyboard users keep their place.
+        ref={(frame) => frame?.focus()}
         referrerPolicy="strict-origin-when-cross-origin"
         sandbox="allow-scripts allow-same-origin allow-presentation allow-popups"
         src={embed.src}
@@ -37,7 +40,7 @@ export function ClickToLoadMedia({
   }
   return (
     <button
-      className={`rounded-gm-card bg-gm-navy text-body text-gm-text-inverse leading-body hover:bg-gm-navy-raised flex items-center justify-center gap-2 font-semibold ${SIZE[kind]}`}
+      className={`rounded-gm-card bg-gm-navy text-body text-gm-text-inverse leading-body hover:bg-gm-navy-raised focus-visible:ring-gm-lime flex items-center justify-center gap-2 font-semibold outline-none focus-visible:ring-2 ${SIZE[kind]}`}
       onClick={() => setPlaying(true)}
       type="button"
     >
