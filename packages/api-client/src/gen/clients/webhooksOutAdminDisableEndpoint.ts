@@ -29,6 +29,7 @@ export function webhooksOutAdminDisableEndpoint<
       method: "POST",
       url: "/api/v1/webhooks-out/admin/endpoints/{endpoint_id}/disable",
       security: [{ type: "oauth2" }],
+      contentType: { request: "application/json" },
       ...config,
       throwOnError: config.throwOnError ?? true,
     }) as Promise<

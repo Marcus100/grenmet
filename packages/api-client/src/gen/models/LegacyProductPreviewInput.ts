@@ -11,7 +11,7 @@ export type LegacyProductPreviewInput = {
     [key: string]: string;
   };
   /**
-   * @minLength 0
+   * @minimum 0
    * @type integer
    */
   expectedRevision: number;

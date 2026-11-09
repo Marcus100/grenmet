@@ -25,6 +25,7 @@ export function authAdminActivateAccount<ThrowOnError extends boolean = true>(
       method: "POST",
       url: "/api/v1/auth/onboarding/{user_id}/admin-activate",
       security: [{ type: "oauth2" }],
+      contentType: { request: "application/json" },
       ...config,
       throwOnError: config.throwOnError ?? true,
     }) as Promise<

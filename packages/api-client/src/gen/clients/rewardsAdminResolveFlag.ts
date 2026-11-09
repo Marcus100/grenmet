@@ -25,6 +25,7 @@ export function rewardsAdminResolveFlag<ThrowOnError extends boolean = true>(
       method: "POST",
       url: "/api/v1/rewards/admin/flags/{flag_id}/resolve",
       security: [{ type: "oauth2" }],
+      contentType: { request: "application/json" },
       ...config,
       throwOnError: config.throwOnError ?? true,
     }) as Promise<RequestResult<RewardsAdminResolveFlagResponses, ThrowOnError>>

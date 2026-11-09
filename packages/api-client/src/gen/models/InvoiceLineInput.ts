@@ -11,13 +11,13 @@ export type InvoiceLineInput = {
    */
   description: string;
   /**
-   * @maxLength 1000000000
+   * @maximum 1000000000
    * @type number
    */
   quantity: number;
   /**
-   * @minLength 0
-   * @maxLength 1000000000000
+   * @minimum 0
+   * @maximum 1000000000000
    * @type integer
    */
   unit_price_minor: number;

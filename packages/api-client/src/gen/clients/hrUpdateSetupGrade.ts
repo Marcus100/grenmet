@@ -25,6 +25,7 @@ export function hrUpdateSetupGrade<ThrowOnError extends boolean = true>(
       method: "PUT",
       url: "/api/v1/hr/setup/grades/{grade_id}",
       security: [{ type: "oauth2" }],
+      contentType: { request: "application/json" },
       ...config,
       throwOnError: config.throwOnError ?? true,
     }) as Promise<RequestResult<HrUpdateSetupGradeResponses, ThrowOnError>>

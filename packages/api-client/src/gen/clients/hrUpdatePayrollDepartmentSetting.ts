@@ -29,6 +29,7 @@ export function hrUpdatePayrollDepartmentSetting<
       method: "PUT",
       url: "/api/v1/hr/payroll/department-settings/{department_id}",
       security: [{ type: "oauth2" }],
+      contentType: { request: "application/json" },
       ...config,
       throwOnError: config.throwOnError ?? true,
     }) as Promise<

@@ -24,6 +24,7 @@ export function authAppEmailCodeStart<ThrowOnError extends boolean = true>(
     request({
       method: "POST",
       url: "/api/v1/auth/apps/{app}/email-code/start",
+      contentType: { request: "application/json" },
       ...config,
       throwOnError: config.throwOnError ?? true,
     }) as Promise<RequestResult<AuthAppEmailCodeStartResponses, ThrowOnError>>

@@ -11,8 +11,8 @@ export type PaymentPayoutCreate = {
    */
   organisation_id: string;
   /**
-   * @minLength 1
-   * @maxLength 1000000000
+   * @minimum 1
+   * @maximum 1000000000
    * @type integer
    */
   amount_minor: number;

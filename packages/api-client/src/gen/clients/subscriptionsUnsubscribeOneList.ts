@@ -28,6 +28,7 @@ export function subscriptionsUnsubscribeOneList<
     request({
       method: "POST",
       url: "/api/v1/subscriptions/preferences/unsubscribe",
+      contentType: { request: "application/json" },
       ...config,
       throwOnError: config.throwOnError ?? true,
     }) as Promise<

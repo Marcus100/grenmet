@@ -29,6 +29,7 @@ export function hrSaveWorkflowConfiguration<
       method: "PUT",
       url: "/api/v1/hr/setup/workflows/{template_id}",
       security: [{ type: "oauth2" }],
+      contentType: { request: "application/json" },
       ...config,
       throwOnError: config.throwOnError ?? true,
     }) as Promise<

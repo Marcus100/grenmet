@@ -20,15 +20,15 @@ export type HrListPayLinesQuery = {
   department_id?: string | null;
   user_id?: string | null;
   /**
-   * @minLength 0
-   * @maxLength 100000
+   * @minimum 0
+   * @maximum 100000
    * @default 0
    * @type integer | undefined
    */
   skip?: number;
   /**
-   * @minLength 1
-   * @maxLength 500
+   * @minimum 1
+   * @maximum 500
    * @default 200
    * @type integer | undefined
    */

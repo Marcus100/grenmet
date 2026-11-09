@@ -25,6 +25,7 @@ export function hrApproveClockPunch<ThrowOnError extends boolean = true>(
       method: "POST",
       url: "/api/v1/hr/attendance/clock-punches/{punch_id}/approve",
       security: [{ type: "oauth2" }],
+      contentType: { request: "application/json" },
       ...config,
       throwOnError: config.throwOnError ?? true,
     }) as Promise<RequestResult<HrApproveClockPunchResponses, ThrowOnError>>

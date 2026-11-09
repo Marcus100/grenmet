@@ -25,6 +25,7 @@ export function organisationsSetApp<ThrowOnError extends boolean = true>(
       method: "PUT",
       url: "/api/v1/organisations/{organisation_id}/apps/{app_key}",
       security: [{ type: "oauth2" }],
+      contentType: { request: "application/json" },
       ...config,
       throwOnError: config.throwOnError ?? true,
     }) as Promise<RequestResult<OrganisationsSetAppResponses, ThrowOnError>>

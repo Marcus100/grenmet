@@ -7,7 +7,7 @@ import type { CapProfileDefinition } from "./CapProfileDefinition.js";
 
 export type CapProfileSave = {
   /**
-   * @minLength 0
+   * @minimum 0
    * @default 0
    * @type integer | undefined
    */

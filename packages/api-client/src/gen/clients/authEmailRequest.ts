@@ -24,6 +24,7 @@ export function authEmailRequest<ThrowOnError extends boolean = true>(
     request({
       method: "POST",
       url: "/api/v1/auth/password/setup",
+      contentType: { request: "application/json" },
       ...config,
       throwOnError: config.throwOnError ?? true,
     }) as Promise<RequestResult<AuthEmailRequestResponses, ThrowOnError>>
