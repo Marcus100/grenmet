@@ -279,9 +279,15 @@ def _normalize_weather(kind: ProductKind, result: dict[str, str]) -> None:
         if rule.type != "weather" or not result.get(rule.key, "").strip():
             continue
         items = synop_codes.parse_weather(result[rule.key])
-        if result[rule.key].strip() in synop_codes.LEGACY_WEATHER_TYPES:
-            result[rule.key] = synop_codes.format_weather(items)
         text_key = f"{rule.key}Text"
+        legacy = result[rule.key].strip()
+        if legacy in synop_codes.LEGACY_WEATHER_TYPES:
+            # Several old labels map onto a broader item ("Severe
+            # thunderstorms" -> thunderstorms), so the official wording keeps
+            # the label as issued; the generated sentence never replaces it.
+            if not result.get(text_key, "").strip():
+                result[text_key] = legacy
+            result[rule.key] = synop_codes.format_weather(items)
         if not result.get(text_key, "").strip():
             result[text_key] = synop_codes.weather_sentence(result[rule.key])
 

@@ -227,4 +227,17 @@ describe("marine alert defaults and numbering (#1197 decisions 1 and 4)", () => 
     );
     expect(proposeBulletinNumber("marine", "2026-11-09T05:00", [])).toBe("1");
   });
+
+  it("ignores issues whose issue or expiry time cannot be read", () => {
+    const products = [
+      issued("good", "2026-11-08T17:00", "2026-11-09T17:00", "2"),
+      // Unreadable times would otherwise sort first or end the event.
+      issued("bad-issue", "not a time", "2026-11-09T17:00", "7"),
+      issued("bad-expiry", "2026-11-09T01:00", "", "9"),
+    ];
+    expect(proposeBulletinNumber("marine", "2026-11-09T05:00", products)).toBe(
+      "3"
+    );
+    expect(proposeBulletinNumber("marine", "unreadable", products)).toBe("1");
+  });
 });

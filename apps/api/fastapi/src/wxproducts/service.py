@@ -228,9 +228,10 @@ async def bulletin_reference(
 
     Set once, on the first save, from the count of this hazard's alerts already
     referenced in the issue year; kept on every later revision (owner decision
-    1, #1197). The per-event bulletin number is separate and proposed by the
-    desk. Two alerts of one hazard first saved at the same instant could share
-    a number; the product id still tells them apart.
+    1, #1197). Always computed here: a value posted by the client is ignored.
+    The count and assignment run under a transaction-scoped advisory lock per
+    hazard and year, so two first saves cannot take the same number. The
+    per-event bulletin number is separate and proposed by the desk.
     """
     if previous is not None:
         kept = str(
@@ -238,13 +239,19 @@ async def bulletin_reference(
         )
         if kept.strip():
             return kept
-    if values.get("reference", "").strip():
-        return values["reference"]
     year = values.get("issuedAt", "")[:4]
     if not year.isdigit():
         return ""
     from sqlalchemy import func
 
+    # Held until this write commits, so the next save counts this one.
+    await session.execute(
+        select(
+            func.pg_advisory_xact_lock(
+                func.hashtext(f"wxproducts-reference:{kind}:{year}")
+            )
+        )
+    )
     stored = AuthoredProduct.draft["values"]
     count = (
         await session.execute(
@@ -297,9 +304,11 @@ async def write_product(
         now = datetime.now(UTC)
         values = values_as_dict(body.values)
         if body.kind in validation.BULLETIN_KINDS and body.action != "withdraw":
+            # The reference is server-owned: a posted value is discarded.
+            values = {k: v for k, v in values.items() if k != "reference"}
             reference = await bulletin_reference(session, body.kind, values, previous)
             if reference:
-                values = {**values, "reference": reference}
+                values["reference"] = reference
         content = (
             previous.draft
             if body.action == "withdraw" and previous

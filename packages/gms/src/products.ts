@@ -1207,24 +1207,29 @@ export function proposeBulletinNumber(
   excludeId?: string
 ): string {
   const issued = localDateTime(issuedAt);
+  if (!Number.isFinite(issued)) return "1";
+  // Issues with an unreadable issue or expiry time cannot be placed in an
+  // event, so they are left out before comparing and sorting.
   const previous = products
+    .map((p) => ({
+      p,
+      at: localDateTime(p.values.issuedAt ?? ""),
+      until: localDateTime(p.values.validTo ?? ""),
+    }))
     .filter(
-      (p) =>
+      ({ p, at, until }) =>
         p.kind === kind &&
         p.publishedRevision &&
         p.id !== excludeId &&
-        !(localDateTime(p.values.issuedAt ?? "") > issued)
+        Number.isFinite(at) &&
+        Number.isFinite(until) &&
+        at <= issued
     )
-    .sort(
-      (a, b) =>
-        localDateTime(b.values.issuedAt ?? "") -
-        localDateTime(a.values.issuedAt ?? "")
-    )[0];
+    .sort((a, b) => b.at - a.at)[0];
   if (!previous) return "1";
   const ended =
-    previous.values.notice?.trim() === "All clear" ||
-    localDateTime(previous.values.validTo ?? "") < issued;
-  const last = Number(previous.values.bulletinNumber);
+    previous.p.values.notice?.trim() === "All clear" || previous.until < issued;
+  const last = Number(previous.p.values.bulletinNumber);
   return !ended && Number.isInteger(last) && last > 0 ? String(last + 1) : "1";
 }
 export const MARINE_FORECAST_VALIDITY = "05:00 today to 05:00 tomorrow";

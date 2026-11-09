@@ -119,7 +119,7 @@ def test_legacy_single_weather_type_still_reads_and_is_upgraded_on_save():
     assert synop_codes.is_valid_weather("Moderate or heavy showers")
     normalized = validation.normalize("midday", {"weatherType": "Light showers"})
     assert normalized["weatherType"] == "showers-light"
-    assert normalized["weatherTypeText"] == "Light showers."
+    assert normalized["weatherTypeText"] == "Light showers"
 
 
 def test_reworded_weather_sentence_is_kept():

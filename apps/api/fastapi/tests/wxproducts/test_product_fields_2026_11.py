@@ -4,6 +4,8 @@ Older revisions must still open and render."""
 
 from uuid import uuid4
 
+import pytest
+
 from src.wxproducts import forecast_pdf, presentation, service, validation
 from tests.wxproducts.test_authoring import actor as actor
 from tests.wxproducts.test_authoring import current_input
@@ -183,5 +185,53 @@ async def test_alert_gets_a_yearly_reference_kept_across_revisions(
     async with weather_sessions() as session:
         again = await service.write_product(
             session, first.model_copy(update={"expectedRevision": 1}), actor
+        )
+    assert again.draft["values"]["reference"] == f"GMS-MARINE-{year}-001"
+
+
+@pytest.mark.parametrize(
+    "label",
+    [
+        "Severe thunderstorms",
+        "Drizzle",
+        "Moderate or heavy showers",
+        "Violent showers",
+        "Thunder (no rain)",
+    ],
+)
+def test_resaving_an_old_weather_type_keeps_its_issued_wording(label):
+    """Old labels that map onto a broader item keep their official wording."""
+    for kind, prefix in (("morning", ""), ("evening", "day1")):
+        key = validation.parameter_key(prefix, "weatherType")
+        saved = validation.normalize(kind, complete(kind) | {key: label})
+        assert saved[f"{key}Text"] == label
+        # Re-saving the upgraded value again keeps the wording.
+        again = validation.normalize(kind, saved)
+        assert again[f"{key}Text"] == label
+        assert (
+            presentation.weather_text(validation.period_values(again, prefix)) == label
+        )
+    values = validation.normalize(
+        "morning", complete("morning") | {"weatherType": label}
+    )
+    assert presentation.conditions(values)[0][1:] == (label, "Weather type")
+    pdf = forecast_pdf.render_sheet_pdf("morning", values, status="", revision="r1")
+    assert pdf.startswith(b"%PDF-")
+
+
+async def test_alert_reference_ignores_a_value_posted_by_the_client(
+    weather_sessions, actor
+):
+    forged = current_input(action="draft")
+    forged.values["reference"] = "GMS-MARINE-1999-999"
+    year = forged.values["issuedAt"][:4]
+    async with weather_sessions() as session:
+        saved = await service.write_product(session, forged, actor)
+    assert saved.draft["values"]["reference"] == f"GMS-MARINE-{year}-001"
+    # A re-save posting a different value keeps the stored one.
+    forged.values["reference"] = "GMS-MARINE-1999-998"
+    async with weather_sessions() as session:
+        again = await service.write_product(
+            session, forged.model_copy(update={"expectedRevision": 1}), actor
         )
     assert again.draft["values"]["reference"] == f"GMS-MARINE-{year}-001"
