@@ -50,8 +50,11 @@ function splitList(text: string): string[] {
     .filter(Boolean);
 }
 
+/** How many field problems a refused save lists; the rest repeat the point. */
+const MAX_FIELD_PROBLEMS = 5;
+
 function fieldProblems(detail: unknown[]): string[] {
-  return detail.map((item) => {
+  const lines = detail.map((item) => {
     if (item && typeof item === "object") {
       const { loc, msg } = item as { loc?: unknown; msg?: unknown };
       const where = Array.isArray(loc)
@@ -62,6 +65,7 @@ function fieldProblems(detail: unknown[]): string[] {
     }
     return String(item);
   });
+  return [...new Set(lines)].slice(0, MAX_FIELD_PROBLEMS);
 }
 
 /** A refused save (422): the CAP check text, a field list, or a plain line. */
