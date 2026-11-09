@@ -25,6 +25,11 @@ function lines(text) {
   return text.split("\n").filter(Boolean);
 }
 
+/** NUL-separated `-z` output; paths are returned verbatim, never quoted. */
+export function splitNul(text) {
+  return text.split("\0").filter(Boolean);
+}
+
 /** Worktree paths from `git worktree list --porcelain` output. */
 export function parseWorktreeList(porcelain) {
   return lines(porcelain)
@@ -47,7 +52,8 @@ function isInside(parent, child) {
 /**
  * Keeps repo-relative files that are regular files resolving inside `root`
  * and outside every other worktree. `resolve` returns the real path of an
- * absolute path, or null when it is missing or not a regular file.
+ * absolute path, or null when it is missing or not the requested type.
+ * A symlink is kept only when its target is a file inside this worktree.
  */
 export function selectOwnedFiles({ root, files, worktrees, resolve }) {
   const realRoot = resolve(root, { directory: true }) ?? root;
@@ -69,7 +75,7 @@ export function selectOwnedFiles({ root, files, worktrees, resolve }) {
   return { kept, skipped };
 }
 
-function resolveOnDisk(absolute, { directory }) {
+export function resolveOnDisk(absolute, { directory }) {
   try {
     const real = realpathSync(absolute);
     const stats = statSync(real);
@@ -82,14 +88,24 @@ function resolveOnDisk(absolute, { directory }) {
   }
 }
 
-function changedFiles(root) {
-  const modified = lines(
-    run("git", ["diff", "--name-only", "--diff-filter=ACMR", "HEAD"], root)
+/** Changed and untracked files, repo-relative, read from `root`. */
+export function changedFiles(root) {
+  const modified = splitNul(
+    run(
+      "git",
+      ["diff", "--name-only", "-z", "--diff-filter=ACMR", "HEAD"],
+      root
+    )
   );
-  const untracked = lines(
-    run("git", ["ls-files", "--others", "--exclude-standard"], root)
+  const untracked = splitNul(
+    run("git", ["ls-files", "-z", "--others", "--exclude-standard"], root)
   );
   return [...new Set([...modified, ...untracked])];
+}
+
+/** `./`-prefixed so a file named like an option is never read as one. */
+export function ultraciteArgs(files) {
+  return ["exec", "ultracite", "fix", ...files.map((file) => `./${file}`)];
 }
 
 function main() {
@@ -105,7 +121,9 @@ function main() {
   });
 
   for (const file of skipped) {
-    console.log(`fix-changed: skipping ${file} (outside this worktree)`);
+    console.log(
+      `fix-changed: skipping ${file} (not a file inside this worktree)`
+    );
   }
   if (kept.length === 0) {
     console.log("fix-changed: no changed files, nothing to do.");
@@ -113,13 +131,25 @@ function main() {
   }
 
   console.log(`fix-changed: formatting ${kept.length} changed file(s)...`);
-  const result = spawnSync("pnpm", ["exec", "ultracite", "fix", ...kept], {
+  const result = spawnSync("pnpm", ultraciteArgs(kept), {
     cwd: root,
     stdio: "inherit",
   });
   process.exit(result.status ?? 1);
 }
 
-if (process.argv[1] === fileURLToPath(import.meta.url)) {
+/** True when `argv1` (possibly a symlink) is this module's file. */
+export function isEntryPoint(argv1, moduleUrl = import.meta.url) {
+  if (!argv1) {
+    return false;
+  }
+  try {
+    return realpathSync(argv1) === realpathSync(fileURLToPath(moduleUrl));
+  } catch {
+    return false;
+  }
+}
+
+if (isEntryPoint(process.argv[1])) {
   main();
 }
