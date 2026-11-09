@@ -509,6 +509,26 @@ def may_update(state: str, body_notes: str | None, review_outcome: str | None) -
     )
 
 
+# Fields the hourly sheet never holds; the daily importer adds them to the same draft.
+DAILY_FIELDS = ("s3_rainfall_24h", "s3_max_temp", "s3_min_temp", "wind_gust")
+
+
+def carry_over(
+    body: dict[str, object], live_body: Mapping[str, object]
+) -> dict[str, object]:
+    """The refreshed body with any daily values the draft already holds kept.
+
+    A re-run of the hourly import refreshes an unreviewed draft from the sheet; without
+    this it would silently drop the rainfall, extremes and gust added since.
+    """
+    kept = {
+        name: live_body[name]
+        for name in DAILY_FIELDS
+        if name not in body and live_body.get(name) not in (None, "")
+    }
+    return {**body, **kept}
+
+
 def local_register_problem(
     url: str | None, environment: str, expected_db: str
 ) -> str | None:
