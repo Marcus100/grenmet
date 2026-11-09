@@ -23,7 +23,7 @@ from src.notifications.config import notification_settings
 from src.notifications.models import OutboundEmail, OutboundEmailStatus
 from src.utils.datetime import utc_now
 
-from . import encode, entries, gate, rules
+from . import encode, entries, gate, rules, transitions
 from .config import eregister_settings, wis2box_settings
 from .models import (
     STATUS_FAILED,
@@ -43,7 +43,6 @@ from .schemas import (
 
 logger = logging.getLogger(__name__)
 
-NOT_SENDABLE_STATES = ("rejected", "superseded")
 # Accepted (by the observer or other register staff) is enough to leave the
 # building; the optional review never holds WIS2 or email back.
 SENDABLE_ACCEPTED_STATES = ("accepted",)
@@ -84,7 +83,7 @@ async def load_sendable(
     if data["kind"] != "SYNOP":
         raise AppException("Only SYNOP observations can be sent", 409)
     state = data["state"]
-    if state in NOT_SENDABLE_STATES:
+    if state in transitions.NOT_SENDABLE_STATES:
         raise AppException(f"A {state} observation cannot be sent", 409)
     if (
         require_accepted or eregister_settings.SEND_REQUIRE_ACCEPTED
@@ -399,7 +398,7 @@ async def queue_wis2(
         text("SELECT state FROM register_observations WHERE id = :id"),
         {"id": str(observation_id)},
     )
-    if current in NOT_SENDABLE_STATES:
+    if current in transitions.NOT_SENDABLE_STATES:
         raise AppException(f"A {current} observation cannot be sent", 409)
     # The gate comes first: an hour owned by the automatic source is never
     # queued, and a station-hour is claimed by one observation only. A WIS2

@@ -53,4 +53,10 @@ export const registerObservationReadSchema = z.object({
     .describe("Validation findings, warnings included (SYNOP, listing only)."),
   created_at: z.iso.datetime(),
   updated_at: z.iso.datetime(),
+  allowed_actions: z
+    .array(z.string())
+    .optional()
+    .describe(
+      "The QC actions this state allows: accept, reject, reopen, correct (accept only for SYNOP). Computed from the state and kind alone: a WIS2 file or email already queued or sent can still refuse reject, reopen or a re-save, and the 409 detail says why."
+    ),
 });

@@ -32,23 +32,18 @@ from src.eregister.exceptions import HourHeldError, ObservationNotFoundError
 from src.exceptions import AppException, AppValidationError, AuthorizationError
 from src.utils.datetime import utc_now
 
-from . import entries, gate, sends
+from . import entries, gate, sends, transitions
 from .models import STATUS_QUEUED, STATUS_SENT, TARGET_WIS2, ERegisterSend
 from .schemas import RegisterObservationRead
+from .transitions import RegisterState
 
+# The states and the table of allowed moves live in transitions.py (a leaf module,
+# so entries and sends can use the same table without importing this one).
 QcAction = Literal["accept", "reject", "reopen"]
 
 AUDIT_ENTITY = "eregister_observation"
-PENDING_STATES = ("draft", "qc_pending")
-# State an observation must be in for each action, and the state it moves to.
-TRANSITIONS: dict[QcAction, tuple[tuple[str, ...], str]] = {
-    "accept": (PENDING_STATES, "accepted"),
-    "reject": (PENDING_STATES, "rejected"),
-    "reopen": (("accepted", "rejected"), "qc_pending"),
-}
 REASON_REQUIRED: frozenset[QcAction] = frozenset({"reject", "reopen"})
 MIN_REASON = 3
-REVIEWABLE_STATES = (*PENDING_STATES, "accepted")
 
 
 def _reason(action: QcAction, reason: str | None) -> str | None:
@@ -117,34 +112,44 @@ async def transition(
 ) -> RegisterObservationRead:
     clean_reason = _reason(action, reason)
     row = await _lock(register, observation_id)
-    allowed, target = TRANSITIONS[action]
-    previous = str(row["state"])
+    target = transitions.fixed_target(action)
+    previous: RegisterState = row["state"]
     try:
-        if previous not in allowed:
-            raise AppException(
-                f"Cannot {action} an observation that is {previous}", 409
-            )
+        transitions.guard(
+            previous,
+            action,
+            refusal=f"Cannot {action} an observation that is {previous}",
+        )
         if action == "accept":
             if row["kind"] != "SYNOP":
                 raise AppException("Only SYNOP observations go through QC", 409)
             entries.require_valid_synop(
                 row["body"] or {}, row["observed_at"], stored=True
             )
-        elif await _already_sent_to_wis2(app_session, observation_id):
-            raise AppException(
-                "Already queued or sent to WIS2; correct it with a new observation", 409
+        else:
+            transitions.guard(
+                previous,
+                action,
+                refusal="Already queued or sent to WIS2; correct it with a new observation",
+                wis2_sent=await _already_sent_to_wis2(app_session, observation_id),
             )
-        elif action == "reopen" and previous == "rejected":
-            # A rejected row left the live set, so the hour may have been keyed again.
-            # Same lock as saving; a rejected row is never row-locked by a save, so
-            # taking it after the row lock cannot deadlock.
-            await entries.lock_key(
-                register, str(row["station_id"]), row["observed_at"], str(row["kind"])
-            )
-            if await entries.live_row(
-                register, str(row["station_id"]), row["observed_at"], str(row["kind"])
-            ):
-                raise HourHeldError()
+            if action == "reopen" and previous == "rejected":
+                # A rejected row left the live set, so the hour may have been keyed
+                # again. Same lock as saving; a rejected row is never row-locked by a
+                # save, so taking it after the row lock cannot deadlock.
+                await entries.lock_key(
+                    register,
+                    str(row["station_id"]),
+                    row["observed_at"],
+                    str(row["kind"]),
+                )
+                if await entries.live_row(
+                    register,
+                    str(row["station_id"]),
+                    row["observed_at"],
+                    str(row["kind"]),
+                ):
+                    raise HourHeldError()
     except AppException, HTTPException:
         # HTTPException: the SYNOP refusal from entries.require_valid_synop.
         await register.rollback()
@@ -248,7 +253,7 @@ async def _restore_original(
         .mappings()
         .first()
     )
-    if found is None or found["state"] != "superseded":
+    if found is None or not transitions.can_transition(found["state"], "restore"):
         return None
     earlier = found["superseded_from"]
     if earlier is None and await sends.has_held_wis2(
@@ -381,7 +386,7 @@ async def review(
                 "The observation was saved or decided since you opened it; open it again",
                 409,
             )
-        if row["state"] not in REVIEWABLE_STATES:
+        if row["state"] not in transitions.REVIEWABLE_STATES:
             raise AppException(
                 f"Cannot review an observation that is {row['state']}", 409
             )
