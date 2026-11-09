@@ -157,6 +157,17 @@ Changing the date rebuilds that layer (issue #1142).
 - `targets tags <tag>...` or `targets digests "<repo@sha256:…>..."`: the
   registry images to scan, each with its exception scope, as a workflow matrix.
 
+`.github/workflows/image-scan-daily.yml` scans the `dev`, `staging` and
+`latest` tag of every release image daily from the registry
+(`scan-image` with `source: remote`). When only OS packages block, it bumps the
+patch date and opens a fix pull request into `dev`. It does this with the
+GitHub App named by the repository variable `IMAGE_FIX_APP_ID`, whose private
+key is in the secret `IMAGE_FIX_APP_PRIVATE_KEY`; the App needs Contents and
+Pull requests write on this repository. Without the App, or for language
+package findings, the job fails and lists what to fix. `pipeline-staging.yml`
+also scans each promoted digest before it deploys, so a digest that has
+become vulnerable since its build cannot reach staging.
+
 ### Exceptions
 
 `.github/security/vulnerability-exceptions.json` starts empty. An exception
