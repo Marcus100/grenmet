@@ -327,11 +327,14 @@ async def save_staff(
     if not grade or not grade.is_active or grade.department_id != body.department_id:
         raise AppException("Choose an active grade in this department", 400)
     department = await department_for(session, body.department_id)
+    staff_organisation_id = await _staff_organisation_id(session, user_id)
+    if not actor.is_superuser and (staff_organisation_id is None or user.is_superuser):
+        # An account with no organisation yet is only listed to platform
+        # administrators (the unassigned list is superuser only), so claiming it
+        # for an organisation stays theirs too; so does any superuser account.
+        raise AppException("Administrator access required", 403)
     await require_setup_organisation(
-        session,
-        actor,
-        department.organisation_id,
-        await _staff_organisation_id(session, user_id),
+        session, actor, department.organisation_id, staff_organisation_id
     )
     if (
         body.organisation_id is not None

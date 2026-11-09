@@ -283,6 +283,24 @@ async def test_offboard_refused_for_staff_in_other_organisation(
 
 
 @pytest.mark.asyncio
+async def test_admin_cannot_claim_account_with_no_organisation(
+    async_client: AsyncClient, db_async: AsyncSession
+) -> None:
+    await _seed(db_async)
+    admin = await _setup_admin(db_async)
+    stranger = await make_user(db_async)
+
+    response = await async_client.put(
+        f"/api/v1/hr/setup/staff/{stranger.id}",
+        headers=_headers(admin),
+        json={"department_id": OWN_DEPT, "grade_id": OWN_GRADE},
+    )
+
+    assert response.status_code == 403
+    assert await db_async.get(StaffCredential, stranger.id) is None
+
+
+@pytest.mark.asyncio
 async def test_key_is_global_and_held_by_hr_admin_bundle() -> None:
     assert KEY not in ORGANISATION_BOUND_KEYS
     assert KEY in DEFAULT_ROLES["hr-admin"][1]
