@@ -178,6 +178,7 @@ test("a new commit during inspection aborts removal", (t) => {
 
 const CANONICAL = /canonical \.claude\/worktrees/u;
 const ABSOLUTE = /absolute/u;
+const EMPTY = /must not be empty/u;
 const SYMLINK = /symlink/u;
 const OVERLAP = /outside the main checkout/u;
 
@@ -273,4 +274,11 @@ test("a manual root cannot be relative, a symlink, or overlap the main checkout"
   assert.throws(() => run(["--root", parent], root, () => undefined), {
     message: OVERLAP,
   });
+  assert.throws(() => run(["--root", ""], root, () => undefined), {
+    message: EMPTY,
+  });
+  assert.throws(
+    () => run(["--root", "", "--remove", manual], root, () => undefined),
+    { message: EMPTY }
+  );
 });

@@ -92,6 +92,7 @@ export function processDirectories(procRoot = "/proc") {
 // and neither inside nor containing the main checkout, so it cannot widen the
 // scope to the main checkout or its managed worktrees.
 export function manualRoot(root, candidate) {
+  if (!candidate) throw new Error("--root must not be empty");
   if (!isAbsolute(candidate))
     throw new Error("--root must be an absolute path");
   const main = realpathSync(root);
@@ -214,7 +215,9 @@ export function run(
   const root = dirname(common);
   if (!worktrees(root).some((entry) => resolve(entry.path) === root))
     throw new Error("Cannot establish the canonical main checkout");
-  const options = values.root ? { allowed: manualRoot(root, values.root) } : {};
+  // An empty --root must fail, not silently fall back to the default scope.
+  const options =
+    values.root === undefined ? {} : { allowed: manualRoot(root, values.root) };
   if (values.remove)
     log(
       JSON.stringify(
