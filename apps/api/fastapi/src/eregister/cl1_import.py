@@ -519,12 +519,17 @@ def carry_over(
     """The refreshed body with any daily values the draft already holds kept.
 
     A re-run of the hourly import refreshes an unreviewed draft from the sheet; without
-    this it would silently drop the rainfall, extremes and gust added since.
+    this it would silently drop the rainfall, extremes and gust added since. The gust is
+    stored in the unit of the wind indicator, so it is dropped when the sheet changed
+    that indicator.
     """
+    same_unit = body.get("wind_indicator") == live_body.get("wind_indicator")
     kept = {
         name: live_body[name]
         for name in DAILY_FIELDS
-        if name not in body and live_body.get(name) not in (None, "")
+        if name not in body
+        and live_body.get(name) not in (None, "")
+        and (name != "wind_gust" or same_unit)
     }
     return {**body, **kept}
 

@@ -1,4 +1,4 @@
-"""The daily values import: rainfall, extremes and gust, and where they are stored.
+"""The observers' values import: rainfall, extremes and gust, and where they are stored.
 
 Values are made up for the tests; the real files hold observations and stay out of the
 repository.
@@ -18,46 +18,55 @@ from tests import test_eregister_send
 send_client = test_eregister_send.send_client
 
 NOON = datetime(2026, 10, 5, 12, tzinfo=UTC)  # 08:00 local on the 5th
+DRAFT = {"state": "draft", "notes": cl1_import.IMPORT_NOTE_PREFIX}
 
 
-def day(**cells: str) -> daily_import.DayReport:
-    return daily_import.convert_day(2, {"date": "2026-10-05", **cells})
+def row(local_time: str = "2026-10-05 08:00", **cells: str) -> daily_import.RowReport:
+    return daily_import.convert_row(2, {"local_time": local_time, **cells})
 
 
-def codes(report: daily_import.DayReport) -> dict[str, str]:
+def codes(report: daily_import.RowReport) -> dict[str, str]:
     return {issue.field: issue.code for issue in report.issues}
 
 
 def live(**body: str) -> daily_import.LiveRow:
     return daily_import.LiveRow(
-        state=str(body.pop("state", "draft")),
-        notes=str(body.pop("notes", cl1_import.IMPORT_NOTE_PREFIX)),
+        state=DRAFT["state"],
+        notes=DRAFT["notes"],
         review_outcome=None,
         body={"wind_indicator": "4", "air_temp": "302", **body},
     )
 
 
-def test_the_template_needs_a_date_and_at_least_one_value_column() -> None:
+def test_the_template_needs_a_time_and_at_least_one_value_column() -> None:
     with pytest.raises(daily_import.DailyFormatError):
         daily_import.read_daily("")
     with pytest.raises(daily_import.DailyFormatError):
-        daily_import.read_daily("date,notes\n2026-10-01,hello\n")
+        daily_import.read_daily("local_time,notes\n2026-10-01 08:00,hello\n")
     with pytest.raises(daily_import.DailyFormatError):
         daily_import.read_daily("rainfall_24h_mm\n1.0\n")
 
 
 def test_rows_are_read_by_column_name_and_blank_rows_are_skipped() -> None:
     rows = daily_import.read_daily(
-        "﻿Date, Rainfall_24h_mm ,extra\n2026-10-01, 1.2 \n,,\n2026-10-02\n"
+        "﻿Local_Time, Rainfall_24h_mm ,extra\n2026-10-01 08:00, 1.2 \n,,\n"
+        "2026-10-02 08:00\n"
     )
     assert rows == [
-        (2, {"date": "2026-10-01", "rainfall_24h_mm": "1.2", "extra": ""}),
-        (4, {"date": "2026-10-02", "rainfall_24h_mm": "", "extra": ""}),
+        (
+            2,
+            {
+                "local_time": "2026-10-01 08:00",
+                "rainfall_24h_mm": "1.2",
+                "extra": "",
+            },
+        ),
+        (4, {"local_time": "2026-10-02 08:00", "rainfall_24h_mm": "", "extra": ""}),
     ]
 
 
 def test_rainfall_goes_to_the_12_utc_entry_in_tenths_of_a_millimetre() -> None:
-    report = day(rainfall_24h_mm="12.3", rain_reading_time_local="08:00")
+    report = row(rainfall_24h_mm="12.3")
     assert report.status == "ready"
     assert report.fields == {NOON: {"s3_rainfall_24h": "0123"}}
     assert report.issues == []
@@ -74,8 +83,7 @@ def test_rainfall_goes_to_the_12_utc_entry_in_tenths_of_a_millimetre() -> None:
     ],
 )
 def test_dry_days_trace_and_the_largest_value_are_coded(cell: str, code: str) -> None:
-    report = day(rainfall_24h_mm=cell, rain_reading_time_local="08:00")
-    assert report.fields[NOON]["s3_rainfall_24h"] == code
+    assert row(rainfall_24h_mm=cell).fields[NOON]["s3_rainfall_24h"] == code
 
 
 @pytest.mark.parametrize(
@@ -88,123 +96,140 @@ def test_dry_days_trace_and_the_largest_value_are_coded(cell: str, code: str) ->
     ],
 )
 def test_unusable_rainfall_blocks_the_row(cell: str, code: str) -> None:
-    report = day(rainfall_24h_mm=cell, rain_reading_time_local="08:00")
+    report = row(rainfall_24h_mm=cell)
     assert report.status == "blocked"
     assert report.fields == {}
     assert codes(report) == {"s3_rainfall_24h": code}
 
 
-def test_a_gauge_read_at_another_time_is_refused_not_moved() -> None:
-    report = day(rainfall_24h_mm="5.0", rain_reading_time_local="09:00")
+@pytest.mark.parametrize(
+    "time", ["2026-10-05 02:00", "2026-10-05 09:00", "2026-10-05 14:00"]
+)
+def test_rainfall_on_a_row_other_than_8am_is_refused_not_moved(time: str) -> None:
+    report = row(time, rainfall_24h_mm="5.0")
     assert report.status == "blocked"
-    assert codes(report) == {"rain_reading_time_local": "reading_time"}
+    assert codes(report) == {"s3_rainfall_24h": "reading_time"}
     assert report.fields == {}
 
 
-def test_a_missing_reading_time_is_assumed_and_warned() -> None:
-    report = day(rainfall_24h_mm="5.0")
-    assert report.status == "ready"
-    assert codes(report) == {"rain_reading_time_local": "reading_time_assumed"}
-    assert report.errors == []
-    assert report.fields == {NOON: {"s3_rainfall_24h": "0050"}}
-
-
 def test_a_very_wet_day_is_saved_with_a_warning() -> None:
-    report = day(rainfall_24h_mm="310.0", rain_reading_time_local="08:00")
+    report = row(rainfall_24h_mm="310.0")
     assert report.status == "ready"
     assert codes(report) == {"s3_rainfall_24h": "very_wet_day"}
 
 
-def test_extremes_go_to_the_same_entry_as_four_digit_groups() -> None:
-    report = day(highest_temp_c="31.2", lowest_temp_c="23.9")
-    assert report.fields == {NOON: {"s3_max_temp": "0312", "s3_min_temp": "0239"}}
+@pytest.mark.parametrize(
+    ("local", "utc"),
+    [
+        ("2026-10-04 20:00", datetime(2026, 10, 5, 0, tzinfo=UTC)),
+        ("2026-10-05 02:00", datetime(2026, 10, 5, 6, tzinfo=UTC)),
+        ("2026-10-05 08:00", NOON),
+        ("2026-10-05 14:00", datetime(2026, 10, 5, 18, tzinfo=UTC)),
+    ],
+)
+def test_extremes_go_to_the_entry_of_that_main_hour(local: str, utc: datetime) -> None:
+    report = row(local, highest_temp_c="31.2", lowest_temp_c="23.9")
+    assert report.fields == {utc: {"s3_max_temp": "0312", "s3_min_temp": "0239"}}
     assert (report.max_c, report.min_c) == (Decimal("31.2"), Decimal("23.9"))
 
 
+def test_extremes_on_a_row_that_is_not_a_main_hour_are_refused() -> None:
+    report = row("2026-10-05 10:00", highest_temp_c="31.2")
+    assert report.status == "blocked"
+    assert codes(report) == {"s3_max_temp": "reading_time"}
+
+
+def test_a_row_can_carry_rainfall_and_extremes_together() -> None:
+    report = row(rainfall_24h_mm="1.0", highest_temp_c="30.0", lowest_temp_c="24.0")
+    assert report.fields == {
+        NOON: {
+            "s3_rainfall_24h": "0010",
+            "s3_max_temp": "0300",
+            "s3_min_temp": "0240",
+        }
+    }
+
+
 def test_a_negative_temperature_uses_the_sign_digit() -> None:
-    report = day(lowest_temp_c="-1.5")
+    report = row(lowest_temp_c="-1.5")
     assert report.fields[NOON]["s3_min_temp"] == "1015"
     assert codes(report) == {"s3_min_temp": "unusual_temperature"}
 
 
 def test_highest_below_lowest_blocks_the_row() -> None:
-    report = day(highest_temp_c="22.0", lowest_temp_c="25.0")
+    report = row(highest_temp_c="22.0", lowest_temp_c="25.0")
     assert report.status == "blocked"
     assert codes(report) == {"s3_max_temp": "max_below_min"}
 
 
-def test_temperatures_with_too_many_decimals_or_text_are_refused() -> None:
-    assert codes(day(highest_temp_c="31.25")) == {"s3_max_temp": "too_precise"}
-    assert codes(day(lowest_temp_c="warm")) == {"s3_min_temp": "unreadable_cell"}
+def test_temperatures_with_too_many_decimals_text_or_impossible_are_refused() -> None:
+    assert codes(row(highest_temp_c="31.25")) == {"s3_max_temp": "too_precise"}
+    assert codes(row(lowest_temp_c="warm")) == {"s3_min_temp": "unreadable_cell"}
+    assert codes(row(highest_temp_c="75")) == {"s3_max_temp": "out_of_range"}
 
 
 def test_an_unusual_temperature_is_a_warning_only() -> None:
-    report = day(highest_temp_c="45.0")
+    report = row(highest_temp_c="45.0")
     assert report.status == "ready"
     assert codes(report) == {"s3_max_temp": "unusual_temperature"}
 
 
 def test_a_gust_goes_to_the_observation_at_or_after_it() -> None:
-    at = day(strongest_gust_kt="28", gust_time_local="14:00").gusts
-    assert at == {datetime(2026, 10, 5, 18, tzinfo=UTC): 28}
-    after = day(strongest_gust_kt="28", gust_time_local="14:20").gusts
+    on_the_hour = row(
+        "", strongest_gust_kt="28", gust_time_local="2026-10-05 14:00"
+    ).gusts
+    assert on_the_hour == {datetime(2026, 10, 5, 18, tzinfo=UTC): 28}
+    after = row("", strongest_gust_kt="28", gust_time_local="2026-10-05 14:20").gusts
     assert after == {datetime(2026, 10, 5, 19, tzinfo=UTC): 28}
 
 
 def test_a_gust_late_in_the_evening_reaches_the_next_utc_day() -> None:
-    gusts = day(strongest_gust_kt="31", gust_time_local="23:30").gusts
+    gusts = row("", strongest_gust_kt="31", gust_time_local="2026-10-05 23:30").gusts
     assert gusts == {datetime(2026, 10, 6, 4, tzinfo=UTC): 31}
 
 
-def test_a_gust_needs_a_whole_number_and_a_time() -> None:
-    assert codes(day(strongest_gust_kt="28")) == {"gust_time_local": "gust_time"}
-    assert codes(day(strongest_gust_kt="28", gust_time_local="soon")) == {
+def test_a_gust_needs_a_whole_number_and_a_dated_time() -> None:
+    assert codes(row("", strongest_gust_kt="28")) == {"gust_time_local": "gust_time"}
+    assert codes(row("", strongest_gust_kt="28", gust_time_local="14:20")) == {
         "gust_time_local": "gust_time"
     }
-    assert codes(day(strongest_gust_kt="28.5", gust_time_local="14:00")) == {
-        "wind_gust": "unreadable_cell"
-    }
+    assert codes(
+        row("", strongest_gust_kt="28.5", gust_time_local="2026-10-05 14:00")
+    ) == {"wind_gust": "unreadable_cell"}
 
 
-def test_a_row_with_nothing_to_save_is_empty_and_a_bad_date_is_unreadable() -> None:
-    assert day(notes="calm day").status == "empty"
-    assert daily_import.convert_day(3, {"date": "5/10/2026"}).status == "unreadable"
+def test_a_row_with_nothing_to_save_is_empty_and_a_bad_time_is_unreadable() -> None:
+    assert row(notes="calm day").status == "empty"
+    assert row("5/10/2026 8am").status == "unreadable"
 
 
-def test_the_same_date_twice_blocks_both_rows() -> None:
+def test_the_same_time_twice_blocks_both_rows() -> None:
     rows = [
-        (2, {"date": "2026-10-05", "rainfall_24h_mm": "1.0"}),
-        (3, {"date": "2026-10-05", "rainfall_24h_mm": "2.0"}),
-        (4, {"date": "2026-10-06", "rainfall_24h_mm": "3.0"}),
+        (2, {"local_time": "2026-10-05 08:00", "rainfall_24h_mm": "1.0"}),
+        (3, {"local_time": "2026-10-05 08:00", "rainfall_24h_mm": "2.0"}),
+        (4, {"local_time": "2026-10-06 08:00", "rainfall_24h_mm": "3.0"}),
     ]
-    reports = daily_import.check_days(rows)
+    reports = daily_import.check_rows(rows)
     assert [r.status for r in reports] == ["blocked", "blocked", "ready"]
-    assert codes(reports[0]) == {
-        "date": "duplicate_day",
-        "rain_reading_time_local": "reading_time_assumed",
-    }
+    assert codes(reports[0]) == {"local_time": "duplicate_time"}
 
 
 def test_a_time_zone_other_than_grenadas_moves_the_entry() -> None:
-    report = daily_import.convert_day(
+    report = daily_import.convert_row(
         2,
-        {
-            "date": "2026-10-05",
-            "rainfall_24h_mm": "1.0",
-            "rain_reading_time_local": "07:00",
-        },
+        {"local_time": "2026-10-05 07:00", "rainfall_24h_mm": "1.0"},
         utc_offset_hours=5,
     )
     assert list(report.fields) == [NOON]
 
 
 def test_dry_bulb_readings_outside_the_extremes_are_warned_about() -> None:
-    report = day(highest_temp_c="30.0", lowest_temp_c="24.0")
+    report = row("2026-10-05 14:00", highest_temp_c="30.0", lowest_temp_c="24.0")
     air = {
-        datetime(2026, 10, 4, 20, tzinfo=UTC): 28.0,  # inside the window
-        datetime(2026, 10, 5, 3, tzinfo=UTC): 31.0,  # above the highest
-        datetime(2026, 10, 5, 9, tzinfo=UTC): 23.0,  # below the lowest
-        datetime(2026, 10, 4, 12, tzinfo=UTC): 40.0,  # before the window: ignored
+        datetime(2026, 10, 5, 13, tzinfo=UTC): 28.0,  # inside the six hours
+        datetime(2026, 10, 5, 15, tzinfo=UTC): 31.0,  # above the highest
+        datetime(2026, 10, 5, 17, tzinfo=UTC): 23.0,  # below the lowest
+        datetime(2026, 10, 5, 10, tzinfo=UTC): 40.0,  # before the window: ignored
     }
     daily_import.check_against_hourly(report, air, utc_offset_hours=4)
     assert codes(report) == {
@@ -212,7 +237,7 @@ def test_dry_bulb_readings_outside_the_extremes_are_warned_about() -> None:
         "s3_min_temp": "air_below_min",
     }
     assert report.errors == []
-    clean = day(highest_temp_c="32.0", lowest_temp_c="22.0")
+    clean = row("2026-10-05 14:00", highest_temp_c="32.0", lowest_temp_c="22.0")
     daily_import.check_against_hourly(clean, air, utc_offset_hours=4)
     assert clean.issues == []
 
@@ -234,9 +259,7 @@ def test_the_gust_is_coded_in_the_entrys_wind_unit() -> None:
 
 
 def test_values_are_added_to_an_unreviewed_imported_draft() -> None:
-    report = day(
-        rainfall_24h_mm="12.3", rain_reading_time_local="08:00", highest_temp_c="31.2"
-    )
+    report = row(rainfall_24h_mm="12.3", highest_temp_c="31.2")
     (plan,) = daily_import.plan_merge([report], {NOON: live()})
     assert plan.action == "update"
     assert plan.added == {"s3_rainfall_24h": "0123", "s3_max_temp": "0312"}
@@ -246,7 +269,7 @@ def test_values_are_added_to_an_unreviewed_imported_draft() -> None:
 
 
 def test_a_gust_is_coded_with_the_entrys_unit_when_merged() -> None:
-    report = day(strongest_gust_kt="28", gust_time_local="14:00")
+    report = row("", strongest_gust_kt="28", gust_time_local="2026-10-05 14:00")
     at = next(iter(report.gusts))
     (plan,) = daily_import.plan_merge([report], {at: live()})
     assert plan.added == {"wind_gust": "28"}
@@ -256,8 +279,25 @@ def test_a_gust_is_coded_with_the_entrys_unit_when_merged() -> None:
     assert unknown.action == "skip" and "wind indicator" in unknown.reason
 
 
+def test_a_gust_below_the_mean_wind_is_listed_as_a_warning() -> None:
+    report = row("", strongest_gust_kt="10", gust_time_local="2026-10-05 14:00")
+    at = next(iter(report.gusts))
+    (plan,) = daily_import.plan_merge([report], {at: live(wind_speed="15")})
+    assert plan.action == "update"
+    assert len(plan.warnings) == 1 and "below the mean wind" in plan.warnings[0]
+
+
+def test_a_gust_already_in_the_910_group_is_not_sent_twice() -> None:
+    report = row("", strongest_gust_kt="28", gust_time_local="2026-10-05 14:00")
+    at = next(iter(report.gusts))
+    (plan,) = daily_import.plan_merge(
+        [report], {at: live(s3_special_phenomena="91028")}
+    )
+    assert plan.action == "skip" and "910 group" in plan.reason
+
+
 def test_values_already_there_are_kept_and_never_replaced() -> None:
-    report = day(rainfall_24h_mm="12.3", rain_reading_time_local="08:00")
+    report = row(rainfall_24h_mm="12.3")
     (same,) = daily_import.plan_merge([report], {NOON: live(s3_rainfall_24h="0123")})
     assert same.action == "unchanged" and same.body is None
     (different,) = daily_import.plan_merge(
@@ -268,7 +308,7 @@ def test_values_already_there_are_kept_and_never_replaced() -> None:
 
 
 @pytest.mark.parametrize(
-    "row",
+    "existing",
     [
         daily_import.LiveRow("draft", "typed by an observer", None, {}),
         daily_import.LiveRow("accepted", cl1_import.IMPORT_NOTE_PREFIX, None, {}),
@@ -276,51 +316,65 @@ def test_values_already_there_are_kept_and_never_replaced() -> None:
     ],
 )
 def test_only_an_unreviewed_imported_draft_is_ever_changed(
-    row: daily_import.LiveRow,
+    existing: daily_import.LiveRow,
 ) -> None:
-    report = day(rainfall_24h_mm="1.0", rain_reading_time_local="08:00")
-    (plan,) = daily_import.plan_merge([report], {NOON: row})
+    (plan,) = daily_import.plan_merge([row(rainfall_24h_mm="1.0")], {NOON: existing})
     assert plan.action == "skip" and plan.body is None
 
 
 def test_an_hour_with_no_entry_is_listed_not_created() -> None:
-    report = day(rainfall_24h_mm="1.0", rain_reading_time_local="08:00")
-    (plan,) = daily_import.plan_merge([report], {})
+    (plan,) = daily_import.plan_merge([row(rainfall_24h_mm="1.0")], {})
     assert plan.action == "skip"
     assert plan.reason == "no hourly entry for that hour in the register"
 
 
 def test_a_blocked_row_contributes_nothing() -> None:
-    report = day(rainfall_24h_mm="1.25", rain_reading_time_local="08:00")
+    report = row(rainfall_24h_mm="1.25")
     assert daily_import.plan_merge([report], {NOON: live()}) == []
 
 
 def test_two_gusts_for_one_observation_are_not_guessed_between() -> None:
-    # 23:30 on the 4th and 00:00 on the 5th both belong to the 00 local observation.
-    evening = daily_import.convert_day(
-        2, {"date": "2026-10-04", "strongest_gust_kt": "20", "gust_time_local": "23:30"}
+    first = daily_import.convert_row(
+        2, {"strongest_gust_kt": "20", "gust_time_local": "2026-10-04 23:30"}
     )
-    midnight = daily_import.convert_day(
-        3, {"date": "2026-10-05", "strongest_gust_kt": "25", "gust_time_local": "00:00"}
+    second = daily_import.convert_row(
+        3, {"strongest_gust_kt": "25", "gust_time_local": "2026-10-05 00:00"}
     )
     at = datetime(2026, 10, 5, 4, tzinfo=UTC)
-    (plan,) = daily_import.plan_merge([evening, midnight], {at: live()})
+    (plan,) = daily_import.plan_merge([first, second], {at: live()})
     assert plan.action == "skip"
     assert "different values" in plan.reason
+
+
+def test_a_fresh_plan_for_the_same_hour_agrees_with_the_first() -> None:
+    # The script plans again just before saving; the result must not depend on history.
+    report = row(rainfall_24h_mm="12.3")
+    (plan,) = daily_import.plan_merge([report], {NOON: live()})
+    again = daily_import.plan_hour(
+        daily_import.Planned(NOON, [2], "skip"), plan.wanted, live()
+    )
+    assert again.action == "update" and again.body == plan.body
+    reviewed = daily_import.LiveRow("draft", DRAFT["notes"], "accept", {})
+    stale = daily_import.plan_hour(
+        daily_import.Planned(NOON, [2], "skip"), plan.wanted, reviewed
+    )
+    assert stale.action == "skip"
 
 
 def test_a_refresh_of_the_hourly_import_keeps_the_daily_values() -> None:
     fresh = {"air_temp": "302", "wind_indicator": "4"}
     live_body = {
         "air_temp": "299",
+        "wind_indicator": "4",
         "s3_rainfall_24h": "0123",
         "s3_max_temp": "0312",
-        "wind_gust": "",
+        "wind_gust": "28",
     }
     assert cl1_import.carry_over(fresh, live_body) == {
         **fresh,
         "s3_rainfall_24h": "0123",
         "s3_max_temp": "0312",
+        "wind_gust": "28",
     }
     # A value the sheet itself provides wins.
     assert cl1_import.carry_over({"wind_gust": "30"}, {"wind_gust": "28"}) == {
@@ -328,28 +382,30 @@ def test_a_refresh_of_the_hourly_import_keeps_the_daily_values() -> None:
     }
 
 
-async def test_daily_values_are_saved_into_the_draft_through_the_api(
+def test_a_gust_is_dropped_when_the_refresh_changes_the_wind_unit() -> None:
+    kept = cl1_import.carry_over(
+        {"wind_indicator": "1"},
+        {"wind_indicator": "4", "wind_gust": "28", "s3_max_temp": "0312"},
+    )
+    assert kept == {"wind_indicator": "1", "s3_max_temp": "0312"}
+
+
+async def test_values_are_saved_into_the_draft_through_the_api(
     send_client: tuple[httpx.AsyncClient, User],
 ) -> None:
     register_client, _user = send_client
     (hour,) = hourly.check([hourly.cells(c2=5, c3=8)])  # 08:00 local on the 5th
     assert hour.status == "ready" and hour.observed_at == NOON and hour.workbook
-    body = hour.workbook.model_dump(exclude_none=True)
     record = {
         "station_id": cl1_import.STATION_ID,
         "kind": "SYNOP",
         "observed_at": NOON.isoformat(),
-        "body": body,
+        "body": hour.workbook.model_dump(exclude_none=True),
     }
     first = await register_client.post("/api/v1/eregister/observations", json=record)
     assert first.status_code == 201, first.text
 
-    report = day(
-        rainfall_24h_mm="12.3",
-        rain_reading_time_local="08:00",
-        highest_temp_c="31.2",
-        lowest_temp_c="23.9",
-    )
+    report = row(rainfall_24h_mm="12.3", highest_temp_c="31.2", lowest_temp_c="23.9")
     saved_body = first.json()["body"]
     (plan,) = daily_import.plan_merge(
         [report],

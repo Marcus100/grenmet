@@ -51,19 +51,19 @@ _LIVE_ROWS = text(
 )
 
 
-def summary(reports: list[daily_import.DayReport]) -> None:
+def summary(reports: list[daily_import.RowReport]) -> None:
     print(f"File rows read: {len(reports)}")
     for status, label in (
         ("ready", "have values that pass every check"),
         ("blocked", "have an error (nothing saved for the row)"),
         ("empty", "have no values"),
-        ("unreadable", "have an unreadable date"),
+        ("unreadable", "have an unreadable time"),
     ):
         count = sum(1 for r in reports if r.status == status)
         if count:
-            print(f"  {count:>4} days {label}")
+            print(f"  {count:>4} rows {label}")
     counts: Counter[tuple[str, str, str]] = Counter()
-    first: dict[tuple[str, str, str], daily_import.DayReport] = {}
+    first: dict[tuple[str, str, str], daily_import.RowReport] = {}
     for report in reports:
         for issue in report.issues:
             key: tuple[str, str, str] = (issue.severity, issue.field, issue.code)
@@ -74,24 +74,24 @@ def summary(reports: list[daily_import.DayReport]) -> None:
         counts.items(), key=lambda kv: (kv[0][0] != "error", -kv[1])
     ):
         where = first[key]
-        when = str(where.day) if where.day else f"row {where.row}"
+        when = f"{where.key:%Y-%m-%d %H:%M}" if where.key else f"row {where.row}"
         print(f"  {count:>4} {key[0]:7} {key[1]} / {key[2]} (first: {when})")
     for report in reports:
         if report.status in ("blocked", "unreadable"):
             what = "; ".join(f"{i.field}: {i.message}" for i in report.errors[:SAMPLES])
             print(
-                f"\nNot saved: file row {report.row}, {report.day or 'unknown date'}: {what}"
+                f"\nNot saved: file row {report.row}, {report.key or 'unknown time'}: {what}"
             )
 
 
-def write_report(path: Path, reports: list[daily_import.DayReport]) -> None:
+def write_report(path: Path, reports: list[daily_import.RowReport]) -> None:
     with path.open("w", newline="", encoding="utf-8") as handle:
         writer = csv.writer(handle)
         writer.writerow(
-            ["file_row", "date", "status", "severity", "field", "code", "message"]
+            ["file_row", "local_time", "status", "severity", "field", "code", "message"]
         )
         for report in reports:
-            day = str(report.day) if report.day else ""
+            day = f"{report.key:%Y-%m-%d %H:%M}" if report.key else ""
             if not report.issues:
                 writer.writerow([report.row, day, report.status, "", "", "", ""])
             for issue in report.issues:
@@ -124,18 +124,9 @@ def refuse_unless_local_register(allow_non_local: bool) -> None:
 
 
 async def read_live(
-    register: Any, reports: list[daily_import.DayReport]
+    register: Any, start: datetime, stop: datetime
 ) -> tuple[dict[datetime, daily_import.LiveRow], dict[datetime, dict[str, Any]]]:
-    """Live rows for the hours the file touches, and every nearby hourly body."""
-    days = [r.day for r in reports if r.day is not None]
-    if not days:
-        return {}, {}
-    start = datetime.combine(min(days), datetime.min.time(), tzinfo=UTC) - timedelta(
-        days=2
-    )
-    stop = datetime.combine(max(days), datetime.min.time(), tzinfo=UTC) + timedelta(
-        days=3
-    )
+    """Live rows with start <= observed_at < stop, and every one's body."""
     result = await register.execute(
         _LIVE_ROWS, {"station": cl1_import.STATION_ID, "start": start, "stop": stop}
     )
@@ -161,6 +152,12 @@ def show_plan(plans: list[daily_import.Planned]) -> None:
         f"\nHourly drafts: {len(updates)} would change, {len(unchanged)} already hold "
         f"these values, {len(skipped)} cannot take them."
     )
+    for plan in plans:
+        for warning in plan.warnings:
+            print(
+                f"  warning: {plan.observed_at:%Y-%m-%d %H:%M} UTC "
+                f"(file rows {', '.join(map(str, plan.rows))}): {warning}"
+            )
     for plan in skipped:
         print(
             f"  left alone: {plan.observed_at:%Y-%m-%d %H:%M} UTC "
@@ -191,11 +188,23 @@ async def save(args: argparse.Namespace, plans: list[daily_import.Planned]) -> N
             if plan.action != "update" or plan.body is None:
                 continue
             when = f"{plan.observed_at:%Y-%m-%d %H:%M} UTC"
+            # The preview may be old: read the hour again and decide again.
+            fresh, _bodies = await read_live(
+                register, plan.observed_at, plan.observed_at + timedelta(hours=1)
+            )
+            again = daily_import.plan_hour(
+                daily_import.Planned(plan.observed_at, plan.rows, "skip"),
+                plan.wanted,
+                fresh.get(plan.observed_at),
+            )
+            if again.action != "update" or again.body is None:
+                failed.append(f"{when}: changed since the preview ({again.reason})")
+                continue
             data = RegisterObservationCreate(
                 station_id=cl1_import.STATION_ID,
                 kind="SYNOP",
                 observed_at=plan.observed_at,
-                body=plan.body,
+                body=again.body,
             )
             try:
                 await entries.create(
@@ -215,7 +224,7 @@ async def save(args: argparse.Namespace, plans: list[daily_import.Planned]) -> N
 
 
 async def run(args: argparse.Namespace, rows: list[tuple[int, dict[str, str]]]) -> None:
-    reports = daily_import.check_days(rows, utc_offset_hours=args.utc_offset_hours)
+    reports = daily_import.check_rows(rows, utc_offset_hours=args.utc_offset_hours)
     register = database.create_session()
     plans: list[daily_import.Planned] = []
     if register is None:
@@ -224,8 +233,25 @@ async def run(args: argparse.Namespace, rows: list[tuple[int, dict[str, str]]]) 
             "and not against the hourly drafts.\n"
         )
     else:
+        times = [
+            at
+            for r in reports
+            for at in (
+                ([r.observed_at] if r.observed_at else [])
+                + list(r.fields)
+                + list(r.gusts)
+            )
+        ]
         async with register:
-            live, bodies = await read_live(register, reports)
+            live, bodies = (
+                await read_live(
+                    register,
+                    min(times) - timedelta(days=1),
+                    max(times) + timedelta(days=1),
+                )
+                if times
+                else ({}, {})
+            )
         air = daily_import.hourly_air(bodies)
         for report in reports:
             if report.status == "ready":
