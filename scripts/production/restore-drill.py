@@ -12,6 +12,7 @@ the health check and a few authenticated reads to pass, and removes it again.
 """
 
 import argparse
+import base64
 import datetime
 import json
 import os
@@ -551,6 +552,12 @@ class ApiUnderTest:
             "SECRET_KEY": self.secret_key,
             "FIRST_SUPERUSER_PASSWORD": self.superuser_password,
             "POSTGRES_PASSWORD": self.postgres.password,
+            # Production settings refuse to start without a TOTP encryption key
+            # (privileged MFA is enforced). A throwaway Fernet key satisfies that;
+            # the drill never reads stored TOTP secrets.
+            "AUTH_TOTP_ENCRYPTION_KEYS": json.dumps(
+                [base64.urlsafe_b64encode(secrets.token_bytes(32)).decode()]
+            ),
         }
         for variable, database in API_DATABASE_VARIABLES.items():
             if database in self.databases:
