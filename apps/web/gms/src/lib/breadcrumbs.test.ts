@@ -16,7 +16,7 @@ describe("breadcrumbTrail", () => {
   });
 
   it("links the section crumb to the section's index page", () => {
-    expect(breadcrumbTrail("/weather/3-day").slice(0, 2)).toEqual([
+    expect(breadcrumbTrail("/weather/5-day").slice(0, 2)).toEqual([
       { href: "/weather", label: "Weather" },
       { href: "/sitemap#weather--forecasts", label: "Forecasts" },
     ]);

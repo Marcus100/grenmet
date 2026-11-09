@@ -80,12 +80,18 @@ function isIssued(day: ForecastDayData) {
   );
 }
 
+/** How many days the forecast table shows: tonight plus four, as the evening forecast. */
+export const FORECAST_TABLE_DAYS = 5;
+
 /**
- * Rows for the 3-day table from the first three backend-selected periods.
+ * Rows for the forecast table from the first `count` backend-selected periods.
  * Days with no published forecast say so rather than showing blanks.
  */
-export function threeDayRows(days: readonly ForecastDayData[]): ReactNode[][] {
-  return days.slice(0, 3).map((day, index) => {
+export function forecastRows(
+  days: readonly ForecastDayData[],
+  count: number = FORECAST_TABLE_DAYS
+): ReactNode[][] {
+  return days.slice(0, count).map((day, index) => {
     const label = dayLabel(day.date, index);
     if (!isIssued(day))
       return [label, "No published forecast yet", "—", "—", "—", "—"];
@@ -100,9 +106,12 @@ export function threeDayRows(days: readonly ForecastDayData[]): ReactNode[][] {
   });
 }
 
-/** Whether any of the first three periods carries an issued forecast. */
-export function hasIssuedForecast(days: readonly ForecastDayData[]) {
-  return days.slice(0, 3).some(isIssued);
+/** Whether any of the first `count` periods carries an issued forecast. */
+export function hasIssuedForecast(
+  days: readonly ForecastDayData[],
+  count: number = FORECAST_TABLE_DAYS
+) {
+  return days.slice(0, count).some(isIssued);
 }
 
 export interface StationTile {

@@ -209,8 +209,7 @@ placeholder is not an implemented service.
 | gms | `/services/tourism/events` | Pending |
 | gms | `/services/tourism/events/[slug]` | Pending |
 | gms | `/sitemap` | Pending |
-| gms | `/weather/3-day` | Pending |
-| gms | `/weather/7-day` | Pending |
+| gms | `/weather/5-day` | Pending |
 | gms | `/weather/analyses` | Pending |
 | gms | `/weather/conditions` | Pending |
 | gms | `/weather/dust` | Pending |
