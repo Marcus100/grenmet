@@ -72791,6 +72791,13 @@
           "lifecycle_state": {
             "$ref": "#/components/schemas/CapLifecycleState"
           },
+          "allowed_actions": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Allowed Actions"
+          },
           "created_by_user_id": {
             "type": "string",
             "format": "uuid",
