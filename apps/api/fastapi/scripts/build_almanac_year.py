@@ -20,6 +20,11 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from src.almanac import service  # noqa: E402
 from src.almanac.locations import LOCATIONS  # noqa: E402
+from src.almanac.target import (  # noqa: E402
+    TargetNotConfirmedError,
+    describe_target,
+    require_confirmed,
+)
 from src.database import async_session_factory  # noqa: E402
 
 
@@ -33,6 +38,11 @@ def _parser() -> argparse.ArgumentParser:
         action="append",
         choices=sorted(LOCATIONS),
         help="Location key (repeatable). Default: all locations.",
+    )
+    parser.add_argument(
+        "--confirm-host",
+        default=None,
+        help="Required when the database host is not local: repeat the host name",
     )
     return parser
 
@@ -50,6 +60,13 @@ async def _run(year: int, locations: list[str]) -> None:
 
 def main() -> int:
     args = _parser().parse_args()
+    host, database = describe_target()
+    print(f"target database: {database or '(default)'} on {host}")
+    try:
+        require_confirmed(host, args.confirm_host)
+    except TargetNotConfirmedError as error:
+        print(error, file=sys.stderr)
+        return 2
     locations = args.location or sorted(LOCATIONS)
     asyncio.run(_run(args.year, locations))
     return 0

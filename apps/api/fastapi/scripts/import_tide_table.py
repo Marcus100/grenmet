@@ -19,6 +19,11 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from src.almanac import service  # noqa: E402
+from src.almanac.target import (  # noqa: E402
+    TargetNotConfirmedError,
+    describe_target,
+    require_confirmed,
+)
 from src.almanac.tides import (  # noqa: E402
     TIDE_STATIONS,
     TideRow,
@@ -42,6 +47,11 @@ def _parser() -> argparse.ArgumentParser:
         default="v1.4",
         help="Version label of the owner's table (default: v1.4)",
     )
+    parser.add_argument(
+        "--confirm-host",
+        default=None,
+        help="Required when the database host is not local: repeat the host name",
+    )
     return parser
 
 
@@ -52,6 +62,13 @@ async def _run(rows: list[TideRow]) -> int:
 
 def main() -> int:
     args = _parser().parse_args()
+    host, database = describe_target()
+    print(f"target database: {database or '(default)'} on {host}")
+    try:
+        require_confirmed(host, args.confirm_host)
+    except TargetNotConfirmedError as error:
+        print(error, file=sys.stderr)
+        return 2
     try:
         with args.csv_path.open(encoding="utf-8", newline="") as handle:
             rows = parse_tide_csv(
