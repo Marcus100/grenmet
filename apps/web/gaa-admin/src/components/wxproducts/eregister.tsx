@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  eregisterAcceptRegisterObservation,
   eregisterCorrectRegisterObservation,
   eregisterCreateRegisterObservation,
   eregisterGetStationSettings,
@@ -35,7 +36,10 @@ import {
   SectionCard,
   TimeMarks,
 } from "./eregister-ui";
-import { ERegisterWorkbook } from "./eregister-workbook";
+import {
+  type ApprovalController,
+  ERegisterWorkbook,
+} from "./eregister-workbook";
 
 // Modernised Meteorological Observations eRegister (station 78958, MBIA).
 // The register is backed by the dedicated FastAPI eRegister database. Until a
@@ -211,7 +215,10 @@ export function ERegister() {
     return result.response?.status === 403 ? "forbidden" : "error";
   }
 
-  async function runValidation(): Promise<boolean> {
+  async function checkObservation(): Promise<{
+    issues: SynopValidationIssue[];
+    valid: boolean;
+  } | null> {
     setValidationState("checking");
     const result = await eregisterValidateSynopObservation({
       body: {
@@ -222,12 +229,17 @@ export function ERegister() {
     });
     if (result.error || !result.data) {
       setValidationState("error");
-      return false;
+      return null;
     }
-    setValidationIssues(result.data.issues ?? []);
+    const issues = result.data.issues ?? [];
+    setValidationIssues(issues);
     setExpectedMetar(result.data.expected_metar ?? null);
     setValidationState(result.data.valid ? "valid" : "invalid");
-    return result.data.valid;
+    return { issues, valid: result.data.valid };
+  }
+
+  async function runValidation(): Promise<boolean> {
+    return (await checkObservation())?.valid ?? false;
   }
 
   async function validateDraft() {
@@ -331,6 +343,97 @@ export function ERegister() {
     await persistDraft();
   }
 
+  // Save and approve on the entry screen: the observer decides their own
+  // observation (another person may still review it afterwards).
+  const [approvalStatus, setApprovalStatus] =
+    useState<ApprovalController["status"]>("idle");
+  const [approvalMessage, setApprovalMessage] = useState<string | null>(null);
+  const [approvalNotes, setApprovalNotes] = useState(0);
+
+  async function approveNow() {
+    setApprovalStatus("working");
+    setApprovalMessage(null);
+    const saved = savedRef.current;
+    const alreadyApproved =
+      saved !== null &&
+      saved.key === JSON.stringify(structuredValues) &&
+      liveObservations.some(
+        (item) => item.id === saved.id && item.state === "accepted"
+      );
+    if (alreadyApproved) {
+      setApprovalStatus("approved");
+      setApprovalMessage("This observation is already approved.");
+      return;
+    }
+    const id = await persistDraft();
+    if (!id) {
+      setApprovalStatus("error");
+      setApprovalMessage(
+        "Not approved: the observation was not saved. See the errors above."
+      );
+      return;
+    }
+    const decided = await eregisterAcceptRegisterObservation({
+      body: { reason: null },
+      path: { observation_id: id },
+      throwOnError: false,
+    });
+    if (decided.data) {
+      const approved = decided.data;
+      setLiveObservations((current) =>
+        current.map((item) => (item.id === approved.id ? approved : item))
+      );
+      setApprovalStatus("approved");
+      setApprovalMessage("Approved. It goes to WIS2 and email now.");
+      return;
+    }
+    setApprovalStatus("error");
+    if (decided.response?.status === 403) {
+      setApprovalMessage(
+        "Saved as a draft, but you need the eRegister approval permission to approve it."
+      );
+    } else if (isSynopRefusal(decided.error)) {
+      setApprovalMessage(decided.error.detail.message);
+    } else {
+      setApprovalMessage(
+        "Saved as a draft, but it could not be approved. Try again."
+      );
+    }
+  }
+
+  async function startApproval() {
+    setApprovalMessage(null);
+    setApprovalStatus("working");
+    const checked = await checkObservation();
+    if (!checked?.valid) {
+      setApprovalStatus("error");
+      setApprovalMessage(
+        checked
+          ? "Not approved: fix the errors listed above."
+          : "Not approved: the checks could not run. Try again."
+      );
+      return;
+    }
+    const notes = checked.issues.filter(
+      (issue) => issue.severity === "warning"
+    ).length;
+    if (notes > 0) {
+      setApprovalNotes(notes);
+      setApprovalStatus("confirming");
+      return;
+    }
+    await approveNow();
+  }
+
+  const approval: ApprovalController = {
+    cancel: () => setApprovalStatus("idle"),
+    confirm: approveNow,
+    message: approvalMessage,
+    start: startApproval,
+    status: approvalStatus,
+    warningCount: approvalNotes,
+  };
+
   const sends = useObservationSends(async () => {
     const saved = savedRef.current;
     if (saved && saved.key === JSON.stringify(structuredValues)) {
@@ -365,6 +468,7 @@ export function ERegister() {
 
     return (
       <ERegisterWorkbook
+        approval={approval}
         expectedMetar={expectedMetar}
         issues={validationIssues}
         metarPreview={metarPreview}
@@ -379,6 +483,8 @@ export function ERegister() {
           // The checked METAR belongs to the values it was built from: editing
           // them falls back to the local preview until the next check.
           if (key !== "metar_text") setExpectedMetar(null);
+          // Editing after a decision or a question starts the approval over.
+          if (approvalStatus !== "working") setApprovalStatus("idle");
           setStructuredValues((current) => ({ ...current, [key]: value }));
         }}
         saveStatus={saveState}

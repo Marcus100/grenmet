@@ -5,7 +5,14 @@ import { Badge } from "@barrelsgd/ui/components/ui/badge";
 import { Button } from "@barrelsgd/ui/components/ui/button";
 import { Input } from "@barrelsgd/ui/components/ui/input";
 import { cn } from "@barrelsgd/ui/lib/utils";
-import { CircleAlert, Mail, Save, Send, TriangleAlert } from "lucide-react";
+import {
+  CircleAlert,
+  CircleCheck,
+  Mail,
+  Save,
+  Send,
+  TriangleAlert,
+} from "lucide-react";
 import { type FormEvent, useState } from "react";
 import { PageHeader } from "@/components/layout/page-header";
 
@@ -22,6 +29,20 @@ interface Station {
 type ValidationIssue = SynopValidationIssue;
 type Status = "idle" | "checking" | "valid" | "invalid" | "error";
 type SaveStatus = "idle" | "saving" | "saved" | "error";
+
+/** Save and approve in one step; notes (warnings) ask for a confirmation first. */
+export interface ApprovalController {
+  /** Back to editing without approving. */
+  cancel: () => void;
+  /** Go ahead with the notes the observer has seen. */
+  confirm: () => void;
+  message: string | null;
+  /** Check, save and (after confirming any notes) approve. */
+  start: () => void;
+  status: "idle" | "confirming" | "working" | "approved" | "error";
+  /** How many notes the confirmation is about. */
+  warningCount: number;
+}
 
 import { type StationSettings, withDerived } from "./eregister-derived";
 import {
@@ -49,6 +70,7 @@ import {
 } from "./eregister-ui";
 
 interface Props {
+  approval?: ApprovalController;
   expectedMetar?: string | null;
   issues: ValidationIssue[];
   metarPreview: string;
@@ -162,6 +184,7 @@ export function ERegisterWorkbook({
   station,
   values,
   observedAt,
+  approval,
   issues,
   validationStatus,
   saveStatus,
@@ -441,16 +464,69 @@ export function ERegisterWorkbook({
               <Mail />
               Email observation
             </Button>
-            <Button disabled={saveStatus === "saving"} type="submit">
+            <Button
+              disabled={
+                saveStatus === "saving" || approval?.status === "working"
+              }
+              type="submit"
+              variant={approval ? "outline" : "default"}
+            >
               <Save />
               {saveStatus === "saving" ? "Saving…" : "Save draft"}
             </Button>
+            {approval ? (
+              <Button
+                disabled={
+                  saveStatus === "saving" ||
+                  approval.status === "working" ||
+                  approval.status === "confirming"
+                }
+                onClick={approval.start}
+                type="button"
+              >
+                <CircleCheck />
+                {approval.status === "working"
+                  ? "Approving…"
+                  : "Save and approve"}
+              </Button>
+            ) : null}
           </div>
         </div>
+        {approval?.status === "confirming" && (
+          <div
+            aria-label="Confirm approval"
+            className="border-border border-l-warning bg-card space-y-2 rounded-md border border-l-4 px-3 py-2 text-sm"
+            role="alertdialog"
+          >
+            <p>
+              This observation has {approval.warningCount}{" "}
+              {approval.warningCount === 1 ? "note" : "notes"} (listed above).
+              Approving saves it and sends it to WIS2 and email now.
+            </p>
+            <div className="flex gap-2">
+              <Button onClick={approval.confirm} type="button">
+                Approve anyway
+              </Button>
+              <Button onClick={approval.cancel} type="button" variant="outline">
+                Go back
+              </Button>
+            </div>
+          </div>
+        )}
+        {approval?.status === "approved" && (
+          <p className="text-xs" role="status">
+            {approval.message ?? "Approved."}
+          </p>
+        )}
+        {approval?.status === "error" && (
+          <p className="text-destructive text-xs" role="alert">
+            {approval.message ?? "The observation could not be approved."}
+          </p>
+        )}
         <SendStatus send={send} />
-        {saveStatus === "saved" && (
+        {saveStatus === "saved" && approval?.status !== "approved" && (
           <p className="text-muted-foreground text-xs" role="status">
-            Draft saved. QC approval is still required.
+            Draft saved. Approve it to send it to WIS2 and email.
           </p>
         )}
         {saveStatus === "error" && (

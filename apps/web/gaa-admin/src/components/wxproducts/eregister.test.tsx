@@ -2,6 +2,8 @@ import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { beforeEach, expect, it, vi } from "vitest";
 
 const mocks = vi.hoisted(() => ({
+  accept: vi.fn(),
+  create: vi.fn(),
   list: vi.fn(),
   settings: vi.fn(),
   validate: vi.fn(),
@@ -9,12 +11,12 @@ const mocks = vi.hoisted(() => ({
 
 vi.mock("@barrelsgd/api-client", () => ({
   eregisterListRegisterObservations: mocks.list,
-  eregisterCreateRegisterObservation: vi.fn(),
+  eregisterCreateRegisterObservation: mocks.create,
   eregisterValidateSynopObservation: mocks.validate,
   eregisterEmailRegisterObservation: vi.fn(),
   eregisterPublishRegisterObservation: vi.fn(),
   eregisterListObservationSends: vi.fn(),
-  eregisterAcceptRegisterObservation: vi.fn(),
+  eregisterAcceptRegisterObservation: mocks.accept,
   eregisterRejectRegisterObservation: vi.fn(),
   eregisterReopenRegisterObservation: vi.fn(),
   eregisterReviewRegisterObservation: vi.fn(),
@@ -44,6 +46,8 @@ beforeEach(() => {
   mocks.list.mockReset();
   mocks.settings.mockReset();
   mocks.validate.mockReset();
+  mocks.create.mockReset();
+  mocks.accept.mockReset();
   mocks.settings.mockReturnValue(new Promise(() => undefined));
 });
 
@@ -177,4 +181,111 @@ it("sends the observation time with the check and drops the checked METAR when a
     target: { value: "5" },
   });
   expect(screen.queryByText("Checked")).toBeNull();
+});
+
+// Save and approve on the entry screen.
+const SAVED = { id: "obs-1", state: "draft", body: {}, kind: "SYNOP" };
+const APPROVED_TEXT = /Approved\. It goes to WIS2 and email now/u;
+const ONE_NOTE = /1 note/u;
+const FIX_ERRORS = /Not approved: fix the errors/u;
+const NO_APPROVAL_PERMISSION =
+  /Saved as a draft, but you need the eRegister approval/u;
+
+async function openEntryForm() {
+  mocks.list.mockResolvedValue({ data: { observations: [] } });
+  render(<ERegister />);
+  await waitFor(() =>
+    expect(screen.getByRole("button", { name: "New observation" })).toBeTruthy()
+  );
+  fireEvent.click(screen.getByRole("button", { name: "New observation" }));
+}
+
+function checked(issues: object[], valid = true) {
+  mocks.validate.mockResolvedValue({ data: { issues, valid } });
+}
+
+it("saves and approves in one step when there are no notes", async () => {
+  checked([]);
+  mocks.create.mockResolvedValue({ data: SAVED });
+  mocks.accept.mockResolvedValue({ data: { ...SAVED, state: "accepted" } });
+  await openEntryForm();
+
+  fireEvent.click(screen.getByRole("button", { name: "Save and approve" }));
+
+  await waitFor(() => expect(screen.getByText(APPROVED_TEXT)).toBeTruthy());
+  expect(mocks.create).toHaveBeenCalledTimes(1);
+  expect(mocks.accept).toHaveBeenCalledWith(
+    expect.objectContaining({ path: { observation_id: "obs-1" } })
+  );
+  expect(screen.queryByRole("alertdialog")).toBeNull();
+});
+
+it("asks the observer to confirm when the checks have notes, and waits", async () => {
+  checked([
+    {
+      code: "gust_below_mean",
+      field: "wind_gust",
+      message: "Gust below the mean wind",
+      severity: "warning",
+    },
+  ]);
+  mocks.create.mockResolvedValue({ data: SAVED });
+  mocks.accept.mockResolvedValue({ data: { ...SAVED, state: "accepted" } });
+  await openEntryForm();
+
+  fireEvent.click(screen.getByRole("button", { name: "Save and approve" }));
+
+  const dialog = await screen.findByRole("alertdialog");
+  expect(dialog.textContent).toMatch(ONE_NOTE);
+  expect(mocks.create).not.toHaveBeenCalled();
+  expect(mocks.accept).not.toHaveBeenCalled();
+
+  fireEvent.click(screen.getByRole("button", { name: "Approve anyway" }));
+  await waitFor(() => expect(screen.getByText(APPROVED_TEXT)).toBeTruthy());
+  expect(mocks.accept).toHaveBeenCalledTimes(1);
+});
+
+it("going back from the confirmation approves nothing", async () => {
+  checked([
+    { code: "c", field: "wind_gust", message: "A note", severity: "warning" },
+  ]);
+  await openEntryForm();
+
+  fireEvent.click(screen.getByRole("button", { name: "Save and approve" }));
+  await screen.findByRole("alertdialog");
+  fireEvent.click(screen.getByRole("button", { name: "Go back" }));
+
+  expect(screen.queryByRole("alertdialog")).toBeNull();
+  expect(mocks.create).not.toHaveBeenCalled();
+  expect(mocks.accept).not.toHaveBeenCalled();
+});
+
+it("does not save or approve while the checks have errors", async () => {
+  checked(
+    [{ code: "c", field: "wind_dir", message: "Bad", severity: "error" }],
+    false
+  );
+  await openEntryForm();
+
+  fireEvent.click(screen.getByRole("button", { name: "Save and approve" }));
+
+  await waitFor(() => expect(screen.getByText(FIX_ERRORS)).toBeTruthy());
+  expect(mocks.create).not.toHaveBeenCalled();
+  expect(mocks.accept).not.toHaveBeenCalled();
+});
+
+it("says so when the draft is saved but the person may not approve", async () => {
+  checked([]);
+  mocks.create.mockResolvedValue({ data: SAVED });
+  mocks.accept.mockResolvedValue({
+    error: { detail: "forbidden" },
+    response: { status: 403 },
+  });
+  await openEntryForm();
+
+  fireEvent.click(screen.getByRole("button", { name: "Save and approve" }));
+
+  await waitFor(() =>
+    expect(screen.getByText(NO_APPROVAL_PERMISSION)).toBeTruthy()
+  );
 });
