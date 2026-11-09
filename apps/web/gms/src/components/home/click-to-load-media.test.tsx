@@ -52,3 +52,29 @@ it("builds no player for a refused URL, so no button or frame is shown", () => {
     expect(mediaEmbed(kind, url)).toBeNull();
   }
 });
+
+it("keeps focus where the reader put it when the parent re-renders", () => {
+  const embed = mediaEmbed("audio", "https://soundcloud.com/gms/brief");
+  if (!embed) throw new Error("expected a SoundCloud embed");
+  const { rerender } = render(
+    <>
+      <ClickToLoadMedia embed={embed} kind="audio" title="Morning brief" />
+      <button type="button">Next story</button>
+    </>
+  );
+  fireEvent.click(
+    screen.getByRole("button", { name: "Play audio from SoundCloud" })
+  );
+  const next = screen.getByRole("button", { name: "Next story" });
+  next.focus();
+  expect(document.activeElement).toBe(next);
+
+  rerender(
+    <>
+      <ClickToLoadMedia embed={embed} kind="audio" title="Morning brief" />
+      <button type="button">Next story</button>
+    </>
+  );
+
+  expect(document.activeElement).toBe(next);
+});
