@@ -59,10 +59,15 @@ RUN python -m pip install --no-cache-dir --upgrade "msgpack>=1.2.3" "setuptools>
 # the venv on PATH. Kept only as an escape hatch for ad-hoc `docker exec` ops.
 COPY --from=builder /bin/uv /bin/uv
 
-# Refresh the runtime trust store, PCRE2, Expat, Brotli, zlib, OpenSSL, Perl and apt as well as curl. Installing
-# curl alone does not update unrelated packages inherited from the pinned base.
-# Pango/HarfBuzz/fontconfig are WeasyPrint's text layout (forecast PDFs).
-RUN apt-get update \
+# Upgrade every package inherited from the pinned base, then install curl and
+# WeasyPrint's text layout (Pango/HarfBuzz/fontconfig, forecast PDFs). Bump this
+# date when Debian publishes a fix (scripts/ci/image-patch-dates.mjs bump): BuildKit
+# would otherwise reuse the cached layer and keep shipping the old packages
+# (issue #1142). The version floors below still fail the build if a fix is missing.
+ARG DEBIAN_PATCH_DATE=2026-11-08
+RUN echo "Debian patch date ${DEBIAN_PATCH_DATE}" \
+    && apt-get update \
+    && apt-get upgrade -y --no-install-recommends \
     && apt-get install -y --no-install-recommends curl ca-certificates libpcre2-8-0 libexpat1 libbrotli1 zlib1g libssl3t64 openssl perl-base \
        apt libapt-pkg7.0 \
        libpango-1.0-0 libpangoft2-1.0-0 libharfbuzz0b libfontconfig1 \
