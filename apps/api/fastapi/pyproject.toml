@@ -38,7 +38,7 @@ dependencies = [
     "pywebpush>=2.5.0",
     "ecmwf-opendata>=0.3.34",
     "eccodes>=2.49.0",
-    "eccodeslib>=2.49.0.30",
+    "eccodeslib>=2.50.0.34",
 ]
 
 [dependency-groups]
