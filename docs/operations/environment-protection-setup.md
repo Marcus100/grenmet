@@ -53,6 +53,10 @@ gh api repos/Marcus100/grenmet/environments --jq '.environments[] | "\(.name)\t\
 gh secret list --env production
 ```
 
+To compare the secret and variable names of `staging` and `production` with the
+checked-in manifest (names only), run `pnpm ops:environment-settings`
+(`environment-settings.md`).
+
 Every row of the table in step 1 should show a custom branch policy. Then run a
 non-production workflow dispatch from a branch other than the allowed one and
 confirm GitHub refuses it for that environment.
