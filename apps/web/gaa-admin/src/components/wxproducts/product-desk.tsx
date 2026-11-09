@@ -306,6 +306,8 @@ function ProductEditor({
   function replaceValues(values: ProductValues) {
     setDefaultValues(values);
     form.reset(values);
+    // Problems belonged to the old values.
+    setProblems([]);
   }
   /**
    * Forecast wording usually changes little between issues, so a new forecast
@@ -349,6 +351,8 @@ function ProductEditor({
   const sections = [...new Set(fields.map((f) => f.section))];
   /** Replace the blocking problems and move focus to the summary. */
   function fail(next: ProductProblem[]) {
+    // An earlier "Draft saved" or "Preview ready" must not sit beside the problems.
+    setMessage("");
     setProblems(next);
     setSummaryFocus((count) => count + 1);
   }
@@ -367,6 +371,8 @@ function ProductEditor({
     const element = document.getElementById(focusTarget.id);
     if (!element) return;
     element.focus();
+    // Keep the field clear of the sticky action bar at the bottom.
+    element.scrollIntoView?.({ block: "center" });
     setFocusTarget(null);
   }, [focusTarget, pending, disabled]);
   async function save(
@@ -1028,11 +1034,10 @@ function ProductEditor({
                       Validate and preview
                     </Button>
                     <Button
+                      // A current, reviewed preview already passed validation;
+                      // a later failed save (say, a network error) must not lock Publish.
                       disabled={
-                        !(previewCurrent && reviewed) ||
-                        problems.length > 0 ||
-                        pending ||
-                        disabled
+                        !(previewCurrent && reviewed) || pending || disabled
                       }
                       onClick={() => {
                         if (preview) submit(preview, "publish");
