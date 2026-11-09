@@ -24,8 +24,8 @@ export type StockMovementCreate = {
   location_id: string;
   kind: MovementKind;
   /**
-   * @minLength 0
-   * @maxLength 1000000
+   * @minimum 0
+   * @maximum 1000000
    * @type integer
    */
   quantity: number;

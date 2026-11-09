@@ -26,6 +26,7 @@ export function authAccountEmailCodeVerify<ThrowOnError extends boolean = true>(
     request({
       method: "POST",
       url: "/api/v1/auth/email-code/verify",
+      contentType: { request: "application/json" },
       ...config,
       throwOnError: config.throwOnError ?? true,
     }) as Promise<

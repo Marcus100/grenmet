@@ -29,6 +29,7 @@ export function rewardsOrgCreateAchievement<
       method: "POST",
       url: "/api/v1/rewards/org/achievements",
       security: [{ type: "oauth2" }],
+      contentType: { request: "application/json" },
       ...config,
       throwOnError: config.throwOnError ?? true,
     }) as Promise<

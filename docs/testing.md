@@ -180,15 +180,18 @@ suite was not needed.
   exceeds the CPU count. Set `PYTEST_WORKERS=<n>` to override. The plan printed by
   `--dry-run` shows the count. If a shared local Postgres produces fixture
   `TimeoutError`s at high counts, lower `PYTEST_WORKERS`.
-- The pre-push hook (`.husky/pre-push`) runs `check:ci` and `type-check` for the
-  whole workspace (Turbo caches them) but tests only the packages whose files
-  changed in the commits being pushed, with no dependants. It reads the pushed
-  refs from stdin (`scripts/verification/pre-push-scope.mjs`). A change to
-  `pnpm-lock.yaml`, `pnpm-workspace.yaml`, `turbo.json` or the root `package.json`,
-  or a range git cannot resolve, runs every package's tests; commits touching no
-  package skip tests. CI still runs the full suite. `PRE_PUSH_SCOPE="--affected"`
-  (or any Turbo flags) scopes all three steps by hand; `PRE_PUSH_SCOPE=""` is a
-  full local run.
+- The pre-push hook (`.husky/pre-push`) is light by default: GitHub CI runs the full
+  lint, type check and tests on every pull request and is the gate that counts, so a
+  push only runs `biome check` on the files its commits add or change
+  (`scripts/verification/pre-push-scope.mjs --files`; an unreadable range lints
+  nothing). This keeps pushes cheap on small machines (the full gates repeatedly
+  exhausted memory on the 8 GB development host). `PRE_PUSH_FULL=1` restores the
+  previous local gates: `check:ci` and `type-check` for the whole workspace (Turbo
+  caches them) and tests only for the packages whose files changed in the pushed
+  commits, with no dependants. A change to `pnpm-lock.yaml`, `pnpm-workspace.yaml`,
+  `turbo.json` or the root `package.json`, or a range git cannot resolve, runs every
+  package's tests in that mode. `PRE_PUSH_SCOPE="--affected"` (or any Turbo flags)
+  scopes the three full steps by hand; `PRE_PUSH_SCOPE=""` is a full local run.
 - gaa-admin pure-logic tests are `*.test.ts` and run in the fast `node` Vitest
   project; only tests that need a DOM are `*.test.tsx` (the `dom` project).
 

@@ -27,6 +27,7 @@ export function webhooksOutUpdateEndpoint<ThrowOnError extends boolean = true>(
       method: "PATCH",
       url: "/api/v1/webhooks-out/org/endpoints/{endpoint_id}",
       security: [{ type: "oauth2" }],
+      contentType: { request: "application/json" },
       ...config,
       throwOnError: config.throwOnError ?? true,
     }) as Promise<

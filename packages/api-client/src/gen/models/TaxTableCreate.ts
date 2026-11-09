@@ -31,8 +31,8 @@ export type TaxTableCreate = {
    */
   method?: TaxMethod;
   /**
-   * @minLength 0
-   * @maxLength 10000000000
+   * @minimum 0
+   * @maximum 10000000000
    * @type integer
    */
   annual_allowance_minor: number;

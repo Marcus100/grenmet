@@ -5,8 +5,8 @@
 
 export type TransportRouteInput = {
   /**
-   * @minLength 1
-   * @maxLength 999
+   * @minimum 1
+   * @maximum 999
    * @type integer
    */
   number: number;

@@ -7,8 +7,8 @@ import type { ProviderKey } from "./ProviderKey.js";
 
 export type PaymentIntentCreate = {
   /**
-   * @minLength 1
-   * @maxLength 1000000000
+   * @minimum 1
+   * @maximum 1000000000
    * @type integer
    */
   amount_minor: number;

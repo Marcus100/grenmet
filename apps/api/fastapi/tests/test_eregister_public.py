@@ -300,28 +300,31 @@ async def test_month_summary_aggregates_in_sql(register_db):
         s3_min_temp="1015",  # sign digit 1: negative
     )
     await put(s, datetime(2026, 10, 18, 20, tzinfo=UTC), s3_rainfall_24h="999")
+    # The register's own format: four digits in tenths of a millimetre, 9999 trace.
+    await put(s, datetime(2026, 10, 7, 12, tzinfo=UTC), s3_rainfall_24h="0123")
+    await put(s, datetime(2026, 10, 8, 12, tzinfo=UTC), s3_rainfall_24h="9999")
 
     result = await public.month_summary(s, None, NOW)
     assert result is not None
-    assert result.rainfall_mm == 12.3  # 0 + 0.2 + 0.1 + 12
-    assert (result.rain_report_days, result.rain_days) == (4, 2)
+    assert result.rainfall_mm == 24.6  # 0 + 0.2 + 0.1 + 12 + 12.3 + trace
+    assert (result.rain_report_days, result.rain_days) == (6, 3)
     assert result.rain_day_threshold_mm == 0.2
     assert result.max_temperature_c == 32.6
     assert result.max_temperature_at == datetime(2026, 10, 5, 12, tzinfo=UTC)
     assert result.min_temperature_c == -1.5
-    assert result.observation_count == 6  # future-dated typo excluded
+    assert result.observation_count == 8  # future-dated typo excluded
     assert result.days_elapsed == 18
     assert result.period_end == NOW
     assert result.provisional is True
     # Climpact figures from the same daily totals (owner, 1 Nov 2026).
-    assert result.heavy_rain_days == 1  # 12 mm on the 5th
+    assert result.heavy_rain_days == 2  # 12 mm on the 5th, 12.3 mm on the 7th
     # Dry (< 1 mm): 1st, then 3rd-4th (the unreported 2nd breaks the run).
     assert result.longest_dry_spell_days == 2
     assert (result.longest_dry_spell_start, result.longest_dry_spell_end) == (
         date(2026, 10, 3),
         date(2026, 10, 4),
     )
-    # The latest total (the 5th) is long before the 18th: the spell is unknown.
+    # The latest total (the 8th) is long before the 18th: the spell is unknown.
     assert result.current_dry_spell_days is None
     assert result.mean_wind_kt is None and result.max_gust_kt is None
 

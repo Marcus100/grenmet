@@ -182,7 +182,13 @@ const VENDORED_RANGES = readFileSync(
 )
   .split("\n")
   .filter((line) => line && !line.startsWith("#"));
-const VISITOR_HOSTS = ["api", "web-gms", "web-events", "web-bookings"];
+const VISITOR_HOSTS = [
+  "api",
+  "web-gms",
+  "web-mbia",
+  "web-events",
+  "web-bookings",
+];
 const ORIGIN_SECRET = "0123456789abcdef".repeat(4);
 const GATE_RULE_LABEL = (environment) =>
   `traefik.http.routers.origin-gate${environment === "staging" ? "-staging" : ""}.rule`;

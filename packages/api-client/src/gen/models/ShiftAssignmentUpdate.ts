@@ -11,7 +11,7 @@ export type ShiftAssignmentUpdate = {
   status: JanitorialShiftAssignmentPropertiesStatusEnum;
   note?: string | null;
   /**
-   * @minLength 1
+   * @minimum 1
    * @type integer
    */
   expectedRevision: number;

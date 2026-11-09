@@ -11,8 +11,8 @@ export type ApprovalLine = {
    */
   line_id: string;
   /**
-   * @minLength 0
-   * @maxLength 1000000
+   * @minimum 0
+   * @maximum 1000000
    * @type integer
    */
   approved_quantity: number;

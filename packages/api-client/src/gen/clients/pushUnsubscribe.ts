@@ -24,6 +24,7 @@ export function pushUnsubscribe<ThrowOnError extends boolean = true>(
     request({
       method: "DELETE",
       url: "/api/v1/push/subscriptions",
+      contentType: { request: "application/json" },
       ...config,
       throwOnError: config.throwOnError ?? true,
     }) as Promise<RequestResult<PushUnsubscribeResponses, ThrowOnError>>

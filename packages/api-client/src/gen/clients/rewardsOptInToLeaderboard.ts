@@ -27,6 +27,7 @@ export function rewardsOptInToLeaderboard<ThrowOnError extends boolean = true>(
       method: "PUT",
       url: "/api/v1/rewards/me/leaderboard-opt-ins/{scope_kind}/{scope_id}",
       security: [{ type: "oauth2" }],
+      contentType: { request: "application/json" },
       ...config,
       throwOnError: config.throwOnError ?? true,
     }) as Promise<

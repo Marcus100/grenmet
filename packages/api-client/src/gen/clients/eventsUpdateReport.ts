@@ -25,6 +25,7 @@ export function eventsUpdateReport<ThrowOnError extends boolean = true>(
       method: "PATCH",
       url: "/api/v1/events/moderation/reports/{report_id}",
       security: [{ type: "http", scheme: "bearer" }],
+      contentType: { request: "application/json" },
       ...config,
       throwOnError: config.throwOnError ?? true,
     }) as Promise<RequestResult<EventsUpdateReportResponses, ThrowOnError>>

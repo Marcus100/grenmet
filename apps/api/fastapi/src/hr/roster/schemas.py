@@ -1,4 +1,3 @@
-import re
 import uuid
 from datetime import date
 from decimal import Decimal
@@ -8,6 +7,7 @@ from typing import Annotated, Literal
 from pydantic import AfterValidator, Field, model_validator
 
 from src.models import BaseModel, UtcDateTime
+from src.utils.text import clean_reason
 
 from .models import (
     ImportStatus,
@@ -21,31 +21,10 @@ from .models import (
 )
 from .rules import RuleViolation
 
-# C0/C1 controls except tab and newline, plus Unicode bidi controls (which can
-# make a reason read differently from what is stored) and zero-width characters.
-_CONTROL = re.compile(
-    "[\x01-\x08\x0b-\x1f\x7f-\x9f\u061c\u200b-\u200f\u202a-\u202e\u2060-\u2069\ufeff]"
-)
-
-
-def _clean_reason(value: str | None) -> str | None:
-    """A supervisor's override reason: NUL is refused (422); other control,
-    bidi and zero-width characters are removed; newlines and tabs are kept."""
-    if value is None:
-        return None
-    if "\x00" in value:
-        raise ValueError("The reason contains a NUL character")
-    return _CONTROL.sub("", value)
-
-
-def clean_reason(value: str | None) -> str | None:
-    return _clean_reason(value)
-
-
 #: Optional reason to save a change that breaks roster rules (#380).
 OverrideReason = Annotated[
     Annotated[str, Field(max_length=1000)] | None,
-    AfterValidator(_clean_reason),
+    AfterValidator(clean_reason),
     Field(
         default=None,
         description=(

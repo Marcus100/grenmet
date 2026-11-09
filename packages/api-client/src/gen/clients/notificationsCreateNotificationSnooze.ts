@@ -29,6 +29,7 @@ export function notificationsCreateNotificationSnooze<
       method: "POST",
       url: "/api/v1/notifications/snoozes",
       security: [{ type: "oauth2" }],
+      contentType: { request: "application/json" },
       ...config,
       throwOnError: config.throwOnError ?? true,
     }) as Promise<

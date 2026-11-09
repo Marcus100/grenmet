@@ -28,6 +28,7 @@ export function bookingsCancelPublicBooking<
     request({
       method: "POST",
       url: "/api/v1/bookings/public/bookings/{token}/cancel",
+      contentType: { request: "application/json" },
       ...config,
       throwOnError: config.throwOnError ?? true,
     }) as Promise<
