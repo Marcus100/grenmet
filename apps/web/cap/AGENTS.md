@@ -35,9 +35,24 @@ Backend and public-feed contract: `apps/api/fastapi/src/cap/AGENTS.md`.
   show (other info blocks, parameters, resources, references are never sent).
   The area picker restores parishes, one circle or one polygon only when it
   would rebuild the same area; anything else is kept as saved. Admin screens
-  (settings, areas, feeds, profiles, import, audit) are still in GAA Admin,
-  whose desk keeps working during the parallel run
+  (settings, areas, feeds, import, audit) are still in GAA Admin, whose desk
+  keeps working during the parallel run
   (`docs/operations/cap-desk-acceptance.md`).
+- **Hazard profiles (`/desk/profiles`).** Parity with GAA Admin's editor for
+  one slice: save a new draft version (`POST /cap/hazard-profiles/{key}/versions`,
+  gated by `cap.library.manage`, `versionDraftCheck` in `lib/desk/profiles.ts`),
+  approve a draft (`cap.library.manage` + `cap.alert.approve`, a different
+  reviewer), and start a warning draft from an approved version
+  (`POST /cap/hazard-profiles/{id}/draft`, gated by `cap.alert.create`,
+  `alertStartCheck`). Editing never changes a saved version: "Edit draft" and
+  "Draft new version" both save a new draft at the next version number with the
+  latest version as `base_version`, so a concurrent save is refused rather than
+  overwritten. Calls are server actions in `app/desk/profiles/actions.ts`
+  (validated with the api-client's Zod schemas); there is no browser call, so
+  `proxy-rules.ts` is unchanged. Editor: `components/desk/profile-editor*.tsx`,
+  starter wording and impact-matrix rules in `lib/desk/profile-defaults.ts` and
+  `lib/desk/profile-matrix.ts`. Starter text is a working draft with no approved
+  thresholds; GMS supplies the wording.
 - Pages and feed routes only validate, proxy to or render FastAPI's public
   endpoints (`/api/cap/latest-active`, `/past`, `/alerts/{id}`,
   `/alerts.geojson`, `/rss.xml`, `/{id}.xml`). No database access, no warning
@@ -79,7 +94,7 @@ Backend and public-feed contract: `apps/api/fastapi/src/cap/AGENTS.md`.
 the whole past list, paged here, 20 per page), `/feeds`, `/about`,
 `/feeds/rss.xml`, `/feeds/alerts.geojson`, `/feeds/latest-active.json`,
 `/feeds/alerts/<identifier>.xml` (proxies of the API feeds), `/api/health`.
-Staff: `/desk`, `/desk/new`, `/desk/alerts/[id]`, `/desk/alerts/[id]/edit`,
+Staff: `/desk`, `/desk/new`, `/desk/alerts/[id]`, `/desk/alerts/[id]/edit`, `/desk/profiles` (hazard profile versions, approval and warning drafts),
 `/desk/statistics` (counts by hazard, colour, parish and month) and its CSV download `/desk/statistics/export` (a route handler: validates the filters and streams FastAPI's `/cap/statistics/export.csv` with the staff token),
 `/desk/signin`, `/desk/api/...` (proxy), `/auth/start|callback|logout`.
 E2E smoke: `pnpm --filter @barrelsgd/web-cap test:e2e` (needs the dev server).

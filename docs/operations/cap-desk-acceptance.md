@@ -2,7 +2,7 @@
 
 **Status:** Draft test script for the parallel run; nothing here has been run yet  
 **Owner:** GMS (sign-off); maintained by Barrels Grenada engineering  
-**Last updated:** 2026-11-01  
+**Last updated:** 2026-11-05  
 **Applies to:** staging only
 
 The new warning desk lives at `https://cap.staging.barrels.gd/desk`. The
@@ -53,6 +53,9 @@ difference is written down and accepted.
 | 19 | Errors | — | Let the session expire (or log out in another tab), then press any action | "Your desk session has ended. Sign in again" with a link. A refused action names the reason. |
 | 20 | Plain http feed (still checked in GAA Admin) | GAA Admin, Feeds | — | Open a feed saved on plain `http` before the https rule. It shows `insecure_since` and a grace end date (`grace_ends_at`), 14 days after `insecure_since`, and is still fetched until then. Saving an https address clears the date. Once the date has passed it shows `grace_expired` and is skipped, without being deleted, with the message "plain http no longer allowed". Agree a test feed with Barrels; do not move a real partner's date. |
 | 21 | Impact matrix picks the colour (still checked in GAA Admin) | GAA Admin, GMS alerts and hazard profiles | — | For one hazard, pick a likelihood and impact on the matrix: the suggested colour (green, yellow, orange or red) matches the grid. A hazard with an approved profile (key `ibf-<hazard>`) uses its own grid; otherwise the standard WMO grid applies. On Raise to warning, choosing a colour that differs from the suggestion asks for a reason of at least 10 characters. |
+| 22 | Draft a new hazard profile version | GAA Admin, hazard profiles → **Save new draft version** | `/desk/profiles` → **Edit draft** (on a draft) or **Draft new version** (on an approved version) → change one wording → **Save as new draft version** | The saved version has the next number and state **draft**, and the page says it needs approval. The version it started from is unchanged, and an approved version never changes in place. A draft's older version stays in the history. A colleague without hazard library access sees the reason in plain words and no save button. |
+| 23 | Approve a profile version | GAA Admin → **Approve saved version** | `/desk/profiles` → **Approve version N** → confirm | Approval is refused for the author's own version ("A different reviewer must approve it"). Approval is never one click: the dialog names the profile and version. After approval the version is marked approved with the approver and time. No warning is issued. |
+| 24 | Start a warning from an approved profile | GAA Admin → **Create alert draft** | `/desk/profiles` → "Start a warning from this version" → subtype, product, colour → **Create warning draft** | Opens a new warning draft on its page with the version's wording. Nothing is submitted, approved, published or sent. A draft version (not yet approved) shows "Approve this version before starting a warning from it." |
 
 ## Caching (check once)
 
@@ -76,8 +79,11 @@ check above.
 
 ## What the new desk does not do yet
 
-Settings, areas, feeds, integrations, hazard profiles, imports and the audit
-page stay in GAA Admin for now. New warnings are always created as an Alert:
+Settings, areas, feeds, integrations, imports and the audit page stay in GAA
+Admin for now. Hazard profiles can be edited on the desk (rows 22 to 24); the
+impact matrix a profile uses is edited there too. Editing a profile on either
+desk makes a draft version, so the two desks can never change an approved
+version. New warnings are always created as an Alert:
 an Update comes from **Issue update** and a Cancel from **Cancel alert**.
 
 ## Rollback
