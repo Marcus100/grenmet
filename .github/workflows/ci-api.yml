@@ -183,7 +183,8 @@ jobs:
 
     services:
       postgres:
-        image: postgres:17
+        # Pinned so the mirror (docs/operations/ci-base-images.md) can copy this exact digest.
+        image: postgres:17@sha256:ff87138949ad9a46f32ff23bd6852b52ce024a13dffe9b4087be98292cdd3b4f
         credentials:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
