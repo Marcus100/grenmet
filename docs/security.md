@@ -153,6 +153,8 @@ Changing the date rebuilds that layer (issue #1142).
 - `plan <image>=<trivy.json> ...`: applies the exception policy, then lists the
   Dockerfiles that a bump fixes (blocked OS package findings) and the findings
   that need a person (language packages).
+- `targets tags <tag>...` or `targets digests "<repo@sha256:…>..."`: the
+  registry images to scan, each with its exception scope, as a workflow matrix.
 
 ### Exceptions
 

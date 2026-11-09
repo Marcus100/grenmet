@@ -10,13 +10,17 @@
 //   image-patch-dates.mjs check                     every date valid, one per family
 //   image-patch-dates.mjs bump <YYYY-MM-DD> [family] set the date (alpine | debian | all)
 //   image-patch-dates.mjs plan <key>=<trivy.json>... which Dockerfiles a bump fixes
-import { readFileSync, writeFileSync } from "node:fs";
+//   image-patch-dates.mjs targets tags <tag>...      scan matrix: every image at each tag
+//   image-patch-dates.mjs targets digests "<list>"   scan matrix: promoted digests
+import { appendFileSync, readFileSync, writeFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { evaluate } from "./check-vulnerabilities.mjs";
+import { imageRepositories, parseDigests } from "./promote-images.mjs";
 import { webImages } from "./release-scope.mjs";
 
 const ROOT = fileURLToPath(new URL("../../", import.meta.url));
 const DATE = /^\d{4}-\d{2}-\d{2}$/u;
+const TAG = /^[\w][\w.-]{0,127}$/u;
 const ARG_LINE = /^ARG (ALPINE|DEBIAN)_PATCH_DATE=(\S*)$/mu;
 const OS_TARGET = /\((alpine|debian) [^)]+\)$/u;
 
@@ -132,6 +136,43 @@ export function planFixes(scans, images = releaseImages()) {
   return { bump: [...bump].sort(), unfixable };
 }
 
+/**
+ * Images to scan, as a workflow matrix: `[{ key, ref, scope, name }]`.
+ * `digests` is the promote output (`repo@sha256:… …`); otherwise every
+ * release image at each of `tags` (for example dev, staging, latest).
+ */
+export function scanTargets({ owner, repository, digests, tags = [] }) {
+  const images = releaseImages();
+  const repositories = imageRepositories(owner, repository);
+  const targets = [];
+  const add = (key, ref, label) => {
+    const scope = images.get(key)?.scope;
+    if (!scope) {
+      throw new Error(`No Dockerfile scope for image ${key}`);
+    }
+    targets.push({ key, ref, scope, name: `${key}-${label}` });
+  };
+  if (digests) {
+    for (const { repo, digest } of parseDigests(digests)) {
+      const match = repositories.find((item) => item.repo === repo);
+      if (!match) {
+        throw new Error(`Digest for an unknown repository: ${repo}`);
+      }
+      add(match.key, `${repo}@${digest}`, digest.slice(7, 19));
+    }
+    return targets;
+  }
+  for (const tag of tags) {
+    if (!TAG.test(tag)) {
+      throw new Error(`Invalid tag: ${tag}`);
+    }
+    for (const { key, repo } of repositories) {
+      add(key, `${repo}:${tag}`, tag);
+    }
+  }
+  return targets;
+}
+
 function readTexts(paths) {
   return Object.fromEntries(
     paths.map((path) => [path, readFileSync(`${ROOT}${path}`, "utf8")])
@@ -144,7 +185,7 @@ function uniqueFiles() {
   ];
 }
 
-export function run(argv, { log = console.log } = {}) {
+export function run(argv, { log = console.log, env = process.env } = {}) {
   const [command, ...rest] = argv;
   if (command === "check") {
     const errors = checkPatchDates(readTexts(uniqueFiles()));
@@ -189,7 +230,32 @@ export function run(argv, { log = console.log } = {}) {
     log(JSON.stringify(planFixes(scans), null, 2));
     return 0;
   }
-  throw new Error("Usage: image-patch-dates.mjs check | bump <date> | plan");
+  if (command === "targets") {
+    return runTargets(rest, { log, env });
+  }
+  throw new Error(
+    "Usage: image-patch-dates.mjs check | bump <date> | plan | targets"
+  );
+}
+
+function runTargets([mode, ...values], { log, env }) {
+  if (!(mode === "tags" || mode === "digests")) {
+    throw new Error("Usage: targets tags <tag>... | targets digests <list>");
+  }
+  const targets = scanTargets({
+    owner: env.GITHUB_REPOSITORY_OWNER,
+    repository: env.GITHUB_REPOSITORY,
+    ...(mode === "tags" ? { tags: values } : { digests: values.join(" ") }),
+  });
+  if (targets.length === 0) {
+    throw new Error("No images to scan");
+  }
+  const json = JSON.stringify(targets);
+  if (env.GITHUB_OUTPUT) {
+    appendFileSync(env.GITHUB_OUTPUT, `targets=${json}\n`);
+  }
+  log(json);
+  return 0;
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {

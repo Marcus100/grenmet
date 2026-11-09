@@ -10,9 +10,13 @@ import {
   planFixes,
   readPatchDate,
   releaseImages,
+  run,
+  scanTargets,
 } from "./image-patch-dates.mjs";
 
 const ROOT = new URL("../../", import.meta.url);
+const CONTEXT = { owner: "Marcus100", repository: "Marcus100/grenmet" };
+const DIGEST = `sha256:${"ab".repeat(32)}`;
 const WEB = [
   "FROM node:24-alpine AS base",
   "ARG ALPINE_PATCH_DATE=2026-11-07",
@@ -134,5 +138,81 @@ describe("planFixes", () => {
         ["web-unknown", "musl"],
       ]
     );
+  });
+});
+
+describe("scanTargets", () => {
+  it("scans every release image at each tag with its exception scope", () => {
+    const targets = scanTargets({ ...CONTEXT, tags: ["dev", "latest"] });
+    assert.equal(targets.length, releaseImages().size * 2);
+    assert.deepEqual(targets[0], {
+      key: "api",
+      ref: "ghcr.io/marcus100/grenmet:dev",
+      scope: "apps/api/fastapi/Dockerfile.prod#runtime",
+      name: "api-dev",
+    });
+    const migrate = targets.find(
+      (item) => item.key === "web-cms-migrate" && item.name.endsWith("latest")
+    );
+    assert.equal(
+      migrate.ref,
+      "ghcr.io/marcus100/barrelsgd-web-cms-migrate:latest"
+    );
+    assert.equal(migrate.scope, "apps/web/cms/Dockerfile#migrate");
+    assert.equal(
+      new Set(targets.map((item) => item.name)).size,
+      targets.length
+    );
+  });
+
+  it("maps promoted digests back to their image", () => {
+    const targets = scanTargets({
+      ...CONTEXT,
+      digests: `ghcr.io/marcus100/barrelsgd-web-gms@${DIGEST} ghcr.io/marcus100/grenmet@${DIGEST}`,
+    });
+    assert.deepEqual(
+      targets.map((item) => [item.key, item.ref, item.name]),
+      [
+        [
+          "web-gms",
+          `ghcr.io/marcus100/barrelsgd-web-gms@${DIGEST}`,
+          "web-gms-abababababab",
+        ],
+        ["api", `ghcr.io/marcus100/grenmet@${DIGEST}`, "api-abababababab"],
+      ]
+    );
+  });
+
+  it("refuses unknown repositories, bad digests and bad tags", () => {
+    assert.throws(
+      () => scanTargets({ ...CONTEXT, digests: `ghcr.io/other/x@${DIGEST}` }),
+      { message: "Digest for an unknown repository: ghcr.io/other/x" }
+    );
+    assert.throws(() =>
+      scanTargets({
+        ...CONTEXT,
+        digests: "ghcr.io/marcus100/grenmet@sha256:short",
+      })
+    );
+    assert.throws(() => scanTargets({ ...CONTEXT, tags: ["bad tag"] }), {
+      message: "Invalid tag: bad tag",
+    });
+  });
+
+  it("the targets command prints the matrix and refuses an empty one", () => {
+    const lines = [];
+    const env = {
+      GITHUB_REPOSITORY_OWNER: CONTEXT.owner,
+      GITHUB_REPOSITORY: CONTEXT.repository,
+    };
+    const log = (line) => lines.push(line);
+    assert.equal(run(["targets", "tags", "staging"], { log, env }), 0);
+    assert.equal(
+      JSON.parse(lines[0])[0].ref,
+      "ghcr.io/marcus100/grenmet:staging"
+    );
+    assert.throws(() => run(["targets", "digests"], { log, env }), {
+      message: "No images to scan",
+    });
   });
 });
