@@ -1,7 +1,9 @@
 """Display-ready weather parameters shared by the PDF sheets and the public feed.
 
 Conversions happen here, once, so the issued PDF and weather.gd show the same
-wind, sea and tide text, in the GMS public units only (mph, feet).
+wind, sea and tide text, in the GMS public units only (mph, feet). Marine
+products use marine units instead: knots, and metres with feet in brackets
+(owner, 9 Nov 2026).
 """
 
 from typing import Literal, NamedTuple
@@ -29,19 +31,38 @@ class Tile(NamedTuple):
     public_label: str | None = None
 
 
-def conditions(values: dict[str, str], prefix: str = "") -> list[tuple[str, str, str]]:
+def conditions(
+    values: dict[str, str], prefix: str = "", *, marine: bool = False
+) -> list[tuple[str, str, str]]:
     """(icon, value, label) tiles, in reading order, for the issued PDF."""
-    return [(t.icon, t.value, t.label) for t in build_tiles(values, prefix)]
+    return [
+        (t.icon, t.value, t.label) for t in build_tiles(values, prefix, marine=marine)
+    ]
 
 
-def build_tiles(values: dict[str, str], prefix: str = "") -> list[Tile]:
+def weather_text(values: dict[str, str], key: str = "weatherType") -> str:
+    """The weather types in words: the forecaster's wording, else the generated
+    sentence. A single type saved before the multi-select reads as stored."""
+    stored = values.get(key, "").strip()
+    if not synop_codes.parse_weather(stored):
+        return ""
+    if stored in synop_codes.LEGACY_WEATHER_TYPES:
+        return values.get(f"{key}Text", "").strip() or stored
+    return values.get(f"{key}Text", "").strip() or synop_codes.weather_sentence(stored)
+
+
+def build_tiles(
+    values: dict[str, str], prefix: str = "", *, marine: bool = False
+) -> list[Tile]:
     """Every tile with its numbers, in reading order."""
     p = period_values(values, prefix)
     tiles: list[Tile] = []
-    weather_type = p.get("weatherType", "").strip()
-    if weather_type in synop_codes.WEATHER_TYPES:
+    weather = weather_text(p)
+    if weather:
         tiles.append(
-            Tile(synop_codes.weather_icon(weather_type), weather_type, "Weather type")
+            Tile(
+                synop_codes.weather_icon(p.get("weatherType")), weather, "Weather type"
+            )
         )
     # Evening outlook days store temperatures as `dayNMax` / `dayNMin`.
     high, low = (
@@ -73,7 +94,7 @@ def build_tiles(values: dict[str, str], prefix: str = "") -> list[Tile]:
     speeds = [optional_number(p, k) for k in ("windSpeedMin", "windSpeedMax")]
     gust = optional_number(p, "windGust")
     if any(s is not None for s in speeds):
-        unit = units.PUBLIC_WIND_UNIT
+        unit = units.MARINE_WIND_UNIT if marine else units.PUBLIC_WIND_UNIT
         converted = [None if s is None else units.convert_wind(s, unit) for s in speeds]
         tiles.append(
             Tile(
@@ -105,12 +126,13 @@ def build_tiles(values: dict[str, str], prefix: str = "") -> list[Tile]:
         tiles.append(Tile("waves", sea, "Sea state"))
     elif p.get("seaState"):
         tiles.append(Tile("waves", p["seaState"], "Sea state"))
+    heights = units.marine_height_text if marine else units.height_text
     waves = [optional_number(p, k) for k in ("waveHeightMin", "waveHeightMax")]
     if any(w is not None for w in waves):
         tiles.append(
             Tile(
                 "waves",
-                units.height_text(*waves),
+                heights(*waves),
                 "Wave height",
                 "height",
                 waves[0],
@@ -122,9 +144,7 @@ def build_tiles(values: dict[str, str], prefix: str = "") -> list[Tile]:
     )
     swell_height = optional_number(p, "swellHeight")
     if swell or swell_height is not None:
-        value = (
-            units.height_text(swell_height, None) if swell_height is not None else swell
-        )
+        value = heights(swell_height, None) if swell_height is not None else swell
         label = "Swell" + (f" · {swell}" if swell_height is not None and swell else "")
         tiles.append(
             Tile(
@@ -175,4 +195,9 @@ def build_tiles(values: dict[str, str], prefix: str = "") -> list[Tile]:
         tiles.append(Tile("sunrise", p["sunrise"], "Sunrise"))
     if p.get("sunset"):
         tiles.append(Tile("sunset", p["sunset"], "Sunset"))
+    # Morning forecast since 9 Nov 2026: the next sun events only.
+    if p.get("sunsetToday"):
+        tiles.append(Tile("sunset", p["sunsetToday"], "Sunset today"))
+    if p.get("sunriseTomorrow"):
+        tiles.append(Tile("sunrise", p["sunriseTomorrow"], "Sunrise tomorrow"))
     return tiles

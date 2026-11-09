@@ -187,7 +187,7 @@ it("groups entered weather, wind, marine, tides and astronomy without empty fiel
           tide1Type: "High",
           tide1Time: "15:30",
           tide1Height: "0.4",
-          sunrise: "06:00",
+          sunsetToday: "06:00",
           word: "Convection",
           definition: "Rising warm air",
         },

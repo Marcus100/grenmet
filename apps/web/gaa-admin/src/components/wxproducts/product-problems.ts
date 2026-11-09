@@ -26,7 +26,7 @@ export function productProblems(
   return messages
     .filter((message) => message.trim() !== "")
     .map((message) => {
-      const field = matchField(message, fields);
+      const field = matchField(message, fields, kind);
       if (!field) return { message };
       return {
         fieldId: `${kind}-${field.key}`,
@@ -37,14 +37,21 @@ export function productProblems(
 }
 
 /** The longest label named in the message wins; "Day N:" messages only match that day's fields. */
-function matchField(message: string, fields: readonly ProductField[]) {
+function matchField(
+  message: string,
+  fields: readonly ProductField[],
+  kind: ProductKind
+) {
   const day = DAY_PREFIX.exec(message)?.[1];
   const period = day ? `day${day}` : "";
   let best: ProductField | undefined;
   let bestLength = 0;
   for (const field of fields) {
     if (sectionParts(field.section).prefix !== period) continue;
-    for (const label of new Set([field.label, productFieldLabel(field)])) {
+    for (const label of new Set([
+      field.label,
+      productFieldLabel(field, kind),
+    ])) {
       if (label && label.length > bestLength && message.includes(label)) {
         best = field;
         bestLength = label.length;

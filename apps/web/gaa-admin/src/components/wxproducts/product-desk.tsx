@@ -14,6 +14,7 @@ import {
   isBulletin,
   isComposedForecastField,
   isForecastKind,
+  isMarineKind,
   MARINE_FORECAST_AREA,
   PRODUCT_KINDS,
   type ProductField,
@@ -21,9 +22,11 @@ import {
   type ProductValues,
   parameterKey,
   productFields,
+  proposeBulletinNumber,
   type StoredProduct,
   TIDE_SLOTS,
 } from "@barrelsgd/gms/products";
+import { weatherSentence } from "@barrelsgd/gms/weather-types";
 import { Badge } from "@barrelsgd/ui/components/ui/badge";
 import { Button } from "@barrelsgd/ui/components/ui/button";
 import { Card } from "@barrelsgd/ui/components/ui/card";
@@ -42,7 +45,13 @@ import { cn } from "@barrelsgd/ui/lib/utils";
 import { useForm } from "@tanstack/react-form";
 import { format, isValid, parseISO } from "date-fns";
 import { Plus, X } from "lucide-react";
-import { type ReactNode, useEffect, useState, useTransition } from "react";
+import {
+  type ReactNode,
+  useEffect,
+  useRef,
+  useState,
+  useTransition,
+} from "react";
 import {
   loadProductHistoryAction,
   loadProductsAction,
@@ -75,18 +84,19 @@ import {
 import { type HistoryItem, ProductHistoryPanel } from "./product-history-panel";
 import { ProductList } from "./product-list";
 import { type ProductProblem, productProblems } from "./product-problems";
+import { ProductRangeControl } from "./product-range-control";
 import { ProductWithdrawDialog } from "./product-withdraw-dialog";
 import {
   RaiseToWarningDialog,
   type WarningLevel,
 } from "./raise-to-warning-dialog";
-import { SectionHints } from "./section-hints";
+import { isSeaGroup, SectionHints } from "./section-hints";
 import { WarningRaisedNote } from "./warning-raised-note";
 
 const DAY_KEY_PREFIX = /^(day[1-4])/u;
 
 function productTabLabel(kind: ProductKind) {
-  if (kind === "marine-forecast") return "Marine";
+  if (kind === "marine-forecast") return "Marine forecast";
   if (isForecastKind(kind)) return kind.charAt(0).toUpperCase() + kind.slice(1);
   if (kind === "tsunami") return "Tsunami / Earthquake";
   return PRODUCT_KINDS[kind];
@@ -105,6 +115,14 @@ const COMPUTED_FORECAST_FIELDS = [
 const FORECAST_AREA = "Grenada, Carriacou and Petite Martinique";
 /** FastAPI derives a climate bulletin's validity from its issue date (until the next 15th). */
 const CLIMATE_COMPUTED_FIELDS = ["validFrom", "validTo", "validity"];
+/**
+ * Alerts: the validity sentence is rendered from valid from/to (owner decision
+ * 4, #1197) and the yearly archive reference is set by FastAPI on first save.
+ */
+const BULLETIN_COMPUTED_FIELDS = ["validity", "reference"];
+const WAVE_MIN = /^(day\d)?[Ww]aveHeightMin$/u;
+const WAVE_MAX = /^(day\d)?[Ww]aveHeightMax$/u;
+const WEATHER_TYPE = /^(day\d)?[Ww]eatherType$/u;
 /** Forecasts always cover the whole state and are issued by the signed-in forecaster; FastAPI enforces the same on save. */
 function withIssuer(
   kind: ProductKind,
@@ -120,20 +138,32 @@ const DAY_SECTION = /^Day (\d)$/u;
 const LEGACY_BY_GROUP: Record<string, string[]> = {
   Wind: ["wind"],
   Marine: ["seaState"],
+  "Seas and swell": ["seaState"],
   Tides: ["highTides", "lowTides"],
   Visibility: ["visibility"],
 };
 const STRUCTURED_BY_GROUP: Record<string, string[]> = {
   Wind: ["windDirFrom", "windSpeedMin"],
   Marine: ["seaStateFrom", "waveHeightMin"],
+  "Seas and swell": ["seaStateFrom", "waveHeightMin"],
   Tides: TIDE_SLOTS.map((n) => `tide${n}Time`),
   Visibility: ["visibilityMin"],
 };
+/** Morning sun times were free text "Sunrise"/"Sunset" before 9 Nov 2026. */
+const MORNING_ASTRONOMY_LEGACY = {
+  legacy: ["sunrise", "sunset"],
+  structured: ["sunsetToday", "sunriseTomorrow"],
+};
 /** Older products stored these as free text; show it until re-entered. */
-function legacyNote(section: string, values: ProductValues) {
+function legacyNote(kind: ProductKind, section: string, values: ProductValues) {
   const { group, prefix } = sectionParts(section);
-  const legacy = LEGACY_BY_GROUP[group];
-  const structured = STRUCTURED_BY_GROUP[group];
+  const morningSun = kind === "morning" && group === "Astronomy";
+  const legacy = morningSun
+    ? MORNING_ASTRONOMY_LEGACY.legacy
+    : LEGACY_BY_GROUP[group];
+  const structured = morningSun
+    ? MORNING_ASTRONOMY_LEGACY.structured
+    : STRUCTURED_BY_GROUP[group];
   if (!(legacy && structured)) return null;
   if (structured.some((name) => values[parameterKey(prefix, name)]))
     return null;
@@ -151,6 +181,7 @@ function isComputedField(kind: ProductKind, key: string) {
   if (key === "forecaster") return true;
   if (isComposedForecastField(key) && composedFrom(kind, key)) return true;
   if (kind === "climate-bulletin") return CLIMATE_COMPUTED_FIELDS.includes(key);
+  if (isBulletin(kind)) return BULLETIN_COMPUTED_FIELDS.includes(key);
   return (
     isForecastKind(kind) &&
     (COMPUTED_FORECAST_FIELDS.includes(key) || EVENING_DAY_DATE.test(key))
@@ -218,8 +249,11 @@ function ProductEditor({
   archive,
   sourceEditionIds,
   existingSystems,
+  issuedProducts,
   lastIssued,
 }: {
+  /** Loaded products, for proposing the next bulletin number. */
+  issuedProducts: readonly StoredProduct[];
   lastIssued: StoredProduct | null;
   sourceEditionIds: string[];
   existingSystems: GuidanceSystem[];
@@ -286,6 +320,30 @@ function ProductEditor({
     )
   );
   const form = useForm({ defaultValues });
+  // Alerts are numbered per event; propose the next number on a new alert
+  // once the archive has loaded (the forecaster can change it).
+  const proposedNumber =
+    isBulletin(kind) && !initial
+      ? proposeBulletinNumber(kind, start.issuedAt ?? "", issuedProducts, id)
+      : "";
+  // Only an empty or previously proposed number is replaced, so a typed one
+  // survives the archive loading.
+  const lastProposal = useRef("");
+  useEffect(() => {
+    const current = form.getFieldValue("bulletinNumber") ?? "";
+    if (!proposedNumber || (current && current !== lastProposal.current))
+      return;
+    lastProposal.current = proposedNumber;
+    const next = { ...form.state.values, bulletinNumber: proposedNumber };
+    setDefaultValues(next);
+    form.reset(next);
+    setBaseline(JSON.stringify(next));
+  }, [proposedNumber, form]);
+  // A level other than green only appears on an older alert; show it there so
+  // it can be changed, otherwise it stays fixed at Green and hidden.
+  const [showLevel] = useState(
+    () => isBulletin(kind) && Boolean(start.level) && start.level !== "Green"
+  );
   function refreshPdf(
     values: ProductValues,
     expectedRevision: number,
@@ -338,6 +396,7 @@ function ProductEditor({
     (f) =>
       !(
         isComputedField(kind, f.key) ||
+        (f.key === "level" && isBulletin(kind) && !showLevel) ||
         (kind === "outlook" &&
           guidance?.systems?.length &&
           [
@@ -524,19 +583,59 @@ function ProductEditor({
             problem.fieldId ? [[problem.fieldId, problem.message] as const] : []
           )
         );
-        const renderField = (f: ProductField) => (
-          <form.Field key={f.key} name={f.key}>
-            {(input) => (
-              <ProductFieldControl
-                error={fieldErrors.get(`${kind}-${f.key}`)}
-                field={f}
+        /**
+         * Picking weather types regenerates their public sentence unless the
+         * forecaster has reworded it (then it is left alone).
+         */
+        function changeWeather(key: string, next: string) {
+          const textKey = `${key}Text`;
+          const current = values[textKey] ?? "";
+          if (
+            fields.some((g) => g.key === textKey) &&
+            (!current.trim() || current === weatherSentence(values[key]))
+          )
+            form.setFieldValue(textKey, weatherSentence(next));
+        }
+        const renderField = (f: ProductField) => {
+          // Minimum and maximum wave height share one line.
+          if (WAVE_MAX.test(f.key)) return null;
+          const maxKey = f.key.replace("Min", "Max");
+          const max = WAVE_MIN.test(f.key)
+            ? fields.find((g) => g.key === maxKey)
+            : undefined;
+          if (max)
+            return (
+              <ProductRangeControl
+                errors={{
+                  min: fieldErrors.get(`${kind}-${f.key}`),
+                  max: fieldErrors.get(`${kind}-${maxKey}`),
+                }}
+                key={f.key}
                 kind={kind}
-                onChange={input.handleChange}
-                value={input.state.value}
+                label="Significant wave height"
+                max={max}
+                min={f}
+                onChange={(key, next) => form.setFieldValue(key, next)}
+                values={values}
               />
-            )}
-          </form.Field>
-        );
+            );
+          return (
+            <form.Field key={f.key} name={f.key}>
+              {(input) => (
+                <ProductFieldControl
+                  error={fieldErrors.get(`${kind}-${f.key}`)}
+                  field={f}
+                  kind={kind}
+                  onChange={(next) => {
+                    if (WEATHER_TYPE.test(f.key)) changeWeather(f.key, next);
+                    input.handleChange(next);
+                  }}
+                  value={input.state.value}
+                />
+              )}
+            </form.Field>
+          );
+        };
         function removeTide(prefix: string, n: number) {
           const key = (slot: number, part: string) =>
             parameterKey(prefix, `tide${slot}${part}`);
@@ -728,7 +827,13 @@ function ProductEditor({
                                   {group === "Wind" ? (
                                     <span className="text-muted-foreground text-xs font-normal">
                                       {" "}
-                                      · mph
+                                      · {isMarineKind(kind) ? "knots" : "mph"}
+                                    </span>
+                                  ) : null}
+                                  {isSeaGroup(group) && isMarineKind(kind) ? (
+                                    <span className="text-muted-foreground text-xs font-normal">
+                                      {" "}
+                                      · metres
                                     </span>
                                   ) : null}
                                   {DAY_SECTION.test(section) &&
@@ -811,10 +916,11 @@ function ProductEditor({
                                 </div>
                                 <SectionHints
                                   group={group}
+                                  marine={isMarineKind(kind)}
                                   prefix={prefix}
                                   values={values}
                                 />
-                                {legacyNote(section, values)}
+                                {legacyNote(kind, section, values)}
                               </section>
                             );
                           })}
@@ -1244,6 +1350,7 @@ export function ProductDesk({
         ]}
         initial={selected}
         issueDate={grenadaDate()}
+        issuedProducts={products}
         key={`${kind}-${editorKey}`}
         kind={kind}
         lastIssued={
