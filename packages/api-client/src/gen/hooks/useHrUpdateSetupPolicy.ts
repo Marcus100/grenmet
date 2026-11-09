@@ -53,7 +53,7 @@ export function hrUpdateSetupPolicyMutationOptions<TContext = unknown>(
 }
 
 /**
- * @description Configure approval policy for future submissions.
+ * @description Configure approval policy for future submissions. Needs hr.setup.manage for the organisation; superusers may act for any organisation.
  * @summary Configure approval policy for future submissions
  * {@link /api/v1/hr/setup/policies/:key}
  */

@@ -11,7 +11,7 @@ import type {
 } from "../models/HrImportStaffBalances.js";
 
 /**
- * @description Reads a CSV with employee_number, leave_type and balance columns (other columns are ignored), checks every row, and posts through the leave ledger only when apply is true and every row is valid. Superuser only.
+ * @description Reads a CSV with employee_number, leave_type and balance columns (other columns are ignored), checks every row, and posts through the leave ledger only when apply is true and every row is valid. Needs hr.setup.manage for the organisation named in the request; superusers may act for any organisation.
  * @summary Validate or apply opening leave balances from a CSV export
  * {@link /api/v1/hr/setup/staff/balances/import}
  */
