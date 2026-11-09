@@ -1,0 +1,1431 @@
+{
+  "source": "MetPy 1.7.1 metpy.calc.heat_index(mask_undefined=False), 80 F and above",
+  "generatedBy": "apps/api/fastapi/scripts/metpy_fixtures.py",
+  "points": [
+    {
+      "airC": 27.0,
+      "relativeHumidity": 5.0,
+      "heatIndexC": 25.451581
+    },
+    {
+      "airC": 27.0,
+      "relativeHumidity": 10.0,
+      "heatIndexC": 25.853718
+    },
+    {
+      "airC": 27.0,
+      "relativeHumidity": 13.0,
+      "heatIndexC": 26.095
+    },
+    {
+      "airC": 27.0,
+      "relativeHumidity": 20.0,
+      "heatIndexC": 26.086234
+    },
+    {
+      "airC": 27.0,
+      "relativeHumidity": 30.0,
+      "heatIndexC": 26.419572
+    },
+    {
+      "airC": 27.0,
+      "relativeHumidity": 40.0,
+      "heatIndexC": 26.863173
+    },
+    {
+      "airC": 27.0,
+      "relativeHumidity": 50.0,
+      "heatIndexC": 27.417037
+    },
+    {
+      "airC": 27.0,
+      "relativeHumidity": 60.0,
+      "heatIndexC": 28.081164
+    },
+    {
+      "airC": 27.0,
+      "relativeHumidity": 70.0,
+      "heatIndexC": 28.855554
+    },
+    {
+      "airC": 27.0,
+      "relativeHumidity": 80.0,
+      "heatIndexC": 29.740206
+    },
+    {
+      "airC": 27.0,
+      "relativeHumidity": 85.0,
+      "heatIndexC": 30.223881
+    },
+    {
+      "airC": 27.0,
+      "relativeHumidity": 86.0,
+      "heatIndexC": 30.395035
+    },
+    {
+      "airC": 27.0,
+      "relativeHumidity": 90.0,
+      "heatIndexC": 31.090677
+    },
+    {
+      "airC": 27.0,
+      "relativeHumidity": 95.0,
+      "heatIndexC": 31.985039
+    },
+    {
+      "airC": 27.0,
+      "relativeHumidity": 100.0,
+      "heatIndexC": 32.906966
+    },
+    {
+      "airC": 27.5,
+      "relativeHumidity": 5.0,
+      "heatIndexC": 25.701799
+    },
+    {
+      "airC": 27.5,
+      "relativeHumidity": 10.0,
+      "heatIndexC": 26.043029
+    },
+    {
+      "airC": 27.5,
+      "relativeHumidity": 13.0,
+      "heatIndexC": 26.267362
+    },
+    {
+      "airC": 27.5,
+      "relativeHumidity": 20.0,
+      "heatIndexC": 26.406817
+    },
+    {
+      "airC": 27.5,
+      "relativeHumidity": 30.0,
+      "heatIndexC": 26.744832
+    },
+    {
+      "airC": 27.5,
+      "relativeHumidity": 40.0,
+      "heatIndexC": 27.246134
+    },
+    {
+      "airC": 27.5,
+      "relativeHumidity": 50.0,
+      "heatIndexC": 27.910723
+    },
+    {
+      "airC": 27.5,
+      "relativeHumidity": 60.0,
+      "heatIndexC": 28.7386
+    },
+    {
+      "airC": 27.5,
+      "relativeHumidity": 70.0,
+      "heatIndexC": 29.729763
+    },
+    {
+      "airC": 27.5,
+      "relativeHumidity": 80.0,
+      "heatIndexC": 30.884213
+    },
+    {
+      "airC": 27.5,
+      "relativeHumidity": 85.0,
+      "heatIndexC": 31.52267
+    },
+    {
+      "airC": 27.5,
+      "relativeHumidity": 86.0,
+      "heatIndexC": 31.716371
+    },
+    {
+      "airC": 27.5,
+      "relativeHumidity": 90.0,
+      "heatIndexC": 32.507505
+    },
+    {
+      "airC": 27.5,
+      "relativeHumidity": 95.0,
+      "heatIndexC": 33.533162
+    },
+    {
+      "airC": 27.5,
+      "relativeHumidity": 100.0,
+      "heatIndexC": 34.59964
+    },
+    {
+      "airC": 28.0,
+      "relativeHumidity": 5.0,
+      "heatIndexC": 26.053001
+    },
+    {
+      "airC": 28.0,
+      "relativeHumidity": 10.0,
+      "heatIndexC": 26.393766
+    },
+    {
+      "airC": 28.0,
+      "relativeHumidity": 13.0,
+      "heatIndexC": 26.62414
+    },
+    {
+      "airC": 28.0,
+      "relativeHumidity": 20.0,
+      "heatIndexC": 26.742647
+    },
+    {
+      "airC": 28.0,
+      "relativeHumidity": 30.0,
+      "heatIndexC": 27.095502
+    },
+    {
+      "airC": 28.0,
+      "relativeHumidity": 40.0,
+      "heatIndexC": 27.66431
+    },
+    {
+      "airC": 28.0,
+      "relativeHumidity": 50.0,
+      "heatIndexC": 28.449072
+    },
+    {
+      "airC": 28.0,
+      "relativeHumidity": 60.0,
+      "heatIndexC": 29.449785
+    },
+    {
+      "airC": 28.0,
+      "relativeHumidity": 70.0,
+      "heatIndexC": 30.666452
+    },
+    {
+      "airC": 28.0,
+      "relativeHumidity": 80.0,
+      "heatIndexC": 32.099072
+    },
+    {
+      "airC": 28.0,
+      "relativeHumidity": 85.0,
+      "heatIndexC": 32.896364
+    },
+    {
+      "airC": 28.0,
+      "relativeHumidity": 86.0,
+      "heatIndexC": 33.113412
+    },
+    {
+      "airC": 28.0,
+      "relativeHumidity": 90.0,
+      "heatIndexC": 34.0032
+    },
+    {
+      "airC": 28.0,
+      "relativeHumidity": 95.0,
+      "heatIndexC": 35.164024
+    },
+    {
+      "airC": 28.0,
+      "relativeHumidity": 100.0,
+      "heatIndexC": 36.378836
+    },
+    {
+      "airC": 28.5,
+      "relativeHumidity": 5.0,
+      "heatIndexC": 26.409525
+    },
+    {
+      "airC": 28.5,
+      "relativeHumidity": 10.0,
+      "heatIndexC": 26.751476
+    },
+    {
+      "airC": 28.5,
+      "relativeHumidity": 13.0,
+      "heatIndexC": 26.988838
+    },
+    {
+      "airC": 28.5,
+      "relativeHumidity": 20.0,
+      "heatIndexC": 27.093724
+    },
+    {
+      "airC": 28.5,
+      "relativeHumidity": 30.0,
+      "heatIndexC": 27.471582
+    },
+    {
+      "airC": 28.5,
+      "relativeHumidity": 40.0,
+      "heatIndexC": 28.117702
+    },
+    {
+      "airC": 28.5,
+      "relativeHumidity": 50.0,
+      "heatIndexC": 29.032081
+    },
+    {
+      "airC": 28.5,
+      "relativeHumidity": 60.0,
+      "heatIndexC": 30.214722
+    },
+    {
+      "airC": 28.5,
+      "relativeHumidity": 70.0,
+      "heatIndexC": 31.665623
+    },
+    {
+      "airC": 28.5,
+      "relativeHumidity": 80.0,
+      "heatIndexC": 33.384784
+    },
+    {
+      "airC": 28.5,
+      "relativeHumidity": 85.0,
+      "heatIndexC": 34.344962
+    },
+    {
+      "airC": 28.5,
+      "relativeHumidity": 86.0,
+      "heatIndexC": 34.586157
+    },
+    {
+      "airC": 28.5,
+      "relativeHumidity": 90.0,
+      "heatIndexC": 35.577761
+    },
+    {
+      "airC": 28.5,
+      "relativeHumidity": 95.0,
+      "heatIndexC": 36.877626
+    },
+    {
+      "airC": 28.5,
+      "relativeHumidity": 100.0,
+      "heatIndexC": 38.244555
+    },
+    {
+      "airC": 29.0,
+      "relativeHumidity": 5.0,
+      "heatIndexC": 26.769894
+    },
+    {
+      "airC": 29.0,
+      "relativeHumidity": 10.0,
+      "heatIndexC": 27.115604
+    },
+    {
+      "airC": 29.0,
+      "relativeHumidity": 13.0,
+      "heatIndexC": 27.361455
+    },
+    {
+      "airC": 29.0,
+      "relativeHumidity": 20.0,
+      "heatIndexC": 27.460047
+    },
+    {
+      "airC": 29.0,
+      "relativeHumidity": 30.0,
+      "heatIndexC": 27.873073
+    },
+    {
+      "airC": 29.0,
+      "relativeHumidity": 40.0,
+      "heatIndexC": 28.606308
+    },
+    {
+      "airC": 29.0,
+      "relativeHumidity": 50.0,
+      "heatIndexC": 29.659753
+    },
+    {
+      "airC": 29.0,
+      "relativeHumidity": 60.0,
+      "heatIndexC": 31.033408
+    },
+    {
+      "airC": 29.0,
+      "relativeHumidity": 70.0,
+      "heatIndexC": 32.727274
+    },
+    {
+      "airC": 29.0,
+      "relativeHumidity": 80.0,
+      "heatIndexC": 34.741349
+    },
+    {
+      "airC": 29.0,
+      "relativeHumidity": 85.0,
+      "heatIndexC": 35.868465
+    },
+    {
+      "airC": 29.0,
+      "relativeHumidity": 86.0,
+      "heatIndexC": 36.134606
+    },
+    {
+      "airC": 29.0,
+      "relativeHumidity": 90.0,
+      "heatIndexC": 37.23119
+    },
+    {
+      "airC": 29.0,
+      "relativeHumidity": 95.0,
+      "heatIndexC": 38.673967
+    },
+    {
+      "airC": 29.0,
+      "relativeHumidity": 100.0,
+      "heatIndexC": 40.196796
+    },
+    {
+      "airC": 29.5,
+      "relativeHumidity": 5.0,
+      "heatIndexC": 27.133151
+    },
+    {
+      "airC": 29.5,
+      "relativeHumidity": 10.0,
+      "heatIndexC": 27.485791
+    },
+    {
+      "airC": 29.5,
+      "relativeHumidity": 13.0,
+      "heatIndexC": 27.741992
+    },
+    {
+      "airC": 29.5,
+      "relativeHumidity": 20.0,
+      "heatIndexC": 27.841618
+    },
+    {
+      "airC": 29.5,
+      "relativeHumidity": 30.0,
+      "heatIndexC": 28.299973
+    },
+    {
+      "airC": 29.5,
+      "relativeHumidity": 40.0,
+      "heatIndexC": 29.130129
+    },
+    {
+      "airC": 29.5,
+      "relativeHumidity": 50.0,
+      "heatIndexC": 30.332086
+    },
+    {
+      "airC": 29.5,
+      "relativeHumidity": 60.0,
+      "heatIndexC": 31.905845
+    },
+    {
+      "airC": 29.5,
+      "relativeHumidity": 70.0,
+      "heatIndexC": 33.851405
+    },
+    {
+      "airC": 29.5,
+      "relativeHumidity": 80.0,
+      "heatIndexC": 36.168767
+    },
+    {
+      "airC": 29.5,
+      "relativeHumidity": 85.0,
+      "heatIndexC": 37.466873
+    },
+    {
+      "airC": 29.5,
+      "relativeHumidity": 86.0,
+      "heatIndexC": 37.758759
+    },
+    {
+      "airC": 29.5,
+      "relativeHumidity": 90.0,
+      "heatIndexC": 38.963485
+    },
+    {
+      "airC": 29.5,
+      "relativeHumidity": 95.0,
+      "heatIndexC": 40.553047
+    },
+    {
+      "airC": 29.5,
+      "relativeHumidity": 100.0,
+      "heatIndexC": 42.23556
+    },
+    {
+      "airC": 30.0,
+      "relativeHumidity": 5.0,
+      "heatIndexC": 27.498638
+    },
+    {
+      "airC": 30.0,
+      "relativeHumidity": 10.0,
+      "heatIndexC": 27.861792
+    },
+    {
+      "airC": 30.0,
+      "relativeHumidity": 13.0,
+      "heatIndexC": 28.130448
+    },
+    {
+      "airC": 30.0,
+      "relativeHumidity": 20.0,
+      "heatIndexC": 28.238436
+    },
+    {
+      "airC": 30.0,
+      "relativeHumidity": 30.0,
+      "heatIndexC": 28.752283
+    },
+    {
+      "airC": 30.0,
+      "relativeHumidity": 40.0,
+      "heatIndexC": 29.689165
+    },
+    {
+      "airC": 30.0,
+      "relativeHumidity": 50.0,
+      "heatIndexC": 31.049081
+    },
+    {
+      "airC": 30.0,
+      "relativeHumidity": 60.0,
+      "heatIndexC": 32.832032
+    },
+    {
+      "airC": 30.0,
+      "relativeHumidity": 70.0,
+      "heatIndexC": 35.038018
+    },
+    {
+      "airC": 30.0,
+      "relativeHumidity": 80.0,
+      "heatIndexC": 37.667037
+    },
+    {
+      "airC": 30.0,
+      "relativeHumidity": 85.0,
+      "heatIndexC": 39.140185
+    },
+    {
+      "airC": 30.0,
+      "relativeHumidity": 86.0,
+      "heatIndexC": 39.458617
+    },
+    {
+      "airC": 30.0,
+      "relativeHumidity": 90.0,
+      "heatIndexC": 40.774647
+    },
+    {
+      "airC": 30.0,
+      "relativeHumidity": 95.0,
+      "heatIndexC": 42.514868
+    },
+    {
+      "airC": 30.0,
+      "relativeHumidity": 100.0,
+      "heatIndexC": 44.360847
+    },
+    {
+      "airC": 30.5,
+      "relativeHumidity": 5.0,
+      "heatIndexC": 27.865877
+    },
+    {
+      "airC": 30.5,
+      "relativeHumidity": 10.0,
+      "heatIndexC": 28.243425
+    },
+    {
+      "airC": 30.5,
+      "relativeHumidity": 13.0,
+      "heatIndexC": 28.526824
+    },
+    {
+      "airC": 30.5,
+      "relativeHumidity": 20.0,
+      "heatIndexC": 28.6505
+    },
+    {
+      "airC": 30.5,
+      "relativeHumidity": 30.0,
+      "heatIndexC": 29.230003
+    },
+    {
+      "airC": 30.5,
+      "relativeHumidity": 40.0,
+      "heatIndexC": 30.283416
+    },
+    {
+      "airC": 30.5,
+      "relativeHumidity": 50.0,
+      "heatIndexC": 31.810738
+    },
+    {
+      "airC": 30.5,
+      "relativeHumidity": 60.0,
+      "heatIndexC": 33.81197
+    },
+    {
+      "airC": 30.5,
+      "relativeHumidity": 70.0,
+      "heatIndexC": 36.287111
+    },
+    {
+      "airC": 30.5,
+      "relativeHumidity": 80.0,
+      "heatIndexC": 39.236161
+    },
+    {
+      "airC": 30.5,
+      "relativeHumidity": 85.0,
+      "heatIndexC": 40.888402
+    },
+    {
+      "airC": 30.5,
+      "relativeHumidity": 86.0,
+      "heatIndexC": 41.234178
+    },
+    {
+      "airC": 30.5,
+      "relativeHumidity": 90.0,
+      "heatIndexC": 42.664676
+    },
+    {
+      "airC": 30.5,
+      "relativeHumidity": 95.0,
+      "heatIndexC": 44.559427
+    },
+    {
+      "airC": 30.5,
+      "relativeHumidity": 100.0,
+      "heatIndexC": 46.572656
+    },
+    {
+      "airC": 31.0,
+      "relativeHumidity": 5.0,
+      "heatIndexC": 28.234508
+    },
+    {
+      "airC": 31.0,
+      "relativeHumidity": 10.0,
+      "heatIndexC": 28.630558
+    },
+    {
+      "airC": 31.0,
+      "relativeHumidity": 13.0,
+      "heatIndexC": 28.931119
+    },
+    {
+      "airC": 31.0,
+      "relativeHumidity": 20.0,
+      "heatIndexC": 29.077811
+    },
+    {
+      "airC": 31.0,
+      "relativeHumidity": 30.0,
+      "heatIndexC": 29.733134
+    },
+    {
+      "airC": 31.0,
+      "relativeHumidity": 40.0,
+      "heatIndexC": 30.912882
+    },
+    {
+      "airC": 31.0,
+      "relativeHumidity": 50.0,
+      "heatIndexC": 32.617057
+    },
+    {
+      "airC": 31.0,
+      "relativeHumidity": 60.0,
+      "heatIndexC": 34.845658
+    },
+    {
+      "airC": 31.0,
+      "relativeHumidity": 70.0,
+      "heatIndexC": 37.598684
+    },
+    {
+      "airC": 31.0,
+      "relativeHumidity": 80.0,
+      "heatIndexC": 40.876137
+    },
+    {
+      "airC": 31.0,
+      "relativeHumidity": 85.0,
+      "heatIndexC": 42.711523
+    },
+    {
+      "airC": 31.0,
+      "relativeHumidity": 86.0,
+      "heatIndexC": 43.094333
+    },
+    {
+      "airC": 31.0,
+      "relativeHumidity": 90.0,
+      "heatIndexC": 44.678016
+    },
+    {
+      "airC": 31.0,
+      "relativeHumidity": 95.0,
+      "heatIndexC": 46.775615
+    },
+    {
+      "airC": 31.0,
+      "relativeHumidity": 100.0,
+      "heatIndexC": 49.004321
+    },
+    {
+      "airC": 31.5,
+      "relativeHumidity": 5.0,
+      "heatIndexC": 28.604253
+    },
+    {
+      "airC": 31.5,
+      "relativeHumidity": 10.0,
+      "heatIndexC": 29.023085
+    },
+    {
+      "airC": 31.5,
+      "relativeHumidity": 13.0,
+      "heatIndexC": 29.343334
+    },
+    {
+      "airC": 31.5,
+      "relativeHumidity": 20.0,
+      "heatIndexC": 29.520369
+    },
+    {
+      "airC": 31.5,
+      "relativeHumidity": 30.0,
+      "heatIndexC": 30.261674
+    },
+    {
+      "airC": 31.5,
+      "relativeHumidity": 40.0,
+      "heatIndexC": 31.577563
+    },
+    {
+      "airC": 31.5,
+      "relativeHumidity": 50.0,
+      "heatIndexC": 33.468037
+    },
+    {
+      "airC": 31.5,
+      "relativeHumidity": 60.0,
+      "heatIndexC": 35.933096
+    },
+    {
+      "airC": 31.5,
+      "relativeHumidity": 70.0,
+      "heatIndexC": 38.972739
+    },
+    {
+      "airC": 31.5,
+      "relativeHumidity": 80.0,
+      "heatIndexC": 42.586966
+    },
+    {
+      "airC": 31.5,
+      "relativeHumidity": 85.0,
+      "heatIndexC": 44.609549
+    },
+    {
+      "airC": 31.5,
+      "relativeHumidity": 86.0,
+      "heatIndexC": 45.031303
+    },
+    {
+      "airC": 31.5,
+      "relativeHumidity": 90.0,
+      "heatIndexC": 46.775778
+    },
+    {
+      "airC": 31.5,
+      "relativeHumidity": 95.0,
+      "heatIndexC": 49.085653
+    },
+    {
+      "airC": 31.5,
+      "relativeHumidity": 100.0,
+      "heatIndexC": 51.539175
+    },
+    {
+      "airC": 32.0,
+      "relativeHumidity": 5.0,
+      "heatIndexC": 28.974891
+    },
+    {
+      "airC": 32.0,
+      "relativeHumidity": 10.0,
+      "heatIndexC": 29.420923
+    },
+    {
+      "airC": 32.0,
+      "relativeHumidity": 13.0,
+      "heatIndexC": 29.763468
+    },
+    {
+      "airC": 32.0,
+      "relativeHumidity": 20.0,
+      "heatIndexC": 29.978174
+    },
+    {
+      "airC": 32.0,
+      "relativeHumidity": 30.0,
+      "heatIndexC": 30.815625
+    },
+    {
+      "airC": 32.0,
+      "relativeHumidity": 40.0,
+      "heatIndexC": 32.27746
+    },
+    {
+      "airC": 32.0,
+      "relativeHumidity": 50.0,
+      "heatIndexC": 34.363679
+    },
+    {
+      "airC": 32.0,
+      "relativeHumidity": 60.0,
+      "heatIndexC": 37.074284
+    },
+    {
+      "airC": 32.0,
+      "relativeHumidity": 70.0,
+      "heatIndexC": 40.409274
+    },
+    {
+      "airC": 32.0,
+      "relativeHumidity": 80.0,
+      "heatIndexC": 44.368648
+    },
+    {
+      "airC": 32.0,
+      "relativeHumidity": 85.0,
+      "heatIndexC": 46.58248
+    },
+    {
+      "airC": 32.0,
+      "relativeHumidity": 86.0,
+      "heatIndexC": 47.043977
+    },
+    {
+      "airC": 32.0,
+      "relativeHumidity": 90.0,
+      "heatIndexC": 48.952407
+    },
+    {
+      "airC": 32.0,
+      "relativeHumidity": 95.0,
+      "heatIndexC": 51.478431
+    },
+    {
+      "airC": 32.0,
+      "relativeHumidity": 100.0,
+      "heatIndexC": 54.160551
+    },
+    {
+      "airC": 32.5,
+      "relativeHumidity": 5.0,
+      "heatIndexC": 29.346244
+    },
+    {
+      "airC": 32.5,
+      "relativeHumidity": 10.0,
+      "heatIndexC": 29.824006
+    },
+    {
+      "airC": 32.5,
+      "relativeHumidity": 13.0,
+      "heatIndexC": 30.191522
+    },
+    {
+      "airC": 32.5,
+      "relativeHumidity": 20.0,
+      "heatIndexC": 30.451226
+    },
+    {
+      "airC": 32.5,
+      "relativeHumidity": 30.0,
+      "heatIndexC": 31.394985
+    },
+    {
+      "airC": 32.5,
+      "relativeHumidity": 40.0,
+      "heatIndexC": 33.012571
+    },
+    {
+      "airC": 32.5,
+      "relativeHumidity": 50.0,
+      "heatIndexC": 35.303983
+    },
+    {
+      "airC": 32.5,
+      "relativeHumidity": 60.0,
+      "heatIndexC": 38.269223
+    },
+    {
+      "airC": 32.5,
+      "relativeHumidity": 70.0,
+      "heatIndexC": 41.908289
+    },
+    {
+      "airC": 32.5,
+      "relativeHumidity": 80.0,
+      "heatIndexC": 46.221183
+    },
+    {
+      "airC": 32.5,
+      "relativeHumidity": 85.0,
+      "heatIndexC": 48.630315
+    },
+    {
+      "airC": 32.5,
+      "relativeHumidity": 86.0,
+      "heatIndexC": 49.132356
+    },
+    {
+      "airC": 32.5,
+      "relativeHumidity": 90.0,
+      "heatIndexC": 51.207903
+    },
+    {
+      "airC": 32.5,
+      "relativeHumidity": 95.0,
+      "heatIndexC": 53.953949
+    },
+    {
+      "airC": 32.5,
+      "relativeHumidity": 100.0,
+      "heatIndexC": 56.868451
+    },
+    {
+      "airC": 33.0,
+      "relativeHumidity": 5.0,
+      "heatIndexC": 29.718164
+    },
+    {
+      "airC": 33.0,
+      "relativeHumidity": 10.0,
+      "heatIndexC": 30.232278
+    },
+    {
+      "airC": 33.0,
+      "relativeHumidity": 13.0,
+      "heatIndexC": 30.627496
+    },
+    {
+      "airC": 33.0,
+      "relativeHumidity": 20.0,
+      "heatIndexC": 30.939525
+    },
+    {
+      "airC": 33.0,
+      "relativeHumidity": 30.0,
+      "heatIndexC": 31.999755
+    },
+    {
+      "airC": 33.0,
+      "relativeHumidity": 40.0,
+      "heatIndexC": 33.782897
+    },
+    {
+      "airC": 33.0,
+      "relativeHumidity": 50.0,
+      "heatIndexC": 36.288949
+    },
+    {
+      "airC": 33.0,
+      "relativeHumidity": 60.0,
+      "heatIndexC": 39.517912
+    },
+    {
+      "airC": 33.0,
+      "relativeHumidity": 70.0,
+      "heatIndexC": 43.469786
+    },
+    {
+      "airC": 33.0,
+      "relativeHumidity": 80.0,
+      "heatIndexC": 48.14457
+    },
+    {
+      "airC": 33.0,
+      "relativeHumidity": 85.0,
+      "heatIndexC": 50.753054
+    },
+    {
+      "airC": 33.0,
+      "relativeHumidity": 86.0,
+      "heatIndexC": 51.296439
+    },
+    {
+      "airC": 33.0,
+      "relativeHumidity": 90.0,
+      "heatIndexC": 53.542266
+    },
+    {
+      "airC": 33.0,
+      "relativeHumidity": 95.0,
+      "heatIndexC": 56.512205
+    },
+    {
+      "airC": 33.0,
+      "relativeHumidity": 100.0,
+      "heatIndexC": 59.662872
+    },
+    {
+      "airC": 33.5,
+      "relativeHumidity": 5.0,
+      "heatIndexC": 30.090528
+    },
+    {
+      "airC": 33.5,
+      "relativeHumidity": 10.0,
+      "heatIndexC": 30.645693
+    },
+    {
+      "airC": 33.5,
+      "relativeHumidity": 13.0,
+      "heatIndexC": 31.071389
+    },
+    {
+      "airC": 33.5,
+      "relativeHumidity": 20.0,
+      "heatIndexC": 31.443071
+    },
+    {
+      "airC": 33.5,
+      "relativeHumidity": 30.0,
+      "heatIndexC": 32.629936
+    },
+    {
+      "airC": 33.5,
+      "relativeHumidity": 40.0,
+      "heatIndexC": 34.588438
+    },
+    {
+      "airC": 33.5,
+      "relativeHumidity": 50.0,
+      "heatIndexC": 37.318576
+    },
+    {
+      "airC": 33.5,
+      "relativeHumidity": 60.0,
+      "heatIndexC": 40.820351
+    },
+    {
+      "airC": 33.5,
+      "relativeHumidity": 70.0,
+      "heatIndexC": 45.093763
+    },
+    {
+      "airC": 33.5,
+      "relativeHumidity": 80.0,
+      "heatIndexC": 50.138811
+    },
+    {
+      "airC": 33.5,
+      "relativeHumidity": 85.0,
+      "heatIndexC": 52.950699
+    },
+    {
+      "airC": 33.5,
+      "relativeHumidity": 86.0,
+      "heatIndexC": 53.536225
+    },
+    {
+      "airC": 33.5,
+      "relativeHumidity": 90.0,
+      "heatIndexC": 55.955496
+    },
+    {
+      "airC": 33.5,
+      "relativeHumidity": 95.0,
+      "heatIndexC": 59.153202
+    },
+    {
+      "airC": 33.5,
+      "relativeHumidity": 100.0,
+      "heatIndexC": 62.543817
+    },
+    {
+      "airC": 34.0,
+      "relativeHumidity": 5.0,
+      "heatIndexC": 30.463233
+    },
+    {
+      "airC": 34.0,
+      "relativeHumidity": 10.0,
+      "heatIndexC": 31.064213
+    },
+    {
+      "airC": 34.0,
+      "relativeHumidity": 13.0,
+      "heatIndexC": 31.523201
+    },
+    {
+      "airC": 34.0,
+      "relativeHumidity": 20.0,
+      "heatIndexC": 31.961863
+    },
+    {
+      "airC": 34.0,
+      "relativeHumidity": 30.0,
+      "heatIndexC": 33.285526
+    },
+    {
+      "airC": 34.0,
+      "relativeHumidity": 40.0,
+      "heatIndexC": 35.429194
+    },
+    {
+      "airC": 34.0,
+      "relativeHumidity": 50.0,
+      "heatIndexC": 38.392865
+    },
+    {
+      "airC": 34.0,
+      "relativeHumidity": 60.0,
+      "heatIndexC": 42.176541
+    },
+    {
+      "airC": 34.0,
+      "relativeHumidity": 70.0,
+      "heatIndexC": 46.780221
+    },
+    {
+      "airC": 34.0,
+      "relativeHumidity": 80.0,
+      "heatIndexC": 52.203904
+    },
+    {
+      "airC": 34.0,
+      "relativeHumidity": 85.0,
+      "heatIndexC": 55.223248
+    },
+    {
+      "airC": 34.0,
+      "relativeHumidity": 86.0,
+      "heatIndexC": 55.851716
+    },
+    {
+      "airC": 34.0,
+      "relativeHumidity": 90.0,
+      "heatIndexC": 58.447592
+    },
+    {
+      "airC": 34.0,
+      "relativeHumidity": 95.0,
+      "heatIndexC": 61.876937
+    },
+    {
+      "airC": 34.0,
+      "relativeHumidity": 100.0,
+      "heatIndexC": 65.511284
+    },
+    {
+      "airC": 34.5,
+      "relativeHumidity": 5.0,
+      "heatIndexC": 30.836191
+    },
+    {
+      "airC": 34.5,
+      "relativeHumidity": 10.0,
+      "heatIndexC": 31.487804
+    },
+    {
+      "airC": 34.5,
+      "relativeHumidity": 13.0,
+      "heatIndexC": 31.982933
+    },
+    {
+      "airC": 34.5,
+      "relativeHumidity": 20.0,
+      "heatIndexC": 32.495902
+    },
+    {
+      "airC": 34.5,
+      "relativeHumidity": 30.0,
+      "heatIndexC": 33.966527
+    },
+    {
+      "airC": 34.5,
+      "relativeHumidity": 40.0,
+      "heatIndexC": 36.305165
+    },
+    {
+      "airC": 34.5,
+      "relativeHumidity": 50.0,
+      "heatIndexC": 39.511816
+    },
+    {
+      "airC": 34.5,
+      "relativeHumidity": 60.0,
+      "heatIndexC": 43.586481
+    },
+    {
+      "airC": 34.5,
+      "relativeHumidity": 70.0,
+      "heatIndexC": 48.529159
+    },
+    {
+      "airC": 34.5,
+      "relativeHumidity": 80.0,
+      "heatIndexC": 54.33985
+    },
+    {
+      "airC": 34.5,
+      "relativeHumidity": 85.0,
+      "heatIndexC": 57.570701
+    },
+    {
+      "airC": 34.5,
+      "relativeHumidity": 86.0,
+      "heatIndexC": 58.242912
+    },
+    {
+      "airC": 34.5,
+      "relativeHumidity": 90.0,
+      "heatIndexC": 61.018555
+    },
+    {
+      "airC": 34.5,
+      "relativeHumidity": 95.0,
+      "heatIndexC": 64.683412
+    },
+    {
+      "airC": 34.5,
+      "relativeHumidity": 100.0,
+      "heatIndexC": 68.565273
+    },
+    {
+      "airC": 35.0,
+      "relativeHumidity": 5.0,
+      "heatIndexC": 31.209325
+    },
+    {
+      "airC": 35.0,
+      "relativeHumidity": 10.0,
+      "heatIndexC": 31.916437
+    },
+    {
+      "airC": 35.0,
+      "relativeHumidity": 13.0,
+      "heatIndexC": 32.450585
+    },
+    {
+      "airC": 35.0,
+      "relativeHumidity": 20.0,
+      "heatIndexC": 33.045189
+    },
+    {
+      "airC": 35.0,
+      "relativeHumidity": 30.0,
+      "heatIndexC": 34.672938
+    },
+    {
+      "airC": 35.0,
+      "relativeHumidity": 40.0,
+      "heatIndexC": 37.216351
+    },
+    {
+      "airC": 35.0,
+      "relativeHumidity": 50.0,
+      "heatIndexC": 40.675429
+    },
+    {
+      "airC": 35.0,
+      "relativeHumidity": 60.0,
+      "heatIndexC": 45.050171
+    },
+    {
+      "airC": 35.0,
+      "relativeHumidity": 70.0,
+      "heatIndexC": 50.340578
+    },
+    {
+      "airC": 35.0,
+      "relativeHumidity": 80.0,
+      "heatIndexC": 56.546649
+    },
+    {
+      "airC": 35.0,
+      "relativeHumidity": 85.0,
+      "heatIndexC": 59.993059
+    },
+    {
+      "airC": 35.0,
+      "relativeHumidity": 86.0,
+      "heatIndexC": 60.709811
+    },
+    {
+      "airC": 35.0,
+      "relativeHumidity": 90.0,
+      "heatIndexC": 63.668385
+    },
+    {
+      "airC": 35.0,
+      "relativeHumidity": 95.0,
+      "heatIndexC": 67.572627
+    },
+    {
+      "airC": 35.0,
+      "relativeHumidity": 100.0,
+      "heatIndexC": 71.705785
+    },
+    {
+      "airC": 35.5,
+      "relativeHumidity": 5.0,
+      "heatIndexC": 31.641413
+    },
+    {
+      "airC": 35.5,
+      "relativeHumidity": 10.0,
+      "heatIndexC": 32.372155
+    },
+    {
+      "airC": 35.5,
+      "relativeHumidity": 13.0,
+      "heatIndexC": 32.926156
+    },
+    {
+      "airC": 35.5,
+      "relativeHumidity": 20.0,
+      "heatIndexC": 33.609722
+    },
+    {
+      "airC": 35.5,
+      "relativeHumidity": 30.0,
+      "heatIndexC": 35.404758
+    },
+    {
+      "airC": 35.5,
+      "relativeHumidity": 40.0,
+      "heatIndexC": 38.162752
+    },
+    {
+      "airC": 35.5,
+      "relativeHumidity": 50.0,
+      "heatIndexC": 41.883703
+    },
+    {
+      "airC": 35.5,
+      "relativeHumidity": 60.0,
+      "heatIndexC": 46.567612
+    },
+    {
+      "airC": 35.5,
+      "relativeHumidity": 70.0,
+      "heatIndexC": 52.214478
+    },
+    {
+      "airC": 35.5,
+      "relativeHumidity": 80.0,
+      "heatIndexC": 58.824301
+    },
+    {
+      "airC": 35.5,
+      "relativeHumidity": 85.0,
+      "heatIndexC": 62.490322
+    },
+    {
+      "airC": 35.5,
+      "relativeHumidity": 86.0,
+      "heatIndexC": 63.252415
+    },
+    {
+      "airC": 35.5,
+      "relativeHumidity": 90.0,
+      "heatIndexC": 66.397082
+    },
+    {
+      "airC": 35.5,
+      "relativeHumidity": 95.0,
+      "heatIndexC": 70.544581
+    },
+    {
+      "airC": 35.5,
+      "relativeHumidity": 100.0,
+      "heatIndexC": 74.93282
+    },
+    {
+      "airC": 36.0,
+      "relativeHumidity": 5.0,
+      "heatIndexC": 32.073676
+    },
+    {
+      "airC": 36.0,
+      "relativeHumidity": 10.0,
+      "heatIndexC": 32.832916
+    },
+    {
+      "airC": 36.0,
+      "relativeHumidity": 13.0,
+      "heatIndexC": 33.409646
+    },
+    {
+      "airC": 36.0,
+      "relativeHumidity": 20.0,
+      "heatIndexC": 34.189502
+    },
+    {
+      "airC": 36.0,
+      "relativeHumidity": 30.0,
+      "heatIndexC": 36.161989
+    },
+    {
+      "airC": 36.0,
+      "relativeHumidity": 40.0,
+      "heatIndexC": 39.144368
+    },
+    {
+      "airC": 36.0,
+      "relativeHumidity": 50.0,
+      "heatIndexC": 43.136639
+    },
+    {
+      "airC": 36.0,
+      "relativeHumidity": 60.0,
+      "heatIndexC": 48.138803
+    },
+    {
+      "airC": 36.0,
+      "relativeHumidity": 70.0,
+      "heatIndexC": 54.150858
+    },
+    {
+      "airC": 36.0,
+      "relativeHumidity": 80.0,
+      "heatIndexC": 61.172806
+    },
+    {
+      "airC": 36.0,
+      "relativeHumidity": 85.0,
+      "heatIndexC": 65.062489
+    },
+    {
+      "airC": 36.0,
+      "relativeHumidity": 86.0,
+      "heatIndexC": 65.870722
+    },
+    {
+      "airC": 36.0,
+      "relativeHumidity": 90.0,
+      "heatIndexC": 69.204645
+    },
+    {
+      "airC": 36.0,
+      "relativeHumidity": 95.0,
+      "heatIndexC": 73.599274
+    },
+    {
+      "airC": 36.0,
+      "relativeHumidity": 100.0,
+      "heatIndexC": 78.246377
+    }
+  ]
+}

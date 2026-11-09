@@ -1,0 +1,1214 @@
+{
+  "source": "MetPy 1.7.1 psychrometric_vapor_pressure_wet with the WMO coefficient 0.00066 (1 + 0.00115 Tw), dewpoint, saturation_vapor_pressure; relative humidity from realistic points (40 to 100 per cent)",
+  "generatedBy": "apps/api/fastapi/scripts/metpy_fixtures.py",
+  "points": [
+    {
+      "airTemp": "180",
+      "wetBulb": "180",
+      "stationPressure": "0000",
+      "vapourHpa": 20.610267,
+      "dewPointC": 17.987996,
+      "relativeHumidity": 100.0
+    },
+    {
+      "airTemp": "180",
+      "wetBulb": "180",
+      "stationPressure": "0100",
+      "vapourHpa": 20.610267,
+      "dewPointC": 17.987996,
+      "relativeHumidity": 100.0
+    },
+    {
+      "airTemp": "180",
+      "wetBulb": "180",
+      "stationPressure": "0200",
+      "vapourHpa": 20.610267,
+      "dewPointC": 17.987996,
+      "relativeHumidity": 100.0
+    },
+    {
+      "airTemp": "180",
+      "wetBulb": "160",
+      "stationPressure": "0000",
+      "vapourHpa": 16.813901,
+      "dewPointC": 14.792267,
+      "relativeHumidity": 81.580219
+    },
+    {
+      "airTemp": "180",
+      "wetBulb": "160",
+      "stationPressure": "0100",
+      "vapourHpa": 16.800458,
+      "dewPointC": 14.779866,
+      "relativeHumidity": 81.514995
+    },
+    {
+      "airTemp": "180",
+      "wetBulb": "160",
+      "stationPressure": "0200",
+      "vapourHpa": 16.787015,
+      "dewPointC": 14.767456,
+      "relativeHumidity": 81.449771
+    },
+    {
+      "airTemp": "180",
+      "wetBulb": "140",
+      "stationPressure": "0000",
+      "vapourHpa": 13.283204,
+      "dewPointC": 11.188513,
+      "relativeHumidity": 64.449452
+    },
+    {
+      "airTemp": "180",
+      "wetBulb": "140",
+      "stationPressure": "0100",
+      "vapourHpa": 13.256379,
+      "dewPointC": 11.158041,
+      "relativeHumidity": 64.319298
+    },
+    {
+      "airTemp": "180",
+      "wetBulb": "140",
+      "stationPressure": "0200",
+      "vapourHpa": 13.229554,
+      "dewPointC": 11.127514,
+      "relativeHumidity": 64.189145
+    },
+    {
+      "airTemp": "180",
+      "wetBulb": "120",
+      "stationPressure": "0000",
+      "vapourHpa": 9.994491,
+      "dewPointC": 6.970945,
+      "relativeHumidity": 48.492779
+    },
+    {
+      "airTemp": "180",
+      "wetBulb": "120",
+      "stationPressure": "0100",
+      "vapourHpa": 9.954345,
+      "dewPointC": 6.912273,
+      "relativeHumidity": 48.29799
+    },
+    {
+      "airTemp": "180",
+      "wetBulb": "120",
+      "stationPressure": "0200",
+      "vapourHpa": 9.914198,
+      "dewPointC": 6.85339,
+      "relativeHumidity": 48.103202
+    },
+    {
+      "airTemp": "200",
+      "wetBulb": "200",
+      "stationPressure": "0000",
+      "vapourHpa": 23.347481,
+      "dewPointC": 19.984809,
+      "relativeHumidity": 100.0
+    },
+    {
+      "airTemp": "200",
+      "wetBulb": "200",
+      "stationPressure": "0100",
+      "vapourHpa": 23.347481,
+      "dewPointC": 19.984809,
+      "relativeHumidity": 100.0
+    },
+    {
+      "airTemp": "200",
+      "wetBulb": "200",
+      "stationPressure": "0200",
+      "vapourHpa": 23.347481,
+      "dewPointC": 19.984809,
+      "relativeHumidity": 100.0
+    },
+    {
+      "airTemp": "200",
+      "wetBulb": "180",
+      "stationPressure": "0000",
+      "vapourHpa": 19.262943,
+      "dewPointC": 16.918021,
+      "relativeHumidity": 82.505444
+    },
+    {
+      "airTemp": "200",
+      "wetBulb": "180",
+      "stationPressure": "0100",
+      "vapourHpa": 19.24947,
+      "dewPointC": 16.906994,
+      "relativeHumidity": 82.447736
+    },
+    {
+      "airTemp": "200",
+      "wetBulb": "180",
+      "stationPressure": "0200",
+      "vapourHpa": 19.235997,
+      "dewPointC": 16.895959,
+      "relativeHumidity": 82.390029
+    },
+    {
+      "airTemp": "200",
+      "wetBulb": "160",
+      "stationPressure": "0000",
+      "vapourHpa": 15.469613,
+      "dewPointC": 13.506646,
+      "relativeHumidity": 66.258167
+    },
+    {
+      "airTemp": "200",
+      "wetBulb": "160",
+      "stationPressure": "0100",
+      "vapourHpa": 15.442727,
+      "dewPointC": 13.479945,
+      "relativeHumidity": 66.143012
+    },
+    {
+      "airTemp": "200",
+      "wetBulb": "160",
+      "stationPressure": "0200",
+      "vapourHpa": 15.415842,
+      "dewPointC": 13.453203,
+      "relativeHumidity": 66.027857
+    },
+    {
+      "airTemp": "200",
+      "wetBulb": "140",
+      "stationPressure": "0000",
+      "vapourHpa": 11.941952,
+      "dewPointC": 9.59384,
+      "relativeHumidity": 51.148782
+    },
+    {
+      "airTemp": "200",
+      "wetBulb": "140",
+      "stationPressure": "0100",
+      "vapourHpa": 11.901715,
+      "dewPointC": 9.543602,
+      "relativeHumidity": 50.976439
+    },
+    {
+      "airTemp": "200",
+      "wetBulb": "140",
+      "stationPressure": "0200",
+      "vapourHpa": 11.861477,
+      "dewPointC": 9.493214,
+      "relativeHumidity": 50.804097
+    },
+    {
+      "airTemp": "220",
+      "wetBulb": "220",
+      "stationPressure": "0000",
+      "vapourHpa": 26.397322,
+      "dewPointC": 21.980796,
+      "relativeHumidity": 100.0
+    },
+    {
+      "airTemp": "220",
+      "wetBulb": "220",
+      "stationPressure": "0100",
+      "vapourHpa": 26.397322,
+      "dewPointC": 21.980796,
+      "relativeHumidity": 100.0
+    },
+    {
+      "airTemp": "220",
+      "wetBulb": "220",
+      "stationPressure": "0200",
+      "vapourHpa": 26.397322,
+      "dewPointC": 21.980796,
+      "relativeHumidity": 100.0
+    },
+    {
+      "airTemp": "220",
+      "wetBulb": "200",
+      "stationPressure": "0000",
+      "vapourHpa": 21.997121,
+      "dewPointC": 19.027006,
+      "relativeHumidity": 83.330883
+    },
+    {
+      "airTemp": "220",
+      "wetBulb": "200",
+      "stationPressure": "0100",
+      "vapourHpa": 21.983618,
+      "dewPointC": 19.01717,
+      "relativeHumidity": 83.279728
+    },
+    {
+      "airTemp": "220",
+      "wetBulb": "200",
+      "stationPressure": "0200",
+      "vapourHpa": 21.970114,
+      "dewPointC": 19.007329,
+      "relativeHumidity": 83.228573
+    },
+    {
+      "airTemp": "220",
+      "wetBulb": "180",
+      "stationPressure": "0000",
+      "vapourHpa": 17.915619,
+      "dewPointC": 15.780121,
+      "relativeHumidity": 67.869079
+    },
+    {
+      "airTemp": "220",
+      "wetBulb": "180",
+      "stationPressure": "0100",
+      "vapourHpa": 17.888673,
+      "dewPointC": 15.756605,
+      "relativeHumidity": 67.766999
+    },
+    {
+      "airTemp": "220",
+      "wetBulb": "180",
+      "stationPressure": "0200",
+      "vapourHpa": 17.861726,
+      "dewPointC": 15.733058,
+      "relativeHumidity": 67.664918
+    },
+    {
+      "airTemp": "220",
+      "wetBulb": "160",
+      "stationPressure": "0000",
+      "vapourHpa": 14.125325,
+      "dewPointC": 12.118596,
+      "relativeHumidity": 53.510448
+    },
+    {
+      "airTemp": "220",
+      "wetBulb": "160",
+      "stationPressure": "0100",
+      "vapourHpa": 14.084996,
+      "dewPointC": 12.075184,
+      "relativeHumidity": 53.357673
+    },
+    {
+      "airTemp": "220",
+      "wetBulb": "160",
+      "stationPressure": "0200",
+      "vapourHpa": 14.044668,
+      "dewPointC": 12.031662,
+      "relativeHumidity": 53.204897
+    },
+    {
+      "airTemp": "220",
+      "wetBulb": "140",
+      "stationPressure": "0000",
+      "vapourHpa": 10.6007,
+      "dewPointC": 7.832499,
+      "relativeHumidity": 40.158242
+    },
+    {
+      "airTemp": "240",
+      "wetBulb": "240",
+      "stationPressure": "0000",
+      "vapourHpa": 29.789326,
+      "dewPointC": 23.975893,
+      "relativeHumidity": 100.0
+    },
+    {
+      "airTemp": "240",
+      "wetBulb": "240",
+      "stationPressure": "0100",
+      "vapourHpa": 29.789326,
+      "dewPointC": 23.975893,
+      "relativeHumidity": 100.0
+    },
+    {
+      "airTemp": "240",
+      "wetBulb": "240",
+      "stationPressure": "0200",
+      "vapourHpa": 29.789326,
+      "dewPointC": 23.975893,
+      "relativeHumidity": 100.0
+    },
+    {
+      "airTemp": "240",
+      "wetBulb": "220",
+      "stationPressure": "0000",
+      "vapourHpa": 25.043926,
+      "dewPointC": 21.121453,
+      "relativeHumidity": 84.07013
+    },
+    {
+      "airTemp": "240",
+      "wetBulb": "220",
+      "stationPressure": "0100",
+      "vapourHpa": 25.030392,
+      "dewPointC": 21.112656,
+      "relativeHumidity": 84.024698
+    },
+    {
+      "airTemp": "240",
+      "wetBulb": "220",
+      "stationPressure": "0200",
+      "vapourHpa": 25.016858,
+      "dewPointC": 21.103855,
+      "relativeHumidity": 83.979266
+    },
+    {
+      "airTemp": "240",
+      "wetBulb": "200",
+      "stationPressure": "0000",
+      "vapourHpa": 20.646761,
+      "dewPointC": 18.016113,
+      "relativeHumidity": 69.309258
+    },
+    {
+      "airTemp": "240",
+      "wetBulb": "200",
+      "stationPressure": "0100",
+      "vapourHpa": 20.619754,
+      "dewPointC": 17.99531,
+      "relativeHumidity": 69.218598
+    },
+    {
+      "airTemp": "240",
+      "wetBulb": "200",
+      "stationPressure": "0200",
+      "vapourHpa": 20.592747,
+      "dewPointC": 17.974482,
+      "relativeHumidity": 69.127937
+    },
+    {
+      "airTemp": "240",
+      "wetBulb": "180",
+      "stationPressure": "0000",
+      "vapourHpa": 16.568295,
+      "dewPointC": 14.564303,
+      "relativeHumidity": 55.618226
+    },
+    {
+      "airTemp": "240",
+      "wetBulb": "180",
+      "stationPressure": "0100",
+      "vapourHpa": 16.527875,
+      "dewPointC": 14.526502,
+      "relativeHumidity": 55.482541
+    },
+    {
+      "airTemp": "240",
+      "wetBulb": "180",
+      "stationPressure": "0200",
+      "vapourHpa": 16.487456,
+      "dewPointC": 14.48862,
+      "relativeHumidity": 55.346856
+    },
+    {
+      "airTemp": "240",
+      "wetBulb": "160",
+      "stationPressure": "0000",
+      "vapourHpa": 12.781037,
+      "dewPointC": 10.608843,
+      "relativeHumidity": 42.904753
+    },
+    {
+      "airTemp": "240",
+      "wetBulb": "160",
+      "stationPressure": "0100",
+      "vapourHpa": 12.727266,
+      "dewPointC": 10.545588,
+      "relativeHumidity": 42.724247
+    },
+    {
+      "airTemp": "240",
+      "wetBulb": "160",
+      "stationPressure": "0200",
+      "vapourHpa": 12.673494,
+      "dewPointC": 10.482097,
+      "relativeHumidity": 42.543741
+    },
+    {
+      "airTemp": "260",
+      "wetBulb": "260",
+      "stationPressure": "0000",
+      "vapourHpa": 33.555182,
+      "dewPointC": 25.970038,
+      "relativeHumidity": 100.0
+    },
+    {
+      "airTemp": "260",
+      "wetBulb": "260",
+      "stationPressure": "0100",
+      "vapourHpa": 33.555182,
+      "dewPointC": 25.970038,
+      "relativeHumidity": 100.0
+    },
+    {
+      "airTemp": "260",
+      "wetBulb": "260",
+      "stationPressure": "0200",
+      "vapourHpa": 33.555182,
+      "dewPointC": 25.970038,
+      "relativeHumidity": 100.0
+    },
+    {
+      "airTemp": "260",
+      "wetBulb": "240",
+      "stationPressure": "0000",
+      "vapourHpa": 28.432894,
+      "dewPointC": 23.203221,
+      "relativeHumidity": 84.734734
+    },
+    {
+      "airTemp": "260",
+      "wetBulb": "240",
+      "stationPressure": "0100",
+      "vapourHpa": 28.41933,
+      "dewPointC": 23.195332,
+      "relativeHumidity": 84.69431
+    },
+    {
+      "airTemp": "260",
+      "wetBulb": "240",
+      "stationPressure": "0200",
+      "vapourHpa": 28.405766,
+      "dewPointC": 23.187441,
+      "relativeHumidity": 84.653886
+    },
+    {
+      "airTemp": "260",
+      "wetBulb": "220",
+      "stationPressure": "0000",
+      "vapourHpa": 23.69053,
+      "dewPointC": 20.220373,
+      "relativeHumidity": 70.601701
+    },
+    {
+      "airTemp": "260",
+      "wetBulb": "220",
+      "stationPressure": "0100",
+      "vapourHpa": 23.663462,
+      "dewPointC": 20.201895,
+      "relativeHumidity": 70.521034
+    },
+    {
+      "airTemp": "260",
+      "wetBulb": "220",
+      "stationPressure": "0200",
+      "vapourHpa": 23.636394,
+      "dewPointC": 20.183398,
+      "relativeHumidity": 70.440367
+    },
+    {
+      "airTemp": "260",
+      "wetBulb": "200",
+      "stationPressure": "0000",
+      "vapourHpa": 19.296401,
+      "dewPointC": 16.945378,
+      "relativeHumidity": 57.506471
+    },
+    {
+      "airTemp": "260",
+      "wetBulb": "200",
+      "stationPressure": "0100",
+      "vapourHpa": 19.25589,
+      "dewPointC": 16.91225,
+      "relativeHumidity": 57.385742
+    },
+    {
+      "airTemp": "260",
+      "wetBulb": "200",
+      "stationPressure": "0200",
+      "vapourHpa": 19.21538,
+      "dewPointC": 16.879061,
+      "relativeHumidity": 57.265013
+    },
+    {
+      "airTemp": "260",
+      "wetBulb": "180",
+      "stationPressure": "0000",
+      "vapourHpa": 15.220971,
+      "dewPointC": 13.258137,
+      "relativeHumidity": 45.361014
+    },
+    {
+      "airTemp": "260",
+      "wetBulb": "180",
+      "stationPressure": "0100",
+      "vapourHpa": 15.167078,
+      "dewPointC": 13.203802,
+      "relativeHumidity": 45.200404
+    },
+    {
+      "airTemp": "260",
+      "wetBulb": "180",
+      "stationPressure": "0200",
+      "vapourHpa": 15.113185,
+      "dewPointC": 13.149297,
+      "relativeHumidity": 45.039794
+    },
+    {
+      "airTemp": "280",
+      "wetBulb": "280",
+      "stationPressure": "0000",
+      "vapourHpa": 37.728823,
+      "dewPointC": 27.963169,
+      "relativeHumidity": 100.0
+    },
+    {
+      "airTemp": "280",
+      "wetBulb": "280",
+      "stationPressure": "0100",
+      "vapourHpa": 37.728823,
+      "dewPointC": 27.963169,
+      "relativeHumidity": 100.0
+    },
+    {
+      "airTemp": "280",
+      "wetBulb": "280",
+      "stationPressure": "0200",
+      "vapourHpa": 37.728823,
+      "dewPointC": 27.963169,
+      "relativeHumidity": 100.0
+    },
+    {
+      "airTemp": "280",
+      "wetBulb": "260",
+      "stationPressure": "0000",
+      "vapourHpa": 32.195714,
+      "dewPointC": 25.273858,
+      "relativeHumidity": 85.334531
+    },
+    {
+      "airTemp": "280",
+      "wetBulb": "260",
+      "stationPressure": "0100",
+      "vapourHpa": 32.18212,
+      "dewPointC": 25.266768,
+      "relativeHumidity": 85.298498
+    },
+    {
+      "airTemp": "280",
+      "wetBulb": "260",
+      "stationPressure": "0200",
+      "vapourHpa": 32.168525,
+      "dewPointC": 25.259674,
+      "relativeHumidity": 85.262466
+    },
+    {
+      "airTemp": "280",
+      "wetBulb": "240",
+      "stationPressure": "0000",
+      "vapourHpa": 27.076462,
+      "dewPointC": 22.397554,
+      "relativeHumidity": 71.765987
+    },
+    {
+      "airTemp": "280",
+      "wetBulb": "240",
+      "stationPressure": "0100",
+      "vapourHpa": 27.049334,
+      "dewPointC": 22.381083,
+      "relativeHumidity": 71.694083
+    },
+    {
+      "airTemp": "280",
+      "wetBulb": "240",
+      "stationPressure": "0200",
+      "vapourHpa": 27.022205,
+      "dewPointC": 22.364598,
+      "relativeHumidity": 71.622179
+    },
+    {
+      "airTemp": "280",
+      "wetBulb": "220",
+      "stationPressure": "0000",
+      "vapourHpa": 22.337134,
+      "dewPointC": 19.272936,
+      "relativeHumidity": 59.204427
+    },
+    {
+      "airTemp": "280",
+      "wetBulb": "220",
+      "stationPressure": "0100",
+      "vapourHpa": 22.296532,
+      "dewPointC": 19.243743,
+      "relativeHumidity": 59.096812
+    },
+    {
+      "airTemp": "280",
+      "wetBulb": "220",
+      "stationPressure": "0200",
+      "vapourHpa": 22.25593,
+      "dewPointC": 19.214502,
+      "relativeHumidity": 58.989197
+    },
+    {
+      "airTemp": "280",
+      "wetBulb": "200",
+      "stationPressure": "0000",
+      "vapourHpa": 17.946041,
+      "dewPointC": 15.806632,
+      "relativeHumidity": 47.565865
+    },
+    {
+      "airTemp": "280",
+      "wetBulb": "200",
+      "stationPressure": "0100",
+      "vapourHpa": 17.892027,
+      "dewPointC": 15.759534,
+      "relativeHumidity": 47.422701
+    },
+    {
+      "airTemp": "280",
+      "wetBulb": "200",
+      "stationPressure": "0200",
+      "vapourHpa": 17.838012,
+      "dewPointC": 15.71231,
+      "relativeHumidity": 47.279536
+    },
+    {
+      "airTemp": "300",
+      "wetBulb": "300",
+      "stationPressure": "0000",
+      "vapourHpa": 42.346532,
+      "dewPointC": 29.955224,
+      "relativeHumidity": 100.0
+    },
+    {
+      "airTemp": "300",
+      "wetBulb": "300",
+      "stationPressure": "0100",
+      "vapourHpa": 42.346532,
+      "dewPointC": 29.955224,
+      "relativeHumidity": 100.0
+    },
+    {
+      "airTemp": "300",
+      "wetBulb": "300",
+      "stationPressure": "0200",
+      "vapourHpa": 42.346532,
+      "dewPointC": 29.955224,
+      "relativeHumidity": 100.0
+    },
+    {
+      "airTemp": "300",
+      "wetBulb": "280",
+      "stationPressure": "0000",
+      "vapourHpa": 36.366319,
+      "dewPointC": 27.334667,
+      "relativeHumidity": 85.877917
+    },
+    {
+      "airTemp": "300",
+      "wetBulb": "280",
+      "stationPressure": "0100",
+      "vapourHpa": 36.352694,
+      "dewPointC": 27.328279,
+      "relativeHumidity": 85.845742
+    },
+    {
+      "airTemp": "300",
+      "wetBulb": "280",
+      "stationPressure": "0200",
+      "vapourHpa": 36.339069,
+      "dewPointC": 27.321888,
+      "relativeHumidity": 85.813566
+    },
+    {
+      "airTemp": "300",
+      "wetBulb": "260",
+      "stationPressure": "0000",
+      "vapourHpa": 30.836246,
+      "dewPointC": 24.551463,
+      "relativeHumidity": 72.818824
+    },
+    {
+      "airTemp": "300",
+      "wetBulb": "260",
+      "stationPressure": "0100",
+      "vapourHpa": 30.809057,
+      "dewPointC": 24.536733,
+      "relativeHumidity": 72.754617
+    },
+    {
+      "airTemp": "300",
+      "wetBulb": "260",
+      "stationPressure": "0200",
+      "vapourHpa": 30.781868,
+      "dewPointC": 24.521991,
+      "relativeHumidity": 72.69041
+    },
+    {
+      "airTemp": "300",
+      "wetBulb": "240",
+      "stationPressure": "0000",
+      "vapourHpa": 25.72003,
+      "dewPointC": 21.555704,
+      "relativeHumidity": 60.737041
+    },
+    {
+      "airTemp": "300",
+      "wetBulb": "240",
+      "stationPressure": "0100",
+      "vapourHpa": 25.679337,
+      "dewPointC": 21.529853,
+      "relativeHumidity": 60.640946
+    },
+    {
+      "airTemp": "300",
+      "wetBulb": "240",
+      "stationPressure": "0200",
+      "vapourHpa": 25.638645,
+      "dewPointC": 21.503965,
+      "relativeHumidity": 60.544851
+    },
+    {
+      "airTemp": "300",
+      "wetBulb": "220",
+      "stationPressure": "0000",
+      "vapourHpa": 20.983738,
+      "dewPointC": 18.273696,
+      "relativeHumidity": 49.552435
+    },
+    {
+      "airTemp": "300",
+      "wetBulb": "220",
+      "stationPressure": "0100",
+      "vapourHpa": 20.929602,
+      "dewPointC": 18.232561,
+      "relativeHumidity": 49.424595
+    },
+    {
+      "airTemp": "300",
+      "wetBulb": "220",
+      "stationPressure": "0200",
+      "vapourHpa": 20.875466,
+      "dewPointC": 18.191332,
+      "relativeHumidity": 49.296755
+    },
+    {
+      "airTemp": "320",
+      "wetBulb": "320",
+      "stationPressure": "0000",
+      "vapourHpa": 47.44704,
+      "dewPointC": 31.946142,
+      "relativeHumidity": 100.0
+    },
+    {
+      "airTemp": "320",
+      "wetBulb": "320",
+      "stationPressure": "0100",
+      "vapourHpa": 47.44704,
+      "dewPointC": 31.946142,
+      "relativeHumidity": 100.0
+    },
+    {
+      "airTemp": "320",
+      "wetBulb": "320",
+      "stationPressure": "0200",
+      "vapourHpa": 47.44704,
+      "dewPointC": 31.946142,
+      "relativeHumidity": 100.0
+    },
+    {
+      "airTemp": "320",
+      "wetBulb": "300",
+      "stationPressure": "0000",
+      "vapourHpa": 40.980992,
+      "dewPointC": 29.386741,
+      "relativeHumidity": 86.372073
+    },
+    {
+      "airTemp": "320",
+      "wetBulb": "300",
+      "stationPressure": "0100",
+      "vapourHpa": 40.967336,
+      "dewPointC": 29.380973,
+      "relativeHumidity": 86.343292
+    },
+    {
+      "airTemp": "320",
+      "wetBulb": "300",
+      "stationPressure": "0200",
+      "vapourHpa": 40.953681,
+      "dewPointC": 29.375203,
+      "relativeHumidity": 86.314512
+    },
+    {
+      "airTemp": "320",
+      "wetBulb": "280",
+      "stationPressure": "0000",
+      "vapourHpa": 35.003815,
+      "dewPointC": 26.685234,
+      "relativeHumidity": 73.774497
+    },
+    {
+      "airTemp": "320",
+      "wetBulb": "280",
+      "stationPressure": "0100",
+      "vapourHpa": 34.976565,
+      "dewPointC": 26.672021,
+      "relativeHumidity": 73.717065
+    },
+    {
+      "airTemp": "320",
+      "wetBulb": "280",
+      "stationPressure": "0200",
+      "vapourHpa": 34.949315,
+      "dewPointC": 26.6588,
+      "relativeHumidity": 73.659632
+    },
+    {
+      "airTemp": "320",
+      "wetBulb": "260",
+      "stationPressure": "0000",
+      "vapourHpa": 29.476778,
+      "dewPointC": 23.800628,
+      "relativeHumidity": 62.125642
+    },
+    {
+      "airTemp": "320",
+      "wetBulb": "260",
+      "stationPressure": "0100",
+      "vapourHpa": 29.435994,
+      "dewPointC": 23.777638,
+      "relativeHumidity": 62.039685
+    },
+    {
+      "airTemp": "320",
+      "wetBulb": "260",
+      "stationPressure": "0200",
+      "vapourHpa": 29.39521,
+      "dewPointC": 23.754621,
+      "relativeHumidity": 61.953729
+    },
+    {
+      "airTemp": "320",
+      "wetBulb": "240",
+      "stationPressure": "0000",
+      "vapourHpa": 24.363598,
+      "dewPointC": 20.673986,
+      "relativeHumidity": 51.349038
+    },
+    {
+      "airTemp": "320",
+      "wetBulb": "240",
+      "stationPressure": "0100",
+      "vapourHpa": 24.309341,
+      "dewPointC": 20.637829,
+      "relativeHumidity": 51.234685
+    },
+    {
+      "airTemp": "320",
+      "wetBulb": "240",
+      "stationPressure": "0200",
+      "vapourHpa": 24.255084,
+      "dewPointC": 20.601602,
+      "relativeHumidity": 51.120331
+    },
+    {
+      "airTemp": "320",
+      "wetBulb": "220",
+      "stationPressure": "0000",
+      "vapourHpa": 19.630342,
+      "dewPointC": 17.216154,
+      "relativeHumidity": 41.373164
+    },
+    {
+      "airTemp": "320",
+      "wetBulb": "220",
+      "stationPressure": "0100",
+      "vapourHpa": 19.562672,
+      "dewPointC": 17.161612,
+      "relativeHumidity": 41.230542
+    },
+    {
+      "airTemp": "320",
+      "wetBulb": "220",
+      "stationPressure": "0200",
+      "vapourHpa": 19.495002,
+      "dewPointC": 17.106905,
+      "relativeHumidity": 41.08792
+    },
+    {
+      "airTemp": "340",
+      "wetBulb": "340",
+      "stationPressure": "0000",
+      "vapourHpa": 53.07163,
+      "dewPointC": 33.935861,
+      "relativeHumidity": 100.0
+    },
+    {
+      "airTemp": "340",
+      "wetBulb": "340",
+      "stationPressure": "0100",
+      "vapourHpa": 53.07163,
+      "dewPointC": 33.935861,
+      "relativeHumidity": 100.0
+    },
+    {
+      "airTemp": "340",
+      "wetBulb": "340",
+      "stationPressure": "0200",
+      "vapourHpa": 53.07163,
+      "dewPointC": 33.935861,
+      "relativeHumidity": 100.0
+    },
+    {
+      "airTemp": "340",
+      "wetBulb": "320",
+      "stationPressure": "0000",
+      "vapourHpa": 46.078464,
+      "dewPointC": 31.431003,
+      "relativeHumidity": 86.823155
+    },
+    {
+      "airTemp": "340",
+      "wetBulb": "320",
+      "stationPressure": "0100",
+      "vapourHpa": 46.064778,
+      "dewPointC": 31.425784,
+      "relativeHumidity": 86.797368
+    },
+    {
+      "airTemp": "340",
+      "wetBulb": "320",
+      "stationPressure": "0200",
+      "vapourHpa": 46.051092,
+      "dewPointC": 31.420564,
+      "relativeHumidity": 86.77158
+    },
+    {
+      "airTemp": "340",
+      "wetBulb": "300",
+      "stationPressure": "0000",
+      "vapourHpa": 39.615452,
+      "dewPointC": 28.801469,
+      "relativeHumidity": 74.645251
+    },
+    {
+      "airTemp": "340",
+      "wetBulb": "300",
+      "stationPressure": "0100",
+      "vapourHpa": 39.588141,
+      "dewPointC": 28.789585,
+      "relativeHumidity": 74.593791
+    },
+    {
+      "airTemp": "340",
+      "wetBulb": "300",
+      "stationPressure": "0200",
+      "vapourHpa": 39.56083,
+      "dewPointC": 28.777694,
+      "relativeHumidity": 74.542331
+    },
+    {
+      "airTemp": "340",
+      "wetBulb": "280",
+      "stationPressure": "0000",
+      "vapourHpa": 33.641311,
+      "dewPointC": 26.013308,
+      "relativeHumidity": 63.388502
+    },
+    {
+      "airTemp": "340",
+      "wetBulb": "280",
+      "stationPressure": "0100",
+      "vapourHpa": 33.600436,
+      "dewPointC": 25.992785,
+      "relativeHumidity": 63.311483
+    },
+    {
+      "airTemp": "340",
+      "wetBulb": "280",
+      "stationPressure": "0200",
+      "vapourHpa": 33.559561,
+      "dewPointC": 25.97224,
+      "relativeHumidity": 63.234464
+    },
+    {
+      "airTemp": "340",
+      "wetBulb": "260",
+      "stationPressure": "0000",
+      "vapourHpa": 28.11731,
+      "dewPointC": 23.018831,
+      "relativeHumidity": 52.979926
+    },
+    {
+      "airTemp": "340",
+      "wetBulb": "260",
+      "stationPressure": "0100",
+      "vapourHpa": 28.062932,
+      "dewPointC": 22.986876,
+      "relativeHumidity": 52.877463
+    },
+    {
+      "airTemp": "340",
+      "wetBulb": "260",
+      "stationPressure": "0200",
+      "vapourHpa": 28.008553,
+      "dewPointC": 22.954866,
+      "relativeHumidity": 52.775
+    },
+    {
+      "airTemp": "340",
+      "wetBulb": "240",
+      "stationPressure": "0000",
+      "vapourHpa": 23.007166,
+      "dewPointC": 19.748102,
+      "relativeHumidity": 43.351158
+    },
+    {
+      "airTemp": "340",
+      "wetBulb": "240",
+      "stationPressure": "0100",
+      "vapourHpa": 22.939345,
+      "dewPointC": 19.700562,
+      "relativeHumidity": 43.223366
+    },
+    {
+      "airTemp": "340",
+      "wetBulb": "240",
+      "stationPressure": "0200",
+      "vapourHpa": 22.871523,
+      "dewPointC": 19.652898,
+      "relativeHumidity": 43.095573
+    },
+    {
+      "airTemp": "360",
+      "wetBulb": "360",
+      "stationPressure": "0000",
+      "vapourHpa": 59.264237,
+      "dewPointC": 35.924321,
+      "relativeHumidity": 100.0
+    },
+    {
+      "airTemp": "360",
+      "wetBulb": "360",
+      "stationPressure": "0100",
+      "vapourHpa": 59.264237,
+      "dewPointC": 35.924321,
+      "relativeHumidity": 100.0
+    },
+    {
+      "airTemp": "360",
+      "wetBulb": "360",
+      "stationPressure": "0200",
+      "vapourHpa": 59.264237,
+      "dewPointC": 35.924321,
+      "relativeHumidity": 100.0
+    },
+    {
+      "airTemp": "360",
+      "wetBulb": "340",
+      "stationPressure": "0000",
+      "vapourHpa": 51.700018,
+      "dewPointC": 33.468235,
+      "relativeHumidity": 87.236452
+    },
+    {
+      "airTemp": "360",
+      "wetBulb": "340",
+      "stationPressure": "0100",
+      "vapourHpa": 51.686302,
+      "dewPointC": 33.463504,
+      "relativeHumidity": 87.213308
+    },
+    {
+      "airTemp": "360",
+      "wetBulb": "340",
+      "stationPressure": "0200",
+      "vapourHpa": 51.672586,
+      "dewPointC": 33.458772,
+      "relativeHumidity": 87.190164
+    },
+    {
+      "airTemp": "360",
+      "wetBulb": "320",
+      "stationPressure": "0000",
+      "vapourHpa": 44.709888,
+      "dewPointC": 30.902341,
+      "relativeHumidity": 75.441598
+    },
+    {
+      "airTemp": "360",
+      "wetBulb": "320",
+      "stationPressure": "0100",
+      "vapourHpa": 44.682516,
+      "dewPointC": 30.891625,
+      "relativeHumidity": 75.395412
+    },
+    {
+      "airTemp": "360",
+      "wetBulb": "320",
+      "stationPressure": "0200",
+      "vapourHpa": 44.655145,
+      "dewPointC": 30.880902,
+      "relativeHumidity": 75.349227
+    },
+    {
+      "airTemp": "360",
+      "wetBulb": "300",
+      "stationPressure": "0000",
+      "vapourHpa": 38.249912,
+      "dewPointC": 28.198305,
+      "relativeHumidity": 64.541304
+    },
+    {
+      "airTemp": "360",
+      "wetBulb": "300",
+      "stationPressure": "0100",
+      "vapourHpa": 38.208945,
+      "dewPointC": 28.179921,
+      "relativeHumidity": 64.472179
+    },
+    {
+      "airTemp": "360",
+      "wetBulb": "300",
+      "stationPressure": "0200",
+      "vapourHpa": 38.167979,
+      "dewPointC": 28.16152,
+      "relativeHumidity": 64.403055
+    },
+    {
+      "airTemp": "360",
+      "wetBulb": "280",
+      "stationPressure": "0000",
+      "vapourHpa": 32.278807,
+      "dewPointC": 25.317141,
+      "relativeHumidity": 54.465912
+    },
+    {
+      "airTemp": "360",
+      "wetBulb": "280",
+      "stationPressure": "0100",
+      "vapourHpa": 32.224307,
+      "dewPointC": 25.288763,
+      "relativeHumidity": 54.37395
+    },
+    {
+      "airTemp": "360",
+      "wetBulb": "280",
+      "stationPressure": "0200",
+      "vapourHpa": 32.169807,
+      "dewPointC": 25.260343,
+      "relativeHumidity": 54.281989
+    },
+    {
+      "airTemp": "360",
+      "wetBulb": "260",
+      "stationPressure": "0000",
+      "vapourHpa": 26.757842,
+      "dewPointC": 22.203186,
+      "relativeHumidity": 45.150066
+    },
+    {
+      "airTemp": "360",
+      "wetBulb": "260",
+      "stationPressure": "0100",
+      "vapourHpa": 26.689869,
+      "dewPointC": 22.161458,
+      "relativeHumidity": 45.03537
+    },
+    {
+      "airTemp": "360",
+      "wetBulb": "260",
+      "stationPressure": "0200",
+      "vapourHpa": 26.621895,
+      "dewPointC": 22.119636,
+      "relativeHumidity": 44.920675
+    }
+  ]
+}
