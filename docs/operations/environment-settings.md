@@ -30,6 +30,14 @@ variables. That means repository admin, or a fine-grained token with
 **Environments: read**, **Secrets: read** and **Variables: read**. The default
 Actions `GITHUB_TOKEN` cannot list them.
 
+## Daily run
+
+`.github/workflows/environment-settings-drift.yml` runs the check every day at
+06:41 UTC, and on demand. It reads the token from the repository secret
+`ENVIRONMENT_SETTINGS_TOKEN`: a fine-grained token on this repository with
+Environments, Secrets and Variables set to read-only, and nothing else. Until
+that secret exists, the job prints a notice and passes.
+
 ## The manifest
 
 `scripts/ci/environment-settings.json` lists the expected names per kind
