@@ -29,6 +29,7 @@ export function subscriptionsSendNewsletterTest<
       method: "POST",
       url: "/api/v1/subscriptions/admin/newsletter/test",
       security: [{ type: "oauth2" }],
+      contentType: { request: "application/json" },
       ...config,
       throwOnError: config.throwOnError ?? true,
     }) as Promise<

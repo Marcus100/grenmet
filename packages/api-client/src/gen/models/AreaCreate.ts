@@ -17,8 +17,8 @@ export type AreaCreate = {
   spaceType?: AreaCreatePropertiesSpaceTypeAnyOfEnum | null;
   cleanlinessLevel?: number | null;
   /**
-   * @minLength 1
-   * @maxLength 1000
+   * @minimum 1
+   * @maximum 1000
    * @default 1
    * @type integer | undefined
    */

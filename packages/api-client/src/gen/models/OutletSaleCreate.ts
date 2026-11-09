@@ -8,8 +8,8 @@ import type { OutletItemInput } from "./OutletItemInput.js";
 export type OutletSaleCreate = {
   items: OutletItemInput[];
   /**
-   * @minLength 0
-   * @maxLength 100000000
+   * @minimum 0
+   * @maximum 100000000
    * @type integer
    */
   amount_collected_minor: number;

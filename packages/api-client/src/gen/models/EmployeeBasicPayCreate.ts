@@ -20,7 +20,7 @@ export type EmployeeBasicPayCreate = {
   user_id: string;
   pay_basis: PayBasis;
   /**
-   * @maxLength 100000000
+   * @maximum 100000000
    * @type integer
    */
   amount_minor: number;

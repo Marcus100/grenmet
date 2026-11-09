@@ -16,14 +16,14 @@ export type AreaUpdate = {
   spaceType: AreaCreatePropertiesSpaceTypeAnyOfEnum;
   cleanlinessLevel: number | null;
   /**
-   * @minLength 1
-   * @maxLength 1000
+   * @minimum 1
+   * @maximum 1000
    * @type integer
    */
   quantity: number;
   active: boolean;
   /**
-   * @minLength 1
+   * @minimum 1
    * @type integer
    */
   expectedRevision: number;

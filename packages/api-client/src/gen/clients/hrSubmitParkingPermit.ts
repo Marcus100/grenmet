@@ -25,6 +25,7 @@ export function hrSubmitParkingPermit<ThrowOnError extends boolean = true>(
       method: "POST",
       url: "/api/v1/hr/parking-permits/{permit_id}/submit",
       security: [{ type: "oauth2" }],
+      contentType: { request: "application/json" },
       ...config,
       throwOnError: config.throwOnError ?? true,
     }) as Promise<RequestResult<HrSubmitParkingPermitResponses, ThrowOnError>>

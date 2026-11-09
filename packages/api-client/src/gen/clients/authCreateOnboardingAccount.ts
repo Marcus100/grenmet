@@ -29,6 +29,7 @@ export function authCreateOnboardingAccount<
       method: "POST",
       url: "/api/v1/auth/onboarding/accounts",
       security: [{ type: "oauth2" }],
+      contentType: { request: "application/json" },
       ...config,
       throwOnError: config.throwOnError ?? true,
     }) as Promise<

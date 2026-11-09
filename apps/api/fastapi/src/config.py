@@ -9,10 +9,13 @@ from pydantic import (
     HttpUrl,
     PostgresDsn,
     computed_field,
+    field_validator,
     model_validator,
 )
 from pydantic_core import MultiHostUrl
 from pydantic_settings import BaseSettings, SettingsConfigDict
+
+from src import db_timeouts
 
 
 def parse_cors(v: Any) -> list[str] | str:
@@ -67,6 +70,19 @@ class Settings(BaseSettings):
     # Replace connections older than this, so proxies and Postgres restarts never
     # hand a request a dead socket (pre-ping covers the rest).
     DB_POOL_RECYCLE: int = 1800
+    # Alembic (main database) waits this long for a lock before it fails. A migration
+    # queued behind a leaked session then fails fast and the deploy stops, instead of
+    # queueing every app query behind it. Postgres interval: 10s, 500ms, 1min; 0 disables.
+    MIGRATION_LOCK_TIMEOUT: str = "10s"
+    # Seconds a main-database connection may stay inside an open transaction with no
+    # statement running before Postgres ends it. A request holds its transaction only
+    # while it runs, so this mainly ends leaked sessions. 0 disables.
+    DB_IDLE_IN_TRANSACTION_TIMEOUT: int = 300
+
+    @field_validator("MIGRATION_LOCK_TIMEOUT")
+    @classmethod
+    def _check_migration_lock_timeout(cls, value: str) -> str:
+        return db_timeouts.parse_lock_timeout(value)
 
     @computed_field  # type: ignore[prop-decorator]
     @property

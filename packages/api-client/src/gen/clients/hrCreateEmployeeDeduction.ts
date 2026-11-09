@@ -27,6 +27,7 @@ export function hrCreateEmployeeDeduction<ThrowOnError extends boolean = true>(
       method: "POST",
       url: "/api/v1/hr/payroll/employee-deductions",
       security: [{ type: "oauth2" }],
+      contentType: { request: "application/json" },
       ...config,
       throwOnError: config.throwOnError ?? true,
     }) as Promise<

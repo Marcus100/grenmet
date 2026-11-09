@@ -14,5 +14,6 @@ export type {
   SessionUserPublic,
   Token,
   UserPublic,
+  ValidationErrorItem,
 } from "./types";
 export { AuthApiError, isAuthApiError } from "./types";

@@ -17,8 +17,8 @@ export type CapEscalationCreate = {
    */
   product_id: string;
   /**
-   * @minLength 1
-   * @maxLength 1000000
+   * @minimum 1
+   * @maximum 1000000
    * @type integer
    */
   revision: number;

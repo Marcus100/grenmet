@@ -25,6 +25,7 @@ export function hrPreviewShiftSwapPdf<ThrowOnError extends boolean = true>(
       method: "POST",
       url: "/api/v1/hr/shift-swaps/preview-pdf",
       security: [{ type: "oauth2" }],
+      contentType: { request: "application/json" },
       responseType: "blob",
       ...config,
       throwOnError: config.throwOnError ?? true,

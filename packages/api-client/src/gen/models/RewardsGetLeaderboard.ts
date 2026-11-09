@@ -23,8 +23,8 @@ export type RewardsGetLeaderboardQuery = {
   metric?: ChallengeMetric;
   /**
    * @description Rows to return (max 50)
-   * @minLength 1
-   * @maxLength 50
+   * @minimum 1
+   * @maximum 50
    * @default 10
    * @type integer | undefined
    */

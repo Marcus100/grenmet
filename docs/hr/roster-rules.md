@@ -81,7 +81,7 @@ reason; the API answers 409 with `code: ROSTER_RULE_WARNINGS`, the `context` and
 return these warnings declares its 409 as `RosterRuleWarningsErrorPublic`, a superset of
 `ApiError`: an ordinary conflict has only `detail`. The reason is at most 1,000
 characters; a NUL character is refused (422) and other control characters, Unicode bidi
-controls and zero-width characters are removed.
+controls, zero-width characters and invisible padding (such as soft hyphens and filler characters) are removed.
 
 | Path | Checked | Context |
 | --- | --- | --- |

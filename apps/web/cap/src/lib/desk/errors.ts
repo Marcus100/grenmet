@@ -33,18 +33,14 @@ function readStatus(error: unknown): number | null {
 }
 
 function readDetail(error: unknown): unknown {
-  if (error && typeof error === "object" && "data" in error) {
-    const { data } = error as { data: unknown };
-    // Request validation answers {detail: "Validation error", errors: [...]}.
-    if (data && typeof data === "object" && "errors" in data) {
-      const { errors } = data as { errors: unknown };
-      if (Array.isArray(errors)) return errors;
-    }
-    if (data && typeof data === "object" && "detail" in data) {
-      return (data as { detail: unknown }).detail;
-    }
-  }
-  return undefined;
+  if (!(error && typeof error === "object" && "data" in error)) return;
+  const { data } = error as { data: unknown };
+  if (!(data && typeof data === "object")) return;
+  const { detail, errors } = data as { detail?: unknown; errors?: unknown };
+  // Request validation answers {detail: "Validation error", errors: [...]}.
+  // An empty list says nothing, so `detail` is kept then.
+  if (Array.isArray(errors) && errors.length > 0) return errors;
+  return detail;
 }
 
 function splitList(text: string): string[] {
@@ -54,8 +50,11 @@ function splitList(text: string): string[] {
     .filter(Boolean);
 }
 
+/** How many field problems a refused save lists; the rest repeat the point. */
+const MAX_FIELD_PROBLEMS = 5;
+
 function fieldProblems(detail: unknown[]): string[] {
-  return detail.map((item) => {
+  const lines = detail.map((item) => {
     if (item && typeof item === "object") {
       const { loc, msg } = item as { loc?: unknown; msg?: unknown };
       const where = Array.isArray(loc)
@@ -66,6 +65,46 @@ function fieldProblems(detail: unknown[]): string[] {
     }
     return String(item);
   });
+  return [...new Set(lines)].slice(0, MAX_FIELD_PROBLEMS);
+}
+
+/** A refused save (422): the CAP check text, a field list, or a plain line. */
+function describeValidation(
+  status: number,
+  text: string,
+  detail: unknown
+): DeskError {
+  if (text.startsWith(SCHEMA_PREFIX)) {
+    return {
+      items: splitList(text.slice(SCHEMA_PREFIX.length)),
+      kind: "schema",
+      status,
+      title:
+        "Not published: the CAP XML does not follow the official CAP 1.2 schema. Fix the alert and try again.",
+    };
+  }
+  if (text.startsWith(VALIDATION_PREFIX)) {
+    return {
+      items: splitList(text.slice(VALIDATION_PREFIX.length)),
+      kind: "validation",
+      status,
+      title: "The alert did not pass the CAP checks.",
+    };
+  }
+  if (Array.isArray(detail)) {
+    return {
+      items: fieldProblems(detail),
+      kind: "validation",
+      status,
+      title: "Some values could not be saved.",
+    };
+  }
+  return {
+    items: text ? [text] : [],
+    kind: "validation",
+    status,
+    title: "The alert could not be saved as it is.",
+  };
 }
 
 export function describeDeskError(error: unknown): DeskError {
@@ -89,39 +128,7 @@ export function describeDeskError(error: unknown): DeskError {
       title: "You do not have permission for this action.",
     };
   }
-  if (status === 422 && text.startsWith(SCHEMA_PREFIX)) {
-    return {
-      items: splitList(text.slice(SCHEMA_PREFIX.length)),
-      kind: "schema",
-      status,
-      title:
-        "Not published: the CAP XML does not follow the official CAP 1.2 schema. Fix the alert and try again.",
-    };
-  }
-  if (status === 422 && text.startsWith(VALIDATION_PREFIX)) {
-    return {
-      items: splitList(text.slice(VALIDATION_PREFIX.length)),
-      kind: "validation",
-      status,
-      title: "The alert did not pass the CAP checks.",
-    };
-  }
-  if (status === 422 && Array.isArray(detail)) {
-    return {
-      items: fieldProblems(detail),
-      kind: "validation",
-      status,
-      title: "Some values could not be saved.",
-    };
-  }
-  if (status === 422) {
-    return {
-      items: text ? [text] : [],
-      kind: "validation",
-      status,
-      title: "The alert could not be saved as it is.",
-    };
-  }
+  if (status === 422) return describeValidation(status, text, detail);
   if (status === 409 && text.includes("confirm_imported")) {
     return {
       items: [],

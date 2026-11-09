@@ -11,7 +11,7 @@ export type AttendanceCorrectionCreate = {
    */
   roster_assignment_id: string;
   /**
-   * @minLength 0
+   * @minimum 0
    * @default 0
    * @type integer | undefined
    */
@@ -29,8 +29,8 @@ export type AttendanceCorrectionCreate = {
    */
   departed_at: string;
   /**
-   * @minLength 0
-   * @maxLength 1440
+   * @minimum 0
+   * @maximum 1440
    * @default 0
    * @type integer | undefined
    */

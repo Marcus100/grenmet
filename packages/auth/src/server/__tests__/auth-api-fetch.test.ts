@@ -143,6 +143,81 @@ describe("authApiFetch error detail", () => {
 
     expect((error as AuthApiError).detail).toBe(JSON.stringify(body));
   });
+
+  it("carries the field-level errors of the documented 422 envelope", async () => {
+    vi.spyOn(globalThis, "fetch").mockResolvedValue(
+      jsonResponse(
+        {
+          detail: "Validation error",
+          errors: [
+            {
+              type: "string_too_short",
+              loc: ["body", "info", 0, "web"],
+              msg: "String should have at least 8 characters",
+            },
+            { type: "missing", loc: ["body", "name"], msg: "Field required" },
+          ],
+        },
+        422
+      )
+    );
+
+    const error = await authApiFetch(config, "/ping", pingParser).catch(
+      (e: unknown) => e
+    );
+
+    expect(error).toBeInstanceOf(AuthApiError);
+    const apiError = error as AuthApiError;
+    // `detail` keeps its one-line meaning for existing callers.
+    expect(apiError.detail).toBe("Validation error");
+    expect(apiError.errors).toEqual([
+      {
+        type: "string_too_short",
+        loc: ["body", "info", 0, "web"],
+        msg: "String should have at least 8 characters",
+      },
+      { type: "missing", loc: ["body", "name"], msg: "Field required" },
+    ]);
+  });
+
+  it("drops error items that do not match the documented shape", async () => {
+    vi.spyOn(globalThis, "fetch").mockResolvedValue(
+      jsonResponse(
+        {
+          detail: "Validation error",
+          errors: [
+            { type: "missing", loc: ["body", "name"], msg: "Field required" },
+            { loc: ["body", "x"] },
+            { type: "value_error", loc: "body", msg: "bad" },
+            "not an object",
+            null,
+          ],
+        },
+        422
+      )
+    );
+
+    const error = (await authApiFetch(config, "/ping", pingParser).catch(
+      (e: unknown) => e
+    )) as AuthApiError;
+
+    expect(error.errors).toEqual([
+      { type: "missing", loc: ["body", "name"], msg: "Field required" },
+    ]);
+  });
+
+  it("returns no field errors when the API sends none", async () => {
+    vi.spyOn(globalThis, "fetch").mockResolvedValue(
+      jsonResponse({ detail: "Nope" }, 403)
+    );
+
+    const error = (await authApiFetch(config, "/ping", pingParser).catch(
+      (e: unknown) => e
+    )) as AuthApiError;
+
+    expect(error.detail).toBe("Nope");
+    expect(error.errors).toEqual([]);
+  });
 });
 
 it("sends a live access token in the header without caching or leaking it into fetch options", async () => {

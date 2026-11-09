@@ -20,13 +20,19 @@ export function hrPreviewAbsenteeReportPdf<ThrowOnError extends boolean = true>(
 ): Unwrappable<
   RequestResult<HrPreviewAbsenteeReportPdfResponses, ThrowOnError>
 > {
-  const { client: request = client, ...config } = options;
+  const { client: request = client, contentType, ...config } = options;
 
   return withUnwrap(
     request({
       method: "POST",
       url: "/api/v1/hr/absentee-reports/preview-pdf",
       security: [{ type: "oauth2" }],
+      contentType: {
+        request: "application/json",
+        ...(typeof contentType === "string"
+          ? { request: contentType }
+          : contentType),
+      },
       ...config,
       throwOnError: config.throwOnError ?? true,
     }) as Promise<

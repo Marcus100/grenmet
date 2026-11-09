@@ -29,6 +29,7 @@ export function authRecoverPasswordHtmlContent<
       method: "POST",
       url: "/api/v1/auth/password/recovery/preview",
       security: [{ type: "oauth2" }],
+      contentType: { request: "application/json" },
       responseType: "text",
       ...config,
       throwOnError: config.throwOnError ?? true,

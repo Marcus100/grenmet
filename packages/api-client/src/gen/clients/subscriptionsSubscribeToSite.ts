@@ -28,6 +28,7 @@ export function subscriptionsSubscribeToSite<
     request({
       method: "POST",
       url: "/api/v1/subscriptions/public/{site_key}",
+      contentType: { request: "application/json" },
       ...config,
       throwOnError: config.throwOnError ?? true,
     }) as Promise<

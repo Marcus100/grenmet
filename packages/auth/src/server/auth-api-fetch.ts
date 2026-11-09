@@ -1,13 +1,15 @@
 import "server-only";
 
+import { validationErrorItemSchema } from "@barrelsgd/api-client";
 import { cookies, headers } from "next/headers";
 import type { NextResponse } from "next/server";
 import type { AuthConfig } from "../types";
-import { AuthApiError } from "../types";
+import { AuthApiError, type ValidationErrorItem } from "../types";
 import { visitorAddressFromForwardedFor } from "./visitor-forward";
 
 interface AuthApiErrorPayload {
   detail?: unknown;
+  errors?: unknown;
 }
 
 interface ResponseParser<T> {
@@ -185,28 +187,51 @@ function sentenceFromValidationErrors(detail: unknown): string | null {
   return messages.length > 0 ? `${messages.join(". ")}.` : null;
 }
 
-async function readErrorDetail(
+/**
+ * Keeps only the items that match the generated `ValidationErrorItem` shape.
+ * Anything else the API sends is dropped rather than trusted.
+ */
+function readValidationErrors(value: unknown): ValidationErrorItem[] {
+  if (!Array.isArray(value)) return [];
+  return value.flatMap((item: unknown) => {
+    const parsed = validationErrorItemSchema.safeParse(item);
+    return parsed.success ? [parsed.data] : [];
+  });
+}
+
+interface AuthApiErrorBody {
+  detail: string;
+  errors: ValidationErrorItem[];
+}
+
+async function readErrorBody(
   response: Response,
   fallbackMessage: string
-): Promise<string> {
+): Promise<AuthApiErrorBody> {
   const clonedResponse = response.clone();
   const contentType = response.headers.get("content-type") ?? "";
 
   if (contentType.includes("application/json")) {
     try {
       const payload = (await response.json()) as AuthApiErrorPayload;
+      // The documented 422 envelope has a string `detail` ("Validation error")
+      // plus `errors`. The field messages travel on `errors`, so callers can
+      // show them; `detail` keeps its one-line meaning for existing callers.
+      const errors = readValidationErrors(payload.errors);
       if (typeof payload.detail === "string" && payload.detail.trim()) {
-        return payload.detail;
+        return { detail: payload.detail, errors };
       }
-      const sentence = sentenceFromValidationErrors(payload.detail);
-      if (sentence) return sentence;
+      const sentence = sentenceFromValidationErrors(
+        Array.isArray(payload.detail) ? payload.detail : payload.errors
+      );
+      if (sentence) return { detail: sentence, errors };
     } catch {
       // Fall back to raw text below.
     }
   }
 
   const detail = await clonedResponse.text();
-  return detail || fallbackMessage;
+  return { detail: detail || fallbackMessage, errors: [] };
 }
 
 /**
@@ -236,8 +261,8 @@ export async function authApiFormFetch<T>(
 
   if (!response.ok) {
     const fallbackMessage = `Auth request failed (${response.status})`;
-    const detail = await readErrorDetail(response, fallbackMessage);
-    throw new AuthApiError(response.status, detail);
+    const { detail, errors } = await readErrorBody(response, fallbackMessage);
+    throw new AuthApiError(response.status, detail, errors);
   }
 
   return parser.parse(await response.json());
@@ -267,8 +292,8 @@ export async function authApiFetchResponse(
 
   if (!response.ok) {
     const fallbackMessage = `Auth request failed (${response.status})`;
-    const detail = await readErrorDetail(response, fallbackMessage);
-    throw new AuthApiError(response.status, detail);
+    const { detail, errors } = await readErrorBody(response, fallbackMessage);
+    throw new AuthApiError(response.status, detail, errors);
   }
 
   return response;

@@ -11,6 +11,7 @@ import {
   exerciseStatuses,
   fetchActiveAlerts,
   fetchPastAlerts,
+  fetchPastAlertsResult,
   fetchPublicAlert,
   type PublicAlert,
 } from "@/lib/cap";
@@ -295,5 +296,17 @@ describe("fetchPastAlerts", () => {
     globalThis.fetch = (() =>
       Promise.reject(new Error("connect ECONNREFUSED"))) as typeof fetch;
     expect(await fetchPastAlerts()).toEqual([]);
+  });
+
+  it("tells the Past alerts page when the feed could not be read", async () => {
+    globalThis.fetch = (() =>
+      Promise.reject(new Error("connect ECONNREFUSED"))) as typeof fetch;
+    expect(await fetchPastAlertsResult()).toEqual({ status: "unavailable" });
+  });
+
+  it("reports an unsuccessful response as unavailable, not as no alerts", async () => {
+    globalThis.fetch = (() =>
+      Promise.resolve(new Response("{}", { status: 503 }))) as typeof fetch;
+    expect(await fetchPastAlertsResult()).toEqual({ status: "unavailable" });
   });
 });

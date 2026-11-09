@@ -172,6 +172,26 @@ describe("recentlyEnded", () => {
     ]);
   });
 
+  it("looks back as far as the window it is given", () => {
+    const thirtyDays = 30 * 24 * 60 * 60 * 1000;
+    const alerts = [
+      alert({
+        expired_at: "2026-09-10T10:00:00Z",
+        identifier: "two-weeks",
+        lifecycle_state: "EXPIRED",
+      }),
+      alert({
+        expired_at: "2026-08-01T10:00:00Z",
+        identifier: "too-old",
+        lifecycle_state: "EXPIRED",
+      }),
+    ];
+    expect(recentlyEnded(alerts, now)).toEqual([]);
+    expect(
+      recentlyEnded(alerts, now, thirtyDays).map((e) => e.identifier)
+    ).toEqual(["two-weeks"]);
+  });
+
   it("never shows an exercise as an all-clear", () => {
     expect(
       recentlyEnded(
