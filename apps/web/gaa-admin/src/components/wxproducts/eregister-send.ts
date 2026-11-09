@@ -106,6 +106,7 @@ export function useObservationSends(
   const track = useCallback(
     async (id: string) => {
       setObservationId(id);
+      setHistory([]);
       return await refresh(id);
     },
     [refresh]

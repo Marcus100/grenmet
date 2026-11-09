@@ -1,4 +1,10 @@
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import {
+  act,
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+} from "@testing-library/react";
 import { beforeEach, expect, it, vi } from "vitest";
 
 const mocks = vi.hoisted(() => ({
@@ -211,7 +217,9 @@ const FIX_ERRORS = /Not approved: fix the errors/u;
 const NO_APPROVAL_ACCESS = /Saved as a draft, but you do not have access/u;
 const SEND_FAILED =
   /Approved, but a send was not queued: WIS2 is not configured/u;
-const NOT_CERTAIN = /not certain whether it was approved/u;
+const CHECKS_FAILED = /the checks could not run/u;
+const NOT_SAVED = /the observation was not saved/u;
+const UNCONFIRMED = /Could not confirm whether it was approved/u;
 const SAVED_AS_DRAFT = /Not approved\. It is saved as a draft/u;
 
 async function openEntryForm(held: object[] = []) {
@@ -355,18 +363,21 @@ it("says so when the draft is saved but the person may not approve", async () =>
   );
 });
 
-it("a second click while approving makes one approval", async () => {
+it("a second click in the same moment makes one approval", async () => {
   checked([]);
   mocks.create.mockResolvedValue({ data: SAVED });
   mocks.accept.mockResolvedValue({ data: ACCEPTED });
   await openEntryForm();
 
   const button = screen.getByRole("button", { name: "Save and approve" });
-  fireEvent.click(button);
-  fireEvent.click(button);
+  act(() => {
+    button.click();
+    button.click();
+  });
 
   await waitFor(() => expect(screen.getByText(APPROVED_TEXT)).toBeTruthy());
   expect(mocks.accept).toHaveBeenCalledTimes(1);
+  expect(mocks.create).toHaveBeenCalledTimes(1);
 });
 
 it("treats an unclear accept as approved when the register says so, and never saves a correction on retry", async () => {
@@ -406,13 +417,50 @@ it("never leaves the form stuck on Approving when a call throws", async () => {
   ).toBe(false);
 });
 
-it("says the outcome is uncertain when even the checks throw", async () => {
+function isEnabled(name: string): boolean {
+  return !(screen.getByRole("button", { name }) as HTMLButtonElement).disabled;
+}
+
+it("leaves the form usable when the checks throw", async () => {
   mocks.validate.mockRejectedValue(new Error("network"));
   await openEntryForm();
 
   approve();
 
-  await waitFor(() => expect(screen.getByText(NOT_CERTAIN)).toBeTruthy());
+  await waitFor(() => expect(screen.getByText(CHECKS_FAILED)).toBeTruthy());
+  expect(isEnabled("Save and approve")).toBe(true);
+  expect(isEnabled("Validate observation")).toBe(true);
+});
+
+it("leaves the form usable when saving throws", async () => {
+  checked([]);
+  mocks.create.mockRejectedValue(new Error("network"));
+  await openEntryForm();
+
+  approve();
+
+  await waitFor(() => expect(screen.getByText(NOT_SAVED)).toBeTruthy());
+  expect(mocks.accept).not.toHaveBeenCalled();
+  expect(isEnabled("Save and approve")).toBe(true);
+  expect(isEnabled("Save draft")).toBe(true);
+});
+
+it("after an unconfirmed approval the next try checks before saving anything", async () => {
+  checked([]);
+  mocks.create.mockResolvedValue({ data: SAVED });
+  mocks.accept.mockRejectedValue(new Error("network"));
+  await openEntryForm();
+
+  approve();
+  await waitFor(() => expect(screen.getByText(UNCONFIRMED)).toBeTruthy());
+
+  mocks.list.mockResolvedValue({ data: { observations: [ACCEPTED] } });
+  approve();
+
+  await waitFor(() => expect(screen.getByText(APPROVED_TEXT)).toBeTruthy());
+  expect(mocks.create).toHaveBeenCalledTimes(1);
+  expect(mocks.correct).not.toHaveBeenCalled();
+  expect(mocks.accept).toHaveBeenCalledTimes(1);
 });
 
 it("saving the draft again after approving does not touch the approved observation", async () => {

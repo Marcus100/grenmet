@@ -181,17 +181,25 @@ function SendStatus({ send }: { send: SendController }) {
 }
 
 /** The confirmation for approving with notes: focus starts on the safe choice. */
-function ApprovalConfirm({ approval }: { approval: ApprovalController }) {
+function ApprovalConfirm({
+  approval,
+  busy,
+}: {
+  approval: ApprovalController;
+  busy: boolean;
+}) {
   const goBack = useRef<HTMLButtonElement>(null);
-  const { cancel } = approval;
+  // Focus the safe choice once, and always call the latest cancel.
+  const latestCancel = useRef(approval.cancel);
+  latestCancel.current = approval.cancel;
   useEffect(() => {
     goBack.current?.focus();
     const onKey = (event: KeyboardEvent) => {
-      if (event.key === "Escape") cancel();
+      if (event.key === "Escape") latestCancel.current();
     };
     document.addEventListener("keydown", onKey);
     return () => document.removeEventListener("keydown", onKey);
-  }, [cancel]);
+  }, []);
   const notes = approval.warningCount === 1 ? "note" : "notes";
   return (
     <div
@@ -205,7 +213,7 @@ function ApprovalConfirm({ approval }: { approval: ApprovalController }) {
         Approving saves it and queues it for WIS2 and email.
       </p>
       <div className="flex gap-2">
-        <Button onClick={approval.confirm} type="button">
+        <Button disabled={busy} onClick={approval.confirm} type="button">
           Approve anyway
         </Button>
         <Button
@@ -540,7 +548,10 @@ export function ERegisterWorkbook({
             </div>
           </div>
           {approval?.status === "confirming" && (
-            <ApprovalConfirm approval={approval} />
+            <ApprovalConfirm
+              approval={approval}
+              busy={saveStatus === "saving"}
+            />
           )}
           {approval?.status === "approved" && (
             <p className="text-xs" role="status">
@@ -602,6 +613,7 @@ export function ERegisterWorkbook({
               <Input
                 aria-label="METAR or SPECI as sent"
                 className="font-mono text-xs"
+                disabled={approval?.status === "working"}
                 maxLength={400}
                 onChange={(event) =>
                   onValueChange("metar_text", event.target.value)

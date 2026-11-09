@@ -223,7 +223,7 @@ export function ERegister() {
     return result.response?.status === 403 ? "forbidden" : "error";
   }
 
-  async function checkObservation(): Promise<{
+  async function requestValidation(): Promise<{
     issues: SynopValidationIssue[];
     valid: boolean;
   } | null> {
@@ -246,6 +246,16 @@ export function ERegister() {
     return { issues, valid: result.data.valid };
   }
 
+  // A call that throws (offline) must not leave the form on "checking".
+  async function checkObservation() {
+    try {
+      return await requestValidation();
+    } catch {
+      setValidationState("error");
+      return null;
+    }
+  }
+
   async function runValidation(): Promise<boolean> {
     return (await checkObservation())?.valid ?? false;
   }
@@ -258,23 +268,34 @@ export function ERegister() {
   // reuses its record instead of saving a duplicate.
   const savedRef = useRef<{ id: string; key: string } | null>(null);
 
-  // Observations the register has accepted, by id, and a guard against two
-  // approvals running at once.
-  const approvedRef = useRef<Set<string>>(new Set());
+  // Approved observations by the values they hold, an approval still waiting
+  // to be confirmed, and a guard against two approvals running at once.
+  const approvedRef = useRef<Map<string, string>>(new Map());
+  const unconfirmedRef = useRef<{
+    id: string;
+    iso: string;
+    key: string;
+  } | null>(null);
   const approvingRef = useRef(false);
 
-  // The id of the approved observation holding exactly these values, if any.
-  // Saving them again would only make a correction of what was already sent.
+  // The id of the approved observation holding exactly these values, if the
+  // register still has it accepted. Saving them again would only make a
+  // correction of what was already sent.
   function approvedAsKeyed(): string | null {
-    const saved = savedRef.current;
-    return saved &&
-      saved.key === JSON.stringify(structuredValues) &&
-      approvedRef.current.has(saved.id)
-      ? saved.id
+    const id = approvedRef.current.get(JSON.stringify(structuredValues));
+    if (!id) return null;
+    return liveObservations.some(
+      (item) => item.id === id && item.state === "accepted"
+    )
+      ? id
       : null;
   }
 
-  async function persistDraft(): Promise<string | null> {
+  function isApprovedId(id: string): boolean {
+    return [...approvedRef.current.values()].includes(id);
+  }
+
+  async function saveObservation(): Promise<string | null> {
     const approvedId = approvedAsKeyed();
     if (approvedId) {
       setSaveState("saved");
@@ -367,11 +388,22 @@ export function ERegister() {
     return saved.id;
   }
 
+  // A call that throws (offline) must not leave the form on "saving".
+  async function persistDraft(): Promise<string | null> {
+    try {
+      return await saveObservation();
+    } catch {
+      setSaveState("error");
+      return null;
+    }
+  }
+
   async function saveDraft(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    if (approvingRef.current) return;
     const id = await persistDraft();
     // A saved correction is a new, unapproved draft.
-    if (id && !approvedRef.current.has(id)) setApprovalStatus("idle");
+    if (id && !isApprovedId(id)) setApprovalStatus("idle");
   }
 
   const sends = useObservationSends(async () => {
@@ -384,8 +416,9 @@ export function ERegister() {
 
   // Save and approve on the entry screen: the observer decides their own
   // observation (another person may still review it afterwards).
-  function markApproved(approved: RegisterObservationRead) {
-    approvedRef.current.add(approved.id);
+  function markApproved(approved: RegisterObservationRead, key: string) {
+    approvedRef.current.set(key, approved.id);
+    unconfirmedRef.current = null;
     setLiveObservations((current) =>
       current.map((item) => (item.id === approved.id ? approved : item))
     );
@@ -415,7 +448,7 @@ export function ERegister() {
 
   // After an accept call that did not answer clearly, ask the register what it
   // holds before saying anything: it may already be approved.
-  async function settleApproval(id: string, observedIso: string) {
+  async function settleApproval(id: string, observedIso: string, key: string) {
     let held: RegisterObservationRead | undefined;
     try {
       const holders = await eregisterListRegisterObservations({
@@ -432,20 +465,35 @@ export function ERegister() {
       held = undefined;
     }
     if (held?.state === "accepted") {
-      markApproved(held);
+      markApproved(held, key);
       await announceApproved(id);
       return;
     }
     setApprovalStatus("error");
+    if (held) {
+      unconfirmedRef.current = null;
+      setApprovalMessage(
+        held.state === "draft" || held.state === "qc_pending"
+          ? "Not approved. It is saved as a draft; try again."
+          : `Not approved. The register shows it as ${held.state}.`
+      );
+      return;
+    }
+    // Unknown: the next try asks again before saving anything.
+    unconfirmedRef.current = { id, iso: observedIso, key };
     setApprovalMessage(
-      held
-        ? "Not approved. It is saved as a draft; try again."
-        : "Could not confirm whether it was approved. Check the observation list before trying again."
+      "Could not confirm whether it was approved. Try again to check, and do not save it again until it is confirmed."
     );
   }
 
   async function runApproval() {
     const observedIso = observationDate.toISOString();
+    const key = JSON.stringify(structuredValues);
+    const unconfirmed = unconfirmedRef.current;
+    if (unconfirmed) {
+      await settleApproval(unconfirmed.id, unconfirmed.iso, unconfirmed.key);
+      if (unconfirmedRef.current || isApprovedId(unconfirmed.id)) return;
+    }
     const known = approvedAsKeyed();
     if (known) {
       await announceApproved(known);
@@ -459,6 +507,8 @@ export function ERegister() {
       );
       return;
     }
+    // Until the register answers clearly, the outcome is not known.
+    unconfirmedRef.current = { id, iso: observedIso, key };
     let decided: Awaited<
       ReturnType<typeof eregisterAcceptRegisterObservation>
     > | null = null;
@@ -472,11 +522,12 @@ export function ERegister() {
       decided = null;
     }
     if (decided?.data) {
-      markApproved(decided.data);
+      markApproved(decided.data, key);
       await announceApproved(id);
       return;
     }
     if (decided?.response?.status === 403) {
+      unconfirmedRef.current = null;
       setApprovalStatus("error");
       setApprovalMessage(
         "Saved as a draft, but you do not have access to approve it."
@@ -484,11 +535,12 @@ export function ERegister() {
       return;
     }
     if (decided && isSynopRefusal(decided.error)) {
+      unconfirmedRef.current = null;
       setApprovalStatus("error");
       setApprovalMessage(decided.error.detail.message);
       return;
     }
-    await settleApproval(id, observedIso);
+    await settleApproval(id, observedIso, key);
   }
 
   // One approval at a time; anything that throws ends in a message, never a
@@ -580,6 +632,7 @@ export function ERegister() {
         onValidationIssuesChange={setValidationIssues}
         onValidationStateChange={setValidationState}
         onValueChange={(key, value) => {
+          if (approvingRef.current) return;
           // The checked METAR belongs to the values it was built from: editing
           // them falls back to the local preview until the next check.
           if (key !== "metar_text") setExpectedMetar(null);
