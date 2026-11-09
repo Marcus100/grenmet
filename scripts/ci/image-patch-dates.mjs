@@ -74,6 +74,10 @@ export function bumpPatchDate(text, date) {
   if (!current) {
     throw new Error("No ALPINE_PATCH_DATE or DEBIAN_PATCH_DATE ARG");
   }
+  // A garbage current date would sort above real dates and block every bump.
+  if (!isValidDate(current.date)) {
+    throw new Error(`Invalid current patch date: ${current.date}`);
+  }
   if (current.date >= date) {
     return text;
   }
@@ -219,7 +223,10 @@ export function run(argv, { log = console.log, env = process.env } = {}) {
       )
     );
     const scans = rest.map((pair) => {
-      const [key, reportPath] = pair.split("=");
+      // Split on the first "=" only: the path may contain more of them.
+      const separator = pair.indexOf("=");
+      const key = pair.slice(0, separator);
+      const reportPath = pair.slice(separator + 1);
       const scope = releaseImages().get(key)?.scope;
       if (!(scope && reportPath)) {
         throw new Error(`Expected <image key>=<trivy report>, got ${pair}`);
