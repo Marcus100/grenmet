@@ -49,13 +49,15 @@ API_DATABASE_VARIABLES = {
     "JANITORIAL_DATABASE_URL": "janitorial",
     "TRANSPORT_DATABASE_URL": "transport",
 }
-# Read-only GET endpoints from apps/api/fastapi/openapi.json that need a sign-in but no
-# role beyond a superuser's: the current user (main database) and one list from each
-# of the main database (events) and of two separate ones (eregister, wxwatch).
-# Each asks for one row.
+# Read-only GET endpoints from apps/api/fastapi/openapi.json: the current user (main
+# database) and one list from each of the events, eregister and wxwatch databases.
+# Each asks for one row. Events staff routes need an Events role that a superuser
+# never implies, and the public listing refuses a staff token, so the events read is
+# the public listing sent without a token (API_PUBLIC_READ_PATHS).
+API_PUBLIC_READ_PATHS = ("/api/v1/events/listings?limit=1",)
 API_READ_PATHS = (
     "/api/v1/auth/users/me",
-    "/api/v1/events/admin/events?size=1",
+    *API_PUBLIC_READ_PATHS,
     "/api/v1/eregister/observations?limit=1",
     "/api/v1/wxwatch/archive?limit=1",
 )
@@ -72,8 +74,11 @@ SUPERUSER_SQL = (
 API_READ_SCRIPT = f"""
 import json, os, urllib.error, urllib.request
 headers = {{"Authorization": "Bearer " + os.environ["DRILL_TOKEN"]}}
+public = set(json.loads(os.environ.get("DRILL_PUBLIC_PATHS", "[]")))
 for path in json.loads(os.environ["DRILL_PATHS"]):
-    request = urllib.request.Request("http://127.0.0.1:{API_PORT}" + path, headers=headers)
+    request = urllib.request.Request(
+        "http://127.0.0.1:{API_PORT}" + path, headers={{}} if path in public else headers
+    )
     try:
         with urllib.request.urlopen(request, timeout=60) as response:
             response.read()
@@ -700,6 +705,8 @@ class ApiUnderTest:
                 "DRILL_TOKEN",
                 "-e",
                 "DRILL_PATHS",
+                "-e",
+                "DRILL_PUBLIC_PATHS",
                 self.name,
                 API_PYTHON,
                 "-c",
@@ -707,7 +714,12 @@ class ApiUnderTest:
             ],
             capture_output=True,
             text=True,
-            env={**os.environ, "DRILL_TOKEN": token, "DRILL_PATHS": json.dumps(paths)},
+            env={
+                **os.environ,
+                "DRILL_TOKEN": token,
+                "DRILL_PATHS": json.dumps(paths),
+                "DRILL_PUBLIC_PATHS": json.dumps(list(API_PUBLIC_READ_PATHS)),
+            },
         )
         statuses = {}
         for line in result.stdout.splitlines():
