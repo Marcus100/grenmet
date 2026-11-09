@@ -300,7 +300,7 @@ async def test_email_queues_one_outbox_row_per_distinct_recipient(
     db_async: AsyncSession,
 ) -> None:
     client, user = send_client
-    observation = await save(client)
+    observation = await save(client, accepted=True)
     response = await client.post(f"/api/v1/eregister/observations/{observation}/email")
     assert response.status_code == 202, response.text
     sent = response.json()
@@ -324,7 +324,7 @@ async def test_email_without_recipients_is_409(
 ) -> None:
     client, _ = send_client
     monkeypatch.setattr(sends.eregister_settings, "OBS_RECIPIENTS", "")
-    observation = await save(client)
+    observation = await save(client, accepted=True)
     response = await client.post(f"/api/v1/eregister/observations/{observation}/email")
     assert response.status_code == 409
     assert response.json()["detail"] == "No recipients configured"
@@ -336,7 +336,7 @@ async def test_repeat_email_needs_resend(
     db_async: AsyncSession,
 ) -> None:
     client, _ = send_client
-    observation = await save(client)
+    observation = await save(client, accepted=True)
     url = f"/api/v1/eregister/observations/{observation}/email"
     assert (await client.post(url)).status_code == 202
     again = await client.post(url)
@@ -352,7 +352,7 @@ async def test_send_requires_the_send_permission(
     db_async: AsyncSession,
 ) -> None:
     client, _ = send_client
-    observation = await save(client)
+    observation = await save(client, accepted=True)
     plain = await make_user(db_async)
     app.dependency_overrides[get_browser_or_token_user] = lambda: plain
     url = f"/api/v1/eregister/observations/{observation}/email"
@@ -443,12 +443,11 @@ async def test_only_synop_can_be_sent(
 
 
 @pytest.mark.usefixtures("recipients")
-async def test_acceptance_can_be_required(
+async def test_email_needs_acceptance_by_default(
     send_client: tuple[httpx.AsyncClient, User],
-    monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     client, _ = send_client
-    monkeypatch.setattr(sends.eregister_settings, "SEND_REQUIRE_ACCEPTED", True)
+    assert sends.eregister_settings.SEND_REQUIRE_ACCEPTED is True
     observation = await save(client)
     url = f"/api/v1/eregister/observations/{observation}/email"
     assert (await client.post(url)).status_code == 409
@@ -461,7 +460,7 @@ async def test_invalid_workbook_is_422(
     send_client: tuple[httpx.AsyncClient, User],
 ) -> None:
     client, _ = send_client
-    observation = await save(client)
+    observation = await save(client, accepted=True)
     await set_body(observation, {**FULL_ROW, "dew_point": "290"})
     response = await client.post(f"/api/v1/eregister/observations/{observation}/email")
     assert response.status_code == 422
@@ -664,7 +663,7 @@ async def test_email_history_follows_the_outbox(
     db_async: AsyncSession,
 ) -> None:
     client, _ = send_client
-    observation = await save(client)
+    observation = await save(client, accepted=True)
     await client.post(f"/api/v1/eregister/observations/{observation}/email")
     history = f"/api/v1/eregister/observations/{observation}/sends"
     assert (await client.get(history)).json()["sends"][0]["status"] == "queued"
@@ -681,7 +680,7 @@ async def test_email_history_reports_a_delivery_that_gave_up(
     db_async: AsyncSession,
 ) -> None:
     client, _ = send_client
-    observation = await save(client)
+    observation = await save(client, accepted=True)
     await client.post(f"/api/v1/eregister/observations/{observation}/email")
     for mail in (await db_async.scalars(select(OutboundEmail))).all():
         mail.status = "failed"

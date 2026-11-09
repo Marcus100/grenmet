@@ -274,8 +274,9 @@ other QC holder the observation waits rather than being waved through. Reject
 and reopen need a reason; accept needs a workbook that validates; reopen is
 refused once the observation is queued for WIS2. Every decision is audited
 (`eregister_observation`). WIS2 publication always requires `accepted`; email
-is allowed for validated observations (internal use, marked provisional) unless
-`EREGISTER_SEND_REQUIRE_ACCEPTED` is set. The public page and month summary
+requires it too by default (`EREGISTER_SEND_REQUIRE_ACCEPTED` defaults to true;
+set it to false to email validated, unaccepted observations for internal use,
+marked provisional). The public page and month summary
 call a reading provisional unless it is accepted.
 
 ## Send actions (email and WIS2), `src/eregister/encode.py`
