@@ -157,6 +157,38 @@ Changing the date rebuilds that layer (issue #1142).
 - `targets tags <tag>...` or `targets digests "<repo@sha256:…>..."`: the
   registry images to scan, each with its exception scope, as a workflow matrix.
 
+`.github/workflows/image-scan-daily.yml` scans the `dev`, `staging` and
+`latest` tag of every release image daily from the registry
+(`scan-image` with `source: remote`). When only OS packages block, it bumps the
+patch date and opens a fix pull request into `dev`. It does this with the
+GitHub App named by the repository variable `IMAGE_FIX_APP_ID`, whose private
+key is in the secret `IMAGE_FIX_APP_PRIVATE_KEY`. Without the App, or for
+language package findings, the job fails and lists what to fix.
+`pipeline-staging.yml` also scans each promoted digest before it deploys, so a
+digest that has become vulnerable since its build cannot reach staging.
+
+How the fix job limits the App:
+
+- The App is granted Contents and Pull requests write and nothing else. It must
+  **not** have the Workflows permission (it could then rewrite workflow files),
+  and it must **not** be a bypass actor on any ruleset, so its pull requests
+  need the same checks and review as any other.
+- The workflow requests a token limited to those two permissions
+  (`permission-contents`, `permission-pull-requests`), whatever else the
+  installation allows.
+- Scripts from the `dev` checkout (`image-patch-dates.mjs`,
+  `check-vulnerabilities.mjs`) run only in steps with no token. The token
+  exists in the last step only, which runs `git push` and `gh pr create` and no
+  repository script. Checkouts do not persist credentials.
+- It bumps dates only when a `dev` image is blocked by OS packages. A blocked
+  `staging` or `latest` tag with a clean `dev` is fixed by the next promotion
+  and opens no pull request. It opens none while an `agent/image-patch-*` pull
+  request is still open.
+- The scan jobs check out `main`, so exceptions come from
+  `.github/security/vulnerability-exceptions.json` on `main`. An exception added
+  on `dev` applies to this scan only after promotion, so the daily run can stay
+  red until then.
+
 ### Exceptions
 
 `.github/security/vulnerability-exceptions.json` starts empty. An exception

@@ -40,7 +40,8 @@ test("promotion pipelines require scope validation and cannot invoke deferred de
       new URL(`../../.github/workflows/${file}`, import.meta.url),
       "utf8"
     );
-    assert.ok(yaml.includes("needs: [release-scope, promote]"));
+    // Staging also waits for the rescan of promoted digests (issue #1142).
+    assert.match(yaml, /needs: \[release-scope, promote(, scan)?\]/u);
     assert.ok(yaml.includes("node scripts/ci/check-release-scope.mjs"));
     assert.equal(yaml.includes("build-weather-images.yml"), false);
     assert.equal(yaml.includes("deploy-weather.yml"), false);
