@@ -4,6 +4,7 @@ import { Checklist } from "@/components/pages/checklist";
 import { ExerciseBanner } from "@/components/pages/exercise-banner";
 import { PageSection } from "@/components/pages/page-section";
 import { Prose } from "@/components/pages/prose";
+import { PublishedProducts } from "@/components/pages/published-products";
 import { fetchActiveAlerts } from "@/lib/cap";
 
 export const metadata = {
@@ -28,6 +29,9 @@ export default async function CyclonePage() {
           only={["Tropical Cyclone"]}
           result={alerts}
         />
+      </PageSection>
+      <PageSection heading="GMS alerts (green level)">
+        <PublishedProducts kinds={["cyclone"]} />
       </PageSection>
       <PageSection heading="What each stage means">
         <Checklist

@@ -111,7 +111,7 @@ export const NAV_SECTIONS: NavSection[] = [
           link("Heat", "/alerts/bulletins/heat", "Heat bulletins"),
           link(
             "Marine",
-            "/alerts/marine",
+            "/alerts/bulletins/marine",
             "Small craft advisories and rough seas"
           ),
           link(
