@@ -172,6 +172,83 @@ files are covered, or that the dump timestamp is UTC (the nightly job names file
 with the runner's clock). A passing gate is not a replacement for step 1 above
 before a destructive migration.
 
+## Migration lock timeouts
+
+Issue 1097 (production v1.0.3): `ALTER TABLE hr.employment_record ADD
+COLUMN` waited 19 minutes for a read lock held by a session that had been idle in
+a transaction for five days. Every app query on that table queued behind the
+`ALTER`. Three guards now stop a repeat from stalling a deploy silently. They cover
+the main database's Alembic migrations only (the `prestart` upgrade of the main
+history). They do not cover:
+
+- the Payload CMS migration (`cms-migrate`, database `gms_cms`), or
+- the weather, eRegister, janitorial and transport Alembic histories, which
+  `prestart` also runs. A lock wait in those is not timed out or retried, so it
+  can still hang the deploy as before.
+
+- **Migrations fail fast.** `alembic/env.py` sets `lock_timeout` on the migration
+  connection (`MIGRATION_LOCK_TIMEOUT`, default `10s`; `0` disables). The setting is
+  session-level, not transaction-local, so it survives the commits that Alembic's
+  `autocommit_block` makes mid-upgrade (three HR and CAP revisions use it). The
+  migration connection comes from a `NullPool` and is closed afterwards, so the
+  setting cannot reach app sessions. A statement that waits longer fails with
+  `canceling statement due to lock timeout`. No `statement_timeout` is set: it
+  would abort a long data backfill. `lock_timeout` limits only the wait for a lock,
+  not how long a statement runs.
+- **The deploy retries that failure only.** In the `migrations` phase, `core.sh`
+  reruns a migration service when, and only when, its output contains that lock
+  timeout message. It makes up to `MIGRATION_LOCK_RETRY_ATTEMPTS` attempts (default
+  3) and pauses `MIGRATION_LOCK_RETRY_PAUSE_SECONDS` (default 30) between them. Any
+  other failure stops the deploy at once. A rerun is safe because each committed
+  step stays committed: Alembic commits at every `autocommit_block` and its version
+  table records what finished, and Payload records each applied migration. The
+  previous release keeps serving until the deploy passes `migrations`.
+- **Idle transactions end, for new connections only.** The main async engine passes
+  `idle_in_transaction_session_timeout` to every connection it opens
+  (`DB_IDLE_IN_TRANSACTION_TIMEOUT`, default `300` seconds; `0` disables). Postgres
+  sets it per connection when that connection opens, so a session left over from an
+  older release never gets it. A request holds its transaction only while it runs.
+  ARQ's default job limit is 300 seconds, but three cron jobs override it (900, 1800
+  and 3600 seconds). Those jobs are safe because they hold no transaction during
+  their fetch. A connection idle in a transaction for five minutes is therefore
+  almost certainly leaked. Watch for `terminating connection due to idle-in-transaction
+  timeout` in the logs. The separate weather, eRegister, janitorial and transport
+  engines do not set it. The limit can also be set on the application role in the
+  database instead.
+
+**Limit of the retry.** Three attempts with a 10-second lock wait and two 30-second
+pauses last about 90 seconds in all. That is shorter than the 300-second idle
+limit, and the limit does not apply to a leaked session from an older release. So a
+deploy can still fail while the leaked session is idle. Expect that and use the
+manual steps below.
+
+If the deploy still stops at `migrations` with a lock timeout, find the blocked
+statement and the session holding the lock (run as a superuser on the database
+named in the error):
+
+```sql
+SELECT blocked.pid AS blocked_pid, left(blocked.query, 80) AS blocked_query,
+       blocker.pid AS blocker_pid, blocker.state, blocker.application_name,
+       blocker.client_addr, now() - blocker.xact_start AS transaction_age,
+       left(blocker.query, 80) AS blocker_query
+FROM pg_stat_activity AS blocked
+JOIN LATERAL unnest(pg_blocking_pids(blocked.pid)) AS b(pid) ON true
+JOIN pg_stat_activity AS blocker ON blocker.pid = b.pid
+WHERE blocked.datname = current_database();
+```
+
+Before ending a blocker, confirm that it is a leaked read: `state` is
+`idle in transaction` and `blocker_query` is a `SELECT` (or it is an old app
+process that no longer serves traffic). Then end only that session:
+
+```sql
+SELECT pg_terminate_backend(<blocker_pid>);
+```
+
+Do not end a session that is running a write, a migration or a backup. Then rerun
+the deploy. Record the blocker's `application_name` and `client_addr` in the
+release notes so the leaking code path can be fixed.
+
 ## Build once, promote by digest
 
 Lands with PR #1026 (stacked on PR #1020 and PR #1025; merge in that order, owner
