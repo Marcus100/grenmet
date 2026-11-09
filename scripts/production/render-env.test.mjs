@@ -910,7 +910,13 @@ test("TRUSTED_WEB_SECRET reaches the API and the visitor-forwarding web hosts on
       block.includes("TRUSTED_WEB_SECRET: ${TRUSTED_WEB_SECRET")
     )
     .map((block) => block.trim().split(":")[0]);
-  assert.deepEqual(holders, ["api", "web-gms", "web-events", "web-bookings"]);
+  assert.deepEqual(holders, [
+    "api",
+    "web-gms",
+    "web-mbia",
+    "web-events",
+    "web-bookings",
+  ]);
 });
 
 test("the Meta page settings render empty by default and must be numbers", () => {
