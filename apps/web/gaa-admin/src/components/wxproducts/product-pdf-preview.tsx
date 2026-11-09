@@ -261,12 +261,16 @@ export function ProductPdfPreview({
                   key={field.key}
                 >
                   <dt className="text-muted-foreground text-xs font-medium">
-                    {productFieldLabel(field)}
+                    {productFieldLabel(field, content.kind)}
                   </dt>
                   <dd className="text-sm leading-5 break-words whitespace-pre-wrap tabular-nums">
                     {field.type === "datetime-local"
                       ? content.values[field.key]?.replace("T", " ")
-                      : productFieldValue(field, content.values[field.key])}
+                      : productFieldValue(
+                          field,
+                          content.values[field.key],
+                          content.kind
+                        )}
                   </dd>
                 </div>
               ))}

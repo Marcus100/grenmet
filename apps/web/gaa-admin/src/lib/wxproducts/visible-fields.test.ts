@@ -56,12 +56,14 @@ describe("visibleProductFields", () => {
     expect(keys).toContain("minTemperature");
   });
 
-  it("removes exactly the 23 hidden fields and nothing else", () => {
+  it("removes exactly the 28 hidden fields and nothing else", () => {
     const all = productFields("morning");
     const visible = visibleProductFields("morning");
 
-    // 3 alerts + (5 hazards x 4 impact fields) + 3 risk-assessment fields.
-    expect(all.length - visible.length).toBe(26);
+    // 3 alerts + (5 hazards x 4 impact fields) + 3 risk-assessment fields
+    // + the older free-text sunrise and sunset (morning shows sunset today
+    // and sunrise tomorrow instead).
+    expect(all.length - visible.length).toBe(28);
   });
 
   it("leaves the shared schema itself untouched", () => {

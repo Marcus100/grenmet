@@ -218,6 +218,48 @@ async def history(
     return list((await session.execute(statement)).scalars())
 
 
+async def bulletin_reference(
+    session: AsyncSession,
+    kind: str,
+    values: dict[str, str],
+    previous: AuthoredProduct | None,
+) -> str:
+    """Hidden year-based archive reference for an alert, e.g. GMS-MARINE-2026-004.
+
+    Set once, on the first save, from the count of this hazard's alerts already
+    referenced in the issue year; kept on every later revision (owner decision
+    1, #1197). The per-event bulletin number is separate and proposed by the
+    desk. Two alerts of one hazard first saved at the same instant could share
+    a number; the product id still tells them apart.
+    """
+    if previous is not None:
+        kept = str(
+            values_as_dict(previous.draft.get("values", {})).get("reference", "")
+        )
+        if kept.strip():
+            return kept
+    if values.get("reference", "").strip():
+        return values["reference"]
+    year = values.get("issuedAt", "")[:4]
+    if not year.isdigit():
+        return ""
+    from sqlalchemy import func
+
+    stored = AuthoredProduct.draft["values"]
+    count = (
+        await session.execute(
+            select(func.count())
+            .select_from(AuthoredProduct)
+            .where(
+                AuthoredProduct.kind == kind,
+                func.left(stored["issuedAt"].astext, 4) == year,
+                func.coalesce(stored["reference"].astext, "") != "",
+            )
+        )
+    ).scalar_one()
+    return f"GMS-{kind.upper()}-{year}-{count + 1:03d}"
+
+
 async def write_product(
     session: AsyncSession,
     body: ProductWrite,
@@ -253,12 +295,17 @@ async def write_product(
             raise RevisionConflict("This product is not published.")
         revision = body.expectedRevision + 1
         now = datetime.now(UTC)
+        values = values_as_dict(body.values)
+        if body.kind in validation.BULLETIN_KINDS and body.action != "withdraw":
+            reference = await bulletin_reference(session, body.kind, values, previous)
+            if reference:
+                values = {**values, "reference": reference}
         content = (
             previous.draft
             if body.action == "withdraw" and previous
             else {
                 "kind": body.kind,
-                "values": values_as_dict(body.values),
+                "values": values,
                 "guidance": body.guidance.model_dump(mode="json")
                 if body.guidance
                 else None,

@@ -6,6 +6,7 @@ import { renderWithGmsCatalogue as render } from "@/test/with-gms-catalogue";
 import { ProductDesk } from "./product-desk";
 
 const WEATHER_SUMMARY_LABEL = /Weather forecast/u;
+const PUBLICATION_CONFIRMATION = /I have checked/u;
 
 const actions = vi.hoisted(() => ({
   loadProductsAction: vi.fn(),
@@ -159,7 +160,9 @@ it("opens the normalized PDF after validation and preserves the publication revi
     expect.any(AbortSignal)
   );
   expect(screen.getByRole("button", { name: "Publish to GMS" })).toBeDisabled();
-  fireEvent.click(screen.getByRole("checkbox"));
+  fireEvent.click(
+    screen.getByRole("checkbox", { name: PUBLICATION_CONFIRMATION })
+  );
   expect(screen.getByRole("button", { name: "Publish to GMS" })).toBeEnabled();
   fireEvent.change(summary, { target: { value: "Edited forecast" } });
   expect(screen.getByRole("button", { name: "Publish to GMS" })).toBeDisabled();
@@ -169,7 +172,9 @@ it("opens the normalized PDF after validation and preserves the publication revi
   await waitFor(() =>
     expect(actions.previewProductPdfAction).toHaveBeenCalledTimes(2)
   );
-  expect(screen.getByRole("checkbox")).not.toBeChecked();
+  expect(
+    screen.getByRole("checkbox", { name: PUBLICATION_CONFIRMATION })
+  ).not.toBeChecked();
 });
 
 it("does not replace a PDF on validation or save failure, and keeps save success when rendering fails", async () => {
