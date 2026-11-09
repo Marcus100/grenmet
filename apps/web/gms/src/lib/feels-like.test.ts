@@ -34,3 +34,8 @@ describe("feelsLike outside the heat index", () => {
     expect(feelsLike(30, null)).toBe(30);
   });
 });
+
+it("falls back to the air temperature when humidity cannot be read", () => {
+  expect(feelsLike(32, Number.NaN)).toBe(32);
+  expect(feelsLike(32, Number.POSITIVE_INFINITY)).toBe(32);
+});

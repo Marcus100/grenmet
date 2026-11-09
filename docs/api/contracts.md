@@ -2506,8 +2506,9 @@ it is rejected or already superseded. Accepting a replacement of an hour already
 sent to WIS2 sends a correction (`ObservationSend.is_correction`; the email is
 marked `CORRECTION` with a `CCA` line). `POST .../validate-synop` also takes an
 optional `observed_at` to run the same time check. `.../publish` (WIS2) answers
-`409` unless the observation is `accepted`; `.../email` still accepts a validated
-draft unless `EREGISTER_SEND_REQUIRE_ACCEPTED` is set. Every decision and review
+`409` unless the observation is `accepted`; `.../email` also answers `409` unless the
+observation is `accepted` (`EREGISTER_SEND_REQUIRE_ACCEPTED`, default true; false lets a validated
+draft be emailed). Every decision and review
 is audited (`eregister_observation`).
 
 ### GAA operational catalogues
