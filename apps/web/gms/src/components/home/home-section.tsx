@@ -69,6 +69,6 @@ export function HomeSection({
 export const HOME_CARD =
   "rounded-gm-card border border-gm-border bg-background p-4 lg:p-5";
 
-/** One card in the From the Desk row: most of a phone screen, fixed width above. */
+/** One card in the From the Desk row: most of a phone screen, a fixed width on small tablets, one grid column from md up. */
 export const DESK_CARD_ITEM =
-  "relative w-[85%] shrink-0 snap-start sm:w-[22rem] lg:w-[24rem]";
+  "relative w-[85%] shrink-0 snap-start sm:w-[22rem] md:w-auto md:min-w-0";

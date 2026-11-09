@@ -277,8 +277,13 @@ function OfficialProductCard({ card }: { card: OfficialCard }) {
   );
 }
 
+// Phones and small tablets: one row that swipes sideways (no scrollbar shown).
+// Portrait tablets (md) show three cards across and laptops and landscape tablets
+// (lg and up) four, in a grid with no scrollbar (owner, 9 Nov 2026, after the Yr
+// "Latest from the meteorologists" look). Only that many cards show; "All desk
+// posts" leads to the rest. Cards keep their own height; none stretches.
 const ROW =
-  "-mx-4 flex snap-x snap-mandatory scroll-px-4 gap-4 overflow-x-auto px-4 pb-2 sm:-mx-6 sm:scroll-px-6 sm:px-6 xl:-mx-8 xl:scroll-px-8 xl:px-8 max-lg:[scrollbar-width:none] max-lg:[&::-webkit-scrollbar]:hidden";
+  "-mx-4 flex snap-x snap-mandatory scroll-px-4 gap-4 overflow-x-auto px-4 pb-2 [scrollbar-width:none] sm:-mx-6 sm:scroll-px-6 sm:px-6 [&::-webkit-scrollbar]:hidden md:mx-0 md:grid md:grid-cols-3 md:items-start md:overflow-visible md:px-0 md:pb-0 md:max-lg:[&>li:nth-child(n+4)]:hidden lg:grid-cols-4 lg:gap-5 lg:[&>li:nth-child(n+5)]:hidden";
 
 /**
  * From the Desk (homepage v2, owner 1 Nov 2026): one row of cards that
