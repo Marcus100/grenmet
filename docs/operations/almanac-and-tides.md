@@ -29,8 +29,10 @@ and exports a CSV in the same columns as the current file.
        /path/to/pric-tides-2027-01-01-to-2027-03-31.csv --source-version v2.0
    ```
 
-   The command prints the number of events. A bad row stops the import and names
-   its line; nothing is written when parsing fails.
+   The command first prints the target host and database. A host that is not
+   local (staging, production) is refused unless you repeat it with
+   `--confirm-host <host>`. It then prints the number of events. A bad row stops
+   the import and names its line; nothing is written when parsing fails.
 3. Check the public route for a date in the new period:
    `GET /api/v1/almanac/public/tides?station=pric&from=...&to=...`. Every response
    must carry the "predicted, not for navigation" note.
@@ -43,8 +45,9 @@ cd apps/api/fastapi
 uv run --frozen --package fast-back python scripts/build_almanac_year.py --year 2027
 ```
 
-It upserts the day rows for both locations and replaces the year's principal
-phases. Re-running is safe. Run it before the public site or product forms need
+It prints the target host and database first and, like the importer, needs
+`--confirm-host <host>` for a non-local database. It upserts the day rows for
+both locations and replaces the year's principal phases. Re-running is safe. Run it before the public site or product forms need
 the year. The public routes return only the days that exist, so a missing year
 shows as empty `days`, not as wrong data.
 
