@@ -15,6 +15,16 @@ import pytest
 from defusedxml import ElementTree as safe_et
 
 from src.eregister import aerodromes, derive, iwxxm
+from tests.iwxxm_support import require_schemas
+
+# Every test here validates against the WMO XSD, so they all need the fetched schemas.
+pytestmark = pytest.mark.usefixtures("xsd_schemas")
+
+
+@pytest.fixture
+def xsd_schemas() -> None:
+    require_schemas()
+
 
 OBSERVED = datetime(2026, 3, 30, 12, 0, tzinfo=UTC)
 # Owner-confirmed 78958 pressure amounts (eregister AGENTS: QFE +0.3, sea level +1.0, QNH +0.1).

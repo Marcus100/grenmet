@@ -305,10 +305,16 @@ blocks acceptance.
   and cloud without a keyed layer. The register accepts only SYNOP rows, so only
   METAR is stored; the encoder can also build SPECI for a later SPECI path.
 - **Validation:** XSD 2025-2 with `xmlschema` (pure Python, a dependency of
-  `fast-back`). Schemas are vendored in `src/eregister/iwxxm_xsd/2025-2` (see its
-  NOTICE.md, including the open licence question). Schematron is not run: the
-  upstream rules need an XSLT 2.0 engine. Until it runs, `schematron` is
-  `not_run`, so `valid` means XSD-valid with no gaps, not conformant.
+  `fast-back`). The schemas are not committed (the upstream project has no licence
+  and WMO asks for permission to reproduce). `python -m scripts.fetch_iwxxm_schemas`
+  (run from `apps/api/fastapi`) downloads each file of the pinned tag `v2025-2`,
+  checks it against the SHA-256 manifest `src/eregister/iwxxm_schema_manifest.json`,
+  and writes it to the gitignored `src/eregister/iwxxm_xsd/2025-2`. The Docker
+  images and the CI test job run it. Without the schemas the record is kept with
+  `valid` null and a `note` (false when a gap is already known); the XSD tests skip
+  locally and fail in CI. Schematron is not run: the upstream rules need an XSLT
+  2.0 engine. Until it runs, `schematron` is `not_run`, so `valid` means XSD-valid
+  with no gaps, not conformant.
 - **Reference data to confirm:** aerodrome coordinates and elevations (OurAirports
   and Wikipedia, cross-checked; not yet the Grenada AIP) and the ww to METAR table
   (WMO code table 4677 meanings). Both need GMS confirmation before any use outside

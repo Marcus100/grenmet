@@ -62,6 +62,10 @@ COPY --chown=appuser:appuser apps/api/fastapi/seed ./seed
 RUN --mount=type=cache,target=/home/appuser/.cache/uv,uid=1000,gid=1000 \
     uv sync --frozen --package fast-back --package gms-ingest
 
+# Fetch the pinned WMO IWXXM schemas (not committed; no licence upstream) for offline
+# validation. The build fails if a pinned file does not match its SHA-256.
+RUN uv run --frozen --package fast-back python -m scripts.fetch_iwxxm_schemas
+
 # Expose port (8000 is standard)
 EXPOSE 8000
 
