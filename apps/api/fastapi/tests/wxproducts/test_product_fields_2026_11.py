@@ -90,6 +90,26 @@ def test_marine_forecast_fields_follow_the_decided_order():
     ]
 
 
+def test_older_moon_phase_revision_still_renders_with_its_stored_date():
+    # An older revision keeps its phase and the date as it was typed.
+    values = validation.normalize(
+        "marine-forecast",
+        complete("marine-forecast")
+        | MARINE
+        | {"moonPhase": "Full moon", "moonPhaseDate": "8 Sep 2026"},
+    )
+    context = forecast_pdf.marine_forecast_context(values, status="", revision="r1")
+    assert ("Moon phase", "Full moon. Next principal phase: 8 Sep 2026") in (
+        context["astronomy"]
+    )
+    phase_only = validation.normalize(
+        "marine-forecast",
+        complete("marine-forecast") | MARINE | {"moonPhase": "Full moon"},
+    )
+    context = forecast_pdf.marine_forecast_context(phase_only, status="", revision="r1")
+    assert ("Moon phase", "Full moon") in context["astronomy"]
+
+
 def test_marine_sheet_prints_weather_tides_and_astronomy():
     values = validation.normalize(
         "marine-forecast",
@@ -110,7 +130,10 @@ def test_marine_sheet_prints_weather_tides_and_astronomy():
     context = forecast_pdf.marine_forecast_context(values, status="", revision="r1")
     assert context["weather"] == "Haze and isolated light showers."
     assert ("Moonrise", "21:14") in context["astronomy"]
-    assert ("Moon phase", "Waning gibbous, Tue 8 Sep") in context["astronomy"]
+    assert (
+        "Moon phase",
+        "Waning gibbous. Next principal phase: Tue 8 Sep",
+    ) in context["astronomy"]
     assert context["tide_tiles"][0]["value"] == "04:10"
     html = forecast_pdf._environment().get_template("marine.html.j2").render(**context)
     assert html.index("Alerts and advisories in force") < html.index(MARINE["synopsis"])

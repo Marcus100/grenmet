@@ -194,9 +194,9 @@ export function tideHeight(metres: number, marine: boolean): string {
 }
 
 /**
- * Predicted high and low tides for one date, written into the tide slots that
- * are still completely empty, in time order. A slot with any typed value is
- * left alone.
+ * Predicted high and low tides for one date, written into the tide slots in
+ * time order. Only when every tide slot is empty: if any slot has a typed
+ * value, nothing is filled.
  */
 export function tideFill({
   date,
@@ -220,6 +220,16 @@ export function tideFill({
     [keyOf(slot, "Type"), keyOf(slot, "Time"), keyOf(slot, "Height")]
       .filter((key) => present.has(key))
       .every((key) => !(values[key] ?? "").trim());
+  // All or nothing: a fill that lands beside typed tides would mix two tables.
+  if (TIDE_SLOTS.some((slot) => !slotEmpty(slot)))
+    return {
+      patch: {},
+      rows: 0,
+      summary: [],
+      notes: [
+        "Tide slots already have values. Clear them to fill from the almanac.",
+      ],
+    };
   const freeSlots = TIDE_SLOTS.filter(slotEmpty);
   const events: TideEvent[] = tides.events.filter(
     (event) => dateOfLocal(event.time_local) === date
@@ -248,9 +258,9 @@ export function tideFill({
     notes.push(
       `No tide predictions for ${readableDate(date)} in the table. Tide fields left empty.`
     );
-  else if (events.length > freeSlots.length)
+  else if (events.length > TIDE_SLOTS.length)
     notes.push(
-      `${events.length - freeSlots.length} more tide(s) did not fit the empty tide slots.`
+      `${events.length - TIDE_SLOTS.length} more tide(s) did not fit the four tide slots.`
     );
   return { patch, rows, summary, notes };
 }

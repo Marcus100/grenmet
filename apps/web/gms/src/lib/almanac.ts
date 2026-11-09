@@ -14,8 +14,12 @@ export type TidesResult =
   | { status: "ok"; tides: TidesResponse }
   | { status: "unavailable" };
 
+/** Tide predictions change daily at most: the page reuses an answer for an hour. */
+const TIDES_REVALIDATE_SECONDS = 3600;
+
 const requestOptions = () => ({
-  cache: "no-store" as const,
+  // Data Cache, not `no-store`: the other GMS reads are live; tides are not.
+  next: { revalidate: TIDES_REVALIDATE_SECONDS },
   credentials: "omit" as const,
   redirect: "error" as const,
   signal: AbortSignal.timeout(5000),

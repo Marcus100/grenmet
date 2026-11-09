@@ -728,7 +728,7 @@ function marineForecastFields(): ProductField[] {
       options: MOON_PHASES,
       ...almanac,
     }),
-    field("Astronomy", "moonPhaseDate", "Moon phase date", {
+    field("Astronomy", "moonPhaseDate", "Next principal phase date", {
       type: "date",
       ...almanac,
     }),

@@ -186,7 +186,7 @@ describe("almanac fill (morning and marine)", () => {
     });
     expect(result.patch).toEqual({});
     expect(result.notes).toEqual([
-      "No principal moon phase on or after 9 Nov 2026 in the almanac. Left empty: Moon phase date.",
+      "No principal moon phase on or after 9 Nov 2026 in the almanac. Left empty: Next principal phase date.",
     ]);
   });
 });
@@ -236,21 +236,36 @@ describe("tide fill", () => {
     expect(result.notes).toEqual([]);
   });
 
-  it("never overwrites a slot that already has a typed value", () => {
+  it("fills nothing when any tide slot already has a typed value", () => {
     const result = tideFill({
       date: "2026-11-09",
       fields: TIDE_FIELDS,
       prefix: "",
       tides: four,
       marine: false,
-      values: { tide1Time: "04:00" },
+      values: { tide2Time: "10:00" },
     });
-    expect(result.patch.tide1Time).toBeUndefined();
-    // Slot 1 is skipped, so the first table event goes to slot 2.
-    expect(result.patch.tide2Time).toBe("03:12");
-    expect(result.patch.tide2Height).toBe("0.20");
+    expect(result.patch).toEqual({});
+    expect(result.rows).toBe(0);
+    expect(result.notes).toEqual([
+      "Tide slots already have values. Clear them to fill from the almanac.",
+    ]);
+  });
+
+  it("fills every slot in time order when all tide slots are empty", () => {
+    const result = tideFill({
+      date: "2026-11-09",
+      fields: TIDE_FIELDS,
+      prefix: "",
+      tides: four,
+      marine: false,
+      values: { tide1Time: "", tide4Height: "" },
+    });
+    expect(result.patch.tide1Time).toBe("03:12");
+    expect(result.patch.tide2Time).toBe("09:26");
+    expect(result.patch.tide3Time).toBe("15:40");
+    expect(result.patch.tide4Time).toBe("21:55");
     expect(result.rows).toBe(4);
-    expect(result.summary[0]).toBe("Low 03:12, 0.20 m");
   });
 
   it("says so when the table has no predictions for the date", () => {
@@ -269,7 +284,7 @@ describe("tide fill", () => {
     ]);
   });
 
-  it("reports tides that do not fit the empty slots", () => {
+  it("reports tides that do not fit when the slots are all used", () => {
     const values = {
       tide1Type: "Low",
       tide2Type: "High",
@@ -286,7 +301,7 @@ describe("tide fill", () => {
     });
     expect(result.patch).toEqual({});
     expect(result.notes).toEqual([
-      "4 more tide(s) did not fit the empty tide slots.",
+      "Tide slots already have values. Clear them to fill from the almanac.",
     ]);
   });
 

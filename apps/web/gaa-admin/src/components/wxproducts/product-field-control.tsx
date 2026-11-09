@@ -32,6 +32,8 @@ const WEATHER_TEXT_KEY = /^(day\d)?[Ww]eatherTypeText$/u;
 const FIELD_HELP: Record<string, string> = {
   notice:
     "Information: awareness only, no action needed. Advisory: take precautions. All clear: the hazard has ended and this event closes.",
+  moonPhaseDate:
+    "Date of the next new, first-quarter, full or last-quarter moon.",
   bulletinNumber:
     "Proposed from the last issue of this alert: the next number while the event continues, 1 after an all clear or once it expired.",
 };

@@ -105,16 +105,12 @@ export function AlmanacFillButton({
         prefix,
         rows: result.rows,
       });
-      setMessage({
-        tone: "status",
-        lines: [
-          written.length > 0
-            ? TIDE_HINT
-            : emptyFillLine(result.patch, "the tide slots"),
-          ...result.summary,
-          ...result.notes,
-        ],
-      });
+      // A blocked fill (typed tide slots) or an empty table says only why.
+      const lines =
+        written.length > 0
+          ? [TIDE_HINT, ...result.summary, ...result.notes]
+          : [...result.notes];
+      setMessage({ tone: "status", lines });
     } catch (error) {
       reportError(error, "wxproducts");
       setMessage({
