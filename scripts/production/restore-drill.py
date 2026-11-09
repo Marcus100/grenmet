@@ -622,6 +622,19 @@ class ApiUnderTest:
         deadline = time.monotonic() + timeout
         while True:
             if not self.running():
+                # Show why it stopped: the last log lines (settings errors name the
+                # missing variable, never its value).
+                logs = subprocess.run(
+                    ["docker", "logs", "--tail", "40", self.name],
+                    capture_output=True,
+                    text=True,
+                    check=False,
+                )
+                print(
+                    "API container log (last 40 lines):\n"
+                    + (logs.stdout + logs.stderr)[-6000:],
+                    file=sys.stderr,
+                )
                 raise RuntimeError("API container exited before it became healthy")
             result = subprocess.run(
                 [
