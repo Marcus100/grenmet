@@ -308,3 +308,19 @@ async def test_allowed_actions_reach_the_api(
     )
     assert response.status_code == 200
     assert response.json()["allowed_actions"] == ["publish", "emergency_publish"]
+
+
+async def test_allowed_actions_stay_off_the_anonymous_api(
+    async_client: httpx.AsyncClient, db_async: AsyncSession
+) -> None:
+    alert_id, _ = await _seed(db_async, S.PUBLISHED)
+    alert = await db_async.get(CapAlert, alert_id)
+    assert alert is not None
+    single = await async_client.get(f"/api/cap/alerts/{alert.identifier}")
+    assert single.status_code == 200
+    assert "allowed_actions" not in single.json()
+    for path in ("/api/cap/alerts", "/api/cap/latest-active", "/api/cap/past"):
+        listing = await async_client.get(path)
+        assert listing.status_code == 200, path
+        for item in listing.json()["data"]:
+            assert "allowed_actions" not in item, path
