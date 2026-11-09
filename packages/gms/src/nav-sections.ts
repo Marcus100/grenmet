@@ -78,9 +78,14 @@ export const NAV_SECTIONS: NavSection[] = [
             "Lower-level notices in effect"
           ),
           link(
-            "All bulletins",
+            "GMS alerts",
             "/alerts/bulletins",
-            "Detailed issued bulletins for nine hazards"
+            "Green-level alerts issued by GMS for nine hazards"
+          ),
+          link(
+            "Plan your week",
+            "/plan-your-week",
+            "What this week's alerts mean for each sector"
           ),
         ],
       },
@@ -225,11 +230,6 @@ export const NAV_SECTIONS: NavSection[] = [
           ),
           link("3-day forecast", "/weather/3-day", "The next three days"),
           link("7-day forecast", "/weather/7-day", "The week ahead"),
-          link(
-            "Plan your week",
-            "/plan-your-week",
-            "What this week's alerts mean for each sector"
-          ),
           link(
             "Weather synopsis",
             "/weather/synopsis",
@@ -505,7 +505,7 @@ export const NAV_SECTIONS: NavSection[] = [
       kind: "link",
       eyebrow: "Last month",
       text: "How last month's rain and temperature compared with normal.",
-      cta: "Monthly summary",
+      cta: "Climate Bulletin",
       href: "/climate/monthly",
     },
     groups: [
@@ -513,7 +513,7 @@ export const NAV_SECTIONS: NavSection[] = [
         heading: "Climate now",
         links: [
           link(
-            "Monthly summary",
+            "Climate Bulletin",
             "/climate/monthly",
             "How last month compared with normal"
           ),

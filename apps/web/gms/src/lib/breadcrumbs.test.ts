@@ -63,7 +63,7 @@ describe("breadcrumbTrail", () => {
     expect(breadcrumbTrail("/alerts/bulletins/cyclone")).toEqual([
       { href: "/alerts", label: "Alerts" },
       { href: "/sitemap#alerts--in-effect", label: "In effect" },
-      { current: false, href: "/alerts/bulletins", label: "All bulletins" },
+      { current: false, href: "/alerts/bulletins", label: "GMS alerts" },
     ]);
     expect(labels("/services/tourism/events/hurricane-expo")).toEqual([
       "Services",
