@@ -647,6 +647,14 @@ route. Only these self-service routes accept unapproved accounts (`AccountUser`)
 `POST /auth/users/me/staff-access-request`. The last one sets
 `UserPublic.staff_access_requested_at` (idempotent); staff setup
 (`GET /setup/staff`) lists approved staff plus accounts that asked.
+HR setup under `/hr/setup/*` (staff, grades, policies, balances, catalogue,
+registration approval) is open to holders of `hr.setup.manage` for the organisation
+they administer only: the request names that organisation (`organisation_id`, or the
+department or employee it acts on), and anything else gets 404, while a missing
+organisation gets 403 (the OpenAPI 403 and 404 descriptions on these operations say the same).
+Superusers keep every organisation. Role bundles
+(`/hr/setup/roles`) and product-access policies stay superuser-only because they are
+shared across organisations (issue #1080).
 `POST /auth/token` (machine clients) still requires staff approval.
 `POST /auth/email-code/start` and `/verify` sign in to the account with a
 6-digit emailed code (the first verified code creates the account when sign-up is

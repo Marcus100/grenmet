@@ -14,6 +14,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.auth.models import User
+from src.baseline import service
 from src.baseline.models import BaselineAudit
 from src.baseline.schemas import (
     BalanceImportRequest,
@@ -65,8 +66,7 @@ def _balance(raw: str) -> Decimal:
 async def import_opening_balances(
     session: AsyncSession, actor: User, body: BalanceImportRequest
 ) -> BalanceImportResult:
-    if not actor.is_superuser:
-        raise AppException("Administrator access required", 403)
+    await service.require_setup_organisation(session, actor, body.organisation_id)
     parsed = _parse(body.csv)
     numbers = {row["employee_number"] for _, row in parsed if row["employee_number"]}
     employments = {

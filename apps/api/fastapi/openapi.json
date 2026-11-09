@@ -63431,7 +63431,7 @@
             }
           },
           "403": {
-            "description": "Administrator access required",
+            "description": "HR setup access required (hr.setup.manage for the organisation; superuser for role bundles and product access)",
             "content": {
               "application/json": {
                 "schema": {
@@ -63441,7 +63441,7 @@
             }
           },
           "404": {
-            "description": "Record not found",
+            "description": "Record not found, or outside the organisation you administer",
             "content": {
               "application/json": {
                 "schema": {
@@ -63474,7 +63474,7 @@
           "staff-setup"
         ],
         "summary": "Review staff onboarding",
-        "description": "Review staff onboarding for a selected organisation or eligible unassigned accounts. Omitted organisation context retains the superuser-only legacy list.",
+        "description": "Review staff onboarding for a selected organisation or eligible unassigned accounts. Omitted organisation context retains the superuser-only legacy list. Needs hr.setup.manage for the organisation; superusers may act for any organisation.",
         "operationId": "hrGetStaffSetup",
         "security": [
           {
@@ -63535,7 +63535,7 @@
             "description": "Unprocessable Content"
           },
           "403": {
-            "description": "Administrator access required",
+            "description": "HR setup access required (hr.setup.manage for the organisation; superuser for role bundles and product access)",
             "content": {
               "application/json": {
                 "schema": {
@@ -63545,7 +63545,7 @@
             }
           },
           "404": {
-            "description": "Record not found",
+            "description": "Record not found, or outside the organisation you administer",
             "content": {
               "application/json": {
                 "schema": {
@@ -63583,7 +63583,7 @@
           "staff-setup"
         ],
         "summary": "Complete or update staff onboarding",
-        "description": "Complete or update staff onboarding, including separately verified continuous service and probation facts with their HR source. Does not infer eligibility or alter role assignments.",
+        "description": "Complete or update staff onboarding, including separately verified continuous service and probation facts with their HR source. Does not infer eligibility or alter role assignments. Needs hr.setup.manage for the organisation; superusers may act for any organisation.",
         "operationId": "hrUpdateStaffSetup",
         "security": [
           {
@@ -63634,7 +63634,7 @@
             "description": "Unprocessable Content"
           },
           "403": {
-            "description": "Administrator access required",
+            "description": "HR setup access required (hr.setup.manage for the organisation; superuser for role bundles and product access)",
             "content": {
               "application/json": {
                 "schema": {
@@ -63644,7 +63644,7 @@
             }
           },
           "404": {
-            "description": "Record not found",
+            "description": "Record not found, or outside the organisation you administer",
             "content": {
               "application/json": {
                 "schema": {
@@ -63682,7 +63682,7 @@
           "staff-setup"
         ],
         "summary": "Invalidate staff credential and revoke access",
-        "description": "Invalidate staff credential and revoke access.",
+        "description": "Invalidate staff credential and revoke access. Needs hr.setup.manage for the organisation; superusers may act for any organisation.",
         "operationId": "hrOffboardStaff",
         "security": [
           {
@@ -63723,7 +63723,7 @@
             "description": "Unprocessable Content"
           },
           "403": {
-            "description": "Administrator access required",
+            "description": "HR setup access required (hr.setup.manage for the organisation; superuser for role bundles and product access)",
             "content": {
               "application/json": {
                 "schema": {
@@ -63733,7 +63733,7 @@
             }
           },
           "404": {
-            "description": "Record not found",
+            "description": "Record not found, or outside the organisation you administer",
             "content": {
               "application/json": {
                 "schema": {
@@ -63761,7 +63761,7 @@
           "staff-setup"
         ],
         "summary": "Record an audited leave balance adjustment",
-        "description": "Record an audited leave balance adjustment.",
+        "description": "Record an audited leave balance adjustment. Needs hr.setup.manage for the organisation; superusers may act for any organisation.",
         "operationId": "hrUpdateStaffBalance",
         "security": [
           {
@@ -63812,7 +63812,7 @@
             "description": "Unprocessable Content"
           },
           "403": {
-            "description": "Administrator access required",
+            "description": "HR setup access required (hr.setup.manage for the organisation; superuser for role bundles and product access)",
             "content": {
               "application/json": {
                 "schema": {
@@ -63822,7 +63822,7 @@
             }
           },
           "404": {
-            "description": "Record not found",
+            "description": "Record not found, or outside the organisation you administer",
             "content": {
               "application/json": {
                 "schema": {
@@ -63850,7 +63850,7 @@
           "staff-setup"
         ],
         "summary": "Validate or apply opening leave balances from a CSV export",
-        "description": "Reads a CSV with employee_number, leave_type and balance columns (other columns are ignored), checks every row, and posts through the leave ledger only when apply is true and every row is valid. Superuser only.",
+        "description": "Reads a CSV with employee_number, leave_type and balance columns (other columns are ignored), checks every row, and posts through the leave ledger only when apply is true and every row is valid. Needs hr.setup.manage for the organisation named in the request; superusers may act for any organisation.",
         "operationId": "hrImportStaffBalances",
         "requestBody": {
           "content": {
@@ -63884,7 +63884,7 @@
             }
           },
           "403": {
-            "description": "Administrator access required",
+            "description": "HR setup access required (hr.setup.manage for the organisation; superuser for role bundles and product access)",
             "content": {
               "application/json": {
                 "schema": {
@@ -63894,7 +63894,7 @@
             }
           },
           "404": {
-            "description": "Record not found",
+            "description": "Record not found, or outside the organisation you administer",
             "content": {
               "application/json": {
                 "schema": {
@@ -63927,7 +63927,7 @@
           "staff-setup"
         ],
         "summary": "List editable grade definitions",
-        "description": "List editable grade definitions, optionally filtered by the employer organisation owning their departments.",
+        "description": "List editable grade definitions, optionally filtered by the employer organisation owning their departments. Needs hr.setup.manage for the organisation; superusers may act for any organisation.",
         "operationId": "hrGetSetupGrades",
         "security": [
           {
@@ -63978,7 +63978,7 @@
             "description": "Unprocessable Content"
           },
           "403": {
-            "description": "Administrator access required",
+            "description": "HR setup access required (hr.setup.manage for the organisation; superuser for role bundles and product access)",
             "content": {
               "application/json": {
                 "schema": {
@@ -63988,7 +63988,7 @@
             }
           },
           "404": {
-            "description": "Record not found",
+            "description": "Record not found, or outside the organisation you administer",
             "content": {
               "application/json": {
                 "schema": {
@@ -64016,7 +64016,7 @@
           "staff-setup"
         ],
         "summary": "Create or update a grade",
-        "description": "Create or update a grade. Grade codes are unique within a department.",
+        "description": "Create or update a grade. Grade codes are unique within a department. Needs hr.setup.manage for the organisation; superusers may act for any organisation.",
         "operationId": "hrUpdateSetupGrade",
         "security": [
           {
@@ -64066,7 +64066,7 @@
             "description": "Unprocessable Content"
           },
           "403": {
-            "description": "Administrator access required",
+            "description": "HR setup access required (hr.setup.manage for the organisation; superuser for role bundles and product access)",
             "content": {
               "application/json": {
                 "schema": {
@@ -64076,7 +64076,7 @@
             }
           },
           "404": {
-            "description": "Record not found",
+            "description": "Record not found, or outside the organisation you administer",
             "content": {
               "application/json": {
                 "schema": {
@@ -64104,7 +64104,7 @@
           "staff-setup"
         ],
         "summary": "List approval policies",
-        "description": "List approval policies, optionally restricted to HR departments in a selected employer organisation.",
+        "description": "List approval policies, optionally restricted to HR departments in a selected employer organisation. Needs hr.setup.manage for the organisation; superusers may act for any organisation.",
         "operationId": "hrGetSetupPolicies",
         "security": [
           {
@@ -64155,7 +64155,7 @@
             "description": "Unprocessable Content"
           },
           "403": {
-            "description": "Administrator access required",
+            "description": "HR setup access required (hr.setup.manage for the organisation; superuser for role bundles and product access)",
             "content": {
               "application/json": {
                 "schema": {
@@ -64165,7 +64165,7 @@
             }
           },
           "404": {
-            "description": "Record not found",
+            "description": "Record not found, or outside the organisation you administer",
             "content": {
               "application/json": {
                 "schema": {
@@ -64193,7 +64193,7 @@
           "staff-setup"
         ],
         "summary": "Configure approval policy for future submissions",
-        "description": "Configure approval policy for future submissions.",
+        "description": "Configure approval policy for future submissions. Needs hr.setup.manage for the organisation; superusers may act for any organisation.",
         "operationId": "hrUpdateSetupPolicy",
         "security": [
           {
@@ -64243,7 +64243,7 @@
             "description": "Unprocessable Content"
           },
           "403": {
-            "description": "Administrator access required",
+            "description": "HR setup access required (hr.setup.manage for the organisation; superuser for role bundles and product access)",
             "content": {
               "application/json": {
                 "schema": {
@@ -64253,7 +64253,7 @@
             }
           },
           "404": {
-            "description": "Record not found",
+            "description": "Record not found, or outside the organisation you administer",
             "content": {
               "application/json": {
                 "schema": {
@@ -64309,7 +64309,7 @@
             }
           },
           "403": {
-            "description": "Administrator access required",
+            "description": "HR setup access required (hr.setup.manage for the organisation; superuser for role bundles and product access)",
             "content": {
               "application/json": {
                 "schema": {
@@ -64319,7 +64319,7 @@
             }
           },
           "404": {
-            "description": "Record not found",
+            "description": "Record not found, or outside the organisation you administer",
             "content": {
               "application/json": {
                 "schema": {
@@ -64403,7 +64403,7 @@
             "description": "Unprocessable Content"
           },
           "403": {
-            "description": "Administrator access required",
+            "description": "HR setup access required (hr.setup.manage for the organisation; superuser for role bundles and product access)",
             "content": {
               "application/json": {
                 "schema": {
@@ -64413,7 +64413,7 @@
             }
           },
           "404": {
-            "description": "Record not found",
+            "description": "Record not found, or outside the organisation you administer",
             "content": {
               "application/json": {
                 "schema": {
@@ -64441,7 +64441,7 @@
           "staff-setup"
         ],
         "summary": "Approve a verified staff registration",
-        "description": "Administrator approves a registration after email verification or completed administrator-mediated activation and staff membership linkage. Grants only the staff role; elevated roles remain separately managed.",
+        "description": "Administrator approves a registration after email verification or completed administrator-mediated activation and staff membership linkage. Grants only the staff role; elevated roles remain separately managed. Needs hr.setup.manage for the organisation; superusers may act for any organisation.",
         "operationId": "hrApproveStaffRegistration",
         "security": [
           {
@@ -64482,7 +64482,7 @@
             "description": "Unprocessable Content"
           },
           "403": {
-            "description": "Administrator access required",
+            "description": "HR setup access required (hr.setup.manage for the organisation; superuser for role bundles and product access)",
             "content": {
               "application/json": {
                 "schema": {
@@ -64492,7 +64492,7 @@
             }
           },
           "404": {
-            "description": "Record not found",
+            "description": "Record not found, or outside the organisation you administer",
             "content": {
               "application/json": {
                 "schema": {
@@ -64544,7 +64544,7 @@
             }
           },
           "403": {
-            "description": "Administrator access required",
+            "description": "HR setup access required (hr.setup.manage for the organisation; superuser for role bundles and product access)",
             "content": {
               "application/json": {
                 "schema": {
@@ -64554,7 +64554,7 @@
             }
           },
           "404": {
-            "description": "Record not found",
+            "description": "Record not found, or outside the organisation you administer",
             "content": {
               "application/json": {
                 "schema": {
@@ -64615,7 +64615,7 @@
             }
           },
           "403": {
-            "description": "Administrator access required",
+            "description": "HR setup access required (hr.setup.manage for the organisation; superuser for role bundles and product access)",
             "content": {
               "application/json": {
                 "schema": {
@@ -64625,7 +64625,7 @@
             }
           },
           "404": {
-            "description": "Record not found",
+            "description": "Record not found, or outside the organisation you administer",
             "content": {
               "application/json": {
                 "schema": {
@@ -64718,7 +64718,7 @@
             }
           },
           "404": {
-            "description": "Record not found",
+            "description": "Record not found, or outside the organisation you administer",
             "content": {
               "application/json": {
                 "schema": {
@@ -64766,7 +64766,7 @@
           "staff-setup"
         ],
         "summary": "Preview missing GMS reference data",
-        "description": "Preview missing ingested grades, approval policies and workflow templates without changing records.",
+        "description": "Preview missing ingested grades, approval policies and workflow templates without changing records. Needs hr.setup.manage for the organisation; superusers may act for any organisation.",
         "operationId": "hrPreviewCatalogue",
         "security": [
           {
@@ -64806,7 +64806,7 @@
             "description": "Unprocessable Content"
           },
           "403": {
-            "description": "Administrator access required",
+            "description": "HR setup access required (hr.setup.manage for the organisation; superuser for role bundles and product access)",
             "content": {
               "application/json": {
                 "schema": {
@@ -64816,7 +64816,7 @@
             }
           },
           "404": {
-            "description": "Record not found",
+            "description": "Record not found, or outside the organisation you administer",
             "content": {
               "application/json": {
                 "schema": {
@@ -64842,7 +64842,7 @@
           "staff-setup"
         ],
         "summary": "Import missing GMS reference data",
-        "description": "Add only missing GMS reference data atomically; preserve existing records and reject conflicts.",
+        "description": "Add only missing GMS reference data atomically; preserve existing records and reject conflicts. Needs hr.setup.manage for the organisation; superusers may act for any organisation.",
         "operationId": "hrImportCatalogue",
         "security": [
           {
@@ -64881,7 +64881,7 @@
             "description": "Unprocessable Content"
           },
           "403": {
-            "description": "Administrator access required",
+            "description": "HR setup access required (hr.setup.manage for the organisation; superuser for role bundles and product access)",
             "content": {
               "application/json": {
                 "schema": {
@@ -64891,7 +64891,7 @@
             }
           },
           "404": {
-            "description": "Record not found",
+            "description": "Record not found, or outside the organisation you administer",
             "content": {
               "application/json": {
                 "schema": {

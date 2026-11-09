@@ -50,6 +50,12 @@ PERMISSIONS: tuple[PermissionDef, ...] = (
     ),
     # HR — employment & profile
     PermissionDef("hr.employment.manage", "Manage employment records"),
+    # HR setup (baseline routes). Held by an organisation's HR admins, and used for
+    # that organisation only (issue #1080); superusers keep every organisation.
+    PermissionDef(
+        "hr.setup.manage",
+        "Set up HR for the organisation you administer: staff onboarding, grades, approval policies, leave balances and the GMS catalogue",
+    ),
     # HR — department calendar
     PermissionDef("calendar.view", "View the department calendar"),
     PermissionDef(
@@ -519,6 +525,7 @@ DEFAULT_ROLES: dict[str, tuple[str, tuple[str, ...]]] = {
         (
             "user.manage",
             "hr.employment.manage",
+            "hr.setup.manage",
             "hr.document.create",
             "hr.document.read.department",
             "hr.training.read.department",
@@ -793,6 +800,11 @@ DEPARTMENT_AUTHORITY_KEYS = tuple(
 for _name in ("department-manager", "department-assistant-manager"):
     DEFAULT_ROLES[_name] = (DEFAULT_ROLES[_name][0], DEPARTMENT_AUTHORITY_KEYS)
 
+# Keys added to a default role after deployed databases first seeded it. Seeding
+# never re-touches an existing role, so each (role, key) is granted once, tracked by
+# a ``bundle:<role>:<key>`` BaselineStep marker. An owner's later removal then sticks.
+LATE_BUNDLE_KEYS: tuple[tuple[str, str], ...] = (("hr-admin", "hr.setup.manage"),)
+
 
 def _derive_columns(key: str) -> tuple[str, str, str]:
     """Derive descriptive (entity, action, access) from a dotted permission key.
@@ -853,6 +865,17 @@ def seed_permissions_and_roles(session: Session) -> None:
                 role.permissions.append(key_to_perm[key])
         session.add(role)
         session.add(BaselineStep(key=marker))
+    for role_name, key in LATE_BUNDLE_KEYS:
+        bundle_marker = f"bundle:{role_name}:{key}"
+        if session.get(BaselineStep, bundle_marker):
+            continue
+        role = session.execute(
+            select(Role).where(Role.name == role_name)
+        ).scalar_one_or_none()
+        if role is not None and key not in {p.key for p in role.permissions}:
+            role.permissions.append(key_to_perm[key])
+            session.add(role)
+        session.add(BaselineStep(key=bundle_marker))
     session.commit()
 
 
@@ -897,4 +920,18 @@ async def seed_permissions_and_roles_async(session: AsyncSession) -> None:
             )
             session.add(role)
         session.add(BaselineStep(key=marker))
+    for role_name, key in LATE_BUNDLE_KEYS:
+        bundle_marker = f"bundle:{role_name}:{key}"
+        if await session.get(BaselineStep, bundle_marker):
+            continue
+        role_result = await session.execute(
+            select(Role)
+            .where(Role.name == role_name)
+            .options(selectinload(Role.permissions))
+        )
+        role = role_result.scalars().first()
+        if role is not None and key not in {p.key for p in role.permissions}:
+            role.permissions.append(key_to_perm[key])
+            session.add(role)
+        session.add(BaselineStep(key=bundle_marker))
     await session.commit()
