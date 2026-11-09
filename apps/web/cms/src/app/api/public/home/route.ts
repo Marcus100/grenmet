@@ -28,6 +28,11 @@ async function part<T>(area: string, load: () => Promise<T>): Promise<Part<T>> {
   }
 }
 
+/** The GMS desk row shows eight posts (`MAX_POSTS` in apps/web/gms desk-feed). */
+const DESK_POSTS_LIMIT = 8;
+/** Enough pins for the three leading posts and one picture per official card. */
+const DESK_PINNED_LIMIT = 6;
+
 const DEFAULT_SETTINGS = {
   leadStory: null,
   featuredQuestions: [],
@@ -67,8 +72,21 @@ export async function GET() {
     reportNotes,
     livePosts,
   ] = await Promise.all([
-    part("desk-updates", () =>
-      findArticles(payload, "desk-updates", { limit: 5 })
+    // The GMS row shows eight desk posts with the three newest pinned ones
+    // leading, and an official card takes its picture from a pinned post about
+    // it. Pinned posts (up to six) are fetched on their own so they always reach
+    // the site, however old; the site decides which of them it shows.
+    part("desk-updates", async () =>
+      withPins(
+        await findArticles(payload, "desk-updates", {
+          limit: DESK_PINNED_LIMIT,
+          pinnedOnly: true,
+        }),
+        await findArticles(payload, "desk-updates", {
+          limit: DESK_POSTS_LIMIT,
+        }),
+        DESK_PINNED_LIMIT + DESK_POSTS_LIMIT
+      )
     ),
     part("stories", async () =>
       withPins(
