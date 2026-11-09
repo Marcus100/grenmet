@@ -1,3 +1,5 @@
+export { almanacGetAstronomy } from "./almanacGetAstronomy.js";
+export { almanacGetTides } from "./almanacGetTides.js";
 export { auditGetHistory } from "./auditGetHistory.js";
 export { authAccountEmailCodeStart } from "./authAccountEmailCodeStart.js";
 export { authAccountEmailCodeVerify } from "./authAccountEmailCodeVerify.js";

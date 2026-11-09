@@ -301,6 +301,18 @@ nothing has been fetched; clients must show an unavailable state, never sample
 data. Responses carry `Cache-Control` with `s-maxage` for Cloudflare. See
 `apps/api/fastapi/src/environmental/AGENTS.md`.
 
+`GET /api/v1/almanac/public/astronomy?location=&from=&to=` (`location` is `mbia`
+or `lauriston`; `from`/`to` are Grenada local dates, inclusive, at most 366 days)
+and `GET /api/v1/almanac/public/tides?station=&from=&to=` (`station` is `pric`)
+are anonymous and rate-limited (60/min per IP). They read the stored almanac
+tables: sunrise, sunset, civil dawn and dusk, moonrise and moonset in UTC with
+Grenada local times, the moon phase name per day, and the principal phases in
+range plus the nearest either side (astronomy); predicted high and low tides in
+metres relative to provisional MLLW (tides). The tides response always carries a
+"predicted, not for navigation" `note`. Responses carry `Cache-Control` for a day.
+See `apps/api/fastapi/src/almanac/AGENTS.md` and
+`docs/operations/almanac-and-tides.md`.
+
 ## Model guidance (gmsdash)
 
 `GET /api/v1/models/meteogram?point=&model=` returns a stored point series

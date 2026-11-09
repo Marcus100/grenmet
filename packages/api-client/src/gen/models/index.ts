@@ -34,6 +34,24 @@ export { ageingBucket } from "./AgeingBucket.js";
 export type { AgeingBucketPublic } from "./AgeingBucketPublic.js";
 export type { AirResponse } from "./AirResponse.js";
 export type { AirRow } from "./AirRow.js";
+export type {
+  AlmanacGetAstronomyOptions,
+  AlmanacGetAstronomyQuery,
+  AlmanacGetAstronomyResponse,
+  AlmanacGetAstronomyResponses,
+  AlmanacGetAstronomyStatus200,
+  AlmanacGetAstronomyStatus422,
+} from "./AlmanacGetAstronomy.js";
+export type { AlmanacGetAstronomyParametersSchemaEnum } from "./AlmanacGetAstronomyParametersSchemaEnum.js";
+export { almanacGetAstronomyParametersSchemaEnum } from "./AlmanacGetAstronomyParametersSchemaEnum.js";
+export type {
+  AlmanacGetTidesOptions,
+  AlmanacGetTidesQuery,
+  AlmanacGetTidesResponse,
+  AlmanacGetTidesResponses,
+  AlmanacGetTidesStatus200,
+  AlmanacGetTidesStatus422,
+} from "./AlmanacGetTides.js";
 export type { AnnouncementPublic } from "./AnnouncementPublic.js";
 export type { ApiError } from "./ApiError.js";
 export type { ApiKeyCreate } from "./ApiKeyCreate.js";
@@ -73,6 +91,8 @@ export type { AreaCreatePropertiesSpaceTypeAnyOfEnum } from "./AreaCreatePropert
 export { areaCreatePropertiesSpaceTypeAnyOfEnum } from "./AreaCreatePropertiesSpaceTypeAnyOfEnum.js";
 export type { AreaUpdate } from "./AreaUpdate.js";
 export type { AreaView } from "./AreaView.js";
+export type { AstronomyDay } from "./AstronomyDay.js";
+export type { AstronomyResponse } from "./AstronomyResponse.js";
 export type { AttemptStatus } from "./AttemptStatus.js";
 export { attemptStatus } from "./AttemptStatus.js";
 export type { AttendanceCorrectionCreate } from "./AttendanceCorrectionCreate.js";
@@ -6444,6 +6464,7 @@ export type { ListingUpsertPropertiesVisibilityEnum } from "./ListingUpsertPrope
 export { listingUpsertPropertiesVisibilityEnum } from "./ListingUpsertPropertiesVisibilityEnum.js";
 export type { LocationCreate } from "./LocationCreate.js";
 export type { LocationListPublic } from "./LocationListPublic.js";
+export type { LocationOut } from "./LocationOut.js";
 export type { LocationPublic } from "./LocationPublic.js";
 export type { LocationUpdate } from "./LocationUpdate.js";
 export type { ManagedListing } from "./ManagedListing.js";
@@ -7514,6 +7535,9 @@ export type { PostIn } from "./PostIn.js";
 export type { PostponeEvent } from "./PostponeEvent.js";
 export type { PostponeResult } from "./PostponeResult.js";
 export type { PreferencesUnsubscribeRequest } from "./PreferencesUnsubscribeRequest.js";
+export type { PrincipalPhase } from "./PrincipalPhase.js";
+export type { PrincipalPhasePropertiesPhaseEnum } from "./PrincipalPhasePropertiesPhaseEnum.js";
+export { principalPhasePropertiesPhaseEnum } from "./PrincipalPhasePropertiesPhaseEnum.js";
 export type { ProductAccessCurrent } from "./ProductAccessCurrent.js";
 export type { ProductAccessInput } from "./ProductAccessInput.js";
 export type { ProductAccessPublic } from "./ProductAccessPublic.js";
@@ -8814,6 +8838,10 @@ export { threadDetailPropertiesKindEnum } from "./ThreadDetailPropertiesKindEnum
 export type { ThreadSummary } from "./ThreadSummary.js";
 export type { TicketDetail } from "./TicketDetail.js";
 export type { TicketSummary } from "./TicketSummary.js";
+export type { TideEvent } from "./TideEvent.js";
+export type { TideEventPropertiesEventTypeEnum } from "./TideEventPropertiesEventTypeEnum.js";
+export { tideEventPropertiesEventTypeEnum } from "./TideEventPropertiesEventTypeEnum.js";
+export type { TidesResponse } from "./TidesResponse.js";
 export type { TierInput } from "./TierInput.js";
 export type { TierPublic } from "./TierPublic.js";
 export type { TillClose } from "./TillClose.js";
@@ -8821,6 +8849,7 @@ export type { TillOpen } from "./TillOpen.js";
 export type { TillPublic } from "./TillPublic.js";
 export type { TillPublicPropertiesStatusEnum } from "./TillPublicPropertiesStatusEnum.js";
 export { tillPublicPropertiesStatusEnum } from "./TillPublicPropertiesStatusEnum.js";
+export type { TimeOfDay } from "./TimeOfDay.js";
 export type { TimesheetApproveRequest } from "./TimesheetApproveRequest.js";
 export type { TimesheetCreate } from "./TimesheetCreate.js";
 export type { TimesheetDetails } from "./TimesheetDetails.js";

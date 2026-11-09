@@ -24,6 +24,7 @@ from starlette.types import ASGIApp, Message, Receive, Scope, Send
 
 from src import database as main_database
 from src import operational_metrics
+from src.almanac.router import router as almanac_router
 from src.audit.router import router as audit_router
 from src.auth.app_router import account_router as account_apps_router
 from src.auth.app_router import router as app_auth_router
@@ -543,6 +544,7 @@ app.include_router(feedback_router, prefix=settings.API_V1_STR)
 app.include_router(content_distribution_router, prefix=settings.API_V1_STR)
 app.include_router(flights_router, prefix=settings.API_V1_STR)
 app.include_router(environmental_router, prefix=settings.API_V1_STR)
+app.include_router(almanac_router, prefix=settings.API_V1_STR)
 app.include_router(models_guidance_router, prefix=settings.API_V1_STR)
 app.include_router(wxproducts_router, prefix=settings.API_V1_STR)
 app.include_router(eregister_router, prefix=settings.API_V1_STR)

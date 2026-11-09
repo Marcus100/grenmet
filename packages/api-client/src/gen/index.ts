@@ -1,6 +1,8 @@
 export * from "./.kubb/client.js";
 export * from "./.kubb/serializers.js";
 export * from "./.kubb/standardSchema.js";
+export { almanacGetAstronomy } from "./clients/almanacGetAstronomy.js";
+export { almanacGetTides } from "./clients/almanacGetTides.js";
 export { auditGetHistory } from "./clients/auditGetHistory.js";
 export { authAccountEmailCodeStart } from "./clients/authAccountEmailCodeStart.js";
 export { authAccountEmailCodeVerify } from "./clients/authAccountEmailCodeVerify.js";
@@ -742,6 +744,16 @@ export { wxwatchRetrievals } from "./clients/wxwatchRetrievals.js";
 export { wxwatchSourceChecks } from "./clients/wxwatchSourceChecks.js";
 export { wxwatchStartRun } from "./clients/wxwatchStartRun.js";
 export { wxwatchWeatherImage } from "./clients/wxwatchWeatherImage.js";
+export {
+  almanacGetAstronomyQueryKey,
+  almanacGetAstronomyQueryOptions,
+  useAlmanacGetAstronomy,
+} from "./hooks/useAlmanacGetAstronomy.js";
+export {
+  almanacGetTidesQueryKey,
+  almanacGetTidesQueryOptions,
+  useAlmanacGetTides,
+} from "./hooks/useAlmanacGetTides.js";
 export {
   auditGetHistoryQueryKey,
   auditGetHistoryQueryOptions,
@@ -4483,6 +4495,24 @@ export { ageingBucket } from "./models/AgeingBucket.js";
 export type { AgeingBucketPublic } from "./models/AgeingBucketPublic.js";
 export type { AirResponse } from "./models/AirResponse.js";
 export type { AirRow } from "./models/AirRow.js";
+export type {
+  AlmanacGetAstronomyOptions,
+  AlmanacGetAstronomyQuery,
+  AlmanacGetAstronomyResponse,
+  AlmanacGetAstronomyResponses,
+  AlmanacGetAstronomyStatus200,
+  AlmanacGetAstronomyStatus422,
+} from "./models/AlmanacGetAstronomy.js";
+export type { AlmanacGetAstronomyParametersSchemaEnum } from "./models/AlmanacGetAstronomyParametersSchemaEnum.js";
+export { almanacGetAstronomyParametersSchemaEnum } from "./models/AlmanacGetAstronomyParametersSchemaEnum.js";
+export type {
+  AlmanacGetTidesOptions,
+  AlmanacGetTidesQuery,
+  AlmanacGetTidesResponse,
+  AlmanacGetTidesResponses,
+  AlmanacGetTidesStatus200,
+  AlmanacGetTidesStatus422,
+} from "./models/AlmanacGetTides.js";
 export type { AnnouncementPublic } from "./models/AnnouncementPublic.js";
 export type { ApiError } from "./models/ApiError.js";
 export type { ApiKeyCreate } from "./models/ApiKeyCreate.js";
@@ -4522,6 +4552,8 @@ export type { AreaCreatePropertiesSpaceTypeAnyOfEnum } from "./models/AreaCreate
 export { areaCreatePropertiesSpaceTypeAnyOfEnum } from "./models/AreaCreatePropertiesSpaceTypeAnyOfEnum.js";
 export type { AreaUpdate } from "./models/AreaUpdate.js";
 export type { AreaView } from "./models/AreaView.js";
+export type { AstronomyDay } from "./models/AstronomyDay.js";
+export type { AstronomyResponse } from "./models/AstronomyResponse.js";
 export type { AttemptStatus } from "./models/AttemptStatus.js";
 export { attemptStatus } from "./models/AttemptStatus.js";
 export type { AttendanceCorrectionCreate } from "./models/AttendanceCorrectionCreate.js";
@@ -10893,6 +10925,7 @@ export type { ListingUpsertPropertiesVisibilityEnum } from "./models/ListingUpse
 export { listingUpsertPropertiesVisibilityEnum } from "./models/ListingUpsertPropertiesVisibilityEnum.js";
 export type { LocationCreate } from "./models/LocationCreate.js";
 export type { LocationListPublic } from "./models/LocationListPublic.js";
+export type { LocationOut } from "./models/LocationOut.js";
 export type { LocationPublic } from "./models/LocationPublic.js";
 export type { LocationUpdate } from "./models/LocationUpdate.js";
 export type { ManagedListing } from "./models/ManagedListing.js";
@@ -11963,6 +11996,9 @@ export type { PostIn } from "./models/PostIn.js";
 export type { PostponeEvent } from "./models/PostponeEvent.js";
 export type { PostponeResult } from "./models/PostponeResult.js";
 export type { PreferencesUnsubscribeRequest } from "./models/PreferencesUnsubscribeRequest.js";
+export type { PrincipalPhase } from "./models/PrincipalPhase.js";
+export type { PrincipalPhasePropertiesPhaseEnum } from "./models/PrincipalPhasePropertiesPhaseEnum.js";
+export { principalPhasePropertiesPhaseEnum } from "./models/PrincipalPhasePropertiesPhaseEnum.js";
 export type { ProductAccessCurrent } from "./models/ProductAccessCurrent.js";
 export type { ProductAccessInput } from "./models/ProductAccessInput.js";
 export type { ProductAccessPublic } from "./models/ProductAccessPublic.js";
@@ -13263,6 +13299,10 @@ export { threadDetailPropertiesKindEnum } from "./models/ThreadDetailPropertiesK
 export type { ThreadSummary } from "./models/ThreadSummary.js";
 export type { TicketDetail } from "./models/TicketDetail.js";
 export type { TicketSummary } from "./models/TicketSummary.js";
+export type { TideEvent } from "./models/TideEvent.js";
+export type { TideEventPropertiesEventTypeEnum } from "./models/TideEventPropertiesEventTypeEnum.js";
+export { tideEventPropertiesEventTypeEnum } from "./models/TideEventPropertiesEventTypeEnum.js";
+export type { TidesResponse } from "./models/TidesResponse.js";
 export type { TierInput } from "./models/TierInput.js";
 export type { TierPublic } from "./models/TierPublic.js";
 export type { TillClose } from "./models/TillClose.js";
@@ -13270,6 +13310,7 @@ export type { TillOpen } from "./models/TillOpen.js";
 export type { TillPublic } from "./models/TillPublic.js";
 export type { TillPublicPropertiesStatusEnum } from "./models/TillPublicPropertiesStatusEnum.js";
 export { tillPublicPropertiesStatusEnum } from "./models/TillPublicPropertiesStatusEnum.js";
+export type { TimeOfDay } from "./models/TimeOfDay.js";
 export type { TimesheetApproveRequest } from "./models/TimesheetApproveRequest.js";
 export type { TimesheetCreate } from "./models/TimesheetCreate.js";
 export type { TimesheetDetails } from "./models/TimesheetDetails.js";
@@ -14262,6 +14303,27 @@ export { ageingBucketPublicSchema } from "./zod/ageingBucketPublicSchema.js";
 export { ageingBucketSchema } from "./zod/ageingBucketSchema.js";
 export { airResponseSchema } from "./zod/airResponseSchema.js";
 export { airRowSchema } from "./zod/airRowSchema.js";
+export { almanacGetAstronomyParametersSchemaEnumSchema } from "./zod/almanacGetAstronomyParametersSchemaEnumSchema.js";
+export {
+  almanacGetAstronomyErrorSchema,
+  almanacGetAstronomyQueryFromSchema,
+  almanacGetAstronomyQueryLocationSchema,
+  almanacGetAstronomyQuerySchema,
+  almanacGetAstronomyQueryToSchema,
+  almanacGetAstronomyResponseSchema,
+  almanacGetAstronomyStatus200Schema,
+  almanacGetAstronomyStatus422Schema,
+} from "./zod/almanacGetAstronomySchema.js";
+export {
+  almanacGetTidesErrorSchema,
+  almanacGetTidesQueryFromSchema,
+  almanacGetTidesQuerySchema,
+  almanacGetTidesQueryStationSchema,
+  almanacGetTidesQueryToSchema,
+  almanacGetTidesResponseSchema,
+  almanacGetTidesStatus200Schema,
+  almanacGetTidesStatus422Schema,
+} from "./zod/almanacGetTidesSchema.js";
 export { announcementPublicSchema } from "./zod/announcementPublicSchema.js";
 export { apiErrorSchema } from "./zod/apiErrorSchema.js";
 export { apiKeyCreatedSchema } from "./zod/apiKeyCreatedSchema.js";
@@ -14299,6 +14361,8 @@ export { areaCreatePropertiesSpaceTypeAnyOfEnumSchema } from "./zod/areaCreatePr
 export { areaCreateSchema } from "./zod/areaCreateSchema.js";
 export { areaUpdateSchema } from "./zod/areaUpdateSchema.js";
 export { areaViewSchema } from "./zod/areaViewSchema.js";
+export { astronomyDaySchema } from "./zod/astronomyDaySchema.js";
+export { astronomyResponseSchema } from "./zod/astronomyResponseSchema.js";
 export { attemptStatusSchema } from "./zod/attemptStatusSchema.js";
 export { attendanceCorrectionCreateSchema } from "./zod/attendanceCorrectionCreateSchema.js";
 export { attendanceCorrectionPublicSchema } from "./zod/attendanceCorrectionPublicSchema.js";
@@ -20615,6 +20679,7 @@ export { listingUpsertPropertiesVisibilityEnumSchema } from "./zod/listingUpsert
 export { listingUpsertSchema } from "./zod/listingUpsertSchema.js";
 export { locationCreateSchema } from "./zod/locationCreateSchema.js";
 export { locationListPublicSchema } from "./zod/locationListPublicSchema.js";
+export { locationOutSchema } from "./zod/locationOutSchema.js";
 export { locationPublicSchema } from "./zod/locationPublicSchema.js";
 export { locationUpdateSchema } from "./zod/locationUpdateSchema.js";
 export { managedListingSchema } from "./zod/managedListingSchema.js";
@@ -21692,6 +21757,8 @@ export { postInSchema } from "./zod/postInSchema.js";
 export { postponeEventSchema } from "./zod/postponeEventSchema.js";
 export { postponeResultSchema } from "./zod/postponeResultSchema.js";
 export { preferencesUnsubscribeRequestSchema } from "./zod/preferencesUnsubscribeRequestSchema.js";
+export { principalPhasePropertiesPhaseEnumSchema } from "./zod/principalPhasePropertiesPhaseEnumSchema.js";
+export { principalPhaseSchema } from "./zod/principalPhaseSchema.js";
 export { productAccessCurrentSchema } from "./zod/productAccessCurrentSchema.js";
 export { productAccessInputSchema } from "./zod/productAccessInputSchema.js";
 export { productAccessPublicSchema } from "./zod/productAccessPublicSchema.js";
@@ -22960,12 +23027,16 @@ export { threadDetailSchema } from "./zod/threadDetailSchema.js";
 export { threadSummarySchema } from "./zod/threadSummarySchema.js";
 export { ticketDetailSchema } from "./zod/ticketDetailSchema.js";
 export { ticketSummarySchema } from "./zod/ticketSummarySchema.js";
+export { tideEventPropertiesEventTypeEnumSchema } from "./zod/tideEventPropertiesEventTypeEnumSchema.js";
+export { tideEventSchema } from "./zod/tideEventSchema.js";
+export { tidesResponseSchema } from "./zod/tidesResponseSchema.js";
 export { tierInputSchema } from "./zod/tierInputSchema.js";
 export { tierPublicSchema } from "./zod/tierPublicSchema.js";
 export { tillCloseSchema } from "./zod/tillCloseSchema.js";
 export { tillOpenSchema } from "./zod/tillOpenSchema.js";
 export { tillPublicPropertiesStatusEnumSchema } from "./zod/tillPublicPropertiesStatusEnumSchema.js";
 export { tillPublicSchema } from "./zod/tillPublicSchema.js";
+export { timeOfDaySchema } from "./zod/timeOfDaySchema.js";
 export { timesheetApproveRequestSchema } from "./zod/timesheetApproveRequestSchema.js";
 export { timesheetCreateSchema } from "./zod/timesheetCreateSchema.js";
 export { timesheetDetailsSchema } from "./zod/timesheetDetailsSchema.js";
