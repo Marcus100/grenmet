@@ -79,4 +79,9 @@ export type RegisterObservationRead = {
    * @type string
    */
   updated_at: string;
+  /**
+   * @description The QC actions this state allows: accept, reject, reopen, correct (accept only for SYNOP). Computed from the state and kind alone: a WIS2 file or email already queued or sent can still refuse reject, reopen or a re-save, and the 409 detail says why.
+   * @type array | undefined
+   */
+  allowed_actions?: string[];
 };

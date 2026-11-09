@@ -1,13 +1,22 @@
 from datetime import date
-from typing import Annotated, Any, Literal
+from typing import Annotated, Any, Literal, Self
 from uuid import UUID, uuid4
 
-from pydantic import AwareDatetime, ConfigDict, Field, RootModel, StringConstraints
+from pydantic import (
+    AwareDatetime,
+    ConfigDict,
+    Field,
+    RootModel,
+    StringConstraints,
+    model_validator,
+)
 
 from src.models import BaseModel, UtcDateTime
 
+from . import transitions
+from .transitions import RegisterState
+
 ObservationKind = Literal["SYNOP", "METAR", "SPECI"]
-RegisterState = Literal["draft", "qc_pending", "accepted", "rejected", "superseded"]
 
 
 class SynopWorkbook(BaseModel):
@@ -213,6 +222,24 @@ class RegisterObservationRead(RegisterObservationWrite):
     )
     created_at: UtcDateTime
     updated_at: UtcDateTime
+
+    allowed_actions: list[str] = Field(
+        default_factory=list,
+        description=(
+            "The QC actions this state allows: accept, reject, reopen, correct "
+            "(accept only for SYNOP). Computed from the state and kind alone: a WIS2 "
+            "file or email already queued or sent can still refuse reject, reopen "
+            "or a re-save, and the 409 detail says why."
+        ),
+    )
+
+    @model_validator(mode="after")
+    def _fill_allowed_actions(self) -> Self:
+        # Derived, never read from the stored row or from a client.
+        self.allowed_actions = transitions.allowed_actions(
+            self.state, synop=self.kind == "SYNOP"
+        )
+        return self
 
 
 class RegisterObservationList(BaseModel):

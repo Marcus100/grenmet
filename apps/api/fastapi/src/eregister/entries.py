@@ -24,7 +24,7 @@ from src.auth.models import User
 from src.eregister.exceptions import ObservationNotFoundError
 from src.exceptions import AppException
 
-from . import derive, encode, rules, stations
+from . import derive, encode, rules, stations, transitions
 from .models import STATUS_QUEUED, STATUS_SENT, ERegisterSend
 from .schemas import (
     RegisterObservationCorrection,
@@ -37,7 +37,6 @@ from .schemas import (
 
 logger = logging.getLogger(__name__)
 
-UNSENT_EDITABLE = ("draft", "qc_pending")
 ISSUE_PREVIEW = 3
 
 
@@ -250,8 +249,10 @@ async def create(
     await lock_key(register, data.station_id, data.observed_at, data.kind)
     existing = await live_row(register, data.station_id, data.observed_at, data.kind)
     if existing is not None:
+        # The same 409 below covers "not your draft" and "already sent": a re-save is
+        # a save_draft, refused once any email or WIS2 file is queued or sent.
         own_draft = str(existing["actor_id"]) == str(user.id) and (
-            existing["state"] in UNSENT_EDITABLE
+            transitions.state_allows(existing["state"], "save_draft")
         )
         if own_draft and not await _has_sends(app_session, existing["id"]):
             result = await register.execute(
@@ -303,9 +304,16 @@ async def correct(
     if found is None:
         raise ObservationNotFoundError()
     old = dict(found)
-    if old["state"] in ("rejected", "superseded"):
+    try:
+        transitions.guard(
+            old["state"],
+            "correct",
+            refusal=f"A {old['state']} observation cannot be corrected",
+        )
+    except AppException:
+        # Release the row lock before the refusal, as before the guard existed.
         await register.rollback()
-        raise AppException(f"A {old['state']} observation cannot be corrected", 409)
+        raise
     station = await stations.pressure_for(register, old["station_id"])
     if old["kind"] == "SYNOP":
         history = await history_for(register, old["station_id"], old["observed_at"])

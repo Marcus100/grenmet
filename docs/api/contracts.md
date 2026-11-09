@@ -2464,7 +2464,13 @@ person. Accepting validates the workbook (`422`) and then queues the WIS2 file
 and the email at once (best effort: a refused hand-off, for example an hour the
 automatic source owns, never undoes the acceptance; see `GET .../sends`).
 `reject` and `reopen` need a reason; `reopen` (and `reject`) is `409` once a WIS2
-file was queued or sent. Rejecting a correction (a row with `supersedes_id`)
+file was queued or sent. The staff `RegisterObservationRead` carries
+`allowed_actions`: the QC actions its state allows (`accept`, `reject`, `reopen`,
+`correct`; `accept` only for a SYNOP), from the table in
+`src/eregister/transitions.py`. It depends on the state and kind only, so a WIS2
+file or email already queued or sent can still refuse `reject`, `reopen` or a
+re-save with `409`, and the permission and four-eyes checks still apply. The
+anonymous `public/*` routes do not carry it. Rejecting a correction (a row with `supersedes_id`)
 releases the held WIS2 file of the observation it replaced and, in the same
 transaction, puts that `superseded` observation back to the state it had before
 (`accepted`, or `draft`/`qc_pending` for a never-accepted one) with its own QC
