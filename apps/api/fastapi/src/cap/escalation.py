@@ -48,6 +48,7 @@ from src.cap.schemas import (
     CapInfoCreate,
     CapNameValue,
 )
+from src.cap.transitions import OPEN_STATES
 from src.exceptions import AppValidationError, AuthorizationError
 from src.wxproducts import service as wxproducts_service
 from src.wxproducts.schemas import ProductPdfSource, values_as_dict
@@ -84,11 +85,6 @@ CERTAINTY_FROM_LIKELIHOOD = {
     "Very low": CapCertainty.UNLIKELY,
 }
 SENDER_NAME = "Grenada Meteorological Service"
-OPEN_STATES = (
-    CapLifecycleState.DRAFT,
-    CapLifecycleState.SUBMITTED,
-    CapLifecycleState.APPROVED,
-)
 
 
 def _clip(text: str, limit: int) -> str:
@@ -155,7 +151,7 @@ def draft_from_revision(
 async def find_linked_alert(
     session: AsyncSession,
     product_id: uuid.UUID,
-    states: tuple[CapLifecycleState, ...] = OPEN_STATES,
+    states: frozenset[CapLifecycleState] = OPEN_STATES,
 ) -> tuple[uuid.UUID, CapLifecycleState] | None:
     """The newest CAP alert in ``states`` linked to this product."""
     rows = await session.execute(
@@ -190,7 +186,7 @@ async def lookup(
     """Which warning (if any) was raised from this GMS alert; for the desk note."""
     require_permission(current_user=current_user, permission_key="cap.alert.read")
     found = await find_linked_alert(
-        session, product_id, (*OPEN_STATES, CapLifecycleState.PUBLISHED)
+        session, product_id, OPEN_STATES | {CapLifecycleState.PUBLISHED}
     )
     if found is None:
         return CapEscalationLookup(alert_id=None, lifecycle_state=None)
