@@ -18,7 +18,7 @@ versioned, reviewed and testable like any other code.
 | Compute | Local worktrees, the agent devcontainer, cloud routines | [workflow.md](workflow.md), [routines.md](routines.md), `.devcontainer/` |
 | Routing | Which agent and model takes which area, from benchmark results | [routines.md](routines.md) → routing, `docs/agents/routing.json` |
 | Data | Session transcripts both tools already keep on this machine | `pnpm agents:sessions` |
-| Metrics | Changes merged, reverts, lead time, tokens and human prompts per change | `pnpm agents:flow`, `pnpm agents:report` |
+| Metrics | Changes merged, reverts, lead time, tokens and human prompts per change; merge into `dev` → live on production, releases per week, failed deploys | `pnpm agents:flow`, `pnpm agents:delivery`, `pnpm agents:report` |
 | Scoring | LLM-as-judge verdicts on sampled past sessions, one rubric per scorer | `pnpm agents:score`, `scripts/agents/scorers/*.md` |
 | Skill evals | Does each skill fire on the prompts it should, and not on near-misses | `pnpm agents:skill-evals` |
 | Benchmarks | 25 fixed tasks graded by hidden tests, per agent and model | [benchmarks/](benchmarks/README.md) |
@@ -56,6 +56,18 @@ Tokens are the cost unit because runs use plan allowances; the benchmark
 reports API-equivalent dollars where the CLI provides them. Per-change
 attribution follows the branch a session recorded, so work done on `dev` itself
 shows in the totals but not against a branch.
+
+`pnpm agents:delivery --days 30` picks up where `agents:flow` stops: for each
+production release it counts the pull requests merged into `dev` since the
+previous release tag and reports how long they took from merge to live on
+production (the `pipeline-prod.yml` finish time), plus publish → live, releases
+per week, failed or cancelled production deploys, and follow-up releases within
+a day (a rough sign of a fix-up; planned back-to-back releases count too).
+A change is any pull request merge between two release tags, so a hotfix merged
+straight into `staging` or `main` counts too; promotion merges from `dev`,
+`staging` or `main` do not. A re-run deploy uses the latest run's finish time.
+It reads `gh release list`, `gh run list` and git tags, and runs
+`git fetch --tags` first.
 
 ## Scorers
 
