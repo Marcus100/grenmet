@@ -93,7 +93,14 @@ const FORMAT_LABEL = {
   chart: "Chart",
 } as const;
 
-function DeskPostCard({ item }: { item: PublishedContent }) {
+function DeskPostCard({
+  className,
+  item,
+}: {
+  /** Extra classes on the item, such as hiding it where the row shows fewer cards. */
+  className?: string;
+  item: PublishedContent;
+}) {
   const posted = item.publishedAt ?? item.updatedAt;
   const format = item.format ?? "standard";
   const media =
@@ -103,7 +110,7 @@ function DeskPostCard({ item }: { item: PublishedContent }) {
   // `relative` keeps the link's screen-reader text inside the scrolling row;
   // without it that hidden text widens the whole page on phones.
   return (
-    <li className={DESK_CARD_ITEM}>
+    <li className={cn(DESK_CARD_ITEM, className)}>
       <article className={cn(HOME_CARD, "flex h-full flex-col gap-3")}>
         <header className="flex items-center gap-3">
           <span
@@ -277,13 +284,29 @@ function OfficialProductCard({ card }: { card: OfficialCard }) {
   );
 }
 
+/** Cards across: three on portrait tablets (md), four from lg up. */
+const ACROSS = { md: 3, lg: 4 } as const;
+
+/**
+ * Hides a desk post where the row has no place left for it. The official cards
+ * and the warnings card come first and always show (`pinned`); posts fill what
+ * remains of the three (md) or four (lg) places. Phones swipe through them all.
+ */
+export function deskPostVisibility(index: number, pinned: number): string {
+  const position = pinned + index;
+  if (position >= ACROSS.lg) return "md:hidden";
+  if (position >= ACROSS.md) return "md:max-lg:hidden";
+  return "";
+}
+
 // Phones and small tablets: one row that swipes sideways (no scrollbar shown).
 // Portrait tablets (md) show three cards across and laptops and landscape tablets
 // (lg and up) four, in a grid with no scrollbar (owner, 9 Nov 2026, after the Yr
-// "Latest from the meteorologists" look). Only that many cards show; "All desk
-// posts" leads to the rest. Cards keep their own height; none stretches.
+// "Latest from the meteorologists" look). Official cards and the week's warnings
+// card always show; desk posts fill the remaining places and "All desk posts"
+// leads to the rest (deskPostVisibility). Cards keep their own height.
 const ROW =
-  "-mx-4 flex snap-x snap-mandatory scroll-px-4 gap-4 overflow-x-auto px-4 pb-2 [scrollbar-width:none] sm:-mx-6 sm:scroll-px-6 sm:px-6 [&::-webkit-scrollbar]:hidden md:mx-0 md:grid md:grid-cols-3 md:items-start md:overflow-visible md:px-0 md:pb-0 md:max-lg:[&>li:nth-child(n+4)]:hidden lg:grid-cols-4 lg:gap-5 lg:[&>li:nth-child(n+5)]:hidden";
+  "-mx-4 flex snap-x snap-mandatory scroll-px-4 gap-4 overflow-x-auto px-4 pb-2 [scrollbar-width:none] sm:-mx-6 sm:scroll-px-6 sm:px-6 [&::-webkit-scrollbar]:hidden md:mx-0 md:grid md:grid-cols-3 md:items-start md:overflow-visible md:px-0 md:pb-0 lg:grid-cols-4 lg:gap-5";
 
 /**
  * From the Desk (homepage v2, owner 1 Nov 2026): one row of cards that
@@ -343,8 +366,17 @@ export async function ForecastDesk() {
   });
   const deskUnavailable =
     updates.status === "unavailable" && feed.official.length === 0;
-  const postCards = feed.posts.map((item) => (
-    <DeskPostCard item={item} key={item.id} />
+  // Official cards and the warnings card always show; posts fill the places left.
+  const pinned =
+    feed.official.length +
+    (feed.missingBriefing ? 1 : 0) +
+    (sectorCard ? 1 : 0);
+  const postCards = feed.posts.map((item, index) => (
+    <DeskPostCard
+      className={deskPostVisibility(index, pinned)}
+      item={item}
+      key={item.id}
+    />
   ));
   const earlierCards = feed.earlierPosts.map((item) => (
     <DeskPostCard item={item} key={item.id} />
