@@ -59,11 +59,11 @@ RUN python -m pip install --no-cache-dir --upgrade "msgpack>=1.2.3" "setuptools>
 # the venv on PATH. Kept only as an escape hatch for ad-hoc `docker exec` ops.
 COPY --from=builder /bin/uv /bin/uv
 
-# Refresh the runtime trust store, PCRE2, Expat, Brotli, OpenSSL, Perl and apt as well as curl. Installing
+# Refresh the runtime trust store, PCRE2, Expat, Brotli, zlib, OpenSSL, Perl and apt as well as curl. Installing
 # curl alone does not update unrelated packages inherited from the pinned base.
 # Pango/HarfBuzz/fontconfig are WeasyPrint's text layout (forecast PDFs).
 RUN apt-get update \
-    && apt-get install -y --no-install-recommends curl ca-certificates libpcre2-8-0 libexpat1 libbrotli1 libssl3t64 openssl perl-base \
+    && apt-get install -y --no-install-recommends curl ca-certificates libpcre2-8-0 libexpat1 libbrotli1 zlib1g libssl3t64 openssl perl-base \
        apt libapt-pkg7.0 \
        libpango-1.0-0 libpangoft2-1.0-0 libharfbuzz0b libfontconfig1 \
     && dpkg --compare-versions "$(dpkg-query -W -f='${Version}' apt)" ge '3.0.4' \
@@ -72,6 +72,7 @@ RUN apt-get update \
     && dpkg --compare-versions "$(dpkg-query -W -f='${Version}' libpcre2-8-0)" ge '10.46-1~deb13u3' \
     && dpkg --compare-versions "$(dpkg-query -W -f='${Version}' libexpat1)" ge '2.9.0-1~deb13u1' \
     && dpkg --compare-versions "$(dpkg-query -W -f='${Version}' libbrotli1)" ge '1.1.0-2+deb13u1' \
+    && dpkg --compare-versions "$(dpkg-query -W -f='${Version}' zlib1g)" ge '1:1.3.dfsg+really1.3.1-1+deb13u1' \
     && dpkg --compare-versions "$(dpkg-query -W -f='${Version}' perl-base)" ge '5.40.1-6+deb13u1' \
     && dpkg --compare-versions "$(dpkg-query -W -f='${Version}' libssl3t64)" ge '3.5.7-1~deb13u3' \
     && apt-get clean \

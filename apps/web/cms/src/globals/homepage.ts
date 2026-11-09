@@ -9,7 +9,7 @@ export const HOMEPAGE_SECTIONS = [
   { label: "Discover", value: "discover" },
   { label: "Report write-ups (in From the Desk)", value: "reports" },
   {
-    label: "What it means for you (card in From the Desk)",
+    label: "Plan your week (card in From the Desk)",
     value: "explore-today",
   },
   { label: "Grenada in data", value: "grenada-in-data" },

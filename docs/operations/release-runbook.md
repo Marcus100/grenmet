@@ -12,7 +12,7 @@ auto-merge).
 Main merges and production publication or deployment require separate explicit
 authorization (see `AGENTS.md`).
 
-Branch flow: `task → (PR) → dev → (PR) → staging → (PR) → main → (release vN.M) → prod`.
+Branch flow: `task → (PR) → dev → (PR) → staging → (PR) → main → (release vX.Y.Z) → prod`.
 Integrate current `origin/dev` into the task branch and validate before opening
 the PR; if `dev` advances, integrate and revalidate. Never force-push or bypass
 hooks. Promotion is always via PR; reuse an open promotion PR. Rulesets enforce
@@ -69,15 +69,16 @@ is their committed copy and `pnpm guardrails:rulesets` checks it.
 
 ## 4. Publish the release (deploys prod)
 
-- Tag convention: `vN.M`, strictly increasing (…v0.10, v0.11). The tag IS the
-  image tag — it must be new.
+- Tag convention: `vX.Y.Z`, strictly increasing (v1.0.0, v1.0.1, …). Releases
+  before v1.0.0 used `vN.M` (up to v0.31). The tag IS the image tag — it must be new.
 - Easiest: run the **Draft Release** workflow (`gh workflow run draft-release.yml`).
-  It picks the next `vN.M`, creates a **draft** release on `main` with notes
+  It picks the next `vX.Y.Z` (patch plus one; pass `-f tag=vX.Y.Z` for a minor or
+  major release), creates a **draft** release on `main` with notes
   generated from the PRs merged since the previous release, and prints its URL.
   A draft does not deploy anything; review the notes, then **human publishes**
   it from the Releases page.
 - By hand instead: draft notes from merged changes, then **human publishes**:
-  `gh release create vN.M --target main --title "vN.M" --notes "…"`
+  `gh release create vX.Y.Z --target main --title "vX.Y.Z" --notes "…"`
 - Publishing triggers `pipeline-prod.yml`: promotes the staging-verified
   digests for the tagged commit's git tree (nothing is rebuilt; it fails if
   staging never deployed that tree), then deploys via `deploy.yml` on the
