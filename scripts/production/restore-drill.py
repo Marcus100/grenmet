@@ -547,6 +547,10 @@ class ApiUnderTest:
             "POSTGRES_DB": self.main_database,
             "FIRST_SUPERUSER": "restore-drill@example.com",
             "TELEMETRY_ENABLED": "false",
+            # The drill's token has no second factor. This throwaway container sits
+            # on an internal-only network, so it reads with MFA enforcement off; the
+            # live API keeps its own setting.
+            "AUTH_PRIVILEGED_MFA_MODE": "disabled",
         }
         secret = {
             "SECRET_KEY": self.secret_key,
