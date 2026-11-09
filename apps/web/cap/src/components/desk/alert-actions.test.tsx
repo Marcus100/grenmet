@@ -345,3 +345,34 @@ describe("a published alert", () => {
     );
   });
 });
+
+describe("buttons follow the API's allowed_actions", () => {
+  it("hides Cancel when the API does not list cancel, and keeps Mark expired", () => {
+    show(
+      deskAlert({ allowed_actions: ["expire"], lifecycle_state: "PUBLISHED" })
+    );
+    expect(screen.queryByRole("button", { name: "Cancel alert" })).toBeNull();
+    expect(screen.getByRole("button", { name: "Mark expired" })).toBeVisible();
+  });
+
+  it("keeps Publish disabled when the API does not list publish, even when approved", async () => {
+    show(
+      deskAlert({
+        allowed_actions: ["emergency_publish"],
+        lifecycle_state: "APPROVED",
+      })
+    );
+    await validateAndTick();
+    expect(screen.getByRole("button", { name: "Publish" })).toBeDisabled();
+  });
+
+  it("offers Request review only when the API lists submit", () => {
+    show(deskAlert({ allowed_actions: ["emergency_publish"] }));
+    expect(screen.queryByRole("button", { name: "Request review" })).toBeNull();
+  });
+
+  it("keeps Edit draft for a submitted or approved alert, which reverts on save", () => {
+    show(deskAlert({ lifecycle_state: "APPROVED" }));
+    expect(screen.getByRole("link", { name: "Edit draft" })).toBeVisible();
+  });
+});
