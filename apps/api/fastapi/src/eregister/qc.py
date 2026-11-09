@@ -37,7 +37,7 @@ from src.eregister.exceptions import HourHeldError, ObservationNotFoundError
 from src.exceptions import AppException, AppValidationError, AuthorizationError
 from src.utils.datetime import utc_now
 
-from . import entries, gate, iwxxm, metar, sends, stations, transitions
+from . import bufr, entries, gate, iwxxm, metar, sends, stations, transitions
 from .models import STATUS_QUEUED, STATUS_SENT, TARGET_WIS2, ERegisterSend
 from .schemas import RegisterObservationRead
 from .transitions import RegisterState
@@ -108,28 +108,36 @@ async def _audit(
     await app_session.commit()
 
 
-_STORE_IWXXM = text(
+_STORE_ENCODINGS = text(
     """
-    UPDATE register_observations SET iwxxm = CAST(:iwxxm AS jsonb)
+    UPDATE register_observations
+    SET iwxxm = CAST(:iwxxm AS jsonb), bufr = CAST(:bufr AS jsonb)
     WHERE id = :id
     RETURNING *
     """
-).bindparams(bindparam("iwxxm", type_=JSONB(none_as_null=True)))
+).bindparams(
+    bindparam("iwxxm", type_=JSONB(none_as_null=True)),
+    bindparam("bufr", type_=JSONB(none_as_null=True)),
+)
 
 
-async def _store_iwxxm(register: AsyncSession, row: dict[str, Any]) -> dict[str, Any]:
-    """Build the IWXXM METAR of the accepted SYNOP and store it on the row.
+async def _store_encodings(
+    register: AsyncSession, row: dict[str, Any]
+) -> dict[str, Any]:
+    """Build the IWXXM METAR and the BUFR of the accepted SYNOP and store both on the row.
 
-    Same register transaction as the acceptance, so a row is never accepted without
-    its record. The encoder runs in a thread (the schema loads once per process).
-    A gap or an invalid document is stored in the record's ``errors``; it never
-    blocks acceptance and nothing is sent (owner rule: report, never send).
+    Same register transaction as the acceptance, so a row is never accepted without its
+    records. The encoders run in a thread (the IWXXM schema loads once per process).
+    An encoder failure or a gap is stored in the record's ``errors``; it never blocks
+    acceptance. Sending is refused by ``sends.load_sendable`` while the BUFR is not valid.
+    Nothing is sent here (owner rule: report, never send).
     """
     station = await stations.pressure_for(register, str(row["station_id"]))
+    body = row["body"] or {}
     try:
-        record = await run_in_threadpool(
+        iwxxm_record = await run_in_threadpool(
             iwxxm.record_for_row,
-            body=row["body"] or {},
+            body=body,
             station=station,
             observed_at=row["observed_at"],
             aerodrome_icao=str(row["aerodrome_icao"] or metar.ICAO),
@@ -137,15 +145,20 @@ async def _store_iwxxm(register: AsyncSession, row: dict[str, Any]) -> dict[str,
         )
     except OSError, ValueError, ET.ParseError, xmlschema.XMLSchemaException:
         logger.exception("eRegister IWXXM encoder failed; stored as an error")
-        record = {
-            "version": iwxxm.IWXXM_VERSION,
-            "xml": None,
-            "valid": False,
-            "errors": ["IWXXM encoder failed; see the server log"],
-            "schematron": iwxxm.SCHEMATRON_STATUS,
-        }
+        iwxxm_record = iwxxm.failed_record("IWXXM encoder failed; see the server log")
+    try:
+        bufr_record = await run_in_threadpool(
+            bufr.record_for_row,
+            body=body,
+            station=station,
+            observed_at=row["observed_at"],
+        )
+    except OSError, ValueError, KeyError, TypeError, LookupError:
+        logger.exception("eRegister BUFR encoder failed; stored as an error")
+        bufr_record = bufr.failed_record("BUFR encoder failed; see the server log")
     result = await register.execute(
-        _STORE_IWXXM, {"iwxxm": record, "id": str(row["id"])}
+        _STORE_ENCODINGS,
+        {"iwxxm": iwxxm_record, "bufr": bufr_record, "id": str(row["id"])},
     )
     return dict(result.mappings().one())
 
@@ -210,7 +223,7 @@ async def transition(
         )
         saved = dict(updated.mappings().one())
         if action == "accept":
-            saved = await _store_iwxxm(register, row)
+            saved = await _store_encodings(register, row)
         if action == "reject" and row.get("supersedes_id"):
             # The rejected correction has left the live set, so the original returns
             # to it in the same transaction. No save lock here: row locks are taken

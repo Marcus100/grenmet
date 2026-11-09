@@ -12,6 +12,7 @@ from typing import Any, cast
 from uuid import UUID
 
 from fastapi import HTTPException
+from fastapi.concurrency import run_in_threadpool
 from sqlalchemy import func, select, text
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -23,7 +24,7 @@ from src.notifications.config import notification_settings
 from src.notifications.models import OutboundEmail, OutboundEmailStatus
 from src.utils.datetime import utc_now
 
-from . import encode, entries, gate, rules, transitions
+from . import bufr, encode, entries, gate, rules, stations, transitions
 from .config import eregister_settings, wis2box_settings
 from .models import (
     STATUS_FAILED,
@@ -98,7 +99,34 @@ async def load_sendable(
         raise AppValidationError(f"Observation does not pass validation: {detail}")
     workbook = encode.workbook_from_body(data["body"] or {})
     _, decoded = rules.validate_synop(workbook, recompute=False)
+    await _require_bufr(session, data)
     return SendableObservation(data, workbook, decoded)
+
+
+async def _require_bufr(session: AsyncSession, data: dict[str, Any]) -> None:
+    """Refuse WIS2 and email while the observation's BUFR is not valid.
+
+    The stored record is used when present. A row accepted before the BUFR was stored
+    (or a record never written) is checked now, from the same values, and not stored.
+    No reviewer override exists yet, so a failed check always blocks the send.
+    """
+    stored = data.get("bufr")
+    record: dict[str, Any]
+    if isinstance(stored, dict):
+        record = stored
+    else:
+        station = await stations.pressure_for(session, str(data["station_id"]))
+        record = await run_in_threadpool(
+            bufr.record_for_row,
+            body=data["body"] or {},
+            station=station,
+            observed_at=data["observed_at"],
+        )
+    if record.get("valid") is not True:
+        reasons = record.get("errors") or ["the BUFR check did not pass"]
+        raise AppException(
+            f"BUFR check failed, so the observation is not sent: {reasons[0]}", 409
+        )
 
 
 async def _claim(

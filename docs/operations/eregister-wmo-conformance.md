@@ -322,6 +322,28 @@ blocks acceptance.
 - **Performance:** the schema loads once per process (about 8 s on the WSL host).
   The first accept in each process waits for it; the encoder runs in a thread.
 
+## BUFR (Surface-RA-IV-100), `src/eregister/bufr.py`
+
+Owner decision (GitHub #1201). At acceptance the accepted SYNOP's wis2box CSV
+(`encode.wis2_row`) is converted with csv2bufr 0.8.8 using the Surface-RA-IV-100
+mapping, the same template wis2box uses. The packaged copy in `bufr_template/` is
+checked byte for byte against `scripts/wis2-setup/`. The message is then decoded again
+with ecCodes, and each element is compared with the observation's decoded SI values,
+not with the CSV: WIGOS identifier, time, station and sea-level pressure, air
+temperature, dew point, relative humidity, wind direction and speed, visibility,
+precipitation, total cloud and present weather. Tolerances are the element resolution
+(see the constants in `bufr.py`), not quality limits.
+
+- Stored on the row's `bufr` column as `{template, base64, checks, valid, errors}`,
+  in the same transaction as the acceptance.
+- **Sends are blocked** while the record is not valid: `sends.load_sendable` refuses
+  WIS2 and email with 409 and the first error. A row with no stored record is checked
+  at send time. **No reviewer override exists yet**, so a mismatch blocks until the
+  observation is corrected (owner decision needed on an override).
+- The CSV handed to wis2box does not change. csv2bufr is a runtime dependency; the
+  process points its template search at `bufr_template/`.
+- Not built: BUFR for METAR and SPECI.
+
 ## Send actions (email and WIS2), `src/eregister/encode.py`
 
 "Email observation" acts on a saved SYNOP that re-validates without errors
@@ -352,9 +374,8 @@ so empty: soil, radiation, snow, wind gust direction. The ground state E fills `
 
 ## Not implemented (needs owner approval)
 
-- **BUFR in the API (template TM 307080 for SYNOP, and the METAR/SPECI BUFR
-  templates):** no encoder exists. wis2box converts instead: "Send last obs"
-  hands it a CSV (see Send actions). METAR/SPECI have no WIS2 path yet.
+- **BUFR for METAR and SPECI:** not built. SYNOP BUFR is built and checked (see the
+  BUFR section). wis2box still converts the CSV for WIS2 (see Send actions).
 - **IWXXM:** METAR and SPECI first slice is built (see the IWXXM section above).
   Still open: TAF (FM 51), Schematron (needs an XSLT 2.0 engine), the agreed
   exchange profile and transport decision with CMO and ROC. The external converter
