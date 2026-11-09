@@ -133,7 +133,9 @@ export async function SectorDeskCard({
   if (await isSectionHidden("explore-today")) return null;
   const week = await loadWeek();
   const { outlook, tiles } = week;
-  const summary = tiles ? weekSummary(tiles) : null;
+  const summary = tiles
+    ? weekSummary(tiles, outlook?.complete !== false)
+    : null;
   return (
     <li className={DESK_CARD_ITEM}>
       {/* The heading id is fixed: this card renders once per page. */}
@@ -183,29 +185,37 @@ export async function SectorDeskCard({
               : tiles
                 ? "nothing this week"
                 : "not available";
+            // The level is written under the icon too, never colour alone.
+            const word = peak ? LEVEL_WORD[peak] : tiles ? "None" : "—";
             return (
               <li key={value}>
                 <Link
                   aria-label={`${label}: ${state}`}
-                  className="flex aspect-square w-full items-center justify-center rounded-lg"
+                  className="flex flex-col items-center gap-1 hover:underline"
                   href={`${PLAN_YOUR_WEEK_HREF}#${value}` as Route}
-                  style={
-                    peak
-                      ? {
-                          background: LEVEL_COLOUR[peak],
-                          color: "var(--gm-navy)",
-                        }
-                      : undefined
-                  }
                   title={`${label}: ${state}`}
                 >
                   <span
                     className={cn(
-                      "flex size-full items-center justify-center rounded-lg",
+                      "flex aspect-square w-full items-center justify-center rounded-lg",
                       !peak && "bg-gm-navy text-gm-lime"
                     )}
+                    style={
+                      peak
+                        ? {
+                            background: LEVEL_COLOUR[peak],
+                            color: LEVEL_ICON[peak],
+                          }
+                        : undefined
+                    }
                   >
                     <Icon aria-hidden="true" className="size-5" />
+                  </span>
+                  <span
+                    aria-hidden="true"
+                    className="text-caption text-gm-text-secondary leading-caption"
+                  >
+                    {word}
                   </span>
                 </Link>
               </li>
@@ -283,6 +293,14 @@ const LEVEL_COLOUR: Record<Level, string> = {
   yellow: "var(--gm-risk-yellow)",
   orange: "var(--gm-risk-amber)",
   red: "var(--gm-risk-red)",
+};
+
+/** Icon colour on each level: navy, except white on red, which navy fails (2.8:1). */
+const LEVEL_ICON: Record<Level, string> = {
+  green: "var(--gm-navy)",
+  yellow: "var(--gm-navy)",
+  orange: "var(--gm-navy)",
+  red: "var(--gm-text-inverse)",
 };
 
 /** Sixteen blocks, one per cell of the 4 by 4 impact-based forecast matrix; each level fills a quarter. */

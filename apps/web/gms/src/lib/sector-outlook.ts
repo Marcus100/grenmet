@@ -183,16 +183,22 @@ function joinLabels(labels: string[]): string {
  * the sectors at it, then the first item there and when it applies. With
  * nothing published it says so; it never invents an all-clear.
  */
-export function weekSummary(tiles: SectorTile[]): {
+export function weekSummary(
+  tiles: SectorTile[],
+  complete = true
+): {
   headline: string;
   text: string;
 } {
   const withItems = tiles.filter((tile) => tile.items.length > 0);
   if (withItems.length === 0) {
-    return {
-      headline: "No alerts or warnings this week",
-      text: "Nothing is published for any sector right now.",
-    };
+    // A partly read feed never reads as an all-clear.
+    return complete
+      ? {
+          headline: "No alerts or warnings this week",
+          text: "Nothing is published for any sector right now.",
+        }
+      : { headline: "This week's alerts and warnings", text: "" };
   }
   const label = (tile: SectorTile) =>
     SECTORS.find(({ value }) => value === tile.sector)?.label ?? tile.sector;
@@ -202,11 +208,16 @@ export function weekSummary(tiles: SectorTile[]): {
   );
   const peak = peakIndex >= 0 ? LEVELS[peakIndex] : undefined;
   const top = peak ? withItems.filter((tile) => tile.peak === peak) : withItems;
-  const first = top[0]?.items[0];
+  const sectors =
+    top.length === tiles.length ? "all sectors" : joinLabels(top.map(label));
+  // The line under the headline is an item at the headline's level.
+  const first = peak
+    ? top.flatMap((tile) => tile.items).find((item) => item.colour === peak)
+    : top[0]?.items[0];
   return {
     headline: peak
-      ? `${LEVEL_NAME[peak]} level for ${joinLabels(top.map(label))}`
-      : `Outlooks for ${joinLabels(top.map(label))}`,
+      ? `${LEVEL_NAME[peak]} level for ${sectors}`
+      : `Outlooks for ${sectors}`,
     text: first ? `${first.title} · ${first.when}` : "",
   };
 }

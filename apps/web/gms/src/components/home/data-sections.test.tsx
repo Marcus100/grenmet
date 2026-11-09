@@ -428,3 +428,40 @@ it("groups the notices in one status region when several apply", async () => {
   expect(status).toHaveTextContent("No alerts or warnings are published");
   expect(status).toHaveTextContent("may be incomplete");
 });
+
+it("says so on the card when the feed is unavailable, with no all-clear", async () => {
+  vi.mocked(fetchHomeContent).mockResolvedValue(home({}));
+  vi.mocked(fetchSectorOutlook).mockResolvedValue(null);
+  await renderCard();
+  expect(
+    screen.getByRole("heading", { name: "This week's alerts and warnings" })
+  ).toBeInTheDocument();
+  expect(screen.getByRole("status")).toHaveTextContent("can't be loaded");
+  expect(
+    screen.getByRole("link", { name: "Marine: not available" })
+  ).toBeInTheDocument();
+  expect(screen.queryByText(NO_IMPACTS)).toBeNull();
+});
+
+it("never reads as an all-clear when the feed was only partly read", async () => {
+  vi.mocked(fetchHomeContent).mockResolvedValue(home({}));
+  vi.mocked(fetchSectorOutlook).mockResolvedValue(outlook([], false));
+  await renderCard();
+  expect(
+    screen.getByRole("heading", { name: "This week's alerts and warnings" })
+  ).toBeInTheDocument();
+  expect(screen.getByRole("status")).toHaveTextContent("may be incomplete");
+});
+
+it("says all sectors when an untagged warning affects everyone, and writes each level", async () => {
+  vi.mocked(fetchHomeContent).mockResolvedValue(home({}));
+  vi.mocked(fetchSectorOutlook).mockResolvedValue(
+    outlook([outlookItem({ sectors: [], affects_everyone: true })])
+  );
+  await renderCard();
+  expect(
+    screen.getByRole("heading", { name: "Orange level for all sectors" })
+  ).toBeInTheDocument();
+  const row = screen.getByRole("list", { name: "Sectors this week" });
+  expect(within(row).getAllByText("Orange")).toHaveLength(6);
+});
