@@ -355,3 +355,14 @@ test("the restore drill runs its script from the dispatched ref, not the release
   );
   assert.ok(!drill.includes("python3 scripts/production/restore-drill.py"));
 });
+
+test("auto re-run covers CI and image builds only, with no code from the failed run", () => {
+  const source = readWorkflow("auto-rerun.yml");
+  const watched = source.split("    workflows:\n")[1]?.split("    types:")[0] ?? "";
+  assert.ok(watched.includes("- CI\n"));
+  assert.doesNotMatch(watched, /deploy|promot|release|pipeline|smoke/iu);
+  assert.ok(source.includes("actions: write"));
+  assert.ok(!source.includes("pull_request_target"));
+  assert.ok(!source.includes("workflow_run.head_branch"));
+  assert.ok(!source.includes("workflow_run.head_sha"));
+});
