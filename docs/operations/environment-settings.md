@@ -8,7 +8,9 @@
 secrets and variables. Nothing kept the two lists aligned, so names drifted
 (for example `DO_SPACES_*` on staging and `STORAGE_*` on production). The
 check below compares the **names** in each environment with a checked-in
-manifest. It never reads or prints a value.
+manifest. It never prints a value. The API never returns secret values. It does
+return each variable's value; `gh` filters the response with `--jq` so only the
+name reaches the script, and the value is discarded.
 
 ## Run it
 
@@ -16,6 +18,12 @@ manifest. It never reads or prints a value.
 pnpm ops:environment-settings          # text report; exit 1 on drift
 node scripts/ci/check-environment-settings.mjs --json
 ```
+
+| Exit code | Meaning |
+| --- | --- |
+| 0 | Every environment matches the manifest. |
+| 1 | Real drift (`MISSING` or `UNEXPECTED`), or an invalid manifest. |
+| 2 | The check could not run: `gh` or the API failed (not logged in, token lacks scope, network), or an argument was wrong. The reason is on stderr. This is not evidence of drift. |
 
 It needs a `gh` login, or a `GH_TOKEN`, that can list environment secrets and
 variables. That means repository admin, or a fine-grained token with

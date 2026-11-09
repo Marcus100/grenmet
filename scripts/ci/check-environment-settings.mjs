@@ -1,13 +1,19 @@
 #!/usr/bin/env node
 // Compare GitHub environment secret and variable NAMES with the checked-in
-// manifest (issue #1146). Values are never requested: the GitHub API only
-// returns names and dates for these lists, and this script reads names only.
+// manifest (issue #1146). Values are never printed. Secret values are never
+// available from the API. The variables list does return each value; `gh`
+// filters it with --jq so only the name leaves the process, and the value is
+// discarded.
 //
 //   node scripts/ci/check-environment-settings.mjs [--repo owner/name] [--json]
 //
-// Exits 1 when a required name is missing, an unlisted name is present, or the
-// manifest is invalid. Names listed under `pending` are known drift: tolerated
-// either way and printed on every run until someone resolves them.
+// Exit codes:
+//   0  every environment matches the manifest
+//   1  real drift (a missing or unlisted name) or an invalid manifest
+//   2  the check could not run: gh or the API failed (login, token scope,
+//      network), or the arguments were wrong. Not evidence of drift.
+// Names listed under `pending` are known drift: tolerated either way and
+// printed on every run until someone resolves them.
 import { execFileSync } from "node:child_process";
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
@@ -20,6 +26,9 @@ const ENVIRONMENT = /^[\w.-]+$/u;
 const MANIFEST = fileURLToPath(
   new URL("./environment-settings.json", import.meta.url)
 );
+
+const isPlainObject = (value) =>
+  typeof value === "object" && value !== null && !Array.isArray(value);
 
 function namesOf(value) {
   if (Array.isArray(value)) {
@@ -57,6 +66,32 @@ function nameErrors(manifest, environment, kind) {
   return errors;
 }
 
+/** `only` and `pending` map environment → kind → { name: reason }. */
+function sectionShapeErrors(manifest, section, environments) {
+  const value = manifest[section] ?? {};
+  if (!isPlainObject(value)) {
+    return [`${section} must be an object`];
+  }
+  const errors = [];
+  for (const [environment, kinds] of Object.entries(value)) {
+    if (!environments.includes(environment)) {
+      errors.push(`${section}.${environment} is not a listed environment`);
+    }
+    if (!isPlainObject(kinds)) {
+      errors.push(`${section}.${environment} must be an object`);
+      continue;
+    }
+    for (const kind of KINDS) {
+      if (kinds[kind] !== undefined && !isPlainObject(kinds[kind])) {
+        errors.push(
+          `${section}.${environment}.${kind} must be an object of name: reason`
+        );
+      }
+    }
+  }
+  return errors;
+}
+
 /** Every structural problem in the manifest, as readable strings. */
 export function validateManifest(manifest) {
   const environments = manifest.environments ?? [];
@@ -65,11 +100,7 @@ export function validateManifest(manifest) {
       ? ["environments must list at least one environment"]
       : [];
   for (const section of ["only", "pending"]) {
-    for (const environment of Object.keys(manifest[section] ?? {})) {
-      if (!environments.includes(environment)) {
-        errors.push(`${section}.${environment} is not a listed environment`);
-      }
-    }
+    errors.push(...sectionShapeErrors(manifest, section, environments));
   }
   for (const environment of environments) {
     for (const kind of KINDS) {
@@ -144,19 +175,34 @@ export function formatReport(results) {
   return { ok, text: lines.join("\n") };
 }
 
+/** Drift never throws, so any thrown error exits with this code, not 1. */
+export const EXIT_COULD_NOT_RUN = 2;
+
+/** The check could not run (gh, API, login), as opposed to finding drift. */
+export class AccessError extends Error {}
+
 function ghNames(repository, environment, kind) {
-  const output = execFileSync(
-    "gh",
-    [
-      "api",
-      "--paginate",
-      `repos/${repository}/environments/${environment}/${kind}?per_page=100`,
-      "--jq",
-      `.${kind}[].name`,
-    ],
-    { encoding: "utf8", stdio: ["ignore", "pipe", "pipe"] }
-  );
-  return output.split("\n").filter(Boolean);
+  try {
+    const output = execFileSync(
+      "gh",
+      [
+        "api",
+        "--paginate",
+        `repos/${repository}/environments/${environment}/${kind}?per_page=100`,
+        "--jq",
+        `.${kind}[].name`,
+      ],
+      { encoding: "utf8", stdio: ["ignore", "pipe", "pipe"] }
+    );
+    return output.split("\n").filter(Boolean);
+  } catch (error) {
+    const detail = String(error.stderr ?? error.message)
+      .trim()
+      .split("\n")[0];
+    throw new AccessError(
+      `Could not list ${environment} ${kind} with gh: ${detail}`
+    );
+  }
 }
 
 export function run(
@@ -206,6 +252,6 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
     process.exitCode = run(process.argv.slice(2));
   } catch (error) {
     console.error(error.message);
-    process.exitCode = 1;
+    process.exitCode = EXIT_COULD_NOT_RUN;
   }
 }
