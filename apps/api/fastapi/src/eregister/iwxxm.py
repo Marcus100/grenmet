@@ -502,6 +502,18 @@ def stored_record(encoded: Encoded) -> dict[str, Any]:
     }
 
 
+def failed_record(message: str) -> dict[str, Any]:
+    """The record for an encoder that failed unexpectedly (logged by the caller)."""
+    return {
+        "version": IWXXM_VERSION,
+        "xml": None,
+        "valid": False,
+        "errors": [message],
+        "note": None,
+        "schematron": SCHEMATRON_STATUS,
+    }
+
+
 def record_for_row(
     *,
     body: dict[str, Any],

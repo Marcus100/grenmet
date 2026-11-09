@@ -779,6 +779,59 @@ async def test_accept_keeps_an_iwxxm_gap_as_an_error_and_still_accepts(
     assert any("ww 06" in error for error in stored["errors"]), stored["errors"]
 
 
+@pytest.mark.usefixtures("incoming", "recipients")
+async def test_accept_stores_the_bufr_record_with_its_checks(
+    send_client: tuple[httpx.AsyncClient, User],
+) -> None:
+    client, _ = send_client
+    observation = await save(client, {**FULL_ROW, "present_wx": "51"})
+    accepted = await client.post(qc_url(observation, "accept"))
+    assert accepted.status_code == 200, accepted.text
+    stored = accepted.json()["bufr"]
+    assert stored["template"] == "Surface-RA-IV-100"
+    assert stored["base64"] is not None
+    assert stored["checks"], stored
+
+
+@pytest.mark.usefixtures("incoming", "recipients")
+async def test_a_broken_bufr_blocks_email_and_wis2(
+    send_client: tuple[httpx.AsyncClient, User],
+) -> None:
+    client, _ = send_client
+    observation = await save(client)
+    accepted = await client.post(qc_url(observation, "accept"))
+    assert accepted.status_code == 200, accepted.text
+    # What a mismatch stores: the air temperature BUFR differs by five kelvin.
+    broken = {
+        "template": "Surface-RA-IV-100",
+        "base64": None,
+        "checks": [],
+        "valid": False,
+        "errors": ["air_temperature_k: observation 298.55, BUFR 303.55"],
+    }
+    await register_exec(
+        "UPDATE register_observations SET bufr = CAST(:b AS jsonb) WHERE id = :i",
+        b=json.dumps(broken),
+        i=observation,
+    )
+    email = await client.post(f"/api/v1/eregister/observations/{observation}/email")
+    assert email.status_code == 409, email.text
+    assert "BUFR check failed" in email.text
+    publish = await client.post(f"/api/v1/eregister/observations/{observation}/publish")
+    assert publish.status_code == 409, publish.text
+    assert "BUFR check failed" in publish.text
+
+
+@pytest.mark.usefixtures("incoming", "recipients")
+async def test_a_valid_bufr_allows_email_when_no_record_was_stored(
+    send_client: tuple[httpx.AsyncClient, User],
+) -> None:
+    client, _ = send_client
+    observation = await save(client, {**FULL_ROW, "present_wx": "51"}, accepted=True)
+    response = await client.post(f"/api/v1/eregister/observations/{observation}/email")
+    assert response.status_code == 202, response.text
+
+
 async def test_other_register_staff_may_accept_too(
     send_client: tuple[httpx.AsyncClient, User], db_async: AsyncSession
 ) -> None:
