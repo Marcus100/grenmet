@@ -1,5 +1,7 @@
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
+import { mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import { describe, it } from "node:test";
 
 import {
@@ -16,6 +18,8 @@ import {
 
 const ROOT = new URL("../../", import.meta.url);
 const CONTEXT = { owner: "Marcus100", repository: "Marcus100/grenmet" };
+const MISSING_CONTEXT =
+  /GITHUB_REPOSITORY_OWNER and GITHUB_REPOSITORY must be set/u;
 const DIGEST = `sha256:${"ab".repeat(32)}`;
 const WEB = [
   "FROM node:24-alpine AS base",
@@ -58,6 +62,15 @@ describe("patch dates", () => {
       message: "Invalid patch date: tomorrow",
     });
     assert.throws(() => bumpPatchDate("FROM scratch\n", "2026-11-09"));
+  });
+
+  it("refuses to bump from a garbage current date instead of doing nothing", () => {
+    for (const bad of ["tomorrow", "2026-13-01", "9999-99-99x"]) {
+      assert.throws(
+        () => bumpPatchDate(WEB.replace("2026-11-07", bad), "2026-11-09"),
+        { message: `Invalid current patch date: ${bad}` }
+      );
+    }
   });
 
   it("reports missing ARGs, bad dates and families that disagree", () => {
@@ -197,6 +210,47 @@ describe("scanTargets", () => {
     assert.throws(() => scanTargets({ ...CONTEXT, tags: ["bad tag"] }), {
       message: "Invalid tag: bad tag",
     });
+  });
+
+  it("names the missing variables when the repository context is unset", () => {
+    assert.throws(() => scanTargets({ tags: ["dev"] }), {
+      message: MISSING_CONTEXT,
+    });
+    assert.throws(
+      () => run(["targets", "tags", "dev"], { log: () => undefined, env: {} }),
+      { message: MISSING_CONTEXT }
+    );
+  });
+
+  it("plan reads a report path that contains an equals sign", (t) => {
+    const directory = mkdtempSync(join(tmpdir(), "patch-plan-"));
+    t.after(() => rmSync(directory, { recursive: true, force: true }));
+    const report = join(directory, "a=b.json");
+    writeFileSync(
+      report,
+      JSON.stringify({
+        SchemaVersion: 2,
+        ArtifactType: "container_image",
+        Results: [
+          {
+            Target: "x (alpine 3.22.2)",
+            Type: "alpine",
+            Vulnerabilities: [
+              {
+                VulnerabilityID: "CVE-1",
+                PkgName: "musl",
+                InstalledVersion: "1",
+                FixedVersion: "2",
+                Severity: "HIGH",
+              },
+            ],
+          },
+        ],
+      })
+    );
+    const lines = [];
+    run(["plan", `web-gms=${report}`], { log: (line) => lines.push(line) });
+    assert.deepEqual(JSON.parse(lines[0]).bump, ["apps/web/gms/Dockerfile"]);
   });
 
   it("the targets command prints the matrix and refuses an empty one", () => {
