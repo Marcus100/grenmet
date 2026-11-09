@@ -747,6 +747,36 @@ async def test_observer_accepts_alone_and_it_goes_out_at_once(
     assert (await client.post(qc_url(observation, "accept"))).status_code == 409
 
 
+@pytest.mark.usefixtures("incoming", "recipients")
+async def test_accept_stores_the_iwxxm_metar_on_the_row(
+    send_client: tuple[httpx.AsyncClient, User],
+) -> None:
+    client, _ = send_client
+    observation = await save(client, {**FULL_ROW, "present_wx": "51"})
+    accepted = await client.post(qc_url(observation, "accept"))
+    assert accepted.status_code == 200, accepted.text
+    stored = accepted.json()["iwxxm"]
+    assert stored["version"] == "2025-2"
+    assert stored["schematron"] == "not_run"
+    assert "<iwxxm:METAR" in stored["xml"]
+    assert stored["valid"] is True, stored["errors"]
+
+
+@pytest.mark.usefixtures("incoming", "recipients")
+async def test_accept_keeps_an_iwxxm_gap_as_an_error_and_still_accepts(
+    send_client: tuple[httpx.AsyncClient, User],
+) -> None:
+    client, _ = send_client
+    # FULL_ROW reports ww 06 (dust), which the METAR encoder does not map yet.
+    observation = await save(client)
+    accepted = await client.post(qc_url(observation, "accept"))
+    assert accepted.status_code == 200, accepted.text
+    assert accepted.json()["state"] == "accepted"
+    stored = accepted.json()["iwxxm"]
+    assert stored["valid"] is False
+    assert any("ww 06" in error for error in stored["errors"]), stored["errors"]
+
+
 async def test_other_register_staff_may_accept_too(
     send_client: tuple[httpx.AsyncClient, User], db_async: AsyncSession
 ) -> None:
