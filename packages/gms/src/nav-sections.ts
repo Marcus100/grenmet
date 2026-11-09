@@ -854,11 +854,6 @@ export const NAV_SECTIONS: NavSection[] = [
         links: [
           link("What we do", "/about", "Who we are and what we do"),
           link(
-            "Our services",
-            "/about/services",
-            "The full range of services we provide"
-          ),
-          link(
             "Our history",
             "/about/history",
             "How meteorology in Grenada developed"
