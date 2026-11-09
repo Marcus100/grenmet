@@ -371,3 +371,35 @@ test("auto re-run covers CI and image builds only, with no code from the failed 
   assert.ok(!source.includes("workflow_run.head_branch"));
   assert.ok(!source.includes("workflow_run.head_sha"));
 });
+
+const APP_TOKEN_STEP = "      - name: Create GitHub App token";
+const PUSH_STEP = "      - name: Push the branch and open the pull request";
+const REPORT_STEP = "      - name: Report what needs a person";
+const APP_TOKEN_USE = /steps\.app-token\.outputs\.token/gu;
+const REPOSITORY_SCRIPT = /\bnode scripts\//u;
+const PERSIST_FALSE = /persist-credentials: false/gu;
+const CHECKOUT = /actions\/checkout@/gu;
+
+test("daily image scan keeps the fix App token away from repository scripts", () => {
+  const source = readWorkflow("image-scan-daily.yml");
+  const fix = source.split("\n  fix:\n")[1];
+  const beforeToken = fix.split(APP_TOKEN_STEP)[0];
+  const tokenStep = fix.split(APP_TOKEN_STEP)[1].split(PUSH_STEP)[0];
+  const push = fix.split(PUSH_STEP)[1].split(REPORT_STEP)[0];
+  // Scripts from the dev checkout run only before the token exists.
+  assert.match(beforeToken, REPOSITORY_SCRIPT);
+  assert.ok(!beforeToken.includes("app-token"));
+  assert.ok(!beforeToken.includes("IMAGE_FIX_APP_PRIVATE_KEY"));
+  // The token is limited to what the last step needs.
+  assert.ok(tokenStep.includes("permission-contents: write"));
+  assert.ok(tokenStep.includes("permission-pull-requests: write"));
+  // The last step runs only the pushing and PR tools, and is the sole user of the token.
+  assert.ok(!REPOSITORY_SCRIPT.test(push));
+  assert.equal(fix.match(APP_TOKEN_USE).length, 2);
+  assert.ok(!fix.split(REPORT_STEP)[1].includes("app-token"));
+  // No checkout persists credentials.
+  assert.equal(
+    source.match(PERSIST_FALSE).length,
+    source.match(CHECKOUT).length
+  );
+});

@@ -7,11 +7,20 @@ name: Daily image scan
 # release image straight from the registry with the same policy as the build
 # gate (.github/actions/scan-image, scripts/ci/check-vulnerabilities.mjs).
 #
-# When the only blocking findings are OS packages, the fix job bumps the patch
-# date (ALPINE_PATCH_DATE / DEBIAN_PATCH_DATE, scripts/ci/image-patch-dates.mjs)
+# When the dev images are blocked only by OS packages, the fix job bumps the
+# patch date (ALPINE_PATCH_DATE / DEBIAN_PATCH_DATE, scripts/ci/image-patch-dates.mjs)
 # and opens a pull request into dev with a GitHub App token, so CI runs on it.
 # Findings in language packages (npm, Python) need a person: the job fails and
-# lists them. GitHub runs schedules only from the default branch (main).
+# lists them. A staging or latest tag that is blocked while dev is clean is
+# fixed by the next promotion, so it opens no PR.
+#
+# Trust boundary: the fix job runs scripts from the dev checkout. Every step
+# that does so has no token in its environment; the GitHub App token exists
+# only in the last step, which runs git and gh and no repository script.
+#
+# Exceptions come from main here (the scan job checks out the default branch),
+# so an exception added on dev applies only after promotion and this run can be
+# red until then. GitHub runs schedules only from the default branch (main).
 on:
   schedule:
     - cron: "47 4 * * *"
@@ -79,6 +88,7 @@ jobs:
     timeout-minutes: 10
     permissions:
       contents: read
+      pull-requests: read
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.3.1
         with:
@@ -88,89 +98,145 @@ jobs:
         with:
           pattern: vulnerabilities-scan-*
           path: reports
+      # No token in this step's environment: it runs repository scripts.
       - name: Plan the fix
         id: plan
         env:
           TARGETS: ${{ needs.targets.outputs.targets }}
         run: |
-          args=()
+          all=()
+          devonly=()
           while IFS=$'\t' read -r key name; do
             report="reports/vulnerabilities-scan-${name}/trivy-results.json"
-            [ -f "$report" ] && args+=("${key}=${report}")
+            [ -f "$report" ] || continue
+            all+=("${key}=${report}")
+            # Only the dev images can be fixed by a Dockerfile change on dev;
+            # staging and latest are fixed by the next promotion.
+            case "$name" in *-dev) devonly+=("${key}=${report}") ;; esac
           done < <(jq -r '.[] | [.key, .name] | @tsv' <<<"$TARGETS")
-          node scripts/ci/image-patch-dates.mjs plan "${args[@]}" > plan.json
-          cat plan.json
+          [ "${#all[@]}" -gt 0 ] || { echo "::error::No scan reports were uploaded"; exit 1; }
+          node scripts/ci/image-patch-dates.mjs plan "${all[@]}" > plan-all.json
+          if [ "${#devonly[@]}" -gt 0 ]; then
+            node scripts/ci/image-patch-dates.mjs plan "${devonly[@]}" > plan-dev.json
+          else
+            echo '{"bump":[],"unfixable":[]}' > plan-dev.json
+          fi
           {
             echo "### Daily image scan"
             echo
-            echo "Scan reports read: ${#args[@]}"
+            echo "Scan reports read: ${#all[@]}"
             echo
-            echo "Dockerfiles a patch-date bump fixes:"
-            jq -r '.bump[] | "- `" + . + "`"' plan.json
+            echo "Dev Dockerfiles a patch-date bump fixes:"
+            jq -r '.bump[] | "- `" + . + "`"' plan-dev.json
+            echo
+            echo "Staging or latest images with OS findings (fixed by the next promotion):"
+            jq -r '.bump[] | "- `" + . + "`"' plan-all.json
             echo
             echo "Findings that need a person:"
-            jq -r '.unfixable[] | "- " + .key + ": " + .vulnerability + " in " + .package + " " + .installedVersion + " (fixed in " + .fixedVersion + ")"' plan.json
+            jq -r '.unfixable[] | "- " + .key + ": " + .vulnerability + " in " + .package + " " + .installedVersion + " (fixed in " + .fixedVersion + ")"' plan-all.json
           } > summary.md
           cat summary.md >> "$GITHUB_STEP_SUMMARY"
           families=()
-          jq -e '.bump[] | select(. == "apps/api/fastapi/Dockerfile.prod")' plan.json >/dev/null && families+=(debian)
-          jq -e '.bump[] | select(. != "apps/api/fastapi/Dockerfile.prod")' plan.json >/dev/null && families+=(alpine)
-          echo "families=${families[*]}" >> "$GITHUB_OUTPUT"
-          echo "unfixable=$(jq '.unfixable | length' plan.json)" >> "$GITHUB_OUTPUT"
-      - name: Create GitHub App token
-        id: app-token
-        if: ${{ steps.plan.outputs.families != '' && vars.IMAGE_FIX_APP_ID != '' }}
-        uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510 # v3.3.0
-        with:
-          app-id: ${{ vars.IMAGE_FIX_APP_ID }}
-          private-key: ${{ secrets.IMAGE_FIX_APP_PRIVATE_KEY }}
-      - name: Bump patch dates and open the pull request
-        if: ${{ steps.app-token.outputs.token != '' }}
+          jq -e '.bump[] | select(. == "apps/api/fastapi/Dockerfile.prod")' plan-dev.json >/dev/null && families+=(debian)
+          jq -e '.bump[] | select(. != "apps/api/fastapi/Dockerfile.prod")' plan-dev.json >/dev/null && families+=(alpine)
+          {
+            echo "families=${families[*]}"
+            echo "os_findings=$(jq '.bump | length' plan-all.json)"
+            echo "unfixable=$(jq '.unfixable | length' plan-all.json)"
+          } >> "$GITHUB_OUTPUT"
+      # Read-only token (pull-requests: read) and gh only: no repository script.
+      - name: Skip when a fix is already open
+        id: open
+        if: ${{ steps.plan.outputs.families != '' }}
         env:
-          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          open=$(gh pr list --repo "$GITHUB_REPOSITORY" --state open --base dev --json headRefName --jq '[.[] | select(.headRefName | startswith("agent/image-patch-"))] | length')
+          echo "count=${open}" >> "$GITHUB_OUTPUT"
+          if [ "$open" != "0" ]; then
+            echo "::notice::A patch-date fix PR is already open; not opening another."
+          fi
+      # No token in this step's environment: it runs repository scripts.
+      - name: Bump patch dates and commit
+        id: commit
+        if: ${{ steps.plan.outputs.families != '' && steps.open.outputs.count == '0' }}
+        env:
           FAMILIES: ${{ steps.plan.outputs.families }}
         run: |
           today=$(date -u +%F)
-          branch="agent/image-patch-${today}"
-          if gh api "repos/${GITHUB_REPOSITORY}/branches/${branch}" >/dev/null 2>&1; then
-            echo "::notice::${branch} already exists; not opening a second fix PR."
-            exit 0
-          fi
           for family in $FAMILIES; do
             node scripts/ci/image-patch-dates.mjs bump "$today" "$family"
           done
           node scripts/ci/image-patch-dates.mjs check
           if git diff --quiet; then
-            echo "::notice::Patch dates are already ${today}; the next image build picks up the fix."
+            echo "::notice::Patch dates on dev are already ${today}; the next image build picks up the fix."
             exit 0
           fi
+          branch="agent/image-patch-${today}"
           git config user.name "barrels-image-fix[bot]"
           git config user.email "image-fix@users.noreply.github.com"
           git switch -c "$branch"
-          git commit -am "fix(images): bump OS patch dates to ${today}" -m "Daily image scan found fixable OS package vulnerabilities (issue #1142)."
-          git push "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" "$branch"
+          git commit -qam "fix(images): bump OS patch dates to ${today}" -m "Daily image scan found fixable OS package vulnerabilities in the dev images (issue #1142)."
           {
-            echo "The daily image scan found fixable high or critical OS package vulnerabilities in deployed images."
+            echo "The daily image scan found fixable high or critical OS package vulnerabilities in the dev images."
             echo "This bumps the patch date so the next build runs a fresh package upgrade (issue #1142)."
             echo
             cat summary.md
           } > body.md
-          gh pr create --base dev --head "$branch" --title "fix(images): bump OS patch dates to ${today}" --body-file body.md
+          {
+            echo "branch=${branch}"
+            echo "today=${today}"
+          } >> "$GITHUB_OUTPUT"
+      # The App token is limited to the two permissions the last step needs.
+      # The App must not have the "workflows" permission and must not be a
+      # ruleset bypass actor (docs/security.md).
+      - name: Create GitHub App token
+        id: app-token
+        if: ${{ steps.commit.outputs.branch != '' && vars.IMAGE_FIX_APP_ID != '' }}
+        uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510 # v3.3.0
+        with:
+          app-id: ${{ vars.IMAGE_FIX_APP_ID }}
+          private-key: ${{ secrets.IMAGE_FIX_APP_PRIVATE_KEY }}
+          permission-contents: write
+          permission-pull-requests: write
+      # Only git and gh run here; no script from the repository.
+      - name: Push the branch and open the pull request
+        id: pr
+        if: ${{ steps.app-token.outputs.token != '' }}
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+          BRANCH: ${{ steps.commit.outputs.branch }}
+          TODAY: ${{ steps.commit.outputs.today }}
+        run: |
+          if git ls-remote --exit-code --heads origin "$BRANCH" >/dev/null 2>&1; then
+            echo "::notice::${BRANCH} already exists; not opening a second fix PR."
+            exit 0
+          fi
+          auth=$(printf 'x-access-token:%s' "$GH_TOKEN" | base64 -w0)
+          echo "::add-mask::${auth}"
+          git -c "http.https://github.com/.extraheader=AUTHORIZATION: basic ${auth}" push origin "$BRANCH"
+          gh pr create --repo "$GITHUB_REPOSITORY" --base dev --head "$BRANCH" --title "fix(images): bump OS patch dates to ${TODAY}" --body-file body.md
       - name: Report what needs a person
         if: ${{ always() }}
         env:
+          OS_FINDINGS: ${{ steps.plan.outputs.os_findings }}
           UNFIXABLE: ${{ steps.plan.outputs.unfixable }}
           FAMILIES: ${{ steps.plan.outputs.families }}
-          TOKEN_CREATED: ${{ steps.app-token.outputs.token != '' }}
+          OPEN_PRS: ${{ steps.open.outputs.count }}
+          BRANCH: ${{ steps.commit.outputs.branch }}
+          HAS_APP: ${{ vars.IMAGE_FIX_APP_ID != '' }}
         run: |
           status=0
-          if [ -z "$FAMILIES" ] && [ "${UNFIXABLE:-0}" = "0" ]; then
+          if [ "${OS_FINDINGS:-0}" = "0" ] && [ "${UNFIXABLE:-0}" = "0" ]; then
             echo "::error::A scan job failed without a blocking finding to fix (scanner or registry error); see the scan jobs."
             status=1
           fi
-          if [ -n "$FAMILIES" ] && [ "$TOKEN_CREATED" != "true" ]; then
-            echo "::error::No fix PR was opened (IMAGE_FIX_APP_ID not set): bump the ${FAMILIES} patch date by hand with scripts/ci/image-patch-dates.mjs bump."
+          if [ -n "$FAMILIES" ] && [ "${OPEN_PRS:-0}" = "0" ] && [ -n "$BRANCH" ] && [ "$HAS_APP" != "true" ]; then
+            echo "::error::No fix PR was opened (IMAGE_FIX_APP_ID is not set): bump the ${FAMILIES} patch date by hand with scripts/ci/image-patch-dates.mjs bump."
             status=1
+          fi
+          if [ -z "$FAMILIES" ] && [ "${OS_FINDINGS:-0}" != "0" ] && [ "${UNFIXABLE:-0}" = "0" ]; then
+            echo "::notice::Only staging or latest images are blocked; dev is clean, so the next promotion fixes them."
           fi
           if [ "${UNFIXABLE:-0}" != "0" ]; then
             echo "::error::${UNFIXABLE} finding(s) need a dependency update; see the job summary."
