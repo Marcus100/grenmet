@@ -12,9 +12,14 @@ vi.mock("@barrelsgd/auth", () => ({
 
 import { runDeskAction } from "./actions";
 
-function apiError(status: number, detail: unknown) {
+function apiError(
+  status: number,
+  detail: unknown,
+  errors: { type: string; loc: (string | number)[]; msg: string }[] = []
+) {
   return Object.assign(new Error(String(detail)), {
     detail,
+    errors,
     name: "AuthApiError",
     status,
   });
@@ -62,6 +67,39 @@ describe("runDeskAction", () => {
       expect(result.error.items).toEqual(["Sender is required."]);
     }
     expect(report.reportError).not.toHaveBeenCalled();
+  });
+
+  it("shows the field-level problems of a 422 with its generic detail", async () => {
+    gate.getDeskGate.mockResolvedValue(staffGate());
+    const result = await runDeskAction("settingsManage", () =>
+      Promise.reject(
+        apiError(422, "Validation error", [
+          {
+            loc: ["body", "info", 0, "web"],
+            msg: "web must be one address",
+            type: "value_error",
+          },
+        ])
+      )
+    );
+    expect(result.ok).toBe(false);
+    if (!result.ok) {
+      expect(result.error.kind).toBe("validation");
+      expect(result.error.title).toBe("Some values could not be saved.");
+      expect(result.error.items).toEqual([
+        "info › 0 › web: web must be one address",
+      ]);
+    }
+    expect(report.reportError).not.toHaveBeenCalled();
+  });
+
+  it("keeps the detail string when a 422 carries an empty errors list", async () => {
+    gate.getDeskGate.mockResolvedValue(staffGate());
+    const result = await runDeskAction("settingsManage", () =>
+      Promise.reject(apiError(422, "Sender is required.", []))
+    );
+    expect(result.ok).toBe(false);
+    if (!result.ok) expect(result.error.items).toEqual(["Sender is required."]);
   });
 
   it("reports an unexpected failure and says the service did not answer", async () => {
