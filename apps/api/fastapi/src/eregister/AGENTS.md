@@ -54,6 +54,13 @@
 - Tests: `tests/test_eregister_station_registry.py`.
 - Rules: 78958 may only be renamed (source kind, hours, active and WIGOS id are refused with 422, `PROTECTED_MESSAGE`); a WIGOS id can be set once while empty and never changed or cleared (`WIGOS_FIXED_MESSAGE`; WIS2 file names and metadata still read `config.WIS2BOX_WIGOS_ID`); creating or switching to a manual station needs explicit non-empty hours; a check constraint keeps `source_kind` and `schedule` consistent. The missing-observation sweep (`notifications/gms_sweeps.py`) skips inactive stations.
 
+## MetPy as the oracle (not a runtime dependency)
+
+- MetPy 1.7.1 is a fast-back dev dependency only. The image does not need scipy, matplotlib or pint, so `derive.py` and `public.py` keep their own formulas. Do not import MetPy from `src/`.
+- `tests/test_eregister_metpy_oracle.py` compares the register's dew point, vapour pressure, relative humidity, 9UUU dew point and knot factors with MetPy on realistic Grenada values, within the tolerances stated there.
+- Deliberate differences: the psychrometer coefficient follows WMO-No. 8, `0.00066 (1 + 0.00115 Tw)`, not MetPy's default 6.21e-4 (up to 2 points of humidity apart); the saturation is Magnus (17.625, 243.04), not Bolton (MetPy). The station pressure amounts (QFE +0.3, sea level +1.0, QNH +0.1 for 78958) are owner constants; MetPy has no equivalent, and +1.0 hPa is about 8 to 9 m of height.
+- The TypeScript mirrors (`gaa-admin` `eregister-derived.ts`, `gms` `feels-like.ts`) are checked against `apps/api/fastapi/scripts/metpy_fixtures.py`, which writes the committed `*.fixture.json` files. After changing MetPy or the grid, run `uv run --frozen --package fast-back python scripts/metpy_fixtures.py` from `apps/api/fastapi`; the oracle test fails while the fixtures are stale.
+
 ## Hourly sheet import (CL1)
 
 - `cl1_import.py` (pure) turns GMS's monthly hourly sheet for 78958 (saved as CSV, 37 columns in paper-register order) into coded workbooks and checks each with `rules.validate_synop`, the hour-to-hour history and a dew point / humidity cross-check against `derive`. `scripts/import_cl1_synop.py` previews by default; `--apply` saves the passing hours as drafts through `entries.create` (so validation, derived groups and the one-live-row rule are the API's), oldest first, and refuses unless `ENVIRONMENT=local` and the register URL's host is this machine or the compose Postgres (the database name alone proves nothing: production is also `eregister`), and double-checks `current_database()`; `--allow-non-local` is the owner's go only. Tests: `tests/test_eregister_cl1_import.py` (made-up rows; the real sheets hold observations and stay in gitignored `temp-files/` or `/private/`).
