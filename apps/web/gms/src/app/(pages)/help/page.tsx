@@ -61,7 +61,7 @@ export default function HelpPage() {
             {
               question: "How do I find weather for a specific day?",
               answer:
-                "Use the date strip on the home page to move between days, or open the 3-day forecast or 7-day outlook.",
+                "Use the date strip on the home page to move between days, or open the Next 5 days forecast.",
             },
             {
               question: "Where do I find data rather than forecasts?",

@@ -12,10 +12,10 @@ import {
 } from "@/lib/forecast-selection";
 import type { UnitSystem } from "@/lib/units";
 import {
+  forecastRows,
   hasIssuedForecast,
   latestSynopsis,
   stationReading,
-  threeDayRows,
 } from "@/lib/weather-pages";
 
 /**
@@ -75,9 +75,9 @@ function forecast(issuedDays: number): PublicForecast {
   };
 }
 
-describe("3-day rows", () => {
+describe("forecast rows", () => {
   it("maps API periods to table rows in the visitor's units", () => {
-    const rows = threeDayRows(weatherFromForecast(forecast(5)).days);
+    const rows = forecastRows(weatherFromForecast(forecast(5)).days, 3);
     expect(rows).toHaveLength(3);
     const first = rows[0] ?? [];
     expect(first[0]).toBe("Today");
@@ -94,6 +94,12 @@ describe("3-day rows", () => {
     expect(shownIn(rows[2]?.[0], "metric")).toContain("16");
   });
 
+  it("shows tonight plus four days by default", () => {
+    const rows = forecastRows(weatherFromForecast(forecast(5)).days);
+    expect(rows).toHaveLength(5);
+    expect(rows[0]?.[0]).toBe("Today");
+  });
+
   it("falls back to the feed's text for a wind tile with no numbers", () => {
     const days = weatherFromForecast(forecast(1)).days;
     const [day] = days;
@@ -105,14 +111,14 @@ describe("3-day rows", () => {
         { label: "Wind direction", value: "ENE" },
       ],
     };
-    const [row] = threeDayRows([plain]);
+    const [row] = forecastRows([plain]);
     expect(shownIn(row?.[4], "metric")).toBe("ENE 16 mph");
   });
 
   it("says so when a day has no published forecast", () => {
     const days = weatherFromForecast(forecast(1)).days;
     expect(hasIssuedForecast(days)).toBe(true);
-    expect(threeDayRows(days)[2]?.[1]).toBe("No published forecast yet");
+    expect(forecastRows(days)[2]?.[1]).toBe("No published forecast yet");
   });
 
   it("reports nothing issued for an empty or unavailable feed", () => {
@@ -120,7 +126,7 @@ describe("3-day rows", () => {
       false
     );
     expect(hasIssuedForecast(unavailableWeather().days)).toBe(false);
-    expect(threeDayRows([])).toEqual([]);
+    expect(forecastRows([])).toEqual([]);
   });
 });
 

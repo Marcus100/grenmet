@@ -16,7 +16,7 @@ describe("breadcrumbTrail", () => {
   });
 
   it("links the section crumb to the section's index page", () => {
-    expect(breadcrumbTrail("/weather/3-day").slice(0, 2)).toEqual([
+    expect(breadcrumbTrail("/weather/5-day").slice(0, 2)).toEqual([
       { href: "/weather", label: "Weather" },
       { href: "/sitemap#weather--forecasts", label: "Forecasts" },
     ]);
@@ -63,7 +63,7 @@ describe("breadcrumbTrail", () => {
     expect(breadcrumbTrail("/alerts/bulletins/cyclone")).toEqual([
       { href: "/alerts", label: "Alerts" },
       { href: "/sitemap#alerts--in-effect", label: "In effect" },
-      { current: false, href: "/alerts/bulletins", label: "All bulletins" },
+      { current: false, href: "/alerts/bulletins", label: "GMS alerts" },
     ]);
     expect(labels("/services/tourism/events/hurricane-expo")).toEqual([
       "Services",

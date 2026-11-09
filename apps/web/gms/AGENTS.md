@@ -110,6 +110,13 @@ src/app/
   through a rewrite;
   `nav-sections.test.ts` fails if a built link has no route or a planned link is
   shadowed by one. Build the page, then drop `planned`.
+- **Words for alerts (owner, 9 Nov 2026):** the green-level products GMS issues
+  are **GMS alerts**; yellow, orange and red notices are **warnings** (CAP).
+  Each hazard page (`/alerts/bulletins/<hazard>`) shows both, with a
+  how-to-prepare link from `src/lib/hazard-pages.ts`. A page that leaves the
+  menu but still redirects goes into `RETIRED_MENU_PAGES` in
+  `packages/gms/src/link-recognition.ts`, so a stored CMS link stays a page and
+  not a warning identifier.
 - **No invented figures (owner rule, 18 Oct 2026):** the public site never
   shows invented or sample figures; every page shows real data or an honest
   notice. This reverses the 30 Sep 2026 decision that allowed sample content on
