@@ -11,7 +11,7 @@ export type DeliveryLine = {
    */
   line_id: string;
   /**
-   * @maxLength 1000000
+   * @maximum 1000000
    * @type integer
    */
   quantity: number;

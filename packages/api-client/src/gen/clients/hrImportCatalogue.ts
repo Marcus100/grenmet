@@ -25,6 +25,7 @@ export function hrImportCatalogue<ThrowOnError extends boolean = true>(
       method: "POST",
       url: "/api/v1/hr/setup/catalogue",
       security: [{ type: "oauth2" }],
+      contentType: { request: "application/json" },
       ...config,
       throwOnError: config.throwOnError ?? true,
     }) as Promise<RequestResult<HrImportCatalogueResponses, ThrowOnError>>

@@ -29,6 +29,7 @@ export function bookingsReplaceWorkingHours<
       method: "PUT",
       url: "/api/v1/bookings/org/providers/{provider_id}/hours",
       security: [{ type: "oauth2" }],
+      contentType: { request: "application/json" },
       ...config,
       throwOnError: config.throwOnError ?? true,
     }) as Promise<

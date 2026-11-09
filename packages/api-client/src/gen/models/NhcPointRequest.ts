@@ -11,14 +11,14 @@ export type NhcPointRequest = {
    */
   edition_id: string;
   /**
-   * @minLength -90
-   * @maxLength 90
+   * @minimum -90
+   * @maximum 90
    * @type number
    */
   latitude: number;
   /**
-   * @minLength -180
-   * @maxLength 180
+   * @minimum -180
+   * @maximum 180
    * @type number
    */
   longitude: number;

@@ -8,8 +8,8 @@ import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 
 export type WxproductsPublicSectorOutlookQuery = {
   /**
-   * @minLength 1
-   * @maxLength 14
+   * @minimum 1
+   * @maximum 14
    * @default 7
    * @type integer | undefined
    */

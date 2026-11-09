@@ -29,6 +29,7 @@ export function bookingsDeclineStudioBooking<
       method: "POST",
       url: "/api/v1/bookings/org/bookings/{booking_id}/decline",
       security: [{ type: "http", scheme: "bearer" }, { type: "oauth2" }],
+      contentType: { request: "application/json" },
       ...config,
       throwOnError: config.throwOnError ?? true,
     }) as Promise<

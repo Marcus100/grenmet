@@ -11,15 +11,15 @@ export type HrListPayPeriodsQuery = {
   organisation_id?: string | null;
   calendar_id?: string | null;
   /**
-   * @minLength 0
-   * @maxLength 100000
+   * @minimum 0
+   * @maximum 100000
    * @default 0
    * @type integer | undefined
    */
   skip?: number;
   /**
-   * @minLength 1
-   * @maxLength 500
+   * @minimum 1
+   * @maximum 500
    * @default 50
    * @type integer | undefined
    */

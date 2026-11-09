@@ -11,7 +11,7 @@ export type CapStatisticsBucket = {
   key: string;
   label: string;
   /**
-   * @minLength 0
+   * @minimum 0
    * @type integer
    */
   count: number;

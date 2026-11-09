@@ -15,7 +15,7 @@ export type LegacyProductWrite = {
    */
   id: string;
   /**
-   * @minLength 0
+   * @minimum 0
    * @type integer
    */
   expectedRevision: number;

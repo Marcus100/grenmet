@@ -24,6 +24,7 @@ export function authAppHandoffRedeem<ThrowOnError extends boolean = true>(
     request({
       method: "POST",
       url: "/api/v1/auth/apps/{app}/handoff/redeem",
+      contentType: { request: "application/json" },
       ...config,
       throwOnError: config.throwOnError ?? true,
     }) as Promise<RequestResult<AuthAppHandoffRedeemResponses, ThrowOnError>>

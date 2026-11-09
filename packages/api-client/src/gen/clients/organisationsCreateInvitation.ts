@@ -29,6 +29,7 @@ export function organisationsCreateInvitation<
       method: "POST",
       url: "/api/v1/organisations/{organisation_id}/invitations",
       security: [{ type: "oauth2" }],
+      contentType: { request: "application/json" },
       ...config,
       throwOnError: config.throwOnError ?? true,
     }) as Promise<

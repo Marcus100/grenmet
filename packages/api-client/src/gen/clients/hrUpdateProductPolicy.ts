@@ -25,6 +25,7 @@ export function hrUpdateProductPolicy<ThrowOnError extends boolean = true>(
       method: "PUT",
       url: "/api/v1/hr/setup/product-access/{kind}",
       security: [{ type: "oauth2" }],
+      contentType: { request: "application/json" },
       ...config,
       throwOnError: config.throwOnError ?? true,
     }) as Promise<RequestResult<HrUpdateProductPolicyResponses, ThrowOnError>>

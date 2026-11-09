@@ -27,6 +27,7 @@ export function storesCreateStockMovement<ThrowOnError extends boolean = true>(
       method: "POST",
       url: "/api/v1/stores/stock-movements",
       security: [{ type: "oauth2" }],
+      contentType: { request: "application/json" },
       ...config,
       throwOnError: config.throwOnError ?? true,
     }) as Promise<

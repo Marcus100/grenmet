@@ -25,6 +25,7 @@ export function billingRecordPayment<ThrowOnError extends boolean = true>(
       method: "POST",
       url: "/api/v1/billing/invoices/{invoice_id}/payments",
       security: [{ type: "oauth2" }],
+      contentType: { request: "application/json" },
       ...config,
       throwOnError: config.throwOnError ?? true,
     }) as Promise<RequestResult<BillingRecordPaymentResponses, ThrowOnError>>

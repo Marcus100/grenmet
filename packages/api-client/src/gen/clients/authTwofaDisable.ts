@@ -25,6 +25,7 @@ export function authTwofaDisable<ThrowOnError extends boolean = true>(
       method: "POST",
       url: "/api/v1/auth/users/me/security/2fa/disable",
       security: [{ type: "oauth2" }],
+      contentType: { request: "application/json" },
       ...config,
       throwOnError: config.throwOnError ?? true,
     }) as Promise<RequestResult<AuthTwofaDisableResponses, ThrowOnError>>

@@ -11,36 +11,36 @@ export type GuidanceGridSample = {
    */
   job_id: string;
   /**
-   * @minLength 0
+   * @minimum 0
    * @type integer
    */
   record_index: number;
   /**
-   * @minLength -90
-   * @maxLength 90
+   * @minimum -90
+   * @maximum 90
    * @type number
    */
   requested_latitude: number;
   /**
-   * @minLength -180
-   * @maxLength 180
+   * @minimum -180
+   * @maximum 180
    * @type number
    */
   requested_longitude: number;
   /**
-   * @minLength -90
-   * @maxLength 90
+   * @minimum -90
+   * @maximum 90
    * @type number
    */
   cell_latitude: number;
   /**
-   * @minLength -180
-   * @maxLength 180
+   * @minimum -180
+   * @maximum 180
    * @type number
    */
   cell_longitude: number;
   /**
-   * @minLength 0
+   * @minimum 0
    * @type number
    */
   distance_km: number;

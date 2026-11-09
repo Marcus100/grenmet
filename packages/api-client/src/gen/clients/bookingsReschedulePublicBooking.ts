@@ -28,6 +28,7 @@ export function bookingsReschedulePublicBooking<
     request({
       method: "POST",
       url: "/api/v1/bookings/public/bookings/{token}/reschedule",
+      contentType: { request: "application/json" },
       ...config,
       throwOnError: config.throwOnError ?? true,
     }) as Promise<

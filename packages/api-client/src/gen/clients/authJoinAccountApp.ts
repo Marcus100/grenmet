@@ -24,6 +24,7 @@ export function authJoinAccountApp<ThrowOnError extends boolean = true>(
     request({
       method: "POST",
       url: "/api/v1/auth/account/apps/{app}/join",
+      contentType: { request: "application/json" },
       ...config,
       throwOnError: config.throwOnError ?? true,
     }) as Promise<RequestResult<AuthJoinAccountAppResponses, ThrowOnError>>

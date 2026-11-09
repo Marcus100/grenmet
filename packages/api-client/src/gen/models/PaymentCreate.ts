@@ -9,7 +9,7 @@ export type PaymentCreate = {
   method: PaymentMethod;
   reference?: string | null;
   /**
-   * @maxLength 1000000000000
+   * @maximum 1000000000000
    * @type integer
    */
   amount_minor: number;

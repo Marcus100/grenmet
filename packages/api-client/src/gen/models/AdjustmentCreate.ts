@@ -17,8 +17,8 @@ export type AdjustmentCreate = {
    */
   program_id: string;
   /**
-   * @minLength -1000
-   * @maxLength 1000
+   * @minimum -1000
+   * @maximum 1000
    * @type integer
    */
   amount: number;

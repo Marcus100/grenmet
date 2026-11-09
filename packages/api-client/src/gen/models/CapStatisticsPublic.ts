@@ -31,7 +31,7 @@ export type CapStatisticsPublic = {
   end: string;
   hazard?: string | null;
   /**
-   * @minLength 0
+   * @minimum 0
    * @type integer
    */
   total: number;

@@ -14,9 +14,7 @@ export type IbfMatrixPublic = {
   likelihoods: IbfLevelPublic[];
   impacts: IbfLevelPublic[];
   cells: GmsColour[][];
-  meanings: {
-    [key: string]: string;
-  };
+  meanings: Partial<Record<GmsColour, string>>;
   library_key?: string | null;
   library_version?: number | null;
 };

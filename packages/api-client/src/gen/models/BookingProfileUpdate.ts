@@ -37,29 +37,29 @@ export type BookingProfileUpdate = {
    */
   currency?: string;
   /**
-   * @minLength 5
-   * @maxLength 240
+   * @minimum 5
+   * @maximum 240
    * @default 30
    * @type integer | undefined
    */
   slot_step_min?: number;
   /**
-   * @minLength 0
-   * @maxLength 1440
+   * @minimum 0
+   * @maximum 1440
    * @default 120
    * @type integer | undefined
    */
   lead_time_min?: number;
   /**
-   * @minLength 1
-   * @maxLength 365
+   * @minimum 1
+   * @maximum 365
    * @default 60
    * @type integer | undefined
    */
   horizon_days?: number;
   /**
-   * @minLength 0
-   * @maxLength 720
+   * @minimum 0
+   * @maximum 720
    * @default 24
    * @type integer | undefined
    */

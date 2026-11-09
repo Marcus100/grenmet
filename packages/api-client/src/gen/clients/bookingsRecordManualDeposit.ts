@@ -29,6 +29,7 @@ export function bookingsRecordManualDeposit<
       method: "POST",
       url: "/api/v1/bookings/org/bookings/{booking_id}/manual-deposit",
       security: [{ type: "oauth2" }],
+      contentType: { request: "application/json" },
       ...config,
       throwOnError: config.throwOnError ?? true,
     }) as Promise<

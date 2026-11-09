@@ -13,8 +13,8 @@ export type HrListRuleOverridesPath = {
 
 export type HrListRuleOverridesQuery = {
   /**
-   * @minLength 1
-   * @maxLength 200
+   * @minimum 1
+   * @maximum 200
    * @default 50
    * @type integer | undefined
    */

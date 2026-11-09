@@ -7,14 +7,14 @@ import type { JanitorialFrequencyPropertiesPeriodUnitEnum } from "./JanitorialFr
 
 export type JanitorialFrequency = {
   /**
-   * @minLength 1
-   * @maxLength 1440
+   * @minimum 1
+   * @maximum 1440
    * @type integer
    */
   count: number;
   /**
-   * @minLength 1
-   * @maxLength 3650
+   * @minimum 1
+   * @maximum 3650
    * @type integer
    */
   periodValue: number;
