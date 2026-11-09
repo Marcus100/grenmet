@@ -1,0 +1,76 @@
+---
+title: A weather menu that matches how people look for warnings, and builds that no longer wait on Docker Hub
+summary: Version 1.0.5 regroups the GMS alerts menu, adds Past alerts and Next 5 days pages, shows warnings and GMS alerts together on each hazard page, imports eRegister monthly sheets as draft SYNOPs, scopes HR setup to each organisation's HR admins, and moves every build and CI database onto a free GHCR mirror.
+date: 2026-11-09
+release: 1.0.5
+---
+
+Version 1.0.5 carries more than 30 pull requests since v1.0.4 and no new database migrations,
+so the previous version still runs against the same schema. Everything in it ran on
+staging, including a signed-in check of the GMS staff portal, before it reached
+production.
+
+### Weather service
+
+- **Alerts menu:** green-level hazard products are now called GMS alerts, and the
+  menu is grouped by how people use it: alerts in effect, past alerts, GMS alerts by
+  hazard, and Plan your week.
+- **Hazard pages:** each hazard page shows the yellow, orange and red warnings in
+  effect for that hazard next to its GMS alerts, with a link to the matching prepare
+  page. The marine page also lists its thresholds.
+- **Past alerts:** a new page lists warnings that ended in the last 30 days. If the
+  warning feed cannot be read, it says so instead of implying there were none.
+- **Next 5 days:** one forecast page replaces the 3-day and 7-day pages. The old
+  addresses redirect to it.
+- **Plan your week:** a compact homepage card with its own full page, written only
+  from published alerts and warnings. On a partial feed it never claims an all-clear.
+- The Weather now tabs are centred and the provider link is gone; the player keeps
+  keyboard focus. Older pinned desk posts stay on the homepage.
+
+### eRegister
+
+- Observers' monthly hourly sheets import as validated draft SYNOPs, with daily
+  rainfall, extremes per main hour and gusts. The monthly statistics read four-digit
+  24-hour rainfall correctly.
+
+### CAP warnings
+
+- Forecasters can draft new versions of hazard profiles and start warnings from them
+  on the desk. Each desk field problem is listed once, at most five.
+
+### HR
+
+- HR setup belongs to each organisation's HR admins: they can run it for their own
+  organisation only. Onboarding an account with no organisation yet, or a
+  superuser account, stays with platform administrators.
+- Roster override reasons and organisation verification reasons use the shared text
+  cleaner, which removes hidden characters.
+
+### Sign-in
+
+- Field-level validation errors reach the sign-in and registration forms, and each
+  message is shown once, at most three.
+
+### Platform
+
+- **No more Docker Hub limits:** every base image and the CI test databases now come
+  from a free mirror on the GitHub Container Registry, pinned to the same versions.
+  CI also re-runs a failed run once when a registry limit, network timeout or lost
+  runner caused it, and leaves real failures red.
+- **Safer migrations:** database migrations get a lock time limit and retry on a lock
+  wait, the fix that came out of the 1.0.3 stall.
+- A daily check compares staging and production setting names against a manifest,
+  release drafts use x.y.z tags, and merge-to-production time is now measured per
+  release.
+- Routine dependency updates: npm minor and patch versions (with a regenerated API
+  client), Python packages, psycopg and GitHub Actions.
+
+### Babydoll
+
+- The Babydoll Beauty Bar site uses its light theme only.
+
+### What the release left for later
+
+The CAP warning lifecycle moving into one declared transition table is built and in
+review, and goes out in the next release after a full cycle on staging. The
+eRegister Save draft button is held back until one correction case is fixed.
