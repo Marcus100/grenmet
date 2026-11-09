@@ -43048,6 +43048,143 @@
         }
       }
     },
+    "/api/v1/almanac/public/astronomy": {
+      "get": {
+        "tags": [
+          "almanac"
+        ],
+        "summary": "Sun, twilight and moon times for a Grenada location",
+        "description": "Public. Sunrise, sunset, civil dawn and dusk, moonrise and moonset in UTC with Grenada local times, and the moon phase name for each day, from the yearly almanac table. Also returns the principal phases (new, first quarter, full, last quarter) inside the range plus the nearest one either side. Maximum range 366 days. Days with no stored row are missing from `days`.",
+        "operationId": "almanacGetAstronomy",
+        "parameters": [
+          {
+            "name": "location",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/AlmanacGetAstronomyParametersSchemaEnum"
+            },
+            "description": "Location key"
+          },
+          {
+            "name": "from",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date",
+              "description": "First local date",
+              "title": "From"
+            },
+            "description": "First local date"
+          },
+          {
+            "name": "to",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date",
+              "description": "Last local date (inclusive)",
+              "title": "To"
+            },
+            "description": "Last local date (inclusive)"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AstronomyResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          }
+        }
+      }
+    },
+    "/api/v1/almanac/public/tides": {
+      "get": {
+        "tags": [
+          "almanac"
+        ],
+        "summary": "Predicted high and low tides for a Grenada station",
+        "description": "Public. Predicted high and low water times (UTC with Grenada local times) and heights in metres relative to provisional MLLW. PREDICTED, PROVISIONAL AND NOT FOR NAVIGATION: every response carries that note. Maximum range 366 days.",
+        "operationId": "almanacGetTides",
+        "parameters": [
+          {
+            "name": "station",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "const": "pric",
+              "type": "string",
+              "description": "Station key",
+              "title": "Station"
+            },
+            "description": "Station key"
+          },
+          {
+            "name": "from",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date",
+              "description": "First local date",
+              "title": "From"
+            },
+            "description": "First local date"
+          },
+          {
+            "name": "to",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date",
+              "description": "Last local date (inclusive)",
+              "title": "To"
+            },
+            "description": "Last local date (inclusive)"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TidesResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          }
+        }
+      }
+    },
     "/api/v1/models/catalogue": {
       "get": {
         "tags": [
@@ -68216,6 +68353,90 @@
         ],
         "title": "AreaView"
       },
+      "AstronomyDay": {
+        "properties": {
+          "date": {
+            "type": "string",
+            "format": "date",
+            "title": "Date",
+            "description": "Grenada local calendar date"
+          },
+          "sunrise": {
+            "$ref": "#/components/schemas/TimeOfDay"
+          },
+          "sunset": {
+            "$ref": "#/components/schemas/TimeOfDay"
+          },
+          "civil_dawn": {
+            "$ref": "#/components/schemas/TimeOfDay"
+          },
+          "civil_dusk": {
+            "$ref": "#/components/schemas/TimeOfDay"
+          },
+          "moonrise": {
+            "$ref": "#/components/schemas/TimeOfDay"
+          },
+          "moonset": {
+            "$ref": "#/components/schemas/TimeOfDay"
+          },
+          "moon_phase": {
+            "type": "string",
+            "title": "Moon Phase",
+            "description": "Phase name, e.g. 'Waxing Gibbous'"
+          }
+        },
+        "type": "object",
+        "required": [
+          "date",
+          "sunrise",
+          "sunset",
+          "civil_dawn",
+          "civil_dusk",
+          "moonrise",
+          "moonset",
+          "moon_phase"
+        ],
+        "title": "AstronomyDay"
+      },
+      "AstronomyResponse": {
+        "properties": {
+          "location": {
+            "$ref": "#/components/schemas/LocationOut"
+          },
+          "timezone": {
+            "type": "string",
+            "title": "Timezone",
+            "default": "America/Grenada"
+          },
+          "note": {
+            "type": "string",
+            "title": "Note",
+            "default": "Sun and moon times computed for each day (Astral, checked against the US Naval Observatory). Times are approximate to a minute. Rise and set are blank on days when the moon does not rise or set."
+          },
+          "days": {
+            "items": {
+              "$ref": "#/components/schemas/AstronomyDay"
+            },
+            "type": "array",
+            "title": "Days"
+          },
+          "phases": {
+            "items": {
+              "$ref": "#/components/schemas/PrincipalPhase"
+            },
+            "type": "array",
+            "title": "Phases",
+            "description": "Principal phases in the range, plus the nearest one before and after it (when stored)."
+          }
+        },
+        "type": "object",
+        "required": [
+          "location",
+          "days",
+          "phases"
+        ],
+        "title": "AstronomyResponse"
+      },
       "AttemptStatus": {
         "type": "string",
         "enum": [
@@ -86237,6 +86458,34 @@
         ],
         "title": "LocationListPublic"
       },
+      "LocationOut": {
+        "properties": {
+          "key": {
+            "type": "string",
+            "title": "Key"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "latitude": {
+            "type": "number",
+            "title": "Latitude"
+          },
+          "longitude": {
+            "type": "number",
+            "title": "Longitude"
+          }
+        },
+        "type": "object",
+        "required": [
+          "key",
+          "name",
+          "latitude",
+          "longitude"
+        ],
+        "title": "LocationOut"
+      },
       "LocationPublic": {
         "properties": {
           "id": {
@@ -95098,6 +95347,25 @@
         ],
         "title": "PreferencesUnsubscribeRequest",
         "description": "The signed token from a mail, and the one list to stop."
+      },
+      "PrincipalPhase": {
+        "properties": {
+          "phase": {
+            "$ref": "#/components/schemas/PrincipalPhasePropertiesPhaseEnum"
+          },
+          "date": {
+            "type": "string",
+            "format": "date",
+            "title": "Date",
+            "description": "Grenada local date of the phase, accurate to +/-1 day"
+          }
+        },
+        "type": "object",
+        "required": [
+          "phase",
+          "date"
+        ],
+        "title": "PrincipalPhase"
       },
       "ProductAccessCurrent": {
         "properties": {
@@ -110023,6 +110291,111 @@
         ],
         "title": "TicketSummary"
       },
+      "TideEvent": {
+        "properties": {
+          "event_type": {
+            "$ref": "#/components/schemas/TideEventPropertiesEventTypeEnum"
+          },
+          "time_utc": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Time Utc"
+          },
+          "time_local": {
+            "type": "string",
+            "title": "Time Local",
+            "description": "ISO 8601 in America/Grenada"
+          },
+          "height_m_mllw": {
+            "type": "number",
+            "title": "Height M Mllw",
+            "description": "Metres relative to provisional MLLW"
+          },
+          "timing_quality": {
+            "type": "string",
+            "title": "Timing Quality"
+          }
+        },
+        "type": "object",
+        "required": [
+          "event_type",
+          "time_utc",
+          "time_local",
+          "height_m_mllw",
+          "timing_quality"
+        ],
+        "title": "TideEvent"
+      },
+      "TidesResponse": {
+        "properties": {
+          "station": {
+            "type": "string",
+            "title": "Station"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "timezone": {
+            "type": "string",
+            "title": "Timezone",
+            "default": "America/Grenada"
+          },
+          "note": {
+            "type": "string",
+            "title": "Note",
+            "default": "Predicted tide heights and times from an internal provisional table. Not for navigation: do not use for passage planning, under-keel clearance or any decision where safety depends on the tide."
+          },
+          "status": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Status",
+            "description": "Status of the source table, as imported"
+          },
+          "source_label": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source Label"
+          },
+          "source_version": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source Version"
+          },
+          "events": {
+            "items": {
+              "$ref": "#/components/schemas/TideEvent"
+            },
+            "type": "array",
+            "title": "Events"
+          }
+        },
+        "type": "object",
+        "required": [
+          "station",
+          "name",
+          "events"
+        ],
+        "title": "TidesResponse"
+      },
       "TierInput": {
         "properties": {
           "id": {
@@ -110285,6 +110658,37 @@
           "expected_minor"
         ],
         "title": "TillPublic"
+      },
+      "TimeOfDay": {
+        "properties": {
+          "utc": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Utc"
+          },
+          "local": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Local",
+            "description": "ISO 8601 in America/Grenada (UTC-4, no daylight saving)"
+          }
+        },
+        "type": "object",
+        "title": "TimeOfDay",
+        "description": "One event: the UTC instant and the same instant in Grenada local time."
       },
       "TimesheetApproveRequest": {
         "properties": {
@@ -116798,6 +117202,15 @@
           "failed"
         ]
       },
+      "PrincipalPhasePropertiesPhaseEnum": {
+        "type": "string",
+        "enum": [
+          "new",
+          "first_quarter",
+          "full",
+          "last_quarter"
+        ]
+      },
       "ProfilePublicPropertiesConnectionStateEnum": {
         "type": "string",
         "enum": [
@@ -116992,6 +117405,13 @@
           "group"
         ]
       },
+      "TideEventPropertiesEventTypeEnum": {
+        "type": "string",
+        "enum": [
+          "HIGH",
+          "LOW"
+        ]
+      },
       "TillPublicPropertiesStatusEnum": {
         "type": "string",
         "enum": [
@@ -117087,6 +117507,14 @@
         ],
         "type": "string",
         "default": "st-georges"
+      },
+      "AlmanacGetAstronomyParametersSchemaEnum": {
+        "enum": [
+          "mbia",
+          "lauriston"
+        ],
+        "type": "string",
+        "description": "Location key"
       },
       "EventsListListingsParametersSchemaAnyOfEnum": {
         "enum": [

@@ -1,4 +1,14 @@
 export {
+  almanacGetAstronomyQueryKey,
+  almanacGetAstronomyQueryOptions,
+  useAlmanacGetAstronomy,
+} from "./useAlmanacGetAstronomy.js";
+export {
+  almanacGetTidesQueryKey,
+  almanacGetTidesQueryOptions,
+  useAlmanacGetTides,
+} from "./useAlmanacGetTides.js";
+export {
   auditGetHistoryQueryKey,
   auditGetHistoryQueryOptions,
   useAuditGetHistory,
