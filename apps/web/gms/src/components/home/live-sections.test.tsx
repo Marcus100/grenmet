@@ -280,7 +280,7 @@ it("puts the sector card in the row, after the official cards and before the pos
     .getAllByRole("listitem")
     .filter((card) => card.classList.contains("snap-start"));
   expect(cards[0]).toHaveTextContent("Official briefing");
-  expect(cards[1]).toHaveTextContent("What it means for you");
+  expect(cards[1]).toHaveTextContent("Plan your week");
   expect(cards[2]).toHaveTextContent("Why the morning forecast changed");
 });
 
@@ -288,8 +288,8 @@ it("still shows the week's sector card when nothing else is published", async ()
   vi.mocked(fetchHomeContent).mockResolvedValue(hidden([]));
   render(await ForecastDesk());
   expect(
-    screen.getByRole("heading", { name: "What it means for you" })
-  ).toBeInTheDocument();
+    screen.getByRole("link", { name: "See the whole week" })
+  ).toHaveAttribute("href", "/plan-your-week");
   expect(
     screen.queryByText("No forecasts or desk posts are published yet.")
   ).not.toBeInTheDocument();
@@ -309,20 +309,20 @@ it("shows both the unavailable notice and the sector card when desk updates cann
     screen.getAllByText("Desk updates cannot be retrieved right now.")
   ).not.toHaveLength(0);
   expect(
-    screen.getByRole("heading", { name: "What it means for you" })
+    screen.getByRole("link", { name: "See the whole week" })
   ).toBeInTheDocument();
 });
 
 it("keeps the week's sector card when editors hide the desk", async () => {
   vi.mocked(fetchHomeContent).mockResolvedValue(hidden(["desk"]));
   render(await ForecastDesk());
-  // The section heading names it once; the card does not repeat title or kicker.
+  // The section heading names it once; the card drops its own byline.
   expect(
-    screen.getAllByRole("heading", { name: "What it means for you" })
+    screen.getAllByRole("heading", { name: "Plan your week" })
   ).toHaveLength(1);
   expect(screen.getAllByText("Plan your week")).toHaveLength(1);
   expect(screen.getByRole("article")).toHaveAccessibleName(
-    "What it means for you"
+    "This week's alerts and warnings"
   );
   expect(screen.queryByText("From the Desk")).not.toBeInTheDocument();
 });
