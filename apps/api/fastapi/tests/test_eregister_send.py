@@ -42,6 +42,7 @@ from src.eregister.schemas import EregisterValidationError, SynopWorkbook
 from src.main import app
 from src.notifications.models import OutboundEmail
 from tests.factories import assign_role, make_role_with_permission, make_user
+from tests.iwxxm_support import require_schemas
 
 ROOT = Path(__file__).resolve().parents[1]
 OBSERVED = datetime(2026, 3, 30, 12, 0, tzinfo=UTC)
@@ -755,6 +756,7 @@ async def test_accept_stores_the_iwxxm_metar_on_the_row(
     observation = await save(client, {**FULL_ROW, "present_wx": "51"})
     accepted = await client.post(qc_url(observation, "accept"))
     assert accepted.status_code == 200, accepted.text
+    require_schemas()
     stored = accepted.json()["iwxxm"]
     assert stored["version"] == "2025-2"
     assert stored["schematron"] == "not_run"

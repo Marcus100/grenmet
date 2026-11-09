@@ -3,13 +3,15 @@
 The XML is built from the decoded values of the coded SYNOP (``rules.validate_synop``
 and ``metar.expected``), not by re-parsing a TAC. It follows the WMO IWXXM schema
 2025-2, which implements ICAO Annex 3 Amendment 82, and is checked against the
-vendored XSD bundle in ``iwxxm_xsd/2025-2`` (WMO release files, unchanged; see the
-NOTICE.md in that folder). Schematron is not run yet (it needs an XSLT 2.0 engine;
-see docs/operations/eregister-wmo-conformance.md).
+XSD bundle that ``scripts/fetch_iwxxm_schemas.py`` installs into ``iwxxm_xsd/2025-2``
+(gitignored; each file checked against ``iwxxm_schema_manifest.json``). Schematron is
+not run yet (it needs an XSLT 2.0 engine; see
+docs/operations/eregister-wmo-conformance.md).
 
 Storage contract (the register's ``iwxxm`` column): ``{"version", "xml", "valid",
-"errors", "schematron"}``. ``valid`` means no gap was found and the XML passes the
-XSD. It does not mean Schematron passed. Nothing here sends anything.
+"errors", "note", "schematron"}``. ``valid`` means no gap was found and the XML passes
+the XSD; it is null when the schemas are not installed. It does not mean Schematron
+passed. Nothing here sends anything.
 
 Gaps are never dropped silently: an element that cannot be encoded is written as a
 nil with a reason, and the gap is listed in ``errors``.
@@ -40,6 +42,10 @@ SCHEMA_LOCATION = (
     f"{IWXXM_NAMESPACE} http://schemas.wmo.int/iwxxm/{IWXXM_VERSION}/iwxxm.xsd"
 )
 SCHEMATRON_STATUS = "not_run"
+SCHEMAS_MISSING_NOTE = (
+    "IWXXM XSD schemas not installed; run `python -m scripts.fetch_iwxxm_schemas` "
+    "in apps/api/fastapi. Validity is unknown until they are."
+)
 XML_DECLARATION = '<?xml version="1.0" encoding="UTF-8"?>\n'
 
 GML_NAMESPACE = "http://www.opengis.net/gml/3.2"
@@ -461,18 +467,37 @@ def encode_report(
     return Encoded(ET.tostring(root, encoding="unicode"), tuple(gaps))
 
 
+def schemas_installed() -> bool:
+    """Whether the pinned XSD files are present (see scripts/fetch_iwxxm_schemas.py)."""
+    return SCHEMA_ENTRY.is_file()
+
+
 def stored_record(encoded: Encoded) -> dict[str, Any]:
-    """The register's ``iwxxm`` value: the document, its verdict and every error found."""
+    """The register's ``iwxxm`` value: the document, its verdict and every error found.
+
+    Without the installed schemas the document is still built and kept. ``valid`` is
+    then null (unknown), or false when a gap is already known, and ``note`` says why.
+    """
     errors = list(encoded.gaps)
     xml_text: str | None = None
+    note: str | None = None
     if encoded.xml is not None:
         xml_text = XML_DECLARATION + encoded.xml
-        errors.extend(schema_errors(xml_text))
+        if schemas_installed():
+            errors.extend(schema_errors(xml_text))
+        else:
+            note = SCHEMAS_MISSING_NOTE
+    valid: bool | None
+    if note is not None and not errors:
+        valid = None
+    else:
+        valid = not errors
     return {
         "version": IWXXM_VERSION,
         "xml": xml_text,
-        "valid": not errors,
+        "valid": valid,
         "errors": errors,
+        "note": note,
         "schematron": SCHEMATRON_STATUS,
     }
 
@@ -498,7 +523,7 @@ def record_for_row(
         kind=kind,
     )
     record = stored_record(encoded)
-    if not record["valid"]:
+    if record["valid"] is False:
         logger.warning(
             "eRegister IWXXM not valid: %s",
             "; ".join(record["errors"])[:500],
