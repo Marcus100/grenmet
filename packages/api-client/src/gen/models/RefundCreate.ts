@@ -7,8 +7,8 @@ import type { RefundCreatePropertiesMethodEnum } from "./RefundCreatePropertiesM
 
 export type RefundCreate = {
   /**
-   * @minLength 1
-   * @maxLength 100000000
+   * @minimum 1
+   * @maximum 100000000
    * @type integer
    */
   amount_minor: number;

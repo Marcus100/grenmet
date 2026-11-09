@@ -24,6 +24,7 @@ export function pushSubscribe<ThrowOnError extends boolean = true>(
     request({
       method: "POST",
       url: "/api/v1/push/subscriptions",
+      contentType: { request: "application/json" },
       ...config,
       throwOnError: config.throwOnError ?? true,
     }) as Promise<RequestResult<PushSubscribeResponses, ThrowOnError>>

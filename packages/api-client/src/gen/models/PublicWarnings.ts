@@ -14,7 +14,7 @@ export type PublicWarnings = {
   as_of: string;
   groups: PublicWarningGroup[];
   /**
-   * @minLength 0
+   * @minimum 0
    * @type integer
    */
   activeCount: number;

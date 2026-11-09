@@ -1,0 +1,110 @@
+{
+  "$comment": "Expected secret and variable NAMES per GitHub environment (never values). Checked by scripts/ci/check-environment-settings.mjs; see docs/operations/environment-settings.md. shared: required in every environment. only: required in that environment alone, with the reason. pending: known drift that is tolerated (present or absent) until it is resolved; the check lists it on every run.",
+  "environments": ["staging", "production"],
+  "shared": {
+    "secrets": [
+      "AUTH_TOTP_ENCRYPTION_KEYS",
+      "BARRELS_ADMIN_SSO_CLIENT_SECRET",
+      "CMS_DB_PASSWORD",
+      "CMS_SSO_CLIENT_SECRET",
+      "DOCS_SSO_CLIENT_SECRET",
+      "EMAIL",
+      "EMAIL_HASH_PEPPER",
+      "EMAIL_RENDER_SECRET",
+      "EREGISTER_DB_PASSWORD",
+      "EVENTS_DB_PASSWORD",
+      "EVENTS_SSO_CLIENT_SECRET",
+      "FASTAPI_DB_PASSWORD",
+      "FIRST_SUPERUSER",
+      "FIRST_SUPERUSER_PASSWORD",
+      "GAA_ADMIN_SSO_CLIENT_SECRET",
+      "GOOGLE_CLIENT_ID",
+      "GOOGLE_CLIENT_SECRET",
+      "HASHED_PASSWORD",
+      "JANITORIAL_DB_PASSWORD",
+      "MBIA_SSO_CLIENT_SECRET",
+      "PAYLOAD_SECRET",
+      "POSTGRES_PASSWORD",
+      "POSTGRES_USER",
+      "RESEND_API_KEY",
+      "SECRET_KEY",
+      "SENTRY_AUTH_TOKEN",
+      "SESSION_COOKIE_NAME",
+      "SIGNAL_SSO_CLIENT_SECRET",
+      "TRANSPORT_DB_PASSWORD",
+      "TRUSTED_WEB_SECRET",
+      "USERNAME",
+      "WEATHER_SSO_CLIENT_SECRET",
+      "WXPRODUCTS_DB_PASSWORD",
+      "WXWATCH_DB_PASSWORD"
+    ],
+    "variables": ["CORE_POSTGRES_IMAGE", "CORE_PRIVATE_IP", "CORE_REDIS_IMAGE"]
+  },
+  "only": {
+    "staging": {
+      "secrets": {
+        "ADMINER_BASIC_AUTH_USERS": "Staging-only Adminer gate (render-env.py STAGING_ONLY_SECRETS).",
+        "SENTRY_DSN_STAGING": "Sentry DSNs are named per environment (deploy.yml, build-web-images.yml).",
+        "STAGING_BASIC_AUTH_USERS": "Staging basic-auth gate (render-env.py STAGING_ONLY_SECRETS).",
+        "STAGING_PROBE_CREDENTIALS": "Synthetic probe login through the staging gate; deploy.yml passes it on staging only."
+      },
+      "variables": {
+        "NOTIFICATIONS_EMAIL_ALLOWED_DOMAINS": "Staging email allowlist; render-env.py requires it on staging only."
+      }
+    },
+    "production": {
+      "secrets": {
+        "SENTRY_DSN_PRODUCTION": "Sentry DSNs are named per environment (deploy.yml, build-web-images.yml)."
+      },
+      "variables": {}
+    }
+  },
+  "pending": {
+    "staging": {
+      "secrets": {
+        "BACKUP_HEARTBEAT_URL": "Monitoring heartbeat on staging only; decide whether production needs it here or in production-monitoring.",
+        "BETTERSTACK_API_TOKEN": "Monitoring token on staging only; same decision as the heartbeats.",
+        "BOOKINGS_SSO_CLIENT_SECRET": "Bookings SSO client exists on staging only (issue #1146).",
+        "CAP_SSO_CLIENT_SECRET": "CAP SSO client exists on staging only (issue #1146).",
+        "CLOUDFLARE_ORIGIN_SECRET": "Cloudflare proxy is on staging only (docs/operations/cloudflare-proxy.md); production gets it at cut-over.",
+        "DO_SPACES_ACCESS_KEY_ID": "Storage names differ: DO_SPACES_* on staging, STORAGE_* on production (issue #1146).",
+        "DO_SPACES_BUCKET": "Storage names differ: DO_SPACES_* on staging, STORAGE_* on production (issue #1146).",
+        "DO_SPACES_ENDPOINT": "Storage names differ: DO_SPACES_* on staging, STORAGE_* on production (issue #1146).",
+        "DO_SPACES_REGION": "Storage names differ: DO_SPACES_* on staging, STORAGE_* on production (issue #1146).",
+        "DO_SPACES_SECRET_ACCESS_KEY": "Storage names differ: DO_SPACES_* on staging, STORAGE_* on production (issue #1146).",
+        "NEXT_PUBLIC_POSTHOG_KEY": "Analytics key on staging only (issue #1146).",
+        "PAYMENTS_STRIPE_SECRET_KEY": "Payments run in Stripe test mode on staging only until production payments launch (issue #1146).",
+        "PAYMENTS_STRIPE_WEBHOOK_SECRET": "Payments run in Stripe test mode on staging only until production payments launch (issue #1146).",
+        "PAYSLIP_HMAC_KEYS": "Payslip signing keys on staging only (issue #1146).",
+        "PROBE_HEARTBEAT_URL": "Monitoring heartbeat on staging only; decide whether production needs it here or in production-monitoring.",
+        "WORKER_HEARTBEAT_URL": "Monitoring heartbeat on staging only; decide whether production needs it here or in production-monitoring."
+      },
+      "variables": {
+        "BOOTSTRAP_CMS": "CMS bootstrap switch on staging only (issue #1146).",
+        "CLOUDFLARE_PROXY_ENABLED": "Cloudflare proxy is on staging only (docs/operations/cloudflare-proxy.md); production gets it at cut-over.",
+        "NEXT_PUBLIC_GA_MEASUREMENT_ID": "No workflow or deploy script reads it; confirm and remove, or wire it (issue #1146).",
+        "PAYMENTS_STRIPE_CANCEL_URL": "Payments run in Stripe test mode on staging only until production payments launch (issue #1146).",
+        "PAYMENTS_STRIPE_SUCCESS_URL": "Payments run in Stripe test mode on staging only until production payments launch (issue #1146).",
+        "PULL_PARALLEL": "Optional deploy tuning (docs/deployment.md), tried on staging first; set on production or move to only.staging.",
+        "ROLLING_DEPLOY": "Optional rolling deploy (docs/deployment.md), tried on staging first; set on production or move to only.staging.",
+        "ROLLOUT_PARALLEL": "Optional deploy tuning (docs/deployment.md), tried on staging first; set on production or move to only.staging."
+      }
+    },
+    "production": {
+      "secrets": {
+        "GMSDASH_SSO_CLIENT_SECRET": "GMS dashboard SSO client exists on production only (issue #1146).",
+        "RESEND_WEBHOOK_SECRET": "Resend webhook verification on production only (issue #1146).",
+        "STORAGE_ACCESS_KEY_ID": "Storage names differ: STORAGE_* on production, DO_SPACES_* on staging (issue #1146).",
+        "STORAGE_BUCKET": "Storage names differ: STORAGE_* on production, DO_SPACES_* on staging (issue #1146).",
+        "STORAGE_ENDPOINT_URL": "Storage names differ: STORAGE_* on production, DO_SPACES_* on staging (issue #1146).",
+        "STORAGE_REGION": "Storage names differ: STORAGE_* on production, DO_SPACES_* on staging (issue #1146).",
+        "STORAGE_SECRET_ACCESS_KEY": "Storage names differ: STORAGE_* on production, DO_SPACES_* on staging (issue #1146).",
+        "WEBPUSH_VAPID_PRIVATE_KEY": "Web push keys on production only (issue #1146).",
+        "WEBPUSH_VAPID_PUBLIC_KEY": "Web push keys on production only, and also set as a variable there (issue #1146)."
+      },
+      "variables": {
+        "WEBPUSH_VAPID_PUBLIC_KEY": "Web push public key on production only, and also set as a secret there (issue #1146)."
+      }
+    }
+  }
+}

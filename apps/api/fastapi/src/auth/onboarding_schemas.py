@@ -23,9 +23,11 @@ class SignInSetupIssue(BaseModel):
     identity_confirmed: bool
     # Required unless the person's email is unverified or their password setup is pending.
     # When the email is verified the service requires at least 10 characters (422).
-    # Control, bidi and zero-width characters are removed before the length rules run,
-    # so they never count toward the minimum; NUL is refused. The cleaning is a
-    # before-validator rather than an Annotated step, so the OpenAPI shape is unchanged.
+    # Control, bidi, zero-width and invisible padding characters are removed before the
+    # length rules run, so they never count toward the minimum. A presentation selector
+    # (U+FE0E/U+FE0F) is kept only after a character, so emoji keep their glyph. NUL is
+    # refused. The cleaning is a before-validator rather than an Annotated step, so the
+    # OpenAPI shape is unchanged.
     reason: Annotated[
         str | None,
         StringConstraints(strip_whitespace=True, min_length=3, max_length=500),

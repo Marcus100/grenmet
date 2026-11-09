@@ -25,6 +25,7 @@ export function eventsSellOutletTickets<ThrowOnError extends boolean = true>(
       method: "POST",
       url: "/api/v1/events/manage/{listing_id}/outlet/sales",
       security: [{ type: "http", scheme: "bearer" }],
+      contentType: { request: "application/json" },
       ...config,
       throwOnError: config.throwOnError ?? true,
     }) as Promise<RequestResult<EventsSellOutletTicketsResponses, ThrowOnError>>

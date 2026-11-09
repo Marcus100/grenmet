@@ -27,6 +27,7 @@ export function webhooksOutCreateEndpoint<ThrowOnError extends boolean = true>(
       method: "POST",
       url: "/api/v1/webhooks-out/org/endpoints",
       security: [{ type: "oauth2" }],
+      contentType: { request: "application/json" },
       ...config,
       throwOnError: config.throwOnError ?? true,
     }) as Promise<

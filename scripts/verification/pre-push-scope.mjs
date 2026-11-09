@@ -7,6 +7,8 @@
 //   NONE                          no package changed; skip tests
 //   ALL                           a workspace-wide input changed; run every test
 //   --filter=./a --filter=./b     only these packages (no dependants)
+// With --files it prints the added or changed files instead, one per line (light
+// pre-push mode, which lints only those).
 // Lint and type-check are not scoped here; the hook runs them everywhere. CI
 // still runs the full suite.
 //
@@ -85,10 +87,33 @@ function git(args) {
   return result.stdout;
 }
 
-function filesIn(range) {
+function filesIn(range, filter) {
   // Three dots: only what the pushed commits add on top of the base.
   const spec = `${range.from}...${range.to}`;
-  return git(["diff", "--name-only", spec]).split("\n").filter(Boolean);
+  return git([
+    "diff",
+    "--name-only",
+    ...(filter ? [`--diff-filter=${filter}`] : []),
+    spec,
+  ])
+    .split("\n")
+    .filter(Boolean);
+}
+
+// Light mode: the files the pushed commits add or change (never deletions). An
+// unreadable range contributes nothing: CI covers it.
+function changedFiles(stdin) {
+  const all = new Set();
+  for (const line of stdin.split("\n").filter(Boolean)) {
+    const range = rangeFor(line, "origin/dev");
+    if (!range) continue;
+    try {
+      for (const file of filesIn(range, "ACMR")) all.add(file);
+    } catch {
+      // No readable base: nothing to lint locally.
+    }
+  }
+  return [...all];
 }
 
 function main() {
@@ -96,6 +121,10 @@ function main() {
   const stdin = process.stdin.isTTY ? "" : readFileSync(0, "utf8");
   if (args.includes("--only-agent-locks")) {
     process.exitCode = onlyAgentLockRefs(stdin) ? 0 : 1;
+    return;
+  }
+  if (args.includes("--files")) {
+    console.log(changedFiles(stdin).join("\n"));
     return;
   }
   const base = args.includes("--base")

@@ -23,10 +23,20 @@ from src.hr.workflow.models import (
 GRADE_SPECS = json.loads(Path(__file__).with_name("gms-grades.json").read_text())
 
 
+async def _require_department_scope(
+    session: AsyncSession, actor: User, department_id: str
+) -> None:
+    """The caller may set up this department's organisation (issue #1080)."""
+    department = await session.get(Department, department_id)
+    await service.require_setup_organisation(
+        session, actor, department.organisation_id if department else None
+    )
+
+
 async def preview(
     session: AsyncSession, actor: User, department_id: str
 ) -> CataloguePreview:
-    service.require_admin(actor)
+    await _require_department_scope(session, actor, department_id)
     if not is_gms_department(department_id) or not await session.get(
         Department, department_id
     ):
@@ -130,7 +140,7 @@ async def preview(
 async def apply(
     session: AsyncSession, actor: User, department_id: str
 ) -> CataloguePreview:
-    service.require_admin(actor)
+    await _require_department_scope(session, actor, department_id)
     await session.execute(text("SELECT pg_advisory_xact_lock(73190506)"))
     before = await preview(session, actor, department_id)
     if before.conflicts:

@@ -24,6 +24,7 @@ export function authGoogleStart<ThrowOnError extends boolean = true>(
     request({
       method: "POST",
       url: "/api/v1/auth/google/start",
+      contentType: { request: "application/json" },
       ...config,
       throwOnError: config.throwOnError ?? true,
     }) as Promise<RequestResult<AuthGoogleStartResponses, ThrowOnError>>

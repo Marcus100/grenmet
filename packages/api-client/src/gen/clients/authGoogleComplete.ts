@@ -24,6 +24,7 @@ export function authGoogleComplete<ThrowOnError extends boolean = true>(
     request({
       method: "POST",
       url: "/api/v1/auth/google/complete",
+      contentType: { request: "application/json" },
       ...config,
       throwOnError: config.throwOnError ?? true,
     }) as Promise<RequestResult<AuthGoogleCompleteResponses, ThrowOnError>>

@@ -219,7 +219,7 @@ test("pre-push stops on lint, type-check and test failures", (t) => {
   );
 });
 
-test("pre-push tests only the pushed packages by default", (t) => {
+test("pre-push with PRE_PUSH_FULL tests only the pushed packages", (t) => {
   const fixture = mkdtempSync(join(tmpdir(), "grenmet-pre-push-scope-"));
   t.after(() => rmSync(fixture, { force: true, recursive: true }));
   const bin = join(fixture, "bin");
@@ -235,7 +235,12 @@ test("pre-push tests only the pushed packages by default", (t) => {
     spawnSync("sh", ["-e", prePushHook], {
       cwd: workspace,
       encoding: "utf8",
-      env: { ...inherited, CALL_LOG: log, PATH: `${bin}:${process.env.PATH}` },
+      env: {
+        ...inherited,
+        CALL_LOG: log,
+        PATH: `${bin}:${process.env.PATH}`,
+        PRE_PUSH_FULL: "1",
+      },
       input: refs,
     });
 
@@ -249,4 +254,62 @@ test("pre-push tests only the pushed packages by default", (t) => {
   result = hook(`refs/heads/x ${head} refs/heads/x ${"1".repeat(40)}\n`);
   assert.equal(result.status, 0, result.stderr);
   assert.equal(readFileSync(log, "utf8"), "check:ci\ntype-check\ntest\n");
+});
+
+test("pre-push is light by default and lints only the pushed files", (t) => {
+  const fixture = mkdtempSync(join(tmpdir(), "grenmet-pre-push-light-"));
+  t.after(() => rmSync(fixture, { force: true, recursive: true }));
+  const repository = join(fixture, "repo");
+  const bin = join(fixture, "bin");
+  const log = join(fixture, "calls.log");
+  mkdirSync(repository);
+  mkdirSync(bin);
+  git(repository, "init", "--quiet", "--initial-branch=main");
+  git(repository, "config", "user.email", "hooks@example.com");
+  git(repository, "config", "user.name", "Hook Tests");
+  const scripts = join(repository, "scripts", "verification");
+  mkdirSync(scripts, { recursive: true });
+  writeFileSync(
+    join(scripts, "pre-push-scope.mjs"),
+    readFileSync(join(workspace, "scripts/verification/pre-push-scope.mjs"))
+  );
+  git(repository, "add", "-A");
+  git(repository, "commit", "--quiet", "-m", "base");
+  const base = git(repository, "rev-parse", "HEAD").trim();
+  writeFileSync(join(repository, "changed file.ts"), "export const a = 1;\n");
+  writeFileSync(join(repository, "Dockerfile"), "FROM scratch\n");
+  git(repository, "add", "-A");
+  git(repository, "commit", "--quiet", "-m", "change");
+  const head = git(repository, "rev-parse", "HEAD").trim();
+  const pnpm = join(bin, "pnpm");
+  writeFileSync(pnpm, '#!/bin/sh\nprintf "%s\\n" "$*" >> "$CALL_LOG"\n');
+  chmodSync(pnpm, 0o755);
+
+  const {
+    PRE_PUSH_SCOPE: _scope,
+    PRE_PUSH_FULL: _full,
+    ...inherited
+  } = process.env;
+  const hook = (refs) =>
+    spawnSync("sh", ["-e", prePushHook], {
+      cwd: repository,
+      encoding: "utf8",
+      env: { ...inherited, CALL_LOG: log, PATH: `${bin}:${process.env.PATH}` },
+      input: refs,
+    });
+
+  // Two changed files: lint just those, no turbo, no type check, no tests.
+  let result = hook(`refs/heads/x ${head} refs/heads/x ${base}\n`);
+  assert.equal(result.status, 0, result.stderr);
+  assert.equal(
+    readFileSync(log, "utf8"),
+    "exec biome check --no-errors-on-unmatched Dockerfile changed file.ts\n"
+  );
+
+  // Nothing new in the range: nothing runs locally.
+  rmSync(log);
+  result = hook(`refs/heads/x ${head} refs/heads/x ${head}\n`);
+  assert.equal(result.status, 0, result.stderr);
+  assert.ok(result.stdout.includes("nothing to check locally"));
+  assert.throws(() => readFileSync(log), { code: "ENOENT" });
 });

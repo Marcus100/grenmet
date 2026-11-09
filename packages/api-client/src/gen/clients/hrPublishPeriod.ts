@@ -25,6 +25,7 @@ export function hrPublishPeriod<ThrowOnError extends boolean = true>(
       method: "PATCH",
       url: "/api/v1/hr/rosters/periods/{period_id}/publish",
       security: [{ type: "oauth2" }],
+      contentType: { request: "application/json" },
       ...config,
       throwOnError: config.throwOnError ?? true,
     }) as Promise<RequestResult<HrPublishPeriodResponses, ThrowOnError>>

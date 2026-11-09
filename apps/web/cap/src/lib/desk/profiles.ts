@@ -74,3 +74,56 @@ export function approvalCheck(
   }
   return { allowed: true };
 }
+
+export type DeskCheck = { allowed: true } | { allowed: false; reason: string };
+
+/**
+ * Whether this viewer may save a new hazard profile version (new profile,
+ * a new version of an existing one, or an edited draft). The API's
+ * `save_version` needs cap.library.manage; the server action checks it again.
+ * Saving never changes an existing version: it always adds a draft.
+ */
+export function versionDraftCheck(
+  permissions: Pick<DeskPermissions, "libraryManage">
+): DeskCheck {
+  if (!permissions.libraryManage) {
+    return {
+      allowed: false,
+      reason:
+        "You need hazard library access to draft a profile version. Ask a GMS administrator.",
+    };
+  }
+  return { allowed: true };
+}
+
+/**
+ * Whether this viewer may start a warning draft from an approved version. The
+ * API's draft endpoint needs cap.alert.create and an approved version. The
+ * draft still needs its own review and approval before it can be published.
+ */
+export function alertStartCheck(
+  profile: CapProfilePublic,
+  permissions: Pick<DeskPermissions, "create">
+): DeskCheck {
+  if (profile.state !== "APPROVED") {
+    return {
+      allowed: false,
+      reason: "Approve this version before starting a warning from it.",
+    };
+  }
+  return alertStartPermissionCheck(permissions);
+}
+
+/** The permission half of `alertStartCheck`, also used by the server action. */
+export function alertStartPermissionCheck(
+  permissions: Pick<DeskPermissions, "create">
+): DeskCheck {
+  if (!permissions.create) {
+    return {
+      allowed: false,
+      reason:
+        "You need warning-creation access to start a warning from a profile.",
+    };
+  }
+  return { allowed: true };
+}

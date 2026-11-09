@@ -25,6 +25,7 @@ export function hrCreateShift<ThrowOnError extends boolean = true>(
       method: "POST",
       url: "/api/v1/hr/rosters/shifts",
       security: [{ type: "oauth2" }],
+      contentType: { request: "application/json" },
       ...config,
       throwOnError: config.throwOnError ?? true,
     }) as Promise<RequestResult<HrCreateShiftResponses, ThrowOnError>>

@@ -24,6 +24,7 @@ export function authEmailConfirm<ThrowOnError extends boolean = true>(
     request({
       method: "POST",
       url: "/api/v1/auth/password/setup/confirm",
+      contentType: { request: "application/json" },
       ...config,
       throwOnError: config.throwOnError ?? true,
     }) as Promise<RequestResult<AuthEmailConfirmResponses, ThrowOnError>>

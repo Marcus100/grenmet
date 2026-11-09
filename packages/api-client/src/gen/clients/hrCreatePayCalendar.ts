@@ -25,6 +25,7 @@ export function hrCreatePayCalendar<ThrowOnError extends boolean = true>(
       method: "POST",
       url: "/api/v1/hr/payroll/calendars",
       security: [{ type: "oauth2" }],
+      contentType: { request: "application/json" },
       ...config,
       throwOnError: config.throwOnError ?? true,
     }) as Promise<RequestResult<HrCreatePayCalendarResponses, ThrowOnError>>

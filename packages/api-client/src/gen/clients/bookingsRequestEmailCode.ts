@@ -24,6 +24,7 @@ export function bookingsRequestEmailCode<ThrowOnError extends boolean = true>(
     request({
       method: "POST",
       url: "/api/v1/bookings/public/{slug}/email-code",
+      contentType: { request: "application/json" },
       ...config,
       throwOnError: config.throwOnError ?? true,
     }) as Promise<

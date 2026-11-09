@@ -105,9 +105,11 @@ export function WeatherNowPanel({
 
   return (
     <div className="rounded-gm-card border-gm-border bg-gm-navy text-gm-text-inverse flex flex-col overflow-hidden border">
+      {/* One equal column per tab on phones (no empty slot when a tab is added
+          or removed), centred as a row from `sm` up (owner, 8 Nov 2026). */}
       <div
         aria-label="Weather now"
-        className="grid grid-cols-6 gap-0.5 p-1 sm:flex sm:gap-1 sm:p-2"
+        className="grid auto-cols-fr grid-flow-col gap-0.5 p-1 sm:flex sm:justify-center sm:gap-1 sm:p-2"
         role="tablist"
       >
         {TABS.map(({ key, label, Icon }) => (
@@ -172,14 +174,8 @@ export function WeatherNowPanel({
               {current.text && (
                 <p className="text-body leading-body">{current.text}</p>
               )}
-              <a
-                className="text-body-sm text-gm-lime leading-body-sm w-fit underline"
-                href={current.embed.href}
-                rel="noopener noreferrer"
-                target="_blank"
-              >
-                Open on {current.embed.provider}
-              </a>
+              {/* No "Open on YouTube/SoundCloud" link: the player itself plays
+                  the item and opens it on the provider's site (owner, 8 Nov 2026). */}
             </div>
             {items.length > 1 && (
               <ul

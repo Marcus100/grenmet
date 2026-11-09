@@ -25,6 +25,7 @@ export function eventsSendMessage<ThrowOnError extends boolean = true>(
       method: "POST",
       url: "/api/v1/events/threads/{thread_id}/messages",
       security: [{ type: "http", scheme: "bearer" }],
+      contentType: { request: "application/json" },
       ...config,
       throwOnError: config.throwOnError ?? true,
     }) as Promise<RequestResult<EventsSendMessageResponses, ThrowOnError>>

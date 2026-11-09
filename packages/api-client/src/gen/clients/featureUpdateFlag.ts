@@ -25,6 +25,7 @@ export function featureUpdateFlag<ThrowOnError extends boolean = true>(
       method: "PATCH",
       url: "/api/v1/feature-flags/admin/{flag_id}",
       security: [{ type: "oauth2" }],
+      contentType: { request: "application/json" },
       ...config,
       throwOnError: config.throwOnError ?? true,
     }) as Promise<RequestResult<FeatureUpdateFlagResponses, ThrowOnError>>

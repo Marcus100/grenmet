@@ -2,7 +2,7 @@
 
 **Status:** Active reference  
 **Owner:** Barrels Grenada engineering  
-**Last updated:** 2026-10-20
+**Last updated:** 2026-11-08
 
 This guide records the current Barrels Grenada security posture and the rules that keep docs and code aligned. It is not a full organizational security policy; it is the repo-level baseline for engineers.
 
@@ -22,6 +22,7 @@ This guide records the current Barrels Grenada security posture and the rules th
 | Webhooks | The Resend webhook verifies Svix signatures when `RESEND_WEBHOOK_SECRET` is set. If unset, it logs a warning and accepts events. |
 | CAP feed and import fetches | Registered CAP feeds must be `https` on port 443, with no credentials and no literal private host (checked when the URL is saved). Every fetch re-checks the host resolves to a public address, connects to that checked address, follows no redirects, has a fixed timeout and reads at most 5 MB (`apps/api/fastapi/src/cap/safe_fetch.py`). A feed registered on plain `http` before the rule keeps working for 14 days from the day it was first flagged, then is skipped with the error "plain http no longer allowed" until its URL is changed to `https`. See `apps/api/fastapi/src/cap/AGENTS.md`. |
 | Vulnerability scanning | Image verification blocks fixable high/critical findings before publishing; JSON/SARIF evidence is retained. The initial enforcement candidate still requires remediation and staging acceptance. |
+| Base image supply | Third-party base and service images are pinned by digest and copied by digest from Docker Hub to `ghcr.io/marcus100/base/` by the `Mirror base images` workflow; builds and CI service containers pull the mirror. The workflow's write token never runs repository code. See `docs/operations/ci-base-images.md`. |
 | Error tracking | FastAPI initializes Sentry outside local environments when `SENTRY_DSN` is set. Next.js apps include Sentry instrumentation files and build-time Sentry configuration. |
 | Analytics | Production-only, consent-gated Google Analytics 4 on seven public origins. PostHog is wired in the shared runtime but disabled (all mappings empty). See ADR-0045 and `docs/operations/analytics-monitoring.md`. |
 
@@ -138,6 +139,23 @@ The scanner exits zero for findings so evidence can be retained before the
 separate policy step rejects the image. This does not suppress scanner errors.
 SARIF upload to the Security tab is reporting; it cannot override the policy
 step. The filesystem scan remains supplemental reporting.
+
+### OS package patch dates
+
+Rebuilding an image does not pick up a newly published OS package fix on its
+own. BuildKit reuses the cached upgrade layer. Every web Dockerfile therefore
+runs `apk upgrade` behind `ARG ALPINE_PATCH_DATE`, and the API's
+`Dockerfile.prod` runs `apt-get upgrade` behind `ARG DEBIAN_PATCH_DATE`.
+Changing the date rebuilds that layer (issue #1142).
+`scripts/ci/image-patch-dates.mjs` manages the dates:
+
+- `check`: every release Dockerfile has a valid date, and each family uses one date.
+- `bump <YYYY-MM-DD> [alpine|debian|all]`: moves the dates forward, never back.
+- `plan <image>=<trivy.json> ...`: applies the exception policy, then lists the
+  Dockerfiles that a bump fixes (blocked OS package findings) and the findings
+  that need a person (language packages).
+- `targets tags <tag>...` or `targets digests "<repo@sha256:…>..."`: the
+  registry images to scan, each with its exception scope, as a workflow matrix.
 
 ### Exceptions
 

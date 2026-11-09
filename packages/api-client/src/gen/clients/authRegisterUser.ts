@@ -24,6 +24,7 @@ export function authRegisterUser<ThrowOnError extends boolean = true>(
     request({
       method: "POST",
       url: "/api/v1/auth/users/signup",
+      contentType: { request: "application/json" },
       ...config,
       throwOnError: config.throwOnError ?? true,
     }) as Promise<RequestResult<AuthRegisterUserResponses, ThrowOnError>>

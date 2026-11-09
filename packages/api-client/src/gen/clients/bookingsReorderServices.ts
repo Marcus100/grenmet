@@ -25,6 +25,7 @@ export function bookingsReorderServices<ThrowOnError extends boolean = true>(
       method: "PUT",
       url: "/api/v1/bookings/org/services/order",
       security: [{ type: "http", scheme: "bearer" }, { type: "oauth2" }],
+      contentType: { request: "application/json" },
       ...config,
       throwOnError: config.throwOnError ?? true,
     }) as Promise<RequestResult<BookingsReorderServicesResponses, ThrowOnError>>

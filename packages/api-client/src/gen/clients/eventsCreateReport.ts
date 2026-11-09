@@ -25,6 +25,7 @@ export function eventsCreateReport<ThrowOnError extends boolean = true>(
       method: "POST",
       url: "/api/v1/events/reports",
       security: [{ type: "http", scheme: "bearer" }],
+      contentType: { request: "application/json" },
       ...config,
       throwOnError: config.throwOnError ?? true,
     }) as Promise<RequestResult<EventsCreateReportResponses, ThrowOnError>>

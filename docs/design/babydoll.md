@@ -36,4 +36,5 @@ footer credit). Source: `apps/web/babydoll/src/app/globals.css`.
 - **Booking first:** every page reaches the Acuity booking page in one tap.
   Phones get a fixed "Book me" bar; every bookable service has its own Book link.
   "By appointment only" sits with the opening hours everywhere they appear.
-- Dark mode follows the system setting and inverts the monogram.
+- Light theme only (the client's one colour scheme): there is no dark mode and the
+  site ignores the system setting.

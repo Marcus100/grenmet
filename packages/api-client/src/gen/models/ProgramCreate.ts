@@ -11,8 +11,8 @@ export type ProgramCreate = {
    */
   name: string;
   /**
-   * @minLength 1
-   * @maxLength 100
+   * @minimum 1
+   * @maximum 100
    * @type integer
    */
   stamps_required: number;
@@ -23,8 +23,8 @@ export type ProgramCreate = {
    */
   reward_description: string;
   /**
-   * @minLength 1
-   * @maxLength 10
+   * @minimum 1
+   * @maximum 10
    * @default 1
    * @type integer | undefined
    */

@@ -13,35 +13,35 @@ export type BookingServiceCreate = {
   category?: string | null;
   description?: string | null;
   /**
-   * @minLength 5
-   * @maxLength 720
+   * @minimum 5
+   * @maximum 720
    * @type integer
    */
   duration_min: number;
   /**
-   * @minLength 0
-   * @maxLength 240
+   * @minimum 0
+   * @maximum 240
    * @default 0
    * @type integer | undefined
    */
   buffer_before_min?: number;
   /**
-   * @minLength 0
-   * @maxLength 240
+   * @minimum 0
+   * @maximum 240
    * @default 0
    * @type integer | undefined
    */
   buffer_after_min?: number;
   /**
-   * @minLength 0
-   * @maxLength 100000000
+   * @minimum 0
+   * @maximum 100000000
    * @default 0
    * @type integer | undefined
    */
   price_minor?: number;
   /**
-   * @minLength 0
-   * @maxLength 100000000
+   * @minimum 0
+   * @maximum 100000000
    * @default 0
    * @type integer | undefined
    */
@@ -52,8 +52,8 @@ export type BookingServiceCreate = {
    */
   active?: boolean;
   /**
-   * @minLength 0
-   * @maxLength 10000
+   * @minimum 0
+   * @maximum 10000
    * @default 0
    * @type integer | undefined
    */

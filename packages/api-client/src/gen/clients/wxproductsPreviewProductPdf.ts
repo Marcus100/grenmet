@@ -32,6 +32,7 @@ export function wxproductsPreviewProductPdf<
         { type: "apiKey", name: "admin_session", in: "cookie" },
         { type: "http", scheme: "bearer" },
       ],
+      contentType: { request: "application/json" },
       responseType: "blob",
       ...config,
       throwOnError: config.throwOnError ?? true,

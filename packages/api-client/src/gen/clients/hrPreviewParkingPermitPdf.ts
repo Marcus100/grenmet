@@ -27,6 +27,7 @@ export function hrPreviewParkingPermitPdf<ThrowOnError extends boolean = true>(
       method: "POST",
       url: "/api/v1/hr/parking-permits/preview-pdf",
       security: [{ type: "oauth2" }],
+      contentType: { request: "application/json" },
       responseType: "blob",
       ...config,
       throwOnError: config.throwOnError ?? true,

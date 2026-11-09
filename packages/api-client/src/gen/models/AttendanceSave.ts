@@ -11,7 +11,7 @@ export type AttendanceSave = {
    */
   roster_assignment_id: string;
   /**
-   * @minLength 0
+   * @minimum 0
    * @default 0
    * @type integer | undefined
    */
@@ -24,8 +24,8 @@ export type AttendanceSave = {
   arrived_at: string;
   departed_at?: string | null;
   /**
-   * @minLength 0
-   * @maxLength 1440
+   * @minimum 0
+   * @maximum 1440
    * @default 0
    * @type integer | undefined
    */
