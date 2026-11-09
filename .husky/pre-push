@@ -1,6 +1,7 @@
-# Lint and type-check run everywhere (Turbo caches them); tests run only for the
-# packages whose files changed in the commits being pushed (no dependants), read
-# from the refs git passes on stdin. CI runs the full suite.
+# Light by default (see below). With PRE_PUSH_FULL=1: lint and type-check run
+# everywhere (Turbo caches them); tests run only for the packages whose files
+# changed in the commits being pushed (no dependants), read from the refs git
+# passes on stdin. CI runs the full suite.
 # Set PRE_PUSH_SCOPE to any turbo flags to scope all three steps by hand, or to ""
 # for a full local run of all three. Pass filters to turbo directly: under
 # pnpm 12, `pnpm test --filter=x` becomes pnpm's own recursive run, which
@@ -17,6 +18,21 @@ if [ -n "${PRE_PUSH_SCOPE+x}" ]; then
   pnpm exec turbo run check:ci $PRE_PUSH_SCOPE
   pnpm exec turbo run type-check $PRE_PUSH_SCOPE
   pnpm exec turbo run test --concurrency=2 $PRE_PUSH_SCOPE
+  exit 0
+fi
+
+# Default is light: GitHub CI runs the full lint, type check and tests on every
+# pull request and is the gate that counts, so a push only checks the files it
+# changes (formatting and lint, no type check, no tests). This keeps pushes cheap
+# on small machines. Set PRE_PUSH_FULL=1 for the workspace-wide gates below.
+if [ -z "${PRE_PUSH_FULL+x}" ]; then
+  files=$(printf '%s\n' "$refs" | node scripts/verification/pre-push-scope.mjs --files)
+  if [ -z "$files" ]; then
+    echo "pre-push: nothing to check locally; GitHub CI runs the full gates."
+    exit 0
+  fi
+  echo "pre-push: light mode, linting the changed files. GitHub CI runs the type check and tests (PRE_PUSH_FULL=1 for the full local run)."
+  printf '%s\n' "$files" | xargs -d '\n' pnpm exec biome check --no-errors-on-unmatched
   exit 0
 fi
 
