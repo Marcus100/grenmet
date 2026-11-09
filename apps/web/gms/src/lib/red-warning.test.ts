@@ -10,7 +10,7 @@ type Detail = Awaited<ReturnType<typeof fetchPublicAlert>>;
 const warning = (
   identifier: string,
   severity: "Extreme" | "Severe" | "Moderate" | "Minor",
-  status: "Actual" | "Test" = "Actual"
+  status: "Actual" | "Test" | "Exercise" | "Draft" = "Actual"
 ) => ({
   identifier,
   event: "Event",
@@ -60,6 +60,18 @@ describe("redWarningIssuedAt", () => {
         feed(warning("red-1", "Severe"), warning("red-2", "Extreme"))
       )
     ).toBe(Date.parse("2026-11-01T12:00:00Z"));
+  });
+
+  it("skips every non-Actual red warning, not only test messages", async () => {
+    expect(
+      await redWarningIssuedAt(
+        feed(
+          warning("exercise", "Extreme", "Exercise"),
+          warning("draft", "Extreme", "Draft")
+        )
+      )
+    ).toBeNull();
+    expect(fetchPublicAlert).not.toHaveBeenCalled();
   });
 
   it("looks at no warning below red", async () => {

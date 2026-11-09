@@ -25,6 +25,7 @@ export function eventsOpenTill<ThrowOnError extends boolean = true>(
       method: "POST",
       url: "/api/v1/events/manage/{listing_id}/outlet/till",
       security: [{ type: "http", scheme: "bearer" }],
+      contentType: { request: "application/json" },
       ...config,
       throwOnError: config.throwOnError ?? true,
     }) as Promise<RequestResult<EventsOpenTillResponses, ThrowOnError>>

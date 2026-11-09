@@ -19,7 +19,7 @@ bucket or lets a visitor choose their own address. Do them in the order below.
 | --- | --- | --- | --- |
 | 1 | Hostnames proxied (orange cloud) | Cloudflare dashboard, DNS | Owner, per record |
 | 2 | Traefik trusts `X-Forwarded-For` only from Cloudflare's published ranges | `infra/docker/docker-compose.deploy.yml`, ranges in `infra/cloudflare/ip-ranges.txt` | `CLOUDFLARE_PROXY_ENABLED` |
-| 3 | Visitor address counted 2 hops from the right (Cloudflare, then Traefik) on the API and the web hosts that forward it (events, bookings, weather) | `render-env.py` sets `VISITOR_IP_PROXY_HOPS` | `CLOUDFLARE_PROXY_ENABLED` |
+| 3 | Visitor address counted 2 hops from the right (Cloudflare, then Traefik) on the API and the web hosts that forward it (events, bookings, weather, mbia) | `render-env.py` sets `VISITOR_IP_PROXY_HOPS` | `CLOUDFLARE_PROXY_ENABLED` |
 | 4 | Only Cloudflare's ranges may reach 80/443 on the droplet | DigitalOcean Cloud Firewall, `scripts/production/cloudflare-origin-firewall.py` | Owner runs the script |
 | 5 | **Origin gate:** only *our* zone may use Cloudflare's addresses. Cloudflare adds a secret header to every request (Transform Rule); Traefik answers 403 to a Cloudflare-address connection without it, so another Cloudflare customer's Worker cannot reach the droplet and pick its own `X-Forwarded-For`. Required before production. | `scripts/production/cloudflare-origin-header.py` (Cloudflare side), `render-env.py` and the `origin-gate` router (Traefik side), secret `CLOUDFLARE_ORIGIN_SECRET` | `CLOUDFLARE_PROXY_ENABLED` plus owner runs the script |
 | 6 | Cache static assets only, and only when the origin's `Cache-Control` marks them cacheable (no header: not cached); never the API, staff hosts, signed-in requests | Cloudflare cache rules, `scripts/production/cloudflare-cache-rules.py` | Owner runs the script |
@@ -35,7 +35,7 @@ behaviour. Anything other than `true`/`false` stops the deploy.
 | --- | --- | --- |
 | Traefik forwarded headers (`websecure`) | `insecure=false`: trusted from nobody (Traefik's own default) | `trustedIPs=` the vendored Cloudflare ranges |
 | Traefik per-client cap of 100 requests in flight | Keyed on the connecting address (`depth=0`) | Keyed on the address Cloudflare appended (`depth=1`) |
-| `VISITOR_IP_PROXY_HOPS` (API, web-events, web-gms, web-bookings) | `1` | `2` |
+| `VISITOR_IP_PROXY_HOPS` (API, web-events, web-gms, web-mbia, web-bookings) | `1` | `2` |
 | Let's Encrypt challenge | TLS challenge on 443 (today) | HTTP challenge on 80 (Cloudflare ends TLS in front of the droplet, so the TLS challenge cannot reach Traefik) |
 | Origin gate (`origin-gate` router, top priority) | Rule `ClientIP(255.255.255.255/32)`: matches nothing | 403 for a connection from a Cloudflare range without `X-Barrels-Origin: <CLOUDFLARE_ORIGIN_SECRET>` (or `_PREVIOUS`); a deploy with the switch on and no secret stops before anything changes |
 | `X-Barrels-Origin` request header | Removed before any app sees it | Removed before any app sees it |
@@ -259,7 +259,7 @@ switch on until the last record is orange.
    # --certificatesresolvers.letsencrypt.acme.httpchallenge.entrypoint=web
    docker inspect "$P-proxy-1" --format '{{index .Config.Labels "traefik.http.routers.origin-gate-staging.rule"}}' | cut -c1-60
    # (ClientIP(`103.21.244.0/22`) || ...   (production label: origin-gate.rule)
-   for c in api web-events web-gms web-bookings; do
+   for c in api web-events web-gms web-mbia web-bookings; do
      docker inspect "$P-$c-1" --format '{{range .Config.Env}}{{println .}}{{end}}' | grep VISITOR_IP_PROXY_HOPS
    done   # each: VISITOR_IP_PROXY_HOPS=2
    ```

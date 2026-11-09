@@ -40,6 +40,7 @@ from src.organisations.models import (
 )
 from src.utils.datetime import utc_now
 from src.utils.reserved_names import is_reserved
+from src.utils.text import clean_reason
 
 logger = logging.getLogger(__name__)
 
@@ -486,7 +487,9 @@ async def _load(session: AsyncSession, organisation_id: str) -> PlatformOrganisa
 
 
 def _clean_reason(reason: str) -> str:
-    clean = reason.strip()
+    """The shared cleaner strips control, bidi and invisible characters; then the
+    reason is trimmed and must still have text."""
+    clean = (clean_reason(reason) or "").strip()
     if not clean:
         raise AppException("A reason is required", 422)
     return clean

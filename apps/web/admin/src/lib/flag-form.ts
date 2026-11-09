@@ -217,6 +217,8 @@ export function audienceSummary(audience: FeatureFlagAudience): string {
 /** What `useActionState` holds; `values` lets the form keep what was typed. */
 export interface FlagFormState {
   message?: string;
+  /** Field-level problems from a rejected save, one line each: "field: reason". */
+  problems?: string[];
   values?: Record<string, string | string[]>;
 }
 

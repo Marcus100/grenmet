@@ -55,8 +55,8 @@ export type ListingUpsert = {
   ends_at: string;
   admission: ListingCardPropertiesAdmissionEnum;
   /**
-   * @minLength 0
-   * @maxLength 1000000
+   * @minimum 0
+   * @maximum 1000000
    * @type integer
    */
   capacity: number;

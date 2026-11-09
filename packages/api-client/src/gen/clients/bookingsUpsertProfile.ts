@@ -25,6 +25,7 @@ export function bookingsUpsertProfile<ThrowOnError extends boolean = true>(
       method: "PUT",
       url: "/api/v1/bookings/org/profile",
       security: [{ type: "oauth2" }],
+      contentType: { request: "application/json" },
       ...config,
       throwOnError: config.throwOnError ?? true,
     }) as Promise<RequestResult<BookingsUpsertProfileResponses, ThrowOnError>>

@@ -55,7 +55,7 @@ export function hrUpdateStaffSetupMutationOptions<TContext = unknown>(
 }
 
 /**
- * @description Complete or update staff onboarding, including separately verified continuous service and probation facts with their HR source. Does not infer eligibility or alter role assignments.
+ * @description Complete or update staff onboarding, including separately verified continuous service and probation facts with their HR source. Does not infer eligibility or alter role assignments. Needs hr.setup.manage for the organisation; superusers may act for any organisation.
  * @summary Complete or update staff onboarding
  * {@link /api/v1/hr/setup/staff/:user_id}
  */

@@ -10,7 +10,7 @@ export type OutlookProductPreviewInput = {
   guidance?: ProductGuidance | null;
   values: OutlookValuesDraft;
   /**
-   * @minLength 0
+   * @minimum 0
    * @type integer
    */
   expectedRevision: number;

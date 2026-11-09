@@ -65,6 +65,28 @@ describe("describeDeskError", () => {
     expect(result.items).toEqual(["info › 0 › web: web must be one address"]);
   });
 
+  it("lists a repeated field problem once and at most five problems", () => {
+    const same = { loc: ["body", "key"], msg: "Field required" };
+    const many = ["a", "b", "c", "d", "e", "f", "g"].map((field) => ({
+      loc: ["body", field],
+      msg: `${field} is wrong`,
+    }));
+    const result = describeDeskError(
+      Object.assign(new Error("failed"), {
+        data: { detail: "Validation error", errors: [same, same, ...many] },
+        name: "ResponseError",
+        status: 422,
+      })
+    );
+    expect(result.items).toEqual([
+      "key: Field required",
+      "a: a is wrong",
+      "b: b is wrong",
+      "c: c is wrong",
+      "d: d is wrong",
+    ]);
+  });
+
   it("explains the imported-alert confirmation", () => {
     const result = describeDeskError(
       failure(409, "This alert was imported. ... confirm_imported set to true.")

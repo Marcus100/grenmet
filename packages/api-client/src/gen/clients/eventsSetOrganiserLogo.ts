@@ -25,6 +25,7 @@ export function eventsSetOrganiserLogo<ThrowOnError extends boolean = true>(
       method: "PUT",
       url: "/api/v1/events/manage/organiser/logo",
       security: [{ type: "http", scheme: "bearer" }],
+      contentType: { request: "application/json" },
       ...config,
       throwOnError: config.throwOnError ?? true,
     }) as Promise<RequestResult<EventsSetOrganiserLogoResponses, ThrowOnError>>

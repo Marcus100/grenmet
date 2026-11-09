@@ -25,6 +25,7 @@ export function authAppPhoneLinkStart<ThrowOnError extends boolean = true>(
       method: "POST",
       url: "/api/v1/auth/apps/{app}/phone/link/start",
       security: [{ type: "http", scheme: "bearer" }],
+      contentType: { request: "application/json" },
       ...config,
       throwOnError: config.throwOnError ?? true,
     }) as Promise<RequestResult<AuthAppPhoneLinkStartResponses, ThrowOnError>>

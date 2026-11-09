@@ -5,8 +5,8 @@
 
 export type TillOpen = {
   /**
-   * @minLength 0
-   * @maxLength 100000000
+   * @minimum 0
+   * @maximum 100000000
    * @type integer
    */
   opening_float_minor: number;

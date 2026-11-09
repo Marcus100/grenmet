@@ -25,6 +25,7 @@ export function rewardsCreateCheckIn<ThrowOnError extends boolean = true>(
       method: "POST",
       url: "/api/v1/rewards/me/check-ins",
       security: [{ type: "oauth2" }],
+      contentType: { request: "application/json" },
       ...config,
       throwOnError: config.throwOnError ?? true,
     }) as Promise<RequestResult<RewardsCreateCheckInResponses, ThrowOnError>>

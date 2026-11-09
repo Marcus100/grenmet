@@ -6,16 +6,16 @@
 export type ApiKeyRotate = {
   /**
    * @description How long the old key keeps working. 0 revokes it immediately.
-   * @minLength 0
-   * @maxLength 720
+   * @minimum 0
+   * @maximum 720
    * @default 24
    * @type integer | undefined
    */
   overlap_hours?: number;
   /**
    * @description Lifetime of the new key in days.
-   * @minLength 1
-   * @maxLength 365
+   * @minimum 1
+   * @maximum 365
    * @default 90
    * @type integer | undefined
    */

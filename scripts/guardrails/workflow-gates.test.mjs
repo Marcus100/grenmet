@@ -306,16 +306,16 @@ test("every CI and release builder authenticates before pulling the BuildKit ima
   }
 });
 
-test("database services authenticate during initialization before job steps run", () => {
+test("database services pull the public GHCR mirror and carry no Docker Hub login", () => {
   for (const workflow of ["ci-api.yml", "ci-web.yml"]) {
     const source = readWorkflow(workflow);
     const services = source
       .split("    services:\n")[1]
       ?.split("    steps:\n")[0];
     assert.ok(services, workflow);
-    assert.ok(services.includes("        credentials:\n"), workflow);
-    assert.match(services, DOCKERHUB_USERNAME, workflow);
-    assert.match(services, DOCKERHUB_TOKEN, workflow);
+    assert.match(services, /image: ghcr\.io\/marcus100\/base\//u, workflow);
+    assert.ok(!services.includes("credentials:"), workflow);
+    assert.doesNotMatch(services, DOCKERHUB_USERNAME, workflow);
   }
 });
 
@@ -354,4 +354,15 @@ test("the restore drill runs its script from the dispatched ref, not the release
     drill.includes("python3 drill-tooling/scripts/production/restore-drill.py")
   );
   assert.ok(!drill.includes("python3 scripts/production/restore-drill.py"));
+});
+
+test("auto re-run covers CI and image builds only, with no code from the failed run", () => {
+  const source = readWorkflow("auto-rerun.yml");
+  const watched = source.split("    workflows:\n")[1]?.split("    types:")[0] ?? "";
+  assert.ok(watched.includes("- CI\n"));
+  assert.doesNotMatch(watched, /deploy|promot|release|pipeline|smoke/iu);
+  assert.ok(source.includes("actions: write"));
+  assert.ok(!source.includes("pull_request_target"));
+  assert.ok(!source.includes("workflow_run.head_branch"));
+  assert.ok(!source.includes("workflow_run.head_sha"));
 });

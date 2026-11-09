@@ -1,5 +1,7 @@
 #!/usr/bin/env node
 // Preview finished Claude worktrees; remove one explicitly selected safe target.
+// The default scope is <main>/.claude/worktrees; --root selects one verified
+// manual worktree directory (for example ~/worktrees/grenmet) instead.
 import { spawnSync } from "node:child_process";
 import { readdirSync, readlinkSync, realpathSync, statSync } from "node:fs";
 import { dirname, isAbsolute, join, relative, resolve, sep } from "node:path";
@@ -86,11 +88,36 @@ export function processDirectories(procRoot = "/proc") {
   return directories;
 }
 
-export function inspectWorktree(root, entry, directories = processDirectories) {
+// An explicitly selected manual root: absolute, not a symlink, a directory,
+// and neither inside nor containing the main checkout, so it cannot widen the
+// scope to the main checkout or its managed worktrees.
+export function manualRoot(root, candidate) {
+  if (!candidate) throw new Error("--root must not be empty");
+  if (!isAbsolute(candidate))
+    throw new Error("--root must be an absolute path");
+  const main = realpathSync(root);
+  const path = realpathSync(candidate);
+  if (path !== resolve(candidate))
+    throw new Error("--root must not be reached through a symlink");
+  if (!statSync(path).isDirectory())
+    throw new Error("--root must be a directory");
+  if (path === main || inside(path, main) || inside(main, path))
+    throw new Error(
+      "--root must be outside the main checkout and must not contain it"
+    );
+  return path;
+}
+
+export function inspectWorktree(
+  root,
+  entry,
+  directories = processDirectories,
+  { allowed: selected } = {}
+) {
   const blocked = (reason) => ({ ...entry, eligible: false, reason });
   try {
     const main = realpathSync(root);
-    const allowed = join(main, ".claude", "worktrees");
+    const allowed = selected ?? join(main, ".claude", "worktrees");
     const path = realpathSync(entry.path);
     // A symlinked management directory or target cannot widen the removal scope.
     if (
@@ -99,7 +126,9 @@ export function inspectWorktree(root, entry, directories = processDirectories) {
       resolve(entry.path) !== path
     )
       return blocked(
-        "Outside the canonical .claude/worktrees directory or reached through a symlink"
+        selected
+          ? "Outside the selected --root directory or reached through a symlink"
+          : "Outside the canonical .claude/worktrees directory or reached through a symlink"
       );
     if (entry.locked)
       return blocked(
@@ -147,26 +176,36 @@ export function inspectWorktree(root, entry, directories = processDirectories) {
   }
 }
 
-export function removeWorktree(root, target, directories = processDirectories) {
+export function removeWorktree(
+  root,
+  target,
+  directories = processDirectories,
+  options = {}
+) {
   const path = resolve(target);
   const entry = worktrees(root).find((item) => resolve(item.path) === path);
   if (!entry) throw new Error("Target is not a registered worktree");
-  const first = inspectWorktree(root, entry, directories);
+  const first = inspectWorktree(root, entry, directories, options);
   if (!first.eligible) throw new Error(first.reason);
   // Re-read registration and all checks immediately before the normal Git removal.
   const latest = worktrees(root).find((item) => resolve(item.path) === path);
   if (!latest || latest.head !== entry.head || latest.branch !== entry.branch)
     throw new Error("Worktree registration changed; inspect it again");
-  const final = inspectWorktree(root, latest, directories);
+  const final = inspectWorktree(root, latest, directories, options);
   if (!final.eligible) throw new Error(final.reason);
   git(root, ["worktree", "remove", "--", path]);
   return { path, removed: true, branchRetained: entry.branch ?? null };
 }
 
-export function run(argv, checkout = ROOT, log = console.log) {
+export function run(
+  argv,
+  checkout = ROOT,
+  log = console.log,
+  directories = processDirectories
+) {
   const { values } = parseArgs({
     args: argv,
-    options: { remove: { type: "string" } },
+    options: { remove: { type: "string" }, root: { type: "string" } },
   });
   const common = git(checkout, [
     "rev-parse",
@@ -176,17 +215,27 @@ export function run(argv, checkout = ROOT, log = console.log) {
   const root = dirname(common);
   if (!worktrees(root).some((entry) => resolve(entry.path) === root))
     throw new Error("Cannot establish the canonical main checkout");
+  // An empty --root must fail, not silently fall back to the default scope.
+  const options =
+    values.root === undefined ? {} : { allowed: manualRoot(root, values.root) };
   if (values.remove)
-    log(JSON.stringify(removeWorktree(root, values.remove), null, 2));
+    log(
+      JSON.stringify(
+        removeWorktree(root, values.remove, directories, options),
+        null,
+        2
+      )
+    );
   else {
-    const allowed = join(root, ".claude", "worktrees");
+    const allowed = options.allowed ?? join(root, ".claude", "worktrees");
     const plan = worktrees(root)
       .filter((entry) => inside(allowed, resolve(entry.path)))
-      .map((entry) => inspectWorktree(root, entry));
+      .map((entry) => inspectWorktree(root, entry, directories, options));
     log(
       JSON.stringify(
         {
           mode: "preview",
+          root: allowed,
           base: git(root, ["rev-parse", BASE]).trim(),
           worktrees: plan,
         },

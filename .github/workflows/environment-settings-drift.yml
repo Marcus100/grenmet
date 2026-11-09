@@ -1,0 +1,47 @@
+name: Environment settings drift
+
+# scripts/ci/environment-settings.json lists the secret and variable NAMES
+# each deploy environment (staging, production) should hold, with the
+# intended differences written down (issue #1146). This compares the live
+# names with that file daily, so a setting added to one environment only, or
+# removed, fails here instead of surprising a deploy. Values are never read:
+# the script asks the GitHub API for names only and prints names only.
+#
+# The default GITHUB_TOKEN cannot list environment secrets. The job needs the
+# repository secret ENVIRONMENT_SETTINGS_TOKEN: a fine-grained token on this
+# repository with Environments, Secrets and Variables set to read-only
+# (docs/operations/environment-settings.md). Without it the job prints a
+# notice and passes.
+on:
+  schedule:
+    - cron: "41 6 * * *"
+  workflow_dispatch:
+
+concurrency:
+  group: environment-settings-drift
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    name: Environment setting names match the manifest
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.3.1
+        with:
+          sparse-checkout: |
+            scripts/ci/check-environment-settings.mjs
+            scripts/ci/environment-settings.json
+      - name: Compare live names with scripts/ci/environment-settings.json
+        env:
+          GH_TOKEN: ${{ secrets.ENVIRONMENT_SETTINGS_TOKEN }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+        run: |
+          if [ -z "$GH_TOKEN" ]; then
+            echo "::notice::ENVIRONMENT_SETTINGS_TOKEN is not set; skipping the names-only comparison (docs/operations/environment-settings.md)."
+            exit 0
+          fi
+          node scripts/ci/check-environment-settings.mjs

@@ -26,8 +26,8 @@ export type ShiftCatalogCreate = {
   ends_next_day?: boolean;
   /**
    * @description Unpaid break inside the shift.
-   * @minLength 0
-   * @maxLength 240
+   * @minimum 0
+   * @maximum 240
    * @default 0
    * @type integer | undefined
    */

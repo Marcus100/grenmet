@@ -1,13 +1,15 @@
 import "server-only";
 
+import { validationErrorItemSchema } from "@barrelsgd/api-client";
 import { cookies, headers } from "next/headers";
 import type { NextResponse } from "next/server";
 import type { AuthConfig } from "../types";
-import { AuthApiError } from "../types";
+import { AuthApiError, type ValidationErrorItem } from "../types";
 import { visitorAddressFromForwardedFor } from "./visitor-forward";
 
 interface AuthApiErrorPayload {
   detail?: unknown;
+  errors?: unknown;
 }
 
 interface ResponseParser<T> {
@@ -19,6 +21,9 @@ const DEFAULT_AUTH_API_TIMEOUT_MS = 10_000;
 
 /** A trailing full stop, dropped before joining validation messages. */
 const TRAILING_FULL_STOP = /\.$/u;
+
+/** How many validation messages a joined sentence keeps. */
+const MAX_VALIDATION_MESSAGES = 3;
 
 /**
  * `AbortSignal.timeout` aborts with a DOMException whose `name` is
@@ -182,31 +187,57 @@ function sentenceFromValidationErrors(detail: unknown): string | null {
     if (typeof msg !== "string" || !msg.trim()) return [];
     return [msg.trim().replace(TRAILING_FULL_STOP, "")];
   });
-  return messages.length > 0 ? `${messages.join(". ")}.` : null;
+  // Messages carry no field name, so repeats say nothing new ("Field required.
+  // Field required."). Keep each once, and only the first few.
+  const unique = [...new Set(messages)].slice(0, MAX_VALIDATION_MESSAGES);
+  return unique.length > 0 ? `${unique.join(". ")}.` : null;
 }
 
-async function readErrorDetail(
+/**
+ * Keeps only the items that match the generated `ValidationErrorItem` shape.
+ * Anything else the API sends is dropped rather than trusted.
+ */
+function readValidationErrors(value: unknown): ValidationErrorItem[] {
+  if (!Array.isArray(value)) return [];
+  return value.flatMap((item: unknown) => {
+    const parsed = validationErrorItemSchema.safeParse(item);
+    return parsed.success ? [parsed.data] : [];
+  });
+}
+
+interface AuthApiErrorBody {
+  detail: string;
+  errors: ValidationErrorItem[];
+}
+
+async function readErrorBody(
   response: Response,
   fallbackMessage: string
-): Promise<string> {
+): Promise<AuthApiErrorBody> {
   const clonedResponse = response.clone();
   const contentType = response.headers.get("content-type") ?? "";
 
   if (contentType.includes("application/json")) {
     try {
       const payload = (await response.json()) as AuthApiErrorPayload;
+      // The documented 422 envelope has a string `detail` ("Validation error")
+      // plus `errors`. The field messages travel on `errors`, so callers can
+      // show them; `detail` keeps its one-line meaning for existing callers.
+      const errors = readValidationErrors(payload.errors);
       if (typeof payload.detail === "string" && payload.detail.trim()) {
-        return payload.detail;
+        return { detail: payload.detail, errors };
       }
-      const sentence = sentenceFromValidationErrors(payload.detail);
-      if (sentence) return sentence;
+      const sentence = sentenceFromValidationErrors(
+        Array.isArray(payload.detail) ? payload.detail : payload.errors
+      );
+      if (sentence) return { detail: sentence, errors };
     } catch {
       // Fall back to raw text below.
     }
   }
 
   const detail = await clonedResponse.text();
-  return detail || fallbackMessage;
+  return { detail: detail || fallbackMessage, errors: [] };
 }
 
 /**
@@ -236,8 +267,8 @@ export async function authApiFormFetch<T>(
 
   if (!response.ok) {
     const fallbackMessage = `Auth request failed (${response.status})`;
-    const detail = await readErrorDetail(response, fallbackMessage);
-    throw new AuthApiError(response.status, detail);
+    const { detail, errors } = await readErrorBody(response, fallbackMessage);
+    throw new AuthApiError(response.status, detail, errors);
   }
 
   return parser.parse(await response.json());
@@ -267,8 +298,8 @@ export async function authApiFetchResponse(
 
   if (!response.ok) {
     const fallbackMessage = `Auth request failed (${response.status})`;
-    const detail = await readErrorDetail(response, fallbackMessage);
-    throw new AuthApiError(response.status, detail);
+    const { detail, errors } = await readErrorBody(response, fallbackMessage);
+    throw new AuthApiError(response.status, detail, errors);
   }
 
   return response;

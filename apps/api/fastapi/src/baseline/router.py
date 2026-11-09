@@ -3,7 +3,7 @@ import uuid
 from fastapi import APIRouter
 
 from src.baseline import balance_import, catalogue, product_access, service
-from src.baseline.dependencies import AdminUser
+from src.baseline.dependencies import AdminUser, HrSetupUser
 from src.baseline.models import ApprovalPolicy
 from src.baseline.schemas import (
     BalanceImportRequest,
@@ -32,8 +32,14 @@ router = APIRouter(
     prefix="/hr",
     tags=["staff-setup"],
     responses={
-        403: {"model": ApiError, "description": "Administrator access required"},
-        404: {"model": ApiError, "description": "Record not found"},
+        403: {
+            "model": ApiError,
+            "description": "HR setup access required (hr.setup.manage for the organisation; superuser for role bundles and product access)",
+        },
+        404: {
+            "model": ApiError,
+            "description": "Record not found, or outside the organisation you administer",
+        },
         409: {"model": ApiError, "description": "Setup conflict"},
     },
 )
@@ -57,7 +63,7 @@ async def read_staff_card(
     response_model=list[StaffSetup],
     summary="Review staff onboarding",
     status_code=200,
-    description="Review staff onboarding for a selected organisation or eligible unassigned accounts. Omitted organisation context retains the superuser-only legacy list.",
+    description="Review staff onboarding for a selected organisation or eligible unassigned accounts. Omitted organisation context retains the superuser-only legacy list. Needs hr.setup.manage for the organisation; superusers may act for any organisation.",
     responses={
         400: {
             "model": ApiError,
@@ -68,11 +74,11 @@ async def read_staff_card(
 async def read_staff_setup(
     *,
     session: SessionDep,
-    current_user: AdminUser,
+    current_user: HrSetupUser,
     organisation_id: str | None = None,
     unassigned: bool = False,
 ) -> list[StaffSetup]:
-    service.require_admin(current_user)
+    await service.require_setup_organisation(session, current_user, organisation_id)
     return await service.list_staff(session, organisation_id, unassigned=unassigned)
 
 
@@ -81,7 +87,7 @@ async def read_staff_setup(
     response_model=Message,
     summary="Complete or update staff onboarding",
     status_code=200,
-    description="Complete or update staff onboarding, including separately verified continuous service and probation facts with their HR source. Does not infer eligibility or alter role assignments.",
+    description="Complete or update staff onboarding, including separately verified continuous service and probation facts with their HR source. Does not infer eligibility or alter role assignments. Needs hr.setup.manage for the organisation; superusers may act for any organisation.",
     responses={
         400: {
             "model": ApiError,
@@ -92,7 +98,7 @@ async def read_staff_setup(
 async def update_staff_setup(
     *,
     session: SessionDep,
-    current_user: AdminUser,
+    current_user: HrSetupUser,
     user_id: uuid.UUID,
     body: StaffInput,
 ) -> Message:
@@ -105,10 +111,10 @@ async def update_staff_setup(
     response_model=Message,
     summary="Invalidate staff credential and revoke access",
     status_code=200,
-    description="Invalidate staff credential and revoke access.",
+    description="Invalidate staff credential and revoke access. Needs hr.setup.manage for the organisation; superusers may act for any organisation.",
 )
 async def offboard_staff(
-    *, session: SessionDep, current_user: AdminUser, user_id: uuid.UUID
+    *, session: SessionDep, current_user: HrSetupUser, user_id: uuid.UUID
 ) -> Message:
     await service.offboard(session, current_user, user_id)
     return Message(
@@ -121,12 +127,12 @@ async def offboard_staff(
     response_model=Message,
     summary="Record an audited leave balance adjustment",
     status_code=200,
-    description="Record an audited leave balance adjustment.",
+    description="Record an audited leave balance adjustment. Needs hr.setup.manage for the organisation; superusers may act for any organisation.",
 )
 async def update_staff_balance(
     *,
     session: SessionDep,
-    current_user: AdminUser,
+    current_user: HrSetupUser,
     user_id: uuid.UUID,
     body: BalanceInput,
 ) -> Message:
@@ -142,11 +148,12 @@ async def update_staff_balance(
     description=(
         "Reads a CSV with employee_number, leave_type and balance columns (other "
         "columns are ignored), checks every row, and posts through the leave ledger "
-        "only when apply is true and every row is valid. Superuser only."
+        "only when apply is true and every row is valid. Needs hr.setup.manage for "
+        "the organisation named in the request; superusers may act for any organisation."
     ),
 )
 async def import_staff_balances(
-    *, session: SessionDep, current_user: AdminUser, body: BalanceImportRequest
+    *, session: SessionDep, current_user: HrSetupUser, body: BalanceImportRequest
 ) -> BalanceImportResult:
     return await balance_import.import_opening_balances(session, current_user, body)
 
@@ -156,10 +163,13 @@ async def import_staff_balances(
     response_model=list[GradeSetup],
     summary="List editable grade definitions",
     status_code=200,
-    description="List editable grade definitions, optionally filtered by the employer organisation owning their departments.",
+    description="List editable grade definitions, optionally filtered by the employer organisation owning their departments. Needs hr.setup.manage for the organisation; superusers may act for any organisation.",
 )
 async def read_setup_grades(
-    *, session: SessionDep, current_user: AdminUser, organisation_id: str | None = None
+    *,
+    session: SessionDep,
+    current_user: HrSetupUser,
+    organisation_id: str | None = None,
 ) -> list[Grade]:
     return await service.read_setup_grades(
         session=session, current_user=current_user, organisation_id=organisation_id
@@ -171,7 +181,7 @@ async def read_setup_grades(
     response_model=GradeSetup,
     summary="Create or update a grade",
     status_code=200,
-    description="Create or update a grade. Grade codes are unique within a department.",
+    description="Create or update a grade. Grade codes are unique within a department. Needs hr.setup.manage for the organisation; superusers may act for any organisation.",
     responses={
         409: {
             "model": ApiError,
@@ -180,7 +190,7 @@ async def read_setup_grades(
     },
 )
 async def update_setup_grade(
-    *, session: SessionDep, current_user: AdminUser, grade_id: str, body: GradeInput
+    *, session: SessionDep, current_user: HrSetupUser, grade_id: str, body: GradeInput
 ) -> Grade:
     return await service.save_grade(session, current_user, grade_id, body)
 
@@ -190,10 +200,13 @@ async def update_setup_grade(
     response_model=list[PolicyPublic],
     summary="List approval policies",
     status_code=200,
-    description="List approval policies, optionally restricted to HR departments in a selected employer organisation.",
+    description="List approval policies, optionally restricted to HR departments in a selected employer organisation. Needs hr.setup.manage for the organisation; superusers may act for any organisation.",
 )
 async def read_setup_policies(
-    *, session: SessionDep, current_user: AdminUser, organisation_id: str | None = None
+    *,
+    session: SessionDep,
+    current_user: HrSetupUser,
+    organisation_id: str | None = None,
 ) -> list[ApprovalPolicy]:
     return await service.read_setup_policies(
         session=session, current_user=current_user, organisation_id=organisation_id
@@ -205,10 +218,10 @@ async def read_setup_policies(
     response_model=PolicyPublic,
     summary="Configure approval policy for future submissions",
     status_code=200,
-    description="Configure approval policy for future submissions.",
+    description="Configure approval policy for future submissions. Needs hr.setup.manage for the organisation; superusers may act for any organisation.",
 )
 async def update_setup_policy(
-    *, session: SessionDep, current_user: AdminUser, key: str, body: PolicyInput
+    *, session: SessionDep, current_user: HrSetupUser, key: str, body: PolicyInput
 ) -> ApprovalPolicy:
     return await service.update_setup_policy(
         session=session, current_user=current_user, key=key, body=body
@@ -254,10 +267,10 @@ async def update_role_configuration(
     response_model=Message,
     summary="Approve a verified staff registration",
     status_code=200,
-    description="Administrator approves a registration after email verification or completed administrator-mediated activation and staff membership linkage. Grants only the staff role; elevated roles remain separately managed.",
+    description="Administrator approves a registration after email verification or completed administrator-mediated activation and staff membership linkage. Grants only the staff role; elevated roles remain separately managed. Needs hr.setup.manage for the organisation; superusers may act for any organisation.",
 )
 async def approve_staff_registration(
-    *, session: SessionDep, current_user: AdminUser, user_id: uuid.UUID
+    *, session: SessionDep, current_user: HrSetupUser, user_id: uuid.UUID
 ) -> Message:
     await service.approve_registration(session, current_user, user_id)
     return Message(message="Staff registration approved")
@@ -317,11 +330,11 @@ async def update_product_policy(
     "/setup/catalogue",
     response_model=CataloguePreview,
     summary="Preview missing GMS reference data",
-    description="Preview missing ingested grades, approval policies and workflow templates without changing records.",
+    description="Preview missing ingested grades, approval policies and workflow templates without changing records. Needs hr.setup.manage for the organisation; superusers may act for any organisation.",
     status_code=200,
 )
 async def preview_catalogue(
-    *, session: SessionDep, current_user: AdminUser, department_id: str
+    *, session: SessionDep, current_user: HrSetupUser, department_id: str
 ) -> CataloguePreview:
     return await catalogue.preview(session, current_user, department_id)
 
@@ -330,10 +343,10 @@ async def preview_catalogue(
     "/setup/catalogue",
     response_model=CataloguePreview,
     summary="Import missing GMS reference data",
-    description="Add only missing GMS reference data atomically; preserve existing records and reject conflicts.",
+    description="Add only missing GMS reference data atomically; preserve existing records and reject conflicts. Needs hr.setup.manage for the organisation; superusers may act for any organisation.",
     status_code=200,
 )
 async def import_catalogue(
-    *, session: SessionDep, current_user: AdminUser, body: CatalogueApply
+    *, session: SessionDep, current_user: HrSetupUser, body: CatalogueApply
 ) -> CataloguePreview:
     return await catalogue.apply(session, current_user, body.department_id)

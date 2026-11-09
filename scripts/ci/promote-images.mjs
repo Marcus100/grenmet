@@ -18,14 +18,19 @@ import { fileURLToPath } from "node:url";
 import { webImages } from "./release-scope.mjs";
 import { changedPaths, selectImages } from "./select-images.mjs";
 
-const TREE = /^[0-9a-f]{40}$/;
-const COMMIT = /^[0-9a-f]{40}$/;
-const DIGEST = /^sha256:[0-9a-f]{64}$/;
+const TREE = /^[0-9a-f]{40}$/u;
+const COMMIT = /^[0-9a-f]{40}$/u;
+const DIGEST = /^sha256:[0-9a-f]{64}$/u;
 const DEV_HISTORY_DEPTH = "2000";
-const WHITESPACE = /\s+/;
+const WHITESPACE = /\s+/u;
 
 /** Every release image repository: the API first, then the web images. */
 export function imageRepositories(owner, repository) {
+  if (!(owner && repository)) {
+    throw new Error(
+      "GITHUB_REPOSITORY_OWNER and GITHUB_REPOSITORY must be set to resolve image repositories"
+    );
+  }
   return [
     { key: "api", repo: `ghcr.io/${repository.toLowerCase()}` },
     ...webImages.map((image) => ({

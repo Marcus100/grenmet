@@ -35,6 +35,7 @@ export function notificationsUpdateNotificationPreferences<
       method: "PUT",
       url: "/api/v1/notifications/preferences",
       security: [{ type: "oauth2" }],
+      contentType: { request: "application/json" },
       ...config,
       throwOnError: config.throwOnError ?? true,
     }) as Promise<

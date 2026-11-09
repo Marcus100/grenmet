@@ -25,6 +25,7 @@ export function hrTakeAction<ThrowOnError extends boolean = true>(
       method: "POST",
       url: "/api/v1/hr/workflows/instances/{instance_id}/actions",
       security: [{ type: "oauth2" }],
+      contentType: { request: "application/json" },
       ...config,
       throwOnError: config.throwOnError ?? true,
     }) as Promise<RequestResult<HrTakeActionResponses, ThrowOnError>>

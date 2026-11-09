@@ -29,7 +29,7 @@ export type AviationDraftWrite = {
    */
   id: string;
   /**
-   * @minLength 0
+   * @minimum 0
    * @type integer
    */
   expected_revision: number;

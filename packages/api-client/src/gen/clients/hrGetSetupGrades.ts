@@ -11,7 +11,7 @@ import type {
 } from "../models/HrGetSetupGrades.js";
 
 /**
- * @description List editable grade definitions, optionally filtered by the employer organisation owning their departments.
+ * @description List editable grade definitions, optionally filtered by the employer organisation owning their departments. Needs hr.setup.manage for the organisation; superusers may act for any organisation.
  * @summary List editable grade definitions
  * {@link /api/v1/hr/setup/grades}
  */

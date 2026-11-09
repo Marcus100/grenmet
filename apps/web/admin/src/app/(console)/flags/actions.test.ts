@@ -89,6 +89,55 @@ describe("flag actions", () => {
     expect(state.message).not.toContain("loc");
   });
 
+  it("lists the field-level problems of a 422 under the generic line", async () => {
+    api.createFlag.mockRejectedValue(
+      new AuthApiError(422, "Validation error", [
+        {
+          type: "missing",
+          loc: ["body", "success_metric"],
+          msg: "Field required",
+        },
+        { type: "value_error", loc: ["body", "key"], msg: "Key is not valid" },
+        {
+          type: "missing",
+          loc: ["body", "success_metric"],
+          msg: "Field required",
+        },
+        {
+          type: "value_error",
+          loc: ["body", "owner"],
+          msg: '[{"x":1}]',
+        },
+      ])
+    );
+    const state = await saveFlagAction({}, form({ key: "new-checkout" }));
+    expect(state.message).toBe(
+      "The API did not accept those values. Check the fields and try again."
+    );
+    expect(state.problems).toEqual([
+      "success_metric: Field required",
+      "key: Key is not valid",
+    ]);
+  });
+
+  it("caps the field problems at five lines", async () => {
+    const fields = ["a", "b", "c", "d", "e", "f", "g"];
+    api.createFlag.mockRejectedValue(
+      new AuthApiError(
+        422,
+        "Validation error",
+        fields.map((field) => ({
+          type: "missing",
+          loc: ["body", field],
+          msg: `${field} is required`,
+        }))
+      )
+    );
+    const state = await saveFlagAction({}, form({ key: "new-checkout" }));
+    expect(state.problems).toHaveLength(5);
+    expect(state.problems?.[0]).toBe("a: a is required");
+  });
+
   it("rejects an invalid key without calling the API", async () => {
     const state = await saveFlagAction({}, form({ key: "Not Valid" }));
     expect(api.createFlag).not.toHaveBeenCalled();

@@ -73,19 +73,24 @@ export const NAV_SECTIONS: NavSection[] = [
             "Current Outlooks, Watches and Warnings"
           ),
           link(
-            "Advisories",
-            "/alerts/advisories",
-            "Lower-level notices in effect"
+            "Past alerts",
+            "/alerts/past",
+            "Warnings that ended in the last 30 days"
           ),
           link(
-            "All bulletins",
+            "GMS alerts",
             "/alerts/bulletins",
-            "Detailed issued bulletins for nine hazards"
+            "Green-level alerts issued by GMS for nine hazards"
+          ),
+          link(
+            "Plan your week",
+            "/plan-your-week",
+            "What this week's alerts mean for each sector"
           ),
         ],
       },
       {
-        heading: "Hazards",
+        heading: "By hazard",
         links: [
           link(
             "Tropical cyclone",
@@ -106,7 +111,7 @@ export const NAV_SECTIONS: NavSection[] = [
           link("Heat", "/alerts/bulletins/heat", "Heat bulletins"),
           link(
             "Marine",
-            "/alerts/marine",
+            "/alerts/bulletins/marine",
             "Small craft advisories and rough seas"
           ),
           link(
@@ -127,7 +132,7 @@ export const NAV_SECTIONS: NavSection[] = [
         ],
       },
       {
-        heading: "Understand alerts",
+        heading: "How alerts work",
         links: [
           link(
             "Warning levels",
@@ -143,6 +148,11 @@ export const NAV_SECTIONS: NavSection[] = [
             "Reading a warning",
             "/alerts/understanding",
             "How to read a warning and act on it"
+          ),
+          link(
+            "Exercises & drills",
+            "/alerts/exercise",
+            "How test alerts are marked"
           ),
         ],
       },
@@ -192,21 +202,6 @@ export const NAV_SECTIONS: NavSection[] = [
           ),
         ],
       },
-      {
-        heading: "Archive",
-        links: [
-          link(
-            "Tropical cyclone archive",
-            "/alerts/cyclone/archive",
-            "Past storms affecting the tri-island state"
-          ),
-          link(
-            "Exercises & drills",
-            "/alerts/exercise",
-            "How test alerts are marked"
-          ),
-        ],
-      },
     ],
   },
   {
@@ -223,8 +218,11 @@ export const NAV_SECTIONS: NavSection[] = [
             "/weather",
             "Conditions, tides and sun times for today"
           ),
-          link("3-day forecast", "/weather/3-day", "The next three days"),
-          link("7-day forecast", "/weather/7-day", "The week ahead"),
+          link(
+            "Next 5 days",
+            "/weather/5-day",
+            "Tonight and the next four days"
+          ),
           link(
             "Weather synopsis",
             "/weather/synopsis",
@@ -500,7 +498,7 @@ export const NAV_SECTIONS: NavSection[] = [
       kind: "link",
       eyebrow: "Last month",
       text: "How last month's rain and temperature compared with normal.",
-      cta: "Monthly summary",
+      cta: "Climate Bulletin",
       href: "/climate/monthly",
     },
     groups: [
@@ -508,7 +506,7 @@ export const NAV_SECTIONS: NavSection[] = [
         heading: "Climate now",
         links: [
           link(
-            "Monthly summary",
+            "Climate Bulletin",
             "/climate/monthly",
             "How last month compared with normal"
           ),
@@ -855,11 +853,6 @@ export const NAV_SECTIONS: NavSection[] = [
         heading: "About GMS",
         links: [
           link("What we do", "/about", "Who we are and what we do"),
-          link(
-            "Our services",
-            "/about/services",
-            "The full range of services we provide"
-          ),
           link(
             "Our history",
             "/about/history",
