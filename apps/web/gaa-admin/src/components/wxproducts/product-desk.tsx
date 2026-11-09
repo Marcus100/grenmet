@@ -60,6 +60,10 @@ import {
 } from "@/app/(admin)/wxproducts/product-actions";
 import { DeskLayout } from "@/components/document/desk-layout";
 import { PageHeader } from "@/components/layout/page-header";
+import {
+  type AlmanacFillApply,
+  AlmanacFillButton,
+} from "@/components/wxproducts/almanac-fill-button";
 import type { PdfPreviewRequest } from "@/components/wxproducts/forecast-pdf-frame";
 import { ProductPdfPreview } from "@/components/wxproducts/product-pdf-preview";
 import { reportError } from "@/lib/report-error";
@@ -67,6 +71,7 @@ import {
   ABOVE_GREEN_MESSAGE,
   isAboveGreen,
 } from "@/lib/wxproducts/alert-level";
+import { emptyKeys, fillDate } from "@/lib/wxproducts/almanac-fill";
 import { bulletinExample } from "@/lib/wxproducts/bulletin-examples";
 import { visibleProductFields } from "@/lib/wxproducts/visible-fields";
 import { CapForecastPicker } from "./cap-forecast-picker";
@@ -366,6 +371,21 @@ function ProductEditor({
     form.reset(values);
     // Problems belonged to the old values.
     setProblems([]);
+  }
+  /**
+   * Writes an almanac or tide fill into fields that are still empty at the
+   * moment it lands (a value typed while the table was read is kept). Tide
+   * rows are shown as far as the fill reached.
+   */
+  function applyFill({ patch, prefix, rows }: AlmanacFillApply): string[] {
+    if (rows > 0)
+      setTideRows((current) => ({
+        ...current,
+        [prefix]: Math.max(current[prefix] ?? 1, rows),
+      }));
+    const keys = emptyKeys(patch, (key) => form.getFieldValue(key));
+    for (const key of keys) form.setFieldValue(key, patch[key] ?? "");
+    return keys;
   }
   /**
    * Forecast wording usually changes little between issues, so a new forecast
@@ -914,6 +934,36 @@ function ProductEditor({
                                     )
                                   )}
                                 </div>
+                                {sectionFields.some(
+                                  (f) => f.fillFrom === "almanac"
+                                ) ? (
+                                  <AlmanacFillButton
+                                    date={fillDate(values, issueDate, prefix)}
+                                    fields={sectionFields.filter(
+                                      (f) => f.fillFrom === "almanac"
+                                    )}
+                                    marine={isMarineKind(kind)}
+                                    onFill={applyFill}
+                                    prefix={prefix}
+                                    source="almanac"
+                                    values={values}
+                                  />
+                                ) : null}
+                                {sectionFields.some(
+                                  (f) => f.fillFrom === "tides"
+                                ) ? (
+                                  <AlmanacFillButton
+                                    date={fillDate(values, issueDate, prefix)}
+                                    fields={sectionFields.filter(
+                                      (f) => f.fillFrom === "tides"
+                                    )}
+                                    marine={isMarineKind(kind)}
+                                    onFill={applyFill}
+                                    prefix={prefix}
+                                    source="tides"
+                                    values={values}
+                                  />
+                                ) : null}
                                 <SectionHints
                                   group={group}
                                   marine={isMarineKind(kind)}
