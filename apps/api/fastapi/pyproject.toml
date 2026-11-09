@@ -40,6 +40,7 @@ dependencies = [
     "eccodes>=2.49.0",
     "eccodeslib>=2.50.0.34",
     "astral>=3.2",
+    "xmlschema>=4.3.2",
 ]
 
 [dependency-groups]
