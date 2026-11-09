@@ -45,9 +45,25 @@ CIPHER_SUITE = Fernet(SECRET_ENCRYPTION_KEY)  # Create a reusable cipher suite
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.getenv('SURFACE_DJANGO_DEBUG', 'False').lower() == 'true'
 
-ALLOWED_HOSTS = ['*']
 
-USE_X_FORWARDED_HOST = True
+
+def _list_from_env(name, default=''):
+    """A comma-separated environment variable as a list, blanks dropped."""
+    return [item.strip() for item in os.getenv(name, default).split(',') if item.strip()]
+
+
+# Host names this site answers to (#947), comma separated. Any other Host
+# header gets a 400. The default covers the local stack and the container
+# healthchecks; production sets SURFACE_ALLOWED_HOSTS in
+# infra/weather/docker-compose.surface.yml from SURFACE_HOST
+# (surface.barrels.gd), plus localhost and 127.0.0.1 for the healthcheck.
+ALLOWED_HOSTS = _list_from_env('SURFACE_ALLOWED_HOSTS', 'localhost,127.0.0.1')
+
+# Off (#947): neither nginx config sets X-Forwarded-Host. In production Traefik
+# sets it, but locally a client value would pass straight through and could
+# pick the host Django uses. Both nginx configs pass the real Host header
+# (proxy_set_header Host $host), so Django needs nothing else.
+USE_X_FORWARDED_HOST = False
 
 # Both nginx configs (surface/nginx/nginx.conf and infra/weather/surface-nginx.conf)
 # pass X-Forwarded-Proto; the weather one carries Traefik's value, so Django
@@ -57,11 +73,7 @@ SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 # Extra origins Django should trust for unsafe requests, comma separated and
 # with the scheme, for example
 # SURFACE_CSRF_TRUSTED_ORIGINS=https://surface.example.org
-CSRF_TRUSTED_ORIGINS = [
-    origin.strip()
-    for origin in os.getenv('SURFACE_CSRF_TRUSTED_ORIGINS', '').split(',')
-    if origin.strip()
-]
+CSRF_TRUSTED_ORIGINS = _list_from_env('SURFACE_CSRF_TRUSTED_ORIGINS')
 
 # Application definition
 
@@ -181,7 +193,13 @@ SECURE_HSTS_SECONDS = _hsts_seconds_from_env(os.getenv('SURFACE_HSTS_SECONDS', '
 SECURE_HSTS_INCLUDE_SUBDOMAINS = False
 SECURE_HSTS_PRELOAD = False
 
-CORS_ALLOW_ALL_ORIGINS = True
+# Cross-origin access (#946): only the origins listed in
+# SURFACE_CORS_ALLOWED_ORIGINS (comma separated, with the scheme, for example
+# https://surface.barrels.gd) get CORS headers, credentials included. Unset or
+# empty means no cross-origin access; SURFACE's own pages are same-origin and
+# need none. Production sets it in infra/weather/docker-compose.surface.yml.
+CORS_ALLOW_ALL_ORIGINS = False
+CORS_ALLOWED_ORIGINS = _list_from_env('SURFACE_CORS_ALLOWED_ORIGINS')
 CORS_ALLOW_CREDENTIALS = True
 
 DATABASES = {
