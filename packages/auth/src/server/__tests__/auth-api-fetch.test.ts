@@ -143,6 +143,57 @@ describe("authApiFetch error detail", () => {
 
     expect((error as AuthApiError).detail).toBe(JSON.stringify(body));
   });
+
+  async function detailFor(body: unknown): Promise<string> {
+    vi.spyOn(globalThis, "fetch").mockResolvedValue(jsonResponse(body, 422));
+    const error = await authApiFetch(config, "/ping", pingParser).catch(
+      (e: unknown) => e
+    );
+    return (error as AuthApiError).detail;
+  }
+
+  it("keeps a repeated validation message once", async () => {
+    const detail = await detailFor({
+      detail: [
+        { type: "missing", loc: ["body", "a"], msg: "Field required" },
+        { type: "missing", loc: ["body", "b"], msg: "Field required." },
+      ],
+    });
+    expect(detail).toBe("Field required.");
+  });
+
+  it("joins only the first three distinct validation messages", async () => {
+    const detail = await detailFor({
+      detail: ["one", "two", "three", "four", "five"].map((msg) => ({
+        type: "value_error",
+        loc: ["body", msg],
+        msg,
+      })),
+    });
+    expect(detail).toBe("one. two. three.");
+  });
+
+  it("skips items with no usable message and keeps the rest", async () => {
+    const detail = await detailFor({
+      detail: [
+        { type: "missing", loc: ["body", "x"] },
+        { type: "value_error", loc: ["body", "y"], msg: 42 },
+        { type: "value_error", loc: ["body", "z"], msg: "   " },
+        "not an object",
+        null,
+        { type: "missing", loc: ["body", "name"], msg: "Name is wrong" },
+      ],
+    });
+    expect(detail).toBe("Name is wrong.");
+  });
+
+  it("keeps the raw body when no validation item has a message", async () => {
+    const empty = { detail: [] };
+    expect(await detailFor(empty)).toBe(JSON.stringify(empty));
+
+    const unusable = { detail: [{ type: "missing", msg: 7 }] };
+    expect(await detailFor(unusable)).toBe(JSON.stringify(unusable));
+  });
 });
 
 it("sends a live access token in the header without caching or leaking it into fetch options", async () => {

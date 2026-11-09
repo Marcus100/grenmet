@@ -20,6 +20,9 @@ const DEFAULT_AUTH_API_TIMEOUT_MS = 10_000;
 /** A trailing full stop, dropped before joining validation messages. */
 const TRAILING_FULL_STOP = /\.$/u;
 
+/** How many validation messages a joined sentence keeps. */
+const MAX_VALIDATION_MESSAGES = 3;
+
 /**
  * `AbortSignal.timeout` aborts with a DOMException whose `name` is
  * "TimeoutError". Detected structurally so this stays independent of the
@@ -182,7 +185,10 @@ function sentenceFromValidationErrors(detail: unknown): string | null {
     if (typeof msg !== "string" || !msg.trim()) return [];
     return [msg.trim().replace(TRAILING_FULL_STOP, "")];
   });
-  return messages.length > 0 ? `${messages.join(". ")}.` : null;
+  // Messages carry no field name, so repeats say nothing new ("Field required.
+  // Field required."). Keep each once, and only the first few.
+  const unique = [...new Set(messages)].slice(0, MAX_VALIDATION_MESSAGES);
+  return unique.length > 0 ? `${unique.join(". ")}.` : null;
 }
 
 async function readErrorDetail(
