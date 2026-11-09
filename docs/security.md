@@ -2,7 +2,7 @@
 
 **Status:** Active reference  
 **Owner:** Barrels Grenada engineering  
-**Last updated:** 2026-10-20
+**Last updated:** 2026-11-08
 
 This guide records the current Barrels Grenada security posture and the rules that keep docs and code aligned. It is not a full organizational security policy; it is the repo-level baseline for engineers.
 
@@ -138,6 +138,23 @@ The scanner exits zero for findings so evidence can be retained before the
 separate policy step rejects the image. This does not suppress scanner errors.
 SARIF upload to the Security tab is reporting; it cannot override the policy
 step. The filesystem scan remains supplemental reporting.
+
+### OS package patch dates
+
+Rebuilding an image does not pick up a newly published OS package fix on its
+own. BuildKit reuses the cached upgrade layer. Every web Dockerfile therefore
+runs `apk upgrade` behind `ARG ALPINE_PATCH_DATE`, and the API's
+`Dockerfile.prod` runs `apt-get upgrade` behind `ARG DEBIAN_PATCH_DATE`.
+Changing the date rebuilds that layer (issue #1142).
+`scripts/ci/image-patch-dates.mjs` manages the dates:
+
+- `check`: every release Dockerfile has a valid date, and each family uses one date.
+- `bump <YYYY-MM-DD> [alpine|debian|all]`: moves the dates forward, never back.
+- `plan <image>=<trivy.json> ...`: applies the exception policy, then lists the
+  Dockerfiles that a bump fixes (blocked OS package findings) and the findings
+  that need a person (language packages).
+- `targets tags <tag>...` or `targets digests "<repo@sha256:…>..."`: the
+  registry images to scan, each with its exception scope, as a workflow matrix.
 
 ### Exceptions
 
