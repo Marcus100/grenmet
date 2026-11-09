@@ -80,7 +80,7 @@ export async function News({
   const posts = result.articles.map(contentToArticle);
 
   return (
-    <section className="lg:bg-gm-surface mb-4 flex flex-col gap-4 lg:-mx-8 lg:mb-8 lg:gap-7 lg:px-8 lg:py-12">
+    <section className="lg:bg-gm-surface mb-4 flex flex-col gap-4 lg:-mx-6 lg:mb-8 lg:gap-7 lg:px-6 lg:py-12 xl:-mx-8 xl:px-8">
       <div className="flex h-7 items-center justify-between">
         <p className="text-gm-heading text-heading-sm leading-heading-sm lg:text-heading-md lg:leading-heading-md font-bold">
           {title}
