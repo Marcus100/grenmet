@@ -306,16 +306,16 @@ test("every CI and release builder authenticates before pulling the BuildKit ima
   }
 });
 
-test("database services authenticate during initialization before job steps run", () => {
+test("database services pull the public GHCR mirror and carry no Docker Hub login", () => {
   for (const workflow of ["ci-api.yml", "ci-web.yml"]) {
     const source = readWorkflow(workflow);
     const services = source
       .split("    services:\n")[1]
       ?.split("    steps:\n")[0];
     assert.ok(services, workflow);
-    assert.ok(services.includes("        credentials:\n"), workflow);
-    assert.match(services, DOCKERHUB_USERNAME, workflow);
-    assert.match(services, DOCKERHUB_TOKEN, workflow);
+    assert.match(services, /image: ghcr\.io\/marcus100\/base\//u, workflow);
+    assert.ok(!services.includes("credentials:"), workflow);
+    assert.doesNotMatch(services, DOCKERHUB_USERNAME, workflow);
   }
 });
 
