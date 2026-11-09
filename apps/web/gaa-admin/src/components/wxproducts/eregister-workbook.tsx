@@ -13,7 +13,7 @@ import {
   Send,
   TriangleAlert,
 } from "lucide-react";
-import { type FormEvent, useState } from "react";
+import { type FormEvent, useEffect, useRef, useState } from "react";
 import { PageHeader } from "@/components/layout/page-header";
 
 const COPY_FEEDBACK_MS = 2000;
@@ -180,6 +180,47 @@ function SendStatus({ send }: { send: SendController }) {
   );
 }
 
+/** The confirmation for approving with notes: focus starts on the safe choice. */
+function ApprovalConfirm({ approval }: { approval: ApprovalController }) {
+  const goBack = useRef<HTMLButtonElement>(null);
+  const { cancel } = approval;
+  useEffect(() => {
+    goBack.current?.focus();
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === "Escape") cancel();
+    };
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [cancel]);
+  const notes = approval.warningCount === 1 ? "note" : "notes";
+  return (
+    <div
+      aria-describedby="eregister-approval-text"
+      aria-label="Confirm approval"
+      className="border-border border-l-warning bg-card space-y-2 rounded-md border border-l-4 px-3 py-2 text-sm"
+      role="alertdialog"
+    >
+      <p id="eregister-approval-text">
+        This observation has {approval.warningCount} {notes} (listed above).
+        Approving saves it and queues it for WIS2 and email.
+      </p>
+      <div className="flex gap-2">
+        <Button onClick={approval.confirm} type="button">
+          Approve anyway
+        </Button>
+        <Button
+          onClick={approval.cancel}
+          ref={goBack}
+          type="button"
+          variant="outline"
+        >
+          Go back
+        </Button>
+      </div>
+    </div>
+  );
+}
+
 export function ERegisterWorkbook({
   station,
   values,
@@ -340,200 +381,189 @@ export function ERegisterWorkbook({
       </div>
 
       <form className="flex flex-col gap-6" onSubmit={onSubmit}>
-        <div className="flex flex-col gap-4">
-          <div className="flex flex-wrap items-stretch gap-4">
-            {REGISTER_SECTIONS.slice(0, 1).map(renderTable)}
-            <SectionCard
-              action={<Badge variant="light-info">Draft · QC required</Badge>}
-              className="w-fit max-w-full"
-              title="Observation"
-            >
-              <dl className="space-y-3 p-4 text-sm">
-                <div>
-                  <dt className="font-medium">{station.name}</dt>
-                  <dd className="text-muted-foreground">
-                    Station {station.number} ({station.icao}) ·{" "}
-                    {station.position}
-                  </dd>
-                </div>
-                <div>
-                  <dt className="text-muted-foreground">Observation hour</dt>
-                  <dd className="font-medium tabular-nums">
-                    {observedAt.replace("T", " ")} UTC
-                  </dd>
-                </div>
-              </dl>
-            </SectionCard>
-          </div>
-          {REGISTER_SECTIONS.slice(1).map(renderTable)}
-          <div className="flex flex-wrap items-start gap-4">
-            <TimeMarks
-              renderInput={(key, label) => (
-                <Input
-                  aria-label={`Time mark: ${label}`}
-                  className="h-9 w-28 text-center font-mono"
-                  maxLength={16}
-                  onChange={(event) => {
-                    onValueChange(key, event.target.value);
-                    changed([key]);
-                  }}
-                  value={values[key] ?? ""}
-                />
-              )}
-              values={values}
-            />
-            {onSaveStationSettings ? (
-              <StationSettingsCard
-                key={JSON.stringify(stationSettings)}
-                onSave={onSaveStationSettings}
-                settings={stationSettings}
-              />
-            ) : (
-              <PendingSettingsNote settings={stationSettings} />
-            )}
-          </div>
-        </div>
-        {errors.length > 0 && (
-          <div
-            className="border-destructive/30 border-l-destructive bg-destructive/5 text-destructive space-y-1 rounded-md border border-l-4 px-3 py-2 text-xs"
-            id="eregister-errors"
-            role="alert"
-          >
-            <p className="flex items-center gap-1.5 font-semibold">
-              <CircleAlert className="size-3.5" />
-              Error · fix before saving
-            </p>
-            {errors.map((issue) => (
-              <p key={`${issue.field}-${issue.message}`}>
-                <strong>{FIELD_LABELS[issue.field] ?? issue.field}</strong>:{" "}
-                {issue.message}
-              </p>
-            ))}
-          </div>
-        )}
-        {warnings.length > 0 && (
-          <div
-            className="border-border border-l-warning bg-card text-foreground space-y-1 rounded-md border border-l-4 px-3 py-2 text-xs"
-            id="eregister-warnings"
-            role="status"
-          >
-            <p className="flex items-center gap-1.5 font-semibold">
-              <TriangleAlert className="text-warning size-3.5" />
-              Note · does not block saving
-            </p>
-            {warnings.map((issue) => (
-              <p key={`${issue.field}-${issue.message}`}>
-                <strong>{FIELD_LABELS[issue.field] ?? issue.field}</strong>:{" "}
-                {issue.message}
-              </p>
-            ))}
-          </div>
-        )}
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <p className="text-muted-foreground text-xs">
-            {validationStatus === "valid"
-              ? "WMO checks passed for the current workbook."
-              : "Validate to check the entries against the WMO code tables. Errors block saving; notes only advise."}
-          </p>
-          <div className="flex flex-wrap gap-2">
-            <Button
-              disabled={validationStatus === "checking"}
-              onClick={onValidate}
-              type="button"
-              variant="outline"
-            >
-              {validationStatus === "checking"
-                ? "Checking…"
-                : "Validate observation"}
-            </Button>
-            <Button
-              disabled={send.pending !== null}
-              onClick={() => send.request("wis2")}
-              type="button"
-              variant="ghost"
-            >
-              <Send />
-              Send last obs
-            </Button>
-            <Button
-              disabled={send.pending !== null}
-              onClick={() => send.request("email")}
-              type="button"
-              variant="ghost"
-            >
-              <Mail />
-              Email observation
-            </Button>
-            <Button
-              disabled={
-                saveStatus === "saving" || approval?.status === "working"
-              }
-              type="submit"
-              variant={approval ? "outline" : "default"}
-            >
-              <Save />
-              {saveStatus === "saving" ? "Saving…" : "Save draft"}
-            </Button>
-            {approval ? (
-              <Button
-                disabled={
-                  saveStatus === "saving" ||
-                  approval.status === "working" ||
-                  approval.status === "confirming"
-                }
-                onClick={approval.start}
-                type="button"
+        <fieldset
+          className="m-0 flex min-w-0 flex-col gap-6 border-0 p-0"
+          disabled={approval?.status === "working"}
+        >
+          <div className="flex flex-col gap-4">
+            <div className="flex flex-wrap items-stretch gap-4">
+              {REGISTER_SECTIONS.slice(0, 1).map(renderTable)}
+              <SectionCard
+                action={<Badge variant="light-info">Draft · QC required</Badge>}
+                className="w-fit max-w-full"
+                title="Observation"
               >
-                <CircleCheck />
-                {approval.status === "working"
-                  ? "Approving…"
-                  : "Save and approve"}
-              </Button>
-            ) : null}
-          </div>
-        </div>
-        {approval?.status === "confirming" && (
-          <div
-            aria-label="Confirm approval"
-            className="border-border border-l-warning bg-card space-y-2 rounded-md border border-l-4 px-3 py-2 text-sm"
-            role="alertdialog"
-          >
-            <p>
-              This observation has {approval.warningCount}{" "}
-              {approval.warningCount === 1 ? "note" : "notes"} (listed above).
-              Approving saves it and sends it to WIS2 and email now.
-            </p>
-            <div className="flex gap-2">
-              <Button onClick={approval.confirm} type="button">
-                Approve anyway
-              </Button>
-              <Button onClick={approval.cancel} type="button" variant="outline">
-                Go back
-              </Button>
+                <dl className="space-y-3 p-4 text-sm">
+                  <div>
+                    <dt className="font-medium">{station.name}</dt>
+                    <dd className="text-muted-foreground">
+                      Station {station.number} ({station.icao}) ·{" "}
+                      {station.position}
+                    </dd>
+                  </div>
+                  <div>
+                    <dt className="text-muted-foreground">Observation hour</dt>
+                    <dd className="font-medium tabular-nums">
+                      {observedAt.replace("T", " ")} UTC
+                    </dd>
+                  </div>
+                </dl>
+              </SectionCard>
+            </div>
+            {REGISTER_SECTIONS.slice(1).map(renderTable)}
+            <div className="flex flex-wrap items-start gap-4">
+              <TimeMarks
+                renderInput={(key, label) => (
+                  <Input
+                    aria-label={`Time mark: ${label}`}
+                    className="h-9 w-28 text-center font-mono"
+                    maxLength={16}
+                    onChange={(event) => {
+                      onValueChange(key, event.target.value);
+                      changed([key]);
+                    }}
+                    value={values[key] ?? ""}
+                  />
+                )}
+                values={values}
+              />
+              {onSaveStationSettings ? (
+                <StationSettingsCard
+                  key={JSON.stringify(stationSettings)}
+                  onSave={onSaveStationSettings}
+                  settings={stationSettings}
+                />
+              ) : (
+                <PendingSettingsNote settings={stationSettings} />
+              )}
             </div>
           </div>
-        )}
-        {approval?.status === "approved" && (
-          <p className="text-xs" role="status">
-            {approval.message ?? "Approved."}
-          </p>
-        )}
-        {approval?.status === "error" && (
-          <p className="text-destructive text-xs" role="alert">
-            {approval.message ?? "The observation could not be approved."}
-          </p>
-        )}
-        <SendStatus send={send} />
-        {saveStatus === "saved" && approval?.status !== "approved" && (
-          <p className="text-muted-foreground text-xs" role="status">
-            Draft saved. Approve it to send it to WIS2 and email.
-          </p>
-        )}
-        {saveStatus === "error" && (
-          <p className="text-destructive text-xs" role="alert">
-            Draft could not be saved. Check the API and try again.
-          </p>
-        )}
+          {errors.length > 0 && (
+            <div
+              className="border-destructive/30 border-l-destructive bg-destructive/5 text-destructive space-y-1 rounded-md border border-l-4 px-3 py-2 text-xs"
+              id="eregister-errors"
+              role="alert"
+            >
+              <p className="flex items-center gap-1.5 font-semibold">
+                <CircleAlert className="size-3.5" />
+                Error · fix before saving
+              </p>
+              {errors.map((issue) => (
+                <p key={`${issue.field}-${issue.message}`}>
+                  <strong>{FIELD_LABELS[issue.field] ?? issue.field}</strong>:{" "}
+                  {issue.message}
+                </p>
+              ))}
+            </div>
+          )}
+          {warnings.length > 0 && (
+            <div
+              className="border-border border-l-warning bg-card text-foreground space-y-1 rounded-md border border-l-4 px-3 py-2 text-xs"
+              id="eregister-warnings"
+              role="status"
+            >
+              <p className="flex items-center gap-1.5 font-semibold">
+                <TriangleAlert className="text-warning size-3.5" />
+                Note · does not block saving
+              </p>
+              {warnings.map((issue) => (
+                <p key={`${issue.field}-${issue.message}`}>
+                  <strong>{FIELD_LABELS[issue.field] ?? issue.field}</strong>:{" "}
+                  {issue.message}
+                </p>
+              ))}
+            </div>
+          )}
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <p className="text-muted-foreground text-xs">
+              {validationStatus === "valid"
+                ? "WMO checks passed for the current workbook."
+                : "Validate to check the entries against the WMO code tables. Errors block saving; notes only advise."}
+            </p>
+            <div className="flex flex-wrap gap-2">
+              <Button
+                disabled={validationStatus === "checking"}
+                onClick={onValidate}
+                type="button"
+                variant="outline"
+              >
+                {validationStatus === "checking"
+                  ? "Checking…"
+                  : "Validate observation"}
+              </Button>
+              <Button
+                disabled={send.pending !== null}
+                onClick={() => send.request("wis2")}
+                type="button"
+                variant="ghost"
+              >
+                <Send />
+                Send last obs
+              </Button>
+              <Button
+                disabled={send.pending !== null}
+                onClick={() => send.request("email")}
+                type="button"
+                variant="ghost"
+              >
+                <Mail />
+                Email observation
+              </Button>
+              <Button
+                disabled={
+                  saveStatus === "saving" || approval?.status === "working"
+                }
+                type="submit"
+                variant={approval ? "outline" : "default"}
+              >
+                <Save />
+                {saveStatus === "saving" ? "Saving…" : "Save draft"}
+              </Button>
+              {approval ? (
+                <Button
+                  disabled={
+                    saveStatus === "saving" ||
+                    validationStatus === "checking" ||
+                    send.pending !== null ||
+                    approval.status === "working" ||
+                    approval.status === "confirming"
+                  }
+                  onClick={approval.start}
+                  type="button"
+                >
+                  <CircleCheck />
+                  {approval.status === "working"
+                    ? "Approving…"
+                    : "Save and approve"}
+                </Button>
+              ) : null}
+            </div>
+          </div>
+          {approval?.status === "confirming" && (
+            <ApprovalConfirm approval={approval} />
+          )}
+          {approval?.status === "approved" && (
+            <p className="text-xs" role="status">
+              {approval.message ?? "Approved."}
+            </p>
+          )}
+          {approval?.status === "error" && (
+            <p className="text-destructive text-xs" role="alert">
+              {approval.message ?? "The observation could not be approved."}
+            </p>
+          )}
+          <SendStatus send={send} />
+          {saveStatus === "saved" && approval?.status !== "approved" && (
+            <p className="text-muted-foreground text-xs" role="status">
+              Draft saved. Approve it to send it to WIS2 and email.
+            </p>
+          )}
+          {saveStatus === "error" && (
+            <p className="text-destructive text-xs" role="alert">
+              Draft could not be saved. Check the API and try again.
+            </p>
+          )}
+        </fieldset>
       </form>
       <div className="grid gap-6 xl:grid-cols-2">
         <SectionCard

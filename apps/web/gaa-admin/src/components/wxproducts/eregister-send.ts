@@ -82,7 +82,10 @@ function errorDetail(error: unknown, status: number | undefined): string {
  */
 export function useObservationSends(
   ensureSaved: () => Promise<string | null>
-): SendController & { observationId: string | null } {
+): SendController & {
+  observationId: string | null;
+  track: (id: string) => Promise<ObservationSend[] | null>;
+} {
   const [observationId, setObservationId] = useState<string | null>(null);
   const [history, setHistory] = useState<ObservationSend[]>([]);
   const [confirming, setConfirming] = useState<SendTarget | null>(null);
@@ -96,7 +99,17 @@ export function useObservationSends(
       throwOnError: false,
     });
     if (result.data) setHistory(result.data.sends);
+    return result.data?.sends ?? null;
   }, []);
+
+  /** Follow an observation's sends (after it was approved); null if unreadable. */
+  const track = useCallback(
+    async (id: string) => {
+      setObservationId(id);
+      return await refresh(id);
+    },
+    [refresh]
+  );
 
   const hasQueued = history.some((send) => send.status === "queued");
   useEffect(() => {
@@ -175,5 +188,6 @@ export function useObservationSends(
     pending,
     repeat,
     request,
+    track,
   };
 }

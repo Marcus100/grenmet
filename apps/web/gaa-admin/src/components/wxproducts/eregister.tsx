@@ -28,7 +28,11 @@ import {
   type ReportKind,
   type ReportRow,
 } from "./eregister-reports";
-import { useObservationSends } from "./eregister-send";
+import {
+  describeSends,
+  failedReason,
+  useObservationSends,
+} from "./eregister-send";
 import { observationTime } from "./eregister-time";
 import {
   PendingSettingsNote,
@@ -141,6 +145,10 @@ export function ERegister() {
   const [saveState, setSaveState] = useState<
     "idle" | "saving" | "saved" | "error"
   >("idle");
+  const [approvalStatus, setApprovalStatus] =
+    useState<ApprovalController["status"]>("idle");
+  const [approvalMessage, setApprovalMessage] = useState<string | null>(null);
+  const [approvalNotes, setApprovalNotes] = useState(0);
   const [liveState, setLiveState] = useState<LiveState>("loading");
   // The station's fixed pressure amounts (78958: owner confirmed, seeded).
   const [stationSettings, setStationSettings] =
@@ -250,7 +258,28 @@ export function ERegister() {
   // reuses its record instead of saving a duplicate.
   const savedRef = useRef<{ id: string; key: string } | null>(null);
 
+  // Observations the register has accepted, by id, and a guard against two
+  // approvals running at once.
+  const approvedRef = useRef<Set<string>>(new Set());
+  const approvingRef = useRef(false);
+
+  // The id of the approved observation holding exactly these values, if any.
+  // Saving them again would only make a correction of what was already sent.
+  function approvedAsKeyed(): string | null {
+    const saved = savedRef.current;
+    return saved &&
+      saved.key === JSON.stringify(structuredValues) &&
+      approvedRef.current.has(saved.id)
+      ? saved.id
+      : null;
+  }
+
   async function persistDraft(): Promise<string | null> {
+    const approvedId = approvedAsKeyed();
+    if (approvedId) {
+      setSaveState("saved");
+      return approvedId;
+    }
     setSaveState("saving");
     // Errors block saving; warnings only advise.
     if (!(await runValidation())) {
@@ -340,99 +369,10 @@ export function ERegister() {
 
   async function saveDraft(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    await persistDraft();
-  }
-
-  // Save and approve on the entry screen: the observer decides their own
-  // observation (another person may still review it afterwards).
-  const [approvalStatus, setApprovalStatus] =
-    useState<ApprovalController["status"]>("idle");
-  const [approvalMessage, setApprovalMessage] = useState<string | null>(null);
-  const [approvalNotes, setApprovalNotes] = useState(0);
-
-  async function approveNow() {
-    setApprovalStatus("working");
-    setApprovalMessage(null);
-    const saved = savedRef.current;
-    const alreadyApproved =
-      saved !== null &&
-      saved.key === JSON.stringify(structuredValues) &&
-      liveObservations.some(
-        (item) => item.id === saved.id && item.state === "accepted"
-      );
-    if (alreadyApproved) {
-      setApprovalStatus("approved");
-      setApprovalMessage("This observation is already approved.");
-      return;
-    }
     const id = await persistDraft();
-    if (!id) {
-      setApprovalStatus("error");
-      setApprovalMessage(
-        "Not approved: the observation was not saved. See the errors above."
-      );
-      return;
-    }
-    const decided = await eregisterAcceptRegisterObservation({
-      body: { reason: null },
-      path: { observation_id: id },
-      throwOnError: false,
-    });
-    if (decided.data) {
-      const approved = decided.data;
-      setLiveObservations((current) =>
-        current.map((item) => (item.id === approved.id ? approved : item))
-      );
-      setApprovalStatus("approved");
-      setApprovalMessage("Approved. It goes to WIS2 and email now.");
-      return;
-    }
-    setApprovalStatus("error");
-    if (decided.response?.status === 403) {
-      setApprovalMessage(
-        "Saved as a draft, but you need the eRegister approval permission to approve it."
-      );
-    } else if (isSynopRefusal(decided.error)) {
-      setApprovalMessage(decided.error.detail.message);
-    } else {
-      setApprovalMessage(
-        "Saved as a draft, but it could not be approved. Try again."
-      );
-    }
+    // A saved correction is a new, unapproved draft.
+    if (id && !approvedRef.current.has(id)) setApprovalStatus("idle");
   }
-
-  async function startApproval() {
-    setApprovalMessage(null);
-    setApprovalStatus("working");
-    const checked = await checkObservation();
-    if (!checked?.valid) {
-      setApprovalStatus("error");
-      setApprovalMessage(
-        checked
-          ? "Not approved: fix the errors listed above."
-          : "Not approved: the checks could not run. Try again."
-      );
-      return;
-    }
-    const notes = checked.issues.filter(
-      (issue) => issue.severity === "warning"
-    ).length;
-    if (notes > 0) {
-      setApprovalNotes(notes);
-      setApprovalStatus("confirming");
-      return;
-    }
-    await approveNow();
-  }
-
-  const approval: ApprovalController = {
-    cancel: () => setApprovalStatus("idle"),
-    confirm: approveNow,
-    message: approvalMessage,
-    start: startApproval,
-    status: approvalStatus,
-    warningCount: approvalNotes,
-  };
 
   const sends = useObservationSends(async () => {
     const saved = savedRef.current;
@@ -441,6 +381,166 @@ export function ERegister() {
     }
     return await persistDraft();
   });
+
+  // Save and approve on the entry screen: the observer decides their own
+  // observation (another person may still review it afterwards).
+  function markApproved(approved: RegisterObservationRead) {
+    approvedRef.current.add(approved.id);
+    setLiveObservations((current) =>
+      current.map((item) => (item.id === approved.id ? approved : item))
+    );
+  }
+
+  // What the register now says about the approved observation's sends. The
+  // accept call succeeds even when a send could not be queued.
+  async function announceApproved(id: string) {
+    let history: Awaited<ReturnType<typeof sends.track>> = null;
+    try {
+      history = await sends.track(id);
+    } catch {
+      history = null;
+    }
+    setApprovalStatus("approved");
+    const failure = history ? failedReason(history) : null;
+    if (failure) {
+      setApprovalMessage(`Approved, but a send was not queued: ${failure}`);
+    } else if (history && history.length > 0) {
+      setApprovalMessage(`Approved. ${describeSends(history)}.`);
+    } else {
+      setApprovalMessage(
+        "Approved. Check the send history for WIS2 and email."
+      );
+    }
+  }
+
+  // After an accept call that did not answer clearly, ask the register what it
+  // holds before saying anything: it may already be approved.
+  async function settleApproval(id: string, observedIso: string) {
+    let held: RegisterObservationRead | undefined;
+    try {
+      const holders = await eregisterListRegisterObservations({
+        query: {
+          kind: "SYNOP",
+          station_id: STATION.number,
+          observed_at: observedIso,
+          limit: 10,
+        },
+        throwOnError: false,
+      });
+      held = holders.data?.observations.find((item) => item.id === id);
+    } catch {
+      held = undefined;
+    }
+    if (held?.state === "accepted") {
+      markApproved(held);
+      await announceApproved(id);
+      return;
+    }
+    setApprovalStatus("error");
+    setApprovalMessage(
+      held
+        ? "Not approved. It is saved as a draft; try again."
+        : "Could not confirm whether it was approved. Check the observation list before trying again."
+    );
+  }
+
+  async function runApproval() {
+    const observedIso = observationDate.toISOString();
+    const known = approvedAsKeyed();
+    if (known) {
+      await announceApproved(known);
+      return;
+    }
+    const id = await persistDraft();
+    if (!id) {
+      setApprovalStatus("error");
+      setApprovalMessage(
+        "Not approved: the observation was not saved. Fix any errors above, or try again."
+      );
+      return;
+    }
+    let decided: Awaited<
+      ReturnType<typeof eregisterAcceptRegisterObservation>
+    > | null = null;
+    try {
+      decided = await eregisterAcceptRegisterObservation({
+        body: { reason: null },
+        path: { observation_id: id },
+        throwOnError: false,
+      });
+    } catch {
+      decided = null;
+    }
+    if (decided?.data) {
+      markApproved(decided.data);
+      await announceApproved(id);
+      return;
+    }
+    if (decided?.response?.status === 403) {
+      setApprovalStatus("error");
+      setApprovalMessage(
+        "Saved as a draft, but you do not have access to approve it."
+      );
+      return;
+    }
+    if (decided && isSynopRefusal(decided.error)) {
+      setApprovalStatus("error");
+      setApprovalMessage(decided.error.detail.message);
+      return;
+    }
+    await settleApproval(id, observedIso);
+  }
+
+  // One approval at a time; anything that throws ends in a message, never a
+  // form stuck on "Approving…".
+  async function guardedApproval(work: () => Promise<void>) {
+    if (approvingRef.current) return;
+    approvingRef.current = true;
+    setApprovalStatus("working");
+    setApprovalMessage(null);
+    try {
+      await work();
+    } catch {
+      setApprovalStatus("error");
+      setApprovalMessage(
+        "Something went wrong and it is not certain whether it was approved. Check the observation list before trying again."
+      );
+    } finally {
+      approvingRef.current = false;
+    }
+  }
+
+  const startApproval = () =>
+    guardedApproval(async () => {
+      const checked = await checkObservation();
+      if (!checked?.valid) {
+        setApprovalStatus("error");
+        setApprovalMessage(
+          checked
+            ? "Not approved: fix the errors listed above."
+            : "Not approved: the checks could not run. Try again."
+        );
+        return;
+      }
+      const notes = checked.issues.filter(
+        (issue) => issue.severity === "warning"
+      ).length;
+      if (notes > 0) {
+        setApprovalNotes(notes);
+        setApprovalStatus("confirming");
+        return;
+      }
+      await runApproval();
+    });
+
+  const approval: ApprovalController = {
+    cancel: () => setApprovalStatus("idle"),
+    confirm: () => guardedApproval(runApproval),
+    message: approvalMessage,
+    start: startApproval,
+    status: approvalStatus,
+    warningCount: approvalNotes,
+  };
 
   const live = liveState === "ready";
   const reports: Record<ReportKind, readonly ReportRow[]> = {
