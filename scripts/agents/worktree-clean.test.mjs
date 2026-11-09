@@ -13,6 +13,7 @@ import { join } from "node:path";
 import test from "node:test";
 import {
   inspectWorktree,
+  manualRoot,
   processDirectories,
   removeWorktree,
   run,
@@ -173,4 +174,103 @@ test("a new commit during inspection aborts removal", (t) => {
     { message: "Worktree registration changed; inspect it again" }
   );
   assert.ok(existsSync(path));
+});
+
+const CANONICAL = /canonical \.claude\/worktrees/u;
+const ABSOLUTE = /absolute/u;
+const SYMLINK = /symlink/u;
+const OVERLAP = /outside the main checkout/u;
+
+function manualFixture(t) {
+  const base = fixture(t);
+  const manual = join(base.parent, "worktrees", "repo");
+  const task = join(manual, "finished-task");
+  mkdirSync(manual, { recursive: true });
+  git(base.root, "worktree", "add", "--quiet", "-b", "manual-task", task);
+  return { ...base, manual, task };
+}
+
+test("manual worktrees stay out of the default scope", (t) => {
+  const { root, task } = manualFixture(t);
+  const lines = [];
+  run(
+    [],
+    root,
+    (line) => lines.push(line),
+    () => []
+  );
+  const preview = JSON.parse(lines[0]);
+  assert.equal(
+    preview.worktrees.some((item) => item.path === task),
+    false
+  );
+  assert.throws(
+    () =>
+      run(
+        ["--remove", task],
+        root,
+        () => undefined,
+        () => []
+      ),
+    { message: CANONICAL }
+  );
+  assert.ok(existsSync(task));
+});
+
+test("an explicit --root previews and removes a merged clean manual worktree, keeping its branch", (t) => {
+  const { root, manual, task } = manualFixture(t);
+  const lines = [];
+  const log = (line) => lines.push(line);
+  run(["--root", manual], root, log, () => []);
+  const preview = JSON.parse(lines[0]);
+  assert.equal(preview.root, manual);
+  assert.deepEqual(
+    preview.worktrees.map((item) => [item.path, item.eligible]),
+    [[task, true]]
+  );
+  run(["--root", manual, "--remove", task], root, log, () => []);
+  assert.equal(JSON.parse(lines[1]).removed, true);
+  assert.equal(existsSync(task), false);
+  assert.equal(
+    git(root, "rev-parse", "refs/heads/manual-task"),
+    git(root, "rev-parse", "origin/dev")
+  );
+});
+
+test("a manual root keeps every fail-closed check", (t) => {
+  const { root, manual, task } = manualFixture(t);
+  const options = { allowed: manualRoot(root, manual) };
+  const entry = () => worktrees(root).find((item) => item.path === task);
+  writeFileSync(join(task, ".env.local"), "unique material");
+  assert.ok(
+    inspectWorktree(root, entry(), () => [], options).reason.includes(
+      "Ignored data"
+    )
+  );
+  rmSync(join(task, ".env.local"));
+  git(task, "commit", "--quiet", "--allow-empty", "-m", "unmerged work");
+  assert.ok(
+    inspectWorktree(root, entry(), () => [], options).reason.includes(
+      "not verified as merged"
+    )
+  );
+  assert.throws(() => removeWorktree(root, task, () => [], options));
+  assert.ok(existsSync(task));
+});
+
+test("a manual root cannot be relative, a symlink, or overlap the main checkout", (t) => {
+  const { parent, root, allowed, manual } = manualFixture(t);
+  const link = join(parent, "manual-link");
+  symlinkSync(manual, link, "dir");
+  for (const [candidate, message] of [
+    ["worktrees/repo", ABSOLUTE],
+    [link, SYMLINK],
+    [root, OVERLAP],
+    [allowed, OVERLAP],
+    [parent, OVERLAP],
+  ])
+    assert.throws(() => manualRoot(root, candidate), { message });
+  assert.throws(() => run(["--root", parent], root, () => undefined), {
+    message: OVERLAP,
+  });
 });
