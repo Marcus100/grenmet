@@ -118,9 +118,13 @@ src/app/
   numbers, tables or stat tiles beside it. The sky hero shows real register
   and issued-forecast values only, sun times computed by `src/lib/sky.ts`, and
   "Not available yet" for fields no feed carries (UV, AQI, tides, swell, rain
-  chance, gusts, rainfall). "What it means for you" (a card in the From the
-  Desk row after the official cards, `SectorDeskCard`; hidden with the `explore-today` switch; with the desk
-  hidden it stands alone under that heading without its own header) shows, per
+  chance, gusts, rainfall). "Plan your week" (a compact card in the From the
+  Desk row after the official cards, `SectorDeskCard`, shaped like a desk post:
+  GMS byline and update time, a bold line and short text written by
+  `weekSummary`, the picture area, one row of six sector icons coloured by level
+  and "See the whole week"; hidden with the `explore-today` switch; with the desk
+  hidden it stands alone under that heading without its byline; the full view is
+  the `/plan-your-week` page, `SectorWeek`, with each item's "What to do") shows, per
   sector, the GMS alerts and CAP warnings that apply over the next seven days
   from FastAPI `GET /wxproducts/public/sector-outlook` (`fetchSectorOutlook`,
   tiles built by `lib/sector-outlook.ts`; the six sectors are `SECTORS` in

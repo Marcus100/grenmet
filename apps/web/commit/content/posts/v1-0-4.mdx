@@ -1,0 +1,55 @@
+---
+title: Warning statistics, contact forms with bot checks and a clearer error shape
+summary: Version 1.0.4 adds CAP warning statistics with a CSV export, finishes the weather homepage desk feed, sends the mbia and barrels contact forms through a per-site API route, masks sensitive audit fields at read time and returns one documented error shape for malformed requests.
+date: 2026-11-08
+release: 1.0.4
+---
+
+Version 1.0.4 is a smaller release than 1.0.3: 20 pull requests since v1.0.3, and no
+database migrations, so the previous version still runs against the same schema.
+Everything in it ran on staging before it reached production.
+
+### Weather service
+
+- **Homepage desk feed:** the From the Desk feed and the rules for what appears
+  under Discover are finished.
+
+### CAP warnings
+
+- **Warning statistics:** a staff dashboard that counts warnings by period and
+  colour, with a CSV export. Review fixes followed: date limits on the range, each
+  warning counted once per colour, clearer error messages, and a stricter check of
+  hidden control characters in hazard text.
+- A product element without a value no longer breaks the strict path filter that
+  reads published warnings.
+
+### HR and payroll
+
+- A saved calendar override reason now shows on the pay profile, and it is masked in
+  payroll history.
+
+### Forms and sites
+
+- **Contact forms:** the mbia and barrels contact forms post to a per-site API
+  route instead of the old shared one. The mbia form can show a Turnstile check
+  once a site key is configured, can forward the visitor's address when a shared
+  secret is configured, and names the field that failed. Form inputs on mbia now
+  meet 3:1 contrast against their background.
+
+### Platform
+
+- **One error shape:** a malformed request now returns the documented error body
+  (a message plus a list of problems with their type, location and message), and
+  the web apps show the real validation messages instead of raw JSON.
+- **Audit:** fields declared sensitive are masked when history is read, so older
+  rows are covered too, and sensitive fields are indexed per record type.
+- The API image picked up a fixed apt vulnerability that the image scanner blocked.
+- Routine dependency updates: GitHub Actions, Python packages, the Python base
+  image, Adminer, Mailpit, `fast-uri` and `serialize-javascript`.
+
+### What the release left for later
+
+The migration lock time limit that came out of the 1.0.3 database stall is still in
+review and is not in this release, which is one more reason this one carries no
+schema changes. A plan for leaving Vercel and a checklist for protecting each
+deployment environment are now written down in the repository docs.

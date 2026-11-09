@@ -226,6 +226,11 @@ export const NAV_SECTIONS: NavSection[] = [
           link("3-day forecast", "/weather/3-day", "The next three days"),
           link("7-day forecast", "/weather/7-day", "The week ahead"),
           link(
+            "Plan your week",
+            "/plan-your-week",
+            "What this week's alerts mean for each sector"
+          ),
+          link(
             "Weather synopsis",
             "/weather/synopsis",
             "The forecaster's plain-language summary"
