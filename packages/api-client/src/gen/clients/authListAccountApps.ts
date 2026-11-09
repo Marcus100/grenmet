@@ -24,6 +24,7 @@ export function authListAccountApps<ThrowOnError extends boolean = true>(
     request({
       method: "POST",
       url: "/api/v1/auth/account/apps",
+      contentType: { request: "application/json" },
       ...config,
       throwOnError: config.throwOnError ?? true,
     }) as Promise<RequestResult<AuthListAccountAppsResponses, ThrowOnError>>

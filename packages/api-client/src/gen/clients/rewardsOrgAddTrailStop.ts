@@ -25,6 +25,7 @@ export function rewardsOrgAddTrailStop<ThrowOnError extends boolean = true>(
       method: "POST",
       url: "/api/v1/rewards/org/trails/{trail_id}/stops",
       security: [{ type: "oauth2" }],
+      contentType: { request: "application/json" },
       ...config,
       throwOnError: config.throwOnError ?? true,
     }) as Promise<RequestResult<RewardsOrgAddTrailStopResponses, ThrowOnError>>

@@ -18,13 +18,19 @@ import type {
 export function hrPreviewLeaveRequestPdf<ThrowOnError extends boolean = true>(
   options: Options<HrPreviewLeaveRequestPdfOptions, ThrowOnError>
 ): Unwrappable<RequestResult<HrPreviewLeaveRequestPdfResponses, ThrowOnError>> {
-  const { client: request = client, ...config } = options;
+  const { client: request = client, contentType, ...config } = options;
 
   return withUnwrap(
     request({
       method: "POST",
       url: "/api/v1/hr/leave-requests/preview-pdf",
       security: [{ type: "oauth2" }],
+      contentType: {
+        request: "application/json",
+        ...(typeof contentType === "string"
+          ? { request: contentType }
+          : contentType),
+      },
       ...config,
       throwOnError: config.throwOnError ?? true,
     }) as Promise<

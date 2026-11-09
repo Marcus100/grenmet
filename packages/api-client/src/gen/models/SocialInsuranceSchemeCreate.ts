@@ -25,14 +25,14 @@ export type SocialInsuranceSchemeCreate = {
   employee_rate: number | string;
   employer_rate: number | string;
   /**
-   * @minLength 0
-   * @maxLength 10000000000
+   * @minimum 0
+   * @maximum 10000000000
    * @type integer
    */
   monthly_ceiling_minor: number;
   /**
-   * @minLength 0
-   * @maxLength 10000000000
+   * @minimum 0
+   * @maximum 10000000000
    * @type integer
    */
   weekly_ceiling_minor: number;

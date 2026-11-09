@@ -25,6 +25,7 @@ export function hrCreateTemplateStep<ThrowOnError extends boolean = true>(
       method: "POST",
       url: "/api/v1/hr/workflows/templates/{template_id}/steps",
       security: [{ type: "oauth2" }],
+      contentType: { request: "application/json" },
       ...config,
       throwOnError: config.throwOnError ?? true,
     }) as Promise<RequestResult<HrCreateTemplateStepResponses, ThrowOnError>>

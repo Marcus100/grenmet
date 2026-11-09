@@ -6,8 +6,8 @@
 export type BookingWorkingPeriodIn = {
   /**
    * @description Monday = 0
-   * @minLength 0
-   * @maxLength 6
+   * @minimum 0
+   * @maximum 6
    * @type integer
    */
   weekday: number;

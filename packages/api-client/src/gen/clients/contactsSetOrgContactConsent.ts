@@ -29,6 +29,7 @@ export function contactsSetOrgContactConsent<
       method: "POST",
       url: "/api/v1/contacts/org/contacts/{contact_id}/consents",
       security: [{ type: "oauth2" }],
+      contentType: { request: "application/json" },
       ...config,
       throwOnError: config.throwOnError ?? true,
     }) as Promise<

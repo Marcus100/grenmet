@@ -778,6 +778,12 @@ services:
       AUTH_APP_URL: https://auth.${BASE_DOMAIN}
       MBIA_SSO_CLIENT_SECRET: ${MBIA_SSO_CLIENT_SECRET:-}
       NEXT_PUBLIC_SENTRY_ENVIRONMENT: ${ENVIRONMENT}
+      # Contact form (src/app/api/contact/route.ts).
+      # Same value as the API: forwards each visitor's address (X-Visitor-IP).
+      # Hops: proxies in front of this container that append to x-forwarded-for
+      # (Traefik alone: 1; behind Cloudflare with trustedIPs: 2; render-env.py).
+      TRUSTED_WEB_SECRET: ${TRUSTED_WEB_SECRET:?TRUSTED_WEB_SECRET required}
+      VISITOR_IP_PROXY_HOPS: ${VISITOR_IP_PROXY_HOPS:-1}
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.web-mbia${ROUTER_SUFFIX}.rule=Host(`mbia.${BASE_DOMAIN}`)"

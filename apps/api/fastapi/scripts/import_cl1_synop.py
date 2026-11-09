@@ -136,7 +136,7 @@ def refuse_unless_local_register(allow_non_local: bool) -> None:
 
 
 _LIVE_ROW = text(
-    "SELECT state::text AS state, body->>'notes' AS notes, review_outcome"
+    "SELECT state::text AS state, body->>'notes' AS notes, review_outcome, body"
     " FROM register_observations WHERE station_id = :station AND kind = 'SYNOP'"
     " AND observed_at = :at AND state NOT IN ('rejected', 'superseded')"
 )
@@ -187,7 +187,10 @@ async def save(args: argparse.Namespace, reports: list[cl1_import.HourReport]) -
                 station_id=cl1_import.STATION_ID,
                 kind="SYNOP",
                 observed_at=observed_at,
-                body=workbook.model_dump(exclude_none=True),
+                body=cl1_import.carry_over(
+                    workbook.model_dump(exclude_none=True),
+                    (live["body"] or {}) if live is not None else {},
+                ),
             )
             try:
                 _row, was_created = await entries.create(

@@ -28,6 +28,7 @@ export function authExchangeSessionForAccessToken<
     request({
       method: "POST",
       url: "/api/v1/auth/sessions/access-token",
+      contentType: { request: "application/json" },
       ...config,
       throwOnError: config.throwOnError ?? true,
     }) as Promise<

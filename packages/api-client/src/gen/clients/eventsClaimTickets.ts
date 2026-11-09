@@ -25,6 +25,7 @@ export function eventsClaimTickets<ThrowOnError extends boolean = true>(
       method: "POST",
       url: "/api/v1/events/listings/{slug}/orders",
       security: [{ type: "http", scheme: "bearer" }],
+      contentType: { request: "application/json" },
       ...config,
       throwOnError: config.throwOnError ?? true,
     }) as Promise<RequestResult<EventsClaimTicketsResponses, ThrowOnError>>

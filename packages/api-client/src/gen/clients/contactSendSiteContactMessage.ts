@@ -28,6 +28,7 @@ export function contactSendSiteContactMessage<
     request({
       method: "POST",
       url: "/api/v1/contact/public/{site_key}/messages",
+      contentType: { request: "application/json" },
       ...config,
       throwOnError: config.throwOnError ?? true,
     }) as Promise<

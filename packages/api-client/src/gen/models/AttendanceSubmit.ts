@@ -5,7 +5,7 @@
 
 export type AttendanceSubmit = {
   /**
-   * @minLength 1
+   * @minimum 1
    * @type integer
    */
   expected_revision: number;

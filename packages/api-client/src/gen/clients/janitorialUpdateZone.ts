@@ -28,6 +28,7 @@ export function janitorialUpdateZone<ThrowOnError extends boolean = true>(
         { type: "apiKey", name: "admin_session", in: "cookie" },
         { type: "http", scheme: "bearer" },
       ],
+      contentType: { request: "application/json" },
       ...config,
       throwOnError: config.throwOnError ?? true,
     }) as Promise<RequestResult<JanitorialUpdateZoneResponses, ThrowOnError>>

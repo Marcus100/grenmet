@@ -25,6 +25,7 @@ export function paymentsCreateIntent<ThrowOnError extends boolean = true>(
       method: "POST",
       url: "/api/v1/payments/org/intents",
       security: [{ type: "oauth2" }],
+      contentType: { request: "application/json" },
       ...config,
       throwOnError: config.throwOnError ?? true,
     }) as Promise<RequestResult<PaymentsCreateIntentResponses, ThrowOnError>>

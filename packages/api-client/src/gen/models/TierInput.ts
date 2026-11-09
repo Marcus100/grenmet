@@ -14,21 +14,21 @@ export type TierInput = {
    */
   name: string;
   /**
-   * @minLength 0
-   * @maxLength 10000000
+   * @minimum 0
+   * @maximum 10000000
    * @type integer
    */
   price_minor: number;
   currency?: ListingCardPropertiesCurrencyEnum;
   /**
-   * @minLength 0
-   * @maxLength 1000000
+   * @minimum 0
+   * @maximum 1000000
    * @type integer
    */
   allocation: number;
   /**
-   * @minLength 1
-   * @maxLength 50
+   * @minimum 1
+   * @maximum 50
    * @default 4
    * @type integer | undefined
    */
