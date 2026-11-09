@@ -71,7 +71,11 @@ async function openEditor() {
         is_superuser: false,
       }}
     >
-      <ProductDesk kinds={["morning"]} title="Forecasts" />
+      <ProductDesk
+        description="Test desk."
+        kinds={["morning"]}
+        title="Forecasts"
+      />
     </SessionUserProvider>
   );
   await waitFor(() =>
@@ -105,7 +109,7 @@ it("updates the live summary without rendering and explicitly previews without s
   );
   expect(actions.saveProductAction).not.toHaveBeenCalled();
   expect(actions.previewProductAction).not.toHaveBeenCalled();
-  expect(screen.queryByRole("button", { name: "Publish to GMS" })).toBeNull();
+  expect(screen.getByRole("button", { name: "Publish to GMS" })).toBeDisabled();
   fireEvent.change(summary, { target: { value: "Rain later" } });
   expect(screen.getByText("Changes pending")).toBeInTheDocument();
   expect(actions.previewProductPdfAction).toHaveBeenCalledTimes(1);
@@ -158,7 +162,7 @@ it("opens the normalized PDF after validation and preserves the publication revi
   fireEvent.click(screen.getByRole("checkbox"));
   expect(screen.getByRole("button", { name: "Publish to GMS" })).toBeEnabled();
   fireEvent.change(summary, { target: { value: "Edited forecast" } });
-  expect(screen.queryByRole("button", { name: "Publish to GMS" })).toBeNull();
+  expect(screen.getByRole("button", { name: "Publish to GMS" })).toBeDisabled();
   expect(screen.getByText("Changes pending")).toBeInTheDocument();
   expect(actions.previewProductPdfAction).toHaveBeenCalledTimes(1);
   fireEvent.click(screen.getByRole("button", { name: "Validate and preview" }));

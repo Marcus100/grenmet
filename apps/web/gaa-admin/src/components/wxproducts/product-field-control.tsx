@@ -93,25 +93,46 @@ export function sectionParts(section: string) {
 const CLEAR_OPTION = "__none__";
 
 export function ProductFieldControl({
+  error,
   field: f,
   kind,
   onChange,
   value,
 }: {
+  /** The blocking message from the last failed attempt, shown inline. */
+  error?: string;
   field: ProductField;
   kind: ProductKind;
   onChange: (value: string) => void;
   value: string;
 }) {
+  const inputId = `${kind}-${f.key}`;
+  const errorId = `${inputId}-error`;
+  const invalid = error ? true : undefined;
+  const describedBy = error ? errorId : undefined;
+  const errorText = error ? (
+    <p className="text-destructive text-xs leading-4" id={errorId}>
+      {error}
+    </p>
+  ) : null;
   if (f.type === "sectors")
     return (
-      <SectorCheckboxes
-        className="col-span-full basis-full"
-        onChange={(next) => onChange(formatSectors(next))}
-        value={parseSectors(value)}
-      />
+      <>
+        <SectorCheckboxes
+          className="col-span-full basis-full"
+          onChange={(next) => onChange(formatSectors(next))}
+          value={parseSectors(value)}
+        />
+        {error ? (
+          <p
+            className="text-destructive col-span-full basis-full text-xs leading-4"
+            id={errorId}
+          >
+            {error}
+          </p>
+        ) : null}
+      </>
     );
-  const inputId = `${kind}-${f.key}`;
   const accessibleLabel = `${productFieldLabel(f)}${f.required ? " *" : ""}`;
   const showCaption =
     Boolean(value?.trim()) ||
@@ -126,6 +147,8 @@ export function ProductFieldControl({
         value={value}
       >
         <SelectTrigger
+          aria-describedby={describedBy}
+          aria-invalid={invalid}
           aria-label={accessibleLabel}
           className={cn(
             "min-w-0 flex-1 rounded-none border-0 bg-transparent pl-1.5 focus-visible:ring-0 dark:bg-transparent",
@@ -152,6 +175,8 @@ export function ProductFieldControl({
   } else if (f.type === "textarea") {
     control = (
       <InputGroupTextarea
+        aria-describedby={describedBy}
+        aria-invalid={invalid}
         aria-label={accessibleLabel}
         className={cn("min-h-16", showCaption && "pt-5")}
         id={inputId}
@@ -166,8 +191,10 @@ export function ProductFieldControl({
   } else if (f.type === "number") {
     control = (
       <ProductNumberInput
+        describedBy={describedBy}
         field={f}
         id={inputId}
+        invalid={invalid}
         onChange={onChange}
         value={value ?? ""}
       />
@@ -175,6 +202,8 @@ export function ProductFieldControl({
   } else {
     control = (
       <InputGroupInput
+        aria-describedby={describedBy}
+        aria-invalid={invalid}
         aria-label={accessibleLabel}
         className={showCaption ? "pt-3 pb-0 leading-4" : undefined}
         id={inputId}
@@ -200,37 +229,40 @@ export function ProductFieldControl({
         {productFieldLabel(f)}
         {f.required ? " *" : ""}
       </FieldLabel>
-      <InputGroup className="min-w-0 flex-1">
-        {showCaption ? (
-          <InputGroupAddon
-            align="inline-start"
-            aria-hidden="true"
-            className="pointer-events-none absolute top-0.5 right-2 left-2 z-10 justify-start gap-1 truncate p-0 text-xs leading-3 font-normal"
-          >
-            {productFieldCaption(f)}
-            {f.required ? <span className="text-destructive">*</span> : null}
-          </InputGroupAddon>
-        ) : null}
-        {!showCaption && f.required ? (
-          <InputGroupAddon
-            align="inline-start"
-            aria-hidden="true"
-            className="text-destructive pointer-events-none self-start text-xs"
-          >
-            *
-          </InputGroupAddon>
-        ) : null}
-        {control}
-        {productFieldUnit(f) && sectionParts(f.section).group !== "Wind" ? (
-          <InputGroupAddon
-            align="inline-end"
-            aria-hidden="true"
-            className="shrink-0 text-xs"
-          >
-            {productFieldUnit(f)}
-          </InputGroupAddon>
-        ) : null}
-      </InputGroup>
+      <div className="flex min-w-0 flex-1 flex-col gap-1">
+        <InputGroup className="min-w-0">
+          {showCaption ? (
+            <InputGroupAddon
+              align="inline-start"
+              aria-hidden="true"
+              className="pointer-events-none absolute top-0.5 right-2 left-2 z-10 justify-start gap-1 truncate p-0 text-xs leading-3 font-normal"
+            >
+              {productFieldCaption(f)}
+              {f.required ? <span className="text-destructive">*</span> : null}
+            </InputGroupAddon>
+          ) : null}
+          {!showCaption && f.required ? (
+            <InputGroupAddon
+              align="inline-start"
+              aria-hidden="true"
+              className="text-destructive pointer-events-none self-start text-xs"
+            >
+              *
+            </InputGroupAddon>
+          ) : null}
+          {control}
+          {productFieldUnit(f) && sectionParts(f.section).group !== "Wind" ? (
+            <InputGroupAddon
+              align="inline-end"
+              aria-hidden="true"
+              className="shrink-0 text-xs"
+            >
+              {productFieldUnit(f)}
+            </InputGroupAddon>
+          ) : null}
+        </InputGroup>
+        {errorText}
+      </div>
     </Field>
   );
 }

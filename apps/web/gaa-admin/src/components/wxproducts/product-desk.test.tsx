@@ -124,7 +124,13 @@ beforeEach(() => {
   URL.revokeObjectURL = vi.fn();
 });
 async function openEditor() {
-  render(<ProductDesk kinds={["morning"]} title="Forecasts" />);
+  render(
+    <ProductDesk
+      description="Test desk."
+      kinds={["morning"]}
+      title="Forecasts"
+    />
+  );
   const button = await screen.findByRole("button", {
     name: "Validate and preview",
   });
@@ -169,7 +175,7 @@ it("shows backend validation errors without offering publication", async () => {
   });
   fireEvent.click(await openEditor());
   await screen.findByText("An expired product cannot be published");
-  expect(screen.queryByRole("button", { name: "Publish to GMS" })).toBeNull();
+  expect(screen.getByRole("button", { name: "Publish to GMS" })).toBeDisabled();
 });
 it("does not offer publication when preview is unavailable", async () => {
   actions.previewProductAction.mockResolvedValue({
@@ -178,12 +184,16 @@ it("does not offer publication when preview is unavailable", async () => {
   });
   fireEvent.click(await openEditor());
   await screen.findByText("Preview unavailable");
-  expect(screen.queryByRole("button", { name: "Publish to GMS" })).toBeNull();
+  expect(screen.getByRole("button", { name: "Publish to GMS" })).toBeDisabled();
 });
 
 it("shows a tab per forecast kind and switches when the form is clean", async () => {
   render(
-    <ProductDesk kinds={["morning", "midday", "evening"]} title="Forecasts" />
+    <ProductDesk
+      description="Test desk."
+      kinds={["morning", "midday", "evening"]}
+      title="Forecasts"
+    />
   );
   const tabs = screen.getAllByRole("tab");
   expect(tabs).toHaveLength(3);
@@ -216,6 +226,7 @@ it("shows a tab per forecast kind and switches when the form is clean", async ()
 it("uses compact alert tab names and opens the existing earthquake and tsunami editor", async () => {
   render(
     <ProductDesk
+      description="Test desk."
       kinds={[
         "outlook",
         "cyclone",
@@ -260,7 +271,13 @@ it("uses compact alert tab names and opens the existing earthquake and tsunami e
 });
 
 it("keeps evening periods in subtabs without losing edits or rendering PDFs", async () => {
-  render(<ProductDesk kinds={["evening"]} title="Forecasts" />);
+  render(
+    <ProductDesk
+      description="Test desk."
+      kinds={["evening"]}
+      title="Forecasts"
+    />
+  );
   await waitFor(() =>
     expect(screen.getByRole("button", { name: "Save draft" })).toBeEnabled()
   );
@@ -335,7 +352,13 @@ it("preserves publication review when switching evening periods and invalidates 
     ok: true,
     preview: { values, errors: [], checked_at: "2026-10-12T22:00:00Z" },
   }));
-  render(<ProductDesk kinds={["evening"]} title="Forecasts" />);
+  render(
+    <ProductDesk
+      description="Test desk."
+      kinds={["evening"]}
+      title="Forecasts"
+    />
+  );
   await waitFor(() =>
     expect(
       screen.getByRole("button", { name: "Validate and preview" })
@@ -361,7 +384,11 @@ it("preserves publication review when switching evening periods and invalidates 
 
 it("asks before switching tabs with unsaved changes", async () => {
   render(
-    <ProductDesk kinds={["morning", "midday", "evening"]} title="Forecasts" />
+    <ProductDesk
+      description="Test desk."
+      kinds={["morning", "midday", "evening"]}
+      title="Forecasts"
+    />
   );
   await waitFor(() =>
     expect(
@@ -405,7 +432,13 @@ it("uses today's fixed forecast slot without redundant date controls", async () 
 });
 
 it("keeps bulletin issue timing editable without duplicate desk controls", async () => {
-  render(<ProductDesk kinds={["marine"]} title="Bulletins" />);
+  render(
+    <ProductDesk
+      description="Test desk."
+      kinds={["marine"]}
+      title="Bulletins"
+    />
+  );
   await waitFor(() =>
     expect(
       screen.getByRole("button", { name: "Validate and preview" })
@@ -457,7 +490,13 @@ it("opens older products across kinds from the shared archive and starts new for
     ok: true,
     products: [archived],
   });
-  render(<ProductDesk kinds={["marine", "cyclone"]} title="Bulletins" />);
+  render(
+    <ProductDesk
+      description="Test desk."
+      kinds={["marine", "cyclone"]}
+      title="Bulletins"
+    />
+  );
   fireEvent.click(
     await screen.findByRole("button", {
       name: "Open Evening Forecast 2026-01-01T18:00",
@@ -506,7 +545,13 @@ it("starts a new forecast from the last issued one without carrying over its tim
     ok: true,
     products: [draftOnly, last],
   });
-  render(<ProductDesk kinds={["morning"]} title="Forecasts" />);
+  render(
+    <ProductDesk
+      description="Test desk."
+      kinds={["morning"]}
+      title="Forecasts"
+    />
+  );
   fireEvent.click(
     await screen.findByRole("button", { name: "Start from last issued" })
   );
@@ -541,7 +586,13 @@ it("does not offer to copy the last issued hazard bulletin", async () => {
       },
     ],
   });
-  render(<ProductDesk kinds={["marine"]} title="Bulletins" />);
+  render(
+    <ProductDesk
+      description="Test desk."
+      kinds={["marine"]}
+      title="Bulletins"
+    />
+  );
   await screen.findByRole("button", { name: "Load example draft" });
   expect(
     screen.queryByRole("button", { name: "Start from last issued" })
@@ -660,7 +711,11 @@ it("adds and removes tide rows, shifting later tides up", async () => {
 
 it("gives marine bulletins structured wind while cyclones keep free text", async () => {
   const view = render(
-    <ProductDesk kinds={["marine", "cyclone"]} title="Bulletins" />
+    <ProductDesk
+      description="Test desk."
+      kinds={["marine", "cyclone"]}
+      title="Bulletins"
+    />
   );
   await waitFor(() =>
     expect(
@@ -694,7 +749,13 @@ it("validates and publishes a bulletin after saving its draft", async () => {
     ok: true,
     preview: { values, errors: [], checked_at: "2026-10-07T12:00:00Z" },
   }));
-  render(<ProductDesk kinds={["marine"]} title="Bulletins" />);
+  render(
+    <ProductDesk
+      description="Test desk."
+      kinds={["marine"]}
+      title="Bulletins"
+    />
+  );
   const save = screen.getByRole("button", { name: "Save draft" });
   await waitFor(() => expect(save).toBeEnabled());
   fireEvent.click(save);
@@ -743,18 +804,26 @@ it("shows saved-draft validation errors beside the publication controls", async 
       checked_at: "2026-10-07T12:00:00Z",
     },
   });
-  render(<ProductDesk kinds={["marine"]} title="Bulletins" />);
+  render(
+    <ProductDesk
+      description="Test desk."
+      kinds={["marine"]}
+      title="Bulletins"
+    />
+  );
   fireEvent.click(await screen.findByRole("button", { name: OPEN_MARINE }));
   const validate = screen.getByRole("button", { name: "Validate and preview" });
   fireEvent.click(validate);
   const message = await screen.findByText("Describe this issue or revision");
-  expect(validate.closest("form")).toContainElement(message);
+  const summary = screen.getByRole("alert");
+  expect(summary).toContainElement(message);
+  expect(summary.closest("form")).not.toBeNull();
   expect(
     screen.getByLabelText("Issue / revision note")
   ).toHaveAccessibleDescription(
     "Required to validate and publish a saved draft, including its first publication."
   );
-  expect(screen.queryByRole("button", { name: "Publish to GMS" })).toBeNull();
+  expect(screen.getByRole("button", { name: "Publish to GMS" })).toBeDisabled();
 });
 
 it("snapshots reviewed guidance and requires a fresh review after a system edit", async () => {
@@ -786,7 +855,9 @@ it("snapshots reviewed guidance and requires a fresh review after a system edit"
       },
     })
   );
-  render(<ProductDesk kinds={["outlook"]} title="Alerts" />);
+  render(
+    <ProductDesk description="Test desk." kinds={["outlook"]} title="Alerts" />
+  );
   const validate = screen.getByRole("button", { name: "Validate and preview" });
   await waitFor(() => expect(validate).toBeEnabled());
   fireEvent.click(
@@ -819,7 +890,7 @@ it("snapshots reviewed guidance and requires a fresh review after a system edit"
   fireEvent.change(screen.getByLabelText("System narrative"), {
     target: { value: "Manual override" },
   });
-  expect(screen.queryByRole("button", { name: "Publish to GMS" })).toBeNull();
+  expect(screen.getByRole("button", { name: "Publish to GMS" })).toBeDisabled();
   expect(screen.getByText("Changes pending")).toBeInTheDocument();
   expect(actions.previewProductPdfAction).toHaveBeenCalledTimes(1);
   fireEvent.click(screen.getByRole("button", { name: "Save draft" }));
@@ -873,12 +944,20 @@ it("requires a revision note before withdrawing a published product", async () =
     ok: true,
     products: [storedMarine()],
   });
-  render(<ProductDesk kinds={["marine"]} title="Bulletins" />);
+  render(
+    <ProductDesk
+      description="Test desk."
+      kinds={["marine"]}
+      title="Bulletins"
+    />
+  );
   fireEvent.click(await screen.findByRole("button", { name: OPEN_MARINE }));
 
   fireEvent.click(screen.getByRole("button", { name: "Withdraw publication" }));
   expect(
-    await screen.findByText("Explain the withdrawal in the revision note.")
+    await screen.findByRole("link", {
+      name: "Explain the withdrawal in the revision note.",
+    })
   ).toBeInTheDocument();
   expect(screen.queryByRole("alertdialog")).toBeNull();
 
@@ -915,7 +994,13 @@ it("loads the revision history on request, lists each revision and reports a fai
         },
       ],
     });
-  render(<ProductDesk kinds={["marine"]} title="Bulletins" />);
+  render(
+    <ProductDesk
+      description="Test desk."
+      kinds={["marine"]}
+      title="Bulletins"
+    />
+  );
   fireEvent.click(await screen.findByRole("button", { name: OPEN_MARINE }));
   const load = screen.getByRole("button", { name: "View revision history" });
 
@@ -951,7 +1036,13 @@ it("tells the forecaster to raise or lower an old draft above green", async () =
       },
     ],
   });
-  render(<ProductDesk kinds={["marine"]} title="Bulletins" />);
+  render(
+    <ProductDesk
+      description="Test desk."
+      kinds={["marine"]}
+      title="Bulletins"
+    />
+  );
   fireEvent.click(await screen.findByRole("button", { name: OPEN_MARINE }));
   expect(await screen.findByRole("alert")).toHaveTextContent(
     "raise it to a warning (a CAP alert) or change it to green"
