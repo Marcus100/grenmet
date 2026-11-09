@@ -346,6 +346,12 @@ try {
 }
 ```
 
+Fields:
+
+- `status`: the HTTP status.
+- `detail`: the API's one-line reason. For a 422 this is often just `"Validation error"`.
+- `errors`: the field-level problems of a 422, as the API lists them: `{ type, loc, msg }[]` (`ValidationErrorItem` from `@barrelsgd/api-client`). `loc` is the path to the field, for example `["body", "info", 0, "web"]`. It is `[]` when the API sent no list, and items that do not match the shape are dropped. Show `msg` next to the field it names; never assume the list is non-empty.
+
 ---
 
 ## Which apps use which exports
