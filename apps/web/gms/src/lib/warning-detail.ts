@@ -153,9 +153,10 @@ export const RECENTLY_ENDED_WINDOW_MS = 24 * 60 * 60 * 1000;
  */
 export function recentlyEnded(
   alerts: CapAlertPublicView[],
-  now: Date
+  now: Date,
+  windowMs: number = RECENTLY_ENDED_WINDOW_MS
 ): EndedWarning[] {
-  const cutoff = now.getTime() - RECENTLY_ENDED_WINDOW_MS;
+  const cutoff = now.getTime() - windowMs;
   return alerts
     .flatMap((alert) => {
       if (alert.replaced_by_identifier) {

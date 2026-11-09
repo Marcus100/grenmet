@@ -34,7 +34,10 @@ describe("recognizeLink", () => {
     ["https://weather.barrels.gd/weather/radar", "page", "/weather/radar"],
     ["/weather/radar#top", "page", "/weather/radar"],
     // A page in the menu wins over the warning pattern.
+    ["/alerts/past", "page", "/alerts/past"],
+    // Retired menu pages still redirect, so a stored link stays a page.
     ["/alerts/advisories", "page", "/alerts/advisories"],
+    ["/alerts/marine", "page", "/alerts/marine"],
     // A page outside the menu (a dated forecast day) is still a site page.
     ["/weather/2026/10/28", "page", "/weather/2026/10/28"],
     ["https://www.metoffice.gov.uk/", "link", null],

@@ -73,9 +73,9 @@ export const NAV_SECTIONS: NavSection[] = [
             "Current Outlooks, Watches and Warnings"
           ),
           link(
-            "Advisories",
-            "/alerts/advisories",
-            "Lower-level notices in effect"
+            "Past alerts",
+            "/alerts/past",
+            "Warnings that ended in the last 30 days"
           ),
           link(
             "GMS alerts",
@@ -90,7 +90,7 @@ export const NAV_SECTIONS: NavSection[] = [
         ],
       },
       {
-        heading: "Hazards",
+        heading: "By hazard",
         links: [
           link(
             "Tropical cyclone",
@@ -132,7 +132,7 @@ export const NAV_SECTIONS: NavSection[] = [
         ],
       },
       {
-        heading: "Understand alerts",
+        heading: "How alerts work",
         links: [
           link(
             "Warning levels",
@@ -148,6 +148,11 @@ export const NAV_SECTIONS: NavSection[] = [
             "Reading a warning",
             "/alerts/understanding",
             "How to read a warning and act on it"
+          ),
+          link(
+            "Exercises & drills",
+            "/alerts/exercise",
+            "How test alerts are marked"
           ),
         ],
       },
@@ -194,21 +199,6 @@ export const NAV_SECTIONS: NavSection[] = [
             "CAP alerts",
             "/alerts/get-alerts/cap",
             "The machine-readable alert feed we publish"
-          ),
-        ],
-      },
-      {
-        heading: "Archive",
-        links: [
-          link(
-            "Tropical cyclone archive",
-            "/alerts/cyclone/archive",
-            "Past storms affecting the tri-island state"
-          ),
-          link(
-            "Exercises & drills",
-            "/alerts/exercise",
-            "How test alerts are marked"
           ),
         ],
       },

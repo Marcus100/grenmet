@@ -132,6 +132,7 @@ placeholder is not an implemented service.
 | gms | `/alerts/impact` | Pending |
 | gms | `/alerts/levels` | Pending |
 | gms | `/alerts/marine` | Pending |
+| gms | `/alerts/past` | Pending |
 | gms | `/alerts/prepare/flood` | Pending |
 | gms | `/alerts/prepare/heat` | Pending |
 | gms | `/alerts/prepare/hurricane` | Pending |
