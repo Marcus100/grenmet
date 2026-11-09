@@ -13,13 +13,17 @@ import {
 
 /** Preserve typed decimals and untouched canonical values while presenting preferred units. */
 export function ProductNumberInput({
+  describedBy,
   field,
   id,
+  invalid,
   value,
   onChange,
 }: {
+  describedBy?: string;
   field: ProductField;
   id: string;
+  invalid?: boolean;
   value: string;
   onChange: (value: string) => void;
 }) {
@@ -33,6 +37,8 @@ export function ProductNumberInput({
       : productFieldValue(field, value);
   return (
     <InputGroupInput
+      aria-describedby={describedBy}
+      aria-invalid={invalid}
       aria-label={`${productFieldLabel(field)}${field.required ? " *" : ""}`}
       className={cn(
         "[appearance:textfield] tabular-nums [&::-webkit-inner-spin-button]:appearance-none",

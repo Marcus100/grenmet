@@ -64,7 +64,9 @@ import { CapForecastPicker } from "./cap-forecast-picker";
 import { ClimateFigures } from "./climate-figures";
 import { ImpactMatrixPanel } from "./impact-matrix-panel";
 import { NhcGuidanceEditor } from "./nhc-guidance-editor";
+import { ProductActionBar } from "./product-action-bar";
 import { ProductDiscardDialog } from "./product-discard-dialog";
+import { ProductErrorSummary } from "./product-error-summary";
 import {
   ProductFieldControl,
   sectionParts,
@@ -72,6 +74,7 @@ import {
 } from "./product-field-control";
 import { type HistoryItem, ProductHistoryPanel } from "./product-history-panel";
 import { ProductList } from "./product-list";
+import { type ProductProblem, productProblems } from "./product-problems";
 import { ProductWithdrawDialog } from "./product-withdraw-dialog";
 import {
   RaiseToWarningDialog,
@@ -261,6 +264,9 @@ function ProductEditor({
   const [changeSummary, setChangeSummary] = useState("");
   const [period, setPeriod] = useState("");
   const [message, setMessage] = useState("");
+  const [problems, setProblems] = useState<ProductProblem[]>([]);
+  const [summaryFocus, setSummaryFocus] = useState(0);
+  const [focusTarget, setFocusTarget] = useState<{ id: string } | null>(null);
   const [history, setHistory] = useState<HistoryItem[]>([]);
   const [pending, startTransition] = useTransition();
   const [defaultValues, setDefaultValues] = useState(start);
@@ -300,6 +306,8 @@ function ProductEditor({
   function replaceValues(values: ProductValues) {
     setDefaultValues(values);
     form.reset(values);
+    // Problems belonged to the old values.
+    setProblems([]);
   }
   /**
    * Forecast wording usually changes little between issues, so a new forecast
@@ -341,6 +349,32 @@ function ProductEditor({
       )
   );
   const sections = [...new Set(fields.map((f) => f.section))];
+  /** Replace the blocking problems and move focus to the summary. */
+  function fail(next: ProductProblem[]) {
+    // An earlier "Draft saved" or "Preview ready" must not sit beside the problems.
+    setMessage("");
+    setProblems(next);
+    setSummaryFocus((count) => count + 1);
+  }
+  function failWithMessages(messages: string[]) {
+    fail(productProblems(kind, fields, messages));
+  }
+  function followProblem(problem: ProductProblem) {
+    if (kind === "evening" && problem.period !== undefined)
+      setPeriod(problem.period);
+    if (problem.fieldId) setFocusTarget({ id: problem.fieldId });
+  }
+  // Focus the linked control once it is rendered and the form is enabled
+  // (an evening day may need its tab selected first; a disabled fieldset cannot take focus).
+  useEffect(() => {
+    if (!focusTarget || pending || disabled) return;
+    const element = document.getElementById(focusTarget.id);
+    if (!element) return;
+    element.focus();
+    // Keep the field clear of the sticky action bar at the bottom.
+    element.scrollIntoView?.({ block: "center" });
+    setFocusTarget(null);
+  }, [focusTarget, pending, disabled]);
   async function save(
     values: ProductValues,
     action: "draft" | "publish" | "withdraw"
@@ -356,9 +390,10 @@ function ProductEditor({
       reviewed,
     });
     if (!result.ok) {
-      setMessage(result.error);
+      failWithMessages([result.error]);
       return null;
     }
+    setProblems([]);
     setRevision(result.product.revision);
     setPublishedRevision(result.product.publishedRevision);
     setGuidance(result.product.guidance ?? null);
@@ -454,13 +489,14 @@ function ProductEditor({
         });
         if (JSON.stringify(form.state.values) !== submitted) return;
         if (!result.ok) {
-          setMessage(result.error);
+          failWithMessages([result.error]);
           return;
         }
         if (result.preview.errors.length) {
-          setMessage(result.preview.errors.join("\n"));
+          failWithMessages(result.preview.errors);
           return;
         }
+        setProblems([]);
         replaceValues(result.preview.values);
         setMessage("");
         setPreview(result.preview.values);
@@ -483,10 +519,16 @@ function ProductEditor({
           preview !== null &&
           previewGuidance === JSON.stringify(guidance) &&
           JSON.stringify(preview) === JSON.stringify(values);
+        const fieldErrors = new Map(
+          problems.flatMap((problem) =>
+            problem.fieldId ? [[problem.fieldId, problem.message] as const] : []
+          )
+        );
         const renderField = (f: ProductField) => (
           <form.Field key={f.key} name={f.key}>
             {(input) => (
               <ProductFieldControl
+                error={fieldErrors.get(`${kind}-${f.key}`)}
                 field={f}
                 kind={kind}
                 onChange={input.handleChange}
@@ -550,22 +592,7 @@ function ProductEditor({
                     open={withdrawOpen}
                     pending={pending}
                   />
-                  <div className="flex flex-wrap items-center justify-between gap-2 border-t pt-3">
-                    <div className="flex flex-wrap items-center gap-1.5">
-                      <Badge variant="outline">
-                        {revision ? `Revision ${revision}` : "New draft"}
-                      </Badge>
-                      {publishedRevision ? (
-                        <Badge variant="light-success">
-                          Published r{publishedRevision}
-                        </Badge>
-                      ) : (
-                        <Badge variant="outline">Not published</Badge>
-                      )}
-                      {dirty ? (
-                        <Badge variant="light-warning">Unsaved changes</Badge>
-                      ) : null}
-                    </div>
+                  <div className="flex flex-wrap items-center justify-end gap-2 border-t pt-3 empty:hidden">
                     <div className="flex flex-wrap gap-2">
                       {isForecastKind(kind) && revision === 0 && lastIssued ? (
                         <Button
@@ -629,6 +656,12 @@ function ProductEditor({
                       submit(values, "draft");
                     }}
                   >
+                    <ProductErrorSummary
+                      focusRequest={summaryFocus}
+                      onFollow={followProblem}
+                      problems={problems}
+                      warnings={[]}
+                    />
                     <fieldset
                       className="space-y-4"
                       disabled={pending || disabled}
@@ -828,7 +861,17 @@ function ProductEditor({
                             ) : null}
                             <InputGroupTextarea
                               aria-describedby={
-                                revision ? "change-summary-hint" : undefined
+                                [
+                                  revision ? "change-summary-hint" : null,
+                                  fieldErrors.has("change-summary")
+                                    ? "change-summary-error"
+                                    : null,
+                                ]
+                                  .filter(Boolean)
+                                  .join(" ") || undefined
+                              }
+                              aria-invalid={
+                                fieldErrors.has("change-summary") || undefined
                               }
                               aria-label="Issue / revision note"
                               id="change-summary"
@@ -845,6 +888,14 @@ function ProductEditor({
                             >
                               Required to validate and publish a saved draft,
                               including its first publication.
+                            </p>
+                          ) : null}
+                          {fieldErrors.has("change-summary") ? (
+                            <p
+                              className="text-destructive text-xs"
+                              id="change-summary-error"
+                            >
+                              {fieldErrors.get("change-summary")}
                             </p>
                           ) : null}
                         </FieldContent>
@@ -865,14 +916,6 @@ function ProductEditor({
                         </p>
                       ) : null}
                       <div className="flex flex-wrap gap-2">
-                        <Button type="submit">Save draft</Button>
-                        <Button
-                          onClick={() => review(values)}
-                          type="button"
-                          variant="outline"
-                        >
-                          Validate and preview
-                        </Button>
                         {isBulletin(kind) ? (
                           <>
                             <Button
@@ -900,9 +943,13 @@ function ProductEditor({
                           <Button
                             onClick={() => {
                               if (!changeSummary.trim()) {
-                                setMessage(
-                                  "Explain the withdrawal in the revision note."
-                                );
+                                fail([
+                                  {
+                                    fieldId: "change-summary",
+                                    message:
+                                      "Explain the withdrawal in the revision note.",
+                                  },
+                                ]);
                                 return;
                               }
                               setWithdrawOpen(true);
@@ -935,13 +982,6 @@ function ProductEditor({
                         I have checked the content, affected areas and validity
                         times and authorize publication.
                       </label>
-                      <Button
-                        disabled={!reviewed || pending}
-                        onClick={() => submit(preview, "publish")}
-                        type="button"
-                      >
-                        Publish to GMS
-                      </Button>
                     </section>
                   ) : null}
                   {revision ? (
@@ -957,6 +997,56 @@ function ProductEditor({
                       pending={pending}
                     />
                   ) : null}
+                  <ProductActionBar
+                    onShowProblems={() => setSummaryFocus((count) => count + 1)}
+                    problemCount={problems.length}
+                    status={
+                      <>
+                        <Badge variant="outline">
+                          {revision ? `Revision ${revision}` : "New draft"}
+                        </Badge>
+                        {publishedRevision ? (
+                          <Badge variant="light-success">
+                            Published r{publishedRevision}
+                          </Badge>
+                        ) : (
+                          <Badge variant="outline">Not published</Badge>
+                        )}
+                        {dirty ? (
+                          <Badge variant="light-warning">Unsaved changes</Badge>
+                        ) : null}
+                      </>
+                    }
+                  >
+                    <Button
+                      disabled={pending || disabled}
+                      onClick={() => submit(values, "draft")}
+                      type="button"
+                    >
+                      Save draft
+                    </Button>
+                    <Button
+                      disabled={pending || disabled}
+                      onClick={() => review(values)}
+                      type="button"
+                      variant="outline"
+                    >
+                      Validate and preview
+                    </Button>
+                    <Button
+                      // A current, reviewed preview already passed validation;
+                      // a later failed save (say, a network error) must not lock Publish.
+                      disabled={
+                        !(previewCurrent && reviewed) || pending || disabled
+                      }
+                      onClick={() => {
+                        if (preview) submit(preview, "publish");
+                      }}
+                      type="button"
+                    >
+                      Publish to GMS
+                    </Button>
+                  </ProductActionBar>
                 </Card>
               }
               preview={
@@ -1008,11 +1098,14 @@ function matrixRefusal(error: unknown): string | null {
 }
 
 export function ProductDesk({
+  description,
   kinds,
   title,
   initialKind,
   sourceEditionIds = [],
 }: {
+  /** Help text for this desk, under the page title. */
+  description: string;
   kinds: [ProductKind, ...ProductKind[]];
   title: string;
   initialKind?: ProductKind;
@@ -1063,10 +1156,7 @@ export function ProductDesk({
   }
   return (
     <div className="space-y-4">
-      <PageHeader
-        description="Save a draft, check the preview, then publish. Revisions preserve the currently published product until you issue the update."
-        title={title}
-      />
+      <PageHeader description={description} title={title} />
       <ProductDiscardDialog
         onConfirm={() => {
           discard?.();
