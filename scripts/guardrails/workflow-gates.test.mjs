@@ -210,7 +210,12 @@ test("deployment promotes verified dev images without rebuilding or cancellation
   for (const workflow of ["pipeline-staging.yml", "pipeline-prod.yml"]) {
     const source = readWorkflow(workflow);
     const deploy = source.split("\n  deploy:\n")[1].split(NEXT_JOB)[0];
-    assert.ok(deploy.includes("needs: [release-scope, promote]"), workflow);
+    // Staging also waits for the rescan of the promoted digests (issue #1142).
+    const needs =
+      workflow === "pipeline-staging.yml"
+        ? "needs: [release-scope, promote, scan]"
+        : "needs: [release-scope, promote]";
+    assert.ok(deploy.includes(needs), workflow);
     assert.ok(
       deploy.includes("image_digests:") &&
         deploy.includes("needs.promote.outputs.digests"),
