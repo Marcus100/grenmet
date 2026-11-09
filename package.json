@@ -51,6 +51,7 @@
     "agents:report": "node scripts/agents/run-report.mjs",
     "agents:sessions": "node scripts/agents/sessions.mjs",
     "agents:flow": "node scripts/agents/flow.mjs",
+    "agents:delivery": "node scripts/agents/delivery.mjs",
     "agents:score": "node scripts/agents/score-sessions.mjs",
     "agents:improve": "node scripts/agents/improve.mjs",
     "agents:routing": "node scripts/agents/routing.mjs",

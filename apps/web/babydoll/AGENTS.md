@@ -39,6 +39,8 @@ Hosted on Vercel at `babydoll.barrels.gd` (production only, no staging), like El
   service tabs, portfolio filter and the booking forms (the booking flow lives in
   `@barrelsgd/bookings-web`; this app wires it up in `app/book` and `app/booking`). Every service panel stays in the HTML
   (inactive panels are `hidden`), so prices are indexable.
+- Light theme only (client decision): no dark palette, no `prefers-color-scheme`,
+  no theme toggle. `src/theme.test.ts` fails if one is added back.
 - Phone first: the fixed `BookBar` shows under 820px; keep the page's bottom
   padding (`--bar-h`) when changing it.
 - Tests: `pnpm vitest run` from this directory.
