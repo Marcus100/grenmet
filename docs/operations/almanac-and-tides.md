@@ -1,6 +1,10 @@
 # Almanac and predicted tides: operations
 
-Owner: Barrels platform. Domain notes: `apps/api/fastapi/src/almanac/AGENTS.md`.
+**Status:** Active reference  
+**Owner:** Barrels platform  
+**Last updated:** 2026-11-09
+
+Domain notes: `apps/api/fastapi/src/almanac/AGENTS.md`.
 Public routes: `docs/api/contracts.md` (almanac section).
 
 ## What is stored
@@ -25,7 +29,7 @@ and exports a CSV in the same columns as the current file.
 
    ```bash
    cd apps/api/fastapi
-   uv run --frozen --package fast-back python scripts/import_tide_table.py \
+   uv run --frozen --package fast-back python -m scripts.import_tide_table \
        /path/to/pric-tides-2027-01-01-to-2027-03-31.csv --source-version v2.0
    ```
 
@@ -42,7 +46,7 @@ and exports a CSV in the same columns as the current file.
 
 ```bash
 cd apps/api/fastapi
-uv run --frozen --package fast-back python scripts/build_almanac_year.py --year 2027
+uv run --frozen --package fast-back python -m scripts.build_almanac_year --year 2027
 ```
 
 It prints the target host and database first and, like the importer, needs

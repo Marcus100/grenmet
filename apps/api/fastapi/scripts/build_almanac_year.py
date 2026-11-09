@@ -3,8 +3,8 @@
 Run it once a year (before 1 January) and after changing a location. Re-running is
 safe: rows are upserted and the year's phases are replaced.
 
-    uv run --frozen --package fast-back python scripts/build_almanac_year.py --year 2027
-    uv run --frozen --package fast-back python scripts/build_almanac_year.py --year 2027 --location mbia
+    uv run --frozen --package fast-back python -m scripts.build_almanac_year --year 2027
+    uv run --frozen --package fast-back python -m scripts.build_almanac_year --year 2027 --location mbia
 
 Writes to the database that ``DATABASE_URL``/``POSTGRES_*`` point at. Nothing is
 fetched from the network: the values are computed locally with Astral.
@@ -16,16 +16,14 @@ import sys
 from datetime import date
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
-
-from src.almanac import service  # noqa: E402
-from src.almanac.locations import LOCATIONS  # noqa: E402
-from src.almanac.target import (  # noqa: E402
+from src.almanac import service
+from src.almanac.locations import LOCATIONS
+from src.almanac.target import (
     TargetNotConfirmedError,
     describe_target,
     require_confirmed,
 )
-from src.database import async_session_factory  # noqa: E402
+from src.database import async_session_factory
 
 
 def _parser() -> argparse.ArgumentParser:

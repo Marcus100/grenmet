@@ -4,7 +4,7 @@ The file is the owner's Prickly Bay tide export. It is read from the path you gi
 and is never copied into the repository. Re-running the same file changes nothing;
 a corrected file replaces the heights and times it shares with the database.
 
-    uv run --frozen --package fast-back python scripts/import_tide_table.py \\
+    uv run --frozen --package fast-back python -m scripts.import_tide_table \\
         /path/to/pric-tides-2026-10-01-to-2026-12-31.csv --source-version v1.4
 
 Heights are stored in metres relative to provisional MLLW. The data is predicted and
@@ -16,21 +16,19 @@ import asyncio
 import sys
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
-
-from src.almanac import service  # noqa: E402
-from src.almanac.target import (  # noqa: E402
+from src.almanac import service
+from src.almanac.target import (
     TargetNotConfirmedError,
     describe_target,
     require_confirmed,
 )
-from src.almanac.tides import (  # noqa: E402
+from src.almanac.tides import (
     TIDE_STATIONS,
     TideRow,
     TideTableError,
     parse_tide_csv,
 )
-from src.database import async_session_factory  # noqa: E402
+from src.database import async_session_factory
 
 
 def _parser() -> argparse.ArgumentParser:
