@@ -296,7 +296,7 @@ export async function ForecastDesk() {
     if (!only) return null;
     return (
       <HomeSection
-        kicker={SECTOR_CARD_WORDS.kicker}
+        kicker={SECTOR_CARD_WORDS.subtitle}
         title={SECTOR_CARD_WORDS.title}
       >
         <ul aria-label={SECTOR_CARD_WORDS.title} className={ROW}>
