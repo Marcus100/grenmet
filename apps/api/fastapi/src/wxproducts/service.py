@@ -10,7 +10,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.auth.models import User
 
-from . import guidance, tropical_systems, validation
+from . import guidance, transitions, tropical_systems, validation
 from .exceptions import ProductValidationError, RevisionConflict
 from .models import (
     AuthoredProduct,
@@ -298,8 +298,11 @@ async def write_product(
             previous and previous.kind != body.kind
         ):
             raise RevisionConflict()
-        if body.action == "withdraw" and (previous is None or not previous.published):
-            raise RevisionConflict("This product is not published.")
+        transitions.guard_product(
+            transitions.product_state(previous),
+            body.action,
+            refusal="This product is not published.",
+        )
         revision = body.expectedRevision + 1
         now = datetime.now(UTC)
         values = values_as_dict(body.values)

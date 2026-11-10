@@ -33,12 +33,24 @@ a transition. The refusal messages stay with the callers, as they were before th
 table existed. Named groups below replace the tuples the service used to repeat.
 """
 
+from enum import Enum
 from typing import Literal, NamedTuple
 
 from .exceptions import PaymentsConflictError
 from .models import Attempt, AttemptStatus, Intent, IntentStatus, Refund, RefundStatus
 
 IntentAction = Literal["checkout", "capture", "record_manual", "fail", "cancel"]
+
+
+def stored_state[E: Enum](enum_type: type[E], stored: str) -> E:
+    """The member a stored status names. An unknown value is a 409 conflict, not a
+    500: the row needs a person to look at it, and the request is not at fault."""
+    try:
+        return enum_type(stored)
+    except ValueError:
+        raise PaymentsConflictError(
+            f"The stored {enum_type.__name__} is not recognised; this payment needs review"
+        ) from None
 
 
 class IntentTransition(NamedTuple):
@@ -85,7 +97,7 @@ def move_intent(
     (409) with ``refusal`` when the table does not allow the action from the
     current status; the callers check ``can_intent`` first when a refusal would be
     a replay to ignore rather than a conflict."""
-    state = IntentStatus(intent.status)
+    state = stored_state(IntentStatus, intent.status)
     if not can_intent(state, action):
         raise PaymentsConflictError(
             refusal or f"A payment cannot {action} from status {state.value}"
@@ -106,7 +118,7 @@ def can_attempt(state: AttemptStatus, target: AttemptStatus) -> bool:
 
 
 def move_attempt(attempt: Attempt, target: AttemptStatus) -> None:
-    state = AttemptStatus(attempt.status)
+    state = stored_state(AttemptStatus, attempt.status)
     if not can_attempt(state, target):
         raise PaymentsConflictError(
             f"An attempt cannot move from {state.value} to {target.value}"
@@ -151,7 +163,7 @@ def refund_refused(current: RefundStatus, target: RefundStatus) -> bool:
 
 
 def move_refund(refund: Refund, target: RefundStatus) -> None:
-    current = RefundStatus(refund.status)
+    current = stored_state(RefundStatus, refund.status)
     if not can_refund(current, target):
         raise PaymentsConflictError(
             f"A refund cannot move from {current.value} to {target.value}"
