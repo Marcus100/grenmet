@@ -25,6 +25,7 @@ from src.audit.models import AuditEntry
 from src.auth.browser import get_browser_or_token_user
 from src.auth.models import User
 from src.eregister import (
+    bufr,
     derive,
     encode,
     entries,
@@ -798,17 +799,17 @@ async def test_a_broken_bufr_blocks_email_and_wis2(
     send_client: tuple[httpx.AsyncClient, User],
 ) -> None:
     client, _ = send_client
-    observation = await save(client)
+    observation = await save(client, {**FULL_ROW, "present_wx": "51"})
     accepted = await client.post(qc_url(observation, "accept"))
     assert accepted.status_code == 200, accepted.text
-    # What a mismatch stores: the air temperature BUFR differs by five kelvin.
+    # A real message whose values differ from the observation (a decoded mismatch, not
+    # an encoding failure): it stays blocked until the observation is corrected.
     broken = {
-        "template": "Surface-RA-IV-100",
-        "base64": None,
-        "checks": [],
+        **accepted.json()["bufr"],
         "valid": False,
         "errors": ["air_temperature_k: observation 298.55, BUFR 303.55"],
     }
+    assert broken["base64"] is not None
     await register_exec(
         "UPDATE register_observations SET bufr = CAST(:b AS jsonb) WHERE id = :i",
         b=json.dumps(broken),
@@ -820,6 +821,96 @@ async def test_a_broken_bufr_blocks_email_and_wis2(
     publish = await client.post(f"/api/v1/eregister/observations/{observation}/publish")
     assert publish.status_code == 409, publish.text
     assert "BUFR check failed" in publish.text
+
+
+@pytest.mark.usefixtures("incoming", "recipients")
+async def test_an_iwxxm_encoder_crash_still_accepts_and_is_recorded(
+    send_client: tuple[httpx.AsyncClient, User],
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    client, _ = send_client
+
+    def crash(**_kwargs: object) -> dict[str, object]:
+        raise KeyError("forced IWXXM crash")
+
+    monkeypatch.setattr("src.eregister.iwxxm.record_for_row", crash)
+    observation = await save(client, {**FULL_ROW, "present_wx": "51"})
+    accepted = await client.post(qc_url(observation, "accept"))
+    assert accepted.status_code == 200, accepted.text
+    assert accepted.json()["state"] == "accepted"
+    assert accepted.json()["iwxxm"]["valid"] is False
+    assert accepted.json()["iwxxm"]["errors"] == [
+        "encoder failed unexpectedly; see the server log"
+    ]
+
+
+@pytest.mark.usefixtures("incoming", "recipients")
+async def test_a_bufr_encoder_crash_still_accepts_and_blocks_only_sends(
+    send_client: tuple[httpx.AsyncClient, User],
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    client, _ = send_client
+
+    def crash(**_kwargs: object) -> dict[str, object]:
+        raise RuntimeError("forced BUFR crash")
+
+    monkeypatch.setattr("src.eregister.bufr.record_for_row", crash)
+    observation = await save(client, {**FULL_ROW, "present_wx": "51"})
+    accepted = await client.post(qc_url(observation, "accept"))
+    assert accepted.status_code == 200, accepted.text
+    assert accepted.json()["state"] == "accepted"
+    assert accepted.json()["bufr"]["valid"] is False
+    assert accepted.json()["bufr"]["base64"] is None
+
+
+@pytest.mark.usefixtures("incoming", "recipients")
+async def test_a_station_lookup_crash_still_accepts_and_stores_both_as_errors(
+    send_client: tuple[httpx.AsyncClient, User],
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    client, _ = send_client
+
+    async def crash(*_args: object, **_kwargs: object) -> None:
+        raise RuntimeError("forced settings lookup crash")
+
+    # Saving also reads the settings; the crash is set only for the acceptance.
+    observation = await save(client, {**FULL_ROW, "present_wx": "51"})
+    monkeypatch.setattr("src.eregister.stations.pressure_for", crash)
+    accepted = await client.post(qc_url(observation, "accept"))
+    assert accepted.status_code == 200, accepted.text
+    assert accepted.json()["iwxxm"]["valid"] is False
+    assert accepted.json()["bufr"]["valid"] is False
+
+
+@pytest.mark.usefixtures("incoming", "recipients")
+async def test_a_failed_encoding_is_encoded_again_at_send(
+    send_client: tuple[httpx.AsyncClient, User],
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    client, _ = send_client
+
+    original = bufr.record_for_row
+
+    def crash(**_kwargs: object) -> dict[str, object]:
+        raise RuntimeError("forced BUFR crash")
+
+    monkeypatch.setattr("src.eregister.bufr.record_for_row", crash)
+    observation = await save(client, {**FULL_ROW, "present_wx": "51"})
+    accepted = await client.post(qc_url(observation, "accept"))
+    assert accepted.status_code == 200, accepted.text
+    # Restore only the encoder: the recipients fixture's patch must stay in place.
+    monkeypatch.setattr("src.eregister.bufr.record_for_row", original)
+    # The stored record has no message: the send encodes it again (a transient failure
+    # does not block) and stores the new record.
+    email = await client.post(f"/api/v1/eregister/observations/{observation}/email")
+    assert email.status_code == 202, email.text
+    register = await anext(app.dependency_overrides[get_session]())
+    stored = await register.scalar(
+        text("SELECT bufr FROM register_observations WHERE id = :i"),
+        {"i": observation},
+    )
+    assert stored["valid"] is True
+    assert stored["base64"] is not None
 
 
 @pytest.mark.usefixtures("incoming", "recipients")

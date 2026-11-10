@@ -37,11 +37,15 @@ EXPECTED_SUBSETS = 1
 # precipitation in kg m-2 (mm), humidity and cloud cover in percent.
 PRESSURE_TOLERANCE_PA = 1.0
 TEMPERATURE_TOLERANCE_K = 0.05
-WIND_SPEED_TOLERANCE_MS = 0.05
+WIND_SPEED_TOLERANCE_MS = 0.051  # half of the 0.1 m/s step plus float slack
 DIRECTION_TOLERANCE_DEG = 1.0
 VISIBILITY_TOLERANCE_M = 10.0
 PRECIPITATION_TOLERANCE_KG_M2 = 0.05
 PERCENT_TOLERANCE = 1.0
+
+# The CSV "precipitation" column is template descriptor #3# (the 6RRRtR group: amount for
+# the period), not the 1-hour (#1#) or 6-hour (#2#) totals.
+PRECIPITATION_KEY = "#3#totalPrecipitationOrTotalWaterEquivalent"
 
 # ecCodes keys read back from the message (decoded with unpack).
 IDENTITY_KEYS = (
@@ -60,7 +64,7 @@ VALUE_KEYS = (
     "windDirection",
     "windSpeed",
     "horizontalVisibility",
-    "totalPrecipitationOrTotalWaterEquivalent",
+    PRECIPITATION_KEY,
     "cloudCoverTotal",
     "presentWeather",
 )
@@ -282,7 +286,7 @@ def compare(
             ),
             _numeric(
                 "precipitation_kg_m2",
-                "totalPrecipitationOrTotalWaterEquivalent",
+                PRECIPITATION_KEY,
                 decoded.precipitation_kg_m2,
                 values,
                 PRECIPITATION_TOLERANCE_KG_M2,

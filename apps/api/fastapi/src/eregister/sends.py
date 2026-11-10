@@ -12,8 +12,8 @@ from typing import Any, cast
 from uuid import UUID
 
 from fastapi import HTTPException
-from fastapi.concurrency import run_in_threadpool
-from sqlalchemy import func, select, text
+from sqlalchemy import bindparam, func, select, text
+from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.auth.models import User
@@ -24,7 +24,7 @@ from src.notifications.config import notification_settings
 from src.notifications.models import OutboundEmail, OutboundEmailStatus
 from src.utils.datetime import utc_now
 
-from . import bufr, encode, entries, gate, rules, stations, transitions
+from . import bufr, encode, encodings, entries, gate, rules, stations, transitions
 from .config import eregister_settings, wis2box_settings
 from .models import (
     STATUS_FAILED,
@@ -111,22 +111,55 @@ async def _require_bufr(session: AsyncSession, data: dict[str, Any]) -> None:
     No reviewer override exists yet, so a failed check always blocks the send.
     """
     stored = data.get("bufr")
-    record: dict[str, Any]
-    if isinstance(stored, dict):
-        record = stored
-    else:
-        station = await stations.pressure_for(session, str(data["station_id"]))
-        record = await run_in_threadpool(
-            bufr.record_for_row,
-            body=data["body"] or {},
-            station=station,
-            observed_at=data["observed_at"],
-        )
-    if record.get("valid") is not True:
-        reasons = record.get("errors") or ["the BUFR check did not pass"]
+    record: dict[str, Any] = stored if isinstance(stored, dict) else {}
+    if record.get("base64") is None:
+        # Never encoded, or the encoder failed: encode again, so a transient failure
+        # does not block for ever. The new record is stored either way.
+        record = await _encode_bufr_now(session, data)
+        await _store_bufr(session, data["id"], record)
+    if record.get("valid") is True:
+        return
+    reasons = record.get("errors") or ["the BUFR check did not pass"]
+    if record.get("base64") is None:
         raise AppException(
-            f"BUFR check failed, so the observation is not sent: {reasons[0]}", 409
+            f"BUFR could not be encoded, so the observation is not sent: {reasons[0]}",
+            409,
         )
+    # A message exists and its values differ from the observation: blocked until corrected.
+    raise AppException(
+        f"BUFR check failed, so the observation is not sent: {reasons[0]}", 409
+    )
+
+
+async def _encode_bufr_now(
+    session: AsyncSession, data: dict[str, Any]
+) -> dict[str, Any]:
+    failed = bufr.failed_record(encodings.ENCODER_FAILED)
+    try:
+        station = await stations.pressure_for(session, str(data["station_id"]))
+    except Exception:
+        logger.exception("eRegister pressure settings lookup failed while sending")
+        return failed
+    return await encodings.run_encoder(
+        "BUFR",
+        bufr.record_for_row,
+        failed,
+        body=data["body"] or {},
+        station=station,
+        observed_at=data["observed_at"],
+    )
+
+
+_STORE_BUFR = text(
+    "UPDATE register_observations SET bufr = CAST(:bufr AS jsonb) WHERE id = :id"
+).bindparams(bindparam("bufr", type_=JSONB(none_as_null=True)))
+
+
+async def _store_bufr(
+    session: AsyncSession, observation_id: Any, record: dict[str, Any]
+) -> None:
+    await session.execute(_STORE_BUFR, {"bufr": record, "id": str(observation_id)})
+    await session.commit()
 
 
 async def _claim(
