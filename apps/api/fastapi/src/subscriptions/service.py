@@ -25,6 +25,7 @@ from src.organisations import sites
 from src.utils.datetime import utc_now
 from src.utils.email_hash import hash_email
 
+from . import transitions
 from .config import subscriptions_settings
 from .constants import (
     CONFIRM_PURPOSE,
@@ -206,7 +207,7 @@ async def subscribe(
     if row.status == SubscriptionStatus.UNSUBSCRIBED.value:
         # A fresh request is fresh consent: start the double opt-in again.
         row.email = email  # plaintext was dropped on unsubscribe; needed to send
-        row.status = SubscriptionStatus.PENDING.value
+        transitions.move_subscription(row, "resubscribe")
         row.requested_at = now
         row.confirmed_at = None
         row.last_confirmation_sent_at = None
@@ -277,7 +278,7 @@ async def confirm(*, session: AsyncSession, token: str) -> str:
         return await _status_url(session, row.list_key if row else None, "invalid")
     if row.status == SubscriptionStatus.PENDING.value:
         now = utc_now()
-        row.status = SubscriptionStatus.CONFIRMED.value
+        transitions.move_subscription(row, "confirm")
         row.confirmed_at = now
         row.updated_at = now
         await session.commit()
@@ -288,7 +289,7 @@ def _mark_unsubscribed(row: ListSubscription, now: datetime) -> None:
     """Unsubscribe a row and drop its plaintext address, keeping only the hash."""
     if row.email_hash is None and row.email is not None:
         row.email_hash = hash_email(row.email)
-    row.status = SubscriptionStatus.UNSUBSCRIBED.value
+    transitions.move_subscription(row, "unsubscribe")
     row.unsubscribed_at = now
     row.updated_at = now
     row.email = None
