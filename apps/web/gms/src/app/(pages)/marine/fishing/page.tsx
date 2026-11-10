@@ -28,8 +28,8 @@ export default function FishingPage() {
           ]}
         />
       </PageSection>
-      <PageSection heading="Latest marine bulletin">
-        <PublishedProducts kinds={["marine"]} />
+      <PageSection heading="Latest marine forecast">
+        <PublishedProducts kinds={["marine-forecast"]} />
       </PageSection>
       <PageSection heading="Before you leave">
         <Checklist
