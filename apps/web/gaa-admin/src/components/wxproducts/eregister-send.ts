@@ -59,11 +59,16 @@ export function describeSends(sends: ObservationSend[]): string {
   return parts.join(" · ");
 }
 
+/**
+ * Why the latest send to a target failed. Only each target's latest send counts:
+ * an email that failed before a later email went through is not a failure now.
+ */
 export function failedReason(sends: ObservationSend[]): string | null {
-  const failed = sends.find(
-    (send) => send.status === "failed" && send.last_error
-  );
-  return failed?.last_error ?? null;
+  for (const target of ["email", "wis2"] as const) {
+    const send = latest(sends, target);
+    if (send?.status === "failed" && send.last_error) return send.last_error;
+  }
+  return null;
 }
 
 function errorDetail(error: unknown, status: number | undefined): string {
@@ -82,7 +87,10 @@ function errorDetail(error: unknown, status: number | undefined): string {
  */
 export function useObservationSends(
   ensureSaved: () => Promise<string | null>
-): SendController & { observationId: string | null } {
+): SendController & {
+  observationId: string | null;
+  track: (id: string) => Promise<ObservationSend[] | null>;
+} {
   const [observationId, setObservationId] = useState<string | null>(null);
   const [history, setHistory] = useState<ObservationSend[]>([]);
   const [confirming, setConfirming] = useState<SendTarget | null>(null);
@@ -96,7 +104,18 @@ export function useObservationSends(
       throwOnError: false,
     });
     if (result.data) setHistory(result.data.sends);
+    return result.data?.sends ?? null;
   }, []);
+
+  /** Follow an observation's sends (after it was approved); null if unreadable. */
+  const track = useCallback(
+    async (id: string) => {
+      setObservationId(id);
+      setHistory([]);
+      return await refresh(id);
+    },
+    [refresh]
+  );
 
   const hasQueued = history.some((send) => send.status === "queued");
   useEffect(() => {
@@ -128,7 +147,9 @@ export function useObservationSends(
         const id = await ensureSaved();
         if (!id) {
           setConfirming(null);
-          setError("Fix the errors above, then save before sending.");
+          setError(
+            "Fix the errors above, or check the approval above, then try again. Nothing was sent: the observation is not saved."
+          );
           return;
         }
         if (id !== observationId) setHistory([]);
@@ -175,5 +196,6 @@ export function useObservationSends(
     pending,
     repeat,
     request,
+    track,
   };
 }
