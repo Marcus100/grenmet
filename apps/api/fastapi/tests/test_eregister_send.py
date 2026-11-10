@@ -25,6 +25,7 @@ from src.audit.models import AuditEntry
 from src.auth.browser import get_browser_or_token_user
 from src.auth.models import User
 from src.eregister import (
+    bufr,
     derive,
     encode,
     entries,
@@ -42,6 +43,7 @@ from src.eregister.schemas import EregisterValidationError, SynopWorkbook
 from src.main import app
 from src.notifications.models import OutboundEmail
 from tests.factories import assign_role, make_role_with_permission, make_user
+from tests.iwxxm_support import require_schemas
 
 ROOT = Path(__file__).resolve().parents[1]
 OBSERVED = datetime(2026, 3, 30, 12, 0, tzinfo=UTC)
@@ -745,6 +747,180 @@ async def test_observer_accepts_alone_and_it_goes_out_at_once(
     ).all()
     assert [(e.action, e.actor_user_id) for e in entries] == [("accept", observer.id)]
     assert (await client.post(qc_url(observation, "accept"))).status_code == 409
+
+
+@pytest.mark.usefixtures("incoming", "recipients")
+async def test_accept_stores_the_iwxxm_metar_on_the_row(
+    send_client: tuple[httpx.AsyncClient, User],
+) -> None:
+    client, _ = send_client
+    observation = await save(client, {**FULL_ROW, "present_wx": "51"})
+    accepted = await client.post(qc_url(observation, "accept"))
+    assert accepted.status_code == 200, accepted.text
+    require_schemas()
+    stored = accepted.json()["iwxxm"]
+    assert stored["version"] == "2025-2"
+    assert stored["schematron"] == "not_run"
+    assert "<iwxxm:METAR" in stored["xml"]
+    assert stored["valid"] is True, stored["errors"]
+
+
+@pytest.mark.usefixtures("incoming", "recipients")
+async def test_accept_keeps_an_iwxxm_gap_as_an_error_and_still_accepts(
+    send_client: tuple[httpx.AsyncClient, User],
+) -> None:
+    client, _ = send_client
+    # FULL_ROW reports ww 06 (dust), which the METAR encoder does not map yet.
+    observation = await save(client)
+    accepted = await client.post(qc_url(observation, "accept"))
+    assert accepted.status_code == 200, accepted.text
+    assert accepted.json()["state"] == "accepted"
+    stored = accepted.json()["iwxxm"]
+    assert stored["valid"] is False
+    assert any("ww 06" in error for error in stored["errors"]), stored["errors"]
+
+
+@pytest.mark.usefixtures("incoming", "recipients")
+async def test_accept_stores_the_bufr_record_with_its_checks(
+    send_client: tuple[httpx.AsyncClient, User],
+) -> None:
+    client, _ = send_client
+    observation = await save(client, {**FULL_ROW, "present_wx": "51"})
+    accepted = await client.post(qc_url(observation, "accept"))
+    assert accepted.status_code == 200, accepted.text
+    stored = accepted.json()["bufr"]
+    assert stored["template"] == "Surface-RA-IV-100"
+    assert stored["base64"] is not None
+    assert stored["checks"], stored
+
+
+@pytest.mark.usefixtures("incoming", "recipients")
+async def test_a_broken_bufr_blocks_email_and_wis2(
+    send_client: tuple[httpx.AsyncClient, User],
+) -> None:
+    client, _ = send_client
+    observation = await save(client, {**FULL_ROW, "present_wx": "51"})
+    accepted = await client.post(qc_url(observation, "accept"))
+    assert accepted.status_code == 200, accepted.text
+    # A real message whose values differ from the observation (a decoded mismatch, not
+    # an encoding failure): it stays blocked until the observation is corrected.
+    broken = {
+        **accepted.json()["bufr"],
+        "valid": False,
+        "errors": ["air_temperature_k: observation 298.55, BUFR 303.55"],
+    }
+    assert broken["base64"] is not None
+    await register_exec(
+        "UPDATE register_observations SET bufr = CAST(:b AS jsonb) WHERE id = :i",
+        b=json.dumps(broken),
+        i=observation,
+    )
+    email = await client.post(f"/api/v1/eregister/observations/{observation}/email")
+    assert email.status_code == 409, email.text
+    assert "BUFR check failed" in email.text
+    publish = await client.post(f"/api/v1/eregister/observations/{observation}/publish")
+    assert publish.status_code == 409, publish.text
+    assert "BUFR check failed" in publish.text
+
+
+@pytest.mark.usefixtures("incoming", "recipients")
+async def test_an_iwxxm_encoder_crash_still_accepts_and_is_recorded(
+    send_client: tuple[httpx.AsyncClient, User],
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    client, _ = send_client
+
+    def crash(**_kwargs: object) -> dict[str, object]:
+        raise KeyError("forced IWXXM crash")
+
+    monkeypatch.setattr("src.eregister.iwxxm.record_for_row", crash)
+    observation = await save(client, {**FULL_ROW, "present_wx": "51"})
+    accepted = await client.post(qc_url(observation, "accept"))
+    assert accepted.status_code == 200, accepted.text
+    assert accepted.json()["state"] == "accepted"
+    assert accepted.json()["iwxxm"]["valid"] is False
+    assert accepted.json()["iwxxm"]["errors"] == [
+        "encoder failed unexpectedly; see the server log"
+    ]
+
+
+@pytest.mark.usefixtures("incoming", "recipients")
+async def test_a_bufr_encoder_crash_still_accepts_and_blocks_only_sends(
+    send_client: tuple[httpx.AsyncClient, User],
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    client, _ = send_client
+
+    def crash(**_kwargs: object) -> dict[str, object]:
+        raise RuntimeError("forced BUFR crash")
+
+    monkeypatch.setattr("src.eregister.bufr.record_for_row", crash)
+    observation = await save(client, {**FULL_ROW, "present_wx": "51"})
+    accepted = await client.post(qc_url(observation, "accept"))
+    assert accepted.status_code == 200, accepted.text
+    assert accepted.json()["state"] == "accepted"
+    assert accepted.json()["bufr"]["valid"] is False
+    assert accepted.json()["bufr"]["base64"] is None
+
+
+@pytest.mark.usefixtures("incoming", "recipients")
+async def test_a_station_lookup_crash_still_accepts_and_stores_both_as_errors(
+    send_client: tuple[httpx.AsyncClient, User],
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    client, _ = send_client
+
+    async def crash(*_args: object, **_kwargs: object) -> None:
+        raise RuntimeError("forced settings lookup crash")
+
+    # Saving also reads the settings; the crash is set only for the acceptance.
+    observation = await save(client, {**FULL_ROW, "present_wx": "51"})
+    monkeypatch.setattr("src.eregister.stations.pressure_for", crash)
+    accepted = await client.post(qc_url(observation, "accept"))
+    assert accepted.status_code == 200, accepted.text
+    assert accepted.json()["iwxxm"]["valid"] is False
+    assert accepted.json()["bufr"]["valid"] is False
+
+
+@pytest.mark.usefixtures("incoming", "recipients")
+async def test_a_failed_encoding_is_encoded_again_at_send(
+    send_client: tuple[httpx.AsyncClient, User],
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    client, _ = send_client
+
+    original = bufr.record_for_row
+
+    def crash(**_kwargs: object) -> dict[str, object]:
+        raise RuntimeError("forced BUFR crash")
+
+    monkeypatch.setattr("src.eregister.bufr.record_for_row", crash)
+    observation = await save(client, {**FULL_ROW, "present_wx": "51"})
+    accepted = await client.post(qc_url(observation, "accept"))
+    assert accepted.status_code == 200, accepted.text
+    # Restore only the encoder: the recipients fixture's patch must stay in place.
+    monkeypatch.setattr("src.eregister.bufr.record_for_row", original)
+    # The stored record has no message: the send encodes it again (a transient failure
+    # does not block) and stores the new record.
+    email = await client.post(f"/api/v1/eregister/observations/{observation}/email")
+    assert email.status_code == 202, email.text
+    register = await anext(app.dependency_overrides[get_session]())
+    stored = await register.scalar(
+        text("SELECT bufr FROM register_observations WHERE id = :i"),
+        {"i": observation},
+    )
+    assert stored["valid"] is True
+    assert stored["base64"] is not None
+
+
+@pytest.mark.usefixtures("incoming", "recipients")
+async def test_a_valid_bufr_allows_email_when_no_record_was_stored(
+    send_client: tuple[httpx.AsyncClient, User],
+) -> None:
+    client, _ = send_client
+    observation = await save(client, {**FULL_ROW, "present_wx": "51"}, accepted=True)
+    response = await client.post(f"/api/v1/eregister/observations/{observation}/email")
+    assert response.status_code == 202, response.text
 
 
 async def test_other_register_staff_may_accept_too(

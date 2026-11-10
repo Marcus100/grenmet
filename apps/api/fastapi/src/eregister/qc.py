@@ -17,12 +17,14 @@ trail in the application database, so the two cannot share a transaction. The
 state change commits first; the audit entry follows in its own commit.
 """
 
+import logging
 from datetime import datetime
 from typing import Any, Literal, NamedTuple
 from uuid import UUID
 
 from fastapi import HTTPException
-from sqlalchemy import func, select, text
+from sqlalchemy import bindparam, func, select, text
+from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -32,10 +34,12 @@ from src.eregister.exceptions import HourHeldError, ObservationNotFoundError
 from src.exceptions import AppException, AppValidationError, AuthorizationError
 from src.utils.datetime import utc_now
 
-from . import entries, gate, sends, transitions
+from . import bufr, encodings, entries, gate, iwxxm, metar, sends, stations, transitions
 from .models import STATUS_QUEUED, STATUS_SENT, TARGET_WIS2, ERegisterSend
 from .schemas import RegisterObservationRead
 from .transitions import RegisterState
+
+logger = logging.getLogger(__name__)
 
 # The states and the table of allowed moves live in transitions.py (a leaf module,
 # so entries and sends can use the same table without importing this one).
@@ -101,6 +105,66 @@ async def _audit(
     await app_session.commit()
 
 
+_STORE_ENCODINGS = text(
+    """
+    UPDATE register_observations
+    SET iwxxm = CAST(:iwxxm AS jsonb), bufr = CAST(:bufr AS jsonb)
+    WHERE id = :id
+    RETURNING *
+    """
+).bindparams(
+    bindparam("iwxxm", type_=JSONB(none_as_null=True)),
+    bindparam("bufr", type_=JSONB(none_as_null=True)),
+)
+
+
+async def _store_encodings(
+    register: AsyncSession, row: dict[str, Any]
+) -> dict[str, Any]:
+    """Build the IWXXM METAR and the BUFR of the accepted SYNOP and store both on the row.
+
+    Same register transaction as the acceptance, so a row is never accepted without its
+    records. The encoders run in a thread (the IWXXM schema loads once per process).
+    An encoder failure or a gap is stored in the record's ``errors``; it never blocks
+    acceptance. Sending is refused by ``sends.load_sendable`` while the BUFR is not valid.
+    Nothing is sent here (owner rule: report, never send).
+    """
+    body = row["body"] or {}
+    try:
+        station = await stations.pressure_for(register, str(row["station_id"]))
+    except Exception:
+        # Without the station's amounts neither record can be trusted: store both as errors.
+        logger.exception(
+            "eRegister pressure settings lookup failed; encodings stored as errors"
+        )
+        iwxxm_record = iwxxm.failed_record(encodings.ENCODER_FAILED)
+        bufr_record = bufr.failed_record(encodings.ENCODER_FAILED)
+    else:
+        iwxxm_record = await encodings.run_encoder(
+            "IWXXM",
+            iwxxm.record_for_row,
+            iwxxm.failed_record(encodings.ENCODER_FAILED),
+            body=body,
+            station=station,
+            observed_at=row["observed_at"],
+            aerodrome_icao=str(row["aerodrome_icao"] or metar.ICAO),
+            correction=row.get("supersedes_id") is not None,
+        )
+        bufr_record = await encodings.run_encoder(
+            "BUFR",
+            bufr.record_for_row,
+            bufr.failed_record(encodings.ENCODER_FAILED),
+            body=body,
+            station=station,
+            observed_at=row["observed_at"],
+        )
+    result = await register.execute(
+        _STORE_ENCODINGS,
+        {"iwxxm": iwxxm_record, "bufr": bufr_record, "id": str(row["id"])},
+    )
+    return dict(result.mappings().one())
+
+
 async def transition(
     *,
     register: AsyncSession,
@@ -160,6 +224,8 @@ async def transition(
             register, observation_id, user, target, clean_reason, action
         )
         saved = dict(updated.mappings().one())
+        if action == "accept":
+            saved = await _store_encodings(register, row)
         if action == "reject" and row.get("supersedes_id"):
             # The rejected correction has left the live set, so the original returns
             # to it in the same transaction. No save lock here: row locks are taken

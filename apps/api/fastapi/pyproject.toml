@@ -40,6 +40,8 @@ dependencies = [
     "eccodes>=2.49.0",
     "eccodeslib>=2.50.0.34",
     "astral>=3.2",
+    "xmlschema>=4.3.2",
+    "csv2bufr>=0.8.8",
 ]
 
 [dependency-groups]
@@ -57,7 +59,6 @@ dev = [
     "schemathesis>=4.33.0",
     # Independent decoders used only to cross-check eregister.encode (SYNOP TAC, BUFR CSV).
     "pymetdecoder>=0.2.2",
-    "csv2bufr>=0.8.8",
     "metpy>=1.7.1",
 ]
 
