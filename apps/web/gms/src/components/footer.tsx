@@ -48,7 +48,7 @@ const COLUMNS = [
       { label: "About GMS", href: "/about" },
       { label: "Contact", href: "/about/contact" },
       { label: "Careers", href: "/about/careers" },
-      { label: "For media", href: "/services/media" },
+      { label: "For media", href: "/about/media" },
       { label: "GMS Weather app", href: "/app-guide" },
     ],
   },

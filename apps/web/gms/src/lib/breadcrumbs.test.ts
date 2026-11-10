@@ -62,8 +62,8 @@ describe("breadcrumbTrail", () => {
   it("shows a nested page's nav parent, linked", () => {
     expect(breadcrumbTrail("/alerts/bulletins/cyclone")).toEqual([
       { href: "/alerts", label: "Alerts" },
-      { href: "/sitemap#alerts--in-effect", label: "In effect" },
-      { current: false, href: "/alerts/bulletins", label: "GMS alerts" },
+      { href: "/sitemap#alerts--gms-alerts", label: "GMS alerts" },
+      { current: false, href: "/alerts/bulletins", label: "All GMS alerts" },
     ]);
     expect(labels("/services/tourism/events/hurricane-expo")).toEqual([
       "Services",
