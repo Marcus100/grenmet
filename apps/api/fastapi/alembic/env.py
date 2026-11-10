@@ -169,6 +169,7 @@ _TRACKED_SCHEMAS = {
     "stores",
     "billing",
     "environment",
+    "almanac",
     "rewards",
     "flags",
     "payments",

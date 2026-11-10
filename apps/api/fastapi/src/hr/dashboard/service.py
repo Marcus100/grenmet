@@ -23,9 +23,9 @@ from src.hr.leave.models import LeaveRequest
 from src.hr.models import Department, EmploymentRecord, EmploymentStatus
 from src.hr.parking.models import ParkingPermit
 from src.hr.roster.models import (
+    ROSTER_VISIBLE_PERIOD_STATUSES,
     RosterAssignment,
     RosterPeriod,
-    RosterPeriodStatus,
     ShiftCatalog,
     ShiftCategory,
 )
@@ -149,9 +149,7 @@ async def read_dashboard(
         .join(RosterPeriod, RosterPeriod.id == RosterAssignment.roster_period_id)
         .join(Department, Department.id == RosterPeriod.department_id)
         .where(
-            RosterPeriod.status.in_(
-                [RosterPeriodStatus.PUBLISHED, RosterPeriodStatus.CLOSED]
-            ),
+            RosterPeriod.status.in_(ROSTER_VISIBLE_PERIOD_STATUSES),
             User.is_active.is_(True),
         )
     )

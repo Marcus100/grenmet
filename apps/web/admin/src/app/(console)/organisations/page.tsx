@@ -3,6 +3,7 @@ import Link from "next/link";
 import { OrganisationTable } from "@/components/organisation-table";
 import { StaffOnly } from "@/components/staff-only";
 import { listOrganisations, ORGANISATIONS_PAGE_SIZE } from "@/lib/api";
+import { STATUSES } from "@/lib/organisation-form";
 import { requireGate } from "@/lib/staff-gate";
 
 export const metadata: Metadata = { title: "Organisations" };
@@ -10,7 +11,6 @@ export const dynamic = "force-dynamic";
 
 type SearchParams = Record<string, string | string[] | undefined>;
 
-const STATUSES = ["active", "suspended"] as const;
 const KINDS = ["barrels", "client", "business"] as const;
 
 function one(value: string | string[] | undefined): string | undefined {

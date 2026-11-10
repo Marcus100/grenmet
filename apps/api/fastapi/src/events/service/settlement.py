@@ -33,6 +33,7 @@ from ..models import (
     TicketTier,
     TillSession,
 )
+from ..transitions import ListingStatus, OrderStatus, TicketStatus
 from .admission import _door_listing
 from .common import _naive_utc
 from .organiser_admin import _my_organiser
@@ -61,16 +62,16 @@ class _Group:
 
     def add(self, status: str, admitted: bool, count: int, value: int) -> None:
         self.issued += count
-        if status == "valid":
+        if status == TicketStatus.VALID.value:
             self.valid += count
             self.value += value
-        elif status == "refunded":
+        elif status == TicketStatus.REFUNDED.value:
             self.refunded += count
         else:
             self.cancelled += count
         if admitted:
             self.admitted += count
-            if status == "valid":
+            if status == TicketStatus.VALID.value:
                 self.admitted_valid += count
 
     def counts(self) -> dict[str, int]:
@@ -96,10 +97,10 @@ async def _online_payments(
         await db.execute(
             select(
                 func.count().filter(Order.paid_at.is_not(None)),
-                func.count().filter(Order.status == "pending_payment"),
+                func.count().filter(Order.status == OrderStatus.PENDING_PAYMENT.value),
                 func.coalesce(
                     func.sum(Order.total_minor).filter(
-                        Order.status == "pending_payment"
+                        Order.status == OrderStatus.PENDING_PAYMENT.value
                     ),
                     0,
                 ),
@@ -170,7 +171,7 @@ async def _build(db: AsyncSession, listing: Listing) -> schemas.Settlement:
     for channel, tier_id, status, was_admitted, count, value in rows:
         everything.add(status, was_admitted, count, int(value))
         by_channel[channel].add(status, was_admitted, count, int(value))
-        if status == "valid":
+        if status == TicketStatus.VALID.value:
             by_tier[tier_id][channel] += count
         if was_admitted:
             by_tier[tier_id]["admitted"] += count
@@ -224,7 +225,10 @@ async def _build(db: AsyncSession, listing: Listing) -> schemas.Settlement:
         closed_tills=len(closed),
     )
 
-    finished = listing.ends_at <= _naive_utc(utc_now()) or listing.status == "cancelled"
+    finished = (
+        listing.ends_at <= _naive_utc(utc_now())
+        or listing.status == ListingStatus.CANCELLED.value
+    )
     issues: list[schemas.SettlementIssue] = []
     for till in till_rows:
         who = till.staff_name or "Staff"
@@ -370,7 +374,7 @@ async def organiser_settlement(
                 .where(
                     Listing.organiser_id == organiser.id,
                     Listing.admission == "ticketed",
-                    Listing.status != "draft",
+                    Listing.status != ListingStatus.DRAFT.value,
                 )
                 .order_by(Listing.starts_at.desc())
                 .limit(SUMMARY_LIMIT)

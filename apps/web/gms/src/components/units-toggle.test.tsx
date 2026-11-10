@@ -60,3 +60,26 @@ describe("Measure", () => {
     expect(screen.getByText("—")).toBeInTheDocument();
   });
 });
+
+describe("Temperature", () => {
+  it("shows a bare degree by default, with the unit for screen readers", () => {
+    const { container } = render(<Temperature value={31} />);
+    expect(
+      container.querySelector('[data-units-only="metric"]')?.textContent
+    ).toBe("31°");
+    expect(container.querySelector(".sr-only")?.textContent).toContain(
+      "Fahrenheit"
+    );
+  });
+
+  it("shows the unit visibly with showUnit", () => {
+    const { container } = render(<Temperature showUnit value={31} />);
+    expect(
+      container.querySelector('[data-units-only="metric"]')?.textContent
+    ).toBe("31°C");
+    expect(
+      container.querySelector('[data-units-only="imperial"]')?.textContent
+    ).toBe("88°F");
+    expect(container.querySelector(".sr-only")).toBeNull();
+  });
+});

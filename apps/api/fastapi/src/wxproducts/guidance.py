@@ -18,9 +18,11 @@ def compose(
 ) -> dict[str, str]:
     if guidance is None:
         return values
-    if kind not in {"outlook", "cyclone", "marine"}:
+    if kind not in {"outlook", "cyclone", "marine", "marine-forecast"}:
         raise ProductValidationError(
-            ["NHC guidance is supported for outlook, cyclone and marine products"]
+            [
+                "NHC guidance is supported for outlook, cyclone, marine and marine forecast products"
+            ]
         )
     result = dict(values)
     if kind == "outlook" and guidance.systems:

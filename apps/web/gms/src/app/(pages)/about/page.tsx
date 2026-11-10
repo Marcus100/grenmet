@@ -76,11 +76,6 @@ export default function AboutPage() {
               description: "How meteorology in Grenada developed",
             },
             {
-              name: "Our services",
-              href: "/about/services",
-              description: "The full range of services GMS provides",
-            },
-            {
               name: "Observing network",
               href: "/about/network",
               description: "Where our observations come from",

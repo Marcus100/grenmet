@@ -13,9 +13,11 @@ const mocks = vi.hoisted(() => ({
 vi.mock("@barrelsgd/api-client", () => ({
   eregisterAcceptRegisterObservation: mocks.accept,
   eregisterListRegisterObservations: mocks.list,
+  eregisterOverrideRegisterObservationBufr: vi.fn(),
   eregisterRejectRegisterObservation: mocks.reject,
   eregisterReopenRegisterObservation: mocks.reopen,
   eregisterReviewRegisterObservation: mocks.review,
+  useAuthGetEffectiveAccess: () => ({ data: undefined }),
 }));
 
 import { decisionError, PAGE_SIZE, QcBadge, QcQueue } from "./eregister-qc";

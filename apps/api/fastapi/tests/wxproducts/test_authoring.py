@@ -95,6 +95,16 @@ def current_input(**changes) -> ProductWrite:
     return body(values=values, **changes)
 
 
+def stored_values(payload: ProductWrite, actor: User, number: int = 1) -> dict:
+    """What a first-saved alert stores: its normalized values, the signed-in
+    forecaster and the yearly archive reference (#1197)."""
+    year = payload.values["issuedAt"][:4]
+    return validation.normalize(payload.kind, dict(payload.values)) | {
+        "forecaster": actor.full_name,
+        "reference": f"GMS-{payload.kind.upper()}-{year}-{number:03d}",
+    }
+
+
 @pytest.mark.parametrize("kind", sorted(validation.ISSUE_HOURS))
 async def test_forecast_save_after_advisory_snapshot(weather_sessions, actor, kind):
     """The save route reads bulletins on the authoring session before writing."""
@@ -150,9 +160,7 @@ async def test_draft_publish_edit_withdraw_history(
     async with weather_sessions() as session:
         saved = await service.list_authored(session, "marine", issued_at.date())
         # The signed-in actor is recorded as the issuing forecaster.
-        assert saved[0].draft["values"] == payload.values | {
-            "forecaster": actor.full_name
-        }
+        assert saved[0].draft["values"] == stored_values(payload, actor)
     async with weather_sessions() as session:
         published = await service.write_product(
             session,

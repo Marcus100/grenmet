@@ -12,7 +12,7 @@ from src.auth.policy import has_permission
 from src.hr.models import Department
 from src.utils.datetime import utc_now
 
-from . import access, notifications, stock
+from . import access, notifications, stock, transitions
 from .access import Context
 from .exceptions import (
     StoresNotFoundError,
@@ -49,10 +49,7 @@ from .schemas import (
 
 logger = logging.getLogger(__name__)
 
-OPEN_FOR_DELIVERY = (
-    RequisitionStatus.APPROVED,
-    RequisitionStatus.PARTIALLY_DELIVERED,
-)
+OPEN_FOR_DELIVERY = transitions.OPEN_FOR_DELIVERY
 
 
 def reference(number: int) -> str:
@@ -456,7 +453,7 @@ async def update_requisition(
     access.require(ctx, access.REQUEST)
     req, _, _ = await _load(session, ctx, requisition_id, lock=True)
     _require_owner(ctx, req)
-    if req.status != RequisitionStatus.DRAFT:
+    if req.status not in transitions.EDITABLE:
         raise StoresStateError("Only a draft requisition can be edited")
     lines = await _validated_lines(session, ctx, payload.lines)
     audit_service.set_actor(session, ctx.user.id)
@@ -477,10 +474,10 @@ async def submit_requisition(
     access.require(ctx, access.REQUEST)
     req, _, _ = await _load(session, ctx, requisition_id, lock=True)
     _require_owner(ctx, req)
-    if req.status != RequisitionStatus.DRAFT:
+    if not transitions.can_move(req.status, "submit"):
         raise StoresStateError("Only a draft requisition can be submitted")
     audit_service.set_actor(session, ctx.user.id)
-    req.status = RequisitionStatus.SUBMITTED
+    transitions.move_requisition(req, "submit")
     req.submitted_at = utc_now()
     await notifications.submitted(session, req, reference(req.number))
     await session.commit()
@@ -493,10 +490,10 @@ async def cancel_requisition(
 ) -> Requisition:
     req, _, _ = await _load(session, ctx, requisition_id, lock=True)
     _require_owner(ctx, req)
-    if req.status not in (RequisitionStatus.DRAFT, RequisitionStatus.SUBMITTED):
+    if not transitions.can_move(req.status, "cancel"):
         raise StoresStateError("Only a draft or submitted requisition can be cancelled")
     audit_service.set_actor(session, ctx.user.id)
-    req.status = RequisitionStatus.CANCELLED
+    transitions.move_requisition(req, "cancel")
     await session.commit()
     await session.refresh(req)
     return req
@@ -507,7 +504,7 @@ def _require_decider(ctx: Context, req: Requisition, approve: set[str]) -> None:
         raise StoresPermissionError("A requester cannot decide their own requisition")
     if req.department_id not in approve:
         raise StoresPermissionError("No approval authority for this department")
-    if req.status != RequisitionStatus.SUBMITTED:
+    if not transitions.can_move(req.status, "approve"):
         raise StoresStateError("Only a submitted requisition can be decided")
 
 
@@ -537,7 +534,7 @@ async def approve_requisition(
             "Approve at least one line or reject the requisition"
         )
     audit_service.set_actor(session, ctx.user.id)
-    req.status = RequisitionStatus.APPROVED
+    transitions.move_requisition(req, "approve")
     req.decided_at = utc_now()
     req.decided_by_user_id = ctx.user.id
     req.decision_note = payload.note.strip() if payload.note else None
@@ -559,7 +556,7 @@ async def reject_requisition(
     req, approve, _ = await _load(session, ctx, requisition_id, lock=True)
     _require_decider(ctx, req, approve)
     audit_service.set_actor(session, ctx.user.id)
-    req.status = RequisitionStatus.REJECTED
+    transitions.move_requisition(req, "reject")
     req.decided_at = utc_now()
     req.decided_by_user_id = ctx.user.id
     req.decision_note = payload.note
@@ -622,10 +619,8 @@ async def deliver_requisition(
     complete = all(
         line.delivered_quantity >= (line.approved_quantity or 0) for line in req.lines
     )
-    req.status = (
-        RequisitionStatus.DELIVERED
-        if complete
-        else RequisitionStatus.PARTIALLY_DELIVERED
+    transitions.move_requisition(
+        req, "deliver_in_full" if complete else "deliver_partly"
     )
     req.delivered_at = utc_now()
     await notifications.delivered(
@@ -744,13 +739,11 @@ async def to_public(
                 delivered_at=req.delivered_at,
                 created_at=req.created_at,
                 updated_at=req.updated_at,
-                can_edit=own and req.status == RequisitionStatus.DRAFT,
-                can_cancel=own
-                and req.status
-                in (RequisitionStatus.DRAFT, RequisitionStatus.SUBMITTED),
+                can_edit=own and req.status in transitions.EDITABLE,
+                can_cancel=own and transitions.can_move(req.status, "cancel"),
                 can_approve=(
                     not own
-                    and req.status == RequisitionStatus.SUBMITTED
+                    and transitions.can_move(req.status, "approve")
                     and req.department_id in approve
                 ),
                 can_deliver=(

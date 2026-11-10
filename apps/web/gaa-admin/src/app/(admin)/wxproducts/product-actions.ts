@@ -15,6 +15,10 @@ import {
   productPreviewSchema,
   storedProductSchema,
 } from "@/lib/wxproducts/api-schemas";
+import {
+  PDF_PREVIEW_FALLBACK,
+  pdfPreviewRefusal,
+} from "@/lib/wxproducts/pdf-preview-error";
 import { productInputSchema } from "@/lib/wxproducts/product-input";
 
 class ProductApiError extends Error {
@@ -234,8 +238,15 @@ export async function previewProductPdfAction(
         response.ok &&
         response.headers.get("content-type")?.startsWith("application/pdf")
       )
-    )
+    ) {
+      // A 4xx carries the API's own reason (for example a validation message); show it.
+      const refusal = pdfPreviewRefusal(
+        response.status,
+        await response.json().catch(() => null)
+      );
+      if (refusal) return { ok: false as const, error: refusal };
       throw new ProductApiError("Preview unavailable", response.status);
+    }
     return {
       ok: true as const,
       blob: await response.blob(),
@@ -245,10 +256,6 @@ export async function previewProductPdfAction(
   } catch (error) {
     if (signal?.aborted) return { ok: false as const, aborted: true as const };
     reportError(error, "wxproducts");
-    return {
-      ok: false as const,
-      error:
-        "Could not render the preview. Check your connection and retry the PDF preview.",
-    };
+    return { ok: false as const, error: PDF_PREVIEW_FALLBACK };
   }
 }

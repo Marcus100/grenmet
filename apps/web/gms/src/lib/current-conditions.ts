@@ -2,16 +2,7 @@ import type { PublicObservation } from "@barrelsgd/api-client";
 import type { Condition } from "@/lib/forecast-data";
 import { DEFAULT_UNITS, formatMeasure, type Measure } from "@/lib/units";
 
-/**
- * Freshness limits from the Barrels foundations plan (NFRs). A product older
- * than its limit is labelled "Last ...", never as current.
- */
-/** A reading older than this is labelled "Last observed", never "Observed". */
-export const STALE_AFTER_MS = 90 * 60 * 1000;
-/** A forecast issued longer ago than this is flagged as possibly out of date. */
-export const FORECAST_STALE_AFTER_MS = 12 * 60 * 60 * 1000;
-/** A satellite image older than this is flagged as not current. */
-export const SATELLITE_STALE_AFTER_MS = 30 * 60 * 1000;
+/** Freshness limits and their wording live in `@/lib/freshness`. */
 
 export interface CurrentConditions {
   dewPoint: number | null;
@@ -236,29 +227,12 @@ export function isOtherGrenadaDay(
 
 const HAS_ZONE = /(?:Z|[+-]\d{2}:?\d{2})$/iu;
 
-function olderThan(iso: string, limitMs: number, now: Date): boolean {
-  const time = parseGrenadaTime(iso);
-  // An unreadable time is never presented as fresh.
-  return Number.isNaN(time) || now.getTime() - time > limitMs;
-}
-
 /**
  * Milliseconds for an ISO time. GMS forms store Grenada wall-clock times with
  * no offset ("2026-10-18T06:00"); Grenada is UTC-4 all year, so read those as AST.
+ * An unreadable time is NaN.
  */
 export function parseGrenadaTime(iso: string): number {
   const hasZone = HAS_ZONE.test(iso);
   return new Date(hasZone ? iso : `${iso}-04:00`).getTime();
-}
-
-export function isStale(iso: string, now: Date = new Date()): boolean {
-  return olderThan(iso, STALE_AFTER_MS, now);
-}
-
-export function isForecastStale(iso: string, now: Date = new Date()): boolean {
-  return olderThan(iso, FORECAST_STALE_AFTER_MS, now);
-}
-
-export function isSatelliteStale(iso: string, now: Date = new Date()): boolean {
-  return olderThan(iso, SATELLITE_STALE_AFTER_MS, now);
 }

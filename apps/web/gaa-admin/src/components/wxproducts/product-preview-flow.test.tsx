@@ -6,6 +6,7 @@ import { renderWithGmsCatalogue as render } from "@/test/with-gms-catalogue";
 import { ProductDesk } from "./product-desk";
 
 const WEATHER_SUMMARY_LABEL = /Weather forecast/u;
+const PUBLICATION_CONFIRMATION = /I have checked/u;
 
 const actions = vi.hoisted(() => ({
   loadProductsAction: vi.fn(),
@@ -71,7 +72,11 @@ async function openEditor() {
         is_superuser: false,
       }}
     >
-      <ProductDesk kinds={["morning"]} title="Forecasts" />
+      <ProductDesk
+        description="Test desk."
+        kinds={["morning"]}
+        title="Forecasts"
+      />
     </SessionUserProvider>
   );
   await waitFor(() =>
@@ -105,7 +110,7 @@ it("updates the live summary without rendering and explicitly previews without s
   );
   expect(actions.saveProductAction).not.toHaveBeenCalled();
   expect(actions.previewProductAction).not.toHaveBeenCalled();
-  expect(screen.queryByRole("button", { name: "Publish to GMS" })).toBeNull();
+  expect(screen.getByRole("button", { name: "Publish to GMS" })).toBeDisabled();
   fireEvent.change(summary, { target: { value: "Rain later" } });
   expect(screen.getByText("Changes pending")).toBeInTheDocument();
   expect(actions.previewProductPdfAction).toHaveBeenCalledTimes(1);
@@ -155,17 +160,21 @@ it("opens the normalized PDF after validation and preserves the publication revi
     expect.any(AbortSignal)
   );
   expect(screen.getByRole("button", { name: "Publish to GMS" })).toBeDisabled();
-  fireEvent.click(screen.getByRole("checkbox"));
+  fireEvent.click(
+    screen.getByRole("checkbox", { name: PUBLICATION_CONFIRMATION })
+  );
   expect(screen.getByRole("button", { name: "Publish to GMS" })).toBeEnabled();
   fireEvent.change(summary, { target: { value: "Edited forecast" } });
-  expect(screen.queryByRole("button", { name: "Publish to GMS" })).toBeNull();
+  expect(screen.getByRole("button", { name: "Publish to GMS" })).toBeDisabled();
   expect(screen.getByText("Changes pending")).toBeInTheDocument();
   expect(actions.previewProductPdfAction).toHaveBeenCalledTimes(1);
   fireEvent.click(screen.getByRole("button", { name: "Validate and preview" }));
   await waitFor(() =>
     expect(actions.previewProductPdfAction).toHaveBeenCalledTimes(2)
   );
-  expect(screen.getByRole("checkbox")).not.toBeChecked();
+  expect(
+    screen.getByRole("checkbox", { name: PUBLICATION_CONFIRMATION })
+  ).not.toBeChecked();
 });
 
 it("does not replace a PDF on validation or save failure, and keeps save success when rendering fails", async () => {

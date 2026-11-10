@@ -42,6 +42,8 @@ from src.utils.datetime import utc_now
 from src.utils.reserved_names import is_reserved
 from src.utils.text import clean_reason
 
+from . import transitions
+
 logger = logging.getLogger(__name__)
 
 BARRELS_ORGANISATION_ID = "barrels"
@@ -587,8 +589,7 @@ async def admin_set_verified(
             raise AppException("Organisation is already verified", 409)
         if organisation.status == OrganisationStatus.SUSPENDED.value:
             raise AppException("A suspended organisation cannot be verified", 409)
-        organisation.verified_at = now
-        organisation.verification_status = VerificationStatus.APPROVED.value
+        transitions.move_verification(organisation, "approve", at=now)
         action = "verify"
     elif rejected:
         if organisation.verified_at is not None:
@@ -597,13 +598,12 @@ async def admin_set_verified(
             )
         if organisation.verification_status == VerificationStatus.REJECTED.value:
             raise AppException("Organisation is already rejected", 409)
-        organisation.verification_status = VerificationStatus.REJECTED.value
+        transitions.move_verification(organisation, "reject")
         action = "reject"
     else:
         if organisation.verified_at is None:
             raise AppException("Organisation is not verified", 409)
-        organisation.verified_at = None
-        organisation.verification_status = VerificationStatus.PENDING.value
+        transitions.move_verification(organisation, "withdraw")
         action = "unverify"
     organisation.verification_reason = clean
     organisation.verification_decided_at = now
@@ -632,7 +632,7 @@ async def resubmit_verification(
     if organisation.verification_status != VerificationStatus.REJECTED.value:
         raise OrganisationNotRejectedError()
     audit_service.set_actor(session, actor.id)
-    organisation.verification_status = VerificationStatus.PENDING.value
+    transitions.move_verification(organisation, "resubmit")
     await audit_service.record_change(
         session,
         entity_type="platform_organisation",

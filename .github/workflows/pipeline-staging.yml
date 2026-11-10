@@ -63,9 +63,60 @@ jobs:
         run: |
           [[ -n "${DIGESTS//[[:space:]]/}" ]] || { echo "::error::Promotion produced no image digests"; exit 1; }
 
+  # Promotion reuses digests built days earlier; rescan them with today's
+  # vulnerability database before they deploy (issue #1142). Same policy and
+  # exceptions as the build gate.
+  scan-targets:
+    name: List promoted digests
+    needs: promote
+    if: ${{ needs.promote.outputs.digests != '' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      targets: ${{ steps.list.outputs.targets }}
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.3.1
+        with:
+          persist-credentials: false
+      - id: list
+        env:
+          DIGESTS: ${{ needs.promote.outputs.digests }}
+        run: node scripts/ci/image-patch-dates.mjs targets digests "$DIGESTS"
+
+  scan:
+    name: Scan ${{ matrix.target.name }}
+    needs: scan-targets
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+      packages: read
+    strategy:
+      fail-fast: false
+      max-parallel: 6
+      matrix:
+        target: ${{ fromJSON(needs.scan-targets.outputs.targets) }}
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.3.1
+        with:
+          persist-credentials: false
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@81c6f93d4bc991e510b342a00b419b3bb4efc5c6 # v4.7.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Scan promoted digest
+        uses: ./.github/actions/scan-image
+        with:
+          image: ${{ matrix.target.ref }}
+          scope: ${{ matrix.target.scope }}
+          name: ${{ matrix.target.name }}
+          source: remote
+
   deploy:
     name: Deploy
-    needs: [release-scope, promote]
+    needs: [release-scope, promote, scan]
     if: ${{ needs.promote.outputs.digests != '' }}
     uses: ./.github/workflows/deploy.yml
     with:

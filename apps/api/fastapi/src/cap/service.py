@@ -109,6 +109,14 @@ from src.cap.schemas import (
 )
 from src.cap.sign import is_signing_enabled, sign_xml, signing_key_ref
 from src.cap.tasks import enqueue_publish_side_effects
+from src.cap.transitions import (
+    CANCELLATION_STATE,
+    OPEN_STATES,
+    REVIEWABLE_STATES,
+    TRANSITIONS,
+    CapAction,
+    can_transition,
+)
 from src.cap.validation import (
     MAX_IMPORT_BYTES,
     ensure_public_host,
@@ -183,13 +191,6 @@ __all__ = [
     "select_public_warnings",
     "update_settings",
 ]
-
-
-EDITABLE_STATES = {
-    CapLifecycleState.DRAFT,
-    CapLifecycleState.SUBMITTED,
-    CapLifecycleState.APPROVED,
-}
 
 
 async def list_alerts(
@@ -398,7 +399,7 @@ async def update_alert(
 ) -> CapAlertPublic:
     require_permission(current_user=current_user, permission_key="cap.alert.edit")
     alert = await get_alert_or_404(session=session, alert_id=alert_id, for_update=True)
-    if alert.lifecycle_state not in EDITABLE_STATES:
+    if alert.lifecycle_state not in OPEN_STATES:
         raise CapStateError(
             "Only draft, submitted, or approved CAP alerts can be edited."
         )
@@ -412,11 +413,8 @@ async def update_alert(
         if value is not None:
             setattr(alert, key, _db_datetime(value) if key == "sent" else value)
     # Editing after review invalidates it: approval applies to the content approved.
-    if alert.lifecycle_state in {
-        CapLifecycleState.SUBMITTED,
-        CapLifecycleState.APPROVED,
-    }:
-        alert.lifecycle_state = CapLifecycleState.DRAFT
+    if can_transition(alert.lifecycle_state, "revert_to_draft"):
+        _set_lifecycle(alert, "revert_to_draft")
         alert.approved_at = None
     alert.updated_by_user_id = current_user.id
     alert.updated_at = utc_now()
@@ -578,7 +576,7 @@ async def _open_update_of(*, session: AsyncSession, identifier: str) -> CapAlert
                 .where(
                     CapReference.identifier == identifier,
                     CapAlert.msg_type == CapMessageType.UPDATE,
-                    CapAlert.lifecycle_state.in_(EDITABLE_STATES),
+                    CapAlert.lifecycle_state.in_(OPEN_STATES),
                 )
                 .order_by(CapAlert.created_at)
             )
@@ -700,8 +698,6 @@ async def submit_alert(
         current_user=current_user,
         alert=alert,
         action="submit",
-        allowed={CapLifecycleState.DRAFT},
-        next_state=CapLifecycleState.SUBMITTED,
         note=payload.note,
         timestamp_field="submitted_at",
     )
@@ -724,8 +720,6 @@ async def approve_alert(
         current_user=current_user,
         alert=alert,
         action="approve",
-        allowed={CapLifecycleState.SUBMITTED},
-        next_state=CapLifecycleState.APPROVED,
         note=payload.note,
         timestamp_field="approved_at",
     )
@@ -781,10 +775,7 @@ async def _record_review_event(
     action: str,
     note: str | None,
 ) -> CapAlertPublic:
-    if alert.lifecycle_state not in {
-        CapLifecycleState.SUBMITTED,
-        CapLifecycleState.APPROVED,
-    }:
+    if alert.lifecycle_state not in REVIEWABLE_STATES:
         raise CapStateError("Only a submitted or approved alert can be reviewed.")
     state = alert.lifecycle_state.value
     _record_audit(
@@ -822,7 +813,7 @@ async def publish_alert(
     """
     require_permission(current_user=current_user, permission_key="cap.alert.publish")
     alert = await get_alert_or_404(session=session, alert_id=alert_id, for_update=True)
-    if alert.lifecycle_state != CapLifecycleState.APPROVED:
+    if not can_transition(alert.lifecycle_state, "publish"):
         raise CapStateError(
             "Only an approved alert can be published. Submit it for approval, "
             "or use emergency publish if you hold that permission."
@@ -855,11 +846,7 @@ async def emergency_publish_alert(
     if not reason:
         raise CapValidationFailedError(["An emergency publish reason is required."])
     alert = await get_alert_or_404(session=session, alert_id=alert_id, for_update=True)
-    if alert.lifecycle_state not in {
-        CapLifecycleState.DRAFT,
-        CapLifecycleState.SUBMITTED,
-        CapLifecycleState.APPROVED,
-    }:
+    if not can_transition(alert.lifecycle_state, "emergency_publish"):
         raise CapStateError(
             "Only a draft, submitted or approved alert can be published."
         )
@@ -915,18 +902,17 @@ async def _publish(
     session.add(snapshot)
     previous_state = alert.lifecycle_state.value
     now = utc_now()
-    alert.lifecycle_state = CapLifecycleState.PUBLISHED
+    _set_lifecycle(alert, "emergency_publish" if emergency else "publish")
     alert.published_at = now
     alert.updated_by_user_id = current_user.id
     alert.updated_at = now
     session.add(alert)
     for predecessor in replaced:
         previous = predecessor.lifecycle_state.value
-        predecessor.lifecycle_state = (
-            CapLifecycleState.CANCELLED
-            if alert.msg_type == CapMessageType.CANCEL
-            else CapLifecycleState.EXPIRED
+        retire: CapAction = (
+            "cancel" if alert.msg_type == CapMessageType.CANCEL else "supersede"
         )
+        _set_lifecycle(predecessor, retire)
         predecessor.expired_at = now
         predecessor.updated_by_user_id = current_user.id
         predecessor.updated_at = now
@@ -934,7 +920,7 @@ async def _publish(
             session=session,
             alert_id=predecessor.id,
             actor=current_user,
-            action="cancel" if alert.msg_type == CapMessageType.CANCEL else "supersede",
+            action=retire,
             previous_state=previous,
             next_state=predecessor.lifecycle_state.value,
             note=f"Replaced by {alert.identifier}",
@@ -1012,7 +998,7 @@ async def cancel_alert(
     )
     if alert is None:
         raise CapAlertNotFoundError()
-    if alert.lifecycle_state != CapLifecycleState.PUBLISHED:
+    if not can_transition(alert.lifecycle_state, "cancel"):
         raise CapStateError("Only published CAP alerts can be cancelled.")
     if alert.msg_type not in {CapMessageType.ALERT, CapMessageType.UPDATE}:
         raise CapStateError("Only an Alert or Update can be cancelled.")
@@ -1035,7 +1021,7 @@ async def cancel_alert(
         addresses=alert.addresses,
         codes=alert.codes,
         note=reason,
-        lifecycle_state=CapLifecycleState.PUBLISHED,
+        lifecycle_state=CANCELLATION_STATE,
         created_by_user_id=current_user.id,
         updated_by_user_id=current_user.id,
         published_at=now,
@@ -1068,7 +1054,7 @@ async def cancel_alert(
     snapshot = _snapshot_from_xml(alert=cancellation, xml=cancel_xml)
     session.add(snapshot)
     previous_state = alert.lifecycle_state.value
-    alert.lifecycle_state = CapLifecycleState.CANCELLED
+    _set_lifecycle(alert, "cancel")
     alert.expired_at = now
     alert.updated_by_user_id = current_user.id
     alert.updated_at = now
@@ -1180,8 +1166,6 @@ async def expire_alert(
         current_user=current_user,
         alert=alert,
         action="expire",
-        allowed={CapLifecycleState.PUBLISHED},
-        next_state=CapLifecycleState.EXPIRED,
         note=payload.note,
         timestamp_field="expired_at",
     )
@@ -1209,26 +1193,40 @@ async def get_alert_or_404(
     return alert
 
 
+def _state_refusal(action: CapAction) -> str:
+    """The refusal for an action from a state the table does not allow."""
+    allowed_text = ", ".join(
+        state.value
+        for state in sorted(
+            TRANSITIONS[action].allowed_from, key=lambda item: item.value
+        )
+    )
+    return f"CAP alert must be in one of these states: {allowed_text}."
+
+
+def _set_lifecycle(alert: CapAlert, action: CapAction) -> None:
+    """The only assignment to ``CapAlert.lifecycle_state`` in this module.
+
+    Checks the table in ``transitions.py`` first, so an action from a state it
+    does not allow is refused with the generic 409 instead of written.
+    """
+    if not can_transition(alert.lifecycle_state, action):
+        raise CapStateError(_state_refusal(action))
+    alert.lifecycle_state = TRANSITIONS[action].target
+
+
 async def _transition(
     *,
     session: AsyncSession,
     current_user: User,
     alert: CapAlert,
-    action: str,
-    allowed: set[CapLifecycleState],
-    next_state: CapLifecycleState,
+    action: CapAction,
     note: str | None,
     timestamp_field: str,
 ) -> CapAlertPublic:
-    if alert.lifecycle_state not in allowed:
-        allowed_text = ", ".join(
-            state.value for state in sorted(allowed, key=lambda item: item.value)
-        )
-        raise CapStateError(
-            f"CAP alert must be in one of these states: {allowed_text}."
-        )
     previous_state = alert.lifecycle_state.value
-    alert.lifecycle_state = next_state
+    _set_lifecycle(alert, action)
+    next_state = alert.lifecycle_state
     setattr(alert, timestamp_field, utc_now())
     alert.updated_by_user_id = current_user.id
     alert.updated_at = utc_now()

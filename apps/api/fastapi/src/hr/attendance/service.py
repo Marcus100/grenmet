@@ -15,6 +15,7 @@ from src.hr.models import Department, EmploymentRecord
 from src.hr.organisations import require_organisation_permission
 from src.hr.roster.expansion import expand_shift
 from src.hr.roster.models import (
+    ROSTER_VISIBLE_PERIOD_STATUSES,
     RosterAssignment,
     RosterPeriod,
     RosterPeriodStatus,
@@ -316,9 +317,7 @@ async def week_rows(
         )
         .where(
             RosterAssignment.assignment_date.between(start, end),
-            RosterPeriod.status.in_(
-                [RosterPeriodStatus.PUBLISHED, RosterPeriodStatus.CLOSED]
-            ),
+            RosterPeriod.status.in_(ROSTER_VISIBLE_PERIOD_STATUSES),
             ShiftCatalog.category == ShiftCategory.WORK,
         )
     )

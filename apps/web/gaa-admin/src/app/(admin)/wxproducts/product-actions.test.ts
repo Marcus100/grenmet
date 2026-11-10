@@ -1,11 +1,16 @@
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
+import { reportError } from "@/lib/report-error";
+import { PDF_PREVIEW_FALLBACK } from "@/lib/wxproducts/pdf-preview-error";
 import {
   downloadProductPdfAction,
   loadProductHistoryAction,
   loadProductsAction,
   previewProductAction,
+  previewProductPdfAction,
   saveProductAction,
 } from "./product-actions";
+
+vi.mock("@/lib/report-error", () => ({ reportError: vi.fn() }));
 
 const fetcher = vi.fn();
 const id = "7d517fe0-a25b-4f12-a2b4-eaaed8116010";
@@ -20,6 +25,7 @@ const input = {
 };
 beforeEach(() => {
   fetcher.mockReset();
+  vi.mocked(reportError).mockClear();
   vi.stubGlobal("fetch", fetcher);
 });
 afterEach(() => vi.unstubAllGlobals());
@@ -130,6 +136,55 @@ it("does not provide a valid preview during an outage", async () => {
       })
     ).ok
   ).toBe(false);
+});
+
+const pdfInput = {
+  kind: "morning",
+  values: {},
+  expectedRevision: 0,
+  changeSummary: "",
+};
+it("shows the API's own reason when a PDF preview is refused (4xx)", async () => {
+  fetcher
+    .mockResolvedValueOnce(Response.json({ userId: id, csrfToken: "proof" }))
+    .mockResolvedValueOnce(
+      Response.json({ detail: "Weather forecast is required" }, { status: 422 })
+    );
+  expect(await previewProductPdfAction(pdfInput)).toEqual({
+    ok: false,
+    error: "Weather forecast is required",
+  });
+  expect(reportError).not.toHaveBeenCalled();
+});
+it("keeps the generic message and reports a server error", async () => {
+  fetcher
+    .mockResolvedValueOnce(Response.json({ userId: id, csrfToken: "proof" }))
+    .mockResolvedValueOnce(
+      Response.json({ detail: "database offline" }, { status: 500 })
+    );
+  expect(await previewProductPdfAction(pdfInput)).toEqual({
+    ok: false,
+    error: PDF_PREVIEW_FALLBACK,
+  });
+  expect(reportError).toHaveBeenCalledTimes(1);
+});
+it("keeps the generic message and reports a network failure", async () => {
+  fetcher
+    .mockResolvedValueOnce(Response.json({ userId: id, csrfToken: "proof" }))
+    .mockRejectedValueOnce(new TypeError("Failed to fetch"));
+  expect(await previewProductPdfAction(pdfInput)).toEqual({
+    ok: false,
+    error: PDF_PREVIEW_FALLBACK,
+  });
+  expect(reportError).toHaveBeenCalledTimes(1);
+});
+it("keeps the generic message and reports an unexpected input failure", async () => {
+  expect(await previewProductPdfAction({ kind: "not-a-kind" })).toEqual({
+    ok: false,
+    error: PDF_PREVIEW_FALLBACK,
+  });
+  expect(reportError).toHaveBeenCalledTimes(1);
+  expect(fetcher).not.toHaveBeenCalled();
 });
 
 it("downloads a saved PDF through the authenticated backend proxy", async () => {

@@ -224,6 +224,11 @@ jobs:
         # job on that exact resolution.
         run: uv sync --frozen --package fast-back
 
+      - name: Fetch the pinned IWXXM schemas
+        # Each file is checked against its committed SHA-256. In CI a missing schema
+        # fails the IWXXM tests rather than skipping them (tests/iwxxm_support.py).
+        run: uv run --frozen --package fast-back python -m scripts.fetch_iwxxm_schemas
+
       - name: Test database isolation contract
         if: matrix.id == 'shard-1'
         run: uv run --frozen --package fast-back python -m unittest tests.test_database_target

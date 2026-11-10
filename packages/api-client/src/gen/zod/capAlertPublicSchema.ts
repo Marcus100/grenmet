@@ -28,6 +28,7 @@ export const capAlertPublicSchema = z.object({
   codes: z.array(z.string()).optional(),
   note: z.union([z.string(), z.null()]).optional(),
   lifecycle_state: capLifecycleStateSchema,
+  allowed_actions: z.array(z.string()).optional(),
   created_by_user_id: z.uuid(),
   updated_by_user_id: z.union([z.uuid(), z.null()]).optional(),
   submitted_at: z.union([z.iso.datetime(), z.null()]).optional(),

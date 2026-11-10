@@ -3,6 +3,7 @@ import type {
   EmployeeDeductionPublic,
   SocialInsuranceSchemePublic,
   StatutoryTablesPublic,
+  TableState,
   TaxTablePublic,
 } from "@barrelsgd/api-client";
 import {
@@ -74,7 +75,7 @@ interface TableRowBase {
   created_by_user_id: string | null;
   id: string;
   name: string;
-  rule_state: string;
+  rule_state: TableState;
 }
 
 function TableList<T extends TableRowBase>({

@@ -44,6 +44,7 @@ export default async function FiveDayPage() {
               source="GMS impact-based forecast"
               status="verified"
               time={issuedAt}
+              validTo={days[0]?.validTo ?? undefined}
             />
           )}
           <InfoTable

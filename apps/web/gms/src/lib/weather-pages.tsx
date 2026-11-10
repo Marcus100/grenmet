@@ -4,13 +4,10 @@ import type {
 } from "@barrelsgd/api-client";
 import type { ReactNode } from "react";
 import { Measure } from "@/components/measure";
-import {
-  currentConditions,
-  isStale,
-  localTime,
-} from "@/lib/current-conditions";
+import { currentConditions, localTime } from "@/lib/current-conditions";
 import type { Condition, ForecastDayData } from "@/lib/forecast-data";
 import { UNAVAILABLE_SOURCE } from "@/lib/forecast-selection";
+import { isStale } from "@/lib/freshness";
 import { reportError } from "@/lib/report-error";
 import { isAllClear } from "@/lib/sector-outlook";
 import { bothUnits } from "@/lib/units";

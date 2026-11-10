@@ -54,12 +54,6 @@ export default function HistoricHurricanesPage() {
         <LinkList
           links={[
             {
-              name: "Cyclone archive",
-              href: "/alerts/cyclone/archive",
-              description:
-                "Past tropical cyclones affecting the tri-island state",
-            },
-            {
               name: "Hurricane preparedness",
               href: "/alerts/prepare/hurricane",
               description: "What every household should have ready",

@@ -8,6 +8,14 @@
  * See `docs/products/barrels-events-v1-definition.md`.
  */
 
+import type {
+  OutletTicket as ApiOutletTicket,
+  ManagedListing,
+  OrderPublic,
+  TicketSummary,
+  TillPublic,
+} from "@barrelsgd/api-client";
+
 export type CurrencyCode = "XCD" | "USD";
 
 /**
@@ -21,7 +29,7 @@ export interface Money {
 }
 
 /** Publishing is deliberate: an event is not sellable until it leaves draft. */
-export type EventStatus = "draft" | "on-sale" | "closed";
+export type EventStatus = ManagedListing["status"];
 
 export interface EventRecord {
   /** One capacity pool. Every sales channel draws from it. */
@@ -59,30 +67,6 @@ export interface ChannelSales {
   readonly orders: number;
   readonly reconciliation: ReconciliationState;
   readonly tickets: number;
-}
-
-export type OrderStatus = "pending" | "paid" | "refunded" | "cancelled";
-
-export interface Order {
-  readonly channel: SalesChannelId;
-  readonly eventId: string;
-  readonly id: string;
-  readonly placedAt: string;
-  /** Organiser-facing reference, shown on the door manifest. */
-  readonly reference: string;
-  readonly status: OrderStatus;
-  readonly total: Money;
-}
-
-export type TicketState = "issued" | "void" | "refunded";
-
-export interface Ticket {
-  /** The code presented at the door. */
-  readonly code: string;
-  readonly id: string;
-  readonly orderId: string;
-  readonly state: TicketState;
-  readonly ticketTypeId: string;
 }
 
 export type ScanResult = "admitted" | "duplicate" | "not-found" | "void";
@@ -283,11 +267,7 @@ export interface EventDetail extends PublicEvent {
 }
 
 /** Where a ticket order stands. `pending_payment` holds stock until the hold ends. */
-export type MyOrderStatus =
-  | "confirmed"
-  | "pending_payment"
-  | "expired"
-  | "refunded";
+export type MyOrderStatus = OrderPublic["status"];
 
 /** An order the signed-in member placed (free, or paid online). */
 export interface MyOrder {
@@ -316,7 +296,7 @@ export interface MyTicket {
   readonly listingTitle: string;
   readonly parish: Parish;
   readonly startsAt: string;
-  readonly status: "valid" | "cancelled" | "refunded";
+  readonly status: TicketSummary["status"];
   readonly tierName: string;
   readonly venue: string;
 }
@@ -328,7 +308,7 @@ export interface MyTicketDetail extends MyTicket {
 
 /** What an organiser edits; adds publishing state to the public listing. */
 export interface ManagedEvent extends EventDetail {
-  readonly status: "draft" | "published" | "cancelled";
+  readonly status: ManagedListing["status"];
   readonly visibility: "public" | "unlisted";
 }
 
@@ -536,7 +516,7 @@ export interface OutletTicket {
   readonly priceMinor: number;
   readonly qrToken: string;
   readonly refund: Refund | null;
-  readonly status: "valid" | "cancelled" | "refunded";
+  readonly status: ApiOutletTicket["status"];
   readonly tierName: string;
 }
 
@@ -572,7 +552,7 @@ export interface Till {
   readonly openingFloatMinor: number;
   readonly salesCount: number;
   readonly staffName: string | null;
-  readonly status: "open" | "closed";
+  readonly status: TillPublic["status"];
   readonly ticketsSold: number;
 }
 
@@ -660,7 +640,7 @@ export interface Settlement {
   readonly listingId: string;
   readonly refunds: readonly Refund[];
   readonly startsAt: string;
-  readonly status: "draft" | "published" | "cancelled";
+  readonly status: ManagedListing["status"];
   readonly tiers: readonly SettlementTier[];
   readonly tills: readonly Till[];
   readonly title: string;
@@ -678,6 +658,6 @@ export interface SettlementSummary {
   readonly issues: number;
   readonly listingId: string;
   readonly startsAt: string;
-  readonly status: "draft" | "published" | "cancelled";
+  readonly status: ManagedListing["status"];
   readonly title: string;
 }

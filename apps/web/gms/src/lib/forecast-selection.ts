@@ -133,6 +133,7 @@ function periodData(period: ForecastPeriod, index: number): ForecastDayData {
     condition: conditionFor(summary),
     summary,
     source: "",
+    validTo: period.valid_to,
   };
 }
 /** Presentation only: the API supplies selected periods and all time boundaries. */

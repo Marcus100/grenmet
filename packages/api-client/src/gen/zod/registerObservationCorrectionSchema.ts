@@ -12,8 +12,18 @@ export const registerObservationCorrectionSchema = z
     aerodrome_icao: z.union([z.string().min(4).max(4), z.null()]).optional(),
     issued_at: z.union([z.iso.datetime(), z.null()]).optional(),
     raw_tac: z.union([z.string().max(12000), z.null()]).optional(),
-    bufr: z.union([z.looseObject({}), z.null()]).optional(),
-    iwxxm: z.union([z.looseObject({}), z.null()]).optional(),
+    bufr: z
+      .union([z.looseObject({}), z.null()])
+      .optional()
+      .describe(
+        "Read-only: ignored on write. The server writes the BUFR record (and any reviewer override) at acceptance and sending; a save stores none, or an error record when the station settings could not be read."
+      ),
+    iwxxm: z
+      .union([z.looseObject({}), z.null()])
+      .optional()
+      .describe(
+        "Read-only: ignored on write. The server writes the IWXXM record at acceptance and sending; a save stores none, or an error record when the station settings could not be read."
+      ),
     reason: z.union([z.string().max(1000), z.null()]).optional(),
   })
   .describe(

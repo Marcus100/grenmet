@@ -40,6 +40,8 @@ const post = (id: string, publishedAt: string): PublishedContent => ({
 // 1 Nov 2026, 1:00 p.m. in Grenada.
 const NOW = new Date("2026-11-01T17:00:00Z");
 const EXPIRED_BRIEFING_NOTE = /^Expired .+ · next forecast due 6:00 p\.m\.$/u;
+const MARINE_EXPIRED_NOTE =
+  /^Expired .+ · next forecast due 5:00 a\.m\. tomorrow$/u;
 
 describe("buildDeskFeed", () => {
   it("pins the newest public forecast, then the outlook, then posts newest first", () => {
@@ -91,7 +93,7 @@ describe("buildDeskFeed", () => {
     expect(feed.missingBriefing).toBeNull();
   });
 
-  it("keeps the not-current note for the other products, should the API send one", () => {
+  it("gives an expired Marine Forecast its own next issue (05:00), not the land times", () => {
     const stale = buildDeskFeed({
       level: "none",
       now: new Date("2026-11-03T17:00:00Z"),
@@ -101,6 +103,21 @@ describe("buildDeskFeed", () => {
           issuedAt: "2026-11-01T05:00",
           validFrom: "2026-11-01T05:00",
           validTo: "2026-11-02T05:00",
+        }),
+      ],
+    });
+    expect(stale.official[0]?.staleNote).toMatch(MARINE_EXPIRED_NOTE);
+  });
+
+  it("keeps the not-current note for an outlook, should the API send one", () => {
+    const stale = buildDeskFeed({
+      level: "none",
+      now: new Date("2026-11-03T17:00:00Z"),
+      posts: [],
+      products: [
+        product("outlook", "2026-11-01T12:00:00Z", {
+          issuedAt: "2026-11-01T08:00",
+          validTo: "2026-11-02T08:00",
         }),
       ],
     });

@@ -5,6 +5,7 @@ import {
   type Field,
 } from "payload";
 import { canPublish, staffField } from "../access";
+import { isLive, PUBLISHED } from "../lib/publication-status";
 
 /**
  * Review before publication: authors submit ("Ready for review") and only a
@@ -13,16 +14,13 @@ import { canPublish, staffField } from "../access";
 export function enforceReview(publishKey: string): CollectionBeforeChangeHook {
   return ({ data, originalDoc, req }) => {
     if (!req.user) throw new APIError("Sign in to edit content.", 403);
-    if (data.status === "published") {
+    if (data.status === PUBLISHED) {
       if (!canPublish(req.user, publishKey))
         throw new APIError(
           "You do not have permission to publish in this section.",
           403
         );
-      if (
-        originalDoc?.status !== "review" &&
-        originalDoc?.status !== "published"
-      )
+      if (originalDoc?.status !== "review" && !isLive(originalDoc))
         throw new APIError(
           "Submit the content for review before publishing.",
           400
@@ -70,7 +68,7 @@ export const stampPublication: CollectionBeforeValidateHook = ({
   req,
 }) => {
   if (!data) return data;
-  if (!data.publishedAt && data.status === "published")
+  if (!data.publishedAt && data.status === PUBLISHED)
     data.publishedAt = firstPublishedAt(data.publishAt);
   data.author = operation === "create" ? req.user?.id : originalDoc?.author;
   // Public on the site (the author relation itself is staff-only): who wrote it.
@@ -89,7 +87,7 @@ export const workflowFields: Field[] = [
     options: [
       { label: "Draft", value: "draft" },
       { label: "Ready for review", value: "review" },
-      { label: "Published", value: "published" },
+      { label: "Published", value: PUBLISHED },
     ],
     admin: {
       position: "sidebar",

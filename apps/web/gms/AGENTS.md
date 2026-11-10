@@ -110,6 +110,13 @@ src/app/
   through a rewrite;
   `nav-sections.test.ts` fails if a built link has no route or a planned link is
   shadowed by one. Build the page, then drop `planned`.
+  A built page whose product is not issued yet (its page says "Not yet available
+  from GMS") is marked `coming()` instead: it keeps its real route and shows a
+  "Coming" label in the menu, drawer, sitemap and section index (`isComing`).
+  Moved or retired addresses go into `ROUTE_MOVES` (issue #1168 moved product
+  archive to `/weather/archive`, disaster management, construction, education and
+  media to `/about/…`, and retired `/alerts/marine`, `/alerts/advisories`,
+  `/alerts/cyclone/archive` and `/about/services`).
 - **Words for alerts (owner, 9 Nov 2026):** the green-level products GMS issues
   are **GMS alerts**; yellow, orange and red notices are **warnings** (CAP).
   Each hazard page (`/alerts/bulletins/<hazard>`) shows both, with a
@@ -151,7 +158,7 @@ src/app/
   stack card, tabs, panel and keep one height on every tab (`ByTab` stacks the
   panels); wider screens put the card on the left and the tabs over the panel
   on the right, as short as the selected tab (`ByTab fit`). Now card: "Now ·
-  station" (or "Last observed …" past 90 minutes), temperature with today's
+  station" (or "Last observed …" past two hours), temperature with today's
   lowest and highest so far either side, sky (observer's words, else cloud),
   feels like and wind with gusts, and a link to today's forecast. Day card:
   date, low, high, chance of rain, sky, wind with gusts, the forecaster's
@@ -221,9 +228,13 @@ src/app/
   carries `<Provenance>` (`components/pages/provenance.tsx`): source, observed or
   issued time in Grenada time, status (provisional, verified, external) and, for
   external sources such as NOAA GOES, "Not a GMS product". Limits live in
-  `lib/current-conditions.ts`: observations 90 min (`STALE_AFTER_MS`), forecasts
-  12 h since issue, satellite 30 min. A stale product says so in words ("Last
-  observed", warning line), never only by colour. Home page exception (owner,
+  `lib/freshness.ts`: observations two hours (`OBSERVATION_STALE_AFTER_MS`,
+  hourly SYNOP), forecasts judged by their valid-to time (`forecastValidity`;
+  12 h since issue only when no valid-to is given), satellite 30 min. A stale
+  or expired product says so in words ("Observed 3 hours ago (11:00 a.m. AST)
+  — older than usual", "This forecast expired at …; the next issue is due …",
+  via `observationNote` / `validityNote` and `FreshnessNotice`), never only by
+  colour. Home page exception (owner,
   28 Oct 2026): the hero Now card carries only its top line ("Last observed …
   · provisional") and Grenada in data only its caption; detail pages keep the
   full block. GMS forms store offset-less

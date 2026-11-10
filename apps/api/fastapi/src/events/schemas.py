@@ -40,6 +40,8 @@ Intent = Literal[
 ]
 ConnectionState = Literal["self", "none", "connected", "sent", "received", "blocked"]
 When = Literal["tonight", "weekend", "week", "month"]
+#: Listing lifecycle (src/events/transitions.py ListingStatus).
+ListingStatusName = Literal["draft", "published", "cancelled"]
 
 HANDLE_PATTERN = r"^[a-z0-9][a-z0-9-]{1,29}$"
 SLUG_PATTERN = r"^[a-z0-9][a-z0-9-]{1,79}$"
@@ -1007,7 +1009,7 @@ class StaffEventRow(BaseModel):
 
     listing_id: uuid.UUID
     title: str
-    status: str
+    status: ListingStatusName
     starts_at: UtcDateTime
     organiser_id: uuid.UUID
     organiser_name: str

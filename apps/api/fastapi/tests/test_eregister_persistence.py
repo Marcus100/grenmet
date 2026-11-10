@@ -62,6 +62,9 @@ async def register_client(
         await engine.dispose()
 
 
+@pytest.mark.usefixtures(
+    "db_async"
+)  # the listing reads actor names from the application database
 async def test_observation_save_and_reopen_preserves_structured_values(
     register_client: httpx.AsyncClient,
 ) -> None:
@@ -79,7 +82,9 @@ async def test_observation_save_and_reopen_preserves_structured_values(
     saved = response.json()
     assert saved["station_id"] == "78958"
     assert saved["body"] == record["body"]
-    assert saved["bufr"] == record["bufr"]
+    # The BUFR record is written by the server (acceptance and sending), never taken
+    # from the client: a client value is ignored, so it cannot carry an override.
+    assert saved["bufr"] is None
     assert saved["iwxxm"] is None
     assert saved["observed_at"] == "2026-09-23T12:00:00Z"
     assert saved["state"] == "draft"
