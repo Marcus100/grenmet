@@ -19,7 +19,7 @@ import {
 } from "@/components/with-alerts";
 import { alertsDisplayLevel, alertsSummary } from "@/lib/cap-alerts";
 import { menuSheet } from "@/lib/motion";
-import { NAV_SECTIONS } from "@/lib/nav-sections";
+import { isComing, NAV_SECTIONS } from "@/lib/nav-sections";
 import { cn } from "@/lib/utils";
 import { WARNING_LEVEL_SURFACE } from "@/lib/warning-level";
 
@@ -205,6 +205,14 @@ export function NavDrawer({
                                       onClick={onClose}
                                     >
                                       {link.name}
+                                      {isComing(link) ? (
+                                        <span className="text-gm-text-muted text-label leading-label ml-2 font-bold tracking-wider uppercase">
+                                          <span aria-hidden="true">Coming</span>
+                                          <span className="sr-only">
+                                            , coming soon
+                                          </span>
+                                        </span>
+                                      ) : null}
                                     </a>
                                   </li>
                                 ))}

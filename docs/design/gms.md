@@ -431,6 +431,12 @@ multi-day validity).
 - Reach for generic "AI" styling: gradient-filled text, glassmorphism, emoji icons, card-kit grids with no hierarchy.
 - Add or change a `--gm-*` token without approval.
 
+## Navigation labels (issue #1168)
+
+- Menu entries that describe a product GMS does not issue yet keep their page and its placeholder notice, and carry a small **Coming** label (`isComing` in `packages/gms/src/nav-sections.ts`; desktop menu, drawer, sitemap and section index). The label is text, not colour alone.
+- The `planned` flag is for pages not built at all: it routes to the placeholder page and must never sit on a link whose page exists.
+- Green-level products are **GMS alerts**; yellow, orange and red notices are **warnings**. Every hazard page shows both.
+
 ## Accessibility & interaction
 
 Target WCAG 2.2 AA. Adapted from the GOV.UK Design System and Vercel's Web Interface

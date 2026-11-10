@@ -1,4 +1,10 @@
 export interface NavLink {
+  /**
+   * Built, but the product it describes is not issued yet. The page keeps its
+   * structure and its placeholder notice; the menu shows a small "Coming"
+   * label. Unlike `planned`, it routes to the real page, so nothing shadows it.
+   */
+  coming?: boolean;
   /** One line, shown under the name in the sitemap and section pages. */
   description: string;
   href: string;
@@ -51,6 +57,13 @@ const planned = (name: string, href: string, description: string): NavLink => ({
   planned: true,
 });
 
+const coming = (name: string, href: string, description: string): NavLink => ({
+  name,
+  href,
+  description,
+  coming: true,
+});
+
 /**
  * Primary site navigation — seven sections, one URL root each (Bold sky IA,
  * 28 Sep 2026). Shared by the mobile drawer, the desktop mega menu, the
@@ -70,22 +83,17 @@ export const NAV_SECTIONS: NavSection[] = [
           link(
             "Alerts in effect",
             "/alerts",
-            "Current Outlooks, Watches and Warnings"
-          ),
-          link(
-            "Past alerts",
-            "/alerts/past",
-            "Warnings that ended in the last 30 days"
-          ),
-          link(
-            "GMS alerts",
-            "/alerts/bulletins",
-            "Green-level alerts issued by GMS for nine hazards"
+            "Warnings in effect now, by level and hazard"
           ),
           link(
             "Plan your week",
             "/plan-your-week",
             "What this week's alerts mean for each sector"
+          ),
+          link(
+            "Past alerts",
+            "/alerts/past",
+            "Warnings that ended in the last 30 days"
           ),
         ],
       },
@@ -128,6 +136,16 @@ export const NAV_SECTIONS: NavSection[] = [
             "Tsunami",
             "/alerts/tsunami",
             "Threat levels, natural signs and what to do"
+          ),
+        ],
+      },
+      {
+        heading: "GMS alerts",
+        links: [
+          link(
+            "All GMS alerts",
+            "/alerts/bulletins",
+            "Green-level alerts issued by GMS for nine hazards"
           ),
         ],
       },
@@ -194,11 +212,15 @@ export const NAV_SECTIONS: NavSection[] = [
             "/alerts/get-alerts",
             "Every channel alerts reach you through"
           ),
-          link("GMS app", "/app-guide", "Warnings and forecasts on your phone"),
+          coming(
+            "GMS app",
+            "/app-guide",
+            "Warnings and forecasts on your phone"
+          ),
           link(
-            "CAP alerts",
+            "CAP feeds",
             "/alerts/get-alerts/cap",
-            "The machine-readable alert feed we publish"
+            "Machine-readable alerts (the Common Alerting Protocol) for apps and agencies"
           ),
         ],
       },
@@ -228,7 +250,7 @@ export const NAV_SECTIONS: NavSection[] = [
             "/weather/synopsis",
             "The forecaster's plain-language summary"
           ),
-          link(
+          coming(
             "Nowcast",
             "/weather/nowcast",
             "Rain and wind over the next six hours"
@@ -236,7 +258,12 @@ export const NAV_SECTIONS: NavSection[] = [
           link(
             "Issued forecasts",
             "/weather/issued",
-            "Morning, midday and evening reports"
+            "Every forecast and marine forecast GMS has issued"
+          ),
+          coming(
+            "Product archive",
+            "/weather/archive",
+            "Past forecasts, warnings and bulletins"
           ),
           link(
             "Tropical Weather Outlook",
@@ -253,18 +280,18 @@ export const NAV_SECTIONS: NavSection[] = [
             "/weather/conditions",
             "The latest observations from Point Salines"
           ),
-          link("Radar", "/weather/radar", "Rainfall over Grenada right now"),
+          coming("Radar", "/weather/radar", "Rainfall over Grenada right now"),
           link(
             "Satellite",
             "/weather/satellite",
             "Cloud and storms across the region"
           ),
-          link(
+          coming(
             "Lightning",
             "/weather/lightning",
             "Recent lightning strikes around the islands"
           ),
-          link(
+          coming(
             "Rainfall",
             "/weather/rainfall",
             "Rain totals from the last 24 hours"
@@ -299,13 +326,13 @@ export const NAV_SECTIONS: NavSection[] = [
       {
         heading: "Atmosphere",
         links: [
-          link(
+          coming(
             "Saharan dust",
             "/weather/dust",
             "Five-day dust outlook and visibility"
           ),
-          link("UV index", "/weather/uv", "How strong the sun is today"),
-          link(
+          coming("UV index", "/weather/uv", "How strong the sun is today"),
+          coming(
             "Heat index",
             "/weather/heat",
             "How hot it feels, and when to take care"
@@ -320,12 +347,12 @@ export const NAV_SECTIONS: NavSection[] = [
             "/weather/map",
             "Satellite, radar, rain and wind on one map"
           ),
-          link(
+          coming(
             "Model guidance",
             "/weather/models",
             "The numerical guidance behind the forecast"
           ),
-          link(
+          coming(
             "Surface analysis",
             "/weather/analyses",
             "The features driving today's weather"
@@ -340,27 +367,27 @@ export const NAV_SECTIONS: NavSection[] = [
             "/weather/observations",
             "Latest readings from across the network"
           ),
-          link(
+          coming(
             "Stations",
             "/weather/observations/stations",
             "Every station, what it measures and where"
           ),
-          link(
+          coming(
             "Weather cameras",
             "/weather/observations/cameras",
             "Live views of sky and sea"
           ),
-          link(
+          coming(
             "Water levels",
             "/weather/observations/water-levels",
             "River and coastal water level sensors"
           ),
-          link(
+          coming(
             "Upper air",
             "/weather/observations/upper-air",
             "Soundings through the atmosphere"
           ),
-          link(
+          coming(
             "School stations",
             "/weather/observations/school-stations",
             "Student-run stations in the network"
@@ -404,23 +431,23 @@ export const NAV_SECTIONS: NavSection[] = [
             "/marine/forecast",
             "Wind, sea state and swell for Grenada waters"
           ),
-          link(
+          coming(
             "Coastal waters",
             "/marine/coastal",
             "Conditions by zone within 12 nautical miles"
           ),
-          link(
+          coming(
             "Sea conditions",
             "/marine/sea-conditions",
             "Observed sea state around the islands"
           ),
-          link(
+          coming(
             "Waves & swell",
             "/marine/wave-swell",
             "Significant height, period and direction"
           ),
           link("Tides", "/marine/tides", "Predicted high and low water"),
-          link(
+          coming(
             "Nearshore wave model",
             "/marine/wave-model",
             "High-resolution wave modelling"
@@ -435,7 +462,7 @@ export const NAV_SECTIONS: NavSection[] = [
       {
         heading: "Beaches",
         links: [
-          link(
+          coming(
             "Beach conditions",
             "/marine/beaches",
             "Surf, UV and water quality at popular beaches"
@@ -455,12 +482,12 @@ export const NAV_SECTIONS: NavSection[] = [
       {
         heading: "Ocean",
         links: [
-          link(
+          coming(
             "Sea temperature",
             "/marine/ocean/sea-temperature",
             "How warm the water is, and against normal"
           ),
-          link(
+          coming(
             "Coral heat stress",
             "/marine/ocean/coral",
             "Bleaching risk for Grenada's reefs"
@@ -470,7 +497,7 @@ export const NAV_SECTIONS: NavSection[] = [
       {
         heading: "Sargassum",
         links: [
-          link(
+          coming(
             "Sargassum outlook",
             "/marine/sargassum",
             "Where seaweed may reach the coast"
@@ -510,12 +537,12 @@ export const NAV_SECTIONS: NavSection[] = [
             "/climate/monthly",
             "How last month compared with normal"
           ),
-          link(
+          coming(
             "Drought status",
             "/climate/drought",
             "Dry-spell status across the tri-island state"
           ),
-          link(
+          coming(
             "Climate dashboard",
             "/climate/dashboard",
             "Rain, temperature and sea at a glance"
@@ -525,7 +552,7 @@ export const NAV_SECTIONS: NavSection[] = [
       {
         heading: "Outlooks",
         links: [
-          link(
+          coming(
             "Seasonal outlook",
             "/climate/seasonal",
             "Rainfall and temperature for the months ahead"
@@ -540,7 +567,7 @@ export const NAV_SECTIONS: NavSection[] = [
       {
         heading: "Grenada's climate",
         links: [
-          link(
+          coming(
             "Climate normals",
             "/climate/normals",
             "What a typical month looks like"
@@ -555,18 +582,18 @@ export const NAV_SECTIONS: NavSection[] = [
       {
         heading: "Climate data",
         links: [
-          link("Rainfall", "/climate/rainfall", "Monthly and daily totals"),
-          link(
+          coming("Rainfall", "/climate/rainfall", "Monthly and daily totals"),
+          coming(
             "Temperature",
             "/climate/temperature",
             "Highs, lows and averages"
           ),
-          link(
+          coming(
             "Historical data",
             "/climate/historical",
             "Past observations through the record"
           ),
-          link(
+          coming(
             "Records",
             "/climate/records",
             "Hottest, wettest and windiest on record"
@@ -591,7 +618,7 @@ export const NAV_SECTIONS: NavSection[] = [
       {
         heading: "Reports",
         links: [
-          link(
+          coming(
             "Publications",
             "/climate/publications",
             "Reports, bulletins and studies"
@@ -600,11 +627,6 @@ export const NAV_SECTIONS: NavSection[] = [
             "Climate newsletter",
             "/climate/newsletter",
             "Monthly conditions and outlooks"
-          ),
-          link(
-            "Product archive",
-            "/climate/archive",
-            "Past forecasts, warnings and bulletins"
           ),
           link(
             "Request data",
@@ -635,17 +657,17 @@ export const NAV_SECTIONS: NavSection[] = [
             "/services/aviation",
             "Aerodromes, products and briefings"
           ),
-          link(
+          coming(
             "METAR and TAF",
             "/services/aviation/metar-taf",
             "Current observations and terminal forecasts"
           ),
-          link(
+          coming(
             "Flight winds",
             "/services/aviation/flight-winds",
             "Wind and temperature at flight levels"
           ),
-          link(
+          coming(
             "Significant weather",
             "/services/aviation/sigwx",
             "Regional significant weather"
@@ -660,7 +682,7 @@ export const NAV_SECTIONS: NavSection[] = [
       {
         heading: "Agriculture",
         links: [
-          link(
+          coming(
             "Agriculture weather",
             "/services/agriculture",
             "Rainfall and dry-spell outlooks for growers"
@@ -668,24 +690,14 @@ export const NAV_SECTIONS: NavSection[] = [
         ],
       },
       {
-        heading: "Disaster management",
-        links: [
-          link(
-            "Decision support",
-            "/services/disaster-management",
-            "Hazard briefings for planners and responders"
-          ),
-        ],
-      },
-      {
         heading: "Tourism & events",
         links: [
-          link(
+          coming(
             "Visitor weather",
             "/services/tourism",
             "Planning weather for visitors"
           ),
-          link(
+          coming(
             "Event forecasts",
             "/services/tourism/events",
             "Venue forecasts for Grenada's calendar"
@@ -695,7 +707,7 @@ export const NAV_SECTIONS: NavSection[] = [
       {
         heading: "Health",
         links: [
-          link(
+          coming(
             "Health weather",
             "/services/health",
             "Heat, dust and air-quality guidance"
@@ -703,28 +715,18 @@ export const NAV_SECTIONS: NavSection[] = [
         ],
       },
       {
-        heading: "More services",
+        heading: "Roads & transport",
         links: [
           planned(
             "Roads & transport",
             "/services/roads-transport",
             "Flooding, landslides and travel after heavy rain"
           ),
-          link(
-            "Construction",
-            "/services/construction",
-            "Wind and rain windows for site planning"
-          ),
-          link(
-            "Education",
-            "/services/education",
-            "Weather resources for schools"
-          ),
-          link(
-            "Media",
-            "/services/media",
-            "Broadcast-ready data, graphics and interviews"
-          ),
+        ],
+      },
+      {
+        heading: "Data",
+        links: [
           link(
             "Data & API",
             "/services/data",
@@ -827,7 +829,7 @@ export const NAV_SECTIONS: NavSection[] = [
           ),
           link("Glossary", "/explore/glossary", "The terms we use"),
           link("FAQs", "/explore/faqs", "Common questions about our services"),
-          link(
+          coming(
             "Downloads",
             "/explore/downloads",
             "Forms, posters and guides to keep"
@@ -853,7 +855,7 @@ export const NAV_SECTIONS: NavSection[] = [
         heading: "About GMS",
         links: [
           link("What we do", "/about", "Who we are and what we do"),
-          link(
+          coming(
             "Our history",
             "/about/history",
             "How meteorology in Grenada developed"
@@ -869,10 +871,35 @@ export const NAV_SECTIONS: NavSection[] = [
       {
         heading: "Observing network",
         links: [
-          link(
+          coming(
             "Observing network",
             "/about/network",
             "Where our observations come from"
+          ),
+        ],
+      },
+      {
+        heading: "Public services",
+        links: [
+          link(
+            "Disaster management",
+            "/about/disaster-management",
+            "Hazard briefings for planners and responders"
+          ),
+          coming(
+            "Construction",
+            "/about/construction",
+            "Wind and rain windows for site planning"
+          ),
+          link(
+            "Education",
+            "/about/education",
+            "Weather resources for schools"
+          ),
+          coming(
+            "Media",
+            "/about/media",
+            "Broadcast-ready data, graphics and interviews"
           ),
         ],
       },
@@ -894,7 +921,7 @@ export const NAV_SECTIONS: NavSection[] = [
       {
         heading: "Performance",
         links: [
-          link(
+          coming(
             "Forecast accuracy",
             "/about/performance",
             "How well our forecasts verify"
@@ -940,6 +967,11 @@ export const FOOTER_GROUP_SECTION = "/about";
 /** Every link in a section, in order — what the mobile drawer lists. */
 export function sectionLinks(section: NavSection): NavLink[] {
   return section.groups.flatMap((group) => group.links);
+}
+
+/** Whether a menu entry carries the "Coming" label (not issued or not built yet). */
+export function isComing(link: NavLink): boolean {
+  return Boolean(link.planned || link.coming);
 }
 
 /** Every planned (not yet built) link, keyed by path, with its section. */

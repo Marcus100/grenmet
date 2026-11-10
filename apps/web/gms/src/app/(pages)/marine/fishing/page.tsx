@@ -24,12 +24,12 @@ export default function FishingPage() {
       <PageSection heading="Is it safe to go out?">
         <Prose
           paragraphs={[
-            "Check the latest marine bulletin below before you leave. If a small craft advisory is in effect, small open boats such as pirogues should stay in port.",
+            "Check the marine forecast below and any GMS marine alert in effect before you leave. If a small craft advisory is in effect, small open boats such as pirogues should stay in port.",
           ]}
         />
       </PageSection>
-      <PageSection heading="Latest marine bulletin">
-        <PublishedProducts kinds={["marine"]} />
+      <PageSection heading="Latest marine forecast">
+        <PublishedProducts kinds={["marine-forecast"]} />
       </PageSection>
       <PageSection heading="Before you leave">
         <Checklist

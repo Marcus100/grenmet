@@ -22,7 +22,7 @@ export default function PublicationsPage() {
         <LinkList
           links={[
             {
-              name: "Monthly climate summary",
+              name: "Climate Bulletin",
               href: "/climate/monthly",
               description: "How the month compared with normal, by station",
               meta: "Monthly",

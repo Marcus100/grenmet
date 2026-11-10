@@ -7,7 +7,12 @@ import { movedPath, ROUTE_MOVES, routeMoveRedirects } from "@/lib/route-moves";
 import { APP_DIR, routesOnDisk, serves } from "@/test/routes";
 
 const routes = [...routesOnDisk(APP_DIR), "/"];
-const isServed = (href: string) => routes.some((route) => serves(route, href));
+// `/alerts/[identifier]` matches any one-segment address, but next.config
+// redirects run before routing, so a retired `/alerts/<word>` move wins over it.
+const isServed = (href: string) =>
+  routes.some(
+    (route) => route !== "/alerts/[identifier]" && serves(route, href)
+  );
 
 describe("ROUTE_MOVES", () => {
   it.each(ROUTE_MOVES.map(([from]) => from))(
@@ -46,7 +51,14 @@ describe("movedPath", () => {
     ["/resources/hurricane", "/alerts/prepare/hurricane"],
     ["/warnings", "/alerts"],
     ["/warnings/levels", "/alerts/levels"],
-    ["/warnings/cyclone/archive", "/alerts/cyclone/archive"],
+    ["/warnings/cyclone/archive", "/explore/history/hurricanes"],
+    ["/alerts/cyclone/archive", "/explore/history/hurricanes"],
+    ["/alerts/marine", "/alerts/bulletins/marine"],
+    ["/alerts/advisories", "/alerts"],
+    ["/climate/archive", "/weather/archive"],
+    ["/about/services", "/services"],
+    ["/services/media", "/about/media"],
+    ["/media", "/about/media"],
     ["/resources/hurricane-names", "/explore/hurricane-names"],
     ["/sectors/aviation", "/services/aviation"],
     ["/aviation/metar-taf", "/services/aviation/metar-taf"],

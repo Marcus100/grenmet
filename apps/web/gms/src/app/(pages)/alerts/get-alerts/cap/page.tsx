@@ -7,17 +7,23 @@ import { PageSection } from "@/components/pages/page-section";
 import { Prose } from "@/components/pages/prose";
 
 export const metadata = {
-  title: "CAP alerts",
+  title: "CAP feeds",
   description:
     "The machine-readable Common Alerting Protocol feeds the Grenada Meteorological Service publishes.",
 };
+
+/**
+ * The public CAP hub that publishes the alert documents, maps and history.
+ * Its feeds are read-only and need no key.
+ */
+const CAP_HUB = "https://cap.barrels.gd";
 
 export default function CapAlertsPage() {
   return (
     <>
       <PageHeader
         description="The machine-readable alert feeds we publish, for apps, broadcasters and emergency systems."
-        title="CAP alerts"
+        title="CAP feeds"
       />
       <PageSection heading="What CAP is">
         <Prose
@@ -42,6 +48,45 @@ export default function CapAlertsPage() {
               "GeoJSON",
               "/api/alerts/geojson",
               "Maps and GIS tools: the area each active alert covers",
+            ],
+          ]}
+        />
+      </PageSection>
+      <PageSection heading="Hub feeds and pages">
+        <InfoTable
+          caption="Published by the CAP hub at cap.barrels.gd; each updates as alerts are issued, updated or cancelled."
+          headers={["What", "Address", "Use it for"]}
+          monoColumns={[1]}
+          rows={[
+            [
+              "CAP 1.2 XML (one alert)",
+              `${CAP_HUB}/feeds/alerts/<identifier>.xml`,
+              "The standard document for each alert; the identifier is on the alert's page",
+            ],
+            [
+              "Active alerts (JSON)",
+              `${CAP_HUB}/feeds/latest-active.json`,
+              "Alerts in effect, in the same shape as the alert API",
+            ],
+            [
+              "Alerts feed (RSS)",
+              `${CAP_HUB}/feeds/rss.xml`,
+              "Feed readers and websites that take RSS",
+            ],
+            [
+              "Alert areas (GeoJSON)",
+              `${CAP_HUB}/feeds/alerts.geojson`,
+              "Mapping tools: each active alert's area",
+            ],
+            [
+              "Alert map",
+              `${CAP_HUB}/map`,
+              "Where each active alert applies, on a map",
+            ],
+            [
+              "Alert history",
+              `${CAP_HUB}/history`,
+              "Past alerts, newest first",
             ],
           ]}
         />
