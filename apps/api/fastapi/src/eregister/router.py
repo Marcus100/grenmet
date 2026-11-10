@@ -537,7 +537,8 @@ async def reject_register_observation(
         "500 characters after cleaning). With the override, WIS2 and email may send "
         "that record. It never changes the BUFR message or its validity, and a "
         "correction or a re-encoding of the record ends it. Requires `eregister.qc`; "
-        "the observer who recorded the observation is refused. 409 when the BUFR "
+        "the observer who recorded the observation, or any observation it "
+        "corrects, is refused. 409 when the BUFR "
         "check passed, the observation is rejected or superseded, or it is not a "
         "SYNOP. Audited."
     ),
@@ -545,7 +546,10 @@ async def reject_register_observation(
         **QC_RESPONSES,
         403: {
             "model": ApiError,
-            "description": "Not an eRegister QC reviewer, or the observer of this observation",
+            "description": (
+                "Not an eRegister QC reviewer, or the observer of this observation "
+                "or of an observation it corrects"
+            ),
         },
     },
 )

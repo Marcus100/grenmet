@@ -16,7 +16,7 @@ import pytest
 from alembic.config import Config
 from sqlalchemy import select, text
 from sqlalchemy.engine import Engine
-from sqlalchemy.exc import IntegrityError
+from sqlalchemy.exc import DBAPIError, IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.pool import NullPool
 
@@ -2486,7 +2486,9 @@ async def test_override_keeps_the_cleaned_reason_and_the_reviewer(
         )
     ).all()
     assert [entry.actor_user_id for entry in audit] == [reviewer.id]
-    assert audit[0].changes[0]["new"] == OVERRIDE_REASON
+    recorded = {change["field"]: change["new"] for change in audit[0].changes}
+    assert recorded["bufr_override"] == OVERRIDE_REASON
+    assert recorded["record_sha256"] == stored["override"]["record_sha256"]
 
 
 @pytest.mark.usefixtures("incoming", "recipients")
@@ -2665,7 +2667,7 @@ async def test_a_station_settings_crash_does_not_fail_the_save(
     async def crash(*_args: object, **_kwargs: object) -> None:
         raise RuntimeError("forced settings lookup crash")
 
-    monkeypatch.setattr("src.eregister.stations.pressure_for", crash)
+    monkeypatch.setattr("src.eregister.stations.get", crash)
     created = await client.post(
         "/api/v1/eregister/observations",
         json={
@@ -2683,3 +2685,101 @@ async def test_a_station_settings_crash_does_not_fail_the_save(
     assert saved["iwxxm"]["valid"] is False
     listed = (await client.get(OBS_URL)).json()["observations"]
     assert [row["id"] for row in listed] == [saved["id"]]
+
+
+async def test_a_failed_station_lookup_in_a_correction_keeps_the_row_lock(
+    send_client: tuple[httpx.AsyncClient, User],
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    client, _ = send_client
+    observation = await save(client)
+
+    async def failing_get(register: AsyncSession, _station: str) -> None:
+        # A real SQL failure: it aborts the statement inside the lookup.
+        await register.execute(text("SELECT 1 / 0"))
+
+    monkeypatch.setattr("src.eregister.stations.get", failing_get)
+    original_history = entries.history_for
+    checked: list[bool] = []
+
+    async def history_while_locked(register: AsyncSession, *args: Any) -> Any:
+        # After the failed lookup, another connection still cannot take the row:
+        # correct() keeps its lock, so its state guard still holds.
+        with pytest.raises(DBAPIError):
+            await register_rows(
+                "SELECT id FROM register_observations WHERE id = :i FOR UPDATE NOWAIT",
+                i=observation,
+            )
+        checked.append(True)
+        return await original_history(register, *args)
+
+    monkeypatch.setattr("src.eregister.entries.history_for", history_while_locked)
+    corrected = await client.post(
+        qc_url(observation, "correct"), json={"body": FULL_ROW, "reason": "typo"}
+    )
+    assert corrected.status_code == 201, corrected.text
+    assert checked == [True]
+    saved = corrected.json()
+    assert saved["bufr"]["valid"] is False
+    assert "pressure settings" in saved["bufr"]["errors"][0]
+    assert saved["iwxxm"]["valid"] is False
+    states = await register_rows(
+        "SELECT state FROM register_observations WHERE id = :i", i=observation
+    )
+    assert states == [{"state": "superseded"}]
+
+
+@pytest.mark.usefixtures("incoming", "recipients")
+async def test_the_original_observer_cannot_override_a_correction_by_someone_else(
+    send_client: tuple[httpx.AsyncClient, User],
+    db_async: AsyncSession,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    client, observer = send_client
+    original = await accepted_with_failed_bufr(client, monkeypatch)
+    await as_reviewer(db_async)
+    fixed = await client.post(
+        qc_url(original, "correct"),
+        json={"body": {**FULL_ROW, "present_wx": "51"}, "reason": "typo"},
+    )
+    assert fixed.status_code == 201, fixed.text
+    correction = fixed.json()["id"]
+    assert (await client.post(qc_url(correction, "accept"))).status_code == 200
+    # The original observer (a superuser, so holding eregister.qc) is still refused.
+    app.dependency_overrides[get_browser_or_token_user] = lambda: observer
+    refused = await client.post(
+        override_url(correction), json={"reason": OVERRIDE_REASON}
+    )
+    assert refused.status_code == 403, refused.text
+    assert "override" not in await stored_bufr(correction)
+    await as_staff(db_async, "eregister.qc")
+    allowed = await client.post(
+        override_url(correction), json={"reason": OVERRIDE_REASON}
+    )
+    assert allowed.status_code == 200, allowed.text
+
+
+@pytest.mark.usefixtures("incoming", "recipients")
+async def test_rejecting_a_correction_restores_the_original_and_its_override(
+    send_client: tuple[httpx.AsyncClient, User],
+    db_async: AsyncSession,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    client, _ = send_client
+    original = await accepted_with_failed_bufr(client, monkeypatch)
+    await as_reviewer(db_async)
+    assert (
+        await client.post(override_url(original), json={"reason": OVERRIDE_REASON})
+    ).status_code == 200
+    fixed = await client.post(
+        qc_url(original, "correct"),
+        json={"body": {**FULL_ROW, "present_wx": "51"}, "reason": "typo"},
+    )
+    assert fixed.status_code == 201, fixed.text
+    rejected = await client.post(
+        qc_url(fixed.json()["id"], "reject"), json={"reason": "Not needed"}
+    )
+    assert rejected.status_code == 200, rejected.text
+    assert "override" in await stored_bufr(original)
+    email = await client.post(f"/api/v1/eregister/observations/{original}/email")
+    assert email.status_code == 202, email.text

@@ -342,16 +342,22 @@ precipitation, total cloud and present weather. Tolerances are the element resol
 - **Reviewer override** (owner decision, GitHub #1201, 10 Nov): `POST
   /eregister/observations/{id}/bufr-override` with a required reason of 10 to 500
   characters after the shared cleaner. Only `eregister.qc` holders, never the observer
-  (superusers included), and only on a live SYNOP whose check failed. It writes
+  (superusers included): neither who recorded this row nor who recorded any row it
+  corrects (the `supersedes_id` chain), and only on a live SYNOP whose check failed. It writes
   `bufr.override` = `{by, by_name, at, reason, record_sha256}` on the current record and
   audits `bufr_override` in the application database. `sends.load_sendable` lets a
   failed record pass only when `bufr.override_for` finds an override whose
   `record_sha256` is the digest of that exact record (`bufr.record_digest`, the record
   without its override). A correction is a new row, and a re-encoding that changes the
   message ends the override (`bufr.carry_over` keeps it only for an identical encoding).
+  Rejecting a correction restores the original row with its stored BUFR record
+  untouched, so an override given on the original applies again while its digest still
+  matches. The audit entry records the reason and `record_sha256`.
   The override never changes `base64`, `checks` or `valid`. Clients cannot store a
   `bufr` or `iwxxm` record: saves ignore them, and a station-settings lookup failure on
-  save keeps the save with both records stored as errors that say why.
+  save keeps the save with both records stored as errors that say why (a failed SQL
+  statement and any other failure alike). The lookup runs in a SAVEPOINT, so a
+  correction keeps its row lock and state guard after a failed lookup.
 - The CSV handed to wis2box does not change. csv2bufr is a runtime dependency; the
   process points its template search at `bufr_template/`.
 - Not built: BUFR for METAR and SPECI.

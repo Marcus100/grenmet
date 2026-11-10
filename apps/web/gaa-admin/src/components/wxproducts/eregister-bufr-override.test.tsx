@@ -5,7 +5,10 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 const mocks = vi.hoisted(() => ({
   access: vi.fn(),
   override: vi.fn(),
+  report: vi.fn(),
 }));
+
+vi.mock("@/lib/report-error", () => ({ reportError: mocks.report }));
 
 vi.mock("@barrelsgd/api-client", () => ({
   eregisterOverrideRegisterObservationBufr: mocks.override,
@@ -50,7 +53,7 @@ const REASON_LABEL = /Reason \(required/u;
 const ACTION = /Send anyway \(reviewer\)/u;
 const CONFIRM = /Record override and allow sending/u;
 const FAILED_TEXT = /BUFR check failed, so this observation cannot be sent/u;
-const OVERRIDDEN_TEXT = /Sent-anyway override by Ann Reviewer/u;
+const OVERRIDDEN_TEXT = /A reviewer override allows sending it/u;
 
 function observation(
   overrides: Partial<RegisterObservationRead>
@@ -74,6 +77,7 @@ function observation(
 beforeEach(() => {
   mocks.access.mockReset();
   mocks.override.mockReset();
+  mocks.report.mockReset();
   mocks.access.mockReturnValue(REVIEWER);
 });
 
@@ -237,9 +241,36 @@ describe("BufrCheck", () => {
       />
     );
     expect(screen.getByText(OVERRIDDEN_TEXT)).toHaveTextContent(
-      "2026-11-09 10:00 UTC: Checked against the paper register"
+      "recorded by Ann Reviewer at 2026-11-09 10:00 UTC. Reason: Checked against the paper register"
     );
+    const status = screen.getByRole("status");
+    expect(status).toHaveTextContent(`BUFR check failed: ${MISMATCH}`);
+    expect(status).not.toHaveTextContent(FAILED_TEXT);
     expect(screen.queryByRole("button", { name: ACTION })).toBeNull();
+  });
+
+  it("reports a failed request and keeps the fallback message", async () => {
+    const failure = new Error("network down");
+    mocks.override.mockRejectedValue(failure);
+    render(
+      <BufrCheck
+        observation={observation({})}
+        onOverridden={vi.fn()}
+        userId={ME}
+      />
+    );
+    fireEvent.click(screen.getByRole("button", { name: ACTION }));
+    fireEvent.change(screen.getByLabelText(REASON_LABEL), {
+      target: { value: "Checked against the paper register" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: CONFIRM }));
+    expect(await screen.findByRole("alert")).toHaveTextContent(
+      "The override could not be recorded. Try again."
+    );
+    expect(mocks.report).toHaveBeenCalledWith(
+      failure,
+      "eregister-bufr-override"
+    );
   });
 
   it("explains a refusal from the server", async () => {

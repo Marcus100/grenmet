@@ -26,9 +26,15 @@ export type RegisterObservationCreate = {
     [key: string]: unknown;
   };
   raw_tac?: string | null;
+  /**
+   * @description Read-only: ignored on write. The server writes the BUFR record (and any reviewer override) at acceptance and sending; a save stores none, or an error record when the station settings could not be read.
+   */
   bufr?: {
     [key: string]: unknown;
   } | null;
+  /**
+   * @description Read-only: ignored on write. The server writes the IWXXM record at acceptance and sending; a save stores none, or an error record when the station settings could not be read.
+   */
   iwxxm?: {
     [key: string]: unknown;
   } | null;

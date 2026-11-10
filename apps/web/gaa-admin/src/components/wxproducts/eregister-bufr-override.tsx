@@ -19,6 +19,7 @@ import {
 } from "@barrelsgd/ui/components/ui/dialog";
 import { Textarea } from "@barrelsgd/ui/components/ui/textarea";
 import { useState } from "react";
+import { reportError } from "@/lib/report-error";
 
 /** The API's reason limits, after the server's cleaning (the server has the last word). */
 export const OVERRIDE_REASON_MIN = 10;
@@ -124,7 +125,10 @@ function OverrideDialog({
         onOverridden(result.data);
         onClose();
       })
-      .catch(() => setError("The override could not be recorded. Try again."))
+      .catch((caught: unknown) => {
+        reportError(caught, "eregister-bufr-override");
+        setError("The override could not be recorded. Try again.");
+      })
       .finally(() => setPending(false));
   };
 
@@ -224,12 +228,15 @@ export function BufrCheck({
   return (
     <div className="basis-full space-y-1 text-xs">
       <p className="text-destructive" role="status">
-        BUFR check failed, so this observation cannot be sent: {problem}
+        {override
+          ? `BUFR check failed: ${problem}`
+          : `BUFR check failed, so this observation cannot be sent: ${problem}`}
       </p>
       {override ? (
         <p className="text-muted-foreground">
-          Sent-anyway override by {override.by_name ?? "a reviewer"} at{" "}
-          {utcLabel(override.at)}: {override.reason}
+          A reviewer override allows sending it: recorded by{" "}
+          {override.by_name ?? "a reviewer"} at {utcLabel(override.at)}. Reason:{" "}
+          {override.reason}
         </p>
       ) : null}
       {!override && observation.actor_id !== userId ? (

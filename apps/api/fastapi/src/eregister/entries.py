@@ -201,12 +201,21 @@ async def _saved_station(
     """The station's pressure amounts for a save, and the notes to store when the lookup fails.
 
     A failed lookup never fails the save (the acceptance path does the same): the station
-    is left out and both encodings are stored as errors that say why.
+    is left out and both encodings are stored as errors that say why. A failed SQL
+    statement and any other failure are treated alike.
+
+    The lookup runs in a SAVEPOINT and never rolls back the outer transaction, so the row
+    lock correct() holds (and its state guard) still stands after a failure. This is why
+    it reads the station directly instead of through ``stations.pressure_for``, whose
+    rollback would end the whole transaction and release that lock.
     """
-    # No rollback here: correct() holds the row lock, and pressure_for already rolls back
-    # a failed SQL statement itself.
+    station = (station_id or "").strip()
+    if not station:
+        return None, None
     try:
-        return await stations.pressure_for(register, station_id), None
+        async with register.begin_nested():
+            settings = await stations.get(register, station)
+        return stations.pressure_settings(settings), None
     except Exception:
         logger.exception(
             "eRegister pressure settings lookup failed while saving; encodings stored as errors"

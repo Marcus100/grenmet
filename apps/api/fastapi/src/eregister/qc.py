@@ -11,9 +11,9 @@ States: ``draft`` (``qc_pending`` once reopened) -> ``accepted``, plus
 * ``reject``: draft or qc_pending. ``reopen``: accepted or rejected, back to
   ``qc_pending``; both are refused once a WIS2 file was queued or sent (correct
   the observation with a new one instead).
-* ``override_bufr``: register QC, never the observer. Lets a failed or mismatched
-  BUFR check pass for sending on the current record only; it changes no state and
-  no BUFR bytes or validity.
+* ``override_bufr``: register QC, never the observer of this row or of any row it
+  corrects. Lets a failed or mismatched BUFR check pass for sending on the current
+  record only; it changes no state and no BUFR bytes or validity.
 
 The observation row lives in the separate register database and the audit
 trail in the application database, so the two cannot share a transaction. The
@@ -519,6 +519,27 @@ def _bufr_override_reason(reason: str) -> str:
     return clean
 
 
+_CHAIN_ACTORS = text(
+    """
+    WITH RECURSIVE chain(id, actor_id, supersedes_id, depth) AS (
+      SELECT id, actor_id, supersedes_id, 0 FROM register_observations WHERE id = :id
+      UNION ALL
+      SELECT o.id, o.actor_id, o.supersedes_id, chain.depth + 1
+      FROM register_observations o JOIN chain ON o.id = chain.supersedes_id
+      WHERE chain.depth < 50
+    )
+    SELECT actor_id FROM chain
+    """
+)
+
+
+async def _chain_actors(register: AsyncSession, observation_id: UUID) -> set[str]:
+    """Who recorded this observation or any observation it supersedes, directly or
+    through earlier corrections. None of them may override its BUFR check."""
+    result = await register.execute(_CHAIN_ACTORS, {"id": str(observation_id)})
+    return {str(row[0]) for row in result if row[0] is not None}
+
+
 def _display_name(user: User) -> str:
     full = " ".join(part for part in (user.first_name, user.last_name) if part)
     return full.strip() or user.email
@@ -534,8 +555,9 @@ async def override_bufr(
 ) -> RegisterObservationRead:
     """Let a failed or mismatched BUFR check pass for sending, recording who, when and why.
 
-    Register QC only (the route checks ``eregister.qc``), and never the observer who
-    recorded the observation. The override is stored on the current BUFR record and is
+    Register QC only (the route checks ``eregister.qc``), and never an observer: not the
+    one who recorded this row, nor anyone who recorded a row it supersedes (directly or
+    through earlier corrections). The override is stored on the current BUFR record and is
     bound to that record's digest: a correction (a new row) or a re-encoding does not
     carry it. It never changes the message or its validity, and it is audited in the
     application database after the register commit.
@@ -543,7 +565,7 @@ async def override_bufr(
     clean = _bufr_override_reason(reason)
     row = await _lock(register, observation_id)
     try:
-        if str(row["actor_id"]) == str(user.id):
+        if str(user.id) in await _chain_actors(register, observation_id):
             raise AuthorizationError(
                 "The observer cannot override the BUFR check of their own observation"
             )
@@ -583,6 +605,9 @@ async def override_bufr(
         user=user,
         observation_id=observation_id,
         action=BUFR_OVERRIDE_ACTION,
-        changes={"bufr_override": (None, clean)},
+        changes={
+            "bufr_override": (None, clean),
+            "record_sha256": (None, recorded["record_sha256"]),
+        },
     )
     return RegisterObservationRead.model_validate(saved)

@@ -18,8 +18,16 @@ export const registerObservationReadSchema = z.object({
   issued_at: z.union([z.iso.datetime(), z.null()]).optional(),
   body: z.looseObject({}).optional(),
   raw_tac: z.union([z.string().max(12000), z.null()]).optional(),
-  bufr: z.union([z.looseObject({}), z.null()]).optional(),
-  iwxxm: z.union([z.looseObject({}), z.null()]).optional(),
+  bufr: z
+    .union([z.looseObject({}), z.null()])
+    .optional()
+    .describe(
+      "The server's BUFR record: message, checks, validity and any reviewer override (`override`: by, by_name, at, reason, record_sha256)."
+    ),
+  iwxxm: z
+    .union([z.looseObject({}), z.null()])
+    .optional()
+    .describe("The server's IWXXM record: XML, validity, errors."),
   id: z.uuid(),
   state: registerObservationReadPropertiesStateEnumSchema,
   qc_notes: z.union([z.string(), z.null()]).optional(),

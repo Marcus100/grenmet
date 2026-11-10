@@ -59,7 +59,7 @@ export function eregisterOverrideRegisterObservationBufrMutationOptions<
 }
 
 /**
- * @description Records a reviewer override of a failed or mismatched BUFR check on the observation's current BUFR record: who, when and a required reason (10 to 500 characters after cleaning). With the override, WIS2 and email may send that record. It never changes the BUFR message or its validity, and a correction or a re-encoding of the record ends it. Requires `eregister.qc`; the observer who recorded the observation is refused. 409 when the BUFR check passed, the observation is rejected or superseded, or it is not a SYNOP. Audited.
+ * @description Records a reviewer override of a failed or mismatched BUFR check on the observation's current BUFR record: who, when and a required reason (10 to 500 characters after cleaning). With the override, WIS2 and email may send that record. It never changes the BUFR message or its validity, and a correction or a re-encoding of the record ends it. Requires `eregister.qc`; the observer who recorded the observation, or any observation it corrects, is refused. 409 when the BUFR check passed, the observation is rejected or superseded, or it is not a SYNOP. Audited.
  * @summary Let a failed BUFR check be sent anyway (reviewer override)
  * {@link /api/v1/eregister/observations/:observation_id/bufr-override}
  */

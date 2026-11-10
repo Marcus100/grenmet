@@ -29,9 +29,15 @@ export type RegisterObservationRead = {
     [key: string]: unknown;
   };
   raw_tac?: string | null;
+  /**
+   * @description The server's BUFR record: message, checks, validity and any reviewer override (`override`: by, by_name, at, reason, record_sha256).
+   */
   bufr?: {
     [key: string]: unknown;
   } | null;
+  /**
+   * @description The server's IWXXM record: XML, validity, errors.
+   */
   iwxxm?: {
     [key: string]: unknown;
   } | null;

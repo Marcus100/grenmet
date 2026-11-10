@@ -2377,12 +2377,16 @@ is pending"): accepting the correction drops the held file (`failed`, "Replaced 
 correction before it was delivered"); rejecting the correction releases it so the
 original reading is retried as before.
 
-`POST .../{id}/bufr-override` (`eregister.qc`, never the observer) records a reviewer
+`POST .../{id}/bufr-override` (`eregister.qc`, never the observer of the observation or
+of any observation it corrects) records a reviewer
 override of a failed or mismatched BUFR check with a required reason of 10 to 500
 characters after cleaning. It lets email and WIS2 send that record as it is; the
 record's message and validity do not change, and a correction or a re-encoding ends it.
 `409` when the check passed or the observation is rejected or superseded. The override
-is stored as `bufr.override` (`by`, `by_name`, `at`, `reason`, `record_sha256`) and audited.
+is stored as `bufr.override` (`by`, `by_name`, `at`, `reason`, `record_sha256`) and audited
+(reason and `record_sha256`). Rejecting a correction restores the original with its
+override, which applies again while it still matches that record. `bufr` and `iwxxm` on
+create and correct bodies are read-only and ignored on write.
 
 `POST .../{id}/review` takes an optional `updated_at`, the value the reviewer saw
 when opening the record (to the second). If the record was saved or decided since (accept, reject and reopen also move
