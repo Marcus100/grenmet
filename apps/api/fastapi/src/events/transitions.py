@@ -152,6 +152,15 @@ def bulk_target[A, S: Enum](table: Mapping[A, Move[S]], action: A) -> str:
     return str(table[action].target.value)
 
 
+def stored_state[S: Enum](enum: type[S], stored: str) -> S:
+    """The enum member for a stored string. A value outside the enum is a record we
+    cannot act on: a 409 that names the value, never a 500."""
+    try:
+        return enum(stored)
+    except ValueError:
+        raise EventsConflict(f"This record has an unknown status '{stored}'") from None
+
+
 def _guard[A, S: Enum](
     table: Mapping[A, Move[S]],
     enum: type[S],
@@ -160,7 +169,7 @@ def _guard[A, S: Enum](
     refusal: str | None,
 ) -> S:
     """The target state when ``action`` may run from ``stored``; raises otherwise."""
-    state = enum(stored)
+    state = stored_state(enum, stored)
     move = table[action]
     if state not in move.allowed_from:
         raise EventsConflict(

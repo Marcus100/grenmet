@@ -507,7 +507,7 @@ async def cancel_order(
     provider-rail refund is queued and followed on the order's ``refund_status``."""
     now = utc_now()
     order, listing = await _order(db, organisation_id, order_id, lock=True)
-    if OrderStatus(order.status) in transitions.ORDER_ENDED:
+    if transitions.stored_state(OrderStatus, order.status) in transitions.ORDER_ENDED:
         raise EventsConflict(f"This order is already {order.status}")
     issued = await db.scalar(
         select(func.count()).select_from(Ticket).where(Ticket.order_id == order.id)

@@ -137,6 +137,33 @@ def test_connection_moves(action: transitions.ConnectionAction, state: CS) -> No
         assert link.status == state.value
 
 
+@pytest.mark.parametrize(
+    ("guard", "make_row", "action"),
+    [
+        (transitions.move_listing, lambda: Listing(status="archived"), "cancel"),
+        (transitions.move_order, lambda: Order(status="archived"), "expire"),
+        (transitions.move_ticket, lambda: Ticket(status="archived"), "cancel"),
+        (transitions.move_connection, lambda: Connection(status="archived"), "accept"),
+    ],
+)
+def test_an_unknown_stored_status_is_a_409_naming_the_value(
+    guard: Any, make_row: Any, action: str
+) -> None:
+    row = make_row()
+    with pytest.raises(EventsConflict) as raised:
+        guard(row, action)
+    assert raised.value.status_code == 409
+    assert raised.value.message == "This record has an unknown status 'archived'"
+    assert row.status == "archived"
+
+
+def test_stored_state_maps_known_and_unknown_values() -> None:
+    assert transitions.stored_state(OS, "refunded") is OS.REFUNDED
+    with pytest.raises(EventsConflict) as raised:
+        transitions.stored_state(OS, "archived")
+    assert raised.value.status_code == 409
+
+
 def test_every_table_action_is_declared_once() -> None:
     assert set(EXPECTED_LISTING) == set(transitions.LISTING_MOVES)
     assert set(EXPECTED_ORDER) == set(transitions.ORDER_MOVES)

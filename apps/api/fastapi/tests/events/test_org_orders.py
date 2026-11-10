@@ -393,6 +393,22 @@ async def test_cancel_order_follow_policy_keeps_money_inside_the_cutoff(
 
 
 @pytest.mark.asyncio
+async def test_cancel_order_on_an_unknown_stored_status_is_409_not_500(
+    db_async: AsyncSession, events_db: SessionFactory
+) -> None:
+    shop = await _shop_with_events(db_async, events_db, allocation=1)
+    order_id = await _paid(db_async, shop)
+    async with events_db() as events:
+        order = await events.get(Order, uuid.UUID(order_id))
+        assert order is not None
+        order.status = "archived"
+        await events.commit()
+    response = await _cancel_order(shop, order_id, refund="none")
+    assert response.status_code == 409
+    assert response.json()["detail"] == "This record has an unknown status 'archived'"
+
+
+@pytest.mark.asyncio
 async def test_cancel_order_none_keeps_the_money_and_frees_the_seat(
     db_async: AsyncSession, events_db: SessionFactory
 ) -> None:
