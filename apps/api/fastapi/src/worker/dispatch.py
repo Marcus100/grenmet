@@ -17,6 +17,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.cap.models import CapAlert, CapJobEvent, CapJobStatus, CapScope, CapStatus
 from src.utils.datetime import utc_now
+from src.utils.retry_state import RetryTable, backoff_seconds
 from src.worker import cap_email, cap_push, last_known_good, publishers
 from src.worker.publishers import PublishError, _prior_delivered
 
@@ -28,11 +29,37 @@ Handler = Callable[..., Awaitable[dict[str, Any]]]
 _RETRY_BASE_SECONDS = 10
 _RETRY_MAX_SECONDS = 3600
 
+# A job is queued, claimed (running), then succeeded, skipped or failed. A failed job
+# is claimed again when due. Skipped covers both a handler that chose not to act and
+# a retired channel, which is moved from queued or failed by SQL (not checked here).
+STATUS_MOVES: RetryTable[CapJobStatus] = RetryTable(
+    {
+        CapJobStatus.QUEUED: frozenset({CapJobStatus.RUNNING, CapJobStatus.SKIPPED}),
+        CapJobStatus.RUNNING: frozenset(
+            {
+                CapJobStatus.RUNNING,
+                CapJobStatus.SUCCEEDED,
+                CapJobStatus.SKIPPED,
+                CapJobStatus.FAILED,
+            }
+        ),
+        CapJobStatus.FAILED: frozenset({CapJobStatus.RUNNING, CapJobStatus.SKIPPED}),
+        CapJobStatus.SUCCEEDED: frozenset(),
+        CapJobStatus.SKIPPED: frozenset(),
+    }
+)
+
 
 def _retry_delay_seconds(attempts: int) -> int:
     """Backoff for a job that has failed ``attempts`` times (attempts >= 1)."""
-    exponent = max(attempts - 1, 0)
-    return min(_RETRY_BASE_SECONDS << exponent, _RETRY_MAX_SECONDS)
+    return backoff_seconds(
+        attempts, base_seconds=_RETRY_BASE_SECONDS, max_seconds=_RETRY_MAX_SECONDS
+    )
+
+
+def _set_status(job: CapJobEvent, status: CapJobStatus) -> None:
+    STATUS_MOVES.require(job.status, status)
+    job.status = status
 
 
 def _keep_delivered(previous: object) -> dict[str, Any]:
@@ -59,7 +86,7 @@ async def dispatch_job(
     # Commit RUNNING before anything is sent, so another worker tick no longer
     # sees the job as due (and the row lock taken at selection is released).
     previous_result = job.result
-    job.status = CapJobStatus.RUNNING
+    _set_status(job, CapJobStatus.RUNNING)
     job.attempts += 1
     job.updated_at = utc_now()
     session.add(job)
@@ -78,13 +105,14 @@ async def dispatch_job(
             result = {"skipped": True, "reason": "CAP message is not Public Actual"}
         else:
             result = await handler(session=session, job=job, http_client=http_client)
-        job.status = (
-            CapJobStatus.SKIPPED if result.get("skipped") else CapJobStatus.SUCCEEDED
+        _set_status(
+            job,
+            CapJobStatus.SKIPPED if result.get("skipped") else CapJobStatus.SUCCEEDED,
         )
         job.result = result
         job.next_retry_at = None
     except PublishError as exc:
-        job.status = CapJobStatus.FAILED
+        _set_status(job, CapJobStatus.FAILED)
         job.result = {**exc.details, "error_class": "PublishError"}
         job.next_retry_at = utc_now() + timedelta(
             seconds=_retry_delay_seconds(job.attempts)
@@ -93,7 +121,7 @@ async def dispatch_job(
             "CAP job failed", extra={"job_id": str(job.id), "kind": job.kind}
         )
     except Exception as exc:  # noqa: BLE001 - never let one job kill the batch
-        job.status = CapJobStatus.FAILED
+        _set_status(job, CapJobStatus.FAILED)
         job.result = {"error": str(exc), "error_class": type(exc).__name__}
         # Keep who already received it so the retry does not send to them again.
         delivered = sorted(
@@ -151,7 +179,7 @@ async def fail_abandoned_jobs(*, session: AsyncSession, max_attempts: int) -> in
     )
     jobs = list(rows.all())
     for job in jobs:
-        job.status = CapJobStatus.FAILED
+        _set_status(job, CapJobStatus.FAILED)
         job.next_retry_at = None
         job.updated_at = now
         job.result = {
