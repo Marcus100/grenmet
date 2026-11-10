@@ -19,8 +19,13 @@ from src.hr.leave.models import (
 )
 from src.hr.models import RequestStatus
 from src.hr.parking.models import ParkingPermit
-from src.hr.timesheet.models import Timesheet, TimesheetStatus
+from src.hr.timesheet import transitions as timesheet_transitions
+from src.hr.timesheet.models import Timesheet
 from src.hr.workflow.models import WorkflowInstance, WorkflowStatus
+from src.hr.workflow.transitions import (
+    mirror_request_status,
+    request_status_for,
+)
 from src.utils.datetime import utc_now
 
 
@@ -152,13 +157,9 @@ async def finalize_entity(
                     actor_id=actor_id,
                     reason=rule_override_reason,
                 )
-            if instance.status == WorkflowStatus.RETURNED:
-                timesheet_status = TimesheetStatus.RETURNED
-            elif approved:
-                timesheet_status = TimesheetStatus.APPROVED
-            else:
-                timesheet_status = TimesheetStatus.REJECTED
-            timesheet.status = timesheet_status
+            timesheet_transitions.move_timesheet(
+                timesheet, timesheet_transitions.workflow_move_for(instance.status)
+            )
             timesheet.approved_by_user_id = actor_id if approved else None
             timesheet.approved_at = utc_now() if approved else None
             timesheet.updated_at = utc_now()
@@ -194,13 +195,7 @@ async def finalize_entity(
     }[instance.entity_type]
     if instance.workflow_type.value != expected_type:
         raise AppException("Workflow type does not match this HR record", 409)
-    targets = {
-        WorkflowStatus.APPROVED: RequestStatus.APPROVED,
-        WorkflowStatus.REJECTED: RequestStatus.REJECTED,
-        WorkflowStatus.RETURNED: RequestStatus.RETURNED,
-        WorkflowStatus.CANCELLED: RequestStatus.CANCELLED,
-    }
-    target = targets.get(instance.status)
+    target = request_status_for(instance.status)
     if target is None:
         return
     if entity.status == target:
@@ -250,6 +245,6 @@ async def finalize_entity(
             actor_id=actor_id,
             leave_request_id=entity.id,
         )
-    entity.status = target
+    mirror_request_status(entity, instance.status)
     entity.updated_at = utc_now()
     session.add(entity)

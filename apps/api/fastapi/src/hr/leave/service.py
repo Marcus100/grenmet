@@ -22,10 +22,10 @@ from src.hr.exceptions import (
 from src.hr.models import EDITABLE_STATUSES, EmploymentRecord, RequestStatus
 from src.hr.roster.holidays import PROVISIONAL_SOURCE
 from src.hr.roster.models import (
+    ROSTER_VISIBLE_PERIOD_STATUSES,
     PublicHoliday,
     RosterAssignment,
     RosterPeriod,
-    RosterPeriodStatus,
     ShiftCatalog,
     ShiftCategory,
 )
@@ -591,9 +591,7 @@ async def working_days_between(
             .join(ShiftCatalog, ShiftCatalog.code == RosterAssignment.shift_code)
             .where(
                 RosterPeriod.department_id == department_id,
-                RosterPeriod.status.in_(
-                    [RosterPeriodStatus.PUBLISHED, RosterPeriodStatus.CLOSED]
-                ),
+                RosterPeriod.status.in_(ROSTER_VISIBLE_PERIOD_STATUSES),
                 RosterAssignment.user_id == current_user.id,
                 RosterAssignment.assignment_date >= start,
                 RosterAssignment.assignment_date <= end,

@@ -20,9 +20,9 @@ from src.hr.exceptions import HRPermissionDeniedError, HRValidationError
 from src.hr.models import EDITABLE_STATUSES, RequestStatus
 from src.hr.roster.expansion import expand_shift
 from src.hr.roster.models import (
+    ROSTER_VISIBLE_PERIOD_STATUSES,
     RosterAssignment,
     RosterPeriod,
-    RosterPeriodStatus,
     ShiftCatalog,
     ShiftCategory,
 )
@@ -50,9 +50,7 @@ async def expected_shift(
                 RosterAssignment.user_id == user_id,
                 RosterAssignment.assignment_date == report_date,
                 RosterPeriod.department_id == department_id,
-                RosterPeriod.status.in_(
-                    [RosterPeriodStatus.PUBLISHED, RosterPeriodStatus.CLOSED]
-                ),
+                RosterPeriod.status.in_(ROSTER_VISIBLE_PERIOD_STATUSES),
                 ShiftCatalog.category == ShiftCategory.WORK,
             )
         )
