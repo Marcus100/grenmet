@@ -3659,6 +3659,11 @@ export {
   wxwatchLatestQueryOptions,
 } from "./useWxwatchLatest.js";
 export {
+  useWxwatchMarineGuidance,
+  wxwatchMarineGuidanceQueryKey,
+  wxwatchMarineGuidanceQueryOptions,
+} from "./useWxwatchMarineGuidance.js";
+export {
   useWxwatchMetadata,
   wxwatchMetadataQueryKey,
   wxwatchMetadataQueryOptions,

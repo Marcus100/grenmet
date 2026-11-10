@@ -48025,6 +48025,79 @@
         }
       }
     },
+    "/api/v1/wxwatch/nhc/marine-guidance": {
+      "get": {
+        "tags": [
+          "wxwatch-nhc"
+        ],
+        "summary": "Read NHC marine guidance for AMZ058",
+        "description": "Newest imported Offshore Waters Forecast, parsed into periods for the Windward Islands zone; read-only, never publishes.",
+        "operationId": "wxwatchMarineGuidance",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NhcMarineGuidance"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Content",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sign-in required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Product access denied",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Edition or request not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "NHC archive unavailable"
+          }
+        },
+        "security": [
+          {
+            "APIKeyCookie": []
+          },
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
     "/api/v1/wxwatch/nhc/editions": {
       "get": {
         "tags": [
@@ -88251,6 +88324,174 @@
         ],
         "title": "NhcJob"
       },
+      "NhcMarineGuidance": {
+        "properties": {
+          "status": {
+            "$ref": "#/components/schemas/NhcMarineGuidancePropertiesStatusEnum"
+          },
+          "zone_id": {
+            "type": "string",
+            "maxLength": 10,
+            "title": "Zone Id"
+          },
+          "zone_name": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 300
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Zone Name"
+          },
+          "product": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/GuidanceSource"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "periods": {
+            "items": {
+              "$ref": "#/components/schemas/NhcMarinePeriod"
+            },
+            "type": "array",
+            "maxItems": 40,
+            "title": "Periods"
+          },
+          "outlook": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/GuidanceSource"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "type": "object",
+        "required": [
+          "status",
+          "zone_id"
+        ],
+        "title": "NhcMarineGuidance",
+        "description": "Latest imported Offshore Waters Forecast zone block, read-only for marine authors."
+      },
+      "NhcMarinePeriod": {
+        "properties": {
+          "label": {
+            "type": "string",
+            "maxLength": 40,
+            "title": "Label"
+          },
+          "text": {
+            "type": "string",
+            "maxLength": 2000,
+            "title": "Text"
+          },
+          "wind_direction_from": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 10
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Wind Direction From"
+          },
+          "wind_direction_to": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 10
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Wind Direction To"
+          },
+          "wind_min_kt": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Wind Min Kt"
+          },
+          "wind_max_kt": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Wind Max Kt"
+          },
+          "gust_kt": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Gust Kt"
+          },
+          "sea_min_ft": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sea Min Ft"
+          },
+          "sea_max_ft": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sea Max Ft"
+          },
+          "weather": {
+            "items": {
+              "type": "string",
+              "maxLength": 60
+            },
+            "type": "array",
+            "maxItems": 10,
+            "title": "Weather"
+          }
+        },
+        "type": "object",
+        "required": [
+          "label",
+          "text"
+        ],
+        "title": "NhcMarinePeriod",
+        "description": "One forecast period of an Offshore Waters zone; speeds in knots, seas in feet as NHC states them."
+      },
       "NhcPage": {
         "properties": {
           "items": {
@@ -117099,6 +117340,14 @@
           "success",
           "partial",
           "failed"
+        ]
+      },
+      "NhcMarineGuidancePropertiesStatusEnum": {
+        "type": "string",
+        "enum": [
+          "available",
+          "zone_missing",
+          "not_imported"
         ]
       },
       "NhcPrefillRequestPropertiesKindEnum": {

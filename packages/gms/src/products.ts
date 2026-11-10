@@ -327,6 +327,25 @@ function marineFields(section: string, prefix: string): ProductField[] {
     field(section, key("seaState"), "Marine summary"),
   ];
 }
+/**
+ * Marine wind and wave fields the NHC Offshore Waters zone (AMZ058) fills while
+ * they are empty (#1197). Stored as knots and metres; the value stays editable.
+ */
+const NHC_MARINE_FIELD_KEYS = new Set([
+  "windDirFrom",
+  "windDirTo",
+  "windSpeedMin",
+  "windSpeedMax",
+  "windGust",
+  "waveHeightMin",
+  "waveHeightMax",
+]);
+function fromNhc(fields: ProductField[]): ProductField[] {
+  return fields.map(
+    (f): ProductField =>
+      NHC_MARINE_FIELD_KEYS.has(f.key) ? { ...f, fillFrom: "nhc" as const } : f
+  );
+}
 /** Horizontal visibility in km (WMO reports metres); FastAPI composes `visibility`. */
 function visibilityFields(section: string, required: boolean): ProductField[] {
   return [
@@ -491,8 +510,8 @@ const hazardDetails: Record<keyof typeof BULLETIN_CATEGORIES, ProductField[]> =
         required: true,
       }),
       ...visibilityFields("Visibility", true),
-      ...windFields("Wind", ""),
-      ...marineFields("Marine", ""),
+      ...fromNhc(windFields("Wind", "")),
+      ...fromNhc(marineFields("Marine", "")),
       ...tideFields("Tides", ""),
       ...astronomy,
       field("Astronomy", "moonrise", "Moonrise"),
@@ -711,8 +730,8 @@ function marineForecastFields(): ProductField[] {
       type: "textarea",
       required: true,
     }),
-    ...windFields("Wind", ""),
-    ...marineFields("Seas and swell", ""),
+    ...fromNhc(windFields("Wind", "")),
+    ...fromNhc(marineFields("Seas and swell", "")),
     ...weatherTypeFields("Weather", ""),
     ...visibilityFields("Visibility", false),
     field("Outlook", "outlook", "Outlook (next 24 hours)", {

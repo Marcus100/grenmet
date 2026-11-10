@@ -300,3 +300,31 @@ class NhcSourceCheck(BaseModel):
     edition_id: UUID
     newer_edition_id: UUID | None = None
     status: str
+
+
+class NhcMarinePeriod(BaseModel):
+    """One forecast period of an Offshore Waters zone; speeds in knots, seas in feet as NHC states them."""
+
+    label: Annotated[str, Field(max_length=40)]
+    text: Annotated[str, Field(max_length=2000)]
+    wind_direction_from: Annotated[str, Field(max_length=10)] | None = None
+    wind_direction_to: Annotated[str, Field(max_length=10)] | None = None
+    wind_min_kt: float | None = None
+    wind_max_kt: float | None = None
+    gust_kt: float | None = None
+    sea_min_ft: float | None = None
+    sea_max_ft: float | None = None
+    weather: list[Annotated[str, Field(max_length=60)]] = Field(
+        default_factory=list, max_length=10
+    )
+
+
+class NhcMarineGuidance(BaseModel):
+    """Latest imported Offshore Waters Forecast zone block, read-only for marine authors."""
+
+    status: Literal["available", "zone_missing", "not_imported"]
+    zone_id: Annotated[str, Field(max_length=10)]
+    zone_name: Annotated[str, Field(max_length=300)] | None = None
+    product: GuidanceSource | None = None
+    periods: list[NhcMarinePeriod] = Field(default_factory=list, max_length=40)
+    outlook: GuidanceSource | None = None

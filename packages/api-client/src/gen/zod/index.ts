@@ -6529,6 +6529,9 @@ export { nhcEditionSchema } from "./nhcEditionSchema.js";
 export { nhcJobPropertiesKindEnumSchema } from "./nhcJobPropertiesKindEnumSchema.js";
 export { nhcJobPropertiesStatusEnumSchema } from "./nhcJobPropertiesStatusEnumSchema.js";
 export { nhcJobSchema } from "./nhcJobSchema.js";
+export { nhcMarineGuidancePropertiesStatusEnumSchema } from "./nhcMarineGuidancePropertiesStatusEnumSchema.js";
+export { nhcMarineGuidanceSchema } from "./nhcMarineGuidanceSchema.js";
+export { nhcMarinePeriodSchema } from "./nhcMarinePeriodSchema.js";
 export { nhcPageSchema } from "./nhcPageSchema.js";
 export { nhcPointRequestSchema } from "./nhcPointRequestSchema.js";
 export { nhcPrefillRequestPropertiesKindEnumSchema } from "./nhcPrefillRequestPropertiesKindEnumSchema.js";
@@ -9598,6 +9601,16 @@ export {
   wxwatchLatestStatus200Schema,
   wxwatchLatestStatus422Schema,
 } from "./wxwatchLatestSchema.js";
+export {
+  wxwatchMarineGuidanceErrorSchema,
+  wxwatchMarineGuidanceResponseSchema,
+  wxwatchMarineGuidanceStatus200Schema,
+  wxwatchMarineGuidanceStatus401Schema,
+  wxwatchMarineGuidanceStatus403Schema,
+  wxwatchMarineGuidanceStatus404Schema,
+  wxwatchMarineGuidanceStatus422Schema,
+  wxwatchMarineGuidanceStatus503Schema,
+} from "./wxwatchMarineGuidanceSchema.js";
 export {
   wxwatchMetadataErrorSchema,
   wxwatchMetadataQueryDaySchema,

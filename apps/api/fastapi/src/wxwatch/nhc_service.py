@@ -6,10 +6,12 @@ from typing import Any
 from uuid import NAMESPACE_URL, UUID, uuid4, uuid5
 
 from sqlalchemy import text
+from sqlalchemy.engine import RowMapping
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.exceptions import NotFoundError
 
+from . import nhc_marine
 from .nhc_schemas import (
     FactKey,
     GuidanceFact,
@@ -20,6 +22,7 @@ from .nhc_schemas import (
     NhcEdition,
     NhcFamily,
     NhcJob,
+    NhcMarineGuidance,
     NhcPage,
     NhcPrefill,
     ProductGuidance,
@@ -42,6 +45,14 @@ EDITION_SELECT = """SELECT e.id,p.key AS product_key,p.title,d.family,d.kind,d.s
     LEFT JOIN archive_nhc_product_state state ON state.product_key=p.key
     LEFT JOIN LATERAL (SELECT checked_at,attempted_at,source_metadata FROM archive_nhc_events
         WHERE product_key=substring(p.key from 5) ORDER BY attempted_at DESC,id DESC LIMIT 1) last_event ON true"""
+MARINE_PRODUCT_KEY = "nhc:offnt3"
+MARINE_ZONE_ID = "AMZ058"
+# Newest first, the same ordering the browse and source checks use.
+_NEWEST = (
+    " ORDER BY e.issued_at DESC NULLS LAST,e.first_received_at DESC,e.id DESC LIMIT 1"
+)
+LATEST_PRODUCT = EDITION_SELECT + " WHERE p.key=:key" + _NEWEST
+LATEST_OUTLOOK = EDITION_SELECT + " WHERE d.kind='outlook'" + _NEWEST
 
 
 async def assets(session: AsyncSession, edition_id: UUID) -> list[dict[str, Any]]:
@@ -216,6 +227,52 @@ def grid_sample(
         validity_date=str(record.get("validityDate") or ""),
         validity_time=str(record.get("validityTime") or ""),
         step_range=str(record.get("stepRange") or ""),
+    )
+
+
+def _reference(row: RowMapping) -> GuidanceSource:
+    return GuidanceSource(
+        edition_id=row["id"],
+        product_key=row["product_key"],
+        title=row["title"],
+        issued_at=row["issued_at"],
+        sha256=row["sha256"] or "",
+        url=row["source_url"],
+    )
+
+
+async def marine_guidance(
+    session: AsyncSession, zone_id: str = MARINE_ZONE_ID
+) -> NhcMarineGuidance:
+    """Newest imported Offshore Waters Forecast, parsed for one zone; read-only."""
+    outlook = (await session.execute(text(LATEST_OUTLOOK))).mappings().first()
+    reference = _reference(outlook) if outlook is not None else None
+    product = (
+        (await session.execute(text(LATEST_PRODUCT), {"key": MARINE_PRODUCT_KEY}))
+        .mappings()
+        .first()
+    )
+    if product is None:
+        return NhcMarineGuidance(
+            status="not_imported", zone_id=zone_id, outlook=reference
+        )
+    decoded = product["decoded"]
+    body = decoded.get("text") if isinstance(decoded, dict) else None
+    block = nhc_marine.zone_block(body, zone_id) if isinstance(body, str) else None
+    if block is None:
+        return NhcMarineGuidance(
+            status="zone_missing",
+            zone_id=zone_id,
+            product=_reference(product),
+            outlook=reference,
+        )
+    return NhcMarineGuidance(
+        status="available",
+        zone_id=zone_id,
+        zone_name=nhc_marine.zone_name(block),
+        product=_reference(product),
+        periods=nhc_marine.parse_periods(block),
+        outlook=reference,
     )
 
 

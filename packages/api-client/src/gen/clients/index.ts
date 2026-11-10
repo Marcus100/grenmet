@@ -730,6 +730,7 @@ export { wxwatchFinishRun } from "./wxwatchFinishRun.js";
 export { wxwatchImage } from "./wxwatchImage.js";
 export { wxwatchIngest } from "./wxwatchIngest.js";
 export { wxwatchLatest } from "./wxwatchLatest.js";
+export { wxwatchMarineGuidance } from "./wxwatchMarineGuidance.js";
 export { wxwatchMetadata } from "./wxwatchMetadata.js";
 export { wxwatchPoint } from "./wxwatchPoint.js";
 export { wxwatchPropose } from "./wxwatchPropose.js";
