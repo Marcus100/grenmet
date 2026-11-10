@@ -182,6 +182,19 @@ class SynopValidationResponse(BaseModel):
     )
 
 
+# Kept in the request schemas so existing clients stay valid; never stored from a client.
+IGNORED_BUFR = (
+    "Read-only: ignored on write. The server writes the BUFR record (and any "
+    "reviewer override) at acceptance and sending; a save stores none, or an "
+    "error record when the station settings could not be read."
+)
+IGNORED_IWXXM = (
+    "Read-only: ignored on write. The server writes the IWXXM record at acceptance "
+    "and sending; a save stores none, or an error record when the station settings "
+    "could not be read."
+)
+
+
 class RegisterObservationWrite(BaseModel):
     station_id: str = Field(min_length=1, max_length=64)
     station_name: str | None = Field(default=None, max_length=200)
@@ -191,11 +204,21 @@ class RegisterObservationWrite(BaseModel):
     issued_at: UtcDateTime | None = None
     body: dict[str, Any] = Field(default_factory=dict)
     raw_tac: str | None = Field(default=None, max_length=12000)
-    bufr: dict[str, Any] | None = None
-    iwxxm: dict[str, Any] | None = None
+    bufr: dict[str, Any] | None = Field(default=None, description=IGNORED_BUFR)
+    iwxxm: dict[str, Any] | None = Field(default=None, description=IGNORED_IWXXM)
 
 
 class RegisterObservationRead(RegisterObservationWrite):
+    bufr: dict[str, Any] | None = Field(
+        default=None,
+        description=(
+            "The server's BUFR record: message, checks, validity and any reviewer "
+            "override (`override`: by, by_name, at, reason, record_sha256)."
+        ),
+    )
+    iwxxm: dict[str, Any] | None = Field(
+        default=None, description="The server's IWXXM record: XML, validity, errors."
+    )
     id: UUID
     state: RegisterState
     qc_notes: str | None = None
@@ -257,8 +280,8 @@ class RegisterObservationCorrection(BaseModel):
     aerodrome_icao: str | None = Field(default=None, min_length=4, max_length=4)
     issued_at: Annotated[UtcDateTime, AwareDatetime()] | None = None
     raw_tac: str | None = Field(default=None, max_length=12000)
-    bufr: dict[str, Any] | None = None
-    iwxxm: dict[str, Any] | None = None
+    bufr: dict[str, Any] | None = Field(default=None, description=IGNORED_BUFR)
+    iwxxm: dict[str, Any] | None = Field(default=None, description=IGNORED_IWXXM)
     reason: str | None = Field(default=None, max_length=1000)
 
 
@@ -532,6 +555,16 @@ class ObservationSendList(BaseModel):
 
 class SendObservationBody(RootModel[SendObservationRequest | None]):
     """Optional send options. An absent body and null are both accepted."""
+
+
+class BufrOverrideRequest(BaseModel):
+    reason: str = Field(
+        max_length=1000,
+        description=(
+            "Why a failed or mismatched BUFR check may be sent anyway. Required: "
+            "10 to 500 characters after cleaning."
+        ),
+    )
 
 
 class QcDecisionBody(RootModel[QcDecisionRequest | None]):

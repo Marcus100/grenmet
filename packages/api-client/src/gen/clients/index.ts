@@ -205,6 +205,7 @@ export { eregisterGetStationSettings } from "./eregisterGetStationSettings.js";
 export { eregisterListObservationSends } from "./eregisterListObservationSends.js";
 export { eregisterListRegisterObservations } from "./eregisterListRegisterObservations.js";
 export { eregisterListRegistryStations } from "./eregisterListRegistryStations.js";
+export { eregisterOverrideRegisterObservationBufr } from "./eregisterOverrideRegisterObservationBufr.js";
 export { eregisterPublicCurrentConditions } from "./eregisterPublicCurrentConditions.js";
 export { eregisterPublicMonthSummary } from "./eregisterPublicMonthSummary.js";
 export { eregisterPublishRegisterObservation } from "./eregisterPublishRegisterObservation.js";

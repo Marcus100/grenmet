@@ -1034,6 +1034,11 @@ export {
   useEregisterListRegistryStations,
 } from "./useEregisterListRegistryStations.js";
 export {
+  eregisterOverrideRegisterObservationBufrMutationKey,
+  eregisterOverrideRegisterObservationBufrMutationOptions,
+  useEregisterOverrideRegisterObservationBufr,
+} from "./useEregisterOverrideRegisterObservationBufr.js";
+export {
   eregisterPublicCurrentConditionsQueryKey,
   eregisterPublicCurrentConditionsQueryOptions,
   useEregisterPublicCurrentConditions,

@@ -108,16 +108,21 @@ async def _require_bufr(session: AsyncSession, data: dict[str, Any]) -> None:
 
     The stored record is used when present. A row accepted before the BUFR was stored
     (or a record never written) is checked now, from the same values, and not stored.
-    No reviewer override exists yet, so a failed check always blocks the send.
+    A failed check passes only with a reviewer override given for this exact record
+    (``bufr.override_for``); the override never changes the record's bytes or validity.
     """
     stored = data.get("bufr")
     record: dict[str, Any] = stored if isinstance(stored, dict) else {}
     if record.get("base64") is None:
         # Never encoded, or the encoder failed: encode again, so a transient failure
-        # does not block for ever. The new record is stored either way.
-        record = await _encode_bufr_now(session, data)
+        # does not block for ever. The new record is stored either way, and keeps
+        # an override only while the encoding is unchanged.
+        fresh = await encode_bufr_now(session, data)
+        record = bufr.carry_over(record, fresh)
         await _store_bufr(session, data["id"], record)
     if record.get("valid") is True:
+        return
+    if bufr.override_for(record) is not None:
         return
     reasons = record.get("errors") or ["the BUFR check did not pass"]
     if record.get("base64") is None:
@@ -131,9 +136,10 @@ async def _require_bufr(session: AsyncSession, data: dict[str, Any]) -> None:
     )
 
 
-async def _encode_bufr_now(
+async def encode_bufr_now(
     session: AsyncSession, data: dict[str, Any]
 ) -> dict[str, Any]:
+    """The BUFR record of a saved row, encoded now and not stored (the caller stores it)."""
     failed = bufr.failed_record(encodings.ENCODER_FAILED)
     try:
         station = await stations.pressure_for(session, str(data["station_id"]))
