@@ -14,18 +14,26 @@ function repoFile(relativePath: string): string {
   return readFileSync(path.join(dir, relativePath), "utf8");
 }
 
-const OPEN_FOR_DELIVERY_BLOCK = /^OPEN_FOR_DELIVERY = \(([^)]*)\)/mu;
-const REQUISITION_STATUS_MEMBER = /RequisitionStatus\.(\w+)/gu;
+// OPEN_FOR_DELIVERY is the allowed-from set of the "deliver_partly" move in the
+// FastAPI stores transition table; the table names statuses through short aliases.
+const STATUS_ALIAS = /^(_\w+) = RequisitionStatus\.(\w+)/gmu;
+const DELIVER_PARTLY_FROM =
+  /"deliver_partly": Transition\(frozenset\(\{([^}]*)\}\)/u;
 
 describe("salesbus awaiting-delivery parity", () => {
-  it("equals OPEN_FOR_DELIVERY in the FastAPI stores service", () => {
-    const block = OPEN_FOR_DELIVERY_BLOCK.exec(
-      repoFile("apps/api/fastapi/src/stores/service.py")
+  it("equals OPEN_FOR_DELIVERY in the FastAPI stores transition table", () => {
+    const source = repoFile("apps/api/fastapi/src/stores/transitions.py");
+    const aliases = new Map(
+      [...source.matchAll(STATUS_ALIAS)].map((match) => [match[1], match[2]])
     );
-    if (!block?.[1])
-      throw new Error("OPEN_FOR_DELIVERY not found in service.py");
-    const backend = [...block[1].matchAll(REQUISITION_STATUS_MEMBER)]
-      .map((match) => match[1])
+    const block = DELIVER_PARTLY_FROM.exec(source);
+    if (!block?.[1]) {
+      throw new Error("deliver_partly not found in stores/transitions.py");
+    }
+    const backend = block[1]
+      .split(",")
+      .map((name) => aliases.get(name.trim()))
+      .filter((name): name is string => Boolean(name))
       .sort();
     expect(backend.length).toBeGreaterThan(0);
     expect([...AWAITING_DELIVERY].sort()).toEqual(backend);

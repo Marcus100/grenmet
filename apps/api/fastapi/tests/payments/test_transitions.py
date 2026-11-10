@@ -159,3 +159,35 @@ def test_provider_refund_statuses_map_to_our_rows(
     provider_status: str, expected: RefundStatus | None
 ) -> None:
     assert transitions.PROVIDER_REFUND_STATE.get(provider_status) is expected
+
+
+@pytest.mark.parametrize("stored", ["", "archived", "SUCCEEDED", "refunded"])
+def test_an_unknown_stored_status_is_a_conflict_not_a_server_error(
+    stored: str,
+) -> None:
+    intent = Intent(status=stored)
+    with pytest.raises(PaymentsConflictError) as refused:
+        transitions.move_intent(intent, "capture")
+    assert refused.value.status_code == 409
+    assert intent.status == stored
+
+    attempt = Attempt(status=stored)
+    with pytest.raises(PaymentsConflictError) as refused:
+        transitions.move_attempt(attempt, AS.SUCCEEDED)
+    assert refused.value.status_code == 409
+    assert attempt.status == stored
+
+    refund = Refund(status=stored)
+    with pytest.raises(PaymentsConflictError) as refused:
+        transitions.move_refund(refund, RS.SUCCEEDED)
+    assert refused.value.status_code == 409
+    assert refund.status == stored
+
+
+def test_stored_state_reads_known_values_and_refuses_unknown_ones() -> None:
+    assert transitions.stored_state(IntentStatus, "processing") is IS.PROCESSING
+    assert transitions.stored_state(AttemptStatus, "failed") is AS.FAILED
+    assert transitions.stored_state(RefundStatus, "pending") is RS.PENDING
+    with pytest.raises(PaymentsConflictError) as refused:
+        transitions.stored_state(RefundStatus, "bogus")
+    assert refused.value.status_code == 409

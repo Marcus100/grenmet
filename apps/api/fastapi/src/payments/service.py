@@ -130,7 +130,7 @@ def _public(row: Any) -> schemas.PaymentIntentPublic:
         organisation_id=intent.organisation_id,
         amount_minor=intent.amount_minor,
         currency=intent.currency,
-        status=IntentStatus(intent.status),
+        status=transitions.stored_state(IntentStatus, intent.status),
         provider=ProviderKey(intent.provider),
         source_type=intent.source_type,
         source_id=intent.source_id,
@@ -232,7 +232,7 @@ async def get_intent_detail(
             schemas.PaymentAttemptPublic(
                 id=a.id,
                 provider=ProviderKey(a.provider),
-                status=AttemptStatus(a.status),
+                status=transitions.stored_state(AttemptStatus, a.status),
                 failure_code=a.failure_code,
                 created_at=a.created_at,
             )
@@ -248,7 +248,7 @@ def _refund_public(refund: Refund) -> schemas.PaymentRefundPublic:
         intent_id=refund.intent_id,
         amount_minor=refund.amount_minor,
         reason=refund.reason,
-        status=RefundStatus(refund.status),
+        status=transitions.stored_state(RefundStatus, refund.status),
         created_at=refund.created_at,
     )
 
@@ -459,7 +459,7 @@ async def cancel_open_intent(
     ).scalar_one_or_none()
     if intent is None:
         return True
-    state = IntentStatus(intent.status)
+    state = transitions.stored_state(IntentStatus, intent.status)
     if state is IntentStatus.SUCCEEDED:
         return False
     if transitions.can_intent(state, "cancel"):
@@ -646,7 +646,7 @@ async def record_manual_payment(
     intent = await _get_owned(session, organisation_id, intent_id, lock=True)
     if intent.provider != ProviderKey.MANUAL.value:
         raise PaymentsConflictError("Only manual payments can be recorded by staff")
-    state = IntentStatus(intent.status)
+    state = transitions.stored_state(IntentStatus, intent.status)
     if state is IntentStatus.SUCCEEDED:
         raise PaymentsConflictError("This payment has already been recorded")
     if state in transitions.UNPAID_ENDED_STATES:
@@ -881,7 +881,9 @@ async def _locate_refunded_payment(
 async def _apply_success(
     session: AsyncSession, intent: Intent, event: ProviderEvent
 ) -> str:
-    if not transitions.can_intent(IntentStatus(intent.status), "capture"):
+    if not transitions.can_intent(
+        transitions.stored_state(IntentStatus, intent.status), "capture"
+    ):
         # Already captured by another event; never credit the same sale twice.
         _log_refused(intent, "capture", event)
         return "duplicate"
@@ -908,7 +910,9 @@ async def _apply_success(
 async def _apply_failure(
     session: AsyncSession, intent: Intent, event: ProviderEvent
 ) -> str:
-    if not transitions.can_intent(IntentStatus(intent.status), "fail"):
+    if not transitions.can_intent(
+        transitions.stored_state(IntentStatus, intent.status), "fail"
+    ):
         # A late failure after a success (or a repeat of one): the money stands.
         _log_refused(intent, "fail", event)
         return "duplicate"
@@ -1106,7 +1110,7 @@ async def _advance_refund(
     if provider_ref and row.provider_ref is None:
         row.provider_ref = provider_ref
         changed = True
-    current = RefundStatus(row.status)
+    current = transitions.stored_state(RefundStatus, row.status)
     if current is target:
         return changed
     if transitions.refund_refused(current, target):

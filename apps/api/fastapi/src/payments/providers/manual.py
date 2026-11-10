@@ -8,6 +8,7 @@ import uuid
 from collections.abc import AsyncIterator, Callable, Mapping
 from contextlib import asynccontextmanager
 
+from src.payments import transitions
 from src.payments.exceptions import InvalidCallbackError
 from src.payments.models import Intent, IntentStatus, ProviderKey
 
@@ -48,7 +49,9 @@ class ManualProvider:
         return RefundResult(provider_ref=None, status="succeeded")
 
     async def fetch_status(self, intent: Intent, /) -> ProviderStatus:
-        return ProviderStatus(status=IntentStatus(intent.status).value)
+        return ProviderStatus(
+            status=transitions.stored_state(IntentStatus, intent.status).value
+        )
 
     async def list_refunds(
         self, _intent: Intent, /, *, stop: Callable[[], bool] | None = None
