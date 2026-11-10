@@ -1,0 +1,61 @@
+---
+title: Weather data that says how old it is, and every observation checked in its WMO formats before it leaves
+summary: Version 1.0.6 labels old observations and expired forecasts on the GMS website, builds BUFR and IWXXM for each accepted eRegister observation with a reviewer override, fills product forms from a yearly almanac and NHC marine guidance, gives every product form one error summary and action bar, and declares the status rules of a dozen modules as explicit tables.
+date: 2026-11-10
+release: 1.0.6
+---
+
+Version 1.0.6 carries 36 pull requests since v1.0.5 and one additive database
+migration (the almanac tables), so the previous version still runs against the new
+schema. Everything in it ran on staging, including a signed-in check of the GMS staff
+portal, before it reached production.
+
+### Weather service
+
+- **No old data shown as current:** an observation more than two hours old says when
+  it was observed and that it is older than usual. A forecast past its valid-to time
+  keeps its words and says when it expired and when the next issue is due. Nothing
+  is hidden.
+- **Menu that matches what GMS issues:** green-level products are GMS alerts
+  everywhere; pages GMS does not publish yet stay in the menu with a Coming label,
+  read out as "coming soon" by screen readers. Moved pages redirect, the CAP feeds
+  page lists the hub's XML, JSON, RSS and map feeds, and the issued archive covers
+  every product kind.
+- **From the Desk:** three cards across on tablets and four on laptops, with no
+  scrollbar. Temperatures show °C or °F, and feels-like follows the US National
+  Weather Service heat index, checked against MetPy.
+- **Tides:** a predicted tides page for Prickly Bay, marked "not for navigation".
+
+### GMS products desk
+
+- **One form layout:** a list of problems at the top that links to each field,
+  messages next to each field, and an action bar at the bottom with the status and
+  Save, Preview and Publish. Publish stays off while problems remain.
+- **Forecast and marine fields:** weather is a multiple choice mapped to the WMO
+  present-weather codes, marine wind is in knots, and marine bulletins are numbered
+  per event.
+- **Fill from data:** sun, moon and tide fields fill from a yearly almanac computed
+  with Astral and the predicted tide table. A "Fill empty fields from NHC" button
+  fills marine wind and sea from the NHC Offshore Waters forecast for the Windward
+  Islands. It never overwrites a typed value, refuses guidance older than 12 hours,
+  and leaves the wind empty when NHC gives different values for two areas.
+
+### eRegister
+
+- **WMO formats at acceptance:** each accepted SYNOP is encoded as BUFR with ecCodes
+  tooling and checked by decoding it again, and as an IWXXM 2025-2 METAR. A failed
+  BUFR check stops the send.
+- **Reviewer override:** a reviewer, never the observer, can allow a failed BUFR
+  check to be sent, with a written reason. The override covers only that exact
+  message and is recorded in the audit history.
+- **Save and approve:** observers save and approve an hour in one step, and an
+  observation is emailed only once it is accepted.
+
+### Platform
+
+- **Explicit status rules:** CAP, eRegister, events, HR, payments, payroll,
+  subscriptions, invoices, organisation verification, stores, forecasts and
+  tropical systems each declare their allowed status changes in one table. An
+  unexpected stored status now gives a clear refusal instead of a server error.
+- SURFACE is locked to its own host, production monitors are ready for Better Stack,
+  and deployed images are scanned daily.
