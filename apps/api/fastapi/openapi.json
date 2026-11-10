@@ -46595,6 +46595,116 @@
         }
       }
     },
+    "/api/v1/eregister/observations/{observation_id}/bufr-override": {
+      "post": {
+        "tags": [
+          "eregister"
+        ],
+        "summary": "Let a failed BUFR check be sent anyway (reviewer override)",
+        "description": "Records a reviewer override of a failed or mismatched BUFR check on the observation's current BUFR record: who, when and a required reason (10 to 500 characters after cleaning). With the override, WIS2 and email may send that record. It never changes the BUFR message or its validity, and a correction or a re-encoding of the record ends it. Requires `eregister.qc`; the observer who recorded the observation is refused. 409 when the BUFR check passed, the observation is rejected or superseded, or it is not a SYNOP. Audited.",
+        "operationId": "eregisterOverrideRegisterObservationBufr",
+        "security": [
+          {
+            "APIKeyCookie": []
+          },
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "observation_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Observation Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BufrOverrideRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RegisterObservationRead"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Missing reason or note, or the request is malformed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/ApiError"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ValidationErrorResponse"
+                    }
+                  ],
+                  "title": "Response 422 Eregisteroverrideregisterobservationbufr"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Not an eRegister QC reviewer, or the observer of this observation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Observation not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "The observation is not in a state that allows this",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/eregister/observations/{observation_id}/reopen": {
       "post": {
         "tags": [
@@ -72197,6 +72307,21 @@
           "csrfToken"
         ],
         "title": "BrowserSession"
+      },
+      "BufrOverrideRequest": {
+        "properties": {
+          "reason": {
+            "type": "string",
+            "maxLength": 1000,
+            "title": "Reason",
+            "description": "Why a failed or mismatched BUFR check may be sent anyway. Required: 10 to 500 characters after cleaning."
+          }
+        },
+        "type": "object",
+        "required": [
+          "reason"
+        ],
+        "title": "BufrOverrideRequest"
       },
       "BuildingCreate": {
         "properties": {

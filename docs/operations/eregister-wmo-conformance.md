@@ -338,8 +338,20 @@ precipitation, total cloud and present weather. Tolerances are the element resol
   in the same transaction as the acceptance.
 - **Sends are blocked** while the record is not valid: `sends.load_sendable` refuses
   WIS2 and email with 409 and the first error. A row with no stored record is checked
-  at send time. **No reviewer override exists yet**, so a mismatch blocks until the
-  observation is corrected (owner decision needed on an override).
+  at send time.
+- **Reviewer override** (owner decision, GitHub #1201, 10 Nov): `POST
+  /eregister/observations/{id}/bufr-override` with a required reason of 10 to 500
+  characters after the shared cleaner. Only `eregister.qc` holders, never the observer
+  (superusers included), and only on a live SYNOP whose check failed. It writes
+  `bufr.override` = `{by, by_name, at, reason, record_sha256}` on the current record and
+  audits `bufr_override` in the application database. `sends.load_sendable` lets a
+  failed record pass only when `bufr.override_for` finds an override whose
+  `record_sha256` is the digest of that exact record (`bufr.record_digest`, the record
+  without its override). A correction is a new row, and a re-encoding that changes the
+  message ends the override (`bufr.carry_over` keeps it only for an identical encoding).
+  The override never changes `base64`, `checks` or `valid`. Clients cannot store a
+  `bufr` or `iwxxm` record: saves ignore them, and a station-settings lookup failure on
+  save keeps the save with both records stored as errors that say why.
 - The CSV handed to wis2box does not change. csv2bufr is a runtime dependency; the
   process points its template search at `bufr_template/`.
 - Not built: BUFR for METAR and SPECI.

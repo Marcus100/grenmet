@@ -534,5 +534,15 @@ class SendObservationBody(RootModel[SendObservationRequest | None]):
     """Optional send options. An absent body and null are both accepted."""
 
 
+class BufrOverrideRequest(BaseModel):
+    reason: str = Field(
+        max_length=1000,
+        description=(
+            "Why a failed or mismatched BUFR check may be sent anyway. Required: "
+            "10 to 500 characters after cleaning."
+        ),
+    )
+
+
 class QcDecisionBody(RootModel[QcDecisionRequest | None]):
     """Optional QC decision. An absent body and null are both accepted."""

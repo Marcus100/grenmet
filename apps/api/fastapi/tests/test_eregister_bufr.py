@@ -184,3 +184,66 @@ def test_the_packaged_template_is_the_wis2box_template() -> None:
         / "Surface-RA-IV-100.json"
     )
     assert bufr.TEMPLATE_PATH.read_bytes() == repo_copy.read_bytes()
+
+
+# --- reviewer override binding (pure: the override never changes the record) ---
+
+
+def _record(**changes: object) -> dict[str, Any]:
+    base: dict[str, Any] = {
+        "template": "Surface-RA-IV-100",
+        "base64": "QUJD",
+        "checks": [{"name": "air_temperature_k", "ok": False}],
+        "valid": False,
+        "errors": ["air_temperature_k: observation 298.55, BUFR 303.55"],
+    }
+    return {**base, **changes}
+
+
+def _override(record: dict[str, Any]) -> dict[str, Any]:
+    return {
+        "by": "reviewer",
+        "by_name": "Ann Reviewer",
+        "at": "2026-11-09T10:00:00+00:00",
+        "reason": "Checked against the paper register",
+        "record_sha256": bufr.record_digest(record),
+    }
+
+
+def test_digest_ignores_the_override_and_follows_the_record() -> None:
+    record = _record()
+    assert bufr.record_digest(record) == bufr.record_digest(
+        bufr.with_override(record, _override(record))
+    )
+    changed = _record(base64="QUJE")
+    assert bufr.record_digest(record) != bufr.record_digest(changed)
+
+
+def test_override_applies_only_to_the_record_it_was_given_for() -> None:
+    record = _record()
+    stamped = bufr.with_override(record, _override(record))
+    assert bufr.override_for(stamped) is not None
+    # Re-encoded to a different message: the same override no longer applies.
+    reencoded = {**stamped, "base64": "QUJE"}
+    assert bufr.override_for(reencoded) is None
+
+
+def test_override_leaves_bytes_and_validity_unchanged() -> None:
+    record = _record()
+    stamped = bufr.with_override(record, _override(record))
+    assert {k: v for k, v in stamped.items() if k != bufr.OVERRIDE_KEY} == record
+    assert stamped["valid"] is False
+
+
+def test_carry_over_keeps_the_override_only_when_the_encoding_is_identical() -> None:
+    record = _record(base64=None, errors=["encoder failed"])
+    stamped = bufr.with_override(record, _override(record))
+    assert bufr.carry_over(stamped, dict(record)) == stamped
+    fresh = _record(base64=None, errors=["encoder failed differently"])
+    assert bufr.OVERRIDE_KEY not in bufr.carry_over(stamped, fresh)
+
+
+def test_an_override_without_a_digest_or_of_the_wrong_type_is_ignored() -> None:
+    record = _record()
+    assert bufr.override_for({**record, bufr.OVERRIDE_KEY: "yes"}) is None
+    assert bufr.override_for({**record, bufr.OVERRIDE_KEY: {"reason": "x"}}) is None

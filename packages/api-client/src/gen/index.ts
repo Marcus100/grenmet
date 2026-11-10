@@ -208,6 +208,7 @@ export { eregisterGetStationSettings } from "./clients/eregisterGetStationSettin
 export { eregisterListObservationSends } from "./clients/eregisterListObservationSends.js";
 export { eregisterListRegisterObservations } from "./clients/eregisterListRegisterObservations.js";
 export { eregisterListRegistryStations } from "./clients/eregisterListRegistryStations.js";
+export { eregisterOverrideRegisterObservationBufr } from "./clients/eregisterOverrideRegisterObservationBufr.js";
 export { eregisterPublicCurrentConditions } from "./clients/eregisterPublicCurrentConditions.js";
 export { eregisterPublicMonthSummary } from "./clients/eregisterPublicMonthSummary.js";
 export { eregisterPublishRegisterObservation } from "./clients/eregisterPublishRegisterObservation.js";
@@ -1779,6 +1780,11 @@ export {
   eregisterListRegistryStationsQueryOptions,
   useEregisterListRegistryStations,
 } from "./hooks/useEregisterListRegistryStations.js";
+export {
+  eregisterOverrideRegisterObservationBufrMutationKey,
+  eregisterOverrideRegisterObservationBufrMutationOptions,
+  useEregisterOverrideRegisterObservationBufr,
+} from "./hooks/useEregisterOverrideRegisterObservationBufr.js";
 export {
   eregisterPublicCurrentConditionsQueryKey,
   eregisterPublicCurrentConditionsQueryOptions,
@@ -6105,6 +6111,7 @@ export type { BookingWorkingHoursUpdate } from "./models/BookingWorkingHoursUpda
 export type { BookingWorkingPeriodIn } from "./models/BookingWorkingPeriodIn.js";
 export type { BookingWorkingPeriodPublic } from "./models/BookingWorkingPeriodPublic.js";
 export type { BrowserSession } from "./models/BrowserSession.js";
+export type { BufrOverrideRequest } from "./models/BufrOverrideRequest.js";
 export type { BuildingCreate } from "./models/BuildingCreate.js";
 export type { BuildingCreatePropertiesKindEnum } from "./models/BuildingCreatePropertiesKindEnum.js";
 export { buildingCreatePropertiesKindEnum } from "./models/BuildingCreatePropertiesKindEnum.js";
@@ -7151,6 +7158,19 @@ export type {
   EregisterListRegistryStationsStatus403,
   EregisterListRegistryStationsStatus422,
 } from "./models/EregisterListRegistryStations.js";
+export type {
+  EregisterOverrideRegisterObservationBufrBody,
+  EregisterOverrideRegisterObservationBufrOptions,
+  EregisterOverrideRegisterObservationBufrPath,
+  EregisterOverrideRegisterObservationBufrResponse,
+  EregisterOverrideRegisterObservationBufrResponses,
+  EregisterOverrideRegisterObservationBufrStatus200,
+  EregisterOverrideRegisterObservationBufrStatus401,
+  EregisterOverrideRegisterObservationBufrStatus403,
+  EregisterOverrideRegisterObservationBufrStatus404,
+  EregisterOverrideRegisterObservationBufrStatus409,
+  EregisterOverrideRegisterObservationBufrStatus422,
+} from "./models/EregisterOverrideRegisterObservationBufr.js";
 export type {
   EregisterPublicCurrentConditionsOptions,
   EregisterPublicCurrentConditionsResponse,
@@ -15908,6 +15928,7 @@ export { bookingWorkingHoursUpdateSchema } from "./zod/bookingWorkingHoursUpdate
 export { bookingWorkingPeriodInSchema } from "./zod/bookingWorkingPeriodInSchema.js";
 export { bookingWorkingPeriodPublicSchema } from "./zod/bookingWorkingPeriodPublicSchema.js";
 export { browserSessionSchema } from "./zod/browserSessionSchema.js";
+export { bufrOverrideRequestSchema } from "./zod/bufrOverrideRequestSchema.js";
 export { buildingCreatePropertiesKindEnumSchema } from "./zod/buildingCreatePropertiesKindEnumSchema.js";
 export { buildingCreateSchema } from "./zod/buildingCreateSchema.js";
 export { buildingUpdateSchema } from "./zod/buildingUpdateSchema.js";
@@ -16917,6 +16938,19 @@ export {
   eregisterListRegistryStationsStatus403Schema,
   eregisterListRegistryStationsStatus422Schema,
 } from "./zod/eregisterListRegistryStationsSchema.js";
+export {
+  eregisterOverrideRegisterObservationBufrBodySchema,
+  eregisterOverrideRegisterObservationBufrErrorSchema,
+  eregisterOverrideRegisterObservationBufrPathObservationIdSchema,
+  eregisterOverrideRegisterObservationBufrPathSchema,
+  eregisterOverrideRegisterObservationBufrResponseSchema,
+  eregisterOverrideRegisterObservationBufrStatus200Schema,
+  eregisterOverrideRegisterObservationBufrStatus401Schema,
+  eregisterOverrideRegisterObservationBufrStatus403Schema,
+  eregisterOverrideRegisterObservationBufrStatus404Schema,
+  eregisterOverrideRegisterObservationBufrStatus409Schema,
+  eregisterOverrideRegisterObservationBufrStatus422Schema,
+} from "./zod/eregisterOverrideRegisterObservationBufrSchema.js";
 export {
   eregisterPublicCurrentConditionsErrorSchema,
   eregisterPublicCurrentConditionsResponseSchema,

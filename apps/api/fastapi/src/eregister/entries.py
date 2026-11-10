@@ -24,7 +24,7 @@ from src.auth.models import User
 from src.eregister.exceptions import ObservationNotFoundError
 from src.exceptions import AppException
 
-from . import derive, encode, rules, stations, transitions
+from . import bufr, derive, encode, iwxxm, rules, stations, transitions
 from .models import STATUS_QUEUED, STATUS_SENT, ERegisterSend
 from .schemas import (
     RegisterObservationCorrection,
@@ -189,6 +189,43 @@ async def live_row(
     return dict(row) if row else None
 
 
+PRESSURE_NOTE = (
+    "The station's pressure settings could not be read when this was saved, so it "
+    "was saved without them. Accepting it or sending it encodes this record again."
+)
+
+
+async def _saved_station(
+    register: AsyncSession, station_id: str
+) -> tuple[derive.PressureSettings | None, dict[str, Any] | None]:
+    """The station's pressure amounts for a save, and the notes to store when the lookup fails.
+
+    A failed lookup never fails the save (the acceptance path does the same): the station
+    is left out and both encodings are stored as errors that say why.
+    """
+    # No rollback here: correct() holds the row lock, and pressure_for already rolls back
+    # a failed SQL statement itself.
+    try:
+        return await stations.pressure_for(register, station_id), None
+    except Exception:
+        logger.exception(
+            "eRegister pressure settings lookup failed while saving; encodings stored as errors"
+        )
+        return None, {
+            "bufr": bufr.failed_record(PRESSURE_NOTE),
+            "iwxxm": iwxxm.failed_record(PRESSURE_NOTE),
+        }
+
+
+def _server_records(notes: dict[str, Any] | None) -> dict[str, Any]:
+    """The BUFR and IWXXM records a save stores. Clients never supply them: acceptance
+    and sending write them, so a client cannot store a valid record or an override."""
+    return {
+        "bufr": notes["bufr"] if notes else None,
+        "iwxxm": notes["iwxxm"] if notes else None,
+    }
+
+
 def _json_params(values: dict[str, Any]) -> dict[str, Any]:
     return {
         "body": values["body"],
@@ -240,11 +277,12 @@ async def create(
     user: User,
 ) -> tuple[dict[str, Any], bool]:
     """Save an observation. Returns the row and whether it was newly inserted."""
-    station = await stations.pressure_for(register, data.station_id)
+    station, notes = await _saved_station(register, data.station_id)
     if data.kind == "SYNOP":
         history = await history_for(register, data.station_id, data.observed_at)
         require_valid_synop(data.body, data.observed_at, station, history)
     values = data.model_dump()
+    values.update(_server_records(notes))
     values["body"] = derive.apply_to_body(values["body"], station)
     await lock_key(register, data.station_id, data.observed_at, data.kind)
     existing = await live_row(register, data.station_id, data.observed_at, data.kind)
@@ -314,12 +352,13 @@ async def correct(
         # Release the row lock before the refusal, as before the guard existed.
         await register.rollback()
         raise
-    station = await stations.pressure_for(register, old["station_id"])
+    station, notes = await _saved_station(register, old["station_id"])
     if old["kind"] == "SYNOP":
         history = await history_for(register, old["station_id"], old["observed_at"])
         require_valid_synop(data.body, old["observed_at"], station, history)
     values: dict[str, Any] = {
         **data.model_dump(exclude={"reason"}),
+        **_server_records(notes),
         "id": str(uuid4()),
         "station_id": old["station_id"],
         "kind": old["kind"],

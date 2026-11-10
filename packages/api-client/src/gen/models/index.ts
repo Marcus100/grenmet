@@ -1644,6 +1644,7 @@ export type { BookingWorkingHoursUpdate } from "./BookingWorkingHoursUpdate.js";
 export type { BookingWorkingPeriodIn } from "./BookingWorkingPeriodIn.js";
 export type { BookingWorkingPeriodPublic } from "./BookingWorkingPeriodPublic.js";
 export type { BrowserSession } from "./BrowserSession.js";
+export type { BufrOverrideRequest } from "./BufrOverrideRequest.js";
 export type { BuildingCreate } from "./BuildingCreate.js";
 export type { BuildingCreatePropertiesKindEnum } from "./BuildingCreatePropertiesKindEnum.js";
 export { buildingCreatePropertiesKindEnum } from "./BuildingCreatePropertiesKindEnum.js";
@@ -2690,6 +2691,19 @@ export type {
   EregisterListRegistryStationsStatus403,
   EregisterListRegistryStationsStatus422,
 } from "./EregisterListRegistryStations.js";
+export type {
+  EregisterOverrideRegisterObservationBufrBody,
+  EregisterOverrideRegisterObservationBufrOptions,
+  EregisterOverrideRegisterObservationBufrPath,
+  EregisterOverrideRegisterObservationBufrResponse,
+  EregisterOverrideRegisterObservationBufrResponses,
+  EregisterOverrideRegisterObservationBufrStatus200,
+  EregisterOverrideRegisterObservationBufrStatus401,
+  EregisterOverrideRegisterObservationBufrStatus403,
+  EregisterOverrideRegisterObservationBufrStatus404,
+  EregisterOverrideRegisterObservationBufrStatus409,
+  EregisterOverrideRegisterObservationBufrStatus422,
+} from "./EregisterOverrideRegisterObservationBufr.js";
 export type {
   EregisterPublicCurrentConditionsOptions,
   EregisterPublicCurrentConditionsResponse,

@@ -1634,6 +1634,7 @@ export { bookingWorkingHoursUpdateSchema } from "./bookingWorkingHoursUpdateSche
 export { bookingWorkingPeriodInSchema } from "./bookingWorkingPeriodInSchema.js";
 export { bookingWorkingPeriodPublicSchema } from "./bookingWorkingPeriodPublicSchema.js";
 export { browserSessionSchema } from "./browserSessionSchema.js";
+export { bufrOverrideRequestSchema } from "./bufrOverrideRequestSchema.js";
 export { buildingCreatePropertiesKindEnumSchema } from "./buildingCreatePropertiesKindEnumSchema.js";
 export { buildingCreateSchema } from "./buildingCreateSchema.js";
 export { buildingUpdateSchema } from "./buildingUpdateSchema.js";
@@ -2643,6 +2644,19 @@ export {
   eregisterListRegistryStationsStatus403Schema,
   eregisterListRegistryStationsStatus422Schema,
 } from "./eregisterListRegistryStationsSchema.js";
+export {
+  eregisterOverrideRegisterObservationBufrBodySchema,
+  eregisterOverrideRegisterObservationBufrErrorSchema,
+  eregisterOverrideRegisterObservationBufrPathObservationIdSchema,
+  eregisterOverrideRegisterObservationBufrPathSchema,
+  eregisterOverrideRegisterObservationBufrResponseSchema,
+  eregisterOverrideRegisterObservationBufrStatus200Schema,
+  eregisterOverrideRegisterObservationBufrStatus401Schema,
+  eregisterOverrideRegisterObservationBufrStatus403Schema,
+  eregisterOverrideRegisterObservationBufrStatus404Schema,
+  eregisterOverrideRegisterObservationBufrStatus409Schema,
+  eregisterOverrideRegisterObservationBufrStatus422Schema,
+} from "./eregisterOverrideRegisterObservationBufrSchema.js";
 export {
   eregisterPublicCurrentConditionsErrorSchema,
   eregisterPublicCurrentConditionsResponseSchema,

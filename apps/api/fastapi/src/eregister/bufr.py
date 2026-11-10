@@ -13,6 +13,7 @@ message was produced. ``valid`` is True only when every compared element matches
 """
 
 import base64
+import hashlib
 import importlib
 import json
 import os
@@ -318,6 +319,44 @@ def compare(
         for check in checks
         if check.expected is not None or check.actual is not None
     ]
+
+
+OVERRIDE_KEY = "override"
+
+
+def record_digest(record: dict[str, Any]) -> str:
+    """SHA-256 of the record without its override: the identity an override is bound to.
+
+    The record carries no timestamps, so the same encoding always has the same digest.
+    Any change to the message or its checks changes it, which ends the override.
+    """
+    core = {key: value for key, value in record.items() if key != OVERRIDE_KEY}
+    encoded = json.dumps(core, sort_keys=True, separators=(",", ":"))
+    return hashlib.sha256(encoded.encode("utf-8")).hexdigest()
+
+
+def override_for(record: dict[str, Any]) -> dict[str, Any] | None:
+    """The reviewer override, when it was given for this exact record; else None."""
+    override = record.get(OVERRIDE_KEY)
+    if not isinstance(override, dict):
+        return None
+    if override.get("record_sha256") != record_digest(record):
+        return None
+    return override
+
+
+def with_override(record: dict[str, Any], override: dict[str, Any]) -> dict[str, Any]:
+    """The record with a reviewer override added. Nothing else in it changes."""
+    return {**record, OVERRIDE_KEY: override}
+
+
+def carry_over(previous: dict[str, Any], record: dict[str, Any]) -> dict[str, Any]:
+    """A re-encoded record keeps the previous override only when it is still the same record."""
+    override = previous.get(OVERRIDE_KEY)
+    if not isinstance(override, dict):
+        return record
+    candidate = with_override(record, override)
+    return candidate if override_for(candidate) is not None else record
 
 
 def failed_record(message: str) -> dict[str, Any]:

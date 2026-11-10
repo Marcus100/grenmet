@@ -11,6 +11,9 @@ States: ``draft`` (``qc_pending`` once reopened) -> ``accepted``, plus
 * ``reject``: draft or qc_pending. ``reopen``: accepted or rejected, back to
   ``qc_pending``; both are refused once a WIS2 file was queued or sent (correct
   the observation with a new one instead).
+* ``override_bufr``: register QC, never the observer. Lets a failed or mismatched
+  BUFR check pass for sending on the current record only; it changes no state and
+  no BUFR bytes or validity.
 
 The observation row lives in the separate register database and the audit
 trail in the application database, so the two cannot share a transaction. The
@@ -33,6 +36,7 @@ from src.auth.models import User
 from src.eregister.exceptions import HourHeldError, ObservationNotFoundError
 from src.exceptions import AppException, AppValidationError, AuthorizationError
 from src.utils.datetime import utc_now
+from src.utils.text import clean_reason
 
 from . import bufr, encodings, entries, gate, iwxxm, metar, sends, stations, transitions
 from .models import STATUS_QUEUED, STATUS_SENT, TARGET_WIS2, ERegisterSend
@@ -488,5 +492,97 @@ async def review(
             "review_outcome": (row["review_outcome"], outcome),
             "review_note": (row["review_note"], clean),
         },
+    )
+    return RegisterObservationRead.model_validate(saved)
+
+
+BUFR_OVERRIDE_ACTION = "bufr_override"
+BUFR_REASON_MIN = 10
+BUFR_REASON_MAX = 500
+
+_STORE_BUFR_OVERRIDE = text(
+    "UPDATE register_observations SET bufr = CAST(:bufr AS jsonb) WHERE id = :id RETURNING *"
+).bindparams(bindparam("bufr", type_=JSONB(none_as_null=True)))
+
+
+def _bufr_override_reason(reason: str) -> str:
+    """The reviewer's reason, cleaned by the shared cleaner, then 10 to 500 characters."""
+    try:
+        clean = (clean_reason(reason) or "").strip()
+    except ValueError as exc:
+        raise AppValidationError(str(exc)) from exc
+    if not BUFR_REASON_MIN <= len(clean) <= BUFR_REASON_MAX:
+        raise AppValidationError(
+            f"The reason must be {BUFR_REASON_MIN} to {BUFR_REASON_MAX} characters "
+            "after cleaning"
+        )
+    return clean
+
+
+def _display_name(user: User) -> str:
+    full = " ".join(part for part in (user.first_name, user.last_name) if part)
+    return full.strip() or user.email
+
+
+async def override_bufr(
+    *,
+    register: AsyncSession,
+    app_session: AsyncSession,
+    observation_id: UUID,
+    user: User,
+    reason: str,
+) -> RegisterObservationRead:
+    """Let a failed or mismatched BUFR check pass for sending, recording who, when and why.
+
+    Register QC only (the route checks ``eregister.qc``), and never the observer who
+    recorded the observation. The override is stored on the current BUFR record and is
+    bound to that record's digest: a correction (a new row) or a re-encoding does not
+    carry it. It never changes the message or its validity, and it is audited in the
+    application database after the register commit.
+    """
+    clean = _bufr_override_reason(reason)
+    row = await _lock(register, observation_id)
+    try:
+        if str(row["actor_id"]) == str(user.id):
+            raise AuthorizationError(
+                "The observer cannot override the BUFR check of their own observation"
+            )
+        if row["kind"] != "SYNOP":
+            raise AppException("Only SYNOP observations have a BUFR record", 409)
+        if row["state"] in transitions.NOT_SENDABLE_STATES:
+            raise AppException(f"A {row['state']} observation cannot be sent", 409)
+        stored = row.get("bufr")
+        current: dict[str, Any] = stored if isinstance(stored, dict) else {}
+        if current.get("base64") is None:
+            # Never encoded or the encoder failed: encode it now, as the send path does.
+            current = bufr.carry_over(
+                current, await sends.encode_bufr_now(register, row)
+            )
+        if current.get("valid") is True:
+            raise AppException(
+                "The BUFR check passed, so there is nothing to override", 409
+            )
+    except AppException:
+        await register.rollback()
+        raise
+    recorded = {
+        "by": str(user.id),
+        "by_name": _display_name(user),
+        "at": utc_now().isoformat(),
+        "reason": clean,
+        "record_sha256": bufr.record_digest(current),
+    }
+    result = await register.execute(
+        _STORE_BUFR_OVERRIDE,
+        {"bufr": bufr.with_override(current, recorded), "id": str(observation_id)},
+    )
+    saved = dict(result.mappings().one())
+    await register.commit()
+    await _audit(
+        app_session,
+        user=user,
+        observation_id=observation_id,
+        action=BUFR_OVERRIDE_ACTION,
+        changes={"bufr_override": (None, clean)},
     )
     return RegisterObservationRead.model_validate(saved)

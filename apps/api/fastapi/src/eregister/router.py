@@ -19,6 +19,7 @@ from src.rate_limit import limiter
 from . import derive, entries, metar, public, qc, registry, rules, sends, stations
 from .dependencies import PublicRegisterSession, RegisterSession
 from .schemas import (
+    BufrOverrideRequest,
     EregisterValidationError,
     ObservationSend,
     ObservationSendList,
@@ -524,6 +525,45 @@ async def reject_register_observation(
     body: QcDecisionBody = QcDecisionBody(None),
 ) -> RegisterObservationRead:
     return await _decide("reject", observation_id, user, register, session, body.root)
+
+
+@router.post(
+    "/observations/{observation_id}/bufr-override",
+    response_model=RegisterObservationRead,
+    summary="Let a failed BUFR check be sent anyway (reviewer override)",
+    description=(
+        "Records a reviewer override of a failed or mismatched BUFR check on the "
+        "observation's current BUFR record: who, when and a required reason (10 to "
+        "500 characters after cleaning). With the override, WIS2 and email may send "
+        "that record. It never changes the BUFR message or its validity, and a "
+        "correction or a re-encoding of the record ends it. Requires `eregister.qc`; "
+        "the observer who recorded the observation is refused. 409 when the BUFR "
+        "check passed, the observation is rejected or superseded, or it is not a "
+        "SYNOP. Audited."
+    ),
+    responses={
+        **QC_RESPONSES,
+        403: {
+            "model": ApiError,
+            "description": "Not an eRegister QC reviewer, or the observer of this observation",
+        },
+    },
+)
+async def override_register_observation_bufr(
+    observation_id: UUID,
+    body: BufrOverrideRequest,
+    user: BrowserUser,
+    register: RegisterSession,
+    session: SessionDep,
+) -> RegisterObservationRead:
+    require_permission(current_user=user, permission_key="eregister.qc")
+    return await qc.override_bufr(
+        register=register,
+        app_session=session,
+        observation_id=observation_id,
+        user=user,
+        reason=body.reason,
+    )
 
 
 @router.post(
