@@ -20,6 +20,14 @@ describe("holdsValues", () => {
     expect(holdsValues({ air_temp: "0254" }, values)).toBe(false);
   });
 
+  it("is false when the record holds a filled-in value the form does not", () => {
+    expect(holdsValues({ ...values, rain_24h: "0012" }, values)).toBe(false);
+  });
+
+  it("ignores empty values on the record", () => {
+    expect(holdsValues({ ...values, rain_24h: "" }, values)).toBe(true);
+  });
+
   it("is false for a record without a body", () => {
     expect(holdsValues(undefined, values)).toBe(false);
   });
