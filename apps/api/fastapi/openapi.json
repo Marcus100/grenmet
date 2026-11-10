@@ -88356,6 +88356,11 @@
               }
             ]
           },
+          "stale": {
+            "type": "boolean",
+            "title": "Stale",
+            "default": false
+          },
           "periods": {
             "items": {
               "$ref": "#/components/schemas/NhcMarinePeriod"

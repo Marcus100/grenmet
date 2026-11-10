@@ -20,6 +20,11 @@ export type NhcMarineGuidance = {
   zone_id: string;
   zone_name?: string | null;
   product?: GuidanceSource | null;
+  /**
+   * @default false
+   * @type boolean | undefined
+   */
+  stale?: boolean;
   periods?: NhcMarinePeriod[];
   outlook?: GuidanceSource | null;
 };

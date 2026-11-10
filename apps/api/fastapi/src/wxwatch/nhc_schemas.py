@@ -326,5 +326,7 @@ class NhcMarineGuidance(BaseModel):
     zone_id: Annotated[str, Field(max_length=10)]
     zone_name: Annotated[str, Field(max_length=300)] | None = None
     product: GuidanceSource | None = None
+    # Issued more than 12 hours ago (or at an unknown time): shown, never filled.
+    stale: bool = False
     periods: list[NhcMarinePeriod] = Field(default_factory=list, max_length=40)
     outlook: GuidanceSource | None = None

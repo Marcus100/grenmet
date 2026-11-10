@@ -20,20 +20,29 @@ _HEADER = re.compile(
 _CODE = re.compile(r"([A-Z]{3})?(\d{3})(?:>(\d{3}))?-")
 _TERMINATOR = re.compile(r"^\$\$[ \t]*$", re.MULTILINE)
 _PERIOD = re.compile(r"^\.([A-Z][A-Z0-9 ]*?)\.{3}", re.MULTILINE)
+_NUMBER = r"\d+(?:\.\d+)?"
+# One wind statement: a direction ("E", "E to SE") or the word "winds" before a
+# speed. "and E 10 to 15 kt in the Atlc" (a second area) counts as its own statement.
 _WIND = re.compile(
-    rf"\b(?:({DIRECTION})(?:\s+(?:to|through)\s+({DIRECTION}))?\s+)?winds?\s+"
-    r"(?:(\d+)\s+to\s+(\d+)|(\d+))\s*(?:kt|knots)\b",
+    rf"\b(?:({DIRECTION})(?:\s+(?:to|through)\s+({DIRECTION}))?\s+(?:winds?\s+)?"
+    rf"|winds?\s+)(?:({_NUMBER})\s+to\s+({_NUMBER})|({_NUMBER}))\s*(?:kt|knots)\b",
     re.IGNORECASE,
 )
 _VARIABLE_WIND = re.compile(
-    r"\bvariable(?:\s+winds?)?(?:\s+(?:less\s+than|at)\s+(\d+)\s*(?:kt|knots)\b)?",
+    rf"\bvariable(?:\s+winds?)?(?:\s+(?:less\s+than|at)\s+({_NUMBER})\s*(?:kt|knots)\b)?",
     re.IGNORECASE,
 )
 _GUST = re.compile(
-    r"\bgusts?\s+(?:up\s+)?(?:to\s+)?(\d+)\s*(?:kt|knots)\b", re.IGNORECASE
+    rf"\bgusts?\s+(?:up\s+)?(?:to\s+)?({_NUMBER})\s*(?:kt|knots)\b", re.IGNORECASE
 )
 _SEAS = re.compile(
-    r"\bseas?\s+(?:(\d+)\s+to\s+(\d+)|(\d+))\s*(?:ft|feet)\b(\s+or\s+less)?",
+    rf"\bseas?\s+(?:({_NUMBER})\s+to\s+({_NUMBER})|to\s+({_NUMBER})|({_NUMBER}))"
+    r"\s*(?:ft|feet)\b(\s+or\s+less)?",
+    re.IGNORECASE,
+)
+# Every height in feet; a second one ("and 4 to 6 ft") is a second sea statement.
+_FEET = re.compile(
+    rf"\b(?:{_NUMBER}\s+to\s+{_NUMBER}|to\s+{_NUMBER}|{_NUMBER})\s*(?:ft|feet)\b",
     re.IGNORECASE,
 )
 _WEATHER = re.compile(
@@ -87,15 +96,16 @@ class Wind(NamedTuple):
 
 
 def _wind(text: str) -> Wind:
-    wind = _WIND.search(text)
-    variable = _VARIABLE_WIND.search(text)
-    # The first wind statement in the period wins (the first named area).
-    if variable and (wind is None or variable.start() < wind.start()):
-        if variable[1]:
-            return Wind(VARIABLE, None, 0.0, float(variable[1]))
-        return Wind(VARIABLE)
-    if wind is None:
+    """The period's one wind statement; two or more (areas or changes) leave it empty."""
+    winds = list(_WIND.finditer(text))
+    variables = list(_VARIABLE_WIND.finditer(text))
+    if len(winds) + len(variables) != 1:
         return Wind()
+    if variables:
+        limit = variables[0][1]
+        # "less than 5 kt" states only an upper limit; no lower bound is invented.
+        return Wind(VARIABLE, None, None, float(limit) if limit else None)
+    wind = winds[0]
     start = wind[1].upper() if wind[1] else None
     end = wind[2].upper() if wind[2] else None
     if wind[3]:
@@ -111,14 +121,17 @@ class Seas(NamedTuple):
 
 
 def _seas(text: str) -> Seas:
+    """The period's one sea statement; two heights (areas or changes) leave it empty."""
     match = _SEAS.search(text)
-    if match is None:
+    if match is None or len(_FEET.findall(text)) != 1:
         return Seas()
     if match[1]:
         return Seas(float(match[1]), float(match[2]))
-    if match[4]:
-        return Seas(0.0, float(match[3]))
-    return Seas(float(match[3]), float(match[3]))
+    if match[3]:
+        return Seas(None, float(match[3]))
+    height = float(match[4])
+    # "3 ft or less" states only an upper limit; no lower bound is invented.
+    return Seas(None, height) if match[5] else Seas(height, height)
 
 
 def _weather(text: str) -> list[str]:

@@ -10,7 +10,8 @@ import {
   type ProductField,
   type ProductValues,
 } from "@barrelsgd/gms/products";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { Button } from "@barrelsgd/ui/components/ui/button";
+import { useEffect, useMemo, useState } from "react";
 import { reportError } from "@/lib/report-error";
 import { nhcRequest } from "@/lib/wxproducts/nhc-api";
 import {
@@ -33,10 +34,11 @@ const EMPTY_GUIDANCE: ProductGuidance = {
 };
 
 /**
- * Read-only NHC marine block. When the panel loads with AMZ058 available, the
- * product's `fillFrom: "nhc"` wind and sea fields that are empty are filled once,
- * in knots and metres, and the NHC edition is recorded as the guidance source.
- * Typed or saved values are never replaced.
+ * Read-only NHC marine block. "Fill empty fields from NHC" copies the first
+ * period's wind and sea into the product's empty `fillFrom: "nhc"` fields, in
+ * knots and metres, and records the NHC edition as the guidance source. It never
+ * runs by itself, never replaces a typed or saved value, and is unavailable for an
+ * edition older than 12 hours.
  */
 export function NhcMarineGuidancePanel({
   disabled,
@@ -54,13 +56,6 @@ export function NhcMarineGuidancePanel({
   const [load, setLoad] = useState<Load>({ status: "loading" });
   const [filled, setFilled] = useState<string[]>([]);
   const fields = useMemo(() => fillableFields(kind, "nhc"), [kind]);
-  const latest = useRef({ disabled, fields, guidance, onChange, values });
-  // The fill decision reads the newest props, so a slow load never reverts a typed edit.
-  const applied = useRef<string | null>(null);
-
-  useEffect(() => {
-    latest.current = { disabled, fields, guidance, onChange, values };
-  });
 
   useEffect(() => {
     let cancelled = false;
@@ -77,33 +72,28 @@ export function NhcMarineGuidancePanel({
     };
   }, []);
 
-  useEffect(() => {
-    if (load.status !== "ready") return;
-    const { data } = load;
-    const current = latest.current;
-    if (current.disabled) return;
-    const edition = data.product?.edition_id ?? "none";
-    if (applied.current === edition) return;
-    applied.current = edition;
-    if (data.status !== "available") return;
-    const result = nhcFillValues(
-      current.values,
-      (data.periods ?? [])[0],
-      current.fields
-    );
-    setFilled(result.filled);
-    if (result.filled.length === 0 || !data.product) return;
-    const base = current.guidance ?? EMPTY_GUIDANCE;
+  const data = load.status === "ready" ? load.data : null;
+  const proposal = useMemo(
+    () =>
+      data?.status === "available" && !data.stale
+        ? nhcFillValues(values, (data.periods ?? [])[0], fields)
+        : { patch: {}, filled: [] },
+    [data, fields, values]
+  );
+
+  const fill = () => {
+    const product = data?.product;
+    if (disabled || !product || proposal.filled.length === 0) return;
+    const base = guidance ?? EMPTY_GUIDANCE;
     const cited = (base.sources ?? []).some(
-      (source) => source.edition_id === data.product?.edition_id
+      (source) => source.edition_id === product.edition_id
     );
-    current.onChange(
-      cited
-        ? base
-        : { ...base, sources: [...(base.sources ?? []), data.product] },
-      { ...current.values, ...result.patch }
+    setFilled(proposal.filled);
+    onChange(
+      cited ? base : { ...base, sources: [...(base.sources ?? []), product] },
+      { ...values, ...proposal.patch }
     );
-  }, [load]);
+  };
 
   return (
     <section
@@ -118,11 +108,13 @@ export function NhcMarineGuidancePanel({
           publishing is not blocked.
         </p>
       )}
-      {load.status === "ready" && (
+      {data && (
         <ReadyBody
-          data={load.data}
+          canFill={!disabled && proposal.filled.length > 0}
+          data={data}
           filled={fields.filter((field) => filled.includes(field.key))}
           kind={kind}
+          onFill={fill}
         />
       )}
     </section>
@@ -130,13 +122,17 @@ export function NhcMarineGuidancePanel({
 }
 
 function ReadyBody({
+  canFill,
   data,
   filled,
   kind,
+  onFill,
 }: {
+  canFill: boolean;
   data: NhcMarineGuidance;
   filled: ProductField[];
   kind: "marine" | "marine-forecast";
+  onFill: () => void;
 }) {
   if (data.status === "not_imported") {
     return (
@@ -162,21 +158,39 @@ function ReadyBody({
         NHC says: Offshore Waters Forecast issued {issued},{" "}
         {data.zone_name ?? "zone"} ({data.zone_id}).
       </p>
-      {filled.length > 0 && (
-        <div className="text-muted-foreground space-y-1" role="status">
-          <p>
-            From NHC {data.zone_id} {issued}:{" "}
-            {filled.map((field) => field.label).join(", ")}. Edit any value
-            freely; your edits are kept.
-          </p>
-          <p>
-            Only the GMS assessment is published as our text; NHC wording is
-            cited, not copied.
+      {data.stale ? (
+        <p role="status">
+          This Offshore Waters Forecast is older than 12 hours. It is shown for
+          reference only and cannot fill fields.
+        </p>
+      ) : (
+        <div className="space-y-1">
+          <Button
+            disabled={!canFill}
+            onClick={onFill}
+            size="sm"
+            type="button"
+            variant="outline"
+          >
+            Fill empty fields from NHC
+          </Button>
+          <p className="text-muted-foreground">
+            Fills only empty wind and sea fields from the first period, in knots
+            and metres, and cites this NHC edition. Only the GMS assessment is
+            published as our text; NHC wording is cited, not copied.
             {kind === "marine"
-              ? " Publishing this bulletin with NHC guidance needs your GMS local assessment."
+              ? " A bulletin that cites NHC guidance needs your GMS local assessment before publishing."
               : ""}
           </p>
         </div>
+      )}
+      {filled.length > 0 && (
+        <p className="text-muted-foreground" role="status">
+          From NHC {data.zone_id} {issued}:{" "}
+          {filled.map((field) => field.label).join(", ")}. Edit any value
+          freely; your edits are kept.
+          {kind === "marine" ? " Add your GMS local assessment next." : ""}
+        </p>
       )}
       <ol className="list-none space-y-1">
         {(data.periods ?? []).map((period) => (

@@ -14,6 +14,7 @@ export const nhcMarineGuidanceSchema = z
     zone_id: z.string().max(10),
     zone_name: z.union([z.string().max(300), z.null()]).optional(),
     product: z.union([guidanceSourceSchema, z.null()]).optional(),
+    stale: z.boolean().optional().default(false),
     periods: z.array(nhcMarinePeriodSchema).max(40).optional(),
     outlook: z.union([guidanceSourceSchema, z.null()]).optional(),
   })

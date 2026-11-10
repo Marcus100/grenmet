@@ -61,14 +61,24 @@ function range(
   high: number | null | undefined,
   unit: string
 ): string {
-  if (low == null && high == null) return "";
-  if (low == null || high == null || low === high)
-    return `${low ?? high} ${unit}`;
+  if (high == null) return low == null ? "" : `${low} ${unit}`;
+  if (low == null) return `up to ${high} ${unit}`;
+  if (low === high) return `${low} ${unit}`;
   return `${low} to ${high} ${unit}`;
 }
 
-/** Read-only summary of one NHC period, in the units NHC states plus metres. */
+function toMetres(feet: number | null | undefined): number | null {
+  return feet == null ? null : Number((feet * METRES_PER_FOOT).toFixed(2));
+}
+
+/**
+ * Read-only summary of one NHC period, in the units NHC states plus metres.
+ * When NHC's wording gives no single wind or sea (two areas, or a change within
+ * the period), the period's own text is shown so the forecaster sees all of it.
+ */
 export function nhcPeriodSummary(period: NhcMarinePeriod): string {
+  if (period.text && (period.wind_max_kt == null || period.sea_max_ft == null))
+    return period.text;
   const direction = [period.wind_direction_from, period.wind_direction_to]
     .filter(Boolean)
     .join(" to ");
@@ -77,14 +87,13 @@ export function nhcPeriodSummary(period: NhcMarinePeriod): string {
   const gust =
     period.gust_kt == null ? undefined : `gusts ${period.gust_kt} kt`;
   const feet = range(period.sea_min_ft, period.sea_max_ft, "ft");
-  const sea =
-    feet && period.sea_min_ft != null && period.sea_max_ft != null
-      ? `Seas ${feet} (${range(
-          Number((period.sea_min_ft * METRES_PER_FOOT).toFixed(2)),
-          Number((period.sea_max_ft * METRES_PER_FOOT).toFixed(2)),
-          "m"
-        )})`
-      : "";
+  const sea = feet
+    ? `Seas ${feet} (${range(
+        toMetres(period.sea_min_ft),
+        toMetres(period.sea_max_ft),
+        "m"
+      )})`
+    : "";
   return [wind, gust, sea, (period.weather ?? []).join(", ")]
     .filter((part) => part !== undefined && part !== "")
     .join(". ");

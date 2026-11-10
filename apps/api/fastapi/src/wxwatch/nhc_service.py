@@ -1,7 +1,7 @@
 """SQL-backed NHC workspace. Collection runs only in the dedicated worker."""
 
 import json
-from datetime import date
+from datetime import UTC, date, datetime, timedelta
 from typing import Any
 from uuid import NAMESPACE_URL, UUID, uuid4, uuid5
 
@@ -47,6 +47,9 @@ EDITION_SELECT = """SELECT e.id,p.key AS product_key,p.title,d.family,d.kind,d.s
         WHERE product_key=substring(p.key from 5) ORDER BY attempted_at DESC,id DESC LIMIT 1) last_event ON true"""
 MARINE_PRODUCT_KEY = "nhc:offnt3"
 MARINE_ZONE_ID = "AMZ058"
+# Offshore Waters Forecasts are issued four times a day; an edition older than
+# this is shown for reference but never offered as a fill.
+MARINE_STALE_AFTER = timedelta(hours=12)
 # Newest first, the same ordering the browse and source checks use.
 _NEWEST = (
     " ORDER BY e.issued_at DESC NULLS LAST,e.first_received_at DESC,e.id DESC LIMIT 1"
@@ -241,10 +244,18 @@ def _reference(row: RowMapping) -> GuidanceSource:
     )
 
 
+def _marine_stale(issued_at: datetime | None, now: datetime) -> bool:
+    """An unknown issue time counts as stale: its age cannot be shown."""
+    return issued_at is None or now - issued_at > MARINE_STALE_AFTER
+
+
 async def marine_guidance(
-    session: AsyncSession, zone_id: str = MARINE_ZONE_ID
+    session: AsyncSession,
+    zone_id: str = MARINE_ZONE_ID,
+    now: datetime | None = None,
 ) -> NhcMarineGuidance:
     """Newest imported Offshore Waters Forecast, parsed for one zone; read-only."""
+    now = now or datetime.now(UTC)
     outlook = (await session.execute(text(LATEST_OUTLOOK))).mappings().first()
     reference = _reference(outlook) if outlook is not None else None
     product = (
@@ -256,6 +267,7 @@ async def marine_guidance(
         return NhcMarineGuidance(
             status="not_imported", zone_id=zone_id, outlook=reference
         )
+    stale = _marine_stale(product["issued_at"], now)
     decoded = product["decoded"]
     body = decoded.get("text") if isinstance(decoded, dict) else None
     block = nhc_marine.zone_block(body, zone_id) if isinstance(body, str) else None
@@ -264,6 +276,7 @@ async def marine_guidance(
             status="zone_missing",
             zone_id=zone_id,
             product=_reference(product),
+            stale=stale,
             outlook=reference,
         )
     return NhcMarineGuidance(
@@ -271,6 +284,7 @@ async def marine_guidance(
         zone_id=zone_id,
         zone_name=nhc_marine.zone_name(block),
         product=_reference(product),
+        stale=stale,
         periods=nhc_marine.parse_periods(block),
         outlook=reference,
     )

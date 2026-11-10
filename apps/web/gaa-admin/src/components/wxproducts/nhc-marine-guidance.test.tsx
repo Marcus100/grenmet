@@ -1,8 +1,13 @@
-import { cleanup, render, screen, waitFor } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, expect, it, vi } from "vitest";
+import { reportError } from "@/lib/report-error";
 import { NhcMarineGuidancePanel } from "./nhc-marine-guidance";
 
 const requestMock = vi.hoisted(() => vi.fn());
+const FILL = /Fill empty fields from NHC/u;
+const STALE = /older than 12 hours/u;
+const UNAVAILABLE = /NHC marine guidance is unavailable/u;
+const LOCAL_ASSESSMENT = /needs your GMS local assessment/u;
 const FROM_NHC = /From NHC AMZ058/u;
 const NHC_SAYS = /NHC says/u;
 const NOT_IMPORTED = /No NHC Offshore Waters Forecast has been imported/u;
@@ -45,14 +50,22 @@ const available = {
     period("TUE", { from: "E", min: 10, max: 15 }, [2, 4]),
   ],
   outlook: null,
+  stale: false,
 };
 
 afterEach(() => {
   cleanup();
   requestMock.mockReset();
+  vi.mocked(reportError).mockReset();
 });
 
-it("fills empty NHC fields once, records the NHC edition, and says where the values came from", async () => {
+async function fillButton(): Promise<HTMLButtonElement> {
+  const button = await screen.findByRole("button", { name: FILL });
+  if (!(button instanceof HTMLButtonElement)) throw new Error("Not a button");
+  return button;
+}
+
+it("fills empty NHC fields only when asked, records the NHC edition, and says where the values came from", async () => {
   requestMock.mockResolvedValue(available);
   const onChange = vi.fn();
   render(
@@ -64,7 +77,12 @@ it("fills empty NHC fields once, records the NHC edition, and says where the val
       values={{ windDirFrom: "", windSpeedMin: "", synopsis: "Typed" }}
     />
   );
-  await waitFor(() => expect(onChange).toHaveBeenCalledTimes(1));
+  const button = await fillButton();
+  expect(screen.getByText(NHC_SAYS)).toBeTruthy();
+  // Opening the form never fills: a field the forecaster cleared stays cleared.
+  expect(onChange).not.toHaveBeenCalled();
+  fireEvent.click(button);
+  expect(onChange).toHaveBeenCalledTimes(1);
   const [next, proposed] = onChange.mock.calls[0] ?? [];
   expect(proposed).toMatchObject({
     windDirFrom: "E",
@@ -76,7 +94,6 @@ it("fills empty NHC fields once, records the NHC edition, and says where the val
   });
   expect(next.sources).toEqual([product]);
   expect(screen.getByText(FROM_NHC)).toBeTruthy();
-  expect(screen.getByText(NHC_SAYS)).toBeTruthy();
 });
 
 it("keeps a value the forecaster typed when NHC has a different one", async () => {
@@ -91,12 +108,87 @@ it("keeps a value the forecaster typed when NHC has a different one", async () =
       values={{ windSpeedMin: "12" }}
     />
   );
-  await waitFor(() => expect(onChange).toHaveBeenCalledTimes(1));
+  fireEvent.click(await fillButton());
   const [, proposed] = onChange.mock.calls[0] ?? [];
   expect(proposed.windSpeedMin).toBe("12");
   expect(proposed.windSpeedMax).toBe("20");
 });
 
+it("fills a marine bulletin and says it needs a GMS local assessment", async () => {
+  requestMock.mockResolvedValue(available);
+  const onChange = vi.fn();
+  render(
+    <NhcMarineGuidancePanel
+      disabled={false}
+      guidance={null}
+      kind="marine"
+      onChange={onChange}
+      values={{}}
+    />
+  );
+  const button = await fillButton();
+  expect(screen.getByText(LOCAL_ASSESSMENT)).toBeTruthy();
+  fireEvent.click(button);
+  const [next, proposed] = onChange.mock.calls[0] ?? [];
+  expect(proposed).toMatchObject({ windDirFrom: "E", waveHeightMax: "1.52" });
+  expect(next.sources).toEqual([product]);
+});
+
+it("disables the fill when every NHC field already has a value", async () => {
+  requestMock.mockResolvedValue(available);
+  render(
+    <NhcMarineGuidancePanel
+      disabled={false}
+      guidance={null}
+      kind="marine-forecast"
+      onChange={vi.fn()}
+      values={{
+        windDirFrom: "NE",
+        windSpeedMin: "10",
+        windSpeedMax: "15",
+        waveHeightMin: "1",
+        waveHeightMax: "2",
+      }}
+    />
+  );
+  expect((await fillButton()).disabled).toBe(true);
+});
+
+it("shows stale guidance with a note and offers no fill", async () => {
+  requestMock.mockResolvedValue({ ...available, stale: true });
+  const onChange = vi.fn();
+  render(
+    <NhcMarineGuidancePanel
+      disabled={false}
+      guidance={null}
+      kind="marine-forecast"
+      onChange={onChange}
+      values={{}}
+    />
+  );
+  expect(await screen.findByText(STALE)).toBeTruthy();
+  expect(screen.queryByRole("button", { name: FILL })).toBeNull();
+  expect(screen.getByText(NHC_SAYS)).toBeTruthy();
+  expect(onChange).not.toHaveBeenCalled();
+});
+
+it("reports a failed load and tells the forecaster to enter values by hand", async () => {
+  const failure = new Error("network");
+  requestMock.mockRejectedValue(failure);
+  const onChange = vi.fn();
+  render(
+    <NhcMarineGuidancePanel
+      disabled={false}
+      guidance={null}
+      kind="marine-forecast"
+      onChange={onChange}
+      values={{}}
+    />
+  );
+  expect(await screen.findByText(UNAVAILABLE)).toBeTruthy();
+  expect(reportError).toHaveBeenCalledWith(failure, "wxproducts-nhc");
+  expect(onChange).not.toHaveBeenCalled();
+});
 it("says when no Offshore Waters Forecast is imported and leaves fields empty", async () => {
   requestMock.mockResolvedValue({
     status: "not_imported",
@@ -105,6 +197,7 @@ it("says when no Offshore Waters Forecast is imported and leaves fields empty", 
     product: null,
     periods: [],
     outlook: null,
+    stale: false,
   });
   const onChange = vi.fn();
   render(
@@ -128,6 +221,7 @@ it("says when the latest bulletin has no AMZ058 block", async () => {
     product,
     periods: [],
     outlook: null,
+    stale: false,
   });
   const onChange = vi.fn();
   render(
@@ -143,7 +237,7 @@ it("says when the latest bulletin has no AMZ058 block", async () => {
   expect(onChange).not.toHaveBeenCalled();
 });
 
-it("does not fill while the form is read-only", async () => {
+it("disables the fill while the form is read-only or saving", async () => {
   requestMock.mockResolvedValue(available);
   const onChange = vi.fn();
   render(
@@ -155,6 +249,8 @@ it("does not fill while the form is read-only", async () => {
       values={{}}
     />
   );
-  expect(await screen.findByText(NHC_SAYS)).toBeTruthy();
+  const button = await fillButton();
+  expect(button.disabled).toBe(true);
+  fireEvent.click(button);
   expect(onChange).not.toHaveBeenCalled();
 });

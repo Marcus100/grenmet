@@ -32,23 +32,29 @@ def test_real_offnt3_zone_block_becomes_structured_periods():
         "SAT",
         "SAT NIGHT",
     ]
+    # Two areas (Caribbean and Atlantic) give two winds: no single value is chosen.
     tonight = periods[0]
-    assert tonight.wind_direction_from == "E"
-    assert tonight.wind_direction_to is None
-    assert (tonight.wind_min_kt, tonight.wind_max_kt) == (15, 20)
+    assert tonight.wind_direction_from is None
+    assert tonight.wind_min_kt is None and tonight.wind_max_kt is None
     assert tonight.gust_kt is None
     assert (tonight.sea_min_ft, tonight.sea_max_ft) == (3, 5)
     assert tonight.weather == []
-    assert tonight.text.startswith("E winds 15 to 20 kt in the Caribbean")
+    assert tonight.text == (
+        "E winds 15 to 20 kt in the Caribbean, and E 10 to 15 kt in the Atlc. "
+        "Seas 3 to 5 ft."
+    )
     # Wrapped lines are joined, and the text after the "$$" terminator is never read.
     tue_night = periods[2]
     assert (tue_night.sea_min_ft, tue_night.sea_max_ft) == (4, 6)
     assert tue_night.weather == ["scattered showers", "isolated tstms"]
     assert "AMZ059" not in tue_night.text
-    tue = periods[1]
-    assert tue.wind_direction_from == "E"
-    assert tue.wind_direction_to == "SE"
-    assert (tue.wind_min_kt, tue.wind_max_kt) == (15, 20)
+    # One area: the wind fills.
+    wed = periods[3]
+    assert wed.wind_direction_from == "E"
+    assert (wed.wind_min_kt, wed.wind_max_kt) == (15, 20)
+    fri = periods[7]
+    assert (fri.wind_direction_from, fri.wind_direction_to) == ("E", "SE")
+    assert (fri.wind_min_kt, fri.wind_max_kt) == (15, 20)
 
 
 def test_other_zone_is_not_returned_for_amz058():
@@ -81,11 +87,54 @@ def test_variable_winds_and_seas_of_or_less():
         ".TUE...Winds variable less than 5 kt. Seas 2 ft or less.\n"
     )
     today, tuesday = nhc_marine.parse_periods(block)
-    assert today.wind_direction_from == "Variable"
-    assert (today.wind_min_kt, today.wind_max_kt) == (0, 5)
-    assert (today.sea_min_ft, today.sea_max_ft) == (0, 3)
+    # "becoming N 10 kt late" is a second wind statement: nothing is chosen.
+    assert today.wind_direction_from is None
+    assert (today.wind_min_kt, today.wind_max_kt) == (None, None)
+    # "or less" and "less than" state an upper limit only; no zero is invented.
+    assert (today.sea_min_ft, today.sea_max_ft) == (None, 3)
     assert tuesday.wind_direction_from == "Variable"
-    assert (tuesday.wind_min_kt, tuesday.wind_max_kt) == (0, 5)
+    assert (tuesday.wind_min_kt, tuesday.wind_max_kt) == (None, 5)
+    assert (tuesday.sea_min_ft, tuesday.sea_max_ft) == (None, 2)
+
+
+def test_two_area_wind_wording_leaves_wind_empty_and_keeps_the_text():
+    block = (
+        "Offshore Waters Test-\n\n"
+        ".TONIGHT...E winds 15 to 20 kt in the Caribbean, and E 10 to 15 kt "
+        "in the Atlc. Seas 3 to 5 ft.\n"
+    )
+    (tonight,) = nhc_marine.parse_periods(block)
+    assert tonight.wind_direction_from is None
+    assert (tonight.wind_min_kt, tonight.wind_max_kt) == (None, None)
+    assert (tonight.sea_min_ft, tonight.sea_max_ft) == (3, 5)
+    assert "E 10 to 15 kt in the Atlc" in tonight.text
+
+
+def test_two_area_sea_wording_leaves_seas_empty():
+    block = (
+        "Offshore Waters Test-\n\n"
+        ".TODAY...E winds 10 kt. Seas 3 ft or less W of 60W, and 4 to 6 ft "
+        "E of 60W.\n"
+    )
+    (today,) = nhc_marine.parse_periods(block)
+    assert (today.wind_min_kt, today.wind_max_kt) == (10, 10)
+    assert (today.sea_min_ft, today.sea_max_ft) == (None, None)
+
+
+def test_seas_to_and_decimal_speeds():
+    block = (
+        "Offshore Waters Test-\n\n"
+        ".TODAY...NE winds 12.5 kt with gusts to 22.5 kt. Seas to 8 ft.\n"
+    )
+    (today,) = nhc_marine.parse_periods(block)
+    assert (today.wind_min_kt, today.wind_max_kt, today.gust_kt) == (12.5, 12.5, 22.5)
+    assert (today.sea_min_ft, today.sea_max_ft) == (None, 8)
+
+
+def test_text_without_a_zone_header_has_no_block():
+    text = "Offshore Waters Test-\n\n.TODAY...E winds 15 kt. Seas 4 ft.\n\n$$\n"
+    assert nhc_marine.zone_block(text, "AMZ058") is None
+    assert nhc_marine.zone_block("", "AMZ058") is None
 
 
 def test_wrapped_wind_and_sea_statements_are_joined():

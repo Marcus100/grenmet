@@ -2,7 +2,7 @@
 
 import hashlib
 import json
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from uuid import uuid4
 
@@ -24,20 +24,33 @@ FIXTURE = Path(__file__).with_name("fixtures") / "offnt3-2026-11-09-amz058.txt"
 ENDPOINT = "/api/v1/wxwatch/nhc/marine-guidance"
 
 
-def record(root, key, body, *, kind="bulletin", code=None, group="text"):
+def recent(hours: float = 1) -> str:
+    return (datetime.now(UTC) - timedelta(hours=hours)).isoformat()
+
+
+def record(
+    root,
+    key,
+    body,
+    *,
+    kind="bulletin",
+    code=None,
+    group="text",
+    issued_at="2026-11-09T19:52:00Z",
+):
     sha = hashlib.sha256(body).hexdigest()
     (root / "objects").mkdir(exist_ok=True)
     (root / "decoded").mkdir(exist_ok=True)
     (root / "objects" / sha).write_bytes(body)
     (root / "decoded" / (sha + ".json")).write_text(
-        json.dumps({"text": body.decode(), "issued_at": "2026-11-09T19:52:00Z"})
+        json.dumps({"text": body.decode(), "issued_at": issued_at})
     )
     return {
         "id": key,
         "group": group,
         "kind": kind,
         "code": code or key.upper(),
-        "issued_at": "2026-11-09T19:52:00Z",
+        "issued_at": issued_at,
         "attempted_at": "2026-11-09T20:00:00Z",
         "status": "success",
         "collection_status": "success",
@@ -98,7 +111,7 @@ async def test_marine_guidance_reads_amz058_and_the_latest_outlook(
     publish(
         root,
         {
-            "offnt3": record(root, "offnt3", body),
+            "offnt3": record(root, "offnt3", body, issued_at=recent()),
             "outlook": record(
                 root,
                 "outlook",
@@ -120,13 +133,16 @@ async def test_marine_guidance_reads_amz058_and_the_latest_outlook(
     assert body_json["zone_id"] == "AMZ058"
     assert body_json["zone_name"].startswith("Offshore Waters Windward Islands")
     assert body_json["product"]["product_key"] == "nhc:offnt3"
-    assert body_json["product"]["issued_at"].startswith("2026-11-09T19:52:00")
+    assert body_json["stale"] is False
     assert len(body_json["periods"]) == 11
     tonight = body_json["periods"][0]
     assert tonight["label"] == "TONIGHT"
-    assert tonight["wind_direction_from"] == "E"
-    assert (tonight["wind_min_kt"], tonight["wind_max_kt"]) == (15, 20)
+    # Caribbean and Atlantic winds differ tonight: the wind stays empty.
+    assert tonight["wind_direction_from"] is None
+    assert (tonight["wind_min_kt"], tonight["wind_max_kt"]) == (None, None)
     assert (tonight["sea_min_ft"], tonight["sea_max_ft"]) == (3, 5)
+    wed = body_json["periods"][3]
+    assert (wed["wind_direction_from"], wed["wind_min_kt"]) == ("E", 15)
     assert body_json["outlook"]["product_key"] == "nhc:outlook"
 
 
@@ -147,6 +163,35 @@ async def test_missing_import_and_missing_zone_are_reported_not_guessed(
     assert response.json()["status"] == "zone_missing"
     assert response.json()["periods"] == []
     assert response.json()["product"]["product_key"] == "nhc:offnt3"
+
+
+async def test_guidance_older_than_twelve_hours_is_flagged_stale(async_client, archive):
+    engine, root, _ = archive
+    publish(
+        root,
+        {"offnt3": record(root, "offnt3", FIXTURE.read_bytes(), issued_at=recent(13))},
+    )
+    import_manifest(root, "manifest.json", engine=engine)
+
+    body_json = (await async_client.get(ENDPOINT)).json()
+
+    assert body_json["status"] == "available"
+    assert body_json["stale"] is True
+    assert len(body_json["periods"]) == 11
+
+
+async def test_archive_outage_is_unavailable_not_empty(async_client, monkeypatch):
+    from src.wxwatch import database
+
+    monkeypatch.setattr(database, "create_session", lambda: None)
+    app.dependency_overrides[get_author] = lambda: ProductAuthor(
+        User(email="marine@example.test"), ["marine"]
+    )
+    try:
+        response = await async_client.get(ENDPOINT)
+    finally:
+        app.dependency_overrides.pop(get_author, None)
+    assert response.status_code == 503
 
 
 async def test_authors_without_marine_access_are_refused(async_client, archive):
