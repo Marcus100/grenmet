@@ -26,6 +26,7 @@ from ..models import (
     SavedListing,
     Thread,
 )
+from ..transitions import ConnectionStatus, GroupMemberStatus, move_connection
 from .discover import _cards, _group_summaries, _organiser_public, _public_listings
 from .messaging import _direct_key
 from .people import (
@@ -63,7 +64,8 @@ async def get_person(
             select(Group)
             .join(GroupMember, GroupMember.group_id == Group.id)
             .where(
-                GroupMember.user_id == profile.user_id, GroupMember.status == "active"
+                GroupMember.user_id == profile.user_id,
+                GroupMember.status == GroupMemberStatus.ACTIVE.value,
             )
         )
     ).all()
@@ -170,7 +172,7 @@ async def network(db: AsyncSession, user: User) -> schemas.NetworkPublic:
             continue
         state: Literal["connected", "sent", "received"] = (
             "connected"
-            if link.status == "accepted"
+            if link.status == ConnectionStatus.ACCEPTED.value
             else ("sent" if link.requester_id == user.id else "received")
         )
         connections.append(
@@ -228,8 +230,11 @@ async def request_connection(db: AsyncSession, user: User, handle: str) -> None:
     existing = await _connection_between(db, user.id, other.user_id)
     if existing is not None:
         # Requesting someone who already asked you accepts their request.
-        if existing.status == "pending" and existing.addressee_id == user.id:
-            existing.status = "accepted"
+        if (
+            existing.status == ConnectionStatus.PENDING.value
+            and existing.addressee_id == user.id
+        ):
+            move_connection(existing, "accept")
             db.add(existing)
             await db.commit()
         return
@@ -243,7 +248,7 @@ async def accept_connection(
     link = await db.get(Connection, connection_id)
     if link is None or link.addressee_id != user.id:
         raise EventsNotFound("Request not found")
-    link.status = "accepted"
+    move_connection(link, "accept")
     db.add(link)
     await db.commit()
 

@@ -33,6 +33,7 @@ from .models import (
     Ticket,
 )
 from .service.common import GRENADA
+from .transitions import ListingStatus
 
 TOPIC = "events.notify"
 
@@ -98,7 +99,10 @@ async def _listing_audience(
     db: AsyncSession, row: Row, listing: Listing
 ) -> set[uuid.UUID]:
     if row.kind == PUBLISHED:
-        if listing.status != "published" or listing.visibility != "public":
+        if (
+            listing.status != ListingStatus.PUBLISHED.value
+            or listing.visibility != "public"
+        ):
             return set()
         return set(
             (

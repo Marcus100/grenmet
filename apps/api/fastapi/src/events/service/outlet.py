@@ -39,6 +39,7 @@ from ..models import (
     TicketTier,
     TillSession,
 )
+from ..transitions import ListingStatus, TicketStatus
 from . import holds
 from .admission import _door_listing, _names
 from .common import GRENADA, _naive_utc, _pairs
@@ -65,7 +66,9 @@ async def _stock(db: AsyncSession, tier_ids: list[uuid.UUID]) -> dict[uuid.UUID,
     taken: dict[uuid.UUID, int] = _pairs(
         await db.execute(
             select(Ticket.tier_id, func.count())
-            .where(Ticket.tier_id.in_(tier_ids), Ticket.status == "valid")
+            .where(
+                Ticket.tier_id.in_(tier_ids), Ticket.status == TicketStatus.VALID.value
+            )
             .group_by(Ticket.tier_id)
         )
     )
@@ -76,7 +79,7 @@ async def _stock(db: AsyncSession, tier_ids: list[uuid.UUID]) -> dict[uuid.UUID,
 
 def _selling(listing: Listing) -> bool:
     return (
-        listing.status == "published"
+        listing.status == ListingStatus.PUBLISHED.value
         and listing.admission == "ticketed"
         and listing.ends_at > _naive_utc(utc_now())
     )
@@ -260,10 +263,13 @@ def refundable(listing: Listing, status: str, price_minor: int, admitted: bool) 
 
     Used door tickets are refundable only when the event itself was cancelled.
     """
-    cancelled_event = listing.status == "cancelled"
-    if price_minor <= 0 or status not in {"valid", "cancelled"}:
+    cancelled_event = listing.status == ListingStatus.CANCELLED.value
+    if price_minor <= 0 or status not in {
+        TicketStatus.VALID.value,
+        TicketStatus.CANCELLED.value,
+    }:
         return False
-    if status == "cancelled" and not cancelled_event:
+    if status == TicketStatus.CANCELLED.value and not cancelled_event:
         return False
     return not admitted or cancelled_event
 
@@ -403,7 +409,7 @@ async def sell_tickets(
             return sale.model_copy(update={"repeat": True})
     if listing.admission != "ticketed":
         raise EventsConflict("This event doesn't use tickets")
-    if listing.status != "published":
+    if listing.status != ListingStatus.PUBLISHED.value:
         raise EventsConflict("Tickets can only be sold for a published event")
     if not _selling(listing):
         raise EventsConflict("This event has already ended")
