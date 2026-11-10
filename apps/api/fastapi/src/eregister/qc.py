@@ -18,14 +18,11 @@ state change commits first; the audit entry follows in its own commit.
 """
 
 import logging
-import xml.etree.ElementTree as ET
 from datetime import datetime
 from typing import Any, Literal, NamedTuple
 from uuid import UUID
 
-import xmlschema
 from fastapi import HTTPException
-from fastapi.concurrency import run_in_threadpool
 from sqlalchemy import bindparam, func, select, text
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.exc import IntegrityError
@@ -37,7 +34,7 @@ from src.eregister.exceptions import HourHeldError, ObservationNotFoundError
 from src.exceptions import AppException, AppValidationError, AuthorizationError
 from src.utils.datetime import utc_now
 
-from . import bufr, entries, gate, iwxxm, metar, sends, stations, transitions
+from . import bufr, encodings, entries, gate, iwxxm, metar, sends, stations, transitions
 from .models import STATUS_QUEUED, STATUS_SENT, TARGET_WIS2, ERegisterSend
 from .schemas import RegisterObservationRead
 from .transitions import RegisterState
@@ -132,30 +129,35 @@ async def _store_encodings(
     acceptance. Sending is refused by ``sends.load_sendable`` while the BUFR is not valid.
     Nothing is sent here (owner rule: report, never send).
     """
-    station = await stations.pressure_for(register, str(row["station_id"]))
     body = row["body"] or {}
     try:
-        iwxxm_record = await run_in_threadpool(
+        station = await stations.pressure_for(register, str(row["station_id"]))
+    except Exception:
+        # Without the station's amounts neither record can be trusted: store both as errors.
+        logger.exception(
+            "eRegister pressure settings lookup failed; encodings stored as errors"
+        )
+        iwxxm_record = iwxxm.failed_record(encodings.ENCODER_FAILED)
+        bufr_record = bufr.failed_record(encodings.ENCODER_FAILED)
+    else:
+        iwxxm_record = await encodings.run_encoder(
+            "IWXXM",
             iwxxm.record_for_row,
+            iwxxm.failed_record(encodings.ENCODER_FAILED),
             body=body,
             station=station,
             observed_at=row["observed_at"],
             aerodrome_icao=str(row["aerodrome_icao"] or metar.ICAO),
             correction=row.get("supersedes_id") is not None,
         )
-    except OSError, ValueError, ET.ParseError, xmlschema.XMLSchemaException:
-        logger.exception("eRegister IWXXM encoder failed; stored as an error")
-        iwxxm_record = iwxxm.failed_record("IWXXM encoder failed; see the server log")
-    try:
-        bufr_record = await run_in_threadpool(
+        bufr_record = await encodings.run_encoder(
+            "BUFR",
             bufr.record_for_row,
+            bufr.failed_record(encodings.ENCODER_FAILED),
             body=body,
             station=station,
             observed_at=row["observed_at"],
         )
-    except OSError, ValueError, KeyError, TypeError, LookupError:
-        logger.exception("eRegister BUFR encoder failed; stored as an error")
-        bufr_record = bufr.failed_record("BUFR encoder failed; see the server log")
     result = await register.execute(
         _STORE_ENCODINGS,
         {"iwxxm": iwxxm_record, "bufr": bufr_record, "id": str(row["id"])},

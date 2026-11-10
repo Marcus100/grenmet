@@ -160,6 +160,20 @@ def _load_schema() -> xmlschema.XMLSchema10:
         return _schema
 
 
+def preload_schema_in_background() -> threading.Thread | None:
+    """Load the schema on a daemon thread at start-up, so no accept waits for it.
+
+    Start-up is not blocked. Returns None when the schemas are not installed.
+    """
+    if not schemas_installed():
+        return None
+    thread = threading.Thread(
+        target=_load_schema, name="iwxxm-schema-preload", daemon=True
+    )
+    thread.start()
+    return thread
+
+
 def schema_errors(xml_text: str) -> list[str]:
     """XSD errors for an IWXXM document (empty when it validates)."""
     try:
