@@ -101,10 +101,9 @@ it("shows the marine forecast in knots with the wave range on one line", async (
     "type",
     "time"
   );
-  expect(within(astronomy).getByLabelText("Moon phase date")).toHaveAttribute(
-    "type",
-    "date"
-  );
+  expect(
+    within(astronomy).getByLabelText("Next principal phase date")
+  ).toHaveAttribute("type", "date");
 });
 
 it("hides an alert's level and validity text and proposes the next number", async () => {

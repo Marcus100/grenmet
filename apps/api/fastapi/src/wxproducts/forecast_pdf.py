@@ -385,8 +385,10 @@ def _astronomy(values: dict[str, str]) -> list[tuple[str, str]]:
     rows = [(label, values[key]) for key, label in ASTRONOMY if values.get(key)]
     phase = values.get("moonPhase", "").strip()
     if phase:
-        day = values.get("moonPhaseDate", "")
-        rows.append(("Moon phase", f"{phase}, {_day_label(day)}" if day else phase))
+        # The date is the next principal phase, not the phase of this day.
+        day = values.get("moonPhaseDate", "").strip()
+        value = f"{phase}. Next principal phase: {_day_label(day)}" if day else phase
+        rows.append(("Moon phase", value))
     return rows
 
 

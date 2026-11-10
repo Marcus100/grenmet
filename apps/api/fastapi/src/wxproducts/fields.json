@@ -4068,7 +4068,7 @@
     {
       "section": "Astronomy",
       "key": "moonPhaseDate",
-      "label": "Moon phase date",
+      "label": "Next principal phase date",
       "type": "date",
       "fillFrom": "almanac",
       "requiredOnPublish": false
