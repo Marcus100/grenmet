@@ -49,13 +49,13 @@ def test_move_from_every_state(move: str, state: RequisitionStatus) -> None:
     allowed_from, target = EXPECTED_MOVES[move]
     requisition: Any = SimpleNamespace(status=state)
 
-    assert rt.can_move(state, move) is (state in allowed_from)  # type: ignore[arg-type]
+    assert rt.can_move(state, move) is (state in allowed_from)
     if state in allowed_from:
-        rt.move_requisition(requisition, move)  # type: ignore[arg-type]
+        rt.move_requisition(requisition, move)
         assert requisition.status is target
     else:
         with pytest.raises(StoresStateError) as raised:
-            rt.move_requisition(requisition, move)  # type: ignore[arg-type]
+            rt.move_requisition(requisition, move)
         assert raised.value.status_code == 409
         assert requisition.status is state
 

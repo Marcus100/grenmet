@@ -52,13 +52,13 @@ def test_move_from_every_state(move: str, state: InvoiceStatus) -> None:
     invoice: Any = SimpleNamespace(status=state.value, issued_at=None, voided_at=None)
 
     if state in allowed_from:
-        bt.move_invoice(invoice, move, at=_AT)  # type: ignore[arg-type]
+        bt.move_invoice(invoice, move, at=_AT)
         assert invoice.status == target.value
         if stamp is not None:
             assert getattr(invoice, stamp) == _AT
     else:
         with pytest.raises(InvoiceStateError) as raised:
-            bt.move_invoice(invoice, move, at=_AT)  # type: ignore[arg-type]
+            bt.move_invoice(invoice, move, at=_AT)
         assert raised.value.status_code == 409
         assert invoice.status == state.value
         assert invoice.issued_at is None
@@ -68,10 +68,10 @@ def test_move_from_every_state(move: str, state: InvoiceStatus) -> None:
 def test_stamped_move_without_a_timestamp_is_refused() -> None:
     invoice: Any = SimpleNamespace(status=_D.value, issued_at=None)
     with pytest.raises(ValueError):
-        bt.move_invoice(invoice, "issue")  # type: ignore[arg-type]
+        bt.move_invoice(invoice, "issue")
 
 
 def test_unknown_stored_status_is_a_conflict_not_a_crash() -> None:
     invoice: Any = SimpleNamespace(status="written_off")
     with pytest.raises(InvoiceStateError, match="unknown status 'written_off'"):
-        bt.move_invoice(invoice, "settle")  # type: ignore[arg-type]
+        bt.move_invoice(invoice, "settle")

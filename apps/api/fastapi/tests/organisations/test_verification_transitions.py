@@ -53,7 +53,7 @@ def test_move_from_every_state_keeps_verified_at_in_step(
     organisation = _org(state)
 
     if state in allowed_from:
-        vt.move_verification(organisation, move, at=_AT)  # type: ignore[arg-type]
+        vt.move_verification(organisation, move, at=_AT)
         assert organisation.verification_status == target.value
         # verified_at is set exactly when the status is APPROVED.
         if target is _A:
@@ -63,20 +63,20 @@ def test_move_from_every_state_keeps_verified_at_in_step(
     else:
         before = dict(organisation.__dict__)
         with pytest.raises(AppException) as raised:
-            vt.move_verification(organisation, move, at=_AT)  # type: ignore[arg-type]
+            vt.move_verification(organisation, move, at=_AT)
         assert raised.value.status_code == 409
         assert organisation.__dict__ == before
 
 
 def test_approve_needs_the_time_it_was_approved() -> None:
     with pytest.raises(ValueError):
-        vt.move_verification(_org(_P), "approve")  # type: ignore[arg-type]
+        vt.move_verification(_org(_P), "approve")
 
 
 def test_refusal_message_is_kept_when_given() -> None:
     with pytest.raises(AppException, match="already verified") as raised:
         vt.move_verification(
-            _org(_A),  # type: ignore[arg-type]
+            _org(_A),
             "approve",
             at=_AT,
             refusal="Organisation is already verified",

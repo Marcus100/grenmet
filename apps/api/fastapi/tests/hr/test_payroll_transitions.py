@@ -41,32 +41,32 @@ def test_declared_period_moves_are_exactly_the_expected_rows() -> None:
 @pytest.mark.parametrize("state", list(PayPeriodStatus))
 def test_period_move_from_every_state(move: str, state: PayPeriodStatus) -> None:
     allowed_from, target = EXPECTED_PERIOD_MOVES[move]
-    period = SimpleNamespace(status=state.value)
+    period: Any = SimpleNamespace(status=state.value)
 
     if state in allowed_from:
-        pt.move_period(period, move)  # type: ignore[arg-type]
+        pt.move_period(period, move)
         assert period.status == target.value
     else:
         with pytest.raises(AppException) as raised:
-            pt.move_period(period, move)  # type: ignore[arg-type]
+            pt.move_period(period, move)
         assert raised.value.status_code == 409
         assert period.status == state.value
 
 
 def test_period_refusal_message_is_kept_when_given() -> None:
-    period = SimpleNamespace(status=_A.value)
+    period: Any = SimpleNamespace(status=_A.value)
     with pytest.raises(AppException, match="Only an open period can be submitted"):
         pt.move_period(
-            period,  # type: ignore[arg-type]
+            period,
             "submit",
             refusal="Only an open period can be submitted",
         )
 
 
 def test_unknown_stored_period_status_is_a_conflict_not_a_crash() -> None:
-    period = SimpleNamespace(status="ARCHIVED")
+    period: Any = SimpleNamespace(status="ARCHIVED")
     with pytest.raises(AppException, match="unknown status 'ARCHIVED'") as raised:
-        pt.move_period(period, "close")  # type: ignore[arg-type]
+        pt.move_period(period, "close")
     assert raised.value.status_code == 409
 
 
