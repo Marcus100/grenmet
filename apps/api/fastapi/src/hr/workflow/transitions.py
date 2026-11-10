@@ -108,7 +108,12 @@ SUBMIT_FROM: frozenset[RequestStatus] = EDITABLE_STATUSES
 def submit_request(entity: Any, *, refusal: str | None = None) -> None:
     """Set a form's request status to SUBMITTED when the author sends it for approval.
     Raises a 409 unless the form is editable (DRAFT or RETURNED)."""
-    state = RequestStatus(entity.status)
+    try:
+        state = RequestStatus(entity.status)
+    except ValueError:
+        raise AppException(
+            refusal or f"A request cannot be submitted from status {entity.status}", 409
+        ) from None
     if state not in SUBMIT_FROM:
         raise AppException(
             refusal or f"A request cannot be submitted from status {state.value}", 409

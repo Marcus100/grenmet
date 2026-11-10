@@ -39,3 +39,11 @@ def test_refusal_message_is_kept_when_given() -> None:
     form: Any = SimpleNamespace(status=RequestStatus.APPROVED)
     with pytest.raises(AppException, match="Only a draft application"):
         wt.submit_request(form, refusal="Only a draft application can be submitted")
+
+
+def test_unknown_stored_status_is_refused_not_crashed() -> None:
+    form: Any = SimpleNamespace(status="ARCHIVED")
+    with pytest.raises(AppException) as raised:
+        wt.submit_request(form)
+    assert raised.value.status_code == 409
+    assert form.status == "ARCHIVED"

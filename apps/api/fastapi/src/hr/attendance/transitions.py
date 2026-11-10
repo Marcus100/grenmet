@@ -38,10 +38,6 @@ TRANSITIONS: dict[PunchMove, Transition] = {
 
 #: Not rejected: an open or accepted punch. Used in place of ``status != REJECTED``.
 LIVE_PUNCH_STATUSES: frozenset[ClockPunchStatus] = frozenset({_P, _A})
-#: The stored values of ``LIVE_PUNCH_STATUSES``, sorted, for SQL ``IN`` clauses.
-LIVE_PUNCH_VALUES: tuple[str, ...] = tuple(
-    sorted(status.value for status in LIVE_PUNCH_STATUSES)
-)
 
 
 def can_move(state: ClockPunchStatus, move: PunchMove) -> bool:
