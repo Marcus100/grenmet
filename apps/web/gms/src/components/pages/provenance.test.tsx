@@ -1,29 +1,35 @@
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import { Provenance } from "@/components/pages/provenance";
+import { localDateTime, parseGrenadaTime } from "@/lib/current-conditions";
 import {
-  isForecastStale,
+  forecastValidity,
+  isForecastIssueStale,
   isSatelliteStale,
   isStale,
-  localDateTime,
-  parseGrenadaTime,
-} from "@/lib/current-conditions";
+  OBSERVATION_STALE_AFTER_MS,
+} from "@/lib/freshness";
 
 const NOW = new Date("2026-10-18T16:00:00Z");
 const OBSERVED_LABEL = /Last observed:/u;
 const STATUS_LABEL = /Status:/u;
-const OLD_READING = /more than 90 minutes old/u;
+const OLD_READING = /older than usual/u;
 const minutesAgo = (m: number) =>
   new Date(NOW.getTime() - m * 60_000).toISOString();
 
 describe("freshness limits", () => {
-  it("observations go stale after 90 minutes", () => {
-    expect(isStale(minutesAgo(89), NOW)).toBe(false);
-    expect(isStale(minutesAgo(91), NOW)).toBe(true);
+  it("observations go stale after two hours", () => {
+    expect(OBSERVATION_STALE_AFTER_MS).toBe(2 * 60 * 60 * 1000);
+    expect(isStale(minutesAgo(119), NOW)).toBe(false);
+    expect(isStale(minutesAgo(121), NOW)).toBe(true);
   });
-  it("forecasts go stale after 12 hours", () => {
-    expect(isForecastStale(minutesAgo(11 * 60), NOW)).toBe(false);
-    expect(isForecastStale(minutesAgo(12 * 60 + 1), NOW)).toBe(true);
+  it("a forecast is judged by its valid-to time", () => {
+    expect(forecastValidity("2026-10-18T17:00", NOW)).toBe("in-effect");
+    expect(forecastValidity("2026-10-18T12:00", NOW)).toBe("expired");
+  });
+  it("without a valid-to, a forecast issued more than 12 hours ago is flagged", () => {
+    expect(isForecastIssueStale(minutesAgo(11 * 60), NOW)).toBe(false);
+    expect(isForecastIssueStale(minutesAgo(12 * 60 + 1), NOW)).toBe(true);
   });
   it("satellite images go stale after 30 minutes", () => {
     expect(isSatelliteStale(minutesAgo(29), NOW)).toBe(false);
@@ -65,23 +71,26 @@ describe("<Provenance>", () => {
     expect(screen.queryByRole("status")).toBeNull();
   });
 
-  it("warns in words when an observation is stale", () => {
+  it("warns in words, with the age, when an observation is stale", () => {
     render(
       <Provenance
         kind="observation"
         now={NOW}
         source="GMS register"
         status="verified"
-        time={minutesAgo(120)}
+        time={minutesAgo(150)}
       />
     );
     expect(
       screen.getByText((content) => content.includes("Last observed:"))
     ).toBeTruthy();
-    expect(screen.getByRole("status").textContent).toContain("90 minutes");
+    const warning = screen.getByRole("status").textContent ?? "";
+    expect(warning).toContain("Warning:");
+    expect(warning).toContain("Observed 2 hours ago");
+    expect(warning).toContain("older than usual");
   });
 
-  it("flags an old forecast and a stale satellite image", () => {
+  it("flags an old forecast with no valid-to, and a stale satellite image", () => {
     const { rerender } = render(
       <Provenance
         kind="forecast"
@@ -102,6 +111,36 @@ describe("<Provenance>", () => {
       />
     );
     expect(screen.getByRole("status").textContent).toContain("30 minutes");
+  });
+
+  it("says a forecast has expired at its valid-to time and names the next issue", () => {
+    render(
+      <Provenance
+        kind="forecast"
+        now={new Date("2026-10-18T09:00:00Z")}
+        source="GMS forecast"
+        status="verified"
+        time="2026-10-17T18:00"
+        validTo="2026-10-18T05:00"
+      />
+    );
+    const notice = screen.getByRole("status").textContent ?? "";
+    expect(notice).toContain("This forecast expired at 5:00 a.m. AST");
+    expect(notice).toContain("the next issue is due 7:00 a.m.");
+  });
+
+  it("does not flag a forecast that is still within its valid-to time", () => {
+    render(
+      <Provenance
+        kind="forecast"
+        now={NOW}
+        source="GMS forecast"
+        status="verified"
+        time={minutesAgo(30)}
+        validTo="2026-10-18T18:00"
+      />
+    );
+    expect(screen.queryByRole("status")).toBeNull();
   });
 
   it("says an external source is not a GMS product", () => {
