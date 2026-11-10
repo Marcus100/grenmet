@@ -19,10 +19,10 @@ from src.hr.models import EDITABLE_STATUSES, EmploymentRecord, RequestStatus
 from src.hr.organisations import department_for, permitted_departments
 from src.hr.roster import service as roster_service
 from src.hr.roster.models import (
+    ROSTER_VISIBLE_PERIOD_STATUSES,
     RosterAssignment,
     RosterAvailability,
     RosterPeriod,
-    RosterPeriodStatus,
     ShiftCatalog,
 )
 from src.hr.signatures import service as signature_service
@@ -472,9 +472,7 @@ async def staffing_for_shift(
             .join(ShiftCatalog, ShiftCatalog.code == RosterAssignment.shift_code)
             .where(
                 RosterPeriod.department_id == department_id,
-                RosterPeriod.status.in_(
-                    [RosterPeriodStatus.PUBLISHED, RosterPeriodStatus.CLOSED]
-                ),
+                RosterPeriod.status.in_(ROSTER_VISIBLE_PERIOD_STATUSES),
                 RosterAssignment.assignment_date == report_date,
                 RosterAssignment.shift_code.in_(codes),
             )
