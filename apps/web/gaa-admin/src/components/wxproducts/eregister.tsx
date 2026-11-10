@@ -17,6 +17,7 @@ import { Button } from "@barrelsgd/ui/components/ui/button";
 import { type FormEvent, useEffect, useRef, useState } from "react";
 import { PageHeader } from "@/components/layout/page-header";
 import { type StationSettings, withDerived } from "./eregister-derived";
+import { holdsValues } from "./eregister-held";
 import { REGISTER_KEYS, REGISTER_SECTIONS } from "./eregister-layout";
 import { metarFromCoded } from "./eregister-metar";
 import { observerInitials } from "./eregister-observer";
@@ -70,6 +71,36 @@ interface SaveResult {
   data?: RegisterObservationRead;
   error?: unknown;
   response?: Response;
+}
+
+/** An accept call that did not answer clearly: the observation and the values it was made for. */
+interface PendingApproval {
+  id: string;
+  iso: string;
+  key: string;
+}
+
+/** What the register says about a pending approval after asking it. */
+type Settled =
+  | { kind: "approved"; id: string }
+  | { kind: "held"; state: string }
+  | { kind: "unknown" };
+
+const EMAIL_NEEDS_APPROVAL =
+  "Email needs an accepted observation. Save and approve it first.";
+const EARLIER_APPROVED_MESSAGE =
+  "The earlier values were approved. Your changes are not saved: save and approve again to approve them.";
+
+function heldMessage(state: string): string {
+  return state === "draft" || state === "qc_pending"
+    ? "Not approved. It is saved as a draft; try again."
+    : `Not approved. The register shows it as ${state}.`;
+}
+
+function unconfirmedMessage(sameValues: boolean): string {
+  return sameValues
+    ? "Could not confirm whether it was approved. Try again to check, and do not save it again until it is confirmed."
+    : "Could not confirm whether the earlier values were approved. Your changes are not saved. Try again to check.";
 }
 
 function toReportRows(
@@ -149,10 +180,21 @@ export function ERegister() {
     useState<ApprovalController["status"]>("idle");
   const [approvalMessage, setApprovalMessage] = useState<string | null>(null);
   const [approvalNotes, setApprovalNotes] = useState(0);
+  // True for the whole of an approval run (the lock), whatever message it shows.
+  const [approvalBusy, setApprovalBusy] = useState(false);
   const [liveState, setLiveState] = useState<LiveState>("loading");
   // The station's fixed pressure amounts (78958: owner confirmed, seeded).
   const [stationSettings, setStationSettings] =
     useState<StationSettings | null>(null);
+  // New amounts change what the checks say: an open confirmation is stale.
+  const settingsSeen = useRef(stationSettings);
+  useEffect(() => {
+    if (settingsSeen.current === stationSettings) return;
+    settingsSeen.current = stationSettings;
+    setApprovalStatus((current) =>
+      current === "confirming" ? "idle" : current
+    );
+  }, [stationSettings]);
   const [liveAviation, setLiveAviation] = useState<
     Record<"METAR" | "SPECI", RegisterObservationRead[]>
   >({ METAR: [], SPECI: [] });
@@ -278,17 +320,29 @@ export function ERegister() {
   } | null>(null);
   const approvingRef = useRef(false);
 
-  // The id of the approved observation holding exactly these values, if the
-  // register still has it accepted. Saving them again would only make a
-  // correction of what was already sent.
+  // The id of the accepted observation for this hour holding exactly these
+  // values, if the register still has it accepted. Saving them again would only
+  // make a correction of what was already approved. The record approved in this
+  // visit is checked first; after a reload the accepted list is checked by value.
   function approvedAsKeyed(): string | null {
-    const id = approvedRef.current.get(JSON.stringify(structuredValues));
-    if (!id) return null;
-    return liveObservations.some(
-      (item) => item.id === id && item.state === "accepted"
-    )
-      ? id
-      : null;
+    const key = JSON.stringify(structuredValues);
+    const known = approvedRef.current.get(key);
+    if (
+      known &&
+      liveObservations.some(
+        (item) => item.id === known && item.state === "accepted"
+      )
+    ) {
+      return known;
+    }
+    const hour = observationDate.getTime();
+    const match = liveObservations.find(
+      (item) =>
+        item.state === "accepted" &&
+        new Date(item.observed_at).getTime() === hour &&
+        holdsValues(item.body, structuredValues)
+    );
+    return match?.id ?? null;
   }
 
   function isApprovedId(id: string): boolean {
@@ -296,6 +350,28 @@ export function ERegister() {
   }
 
   async function saveObservation(): Promise<string | null> {
+    // An unclear accept is settled before anything is saved: the register may
+    // already hold this hour approved, and a save would correct it.
+    const pending = unconfirmedRef.current;
+    if (pending) {
+      const settled = await settleApproval(pending);
+      const sameValues = pending.key === JSON.stringify(structuredValues);
+      if (settled.kind === "unknown") {
+        setApprovalStatus("error");
+        setApprovalMessage(unconfirmedMessage(sameValues));
+        return null;
+      }
+      if (settled.kind === "approved") {
+        if (sameValues) {
+          await announceApproved(settled.id);
+          setSaveState("saved");
+          return settled.id;
+        }
+        setApprovalStatus("approved");
+        setApprovalMessage(EARLIER_APPROVED_MESSAGE);
+        return null;
+      }
+    }
     const approvedId = approvedAsKeyed();
     if (approvedId) {
       setSaveState("saved");
@@ -447,52 +523,57 @@ export function ERegister() {
   }
 
   // After an accept call that did not answer clearly, ask the register what it
-  // holds before saying anything: it may already be approved.
-  async function settleApproval(id: string, observedIso: string, key: string) {
+  // holds before saying anything: it may already be approved. An approval found
+  // is recorded for the values it was made for; the caller says what that means.
+  async function settleApproval(pending: PendingApproval): Promise<Settled> {
     let held: RegisterObservationRead | undefined;
     try {
       const holders = await eregisterListRegisterObservations({
         query: {
           kind: "SYNOP",
           station_id: STATION.number,
-          observed_at: observedIso,
+          observed_at: pending.iso,
           limit: 10,
         },
         throwOnError: false,
       });
-      held = holders.data?.observations.find((item) => item.id === id);
+      held = holders.data?.observations.find((item) => item.id === pending.id);
     } catch {
       held = undefined;
     }
     if (held?.state === "accepted") {
-      markApproved(held, key);
-      await announceApproved(id);
-      return;
+      markApproved(held, pending.key);
+      return { kind: "approved", id: pending.id };
     }
-    setApprovalStatus("error");
     if (held) {
       unconfirmedRef.current = null;
-      setApprovalMessage(
-        held.state === "draft" || held.state === "qc_pending"
-          ? "Not approved. It is saved as a draft; try again."
-          : `Not approved. The register shows it as ${held.state}.`
-      );
-      return;
+      return { kind: "held", state: held.state };
     }
-    // Unknown: the next try asks again before saving anything.
-    unconfirmedRef.current = { id, iso: observedIso, key };
-    setApprovalMessage(
-      "Could not confirm whether it was approved. Try again to check, and do not save it again until it is confirmed."
-    );
+    // Unknown: stays pending, so the next save or approval asks again first.
+    return { kind: "unknown" };
   }
 
   async function runApproval() {
     const observedIso = observationDate.toISOString();
     const key = JSON.stringify(structuredValues);
-    const unconfirmed = unconfirmedRef.current;
-    if (unconfirmed) {
-      await settleApproval(unconfirmed.id, unconfirmed.iso, unconfirmed.key);
-      if (unconfirmedRef.current || isApprovedId(unconfirmed.id)) return;
+    const pending = unconfirmedRef.current;
+    if (pending) {
+      const settled = await settleApproval(pending);
+      if (settled.kind === "approved") {
+        if (pending.key === key) {
+          await announceApproved(settled.id);
+        } else {
+          setApprovalStatus("approved");
+          setApprovalMessage(EARLIER_APPROVED_MESSAGE);
+        }
+        return;
+      }
+      if (settled.kind === "unknown") {
+        setApprovalStatus("error");
+        setApprovalMessage(unconfirmedMessage(pending.key === key));
+        return;
+      }
+      // Held and not approved: the approval below goes on with the values shown.
     }
     const known = approvedAsKeyed();
     if (known) {
@@ -540,14 +621,26 @@ export function ERegister() {
       setApprovalMessage(decided.error.detail.message);
       return;
     }
-    await settleApproval(id, observedIso, key);
+    const settled = await settleApproval({ id, iso: observedIso, key });
+    if (settled.kind === "approved") {
+      await announceApproved(settled.id);
+      return;
+    }
+    setApprovalStatus("error");
+    setApprovalMessage(
+      settled.kind === "held"
+        ? heldMessage(settled.state)
+        : unconfirmedMessage(true)
+    );
   }
 
   // One approval at a time; anything that throws ends in a message, never a
-  // form stuck on "Approving…".
+  // form stuck on "Approving…". The lock is the ref and the busy flag, not the
+  // visible status, which moves while a run is still going.
   async function guardedApproval(work: () => Promise<void>) {
     if (approvingRef.current) return;
     approvingRef.current = true;
+    setApprovalBusy(true);
     setApprovalStatus("working");
     setApprovalMessage(null);
     try {
@@ -559,6 +652,7 @@ export function ERegister() {
       );
     } finally {
       approvingRef.current = false;
+      setApprovalBusy(false);
     }
   }
 
@@ -586,6 +680,7 @@ export function ERegister() {
     });
 
   const approval: ApprovalController = {
+    busy: approvalBusy,
     cancel: () => setApprovalStatus("idle"),
     confirm: () => guardedApproval(runApproval),
     message: approvalMessage,
@@ -617,10 +712,13 @@ export function ERegister() {
       iso,
       withDerived(structuredValues, stationSettings)
     );
+    // The register sends only accepted observations by email (the default).
+    const emailBlocked = approvedAsKeyed() ? null : EMAIL_NEEDS_APPROVAL;
 
     return (
       <ERegisterWorkbook
         approval={approval}
+        emailBlocked={emailBlocked}
         expectedMetar={expectedMetar}
         issues={validationIssues}
         metarPreview={metarPreview}
@@ -637,7 +735,7 @@ export function ERegister() {
           // them falls back to the local preview until the next check.
           if (key !== "metar_text") setExpectedMetar(null);
           // Editing after a decision or a question starts the approval over.
-          if (approvalStatus !== "working") setApprovalStatus("idle");
+          setApprovalStatus("idle");
           setStructuredValues((current) => ({ ...current, [key]: value }));
         }}
         saveStatus={saveState}

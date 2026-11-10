@@ -32,6 +32,8 @@ type SaveStatus = "idle" | "saving" | "saved" | "error";
 
 /** Save and approve in one step; notes (warnings) ask for a confirmation first. */
 export interface ApprovalController {
+  /** An approval run is going on: the form is locked until it ends. */
+  busy: boolean;
   /** Back to editing without approving. */
   cancel: () => void;
   /** Go ahead with the notes the observer has seen. */
@@ -71,6 +73,8 @@ import {
 
 interface Props {
   approval?: ApprovalController;
+  /** Why emailing is not possible now (the observation is not accepted); null when it is. */
+  emailBlocked?: string | null;
   expectedMetar?: string | null;
   issues: ValidationIssue[];
   metarPreview: string;
@@ -234,6 +238,7 @@ export function ERegisterWorkbook({
   values,
   observedAt,
   approval,
+  emailBlocked = null,
   issues,
   validationStatus,
   saveStatus,
@@ -391,7 +396,7 @@ export function ERegisterWorkbook({
       <form className="flex flex-col gap-6" onSubmit={onSubmit}>
         <fieldset
           className="m-0 flex min-w-0 flex-col gap-6 border-0 p-0"
-          disabled={approval?.status === "working"}
+          disabled={approval?.busy}
         >
           <div className="flex flex-col gap-4">
             <div className="flex flex-wrap items-stretch gap-4">
@@ -509,7 +514,10 @@ export function ERegisterWorkbook({
                 Send last obs
               </Button>
               <Button
-                disabled={send.pending !== null}
+                aria-describedby={
+                  emailBlocked ? "eregister-email-reason" : undefined
+                }
+                disabled={send.pending !== null || emailBlocked !== null}
                 onClick={() => send.request("email")}
                 type="button"
                 variant="ghost"
@@ -518,9 +526,7 @@ export function ERegisterWorkbook({
                 Email observation
               </Button>
               <Button
-                disabled={
-                  saveStatus === "saving" || approval?.status === "working"
-                }
+                disabled={saveStatus === "saving" || approval?.busy}
                 type="submit"
                 variant={approval ? "outline" : "default"}
               >
@@ -533,16 +539,14 @@ export function ERegisterWorkbook({
                     saveStatus === "saving" ||
                     validationStatus === "checking" ||
                     send.pending !== null ||
-                    approval.status === "working" ||
+                    approval.busy ||
                     approval.status === "confirming"
                   }
                   onClick={approval.start}
                   type="button"
                 >
                   <CircleCheck />
-                  {approval.status === "working"
-                    ? "Approving…"
-                    : "Save and approve"}
+                  {approval.busy ? "Approving…" : "Save and approve"}
                 </Button>
               ) : null}
             </div>
@@ -563,6 +567,14 @@ export function ERegisterWorkbook({
               {approval.message ?? "The observation could not be approved."}
             </p>
           )}
+          {emailBlocked ? (
+            <p
+              className="text-muted-foreground text-xs"
+              id="eregister-email-reason"
+            >
+              {emailBlocked}
+            </p>
+          ) : null}
           <SendStatus send={send} />
           {saveStatus === "saved" && approval?.status !== "approved" && (
             <p className="text-muted-foreground text-xs" role="status">
@@ -613,7 +625,7 @@ export function ERegisterWorkbook({
               <Input
                 aria-label="METAR or SPECI as sent"
                 className="font-mono text-xs"
-                disabled={approval?.status === "working"}
+                disabled={approval?.busy}
                 maxLength={400}
                 onChange={(event) =>
                   onValueChange("metar_text", event.target.value)

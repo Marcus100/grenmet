@@ -499,3 +499,188 @@ it("approves the correction when the hour already has an observation", async () 
     expect.objectContaining({ path: { observation_id: "obs-2" } })
   );
 });
+
+const EARLIER_APPROVED =
+  /The earlier values were approved\. Your changes are not saved/u;
+const SEND_HISTORY_UNREADABLE =
+  /Approved\. Check the send history for WIS2 and email\./u;
+const EMAIL_REASON = /Email needs an accepted observation/u;
+
+function editAirTemperature() {
+  fireEvent.change(screen.getByLabelText("Air Temperature (TTT)"), {
+    target: { value: "5" },
+  });
+}
+
+it("Save draft after an unclear accept refuses to save while the register cannot say", async () => {
+  checked([]);
+  mocks.create.mockResolvedValue({ data: SAVED });
+  mocks.accept.mockRejectedValue(new Error("network"));
+  await openEntryForm();
+
+  approve();
+  await waitFor(() => expect(screen.getByText(UNCONFIRMED)).toBeTruthy());
+  const listCalls = mocks.list.mock.calls.length;
+  fireEvent.click(screen.getByRole("button", { name: "Save draft" }));
+
+  // The save first asks the register what holds the hour.
+  await waitFor(() =>
+    expect(mocks.list.mock.calls.length).toBeGreaterThan(listCalls)
+  );
+  await act(async () => {
+    await new Promise((resolve) => setTimeout(resolve, 0));
+  });
+  expect(mocks.create).toHaveBeenCalledTimes(1);
+  expect(mocks.correct).not.toHaveBeenCalled();
+  expect(mocks.accept).toHaveBeenCalledTimes(1);
+});
+
+it("Save draft after an unclear accept, once the register holds it approved, does not correct it", async () => {
+  checked([]);
+  mocks.create.mockResolvedValue({ data: SAVED });
+  mocks.accept.mockRejectedValue(new Error("network"));
+  await openEntryForm();
+
+  approve();
+  await waitFor(() => expect(screen.getByText(UNCONFIRMED)).toBeTruthy());
+  mocks.list.mockResolvedValue({ data: { observations: [ACCEPTED] } });
+  fireEvent.click(screen.getByRole("button", { name: "Save draft" }));
+
+  await waitFor(() => expect(screen.getByText(APPROVED_TEXT)).toBeTruthy());
+  expect(mocks.create).toHaveBeenCalledTimes(1);
+  expect(mocks.correct).not.toHaveBeenCalled();
+});
+
+it("an edit after an unclear accept that the register approved says the earlier values were approved, not the new ones", async () => {
+  checked([]);
+  mocks.create.mockResolvedValue({ data: SAVED });
+  mocks.accept.mockRejectedValue(new Error("network"));
+  await openEntryForm();
+
+  approve();
+  await waitFor(() => expect(screen.getByText(UNCONFIRMED)).toBeTruthy());
+  editAirTemperature();
+  mocks.list.mockResolvedValue({ data: { observations: [ACCEPTED] } });
+  approve();
+
+  await waitFor(() => expect(screen.getByText(EARLIER_APPROVED)).toBeTruthy());
+  expect(screen.queryByText(APPROVED_TEXT)).toBeNull();
+  expect(mocks.create).toHaveBeenCalledTimes(1);
+  expect(mocks.correct).not.toHaveBeenCalled();
+  expect(mocks.accept).toHaveBeenCalledTimes(1);
+});
+
+it("keeps the whole form locked for an approval run, even while its visible status has moved on", async () => {
+  checked([]);
+  mocks.create
+    .mockResolvedValueOnce({ data: SAVED })
+    .mockReturnValue(new Promise(() => undefined));
+  mocks.accept.mockRejectedValue(new Error("network"));
+  await openEntryForm();
+
+  approve();
+  await waitFor(() => expect(screen.getByText(UNCONFIRMED)).toBeTruthy());
+  // The register says the first try is only a draft, so the next run saves and
+  // approves the values shown; the save never returns.
+  mocks.list.mockResolvedValue({ data: { observations: [SAVED] } });
+  approve();
+
+  await waitFor(() => expect(mocks.create).toHaveBeenCalledTimes(2));
+  const metar = screen.getByLabelText(
+    "METAR or SPECI as sent"
+  ) as HTMLInputElement;
+  expect(metar.disabled).toBe(true);
+});
+
+it("closes the confirmation when the station amounts change, so the notes shown are the notes checked", async () => {
+  let loadSettings: (value: unknown) => void = () => undefined;
+  mocks.settings.mockReturnValue(
+    new Promise((resolve) => {
+      loadSettings = resolve;
+    })
+  );
+  checked([
+    { code: "c", field: "wind_gust", message: "A note", severity: "warning" },
+  ]);
+  await openEntryForm();
+
+  approve();
+  await screen.findByRole("alertdialog");
+  act(() => {
+    loadSettings({
+      data: {
+        pending: [],
+        qfe_offset_hpa: 0.3,
+        qnh_offset_hpa: 0.1,
+        sea_level_offset_hpa: 1,
+        station_id: "78958",
+        total_correction_hpa: 0,
+      },
+    });
+  });
+
+  await waitFor(() => expect(screen.queryByRole("alertdialog")).toBeNull());
+  expect(mocks.accept).not.toHaveBeenCalled();
+});
+
+it("Escape closes the approval confirmation and approves nothing", async () => {
+  checked([
+    { code: "c", field: "wind_gust", message: "A note", severity: "warning" },
+  ]);
+  await openEntryForm();
+
+  approve();
+  await screen.findByRole("alertdialog");
+  fireEvent.keyDown(document, { key: "Escape" });
+
+  expect(screen.queryByRole("alertdialog")).toBeNull();
+  expect(mocks.create).not.toHaveBeenCalled();
+  expect(mocks.accept).not.toHaveBeenCalled();
+});
+
+it("still says approved when the send history cannot be read", async () => {
+  checked([]);
+  mocks.create.mockResolvedValue({ data: SAVED });
+  mocks.accept.mockResolvedValue({ data: ACCEPTED });
+  mocks.sends.mockRejectedValue(new Error("network"));
+  await openEntryForm();
+
+  approve();
+
+  await waitFor(() =>
+    expect(screen.getByText(SEND_HISTORY_UNREADABLE)).toBeTruthy()
+  );
+  expect(mocks.accept).toHaveBeenCalledTimes(1);
+});
+
+it("still says approved when the send history call returns no data", async () => {
+  checked([]);
+  mocks.create.mockResolvedValue({ data: SAVED });
+  mocks.accept.mockResolvedValue({ data: ACCEPTED });
+  mocks.sends.mockResolvedValue({});
+  await openEntryForm();
+
+  approve();
+
+  await waitFor(() =>
+    expect(screen.getByText(SEND_HISTORY_UNREADABLE)).toBeTruthy()
+  );
+});
+
+it("Email waits for an accepted observation and is disabled with the reason until then", async () => {
+  checked([]);
+  mocks.create.mockResolvedValue({ data: SAVED });
+  mocks.accept.mockResolvedValue({ data: ACCEPTED });
+  await openEntryForm();
+
+  expect(isEnabled("Email observation")).toBe(false);
+  expect(screen.getByText(EMAIL_REASON)).toBeTruthy();
+
+  approve();
+  await waitFor(() => expect(screen.getByText(APPROVED_TEXT)).toBeTruthy());
+  expect(isEnabled("Email observation")).toBe(true);
+  expect(screen.queryByText(EMAIL_REASON)).toBeNull();
+
+  editAirTemperature();
+  expect(isEnabled("Email observation")).toBe(false);
+});
