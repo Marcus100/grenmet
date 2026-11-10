@@ -25,6 +25,12 @@ export interface ForecastDayData extends DayForecast {
   source: string;
   summary: string;
   title?: string;
+  /**
+   * When the forecast stops being in effect (the API's `valid_to`, Grenada
+   * wall-clock or ISO). Absent for placeholder days; a missing value reads as
+   * "validity not supplied", never as current.
+   */
+  validTo?: string | null;
 }
 export interface TodayIssue {
   day: ForecastDayData;

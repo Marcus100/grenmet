@@ -1,16 +1,17 @@
 import type { ReactNode } from "react";
+import { FreshnessNotice } from "@/components/freshness-notice";
 import { TabLink } from "@/components/home/hero-selection";
 import { Measure, Temperature } from "@/components/measure";
 import { clock12 } from "@/lib/clock";
 import {
   type CurrentConditions,
   isOtherGrenadaDay,
-  isStale,
   localDay,
   localTime,
 } from "@/lib/current-conditions";
 import { feelsLike } from "@/lib/feels-like";
 import type { Condition, ForecastDayData } from "@/lib/forecast-data";
+import { isStale, validityNote } from "@/lib/freshness";
 import { isIssued, rainChance } from "@/lib/hero-readings";
 import type { Measure as MeasureValue } from "@/lib/units";
 import {
@@ -178,8 +179,8 @@ export function NowCard({
     current?.temperature == null
       ? null
       : feelsLike(current.temperature, current.humidity);
-  // A fresh reading just says Now; an old one says when it was taken, never
-  // passing for current (90-minute rule, `isStale`).
+  // A fresh reading just says Now; an old one (over two hours, `isStale`)
+  // says when it was taken, never passing for current.
   let label = `Now · ${station}`;
   if (station === null) {
     // A place without a station never shows a reading; the national forecast
@@ -266,14 +267,19 @@ function shortDate(isoDate: string): string {
 
 /**
  * A forecast day: the date, the low, the high and the chance of rain, the sky
- * as forecast, wind with gusts, then the forecaster's sentence for the day.
+ * as forecast, wind with gusts, then the forecaster's sentence for the day. A
+ * forecast past its valid-to time keeps its words and says it has expired, with
+ * the next issue's time (`validityNote`).
  */
 export function DayCard({
   condition,
   day,
+  now,
 }: {
   condition: WeatherCondition;
   day: ForecastDayData;
+  /** Clock for the validity check; defaults to the render time. */
+  now?: Date;
 }) {
   const label = shortDate(day.date);
   if (!isIssued(day)) {
@@ -288,14 +294,20 @@ export function DayCard({
   const c = day.conditions;
   const direction = byLabel(c, WIND_DIRECTION)?.value;
   const rain = rainChance(day);
+  const expiry = validityNote(day.validTo, now ?? new Date(), {
+    forecast: true,
+  });
   return (
     <HeroCard
       footer={
-        day.summary && (
-          <p className="text-body-base leading-body-base mt-1.5 max-w-sm font-bold text-balance">
-            {day.summary}
-          </p>
-        )
+        <>
+          {day.summary && (
+            <p className="text-body-base leading-body-base mt-1.5 max-w-sm font-bold text-balance">
+              {day.summary}
+            </p>
+          )}
+          {expiry && <FreshnessNotice message={expiry} tone="sky" />}
+        </>
       }
       label={label}
       left={

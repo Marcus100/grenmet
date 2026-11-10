@@ -5,12 +5,12 @@ import { SummaryCard } from "@/components/home/summary-card";
 import { Temperature } from "@/components/measure";
 import {
   isOtherGrenadaDay,
-  isStale,
   localDay,
   localTime,
 } from "@/lib/current-conditions";
 import { feelsLike } from "@/lib/feels-like";
 import type { WeatherSnapshot } from "@/lib/forecast-data";
+import { isStale } from "@/lib/freshness";
 import { nowReadings, skyFromWords } from "@/lib/hero-readings";
 import { cn } from "@/lib/utils";
 

@@ -17,7 +17,7 @@ export interface StripDay extends ForecastDay {
 /** The Now column, the first tab at every width. */
 export interface StripNow {
   href: string;
-  /** "Last" when the reading is older than 90 minutes; defaults to "Now". */
+  /** "Last" when the reading is older than two hours; defaults to "Now". */
   label?: "Now" | "Last";
   sky: WeatherCondition;
   temperature: number | null;

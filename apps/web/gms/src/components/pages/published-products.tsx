@@ -1,8 +1,33 @@
-import { type ProductKind, productTitle } from "@barrelsgd/gms/products";
+import {
+  isForecastKind,
+  type ProductKind,
+  productTitle,
+} from "@barrelsgd/gms/products";
 import Link from "next/link";
+import { FreshnessNotice } from "@/components/freshness-notice";
 import { ImportedWatch } from "@/components/pages/imported-watch";
+import { validityNote } from "@/lib/freshness";
 import { fetchPublishedProducts } from "@/lib/products";
+
+/** Says when a listed product is no longer in effect (`validityNote`). */
+function ValidityNotice({
+  kind,
+  now,
+  validTo,
+}: {
+  kind: ProductKind;
+  now: Date;
+  validTo: string | undefined;
+}) {
+  const note = validityNote(validTo, now, {
+    forecast: isForecastKind(kind),
+    kinds: [kind],
+  });
+  return note ? <FreshnessNotice message={note} /> : null;
+}
+
 export async function PublishedProducts({ kinds }: { kinds: ProductKind[] }) {
+  const now = new Date();
   const result = await fetchPublishedProducts(
     kinds.length === 1 ? kinds[0] : undefined
   );
@@ -48,6 +73,11 @@ export async function PublishedProducts({ kinds }: { kinds: ProductKind[] }) {
                       {(product.values.validTo ?? "").replace("T", " ")}{" "}
                       (Grenada time) · Revision {product.revision}
                     </p>
+                    <ValidityNotice
+                      kind={kind}
+                      now={now}
+                      validTo={product.values.validTo}
+                    />
                     {product.kind === "marine-forecast" ? (
                       <ImportedWatch advisories={product.values.advisories} />
                     ) : null}
