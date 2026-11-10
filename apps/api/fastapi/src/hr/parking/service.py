@@ -17,6 +17,7 @@ from src.hr.exceptions import (
 )
 from src.hr.models import EDITABLE_STATUSES, EmploymentRecord, RequestStatus
 from src.hr.signatures import service as signature_service
+from src.hr.workflow import transitions as workflow_transitions
 from src.hr.workflow.models import WorkflowInstance, WorkflowStatus, WorkflowType
 from src.hr.workflow.service import start_workflow_for_entity, submit_draft_workflow
 from src.utils.datetime import utc_now
@@ -191,7 +192,7 @@ async def submit_permit(
             entity_id=permit.id,
             co_approver_user_ids=payload.co_approver_user_ids,
         )
-    permit.status = RequestStatus.SUBMITTED
+    workflow_transitions.submit_request(permit)
     permit.updated_at = utc_now()
     await signature_service.capture(
         session=session,
