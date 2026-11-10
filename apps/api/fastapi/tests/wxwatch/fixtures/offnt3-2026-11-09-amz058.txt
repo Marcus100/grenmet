@@ -1,0 +1,628 @@
+FZNT23 KNHC 091952
+OFFNT3
+
+Offshore Waters Forecast for the Caribbean Sea and Tropical
+N Atlantic
+NWS National Hurricane Center Miami, FL
+252 PM EST Mon Nov 9 2026
+
+Offshore Waters Forecast for Caribbean Sea, and the Tropical N
+Atlantic from 07N to 19N W of 55W.
+
+Seas given as significant wave height, which is the average
+height of the highest 1/3 of the waves. Individual waves may be
+more than twice the significant wave height.
+
+AMZ001-100800-
+Synopsis for Caribbean Sea, and Tropical N Atlantic from 07N to
+19N W of 55W
+252 PM EST Mon Nov 9 2026
+
+.SYNOPSIS...A weak pressure gradient across the basin will
+result in moderate or weaker trade winds, except increasing to
+fresh to strong in the south-central portion tonight as the
+pressure gradient tightens slightly. By Tue, mainly moderate to 
+locally fresh winds will prevail elsewhere elsewhere, except 
+weaker near Central America. Expect rough seas with the fresh to 
+strong winds and mainly slight to moderate seas elsewhere. Winds 
+will weaken over the western portion of the basin toward the end 
+of the week as a cold front approaches from the NW. The front may 
+enter the NW Caribbean Fri and gradually wash out into the weekend,
+with moderate to fresh winds and building seas behind it. 
+
+$$
+
+AMZ040-100800-
+Caribbean N of 18N W of 85W including Yucatan Basin-
+252 PM EST Mon Nov 9 2026
+
+.TONIGHT...NE to E winds 10 kt. Seas 3 ft or less. Scattered
+showers and isolated tstms. 
+.TUE...NE to E winds 10 to 15 kt. Seas 3 ft or less. Scattered
+showers and isolated tstms. 
+.TUE NIGHT...NE to E winds 10 kt. Seas 3 ft or less. Scattered
+showers and isolated tstms. 
+.WED...S of 20N, E winds 10 kt in the morning, becoming variable
+less than 5 kt. N of 20N, NE to E winds 10 kt. Seas 3 ft or less.
+Scattered showers and isolated tstms. 
+.WED NIGHT...S of 20N, NE winds 10 kt in the evening, becoming
+variable less than 5 kt. N of 20N, NE winds 10 kt. Seas 3 ft or
+less. 
+.THU...S of 20N, variable winds less than 5 kt. N of 20N,
+variable winds less than 5 kt, becoming N 10 kt in the afternoon.
+Seas 3 ft or less. 
+.THU NIGHT...N to NE winds 10 kt in the evening, becoming
+variable less than 5 kt. Seas 3 ft or less. 
+.FRI...S of 20N, variable winds less than 5 kt, becoming NW to N
+10 kt in the afternoon. N of 20N, NW to N winds 10 to 15 kt. Seas
+3 ft or less. 
+.FRI NIGHT...N winds 10 to 15 kt. Seas 2 to 4 ft. 
+.SAT...N to NE winds 10 to 15 kt. Seas 3 to 5 ft. 
+.SAT NIGHT...NE winds 10 to 15 kt. Seas 3 to 5 ft. 
+
+$$
+
+AMZ041-100800-
+Caribbean N of 20N E of 85W-
+252 PM EST Mon Nov 9 2026
+
+.TONIGHT...NE to E winds 10 to 15 kt. Seas 2 to 4 ft. 
+.TUE...NE to E winds 15 to 20 kt. Seas 3 to 5 ft. 
+.TUE NIGHT...E winds 10 to 15 kt. Seas 2 to 4 ft. Scattered
+showers and isolated tstms. 
+.WED...E winds 10 to 15 kt. Seas 2 to 4 ft. Scattered showers and
+isolated tstms. 
+.WED NIGHT...Variable winds less than 5 kt W of 81W, and SE 10 kt
+E of 81W. Seas 3 ft or less. 
+.THU...Variable winds less than 5 kt W of 81W, and S 10 to 15 kt
+E of 81W. Seas 3 ft or less. 
+.THU NIGHT...W of 81W, W to NW winds 10 kt in the evening,
+becoming variable less than 5 kt. E of 81W, S to SW winds 10 kt.
+Seas 3 ft or less. 
+.FRI...Variable winds less than 5 kt, becoming W to NW 10 kt in
+the afternoon. Seas 3 ft or less. 
+.FRI NIGHT...N winds 10 kt. Seas 3 ft or less. 
+.SAT...N to NE winds 10 kt. Seas 2 to 4 ft. 
+.SAT NIGHT...NE winds 10 to 15 kt W of 81W, and NE 15 to 20 kt E
+of 81W. Seas 2 to 4 ft. 
+
+$$
+
+AMZ042-100800-
+Caribbean from 18N-20N between 80W-85W including Cayman Basin-
+252 PM EST Mon Nov 9 2026
+
+.TONIGHT...NE to E winds 10 to 15 kt. Seas 3 ft or less.
+Scattered showers and isolated tstms. 
+.TUE...NE to E winds 10 to 15 kt. Seas 2 to 4 ft. Scattered
+showers and isolated tstms. 
+.TUE NIGHT...E winds 10 to 15 kt. Seas 2 to 4 ft. Scattered
+showers and isolated tstms. 
+.WED...E to SE winds 10 kt. Seas 2 to 4 ft. Scattered showers and
+isolated tstms. 
+.WED NIGHT...Variable winds less than 5 kt W of 82W, and E to SE
+10 to 15 kt E of 82W. Seas 2 to 4 ft. 
+.THU...Variable winds less than 5 kt W of 82W, and SE to S 10 kt
+E of 82W. Seas 2 to 4 ft. 
+.THU NIGHT...W of 82W, variable winds less than 5 kt. E of 82W, S
+winds 10 kt in the evening, becoming variable less than 5 kt.
+Seas 2 to 4 ft. 
+.FRI...Variable winds less than 5 kt, becoming W to NW 10 kt in
+the afternoon. Seas 3 ft or less. 
+.FRI NIGHT...NW to N winds 10 kt. Seas 3 ft or less. 
+.SAT...N winds 10 kt. Seas 2 to 4 ft. 
+.SAT NIGHT...NE winds 10 to 15 kt. Seas 2 to 4 ft. 
+
+$$
+
+AMZ043-100800-
+Caribbean from 18N-20N between 76W-80W-
+252 PM EST Mon Nov 9 2026
+
+.TONIGHT...NE to E winds 10 to 15 kt. Seas 3 ft or less.
+Scattered showers and isolated tstms. 
+.TUE...E winds 10 to 15 kt. Seas 2 to 4 ft. Scattered showers and
+isolated tstms. 
+.TUE NIGHT...E winds 10 to 15 kt. Seas 3 to 5 ft. Scattered
+showers and isolated tstms. 
+.WED...E winds 10 to 15 kt. Seas 3 to 5 ft. 
+.WED NIGHT...E to SE winds 10 to 15 kt. Seas 4 to 6 ft. 
+.THU...SE winds 10 to 15 kt. Seas 4 to 6 ft. 
+.THU NIGHT...W of 78W, SE to S winds 10 kt in the evening,
+becoming variable less than 5 kt. E of 78W, SE winds 10 to 15 kt.
+Seas 3 to 5 ft. 
+.FRI...W of 78W, variable winds less than 5 kt. E of 78W, SE to S
+winds 10 to 15 kt, shifting to SW in the afternoon. Seas 3 to
+5 ft. 
+.FRI NIGHT...W of 78W, W to NW winds 10 kt in the evening,
+becoming variable less than 5 kt. E of 78W, variable winds less
+than 5 kt. Seas 3 to 5 ft. 
+.SAT...W of 78W, variable winds less than 5 kt, becoming N 10 kt
+in the afternoon. E of 78W, variable winds less than 5 kt. Seas
+2 to 4 ft. 
+.SAT NIGHT...W of 78W, N to NE winds 10 to 15 kt. E of 78W,
+variable winds less than 5 kt, becoming NE 10 kt late.
+Seas 2 to 4 ft. 
+
+$$
+
+AMZ044-100800-
+Caribbean approaches to the Windward Passage-
+252 PM EST Mon Nov 9 2026
+
+.TONIGHT...In the Gulf of Gonave, N to NE winds 10 kt in the
+evening, becoming variable less than 5 kt. Elsewhere, NE to E
+winds 10 to 15 kt. Seas 3 ft or less. Scattered showers and
+isolated tstms. 
+.TUE...Variable winds less than 5 kt in the Gulf of Gonave, and
+NE to E 10 to 15 kt elsewhere. Seas 2 to 4 ft. Scattered showers
+and isolated tstms. 
+.TUE NIGHT...Variable winds less than 5 kt in the Gulf of Gonave,
+and NE to E 10 to 15 kt elsewhere. Seas 3 to 5 ft. Scattered
+showers and isolated tstms. 
+.WED...Variable winds less than 5 kt in the Gulf of Gonave, and E
+10 to 15 kt elsewhere. Seas 4 to 6 ft in E to SE swell. 
+.WED NIGHT...In the Gulf of Gonave, variable winds less than
+5 kt. Seas 3 ft or less. Elsewhere, E winds 10 to 15 kt. Seas
+4 to 6 ft. 
+.THU...In the Gulf of Gonave, SE winds 10 kt in the morning,
+becoming variable less than 5 kt. Elsewhere, E to SE winds 10 to
+15 kt. Seas 3 ft or less in the Gulf of Gonave, and 4 to 6 ft
+elsewhere. 
+.THU NIGHT...SE winds 10 to 15 kt. Seas 3 ft or less in the Gulf
+of Gonave, and 4 to 6 ft elsewhere. 
+.FRI...SE to S winds 10 to 15 kt. Seas 3 ft or less in the Gulf
+of Gonave, and 4 to 6 ft elsewhere. 
+.FRI NIGHT...S to SW winds 10 to 15 kt. Seas 3 ft or less in the
+Gulf of Gonave, and 3 to 5 ft elsewhere. 
+.SAT...In the Gulf of Gonave, variable winds less than 5 kt. Seas
+3 ft or less. Elsewhere, SW winds 10 kt. Seas 2 to 4 ft. 
+.SAT NIGHT...In the Gulf of Gonave, variable winds less than
+5 kt. Elsewhere, variable winds less than 5 kt, becoming NE 10 kt
+late. Seas 3 ft or less in the Gulf of Gonave, and 2 to
+4 ft elsewhere. 
+
+$$
+
+AMZ045-100800-
+Gulf of Honduras-
+252 PM EST Mon Nov 9 2026
+
+.TONIGHT...NE to E winds 10 kt in the evening, becoming variable
+less than 5 kt. Seas 3 ft or less. Scattered showers and isolated
+tstms. 
+.TUE...Variable winds less than 5 kt S of 17N W of 86W, and N to
+NE 10 kt elsewhere. Seas 3 ft or less. Scattered showers and
+isolated tstms. 
+.TUE NIGHT...Variable winds less than 5 kt S of 17N W of 86W, and
+NE to E 10 kt elsewhere. Seas 3 ft or less. Scattered showers and
+isolated tstms. 
+.WED...S of 17N W of 86W, W to NW winds 10 kt in the afternoon.
+Variable winds less than 5 kt in the morning. Elsewhere, variable
+less than 5 kt. Seas 3 ft or less. 
+.WED NIGHT...S of 17N W of 86W, N to NE winds 10 kt in the
+evening. Variable winds less than 5 kt late. Elsewhere,
+variable winds less than 5 kt in the evening. Seas 3 ft or less. 
+.THU...Variable winds less than 5 kt. Seas 3 ft or less. 
+.THU NIGHT...Variable winds less than 5 kt. Seas 3 ft or less. 
+.FRI...S of 17N W of 86W, W to NW winds 10 kt. Elsewhere,
+variable winds less than 5 kt, becoming NW 10 kt in the
+afternoon. Seas 3 ft or less. 
+.FRI NIGHT...S of 17N W of 86W, variable winds less than 5 kt,
+becoming NW to N 10 kt late. Elsewhere, N winds 10 kt
+in the evening, becoming variable less than 5 kt. Seas 3 ft or
+less. 
+.SAT...NW to N winds 10 kt. Seas 3 ft or less.
+.SAT NIGHT...S of 17N W of 86W, N to NE winds 10 kt in the
+evening, becoming variable less than 5 kt. Elsewhere, NE winds
+10 kt. Seas 2 to 4 ft. 
+
+$$
+
+AMZ046-100800-
+Caribbean from 15N to 18N between 80W and 85W-
+252 PM EST Mon Nov 9 2026
+
+.TONIGHT...NE winds 10 to 15 kt. Seas 3 ft or less. Scattered
+showers and isolated tstms. 
+.TUE...NE to E winds 10 to 15 kt. Seas 2 to 4 ft. Scattered
+showers and isolated tstms. 
+.TUE NIGHT...NE to E winds 10 to 15 kt. Seas 3 to 5 ft. Scattered
+showers and isolated tstms. 
+.WED...NE to E winds 10 kt W of 82W, and E 10 to 15 kt E of 82W.
+Seas 4 to 6 ft. Scattered showers and isolated tstms. 
+.WED NIGHT...W of 82W, NE winds 10 kt in the evening, becoming
+variable less than 5 kt. E of 82W, E winds 10 to 15 kt. Seas 2 to
+4 ft W of 82W, and 4 to 6 ft E of 82W. 
+.THU...W of 82W, variable winds less than 5 kt, becoming N 10 kt
+in the afternoon. E of 82W, E to SE winds 10 kt. Seas 2 to 4 ft W
+of 82W, and 4 to 6 ft E of 82W. 
+.THU NIGHT...Variable winds less than 5 kt. Seas 2 to 4 ft W of
+82W, and 3 to 5 ft E of 82W. 
+.FRI...W of 82W, variable winds less than 5 kt, becoming NW 10 kt
+in the afternoon. E of 82W, variable winds less than 5 kt. Seas
+3 ft or less W of 82W, and 2 to 4 ft E of 82W. 
+.FRI NIGHT...W of 82W, NW to N winds 10 kt. E of 82W, NW to N
+winds 10 kt in the evening, becoming variable less than 5 kt.
+Seas 3 ft or less W of 82W, and 2 to 4 ft E of 82W. 
+.SAT...W of 82W, N winds 10 kt. E of 82W, variable winds less
+than 5 kt, becoming N 10 kt in the afternoon. Seas 3 ft or less. 
+.SAT NIGHT...N to NE winds 10 kt. Seas 2 to 4 ft W of 82W, and
+3 ft or less E of 82W. 
+
+$$
+
+AMZ047-100800-
+Caribbean from 15N to 18N between 76W and 80W-
+252 PM EST Mon Nov 9 2026
+
+.TONIGHT...NE to E winds 10 to 15 kt. Seas 2 to 4 ft. Scattered
+showers and isolated tstms. 
+.TUE...E winds 10 to 15 kt. Seas 4 to 6 ft. Scattered showers and
+isolated tstms. 
+.TUE NIGHT...NE to E winds 15 to 20 kt S of 17N, and E 10 to
+15 kt N of 17N. Seas 5 to 7 ft. Scattered showers and isolated
+tstms. 
+.WED...E winds 15 to 20 kt. Seas 5 to 7 ft. Scattered showers and
+isolated tstms. 
+.WED NIGHT...E winds 15 to 20 kt. Seas 5 to 7 ft. 
+.THU...E to SE winds 15 to 20 kt S of 17N, and E to SE 10 to
+15 kt N of 17N. Seas 5 to 7 ft in E to SE swell. 
+.THU NIGHT...E to SE winds 10 kt. Seas 4 to 6 ft in E to SE
+swell. 
+.FRI...S winds 10 kt in the morning, becoming variable less than
+5 kt. Seas 3 to 5 ft. 
+.FRI NIGHT...Variable winds less than 5 kt. Seas 3 to 5 ft in E
+to SE swell. 
+.SAT...Variable winds less than 5 kt. Seas 2 to 4 ft. 
+.SAT NIGHT...NE winds 10 kt. Seas 2 to 4 ft. 
+
+$$
+
+AMZ048-100800-
+Caribbean from 15N to 18N between 72W and 76W-
+252 PM EST Mon Nov 9 2026
+
+.TONIGHT...E winds 10 to 15 kt. Seas 4 to 6 ft. Scattered showers
+and isolated tstms. 
+.TUE...E winds 15 to 20 kt. Seas 5 to 7 ft. 
+.TUE NIGHT...E winds 15 to 20 kt. Seas 6 to 8 ft. 
+.WED...E winds 15 to 20 kt. Seas 6 to 8 ft in SE swell. 
+.WED NIGHT...E winds 20 kt. Seas 6 to 8 ft in SE swell. 
+.THU...E to SE winds 15 to 20 kt. Seas 5 to 7 ft. 
+.THU NIGHT...E to SE winds 15 to 20 kt. Seas 5 to 7 ft in E to SE
+swell. 
+.FRI...SE winds 10 to 15 kt S of 17N, and SE 15 to 20 kt N of
+17N. Seas 4 to 6 ft. 
+.FRI NIGHT...SE to S winds 10 kt. Seas 4 to 6 ft in E to SE
+swell. 
+.SAT...E winds 10 kt. Seas 3 to 5 ft. 
+.SAT NIGHT...E winds 10 kt. Seas 2 to 4 ft. 
+
+$$
+
+AMZ049-100800-
+Caribbean N of 15N between 68W and 72W-
+252 PM EST Mon Nov 9 2026
+
+.TONIGHT...E winds 15 to 20 kt W of 70W, and E to SE 15 to 20 kt
+E of 70W. Seas 4 to 6 ft. 
+.TUE...E to SE winds 15 to 20 kt. Seas 5 to 7 ft. 
+.TUE NIGHT...E winds 15 to 20 kt. Seas 5 to 7 ft. 
+.WED...E winds 20 to 25 kt W of 70W, and E to SE 15 to 20 kt E of
+70W. Seas 6 to 8 ft in SE swell. 
+.WED NIGHT...E winds 15 to 20 kt. Seas 6 to 8 ft. 
+.THU...E to SE winds 15 to 20 kt. Seas 5 to 7 ft. 
+.THU NIGHT...E to SE winds 15 to 20 kt. Seas 5 to 7 ft. 
+.FRI...SE winds 15 to 20 kt. Seas 5 to 7 ft. 
+.FRI NIGHT...SE winds 10 to 15 kt W of 70W, and SE 15 to 20 kt E
+of 70W. Seas 4 to 6 ft. 
+.SAT...SE winds 10 to 15 kt. Seas 4 to 6 ft. 
+.SAT NIGHT...E to SE winds 10 to 15 kt. Seas 3 to 5 ft. 
+
+$$
+
+AMZ050-100800-
+Caribbean N of 15N between 64W and 68W-
+252 PM EST Mon Nov 9 2026
+
+.TONIGHT...E to SE winds 10 to 15 kt. Seas 3 to 5 ft. 
+.TUE...E to SE winds 15 to 20 kt W of 66W, and E to SE 10 to
+15 kt E of 66W. Seas 3 to 5 ft. 
+.TUE NIGHT...E winds 15 to 20 kt W of 66W, and E 10 to 15 kt E of
+66W. Seas 4 to 6 ft. 
+.WED...E winds 15 to 20 kt. Seas 4 to 6 ft. 
+.WED NIGHT...E to SE winds 15 to 20 kt. Seas 4 to 6 ft. 
+.THU...E to SE winds 15 to 20 kt. Seas 4 to 6 ft. 
+.THU NIGHT...E to SE winds 15 to 20 kt. Seas 4 to 6 ft. 
+.FRI...SE winds 15 to 20 kt. Seas 4 to 6 ft. 
+.FRI NIGHT...SE winds 15 to 20 kt. Seas 4 to 6 ft. 
+.SAT...SE winds 15 to 20 kt. Seas 4 to 6 ft. 
+.SAT NIGHT...E to SE winds 15 to 20 kt. Seas 3 to 5 ft. 
+
+$$
+
+AMZ051-100800-
+Offshore Waters Leeward Islands-
+252 PM EST Mon Nov 9 2026
+
+.TONIGHT...E to SE winds 10 kt. Seas 3 to 5 ft. 
+.TUE...E to SE winds 10 kt. Seas 3 to 5 ft. 
+.TUE NIGHT...E winds 10 to 15 kt. Seas 3 to 5 ft. 
+.WED...E winds 10 to 15 kt. Seas 3 to 5 ft. 
+.WED NIGHT...E to SE winds 10 to 15 kt. Seas 3 to 5 ft. 
+.THU...E to SE winds 10 to 15 kt. Seas 4 to 6 ft. 
+.THU NIGHT...E to SE winds 15 kt. Seas 4 to 6 ft. 
+.FRI...SE winds 15 kt. Seas 4 to 6 ft. 
+.FRI NIGHT...SE winds 15 kt. Seas 4 to 6 ft. 
+.SAT...SE winds 10 to 15 kt. Seas 4 to 6 ft. 
+.SAT NIGHT...E to SE winds 10 to 15 kt. Seas 4 to 6 ft. 
+
+$$
+
+AMZ052-100800-
+Tropical N Atlantic from 15N to 19N between 55W and 60W-
+252 PM EST Mon Nov 9 2026
+
+.TONIGHT...S of 17N, variable winds less than 5 kt, becoming SE
+10 kt late. N of 17N, variable winds less than 5 kt.
+Seas 4 to 6 ft in N to NE swell. 
+.TUE...S of 17N, E to SE winds 10 kt in the morning. Variable
+winds less than 5 kt in the afternoon. N of 17N, variable winds
+less than 5 kt in the morning. Seas 3 to 5 ft in N to NE swell. 
+.TUE NIGHT...S of 17N, NE to E winds 10 to 15 kt. N of 17N,
+variable winds less than 5 kt, becoming NE to E 10 kt late. Seas
+3 to 5 ft. 
+.WED...E winds 10 to 15 kt. Seas 3 to 5 ft. 
+.WED NIGHT...E winds 10 to 15 kt. Seas 3 to 5 ft. 
+.THU...E to SE winds 10 to 15 kt. Seas 4 to 6 ft. 
+.THU NIGHT...E to SE winds 10 to 15 kt. Seas 4 to 6 ft. 
+.FRI...E to SE winds 10 to 15 kt. Seas 5 to 7 ft.
+.FRI NIGHT...E to SE winds 10 to 15 kt. Seas 5 to 7 ft in E
+swell. 
+.SAT...E to SE winds 10 to 15 kt. Seas 5 to 7 ft. 
+.SAT NIGHT...E to SE winds 10 to 15 kt. Seas 4 to 6 ft. 
+
+$$
+
+AMZ053-100800-
+W Central Caribbean from 11N to 15N W of 80W-
+252 PM EST Mon Nov 9 2026
+
+.TONIGHT...NE winds 10 kt. Seas 3 ft or less. Scattered showers
+and isolated tstms. 
+.TUE...NE winds 10 to 15 kt. Seas 2 to 4 ft. Scattered showers
+and isolated tstms. 
+.TUE NIGHT...NE winds 10 to 15 kt. Seas 3 to 5 ft. Scattered
+showers and isolated tstms. 
+.WED...NE winds 10 to 15 kt. Seas 4 to 6 ft. Scattered showers
+and isolated tstms. 
+.WED NIGHT...NE winds 10 to 15 kt. Seas 4 to 6 ft in E swell. 
+.THU...N to NE winds 10 kt. Seas 4 to 6 ft in E swell. 
+.THU NIGHT...NE winds 10 kt in the evening, becoming variable
+less than 5 kt. Seas 3 to 5 ft in E swell. 
+.FRI...N winds 10 kt in the reefs, and variable less than 5 kt in
+the open waters. Seas 2 to 4 ft. 
+.FRI NIGHT...N to NE winds 10 kt. Seas 2 to 4 ft. 
+.SAT...N to NE winds 10 kt. Seas 3 ft or less.
+.SAT NIGHT...N to NE winds 10 kt. Seas 3 ft or less. 
+
+$$
+
+AMZ054-100800-
+Caribbean from 11N to 15N between 76W and 80W including Colombia
+Basin-
+252 PM EST Mon Nov 9 2026
+
+.TONIGHT...NE winds 10 to 15 kt. Seas 3 to 5 ft. 
+.TUE...NE to E winds 10 to 15 kt W of 78W, and NE to E 15 to
+20 kt E of 78W. Seas 4 to 6 ft. 
+.TUE NIGHT...NE to E winds 15 to 20 kt. Seas 5 to 7 ft. 
+.WED...E winds 15 to 20 kt. Seas 6 to 8 ft in E swell. Scattered
+showers and isolated tstms. 
+.WED NIGHT...E winds 10 to 15 kt W of 78W, and E 15 to 20 kt E of
+78W. Seas 5 to 7 ft in E swell. 
+.THU...W of 78W, E to SE winds 10 to 15 kt in the morning,
+becoming variable less than 5 kt. E of 78W, SE winds 10 to 15 kt.
+Seas 5 to 7 ft in E swell. 
+.THU NIGHT...Variable winds less than 5 kt. Seas 4 to 6 ft in E
+swell. 
+.FRI...Variable winds less than 5 kt. Seas 3 to 5 ft in E swell. 
+.FRI NIGHT...W of 78W, variable winds less than 5 kt, becoming N
+10 kt late. E of 78W, variable winds less than 5 kt.
+Seas 2 to 4 ft. 
+.SAT...N to NE winds 10 kt W of 78W, and variable less than 5 kt
+E of 78W. Seas 2 to 4 ft. 
+.SAT NIGHT...N to NE winds 10 kt. Seas 3 ft or less. 
+
+$$
+
+AMZ055-100800-
+Caribbean from 11N to 15N between 72W and 76W-
+252 PM EST Mon Nov 9 2026
+
+.TONIGHT...NE to E winds 15 to 20 kt. Seas 5 to 7 ft. 
+.TUE...E winds 15 to 20 kt. Seas 6 to 8 ft in E swell. 
+.TUE NIGHT...NE to E winds 15 to 20 kt. Seas 6 to 8 ft in E
+swell. 
+.WED...E winds 20 to 25 kt. Seas 6 to 9 ft in E swell. 
+.WED NIGHT...E winds 15 to 20 kt. Seas 6 to 8 ft in E swell. 
+.THU...E to SE winds 10 to 15 kt S of 13N, and E to SE 15 to
+20 kt N of 13N. Seas 6 to 8 ft. 
+.THU NIGHT...E to SE winds 10 to 15 kt. Seas 5 to 7 ft in E
+swell. 
+.FRI...S of 13N, variable winds less than 5 kt, becoming W 10 kt
+in the afternoon. N of 13N, SE to S winds 10 to 15 kt. Seas 4 to
+6 ft in E swell. 
+.FRI NIGHT...W to NW winds 10 kt in the evening, becoming
+variable less than 5 kt. Seas 4 to 6 ft in E swell. 
+.SAT...S of 13N, variable winds less than 5 kt. N of 13N,
+variable winds less than 5 kt, becoming NE to E 10 kt in the
+afternoon. Seas 3 to 5 ft in E swell. 
+.SAT NIGHT...NE to E winds 10 kt. Seas 2 to 4 ft. 
+
+$$
+
+AMZ056-100800-
+Caribbean S of 15N between 68W and 72W-
+252 PM EST Mon Nov 9 2026
+
+.TONIGHT...E winds 20 to 25 kt. Seas 5 to 7 ft. 
+.TUE...E winds 20 to 25 kt. Seas 6 to 8 ft. 
+.TUE NIGHT...E winds 20 to 25 kt. Seas 6 to 8 ft. 
+.WED...E winds 20 to 25 kt. Seas 6 to 8 ft. 
+.WED NIGHT...E winds 20 to 25 kt. Seas 6 to 8 ft in E swell. 
+.THU...E winds 15 to 20 kt. Seas 6 to 8 ft. 
+.THU NIGHT...E winds 15 to 20 kt. Seas 5 to 7 ft. 
+.FRI...Winds E to SE winds 15 to 20 kt. Seas 5 to 7 ft. 
+.FRI NIGHT...E winds 15 to 20 kt S of 13N, and E to SE 15 to
+20 kt N of 13N. Seas 4 to 6 ft. 
+.SAT...E to SE winds 10 to 15 kt. Seas 4 to 6 ft. 
+.SAT NIGHT...E winds 10 to 15 kt S of 13N, and E 15 to 20 kt N of
+13N. Seas 3 to 5 ft. 
+
+$$
+
+AMZ057-100800-
+Caribbean S of 15N between 64W and 68W including Venezuela Basin-
+252 PM EST Mon Nov 9 2026
+
+.TONIGHT...E winds 15 to 20 kt. Seas 4 to 6 ft. 
+.TUE...E to SE winds 15 to 20 kt. Seas 4 to 6 ft. 
+.TUE NIGHT...E winds 15 to 20 kt. Seas 4 to 6 ft. 
+.WED...E winds 15 to 20 kt. Seas 4 to 6 ft. 
+.WED NIGHT...E winds 15 to 20 kt. Seas 5 to 7 ft. 
+.THU...E to SE winds 15 to 20 kt. Seas 5 to 7 ft. 
+.THU NIGHT...E winds 15 to 20 kt. Seas 4 to 6 ft. 
+.FRI...E to SE winds 15 to 20 kt. Seas 4 to 6 ft.
+.FRI NIGHT...E to SE winds 15 to 20 kt. Seas 4 to 6 ft. 
+.SAT...E to SE winds 15 to 20 kt. Seas 4 to 6 ft. 
+.SAT NIGHT...E winds 15 to 20 kt. Seas 4 to 6 ft. 
+
+$$
+
+AMZ058-100800-
+Offshore Waters Windward Islands including Trinidad and Tobago-
+252 PM EST Mon Nov 9 2026
+
+.TONIGHT...E winds 15 to 20 kt in the Caribbean, and E 10 to
+15 kt in the Atlc. Seas 3 to 5 ft. 
+.TUE...E to SE winds 15 to 20 kt in the Caribbean, and E to SE
+10 to 15 kt in the Atlc. Seas 3 to 5 ft. 
+.TUE NIGHT...E winds 15 to 20 kt in the Caribbean, and E 10 to
+15 kt in the Atlc. Seas 4 to 6 ft. Scattered showers and isolated
+tstms. 
+.WED...E winds 15 to 20 kt. Seas 4 to 6 ft. Scattered showers and
+isolated tstms. 
+.WED NIGHT...E to SE winds 15 to 20 kt in the Caribbean, and E
+10 to 15 kt in the Atlc. Seas 4 to 6 ft. 
+.THU...E to SE winds 15 to 20 kt in the Caribbean, and E 10 to
+15 kt in the Atlc. Seas 4 to 6 ft. 
+.THU NIGHT...E winds 15 to 20 kt. Seas 4 to 6 ft. 
+.FRI...E to SE winds 15 to 20 kt. Seas 4 to 6 ft.
+.FRI NIGHT...E to SE winds 15 to 20 kt. Seas 4 to 6 ft. 
+.SAT...E to SE winds 15 to 20 kt. Seas 5 to 7 ft. 
+.SAT NIGHT...E winds 15 to 20 kt. Seas 5 to 7 ft. 
+
+$$
+
+AMZ059-100800-
+Tropical N Atlantic from 11N and 15N between 55W and 60W-
+252 PM EST Mon Nov 9 2026
+
+.TONIGHT...E to SE winds 15 to 20 kt S of 13N, and E 10 to 15 kt
+N of 13N. Seas 3 to 5 ft. Scattered showers and isolated tstms. 
+.TUE...E winds 10 to 15 kt. Seas 3 to 5 ft. 
+.TUE NIGHT...E winds 10 to 15 kt. Seas 4 to 6 ft. Scattered
+showers and isolated tstms. 
+.WED...E winds 15 kt. Seas 4 to 6 ft. 
+.WED NIGHT...E winds 15 kt. Seas 4 to 6 ft. 
+.THU...E winds 15 kt. Seas 4 to 6 ft. 
+.THU NIGHT...E winds 15 to 20 kt. Seas 5 to 7 ft. 
+.FRI...E winds 15 to 20 kt. Seas 6 to 8 ft in E swell. 
+.FRI NIGHT...E winds 15 to 20 kt S of 13N, and E 15 kt N of 13N.
+Seas 6 to 8 ft in E to SE swell. 
+.SAT...E winds 15 to 20 kt. Seas 6 to 8 ft in E to SE swell. 
+.SAT NIGHT...E winds 15 kt. Seas 5 to 7 ft in E to SE swell. 
+
+$$
+
+AMZ062-100800-
+Tropical N Atlantic from 7N and 11N between 55W and 60W-
+252 PM EST Mon Nov 9 2026
+
+.TONIGHT...E winds 15 to 20 kt. Seas 3 to 5 ft. Scattered showers
+and isolated tstms. 
+.TUE...E winds 10 to 15 kt. Seas 3 to 5 ft. 
+.TUE NIGHT...E winds 15 kt. Seas 4 to 6 ft. 
+.WED...E winds 15 kt. Seas 4 to 6 ft. Scattered showers and
+isolated tstms. 
+.WED NIGHT...E winds 15 kt. Seas 4 to 6 ft. 
+.THU...E winds 15 kt. Seas 4 to 6 ft. 
+.THU NIGHT...E winds 15 to 20 kt. Seas 4 to 6 ft. 
+.FRI...E winds 15 to 20 kt. Seas 5 to 7 ft in E swell. 
+.FRI NIGHT...E winds 15 to 20 kt. Seas 6 to 8 ft in NE to E
+swell. 
+.SAT...E winds 15 to 20 kt. Seas 6 to 8 ft in E swell. 
+.SAT NIGHT...E winds 15 to 20 kt. Seas 6 to 8 ft in E swell. 
+
+$$
+
+AMZ060-100800-
+SW Caribbean S of 11N W of 80W-
+252 PM EST Mon Nov 9 2026
+
+.TONIGHT...N to NE winds 10 kt. Seas 3 ft or less. Scattered
+showers and isolated tstms. 
+.TUE...N winds 10 kt. Seas 2 to 4 ft. Scattered showers and
+isolated tstms. 
+.TUE NIGHT...S of 10N, NW winds 10 kt. N of 10N, variable winds
+less than 5 kt, becoming NW to N 10 kt late. Seas 2 to
+4 ft. Scattered showers and isolated tstms. 
+.WED...NW winds 10 kt. Seas 2 to 4 ft. 
+.WED NIGHT...NW winds 10 kt. Seas 3 to 5 ft. 
+.THU...W to NW winds 10 kt. Seas 3 to 5 ft. 
+.THU NIGHT...S of 10N, SW to W winds 10 kt late.
+Variable winds less than 5 kt in the evening. N of 10N, variable
+less than 5 kt. Seas 3 to 5 ft in NE to E swell. 
+.FRI...Variable winds less than 5 kt S of 10N, and W 10 kt N of
+10N. Seas 2 to 4 ft. 
+.FRI NIGHT...Variable winds less than 5 kt. Seas 2 to 4 ft. 
+.SAT...S of 10N, variable winds less than 5 kt, becoming NW 10 kt
+in the afternoon. N of 10N, variable winds less than 5 kt. Seas
+3 ft or less. 
+.SAT NIGHT...Variable winds less than 5 kt. Seas 3 ft or less. 
+
+$$
+
+AMZ061-100800-
+SW Caribbean S of 11N E of 80W including the approaches to the
+Panama Canal-
+252 PM EST Mon Nov 9 2026
+
+.TONIGHT...N to NE winds 10 to 15 kt. Seas 2 to 4 ft. Scattered
+showers and isolated tstms. 
+.TUE...S of 10N, NE winds 10 kt in the morning, becoming variable
+less than 5 kt. N of 10N, NE winds 10 to 15 kt. Seas 3 to 5 ft.
+Scattered showers and isolated tstms. 
+.TUE NIGHT...N winds 10 kt. Seas 3 to 5 ft. Scattered showers and
+isolated tstms. 
+.WED...S of 10N, variable winds less than 5 kt, becoming W 10 kt
+in the afternoon. N of 10N, NE winds 10 kt in the morning,
+becoming variable less than 5 kt. Seas 4 to 6 ft in NE swell. 
+.WED NIGHT...W winds 10 kt S of 10N, and variable less than 5 kt
+N of 10N. Seas 4 to 6 ft in NE swell. 
+.THU...Variable winds less than 5 kt, becoming SW to W 10 kt in
+the afternoon. Seas 3 to 5 ft in NE swell. 
+.THU NIGHT...W winds 10 kt. Seas 3 to 5 ft. 
+.FRI...S of 10N, SW winds 10 kt in the morning, becoming variable
+less than 5 kt. N of 10N, SW to W winds 10 kt. Seas 2 to 4 ft. 
+.FRI NIGHT...Variable winds less than 5 kt. Seas 2 to 4 ft. 
+.SAT...Variable winds less than 5 kt. Seas 3 ft or less. 
+.SAT NIGHT...N winds 10 kt. Seas 3 ft or less. 
+
+$$
+
+Forecaster Lewitsky
+
+

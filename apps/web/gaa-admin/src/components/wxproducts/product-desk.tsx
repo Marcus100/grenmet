@@ -78,6 +78,7 @@ import { CapForecastPicker } from "./cap-forecast-picker";
 import { ClimateFigures } from "./climate-figures";
 import { ImpactMatrixPanel } from "./impact-matrix-panel";
 import { NhcGuidanceEditor } from "./nhc-guidance-editor";
+import { NhcMarineGuidancePanel } from "./nhc-marine-guidance";
 import { ProductActionBar } from "./product-action-bar";
 import { ProductDiscardDialog } from "./product-discard-dialog";
 import { ProductErrorSummary } from "./product-error-summary";
@@ -800,6 +801,20 @@ function ProductEditor({
                             setPreview(null);
                           }}
                           sourceEditionIds={sourceEditionIds}
+                          values={values}
+                        />
+                      )}
+                      {(kind === "marine" || kind === "marine-forecast") && (
+                        <NhcMarineGuidancePanel
+                          disabled={pending || disabled}
+                          guidance={guidance}
+                          kind={kind}
+                          onChange={(next, proposedValues) => {
+                            setGuidance(next);
+                            if (proposedValues) replaceValues(proposedValues);
+                            setReviewed(false);
+                            setPreview(null);
+                          }}
                           values={values}
                         />
                       )}

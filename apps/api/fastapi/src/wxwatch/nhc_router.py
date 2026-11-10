@@ -18,6 +18,7 @@ from .nhc_schemas import (
     NhcContent,
     NhcFamily,
     NhcJob,
+    NhcMarineGuidance,
     NhcPage,
     NhcPointRequest,
     NhcPrefill,
@@ -40,6 +41,27 @@ def require_operator(author: ProductAuthor) -> None:
         raise AuthorizationError(
             "NHC pulls require tropical or marine product author access"
         )
+
+
+def require_marine_author(author: ProductAuthor) -> None:
+    if not set(author.allowed_kinds) & {"marine", "marine-forecast"}:
+        raise AuthorizationError("NHC marine guidance requires marine product access")
+
+
+@router.get(
+    "/marine-guidance",
+    response_model=NhcMarineGuidance,
+    status_code=200,
+    summary="Read NHC marine guidance for AMZ058",
+    description="Newest imported Offshore Waters Forecast, parsed into periods for the Windward Islands zone; read-only, never publishes.",
+    responses=ERRORS,
+)
+async def marine_guidance(
+    *, author: AuthorDep, session: ImageSession, response: Response
+) -> NhcMarineGuidance:
+    require_marine_author(author)
+    response.headers["Cache-Control"] = "private, no-store"
+    return await nhc_service.marine_guidance(session)
 
 
 @router.get(

@@ -734,6 +734,7 @@ export { wxwatchFinishRun } from "./clients/wxwatchFinishRun.js";
 export { wxwatchImage } from "./clients/wxwatchImage.js";
 export { wxwatchIngest } from "./clients/wxwatchIngest.js";
 export { wxwatchLatest } from "./clients/wxwatchLatest.js";
+export { wxwatchMarineGuidance } from "./clients/wxwatchMarineGuidance.js";
 export { wxwatchMetadata } from "./clients/wxwatchMetadata.js";
 export { wxwatchPoint } from "./clients/wxwatchPoint.js";
 export { wxwatchPropose } from "./clients/wxwatchPropose.js";
@@ -4410,6 +4411,11 @@ export {
   wxwatchLatestQueryKey,
   wxwatchLatestQueryOptions,
 } from "./hooks/useWxwatchLatest.js";
+export {
+  useWxwatchMarineGuidance,
+  wxwatchMarineGuidanceQueryKey,
+  wxwatchMarineGuidanceQueryOptions,
+} from "./hooks/useWxwatchMarineGuidance.js";
 export {
   useWxwatchMetadata,
   wxwatchMetadataQueryKey,
@@ -11079,6 +11085,10 @@ export type { NhcJobPropertiesKindEnum } from "./models/NhcJobPropertiesKindEnum
 export { nhcJobPropertiesKindEnum } from "./models/NhcJobPropertiesKindEnum.js";
 export type { NhcJobPropertiesStatusEnum } from "./models/NhcJobPropertiesStatusEnum.js";
 export { nhcJobPropertiesStatusEnum } from "./models/NhcJobPropertiesStatusEnum.js";
+export type { NhcMarineGuidance } from "./models/NhcMarineGuidance.js";
+export type { NhcMarineGuidancePropertiesStatusEnum } from "./models/NhcMarineGuidancePropertiesStatusEnum.js";
+export { nhcMarineGuidancePropertiesStatusEnum } from "./models/NhcMarineGuidancePropertiesStatusEnum.js";
+export type { NhcMarinePeriod } from "./models/NhcMarinePeriod.js";
 export type { NhcPage } from "./models/NhcPage.js";
 export type { NhcPointRequest } from "./models/NhcPointRequest.js";
 export type { NhcPrefill } from "./models/NhcPrefill.js";
@@ -14171,6 +14181,17 @@ export type {
   WxwatchLatestStatus200,
   WxwatchLatestStatus422,
 } from "./models/WxwatchLatest.js";
+export type {
+  WxwatchMarineGuidanceOptions,
+  WxwatchMarineGuidanceResponse,
+  WxwatchMarineGuidanceResponses,
+  WxwatchMarineGuidanceStatus200,
+  WxwatchMarineGuidanceStatus401,
+  WxwatchMarineGuidanceStatus403,
+  WxwatchMarineGuidanceStatus404,
+  WxwatchMarineGuidanceStatus422,
+  WxwatchMarineGuidanceStatus503,
+} from "./models/WxwatchMarineGuidance.js";
 export type {
   WxwatchMetadataOptions,
   WxwatchMetadataQuery,
@@ -20837,6 +20858,9 @@ export { nhcEditionSchema } from "./zod/nhcEditionSchema.js";
 export { nhcJobPropertiesKindEnumSchema } from "./zod/nhcJobPropertiesKindEnumSchema.js";
 export { nhcJobPropertiesStatusEnumSchema } from "./zod/nhcJobPropertiesStatusEnumSchema.js";
 export { nhcJobSchema } from "./zod/nhcJobSchema.js";
+export { nhcMarineGuidancePropertiesStatusEnumSchema } from "./zod/nhcMarineGuidancePropertiesStatusEnumSchema.js";
+export { nhcMarineGuidanceSchema } from "./zod/nhcMarineGuidanceSchema.js";
+export { nhcMarinePeriodSchema } from "./zod/nhcMarinePeriodSchema.js";
 export { nhcPageSchema } from "./zod/nhcPageSchema.js";
 export { nhcPointRequestSchema } from "./zod/nhcPointRequestSchema.js";
 export { nhcPrefillRequestPropertiesKindEnumSchema } from "./zod/nhcPrefillRequestPropertiesKindEnumSchema.js";
@@ -23906,6 +23930,16 @@ export {
   wxwatchLatestStatus200Schema,
   wxwatchLatestStatus422Schema,
 } from "./zod/wxwatchLatestSchema.js";
+export {
+  wxwatchMarineGuidanceErrorSchema,
+  wxwatchMarineGuidanceResponseSchema,
+  wxwatchMarineGuidanceStatus200Schema,
+  wxwatchMarineGuidanceStatus401Schema,
+  wxwatchMarineGuidanceStatus403Schema,
+  wxwatchMarineGuidanceStatus404Schema,
+  wxwatchMarineGuidanceStatus422Schema,
+  wxwatchMarineGuidanceStatus503Schema,
+} from "./zod/wxwatchMarineGuidanceSchema.js";
 export {
   wxwatchMetadataErrorSchema,
   wxwatchMetadataQueryDaySchema,

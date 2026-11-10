@@ -3714,7 +3714,8 @@
         "Variable"
       ],
       "required": true,
-      "requiredOnPublish": true
+      "requiredOnPublish": true,
+      "fillFrom": "nhc"
     },
     {
       "section": "Wind",
@@ -3739,7 +3740,8 @@
         "NNW",
         "Variable"
       ],
-      "requiredOnPublish": false
+      "requiredOnPublish": false,
+      "fillFrom": "nhc"
     },
     {
       "section": "Wind",
@@ -3747,21 +3749,24 @@
       "label": "Speed from (kt)",
       "type": "number",
       "required": true,
-      "requiredOnPublish": true
+      "requiredOnPublish": true,
+      "fillFrom": "nhc"
     },
     {
       "section": "Wind",
       "key": "windSpeedMax",
       "label": "Speed to (kt)",
       "type": "number",
-      "requiredOnPublish": false
+      "requiredOnPublish": false,
+      "fillFrom": "nhc"
     },
     {
       "section": "Wind",
       "key": "windGust",
       "label": "Gusts (kt)",
       "type": "number",
-      "requiredOnPublish": false
+      "requiredOnPublish": false,
+      "fillFrom": "nhc"
     },
     {
       "section": "Wind",
@@ -3812,14 +3817,16 @@
       "label": "Waves from (m)",
       "type": "number",
       "required": true,
-      "requiredOnPublish": true
+      "requiredOnPublish": true,
+      "fillFrom": "nhc"
     },
     {
       "section": "Seas and swell",
       "key": "waveHeightMax",
       "label": "Waves to (m)",
       "type": "number",
-      "requiredOnPublish": false
+      "requiredOnPublish": false,
+      "fillFrom": "nhc"
     },
     {
       "section": "Seas and swell",
@@ -5010,7 +5017,8 @@
         "Variable"
       ],
       "required": true,
-      "requiredOnPublish": true
+      "requiredOnPublish": true,
+      "fillFrom": "nhc"
     },
     {
       "section": "Wind",
@@ -5035,7 +5043,8 @@
         "NNW",
         "Variable"
       ],
-      "requiredOnPublish": false
+      "requiredOnPublish": false,
+      "fillFrom": "nhc"
     },
     {
       "section": "Wind",
@@ -5043,21 +5052,24 @@
       "label": "Speed from (kt)",
       "type": "number",
       "required": true,
-      "requiredOnPublish": true
+      "requiredOnPublish": true,
+      "fillFrom": "nhc"
     },
     {
       "section": "Wind",
       "key": "windSpeedMax",
       "label": "Speed to (kt)",
       "type": "number",
-      "requiredOnPublish": false
+      "requiredOnPublish": false,
+      "fillFrom": "nhc"
     },
     {
       "section": "Wind",
       "key": "windGust",
       "label": "Gusts (kt)",
       "type": "number",
-      "requiredOnPublish": false
+      "requiredOnPublish": false,
+      "fillFrom": "nhc"
     },
     {
       "section": "Wind",
@@ -5108,14 +5120,16 @@
       "label": "Waves from (m)",
       "type": "number",
       "required": true,
-      "requiredOnPublish": true
+      "requiredOnPublish": true,
+      "fillFrom": "nhc"
     },
     {
       "section": "Marine",
       "key": "waveHeightMax",
       "label": "Waves to (m)",
       "type": "number",
-      "requiredOnPublish": false
+      "requiredOnPublish": false,
+      "fillFrom": "nhc"
     },
     {
       "section": "Marine",
