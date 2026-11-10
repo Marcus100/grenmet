@@ -20,6 +20,7 @@ import {
   type GreenStatus,
 } from "@/lib/cap-alerts";
 import {
+  isComing,
   NAV_SECTIONS,
   type NavFeature,
   type NavSection,
@@ -205,6 +206,12 @@ function Panel({
                       render={<Link href={link.href as Route} />}
                     >
                       {link.name}
+                      {isComing(link) ? (
+                        <span className="text-gm-text-inverse/70 text-label leading-label ml-2 font-bold tracking-wider uppercase">
+                          <span aria-hidden="true">Coming</span>
+                          <span className="sr-only">, coming soon</span>
+                        </span>
+                      ) : null}
                     </NavigationMenuPrimitive.Link>
                   </li>
                 ))}

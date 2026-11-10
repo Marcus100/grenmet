@@ -5,6 +5,7 @@ import { notFound } from "next/navigation";
 import { AlertEditor } from "@/components/desk/alert-editor";
 import { DeskRefused, DeskUnavailable } from "@/components/desk/desk-panels";
 import { GmsCatalogueProvider } from "@/components/desk/gms-catalogue";
+import { isEditable } from "@/lib/desk/allowed-actions";
 import { getAlert, getCatalogs, getGmsCatalogue } from "@/lib/desk/api";
 import { requireDeskGate } from "@/lib/desk/gate";
 import { reportError } from "@/lib/report-error";
@@ -13,7 +14,6 @@ export const metadata: Metadata = { title: "Edit draft" };
 export const dynamic = "force-dynamic";
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/u;
-const EDITABLE = new Set(["DRAFT", "SUBMITTED", "APPROVED"]);
 
 export default async function EditDraftPage({
   params,
@@ -43,7 +43,7 @@ export default async function EditDraftPage({
     return <DeskUnavailable what="This draft" />;
   }
   const [alert, catalogs, catalogue] = loaded;
-  if (!EDITABLE.has(alert.lifecycle_state)) {
+  if (!isEditable(alert)) {
     return (
       <section className="space-y-3 py-6" role="alert">
         <h1 className="text-2xl font-semibold">This alert is not a draft</h1>

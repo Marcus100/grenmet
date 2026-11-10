@@ -246,5 +246,9 @@ notebooks/metpy/sources/
 # Local Codex chat attachments are not repository source.
 /.codex-remote-attachments/
 
+# WMO IWXXM XSD schemas: fetched at build and test time from the pinned release
+# (python -m scripts.fetch_iwxxm_schemas), never committed (no licence upstream).
+/apps/api/fastapi/src/eregister/iwxxm_xsd/
+
 # Redis snapshots (a local redis-server started in the repo writes this)
 dump.rdb

@@ -4,12 +4,13 @@
  */
 
 import * as z from "zod";
+import { listingUpsertPropertiesStatusEnumSchema } from "./listingUpsertPropertiesStatusEnumSchema.js";
 
 export const staffEventRowSchema = z
   .object({
     listing_id: z.uuid(),
     title: z.string(),
-    status: z.string(),
+    status: listingUpsertPropertiesStatusEnumSchema.default("draft"),
     starts_at: z.iso.datetime(),
     organiser_id: z.uuid(),
     organiser_name: z.string(),

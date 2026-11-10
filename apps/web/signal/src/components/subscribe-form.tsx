@@ -4,16 +4,11 @@ import { Button } from "@barrelsgd/ui/components/ui/button";
 import { Input } from "@barrelsgd/ui/components/ui/input";
 import { Label } from "@barrelsgd/ui/components/ui/label";
 import { Turnstile } from "@barrelsgd/ui/components/ui/turnstile";
+import type { FormState } from "@barrelsgd/ui/lib/form-state";
 import { useState } from "react";
 import { env } from "@/lib/env";
 import { reportError } from "@/lib/report-error";
 import { parseSubscription } from "@/lib/subscribe";
-
-type FormState =
-  | { status: "idle" }
-  | { status: "submitting" }
-  | { status: "success" }
-  | { status: "error"; message: string };
 
 /**
  * Newsletter sign-up: email plus consent. FastAPI sends a confirmation email

@@ -16,7 +16,12 @@ import {
 import { StatusBadge } from "@/components/invoice-table";
 import { StaffOnly } from "@/components/staff-only";
 import { getInvoice, listCustomers } from "@/lib/billing-api";
-import { noticeFor, parseId, todayInGrenada } from "@/lib/invoice-form";
+import {
+  isOpenInvoice,
+  noticeFor,
+  parseId,
+  todayInGrenada,
+} from "@/lib/invoice-form";
 import { requireGate } from "@/lib/staff-gate";
 import { saveDraftAction } from "../actions";
 
@@ -45,8 +50,7 @@ export default async function InvoicePage({
     throw error;
   }
   const isDraft = invoice.status === "draft";
-  const isOpen =
-    invoice.status === "issued" || invoice.status === "partially_paid";
+  const isOpen = isOpenInvoice(invoice.status);
   const customers = isDraft ? await listCustomers(gate.accessToken) : null;
 
   return (

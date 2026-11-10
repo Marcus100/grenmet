@@ -11,6 +11,7 @@ import type {
   SettlementSummary,
 } from "@/domain/types";
 import { formatEventDate } from "@/lib/datetime";
+import { LISTING_STATUS_BADGE as STATUS_BADGE } from "@/lib/listing-status";
 import { DashShell } from "./dash-shell";
 import { OrganiserLogo } from "./organiser-logo";
 
@@ -44,15 +45,6 @@ export function countListings(
 }
 
 const RECENT_LIMIT = 5;
-
-const STATUS_BADGE: Record<
-  ManagedEvent["status"],
-  { label: string; variant: "light-light" | "light-success" | "light-warning" }
-> = {
-  cancelled: { label: "Cancelled", variant: "light-light" },
-  draft: { label: "Draft", variant: "light-warning" },
-  published: { label: "Published", variant: "light-success" },
-};
 
 function CountTile({ label, value }: { label: string; value: number }) {
   return (

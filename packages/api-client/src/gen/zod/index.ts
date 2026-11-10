@@ -29,6 +29,27 @@ export { ageingBucketPublicSchema } from "./ageingBucketPublicSchema.js";
 export { ageingBucketSchema } from "./ageingBucketSchema.js";
 export { airResponseSchema } from "./airResponseSchema.js";
 export { airRowSchema } from "./airRowSchema.js";
+export { almanacGetAstronomyParametersSchemaEnumSchema } from "./almanacGetAstronomyParametersSchemaEnumSchema.js";
+export {
+  almanacGetAstronomyErrorSchema,
+  almanacGetAstronomyQueryFromSchema,
+  almanacGetAstronomyQueryLocationSchema,
+  almanacGetAstronomyQuerySchema,
+  almanacGetAstronomyQueryToSchema,
+  almanacGetAstronomyResponseSchema,
+  almanacGetAstronomyStatus200Schema,
+  almanacGetAstronomyStatus422Schema,
+} from "./almanacGetAstronomySchema.js";
+export {
+  almanacGetTidesErrorSchema,
+  almanacGetTidesQueryFromSchema,
+  almanacGetTidesQuerySchema,
+  almanacGetTidesQueryStationSchema,
+  almanacGetTidesQueryToSchema,
+  almanacGetTidesResponseSchema,
+  almanacGetTidesStatus200Schema,
+  almanacGetTidesStatus422Schema,
+} from "./almanacGetTidesSchema.js";
 export { announcementPublicSchema } from "./announcementPublicSchema.js";
 export { apiErrorSchema } from "./apiErrorSchema.js";
 export { apiKeyCreatedSchema } from "./apiKeyCreatedSchema.js";
@@ -66,6 +87,8 @@ export { areaCreatePropertiesSpaceTypeAnyOfEnumSchema } from "./areaCreateProper
 export { areaCreateSchema } from "./areaCreateSchema.js";
 export { areaUpdateSchema } from "./areaUpdateSchema.js";
 export { areaViewSchema } from "./areaViewSchema.js";
+export { astronomyDaySchema } from "./astronomyDaySchema.js";
+export { astronomyResponseSchema } from "./astronomyResponseSchema.js";
 export { attemptStatusSchema } from "./attemptStatusSchema.js";
 export { attendanceCorrectionCreateSchema } from "./attendanceCorrectionCreateSchema.js";
 export { attendanceCorrectionPublicSchema } from "./attendanceCorrectionPublicSchema.js";
@@ -1611,6 +1634,7 @@ export { bookingWorkingHoursUpdateSchema } from "./bookingWorkingHoursUpdateSche
 export { bookingWorkingPeriodInSchema } from "./bookingWorkingPeriodInSchema.js";
 export { bookingWorkingPeriodPublicSchema } from "./bookingWorkingPeriodPublicSchema.js";
 export { browserSessionSchema } from "./browserSessionSchema.js";
+export { bufrOverrideRequestSchema } from "./bufrOverrideRequestSchema.js";
 export { buildingCreatePropertiesKindEnumSchema } from "./buildingCreatePropertiesKindEnumSchema.js";
 export { buildingCreateSchema } from "./buildingCreateSchema.js";
 export { buildingUpdateSchema } from "./buildingUpdateSchema.js";
@@ -2620,6 +2644,19 @@ export {
   eregisterListRegistryStationsStatus403Schema,
   eregisterListRegistryStationsStatus422Schema,
 } from "./eregisterListRegistryStationsSchema.js";
+export {
+  eregisterOverrideRegisterObservationBufrBodySchema,
+  eregisterOverrideRegisterObservationBufrErrorSchema,
+  eregisterOverrideRegisterObservationBufrPathObservationIdSchema,
+  eregisterOverrideRegisterObservationBufrPathSchema,
+  eregisterOverrideRegisterObservationBufrResponseSchema,
+  eregisterOverrideRegisterObservationBufrStatus200Schema,
+  eregisterOverrideRegisterObservationBufrStatus401Schema,
+  eregisterOverrideRegisterObservationBufrStatus403Schema,
+  eregisterOverrideRegisterObservationBufrStatus404Schema,
+  eregisterOverrideRegisterObservationBufrStatus409Schema,
+  eregisterOverrideRegisterObservationBufrStatus422Schema,
+} from "./eregisterOverrideRegisterObservationBufrSchema.js";
 export {
   eregisterPublicCurrentConditionsErrorSchema,
   eregisterPublicCurrentConditionsResponseSchema,
@@ -6382,6 +6419,7 @@ export { listingUpsertPropertiesVisibilityEnumSchema } from "./listingUpsertProp
 export { listingUpsertSchema } from "./listingUpsertSchema.js";
 export { locationCreateSchema } from "./locationCreateSchema.js";
 export { locationListPublicSchema } from "./locationListPublicSchema.js";
+export { locationOutSchema } from "./locationOutSchema.js";
 export { locationPublicSchema } from "./locationPublicSchema.js";
 export { locationUpdateSchema } from "./locationUpdateSchema.js";
 export { managedListingSchema } from "./managedListingSchema.js";
@@ -6505,6 +6543,9 @@ export { nhcEditionSchema } from "./nhcEditionSchema.js";
 export { nhcJobPropertiesKindEnumSchema } from "./nhcJobPropertiesKindEnumSchema.js";
 export { nhcJobPropertiesStatusEnumSchema } from "./nhcJobPropertiesStatusEnumSchema.js";
 export { nhcJobSchema } from "./nhcJobSchema.js";
+export { nhcMarineGuidancePropertiesStatusEnumSchema } from "./nhcMarineGuidancePropertiesStatusEnumSchema.js";
+export { nhcMarineGuidanceSchema } from "./nhcMarineGuidanceSchema.js";
+export { nhcMarinePeriodSchema } from "./nhcMarinePeriodSchema.js";
 export { nhcPageSchema } from "./nhcPageSchema.js";
 export { nhcPointRequestSchema } from "./nhcPointRequestSchema.js";
 export { nhcPrefillRequestPropertiesKindEnumSchema } from "./nhcPrefillRequestPropertiesKindEnumSchema.js";
@@ -7459,6 +7500,8 @@ export { postInSchema } from "./postInSchema.js";
 export { postponeEventSchema } from "./postponeEventSchema.js";
 export { postponeResultSchema } from "./postponeResultSchema.js";
 export { preferencesUnsubscribeRequestSchema } from "./preferencesUnsubscribeRequestSchema.js";
+export { principalPhasePropertiesPhaseEnumSchema } from "./principalPhasePropertiesPhaseEnumSchema.js";
+export { principalPhaseSchema } from "./principalPhaseSchema.js";
 export { productAccessCurrentSchema } from "./productAccessCurrentSchema.js";
 export { productAccessInputSchema } from "./productAccessInputSchema.js";
 export { productAccessPublicSchema } from "./productAccessPublicSchema.js";
@@ -8727,12 +8770,16 @@ export { threadDetailSchema } from "./threadDetailSchema.js";
 export { threadSummarySchema } from "./threadSummarySchema.js";
 export { ticketDetailSchema } from "./ticketDetailSchema.js";
 export { ticketSummarySchema } from "./ticketSummarySchema.js";
+export { tideEventPropertiesEventTypeEnumSchema } from "./tideEventPropertiesEventTypeEnumSchema.js";
+export { tideEventSchema } from "./tideEventSchema.js";
+export { tidesResponseSchema } from "./tidesResponseSchema.js";
 export { tierInputSchema } from "./tierInputSchema.js";
 export { tierPublicSchema } from "./tierPublicSchema.js";
 export { tillCloseSchema } from "./tillCloseSchema.js";
 export { tillOpenSchema } from "./tillOpenSchema.js";
 export { tillPublicPropertiesStatusEnumSchema } from "./tillPublicPropertiesStatusEnumSchema.js";
 export { tillPublicSchema } from "./tillPublicSchema.js";
+export { timeOfDaySchema } from "./timeOfDaySchema.js";
 export { timesheetApproveRequestSchema } from "./timesheetApproveRequestSchema.js";
 export { timesheetCreateSchema } from "./timesheetCreateSchema.js";
 export { timesheetDetailsSchema } from "./timesheetDetailsSchema.js";
@@ -9568,6 +9615,16 @@ export {
   wxwatchLatestStatus200Schema,
   wxwatchLatestStatus422Schema,
 } from "./wxwatchLatestSchema.js";
+export {
+  wxwatchMarineGuidanceErrorSchema,
+  wxwatchMarineGuidanceResponseSchema,
+  wxwatchMarineGuidanceStatus200Schema,
+  wxwatchMarineGuidanceStatus401Schema,
+  wxwatchMarineGuidanceStatus403Schema,
+  wxwatchMarineGuidanceStatus404Schema,
+  wxwatchMarineGuidanceStatus422Schema,
+  wxwatchMarineGuidanceStatus503Schema,
+} from "./wxwatchMarineGuidanceSchema.js";
 export {
   wxwatchMetadataErrorSchema,
   wxwatchMetadataQueryDaySchema,

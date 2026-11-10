@@ -145,8 +145,20 @@ jobs:
           image="ghcr.io/${GITHUB_REPOSITORY,,}:production-sha-${sha}"
           printf '%s' "$GH_TOKEN" | docker login ghcr.io -u "$GITHUB_ACTOR" --password-stdin
           docker pull --quiet "$image" > /dev/null
-          [[ "$(docker image inspect --format '{{index .Config.Labels "org.opencontainers.image.revision"}}' "$image")" == "$sha" ]] || { echo "Image revision does not match the release commit"; exit 1; }
-          [[ "$(docker image inspect --format '{{index .Config.Labels "gd.barrels.environment"}}' "$image")" == production ]] || { echo "Image is not a production image"; exit 1; }
+          # Images are built once on dev and promoted by digest (build-api-image.yml),
+          # so the label names the dev commit the image was built from, not the
+          # release merge commit. Require that commit to be part of the release.
+          revision="$(docker image inspect --format '{{index .Config.Labels "org.opencontainers.image.revision"}}' "$image")"
+          [[ "$revision" =~ ^[0-9a-f]{40}$ ]] || { echo "Image has no revision label"; exit 1; }
+          # The production runner has no gh CLI; ask the compare API with curl.
+          relation="$(curl -fsS -H "Authorization: Bearer $GH_TOKEN" -H "Accept: application/vnd.github+json" \
+            "$GITHUB_API_URL/repos/$GITHUB_REPOSITORY/compare/$revision...$sha" | python3 -c 'import json,sys; print(json.load(sys.stdin)["status"])')"
+          [[ "$relation" == ahead || "$relation" == identical ]] || { echo "Image revision $revision is not part of the release commit ($relation)"; exit 1; }
+          # Build-once images carry no environment label (staging and production share
+          # the digest); the production-sha tag above is set only by promotion.
+          build_once="$(docker image inspect --format '{{index .Config.Labels "gd.barrels.build-once"}}' "$image")"
+          environment="$(docker image inspect --format '{{index .Config.Labels "gd.barrels.environment"}}' "$image")"
+          [[ "$build_once" == true || "$environment" == production ]] || { echo "Image is not a promoted production image"; exit 1; }
           echo "DRILL_API_IMAGE=$image" >> "$GITHUB_ENV"
           echo "API image under test: $image"
 

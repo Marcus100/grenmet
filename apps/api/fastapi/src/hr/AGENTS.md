@@ -10,6 +10,7 @@ All tables live in the `hr` schema of the main database (main Alembic history).
 ## Invariants
 - **Approvals go through `workflow/`** (named approvers, ADR-0008). Do not add ad-hoc approval state to a form model.
 - **Organisation boundary:** records are scoped by organisation/department (`docs/hr/organisation-boundary.md`). Use `src.auth.policy.can_act_on_user…` for cross-user access; never trust a client-supplied user or department ID.
+- **Declared state machines.** Workflow instances (`workflow/transitions.py`, which also maps the request status they mirror), timesheets (`timesheet/transitions.py`) and clock punches (`attendance/transitions.py`) each have one declared table. Every status write goes through that module's `move_*` function. Roster periods that staff can see are `roster.models.ROSTER_VISIBLE_PERIOD_STATUSES`; do not copy the pair. Tests: `tests/hr/test_*transitions.py`, `tests/hr/test_roster_visible_statuses.py`.
 - **Change history:** models registered in `hr/audit.py` (`registry.track`) are audited automatically on flush. Register new HR models that hold personal or approval data; mark sensitive fields.
 - **Notifications:** HR events are declared in `hr/notifications.py` and sent via `src.notifications.service.notify` inside the same transaction.
 - Permission keys (`roster.*`, `timesheet.*`, `leave.*`, `calendar.*`, …) live in `src/auth/permissions.py`.

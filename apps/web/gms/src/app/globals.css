@@ -399,6 +399,8 @@
 }
 
 body {
+  /* Backstop for a stray full-bleed block; clip (unlike hidden) keeps sticky headers working. */
+  overflow-x: clip;
   color: var(--foreground);
   background: var(--background);
 }

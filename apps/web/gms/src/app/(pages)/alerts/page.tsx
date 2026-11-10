@@ -19,7 +19,7 @@ import { recentlyEnded } from "@/lib/warning-detail";
 export const metadata = {
   title: "Alerts in effect",
   description:
-    "Every weather alert in effect for Grenada, Carriacou and Petite Martinique: warnings, watches, advisories and Green alerts.",
+    "Every weather alert in effect for Grenada, Carriacou and Petite Martinique: warnings, watches, advisories and GMS alerts (green level).",
 };
 
 /** Placeholders keep the layout still while a part waits on the GMS outlook. */
@@ -40,7 +40,7 @@ export default async function WarningsPage() {
   return (
     <>
       <PageHeader
-        description="Every warning, watch and advisory in effect right now, grouped by hazard. Green alerts are listed too."
+        description="Every warning, watch and advisory in effect right now, grouped by hazard. GMS alerts (green level) are listed too."
         title="Alerts in effect"
       />
       <ExerciseBanner result={alerts} />

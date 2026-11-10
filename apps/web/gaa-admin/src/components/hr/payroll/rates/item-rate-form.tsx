@@ -1,6 +1,10 @@
 "use client";
 
-import { type RateKind, useHrCreatePayItemRate } from "@barrelsgd/api-client";
+import {
+  type RateKind,
+  type RuleState,
+  useHrCreatePayItemRate,
+} from "@barrelsgd/api-client";
 import { Button } from "@barrelsgd/ui/components/ui/button";
 import { Field, FieldLabel } from "@barrelsgd/ui/components/ui/field";
 import { Input } from "@barrelsgd/ui/components/ui/input";
@@ -16,7 +20,7 @@ import { PayrollProblem } from "../payroll-states";
 export interface PayItemOption {
   id: string;
   name: string;
-  rule_state: string;
+  rule_state: RuleState;
 }
 
 /** Adds a dated item rate. Needs rates.manage and two-step verification. */

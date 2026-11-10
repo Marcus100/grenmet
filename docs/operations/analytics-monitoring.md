@@ -196,9 +196,11 @@ nothing is created or alerts until the owner applies and unpauses them.
 | Heartbeat | worker poll completion | `WORKER_HEARTBEAT_URL` (rendered as `TELEMETRY_WORKER_HEARTBEAT_URL`) | 1 min + 2 min grace |
 
 Every monitor checks every 3 minutes, verifies TLS and alerts 14 days before
-certificate expiry (`ssl_expiration`); email only. Ten active monitors fill the
-free allowance, so the staging pilot monitor 5014248 and the old Google test must
-be retired first (the provider refuses to exceed `limits`). `deferred: true`
+certificate expiry (`ssl_expiration`); email and phone push (the owner's channel,
+9 Nov 2026). Ten active monitors fill the free allowance (Free plan confirmed
+9 Nov 2026): the staging pilot monitor 5014248 and the old Google test were
+deleted that day, so staging availability is covered by the probe runner and its
+heartbeat only, and `limitsVerified` is true. `deferred: true`
 resources are validated but never created; remove the flag when a slot frees up.
 `apps/web/admin` (Barrels control plane) is deployed with the 2026-10-21 admin host move and has no
 monitor yet (the staff-portal monitor now probes `gms.barrels.gd`). Babydoll
@@ -257,7 +259,7 @@ exceed `OUTBOX_ALERT_THRESHOLD` (0). Counters need `TELEMETRY_ENABLED=true`.
 
 ## Live evidence on 2026-10-02
 
-- [Staging API readiness monitor 5014248](https://incidents.betterstack.com/team/t476349/monitors/5014248): up; checks every 180 s; validates TLS and `"status":"ready"`; confirmation/recovery 180 s; email only.
+- Staging API readiness monitor 5014248 (deleted 9 Nov 2026 to free the slot for production): up; checks every 180 s; validates TLS and `"status":"ready"`; confirmation/recovery 180 s; email only.
 - [Synthetic incident 1026034957](https://incidents.betterstack.com/team/t476349/incidents/1026034957): email sent at 18:15:51 UTC, opened at 18:16:11, acknowledged at 18:16:19, resolved at 18:18:43. No application outage was induced. Recovery email receipt is not yet evidenced.
 - [Staging probe snapshot](monitoring-evidence/2026-10-02-staging-probes.jsonl): all nine configured HTTPS surfaces returned 200. This is one observation, not continuous availability.
 - [Provider summary](monitoring-evidence/2026-10-02-providers.json): observed Sentry staging issue activity and partial GitHub run counts; no app-specific synthetic delivery/source-map verification.

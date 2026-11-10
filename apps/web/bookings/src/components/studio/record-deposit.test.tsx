@@ -58,7 +58,7 @@ describe("record deposit", () => {
 
   it("announces success, closes the dialog and keeps the notice", async () => {
     recordDepositAction.mockResolvedValue({
-      status: "done",
+      status: "success",
       message: "Deposit recorded.",
     });
     const { rerender } = show();

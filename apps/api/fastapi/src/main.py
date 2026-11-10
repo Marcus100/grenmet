@@ -24,6 +24,7 @@ from starlette.types import ASGIApp, Message, Receive, Scope, Send
 
 from src import database as main_database
 from src import operational_metrics
+from src.almanac.router import router as almanac_router
 from src.audit.router import router as audit_router
 from src.auth.app_router import account_router as account_apps_router
 from src.auth.app_router import router as app_auth_router
@@ -51,6 +52,7 @@ from src.contacts.router import router as contacts_router
 from src.content_distribution.router import router as content_distribution_router
 from src.environmental.router import router as environmental_router
 from src.eregister import database as eregister_database
+from src.eregister.iwxxm import preload_schema_in_background
 from src.eregister.router import router as eregister_router
 from src.events.moderation_router import router as events_moderation_router
 from src.events.org_router import router as events_org_router
@@ -331,6 +333,8 @@ async def lifespan(_app: FastAPI) -> AsyncGenerator[None]:
     store_warning = rate_limit_store_warning()
     if store_warning:
         logging.getLogger(__name__).warning(store_warning)
+    # The IWXXM schema loads in the background (about 8 s), so the first accept does not wait.
+    preload_schema_in_background()
     try:
         yield
     finally:
@@ -543,6 +547,7 @@ app.include_router(feedback_router, prefix=settings.API_V1_STR)
 app.include_router(content_distribution_router, prefix=settings.API_V1_STR)
 app.include_router(flights_router, prefix=settings.API_V1_STR)
 app.include_router(environmental_router, prefix=settings.API_V1_STR)
+app.include_router(almanac_router, prefix=settings.API_V1_STR)
 app.include_router(models_guidance_router, prefix=settings.API_V1_STR)
 app.include_router(wxproducts_router, prefix=settings.API_V1_STR)
 app.include_router(eregister_router, prefix=settings.API_V1_STR)

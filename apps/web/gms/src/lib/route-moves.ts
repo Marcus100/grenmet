@@ -19,8 +19,18 @@ export const ROUTE_MOVES: readonly (readonly [from: string, to: string])[] = [
   ["/weather/7-day", "/weather/5-day"],
   ["/products/forecasts", "/weather/issued"],
   ["/products/issued", "/weather/issued"],
+  // Product archive moved from Climate to Weather (issue #1168)
+  ["/climate/archive", "/weather/archive"],
   // Alerts (renamed from Warnings, 29 Sep 2026)
+  ["/warnings/cyclone/archive", "/explore/history/hurricanes"],
   ["/warnings", "/alerts"],
+  // The duplicate marine warnings page is gone; the hazard page replaces it.
+  // Redirects run before routing, so this wins over `/alerts/[identifier]`.
+  ["/alerts/marine", "/alerts/bulletins/marine"],
+  // Advisories were never a separate product; the alerts page lists them.
+  ["/alerts/advisories", "/alerts"],
+  // Past cyclones live in the history page; the archive page was a placeholder.
+  ["/alerts/cyclone/archive", "/explore/history/hurricanes"],
   ["/products/bulletins", "/alerts/bulletins"],
   ["/bulletins", "/alerts/bulletins"],
   ["/resources/hurricane-names", "/explore/hurricane-names"],
@@ -31,12 +41,17 @@ export const ROUTE_MOVES: readonly (readonly [from: string, to: string])[] = [
   // Marine
   ["/sectors/marine", "/marine"],
   ["/resources/marine-safety", "/marine/safety"],
-  // Services
+  // Services (Disaster management, construction, education and media moved to About)
   ["/sectors/aviation", "/services/aviation"],
   ["/aviation", "/services/aviation"],
   ["/sectors", "/services"],
   ["/events", "/services/tourism/events"],
-  ["/media", "/services/media"],
+  ["/about/services", "/services"],
+  ["/services/disaster-management", "/about/disaster-management"],
+  ["/services/construction", "/about/construction"],
+  ["/services/education", "/about/education"],
+  ["/services/media", "/about/media"],
+  ["/media", "/about/media"],
   // Learn & Explore
   ["/resources/articles", "/explore/explained"],
   ["/resources", "/explore"],

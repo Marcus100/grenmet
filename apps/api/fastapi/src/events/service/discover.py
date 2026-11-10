@@ -33,6 +33,7 @@ from ..models import (
     Ticket,
     TicketTier,
 )
+from ..transitions import GroupMemberStatus, ListingStatus, TicketStatus
 from . import holds, taxonomy
 from .common import GOING_PREVIEW, _pairs, when_window
 from .people import _chips, blocked_ids, get_or_create_profile
@@ -55,7 +56,7 @@ def _public_listings() -> Select[tuple[Listing, str]]:
     return (
         select(Listing, Organiser.slug)
         .join(Organiser, Organiser.id == Listing.organiser_id)
-        .where(Listing.status == "published")
+        .where(Listing.status == ListingStatus.PUBLISHED.value)
     )
 
 
@@ -313,7 +314,7 @@ async def _tiers(
             .order_by(TicketTier.sort_order)
         )
     ).all()
-    valid = Ticket.status == "valid"
+    valid = Ticket.status == TicketStatus.VALID.value
     sold = _pairs(
         await db.execute(
             select(Ticket.tier_id, func.count())
@@ -371,7 +372,9 @@ async def get_listing(
 
 async def _listing_id(db: AsyncSession, slug: str) -> uuid.UUID:
     listing_id = await db.scalar(
-        select(Listing.id).where(Listing.slug == slug, Listing.status == "published")
+        select(Listing.id).where(
+            Listing.slug == slug, Listing.status == ListingStatus.PUBLISHED.value
+        )
     )
     if listing_id is None:
         raise EventsNotFound("Event not found")
@@ -436,7 +439,10 @@ async def _group_summaries(
         (
             await db.execute(
                 select(GroupMember.group_id, func.count())
-                .where(GroupMember.group_id.in_(ids), GroupMember.status == "active")
+                .where(
+                    GroupMember.group_id.in_(ids),
+                    GroupMember.status == GroupMemberStatus.ACTIVE.value,
+                )
                 .group_by(GroupMember.group_id)
             )
         ).all()
@@ -447,7 +453,7 @@ async def _group_summaries(
                 select(Listing.group_id, func.min(Listing.starts_at))
                 .where(
                     Listing.group_id.in_(ids),
-                    Listing.status == "published",
+                    Listing.status == ListingStatus.PUBLISHED.value,
                     Listing.visibility == "public",
                     Listing.access_type == "public",
                     Listing.ends_at > utc_now(),
@@ -466,7 +472,9 @@ async def _group_summaries(
             )
         ).all():
             statuses[group_id] = _VIEWER_STATUS.validate_python(
-                "pending" if status == "pending" else role
+                GroupMemberStatus.PENDING.value
+                if status == GroupMemberStatus.PENDING.value
+                else role
             )
     return [
         schemas.GroupSummary(
@@ -509,7 +517,10 @@ async def get_group(
         await db.execute(
             select(GroupMember.user_id, GroupMember.role, MemberProfile)
             .join(MemberProfile, MemberProfile.user_id == GroupMember.user_id)
-            .where(GroupMember.group_id == group.id, GroupMember.status == "active")
+            .where(
+                GroupMember.group_id == group.id,
+                GroupMember.status == GroupMemberStatus.ACTIVE.value,
+            )
             .order_by(GroupMember.role.desc(), MemberProfile.display_name)
         )
     ).all()
@@ -579,10 +590,14 @@ async def set_membership(
         await db.commit()
         return None
     if existing is None:
-        status = "pending" if group.join_policy == "approval" else "active"
+        status = (
+            GroupMemberStatus.PENDING
+            if group.join_policy == "approval"
+            else GroupMemberStatus.ACTIVE
+        ).value
         existing = GroupMember(group_id=group.id, user_id=user.id, status=status)
         db.add(existing)
-        if status == "active":
+        if status == GroupMemberStatus.ACTIVE.value:
             await _join_group_chat(db, group.id, user.id)
     await db.commit()
     return existing.status

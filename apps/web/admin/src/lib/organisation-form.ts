@@ -1,12 +1,19 @@
+import {
+  type OrganisationStatus,
+  organisationStatus,
+} from "@barrelsgd/api-client";
+
 /**
  * Validation for the organisation forms. Pure functions over `FormData` so the
  * rules are unit-tested without a server; FastAPI still re-validates everything.
  */
 
 export const KINDS = ["barrels", "client", "business"] as const;
-export const STATUSES = ["active", "suspended"] as const;
+/** Organisation statuses, from the generated client (not a copy of the API list). */
+export const STATUSES: readonly OrganisationStatus[] =
+  Object.values(organisationStatus);
 export type Kind = (typeof KINDS)[number];
-export type Status = (typeof STATUSES)[number];
+export type Status = OrganisationStatus;
 
 const SLUG = /^[a-z0-9]+(?:-[a-z0-9]+)*$/u;
 const APP_KEY = /^[a-z][a-z0-9-]{1,59}$/u;

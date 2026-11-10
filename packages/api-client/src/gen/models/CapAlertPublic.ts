@@ -41,6 +41,7 @@ export type CapAlertPublic = {
   codes?: string[];
   note?: string | null;
   lifecycle_state: CapLifecycleState;
+  allowed_actions?: string[];
   /**
    * @description
    * Format: `uuid`

@@ -817,7 +817,7 @@ Configure `WXWATCH_DATABASE_URL` in the FastAPI environment with access to the s
 
 ### eRegister send actions
 
-`EREGISTER_OBS_RECIPIENTS` is a comma-separated list of addresses that receive "Email observation" (one outbox email each, sent by the worker). Unset: the action answers 409 "No recipients configured". `EREGISTER_SEND_REQUIRE_ACCEPTED` (default `false`) requires QC state `accepted` for email too; by default email goes out for any validated, non-rejected observation (internal use, marked provisional). WIS2 publication always requires `accepted`, whatever this says.
+`EREGISTER_OBS_RECIPIENTS` is a comma-separated list of addresses that receive "Email observation" (one outbox email each, sent by the worker). Unset: the action answers 409 "No recipients configured". `EREGISTER_SEND_REQUIRE_ACCEPTED` (default `true`) requires QC state `accepted` for email too; set `false` to let email go out for any validated, non-rejected observation (internal use, marked provisional). WIS2 publication always requires `accepted`, whatever this says.
 
 "Send last obs" writes a csv2bufr CSV for wis2box and needs one drop target, read by the API (to validate) and the worker (to transfer):
 

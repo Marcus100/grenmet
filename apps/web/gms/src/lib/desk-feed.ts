@@ -83,10 +83,11 @@ const clock = (time: string) => {
  * "7:00 a.m. tomorrow", or within the hour after an issue time "now (the
  * 7:00 a.m. forecast)", because that one is being prepared.
  */
-export function nextForecastDue(now: Date): string {
-  const times = FORECAST_KINDS.flatMap(
-    (kind) => ISSUE_TIMES[kind] ?? []
-  ).sort();
+export function nextForecastDue(
+  now: Date,
+  kinds: readonly ProductKind[] = FORECAST_KINDS
+): string {
+  const times = kinds.flatMap((kind) => ISSUE_TIMES[kind] ?? []).sort();
   const local = new Date(now.getTime() - 4 * 60 * 60 * 1000);
   const minutesNow = local.getUTCHours() * 60 + local.getUTCMinutes();
   const minutesOf = (time: string) => {
@@ -107,10 +108,18 @@ function noForecastNote(now: Date): string {
   return `No public forecast is in effect right now. The next forecast is due ${due}${due.endsWith(".") ? "" : "."}`;
 }
 
-/** An expired briefing's note: when it expired and when the next one is due. */
-function expiredBriefingNote(expiredAt: string | null, now: Date): string {
+/**
+ * An expired forecast's note: when it expired and when the next one is due. The
+ * Marine Forecast passes its own kind, because its next issue is 05:00, not
+ * the land forecast times.
+ */
+function expiredBriefingNote(
+  expiredAt: string | null,
+  now: Date,
+  kinds?: readonly ProductKind[]
+): string {
   const expired = expiredAt ? `Expired ${expiredAt}` : "Expired";
-  return `${expired} · next forecast due ${nextForecastDue(now)}`;
+  return `${expired} · next forecast due ${nextForecastDue(now, kinds)}`;
 }
 
 /** A product's issue time (Grenada local), falling back to its publish time. */
@@ -191,10 +200,13 @@ function officialCard(
     }[kind] ?? "";
   let staleNote: string | null = null;
   if (!current) {
-    staleNote =
-      kind === "briefing"
-        ? expiredBriefingNote(validTo, now)
-        : "No longer in effect";
+    if (kind === "briefing") {
+      staleNote = expiredBriefingNote(validTo, now);
+    } else if (kind === "marine") {
+      staleNote = expiredBriefingNote(validTo, now, ["marine-forecast"]);
+    } else {
+      staleNote = "No longer in effect";
+    }
   }
   return {
     staleNote,

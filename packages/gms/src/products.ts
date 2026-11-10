@@ -38,7 +38,16 @@ export function isForecastKind(kind: ProductKind) {
   );
 }
 export type ProductValues = Record<string, string>;
+/**
+ * Where a field's value can later be filled from automatically (issue #1197):
+ * the yearly almanac table (sun and moon), the imported tide table, or the
+ * latest NHC product. Only a marker for now; nothing fetches yet. Editors and
+ * FastAPI read it through `fillableFields`.
+ */
+export type FillSource = "almanac" | "tides" | "nhc";
 export interface ProductField {
+  /** Planned automatic source; the value always stays editable. */
+  fillFrom?: FillSource;
   key: string;
   label: string;
   options?: readonly string[];
@@ -52,7 +61,9 @@ export interface ProductField {
     | "number"
     | "time"
     /** Several sectors from `SECTORS`, stored comma-separated. */
-    | "sectors";
+    | "sectors"
+    /** Weather types with coverage words (`./weather-types`), stored comma-separated. */
+    | "weather";
 }
 export interface ProductContent {
   guidance?: ProductGuidance | null;
@@ -69,6 +80,10 @@ export interface StoredProduct extends ProductContent {
   publishedRevision: number | null;
   revision: number;
   updatedAt: string;
+}
+/** Marine products give wind in knots and heights in metres (owner, 9 Nov 2026); land forecasts stay mph and feet. */
+export function isMarineKind(kind: ProductKind) {
+  return kind === "marine" || kind === "marine-forecast";
 }
 export function isProductKind(value: string): value is ProductKind {
   return Object.hasOwn(PRODUCT_KINDS, value);
@@ -172,8 +187,9 @@ export const RAIN_CHANCES = ["Low", "Medium", "High"] as const;
 /**
  * SYNOP links (owner, 23 October 2026) so forecasts can later be verified
  * against the eRegister hourlies at MBIA. Conditions map to total cloud N in
- * oktas (METAR bands), weather types to present weather ww, and rain chance
- * to probability bands (%) for scoring. FastAPI mirrors these tables in
+ * oktas (METAR bands) and rain chance to probability bands (%) for scoring;
+ * weather types map to present weather ww and METAR codes in
+ * `./weather-types` (multi-select since 9 Nov 2026). FastAPI mirrors these tables in
  * `src/wxproducts/synop_codes.py` (a test keeps them equal).
  */
 export const CONDITION_OKTAS: Record<
@@ -186,22 +202,6 @@ export const CONDITION_OKTAS: Record<
   Cloudy: [5, 7],
   Overcast: [8, 8],
 };
-export const WEATHER_TYPES = [
-  { label: "Haze", ww: 5 },
-  { label: "Dust haze", ww: 6 },
-  { label: "Mist", ww: 10 },
-  { label: "Thunder (no rain)", ww: 17 },
-  { label: "Fog", ww: 45 },
-  { label: "Drizzle", ww: 51 },
-  { label: "Light rain", ww: 61 },
-  { label: "Moderate rain", ww: 63 },
-  { label: "Heavy rain", ww: 65 },
-  { label: "Light showers", ww: 80 },
-  { label: "Moderate or heavy showers", ww: 81 },
-  { label: "Violent showers", ww: 82 },
-  { label: "Thunderstorms", ww: 95 },
-  { label: "Severe thunderstorms", ww: 97 },
-] as const;
 export const RAIN_CHANCE_BANDS: Record<
   (typeof RAIN_CHANCES)[number],
   readonly [number, number]
@@ -210,7 +210,17 @@ export const RAIN_CHANCE_BANDS: Record<
   Medium: [30, 60],
   High: [60, 100],
 };
-const WEATHER_TYPE_LABELS = WEATHER_TYPES.map((t) => t.label);
+/** Principal and intermediate lunar phases for the marine astronomy block. */
+export const MOON_PHASES = [
+  "New moon",
+  "Waxing crescent",
+  "First quarter",
+  "Waxing gibbous",
+  "Full moon",
+  "Waning gibbous",
+  "Last quarter",
+  "Waning crescent",
+] as const;
 export const TIDE_SLOTS = [1, 2, 3, 4] as const;
 const likelihoods = ["Very low", "Low", "Medium", "High"];
 const DAY_ALERT_FIELD = /^day[1-4](Alerts|Impact|Response)$/u;
@@ -247,6 +257,29 @@ const astronomy = [
   field("Astronomy", "sunrise", "Sunrise"),
   field("Astronomy", "sunset", "Sunset"),
 ];
+/**
+ * Morning forecast: the next sun events only (owner, 9 Nov 2026). The older
+ * free-text `sunrise` and `sunset` stay in the schema, hidden, so earlier
+ * issues still open and print.
+ */
+const morningAstronomy = [
+  field("Astronomy", "sunsetToday", "Sunset today", {
+    type: "time",
+    fillFrom: "almanac",
+  }),
+  field("Astronomy", "sunriseTomorrow", "Sunrise tomorrow", {
+    type: "time",
+    fillFrom: "almanac",
+  }),
+];
+/** Weather types (multi-select) and the public sentence generated from them. */
+function weatherTypeFields(section: string, prefix: string): ProductField[] {
+  const key = (name: string) => parameterKey(prefix, name);
+  return [
+    field(section, key("weatherType"), "Weather type", { type: "weather" }),
+    field(section, key("weatherTypeText"), "Weather wording"),
+  ];
+}
 /** `windDirFrom` for the main period, `day1WindDirFrom` for an evening outlook day. */
 export function parameterKey(prefix: string, name: string) {
   return prefix
@@ -289,10 +322,29 @@ function marineFields(section: string, prefix: string): ProductField[] {
     field(section, key("swellDir"), "Swell direction", {
       options: COMPASS_DIRECTIONS,
     }),
-    field(section, key("swellPeriod"), "Swell period (s)", { type: "number" }),
     field(section, key("swellHeight"), "Swell height (m)", { type: "number" }),
+    field(section, key("swellPeriod"), "Swell period (s)", { type: "number" }),
     field(section, key("seaState"), "Marine summary"),
   ];
+}
+/**
+ * Marine wind and wave fields the NHC Offshore Waters zone (AMZ058) fills while
+ * they are empty (#1197). Stored as knots and metres; the value stays editable.
+ */
+const NHC_MARINE_FIELD_KEYS = new Set([
+  "windDirFrom",
+  "windDirTo",
+  "windSpeedMin",
+  "windSpeedMax",
+  "windGust",
+  "waveHeightMin",
+  "waveHeightMax",
+]);
+function fromNhc(fields: ProductField[]): ProductField[] {
+  return fields.map(
+    (f): ProductField =>
+      NHC_MARINE_FIELD_KEYS.has(f.key) ? { ...f, fillFrom: "nhc" as const } : f
+  );
 }
 /** Horizontal visibility in km (WMO reports metres); FastAPI composes `visibility`. */
 function visibilityFields(section: string, required: boolean): ProductField[] {
@@ -311,10 +363,15 @@ function tideFields(section: string, prefix: string): ProductField[] {
     ...TIDE_SLOTS.flatMap((n) => [
       field(section, key(`tide${n}Type`), `Tide ${n}`, {
         options: ["High", "Low"],
+        fillFrom: "tides",
       }),
-      field(section, key(`tide${n}Time`), `Tide ${n} time`, { type: "time" }),
+      field(section, key(`tide${n}Time`), `Tide ${n} time`, {
+        type: "time",
+        fillFrom: "tides",
+      }),
       field(section, key(`tide${n}Height`), `Tide ${n} height (m)`, {
         type: "number",
+        fillFrom: "tides",
       }),
     ]),
     ...(prefix
@@ -342,9 +399,7 @@ function forecastFields(kind: ProductKind): ProductField[] {
     field("Weather", "condition", "Conditions", {
       options: WEATHER_CONDITIONS,
     }),
-    field("Weather", "weatherType", "Weather type", {
-      options: WEATHER_TYPE_LABELS,
-    }),
+    ...weatherTypeFields("Weather", ""),
     field("Weather", "rainChance", "Chance of rain", {
       options: RAIN_CHANCES,
     }),
@@ -392,6 +447,7 @@ function forecastFields(kind: ProductKind): ProductField[] {
     // JSON summary of CAP alerts and GMS bulletins in force, captured by FastAPI on save.
     field("Issue details", "advisories", "Alerts and advisories in force"),
     ...astronomy,
+    ...(kind === "morning" ? morningAstronomy : []),
     field("Risk assessment", "likelihood", "Overall likelihood", {
       options: likelihoods,
     }),
@@ -416,9 +472,7 @@ function forecastFields(kind: ProductKind): ProductField[] {
               type: "textarea",
               required: true,
             }),
-            field(section, `${prefix}WeatherType`, "Weather type", {
-              options: WEATHER_TYPE_LABELS,
-            }),
+            ...weatherTypeFields(section, prefix),
             field(section, `${prefix}Max`, "Maximum temperature (°C)", {
               type: "number",
               required: true,
@@ -451,13 +505,13 @@ function forecastFields(kind: ProductKind): ProductField[] {
 const hazardDetails: Record<keyof typeof BULLETIN_CATEGORIES, ProductField[]> =
   {
     marine: [
-      field("Conditions", "weather", "Weather", {
+      field("Weather", "weather", "Weather", {
         type: "textarea",
         required: true,
       }),
       ...visibilityFields("Visibility", true),
-      ...windFields("Wind", ""),
-      ...marineFields("Marine", ""),
+      ...fromNhc(windFields("Wind", "")),
+      ...fromNhc(marineFields("Marine", "")),
       ...tideFields("Tides", ""),
       ...astronomy,
       field("Astronomy", "moonrise", "Moonrise"),
@@ -466,28 +520,28 @@ const hazardDetails: Record<keyof typeof BULLETIN_CATEGORIES, ProductField[]> =
       field("Astronomy", "nextMoonPhase", "Next moon phase and date"),
     ],
     cyclone: [
-      field("Conditions", "systemName", "System name / identifier"),
-      field("Conditions", "position", "Location / coordinates"),
-      field("Conditions", "movement", "Movement (include units)"),
-      field("Conditions", "wind", "Maximum winds and gusts (include units)"),
-      field("Conditions", "pressure", "Central pressure (hPa)", {
+      field("Weather", "systemName", "System name / identifier"),
+      field("Weather", "position", "Location / coordinates"),
+      field("Weather", "movement", "Movement (include units)"),
+      field("Weather", "wind", "Maximum winds and gusts (include units)"),
+      field("Weather", "pressure", "Central pressure (hPa)", {
         type: "number",
       }),
-      field("Conditions", "track", "Expected track and timing", {
+      field("Weather", "track", "Expected track and timing", {
         type: "textarea",
       }),
     ],
     flood: [
-      field("Conditions", "rainfall", "Expected rainfall, duration and units"),
-      field("Conditions", "flooding", "Flood-prone areas / river conditions", {
+      field("Weather", "rainfall", "Expected rainfall, duration and units"),
+      field("Weather", "flooding", "Flood-prone areas / river conditions", {
         type: "textarea",
       }),
     ],
     thunderstorm: [
-      field("Conditions", "storms", "Storm timing, coverage and intensity", {
+      field("Weather", "storms", "Storm timing, coverage and intensity", {
         type: "textarea",
       }),
-      field("Conditions", "hazards", "Lightning, gusts, hail and rainfall", {
+      field("Weather", "hazards", "Lightning, gusts, hail and rainfall", {
         type: "textarea",
       }),
     ],
@@ -552,7 +606,7 @@ const hazardDetails: Record<keyof typeof BULLETIN_CATEGORIES, ProductField[]> =
       ),
     ],
     dust: [
-      field("Conditions", "dust", "Dust / haze concentration and extent", {
+      field("Weather", "dust", "Dust / haze concentration and extent", {
         type: "textarea",
       }),
       ...visibilityFields("Visibility", false),
@@ -564,35 +618,15 @@ const hazardDetails: Record<keyof typeof BULLETIN_CATEGORIES, ProductField[]> =
       field("Swell", "swellPeriod", "Swell period (s)", { type: "number" }),
       field("Swell", "swellHeight", "Swell height (m)", { type: "number" }),
       field("Swell", "swell", "Swell summary"),
-      field(
-        "Conditions",
-        "surge",
-        "Surge / coastal inundation (include units)"
-      ),
-      field("Conditions", "tides", "High tides and affected coastlines"),
+      field("Weather", "surge", "Surge / coastal inundation (include units)"),
+      field("Weather", "tides", "High tides and affected coastlines"),
     ],
     tsunami: [
-      field(
-        "Conditions",
-        "source",
-        "Event source / official bulletin reference"
-      ),
-      field(
-        "Conditions",
-        "eventTime",
-        "Event date and time (include time zone)"
-      ),
-      field("Conditions", "location", "Event location and magnitude"),
-      field(
-        "Conditions",
-        "arrival",
-        "Expected arrival times (include time zone)"
-      ),
-      field(
-        "Conditions",
-        "waveHeight",
-        "Expected wave heights (include units)"
-      ),
+      field("Weather", "source", "Event source / official bulletin reference"),
+      field("Weather", "eventTime", "Event date and time (include time zone)"),
+      field("Weather", "location", "Event location and magnitude"),
+      field("Weather", "arrival", "Expected arrival times (include time zone)"),
+      field("Weather", "waveHeight", "Expected wave heights (include units)"),
     ],
   };
 export function productFields(kind: ProductKind): ProductField[] {
@@ -632,15 +666,19 @@ export function productFields(kind: ProductKind): ProductField[] {
   if (kind === "climate-bulletin") return climateBulletinFields();
   return [
     ...issueFields,
+    // Numbered per event (#1, #2… within one hazard episode); the desk
+    // proposes the next one (`proposeBulletinNumber`).
     field("Bulletin", "bulletinNumber", "Bulletin number"),
+    // Year-based archive and CAP reference, set by FastAPI on first save.
+    field("Bulletin", "reference", "Archive reference"),
     // GMS alerts are green only. Yellow, orange and red are CAP warnings,
     // started from "Raise to warning" (ADR-0051). Saved older revisions keep
-    // their original level and are never re-validated.
+    // their original level and are never re-validated. The desk hides it.
     field("Bulletin", "level", "Colour level", {
       options: ["Green"],
       required: true,
     }),
-    field("Bulletin", "notice", "Notice type", {
+    field("Bulletin", "notice", "Bulletin purpose", {
       options: ["Information", "Advisory", "All clear"],
       required: true,
     }),
@@ -674,23 +712,50 @@ export function productFields(kind: ProductKind): ProductField[] {
     }),
   ];
 }
+/**
+ * Marine Forecast, in the order of owner decision 3 (#1197): validity,
+ * advisories in force, synopsis, wind, sea state and significant wave height,
+ * swell, weather, visibility, (small-craft statement), outlook, then tides and
+ * astronomy. Wind is entered and printed in knots, heights in metres.
+ */
 function marineForecastFields(): ProductField[] {
+  const almanac = { fillFrom: "almanac" } as const;
   return [
     ...issueFields,
+    // Small craft and other warnings come from the alerts and CAP warnings in
+    // force, captured by FastAPI on save; nobody types them. The small-craft
+    // statement on the sheet is composed from them.
+    field("Issue details", "advisories", "Alerts and advisories in force"),
     field("Synopsis", "synopsis", "Synopsis", {
       type: "textarea",
       required: true,
     }),
-    ...windFields("Winds", ""),
-    ...marineFields("Seas and swell", ""),
-    // Small craft and other warnings come from the alerts and CAP warnings in
-    // force, captured by FastAPI on save; nobody types them.
-    field("Issue details", "advisories", "Alerts and advisories in force"),
+    ...fromNhc(windFields("Wind", "")),
+    ...fromNhc(marineFields("Seas and swell", "")),
+    ...weatherTypeFields("Weather", ""),
+    ...visibilityFields("Visibility", false),
     field("Outlook", "outlook", "Outlook (next 24 hours)", {
       type: "textarea",
       required: true,
     }),
+    ...tideFields("Tides", ""),
+    field("Astronomy", "sunrise", "Sunrise", { type: "time", ...almanac }),
+    field("Astronomy", "sunset", "Sunset", { type: "time", ...almanac }),
+    field("Astronomy", "moonrise", "Moonrise", { type: "time", ...almanac }),
+    field("Astronomy", "moonset", "Moonset", { type: "time", ...almanac }),
+    field("Astronomy", "moonPhase", "Moon phase", {
+      options: MOON_PHASES,
+      ...almanac,
+    }),
+    field("Astronomy", "moonPhaseDate", "Next principal phase date", {
+      type: "date",
+      ...almanac,
+    }),
   ];
+}
+/** Fields a later automatic source (almanac, tide table, NHC) may fill. */
+export function fillableFields(kind: ProductKind, source: FillSource) {
+  return productFields(kind).filter((f) => f.fillFrom === source);
 }
 /**
  * Standardized Precipitation Index categories, driest to wettest (US Drought
@@ -1062,18 +1127,21 @@ export function isForecastAlertField(field: ProductField) {
  * each outlook day. The keys stay in the schema so older issues still open.
  */
 const EVENING_TONIGHT_HIDDEN = new Set(["maxTemperature", "sunrise", "sunset"]);
+/** The morning sheet gives sunset today and sunrise tomorrow instead. */
+const MORNING_HIDDEN = new Set(["sunrise", "sunset"]);
 export function isHiddenForecastField(kind: ProductKind, field: ProductField) {
   return (
     isForecastKind(kind) &&
     (isForecastAlertField(field) ||
-      (kind === "evening" && EVENING_TONIGHT_HIDDEN.has(field.key)))
+      (kind === "evening" && EVENING_TONIGHT_HIDDEN.has(field.key)) ||
+      (kind === "morning" && MORNING_HIDDEN.has(field.key)))
   );
 }
 export function displayProductFields(kind: ProductKind) {
   return productFields(kind).filter((f) => !isHiddenForecastField(kind, f));
 }
 const STRUCTURED_SOURCE_KEY =
-  /^(day[1-4])?([Vv]isibility(Min|Max)|[Ww]indDir(From|To)|[Ww]indSpeed(Min|Max)|[Ww]indGust|[Ss]eaState(From|To)|[Ww]aveHeight(Min|Max)|[Ss]well(Dir|Period|Height)|[Tt]ide[1-4](Type|Time|Height))$/u;
+  /^(day[1-4])?([Ww]eatherType|[Vv]isibility(Min|Max)|[Ww]indDir(From|To)|[Ww]indSpeed(Min|Max)|[Ww]indGust|[Ss]eaState(From|To)|[Ww]aveHeight(Min|Max)|[Ss]well(Dir|Period|Height)|[Tt]ide[1-4](Type|Time|Height))$/u;
 /**
  * Fields for reading an issued product (public site, review step): structured
  * wind/sea/tide inputs are shown through the text FastAPI composes from them,
@@ -1111,7 +1179,12 @@ export function emptyProduct(
     values.issuedAt = `${date}T${issueTime}`;
     values.validFrom = values.issuedAt;
   }
-  if (kind === "marine-forecast") values.area = MARINE_FORECAST_AREA;
+  if (isMarineKind(kind)) values.area = MARINE_FORECAST_AREA;
+  if (isBulletin(kind)) {
+    // GMS alerts are green only; the level is fixed and hidden in the desk.
+    values.level = "Green";
+    if (values.validFrom) values.validTo = hoursLater(values.validFrom, 24);
+  }
   if (kind === "climate-bulletin") {
     values.month = previousMonth(date);
     values.validFrom = values.issuedAt || `${date}T10:00`;
@@ -1125,6 +1198,58 @@ export function emptyProduct(
     values.validity = "Tonight and the following four days";
   }
   return withForecastSchedule(kind, values);
+}
+/** `YYYY-MM-DDTHH:MM` plus whole hours (Grenada has no daylight saving). */
+function hoursLater(local: string, hours: number) {
+  const time = Date.parse(`${local}:00Z`);
+  if (!Number.isFinite(time)) return "";
+  return new Date(time + hours * 3_600_000).toISOString().slice(0, 16);
+}
+export interface IssuedBulletin {
+  id: string;
+  kind: ProductKind;
+  publishedRevision: number | null;
+  values: ProductValues;
+}
+/**
+ * The bulletin number the desk proposes (owner decision 1, #1197): bulletins
+ * are numbered per event, like NHC advisories. An event is the run of
+ * consecutive issues of one hazard: the newest published issue of this kind
+ * continues it unless it was an All clear or had expired by the new issue
+ * time, in which case a new event starts at 1. A number that is not a whole
+ * number (hand-typed "3A") restarts the count. The forecaster can change it.
+ */
+export function proposeBulletinNumber(
+  kind: ProductKind,
+  issuedAt: string,
+  products: readonly IssuedBulletin[],
+  excludeId?: string
+): string {
+  const issued = localDateTime(issuedAt);
+  if (!Number.isFinite(issued)) return "1";
+  // Issues with an unreadable issue or expiry time cannot be placed in an
+  // event, so they are left out before comparing and sorting.
+  const previous = products
+    .map((p) => ({
+      p,
+      at: localDateTime(p.values.issuedAt ?? ""),
+      until: localDateTime(p.values.validTo ?? ""),
+    }))
+    .filter(
+      ({ p, at, until }) =>
+        p.kind === kind &&
+        p.publishedRevision &&
+        p.id !== excludeId &&
+        Number.isFinite(at) &&
+        Number.isFinite(until) &&
+        at <= issued
+    )
+    .sort((a, b) => b.at - a.at)[0];
+  if (!previous) return "1";
+  const ended =
+    previous.p.values.notice?.trim() === "All clear" || previous.until < issued;
+  const last = Number(previous.p.values.bulletinNumber);
+  return !ended && Number.isInteger(last) && last > 0 ? String(last + 1) : "1";
 }
 export const MARINE_FORECAST_VALIDITY = "05:00 today to 05:00 tomorrow";
 export const MARINE_FORECAST_AREA =

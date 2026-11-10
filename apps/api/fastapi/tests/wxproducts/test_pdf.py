@@ -9,7 +9,7 @@ from src.wxproducts import forecast_pdf, pdf, service
 from src.wxproducts.dependencies import ProductAuthor, get_author
 from src.wxproducts.schemas import ProductPdfSourceAdapter
 from tests.wxproducts.test_authoring import actor as actor
-from tests.wxproducts.test_authoring import current_input
+from tests.wxproducts.test_authoring import current_input, stored_values
 from tests.wxproducts.test_authoring import weather_sessions as weather_sessions
 
 
@@ -66,7 +66,7 @@ async def test_exact_revision_and_access(async_client, weather_sessions, actor):
         )
         published = await service.pdf_source(session, payload.id, 1, ["marine"])
         draft = await service.pdf_source(session, payload.id, 2, ["marine"])
-        assert published.values == payload.values | {"forecaster": actor.full_name}
+        assert published.values == stored_values(payload, actor)
         assert published.current_publication
         assert draft.values["synopsis"] == "Private newer edit"
         assert not draft.current_publication

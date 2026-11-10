@@ -956,6 +956,28 @@ test("verify-before-stop: verified work stays verified after commit, not after a
   }
 });
 
+test("verify-before-stop: pushed, clean work passes because CI checks it", () => {
+  const { dir, git } = scratchRepo();
+  const remote = mkdtempSync(join(tmpdir(), "stop-gate-remote-"));
+  try {
+    spawnSync("git", ["init", "--bare", "--quiet", remote]);
+    git("remote", "add", "origin", remote);
+    git("checkout", "--quiet", "-b", "task");
+    writeFileSync(join(dir, "app.js"), "export const a = 5;\n");
+    git("commit", "--quiet", "-am", "change");
+    // Committed but not pushed: still needs a check.
+    assert.equal(decideStop(dir), "block");
+    git("push", "--quiet", "-u", "origin", "task");
+    assert.equal(decideStop(dir), "allow");
+    // A new edit after the push is unchecked again.
+    writeFileSync(join(dir, "app.js"), "export const a = 6;\n");
+    assert.equal(decideStop(dir), "block");
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+    rmSync(remote, { recursive: true, force: true });
+  }
+});
+
 test("verify-before-stop: gates the checkout the session works in, not the hooks' own", () => {
   const { dir } = scratchRepo();
   try {

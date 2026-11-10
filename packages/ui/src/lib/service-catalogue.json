@@ -325,11 +325,10 @@
             "secretRef": "SENTRY_DSN_STAGING"
           },
           "availability": {
-            "status": "configured",
-            "kind": "direct-pilot",
-            "monitorId": 5014248,
-            "deliveryEvidence": [],
-            "dashboard": "https://incidents.betterstack.com/team/t476349/monitors/5014248"
+            "status": "unconfigured",
+            "kind": "probe",
+            "monitorId": null,
+            "deliveryEvidence": []
           }
         },
         "production": {

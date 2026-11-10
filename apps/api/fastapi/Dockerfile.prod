@@ -136,6 +136,10 @@ USER appuser
 # Run application and operational commands from the FastAPI member.
 WORKDIR /app/apps/api/fastapi
 
+# Fetch the pinned WMO IWXXM schemas (not committed; no licence upstream) so the
+# image validates IWXXM offline. The build fails if a pinned file does not match.
+RUN /app/.venv/bin/python -m scripts.fetch_iwxxm_schemas
+
 # Expose port (8000 is standard for FastAPI)
 EXPOSE 8000
 

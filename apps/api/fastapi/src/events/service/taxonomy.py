@@ -16,6 +16,7 @@ from src.utils.datetime import utc_now
 from .. import schemas
 from ..exceptions import EventsConflict
 from ..models import Category, Listing
+from ..transitions import ListingStatus
 
 # Booking modes each legacy ``admission`` value allows. ``slots`` is refused
 # (the schema rejects it with 422: reserved for the Bookings bridge).
@@ -44,7 +45,7 @@ _DEFAULT_MODE = {"free": "none", "rsvp": "rsvp", "ticketed": "tickets"}
 def public_discoverable() -> list[Any]:
     """Conditions for a listing that discovery may show (besides the date)."""
     return [
-        Listing.status == "published",
+        Listing.status == ListingStatus.PUBLISHED.value,
         Listing.visibility == "public",
         Listing.access_type == "public",
     ]

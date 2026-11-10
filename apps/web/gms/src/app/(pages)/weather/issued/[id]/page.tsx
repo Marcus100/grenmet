@@ -44,6 +44,7 @@ export default async function IssuedProductPage({
             source="Grenada Meteorological Service forecast"
             status="verified"
             time={product.values.issuedAt ?? product.publishedAt}
+            validTo={product.values.validTo ?? null}
           />
         )}
       {/* A printable paper: stays light in dark mode (gm-paper). */}

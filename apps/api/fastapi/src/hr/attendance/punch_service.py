@@ -22,6 +22,7 @@ from src.hr.models import Department, EmploymentRecord
 from src.hr.roster.models import RosterAssignment
 from src.utils.datetime import utc_now
 
+from . import transitions as punch_transitions
 from .models import (
     AttendanceRecord,
     ClockPunch,
@@ -169,7 +170,7 @@ async def approve_punch(
     await _require_reviewer(session, current_user, punch)
     if punch.status == ClockPunchStatus.APPROVED.value:
         return punch  # a retried approval changes nothing
-    if punch.status != ClockPunchStatus.PENDING.value:
+    if not punch_transitions.can_move(ClockPunchStatus(punch.status), "approve"):
         raise AppException("This clock punch was already rejected", 409)
     # Roles and permissions are loaded eagerly: save_attendance checks the
     # employee's own timesheet.submit.self, and a lazy load would fail in async.
@@ -188,7 +189,7 @@ async def approve_punch(
     if owner is None:
         raise AppException("Employee not found", 404)
     audit_service.set_actor(session, current_user.id)
-    punch.status = ClockPunchStatus.APPROVED.value
+    punch_transitions.move_punch(punch, "approve")
     punch.reviewed_by_user_id = current_user.id
     punch.reviewed_at = utc_now()
     punch.review_note = note.strip() if note and note.strip() else None
@@ -253,11 +254,11 @@ async def reject_punch(
     await _require_reviewer(session, current_user, punch)
     if punch.status == ClockPunchStatus.REJECTED.value:
         return punch
-    if punch.status != ClockPunchStatus.PENDING.value:
+    if not punch_transitions.can_move(ClockPunchStatus(punch.status), "reject"):
         raise AppException("This clock punch was already approved", 409)
     audit_service.set_actor(session, current_user.id)
     now = utc_now()
-    punch.status = ClockPunchStatus.REJECTED.value
+    punch_transitions.move_punch(punch, "reject")
     punch.reviewed_by_user_id = current_user.id
     punch.reviewed_at = now
     punch.review_note = reason.strip()
@@ -275,7 +276,7 @@ async def reject_punch(
             )
         ).scalars()
         for orphan in orphans:
-            orphan.status = ClockPunchStatus.REJECTED.value
+            punch_transitions.move_punch(orphan, "reject")
             orphan.reviewed_by_user_id = current_user.id
             orphan.reviewed_at = now
             orphan.review_note = "Arrival was rejected"

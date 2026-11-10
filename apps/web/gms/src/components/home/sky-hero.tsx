@@ -6,12 +6,12 @@ import { SkyDayStrip, type StripDay } from "@/components/home/sky-day-strip";
 import { UnitsToggle } from "@/components/units-toggle";
 import {
   isOtherGrenadaDay,
-  isStale,
   localTime,
   localWeekday,
 } from "@/lib/current-conditions";
 import type { WeatherSnapshot } from "@/lib/forecast-data";
 import { getForecastDays } from "@/lib/forecast-days";
+import { isStale } from "@/lib/freshness";
 import { rainChance, skyFromWords } from "@/lib/hero-readings";
 import {
   defaultLocation,
@@ -33,7 +33,7 @@ const STATION_CODE = /^.*\((.+)\)$/u;
  * AA for small type).
  */
 /**
- * The first tab's label and time. A reading older than 90 minutes says
+ * The first tab's label and time. A reading older than two hours says
  * "Last" over its time (or its weekday from an earlier day), never "Now"
  * (owner, 29 Oct 2026).
  */

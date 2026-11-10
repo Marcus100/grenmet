@@ -353,6 +353,10 @@ class CapAlertPublic(BaseModel):
     codes: list[str] = Field(default_factory=list)
     note: str | None = None
     lifecycle_state: CapLifecycleState
+    # Actions the current lifecycle_state allows (names from cap/transitions.py).
+    # Computed from the state alone: permissions and approval policy are still
+    # enforced when the action is requested.
+    allowed_actions: list[str] = Field(default_factory=list)
     created_by_user_id: uuid.UUID
     updated_by_user_id: uuid.UUID | None = None
     submitted_at: UtcDateTime | None = None
