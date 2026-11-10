@@ -1,8 +1,8 @@
 name: Verify image vulnerability policy
-description: Scan the local image and block fixable high/critical vulnerabilities.
+description: Scan an image and block fixable high/critical vulnerabilities.
 inputs:
   image:
-    description: Exact locally built image reference
+    description: Exact image reference (a local build, or a registry tag or digest)
     required: true
   scope:
     description: Dockerfile path and target identifying the exception scope
@@ -10,14 +10,29 @@ inputs:
   name:
     description: Unique artifact suffix within the calling job
     required: true
+  source:
+    description: >-
+      Where Trivy reads the image: docker (the local daemon, the default for
+      builds) or remote (the registry; log in first for private images).
+    required: false
+    default: docker
 runs:
   using: composite
   steps:
+    - name: Validate image source
+      shell: bash
+      env:
+        IMAGE_SOURCE: ${{ inputs.source }}
+      run: |
+        case "$IMAGE_SOURCE" in
+          docker|remote) ;;
+          *) echo "::error::scan-image source must be docker or remote"; exit 1 ;;
+        esac
     - name: Scan image with current vulnerability database
       id: scan
       uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
       env:
-        TRIVY_IMAGE_SRC: docker
+        TRIVY_IMAGE_SRC: ${{ inputs.source }}
         TRIVY_IGNOREFILE: /dev/null
         TRIVY_IGNORE_UNFIXED: "false"
         TRIVY_SKIP_DB_UPDATE: "false"

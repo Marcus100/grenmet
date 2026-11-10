@@ -1,4 +1,14 @@
 export {
+  almanacGetAstronomyQueryKey,
+  almanacGetAstronomyQueryOptions,
+  useAlmanacGetAstronomy,
+} from "./useAlmanacGetAstronomy.js";
+export {
+  almanacGetTidesQueryKey,
+  almanacGetTidesQueryOptions,
+  useAlmanacGetTides,
+} from "./useAlmanacGetTides.js";
+export {
   auditGetHistoryQueryKey,
   auditGetHistoryQueryOptions,
   useAuditGetHistory,
@@ -1023,6 +1033,11 @@ export {
   eregisterListRegistryStationsQueryOptions,
   useEregisterListRegistryStations,
 } from "./useEregisterListRegistryStations.js";
+export {
+  eregisterOverrideRegisterObservationBufrMutationKey,
+  eregisterOverrideRegisterObservationBufrMutationOptions,
+  useEregisterOverrideRegisterObservationBufr,
+} from "./useEregisterOverrideRegisterObservationBufr.js";
 export {
   eregisterPublicCurrentConditionsQueryKey,
   eregisterPublicCurrentConditionsQueryOptions,
@@ -3648,6 +3663,11 @@ export {
   wxwatchLatestQueryKey,
   wxwatchLatestQueryOptions,
 } from "./useWxwatchLatest.js";
+export {
+  useWxwatchMarineGuidance,
+  wxwatchMarineGuidanceQueryKey,
+  wxwatchMarineGuidanceQueryOptions,
+} from "./useWxwatchMarineGuidance.js";
 export {
   useWxwatchMetadata,
   wxwatchMetadataQueryKey,

@@ -26,8 +26,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from src.auth.models import User
 from src.exceptions import AppException
 
-from .. import order_fulfilment, order_payments, order_refunds
+from .. import order_payments, order_refunds
 from ..models import Listing, Order, Organiser
+from ..transitions import OrderStatus, move_order
 from .ticketing import cancel_valid_tickets
 
 logger = logging.getLogger(__name__)
@@ -60,7 +61,9 @@ async def cancel_event_orders(
                     Order.listing_id == listing.id,
                     Order.channel == "online",
                     Order.payment_method == "online",
-                    Order.status.in_(("confirmed", order_fulfilment.PENDING)),
+                    Order.status.in_(
+                        (OrderStatus.CONFIRMED.value, OrderStatus.PENDING_PAYMENT.value)
+                    ),
                 )
                 .order_by(Order.id)
                 .with_for_update()
@@ -101,12 +104,12 @@ async def _settle_order(
     now: datetime,
     result: Settled,
 ) -> None:
-    if order.status == order_fulfilment.PENDING:
+    if order.status == OrderStatus.PENDING_PAYMENT.value:
         unpaid = await order_payments.stop_collecting(
             db, organisation_id=organisation_id, order_id=order.id
         )
         if unpaid:
-            order.status = "expired"
+            move_order(order, "expire")
             result.released += 1
         # else: the payment just landed; the paid reaction refunds it.
         return

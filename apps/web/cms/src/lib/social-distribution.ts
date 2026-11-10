@@ -6,6 +6,7 @@ import {
   siteAddress,
   sitePath,
 } from "./gms-site";
+import { isLive } from "./publication-status";
 
 /**
  * Sends an approved, published post to FastAPI, which queues it for the
@@ -228,8 +229,7 @@ export async function distributeApprovedPost({
     const origin = env.GMS_SITE_URL;
     if (!(secret && origin && isSiteCollection(slug))) return "skipped";
     const social = (doc.social ?? {}) as Doc;
-    if (doc.status !== "published" || social.approveForSocial !== true)
-      return "skipped";
+    if (!isLive(doc) || social.approveForSocial !== true) return "skipped";
     const platforms = chosenPlatforms(doc);
     const imageUrls = await platformImageUrls(doc, platforms, {
       cmsUrl: env.CMS_URL,

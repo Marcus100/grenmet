@@ -71,6 +71,20 @@ in the shell or the compose `.env` when fronting it with HTTPS); the production
 stack (`infra/weather/docker-compose.surface.yml`) does not set it. Any other
 plain-HTTP deployment must set it itself or sign-in fails with a CSRF error.
 
+Host and CORS lock-down (#946, #947), in `tempestas_api/settings.py`:
+`ALLOWED_HOSTS` comes from `SURFACE_ALLOWED_HOSTS` (comma separated, default
+`localhost,127.0.0.1`; any other Host gets a 400) instead of `*`.
+`USE_X_FORWARDED_HOST` is off: neither nginx config sets `X-Forwarded-Host`, so
+on the local stack a client value would reach Django unchanged, and both pass
+the real `Host`. CORS no longer allows every origin: only
+`SURFACE_CORS_ALLOWED_ORIGINS` (comma separated, with scheme, default none) get
+CORS headers, credentials included. The production stack
+(`infra/weather/docker-compose.surface.yml`) sets both from `SURFACE_HOST`
+(`surface.barrels.gd`), keeps `localhost,127.0.0.1` for the api container's
+healthcheck, and sends `SURFACE_HOST` as the Host of Traefik's healthcheck.
+Another install (a LAN address) lists its own names in its env file.
+`wx/tests/test_hosts_and_cors.py` covers both.
+
 Django 5 code changes: sign-out in `templates/base.html` is a POST form
 (`LogoutView` no longer accepts GET), and the unused `USE_L10N` setting is gone.
 

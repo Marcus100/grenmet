@@ -32,6 +32,7 @@ export function eregisterCreateRegisterObservation<
         { type: "apiKey", name: "admin_session", in: "cookie" },
         { type: "http", scheme: "bearer" },
       ],
+      contentType: { request: "application/json" },
       ...config,
       throwOnError: config.throwOnError ?? true,
     }) as Promise<

@@ -114,10 +114,15 @@ def test_marine_sheet_shows_synopsis_winds_seas_advisories_and_outlook():
     assert context["outlook"] == MARINE["outlook"]
     winds = {tile["label"]: tile["value"] for tile in context["wind_tiles"]}
     seas = {tile["label"]: tile["value"] for tile in context["sea_tiles"]}
-    assert winds["Wind speed"] == "17–25 mph"
-    assert winds["Gusts"] == "32 mph"
+    # Marine units (owner, 9 Nov 2026): knots, metres with feet in brackets.
+    assert winds["Wind speed"] == "15–22 kt"
+    assert winds["Gusts"] == "28 kt"
     assert winds["Wind direction"] == "E to ENE"
-    assert seas["Wave height"] == "5–8 ft"
+    assert seas["Wave height"] == "1.5–2.5 m (5–8 ft)"
+    swell = {tile["label"]: tile["value"] for tile in context["swell_tiles"]}
+    assert swell["Swell · NE every 9 s"] == "1.8 m (6 ft)"
+    assert values["wind"] == "E to ENE 15–22 kt, gusts 28 kt"
+    assert "a marine alert is in force" in context["small_craft"]
     assert "Wave height" not in winds
     assert [item["title"] for item in context["advisories"]] == [ITEM["title"]]
     html = forecast_pdf._environment().get_template("marine.html.j2").render(**context)

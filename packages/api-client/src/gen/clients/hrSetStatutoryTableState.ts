@@ -25,6 +25,7 @@ export function hrSetStatutoryTableState<ThrowOnError extends boolean = true>(
       method: "PUT",
       url: "/api/v1/hr/payroll/statutory-tables/{kind}/{table_id}/state",
       security: [{ type: "oauth2" }],
+      contentType: { request: "application/json" },
       ...config,
       throwOnError: config.throwOnError ?? true,
     }) as Promise<

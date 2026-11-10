@@ -28,7 +28,7 @@ from src.utils.datetime import utc_now
 from src.utils.timezones import GRENADA, local_to_utc
 from src.webhooks_out import service as webhook_service
 
-from . import schemas
+from . import schemas, transitions
 from .config import payments_settings
 from .exceptions import (
     IntentNotFoundError,
@@ -72,8 +72,8 @@ PAID_TOPICS = {
 #: no entry is not told: Bookings starts its own refunds and needs no callback.
 REFUND_TOPICS = {"events.order": "events.order_refunded"}
 
-#: Refunds that still count against what can be handed back.
-_LIVE_REFUND = (RefundStatus.PENDING.value, RefundStatus.SUCCEEDED.value)
+#: Refunds that still count against what can be handed back (SQL ``IN`` values).
+_LIVE_REFUND = tuple(sorted(state.value for state in transitions.LIVE_REFUND_STATES))
 
 #: Source types owned by another domain (it creates them through the service with
 #: its own idempotency key and reacts to their payments): the generic org route
@@ -312,7 +312,11 @@ async def create_intent(
     intent.provider_ref = start.provider_ref
     intent.checkout_url = start.checkout_url
     if start.checkout_url is not None:
-        intent.status = IntentStatus.PROCESSING.value
+        transitions.move_intent(
+            intent,
+            "checkout",
+            refusal="This payment cannot start a checkout",
+        )
         session.add(
             Attempt(
                 intent_id=intent.id,
@@ -455,13 +459,11 @@ async def cancel_open_intent(
     ).scalar_one_or_none()
     if intent is None:
         return True
-    if intent.status == IntentStatus.SUCCEEDED.value:
+    state = IntentStatus(intent.status)
+    if state is IntentStatus.SUCCEEDED:
         return False
-    if intent.status in (
-        IntentStatus.REQUIRES_PAYMENT.value,
-        IntentStatus.PROCESSING.value,
-    ):
-        intent.status = IntentStatus.CANCELLED.value
+    if transitions.can_intent(state, "cancel"):
+        transitions.move_intent(intent, "cancel")
         await session.flush()
     return True
 
@@ -527,9 +529,14 @@ async def _mark_attempt(
         )
     ).scalar_one_or_none()
     if attempt is None:
-        attempt = Attempt(intent_id=intent.id, provider=intent.provider)
+        # No started try to settle: record one that began and ended here.
+        attempt = Attempt(
+            intent_id=intent.id,
+            provider=intent.provider,
+            status=AttemptStatus.STARTED.value,
+        )
         session.add(attempt)
-    attempt.status = status.value
+    transitions.move_attempt(attempt, status)
     attempt.failure_code = failure_code
 
 
@@ -537,6 +544,7 @@ async def _capture(
     session: AsyncSession,
     intent: Intent,
     *,
+    action: transitions.IntentAction,
     provider: str,
     event_id: str,
     actor: User | None,
@@ -544,7 +552,7 @@ async def _capture(
     reference: str | None = None,
     note: str | None = None,
 ) -> None:
-    intent.status = IntentStatus.SUCCEEDED.value
+    transitions.move_intent(intent, action)
     if payment_ref:
         intent.provider_payment_ref = payment_ref
     await _mark_attempt(session, intent, AttemptStatus.SUCCEEDED)
@@ -638,13 +646,15 @@ async def record_manual_payment(
     intent = await _get_owned(session, organisation_id, intent_id, lock=True)
     if intent.provider != ProviderKey.MANUAL.value:
         raise PaymentsConflictError("Only manual payments can be recorded by staff")
-    if intent.status == IntentStatus.SUCCEEDED.value:
+    state = IntentStatus(intent.status)
+    if state is IntentStatus.SUCCEEDED:
         raise PaymentsConflictError("This payment has already been recorded")
-    if intent.status in (IntentStatus.CANCELLED.value, IntentStatus.FAILED.value):
+    if state in transitions.UNPAID_ENDED_STATES:
         raise PaymentsConflictError("This payment can no longer be paid")
     await _capture(
         session,
         intent,
+        action="record_manual",
         provider=ProviderKey.MANUAL.value,
         event_id=f"manual:{intent.id}",
         actor=actor,
@@ -703,11 +713,13 @@ async def refund_intent(
         )
 
     provider = registry.get_provider(intent.provider)
+    # Born pending: we have asked the provider and wait for its answer.
     refund = Refund(
         id=refund_id or uuid.uuid4(),
         intent_id=intent.id,
         amount_minor=amount,
         reason=payload.reason,
+        status=RefundStatus.PENDING.value,
         created_by_user_id=actor.id if actor else None,
     )
     session.add(refund)
@@ -715,11 +727,8 @@ async def refund_intent(
 
     result = await provider.refund(intent, amount, refund.id)
     refund.provider_ref = result.provider_ref
-    refund.status = (
-        RefundStatus.SUCCEEDED.value
-        if result.status == "succeeded"
-        else RefundStatus.PENDING.value
-    )
+    if result.status == "succeeded":
+        transitions.move_refund(refund, RefundStatus.SUCCEEDED)
     session.add(
         _entry(
             intent,
@@ -872,8 +881,9 @@ async def _locate_refunded_payment(
 async def _apply_success(
     session: AsyncSession, intent: Intent, event: ProviderEvent
 ) -> str:
-    if intent.status == IntentStatus.SUCCEEDED.value:
+    if not transitions.can_intent(IntentStatus(intent.status), "capture"):
         # Already captured by another event; never credit the same sale twice.
+        _log_refused(intent, "capture", event)
         return "duplicate"
     if event.amount_minor != intent.amount_minor or (
         event.currency is not None and event.currency != intent.currency
@@ -886,6 +896,7 @@ async def _apply_success(
     await _capture(
         session,
         intent,
+        action="capture",
         provider=event.provider,
         event_id=event.event_id,
         actor=None,
@@ -897,9 +908,11 @@ async def _apply_success(
 async def _apply_failure(
     session: AsyncSession, intent: Intent, event: ProviderEvent
 ) -> str:
-    if intent.status in (IntentStatus.SUCCEEDED.value, IntentStatus.FAILED.value):
+    if not transitions.can_intent(IntentStatus(intent.status), "fail"):
+        # A late failure after a success (or a repeat of one): the money stands.
+        _log_refused(intent, "fail", event)
         return "duplicate"
-    intent.status = IntentStatus.FAILED.value
+    transitions.move_intent(intent, "fail")
     if event.payment_ref and not intent.provider_payment_ref:
         intent.provider_payment_ref = event.payment_ref
     await _mark_attempt(session, intent, AttemptStatus.FAILED, event.failure_code)
@@ -907,14 +920,22 @@ async def _apply_failure(
     return "processed"
 
 
-#: What a provider refund status means for our refund row. Other statuses are ignored.
-_PROVIDER_REFUND_STATUS: dict[str, RefundStatus] = {
-    "succeeded": RefundStatus.SUCCEEDED,
-    "pending": RefundStatus.PENDING,
-    "requires_action": RefundStatus.PENDING,
-    "failed": RefundStatus.FAILED,
-    "canceled": RefundStatus.FAILED,
-}
+def _log_refused(
+    intent: Intent, action: transitions.IntentAction, event: ProviderEvent
+) -> None:
+    """A provider report the table refuses is ignored, not an error: Stripe
+    delivers events out of order and twice, and the webhook must still answer 2xx."""
+    logger.info(
+        "provider payment report ignored: the payment cannot move by this action",
+        extra={
+            "intent_id": str(intent.id),
+            "event_id": event.event_id,
+            "action": action,
+            "status": intent.status,
+        },
+    )
+
+
 _PROVIDER_REFUND_REASON = "Refunded at the payment provider"
 
 
@@ -994,7 +1015,7 @@ async def _reconcile_listed_refund(
     listing with ``event_id`` None). It is matched to our row by our refund id, then
     by the provider's refund id, and written once if we have none. The caller holds
     the intent lock. Returns True when it changed anything."""
-    target = _PROVIDER_REFUND_STATUS.get(refund.status)
+    target = transitions.PROVIDER_REFUND_STATE.get(refund.status)
     if target is None or refund.amount_minor <= 0:
         return False
     existing: Refund | None = None
@@ -1023,6 +1044,7 @@ async def _reconcile_listed_refund(
             target,
             provider=provider,
             provider_ref=refund.provider_ref,
+            event_id=event_id,
         )
     refund_id = refund.refund_id or uuid.uuid4()
     if target is RefundStatus.FAILED:
@@ -1073,23 +1095,37 @@ async def _advance_refund(
     *,
     provider: str,
     provider_ref: str | None,
+    event_id: str | None,
 ) -> bool:
-    """Move our refund row to the provider's status. A row that is pending or
-    succeeded is live and carries its ledger entry; a failed row carries none (its
-    entry was reversed). Settled money is never moved back by a later report."""
+    """Move our refund row to the provider's status, as the refund table allows.
+
+    A row that is pending or succeeded is live and carries its ledger entry; a failed
+    row carries none (its entry was reversed). Settled money is never moved back by a
+    later report: a report the table refuses is ignored and logged with its event id."""
     changed = False
     if provider_ref and row.provider_ref is None:
         row.provider_ref = provider_ref
         changed = True
     current = RefundStatus(row.status)
-    if current is target or current is RefundStatus.SUCCEEDED:
+    if current is target:
+        return changed
+    if transitions.refund_refused(current, target):
+        logger.info(
+            "provider refund report ignored: the refund cannot move backwards",
+            extra={
+                "refund_id": str(row.id),
+                "event_id": event_id,
+                "from": current.value,
+                "to": target.value,
+            },
+        )
         return changed
     if current is RefundStatus.PENDING and target is RefundStatus.SUCCEEDED:
-        row.status = RefundStatus.SUCCEEDED.value
+        transitions.move_refund(row, RefundStatus.SUCCEEDED)
         return True
     if current is RefundStatus.PENDING and target is RefundStatus.FAILED:
         # Reverse the money the pending refund had taken off the balance.
-        row.status = RefundStatus.FAILED.value
+        transitions.move_refund(row, RefundStatus.FAILED)
         session.add(
             _entry(
                 intent,
@@ -1104,16 +1140,9 @@ async def _advance_refund(
         await session.flush()
         await _enqueue_refund_topic(session, intent, row.id, suffix=":failed")
         return True
-    if current is RefundStatus.FAILED and target is RefundStatus.PENDING:
-        # A pending report that arrives after the failure (out of order) is stale.
-        logger.info(
-            "stale pending report for a failed refund; not changed",
-            extra={"refund_id": str(row.id)},
-        )
-        return changed
     if current is RefundStatus.FAILED and target is RefundStatus.SUCCEEDED:
         # The provider now says the money went back: take it off the balance again.
-        row.status = RefundStatus.SUCCEEDED.value
+        transitions.move_refund(row, RefundStatus.SUCCEEDED)
         session.add(
             _entry(
                 intent,
@@ -1135,10 +1164,7 @@ async def _advance_refund(
         )
         await _enqueue_refund_topic(session, intent, row.id, suffix=":succeeded")
         return True
-    logger.error(
-        "provider refund status went back; not changed",
-        extra={"refund_id": str(row.id), "from": row.status, "to": target.value},
-    )
+    # Every move the refund table allows has a branch above.
     return changed
 
 
@@ -1196,8 +1222,6 @@ async def _record_provider_refund(
 #: A refund we recorded this recently that the provider does not list yet is not
 #: reported as a mismatch: our own refund call may still be committing.
 REFUND_CHECK_GRACE = timedelta(hours=1)
-#: Provider refund statuses that hold money back from the payer.
-_LIVE_PROVIDER_STATUS = frozenset({"succeeded", "pending", "requires_action"})
 
 
 @dataclass(frozen=True)
@@ -1504,7 +1528,8 @@ async def _refund_mismatch(
         sum(
             refund.amount_minor
             for refund in listing.refunds
-            if refund.status in _LIVE_PROVIDER_STATUS and refund.amount_minor > 0
+            if refund.status in transitions.PROVIDER_LIVE_STATUSES
+            and refund.amount_minor > 0
         ),
     )
     if provider_total == recorded:

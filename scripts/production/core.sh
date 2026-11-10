@@ -5,6 +5,18 @@ operation=${1:?Expected deploy, backup or cleanup}
 : "${DEPLOY_ENV:?}" "${COMPOSE_PROJECT:?}"
 [[ "$DEPLOY_ENV" == staging || "$DEPLOY_ENV" == production ]] || exit 2
 [[ "$operation" == deploy || "$operation" == backup || "$operation" == cleanup ]] || exit 2
+# A migration that waits on a lock is retried this many times, pausing between tries
+# (release runbook, "Migration lock timeouts"). Checked here so a typo stops the deploy
+# before any change.
+migration_lock_attempts=${MIGRATION_LOCK_RETRY_ATTEMPTS:-3}
+migration_lock_pause=${MIGRATION_LOCK_RETRY_PAUSE_SECONDS:-30}
+# Only a deploy runs migrations, so only a deploy needs these to be valid.
+if [[ "$operation" == deploy ]]; then
+  [[ "$migration_lock_attempts" =~ ^[1-9][0-9]*$ && "$migration_lock_pause" =~ ^[0-9]+$ ]] || {
+    echo "MIGRATION_LOCK_RETRY_ATTEMPTS must be a positive integer and MIGRATION_LOCK_RETRY_PAUSE_SECONDS a whole number of seconds." >&2
+    exit 2
+  }
+fi
 cd "$(dirname "$0")/../../infra/docker"
 exec 9>"${CORE_LOCK_DIR:-/var/lock}/grenmet-core-$DEPLOY_ENV.lock"
 flock -w 1800 9 || { echo "Core maintenance lock timed out" >&2; exit 1; }
@@ -35,9 +47,12 @@ rollout_parallel=${ROLLOUT_PARALLEL:-$default_parallel}
 pull_parallel=${PULL_PARALLEL:-4}
 [[ "$pull_parallel" =~ ^[1-9][0-9]?$ ]] || { echo "PULL_PARALLEL must be a whole number from 1 to 99; got '$pull_parallel'" >&2; exit 2; }
 umask 077
+# Temporary log of the migration attempt in progress; removed on every exit path.
+migration_log=""
 cleanup() {
   rm -f runtime/.env.local runtime/deploy.lock.yml runtime/bootstrap-result runtime/images.txt
   rm -rf runtime/rollout
+  [[ -z "$migration_log" ]] || rm -f "$migration_log"
   docker logout ghcr.io >/dev/null 2>&1 || true
 }
 
@@ -392,7 +407,24 @@ docker compose -f runtime/deploy.lock.yml -p "$COMPOSE_PROJECT" exec -T db bash 
 
 phase migrations
 for service in $migration_services; do
-  docker compose -f runtime/deploy.lock.yml -p "$COMPOSE_PROJECT" run --rm --no-deps "$service"
+  for attempt in $(seq 1 "$migration_lock_attempts"); do
+    migration_log=$(mktemp)
+    if docker compose -f runtime/deploy.lock.yml -p "$COMPOSE_PROJECT" run --rm --no-deps "$service" 2>&1 | tee "$migration_log"; then
+      rm -f "$migration_log"; migration_log=""
+      break
+    fi
+    # Only a lock wait that hit MIGRATION_LOCK_TIMEOUT is retried. A rerun is safe:
+    # Alembic commits each autocommit_block and Payload records each applied
+    # migration, so the next attempt skips what finished. The previous release keeps
+    # serving until the deploy gets past this phase.
+    if (( attempt == migration_lock_attempts )) || ! grep -q "canceling statement due to lock timeout" "$migration_log"; then
+      rm -f "$migration_log"; migration_log=""
+      exit 1
+    fi
+    rm -f "$migration_log"; migration_log=""
+    echo "::warning::Migration $service hit the lock timeout (attempt $attempt of $migration_lock_attempts); retrying in ${migration_lock_pause}s. The previous release keeps serving."
+    sleep "$migration_lock_pause"
+  done
 done
 
 phase grants

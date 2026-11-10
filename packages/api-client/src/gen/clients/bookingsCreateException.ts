@@ -25,6 +25,7 @@ export function bookingsCreateException<ThrowOnError extends boolean = true>(
       method: "POST",
       url: "/api/v1/bookings/org/providers/{provider_id}/exceptions",
       security: [{ type: "oauth2" }],
+      contentType: { request: "application/json" },
       ...config,
       throwOnError: config.throwOnError ?? true,
     }) as Promise<RequestResult<BookingsCreateExceptionResponses, ThrowOnError>>

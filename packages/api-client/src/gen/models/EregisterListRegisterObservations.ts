@@ -23,15 +23,15 @@ export type EregisterListRegisterObservationsQuery = {
    */
   observed_at?: string | null;
   /**
-   * @minLength 1
-   * @maxLength 500
+   * @minimum 1
+   * @maximum 500
    * @default 100
    * @type integer | undefined
    */
   limit?: number;
   /**
-   * @minLength 0
-   * @maxLength 10000000
+   * @minimum 0
+   * @maximum 10000000
    * @default 0
    * @type integer | undefined
    */

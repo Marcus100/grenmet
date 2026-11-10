@@ -47,6 +47,7 @@ from .expansion import expand_shift, validate_break
 from .grid import parse_grid, resolve_user
 from .holidays import MAX_YEAR, MIN_YEAR, PROVISIONAL_SOURCE, provisional_holidays
 from .models import (
+    ROSTER_VISIBLE_PERIOD_STATUSES,
     ImportStatus,
     PublicHoliday,
     RosterAssignment,
@@ -972,7 +973,7 @@ async def read_roster_calendar(
     )
     if department_scope:
         await require_roster_read_scope(session, current_user, department_id)
-    visible_statuses = [RosterPeriodStatus.PUBLISHED, RosterPeriodStatus.CLOSED]
+    visible_statuses = list(ROSTER_VISIBLE_PERIOD_STATUSES)
     if include_draft:
         visible_statuses.append(RosterPeriodStatus.DRAFT)
 

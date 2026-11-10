@@ -21,7 +21,7 @@ export const DEMO_EVENT_ID = "evt_feel_free_sunset";
 export const demoEvent: EventRecord = {
   id: DEMO_EVENT_ID,
   name: "Feel Free: Sunset",
-  status: "on-sale",
+  status: "published",
   startsAt: "2026-08-15T16:00:00-04:00",
   venue: "Grenada National Stadium",
   capacity: 1200,

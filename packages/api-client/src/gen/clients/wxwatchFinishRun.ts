@@ -24,6 +24,7 @@ export function wxwatchFinishRun<ThrowOnError extends boolean = true>(
     request({
       method: "POST",
       url: "/api/v1/wxwatch/runs/{run_id}/finish",
+      contentType: { request: "application/json" },
       ...config,
       throwOnError: config.throwOnError ?? true,
     }) as Promise<RequestResult<WxwatchFinishRunResponses, ThrowOnError>>

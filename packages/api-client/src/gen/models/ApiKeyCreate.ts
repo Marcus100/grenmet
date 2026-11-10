@@ -17,8 +17,8 @@ export type ApiKeyCreate = {
   scopes: string[];
   /**
    * @description Lifetime in days (at most one year).
-   * @minLength 1
-   * @maxLength 365
+   * @minimum 1
+   * @maximum 365
    * @default 90
    * @type integer | undefined
    */

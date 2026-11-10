@@ -91,7 +91,7 @@ export function SettingsResult({
   return (
     <div ref={ref} role="status" tabIndex={-1}>
       {pending ? <span className="sr-only">Saving</span> : null}
-      {state.status === "done" ? (
+      {state.status === "success" ? (
         <p className="border-border bg-muted rounded-lg border p-3 font-medium">
           {state.message}
         </p>

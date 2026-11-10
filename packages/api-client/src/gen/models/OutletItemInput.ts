@@ -11,8 +11,8 @@ export type OutletItemInput = {
    */
   tier_id: string;
   /**
-   * @minLength 1
-   * @maxLength 50
+   * @minimum 1
+   * @maximum 50
    * @type integer
    */
   quantity: number;

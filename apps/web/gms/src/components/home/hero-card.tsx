@@ -233,7 +233,7 @@ export function NowCard({
           <>
             {feels !== null && (
               <>
-                Feels like <Temperature value={feels} />
+                Feels like <Temperature showUnit value={feels} />
               </>
             )}
             {feels !== null && wind && " · "}
@@ -249,7 +249,7 @@ export function NowCard({
         />
       }
       sky={sky}
-      temperature={<Temperature value={temperature} />}
+      temperature={<Temperature showUnit value={temperature} />}
     />
   );
 }

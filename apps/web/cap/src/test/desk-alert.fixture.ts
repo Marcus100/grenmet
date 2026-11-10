@@ -1,6 +1,25 @@
-import type { CapAlertPublic, CapInfoPublic } from "@barrelsgd/api-client";
+import type {
+  CapAlertPublic,
+  CapInfoPublic,
+  CapLifecycleState,
+} from "@barrelsgd/api-client";
+import type { CapAction } from "@/lib/desk/allowed-actions";
 
 const ALERT_ID = "11111111-2222-4333-8444-555555555555";
+
+/**
+ * What the API offers per state, as `allowed_actions` (mirrors OFFERED_ACTIONS
+ * and TRANSITIONS in apps/api/fastapi/src/cap/transitions.py). Tests can pass
+ * their own list to check that the buttons follow the API, not the state.
+ */
+const OFFERED_BY_STATE: Record<CapLifecycleState, CapAction[]> = {
+  APPROVED: ["publish", "emergency_publish"],
+  CANCELLED: [],
+  DRAFT: ["submit", "emergency_publish"],
+  EXPIRED: [],
+  PUBLISHED: ["cancel", "expire"],
+  SUBMITTED: ["approve", "emergency_publish"],
+};
 
 export function deskInfo(
   overrides: Partial<CapInfoPublic> = {}
@@ -44,7 +63,9 @@ export function deskInfo(
 export function deskAlert(
   overrides: Partial<CapAlertPublic> = {}
 ): CapAlertPublic {
+  const lifecycleState = overrides.lifecycle_state ?? "DRAFT";
   return {
+    allowed_actions: OFFERED_BY_STATE[lifecycleState],
     created_at: "2026-11-01T11:00:00Z",
     created_by_user_id: "author-id",
     id: ALERT_ID,
@@ -52,7 +73,7 @@ export function deskAlert(
     import_source: null,
     incidents: [],
     info: [deskInfo()],
-    lifecycle_state: "DRAFT",
+    lifecycle_state: lifecycleState,
     msg_type: "Alert",
     note: null,
     references: [],

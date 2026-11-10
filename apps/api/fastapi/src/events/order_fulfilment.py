@@ -30,12 +30,12 @@ from src.auth.models import User
 from src.notifications.outbox_handlers import enqueue_email
 from src.utils.datetime import utc_now
 
-from . import emails, order_payments, rewards_hook, tickets
+from . import emails, order_payments, rewards_hook, tickets, transitions
 from .models import Listing, Order, OrderItem, Organiser, Ticket
+from .transitions import ListingStatus, OrderStatus, move_order
 
 logger = logging.getLogger(__name__)
 
-PENDING = "pending_payment"
 EXPIRY_BATCH = 100
 
 
@@ -171,13 +171,14 @@ async def fulfil_paid(
         select(Listing).where(Listing.id == order.listing_id).with_for_update(read=True)
     )
     assert listing is not None
-    selling = listing.status == "published" and listing.ends_at > now
+    selling = listing.status == ListingStatus.PUBLISHED.value and listing.ends_at > now
 
     outcome = "duplicate"
-    if order.status == PENDING and selling:
-        order.status = "confirmed"
+    pending = order.status == OrderStatus.PENDING_PAYMENT.value
+    if pending and selling:
+        move_order(order, "fulfil")
         outcome = "confirmed"
-    elif order.status == "expired" or (order.status == PENDING and not selling):
+    elif order.status == OrderStatus.EXPIRED.value or (pending and not selling):
         # Expired before the money arrived, or the event is off sale: give it back.
         await order_payments.refund_in_full(
             db,
@@ -185,11 +186,12 @@ async def fulfil_paid(
             order_id=order.id,
             reason="Order was not completed before payment arrived",
         )
-        order.status = "expired"
+        if pending:
+            move_order(order, "expire")
         outcome = "refunded"
 
     await _mirror_ledger(db, order, organisation_id, now)
-    if order.status == "confirmed":
+    if order.status == OrderStatus.CONFIRMED.value:
         # Tickets are created once (guarded by the order lock and a count). The
         # receipt is queued on every replay too: it is deduplicated, and an
         # earlier attempt may have lost it when the main transaction rolled back.
@@ -222,15 +224,23 @@ async def apply_refund(
     if intent.captured_minor > 0 and intent.refunded_minor >= intent.captured_minor:
         released = await db.execute(
             update(Ticket)
-            .where(Ticket.order_id == order.id, Ticket.status == "valid")
-            .values(status="refunded", cancelled_at=now)
+            .where(
+                Ticket.order_id == order.id,
+                Ticket.status.in_(
+                    transitions.bulk_sources(transitions.TICKET_MOVES, "refund")
+                ),
+            )
+            .values(
+                status=transitions.bulk_target(transitions.TICKET_MOVES, "refund"),
+                cancelled_at=now,
+            )
             .returning(Ticket.id)
         )
         refunded_ids = list(released.scalars())
         outcome = "refunded" if refunded_ids else "duplicate"
         await rewards_hook.reverse_for_tickets(db, refunded_ids)
-        if order.status == "confirmed":
-            order.status = "refunded"
+        if order.status == OrderStatus.CONFIRMED.value:
+            move_order(order, "refund")
     return outcome
 
 
@@ -253,7 +263,9 @@ async def expire_unpaid(
         order = await db.scalar(
             select(Order)
             .where(
-                Order.status == PENDING,
+                Order.status.in_(
+                    transitions.bulk_sources(transitions.ORDER_MOVES, "expire")
+                ),
                 Order.payment_expires_at <= moment,
                 Order.id.not_in(skipped),
             )
@@ -272,7 +284,7 @@ async def expire_unpaid(
                 skipped.append(order.id)
                 await db.rollback()
                 continue
-        order.status = "expired"
+        move_order(order, "expire")
         await db.commit()
         expired += 1
     return expired

@@ -120,12 +120,12 @@ async function run(
   refresh(orgSlug, bookingId);
   if (options.warnOnFailedRefund && refundFailed(detail)) {
     return {
-      status: "done",
+      status: "success",
       warning: true,
       message: `${done} The deposit refund failed; refund it by hand.`,
     };
   }
-  return { status: "done", message: done };
+  return { status: "success", message: done };
 }
 
 /** The API records a failed refund as a timeline note on the cancelled booking. */
@@ -393,5 +393,5 @@ export async function recordDepositAction(
     return fail(failure);
   }
   refresh(orgSlug, bookingId);
-  return { status: "done", message: "Deposit recorded." };
+  return { status: "success", message: "Deposit recorded." };
 }

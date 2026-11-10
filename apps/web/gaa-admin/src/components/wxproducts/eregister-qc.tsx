@@ -23,6 +23,7 @@ import {
 } from "@barrelsgd/ui/components/ui/dialog";
 import { Textarea } from "@barrelsgd/ui/components/ui/textarea";
 import { useCallback, useEffect, useState } from "react";
+import { BufrCheck } from "./eregister-bufr-override";
 import { isSynopRefusal } from "./eregister-refusal";
 import { SectionCard } from "./eregister-ui";
 
@@ -383,6 +384,7 @@ function QueueSection({
   empty,
   heading,
   onAct,
+  onOverridden,
   query,
   refresh,
   userId,
@@ -391,6 +393,7 @@ function QueueSection({
   empty: string;
   heading: string;
   onAct: (action: QcAction, observation: RegisterObservationRead) => void;
+  onOverridden: (updated: RegisterObservationRead) => void;
   query: QueueQuery;
   refresh: number;
   userId: string;
@@ -423,6 +426,11 @@ function QueueSection({
               key={item.id}
             >
               <ObservationLine observation={item} />
+              <BufrCheck
+                observation={item}
+                onOverridden={onOverridden}
+                userId={userId}
+              />
               <div className="flex flex-col items-end gap-1">
                 {own && query.reviewed === false ? (
                   <span className="text-muted-foreground text-xs">
@@ -493,6 +501,7 @@ export function QcQueue({
         empty="No observations are waiting for acceptance."
         heading="Awaiting acceptance"
         onAct={onAct}
+        onOverridden={decided}
         query={{ state: "draft,qc_pending" }}
         refresh={refresh}
         userId={userId}
@@ -505,6 +514,7 @@ export function QcQueue({
         empty="No accepted observations are waiting for a review."
         heading="Review queue"
         onAct={onAct}
+        onOverridden={decided}
         query={{ reviewed: false, state: "accepted" }}
         refresh={refresh}
         userId={userId}

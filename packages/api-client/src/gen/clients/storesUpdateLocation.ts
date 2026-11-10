@@ -25,6 +25,7 @@ export function storesUpdateLocation<ThrowOnError extends boolean = true>(
       method: "PATCH",
       url: "/api/v1/stores/locations/{location_id}",
       security: [{ type: "oauth2" }],
+      contentType: { request: "application/json" },
       ...config,
       throwOnError: config.throwOnError ?? true,
     }) as Promise<RequestResult<StoresUpdateLocationResponses, ThrowOnError>>

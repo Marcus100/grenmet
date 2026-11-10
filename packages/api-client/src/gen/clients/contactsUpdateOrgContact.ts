@@ -25,6 +25,7 @@ export function contactsUpdateOrgContact<ThrowOnError extends boolean = true>(
       method: "PATCH",
       url: "/api/v1/contacts/org/contacts/{contact_id}",
       security: [{ type: "oauth2" }],
+      contentType: { request: "application/json" },
       ...config,
       throwOnError: config.throwOnError ?? true,
     }) as Promise<

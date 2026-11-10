@@ -51,6 +51,7 @@ from src.utils.datetime import utc_now
 from src.utils.timezones import local_today
 
 from . import access, deductions, export, gross, overtime, rules
+from . import transitions as period_transitions
 from .models import (
     LOCKED_STATUSES,
     EmployeePayProfile,
@@ -1379,7 +1380,7 @@ async def submit(session: AsyncSession, actor: User, period_id: uuid.UUID) -> Pa
     instance.allow_self_approval = False
     instance.require_distinct_approvers = True
     period.workflow_instance_id = instance.id
-    period.status = PayPeriodStatus.IN_REVIEW.value
+    period_transitions.move_period(period, "submit")
     period.submitted_by_user_id = actor.id
     period.submitted_at = period.updated_at = utc_now()
     await session.commit()
@@ -1465,14 +1466,14 @@ async def finalize_review(
     if period.status != PayPeriodStatus.IN_REVIEW:
         raise PayrollConflictError("This pay period is not awaiting approval")
     if instance.status == WorkflowStatus.APPROVED:
-        period.status = PayPeriodStatus.APPROVED.value
+        period_transitions.move_period(period, "approve")
         period.approved_at = utc_now()
     elif instance.status in {
         WorkflowStatus.RETURNED,
         WorkflowStatus.REJECTED,
         WorkflowStatus.CANCELLED,
     }:
-        period.status = PayPeriodStatus.OPEN.value
+        period_transitions.move_period(period, "reopen")
     period.updated_at = utc_now()
 
 
@@ -1521,7 +1522,7 @@ async def export_csv(
     content = export.render(period, rows, adjusted)
     previous_count = period.export_count
     if period.status == PayPeriodStatus.APPROVED:
-        period.status = PayPeriodStatus.EXPORTED.value
+        period_transitions.move_period(period, "export")
         period.exported_at = utc_now()
     period.export_count = previous_count + 1
     period.updated_at = utc_now()
@@ -1554,7 +1555,7 @@ async def close(session: AsyncSession, actor: User, period_id: uuid.UUID) -> Pay
     period = await access.lock_period(session, actor, period_id, access.PREPARE)
     if period.status != PayPeriodStatus.EXPORTED:
         raise PayrollConflictError("Export the period before closing it")
-    period.status = PayPeriodStatus.CLOSED.value
+    period_transitions.move_period(period, "close")
     period.closed_at = period.updated_at = utc_now()
     await session.commit()
     await session.refresh(period)

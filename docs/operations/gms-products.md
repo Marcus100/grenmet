@@ -144,6 +144,12 @@ Public pages: `/weather/issued`, `/weather/tropics` (NHC outlook),
 `/alerts/bulletins`, and `/weather/issued/<id>` (the old `/products/*`
 URLs redirect).
 `/marine/forecast` also shows issued marine bulletins.
+Each hazard page (`/alerts/bulletins/<hazard>`, plus the richer `/alerts/cyclone`
+and `/alerts/tsunami`) shows both kinds of notice: yellow, orange and red CAP
+warnings, and the green-level products issued by GMS, which the site calls
+**GMS alerts**. Where GMS has a how-to-prepare page the hazard page links to it
+(`src/lib/hazard-pages.ts`). The old `/alerts/marine` page redirects to
+`/alerts/bulletins/marine`.
 All product forms have printable PDF previews, including the restored forecast and marine layouts and complete data sheets. There is no public archive or scheduled NHC collection. Existing legacy product tables and example document components
 remain available; the new desk stores authored drafts/publications separately.
 

@@ -9,6 +9,7 @@ import {
 } from "@barrelsgd/ui/components/ui/native-select";
 import { Textarea } from "@barrelsgd/ui/components/ui/textarea";
 import { Turnstile } from "@barrelsgd/ui/components/ui/turnstile";
+import type { FormState } from "@barrelsgd/ui/lib/form-state";
 import { useState } from "react";
 import {
   CONTACT_SUBJECTS,
@@ -17,12 +18,6 @@ import {
 } from "@/lib/contact";
 import { env } from "@/lib/env";
 import { reportError } from "@/lib/report-error";
-
-type FormState =
-  | { status: "idle" }
-  | { status: "submitting" }
-  | { status: "success" }
-  | { status: "error"; message: string };
 
 export function ContactForm() {
   const [state, setState] = useState<FormState>({ status: "idle" });

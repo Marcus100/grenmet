@@ -25,9 +25,9 @@ from src.auth.models import Permission, Role, RolePermissionLink, User
 from src.baseline.department import GMS_DEPARTMENT_IDS
 from src.hr.models import EmploymentRecord, EmploymentStatus
 from src.hr.roster.models import (
+    ROSTER_VISIBLE_PERIOD_STATUSES,
     RosterAssignment,
     RosterPeriod,
-    RosterPeriodStatus,
     ShiftCatalog,
     ShiftCategory,
 )
@@ -258,9 +258,7 @@ async def duty_roster(
         .join(ShiftCatalog, ShiftCatalog.code == RosterAssignment.shift_code)
         .where(
             RosterPeriod.department_id.in_(GMS_DEPARTMENT_IDS),
-            RosterPeriod.status.in_(
-                (RosterPeriodStatus.PUBLISHED, RosterPeriodStatus.CLOSED)
-            ),
+            RosterPeriod.status.in_(ROSTER_VISIBLE_PERIOD_STATUSES),
             RosterAssignment.assignment_date.in_((today - timedelta(days=1), today)),
         )
     )

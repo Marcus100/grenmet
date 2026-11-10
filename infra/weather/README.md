@@ -34,7 +34,7 @@ Secrets live in private **`.env.local` files**, never in the repository. Do not 
 
 Replace example domains, project names, and paths with reviewed values. The weather `.env.local` must provide all required Compose substitutions:
 
-- SURFACE: `SURFACE_ENV_FILE` pointing to its own private `.env.local`, `SURFACE_DATA_ROOT`, `SURFACE_STATIC_ROOT`, `SURFACE_PG_HBA`, `SURFACE_REDIS_VOLUME`, `SURFACE_HOST`, and immutable `SURFACE_REDIS_IMAGE`, `SURFACE_MEMCACHED_IMAGE`, `SURFACE_NGINX_IMAGE`.
+- SURFACE: `SURFACE_ENV_FILE` pointing to its own private `.env.local`, `SURFACE_DATA_ROOT`, `SURFACE_STATIC_ROOT`, `SURFACE_PG_HBA`, `SURFACE_REDIS_VOLUME`, `SURFACE_HOST` (`surface.barrels.gd`; it also sets Django's allowed hosts and CORS origin, #946 #947), and immutable `SURFACE_REDIS_IMAGE`, `SURFACE_MEMCACHED_IMAGE`, `SURFACE_NGINX_IMAGE`.
 - Proxy: `WEATHER_PROXY_NETWORK`, `WEATHER_CERTS_VOLUME`, `WEATHER_TLS_EMAIL`. Existing certificates remain on that volume.
 - wis2box: `WIS2BOX_ENV_FILE` pointing to its existing private `.env.local`, `WIS2BOX_HOST_DATADIR`, `WIS2BOX_HOST`, `WEATHER_MONITOR_HOST`, `GRAFANA_ADMIN_PASSWORD`, and all external volume names in the deployment overlay. Set `WIS2BOX_SNAPSHOT_ROOT` to an existing directory writable by Elasticsearch; it mounts at `/snapshots` and is configured as `path.repo`.
 - Supply reviewed `@sha256:` image references for every variable in `docker-compose.wis2box-images.yml`, plus `WIS2BOX_ES_EXPORTER_IMAGE`. Start with the supported vendored release; do not upgrade its engines as part of adoption. SURFACE's application digest is selected automatically from the workflow commit.

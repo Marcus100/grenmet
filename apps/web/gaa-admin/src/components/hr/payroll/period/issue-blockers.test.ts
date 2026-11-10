@@ -1,7 +1,8 @@
-import type {
-  DeductionLinePublic,
-  EmployeePaySummary,
-  PaySummaryPublic,
+import {
+  type DeductionLinePublic,
+  type EmployeePaySummary,
+  type PaySummaryPublic,
+  payPeriodStatus,
 } from "@barrelsgd/api-client";
 import { describe, expect, it } from "vitest";
 import { issueBlockers } from "./issue-blockers";
@@ -41,7 +42,11 @@ function summary(overrides: Partial<PaySummaryPublic> = {}): PaySummaryPublic {
   };
 }
 
-const READY = { status: "APPROVED", preparedByCaller: false, canApprove: true };
+const READY = {
+  status: payPeriodStatus.APPROVED,
+  preparedByCaller: false,
+  canApprove: true,
+};
 
 describe("issueBlockers", () => {
   it("has no blockers for an approved, clean period", () => {
@@ -60,7 +65,7 @@ describe("issueBlockers", () => {
   it("stops issue for a period not yet approved", () => {
     const blockers = issueBlockers({
       ...READY,
-      status: "OPEN",
+      status: payPeriodStatus.OPEN,
       summary: summary(),
     });
     expect(blockers[0]?.message).toBe(

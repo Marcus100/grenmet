@@ -20,13 +20,14 @@ from src.hr.exceptions import HRPermissionDeniedError, HRValidationError
 from src.hr.models import EDITABLE_STATUSES, RequestStatus
 from src.hr.roster.expansion import expand_shift
 from src.hr.roster.models import (
+    ROSTER_VISIBLE_PERIOD_STATUSES,
     RosterAssignment,
     RosterPeriod,
-    RosterPeriodStatus,
     ShiftCatalog,
     ShiftCategory,
 )
 from src.hr.signatures import service as signature_service
+from src.hr.workflow import transitions as workflow_transitions
 from src.hr.workflow.models import WorkflowInstance, WorkflowStatus, WorkflowType
 from src.hr.workflow.service import start_workflow_for_entity, submit_draft_workflow
 from src.utils.datetime import utc_now
@@ -50,9 +51,7 @@ async def expected_shift(
                 RosterAssignment.user_id == user_id,
                 RosterAssignment.assignment_date == report_date,
                 RosterPeriod.department_id == department_id,
-                RosterPeriod.status.in_(
-                    [RosterPeriodStatus.PUBLISHED, RosterPeriodStatus.CLOSED]
-                ),
+                RosterPeriod.status.in_(ROSTER_VISIBLE_PERIOD_STATUSES),
                 ShiftCatalog.category == ShiftCategory.WORK,
             )
         )
@@ -285,7 +284,7 @@ async def submit_absentee_report(
         if workflow_id:
             report.workflow_instance_id = workflow_id
 
-    report.status = RequestStatus.SUBMITTED
+    workflow_transitions.submit_request(report)
     report.updated_at = utc_now()
     session.add(report)
     await signature_service.capture(

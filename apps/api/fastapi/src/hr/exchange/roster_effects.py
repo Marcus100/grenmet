@@ -10,6 +10,7 @@ from src.hr.exceptions import HRValidationError
 from src.hr.models import EmploymentRecord, EmploymentStatus
 from src.hr.roster import service as roster_service
 from src.hr.roster.models import (
+    ROSTER_VISIBLE_PERIOD_STATUSES,
     RosterAssignment,
     RosterPeriod,
     RosterPeriodStatus,
@@ -286,9 +287,7 @@ async def validate_shift_intervals(
                         [request.requesting_user_id, request.counterpart_user_id]
                     ),
                     RosterAssignment.assignment_date.in_(dates),
-                    RosterPeriod.status.in_(
-                        [RosterPeriodStatus.PUBLISHED, RosterPeriodStatus.CLOSED]
-                    ),
+                    RosterPeriod.status.in_(ROSTER_VISIBLE_PERIOD_STATUSES),
                 )
             )
         ).all()

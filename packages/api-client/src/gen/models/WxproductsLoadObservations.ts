@@ -14,8 +14,8 @@ export type WxproductsLoadObservationsQuery = {
   start?: string | null;
   end?: string | null;
   /**
-   * @minLength 1
-   * @maxLength 500
+   * @minimum 1
+   * @maximum 500
    * @default 100
    * @type integer | undefined
    */

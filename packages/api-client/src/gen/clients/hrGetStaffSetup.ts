@@ -11,7 +11,7 @@ import type {
 } from "../models/HrGetStaffSetup.js";
 
 /**
- * @description Review staff onboarding for a selected organisation or eligible unassigned accounts. Omitted organisation context retains the superuser-only legacy list.
+ * @description Review staff onboarding for a selected organisation or eligible unassigned accounts. Omitted organisation context retains the superuser-only legacy list. Needs hr.setup.manage for the organisation; superusers may act for any organisation.
  * @summary Review staff onboarding
  * {@link /api/v1/hr/setup/staff}
  */

@@ -25,6 +25,7 @@ export function eventsRefundTicket<ThrowOnError extends boolean = true>(
       method: "POST",
       url: "/api/v1/events/manage/{listing_id}/tickets/{ticket_id}/refund",
       security: [{ type: "http", scheme: "bearer" }],
+      contentType: { request: "application/json" },
       ...config,
       throwOnError: config.throwOnError ?? true,
     }) as Promise<RequestResult<EventsRefundTicketResponses, ThrowOnError>>

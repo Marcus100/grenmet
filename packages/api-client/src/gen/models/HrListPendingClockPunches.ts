@@ -9,15 +9,15 @@ import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 
 export type HrListPendingClockPunchesQuery = {
   /**
-   * @minLength 1
-   * @maxLength 200
+   * @minimum 1
+   * @maximum 200
    * @default 50
    * @type integer | undefined
    */
   limit?: number;
   /**
-   * @minLength 0
-   * @maxLength 100000
+   * @minimum 0
+   * @maximum 100000
    * @default 0
    * @type integer | undefined
    */

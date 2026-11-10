@@ -1,32 +1,11 @@
 {
   "teamId": 476349,
-  "limitsVerified": false,
+  "limitsVerified": true,
   "limits": {
     "monitors": 10,
     "heartbeats": 10
   },
   "resources": [
-    {
-      "environment": "staging",
-      "kind": "monitors",
-      "id": "5014248",
-      "settings": {
-        "pronounceable_name": "Staging · GAA API readiness",
-        "url": "https://api.staging.barrels.gd/api/v1/utils/ready/",
-        "monitor_type": "keyword",
-        "required_keyword": "\"status\":\"ready\"",
-        "check_frequency": 180,
-        "confirmation_period": 180,
-        "recovery_period": 180,
-        "verify_ssl": true,
-        "follow_redirects": false,
-        "email": true,
-        "sms": false,
-        "call": false,
-        "push": false,
-        "paused": false
-      }
-    },
     {
       "environment": "staging",
       "kind": "heartbeats",
@@ -89,7 +68,7 @@
         "email": true,
         "sms": false,
         "call": false,
-        "push": false,
+        "push": true,
         "paused": true
       }
     },
@@ -109,7 +88,7 @@
         "email": true,
         "sms": false,
         "call": false,
-        "push": false,
+        "push": true,
         "paused": true
       }
     },
@@ -129,7 +108,7 @@
         "email": true,
         "sms": false,
         "call": false,
-        "push": false,
+        "push": true,
         "paused": true
       }
     },
@@ -149,7 +128,7 @@
         "email": true,
         "sms": false,
         "call": false,
-        "push": false,
+        "push": true,
         "paused": true
       }
     },
@@ -169,7 +148,7 @@
         "email": true,
         "sms": false,
         "call": false,
-        "push": false,
+        "push": true,
         "paused": true
       }
     },
@@ -189,7 +168,7 @@
         "email": true,
         "sms": false,
         "call": false,
-        "push": false,
+        "push": true,
         "paused": true
       }
     },
@@ -209,7 +188,7 @@
         "email": true,
         "sms": false,
         "call": false,
-        "push": false,
+        "push": true,
         "paused": true
       }
     },
@@ -229,7 +208,7 @@
         "email": true,
         "sms": false,
         "call": false,
-        "push": false,
+        "push": true,
         "paused": true
       }
     },
@@ -249,7 +228,7 @@
         "email": true,
         "sms": false,
         "call": false,
-        "push": false,
+        "push": true,
         "paused": true
       }
     },
@@ -269,7 +248,7 @@
         "email": true,
         "sms": false,
         "call": false,
-        "push": false,
+        "push": true,
         "paused": true
       }
     },
@@ -291,7 +270,7 @@
         "email": true,
         "sms": false,
         "call": false,
-        "push": false,
+        "push": true,
         "paused": true
       }
     },
@@ -312,7 +291,7 @@
         "email": true,
         "sms": false,
         "call": false,
-        "push": false,
+        "push": true,
         "paused": true
       }
     },
@@ -333,7 +312,7 @@
         "email": true,
         "sms": false,
         "call": false,
-        "push": false,
+        "push": true,
         "paused": true
       }
     },
@@ -354,7 +333,7 @@
         "email": true,
         "sms": false,
         "call": false,
-        "push": false,
+        "push": true,
         "paused": true
       }
     },
@@ -368,7 +347,7 @@
         "email": true,
         "sms": false,
         "call": false,
-        "push": false,
+        "push": true,
         "paused": true
       }
     },
@@ -382,7 +361,7 @@
         "email": true,
         "sms": false,
         "call": false,
-        "push": false,
+        "push": true,
         "paused": true
       }
     },
@@ -396,7 +375,7 @@
         "email": true,
         "sms": false,
         "call": false,
-        "push": false,
+        "push": true,
         "paused": true
       }
     }

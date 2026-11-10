@@ -11,7 +11,7 @@ import type {
 } from "../models/HrImportCatalogue.js";
 
 /**
- * @description Add only missing GMS reference data atomically; preserve existing records and reject conflicts.
+ * @description Add only missing GMS reference data atomically; preserve existing records and reject conflicts. Needs hr.setup.manage for the organisation; superusers may act for any organisation.
  * @summary Import missing GMS reference data
  * {@link /api/v1/hr/setup/catalogue}
  */
@@ -25,6 +25,7 @@ export function hrImportCatalogue<ThrowOnError extends boolean = true>(
       method: "POST",
       url: "/api/v1/hr/setup/catalogue",
       security: [{ type: "oauth2" }],
+      contentType: { request: "application/json" },
       ...config,
       throwOnError: config.throwOnError ?? true,
     }) as Promise<RequestResult<HrImportCatalogueResponses, ThrowOnError>>

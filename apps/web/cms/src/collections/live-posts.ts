@@ -16,6 +16,7 @@ import { includeInNewsletterField } from "../fields/common";
 import { enforceReview } from "../fields/workflow";
 import { isNoteScope, NOTE_KIND, stampDutyNote } from "../lib/duty-note";
 import { checkMediaLink, type MediaKind } from "../lib/media-links";
+import { PUBLISHED } from "../lib/publication-status";
 import { editorialCollection } from "./editorial";
 
 const ARTICLE_KEY = "cms.article.create";
@@ -41,7 +42,7 @@ export const enforceNoteOrReview =
     if (kind !== NOTE_KIND) return enforceReview(publishKey)(args);
     if (!req.user) throw new APIError("Sign in to edit content.", 403);
     if (
-      data.status === "published" &&
+      data.status === PUBLISHED &&
       !(
         hasPermission(req.user, WEATHER_NOW_NOTE_KEY) ||
         canPublish(req.user, publishKey)
@@ -86,7 +87,7 @@ const liveUpdate: Access = ({ req }) => {
   const own: Where = {
     and: [
       { author: { equals: req.user.id } },
-      { status: { not_equals: "published" } },
+      { status: { not_equals: PUBLISHED } },
     ],
   };
   return hasPermission(req.user, WEATHER_NOW_NOTE_KEY)

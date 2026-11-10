@@ -5,6 +5,7 @@ import { Input } from "@barrelsgd/ui/components/ui/input";
 import { Label } from "@barrelsgd/ui/components/ui/label";
 import { Turnstile } from "@barrelsgd/ui/components/ui/turnstile";
 import { captureEvent } from "@barrelsgd/ui/lib/analytics-runtime";
+import type { FormState } from "@barrelsgd/ui/lib/form-state";
 import { useState } from "react";
 import { env } from "@/lib/env";
 import {
@@ -12,12 +13,6 @@ import {
   parseNewsletterSignup,
 } from "@/lib/newsletter-signup";
 import { reportError } from "@/lib/report-error";
-
-type FormState =
-  | { status: "idle" }
-  | { status: "submitting" }
-  | { status: "success" }
-  | { status: "error"; message: string };
 
 /**
  * Sign-up for the daily climate newsletter. FastAPI sends a confirmation email

@@ -7,16 +7,23 @@
  * (cents) by string parsing, never through floating point.
  */
 
+import { type InvoiceStatus, invoiceStatus } from "@barrelsgd/api-client";
+
 export const LINE_SLOTS = 8;
 export const PAYMENT_METHODS = ["bank_transfer", "cash", "cheque"] as const;
 export type PaymentMethod = (typeof PAYMENT_METHODS)[number];
-export const INVOICE_STATUSES = [
-  "draft",
-  "issued",
-  "partially_paid",
-  "paid",
-  "void",
-] as const;
+/** Every invoice status the API can return, from the generated client. */
+export const INVOICE_STATUSES: readonly InvoiceStatus[] =
+  Object.values(invoiceStatus);
+/** Invoices still owed money: issued, or part-paid. FastAPI owns the rules. */
+const OPEN_INVOICE_STATUSES: readonly InvoiceStatus[] = [
+  invoiceStatus.issued,
+  invoiceStatus.partially_paid,
+];
+
+export function isOpenInvoice(status: InvoiceStatus): boolean {
+  return OPEN_INVOICE_STATUSES.includes(status);
+}
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/iu;
 const ORGANISATION_ID = /^[A-Za-z0-9_-]{1,100}$/u;

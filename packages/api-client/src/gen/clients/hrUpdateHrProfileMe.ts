@@ -25,6 +25,7 @@ export function hrUpdateHrProfileMe<ThrowOnError extends boolean = true>(
       method: "PATCH",
       url: "/api/v1/hr/profile/me",
       security: [{ type: "oauth2" }],
+      contentType: { request: "application/json" },
       ...config,
       throwOnError: config.throwOnError ?? true,
     }) as Promise<RequestResult<HrUpdateHrProfileMeResponses, ThrowOnError>>

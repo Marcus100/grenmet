@@ -20,6 +20,7 @@ from ..models import (
     Thread,
     ThreadParticipant,
 )
+from ..transitions import GroupMemberStatus
 from .people import (
     _chips,
     _profile_by_handle,
@@ -100,7 +101,7 @@ async def _can_send(db: AsyncSession, thread: Thread, user: User) -> bool:
         if thread.group_id is None:
             return False
         member = await db.get(GroupMember, (thread.group_id, user.id))
-        return member is not None and member.status == "active"
+        return member is not None and member.status == GroupMemberStatus.ACTIVE.value
     other = await db.scalar(
         select(ThreadParticipant.user_id).where(
             ThreadParticipant.thread_id == thread.id,
