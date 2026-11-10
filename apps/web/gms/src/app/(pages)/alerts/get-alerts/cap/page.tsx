@@ -69,6 +69,16 @@ export default function CapAlertsPage() {
               "Alerts in effect, in the same shape as the alert API",
             ],
             [
+              "Alerts feed (RSS)",
+              `${CAP_HUB}/feeds/rss.xml`,
+              "Feed readers and websites that take RSS",
+            ],
+            [
+              "Alert areas (GeoJSON)",
+              `${CAP_HUB}/feeds/alerts.geojson`,
+              "Mapping tools: each active alert's area",
+            ],
+            [
               "Alert map",
               `${CAP_HUB}/map`,
               "Where each active alert applies, on a map",

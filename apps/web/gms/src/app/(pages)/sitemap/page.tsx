@@ -59,7 +59,8 @@ export default function SitemapPage() {
                         </Link>
                         {isComing(link) && (
                           <span className="text-body-sm text-gm-text-muted leading-body-sm ml-2">
-                            Coming
+                            <span aria-hidden="true">Coming</span>
+                            <span className="sr-only">, coming soon</span>
                           </span>
                         )}
                       </li>

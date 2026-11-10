@@ -2,7 +2,7 @@ import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 import { NavDrawer } from "@/components/nav-drawer";
-import { NAV_SECTIONS } from "@/lib/nav-sections";
+import { isComing, NAV_SECTIONS, sectionLinks } from "@/lib/nav-sections";
 
 // The theme toggle needs the preferences provider; it has its own test.
 vi.mock("@/components/theme-toggle", () => ({ ThemeToggle: () => null }));
@@ -33,6 +33,23 @@ describe("NavDrawer", () => {
     for (const section of NAV_SECTIONS) {
       expect(screen.getByText(section.label)).toBeInTheDocument();
     }
+  });
+
+  it("announces a Coming link as coming soon to screen readers", async () => {
+    const user = userEvent.setup();
+    render(<NavDrawer onClose={() => undefined} open />);
+    const section = NAV_SECTIONS.find((candidate) =>
+      sectionLinks(candidate).some(isComing)
+    );
+    const link = section ? sectionLinks(section).find(isComing) : undefined;
+    if (!(section && link)) throw new Error("no Coming link in the menu");
+
+    await user.click(screen.getByText(section.label));
+
+    const anchor = screen
+      .getAllByRole("link", { name: `${link.name}, coming soon` })
+      .find((element) => element.getAttribute("href") === link.href);
+    expect(anchor).toBeDefined();
   });
 
   it("lists a section's links under their group headings, without descriptions", async () => {

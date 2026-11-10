@@ -208,7 +208,8 @@ function Panel({
                       {link.name}
                       {isComing(link) ? (
                         <span className="text-gm-text-inverse/70 text-label leading-label ml-2 font-bold tracking-wider uppercase">
-                          Coming
+                          <span aria-hidden="true">Coming</span>
+                          <span className="sr-only">, coming soon</span>
                         </span>
                       ) : null}
                     </NavigationMenuPrimitive.Link>
