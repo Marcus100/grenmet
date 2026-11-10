@@ -41,7 +41,8 @@ export function StatusBadge({ status }: { status: InvoiceStatus }) {
   let variant: "light-success" | "light-warning" | "secondary" = "secondary";
   if (status === invoiceStatus.paid) variant = "light-success";
   else if (isOpenInvoice(status)) variant = "light-warning";
-  return <Badge variant={variant}>{STATUS_LABEL[status]}</Badge>;
+  // A status the backend adds later shows its raw name, never an empty badge.
+  return <Badge variant={variant}>{STATUS_LABEL[status] ?? status}</Badge>;
 }
 
 export function InvoiceTable({ rows }: { rows: InvoiceRow[] }) {
