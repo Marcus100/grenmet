@@ -6,6 +6,7 @@ import {
   FOOTER_GROUP,
   FOOTER_GROUP_SECTION,
   groupId,
+  isComing,
   NAV_SECTIONS,
   sectionId,
 } from "@/lib/nav-sections";
@@ -56,9 +57,9 @@ export default function SitemapPage() {
                         >
                           {link.name}
                         </Link>
-                        {link.planned && (
+                        {isComing(link) && (
                           <span className="text-body-sm text-gm-text-muted leading-body-sm ml-2">
-                            coming soon
+                            Coming
                           </span>
                         )}
                       </li>
@@ -70,7 +71,7 @@ export default function SitemapPage() {
           </section>
         ))}
         <section className="border-gm-border space-y-3 border-t pt-5">
-          <h2 className={SECTION_HEADING}>Bulletins</h2>
+          <h2 className={SECTION_HEADING}>GMS alerts by hazard</h2>
           <ul className="grid gap-2 sm:grid-cols-2">
             {Object.entries(BULLETIN_CATEGORIES).map(([key, label]) => (
               <li key={key}>

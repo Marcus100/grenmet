@@ -2,7 +2,7 @@ import { notFound } from "next/navigation";
 import { PageHeader } from "@/components/page-header";
 import { LinkList } from "@/components/pages/link-list";
 import { PageSection } from "@/components/pages/page-section";
-import { NAV_SECTIONS } from "@/lib/nav-sections";
+import { isComing, NAV_SECTIONS } from "@/lib/nav-sections";
 
 /**
  * Landing page for a navigation section that has no hand-built index: the
@@ -24,7 +24,7 @@ export function SectionIndex({ href }: { href: string }) {
               name: link.name,
               href: link.href,
               description: link.description,
-              meta: link.planned ? "Coming soon" : undefined,
+              meta: isComing(link) ? "Coming" : undefined,
             }))}
           />
         </PageSection>

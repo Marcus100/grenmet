@@ -44,8 +44,14 @@ describe("NavDrawer", () => {
     for (const group of FIRST_SECTION.groups) {
       expect(screen.getByText(group.heading)).toBeInTheDocument();
       for (const link of group.links) {
+        // A "Coming" label is part of the accessible name, so match the start.
         const hrefs = screen
-          .getAllByRole("link", { name: link.name })
+          .getAllByRole("link", {
+            name: new RegExp(
+              `^${link.name.replace(/[.*+?^${}()|[\]\\]/gu, "\\$&")}`,
+              "u"
+            ),
+          })
           .map((element) => element.getAttribute("href"));
         expect(hrefs).toContain(link.href);
       }

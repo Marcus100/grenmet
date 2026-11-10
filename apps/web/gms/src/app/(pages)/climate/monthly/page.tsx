@@ -10,7 +10,7 @@ import { ClimateFigures } from "@/components/pages/climate-figures";
 import { fetchPublishedProducts } from "@/lib/products";
 
 export const metadata = {
-  title: "Monthly Climate Bulletin",
+  title: "Climate Bulletin",
   description:
     "The Grenada Meteorological Service's monthly Climate Bulletin, issued on the 15th for the previous month.",
 };
@@ -60,7 +60,7 @@ export default async function MonthlyPage() {
     <div className="space-y-6">
       <PageHeader
         description="Issued on the 15th of each month for the previous month."
-        title="Monthly Climate Bulletin"
+        title="Climate Bulletin"
       />
       {result.status === "unavailable" ? (
         <p
