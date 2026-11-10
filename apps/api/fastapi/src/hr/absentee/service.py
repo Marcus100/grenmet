@@ -27,6 +27,7 @@ from src.hr.roster.models import (
     ShiftCategory,
 )
 from src.hr.signatures import service as signature_service
+from src.hr.workflow import transitions as workflow_transitions
 from src.hr.workflow.models import WorkflowInstance, WorkflowStatus, WorkflowType
 from src.hr.workflow.service import start_workflow_for_entity, submit_draft_workflow
 from src.utils.datetime import utc_now
@@ -283,7 +284,7 @@ async def submit_absentee_report(
         if workflow_id:
             report.workflow_instance_id = workflow_id
 
-    report.status = RequestStatus.SUBMITTED
+    workflow_transitions.submit_request(report)
     report.updated_at = utc_now()
     session.add(report)
     await signature_service.capture(

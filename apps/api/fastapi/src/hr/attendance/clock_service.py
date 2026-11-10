@@ -31,6 +31,7 @@ from src.hr.roster.service import require_roster_manage_scope
 from src.utils.datetime import utc_now
 from src.utils.timezones import GRENADA
 
+from . import transitions as punch_transitions
 from .models import (
     AttendanceRecord,
     ClockPunch,
@@ -179,7 +180,7 @@ async def _current_assignment(
                 ~exists().where(
                     ClockPunch.roster_assignment_id == RosterAssignment.id,
                     ClockPunch.kind == ClockPunchKind.ARRIVE.value,
-                    ClockPunch.status != ClockPunchStatus.REJECTED.value,
+                    ClockPunch.status.in_(punch_transitions.LIVE_PUNCH_VALUES),
                 ),
             )
         )
@@ -207,7 +208,7 @@ async def _latest_live_punch(
                 select(ClockPunch)
                 .where(
                     ClockPunch.user_id == user_id,
-                    ClockPunch.status != ClockPunchStatus.REJECTED.value,
+                    ClockPunch.status.in_(punch_transitions.LIVE_PUNCH_VALUES),
                     ClockPunch.punched_at >= now - timedelta(hours=24),
                 )
                 .order_by(ClockPunch.punched_at.desc())
@@ -247,7 +248,7 @@ async def _open_arrival(
         select(ClockPunch.id).where(
             ClockPunch.roster_assignment_id == record.roster_assignment_id,
             ClockPunch.kind == ClockPunchKind.DEPART.value,
-            ClockPunch.status != ClockPunchStatus.REJECTED.value,
+            ClockPunch.status.in_(punch_transitions.LIVE_PUNCH_VALUES),
         )
     )
     return None if closing else (record.roster_assignment_id, record.arrived_at)
@@ -345,7 +346,7 @@ async def clock(
             select(ClockPunch).where(
                 ClockPunch.roster_assignment_id == assignment_id_value,
                 ClockPunch.kind == kind.value,
-                ClockPunch.status != ClockPunchStatus.REJECTED.value,
+                ClockPunch.status.in_(punch_transitions.LIVE_PUNCH_VALUES),
             )
         )
         if existing is None:

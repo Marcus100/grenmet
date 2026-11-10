@@ -31,6 +31,7 @@ from src.hr.roster.models import (
 )
 from src.hr.signatures import service as signature_service
 from src.hr.workflow import service as workflow_service
+from src.hr.workflow import transitions as workflow_transitions
 from src.hr.workflow.models import WorkflowInstance, WorkflowStatus, WorkflowType
 from src.hr.workflow.service import start_workflow_for_entity, submit_draft_workflow
 from src.utils.datetime import utc_now
@@ -296,7 +297,7 @@ async def submit_leave_request(
         if workflow_id:
             leave_request.workflow_instance_id = workflow_id
 
-    leave_request.status = RequestStatus.SUBMITTED
+    workflow_transitions.submit_request(leave_request)
     leave_request.updated_at = utc_now()
     session.add(leave_request)
     await signature_service.capture(

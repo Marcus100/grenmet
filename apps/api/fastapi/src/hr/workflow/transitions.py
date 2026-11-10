@@ -16,7 +16,10 @@ parking permit) follows the instance and never has a table of its own here. The
 mapping ``REQUEST_STATUS_FOR`` says which request status each instance status implies.
 APPROVED, REJECTED, RETURNED and CANCELLED are copied; DRAFT and PENDING leave the
 request alone. ``mirror_request_status`` is the one workflow-side writer of the
-request status, so the two cannot diverge.
+request status, so the two cannot diverge. ``submit_request`` is the one author-side
+writer: an editable form (DRAFT or RETURNED) becomes SUBMITTED when the author sends it
+for approval. Every request-status write in the form services goes through one of the
+two.
 
 Every write to ``WorkflowInstance.status`` made by ``service.py`` goes through
 ``move_workflow``, which checks ``TRANSITIONS`` first. The refusal message is a
@@ -26,7 +29,7 @@ Every write to ``WorkflowInstance.status`` made by ``service.py`` goes through
 from typing import Any, Literal, NamedTuple
 
 from src.exceptions import AppException
-from src.hr.models import RequestStatus
+from src.hr.models import EDITABLE_STATUSES, RequestStatus
 
 from .models import WorkflowInstance, WorkflowStatus
 
@@ -96,3 +99,18 @@ def mirror_request_status(entity: Any, status: WorkflowStatus) -> None:
     target = request_status_for(status)
     if target is not None:
         entity.status = target
+
+
+#: Request statuses an author may submit from (the form's own editable set).
+SUBMIT_FROM: frozenset[RequestStatus] = EDITABLE_STATUSES
+
+
+def submit_request(entity: Any, *, refusal: str | None = None) -> None:
+    """Set a form's request status to SUBMITTED when the author sends it for approval.
+    Raises a 409 unless the form is editable (DRAFT or RETURNED)."""
+    state = RequestStatus(entity.status)
+    if state not in SUBMIT_FROM:
+        raise AppException(
+            refusal or f"A request cannot be submitted from status {state.value}", 409
+        )
+    entity.status = RequestStatus.SUBMITTED
