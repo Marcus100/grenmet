@@ -105656,8 +105656,7 @@
             "title": "Title"
           },
           "status": {
-            "type": "string",
-            "title": "Status"
+            "$ref": "#/components/schemas/ListingUpsertPropertiesStatusEnum"
           },
           "starts_at": {
             "type": "string",

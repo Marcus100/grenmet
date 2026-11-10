@@ -892,6 +892,8 @@ The legacy `PATCH /events/moderation/organisers/{id}` and `POST /organisations/{
 (`ActivityEntry`: action, actor id and current display name, changed-field summary),
 newest first, for its organiser only.
 
+Status values are typed, not free text (`src/events/transitions.py` holds the lifecycles). `StaffEventRow.status` in the Barrels staff picker is the listing literal `draft | published | cancelled` (`ListingStatusName`, the same values as `ManagedListing.status`); it was an untyped string. The org-zone order and ticket statuses (`OrgOrderStatus`, `OrgTicketStatus`) and the member's order status are literals too. No value was added or removed, so this is a schema tightening, not a break.
+
 ### Events catalogue taxonomy (ADR-0046, L3)
 
 `GET /events/public/categories` returns the active two-level category tree

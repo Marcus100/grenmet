@@ -3,6 +3,8 @@
  * Do not edit manually.
  */
 
+import type { ListingUpsertPropertiesStatusEnum } from "./ListingUpsertPropertiesStatusEnum.js";
+
 /**
  * @description One event in the Barrels staff picker. No personal data.
  * @type object
@@ -15,7 +17,11 @@ export type StaffEventRow = {
    */
   listing_id: string;
   title: string;
-  status: string;
+  /**
+   * @default 'draft'
+   * @type string
+   */
+  status: ListingUpsertPropertiesStatusEnum;
   /**
    * @description
    * Format: `date-time`

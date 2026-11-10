@@ -25,7 +25,14 @@ from src.payments import schemas as payment_schemas
 from src.payments import service as payments_service
 from src.utils.datetime import utc_now
 
-from .. import activity, order_fulfilment, order_payments, order_refunds, schemas
+from .. import (
+    activity,
+    order_fulfilment,
+    order_payments,
+    order_refunds,
+    schemas,
+    transitions,
+)
 from ..exceptions import EventsConflict, EventsNotFound
 from ..models import (
     Admission,
@@ -37,6 +44,7 @@ from ..models import (
     Ticket,
     TicketTier,
 )
+from ..transitions import ListingStatus, OrderStatus, TicketStatus, move_order
 from . import ticketing
 
 
@@ -158,7 +166,9 @@ async def list_orders(
         select(
             Ticket.order_id,
             func.count().label("n"),
-            func.count().filter(Ticket.status == "valid").label("valid"),
+            func.count()
+            .filter(Ticket.status == TicketStatus.VALID.value)
+            .label("valid"),
         )
         .where(Ticket.listing_id == listing.id)
         .group_by(Ticket.order_id)
@@ -244,7 +254,11 @@ async def _detail(
         **_row(
             order,
             len(tickets),
-            sum(1 for ticket, _, _ in tickets if ticket.status == "valid"),
+            sum(
+                1
+                for ticket, _, _ in tickets
+                if ticket.status == TicketStatus.VALID.value
+            ),
             names,
         ),
         listing_title=listing.title,
@@ -378,13 +392,13 @@ async def record_payment(
     order, listing = await _order(db, organisation_id, order_id, lock=True)
     if not _is_online_paid(order):
         raise EventsConflict("Only an online order waits for a payment")
-    if order.status == "confirmed":
+    if order.status == OrderStatus.CONFIRMED.value:
         raise EventsConflict("This order is already paid")
-    if order.status != order_fulfilment.PENDING:
+    if order.status != OrderStatus.PENDING_PAYMENT.value:
         raise EventsConflict(
             f"This order is {order.status}; a payment can't be recorded"
         )
-    if listing.status != "published" or listing.ends_at <= utc_now():
+    if listing.status != ListingStatus.PUBLISHED.value or listing.ends_at <= utc_now():
         raise EventsConflict("The event is no longer on sale")
     intent = await order_payments.intent_for(
         db, organisation_id=organisation_id, order_id=order.id
@@ -493,7 +507,7 @@ async def cancel_order(
     provider-rail refund is queued and followed on the order's ``refund_status``."""
     now = utc_now()
     order, listing = await _order(db, organisation_id, order_id, lock=True)
-    if order.status in ("expired", "refunded"):
+    if OrderStatus(order.status) in transitions.ORDER_ENDED:
         raise EventsConflict(f"This order is already {order.status}")
     issued = await db.scalar(
         select(func.count()).select_from(Ticket).where(Ticket.order_id == order.id)
@@ -501,18 +515,18 @@ async def cancel_order(
     live = await db.scalar(
         select(func.count())
         .select_from(Ticket)
-        .where(Ticket.order_id == order.id, Ticket.status == "valid")
+        .where(Ticket.order_id == order.id, Ticket.status == TicketStatus.VALID.value)
     )
-    if order.status == "confirmed" and issued and not live:
+    if order.status == OrderStatus.CONFIRMED.value and issued and not live:
         raise EventsConflict("This order is already cancelled")
     outcome: Literal["refunded", "queued", "kept", "not_due"] = "not_due"
-    if order.status == order_fulfilment.PENDING:
+    if order.status == OrderStatus.PENDING_PAYMENT.value:
         unpaid = await order_payments.stop_collecting(
             db, organisation_id=organisation_id, order_id=order.id
         )
         if not unpaid:
             raise EventsConflict("This order was just paid; try again")
-        order.status = "expired"  # the hold is released; nothing was paid
+        move_order(order, "expire")  # the hold is released; nothing was paid
     else:
         admitted = await db.scalar(
             select(func.count())
@@ -534,8 +548,16 @@ async def cancel_order(
             )
         await db.execute(
             update(Ticket)
-            .where(Ticket.order_id == order.id, Ticket.status == "valid")
-            .values(status="cancelled", cancelled_at=now)
+            .where(
+                Ticket.order_id == order.id,
+                Ticket.status.in_(
+                    transitions.bulk_sources(transitions.TICKET_MOVES, "cancel")
+                ),
+            )
+            .values(
+                status=transitions.bulk_target(transitions.TICKET_MOVES, "cancel"),
+                cancelled_at=now,
+            )
         )
         refundable = (
             order.collected_minor - order.refunded_minor
@@ -545,7 +567,7 @@ async def cancel_order(
         if refundable > 0:
             if order_refunds.should_refund(
                 body.refund,
-                event_cancelled=listing.status == "cancelled",
+                event_cancelled=listing.status == ListingStatus.CANCELLED.value,
                 starts_at=listing.starts_at,
                 now=now,
             ):

@@ -1,3 +1,5 @@
+import type { OrderPublicPropertiesStatusEnum } from "@barrelsgd/api-client";
+import { orderPublicPropertiesStatusEnum } from "@barrelsgd/api-client";
 import { act, render, screen } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { MyOrder } from "@/domain/types";
@@ -111,5 +113,15 @@ describe("OrderStatus", () => {
     render(<OrderStatus order={order({ status: "refunded" })} />);
     expect(screen.getByText("This order was refunded")).toBeInTheDocument();
     expect(screen.getByText(REFUNDED_AMOUNT)).toBeInTheDocument();
+  });
+
+  it.each<[OrderPublicPropertiesStatusEnum, string]>([
+    [orderPublicPropertiesStatusEnum.pending_payment, "Awaiting payment"],
+    [orderPublicPropertiesStatusEnum.confirmed, "Payment received"],
+    [orderPublicPropertiesStatusEnum.expired, "This order expired"],
+    [orderPublicPropertiesStatusEnum.refunded, "This order was refunded"],
+  ])("shows a panel title for order status %s", (status, title) => {
+    render(<OrderStatus order={order({ status })} />);
+    expect(screen.getByText(title)).toBeInTheDocument();
   });
 });

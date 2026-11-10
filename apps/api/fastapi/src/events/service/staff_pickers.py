@@ -20,6 +20,7 @@ from src.pagination import PaginatedResponse
 
 from .. import schemas
 from ..models import Listing, Organiser
+from ..transitions import ListingStatus
 
 
 def _operable() -> ColumnElement[bool]:
@@ -54,7 +55,7 @@ async def list_events(
 ) -> PaginatedResponse[schemas.StaffEventRow]:
     conditions: list[ColumnElement[bool]] = [_operable()]
     if not include_drafts:
-        conditions.append(Listing.status != "draft")
+        conditions.append(Listing.status != ListingStatus.DRAFT.value)
     if starts_from is not None:
         conditions.append(Listing.starts_at >= starts_from)
     if starts_to is not None:
@@ -116,7 +117,10 @@ async def list_organisers(
         # A door-only caller sees no organiser that has nothing published.
         conditions.append(
             select(Listing.id)
-            .where(Listing.organiser_id == Organiser.id, Listing.status != "draft")
+            .where(
+                Listing.organiser_id == Organiser.id,
+                Listing.status != ListingStatus.DRAFT.value,
+            )
             .exists()
         )
     if q and q.strip():
