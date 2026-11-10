@@ -110,6 +110,13 @@ src/app/
   through a rewrite;
   `nav-sections.test.ts` fails if a built link has no route or a planned link is
   shadowed by one. Build the page, then drop `planned`.
+  A built page whose product is not issued yet (its page says "Not yet available
+  from GMS") is marked `coming()` instead: it keeps its real route and shows a
+  "Coming" label in the menu, drawer, sitemap and section index (`isComing`).
+  Moved or retired addresses go into `ROUTE_MOVES` (issue #1168 moved product
+  archive to `/weather/archive`, disaster management, construction, education and
+  media to `/about/…`, and retired `/alerts/marine`, `/alerts/advisories`,
+  `/alerts/cyclone/archive` and `/about/services`).
 - **Words for alerts (owner, 9 Nov 2026):** the green-level products GMS issues
   are **GMS alerts**; yellow, orange and red notices are **warnings** (CAP).
   Each hazard page (`/alerts/bulletins/<hazard>`) shows both, with a
