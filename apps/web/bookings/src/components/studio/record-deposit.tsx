@@ -91,7 +91,7 @@ export function RecordDeposit({
   // Stable, so the form's effect fires once per result and a key rotation
   // here never replays the same refusal.
   const result = useCallback((state: ActionState) => {
-    if (state.status === "done") {
+    if (state.status === "success") {
       setKey(crypto.randomUUID());
       setOpen(false);
       setNotice(state);
@@ -146,7 +146,7 @@ export function RecordDeposit({
           </AlertDialogContent>
         </AlertDialog>
       ) : null}
-      {notice.status === "done" ? (
+      {notice.status === "success" ? (
         <p
           className="border-border bg-muted rounded-lg border p-3 font-medium"
           ref={noticeRef}

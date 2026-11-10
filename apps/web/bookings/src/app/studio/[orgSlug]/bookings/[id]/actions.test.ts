@@ -72,7 +72,10 @@ describe("booking actions", () => {
   it("confirms for an admin with the organisation from the server", async () => {
     vi.mocked(confirmBooking).mockResolvedValue(OK);
     const result = await confirmBookingAction(SLUG, BOOKING_ID);
-    expect(result).toEqual({ status: "done", message: "Booking confirmed." });
+    expect(result).toEqual({
+      status: "success",
+      message: "Booking confirmed.",
+    });
     expect(confirmBooking).toHaveBeenCalledWith("tok", ORG_ID, BOOKING_ID);
     expect(revalidatePath).toHaveBeenCalledWith(`/studio/${SLUG}/agenda`);
     expect(revalidatePath).toHaveBeenCalledWith(
@@ -83,7 +86,9 @@ describe("booking actions", () => {
   it("lets an owner act too", async () => {
     org("owner");
     vi.mocked(markCompleted).mockResolvedValue(OK);
-    expect((await completeBookingAction(SLUG, BOOKING_ID)).status).toBe("done");
+    expect((await completeBookingAction(SLUG, BOOKING_ID)).status).toBe(
+      "success"
+    );
   });
 
   it("refuses a member before any call", async () => {
@@ -139,7 +144,7 @@ describe("booking actions", () => {
       .mockRejectedValueOnce(apiError(409));
     const first = await noShowBookingAction(SLUG, BOOKING_ID);
     const second = await noShowBookingAction(SLUG, BOOKING_ID);
-    expect(first.status).toBe("done");
+    expect(first.status).toBe("success");
     expect(second).toMatchObject({ status: "error", kind: "conflict" });
     expect(reportError).not.toHaveBeenCalled();
   });
@@ -183,7 +188,7 @@ describe("decline", () => {
       IDLE,
       form({ reason: "  Fully booked  " })
     );
-    expect(result.status).toBe("done");
+    expect(result.status).toBe("success");
     expect(declineBooking).toHaveBeenCalledWith(
       "tok",
       ORG_ID,
@@ -266,7 +271,7 @@ describe("cancel", () => {
       form({ reason: "Ill", refundChoice: "refund" })
     );
     expect(result).toEqual({
-      status: "done",
+      status: "success",
       warning: true,
       message:
         "Booking cancelled. The deposit refund failed; refund it by hand.",
@@ -283,7 +288,7 @@ describe("cancel", () => {
       IDLE,
       form({ reason: "Full" })
     );
-    expect(result).toMatchObject({ status: "done", warning: true });
+    expect(result).toMatchObject({ status: "success", warning: true });
   });
 
   it("does not warn when the refund went through", async () => {
@@ -296,7 +301,10 @@ describe("cancel", () => {
       IDLE,
       form({ reason: "Ill" })
     );
-    expect(result).toEqual({ status: "done", message: "Booking cancelled." });
+    expect(result).toEqual({
+      status: "success",
+      message: "Booking cancelled.",
+    });
   });
 
   it("ignores an organisation id smuggled into the form", async () => {
@@ -324,7 +332,7 @@ describe("recordDepositAction", () => {
   it("records with the key, the method and the organisation from the server", async () => {
     vi.mocked(recordManualDeposit).mockResolvedValue(OK);
     expect(await run({ amount: "1" })).toEqual({
-      status: "done",
+      status: "success",
       message: "Deposit recorded.",
     });
     expect(recordManualDeposit).toHaveBeenCalledWith(

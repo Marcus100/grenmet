@@ -5,7 +5,9 @@ import {
   hrGetPeriodQueryKey,
   hrListPeriodsQueryKey,
   type RosterAssignmentInput,
+  type RosterPeriodStatus,
   type RosterRuleWarningsErrorPublic,
+  rosterPeriodStatus,
   useHrBulkAssignments,
   useHrCreatePeriod,
   useHrGetPeriod,
@@ -81,10 +83,14 @@ const CODE_STYLE: Record<string, string> = {
   S: "bg-gm-risk-amber/20 text-gm-text-primary",
 };
 
-const STATUS_VARIANT: Record<string, "default" | "secondary" | "outline"> = {
-  DRAFT: "outline",
-  PUBLISHED: "default",
-  CLOSED: "secondary",
+// Keyed by the generated enum, so a new backend status fails type-check here.
+const STATUS_VARIANT: Record<
+  RosterPeriodStatus,
+  "default" | "secondary" | "outline"
+> = {
+  [rosterPeriodStatus.DRAFT]: "outline",
+  [rosterPeriodStatus.PUBLISHED]: "default",
+  [rosterPeriodStatus.CLOSED]: "secondary",
 };
 
 export function DutyRoster() {

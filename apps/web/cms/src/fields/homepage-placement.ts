@@ -1,5 +1,6 @@
 import type { Field, FieldAccess, Payload, PayloadRequest } from "payload";
 import { HOMEPAGE_KEY, hasPermission } from "../access";
+import { PUBLISHED } from "../lib/publication-status";
 
 /** How many featured questions the homepage shows. */
 export const MAX_FEATURED_QUESTIONS = 5;
@@ -29,7 +30,7 @@ function holders(
     where: {
       and: [
         { [flag]: { equals: true } },
-        { status: { equals: "published" } },
+        { status: { equals: PUBLISHED } },
         ...(id === undefined ? [] : [{ id: { not_equals: id } }]),
       ],
     },
