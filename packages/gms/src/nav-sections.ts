@@ -397,7 +397,7 @@ export const NAV_SECTIONS: NavSection[] = [
       {
         heading: "Sun & sky",
         links: [
-          coming(
+          link(
             "Sunrise, sunset and moon",
             "/weather/sun-and-sky",
             "Sun times, twilight and moon phase"
@@ -623,7 +623,7 @@ export const NAV_SECTIONS: NavSection[] = [
             "/climate/publications",
             "Reports, bulletins and studies"
           ),
-          coming(
+          link(
             "Climate newsletter",
             "/climate/newsletter",
             "Monthly conditions and outlooks"
