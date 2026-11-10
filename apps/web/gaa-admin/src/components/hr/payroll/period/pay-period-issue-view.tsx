@@ -1,4 +1,8 @@
-import type { PaySummaryPublic } from "@barrelsgd/api-client";
+import {
+  type PayPeriodStatus,
+  type PaySummaryPublic,
+  payPeriodStatus,
+} from "@barrelsgd/api-client";
 import { Badge } from "@barrelsgd/ui/components/ui/badge";
 import {
   Table,
@@ -70,7 +74,7 @@ export function PayPeriodIssueView({
   periodId: string;
   preparedByCaller: boolean;
   securityUrl: string;
-  status: string;
+  status: PayPeriodStatus;
   summary: PaySummaryPublic;
 }) {
   const blockers = issueBlockers({
@@ -79,7 +83,8 @@ export function PayPeriodIssueView({
     canApprove,
     summary,
   });
-  const locked = status === "APPROVED" || status === "EXPORTED";
+  const locked =
+    status === payPeriodStatus.APPROVED || status === payPeriodStatus.EXPORTED;
   const issued = summary.issue_approved_at !== null;
   return (
     <section aria-label="Pay summary and issue" className="space-y-6">

@@ -9,6 +9,7 @@ import {
 } from "@barrelsgd/ui/components/ui/native-select";
 import { Textarea } from "@barrelsgd/ui/components/ui/textarea";
 import { Turnstile } from "@barrelsgd/ui/components/ui/turnstile";
+import type { FormState } from "@barrelsgd/ui/lib/form-state";
 import { useRef, useState } from "react";
 import {
   DATA_FORMATS,
@@ -18,12 +19,6 @@ import {
 } from "@/lib/data-request";
 import { env } from "@/lib/env";
 import { reportError } from "@/lib/report-error";
-
-type FormState =
-  | { status: "idle" }
-  | { status: "submitting" }
-  | { status: "success" }
-  | { status: "error"; message: string };
 
 function readForm(form: HTMLFormElement) {
   const data = new FormData(form);

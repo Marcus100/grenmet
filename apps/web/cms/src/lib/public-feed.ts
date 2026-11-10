@@ -5,6 +5,7 @@ import { Stories } from "../collections/stories";
 import { NOTE_KIND } from "./duty-note";
 import { type EditorialLink, editorialLinksSchema } from "./editorial-links";
 import { bodyToText } from "./lexical";
+import { isLive } from "./publication-status";
 import { isOnSite, liveWhere } from "./publication-window";
 
 export const ARTICLE_COLLECTIONS = {
@@ -504,7 +505,7 @@ export async function findDiscover(payload: Payload, now: Date = new Date()) {
           whatHappened: String(entry.whatHappened),
           imageUrl: (upload(entry.image)?.url as string | undefined) ?? null,
           story:
-            story && story.status === "published"
+            story && isLive(story)
               ? { title: String(story.title), slug: String(story.slug) }
               : null,
         }

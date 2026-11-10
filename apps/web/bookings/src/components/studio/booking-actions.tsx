@@ -72,7 +72,7 @@ export function BookingActions({
 
   // The pressed button is often gone after a final action: land on the result.
   useEffect(() => {
-    if (notice.status === "done") {
+    if (notice.status === "success") {
       noticeRef.current?.focus();
     }
   }, [notice]);
@@ -151,7 +151,7 @@ function Notice({
   noticeRef: Ref<HTMLParagraphElement>;
   state: ActionState;
 }) {
-  if (state.status === "done") {
+  if (state.status === "success") {
     // A warning (the refund failed) must interrupt; plain success is polite.
     return (
       <p
@@ -424,7 +424,7 @@ function DialogForm({
   const [state, formAction, pending] = useActionState(action, IDLE);
 
   useEffect(() => {
-    if (state.status === "done") {
+    if (state.status === "success") {
       onDone(state);
     }
   }, [state, onDone]);

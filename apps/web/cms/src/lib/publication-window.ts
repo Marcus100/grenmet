@@ -1,4 +1,5 @@
 import type { Where } from "payload";
+import { isLive, PUBLISHED } from "./publication-status";
 
 /**
  * When a published item is on the public site. An editor can set a time to
@@ -23,7 +24,7 @@ export function isOnSite(
   doc: PublicationWindow,
   now: Date = new Date()
 ): boolean {
-  if (doc.status !== "published") return false;
+  if (!isLive(doc)) return false;
   const at = now.getTime();
   const from = time(doc.publishAt);
   const until = time(doc.unpublishAt);
@@ -38,7 +39,7 @@ export function liveWhere(now: Date, ...conditions: Where[]): Where {
   const at = now.toISOString();
   return {
     and: [
-      { status: { equals: "published" } },
+      { status: { equals: PUBLISHED } },
       {
         or: [
           { publishAt: { exists: false } },

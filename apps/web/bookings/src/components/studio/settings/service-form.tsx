@@ -39,7 +39,7 @@ export function ServiceForm({
 
   useEffect(() => {
     // An add form starts blank again once the service is saved.
-    if (state.status === "done" && !service) {
+    if (state.status === "success" && !service) {
       formRef.current?.reset();
     }
   }, [state, service]);

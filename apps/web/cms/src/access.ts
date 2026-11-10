@@ -1,4 +1,5 @@
 import type { Access, FieldAccess, Where } from "payload";
+import { PUBLISHED } from "./lib/publication-status";
 
 /** FastAPI permission keys that let a holder publish in each collection. */
 export const PUBLISH_KEYS = {
@@ -42,14 +43,14 @@ export const staffField: FieldAccess = ({ req }) => Boolean(req.user);
 export const staffOnly: Access = ({ req }) =>
   hasPermission(req.user, "cms.article.create");
 export const readContent: Access = ({ req }) =>
-  req.user ? true : { status: { equals: "published" } };
+  req.user ? true : { status: { equals: PUBLISHED } };
 export const editContent: Access = ({ req }) => {
   if (isEditor(req.user)) return true;
   if (!req.user) return false;
   const filter: Where = {
     and: [
       { author: { equals: req.user.id } },
-      { status: { not_equals: "published" } },
+      { status: { not_equals: PUBLISHED } },
     ],
   };
   return filter;

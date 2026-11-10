@@ -1,3 +1,4 @@
+import { type TableState, tableState } from "@barrelsgd/api-client";
 import { Badge } from "@barrelsgd/ui/components/ui/badge";
 import type { ReactNode } from "react";
 
@@ -95,8 +96,8 @@ export function ProvisionalBadge() {
   return <Badge variant="light-warning">PROVISIONAL</Badge>;
 }
 
-export function RuleStateBadge({ state }: { state: string }) {
-  return state === "PROVISIONAL" ? (
+export function RuleStateBadge({ state }: { state: TableState }) {
+  return state === tableState.PROVISIONAL ? (
     <ProvisionalBadge />
   ) : (
     <Badge variant="light-success">Confirmed</Badge>

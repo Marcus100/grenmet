@@ -1,5 +1,6 @@
 import { APIError } from "payload";
 import { nextIssueSlot } from "./issue-slots";
+import { isLive, PUBLISHED } from "./publication-status";
 
 /** The live-post kind that is the duty forecaster's note. */
 export const NOTE_KIND = "note";
@@ -37,9 +38,9 @@ export function stampDutyNote<T extends NoteFields>(
   const text = trimmed(value("text"));
   if (text.length > TEXT_LIMIT)
     throw new APIError(`The note is at most ${TEXT_LIMIT} characters.`, 400);
-  if (value("status") !== "published") return data;
+  if (value("status") !== PUBLISHED) return data;
   if (!text) throw new APIError("Write the note before posting it.", 400);
-  const wasPublished = original?.status === "published";
+  const wasPublished = isLive(original);
   const changed = !wasPublished || text !== trimmed(original?.text);
   if (!changed) {
     if (!value("expiresAt")) data.expiresAt = nextIssueSlot(now).toISOString();

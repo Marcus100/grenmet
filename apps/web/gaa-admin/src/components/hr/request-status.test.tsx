@@ -1,3 +1,4 @@
+import { type RequestStatus, requestStatus } from "@barrelsgd/api-client";
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import {
@@ -9,9 +10,15 @@ import {
 
 describe("request status", () => {
   it("lets the author edit a draft or a returned form only", () => {
-    expect(isEditableStatus("DRAFT")).toBe(true);
-    expect(isEditableStatus("RETURNED")).toBe(true);
-    for (const status of ["SUBMITTED", "APPROVED", "REJECTED", "CANCELLED"]) {
+    expect(isEditableStatus(requestStatus.DRAFT)).toBe(true);
+    expect(isEditableStatus(requestStatus.RETURNED)).toBe(true);
+    const others: RequestStatus[] = [
+      requestStatus.SUBMITTED,
+      requestStatus.APPROVED,
+      requestStatus.REJECTED,
+      requestStatus.CANCELLED,
+    ];
+    for (const status of others) {
       expect(isEditableStatus(status)).toBe(false);
     }
   });
