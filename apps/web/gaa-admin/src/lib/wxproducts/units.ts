@@ -1,10 +1,19 @@
-import type { ProductField } from "@barrelsgd/gms/products";
+import {
+  isMarineKind,
+  type ProductField,
+  type ProductKind,
+} from "@barrelsgd/gms/products";
 
-/** Editor presentation only; FastAPI keeps canonical knots/metres and publication rules. */
+/**
+ * Editor presentation only; FastAPI keeps canonical knots/metres and
+ * publication rules. Land forecasts and alerts are entered in mph and feet;
+ * marine products (`isMarineKind`) in knots and metres, as stored (owner,
+ * 9 Nov 2026).
+ */
 const MPH_PER_KNOT = 1852 / 1609.344;
 const KMH_PER_KNOT = 1.852;
 const FEET_PER_METRE = 1 / 0.3048;
-const UNIT_SUFFIX = /\s*\((mph|ft|°C|%|s|km|hPa)\)$/u;
+const UNIT_SUFFIX = /\s*\((mph|kt|ft|m|°C|%|s|km|hPa)\)$/u;
 const TIDE_CAPTION = /^Tide \d (time|height)$/u;
 const FIELD_CAPTIONS: Record<string, string> = {
   "Weather summary": "Summary",
@@ -34,8 +43,8 @@ const FIELD_CAPTIONS: Record<string, string> = {
   "Next update (Grenada)": "Next update",
 };
 
-function inputUnit(field: ProductField) {
-  if (field.type !== "number") return null;
+function inputUnit(field: ProductField, kind?: ProductKind) {
+  if (field.type !== "number" || (kind && isMarineKind(kind))) return null;
   if (field.label.endsWith("(kt)"))
     return { canonical: "kt", display: "mph", factor: MPH_PER_KNOT };
   if (field.label.endsWith("(m)"))
@@ -43,28 +52,41 @@ function inputUnit(field: ProductField) {
   return null;
 }
 
-export function productFieldLabel(field: ProductField): string {
-  const unit = inputUnit(field);
+export function productFieldLabel(
+  field: ProductField,
+  kind?: ProductKind
+): string {
+  const unit = inputUnit(field, kind);
   return unit
     ? field.label.replace(`(${unit.canonical})`, `(${unit.display})`)
     : field.label;
 }
 
-export function productFieldUnit(field: ProductField): string {
-  return UNIT_SUFFIX.exec(productFieldLabel(field))?.[1] ?? "";
+export function productFieldUnit(
+  field: ProductField,
+  kind?: ProductKind
+): string {
+  return UNIT_SUFFIX.exec(productFieldLabel(field, kind))?.[1] ?? "";
 }
 
 /** Short visible labels; controls retain their complete accessible label. */
-export function productFieldCaption(field: ProductField): string {
-  const label = productFieldLabel(field).replace(UNIT_SUFFIX, "");
+export function productFieldCaption(
+  field: ProductField,
+  kind?: ProductKind
+): string {
+  const label = productFieldLabel(field, kind).replace(UNIT_SUFFIX, "");
   const tide = TIDE_CAPTION.exec(label)?.[1];
   if (tide) return tide === "time" ? "Time" : "Height";
   return FIELD_CAPTIONS[label] ?? label;
 }
 
 /** Round the display, never the saved value of an untouched input. */
-export function productFieldValue(field: ProductField, value = ""): string {
-  const unit = inputUnit(field);
+export function productFieldValue(
+  field: ProductField,
+  value = "",
+  kind?: ProductKind
+): string {
+  const unit = inputUnit(field, kind);
   const numeric = parse(value);
   return unit && numeric !== null
     ? String(Number((numeric * unit.factor).toFixed(2)))
@@ -73,9 +95,10 @@ export function productFieldValue(field: ProductField, value = ""): string {
 
 export function productCanonicalValue(
   field: ProductField,
-  value: string
+  value: string,
+  kind?: ProductKind
 ): string {
-  const unit = inputUnit(field);
+  const unit = inputUnit(field, kind);
   const numeric = parse(value);
   return unit && numeric !== null
     ? String(Number((numeric / unit.factor).toPrecision(15)))
@@ -99,15 +122,41 @@ function span(values: (number | null)[], places = 0): string {
   return first === last ? first : `${first}–${last}`;
 }
 
-/** Secondary knot and km/h hints for the mph editor, from canonical knots. */
-export function windHint(min?: string, max?: string, gust?: string): string {
+/**
+ * Secondary hints from canonical knots: knots and km/h for the mph editor, or
+ * mph and km/h for the marine (knots) editor.
+ */
+export function windHint(
+  min?: string,
+  max?: string,
+  gust?: string,
+  marine = false
+): string {
   const speeds = [parse(min), parse(max)];
   const g = parse(gust);
   const knots = span(speeds);
+  const mph = span(speeds.map((v) => (v === null ? null : v * MPH_PER_KNOT)));
   const kmh = span(speeds.map((v) => (v === null ? null : v * KMH_PER_KNOT)));
-  const parts = knots ? [`≈ ${knots} kt · ${kmh} km/h`] : [];
-  if (g !== null) parts.push(`gusts ${Math.round(g)} kt`);
+  const first = marine ? `${mph} mph` : `${knots} kt`;
+  const parts = knots ? [`≈ ${first} · ${kmh} km/h`] : [];
+  if (g !== null)
+    parts.push(
+      marine
+        ? `gusts ${Math.round(g * MPH_PER_KNOT)} mph`
+        : `gusts ${Math.round(g)} kt`
+    );
   return parts.join(", ");
+}
+
+/** Secondary feet hint for height inputs entered in metres (marine). */
+export function feetHint(...metres: (string | undefined)[]): string {
+  const result = span(
+    metres.map((v) => {
+      const value = parse(v);
+      return value === null ? null : value * FEET_PER_METRE;
+    })
+  );
+  return result ? `≈ ${result} ft` : "";
 }
 
 /** Secondary metre hint for height inputs displayed in feet. */

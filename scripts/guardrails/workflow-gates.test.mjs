@@ -210,7 +210,12 @@ test("deployment promotes verified dev images without rebuilding or cancellation
   for (const workflow of ["pipeline-staging.yml", "pipeline-prod.yml"]) {
     const source = readWorkflow(workflow);
     const deploy = source.split("\n  deploy:\n")[1].split(NEXT_JOB)[0];
-    assert.ok(deploy.includes("needs: [release-scope, promote]"), workflow);
+    // Staging also waits for the rescan of the promoted digests (issue #1142).
+    const needs =
+      workflow === "pipeline-staging.yml"
+        ? "needs: [release-scope, promote, scan]"
+        : "needs: [release-scope, promote]";
+    assert.ok(deploy.includes(needs), workflow);
     assert.ok(
       deploy.includes("image_digests:") &&
         deploy.includes("needs.promote.outputs.digests"),
@@ -306,16 +311,16 @@ test("every CI and release builder authenticates before pulling the BuildKit ima
   }
 });
 
-test("database services authenticate during initialization before job steps run", () => {
+test("database services pull the public GHCR mirror and carry no Docker Hub login", () => {
   for (const workflow of ["ci-api.yml", "ci-web.yml"]) {
     const source = readWorkflow(workflow);
     const services = source
       .split("    services:\n")[1]
       ?.split("    steps:\n")[0];
     assert.ok(services, workflow);
-    assert.ok(services.includes("        credentials:\n"), workflow);
-    assert.match(services, DOCKERHUB_USERNAME, workflow);
-    assert.match(services, DOCKERHUB_TOKEN, workflow);
+    assert.match(services, /image: ghcr\.io\/marcus100\/base\//u, workflow);
+    assert.ok(!services.includes("credentials:"), workflow);
+    assert.doesNotMatch(services, DOCKERHUB_USERNAME, workflow);
   }
 });
 
@@ -354,4 +359,47 @@ test("the restore drill runs its script from the dispatched ref, not the release
     drill.includes("python3 drill-tooling/scripts/production/restore-drill.py")
   );
   assert.ok(!drill.includes("python3 scripts/production/restore-drill.py"));
+});
+
+test("auto re-run covers CI and image builds only, with no code from the failed run", () => {
+  const source = readWorkflow("auto-rerun.yml");
+  const watched = source.split("    workflows:\n")[1]?.split("    types:")[0] ?? "";
+  assert.ok(watched.includes("- CI\n"));
+  assert.doesNotMatch(watched, /deploy|promot|release|pipeline|smoke/iu);
+  assert.ok(source.includes("actions: write"));
+  assert.ok(!source.includes("pull_request_target"));
+  assert.ok(!source.includes("workflow_run.head_branch"));
+  assert.ok(!source.includes("workflow_run.head_sha"));
+});
+
+const APP_TOKEN_STEP = "      - name: Create GitHub App token";
+const PUSH_STEP = "      - name: Push the branch and open the pull request";
+const REPORT_STEP = "      - name: Report what needs a person";
+const APP_TOKEN_USE = /steps\.app-token\.outputs\.token/gu;
+const REPOSITORY_SCRIPT = /\bnode scripts\//u;
+const PERSIST_FALSE = /persist-credentials: false/gu;
+const CHECKOUT = /actions\/checkout@/gu;
+
+test("daily image scan keeps the fix App token away from repository scripts", () => {
+  const source = readWorkflow("image-scan-daily.yml");
+  const fix = source.split("\n  fix:\n")[1];
+  const beforeToken = fix.split(APP_TOKEN_STEP)[0];
+  const tokenStep = fix.split(APP_TOKEN_STEP)[1].split(PUSH_STEP)[0];
+  const push = fix.split(PUSH_STEP)[1].split(REPORT_STEP)[0];
+  // Scripts from the dev checkout run only before the token exists.
+  assert.match(beforeToken, REPOSITORY_SCRIPT);
+  assert.ok(!beforeToken.includes("app-token"));
+  assert.ok(!beforeToken.includes("IMAGE_FIX_APP_PRIVATE_KEY"));
+  // The token is limited to what the last step needs.
+  assert.ok(tokenStep.includes("permission-contents: write"));
+  assert.ok(tokenStep.includes("permission-pull-requests: write"));
+  // The last step runs only the pushing and PR tools, and is the sole user of the token.
+  assert.ok(!REPOSITORY_SCRIPT.test(push));
+  assert.equal(fix.match(APP_TOKEN_USE).length, 2);
+  assert.ok(!fix.split(REPORT_STEP)[1].includes("app-token"));
+  // No checkout persists credentials.
+  assert.equal(
+    source.match(PERSIST_FALSE).length,
+    source.match(CHECKOUT).length
+  );
 });

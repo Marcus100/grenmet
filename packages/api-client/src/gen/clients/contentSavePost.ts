@@ -24,6 +24,7 @@ export function contentSavePost<ThrowOnError extends boolean = true>(
     request({
       method: "POST",
       url: "/api/v1/content-distribution/internal/posts",
+      contentType: { request: "application/json" },
       ...config,
       throwOnError: config.throwOnError ?? true,
     }) as Promise<RequestResult<ContentSavePostResponses, ThrowOnError>>

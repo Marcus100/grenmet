@@ -10,7 +10,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.auth.models import User
 
-from . import guidance, tropical_systems, validation
+from . import guidance, transitions, tropical_systems, validation
 from .exceptions import ProductValidationError, RevisionConflict
 from .models import (
     AuthoredProduct,
@@ -218,6 +218,55 @@ async def history(
     return list((await session.execute(statement)).scalars())
 
 
+async def bulletin_reference(
+    session: AsyncSession,
+    kind: str,
+    values: dict[str, str],
+    previous: AuthoredProduct | None,
+) -> str:
+    """Hidden year-based archive reference for an alert, e.g. GMS-MARINE-2026-004.
+
+    Set once, on the first save, from the count of this hazard's alerts already
+    referenced in the issue year; kept on every later revision (owner decision
+    1, #1197). Always computed here: a value posted by the client is ignored.
+    The count and assignment run under a transaction-scoped advisory lock per
+    hazard and year, so two first saves cannot take the same number. The
+    per-event bulletin number is separate and proposed by the desk.
+    """
+    if previous is not None:
+        kept = str(
+            values_as_dict(previous.draft.get("values", {})).get("reference", "")
+        )
+        if kept.strip():
+            return kept
+    year = values.get("issuedAt", "")[:4]
+    if not year.isdigit():
+        return ""
+    from sqlalchemy import func
+
+    # Held until this write commits, so the next save counts this one.
+    await session.execute(
+        select(
+            func.pg_advisory_xact_lock(
+                func.hashtext(f"wxproducts-reference:{kind}:{year}")
+            )
+        )
+    )
+    stored = AuthoredProduct.draft["values"]
+    count = (
+        await session.execute(
+            select(func.count())
+            .select_from(AuthoredProduct)
+            .where(
+                AuthoredProduct.kind == kind,
+                func.left(stored["issuedAt"].astext, 4) == year,
+                func.coalesce(stored["reference"].astext, "") != "",
+            )
+        )
+    ).scalar_one()
+    return f"GMS-{kind.upper()}-{year}-{count + 1:03d}"
+
+
 async def write_product(
     session: AsyncSession,
     body: ProductWrite,
@@ -249,16 +298,26 @@ async def write_product(
             previous and previous.kind != body.kind
         ):
             raise RevisionConflict()
-        if body.action == "withdraw" and (previous is None or not previous.published):
-            raise RevisionConflict("This product is not published.")
+        transitions.guard_product(
+            transitions.product_state(previous),
+            body.action,
+            refusal="This product is not published.",
+        )
         revision = body.expectedRevision + 1
         now = datetime.now(UTC)
+        values = values_as_dict(body.values)
+        if body.kind in validation.BULLETIN_KINDS and body.action != "withdraw":
+            # The reference is server-owned: a posted value is discarded.
+            values = {k: v for k, v in values.items() if k != "reference"}
+            reference = await bulletin_reference(session, body.kind, values, previous)
+            if reference:
+                values["reference"] = reference
         content = (
             previous.draft
             if body.action == "withdraw" and previous
             else {
                 "kind": body.kind,
-                "values": values_as_dict(body.values),
+                "values": values,
                 "guidance": body.guidance.model_dump(mode="json")
                 if body.guidance
                 else None,

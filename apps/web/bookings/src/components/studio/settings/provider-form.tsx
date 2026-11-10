@@ -38,7 +38,7 @@ export function ProviderForm({
   const prefix = `provider-${provider?.id ?? "new"}`;
 
   useEffect(() => {
-    if (state.status === "done" && !provider) {
+    if (state.status === "success" && !provider) {
       formRef.current?.reset();
     }
   }, [state, provider]);

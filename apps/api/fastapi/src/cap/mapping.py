@@ -29,6 +29,7 @@ from src.cap.schemas import (
     CapReferencePublic,
     CapResourcePublic,
 )
+from src.cap.transitions import allowed_actions
 from src.utils.datetime import utc_now
 
 
@@ -109,6 +110,7 @@ def _to_public_from_loaded(
         codes=list(alert.codes or []),
         note=alert.note,
         lifecycle_state=alert.lifecycle_state,
+        allowed_actions=allowed_actions(alert.lifecycle_state),
         created_by_user_id=alert.created_by_user_id,
         updated_by_user_id=alert.updated_by_user_id,
         submitted_at=alert.submitted_at,

@@ -3,6 +3,7 @@
 import { Button } from "@barrelsgd/ui/components/ui/button";
 import { Input } from "@barrelsgd/ui/components/ui/input";
 import { Label } from "@barrelsgd/ui/components/ui/label";
+import type { FormState } from "@barrelsgd/ui/lib/form-state";
 import { useSearchParams } from "next/navigation";
 import { useState } from "react";
 import {
@@ -11,12 +12,6 @@ import {
   SIGNUP_RESULTS,
 } from "@/lib/alert-signup";
 import { reportError } from "@/lib/report-error";
-
-type FormState =
-  | { status: "idle" }
-  | { status: "submitting" }
-  | { status: "success" }
-  | { status: "error"; message: string };
 
 /** Outcome of the emailed confirm or unsubscribe link, from `?result=`. */
 export function AlertSignupResult() {

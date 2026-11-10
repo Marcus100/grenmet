@@ -4,6 +4,7 @@ import {
   copyFileSync,
   mkdirSync,
   mkdtempSync,
+  readdirSync,
   readFileSync,
   rmSync,
   writeFileSync,
@@ -134,7 +135,23 @@ case "$*" in
     [[ -n "$TEST_IMAGES_PRESENT" ]] || exit 1 ;;
   *"image inspect"*)
     if [[ "$*" == *gd.barrels.build-once* ]]; then echo "\${TEST_BUILD_ONCE:-false}"; elif [[ "$TEST_FAILURE" == revision ]]; then echo wrong; else echo "$GITHUB_SHA"; fi ;;
-  *"run --rm --no-deps prestart"*) [[ "$TEST_FAILURE" != migration ]] || exit 1 ;;
+  *"run --rm --no-deps prestart"*)
+    if [[ "$TEST_FAILURE" == lock ]]; then
+      attempts=$(cat "$state/lock-attempts" 2>/dev/null || echo 0)
+      attempts=$((attempts + 1))
+      echo "$attempts" > "$state/lock-attempts"
+      if (( attempts <= \${TEST_LOCK_FAILURES:-1} )); then
+        echo "sqlalchemy.exc.DBAPIError: canceling statement due to lock timeout" >&2
+        exit 1
+      fi
+    fi
+    if [[ "$TEST_FAILURE" == cancel-migration ]]; then
+      # Simulates SIGTERM to core.sh while the migration runs, like the rollout cancel below.
+      pkill -TERM -of "$TEST_ROOT/scripts/production/core.sh" || true
+      sleep 3
+      exit 1
+    fi
+    [[ "$TEST_FAILURE" != migration ]] || exit 1 ;;
   *"up -d --no-deps --remove-orphans --wait"*) [[ "$TEST_FAILURE" != readiness ]] || exit 1 ;;
   # Only the network check reads the lock file as JSON; the release-scope check pipes
   # docker-compose.deploy.yml into a node stub that closes stdin, so printing there
@@ -449,6 +466,117 @@ test("a failed migration names the migrations phase", () => {
   });
   assert.notEqual(result.status, 0);
   assert.match(result.stdout, FAILED_MIGRATIONS);
+});
+
+// A lock timeout rolls the whole Alembic upgrade back, so re-running the service is
+// safe; any other failure is a real error and must not be retried.
+const LOCK_RETRY = /hit the lock timeout \(attempt 1 of 3\)/u;
+
+function prestartRuns(calls) {
+  return calls.split("\n").filter((line) => line.includes(MIGRATED)).length;
+}
+
+test("a migration that only waits on a lock is retried until it finishes", () => {
+  const { result, calls } = runDeploy({
+    environment: "production",
+    failure: "lock",
+    extraEnv: {
+      TEST_LOCK_FAILURES: "2",
+      MIGRATION_LOCK_RETRY_PAUSE_SECONDS: "0",
+    },
+  });
+  assert.equal(result.status, 0, result.stderr);
+  assert.equal(prestartRuns(calls), 3);
+  assert.match(result.stdout, LOCK_RETRY);
+  assert.ok(
+    calls.includes("--wait --wait-timeout 300"),
+    "the deploy continued past migrations"
+  );
+});
+
+test("a migration still blocked on its last attempt fails the deploy", () => {
+  const { result, calls } = runDeploy({
+    environment: "production",
+    failure: "lock",
+    extraEnv: {
+      TEST_LOCK_FAILURES: "99",
+      MIGRATION_LOCK_RETRY_ATTEMPTS: "2",
+      MIGRATION_LOCK_RETRY_PAUSE_SECONDS: "0",
+    },
+  });
+  assert.notEqual(result.status, 0);
+  assert.equal(prestartRuns(calls), 2);
+  assert.match(result.stdout, FAILED_MIGRATIONS);
+});
+
+test("a migration failure that is not a lock timeout is not retried", () => {
+  const { result, calls } = runDeploy({
+    environment: "production",
+    failure: "migration",
+  });
+  assert.notEqual(result.status, 0);
+  assert.equal(prestartRuns(calls), 1);
+});
+
+test("a cancelled migration removes its temporary log", () => {
+  const tmp = mkdtempSync(join(tmpdir(), "core-migration-tmp-"));
+  try {
+    const { result } = runDeploy({
+      environment: "production",
+      failure: "cancel-migration",
+      extraEnv: { TMPDIR: tmp, MIGRATION_LOCK_RETRY_PAUSE_SECONDS: "0" },
+    });
+    assert.notEqual(result.status, 0);
+    assert.deepEqual(readdirSync(tmp), [], "no mktemp log left behind");
+  } finally {
+    rmSync(tmp, { recursive: true, force: true });
+  }
+});
+
+// The migration and idle-transaction limits are read by the containers that run
+// migrations or hold pooled connections; without forwarding, Settings silently falls back.
+const DEPLOY_COMPOSE = new URL(
+  "../../infra/docker/docker-compose.deploy.yml",
+  import.meta.url
+);
+
+const TOP_LEVEL_SERVICE_KEY = /^ {2}[a-z][\w-]*:$/u;
+const MIGRATION_LOCK_LINE =
+  /MIGRATION_LOCK_TIMEOUT: \$\{MIGRATION_LOCK_TIMEOUT:-10s\}/u;
+const IDLE_TRANSACTION_LINE =
+  /DB_IDLE_IN_TRANSACTION_TIMEOUT: \$\{DB_IDLE_IN_TRANSACTION_TIMEOUT:-300\}/u;
+
+function serviceBlock(text, name) {
+  const lines = text.split("\n");
+  const start = lines.indexOf(`  ${name}:`);
+  if (start < 0) return "";
+  let end = lines.length;
+  for (let index = start + 1; index < lines.length; index += 1) {
+    if (TOP_LEVEL_SERVICE_KEY.test(lines[index])) {
+      end = index;
+      break;
+    }
+  }
+  return lines.slice(start, end).join("\n");
+}
+
+test("deploy compose forwards the migration and idle-transaction limits to prestart, api and worker", () => {
+  const text = readFileSync(DEPLOY_COMPOSE, "utf8");
+  for (const service of ["prestart", "api", "worker"]) {
+    const block = serviceBlock(text, service);
+    assert.notEqual(block, "", `${service} service exists`);
+    assert.match(block, MIGRATION_LOCK_LINE, service);
+    assert.match(block, IDLE_TRANSACTION_LINE, service);
+  }
+});
+
+test("a malformed lock retry setting stops before any migration runs", () => {
+  const { result, calls } = runDeploy({
+    environment: "production",
+    extraEnv: { MIGRATION_LOCK_RETRY_ATTEMPTS: "three" },
+  });
+  assert.notEqual(result.status, 0);
+  assert.equal(prestartRuns(calls), 0);
 });
 
 test("a hanging diagnostic keeps the original exit status and still cleans up", () => {

@@ -1,44 +1,19 @@
 {% extends "base.html.j2" %}
+{# Order: owner decision 3 (#1197). Wind in knots, heights in metres (feet). #}
+{% macro tile_list(tiles, empty) %}
+        <ul class="tiles">
+          {% for tile in tiles %}
+          <li>
+            {{ icon(tile.icon, "tile-icon") }}
+            <div><strong>{{ tile.value }}</strong><span>{{ tile.label }}</span></div>
+          </li>
+          {% else %}
+          <li class="empty">{{ empty }}</li>
+          {% endfor %}
+        </ul>
+{% endmacro %}
 {% block content %}
 <div class="typed">
-    <section class="card headline">
-      {{ icon("waves", "headline-icon", "sky-ink") }}
-      <div>
-        <p class="eyebrow sky">Synopsis · {{ area }}</p>
-        <p class="summary">{{ synopsis or "—" }}</p>
-      </div>
-    </section>
-
-    <div class="row">
-      <section class="card conditions">
-        <h2 class="eyebrow">Winds</h2>
-        <ul class="tiles">
-          {% for tile in wind_tiles %}
-          <li>
-            {{ icon(tile.icon, "tile-icon") }}
-            <div><strong>{{ tile.value }}</strong><span>{{ tile.label }}</span></div>
-          </li>
-          {% else %}
-          <li class="empty">No winds supplied.</li>
-          {% endfor %}
-        </ul>
-      </section>
-
-      <section class="card conditions">
-        <h2 class="eyebrow">Seas and swell</h2>
-        <ul class="tiles">
-          {% for tile in sea_tiles %}
-          <li>
-            {{ icon(tile.icon, "tile-icon") }}
-            <div><strong>{{ tile.value }}</strong><span>{{ tile.label }}</span></div>
-          </li>
-          {% else %}
-          <li class="empty">No sea conditions supplied.</li>
-          {% endfor %}
-        </ul>
-      </section>
-    </div>
-
     {% if advisories %}
     {% include "_advisories.html.j2" %}
     {% else %}
@@ -60,16 +35,70 @@
     </ul>
     {% endif %}
 
-    {% if small_craft_recorded %}
+    <section class="card headline">
+      {{ icon("waves", "headline-icon", "sky-ink") }}
+      <div>
+        <p class="eyebrow sky">Synopsis · {{ area }}</p>
+        <p class="summary">{{ synopsis or "—" }}</p>
+      </div>
+    </section>
+
+    <div class="row">
+      <section class="card conditions">
+        <h2 class="eyebrow">Wind (knots)</h2>
+        {{ tile_list(wind_tiles, "No wind supplied.") }}
+      </section>
+
+      <section class="card conditions">
+        <h2 class="eyebrow">Sea state and waves</h2>
+        {{ tile_list(sea_tiles, "No sea conditions supplied.") }}
+      </section>
+    </div>
+
+    <div class="row">
+      <section class="card conditions">
+        <h2 class="eyebrow">Swell</h2>
+        {{ tile_list(swell_tiles, "No swell supplied.") }}
+      </section>
+
+      <section class="card">
+        <h2 class="eyebrow">Weather and visibility</h2>
+        <p>{{ weather or "—" }}</p>
+        {% if visibility %}<p>Visibility {{ visibility }}</p>{% endif %}
+      </section>
+    </div>
+
     <section class="card">
-      <h2 class="eyebrow">Small craft (as recorded)</h2>
+      <h2 class="eyebrow">Small craft</h2>
+      <p>{{ small_craft }}</p>
+      {% if small_craft_recorded %}<p class="muted">Small craft (as recorded)</p>{% endif %}
       {% for text in small_craft_recorded %}<p>{{ text }}</p>{% endfor %}
     </section>
-    {% endif %}
 
     <section class="card">
       <h2 class="eyebrow">Outlook · next 24 hours</h2>
       <p>{{ outlook or "—" }}</p>
     </section>
+
+    {% if tide_tiles or astronomy %}
+    <div class="row">
+      {% if tide_tiles %}
+      <section class="card conditions">
+        <h2 class="eyebrow">Tides (predicted, not for navigation)</h2>
+        {{ tile_list(tide_tiles, "") }}
+      </section>
+      {% endif %}
+      {% if astronomy %}
+      <section class="card">
+        <h2 class="eyebrow">Sun and moon</h2>
+        <dl class="details">
+          {% for label, value in astronomy %}
+          <dt>{{ label }}</dt><dd>{{ value }}</dd>
+          {% endfor %}
+        </dl>
+      </section>
+      {% endif %}
+    </div>
+    {% endif %}
 </div>
 {% endblock %}

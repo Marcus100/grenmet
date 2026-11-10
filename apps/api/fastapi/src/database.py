@@ -6,6 +6,8 @@ from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_asyn
 from sqlalchemy.orm import Session
 from sqlalchemy.pool import NullPool
 
+from src import db_timeouts
+
 # Import all models so their SQLAlchemy tables are registered before startup.
 from src.audit import listener as _audit_listener  # flush hook
 from src.audit.models import AuditEntry
@@ -128,7 +130,13 @@ engine = create_engine(str(settings.SQLALCHEMY_DATABASE_URI))
 _async_url = str(settings.SQLALCHEMY_DATABASE_URI).replace(
     "postgresql+psycopg", "postgresql+asyncpg", 1
 )
-_async_engine_kwargs: dict[str, Any] = {"echo": False}
+_async_engine_kwargs: dict[str, Any] = {
+    "echo": False,
+    # Ends a leaked connection that sits idle inside a transaction (release runbook).
+    "connect_args": db_timeouts.idle_in_transaction_connect_args(
+        settings.DB_IDLE_IN_TRANSACTION_TIMEOUT
+    ),
+}
 
 
 def async_pool_options() -> dict[str, Any]:

@@ -27,6 +27,7 @@ export function organisationsRotateApiKey<ThrowOnError extends boolean = true>(
       method: "POST",
       url: "/api/v1/organisations/org/api-keys/{key_id}/rotate",
       security: [{ type: "oauth2" }],
+      contentType: { request: "application/json" },
       ...config,
       throwOnError: config.throwOnError ?? true,
     }) as Promise<

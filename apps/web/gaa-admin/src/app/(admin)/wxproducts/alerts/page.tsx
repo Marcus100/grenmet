@@ -22,6 +22,7 @@ export default async function AlertsPage({
       : [];
   return (
     <ProductDesk
+      description="Issue and update GMS alerts. The published alert stays live until you publish a revision."
       initialKind={initialKind}
       kinds={ALERT_KINDS}
       sourceEditionIds={sourceEditionIds}

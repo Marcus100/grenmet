@@ -26,6 +26,7 @@ from src.utils.datetime import utc_now
 from .. import activity, outbox, schemas
 from ..exceptions import EventsConflict, EventsNotFound
 from ..models import Admission, Listing, Order, OrderItem, Organiser, Refund, Ticket
+from ..transitions import ListingStatus, TicketStatus, move_listing, move_ticket
 from . import event_cancel
 from .admission import _door_listing
 from .common import _naive_utc
@@ -80,9 +81,7 @@ async def cancel_locked_event(
     db: AsyncSession, user: User, listing: Listing, refund: str
 ) -> schemas.CancelResult:
     now = utc_now()
-    if listing.status != "published":
-        raise EventsConflict("Only a published event can be cancelled")
-    listing.status = "cancelled"
+    move_listing(listing, "cancel", refusal="Only a published event can be cancelled")
     listing.updated_at = utc_now()
     settled = await event_cancel.cancel_event_orders(db, user, listing, refund, now)
     cancelled = settled.tickets_cancelled
@@ -107,8 +106,8 @@ async def cancel_locked_event(
         organiser_id=listing.organiser_id,
         summary={
             "changed": ["status"],
-            "from": {"status": "published"},
-            "to": {"status": "cancelled"},
+            "from": {"status": ListingStatus.PUBLISHED.value},
+            "to": {"status": ListingStatus.CANCELLED.value},
             "tickets_cancelled": cancelled,
             "refund": refund,
             "orders_refunded": settled.refunded,
@@ -120,7 +119,7 @@ async def cancel_locked_event(
     await db.commit()
     return schemas.CancelResult(
         listing_id=listing.id,
-        status="cancelled",
+        status=ListingStatus.CANCELLED.value,
         tickets_cancelled=cancelled,
         orders_refunded=settled.refunded,
         orders_queued=settled.queued,
@@ -140,7 +139,7 @@ async def postpone_event(
     slug: str | None = None,
 ) -> schemas.PostponeResult:
     listing = await _locked_listing(db, user, listing_id, org_ids, slug)
-    if listing.status != "published":
+    if listing.status != ListingStatus.PUBLISHED.value:
         raise EventsConflict("Only a published event can be postponed")
     starts, ends = _naive_utc(body.starts_at), _naive_utc(body.ends_at)
     if ends <= starts:
@@ -205,10 +204,10 @@ async def refund_ticket(
             "Only outlet cash tickets can be refunded here; refund an online"
             " payment from the payments page"
         )
-    if ticket.status == "refunded":
+    if ticket.status == TicketStatus.REFUNDED.value:
         raise EventsConflict("This ticket was already refunded")
-    event_cancelled = listing.status == "cancelled"
-    if ticket.status == "cancelled" and not event_cancelled:
+    event_cancelled = listing.status == ListingStatus.CANCELLED.value
+    if ticket.status == TicketStatus.CANCELLED.value and not event_cancelled:
         raise EventsConflict("This ticket was cancelled and has nothing to refund")
     admitted = await db.scalar(
         select(Admission.id).where(Admission.ticket_id == ticket.id)
@@ -239,7 +238,10 @@ async def refund_ticket(
         till_session_id=till.id if till and till.closed_at is None else None,
     )
     db.add(refund)
-    ticket.status = "refunded"
+    move_ticket(
+        ticket,
+        "refund" if ticket.status == TicketStatus.VALID.value else "refund_cancelled",
+    )
     if ticket.cancelled_at is None:
         ticket.cancelled_at = utc_now()
     try:

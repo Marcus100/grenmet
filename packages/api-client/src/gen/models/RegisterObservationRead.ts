@@ -29,9 +29,15 @@ export type RegisterObservationRead = {
     [key: string]: unknown;
   };
   raw_tac?: string | null;
+  /**
+   * @description The server's BUFR record: message, checks, validity and any reviewer override (`override`: by, by_name, at, reason, record_sha256).
+   */
   bufr?: {
     [key: string]: unknown;
   } | null;
+  /**
+   * @description The server's IWXXM record: XML, validity, errors.
+   */
   iwxxm?: {
     [key: string]: unknown;
   } | null;
@@ -79,4 +85,9 @@ export type RegisterObservationRead = {
    * @type string
    */
   updated_at: string;
+  /**
+   * @description The QC actions this state allows: accept, reject, reopen, correct (accept only for SYNOP). Computed from the state and kind alone: a WIS2 file or email already queued or sent can still refuse reject, reopen or a re-save, and the 409 detail says why.
+   * @type array | undefined
+   */
+  allowed_actions?: string[];
 };

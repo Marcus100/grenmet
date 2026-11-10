@@ -29,6 +29,7 @@ export function organisationsAddMemberAdmin<
       method: "POST",
       url: "/api/v1/organisations/{organisation_id}/admin/members",
       security: [{ type: "oauth2" }],
+      contentType: { request: "application/json" },
       ...config,
       throwOnError: config.throwOnError ?? true,
     }) as Promise<

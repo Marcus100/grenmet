@@ -382,7 +382,8 @@ def test_bulletin_sheet_context_and_render():
         "marine", values, status="DRAFT — NOT FOR ISSUE", revision="r1"
     )
     assert values["forecaster"] == "Signed In"
-    assert values["wind"] == "E 17–25 mph"
+    # Marine alerts give wind in knots (owner, 9 Nov 2026).
+    assert values["wind"] == "E 15–22 kt"
     assert context["level_colour"] == "orange"
     assert context["product_code"] == "GMS-BUL-MARINE"
     assert ("Moonrise", "21:14") in context["details"]

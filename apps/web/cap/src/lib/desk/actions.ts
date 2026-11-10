@@ -58,7 +58,7 @@ export async function runDeskAction<T>(
     if (isAuthApiError(error) && error.status >= 400 && error.status < 500) {
       return failedAction(
         describeDeskError({
-          data: { detail: error.detail },
+          data: { detail: error.detail, errors: error.errors },
           status: error.status,
         })
       );

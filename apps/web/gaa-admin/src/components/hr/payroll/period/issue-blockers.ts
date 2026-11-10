@@ -1,4 +1,6 @@
-import type { PaySummaryPublic } from "@barrelsgd/api-client";
+import type { PayPeriodStatus, PaySummaryPublic } from "@barrelsgd/api-client";
+import { payPeriodStatus } from "@barrelsgd/api-client";
+import { isLockedPeriod } from "./period-status";
 
 export interface IssueBlocker {
   /** What is stopping the period being issued, in plain words. */
@@ -10,11 +12,10 @@ export interface IssueBlocker {
 export interface IssueBlockerInput {
   canApprove: boolean;
   preparedByCaller: boolean;
-  status: string;
+  status: PayPeriodStatus;
   summary: PaySummaryPublic;
 }
 
-const LOCKED = new Set(["APPROVED", "EXPORTED", "CLOSED"]);
 const STATUTORY_CATEGORIES = new Set(["INCOME_TAX", "SOCIAL_INSURANCE"]);
 
 function employeesWithShortfall(summary: PaySummaryPublic): number {
@@ -44,11 +45,11 @@ export function issueBlockers(input: IssueBlockerInput): IssueBlocker[] {
     return [];
   }
   const blockers: IssueBlocker[] = [];
-  if (!LOCKED.has(input.status)) {
+  if (!isLockedPeriod(input.status)) {
     blockers.push({
       message: "The period's quantities are not approved yet.",
       whoCanFix:
-        input.status === "OPEN"
+        input.status === payPeriodStatus.OPEN
           ? "The preparer submits the period, then a second person with approval permission approves it on this page."
           : "A second person with approval permission approves it on this page.",
     });

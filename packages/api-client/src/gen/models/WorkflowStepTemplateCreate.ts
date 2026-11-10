@@ -8,7 +8,7 @@ import type { WorkflowStepInstancePublicPropertiesPurposeEnum } from "./Workflow
 
 export type WorkflowStepTemplateCreate = {
   /**
-   * @minLength 1
+   * @minimum 1
    * @type integer
    */
   step_order: number;

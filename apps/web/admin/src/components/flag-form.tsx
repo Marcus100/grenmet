@@ -45,9 +45,16 @@ export function FlagForm({ flag }: { flag?: FeatureFlagAdmin }) {
   return (
     <form action={action} className="mt-3 grid max-w-md gap-3">
       {state.message ? (
-        <p className="rounded-md border px-3 py-2 text-sm" role="alert">
-          Problem: {state.message}
-        </p>
+        <div className="rounded-md border px-3 py-2 text-sm" role="alert">
+          <p>Problem: {state.message}</p>
+          {state.problems?.length ? (
+            <ul className="mt-1 list-disc pl-5">
+              {state.problems.map((problem) => (
+                <li key={problem}>{problem}</li>
+              ))}
+            </ul>
+          ) : null}
+        </div>
       ) : null}
       {flag ? (
         <input name="flag_id" type="hidden" value={flag.id} />

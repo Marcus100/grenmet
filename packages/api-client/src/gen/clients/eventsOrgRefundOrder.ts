@@ -25,6 +25,7 @@ export function eventsOrgRefundOrder<ThrowOnError extends boolean = true>(
       method: "POST",
       url: "/api/v1/events/org/orders/{order_id}/refunds",
       security: [{ type: "oauth2" }],
+      contentType: { request: "application/json" },
       ...config,
       throwOnError: config.throwOnError ?? true,
     }) as Promise<RequestResult<EventsOrgRefundOrderResponses, ThrowOnError>>

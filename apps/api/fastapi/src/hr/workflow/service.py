@@ -27,6 +27,7 @@ from src.hr.exceptions import (
 )
 from src.utils.datetime import utc_now
 
+from . import transitions as workflow_transitions
 from .models import (
     ApprovalActionLog,
     WorkflowAction,
@@ -539,7 +540,6 @@ async def apply_workflow_action(
         from src.auth.policy import can_act_on_user
         from src.hr.exchange import roster_effects
         from src.hr.exchange.models import ShiftSwapRequest
-        from src.hr.models import RequestStatus
 
         require_permission(
             current_user=current_user, permission_key="shift_swap.request.action"
@@ -565,9 +565,9 @@ async def apply_workflow_action(
             reason=action_in.rule_override_reason,
         )
         await roster_effects.reverse_exchange(session, request, current_user.id)
-        request.status = RequestStatus.CANCELLED
+        workflow_transitions.move_workflow(workflow_instance, "cancel_approved")
+        workflow_transitions.mirror_request_status(request, workflow_instance.status)
         request.updated_at = utc_now()
-        workflow_instance.status = WorkflowStatus.CANCELLED
         workflow_instance.resolved_at = workflow_instance.updated_at = utc_now()
         session.add(
             ApprovalActionLog(
@@ -609,7 +609,7 @@ async def apply_workflow_action(
             permission_key="leave.request.action",
         ):
             raise HRPermissionDeniedError(ERROR_WORKFLOW_PERMISSION_DENIED)
-        workflow_instance.status = WorkflowStatus.CANCELLED
+        workflow_transitions.move_workflow(workflow_instance, "cancel_approved")
         workflow_instance.resolved_at = workflow_instance.updated_at = utc_now()
         await finalize_entity(
             session,
@@ -734,7 +734,7 @@ async def apply_workflow_action(
                 step.approver_user_id = None
                 step.acted_at = None
                 step.comments = None
-        workflow_instance.status = WorkflowStatus.PENDING
+        workflow_transitions.move_workflow(workflow_instance, "submit")
         workflow_instance.submitted_at = utc_now()
         workflow_instance.current_step_order = min(
             (step.step_order for step in steps if step.is_required), default=1
@@ -836,7 +836,6 @@ async def apply_workflow_action(
     previous_status = workflow_instance.status
     if workflow_instance.entity_type == "shift_swap":
         from src.hr.exchange.models import ShiftSwapRequest
-        from src.hr.models import RequestStatus
 
         request = await session.get(ShiftSwapRequest, workflow_instance.entity_id)
         if request is None or request.workflow_instance_id != workflow_instance.id:
@@ -854,7 +853,9 @@ async def apply_workflow_action(
             request.counterpart_agreed = False
             request.counterpart_agreed_at = None
         if action_in.action == WorkflowAction.CANCEL:
-            request.status = RequestStatus.CANCELLED
+            workflow_transitions.mirror_request_status(
+                request, WorkflowStatus.CANCELLED
+            )
         request.updated_at = utc_now()
     target_step.approver_user_id = current_user.id
     target_step.action = action_in.action
@@ -875,13 +876,13 @@ async def apply_workflow_action(
     if not target_step.is_required:
         pass  # Non-blocking completion never changes the request decision.
     elif action_in.action == WorkflowAction.REJECT:
-        workflow_instance.status = WorkflowStatus.REJECTED
+        workflow_transitions.move_workflow(workflow_instance, "reject")
         workflow_instance.resolved_at = utc_now()
     elif action_in.action == WorkflowAction.CANCEL:
-        workflow_instance.status = WorkflowStatus.CANCELLED
+        workflow_transitions.move_workflow(workflow_instance, "cancel")
         workflow_instance.resolved_at = utc_now()
     elif action_in.action == WorkflowAction.RETURN:
-        workflow_instance.status = WorkflowStatus.RETURNED
+        workflow_transitions.move_workflow(workflow_instance, "return")
         prev_orders = [s.step_order for s in steps if s.step_order < current_order]
         workflow_instance.current_step_order = max(prev_orders, default=1)
     elif action_in.action == WorkflowAction.APPROVE:
@@ -898,7 +899,7 @@ async def apply_workflow_action(
             if next_orders:
                 workflow_instance.current_step_order = min(next_orders)
             else:
-                workflow_instance.status = WorkflowStatus.APPROVED
+                workflow_transitions.move_workflow(workflow_instance, "approve")
                 workflow_instance.resolved_at = utc_now()
 
     if workflow_instance.status != previous_status and (

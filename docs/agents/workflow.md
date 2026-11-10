@@ -208,9 +208,10 @@ under both clients' preview limits. `audit-log.mjs` logs every Bash command to
 the main checkout's `.agents-bash-audit.log`, redacting credentials and rotating
 at 5 MB.
 `verify-before-stop.mjs` (Stop, both clients) sends an agent back once when its
-changes since `origin/dev` don't match the receipt a passing `pnpm verify:changed`
-writes to the worktree's git dir; the agent runs the checks or says in one line
-why it is stopping first. It reads only and never runs a check itself.
+changes since `origin/dev` are neither committed and pushed (GitHub CI then checks
+them) nor match the receipt a passing `pnpm verify:changed` writes to the
+worktree's git dir; the agent pushes, runs the checks, or says in one line why it
+is stopping first. It reads only and never runs a check itself.
 
 For UI work, `pnpm ui:screenshots --app <app> --path <route>` renders a running
 dev server at 375 and 1280 px in light and dark mode into `.ui-review/` and flags

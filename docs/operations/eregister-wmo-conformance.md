@@ -274,9 +274,93 @@ other QC holder the observation waits rather than being waved through. Reject
 and reopen need a reason; accept needs a workbook that validates; reopen is
 refused once the observation is queued for WIS2. Every decision is audited
 (`eregister_observation`). WIS2 publication always requires `accepted`; email
-is allowed for validated observations (internal use, marked provisional) unless
-`EREGISTER_SEND_REQUIRE_ACCEPTED` is set. The public page and month summary
+requires it too by default (`EREGISTER_SEND_REQUIRE_ACCEPTED` defaults to true;
+set it to false to email validated, unaccepted observations for internal use,
+marked provisional). The public page and month summary
 call a reading provisional unless it is accepted.
+
+## IWXXM METAR and SPECI, `src/eregister/iwxxm.py`
+
+First slice of our own IWXXM encoder (GitHub #1201: written from the WMO and ICAO
+specifications, not from GIFTs code). The XML is built from the decoded values of
+the accepted SYNOP (`rules.validate_synop`, `metar.expected`), not from a re-parsed
+TAC. Acceptance stores the record on the row's `iwxxm` column, in the same
+transaction (`qc._store_iwxxm`): `{version, xml, valid, errors, schematron}`.
+Nothing is sent. A gap or an invalid document is stored in `errors` and never
+blocks acceptance.
+
+- **Version: IWXXM 2025-2** (`iwxxm.IWXXM_VERSION`). It is the latest release of
+  `wmo-im/iwxxm` (`LATEST_VERSION` = 2025-2) and implements the changes of ICAO
+  Annex 3 Amendment 82 (release notes). The region's agreed exchange version is
+  still to be confirmed with CMO and ROC; 2023-1 and 2021-2 are the earlier releases.
+- **Covered:** issue and observation time; aerodrome TGPY or TGPZ
+  (`aerodromes.py`); surface wind (direction, speed, gust, variable); prevailing
+  visibility (9999 as 10 km ABOVE); present weather (`iwxxm.PRESENT_WEATHER`,
+  ww 00 to 03 none); cloud amount, base and CB; vertical visibility; NSC as a nil
+  reason; air temperature, dew point and QNH (whole hPa); CAVOK by the Annex 3
+  criteria; NIL report (observation nil, reason missing); COR (`reportStatus`
+  CORRECTION when the observation supersedes an earlier one).
+- **Not covered, reported as gaps:** trend (NOSIG, BECMG, TEMPO), recent weather,
+  wind shear, RVR, TCU, ww codes outside the table (06 dust, 20 to 29, 91 to 94),
+  and cloud without a keyed layer. The register accepts only SYNOP rows, so only
+  METAR is stored; the encoder can also build SPECI for a later SPECI path.
+- **Validation:** XSD 2025-2 with `xmlschema` (pure Python, a dependency of
+  `fast-back`). The schemas are not committed (the upstream project has no licence
+  and WMO asks for permission to reproduce). `python -m scripts.fetch_iwxxm_schemas`
+  (run from `apps/api/fastapi`) downloads each file of the pinned tag `v2025-2`,
+  checks it against the SHA-256 manifest `src/eregister/iwxxm_schema_manifest.json`,
+  and writes it to the gitignored `src/eregister/iwxxm_xsd/2025-2`. The Docker
+  images and the CI test job run it. Without the schemas the record is kept with
+  `valid` null and a `note` (false when a gap is already known); the XSD tests skip
+  locally and fail in CI. Schematron is not run: the upstream rules need an XSLT
+  2.0 engine. Until it runs, `schematron` is `not_run`, so `valid` means XSD-valid
+  with no gaps, not conformant.
+- **Reference data to confirm:** aerodrome coordinates and elevations (OurAirports
+  and Wikipedia, cross-checked; not yet the Grenada AIP) and the ww to METAR table
+  (WMO code table 4677 meanings). Both need GMS confirmation before any use outside
+  the register.
+- **Performance:** the schema loads once per process (about 8 s on the WSL host).
+  The first accept in each process waits for it; the encoder runs in a thread.
+
+## BUFR (Surface-RA-IV-100), `src/eregister/bufr.py`
+
+Owner decision (GitHub #1201). At acceptance the accepted SYNOP's wis2box CSV
+(`encode.wis2_row`) is converted with csv2bufr 0.8.8 using the Surface-RA-IV-100
+mapping, the same template wis2box uses. The packaged copy in `bufr_template/` is
+checked byte for byte against `scripts/wis2-setup/`. The message is then decoded again
+with ecCodes, and each element is compared with the observation's decoded SI values,
+not with the CSV: WIGOS identifier, time, station and sea-level pressure, air
+temperature, dew point, relative humidity, wind direction and speed, visibility,
+precipitation, total cloud and present weather. Tolerances are the element resolution
+(see the constants in `bufr.py`), not quality limits.
+
+- Stored on the row's `bufr` column as `{template, base64, checks, valid, errors}`,
+  in the same transaction as the acceptance.
+- **Sends are blocked** while the record is not valid: `sends.load_sendable` refuses
+  WIS2 and email with 409 and the first error. A row with no stored record is checked
+  at send time.
+- **Reviewer override** (owner decision, GitHub #1201, 10 Nov): `POST
+  /eregister/observations/{id}/bufr-override` with a required reason of 10 to 500
+  characters after the shared cleaner. Only `eregister.qc` holders, never the observer
+  (superusers included): neither who recorded this row nor who recorded any row it
+  corrects (the `supersedes_id` chain), and only on a live SYNOP whose check failed. It writes
+  `bufr.override` = `{by, by_name, at, reason, record_sha256}` on the current record and
+  audits `bufr_override` in the application database. `sends.load_sendable` lets a
+  failed record pass only when `bufr.override_for` finds an override whose
+  `record_sha256` is the digest of that exact record (`bufr.record_digest`, the record
+  without its override). A correction is a new row, and a re-encoding that changes the
+  message ends the override (`bufr.carry_over` keeps it only for an identical encoding).
+  Rejecting a correction restores the original row with its stored BUFR record
+  untouched, so an override given on the original applies again while its digest still
+  matches. The audit entry records the reason and `record_sha256`.
+  The override never changes `base64`, `checks` or `valid`. Clients cannot store a
+  `bufr` or `iwxxm` record: saves ignore them, and a station-settings lookup failure on
+  save keeps the save with both records stored as errors that say why (a failed SQL
+  statement and any other failure alike). The lookup runs in a SAVEPOINT, so a
+  correction keeps its row lock and state guard after a failed lookup.
+- The CSV handed to wis2box does not change. csv2bufr is a runtime dependency; the
+  process points its template search at `bufr_template/`.
+- Not built: BUFR for METAR and SPECI.
 
 ## Send actions (email and WIS2), `src/eregister/encode.py`
 
@@ -308,9 +392,10 @@ so empty: soil, radiation, snow, wind gust direction. The ground state E fills `
 
 ## Not implemented (needs owner approval)
 
-- **BUFR in the API (template TM 307080 for SYNOP, and the METAR/SPECI BUFR
-  templates):** no encoder exists. wis2box converts instead: "Send last obs"
-  hands it a CSV (see Send actions). METAR/SPECI have no WIS2 path yet.
-- **IWXXM (METAR/SPECI/TAF XML):** see `aviation-converter-evaluation.md`
-  (tac2iwxxm candidate, validators need Schematron assets). No dependency added.
+- **BUFR for METAR and SPECI:** not built. SYNOP BUFR is built and checked (see the
+  BUFR section). wis2box still converts the CSV for WIS2 (see Send actions).
+- **IWXXM:** METAR and SPECI first slice is built (see the IWXXM section above).
+  Still open: TAF (FM 51), Schematron (needs an XSLT 2.0 engine), the agreed
+  exchange profile and transport decision with CMO and ROC. The external converter
+  evaluation is in `aviation-converter-evaluation.md`; no converter was adopted.
 - **Annex 3 conformance of a whole SPECI decision** and **TAF forecast quality**.

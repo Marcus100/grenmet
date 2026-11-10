@@ -14,6 +14,9 @@ export const ROUTE_MOVES: readonly (readonly [from: string, to: string])[] = [
   ["/observations", "/weather/observations"],
   ["/almanac", "/weather/sun-and-sky"],
   ["/products/nhc", "/weather/tropics"],
+  ["/weather/3-day", "/weather/5-day"],
+  // No 7-day product exists yet; the page was only a placeholder.
+  ["/weather/7-day", "/weather/5-day"],
   ["/products/forecasts", "/weather/issued"],
   ["/products/issued", "/weather/issued"],
   // Alerts (renamed from Warnings, 29 Sep 2026)

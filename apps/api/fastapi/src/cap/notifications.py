@@ -15,11 +15,11 @@ from src.notifications import gms
 from .models import (
     CapAlert,
     CapInfo,
-    CapLifecycleState,
     CapMessageType,
     CapScope,
     CapStatus,
 )
+from .transitions import EVER_PUBLISHED_STATES
 
 ACTIONS = {
     CapMessageType.ALERT: "issued",
@@ -30,11 +30,10 @@ ACTIONS = {
 
 def is_public(alert: CapAlert) -> bool:
     """Whether the anonymous public lookup finds this alert."""
-    return alert.scope == CapScope.PUBLIC and alert.lifecycle_state in {
-        CapLifecycleState.PUBLISHED,
-        CapLifecycleState.EXPIRED,
-        CapLifecycleState.CANCELLED,
-    }
+    return (
+        alert.scope == CapScope.PUBLIC
+        and alert.lifecycle_state in EVER_PUBLISHED_STATES
+    )
 
 
 async def headline(session: AsyncSession, alert: CapAlert) -> str:

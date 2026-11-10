@@ -48,7 +48,7 @@ export function hrOffboardStaffMutationOptions<TContext = unknown>(
 }
 
 /**
- * @description Invalidate staff credential and revoke access.
+ * @description Invalidate staff credential and revoke access. Needs hr.setup.manage for the organisation; superusers may act for any organisation.
  * @summary Invalidate staff credential and revoke access
  * {@link /api/v1/hr/setup/staff/:user_id/offboard}
  */

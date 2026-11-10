@@ -301,6 +301,18 @@ nothing has been fetched; clients must show an unavailable state, never sample
 data. Responses carry `Cache-Control` with `s-maxage` for Cloudflare. See
 `apps/api/fastapi/src/environmental/AGENTS.md`.
 
+`GET /api/v1/almanac/public/astronomy?location=&from=&to=` (`location` is `mbia`
+or `lauriston`; `from`/`to` are Grenada local dates, inclusive, at most 366 days)
+and `GET /api/v1/almanac/public/tides?station=&from=&to=` (`station` is `pric`)
+are anonymous and rate-limited (60/min per IP). They read the stored almanac
+tables: sunrise, sunset, civil dawn and dusk, moonrise and moonset in UTC with
+Grenada local times, the moon phase name per day, and the principal phases in
+range plus the nearest either side (astronomy); predicted high and low tides in
+metres relative to provisional MLLW (tides). The tides response always carries a
+"predicted, not for navigation" `note`. Responses carry `Cache-Control` for a day.
+See `apps/api/fastapi/src/almanac/AGENTS.md` and
+`docs/operations/almanac-and-tides.md`.
+
 ## Model guidance (gmsdash)
 
 `GET /api/v1/models/meteogram?point=&model=` returns a stored point series
@@ -647,6 +659,14 @@ route. Only these self-service routes accept unapproved accounts (`AccountUser`)
 `POST /auth/users/me/staff-access-request`. The last one sets
 `UserPublic.staff_access_requested_at` (idempotent); staff setup
 (`GET /setup/staff`) lists approved staff plus accounts that asked.
+HR setup under `/hr/setup/*` (staff, grades, policies, balances, catalogue,
+registration approval) is open to holders of `hr.setup.manage` for the organisation
+they administer only: the request names that organisation (`organisation_id`, or the
+department or employee it acts on), and anything else gets 404, while a missing
+organisation gets 403 (the OpenAPI 403 and 404 descriptions on these operations say the same).
+Superusers keep every organisation. Role bundles
+(`/hr/setup/roles`) and product-access policies stay superuser-only because they are
+shared across organisations (issue #1080).
 `POST /auth/token` (machine clients) still requires staff approval.
 `POST /auth/email-code/start` and `/verify` sign in to the account with a
 6-digit emailed code (the first verified code creates the account when sign-up is
@@ -871,6 +891,8 @@ The legacy `PATCH /events/moderation/organisers/{id}` and `POST /organisations/{
 `GET /events/manage/{listing_id}/activity` returns that listing's append-only history
 (`ActivityEntry`: action, actor id and current display name, changed-field summary),
 newest first, for its organiser only.
+
+Status values are typed, not free text (`src/events/transitions.py` holds the lifecycles). `StaffEventRow.status` in the Barrels staff picker is the listing literal `draft | published | cancelled` (`ListingStatusName`, the same values as `ManagedListing.status`); it was an untyped string. The org-zone order and ticket statuses (`OrgOrderStatus`, `OrgTicketStatus`) and the member's order status are literals too. No value was added or removed, so this is a schema tightening, not a break.
 
 ### Events catalogue taxonomy (ADR-0046, L3)
 
@@ -1342,7 +1364,7 @@ and approve (`PATCH /hr/timesheets/{id}/approve`, optional body), attendance sub
 attendance corrections. Without it, a change that breaks a rule fails with 409 and
 `RosterRuleWarningsErrorPublic`; that model is a superset of `ApiError` (`detail`,
 plus `code: ROSTER_RULE_WARNINGS`, `context` and `violations` for rule warnings), so
-ordinary 409s on those routes keep their shape. A reason containing NUL is a 422; other control characters, Unicode bidi controls and zero-width characters are removed.
+ordinary 409s on those routes keep their shape. A reason containing NUL is a 422; other control characters, Unicode bidi controls, zero-width characters and invisible padding (such as soft hyphens and filler characters) are removed. A text or emoji presentation selector (U+FE0E or U+FE0F) is kept once directly after a character, so "❤️" and keycaps such as "1️⃣" keep their glyph; a run of them, or one at the start, is removed. Zero-width joiners (U+200D) are removed, so multi-person emoji such as family sequences are stored as separate emoji.
 Shift definitions carry `break_minutes` (unpaid break, 0 to 240). `DELETE /api/v1/hr/timesheets/{id}` removes the caller's own unsubmitted draft (no approval history), so the editor can replace a draft whose submission was held for rule warnings. It needs `timesheet.submit.self` and live employment in the filing department (403 otherwise); a missing id and another user's timesheet are both 404; a submitted timesheet is 400. Entries are deleted through the ORM, so the change history records the timesheet and each entry; only a superuser can read that trail afterwards, because the record's own access check needs the deleted timesheet. Attendance week
 rows, timesheet entries and the timesheet summary carry `overtime_bands` (rate and
 hours, no pay). Details: `docs/hr/roster-rules.md`.
@@ -1638,7 +1660,7 @@ An import (`POST /api/v1/cap/alerts/import`, feeds too) is refused only when it 
 
 `sent` is the time an alert went out: publish (normal and emergency) stamps it, and so do cancellations. The drafting time is not kept. The CAP settings `wmo_oid` must be a WMO OID of the form `2.49.0.1.<country>.<authority>` (digits and dots only); anything else is a 422.
 
-The public routes (`/api/cap/alerts`, `/alerts/{identifier}`, `/past`, `/latest-active`) return `CapAlertPublicView`, which drops `schema_conformant`, `schema_error`, `import_source`, `created_by_user_id` and `updated_by_user_id` (who created or changed an alert is not public). `note` stays: the CAP XML publishes it too. Staff routes return the full `CapAlertPublic`. `GET /api/v1/cap/alerts/by-identifier/{identifier}` (`cap.alert.read`) is the staff detail lookup by CAP identifier, including drafts and imports.
+The public routes (`/api/cap/alerts`, `/alerts/{identifier}`, `/past`, `/latest-active`) return `CapAlertPublicView`, which drops `schema_conformant`, `schema_error`, `import_source`, `created_by_user_id` and `updated_by_user_id` (who created or changed an alert is not public). `note` stays: the CAP XML publishes it too. Staff routes return the full `CapAlertPublic`. `GET /api/v1/cap/alerts/by-identifier/{identifier}` (`cap.alert.read`) is the staff detail lookup by CAP identifier, including drafts and imports. Staff alerts carry `allowed_actions`: the actions their `lifecycle_state` allows (`submit`, `approve`, `publish`, `emergency_publish`, `cancel`, `expire`), from the table in `src/cap/transitions.py`. It depends on the state only, so the permission and approval-policy checks still apply when an action is requested.
 
 Feeds and URL imports are fetched only over https (plain http only for a registered feed that uses it), through a helper that connects to the address the host check validated, rebuilds the URL from parsed components, does not follow redirects, and caps the body at 5 MB.
 
@@ -2355,6 +2377,17 @@ is pending"): accepting the correction drops the held file (`failed`, "Replaced 
 correction before it was delivered"); rejecting the correction releases it so the
 original reading is retried as before.
 
+`POST .../{id}/bufr-override` (`eregister.qc`, never the observer of the observation or
+of any observation it corrects) records a reviewer
+override of a failed or mismatched BUFR check with a required reason of 10 to 500
+characters after cleaning. It lets email and WIS2 send that record as it is; the
+record's message and validity do not change, and a correction or a re-encoding ends it.
+`409` when the check passed or the observation is rejected or superseded. The override
+is stored as `bufr.override` (`by`, `by_name`, `at`, `reason`, `record_sha256`) and audited
+(reason and `record_sha256`). Rejecting a correction restores the original with its
+override, which applies again while it still matches that record. `bufr` and `iwxxm` on
+create and correct bodies are read-only and ignored on write.
+
 `POST .../{id}/review` takes an optional `updated_at`, the value the reviewer saw
 when opening the record (to the second). If the record was saved or decided since (accept, reject and reopen also move
 `updated_at`), the review is refused with `409`; a change within the same second is
@@ -2456,7 +2489,13 @@ person. Accepting validates the workbook (`422`) and then queues the WIS2 file
 and the email at once (best effort: a refused hand-off, for example an hour the
 automatic source owns, never undoes the acceptance; see `GET .../sends`).
 `reject` and `reopen` need a reason; `reopen` (and `reject`) is `409` once a WIS2
-file was queued or sent. Rejecting a correction (a row with `supersedes_id`)
+file was queued or sent. The staff `RegisterObservationRead` carries
+`allowed_actions`: the QC actions its state allows (`accept`, `reject`, `reopen`,
+`correct`; `accept` only for a SYNOP), from the table in
+`src/eregister/transitions.py`. It depends on the state and kind only, so a WIS2
+file or email already queued or sent can still refuse `reject`, `reopen` or a
+re-save with `409`, and the permission and four-eyes checks still apply. The
+anonymous `public/*` routes do not carry it. Rejecting a correction (a row with `supersedes_id`)
 releases the held WIS2 file of the observation it replaced and, in the same
 transaction, puts that `superseded` observation back to the state it had before
 (`accepted`, or `draft`/`qc_pending` for a never-accepted one) with its own QC
@@ -2492,8 +2531,9 @@ it is rejected or already superseded. Accepting a replacement of an hour already
 sent to WIS2 sends a correction (`ObservationSend.is_correction`; the email is
 marked `CORRECTION` with a `CCA` line). `POST .../validate-synop` also takes an
 optional `observed_at` to run the same time check. `.../publish` (WIS2) answers
-`409` unless the observation is `accepted`; `.../email` still accepts a validated
-draft unless `EREGISTER_SEND_REQUIRE_ACCEPTED` is set. Every decision and review
+`409` unless the observation is `accepted`; `.../email` also answers `409` unless the
+observation is `accepted` (`EREGISTER_SEND_REQUIRE_ACCEPTED`, default true; false lets a validated
+draft be emailed). Every decision and review
 is audited (`eregister_observation`).
 
 ### GAA operational catalogues

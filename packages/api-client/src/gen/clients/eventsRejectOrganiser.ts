@@ -25,6 +25,7 @@ export function eventsRejectOrganiser<ThrowOnError extends boolean = true>(
       method: "POST",
       url: "/api/v1/admin/moderation/organisers/{organisation_id}/reject",
       security: [{ type: "oauth2" }],
+      contentType: { request: "application/json" },
       ...config,
       throwOnError: config.throwOnError ?? true,
     }) as Promise<RequestResult<EventsRejectOrganiserResponses, ThrowOnError>>

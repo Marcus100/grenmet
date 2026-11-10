@@ -359,7 +359,9 @@ _MONTH_SQL = text(
     ),
     parsed AS (
       SELECT station_name, observed_at, state,
-        CASE WHEN rr ~ '^[0-9]{3}$' THEN
+        CASE WHEN rr ~ '^[0-9]{4}$' THEN
+               CASE WHEN rr = '9999' THEN 0 ELSE CAST(rr AS int) / 10.0 END
+             WHEN rr ~ '^[0-9]{3}$' THEN
                CASE WHEN CAST(rr AS int) = 990 THEN 0
                     WHEN CAST(rr AS int) > 990 THEN (CAST(rr AS int) - 990) / 10.0
                     ELSE CAST(rr AS int) END

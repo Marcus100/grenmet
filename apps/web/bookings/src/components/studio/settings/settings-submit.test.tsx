@@ -95,7 +95,7 @@ describe("a refused save keeps what was typed", () => {
 
   it("an add form still clears after a successful save", async () => {
     actions.saveProviderAction.mockResolvedValue({
-      status: "done",
+      status: "success",
       message: "ok",
     });
     render(<ProviderForm orgSlug="sea-salt" services={[]} />);

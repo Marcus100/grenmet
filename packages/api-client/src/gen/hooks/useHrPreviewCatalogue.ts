@@ -59,7 +59,7 @@ export function hrPreviewCatalogueQueryOptions(
 }
 
 /**
- * @description Preview missing ingested grades, approval policies and workflow templates without changing records.
+ * @description Preview missing ingested grades, approval policies and workflow templates without changing records. Needs hr.setup.manage for the organisation; superusers may act for any organisation.
  * @summary Preview missing GMS reference data
  * {@link /api/v1/hr/setup/catalogue}
  */

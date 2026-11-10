@@ -11,7 +11,7 @@ import type {
 } from "../models/HrUpdateSetupGrade.js";
 
 /**
- * @description Create or update a grade. Grade codes are unique within a department.
+ * @description Create or update a grade. Grade codes are unique within a department. Needs hr.setup.manage for the organisation; superusers may act for any organisation.
  * @summary Create or update a grade
  * {@link /api/v1/hr/setup/grades/:grade_id}
  */
@@ -25,6 +25,7 @@ export function hrUpdateSetupGrade<ThrowOnError extends boolean = true>(
       method: "PUT",
       url: "/api/v1/hr/setup/grades/{grade_id}",
       security: [{ type: "oauth2" }],
+      contentType: { request: "application/json" },
       ...config,
       throwOnError: config.throwOnError ?? true,
     }) as Promise<RequestResult<HrUpdateSetupGradeResponses, ThrowOnError>>

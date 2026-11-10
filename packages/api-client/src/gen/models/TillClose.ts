@@ -5,8 +5,8 @@
 
 export type TillClose = {
   /**
-   * @minLength 0
-   * @maxLength 1000000000
+   * @minimum 0
+   * @maximum 1000000000
    * @type integer
    */
   counted_minor: number;

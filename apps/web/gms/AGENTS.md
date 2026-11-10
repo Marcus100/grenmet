@@ -27,8 +27,10 @@ No DB access. Two backends, never gaa-admin (it only authors into FastAPI):
   (a live post of kind `note`, read from `weatherNow`, with its related links), home
   settings, report write-ups, Weather now live posts. The homepage reads CMS
   content in one call (`fetchHomeContent`). The CMS holds no figures: a post's
-  a post's main related link (`isMain`) is a card only for a warning or a GMS page: `components/featured-link.tsx` shows a warning (`linked-alert.tsx`, live via `fetchPublicAlert`) or a GMS page (`linked-page.tsx`, from `NAV_SECTIONS`); site addresses are built from the stored id/identifier/path (`lib/related-link-href.ts`), never the pasted host. An issued product is never a card (owner, 29 Oct 2026); it stays a plain related link, and the older `linkedProduct` field is ignored. Live media are click-to-load (`media-player.tsx`,
-  allowlist in `lib/media-embed.ts`).
+  a post's main related link (`isMain`) is a card only for a warning or a GMS page: `components/featured-link.tsx` shows a warning (`linked-alert.tsx`, live via `fetchPublicAlert`) or a GMS page (`linked-page.tsx`, from `NAV_SECTIONS`); site addresses are built from the stored id/identifier/path (`lib/related-link-href.ts`), never the pasted host. An issued product is never a card (owner, 29 Oct 2026); it stays a plain related link, and the older `linkedProduct` field is ignored. Live media are click-to-load (`components/home/click-to-load-media.tsx`,
+  allowlist in `lib/media-embed.ts`; focus moves to the frame on play). The
+  site sends no Content-Security-Policy yet; a future one needs `frame-src`
+  for `youtube-nocookie.com`, `facebook.com` and `w.soundcloud.com`.
 - Each home section fetches copy and data separately; either may be unavailable
   without hiding the other. An unavailable feed says so. It never falls back to
   sample figures, and alert pages never render an empty list as "no alerts in
@@ -108,6 +110,13 @@ src/app/
   through a rewrite;
   `nav-sections.test.ts` fails if a built link has no route or a planned link is
   shadowed by one. Build the page, then drop `planned`.
+- **Words for alerts (owner, 9 Nov 2026):** the green-level products GMS issues
+  are **GMS alerts**; yellow, orange and red notices are **warnings** (CAP).
+  Each hazard page (`/alerts/bulletins/<hazard>`) shows both, with a
+  how-to-prepare link from `src/lib/hazard-pages.ts`. A page that leaves the
+  menu but still redirects goes into `RETIRED_MENU_PAGES` in
+  `packages/gms/src/link-recognition.ts`, so a stored CMS link stays a page and
+  not a warning identifier.
 - **No invented figures (owner rule, 18 Oct 2026):** the public site never
   shows invented or sample figures; every page shows real data or an honest
   notice. This reverses the 30 Sep 2026 decision that allowed sample content on

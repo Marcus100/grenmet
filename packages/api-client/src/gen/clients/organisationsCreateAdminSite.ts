@@ -29,6 +29,7 @@ export function organisationsCreateAdminSite<
       method: "POST",
       url: "/api/v1/organisations/admin/sites",
       security: [{ type: "oauth2" }],
+      contentType: { request: "application/json" },
       ...config,
       throwOnError: config.throwOnError ?? true,
     }) as Promise<

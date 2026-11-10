@@ -23,8 +23,8 @@ export type GradeInput = {
    */
   label: string;
   /**
-   * @minLength 1
-   * @maxLength 1000
+   * @minimum 1
+   * @maximum 1000
    * @type integer
    */
   rank: number;

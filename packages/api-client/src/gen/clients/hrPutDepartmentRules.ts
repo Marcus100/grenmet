@@ -26,6 +26,7 @@ export function hrPutDepartmentRules<ThrowOnError extends boolean = true>(
       method: "PUT",
       url: "/api/v1/hr/rosters/departments/{department_id}/rules",
       security: [{ type: "oauth2" }],
+      contentType: { request: "application/json" },
       ...config,
       throwOnError: config.throwOnError ?? true,
     }) as Promise<RequestResult<HrPutDepartmentRulesResponses, ThrowOnError>>

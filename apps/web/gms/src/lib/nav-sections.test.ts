@@ -102,4 +102,27 @@ describe("NAV_SECTIONS", () => {
       }
     }
   });
+
+  it("uses the owner's names for the alert products and the climate bulletin", () => {
+    const names = (label: string) =>
+      sectionLinks(
+        NAV_SECTIONS.find((section) => section.label === label) as NavSection
+      ).map((link) => [link.name, link.href]);
+    // Green-level hazard products are "GMS alerts"; Plan your week sits under Alerts.
+    expect(names("Alerts")).toContainEqual(["GMS alerts", "/alerts/bulletins"]);
+    expect(names("Alerts")).toContainEqual([
+      "Plan your week",
+      "/plan-your-week",
+    ]);
+    expect(names("Weather").map(([, href]) => href)).not.toContain(
+      "/plan-your-week"
+    );
+    expect(names("Climate")).toContainEqual([
+      "Climate Bulletin",
+      "/climate/monthly",
+    ]);
+    expect(names("Alerts").map(([name]) => name)).not.toContain(
+      "All bulletins"
+    );
+  });
 });

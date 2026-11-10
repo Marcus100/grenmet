@@ -25,6 +25,7 @@ export function capUpdateCapSettings<ThrowOnError extends boolean = true>(
       method: "PATCH",
       url: "/api/v1/cap/settings",
       security: [{ type: "oauth2" }],
+      contentType: { request: "application/json" },
       ...config,
       throwOnError: config.throwOnError ?? true,
     }) as Promise<RequestResult<CapUpdateCapSettingsResponses, ThrowOnError>>

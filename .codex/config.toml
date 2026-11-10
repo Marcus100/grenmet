@@ -39,7 +39,8 @@ timeout = 30
 
 # Formatting is explicit or staged at commit time. Never mutate all dirty files
 # automatically on Stop: another client may own them. The Stop hook below only
-# reads: it asks once for `pnpm verify:changed` when changes are unverified.
+# reads: it asks once when changes are neither pushed for CI nor verified
+# by `pnpm verify:changed`.
 
 [[hooks.Stop]]
 [[hooks.Stop.hooks]]

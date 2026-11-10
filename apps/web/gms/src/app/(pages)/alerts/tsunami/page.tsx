@@ -5,6 +5,7 @@ import { ExerciseBanner } from "@/components/pages/exercise-banner";
 import { InfoTable } from "@/components/pages/info-table";
 import { PageSection } from "@/components/pages/page-section";
 import { Prose } from "@/components/pages/prose";
+import { PublishedProducts } from "@/components/pages/published-products";
 import { fetchActiveAlerts } from "@/lib/cap";
 
 export const metadata = {
@@ -29,6 +30,9 @@ export default async function TsunamiPage() {
           only={["Tsunami"]}
           result={alerts}
         />
+      </PageSection>
+      <PageSection heading="GMS alerts (green level)">
+        <PublishedProducts kinds={["tsunami"]} />
       </PageSection>
       <PageSection heading="Threat levels">
         <InfoTable

@@ -43048,6 +43048,143 @@
         }
       }
     },
+    "/api/v1/almanac/public/astronomy": {
+      "get": {
+        "tags": [
+          "almanac"
+        ],
+        "summary": "Sun, twilight and moon times for a Grenada location",
+        "description": "Public. Sunrise, sunset, civil dawn and dusk, moonrise and moonset in UTC with Grenada local times, and the moon phase name for each day, from the yearly almanac table. Also returns the principal phases (new, first quarter, full, last quarter) inside the range plus the nearest one either side. Maximum range 366 days. Days with no stored row are missing from `days`.",
+        "operationId": "almanacGetAstronomy",
+        "parameters": [
+          {
+            "name": "location",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/AlmanacGetAstronomyParametersSchemaEnum"
+            },
+            "description": "Location key"
+          },
+          {
+            "name": "from",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date",
+              "description": "First local date",
+              "title": "From"
+            },
+            "description": "First local date"
+          },
+          {
+            "name": "to",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date",
+              "description": "Last local date (inclusive)",
+              "title": "To"
+            },
+            "description": "Last local date (inclusive)"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AstronomyResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          }
+        }
+      }
+    },
+    "/api/v1/almanac/public/tides": {
+      "get": {
+        "tags": [
+          "almanac"
+        ],
+        "summary": "Predicted high and low tides for a Grenada station",
+        "description": "Public. Predicted high and low water times (UTC with Grenada local times) and heights in metres relative to provisional MLLW. PREDICTED, PROVISIONAL AND NOT FOR NAVIGATION: every response carries that note. Maximum range 366 days.",
+        "operationId": "almanacGetTides",
+        "parameters": [
+          {
+            "name": "station",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "const": "pric",
+              "type": "string",
+              "description": "Station key",
+              "title": "Station"
+            },
+            "description": "Station key"
+          },
+          {
+            "name": "from",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date",
+              "description": "First local date",
+              "title": "From"
+            },
+            "description": "First local date"
+          },
+          {
+            "name": "to",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date",
+              "description": "Last local date (inclusive)",
+              "title": "To"
+            },
+            "description": "Last local date (inclusive)"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TidesResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          }
+        }
+      }
+    },
     "/api/v1/models/catalogue": {
       "get": {
         "tags": [
@@ -46458,6 +46595,116 @@
         }
       }
     },
+    "/api/v1/eregister/observations/{observation_id}/bufr-override": {
+      "post": {
+        "tags": [
+          "eregister"
+        ],
+        "summary": "Let a failed BUFR check be sent anyway (reviewer override)",
+        "description": "Records a reviewer override of a failed or mismatched BUFR check on the observation's current BUFR record: who, when and a required reason (10 to 500 characters after cleaning). With the override, WIS2 and email may send that record. It never changes the BUFR message or its validity, and a correction or a re-encoding of the record ends it. Requires `eregister.qc`; the observer who recorded the observation, or any observation it corrects, is refused. 409 when the BUFR check passed, the observation is rejected or superseded, or it is not a SYNOP. Audited.",
+        "operationId": "eregisterOverrideRegisterObservationBufr",
+        "security": [
+          {
+            "APIKeyCookie": []
+          },
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "observation_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Observation Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BufrOverrideRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RegisterObservationRead"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Missing reason or note, or the request is malformed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/ApiError"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ValidationErrorResponse"
+                    }
+                  ],
+                  "title": "Response 422 Eregisteroverrideregisterobservationbufr"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Not an eRegister QC reviewer, or the observer of this observation or of an observation it corrects",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Observation not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "The observation is not in a state that allows this",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/eregister/observations/{observation_id}/reopen": {
       "post": {
         "tags": [
@@ -47886,6 +48133,79 @@
             }
           }
         }
+      }
+    },
+    "/api/v1/wxwatch/nhc/marine-guidance": {
+      "get": {
+        "tags": [
+          "wxwatch-nhc"
+        ],
+        "summary": "Read NHC marine guidance for AMZ058",
+        "description": "Newest imported Offshore Waters Forecast, parsed into periods for the Windward Islands zone; read-only, never publishes.",
+        "operationId": "wxwatchMarineGuidance",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NhcMarineGuidance"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Content",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sign-in required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Product access denied",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Edition or request not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "NHC archive unavailable"
+          }
+        },
+        "security": [
+          {
+            "APIKeyCookie": []
+          },
+          {
+            "HTTPBearer": []
+          }
+        ]
       }
     },
     "/api/v1/wxwatch/nhc/editions": {
@@ -63431,7 +63751,7 @@
             }
           },
           "403": {
-            "description": "Administrator access required",
+            "description": "HR setup access required (hr.setup.manage for the organisation; superuser for role bundles and product access)",
             "content": {
               "application/json": {
                 "schema": {
@@ -63441,7 +63761,7 @@
             }
           },
           "404": {
-            "description": "Record not found",
+            "description": "Record not found, or outside the organisation you administer",
             "content": {
               "application/json": {
                 "schema": {
@@ -63474,7 +63794,7 @@
           "staff-setup"
         ],
         "summary": "Review staff onboarding",
-        "description": "Review staff onboarding for a selected organisation or eligible unassigned accounts. Omitted organisation context retains the superuser-only legacy list.",
+        "description": "Review staff onboarding for a selected organisation or eligible unassigned accounts. Omitted organisation context retains the superuser-only legacy list. Needs hr.setup.manage for the organisation; superusers may act for any organisation.",
         "operationId": "hrGetStaffSetup",
         "security": [
           {
@@ -63535,7 +63855,7 @@
             "description": "Unprocessable Content"
           },
           "403": {
-            "description": "Administrator access required",
+            "description": "HR setup access required (hr.setup.manage for the organisation; superuser for role bundles and product access)",
             "content": {
               "application/json": {
                 "schema": {
@@ -63545,7 +63865,7 @@
             }
           },
           "404": {
-            "description": "Record not found",
+            "description": "Record not found, or outside the organisation you administer",
             "content": {
               "application/json": {
                 "schema": {
@@ -63583,7 +63903,7 @@
           "staff-setup"
         ],
         "summary": "Complete or update staff onboarding",
-        "description": "Complete or update staff onboarding, including separately verified continuous service and probation facts with their HR source. Does not infer eligibility or alter role assignments.",
+        "description": "Complete or update staff onboarding, including separately verified continuous service and probation facts with their HR source. Does not infer eligibility or alter role assignments. Needs hr.setup.manage for the organisation; superusers may act for any organisation.",
         "operationId": "hrUpdateStaffSetup",
         "security": [
           {
@@ -63634,7 +63954,7 @@
             "description": "Unprocessable Content"
           },
           "403": {
-            "description": "Administrator access required",
+            "description": "HR setup access required (hr.setup.manage for the organisation; superuser for role bundles and product access)",
             "content": {
               "application/json": {
                 "schema": {
@@ -63644,7 +63964,7 @@
             }
           },
           "404": {
-            "description": "Record not found",
+            "description": "Record not found, or outside the organisation you administer",
             "content": {
               "application/json": {
                 "schema": {
@@ -63682,7 +64002,7 @@
           "staff-setup"
         ],
         "summary": "Invalidate staff credential and revoke access",
-        "description": "Invalidate staff credential and revoke access.",
+        "description": "Invalidate staff credential and revoke access. Needs hr.setup.manage for the organisation; superusers may act for any organisation.",
         "operationId": "hrOffboardStaff",
         "security": [
           {
@@ -63723,7 +64043,7 @@
             "description": "Unprocessable Content"
           },
           "403": {
-            "description": "Administrator access required",
+            "description": "HR setup access required (hr.setup.manage for the organisation; superuser for role bundles and product access)",
             "content": {
               "application/json": {
                 "schema": {
@@ -63733,7 +64053,7 @@
             }
           },
           "404": {
-            "description": "Record not found",
+            "description": "Record not found, or outside the organisation you administer",
             "content": {
               "application/json": {
                 "schema": {
@@ -63761,7 +64081,7 @@
           "staff-setup"
         ],
         "summary": "Record an audited leave balance adjustment",
-        "description": "Record an audited leave balance adjustment.",
+        "description": "Record an audited leave balance adjustment. Needs hr.setup.manage for the organisation; superusers may act for any organisation.",
         "operationId": "hrUpdateStaffBalance",
         "security": [
           {
@@ -63812,7 +64132,7 @@
             "description": "Unprocessable Content"
           },
           "403": {
-            "description": "Administrator access required",
+            "description": "HR setup access required (hr.setup.manage for the organisation; superuser for role bundles and product access)",
             "content": {
               "application/json": {
                 "schema": {
@@ -63822,7 +64142,7 @@
             }
           },
           "404": {
-            "description": "Record not found",
+            "description": "Record not found, or outside the organisation you administer",
             "content": {
               "application/json": {
                 "schema": {
@@ -63850,7 +64170,7 @@
           "staff-setup"
         ],
         "summary": "Validate or apply opening leave balances from a CSV export",
-        "description": "Reads a CSV with employee_number, leave_type and balance columns (other columns are ignored), checks every row, and posts through the leave ledger only when apply is true and every row is valid. Superuser only.",
+        "description": "Reads a CSV with employee_number, leave_type and balance columns (other columns are ignored), checks every row, and posts through the leave ledger only when apply is true and every row is valid. Needs hr.setup.manage for the organisation named in the request; superusers may act for any organisation.",
         "operationId": "hrImportStaffBalances",
         "requestBody": {
           "content": {
@@ -63884,7 +64204,7 @@
             }
           },
           "403": {
-            "description": "Administrator access required",
+            "description": "HR setup access required (hr.setup.manage for the organisation; superuser for role bundles and product access)",
             "content": {
               "application/json": {
                 "schema": {
@@ -63894,7 +64214,7 @@
             }
           },
           "404": {
-            "description": "Record not found",
+            "description": "Record not found, or outside the organisation you administer",
             "content": {
               "application/json": {
                 "schema": {
@@ -63927,7 +64247,7 @@
           "staff-setup"
         ],
         "summary": "List editable grade definitions",
-        "description": "List editable grade definitions, optionally filtered by the employer organisation owning their departments.",
+        "description": "List editable grade definitions, optionally filtered by the employer organisation owning their departments. Needs hr.setup.manage for the organisation; superusers may act for any organisation.",
         "operationId": "hrGetSetupGrades",
         "security": [
           {
@@ -63978,7 +64298,7 @@
             "description": "Unprocessable Content"
           },
           "403": {
-            "description": "Administrator access required",
+            "description": "HR setup access required (hr.setup.manage for the organisation; superuser for role bundles and product access)",
             "content": {
               "application/json": {
                 "schema": {
@@ -63988,7 +64308,7 @@
             }
           },
           "404": {
-            "description": "Record not found",
+            "description": "Record not found, or outside the organisation you administer",
             "content": {
               "application/json": {
                 "schema": {
@@ -64016,7 +64336,7 @@
           "staff-setup"
         ],
         "summary": "Create or update a grade",
-        "description": "Create or update a grade. Grade codes are unique within a department.",
+        "description": "Create or update a grade. Grade codes are unique within a department. Needs hr.setup.manage for the organisation; superusers may act for any organisation.",
         "operationId": "hrUpdateSetupGrade",
         "security": [
           {
@@ -64066,7 +64386,7 @@
             "description": "Unprocessable Content"
           },
           "403": {
-            "description": "Administrator access required",
+            "description": "HR setup access required (hr.setup.manage for the organisation; superuser for role bundles and product access)",
             "content": {
               "application/json": {
                 "schema": {
@@ -64076,7 +64396,7 @@
             }
           },
           "404": {
-            "description": "Record not found",
+            "description": "Record not found, or outside the organisation you administer",
             "content": {
               "application/json": {
                 "schema": {
@@ -64104,7 +64424,7 @@
           "staff-setup"
         ],
         "summary": "List approval policies",
-        "description": "List approval policies, optionally restricted to HR departments in a selected employer organisation.",
+        "description": "List approval policies, optionally restricted to HR departments in a selected employer organisation. Needs hr.setup.manage for the organisation; superusers may act for any organisation.",
         "operationId": "hrGetSetupPolicies",
         "security": [
           {
@@ -64155,7 +64475,7 @@
             "description": "Unprocessable Content"
           },
           "403": {
-            "description": "Administrator access required",
+            "description": "HR setup access required (hr.setup.manage for the organisation; superuser for role bundles and product access)",
             "content": {
               "application/json": {
                 "schema": {
@@ -64165,7 +64485,7 @@
             }
           },
           "404": {
-            "description": "Record not found",
+            "description": "Record not found, or outside the organisation you administer",
             "content": {
               "application/json": {
                 "schema": {
@@ -64193,7 +64513,7 @@
           "staff-setup"
         ],
         "summary": "Configure approval policy for future submissions",
-        "description": "Configure approval policy for future submissions.",
+        "description": "Configure approval policy for future submissions. Needs hr.setup.manage for the organisation; superusers may act for any organisation.",
         "operationId": "hrUpdateSetupPolicy",
         "security": [
           {
@@ -64243,7 +64563,7 @@
             "description": "Unprocessable Content"
           },
           "403": {
-            "description": "Administrator access required",
+            "description": "HR setup access required (hr.setup.manage for the organisation; superuser for role bundles and product access)",
             "content": {
               "application/json": {
                 "schema": {
@@ -64253,7 +64573,7 @@
             }
           },
           "404": {
-            "description": "Record not found",
+            "description": "Record not found, or outside the organisation you administer",
             "content": {
               "application/json": {
                 "schema": {
@@ -64309,7 +64629,7 @@
             }
           },
           "403": {
-            "description": "Administrator access required",
+            "description": "HR setup access required (hr.setup.manage for the organisation; superuser for role bundles and product access)",
             "content": {
               "application/json": {
                 "schema": {
@@ -64319,7 +64639,7 @@
             }
           },
           "404": {
-            "description": "Record not found",
+            "description": "Record not found, or outside the organisation you administer",
             "content": {
               "application/json": {
                 "schema": {
@@ -64403,7 +64723,7 @@
             "description": "Unprocessable Content"
           },
           "403": {
-            "description": "Administrator access required",
+            "description": "HR setup access required (hr.setup.manage for the organisation; superuser for role bundles and product access)",
             "content": {
               "application/json": {
                 "schema": {
@@ -64413,7 +64733,7 @@
             }
           },
           "404": {
-            "description": "Record not found",
+            "description": "Record not found, or outside the organisation you administer",
             "content": {
               "application/json": {
                 "schema": {
@@ -64441,7 +64761,7 @@
           "staff-setup"
         ],
         "summary": "Approve a verified staff registration",
-        "description": "Administrator approves a registration after email verification or completed administrator-mediated activation and staff membership linkage. Grants only the staff role; elevated roles remain separately managed.",
+        "description": "Administrator approves a registration after email verification or completed administrator-mediated activation and staff membership linkage. Grants only the staff role; elevated roles remain separately managed. Needs hr.setup.manage for the organisation; superusers may act for any organisation.",
         "operationId": "hrApproveStaffRegistration",
         "security": [
           {
@@ -64482,7 +64802,7 @@
             "description": "Unprocessable Content"
           },
           "403": {
-            "description": "Administrator access required",
+            "description": "HR setup access required (hr.setup.manage for the organisation; superuser for role bundles and product access)",
             "content": {
               "application/json": {
                 "schema": {
@@ -64492,7 +64812,7 @@
             }
           },
           "404": {
-            "description": "Record not found",
+            "description": "Record not found, or outside the organisation you administer",
             "content": {
               "application/json": {
                 "schema": {
@@ -64544,7 +64864,7 @@
             }
           },
           "403": {
-            "description": "Administrator access required",
+            "description": "HR setup access required (hr.setup.manage for the organisation; superuser for role bundles and product access)",
             "content": {
               "application/json": {
                 "schema": {
@@ -64554,7 +64874,7 @@
             }
           },
           "404": {
-            "description": "Record not found",
+            "description": "Record not found, or outside the organisation you administer",
             "content": {
               "application/json": {
                 "schema": {
@@ -64615,7 +64935,7 @@
             }
           },
           "403": {
-            "description": "Administrator access required",
+            "description": "HR setup access required (hr.setup.manage for the organisation; superuser for role bundles and product access)",
             "content": {
               "application/json": {
                 "schema": {
@@ -64625,7 +64945,7 @@
             }
           },
           "404": {
-            "description": "Record not found",
+            "description": "Record not found, or outside the organisation you administer",
             "content": {
               "application/json": {
                 "schema": {
@@ -64718,7 +65038,7 @@
             }
           },
           "404": {
-            "description": "Record not found",
+            "description": "Record not found, or outside the organisation you administer",
             "content": {
               "application/json": {
                 "schema": {
@@ -64766,7 +65086,7 @@
           "staff-setup"
         ],
         "summary": "Preview missing GMS reference data",
-        "description": "Preview missing ingested grades, approval policies and workflow templates without changing records.",
+        "description": "Preview missing ingested grades, approval policies and workflow templates without changing records. Needs hr.setup.manage for the organisation; superusers may act for any organisation.",
         "operationId": "hrPreviewCatalogue",
         "security": [
           {
@@ -64806,7 +65126,7 @@
             "description": "Unprocessable Content"
           },
           "403": {
-            "description": "Administrator access required",
+            "description": "HR setup access required (hr.setup.manage for the organisation; superuser for role bundles and product access)",
             "content": {
               "application/json": {
                 "schema": {
@@ -64816,7 +65136,7 @@
             }
           },
           "404": {
-            "description": "Record not found",
+            "description": "Record not found, or outside the organisation you administer",
             "content": {
               "application/json": {
                 "schema": {
@@ -64842,7 +65162,7 @@
           "staff-setup"
         ],
         "summary": "Import missing GMS reference data",
-        "description": "Add only missing GMS reference data atomically; preserve existing records and reject conflicts.",
+        "description": "Add only missing GMS reference data atomically; preserve existing records and reject conflicts. Needs hr.setup.manage for the organisation; superusers may act for any organisation.",
         "operationId": "hrImportCatalogue",
         "security": [
           {
@@ -64881,7 +65201,7 @@
             "description": "Unprocessable Content"
           },
           "403": {
-            "description": "Administrator access required",
+            "description": "HR setup access required (hr.setup.manage for the organisation; superuser for role bundles and product access)",
             "content": {
               "application/json": {
                 "schema": {
@@ -64891,7 +65211,7 @@
             }
           },
           "404": {
-            "description": "Record not found",
+            "description": "Record not found, or outside the organisation you administer",
             "content": {
               "application/json": {
                 "schema": {
@@ -68215,6 +68535,90 @@
           "tasks"
         ],
         "title": "AreaView"
+      },
+      "AstronomyDay": {
+        "properties": {
+          "date": {
+            "type": "string",
+            "format": "date",
+            "title": "Date",
+            "description": "Grenada local calendar date"
+          },
+          "sunrise": {
+            "$ref": "#/components/schemas/TimeOfDay"
+          },
+          "sunset": {
+            "$ref": "#/components/schemas/TimeOfDay"
+          },
+          "civil_dawn": {
+            "$ref": "#/components/schemas/TimeOfDay"
+          },
+          "civil_dusk": {
+            "$ref": "#/components/schemas/TimeOfDay"
+          },
+          "moonrise": {
+            "$ref": "#/components/schemas/TimeOfDay"
+          },
+          "moonset": {
+            "$ref": "#/components/schemas/TimeOfDay"
+          },
+          "moon_phase": {
+            "type": "string",
+            "title": "Moon Phase",
+            "description": "Phase name, e.g. 'Waxing Gibbous'"
+          }
+        },
+        "type": "object",
+        "required": [
+          "date",
+          "sunrise",
+          "sunset",
+          "civil_dawn",
+          "civil_dusk",
+          "moonrise",
+          "moonset",
+          "moon_phase"
+        ],
+        "title": "AstronomyDay"
+      },
+      "AstronomyResponse": {
+        "properties": {
+          "location": {
+            "$ref": "#/components/schemas/LocationOut"
+          },
+          "timezone": {
+            "type": "string",
+            "title": "Timezone",
+            "default": "America/Grenada"
+          },
+          "note": {
+            "type": "string",
+            "title": "Note",
+            "default": "Sun and moon times computed for each day (Astral, checked against the US Naval Observatory). Times are approximate to a minute. Rise and set are blank on days when the moon does not rise or set."
+          },
+          "days": {
+            "items": {
+              "$ref": "#/components/schemas/AstronomyDay"
+            },
+            "type": "array",
+            "title": "Days"
+          },
+          "phases": {
+            "items": {
+              "$ref": "#/components/schemas/PrincipalPhase"
+            },
+            "type": "array",
+            "title": "Phases",
+            "description": "Principal phases in the range, plus the nearest one before and after it (when stored)."
+          }
+        },
+        "type": "object",
+        "required": [
+          "location",
+          "days",
+          "phases"
+        ],
+        "title": "AstronomyResponse"
       },
       "AttemptStatus": {
         "type": "string",
@@ -71977,6 +72381,21 @@
         ],
         "title": "BrowserSession"
       },
+      "BufrOverrideRequest": {
+        "properties": {
+          "reason": {
+            "type": "string",
+            "maxLength": 1000,
+            "title": "Reason",
+            "description": "Why a failed or mismatched BUFR check may be sent anyway. Required: 10 to 500 characters after cleaning."
+          }
+        },
+        "type": "object",
+        "required": [
+          "reason"
+        ],
+        "title": "BufrOverrideRequest"
+      },
       "BuildingCreate": {
         "properties": {
           "siteId": {
@@ -72790,6 +73209,13 @@
           },
           "lifecycle_state": {
             "$ref": "#/components/schemas/CapLifecycleState"
+          },
+          "allowed_actions": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Allowed Actions"
           },
           "created_by_user_id": {
             "type": "string",
@@ -86230,6 +86656,34 @@
         ],
         "title": "LocationListPublic"
       },
+      "LocationOut": {
+        "properties": {
+          "key": {
+            "type": "string",
+            "title": "Key"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "latitude": {
+            "type": "number",
+            "title": "Latitude"
+          },
+          "longitude": {
+            "type": "number",
+            "title": "Longitude"
+          }
+        },
+        "type": "object",
+        "required": [
+          "key",
+          "name",
+          "latitude",
+          "longitude"
+        ],
+        "title": "LocationOut"
+      },
       "LocationPublic": {
         "properties": {
           "id": {
@@ -87994,6 +88448,179 @@
           "created_at"
         ],
         "title": "NhcJob"
+      },
+      "NhcMarineGuidance": {
+        "properties": {
+          "status": {
+            "$ref": "#/components/schemas/NhcMarineGuidancePropertiesStatusEnum"
+          },
+          "zone_id": {
+            "type": "string",
+            "maxLength": 10,
+            "title": "Zone Id"
+          },
+          "zone_name": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 300
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Zone Name"
+          },
+          "product": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/GuidanceSource"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "stale": {
+            "type": "boolean",
+            "title": "Stale",
+            "default": false
+          },
+          "periods": {
+            "items": {
+              "$ref": "#/components/schemas/NhcMarinePeriod"
+            },
+            "type": "array",
+            "maxItems": 40,
+            "title": "Periods"
+          },
+          "outlook": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/GuidanceSource"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "type": "object",
+        "required": [
+          "status",
+          "zone_id"
+        ],
+        "title": "NhcMarineGuidance",
+        "description": "Latest imported Offshore Waters Forecast zone block, read-only for marine authors."
+      },
+      "NhcMarinePeriod": {
+        "properties": {
+          "label": {
+            "type": "string",
+            "maxLength": 40,
+            "title": "Label"
+          },
+          "text": {
+            "type": "string",
+            "maxLength": 2000,
+            "title": "Text"
+          },
+          "wind_direction_from": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 10
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Wind Direction From"
+          },
+          "wind_direction_to": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 10
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Wind Direction To"
+          },
+          "wind_min_kt": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Wind Min Kt"
+          },
+          "wind_max_kt": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Wind Max Kt"
+          },
+          "gust_kt": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Gust Kt"
+          },
+          "sea_min_ft": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sea Min Ft"
+          },
+          "sea_max_ft": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sea Max Ft"
+          },
+          "weather": {
+            "items": {
+              "type": "string",
+              "maxLength": 60
+            },
+            "type": "array",
+            "maxItems": 10,
+            "title": "Weather"
+          }
+        },
+        "type": "object",
+        "required": [
+          "label",
+          "text"
+        ],
+        "title": "NhcMarinePeriod",
+        "description": "One forecast period of an Offshore Waters zone; speeds in knots, seas in feet as NHC states them."
       },
       "NhcPage": {
         "properties": {
@@ -95092,6 +95719,25 @@
         "title": "PreferencesUnsubscribeRequest",
         "description": "The signed token from a mail, and the one list to stop."
       },
+      "PrincipalPhase": {
+        "properties": {
+          "phase": {
+            "$ref": "#/components/schemas/PrincipalPhasePropertiesPhaseEnum"
+          },
+          "date": {
+            "type": "string",
+            "format": "date",
+            "title": "Date",
+            "description": "Grenada local date of the phase, accurate to +/-1 day"
+          }
+        },
+        "type": "object",
+        "required": [
+          "phase",
+          "date"
+        ],
+        "title": "PrincipalPhase"
+      },
       "ProductAccessCurrent": {
         "properties": {
           "allowed_kinds": {
@@ -98181,7 +98827,8 @@
                 "type": "null"
               }
             ],
-            "title": "Bufr"
+            "title": "Bufr",
+            "description": "Read-only: ignored on write. The server writes the BUFR record (and any reviewer override) at acceptance and sending; a save stores none, or an error record when the station settings could not be read."
           },
           "iwxxm": {
             "anyOf": [
@@ -98193,7 +98840,8 @@
                 "type": "null"
               }
             ],
-            "title": "Iwxxm"
+            "title": "Iwxxm",
+            "description": "Read-only: ignored on write. The server writes the IWXXM record at acceptance and sending; a save stores none, or an error record when the station settings could not be read."
           },
           "reason": {
             "anyOf": [
@@ -98296,7 +98944,8 @@
                 "type": "null"
               }
             ],
-            "title": "Bufr"
+            "title": "Bufr",
+            "description": "Read-only: ignored on write. The server writes the BUFR record (and any reviewer override) at acceptance and sending; a save stores none, or an error record when the station settings could not be read."
           },
           "iwxxm": {
             "anyOf": [
@@ -98308,7 +98957,8 @@
                 "type": "null"
               }
             ],
-            "title": "Iwxxm"
+            "title": "Iwxxm",
+            "description": "Read-only: ignored on write. The server writes the IWXXM record at acceptance and sending; a save stores none, or an error record when the station settings could not be read."
           },
           "id": {
             "type": "string",
@@ -98427,7 +99077,8 @@
                 "type": "null"
               }
             ],
-            "title": "Bufr"
+            "title": "Bufr",
+            "description": "The server's BUFR record: message, checks, validity and any reviewer override (`override`: by, by_name, at, reason, record_sha256)."
           },
           "iwxxm": {
             "anyOf": [
@@ -98439,7 +99090,8 @@
                 "type": "null"
               }
             ],
-            "title": "Iwxxm"
+            "title": "Iwxxm",
+            "description": "The server's IWXXM record: XML, validity, errors."
           },
           "id": {
             "type": "string",
@@ -98619,6 +99271,14 @@
             "type": "string",
             "format": "date-time",
             "title": "Updated At"
+          },
+          "allowed_actions": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Allowed Actions",
+            "description": "The QC actions this state allows: accept, reject, reopen, correct (accept only for SYNOP). Computed from the state and kind alone: a WIS2 file or email already queued or sent can still refuse reject, reopen or a re-save, and the 409 detail says why."
           }
         },
         "type": "object",
@@ -105373,8 +106033,7 @@
             "title": "Title"
           },
           "status": {
-            "type": "string",
-            "title": "Status"
+            "$ref": "#/components/schemas/ListingUpsertPropertiesStatusEnum"
           },
           "starts_at": {
             "type": "string",
@@ -110008,6 +110667,111 @@
         ],
         "title": "TicketSummary"
       },
+      "TideEvent": {
+        "properties": {
+          "event_type": {
+            "$ref": "#/components/schemas/TideEventPropertiesEventTypeEnum"
+          },
+          "time_utc": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Time Utc"
+          },
+          "time_local": {
+            "type": "string",
+            "title": "Time Local",
+            "description": "ISO 8601 in America/Grenada"
+          },
+          "height_m_mllw": {
+            "type": "number",
+            "title": "Height M Mllw",
+            "description": "Metres relative to provisional MLLW"
+          },
+          "timing_quality": {
+            "type": "string",
+            "title": "Timing Quality"
+          }
+        },
+        "type": "object",
+        "required": [
+          "event_type",
+          "time_utc",
+          "time_local",
+          "height_m_mllw",
+          "timing_quality"
+        ],
+        "title": "TideEvent"
+      },
+      "TidesResponse": {
+        "properties": {
+          "station": {
+            "type": "string",
+            "title": "Station"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "timezone": {
+            "type": "string",
+            "title": "Timezone",
+            "default": "America/Grenada"
+          },
+          "note": {
+            "type": "string",
+            "title": "Note",
+            "default": "Predicted tide heights and times from an internal provisional table. Not for navigation: do not use for passage planning, under-keel clearance or any decision where safety depends on the tide."
+          },
+          "status": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Status",
+            "description": "Status of the source table, as imported"
+          },
+          "source_label": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source Label"
+          },
+          "source_version": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source Version"
+          },
+          "events": {
+            "items": {
+              "$ref": "#/components/schemas/TideEvent"
+            },
+            "type": "array",
+            "title": "Events"
+          }
+        },
+        "type": "object",
+        "required": [
+          "station",
+          "name",
+          "events"
+        ],
+        "title": "TidesResponse"
+      },
       "TierInput": {
         "properties": {
           "id": {
@@ -110270,6 +111034,37 @@
           "expected_minor"
         ],
         "title": "TillPublic"
+      },
+      "TimeOfDay": {
+        "properties": {
+          "utc": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Utc"
+          },
+          "local": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Local",
+            "description": "ISO 8601 in America/Grenada (UTC-4, no daylight saving)"
+          }
+        },
+        "type": "object",
+        "title": "TimeOfDay",
+        "description": "One event: the UTC instant and the same instant in Grenada local time."
       },
       "TimesheetApproveRequest": {
         "properties": {
@@ -116682,6 +117477,14 @@
           "failed"
         ]
       },
+      "NhcMarineGuidancePropertiesStatusEnum": {
+        "type": "string",
+        "enum": [
+          "available",
+          "zone_missing",
+          "not_imported"
+        ]
+      },
       "NhcPrefillRequestPropertiesKindEnum": {
         "type": "string",
         "enum": [
@@ -116781,6 +117584,15 @@
           "partial",
           "refunded",
           "failed"
+        ]
+      },
+      "PrincipalPhasePropertiesPhaseEnum": {
+        "type": "string",
+        "enum": [
+          "new",
+          "first_quarter",
+          "full",
+          "last_quarter"
         ]
       },
       "ProfilePublicPropertiesConnectionStateEnum": {
@@ -116977,6 +117789,13 @@
           "group"
         ]
       },
+      "TideEventPropertiesEventTypeEnum": {
+        "type": "string",
+        "enum": [
+          "HIGH",
+          "LOW"
+        ]
+      },
       "TillPublicPropertiesStatusEnum": {
         "type": "string",
         "enum": [
@@ -117072,6 +117891,14 @@
         ],
         "type": "string",
         "default": "st-georges"
+      },
+      "AlmanacGetAstronomyParametersSchemaEnum": {
+        "enum": [
+          "mbia",
+          "lauriston"
+        ],
+        "type": "string",
+        "description": "Location key"
       },
       "EventsListListingsParametersSchemaAnyOfEnum": {
         "enum": [

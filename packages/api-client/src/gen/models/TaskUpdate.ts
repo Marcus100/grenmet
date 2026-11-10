@@ -16,7 +16,7 @@ export type TaskUpdate = {
   mode?: string | null;
   active: boolean;
   /**
-   * @minLength 1
+   * @minimum 1
    * @type integer
    */
   expectedRevision: number;

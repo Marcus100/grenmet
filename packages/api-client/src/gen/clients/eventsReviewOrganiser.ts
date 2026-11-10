@@ -25,6 +25,7 @@ export function eventsReviewOrganiser<ThrowOnError extends boolean = true>(
       method: "PATCH",
       url: "/api/v1/events/moderation/organisers/{organiser_id}",
       security: [{ type: "oauth2" }],
+      contentType: { request: "application/json" },
       ...config,
       throwOnError: config.throwOnError ?? true,
     }) as Promise<RequestResult<EventsReviewOrganiserResponses, ThrowOnError>>

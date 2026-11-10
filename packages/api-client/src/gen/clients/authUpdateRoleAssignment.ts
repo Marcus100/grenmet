@@ -25,6 +25,7 @@ export function authUpdateRoleAssignment<ThrowOnError extends boolean = true>(
       method: "PATCH",
       url: "/api/v1/auth/role-assignments/{assignment_id}",
       security: [{ type: "oauth2" }],
+      contentType: { request: "application/json" },
       ...config,
       throwOnError: config.throwOnError ?? true,
     }) as Promise<

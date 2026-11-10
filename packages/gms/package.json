@@ -16,7 +16,8 @@
     "./nav-sections": "./src/nav-sections.ts",
     "./linkable-pages": "./src/linkable-pages.ts",
     "./link-recognition": "./src/link-recognition.ts",
-    "./sectors": "./src/sectors.ts"
+    "./sectors": "./src/sectors.ts",
+    "./weather-types": "./src/weather-types.ts"
   },
   "scripts": {
     "type-check": "tsc --noEmit",

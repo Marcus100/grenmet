@@ -34,11 +34,11 @@ from src.hr.roster import service as roster_service
 from src.hr.roster.expansion import shift_hours
 from src.hr.roster.holidays import PROVISIONAL_SOURCE
 from src.hr.roster.models import (
+    ROSTER_VISIBLE_PERIOD_STATUSES,
     PublicHoliday,
     RosterAssignment,
     RosterAvailability,
     RosterPeriod,
-    RosterPeriodStatus,
     ShiftCatalog,
     ShiftCategory,
 )
@@ -55,6 +55,7 @@ from src.hr.workflow.schemas import WorkflowActionRequest, WorkflowInstanceCreat
 from src.utils.datetime import utc_now
 from src.utils.timezones import local_today
 
+from . import transitions as timesheet_transitions
 from .models import (
     DepartmentPolicy,
     SubmissionMode,
@@ -215,9 +216,7 @@ async def create_timesheet(
         .join(RosterPeriod, RosterPeriod.id == RosterAssignment.roster_period_id)
         .where(
             RosterPeriod.department_id == payload.department_id,
-            RosterPeriod.status.in_(
-                [RosterPeriodStatus.PUBLISHED, RosterPeriodStatus.CLOSED]
-            ),
+            RosterPeriod.status.in_(ROSTER_VISIBLE_PERIOD_STATUSES),
             RosterAssignment.user_id == target_user_id,
             RosterAssignment.assignment_date >= payload.period_start,
             RosterAssignment.assignment_date <= payload.period_end,
@@ -345,9 +344,7 @@ async def submit_timesheet(
                 RosterAssignment.id.in_(linked_ids),
                 RosterAssignment.user_id == timesheet.user_id,
                 RosterPeriod.department_id == timesheet.department_id,
-                RosterPeriod.status.in_(
-                    [RosterPeriodStatus.PUBLISHED, RosterPeriodStatus.CLOSED]
-                ),
+                RosterPeriod.status.in_(ROSTER_VISIBLE_PERIOD_STATUSES),
             )
             .with_for_update(of=RosterAssignment)
         )
@@ -371,7 +368,11 @@ async def submit_timesheet(
         timesheet=timesheet,
         rule_override_reason=rule_override_reason,
     )
-    timesheet.status = TimesheetStatus.SUBMITTED
+    timesheet_transitions.move_timesheet(
+        timesheet,
+        "submit",
+        refusal=ERROR_TIMESHEET_ALREADY_SUBMITTED,
+    )
     timesheet.submitted_by_user_id = current_user.id
     timesheet.submitted_at = utc_now()
     timesheet.updated_at = utc_now()
@@ -514,7 +515,11 @@ async def approve_timesheet(
         actor_id=current_user.id,
         reason=rule_override_reason,
     )
-    timesheet.status = TimesheetStatus.APPROVED
+    timesheet_transitions.move_timesheet(
+        timesheet,
+        "approve",
+        refusal=ERROR_TIMESHEET_NOT_SUBMITTED,
+    )
     timesheet.approved_by_user_id = current_user.id
     timesheet.approved_at = utc_now()
     timesheet.updated_at = utc_now()
@@ -730,9 +735,7 @@ async def prefill_from_roster(
             .join(ShiftCatalog, ShiftCatalog.code == RosterAssignment.shift_code)
             .where(
                 RosterPeriod.department_id == department_id,
-                RosterPeriod.status.in_(
-                    [RosterPeriodStatus.PUBLISHED, RosterPeriodStatus.CLOSED]
-                ),
+                RosterPeriod.status.in_(ROSTER_VISIBLE_PERIOD_STATUSES),
                 RosterAssignment.user_id == current_user.id,
                 RosterAssignment.assignment_date >= period_start,
                 RosterAssignment.assignment_date <= period_end,

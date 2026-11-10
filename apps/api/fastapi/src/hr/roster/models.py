@@ -24,6 +24,15 @@ class RosterPeriodStatus(str, Enum):
     CLOSED = "CLOSED"
 
 
+#: Periods whose assignments staff can see and that count for leave, attendance,
+#: timesheets, shift exchange, absentee and daily status, and GMS notifications.
+#: A DRAFT period counts for none of them. Use this constant; do not copy the pair.
+ROSTER_VISIBLE_PERIOD_STATUSES: tuple[RosterPeriodStatus, ...] = (
+    RosterPeriodStatus.PUBLISHED,
+    RosterPeriodStatus.CLOSED,
+)
+
+
 class RosterAvailability(str, Enum):
     SCHEDULED = "SCHEDULED"
     ABSENT = "ABSENT"

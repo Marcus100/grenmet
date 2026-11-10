@@ -31,6 +31,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from src import outbox
 from src.utils import secret_box
 from src.utils.datetime import utc_now
+from src.utils.retry_state import RetryTable, is_exhausted
 from src.utils.signing import sign_timestamped
 
 from . import events, service, ssrf
@@ -38,6 +39,27 @@ from .exceptions import WebhookDeliveryError
 from .models import DeliveryStatus, EndpointStatus, WebhookDelivery, WebhookEndpoint
 
 logger = logging.getLogger(__name__)
+
+# A delivery is pending until its first attempt, then failed while retries remain.
+# Succeeded and dead are final. Disabling an endpoint kills a waiting delivery.
+STATUS_MOVES: RetryTable[DeliveryStatus] = RetryTable(
+    {
+        DeliveryStatus.PENDING: frozenset(
+            {DeliveryStatus.SUCCEEDED, DeliveryStatus.FAILED, DeliveryStatus.DEAD}
+        ),
+        DeliveryStatus.FAILED: frozenset(
+            {DeliveryStatus.SUCCEEDED, DeliveryStatus.FAILED, DeliveryStatus.DEAD}
+        ),
+        DeliveryStatus.SUCCEEDED: frozenset(),
+        DeliveryStatus.DEAD: frozenset(),
+    }
+)
+
+
+def _set_status(delivery: WebhookDelivery, status: DeliveryStatus) -> None:
+    STATUS_MOVES.require(delivery.status, status)
+    delivery.status = status.value
+
 
 TIMEOUT_SECONDS = 10.0
 USER_AGENT = "Barrels-Webhooks/1"
@@ -173,7 +195,7 @@ async def deliver(session: AsyncSession, message: outbox.OutboxMessage) -> None:
         return  # endpoint deleted since the event was queued
     now = utc_now()
     if endpoint.status != EndpointStatus.ACTIVE.value:
-        delivery.status = DeliveryStatus.DEAD.value
+        _set_status(delivery, DeliveryStatus.DEAD)
         delivery.last_error = "endpoint disabled"
         delivery.next_attempt_at = None
         return
@@ -200,14 +222,14 @@ async def deliver(session: AsyncSession, message: outbox.OutboxMessage) -> None:
     delivery.attempts += 1
     delivery.response_status = result.response_status
     if result.ok:
-        delivery.status = DeliveryStatus.SUCCEEDED.value
+        _set_status(delivery, DeliveryStatus.SUCCEEDED)
         delivery.last_error = None
         delivery.next_attempt_at = None
         endpoint.consecutive_failures = 0
         return
     delivery.last_error = (result.error or "failed")[:_ERROR_LENGTH]
     if result.response_status == 410:
-        delivery.status = DeliveryStatus.DEAD.value
+        _set_status(delivery, DeliveryStatus.DEAD)
         delivery.next_attempt_at = None
         await service.disable_endpoint(
             session, endpoint, reason="The receiver answered 410 Gone"
@@ -216,7 +238,7 @@ async def deliver(session: AsyncSession, message: outbox.OutboxMessage) -> None:
 
     endpoint.consecutive_failures += 1
     if endpoint.consecutive_failures >= service.AUTO_DISABLE_AFTER:
-        delivery.status = DeliveryStatus.DEAD.value
+        _set_status(delivery, DeliveryStatus.DEAD)
         delivery.next_attempt_at = None
         await service.disable_endpoint(
             session,
@@ -228,11 +250,11 @@ async def deliver(session: AsyncSession, message: outbox.OutboxMessage) -> None:
         )
         return  # finished: nothing more to retry for a disabled endpoint
     error = delivery.last_error
-    if message.attempts + 1 >= outbox.MAX_ATTEMPTS:
-        delivery.status = DeliveryStatus.DEAD.value
+    if is_exhausted(message.attempts + 1, outbox.MAX_ATTEMPTS):
+        _set_status(delivery, DeliveryStatus.DEAD)
         delivery.next_attempt_at = None
     else:
-        delivery.status = DeliveryStatus.FAILED.value
+        _set_status(delivery, DeliveryStatus.FAILED)
         delivery.next_attempt_at = now + timedelta(
             seconds=outbox.retry_delay_seconds(message.attempts + 1)
         )

@@ -27,7 +27,7 @@ from src.exceptions import AppException, NotFoundError
 from src.hr.models import EmploymentRecord
 from src.utils.datetime import utc_now
 
-from . import access, statutory
+from . import access, statutory, transitions
 from .models import (
     LOCKED_STATUSES,
     DeductionCategory,
@@ -869,12 +869,9 @@ async def set_table_state(
             "Someone other than the table's creator must confirm it", 403
         )
     previous = record.rule_state
-    record.rule_state = payload.rule_state.value
-    if payload.rule_state == TableState.PROVISIONAL:
-        record.confirmed_by_user_id = record.confirmed_at = None
-    else:
-        record.confirmed_by_user_id = actor.id
-        record.confirmed_at = utc_now()
+    transitions.set_table_state(
+        record, payload.rule_state, confirmer_id=actor.id, at=utc_now()
+    )
     # The original source note is provenance and is never rewritten.
     record.confirmation_note = payload.note
     await audit_service.record_change(

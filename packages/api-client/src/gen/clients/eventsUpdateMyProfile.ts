@@ -25,6 +25,7 @@ export function eventsUpdateMyProfile<ThrowOnError extends boolean = true>(
       method: "PATCH",
       url: "/api/v1/events/me/profile",
       security: [{ type: "http", scheme: "bearer" }],
+      contentType: { request: "application/json" },
       ...config,
       throwOnError: config.throwOnError ?? true,
     }) as Promise<RequestResult<EventsUpdateMyProfileResponses, ThrowOnError>>

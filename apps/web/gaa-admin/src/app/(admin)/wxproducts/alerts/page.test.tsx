@@ -33,6 +33,15 @@ it("includes the outlook editor and all existing bulletin kinds under Alerts", a
     })
   );
 });
+it("describes the alerts desk, not the forecast desk", async () => {
+  render(await Page({ searchParams: Promise.resolve({}) }));
+  expect(mocks.desk).toHaveBeenCalledWith(
+    expect.objectContaining({
+      description:
+        "Issue and update GMS alerts. The published alert stays live until you publish a revision.",
+    })
+  );
+});
 it("keeps marine as the default editor", async () => {
   await Page({ searchParams: Promise.resolve({ kind: "unknown" }) });
   const content = await Page({ searchParams: Promise.resolve({}) });

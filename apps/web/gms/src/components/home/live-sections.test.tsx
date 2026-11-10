@@ -2,6 +2,7 @@ import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
 import {
   avatarInitials,
+  deskPostVisibility,
   Explained,
   ForecastDesk,
   Stories,
@@ -688,4 +689,17 @@ it("credits every story picture, and says Unsplash for the stock fallback", asyn
   expect(screen.getByText("Photo: Kendra Mitchell")).toBeInTheDocument();
   expect(screen.getByText("Photo: GMS")).toBeInTheDocument();
   expect(screen.getByText("Photo: Unsplash")).toBeInTheDocument();
+});
+
+it("hides only desk posts that have no place left in the row", () => {
+  // Two pinned cards (forecast, warnings): posts 1 and 2 fill four places on
+  // laptops; on portrait tablets only post 1 fits.
+  expect(deskPostVisibility(0, 2)).toBe("");
+  expect(deskPostVisibility(1, 2)).toBe("md:max-lg:hidden");
+  expect(deskPostVisibility(2, 2)).toBe("md:hidden");
+  // Pinned cards never hide: with five pinned, every post waits for "All desk posts".
+  expect(deskPostVisibility(0, 5)).toBe("md:hidden");
+  expect(deskPostVisibility(0, 0)).toBe("");
+  expect(deskPostVisibility(3, 0)).toBe("md:max-lg:hidden");
+  expect(deskPostVisibility(4, 0)).toBe("md:hidden");
 });

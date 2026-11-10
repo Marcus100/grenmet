@@ -2,7 +2,7 @@
 
 **Status:** Active reference  
 **Owner:** Barrels Grenada engineering  
-**Last updated:** 2026-10-26
+**Last updated:** 2026-11-08
 
 Preview registered Claude worktrees from a Grenmet checkout:
 
@@ -39,3 +39,28 @@ checks cannot detect an editor working through absolute paths from elsewhere,
 so explicit confirmation of ownership remains necessary.
 
 The default preview does not remove files, branches, locks, or registrations.
+
+## Manual task worktrees
+
+Manual task worktrees live outside the main checkout, under
+`~/worktrees/<repo>/<task>/`. They stay out of the default scope. Select their
+directory explicitly with `--root`, for both the preview and the removal:
+
+```bash
+node scripts/agents/worktree-clean.mjs --root ~/worktrees/grenmet
+node scripts/agents/worktree-clean.mjs --root ~/worktrees/grenmet --remove ~/worktrees/grenmet/example-task
+```
+
+`--root` must be an absolute path to a real directory. It cannot be a symlink,
+the main checkout, a directory inside it, or a directory that contains it, so it
+can never widen the scope to the main checkout or its managed worktrees. Only
+registered worktrees physically inside that directory are listed. Checkouts
+reached through links, such as `~/worktrees/grenmet/claude-managed/`, are
+skipped. Every other check still applies: merged into `origin/dev`, clean,
+unlocked, no running process, and the branch is kept.
+
+Manual checkouts often hold ignored files the helper does not recognise, such
+as local notes, exports, `.env*` files or tool output. Any of these blocks
+removal. Preserve each one somewhere appropriate, or confirm with the owner that
+it can be discarded, and then run the preview again. Never delete it just to
+make the checkout eligible.

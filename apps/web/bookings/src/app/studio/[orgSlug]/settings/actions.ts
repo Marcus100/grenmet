@@ -191,7 +191,7 @@ function failed(orgSlug: string, error: unknown): ActionState {
 
 function saved(orgSlug: string, message: string): ActionState {
   revalidatePath(`/studio/${orgSlug}/settings`);
-  return { status: "done", message };
+  return { status: "success", message };
 }
 
 /** The minor-unit amount in a money field; empty means 0. */

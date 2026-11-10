@@ -19,9 +19,10 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from src.auth.models import User
 from src.utils.datetime import utc_now
 
-from .. import activity, rewards_hook, schemas, tickets
+from .. import activity, rewards_hook, schemas, tickets, transitions
 from ..exceptions import EventsConflict, EventsNotFound
 from ..models import Admission, Listing, MemberProfile, Order, Ticket, TicketTier
+from ..transitions import TicketStatus
 from .common import GRENADA
 from .organiser_admin import _my_organiser
 
@@ -98,10 +99,10 @@ async def admit_ticket(
         raise EventsNotFound("No ticket has that code")
     if ticket.listing_id != listing.id:
         raise EventsConflict("This ticket is for a different event")
-    if ticket.status != "valid":
+    if ticket.status != TicketStatus.VALID.value:
         raise EventsConflict(
             "This ticket was refunded"
-            if ticket.status == "refunded"
+            if ticket.status == TicketStatus.REFUNDED.value
             else "This ticket was cancelled"
         )
     tier = await db.get(TicketTier, ticket.tier_id)
@@ -183,7 +184,10 @@ async def manifest(
                 .join(TicketTier, TicketTier.id == Ticket.tier_id)
                 .join(Order, Order.id == Ticket.order_id)
                 .outerjoin(Admission, Admission.ticket_id == Ticket.id)
-                .where(Ticket.listing_id == listing.id, Ticket.status == "valid")
+                .where(
+                    Ticket.listing_id == listing.id,
+                    Ticket.status == TicketStatus.VALID.value,
+                )
             )
         ).all()
     )
@@ -193,7 +197,7 @@ async def manifest(
             .select_from(Ticket)
             .where(
                 Ticket.listing_id == listing.id,
-                Ticket.status.in_(["cancelled", "refunded"]),
+                Ticket.status.in_(transitions.values_of(transitions.TICKET_ENDED)),
             )
         )
         or 0
