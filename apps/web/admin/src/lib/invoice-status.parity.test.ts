@@ -15,7 +15,8 @@ function repoFile(relativePath: string): string {
   return readFileSync(path.join(dir, relativePath), "utf8");
 }
 
-const OPEN_STATUSES_LINE = /^OPEN_STATUSES = \(([^)]*)\)/mu;
+// OPEN_STATUSES is declared, with a type annotation, in the billing transition table.
+const OPEN_STATUSES_LINE = /^OPEN_STATUSES(?::[^=]+)? = \(([^)]*)\)/mu;
 const INVOICE_STATUS_MEMBER = /InvoiceStatus\.(\w+)\.value/gu;
 
 describe("invoice status parity", () => {
@@ -30,9 +31,10 @@ describe("invoice status parity", () => {
   });
 
   it("treats as open exactly the statuses OPEN_STATUSES lists in FastAPI", () => {
-    const python = repoFile("apps/api/fastapi/src/billing/invoices.py");
+    const python = repoFile("apps/api/fastapi/src/billing/transitions.py");
     const block = OPEN_STATUSES_LINE.exec(python);
-    if (!block?.[1]) throw new Error("OPEN_STATUSES not found in invoices.py");
+    if (!block?.[1])
+      throw new Error("OPEN_STATUSES not found in billing/transitions.py");
     // Each FastAPI member name is the lower-case value: PARTIALLY_PAID -> partially_paid.
     const backend = [...block[1].matchAll(INVOICE_STATUS_MEMBER)]
       .map((match) => match[1]?.toLowerCase())
