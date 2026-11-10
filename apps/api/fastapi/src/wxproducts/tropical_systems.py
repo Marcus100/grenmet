@@ -25,6 +25,7 @@ from src.exceptions import NotFoundError
 from src.utils.timezones import GRENADA
 from src.wxwatch.nhc_schemas import GuidanceFact, GuidanceSystem, ProductGuidance
 
+from . import transitions
 from .exceptions import ProductValidationError, TropicalSystemConflict
 from .models import (
     AuthoredProduct,
@@ -356,7 +357,11 @@ async def record_revision(
         raise ProductValidationError(
             ["Tracked system not found: " + ", ".join(missing)]
         )
-    closed = [row.label for row in found.values() if row.status == "closed"]
+    closed = [
+        row.label
+        for row in found.values()
+        if not transitions.can_link(transitions.stored_system_state(row.status))
+    ]
     if closed:
         raise ProductValidationError(
             [
@@ -471,7 +476,7 @@ async def create_system(
                 feature_type=body.feature_type,
                 nhc_storm_id=body.nhc_storm_id,
                 nhc_invest_id=body.nhc_invest_id,
-                status="active",
+                status=transitions.ACTIVE,
                 created_by=_actor(actor),
                 updated_by=_actor(actor),
             )
@@ -497,12 +502,15 @@ def _closure(
     system: TropicalSystem, body: TropicalSystemUpdate
 ) -> tuple[TropicalSystemStatus, TropicalSystemClosedReason | None, UUID | None]:
     fields = body.model_fields_set
-    if (body.status or system.status) == "active":
+    # The stored status is read only when the request does not name one.
+    if (body.status or transitions.stored_system_state(system.status)) == (
+        transitions.ACTIVE
+    ):
         if body.closed_reason is not None or body.continued_as_id is not None:
             raise ProductValidationError(
                 ["An active system has no closing reason or continuation"]
             )
-        return "active", None, None
+        return transitions.ACTIVE, None, None
     reason = (
         body.closed_reason
         if "closed_reason" in fields
@@ -525,7 +533,7 @@ def _closure(
         )
     if continued == system.id:
         raise ProductValidationError(["A system cannot continue as itself"])
-    return "closed", reason, continued
+    return transitions.CLOSED, reason, continued
 
 
 def _identity(system: TropicalSystem) -> dict[str, Any]:
@@ -550,7 +558,9 @@ async def _check_merge_target(
     target = await session.get(TropicalSystem, continued)
     if target is None:
         raise ProductValidationError(["The merged-into system was not found"])
-    if target.status == "closed" and target.closed_reason == "duplicate":
+    if not transitions.can_merge_into(
+        transitions.stored_system_state(target.status), target.closed_reason
+    ):
         raise ProductValidationError(
             ["Cannot merge into a system closed as a duplicate"]
         )
