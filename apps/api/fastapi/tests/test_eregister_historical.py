@@ -6,10 +6,9 @@ filter, review of a day at once, the importer's ``--historical`` save, the one-o
 converter and the public status.
 """
 
-from collections.abc import Callable
 from contextlib import asynccontextmanager
 from datetime import UTC, datetime
-from typing import Any
+from typing import Any, Literal
 from uuid import UUID
 
 import httpx
@@ -61,7 +60,10 @@ def ready_hours(*cell_sets: list[str]) -> list[tuple[datetime, Any, int]]:
 
 
 async def import_hours(
-    db: AsyncSession, actor: User, *cell_sets: list[str], state: str = "historical"
+    db: AsyncSession,
+    actor: User,
+    *cell_sets: list[str],
+    state: Literal["draft", "historical"] = "historical",
 ) -> historical.SaveOutcome:
     async with register_session() as register:
         return await historical.save_hours(
@@ -69,7 +71,7 @@ async def import_hours(
             app_session=db,
             actor=actor,
             ready=ready_hours(*cell_sets),
-            state=state,  # type: ignore[arg-type]
+            state=state,
         )
 
 
@@ -516,7 +518,10 @@ def test_public_status_names_the_three_states() -> None:
 
 async def test_month_summary_does_not_count_historical_as_provisional(register_db):
     s = register_db
-    at: Callable[[int], datetime] = lambda day: datetime(2026, 9, day, 12, tzinfo=UTC)  # noqa: E731
+
+    def at(day: int) -> datetime:
+        return datetime(2026, 9, day, 12, tzinfo=UTC)
+
     await public_tests.put(s, at(5), state="historical", s3_rainfall_24h="0050")
     await public_tests.put(s, at(6), state="accepted", s3_rainfall_24h="0020")
     summary = await public.month_summary(s, "2026-09", public_tests.NOW)
