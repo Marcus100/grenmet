@@ -59,9 +59,14 @@ const COLUMNS = [
  * until GMS supplies its own account links. Replace each `href` here (one place)
  * when the owner sends them. Icons are simple-icons marks (CC0), drawn as
  * inline SVG from their path data. simple-icons has no LinkedIn mark, so that
- * network keeps its name as text.
+ * network shows "in" in the same round button (owner, 10 Nov 2026).
  */
-const SOCIAL: readonly { href: string; icon?: string; label: string }[] = [
+const SOCIAL: readonly {
+  href: string;
+  icon?: string;
+  label: string;
+  short?: string;
+}[] = [
   { label: "X", href: "https://x.com", icon: siX.path },
   {
     label: "Facebook",
@@ -74,7 +79,7 @@ const SOCIAL: readonly { href: string; icon?: string; label: string }[] = [
     icon: siInstagram.path,
   },
   { label: "YouTube", href: "https://youtube.com", icon: siYoutube.path },
-  { label: "LinkedIn", href: "https://linkedin.com" },
+  { label: "LinkedIn", href: "https://linkedin.com", short: "in" },
   {
     label: "WhatsApp",
     href: "https://wa.me/14735345234",
@@ -199,12 +204,16 @@ export function Footer() {
               <li key={s.label}>
                 <a
                   aria-label={`GMS on ${s.label}`}
-                  className="border-gm-border text-caption leading-caption hover:bg-gm-text-inverse/10 flex h-9 min-w-9 items-center justify-center gap-2 rounded-full border px-2.5 font-semibold"
+                  className="border-gm-border text-caption leading-caption hover:bg-gm-text-inverse/10 flex size-9 items-center justify-center rounded-full border font-bold"
                   href={s.href}
                   rel="noopener noreferrer"
                   target="_blank"
                 >
-                  {s.icon ? <BrandIcon path={s.icon} /> : s.label}
+                  {s.icon ? (
+                    <BrandIcon path={s.icon} />
+                  ) : (
+                    <span aria-hidden="true">{s.short ?? s.label}</span>
+                  )}
                 </a>
               </li>
             ))}

@@ -368,6 +368,25 @@ it("names the article by its headline, written from the week's alerts", async ()
   ).toBeInTheDocument();
 });
 
+it("says a quiet week once, in words, with no None under the icons and a Grenada photo", async () => {
+  vi.mocked(fetchHomeContent).mockResolvedValue(home({}));
+  vi.mocked(fetchSectorOutlook).mockResolvedValue(outlook([]));
+  await renderCard();
+  const article = screen.getByRole("article");
+  expect(article).toHaveTextContent("can plan as normal");
+  expect(article).not.toHaveTextContent("Nothing is published");
+  expect(within(article).queryByText("None")).toBeNull();
+  expect(within(article).queryByText("No picture yet")).toBeNull();
+  expect(within(article).getByRole("img")).toHaveAttribute(
+    "alt",
+    expect.stringContaining("St. George's")
+  );
+  // Screen readers still hear each sector's state.
+  expect(
+    within(article).getByRole("link", { name: "Health: nothing this week" })
+  ).toBeInTheDocument();
+});
+
 it("drops its own byline but keeps its name when the page already shows the heading", async () => {
   vi.mocked(fetchHomeContent).mockResolvedValue(home({}));
   vi.mocked(fetchSectorOutlook).mockResolvedValue(outlook([]));

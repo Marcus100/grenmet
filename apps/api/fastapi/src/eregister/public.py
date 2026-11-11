@@ -320,7 +320,79 @@ async def latest(session: AsyncSession, now: datetime) -> PublicObservation | No
         },
     )
     row = result.mappings().first()
-    return decode(dict(row)) if row else None
+    if not row:
+        return None
+    observation = decode(dict(row))
+    if observation.max_temperature_c is None or observation.min_temperature_c is None:
+        high, low = await _day_extremes(session, row["observed_at"])
+        observation = observation.model_copy(
+            update={
+                "max_temperature_c": observation.max_temperature_c
+                if observation.max_temperature_c is not None
+                else high,
+                "min_temperature_c": observation.min_temperature_c
+                if observation.min_temperature_c is not None
+                else low,
+            }
+        )
+    return observation
+
+
+# Grenada keeps Atlantic Standard Time (UTC-4) all year.
+GRENADA_OFFSET = timedelta(hours=-4)
+
+
+def grenada_day_start(at: datetime) -> datetime:
+    """UTC instant of local midnight on the Grenada day that contains ``at``."""
+    local = at.astimezone(UTC) + GRENADA_OFFSET
+    midnight = datetime(local.year, local.month, local.day, tzinfo=UTC)
+    return midnight - GRENADA_OFFSET
+
+
+async def _day_extremes(
+    session: AsyncSession, observed_at: datetime
+) -> tuple[float | None, float | None]:
+    """Highest and lowest from the latest earlier reading that day that has them.
+
+    Observers key Tx and Tn only at the main hours, so an intermediate reading
+    (18:00 local, for example) has none. The hero keeps showing the day's last
+    reported extremes instead of dropping them (owner, 10 Nov 2026).
+    """
+    result = await session.execute(
+        text(
+            """
+            SELECT o.body
+            FROM register_observations o
+            WHERE o.kind = 'SYNOP'
+              AND o.station_id = :station
+              AND o.state NOT IN ('rejected', 'superseded')
+              AND o.observed_at >= :start AND o.observed_at < :before
+              AND NOT EXISTS (
+                SELECT 1 FROM register_observations newer
+                WHERE newer.supersedes_id = o.id AND newer.state <> 'rejected'
+              )
+            ORDER BY o.observed_at DESC, o.created_at DESC
+            LIMIT 24
+            """
+        ),
+        {
+            "station": MBIA_STATION,
+            "start": grenada_day_start(observed_at),
+            "before": observed_at,
+        },
+    )
+    high: float | None = None
+    low: float | None = None
+    for (body,) in result.all():
+        nested = (body or {}).get("workbook")
+        workbook: dict[str, Any] = nested if isinstance(nested, dict) else body or {}
+        if high is None:
+            high = temperature(_value(workbook, "s3_max_temp"))
+        if low is None:
+            low = temperature(_value(workbook, "s3_min_temp"))
+        if high is not None and low is not None:
+            break
+    return high, low
 
 
 # WMO Guide to Climatological Practices (WMO-No. 100): a rain day has at least

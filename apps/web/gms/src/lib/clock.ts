@@ -50,3 +50,21 @@ export function postedLabel(iso: string, now = new Date()): string {
   else if (day === GRENADA_DAY.format(yesterday)) prefix = "Yesterday";
   return `${prefix} at ${clock12(CLOCK_FORMAT.format(when))}`;
 }
+
+const FULL_DATE = new Intl.DateTimeFormat("en-GB", {
+  timeZone: "America/Grenada",
+  day: "numeric",
+  month: "short",
+  year: "numeric",
+});
+
+/**
+ * An archive time in Grenada, never relative: "10 Nov 2026 at 6:24 p.m. AST".
+ * For issued products, where "Today" would go stale. An unreadable time comes
+ * back as given.
+ */
+export function stampLabel(iso: string): string {
+  const when = new Date(iso);
+  if (Number.isNaN(when.getTime())) return iso;
+  return `${FULL_DATE.format(when)} at ${clock12(CLOCK_FORMAT.format(when))} AST`;
+}

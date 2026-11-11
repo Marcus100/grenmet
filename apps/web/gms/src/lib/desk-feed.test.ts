@@ -5,6 +5,7 @@ import {
   nextForecastDue,
   nextIssueLabel,
 } from "@/lib/desk-feed";
+import { STOCK_PICTURES } from "@/lib/stock-pictures";
 
 const product = (
   kind:
@@ -364,21 +365,28 @@ describe("official card pictures", () => {
     ).toBe("Photo: GMS");
   });
 
-  it("leaves the picture empty when no pinned desk post is based on the product", () => {
-    expect(briefingPicture([{ ...pinnedPicture, pinned: false }])).toBeNull();
-    expect(briefingPicture([{ ...pinnedPicture, basedOn: null }])).toBeNull();
+  it("falls back to the standard forecast photo when no pinned desk post is based on the product", () => {
+    const standard = STOCK_PICTURES.briefing;
+    expect(briefingPicture([{ ...pinnedPicture, pinned: false }])).toEqual(
+      standard
+    );
+    expect(briefingPicture([{ ...pinnedPicture, basedOn: null }])).toEqual(
+      standard
+    );
     expect(
       briefingPicture([
         { ...pinnedPicture, basedOn: { productId: "other", title: null } },
       ])
-    ).toBeNull();
-    expect(briefingPicture([{ ...pinnedPicture, imageUrl: null }])).toBeNull();
+    ).toEqual(standard);
+    expect(briefingPicture([{ ...pinnedPicture, imageUrl: null }])).toEqual(
+      standard
+    );
   });
 
   it("uses desk posts only, not report write-ups", () => {
     expect(
       briefingPicture([{ ...pinnedPicture, collection: "report-notes" }])
-    ).toBeNull();
+    ).toEqual(STOCK_PICTURES.briefing);
   });
 
   it("uses the newest matching pinned post", () => {

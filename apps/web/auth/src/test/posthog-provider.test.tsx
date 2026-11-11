@@ -327,6 +327,17 @@ it("asks once in a popup, then reopens from the footer's cookie settings button"
   expect(screen.queryByRole("dialog")).toBeNull();
 });
 
+it("gives accepting and refusing the same button style, with settings as a link", async () => {
+  show();
+  await screen.findByRole("dialog", { name: "Cookie preferences" });
+  const accept = screen.getByRole("button", { name: "Accept cookies" });
+  const refuse = screen.getByRole("button", { name: "Essential cookies only" });
+  expect(refuse.className).toBe(accept.className);
+  expect(
+    screen.getByRole("button", { name: "Customise settings" }).className
+  ).not.toBe(accept.className);
+});
+
 it("opens on a first visit with browser opt-out while keeping analytics disabled", async () => {
   Object.defineProperty(navigator, "globalPrivacyControl", {
     value: true,

@@ -144,10 +144,43 @@ function Extreme({
 
 /** The day the Now card's link points to: today's forecast tab. */
 export interface TodayLink {
-  high: number | null;
+  high?: number | null;
   href: string;
+  /** Tonight's minimum, shown instead of the high after the evening forecast. */
+  low?: number | null;
   sky: WeatherCondition;
   slug: string;
+  tonight?: boolean;
+}
+
+/**
+ * The link under the Now card: "Today's forecast: …, high …", or after the
+ * evening forecast "Tonight: …, low …" (owner, 10 Nov 2026).
+ */
+function ForecastLink({ today }: { today: TodayLink }) {
+  const figure = today.tonight
+    ? { word: "low", value: today.low }
+    : { word: "high", value: today.high };
+  return (
+    <TabLink
+      className="bg-gm-text-inverse/12 text-body-sm leading-body-sm hover:bg-gm-text-inverse/20 focus-visible:ring-gm-lime mt-2 rounded-full px-3.5 py-2 font-bold outline-none focus-visible:ring-2"
+      currentClassName=""
+      data-analytics-day="today"
+      data-analytics-event="forecast_tab_selected"
+      href={today.href}
+      idleClassName=""
+      slug={today.slug}
+    >
+      {today.tonight ? "Tonight" : "Today's forecast"}:{" "}
+      {WEATHER_CONDITION_LABEL[today.sky]}
+      {figure.value != null && (
+        <>
+          , {figure.word} <Temperature value={figure.value} />
+        </>
+      )}{" "}
+      <span aria-hidden="true">→</span>
+    </TabLink>
+  );
 }
 
 /**
@@ -200,27 +233,7 @@ export function NowCard({
   }
   return (
     <HeroCard
-      footer={
-        today && (
-          <TabLink
-            className="bg-gm-text-inverse/12 text-body-sm leading-body-sm hover:bg-gm-text-inverse/20 focus-visible:ring-gm-lime mt-2 rounded-full px-3.5 py-2 font-bold outline-none focus-visible:ring-2"
-            currentClassName=""
-            data-analytics-day="today"
-            data-analytics-event="forecast_tab_selected"
-            href={today.href}
-            idleClassName=""
-            slug={today.slug}
-          >
-            Today's forecast: {WEATHER_CONDITION_LABEL[today.sky]}
-            {today.high !== null && (
-              <>
-                , high <Temperature value={today.high} />
-              </>
-            )}{" "}
-            <span aria-hidden="true">→</span>
-          </TabLink>
-        )
-      }
+      footer={today && <ForecastLink today={today} />}
       label={label}
       left={
         <Extreme
@@ -275,13 +288,16 @@ export function DayCard({
   condition,
   day,
   now,
+  tonight = false,
 }: {
   condition: WeatherCondition;
   day: ForecastDayData;
   /** Clock for the validity check; defaults to the render time. */
   now?: Date;
+  /** Today after the evening forecast: "Tonight" with the low as the number. */
+  tonight?: boolean;
 }) {
-  const label = shortDate(day.date);
+  const label = tonight ? "Tonight" : shortDate(day.date);
   if (!isIssued(day)) {
     return (
       <HeroCard
@@ -311,6 +327,7 @@ export function DayCard({
       }
       label={label}
       left={
+        !tonight &&
         day.low !== null && (
           <>
             <span aria-hidden="true">▼ </span>
@@ -331,10 +348,17 @@ export function DayCard({
         byLabel(c, WEATHER_TYPE)?.value ?? WEATHER_CONDITION_LABEL[condition]
       }
       temperature={
-        <>
-          <Temperature value={day.high} />
-          {day.high !== null && <span className="sr-only"> highest</span>}
-        </>
+        tonight ? (
+          <>
+            <Temperature value={day.low} />
+            <span className="sr-only"> lowest tonight</span>
+          </>
+        ) : (
+          <>
+            <Temperature value={day.high} />
+            {day.high !== null && <span className="sr-only"> highest</span>}
+          </>
+        )
       }
     />
   );

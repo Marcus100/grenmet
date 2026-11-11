@@ -1,8 +1,12 @@
 import { DayPanel } from "@/components/home/day-panel";
-import { DayCard, NowCard } from "@/components/home/hero-card";
+import { DayCard, NowCard, type TodayLink } from "@/components/home/hero-card";
 import { ByTab, HeroSelectionProvider } from "@/components/home/hero-selection";
 import { NowPanel } from "@/components/home/now-card";
-import { SkyDayStrip, type StripDay } from "@/components/home/sky-day-strip";
+import {
+  isTonight,
+  SkyDayStrip,
+  type StripDay,
+} from "@/components/home/sky-day-strip";
 import { UnitsToggle } from "@/components/units-toggle";
 import {
   isOtherGrenadaDay,
@@ -12,7 +16,7 @@ import {
 import type { WeatherSnapshot } from "@/lib/forecast-data";
 import { getForecastDays } from "@/lib/forecast-days";
 import { isStale } from "@/lib/freshness";
-import { rainChance, skyFromWords } from "@/lib/hero-readings";
+import { skyFromWords } from "@/lib/hero-readings";
 import {
   defaultLocation,
   locationHref,
@@ -53,6 +57,23 @@ function stripTime(
   };
 }
 
+/**
+ * The link under the Now card: today's forecast with its high, or after the
+ * evening forecast, tonight with its low (owner, 10 Nov 2026). None without an
+ * issued first day.
+ */
+export function todayLink(
+  today: StripDay | undefined,
+  issued: boolean
+): TodayLink | undefined {
+  if (!(today && issued)) return undefined;
+  const base = { href: today.href, sky: today.condition, slug: today.slug };
+  if (today.tonight && today.low !== null) {
+    return { ...base, low: today.low, tonight: true };
+  }
+  return today.high === null ? undefined : { ...base, high: today.high };
+}
+
 export function SkyHero({
   children,
   location = defaultLocation(),
@@ -73,14 +94,7 @@ export function SkyHero({
   weather: WeatherSnapshot;
 }) {
   const days: StripDay[] = getForecastDays(weather.baseDate, weather.days).map(
-    (day, index) => {
-      const issued = weather.days[index];
-      return {
-        ...day,
-        href: day.path,
-        rainWord: issued ? rainChance(issued) : null,
-      };
-    }
+    (day) => ({ ...day, href: day.path, tonight: isTonight(day) })
   );
   const wanted = selected === "today" ? days[0]?.slug : selected;
   const index = days.findIndex((day) => day.slug === wanted);
@@ -98,16 +112,7 @@ export function SkyHero({
         fallbackTemperature={weather.observation?.temperature ?? null}
         now={now}
         station={station}
-        today={
-          today && weather.days[0] && today.high !== null
-            ? {
-                high: today.high,
-                href: today.href,
-                sky: today.condition,
-                slug: today.slug,
-              }
-            : undefined
-        }
+        today={todayLink(today, Boolean(weather.days[0]))}
       />
     ),
   };
@@ -117,7 +122,9 @@ export function SkyHero({
   days.forEach((day, dayIndex) => {
     const issued = weather.days[dayIndex];
     if (!issued) return;
-    cards[day.slug] = <DayCard condition={day.condition} day={issued} />;
+    cards[day.slug] = (
+      <DayCard condition={day.condition} day={issued} tonight={day.tonight} />
+    );
     panels[day.slug] = (
       <DayPanel
         day={issued}

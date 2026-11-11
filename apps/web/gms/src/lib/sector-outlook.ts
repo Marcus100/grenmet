@@ -177,6 +177,18 @@ function joinLabels(labels: string[]): string {
   return `${labels.slice(0, -1).join(", ")} and ${labels.at(-1)}`;
 }
 
+/** "No sector needs special advice: tourism and outdoors, …, and roads and transport can plan as normal." */
+export function allClearSentence(): string {
+  const names = SECTORS.map(({ label }) =>
+    label.replace(" & ", " and ").toLowerCase()
+  );
+  const list =
+    names.length > 1
+      ? `${names.slice(0, -1).join(", ")} and ${names.at(-1)}`
+      : (names[0] ?? "");
+  return `No sector needs special advice: ${list} can plan as normal.`;
+}
+
 /**
  * The compact card's bold line and short text, written from the week's
  * published alerts and warnings only (owner, 8 Nov 2026): the highest level and
@@ -196,7 +208,8 @@ export function weekSummary(
     return complete
       ? {
           headline: "No alerts or warnings this week",
-          text: "Nothing is published for any sector right now.",
+          // One plain sentence naming who can plan as normal (owner, 10 Nov 2026).
+          text: allClearSentence(),
         }
       : { headline: "This week's alerts and warnings", text: "" };
   }

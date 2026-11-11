@@ -19,6 +19,7 @@ import {
   fetchPublishedProducts,
   fetchSectorOutlook,
 } from "@/lib/products";
+import { STOCK_PICTURES } from "@/lib/stock-pictures";
 
 vi.mock("@/lib/products", () => ({
   fetchPublishedProduct: vi.fn(),
@@ -149,6 +150,19 @@ it("shows an empty state, not a stale list, when no questions are published", as
   expect(
     screen.getByText("No questions are published yet.")
   ).toBeInTheDocument();
+});
+
+const EXPLAINED_CARD = /explained/u;
+
+it("fills the explainer card's top with a credited weather photo", async () => {
+  vi.mocked(fetchHomeContent).mockResolvedValue(hidden([]));
+  render(await Explained());
+  const card = screen.getByRole("link", { name: EXPLAINED_CARD });
+  const photo = card.querySelector("img");
+  expect(photo?.getAttribute("src")).toContain("explained-storm-clouds-iss");
+  // Decorative inside the link, so the link's name stays its words.
+  expect(photo).toHaveAttribute("alt", "");
+  expect(card).toHaveTextContent(STOCK_PICTURES.explained.credit);
 });
 
 type HomeAlertGroup = Extract<
@@ -595,11 +609,11 @@ it("puts the picture of the pinned desk post based on a product on its official 
   // The official card and the pinned desk post in the row both show it.
   expect(screen.getAllByAltText("Rain map for the afternoon")).toHaveLength(2);
   expect(screen.getAllByText("Photo: Kendra Mitchell")).toHaveLength(2);
-  // Only the sector card is left without a picture.
-  expect(screen.getAllByText("No picture yet")).toHaveLength(1);
+  // No card is left without a picture (standard photos, owner, 10 Nov 2026).
+  expect(screen.queryByText("No picture yet")).toBeNull();
 });
 
-it("says No picture yet on an official card and the sector card when no desk post is based on it", async () => {
+it("shows standard photos on an official card and the sector card when no desk post is based on them", async () => {
   vi.mocked(fetchHomeContent).mockResolvedValue({
     ...hidden([]),
     deskUpdates: { status: "ok", articles: [post({})] },
@@ -609,8 +623,26 @@ it("says No picture yet on an official card and the sector card when no desk pos
     products: [MIDDAY],
   });
   render(await ForecastDesk());
-  // The official card and the sector card each keep their picture area.
-  expect(screen.getAllByText("No picture yet")).toHaveLength(2);
+  // Each keeps its picture area, filled with its card type's standard photo.
+  expect(screen.queryByText("No picture yet")).toBeNull();
+  expect(screen.getByAltText(STOCK_PICTURES.briefing.alt)).toBeInTheDocument();
+  expect(screen.getByAltText(STOCK_PICTURES.week.alt)).toBeInTheDocument();
+});
+
+it("gives official cards the same light border as desk posts; the label marks them", async () => {
+  vi.mocked(fetchHomeContent).mockResolvedValue({
+    ...hidden([]),
+    deskUpdates: { status: "ok", articles: [post({})] },
+  });
+  vi.mocked(fetchPublishedProducts).mockResolvedValue({
+    status: "ok",
+    products: [MIDDAY],
+  });
+  render(await ForecastDesk());
+  for (const card of screen.getAllByRole("article")) {
+    expect(card.className).not.toContain("border-gm-navy");
+  }
+  expect(screen.getByText("Official briefing")).toBeInTheDocument();
 });
 
 it("credits every desk post picture, defaulting to Photo: GMS", async () => {
@@ -689,6 +721,10 @@ it("credits every story picture, and says Unsplash for the stock fallback", asyn
   expect(screen.getByText("Photo: Kendra Mitchell")).toBeInTheDocument();
   expect(screen.getByText("Photo: GMS")).toBeInTheDocument();
   expect(screen.getByText("Photo: Unsplash")).toBeInTheDocument();
+  // Thumbnail credits stay on one line; the full text is in the tooltip.
+  const thumbCredit = screen.getByText("Photo: GMS");
+  expect(thumbCredit).toHaveClass("truncate");
+  expect(thumbCredit).toHaveAttribute("title", "Photo: GMS");
 });
 
 it("hides only desk posts that have no place left in the row", () => {

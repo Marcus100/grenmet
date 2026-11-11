@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { clock12 } from "@/lib/clock";
+import { clock12, stampLabel } from "@/lib/clock";
 
 describe("clock12", () => {
   it.each([
@@ -18,5 +18,20 @@ describe("clock12", () => {
   it("leaves text that is not a time alone", () => {
     expect(clock12("Not issued")).toBe("Not issued");
     expect(clock12("25:00")).toBe("25:00");
+  });
+});
+
+describe("stampLabel", () => {
+  it("gives an archive time in Grenada, with the year and zone", () => {
+    expect(stampLabel("2026-11-10T22:24:24Z")).toBe(
+      "10 Nov 2026 at 6:24 p.m. AST"
+    );
+    expect(stampLabel("2026-11-11T03:05:00Z")).toBe(
+      "10 Nov 2026 at 11:05 p.m. AST"
+    );
+  });
+
+  it("returns text it cannot read unchanged", () => {
+    expect(stampLabel("not a time")).toBe("not a time");
   });
 });
