@@ -17,6 +17,14 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
+const MAX_ERROR_CHARS = 120;
+
+function short(text: string): string {
+  return text.length > MAX_ERROR_CHARS
+    ? `${text.slice(0, MAX_ERROR_CHARS - 1)}…`
+    : text;
+}
+
 export function iwxxmStatus(
   observation: RegisterObservationRead
 ): IwxxmStatus | null {
@@ -24,20 +32,22 @@ export function iwxxmStatus(
   if (!isRecord(record)) return null;
   const version =
     typeof record.version === "string" ? `IWXXM ${record.version}` : "IWXXM";
-  if (record.valid === true) {
-    const rules =
-      record.schematron === "passed"
-        ? "WMO business rules passed"
-        : "WMO business rules not checked yet";
+  if (record.valid === true)
     return {
       ok: true,
-      text: `${version} METAR built; schema valid (${rules}).`,
+      text: `${version} METAR built; schema valid (WMO business rules not checked yet).`,
     };
-  }
   const errors = Array.isArray(record.errors)
     ? record.errors.filter((item): item is string => typeof item === "string")
     : [];
-  const shown = errors.slice(0, MAX_ERRORS).join("; ");
+  // The API stores null when the XSD schemas are not installed on the server:
+  // validity is unknown, not failed.
+  if (record.valid !== false && errors.length === 0)
+    return {
+      ok: true,
+      text: `${version} METAR built; schema check not run on this server.`,
+    };
+  const shown = errors.slice(0, MAX_ERRORS).map(short).join("; ");
   const more =
     errors.length > MAX_ERRORS ? ` (+${errors.length - MAX_ERRORS} more)` : "";
   return {

@@ -28,6 +28,29 @@ describe("IWXXM status line", () => {
     });
   });
 
+  it("says validity is unknown when the server has no schemas (valid null)", () => {
+    expect(
+      iwxxmStatus(
+        row({
+          version: "2025-2",
+          valid: null,
+          errors: [],
+          note: "schemas missing",
+        })
+      )
+    ).toEqual({
+      ok: true,
+      text: "IWXXM 2025-2 METAR built; schema check not run on this server.",
+    });
+  });
+
+  it("keeps a long schema message short", () => {
+    const text =
+      iwxxmStatus(row({ valid: false, errors: ["x".repeat(500)] }))?.text ?? "";
+    expect(text.length).toBeLessThan(160);
+    expect(text.endsWith("…")).toBe(true);
+  });
+
   it("names the first problems of an invalid record", () => {
     expect(
       iwxxmStatus(
