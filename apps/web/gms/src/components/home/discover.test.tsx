@@ -1,4 +1,4 @@
-import { cleanup, render, screen } from "@testing-library/react";
+import { cleanup, render, screen, within } from "@testing-library/react";
 import { afterEach, expect, it, vi } from "vitest";
 import { Discover, skyCard } from "@/components/home/discover";
 import { fetchHomeContent, type HomeContent } from "@/lib/cms";
@@ -83,6 +83,19 @@ it("shows the calculated sky and each published card, linked", async () => {
   expect(screen.getByRole("link", { name: RAINBOWS })).toHaveAttribute(
     "href",
     "https://example.test/rainbows"
+  );
+});
+
+it("names a fact's source once and keeps every card's text to four lines", async () => {
+  vi.mocked(fetchHomeContent).mockResolvedValue(home());
+  render(await Discover({ now: NOW }));
+  const fact = screen.getByRole("link", { name: RAINBOWS });
+  expect(
+    within(fact).getAllByText("Met Office", { exact: false })
+  ).toHaveLength(1);
+  expect(within(fact).getByText("Source: Met Office")).toBeInTheDocument();
+  expect(within(fact).getByText("The sun is behind you.")).toHaveClass(
+    "line-clamp-4"
   );
 });
 

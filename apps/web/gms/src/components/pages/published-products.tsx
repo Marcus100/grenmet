@@ -6,6 +6,7 @@ import {
 import Link from "next/link";
 import { FreshnessNotice } from "@/components/freshness-notice";
 import { ImportedWatch } from "@/components/pages/imported-watch";
+import { wallClockLabel } from "@/lib/clock";
 import { validityNote } from "@/lib/freshness";
 import { fetchPublishedProducts } from "@/lib/products";
 
@@ -65,13 +66,12 @@ export async function PublishedProducts({ kinds }: { kinds: ProductKind[] }) {
                       href={`/weather/issued/${product.id}`}
                     >
                       {productTitle(kind)} ·{" "}
-                      {(product.values.issuedAt ?? "").replace("T", " ")}
+                      {wallClockLabel(product.values.issuedAt ?? "")}
                     </Link>
                     <p>{product.values.area}</p>
-                    <p className="text-body-sm text-gm-text-secondary leading-body-sm font-mono">
-                      Valid until{" "}
-                      {(product.values.validTo ?? "").replace("T", " ")}{" "}
-                      (Grenada time) · Revision {product.revision}
+                    <p className="text-body-sm text-gm-text-secondary leading-body-sm">
+                      Valid until {wallClockLabel(product.values.validTo ?? "")}{" "}
+                      AST
                     </p>
                     <ValidityNotice
                       kind={kind}

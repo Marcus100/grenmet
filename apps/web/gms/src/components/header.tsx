@@ -79,6 +79,7 @@ export function Header({ alerts, green }: HeaderProps) {
                   alerts={result}
                   className="flex h-7 xl:hidden"
                   green={outlook}
+                  wordsFrom="lg"
                 />
               )}
             </WithStatus>
@@ -124,6 +125,7 @@ export function Header({ alerts, green }: HeaderProps) {
                   alerts={result}
                   className="flex lg:hidden xl:flex"
                   green={outlook}
+                  wordsFrom="xl"
                 />
               )}
             </WithStatus>

@@ -12,11 +12,13 @@ import {
 import { postedLabel } from "@/lib/clock";
 import type { PublishedContent } from "@/lib/cms";
 import { photoCredit } from "@/lib/photo-credit";
+import { STOCK_PICTURES } from "@/lib/stock-pictures";
 import type { WarningLevel } from "@/lib/warning-level";
 
 /**
  * A picture on an official card: the image of the pinned desk post that is
- * based on that product (owner, 5 Nov 2026). Absent when no such post has one.
+ * based on that product (owner, 5 Nov 2026), else the card type's standard
+ * photo (owner, 10 Nov 2026), so no official card shows an empty picture.
  */
 export interface CardPicture {
   alt: string;
@@ -147,8 +149,9 @@ function postTime(post: PublishedContent): number {
  */
 function pictureFor(
   productId: string,
-  posts: PublishedContent[]
-): CardPicture | null {
+  posts: PublishedContent[],
+  kind: OfficialCard["kind"]
+): CardPicture {
   const post = posts
     .filter(
       (item) =>
@@ -158,7 +161,7 @@ function pictureFor(
         item.imageUrl
     )
     .sort((a, b) => postTime(b) - postTime(a))[0];
-  if (!post?.imageUrl) return null;
+  if (!post?.imageUrl) return STOCK_PICTURES[kind];
   return {
     alt: post.imageAlt ?? "",
     credit: photoCredit(post.imageCredit),
@@ -292,12 +295,33 @@ export function buildDeskFeed({
   const climate = newest(products, ["climate-bulletin"]);
   const official = [
     briefing &&
-      officialCard(briefing, "briefing", now, pictureFor(briefing.id, posts)),
-    marine && officialCard(marine, "marine", now, pictureFor(marine.id, posts)),
+      officialCard(
+        briefing,
+        "briefing",
+        now,
+        pictureFor(briefing.id, posts, "briefing")
+      ),
+    marine &&
+      officialCard(
+        marine,
+        "marine",
+        now,
+        pictureFor(marine.id, posts, "marine")
+      ),
     outlook &&
-      officialCard(outlook, "outlook", now, pictureFor(outlook.id, posts)),
+      officialCard(
+        outlook,
+        "outlook",
+        now,
+        pictureFor(outlook.id, posts, "outlook")
+      ),
     climate &&
-      officialCard(climate, "climate", now, pictureFor(climate.id, posts)),
+      officialCard(
+        climate,
+        "climate",
+        now,
+        pictureFor(climate.id, posts, "climate")
+      ),
   ].filter((card): card is OfficialCard => Boolean(card));
   // Up to three pinned posts lead the desk posts (owner, 1 Nov 2026), newest
   // first; any further pinned posts sort with the rest by date.

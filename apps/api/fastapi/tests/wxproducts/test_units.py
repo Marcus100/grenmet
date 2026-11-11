@@ -66,10 +66,10 @@ def test_normalize_keeps_legacy_free_text_without_structured_values():
     [
         ({"windSpeedMin": "25", "windSpeedMax": "20"}, "'speed from' exceeds"),
         ({"windSpeedMax": "20", "windGust": "15"}, "gusts must be at least"),
-        ({"waveHeightMin": "40"}, "waveHeightMin: must be between 0 and 30"),
+        ({"waveHeightMin": "40"}, "Waves from (m): must be between 0 and 30"),
         ({"waveHeightMin": "3", "waveHeightMax": "2"}, "'wave height from'"),
         ({"seaStateFrom": "Rough", "seaStateTo": "Slight"}, "rougher than"),
-        ({"rainChance": "140"}, "rainChance: must be between 0 and 100"),
+        ({"rainChance": "140"}, "Chance of rain: must be between 0 and 100"),
         ({"tide1Type": "High"}, "Tide 1: choose high or low and enter its time"),
         ({"tide1Type": "High", "tide1Time": "25:00"}, "enter a time as HH:MM"),
     ],
@@ -122,3 +122,11 @@ def test_visibility_in_km_with_nautical_miles_and_marine_terms():
     assert values["visibility"] == "12 km (6.5 nmi), good"
     errors = validation.parameter_errors({"visibilityMin": "9", "visibilityMax": "4"})
     assert "Visibility: 'from' exceeds 'to'" in errors
+
+
+def test_every_range_check_names_its_form_field():
+    # Messages use the form label, never the internal key, so the desk's
+    # problem list can link each one to its field.
+    assert set(validation.RANGE_LABELS) == set(validation.RANGES)
+    for key, label in validation.RANGE_LABELS.items():
+        assert label != key

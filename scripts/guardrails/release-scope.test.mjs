@@ -17,6 +17,7 @@ import {
   webImages,
 } from "../ci/release-scope.mjs";
 
+const PROMOTE_NEEDS = /needs: \[release-scope, promote(, scan)?\]/u;
 const ROLLING_REPLACEMENT = /rolling replacement/u;
 const CHECK_SCRIPT = fileURLToPath(
   new URL("../ci/check-release-scope.mjs", import.meta.url)
@@ -41,7 +42,7 @@ test("promotion pipelines require scope validation and cannot invoke deferred de
       "utf8"
     );
     // Staging also waits for the rescan of promoted digests (issue #1142).
-    assert.match(yaml, /needs: \[release-scope, promote(, scan)?\]/u);
+    assert.match(yaml, PROMOTE_NEEDS);
     assert.ok(yaml.includes("node scripts/ci/check-release-scope.mjs"));
     assert.equal(yaml.includes("build-weather-images.yml"), false);
     assert.equal(yaml.includes("deploy-weather.yml"), false);

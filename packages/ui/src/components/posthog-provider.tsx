@@ -164,16 +164,26 @@ function PublicAnalytics({
             {optedOut ? (
               <p>Your browser has turned optional analytics off.</p>
             ) : null}
+            {/* Accepting and refusing look the same, as privacy rules expect;
+                settings stay a link (owner, 10 Nov 2026). */}
             <div className="grid gap-2">
-              <Button
-                className="rounded-full"
-                disabled={optedOut}
-                onClick={() => choose("accepted")}
-                size="touch"
-              >
-                Accept cookies
-                <ArrowRightIcon aria-hidden="true" data-icon="inline-end" />
-              </Button>
+              <div className="grid gap-2">
+                <Button
+                  className="rounded-full"
+                  disabled={optedOut}
+                  onClick={() => choose("accepted")}
+                  size="touch"
+                >
+                  Accept cookies
+                </Button>
+                <Button
+                  className="rounded-full"
+                  onClick={() => choose("declined")}
+                  size="touch"
+                >
+                  Essential cookies only
+                </Button>
+              </div>
               <Button
                 onClick={() => {
                   setAnalytics(false);
@@ -184,13 +194,6 @@ function PublicAnalytics({
               >
                 Customise settings
                 <ArrowRightIcon aria-hidden="true" data-icon="inline-end" />
-              </Button>
-              <Button
-                className="min-h-11"
-                onClick={() => choose("declined")}
-                variant="link"
-              >
-                Essential cookies only
               </Button>
             </div>
           </>

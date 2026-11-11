@@ -62,7 +62,10 @@ export function decide({ run, jobs }) {
   }
   const transient = jobs.filter((job) => isTransientFailure(job.log));
   if (transient.length === 0) {
-    return { rerun: false, reason: "no failed job hit an infrastructure error" };
+    return {
+      rerun: false,
+      reason: "no failed job hit an infrastructure error",
+    };
   }
   return {
     rerun: true,
@@ -103,11 +106,15 @@ function failedJobs(repo, runId) {
   });
 }
 
+const RUN_ID = /^\d+$/u;
+
 async function main() {
   const [runId, ...flags] = process.argv.slice(2);
   const repo = process.env.GH_REPO;
-  if (!(runId && /^\d+$/u.test(runId) && repo)) {
-    console.error("usage: GH_REPO=owner/name rerun-infra-failures.mjs <run-id> [--dry-run]");
+  if (!(runId && RUN_ID.test(runId) && repo)) {
+    console.error(
+      "usage: GH_REPO=owner/name rerun-infra-failures.mjs <run-id> [--dry-run]"
+    );
     process.exit(2);
   }
   const run = JSON.parse(gh(["api", `repos/${repo}/actions/runs/${runId}`]));
@@ -115,7 +122,10 @@ async function main() {
     console.log("Run is from a fork; not re-running.");
     return;
   }
-  const verdict = decide({ run, jobs: run.conclusion === "failure" ? failedJobs(repo, runId) : [] });
+  const verdict = decide({
+    run,
+    jobs: run.conclusion === "failure" ? failedJobs(repo, runId) : [],
+  });
   console.log(`${run.name} #${runId}: ${verdict.reason}`);
   if (!verdict.rerun) return;
   if (flags.includes("--dry-run")) {
@@ -125,7 +135,12 @@ async function main() {
   // Give a rate-limit window time to ease before trying again.
   const delay = Number(process.env.RERUN_DELAY_SECONDS ?? 0);
   if (delay > 0) await new Promise((done) => setTimeout(done, delay * 1000));
-  gh(["api", "-X", "POST", `repos/${repo}/actions/runs/${runId}/rerun-failed-jobs`]);
+  gh([
+    "api",
+    "-X",
+    "POST",
+    `repos/${repo}/actions/runs/${runId}/rerun-failed-jobs`,
+  ]);
   console.log("Re-ran the failed jobs.");
 }
 

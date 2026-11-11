@@ -1,5 +1,6 @@
 import type { SectorOutlook } from "@barrelsgd/api-client";
 import { SECTORS, type SectorKey } from "@barrelsgd/gms/sectors";
+import { clock12 } from "@/lib/clock";
 import { warningHref } from "@/lib/warning-detail";
 
 /** Impact levels, mildest first; the bar on a tile runs from green to red. */
@@ -47,11 +48,14 @@ const DAY = new Intl.DateTimeFormat("en-GB", {
   day: "numeric",
   month: "short",
 });
-const AS_OF = new Intl.DateTimeFormat("en-GB", {
+const AS_OF_DAY = new Intl.DateTimeFormat("en-GB", {
   timeZone: "America/Grenada",
   weekday: "short",
   day: "numeric",
   month: "short",
+});
+const AS_OF_TIME = new Intl.DateTimeFormat("en-GB", {
+  timeZone: "America/Grenada",
   hour: "2-digit",
   minute: "2-digit",
   hour12: false,
@@ -64,9 +68,13 @@ const SUMMARY_LIMIT = 140;
 
 const dayKey = (date: Date) => DAY_KEY.format(date);
 
-/** When the outlook was read, in Grenada time ("Wed 28 Oct, 11:00 AST"), so a stale feed does not read as current. */
+/**
+ * When the outlook was read, in Grenada time ("Tue 10 Nov, 9:53 p.m. AST"), so
+ * a stale feed does not read as current; the homepage uses a.m. and p.m.
+ */
 export function formatOutlookAsOf(iso: string): string {
-  return `${AS_OF.format(new Date(iso))} AST`;
+  const when = new Date(iso);
+  return `${AS_OF_DAY.format(when)}, ${clock12(AS_OF_TIME.format(when))} AST`;
 }
 
 /** The first sentence, clipped, so a tile stays short. */
@@ -177,6 +185,18 @@ function joinLabels(labels: string[]): string {
   return `${labels.slice(0, -1).join(", ")} and ${labels.at(-1)}`;
 }
 
+/** "No sector needs special advice: tourism and outdoors, …, and roads and transport can plan as normal." */
+export function allClearSentence(): string {
+  const names = SECTORS.map(({ label }) =>
+    label.replace(" & ", " and ").toLowerCase()
+  );
+  const list =
+    names.length > 1
+      ? `${names.slice(0, -1).join(", ")} and ${names.at(-1)}`
+      : (names[0] ?? "");
+  return `No sector needs special advice: ${list} can plan as normal.`;
+}
+
 /**
  * The compact card's bold line and short text, written from the week's
  * published alerts and warnings only (owner, 8 Nov 2026): the highest level and
@@ -196,7 +216,8 @@ export function weekSummary(
     return complete
       ? {
           headline: "No alerts or warnings this week",
-          text: "Nothing is published for any sector right now.",
+          // One plain sentence naming who can plan as normal (owner, 10 Nov 2026).
+          text: allClearSentence(),
         }
       : { headline: "This week's alerts and warnings", text: "" };
   }

@@ -244,6 +244,66 @@ async def put(session, at, *, state="draft", station="78958", **fields):
     await session.commit()
 
 
+def test_grenada_day_start_is_local_midnight():
+    # 02:30 UTC on 11 Nov is 22:30 on 10 Nov in Grenada (UTC-4).
+    assert public.grenada_day_start(datetime(2026, 11, 11, 2, 30, tzinfo=UTC)) == (
+        datetime(2026, 11, 10, 4, tzinfo=UTC)
+    )
+    assert public.grenada_day_start(datetime(2026, 11, 10, 4, tzinfo=UTC)) == (
+        datetime(2026, 11, 10, 4, tzinfo=UTC)
+    )
+
+
+async def test_latest_keeps_the_days_extremes_between_main_hours(register_db):
+    s = register_db
+    # 14:00 local: a main hour with Tx and Tn.
+    await put(
+        s,
+        datetime(2026, 11, 10, 18, tzinfo=UTC),
+        air_temp="31.0",
+        s3_max_temp="313",
+        s3_min_temp="254",
+    )
+    # 15:00 local but rejected: never a source.
+    await put(
+        s,
+        datetime(2026, 11, 10, 19, tzinfo=UTC),
+        state="rejected",
+        air_temp="40.0",
+        s3_max_temp="400",
+        s3_min_temp="100",
+    )
+    # 18:00 local: an intermediate hour without them.
+    await put(s, datetime(2026, 11, 10, 22, tzinfo=UTC), air_temp="30.0")
+    observation = await public.latest(s, datetime(2026, 11, 10, 22, 30, tzinfo=UTC))
+    assert observation is not None
+    assert observation.temperature_c == 30.0
+    assert (observation.max_temperature_c, observation.min_temperature_c) == (
+        31.3,
+        25.4,
+    )
+
+    # A reading's own value wins; the missing one is still filled.
+    await put(
+        s, datetime(2026, 11, 10, 23, tzinfo=UTC), air_temp="29.0", s3_max_temp="320"
+    )
+    observation = await public.latest(s, datetime(2026, 11, 10, 23, 30, tzinfo=UTC))
+    assert observation is not None
+    assert (observation.max_temperature_c, observation.min_temperature_c) == (
+        32.0,
+        25.4,
+    )
+
+    # A new Grenada day starts empty: yesterday's extremes never carry over.
+    await put(s, datetime(2026, 11, 11, 5, tzinfo=UTC), air_temp="26.0")
+    observation = await public.latest(s, datetime(2026, 11, 11, 5, 30, tzinfo=UTC))
+    assert observation is not None
+    assert (observation.max_temperature_c, observation.min_temperature_c) == (
+        None,
+        None,
+    )
+
+
 def test_month_bounds_handle_boundaries():
     assert public.month_bounds(None, NOW)[0] == "2026-10"
     assert public.month_bounds("2026-02", NOW) == (

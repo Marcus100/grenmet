@@ -2,8 +2,9 @@ const CLOCK = /^(\d{1,2})[:.](\d{2})\s*([ap])?\.?\s*m?\.?$/iu;
 
 /**
  * "17:42" or "5:42" as "5:42 p.m." for the homepage, which uses a.m./p.m.
- * (owner, 29 Oct 2026): hero card, moon card, live posts and desk cards. The
- * hero's day tabs and the rest of the site keep the 24-hour clock.
+ * (owner, 29 Oct 2026): hero card, moon card, live posts and desk cards, and
+ * public product pages since 10 Nov 2026. The hero's day tabs keep the 24-hour
+ * clock.
  * Forecasters type sun times without a.m. or p.m., so `afternoon` reads an
  * hour before noon as the afternoon (a sunset typed "5:42"). Text that is not
  * a clock time comes back unchanged.
@@ -49,4 +50,52 @@ export function postedLabel(iso: string, now = new Date()): string {
   if (day === GRENADA_DAY.format(now)) prefix = "Today";
   else if (day === GRENADA_DAY.format(yesterday)) prefix = "Yesterday";
   return `${prefix} at ${clock12(CLOCK_FORMAT.format(when))}`;
+}
+
+const FULL_DATE = new Intl.DateTimeFormat("en-GB", {
+  timeZone: "America/Grenada",
+  day: "numeric",
+  month: "short",
+  year: "numeric",
+});
+
+/**
+ * An archive time in Grenada, never relative: "10 Nov 2026 at 6:24 p.m. AST".
+ * For issued products, where "Today" would go stale. An unreadable time comes
+ * back as given.
+ */
+export function stampLabel(iso: string): string {
+  const when = new Date(iso);
+  if (Number.isNaN(when.getTime())) return iso;
+  return `${FULL_DATE.format(when)} at ${clock12(CLOCK_FORMAT.format(when))} AST`;
+}
+
+const WALL_CLOCK = /^(\d{4})-(\d{2})-(\d{2})[T ](\d{2}):(\d{2})/u;
+const MONTH_SHORT = [
+  "Jan",
+  "Feb",
+  "Mar",
+  "Apr",
+  "May",
+  "Jun",
+  "Jul",
+  "Aug",
+  "Sep",
+  "Oct",
+  "Nov",
+  "Dec",
+];
+
+/**
+ * A Grenada wall-clock time as products store it ("2026-11-10T07:00") in
+ * words: "10 Nov 2026, 7:00 a.m.". No time-zone conversion: the value is
+ * already Grenada time. Anything else comes back with the T spaced out.
+ */
+export function wallClockLabel(local: string): string {
+  const match = WALL_CLOCK.exec(local.trim());
+  if (!match) return local.replace("T", " ");
+  const [, year, month, day, hour, minute] = match;
+  const name = MONTH_SHORT[Number(month) - 1];
+  if (!name) return local.replace("T", " ");
+  return `${Number(day)} ${name} ${year}, ${clock12(`${hour}:${minute}`)}`;
 }
