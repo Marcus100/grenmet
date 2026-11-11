@@ -119,6 +119,7 @@ GMS or GAA.
 | `scripts/scrapy-wxwatch` | GMS forecast-support operations delivered by Barrels | Active | Deploy bounded schedules with freshness, storage, database, and alert ownership |
 | `scripts/wis2-setup` | GMS/WIS2 integration artifacts | Active pilot | Complete local soak and separately approved global publication gates |
 | `scripts/wxregister` | GMS data migration/extraction utility | Reference utility | Retain until migration need is resolved; promote or retire explicitly |
+| `tests` | Barrels engineering cross-app checks against deployed environments (`tests/staging`: browser journeys and WCAG 2.1 AA checks after each staging deploy) | Active | Read-only against staging; never mutates records; credentials come from CI secrets and never appear in output |
 | `scripts/docs` | Barrels engineering documentation guardrails | Active | Enforce links, portfolio coverage, and document-system integrity |
 | `scripts/design-system` | Barrels engineering design-system automation | Active | Separate brand-neutral enforcement from GMS-specific contracts |
 | `scripts/ops` | Barrels engineering staging promotion automation and post-deploy staging smoke test | Active | Owner enables the promotion workflow and token; failures stay loud and the dev to staging PR is never merged by the script itself |

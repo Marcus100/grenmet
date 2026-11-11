@@ -68,6 +68,48 @@ jobs:
           echo "::error::Staging smoke checks failed; see the job summary."
           exit 1
 
+  journeys:
+    name: Staging journeys
+    # Browser journeys and WCAG 2.1 A/AA checks on the deployed stack (testing
+    # plan, 11 Nov 2026). Read-only; signed-in journeys skip until the staging
+    # test account secrets exist (#933). Reports only, like the smoke job.
+    if: github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.3.1
+        with:
+          # The default branch's journeys, never the commit under test, so a
+          # change on staging cannot read the staging secrets.
+          ref: ${{ github.event.repository.default_branch }}
+          persist-credentials: false
+      # Pinned actions only (staging-promotion guardrail), and only the root
+      # package's tools: Playwright and axe, no app dependencies.
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: "24"
+      - name: Install the journeys' tools
+        run: |
+          corepack enable
+          pnpm install --frozen-lockfile --filter barrelsgd-monorepo
+      - name: Install Chromium
+        run: pnpm exec playwright install --with-deps chromium
+      - name: Run the journeys
+        env:
+          STAGING_BASIC_AUTH: ${{ secrets.STAGING_BASIC_AUTH }}
+          STAGING_E2E_EMAIL: ${{ secrets.STAGING_E2E_EMAIL }}
+          STAGING_E2E_PASSWORD: ${{ secrets.STAGING_E2E_PASSWORD }}
+        run: pnpm e2e:staging
+      - name: Keep the report and traces of a failed run
+        if: failure()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: staging-journeys-report
+          path: |
+            playwright-report/
+            test-results/
+          retention-days: 7
+
   deploy-failed:
     name: Report failed staging deploy
     if: github.event.workflow_run.conclusion == 'failure'

@@ -63,6 +63,7 @@
     "agents:codex-review": "node scripts/agents/codex-review.mjs",
     "coverage:check": "node scripts/guardrails/check-coverage.mjs",
     "e2e": "node scripts/verification/e2e-if-up.mjs",
+    "e2e:staging": "playwright test -c tests/staging/playwright.config.ts",
     "ui:screenshots": "node scripts/agents/ui-screenshots.mjs",
     "test:docs": "node --test scripts/docs/*.test.mjs",
     "prepare": "husky",
@@ -96,6 +97,7 @@
   },
   "devDependencies": {
     "@biomejs/biome": "catalog:",
+    "@axe-core/playwright": "catalog:",
     "@playwright/test": "catalog:",
     "@types/node": "catalog:",
     "husky": "catalog:",

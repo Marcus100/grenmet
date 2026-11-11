@@ -50,6 +50,7 @@ upstream UI libraries unless our composition or custom behavior introduces risk.
 | Dev and pull-request CI | Unit/component/API/integration checks, contract drift, lint/types, required aggregate gates |
 | Docker build | Check actual runtime imports, entrypoints, assets, migration dependencies and image vulnerabilities |
 | Staging | Deployed readiness and representative authenticated workflows using owned synthetic data; verify PDF generation, storage and cross-app authentication |
+| Staging journeys | `tests/staging/` (Playwright, `pnpm e2e:staging`), run after each staging deploy by the Staging Smoke workflow: public pages on desktop and phone with no page errors or broken images, the issued-products RSS, sign-in and the staff-portal redirect, a read-only signed-in journey (needs the `STAGING_E2E_EMAIL`/`STAGING_E2E_PASSWORD` secrets, #933), and axe-core WCAG 2.1 A/AA checks on the homepage, alerts, issued forecasts and sign-in. Automation finds roughly a third of WCAG issues; keep a manual keyboard and screen-reader pass before releases |
 | Production | Safe readiness/public checks, release-linked error monitoring and operational alerts; no general mutation/fuzzing suite against live business records |
 | Scheduled operations | Restore drills, broader security checks and performance testing against designated test targets |
 
