@@ -13,7 +13,7 @@ only advise. A blank field is "not yet entered"; a field of slashes is "not
 observed" and decodes to missing. Pure functions only: no I/O.
 """
 
-from collections.abc import Collection, Mapping
+from collections.abc import Collection, Mapping, Sequence
 from datetime import UTC, datetime
 from typing import Literal
 
@@ -749,15 +749,19 @@ def _check_precipitation(
             c.add(
                 "precip_indicator",
                 "rainfall_omitted_at_main_hour",
-                "Rainfall (6RRRtR) is reported at every main hour (00, 06, 12, 18 "
-                f"UTC); iR={indicator} omits it. Use iR 0, 1 or 2.",
+                f"The rainfall group 6RRRtR is left out (iR={indicator}), but the "
+                f"{_utc(hour)} report is a main-hour report (00, 06, 12 and 18 UTC), "
+                "which always carries rainfall. Set iR to 0, 1 or 2 and key the "
+                "rainfall.",
                 "warning",
             )
         elif indicator not in ("0", "1", "2") and c.raw("precip_amount") == "":
             c.add(
                 "precip_amount",
                 "missing_rainfall",
-                "Rainfall (6RRRtR) is reported at every main hour (00, 06, 12, 18 UTC).",
+                f"The rainfall group 6RRRtR is missing. The {_utc(hour)} report is a "
+                "main-hour report (00, 06, 12 and 18 UTC), which always carries "
+                "rainfall.",
                 "warning",
             )
     if indicator in ("3", "4") and c.present("precip_amount"):
@@ -789,7 +793,8 @@ def _check_precipitation(
         c.add(
             "s3_rainfall_24h",
             "missing_24h_rainfall",
-            "24 h rainfall is expected at the 12 UTC main hour (B/C1.4.3.2.1).",
+            "The 24-hour rainfall is missing. It is reported once a day, in the "
+            "12 UTC report (B/C1.4.3.2.1).",
             "warning",
         )
     if c.present("s3_rainfall_24h") and hour not in (None, *RAINFALL_24H_REPORT_HOURS):
@@ -834,6 +839,23 @@ def _check_section3(
     return tmax, tmin, change_pa
 
 
+def _utc(hour: int | None) -> str:
+    """'12 UTC' for an hour, for messages (every caller has checked the hour)."""
+    return "this" if hour is None else f"{hour:02d} UTC"
+
+
+def _both(names: Mapping[str, str], fields: Sequence[str]) -> str:
+    """'maximum temperature', or 'maximum and minimum temperatures'."""
+    words = [names[field] for field in fields]
+    if len(words) == 1:
+        return f"{words[0]} temperature"
+    return f"{' and '.join(words)} temperatures"
+
+
+def _verb(fields: Sequence[str], one: str, many: str) -> str:
+    return one if len(fields) == 1 else many
+
+
 def _check_temperature_extremes(
     c: _Checker,
     hour: int | None,
@@ -841,24 +863,43 @@ def _check_temperature_extremes(
     tmax: float | None,
     tmin: float | None,
 ) -> None:
-    """Groups 1snTxTxTx and 2snTnTnTn: report hour and consistency with the air temperature."""
-    for field, value in (("s3_max_temp", tmax), ("s3_min_temp", tmin)):
-        if value is not None and hour is not None and hour not in TXTN_REPORT_HOURS:
-            c.add(
-                field,
-                "txtn_hour",
-                "Maximum and minimum temperatures are reported every 6 hours "
-                "(00, 06, 12, 18 UTC).",
-                "warning",
-            )
-        elif value is None and hour in TXTN_REPORT_HOURS and not c.present(field):
-            c.add(
-                field,
-                "missing_txtn",
-                "Maximum and minimum temperatures are reported every 6 hours "
-                "(00, 06, 12, 18 UTC).",
-                "warning",
-            )
+    """Groups 1snTxTxTx and 2snTnTnTn: report hour and consistency with the air temperature.
+
+    Each problem is one warning per row, on the first field it concerns, naming
+    whichever of the two temperatures it is about.
+    """
+    names = {"s3_max_temp": "maximum", "s3_min_temp": "minimum"}
+    values = (("s3_max_temp", tmax), ("s3_min_temp", tmin))
+    off_hour = [
+        field
+        for field, value in values
+        if value is not None and hour is not None and hour not in TXTN_REPORT_HOURS
+    ]
+    if off_hour:
+        c.add(
+            off_hour[0],
+            "txtn_hour",
+            f"The {_both(names, off_hour)} {_verb(off_hour, 'belongs', 'belong')} "
+            "only in a main-hour report "
+            f"(00, 06, 12 and 18 UTC); this is the {_utc(hour)} report, so leave "
+            f"{'it' if len(off_hour) == 1 else 'them'} blank.",
+            "warning",
+        )
+    missing = [
+        field
+        for field, value in values
+        if value is None and hour in TXTN_REPORT_HOURS and not c.present(field)
+    ]
+    if missing:
+        c.add(
+            missing[0],
+            "missing_txtn",
+            f"The {_both(names, missing)} {_verb(missing, 'is', 'are')} missing. "
+            f"The {_utc(hour)} report is a "
+            "main-hour report (00, 06, 12 and 18 UTC), so it carries the maximum and "
+            "minimum temperatures.",
+            "warning",
+        )
     if air is not None and tmax is not None and air > tmax:
         c.add(
             "s3_max_temp",
@@ -1157,7 +1198,9 @@ def _check_pressure_and_weather(
         c.add(
             "station_pressure",
             "missing_station_pressure",
-            "Station pressure is reported with mean sea level pressure (B/C1.3.1.1).",
+            "The station pressure is missing. A report that gives the sea-level "
+            "pressure also gives the station pressure (B/C1.3.1.1); key the "
+            "barometer reading and it is worked out.",
             "warning",
         )
     tendency = c.integer("pressure_tendency", "Pressure tendency a", 0, 8, width=1)
@@ -1181,8 +1224,9 @@ def _check_pressure_and_weather(
         c.add(
             "pressure_tendency",
             "missing_pressure_change",
-            "The pressure tendency group 5appp is reported every 3 hours "
-            "(00, 03, 06 ... 21 UTC).",
+            f"The pressure tendency group 5appp is missing. The {_utc(hour)} report "
+            "is a 3-hourly report (00, 03, 06 ... 21 UTC), which always carries "
+            "the 3-hour pressure change.",
             "warning",
         )
     ww = c.integer("present_wx", "Present weather ww", 0, 99, width=2)
@@ -1378,6 +1422,23 @@ def _check_weather_links(
         )
 
 
+def once_per_row(
+    issues: Sequence[SynopValidationIssue],
+) -> list[SynopValidationIssue]:
+    """Drop a warning whose message repeats an earlier one.
+
+    Errors always stay: the same text can be a different field to fix.
+    """
+    seen: set[str] = set()
+    kept: list[SynopValidationIssue] = []
+    for issue in issues:
+        key = issue.message
+        if issue.severity == "error" or key not in seen:
+            seen.add(key)
+            kept.append(issue)
+    return kept
+
+
 def validate_synop(
     workbook: SynopWorkbook,
     amounts: derive.PressureSettings | None = None,
@@ -1460,6 +1521,8 @@ def validate_synop(
             "No observation values entered: this is reported as a NIL report (B/C general (ix)).",
             "warning",
         )
+
+    c.issues = once_per_row(c.issues)
 
     def kelvin(value: float | None) -> float | None:
         return None if value is None else round(value + KELVIN, 2)

@@ -24,7 +24,7 @@ from src.auth.models import User
 from src.eregister.exceptions import ObservationNotFoundError
 from src.exceptions import AppException
 
-from . import bufr, derive, encode, iwxxm, rules, stations, transitions
+from . import bufr, cl1_import, derive, encode, iwxxm, rules, stations, transitions
 from .models import STATUS_QUEUED, STATUS_SENT, ERegisterSend
 from .schemas import (
     RegisterObservationCorrection,
@@ -439,6 +439,15 @@ def listing_row(
     if row["kind"] == "SYNOP":
         body = row["body"] or {}
         item.issues = validation_issues(body, row["observed_at"], None, stored=True)
+        # Only an importer draft nobody has touched: a reviewed, corrected or
+        # edited row keeps its own warnings.
+        if (
+            cl1_import.is_imported(body.get("notes"))
+            and row["state"] in ("draft", "historical")
+            and not row["review_outcome"]
+            and row["supersedes_id"] is None
+        ):
+            item.issues = cl1_import.merge_sheet_gaps(item.issues)
         try:
             item.coded = encode.synop_tac(encode.workbook_from_body(body))
         except ValueError, TypeError:
