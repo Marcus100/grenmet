@@ -24,8 +24,8 @@ passed every required check reuses those results: its CI skips the suites and
 the gates report success in about a minute (`scripts/ci/promotion-verified.mjs`,
 #1239). If anything does not match (a commit that did not come from dev, a
 failed or cancelled check on that dev commit, an API error), the PR runs the
-full suite. Pushes to `main` run no CI; production deploys only images staging
-verified.
+full suite. On `main` pushes only the API workflow runs, to keep the default
+branch's security scans current; production deploys only images staging verified.
 
 ## 1. Pre-flight on dev
 
