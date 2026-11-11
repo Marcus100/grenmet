@@ -24,18 +24,18 @@ const RULESETS = JSON.parse(
 const CHECKS = requiredChecks(RULESETS);
 const APP_ID = CHECKS[0].appId;
 const rulesetsAt = () => RULESETS;
-const NO_DEV_COMMIT = /No dev commit has tree/;
-const FAILED_CHECKS = /has no passing run of: Type Check/;
-const CANCELLED_CHECK = /Type Check \(cancelled, probably superseded/;
-const WRONG_APP = /Type Check \(no run by app/;
-const NOT_ANCESTOR = /which is not the promoted dev commit/;
-const FAILED_OLD_CHECKS = /Dev commit a{40} has no passing run/;
-const TREE_MISMATCH = /has a different tree/;
-const LABELS_MISSING = /unknown commit or tree/;
-const UNREADABLE_LABELS = /Cannot read the image labels/;
-const DEV_MISSING = /Dev images missing for tree/;
-const NOT_VERIFIED = /Staging has not deployed and accepted tree/;
-const RETAG_MISMATCH = /resolves to sha256:9+, expected/;
+const NO_DEV_COMMIT = /No dev commit has tree/u;
+const FAILED_CHECKS = /has no passing run of: Type Check/u;
+const CANCELLED_CHECK = /Type Check \(cancelled, probably superseded/u;
+const WRONG_APP = /Type Check \(no run by app/u;
+const NOT_ANCESTOR = /which is not the promoted dev commit/u;
+const FAILED_OLD_CHECKS = /Dev commit a{40} has no passing run/u;
+const TREE_MISMATCH = /has a different tree/u;
+const LABELS_MISSING = /unknown commit or tree/u;
+const UNREADABLE_LABELS = /Cannot read the image labels/u;
+const DEV_MISSING = /Dev images missing for tree/u;
+const NOT_VERIFIED = /Staging has not deployed and accepted tree/u;
+const RETAG_MISMATCH = /resolves to sha256:9+, expected/u;
 
 function fakeGit({
   trees = {},
