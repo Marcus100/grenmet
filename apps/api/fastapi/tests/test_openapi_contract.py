@@ -259,6 +259,8 @@ def _missing_response_models(application: FastAPI) -> list[str]:
         "read_cap_xml",
         "preview_product_pdf",
         "product_revision_pdf",
+        # The public sheet of an issued product (its permanent page links it).
+        "public_product_pdf",
         # HR previews and attendance exports return authenticated Python PDFs.
         "read_week_pdf",
         "preview_leave_request_pdf",

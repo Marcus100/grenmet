@@ -21,7 +21,7 @@ state change commits first; the audit entry follows in its own commit.
 """
 
 import logging
-from datetime import datetime
+from datetime import UTC, date, datetime, timedelta
 from typing import Any, Literal, NamedTuple
 from uuid import UUID
 
@@ -40,6 +40,7 @@ from src.utils.text import clean_reason
 
 from . import bufr, encodings, entries, gate, iwxxm, metar, sends, stations, transitions
 from .models import STATUS_QUEUED, STATUS_SENT, TARGET_WIS2, ERegisterSend
+from .public import GRENADA_OFFSET
 from .schemas import RegisterObservationRead
 from .transitions import RegisterState
 
@@ -494,6 +495,105 @@ async def review(
         },
     )
     return RegisterObservationRead.model_validate(saved)
+
+
+_DAY_ROWS = text(
+    """
+    SELECT id, actor_id, reviewed_at IS NOT NULL AS already,
+           review_outcome, review_note
+    FROM register_observations
+    WHERE station_id = :station AND kind = 'SYNOP'
+      AND state::text = ANY(CAST(:states AS text[]))
+      AND observed_at >= :start AND observed_at < :end
+    ORDER BY observed_at
+    FOR UPDATE
+    """
+)
+
+_MARK_REVIEWED = text(
+    """
+    UPDATE register_observations
+    SET review_outcome = :outcome, review_note = :note,
+        reviewed_by = :by, reviewed_at = :at
+    WHERE id = ANY(CAST(:ids AS uuid[]))
+    """
+)
+
+
+class DayReview(NamedTuple):
+    reviewed: int
+    skipped_own: int
+    skipped_already: int
+
+
+async def review_day(
+    *,
+    register: AsyncSession,
+    app_session: AsyncSession,
+    user: User,
+    station_id: str,
+    day: date,
+    outcome: str,
+    note: str | None,
+) -> DayReview:
+    """Review every reviewable SYNOP of one Grenada local day not yet reviewed.
+
+    Same rules as ``review``: a note is required for a query, and a reviewer never
+    reviews a record they recorded (those are skipped and counted). Records that
+    already carry a review are left alone. Problems in a record do not exclude it:
+    those are for the one-by-one review. State and sending are untouched; each
+    mark is audited like ``review``.
+    """
+    clean = (note or "").strip() or None
+    if outcome == "query" and (clean is None or len(clean) < MIN_REASON):
+        raise AppValidationError("A note is required to raise a query")
+    start = datetime(day.year, day.month, day.day, tzinfo=UTC) - GRENADA_OFFSET
+    result = await register.execute(
+        _DAY_ROWS,
+        {
+            "station": station_id.strip(),
+            "states": sorted(transitions.REVIEWABLE_STATES),
+            "start": start,
+            "end": start + timedelta(days=1),
+        },
+    )
+    rows = result.mappings().all()
+    own = [row for row in rows if str(row["actor_id"]) == str(user.id)]
+    others = [row for row in rows if str(row["actor_id"]) != str(user.id)]
+    todo = [row for row in others if not row["already"]]
+    if todo:
+        await register.execute(
+            _MARK_REVIEWED,
+            {
+                "ids": [str(row["id"]) for row in todo],
+                "outcome": outcome,
+                "note": clean,
+                "by": str(user.id),
+                "at": utc_now(),
+            },
+        )
+    await register.commit()
+    if todo:
+        audit_service.set_actor(app_session, user.id)
+        for row in todo:
+            await audit_service.record_change(
+                app_session,
+                entity_type=AUDIT_ENTITY,
+                entity_id=str(row["id"]),
+                record_type=AUDIT_ENTITY,
+                record_id=str(row["id"]),
+                action="review",
+                changes={
+                    "review_outcome": (row["review_outcome"], outcome),
+                    "review_note": (row["review_note"], clean),
+                },
+            )
+        await app_session.commit()
+    return DayReview(
+        reviewed=len(todo),
+        skipped_own=len(own),
+        skipped_already=len(others) - len(todo),
+    )
 
 
 BUFR_OVERRIDE_ACTION = "bufr_override"

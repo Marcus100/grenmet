@@ -358,6 +358,23 @@ product returns its newest revision. Withdrawn, unpublished, future-dated or
 unknown IDs return 404, a malformed ID returns 422, and unavailable storage
 returns 503. Errors use `{ "error": "..." }`, with `Cache-Control: no-store`.
 
+`GET /api/v1/wxproducts/public/products/{id}/pdf` (added 11 Nov 2026, #1197) is
+the anonymous PDF of that product's published revision: the same archival sheet
+staff download, served `inline` with a human, dated file name and `Cache-Control:
+private, no-store`. It stays available after the product expires, and the rendered sheet is reused
+(in memory, the 32 most recent) for repeat requests of the same revision. Withdrawn,
+unpublished or unknown IDs return 404 and unavailable storage 503
+(`{ "error": "..." }`). The GMS website serves it at
+`/weather/issued/{id}/pdf` (a pass-through route).
+
+`GET /api/v1/wxproducts/public/issued-products?limit=20` (added 11 Nov 2026, 1 to
+50) lists the most recently published products, newest publication first,
+current or expired, as `IssuedProducts` (`products`: the detail shape with
+`current`). Future-dated and withdrawn snapshots are excluded in SQL, so they
+never take a place in the limit. The GMS website renders it as RSS at
+`/weather/issued/feed.xml`, one item per product, linking its permanent page and
+PDF.
+
 GAA Admin's existing `/api/public/products` forwards anonymously to this FastAPI
 route using its configured `AUTH_API_URL` and `AUTH_API_V1_STR`. The GMS website's
 URL and response shape are unchanged. FastAPI needs `WXPRODUCTS_DATABASE_URL`
@@ -2177,7 +2194,7 @@ decoded into public units: temperature/dew point (°C), relative humidity (Magnu
 wind (compass, kt, mph; `wind_calm`), MSL pressure (hPa) with 3-hour trend,
 precipitation with its period (trace flagged), 24-hour rainfall, plain-English
 present weather and cloud cover. `status` is `provisional` until the reading is
-`accepted`, following real-time practice; weather.gd labels it so. Staff fields
+`accepted` (`historical` for an imported archive record), following real-time practice; weather.gd labels it so. Staff fields
 (actor, QC notes, raw TAC, WIS2 data) never leave `src/eregister/public.py`. No
 reading returns `{"observation": null}`; an unavailable register returns 503.
 
@@ -2368,8 +2385,9 @@ is a warning (`unused_supplementary`) until it is confirmed against Vol. I.1. Th
 endpoint does not save, publish, or
 transmit an observation; `POST /api/v1/eregister/observations` stores a
 draft (validated, see below). `GET /api/v1/eregister/observations` filters by
-`station_id`, `kind`, `state`, `reviewed` and an exact `observed_at` (the record
-occupying an hour), and pages with `limit` and `offset` (`offset` above 10 million is
+`station_id`, `kind`, `state`, `reviewed`, an exact `observed_at` (the record
+occupying an hour) and a time range `observed_from` (inclusive) to `observed_to`
+(exclusive), both UTC, and pages with `limit` and `offset` (`offset` above 10 million is
 `422`). A refused WIS2 or email hand-off after acceptance is stored as a `failed`
 send with the reason in `last_error`. Correcting an observation (`POST .../{id}/correct`) holds any queued WIS2 file of
 the replaced observation (status stays `queued`, `last_error` "Held while a correction
@@ -2398,6 +2416,23 @@ Recording and reading the register (`POST` and `GET
 `eregister.observe` (role `eregister-observer`), `eregister.qc` or
 `eregister.send`; anyone else gets `403`. A saved SYNOP shows on the public
 weather site as provisional, so a signed-in account alone is not enough.
+
+*Historical records (additive, 11 Nov 2026).* Register state `historical` marks imported
+archive records (the hourly sheet importer with `--historical`, or the one-off
+`scripts/mark_imported_historical.py` for drafts it saved earlier). They are official
+as recorded: never sent (email and WIS2 answer `409` whatever
+`EREGISTER_SEND_REQUIRE_ACCEPTED` says), never in the acceptance queue
+(`state=draft,qc_pending`), cannot be accepted, rejected or reopened, but can be reviewed
+(`reviewed` or `query` with a note) and corrected (the original becomes `superseded`; the
+correction is saved as `historical` too). The `state` filter of the list accepts
+`historical`. `POST /api/v1/eregister/observations/review-day` (`eregister.qc`) takes
+`station_id`, `date` (a Grenada local day, `YYYY-MM-DD`), `outcome` (`reviewed` or
+`query`) and a `note` (required for a query); it marks every reviewable SYNOP of that
+day (historical, draft, qc_pending and accepted) that is not yet reviewed, skips the
+reviewer's own records and records already reviewed, audits each mark, and answers
+`{reviewed, skipped_own, skipped_already}`. Problems in a record do not exclude it. The call has no `updated_at` version check (a bulk action: records changed after the reviewer loaded the day are still marked), and it needs `eregister.qc`, while the single review also accepts `eregister.observe` and `eregister.send` holders. A correction of a historical record is saved as `historical`, so it is never sent or queued for acceptance. `GET .../public/current` ignores historical records.
+Public `PublicObservation.status` gains `historical`, and a month summary's
+`provisional` flag does not count historical records as provisional.
 
 #### eRegister entry rules (owner decisions, 23 Oct 2026)
 

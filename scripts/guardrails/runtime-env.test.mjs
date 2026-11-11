@@ -25,9 +25,9 @@ const GUARDING_PROXIES = ["admin", "bookings", "gaa-admin", "gmsdash"];
 
 const read = (path) =>
   readFileSync(new URL(`../../${path}`, import.meta.url), "utf8");
-const LAYOUT_SCRIPT = /<PublicEnvScript \/>/;
-const PUBLIC_ENV_RESPONSE = /publicEnvResponse/;
-const PROXY_EXCLUSION = /runtime-env\\+\.js/;
+const LAYOUT_SCRIPT = /<PublicEnvScript \/>/u;
+const PUBLIC_ENV_RESPONSE = /publicEnvResponse/u;
+const PROXY_EXCLUSION = /runtime-env\\+\.js/u;
 
 test("every Docker-deployed web app serves /runtime-env.js and loads it", () => {
   for (const app of APPS) {
@@ -69,7 +69,7 @@ test("elections is the only documented exception", () => {
   }
 });
 
-const EMPTY_PROJECT_LIST = /SENTRY_PROJECT\?\.split/;
+const EMPTY_PROJECT_LIST = /SENTRY_PROJECT\?\.split/u;
 
 test("an unset SENTRY_PROJECT stays undefined, never an empty project list", () => {
   // Sentry's build plugin fails on `project: []` (broke every image build).

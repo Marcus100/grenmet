@@ -44071,6 +44071,135 @@
         }
       }
     },
+    "/api/v1/wxproducts/public/products/{product_id}/pdf": {
+      "get": {
+        "tags": [
+          "wxproducts"
+        ],
+        "summary": "Download a published weather product as PDF",
+        "description": "Anonymous PDF of the product's published revision, the same sheet GMS issued, for its permanent page and feed entry. Stays available after the product expires; withdrawn or unknown products are 404. The rendered sheet is reused for repeat requests of the same published revision.",
+        "operationId": "wxproductsPublicProductPdf",
+        "parameters": [
+          {
+            "name": "product_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Product Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "headers": {
+              "Content-Disposition": {
+                "description": "Inline, with a human, dated file name (ASCII filename plus RFC 6266 filename*).",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {
+              "application/pdf": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProductFeedError"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProductFeedError"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        }
+      }
+    },
+    "/api/v1/wxproducts/public/issued-products": {
+      "get": {
+        "tags": [
+          "wxproducts"
+        ],
+        "summary": "List recently issued weather products",
+        "description": "Anonymous list of the most recently published products, newest first, including expired ones (`current` says which are in force), for the public archive and RSS feed. Withdrawn products are not listed.",
+        "operationId": "wxproductsListIssuedProducts",
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 50,
+              "minimum": 1,
+              "default": 20,
+              "title": "Limit"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/IssuedProducts"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProductFeedError"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        }
+      }
+    },
     "/api/v1/wxproducts/products": {
       "get": {
         "tags": [
@@ -45603,7 +45732,7 @@
           "eregister"
         ],
         "summary": "List register observations",
-        "description": "Returns SYNOP, METAR, and SPECI observations, newest first, optionally filtered by station, kind and QC state (comma separated, for example `draft,qc_pending`), with `limit`/`offset` paging and the matching `total`. SYNOP rows carry the coded row, validation findings (each stored row is checked as saved, without the station's current pressure amounts) and who recorded them. Requires `eregister.observe`, `eregister.qc` or `eregister.send`.",
+        "description": "Returns SYNOP, METAR, and SPECI observations, newest first, optionally filtered by station, kind, QC state (comma separated, for example `draft,qc_pending`; `historical` is an imported archive record) and an observation time range (`observed_from` inclusive, `observed_to` exclusive, UTC), with `limit`/`offset` paging and the matching `total`. SYNOP rows carry the coded row, validation findings (each stored row is checked as saved, without the station's current pressure amounts) and who recorded them. Requires `eregister.observe`, `eregister.qc` or `eregister.send`.",
         "operationId": "eregisterListRegisterObservations",
         "security": [
           {
@@ -45656,7 +45785,7 @@
               "anyOf": [
                 {
                   "type": "string",
-                  "pattern": "^(draft|qc_pending|accepted|rejected|superseded)(,(draft|qc_pending|accepted|rejected|superseded))*$"
+                  "pattern": "^(draft|qc_pending|accepted|rejected|superseded|historical)(,(draft|qc_pending|accepted|rejected|superseded|historical))*$"
                 },
                 {
                   "type": "null"
@@ -45703,6 +45832,44 @@
               "title": "Observed At"
             },
             "description": "Only observations for exactly this UTC time (to find the record occupying an hour)."
+          },
+          {
+            "name": "observed_from",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "date-time"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Only observations at or after this UTC time (inclusive start of a range).",
+              "title": "Observed From"
+            },
+            "description": "Only observations at or after this UTC time (inclusive start of a range)."
+          },
+          {
+            "name": "observed_to",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "date-time"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Only observations before this UTC time (exclusive end of a range).",
+              "title": "Observed To"
+            },
+            "description": "Only observations before this UTC time (exclusive end of a range)."
           },
           {
             "name": "limit",
@@ -46374,6 +46541,84 @@
             }
           }
         }
+      }
+    },
+    "/api/v1/eregister/observations/review-day": {
+      "post": {
+        "tags": [
+          "eregister"
+        ],
+        "summary": "Record a review of every reviewable SYNOP of one day",
+        "description": "Marks every reviewable SYNOP of the station on one Grenada local day (UTC-4) that is not yet reviewed, as `reviewed` or `query` (a note is required for a query). Historical and accepted records are included; records you recorded yourself and records already reviewed are skipped and counted. Problems in a record do not exclude it. It changes no state and never holds back sending; each mark is audited. Requires `eregister.qc`.",
+        "operationId": "eregisterReviewRegisterDay",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReviewDayRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReviewDayResult"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "A note is required for a query, or the request is malformed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/ApiError"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ValidationErrorResponse"
+                    }
+                  ],
+                  "title": "Response 422 Eregisterreviewregisterday"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Missing `eregister.qc`",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "APIKeyCookie": []
+          },
+          {
+            "HTTPBearer": []
+          }
+        ]
       }
     },
     "/api/v1/eregister/observations/{observation_id}/review": {
@@ -84270,6 +84515,23 @@
         ],
         "title": "InvoiceVoid"
       },
+      "IssuedProducts": {
+        "properties": {
+          "products": {
+            "items": {
+              "$ref": "#/components/schemas/PublicProductDetail"
+            },
+            "type": "array",
+            "title": "Products"
+          }
+        },
+        "type": "object",
+        "required": [
+          "products"
+        ],
+        "title": "IssuedProducts",
+        "description": "Recently published products, newest first, current or expired (#1197).\n\nThe public archive and RSS feed read this; each item has a permanent page and\nPDF. Withdrawn products are not listed."
+      },
       "ItemCreate": {
         "properties": {
           "sku": {
@@ -99947,6 +100209,71 @@
           "permissions"
         ],
         "title": "ReviewAssignment"
+      },
+      "ReviewDayRequest": {
+        "properties": {
+          "station_id": {
+            "type": "string",
+            "maxLength": 64,
+            "minLength": 1,
+            "title": "Station Id"
+          },
+          "date": {
+            "type": "string",
+            "format": "date",
+            "title": "Date",
+            "description": "The day in Grenada local time (UTC-4), YYYY-MM-DD."
+          },
+          "outcome": {
+            "$ref": "#/components/schemas/RegisterObservationReadPropertiesReviewOutcomeAnyOfEnum"
+          },
+          "note": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 1000
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Note",
+            "description": "Required for a query; optional for reviewed."
+          }
+        },
+        "type": "object",
+        "required": [
+          "station_id",
+          "date",
+          "outcome"
+        ],
+        "title": "ReviewDayRequest"
+      },
+      "ReviewDayResult": {
+        "properties": {
+          "reviewed": {
+            "type": "integer",
+            "title": "Reviewed",
+            "description": "Records marked by this request."
+          },
+          "skipped_own": {
+            "type": "integer",
+            "title": "Skipped Own",
+            "description": "Left alone: recorded by the reviewer (a different person reviews)."
+          },
+          "skipped_already": {
+            "type": "integer",
+            "title": "Skipped Already",
+            "description": "Left alone: already reviewed (reviewed or query)."
+          }
+        },
+        "type": "object",
+        "required": [
+          "reviewed",
+          "skipped_own",
+          "skipped_already"
+        ],
+        "title": "ReviewDayResult"
       },
       "ReviewInput": {
         "properties": {
@@ -117610,7 +117937,8 @@
         "type": "string",
         "enum": [
           "provisional",
-          "accepted"
+          "accepted",
+          "historical"
         ]
       },
       "PublicObservationPropertiesPressureTrendAnyOfEnum": {
@@ -117644,7 +117972,8 @@
           "qc_pending",
           "accepted",
           "rejected",
-          "superseded"
+          "superseded",
+          "historical"
         ]
       },
       "RegisterObservationReadPropertiesReviewOutcomeAnyOfEnum": {

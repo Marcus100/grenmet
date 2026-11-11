@@ -2774,6 +2774,16 @@ export type {
   EregisterReopenRegisterObservationStatus422,
 } from "./EregisterReopenRegisterObservation.js";
 export type {
+  EregisterReviewRegisterDayBody,
+  EregisterReviewRegisterDayOptions,
+  EregisterReviewRegisterDayResponse,
+  EregisterReviewRegisterDayResponses,
+  EregisterReviewRegisterDayStatus200,
+  EregisterReviewRegisterDayStatus401,
+  EregisterReviewRegisterDayStatus403,
+  EregisterReviewRegisterDayStatus422,
+} from "./EregisterReviewRegisterDay.js";
+export type {
   EregisterReviewRegisterObservationBody,
   EregisterReviewRegisterObservationOptions,
   EregisterReviewRegisterObservationPath,
@@ -6104,6 +6114,7 @@ export type { InvoiceStatus } from "./InvoiceStatus.js";
 export { invoiceStatus } from "./InvoiceStatus.js";
 export type { InvoiceSummaryPublic } from "./InvoiceSummaryPublic.js";
 export type { InvoiceVoid } from "./InvoiceVoid.js";
+export type { IssuedProducts } from "./IssuedProducts.js";
 export type { ItemCreate } from "./ItemCreate.js";
 export type { ItemListPublic } from "./ItemListPublic.js";
 export type { ItemPublic } from "./ItemPublic.js";
@@ -7695,6 +7706,8 @@ export type { RequisitionStatus } from "./RequisitionStatus.js";
 export { requisitionStatus } from "./RequisitionStatus.js";
 export type { RequisitionUpdate } from "./RequisitionUpdate.js";
 export type { ReviewAssignment } from "./ReviewAssignment.js";
+export type { ReviewDayRequest } from "./ReviewDayRequest.js";
+export type { ReviewDayResult } from "./ReviewDayResult.js";
 export type { ReviewInput } from "./ReviewInput.js";
 export type { ReviewInputPropertiesDecisionEnum } from "./ReviewInputPropertiesDecisionEnum.js";
 export { reviewInputPropertiesDecisionEnum } from "./ReviewInputPropertiesDecisionEnum.js";
@@ -9412,6 +9425,15 @@ export type {
   WxproductsGetPublicTropicalSystemStatus503,
 } from "./WxproductsGetPublicTropicalSystem.js";
 export type {
+  WxproductsListIssuedProductsOptions,
+  WxproductsListIssuedProductsQuery,
+  WxproductsListIssuedProductsResponse,
+  WxproductsListIssuedProductsResponses,
+  WxproductsListIssuedProductsStatus200,
+  WxproductsListIssuedProductsStatus422,
+  WxproductsListIssuedProductsStatus503,
+} from "./WxproductsListIssuedProducts.js";
+export type {
   WxproductsListPublicProductsOptions,
   WxproductsListPublicProductsQuery,
   WxproductsListPublicProductsResponse,
@@ -9544,6 +9566,16 @@ export type {
   WxproductsPublicForecastStatus422,
   WxproductsPublicForecastStatus503,
 } from "./WxproductsPublicForecast.js";
+export type {
+  WxproductsPublicProductPdfOptions,
+  WxproductsPublicProductPdfPath,
+  WxproductsPublicProductPdfResponse,
+  WxproductsPublicProductPdfResponses,
+  WxproductsPublicProductPdfStatus200,
+  WxproductsPublicProductPdfStatus404,
+  WxproductsPublicProductPdfStatus422,
+  WxproductsPublicProductPdfStatus503,
+} from "./WxproductsPublicProductPdf.js";
 export type {
   WxproductsPublicSectorOutlookOptions,
   WxproductsPublicSectorOutlookQuery,

@@ -1,4 +1,4 @@
-from datetime import date
+from datetime import date as CalendarDate
 from typing import Annotated, Any, Literal, Self
 from uuid import UUID, uuid4
 
@@ -312,6 +312,31 @@ class ReviewRequest(BaseModel):
     )
 
 
+class ReviewDayRequest(BaseModel):
+    station_id: Annotated[
+        str, StringConstraints(strip_whitespace=True, min_length=1, max_length=64)
+    ]
+    date: CalendarDate = Field(
+        description="The day in Grenada local time (UTC-4), YYYY-MM-DD.",
+    )
+    outcome: Literal["reviewed", "query"]
+    note: str | None = Field(
+        default=None,
+        max_length=1000,
+        description="Required for a query; optional for reviewed.",
+    )
+
+
+class ReviewDayResult(BaseModel):
+    reviewed: int = Field(description="Records marked by this request.")
+    skipped_own: int = Field(
+        description="Left alone: recorded by the reviewer (a different person reviews)."
+    )
+    skipped_already: int = Field(
+        description="Left alone: already reviewed (reviewed or query)."
+    )
+
+
 class QcDecisionRequest(BaseModel):
     reason: str | None = Field(
         default=None,
@@ -435,7 +460,7 @@ class PublicObservation(BaseModel):
     station_id: str
     station_name: str | None = None
     observed_at: UtcDateTime
-    status: Literal["provisional", "accepted"]
+    status: Literal["provisional", "accepted", "historical"]
     temperature_c: float | None = None
     dew_point_c: float | None = None
     relative_humidity: int | None = None
@@ -500,8 +525,8 @@ class PublicMonthSummary(BaseModel):
         default=None,
         description="Longest run of reported days under 1 mm (CDD); a day without a total breaks it.",
     )
-    longest_dry_spell_start: date | None = None
-    longest_dry_spell_end: date | None = None
+    longest_dry_spell_start: CalendarDate | None = None
+    longest_dry_spell_end: CalendarDate | None = None
     current_dry_spell_days: int | None = Field(
         default=None,
         description="Dry days in a row up to the latest reported day; 0 if it rained; null when the latest total is more than a day old.",

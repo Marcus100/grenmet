@@ -3,7 +3,8 @@ Logging configuration: structured JSON to stdout, plus Sentry.
 
 - JSON lines on stdout, read from the container logs (no APM agent is used)
 - `request_id` / `organisation_id` link a line to its request and Sentry event
-- Sentry captures exceptions and error logs independently via sentry_sdk.init
+- Sentry captures exceptions and error logs independently via sentry_sdk.init,
+  and warnings and above as scrubbed Sentry Logs (src/telemetry.py)
 """
 
 import logging

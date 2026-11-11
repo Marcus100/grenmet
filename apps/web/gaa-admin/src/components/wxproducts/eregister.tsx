@@ -14,6 +14,7 @@ import {
 } from "@barrelsgd/api-client";
 import { useSessionUser } from "@barrelsgd/auth";
 import { Button } from "@barrelsgd/ui/components/ui/button";
+import Link from "next/link";
 import { type FormEvent, useEffect, useRef, useState } from "react";
 import { PageHeader } from "@/components/layout/page-header";
 import { type StationSettings, withDerived } from "./eregister-derived";
@@ -763,6 +764,13 @@ export function ERegister() {
           </Button>
           <Button onClick={() => setView("new")} variant="outline">
             New observation
+          </Button>
+          <Button
+            nativeButton={false}
+            render={<Link href="/wxproducts/hourly/month" />}
+            variant="outline"
+          >
+            Month workbook
           </Button>
         </div>
       </div>

@@ -54,6 +54,7 @@ VISIBILITY_COARSE_FIRST = 90
 VISIBILITY_FINE_LAST = 50
 VISIBILITY_KM_FIRST = 56
 VISIBILITY_KM_30 = 80
+VISIBILITY_70KM = 88  # the last 5 km step; 89 is over 70 km
 AMOUNT_WORDS = (("FEW", 1, 2), ("SCT", 3, 4), ("BKN", 5, 7), ("OVC", 8, 8))
 CLOUD_OVER_21KM = 89
 HUNDREDS_TO_THOUSAND_STEP = 100  # above 10 000 ft bases are in 1000 ft steps
@@ -124,8 +125,18 @@ def visibility_range_m(code: int) -> tuple[float, float] | None:
         return code * 100.0, code * 100.0 + 100.0
     if code < VISIBILITY_KM_FIRST:
         return None
-    low = (code - 50) * 1000.0
-    return (low, low + 1000.0) if code < VISIBILITY_KM_30 else (low, float("inf"))
+    if code < VISIBILITY_KM_30:
+        low = (code - 50) * 1000.0
+        return low, low + 1000.0
+    # Code table 4377: 80 = 30 km, 81 to 88 = 35 to 70 km in 5 km steps (a reading
+    # is coded down to its step, as derive.visibility_code_from_km does), 89 = over
+    # 70 km. Readings are tenths of a kilometre, so 88 is 70.0 km alone.
+    if code < VISIBILITY_70KM:
+        low = 30_000.0 + (code - VISIBILITY_KM_30) * 5_000.0
+        return low, low + 5_000.0
+    if code == VISIBILITY_70KM:
+        return 70_000.0, 70_100.0
+    return 70_100.0, float("inf")
 
 
 def visibility_values(code: int) -> tuple[int, ...] | None:
