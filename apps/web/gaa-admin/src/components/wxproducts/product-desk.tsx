@@ -96,6 +96,7 @@ import {
   RaiseToWarningDialog,
   type WarningLevel,
 } from "./raise-to-warning-dialog";
+import { RegisterFillButton } from "./register-fill-button";
 import { isSeaGroup, SectionHints } from "./section-hints";
 import { WarningRaisedNote } from "./warning-raised-note";
 
@@ -962,6 +963,17 @@ function ProductEditor({
                                     prefix={prefix}
                                     source="almanac"
                                     values={values}
+                                  />
+                                ) : null}
+                                {sectionFields.some(
+                                  (f) => f.fillFrom === "register"
+                                ) ? (
+                                  <RegisterFillButton
+                                    date={fillDate(values, issueDate, prefix)}
+                                    fields={sectionFields.filter(
+                                      (f) => f.fillFrom === "register"
+                                    )}
+                                    onFill={applyFill}
                                   />
                                 ) : null}
                                 {sectionFields.some(
