@@ -93,10 +93,15 @@ def _redacted(text: str) -> str:
     return _LONG_NUMBER.sub("<number>", text)
 
 
+# `area` and `error_type` are code names (a module area, an exception class).
+_CODE_NAME = re.compile(r"[A-Za-z_][A-Za-z0-9_.]{0,63}")
+
+
 def _log_field_allowed(key: str, value: object) -> bool:
     if key not in _SAFE_LOG_FIELDS or not isinstance(value, str):
         return False
-    return key in {"area", "error_type"} or _OPAQUE_ID.fullmatch(value) is not None
+    pattern = _CODE_NAME if key in {"area", "error_type"} else _OPAQUE_ID
+    return pattern.fullmatch(value) is not None
 
 
 def _rendered_template(template: str, attributes: dict[str, Any]) -> str:

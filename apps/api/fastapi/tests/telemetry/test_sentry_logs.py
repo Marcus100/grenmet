@@ -99,6 +99,14 @@ def test_only_technical_attributes_and_internal_ids_are_kept():
         assert dropped not in attributes
 
 
+def test_code_name_fields_must_look_like_code_names():
+    result = scrub_sentry_log(
+        _log("x", area="hr.leave", error_type="Booking for Jane Doe"), {}
+    )
+    assert result["attributes"]["area"] == "hr.leave"
+    assert "error_type" not in result["attributes"]
+
+
 def test_api_and_worker_send_warnings_and_errors_as_logs(monkeypatch):
     monkeypatch.delenv("SENTRY_LOGS_ENABLED", raising=False)
     options = sentry_options()
