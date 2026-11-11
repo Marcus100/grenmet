@@ -10,11 +10,17 @@ on:
   # path-skipped deadlocks the PR. Instead every job starts, and on dev PRs and
   # dev pushes the image-selection job skips the suites for docs-only diffs
   # and collectors for non-collector diffs; the gate jobs accept only those intended skips.
-  # Promotion PRs and main pushes always run everything.
+  # A promotion PR whose tree already passed every required check on dev reuses
+  # those results and skips the suites (#1239, scripts/ci/promotion-verified.mjs);
+  # any other promotion PR runs everything. Main pushes run only for the
+  # default branch's security scans (see the push trigger).
   # No staging push trigger: pipeline-staging calls this workflow on staging
   # pushes (Phase 3c cutover), so a standalone run would be a duplicate.
   push:
     branches:
+      # main stays: its Trivy and dependency scans upload SARIF for the default
+      # branch (GitHub's security view and scripts/agents/audit-checks.mjs read
+      # refs/heads/main). Nothing waits on this run.
       - main
       - dev
   workflow_call:
@@ -49,7 +55,11 @@ jobs:
     name: Select image checks
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    permissions:
+      contents: read
+      checks: read
     outputs:
+      verified: ${{ steps.select.outputs.verified }}
       web: ${{ steps.select.outputs.web }}
       weather: ${{ steps.select.outputs.weather }}
       api: ${{ steps.select.outputs.api }}
@@ -65,7 +75,9 @@ jobs:
       - name: Select affected images (full set when comparison is unavailable)
         id: select
         env:
-          IMAGE_BUILD_MODE: ${{ inputs.deployment-builds && 'deployment' || ((github.event_name == 'push' && github.ref == 'refs/heads/dev' || github.event_name == 'pull_request' && github.base_ref == 'dev') && 'affected' || 'full') }}
+          IMAGE_BUILD_MODE: ${{ inputs.deployment-builds && 'deployment' || ((github.event_name == 'push' && github.ref == 'refs/heads/dev' || github.event_name == 'pull_request' && github.base_ref == 'dev') && 'affected' || (github.event_name == 'pull_request' && 'promotion' || 'full')) }}
+          # Promotion mode reads the dev commit's check-runs (#1239).
+          GH_TOKEN: ${{ github.token }}
         run: node scripts/ci/select-images.mjs
 
   # Job 1: Code Quality Checks

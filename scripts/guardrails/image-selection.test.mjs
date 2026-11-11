@@ -1,7 +1,7 @@
 const missingBase = /comparison base/u;
 
 import assert from "node:assert/strict";
-import { spawnSync } from "node:child_process";
+import { execFileSync, spawnSync } from "node:child_process";
 import {
   mkdirSync,
   mkdtempSync,
@@ -178,6 +178,7 @@ test("CLI selects all images when comparison history or event data is missing", 
           })
       );
       assert.deepEqual(outputs, {
+        verified: false,
         ...selectImages([], "full"),
         surface: true,
         ...selectJobs([], "full"),
@@ -353,4 +354,56 @@ test("collector, manifest and unknown paths run every suite", () => {
     assert.deepEqual(selectJobs([path]), allJobs, path);
   assert.deepEqual(selectJobs(["docs/x.md"], "full"), allJobs);
   assert.deepEqual(selectJobs(["docs/x.md"], "deployment"), allJobs);
+});
+
+test("a promotion PR that cannot be matched to a passing dev commit runs everything", () => {
+  // No origin/dev here, so the tree lookup fails before any GitHub call.
+  const dir = mkdtempSync(join(tmpdir(), "image-selection-promotion-"));
+  try {
+    const git = (args) =>
+      execFileSync("git", args, { cwd: dir, encoding: "utf8" }).trim();
+    git(["init", "-q"]);
+    git(["config", "user.email", "ci@example.test"]);
+    git(["config", "user.name", "CI"]);
+    writeFileSync(join(dir, "README.md"), "x\n");
+    git(["add", "."]);
+    git(["commit", "-qm", "base"]);
+    const head = git(["rev-parse", "HEAD"]);
+    const event = join(dir, "event.json");
+    const output = join(dir, "output");
+    writeFileSync(event, JSON.stringify({ before: head, after: head }));
+    writeFileSync(output, "");
+    const result = spawnSync(
+      process.execPath,
+      [fileURLToPath(new URL("../ci/select-images.mjs", import.meta.url))],
+      {
+        cwd: dir,
+        env: {
+          ...process.env,
+          IMAGE_BUILD_MODE: "promotion",
+          GITHUB_EVENT_PATH: event,
+          GITHUB_OUTPUT: output,
+          GITHUB_REPOSITORY: "example/repo",
+        },
+      }
+    );
+    assert.equal(result.status, 0, String(result.stderr));
+    const outputs = Object.fromEntries(
+      readFileSync(output, "utf8")
+        .trim()
+        .split("\n")
+        .map((line) => {
+          const index = line.indexOf("=");
+          return [line.slice(0, index), JSON.parse(line.slice(index + 1))];
+        })
+    );
+    assert.equal(outputs.verified, false);
+    assert.deepEqual(outputs.web, selectImages([], "full").web);
+    assert.deepEqual(
+      { python: outputs.python, webtests: outputs.webtests },
+      { python: true, webtests: true }
+    );
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
 });
