@@ -68,3 +68,33 @@ export function stampLabel(iso: string): string {
   if (Number.isNaN(when.getTime())) return iso;
   return `${FULL_DATE.format(when)} at ${clock12(CLOCK_FORMAT.format(when))} AST`;
 }
+
+const WALL_CLOCK = /^(\d{4})-(\d{2})-(\d{2})[T ](\d{2}):(\d{2})/u;
+const MONTH_SHORT = [
+  "Jan",
+  "Feb",
+  "Mar",
+  "Apr",
+  "May",
+  "Jun",
+  "Jul",
+  "Aug",
+  "Sep",
+  "Oct",
+  "Nov",
+  "Dec",
+];
+
+/**
+ * A Grenada wall-clock time as products store it ("2026-11-10T07:00") in
+ * words: "10 Nov 2026, 7:00 a.m.". No time-zone conversion: the value is
+ * already Grenada time. Anything else comes back with the T spaced out.
+ */
+export function wallClockLabel(local: string): string {
+  const match = WALL_CLOCK.exec(local.trim());
+  if (!match) return local.replace("T", " ");
+  const [, year, month, day, hour, minute] = match;
+  const name = MONTH_SHORT[Number(month) - 1];
+  if (!name) return local.replace("T", " ");
+  return `${Number(day)} ${name} ${year}, ${clock12(`${hour}:${minute}`)}`;
+}

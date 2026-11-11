@@ -12,6 +12,7 @@ import type { Route } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
+import { wallClockLabel } from "@/lib/clock";
 import { isOptimizableImage } from "@/lib/cms-images";
 import type { ProductPost } from "@/lib/editorial";
 import { cn } from "@/lib/utils";
@@ -26,7 +27,7 @@ export function ProductUpdateFeed({
   const [status, setStatus] = useState("");
   async function share(post: ProductPost) {
     const url = new URL(post.href, window.location.origin).toString();
-    const text = `${post.title}\nGMS · ${post.issuedAt.replace("T", " ")} AST\n${post.paragraphs.join("\n\n")}`;
+    const text = `${post.title}\nGMS · ${wallClockLabel(post.issuedAt)} AST\n${post.paragraphs.join("\n\n")}`;
     try {
       if (navigator.share)
         await navigator.share({ title: post.title, text, url });
@@ -75,7 +76,7 @@ export function ProductUpdateFeed({
                     : "GMS · From the forecast desk"}
                 </p>
                 <p className="text-body-sm text-gm-text-muted leading-body-sm">
-                  {post.issuedAt.replace("T", " ")} AST
+                  {wallClockLabel(post.issuedAt)} AST
                 </p>
               </div>
             </header>
@@ -164,7 +165,7 @@ function DesktopFeed({
                   GMS · From the forecast desk
                 </p>
                 <p className="text-body-sm text-gm-text-muted leading-body-sm">
-                  {post.issuedAt.replace("T", " ")} AST
+                  {wallClockLabel(post.issuedAt)} AST
                 </p>
               </div>
             </div>

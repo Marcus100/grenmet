@@ -432,11 +432,13 @@ it("says when the outlook was read, in Grenada time", async () => {
   vi.mocked(fetchSectorOutlook).mockResolvedValue(outlook([]));
   await renderCard();
   expect(screen.getByRole("article")).toHaveTextContent(
-    "Updated Wed 28 Oct, 11:00 AST"
+    "Updated Wed 28 Oct, 11:00 a.m. AST"
   );
   cleanup();
   await renderWeek();
-  expect(screen.getByText("Updated Wed 28 Oct, 11:00 AST")).toBeInTheDocument();
+  expect(
+    screen.getByText("Updated Wed 28 Oct, 11:00 a.m. AST")
+  ).toBeInTheDocument();
 });
 
 it("groups the notices in one status region when several apply", async () => {

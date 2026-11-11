@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { clock12, stampLabel } from "@/lib/clock";
+import { clock12, stampLabel, wallClockLabel } from "@/lib/clock";
 
 describe("clock12", () => {
   it.each([
@@ -33,5 +33,17 @@ describe("stampLabel", () => {
 
   it("returns text it cannot read unchanged", () => {
     expect(stampLabel("not a time")).toBe("not a time");
+  });
+});
+
+describe("wallClockLabel", () => {
+  it("writes a stored Grenada time in words without shifting it", () => {
+    expect(wallClockLabel("2026-11-10T07:00")).toBe("10 Nov 2026, 7:00 a.m.");
+    expect(wallClockLabel("2026-11-10 18:00")).toBe("10 Nov 2026, 6:00 p.m.");
+  });
+
+  it("returns anything else readable, never with a bare T", () => {
+    expect(wallClockLabel("")).toBe("");
+    expect(wallClockLabel("soonTlater")).toBe("soon later");
   });
 });

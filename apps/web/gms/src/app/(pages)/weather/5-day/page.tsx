@@ -41,7 +41,7 @@ export default async function FiveDayPage() {
           {issuedAt && (
             <Provenance
               kind="forecast"
-              source="GMS impact-based forecast"
+              source="GMS forecast"
               status="verified"
               time={issuedAt}
               validTo={days[0]?.validTo ?? undefined}
