@@ -10,7 +10,7 @@ and stays visible).
 
 import logging
 from datetime import UTC, datetime, timedelta
-from typing import Any
+from typing import Any, Literal
 from uuid import UUID, uuid4
 
 from fastapi import HTTPException
@@ -247,10 +247,11 @@ _INSERT = text(
     """
     INSERT INTO register_observations
       (id, station_id, station_name, aerodrome_icao, kind, observed_at, issued_at,
-       body, raw_tac, bufr, iwxxm, actor_id, supersedes_id)
+       body, raw_tac, bufr, iwxxm, actor_id, supersedes_id, state)
     VALUES (:id, :station_id, :station_name, :aerodrome_icao, CAST(:kind AS observation_kind),
             :observed_at, :issued_at, CAST(:body AS jsonb), :raw_tac, CAST(:bufr AS jsonb),
-            CAST(:iwxxm AS jsonb), :actor_id, :supersedes_id)
+            CAST(:iwxxm AS jsonb), :actor_id, :supersedes_id,
+            CAST(:state AS register_state))
     RETURNING *
     """
 ).bindparams(
@@ -265,7 +266,7 @@ _UPDATE = text(
     SET station_name = :station_name, aerodrome_icao = :aerodrome_icao,
         issued_at = :issued_at, body = CAST(:body AS jsonb), raw_tac = :raw_tac,
         bufr = CAST(:bufr AS jsonb), iwxxm = CAST(:iwxxm AS jsonb),
-        state = 'draft', updated_at = now(),
+        state = CAST(:state AS register_state), updated_at = now(),
         review_outcome = NULL, review_note = NULL,
         reviewed_by = NULL, reviewed_at = NULL
     WHERE id = :id
@@ -284,8 +285,13 @@ async def create(
     app_session: AsyncSession,
     data: RegisterObservationCreate,
     user: User,
+    state: Literal["draft", "historical"] = "draft",
 ) -> tuple[dict[str, Any], bool]:
-    """Save an observation. Returns the row and whether it was newly inserted."""
+    """Save an observation. Returns the row and whether it was newly inserted.
+
+    ``state`` is ``draft`` for every API save. Only the archive importer passes
+    ``historical``; it may also refresh its own unsent historical row in place.
+    """
     station, notes = await _saved_station(register, data.station_id)
     if data.kind == "SYNOP":
         history = await history_for(register, data.station_id, data.observed_at)
@@ -300,10 +306,17 @@ async def create(
         # a save_draft, refused once any email or WIS2 file is queued or sent.
         own_draft = str(existing["actor_id"]) == str(user.id) and (
             transitions.state_allows(existing["state"], "save_draft")
+            or (state == "historical" and existing["state"] == "historical")
         )
         if own_draft and not await _has_sends(app_session, existing["id"]):
             result = await register.execute(
-                _UPDATE, {**values, **_json_params(values), "id": existing["id"]}
+                _UPDATE,
+                {
+                    **values,
+                    **_json_params(values),
+                    "id": existing["id"],
+                    "state": state,
+                },
             )
             saved = dict(result.mappings().one())
             await register.commit()
@@ -323,6 +336,7 @@ async def create(
                 **_json_params(values),
                 "actor_id": str(user.id),
                 "supersedes_id": None,
+                "state": state,
             },
         )
         saved = dict(result.mappings().one())
@@ -374,6 +388,7 @@ async def correct(
         "observed_at": old["observed_at"],
         "actor_id": str(user.id),
         "supersedes_id": str(observation_id),
+        "state": "draft",
     }
     values["body"] = derive.apply_to_body(values["body"], station)
     # The old row leaves the live set first so the unique index admits the new one.

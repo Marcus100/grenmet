@@ -2623,6 +2623,8 @@ export {
   eregisterListRegisterObservationsQueryKindSchema,
   eregisterListRegisterObservationsQueryLimitSchema,
   eregisterListRegisterObservationsQueryObservedAtSchema,
+  eregisterListRegisterObservationsQueryObservedFromSchema,
+  eregisterListRegisterObservationsQueryObservedToSchema,
   eregisterListRegisterObservationsQueryOffsetSchema,
   eregisterListRegisterObservationsQueryReviewedSchema,
   eregisterListRegisterObservationsQuerySchema,
@@ -2725,6 +2727,15 @@ export {
   eregisterReopenRegisterObservationStatus409Schema,
   eregisterReopenRegisterObservationStatus422Schema,
 } from "./eregisterReopenRegisterObservationSchema.js";
+export {
+  eregisterReviewRegisterDayBodySchema,
+  eregisterReviewRegisterDayErrorSchema,
+  eregisterReviewRegisterDayResponseSchema,
+  eregisterReviewRegisterDayStatus200Schema,
+  eregisterReviewRegisterDayStatus401Schema,
+  eregisterReviewRegisterDayStatus403Schema,
+  eregisterReviewRegisterDayStatus422Schema,
+} from "./eregisterReviewRegisterDaySchema.js";
 export {
   eregisterReviewRegisterObservationBodySchema,
   eregisterReviewRegisterObservationErrorSchema,
@@ -7621,6 +7632,8 @@ export { requisitionRejectSchema } from "./requisitionRejectSchema.js";
 export { requisitionStatusSchema } from "./requisitionStatusSchema.js";
 export { requisitionUpdateSchema } from "./requisitionUpdateSchema.js";
 export { reviewAssignmentSchema } from "./reviewAssignmentSchema.js";
+export { reviewDayRequestSchema } from "./reviewDayRequestSchema.js";
+export { reviewDayResultSchema } from "./reviewDayResultSchema.js";
 export { reviewInputPropertiesDecisionEnumSchema } from "./reviewInputPropertiesDecisionEnumSchema.js";
 export { reviewInputSchema } from "./reviewInputSchema.js";
 export { reviewPublicSchema } from "./reviewPublicSchema.js";

@@ -10,7 +10,7 @@ import json
 import math
 from datetime import UTC, date, datetime, timedelta
 from decimal import Decimal
-from typing import Any
+from typing import Any, Literal
 
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -248,6 +248,16 @@ def weather(code: str) -> str | None:
     return next((words for codes, words in _WEATHER_RANGES if value in codes), None)
 
 
+def public_status(state: str) -> Literal["provisional", "accepted", "historical"]:
+    """Historical (imported archive) records are official as recorded; the rest of
+    the live states that are not accepted are provisional."""
+    if state == "accepted":
+        return "accepted"
+    if state == "historical":
+        return "historical"
+    return "provisional"
+
+
 def decode(row: dict[str, Any]) -> PublicObservation:
     body: dict[str, Any] = row["body"] or {}
     # gaa-admin saves the workbook flat; earlier clients nested it.
@@ -266,7 +276,7 @@ def decode(row: dict[str, Any]) -> PublicObservation:
         station_id=row["station_id"],
         station_name=row["station_name"],
         observed_at=row["observed_at"],
-        status="accepted" if row["state"] == "accepted" else "provisional",
+        status=public_status(row["state"]),
         temperature_c=temp,
         dew_point_c=dew,
         relative_humidity=relative_humidity,
@@ -466,7 +476,7 @@ _MONTH_SQL = text(
       (SELECT count(*) FROM parsed) AS observation_count,
       (SELECT max(observed_at) FROM parsed) AS last_observation_at,
       (SELECT max(station_name) FROM parsed) AS station_name,
-      (SELECT bool_or(state <> 'accepted') FROM parsed) AS provisional,
+      (SELECT bool_or(state NOT IN ('accepted', 'historical')) FROM parsed) AS provisional,
       (SELECT count(*) FROM daily) AS rain_report_days,
       (SELECT sum(rain) FROM daily) AS rainfall_mm,
       (SELECT count(*) FROM daily WHERE rain >= :rain_day) AS rain_days,

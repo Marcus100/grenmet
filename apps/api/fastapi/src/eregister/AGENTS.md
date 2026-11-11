@@ -21,6 +21,21 @@
 - Decoding follows B/C1: variable wind (dd 99) is direction 0 with a positive speed (B/C1.10.5.3.2); VV 89 (over 70 km) is 81 900 m (B/C1.4.2.2.2); VV 51 to 55 are unused and rejected. Wet bulb, gust, relative humidity and observer initials are optional entries. `derive.py` works out the dew point, vapour pressure and relative humidity from them, and the station, sea level, QFE and QNH pressures from the barometer reading and the station's fixed amounts (`observations.stations`: `total_correction_hpa`, `qfe_offset_hpa`, `sea_level_offset_hpa`, `qnh_offset_hpa`, read and set through `GET`/`PUT /stations/{station_id}/settings`). A keyed group 3 or 4 wins over the rule and a mismatch warns; 78958 holds the owner-confirmed 0.0, 0.3, 1.0 and 0.1 hPa, other stations start empty.
 
 
+## Register states (`transitions.py`)
+
+| State | Meaning | Accept / reject / reopen | Review | Correct | Sent | Public status |
+| --- | --- | --- | --- | --- | --- | --- |
+| `draft`, `qc_pending` | Awaiting acceptance (`PENDING_STATES`) | accept, reject | yes | yes | after acceptance | provisional |
+| `accepted` | Decided | reopen | yes | yes | yes | accepted |
+| `rejected` | Refused | reopen | no | no | never | not public |
+| `superseded` | Replaced by a correction (restored if it is rejected) | none | no | no | never | not public |
+| `historical` | Imported archive record (#1260) | none | yes | yes (restore returns here) | never (`NOT_SENDABLE_STATES`, regardless of `EREGISTER_SEND_REQUIRE_ACCEPTED`) | historical |
+
+- `historical` is made only by `cl1_import` via `scripts/import_cl1_synop.py --historical` (`historical.save_hours`, same notes provenance and idempotency; only the importer's own unreviewed row is refreshed) or by `scripts/mark_imported_historical.py --month YYYY-MM [--apply]` (`historical.convert_month`: the importer's unreviewed, unsent drafts of the Grenada local month; dry run by default; audit action `mark_historical`). No API route sets it. Migration `eregister_0008` adds the enum value (PostgreSQL cannot drop one, so its downgrade is a no-op).
+- `POST /observations/review-day` (`qc.review_day`, `eregister.qc`): marks every reviewable SYNOP of one Grenada local day that is not reviewed; skips the reviewer's own and already reviewed records; counts only. Problems do not exclude a record.
+- `GET /observations` takes `observed_from` (inclusive) and `observed_to` (exclusive), UTC, filtered in SQL.
+- Tests: `tests/test_eregister_historical.py`, `tests/test_eregister_transitions.py`.
+
 ## Send actions (email and WIS2)
 
 - `POST /observations/{id}/email` and `/publish` (permission `eregister.send`) and `GET /observations/{id}/sends`. `sends.py` queues; `encode.py` is pure (FM 12 TAC from the keyed groups; the csv2bufr `Surface-RA-IV-100` CSV from the decoded SI values); `publisher.py` is the ARQ job body (`send_wis2_publications`, every 30 s).

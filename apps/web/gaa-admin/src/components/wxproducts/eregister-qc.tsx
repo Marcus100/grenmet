@@ -38,6 +38,7 @@ const STATE_LABEL: Record<QcState, string> = {
   qc_pending: "Awaiting acceptance",
   rejected: "Rejected",
   superseded: "Superseded",
+  historical: "Historical",
 };
 
 const STATE_VARIANT: Record<
@@ -49,6 +50,7 @@ const STATE_VARIANT: Record<
   qc_pending: "light-warning",
   rejected: "light-error",
   superseded: "light-light",
+  historical: "light-light",
 };
 
 const REASON_REQUIRED: Record<QcAction, boolean> = {

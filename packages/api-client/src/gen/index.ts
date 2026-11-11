@@ -215,6 +215,7 @@ export { eregisterPublishRegisterObservation } from "./clients/eregisterPublishR
 export { eregisterPutStationSettings } from "./clients/eregisterPutStationSettings.js";
 export { eregisterRejectRegisterObservation } from "./clients/eregisterRejectRegisterObservation.js";
 export { eregisterReopenRegisterObservation } from "./clients/eregisterReopenRegisterObservation.js";
+export { eregisterReviewRegisterDay } from "./clients/eregisterReviewRegisterDay.js";
 export { eregisterReviewRegisterObservation } from "./clients/eregisterReviewRegisterObservation.js";
 export { eregisterValidateSynopObservation } from "./clients/eregisterValidateSynopObservation.js";
 export { eventsAcceptConnection } from "./clients/eventsAcceptConnection.js";
@@ -1818,6 +1819,11 @@ export {
   eregisterReopenRegisterObservationMutationOptions,
   useEregisterReopenRegisterObservation,
 } from "./hooks/useEregisterReopenRegisterObservation.js";
+export {
+  eregisterReviewRegisterDayMutationKey,
+  eregisterReviewRegisterDayMutationOptions,
+  useEregisterReviewRegisterDay,
+} from "./hooks/useEregisterReviewRegisterDay.js";
 export {
   eregisterReviewRegisterObservationMutationKey,
   eregisterReviewRegisterObservationMutationOptions,
@@ -7259,6 +7265,16 @@ export type {
   EregisterReopenRegisterObservationStatus422,
 } from "./models/EregisterReopenRegisterObservation.js";
 export type {
+  EregisterReviewRegisterDayBody,
+  EregisterReviewRegisterDayOptions,
+  EregisterReviewRegisterDayResponse,
+  EregisterReviewRegisterDayResponses,
+  EregisterReviewRegisterDayStatus200,
+  EregisterReviewRegisterDayStatus401,
+  EregisterReviewRegisterDayStatus403,
+  EregisterReviewRegisterDayStatus422,
+} from "./models/EregisterReviewRegisterDay.js";
+export type {
   EregisterReviewRegisterObservationBody,
   EregisterReviewRegisterObservationOptions,
   EregisterReviewRegisterObservationPath,
@@ -12181,6 +12197,8 @@ export type { RequisitionStatus } from "./models/RequisitionStatus.js";
 export { requisitionStatus } from "./models/RequisitionStatus.js";
 export type { RequisitionUpdate } from "./models/RequisitionUpdate.js";
 export type { ReviewAssignment } from "./models/ReviewAssignment.js";
+export type { ReviewDayRequest } from "./models/ReviewDayRequest.js";
+export type { ReviewDayResult } from "./models/ReviewDayResult.js";
 export type { ReviewInput } from "./models/ReviewInput.js";
 export type { ReviewInputPropertiesDecisionEnum } from "./models/ReviewInputPropertiesDecisionEnum.js";
 export { reviewInputPropertiesDecisionEnum } from "./models/ReviewInputPropertiesDecisionEnum.js";
@@ -16970,6 +16988,8 @@ export {
   eregisterListRegisterObservationsQueryKindSchema,
   eregisterListRegisterObservationsQueryLimitSchema,
   eregisterListRegisterObservationsQueryObservedAtSchema,
+  eregisterListRegisterObservationsQueryObservedFromSchema,
+  eregisterListRegisterObservationsQueryObservedToSchema,
   eregisterListRegisterObservationsQueryOffsetSchema,
   eregisterListRegisterObservationsQueryReviewedSchema,
   eregisterListRegisterObservationsQuerySchema,
@@ -17072,6 +17092,15 @@ export {
   eregisterReopenRegisterObservationStatus409Schema,
   eregisterReopenRegisterObservationStatus422Schema,
 } from "./zod/eregisterReopenRegisterObservationSchema.js";
+export {
+  eregisterReviewRegisterDayBodySchema,
+  eregisterReviewRegisterDayErrorSchema,
+  eregisterReviewRegisterDayResponseSchema,
+  eregisterReviewRegisterDayStatus200Schema,
+  eregisterReviewRegisterDayStatus401Schema,
+  eregisterReviewRegisterDayStatus403Schema,
+  eregisterReviewRegisterDayStatus422Schema,
+} from "./zod/eregisterReviewRegisterDaySchema.js";
 export {
   eregisterReviewRegisterObservationBodySchema,
   eregisterReviewRegisterObservationErrorSchema,
@@ -21968,6 +21997,8 @@ export { requisitionRejectSchema } from "./zod/requisitionRejectSchema.js";
 export { requisitionStatusSchema } from "./zod/requisitionStatusSchema.js";
 export { requisitionUpdateSchema } from "./zod/requisitionUpdateSchema.js";
 export { reviewAssignmentSchema } from "./zod/reviewAssignmentSchema.js";
+export { reviewDayRequestSchema } from "./zod/reviewDayRequestSchema.js";
+export { reviewDayResultSchema } from "./zod/reviewDayResultSchema.js";
 export { reviewInputPropertiesDecisionEnumSchema } from "./zod/reviewInputPropertiesDecisionEnumSchema.js";
 export { reviewInputSchema } from "./zod/reviewInputSchema.js";
 export { reviewPublicSchema } from "./zod/reviewPublicSchema.js";
