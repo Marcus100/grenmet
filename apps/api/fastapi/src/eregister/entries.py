@@ -24,7 +24,7 @@ from src.auth.models import User
 from src.eregister.exceptions import ObservationNotFoundError
 from src.exceptions import AppException
 
-from . import bufr, derive, encode, iwxxm, rules, stations, transitions
+from . import bufr, cl1_import, derive, encode, iwxxm, rules, stations, transitions
 from .models import STATUS_QUEUED, STATUS_SENT, ERegisterSend
 from .schemas import (
     RegisterObservationCorrection,
@@ -66,6 +66,8 @@ def validation_issues(
     issues, _decoded = rules.validate_synop(
         workbook, station, history, recompute=not stored
     )
+    if cl1_import.is_imported(body.get("notes")):
+        issues = cl1_import.merge_sheet_gaps(issues)
     return [*issues, *rules.check_observation_time(workbook, observed_at)]
 
 

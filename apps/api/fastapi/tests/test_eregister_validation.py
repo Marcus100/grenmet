@@ -9,7 +9,7 @@ import pytest
 from src.auth.browser import get_browser_or_token_user
 from src.auth.models import User
 from src.eregister import encode, rules
-from src.eregister.schemas import SynopDecoded, SynopWorkbook
+from src.eregister.schemas import SynopDecoded, SynopValidationIssue, SynopWorkbook
 from src.main import app
 
 # Row 1 of the paper register for Thursday 30 March 2023 (station 78958, 12 UTC).
@@ -50,7 +50,6 @@ def test_paper_register_row_is_valid_and_decodes_to_si() -> None:
     assert issues == {
         "warning:s3_rainfall_24h": "missing_24h_rainfall",
         "warning:s3_max_temp": "missing_txtn",
-        "warning:s3_min_temp": "missing_txtn",
         "warning:pressure_tendency": "missing_pressure_change",
         "warning:precip_indicator": "rainfall_omitted_at_main_hour",
     }
@@ -530,7 +529,8 @@ def test_pressure_change_24h_negative_zero_and_implausible_values_warn() -> None
 def test_max_and_min_temperature_are_advised_at_main_hours_only() -> None:
     issues, _ = check(time_utc="09", s3_max_temp="0310", s3_min_temp="0240")
     assert issues["warning:s3_max_temp"] == "txtn_hour"
-    assert issues["warning:s3_min_temp"] == "txtn_hour"
+    # One warning for both, on the first field.
+    assert "warning:s3_min_temp" not in issues
     for hour in ("00", "06", "12", "18"):
         issues, _ = check(time_utc=hour, s3_max_temp="0310", s3_min_temp="0240")
         assert "warning:s3_max_temp" not in issues, hour
@@ -671,7 +671,8 @@ def _hours_with(code_key: str, **changes: str) -> list[str]:
 
 def test_max_and_min_temperature_are_expected_every_six_hours() -> None:
     assert _hours_with("warning:s3_max_temp") == ["00", "06", "12", "18"]
-    assert _hours_with("warning:s3_min_temp") == ["00", "06", "12", "18"]
+    # One warning for both temperatures, on the maximum.
+    assert _hours_with("warning:s3_min_temp") == []
     entered = {"s3_max_temp": "0310", "s3_min_temp": "0240"}
     assert _hours_with("warning:s3_max_temp", **entered) == [
         f"{h:02d}" for h in range(24) if h % 6
@@ -700,3 +701,44 @@ def test_24_hour_rainfall_belongs_to_12_utc() -> None:
     assert _hours_with("warning:s3_rainfall_24h", s3_rainfall_24h="0123") == [
         f"{h:02d}" for h in range(24) if h != 12
     ]
+
+
+def _messages(workbook: dict[str, str]) -> list[str]:
+    issues, _ = rules.validate_synop(SynopWorkbook(**workbook))
+    return [issue.message for issue in issues]
+
+
+def test_a_missing_max_and_min_is_one_plain_warning_that_says_why() -> None:
+    messages = _messages(
+        {**PAPER_ROW, "time_utc": "06", "s3_max_temp": "", "s3_min_temp": ""}
+    )
+    found = [m for m in messages if "maximum and minimum temperatures" in m]
+    assert len(found) == 1
+    assert "06 UTC report is a main-hour report" in found[0]
+
+
+def test_one_missing_temperature_names_only_that_one() -> None:
+    messages = _messages(
+        {**PAPER_ROW, "time_utc": "06", "s3_max_temp": "0310", "s3_min_temp": ""}
+    )
+    found = [m for m in messages if m.startswith("The minimum temperature is missing")]
+    assert len(found) == 1
+
+
+def test_no_message_repeats_within_a_row() -> None:
+    for hour in ("00", "03", "06", "09", "12", "18"):
+        messages = _messages(
+            {**PAPER_ROW, "time_utc": hour, "s3_max_temp": "", "s3_min_temp": ""}
+        )
+        assert len(messages) == len(set(messages)), hour
+
+
+def test_once_per_row_keeps_first_and_distinguishes_severity() -> None:
+    first = SynopValidationIssue(
+        field="a", code="x", message="Same", severity="warning"
+    )
+    again = SynopValidationIssue(
+        field="b", code="y", message="Same", severity="warning"
+    )
+    error = SynopValidationIssue(field="b", code="z", message="Same", severity="error")
+    assert rules.once_per_row([first, again, error]) == [first, error]
