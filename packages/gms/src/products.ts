@@ -44,7 +44,7 @@ export type ProductValues = Record<string, string>;
  * latest NHC product. Only a marker for now; nothing fetches yet. Editors and
  * FastAPI read it through `fillableFields`.
  */
-export type FillSource = "almanac" | "tides" | "nhc";
+export type FillSource = "almanac" | "tides" | "nhc" | "register";
 export interface ProductField {
   /** Planned automatic source; the value always stays editable. */
   fillFrom?: FillSource;
@@ -420,7 +420,8 @@ function forecastFields(kind: ProductKind): ProductField[] {
             "Weather",
             "observedTemperature",
             "Midday temperature at MBIA (°C)",
-            { type: "number", required: true }
+            // The accepted 12:00 SYNOP in the eRegister (#1197, section E).
+            { type: "number", required: true, fillFrom: "register" }
           ),
         ]
       : []),

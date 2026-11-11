@@ -97,6 +97,13 @@ diagnose() {
       echo "::endgroup::"
     fi
   done
+  # Host pressure at the moment of failure: slow probes after a deploy are the
+  # usual cause of a proxy 503 while every container still reports healthy.
+  # Last and time-boxed, so a slow `docker stats` never hides the report above.
+  echo "Host load and memory:"
+  uptime
+  free -m
+  timeout 8 docker stats --no-stream --format 'table {{.Name}}\t{{.CPUPerc}}\t{{.MemUsage}}' 2>/dev/null || echo "(docker stats did not answer within 8 s)"
 }
 
 finish() {
@@ -278,6 +285,10 @@ phase auth
 printf '%s' "$GHCR_TOKEN" | docker login ghcr.io -u "$GITHUB_ACTOR" --password-stdin
 
 phase disk
+# Versions and memory before the release starts, for comparison with a failure
+# snapshot (diagnose) and to confirm healthcheck start_interval support (Engine 25+, #1140).
+echo "Docker Engine $(docker version --format '{{.Server.Version}}' 2>/dev/null || echo unknown), $(docker compose version --short 2>/dev/null | sed 's/^/Compose /')"
+free -m | awk 'NR <= 3'
 # The runner writes logs and step summaries under its temp directory; a full disk
 # there fails the job without a useful error (staging, 2026-10-07).
 require_free_space "${RUNNER_TEMP:-${TMPDIR:-/tmp}}" "${RUNNER_MIN_FREE_GB:-2}" "for the runner"
@@ -406,7 +417,29 @@ docker compose -f runtime/deploy.lock.yml -p "$COMPOSE_PROJECT" up -d --wait $da
 docker compose -f runtime/deploy.lock.yml -p "$COMPOSE_PROJECT" exec -T db bash /docker-entrypoint-initdb.d/init-databases.sh
 
 phase migrations
+# A migration service whose exact image and configuration (Compose's config hash)
+# already completed against this database has nothing new to apply, so it is
+# skipped (#1239). The database side of the key is the volume's creation time,
+# every database's OID (a dropped and re-created database gets a new one) and the
+# main database's Alembic revision (a backup restored in place brings back an
+# older one). Anything unreadable leaves the key empty and the service runs.
+# FORCE_MIGRATIONS=1 runs every service.
+migration_state="${DEPLOY_STATE_DIR:-$HOME/.local/state/grenmet-deploy}/$COMPOSE_PROJECT/migrated"
+mkdir -p "$migration_state" 2>/dev/null || migration_state=""
+database_volume=$(docker volume inspect --format '{{.CreatedAt}}' "${COMPOSE_PROJECT}_pgdata" 2>/dev/null) || database_volume=""
+database_marker_sql="SELECT (SELECT string_agg(oid::text || ':' || datname, ',' ORDER BY datname) FROM pg_database WHERE NOT datistemplate) || '|' || (SELECT string_agg(version_num, ',' ORDER BY version_num) FROM alembic_version)"
 for service in $migration_services; do
+  migration_key=""
+  service_hash=$(docker compose -f runtime/deploy.lock.yml -p "$COMPOSE_PROJECT" config --hash "$service" 2>/dev/null | awk -v s="$service" '$1 == s {print $2}') || service_hash=""
+  # Read per service: the previous one may just have changed the revision.
+  # shellcheck disable=SC2016
+  database_state=$(docker compose -f runtime/deploy.lock.yml -p "$COMPOSE_PROJECT" exec -T db sh -c 'psql -v ON_ERROR_STOP=1 -U "$POSTGRES_USER" -d "$POSTGRES_DB" -tAc "$1"' sh "$database_marker_sql" 2>/dev/null) || database_state=""
+  [[ -z "$migration_state" || -z "$service_hash" || -z "$database_volume" || -z "$database_state" ]] || migration_key="$service_hash $database_volume $database_state"
+  if [[ "${FORCE_MIGRATIONS:-}" != 1 && -n "$migration_key" && "$(cat "$migration_state/$service" 2>/dev/null)" == "$migration_key" ]]; then
+    echo "Unchanged $service: this image and configuration already migrated this database; skipped (FORCE_MIGRATIONS=1 runs it)"
+    continue
+  fi
+  [[ -z "$migration_state" ]] || rm -f "$migration_state/$service"
   for attempt in $(seq 1 "$migration_lock_attempts"); do
     migration_log=$(mktemp)
     if docker compose -f runtime/deploy.lock.yml -p "$COMPOSE_PROJECT" run --rm --no-deps "$service" 2>&1 | tee "$migration_log"; then
@@ -425,6 +458,12 @@ for service in $migration_services; do
     echo "::warning::Migration $service hit the lock timeout (attempt $attempt of $migration_lock_attempts); retrying in ${migration_lock_pause}s. The previous release keeps serving."
     sleep "$migration_lock_pause"
   done
+  # Reached only after a successful run: every failure above exits the deploy.
+  # Record the database as this run left it, so the next deploy compares like with like.
+  # shellcheck disable=SC2016
+  database_state=$(docker compose -f runtime/deploy.lock.yml -p "$COMPOSE_PROJECT" exec -T db sh -c 'psql -v ON_ERROR_STOP=1 -U "$POSTGRES_USER" -d "$POSTGRES_DB" -tAc "$1"' sh "$database_marker_sql" 2>/dev/null) || database_state=""
+  [[ -z "$migration_state" || -z "$service_hash" || -z "$database_volume" || -z "$database_state" ]] ||
+    printf '%s' "$service_hash $database_volume $database_state" > "$migration_state/$service"
 done
 
 phase grants
