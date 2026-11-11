@@ -83,6 +83,12 @@ diagnose() {
   local ids id name status health code
   ids=$(docker ps -aq --filter "label=com.docker.compose.project=$COMPOSE_PROJECT")
   [[ -n "$ids" ]] || { echo "No containers found for project $COMPOSE_PROJECT"; return 0; }
+  # Host pressure at the moment of failure: slow probes after a deploy are the
+  # usual cause of a proxy 503 while every container still reports healthy.
+  echo "Host load and memory:"
+  uptime
+  free -m
+  docker stats --no-stream --format 'table {{.Name}}\t{{.CPUPerc}}\t{{.MemUsage}}' 2>/dev/null
   echo "Container state (project $COMPOSE_PROJECT):"
   # shellcheck disable=SC2086
   docker inspect --format '{{.Name}} status={{.State.Status}} health={{if .State.Health}}{{.State.Health.Status}}{{else}}none{{end}} exit={{.State.ExitCode}} restarts={{.RestartCount}} oom={{.State.OOMKilled}}' $ids

@@ -16,8 +16,15 @@ export async function check(url, expected, fetcher = fetch) {
   const body = await response.text();
   if (!validPage(response, body, expected))
     throw new Error(
-      `Functional smoke failed: ${new URL(url).hostname}${new URL(url).pathname} (HTTP ${response.status}; expected ${expected})`
+      `Functional smoke failed: ${new URL(url).hostname}${new URL(url).pathname} (HTTP ${response.status}; expected ${expected}; got ${excerpt(body)})`
     );
+}
+
+/** A short single-line start of a response body, to tell a proxy's 503 from the app's. */
+export function excerpt(body, limit = 120) {
+  const line = body.replace(/\s+/gu, " ").trim();
+  if (!line) return "an empty body";
+  return JSON.stringify(line.length > limit ? `${line.slice(0, limit)}…` : line);
 }
 
 export async function checkCmsSignIn(domain, fetcher = fetch) {

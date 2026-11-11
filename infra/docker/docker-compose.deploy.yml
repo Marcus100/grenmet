@@ -278,7 +278,13 @@ services:
       - "traefik.http.routers.grenmet-api${ROUTER_SUFFIX}.middlewares=edge-api${ROUTER_SUFFIX}"
       - "traefik.http.routers.grenmet-api${ROUTER_SUFFIX}.tls.certresolver=letsencrypt"
       - "traefik.http.services.grenmet-api${ROUTER_SUFFIX}.loadbalancer.server.port=8000"
+      # One slow probe takes the only server out of rotation (Traefik answers 503)
+      # until the next probe. Defaults (5 s timeout, 30 s re-probe) turned a busy
+      # moment after a deploy into 30 s of 503s; these keep that gap to seconds.
       - "traefik.http.services.grenmet-api${ROUTER_SUFFIX}.loadbalancer.healthcheck.path=/api/v1/utils/ready/"
+      - "traefik.http.services.grenmet-api${ROUTER_SUFFIX}.loadbalancer.healthcheck.interval=15s"
+      - "traefik.http.services.grenmet-api${ROUTER_SUFFIX}.loadbalancer.healthcheck.unhealthyinterval=3s"
+      - "traefik.http.services.grenmet-api${ROUTER_SUFFIX}.loadbalancer.healthcheck.timeout=10s"
     networks:
       - grenmet
 
@@ -507,6 +513,9 @@ services:
       - "traefik.http.routers.web-cms${ROUTER_SUFFIX}.tls.certresolver=letsencrypt"
       - "traefik.http.services.web-cms${ROUTER_SUFFIX}.loadbalancer.server.port=3006"
       - "traefik.http.services.web-cms${ROUTER_SUFFIX}.loadbalancer.healthcheck.path=/api/ready"
+      - "traefik.http.services.web-cms${ROUTER_SUFFIX}.loadbalancer.healthcheck.interval=15s"
+      - "traefik.http.services.web-cms${ROUTER_SUFFIX}.loadbalancer.healthcheck.unhealthyinterval=3s"
+      - "traefik.http.services.web-cms${ROUTER_SUFFIX}.loadbalancer.healthcheck.timeout=10s"
     networks: [grenmet]
 
 
@@ -593,6 +602,9 @@ services:
       - "traefik.http.routers.web-barrels-admin${ROUTER_SUFFIX}.tls.certresolver=letsencrypt"
       - "traefik.http.services.web-barrels-admin${ROUTER_SUFFIX}.loadbalancer.server.port=3012"
       - "traefik.http.services.web-barrels-admin${ROUTER_SUFFIX}.loadbalancer.healthcheck.path=/api/health"
+      - "traefik.http.services.web-barrels-admin${ROUTER_SUFFIX}.loadbalancer.healthcheck.interval=15s"
+      - "traefik.http.services.web-barrels-admin${ROUTER_SUFFIX}.loadbalancer.healthcheck.unhealthyinterval=3s"
+      - "traefik.http.services.web-barrels-admin${ROUTER_SUFFIX}.loadbalancer.healthcheck.timeout=10s"
     networks:
       - grenmet
 
@@ -643,6 +655,9 @@ services:
       - "traefik.http.routers.web-gms-portal${ROUTER_SUFFIX}.service=web-gms-portal${ROUTER_SUFFIX}"
       - "traefik.http.services.web-gms-portal${ROUTER_SUFFIX}.loadbalancer.server.port=3001"
       - "traefik.http.services.web-gms-portal${ROUTER_SUFFIX}.loadbalancer.healthcheck.path=/api/ready"
+      - "traefik.http.services.web-gms-portal${ROUTER_SUFFIX}.loadbalancer.healthcheck.interval=15s"
+      - "traefik.http.services.web-gms-portal${ROUTER_SUFFIX}.loadbalancer.healthcheck.unhealthyinterval=3s"
+      - "traefik.http.services.web-gms-portal${ROUTER_SUFFIX}.loadbalancer.healthcheck.timeout=10s"
     networks:
       - grenmet
 
