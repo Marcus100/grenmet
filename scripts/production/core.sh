@@ -285,6 +285,10 @@ phase auth
 printf '%s' "$GHCR_TOKEN" | docker login ghcr.io -u "$GITHUB_ACTOR" --password-stdin
 
 phase disk
+# Versions and memory before the release starts, for comparison with a failure
+# snapshot (diagnose) and to confirm healthcheck start_interval support (Engine 25+, #1140).
+echo "Docker Engine $(docker version --format '{{.Server.Version}}' 2>/dev/null || echo unknown), $(docker compose version --short 2>/dev/null | sed 's/^/Compose /')"
+free -m | awk 'NR <= 3'
 # The runner writes logs and step summaries under its temp directory; a full disk
 # there fails the job without a useful error (staging, 2026-10-07).
 require_free_space "${RUNNER_TEMP:-${TMPDIR:-/tmp}}" "${RUNNER_MIN_FREE_GB:-2}" "for the runner"
