@@ -83,10 +83,15 @@ jobs:
           # change on staging cannot read the staging secrets.
           ref: ${{ github.event.repository.default_branch }}
           persist-credentials: false
-      - name: Setup Node.js with pnpm
-        uses: ./.github/actions/setup-node
+      # Pinned actions only (staging-promotion guardrail), and only the root
+      # package's tools: Playwright and axe, no app dependencies.
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
-          turbo-cache: "false"
+          node-version: "24"
+      - name: Install the journeys' tools
+        run: |
+          corepack enable
+          pnpm install --frozen-lockfile --filter barrelsgd-monorepo
       - name: Install Chromium
         run: pnpm exec playwright install --with-deps chromium
       - name: Run the journeys
