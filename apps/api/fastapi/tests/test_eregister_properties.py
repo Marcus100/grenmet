@@ -40,14 +40,12 @@ def test_temperature_group_decodes_back_to_the_reading(celsius: Decimal) -> None
 
 
 @PROPERTY
-@given(st.floats(min_value=-60, max_value=60, allow_nan=False))
-def test_temperature_group_rounds_half_away_from_zero(celsius: float) -> None:
-    tenths = Decimal(str(abs(celsius))).quantize(Decimal("0.1"), ROUND_HALF_UP)
-    expected = -float(tenths) if celsius < 0 else float(tenths)
-    decoded = derive._tenths(derive.temperature_group(celsius))
-    # Binary floats sit a hair either side of .x5; allow one tenth there only.
-    assert decoded is not None
-    assert abs(decoded - expected) <= 0.1 + 1e-9
+@given(st.decimals(min_value=Decimal("-60.00"), max_value=Decimal("60.00"), places=2))
+def test_temperature_group_rounds_half_away_from_zero(celsius: Decimal) -> None:
+    tenths = abs(celsius).quantize(Decimal("0.1"), ROUND_HALF_UP)
+    expected = float(-tenths if celsius < 0 else tenths)
+    # Exact: a truncating encoder would fail on every .x5 to .x9 reading.
+    assert derive._tenths(derive.temperature_group(float(celsius))) == expected
 
 
 @PROPERTY
@@ -77,27 +75,47 @@ def test_dew_point_never_exceeds_the_air_temperature(air: float, percent: int) -
     assert dew <= round(air, 1)
     # Saturated air has its dew point at the air temperature.
     if percent == 100:
-        assert dew == round(air, 1)
+        assert abs(dew - air) <= 0.05 + 1e-9
 
 
 @PROPERTY
 @given(
     st.floats(min_value=-30, max_value=50, allow_nan=False),
-    st.floats(min_value=0.001, max_value=200, allow_nan=False),
+    st.floats(min_value=0.0, max_value=1.0, allow_nan=False),
 )
-def test_relative_humidity_is_a_percentage(air: float, vapour: float) -> None:
-    assert 0 <= derive.relative_humidity_percent(air, vapour) <= 100
+def test_relative_humidity_is_the_vapour_ratio_as_a_percentage(
+    air: float, ratio: float
+) -> None:
+    vapour = derive.saturation_vapour_pressure_hpa(air) * ratio
+    percent = derive.relative_humidity_percent(air, vapour)
+    # Half rounds up, like the entry screen: within one percent of the ratio.
+    assert abs(percent - ratio * 100) <= 0.5 + 1e-9
 
 
 @PROPERTY
-@given(st.integers(min_value=0, max_value=99))
+@given(st.sampled_from([code for code in range(100) if not 51 <= code <= 55]))
 def test_visibility_range_is_a_proper_interval_or_unused(code: int) -> None:
     span = metar.visibility_range_m(code)
-    if span is None:
-        assert 51 <= code <= 55
-        return
+    assert span is not None
     low, high = span
     assert 0 <= low < high
+
+
+@pytest.mark.parametrize(
+    ("code", "expected"),
+    [
+        (80, (30_000.0, 35_000.0)),
+        (81, (35_000.0, 40_000.0)),
+        (87, (65_000.0, 70_000.0)),
+        (88, (70_000.0, 70_100.0)),
+        (89, (70_100.0, float("inf"))),
+    ],
+)
+def test_coarse_visibility_codes_follow_code_table_4377(
+    code: int, expected: tuple[float, float]
+) -> None:
+    assert metar.visibility_range_m(code) == expected
+    assert metar.visibility_range_m(55) is None
 
 
 @PROPERTY
@@ -129,7 +147,7 @@ def metar_visibility_m(km: Decimal) -> int:
 
 
 @PROPERTY
-@given(st.decimals(min_value=Decimal("0"), max_value=Decimal("80"), places=1))
+@given(st.decimals(min_value=Decimal("0"), max_value=Decimal("200"), places=1))
 def test_the_metar_visibility_of_a_reading_is_allowed_by_its_synop_code(
     km: Decimal,
 ) -> None:
