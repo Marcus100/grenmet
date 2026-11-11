@@ -75,6 +75,20 @@ describe("issued products RSS", () => {
     expect(xml).not.toContain("<item>");
   });
 
+  it("never throws on an impossible issue time", () => {
+    const xml = issuedFeedXml(
+      [product({ values: { issuedAt: "2026-02-30T25:00" } })],
+      SITE
+    );
+    expect(xml).toContain(
+      "<title>Morning Forecast, 11 Nov 2026, 7:05 a.m.</title>"
+    );
+  });
+
+  it("drops characters XML cannot carry", () => {
+    expect(xmlEscape("bell\u0007 ok\u000B\tend")).toBe("bell ok\tend");
+  });
+
   it("escapes every XML special character", () => {
     expect(xmlEscape(`<a href="x">'&'</a>`)).toBe(
       "&lt;a href=&quot;x&quot;&gt;&apos;&amp;&apos;&lt;/a&gt;"

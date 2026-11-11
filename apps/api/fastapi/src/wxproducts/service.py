@@ -146,13 +146,13 @@ async def latest_current_outlook(
 # casts to NULL and is left out.
 ISSUED_PRODUCTS_SQL = """
 SELECT published FROM (
-  SELECT published,
+  SELECT id, published,
     CASE WHEN published ->> 'publishedAt' ~ '^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}'
       THEN (published ->> 'publishedAt')::timestamptz END AS published_at
   FROM authored_products WHERE published IS NOT NULL
 ) AS issued
 WHERE published_at <= :now
-ORDER BY published_at DESC
+ORDER BY published_at DESC, id
 LIMIT :limit
 """
 

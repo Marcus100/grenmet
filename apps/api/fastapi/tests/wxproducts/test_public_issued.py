@@ -15,11 +15,11 @@ from src.main import app
 from src.wxproducts import database, pdf, service
 from src.wxproducts.dependencies import get_session
 from src.wxproducts.schemas import ProductPdfSourceAdapter
-from tests.wxproducts.test_public_products import (
-    insert_product,
-    snapshot,
-    weather_db,  # noqa: F401  (fixture)
-)
+from tests.wxproducts.test_authoring import actor as actor
+from tests.wxproducts.test_authoring import current_input
+from tests.wxproducts.test_authoring import weather_sessions as weather_sessions
+from tests.wxproducts.test_public_products import insert_product, snapshot
+from tests.wxproducts.test_public_products import weather_db as weather_db
 
 ISSUED = "/api/v1/wxproducts/public/issued-products"
 
@@ -38,7 +38,7 @@ async def use(session: AsyncSession) -> None:
 
 
 async def test_recent_issues_are_newest_first_with_expired_ones_and_no_drafts(
-    weather_db: AsyncSession,  # noqa: F811
+    weather_db: AsyncSession,
 ) -> None:
     older = published_at(
         "2026-09-07T11:00:00Z",
@@ -60,7 +60,7 @@ async def test_recent_issues_are_newest_first_with_expired_ones_and_no_drafts(
 
 async def test_issued_route_shape_limit_and_privacy(
     async_client: httpx.AsyncClient,
-    weather_db: AsyncSession,  # noqa: F811
+    weather_db: AsyncSession,
 ) -> None:
     product = published_at("2000-01-01T11:00:00Z", issuedAt="2000-01-01T07:00")
     await insert_product(weather_db, product)
@@ -91,7 +91,7 @@ async def test_issued_route_unconfigured_is_unavailable(
 
 async def test_pdf_renders_the_published_revision_inline(
     async_client: httpx.AsyncClient,
-    weather_db: AsyncSession,  # noqa: F811
+    weather_db: AsyncSession,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     product = published_at("2000-01-01T11:00:00Z", issuedAt="2000-01-01T07:00")
@@ -137,7 +137,7 @@ async def test_pdf_renders_the_published_revision_inline(
 
 async def test_pdf_of_a_draft_withdrawn_or_unknown_product_is_404(
     async_client: httpx.AsyncClient,
-    weather_db: AsyncSession,  # noqa: F811
+    weather_db: AsyncSession,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     draft = snapshot()
@@ -174,3 +174,60 @@ async def test_pdf_unconfigured_is_unavailable(
         f"/api/v1/wxproducts/public/products/{uuid4()}/pdf"
     )
     assert response.status_code == 503
+
+
+@pytest.fixture(autouse=True)
+def empty_pdf_cache() -> None:
+    from src.wxproducts import router
+
+    router._public_pdfs.clear()
+
+
+async def test_public_pdf_renders_the_published_revision_not_a_newer_draft(
+    async_client: httpx.AsyncClient,
+    weather_sessions,
+    actor,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Real revisions, real lookup; only WeasyPrint is replaced."""
+    payload = current_input(action="publish")
+    async with weather_sessions() as session:
+        await service.write_product(session, payload, actor)
+        await service.write_product(
+            session,
+            payload.model_copy(
+                update={
+                    "action": "draft",
+                    "expectedRevision": 1,
+                    "values": payload.values | {"synopsis": "Private newer edit"},
+                }
+            ),
+            actor,
+        )
+    rendered: list[Any] = []
+
+    def render(source: Any, **_k: Any) -> bytes:
+        rendered.append(source)
+        return b"%PDF-1.7 published"
+
+    monkeypatch.setattr(pdf, "render_product_pdf", render)
+    url = f"/api/v1/wxproducts/public/products/{payload.id}/pdf"
+    first = await async_client.get(url)
+    assert first.status_code == 200, first.text
+    [source] = rendered
+    assert source.revision == 1
+    assert source.current_publication
+    assert "Private newer edit" not in str(source.values)
+    # A second request is served from the cache, not rendered again.
+    second = await async_client.get(url)
+    assert second.content == first.content
+    assert second.headers["content-disposition"] == first.headers["content-disposition"]
+    assert len(rendered) == 1
+
+
+def test_the_pdf_cache_is_bounded() -> None:
+    from src.wxproducts import router
+
+    for index in range(router.PUBLIC_PDF_CACHE_SIZE + 5):
+        router._remember_public_pdf((uuid4(), index), (b"x", "f.pdf"))
+    assert len(router._public_pdfs) == router.PUBLIC_PDF_CACHE_SIZE

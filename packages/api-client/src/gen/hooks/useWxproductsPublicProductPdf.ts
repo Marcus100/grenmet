@@ -61,7 +61,7 @@ export function wxproductsPublicProductPdfQueryOptions(
 }
 
 /**
- * @description Anonymous PDF of the product's published revision, the same sheet GMS issued, for its permanent page and feed entry. Stays available after the product expires; withdrawn or unknown products are 404.
+ * @description Anonymous PDF of the product's published revision, the same sheet GMS issued, for its permanent page and feed entry. Stays available after the product expires; withdrawn or unknown products are 404. The rendered sheet is reused for repeat requests of the same published revision.
  * @summary Download a published weather product as PDF
  * {@link /api/v1/wxproducts/public/products/:product_id/pdf}
  */

@@ -22,8 +22,17 @@ const XML_ESCAPES: Record<string, string> = {
   "'": "&apos;",
 };
 
+/** XML 1.0 forbids C0 controls other than tab, newline and carriage return. */
+function xmlAllowed(character: string): boolean {
+  const code = character.codePointAt(0) ?? 0;
+  return code >= 0x20 || code === 0x09 || code === 0x0a || code === 0x0d;
+}
+
 export function xmlEscape(text: string): string {
-  return text.replace(XML_SPECIAL, (character) => XML_ESCAPES[character] ?? "");
+  return [...text]
+    .filter(xmlAllowed)
+    .join("")
+    .replace(XML_SPECIAL, (character) => XML_ESCAPES[character] ?? "");
 }
 
 function kindLabel(kind: string): string {
@@ -32,12 +41,18 @@ function kindLabel(kind: string): string {
     : "Weather product";
 }
 
-/** "Morning Forecast, 11 Nov 2026 7:00 a.m." in Grenada time. */
+/** "Morning Forecast, 11 Nov 2026, 7:00 a.m." in Grenada time. */
 function itemTitle(product: Issued): string {
   const issued = product.values.issuedAt ?? "";
-  const when = new Date(
-    LOCAL_MINUTE.test(issued) ? `${issued}:00-04:00` : product.publishedAt
-  );
+  const issuedAt = LOCAL_MINUTE.test(issued)
+    ? new Date(`${issued}:00-04:00`)
+    : null;
+  const when =
+    issuedAt && !Number.isNaN(issuedAt.getTime())
+      ? issuedAt
+      : new Date(product.publishedAt);
+  // An unreadable time never breaks the feed; the item keeps its kind.
+  if (Number.isNaN(when.getTime())) return kindLabel(product.kind);
   const label = new Intl.DateTimeFormat("en-GB", {
     timeZone: "America/Grenada",
     day: "numeric",

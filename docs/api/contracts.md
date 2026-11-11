@@ -361,7 +361,8 @@ returns 503. Errors use `{ "error": "..." }`, with `Cache-Control: no-store`.
 `GET /api/v1/wxproducts/public/products/{id}/pdf` (added 11 Nov 2026, #1197) is
 the anonymous PDF of that product's published revision: the same archival sheet
 staff download, served `inline` with a human, dated file name and `Cache-Control:
-private, no-store`. It stays available after the product expires. Withdrawn,
+private, no-store`. It stays available after the product expires, and the rendered sheet is reused
+(in memory, the 32 most recent) for repeat requests of the same revision. Withdrawn,
 unpublished or unknown IDs return 404 and unavailable storage 503
 (`{ "error": "..." }`). The GMS website serves it at
 `/weather/issued/{id}/pdf` (a pass-through route).
