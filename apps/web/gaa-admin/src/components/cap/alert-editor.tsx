@@ -36,6 +36,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import type { ComponentProps } from "react";
 import { useState } from "react";
+import { errorText } from "@/components/cap/alert-workflow";
 import { AreaPicker } from "@/components/cap/area-picker";
 import {
   GmsCatalogueBoundary,
@@ -310,7 +311,10 @@ function NewAlertEditorContent({
       router.refresh();
     } catch (err) {
       setError(
-        err instanceof Error ? err.message : "Failed to save the alert."
+        errorText(
+          err,
+          "The alert could not be saved. Check the fields and try again."
+        )
       );
       setSubmitting(false);
     }
