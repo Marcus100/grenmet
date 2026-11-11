@@ -141,6 +141,47 @@ async def latest_current_outlook(
     return None
 
 
+# Newest publication first. Future-dated snapshots are excluded in SQL so they
+# never take a place in the limit; a publishedAt that is not an ISO timestamp
+# casts to NULL and is left out.
+ISSUED_PRODUCTS_SQL = """
+SELECT published FROM (
+  SELECT published,
+    CASE WHEN published ->> 'publishedAt' ~ '^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}'
+      THEN (published ->> 'publishedAt')::timestamptz END AS published_at
+  FROM authored_products WHERE published IS NOT NULL
+) AS issued
+WHERE published_at <= :now
+ORDER BY published_at DESC
+LIMIT :limit
+"""
+
+
+async def list_issued_products(
+    session: AsyncSession, *, limit: int, now: datetime | None = None
+) -> list[tuple[PublishedProduct, bool]]:
+    """The most recently published snapshots, current or not, newest first.
+
+    Ordered in SQL by the snapshot's publication time; a snapshot published in
+    the future (clock skew) or that no longer validates is left out.
+    """
+    instant = now if now is not None else datetime.now(UTC)
+    rows = await session.execute(
+        text(ISSUED_PRODUCTS_SQL), {"limit": limit, "now": instant}
+    )
+    issued: list[tuple[PublishedProduct, bool]] = []
+    for row in rows.scalars():
+        try:
+            product = PublishedProductAdapter.validate_python(row)
+            if datetime.fromisoformat(product.publishedAt) > instant:
+                continue
+        except ValidationError, ValueError:
+            logger.warning("Ignoring invalid published weather product row")
+            continue
+        issued.append((product, is_current(product, instant)))
+    return issued
+
+
 async def get_published_product(
     session: AsyncSession, product_id: UUID, *, now: datetime | None = None
 ) -> tuple[PublishedProduct, bool] | None:

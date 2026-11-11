@@ -45,6 +45,7 @@ from .schemas import (
     AviationRevisionRead,
     AviationValidationRequest,
     AviationValidationResponse,
+    IssuedProducts,
     ProductFeedError,
     ProductHistory,
     ProductHistoryEntry,
@@ -176,6 +177,110 @@ async def get_public_product(
                     "current": current,
                 }
             )
+    return JSONResponse(
+        {"error": "Product information is unavailable"},
+        status_code=503,
+        headers=NO_STORE,
+    )
+
+
+@router.get(
+    "/wxproducts/public/products/{product_id}/pdf",
+    response_class=Response,
+    status_code=status.HTTP_200_OK,
+    summary="Download a published weather product as PDF",
+    description="Anonymous PDF of the product's published revision, the same sheet GMS issued, for its permanent page and feed entry. Stays available after the product expires; withdrawn or unknown products are 404.",
+    tags=["wxproducts"],
+    responses={
+        200: {
+            "headers": {
+                "Content-Disposition": {
+                    "description": "Inline, with a human, dated file name (ASCII filename plus RFC 6266 filename*).",
+                    "schema": {"type": "string"},
+                }
+            },
+            "content": {
+                "application/pdf": {"schema": {"type": "string", "format": "binary"}}
+            },
+        },
+        404: {"model": ProductFeedError},
+        503: {"model": ProductFeedError},
+    },
+)
+async def public_product_pdf(
+    *, session: WxProductsSessionDep, product_id: UUID
+) -> Response:
+    unavailable = JSONResponse(
+        {"error": "Product information is unavailable"},
+        status_code=503,
+        headers=NO_STORE,
+    )
+    if session is None:
+        return unavailable
+    try:
+        found = await service.get_published_product(session, product_id)
+        if found is None:
+            return JSONResponse(
+                {"error": "Product not found"}, status_code=404, headers=NO_STORE
+            )
+        published, _current = found
+        source = await service.pdf_source(session, product_id, published.revision, None)
+        content = await run_in_threadpool(
+            pdf.render_product_pdf,
+            source,
+            graphic_images=await guidance.images(source.guidance),
+        )
+    except NotFoundError:
+        return JSONResponse(
+            {"error": "Product not found"}, status_code=404, headers=NO_STORE
+        )
+    except SQLAlchemyError, OSError, TimeoutError:
+        logger.warning("Weather product PDF unavailable")
+        return unavailable
+    return pdf_response(
+        content,
+        product_pdf_filename(
+            source.kind,
+            values_as_dict(source.values),
+            recorded_at=source.recorded_at,
+            revision=None,
+        ),
+        "inline",
+    )
+
+
+@router.get(
+    "/wxproducts/public/issued-products",
+    response_model=IssuedProducts,
+    status_code=status.HTTP_200_OK,
+    summary="List recently issued weather products",
+    description="Anonymous list of the most recently published products, newest first, including expired ones (`current` says which are in force), for the public archive and RSS feed. Withdrawn products are not listed.",
+    tags=["wxproducts"],
+    responses={503: {"model": ProductFeedError}},
+)
+async def list_issued_products(
+    *,
+    session: WxProductsSessionDep,
+    response: Response,
+    limit: Annotated[int, Query(ge=1, le=50)] = 20,
+) -> IssuedProducts | JSONResponse:
+    response.headers.update(NO_STORE)
+    if session is not None:
+        try:
+            issued = await service.list_issued_products(session, limit=limit)
+            return IssuedProducts(
+                products=[
+                    PublicProductDetail.model_validate(
+                        {
+                            **product.model_dump(mode="json", exclude_none=True),
+                            "current": current,
+                        }
+                    )
+                    for product, current in issued
+                ]
+            )
+        except SQLAlchemyError, OSError, TimeoutError, ValidationError:
+            logger.warning("Issued weather products unavailable")
     return JSONResponse(
         {"error": "Product information is unavailable"},
         status_code=503,

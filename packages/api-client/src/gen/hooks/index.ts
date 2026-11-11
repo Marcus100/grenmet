@@ -3524,6 +3524,11 @@ export {
   wxproductsGetPublicTropicalSystemQueryOptions,
 } from "./useWxproductsGetPublicTropicalSystem.js";
 export {
+  useWxproductsListIssuedProducts,
+  wxproductsListIssuedProductsQueryKey,
+  wxproductsListIssuedProductsQueryOptions,
+} from "./useWxproductsListIssuedProducts.js";
+export {
   useWxproductsListPublicProducts,
   wxproductsListPublicProductsQueryKey,
   wxproductsListPublicProductsQueryOptions,
@@ -3588,6 +3593,11 @@ export {
   wxproductsPublicForecastQueryKey,
   wxproductsPublicForecastQueryOptions,
 } from "./useWxproductsPublicForecast.js";
+export {
+  useWxproductsPublicProductPdf,
+  wxproductsPublicProductPdfQueryKey,
+  wxproductsPublicProductPdfQueryOptions,
+} from "./useWxproductsPublicProductPdf.js";
 export {
   useWxproductsPublicSectorOutlook,
   wxproductsPublicSectorOutlookQueryKey,
