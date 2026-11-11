@@ -33,7 +33,17 @@ const nextConfig: NextConfig = {
     },
   ],
   images: {
-    remotePatterns: [{ hostname: "images.unsplash.com" }],
+    remotePatterns: [
+      { hostname: "images.unsplash.com" },
+      // CMS media on the production and staging CMS; matches src/lib/cms-images.ts.
+      ...["cms.barrels.gd", "cms.staging.barrels.gd"].map((hostname) => ({
+        protocol: "https" as const,
+        hostname,
+        pathname: "/api/media/file/**",
+      })),
+    ],
+    // Resized copies are kept for at least a day.
+    minimumCacheTTL: 86_400,
   },
   ...(process.env.NODE_ENV === "production" && {
     outputFileTracingRoot: fileURLToPath(new URL("../../..", import.meta.url)),
