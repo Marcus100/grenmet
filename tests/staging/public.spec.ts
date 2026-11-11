@@ -58,8 +58,7 @@ test.describe("public weather site", () => {
     expect(await response.text()).toContain('<rss version="2.0"');
   });
 
-  // Unknown pages answer 200 today (soft 404, #1256); enable when fixed.
-  test.fixme("an unknown page is a real 404 page", async ({
+  test("an unknown page is a real 404 page", async ({
     page,
     stagingDomain,
   }) => {
