@@ -39,7 +39,10 @@ test("a real test or build failure is not infrastructure", () => {
 
 test("re-runs when any failed job hit an infrastructure error", () => {
   const transient = { name: "a", log: "toomanyrequests: rate limit" };
-  const gate = { name: "CI Success", log: "Process completed with exit code 1." };
+  const gate = {
+    name: "CI Success",
+    log: "Process completed with exit code 1.",
+  };
   const real = { name: "b", log: "AssertionError: expected 1 got 2" };
   assert.equal(decide({ run: run(), jobs: [transient, gate] }).rerun, true);
   assert.equal(decide({ run: run(), jobs: [transient, real] }).rerun, true);
