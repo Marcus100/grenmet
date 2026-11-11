@@ -442,8 +442,16 @@ jobs:
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
       - uses: ./.github/actions/setup-node
-      - name: Install PostgreSQL client for runtime privilege checks
-        run: sudo apt-get update && sudo apt-get install -y postgresql-client
+      - name: Ensure PostgreSQL client for runtime privilege checks
+        # GitHub's Ubuntu image ships psql; apt is a fallback only, because the
+        # runner's Ubuntu mirrors have failed DNS for whole afternoons (#1262).
+        run: |
+          if command -v psql >/dev/null; then psql --version; exit 0; fi
+          for attempt in 1 2 3; do
+            sudo apt-get update && sudo apt-get install -y postgresql-client && exit 0
+            sleep $((attempt * 20))
+          done
+          exit 1
       - name: Build API client required by CMS migration configuration
         run: pnpm --filter @barrelsgd/api-client build
       - name: Fresh, concurrent and failed migrations; catalogue preservation
