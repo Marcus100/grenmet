@@ -27,6 +27,7 @@ current behavior as correct. Track unknown requirements explicitly.
 | Shared TypeScript logic | Vitest through exported behavior; consumer tests may cover shared modules |
 | React interactions | Testing Library with user actions, accessible queries and observable results; MSW for controlled HTTP responses |
 | Next.js workflows | Playwright against a running application for authentication, server rendering and complete browser-to-API flows |
+| Codes and calculations (SYNOP, BUFR, IWXXM, METAR, humidity, pressure) | Hypothesis property tests (`apps/api/fastapi/tests/test_eregister_properties.py`): round-trips, physical bounds and an independent decoder over generated readings, derandomised in CI; keep example tests for known cases and pin every shrunk failure as one |
 | Generated API client | OpenAPI drift and serialization/error/credential-isolation tests; do not edit generated code |
 | Payload CMS | Access rules, real database editorial workflows, migrations, public content and media behavior |
 | Configuration-only packages | Consumer type checks, configuration validation and runtime image checks; no artificial unit suite required |
