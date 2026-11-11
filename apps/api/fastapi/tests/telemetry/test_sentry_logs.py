@@ -125,12 +125,13 @@ def test_logs_can_be_switched_off(monkeypatch):
 def test_a_real_warning_reaches_the_transport_scrubbed_and_info_does_not():
     """End to end through the SDK: level threshold, hook and envelope."""
     import sentry_sdk
+    from sentry_sdk.envelope import Envelope
     from sentry_sdk.transport import Transport
 
     sent: list[dict[str, object]] = []
 
     class Capture(Transport):
-        def capture_envelope(self, envelope):  # type: ignore[no-untyped-def]
+        def capture_envelope(self, envelope: Envelope) -> None:
             for item in envelope.items:
                 if item.type == "log":
                     sent.extend(item.payload.json["items"])
