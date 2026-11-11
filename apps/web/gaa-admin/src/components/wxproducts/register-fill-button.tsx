@@ -82,21 +82,21 @@ export function RegisterFillButton({
           </span>
         )}
       </div>
-      {message ? (
-        <div
-          aria-live="polite"
-          className={
-            message.tone === "error"
-              ? "text-destructive space-y-0.5 text-xs"
-              : "text-muted-foreground space-y-0.5 text-xs"
-          }
-          role={message.tone === "error" ? "alert" : "status"}
-        >
-          {message.lines.map((line) => (
-            <p key={line}>{line}</p>
-          ))}
-        </div>
-      ) : null}
+      {/* Always mounted, so the first result is announced. */}
+      <div
+        aria-live="polite"
+        className={
+          message?.tone === "error"
+            ? "text-destructive space-y-0.5 text-xs"
+            : "text-muted-foreground space-y-0.5 text-xs"
+        }
+        role="status"
+      >
+        {message?.lines.map((line, index) => (
+          // biome-ignore lint/suspicious/noArrayIndexKey: lines are plain text in a fixed order.
+          <p key={index}>{line}</p>
+        ))}
+      </div>
     </div>
   );
 }

@@ -76,6 +76,15 @@ export function registerFill({
         `The latest accepted observation is from ${grenadaTime(observation.observed_at)}, not 12:00 on this day. Type the midday temperature, or accept the 12:00 observation first.`,
       ],
     };
+  // The public route also returns readings still awaiting QC ("provisional");
+  // a public forecast quotes only an accepted observation.
+  if (observation.status !== "accepted")
+    return {
+      patch: {},
+      notes: [
+        "The 12:00 observation is not accepted yet. Accept it in the register, or type the midday temperature.",
+      ],
+    };
   const patch: ProductValues = {};
   for (const field of fields) {
     if (field.key !== "observedTemperature") continue;
