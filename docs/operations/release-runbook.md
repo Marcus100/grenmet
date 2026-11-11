@@ -15,11 +15,16 @@ authorization (see `AGENTS.md`).
 Branch flow: `task → (PR) → dev → (PR) → staging → (PR) → main → (release vX.Y.Z) → prod`.
 Integrate current `origin/dev` into the task branch and validate before opening
 the PR; if `dev` advances, integrate and revalidate. Never force-push or bypass
-hooks. Promotion is always via PR; reuse an open promotion PR. A deploy skips a migration service whose image and configuration already
-completed against the same database volume; set `FORCE_MIGRATIONS=1` on the deploy
-environment to run them anyway (#1239). Rulesets enforce
+hooks. Promotion is always via PR; reuse an open promotion PR. Rulesets enforce
 the required checks on `staging` and `main` PRs; `infra/github/rulesets.json`
 is their committed copy and `pnpm guardrails:rulesets` checks it.
+
+A deploy skips a migration service (prestart, cms-migrate) whose image and
+configuration already completed against the same database: same volume, same
+databases and the same Alembic revision (#1239). After any manual change to a
+database outside a deploy (a restore, a dropped table, a hand-run migration),
+run the next deploy with `FORCE_MIGRATIONS=1` on the environment, or delete
+`~/.local/state/grenmet-deploy/<project>/migrated` on the host.
 
 ## 1. Pre-flight on dev
 

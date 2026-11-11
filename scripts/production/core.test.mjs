@@ -107,6 +107,9 @@ case "$*" in
   "volume inspect --format {{.CreatedAt}} "*)
     [[ -z "$TEST_DB_VOLUME_CREATED" ]] || echo "$TEST_DB_VOLUME_CREATED"
     exit 0 ;;
+  *"exec -T db sh -c psql"*)
+    [[ -z "$TEST_DB_MARKER" ]] || echo "$TEST_DB_MARKER"
+    exit 0 ;;
   "inspect --format {{index .Config.Labels"*config-hash*)
     if [[ "\${args##*old-}" == "$TEST_UNCHANGED_SERVICE" ]]; then echo "hash-same \${TEST_UNCHANGED_STATE:-healthy}"; else echo "hash-old healthy"; fi
     exit 0 ;;
@@ -232,6 +235,7 @@ printf '/dev/test 50000000 1000 %s 10%% /\\n' "$free"
           TEST_UNCHANGED_SERVICE: "",
           TEST_MIGRATION_HASH: "",
           TEST_DB_VOLUME_CREATED: "",
+          TEST_DB_MARKER: "",
           DEPLOY_STATE_DIR: join(root, "deploy-state"),
           FORCE_MIGRATIONS: "",
           TEST_IMAGES_PRESENT: "",
@@ -1026,6 +1030,7 @@ test("unchanged migrations are skipped; a new image, a new database or FORCE_MIG
           DEPLOY_STATE_DIR: state,
           TEST_MIGRATION_HASH: "hash-1",
           TEST_DB_VOLUME_CREATED: "2026-10-01T00:00:00Z",
+          TEST_DB_MARKER: "16384:app|rev-1",
           ...env,
         },
       });
@@ -1041,6 +1046,9 @@ test("unchanged migrations are skipped; a new image, a new database or FORCE_MIG
     for (const changed of [
       { TEST_MIGRATION_HASH: "hash-2" },
       { TEST_DB_VOLUME_CREATED: "2026-11-11T00:00:00Z" },
+      // A backup restored in place, or a database dropped and re-created.
+      { TEST_DB_MARKER: "16384:app|rev-0" },
+      { TEST_DB_MARKER: "24576:app|rev-1" },
       { FORCE_MIGRATIONS: "1" },
     ]) {
       const run = deploy(changed);
@@ -1059,6 +1067,7 @@ test("a failed migration is never recorded as applied", () => {
       DEPLOY_STATE_DIR: state,
       TEST_MIGRATION_HASH: "hash-1",
       TEST_DB_VOLUME_CREATED: "2026-10-01T00:00:00Z",
+      TEST_DB_MARKER: "16384:app|rev-1",
     };
     const failed = runDeploy({
       environment: "staging",
@@ -1074,13 +1083,17 @@ test("a failed migration is never recorded as applied", () => {
   }
 });
 
-test("without a readable database volume, migrations always run", () => {
+test("without a readable database volume or schema marker, migrations always run", () => {
   const state = mkdtempSync(join(tmpdir(), "core-migration-state-"));
   try {
     for (let run = 0; run < 2; run += 1) {
       const { result, calls } = runDeploy({
         environment: "staging",
-        extraEnv: { DEPLOY_STATE_DIR: state, TEST_MIGRATION_HASH: "hash-1" },
+        extraEnv: {
+          DEPLOY_STATE_DIR: state,
+          TEST_MIGRATION_HASH: "hash-1",
+          TEST_DB_VOLUME_CREATED: "2026-10-01T00:00:00Z",
+        },
       });
       assert.equal(result.status, 0, result.stderr);
       assert.equal(prestartRuns(calls), 1);
