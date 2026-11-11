@@ -139,7 +139,7 @@ Owner hardening runbooks (step-by-step, with verify and undo for each step):
 
 These are not implemented as repo-level controls yet:
 
-- Centralized log storage and retention.
+- Centralized log storage and retention. API and worker warnings and errors go to Sentry Logs, scrubbed (`apps/api/fastapi/AGENTS.md`, Sentry Logs); the full container output (including Traefik access logs) still stays on each host for its Docker log rotation (3 × 10 MB per container) and is lost when a container is replaced.
 - External uptime monitoring and alert rules.
 - OpenTelemetry for the FastAPI app. The vendored CAP Composer has OTEL support, but the main FastAPI app currently uses Sentry plus request logs.
 - Verified Redis-backed rate limiting in each environment. `src/rate_limit.py` uses `REDIS_URL` (set in `docker-compose.deploy.yml`); only a deployed check is missing.

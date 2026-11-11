@@ -86,7 +86,10 @@ async def test_ready_expected_failures_are_503_and_not_reported(
     capture.assert_not_called()
     # Exact template + exception class name only: no DSN or driver message text.
     log.warning.assert_called_once_with(
-        "Readiness check failed: %s", type(error).__name__
+        "Readiness check failed: %s",
+        type(error).__name__,
+        # Sentry Logs drop text values; the error type travels as a safe field.
+        extra={"error_type": type(error).__name__},
     )
 
 

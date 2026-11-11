@@ -101,6 +101,9 @@ async def ready(session: SessionDep, response: Response) -> dict[str, str]:
         await session.execute(text("SELECT id FROM hr.department LIMIT 0"))
         return {"status": "ready"}
     except _NOT_READY_ERRORS as exc:
-        logger.warning("Readiness check failed: %s", type(exc).__name__)
+        error_type = type(exc).__name__
+        logger.warning(
+            "Readiness check failed: %s", error_type, extra={"error_type": error_type}
+        )
         response.status_code = status.HTTP_503_SERVICE_UNAVAILABLE
         return {"detail": "Database unreachable"}
