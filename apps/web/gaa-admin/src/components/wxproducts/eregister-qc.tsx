@@ -379,6 +379,30 @@ interface RowAction {
   label: string;
 }
 
+/** The actions the API's lifecycle table decides per row (`allowed_actions`, #1181). */
+const SERVER_DECIDED: ReadonlySet<QcAction> = new Set<QcAction>([
+  "accept",
+  "reject",
+  "reopen",
+]);
+export const NOT_ALLOWED_HINT =
+  "Not available for this observation now (its state, kind or a completed WIS2 send)";
+
+/**
+ * Whether the server would take this action on this row. The API's
+ * `allowed_actions` covers state, kind and sends; permissions and the
+ * four-eyes rule stay with the caller and the server. A row from an API
+ * without the field is not second-guessed.
+ */
+export function serverAllows(
+  observation: RegisterObservationRead,
+  action: QcAction
+): boolean {
+  if (!SERVER_DECIDED.has(action)) return true;
+  const allowed = observation.allowed_actions;
+  return allowed === undefined || allowed.includes(action);
+}
+
 function QueueSection({
   actions,
   empty,
@@ -438,19 +462,23 @@ function QueueSection({
                   </span>
                 ) : null}
                 <div className="flex gap-2">
-                  {actions(item, own).map((entry) => (
-                    <Button
-                      disabled={entry.disabled}
-                      key={entry.action}
-                      onClick={() => onAct(entry.action, item)}
-                      size="sm"
-                      variant={
-                        entry.action === "accept" ? "default" : "outline"
-                      }
-                    >
-                      {entry.label}
-                    </Button>
-                  ))}
+                  {actions(item, own).map((entry) => {
+                    const allowed = serverAllows(item, entry.action);
+                    return (
+                      <Button
+                        disabled={entry.disabled || !allowed}
+                        key={entry.action}
+                        onClick={() => onAct(entry.action, item)}
+                        size="sm"
+                        title={allowed ? undefined : NOT_ALLOWED_HINT}
+                        variant={
+                          entry.action === "accept" ? "default" : "outline"
+                        }
+                      >
+                        {entry.label}
+                      </Button>
+                    );
+                  })}
                 </div>
               </div>
             </li>

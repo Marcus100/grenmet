@@ -20,7 +20,14 @@ vi.mock("@barrelsgd/api-client", () => ({
   useAuthGetEffectiveAccess: () => ({ data: undefined }),
 }));
 
-import { decisionError, PAGE_SIZE, QcBadge, QcQueue } from "./eregister-qc";
+import {
+  decisionError,
+  NOT_ALLOWED_HINT,
+  PAGE_SIZE,
+  QcBadge,
+  QcQueue,
+  serverAllows,
+} from "./eregister-qc";
 
 const ME = "user-me";
 const OTHER = "user-other";
@@ -174,6 +181,43 @@ describe("QcQueue", () => {
     await waitFor(() =>
       expect(mocks.list.mock.calls.length).toBeGreaterThan(2)
     );
+  });
+
+  it("offers only what the API's allowed_actions permits (#1181)", async () => {
+    serve({
+      awaiting: [observation({ allowed_actions: ["reject"], kind: "METAR" })],
+      review: [
+        observation({
+          allowed_actions: ["correct"],
+          id: DONE,
+          state: "accepted",
+        }),
+      ],
+    });
+    render(<QcQueue onDecided={vi.fn()} userId={ME} />);
+    const accept = await screen.findByRole("button", { name: "Accept" });
+    expect((accept as HTMLButtonElement).disabled).toBe(true);
+    expect(accept.getAttribute("title")).toBe(NOT_ALLOWED_HINT);
+    expect(
+      (screen.getByRole("button", { name: "Reject" }) as HTMLButtonElement)
+        .disabled
+    ).toBe(false);
+    // Reopen is refused after a WIS2 send; review is not table-decided.
+    expect(
+      (screen.getByRole("button", { name: "Reopen" }) as HTMLButtonElement)
+        .disabled
+    ).toBe(true);
+    expect(
+      (screen.getByRole("button", { name: "Review" }) as HTMLButtonElement)
+        .disabled
+    ).toBe(false);
+  });
+
+  it("does not second-guess a row without allowed_actions", () => {
+    const row = observation({});
+    expect(serverAllows(row, "accept")).toBe(true);
+    expect(serverAllows({ ...row, allowed_actions: [] }, "accept")).toBe(false);
+    expect(serverAllows({ ...row, allowed_actions: [] }, "review")).toBe(true);
   });
 
   it("blocks reviewing your own accepted observation and allows others", async () => {
