@@ -24,7 +24,9 @@ export async function check(url, expected, fetcher = fetch) {
 export function excerpt(body, limit = 120) {
   const line = body.replace(/\s+/gu, " ").trim();
   if (!line) return "an empty body";
-  return JSON.stringify(line.length > limit ? `${line.slice(0, limit)}…` : line);
+  return JSON.stringify(
+    line.length > limit ? `${line.slice(0, limit)}…` : line
+  );
 }
 
 export async function checkCmsSignIn(domain, fetcher = fetch) {
