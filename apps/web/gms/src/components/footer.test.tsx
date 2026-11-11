@@ -32,7 +32,7 @@ describe("Footer", () => {
     ).toHaveAttribute("href", "mailto:meteorology@gaa.gd");
   });
 
-  it("names each social network, with an icon or its name", () => {
+  it("names each social network", () => {
     render(<Footer />);
     const list = screen.getByRole("list", { name: "GMS on social media" });
     const links = within(list).getAllByRole("link");
@@ -59,7 +59,7 @@ describe("Footer", () => {
     const linkedin = within(list).getByRole("link", {
       name: "GMS on LinkedIn",
     });
-    expect(linkedin.querySelector("svg path")).not.toBeNull();
+    expect(linkedin.querySelector("svg path")?.getAttribute("d")).toBeTruthy();
     // Every social button is the same round size, so they sit in one row.
     for (const link of within(list).getAllByRole("link")) {
       expect(link).toHaveClass("size-9", "rounded-full");

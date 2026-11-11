@@ -59,9 +59,10 @@ const COLUMNS = [
  * until GMS supplies its own account links. Replace each `href` here (one place)
  * when the owner sends them. Icons are simple-icons marks (CC0), drawn as
  * inline SVG from their path data. simple-icons has no LinkedIn mark, so that
- * network draws a plain "in" glyph as a path in the same round button (owner,
- * 10 Nov 2026). It is a path, not text: visible text must be part of the link's
- * accessible name (WCAG 2.5.3, axe label-content-name-mismatch), and "in" is not.
+ * network shows "in" in the same round button (owner, 10 Nov 2026), drawn as a
+ * path rather than text since 11 Nov 2026: visible text must be part of the
+ * link's accessible name (WCAG 2.5.3, axe label-content-name-mismatch), and "in"
+ * is not.
  */
 const IN_GLYPH =
   "M5 9.5h3V19H5zM6.5 4.8a1.75 1.75 0 1 1 0 3.5 1.75 1.75 0 0 1 0-3.5M10.5 9.5h2.9v1.3c.5-.9 1.6-1.6 3.1-1.6 2.6 0 3.5 1.6 3.5 4.1V19h-3v-5.1c0-1.2-.3-2-1.4-2-1.2 0-1.7.9-1.7 2V19h-3.4z";
