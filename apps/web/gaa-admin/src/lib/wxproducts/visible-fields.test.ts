@@ -37,6 +37,26 @@ describe("visibleProductFields", () => {
     expect(keys).toContain("day4Sunset");
   });
 
+  it("gives every evening outlook day the first period's Conditions and Chance of rain", () => {
+    const fields = visibleProductFields("evening");
+    const byKey = new Map(fields.map((f) => [f.key, f]));
+    for (const day of [1, 2, 3, 4]) {
+      for (const [name, label] of [
+        ["Condition", "Conditions"],
+        ["RainChance", "Chance of rain"],
+      ] as const) {
+        const field = byKey.get(`day${day}${name}`);
+        expect(field?.label).toBe(label);
+        expect(field?.section).toBe(`Day ${day}`);
+        // Optional, so issues saved before 10 Nov 2026 still open.
+        expect(field?.required).toBeFalsy();
+        expect(field?.options).toEqual(
+          byKey.get(name === "Condition" ? "condition" : "rainChance")?.options
+        );
+      }
+    }
+  });
+
   it.each(["morning", "midday"] as const)(
     "requires today's maximum on the %s form",
     (kind) => {

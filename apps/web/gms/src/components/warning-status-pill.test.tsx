@@ -102,3 +102,9 @@ it("shows the warning at once, whatever the outlook says", () => {
   render(<WarningStatusPill alerts={ACTIVE} green={UNREADABLE} />);
   expect(screen.getByRole("link", { name: ONE_ACTIVE })).toBeInTheDocument();
 });
+
+it("shows the words from a breakpoint up and keeps phones to icon and colour", () => {
+  render(<WarningStatusPill alerts={NO_WARNINGS} wordsFrom="xl" />);
+  const words = screen.getByText("No active alerts");
+  expect(words).toHaveClass("sr-only", "xl:not-sr-only");
+});

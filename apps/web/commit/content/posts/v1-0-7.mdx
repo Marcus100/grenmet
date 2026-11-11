@@ -1,0 +1,50 @@
+---
+title: A homepage that holds up in the evening, forecasts with the same fields every day, and pictures sized for the screen
+summary: Version 1.0.7 makes the GMS homepage read correctly after the evening forecast, gives every forecast day the same Conditions and Chance of rain fields, resizes and caches CMS pictures, fills empty picture areas with credited photos, and gives accepting and refusing cookies the same weight on every site.
+date: 2026-11-10
+release: 1.0.7
+draft: true
+---
+
+Version 1.0.7 is one pull request on top of v1.0.6. It has no database migration,
+and the API changes are additive, so the previous version still runs against it.
+
+### Weather service
+
+- **The evening, read correctly:** after the 18:00 forecast, today's tab says
+  "Tonight" with tonight's low instead of a dash, and the link under the current
+  temperature reads "Tonight: …, low …". Today's highest and lowest readings stay
+  beside the temperature between the main observing hours: the API carries them
+  forward from the last reading of the same Grenada day that has them.
+- **A quieter forecast row:** the chance of rain moved out of the day row and into
+  each day's details, so no word floats under one day.
+- **Alert banner on phones:** one line with the level and "View alerts". When the
+  alerts feed cannot be read, the advice to listen to local radio or call NaDMA
+  still shows on phones.
+- **Header status in words:** where the header has room, the alert status reads
+  "No active alerts" (or the level) next to its icon, so it never relies on colour
+  and an icon alone. Phones keep the icon.
+- **Pictures:** the site resizes CMS pictures to the size they are shown at and
+  keeps the copies, and the CMS now tells browsers to keep its media for a day. A
+  thumbnail that used to download a 2 MB original now downloads a small copy.
+- **No empty picture boxes:** official forecast, outlook, marine and climate cards,
+  the Plan your week card and the explainer card show a credited photo of Grenada
+  or regional weather when no desk picture is linked. A pinned desk post's picture
+  still wins.
+- **Smaller fixes:** Discover cards keep to four lines and name a fact's source
+  once; news picture credits stay on one line; Plan your week says a quiet week in
+  one sentence instead of six "None" labels; official and desk cards share one
+  border, with the navy label marking what is official; the footer's social
+  buttons are one round row.
+
+### GMS products desk
+
+- **Every day lines up:** each outlook day in the evening forecast now has the same
+  optional Conditions and Chance of rain fields as the first period. The website
+  draws each day's icon from the forecaster's Conditions choice, with rain in the
+  words or weather types taking priority, instead of guessing from the text.
+
+### Platform
+
+- **Cookie choice:** on every site that asks, "Accept cookies" and "Essential
+  cookies only" are now equal buttons, with settings as a link.

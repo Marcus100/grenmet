@@ -3,6 +3,7 @@ import { reportError } from "@/lib/report-error";
 import { PDF_PREVIEW_FALLBACK } from "@/lib/wxproducts/pdf-preview-error";
 import {
   downloadProductPdfAction,
+  FIELDS_PROBLEM,
   loadProductHistoryAction,
   loadProductsAction,
   previewProductAction,
@@ -178,12 +179,17 @@ it("keeps the generic message and reports a network failure", async () => {
   });
   expect(reportError).toHaveBeenCalledTimes(1);
 });
-it("keeps the generic message and reports an unexpected input failure", async () => {
+it("says a form problem is in the fields, not the connection, and sends nothing", async () => {
   expect(await previewProductPdfAction({ kind: "not-a-kind" })).toEqual({
     ok: false,
-    error: PDF_PREVIEW_FALLBACK,
+    error: FIELDS_PROBLEM,
   });
-  expect(reportError).toHaveBeenCalledTimes(1);
+  expect(await previewProductAction({ kind: "not-a-kind" })).toEqual({
+    ok: false,
+    error: FIELDS_PROBLEM,
+  });
+  expect(FIELDS_PROBLEM).not.toContain("connection");
+  expect(reportError).toHaveBeenCalledTimes(2);
   expect(fetcher).not.toHaveBeenCalled();
 });
 

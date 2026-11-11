@@ -39,6 +39,7 @@ import { mediaEmbed } from "@/lib/media-embed";
 import { photoCredit } from "@/lib/photo-credit";
 import { fetchPublishedProducts } from "@/lib/products";
 import { redWarningIssuedAt } from "@/lib/red-warning";
+import { STOCK_PICTURES } from "@/lib/stock-pictures";
 import { cn } from "@/lib/utils";
 
 /** The same bordered notice as "Grenada in data": one line, aligned to the heading. */
@@ -214,9 +215,11 @@ function DeskPostCard({
 }
 
 /**
- * An issued product as an official card: navy label, the product's own
- * summary, a picture below the words (the pinned desk post based on the
- * product, else "No picture yet"), issue and validity times and a link to the
+ * An issued product as an official card: the same light border as every desk
+ * card, so only the navy label marks it official (owner, 10 Nov 2026); the
+ * product's own summary, a picture below the words (the pinned desk post based
+ * on the product, else the card type's standard photo), issue and validity
+ * times and a link to the
  * issued product. Official cards carry no emoji.
  */
 const OFFICIAL_ICONS = {
@@ -230,9 +233,7 @@ function OfficialProductCard({ card }: { card: OfficialCard }) {
   const Icon = OFFICIAL_ICONS[card.kind];
   return (
     <li className={DESK_CARD_ITEM}>
-      <article
-        className={cn(HOME_CARD, "border-gm-navy flex h-full flex-col gap-3")}
-      >
+      <article className={cn(HOME_CARD, "flex h-full flex-col gap-3")}>
         <header className="flex items-center gap-3">
           <span
             aria-hidden="true"
@@ -421,12 +422,7 @@ export async function ForecastDesk() {
         <ul aria-label="Latest from the forecast desk" className={ROW}>
           {feed.missingBriefing && (
             <li className={DESK_CARD_ITEM}>
-              <article
-                className={cn(
-                  HOME_CARD,
-                  "border-gm-navy flex h-full flex-col gap-3"
-                )}
-              >
+              <article className={cn(HOME_CARD, "flex h-full flex-col gap-3")}>
                 <span className="bg-gm-navy text-gm-text-inverse text-label leading-label dark:text-gm-navy w-fit rounded-full px-2.5 py-0.5 font-bold tracking-wider uppercase">
                   Official briefing
                 </span>
@@ -540,7 +536,12 @@ export async function Stories() {
                           unoptimized={!isOptimizableImage(story.imageUrl)}
                         />
                       </span>
-                      <span className="text-caption text-gm-text-muted leading-caption">
+                      {/* One line under a small picture; the full credit is
+                          on hover and on the story page (owner, 10 Nov 2026). */}
+                      <span
+                        className="text-caption text-gm-text-muted leading-caption truncate"
+                        title={story.imageCredit ?? undefined}
+                      >
                         {story.imageCredit}
                       </span>
                     </span>
@@ -578,22 +579,36 @@ export async function Explained() {
     >
       <div className="grid gap-5 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)]">
         <Link
-          className="group rounded-gm-card bg-gm-navy text-gm-text-inverse flex flex-col justify-end gap-2 p-6"
+          className="group rounded-gm-card bg-gm-navy text-gm-text-inverse flex flex-col gap-2 overflow-hidden pb-6"
           href="/explore/explained"
         >
-          <span className="text-gm-lime text-label leading-label font-bold tracking-wider uppercase">
+          {/* A real weather photo fills the top instead of empty navy (owner, 10 Nov 2026). */}
+          <span className="relative block min-h-40 flex-1">
+            {/* Decorative inside the link: its words name it, the credit is visible. */}
+            <Image
+              alt=""
+              className="object-cover"
+              fill
+              sizes="(min-width: 1024px) 40vw, 100vw"
+              src={STOCK_PICTURES.explained.src}
+            />
+          </span>
+          <span className="text-gm-lime text-label leading-label mt-2 px-6 font-bold tracking-wider uppercase">
             Grenada weather
           </span>
-          <span className="font-gm-display text-gm-display font-bold tracking-wide text-balance uppercase">
+          <span className="font-gm-display text-gm-display px-6 font-bold tracking-wide text-balance uppercase">
             Grenada's weather and climate, explained
           </span>
-          <span className="text-body-base text-gm-text-inverse/85 leading-body-base max-w-prose">
+          <span className="text-body-base text-gm-text-inverse/85 leading-body-base max-w-prose px-6">
             Plain-language explainers from the forecast desk: trade winds,
             tropical waves, rain shadows and what a forecast really says.
           </span>
-          <span className="text-body text-gm-lime leading-body flex items-center gap-1 font-semibold group-hover:underline">
+          <span className="text-body text-gm-lime leading-body flex items-center gap-1 px-6 font-semibold group-hover:underline">
             Read the explainers
             <ArrowRightIcon aria-hidden="true" className="size-4" />
+          </span>
+          <span className="text-caption text-gm-text-inverse/70 leading-caption px-6">
+            {STOCK_PICTURES.explained.credit}
           </span>
         </Link>
         <div>

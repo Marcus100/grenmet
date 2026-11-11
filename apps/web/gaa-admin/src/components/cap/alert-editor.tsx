@@ -36,6 +36,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import type { ComponentProps } from "react";
 import { useState } from "react";
+import { errorText } from "@/components/cap/alert-workflow";
 import { AreaPicker } from "@/components/cap/area-picker";
 import {
   GmsCatalogueBoundary,
@@ -60,6 +61,7 @@ import {
   SEVERITY_ORDER,
   URGENCY_ORDER,
 } from "@/lib/cap-severity";
+import { reportError } from "@/lib/report-error";
 
 const INITIAL_FORM = {
   headline: "",
@@ -309,8 +311,14 @@ function NewAlertEditorContent({
       router.push(`/cap/admin/${saved.id}`);
       router.refresh();
     } catch (err) {
+      // Report every failure: a server or network problem shows only the
+      // fallback, so Sentry is where it becomes visible.
+      reportError(err, "cap");
       setError(
-        err instanceof Error ? err.message : "Failed to save the alert."
+        errorText(
+          err,
+          "The alert could not be saved. Try again; if it keeps failing, report it."
+        )
       );
       setSubmitting(false);
     }
