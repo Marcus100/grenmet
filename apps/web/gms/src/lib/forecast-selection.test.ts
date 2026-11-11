@@ -1,6 +1,10 @@
 import type { PublicForecast } from "@barrelsgd/api-client";
 import { describe, expect, it } from "vitest";
-import { unavailableWeather, weatherFromForecast } from "./forecast-selection";
+import {
+  conditionFor,
+  unavailableWeather,
+  weatherFromForecast,
+} from "./forecast-selection";
 
 // en-GB abbreviates September as "Sept" on current ICU; match either.
 const EVENING_TITLE = /^From the 13 Sept? evening forecast$/u;
@@ -144,5 +148,40 @@ describe("structured conditions from the forecast feed", () => {
       { icon: "wind", value: "12–23 mph", label: "Wind speed (10–20 kt)" },
       { icon: "arrow-up-to-line", value: "05:50", label: "High tide (0.6 m)" },
     ]);
+  });
+});
+
+describe("conditionFor", () => {
+  it("uses the forecaster's Conditions choice for the icon", () => {
+    expect(conditionFor("A pleasant day.", "Clear")).toBe("sunny");
+    expect(conditionFor("A pleasant day.", "Fair")).toBe("sunny");
+    expect(conditionFor("A pleasant day.", "Partly cloudy")).toBe(
+      "partly-cloudy"
+    );
+    expect(conditionFor("A pleasant day.", "Overcast")).toBe("cloudy");
+  });
+
+  it("lets rain in the weather types win over cloud cover", () => {
+    expect(conditionFor("Partly cloudy.", "Partly cloudy", "Showers")).toBe(
+      "showers"
+    );
+  });
+
+  it("keeps the forecaster's choice over the words", () => {
+    expect(conditionFor("Fair and dry, no rain expected.", "Clear")).toBe(
+      "sunny"
+    );
+    expect(conditionFor("Isolated thunder later.", "Fair")).toBe("sunny");
+  });
+
+  it("never reads no rain as rain in older issues", () => {
+    expect(conditionFor("Fair and dry, no rain expected.")).toBe("sunny");
+    expect(conditionFor("Scattered showers this afternoon.")).toBe("showers");
+  });
+
+  it("falls back to the words for issues saved without a choice", () => {
+    expect(conditionFor("Partly cloudy and breezy.")).toBe("partly-cloudy");
+    expect(conditionFor("Fair and sunny.")).toBe("sunny");
+    expect(conditionFor("Mostly cloudy.", "Unknown")).toBe("cloudy");
   });
 });

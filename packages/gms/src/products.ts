@@ -472,7 +472,20 @@ function forecastFields(kind: ProductKind): ProductField[] {
               type: "textarea",
               required: true,
             }),
+            // Same fields as the first period, so every day of every forecast
+            // lines up (owner, 10 Nov 2026). Optional: older issues still open.
+            field(section, parameterKey(prefix, "condition"), "Conditions", {
+              options: WEATHER_CONDITIONS,
+            }),
             ...weatherTypeFields(section, prefix),
+            field(
+              section,
+              parameterKey(prefix, "rainChance"),
+              "Chance of rain",
+              {
+                options: RAIN_CHANCES,
+              }
+            ),
             field(section, `${prefix}Max`, "Maximum temperature (°C)", {
               type: "number",
               required: true,

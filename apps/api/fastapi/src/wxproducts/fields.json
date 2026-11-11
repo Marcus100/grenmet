@@ -2058,6 +2058,19 @@
     },
     {
       "section": "Day 1",
+      "key": "day1Condition",
+      "label": "Conditions",
+      "options": [
+        "Clear",
+        "Fair",
+        "Partly cloudy",
+        "Cloudy",
+        "Overcast"
+      ],
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Day 1",
       "key": "day1WeatherType",
       "label": "Weather type",
       "type": "weather",
@@ -2067,6 +2080,17 @@
       "section": "Day 1",
       "key": "day1WeatherTypeText",
       "label": "Weather wording",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Day 1",
+      "key": "day1RainChance",
+      "label": "Chance of rain",
+      "options": [
+        "Low",
+        "Medium",
+        "High"
+      ],
       "requiredOnPublish": false
     },
     {
@@ -2431,6 +2455,19 @@
     },
     {
       "section": "Day 2",
+      "key": "day2Condition",
+      "label": "Conditions",
+      "options": [
+        "Clear",
+        "Fair",
+        "Partly cloudy",
+        "Cloudy",
+        "Overcast"
+      ],
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Day 2",
       "key": "day2WeatherType",
       "label": "Weather type",
       "type": "weather",
@@ -2440,6 +2477,17 @@
       "section": "Day 2",
       "key": "day2WeatherTypeText",
       "label": "Weather wording",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Day 2",
+      "key": "day2RainChance",
+      "label": "Chance of rain",
+      "options": [
+        "Low",
+        "Medium",
+        "High"
+      ],
       "requiredOnPublish": false
     },
     {
@@ -2804,6 +2852,19 @@
     },
     {
       "section": "Day 3",
+      "key": "day3Condition",
+      "label": "Conditions",
+      "options": [
+        "Clear",
+        "Fair",
+        "Partly cloudy",
+        "Cloudy",
+        "Overcast"
+      ],
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Day 3",
       "key": "day3WeatherType",
       "label": "Weather type",
       "type": "weather",
@@ -2813,6 +2874,17 @@
       "section": "Day 3",
       "key": "day3WeatherTypeText",
       "label": "Weather wording",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Day 3",
+      "key": "day3RainChance",
+      "label": "Chance of rain",
+      "options": [
+        "Low",
+        "Medium",
+        "High"
+      ],
       "requiredOnPublish": false
     },
     {
@@ -3177,6 +3249,19 @@
     },
     {
       "section": "Day 4",
+      "key": "day4Condition",
+      "label": "Conditions",
+      "options": [
+        "Clear",
+        "Fair",
+        "Partly cloudy",
+        "Cloudy",
+        "Overcast"
+      ],
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Day 4",
       "key": "day4WeatherType",
       "label": "Weather type",
       "type": "weather",
@@ -3186,6 +3271,17 @@
       "section": "Day 4",
       "key": "day4WeatherTypeText",
       "label": "Weather wording",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Day 4",
+      "key": "day4RainChance",
+      "label": "Chance of rain",
+      "options": [
+        "Low",
+        "Medium",
+        "High"
+      ],
       "requiredOnPublish": false
     },
     {
@@ -3714,8 +3810,8 @@
         "Variable"
       ],
       "required": true,
-      "requiredOnPublish": true,
-      "fillFrom": "nhc"
+      "fillFrom": "nhc",
+      "requiredOnPublish": true
     },
     {
       "section": "Wind",
@@ -3740,8 +3836,8 @@
         "NNW",
         "Variable"
       ],
-      "requiredOnPublish": false,
-      "fillFrom": "nhc"
+      "fillFrom": "nhc",
+      "requiredOnPublish": false
     },
     {
       "section": "Wind",
@@ -3749,24 +3845,24 @@
       "label": "Speed from (kt)",
       "type": "number",
       "required": true,
-      "requiredOnPublish": true,
-      "fillFrom": "nhc"
+      "fillFrom": "nhc",
+      "requiredOnPublish": true
     },
     {
       "section": "Wind",
       "key": "windSpeedMax",
       "label": "Speed to (kt)",
       "type": "number",
-      "requiredOnPublish": false,
-      "fillFrom": "nhc"
+      "fillFrom": "nhc",
+      "requiredOnPublish": false
     },
     {
       "section": "Wind",
       "key": "windGust",
       "label": "Gusts (kt)",
       "type": "number",
-      "requiredOnPublish": false,
-      "fillFrom": "nhc"
+      "fillFrom": "nhc",
+      "requiredOnPublish": false
     },
     {
       "section": "Wind",
@@ -3817,16 +3913,16 @@
       "label": "Waves from (m)",
       "type": "number",
       "required": true,
-      "requiredOnPublish": true,
-      "fillFrom": "nhc"
+      "fillFrom": "nhc",
+      "requiredOnPublish": true
     },
     {
       "section": "Seas and swell",
       "key": "waveHeightMax",
       "label": "Waves to (m)",
       "type": "number",
-      "requiredOnPublish": false,
-      "fillFrom": "nhc"
+      "fillFrom": "nhc",
+      "requiredOnPublish": false
     },
     {
       "section": "Seas and swell",
@@ -5017,8 +5113,8 @@
         "Variable"
       ],
       "required": true,
-      "requiredOnPublish": true,
-      "fillFrom": "nhc"
+      "fillFrom": "nhc",
+      "requiredOnPublish": true
     },
     {
       "section": "Wind",
@@ -5043,8 +5139,8 @@
         "NNW",
         "Variable"
       ],
-      "requiredOnPublish": false,
-      "fillFrom": "nhc"
+      "fillFrom": "nhc",
+      "requiredOnPublish": false
     },
     {
       "section": "Wind",
@@ -5052,24 +5148,24 @@
       "label": "Speed from (kt)",
       "type": "number",
       "required": true,
-      "requiredOnPublish": true,
-      "fillFrom": "nhc"
+      "fillFrom": "nhc",
+      "requiredOnPublish": true
     },
     {
       "section": "Wind",
       "key": "windSpeedMax",
       "label": "Speed to (kt)",
       "type": "number",
-      "requiredOnPublish": false,
-      "fillFrom": "nhc"
+      "fillFrom": "nhc",
+      "requiredOnPublish": false
     },
     {
       "section": "Wind",
       "key": "windGust",
       "label": "Gusts (kt)",
       "type": "number",
-      "requiredOnPublish": false,
-      "fillFrom": "nhc"
+      "fillFrom": "nhc",
+      "requiredOnPublish": false
     },
     {
       "section": "Wind",
@@ -5120,16 +5216,16 @@
       "label": "Waves from (m)",
       "type": "number",
       "required": true,
-      "requiredOnPublish": true,
-      "fillFrom": "nhc"
+      "fillFrom": "nhc",
+      "requiredOnPublish": true
     },
     {
       "section": "Marine",
       "key": "waveHeightMax",
       "label": "Waves to (m)",
       "type": "number",
-      "requiredOnPublish": false,
-      "fillFrom": "nhc"
+      "fillFrom": "nhc",
+      "requiredOnPublish": false
     },
     {
       "section": "Marine",
