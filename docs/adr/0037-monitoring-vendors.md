@@ -24,3 +24,4 @@ Sentry receives errors from FastAPI and the Next.js apps. Better Stack is the up
 - Any new monitoring vendor needs an ADR amendment before it receives data. Prefer self-hosted open-source options (free/open-source preference).
 - GlitchTip speaks the Sentry protocol, so a move is mainly a DSN change. Uptime Kuma needs its own check list to replace `betterstack.json`.
 - Hosting them on the droplets adds load and an upkeep task, and they must themselves be monitored.
+- 2026-11-11: Sentry also receives API and worker warnings and errors as Sentry Logs, under the same rules. `scrub_sentry_log` (`apps/api/fastapi/src/telemetry.py`) sends only the log template with text values replaced, redacts emails and long numbers, and keeps only internal IDs and technical fields. Raw container output (including access logs with visitor IPs) is not sent to any vendor.

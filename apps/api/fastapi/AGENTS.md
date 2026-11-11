@@ -221,6 +221,8 @@ my_domain_settings = MyDomainConfig()
 
 **Sentry** — Captures exceptions automatically via `sentry_sdk.init` in `main.py` (API) and `src/worker/main.py` (worker), with the content-minimising policy in `src/telemetry.py`. `logger.error`/`logger.exception` calls are reported too, so never swallow an unexpected exception silently: log it or re-raise. Only `area`, `digest` and `request_id` tags survive scrubbing. Controlled by `SENTRY_DSN`.
 
+**Sentry Logs** — `WARNING` and above also go to Sentry Logs (`enable_logs`, `scrub_sentry_log` in `src/telemetry.py`; off with `SENTRY_LOGS_ENABLED=false`). Only the call's template is sent: pass values as `%s` arguments, never f-strings, because text arguments become `<text>` and numbers stay; emails and long numbers are redacted even from the template. From `extra=`, only internal IDs (`user_id`, `organisation_id`, `actor_id`, `subject_id`, `target_id`, `request_id`), `area` and `error_type` survive. To see a technical value in Sentry, put it in one of those fields (`error_type` for an exception class name). The full line stays on stdout for `docker logs`.
+
 **Domain logging** — Every service file has `logger = logging.getLogger(__name__)`. Log key business events at `INFO` with structured `extra={}` dicts. Log permission denials at `WARNING`.
 
 ## JWT

@@ -120,6 +120,9 @@ select = [
     "ASYNC",  # flake8-async: blocking calls inside async def
     "S",      # flake8-bandit: common security anti-patterns
     "FAST",   # FastAPI: Annotated params, redundant response_model
+    # Logging calls pass values as arguments, never pre-formatted text: Sentry Logs
+    # sends only the template and drops text values (src/telemetry.py, ADR-0037).
+    "G001", "G002", "G003", "G004",
 ]
 ignore = [
     "E501",  # line too long, handled by the formatter
