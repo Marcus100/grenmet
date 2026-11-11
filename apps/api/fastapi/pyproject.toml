@@ -5,7 +5,7 @@ description = ""
 requires-python = ">=3.14,<3.15"
 dependencies = [
     # Upgrade the HTTP layer together; frozen lockfile records the tested pair.
-    "fastapi[standard]>=0.162.1,<0.163.0",
+    "fastapi[standard]>=0.162.2,<0.163.0",
     "starlette>=1.10.0,<1.11.0",
     "pydantic>=2.14.3,<3.0.0",
     "pydantic-settings>=2.16.1,<3.0.0",
@@ -58,7 +58,7 @@ dev = [
     "types-defusedxml>=0.7.0.20260504",
     "schemathesis>=4.33.0",
     # Property-based tests (owner approved 11 Nov 2026); already installed through Schemathesis.
-    "hypothesis>=6.169.4",
+    "hypothesis>=6.170.15",
     # Independent decoders used only to cross-check eregister.encode (SYNOP TAC, BUFR CSV).
     "pymetdecoder>=0.2.2",
     "metpy>=1.7.1",
