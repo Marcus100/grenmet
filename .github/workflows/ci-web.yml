@@ -23,8 +23,11 @@ on:
 # CALLER's name, so a ${{ github.workflow }} group makes sibling children cancel
 # each other. PR runs dedupe per PR, dev pushes per branch; deployment children stay unique.
 concurrency:
-  group: ci-web-${{ github.event.pull_request.number || (github.ref == 'refs/heads/dev' && github.ref) || github.run_id }}
-  cancel-in-progress: true
+  # Pull requests cancel their superseded runs. A dev push never cancels an earlier
+  # dev run: promotion reuses images from earlier dev commits and needs their CI
+  # Success (#1227), so each dev push gets its own group.
+  group: ci-web-${{ github.event.pull_request.number || github.run_id }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 permissions:
   contents: read

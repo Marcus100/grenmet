@@ -3,6 +3,11 @@ import { spawnSync } from "node:child_process";
 import { readFileSync } from "node:fs";
 import test from "node:test";
 
+const GHCR_BASE_IMAGE = /image: ghcr\.io\/marcus100\/base\//u;
+const DEPLOY_WORKFLOW_NAME = /deploy|promot|release|pipeline|smoke/iu;
+// A literal GitHub expression, not a JavaScript template.
+const PR_ONLY_CANCEL = `cancel-in-progress: \${{ github.event_name == 'pull_request' }}`;
+
 const readWorkflow = (name) =>
   readFileSync(
     new URL(`../../.github/workflows/${name}`, import.meta.url),
@@ -318,7 +323,7 @@ test("database services pull the public GHCR mirror and carry no Docker Hub logi
       .split("    services:\n")[1]
       ?.split("    steps:\n")[0];
     assert.ok(services, workflow);
-    assert.match(services, /image: ghcr\.io\/marcus100\/base\//u, workflow);
+    assert.match(services, GHCR_BASE_IMAGE, workflow);
     assert.ok(!services.includes("credentials:"), workflow);
     assert.doesNotMatch(services, DOCKERHUB_USERNAME, workflow);
   }
@@ -363,9 +368,10 @@ test("the restore drill runs its script from the dispatched ref, not the release
 
 test("auto re-run covers CI and image builds only, with no code from the failed run", () => {
   const source = readWorkflow("auto-rerun.yml");
-  const watched = source.split("    workflows:\n")[1]?.split("    types:")[0] ?? "";
+  const watched =
+    source.split("    workflows:\n")[1]?.split("    types:")[0] ?? "";
   assert.ok(watched.includes("- CI\n"));
-  assert.doesNotMatch(watched, /deploy|promot|release|pipeline|smoke/iu);
+  assert.doesNotMatch(watched, DEPLOY_WORKFLOW_NAME);
   assert.ok(source.includes("actions: write"));
   assert.ok(!source.includes("pull_request_target"));
   assert.ok(!source.includes("workflow_run.head_branch"));
@@ -402,4 +408,22 @@ test("daily image scan keeps the fix App token away from repository scripts", ()
     source.match(PERSIST_FALSE).length,
     source.match(CHECKOUT).length
   );
+});
+
+test("a dev push never cancels an earlier dev CI run (#1227)", () => {
+  // Promotion reuses images built on earlier dev commits and requires their CI
+  // Success; a cancelled dev run would block the staging deploy.
+  for (const name of ["ci-api.yml", "ci-web.yml"]) {
+    const source = readWorkflow(name);
+    const block = source.split("\nconcurrency:")[1]?.split("\n\n")[0] ?? "";
+    assert.ok(
+      block.includes("github.event.pull_request.number || github.run_id"),
+      `${name}: dev pushes need their own concurrency group`
+    );
+    assert.ok(
+      block.includes(PR_ONLY_CANCEL),
+      `${name}: only pull requests cancel superseded runs`
+    );
+    assert.equal(block.includes("refs/heads/dev"), false, name);
+  }
 });
