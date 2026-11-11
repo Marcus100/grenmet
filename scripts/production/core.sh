@@ -406,7 +406,22 @@ docker compose -f runtime/deploy.lock.yml -p "$COMPOSE_PROJECT" up -d --wait $da
 docker compose -f runtime/deploy.lock.yml -p "$COMPOSE_PROJECT" exec -T db bash /docker-entrypoint-initdb.d/init-databases.sh
 
 phase migrations
+# A migration service whose exact image and configuration (Compose's config hash)
+# already completed against this database volume has nothing new to apply, so it
+# is skipped (#1239). The key includes the volume's creation time: a recreated or
+# restored database always migrates again. FORCE_MIGRATIONS=1 runs every service.
+migration_state="${DEPLOY_STATE_DIR:-$HOME/.local/state/grenmet-deploy}/$COMPOSE_PROJECT/migrated"
+mkdir -p "$migration_state"
+database_volume=$(docker volume inspect --format '{{.CreatedAt}}' "${COMPOSE_PROJECT}_pgdata" 2>/dev/null) || database_volume=""
 for service in $migration_services; do
+  migration_key=""
+  service_hash=$(docker compose -f runtime/deploy.lock.yml -p "$COMPOSE_PROJECT" config --hash "$service" 2>/dev/null | awk -v s="$service" '$1 == s {print $2}') || service_hash=""
+  [[ -z "$service_hash" || -z "$database_volume" ]] || migration_key="$service_hash $database_volume"
+  if [[ "${FORCE_MIGRATIONS:-}" != 1 && -n "$migration_key" && "$(cat "$migration_state/$service" 2>/dev/null)" == "$migration_key" ]]; then
+    echo "Unchanged $service: this image and configuration already migrated this database; skipped (FORCE_MIGRATIONS=1 runs it)"
+    continue
+  fi
+  rm -f "$migration_state/$service"
   for attempt in $(seq 1 "$migration_lock_attempts"); do
     migration_log=$(mktemp)
     if docker compose -f runtime/deploy.lock.yml -p "$COMPOSE_PROJECT" run --rm --no-deps "$service" 2>&1 | tee "$migration_log"; then
@@ -425,6 +440,8 @@ for service in $migration_services; do
     echo "::warning::Migration $service hit the lock timeout (attempt $attempt of $migration_lock_attempts); retrying in ${migration_lock_pause}s. The previous release keeps serving."
     sleep "$migration_lock_pause"
   done
+  # Reached only after a successful run: every failure above exits the deploy.
+  [[ -z "$migration_key" ]] || printf '%s' "$migration_key" > "$migration_state/$service"
 done
 
 phase grants

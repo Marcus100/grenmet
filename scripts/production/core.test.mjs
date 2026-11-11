@@ -102,6 +102,10 @@ case "$*" in
   *" config --hash "*)
     service=\${args##* }
     [[ "$service" != "$TEST_UNCHANGED_SERVICE" ]] || echo "$service hash-same"
+    [[ -z "$TEST_MIGRATION_HASH" || "$service" == "$TEST_UNCHANGED_SERVICE" ]] || echo "$service $TEST_MIGRATION_HASH"
+    exit 0 ;;
+  "volume inspect --format {{.CreatedAt}} "*)
+    [[ -z "$TEST_DB_VOLUME_CREATED" ]] || echo "$TEST_DB_VOLUME_CREATED"
     exit 0 ;;
   "inspect --format {{index .Config.Labels"*config-hash*)
     if [[ "\${args##*old-}" == "$TEST_UNCHANGED_SERVICE" ]]; then echo "hash-same \${TEST_UNCHANGED_STATE:-healthy}"; else echo "hash-old healthy"; fi
@@ -226,6 +230,10 @@ printf '/dev/test 50000000 1000 %s 10%% /\\n' "$free"
           TEST_STALE_SERVICE: "",
           TEST_UNHEALTHY_SERVICE: "",
           TEST_UNCHANGED_SERVICE: "",
+          TEST_MIGRATION_HASH: "",
+          TEST_DB_VOLUME_CREATED: "",
+          DEPLOY_STATE_DIR: join(root, "deploy-state"),
+          FORCE_MIGRATIONS: "",
           TEST_IMAGES_PRESENT: "",
           TEST_BUILD_ONCE: "",
           DEPLOY_IMAGE_DIGESTS: "",
@@ -1004,4 +1012,80 @@ test("a promoted deploy with an empty digest list stops before any change", () =
   assert.match(result.stderr, EMPTY_DIGESTS);
   assert.equal(calls.includes("run --rm"), false, "no migration ran");
   assert.equal(calls.includes(" up -d"), false);
+});
+
+// #1239: a migration image and configuration that already completed against this
+// database volume has nothing new to apply.
+test("unchanged migrations are skipped; a new image, a new database or FORCE_MIGRATIONS runs them", () => {
+  const state = mkdtempSync(join(tmpdir(), "core-migration-state-"));
+  try {
+    const deploy = (env) =>
+      runDeploy({
+        environment: "staging",
+        extraEnv: {
+          DEPLOY_STATE_DIR: state,
+          TEST_MIGRATION_HASH: "hash-1",
+          TEST_DB_VOLUME_CREATED: "2026-10-01T00:00:00Z",
+          ...env,
+        },
+      });
+    const first = deploy({});
+    assert.equal(first.result.status, 0, first.result.stderr);
+    assert.equal(prestartRuns(first.calls), 1);
+
+    const again = deploy({});
+    assert.equal(again.result.status, 0, again.result.stderr);
+    assert.equal(prestartRuns(again.calls), 0);
+    assert.match(again.result.stdout, /Unchanged prestart: .*skipped/u);
+
+    for (const changed of [
+      { TEST_MIGRATION_HASH: "hash-2" },
+      { TEST_DB_VOLUME_CREATED: "2026-11-11T00:00:00Z" },
+      { FORCE_MIGRATIONS: "1" },
+    ]) {
+      const run = deploy(changed);
+      assert.equal(run.result.status, 0, run.result.stderr);
+      assert.equal(prestartRuns(run.calls), 1, JSON.stringify(changed));
+    }
+  } finally {
+    rmSync(state, { recursive: true, force: true });
+  }
+});
+
+test("a failed migration is never recorded as applied", () => {
+  const state = mkdtempSync(join(tmpdir(), "core-migration-state-"));
+  try {
+    const env = {
+      DEPLOY_STATE_DIR: state,
+      TEST_MIGRATION_HASH: "hash-1",
+      TEST_DB_VOLUME_CREATED: "2026-10-01T00:00:00Z",
+    };
+    const failed = runDeploy({
+      environment: "staging",
+      failure: "migration",
+      extraEnv: env,
+    });
+    assert.notEqual(failed.result.status, 0);
+    const retried = runDeploy({ environment: "staging", extraEnv: env });
+    assert.equal(retried.result.status, 0, retried.result.stderr);
+    assert.equal(prestartRuns(retried.calls), 1);
+  } finally {
+    rmSync(state, { recursive: true, force: true });
+  }
+});
+
+test("without a readable database volume, migrations always run", () => {
+  const state = mkdtempSync(join(tmpdir(), "core-migration-state-"));
+  try {
+    for (let run = 0; run < 2; run += 1) {
+      const { result, calls } = runDeploy({
+        environment: "staging",
+        extraEnv: { DEPLOY_STATE_DIR: state, TEST_MIGRATION_HASH: "hash-1" },
+      });
+      assert.equal(result.status, 0, result.stderr);
+      assert.equal(prestartRuns(calls), 1);
+    }
+  } finally {
+    rmSync(state, { recursive: true, force: true });
+  }
 });
