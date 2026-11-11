@@ -61,6 +61,7 @@ import {
   SEVERITY_ORDER,
   URGENCY_ORDER,
 } from "@/lib/cap-severity";
+import { reportError } from "@/lib/report-error";
 
 const INITIAL_FORM = {
   headline: "",
@@ -310,10 +311,13 @@ function NewAlertEditorContent({
       router.push(`/cap/admin/${saved.id}`);
       router.refresh();
     } catch (err) {
+      // Report every failure: a server or network problem shows only the
+      // fallback, so Sentry is where it becomes visible.
+      reportError(err, "cap");
       setError(
         errorText(
           err,
-          "The alert could not be saved. Check the fields and try again."
+          "The alert could not be saved. Try again; if it keeps failing, report it."
         )
       );
       setSubmitting(false);

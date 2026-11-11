@@ -33,6 +33,7 @@ import { useState } from "react";
 import { PageHeader } from "@/components/layout/page-header";
 import { can, canAny } from "@/lib/cap-allowed-actions";
 import { readSourceBulletinLink } from "@/lib/cap-bulletin-link";
+import { reportError } from "@/lib/report-error";
 
 /** The fixed `detail` of the documented request-validation 422. */
 const VALIDATION_FALLBACK = "Validation error";
@@ -222,6 +223,7 @@ export function AlertWorkflow({ alertId }: { alertId: string }) {
       );
       router.refresh();
     } catch (error) {
+      reportError(error, "cap");
       setMessage(errorText(error));
       setValidation(null);
       setReviewed(false);

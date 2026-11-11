@@ -12,6 +12,16 @@ import { reportError } from "@/lib/report-error";
 import { isAllClear } from "@/lib/sector-outlook";
 import { bothUnits } from "@/lib/units";
 
+/** "2026-11-10 07:00" in Grenada time, the shape products store issuedAt in. */
+const GRENADA_WALL_CLOCK = new Intl.DateTimeFormat("sv-SE", {
+  timeZone: "America/Grenada",
+  year: "numeric",
+  month: "2-digit",
+  day: "2-digit",
+  hour: "2-digit",
+  minute: "2-digit",
+});
+
 /** Placeholder for a value the source did not supply. */
 export const NOT_SUPPLIED = "Not supplied";
 
@@ -336,7 +346,10 @@ export function latestSynopsis(
     );
   return {
     id: latest.id,
-    issuedAt: v.issuedAt ?? latest.publishedAt,
+    // Products store issuedAt as Grenada wall-clock; publishedAt is UTC, so
+    // convert it before it is shown as AST (legacy issues only).
+    issuedAt:
+      v.issuedAt ?? GRENADA_WALL_CLOCK.format(new Date(latest.publishedAt)),
     kindLabel: KIND_LABELS[latest.kind] ?? "Forecast",
     paragraphs: paragraphsOf(v.summary),
     publishedAt: latest.publishedAt,

@@ -68,8 +68,10 @@ const SUMMARY_LIMIT = 140;
 
 const dayKey = (date: Date) => DAY_KEY.format(date);
 
-/** When the outlook was read, in Grenada time ("Wed 28 Oct, 11:00 AST"), so a stale feed does not read as current. */
-/** "Tue 10 Nov, 9:53 p.m. AST": the homepage writes times with a.m. and p.m. */
+/**
+ * When the outlook was read, in Grenada time ("Tue 10 Nov, 9:53 p.m. AST"), so
+ * a stale feed does not read as current; the homepage uses a.m. and p.m.
+ */
 export function formatOutlookAsOf(iso: string): string {
   const when = new Date(iso);
   return `${AS_OF_DAY.format(when)}, ${clock12(AS_OF_TIME.format(when))} AST`;
