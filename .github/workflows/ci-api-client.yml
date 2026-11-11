@@ -13,10 +13,13 @@ on:
 
 # Hardcoded per-file prefix: inside a workflow_call child, github.workflow is the
 # CALLER's name, so a ${{ github.workflow }} group makes sibling children cancel
-# each other. PR runs dedupe per PR, dev pushes per branch; deployment children stay unique.
+# each other. PR runs dedupe per PR; dev pushes and deployment children stay unique.
 concurrency:
-  group: ci-api-client-${{ github.event.pull_request.number || (github.ref == 'refs/heads/dev' && github.ref) || github.run_id }}
-  cancel-in-progress: true
+  # Pull requests cancel their superseded runs. A dev push never cancels an earlier
+  # dev run: api-client is a required check that promotion reads on earlier dev
+  # commits (#1227), so each dev push gets its own group.
+  group: ci-api-client-${{ github.event.pull_request.number || github.run_id }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
   api-client:
