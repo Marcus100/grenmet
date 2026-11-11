@@ -40,16 +40,18 @@ export function AlertsIcon({
 }
 
 /**
- * The status in words for screen readers only: the masthead shows icon and
- * colour, and the warning ribbon at the top of the page spells out active
- * alerts (owner decision, 30 Sep 2026).
+ * The status in words. Screen readers only by default; the masthead shows
+ * them from a breakpoint up (`className`), never on phones, where the warning
+ * ribbon spells out active alerts (owner decisions, 30 Sep and 10 Nov 2026).
  */
 export function AlertsSummary({
   alerts,
+  className = "sr-only",
   green,
 }: {
   alerts: AlertsResult;
+  className?: string;
   green?: GreenStatus;
 }) {
-  return <span className="sr-only">{alertsSummary(alerts, green)}</span>;
+  return <span className={className}>{alertsSummary(alerts, green)}</span>;
 }

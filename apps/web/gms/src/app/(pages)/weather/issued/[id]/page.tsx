@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { ClimateFigures } from "@/components/pages/climate-figures";
 import { ImportedWatch } from "@/components/pages/imported-watch";
 import { Provenance } from "@/components/pages/provenance";
+import { stampLabel } from "@/lib/clock";
 import { fetchPublishedProduct } from "@/lib/products";
 export const metadata = { title: "Issued product" };
 export const dynamic = "force-dynamic";
@@ -33,9 +34,9 @@ export default async function IssuedProductPage({
           latest issued products for current information.
         </p>
       )}
-      <p className="text-body-sm text-gm-text-secondary leading-body-sm font-mono">
-        Grenada Meteorological Service · Published {product.publishedAt} ·
-        Revision {product.revision}
+      <p className="text-body-sm text-gm-text-secondary leading-body-sm">
+        Grenada Meteorological Service · Published{" "}
+        {stampLabel(product.publishedAt)} · Revision {product.revision}
       </p>
       {product.current &&
         ["morning", "midday", "evening"].includes(product.kind) && (

@@ -104,6 +104,7 @@ const LAST_TAB = /Last reading/u;
 const UNITS_SWITCH = /^Units:/u;
 const LAST_OBSERVED_OTHER_DAY = /^Last observed 29 Sept?, 1:00 p\.m\. · MBIA$/u;
 const TODAY_LINK = /^Today's forecast/u;
+const TONIGHT_LINK = /^Tonight: /u;
 const terms = (region: HTMLElement) =>
   within(region)
     .getAllByRole("term")
@@ -128,6 +129,40 @@ describe("Now", () => {
     expect(
       within(card()).getByRole("link", { name: TODAY_LINK })
     ).toHaveAttribute("href", "/weather/2026/09/08");
+  });
+
+  it("links to tonight, with its low, after the evening forecast", () => {
+    const evening = { ...issued(), high: null, low: 24 };
+    render(
+      <SkyHero
+        now={at("2026-09-29T23:12:00Z")}
+        weather={weather({
+          days: [evening, ...REFERENCE_WEATHER.days.slice(1)],
+        })}
+      />
+    );
+    const link = within(card()).getByRole("link", { name: TONIGHT_LINK });
+    expect(link).toHaveAttribute("href", "/weather/2026/09/08");
+    expect(link).toHaveTextContent("low");
+    expect(link).toHaveTextContent("24°");
+    expect(link).not.toHaveTextContent("high");
+    expect(tabs()[1]).toHaveTextContent("Tonight");
+  });
+
+  it("shows tonight's low, not a dash, on the phone picture card for that tab", () => {
+    const evening = { ...issued(), high: null, low: 24 };
+    render(
+      <SkyHero
+        now={at("2026-09-29T23:12:00Z")}
+        selected="2026-09-08"
+        weather={weather({
+          days: [evening, ...REFERENCE_WEATHER.days.slice(1)],
+        })}
+      />
+    );
+    expect(card()).toHaveTextContent("Tonight");
+    expect(card()).toHaveTextContent("lowest tonight");
+    expect(card()).not.toHaveTextContent("—");
   });
 
   it("puts today's lowest and highest so far either side of the temperature", () => {
@@ -231,7 +266,8 @@ describe("Day tabs", () => {
     expect(links[0]).toHaveTextContent("Now");
     expect(links[1]).toHaveAttribute("href", "/weather/2026/09/08");
     expect(links[1]).toHaveTextContent("Tue");
-    expect(links[1]).toHaveTextContent("20% chance of rain");
+    // The chance of rain is in the day's panel, not the row (owner, 10 Nov 2026).
+    expect(links[1]).not.toHaveTextContent("chance of rain");
     expect(links[2]).toHaveAttribute("href", "/weather/2026/09/09");
   });
 

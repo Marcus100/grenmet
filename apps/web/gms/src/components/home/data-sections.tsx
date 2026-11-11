@@ -33,6 +33,7 @@ import {
   type SectorTile,
   weekSummary,
 } from "@/lib/sector-outlook";
+import { STOCK_PICTURES } from "@/lib/stock-pictures";
 import { cn } from "@/lib/utils";
 
 /*
@@ -60,6 +61,23 @@ export const SECTOR_CARD_WORDS = {
   title: "Plan your week",
   subtitle: "What it means for you",
 } as const;
+
+/**
+ * A sector tile's state for screen readers and its word under the icon. A
+ * level is written under the icon too, never colour alone. A quiet sector
+ * shows no word: the card's sentence already says so, and six "None" labels
+ * read as missing data (owner, 10 Nov 2026). An unread feed shows a dash.
+ */
+export function sectorStatus(
+  peak: Level | null | undefined,
+  read: boolean
+): { state: string; word: string } {
+  if (peak)
+    return { state: `${LEVEL_WORD[peak]} level`, word: LEVEL_WORD[peak] };
+  return read
+    ? { state: "nothing this week", word: "" }
+    : { state: "not available", word: "—" };
+}
 
 /** The full week page, linked from the card. */
 export const PLAN_YOUR_WEEK_HREF = "/plan-your-week";
@@ -174,19 +192,13 @@ export async function SectorDeskCard({
           <p className="text-body-base leading-body-base">{summary.text}</p>
         )}
         <WeekNotices {...week} />
-        {/* No product sits behind the week, so the picture area says so; it never disappears. */}
-        <CardPictureArea picture={null} />
+        {/* No product sits behind the week: a standard Grenada photo (owner, 10 Nov 2026). */}
+        <CardPictureArea picture={STOCK_PICTURES.week} />
         <ul aria-label="Sectors this week" className="grid grid-cols-6 gap-1.5">
           {SECTORS.map(({ value, label }) => {
             const { Icon } = SECTOR_TILES[value];
             const peak = tiles?.find((tile) => tile.sector === value)?.peak;
-            const state = peak
-              ? `${LEVEL_WORD[peak]} level`
-              : tiles
-                ? "nothing this week"
-                : "not available";
-            // The level is written under the icon too, never colour alone.
-            const word = peak ? LEVEL_WORD[peak] : tiles ? "None" : "—";
+            const { state, word } = sectorStatus(peak, Boolean(tiles));
             return (
               <li key={value}>
                 <Link
@@ -211,12 +223,14 @@ export async function SectorDeskCard({
                   >
                     <Icon aria-hidden="true" className="size-5" />
                   </span>
-                  <span
-                    aria-hidden="true"
-                    className="text-caption text-gm-text-secondary leading-caption"
-                  >
-                    {word}
-                  </span>
+                  {word && (
+                    <span
+                      aria-hidden="true"
+                      className="text-caption text-gm-text-secondary leading-caption"
+                    >
+                      {word}
+                    </span>
+                  )}
                 </Link>
               </li>
             );

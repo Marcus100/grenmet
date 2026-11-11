@@ -45,6 +45,22 @@ describe("WarningRibbon", () => {
     expect(screen.getByRole("link")).toHaveAttribute("href", "/alerts");
   });
 
+  it("keeps phones to one line: the message shows from small tablets up", () => {
+    render(<WarningRibbon alerts={SEVERE} />);
+    const message = screen.getByText(
+      "Official alerts are in effect for the tri-island state."
+    );
+    expect(message).toHaveClass("hidden", "sm:inline");
+    expect(screen.getByText("View alerts")).toBeVisible();
+  });
+
+  it("keeps the outage advice on phones, on its own line", () => {
+    render(<WarningRibbon alerts={{ status: "unavailable" }} />);
+    const advice = screen.getByText(NOT_ALL_CLEAR);
+    expect(advice).not.toHaveClass("hidden");
+    expect(advice).toHaveClass("basis-full", "order-last");
+  });
+
   it("never presents an outage as an all-clear", () => {
     render(<WarningRibbon alerts={{ status: "unavailable" }} />);
     expect(screen.getByText("Alerts unavailable")).toBeInTheDocument();

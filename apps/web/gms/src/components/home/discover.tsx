@@ -54,6 +54,8 @@ interface Card {
   Icon: LucideIcon;
   key: string;
   kicker: string;
+  /** Where a fact comes from, shown once under the text (owner, 10 Nov 2026). */
+  source?: string;
   title: string;
   tone: string;
 }
@@ -115,7 +117,8 @@ function cmsCards(
           key: "fact",
           kicker: "Did you know",
           title: fact.title,
-          detail: `${fact.fact} Source: ${fact.source}.`,
+          detail: fact.fact,
+          source: fact.source,
           href: fact.sourceUrl,
           Icon: LightbulbIcon,
           tone: "bg-gm-sky-mid text-gm-text-inverse",
@@ -125,7 +128,7 @@ function cmsCards(
 }
 
 const CARD =
-  "flex h-full flex-col overflow-hidden rounded-gm-card border border-gm-border bg-background";
+  "flex h-full w-full flex-col overflow-hidden rounded-gm-card border border-gm-border bg-background";
 
 function CardBody({ card }: { card: Card }) {
   const { Icon } = card;
@@ -136,16 +139,23 @@ function CardBody({ card }: { card: Card }) {
       >
         <Icon aria-hidden="true" className="size-12" strokeWidth={1.4} />
       </span>
-      <span className="flex flex-col gap-1 p-4">
+      <span className="flex flex-1 flex-col gap-1 p-4">
         <span className="text-gm-sky-ink text-label leading-label font-bold tracking-wider uppercase">
           {card.kicker}
         </span>
         <span className="text-body-base text-gm-heading leading-body-base font-bold">
           {card.title}
         </span>
-        <span className="text-body-sm text-gm-text-secondary leading-body-sm">
+        {/* Four lines at most, so the row's cards stay one size (owner, 10
+            Nov 2026); editors keep facts short, the field allows 200 characters. */}
+        <span className="text-body-sm text-gm-text-secondary leading-body-sm line-clamp-4">
           {card.detail}
         </span>
+        {card.source && (
+          <span className="text-caption text-gm-text-muted leading-caption mt-auto pt-1">
+            Source: {card.source}
+          </span>
+        )}
       </span>
     </>
   );
@@ -198,7 +208,7 @@ export async function Discover({ now = new Date() }: { now?: Date } = {}) {
     <HomeSection tone="surface" {...words}>
       <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         {cards.map((card) => (
-          <li key={card.key}>
+          <li className="flex" key={card.key}>
             <CardLink card={card} />
           </li>
         ))}

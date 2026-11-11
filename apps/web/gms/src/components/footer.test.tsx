@@ -46,14 +46,19 @@ describe("Footer", () => {
     ]);
   });
 
-  it("draws brand marks as hidden inline SVG, and keeps LinkedIn as text", () => {
+  it("draws brand marks as hidden inline SVG, and LinkedIn as a round in button", () => {
     render(<Footer />);
     const list = screen.getByRole("list", { name: "GMS on social media" });
     const linkedin = within(list).getByRole("link", {
       name: "GMS on LinkedIn",
     });
-    expect(linkedin).toHaveTextContent("LinkedIn");
+    expect(linkedin).toHaveTextContent("in");
+    expect(linkedin).not.toHaveTextContent("LinkedIn");
     expect(linkedin.querySelector("svg")).toBeNull();
+    // Every social button is the same round size, so they sit in one row.
+    for (const link of within(list).getAllByRole("link")) {
+      expect(link).toHaveClass("size-9", "rounded-full");
+    }
     const xLink = within(list).getByRole("link", { name: "GMS on X" });
     const svg = xLink.querySelector("svg");
     expect(svg).not.toBeNull();
