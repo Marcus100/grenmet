@@ -4,7 +4,7 @@ version = "0.2.0"
 description = "Current NHC products for Grenada Meteorological Service"
 requires-python = ">=3.14,<3.15"
 dependencies = [
-    "pyshp>=2.3.1",
+    "pyshp>=3.1.7",
     "pyproj>=3.7.2",
     "cfgrib>=0.9.15.1",
     "eccodes>=2.50.0",
