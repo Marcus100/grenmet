@@ -6104,6 +6104,7 @@ export type { InvoiceStatus } from "./InvoiceStatus.js";
 export { invoiceStatus } from "./InvoiceStatus.js";
 export type { InvoiceSummaryPublic } from "./InvoiceSummaryPublic.js";
 export type { InvoiceVoid } from "./InvoiceVoid.js";
+export type { IssuedProducts } from "./IssuedProducts.js";
 export type { ItemCreate } from "./ItemCreate.js";
 export type { ItemListPublic } from "./ItemListPublic.js";
 export type { ItemPublic } from "./ItemPublic.js";
@@ -9412,6 +9413,15 @@ export type {
   WxproductsGetPublicTropicalSystemStatus503,
 } from "./WxproductsGetPublicTropicalSystem.js";
 export type {
+  WxproductsListIssuedProductsOptions,
+  WxproductsListIssuedProductsQuery,
+  WxproductsListIssuedProductsResponse,
+  WxproductsListIssuedProductsResponses,
+  WxproductsListIssuedProductsStatus200,
+  WxproductsListIssuedProductsStatus422,
+  WxproductsListIssuedProductsStatus503,
+} from "./WxproductsListIssuedProducts.js";
+export type {
   WxproductsListPublicProductsOptions,
   WxproductsListPublicProductsQuery,
   WxproductsListPublicProductsResponse,
@@ -9544,6 +9554,16 @@ export type {
   WxproductsPublicForecastStatus422,
   WxproductsPublicForecastStatus503,
 } from "./WxproductsPublicForecast.js";
+export type {
+  WxproductsPublicProductPdfOptions,
+  WxproductsPublicProductPdfPath,
+  WxproductsPublicProductPdfResponse,
+  WxproductsPublicProductPdfResponses,
+  WxproductsPublicProductPdfStatus200,
+  WxproductsPublicProductPdfStatus404,
+  WxproductsPublicProductPdfStatus422,
+  WxproductsPublicProductPdfStatus503,
+} from "./WxproductsPublicProductPdf.js";
 export type {
   WxproductsPublicSectorOutlookOptions,
   WxproductsPublicSectorOutlookQuery,

@@ -6,10 +6,12 @@ vi.mock("@/lib/env", () => ({
 }));
 
 import {
+  fetchIssuedProducts,
   fetchMonthSummary,
   fetchPublicForecast,
   fetchPublishedProduct,
   fetchPublishedProducts,
+  proxyProductPdf,
 } from "@/lib/products";
 
 function publication() {
@@ -183,5 +185,65 @@ describe("month summary feed", () => {
       vi.fn().mockResolvedValue(Response.json({ summary: { month: 1 } }))
     );
     expect(await fetchMonthSummary()).toBeNull();
+  });
+});
+
+describe("issued products and their PDFs", () => {
+  const ID = "7d517fe0-a25b-4f12-a2b4-eaaed8116010";
+
+  it("reads recent issues with a limit and rejects a broken contract", async () => {
+    const fetcher = vi
+      .fn()
+      .mockResolvedValue(
+        Response.json({ products: [{ ...publication(), current: false }] })
+      );
+    vi.stubGlobal("fetch", fetcher);
+    const result = await fetchIssuedProducts(5);
+    expect(result.status).toBe("ok");
+    expect(String(fetcher.mock.calls[0]?.[0])).toBe(
+      "http://api.example.test/api/v1/wxproducts/public/issued-products?limit=5"
+    );
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue(Response.json({ products: [{ id: 1 }] }))
+    );
+    expect((await fetchIssuedProducts()).status).toBe("unavailable");
+  });
+
+  it("passes the PDF through with only its own headers", async () => {
+    const fetcher = vi.fn().mockResolvedValue(
+      new Response("%PDF-1.7", {
+        headers: {
+          "content-type": "application/pdf",
+          "content-disposition": 'inline; filename="GMS.pdf"',
+          "set-cookie": "nope=1",
+        },
+      })
+    );
+    vi.stubGlobal("fetch", fetcher);
+    const response = await proxyProductPdf(ID);
+    expect(response.status).toBe(200);
+    expect(await response.text()).toBe("%PDF-1.7");
+    expect(response.headers.get("content-type")).toBe("application/pdf");
+    expect(response.headers.get("content-disposition")).toBe(
+      'inline; filename="GMS.pdf"'
+    );
+    expect(response.headers.get("set-cookie")).toBeNull();
+    expect(response.headers.get("cache-control")).toBe("no-store");
+    expect(String(fetcher.mock.calls[0]?.[0])).toBe(
+      `http://api.example.test/api/v1/wxproducts/public/products/${ID}/pdf`
+    );
+  });
+
+  it("answers 404 for a malformed id without calling the API, and keeps upstream errors", async () => {
+    const fetcher = vi
+      .fn()
+      .mockResolvedValue(new Response("{}", { status: 404 }));
+    vi.stubGlobal("fetch", fetcher);
+    expect((await proxyProductPdf("not-a-uuid")).status).toBe(404);
+    expect(fetcher).not.toHaveBeenCalled();
+    expect((await proxyProductPdf(ID)).status).toBe(404);
+    vi.stubGlobal("fetch", vi.fn().mockRejectedValue(new Error("down")));
+    expect((await proxyProductPdf(ID)).status).toBe(503);
   });
 });

@@ -706,6 +706,7 @@ export { webhooksOutUpdateEndpoint } from "./clients/webhooksOutUpdateEndpoint.j
 export { wxproductsCreateTropicalSystem } from "./clients/wxproductsCreateTropicalSystem.js";
 export { wxproductsGetPublicProduct } from "./clients/wxproductsGetPublicProduct.js";
 export { wxproductsGetPublicTropicalSystem } from "./clients/wxproductsGetPublicTropicalSystem.js";
+export { wxproductsListIssuedProducts } from "./clients/wxproductsListIssuedProducts.js";
 export { wxproductsListPublicProducts } from "./clients/wxproductsListPublicProducts.js";
 export { wxproductsListPublicTropicalSystems } from "./clients/wxproductsListPublicTropicalSystems.js";
 export { wxproductsListTropicalSystems } from "./clients/wxproductsListTropicalSystems.js";
@@ -719,6 +720,7 @@ export { wxproductsPreviewProduct } from "./clients/wxproductsPreviewProduct.js"
 export { wxproductsPreviewProductPdf } from "./clients/wxproductsPreviewProductPdf.js";
 export { wxproductsProductRevisionPdf } from "./clients/wxproductsProductRevisionPdf.js";
 export { wxproductsPublicForecast } from "./clients/wxproductsPublicForecast.js";
+export { wxproductsPublicProductPdf } from "./clients/wxproductsPublicProductPdf.js";
 export { wxproductsPublicSectorOutlook } from "./clients/wxproductsPublicSectorOutlook.js";
 export { wxproductsSaveAviationDraft } from "./clients/wxproductsSaveAviationDraft.js";
 export { wxproductsSaveProduct } from "./clients/wxproductsSaveProduct.js";
@@ -4272,6 +4274,11 @@ export {
   wxproductsGetPublicTropicalSystemQueryOptions,
 } from "./hooks/useWxproductsGetPublicTropicalSystem.js";
 export {
+  useWxproductsListIssuedProducts,
+  wxproductsListIssuedProductsQueryKey,
+  wxproductsListIssuedProductsQueryOptions,
+} from "./hooks/useWxproductsListIssuedProducts.js";
+export {
   useWxproductsListPublicProducts,
   wxproductsListPublicProductsQueryKey,
   wxproductsListPublicProductsQueryOptions,
@@ -4336,6 +4343,11 @@ export {
   wxproductsPublicForecastQueryKey,
   wxproductsPublicForecastQueryOptions,
 } from "./hooks/useWxproductsPublicForecast.js";
+export {
+  useWxproductsPublicProductPdf,
+  wxproductsPublicProductPdfQueryKey,
+  wxproductsPublicProductPdfQueryOptions,
+} from "./hooks/useWxproductsPublicProductPdf.js";
 export {
   useWxproductsPublicSectorOutlook,
   wxproductsPublicSectorOutlookQueryKey,
@@ -10577,6 +10589,7 @@ export type { InvoiceStatus } from "./models/InvoiceStatus.js";
 export { invoiceStatus } from "./models/InvoiceStatus.js";
 export type { InvoiceSummaryPublic } from "./models/InvoiceSummaryPublic.js";
 export type { InvoiceVoid } from "./models/InvoiceVoid.js";
+export type { IssuedProducts } from "./models/IssuedProducts.js";
 export type { ItemCreate } from "./models/ItemCreate.js";
 export type { ItemListPublic } from "./models/ItemListPublic.js";
 export type { ItemPublic } from "./models/ItemPublic.js";
@@ -13885,6 +13898,15 @@ export type {
   WxproductsGetPublicTropicalSystemStatus503,
 } from "./models/WxproductsGetPublicTropicalSystem.js";
 export type {
+  WxproductsListIssuedProductsOptions,
+  WxproductsListIssuedProductsQuery,
+  WxproductsListIssuedProductsResponse,
+  WxproductsListIssuedProductsResponses,
+  WxproductsListIssuedProductsStatus200,
+  WxproductsListIssuedProductsStatus422,
+  WxproductsListIssuedProductsStatus503,
+} from "./models/WxproductsListIssuedProducts.js";
+export type {
   WxproductsListPublicProductsOptions,
   WxproductsListPublicProductsQuery,
   WxproductsListPublicProductsResponse,
@@ -14017,6 +14039,16 @@ export type {
   WxproductsPublicForecastStatus422,
   WxproductsPublicForecastStatus503,
 } from "./models/WxproductsPublicForecast.js";
+export type {
+  WxproductsPublicProductPdfOptions,
+  WxproductsPublicProductPdfPath,
+  WxproductsPublicProductPdfResponse,
+  WxproductsPublicProductPdfResponses,
+  WxproductsPublicProductPdfStatus200,
+  WxproductsPublicProductPdfStatus404,
+  WxproductsPublicProductPdfStatus422,
+  WxproductsPublicProductPdfStatus503,
+} from "./models/WxproductsPublicProductPdf.js";
 export type {
   WxproductsPublicSectorOutlookOptions,
   WxproductsPublicSectorOutlookQuery,
@@ -20385,6 +20417,7 @@ export { invoiceListPublicSchema } from "./zod/invoiceListPublicSchema.js";
 export { invoiceStatusSchema } from "./zod/invoiceStatusSchema.js";
 export { invoiceSummaryPublicSchema } from "./zod/invoiceSummaryPublicSchema.js";
 export { invoiceVoidSchema } from "./zod/invoiceVoidSchema.js";
+export { issuedProductsSchema } from "./zod/issuedProductsSchema.js";
 export { itemCreateSchema } from "./zod/itemCreateSchema.js";
 export { itemListPublicSchema } from "./zod/itemListPublicSchema.js";
 export { itemPublicSchema } from "./zod/itemPublicSchema.js";
@@ -23615,6 +23648,15 @@ export {
   wxproductsGetPublicTropicalSystemStatus503Schema,
 } from "./zod/wxproductsGetPublicTropicalSystemSchema.js";
 export {
+  wxproductsListIssuedProductsErrorSchema,
+  wxproductsListIssuedProductsQueryLimitSchema,
+  wxproductsListIssuedProductsQuerySchema,
+  wxproductsListIssuedProductsResponseSchema,
+  wxproductsListIssuedProductsStatus200Schema,
+  wxproductsListIssuedProductsStatus422Schema,
+  wxproductsListIssuedProductsStatus503Schema,
+} from "./zod/wxproductsListIssuedProductsSchema.js";
+export {
   wxproductsListPublicProductsErrorSchema,
   wxproductsListPublicProductsQueryKindSchema,
   wxproductsListPublicProductsQuerySchema,
@@ -23755,6 +23797,16 @@ export {
   wxproductsPublicForecastStatus422Schema,
   wxproductsPublicForecastStatus503Schema,
 } from "./zod/wxproductsPublicForecastSchema.js";
+export {
+  wxproductsPublicProductPdfErrorSchema,
+  wxproductsPublicProductPdfPathProductIdSchema,
+  wxproductsPublicProductPdfPathSchema,
+  wxproductsPublicProductPdfResponseSchema,
+  wxproductsPublicProductPdfStatus200Schema,
+  wxproductsPublicProductPdfStatus404Schema,
+  wxproductsPublicProductPdfStatus422Schema,
+  wxproductsPublicProductPdfStatus503Schema,
+} from "./zod/wxproductsPublicProductPdfSchema.js";
 export {
   wxproductsPublicSectorOutlookErrorSchema,
   wxproductsPublicSectorOutlookQueryDaysSchema,

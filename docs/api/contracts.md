@@ -358,6 +358,23 @@ product returns its newest revision. Withdrawn, unpublished, future-dated or
 unknown IDs return 404, a malformed ID returns 422, and unavailable storage
 returns 503. Errors use `{ "error": "..." }`, with `Cache-Control: no-store`.
 
+`GET /api/v1/wxproducts/public/products/{id}/pdf` (added 11 Nov 2026, #1197) is
+the anonymous PDF of that product's published revision: the same archival sheet
+staff download, served `inline` with a human, dated file name and `Cache-Control:
+private, no-store`. It stays available after the product expires, and the rendered sheet is reused
+(in memory, the 32 most recent) for repeat requests of the same revision. Withdrawn,
+unpublished or unknown IDs return 404 and unavailable storage 503
+(`{ "error": "..." }`). The GMS website serves it at
+`/weather/issued/{id}/pdf` (a pass-through route).
+
+`GET /api/v1/wxproducts/public/issued-products?limit=20` (added 11 Nov 2026, 1 to
+50) lists the most recently published products, newest publication first,
+current or expired, as `IssuedProducts` (`products`: the detail shape with
+`current`). Future-dated and withdrawn snapshots are excluded in SQL, so they
+never take a place in the limit. The GMS website renders it as RSS at
+`/weather/issued/feed.xml`, one item per product, linking its permanent page and
+PDF.
+
 GAA Admin's existing `/api/public/products` forwards anonymously to this FastAPI
 route using its configured `AUTH_API_URL` and `AUTH_API_V1_STR`. The GMS website's
 URL and response shape are unchanged. FastAPI needs `WXPRODUCTS_DATABASE_URL`
