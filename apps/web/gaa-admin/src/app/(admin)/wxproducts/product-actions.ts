@@ -178,9 +178,21 @@ export async function loadProductHistoryAction(id: string) {
   }
 }
 
+/**
+ * A form problem found before anything is sent, in staff words: it is never
+ * a connection problem (pre-demo review, 10 Nov 2026).
+ */
+export const FIELDS_PROBLEM =
+  "Check the product fields: one or more values are not in the expected format.";
+
 export async function previewProductAction(raw: unknown) {
+  const parsed = productPreviewInputSchema.safeParse(raw);
+  if (!parsed.success) {
+    reportError(parsed.error, "wxproducts");
+    return { ok: false as const, error: FIELDS_PROBLEM };
+  }
   try {
-    const input = productPreviewInputSchema.parse(raw);
+    const input = parsed.data;
     const session = browserSessionSchema.parse(
       await request("/_backend/browser-session")
     );
@@ -215,8 +227,13 @@ export async function previewProductPdfAction(
   raw: unknown,
   signal?: AbortSignal
 ) {
+  const parsed = productPreviewInputSchema.safeParse(raw);
+  if (!parsed.success) {
+    reportError(parsed.error, "wxproducts");
+    return { ok: false as const, error: FIELDS_PROBLEM };
+  }
   try {
-    const input = productPreviewInputSchema.parse(raw);
+    const input = parsed.data;
     const session = browserSessionSchema.parse(
       await request("/_backend/browser-session")
     );

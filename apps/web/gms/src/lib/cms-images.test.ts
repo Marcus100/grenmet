@@ -2,15 +2,18 @@ import { describe, expect, it } from "vitest";
 import { isOptimizableImage } from "./cms-images";
 
 describe("isOptimizableImage", () => {
-  it("resizes media from the production and staging CMS", () => {
+  it("resizes media from the production CMS", () => {
     expect(
       isOptimizableImage("https://cms.barrels.gd/api/media/file/coral-sm.jpg")
     ).toBe(true);
+  });
+
+  it("loads staging CMS media directly: basic auth blocks the server-side optimiser", () => {
     expect(
       isOptimizableImage(
         "https://cms.staging.barrels.gd/api/media/file/coral-sm.jpg"
       )
-    ).toBe(true);
+    ).toBe(false);
   });
 
   it("keeps local files and Unsplash", () => {

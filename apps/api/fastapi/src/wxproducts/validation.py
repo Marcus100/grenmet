@@ -382,6 +382,18 @@ RANGES = {
 }
 
 
+# Range messages name the field by its form label (pre-demo review, 10 Nov
+# 2026), so "Speed to (kt): must be between 0 and 200" reads plainly and the
+# desk's problem list links it to that field. Labels carry the stored unit,
+# the same unit the limits use.
+RANGE_LABELS = {
+    rule.key: rule.label
+    for rules in FIELDS.values()
+    for rule in rules
+    if rule.key in RANGES
+}
+
+
 def _exceeds(pair: list[float | None]) -> bool:
     """True when both ends of a from/to pair are set and from is above to."""
     low, high = pair
@@ -394,7 +406,8 @@ def parameter_errors(values: dict[str, str]) -> list[str]:
     for key, (low, high) in RANGES.items():
         value = optional_number(values, key)
         if value is not None and not low <= value <= high:
-            errors.append(f"{key}: must be between {low} and {high}")
+            label = RANGE_LABELS.get(key, key)
+            errors.append(f"{label}: must be between {low} and {high}")
     speeds = [optional_number(values, k) for k in ("windSpeedMin", "windSpeedMax")]
     if _exceeds(speeds):
         errors.append("Wind: 'speed from' exceeds 'speed to'")

@@ -1,5 +1,6 @@
 import type { SectorOutlook } from "@barrelsgd/api-client";
 import { SECTORS, type SectorKey } from "@barrelsgd/gms/sectors";
+import { clock12 } from "@/lib/clock";
 import { warningHref } from "@/lib/warning-detail";
 
 /** Impact levels, mildest first; the bar on a tile runs from green to red. */
@@ -47,11 +48,14 @@ const DAY = new Intl.DateTimeFormat("en-GB", {
   day: "numeric",
   month: "short",
 });
-const AS_OF = new Intl.DateTimeFormat("en-GB", {
+const AS_OF_DAY = new Intl.DateTimeFormat("en-GB", {
   timeZone: "America/Grenada",
   weekday: "short",
   day: "numeric",
   month: "short",
+});
+const AS_OF_TIME = new Intl.DateTimeFormat("en-GB", {
+  timeZone: "America/Grenada",
   hour: "2-digit",
   minute: "2-digit",
   hour12: false,
@@ -64,9 +68,13 @@ const SUMMARY_LIMIT = 140;
 
 const dayKey = (date: Date) => DAY_KEY.format(date);
 
-/** When the outlook was read, in Grenada time ("Wed 28 Oct, 11:00 AST"), so a stale feed does not read as current. */
+/**
+ * When the outlook was read, in Grenada time ("Tue 10 Nov, 9:53 p.m. AST"), so
+ * a stale feed does not read as current; the homepage uses a.m. and p.m.
+ */
 export function formatOutlookAsOf(iso: string): string {
-  return `${AS_OF.format(new Date(iso))} AST`;
+  const when = new Date(iso);
+  return `${AS_OF_DAY.format(when)}, ${clock12(AS_OF_TIME.format(when))} AST`;
 }
 
 /** The first sentence, clipped, so a tile stays short. */

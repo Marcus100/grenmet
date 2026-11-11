@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
   buildSectorTiles,
   firstSentence,
+  formatOutlookAsOf,
   isAllClear,
   whenLabel,
 } from "@/lib/sector-outlook";
@@ -275,5 +276,18 @@ describe("buildSectorTiles", () => {
     const [tourism] = buildSectorTiles(outlook(many), NOW, 2);
     expect(tourism?.items).toHaveLength(2);
     expect(tourism?.more).toBe(3);
+  });
+});
+
+describe("formatOutlookAsOf", () => {
+  it("writes the time with a.m. and p.m. in Grenada", () => {
+    // 01:53 UTC on 11 Nov is 9:53 p.m. on 10 Nov in Grenada (UTC-4).
+    expect(formatOutlookAsOf("2026-11-11T01:53:00Z")).toBe(
+      "Tue 10 Nov, 9:53 p.m. AST"
+    );
+    // 04:30 UTC is 12:30 a.m. in Grenada.
+    expect(formatOutlookAsOf("2026-11-11T04:30:00Z")).toBe(
+      "Wed 11 Nov, 12:30 a.m. AST"
+    );
   });
 });

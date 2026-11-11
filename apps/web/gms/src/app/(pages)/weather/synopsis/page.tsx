@@ -4,6 +4,7 @@ import { PageSection } from "@/components/pages/page-section";
 import { Prose } from "@/components/pages/prose";
 import { Provenance } from "@/components/pages/provenance";
 import { UnavailableNotice } from "@/components/pages/unavailable-notice";
+import { wallClockLabel } from "@/lib/clock";
 import { fetchPublishedProducts } from "@/lib/products";
 import { latestSynopsis } from "@/lib/weather-pages";
 
@@ -54,7 +55,7 @@ export default async function SynopsisPage() {
               >
                 {synopsis.kindLabel}
               </Link>{" "}
-              issued {synopsis.issuedAt.replace("T", " ")} (Grenada time)
+              issued {wallClockLabel(synopsis.issuedAt)} AST
             </p>
           </PageSection>
           {synopsis.watch.length > 0 && (

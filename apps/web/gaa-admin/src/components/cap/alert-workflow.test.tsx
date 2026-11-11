@@ -8,12 +8,13 @@ import {
   afterEach,
   beforeAll,
   beforeEach,
+  describe,
   expect,
   it,
   vi,
 } from "vitest";
 import { renderWithGmsCatalogue as render } from "@/test/with-gms-catalogue";
-import { AlertWorkflow } from "./alert-workflow";
+import { AlertWorkflow, errorText } from "./alert-workflow";
 
 vi.mock("next/navigation", () => ({ useRouter: () => ({ refresh: vi.fn() }) }));
 const ID = "11111111-1111-4111-8111-111111111111";
@@ -396,4 +397,39 @@ it("hides Cancel when the API does not list cancel, and keeps Mark expired", asy
   expect(
     screen.queryByRole("button", { name: "Cancel alert" })
   ).not.toBeInTheDocument();
+});
+
+describe("errorText", () => {
+  const fallback = "Could not save.";
+
+  it("never shows a raw HTTP status line", () => {
+    expect(
+      errorText(
+        new Error(
+          "POST /api/v1/cap/alerts failed with status 422 Unprocessable Content"
+        ),
+        fallback
+      )
+    ).toBe(fallback);
+  });
+
+  it("joins a FastAPI validation list instead of printing JSON", () => {
+    const error = {
+      data: {
+        detail: [
+          { loc: ["body", "info"], msg: "Expires must be after effective" },
+          { loc: ["body", "area"], msg: "Add an area description" },
+        ],
+      },
+    };
+    expect(errorText(error, fallback)).toBe(
+      "Expires must be after effective; Add an area description"
+    );
+  });
+
+  it("keeps the API's own sentence", () => {
+    expect(errorText({ data: { detail: "Permission denied" } }, fallback)).toBe(
+      "Permission denied"
+    );
+  });
 });

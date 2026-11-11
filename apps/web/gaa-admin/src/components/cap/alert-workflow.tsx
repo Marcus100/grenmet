@@ -33,6 +33,7 @@ import { useState } from "react";
 import { PageHeader } from "@/components/layout/page-header";
 import { can, canAny } from "@/lib/cap-allowed-actions";
 import { readSourceBulletinLink } from "@/lib/cap-bulletin-link";
+import { reportError } from "@/lib/report-error";
 
 /** The fixed `detail` of the documented request-validation 422. */
 const VALIDATION_FALLBACK = "Validation error";
@@ -54,7 +55,17 @@ function validationMessages(data: object): string | undefined {
   return messages.length > 0 ? messages.join("; ") : undefined;
 }
 
-function errorText(error: unknown): string {
+/** A generated-client failure line such as "POST /api/v1/cap/alerts failed with status 422". */
+const HTTP_FAILURE = /\bfailed with status \d{3}\b/u;
+
+/**
+ * What a CAP request failure says to staff: the API's own detail, or a plain
+ * sentence, never a raw HTTP status line (pre-demo review, 10 Nov 2026).
+ */
+export function errorText(
+  error: unknown,
+  fallback = "The request failed. Reload the alert before trying again."
+): string {
   if (error && typeof error === "object" && "data" in error) {
     const data = error.data;
     if (data && typeof data === "object" && "detail" in data) {
@@ -64,12 +75,12 @@ function errorText(error: unknown): string {
         }
         return data.detail;
       }
-      return JSON.stringify(data.detail);
+      return validationMessages({ errors: data.detail }) ?? fallback;
     }
   }
-  return error instanceof Error
+  return error instanceof Error && !HTTP_FAILURE.test(error.message)
     ? error.message
-    : "The request failed. Reload the alert before trying again.";
+    : fallback;
 }
 
 type WorkflowAction =
@@ -212,6 +223,7 @@ export function AlertWorkflow({ alertId }: { alertId: string }) {
       );
       router.refresh();
     } catch (error) {
+      reportError(error, "cap");
       setMessage(errorText(error));
       setValidation(null);
       setReviewed(false);

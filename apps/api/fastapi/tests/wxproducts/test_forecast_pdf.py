@@ -461,3 +461,23 @@ def test_outlook_context_lists_formation_chances():
         ("48 hours", "10%", "Low"),
         ("7 days", "40%", "Medium"),
     ]
+
+
+@pytest.mark.parametrize(
+    ("word", "definition", "printed"),
+    [
+        ("Trade winds", "Steady easterly winds.", True),
+        ("Trade winds", "", False),
+        ("", "Steady easterly winds.", False),
+    ],
+)
+def test_word_of_the_day_prints_only_with_both_parts(word, definition, printed):
+    values = validation.normalize("morning", complete("morning") | STRUCTURED) | {
+        "word": word,
+        "definition": definition,
+    }
+    context = forecast_pdf.forecast_context("morning", values, status="", revision="r1")
+    html = (
+        forecast_pdf._environment().get_template("forecast.html.j2").render(**context)
+    )
+    assert ("Word of the day" in html) is printed
