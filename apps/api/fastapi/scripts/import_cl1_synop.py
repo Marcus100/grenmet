@@ -10,9 +10,16 @@ or key the hour in the register. Saving again is safe: the same hour is updated 
 place only when it is a draft this importer made and nobody has reviewed; any other
 entry for that hour (typed by an observer, reviewed, accepted) is left alone and listed.
 
+``--historical`` saves the passing hours as ``historical`` (archive records: official as
+recorded, never sent, never waiting for acceptance) instead of drafts, with the same
+notes (file row and local time). A historical row this importer made and nobody has
+reviewed is refreshed in place on a re-run; nothing else changes. To convert drafts an
+earlier run already saved, use ``scripts/mark_imported_historical.py``.
+
     uv run --frozen --package fast-back python scripts/import_cl1_synop.py --csv october.csv
     uv run --frozen --package fast-back python scripts/import_cl1_synop.py --csv october.csv --report issues.csv
     uv run --frozen --package fast-back python scripts/import_cl1_synop.py --csv october.csv --apply --actor admin
+    uv run --frozen --package fast-back python scripts/import_cl1_synop.py --csv october.csv --apply --historical
 
 The sheet's hours are local standard time; ``--utc-offset-hours`` (default 4, Grenada)
 converts them to the UTC the register stores. The CSV holds real observations: keep it
@@ -26,23 +33,20 @@ import os
 import sys
 from collections import Counter
 from pathlib import Path
+from typing import Literal
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from fastapi import HTTPException
 from sqlalchemy import select, text
 
 from src.auth.models import User
 from src.config import settings
 from src.database import async_session_factory
-from src.eregister import cl1_import, database, entries, stations
+from src.eregister import cl1_import, database, historical, stations
 from src.eregister.config import eregister_settings
-from src.eregister.schemas import RegisterObservationCreate
-from src.exceptions import AppException
 
 PROTECTED_DATABASES = {"app", "app_prod", "app_staging", "app_test", "postgres"}
 SAMPLES = 3
-HTTP_CONFLICT = 409
 
 
 def summary(reports: list[cl1_import.HourReport]) -> None:
@@ -135,21 +139,14 @@ def refuse_unless_local_register(allow_non_local: bool) -> None:
         raise SystemExit("Refusing to save into an application database.")
 
 
-_LIVE_ROW = text(
-    "SELECT state::text AS state, body->>'notes' AS notes, review_outcome, body"
-    " FROM register_observations WHERE station_id = :station AND kind = 'SYNOP'"
-    " AND observed_at = :at AND state NOT IN ('rejected', 'superseded')"
-)
-
-
 async def save(args: argparse.Namespace, reports: list[cl1_import.HourReport]) -> None:
     refuse_unless_local_register(args.allow_non_local)
     register = database.create_session()
     if register is None:
         raise SystemExit("EREGISTER_DATABASE_URL is not set.")
-    created = updated = 0
-    skipped: list[str] = []
-    failed: list[str] = []
+    target_state: Literal["draft", "historical"] = (
+        "historical" if args.historical else "draft"
+    )
     async with async_session_factory() as app_session, register:
         connected = await register.scalar(text("SELECT current_database()"))
         expected = os.environ.get("EREGISTER_DB_NAME", "eregister")
@@ -166,49 +163,17 @@ async def save(args: argparse.Namespace, reports: list[cl1_import.HourReport]) -
             (item for r in reports if (item := r.saveable()) is not None),
             key=lambda item: item[0],
         )
-        for observed_at, workbook, row in ready:
-            when = f"{observed_at:%Y-%m-%d %H:%M} UTC (sheet row {row})"
-            live = (
-                (
-                    await register.execute(
-                        _LIVE_ROW,
-                        {"station": cl1_import.STATION_ID, "at": observed_at},
-                    )
-                )
-                .mappings()
-                .first()
-            )
-            if live is not None and not cl1_import.may_update(
-                live["state"], live["notes"], live["review_outcome"]
-            ):
-                skipped.append(f"{when}: already there as {live['state']}")
-                continue
-            data = RegisterObservationCreate(
-                station_id=cl1_import.STATION_ID,
-                kind="SYNOP",
-                observed_at=observed_at,
-                body=cl1_import.carry_over(
-                    workbook.model_dump(exclude_none=True),
-                    (live["body"] or {}) if live is not None else {},
-                ),
-            )
-            try:
-                _row, was_created = await entries.create(
-                    register=register, app_session=app_session, data=data, user=actor
-                )
-            except AppException as exc:
-                if exc.status_code == HTTP_CONFLICT:
-                    skipped.append(f"{when}: already there (another entry)")
-                else:
-                    failed.append(f"{when}: {exc.message}")
-            except HTTPException as exc:
-                failed.append(f"{when}: {exc.detail}")
-            else:
-                created, updated = (
-                    (created + 1, updated) if was_created else (created, updated + 1)
-                )
+        outcome = await historical.save_hours(
+            register=register,
+            app_session=app_session,
+            actor=actor,
+            ready=ready,
+            state=target_state,
+        )
+    created, updated = outcome.created, outcome.updated
+    skipped, failed = outcome.skipped, outcome.failed
     print(
-        f"\nSaved as drafts: {created} new, {updated} refreshed (your earlier import, "
+        f"\nSaved as {target_state}: {created} new, {updated} refreshed (your earlier import, "
         f"unreviewed), {len(skipped)} left as they are, {len(failed)} refused."
     )
     for line in skipped:
@@ -239,7 +204,8 @@ async def run(args: argparse.Namespace, rows: list[tuple[int, list[str]]]) -> No
         await save(args, reports)
     else:
         print(
-            "\nPreview only: nothing was saved. Add --apply to save the passing hours as drafts."
+            "\nPreview only: nothing was saved. Add --apply to save the passing hours "
+            f"as {'historical records' if args.historical else 'drafts'}."
         )
     await database.close_engine()
 
@@ -258,6 +224,11 @@ def main() -> None:
     )
     parser.add_argument(
         "--apply", action="store_true", help="Save the passing hours as drafts"
+    )
+    parser.add_argument(
+        "--historical",
+        action="store_true",
+        help="Save the passing hours as historical archive records, not drafts",
     )
     parser.add_argument(
         "--actor", default="admin", help="Username recorded as the one who saved them"

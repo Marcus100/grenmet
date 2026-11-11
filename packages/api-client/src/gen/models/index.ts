@@ -2774,6 +2774,16 @@ export type {
   EregisterReopenRegisterObservationStatus422,
 } from "./EregisterReopenRegisterObservation.js";
 export type {
+  EregisterReviewRegisterDayBody,
+  EregisterReviewRegisterDayOptions,
+  EregisterReviewRegisterDayResponse,
+  EregisterReviewRegisterDayResponses,
+  EregisterReviewRegisterDayStatus200,
+  EregisterReviewRegisterDayStatus401,
+  EregisterReviewRegisterDayStatus403,
+  EregisterReviewRegisterDayStatus422,
+} from "./EregisterReviewRegisterDay.js";
+export type {
   EregisterReviewRegisterObservationBody,
   EregisterReviewRegisterObservationOptions,
   EregisterReviewRegisterObservationPath,
@@ -7696,6 +7706,8 @@ export type { RequisitionStatus } from "./RequisitionStatus.js";
 export { requisitionStatus } from "./RequisitionStatus.js";
 export type { RequisitionUpdate } from "./RequisitionUpdate.js";
 export type { ReviewAssignment } from "./ReviewAssignment.js";
+export type { ReviewDayRequest } from "./ReviewDayRequest.js";
+export type { ReviewDayResult } from "./ReviewDayResult.js";
 export type { ReviewInput } from "./ReviewInput.js";
 export type { ReviewInputPropertiesDecisionEnum } from "./ReviewInputPropertiesDecisionEnum.js";
 export { reviewInputPropertiesDecisionEnum } from "./ReviewInputPropertiesDecisionEnum.js";

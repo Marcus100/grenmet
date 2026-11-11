@@ -212,6 +212,7 @@ export { eregisterPublishRegisterObservation } from "./eregisterPublishRegisterO
 export { eregisterPutStationSettings } from "./eregisterPutStationSettings.js";
 export { eregisterRejectRegisterObservation } from "./eregisterRejectRegisterObservation.js";
 export { eregisterReopenRegisterObservation } from "./eregisterReopenRegisterObservation.js";
+export { eregisterReviewRegisterDay } from "./eregisterReviewRegisterDay.js";
 export { eregisterReviewRegisterObservation } from "./eregisterReviewRegisterObservation.js";
 export { eregisterValidateSynopObservation } from "./eregisterValidateSynopObservation.js";
 export { eventsAcceptConnection } from "./eventsAcceptConnection.js";

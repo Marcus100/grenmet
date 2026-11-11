@@ -1069,6 +1069,11 @@ export {
   useEregisterReopenRegisterObservation,
 } from "./useEregisterReopenRegisterObservation.js";
 export {
+  eregisterReviewRegisterDayMutationKey,
+  eregisterReviewRegisterDayMutationOptions,
+  useEregisterReviewRegisterDay,
+} from "./useEregisterReviewRegisterDay.js";
+export {
   eregisterReviewRegisterObservationMutationKey,
   eregisterReviewRegisterObservationMutationOptions,
   useEregisterReviewRegisterObservation,

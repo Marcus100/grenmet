@@ -6,6 +6,7 @@
 export const publicObservationPropertiesStatusEnum = {
   provisional: "provisional",
   accepted: "accepted",
+  historical: "historical",
 } as const;
 
 export type PublicObservationPropertiesStatusEnum =

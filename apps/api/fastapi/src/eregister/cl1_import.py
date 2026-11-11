@@ -496,14 +496,21 @@ def check_sheet(
     return reports
 
 
-def may_update(state: str, body_notes: str | None, review_outcome: str | None) -> bool:
+def may_update(
+    state: str,
+    body_notes: str | None,
+    review_outcome: str | None,
+    *,
+    historical: bool = False,
+) -> bool:
     """Whether an hour already in the register may be refreshed from the sheet.
 
-    Only a draft the importer itself made and nobody has reviewed. Anything typed by
-    an observer, reviewed, accepted or sent is left alone and listed instead.
+    Only a draft (or, for a ``--historical`` run, a historical row) the importer
+    itself made and nobody has reviewed. Anything typed by an observer, reviewed,
+    accepted or sent is left alone and listed instead.
     """
     return (
-        state == "draft"
+        (state == "draft" or (historical and state == "historical"))
         and review_outcome is None
         and (body_notes or "").startswith(IMPORT_NOTE_PREFIX)
     )
