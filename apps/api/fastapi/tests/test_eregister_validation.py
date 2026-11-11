@@ -742,3 +742,11 @@ def test_once_per_row_keeps_first_and_distinguishes_severity() -> None:
     )
     error = SynopValidationIssue(field="b", code="z", message="Same", severity="error")
     assert rules.once_per_row([first, again, error]) == [first, error]
+
+
+def test_identical_errors_on_different_fields_are_all_kept() -> None:
+    issues = [
+        SynopValidationIssue(field=name, code="x", message="Same", severity="error")
+        for name in ("low_cloud_type", "mid_cloud_type", "high_cloud_type")
+    ]
+    assert rules.once_per_row(issues) == issues

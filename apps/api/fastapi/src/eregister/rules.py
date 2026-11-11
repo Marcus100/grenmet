@@ -840,8 +840,8 @@ def _check_section3(
 
 
 def _utc(hour: int | None) -> str:
-    """'12 UTC' for an hour, for messages."""
-    return "this hour's" if hour is None else f"{hour:02d} UTC"
+    """'12 UTC' for an hour, for messages (every caller has checked the hour)."""
+    return "this" if hour is None else f"{hour:02d} UTC"
 
 
 def _both(names: Mapping[str, str], fields: Sequence[str]) -> str:
@@ -881,8 +881,8 @@ def _check_temperature_extremes(
             "txtn_hour",
             f"The {_both(names, off_hour)} {_verb(off_hour, 'belongs', 'belong')} "
             "only in a main-hour report "
-            f"(00, 06, 12 and 18 UTC); this is the {_utc(hour)} report, so leave it "
-            "blank.",
+            f"(00, 06, 12 and 18 UTC); this is the {_utc(hour)} report, so leave "
+            f"{'it' if len(off_hour) == 1 else 'them'} blank.",
             "warning",
         )
     missing = [
@@ -1425,12 +1425,15 @@ def _check_weather_links(
 def once_per_row(
     issues: Sequence[SynopValidationIssue],
 ) -> list[SynopValidationIssue]:
-    """Drop a finding whose severity and message repeat an earlier one."""
-    seen: set[tuple[str, str]] = set()
+    """Drop a warning whose message repeats an earlier one.
+
+    Errors always stay: the same text can be a different field to fix.
+    """
+    seen: set[str] = set()
     kept: list[SynopValidationIssue] = []
     for issue in issues:
-        key = (issue.severity, issue.message)
-        if key not in seen:
+        key = issue.message
+        if issue.severity == "error" or key not in seen:
             seen.add(key)
             kept.append(issue)
     return kept
