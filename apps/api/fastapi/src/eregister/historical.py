@@ -14,7 +14,7 @@ from datetime import UTC, datetime, timedelta
 from typing import Literal
 from uuid import UUID
 
-import fastapi
+from fastapi import HTTPException
 from sqlalchemy import select, text
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -226,7 +226,7 @@ async def save_hours(
                 outcome.skipped.append(f"{when}: already there (another entry)")
             else:
                 outcome.failed.append(f"{when}: {exc.message}")
-        except fastapi.HTTPException as exc:  # the 422 of require_valid_synop
+        except HTTPException as exc:  # the 422 of require_valid_synop
             outcome.failed.append(f"{when}: {exc.detail}")
         else:
             if was_created:

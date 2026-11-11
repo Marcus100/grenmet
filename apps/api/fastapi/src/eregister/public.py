@@ -305,6 +305,8 @@ def decode(row: dict[str, Any]) -> PublicObservation:
     )
 
 
+# /public/current never shows archive data: historical rows are left out of
+# the newest reading and of the day's extremes (the month summary keeps them).
 async def latest(session: AsyncSession, now: datetime) -> PublicObservation | None:
     result = await session.execute(
         text(
@@ -313,7 +315,7 @@ async def latest(session: AsyncSession, now: datetime) -> PublicObservation | No
             FROM register_observations o
             WHERE o.kind = 'SYNOP'
               AND o.station_id = :station
-              AND o.state NOT IN ('rejected', 'superseded')
+              AND o.state NOT IN ('rejected', 'superseded', 'historical')
               AND o.observed_at <= :latest
               AND NOT EXISTS (
                 SELECT 1 FROM register_observations newer
@@ -375,7 +377,7 @@ async def _day_extremes(
             FROM register_observations o
             WHERE o.kind = 'SYNOP'
               AND o.station_id = :station
-              AND o.state NOT IN ('rejected', 'superseded')
+              AND o.state NOT IN ('rejected', 'superseded', 'historical')
               AND o.observed_at >= :start AND o.observed_at < :before
               AND NOT EXISTS (
                 SELECT 1 FROM register_observations newer

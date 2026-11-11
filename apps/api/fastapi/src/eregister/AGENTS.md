@@ -29,10 +29,11 @@
 | `accepted` | Decided | reopen | yes | yes | yes | accepted |
 | `rejected` | Refused | reopen | no | no | never | not public |
 | `superseded` | Replaced by a correction (restored if it is rejected) | none | no | no | never | not public |
-| `historical` | Imported archive record (#1260) | none | yes | yes (restore returns here) | never (`NOT_SENDABLE_STATES`, regardless of `EREGISTER_SEND_REQUIRE_ACCEPTED`) | historical |
+| `historical` | Imported archive record (#1260) | none | yes | yes (the correction is historical too) | never (`NOT_SENDABLE_STATES`, regardless of `EREGISTER_SEND_REQUIRE_ACCEPTED`) | historical |
 
 - `historical` is made only by `cl1_import` via `scripts/import_cl1_synop.py --historical` (`historical.save_hours`, same notes provenance and idempotency; only the importer's own unreviewed row is refreshed) or by `scripts/mark_imported_historical.py --month YYYY-MM [--apply]` (`historical.convert_month`: the importer's unreviewed, unsent drafts of the Grenada local month; dry run by default; audit action `mark_historical`). No API route sets it. Migration `eregister_0008` adds the enum value (PostgreSQL cannot drop one, so its downgrade is a no-op).
-- `POST /observations/review-day` (`qc.review_day`, `eregister.qc`): marks every reviewable SYNOP of one Grenada local day that is not reviewed; skips the reviewer's own and already reviewed records; counts only. Problems do not exclude a record.
+- `POST /observations/review-day` (`qc.review_day`, `eregister.qc`): marks every reviewable SYNOP of one Grenada local day that is not reviewed; skips the reviewer's own and already reviewed records; counts only. Problems do not exclude a record. It has no `seen_updated_at` version check (bulk action: a record changed after the reviewer loaded the day is still marked), and it needs `eregister.qc` while the single review also accepts observe/send holders.
+- A correction of a historical record is saved as `historical` (never sendable, never queued); `/public/current` ignores historical rows entirely.
 - `GET /observations` takes `observed_from` (inclusive) and `observed_to` (exclusive), UTC, filtered in SQL.
 - Tests: `tests/test_eregister_historical.py`, `tests/test_eregister_transitions.py`.
 

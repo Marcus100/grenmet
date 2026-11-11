@@ -302,7 +302,9 @@ async def test_each_state_and_send_gets_todays_status_and_result(
     assert response.status_code == SUCCESS_STATUS[action], response.text
     if action == "correct":
         replacement = response.json()
-        assert replacement["state"] == "draft"
+        assert replacement["state"] == (
+            "historical" if state == "historical" else "draft"
+        )
         assert replacement["supersedes_id"] == observation
     else:
         assert response.json()["id"] == observation

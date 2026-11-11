@@ -137,8 +137,9 @@ async def test_a_historical_record_can_be_reviewed_and_queried(
     assert done.json()["review_outcome"] == "query"
 
 
-async def test_correcting_supersedes_and_rejecting_the_correction_restores_it(
-    send_client: tuple[httpx.AsyncClient, User], db_async: AsyncSession
+@pytest.mark.usefixtures("incoming", "recipients")
+async def test_a_correction_of_a_historical_record_is_historical_and_never_sent(
+    send_client: tuple[httpx.AsyncClient, User],
 ) -> None:
     client, _ = send_client
     original = await save(client)
@@ -148,16 +149,20 @@ async def test_correcting_supersedes_and_rejecting_the_correction_restores_it(
         qc_url(original, "correct"), json={"body": fixed, "reason": "typo"}
     )
     assert corrected.status_code == 201, corrected.text
-    assert corrected.json()["state"] == "draft"
-    await as_staff(db_async)
-    rejected = await client.post(
-        qc_url(corrected.json()["id"], "reject"), json={"reason": "Not needed"}
-    )
-    assert rejected.status_code == 200, rejected.text
+    new = corrected.json()["id"]
+    assert corrected.json()["state"] == "historical"
+    assert corrected.json()["allowed_actions"] == ["correct"]
     listed = {
         o["id"]: o["state"] for o in (await client.get(OBS_URL)).json()["observations"]
     }
-    assert listed[original] == "historical"
+    assert listed == {original: "superseded", new: "historical"}
+    accept = await client.post(qc_url(new, "accept"))
+    assert accept.status_code == 409
+    assert accept.json()["detail"] == "Cannot accept an observation that is historical"
+    for action in ("email", "publish"):
+        sent = await client.post(f"{OBS_URL}/{new}/{action}")
+        assert sent.status_code == 409, (action, sent.text)
+        assert sent.json()["detail"] == "A historical observation cannot be sent"
 
 
 # --- list: date range and state filter ---------------------------------------------
@@ -530,8 +535,8 @@ async def test_current_conditions_prefer_the_newest_live_reading_over_history(
     await public_tests.insert(
         s, minutes_ago=60 * 24 * 40, state="historical", air_temp="21.0"
     )
-    only_history = await public.latest(s, now)
-    assert only_history is not None and only_history.status == "historical"
+    # The public current conditions never show archive data.
+    assert await public.latest(s, now) is None
     await public_tests.insert(s, minutes_ago=30, state="draft", air_temp="30.0")
     live = await public.latest(s, now)
     assert live is not None
@@ -542,7 +547,7 @@ async def test_current_conditions_prefer_the_newest_live_reading_over_history(
     assert newest.temperature_c == 31.0 and newest.status == "accepted"
 
 
-async def test_public_endpoint_exposes_the_historical_status_only(register_db):
+async def test_public_endpoint_never_shows_archive_data(register_db):
     from src.eregister.dependencies import get_public_session
 
     async def override():
@@ -554,8 +559,6 @@ async def test_public_endpoint_exposes_the_historical_status_only(register_db):
         async with httpx.AsyncClient(
             transport=httpx.ASGITransport(app=app), base_url="http://test"
         ) as client:
-            body = (await client.get(public_tests.URL)).json()["observation"]
-        assert body["status"] == "historical"
-        assert "PRIVATE" not in str(body)
+            assert (await client.get(public_tests.URL)).json() == {"observation": None}
     finally:
         app.dependency_overrides.pop(get_public_session, None)

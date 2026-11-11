@@ -388,7 +388,9 @@ async def correct(
         "observed_at": old["observed_at"],
         "actor_id": str(user.id),
         "supersedes_id": str(observation_id),
-        "state": "draft",
+        # A correction of an archive record stays an archive record: never sent,
+        # never in the acceptance queue.
+        "state": "historical" if old["state"] == "historical" else "draft",
     }
     values["body"] = derive.apply_to_body(values["body"], station)
     # The old row leaves the live set first so the unique index admits the new one.

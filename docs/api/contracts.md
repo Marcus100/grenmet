@@ -2423,14 +2423,14 @@ archive records (the hourly sheet importer with `--historical`, or the one-off
 as recorded: never sent (email and WIS2 answer `409` whatever
 `EREGISTER_SEND_REQUIRE_ACCEPTED` says), never in the acceptance queue
 (`state=draft,qc_pending`), cannot be accepted, rejected or reopened, but can be reviewed
-(`reviewed` or `query` with a note) and corrected (the original becomes `superseded`; a
-rejected correction restores `historical`). The `state` filter of the list accepts
+(`reviewed` or `query` with a note) and corrected (the original becomes `superseded`; the
+correction is saved as `historical` too). The `state` filter of the list accepts
 `historical`. `POST /api/v1/eregister/observations/review-day` (`eregister.qc`) takes
 `station_id`, `date` (a Grenada local day, `YYYY-MM-DD`), `outcome` (`reviewed` or
 `query`) and a `note` (required for a query); it marks every reviewable SYNOP of that
 day (historical, draft, qc_pending and accepted) that is not yet reviewed, skips the
 reviewer's own records and records already reviewed, audits each mark, and answers
-`{reviewed, skipped_own, skipped_already}`. Problems in a record do not exclude it.
+`{reviewed, skipped_own, skipped_already}`. Problems in a record do not exclude it. The call has no `updated_at` version check (a bulk action: records changed after the reviewer loaded the day are still marked), and it needs `eregister.qc`, while the single review also accepts `eregister.observe` and `eregister.send` holders. A correction of a historical record is saved as `historical`, so it is never sent or queued for acceptance. `GET .../public/current` ignores historical records.
 Public `PublicObservation.status` gains `historical`, and a month summary's
 `provisional` flag does not count historical records as provisional.
 
