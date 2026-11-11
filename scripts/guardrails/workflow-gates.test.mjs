@@ -413,7 +413,7 @@ test("daily image scan keeps the fix App token away from repository scripts", ()
 test("a dev push never cancels an earlier dev CI run (#1227)", () => {
   // Promotion reuses images built on earlier dev commits and requires their CI
   // Success; a cancelled dev run would block the staging deploy.
-  for (const name of ["ci-api.yml", "ci-web.yml"]) {
+  for (const name of ["ci-api.yml", "ci-web.yml", "ci-api-client.yml"]) {
     const source = readWorkflow(name);
     const block = source.split("\nconcurrency:")[1]?.split("\n\n")[0] ?? "";
     assert.ok(
