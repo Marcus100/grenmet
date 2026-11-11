@@ -224,6 +224,28 @@ describe("QcQueue", () => {
     expect(serverAllows({ ...row, allowed_actions: [] }, "review")).toBe(true);
   });
 
+  it("shows each row's IWXXM METAR check in words", async () => {
+    serve({
+      review: [
+        observation({
+          id: DONE,
+          iwxxm: {
+            version: "2025-2",
+            valid: false,
+            errors: ["missing visibility"],
+          },
+          state: "accepted",
+        } as Partial<RegisterObservationRead>),
+      ],
+    });
+    render(<QcQueue onDecided={vi.fn()} userId={ME} />);
+    expect(
+      await screen.findByText(
+        "IWXXM 2025-2 METAR not valid: missing visibility"
+      )
+    ).toBeTruthy();
+  });
+
   it("blocks reviewing your own accepted observation and allows others", async () => {
     serve({
       review: [

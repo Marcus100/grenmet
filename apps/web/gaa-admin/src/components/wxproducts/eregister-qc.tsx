@@ -24,6 +24,7 @@ import {
 import { Textarea } from "@barrelsgd/ui/components/ui/textarea";
 import { useCallback, useEffect, useState } from "react";
 import { BufrCheck } from "./eregister-bufr-override";
+import { iwxxmStatus } from "./eregister-iwxxm";
 import { isSynopRefusal } from "./eregister-refusal";
 import { SectionCard } from "./eregister-ui";
 
@@ -235,6 +236,21 @@ function DecisionDialog({
   );
 }
 
+/** The IWXXM METAR check in words; the colour only repeats what the text says. */
+function IwxxmLine({ observation }: { observation: RegisterObservationRead }) {
+  const status = iwxxmStatus(observation);
+  if (!status) return null;
+  return (
+    <p
+      className={
+        status.ok ? "text-muted-foreground text-xs" : "text-warning text-xs"
+      }
+    >
+      {status.text}
+    </p>
+  );
+}
+
 function ObservationLine({
   observation,
 }: {
@@ -266,6 +282,7 @@ function ObservationLine({
           ))}
         </ul>
       ) : null}
+      <IwxxmLine observation={observation} />
       {observation.review_outcome ? (
         <p className="text-muted-foreground text-xs">
           {observation.review_outcome === "query" ? "Query" : "Reviewed"}
