@@ -385,14 +385,17 @@ const SERVER_DECIDED: ReadonlySet<QcAction> = new Set<QcAction>([
   "reject",
   "reopen",
 ]);
-export const NOT_ALLOWED_HINT =
-  "Not available for this observation now (its state, kind or a completed WIS2 send)";
+/** Shown in the row when its state or kind rules out a button. */
+export function blockedLine(labels: string[]): string {
+  return `${labels.join(" and ")}: not available for this observation's state or kind.`;
+}
 
 /**
- * Whether the server would take this action on this row. The API's
- * `allowed_actions` covers state, kind and sends; permissions and the
- * four-eyes rule stay with the caller and the server. A row from an API
- * without the field is not second-guessed.
+ * Whether the row's state and kind allow this action. The API computes
+ * `allowed_actions` from those alone; a WIS2 file or email already queued or
+ * sent can still refuse with a 409 whose detail the dialog shows, and
+ * permissions and the four-eyes rule stay with the server. The API always
+ * sends the field; a row without it (an older API) is not second-guessed.
  */
 export function serverAllows(
   observation: RegisterObservationRead,
@@ -401,6 +404,23 @@ export function serverAllows(
   if (!SERVER_DECIDED.has(action)) return true;
   const allowed = observation.allowed_actions;
   return allowed === undefined || allowed.includes(action);
+}
+
+function blockedLabels(
+  entries: RowAction[],
+  item: RegisterObservationRead
+): string[] {
+  return entries
+    .filter((entry) => !serverAllows(item, entry.action))
+    .map((entry) => entry.label);
+}
+
+/** A visible reason, since a disabled button cannot be focused for a tooltip. */
+function BlockedNote({ labels }: { labels: string[] }) {
+  if (labels.length === 0) return null;
+  return (
+    <span className="text-muted-foreground text-xs">{blockedLine(labels)}</span>
+  );
 }
 
 function QueueSection({
@@ -462,24 +482,23 @@ function QueueSection({
                   </span>
                 ) : null}
                 <div className="flex gap-2">
-                  {actions(item, own).map((entry) => {
-                    const allowed = serverAllows(item, entry.action);
-                    return (
-                      <Button
-                        disabled={entry.disabled || !allowed}
-                        key={entry.action}
-                        onClick={() => onAct(entry.action, item)}
-                        size="sm"
-                        title={allowed ? undefined : NOT_ALLOWED_HINT}
-                        variant={
-                          entry.action === "accept" ? "default" : "outline"
-                        }
-                      >
-                        {entry.label}
-                      </Button>
-                    );
-                  })}
+                  {actions(item, own).map((entry) => (
+                    <Button
+                      disabled={
+                        entry.disabled || !serverAllows(item, entry.action)
+                      }
+                      key={entry.action}
+                      onClick={() => onAct(entry.action, item)}
+                      size="sm"
+                      variant={
+                        entry.action === "accept" ? "default" : "outline"
+                      }
+                    >
+                      {entry.label}
+                    </Button>
+                  ))}
                 </div>
+                <BlockedNote labels={blockedLabels(actions(item, own), item)} />
               </div>
             </li>
           );
