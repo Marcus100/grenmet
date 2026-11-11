@@ -1,11 +1,12 @@
 // Safe in Server and Client Components; cms.ts itself is server-only.
 
 /**
- * Media files on the production and staging CMS. Keep in step with
- * `images.remotePatterns` in next.config.ts.
+ * Media files on the production CMS. Keep in step with
+ * `images.remotePatterns` in next.config.ts. The staging CMS is behind basic
+ * auth, which the server-side optimiser cannot pass, so staging media loads
+ * directly in the browser.
  */
-const CMS_MEDIA =
-  /^https:\/\/cms\.(?:staging\.)?barrels\.gd\/api\/media\/file\//u;
+const CMS_MEDIA = /^https:\/\/cms\.barrels\.gd\/api\/media\/file\//u;
 
 /**
  * Next resizes and caches images only from hosts listed in next.config. CMS

@@ -35,12 +35,14 @@ const nextConfig: NextConfig = {
   images: {
     remotePatterns: [
       { hostname: "images.unsplash.com" },
-      // CMS media on the production and staging CMS; matches src/lib/cms-images.ts.
-      ...["cms.barrels.gd", "cms.staging.barrels.gd"].map((hostname) => ({
-        protocol: "https" as const,
-        hostname,
+      // Production CMS media; matches src/lib/cms-images.ts. The staging CMS
+      // sits behind basic auth, so the server-side optimiser would get a 401
+      // there; staging pictures load directly.
+      {
+        protocol: "https",
+        hostname: "cms.barrels.gd",
         pathname: "/api/media/file/**",
-      })),
+      },
     ],
     // Resized copies are kept for at least a day.
     minimumCacheTTL: 86_400,
