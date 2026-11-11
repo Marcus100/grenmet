@@ -1,5 +1,5 @@
 version = 1
-revision = 5
+revision = 3
 requires-python = "==3.14.*"
 resolution-markers = [
     "platform_machine == 'ARM64' and sys_platform == 'win32'",
@@ -1424,6 +1424,7 @@ dependencies = [
 dev = [
     { name = "coverage" },
     { name = "fakeredis" },
+    { name = "hypothesis" },
     { name = "metpy" },
     { name = "mypy" },
     { name = "pre-commit" },
@@ -1482,6 +1483,7 @@ requires-dist = [
 dev = [
     { name = "coverage", specifier = ">=7.4.3" },
     { name = "fakeredis", specifier = ">=2.37.0" },
+    { name = "hypothesis", specifier = ">=6.169.4" },
     { name = "metpy", specifier = ">=1.7.1" },
     { name = "mypy", specifier = ">=1.8.0" },
     { name = "pre-commit", specifier = ">=3.6.2" },
