@@ -6,6 +6,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import {
   check,
+  excerpt,
   checkCmsSignIn,
   checkDeployment,
   validPage,
@@ -313,4 +314,15 @@ test("a single cold-start failure per check is retried, a second one is still lo
     ),
     functionalFailure
   );
+});
+
+test("a failed check says what came back, so a proxy 503 reads differently from the app's", async () => {
+  await assert.rejects(
+    check("https://api.example.test/api/v1/utils/ready/", '"ready"', () =>
+      Promise.resolve(new Response("no available server", { status: 503 }))
+    ),
+    /HTTP 503; expected "ready"; got "no available server"\)/u
+  );
+  assert.equal(excerpt("  \n "), "an empty body");
+  assert.equal(excerpt(`a\n${"b".repeat(200)}`).length, 123);
 });

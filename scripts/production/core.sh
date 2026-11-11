@@ -97,6 +97,13 @@ diagnose() {
       echo "::endgroup::"
     fi
   done
+  # Host pressure at the moment of failure: slow probes after a deploy are the
+  # usual cause of a proxy 503 while every container still reports healthy.
+  # Last and time-boxed, so a slow `docker stats` never hides the report above.
+  echo "Host load and memory:"
+  uptime
+  free -m
+  timeout 8 docker stats --no-stream --format 'table {{.Name}}\t{{.CPUPerc}}\t{{.MemUsage}}' 2>/dev/null || echo "(docker stats did not answer within 8 s)"
 }
 
 finish() {
@@ -278,6 +285,10 @@ phase auth
 printf '%s' "$GHCR_TOKEN" | docker login ghcr.io -u "$GITHUB_ACTOR" --password-stdin
 
 phase disk
+# Versions and memory before the release starts, for comparison with a failure
+# snapshot (diagnose) and to confirm healthcheck start_interval support (Engine 25+, #1140).
+echo "Docker Engine $(docker version --format '{{.Server.Version}}' 2>/dev/null || echo unknown), $(docker compose version --short 2>/dev/null | sed 's/^/Compose /')"
+free -m | awk 'NR <= 3'
 # The runner writes logs and step summaries under its temp directory; a full disk
 # there fails the job without a useful error (staging, 2026-10-07).
 require_free_space "${RUNNER_TEMP:-${TMPDIR:-/tmp}}" "${RUNNER_MIN_FREE_GB:-2}" "for the runner"
