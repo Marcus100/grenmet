@@ -4,6 +4,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const mocks = vi.hoisted(() => ({
   list: vi.fn(),
+  push: vi.fn(),
   replace: vi.fn(),
   reviewDay: vi.fn(),
 }));
@@ -14,7 +15,7 @@ vi.mock("@barrelsgd/api-client", () => ({
 }));
 
 vi.mock("next/navigation", () => ({
-  useRouter: () => ({ replace: mocks.replace }),
+  useRouter: () => ({ push: mocks.push, replace: mocks.replace }),
 }));
 
 import { IMPORT_NOTE_PREFIX, NO_FILTERS } from "./eregister-month";
@@ -53,6 +54,7 @@ describe("MonthWorkbook", () => {
   beforeEach(() => {
     mocks.list.mockReset();
     mocks.replace.mockReset();
+    mocks.push.mockReset();
     mocks.reviewDay.mockReset();
   });
 
@@ -107,8 +109,8 @@ describe("MonthWorkbook", () => {
     await screen.findByText("Historical");
 
     fireEvent.click(screen.getByRole("button", { name: DAY_14 }));
-    expect(mocks.replace).toHaveBeenLastCalledWith(
-      "?month=2026-10&day=2026-10-14",
+    expect(mocks.push).toHaveBeenLastCalledWith(
+      "/wxproducts/hourly/month?month=2026-10&day=2026-10-14",
       { scroll: false }
     );
 
@@ -116,7 +118,7 @@ describe("MonthWorkbook", () => {
       target: { value: "historical" },
     });
     expect(mocks.replace).toHaveBeenLastCalledWith(
-      "?month=2026-10&state=historical",
+      "/wxproducts/hourly/month?month=2026-10&state=historical",
       { scroll: false }
     );
   });

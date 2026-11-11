@@ -20,12 +20,7 @@ export default async function MonthWorkbookPage({
   const { month, day, filters } = parseWorkbookSearch(await searchParams);
   return (
     <WideContent className="space-y-5">
-      <MonthWorkbook
-        day={day}
-        filters={filters}
-        key={`${month}|${filters.search}`}
-        month={month}
-      />
+      <MonthWorkbook day={day} filters={filters} month={month} />
     </WideContent>
   );
 }

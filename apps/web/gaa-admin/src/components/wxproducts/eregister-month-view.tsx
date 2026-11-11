@@ -16,13 +16,16 @@ import {
 import { Textarea } from "@barrelsgd/ui/components/ui/textarea";
 import { cn } from "@barrelsgd/ui/lib/utils";
 import { ChevronLeft, ChevronRight, Download } from "lucide-react";
+import type { Route } from "next";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useMemo, useState } from "react";
+import { memo, useEffect, useMemo, useState } from "react";
 import { PageHeader } from "@/components/layout/page-header";
 import {
   cellText,
   columnTitle,
+  dayStatus,
+  emptyHourText,
   type Filters,
   type HourRow,
   isDay,
@@ -47,8 +50,10 @@ import {
 
 const STATION_ID = "78958";
 const PAGE_SIZE = 500;
-/** A month is at most 744 hours; corrections keep their old rows. Stop well past that. */
+/** A month is at most 744 hours plus rejected re-keys. Stop well past that. */
 const MAX_PAGES = 6;
+/** Superseded rows never fill an hour, so they are not fetched. */
+const FETCHED_STATES = "draft,qc_pending,accepted,historical,rejected";
 
 type LoadState = "loading" | "ready" | "forbidden" | "unavailable";
 
@@ -58,10 +63,17 @@ export interface MonthViewProps {
   month: string;
 }
 
+interface Loaded {
+  /** False when the page cap was reached before the total. */
+  complete: boolean;
+  rows: Observation[];
+}
+
 /** Every SYNOP row of the month, all pages. */
-async function loadMonth(month: string): Promise<Observation[] | LoadState> {
+async function loadMonth(month: string): Promise<Loaded | LoadState> {
   const { from, to } = monthRange(month);
   const rows: Observation[] = [];
+  let total = 0;
   for (let page = 0; page < MAX_PAGES; page += 1) {
     const result = await eregisterListRegisterObservations({
       query: {
@@ -70,6 +82,7 @@ async function loadMonth(month: string): Promise<Observation[] | LoadState> {
         observed_from: from,
         observed_to: to,
         offset: page * PAGE_SIZE,
+        state: FETCHED_STATES,
         station_id: STATION_ID,
       },
       throwOnError: false,
@@ -77,25 +90,12 @@ async function loadMonth(month: string): Promise<Observation[] | LoadState> {
     if (result.response?.status === 403) return "forbidden";
     if (result.error || !result.data) return "unavailable";
     rows.push(...result.data.observations);
-    const total = result.data.total ?? rows.length;
+    total = result.data.total ?? rows.length;
     if (rows.length >= total || result.data.observations.length < PAGE_SIZE) {
-      break;
+      return { complete: true, rows };
     }
   }
-  return rows;
-}
-
-function applyLoad(
-  result: Observation[] | LoadState,
-  setObservations: (rows: Observation[]) => void,
-  setState: (state: LoadState) => void
-) {
-  if (typeof result === "string") {
-    setState(result);
-    return;
-  }
-  setObservations(result);
-  setState("ready");
+  return { complete: rows.length >= total, rows };
 }
 
 function monthLabel(month: string): string {
@@ -126,13 +126,18 @@ function queryString(month: string, day: string | undefined, filters: Filters) {
 }
 
 function downloadCsv(name: string, text: string) {
-  const url = URL.createObjectURL(new Blob([text], { type: "text/csv" }));
+  const url = URL.createObjectURL(
+    new Blob([text], { type: "text/csv;charset=utf-8" })
+  );
   const link = document.createElement("a");
   link.href = url;
   link.download = name;
   link.click();
-  URL.revokeObjectURL(url);
+  // Revoking at once can cancel the download in some browsers.
+  setTimeout(() => URL.revokeObjectURL(url), REVOKE_DELAY_MS);
 }
+
+const REVOKE_DELAY_MS = 10_000;
 
 const STATE_BADGE: Record<
   Observation["state"],
@@ -185,21 +190,26 @@ function Cell({
   );
 }
 
-function HourLine({ row, showDate }: { row: HourRow; showDate: boolean }) {
+/** Rows are stable objects from useMemo, so unchanged rows skip re-rendering. */
+const HourLine = memo(function HourLine({
+  row,
+  showDate,
+}: {
+  row: HourRow;
+  showDate: boolean;
+}) {
   const { observation } = row;
   const leading = (
-    <>
-      <th
-        className="bg-card border-border sticky left-0 z-10 border-r px-2 py-1 text-left font-normal whitespace-nowrap tabular-nums"
-        scope="row"
-      >
-        {showDate ? `${dayLabel(row.day)} · ` : ""}
-        {String(row.hour).padStart(2, "0")}:00
-        <span className="text-muted-foreground ml-1 text-xs">
-          ({utcHourLabel(row.hour)} UTC)
-        </span>
-      </th>
-    </>
+    <th
+      className="bg-card border-border sticky left-0 z-10 border-r px-2 py-1 text-left font-normal whitespace-nowrap tabular-nums"
+      scope="row"
+    >
+      {showDate ? `${dayLabel(row.day)} · ` : ""}
+      {String(row.hour).padStart(2, "0")}:00
+      <span className="text-muted-foreground ml-1 text-xs">
+        ({utcHourLabel(row.hour)} UTC)
+      </span>
+    </th>
   );
   if (!observation) {
     return (
@@ -209,7 +219,7 @@ function HourLine({ row, showDate }: { row: HourRow; showDate: boolean }) {
           className="text-muted-foreground px-2 py-1 italic"
           colSpan={WORKBOOK_COLUMNS.length + 4}
         >
-          Not recorded
+          {emptyHourText(row)}
         </td>
       </tr>
     );
@@ -250,6 +260,40 @@ function HourLine({ row, showDate }: { row: HourRow; showDate: boolean }) {
         ) : null}
       </td>
     </tr>
+  );
+});
+
+/** Searching is client-side; only a submit changes the URL. */
+function SearchBox({
+  initial,
+  onSearch,
+}: {
+  initial: string;
+  onSearch: (search: string) => void;
+}) {
+  const [search, setSearch] = useState(initial);
+  return (
+    <form
+      className="space-y-1"
+      onSubmit={(event) => {
+        event.preventDefault();
+        onSearch(search);
+      }}
+    >
+      <Label htmlFor="workbook-search">Search</Label>
+      <div className="flex gap-1">
+        <Input
+          id="workbook-search"
+          maxLength={100}
+          onChange={(event) => setSearch(event.target.value)}
+          placeholder="Code, note, observer, problem"
+          value={search}
+        />
+        <Button type="submit" variant="outline">
+          Find
+        </Button>
+      </div>
+    </form>
   );
 }
 
@@ -353,14 +397,22 @@ export function MonthWorkbook({ month, day, filters }: MonthViewProps) {
   const router = useRouter();
   const [state, setState] = useState<LoadState>("loading");
   const [observations, setObservations] = useState<Observation[]>([]);
-  const [search, setSearch] = useState(filters.search);
+  const [complete, setComplete] = useState(true);
+  const [refreshFailed, setRefreshFailed] = useState(false);
 
   useEffect(() => {
     let active = true;
     setState("loading");
     loadMonth(month)
       .then((result) => {
-        if (active) applyLoad(result, setObservations, setState);
+        if (!active) return;
+        if (typeof result === "string") {
+          setState(result);
+          return;
+        }
+        setObservations(result.rows);
+        setComplete(result.complete);
+        setState("ready");
       })
       .catch(() => {
         if (active) setState("unavailable");
@@ -370,20 +422,35 @@ export function MonthWorkbook({ month, day, filters }: MonthViewProps) {
     };
   }, [month]);
 
-  /** Re-read the month after a day review, keeping the grid on screen. */
+  /** Re-read the month after a day review; a failure keeps the grid on screen. */
   function refresh() {
+    setRefreshFailed(false);
     loadMonth(month)
-      .then((result) => applyLoad(result, setObservations, setState))
-      .catch(() => setState("unavailable"));
+      .then((result) => {
+        if (typeof result === "string") {
+          setRefreshFailed(true);
+          return;
+        }
+        setObservations(result.rows);
+        setComplete(result.complete);
+      })
+      .catch(() => setRefreshFailed(true));
   }
 
   const allRows = useMemo(
     () => monthRows(month, observations),
     [month, observations]
   );
-  const scoped = day ? allRows.filter((row) => row.day === day) : allRows;
-  const visible = scoped.filter((row) => rowMatches(row, filters));
-  const counts = monthCounts(scoped);
+  const scoped = useMemo(
+    () => (day ? allRows.filter((row) => row.day === day) : allRows),
+    [allRows, day]
+  );
+  const visible = useMemo(
+    () => scoped.filter((row) => rowMatches(row, filters)),
+    [scoped, filters]
+  );
+  const counts = useMemo(() => monthCounts(scoped), [scoped]);
+  const dayStats = useMemo(() => dayStatus(allRows), [allRows]);
   const days = monthRange(month).days;
 
   function go(next: {
@@ -397,9 +464,11 @@ export function MonthWorkbook({ month, day, filters }: MonthViewProps) {
         ? undefined
         : (next.day ?? (next.month ? undefined : day));
     const nextFilters = { ...filters, ...next.filters };
-    router.replace(`?${queryString(target, nextDay, nextFilters)}`, {
-      scroll: false,
-    });
+    const url =
+      `/wxproducts/hourly/month?${queryString(target, nextDay, nextFilters)}` as Route;
+    // Months and days are places (Back steps through them); filters are not.
+    if (next.filters) router.replace(url, { scroll: false });
+    else router.push(url, { scroll: false });
   }
 
   return (
@@ -480,26 +549,11 @@ export function MonthWorkbook({ month, day, filters }: MonthViewProps) {
             <NativeSelectOption value="imported">Imported</NativeSelectOption>
           </NativeSelect>
         </div>
-        <form
-          className="space-y-1"
-          onSubmit={(event) => {
-            event.preventDefault();
-            go({ filters: { search } });
-          }}
-        >
-          <Label htmlFor="workbook-search">Search</Label>
-          <div className="flex gap-1">
-            <Input
-              id="workbook-search"
-              onChange={(event) => setSearch(event.target.value)}
-              placeholder="Code, note, observer, problem"
-              value={search}
-            />
-            <Button type="submit" variant="outline">
-              Find
-            </Button>
-          </div>
-        </form>
+        <SearchBox
+          initial={filters.search}
+          key={filters.search}
+          onSearch={(search) => go({ filters: { search } })}
+        />
         <div className="flex items-center gap-2 pb-2">
           <Checkbox
             checked={filters.problemsOnly}
@@ -536,11 +590,10 @@ export function MonthWorkbook({ month, day, filters }: MonthViewProps) {
           Whole month
         </Button>
         {days.map((value) => {
-          const dayRows = allRows.filter((row) => row.day === value);
-          const recorded = dayRows.filter((row) => row.observation).length;
-          const flagged = dayRows.some(
-            (row) => (row.observation?.issues ?? []).length > 0
-          );
+          const { flagged, recorded } = dayStats.get(value) ?? {
+            flagged: false,
+            recorded: 0,
+          };
           return (
             <Button
               aria-current={value === day ? "page" : undefined}
@@ -577,12 +630,27 @@ export function MonthWorkbook({ month, day, filters }: MonthViewProps) {
           The register could not be loaded. Try again shortly.
         </p>
       ) : null}
+      {state === "ready" && !complete ? (
+        <p className="rounded-lg border px-4 py-3 text-sm" role="alert">
+          This month holds more records than the workbook can load at once, so
+          some hours below may show as not recorded when they were.
+        </p>
+      ) : null}
+      {refreshFailed ? (
+        <p className="rounded-lg border px-4 py-3 text-sm" role="alert">
+          The review was saved, but the list could not refresh. Reload the page
+          to see the new review states.
+        </p>
+      ) : null}
 
       {state === "ready" ? (
         <>
           <p className="text-muted-foreground text-sm" role="status">
             {day ? dayLabel(day) : monthLabel(month)}: {counts.recorded} of{" "}
             {scoped.length} hours recorded · {counts.missing} not recorded ·{" "}
+            {counts.rejected
+              ? `${counts.rejected} rejected, not replaced · `
+              : ""}
             {counts.historical} historical · {counts.accepted} accepted ·{" "}
             {counts.draft} awaiting acceptance · {counts.withProblems} with
             problems · {counts.reviewed} reviewed

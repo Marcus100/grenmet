@@ -2,6 +2,8 @@ import { describe, expect, it } from "vitest";
 import {
   columnTitle,
   currentMonth,
+  dayStatus,
+  emptyHourText,
   IMPORT_NOTE_PREFIX,
   isDay,
   localSlot,
@@ -109,6 +111,44 @@ describe("month rows", () => {
     ]);
     expect(rows.find((row) => row.observation)?.observation?.id).toBe("b");
   });
+
+  it("says an hour was rejected, not unrecorded, when only a rejected record exists", () => {
+    const rows = monthRows("2026-10", [
+      observation({ id: "bad", state: "rejected" }),
+    ]);
+    const hour = rows.find(
+      (row) => row.day === "2026-10-14" && row.hour === 12
+    );
+    expect(hour?.rejected).toBe(true);
+    expect(hour && emptyHourText(hour)).toBe("Rejected, not replaced");
+    expect(monthCounts(rows)).toMatchObject({
+      missing: 31 * 24 - 1,
+      recorded: 0,
+      rejected: 1,
+    });
+  });
+
+  it("does not mark an hour rejected once a live record replaces it", () => {
+    const rows = monthRows("2026-10", [
+      observation({ id: "bad", state: "rejected" }),
+      observation({ id: "good", state: "accepted" }),
+    ]);
+    const hour = rows.find((row) => row.observation);
+    expect(hour?.observation?.id).toBe("good");
+    expect(hour?.rejected).toBeUndefined();
+  });
+
+  it("summarises each day for the day buttons", () => {
+    const rows = monthRows("2026-10", [
+      observation({
+        issues: [{ code: "x", field: "", message: "m", severity: "warning" }],
+      }),
+    ]);
+    const status = dayStatus(rows);
+    expect(status.get("2026-10-14")).toEqual({ flagged: true, recorded: 1 });
+    expect(status.get("2026-10-15")).toEqual({ flagged: false, recorded: 0 });
+    expect(status.size).toBe(31);
+  });
 });
 
 describe("source and problems", () => {
@@ -202,6 +242,7 @@ describe("counts", () => {
       historical: 1,
       missing: 31 * 24 - 2,
       recorded: 2,
+      rejected: 0,
       reviewed: 1,
       withProblems: 1,
     });
@@ -233,6 +274,28 @@ describe("CSV export", () => {
     expect(lines[1]).toContain("2026-10-14,12:00,16:00,Historical,Keyed");
     expect(lines[1]).toContain('"Say ""hi"", twice"');
     expect(lines[2]).toContain("Not recorded");
+  });
+
+  it("quotes anything formula-like, keeping plain numbers", () => {
+    const single = WORKBOOK_COLUMNS.filter(
+      (column) => column.keys.length === 1
+    );
+    const [first = "", second = "", third = ""] = single.map(
+      (column) => column.keys[0] ?? ""
+    );
+    const record = observation({
+      body: { [first]: "-1+1", [second]: "-12.3", [third]: "@SUM(A1)" },
+    });
+    const cells = monthCsv([
+      { day: "2026-10-14", hour: 12, observation: record },
+    ])
+      .trimEnd()
+      .split("\r\n")[1]
+      ?.split(",");
+    expect(cells).toContain("'-1+1");
+    expect(cells).toContain("-12.3");
+    expect(cells).toContain("'@SUM(A1)");
+    expect(cells).not.toContain("-1+1");
   });
 
   it("has one titled column per stored reading", () => {

@@ -13,7 +13,8 @@ const DAY = /^(\d{4})-(\d{2})-(\d{2})$/u;
 const HAS_ZONE = /[zZ]|[+-]\d{2}:?\d{2}$/u;
 /** A cell starting with these runs as a formula in Excel. */
 const FORMULA_START = /^[=+\-@\t\r]/u;
-const NUMBER_START = /^-?\d/u;
+/** A plain number such as -5 or -12.3 is data, not a formula. */
+const PLAIN_NUMBER = /^-?\d+(\.\d+)?$/u;
 const NEEDS_QUOTES = /[",\n\r]/u;
 
 /** Must match IMPORT_NOTE_PREFIX in apps/api/fastapi/src/eregister/cl1_import.py. */
@@ -183,6 +184,8 @@ export interface HourRow {
   hour: number;
   /** The live record for this hour; undefined when nothing was recorded. */
   observation?: Observation;
+  /** No live record, but one was recorded and rejected. */
+  rejected?: boolean;
 }
 
 const HIDDEN_STATES = new Set<RowState>(["superseded", "rejected"]);
@@ -197,24 +200,50 @@ export function monthRows(
 ): HourRow[] {
   const { days } = monthRange(month);
   const byHour = new Map<string, Observation>();
+  const rejected = new Set<string>();
   for (const observation of observations) {
-    if (!observation.observed_at || HIDDEN_STATES.has(observation.state)) {
-      continue;
-    }
+    if (!observation.observed_at) continue;
     const { day, hour } = localSlot(observation.observed_at);
     const slot = `${day} ${hour}`;
+    if (HIDDEN_STATES.has(observation.state)) {
+      if (observation.state === "rejected") rejected.add(slot);
+      continue;
+    }
     const held = byHour.get(slot);
     if (!held || (held.updated_at ?? "") < (observation.updated_at ?? "")) {
       byHour.set(slot, observation);
     }
   }
   return days.flatMap((day) =>
-    Array.from({ length: HOURS_PER_DAY }, (_, hour) => ({
-      day,
-      hour,
-      observation: byHour.get(`${day} ${hour}`),
-    }))
+    Array.from({ length: HOURS_PER_DAY }, (_, hour): HourRow => {
+      const slot = `${day} ${hour}`;
+      const observation = byHour.get(slot);
+      return observation
+        ? { day, hour, observation }
+        : { day, hour, rejected: rejected.has(slot) };
+    })
   );
+}
+
+/** What an hour without a live record says. */
+export function emptyHourText(row: HourRow): string {
+  return row.rejected ? "Rejected, not replaced" : "Not recorded";
+}
+
+/** Per day: hours with a live record, and whether any has a problem. */
+export function dayStatus(
+  rows: readonly HourRow[]
+): Map<string, { flagged: boolean; recorded: number }> {
+  const status = new Map<string, { flagged: boolean; recorded: number }>();
+  for (const { day, observation } of rows) {
+    const current = status.get(day) ?? { flagged: false, recorded: 0 };
+    if (observation) {
+      current.recorded += 1;
+      if ((observation.issues ?? []).length > 0) current.flagged = true;
+    }
+    status.set(day, current);
+  }
+  return status;
 }
 
 export type StateFilter = "all" | "draft" | "accepted" | "historical";
@@ -291,6 +320,8 @@ export interface MonthCounts {
   historical: number;
   missing: number;
   recorded: number;
+  /** Hours whose only records were rejected (not counted as missing). */
+  rejected: number;
   reviewed: number;
   withProblems: number;
 }
@@ -302,12 +333,14 @@ export function monthCounts(rows: readonly HourRow[]): MonthCounts {
     historical: 0,
     missing: 0,
     recorded: 0,
+    rejected: 0,
     reviewed: 0,
     withProblems: 0,
   };
-  for (const { observation } of rows) {
+  for (const { observation, rejected } of rows) {
     if (!observation) {
-      counts.missing += 1;
+      if (rejected) counts.rejected += 1;
+      else counts.missing += 1;
       continue;
     }
     counts.recorded += 1;
@@ -383,7 +416,7 @@ export function columnTitle(column: WorkbookColumn): string {
 function csvCell(value: string): string {
   // Leading = + - @ would run as a formula in Excel; prefix a quote.
   const safe =
-    FORMULA_START.test(value) && !NUMBER_START.test(value)
+    FORMULA_START.test(value) && !PLAIN_NUMBER.test(value)
       ? `'${value}`
       : value;
   return NEEDS_QUOTES.test(safe) ? `"${safe.replaceAll('"', '""')}"` : safe;
@@ -401,18 +434,21 @@ export function monthCsv(rows: readonly HourRow[]): string {
     ...WORKBOOK_COLUMNS.map((column) => columnTitle(column)),
     "Problems",
   ];
-  const lines = rows.map(({ day, hour, observation }) => [
-    day,
-    `${String(hour).padStart(2, "0")}:00`,
-    utcHourLabel(hour),
-    observation ? stateText(observation.state) : "Not recorded",
-    observation ? sourceText(observation) : "",
-    observation ? reviewText(observation) : "",
-    ...WORKBOOK_COLUMNS.map((column) =>
-      observation ? cellText(observation, column) : ""
-    ),
-    observation ? problemMessages(observation).join(" | ") : "",
-  ]);
+  const lines = rows.map((row) => {
+    const { day, hour, observation } = row;
+    return [
+      day,
+      `${String(hour).padStart(2, "0")}:00`,
+      utcHourLabel(hour),
+      observation ? stateText(observation.state) : emptyHourText(row),
+      observation ? sourceText(observation) : "",
+      observation ? reviewText(observation) : "",
+      ...WORKBOOK_COLUMNS.map((column) =>
+        observation ? cellText(observation, column) : ""
+      ),
+      observation ? problemMessages(observation).join(" | ") : "",
+    ];
+  });
   // Excel reads UTF-8 CSV correctly only with a byte order mark.
   const BOM = "\uFEFF";
   return `${BOM}${[header, ...lines]
