@@ -92,9 +92,9 @@ export function RegisterFillButton({
         }
         role="status"
       >
-        {message?.lines.map((line, index) => (
-          // biome-ignore lint/suspicious/noArrayIndexKey: lines are plain text in a fixed order.
-          <p key={index}>{line}</p>
+        {message?.lines.map((line) => (
+          // Each message line is a distinct sentence.
+          <p key={line}>{line}</p>
         ))}
       </div>
     </div>
