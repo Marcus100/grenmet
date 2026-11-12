@@ -122,3 +122,8 @@ The drill runs on the 1st of each month at 05:30 UTC against the production back
 set and the latest release, with no API check. A failed scheduled run opens (or adds
 a comment to) the issue "friction: monthly restore drill failed". Dispatch it by hand
 to choose a ref, the staging set or the API check.
+
+The drill shares the `prod-droplet` queue with deploys and backups, and GitHub keeps
+only one waiting run per queue, so a drill that is still waiting can be dropped by a
+newer deploy or backup. A dropped run is cancelled, not failed, so it opens no issue:
+if no drill ran in a month, dispatch it by hand.
