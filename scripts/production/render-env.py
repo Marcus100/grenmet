@@ -238,6 +238,12 @@ def render(config, environment):
     if telemetry_enabled not in {"", "true", "false"}:
         raise ValueError("TELEMETRY_ENABLED must be true or false")
     values["TELEMETRY_ENABLED"] = "true" if telemetry_enabled == "true" else "false"
+    # Worker Sentry Cron check-ins (src/worker/cron_monitor.py). Off unless the
+    # GitHub environment variable says true: each monitor may be billable.
+    sentry_crons_enabled = environment.get("SENTRY_CRONS_ENABLED", "")
+    if sentry_crons_enabled not in {"", "true", "false"}:
+        raise ValueError("SENTRY_CRONS_ENABLED must be true or false")
+    values["SENTRY_CRONS_ENABLED"] = "true" if sentry_crons_enabled == "true" else "false"
     values.update(cloudflare_edge(environment, values))
     values["TELEMETRY_WORKER_HEARTBEAT_URL"] = environment.get("TELEMETRY_WORKER_HEARTBEAT_URL", "")
     heartbeat = values["TELEMETRY_WORKER_HEARTBEAT_URL"]
