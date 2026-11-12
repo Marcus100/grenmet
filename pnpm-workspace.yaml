@@ -215,8 +215,9 @@ overrides:
   # solid-js that asks for a fixed seroval (~1.6.11). solid-js only arrives
   # through @tanstack/react-query-devtools in gaa-admin, whose production
   # build ships the devtools as a lazy chunk. Remove once the devtools resolve
-  # solid-js >= 1.9.18 on their own.
-  solid-js: ">=1.9.18 <2"
+  # solid-js >= 1.9.18 on their own. Pinned exactly so a re-lock does not pick
+  # up a release younger than the minimum release age.
+  solid-js: "1.9.18"
   # GHSA-68fv-2mgg-jv7q (high): source-map-js 1.2.1 is affected; 1.2.2 is the
   # fix. Build tooling only (postcss, css-tree, @tailwindcss/node, magicast).
   # Remove once every dependant resolves >= 1.2.2 on its own.
