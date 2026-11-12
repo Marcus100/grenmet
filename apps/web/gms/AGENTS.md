@@ -126,8 +126,7 @@ src/app/
   not a warning identifier.
 - **No invented figures (owner rule, 18 Oct 2026):** the public site never
   shows invented or sample figures; every page shows real data or an honest
-  notice. This reverses the 30 Sep 2026 decision that allowed sample content on
-  the home page. A page or home section whose product is not yet issued keeps
+  notice. A page or home section whose product is not yet issued keeps
   its structure and explanatory text and renders `<PlaceholderNotice />`
   ("Not yet available from GMS"; `compact` inside an otherwise live page; the
   optional `source` prop links a live page meanwhile). Never put placeholder
@@ -175,7 +174,7 @@ src/app/
   hero tabs (marine lives at `/marine`). The website has no bottom tab bar;
   `MobileTabBar` is kept for the app.
 - **Units (28 Oct 2026):** every hero measurement is metric or imperial,
-  metric until a visitor chooses (owner first chose imperial, then metric) (switch in the top corner of the home hero card, above the tabs, `components/units-toggle.tsx` placed by `components/home/sky-hero.tsx`; it was in the header until 31 Oct 2026, so only the home page has the switch and other pages show the saved choice (the switch is on the home page only, in the hero card); saved in `localStorage`
+  metric until a visitor chooses (owner first chose imperial, then metric) (switch in the top corner of the home hero card, above the tabs, `components/units-toggle.tsx` placed by `components/home/sky-hero.tsx`; only the home page has the switch, and other pages show the saved choice; saved in `localStorage`
   `gm-units`). The API sends WMO units (°C, knots, metres, km, hPa, mm). A figure
   is a `Measure` (`lib/units.ts`) rendered by `components/measure.tsx` in both
   systems; `globals.css` shows one by `<html data-units>`, so static pages never
