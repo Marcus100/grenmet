@@ -400,8 +400,10 @@ default 4; `1` restores one at a time):
 3. Stop and remove the old container.
 
 If the new container never becomes healthy, it is removed, the old one keeps
-serving, and the deploy fails in the `start` phase. Workers and the proxy are
-not rolled: they still start the ordinary way after the routed services.
+serving, and the deploy fails in the `start` phase. Workers are not rolled:
+after the routed services they start one at a time, each healthy before the
+next, so two workers loading the app together do not starve the API on a
+small host.
 
 A routed service whose running container is healthy and whose Compose config
 hash (digest-pinned image, environment, labels) is unchanged is kept as it is.
