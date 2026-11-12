@@ -292,7 +292,11 @@ echo "Docker Engine $engine_version, $(docker compose version --short 2>/dev/nul
 # The api and web-* healthchecks set start_interval. An older engine refuses to
 # create those containers, so stop here, before anything has changed.
 engine_major=${engine_version%%.*}
-if ! [[ "$engine_major" =~ ^[0-9]+$ ]] || ((engine_major < 25)); then
+if ! [[ "$engine_major" =~ ^[0-9]+$ ]]; then
+  echo "Docker Engine 25 or later is required (healthcheck start_interval), but the engine version could not be read. Check that the Docker daemon is running and reachable, then deploy again." >&2
+  exit 1
+fi
+if ((engine_major < 25)); then
   echo "Docker Engine 25 or later is required (healthcheck start_interval); found $engine_version. Upgrade Docker on this host, then deploy again." >&2
   exit 1
 fi
