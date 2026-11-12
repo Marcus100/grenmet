@@ -476,15 +476,20 @@ phase start
 if [[ "$rolling" == true ]]; then
   # Recreating a routed service stops its only container first, so Traefik has no
   # backend and every route 404s until the new one is healthy (staging run
-  # 37131928180). Roll those services instead; start the rest as before.
+  # 37131928180). Roll those services instead; start the rest one at a time.
   routed_services=$(node ../../scripts/ci/check-release-scope.mjs --print routed)
   # shellcheck disable=SC2086
   rollout_batches $routed_services
   remaining_services=$(for service in $app_services; do
     [[ " $routed_services " == *" $service "* ]] || printf '%s ' "$service"
   done)
-  # shellcheck disable=SC2086
-  docker compose -f runtime/deploy.lock.yml -p "$COMPOSE_PROJECT" up -d --no-deps --remove-orphans --wait --wait-timeout 300 $remaining_services
+  # One at a time, each healthy before the next. Each worker loads the whole app
+  # when it starts; two together on staging's single CPU and 2 GB starved the API,
+  # so Traefik dropped it and the smoke saw 80 s of 503s on every deploy
+  # (9 to 12 November 2026).
+  for service in $remaining_services; do
+    docker compose -f runtime/deploy.lock.yml -p "$COMPOSE_PROJECT" up -d --no-deps --remove-orphans --wait --wait-timeout 300 "$service"
+  done
 else
   # shellcheck disable=SC2086
   docker compose -f runtime/deploy.lock.yml -p "$COMPOSE_PROJECT" up -d --no-deps --remove-orphans --wait --wait-timeout 300 $app_services

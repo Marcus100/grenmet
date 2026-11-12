@@ -756,6 +756,7 @@ test("backup gate: calls the gate for production and never prints secrets", () =
 });
 
 const ROLLING_DEPLOY_INVALID = /ROLLING_DEPLOY must be/u;
+const UNCHANGED_PRESTART = /Unchanged prestart: .*skipped/u;
 const ROLLOUT_FAILED =
   /New web-auth container did not become healthy; the previous one is still serving/u;
 
@@ -780,12 +781,20 @@ test("rolling start replaces each routed service before retiring the old contain
   const rest = appServices.filter(
     (service) => !routedServices.includes(service)
   );
-  assert.ok(
-    calls.includes(
-      `up -d --no-deps --remove-orphans --wait --wait-timeout 300 ${rest.join(" ")}\n`
-    ),
-    calls
-  );
+  // The rest (the workers) start one at a time, each healthy before the next:
+  // two starting together starved the API on staging's single CPU.
+  assert.ok(rest.length > 1, "expected more than one unrouted service");
+  let previous = -1;
+  for (const service of rest) {
+    const started = calls.indexOf(
+      `up -d --no-deps --remove-orphans --wait --wait-timeout 300 ${service}\n`
+    );
+    assert.ok(
+      started > previous,
+      `expected ${service} to start alone, in order\n${calls}`
+    );
+    previous = started;
+  }
   assert.ok(calls.includes("smoke"));
 });
 
@@ -1041,7 +1050,7 @@ test("unchanged migrations are skipped; a new image, a new database or FORCE_MIG
     const again = deploy({});
     assert.equal(again.result.status, 0, again.result.stderr);
     assert.equal(prestartRuns(again.calls), 0);
-    assert.match(again.result.stdout, /Unchanged prestart: .*skipped/u);
+    assert.match(again.result.stdout, UNCHANGED_PRESTART);
 
     for (const changed of [
       { TEST_MIGRATION_HASH: "hash-2" },
