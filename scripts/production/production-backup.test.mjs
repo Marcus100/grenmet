@@ -12,6 +12,7 @@ import { join } from "node:path";
 import test from "node:test";
 
 const EREGISTER_UPLOAD = /aws s3 cp .*eregister_/u;
+const HEARTBEAT = "https://uptime.betterstack.com/api/v1/heartbeat/DoNotEcho123";
 
 const workflow = readFileSync(
   new URL("../../.github/workflows/backup-database.yml", import.meta.url),
@@ -64,6 +65,12 @@ if [[ "$*" == *"SELECT COUNT"* ]]; then echo 3; fi
         '#!/bin/bash\nprintf "aws %s\\n" "$*" >> "$TEST_LOG"\n',
         { mode: 0o700 }
       );
+      // Records that a heartbeat was sent, never the credential-bearing address.
+      writeFileSync(
+        join(bin, "curl"),
+        '#!/bin/bash\necho "curl heartbeat" >> "$TEST_LOG"\n[[ "$TEST_CURL_FAILS" == 1 ]] && exit 22\nexit 0\n',
+        { mode: 0o700 }
+      );
       const env = {
         ...process.env,
         PATH: `${bin}:${process.env.PATH}`,
@@ -79,6 +86,8 @@ if [[ "$*" == *"SELECT COUNT"* ]]; then echo 3; fi
         TEST_LOG: log,
         TEST_SCENARIO: scenario,
         CMS_BACKUP_PATH: "",
+        BACKUP_HEARTBEAT_URL: HEARTBEAT,
+        TEST_CURL_FAILS: "0",
       };
       let status = 0;
       for (const step of steps) {
@@ -113,8 +122,88 @@ if [[ "$*" == *"SELECT COUNT"* ]]; then echo 3; fi
         assert.ok(calls.includes("s3://existing-backups/production/"));
         assert.ok(calls.lastIndexOf("pg_restore") < calls.indexOf("aws s3 cp"));
       }
+      // The heartbeat means "all seven databases are safe off the host": it is
+      // sent once, last, and never for a failed or CMS-less backup.
+      const heartbeats = (calls.match(/curl heartbeat/gu) || []).length;
+      assert.equal(heartbeats, scenario === "with CMS" ? 1 : 0);
+      if (heartbeats) {
+        assert.ok(calls.lastIndexOf("aws s3") < calls.indexOf("curl heartbeat"));
+      }
     } finally {
       rmSync(root, { recursive: true, force: true });
     }
   });
 }
+
+const heartbeatStep = steps.find(
+  (step) => step.name === "Report success to monitoring"
+);
+
+function runHeartbeat(extra) {
+  const root = mkdtempSync(join(tmpdir(), "production-backup-"));
+  try {
+    const bin = join(root, "bin");
+    mkdirSync(bin);
+    const log = join(root, "calls");
+    writeFileSync(log, "");
+    writeFileSync(
+      join(bin, "curl"),
+      '#!/bin/bash\necho "curl heartbeat" >> "$TEST_LOG"\n[[ "$TEST_CURL_FAILS" == 1 ]] && exit 22\nexit 0\n',
+      { mode: 0o700 }
+    );
+    const result = spawnSync("bash", ["-c", heartbeatStep.script], {
+      env: {
+        PATH: `${bin}:${process.env.PATH}`,
+        TEST_LOG: log,
+        TEST_CURL_FAILS: "0",
+        CMS_BACKUP_PATH: "/var/backups/grenmet/gms_cms.dump",
+        ...extra,
+      },
+      encoding: "utf8",
+      timeout: 10_000,
+    });
+    return {
+      status: result.status,
+      output: result.stdout + result.stderr,
+      sent: readFileSync(log, "utf8").includes("curl heartbeat"),
+    };
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+}
+
+test("backup heartbeat: the monitoring step is the last step", () => {
+  assert.equal(steps.at(-1).name, "Report success to monitoring");
+});
+
+test("backup heartbeat: no secret sends nothing and passes", () => {
+  const result = runHeartbeat({});
+  assert.equal(result.status, 0);
+  assert.equal(result.sent, false);
+});
+
+test("backup heartbeat: an address that is not a Better Stack heartbeat fails without being echoed", () => {
+  for (const url of [
+    "https://example.test/api/v1/heartbeat/DoNotEcho123",
+    "http://uptime.betterstack.com/api/v1/heartbeat/DoNotEcho123",
+    "https://uptime.betterstack.com/api/v1/heartbeat/DoNotEcho123?x=1",
+    "https://user:DoNotEcho123@uptime.betterstack.com/api/v1/heartbeat/a",
+    "https://uptime.betterstack.com.evil.test/api/v1/heartbeat/DoNotEcho123",
+  ]) {
+    const result = runHeartbeat({ BACKUP_HEARTBEAT_URL: url });
+    assert.notEqual(result.status, 0, url);
+    assert.equal(result.sent, false, url);
+    assert.ok(!result.output.includes("DoNotEcho123"), url);
+  }
+});
+
+test("backup heartbeat: a failed delivery warns but does not fail the finished backup", () => {
+  const result = runHeartbeat({
+    BACKUP_HEARTBEAT_URL: HEARTBEAT,
+    TEST_CURL_FAILS: "1",
+  });
+  assert.equal(result.status, 0);
+  assert.equal(result.sent, true);
+  assert.match(result.output, /::warning::/u);
+  assert.ok(!result.output.includes("DoNotEcho123"));
+});

@@ -349,7 +349,7 @@ owner something is down. Status on 2026-10-30 is from `gh secret list` and
 | --- | --- | --- | --- |
 | production | `BETTERSTACK_API_TOKEN` | secret | missing (staging has it) |
 | production | `PROBE_HEARTBEAT_URL` | secret | missing |
-| production | `BACKUP_HEARTBEAT_URL` | secret | missing |
+| production-backup | `BACKUP_HEARTBEAT_URL` | secret | missing (read by `backup-database.yml`) |
 | production | `WORKER_HEARTBEAT_URL` | secret | missing |
 | production | `TELEMETRY_ENABLED` | variable | missing |
 | production | `MONITORING_DEPLOY_ENABLED` | variable | missing |

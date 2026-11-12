@@ -402,3 +402,31 @@ jobs:
           echo "transport:  $(du -h "$TRANSPORT_BACKUP_PATH" | cut -f1)"
           echo "eregister:  $(du -h "$EREGISTER_BACKUP_PATH" | cut -f1)"
           echo "Retention: $BACKUP_RETENTION_DAYS days"
+
+      # ── Monitoring ───────────────────────────────────────────────────────────────
+
+      # Last step, so it runs only after every dump, restore check and upload
+      # succeeded. Better Stack alerts when no ping arrives for 24 h + 2 h
+      # (docs/operations/analytics-monitoring.md). The address is a credential.
+      - name: Report success to monitoring
+        env:
+          BACKUP_HEARTBEAT_URL: ${{ secrets.BACKUP_HEARTBEAT_URL }}
+        run: |
+          set -euo pipefail
+          if [[ -z "${BACKUP_HEARTBEAT_URL:-}" ]]; then
+            echo "BACKUP_HEARTBEAT_URL is not set; no heartbeat sent"
+            exit 0
+          fi
+          if [[ -z "${CMS_BACKUP_PATH:-}" ]]; then
+            echo "::warning::gms_cms was not backed up (CMS_BACKUP_ENABLED is off); no heartbeat sent"
+            exit 0
+          fi
+          if [[ ! "$BACKUP_HEARTBEAT_URL" =~ ^https://(uptime|incidents)\.betterstack\.com/api/v1/heartbeat/[A-Za-z0-9_-]+$ ]]; then
+            echo "BACKUP_HEARTBEAT_URL is not a Better Stack heartbeat address" >&2
+            exit 1
+          fi
+          if curl --fail --silent --max-time 10 --max-redirs 0 --output /dev/null "$BACKUP_HEARTBEAT_URL"; then
+            echo "Backup heartbeat sent"
+          else
+            echo "::warning::Backup succeeded, but the monitoring heartbeat was not delivered"
+          fi
