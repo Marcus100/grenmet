@@ -287,7 +287,15 @@ printf '%s' "$GHCR_TOKEN" | docker login ghcr.io -u "$GITHUB_ACTOR" --password-s
 phase disk
 # Versions and memory before the release starts, for comparison with a failure
 # snapshot (diagnose) and to confirm healthcheck start_interval support (Engine 25+, #1140).
-echo "Docker Engine $(docker version --format '{{.Server.Version}}' 2>/dev/null || echo unknown), $(docker compose version --short 2>/dev/null | sed 's/^/Compose /')"
+engine_version=$(docker version --format '{{.Server.Version}}' 2>/dev/null || echo unknown)
+echo "Docker Engine $engine_version, $(docker compose version --short 2>/dev/null | sed 's/^/Compose /')"
+# The api and web-* healthchecks set start_interval. An older engine refuses to
+# create those containers, so stop here, before anything has changed.
+engine_major=${engine_version%%.*}
+if ! [[ "$engine_major" =~ ^[0-9]+$ ]] || ((engine_major < 25)); then
+  echo "Docker Engine 25 or later is required (healthcheck start_interval); found $engine_version. Upgrade Docker on this host, then deploy again." >&2
+  exit 1
+fi
 free -m | awk 'NR <= 3'
 # The runner writes logs and step summaries under its temp directory; a full disk
 # there fails the job without a useful error (staging, 2026-10-07).

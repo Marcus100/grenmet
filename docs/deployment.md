@@ -399,6 +399,12 @@ default 4; `1` restores one at a time):
 2. Wait until it is healthy. Traefik only routes to healthy containers.
 3. Stop and remove the old container.
 
+The `api` and `web-*` healthchecks set `start_interval: 2s`, so a new container is
+probed every 2 seconds during its start period instead of waiting a full 30-second
+interval, and each service rolls in seconds. This needs Docker Engine 25 or later:
+the deploy checks the engine in its `disk` phase and stops there, before anything
+changes, on an older one.
+
 If the new container never becomes healthy, it is removed, the old one keeps
 serving, and the deploy fails in the `start` phase. Workers are not rolled:
 after the routed services they start one at a time, each healthy before the
