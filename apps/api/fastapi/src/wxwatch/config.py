@@ -19,8 +19,10 @@ class WxWatchConfig(BaseSettings):
     # Organisation whose notification settings choose who hears about NHC failures.
     ALERT_ORGANISATION_ID: str = "gaa"
     # A collector source is reported as stale when its last finished run is
-    # older than this. Collectors run every 15 minutes.
-    FEED_STALE_MINUTES: int = Field(default=180, ge=30)
+    # older than this. Collectors run every 15 minutes; a value under 30 is
+    # treated as 30. Raise it, or ignore the source, for a collector that is
+    # scheduled less often.
+    FEED_STALE_MINUTES: int = 180
     # Comma-separated collector sources never reported as stale, for example
     # one that is paused on purpose.
     FEED_IGNORED_SOURCES: str = ""

@@ -124,7 +124,7 @@ async def test_a_quiet_source_notifies_once_a_day(
     assert await _run(db_async, archive_sessions) == 0
     (notification,) = await _inbox(db_async, user)
     assert "goes19" in notification.title
-    assert "4 hours" in notification.title
+    assert "last finished a run 4 hours ago" in notification.body
 
 
 async def test_failed_and_expired_runs_do_not_count_as_good(
@@ -170,7 +170,8 @@ async def test_a_source_with_no_finished_run_says_so(
 
     assert await _run(db_async, archive_sessions) == 1
     (notification,) = await _inbox(db_async, user)
-    assert "more than 14 days" in notification.title
+    assert "uwyo" in notification.title
+    assert "has not finished a run in the last 14 days" in notification.body
 
 
 async def test_a_source_silent_past_the_give_up_window_is_retired(
@@ -211,6 +212,18 @@ async def test_the_limit_is_configurable(
     assert await _run(db_async, archive_sessions) == 0
     monkeypatch.setattr(wxwatch_settings, "FEED_STALE_MINUTES", 60)
     assert await _run(db_async, archive_sessions) == 1
+
+
+async def test_a_limit_under_thirty_minutes_is_treated_as_thirty(
+    db_async: AsyncSession, archive_sessions, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    await _recipient(db_async)
+    monkeypatch.setattr(wxwatch_settings, "FEED_STALE_MINUTES", 5)
+    await _collector_run(
+        archive_sessions, "goes19", status="finished", started=timedelta(minutes=21)
+    )
+
+    assert await _run(db_async, archive_sessions) == 0
 
 
 async def test_each_stale_source_is_reported_separately(
@@ -265,10 +278,13 @@ async def test_sentry_gets_one_error_per_source_per_window(
         await _run(db_async, archive_sessions, now=later)
 
     stale = [
-        r for r in caplog.records if r.getMessage() == "Weather image feed is stale"
+        r
+        for r in caplog.records
+        if r.getMessage().startswith("Weather image feed is stale")
     ]
     assert len(stale) == 2
-    assert stale[0].source == "goes19"
+    assert stale[0].area == "wxwatch.feed.goes19"
+    assert "299 minutes ago" in stale[0].getMessage()
 
 
 @pytest.mark.parametrize(
@@ -277,8 +293,7 @@ async def test_sentry_gets_one_error_per_source_per_window(
         (timedelta(minutes=95), "95 minutes"),
         (timedelta(hours=5, minutes=40), "5 hours"),
         (timedelta(days=3, hours=2), "3 days"),
-        (None, "more than 14 days"),
     ],
 )
-def test_age_is_written_in_whole_units(age: timedelta | None, expected: str) -> None:
+def test_age_is_written_in_whole_units(age: timedelta, expected: str) -> None:
     assert alerts._age_text(age) == expected

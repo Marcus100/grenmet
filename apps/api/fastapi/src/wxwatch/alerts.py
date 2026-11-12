@@ -56,9 +56,9 @@ def register() -> None:
             label="Weather image feed stopped",
             description="A weather image collector has not finished a run for longer than expected.",
             audience="cap-admin and management by default; change the roles in notification settings",
-            title="No new {{ source }} imagery for {{ age }}",
-            body="The {{ source }} image collector last finished a run {{ age }} ago. Imagery from this source may be out of date until it runs again.",
-            variables=("source", "age"),
+            title="Weather images from {{ source }} have stopped updating",
+            body="{{ detail }} Imagery from this source may be out of date until its collector runs again.",
+            variables=("source", "detail"),
             default_roles=("cap-admin", "management"),
         )
     )
@@ -93,10 +93,8 @@ async def notify_failed_jobs(*, session: AsyncSession, archive: AsyncSession) ->
     return notified
 
 
-def _age_text(age: timedelta | None) -> str:
+def _age_text(age: timedelta) -> str:
     """How long ago, in whole units a person reads at a glance."""
-    if age is None:
-        return f"more than {FEED_GIVE_UP.days} days"
     minutes = int(age.total_seconds() // 60)
     if minutes < 120:
         return f"{minutes} minutes"
@@ -104,6 +102,12 @@ def _age_text(age: timedelta | None) -> str:
     if hours < 48:
         return f"{hours} hours"
     return f"{hours // 24} days"
+
+
+def _detail(age: timedelta | None) -> str:
+    if age is None:
+        return f"The collector has not finished a run in the last {FEED_GIVE_UP.days} days."
+    return f"The collector last finished a run {_age_text(age)} ago."
 
 
 async def stale_feeds(
@@ -119,7 +123,8 @@ async def stale_feeds(
         for name in wxwatch_settings.FEED_IGNORED_SOURCES.split(",")
         if name.strip()
     }
-    limit = timedelta(minutes=wxwatch_settings.FEED_STALE_MINUTES)
+    # A limit shorter than two collector runs would report every source.
+    limit = timedelta(minutes=max(30, wxwatch_settings.FEED_STALE_MINUTES))
     rows = (
         await archive.execute(
             text(
@@ -150,21 +155,27 @@ async def notify_stale_feeds(
         last_logged = _feed_logged.get(source)
         if last_logged is None or moment - last_logged >= FEED_LOG_EVERY:
             _feed_logged[source] = moment
-            logger.error(
-                "Weather image feed is stale",
-                extra={
-                    "source": source,
-                    "age_minutes": None
-                    if age is None
-                    else int(age.total_seconds() // 60),
-                },
-            )
+            # The Sentry scrubber keeps numbers in the message and the `area`
+            # code name, so the error still says which source and how old.
+            area = {"area": f"wxwatch.feed.{source}"}
+            if age is None:
+                logger.error(
+                    "Weather image feed is stale: no finished run in the last %d days",
+                    FEED_GIVE_UP.days,
+                    extra=area,
+                )
+            else:
+                logger.error(
+                    "Weather image feed is stale: last finished run %d minutes ago",
+                    int(age.total_seconds() // 60),
+                    extra=area,
+                )
         notified += await notification_service.notify(
             session,
             event_key=FEED_STALE,
             organisation_id=wxwatch_settings.ALERT_ORGANISATION_ID,
             recipients=(),
-            context={"source": source, "age": _age_text(age)},
+            context={"source": source, "detail": _detail(age)},
             link_path="/wxwatch",
             entity_type="collection_source",
             entity_id=source,
