@@ -19,7 +19,7 @@ Nothing on Barrels is live today. The Babydoll website is live (static, on Verce
 
 ## Consequences
 
-- The backup workflow (`.github/workflows/backup-database.yml`) and the restore drill (`docs/operations/restore-drill.md`, ADR-0021) are the evidence for check 1. The drill has not yet been run (`docs/infrastructure.md`).
-- Check 2 depends on Sentry and Better Stack (ADR-0037). External uptime monitoring is listed as not yet built in `docs/infrastructure.md`.
+- The backup workflow (`.github/workflows/backup-database.yml`) and the restore drill (`docs/operations/restore-drill.md`, ADR-0021) are the evidence for check 1. The drill passed against the production backup on 2026-11-04 (`docs/operations/restore-drill.md`).
+- Check 2 depends on Sentry and Better Stack (ADR-0037). The production Better Stack monitors are defined in `scripts/monitoring/betterstack.json` but stay paused until the production secrets are set ([#1143](https://github.com/Marcus100/grenmet/issues/1143)).
 - "Go-live" is declared per product, by the owner, and recorded in that product's domain `AGENTS.md`.
 - The "Ask first" rule on destructive schema changes in `AGENTS.md` still applies; this ADR only says when such changes stop being cheap.

@@ -90,12 +90,12 @@ The following are not globally implemented yet:
 - Mandatory MFA for privileged accounts and encryption of stored TOTP secrets. TOTP, recovery codes and app-scoped SSO already exist.
 - Verification of deployed Redis-backed rate limiting configuration; the implementation already supports Redis.
 - WAF or bot-protection layer.
-- Formal backup restore drill evidence.
+- A scheduled restore drill that includes the application check. Manual drills against the production backup passed on 2026-11-04 and 2026-11-09 (`docs/operations/restore-drill.md`).
 - Formal data retention and deletion policy in code for account, HR and Events data (public-form retention is implemented, see Data retention below).
 
 Do not document these as complete controls until code or infrastructure exists.
 
-The [secure development gap check](operations/ssdf-gap-check.md) compares the repository with the NIST SSDF and ranks further gaps, including disabled secret scanning and Dependabot alerts.
+The [secure development gap check](operations/ssdf-gap-check.md) compares the repository with the NIST SSDF and ranks further gaps. Secret scanning with push protection, Dependabot alerts and Dependabot security updates were switched on after that assessment.
 
 ## Supply-chain checks
 

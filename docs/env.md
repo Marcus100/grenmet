@@ -695,9 +695,10 @@ with environment variables retained as a compatibility fallback.
 
 ### Observability activation
 
-Use separate staging and production projects for PostHog and Sentry. Browser
-keys are embedded during the web image build: adding a GitHub secret requires
-rebuilding the corresponding environment images, not just restarting containers.
+Use separate staging and production projects for PostHog and Sentry. The browser
+Sentry DSN is read at run time (see Public settings at run time). The PostHog key
+is still embedded during the web image build: adding it requires rebuilding the
+images, not just restarting containers.
 PostHog remains disabled without its project key. Its shared provider disables
 session recording, autocapture and person profiles and sends only allowlisted
 page-section counts; preserve these controls when activating it.
@@ -757,7 +758,7 @@ but they are not all deployment prerequisites:
   runtime credentials.
 - Republic ePay for Events payments; the provider contract, webhook protocol,
   and environment variables have not yet been selected.
-- External uptime and paging; no provider has yet been selected.
+- External uptime uses Better Stack (ADR-0037, `scripts/monitoring/betterstack.json`). Alerts go by email and the Better Stack phone app (`docs/operations/analytics-monitoring.md`); no on-call paging service is set up.
 
 Do not invent credentials for dormant or unselected integrations. Add their
 variables only when the provider contract, callback/webhook endpoints, staging
