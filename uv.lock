@@ -3166,16 +3166,16 @@ wheels = [
 
 [[package]]
 name = "meteostat"
-version = "2.1.6"
+version = "2.2.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "pandas" },
     { name = "pytz" },
     { name = "requests" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/5d/b0/ada46e9a1a591f6fc615b8b800b1ff8af6f3566c133e3f66f60910a2103f/meteostat-2.1.6.tar.gz", hash = "sha256:337be06226d82f311fd5b0de6a782b380ac0e9cc8cc38f1216a59c17740e4779", size = 59829, upload-time = "2026-11-03T11:50:24.155Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/20/32/72c297677d3c670aa5670b2f022db713714221068c028d835cce6f8acd1c/meteostat-2.2.0.tar.gz", hash = "sha256:6b492a8b337733d83acd5261b757bfa70f594bf6aa6dd4b1e25f68dfbed9efad", size = 64989, upload-time = "2026-11-09T09:32:38.095Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/3f/c8/27a1459f434bea34c26679c8b30fd466309accbf59c0dd0f97db83bdd889/meteostat-2.1.6-py3-none-any.whl", hash = "sha256:a8167f37840a6600bad2e8383c38ee52b6dafcaec1dbc37dbe449512eb6a5ebc", size = 95147, upload-time = "2026-11-03T11:50:23.029Z" },
+    { url = "https://files.pythonhosted.org/packages/cb/ae/9d50875704e78047fdbac1af853c1fea910d0e1c338081b6a3e74ae2806c/meteostat-2.2.0-py3-none-any.whl", hash = "sha256:34ea9cb8ec13c212025c0ad13b45f9f3d5e576562360548ba8c35e15ba154830", size = 101821, upload-time = "2026-11-09T09:32:36.856Z" },
 ]
 
 [[package]]
@@ -3615,7 +3615,7 @@ requires-dist = [
     { name = "jupyterlab", specifier = ">=4.6.6" },
     { name = "lightgbm", specifier = ">=4.6.0" },
     { name = "matplotlib", specifier = ">=3.10.8" },
-    { name = "meteostat", specifier = ">=2.1.4" },
+    { name = "meteostat", specifier = ">=2.2.0" },
     { name = "metpy", specifier = ">=1.7.1" },
     { name = "netcdf4", specifier = ">=1.7.5.1.post1" },
     { name = "notebook", specifier = ">=7.5.3" },
