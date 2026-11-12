@@ -25,9 +25,8 @@ Some data must change together. A ticket, its payment and the points it earns mu
 | JANITORIAL | The `/janitor` cleaning-spec catalogue | `src/janitorial/alembic.ini` |
 | TRANSPORT | The staff bus service | `src/transport/alembic.ini` |
 | CMS | Payload CMS | Payload's own migrations |
-| EVENTS | Barrels Events | `src/events/alembic.ini` |
 
-EVENTS is moving into APP as the `events` schema (decided 2026-10-20). Nothing is live, so there is no data migration. The move removes Events' separate outbox and the `sync_event_rewards` job. Tickets, payments and points then save in one transaction. Until it lands, EVENTS stays in the table above.
+EVENTS moved into APP as the `events` schema (decided 2026-10-20; `alembic/versions/2026-10-21_events_schema.py`). Nothing was live, so there was no data migration. The move removed Events' separate outbox and the `sync_event_rewards` job. Tickets, payments and points save in one transaction.
 
 **Why the weather and operations databases stay separate**, even though Barrels owns the data:
 - Retention differs. Weather and observation records follow WMO and long-term archive needs, not product retention rules.

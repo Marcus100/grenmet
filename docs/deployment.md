@@ -11,6 +11,7 @@
 This monorepo uses GitHub Actions with self-hosted runners to deploy to staging and production.
 Each environment runs on its own dedicated Digital Ocean droplet. Elections Grenada
 is the exception: it deploys independently to Vercel; see [its deployment guide](web/elections-deployment.md).
+Static sites are moving to Cloudflare Pages ([ADR-0036](adr/0036-hosting-split.md) amendment); `commit.barrels.gd` is already there.
 
 For operational SSH access, use the `deploy` account on production and `root` on
 staging. Authenticate with the existing SSH key; DigitalOcean API authentication
@@ -264,6 +265,12 @@ ufw allow 443   # HTTPS
 ufw enable
 ufw status
 ```
+
+`ufw` does not filter ports that Docker publishes. The control that matters is a
+DigitalOcean Cloud Firewall attached to the droplet: see
+[host hardening](operations/host-hardening.md) step 4, and the
+[Cloudflare proxy runbook](operations/cloudflare-proxy.md) for limiting 80 and 443
+to Cloudflare.
 
 ### 2.6 Install the GitHub Actions self-hosted runner
 

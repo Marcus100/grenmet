@@ -4,8 +4,11 @@
 
 Accepted — 2026-10-15 by the project owner. The workflow and script are built
 (`.github/workflows/restore-drill.yml`, `scripts/production/restore-drill.py`) and
-unit-tested against a local fake backup store, but **have not been run against real
-backups**. Runbook: [restore drill](../operations/restore-drill.md).
+unit-tested against a local fake backup store. The drill has passed against the
+production backup (run 41789991594, 2026-11-04, 1 minute 57 seconds). A supervised
+staging-target run ([#926](https://github.com/Marcus100/grenmet/issues/926)), a run
+with the application check and the monthly schedule are still open. Runbook:
+[restore drill](../operations/restore-drill.md).
 
 Differences from the plan below, found while building it:
 
