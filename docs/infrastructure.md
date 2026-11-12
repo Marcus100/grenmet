@@ -15,6 +15,9 @@ Staging and production run as Docker Compose stacks on dedicated DigitalOcean dr
 | Staging | `grenmet-staging` | `infra/docker/docker-compose.deploy.yml` + `staging.env` | `*.staging.barrels.gd` |
 | Production | `grenmet` | `infra/docker/docker-compose.deploy.yml` + `production.env` | `*.barrels.gd` |
 
+Both core droplets are DigitalOcean `s-2vcpu-4gb` (4 GB, 2 vCPU, region `nyc1`)
+since 2026-11-12, each running Ubuntu 24.04 and Docker Engine 29.
+
 Each stack includes:
 
 - `db`: PostgreSQL 17. The same server hosts separate databases for FastAPI (which also holds the `events` schema, ADR-0003), `wxwatch`, `wxproducts`, `janitorial`, `transport`, `eregister` and the CMS (`gms_cms`).
