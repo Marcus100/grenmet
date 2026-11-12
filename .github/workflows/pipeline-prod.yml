@@ -36,7 +36,7 @@ jobs:
   promote:
     name: Promote staging-verified images
     runs-on: ubuntu-latest
-    # Only a published release on a vN.M tag can move production tags.
+    # Only a published release on a v* tag (vX.Y.Z) can move production tags.
     if: github.event_name == 'release' && startsWith(github.ref, 'refs/tags/v')
     permissions:
       contents: read

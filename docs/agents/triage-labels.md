@@ -2,7 +2,7 @@
 
 **Status:** Active reference  
 **Owner:** Barrels Grenada engineering  
-**Last updated:** 2026-10-20
+**Last updated:** 2026-11-12
 
 The skills speak in terms of five canonical triage roles. This file maps those roles to the actual label strings used in this repo's issue tracker.
 
@@ -17,6 +17,13 @@ The skills speak in terms of five canonical triage roles. This file maps those r
 All five exist in this repo's GitHub labels. These state labels sit alongside the existing classification labels (`bug`, `enhancement`, `question`) and area labels (`frontend`, `backend`, `web/<app>`, etc.) — they do not replace them.
 
 When a skill mentions a role (e.g. "apply the AFK-ready triage label"), use the corresponding label string from this table. Edit the right-hand column to match whatever vocabulary you actually use.
+
+## External pull requests
+
+`/triage` covers external pull requests as well as issues. A pull request is
+external when its author has no write access to `Marcus100/grenmet`:
+`gh api repos/Marcus100/grenmet/collaborators/<login>/permission --jq .permission`
+returns anything below `write` (`none`, `read` or `triage`). Bot pull requests (Dependabot) are not triage work.
 
 ## Agent workflow labels
 
