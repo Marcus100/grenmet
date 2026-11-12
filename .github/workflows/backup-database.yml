@@ -425,7 +425,10 @@ jobs:
             echo "BACKUP_HEARTBEAT_URL is not a Better Stack heartbeat address" >&2
             exit 1
           fi
-          if curl --fail --silent --max-time 10 --max-redirs 0 --output /dev/null "$BACKUP_HEARTBEAT_URL"; then
+          # Passed on stdin, not as an argument, so the address never shows in the
+          # host's process list. The check above rules out quotes and newlines.
+          if printf 'url = "%s"\n' "$BACKUP_HEARTBEAT_URL" |
+            curl --config - --fail --silent --max-time 10 --max-redirs 0 --output /dev/null; then
             echo "Backup heartbeat sent"
           else
             echo "::warning::Backup succeeded, but the monitoring heartbeat was not delivered"

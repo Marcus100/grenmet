@@ -68,7 +68,7 @@ if [[ "$*" == *"SELECT COUNT"* ]]; then echo 3; fi
       // Records that a heartbeat was sent, never the credential-bearing address.
       writeFileSync(
         join(bin, "curl"),
-        '#!/bin/bash\necho "curl heartbeat" >> "$TEST_LOG"\n[[ "$TEST_CURL_FAILS" == 1 ]] && exit 22\nexit 0\n',
+        '#!/bin/bash\n[[ "$*" != *betterstack* ]] || echo "address in arguments" >> "$TEST_LOG"\ngrep -q "^url = \\"https://uptime.betterstack.com/" || exit 3\necho "curl heartbeat" >> "$TEST_LOG"\n[[ "$TEST_CURL_FAILS" == 1 ]] && exit 22\nexit 0\n',
         { mode: 0o700 }
       );
       const env = {
@@ -129,6 +129,8 @@ if [[ "$*" == *"SELECT COUNT"* ]]; then echo 3; fi
       if (heartbeats) {
         assert.ok(calls.lastIndexOf("aws s3") < calls.indexOf("curl heartbeat"));
       }
+      // The address goes to curl on stdin, never in its arguments.
+      assert.ok(!calls.includes("address in arguments"));
     } finally {
       rmSync(root, { recursive: true, force: true });
     }
@@ -148,7 +150,7 @@ function runHeartbeat(extra) {
     writeFileSync(log, "");
     writeFileSync(
       join(bin, "curl"),
-      '#!/bin/bash\necho "curl heartbeat" >> "$TEST_LOG"\n[[ "$TEST_CURL_FAILS" == 1 ]] && exit 22\nexit 0\n',
+      '#!/bin/bash\n[[ "$*" != *betterstack* ]] || echo "address in arguments" >> "$TEST_LOG"\ngrep -q "^url = \\"https://uptime.betterstack.com/" || exit 3\necho "curl heartbeat" >> "$TEST_LOG"\n[[ "$TEST_CURL_FAILS" == 1 ]] && exit 22\nexit 0\n',
       { mode: 0o700 }
     );
     const result = spawnSync("bash", ["-c", heartbeatStep.script], {
