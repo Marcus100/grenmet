@@ -1,4 +1,3 @@
-#!/usr/bin/env node
 // Renders the API route index from the committed OpenAPI document. Pure
 // functions only: no file or network I/O happens at import time. The CLI in
 // generate-route-index.mjs does the reading and writing.
@@ -19,21 +18,25 @@ function segments(path) {
   return path.split("/").filter(Boolean);
 }
 
-// Mirrors tests/test_api_conventions.py: /api/v1/<domain>/<zone>/... where the
-// zone is the fourth segment. Paths outside /api/v1 are public.
 function isVersioned(parts) {
   return parts[0] === "api" && parts[1] === "v1";
 }
 
+// ADR-0025 audience zones. The usual place is /api/v1/<domain>/<zone>/..., but
+// older routes carry the word elsewhere (/api/v1/admin/..., .../users/me/...),
+// so the zone is the first literal public, me, org or admin segment after
+// /api/v1. A {parameter} is never a zone. Paths outside /api/v1 are public.
 function zoneOf(parts) {
   if (!isVersioned(parts)) return "public";
-  return ZONES.has(parts[3]) ? parts[3] : UNKNOWN;
+  return parts.slice(2).find((part) => ZONES.has(part)) ?? UNKNOWN;
 }
 
-function domainOf(tags, parts) {
-  const tag = Array.isArray(tags) ? tags[0] : undefined;
-  if (typeof tag === "string" && tag.trim() !== "") return tag;
-  const segment = isVersioned(parts) ? parts[2] : parts[0];
+// The owning domain: the segment after /api/v1/ (it matches src/<domain>), or
+// after /api/ for unversioned paths. Tags split one domain into many labels.
+function domainOf(parts) {
+  let segment = parts[0];
+  if (isVersioned(parts)) segment = parts[2];
+  else if (parts[0] === "api") segment = parts[1];
   return segment ?? UNKNOWN;
 }
 
@@ -45,9 +48,11 @@ function authOf(operation, spec) {
 }
 
 function summaryOf(operation) {
-  const summary = typeof operation.summary === "string" ? operation.summary : "";
+  const summary =
+    typeof operation.summary === "string" ? operation.summary : "";
   return summary
     .replace(/\s*[\r\n]+\s*/gu, " ")
+    .replace(/\\/gu, "\\\\")
     .replace(/\|/gu, "\\|")
     .trim();
 }
@@ -69,15 +74,18 @@ export function collectOperations(spec) {
         auth: authOf(operation, spec),
         summary: summaryOf(operation),
         operationId:
-          typeof operation.operationId === "string" ? operation.operationId : "",
-        domain: domainOf(operation.tags, parts),
+          typeof operation.operationId === "string"
+            ? operation.operationId
+            : "",
+        domain: domainOf(parts),
       });
     }
   }
   return operations.sort(
     (a, b) =>
       compareText(a.path, b.path) ||
-      METHOD_RANK.get(a.method.toLowerCase()) - METHOD_RANK.get(b.method.toLowerCase())
+      METHOD_RANK.get(a.method.toLowerCase()) -
+        METHOD_RANK.get(b.method.toLowerCase())
   );
 }
 
@@ -89,9 +97,9 @@ function row(operation) {
 export function renderRouteIndex(spec) {
   const operations = collectOperations(spec);
   const pathCount = new Set(operations.map((operation) => operation.path)).size;
-  const domains = [...new Set(operations.map((operation) => operation.domain))].sort(
-    compareText
-  );
+  const domains = [
+    ...new Set(operations.map((operation) => operation.domain)),
+  ].sort(compareText);
 
   const lines = [
     "# API route index",

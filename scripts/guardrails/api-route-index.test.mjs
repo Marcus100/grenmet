@@ -9,7 +9,8 @@ import { fileURLToPath } from "node:url";
 import { renderRouteIndex } from "../api/route-index.mjs";
 
 const repoRoot = join(dirname(fileURLToPath(import.meta.url)), "..", "..");
-const read = (relativePath) => readFileSync(join(repoRoot, relativePath), "utf8");
+const read = (relativePath) =>
+  readFileSync(join(repoRoot, relativePath), "utf8");
 
 test("docs/api/routes.md matches apps/api/fastapi/openapi.json", () => {
   const spec = JSON.parse(read("apps/api/fastapi/openapi.json"));

@@ -19,8 +19,13 @@ export function renderFromCommittedSpec() {
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
+  const args = process.argv.slice(2);
+  if (args.length > 1 || (args.length === 1 && args[0] !== "--check")) {
+    console.error("Usage: node scripts/api/generate-route-index.mjs [--check]");
+    process.exit(2);
+  }
   const rendered = renderFromCommittedSpec();
-  if (process.argv.includes("--check")) {
+  if (args[0] === "--check") {
     let committed = null;
     try {
       committed = readFileSync(outputPath, "utf8");
