@@ -35,11 +35,11 @@ reconciling an upstream release.
 | `werkzeug` | 3.1.4 | 3.1.9 | Dependabot #389 | Transitive via `flask` |
 | `fsspec` | 2025.12.0 | 2026.6.0 | Dependabot #391 | Transitive via `pyiceberg` |
 | `multidict` | 6.7.0 | 6.9.1 | Dependabot #393 | Transitive via `yarl` |
-| `h2` | 4.3.0 | 4.4.1 | Dependabot alert (duplicate Host header, request smuggling) | Transitive via `httpx` |
-| `hpack` | 4.1.0 | 4.2.0 | Dependabot alert (unbounded integer decoding) | Transitive via `h2` |
-| `idna` | 3.11 | 3.15 | Dependabot alert (crafted internationalised names) | Transitive via `httpx`, `requests` |
-| `flask` | 3.1.2 | 3.1.3 | Dependabot alert (session missing `Vary: Cookie`) | Transitive via `pygeoapi`, which asks for plain `Flask` |
-| `pygments` | 2.19.2 | 2.20.0 | Dependabot alert (regular-expression denial of service) | Transitive via `rich` |
+| `h2` | 4.3.0 | 4.4.1 | Dependabot, GHSA-6hr6-w5qg-qmwg (duplicate Host header, request smuggling) | Transitive via `httpx` |
+| `hpack` | 4.1.0 | 4.2.0 | Dependabot, GHSA-8v8h-hg4w-mvq2 (unbounded integer decoding) | Transitive via `h2` |
+| `idna` | 3.11 | 3.15 | Dependabot, GHSA-65pc-fj4g-8rjx (crafted internationalised names) | Transitive via `httpx`, `requests` |
+| `flask` | 3.1.2 | 3.1.3 | Dependabot, GHSA-68rp-wp8r-4726 (session missing `Vary: Cookie`) | Transitive via `pygeoapi`, which asks for plain `Flask` |
+| `pygments` | 2.19.2 | 2.20.0 | Dependabot, GHSA-5239-wwwm-4pmq (regular-expression denial of service) | Transitive via `rich` |
 
 The transitive pins were first edited in place in the pip-compiled
 `requirements.txt`. The lock was then re-resolved with `pip-compile` for #722
