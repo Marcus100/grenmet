@@ -161,3 +161,17 @@ files and cutover are later slices that need their own approval.
 - Worked hours are the shift span minus `ShiftCatalog.break_minutes` (`expansion.worked_shift_hours`); never use the raw span for limits or bands. Every route that can raise the warnings wraps its `responses` in `roster.schemas.with_rule_warnings` and takes an `OverrideReason` field.
 - Overtime bands (`roster/overtime.py`, `overtime_service.py`) are hours only and computed on read. Readings and open questions: `docs/hr/roster-rules.md`. Do not copy agreement text into the repository.
 - Tests that publish fixture rosters not about rules pass `rule_override_reason`.
+
+## Splitting `payroll/service.py`
+
+`payroll/service.py` is far larger than a module should be and is deliberately not split on its own (`docs/agents/advisory-audit.md`). It imports `deductions` and `gross` at module level, while `deductions`, `gross` and `payslips` import `employee_name` and `_line_columns` back from it inside functions to avoid an import cycle. The next task that changes one of the groups below moves that group into its own module first, in a commit with no behaviour change:
+
+- **Catalogue and calendars:** `list_items`, `list_calendars`, `create_calendar`.
+- **Profiles and department settings:** `list_profiles`, `update_profile`, `list_department_settings`, `update_department_setting`.
+- **Periods:** `create_period`, `list_periods`, `period_view`, `allowed_actions`, `period_detail`.
+- **Computation from attendance, roster and holidays:** `approved_shifts`, `shift_quantities`, `_sync_run`, `_adjustments`, `compute`.
+- **Manual lines:** `add_manual_line`, `delete_manual_line`.
+- **Workflow:** `submit`, `approve`, `return_for_changes`, `finalize_review`.
+- **Export and close:** `export_csv`, `close`.
+
+Move `employee_name` and `_line_columns` to a small shared module first: that removes the function-level imports and lets the other groups move without a cycle.

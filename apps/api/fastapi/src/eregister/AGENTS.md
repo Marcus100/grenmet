@@ -92,3 +92,16 @@
 - Saved hours are `draft` and the importer cannot accept its own entries (four-eyes); another register staff member accepts. A re-run refreshes only a draft the importer itself made (its `notes` start with `cl1_import.IMPORT_NOTE_PREFIX`) that nobody reviewed (`may_update`); every other entry for that hour (observer-typed, reviewed, `qc_pending`, accepted) is left alone and listed. A rejected or superseded hour is not live, so a re-run would save a fresh draft over it. Duplicate rows for one hour and values the register would refuse block that hour instead of stopping the run.
 - Observers' values (`daily_import.py`, `scripts/import_daily_values.py`): a small CSV, one row per main-hour observation in local time (`local_time`, `rainfall_24h_mm`, `highest_temp_c`, `lowest_temp_c`, `strongest_gust_kt`, `gust_time_local`), fills what the sheet lacks. Owner: the thermometers are read at every main hour (00, 06, 12, 18 UTC = 20, 02, 08, 14 local) and the daily rainfall at 08:00 local. Tx and Tn (`s3_max_temp`, `s3_min_temp`) go on the entry at that main hour; 24 h rainfall (`s3_rainfall_24h`, four digits in tenths of mm, 9999 trace) only on the 08:00 local (12 UTC) row, anything else is refused, never moved. A gust goes into `wind_gust` (unit of that entry's wind indicator, a ten-minute gust cell) on the first observation at or after its time, and is skipped when the entry already has a 910 group. It only adds values to an unreviewed hourly-importer draft (`may_update`), re-reads each hour right before saving, never replaces a different value, lists every hour it cannot change, and warns when an hourly dry bulb in the six hours before a reading falls outside its Tx/Tn or a gust is below the mean wind. The hourly importer's `carry_over` keeps these values when it refreshes a draft (the gust only if the wind unit is unchanged).
 - The monthly statistics (`public.py`) read `s3_rainfall_24h` in its real four-digit form as well as the older three-digit form; before that, rainfall saved by the register's own rules was ignored in the totals.
+
+## Splitting `rules.py`
+
+`rules.py` is far larger than a module should be and is deliberately not split on its own (`docs/agents/advisory-audit.md`). The next task that changes one of the groups below moves that group into its own module first, in a commit with no behaviour change. `validate_synop`, `check_observation_time`, `layer_height_metres`, `past_weather_hours`, `once_per_row` and the constants other modules import stay importable from `rules`:
+
+- **Constants and code tables,** with the `Severity` enum.
+- **The `_Checker` framework** and the unit helpers.
+- **Section 1 checks:** identification, wind, visibility, barometer, clouds and layers, precipitation.
+- **Section 3 and supplementary checks:** temperature extremes, 24-hour pressure change, sunshine and ground, supplementary groups.
+- **Weather, pressure and cross-field checks:** tendency, weather indicator, dew point, fog and visibility, weather links.
+- **Entry points:** `validate_synop`, `check_observation_time`, `once_per_row`.
+
+Every check group depends on the constants and the framework, so move those two first.

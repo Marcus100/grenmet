@@ -49,3 +49,15 @@ No audit-log registration for payments tables yet (the ledger itself is the reco
 
 
 - **Service actor and consumer hooks (Bookings B6):** `create_intent` and `refund_intent` take `actor: User | None`; `None` means the system acts for an anonymous customer or a rule, and `created_by_user_id` is NULL (the org routes still pass the member). `find_by_source(organisation_id, source_type, source_id)` returns the newest intent with its captured and refunded totals; `cancel_open_intent(...)` locks it and cancels an unpaid one (returns False when it already succeeded). `_capture` enqueues an outbox topic from `PAID_TOPICS` (`bookings.deposit` -> `bookings.deposit_paid`, dedupe key = intent id) in the same transaction as the ledger charge; the consuming domain registers the handler, payments imports nothing of it. Add a source type by adding it to `PAID_TOPICS`. `PAID_TOPICS` now also maps `events.order` -> `events.order_paid` (Events paid tiers, N4b). `REFUND_TOPICS` (`events.order` -> `events.order_refunded`) enqueues a topic for every recorded refund (app refund or a provider-dashboard refund via `charge.refunded`), dedupe key = refund id, payload `intent_id`, `source_id`, `refund_id`; a source type without an entry is not told. Tests: `tests/payments/test_refund_topics.py`.
+
+## Splitting `service.py`
+
+`service.py` is far larger than a module should be and is deliberately not split on its own (`docs/agents/advisory-audit.md`). The next task that changes one of the groups below moves that group into its own module first, in a commit with no behaviour change, and keeps `service.py` re-exporting the public names (seven modules and six test files import them):
+
+- **Intents:** read, create, idempotent replay, find by source, cancel (`list_intents`, `create_intent`, `find_by_source`, `cancel_open_intent`).
+- **Ledger and capture:** `_entry`, `_capture`, `record_manual_payment`, `refund_intent`, `_emit_payment_event`.
+- **Provider callbacks:** `process_callback` and the `_apply_*`, `_locate*`, `_advance_refund`, `_record_provider_refund` helpers.
+- **Refund reconciliation job:** `reconcile_refunds`, `reconcile_recent_refunds` and their helpers.
+- **Balances, payouts and reporting:** `balances`, `create_payout`, `list_ledger`, `reconciliation`, `reconciliation_csv`.
+
+Callbacks and reconciliation both call the ledger group, so move the ledger group first.
