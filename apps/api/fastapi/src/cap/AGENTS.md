@@ -25,3 +25,16 @@ Imports point one way: `common` and `mapping` ← `public_queries` and `admin_li
 
 ## Related
 ADR-0023 (approval gate, current), ADR-0013 (bulletin linkage), ADR-0007 (CAP-XML, audit, feeds), `docs/internal/warning-operations.md`, `docs/operations/gms-products.md`, `docs/fastapi-cap-audit.md`.
+
+## Splitting `service.py`
+
+`service.py` is far larger than a module should be and is deliberately not split on its own (`docs/agents/advisory-audit.md`). It already re-exports `admin_lists.py`, `common.py` and `public_queries.py` through `__all__`, so callers import everything from `service`. The next task that changes one of the groups below moves that group into its own module first, in a commit with no behaviour change, and adds its names to the same re-export:
+
+- **Import:** `_fetch_document`, `_prepare_import`, `import_alert`.
+- **Authoring:** `create_alert`, `update_alert`, `duplicate_alert`, `issue_update`, `validate_alert`.
+- **Review and lifecycle:** `submit_alert`, `approve_alert`, `record_review`, `_transition`.
+- **Publish, cancel and expire:** `publish_alert`, `emergency_publish_alert`, `_publish`, `cancel_alert`, `expire_alert`.
+- **Child rows and payload mapping:** `_create_children`, `_replace_children`, `_create_info` and the `_*_from_payload` helpers.
+- **Feeds:** feed create, update and delete, `flag_insecure_feed`, `ingest_feed`, `ingest_all_active_feeds`.
+
+Authoring and publishing both use the child-row helpers, so move those first.
