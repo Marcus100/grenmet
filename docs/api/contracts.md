@@ -2640,6 +2640,9 @@ pnpm generate:api-client
 pnpm check:drift
 ```
 
+The full generated list of routes, with zone, auth and operation IDs, is in
+`docs/api/routes.md`; regenerate it with `pnpm generate:api-routes`.
+
 Operation IDs use a stable domain-prefixed camel-case convention such as
 `capGetAlert`, `hrCreateLeaveRequest`, and `authLogin`. They are unique public
 contract identifiers because Kubb uses them for generated clients and hooks.
