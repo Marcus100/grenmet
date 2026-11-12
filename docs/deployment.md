@@ -400,8 +400,8 @@ default 4; `1` restores one at a time):
 3. Stop and remove the old container.
 
 The `api` and `web-*` healthchecks set `start_interval: 2s`, so a new container is
-probed every 2 seconds during its start period instead of waiting a full 30-second
-interval, and each service rolls in seconds. This needs Docker Engine 25 or later:
+probed every 2 seconds during its start period, so a rolling start no longer waits
+up to 30 seconds for the first probe. This needs Docker Engine 25 or later:
 the deploy checks the engine in its `disk` phase and stops there, before anything
 changes, on an older one.
 
