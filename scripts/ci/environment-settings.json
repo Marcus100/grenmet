@@ -87,7 +87,8 @@
         "PAYMENTS_STRIPE_SUCCESS_URL": "Payments run in Stripe test mode on staging only until production payments launch (issue #1146).",
         "PULL_PARALLEL": "Optional deploy tuning (docs/deployment.md), tried on staging first; set on production or move to only.staging.",
         "ROLLING_DEPLOY": "Optional rolling deploy (docs/deployment.md), tried on staging first; set on production or move to only.staging.",
-        "ROLLOUT_PARALLEL": "Optional deploy tuning (docs/deployment.md), tried on staging first; set on production or move to only.staging."
+        "ROLLOUT_PARALLEL": "Optional deploy tuning (docs/deployment.md), tried on staging first; set on production or move to only.staging.",
+        "SENTRY_CRONS_ENABLED": "Optional worker Sentry Cron check-ins (issue #1144); off when absent. Move to shared once both environments set it."
       }
     },
     "production": {
@@ -103,6 +104,7 @@
         "WEBPUSH_VAPID_PUBLIC_KEY": "Web push keys on production only, and also set as a variable there (issue #1146)."
       },
       "variables": {
+        "SENTRY_CRONS_ENABLED": "Optional worker Sentry Cron check-ins (issue #1144); off when absent. Move to shared once both environments set it.",
         "WEBPUSH_VAPID_PUBLIC_KEY": "Web push public key on production only, and also set as a secret there (issue #1146)."
       }
     }
