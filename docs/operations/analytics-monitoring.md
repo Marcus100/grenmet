@@ -225,7 +225,11 @@ the probe runner install.
 **Secret (`production-backup` GitHub environment):** `BACKUP_HEARTBEAT_URL`. The
 daily `backup-database.yml` job runs in that environment and pings it as its last
 step, only when all seven databases were dumped, restore-checked and uploaded.
-Without the secret the job sends nothing and still passes.
+Without the secret the job sends nothing and still passes. `monitoring-maintenance.yml`
+reads a secret of the same name from the `production` environment for its own
+backup run; if that workflow is ever scheduled for production, give it a separate
+Better Stack heartbeat, because two jobs pinging one heartbeat hide each other's
+failures.
 
 ### Sentry releases, crons and alert rules
 
