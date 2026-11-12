@@ -125,6 +125,7 @@ services:
       # 16 October 2026). ddtrace is gone; the margin stays until cold starts
       # are re-measured. core.sh waits up to 300s for healthy.
       start_period: 180s
+      start_interval: 2s
       retries: 5
     depends_on:
       prestart:
@@ -506,6 +507,7 @@ services:
       timeout: 10s
       retries: 5
       start_period: 30s
+      start_interval: 2s
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.web-cms${ROUTER_SUFFIX}.rule=Host(`cms.${BASE_DOMAIN}`)"
@@ -531,6 +533,7 @@ services:
       timeout: 5s
       retries: 3
       start_period: 20s
+      start_interval: 2s
     environment:
       # Public settings read at run time (issue #1019): one image serves every environment.
       NEXT_PUBLIC_SITE_URL: https://auth.${BASE_DOMAIN}
@@ -583,6 +586,7 @@ services:
       timeout: 5s
       retries: 3
       start_period: 30s
+      start_interval: 2s
     environment:
       # Public settings read at run time (issue #1019): one image serves every environment.
       NEXT_PUBLIC_SITE_URL: https://admin.${BASE_DOMAIN}
@@ -623,6 +627,7 @@ services:
       # The readiness check queries FastAPI and both weather-product
       # services. Give migrations and API startup time to complete before probing.
       start_period: 120s
+      start_interval: 2s
     environment:
       # Public settings read at run time (issue #1019): one image serves every environment.
       NEXT_PUBLIC_SITE_URL: https://gms.${BASE_DOMAIN}
@@ -672,6 +677,7 @@ services:
       timeout: 5s
       retries: 3
       start_period: 20s
+      start_interval: 2s
     environment:
       # Public settings read at run time (issue #1019): one image serves every environment.
       NEXT_PUBLIC_SITE_URL: https://docs.${BASE_DOMAIN}
@@ -706,6 +712,7 @@ services:
       timeout: 5s
       retries: 3
       start_period: 20s
+      start_interval: 2s
     environment:
       # Public settings read at run time (issue #1019): one image serves every environment.
       NEXT_PUBLIC_SITE_URL: https://weather.${BASE_DOMAIN}
@@ -748,6 +755,7 @@ services:
       timeout: 5s
       retries: 3
       start_period: 20s
+      start_interval: 2s
     environment:
       # Public settings read at run time (issue #1019): one image serves every environment.
       NEXT_PUBLIC_SITE_URL: https://signal.${BASE_DOMAIN}
@@ -781,6 +789,7 @@ services:
       timeout: 5s
       retries: 3
       start_period: 20s
+      start_interval: 2s
     environment:
       # Public settings read at run time (issue #1019): one image serves every environment.
       NEXT_PUBLIC_SITE_URL: https://mbia.${BASE_DOMAIN}
@@ -820,6 +829,7 @@ services:
       timeout: 5s
       retries: 3
       start_period: 20s
+      start_interval: 2s
     environment:
       # Public settings read at run time (issue #1019): one image serves every environment.
       NEXT_PUBLIC_SITE_URL: https://events.${BASE_DOMAIN}
@@ -858,6 +868,7 @@ services:
       timeout: 5s
       retries: 3
       start_period: 20s
+      start_interval: 2s
     environment:
       # Public settings read at run time (issue #1019): one image serves every environment.
       NEXT_PUBLIC_SITE_URL: https://cap.${BASE_DOMAIN}
@@ -898,6 +909,7 @@ services:
       timeout: 5s
       retries: 3
       start_period: 20s
+      start_interval: 2s
     environment:
       # Public settings read at run time (issue #1019): one image serves every environment.
       NEXT_PUBLIC_SITE_URL: https://gmsdash.${BASE_DOMAIN}
@@ -934,6 +946,7 @@ services:
       timeout: 5s
       retries: 3
       start_period: 20s
+      start_interval: 2s
     environment:
       # Public settings read at run time (issue #1019): one image serves every environment.
       NEXT_PUBLIC_SITE_URL: https://bookings.${BASE_DOMAIN}

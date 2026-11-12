@@ -127,6 +127,7 @@ esac
 case "$*" in
   *"login"*"--password-stdin"*) cat > /dev/null ;;
   "info --format"*) echo /var/lib/docker ;;
+  "version --format"*) echo "\${TEST_ENGINE_VERSION-29.4.2}" ;;
   *"image prune"*) echo "Total reclaimed space: 1.2GB" ;;
   *"config --images"*)
     [[ "$TEST_FAILURE" != images ]] || exit 1
@@ -417,6 +418,20 @@ test("a failure after the project was stopped says nothing is serving", () => {
 
 // The backup gate reads the backup store, not the database, so it runs first: an
 // enforced stale-backup block must leave the previous release serving.
+test("an engine too old for healthcheck start_interval stops the deploy before anything changes", () => {
+  for (const version of ["24.0.7", "", "unknown"]) {
+    const { result, calls } = runDeploy({
+      environment: "production",
+      extraEnv: { TEST_ENGINE_VERSION: version },
+    });
+    assert.notEqual(result.status, 0, version);
+    assert.match(result.stderr, /Docker Engine 25 or later is required/u);
+    assert.equal(calls.includes("docker pull"), false, version);
+    assert.equal(calls.includes(" up -d"), false, version);
+    assert.equal(calls.includes(" down "), false, version);
+  }
+});
+
 test("an enforced stale backup blocks before the project is stopped", () => {
   const { result, calls } = runDeploy({
     environment: "production",
