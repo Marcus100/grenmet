@@ -17,7 +17,7 @@ Names are from `src/worker/main.py`.
 | Category | Jobs |
 | --- | --- |
 | Sending | `send_notification_emails`, `send_outbound_emails`, `enqueue_booking_reminders`, `send_invoice_reminders`, `run_notification_sweeps` |
-| Publishing and safety | `process_cap_jobs`, `send_wis2_publications`, `check_nhc_failures`, `check_alert_outbox` |
+| Publishing and safety | `process_cap_jobs`, `send_wis2_publications`, `check_nhc_failures`, `check_feed_freshness`, `check_alert_outbox` |
 | Clean-up | `expire_unpaid_bookings`, `expire_unpaid_event_orders`, `purge_expired_data` |
 | Fetching | `ingest_cap_feeds`, `poll_flights`, `fetch_marine_environment`, `fetch_air_environment`, `fetch_model_guidance` |
 | Outbox drains | `drain_outbox` (platform outbox, ADR-0026), `drain_events_outbox`, `sync_event_rewards` |

@@ -509,6 +509,31 @@ async def check_nhc_failures(ctx: dict[str, Any]) -> int:
         return result
 
 
+async def check_feed_freshness(ctx: dict[str, Any]) -> int:
+    """Tell people when a weather image collector has stopped finishing runs."""
+    from src.database import async_session_factory
+    from src.wxwatch import alerts, database
+
+    archive = database.create_session()
+    if archive is None:
+        return 0
+    async with archive, async_session_factory() as session:
+        try:
+            result = await alerts.notify_stale_feeds(session=session, archive=archive)
+        except Exception:
+            await operational_metrics.record_job(
+                ctx.get("redis"),
+                "check_feed_freshness",
+                str(ctx.get("job_id", "")),
+                False,
+            )
+            raise
+        await operational_metrics.record_job(
+            ctx.get("redis"), "check_feed_freshness", str(ctx.get("job_id", "")), True
+        )
+        return result
+
+
 async def check_alert_outbox(ctx: dict[str, Any]) -> int:
     """Fail loudly when due emails sit unsent, so job metrics show the alert path is stuck."""
     from datetime import timedelta
@@ -692,6 +717,7 @@ class WorkerSettings:
         release_social_posts,
         purge_expired_data,
         check_nhc_failures,
+        check_feed_freshness,
         check_alert_outbox,
         check_cap_job_failures,
         check_outbox_backlog,
@@ -770,6 +796,8 @@ class WorkerSettings:
         cron(purge_expired_data, hour=3, minute=30, run_at_startup=False),
         # NHC job failures every 5 minutes; the 1-hour window stops repeat messages.
         cron(check_nhc_failures, minute=set(range(0, 60, 5)), run_at_startup=False),
+        # Quiet weather image collectors, twice an hour; one message a day per source.
+        cron(check_feed_freshness, minute={12, 42}, run_at_startup=False),
         # Is the email outbox draining? Every 15 minutes.
         cron(check_alert_outbox, minute={0, 15, 30, 45}, run_at_startup=False),
         # CAP jobs that used all their attempts (logged as an error for Sentry).
