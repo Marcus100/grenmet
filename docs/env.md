@@ -504,7 +504,9 @@ An operator opt-in for the staging API container only; it is not in the deploy w
 | Variable | Purpose |
 |---|---|
 | `WXWATCH_API_URL` | Archive endpoint base; default `http://127.0.0.1:8000/api/v1/wxwatch` |
-| `WXWATCH_ALERT_ORGANISATION_ID` | Organisation whose notification settings choose who is told about NHC job failures; default `gaa` |
+| `WXWATCH_ALERT_ORGANISATION_ID` | Organisation whose notification settings choose who is told about NHC job failures and quiet image collectors; default `gaa` |
+| `WXWATCH_FEED_STALE_MINUTES` | A weather image collector source is reported as stale when its last finished run is older than this; default `180`, and a value under `30` is treated as `30`. Raise it, or list the source below, for a collector scheduled less often than this |
+| `WXWATCH_FEED_IGNORED_SOURCES` | Comma-separated collector sources never reported as stale, for example one paused on purpose; default empty |
 | `WXWATCH_INGEST_TOKEN` | Random secret of at least 32 characters, also configured in FastAPI |
 
 Collector `DB_*` variables are retired. Only FastAPI uses `WXWATCH_DATABASE_URL`.
