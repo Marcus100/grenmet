@@ -210,23 +210,35 @@ overrides:
   # @sentry/cloudflare, so this is mostly a developer machine exposure (the
   # vite dev server). Remove once every resolved vite is >= 8.3.3 on its own.
   "vite@~8.3.0": ">=8.3.3 <9"
+  # GHSA seroval advisories (one critical, four high, one medium): seroval
+  # < 1.6.10 is affected. solid-js 1.9.15 pins seroval ~1.5; 1.9.18 is the first
+  # solid-js that asks for a fixed seroval (~1.6.11). solid-js only arrives
+  # through @tanstack/react-query-devtools in gaa-admin, whose production
+  # build ships the devtools as a lazy chunk. Remove once the devtools resolve
+  # solid-js >= 1.9.18 on their own.
+  solid-js: ">=1.9.18 <2"
+  # GHSA-68fv-2mgg-jv7q (high): source-map-js 1.2.1 is affected; 1.2.2 is the
+  # fix. Build tooling only (postcss, css-tree, @tailwindcss/node, magicast).
+  # Remove once every dependant resolves >= 1.2.2 on its own.
+  source-map-js: ">=1.2.2 <2"
+  # Six toml advisories (high): toml < 5.0.1 is affected. remark-mdx-frontmatter
+  # 4.0.0 (under mdx-bundler, under @content-collections/mdx in commit, docs,
+  # mbia and signal) asks for ^3.0.0 and only calls `parse`; our content uses
+  # YAML front matter. Remove once remark-mdx-frontmatter depends on toml >= 5.0.1.
+  "remark-mdx-frontmatter>toml": "5.0.1"
+  # uuid < 11.1.1 (medium, buffer bounds in v3/v5/v6): mdx-bundler 10.1.1 asks
+  # for ^9.0.1 and only uses v4. Remove once mdx-bundler depends on a fixed uuid.
+  "mdx-bundler>uuid": "11.1.1"
+  # postcss-selector-parser < 6.1.5 (medium, quadratic parsing):
+  # @tailwindcss/typography 0.5.20 pins 6.0.10 exactly. Remove once it moves.
+  "@tailwindcss/typography>postcss-selector-parser": "6.1.5"
 
 # Accepted `pnpm audit --prod --audit-level high` findings, so only a NEW
-# advisory fails the daily CVE watch (issue #563). Review by 2026-11-20 and
-# remove an entry as soon as its package resolves a fixed version.
-# toml 3.0.0 (fixed in 5.0.1): reached by docs, mbia and signal through
-# @content-collections/mdx, which is content build tooling. Next standalone
-# output leaves it out of the container images, which is why image scans pass.
-# source-map-js 1.2.1 (fixed in 1.2.2): reached through @sentry/nextjs's webpack
-# plugin, also build tooling.
+# advisory fails the daily CVE watch (issue #563). Empty: toml and
+# source-map-js now resolve fixed versions through the overrides above. Add an
+# entry only with its package, reason and a review date.
 auditConfig:
-  ignoreGhsas:
-    - GHSA-82x6-q7mm-w9cf # toml
-    - GHSA-v5mp-jgw5-2x6j # toml
-    - GHSA-4qx8-w7c3-pj3p # toml
-    - GHSA-9j65-hcg3-gc64 # toml
-    - GHSA-9qmh-m7c6-f92p # toml
-    - GHSA-68fv-2mgg-jv7q # source-map-js
+  ignoreGhsas: []
 
 # Payload migration tooling expects the JavaScript compiler API. Keep the
 # application build/type-check catalog on TypeScript 7.
