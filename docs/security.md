@@ -90,7 +90,7 @@ The following are not globally implemented yet:
 - Mandatory MFA for privileged accounts and encryption of stored TOTP secrets. TOTP, recovery codes and app-scoped SSO already exist.
 - Verification of deployed Redis-backed rate limiting configuration; the implementation already supports Redis.
 - WAF or bot-protection layer.
-- A scheduled restore drill that includes the application check. One manual drill against the production backup passed on 2026-11-04 (`docs/operations/restore-drill.md`).
+- A scheduled restore drill that includes the application check. Manual drills against the production backup passed on 2026-11-04 and 2026-11-09 (`docs/operations/restore-drill.md`).
 - Formal data retention and deletion policy in code for account, HR and Events data (public-form retention is implemented, see Data retention below).
 
 Do not document these as complete controls until code or infrastructure exists.

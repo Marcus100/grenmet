@@ -99,7 +99,7 @@ The workflow uses custom-format `pg_dump`, verifies each dump by restoring into 
 
 - No repo-level ER diagram.
 - No retention rule encoded for official records (the table below). A daily personal-data purge exists (`purge_expired_data`, `src/worker/retention.py`): contact, subscriptions, feedback comments, idempotency and outbox rows, booking manage tokens.
-- The restore drill workflow (`restore-drill.yml`, ADR-0021) is manual: it has passed once against the production backup and is not scheduled yet.
+- The restore drill workflow (`restore-drill.yml`, ADR-0021) is manual: it has passed against the production backup and is not scheduled yet.
 - No cross-domain data lineage catalogue.
 - Field-level audit (`audit_entry`, `src/audit`) covers only domains that opt in (HR, billing, organisations, contacts, rewards, stores and others); aviation, forecasts and system configuration are not registered.
 

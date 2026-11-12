@@ -758,7 +758,7 @@ but they are not all deployment prerequisites:
   runtime credentials.
 - Republic ePay for Events payments; the provider contract, webhook protocol,
   and environment variables have not yet been selected.
-- External uptime uses Better Stack (ADR-0037, `scripts/monitoring/betterstack.json`). Paging beyond email and the phone app has not been selected.
+- External uptime uses Better Stack (ADR-0037, `scripts/monitoring/betterstack.json`). Alerts go by email and the Better Stack phone app (`docs/operations/analytics-monitoring.md`); no on-call paging service is set up.
 
 Do not invent credentials for dormant or unselected integrations. Add their
 variables only when the provider contract, callback/webhook endpoints, staging
