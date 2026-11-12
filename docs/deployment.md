@@ -201,7 +201,10 @@ runner labels (`staging` vs `production`).
 **Recommended spec:**
 
 - OS: Ubuntu 24.04 LTS
-- Size: 4 GB RAM / 2 vCPU minimum (size for the enabled services and measured workload)
+- Size: 4 GB RAM / 2 vCPU minimum (size for the enabled services and measured workload).
+  Both core droplets run `s-2vcpu-4gb` since 2026-11-12. At 2 GB, production had
+  used 1.9 of its 2 GB swap, with no room for the second container a rolling
+  deploy starts briefly.
 - Region: closest to your users
 - Add your SSH key at creation time
 
