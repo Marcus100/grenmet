@@ -62,7 +62,7 @@
   "pending": {
     "staging": {
       "secrets": {
-        "BACKUP_HEARTBEAT_URL": "Monitoring heartbeat on staging only; decide whether production needs it here or in production-monitoring.",
+        "BACKUP_HEARTBEAT_URL": "Staging only here: production's backup heartbeat is a secret of the production-backup environment, read by backup-database.yml.",
         "BETTERSTACK_API_TOKEN": "Monitoring token on staging only; same decision as the heartbeats.",
         "BOOKINGS_SSO_CLIENT_SECRET": "Bookings SSO client exists on staging only (issue #1146).",
         "CAP_SSO_CLIENT_SECRET": "CAP SSO client exists on staging only (issue #1146).",

@@ -215,12 +215,21 @@ then rerun with `operation=apply`. Record each returned ID in `betterstack.json`
 unpause in Better Stack and set `"paused": false` in the file.
 
 **Secrets (production GitHub environment):** `BETTERSTACK_API_TOKEN`,
-`PROBE_HEARTBEAT_URL`, `BACKUP_HEARTBEAT_URL`, `WORKER_HEARTBEAT_URL` (copy the
+`PROBE_HEARTBEAT_URL`, `WORKER_HEARTBEAT_URL` (copy the
 heartbeat URLs from Better Stack after apply; they are credentials and never live
 in the repository), and `SENTRY_AUTH_TOKEN` (needs `project:releases`) for the
 deploy marker. Variables: `SENTRY_ORG` (defaults to `grenmet`),
 `TELEMETRY_ENABLED=true` for Redis counters, `MONITORING_DEPLOY_ENABLED=true` for
 the probe runner install.
+
+**Secret (`production-backup` GitHub environment):** `BACKUP_HEARTBEAT_URL`. The
+daily `backup-database.yml` job runs in that environment and pings it as its last
+step, only when all seven databases were dumped, restore-checked and uploaded.
+Without the secret the job sends nothing and still passes. `monitoring-maintenance.yml`
+reads a secret of the same name from the `production` environment for its own
+backup run; if that workflow is ever scheduled for production, give it a separate
+Better Stack heartbeat, because two jobs pinging one heartbeat hide each other's
+failures.
 
 ### Sentry releases, crons and alert rules
 
