@@ -243,3 +243,13 @@ test("the CLI refuses an unknown argument instead of overwriting the file", () =
     assert.match(result.stderr, /Usage:/u);
   }
 });
+
+test("backticks and angle brackets in a summary are neutralised", () => {
+  const spec = {
+    paths: {
+      "/api/v1/a": { get: op("x", { summary: "use `id` <img src=x> now" }) },
+    },
+  };
+  const [record] = collectOperations(spec);
+  assert.equal(record.summary, "use \\`id\\` &lt;img src=x&gt; now");
+});

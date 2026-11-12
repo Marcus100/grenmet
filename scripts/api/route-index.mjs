@@ -47,13 +47,17 @@ function authOf(operation, spec) {
   return Array.isArray(security) && security.length > 0 ? "yes" : "no";
 }
 
+// Summaries are written by developers, but the file is rendered as Markdown:
+// escape what could break a table cell, open a code span or start an HTML tag.
 function summaryOf(operation) {
   const summary =
     typeof operation.summary === "string" ? operation.summary : "";
   return summary
     .replace(/\s*[\r\n]+\s*/gu, " ")
     .replace(/\\/gu, "\\\\")
-    .replace(/\|/gu, "\\|")
+    .replace(/[|`]/gu, "\\$&")
+    .replace(/</gu, "&lt;")
+    .replace(/>/gu, "&gt;")
     .trim();
 }
 
