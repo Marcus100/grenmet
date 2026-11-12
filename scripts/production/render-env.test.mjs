@@ -1179,6 +1179,14 @@ test("the Cloudflare switch refuses anything but true or false", () => {
   }
 });
 
+test("deploy.yml passes the Sentry crons switch from the GitHub environment", () => {
+  const workflow = readFileSync(".github/workflows/deploy.yml", "utf8");
+  assert.match(
+    workflow,
+    /^\s+SENTRY_CRONS_ENABLED: \$\{\{ vars\.SENTRY_CRONS_ENABLED \}\}$/mu
+  );
+});
+
 test("deploy.yml passes the Cloudflare switch from the GitHub environment", () => {
   const workflow = readFileSync(".github/workflows/deploy.yml", "utf8");
   assert.match(workflow, SWITCH_PASS);
