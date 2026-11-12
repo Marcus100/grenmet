@@ -38,7 +38,7 @@ src/app/
 
 `POST /api/email/render` is called **only by FastAPI** (not by browsers) to render React Email templates to HTML. Protected by `EMAIL_RENDER_SECRET` header. Uses `@barrelsgd/email-templates` package.
 
-## Passwordless sign-up and sign-in (#958)
+## Passwordless sign-up and sign-in
 
 - `/signup` and the "Continue with email" form share `EmailCodeForm`: one email, then the 6-digit code. The code creates the account on first use, verifies the email and signs the person in, then returns to `returnTo`. There is no password at sign-up and no confirm field anywhere in sign-up, activation or verify-email.
 - Password sign-in stays at `/` ("Sign in with a password instead"). Existing password accounts are unchanged.

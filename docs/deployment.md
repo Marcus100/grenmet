@@ -344,7 +344,7 @@ Verify login, return URLs, and any data-backed pages you changed.
 
 1. Open a PR from `staging` to `main`; wait for checks and merge on GitHub.
 2. Go to **Releases → Draft a new release**.
-3. Choose a new, increasing `vN.M` tag targeting `main` and publish the release.
+3. Choose a new, increasing `vX.Y.Z` tag (e.g. `v1.0.8`) targeting `main` and publish the release.
 4. Watch **Production Pipeline** build all images at that tag and deploy them.
 5. Verify the production domains and API readiness as above.
 
