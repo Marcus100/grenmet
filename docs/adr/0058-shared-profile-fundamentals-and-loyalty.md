@@ -2,8 +2,8 @@
 
 ## Status
 
-Proposed — 2026-11-13 (issue #1373). Nothing is built until the owner
-approves. The open questions at the end each carry a recommended answer.
+Accepted — 2026-11-13 (issue #1373). The owner accepted all six recommended
+answers listed under "Owner answers" at the end. Nothing here is built yet.
 
 ## Context
 
@@ -84,7 +84,7 @@ people. The first user of this is the bookings product; Events comes next.
   (recommended).**
 - **C. QR code only.** Fails when there is no phone or no signal.
 
-## Decision (proposed)
+## Decision
 
 1. **The person.** Adopt option 3. Only an account can redeem. Points credited
    from a guest booking wait until the person claims them. Claiming happens in
@@ -192,17 +192,17 @@ people. The first user of this is the bookings product; Events comes next.
 - There is one more module (`profiles`), and the outbox payload gains optional
   fields.
 
-## Open questions for the owner
+## Owner answers (13 November 2026)
 
-1. Should guests earn points that are held until they claim them?
-   **Recommended:** yes, back to 90 days.
-2. Can business staff see a customer's photo? **Recommended:** only if the
-   person turns it on for that business.
-3. Should the global personal ID be hidden from businesses? **Recommended:**
-   yes; businesses see only their own member number.
-4. What happens to unspent points when an account is deleted?
-   **Recommended:** they are forfeited, with a warning first.
-5. How long do members get to redeem when a business leaves?
-   **Recommended:** 30 days.
-6. Should a platform-wide tier come later? **Recommended:** yes, based on
-   activity only and opt-in, after Events.
+1. Guests earn points that are held until they claim them, back to 90 days.
+   Guests are never required to register to book; they are invited to
+   register afterwards, because the aim is for as many people as possible to
+   hold a Barrels account.
+2. Business staff see a customer's photo only if the person turns it on for
+   that business.
+3. The global personal ID is hidden from businesses; they see only their own
+   member number.
+4. Unspent points are forfeited when an account is deleted, with a warning
+   first.
+5. Members get 30 days to redeem when a business leaves.
+6. A platform-wide tier comes later: activity only, opt-in, after Events.
