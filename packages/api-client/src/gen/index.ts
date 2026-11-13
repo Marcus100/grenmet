@@ -12263,6 +12263,7 @@ export type {
   ProfileImagesSetMineStatus413,
   ProfileImagesSetMineStatus415,
   ProfileImagesSetMineStatus422,
+  ProfileImagesSetMineStatus429,
   ProfileImagesSetMineStatus503,
 } from "./models/ProfileImagesSetMine.js";
 export type {
@@ -22240,6 +22241,7 @@ export {
   profileImagesSetMineStatus413Schema,
   profileImagesSetMineStatus415Schema,
   profileImagesSetMineStatus422Schema,
+  profileImagesSetMineStatus429Schema,
   profileImagesSetMineStatus503Schema,
 } from "./zod/profileImagesSetMineSchema.js";
 export {

@@ -17,9 +17,12 @@ Backend and public-feed contract: `apps/api/fastapi/src/cap/AGENTS.md`.
   `/auth/callback` (needs `CAP_SSO_CLIENT_SECRET`; unset, sign-in says it is
   off). `src/proxy.ts` runs only for `/desk*` and checks the cookie exists;
   `lib/desk/gate.ts` is the real check (staff token plus `cap.alert.read`),
-  called by every page. `/desk*` and `/auth/*` send `private, no-store` and
-  `X-Robots-Tag: noindex` (`next.config.ts`). Cloudflare's cache rules
-  (`scripts/production/cloudflare-cache-rules.py`) cache static assets only and
+  called by every page. `/desk*` and `/auth/*` send `private, no-store,
+  no-transform` and `X-Robots-Tag: noindex` (`next.config.ts`);
+  `no-transform` keeps Cloudflare's Email Address Obfuscation from rewriting
+  addresses in desk HTML, which breaks React hydration (#1327). Cloudflare's
+  cache rules (`scripts/production/cloudflare-cache-rules.py`) cache static
+  assets only and
   bypass `*_session` cookies and the paths `/desk` and `/auth/`, which keeps the
   desk out. Browser calls use `@barrelsgd/api-client` with base URL
   `/desk`, through `app/desk/api/[...path]/route.ts`: an allow-list

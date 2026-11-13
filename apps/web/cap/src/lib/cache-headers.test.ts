@@ -46,7 +46,25 @@ describe("cache headers on the shared cap host", () => {
     "/auth/callback",
   ])("staff path %s is never stored and not indexed", async (path) => {
     const headers = await headersFor(path);
-    expect(headers.get("Cache-Control")).toBe("private, no-store");
+    expect(headers.get("Cache-Control")).toBe(
+      "private, no-store, no-transform"
+    );
     expect(headers.get("X-Robots-Tag")).toContain("noindex");
+  });
+
+  // Cloudflare's Email Address Obfuscation rewrites addresses in the HTML;
+  // React then finds different text and refuses to hydrate the desk (#1327).
+  // `no-transform` is the documented way to switch it off per response.
+  it.each(["/desk/new", "/desk/alerts/abc", "/desk/settings"])(
+    "staff page %s forbids the edge from rewriting its HTML",
+    async (path) => {
+      const headers = await headersFor(path);
+      expect(headers.get("Cache-Control")).toContain("no-transform");
+    }
+  );
+
+  it("public pages still allow edge transforms", async () => {
+    const headers = await headersFor("/about");
+    expect(headers.get("Cache-Control")).not.toContain("no-transform");
   });
 });

@@ -19,6 +19,8 @@ import {
   routedServices,
 } from "../ci/release-scope.mjs";
 
+const DOCKER_25_REQUIRED = /Docker Engine 25 or later is required/u;
+
 const ENOUGH_FREE_KB = 40 * 1024 * 1024;
 const RECLAIMED_LINE = /Total reclaimed space: 1\.2GB/u;
 const FREE_DISK_LINE =
@@ -425,7 +427,7 @@ test("an engine too old for healthcheck start_interval stops the deploy before a
       extraEnv: { TEST_ENGINE_VERSION: version },
     });
     assert.notEqual(result.status, 0, version);
-    assert.match(result.stderr, /Docker Engine 25 or later is required/u);
+    assert.match(result.stderr, DOCKER_25_REQUIRED);
     assert.equal(calls.includes("docker pull"), false, version);
     assert.equal(calls.includes(" up -d"), false, version);
     assert.equal(calls.includes(" down "), false, version);

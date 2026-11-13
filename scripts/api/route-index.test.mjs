@@ -4,6 +4,8 @@ import test from "node:test";
 import { fileURLToPath } from "node:url";
 import { collectOperations, renderRouteIndex } from "./route-index.mjs";
 
+const USAGE_LINE = /Usage:/u;
+
 const op = (operationId, extra = {}) => ({
   operationId,
   summary: operationId,
@@ -240,7 +242,7 @@ test("the CLI refuses an unknown argument instead of overwriting the file", () =
       encoding: "utf8",
     });
     assert.equal(result.status, 2, args.join(" "));
-    assert.match(result.stderr, /Usage:/u);
+    assert.match(result.stderr, USAGE_LINE);
   }
 });
 

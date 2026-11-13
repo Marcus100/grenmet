@@ -5,6 +5,8 @@ import test from "node:test";
 import { requiredChecks } from "./promote-images.mjs";
 import { promotionVerified } from "./promotion-verified.mjs";
 
+const NO_MATCHING_TREE = /No dev commit has tree/u;
+
 const TREE = "1".repeat(40);
 const DEV = "d".repeat(40);
 const RULESETS_TEXT = readFileSync(
@@ -48,7 +50,7 @@ test("a promotion whose tree passed every required check on dev is verified", ()
 test("code that never landed on dev runs every check", () => {
   const result = ask({ git: git({ tree: "4".repeat(40) }) });
   assert.equal(result.verified, false);
-  assert.match(result.reason, /No dev commit has tree/u);
+  assert.match(result.reason, NO_MATCHING_TREE);
 });
 
 test("a failed, cancelled or missing required check on dev runs every check", () => {

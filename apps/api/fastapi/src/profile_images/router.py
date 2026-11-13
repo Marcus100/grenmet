@@ -3,13 +3,19 @@
 import uuid
 from typing import Annotated, Any
 
-from fastapi import APIRouter, Query, Request, status
+from fastapi import APIRouter, Depends, Query, Request, status
 from fastapi.responses import RedirectResponse
 
-from src.auth.models import UserImage
+from src.auth.models import User, UserImage
 from src.dependencies import CurrentUser, OwnAccountUser, SessionDep
 from src.models import ApiError
-from src.openapi_responses import AUTHENTICATED, NOT_FOUND, ResponseMap
+from src.openapi_responses import (
+    AUTHENTICATED,
+    NOT_FOUND,
+    RateLimitedBody,
+    ResponseMap,
+)
+from src.rate_limit import limiter, visitor_address
 
 from . import images, service
 from .exceptions import (
@@ -29,6 +35,22 @@ INVALID: ResponseMap = {
     },
     422: {"model": ApiError, "description": "Not a usable JPEG, PNG or WebP photo"},
 }
+#: Uploads per minute per person (#1332): a photo is rarely changed.
+UPLOAD_LIMIT = "10/minute"
+
+
+async def _remember_uploader(request: Request, current_user: OwnAccountUser) -> User:
+    """Record who is uploading so the limit counts per person, not per address
+    (web apps call the API server-side, so many people can share one address)."""
+    request.state.photo_uploader = str(current_user.id)
+    return current_user
+
+
+def _uploader_key(request: Request) -> str:
+    uploader = getattr(request.state, "photo_uploader", None)
+    return f"photo-upload:{uploader}" if uploader else visitor_address(request)
+
+
 CONTENT_TYPES = ("image/jpeg", "image/png", "image/webp")
 IMAGE_BODY = {
     "requestBody": {
@@ -101,14 +123,24 @@ async def get_my_profile_image(
         "image/png or image/webp, up to 5 MB and 16 megapixels. The photo is "
         "turned upright, cropped square, stored as 64, 256 and 512 pixel WebP "
         "images, and its metadata (including GPS location) is removed. It is "
-        "visible at once to people who share an organisation with you."
+        "visible at once to people who share an organisation with you. At most "
+        "10 uploads a minute per person (429 after that)."
     ),
     operation_id="profileImagesSetMine",
-    responses={**AUTHENTICATED, **INVALID, **UNAVAILABLE},
+    responses={
+        **AUTHENTICATED,
+        **INVALID,
+        **UNAVAILABLE,
+        429: {"model": RateLimitedBody, "description": "Too many uploads; try later"},
+    },
     openapi_extra=IMAGE_BODY,
 )
+@limiter.limit(UPLOAD_LIMIT, key_func=_uploader_key)
 async def set_my_profile_image(
-    *, request: Request, session: SessionDep, current_user: OwnAccountUser
+    *,
+    request: Request,
+    session: SessionDep,
+    current_user: Annotated[User, Depends(_remember_uploader)],
 ) -> Any:
     raw = await _read_image_body(request)
     row = await service.set_image(session=session, user=current_user, raw=raw)

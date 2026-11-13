@@ -1466,7 +1466,7 @@ requires-dist = [
     { name = "python-json-logger", specifier = ">=2.0.0" },
     { name = "pywebpush", specifier = ">=2.5.0" },
     { name = "redis", specifier = ">=5.3.1" },
-    { name = "resend", specifier = ">=2.0.0,<3.0.0" },
+    { name = "resend", specifier = ">=2.53.1,<3.0.0" },
     { name = "scalar-fastapi", specifier = ">=1.4.4" },
     { name = "sentry-sdk", extras = ["fastapi"], specifier = ">=2.74.0,<3.0.0" },
     { name = "setuptools", specifier = ">=78.1.1" },
@@ -1909,7 +1909,7 @@ requires-dist = [
     { name = "eccodeslib", marker = "sys_platform != 'win32'", specifier = ">=2.50.0.34" },
     { name = "netcdf4", specifier = ">=1.7.5.1.post1" },
     { name = "pyproj", specifier = ">=3.7.2" },
-    { name = "pyshp", specifier = ">=3.1.7" },
+    { name = "pyshp", specifier = ">=3.1.8" },
     { name = "xarray", specifier = ">=2026.2.0" },
 ]
 
@@ -2249,7 +2249,7 @@ wheels = [
 
 [[package]]
 name = "hvplot"
-version = "0.12.2"
+version = "0.13.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "bokeh" },
@@ -2261,9 +2261,9 @@ dependencies = [
     { name = "panel" },
     { name = "param" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/f5/b4/ce73a568fc263efe84cab8de04673949c8f6596f6aeb1531ca2b75b80903/hvplot-0.12.2.tar.gz", hash = "sha256:9e29bbe65f94937d4eeaeccf33566540df936c8f9aeadfa12ea9f306d5237938", size = 7084556, upload-time = "2025-12-18T11:15:37.736Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/96/a6/e5a16e04776edfc7561990a5bc99d7e571590a123474588b7d266f7fc9c4/hvplot-0.13.0.tar.gz", hash = "sha256:e10457d215da484283e5cbf92b0d4655fde4efb04700785984de593f7e679885", size = 8048417, upload-time = "2026-11-10T10:14:35.002Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/11/cd/ec193e471780dfad60e44ded5526c123695c1354910edd537d7aa1d22094/hvplot-0.12.2-py3-none-any.whl", hash = "sha256:0687e2e4d2eeb035c437af0011922abff856054299c121914d903a02b1bb1b22", size = 180626, upload-time = "2025-12-18T11:15:35.091Z" },
+    { url = "https://files.pythonhosted.org/packages/aa/e0/a9208a596e2ddd1a9d97d0e120fba69144cbf006509732f5f18f58563cff/hvplot-0.13.0-py3-none-any.whl", hash = "sha256:32f08b55ee57459a8acdbfaab3604be8fdc4ddbf8ae88401a2d0e8316e862835", size = 251727, upload-time = "2026-11-10T10:14:32.751Z" },
 ]
 
 [[package]]
@@ -3166,16 +3166,16 @@ wheels = [
 
 [[package]]
 name = "meteostat"
-version = "2.1.6"
+version = "2.2.2"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "pandas" },
     { name = "pytz" },
     { name = "requests" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/5d/b0/ada46e9a1a591f6fc615b8b800b1ff8af6f3566c133e3f66f60910a2103f/meteostat-2.1.6.tar.gz", hash = "sha256:337be06226d82f311fd5b0de6a782b380ac0e9cc8cc38f1216a59c17740e4779", size = 59829, upload-time = "2026-11-03T11:50:24.155Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/05/85/7470f4139e30f203544585db612dd5a711c6926f1498ff44539f35a80c9b/meteostat-2.2.2.tar.gz", hash = "sha256:5602927569cd15d5fe50e710dddf87ad76c89679d0bd0ff7b1e3e1bd16d74a12", size = 65344, upload-time = "2026-11-10T08:37:47.016Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/3f/c8/27a1459f434bea34c26679c8b30fd466309accbf59c0dd0f97db83bdd889/meteostat-2.1.6-py3-none-any.whl", hash = "sha256:a8167f37840a6600bad2e8383c38ee52b6dafcaec1dbc37dbe449512eb6a5ebc", size = 95147, upload-time = "2026-11-03T11:50:23.029Z" },
+    { url = "https://files.pythonhosted.org/packages/53/5d/379cb7f88e0cbb3b23caf7d6ebd005414075794e99276c607d40e136f80e/meteostat-2.2.2-py3-none-any.whl", hash = "sha256:6b71b0854afa9b2552ff31e7217b3c79cbc28c805b5dab9e2bf0fddf83d82b83", size = 102171, upload-time = "2026-11-10T08:37:45.815Z" },
 ]
 
 [[package]]
@@ -3609,7 +3609,7 @@ requires-dist = [
     { name = "fsspec", specifier = ">=2026.6.0" },
     { name = "geopandas", specifier = ">=1.1.4" },
     { name = "herbie-data", specifier = ">=2026.10.0" },
-    { name = "hvplot", specifier = ">=0.12.2" },
+    { name = "hvplot", specifier = ">=0.13.0" },
     { name = "ipykernel", specifier = ">=7.2.0" },
     { name = "ipywidgets", specifier = ">=8.1.8" },
     { name = "jupyterlab", specifier = ">=4.6.6" },
@@ -4755,11 +4755,11 @@ wheels = [
 
 [[package]]
 name = "pyshp"
-version = "3.1.7"
+version = "3.1.8"
 source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/a6/1f/deb8f00dff4c92979e72db8f43e2d124653515385893aff7e3cf2e812a80/pyshp-3.1.7.tar.gz", hash = "sha256:bb7d91dedcf1f111c69957c0d7f76413ab21764bf719b31c2e79291da44f4469", size = 2270192, upload-time = "2026-11-07T10:24:38.59Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/a4/7f/99d68c457a688bc1999019f55114125fb35c0074d61dc8f098f76d2f502a/pyshp-3.1.8.tar.gz", hash = "sha256:ec144fdbe5bae1b99c2ef741dc68228acf7c23a67338046ad3c6fc2c8b340e65", size = 2270337, upload-time = "2026-11-09T17:22:39.117Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/79/94/19d26d3b9d496efcd532064eaf723d9bde6dbe7e045bc21bbb83bfb7f407/pyshp-3.1.7-py3-none-any.whl", hash = "sha256:13d28b2d576f124090bd09de047c435811c8a8e4c00b1cd3fe571f1331a352f7", size = 73875, upload-time = "2026-11-07T10:24:37.325Z" },
+    { url = "https://files.pythonhosted.org/packages/f4/09/6de1e1dcde35d181ff529e605f9cf4f04ec0ce0f6b42ddd0e78844b2564b/pyshp-3.1.8-py3-none-any.whl", hash = "sha256:e0308cbcf70a425c0813365c87f676274da27cd86f2dc73a8ed28f173f62807e", size = 73988, upload-time = "2026-11-09T17:22:37.971Z" },
 ]
 
 [[package]]
@@ -5416,15 +5416,15 @@ wheels = [
 
 [[package]]
 name = "resend"
-version = "2.52.0"
+version = "2.53.1"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "requests" },
     { name = "typing-extensions" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/fc/8c/910bcfbea3cb0265e3a47b45a697b6e36659be40ceb2594fd26a1d8ff23e/resend-2.52.0.tar.gz", hash = "sha256:64495f77b59968ac9ed9e1ebaa855c283a511852668b94a8852e2c6b16f9c1f1", size = 86371, upload-time = "2026-11-05T19:00:28.486Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/19/3b/9187c96343d8356813fdde7a862780d77e65747599d6880ec9f189cb7f87/resend-2.53.1.tar.gz", hash = "sha256:79aaa514f02586e09a139759466228143f0a3d175144a0c94fac21914d26cec0", size = 86541, upload-time = "2026-11-09T21:43:03.492Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/d0/ed/a9ceb6fb55ad2d3af8c3918e564c60bd86806af2dbaa73f76dbd11177f2d/resend-2.52.0-py3-none-any.whl", hash = "sha256:b36fc4123d72f7a365ab65e5c99650ba32eca945dc20324075de34da2d49ca58", size = 126397, upload-time = "2026-11-05T19:00:27.087Z" },
+    { url = "https://files.pythonhosted.org/packages/2f/a5/4dbd761411c77b7a077aa25d43a67fbe8dd3e93bb06eed62bfa15c45026c/resend-2.53.1-py3-none-any.whl", hash = "sha256:26112957d264739ec576ccc13665199a6df9b6325aa44220ff3ea4cc2ffd773d", size = 126549, upload-time = "2026-11-09T21:43:01.974Z" },
 ]
 
 [[package]]
