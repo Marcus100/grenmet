@@ -1,8 +1,8 @@
 # Leaving Vercel: plan for the three sites
 
-**Status:** Plan only; nothing here has been run  
+**Status:** Step 1 prepared in the repo; no Cloudflare project or DNS change has been made  
 **Owner:** Barrels Grenada engineering  
-**Last updated:** 2026-11-05
+**Last updated:** 2026-11-13
 
 The owner does not plan to pay for Vercel and the free tier's build limit is
 already reached (the Vercel checks on pull requests fail with "upgrade to Pro").
@@ -27,6 +27,10 @@ until its new home is verified; only then does DNS change.
 ## Order
 
 1. **Barrels homepage.** Easiest: no server code.
+   - **Done in the repo (2026-11-13):** `build.mjs` writes `dist/_headers` from
+     `vercel.json`'s headers, so Pages serves the same CSP; `site.test.mjs` checks
+     it. `vercel.json` has no redirects; the `www` to apex redirect is a Cloudflare
+     redirect rule the owner adds with the custom domain.
    - **[agent]** Confirm `node apps/web/barrels/build.mjs <turnstile site key>`
      writes everything to `dist/` with no Vercel-only features (`vercel.json`
      redirects and headers need a Pages `_redirects` and `_headers` equivalent;

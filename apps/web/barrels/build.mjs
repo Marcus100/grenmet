@@ -66,3 +66,18 @@ for (const module of ["analytics-policy", "google-analytics"]) {
 }
 writeFileSync(new URL("tokens.css", output), `:root {${tokens}\n}\n`);
 writeFileSync(new URL("robots.txt", output), "User-agent: *\nAllow: /\n");
+
+// Cloudflare Pages reads response headers from `_headers` in the output. They
+// are generated from vercel.json so both hosts serve the same policy while the
+// site moves (docs/operations/vercel-exit-plan.md); Vercel ignores this file.
+const { headers } = JSON.parse(
+  readFileSync(new URL("vercel.json", directory), "utf8")
+);
+const headerRules = headers.map((rule) => {
+  const path = rule.source === "/(.*)" ? "/*" : rule.source;
+  const lines = rule.headers.map(
+    (header) => `  ${header.key}: ${header.value}`
+  );
+  return [path, ...lines, ""].join("\n");
+});
+writeFileSync(new URL("_headers", output), headerRules.join("\n"));
