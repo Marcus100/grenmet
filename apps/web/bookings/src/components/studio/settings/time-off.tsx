@@ -60,6 +60,8 @@ export interface TimeOffSectionProps {
   exceptions: BookingExceptionPublic[];
   orgSlug: string;
   providerId: string;
+  /** The list could not be read: say so inline and offer no add form. */
+  unavailable?: boolean;
   zone: string;
 }
 
@@ -68,6 +70,7 @@ export function TimeOffSection({
   exceptions,
   orgSlug,
   providerId,
+  unavailable = false,
   zone,
 }: TimeOffSectionProps) {
   const [notice, setNotice] = useState<ActionState>(IDLE);
@@ -85,7 +88,12 @@ export function TimeOffSection({
         Dates are on the business clock ({zone}). Time off blocks bookings;
         extra hours open times outside the weekly hours.
       </p>
-      {exceptions.length === 0 ? (
+      {unavailable ? (
+        <p className="text-destructive font-medium" role="alert">
+          Time off could not be loaded. Try again later.
+        </p>
+      ) : null}
+      {!unavailable && exceptions.length === 0 ? (
         <Empty className="border-border border">
           <EmptyHeader>
             <EmptyTitle>No time off planned</EmptyTitle>
@@ -96,7 +104,8 @@ export function TimeOffSection({
             </EmptyDescription>
           </EmptyHeader>
         </Empty>
-      ) : (
+      ) : null}
+      {!unavailable && exceptions.length > 0 ? (
         <ul className="space-y-3">
           {exceptions.map((item) => {
             const span = spanLabel(item, zone);
@@ -127,9 +136,9 @@ export function TimeOffSection({
             );
           })}
         </ul>
-      )}
+      ) : null}
       <SettingsResult pending={false} state={notice} />
-      {editable ? (
+      {editable && !unavailable ? (
         <div className="border-border space-y-3 border-t pt-4">
           <h4 className="font-medium">Add time off</h4>
           <TimeOffForm orgSlug={orgSlug} providerId={providerId} zone={zone} />

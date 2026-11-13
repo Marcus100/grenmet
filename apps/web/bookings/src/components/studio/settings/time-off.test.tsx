@@ -84,6 +84,20 @@ describe("time off list", () => {
   });
 });
 
+describe("time off that could not be loaded", () => {
+  it("says so inline and offers no add form or removal", () => {
+    section({ unavailable: true, exceptions: [] });
+    expect(
+      screen.getByText("Time off could not be loaded. Try again later.")
+    ).toBeInTheDocument();
+    expect(screen.queryByText(NONE)).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: ADD })).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: REMOVE_THIS })
+    ).not.toBeInTheDocument();
+  });
+});
+
 describe("add time off", () => {
   it("clears the form and announces a saved add", async () => {
     actions.saveTimeOffAction.mockResolvedValue({
