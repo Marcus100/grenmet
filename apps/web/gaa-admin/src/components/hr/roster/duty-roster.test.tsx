@@ -16,6 +16,7 @@ import { DutyRoster } from "./duty-roster";
 const BASE = "http://localhost";
 const SAVE_ONE_LABEL = /Save \(1\)/u;
 const APPROVED_ABSENCE_LABEL = /scheduled E, Approved absence/u;
+const NOT_SCHEDULED = /, not scheduled$/u;
 
 const CATALOG = {
   data: [
@@ -292,6 +293,24 @@ describe("DutyRoster (wired)", () => {
     expect(button).toHaveTextContent("E*");
     expect(button).toHaveAttribute("title", "Scheduled E · Approved absence");
   });
+
+  it("names every grid cell and month arrow for screen readers", async () => {
+    renderRoster();
+    expect(await screen.findByText("G. Tamar")).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Previous month" })
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Next month" })
+    ).toBeInTheDocument();
+    expect(
+      screen.getAllByRole("button", { name: NOT_SCHEDULED }).length
+    ).toBeGreaterThan(0);
+    for (const button of screen.getAllByRole("button")) {
+      expect(button).toHaveAccessibleName();
+    }
+  });
+
   it("renders members, legend from the catalog, and saved assignments", async () => {
     renderRoster();
 
