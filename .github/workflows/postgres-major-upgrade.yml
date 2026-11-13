@@ -15,11 +15,11 @@ on:
         type: choice
         options: [staging, production]
       mode:
-        description: "dry-run only checks and prints the plan; upgrade stops the services and moves the data"
+        description: "dry-run only checks and prints the plan; upgrade stops the services and moves the data (or finishes a run whose data checks passed); clear-marker removes an unfinished run's marker after a rollback"
         required: true
         default: dry-run
         type: choice
-        options: [dry-run, upgrade]
+        options: [dry-run, upgrade, clear-marker]
       confirm:
         description: "Type the environment name again to confirm"
         required: true
@@ -29,12 +29,28 @@ permissions:
   contents: read
 
 jobs:
+  # The same check Deploy runs: staging only from the staging branch; production only from
+  # a v* tag on main with a published release. A wrong ref fails here, visibly, and the
+  # droplet job never starts.
+  validate-ref:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.3.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Validate trusted release reference
+        env:
+          DEPLOY_ENV: ${{ inputs.environment }}
+          INPUT_TAG: ""
+          GH_TOKEN: ${{ github.token }}
+        run: bash scripts/production/validate-ref.sh
+
   upgrade:
-    # The same refs Deploy accepts: staging from the staging branch, production from a
-    # release tag, so the script and render-env.py are the reviewed, promoted ones.
-    if: >-
-      ${{ inputs.environment == 'staging' && github.ref == 'refs/heads/staging' ||
-          inputs.environment == 'production' && startsWith(github.ref, 'refs/tags/v') }}
+    needs: validate-ref
     name: PostgreSQL upgrade ${{ inputs.mode }} on ${{ inputs.environment }}
     runs-on: [self-hosted, "${{ inputs.environment }}", core]
     timeout-minutes: 120
@@ -106,7 +122,8 @@ jobs:
           case "$UPGRADE_MODE" in
             dry-run) mode=(--dry-run) ;;
             upgrade) mode=() ;;
-            *) echo "mode must be dry-run or upgrade" >&2; exit 2 ;;
+            clear-marker) mode=(--clear-marker) ;;
+            *) echo "mode must be dry-run, upgrade or clear-marker" >&2; exit 2 ;;
           esac
           bash scripts/production/postgres-major-upgrade.sh \
             --environment "$UPGRADE_ENVIRONMENT" --confirm "$UPGRADE_CONFIRM" "${mode[@]}"
