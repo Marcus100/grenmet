@@ -22,11 +22,15 @@ const CSS_VARIABLE = /var\((--[\w-]+)\)/gu;
 const NEWSLETTER_LABEL = /<label for="newsletter-email">/u;
 const GOOGLE_TAG_MANAGER = /googletagmanager/iu;
 const CLOUDFLARE_CHALLENGES = /challenges\.cloudflare\.com/iu;
+const NOT_FOUND_TITLE = /<h1>Page not found<\/h1>/u;
+
 const PAGES = [
   "index.html",
   "services/index.html",
   "contact/index.html",
   "subscribe/status/index.html",
+  // Served with status 404 by Cloudflare Pages (and Vercel) for unknown paths.
+  "404.html",
 ];
 
 const read = (path) =>
@@ -347,4 +351,11 @@ test("Cloudflare Pages serves the same response headers as vercel.json", () => {
       `${header.key} is missing from _headers`
     );
   }
+});
+
+test("unknown paths get a real not-found page, not the homepage", () => {
+  const html = read("404.html");
+  assert.match(html, NOT_FOUND_TITLE);
+  assert.ok(html.includes('href="/"'), "links back to the homepage");
+  assert.ok(html.includes('content="noindex"'), "kept out of search results");
 });
