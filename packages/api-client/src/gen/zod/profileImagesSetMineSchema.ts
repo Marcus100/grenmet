@@ -5,7 +5,6 @@
 
 import * as z from "zod";
 import { apiErrorSchema } from "./apiErrorSchema.js";
-import { bodyProfileImagesSetMineSchema } from "./bodyProfileImagesSetMineSchema.js";
 import { profileImagePublicSchema } from "./profileImagePublicSchema.js";
 
 export const profileImagesSetMineStatus200Schema = profileImagePublicSchema;
@@ -18,6 +17,10 @@ export const profileImagesSetMineStatus403Schema = apiErrorSchema.describe(
   "Stable error envelope for documented API failures."
 );
 
+export const profileImagesSetMineStatus413Schema = z.unknown();
+
+export const profileImagesSetMineStatus415Schema = z.unknown();
+
 export const profileImagesSetMineStatus422Schema = z.unknown();
 
 export const profileImagesSetMineStatus503Schema = z.unknown();
@@ -28,8 +31,20 @@ export const profileImagesSetMineResponseSchema =
 export const profileImagesSetMineErrorSchema = z.union([
   profileImagesSetMineStatus401Schema,
   profileImagesSetMineStatus403Schema,
+  profileImagesSetMineStatus413Schema,
+  profileImagesSetMineStatus415Schema,
   profileImagesSetMineStatus422Schema,
   profileImagesSetMineStatus503Schema,
 ]);
 
-export const profileImagesSetMineBodySchema = bodyProfileImagesSetMineSchema;
+export const profileImagesSetMineBodySchemaJpeg = z.instanceof(File);
+
+export const profileImagesSetMineBodySchemaPng = z.instanceof(File);
+
+export const profileImagesSetMineBodySchemaWebp = z.instanceof(File);
+
+export const profileImagesSetMineBodySchema = z.union([
+  profileImagesSetMineBodySchemaJpeg,
+  profileImagesSetMineBodySchemaPng,
+  profileImagesSetMineBodySchemaWebp,
+]);

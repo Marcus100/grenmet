@@ -3,7 +3,7 @@
 import uuid
 from typing import Annotated, Any
 
-from fastapi import APIRouter, File, Query, UploadFile, status
+from fastapi import APIRouter, Query, Request, status
 from fastapi.responses import RedirectResponse
 
 from src.auth.models import UserImage
@@ -11,16 +11,52 @@ from src.dependencies import CurrentUser, SessionDep
 from src.openapi_responses import AUTHENTICATED, NOT_FOUND, ResponseMap
 
 from . import images, service
-from .exceptions import ProfileImageNotFoundError
+from .exceptions import (
+    ProfileImageNotFoundError,
+    ProfileImageTooLargeError,
+    ProfileImageTypeError,
+)
 from .schemas import ProfileImagePublic, ProfileImageSize
 
 router = APIRouter(prefix="/profile-images", tags=["profile-images"])
 
 INVALID: ResponseMap = {
-    422: {"description": "Not a JPEG, PNG or WebP photo, or too large"}
+    413: {"description": "Larger than 5 MB"},
+    415: {"description": "Not sent as image/jpeg, image/png or image/webp"},
+    422: {"description": "Not a usable JPEG, PNG or WebP photo"},
+}
+CONTENT_TYPES = ("image/jpeg", "image/png", "image/webp")
+IMAGE_BODY = {
+    "requestBody": {
+        "required": True,
+        "content": {
+            content_type: {"schema": {"type": "string", "format": "binary"}}
+            for content_type in CONTENT_TYPES
+        },
+    }
 }
 REDIRECT: ResponseMap = {307: {"description": "Redirect to the image"}}
 UNAVAILABLE: ResponseMap = {503: {"description": "Photo storage is not configured"}}
+
+
+async def _read_image_body(request: Request) -> bytes:
+    """The raw request body, refused as soon as it passes the size limit.
+
+    Reading the stream here (instead of a multipart form, which is parsed whole
+    before the handler runs) means an oversized upload is never buffered.
+    """
+    content_type = request.headers.get("content-type", "").split(";")[0].strip()
+    if content_type not in CONTENT_TYPES:
+        raise ProfileImageTypeError()
+    declared = request.headers.get("content-length", "")
+    if declared.isdigit() and int(declared) > images.MAX_BYTES:
+        raise ProfileImageTooLargeError()
+    body = bytearray()
+    async for chunk in request.stream():
+        body.extend(chunk)
+        if len(body) > images.MAX_BYTES:
+            raise ProfileImageTooLargeError()
+    return bytes(body)
 
 
 def _public(row: UserImage) -> ProfileImagePublic:
@@ -55,21 +91,20 @@ async def get_my_profile_image(
     response_model=ProfileImagePublic,
     summary="Upload or replace your profile photo",
     description=(
-        "JPEG, PNG or WebP up to 5 MB. The photo is cropped square, stored as "
-        "64, 256 and 512 pixel WebP images, and its metadata (including GPS "
-        "location) is removed. It is visible at once to people who share an "
-        "organisation with you."
+        "Send the image itself as the request body with Content-Type image/jpeg, "
+        "image/png or image/webp, up to 5 MB and 16 megapixels. The photo is "
+        "turned upright, cropped square, stored as 64, 256 and 512 pixel WebP "
+        "images, and its metadata (including GPS location) is removed. It is "
+        "visible at once to people who share an organisation with you."
     ),
     operation_id="profileImagesSetMine",
     responses={**AUTHENTICATED, **INVALID, **UNAVAILABLE},
+    openapi_extra=IMAGE_BODY,
 )
 async def set_my_profile_image(
-    *,
-    session: SessionDep,
-    current_user: CurrentUser,
-    file: Annotated[UploadFile, File(description="JPEG, PNG or WebP, up to 5 MB")],
+    *, request: Request, session: SessionDep, current_user: CurrentUser
 ) -> Any:
-    raw = await file.read(images.MAX_BYTES + 1)
+    raw = await _read_image_body(request)
     row = await service.set_image(session=session, user=current_user, raw=raw)
     return _public(row)
 
@@ -119,7 +154,10 @@ async def show_profile_image(
     return RedirectResponse(
         link,
         status_code=status.HTTP_307_TEMPORARY_REDIRECT,
-        headers={"Cache-Control": "private, max-age=240"},
+        headers={
+            "Cache-Control": "private, max-age=240",
+            "Vary": "Authorization, Cookie",
+        },
     )
 
 

@@ -1128,7 +1128,6 @@ export type {
 export type { BodyAuthLoginAccessToken } from "./BodyAuthLoginAccessToken.js";
 export type { BodyHrImportTerminalPunches } from "./BodyHrImportTerminalPunches.js";
 export type { BodyHrUploadDocument } from "./BodyHrUploadDocument.js";
-export type { BodyProfileImagesSetMine } from "./BodyProfileImagesSetMine.js";
 export type { BookingAgenda } from "./BookingAgenda.js";
 export type { BookingAgendaDay } from "./BookingAgendaDay.js";
 export type { BookingAgendaItem } from "./BookingAgendaItem.js";
@@ -7687,12 +7686,17 @@ export type {
 } from "./ProfileImagesRemoveMine.js";
 export type {
   ProfileImagesSetMineBody,
+  ProfileImagesSetMineBodyJpeg,
+  ProfileImagesSetMineBodyPng,
+  ProfileImagesSetMineBodyWebp,
   ProfileImagesSetMineOptions,
   ProfileImagesSetMineResponse,
   ProfileImagesSetMineResponses,
   ProfileImagesSetMineStatus200,
   ProfileImagesSetMineStatus401,
   ProfileImagesSetMineStatus403,
+  ProfileImagesSetMineStatus413,
+  ProfileImagesSetMineStatus415,
   ProfileImagesSetMineStatus422,
   ProfileImagesSetMineStatus503,
 } from "./ProfileImagesSetMine.js";

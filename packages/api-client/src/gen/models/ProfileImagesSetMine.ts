@@ -4,7 +4,6 @@
  */
 
 import type { ApiError } from "./ApiError.js";
-import type { BodyProfileImagesSetMine } from "./BodyProfileImagesSetMine.js";
 import type { ProfileImagePublic } from "./ProfileImagePublic.js";
 
 export type ProfileImagesSetMineStatus200 = ProfileImagePublic;
@@ -21,23 +20,75 @@ export type ProfileImagesSetMineStatus401 = ApiError;
  */
 export type ProfileImagesSetMineStatus403 = ApiError;
 
+export type ProfileImagesSetMineStatus413 = unknown;
+
+export type ProfileImagesSetMineStatus415 = unknown;
+
 export type ProfileImagesSetMineStatus422 = unknown;
 
 export type ProfileImagesSetMineStatus503 = unknown;
 
-export type ProfileImagesSetMineBody = BodyProfileImagesSetMine;
+/**
+ * @description
+ * Format: `binary`
+ * @type string
+ */
+export type ProfileImagesSetMineBodyJpeg = Blob;
 
-export type ProfileImagesSetMineOptions = {
-  body: ProfileImagesSetMineBody;
-  path?: never;
-  query?: never;
-  headers?: never;
-};
+/**
+ * @description
+ * Format: `binary`
+ * @type string
+ */
+export type ProfileImagesSetMineBodyPng = Blob;
+
+/**
+ * @description
+ * Format: `binary`
+ * @type string
+ */
+export type ProfileImagesSetMineBodyWebp = Blob;
+
+export type ProfileImagesSetMineBody =
+  | ProfileImagesSetMineBodyJpeg
+  | ProfileImagesSetMineBodyPng
+  | ProfileImagesSetMineBodyWebp;
+
+export type ProfileImagesSetMineOptions =
+  | {
+      body: ProfileImagesSetMineBodyJpeg;
+      path?: never;
+      query?: never;
+      headers?: never;
+      contentType?: {
+        request: "image/jpeg";
+      };
+    }
+  | {
+      body: ProfileImagesSetMineBodyPng;
+      path?: never;
+      query?: never;
+      headers?: never;
+      contentType: {
+        request: "image/png";
+      };
+    }
+  | {
+      body: ProfileImagesSetMineBodyWebp;
+      path?: never;
+      query?: never;
+      headers?: never;
+      contentType: {
+        request: "image/webp";
+      };
+    };
 
 export type ProfileImagesSetMineResponses = {
   "200": ProfileImagesSetMineStatus200;
   "401": ProfileImagesSetMineStatus401;
   "403": ProfileImagesSetMineStatus403;
+  "413": ProfileImagesSetMineStatus413;
+  "415": ProfileImagesSetMineStatus415;
   "422": ProfileImagesSetMineStatus422;
   "503": ProfileImagesSetMineStatus503;
 };

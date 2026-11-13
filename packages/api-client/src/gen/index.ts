@@ -5685,7 +5685,6 @@ export type {
 export type { BodyAuthLoginAccessToken } from "./models/BodyAuthLoginAccessToken.js";
 export type { BodyHrImportTerminalPunches } from "./models/BodyHrImportTerminalPunches.js";
 export type { BodyHrUploadDocument } from "./models/BodyHrUploadDocument.js";
-export type { BodyProfileImagesSetMine } from "./models/BodyProfileImagesSetMine.js";
 export type { BookingAgenda } from "./models/BookingAgenda.js";
 export type { BookingAgendaDay } from "./models/BookingAgendaDay.js";
 export type { BookingAgendaItem } from "./models/BookingAgendaItem.js";
@@ -12244,12 +12243,17 @@ export type {
 } from "./models/ProfileImagesRemoveMine.js";
 export type {
   ProfileImagesSetMineBody,
+  ProfileImagesSetMineBodyJpeg,
+  ProfileImagesSetMineBodyPng,
+  ProfileImagesSetMineBodyWebp,
   ProfileImagesSetMineOptions,
   ProfileImagesSetMineResponse,
   ProfileImagesSetMineResponses,
   ProfileImagesSetMineStatus200,
   ProfileImagesSetMineStatus401,
   ProfileImagesSetMineStatus403,
+  ProfileImagesSetMineStatus413,
+  ProfileImagesSetMineStatus415,
   ProfileImagesSetMineStatus422,
   ProfileImagesSetMineStatus503,
 } from "./models/ProfileImagesSetMine.js";
@@ -15663,7 +15667,6 @@ export {
 export { bodyAuthLoginAccessTokenSchema } from "./zod/bodyAuthLoginAccessTokenSchema.js";
 export { bodyHrImportTerminalPunchesSchema } from "./zod/bodyHrImportTerminalPunchesSchema.js";
 export { bodyHrUploadDocumentSchema } from "./zod/bodyHrUploadDocumentSchema.js";
-export { bodyProfileImagesSetMineSchema } from "./zod/bodyProfileImagesSetMineSchema.js";
 export { bookingAgendaDaySchema } from "./zod/bookingAgendaDaySchema.js";
 export { bookingAgendaItemSchema } from "./zod/bookingAgendaItemSchema.js";
 export { bookingAgendaSchema } from "./zod/bookingAgendaSchema.js";
@@ -22205,11 +22208,16 @@ export {
 } from "./zod/profileImagesRemoveSchema.js";
 export {
   profileImagesSetMineBodySchema,
+  profileImagesSetMineBodySchemaJpeg,
+  profileImagesSetMineBodySchemaPng,
+  profileImagesSetMineBodySchemaWebp,
   profileImagesSetMineErrorSchema,
   profileImagesSetMineResponseSchema,
   profileImagesSetMineStatus200Schema,
   profileImagesSetMineStatus401Schema,
   profileImagesSetMineStatus403Schema,
+  profileImagesSetMineStatus413Schema,
+  profileImagesSetMineStatus415Schema,
   profileImagesSetMineStatus422Schema,
   profileImagesSetMineStatus503Schema,
 } from "./zod/profileImagesSetMineSchema.js";

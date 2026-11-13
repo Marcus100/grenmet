@@ -78,10 +78,6 @@ def _jpeg_with_gps_and_rotation() -> bytes:
     return _jpeg((300, 200), exif=exif.tobytes())
 
 
-def _upload(raw: bytes, name: str = "me.jpg") -> dict[str, Any]:
-    return {"file": (name, raw, "image/jpeg")}
-
-
 # --- processing ---------------------------------------------------------------
 
 
@@ -127,7 +123,9 @@ async def test_upload_replace_and_remove_your_photo(
 
     assert (await async_client.get(f"{URL}/me", headers=headers)).status_code == 404
 
-    first = await async_client.put(f"{URL}/me", headers=headers, files=_upload(_jpeg()))
+    first = await async_client.put(
+        f"{URL}/me", content=_jpeg(), headers={**headers, "content-type": "image/jpeg"}
+    )
     assert first.status_code == 200, first.text
     body = first.json()
     assert body["sizes"] == [64, 256, 512]
@@ -136,7 +134,7 @@ async def test_upload_replace_and_remove_your_photo(
     assert all(key.startswith(f"users/{user.id}/profile-image/") for key in first_keys)
 
     second = await async_client.put(
-        f"{URL}/me", headers=headers, files=_upload(_jpeg())
+        f"{URL}/me", content=_jpeg(), headers={**headers, "content-type": "image/jpeg"}
     )
     assert second.json()["version"] != body["version"]
     assert set(store.deleted) == first_keys
@@ -153,10 +151,38 @@ async def test_a_bad_upload_answers_422_and_stores_nothing(
 ) -> None:
     user = await make_user(db_async)
     response = await async_client.put(
-        f"{URL}/me", headers=headers_for(user), files=_upload(b"plain text")
+        f"{URL}/me",
+        content=b"plain text",
+        headers={**headers_for(user), "content-type": "image/jpeg"},
     )
     assert response.status_code == 422
     assert "JPEG, PNG or WebP" in response.json()["detail"]
+    assert store.objects == {}
+
+
+async def test_other_content_types_answer_415(
+    async_client: httpx.AsyncClient, db_async: AsyncSession, store: FakeStore
+) -> None:
+    user = await make_user(db_async)
+    response = await async_client.put(
+        f"{URL}/me",
+        content=_jpeg(),
+        headers={**headers_for(user), "content-type": "multipart/form-data"},
+    )
+    assert response.status_code == 415
+    assert store.objects == {}
+
+
+async def test_an_oversized_body_answers_413_before_processing(
+    async_client: httpx.AsyncClient, db_async: AsyncSession, store: FakeStore
+) -> None:
+    user = await make_user(db_async)
+    response = await async_client.put(
+        f"{URL}/me",
+        content=b"x" * (images.MAX_BYTES + 1),
+        headers={**headers_for(user), "content-type": "image/png"},
+    )
+    assert response.status_code == 413
     assert store.objects == {}
 
 
@@ -168,7 +194,9 @@ async def test_without_storage_uploads_answer_503(
     monkeypatch.setattr(storage, "storage_service", StorageService(StorageConfig()))
     user = await make_user(db_async)
     response = await async_client.put(
-        f"{URL}/me", headers=headers_for(user), files=_upload(_jpeg())
+        f"{URL}/me",
+        content=_jpeg(),
+        headers={**headers_for(user), "content-type": "image/jpeg"},
     )
     assert response.status_code == 503
 
@@ -179,7 +207,9 @@ async def test_without_storage_uploads_answer_503(
 async def _with_photo(client: httpx.AsyncClient, session: AsyncSession) -> Any:
     owner = await make_user(session)
     response = await client.put(
-        f"{URL}/me", headers=headers_for(owner), files=_upload(_jpeg())
+        f"{URL}/me",
+        content=_jpeg(),
+        headers={**headers_for(owner), "content-type": "image/jpeg"},
     )
     assert response.status_code == 200
     return owner
@@ -333,3 +363,70 @@ async def test_the_hr_profile_links_to_the_photo(
     assert profile.json()["identity"]["avatar_url"] == (
         f"/api/v1/profile-images/org/{owner.id}?size=256&v={mine.json()['version']}"
     )
+
+
+async def _hr_over(session: AsyncSession, department_id: str) -> Any:
+    hr = await make_user(session)
+    role, _ = await make_role_with_permission(session, "hr.employment.manage")
+    await assign_role(
+        session,
+        user=hr,
+        role=role,
+        scope=RoleAssignmentScope.DEPARTMENT,
+        department_id=department_id,
+    )
+    return hr
+
+
+async def test_department_hr_removes_only_within_their_department(
+    async_client: httpx.AsyncClient, db_async: AsyncSession, store: FakeStore
+) -> None:
+    owner = await _with_photo(async_client, db_async)
+    home = await make_department(db_async)
+    other = await make_department(db_async)
+    await make_employee(db_async, user=owner, department_id=home.id)
+
+    elsewhere = await _hr_over(db_async, other.id)
+    refused = await async_client.delete(
+        f"{URL}/org/{owner.id}", headers=headers_for(elsewhere)
+    )
+    assert refused.status_code == 403
+    assert len(store.objects) == 3
+
+    same = await _hr_over(db_async, home.id)
+    removed = await async_client.delete(
+        f"{URL}/org/{owner.id}", headers=headers_for(same)
+    )
+    assert removed.status_code == 204
+    assert store.objects == {}
+
+
+async def test_a_superuser_removes_any_photo(
+    async_client: httpx.AsyncClient, db_async: AsyncSession, store: FakeStore
+) -> None:
+    owner = await _with_photo(async_client, db_async)
+    admin = await make_user(db_async, superuser=True)
+    response = await async_client.delete(
+        f"{URL}/org/{owner.id}", headers=headers_for(admin)
+    )
+    assert response.status_code == 204
+    assert store.objects == {}
+
+
+async def test_a_failed_save_deletes_the_new_files(
+    db_async: AsyncSession,
+    store: FakeStore,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from src.profile_images import service
+
+    user = await make_user(db_async)
+
+    async def broken_commit() -> None:
+        raise RuntimeError("database went away")
+
+    monkeypatch.setattr(db_async, "commit", broken_commit)
+    with pytest.raises(RuntimeError):
+        await service.set_image(session=db_async, user=user, raw=_jpeg())
+    assert store.objects == {}
+    assert len(store.deleted) == 3

@@ -11,12 +11,14 @@ who share an organisation with the owner: an active membership of the same
 platform organisation, or active employment in the same HR organisation.
 """
 
+import asyncio
 import logging
 import uuid
 from datetime import datetime
 
 from botocore.exceptions import BotoCoreError, ClientError
 from sqlalchemy import and_, exists, select
+from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import aliased
 from starlette.concurrency import run_in_threadpool
@@ -24,7 +26,12 @@ from starlette.concurrency import run_in_threadpool
 from src.auth.models import User, UserImage
 from src.auth.policy import can_act_on_user
 from src.hr.models import EmploymentRecord, EmploymentStatus
-from src.organisations.models import Membership, MembershipStatus
+from src.organisations.models import (
+    Membership,
+    MembershipStatus,
+    OrganisationStatus,
+    PlatformOrganisation,
+)
 from src.storage import service as storage
 from src.utils.datetime import utc_now
 
@@ -36,6 +43,9 @@ from .exceptions import (
 )
 
 logger = logging.getLogger(__name__)
+
+#: Photos processed at once per API process; decoding is memory heavy.
+_PROCESSING = asyncio.Semaphore(2)
 
 #: Presigned read links live this long; pages cache the redirect for less.
 READ_LINK_SECONDS = 300
@@ -75,9 +85,16 @@ async def delete_stored_files(prefix: str) -> None:
 
 
 async def set_image(*, session: AsyncSession, user: User, raw: bytes) -> UserImage:
-    """Store a new photo for ``user`` and drop the previous one."""
+    """Store a new photo for ``user`` and drop the previous one.
+
+    The files go up first under a fresh prefix; the row then points at them in
+    one statement that inserts or updates, so two uploads at once cannot fail
+    on the one-photo-per-person rule. If saving the row fails, the new files are
+    deleted again.
+    """
     _require_storage()
-    sizes = await run_in_threadpool(images.process, raw)
+    async with _PROCESSING:
+        sizes = await run_in_threadpool(images.process, raw)
     prefix = f"users/{user.id}/profile-image/{uuid.uuid4().hex}"
     for size, data in sizes.items():
         await run_in_threadpool(
@@ -86,18 +103,41 @@ async def set_image(*, session: AsyncSession, user: User, raw: bytes) -> UserIma
             data,
             content_type="image/webp",
         )
-    row = await get_image(session=session, user_id=user.id)
-    previous = row.object_key if row else None
-    if row is None:
-        row = UserImage(user_id=user.id, object_key=prefix)
-        session.add(row)
-    else:
-        row.object_key = prefix
-        row.updated_at = utc_now()
-    await session.commit()
-    await session.refresh(row)
-    if previous:
+    now = utc_now()
+    try:
+        previous = await session.scalar(
+            select(UserImage.object_key)
+            .where(UserImage.user_id == user.id)
+            .with_for_update()
+        )
+        await session.execute(
+            insert(UserImage)
+            .values(
+                id=uuid.uuid4(),
+                user_id=user.id,
+                object_key=prefix,
+                created_at=now,
+                updated_at=now,
+            )
+            .on_conflict_do_update(
+                index_elements=[UserImage.user_id],
+                set_={"object_key": prefix, "updated_at": now},
+            )
+        )
+        await session.commit()
+    except Exception:
+        await session.rollback()
+        await _delete_objects(prefix)
+        raise
+    if previous and previous != prefix:
         await _delete_objects(previous)
+    row: UserImage | None = await session.scalar(
+        select(UserImage)
+        .where(UserImage.user_id == user.id)
+        .execution_options(populate_existing=True)
+    )
+    if row is None:  # removed by a concurrent request after the commit
+        raise ProfileImageNotFoundError()
     return row
 
 
@@ -140,6 +180,8 @@ async def shares_organisation(
             theirs.user_id == owner_id,
             theirs.status == MembershipStatus.ACTIVE.value,
             theirs.organisation_id == mine.organisation_id,
+            PlatformOrganisation.id == mine.organisation_id,
+            PlatformOrganisation.status == OrganisationStatus.ACTIVE.value,
         )
     )
     my_job = aliased(EmploymentRecord)

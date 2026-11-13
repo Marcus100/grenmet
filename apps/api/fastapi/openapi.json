@@ -42492,13 +42492,26 @@
           "profile-images"
         ],
         "summary": "Upload or replace your profile photo",
-        "description": "JPEG, PNG or WebP up to 5 MB. The photo is cropped square, stored as 64, 256 and 512 pixel WebP images, and its metadata (including GPS location) is removed. It is visible at once to people who share an organisation with you.",
+        "description": "Send the image itself as the request body with Content-Type image/jpeg, image/png or image/webp, up to 5 MB and 16 megapixels. The photo is turned upright, cropped square, stored as 64, 256 and 512 pixel WebP images, and its metadata (including GPS location) is removed. It is visible at once to people who share an organisation with you.",
         "operationId": "profileImagesSetMine",
         "requestBody": {
           "content": {
-            "multipart/form-data": {
+            "image/jpeg": {
               "schema": {
-                "$ref": "#/components/schemas/Body_profileImagesSetMine"
+                "type": "string",
+                "format": "binary"
+              }
+            },
+            "image/png": {
+              "schema": {
+                "type": "string",
+                "format": "binary"
+              }
+            },
+            "image/webp": {
+              "schema": {
+                "type": "string",
+                "format": "binary"
               }
             }
           },
@@ -42516,7 +42529,7 @@
             }
           },
           "422": {
-            "description": "Not a JPEG, PNG or WebP photo, or too large"
+            "description": "Not a usable JPEG, PNG or WebP photo"
           },
           "401": {
             "description": "Missing or invalid credentials",
@@ -42537,6 +42550,12 @@
                 }
               }
             }
+          },
+          "413": {
+            "description": "Larger than 5 MB"
+          },
+          "415": {
+            "description": "Not sent as image/jpeg, image/png or image/webp"
           },
           "503": {
             "description": "Photo storage is not configured"
@@ -71382,21 +71401,6 @@
           "title"
         ],
         "title": "Body_hrUploadDocument"
-      },
-      "Body_profileImagesSetMine": {
-        "properties": {
-          "file": {
-            "type": "string",
-            "contentMediaType": "application/octet-stream",
-            "title": "File",
-            "description": "JPEG, PNG or WebP, up to 5 MB"
-          }
-        },
-        "type": "object",
-        "required": [
-          "file"
-        ],
-        "title": "Body_profileImagesSetMine"
       },
       "BookingAgenda": {
         "properties": {

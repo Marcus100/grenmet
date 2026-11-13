@@ -8,6 +8,18 @@ class ProfileImageInvalidError(AppException):
         super().__init__(message, status_code=422)
 
 
+class ProfileImageTooLargeError(AppException):
+    def __init__(self) -> None:
+        super().__init__("The photo must be 5 MB or smaller.", status_code=413)
+
+
+class ProfileImageTypeError(AppException):
+    def __init__(self) -> None:
+        super().__init__(
+            "Send the photo as image/jpeg, image/png or image/webp.", status_code=415
+        )
+
+
 class ProfileImageNotFoundError(AppException):
     def __init__(self) -> None:
         super().__init__("No profile photo.", status_code=404)

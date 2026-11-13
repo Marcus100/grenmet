@@ -15,8 +15,9 @@ MAX_BYTES = 5 * 1024 * 1024
 #: Square sizes stored for each upload, in pixels.
 SIZES: tuple[int, ...] = (64, 256, 512)
 ALLOWED_FORMATS = frozenset({"JPEG", "PNG", "WEBP"})
-#: Refuse images whose pixel count could exhaust memory when decoded.
-MAX_PIXELS = 40_000_000
+#: Refuse images whose pixel count could exhaust memory when decoded (the
+#: largest stored size is 512 px, so 16 megapixels is generous).
+MAX_PIXELS = 16_000_000
 MIN_SIDE = 32
 WEBP_QUALITY = 85
 
@@ -32,12 +33,15 @@ def process(raw: bytes) -> dict[int, bytes]:
             width, height = source.size
             if width * height > MAX_PIXELS:
                 raise ProfileImageInvalidError(
-                    "The photo has too many pixels. Use one under 40 megapixels."
+                    "The photo has too many pixels. Use one under 16 megapixels."
                 )
             if min(width, height) < MIN_SIDE:
                 raise ProfileImageInvalidError(
                     f"The photo must be at least {MIN_SIDE} pixels on each side."
                 )
+            if source.format == "JPEG":
+                # Decode at a reduced scale: the largest stored size is 512 px.
+                source.draft("RGB", (max(SIZES) * 2, max(SIZES) * 2))
             upright = ImageOps.exif_transpose(source)
             mode = "RGBA" if "A" in upright.getbands() else "RGB"
             image = upright.convert(mode)

@@ -16,6 +16,8 @@ import type {
   ProfileImagesSetMineStatus200,
   ProfileImagesSetMineStatus401,
   ProfileImagesSetMineStatus403,
+  ProfileImagesSetMineStatus413,
+  ProfileImagesSetMineStatus415,
   ProfileImagesSetMineStatus422,
   ProfileImagesSetMineStatus503,
 } from "../models/ProfileImagesSetMine.js";
@@ -26,7 +28,9 @@ export const profileImagesSetMineMutationKey = () =>
 export function profileImagesSetMineMutationOptions<TContext = unknown>(
   config: Partial<
     Omit<RequestConfig, "path" | "query" | "body" | "headers" | "url">
-  > = {}
+  > & {
+    contentType?: { request?: "image/jpeg" | "image/png" | "image/webp" };
+  } = {}
 ) {
   const mutationKey = profileImagesSetMineMutationKey();
   return mutationOptions<
@@ -34,6 +38,8 @@ export function profileImagesSetMineMutationOptions<TContext = unknown>(
     ResponseErrorConfig<
       | ProfileImagesSetMineStatus401
       | ProfileImagesSetMineStatus403
+      | ProfileImagesSetMineStatus413
+      | ProfileImagesSetMineStatus415
       | ProfileImagesSetMineStatus422
       | ProfileImagesSetMineStatus503
     >,
@@ -41,18 +47,18 @@ export function profileImagesSetMineMutationOptions<TContext = unknown>(
     TContext
   >({
     mutationKey,
-    mutationFn: async ({ body }) => {
+    mutationFn: async (variables) => {
       return profileImagesSetMine({
         ...config,
-        body,
+        ...variables,
         throwOnError: true,
-      }).unwrap();
+      } as Parameters<typeof profileImagesSetMine<true>>[0]).unwrap();
     },
   });
 }
 
 /**
- * @description JPEG, PNG or WebP up to 5 MB. The photo is cropped square, stored as 64, 256 and 512 pixel WebP images, and its metadata (including GPS location) is removed. It is visible at once to people who share an organisation with you.
+ * @description Send the image itself as the request body with Content-Type image/jpeg, image/png or image/webp, up to 5 MB and 16 megapixels. The photo is turned upright, cropped square, stored as 64, 256 and 512 pixel WebP images, and its metadata (including GPS location) is removed. It is visible at once to people who share an organisation with you.
  * @summary Upload or replace your profile photo
  * {@link /api/v1/profile-images/me}
  */
@@ -63,6 +69,8 @@ export function useProfileImagesSetMine<TContext>(
       ResponseErrorConfig<
         | ProfileImagesSetMineStatus401
         | ProfileImagesSetMineStatus403
+        | ProfileImagesSetMineStatus413
+        | ProfileImagesSetMineStatus415
         | ProfileImagesSetMineStatus422
         | ProfileImagesSetMineStatus503
       >,
@@ -71,7 +79,9 @@ export function useProfileImagesSetMine<TContext>(
     > & { client?: QueryClient };
     client?: Partial<
       Omit<RequestConfig, "path" | "query" | "body" | "headers" | "url">
-    >;
+    > & {
+      contentType?: { request?: "image/jpeg" | "image/png" | "image/webp" };
+    };
   } = {}
 ) {
   const { mutation = {}, client: config = {} } = options ?? {};
@@ -86,6 +96,8 @@ export function useProfileImagesSetMine<TContext>(
     ResponseErrorConfig<
       | ProfileImagesSetMineStatus401
       | ProfileImagesSetMineStatus403
+      | ProfileImagesSetMineStatus413
+      | ProfileImagesSetMineStatus415
       | ProfileImagesSetMineStatus422
       | ProfileImagesSetMineStatus503
     >,
@@ -98,6 +110,8 @@ export function useProfileImagesSetMine<TContext>(
     ResponseErrorConfig<
       | ProfileImagesSetMineStatus401
       | ProfileImagesSetMineStatus403
+      | ProfileImagesSetMineStatus413
+      | ProfileImagesSetMineStatus415
       | ProfileImagesSetMineStatus422
       | ProfileImagesSetMineStatus503
     >,
@@ -115,6 +129,8 @@ export function useProfileImagesSetMine<TContext>(
     ResponseErrorConfig<
       | ProfileImagesSetMineStatus401
       | ProfileImagesSetMineStatus403
+      | ProfileImagesSetMineStatus413
+      | ProfileImagesSetMineStatus415
       | ProfileImagesSetMineStatus422
       | ProfileImagesSetMineStatus503
     >,

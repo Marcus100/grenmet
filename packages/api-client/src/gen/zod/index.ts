@@ -1091,7 +1091,6 @@ export {
 export { bodyAuthLoginAccessTokenSchema } from "./bodyAuthLoginAccessTokenSchema.js";
 export { bodyHrImportTerminalPunchesSchema } from "./bodyHrImportTerminalPunchesSchema.js";
 export { bodyHrUploadDocumentSchema } from "./bodyHrUploadDocumentSchema.js";
-export { bodyProfileImagesSetMineSchema } from "./bodyProfileImagesSetMineSchema.js";
 export { bookingAgendaDaySchema } from "./bookingAgendaDaySchema.js";
 export { bookingAgendaItemSchema } from "./bookingAgendaItemSchema.js";
 export { bookingAgendaSchema } from "./bookingAgendaSchema.js";
@@ -7633,11 +7632,16 @@ export {
 } from "./profileImagesRemoveSchema.js";
 export {
   profileImagesSetMineBodySchema,
+  profileImagesSetMineBodySchemaJpeg,
+  profileImagesSetMineBodySchemaPng,
+  profileImagesSetMineBodySchemaWebp,
   profileImagesSetMineErrorSchema,
   profileImagesSetMineResponseSchema,
   profileImagesSetMineStatus200Schema,
   profileImagesSetMineStatus401Schema,
   profileImagesSetMineStatus403Schema,
+  profileImagesSetMineStatus413Schema,
+  profileImagesSetMineStatus415Schema,
   profileImagesSetMineStatus422Schema,
   profileImagesSetMineStatus503Schema,
 } from "./profileImagesSetMineSchema.js";
