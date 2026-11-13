@@ -74,7 +74,6 @@ function mountPanel(initialPhoto: typeof PHOTO | null = null) {
       email="ada@example.com"
       initialPhoto={initialPhoto}
       name="Ada Lovelace"
-      userId={PHOTO.user_id}
     />
   );
 }

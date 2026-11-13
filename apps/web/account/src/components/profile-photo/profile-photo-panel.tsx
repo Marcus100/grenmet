@@ -41,7 +41,6 @@ interface ProfilePhotoPanelProps {
   /** Null when the person has no photo, or the photo could not be checked. */
   initialPhoto: ProfileImagePublic | null;
   name: string | null;
-  userId: string;
 }
 
 interface Notice {
@@ -74,12 +73,7 @@ export function initialsFor(name: string | null, email: string): string {
   return letters || "?";
 }
 
-function PhotoPanel({
-  email,
-  initialPhoto,
-  name,
-  userId,
-}: ProfilePhotoPanelProps) {
+function PhotoPanel({ email, initialPhoto, name }: ProfilePhotoPanelProps) {
   const [photo, setPhoto] = useState<ProfileImagePublic | null>(initialPhoto);
   const [notice, setNotice] = useState<Notice | null>(null);
   const inputId = useId();
@@ -141,7 +135,7 @@ function PhotoPanel({
     <div className="flex flex-col gap-6 sm:flex-row sm:items-start">
       <Avatar className="size-24">
         {photo ? (
-          <AvatarImage alt="" src={profilePhotoSrc(userId, photo.version)} />
+          <AvatarImage alt="" src={profilePhotoSrc(photo.version)} />
         ) : null}
         <AvatarFallback className="text-lg">
           {initialsFor(name, email)}

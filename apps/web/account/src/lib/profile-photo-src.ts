@@ -7,10 +7,11 @@ const AVATAR_SIZE = 256;
  * shown from the browser cache. Loaded with a plain <img>, never next/image.
  * Client-safe: no server imports here.
  */
-export function profilePhotoSrc(userId: string, version: string): string {
+export function profilePhotoSrc(version: string): string {
   const params = new URLSearchParams({
     size: String(AVATAR_SIZE),
     v: version,
   });
-  return `/api/v1/profile-images/org/${encodeURIComponent(userId)}?${params.toString()}`;
+  // Your own photo: this app's sessions may not read anyone else's (ADR-0057).
+  return `/api/v1/profile-images/me/image?${params.toString()}`;
 }

@@ -60,7 +60,6 @@ export default async function AccountHomePage() {
           email={session.email}
           initialPhoto={photo}
           name={session.name}
-          userId={session.userId}
         />
       </section>
     </main>
