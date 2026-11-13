@@ -1,7 +1,7 @@
 import hashlib
 import logging
 import uuid
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 from urllib.parse import urlparse
 
 import feedparser
@@ -671,7 +671,67 @@ async def validate_alert(
         session=session,
         alert=await get_alert_or_404(session=session, alert_id=alert_id),
     )
-    return validate_cap_alert(alert)
+    result = validate_cap_alert(alert)
+    repeats = await _recent_repeat_warnings(session=session, public=alert)
+    if not repeats:
+        return result
+    return result.model_copy(update={"warnings": [*result.warnings, *repeats]})
+
+
+REPEAT_WINDOW = timedelta(minutes=60)
+
+
+def _content_key(public: CapAlertPublic) -> tuple[tuple[str, str, frozenset[str]], ...]:
+    return tuple(
+        (
+            info.event.strip().casefold(),
+            (info.headline or "").strip().casefold(),
+            frozenset(area.area_desc.strip().casefold() for area in info.areas),
+        )
+        for info in public.info
+    )
+
+
+async def _recent_repeat_warnings(
+    *, session: AsyncSession, public: CapAlertPublic
+) -> list[str]:
+    """Warn when a new warning repeats one published in the last hour.
+
+    Same event, headline and areas without referencing it usually means the
+    author meant an Update, and receivers would show two live warnings for one
+    hazard. A warning only, never a block. Idea from wmo-raf/cap-aggregator's
+    reissue check (ADR-0056 item 6, #1312).
+    """
+    if public.msg_type != CapMessageType.ALERT or public.references or not public.info:
+        return []
+    key = _content_key(public)
+    candidates = (
+        (
+            await session.execute(
+                select(CapAlert)
+                .where(
+                    CapAlert.id != public.id,
+                    CapAlert.lifecycle_state == CapLifecycleState.PUBLISHED,
+                    CapAlert.msg_type.in_(
+                        [CapMessageType.ALERT, CapMessageType.UPDATE]
+                    ),
+                    CapAlert.sent >= utc_now() - REPEAT_WINDOW,
+                )
+                .order_by(CapAlert.sent.desc())
+            )
+        )
+        .scalars()
+        .all()
+    )
+    for candidate in candidates:
+        if _content_key(await _to_public(session=session, alert=candidate)) == key:
+            return [
+                f"A warning with the same event, headline and areas "
+                f"({candidate.identifier}) was published at "
+                f"{candidate.sent:%H:%M} UTC. Issue an Update of it instead of a "
+                "new warning, unless this is a separate hazard."
+            ]
+    return []
 
 
 async def submit_alert(
