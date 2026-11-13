@@ -56,7 +56,10 @@ Pattern: `src/hr/leave/` (router → service → models, `schemas.py` on
 - `dependencies.py`: `valid_<thing>_id` style dependencies, exposed as `Annotated` aliases.
 - `router.py`: thin routes with `response_model`, `status_code`, `summary`,
   `description`, `tags`, `responses`, and a stable domain-prefixed operation ID.
-  Register the router in `src/main.py` if it's new.
+  A new router gets a key in `MOUNT_ORDER` (`src/domains.py`; its position is
+  its place in `openapi.json`) and is registered by the domain's
+  `src/<domain>/register.py` manifest, or in `_LEGACY_MOUNTS` in `src/main.py`
+  while the domain has no manifest yet (ADR-0031).
 - Slow or retryable side effects → an ARQ job (`src/worker/`), not `BackgroundTasks`.
 
 ## 3. Backend tests

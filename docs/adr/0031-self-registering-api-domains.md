@@ -4,6 +4,19 @@
 
 Approved by the owner 2026-10-20; build it after the observations store (ADR-0032) lands.
 
+Steps 1 to 3 built 2026-11-12: `src/domain_manifest.py` (types), `src/domains.py`
+(`DOMAINS`, `MOUNT_ORDER`, `ordered_mounts`), `main.py` mounting every router
+in one loop, and the `webhooks_out` pilot (`src/webhooks_out/register.py`).
+`openapi.json` is byte-identical. Two hidden mounts moved after the API
+routes: the `/scalar` docs page and the local-only private router (which now
+loses to any API path it shares). Step 1 changed: route and tag order are not
+snapshotted, because the CI `openapi.json` regeneration diff already proves
+them; the only snapshot is a floor (`tests/snapshots/domain_registry_floor.json`:
+tables and outbox topics must not disappear), so adding a table needs no edit.
+A new domain adds one line to `DOMAINS` and one `MOUNT_ORDER` entry per router,
+not one line in total. Tags stay in `OPENAPI_TAGS` for now. Steps 4 to 6 are
+not started.
+
 ## Context
 
 Adding an API domain means editing four shared files in `apps/api/fastapi`, so parallel domain work collides in them.
