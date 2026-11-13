@@ -84,6 +84,12 @@ let importBody: string | undefined;
 let addBody: unknown;
 let addStatus = 201;
 let reprocessBody: unknown;
+let reprocessReply = {
+  processed: 1000,
+  outcomes: { ...ZERO, recorded: 1000 },
+  remaining: 12,
+};
+let punchStatus = 200;
 let removed: string | undefined;
 
 const server = setupServer(
@@ -125,6 +131,8 @@ const server = setupServer(
   ),
   http.get(`${ATT}/terminal-punches`, ({ request }) => {
     punchQueries.push(new URL(request.url).searchParams);
+    if (punchStatus !== 200)
+      return HttpResponse.json({ detail: "Refused" }, { status: punchStatus });
     return HttpResponse.json({ data: punches, count: punches.length });
   }),
   http.get(`${ATT}/terminal-users`, () =>
@@ -169,11 +177,7 @@ const server = setupServer(
   }),
   http.post(`${ATT}/terminal-punches/reprocess`, async ({ request }) => {
     reprocessBody = await request.json();
-    return HttpResponse.json({
-      processed: 1000,
-      outcomes: { ...ZERO, recorded: 1000 },
-      remaining: 12,
-    });
+    return HttpResponse.json(reprocessReply);
   })
 );
 
@@ -193,6 +197,12 @@ beforeEach(() => {
   addBody = undefined;
   addStatus = 201;
   reprocessBody = undefined;
+  reprocessReply = {
+    processed: 1000,
+    outcomes: { ...ZERO, recorded: 1000 },
+    remaining: 12,
+  };
+  punchStatus = 200;
   removed = undefined;
 });
 afterEach(() => server.resetHandlers());
@@ -312,6 +322,59 @@ describe("TerminalWorkspace", () => {
         "Decided 1000 held punches: 1000 recorded. 12 more are waiting: decide again to continue."
       )
     );
+  });
+
+  it("says when another press would not place anything", async () => {
+    reprocessReply = {
+      processed: 1000,
+      outcomes: { ...ZERO, unmapped: 1000 },
+      remaining: 40,
+    };
+    renderWorkspace();
+    fireEvent.click(
+      await screen.findByRole("button", { name: "Decide again" })
+    );
+    await waitFor(() =>
+      expect(toast.success).toHaveBeenCalledWith(
+        "Decided 1000 held punches: 1000 with an unknown device ID. 40 more are waiting behind punches that still cannot be placed. Link their device IDs or fix the roster first."
+      )
+    );
+  });
+
+  it("clamps a hand-edited offset to what the API accepts", async () => {
+    search = "offset=999999";
+    renderWorkspace();
+    await waitFor(() => expect(punchQueries.length).toBeGreaterThan(0));
+    expect(punchQueries[0]?.get("offset")).toBe("100000");
+  });
+
+  it("goes back to the first page when the API refuses the page", async () => {
+    search = "offset=50";
+    punchStatus = 422;
+    renderWorkspace();
+    await waitFor(() =>
+      expect(replace).toHaveBeenCalledWith("/hr/terminal", { scroll: false })
+    );
+  });
+
+  it("shows an empty state when nothing needs attention", async () => {
+    punches = [];
+    renderWorkspace();
+    expect(
+      await screen.findByText("Nothing needs attention")
+    ).toBeInTheDocument();
+  });
+
+  it("pages through punches with the page kept in the URL", async () => {
+    punches = Array.from({ length: 60 }, (_, index) => ({
+      ...HELD,
+      id: `t${index}`,
+    }));
+    renderWorkspace();
+    fireEvent.click(await screen.findByRole("button", { name: "Next" }));
+    expect(replace).toHaveBeenCalledWith("/hr/terminal?offset=50", {
+      scroll: false,
+    });
   });
 
   it("links a device ID to an employee", async () => {

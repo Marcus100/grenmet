@@ -131,6 +131,13 @@ export function TerminalAttention({
 
   // A reprocess can empty a later page; step back to the last page with rows.
   const total = listQuery.data?.count;
+  // A refused page (for example a hand-edited offset) goes back to the first.
+  const listError = listQuery.error;
+  useEffect(() => {
+    if (listError && errorStatus(listError) === 422 && offset > 0)
+      onOffsetChange(0);
+  }, [listError, offset, onOffsetChange]);
+
   useEffect(() => {
     if (total !== undefined && offset > 0 && offset >= total)
       onOffsetChange(
@@ -146,10 +153,17 @@ export function TerminalAttention({
       const summary = await reprocess.mutateAsync({
         body: { department_id: departmentId },
       });
-      const more =
-        summary.remaining > 0
-          ? ` ${summary.remaining} more are waiting: decide again to continue.`
-          : "";
+      const o = summary.outcomes;
+      const placed =
+        (o.recorded ?? 0) + (o.already_recorded ?? 0) + (o.repeat ?? 0);
+      // Punches that stay held are taken first again, so another press only
+      // helps when this one placed something.
+      let more = "";
+      if (summary.remaining > 0)
+        more =
+          placed > 0
+            ? ` ${summary.remaining} more are waiting: decide again to continue.`
+            : ` ${summary.remaining} more are waiting behind punches that still cannot be placed. Link their device IDs or fix the roster first.`;
       toast.success(
         `Decided ${summary.processed} held ${summary.processed === 1 ? "punch" : "punches"}: ${countsSummary(summary.outcomes)}.${more}`
       );

@@ -17,6 +17,8 @@ import { TerminalUpload } from "./terminal-upload";
 import { TerminalUsers } from "./terminal-users";
 
 const OFFSET = /^\d{1,6}$/u;
+// The API refuses offsets above this; clamp so a hand-edited URL still loads.
+const MAX_OFFSET = 100_000;
 
 export function TerminalWorkspace() {
   const router = useRouter();
@@ -64,7 +66,9 @@ export function TerminalWorkspace() {
     ? rawOutcome
     : undefined;
   const rawOffset = params.get("offset") ?? "";
-  const offset = OFFSET.test(rawOffset) ? Number(rawOffset) : 0;
+  const offset = OFFSET.test(rawOffset)
+    ? Math.min(Number(rawOffset), MAX_OFFSET)
+    : 0;
 
   const onOffsetChange = useCallback(
     (value: number) =>

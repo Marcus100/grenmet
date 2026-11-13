@@ -187,13 +187,16 @@ export function TerminalUsers({ departmentId }: { departmentId: string }) {
         `Removed device ID ${mapping.device_user_id} from ${mapping.employee_name}`
       );
     } catch (error) {
-      if (errorStatus(error) !== 404)
+      const status = errorStatus(error);
+      if (status !== 403 && status !== 404)
         reportError(error, "hr-terminal-remove-user");
-      toast.error(
-        errorStatus(error) === 404
-          ? "This link no longer exists. The list has been refreshed."
-          : "The link was not removed. Try again."
-      );
+      let message = "The link was not removed. Try again.";
+      if (status === 404)
+        message = "This link no longer exists. The list has been refreshed.";
+      if (status === 403)
+        message =
+          "You cannot remove links in this department. You need roster management in it.";
+      toast.error(message);
     } finally {
       setRemoving(undefined);
       await invalidateAfterTerminalChange(queryClient);
