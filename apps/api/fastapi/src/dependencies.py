@@ -152,8 +152,13 @@ async def get_own_account_user(session: SessionDep, token: TokenDep) -> User:
     app = _token_app_claim(token)
     if app is not None and app not in OWN_ACCOUNT_APPS:
         raise _unauthorized("This sign-in is limited to another app")
+    # Ordinary sign-ins keep the staff-approval gate the photo routes always had;
+    # an account-app session is checked by that app's eligibility below.
     user = await get_authenticated_user(
-        session, _token_user_id(token, app=app), allow_unapproved=True, session_app=app
+        session,
+        _token_user_id(token, app=app),
+        allow_unapproved=app is not None,
+        session_app=app,
     )
     if app is None:
         from src.auth.privileged_mfa import require_privileged_mfa
