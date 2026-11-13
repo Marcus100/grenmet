@@ -11,7 +11,9 @@ This guide documents the current FastAPI contract conventions. It complements th
 The full list of operations is generated in [routes.md](routes.md). Update this
 document for behaviour and policy, and whenever you (the blast-radius check
 enforces these and names the reason):
-- Remove any endpoint, or add a public, webhook or unversioned endpoint
+- Remove any endpoint (renaming a path parameter counts), or add a public,
+  unauthenticated, webhook or unversioned endpoint
+- Change the security schemes
 - Change authentication requirements on an existing endpoint
 - Make a breaking change, or change an endpoint this document already describes
 - Change the error shape or add a new error category

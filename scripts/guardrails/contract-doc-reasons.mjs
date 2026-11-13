@@ -12,10 +12,12 @@ const keyOf = (operation) => `${operation.method} ${operation.path}`;
 
 // A fingerprint of one operation with every $ref replaced by the fingerprint of
 // its target, so a change to a schema it uses counts as a change to the route.
-// A reference cycle is cut at its second visit.
+// A reference cycle is cut at its second visit. A hash computed under a cut
+// depends on where the walk entered the cycle, so it is never memoised.
 function makeFingerprinter(spec) {
   const memo = new Map();
   const walking = new Set();
+  let cuts = 0;
   const hash = (text) => createHash("sha1").update(text).digest("hex");
 
   const resolve = (node) => {
@@ -24,19 +26,22 @@ function makeFingerprinter(spec) {
     const entries = Object.entries(node).sort(([a], [b]) =>
       a < b ? -1 : a > b ? 1 : 0
     );
-    const out = {};
-    for (const [key, value] of entries) {
-      out[key] =
-        key === "$ref" && typeof value === "string"
-          ? refHash(value)
-          : resolve(value);
-    }
-    return out;
+    // Entries as an array, never an object: a "__proto__" key cannot vanish.
+    return entries.map(([key, value]) => [
+      key,
+      key === "$ref" && typeof value === "string"
+        ? refHash(value)
+        : resolve(value),
+    ]);
   };
 
   const refHash = (ref) => {
     if (memo.has(ref)) return memo.get(ref);
-    if (walking.has(ref)) return `cycle:${ref}`;
+    if (walking.has(ref)) {
+      cuts += 1;
+      return `cycle:${ref}`;
+    }
+    const cutsBefore = cuts;
     walking.add(ref);
     let target = spec;
     for (const part of ref.replace(/^#\//u, "").split("/")) {
@@ -44,7 +49,7 @@ function makeFingerprinter(spec) {
     }
     const value = hash(JSON.stringify(resolve(target ?? null)));
     walking.delete(ref);
-    memo.set(ref, value);
+    if (cuts === cutsBefore) memo.set(ref, value);
     return value;
   };
 
@@ -68,17 +73,24 @@ function operationsOf(spec) {
   return map;
 }
 
-// A path as the contract document would write it: any {parameter} name matches.
+// A path as the contract document would write it: any {parameter} name matches,
+// and the whole path must match (so /a/x does not match /a/x-y or /a/x/{id}).
 function pathPattern(path) {
   const escaped = path
     .split(/\{[^}]*\}/u)
     .map((part) => part.replace(/[.*+?^${}()|[\]\\]/gu, "\\$&"))
     .join("\\{[^}]*\\}");
-  return new RegExp(escaped, "u");
+  return new RegExp(`(?<![\\w/-])${escaped}(?![\\w/{-])`, "u");
 }
 
+const WEBHOOK = /\/webhooks?(?:\/|$)/u;
+
+// Reachable without signing in, or a webhook: the reader of the contract
+// document needs to know, whatever zone the path is in.
 const isPublicSurface = (operation) =>
-  operation.zone === "public" || operation.path.includes("/webhooks/");
+  operation.zone === "public" ||
+  operation.auth === "no" ||
+  WEBHOOK.test(operation.path);
 
 /**
  * Reasons the contract document must change, as plain sentences. Empty means
@@ -97,7 +109,13 @@ export function contractDocReasons(before, after, contractsText) {
   }
   for (const [key, operation] of now) {
     if (!was.has(key) && isPublicSurface(operation))
-      reasons.push(`added public or webhook operation ${key}`);
+      reasons.push(`added public, unauthenticated or webhook operation ${key}`);
+  }
+  if (
+    JSON.stringify(before.components?.securitySchemes ?? null) !==
+    JSON.stringify(after.components?.securitySchemes ?? null)
+  ) {
+    reasons.push("changed the security schemes");
   }
   const { errors } = compareSpecs(before, after);
   for (const message of errors) reasons.push(`breaking change: ${message}`);

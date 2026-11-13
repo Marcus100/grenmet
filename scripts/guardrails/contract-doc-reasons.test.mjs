@@ -42,7 +42,9 @@ test("an added public, webhook or unversioned route needs an edit", () => {
       ""
     );
     assert.ok(
-      reasons.some((r) => r.startsWith("added public or webhook operation")),
+      reasons.some((r) =>
+        r.startsWith("added public, unauthenticated or webhook operation")
+      ),
       path
     );
   }
@@ -148,4 +150,117 @@ test("the committed spec compares with itself quickly and cleanly", () => {
   const started = performance.now();
   assert.deepEqual(contractDocReasons(committed, committed, contracts), []);
   assert.ok(performance.now() - started < 10_000);
+});
+
+test("an added unauthenticated route in any zone needs an edit", () => {
+  const before = spec({});
+  for (const path of [
+    "/api/v1/a/org/export",
+    "/api/v1/a/things",
+    "/api/v1/webhooks",
+  ]) {
+    const after = spec({ [path]: { get: op("x", { security: [] }) } });
+    assert.ok(
+      contractDocReasons(before, after, "").some((r) =>
+        r.startsWith("added public, unauthenticated or webhook operation")
+      ),
+      path
+    );
+  }
+});
+
+test("a change to the security schemes needs an edit", () => {
+  const before = spec(
+    {},
+    { securitySchemes: { bearer: { type: "http", scheme: "bearer" } } }
+  );
+  const after = spec(
+    {},
+    {
+      securitySchemes: {
+        bearer: { type: "apiKey", in: "header", name: "X-Key" },
+      },
+    }
+  );
+  assert.ok(
+    contractDocReasons(before, after, "").includes(
+      "changed the security schemes"
+    )
+  );
+});
+
+test("a change inside a two-schema cycle reaches every route that uses it", () => {
+  const response = (name) => ({
+    200: {
+      description: "OK",
+      content: {
+        "application/json": {
+          schema: { $ref: `#/components/schemas/${name}` },
+        },
+      },
+    },
+  });
+  const schemas = (extra) => ({
+    A: {
+      type: "object",
+      properties: { b: { $ref: "#/components/schemas/B" }, ...extra },
+    },
+    B: {
+      type: "object",
+      properties: { a: { $ref: "#/components/schemas/A" } },
+    },
+  });
+  const paths = {
+    "/api/v1/a/org/x": { get: op("x", { responses: response("A") }) },
+    "/api/v1/a/org/y": { get: op("y", { responses: response("B") }) },
+  };
+  const before = spec(paths, { schemas: schemas({}) });
+  const after = spec(paths, { schemas: schemas({ note: { type: "string" } }) });
+  const reasons = contractDocReasons(
+    before,
+    after,
+    "`/api/v1/a/org/x` and `/api/v1/a/org/y`"
+  );
+  assert.ok(reasons.some((r) => r.startsWith("changed GET /api/v1/a/org/x,")));
+  assert.ok(reasons.some((r) => r.startsWith("changed GET /api/v1/a/org/y,")));
+});
+
+test("the described-path match needs the whole path", () => {
+  const path = "/api/v1/a/org/x";
+  const before = spec({ [path]: { get: op("x") } });
+  const after = spec({ [path]: { get: op("x", { summary: "changed" }) } });
+  for (const text of [
+    "`/api/v1/a/org/x-y`",
+    "`/api/v1/a/org/x/{id}`",
+    "`/api/v1/a/org/xyz`",
+  ]) {
+    assert.deepEqual(contractDocReasons(before, after, text), [], text);
+  }
+  assert.equal(
+    contractDocReasons(before, after, "`GET /api/v1/a/org/x`").length,
+    1
+  );
+});
+
+test("a schema property named __proto__ still counts", () => {
+  const responses = (type) => ({
+    200: {
+      description: "OK",
+      content: {
+        "application/json": {
+          schema: JSON.parse(
+            `{"type":"object","properties":{"__proto__":{"type":"${type}"}}}`
+          ),
+        },
+      },
+    },
+  });
+  const path = "/api/v1/a/org/x";
+  const before = spec({
+    [path]: { get: op("x", { responses: responses("string") }) },
+  });
+  const after = spec({
+    [path]: { get: op("x", { responses: responses("integer") }) },
+  });
+  assert.ok(contractDocReasons(before, after, path).length > 0);
 });

@@ -236,7 +236,10 @@ test("a new public route requires the contract document", (t) => {
     { "/api/v1/weather/public/latest": { get: op("latest", { security: [] }) } }
   );
   assert.equal(result.status, 1);
-  assert.match(result.stderr, /added public or webhook operation/u);
+  assert.match(
+    result.stderr,
+    /added public, unauthenticated or webhook operation/u
+  );
 });
 
 test("changed authentication requires the contract document", (t) => {

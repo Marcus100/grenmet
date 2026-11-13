@@ -693,9 +693,9 @@ const contractDocumentReasons = (comparison) => {
       contractsText = "";
     }
     return contractDocReasons(before, after, contractsText);
-  } catch {
+  } catch (error) {
     return [
-      "the OpenAPI document could not be read at both ends of the change",
+      `the OpenAPI document could not be read at both ends of the change (${error instanceof Error ? error.message : "unknown error"})`,
     ];
   }
 };

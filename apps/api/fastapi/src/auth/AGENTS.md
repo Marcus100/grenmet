@@ -38,7 +38,7 @@
 ## Change checklist
 - New permission → add to `PERMISSIONS`, default role grants if needed, gate the UI in gaa-admin, and add a test.
 - Session/cookie behaviour → verify `packages/auth`, `apps/web/auth`, and every delegating app (root Blast-Radius table).
-- Route changes → `openapi.json`, client regen, `pnpm generate:api-routes`; `docs/api/contracts.md` when the blast-radius check asks (auth changes always do).
+- Route changes → `openapi.json`, client regen, `pnpm generate:api-routes`; `docs/api/contracts.md` when the blast-radius check asks (it always does when an operation's security or the security schemes change).
 
 ## Account apps (join and leave)
 `barrels-admin` (Barrels control plane, `apps/web/admin`) is a staff-scope app with `AppDefinition.superuser_only`: staff tokens, but only active superusers pass `app.allows(user)` at handoff, session exchange/refresh, account "Join" and the account app list (non-superusers get 403 "Barrels staff only", never an access request). Tests: `tests/auth/test_app_handoff.py`.
